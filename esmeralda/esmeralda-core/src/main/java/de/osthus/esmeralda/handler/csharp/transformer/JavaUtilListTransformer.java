@@ -16,5 +16,6 @@ public class JavaUtilListTransformer extends AbstractMethodTransformerExtension
 		super.afterPropertiesSet();
 
 		mapTransformation(java.util.List.class, "size", "System.Collections.ICollection", "Count", true);
+		mapTransformation(java.util.List.class, "get", "System.Collections.Generic.IList", "idx[]", false, int.class).setIndexedInvocation(true);
 	}
 }

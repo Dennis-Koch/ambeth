@@ -4,6 +4,8 @@ import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.regex.Matcher;
 
 import de.osthus.ambeth.collections.HashMap;
@@ -12,13 +14,13 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.util.ReflectUtil;
-import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.CodeVisitor;
+import de.osthus.esmeralda.IClassInfoManager;
 import de.osthus.esmeralda.handler.uni.expr.MockVariableElement;
 import demo.codeanalyzer.common.model.BaseJavaClassModelInfo;
 import demo.codeanalyzer.common.model.FieldInfo;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.MethodInfo;
-import demo.codeanalyzer.helper.ClassInfoDataSetter;
 
 public class ClassInfoFactory implements IClassInfoFactory
 {
@@ -42,7 +44,10 @@ public class ClassInfoFactory implements IClassInfoFactory
 	private ILogger log;
 
 	@Autowired
-	protected IConversionContext context;
+	protected IASTHelper astHelper;
+
+	@Autowired
+	protected IClassInfoManager classInfoManager;
 
 	protected final Reference<Class<?>> emptyR = new WeakReference<Class<?>>(null);
 
@@ -54,15 +59,15 @@ public class ClassInfoFactory implements IClassInfoFactory
 		if (fqName.endsWith("[]"))
 		{
 			String componentName = fqName.substring(0, fqName.length() - 2);
-			JavaClassInfo componentCI = context.resolveClassInfo(componentName, true);
+			JavaClassInfo componentCI = classInfoManager.resolveClassInfo(componentName, true);
 			if (componentCI == null)
 			{
 				return null;
 			}
-			JavaClassInfo ci = new JavaClassInfo(context);
-			ci.setArray(true);
+			JavaClassInfo ci = new JavaClassInfo(classInfoManager);
 			ci.setPackageName(componentCI.getPackageName());
 			ci.setName(componentCI.getName() + "[]");
+			ci.setComponentType(componentCI);
 			ci.setNameOfSuperClass(Object.class.getName());
 
 			FieldInfo lengthField = new FieldInfo();
@@ -72,22 +77,47 @@ public class ClassInfoFactory implements IClassInfoFactory
 			ci.addField(lengthField);
 			return ci;
 		}
-		JavaClassInfo classInfo = new JavaClassInfo(context);
+		JavaClassInfo classInfo = new JavaClassInfo(classInfoManager);
 
 		Class<?> type = loadClass(fqName);
 		if (type == null)
 		{
 			return null;
 		}
+		TypeVariable<?>[] typeParameters = type.getTypeParameters();
+		JavaClassInfo[] typeArguments = null;
+		boolean first = true;
+		boolean hasNullTypeArgument = true;
+		for (int a = 0, size = typeParameters.length; a < size; a++)
+		{
+			TypeVariable<?> typeParameter = typeParameters[a];
+			if (first)
+			{
+				first = false;
+				typeArguments = new JavaClassInfo[typeParameters.length];
+			}
+			Type boundsType = typeParameter.getBounds()[0];
+			if (!(boundsType instanceof Class))
+			{
+				log.warn("Boundary not yet handled: " + boundsType + " on type " + type.getName());
+				hasNullTypeArgument = true;
+			}
+			else
+			{
+				typeArguments[a] = classInfoManager.resolveClassInfo(((Class<?>) boundsType).getName());
+			}
+		}
+		classInfo.setName(buildSimpleNameOfType(type));
+		classInfo.setNonGenericName(astHelper.extractNonGenericType(classInfo.getName()));
+
+		if (!hasNullTypeArgument)
+		{
+			classInfo.setTypeArguments(typeArguments);
+		}
+
 		if (type.getPackage() != null)
 		{
 			classInfo.setPackageName(type.getPackage().getName());
-			int packageNameLength = classInfo.getPackageName().length();
-			classInfo.setName(type.getName().substring(packageNameLength + 1));
-		}
-		else
-		{
-			classInfo.setName(type.getName());
 		}
 		if (type.getSuperclass() != null)
 		{
@@ -112,6 +142,41 @@ public class ClassInfoFactory implements IClassInfoFactory
 			classInfo.addMethod(mockMethod(classInfo, declaredMethod));
 		}
 		return classInfo;
+	}
+
+	protected String buildSimpleNameOfType(Class<?> type)
+	{
+		StringBuilder nameSB = new StringBuilder();
+		Class<?> enclosingClass = type.getEnclosingClass();
+		while (enclosingClass != null)
+		{
+			nameSB.insert(0, enclosingClass.getSimpleName());
+			nameSB.append('.');
+			enclosingClass = enclosingClass.getEnclosingClass();
+		}
+		nameSB.append(type.getSimpleName());
+
+		TypeVariable<?>[] typeParameters = type.getTypeParameters();
+		boolean first = true;
+		for (int a = 0, size = typeParameters.length; a < size; a++)
+		{
+			TypeVariable<?> typeParameter = typeParameters[a];
+			if (first)
+			{
+				first = false;
+				nameSB.append('<');
+			}
+			else
+			{
+				nameSB.append(',');
+			}
+			nameSB.append(typeParameter.getName());
+		}
+		if (!first)
+		{
+			nameSB.append('>');
+		}
+		return nameSB.toString();
 	}
 
 	protected Class<?> loadClass(String fqTypeName)
@@ -151,7 +216,7 @@ public class ClassInfoFactory implements IClassInfoFactory
 			alreadyTriedNames.put(fqTypeName, emptyR);
 			// Intended blank
 		}
-		Matcher matcher = ClassInfoDataSetter.fqPattern.matcher(fqTypeName);
+		Matcher matcher = CodeVisitor.fqPattern.matcher(fqTypeName);
 		if (!matcher.matches())
 		{
 			return null;
@@ -169,8 +234,14 @@ public class ClassInfoFactory implements IClassInfoFactory
 	protected FieldInfo mockField(JavaClassInfo owner, java.lang.reflect.Field field)
 	{
 		FieldInfo fi = new FieldInfo();
+		StringBuilder tempSB = new StringBuilder();
 		fi.setName(field.getName());
-		fi.setFieldType(field.getType().getName());
+		if (field.getType().getPackage() != null)
+		{
+			tempSB.append(field.getType().getPackage().getName()).append('.');
+		}
+		tempSB.append(buildSimpleNameOfType(field.getType()));
+		fi.setFieldType(tempSB.toString());
 		fi.setOwningClass(owner);
 		setModifiers(field.getModifiers(), fi);
 		return fi;
@@ -206,9 +277,17 @@ public class ClassInfoFactory implements IClassInfoFactory
 
 	protected MethodInfo mockMethod(JavaClassInfo owner, java.lang.reflect.Method method)
 	{
+		StringBuilder tempSB = new StringBuilder();
+
 		MethodInfo mi = new MethodInfo();
 		mi.setName(method.getName());
-		mi.setReturnType(method.getReturnType().getName());
+
+		if (method.getReturnType().getPackage() != null)
+		{
+			tempSB.append(method.getReturnType().getPackage().getName()).append('.');
+		}
+		tempSB.append(buildSimpleNameOfType(method.getReturnType()));
+		mi.setReturnType(tempSB.toString());
 		mi.setOwningClass(owner);
 		setModifiers(method.getModifiers(), mi);
 		Class<?>[] parameterTypes = method.getParameterTypes();
@@ -216,14 +295,14 @@ public class ClassInfoFactory implements IClassInfoFactory
 		{
 			final String parameterName = "arg" + a;
 			Class<?> parameterType = parameterTypes[a];
-			StringBuilder parameterTypeSB = new StringBuilder();
+			tempSB.setLength(0);
 			while (parameterType.isArray())
 			{
 				parameterType = parameterType.getComponentType();
-				parameterTypeSB.append("[]");
+				tempSB.append("[]");
 			}
-			parameterTypeSB.insert(0, parameterType.getName());
-			final String parameterTypeToString = parameterTypeSB.toString();
+			tempSB.insert(0, parameterType.getName());
+			final String parameterTypeToString = tempSB.toString();
 
 			mi.addParameters(new MockVariableElement(parameterName, parameterTypeToString));
 		}

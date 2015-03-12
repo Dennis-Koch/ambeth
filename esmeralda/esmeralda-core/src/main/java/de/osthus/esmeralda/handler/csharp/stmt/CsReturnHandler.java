@@ -8,6 +8,7 @@ import com.sun.tools.javac.tree.JCTree.JCReturn;
 
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.AbstractStatementHandler;
@@ -34,22 +35,39 @@ public class CsReturnHandler extends AbstractStatementHandler<JCReturn> implemen
 
 		writer.append("return");
 
-		JCExpression initializer = tree.getExpression();
+		final JCExpression initializer = tree.getExpression();
 		if (initializer != null)
 		{
 			writer.append(" ");
 
 			String returnType = method.getReturnType();
 			List<TypeParameterTree> allTypeParameters = astHelper.resolveAllTypeParameters();
-			for (TypeParameterTree typeParameter : allTypeParameters)
+			if (allTypeParameters.size() > 0)
 			{
-				if (!typeParameter.getName().contentEquals(returnType))
+				String typeOnStack = astHelper.writeToStash(new IResultingBackgroundWorkerDelegate<String>()
 				{
-					continue;
+					@Override
+					public String invoke() throws Throwable
+					{
+						IConversionContext context = CsReturnHandler.this.context.getCurrent();
+						ILanguageHelper languageHelper = context.getLanguageHelper();
+						languageHelper.writeExpressionTree(initializer);
+						return context.getTypeOnStack();
+					}
+				});
+				if (!returnType.equals(typeOnStack))
+				{
+					for (TypeParameterTree typeParameter : allTypeParameters)
+					{
+						if (typeParameter.getName().contentEquals(returnType))
+						{
+							writer.append('(');
+							writer.append(returnType);
+							writer.append(')');
+							break;
+						}
+					}
 				}
-				writer.append('(');
-				writer.append(returnType);
-				writer.append(')');
 			}
 			languageHelper.writeExpressionTree(initializer);
 		}

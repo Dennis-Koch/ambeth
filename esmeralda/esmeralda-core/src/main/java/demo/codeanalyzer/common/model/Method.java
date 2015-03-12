@@ -3,6 +3,7 @@ package demo.codeanalyzer.common.model;
 import javax.lang.model.element.VariableElement;
 
 import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.TypeParameterTree;
 import com.sun.source.util.TreePath;
 
 import de.osthus.ambeth.collections.IList;
@@ -35,6 +36,8 @@ public interface Method extends BaseJavaClassModel
 	IList<Integer> getParameterIndexToEraseGenericType();
 
 	IList<Integer> getParameterIndexToDelete();
+
+	TypeParameterTree[] getTypeParameters();
 
 	boolean isConstructor();
 }

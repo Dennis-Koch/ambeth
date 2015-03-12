@@ -28,17 +28,25 @@ public class CsEnhancedForHandler extends AbstractCsStatementHandler<JCEnhancedF
 
 		IStatementHandlerExtension<JCVariableDecl> varHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + Kind.VARIABLE);
 
-		languageHelper.newLineIndent();
-		writer.append("foreach (");
+		context.pushVariableDeclBlock();
+		try
+		{
+			languageHelper.newLineIndent();
+			writer.append("foreach (");
 
-		JCVariableDecl variable = tree.getVariable();
-		varHandler.handle(variable, false);
+			JCVariableDecl variable = tree.getVariable();
+			varHandler.handle(variable, false);
 
-		writer.append(" in ");
-		languageHelper.writeExpressionTree(tree.getExpression());
-		writer.append(")");
+			writer.append(" in ");
+			languageHelper.writeExpressionTree(tree.getExpression());
+			writer.append(")");
 
-		StatementTree statement = tree.getStatement();
-		handleChildStatement(statement);
+			StatementTree statement = tree.getStatement();
+			handleChildStatement(statement);
+		}
+		finally
+		{
+			context.popVariableDeclBlock();
+		}
 	}
 }

@@ -14,8 +14,6 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
-import com.sun.source.tree.MethodTree;
-
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
@@ -57,8 +55,6 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 	@LogInstance
 	private ILogger log;
 
-	protected MethodTree methodTree;
-
 	protected ILanguageHelper languageHelper;
 
 	@Autowired
@@ -79,12 +75,10 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertNotNull(methodTree, "methodAstNode");
-		ParamChecker.assertNotNull(languageHelper, "languageHelper");
-
 		IConversionContext context = this.context.getCurrent();
 		classInfo = context.getClassInfo();
 		method = context.getMethod();
+		languageHelper = context.getLanguageHelper();
 
 		createSnippetPath();
 		createFileNameParts();
@@ -93,7 +87,6 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 	protected void createSnippetPath()
 	{
 		ParamChecker.assertNotNull(classInfo, "classInfo");
-		ParamChecker.assertNotNull(method, "method");
 
 		IConversionContext context = this.context.getCurrent();
 		File snippetPathBase = context.getSnippetPath();
@@ -104,10 +97,14 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 	// TODO think about adding the parameters to the name.
 	protected void createFileNameParts()
 	{
-		String methodName = method.getName().replaceAll("<.*>", "");
 		String targetFileName = languageHelper.createTargetFileName(classInfo);
 		int lastDot = targetFileName.lastIndexOf(".");
-		fileNameParts[0] = targetFileName.substring(0, lastDot) + "." + methodName;
+		fileNameParts[0] = targetFileName.substring(0, lastDot);
+		if (method != null)
+		{
+			String methodName = method.getName().replaceAll("<.*>", "");
+			fileNameParts[0] += "." + methodName;
+		}
 		fileNameParts[1] = targetFileName.substring(lastDot + 1);
 	}
 

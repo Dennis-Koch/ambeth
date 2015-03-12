@@ -28,9 +28,10 @@ public class ArrayAccessExpressionHandler extends AbstractExpressionHandler<JCAr
 		{
 			typeOnStack = typeOnStack.substring(0, typeOnStack.length() - 2);
 		}
-		writer.append("[");
+		writer.append('[');
 		languageHelper.writeExpressionTree(expression.getIndex());
-		writer.append("]");
+		writer.append(']');
+
 		context.setTypeOnStack(typeOnStack);
 	}
 }
