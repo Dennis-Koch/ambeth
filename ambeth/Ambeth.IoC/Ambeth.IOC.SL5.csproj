@@ -214,6 +214,7 @@
     <Compile Include="ambeth\util\DedicatedConverterUtil.cs" />
     <Compile Include="ambeth\util\Def2Entry.cs" />
     <Compile Include="ambeth\util\IAggregrateResultHandler.cs" />
+	<Compile Include="ambeth\util\ImmutableTypeSet.cs" />
     <Compile Include="ambeth\util\IMultithreadingHelper.cs" />
     <Compile Include="ambeth\util\INamedRunnable.cs" />
     <Compile Include="ambeth\util\InterruptingParamHolder.cs" />
