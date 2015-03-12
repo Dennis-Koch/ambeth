@@ -20,6 +20,7 @@ import de.osthus.ambeth.log.LoggerFactory;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.objectcollector.ThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IDatabase;
+import de.osthus.ambeth.util.ImmutableTypeSet;
 import de.osthus.ambeth.util.ModuleUtil;
 import de.osthus.ambeth.util.ParamChecker;
 
@@ -157,6 +158,7 @@ public class AmbethPlatformContext implements IAmbethPlatformContext
 			((ThreadLocalObjectCollector) tlObjectCollector).clearThreadLocal();
 			((ThreadLocalObjectCollector) tlObjectCollector).clearThreadLocals();
 		}
+		ImmutableTypeSet.flushState();
 	}
 
 	@Override

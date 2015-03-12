@@ -5,17 +5,21 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
 
 public final class ImmutableTypeSet
 {
 	protected static final HashSet<Class<?>> immutableTypeSet = new HashSet<Class<?>>(0.5f);
 
 	private static final HashMap<Class<?>, Class<?>> wrapperTypesMap = new HashMap<Class<?>, Class<?>>(0.5f);
+
+	private static final ClassExtendableContainer<Class<?>> immutableSuperTypes = new ClassExtendableContainer<Class<?>>("", "");
 
 	static
 	{
@@ -54,6 +58,8 @@ public final class ImmutableTypeSet
 		immutableTypeSet.add(URI.class);
 		immutableTypeSet.add(URL.class);
 		immutableTypeSet.add(File.class);
+
+		immutableSuperTypes.register(Charset.class, Charset.class);
 	}
 
 	public static void addImmutableTypesTo(Collection<Class<?>> collection)
@@ -63,7 +69,13 @@ public final class ImmutableTypeSet
 
 	public static boolean isImmutableType(Class<?> type)
 	{
-		return type.isPrimitive() || type.isEnum() || immutableTypeSet.contains(type) || IImmutableType.class.isAssignableFrom(type);
+		return type.isPrimitive() || type.isEnum() || immutableTypeSet.contains(type) || IImmutableType.class.isAssignableFrom(type)
+				|| immutableSuperTypes.getExtension(type) != null;
+	}
+
+	public static void flushState()
+	{
+		immutableSuperTypes.clearWeakCache();
 	}
 
 	private ImmutableTypeSet()
