@@ -72,6 +72,8 @@ public interface ILanguageHelper
 
 	void writeVariableName(String varName);
 
+	void writeVariableNameAccess(String varName);
+
 	String convertVariableName(String varName);
 
 	void writeExpressionTree(Tree expressionTree);

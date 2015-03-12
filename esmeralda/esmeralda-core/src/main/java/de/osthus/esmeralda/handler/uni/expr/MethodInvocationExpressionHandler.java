@@ -98,6 +98,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 		boolean writeOwnerAsType = false;
 		boolean writeMethodDot = false;
 		boolean writeOwnerAsTypeof = false;
+		boolean doTransformMethod = true;
 
 		String typeOfOwner;
 		if (methodInvocation.meth instanceof JCIdent)
@@ -110,6 +111,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 		else
 		{
 			JCFieldAccess meth = (JCFieldAccess) methodInvocation.meth;
+
 			if (meth.selected instanceof JCLiteral)
 			{
 				final JCLiteral literal = (JCLiteral) meth.selected;
@@ -124,19 +126,29 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 						expressionHandler.handleExpression(literal);
 					}
 				});
-				typeOfOwner = context.resolveClassInfo(literal.type.toString()).getFqName();
+				typeOfOwner = classInfoManager.resolveClassInfo(literal.type.toString()).getFqName();
 			}
 			else if (meth.selected instanceof JCFieldAccess)
 			{
 				JCFieldAccess fieldAccess = (JCFieldAccess) meth.selected;
 				if (fieldAccess.name.contentEquals("class"))
 				{
-					typeOfOwner = Class.class.getName();
+					typeOfOwner = java.lang.Class.class.getName();
+					if (fieldAccess.type == null)
+					{
+						owner = classInfoManager.resolveClassInfo(fieldAccess.selected.toString()).getFqName();
+					}
+					else
+					{
+						owner = fieldAccess.type.allparams().get(0).toString();
+					}
 					writeOwnerAsType = true;
+					writeOwnerAsTypeof = true;
+					doTransformMethod = false;
 				}
 				else
 				{
-					JavaClassInfo classInfoFromFA = context.resolveClassInfo(fieldAccess.selected.toString(), true);
+					JavaClassInfo classInfoFromFA = classInfoManager.resolveClassInfo(fieldAccess.selected.toString(), true);
 					if (classInfoFromFA != null)
 					{
 						typeOfOwner = classInfoFromFA.getFqName();
@@ -155,8 +167,8 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 							}
 						}, fieldAccess);
 					}
+					owner = null;
 				}
-				owner = null;
 				writeMethodDot = true;
 			}
 			else if (meth.selected instanceof JCMethodInvocation || meth.selected instanceof JCNewClass || meth.selected instanceof JCParens
@@ -206,13 +218,13 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 							}
 						}
 					}
-					typeOfOwner = selected.sym.type != null ? context.resolveClassInfo(selected.sym.type.toString()).getFqName() : astHelper
+					typeOfOwner = selected.sym.type != null ? classInfoManager.resolveClassInfo(selected.sym.type.toString()).getFqName() : astHelper
 							.resolveTypeFromVariableName(owner);
 				}
 				else if (sym instanceof ClassSymbol)
 				{
 					owner = selected.type.toString();
-					typeOfOwner = context.resolveClassInfo(selected.type.toString()).getFqName();
+					typeOfOwner = classInfoManager.resolveClassInfo(selected.type.toString()).getFqName();
 					writeOwnerAsType = true;
 				}
 				else if (sym == null)
@@ -235,15 +247,18 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 			context.addCalledMethod(transformedMethod);
 		}
 
-		if (Boolean.TRUE.equals(transformedMethod.isWriteOwner()) || (transformedMethod.isWriteOwner() == null && writeOwnerAsType))
+		if (doTransformMethod)
 		{
-			String transformedOwner = transformedMethod.getOwner();
-			if (transformedOwner != null)
+			if (Boolean.TRUE.equals(transformedMethod.isWriteOwner()) || (transformedMethod.isWriteOwner() == null && writeOwnerAsType))
 			{
-				owner = transformedOwner;
+				String transformedOwner = transformedMethod.getOwner();
+				if (transformedOwner != null)
+				{
+					owner = transformedOwner;
+				}
 			}
+			writeOwnerAsType |= transformedMethod.isOwnerAType();
 		}
-		writeOwnerAsType |= transformedMethod.isOwnerAType();
 
 		final boolean fWriteOwnerAsType = writeOwnerAsType;
 		final boolean fWriteMethodDot = writeMethodDot;
@@ -273,7 +288,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 					else
 					{
 						owner = context.getTransformedSymbol(owner);
-						writer.append(owner);
+						languageHelper.writeVariableNameAccess(owner);
 					}
 				}
 			}
@@ -282,10 +297,21 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 		transformedMethod.getParameterProcessor().processMethodParameters(methodInvocation, owner, transformedMethod, ownerWriter);
 		if (methodInvocation.type != null)
 		{
-			String returnType = methodInvocation.type.getUpperBound() != null ? methodInvocation.type.getUpperBound().toString() : methodInvocation.type
-					.toString();
+			String returnType = methodInvocation.type.toString();
 			returnType = trimCaptureOfPattern.matcher(returnType).replaceAll("");
-			context.setTypeOnStack(returnType);
+			if ("?".equals(returnType))
+			{
+				returnType = Object.class.getName();
+			}
+			JavaClassInfo classInfo = classInfoManager.resolveClassInfo(returnType);
+			if (classInfo.getName().equals("?"))
+			{
+				context.setTypeOnStack(classInfo.getExtendsFrom().getFqName());
+			}
+			else
+			{
+				context.setTypeOnStack(classInfo.getFqName());
+			}
 			return;
 		}
 		String returnType = methodMatcher.resolveMethodReturnType(typeOfOwner, methodName, argTypes);

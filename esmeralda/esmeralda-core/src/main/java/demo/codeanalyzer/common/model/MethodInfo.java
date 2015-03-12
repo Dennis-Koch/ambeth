@@ -1,7 +1,5 @@
 package demo.codeanalyzer.common.model;
 
-import java.util.regex.Pattern;
-
 import javax.lang.model.element.VariableElement;
 
 import com.sun.source.tree.MethodTree;
@@ -18,8 +16,6 @@ import de.osthus.ambeth.collections.IList;
  */
 public class MethodInfo extends BaseJavaClassModelInfo implements Method
 {
-	private static final Pattern genericStart = Pattern.compile("<");
-
 	private ClassFile owningClass;
 	private MethodTree methodTree;
 	private ArrayList<VariableElement> parameters = new ArrayList<VariableElement>();

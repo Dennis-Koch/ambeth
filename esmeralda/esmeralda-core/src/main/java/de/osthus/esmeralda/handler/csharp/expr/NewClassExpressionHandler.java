@@ -203,8 +203,8 @@ public class NewClassExpressionHandler extends AbstractExpressionHandler<JCNewCl
 		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
-		owner = NewClassExpressionHandler.getFqNameFromAnonymousName(def.sym.toString());
-		JavaClassInfo newClassInfo = context.resolveClassInfo(owner);
+		owner = NewClassExpressionHandler.getFqName(def);
+		JavaClassInfo newClassInfo = classInfoManager.resolveClassInfo(owner);
 
 		writer.append("new ");
 		languageHelper.writeType(owner);

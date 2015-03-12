@@ -12,18 +12,19 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
+import de.osthus.esmeralda.IClassInfoManager;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.IASTHelper;
+import de.osthus.esmeralda.handler.IFieldTransformerExtension;
+import de.osthus.esmeralda.handler.IFieldTransformerExtensionRegistry;
 import de.osthus.esmeralda.handler.IMethodTransformer;
 import de.osthus.esmeralda.handler.IMethodTransformerExtension;
 import de.osthus.esmeralda.handler.IMethodTransformerExtensionRegistry;
-import de.osthus.esmeralda.handler.ITransformedMemberAccess;
+import de.osthus.esmeralda.handler.ITransformedField;
 import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.MethodKey;
-import de.osthus.esmeralda.handler.TransformedMemberAccess;
 import de.osthus.esmeralda.ioc.EsmeraldaCoreModule;
-import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 
@@ -37,6 +38,9 @@ public class MethodTransformer implements IMethodTransformer
 	protected IASTHelper astHelper;
 
 	@Autowired
+	protected IClassInfoManager classInfoManager;
+
+	@Autowired
 	protected IConversionContext context;
 
 	@Autowired
@@ -44,6 +48,9 @@ public class MethodTransformer implements IMethodTransformer
 
 	@Autowired
 	protected IMethodTransformerExtensionRegistry methodTransformerExtensionRegistry;
+
+	@Autowired
+	protected IFieldTransformerExtensionRegistry fieldTransformerExtensionRegistry;
 
 	@Override
 	public ITransformedMethod transform(String owner, String methodName, List<JCExpression> parameterTypes)
@@ -112,7 +119,7 @@ public class MethodTransformer implements IMethodTransformer
 					}
 				}
 			}
-			JavaClassInfo classInfo = context.resolveClassInfo(currOwner);
+			JavaClassInfo classInfo = classInfoManager.resolveClassInfo(currOwner);
 			if (classInfo == null)
 			{
 				throw new IllegalStateException("Must never happen: " + currOwner);
@@ -141,18 +148,13 @@ public class MethodTransformer implements IMethodTransformer
 	}
 
 	@Override
-	public ITransformedMemberAccess transformFieldAccess(final String owner, final String name)
+	public ITransformedField transformFieldAccess(String owner, String name)
 	{
 		IConversionContext context = this.context.getCurrent();
-		JavaClassInfo internalClassInfo = context.resolveClassInfo(owner + "." + name, true);
-		if (internalClassInfo != null)
-		{
-			return new TransformedMemberAccess(internalClassInfo.getFqName(), null, internalClassInfo.getFqName());
-		}
-		JavaClassInfo classInfo = context.resolveClassInfo(owner);
-		Field field = classInfo.getField(name);
-
-		return new TransformedMemberAccess(owner, name, field.getFieldType());
+		String language = context.getLanguage();
+		IFieldTransformerExtension defaultFieldTransformerExtension = fieldTransformerExtensionRegistry.getExtension(language
+				+ EsmeraldaCoreModule.DefaultFieldTransformerName);
+		return defaultFieldTransformerExtension.buildFieldTransformation(owner, name);
 	}
 
 	protected String[] parseArgumentTypes(final List<JCExpression> parameterTypes)

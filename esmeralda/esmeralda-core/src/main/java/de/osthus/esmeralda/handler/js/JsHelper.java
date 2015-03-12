@@ -33,6 +33,7 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringConversionHelper;
+import de.osthus.esmeralda.IClassInfoManager;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.TypeUsing;
@@ -129,6 +130,9 @@ public class JsHelper implements IJsHelper
 
 	@Autowired
 	protected IASTHelper astHelper;
+
+	@Autowired
+	protected IClassInfoManager classInfoManager;
 
 	@Autowired
 	protected IConversionContext context;
@@ -728,6 +732,51 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
+	public void writeVariableNameAccess(String varName)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		JavaClassInfo variableClassInfo = context.lookupVariableDecl(varName);
+		Field ownerField = variableClassInfo == null && !varName.equals("this") && !varName.equals("super") ? context.getClassInfo().getField(varName, true)
+				: null;
+		varName = convertVariableName(varName);
+		if (ownerField == null)
+		{
+			writer.append(varName);
+			return;
+		}
+		Method method = context.getMethod();
+		if (method == null)
+		{
+			// create function code
+			if (!ownerField.isStatic())
+			{
+				writer.append("this.");
+			}
+			else
+			{
+				writeType(ownerField.getOwningClass().getFqName());
+				writer.append('.');
+			}
+		}
+		else if (!ownerField.isStatic() && !method.isStatic())
+		{
+			writer.append("this.");
+		}
+		else if (ownerField.isStatic() && method.isStatic())
+		{
+			writer.append("this.");
+		}
+		else
+		{
+			writeType(ownerField.getOwningClass().getFqName());
+			writer.append('.');
+		}
+		writer.append(varName);
+	}
+
+	@Override
 	public String convertVariableName(String varName)
 	{
 		if (RESERVED_WORDS.contains(varName))
@@ -928,27 +977,22 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
-	public JavaClassInfo findClassInHierarchy(String className, JavaClassInfo current, IConversionContext context)
+	public JavaClassInfo findClassInHierarchy(String className, JavaClassInfo current)
 	{
-		IMap<String, JavaClassInfo> fqNameToClassInfoMap = context.getFqNameToClassInfoMap();
-		String genericsFreeName;
 		while (current != null)
 		{
-			genericsFreeName = removeGenerics(current.getFqName());
-			if (genericsFreeName.equals(className))
+			if (current.getNonGenericFqName().equals(className))
 			{
 				return current;
 			}
-
-			current = getSuperClassInfo(current, fqNameToClassInfoMap);
+			current = classInfoManager.resolveClassInfo(current.getNameOfSuperClass());
 		}
 		return null;
 	}
 
 	@Override
-	public Field findFieldInHierarchy(String fieldName, JavaClassInfo current, IConversionContext context)
+	public Field findFieldInHierarchy(String fieldName, JavaClassInfo current)
 	{
-		IMap<String, JavaClassInfo> fqNameToClassInfoMap = context.getFqNameToClassInfoMap();
 		while (current != null)
 		{
 			Field field = current.getField(fieldName, true);
@@ -956,21 +1000,8 @@ public class JsHelper implements IJsHelper
 			{
 				return field;
 			}
-
-			current = getSuperClassInfo(current, fqNameToClassInfoMap);
+			current = classInfoManager.resolveClassInfo(current.getNameOfSuperClass());
 		}
 		return null;
-	}
-
-	protected JavaClassInfo getSuperClassInfo(JavaClassInfo current, IMap<String, JavaClassInfo> fqNameToClassInfoMap)
-	{
-		String nameOfSuperClass = current.getNameOfSuperClass();
-		if (nameOfSuperClass == null)
-		{
-			return null;
-		}
-		current = fqNameToClassInfoMap.get(nameOfSuperClass);
-		current = current != null ? current : fqNameToClassInfoMap.get(removeGenerics(nameOfSuperClass));
-		return current;
 	}
 }

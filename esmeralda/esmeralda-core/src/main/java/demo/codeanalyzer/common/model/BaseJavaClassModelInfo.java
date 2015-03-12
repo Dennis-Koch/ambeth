@@ -118,7 +118,7 @@ public class BaseJavaClassModelInfo implements BaseJavaClassModel
 
 	public void setName(String name)
 	{
-		this.name = name;
+		this.name = name != null ? name.intern() : name;
 	}
 
 	@Override

@@ -8,6 +8,7 @@ import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.AbstractExpressionHandler;
 import de.osthus.esmeralda.misc.IWriter;
+import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public class TypeCastExpressionHandler extends AbstractExpressionHandler<JCTypeCast>
 {
@@ -22,12 +23,28 @@ public class TypeCastExpressionHandler extends AbstractExpressionHandler<JCTypeC
 		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
-		String fqTypeName = astHelper.resolveFqTypeFromTypeName(expression.clazz.toString());
+		JavaClassInfo classInfo = classInfoManager.resolveClassInfo(expression.clazz.toString());
 
 		writer.append("(");
-		languageHelper.writeType(fqTypeName);
+		languageHelper.writeType(classInfo.getFqName());
 		writer.append(")");
-		languageHelper.writeExpressionTree(expression.expr);
-		context.setTypeOnStack(fqTypeName);
+
+		if (classInfo.getName().equals(classInfo.getNonGenericName()))
+		{
+			languageHelper.writeExpressionTree(expression.expr);
+		}
+		else
+		{
+			Object pushResult = context.pushTypeErasureHint(classInfo);
+			try
+			{
+				languageHelper.writeExpressionTree(expression.expr);
+			}
+			finally
+			{
+				context.popTypeErasureHint(pushResult);
+			}
+		}
+		context.setTypeOnStack(classInfo.getFqName());
 	}
 }

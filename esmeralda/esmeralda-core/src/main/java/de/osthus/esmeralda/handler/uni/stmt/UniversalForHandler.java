@@ -29,48 +29,58 @@ public class UniversalForHandler extends AbstractStatementHandler<JCForLoop> imp
 		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
-		languageHelper.newLineIndent();
-		writer.append("for (");
-
-		List<JCStatement> initializer = tree.getInitializer();
-		for (int i = 0, length = initializer.length(); i < length; i++)
+		context.pushVariableDeclBlock();
+		try
 		{
-			JCStatement statement = initializer.get(i);
-			if (i == 0)
+			languageHelper.newLineIndent();
+			writer.append("for (");
+
+			List<JCStatement> initializer = tree.getInitializer();
+			for (int i = 0, length = initializer.length(); i < length; i++)
 			{
+				JCStatement statement = initializer.get(i);
+				if (i == 0)
+				{
+					handleChildStatement(statement, false);
+				}
+				else
+				{
+					JCVariableDecl var = (JCVariableDecl) statement;
+					String varName = var.name.toString();
+					context.pushVariableDecl(varName, classInfoManager.resolveClassInfo(var.type.toString()));
+
+					writer.append(", ");
+					languageHelper.writeVariableName(varName);
+					writer.append(" = ");
+					JCExpression init = var.init;
+					languageHelper.writeExpressionTree(init);
+				}
+			}
+			writer.append(';');
+
+			JCExpression condition = tree.getCondition();
+			writer.append(' ');
+			languageHelper.writeExpressionTree(condition);
+
+			writer.append(';');
+
+			List<JCExpressionStatement> update = tree.getUpdate();
+			for (int i = 0, length = update.length(); i < length; i++)
+			{
+				JCStatement statement = update.get(i);
+				writer.append(i > 0 ? ", " : " ");
 				handleChildStatement(statement, false);
 			}
-			else
-			{
-				JCVariableDecl var = (JCVariableDecl) statement;
-				writer.append(", ");
-				languageHelper.writeVariableName(var.name.toString());
-				writer.append(" = ");
-				JCExpression init = var.init;
-				languageHelper.writeExpressionTree(init);
-			}
+
+			writer.append(")");
+			languageHelper.postBlockWhiteSpaces();
+
+			StatementTree statement = tree.getStatement();
+			handleChildStatement(statement);
 		}
-
-		writer.append(';');
-
-		JCExpression condition = tree.getCondition();
-		writer.append(' ');
-		languageHelper.writeExpressionTree(condition);
-
-		writer.append(';');
-
-		List<JCExpressionStatement> update = tree.getUpdate();
-		for (int i = 0, length = update.length(); i < length; i++)
+		finally
 		{
-			JCStatement statement = update.get(i);
-			writer.append(i > 0 ? ", " : " ");
-			handleChildStatement(statement, false);
+			context.popVariableDeclBlock();
 		}
-
-		writer.append(")");
-		languageHelper.postBlockWhiteSpaces();
-
-		StatementTree statement = tree.getStatement();
-		handleChildStatement(statement);
 	}
 }

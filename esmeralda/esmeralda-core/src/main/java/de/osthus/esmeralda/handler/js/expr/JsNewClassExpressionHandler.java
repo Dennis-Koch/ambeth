@@ -144,7 +144,7 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 			else
 			{
 				String className = newClass.clazz.toString();
-				JavaClassInfo classInfo = context.resolveClassInfo(className, true);
+				JavaClassInfo classInfo = classInfoManager.resolveClassInfo(className, true);
 				if (classInfo == null)
 				{
 					String newClassString = newClass.toString();
@@ -177,7 +177,7 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 								return resultType;
 							}
 						});
-						JavaClassInfo onStackClassInfo = context.resolveClassInfo(typeOnStack, true);
+						JavaClassInfo onStackClassInfo = classInfoManager.resolveClassInfo(typeOnStack, true);
 						if (classInfo != null)
 						{
 							typeOnStack = onStackClassInfo.getFqName();
@@ -214,7 +214,7 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		final HashSet<String> methodScopeVars = languageHelper.getLanguageSpecific().getMethodScopeVars();
 
 		owner = getFqNameFromAnonymousName(def.sym.toString());
-		JavaClassInfo newClassInfo = context.resolveClassInfo(owner);
+		JavaClassInfo newClassInfo = classInfoManager.resolveClassInfo(owner);
 
 		writer.append("Ext.create(\"");
 		languageHelper.writeType(owner);

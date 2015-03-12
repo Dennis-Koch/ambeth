@@ -5,6 +5,7 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.esmeralda.IClassInfoManager;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.js.transformer.DefaultMethodTransformer;
@@ -16,6 +17,9 @@ public class JsOverloadManager implements IJsOverloadManager
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IClassInfoManager classInfoManager;
 
 	@Autowired
 	protected IConversionContext context;
@@ -51,9 +55,7 @@ public class JsOverloadManager implements IJsOverloadManager
 			boolean hasOverloads = hasOverloads(fqClassName, methodName);
 			return hasOverloads;
 		}
-
-		IConversionContext context = this.context.getCurrent();
-		JavaClassInfo classInfo = context.resolveClassInfo(fqClassName, true);
+		JavaClassInfo classInfo = classInfoManager.resolveClassInfo(fqClassName, true);
 		if (classInfo != null)
 		{
 			fqClassName = classInfo.getNameOfSuperClass();

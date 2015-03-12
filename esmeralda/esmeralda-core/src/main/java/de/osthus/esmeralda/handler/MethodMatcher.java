@@ -13,6 +13,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.ParamHolder;
+import de.osthus.esmeralda.IClassInfoManager;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.TypeResolveException;
 import demo.codeanalyzer.common.model.JavaClassInfo;
@@ -28,6 +29,9 @@ public class MethodMatcher implements IMethodMatcher
 	protected IASTHelper astHelper;
 
 	@Autowired
+	protected IClassInfoManager classInfoManager;
+
+	@Autowired
 	protected IConversionContext context;
 
 	@Autowired
@@ -38,7 +42,7 @@ public class MethodMatcher implements IMethodMatcher
 	{
 		if ("super".equals(methodName))
 		{
-			JavaClassInfo ownerInfo = context.resolveClassInfo(currOwner);
+			JavaClassInfo ownerInfo = classInfoManager.resolveClassInfo(currOwner);
 			return resolveMethodReturnType(ownerInfo.getNameOfSuperClass(), "this", argTypes);
 		}
 		if ("this".equals(methodName))
@@ -84,8 +88,7 @@ public class MethodMatcher implements IMethodMatcher
 			argTypeName = argTypeName.substring(0, argTypeName.length() - 2);
 			parameterTypeName = parameterTypeName.substring(0, parameterTypeName.length() - 2);
 		}
-		IConversionContext context = this.context.getCurrent();
-		JavaClassInfo parameterType = context.resolveClassInfo(parameterTypeName);
+		JavaClassInfo parameterType = classInfoManager.resolveClassInfo(parameterTypeName);
 		JavaClassInfo currExtendsFromType = parameterType.getExtendsFrom();
 		while (currExtendsFromType != null)
 		{
@@ -95,7 +98,7 @@ public class MethodMatcher implements IMethodMatcher
 			}
 			currExtendsFromType = currExtendsFromType.getExtendsFrom();
 		}
-		JavaClassInfo argType = context.resolveClassInfo(argTypeName);
+		JavaClassInfo argType = classInfoManager.resolveClassInfo(argTypeName);
 		currExtendsFromType = argType.getExtendsFrom();
 		while (currExtendsFromType != null)
 		{
@@ -122,7 +125,7 @@ public class MethodMatcher implements IMethodMatcher
 					return true;
 				}
 			}
-			JavaClassInfo argClassInfo = context.resolveClassInfo(argTypeName);
+			JavaClassInfo argClassInfo = classInfoManager.resolveClassInfo(argTypeName);
 			if (argClassInfo == null)
 			{
 				return false;
@@ -151,7 +154,7 @@ public class MethodMatcher implements IMethodMatcher
 		String currType = type;
 		while (currType != null)
 		{
-			JavaClassInfo ownerInfo = context.resolveClassInfo(currType);
+			JavaClassInfo ownerInfo = classInfoManager.resolveClassInfo(currType);
 			if (ownerInfo == null)
 			{
 				throw new IllegalStateException("ClassInfo not resolved: '" + currType + "'");
@@ -237,6 +240,7 @@ public class MethodMatcher implements IMethodMatcher
 			String argType = argTypes[a];
 			TypeMirror parameterType = parameters.get(a).asType();
 			String parameterTypeName = parameterType.toString();
+			parameterTypeName = classInfoManager.resolveClassInfo(parameterTypeName).getFqName();
 			if (!matchParameterByInheritance(argType, parameterTypeName))
 			{
 				return false;

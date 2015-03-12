@@ -21,6 +21,7 @@ import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.ParamChecker;
+import de.osthus.esmeralda.IClassInfoManager;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.misc.EsmeraldaWriter;
 import de.osthus.esmeralda.misc.IWriter;
@@ -75,6 +76,9 @@ public class ASTHelper implements IASTHelper
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IClassInfoManager classInfoManager;
 
 	@Autowired
 	protected IConversionContext context;
@@ -146,8 +150,7 @@ public class ASTHelper implements IASTHelper
 	@Override
 	public String extractNonGenericType(String typeName)
 	{
-		String[] parts = typeName.split("<", 2);
-		return parts[0];
+		return parseGenericType(typeName)[0];
 	}
 
 	@Override
@@ -178,7 +181,7 @@ public class ASTHelper implements IASTHelper
 		List<? extends TypeParameterTree> classTypeParameters = context.getClassInfo().getClassTree().getTypeParameters();
 		if (method != null)
 		{
-			List<? extends TypeParameterTree> typeParameters = method.getMethodTree().getTypeParameters();
+			TypeParameterTree[] typeParameters = method.getTypeParameters();
 			allTypeParameters.addAll(typeParameters);
 		}
 		int methodTypeIndex = allTypeParameters.size();
@@ -221,7 +224,7 @@ public class ASTHelper implements IASTHelper
 		{
 			if ("this".equals(variableName))
 			{
-				return owningClass.getPackageName() + "." + owningClass.getName();
+				return owningClass.getFqName();
 			}
 			if ("super".equals(variableName))
 			{
@@ -242,19 +245,17 @@ public class ASTHelper implements IASTHelper
 			ClassFile currOwningClass = owningClass;
 			while (currOwningClass != null)
 			{
-				for (Field currField : currOwningClass.getFields())
+				Field fieldWithVariableName = currOwningClass.getField(variableName, true);
+				if (fieldWithVariableName != null)
 				{
-					if (variableName.equals(currField.getName()))
-					{
-						return currField.getFieldType().toString();
-					}
+					return fieldWithVariableName.getFieldType().toString();
 				}
 				String nameOfSuperClass = currOwningClass.getNameOfSuperClass();
 				if (nameOfSuperClass == null)
 				{
 					break;
 				}
-				currOwningClass = context.resolveClassInfo(nameOfSuperClass);
+				currOwningClass = classInfoManager.resolveClassInfo(nameOfSuperClass);
 			}
 			return resolveFqTypeFromTypeName(variableName);
 		}
@@ -268,7 +269,7 @@ public class ASTHelper implements IASTHelper
 	public String resolveFqTypeFromTypeName(String typeName)
 	{
 		IConversionContext context = this.context.getCurrent();
-		JavaClassInfo resolvedClassInfo = context.resolveClassInfo(typeName, true);
+		JavaClassInfo resolvedClassInfo = classInfoManager.resolveClassInfo(typeName, true);
 		if (resolvedClassInfo != null)
 		{
 			if (parseGenericType(typeName)[0].equals(typeName))

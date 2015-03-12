@@ -1,5 +1,6 @@
 package de.osthus.esmeralda.handler.uni.stmt;
 
+import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.util.List;
 
@@ -19,7 +20,9 @@ import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.TypeResolveException;
 import de.osthus.esmeralda.handler.AbstractStatementHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
+import de.osthus.esmeralda.misc.EsmeraldaWriter;
 import de.osthus.esmeralda.misc.IToDoWriter;
+import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.StatementCount;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 import de.osthus.esmeralda.snippet.SnippetTrigger;
@@ -56,6 +59,7 @@ public class UniversalBlockHandler extends AbstractStatementHandler<BlockTree> i
 	public void writeBlockContentWithoutIntendation(BlockTree blockTree)
 	{
 		IConversionContext context = UniversalBlockHandler.this.context.getCurrent();
+
 		Method method = context.getMethod();
 		ISnippetManager snippetManager = context.getSnippetManager();
 		StatementCount metric = context.getMetric();
@@ -79,6 +83,7 @@ public class UniversalBlockHandler extends AbstractStatementHandler<BlockTree> i
 			}
 		}
 		context.setSkipFirstBlockStatement(false);
+		context.pushVariableDeclBlock();
 		try
 		{
 			for (int a = realSkipFirstBlockStatement ? 1 : 0, size = statements.size(); a < size; a++)
@@ -88,24 +93,26 @@ public class UniversalBlockHandler extends AbstractStatementHandler<BlockTree> i
 				final IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.getExtension(getLanguage() + kind);
 				if (stmtHandler != null)
 				{
-					final StatementTree fstatement = statement;
 					Tree previousTree = context.getCurrentTree();
 					context.setCurrentTree(statement);
 					try
 					{
-						String statementString = astHelper.writeToStash(new IBackgroundWorkerDelegate()
+						StringWriter stringWriter = new StringWriter();
+						IWriter oldWriter = context.getWriter();
+						context.setWriter(new EsmeraldaWriter(stringWriter));
+						try
 						{
-							@Override
-							public void invoke() throws Throwable
-							{
-								stmtHandler.handle(fstatement);
-							}
-						});
+							stmtHandler.handle(statement);
+						}
+						finally
+						{
+							context.setWriter(oldWriter);
+						}
 
 						// Important to check here to keep the code in order
 						checkUntranslatableList(untranslatableStatements, snippetManager, dryRun, context);
 
-						context.getWriter().append(statementString);
+						context.getWriter().append(stringWriter.toString());
 					}
 					catch (SnippetTrigger snippetTrigger)
 					{
@@ -141,6 +148,7 @@ public class UniversalBlockHandler extends AbstractStatementHandler<BlockTree> i
 		}
 		finally
 		{
+			context.popVariableDeclBlock();
 			context.setSkipFirstBlockStatement(skipFirstBlockStatement);
 		}
 	}
