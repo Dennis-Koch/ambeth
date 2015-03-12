@@ -33,6 +33,7 @@ import de.osthus.ambeth.security.ISecurityContext;
 import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.PasswordType;
 import de.osthus.ambeth.util.ClassLoaderUtil;
+import de.osthus.ambeth.util.ImmutableTypeSet;
 
 @Provider
 public class AmbethServletListener implements ServletContextListener, ServletRequestListener
@@ -128,44 +129,51 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 	@Override
 	public void contextDestroyed(ServletContextEvent event)
 	{
-		log.info("Shutting down...");
-		// remove the instance of IServiceContext in servlet context
-		event.getServletContext().removeAttribute(ATTRIBUTE_I_SERVICE_CONTEXT);
-
-		IAmbethPlatformContext platformContext = (IAmbethPlatformContext) event.getServletContext().getAttribute(ATTRIBUTE_I_PLATFORM_CONTEXT);
-		event.getServletContext().removeAttribute(ATTRIBUTE_I_PLATFORM_CONTEXT);
-
-		// dispose the IServiceContext
-		if (platformContext != null)
+		try
 		{
-			platformContext.dispose();
-		}
-		ClassLoader currentCL = Thread.currentThread().getContextClassLoader();
-		Enumeration<Driver> drivers = DriverManager.getDrivers();
-		while (drivers.hasMoreElements())
-		{
-			Driver driver = drivers.nextElement();
-			ClassLoader driverCL = driver.getClass().getClassLoader();
-			if (!ClassLoaderUtil.isParentOf(currentCL, driverCL))
+			log.info("Shutting down...");
+			// remove the instance of IServiceContext in servlet context
+			event.getServletContext().removeAttribute(ATTRIBUTE_I_SERVICE_CONTEXT);
+
+			IAmbethPlatformContext platformContext = (IAmbethPlatformContext) event.getServletContext().getAttribute(ATTRIBUTE_I_PLATFORM_CONTEXT);
+			event.getServletContext().removeAttribute(ATTRIBUTE_I_PLATFORM_CONTEXT);
+
+			// dispose the IServiceContext
+			if (platformContext != null)
 			{
-				// this driver is not associated to the current CL
-				continue;
+				platformContext.dispose();
 			}
-			try
+			ClassLoader currentCL = Thread.currentThread().getContextClassLoader();
+			Enumeration<Driver> drivers = DriverManager.getDrivers();
+			while (drivers.hasMoreElements())
 			{
-				DriverManager.deregisterDriver(driver);
-			}
-			catch (SQLException e)
-			{
-				if (log.isErrorEnabled())
+				Driver driver = drivers.nextElement();
+				ClassLoader driverCL = driver.getClass().getClassLoader();
+				if (!ClassLoaderUtil.isParentOf(currentCL, driverCL))
 				{
-					log.error("Error deregistering driver " + driver, e);
+					// this driver is not associated to the current CL
+					continue;
+				}
+				try
+				{
+					DriverManager.deregisterDriver(driver);
+				}
+				catch (SQLException e)
+				{
+					if (log.isErrorEnabled())
+					{
+						log.error("Error deregistering driver " + driver, e);
+					}
 				}
 			}
+			if (log.isInfoEnabled())
+			{
+				log.info("Shutdown completed");
+			}
 		}
-		if (log.isInfoEnabled())
+		finally
 		{
-			log.info("Shutdown completed");
+			ImmutableTypeSet.flushState();
 		}
 	}
 
