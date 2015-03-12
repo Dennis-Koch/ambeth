@@ -32,6 +32,7 @@ import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.connection.ConnectionFactory;
+import de.osthus.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
 import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.sql.SqlBuilder;
 import de.osthus.ambeth.util.IPersistenceExceptionUtil;
@@ -89,6 +90,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 		@Override
 		public void afterPropertiesSet(final IBeanContextFactory beanContextFactory) throws Throwable
 		{
+			beanContextFactory.registerBean(MSSqlConnectionUrlProvider.class).autowireable(IDatabaseConnectionUrlProvider.class);
 			beanContextFactory.registerBean(MSSqlDialect.class).autowireable(IConnectionDialect.class);
 			beanContextFactory.registerBean(PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
 			beanContextFactory.registerBean(ConnectionFactory.class).autowireable(IConnectionFactory.class);
@@ -108,12 +110,6 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 
 		Properties props = Properties.getApplication();
 
-		if (props.get(PersistenceJdbcConfigurationConstants.DatabaseConnection) == null)
-		{
-			props.put(PersistenceJdbcConfigurationConstants.DatabaseConnection, "${" + PersistenceJdbcConfigurationConstants.DatabaseProtocol + "}:@" + "${"
-					+ PersistenceJdbcConfigurationConstants.DatabaseHost + "}" + ":" + "${" + PersistenceJdbcConfigurationConstants.DatabasePort + "}" + "/"
-					+ "${" + PersistenceJdbcConfigurationConstants.DatabaseName + "}");
-		}
 		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(props);
 		try
 		{
@@ -249,7 +245,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 			{
 				// Ensure that we have maximum 28 characters: prefix has 7, long has maximum 19 + 2 random digits
 				String randomName = username != null ? username : "CI_TMP_" + System.nanoTime() + String.format("%02d", (int) (Math.random() * 99));
-				String dbName = "db_" + randomName;
+				String dbName = randomName;
 				try
 				{
 					stm.execute("if not exists(select * from sys.databases where name = '" + dbName + "') create database " + dbName);
@@ -307,6 +303,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 		{
 			JdbcUtil.close(stm);
 		}
+		connection.commit();
 		return createdUserName;
 	}
 

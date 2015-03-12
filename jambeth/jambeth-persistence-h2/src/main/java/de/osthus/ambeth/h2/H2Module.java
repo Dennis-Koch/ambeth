@@ -12,6 +12,7 @@ import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.IConnectionExtension;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
+import de.osthus.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
 import de.osthus.ambeth.sql.IPrimaryKeyProvider;
 
 @FrameworkModule
@@ -48,6 +49,7 @@ public class H2Module implements IInitializingModule, IPropertyLoadingBean
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
+		beanContextFactory.registerBean(H2ConnectionUrlProvider.class).autowireable(IDatabaseConnectionUrlProvider.class);
 		if (!externalTransactionManager && !databaseBehaviourStrict)
 		{
 			beanContextFactory.registerBean(H2Dialect.class).autowireable(IConnectionDialect.class);
