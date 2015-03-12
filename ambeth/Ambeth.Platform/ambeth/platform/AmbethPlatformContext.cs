@@ -10,6 +10,7 @@ using De.Osthus.Ambeth.Persistence;
 using De.Osthus.Ambeth.Util;
 using System;
 using System.Collections.Generic;
+
 namespace De.Osthus.Ambeth.Platform
 {
     public class AmbethPlatformContext : IAmbethPlatformContext
@@ -126,6 +127,7 @@ namespace De.Osthus.Ambeth.Platform
             beanContext.GetService<IThreadLocalCleanupController>().CleanupThreadLocal();
             rootContext.Dispose();
             beanContext = null;
+			ImmutableTypeSet.FlushState();
         }
 
         public IServiceContext GetBeanContext()

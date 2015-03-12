@@ -96,6 +96,20 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
         {
             // Intended blank		
         }
+		
+		public void ClearWeakCache()
+	    {
+		    Object writeLock = GetWriteLock();
+		    lock (writeLock)
+		    {
+			    ClassExtendableContainer<V> tempCC = new ClassExtendableContainer<V>("", "");
+			    foreach (Entry<Type, Object> entry in this)
+			    {
+				    tempCC.Register((V) entry.Value, entry.Key);
+			    }
+			    this.classEntry = tempCC.classEntry;
+		    }
+	    }
 
         public virtual V GetExtensionHardKey(Type key)
         {
