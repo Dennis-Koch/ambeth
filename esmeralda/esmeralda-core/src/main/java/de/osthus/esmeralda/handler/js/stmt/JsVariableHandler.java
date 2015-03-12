@@ -11,6 +11,7 @@ import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.js.JsSpecific;
 import de.osthus.esmeralda.misc.IWriter;
+import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public class JsVariableHandler extends AbstractJsStatementHandler<JCVariableDecl> implements IStatementHandlerExtension<JCVariableDecl>
 {
@@ -24,12 +25,17 @@ public class JsVariableHandler extends AbstractJsStatementHandler<JCVariableDecl
 		IConversionContext context = this.context.getCurrent();
 		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
+
+		String variableName = variableStatement.getName().toString();
+
+		JavaClassInfo variableType = classInfoManager.resolveClassInfo(variableStatement.type.toString());
+		context.pushVariableDecl(variableName, variableType);
+
 		HashSet<String> methodScopeVars = ((JsSpecific) context.getLanguageSpecific()).getMethodScopeVars();
 
-		String name = variableStatement.getName().toString();
 		// #1: Removed for the moment. This can be used when var definitions are moved to the top of a method
 		// boolean newDefinition = methodScopeVars.add(name);
-		methodScopeVars.add(name);
+		methodScopeVars.add(variableName);
 
 		JCExpression initializer = variableStatement.getInitializer();
 
@@ -47,7 +53,7 @@ public class JsVariableHandler extends AbstractJsStatementHandler<JCVariableDecl
 		// see #1
 		// languageHelper.writeStringIfFalse("var ", !newDefinition);
 		writer.append("var ");
-		languageHelper.writeVariableName(name);
+		languageHelper.writeVariableName(variableName);
 
 		if (initializer != null)
 		{

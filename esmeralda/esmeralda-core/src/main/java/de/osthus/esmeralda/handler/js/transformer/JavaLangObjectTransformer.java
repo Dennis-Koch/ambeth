@@ -49,7 +49,7 @@ public class JavaLangObjectTransformer extends AbstractMethodTransformerExtensio
 					if (!methodScopeVars.contains(owner))
 					{
 						JavaClassInfo currentClass = context.getClassInfo();
-						Field field = languageHelper.findFieldInHierarchy(owner, currentClass, context);
+						Field field = languageHelper.findFieldInHierarchy(owner, currentClass);
 						if (field != null)
 						{
 							owner = "this." + owner;

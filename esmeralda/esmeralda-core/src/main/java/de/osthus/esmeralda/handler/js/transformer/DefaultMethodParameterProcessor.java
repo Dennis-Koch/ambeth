@@ -19,6 +19,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
+import de.osthus.esmeralda.IClassInfoManager;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.IASTHelper;
@@ -37,6 +38,9 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IClassInfoManager classInfoManager;
 
 	@Autowired
 	protected IConversionContext context;
@@ -88,9 +92,6 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 					{
 						String varOwner = ((VarSymbol) sym).owner.toString();
 						varOwner = languageHelper.removeGenerics(varOwner);
-						writeThisIfLocalField(varOwner, context);
-
-						owner = languageHelper.convertVariableName(owner);
 					}
 				}
 			}
@@ -175,7 +176,7 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 	protected void writeThisIfLocalField(String ownerName, IConversionContext context)
 	{
 		JavaClassInfo classInfo = context.getClassInfo();
-		JavaClassInfo owner = languageHelper.findClassInHierarchy(ownerName, classInfo, context);
+		JavaClassInfo owner = languageHelper.findClassInHierarchy(ownerName, classInfo);
 		if (owner != null)
 		{
 			IWriter writer = context.getWriter();
@@ -293,7 +294,7 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 						continue;
 					}
 
-					JavaClassInfo paramClassInfo = context.resolveClassInfo(typeOnStack, true);
+					JavaClassInfo paramClassInfo = classInfoManager.resolveClassInfo(typeOnStack, true);
 					if (paramClassInfo == null)
 					{
 						throw new SnippetTrigger("No names for called methods parameters available").setContext(methodInvocation.toString());

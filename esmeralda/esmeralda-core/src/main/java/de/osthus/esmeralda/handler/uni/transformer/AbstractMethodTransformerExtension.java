@@ -7,6 +7,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.esmeralda.IClassInfoManager;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IMethodParameterProcessor;
 import de.osthus.esmeralda.handler.IMethodTransformerExtension;
@@ -26,13 +27,16 @@ public abstract class AbstractMethodTransformerExtension implements IMethodTrans
 	private ILogger log;
 
 	@Autowired
+	protected IClassInfoManager classInfoManager;
+
+	@Autowired
+	protected IConversionContext context;
+
+	@Autowired
 	private IServiceContext serviceContext;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
-
-	@Autowired
-	protected IConversionContext context;
 
 	protected IMethodParameterProcessor defaultMethodParameterProcessor;
 
@@ -68,7 +72,7 @@ public abstract class AbstractMethodTransformerExtension implements IMethodTrans
 			{
 				continue;
 			}
-			JavaClassInfo parameterCI = context.resolveClassInfo(parameterName);
+			JavaClassInfo parameterCI = classInfoManager.resolveClassInfo(parameterName);
 			String nonGenericParameterName = parameterCI.getPackageName() != null ? parameterCI.getPackageName() + "." + parameterCI.getNonGenericName()
 					: parameterCI.getNonGenericName();
 			if (parameterName.equals(nonGenericParameterName))

@@ -19,8 +19,10 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCTypeApply;
+import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
+import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashSet;
@@ -29,6 +31,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.StringConversionHelper;
+import de.osthus.esmeralda.IClassInfoManager;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.IPostProcess;
@@ -53,6 +56,9 @@ public class CsMethodHandler implements IMethodHandler
 
 	@Autowired
 	protected IASTHelper astHelper;
+
+	@Autowired
+	protected IClassInfoManager classInfoManager;
 
 	@Autowired
 	protected IConversionContext context;
@@ -125,6 +131,8 @@ public class CsMethodHandler implements IMethodHandler
 		MethodTree methodTree = method.getMethodTree();
 		IList<VariableElement> parameters = method.getParameters();
 		TypeParameterTree[] typeParameters = method.getTypeParameters();
+		ArrayList<TypeParameterTree> whereClauses = new ArrayList<TypeParameterTree>();
+
 		if (typeParameters.length > 0)
 		{
 			boolean firstGenericParameter = true;
@@ -185,7 +193,9 @@ public class CsMethodHandler implements IMethodHandler
 					writer.append('<');
 				}
 				firstGenericParameter = languageHelper.writeStringIfFalse(", ", firstGenericParameter);
-				writer.append(typeParameter.toString());
+				writer.append(typeParameter.getName());
+
+				whereClauses.add(typeParameter);
 			}
 			if (!firstGenericParameter)
 			{
@@ -207,6 +217,33 @@ public class CsMethodHandler implements IMethodHandler
 		}
 		writer.append(')');
 
+		if (whereClauses.size() > 0)
+		{
+			boolean first = true;
+			for (int a = 0, size = whereClauses.size(); a < size; a++)
+			{
+				JCTypeParameter whereClause = (JCTypeParameter) whereClauses.get(a);
+
+				com.sun.tools.javac.util.List<JCExpression> bounds = whereClause.bounds;
+				for (JCExpression bound : bounds)
+				{
+					if (first)
+					{
+						writer.append(" where ");
+						first = false;
+					}
+					else
+					{
+						writer.append(',');
+					}
+					writer.append(whereClause.getName());
+					writer.append(" : ");
+					JavaClassInfo boundCI = classInfoManager.resolveClassInfo(bound.toString());
+					languageHelper.writeType(boundCI.getFqName());
+				}
+			}
+		}
+
 		if (method.getOwningClass().isInterface() || method.isAbstract())
 		{
 			writer.append(';');
@@ -219,37 +256,76 @@ public class CsMethodHandler implements IMethodHandler
 			languageHelper.writeExpressionTree(superOrThisStatement);
 		}
 
-		ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager();
-		context.setSnippetManager(snippetManager);
+		boolean pushedVariableBlock = false;
+		if (!method.isStatic())
+		{
+			pushedVariableBlock = true;
+			context.pushVariableDeclBlock();
+			context.pushVariableDecl("this", (JavaClassInfo) method.getOwningClass());
+			String nameOfSuperClass = method.getOwningClass().getNameOfSuperClass();
+			if (nameOfSuperClass == null)
+			{
+				nameOfSuperClass = Object.class.getName();
+			}
+			JavaClassInfo superCI = classInfoManager.resolveClassInfo(nameOfSuperClass);
+			context.pushVariableDecl("super", superCI);
+		}
+		if (parameters.size() > 0)
+		{
+			if (!pushedVariableBlock)
+			{
+				pushedVariableBlock = true;
+				context.pushVariableDeclBlock();
+			}
+			for (int a = 0, size = parameters.size(); a < size; a++)
+			{
+				VariableElement parameter = parameters.get(a);
+				JavaClassInfo parameterCI = classInfoManager.resolveClassInfo(parameter.asType().toString());
+				context.pushVariableDecl(parameter.getSimpleName().toString(), parameterCI);
+			}
+		}
 		try
 		{
-			BlockTree methodBodyBlock = methodTree.getBody();
-			IStatementHandlerExtension<BlockTree> blockHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + methodBodyBlock.getKind());
-
-			if (method.isConstructor())
+			ISnippetManager originalSnippetManager = context.getSnippetManager();
+			ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager();
+			context.setSnippetManager(snippetManager);
+			try
 			{
-				boolean oldSkip = context.isSkipFirstBlockStatement();
-				context.setSkipFirstBlockStatement(true);
-				try
+				BlockTree methodBodyBlock = methodTree.getBody();
+				IStatementHandlerExtension<BlockTree> blockHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + methodBodyBlock.getKind());
+
+				if (method.isConstructor())
+				{
+					boolean oldSkip = context.isSkipFirstBlockStatement();
+					context.setSkipFirstBlockStatement(true);
+					try
+					{
+						blockHandler.handle(methodBodyBlock);
+					}
+					finally
+					{
+						context.setSkipFirstBlockStatement(oldSkip);
+					}
+				}
+				else
 				{
 					blockHandler.handle(methodBodyBlock);
 				}
-				finally
-				{
-					context.setSkipFirstBlockStatement(oldSkip);
-				}
-			}
-			else
-			{
-				blockHandler.handle(methodBodyBlock);
-			}
 
-			// Starts check for unused (old) snippet files for this method
-			snippetManager.finished();
+				// Starts check for unused (old) snippet files for this method
+				snippetManager.finished();
+			}
+			finally
+			{
+				context.setSnippetManager(originalSnippetManager);
+			}
 		}
 		finally
 		{
-			context.setSnippetManager(null);
+			if (pushedVariableBlock)
+			{
+				context.popVariableDeclBlock();
+			}
 		}
 	}
 
@@ -267,7 +343,7 @@ public class CsMethodHandler implements IMethodHandler
 		boolean overrideNeeded = false;
 		while (currTypeName != null)
 		{
-			JavaClassInfo currType = context.resolveClassInfo(currTypeName);
+			JavaClassInfo currType = classInfoManager.resolveClassInfo(currTypeName);
 			if (currType == null)
 			{
 				break;

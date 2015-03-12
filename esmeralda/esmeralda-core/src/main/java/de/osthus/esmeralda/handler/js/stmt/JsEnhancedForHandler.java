@@ -29,41 +29,51 @@ public class JsEnhancedForHandler extends AbstractJsStatementHandler<JCEnhancedF
 		JCVariableDecl variable = tree.getVariable();
 		JCExpression expression = tree.getExpression();
 
-		languageHelper.newLineIndent();
-		writer.append("// Java: ").append("for (").append(variable.toString()).append(" : ").append(expression.toString()).append(") { ... }");
-		languageHelper.newLineIndent();
-
-		if (expression.type.getClass().equals(ArrayType.class))
+		context.pushVariableDeclBlock();
+		try
 		{
-			// Unique names even in nested loops
-			String forIndexName = "forIndex_" + context.getIndentationLevel();
-			String forLengthName = "forLength_" + context.getIndentationLevel();
+			languageHelper.newLineIndent();
+			writer.append("// Java: ").append("for (").append(variable.toString()).append(" : ").append(expression.toString()).append(") { ... }");
+			languageHelper.newLineIndent();
 
-			writer.append("for (var ").append(forIndexName).append(" = 0, ").append(forLengthName).append(" = ");
-			languageHelper.writeExpressionTree(expression);
-			writer.append(".length, ");
-			languageHelper.writeVariableName(variable.name.toString());
-			writer.append("; ").append(forIndexName).append(" < ").append(forLengthName).append("; ");
-			languageHelper.writeVariableName(variable.name.toString());
-			writer.append(" = ");
-			languageHelper.writeExpressionTree(expression);
-			writer.append("[").append(forIndexName).append("++]) ");
+			String varName = variable.name.toString();
+			context.pushVariableDecl(varName, classInfoManager.resolveClassInfo(variable.type.toString()));
+			if (expression.type.getClass().equals(ArrayType.class))
+			{
+				// Unique names even in nested loops
+				String forIndexName = "forIndex_" + context.getIndentationLevel();
+				String forLengthName = "forLength_" + context.getIndentationLevel();
+
+				writer.append("for (var ").append(forIndexName).append(" = 0, ").append(forLengthName).append(" = ");
+				languageHelper.writeExpressionTree(expression);
+				writer.append(".length, ");
+				languageHelper.writeVariableName(varName);
+				writer.append("; ").append(forIndexName).append(" < ").append(forLengthName).append("; ");
+				languageHelper.writeVariableName(varName);
+				writer.append(" = ");
+				languageHelper.writeExpressionTree(expression);
+				writer.append("[").append(forIndexName).append("++]) ");
+			}
+			else
+			{
+				// Unique name even in nested loops
+				String forIterName = "forIter_" + context.getIndentationLevel();
+
+				writer.append("for (var ").append(forIterName).append(" = ");
+				languageHelper.writeExpressionTree(expression);
+				writer.append(".iterator(), ");
+				languageHelper.writeVariableName(varName);
+				writer.append("; ").append(forIterName).append(".hasNext(); ");
+				languageHelper.writeVariableName(varName);
+				writer.append(" = ").append(forIterName).append(".next()) ");
+			}
+
+			StatementTree statement = tree.getStatement();
+			handleChildStatement(statement);
 		}
-		else
+		finally
 		{
-			// Unique name even in nested loops
-			String forIterName = "forIter_" + context.getIndentationLevel();
-
-			writer.append("for (var ").append(forIterName).append(" = ");
-			languageHelper.writeExpressionTree(expression);
-			writer.append(".iterator(), ");
-			languageHelper.writeVariableName(variable.name.toString());
-			writer.append("; ").append(forIterName).append(".hasNext(); ");
-			languageHelper.writeVariableName(variable.name.toString());
-			writer.append(" = ").append(forIterName).append(".next()) ");
+			context.popVariableDeclBlock();
 		}
-
-		StatementTree statement = tree.getStatement();
-		handleChildStatement(statement);
 	}
 }

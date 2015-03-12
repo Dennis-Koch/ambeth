@@ -3,8 +3,10 @@ package de.osthus.esmeralda.ioc;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
+import de.osthus.esmeralda.handler.IFieldTransformerExtensionExtendable;
 import de.osthus.esmeralda.handler.IMethodTransformerExtension;
 import de.osthus.esmeralda.handler.IMethodTransformerExtensionExtendable;
+import de.osthus.esmeralda.handler.csharp.transformer.DefaultFieldTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.DefaultMethodParameterProcessor;
 import de.osthus.esmeralda.handler.csharp.transformer.DefaultMethodTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaIoPrintstreamTransformer;
@@ -12,6 +14,7 @@ import de.osthus.esmeralda.handler.csharp.transformer.JavaLangCharacterTransform
 import de.osthus.esmeralda.handler.csharp.transformer.JavaLangClassTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaLangIterableTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaLangObjectTransformer;
+import de.osthus.esmeralda.handler.csharp.transformer.JavaLangRefReferenceTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaLangReflectArrayTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaLangReflectConstructorTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaLangReflectFieldTransformer;
@@ -32,9 +35,13 @@ public class CsMethodTransformationModule implements IInitializingModule
 
 	private static final String CsDefaultMethodParameterProcessor = EsmeraldaCoreModule.DefaultMethodParameterProcessor + Lang.C_SHARP;
 
+	private static final String CsDefaultFieldTransformerName = Lang.C_SHARP + EsmeraldaCoreModule.DefaultFieldTransformerName;
+
 	private IBeanConfiguration defaultMethodParameterProcessor;
 
 	private IBeanConfiguration defaultMethodTransformer;
+
+	private IBeanConfiguration defaultFieldTransformer;
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
@@ -45,6 +52,9 @@ public class CsMethodTransformationModule implements IInitializingModule
 				.propertyRef(AbstractMethodTransformerExtension.defaultMethodParameterProcessorProp, defaultMethodParameterProcessor);
 		beanContextFactory.link(defaultMethodTransformer).to(IMethodTransformerExtensionExtendable.class).with(CsDefaultMethodTransformerName);
 
+		defaultFieldTransformer = beanContextFactory.registerBean(DefaultFieldTransformer.class);
+		beanContextFactory.link(defaultFieldTransformer).to(IFieldTransformerExtensionExtendable.class).with(CsDefaultFieldTransformerName);
+
 		registerMethodTransformerExtension(beanContextFactory, JavaLangCharacterTransformer.class, java.lang.Character.class);
 		registerMethodTransformerExtension(beanContextFactory, JavaLangClassTransformer.class, java.lang.Class.class);
 		registerMethodTransformerExtension(beanContextFactory, JavaLangIterableTransformer.class, java.lang.Iterable.class);
@@ -52,6 +62,8 @@ public class CsMethodTransformationModule implements IInitializingModule
 		registerMethodTransformerExtension(beanContextFactory, JavaLangReflectArrayTransformer.class, java.lang.reflect.Array.class);
 		registerMethodTransformerExtension(beanContextFactory, JavaLangReflectConstructorTransformer.class, java.lang.reflect.Constructor.class);
 		registerMethodTransformerExtension(beanContextFactory, JavaLangReflectFieldTransformer.class, java.lang.reflect.Field.class);
+		registerMethodTransformerExtension(beanContextFactory, JavaLangRefReferenceTransformer.class, java.lang.ref.Reference.class,
+				java.lang.ref.WeakReference.class, java.lang.ref.SoftReference.class);
 		registerMethodTransformerExtension(beanContextFactory, JavaLangStringTransformer.class, java.lang.String.class);
 		registerMethodTransformerExtension(beanContextFactory, JavaUtilCollectionTransformer.class, java.util.Collection.class);
 		registerMethodTransformerExtension(beanContextFactory, JavaUtilEnumerationTransformer.class, java.util.Enumeration.class);
@@ -64,11 +76,14 @@ public class CsMethodTransformationModule implements IInitializingModule
 	}
 
 	private IBeanConfiguration registerMethodTransformerExtension(IBeanContextFactory beanContextFactory,
-			Class<? extends IMethodTransformerExtension> methodTransformerType, Class<?> type)
+			Class<? extends IMethodTransformerExtension> methodTransformerType, Class<?>... types)
 	{
 		IBeanConfiguration methodTransformer = beanContextFactory.registerBean(methodTransformerType)//
 				.propertyRef(AbstractMethodTransformerExtension.defaultMethodParameterProcessorProp, defaultMethodParameterProcessor);
-		beanContextFactory.link(methodTransformer).to(IMethodTransformerExtensionExtendable.class).with(Lang.C_SHARP + type.getName());
+		for (Class<?> type : types)
+		{
+			beanContextFactory.link(methodTransformer).to(IMethodTransformerExtensionExtendable.class).with(Lang.C_SHARP + type.getName());
+		}
 		return methodTransformer;
 	}
 }

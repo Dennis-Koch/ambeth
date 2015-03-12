@@ -13,6 +13,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.esmeralda.IClassInfoManager;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.IPostProcess;
@@ -33,6 +34,9 @@ public class CsClassHandler implements IClassHandler
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IClassInfoManager classInfoManager;
 
 	@Autowired
 	protected IConversionContext context;
@@ -193,7 +197,7 @@ public class CsClassHandler implements IClassHandler
 		boolean firstTypeArgument = true;
 		for (TypeParameterTree typeParameter : classInfo.getClassTree().getTypeParameters())
 		{
-			JavaClassInfo typeParameterCI = context.resolveClassInfo(typeParameter.getName().toString());
+			JavaClassInfo typeParameterCI = classInfoManager.resolveClassInfo(typeParameter.getName().toString());
 			JavaClassInfo extendsFrom = typeParameterCI.getExtendsFrom();
 			if (Object.class.getName().equals(extendsFrom.getFqName()))
 			{

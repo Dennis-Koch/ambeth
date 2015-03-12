@@ -29,7 +29,6 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IClassHandler;
-import de.osthus.esmeralda.handler.IClassInfoFactory;
 import de.osthus.esmeralda.handler.csharp.CsSpecific;
 import de.osthus.esmeralda.handler.csharp.ICsHelper;
 import de.osthus.esmeralda.handler.js.IJsHelper;
@@ -39,7 +38,6 @@ import de.osthus.esmeralda.misc.IToDoWriter;
 import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.misc.StatementCount;
 import demo.codeanalyzer.common.model.JavaClassInfo;
-import demo.codeanalyzer.helper.ClassInfoDataSetter;
 
 public class ConversionManager implements IStartingBean
 {
@@ -71,7 +69,7 @@ public class ConversionManager implements IStartingBean
 	protected IASTHelper astHelper;
 
 	@Autowired
-	protected IClassInfoFactory classInfoFactory;
+	protected IClassInfoManager classInfoManager;
 
 	@Autowired("jsClasspathManager")
 	protected IClasspathManager jsClasspathManager;
@@ -151,24 +149,27 @@ public class ConversionManager implements IStartingBean
 		}
 
 		ArrayList<JavaClassInfo> classInfos = codeProcessor.getClassInfos();
-		HashMap<String, JavaClassInfo> fqNameToClassInfoMap = new HashMap<String, JavaClassInfo>();
 
-		for (JavaClassInfo classInfo : classInfos)
 		{
-			String fqName = classInfo.getFqName();
-			if (!fqNameToClassInfoMap.putIfNotExists(fqName, classInfo))
+			ConversionContext tempContext = createDefaultCsContext();
+			IConversionContext oldContext = context.getCurrent();
+			context.setCurrent(tempContext);
+			try
 			{
-				throw new IllegalStateException("Full qualified name is not unique: " + fqName);
+				classInfoManager.init(classInfos);
 			}
-			String nonGenericFqName = astHelper.extractNonGenericType(classInfo.getFqName());
-			if (!nonGenericFqName.equals(fqName) && !fqNameToClassInfoMap.putIfNotExists(nonGenericFqName, classInfo))
+			catch (Throwable e)
 			{
-				throw new IllegalStateException("Full qualified name is not unique: " + nonGenericFqName);
+				log.error(e);
+			}
+			finally
+			{
+				context.setCurrent(oldContext);
 			}
 		}
 
-		ConversionContext csDefaultContext = createDefaultCsContext(fqNameToClassInfoMap);
-		ConversionContext jsDefaultContext = createDefaultJsContext(fqNameToClassInfoMap);
+		ConversionContext csDefaultContext = createDefaultCsContext();
+		ConversionContext jsDefaultContext = createDefaultJsContext();
 
 		int classInfoProgress = 0, classInfoCount = classInfos.size();
 		long lastLog = System.currentTimeMillis();
@@ -201,7 +202,7 @@ public class ConversionManager implements IStartingBean
 		logMetric(csDefaultContext, jsDefaultContext);
 	}
 
-	protected ConversionContext createDefaultCsContext(HashMap<String, JavaClassInfo> fqNameToClassInfoMap)
+	protected ConversionContext createDefaultCsContext()
 	{
 		ILanguageSpecific csSpecific = new CsSpecific();
 		StatementCount csMetric = new StatementCount("C#");
@@ -209,7 +210,6 @@ public class ConversionManager implements IStartingBean
 		HashSet<String> csDefinedMethods = new HashSet<>();
 
 		ConversionContext csContext = new ConversionContext();
-		csContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
 		csContext.setLanguage(Lang.C_SHARP);
 		csContext.setTargetPath(targetPath);
 		csContext.setSnippetPath(snippetPath);
@@ -218,8 +218,7 @@ public class ConversionManager implements IStartingBean
 		csContext.setGenericTypeSupported(true);
 		csContext.setLanguageSpecific(csSpecific);
 		csContext.setMetric(csMetric);
-		csContext.setAstHelper(astHelper);
-		csContext.setClassInfoFactory(classInfoFactory);
+		csContext.setClassInfoManager(classInfoManager);
 		csContext.setLanguageHelper(csHelper);
 		csContext.setCalledMethods(csCalledMethods);
 		csContext.setDefinedMethods(csDefinedMethods);
@@ -227,7 +226,7 @@ public class ConversionManager implements IStartingBean
 		return csContext;
 	}
 
-	protected ConversionContext createDefaultJsContext(HashMap<String, JavaClassInfo> fqNameToClassInfoMap)
+	protected ConversionContext createDefaultJsContext()
 	{
 		ILanguageSpecific jsSpecific = new JsSpecific();
 		StatementCount jsMetric = new StatementCount("JS");
@@ -235,7 +234,6 @@ public class ConversionManager implements IStartingBean
 		HashSet<String> jsDefinedMethods = new HashSet<>();
 
 		ConversionContext jsContext = new ConversionContext();
-		jsContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
 		jsContext.setLanguage(Lang.JS);
 		jsContext.setTargetPath(targetPath);
 		jsContext.setSnippetPath(snippetPath);
@@ -245,8 +243,7 @@ public class ConversionManager implements IStartingBean
 		jsContext.setLanguageSpecific(jsSpecific);
 		jsContext.setMetric(jsMetric);
 		jsContext.setNsPrefixRemove(NS_PREFIX_OSTHUS);
-		jsContext.setAstHelper(astHelper);
-		jsContext.setClassInfoFactory(classInfoFactory);
+		jsContext.setClassInfoManager(classInfoManager);
 		jsContext.setLanguageHelper(jsHelper);
 		jsContext.setCalledMethods(jsCalledMethods);
 		jsContext.setDefinedMethods(jsDefinedMethods);
@@ -269,10 +266,8 @@ public class ConversionManager implements IStartingBean
 		context.setNsPrefixRemove(defaultContext.getNsPrefixRemove());
 		context.setCalledMethods(defaultContext.getCalledMethods());
 		context.setDefinedMethods(defaultContext.getDefinedMethods());
-		context.setFqNameToClassInfoMap(defaultContext.getFqNameToClassInfoMap());
 		context.setLanguageHelper(defaultContext.getLanguageHelper());
-		context.setAstHelper(astHelper);
-		context.setClassInfoFactory(classInfoFactory);
+		context.setClassInfoManager(classInfoManager);
 
 		return context;
 	}
@@ -337,7 +332,8 @@ public class ConversionManager implements IStartingBean
 		HashMap<String, Set<String>> simpleNameToPackagesMap = new HashMap<String, Set<String>>();
 		for (TypeUsing usedType : usedTypes)
 		{
-			Matcher matcher = ClassInfoDataSetter.fqPattern.matcher(usedType.getTypeName());
+			String[] parsedGenericType = astHelper.parseGenericType(usedType.getTypeName());
+			Matcher matcher = CodeVisitor.fqPattern.matcher(parsedGenericType[0]);
 			if (!matcher.matches())
 			{
 				continue;
