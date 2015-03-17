@@ -1,7 +1,7 @@
 package de.osthus.esmeralda.handler;
 
 
-public class TransformedMemberAccess implements ITransformedMemberAccess
+public class TransformedMemberAccess implements ITransformedField
 {
 	protected final String owner, name, returnType;
 

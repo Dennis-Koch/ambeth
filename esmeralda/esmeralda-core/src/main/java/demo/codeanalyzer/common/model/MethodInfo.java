@@ -3,6 +3,7 @@ package demo.codeanalyzer.common.model;
 import javax.lang.model.element.VariableElement;
 
 import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.TypeParameterTree;
 import com.sun.source.util.TreePath;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -24,10 +25,12 @@ public class MethodInfo extends BaseJavaClassModelInfo implements Method
 	private ArrayList<Integer> parameterIndexToDelete = new ArrayList<Integer>();
 	private TreePath path;
 
+	private TypeParameterTree[] typeParameters;
+
 	@Override
 	public boolean isConstructor()
 	{
-		return getName().equals(getOwningClass().getName());
+		return getName().equals(getOwningClass().getNonGenericName());
 	}
 
 	@Override
@@ -50,6 +53,14 @@ public class MethodInfo extends BaseJavaClassModelInfo implements Method
 	public void setMethodTree(MethodTree methodTree)
 	{
 		this.methodTree = methodTree;
+		if (methodTree == null)
+		{
+			typeParameters = null;
+		}
+		else
+		{
+			typeParameters = methodTree.getTypeParameters().toArray(new TypeParameterTree[methodTree.getTypeParameters().size()]);
+		}
 	}
 
 	@Override
@@ -135,5 +146,16 @@ public class MethodInfo extends BaseJavaClassModelInfo implements Method
 	public TreePath getPath()
 	{
 		return path;
+	}
+
+	@Override
+	public TypeParameterTree[] getTypeParameters()
+	{
+		return typeParameters;
+	}
+
+	public void setTypeParameters(TypeParameterTree[] typeParameters)
+	{
+		this.typeParameters = typeParameters;
 	}
 }

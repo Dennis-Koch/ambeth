@@ -9,6 +9,10 @@ import de.osthus.esmeralda.handler.uni.transformer.AbstractMethodTransformerExte
 
 public class DefaultMethodTransformer extends AbstractMethodTransformerExtension
 {
+	public static final String THIS = "constructor";
+
+	public static final String SUPER = "superclass.constructor";
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -19,13 +23,13 @@ public class DefaultMethodTransformer extends AbstractMethodTransformerExtension
 		String methodName = methodKey.getMethodName();
 		if ("super".equals(methodName))
 		{
-			methodName = "super";
+			methodName = SUPER;
 		}
 		else if ("this".equals(methodName))
 		{
-			methodName = "this";
+			methodName = THIS;
 		}
-		TransformedMethod transformedMethod = new TransformedMethod(methodKey.getDeclaringTypeName(), methodName, methodKey.getParameters(), false, false);
+		TransformedMethod transformedMethod = new TransformedMethod(methodKey.getDeclaringTypeName(), methodName, methodKey.getParameters(), false);
 		transformedMethod.setParameterProcessor(defaultMethodParameterProcessor);
 		return transformedMethod;
 	}

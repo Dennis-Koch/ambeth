@@ -13,6 +13,8 @@ import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
+// TODO remove
+@Deprecated
 public class CsSwitchHandler extends AbstractCsStatementHandler<JCSwitch> implements IStatementHandlerExtension<JCSwitch>
 {
 	@SuppressWarnings("unused")

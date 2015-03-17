@@ -102,7 +102,7 @@ public class Logger implements IConfigurableLogger
 		Logger.logStreamEnabled = logStreamEnabled;
 	}
 
-	protected boolean isDebugEnabled = true, isInfoEnabled = true, isWarnEnabled = true, isErrorEnabled = true, logToConsole = true;
+	protected boolean debugEnabled = true, infoEnabled = true, warnEnabled = true, errorEnabled = true, logToConsole = true;
 
 	private final String source, shortSource;
 
@@ -146,13 +146,13 @@ public class Logger implements IConfigurableLogger
 	@Override
 	public boolean isDebugEnabled()
 	{
-		return isDebugEnabled;
+		return debugEnabled;
 	}
 
 	@Override
 	public void setDebugEnabled(boolean value)
 	{
-		isDebugEnabled = value;
+		debugEnabled = value;
 	}
 
 	@Override
@@ -183,37 +183,37 @@ public class Logger implements IConfigurableLogger
 	@Override
 	public boolean isInfoEnabled()
 	{
-		return isInfoEnabled;
+		return infoEnabled;
 	}
 
 	@Override
 	public void setInfoEnabled(boolean value)
 	{
-		isInfoEnabled = value;
+		infoEnabled = value;
 	}
 
 	@Override
 	public boolean isWarnEnabled()
 	{
-		return isWarnEnabled;
+		return warnEnabled;
 	}
 
 	@Override
 	public void setWarnEnabled(boolean value)
 	{
-		isWarnEnabled = value;
+		warnEnabled = value;
 	}
 
 	@Override
 	public boolean isErrorEnabled()
 	{
-		return isErrorEnabled;
+		return errorEnabled;
 	}
 
 	@Override
 	public void setErrorEnabled(boolean value)
 	{
-		isErrorEnabled = value;
+		errorEnabled = value;
 	}
 
 	@Override

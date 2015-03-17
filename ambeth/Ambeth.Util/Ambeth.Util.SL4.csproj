@@ -231,7 +231,6 @@
     <Compile Include="ambeth\util\IDelegateFactory.cs" />
     <Compile Include="ambeth\util\IImmutableType.cs" />
     <Compile Include="ambeth\util\IInterningFeature.cs" />
-    <Compile Include="ambeth\util\ImmutableTypeSet.cs" />
     <Compile Include="ambeth\util\IParamHolder.cs" />
     <Compile Include="ambeth\util\DateTimeUtil.cs" />
     <Compile Include="ambeth\util\GenericCollectionUtil.cs" />
