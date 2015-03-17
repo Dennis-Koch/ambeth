@@ -6,10 +6,10 @@ import java.lang.ref.WeakReference;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.IAuthorizationChangeListener;
+import de.osthus.ambeth.security.ISecurityContext;
 import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.util.IAlreadyLinkedCache;
-import de.osthus.ambeth.util.IAlreadyLoadedCache;
 import de.osthus.ambeth.util.IInterningFeature;
 
 public class ContextProvider implements IContextProvider, IAuthorizationChangeListener
@@ -27,9 +27,6 @@ public class ContextProvider implements IContextProvider, IAuthorizationChangeLi
 	protected ISecurityScopeProvider securityScopeProvider;
 
 	@Autowired
-	protected IAlreadyLoadedCache alreadyLoadedCache;
-
-	@Autowired
 	protected IAlreadyLinkedCache alreadyLinkedCache;
 
 	@Autowired(optional = true)
@@ -39,7 +36,8 @@ public class ContextProvider implements IContextProvider, IAuthorizationChangeLi
 	public void acquired()
 	{
 		boundThread = new WeakReference<Thread>(Thread.currentThread());
-		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
+		ISecurityContext context = securityContextHolder.getContext();
+		IAuthorization authorization = context != null ? context.getAuthorization() : null;
 		String user = authorization != null ? authorization.getSID() : null;
 		setCurrentUser(user);
 	}
@@ -78,12 +76,6 @@ public class ContextProvider implements IContextProvider, IAuthorizationChangeLi
 	}
 
 	@Override
-	public IAlreadyLoadedCache getAlreadyLoadedCache()
-	{
-		return alreadyLoadedCache;
-	}
-
-	@Override
 	public void clear()
 	{
 		clearAfterMerge();
@@ -95,7 +87,6 @@ public class ContextProvider implements IContextProvider, IAuthorizationChangeLi
 	@Override
 	public void clearAfterMerge()
 	{
-		alreadyLoadedCache.clear();
 		alreadyLinkedCache.clear();
 	}
 

@@ -2,6 +2,7 @@ package de.osthus.ambeth.ioc.config;
 
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.exception.BeanContextDeclarationException;
 import de.osthus.ambeth.ioc.proxy.EmptyInterceptor;
 import de.osthus.ambeth.proxy.IProxyFactory;
 
@@ -65,7 +66,7 @@ public class BeanConfiguration extends AbstractBeanConfiguration
 			{
 				if (declarationStackTrace != null)
 				{
-					throw RuntimeExceptionUtil.mask(e, "Declaration information:\n" + declarationStackTrace);
+					throw new BeanContextDeclarationException(declarationStackTrace, e);
 				}
 				else
 				{

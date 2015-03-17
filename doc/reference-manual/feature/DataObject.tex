@@ -1,0 +1,40 @@
+\SetAPI{J-C}
+\section{DataObject}
+\label{feature:DataObject}
+\ClearAPI
+\TODO
+\feature
+	{de.osthus.ambeth.model.IDataObject}
+	{Java \& C\#}
+	{2.1+}
+	{-}
+	{-}
+	{module:Util}
+	{de.osthus.ambeth.cache.valueholdercontainer.ValueHolderContainerTest}
+
+All entities in Ambeth are enhanced with several functionality at runtime. One specific feature allows to check the persistence state of each specific entity instance. The \type{IDataObject} interface will also be used by the initial merge process to decide whether a given entity is considered for change analysis. That way it is possible to pass any amount of entities into the merge process without a negative performance impact - only those entities that have really been changed are analyzed and compared with their original clone. See \prettyref{feature:MergeProcess} for more information in that regard.
+
+\inputjava{IDataObject-Enhancement}
+	{jambeth-util/src/main/java/de/osthus/ambeth/model/IDataObject.java}
+
+\inputcsharp{IDataObject-Enhancement}
+	{Ambeth.Util/ambeth/model/IDataObject.cs}
+
+\begin{itemize}
+	\item ToBeDeleted
+		\begin{itemize}
+			\item True if the entity is pending to delete. That is after the next merge process execution the entity will be deleted
+		\end{itemize}
+	\item ToBeUpdated
+		\begin{itemize}
+			\item True if the entity is pending for updates. That is the local program did changes to the entity (e.g. called at least one setter). After the next merge process execution the entity will be deleted.
+		\end{itemize}
+	\item ToBeCreated
+		\begin{itemize}
+			\item True if the entity is pending to create. That means the entity has been preceedingly created via \type{IEntityFactory.create()} and will be persisted (and assigned with a primary key) after the next merge process execution.
+		\end{itemize}
+	\item HasPendingChanges
+		\begin{itemize}
+			\item True if at least one of the above flags is true. That means the given entity will ``change'' by any regard if passed to the next merge process execution.
+		\end{itemize}
+\end{itemize}

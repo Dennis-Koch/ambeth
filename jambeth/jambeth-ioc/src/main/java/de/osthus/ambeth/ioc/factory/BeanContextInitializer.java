@@ -9,22 +9,24 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import javax.management.DynamicMBean;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.EmptySet;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.ILinkedSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.collections.IdentityLinkedMap;
 import de.osthus.ambeth.collections.IdentityLinkedSet;
 import de.osthus.ambeth.collections.LinkedHashMap;
-import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.IocConfigurationConstants;
 import de.osthus.ambeth.config.Properties;
@@ -85,14 +87,14 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		ImmutableTypeSet.addImmutableTypesTo(primitiveSet);
 		primitiveSet.add(Object.class);
 
-		precedenceOrder.put(PrecedenceType.LOWEST, Integer.valueOf(0));
-		precedenceOrder.put(PrecedenceType.LOWER, Integer.valueOf(1));
-		precedenceOrder.put(PrecedenceType.LOW, Integer.valueOf(2));
+		precedenceOrder.put(PrecedenceType.LOWEST, Integer.valueOf(6));
+		precedenceOrder.put(PrecedenceType.LOWER, Integer.valueOf(5));
+		precedenceOrder.put(PrecedenceType.LOW, Integer.valueOf(4));
 		precedenceOrder.put(PrecedenceType.MEDIUM, Integer.valueOf(3));
 		precedenceOrder.put(PrecedenceType.DEFAULT, Integer.valueOf(3));
-		precedenceOrder.put(PrecedenceType.HIGH, Integer.valueOf(4));
-		precedenceOrder.put(PrecedenceType.HIGHER, Integer.valueOf(5));
-		precedenceOrder.put(PrecedenceType.HIGHEST, Integer.valueOf(6));
+		precedenceOrder.put(PrecedenceType.HIGH, Integer.valueOf(2));
+		precedenceOrder.put(PrecedenceType.HIGHER, Integer.valueOf(1));
+		precedenceOrder.put(PrecedenceType.HIGHEST, Integer.valueOf(0));
 	}
 
 	public static IBeanContextFactory getCurrentBeanContextFactory()
@@ -296,30 +298,19 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		}
 		catch (Throwable e)
 		{
-			ArrayList<IDisposableBean> toDestroyOnError = beanContextInit.toDestroyOnError;
-			for (int a = 0, size = toDestroyOnError.size(); a < size; a++)
+			try
 			{
-				try
-				{
-					toDestroyOnError.get(a).destroy();
-				}
-				catch (Throwable ex)
-				{
-					throw RuntimeExceptionUtil.mask(ex);
-				}
+				beanContext.dispose();
+			}
+			catch (Throwable ex)
+			{
+				throw RuntimeExceptionUtil.mask(ex, "Error occurred while disposing context while starting the context due to bean exception");
 			}
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally
 		{
-			if (oldBeanContextInit == null)
-			{
-				currentBeanContextInitTL.remove();
-			}
-			else
-			{
-				currentBeanContextInitTL.set(oldBeanContextInit);
-			}
+			currentBeanContextInitTL.set(oldBeanContextInit);
 		}
 	}
 
@@ -394,10 +385,19 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 					// beans without a name will not be browsable
 					continue;
 				}
-				BeanMonitoringSupport mBean = new BeanMonitoringSupport(bean, beanContext);
-				if (mBean.getMBeanInfo().getAttributes().length == 0)
+				Object mBean;
+				if (!(bean instanceof DynamicMBean))
 				{
-					continue;
+					BeanMonitoringSupport bmSupport = new BeanMonitoringSupport(bean, beanContext);
+					if (bmSupport.getMBeanInfo().getAttributes().length == 0)
+					{
+						continue;
+					}
+					mBean = bmSupport;
+				}
+				else
+				{
+					mBean = bean;
 				}
 				try
 				{
@@ -564,10 +564,10 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			if (bean instanceof IInitializingBean)
 			{
 				((IInitializingBean) bean).afterPropertiesSet();
-				if (bean instanceof IDisposableBean)
-				{
-					beanContextInit.toDestroyOnError.add((IDisposableBean) bean);
-				}
+			}
+			if (bean instanceof IDisposableBean)
+			{
+				beanContextInit.toDestroyOnError.add((IDisposableBean) bean);
 			}
 			if (bean instanceof IPropertyLoadingBean)
 			{
@@ -674,13 +674,13 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		List<IBeanPreProcessor> preProcessors = beanContext.getPreProcessors();
 
 		ArrayList<IPropertyConfiguration> propertyConfigurations = new ArrayList<IPropertyConfiguration>();
-		LinkedHashSet<String> ignoredPropertyNames = new LinkedHashSet<String>();
 		HashSet<String> alreadySpecifiedPropertyNamesSet = new HashSet<String>();
 
 		try
 		{
 			Class<?> beanType = resolveTypeInHierarchy(beanConfHierarchy);
 			resolveAllBeanConfInHierarchy(beanConfHierarchy, propertyConfigurations);
+			ISet<String> ignoredPropertyNames = resolveAllIgnoredPropertiesInHierarchy(beanConfHierarchy, beanType);
 
 			IPropertyInfo[] propertyInfos = propertyInfoProvider.getProperties(beanType);
 
@@ -691,12 +691,11 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 				for (int a = 0, size = preProcessors.size(); a < size; a++)
 				{
 					IBeanPreProcessor preProcessor = preProcessors.get(a);
-					preProcessor.preProcessProperties(beanContextFactory, properties, beanName, bean, beanType, propertyConfigurations, propertyInfos);
+					preProcessor.preProcessProperties(beanContextFactory, beanContext, properties, beanName, bean, beanType, propertyConfigurations,
+							ignoredPropertyNames, propertyInfos);
 				}
 			}
 			initializeDefining(beanContextInit, beanConfiguration, bean, beanType, propertyInfos, propertyConfigurations, alreadySpecifiedPropertyNamesSet);
-			resolveAllIgnoredPropertiesInHierarchy(beanConfHierarchy, beanType, ignoredPropertyNames);
-
 			initializeAutowiring(beanContextInit, beanConfiguration, bean, beanType, propertyInfos, alreadySpecifiedPropertyNamesSet, ignoredPropertyNames);
 			callInitializingCallbacks(beanContextInit, bean, joinLifecycle);
 		}
@@ -931,13 +930,20 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		{
 			IPropertyConfiguration propertyConf = propertyConfigurations.get(a);
 
-			String refBeanName = propertyConf.getBeanName();
-			if (refBeanName == null)
+			try
 			{
-				initializePrimitive(beanContextInit, bean, beanType, propertyConf, alreadySpecifiedPropertyNamesSet);
-				continue;
+				String refBeanName = propertyConf.getBeanName();
+				if (refBeanName == null)
+				{
+					initializePrimitive(beanContextInit, bean, beanType, propertyConf, alreadySpecifiedPropertyNamesSet);
+					continue;
+				}
+				initializeRelation(beanContextInit, beanConfiguration, bean, beanType, propertyConf, propertyInfos, alreadySpecifiedPropertyNamesSet);
 			}
-			initializeRelation(beanContextInit, beanConfiguration, bean, beanType, propertyConf, propertyInfos, alreadySpecifiedPropertyNamesSet);
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e, "Error occurred while setting property '" + propertyConf.getPropertyName() + "'");
+			}
 		}
 	}
 
@@ -1371,8 +1377,9 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		return null;
 	}
 
-	protected void resolveAllIgnoredPropertiesInHierarchy(List<IBeanConfiguration> beanConfHierarchy, Class<?> beanType, Set<String> ignoredProperties)
+	protected ISet<String> resolveAllIgnoredPropertiesInHierarchy(List<IBeanConfiguration> beanConfHierarchy, Class<?> beanType)
 	{
+		ISet<String> ignoredProperties = null;
 		Map<String, IPropertyInfo> propertyMap = propertyInfoProvider.getPropertyMap(beanType);
 		for (int a = 0, size = beanConfHierarchy.size(); a < size; a++)
 		{
@@ -1397,9 +1404,18 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 					}
 					ignoredPropertyName = uppercaseFirst;
 				}
+				if (ignoredProperties == null)
+				{
+					ignoredProperties = new HashSet<String>();
+				}
 				ignoredProperties.add(ignoredPropertyName);
 			}
 		}
+		if (ignoredProperties == null)
+		{
+			ignoredProperties = EmptySet.<String> emptySet();
+		}
+		return ignoredProperties;
 	}
 
 	protected void resolveAllAutowireableInterfacesInHierarchy(List<IBeanConfiguration> beanConfHierarchy, Set<Class<?>> autowireableInterfaces)

@@ -18,7 +18,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.security.SecurityContext;
-import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
+import de.osthus.ambeth.security.SecurityContextType;
 import de.osthus.ambeth.util.ParamChecker;
 
 @SecurityContext(SecurityContextType.AUTHENTICATED)
@@ -48,10 +48,12 @@ public class RandomDataGenerator implements IInitializingBean, IJob
 	@Property(name = "random.max", mandatory = false)
 	protected int maxThreadhold = 20;
 
+	protected long transactionCounter;
+
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertTrue(maxThreadhold > minThreshold, "Thresholds must be valid: " + maxThreadhold + " > " + minThreshold);
+		ParamChecker.assertTrue(maxThreadhold >= minThreshold, "Thresholds must be valid: " + maxThreadhold + " >= " + minThreshold);
 	}
 
 	@Override
@@ -97,6 +99,9 @@ public class RandomDataGenerator implements IInitializingBean, IJob
 		// throw new IllegalStateException("Service call should have been failed!");
 		// }
 
+		long lastLogTime = System.currentTimeMillis();
+		long lastCounter = transactionCounter;
+
 		final List<TestEntity> allTestEntities = helloWorldService.getAllTestEntities();
 		final List<TestEntity2> allTest2Entities = helloWorldService.getAllTest2Entities();
 
@@ -113,22 +118,16 @@ public class RandomDataGenerator implements IInitializingBean, IJob
 					doChange(allTestEntities, allTest2Entities);
 					doChange(allTestEntities, allTest2Entities);
 					doChange(allTestEntities, allTest2Entities);
-
-					// // Evaluate entity to change by its index in the result list of existing entities (necessary for UPDATE /
-					// // DELETE)
-					// int selectEntityIndex = (int) (Math.random() * allTestEntities.size());
-					//
-					// // Evaluate entity2 to select its index in the result list of existing entities (necessary for INSERT of
-					// // entity1)
-					// int selectEntity2Index = (int) (Math.random() * allTest2Entities.size());
-					//
-					// ChangeOperation changeOperation = ChangeOperation.UPDATE;
-					//
-					// doChange(allTestEntities, allTest2Entities, selectEntityIndex, selectEntity2Index, changeOperation, true);
-					// doChange(allTestEntities, allTest2Entities, selectEntityIndex, selectEntity2Index, changeOperation, true);
-					// doChange(allTestEntities, allTest2Entities, selectEntityIndex, selectEntity2Index, changeOperation, true);
 				}
 			});
+
+			long spent = System.currentTimeMillis() - lastLogTime;
+			if (spent > 5000)
+			{
+				log.info("Tx/s: " + (long) ((transactionCounter - lastCounter) / (spent / 1000.0)));
+				lastLogTime = System.currentTimeMillis();
+				lastCounter = transactionCounter;
+			}
 			Thread.sleep(1);
 		}
 	}
@@ -169,6 +168,7 @@ public class RandomDataGenerator implements IInitializingBean, IJob
 		boolean changeTestEntity = allTest2Entities.size() > 0 && Math.random() > 0.1;
 
 		doChange(allTestEntities, allTest2Entities, selectEntityIndex, selectEntity2Index, changeOperation, changeTestEntity);
+		transactionCounter++;
 	}
 
 	protected void doChange(List<TestEntity> allTestEntities, List<TestEntity2> allTest2Entities, int selectEntityIndex, int selectEntity2Index,
@@ -179,7 +179,7 @@ public class RandomDataGenerator implements IInitializingBean, IJob
 
 		if (changeTestEntity)
 		{
-			// If there are less than 10 entities, force to insertion of one
+			// If there are less than minThreshold entities, force to insertion of one
 			if (allTestEntities.size() < minThreshold || ChangeOperation.INSERT.equals(changeOperation))
 			{
 				TestEntity2 testEntity2 = allTest2Entities.get(selectEntity2Index);
@@ -188,11 +188,14 @@ public class RandomDataGenerator implements IInitializingBean, IJob
 				newEntity.setRelation(testEntity2);
 				helloWorldService.saveTestEntities(newEntity);
 				allTestEntities.add(newEntity);
+				log.debug("New " + TestEntity.class.getSimpleName() + " " + newEntity.getId() + " with " + TestEntity2.class.getName() + " "
+						+ testEntity2.getId());
 			}
-			// If there are more than 20 entities, force to deletion of one
+			// If there are more than maxThreadhold entities, force to deletion of one
 			else if (allTestEntities.size() > maxThreadhold || ChangeOperation.DELETE.equals(changeOperation))
 			{
 				TestEntity deleteEntity = allTestEntities.remove(selectEntityIndex);
+				log.debug("Del " + TestEntity.class.getSimpleName() + " " + deleteEntity.getId());
 				helloWorldService.deleteTestEntities(deleteEntity.getId());
 			}
 			else if (ChangeOperation.UPDATE.equals(changeOperation))
@@ -202,6 +205,7 @@ public class RandomDataGenerator implements IInitializingBean, IJob
 				updateEntity.getEmbeddedObject().setName("Name_" + randomNewValue);
 				updateEntity.getEmbeddedObject().setValue(randomNewValue);
 				helloWorldService.saveTestEntities(updateEntity);
+				log.debug("Upd " + TestEntity.class.getSimpleName() + " " + updateEntity.getId());
 			}
 			else
 			{
@@ -212,18 +216,20 @@ public class RandomDataGenerator implements IInitializingBean, IJob
 		}
 		else
 		{
-			// If there are less than 10 entities, force to insertion of one
+			// If there are less than minThreshold entities, force to insertion of one
 			if (allTest2Entities.size() < minThreshold || ChangeOperation.INSERT.equals(changeOperation))
 			{
 				TestEntity2 newEntity2 = entityFactory.createEntity(TestEntity2.class);
 				newEntity2.setMyValue2(randomNewValue);
 				helloWorldService.saveTest2Entities(newEntity2);
 				allTest2Entities.add(newEntity2);
+				log.debug("New " + TestEntity2.class.getSimpleName() + " " + newEntity2.getId());
 			}
-			// If there are more than 20 entities, force to deletion of one
+			// If there are more than maxThreadhold entities, force to deletion of one
 			else if (allTest2Entities.size() > maxThreadhold || ChangeOperation.DELETE.equals(changeOperation))
 			{
 				TestEntity2 deleteEntity = allTest2Entities.remove(selectEntity2Index);
+				log.debug("Del " + TestEntity2.class.getSimpleName() + " " + deleteEntity.getId());
 				helloWorldService.deleteTest2Entities(deleteEntity);
 			}
 			else if (ChangeOperation.UPDATE.equals(changeOperation))
@@ -231,6 +237,7 @@ public class RandomDataGenerator implements IInitializingBean, IJob
 				TestEntity2 updateEntity2 = allTest2Entities.get(selectEntity2Index);
 				updateEntity2.setMyValue2(randomNewValue);
 				helloWorldService.saveTest2Entities(updateEntity2);
+				log.debug("Upd " + TestEntity2.class.getSimpleName() + " " + updateEntity2.getId());
 			}
 			else
 			{

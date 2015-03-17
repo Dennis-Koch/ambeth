@@ -11,6 +11,8 @@ public class EntityConfig
 
 	private String tableName;
 
+	private String permissionGroupName;
+
 	private String sequenceName;
 
 	private IMemberConfig idMemberConfig;
@@ -71,6 +73,16 @@ public class EntityConfig
 	public void setTableName(String tableName)
 	{
 		this.tableName = tableName;
+	}
+
+	public String getPermissionGroupName()
+	{
+		return permissionGroupName;
+	}
+
+	public void setPermissionGroupName(String permissionGroupName)
+	{
+		this.permissionGroupName = permissionGroupName;
 	}
 
 	public String getSequenceName()

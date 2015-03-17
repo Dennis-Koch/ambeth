@@ -195,6 +195,11 @@ namespace De.Osthus.Ambeth.Bytecode
             return new MethodInstance(BytecodeBehaviorState.State.NewType, CheckAbstract(BytecodeBehaviorState.State.NewType, Access), ReturnType, Name, Parameters);
         }
 
+        public MethodInstance DeriveAccess(MethodAttributes access)
+        {
+            return new MethodInstance(Owner, access, ReturnType, Name, Parameters);
+        }
+
         public MethodInstance DeriveName(String methodName)
         {
             return new MethodInstance(Owner, Access, ReturnType, methodName, Parameters);

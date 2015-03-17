@@ -1,16 +1,12 @@
 package de.osthus.ambeth.change;
 
-import de.osthus.ambeth.merge.model.IChangeContainer;
-import de.osthus.ambeth.merge.transfer.DeleteContainer;
-import de.osthus.ambeth.persistence.ITable;
+import de.osthus.ambeth.merge.model.IObjRef;
 
 public class DeleteCommand extends AbstractChangeCommand implements IDeleteCommand
 {
-	@Override
-	public void configureFromContainer(IChangeContainer changeContainer, ITable table)
+	public DeleteCommand(IObjRef objRef)
 	{
-		DeleteContainer container = (DeleteContainer) changeContainer;
-		super.configureFromContainer(container, table);
+		super(objRef);
 	}
 
 	@Override

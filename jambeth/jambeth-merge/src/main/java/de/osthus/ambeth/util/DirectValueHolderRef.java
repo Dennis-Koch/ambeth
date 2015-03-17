@@ -1,24 +1,24 @@
 package de.osthus.ambeth.util;
 
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.proxy.IObjRefContainer;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 
 public class DirectValueHolderRef
 {
 	protected final IObjRefContainer vhc;
 
-	protected final IRelationInfoItem member;
+	protected final RelationMember member;
 
 	protected final boolean objRefsOnly;
 
-	public DirectValueHolderRef(IObjRefContainer vhc, IRelationInfoItem member)
+	public DirectValueHolderRef(IObjRefContainer vhc, RelationMember member)
 	{
 		this.vhc = vhc;
 		this.member = member;
 		this.objRefsOnly = false;
 	}
 
-	public DirectValueHolderRef(IObjRefContainer vhc, IRelationInfoItem member, boolean objRefsOnly)
+	public DirectValueHolderRef(IObjRefContainer vhc, RelationMember member, boolean objRefsOnly)
 	{
 		this.vhc = vhc;
 		this.member = member;
@@ -30,7 +30,7 @@ public class DirectValueHolderRef
 		return vhc;
 	}
 
-	public IRelationInfoItem getMember()
+	public RelationMember getMember()
 	{
 		return member;
 	}

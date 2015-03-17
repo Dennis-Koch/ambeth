@@ -5,13 +5,14 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import de.osthus.ambeth.merge.model.ICreateOrUpdateContainer;
 import de.osthus.ambeth.merge.model.IPrimitiveUpdateItem;
 import de.osthus.ambeth.merge.model.IRelationUpdateItem;
 import de.osthus.ambeth.util.Arrays;
 
 @XmlRootElement(name = "CreateContainer", namespace = "http://schemas.osthus.de/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class CreateContainer extends AbstractChangeContainer
+public class CreateContainer extends AbstractChangeContainer implements ICreateOrUpdateContainer
 {
 	public static final PrimitiveUpdateItem[] emptyPrimitiveItems = new PrimitiveUpdateItem[0];
 
@@ -41,6 +42,18 @@ public class CreateContainer extends AbstractChangeContainer
 	public void setRelations(IRelationUpdateItem[] relations)
 	{
 		this.relations = relations;
+	}
+
+	@Override
+	public IPrimitiveUpdateItem[] getFullPUIs()
+	{
+		return getPrimitives();
+	}
+
+	@Override
+	public IRelationUpdateItem[] getFullRUIs()
+	{
+		return getRelations();
 	}
 
 	@Override

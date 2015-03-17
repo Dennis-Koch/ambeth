@@ -13,7 +13,6 @@ import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheContext;
 import de.osthus.ambeth.cache.ICacheFactory;
 import de.osthus.ambeth.cache.ICacheProvider;
-import de.osthus.ambeth.cache.ISingleCacheRunnable;
 import de.osthus.ambeth.cache.config.CacheNamedBeans;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
@@ -27,17 +26,18 @@ import de.osthus.ambeth.persistence.jdbc.alternateid.AlternateIdTest.AlternateId
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 
 @SQLData("alternateid_data.sql")
 @SQLStructure("alternateid_structure.sql")
 @TestModule(AlternateIdModule.class)
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/jdbc/alternateid/alternateid_orm.xml")
-public class AlternateIdTest extends AbstractPersistenceTest
+public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static class AlternateIdModule implements IInitializingModule
 	{
@@ -61,7 +61,7 @@ public class AlternateIdTest extends AbstractPersistenceTest
 		AlternateIdEntity aie = entityFactory.createEntity(AlternateIdEntity.class);
 		aie.setName(name);
 
-		this.service.updateAlternateIdEntity(aie);
+		service.updateAlternateIdEntity(aie);
 		return aie;
 	}
 
@@ -79,7 +79,7 @@ public class AlternateIdTest extends AbstractPersistenceTest
 	{
 		AlternateIdEntity aie = entityFactory.createEntity(AlternateIdEntity.class);
 
-		this.service.updateAlternateIdEntity(aie);
+		service.updateAlternateIdEntity(aie);
 
 		Assert.assertFalse("Wrong id", aie.getId() == 0);
 		Assert.assertEquals("Wrong version!", (short) 1, aie.getVersion());
@@ -119,7 +119,7 @@ public class AlternateIdTest extends AbstractPersistenceTest
 
 		AlternateIdEntity entityFromCacheById = cache.getObject(entity.getClass(), entity.getId());
 
-		this.service.updateAlternateIdEntity(entity);
+		service.updateAlternateIdEntity(entity);
 
 		AlternateIdEntity entityFromCacheByIdAfterChange = cache.getObject(entity.getClass(), entity.getId());
 
@@ -207,10 +207,10 @@ public class AlternateIdTest extends AbstractPersistenceTest
 
 		aeEntity.setName("AE_1");
 		be2.setName("BE_2");
-		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE), new ISingleCacheRunnable<Object>()
+		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE, "test"), new IResultingBackgroundWorkerDelegate<Object>()
 		{
 			@Override
-			public Object run() throws Throwable
+			public Object invoke() throws Throwable
 			{
 				IMergeProcess mergeProcess = beanContext.getService(IMergeProcess.class);
 
@@ -218,10 +218,10 @@ public class AlternateIdTest extends AbstractPersistenceTest
 				return null;
 			}
 		});
-		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE), new ISingleCacheRunnable<Object>()
+		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE, "test"), new IResultingBackgroundWorkerDelegate<Object>()
 		{
 			@Override
-			public Object run() throws Throwable
+			public Object invoke() throws Throwable
 			{
 				IQueryBuilder<AlternateIdEntity> qb = queryBuilderFactory.create(AlternateIdEntity.class);
 				IQuery<AlternateIdEntity> query = qb.build(qb.isEqualTo(qb.property("Id"), qb.value(aeEntity.getId())));

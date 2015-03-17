@@ -27,6 +27,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         void CallThisSetter(PropertyInstance property, Script script);
 
+        void CheckCast(NewType castedType);
+
         void CheckCast(Type castedType);
 
         void Dup();
@@ -51,6 +53,10 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         void IfZCmp(CompareOperator compareOperator, Label label);
 
+        void IfZCmp(NewType type, CompareOperator compareOperator, Label label);
+
+        void IfZCmp(Type type, CompareOperator compareOperator, Label label);
+
         void InvokeConstructor(ConstructorInfo constructor);
 
         void InvokeConstructor(ConstructorInstance constructor);
@@ -73,8 +79,6 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         void InvokeStatic(MethodInstance method);
 
-        void InvokeGetValue(ITypeInfoItem member, Script thisScript);
-
         void LoadArg(int argIndex);
 
         void LoadArgs();
@@ -86,6 +90,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         void Mark(Label label);
 
         void NewArray(Type componentType);
+
+        void NewInstance(ConstructorInstance constructor, Script argumentsScript);
 
         Label NewLabel();
 
@@ -102,6 +108,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         void Push<T>();
 
         void Push(bool value);
+
+        void Push(bool? value);
 
         void Push(double value);
 
@@ -120,6 +128,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         void PushNull();
 
         void PushNullOrZero(Type type);
+
+        void PushNullOrZero(NewType type);
 
         void PutField(FieldInstance field);
 
@@ -140,5 +150,9 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         void TryFinally(Script tryScript, Script finallyScript);
 
         void ValueOf(Type type);
+
+        void VisitAnnotation(ConstructorInfo annotationConstructor, params Object[] arguments);
+
+        void VisitTableSwitchInsn(int min, int max, Label dflt, params Label[] labels);
     }
 }

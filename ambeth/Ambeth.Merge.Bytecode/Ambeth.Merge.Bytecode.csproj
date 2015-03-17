@@ -78,14 +78,32 @@
       <Name>Ambeth.Util</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\behavior\EntityMetaDataMemberBehavior.cs" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\bytecode\abstractobject\ImplementAbstractObjectFactory.cs" />
     <Compile Include="ambeth\bytecode\visitor\CompositeIdCreator.cs" />
     <Compile Include="ambeth\compositeid\CompositeIdBehavior.cs" />
     <Compile Include="ambeth\compositeid\CompositeIdEnhancementHint.cs" />
     <Compile Include="ambeth\compositeid\CompositeIdFactory.cs" />
-    <Compile Include="ambeth\ioc\CompositeIdModule.cs" />
+    <Compile Include="ambeth\ioc\MergeBytecodeModule.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\visitor\EntityMetaDataMemberVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\EntityMetaDataPrimitiveMemberVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\EntityMetaDataRelationMemberVisitor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\visitor\EntityMetaDataEmbeddedMemberVisitor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\behavior\ObjRefBehavior.cs" />
+    <Compile Include="ambeth\bytecode\behavior\ObjRefStoreBehavior.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\visitor\ObjRefStoreVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\ObjRefVisitor.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

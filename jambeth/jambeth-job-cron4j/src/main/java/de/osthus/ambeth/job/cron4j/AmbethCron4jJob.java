@@ -7,23 +7,23 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.job.IJob;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.security.DefaultAuthentication;
-import de.osthus.ambeth.security.IAuthentication.PasswordType;
+import de.osthus.ambeth.security.IAuthentication;
 import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class AmbethCron4jJob extends Task implements IInitializingBean
+public class AmbethCron4jJob extends Task
 {
 	@LogInstance
 	private ILogger log;
+
+	@Autowired(optional = true)
+	protected IAuthentication authentication;
 
 	@Autowired
 	protected IServiceContext beanContext;
@@ -37,22 +37,9 @@ public class AmbethCron4jJob extends Task implements IInitializingBean
 	@Property
 	protected String jobName;
 
-	@Property
-	protected String userName;
-
-	@Property
-	protected char[] userPass;
-
 	protected Lock writeLock = new ReentrantLock();
 
 	protected Lock waitingLock = new ReentrantLock();
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(jobName, "jobName");
-		ParamChecker.assertNotNull(userName, "userName");
-	}
 
 	@Override
 	public void execute(TaskExecutionContext context) throws RuntimeException
@@ -80,7 +67,7 @@ public class AmbethCron4jJob extends Task implements IInitializingBean
 			try
 			{
 				thread.setName("Job " + jobName);
-				final AmbethCron4jJobContext jobContext = beanContext.registerAnonymousBean(AmbethCron4jJobContext.class)
+				final AmbethCron4jJobContext jobContext = beanContext.registerBean(AmbethCron4jJobContext.class)
 						.propertyValue("TaskExecutionContext", context).finish();
 
 				if (log.isDebugEnabled())
@@ -89,17 +76,22 @@ public class AmbethCron4jJob extends Task implements IInitializingBean
 				}
 				try
 				{
-					securityContextHolder.setScopedAuthentication(new DefaultAuthentication(userName, userPass, PasswordType.PLAIN),
-							new IResultingBackgroundWorkerDelegate<Object>()
+					if (authentication == null)
+					{
+						job.execute(jobContext);
+					}
+					else
+					{
+						securityContextHolder.setScopedAuthentication(authentication, new IResultingBackgroundWorkerDelegate<Object>()
+						{
+							@Override
+							public Object invoke() throws Throwable
 							{
-								@Override
-								public Object invoke() throws Throwable
-								{
-									job.execute(jobContext);
-									return null;
-								}
-							});
-
+								job.execute(jobContext);
+								return null;
+							}
+						});
+					}
 					if (log.isDebugEnabled())
 					{
 						log.debug("Execution of job '" + jobName + "' finished");

@@ -1,6 +1,8 @@
 using De.Osthus.Ambeth.Bytecode.Behavior;
 using De.Osthus.Ambeth.CompositeId;
-using De.Osthus.Ambeth.Template;
+using De.Osthus.Ambeth.Config;
+using De.Osthus.Ambeth.Metadata;
+using De.Osthus.Ambeth.Mixin;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using System;
@@ -61,9 +63,9 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         public override void VisitEnd()
 	    {
 		    CompositeIdEnhancementHint context = State.GetContext<CompositeIdEnhancementHint>();
-		    ITypeInfoItem[] idMembers = context.IdMembers;
+            Member[] idMembers = context.IdMembers;
 
-		    CompositeIdTemplate compositeIdTemplate = State.BeanContext.GetService<CompositeIdTemplate>();
+		    CompositeIdMixin compositeIdTemplate = State.BeanContext.GetService<CompositeIdMixin>();
 
 		    PropertyInstance p_compositeIdTemplate = ImplementAssignedReadonlyProperty("CompositeIdTemplate", compositeIdTemplate);
 
@@ -72,11 +74,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 		    // order does matter here (to maintain field order for debugging purpose on later objects)
 		    for (int a = 0, size = idMembers.Length; a < size; a++)
 		    {
-			    ITypeInfoItem member = idMembers[a];
-			    String fieldName = CompositeIdTypeInfoItem.FilterEmbeddedFieldName(member.Name);
+                Member member = idMembers[a];
+			    String fieldName = CompositeIdMember.FilterEmbeddedFieldName(member.Name);
 			    constructorTypes[a] = member.RealType;
                 fields[a] = new FieldInstance(FieldAttributes.Public | FieldAttributes.InitOnly, fieldName, constructorTypes[a]);
-                ImplementField(fields[a]);
+                ImplementField(fields[a], delegate(IFieldVisitor fv)
+                {
+                    fv.VisitAnnotation(typeof(PropertyAttribute).GetConstructor(Type.EmptyTypes));
+                });
 		    }
 
 		    {

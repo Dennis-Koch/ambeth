@@ -63,4 +63,10 @@ public class Tuple3KeyEntry<Key1, Key2, Key3, V>
 	{
 		return value;
 	}
+
+	@Override
+	public String toString()
+	{
+		return "(" + getKey1() + ":" + getKey2() + ":" + getKey3() + "," + getValue();
+	}
 }

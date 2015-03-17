@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.log.ILogger;
@@ -116,11 +117,23 @@ public class H2TestDialect extends AbstractConnectionTestDialect
 	}
 
 	@Override
-	public String createOptimisticLockTrigger(Connection connection, String tableName) throws SQLException
+	public String[] createOptimisticLockTrigger(Connection connection, String tableName) throws SQLException
 	{
 		String forTriggerName = "TR_" + tableName + "_OL";
-		return "CREATE TRIGGER " + escapeName(null, forTriggerName) + " AFTER UPDATE ON " + escapeName(null, tableName) + " FOR EACH ROW CALL \""
-				+ OptimisticLockTrigger.class.getName() + "\"";
+		return new String[] { "CREATE TRIGGER " + escapeName(null, forTriggerName) + " AFTER UPDATE ON " + escapeName(null, tableName)
+				+ " FOR EACH ROW CALL \"" + OptimisticLockTrigger.class.getName() + "\"" };
+	}
+
+	@Override
+	public List<String> getTablesWithoutPermissionGroup(Connection conn) throws SQLException
+	{
+		return EmptyList.<String> getInstance();
+	}
+
+	@Override
+	public String[] createPermissionGroup(Connection conn, String tableName) throws SQLException
+	{
+		return new String[0];
 	}
 
 	@Override

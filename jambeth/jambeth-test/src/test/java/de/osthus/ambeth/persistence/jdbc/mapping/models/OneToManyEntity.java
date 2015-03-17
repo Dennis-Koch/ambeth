@@ -1,15 +1,13 @@
 package de.osthus.ambeth.persistence.jdbc.mapping.models;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 import de.osthus.ambeth.model.AbstractEntity;
 import de.osthus.ambeth.persistence.xml.model.TestEmbeddedType;
 
-public class OneToManyEntity extends AbstractEntity
+public abstract class OneToManyEntity extends AbstractEntity
 {
 	protected String buid;
 
@@ -89,7 +87,7 @@ public class OneToManyEntity extends AbstractEntity
 		return oneToManyEntities;
 	}
 
-	public void setOneToManyEntities(List<OneToManyEntity> oneToManyEntities)
+	protected void setOneToManyEntities(List<OneToManyEntity> oneToManyEntities)
 	{
 		this.oneToManyEntities = oneToManyEntities;
 	}
@@ -99,7 +97,7 @@ public class OneToManyEntity extends AbstractEntity
 		return byListType;
 	}
 
-	public void setByListType(List<OneToManyEntity> byListType)
+	protected void setByListType(List<OneToManyEntity> byListType)
 	{
 		this.byListType = byListType;
 	}
@@ -109,40 +107,29 @@ public class OneToManyEntity extends AbstractEntity
 		return byRefListType;
 	}
 
-	public void setByRefListType(List<OneToManyEntity> byRefListType)
+	protected void setByRefListType(List<OneToManyEntity> byRefListType)
 	{
 		this.byRefListType = byRefListType;
 	}
 
 	public Set<SelfReferencingEntity> getSelfReferencingEntities()
 	{
-		ensureSelfReferencingEntities();
 		return selfReferencingEntities;
 	}
 
-	public void setSelfReferencingEntities(Set<SelfReferencingEntity> selfReferencingEntities)
+	protected void setSelfReferencingEntities(Set<SelfReferencingEntity> newSelfReferencingEntities)
 	{
-		removeAllSelfReferencingEntities();
-		if (selfReferencingEntities != null)
-		{
-			for (Iterator<SelfReferencingEntity> iter = selfReferencingEntities.iterator(); iter.hasNext();)
-			{
-				this.selfReferencingEntities.add(iter.next());
-			}
-		}
-	}
-
-	public void removeAllSelfReferencingEntities()
-	{
-		ensureSelfReferencingEntities();
-		selfReferencingEntities.clear();
-	}
-
-	protected void ensureSelfReferencingEntities()
-	{
-		if (selfReferencingEntities == null)
-		{
-			selfReferencingEntities = new HashSet<SelfReferencingEntity>(0);
-		}
+		selfReferencingEntities = newSelfReferencingEntities;
+		// Set<SelfReferencingEntity> selfReferencingEntities = getSelfReferencingEntities();
+		// if (selfReferencingEntities == null)
+		// {
+		// selfReferencingEntities = new HashSet<SelfReferencingEntity>();
+		// this.selfReferencingEntities = selfReferencingEntities;
+		// }
+		// selfReferencingEntities.clear();
+		// if (newSelfReferencingEntities != null)
+		// {
+		// selfReferencingEntities.addAll(newSelfReferencingEntities);
+		// }
 	}
 }

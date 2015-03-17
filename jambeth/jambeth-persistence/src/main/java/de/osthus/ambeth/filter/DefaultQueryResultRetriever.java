@@ -2,10 +2,10 @@ package de.osthus.ambeth.filter;
 
 import java.lang.reflect.Array;
 import java.util.List;
-import java.util.Map;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.ILinkedMap;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.database.ResultingDatabaseCallback;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -13,11 +13,11 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IVersionCursor;
 import de.osthus.ambeth.persistence.IVersionItem;
 import de.osthus.ambeth.query.IQueryIntern;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.ImmutableTypeSet;
 
@@ -31,7 +31,7 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever
 	protected IConversionHelper conversionHelper;
 
 	@Autowired
-	protected Map<Object, Object> currentNameToValueMap;
+	protected IMap<Object, Object> currentNameToValueMap;
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
@@ -69,7 +69,7 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever
 				IQueryIntern<?> query = DefaultQueryResultRetriever.this.query;
 				Class<?> entityType = query.getEntityType();
 				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-				ITypeInfoItem[] alternateIdMembers = metaData.getAlternateIdMembers();
+				Member[] alternateIdMembers = metaData.getAlternateIdMembers();
 				int length = alternateIdMembers.length + 1;
 
 				ArrayList<Object>[] idLists = new ArrayList[length];
@@ -82,7 +82,7 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever
 				}
 				ArrayList<Object> versionList = new ArrayList<Object>();
 
-				IVersionCursor versionCursor = query.retrieveAsVersions(currentNameToValueMap);
+				IVersionCursor versionCursor = query.retrieveAsVersions(currentNameToValueMap, true);
 				try
 				{
 					while (versionCursor.moveNext())

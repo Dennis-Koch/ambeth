@@ -18,6 +18,20 @@ namespace CsharpClassbrowser
 
         private const string TAG_NAME_ANNOTATIONS = "Annotations";
 
+        private const string TAG_NAME_INTERFACE = "Interface";
+
+        private const string TAG_NAME_INTERFACES = "Interfaces";
+
+        private const string TAG_NAME_PARAMETER = "Parameter";
+
+        private const string TAG_NAME_DEFAULT_VALUE = "DefaultValue";
+
+        private const string TAG_NAME_CURRENT_VALUE = "CurrentValue";
+
+        private const string ATTRIBUTE_NAME_NAME = "Name";
+
+        private const string ATTRIBUTE_NAME_TYPE = "Type";
+
         public const string EXPORT_FILE_NAME = "export_csharp.xml";
 
         #endregion
@@ -25,6 +39,16 @@ namespace CsharpClassbrowser
         // ============================================================================================
         #region Methods
         // ============================================================================================
+
+        /// <summary>
+        /// Import the given file and read the type descriptions.
+        /// </summary>
+        /// <param name="fileName">File to import (with full path)</param>
+        /// <returns>Map with TypeDescription as value and the full type name (lower case) as key; never null</returns>
+        public static SortedDictionary<String, TypeDescription> ImportFromFile(String fileName)
+        {
+            throw new Exception("Not yet implemented");
+        }
 
         /// <summary>
         /// Export the given type descriptions to an XML file in the given directory.
@@ -63,39 +87,25 @@ namespace CsharpClassbrowser
             }
 
             XmlNode typeNode = doc.CreateElement("TypeDescription");
-
-            XmlAttribute typeAttribute = doc.CreateAttribute("Type");
-            typeAttribute.InnerText = typeDescription.TypeType;
-            typeNode.Attributes.Append(typeAttribute);
-
-            XmlAttribute namespaceAttribute = doc.CreateAttribute("NamespaceName");
-            namespaceAttribute.InnerText = typeDescription.NamespaceName;
-            typeNode.Attributes.Append(namespaceAttribute);
-
-            XmlAttribute nameAttribute = doc.CreateAttribute("TypeName");
-            nameAttribute.InnerText = typeDescription.Name;
-            typeNode.Attributes.Append(nameAttribute);
-
-            XmlAttribute fullNameAttribute = doc.CreateAttribute("FullTypeName");
-            fullNameAttribute.InnerText = typeDescription.FullTypeName;
-            typeNode.Attributes.Append(fullNameAttribute);
-
-            XmlAttribute moduleAttribute = doc.CreateAttribute("ModuleName");
-            moduleAttribute.InnerText = typeDescription.ModuleName;
-            typeNode.Attributes.Append(moduleAttribute);
-
-            XmlAttribute sourceAttribute = doc.CreateAttribute("Source");
-            sourceAttribute.InnerText = typeDescription.Source;
-            typeNode.Attributes.Append(sourceAttribute);
-
+            AppendAttribute(typeNode, ATTRIBUTE_NAME_TYPE, typeDescription.TypeType, doc);
+            AppendAttribute(typeNode, "NamespaceName", typeDescription.NamespaceName, doc);
+            AppendAttribute(typeNode, "TypeName", typeDescription.Name, doc);
+            AppendAttribute(typeNode, "FullTypeName", typeDescription.FullTypeName, doc);
+            AppendAttribute(typeNode, "ModuleName", typeDescription.ModuleName, doc);
+            AppendAttribute(typeNode, "Source", typeDescription.Source, doc);
             if (typeDescription.GenericTypeParams > 0)
             {
-                XmlAttribute genericTypeParamsAttribute = doc.CreateAttribute("GenericTypeParams");
-                genericTypeParamsAttribute.InnerText = typeDescription.GenericTypeParams.ToString();
-                typeNode.Attributes.Append(genericTypeParamsAttribute);
+                AppendAttribute(typeNode, "GenericTypeParams", typeDescription.GenericTypeParams.ToString(), doc);
+            }
+            if (typeDescription.SuperType != null)
+            {
+                AppendAttribute(typeNode, "SuperType", typeDescription.SuperType, doc);
             }
 
-            IList<String> annotations = typeDescription.Annotations;
+            IList<String> interfaces = typeDescription.Interfaces;
+            CreateInterfaceNodes(typeNode, interfaces, doc);
+
+            IList<AnnotationInfo> annotations = typeDescription.Annotations;
             CreateAnnotationNodes(typeNode, annotations, doc);
 
             XmlNode methodRootNode = doc.CreateElement("MethodDescriptions");
@@ -133,16 +143,10 @@ namespace CsharpClassbrowser
             }
 
             XmlNode methodNode = doc.CreateElement("MethodDescription");
+            AppendAttribute(methodNode, "MethodName", methodDescription.Name, doc);
+            AppendAttribute(methodNode, "ReturnType", methodDescription.ReturnType, doc);
 
-            XmlAttribute nameAttribute = doc.CreateAttribute("MethodName");
-            nameAttribute.InnerText = methodDescription.Name;
-            methodNode.Attributes.Append(nameAttribute);
-
-            XmlAttribute returnTypeAttribute = doc.CreateAttribute("ReturnType");
-            returnTypeAttribute.InnerText = methodDescription.ReturnType;
-            methodNode.Attributes.Append(returnTypeAttribute);
-
-            IList<String> annotations = methodDescription.Annotations;
+            IList<AnnotationInfo> annotations = methodDescription.Annotations;
             CreateAnnotationNodes(methodNode, annotations, doc);
 
             XmlNode modifiersRootNode = doc.CreateElement("MethodModifiers");
@@ -158,11 +162,16 @@ namespace CsharpClassbrowser
             XmlNode parameterTypesRootNode = doc.CreateElement("MethodParameterTypes");
             methodNode.AppendChild(parameterTypesRootNode);
 
-            foreach (var parameterType in methodDescription.ParameterTypes)
+            IList<String> paramTypes = methodDescription.ParameterTypes;
+            IList<String> paramNames = methodDescription.ParameterNames;
+            for (int i = 0; i < paramTypes.Count; i++)
             {
+                String parameterType = paramTypes[i];
+                String parameterName = paramNames[i];
                 XmlNode parameterTypeNode = doc.CreateElement("MethodParameterType");
-                parameterTypeNode.InnerText = parameterType;
                 parameterTypesRootNode.AppendChild(parameterTypeNode);
+                parameterTypeNode.InnerText = parameterType;
+                AppendAttribute(parameterTypeNode, ATTRIBUTE_NAME_NAME, parameterName, doc);
             }
 
             return methodNode;
@@ -174,7 +183,7 @@ namespace CsharpClassbrowser
         /// </summary>
         /// <param name="doc">XmlDocument used to create the XML entities; mandatory</param>
         /// <param name="fieldDescription">FieldDescription to get the information from; mandatory</param>
-        /// <returns>XmlNode with the field infos</returns>
+        /// <returns>XmlNode with the field info</returns>
         public static XmlNode CreateFieldNode(XmlDocument doc, FieldDescription fieldDescription)
         {
             if (doc == null || fieldDescription == null)
@@ -183,38 +192,67 @@ namespace CsharpClassbrowser
             }
 
             XmlNode fieldNode = doc.CreateElement("FieldDescription");
+            AppendAttribute(fieldNode, "FieldName", fieldDescription.Name, doc);
+            AppendAttribute(fieldNode, "FieldType", fieldDescription.FieldType, doc);
+            if (fieldDescription.EnumConstant)
+            {
+                AppendAttribute(fieldNode, "isEnumConstant", "true", doc);
+            }
 
-            XmlAttribute nameAttribute = doc.CreateAttribute("FieldName");
-            nameAttribute.InnerText = fieldDescription.Name;
-            fieldNode.Attributes.Append(nameAttribute);
-
-            XmlAttribute fieldTypeAttribute = doc.CreateAttribute("FieldType");
-            fieldTypeAttribute.InnerText = fieldDescription.FieldType;
-            fieldNode.Attributes.Append(fieldTypeAttribute);
-
-            IList<String> annotations = fieldDescription.Annotations;
+            IList<AnnotationInfo> annotations = fieldDescription.Annotations;
             CreateAnnotationNodes(fieldNode, annotations, doc);
 
             XmlNode modifiersRootNode = doc.CreateElement("FieldModifiers");
             fieldNode.AppendChild(modifiersRootNode);
-
             foreach (var modifier in fieldDescription.Modifiers)
             {
                 XmlNode modifierNode = doc.CreateElement("FieldModifier");
-                modifierNode.InnerText = modifier;
                 modifiersRootNode.AppendChild(modifierNode);
+                modifierNode.InnerText = modifier;
+            }
+
+            String initialValue = fieldDescription.InitialValue;
+            if (initialValue != null)
+            {
+                XmlNode initialValueNode = doc.CreateElement("InitialValue");
+                fieldNode.AppendChild(initialValueNode);
+                initialValueNode.InnerText = initialValue;
             }
 
             return fieldNode;
         }
 
         /// <summary>
+        /// Create the XML nodes for the interfaces.
+        /// </summary>
+        /// <param name="parentNode">Node to append the Interfaces node to; mandatory</param>
+        /// <param name="annotations">List of the interface names; mandatory</param>
+        /// <param name="doc">XmlDocument used to create the XML entities; mandatory</param>
+        private static void CreateInterfaceNodes(XmlNode parentNode, IList<String> interfaces, XmlDocument doc)
+        {
+            if (interfaces.Count == 0)
+            {
+                return;
+            }
+
+            XmlNode interfaceRootNode = doc.CreateElement(TAG_NAME_INTERFACES);
+            parentNode.AppendChild(interfaceRootNode);
+
+            foreach (String ifaceName in interfaces)
+            {
+                XmlNode interfaceNode = doc.CreateElement(TAG_NAME_INTERFACE);
+                interfaceRootNode.AppendChild(interfaceNode);
+                AppendAttribute(interfaceNode, ATTRIBUTE_NAME_TYPE, ifaceName, doc);
+            }
+        }
+
+        /// <summary>
         /// Create the XML nodes for the annotations.
         /// </summary>
         /// <param name="parentNode">Node to append the Annotations node to; mandatory</param>
-        /// <param name="annotations">List of the annotation names; mandatory</param>
+        /// <param name="annotations">List of the annotation info; mandatory</param>
         /// <param name="doc">XmlDocument used to create the XML entities; mandatory</param>
-        private static void CreateAnnotationNodes(XmlNode parentNode, IList<String> annotations, XmlDocument doc)
+        private static void CreateAnnotationNodes(XmlNode parentNode, IList<AnnotationInfo> annotations, XmlDocument doc)
         {
             if (annotations.Count == 0)
             {
@@ -224,12 +262,57 @@ namespace CsharpClassbrowser
             XmlNode annotationRootNode = doc.CreateElement(TAG_NAME_ANNOTATIONS);
             parentNode.AppendChild(annotationRootNode);
 
-            foreach (String annotation in annotations)
+            foreach (AnnotationInfo annotation in annotations)
             {
                 XmlNode annotationNode = doc.CreateElement(TAG_NAME_ANNOTATION);
-                annotationNode.InnerText = annotation;
                 annotationRootNode.AppendChild(annotationNode);
+                AppendAttribute(annotationNode, ATTRIBUTE_NAME_TYPE, annotation.AnnotationType, doc);
+
+                IList<AnnotationParamInfo> parameters = annotation.Parameters;
+                foreach (AnnotationParamInfo parameter in parameters)
+                {
+                    XmlNode paramNode = doc.CreateElement(TAG_NAME_PARAMETER);
+                    annotationNode.AppendChild(paramNode);
+                    AppendAttribute(paramNode, ATTRIBUTE_NAME_NAME, parameter.Name, doc);
+                    AppendAttribute(paramNode, ATTRIBUTE_NAME_TYPE, parameter.Type, doc);
+
+                    Object defaultValue = parameter.DefaultValue;
+                    if (defaultValue != null)
+                    {
+                        XmlNode defaultValueNode = doc.CreateElement(TAG_NAME_DEFAULT_VALUE);
+                        paramNode.AppendChild(defaultValueNode);
+                        String defaultValueString = defaultValue.ToString();
+                        if ("\u0000".Equals(defaultValueString))
+                        {
+                            // Workaround for a character that is illegal in xml
+                            defaultValueString = "\\u0000";
+                        }
+                        defaultValueNode.InnerText = defaultValueString;
+                    }
+
+                    Object currentValue = parameter.CurrentValue;
+                    if (currentValue != defaultValue && (currentValue == null || !currentValue.Equals(defaultValue)))
+                    {
+                        XmlNode currentValueNode = doc.CreateElement(TAG_NAME_CURRENT_VALUE);
+                        paramNode.AppendChild(currentValueNode);
+                        if (currentValue != null)
+                        {
+                            currentValueNode.InnerText = currentValue.ToString();
+                        }
+                        else
+                        {
+                            AppendAttribute(currentValueNode, "isNull", "true", doc);
+                        }
+                    }
+                }
             }
+        }
+
+        private static void AppendAttribute(XmlNode parent, string attributeName, string attributeValue, XmlDocument doc)
+        {
+            XmlAttribute attribute = doc.CreateAttribute(attributeName);
+            attribute.InnerText = attributeValue;
+            parent.Attributes.Append(attribute);
         }
 
         #endregion

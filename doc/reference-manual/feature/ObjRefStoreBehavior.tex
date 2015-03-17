@@ -1,0 +1,24 @@
+\SetAPI{J-C}
+\section{ObjRefStoreBehavior}
+\label{feature:ObjRefStoreBehavior}
+\ClearAPI
+Optimizes memory footprint of ambeth-internal instances of \type{ObjRefStore}: The entity type and idIndex property will be compiled into each sub-class at runtime. On a x64 system this reduces necessary heap by 17\% at least - in some circumstances up to 40\%.
+
+\begin{lstlisting}[style=Java,caption={Example usage to receive a memory optimized instance of \type{ObjRefStore} (Java)}]
+@Autowired
+protected IObjRefStoreEntryProvider objRefStoreEntryProvider;
+
+public ObjRefStore optimizedObjRefStore(Object id)
+{
+	return objRefStoreEntryProvider.createObjRefStore(MyEntity.class, ObjRef.PRIMARY_KEY_INDEX, id);
+}
+\end{lstlisting}
+\begin{lstlisting}[style=Csharp,caption={Example usage to receive a memory optimized instance of \type{ObjRefStore} (C\#)}]
+[Autowired]
+public IObjRefStoreEntryProvider ObjRefStoreEntryProvider { protected get; set; }
+
+public ObjRefStore OptimizedObjRefStore(Object id)
+{
+	return ObjRefStoreEntryProvider.CreateObjRefStore(typeof(MyEntity), ObjRef.PRIMARY_KEY_INDEX);
+}
+\end{lstlisting}

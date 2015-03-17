@@ -1,22 +1,22 @@
 package de.osthus.ambeth.util;
 
+import java.lang.reflect.Array;
+
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
-public class DelegatingConversionHelper extends ClassTupleExtendableContainer<IDedicatedConverter> implements IInitializingBean, IDedicatedConverterExtendable,
-		IConversionHelper
+public class DelegatingConversionHelper extends IConversionHelper implements IInitializingBean, IDedicatedConverterExtendable
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	protected IConversionHelper defaultConversionHelper;
+	protected final ClassTupleExtendableContainer<IDedicatedConverter> converters = new ClassTupleExtendableContainer<IDedicatedConverter>(
+			"dedicatedConverter", "type", true);
 
-	public DelegatingConversionHelper()
-	{
-		super("dedicatedConverter", "type", true);
-	}
+	protected IConversionHelper defaultConversionHelper;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -51,49 +51,70 @@ public class DelegatingConversionHelper extends ClassTupleExtendableContainer<ID
 		{
 			return defaultConversionHelper.convertValueToType(expectedType, value);
 		}
-		Object targetValue = value;
+		Object sourceValue = value;
 		while (true)
 		{
-			Class<?> targetClass = targetValue.getClass();
-			IDedicatedConverter dedicatedConverter = getExtension(targetClass, expectedType);
+			Class<?> sourceClass = sourceValue.getClass();
+			IDedicatedConverter dedicatedConverter = converters.getExtension(sourceClass, expectedType);
 			if (dedicatedConverter == null)
 			{
 				break;
 			}
-			Object newTargetValue = dedicatedConverter.convertValueToType(expectedType, targetClass, targetValue, additionalInformation);
-			if (newTargetValue == null)
+			Object targetValue;
+			try
+			{
+				targetValue = dedicatedConverter.convertValueToType(expectedType, sourceClass, sourceValue, additionalInformation);
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e, "Error occured while converting value: " + sourceValue);
+			}
+			if (targetValue == null)
 			{
 				if (expectedType.isPrimitive())
 				{
 					throw new IllegalStateException("It is not allowed that an instance of " + IDedicatedConverter.class.getName() + " returns null like "
-							+ dedicatedConverter + " did for conversion from '" + targetClass.getName() + "' to '" + expectedType + "'");
+							+ dedicatedConverter + " did for conversion from '" + sourceClass.getName() + "' to '" + expectedType + "'");
 				}
 				return null;
 			}
-			if (expectedType.isAssignableFrom(newTargetValue.getClass()))
+			if (expectedType.isAssignableFrom(targetValue.getClass()))
 			{
-				return (T) newTargetValue;
+				return (T) targetValue;
 			}
-			if (newTargetValue.getClass().equals(targetValue.getClass()))
+			if (targetValue.getClass().equals(sourceValue.getClass()))
 			{
 				throw new IllegalStateException("It is not allowed that an instance of " + IDedicatedConverter.class.getName()
-						+ " returns a value of the same type (" + newTargetValue.getClass().getName() + ") after conversion like " + dedicatedConverter
-						+ " did");
+						+ " returns a value of the same type (" + targetValue.getClass().getName() + ") after conversion like " + dedicatedConverter + " did");
 			}
-			targetValue = newTargetValue;
+			sourceValue = targetValue;
 		}
-		return defaultConversionHelper.convertValueToType(expectedType, targetValue, additionalInformation);
+		if (expectedType.isArray() && sourceValue != null && sourceValue.getClass().isArray())
+		{
+			// try to convert item by item of the array
+			int size = Array.getLength(sourceValue);
+			Class<?> expectedComponentType = expectedType.getComponentType();
+			Object targetValue = Array.newInstance(expectedComponentType, size);
+			for (int a = size; a-- > 0;)
+			{
+				Object sourceItem = Array.get(sourceValue, a);
+				Object targetItem = convertValueToType(expectedComponentType, sourceItem);
+				Array.set(targetValue, a, targetItem);
+			}
+			return (T) targetValue;
+		}
+		return defaultConversionHelper.convertValueToType(expectedType, sourceValue, additionalInformation);
 	}
 
 	@Override
 	public void registerDedicatedConverter(IDedicatedConverter dedicatedConverter, Class<?> sourceType, Class<?> targetType)
 	{
-		register(dedicatedConverter, sourceType, targetType);
+		converters.register(dedicatedConverter, sourceType, targetType);
 	}
 
 	@Override
 	public void unregisterDedicatedConverter(IDedicatedConverter dedicatedConverter, Class<?> sourceType, Class<?> targetType)
 	{
-		unregister(dedicatedConverter, sourceType, targetType);
+		converters.unregister(dedicatedConverter, sourceType, targetType);
 	}
 }

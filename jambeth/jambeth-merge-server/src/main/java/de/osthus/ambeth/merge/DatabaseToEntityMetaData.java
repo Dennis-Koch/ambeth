@@ -1,12 +1,16 @@
 package de.osthus.ambeth.merge;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.database.IDatabaseMappedListener;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -14,14 +18,17 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.EntityMetaData;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
-import de.osthus.ambeth.persistence.IDatabase;
-import de.osthus.ambeth.persistence.IDirectedLink;
-import de.osthus.ambeth.persistence.IField;
-import de.osthus.ambeth.persistence.ITable;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.PrimitiveMember;
+import de.osthus.ambeth.metadata.RelationMember;
+import de.osthus.ambeth.persistence.DirectedLinkMetaData;
+import de.osthus.ambeth.persistence.FieldMetaData;
+import de.osthus.ambeth.persistence.IDatabaseMetaData;
+import de.osthus.ambeth.persistence.IDirectedLinkMetaData;
+import de.osthus.ambeth.persistence.IFieldMetaData;
+import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.service.ICacheRetrieverExtendable;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 
 public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDisposableBean
 {
@@ -39,6 +46,9 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 
 	@Autowired
 	protected IEntityMetaDataExtendable entityMetaDataExtendable;
+
+	@Autowired
+	protected IEntityMetaDataRefresher entityMetaDataRefresher;
 
 	@Autowired
 	protected IMergeServiceExtensionExtendable mergeServiceExtensionExtendable;
@@ -72,17 +82,17 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 	}
 
 	@Override
-	public synchronized void databaseMapped(IDatabase database)
+	public synchronized void databaseMapped(IDatabaseMetaData database)
 	{
 		if (!firstMapping)
 		{
 			return;
 		}
 		firstMapping = false;
-		HashSet<IField> alreadyHandledFields = new HashSet<IField>();
+		HashSet<IFieldMetaData> alreadyHandledFields = new HashSet<IFieldMetaData>();
 		List<IEntityMetaData> newMetaDatas = new ArrayList<IEntityMetaData>();
 		List<IEntityMetaData> newRegisteredMetaDatas = new ArrayList<IEntityMetaData>();
-		for (ITable table : database.getTables())
+		for (ITableMetaData table : database.getTables())
 		{
 			Class<?> entityType = table.getEntityType();
 			if (entityType == null || table.isArchive())
@@ -98,60 +108,61 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			}
 			// metaData.setEntityType(entityType);
 			// metaData.setRealType(null);
-			if (checkMemberToSet(entityType, metaData.getIdMember(), table.getIdField()))
+			if (isMemberOnFieldBetter(entityType, metaData.getIdMember(), table.getIdField()))
 			{
-				metaData.setIdMember(table.getIdField().getMember());
+				metaData.setIdMember((PrimitiveMember) table.getIdField().getMember());
 			}
 			alreadyHandledFields.add(table.getIdField());
-			IField versionField = table.getVersionField();
+			IFieldMetaData versionField = table.getVersionField();
 			if (versionField != null)
 			{
 				alreadyHandledFields.add(versionField);
-				if (checkMemberToSet(entityType, metaData.getVersionMember(), versionField))
+				if (isMemberOnFieldBetter(entityType, metaData.getVersionMember(), versionField))
 				{
-					metaData.setVersionMember(versionField.getMember());
+					metaData.setVersionMember((PrimitiveMember) versionField.getMember());
 				}
 			}
 
 			if (table.getCreatedOnField() != null)
 			{
-				if (checkMemberToSet(entityType, metaData.getCreatedOnMember(), table.getCreatedOnField()))
+				if (isMemberOnFieldBetter(entityType, metaData.getCreatedOnMember(), table.getCreatedOnField()))
 				{
-					metaData.setCreatedOnMember(table.getCreatedOnField().getMember());
+					metaData.setCreatedOnMember((PrimitiveMember) table.getCreatedOnField().getMember());
 				}
 			}
 			if (table.getCreatedByField() != null)
 			{
-				if (checkMemberToSet(entityType, metaData.getCreatedByMember(), table.getCreatedByField()))
+				if (isMemberOnFieldBetter(entityType, metaData.getCreatedByMember(), table.getCreatedByField()))
 				{
-					metaData.setCreatedByMember(table.getCreatedByField().getMember());
+					metaData.setCreatedByMember((PrimitiveMember) table.getCreatedByField().getMember());
 				}
 			}
 			if (table.getUpdatedOnField() != null)
 			{
-				if (checkMemberToSet(entityType, metaData.getUpdatedOnMember(), table.getUpdatedOnField()))
+				if (isMemberOnFieldBetter(entityType, metaData.getUpdatedOnMember(), table.getUpdatedOnField()))
 				{
-					metaData.setUpdatedOnMember(table.getUpdatedOnField().getMember());
+					metaData.setUpdatedOnMember((PrimitiveMember) table.getUpdatedOnField().getMember());
 				}
 			}
 			if (table.getUpdatedByField() != null)
 			{
-				if (checkMemberToSet(entityType, metaData.getUpdatedByMember(), table.getUpdatedByField()))
+				if (isMemberOnFieldBetter(entityType, metaData.getUpdatedByMember(), table.getUpdatedByField()))
 				{
-					metaData.setUpdatedByMember(table.getUpdatedByField().getMember());
+					metaData.setUpdatedByMember((PrimitiveMember) table.getUpdatedByField().getMember());
 				}
 			}
 
-			IField[] alternateIdFields = table.getAlternateIdFields();
-			ITypeInfoItem[] alternateIdMembers = new ITypeInfoItem[alternateIdFields.length];
+			IFieldMetaData[] alternateIdFields = table.getAlternateIdFields();
+			PrimitiveMember[] alternateIdMembers = new PrimitiveMember[alternateIdFields.length];
 			for (int b = alternateIdFields.length; b-- > 0;)
 			{
-				IField alternateIdField = alternateIdFields[b];
-				alternateIdMembers[b] = alternateIdField.getMember();
+				IFieldMetaData alternateIdField = alternateIdFields[b];
+				alternateIdMembers[b] = (PrimitiveMember) alternateIdField.getMember();
 			}
-			ArrayList<ITypeInfoItem> fulltextMembers = new ArrayList<ITypeInfoItem>();
-			HashSet<ITypeInfoItem> primitiveMembers = new HashSet<ITypeInfoItem>();
-			HashSet<IRelationInfoItem> relationMembers = new HashSet<IRelationInfoItem>();
+			ArrayList<Member> fulltextMembers = new ArrayList<Member>();
+			HashSet<Member> primitiveMembers = new HashSet<Member>();
+			HashSet<RelationMember> relationMembers = new HashSet<RelationMember>();
+			HashMap<Member, Object> memberToFieldOrLinkMap = new HashMap<Member, Object>();
 
 			// IField[] fulltextFieldsContains = table.getFulltextFieldsContains();
 			// for (int a = 0; a < fulltextFieldsContains.length; a++)
@@ -167,89 +178,106 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			// for (int a = 0; a < fulltextFieldsCatsearch.length; a++)
 			// {
 			// IField field = fulltextFieldsCatsearch[a];
-			List<IField> fulltextFields = table.getFulltextFields();
+			List<IFieldMetaData> fulltextFields = table.getFulltextFields();
 			for (int a = 0; a < fulltextFields.size(); a++)
 			{
-				IField field = fulltextFields.get(a);
-				ITypeInfoItem member = field.getMember();
+				IFieldMetaData field = fulltextFields.get(a);
+				Member member = field.getMember();
 				if (member != null)
 				{
 					fulltextMembers.add(member);
+					memberToFieldOrLinkMap.put(member, field);
 				}
 			}
 
-			List<IField> fields = table.getPrimitiveFields();
+			List<IFieldMetaData> fields = table.getPrimitiveFields();
 			for (int a = 0; a < fields.size(); a++)
 			{
-				IField field = fields.get(a);
+				IFieldMetaData field = fields.get(a);
 
-				ITypeInfoItem member = field.getMember();
+				Member member = field.getMember();
 				if (member == null)
 				{
 					continue;
 				}
-
+				memberToFieldOrLinkMap.put(member, field);
 				if (!alreadyHandledFields.contains(field))
 				{
 					primitiveMembers.add(member);
 				}
 			}
 
-			List<IDirectedLink> links = table.getLinks();
+			List<IDirectedLinkMetaData> links = table.getLinks();
 			for (int a = 0; a < links.size(); a++)
 			{
-				IDirectedLink link = links.get(a);
-				if (link.getMember() == null)
+				IDirectedLinkMetaData link = links.get(a);
+				RelationMember member = link.getMember();
+				if (member == null)
 				{
 					continue;
 				}
+				memberToFieldOrLinkMap.put(member, link);
 				Class<?> otherType = link.getToEntityType();
-				relationMembers.add(link.getMember());
+				relationMembers.add(member);
 				if (link.getReverseLink().isCascadeDelete())
 				{
 					metaData.addCascadeDeleteType(otherType);
 				}
 			}
 
-			IList<IRelationInfoItem> relationMembersList = relationMembers.toList();
-			Collections.sort(relationMembersList, new Comparator<IRelationInfoItem>()
+			IList<RelationMember> relationMembersList = relationMembers.toList();
+			Collections.sort(relationMembersList, new Comparator<RelationMember>()
 			{
 
 				@Override
-				public int compare(IRelationInfoItem o1, IRelationInfoItem o2)
+				public int compare(RelationMember o1, RelationMember o2)
 				{
 					return o1.getName().compareTo(o2.getName());
 				}
 			});
 
 			// Order of setter calls is important
-			// primitiveMembers.addAll(metaData.getPrimitiveMembers());
-			// for (ITypeInfoItem primitiveMember : metaData.getPrimitiveMembers())
-			// {
-			// primitiveMember.
-			// }
-			if (metaData.getCreatedByMember() != null && !primitiveMembers.contains(metaData.getCreatedByMember()))
-			{
-				metaData.setCreatedByMember(null);
-			}
-			if (metaData.getCreatedOnMember() != null && !primitiveMembers.contains(metaData.getCreatedOnMember()))
-			{
-				metaData.setCreatedOnMember(null);
-			}
-			if (metaData.getUpdatedByMember() != null && !primitiveMembers.contains(metaData.getUpdatedByMember()))
-			{
-				metaData.setUpdatedByMember(null);
-			}
-			if (metaData.getUpdatedOnMember() != null && !primitiveMembers.contains(metaData.getUpdatedOnMember()))
-			{
-				metaData.setUpdatedOnMember(null);
-			}
-			metaData.setPrimitiveMembers(primitiveMembers.toArray(ITypeInfoItem.class));
-			metaData.setFulltextMembers(fulltextMembers.toArray(ITypeInfoItem.class));
+			metaData.setCreatedByMember(findPrimitiveMember(metaData.getCreatedByMember(), primitiveMembers));
+			metaData.setCreatedOnMember(findPrimitiveMember(metaData.getCreatedOnMember(), primitiveMembers));
+			metaData.setUpdatedByMember(findPrimitiveMember(metaData.getUpdatedByMember(), primitiveMembers));
+			metaData.setUpdatedOnMember(findPrimitiveMember(metaData.getUpdatedOnMember(), primitiveMembers));
+			PrimitiveMember[] primitives = primitiveMembers.toArray(PrimitiveMember.class);
+			PrimitiveMember[] fulltexts = fulltextMembers.toArray(PrimitiveMember.class);
+			RelationMember[] relations = relationMembers.toArray(RelationMember.class);
+			Arrays.sort(primitives);
+			Arrays.sort(fulltexts);
+			Arrays.sort(relations);
+			metaData.setPrimitiveMembers(primitives);
+			metaData.setFulltextMembers(fulltexts);
 			metaData.setAlternateIdMembers(alternateIdMembers);
-			metaData.setRelationMembers(relationMembersList.toArray(IRelationInfoItem.class));
+			metaData.setRelationMembers(relations);
+			metaData.setEnhancedType(null);
 
-			metaData.initialize(entityFactory);
+			entityMetaDataRefresher.refreshMembers(metaData);
+			HashSet<Member> allRefreshedMembers = new HashSet<Member>();
+			addValidMember(allRefreshedMembers, metaData.getIdMember());
+			addValidMember(allRefreshedMembers, metaData.getVersionMember());
+			allRefreshedMembers.addAll(metaData.getPrimitiveMembers());
+			allRefreshedMembers.addAll(metaData.getRelationMembers());
+
+			for (Entry<Member, Object> entry : memberToFieldOrLinkMap)
+			{
+				Member member = entry.getKey();
+				Member refreshedMember = allRefreshedMembers.get(member);
+				if (refreshedMember == null)
+				{
+					throw new IllegalStateException("Member '" + member.getName() + "' has not been refreshed");
+				}
+				Object value = entry.getValue();
+				if (value instanceof FieldMetaData)
+				{
+					((FieldMetaData) value).setMember(refreshedMember);
+				}
+				else if (value instanceof DirectedLinkMetaData)
+				{
+					((DirectedLinkMetaData) value).setMember((RelationMember) refreshedMember);
+				}
+			}
 			newMetaDatas.add(metaData);
 		}
 		for (int a = 0, size = newRegisteredMetaDatas.size(); a < size; a++)
@@ -268,9 +296,38 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 		}
 	}
 
-	protected boolean checkMemberToSet(Class<?> entityType, ITypeInfoItem existingMember, IField newMemberField)
+	protected void addValidMember(ISet<Member> set, Member member)
 	{
-		ITypeInfoItem member = newMemberField.getMember();
+		if (member == null)
+		{
+			return;
+		}
+		set.add(member);
+	}
+
+	protected PrimitiveMember findPrimitiveMember(PrimitiveMember memberToFind, ISet<Member> members)
+	{
+		if (memberToFind == null)
+		{
+			return null;
+		}
+		for (Member member : members)
+		{
+			if (memberToFind.getName().equals(member.getName()))
+			{
+				return (PrimitiveMember) member;
+			}
+		}
+		return memberToFind;
+	}
+
+	protected boolean isMemberOnFieldBetter(Class<?> entityType, Member existingMember, IFieldMetaData newMemberField)
+	{
+		if (newMemberField == null)
+		{
+			return false;
+		}
+		Member member = newMemberField.getMember();
 		if (member == null)
 		{
 			return false;
@@ -279,7 +336,30 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 		{
 			return true;
 		}
-		if (existingMember == member)
+		if (existingMember == member || existingMember.getName().equals(member.getName()))
+		{
+			return false;
+		}
+		throw new IllegalStateException("Inconsistent metadata configuration on member '" + existingMember.getName() + "' of entity '" + entityType.getName()
+				+ "'");
+	}
+
+	protected boolean isMemberOnMetaDataBetter(Class<?> entityType, Member existingMember, IFieldMetaData newMemberField)
+	{
+		if (newMemberField == null)
+		{
+			return false;
+		}
+		Member member = newMemberField.getMember();
+		if (member == null)
+		{
+			return false;
+		}
+		if (existingMember == null)
+		{
+			return false;
+		}
+		if (existingMember == member || existingMember.getName().equals(member.getName()))
 		{
 			return false;
 		}

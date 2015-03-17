@@ -1,0 +1,24 @@
+\SetAPI{J-C}
+\section{ITechnicalEntityTypeExtendable}
+\label{extendable:ITechnicalEntityTypeExtendable}
+\ClearAPI
+\javadoc{de.osthus.ambeth.merge.ITechnicalEntityTypeExtendable}{ITechnicalEntityTypeExtendable}
+\javadoc{java.lang.Class<?>}{Class<?>}
+\TODO
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{Class<?>}}
+{jambeth-merge/src/main/java/de/osthus/ambeth/merge/ITechnicalEntityTypeExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+bcf.link(myExtension).to(ITechnicalEntityTypeExtendable.class).with(...);
+\end{lstlisting}
+\inputcsharp{Extension point for instances of \type{Class<?>}}
+{Ambeth.Merge/ambeth/merge/ITechnicalEntityTypeExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<ITechnicalEntityTypeExtendable>().With(...);
+\end{lstlisting}
+%% GENERATED LISTINGS END

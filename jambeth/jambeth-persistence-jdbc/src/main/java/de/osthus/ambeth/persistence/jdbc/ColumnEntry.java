@@ -1,72 +1,73 @@
 package de.osthus.ambeth.persistence.jdbc;
 
-public class ColumnEntry
+import de.osthus.ambeth.persistence.IColumnEntry;
+
+public class ColumnEntry implements IColumnEntry
 {
 	protected String fieldName;
 
 	protected int columnIndex;
 
-	protected int jdbcTypeIndex;
+	protected Class<?> javaType;
 
 	protected String typeName;
 
 	protected boolean nullable;
 
-	protected int size;
-
-	protected int digits;
-
 	protected int radix;
 
-	public ColumnEntry(String fieldName, int columnIndex, int jdbcTypeIndex, String typeName, boolean nullable, int size, int digits, int radix)
+	protected boolean expectsMapping;
+
+	public ColumnEntry(String fieldName, int columnIndex, Class<?> javaType, String typeName, boolean nullable, int radix, boolean expectsMapping)
 	{
 		this.fieldName = fieldName;
 		this.columnIndex = columnIndex;
-		this.jdbcTypeIndex = jdbcTypeIndex;
+		this.javaType = javaType;
 		this.typeName = typeName;
 		this.nullable = nullable;
-		this.size = size;
-		this.digits = digits;
 		this.radix = radix;
+		this.expectsMapping = expectsMapping;
 	}
 
+	@Override
 	public String getFieldName()
 	{
 		return fieldName;
 	}
 
+	@Override
 	public int getColumnIndex()
 	{
 		return columnIndex;
 	}
 
-	public int getJdbcTypeIndex()
+	@Override
+	public Class<?> getJavaType()
 	{
-		return jdbcTypeIndex;
+		return javaType;
 	}
 
+	@Override
 	public String getTypeName()
 	{
 		return typeName;
 	}
 
+	@Override
 	public boolean isNullable()
 	{
 		return nullable;
 	}
 
-	public int getSize()
-	{
-		return size;
-	}
-
-	public int getDigits()
-	{
-		return digits;
-	}
-
+	@Override
 	public int getRadix()
 	{
 		return radix;
+	}
+
+	@Override
+	public boolean expectsMapping()
+	{
+		return expectsMapping;
 	}
 }

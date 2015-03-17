@@ -12,7 +12,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class FieldInfoItem extends RelationInfoItem
+public class FieldInfoItem extends TypeInfoItem
 {
 	protected Field field;
 

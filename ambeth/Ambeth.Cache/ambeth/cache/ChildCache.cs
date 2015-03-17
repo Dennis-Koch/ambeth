@@ -16,6 +16,9 @@ using De.Osthus.Ambeth.Model;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Metadata;
+using De.Osthus.Ambeth.Collections;
+using De.Osthus.Ambeth.Garbageproxy;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -25,8 +28,6 @@ namespace De.Osthus.Ambeth.Cache
         public ILogger Log { private get; set; }
 
         protected CacheHashMap keyToAlternateIdsMap;
-
-        public IDictionary<Type, IList<CachePath>> MembersToInitialize { get; set; }
 
         [Autowired]
         public ICacheModification CacheModification { protected get; set; }
@@ -44,6 +45,9 @@ namespace De.Osthus.Ambeth.Cache
         public IFirstLevelCacheExtendable FirstLevelCacheExtendable { protected get; set; }
 
         [Autowired]
+        public IGarbageProxyFactory GarbageProxyFactory { protected get; set; }
+
+        [Autowired]
         public ICacheIntern Parent { get; set; }
 
         [Property(CacheConfigurationConstants.ValueholderOnEmptyToOne, DefaultValue = "false")]
@@ -53,7 +57,12 @@ namespace De.Osthus.Ambeth.Cache
         public bool OverwriteToManyRelations { protected get; set; }
 
         [Property]
-        public bool Privileged { get; set; }
+        public override bool Privileged { get; set; }
+
+        [Property(Mandatory = false)]
+	    public String Name { protected get; set; }
+        
+        protected ICacheIntern gcProxy;
 
         protected int cacheId;
 
@@ -91,18 +100,19 @@ namespace De.Osthus.Ambeth.Cache
             base.AfterPropertiesSet();
 
             keyToAlternateIdsMap = new CacheHashMap(CacheMapEntryTypeProvider);
+
+            gcProxy = GarbageProxyFactory.CreateGarbageProxy<ICacheIntern>(this, (IDisposable) null, typeof(IWritableCache));
         }
 
         public override void Dispose()
         {
             if (CacheId != 0)
             {
-                FirstLevelCacheExtendable.UnregisterFirstLevelCache(this, CacheFactoryDirective.NoDCE, false);
+                FirstLevelCacheExtendable.UnregisterFirstLevelCache(this, CacheFactoryDirective.NoDCE, false, Name);
             }
             EntityFactory = null;
             FirstLevelCacheExtendable = null;
             Parent = null;
-            MembersToInitialize = null;
             keyToAlternateIdsMap = null;
             base.Dispose();
         }
@@ -172,7 +182,7 @@ namespace De.Osthus.Ambeth.Cache
 
         protected override Object GetVersionOfCacheValue(IEntityMetaData metaData, Object cacheValue)
         {
-            ITypeInfoItem versionMember = metaData.VersionMember;
+            PrimitiveMember versionMember = metaData.VersionMember;
             if (versionMember == null)
             {
                 return null;
@@ -182,7 +192,7 @@ namespace De.Osthus.Ambeth.Cache
 
         protected override void SetVersionOfCacheValue(IEntityMetaData metaData, Object cacheValue, Object version)
         {
-            ITypeInfoItem versionMember = metaData.VersionMember;
+            PrimitiveMember versionMember = metaData.VersionMember;
             if (versionMember == null)
             {
                 return;
@@ -243,10 +253,6 @@ namespace De.Osthus.Ambeth.Cache
                         IList<Object> result = GetObjectsRetry(orisToGet, cacheDirective, out doAnotherRetry);
                         if (!doAnotherRetry)
                         {
-                            if (!cacheDirective.HasFlag(CacheDirective.FailEarly) && !cacheDirective.HasFlag(CacheDirective.FailInCacheHierarchy))
-                            {
-                                CachePathHelper.EnsureInitializedRelations(result, MembersToInitialize);
-                            }
                             return result;
                         }
                     }
@@ -447,7 +453,7 @@ namespace De.Osthus.Ambeth.Cache
             }
         }
 
-        public void AddDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object[] primitives, IObjRef[][] relations)
+        public void AddDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object parentCacheValueOrArray, IObjRef[][] relations)
         {
             if (id == null)
             {
@@ -491,12 +497,12 @@ namespace De.Osthus.Ambeth.Cache
                 if (newAlternateCacheKeys == null)
                 {
                     // Allocate new array to hold alternate ids
-                    newAlternateCacheKeys = ExtractAlternateCacheKeys(metaData, primitives);
+                    newAlternateCacheKeys = ExtractAlternateCacheKeys(metaData, parentCacheValueOrArray);
                 }
                 else
                 {
                     // reuse existing array for new alternate id-values
-                    ExtractAlternateCacheKeys(metaData, primitives, newAlternateCacheKeys);
+                    ExtractAlternateCacheKeys(metaData, parentCacheValueOrArray, newAlternateCacheKeys);
                 }
                 if (newAlternateCacheKeys.Length > 0)
                 {
@@ -512,13 +518,10 @@ namespace De.Osthus.Ambeth.Cache
             {
                 AddHardRefTL(cacheValue);
             }
+            AssignEntityToCache(primitiveFilledObject);
             if (relations != null && relations.Length > 0)
             {
-                IRelationInfoItem[] relationMembers = metaData.RelationMembers;
-
-                IValueHolderContainer vhc = (IValueHolderContainer)primitiveFilledObject;
-                vhc.__TargetCache = this;
-                HandleValueHolderContainer(vhc, relationMembers, relations);
+                HandleValueHolderContainer((IValueHolderContainer)primitiveFilledObject, metaData.RelationMembers, relations);
             }
             if (primitiveFilledObject is IDataObject)
             {
@@ -526,14 +529,14 @@ namespace De.Osthus.Ambeth.Cache
             }
         }
 
-        protected void HandleValueHolderContainer(IValueHolderContainer vhc, IRelationInfoItem[] relationMembers, IObjRef[][] relations)
+        protected void HandleValueHolderContainer(IValueHolderContainer vhc, RelationMember[] relationMembers, IObjRef[][] relations)
         {
             ICacheHelper cacheHelper = this.CacheHelper;
             ICacheIntern parent = this.Parent;
             IProxyHelper proxyHelper = this.ProxyHelper;
             for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
             {
-                IRelationInfoItem relationMember = relationMembers[relationIndex];
+                RelationMember relationMember = relationMembers[relationIndex];
                 IObjRef[] relationsOfMember = relations[relationIndex];
 
                 if (!CascadeLoadMode.EAGER.Equals(relationMember.CascadeLoadMode))
@@ -583,8 +586,7 @@ namespace De.Osthus.Ambeth.Cache
                 // Now we have to refresh the current content eagerly
 
                 // load entities as if we were an "eager valueholder" here
-                IList<Object> potentialNewItems = parent.GetObjects(new List<IObjRef>(relationsOfMember), this,
-                    FailEarlyModeActive ? CacheDirective.FailEarly : CacheDirective.None);
+                IList<Object> potentialNewItems = parent.GetObjects(new List<IObjRef>(relationsOfMember), this, CacheDirective.None);
                 if (OverwriteToManyRelations)
                 {
                     Object newRelationValue = cacheHelper.ConvertResultListToExpectedType(potentialNewItems, relationMember.RealType,
@@ -697,34 +699,7 @@ namespace De.Osthus.Ambeth.Cache
                 writeLock.Unlock();
             }
         }
-
-        public override void CascadeLoadPath(Type entityType, String cascadeLoadPath)
-        {
-            ParamChecker.AssertParamNotNull(cascadeLoadPath, "cascadeLoadPath");
-
-            WriteLock.Lock();
-            try
-            {
-                if (this.MembersToInitialize == null)
-                {
-                    this.MembersToInitialize = new Dictionary<Type, IList<CachePath>>();
-                }
-
-                IList<CachePath> cachePaths = DictionaryExtension.ValueOrDefault(this.MembersToInitialize, entityType);
-                if (cachePaths == null)
-                {
-                    cachePaths = new List<CachePath>();
-                    this.MembersToInitialize.Add(entityType, cachePaths);
-                }
-
-                CachePathHelper.BuildCachePath(entityType, cascadeLoadPath, cachePaths);
-            }
-            finally
-            {
-                WriteLock.Unlock();
-            }
-        }
-
+        
         protected override void PutInternObjRelation(Object cacheValue, IEntityMetaData metaData, IObjRelation objRelation, IObjRef[] relationsOfMember)
         {
             int relationIndex = metaData.GetIndexByRelationName(objRelation.MemberName);
@@ -736,5 +711,25 @@ namespace De.Osthus.Ambeth.Cache
             }
             vhc.Set__ObjRefs(relationIndex, relationsOfMember);
         }
+
+        protected override void PutInternUnpersistedEntity(Object entity)
+        {
+            AssignEntityToCache(entity);		    
+            base.PutInternUnpersistedEntity(entity);
+        }
+
+        public void AssignEntityToCache(Object entity)
+        {
+            ((IValueHolderContainer)entity).__TargetCache = gcProxy;
+        }
+        
+	    public override String ToString()
+	    {
+		    if (Name != null)
+		    {
+                return Name + " " + base.ToString();
+		    }
+		    return base.ToString();
+	    }
     }
 }

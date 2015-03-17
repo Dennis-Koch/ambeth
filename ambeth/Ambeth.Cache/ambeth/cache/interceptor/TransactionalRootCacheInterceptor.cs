@@ -15,8 +15,8 @@ using Castle.Core.Interceptor;
 using Castle.DynamicProxy;
 #endif
 using De.Osthus.Ambeth.Config;
-using De.Osthus.Ambeth.Security.Config;
 using De.Osthus.Ambeth.Security;
+using De.Osthus.Ambeth.Merge.Config;
 
 namespace De.Osthus.Ambeth.Cache.Interceptor
 {
@@ -32,13 +32,16 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
         [Autowired(Optional = true)]
         public ISecurityActivation SecurityActivation { protected get; set; }
 
-        [Property(SecurityConfigurationConstants.SecurityActive, DefaultValue = "false")]
+        [Property(MergeConfigurationConstants.SecurityActive, DefaultValue = "false")]
         public bool SecurityActive { protected get; set; }
 
+        [Forkable]
         protected readonly ThreadLocal<RootCache> privilegedRootCacheTL = new ThreadLocal<RootCache>();
 
+        [Forkable]
         protected readonly ThreadLocal<RootCache> rootCacheTL = new ThreadLocal<RootCache>();
 
+        [Forkable]
         protected readonly ThreadLocal<Boolean> transactionalRootCacheActiveTL = new ThreadLocal<Boolean>();
 
         public override void CleanupThreadLocal()
@@ -49,6 +52,11 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
         }
 
         protected IRootCache GetCurrentRootCache(bool privileged)
+        {
+            return GetCurrentRootCache(privileged, true);
+        }
+
+        protected IRootCache GetCurrentRootCache(bool privileged, bool forceInstantiation)
         {
             IRootCache rootCache = privileged ? privilegedRootCacheTL.Value : rootCacheTL.Value;
             if (rootCache != null)
@@ -65,6 +73,11 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             IRootCache privilegedRootCache = privilegedRootCacheTL.Value;
             if (privilegedRootCache == null)
             {
+                if (!forceInstantiation)
+                {
+                    // do not create an instance of anything in this case
+                    return null;
+                }
                 // here we know that the non-privileged one could not have existed before, so we simply create the privileged one
                 privilegedRootCache = AcquireRootCache(true, privilegedRootCacheTL);
             }
@@ -76,6 +89,11 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             IRootCache nonPrivilegedRootCache = rootCacheTL.Value;
             if (nonPrivilegedRootCache == null)
             {
+                if (!forceInstantiation)
+                {
+                    // do not create an instance of anything in this case
+                    return null;
+                }
                 // share the locks from the privileged rootCache
                 nonPrivilegedRootCache = AcquireRootCache(privileged, rootCacheTL, (ICacheRetriever)privilegedRootCache, privilegedRootCache.ReadLock,
                         privilegedRootCache.WriteLock);
@@ -87,6 +105,16 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
         {
             return GetCurrentRootCache(IsCurrentPrivileged());
         }
+
+        public IRootCache SelectPrivilegedSecondLevelCache(bool forceInstantiation)
+	    {
+            return GetCurrentRootCache(!SecurityActive || true, forceInstantiation);
+	    }
+
+        public IRootCache SelectNonPrivilegedSecondLevelCache(bool forceInstantiation)
+	    {
+            return GetCurrentRootCache(!SecurityActive || false, forceInstantiation);
+	    }
 
         protected bool IsCurrentPrivileged()
         {

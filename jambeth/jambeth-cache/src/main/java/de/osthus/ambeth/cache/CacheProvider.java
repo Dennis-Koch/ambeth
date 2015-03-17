@@ -6,11 +6,12 @@ import java.util.concurrent.locks.ReentrantLock;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.security.ISecurityActivation;
-import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
 public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean, ICacheProvider
@@ -28,7 +29,7 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 	@Autowired(optional = true)
 	protected ISecurityActivation securityActivation;
 
-	@Property(name = SecurityConfigurationConstants.SecurityActive, defaultValue = "false")
+	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
 
 	@Property
@@ -38,8 +39,10 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 
 	protected volatile ICache privilegedSingletonCache;
 
+	@Forkable
 	protected ThreadLocal<IDisposableCache> cacheTL;
 
+	@Forkable
 	protected ThreadLocal<IDisposableCache> privilegedCacheTL;
 
 	protected final Lock lock = new ReentrantLock();
@@ -79,7 +82,7 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 			IDisposableCache cache = cacheTL.get();
 			if (cache != null)
 			{
-				cacheTL.remove();
+				cacheTL.set(null);
 				cache.dispose();
 			}
 		}
@@ -88,7 +91,7 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 			IDisposableCache cache = privilegedCacheTL.get();
 			if (cache != null)
 			{
-				privilegedCacheTL.remove();
+				privilegedCacheTL.set(null);
 				cache.dispose();
 			}
 		}
@@ -122,9 +125,9 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 			{
 				if (!securityActive || !securityActivation.isFilterActivated())
 				{
-					return cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, null);
+					return cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, null, "CacheProvider.PROTOTYPE");
 				}
-				return cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, false, null);
+				return cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, false, null, "CacheProvider.PROTOTYPE");
 			}
 			case SINGLETON:
 			{
@@ -135,7 +138,8 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 					{
 						if (privilegedSingletonCache == null)
 						{
-							privilegedSingletonCache = cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, true, null);
+							privilegedSingletonCache = cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, true, null,
+									"CacheProvider.SINGLETON");
 						}
 						return privilegedSingletonCache;
 					}
@@ -143,7 +147,7 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 					{
 						if (singletonCache == null)
 						{
-							singletonCache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, true, null);
+							singletonCache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, true, null, "CacheProvider.SINGLETON");
 						}
 						return singletonCache;
 					}
@@ -160,7 +164,8 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 					IDisposableCache cache = privilegedCacheTL.get();
 					if (cache == null)
 					{
-						cache = cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, Boolean.FALSE);
+						cache = cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, Boolean.FALSE,
+								"CacheProvider.THREAD_LOCAL");
 						privilegedCacheTL.set(cache);
 					}
 					return cache;
@@ -170,7 +175,7 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 					IDisposableCache cache = cacheTL.get();
 					if (cache == null)
 					{
-						cache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, false, Boolean.FALSE);
+						cache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, false, Boolean.FALSE, "CacheProvider.THREAD_LOCAL");
 						cacheTL.set(cache);
 					}
 					return cache;

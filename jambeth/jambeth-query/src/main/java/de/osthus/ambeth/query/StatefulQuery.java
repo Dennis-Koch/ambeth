@@ -1,14 +1,13 @@
 package de.osthus.ambeth.query;
 
 import java.util.List;
-import java.util.Map;
 
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.persistence.IDataCursor;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IVersionCursor;
-import de.osthus.ambeth.persistence.IVersionItem;
 
 public class StatefulQuery<T> implements IQuery<T>
 {
@@ -34,7 +33,7 @@ public class StatefulQuery<T> implements IQuery<T>
 	}
 
 	@Override
-	public IQueryKey getQueryKey(Map<Object, Object> nameToValueMap)
+	public IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap)
 	{
 		return query.getQueryKey(nameToValueMap);
 	}
@@ -49,7 +48,13 @@ public class StatefulQuery<T> implements IQuery<T>
 	@Override
 	public IVersionCursor retrieveAsVersions()
 	{
-		return query.retrieveAsVersions(paramMap);
+		return query.retrieveAsVersions(paramMap, true);
+	}
+
+	@Override
+	public IVersionCursor retrieveAsVersions(boolean retrieveAlternateIds)
+	{
+		return query.retrieveAsVersions(paramMap, retrieveAlternateIds);
 	}
 
 	@Override
@@ -59,7 +64,7 @@ public class StatefulQuery<T> implements IQuery<T>
 	}
 
 	@Override
-	public IVersionCursor retrieveAsVersions(Map<Object, Object> nameToValueMap)
+	public IVersionCursor retrieveAsVersions(IMap<Object, Object> nameToValueMap)
 	{
 		throw new UnsupportedOperationException("Only retrieveAsVersions() allowed");
 	}
@@ -71,7 +76,7 @@ public class StatefulQuery<T> implements IQuery<T>
 	}
 
 	@Override
-	public IEntityCursor<T> retrieveAsCursor(Map<Object, Object> nameToValueMap)
+	public IEntityCursor<T> retrieveAsCursor(IMap<Object, Object> nameToValueMap)
 	{
 		throw new UnsupportedOperationException("Only retrieveAsCursor() allowed");
 	}
@@ -83,7 +88,7 @@ public class StatefulQuery<T> implements IQuery<T>
 	}
 
 	@Override
-	public IList<T> retrieve(Map<Object, Object> nameToValueMap)
+	public IList<T> retrieve(IMap<Object, Object> nameToValueMap)
 	{
 		throw new UnsupportedOperationException();
 	}
@@ -99,19 +104,6 @@ public class StatefulQuery<T> implements IQuery<T>
 	}
 
 	@Override
-	public IVersionItem retrieveAsVersion()
-	{
-		IVersionCursor cursor = retrieveAsVersions();
-		if (cursor == null || !cursor.moveNext())
-		{
-			return null;
-		}
-		IVersionItem versionItem = cursor.getCurrent();
-		cursor.dispose();
-		return versionItem;
-	}
-
-	@Override
 	public T retrieveSingle()
 	{
 		IList<T> result = retrieve();
@@ -124,5 +116,17 @@ public class StatefulQuery<T> implements IQuery<T>
 			throw new IllegalStateException("Query result is not unique: " + result.size());
 		}
 		return result.get(0);
+	}
+
+	@Override
+	public long count()
+	{
+		return query.count(paramMap);
+	}
+
+	@Override
+	public boolean isEmpty()
+	{
+		return query.isEmpty(paramMap);
 	}
 }

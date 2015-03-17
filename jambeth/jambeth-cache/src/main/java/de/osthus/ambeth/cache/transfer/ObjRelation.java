@@ -179,7 +179,5 @@ public class ObjRelation implements IObjRelation, IPrintable
 	{
 		sb.append("ObjRel: memberName=").append(memberName).append(", ref=");
 		StringBuilderUtil.appendPrintable(sb, objRefs);
-
-		sb.append(Arrays.toString(objRefs));
 	}
 }

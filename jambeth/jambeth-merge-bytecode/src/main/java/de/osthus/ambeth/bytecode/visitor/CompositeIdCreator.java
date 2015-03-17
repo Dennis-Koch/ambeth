@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 
 import de.osthus.ambeth.bytecode.ClassGenerator;
 import de.osthus.ambeth.bytecode.ConstructorInstance;
+import de.osthus.ambeth.bytecode.FScript;
 import de.osthus.ambeth.bytecode.FieldInstance;
 import de.osthus.ambeth.bytecode.IValueResolveDelegate;
 import de.osthus.ambeth.bytecode.MethodGenerator;
@@ -12,13 +13,17 @@ import de.osthus.ambeth.bytecode.PropertyInstance;
 import de.osthus.ambeth.bytecode.Script;
 import de.osthus.ambeth.bytecode.behavior.BytecodeBehaviorState;
 import de.osthus.ambeth.compositeid.CompositeIdEnhancementHint;
-import de.osthus.ambeth.compositeid.CompositeIdTypeInfoItem;
+import de.osthus.ambeth.compositeid.CompositeIdMember;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.mixin.CompositeIdMixin;
 import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.FieldAccess;
+import de.osthus.ambeth.repackaged.org.objectweb.asm.AnnotationVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
+import de.osthus.ambeth.repackaged.org.objectweb.asm.FieldVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
-import de.osthus.ambeth.template.CompositeIdTemplate;
 import de.osthus.ambeth.typeinfo.FieldInfoItemASM;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IPrintable;
@@ -55,7 +60,7 @@ public class CompositeIdCreator extends ClassGenerator
 		}
 	}
 
-	public static final Class<?> templateType = CompositeIdTemplate.class;
+	public static final Class<?> templateType = CompositeIdMixin.class;
 
 	protected static final String templatePropertyName = templateType.getSimpleName();
 
@@ -91,7 +96,7 @@ public class CompositeIdCreator extends ClassGenerator
 	public void visitEnd()
 	{
 		CompositeIdEnhancementHint context = BytecodeBehaviorState.getState().getContext(CompositeIdEnhancementHint.class);
-		ITypeInfoItem[] idMembers = context.getIdMembers();
+		Member[] idMembers = context.getIdMembers();
 
 		PropertyInstance p_compositeIdTemplate = getCompositeIdTemplatePI(this);
 
@@ -100,11 +105,19 @@ public class CompositeIdCreator extends ClassGenerator
 		// order does matter here (to maintain field order for debugging purpose on later objects)
 		for (int a = 0, size = idMembers.length; a < size; a++)
 		{
-			ITypeInfoItem member = idMembers[a];
-			String fieldName = CompositeIdTypeInfoItem.filterEmbeddedFieldName(member.getName());
+			Member member = idMembers[a];
+			String fieldName = CompositeIdMember.filterEmbeddedFieldName(member.getName());
 			constructorTypes[a] = Type.getType(member.getRealType());
 			fields[a] = new FieldInstance(Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL, fieldName, null, constructorTypes[a]);
-			implementField(fields[a]);
+			implementField(fields[a], new FScript()
+			{
+				@Override
+				public void execute(FieldVisitor fv)
+				{
+					AnnotationVisitor av = fv.visitAnnotation(Type.getDescriptor(Property.class), true);
+					av.visitEnd();
+				}
+			});
 		}
 		{
 			MethodGenerator mg = visitMethod(new ConstructorInstance(Opcodes.ACC_PUBLIC, null, constructorTypes));

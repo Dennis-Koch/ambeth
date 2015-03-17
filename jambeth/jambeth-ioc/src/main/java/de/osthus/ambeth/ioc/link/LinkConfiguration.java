@@ -6,8 +6,6 @@ import de.osthus.ambeth.proxy.IProxyFactory;
 
 public class LinkConfiguration<D> extends BeanConfiguration implements ILinkConfiguration, ILinkRegistryNeededConfiguration<D>
 {
-	protected boolean optional;
-
 	public LinkConfiguration(Class<?> beanType, IProxyFactory proxyFactory, IProperties props)
 	{
 		super(beanType, null, proxyFactory, props);
@@ -23,11 +21,6 @@ public class LinkConfiguration<D> extends BeanConfiguration implements ILinkConf
 	@Override
 	public ILinkConfiguration optional()
 	{
-		if (optional)
-		{
-			// Already configured as optional
-			return this;
-		}
 		propertyValue(AbstractLinkContainer.PROPERTY_OPTIONAL, true);
 		return this;
 	}

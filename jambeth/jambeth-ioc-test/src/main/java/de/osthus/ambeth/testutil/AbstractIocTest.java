@@ -6,7 +6,7 @@ import de.osthus.ambeth.config.IocConfigurationConstants;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.IocBootstrapModule;
+import de.osthus.ambeth.ioc.IocModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 
 /**
@@ -20,12 +20,12 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
  * All annotations can be used on test class level as well as on test method level. In ambiguous scenarios the method annotations will gain precedence.
  */
 @RunWith(AmbethIocRunner.class)
-@TestFrameworkModule({ IocBootstrapModule.class })
+@TestFrameworkModule({ IocModule.class })
 @TestPropertiesList({ @TestProperties(name = IocConfigurationConstants.TrackDeclarationTrace, value = "true"),
 		@TestProperties(name = IocConfigurationConstants.DebugModeActive, value = "true"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.accessor.AccessorTypeProvider", value = "INFO"),
-		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.bytecode.core.BytecodeEnhancer", value = "INFO"),
-		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.bytecode.visitor.ClassWriter", value = "INFO"),
+		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.bytecode.core.BytecodeEnhancer", value = "WARN"),
+		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.bytecode.visitor.ClassWriter", value = "DEBUG"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.bytecode.visitor.LogImplementationsClassVisitor", value = "INFO"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.template.PropertyChangeTemplate", value = "INFO") })
 public abstract class AbstractIocTest implements IInitializingBean, IDisposableBean

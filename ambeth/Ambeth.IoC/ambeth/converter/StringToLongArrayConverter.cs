@@ -3,7 +3,7 @@ using De.Osthus.Ambeth.Util;
 using System;
 using System.Text;
 
-namespace De.Osthus.Ambeth.Accessor
+namespace De.Osthus.Ambeth.Converter
 {
     public class StringToLongArrayConverter : IDedicatedConverter
     {

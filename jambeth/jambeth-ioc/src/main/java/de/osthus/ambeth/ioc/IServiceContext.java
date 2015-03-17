@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
+import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.ioc.hierarchy.IBeanContextHolder;
 import de.osthus.ambeth.ioc.link.ILinkRuntimeExtendable;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
@@ -80,7 +81,7 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable
 	 *            Initializing modules defining the content of the new context.
 	 * @return New IoC context.
 	 */
-	IServiceContext createService(RegisterPhaseDelegate registerPhaseDelegate, Class<?>... serviceModules);
+	IServiceContext createService(IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, Class<?>... serviceModules);
 
 	/**
 	 * Creates a child context of this context with the additional beans from the given initializing modules plus everything you do in the
@@ -94,7 +95,8 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable
 	 *            Initializing modules defining the content of the new context.
 	 * @return New IoC context.
 	 */
-	IServiceContext createService(String childContextName, RegisterPhaseDelegate registerPhaseDelegate, Class<?>... serviceModules);
+	IServiceContext createService(String childContextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
+			Class<?>... serviceModules);
 
 	/**
 	 * For future feature of complex context hierarchies.
@@ -249,6 +251,15 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable
 	 * @return IBeanRuntime to add things to the bean or finish the registration.
 	 */
 	<V> IBeanRuntime<V> registerAnonymousBean(Class<V> beanType);
+
+	/**
+	 * Registers an anonymous bean while the context is already running.
+	 * 
+	 * @param beanType
+	 *            Class of the bean to be instantiated.
+	 * @return IBeanRuntime to add things to the bean or finish the registration.
+	 */
+	<V> IBeanRuntime<V> registerBean(Class<V> beanType);
 
 	/**
 	 * Finder for configuration of a named bean. Makes it possible to read and change the IoC configuration of a bean during runtime.

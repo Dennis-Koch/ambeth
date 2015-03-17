@@ -1,16 +1,14 @@
 package de.osthus.ambeth.example.helloworld;
 
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.IocBootstrapModule;
+import de.osthus.ambeth.ioc.IocModule;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.util.IConversionHelper;
 
-public class HelloWorld
-{
-	public static void main(String[] args)
-	{
+public class HelloWorld {
+	public static void main(String[] args) {
 		IServiceContext rootContext = BeanContextFactory.createBootstrap();
-		IServiceContext beanContext = rootContext.createService("helloWorld", HelloWorldModule.class, IocBootstrapModule.class);
+		IServiceContext beanContext = rootContext.createService("helloWorld", HelloWorldModule.class, IocModule.class);
 
 		HelloWorldService service = (HelloWorldService) beanContext.getService("helloWorldService");
 		service.speak();
@@ -19,6 +17,6 @@ public class HelloWorld
 		String helloWorldString = conversionHelper.convertValueToType(String.class, new HelloWorldToken());
 		System.out.println(helloWorldString);
 
-		beanContext.dispose();
+		beanContext.getRoot().dispose();
 	}
 }

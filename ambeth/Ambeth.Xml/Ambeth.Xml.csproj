@@ -51,7 +51,7 @@
     <Compile Include="ambeth\util\ModuleScanner.cs" />
     <Compile Include="ambeth\xml\ICyclicXmlController.cs" />
     <Compile Include="ambeth\xml\namehandler\ObjRefElementHandler.cs" />
-    <Compile Include="ambeth\xml\namehandler\OriWrapperElementHandler.cs" />
+    <Compile Include="ambeth\xml\namehandler\ObjRefWrapperElementHandler.cs" />
     <Compile Include="ambeth\xml\pending\AbstractObjectCommand.cs" />
     <Compile Include="ambeth\xml\pending\ArraySetterCommand.cs" />
     <Compile Include="ambeth\xml\pending\CollectionSetterCommand.cs" />
@@ -82,9 +82,6 @@
     <Compile Include="ambeth\xml\CyclicXmlReader.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ambeth\xml\IAppendable.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="ambeth\xml\ICyclicXmlDictionary.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -104,12 +101,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ambeth\xml\namehandler\TimeSpanElementHandler.cs" />
-    <Compile Include="ambeth\xml\StreamWriterAppendable.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ambeth\xml\StringBuilderAppendable.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="ambeth\xml\XmlTransferScanner.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -119,7 +110,7 @@
     <Compile Include="ambeth\xml\XmlTypeRegistry.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ioc\XmlModule.cs" />
+    <Compile Include="ambeth\ioc\XmlModule.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.csproj">
@@ -167,7 +158,7 @@
     <Compile Include="ambeth\xml\typehandler\ObjectTypeHandler.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ioc\BootstrapScannerModule.cs" />
+    <Compile Include="ambeth\ioc\BootstrapScannerModule.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\xml\postprocess\IPostProcessReader.cs" />
@@ -184,8 +175,7 @@
     <Compile Include="ambeth\xml\simple\SimpleXmlWriter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ambeth\xml\simple\AppendableStreamEncoder.cs" />
-    <Compile Include="ambeth\xml\simple\AppendableStringBuilder.cs" />
+    <Compile Include="ambeth\merge\CUDResultPrinter.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

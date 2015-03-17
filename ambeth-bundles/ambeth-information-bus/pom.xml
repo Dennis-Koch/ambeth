@@ -3,12 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>jambeth-information-bus</artifactId>
-	<packaging>pom</packaging>
 
 	<parent>
 		<groupId>de.osthus.ambeth</groupId>
 		<artifactId>jambeth-bundles</artifactId>
-		<version>2.1.X-SNAPSHOT</version>
+		<version>2.3.X-SNAPSHOT</version>
 	</parent>
 
 	<dependencies>
@@ -57,6 +56,11 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-event-datachange</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-expr</artifactId>
 		</dependency>
 
 		<dependency>

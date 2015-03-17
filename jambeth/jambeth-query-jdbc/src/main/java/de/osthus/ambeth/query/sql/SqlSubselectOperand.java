@@ -1,15 +1,14 @@
 package de.osthus.ambeth.query.sql;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
+import de.osthus.ambeth.appendable.IAppendable;
+import de.osthus.ambeth.collections.EmptyList;
+import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.persistence.IDatabase;
-import de.osthus.ambeth.persistence.ITable;
+import de.osthus.ambeth.persistence.IDatabaseMetaData;
+import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.ISubQuery;
 import de.osthus.ambeth.util.ParamChecker;
@@ -17,14 +16,14 @@ import de.osthus.ambeth.util.ParamChecker;
 public class SqlSubselectOperand implements IOperand, IInitializingBean
 {
 	@SuppressWarnings("unused")
-	@LogInstance(SqlSubselectOperand.class)
+	@LogInstance
 	private ILogger log;
 
 	protected ISubQuery<?> subQuery;
 
 	protected SqlColumnOperand[] selectedColumns;
 
-	protected IDatabase database;
+	protected IDatabaseMetaData databaseMetaData;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -32,7 +31,7 @@ public class SqlSubselectOperand implements IOperand, IInitializingBean
 		ParamChecker.assertNotNull(subQuery, "subQuery");
 		ParamChecker.assertNotNull(selectedColumns, "selectedColumns");
 
-		ParamChecker.assertNotNull(database, "database");
+		ParamChecker.assertNotNull(databaseMetaData, "database");
 	}
 
 	public void setSubQuery(ISubQuery<?> subQuery)
@@ -45,9 +44,9 @@ public class SqlSubselectOperand implements IOperand, IInitializingBean
 		this.selectedColumns = selectedColumns;
 	}
 
-	public void setDatabase(IDatabase database)
+	public void setDatabase(IDatabaseMetaData databaseMetaData)
 	{
-		this.database = database;
+		this.databaseMetaData = databaseMetaData;
 	}
 
 	public ISubQuery<?> getSubQuery()
@@ -56,24 +55,34 @@ public class SqlSubselectOperand implements IOperand, IInitializingBean
 	}
 
 	@Override
-	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
+	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
 	{
 		Class<?> entityType = subQuery.getEntityType();
-		ITable table = database.getTableByType(entityType);
+		ITableMetaData table = databaseMetaData.getTableByType(entityType);
 		String tableName = table.getFullqualifiedEscapedName();
 		String tableAlias = subQuery.getMainTableAlias();
 
-		String[] sqlParts = subQuery.getSqlParts(nameToValueMap, parameters, Collections.<String> emptyList());
+		String[] sqlParts = subQuery.getSqlParts(nameToValueMap, parameters, EmptyList.<String> getInstance());
 		String joinSql = sqlParts[0];
 		String whereSql = sqlParts[1];
 		String orderBySql = sqlParts[2];
+		String limitSql = sqlParts[3];
 
 		querySB.append("SELECT ");
-		querySB.append(tableAlias).append(".").append(selectedColumns[0].columnName);
-		for (int i = 1; i < selectedColumns.length; i++)
+		boolean firstColumn = true;
+		SqlColumnOperand[] selectedColumns = this.selectedColumns;
+		for (int i = 0, size = selectedColumns.length; i < size; i++)
 		{
+			if (firstColumn)
+			{
+				firstColumn = false;
+			}
+			else
+			{
+				querySB.append(',');
+			}
 			SqlColumnOperand column = selectedColumns[i];
-			querySB.append(",").append(tableAlias).append(".").append(column.columnName);
+			querySB.append(tableAlias).append(".").append(column.columnName);
 		}
 		querySB.append(" FROM ").append(tableName).append(" ").append(tableAlias);
 		if (joinSql != null && !joinSql.isEmpty())
@@ -87,6 +96,10 @@ public class SqlSubselectOperand implements IOperand, IInitializingBean
 		if (orderBySql != null && !orderBySql.isEmpty())
 		{
 			querySB.append(" ").append(orderBySql);
+		}
+		if (limitSql != null && !limitSql.isEmpty())
+		{
+			querySB.append(" ").append(limitSql);
 		}
 	}
 }

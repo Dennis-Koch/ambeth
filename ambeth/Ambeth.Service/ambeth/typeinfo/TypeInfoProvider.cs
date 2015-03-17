@@ -89,10 +89,6 @@ namespace De.Osthus.Ambeth.Typeinfo
                 ITypeInfoItem[] memberForParentPath = new ITypeInfoItem[members.Length - 1];
                 Array.Copy(members, 0, memberForParentPath, 0, memberForParentPath.Length);
                 ITypeInfoItem lastMember = members[members.Length - 1];
-			    if (lastMember is IRelationInfoItem)
-			    {
-				    return new EmbeddedRelationInfoItem(hierarchicMemberName, (IRelationInfoItem) lastMember, memberForParentPath);
-			    }
 			    return new EmbeddedTypeInfoItem(hierarchicMemberName, lastMember, memberForParentPath);
             }
             else
@@ -108,9 +104,7 @@ namespace De.Osthus.Ambeth.Typeinfo
 
         public virtual ITypeInfoItem GetMember(Type entityType, IPropertyInfo propertyInfo)
         {
-            PropertyInfoItem pii = new PropertyInfoItem(propertyInfo);
-            pii.Configure(Properties);
-            return pii;
+            return new PropertyInfoItem(propertyInfo);
         }
 
         public virtual ITypeInfoItem GetMember(FieldInfo field)

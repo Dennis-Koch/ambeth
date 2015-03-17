@@ -5,7 +5,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.persistence.IField;
+import de.osthus.ambeth.persistence.IFieldMetaData;
 import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.ParamChecker;
@@ -40,14 +40,15 @@ public class MaxValuePrimaryKeyProvider implements IInitializingBean, IPrimaryKe
 	@Override
 	public IList<Object> acquireIds(ITable table, int count)
 	{
-		IField idField = table.getIdField();
+		IFieldMetaData idField = table.getMetaData().getIdField();
 		ArrayList<Object> ids = new ArrayList<Object>();
 		Class<?> fieldType = idField.getFieldType();
 		IResultSet resultSet = null;
 
 		try
 		{
-			resultSet = sqlConnection.selectFields(table.getFullqualifiedEscapedName(), "MAX(\"" + idField.getName() + "\")", null, null);
+			resultSet = sqlConnection.selectFields(table.getMetaData().getFullqualifiedEscapedName(), "MAX(\"" + idField.getName() + "\")", null, null, null,
+					null);
 			if (!resultSet.moveNext())
 			{
 				throw new IllegalArgumentException();

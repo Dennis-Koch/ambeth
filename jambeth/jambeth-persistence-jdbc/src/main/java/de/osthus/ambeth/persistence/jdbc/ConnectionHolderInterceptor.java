@@ -5,24 +5,22 @@ import java.lang.reflect.Method;
 import java.sql.Connection;
 
 import net.sf.cglib.proxy.MethodProxy;
-import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.ILightweightTransaction;
 import de.osthus.ambeth.proxy.AbstractSimpleInterceptor;
-import de.osthus.ambeth.proxy.CascadedInterceptor;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
 public class ConnectionHolderInterceptor extends AbstractSimpleInterceptor implements IConnectionHolder, IThreadLocalCleanupBean
 {
-	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
-	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
-
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Forkable
 	protected final ThreadLocal<Connection> connectionTL = new SensitiveThreadLocal<Connection>();
 
 	@Override
@@ -61,7 +59,7 @@ public class ConnectionHolderInterceptor extends AbstractSimpleInterceptor imple
 			if (connection == null)
 			{
 				throw new IllegalStateException("No connection currently applied. This often occurs if a " + Connection.class.getName()
-						+ "-bean is used without scoping the call through the " + ITransaction.class.getName() + "-bean");
+						+ "-bean is used without scoping the call through the " + ILightweightTransaction.class.getName() + "-bean");
 			}
 			return proxy.invoke(connection, args);
 		}

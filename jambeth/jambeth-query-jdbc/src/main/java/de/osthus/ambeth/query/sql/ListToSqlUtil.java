@@ -1,57 +1,41 @@
 package de.osthus.ambeth.query.sql;
 
-import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.appendable.IAppendable;
+import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.OperandConstants;
 import de.osthus.ambeth.sql.ISqlBuilder;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
-import de.osthus.ambeth.util.ParamChecker;
 
-public final class ListToSqlUtil implements IInitializingBean
+public final class ListToSqlUtil
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
+	@Autowired
 	protected ISqlBuilder sqlBuilder;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(entityMetaDataProvider, "EntityMetaDataProvider");
-		ParamChecker.assertNotNull(sqlBuilder, "SqlBuilder");
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setSqlBuilder(ISqlBuilder sqlBuilder)
-	{
-		this.sqlBuilder = sqlBuilder;
-	}
-
-	public void expandValue(Appendable querySB, Object value, IOperand self, Map<Object, Object> nameToValueMap) throws IOException
+	public void expandValue(IAppendable querySB, Object value, IOperand self, IMap<Object, Object> nameToValueMap)
 	{
 		expandValue(querySB, value, self, nameToValueMap, null, null);
 	}
 
-	public void expandValue(Appendable querySB, Object value, IOperand self, Map<Object, Object> nameToValueMap, String prefix, String suffix)
-			throws IOException
+	public void expandValue(IAppendable querySB, Object value, IOperand self, IMap<Object, Object> nameToValueMap, String prefix, String suffix)
 	{
 		if (value instanceof List)
 		{
@@ -215,11 +199,11 @@ public final class ListToSqlUtil implements IInitializingBean
 		{
 			return value;
 		}
-		ITypeInfoItem member = valueMetaData.getMemberByName(propertyName);
+		Member member = valueMetaData.getMemberByName(propertyName);
 		return member.getValue(value);
 	}
 
-	protected void expandItem(Appendable querySB, Object value, IOperand self, Map<Object, Object> nameToValueMap) throws IOException
+	protected void expandItem(IAppendable querySB, Object value, IOperand self, IMap<Object, Object> nameToValueMap)
 	{
 		if (value == null)
 		{

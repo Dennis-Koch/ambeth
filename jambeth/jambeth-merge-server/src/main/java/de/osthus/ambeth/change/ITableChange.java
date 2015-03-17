@@ -2,9 +2,8 @@ package de.osthus.ambeth.change;
 
 import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.service.IChangeAggregator;
-import de.osthus.ambeth.util.IDisposable;
 
-public interface ITableChange extends IDisposable, Comparable<ITableChange>
+public interface ITableChange extends Comparable<ITableChange>
 {
 	String getEntityHandlerName();
 

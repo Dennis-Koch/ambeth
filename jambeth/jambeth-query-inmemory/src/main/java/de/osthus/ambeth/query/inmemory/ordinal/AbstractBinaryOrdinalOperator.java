@@ -1,39 +1,21 @@
 package de.osthus.ambeth.query.inmemory.ordinal;
 
-import java.util.Map;
-
+import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.query.inmemory.AbstractOperator;
 import de.osthus.ambeth.query.inmemory.IInMemoryBooleanOperand;
 import de.osthus.ambeth.query.inmemory.IInMemoryNumericOperand;
-import de.osthus.ambeth.util.ParamChecker;
 
 public abstract class AbstractBinaryOrdinalOperator extends AbstractOperator implements IInMemoryBooleanOperand
 {
+	@Property
 	protected IInMemoryNumericOperand leftOperand;
 
+	@Property
 	protected IInMemoryNumericOperand rightOperand;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(leftOperand, "leftOperand");
-		ParamChecker.assertNotNull(rightOperand, "rightOperand");
-	}
-
-	public void setLeftOperand(IInMemoryNumericOperand leftOperand)
-	{
-		this.leftOperand = leftOperand;
-	}
-
-	public void setRightOperand(IInMemoryNumericOperand rightOperand)
-	{
-		this.rightOperand = rightOperand;
-	}
-
-	@Override
-	public Boolean evaluate(Map<Object, Object> nameToValueMap)
+	public Boolean evaluate(IMap<Object, Object> nameToValueMap)
 	{
 		Double leftValue = leftOperand.evaluateNumber(nameToValueMap);
 		if (leftValue == null)

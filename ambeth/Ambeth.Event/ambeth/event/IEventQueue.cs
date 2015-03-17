@@ -13,7 +13,5 @@ namespace De.Osthus.Ambeth.Event
         void Pause(Object eventTarget);
 
         void Resume(Object eventTarget);
-
-        T InvokeWithoutLocks<T>(IResultingBackgroundWorkerDelegate<T> runnable);
     }
 }

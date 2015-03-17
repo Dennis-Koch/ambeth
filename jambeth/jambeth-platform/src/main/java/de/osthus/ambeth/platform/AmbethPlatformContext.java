@@ -1,26 +1,25 @@
 package de.osthus.ambeth.platform;
 
-import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.Properties;
-import de.osthus.ambeth.database.DatabaseCallback;
 import de.osthus.ambeth.database.IDatabaseProvider;
-import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.event.IEventQueue;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IModuleProvider;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.RegisterPhaseDelegate;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.Logger;
 import de.osthus.ambeth.log.LoggerFactory;
+import de.osthus.ambeth.merge.ILightweightTransaction;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.objectcollector.ThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IDatabase;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
+import de.osthus.ambeth.util.ImmutableTypeSet;
 import de.osthus.ambeth.util.ModuleUtil;
 import de.osthus.ambeth.util.ParamChecker;
 
@@ -59,12 +58,6 @@ public class AmbethPlatformContext implements IAmbethPlatformContext
 
 			bootstrapContext = BeanContextFactory.createBootstrap(props, providerModules, providerModuleInstances);
 
-			if (Logger.objectCollector == null)
-			{
-				Logger.objectCollector = bootstrapContext.getService(IThreadLocalObjectCollector.class);
-				apc.disposeStaticReferences = true;
-			}
-
 			IList<IModuleProvider> moduleProviders = bootstrapContext.getImplementingObjects(IModuleProvider.class);
 			for (int a = moduleProviders.size(); a-- > 0;)
 			{
@@ -78,7 +71,7 @@ public class AmbethPlatformContext implements IAmbethPlatformContext
 
 			if (frameworkModules.length > 0 || frameworkModuleInstances.length > 0)
 			{
-				frameworkBeanContext = bootstrapContext.createService("framework", new RegisterPhaseDelegate()
+				frameworkBeanContext = bootstrapContext.createService("framework", new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
 				{
 					@Override
 					public void invoke(IBeanContextFactory childContextFactory)
@@ -91,7 +84,7 @@ public class AmbethPlatformContext implements IAmbethPlatformContext
 				}, frameworkModules);
 			}
 
-			ITransaction transaction = frameworkBeanContext.getService(ITransaction.class, false);
+			ILightweightTransaction transaction = frameworkBeanContext.getService(ILightweightTransaction.class, false);
 			if (transaction != null)
 			{
 				ILogger log = LoggerFactory.getLogger(AmbethPlatformContext.class, props);
@@ -99,10 +92,10 @@ public class AmbethPlatformContext implements IAmbethPlatformContext
 				{
 					log.info("Starting initial database transaction to receive metadata for OR-Mappings...");
 				}
-				transaction.processAndCommit(new DatabaseCallback()
+				transaction.runInTransaction(new IBackgroundWorkerDelegate()
 				{
 					@Override
-					public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+					public void invoke() throws Throwable
 					{
 						// Intended blank
 					}
@@ -116,7 +109,7 @@ public class AmbethPlatformContext implements IAmbethPlatformContext
 
 			if (bootstrapModules.length > 0 || bootstrapModuleInstances.length > 0)
 			{
-				applicationBeanContext = frameworkBeanContext.createService("application", new RegisterPhaseDelegate()
+				applicationBeanContext = frameworkBeanContext.createService("application", new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
 				{
 					@Override
 					public void invoke(IBeanContextFactory childContextFactory)
@@ -139,17 +132,11 @@ public class AmbethPlatformContext implements IAmbethPlatformContext
 				bootstrapContext.dispose();
 				tlCleanupController.cleanupThreadLocal();
 			}
-			if (apc.disposeStaticReferences)
-			{
-				Logger.objectCollector = null;
-			}
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	protected IServiceContext beanContext;
-
-	protected boolean disposeStaticReferences;
 
 	protected IEventQueue eventQueue;
 
@@ -170,10 +157,7 @@ public class AmbethPlatformContext implements IAmbethPlatformContext
 			((ThreadLocalObjectCollector) tlObjectCollector).clearThreadLocal();
 			((ThreadLocalObjectCollector) tlObjectCollector).clearThreadLocals();
 		}
-		if (disposeStaticReferences)
-		{
-			Logger.objectCollector = null;
-		}
+		ImmutableTypeSet.flushState();
 	}
 
 	@Override

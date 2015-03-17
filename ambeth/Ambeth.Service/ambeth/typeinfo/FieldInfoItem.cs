@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 
 namespace De.Osthus.Ambeth.Typeinfo
 {
-    public class FieldInfoItem : RelationInfoItem
+    public class FieldInfoItem : TypeInfoItem
     {
         protected FieldInfo field;
 

@@ -42,9 +42,9 @@ import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.security.DefaultAuthentication;
 import de.osthus.ambeth.security.IAuthentication;
-import de.osthus.ambeth.security.IAuthentication.PasswordType;
 import de.osthus.ambeth.security.ISecurityContext;
 import de.osthus.ambeth.security.ISecurityContextHolder;
+import de.osthus.ambeth.security.PasswordType;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.transfer.AmbethServiceException;
 import de.osthus.ambeth.util.Base64;
@@ -231,7 +231,6 @@ public abstract class AbstractServiceREST
 		e.printStackTrace(pw);
 		pw.flush();
 		result.setMessage(e.getMessage());
-		result.setExceptionType(e.getClass().getName());
 		result.setStackTrace(sw.toString());
 		return createResult(result);
 	}

@@ -103,12 +103,7 @@ namespace De.Osthus.Minerva.Core
             }
             IList<FilterType> result = new List<FilterType>(bOsToFilter.Count);
 
-            IDictionary<Type, IList<String>> typeToMembersToInitialize = new Dictionary<Type, IList<String>>();
-            List<String> membersToInitialize = new List<String>(1);
-            membersToInitialize.Add(FilterMember);
-            typeToMembersToInitialize.Add(EntityType, membersToInitialize);
-
-            PrefetchHelper.Prefetch(bOsToFilter, typeToMembersToInitialize);
+            PrefetchHelper.CreatePrefetch().Add(EntityType, FilterMember).Build().Prefetch(bOsToFilter);
 
             // Now we are safe to use potential valueholders within a loop without a performance hit
             foreach (FilterType bO in bOsToFilter)

@@ -8,6 +8,6 @@ public class MultiEventTestModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(MultiEventService.class).autowireable(IMultiEventService.class);
+		beanContextFactory.registerBean(MultiEventService.class).autowireable(IMultiEventService.class);
 	}
 }

@@ -23,6 +23,11 @@ namespace De.Osthus.Ambeth.Proxy
         }
 
         protected readonly AnnotationCache<MergeContext> mergeContextCache = new MergeContextAnnotationCache();
+        
+        public override PostProcessorOrder GetOrder()
+        {
+            return PostProcessorOrder.HIGH;
+        }
 
         protected override ICascadedInterceptor HandleServiceIntern(Ioc.Factory.IBeanContextFactory beanContextFactory, Ioc.IServiceContext beanContext, Ioc.Config.IBeanConfiguration beanConfiguration, System.Type type, System.Collections.Generic.ISet<System.Type> requestedTypes)
         {
@@ -36,11 +41,14 @@ namespace De.Osthus.Ambeth.Proxy
             MergeInterceptor mergeInterceptor = new MergeInterceptor();
             if (beanContext.IsRunning)
             {
-                IBeanRuntime<MergeInterceptor> interceptorBC = beanContext.RegisterWithLifecycle(mergeInterceptor);
-                interceptorBC.PropertyValue("Behavior", behavior);
-                return interceptorBC.Finish();
+                return beanContext.RegisterWithLifecycle(mergeInterceptor)//
+                    .PropertyValue("Behavior", behavior)//
+                    .IgnoreProperties("ServiceName")//
+                    .Finish();
             }
-            beanContextFactory.RegisterWithLifecycle(mergeInterceptor).PropertyValue("Behavior", behavior);
+            beanContextFactory.RegisterWithLifecycle(mergeInterceptor)//
+                .PropertyValue("Behavior", behavior)//
+                .IgnoreProperties("ServiceName");
             return mergeInterceptor;
         }
                 
@@ -51,7 +59,7 @@ namespace De.Osthus.Ambeth.Proxy
             {
                 return annotation;
             }
-            IgnoreAttribute noProxy = AnnotationUtil.GetAnnotation<IgnoreAttribute>(method, false);
+            NoProxyAttribute noProxy = AnnotationUtil.GetAnnotation<NoProxyAttribute>(method, false);
             if (noProxy != null)
             {
                 return noProxy;

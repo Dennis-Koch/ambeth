@@ -9,7 +9,6 @@ import java.lang.reflect.Modifier;
 import de.osthus.ambeth.accessor.AccessorTypeProvider;
 import de.osthus.ambeth.bytecode.behavior.BytecodeBehaviorState;
 import de.osthus.ambeth.bytecode.behavior.IBytecodeBehaviorState;
-import de.osthus.ambeth.compositeid.CompositeIdTypeInfoItem;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.MethodVisitor;
@@ -20,11 +19,6 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.Method;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.util.Printer;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.util.Textifier;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.util.TraceMethodVisitor;
-import de.osthus.ambeth.typeinfo.FieldInfoItem;
-import de.osthus.ambeth.typeinfo.IEmbeddedTypeInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
-import de.osthus.ambeth.typeinfo.MethodPropertyInfo;
-import de.osthus.ambeth.typeinfo.PropertyInfoItem;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ReflectUtil;
 
@@ -223,6 +217,12 @@ public class MethodGenerator extends GeneratorAdapter
 	public void callThisGetter(MethodInstance method)
 	{
 		ParamChecker.assertParamNotNull(method, "method");
+		MethodInstance existingMethodInstance = MethodInstance.findByTemplate(method, false);
+		if (!existingMethodInstance.getOwner().equals(method.getOwner()))
+		{
+			callThisGetter(existingMethodInstance);
+			return;
+		}
 		if ((method.access & Opcodes.ACC_STATIC) == 0)
 		{
 			loadThis();
@@ -278,6 +278,19 @@ public class MethodGenerator extends GeneratorAdapter
 		}
 	}
 
+	public void getField(FieldInstance field)
+	{
+		ParamChecker.assertParamNotNull(field, "field");
+		if ((field.access & Opcodes.ACC_STATIC) == 0)
+		{
+			getField(field.getOwner(), field.getName(), field.getType());
+		}
+		else
+		{
+			getStatic(field.getOwner(), field.getName(), field.getType());
+		}
+	}
+
 	public void putThisField(FieldInstance field, Script script)
 	{
 		ParamChecker.assertParamNotNull(field, "field");
@@ -295,6 +308,19 @@ public class MethodGenerator extends GeneratorAdapter
 		}
 	}
 
+	public void putField(FieldInstance field)
+	{
+		ParamChecker.assertParamNotNull(field, "field");
+		if ((field.access & Opcodes.ACC_STATIC) == 0)
+		{
+			putField(field.getOwner(), field.getName(), field.getType());
+		}
+		else
+		{
+			putStatic(field.getOwner(), field.getName(), field.getType());
+		}
+	}
+
 	public void returnVoidOrThis()
 	{
 		if (!Type.VOID_TYPE.equals(method.getReturnType()))
@@ -307,6 +333,11 @@ public class MethodGenerator extends GeneratorAdapter
 	public void pushNull()
 	{
 		push((String) null);
+	}
+
+	public void pushNullOrZero(Class<?> type)
+	{
+		pushNullOrZero(Type.getType(type));
 	}
 
 	public void pushNullOrZero(Type type)
@@ -353,6 +384,24 @@ public class MethodGenerator extends GeneratorAdapter
 	public void ifCmp(final Class<?> type, final int mode, final Label label)
 	{
 		ifCmp(Type.getType(type), mode, label);
+	}
+
+	public void ifZCmp(final Type type, final int mode, final Label label)
+	{
+		if (Type.DOUBLE_TYPE.equals(type) || Type.FLOAT_TYPE.equals(type) || Type.LONG_TYPE.equals(type))
+		{
+			pushNullOrZero(type);
+			ifCmp(type, mode, label);
+		}
+		else
+		{
+			ifZCmp(mode, label);
+		}
+	}
+
+	public void ifZCmp(final Class<?> type, final int mode, final Label label)
+	{
+		ifZCmp(Type.getType(type), mode, label);
 	}
 
 	public void ifThisInstanceOf(final Class<?> instanceOfType, Script loadValue, Script executeIfTrue, Script executeIfFalse)
@@ -488,68 +537,6 @@ public class MethodGenerator extends GeneratorAdapter
 
 		mark(successLabel);
 		finallyScript.execute(this);
-	}
-
-	public void invokeGetValue(ITypeInfoItem member, final Script thisScript)
-	{
-		if (member instanceof PropertyInfoItem)
-		{
-			java.lang.reflect.Method getter = ((MethodPropertyInfo) ((PropertyInfoItem) member).getProperty()).getGetter();
-
-			MethodInstance m_getter = new MethodInstance(getter);
-
-			if (thisScript != null)
-			{
-				thisScript.execute(this);
-			}
-			if (getter.getDeclaringClass().isInterface())
-			{
-				invokeInterface(m_getter);
-			}
-			else
-			{
-				invokeVirtual(m_getter);
-			}
-		}
-		else if (member instanceof CompositeIdTypeInfoItem)
-		{
-			final CompositeIdTypeInfoItem cidMember = (CompositeIdTypeInfoItem) member;
-
-			ConstructorInstance c_compositeId = new ConstructorInstance(cidMember.getRealTypeConstructorAccess());
-			newInstance(c_compositeId, new Script()
-			{
-				@Override
-				public void execute(MethodGenerator mg)
-				{
-					ITypeInfoItem[] members = cidMember.getMembers();
-					for (int a = 0, size = members.length; a < size; a++)
-					{
-						invokeGetValue(members[a], thisScript);
-					}
-				}
-			});
-		}
-		else if (member instanceof IEmbeddedTypeInfoItem)
-		{
-			IEmbeddedTypeInfoItem embedded = (IEmbeddedTypeInfoItem) member;
-			ITypeInfoItem[] memberPath = embedded.getMemberPath();
-			invokeGetValue(memberPath[0], thisScript);
-			for (int a = 1, size = memberPath.length; a < size; a++)
-			{
-				invokeGetValue(memberPath[a], null);
-			}
-			invokeGetValue(embedded.getChildMember(), null);
-		}
-		else
-		{
-			FieldInstance field = new FieldInstance(((FieldInfoItem) member).getField());
-
-			if (thisScript != null)
-			{
-				thisScript.execute(this);
-			}
-			getField(field.getOwner(), field.getName(), field.getType());
-		}
 	}
 
 	public void checkCast(Class<?> type)

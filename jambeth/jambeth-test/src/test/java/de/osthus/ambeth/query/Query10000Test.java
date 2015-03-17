@@ -10,7 +10,7 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -21,7 +21,7 @@ import de.osthus.ambeth.testutil.category.SlowTests;
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/QueryMassdata_orm.xml") })
 @SQLStructure("QueryMassdata_structure.sql")
 @SQLData("Query10000_data.sql")
-public class Query10000Test extends AbstractPersistenceTest
+public class Query10000Test extends AbstractInformationBusWithPersistenceTest
 {
 	protected static final String paramName1 = "param.1";
 

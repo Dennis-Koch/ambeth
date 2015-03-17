@@ -8,7 +8,7 @@ import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
 import de.osthus.ambeth.cache.transfer.LoadContainer;
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.compositeid.CompositeIdTypeInfoItem;
+import de.osthus.ambeth.compositeid.CompositeIdMember;
 import de.osthus.ambeth.compositeid.ICompositeIdFactory;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
@@ -78,8 +78,8 @@ public class CompositeIdEntityCacheRetriever implements ICacheRetriever, IInitia
 		byte idNameIndex = objRef.getIdNameIndex();
 		if (idNameIndex == ObjRef.PRIMARY_KEY_INDEX)
 		{
-			Object id1 = ((CompositeIdTypeInfoItem) metaData.getIdMember()).getDecompositedValue(id, 0);
-			Object id2 = ((CompositeIdTypeInfoItem) metaData.getIdMember()).getDecompositedValue(id, 1);
+			Object id1 = ((CompositeIdMember) metaData.getIdMember()).getDecompositedValue(id, 0);
+			Object id2 = ((CompositeIdMember) metaData.getIdMember()).getDecompositedValue(id, 1);
 			if (id1_2_data[0].equals(id1) && id1_2_data[1].equals(id2))
 			{
 				LoadContainer lc = new LoadContainer();
@@ -94,8 +94,8 @@ public class CompositeIdEntityCacheRetriever implements ICacheRetriever, IInitia
 		}
 		else if (idNameIndex == 0)
 		{
-			Object id1 = ((CompositeIdTypeInfoItem) metaData.getAlternateIdMembers()[idNameIndex]).getDecompositedValue(id, 1);
-			Object id2 = ((CompositeIdTypeInfoItem) metaData.getAlternateIdMembers()[idNameIndex]).getDecompositedValue(id, 0);
+			Object id1 = ((CompositeIdMember) metaData.getAlternateIdMembers()[idNameIndex]).getDecompositedValue(id, 1);
+			Object id2 = ((CompositeIdMember) metaData.getAlternateIdMembers()[idNameIndex]).getDecompositedValue(id, 0);
 			if (id1_2_data[3].equals(id1) && id1_2_data[4].equals(id2))
 			{
 				LoadContainer lc = new LoadContainer();
@@ -117,8 +117,8 @@ public class CompositeIdEntityCacheRetriever implements ICacheRetriever, IInitia
 		byte idNameIndex = objRef.getIdNameIndex();
 		if (idNameIndex == ObjRef.PRIMARY_KEY_INDEX)
 		{
-			Object id1 = ((CompositeIdTypeInfoItem) metaData.getIdMember()).getDecompositedValue(id, 0);
-			Object id2 = ((CompositeIdTypeInfoItem) metaData.getIdMember()).getDecompositedValue(id, 1);
+			Object id1 = ((CompositeIdMember) metaData.getIdMember()).getDecompositedValue(id, 0);
+			Object id2 = ((CompositeIdMember) metaData.getIdMember()).getDecompositedValue(id, 1);
 			if (entity2_id1_2_data[0].equals(id1) && entity2_id1_2_data[1].equals(id2))
 			{
 				LoadContainer lc = new LoadContainer();
@@ -133,8 +133,8 @@ public class CompositeIdEntityCacheRetriever implements ICacheRetriever, IInitia
 		}
 		else if (idNameIndex == 0)
 		{
-			Object id1 = ((CompositeIdTypeInfoItem) metaData.getAlternateIdMembers()[idNameIndex]).getDecompositedValue(id, 1);
-			Object id2 = ((CompositeIdTypeInfoItem) metaData.getAlternateIdMembers()[idNameIndex]).getDecompositedValue(id, 0);
+			Object id1 = ((CompositeIdMember) metaData.getAlternateIdMembers()[idNameIndex]).getDecompositedValue(id, 1);
+			Object id2 = ((CompositeIdMember) metaData.getAlternateIdMembers()[idNameIndex]).getDecompositedValue(id, 0);
 			if (entity2_id1_2_data[3].equals(id1) && entity2_id1_2_data[4].equals(id2))
 			{
 				LoadContainer lc = new LoadContainer();

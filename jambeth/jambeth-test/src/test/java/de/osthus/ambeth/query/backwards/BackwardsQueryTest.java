@@ -10,7 +10,7 @@ import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IOperator;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -18,7 +18,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/backwards/BackwardsQuery_orm.xml")
 @SQLStructure("BackwardsQuery_structure.sql")
 @SQLData("BackwardsQuery_data.sql")
-public class BackwardsQueryTest extends AbstractPersistenceTest
+public class BackwardsQueryTest extends AbstractInformationBusWithPersistenceTest
 {
 	protected IQueryBuilder<QueryEntity> qb;
 

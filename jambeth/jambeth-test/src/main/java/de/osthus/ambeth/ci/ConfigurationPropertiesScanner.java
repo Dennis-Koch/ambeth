@@ -1,9 +1,11 @@
 package de.osthus.ambeth.ci;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -30,7 +32,7 @@ public final class ConfigurationPropertiesScanner
 		props.put("ambeth.log.level", "INFO");
 
 		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(props);
-		IClasspathScanner classpathScanner = bootstrapContext.registerAnonymousBean(ClasspathScanner.class).finish();
+		IClasspathScanner classpathScanner = bootstrapContext.registerBean(ClasspathScanner.class).finish();
 		List<Class<?>> types = classpathScanner.scanClassesAnnotatedWith(ConfigurationConstants.class);
 		Collections.sort(types, new Comparator<Class<?>>()
 		{
@@ -84,7 +86,7 @@ public final class ConfigurationPropertiesScanner
 		});
 
 		File configOverviewFile = new File(args[0]);
-		FileWriter fileWriter = new FileWriter(configOverviewFile);
+		OutputStreamWriter fileWriter = new OutputStreamWriter(new FileOutputStream(configOverviewFile), Charset.forName("UTF-8"));
 		try
 		{
 			DefaultXmlWriter xmlWriter = new DefaultXmlWriter(fileWriter, null);

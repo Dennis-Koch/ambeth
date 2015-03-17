@@ -1,14 +1,13 @@
 package de.osthus.ambeth.util;
 
-import java.util.List;
 
 public class AlreadyHandledItem
 {
 	public final Object obj;
 
-	public final List<CachePath> cachePaths;
+	public final CachePath[] cachePaths;
 
-	public AlreadyHandledItem(Object obj, List<CachePath> cachePaths)
+	public AlreadyHandledItem(Object obj, CachePath[] cachePaths)
 	{
 		this.obj = obj;
 		this.cachePaths = cachePaths;

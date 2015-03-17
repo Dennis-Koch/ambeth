@@ -1,30 +1,17 @@
 package de.osthus.ambeth.query.inmemory.bool;
 
-import java.util.Map;
-
+import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.query.inmemory.AbstractOperator;
 import de.osthus.ambeth.query.inmemory.IInMemoryBooleanOperand;
-import de.osthus.ambeth.util.ParamChecker;
 
 public class AndOperator extends AbstractOperator implements IInMemoryBooleanOperand
 {
+	@Property
 	protected IInMemoryBooleanOperand[] operands;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(operands, "operands");
-	}
-
-	public void setOperands(IInMemoryBooleanOperand[] operands)
-	{
-		this.operands = operands;
-	}
-
-	@Override
-	public Boolean evaluate(Map<Object, Object> nameToValueMap)
+	public Boolean evaluate(IMap<Object, Object> nameToValueMap)
 	{
 		for (IInMemoryBooleanOperand operand : operands)
 		{

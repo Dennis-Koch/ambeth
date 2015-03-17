@@ -1,4 +1,5 @@
-﻿using De.Osthus.Ambeth.Typeinfo;
+﻿using De.Osthus.Ambeth.Metadata;
+using De.Osthus.Ambeth.Typeinfo;
 using System;
 using System.Reflection;
 
@@ -14,43 +15,43 @@ namespace De.Osthus.Ambeth.Merge.Model
 
         bool LocalEntity { get; }
 
-        ITypeInfoItem IdMember { get; }
+        PrimitiveMember IdMember { get; }
 
-        ITypeInfoItem GetIdMemberByIdIndex(sbyte idIndex);
+        PrimitiveMember GetIdMemberByIdIndex(int idIndex);
 
         sbyte GetIdIndexByMemberName(String memberName);
 
-        ITypeInfoItem VersionMember { get; }
+        PrimitiveMember VersionMember { get; }
 
-        ITypeInfoItem[] AlternateIdMembers { get; }
+        PrimitiveMember[] AlternateIdMembers { get; }
 
         int[][] AlternateIdMemberIndicesInPrimitives { get; }
 
         int GetAlternateIdCount();
 
-        ITypeInfoItem CreatedOnMember { get; }
+        PrimitiveMember CreatedOnMember { get; }
 
-        ITypeInfoItem CreatedByMember { get; }
+        PrimitiveMember CreatedByMember { get; }
 
-        ITypeInfoItem UpdatedOnMember { get; }
+        PrimitiveMember UpdatedOnMember { get; }
 
-        ITypeInfoItem UpdatedByMember { get; }
+        PrimitiveMember UpdatedByMember { get; }
 
-        ITypeInfoItem[] PrimitiveMembers { get; }
+        PrimitiveMember[] PrimitiveMembers { get; }
 
-        IRelationInfoItem[] RelationMembers { get; }
+        RelationMember[] RelationMembers { get; }
 
-        bool IsMergeRelevant(ITypeInfoItem primitiveMember);
+        bool IsMergeRelevant(Member primitiveMember);
 
-        ITypeInfoItem GetMemberByName(String memberName);
+        Member GetMemberByName(String memberName);
 
         int GetIndexByRelationName(String relationMemberName);
 
-        int GetIndexByRelation(IRelationInfoItem relationMember);
+        int GetIndexByRelation(Member relationMember);
 
         int GetIndexByPrimitiveName(String primitiveMemberName);
 
-        int GetIndexByPrimitive(ITypeInfoItem primitiveMember);
+        int GetIndexByPrimitive(Member primitiveMember);
         
         bool IsPrimitiveMember(String primitiveMemberName);
 
@@ -62,10 +63,34 @@ namespace De.Osthus.Ambeth.Merge.Model
 
         bool IsCascadeDelete(Type other);
 
+        void PostProcessNewEntity(Object newEntity);
+
         void PostLoad(Object entity);
 
         void PrePersist(Object entity);
 
         Object NewInstance();
+
+        /// <summary>
+        /// Returns the member which matches the given memberPath best. This is useful in cases where embedded relational members should be traversed in multiple
+	    /// hierarchies. Example:
+	    /// 
+	    /// Given a memberPath "embA.b.c" for an Entity of type A could return a member "embA.b" if A has a relation to B which is mapped to the embedded member
+	    /// "embA.b".
+        /// </summary>
+        /// <param name="memberPath">Any multi-traversal path where the regarding relational member on this meta data should be searched for</param>
+        /// <returns>The relational member which is mentioned in the multi-traversal path</returns>
+        Member GetWidenedMatchingMember(String memberPath);
+
+        /// <summary>
+        /// Returns the member which matches the given memberPath best. This is useful in cases where embedded relational members should be traversed in multiple
+        /// hierarchies. Example:
+        /// 
+        /// Given a memberPath "embA.b.c" for an Entity of type A could return a member "embA.b" if A has a relation to B which is mapped to the embedded member
+        /// "embA.b".
+        /// </summary>
+        /// <param name="memberPath">Any multi-traversal path where the regarding relational member on this meta data should be searched for</param>
+        /// <returns>The relational member which is mentioned in the multi-traversal path</returns>
+        Member GetWidenedMatchingMember(String[] memberPath);
     }
 }

@@ -86,13 +86,13 @@
     <Compile Include="ambeth\event\store\IReplacedEvent.cs" />
     <Compile Include="ambeth\event\WaitForResumeItem.cs" />
     <Compile Include="ambeth\exception\EventPollException.cs" />
+    <Compile Include="ambeth\ioc\EventModule.cs" />
     <Compile Include="ambeth\model\IEventItem.cs" />
     <Compile Include="ambeth\service\EventServiceDelegate.cs" />
     <Compile Include="ambeth\service\IEventServiceWCF.cs" />
     <Compile Include="ambeth\service\EventServiceModelProvider.cs" />
     <Compile Include="ambeth\service\IEventService.cs" />
     <Compile Include="ambeth\transfer\EventItem.cs" />
-    <Compile Include="ioc\EventModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -11,12 +11,13 @@ using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
 using De.Osthus.Ambeth.Model;
 using De.Osthus.Ambeth.Proxy;
-using De.Osthus.Ambeth.Template;
+using De.Osthus.Ambeth.Mixin;
 using De.Osthus.Ambeth.Testutil;
 using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using De.Osthus.Ambeth.Ioc.Annotation;
 
 namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
 {
@@ -25,30 +26,39 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
     [TestFrameworkModule(typeof(ValueHolderContainerTestModule))]
     [TestRebuildContext]
     [TestClass]
-    public class ValueHolderCnotainerTest : AbstractInformationBusTest
+    public class ValueHolderContainerTest : AbstractInformationBusTest
     {
         public static readonly String getIdName = "Get__Id";
 
         [LogInstance]
         public new ILogger Log { private get; set; }
 
+        [Autowired]
         public ICacheFactory CacheFactory { protected get; set; }
 
+        [Autowired]
         public ICacheModification CacheModification { protected get; set; }
 
+        [Autowired]
         public IEntityFactory EntityFactory { protected get; set; }
 
+        [Autowired]
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
+        [Autowired]
         public IGuiThreadHelper GuiThreadHelper { protected get; set; }
 
+        [Autowired]
         public IObjRefHelper OriHelper { protected get; set; }
 
+        [Autowired]
         public IProxyHelper ProxyHelper { protected get; set; }
 
+        [Autowired]
         public IThreadPool ThreadPool { protected get; set; }
 
-        public ValueHolderContainerTemplate ValueHolderContainerTemplate { protected get; set; }
+        [Autowired]
+        public ValueHolderContainerMixin ValueHolderContainerMixin { protected get; set; }
 
         //static int count = 10000000;
 
@@ -720,14 +730,14 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
 
             IObjRef typeObjRef = OriHelper.EntityToObjRef(obj);
 
-            IDisposableCache cache = CacheFactory.Create(CacheFactoryDirective.NoDCE);
-            ((IValueHolderContainer)parentEntity).__TargetCache = (ICacheIntern)cache;
+            IDisposableCache cache = CacheFactory.Create(CacheFactoryDirective.NoDCE, "test");
+            ((ICacheIntern)cache).AssignEntityToCache(parentEntity);
             ((IObjRefContainer)parentEntity).Set__ObjRefs(relationIndex, new IObjRef[] { typeObjRef });
 
             Assert.AssertEquals(ValueHolderState.INIT, ((IObjRefContainer) parentEntity).Get__State(relationIndex));
             Assert.AssertEquals(1, ((IObjRefContainer) parentEntity).Get__ObjRefs(relationIndex).Length);
 
-            Object value = ValueHolderContainerTemplate.GetValue((IValueHolderContainer) parentEntity, relationIndex);
+            Object value = ValueHolderContainerMixin.GetValue((IValueHolderContainer) parentEntity, relationIndex);
         }
 
         [TestMethod]
@@ -767,8 +777,8 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             Assert.AssertEquals(2, matCounter.Count);
             Assert.AssertTrue(matCounter.ContainsKey("ToBeUpdated"));
             Assert.AssertTrue(matCounter.ContainsKey("HasPendingChanges"));
-            Assert.AssertEquals(1, matCounter.Get("ToBeUpdated"));
-            Assert.AssertEquals(1, matCounter.Get("HasPendingChanges"));
+            Assert.AssertEquals(5, matCounter.Get("ToBeUpdated"));
+            Assert.AssertEquals(5, matCounter.Get("HasPendingChanges"));
 
             Assert.AssertEquals(5, matTypeCounter.Count);
             Assert.AssertTrue(matTypeCounter.ContainsKey("Name"));
@@ -825,8 +835,8 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             Assert.AssertEquals(2, matCounter.Count);
             Assert.AssertTrue(matCounter.ContainsKey("ToBeUpdated"));
             Assert.AssertTrue(matCounter.ContainsKey("HasPendingChanges"));
-            Assert.AssertEquals(1, matCounter.Get("ToBeUpdated"));
-            Assert.AssertEquals(1, matCounter.Get("HasPendingChanges"));
+            Assert.AssertEquals(10, matCounter.Get("ToBeUpdated"));
+            Assert.AssertEquals(10, matCounter.Get("HasPendingChanges"));
         }
 
         [TestMethod]

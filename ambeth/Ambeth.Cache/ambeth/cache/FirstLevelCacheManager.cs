@@ -5,6 +5,7 @@ using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Util;
 using System.Threading;
+using System.Text;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -67,6 +68,11 @@ namespace De.Osthus.Ambeth.Cache
 
         public void RegisterFirstLevelCache(IWritableCache firstLevelCache, CacheFactoryDirective cacheFactoryDirective, bool foreignThreadAware)
         {
+            RegisterFirstLevelCache(firstLevelCache, cacheFactoryDirective, foreignThreadAware, null);
+        }
+
+        public void RegisterFirstLevelCache(IWritableCache firstLevelCache, CacheFactoryDirective cacheFactoryDirective, bool foreignThreadAware, String name)
+        {
             WeakReference firstLevelCacheR = CreateReferenceEntry(firstLevelCache);
             Thread thread = Thread.CurrentThread;
             WeakReference owningThreadR = !foreignThreadAware ? CreateReferenceEntry(thread) : null;
@@ -92,30 +98,8 @@ namespace De.Osthus.Ambeth.Cache
                     }
                 }
                 firstLevelCache.CacheId = cacheId;
-                if (Log.DebugEnabled)
-                {
-                    String foreignThreadText;
-                    if (foreignThreadAware)
-                    {
-                        foreignThreadText = ", multithreaded";
-                    }
-                    else
-                    {
-                        foreignThreadText = ", to thread " + thread.ManagedThreadId + ":" + thread.Name;
-                    }
-                    if (CacheFactoryDirective.SubscribeTransactionalDCE.Equals(flcEntry.GetCacheFactoryDirective()))
-                    {
-                        Log.Debug("Registered FLC with id: " + firstLevelCache.CacheId + ", transactional" + foreignThreadText);
-                    }
-                    else if (CacheFactoryDirective.SubscribeGlobalDCE.Equals(flcEntry.GetCacheFactoryDirective()))
-                    {
-                        Log.Debug("Registered FLC with id: " + firstLevelCache.CacheId + ", non-transactional" + foreignThreadText);
-                    }
-                    else
-                    {
-                        Log.Debug("Registered FLC with id: " + firstLevelCache.CacheId + " traced");
-                    }
-                }
+
+                LogFLC(firstLevelCache, cacheFactoryDirective, foreignThreadAware, name, flcEntry, true);
             }
             finally
             {
@@ -124,6 +108,11 @@ namespace De.Osthus.Ambeth.Cache
         }
 
         public void UnregisterFirstLevelCache(IWritableCache firstLevelCache, CacheFactoryDirective cacheFactoryDirective, bool foreignThreadAware)
+        {
+            UnregisterFirstLevelCache(firstLevelCache, cacheFactoryDirective, foreignThreadAware, null);
+        }
+
+        public void UnregisterFirstLevelCache(IWritableCache firstLevelCache, CacheFactoryDirective cacheFactoryDirective, bool foreignThreadAware, String name)
         {
             // cacheFactoryDirective and foreignThreadAware will be intentionally ignored at unregister
 
@@ -149,38 +138,8 @@ namespace De.Osthus.Ambeth.Cache
                 allFLCs.Remove(cacheId);
                 foreignThreadAware = flcEntry.IsForeignThreadAware();
                 cacheFactoryDirective = flcEntry.GetCacheFactoryDirective();
-                if (Log.DebugEnabled)
-                {
-                    String foreignThreadText;
-                    if (foreignThreadAware)
-                    {
-                        foreignThreadText = ", multithreaded";
-                    }
-                    else
-                    {
-                        Thread thread = flcEntry.GetOwningThread();
-                        if (thread == null)
-                        {
-                            foreignThreadText = ", from unknown thread";
-                        }
-                        else
-                        {
-                            foreignThreadText = ", from thread " + thread.ManagedThreadId + ":" + thread.Name;
-                        }
-                    }
-                    if (CacheFactoryDirective.SubscribeTransactionalDCE.Equals(flcEntry.GetCacheFactoryDirective()))
-                    {
-                        Log.Debug("Unregistered FLC with id: " + firstLevelCache.CacheId + ", transactional" + foreignThreadText);
-                    }
-                    else if (CacheFactoryDirective.SubscribeGlobalDCE.Equals(flcEntry.GetCacheFactoryDirective()))
-                    {
-                        Log.Debug("Unregistered FLC with id: " + firstLevelCache.CacheId + ", non-transactional" + foreignThreadText);
-                    }
-                    else
-                    {
-                        Log.Debug("Unregistered FLC with id: " + firstLevelCache.CacheId + " traced");
-                    }
-                }
+
+                LogFLC(firstLevelCache, cacheFactoryDirective, foreignThreadAware, name, flcEntry, false);
                 firstLevelCache.CacheId = 0;
             }
             finally
@@ -188,6 +147,69 @@ namespace De.Osthus.Ambeth.Cache
                 unboundWriteLock.Unlock();
             }
         }
+
+        protected void LogFLC(IWritableCache firstLevelCache, CacheFactoryDirective cacheFactoryDirective, bool foreignThreadAware, String name,
+			FlcEntry flcEntry, bool isRegister)
+	    {
+		    if (!Log.DebugEnabled)
+		    {
+			    return;
+		    }
+		    StringBuilder sb = new StringBuilder();
+			if (isRegister)
+			{
+				sb.Append("Registered");
+			}
+			else
+			{
+				sb.Append("Unregistered");
+			}
+			sb.Append(" FLC");
+			if (name != null)
+			{
+				sb.Append(" '").Append(name).Append("'");
+			}
+			sb.Append(" with id: ").Append(firstLevelCache.CacheId);
+			if (firstLevelCache.Privileged)
+			{
+				sb.Append(", privileged");
+			}
+			else
+			{
+				sb.Append(", non-privileged");
+			}
+			if (CacheFactoryDirective.SubscribeTransactionalDCE.Equals(flcEntry.GetCacheFactoryDirective()))
+			{
+				sb.Append(", transactional");
+				if (foreignThreadAware)
+				{
+					sb.Append(", multithreaded");
+				}
+				else
+				{
+                    Thread thread = flcEntry.GetOwningThread();
+                    sb.Append(", to thread ").Append(thread.ManagedThreadId).Append(':').Append(thread.Name);
+				}
+			}
+            else if (CacheFactoryDirective.SubscribeGlobalDCE.Equals(flcEntry.GetCacheFactoryDirective()))
+			{
+				sb.Append(", non-transactional");
+				if (foreignThreadAware)
+				{
+					sb.Append(", multithreaded");
+				}
+				else
+				{
+					Thread thread = flcEntry.GetOwningThread();
+                    sb.Append(", to thread ").Append(thread.ManagedThreadId).Append(':').Append(thread.Name);
+				}
+			}
+			else
+			{
+				sb.Append(", traced");
+			}
+			Log.Debug(sb.ToString());
+	    }
 
         public IList<IWritableCache> SelectFirstLevelCaches()
         {

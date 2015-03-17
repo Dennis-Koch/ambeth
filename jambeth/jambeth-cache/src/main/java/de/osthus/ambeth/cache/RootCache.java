@@ -14,14 +14,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
-import net.sf.cglib.reflect.FastConstructor;
 import de.osthus.ambeth.annotation.CascadeLoadMode;
 import de.osthus.ambeth.cache.collections.CacheMapEntry;
 import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
 import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
-import de.osthus.ambeth.cache.rootcachevalue.IRootCacheValueTypeProvider;
+import de.osthus.ambeth.cache.rootcachevalue.IRootCacheValueFactory;
 import de.osthus.ambeth.cache.rootcachevalue.RootCacheValue;
 import de.osthus.ambeth.cache.transfer.LoadContainer;
 import de.osthus.ambeth.cache.transfer.ObjRelationResult;
@@ -45,24 +44,27 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IObjRefHelper;
-import de.osthus.ambeth.merge.IProxyHelper;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.merge.model.IDirectObjRef;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.IObjRefFactory;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
+import de.osthus.ambeth.privilege.IPrivilegeProvider;
 import de.osthus.ambeth.privilege.IPrivilegeProviderIntern;
 import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.proxy.IObjRefContainer;
+import de.osthus.ambeth.proxy.IPropertyChangeConfigurable;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
-import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.service.IOfflineListener;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.DirectValueHolderRef;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IPrefetchHelper;
@@ -114,7 +116,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	@Property(name = CacheConfigurationConstants.CacheLruThreshold, defaultValue = "0")
 	protected int lruThreshold;
 
-	@Property(name = SecurityConfigurationConstants.SecurityActive, defaultValue = "false")
+	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
 
 	@Autowired
@@ -133,13 +135,16 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	protected IObjectCopier objectCopier;
 
 	@Autowired
+	protected IObjRefFactory objRefFactory;
+
+	@Autowired
 	protected IObjRefHelper oriHelper;
 
 	@Autowired
 	protected IPrefetchHelper prefetchHelper;
 
 	@Autowired
-	protected IRootCacheValueTypeProvider rootCacheValueTypeProvider;
+	protected IRootCacheValueFactory rootCacheValueFactory;
 
 	@Autowired(optional = true)
 	protected ISecurityActivation securityActivation;
@@ -184,6 +189,18 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	}
 
 	@Override
+	public IRootCache getCurrentRootCache()
+	{
+		return this;
+	}
+
+	@Override
+	public IRootCache getParent()
+	{
+		return cacheRetriever instanceof IRootCache ? (IRootCache) cacheRetriever : null;
+	}
+
+	@Override
 	public int getCacheId()
 	{
 		return -1;
@@ -211,16 +228,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	@Override
 	public RootCacheValue createCacheValueInstance(IEntityMetaData metaData, Object obj)
 	{
-		Class<?> entityType = metaData.getEntityType();
-		FastConstructor constructor = rootCacheValueTypeProvider.getRootCacheValueType(entityType);
-		try
-		{
-			return (RootCacheValue) constructor.newInstance(new Object[] { metaData });
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
+		return rootCacheValueFactory.createRootCacheValue(metaData);
 	}
 
 	@Override
@@ -244,7 +252,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	@Override
 	protected void setVersionOfCacheValue(IEntityMetaData metaData, RootCacheValue cacheValue, Object version)
 	{
-		ITypeInfoItem versionMember = metaData.getVersionMember();
+		Member versionMember = metaData.getVersionMember();
 		if (versionMember == null)
 		{
 			return;
@@ -258,6 +266,27 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	{
 		cacheValue.setPrimitives(primitives);
 		cacheValue.setRelations(relations);
+	}
+
+	protected boolean isCacheRetrieverCallAllowed(Set<CacheDirective> cacheDirective)
+	{
+		if (cacheRetriever == null)
+		{
+			// without a valid cacheRetriever a call is never allowed
+			return false;
+		}
+		if (cacheDirective.contains(CacheDirective.FailEarly))
+		{
+			// with FailEarly a cascading call is never allowed
+			return false;
+		}
+		if (cacheDirective.contains(CacheDirective.FailInCacheHierarchy) && !(cacheRetriever instanceof IRootCache))
+		{
+			// with FailInCacheHierarchy a cascading call is only allowed if the cacheRetriever is itself an instance of IRootCache
+			return false;
+		}
+		// in the end a call is only allowed if it is not forbidden for the current thread
+		return !AbstractCache.isFailInCacheHierarchyModeActive();
 	}
 
 	@Override
@@ -276,11 +305,11 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		ICacheIntern targetCache;
 		if (privileged && securityActivation != null && !securityActivation.isFilterActivated())
 		{
-			targetCache = (ICacheIntern) cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE);
+			targetCache = (ICacheIntern) cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, "RootCache.ADHOC");
 		}
 		else
 		{
-			targetCache = (ICacheIntern) cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE);
+			targetCache = (ICacheIntern) cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, "RootCache.ADHOC");
 		}
 		return getObjects(orisToGet, targetCache, cacheDirective);
 	}
@@ -315,6 +344,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		{
 			cacheDirective = Collections.<CacheDirective> emptySet();
 		}
+		boolean isCacheRetrieverCallAllowed = isCacheRetrieverCallAllowed(cacheDirective);
 		IEventQueue eventQueue = this.eventQueue;
 		if (eventQueue != null)
 		{
@@ -327,12 +357,16 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			ICacheModification cacheModification = this.cacheModification;
 			boolean oldCacheModificationValue = cacheModification.isActive();
 			boolean acquireSuccess = acquireHardRefTLIfNotAlready(orisToGet.size());
-			cacheModification.setActive(true);
+			if (!oldCacheModificationValue)
+			{
+				cacheModification.setActive(true);
+			}
 			try
 			{
-				if (cacheDirective.contains(CacheDirective.FailEarly) || cacheDirective.contains(CacheDirective.FailInCacheHierarchy) || cacheRetriever == null
-						|| AbstractCache.isFailEarlyModeActive())
+				if (!isCacheRetrieverCallAllowed)
 				{
+					// if the cascading call is not allowed we need no pre-scanning for cache-misses
+					// we have to do our best while we create the result directly
 					readLock.lock();
 					try
 					{
@@ -379,7 +413,10 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			}
 			finally
 			{
-				cacheModification.setActive(oldCacheModificationValue);
+				if (!oldCacheModificationValue)
+				{
+					cacheModification.setActive(oldCacheModificationValue);
+				}
 				clearHardRefs(acquireSuccess);
 			}
 		}
@@ -404,7 +441,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		if (orisToLoad.size() == 0)
 		{
 			// Everything found in the cache. We STILL hold the readlock so we can immediately create the result
-			// We already even checked the version. So we do not bother version anymore here
+			// We already even checked the version. So we do not bother with versions anymore here
 			try
 			{
 				return createResult(orisToGet, rootCacheValuesToGet, cacheDirective, targetCache, false);
@@ -510,7 +547,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	public IList<IObjRelationResult> getObjRelations(List<IObjRelation> objRels, ICacheIntern targetCache, Set<CacheDirective> cacheDirective)
 	{
 		checkNotDisposed();
-		boolean failEarly = cacheDirective.contains(CacheDirective.FailEarly) || cacheDirective.contains(CacheDirective.FailInCacheHierarchy);
+		boolean isCacheRetrieverCallAllowed = isCacheRetrieverCallAllowed(cacheDirective);
 		boolean returnMisses = cacheDirective.contains(CacheDirective.ReturnMisses);
 		IEventQueue eventQueue = this.eventQueue;
 		if (eventQueue != null)
@@ -522,7 +559,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			Lock readLock = getReadLock();
 			final ArrayList<IObjRelation> objRelMisses = new ArrayList<IObjRelation>();
 			HashMap<IObjRelation, IObjRelationResult> objRelToResultMap = new HashMap<IObjRelation, IObjRelationResult>();
-			IdentityHashMap<IObjRef, ObjRef> alreadyClonedObjRefs = new IdentityHashMap<IObjRef, ObjRef>();
+			IdentityHashMap<IObjRef, IObjRef> alreadyClonedObjRefs = new IdentityHashMap<IObjRef, IObjRef>();
 
 			ICacheModification cacheModification = this.cacheModification;
 			boolean oldCacheModificationValue = cacheModification.isActive();
@@ -537,7 +574,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 					for (int a = 0, size = objRels.size(); a < size; a++)
 					{
 						IObjRelation objRel = objRels.get(a);
-						if (targetCache != null)
+						if (targetCache != null && targetCache != this)
 						{
 							IList<Object> cacheResult = targetCache.getObjects(objRel.getObjRefs(), CacheDirective.failEarly());
 							if (cacheResult.size() > 0)
@@ -550,8 +587,8 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 								}
 							}
 						}
-						IObjRelationResult selfResult = getObjRelationIfValid(objRel, null, alreadyClonedObjRefs);
-						if (selfResult == null && !failEarly)
+						IObjRelationResult selfResult = getObjRelationIfValid(objRel, targetCache, null, alreadyClonedObjRefs);
+						if (selfResult == null && isCacheRetrieverCallAllowed)
 						{
 							objRelMisses.add(objRel);
 						}
@@ -632,10 +669,10 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		}
 	}
 
-	protected IObjRelationResult getObjRelationIfValid(IObjRelation objRel, HashMap<IObjRelation, IObjRelationResult> objRelToResultMap,
-			IdentityHashMap<IObjRef, ObjRef> alreadyClonedObjRefs)
+	protected IObjRelationResult getObjRelationIfValid(IObjRelation objRel, ICacheIntern targetCache,
+			HashMap<IObjRelation, IObjRelationResult> objRelToResultMap, IdentityHashMap<IObjRef, IObjRef> alreadyClonedObjRefs)
 	{
-		IList<Object> cacheValues = getObjects(objRel.getObjRefs(), failEarlyCacheValueResultSet);
+		IList<Object> cacheValues = getObjects(new ArrayList<IObjRef>(objRel.getObjRefs()), targetCache, failEarlyCacheValueResultSet);
 		if (cacheValues.size() == 0)
 		{
 			if (objRelToResultMap != null)
@@ -660,24 +697,22 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	}
 
 	protected IList<IObjRelationResult> createResult(List<IObjRelation> objRels, ICacheIntern targetCache,
-			HashMap<IObjRelation, IObjRelationResult> objRelToResultMap, IdentityHashMap<IObjRef, ObjRef> alreadyClonedObjRefs, boolean returnMisses)
+			HashMap<IObjRelation, IObjRelationResult> objRelToResultMap, IdentityHashMap<IObjRef, IObjRef> alreadyClonedObjRefs, boolean returnMisses)
 	{
-		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 		IObjRefHelper oriHelper = this.oriHelper;
-		IProxyHelper proxyHelper = this.proxyHelper;
 		ArrayList<IObjRelationResult> objRelResults = new ArrayList<IObjRelationResult>(objRels.size());
 
 		for (int a = 0, size = objRels.size(); a < size; a++)
 		{
 			IObjRelation objRel = objRels.get(a);
 			IList<Object> cacheResult = null;
-			if (targetCache != null)
+			if (targetCache != null && targetCache != this)
 			{
 				cacheResult = targetCache.getObjects(objRel.getObjRefs(), CacheDirective.failEarly());
 			}
 			if (cacheResult == null || cacheResult.size() == 0)
 			{
-				IObjRelationResult selfResult = getObjRelationIfValid(objRel, objRelToResultMap, alreadyClonedObjRefs);
+				IObjRelationResult selfResult = getObjRelationIfValid(objRel, targetCache, objRelToResultMap, alreadyClonedObjRefs);
 				if (selfResult != null || returnMisses)
 				{
 					objRelResults.add(selfResult);
@@ -687,7 +722,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			IObjRefContainer item = (IObjRefContainer) cacheResult.get(0); // Only first hit is needed
 			IEntityMetaData metaData = item.get__EntityMetaData();
 			int relationIndex = metaData.getIndexByRelationName(objRel.getMemberName());
-			IRelationInfoItem member = metaData.getRelationMembers()[relationIndex];
+			RelationMember member = metaData.getRelationMembers()[relationIndex];
 
 			if (ValueHolderState.INIT != item.get__State(relationIndex))
 			{
@@ -701,7 +736,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 				}
 				else
 				{
-					IObjRelationResult selfResult = getObjRelationIfValid(objRel, objRelToResultMap, alreadyClonedObjRefs);
+					IObjRelationResult selfResult = getObjRelationIfValid(objRel, targetCache, objRelToResultMap, alreadyClonedObjRefs);
 					if (selfResult != null || returnMisses)
 					{
 						objRelResults.add(selfResult);
@@ -850,7 +885,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		return objRelResults;
 	}
 
-	protected IObjRef[] cloneObjectRefArray(IObjRef[] objRefs, IdentityHashMap<IObjRef, ObjRef> alreadyClonedObjRefs)
+	protected IObjRef[] cloneObjectRefArray(IObjRef[] objRefs, IdentityHashMap<IObjRef, IObjRef> alreadyClonedObjRefs)
 	{
 		if (objRefs == null || objRefs.length == 0)
 		{
@@ -865,10 +900,10 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			{
 				continue;
 			}
-			ObjRef objRefClone = alreadyClonedObjRefs.get(objRef);
+			IObjRef objRefClone = alreadyClonedObjRefs.get(objRef);
 			if (objRefClone == null)
 			{
-				objRefClone = new ObjRef(objRef.getRealType(), objRef.getIdNameIndex(), objRef.getId(), objRef.getVersion());
+				objRefClone = objRefFactory.dup(objRef);
 				alreadyClonedObjRefs.put(objRef, objRefClone);
 			}
 			objRefsClone[b] = objRefClone;
@@ -890,25 +925,23 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
 				objRelToResultMap.put(objRel, objRelResult);
 
-				IList<Object> cacheValues = getObjects(objRel.getObjRefs(), failEarlyCacheValueResultSet);
+				IList<Object> cacheValues = getObjects(objRel.getObjRefs(), CacheDirective.cacheValueResult());
 				if (cacheValues.size() == 0)
 				{
 					continue;
 				}
 				RootCacheValue cacheValue = (RootCacheValue) cacheValues.get(0); // Only first hit needed
-				IObjRef[][] relations = cacheValue.getRelations();
 
 				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRel.getRealType());
 				int index = metaData.getIndexByRelationName(objRel.getMemberName());
-				unregisterRelations(relations[index]);
+				unregisterRelations(cacheValue.getRelation(index));
 				IObjRef[] relationsOfMember = objRelResult.getRelations();
 				if (relationsOfMember.length == 0)
 				{
 					relationsOfMember = ObjRef.EMPTY_ARRAY;
 				}
-				relations[index] = relationsOfMember;
 				cacheValue.setRelation(index, relationsOfMember);
-				registerRelations(relations[index]);
+				registerRelations(relationsOfMember);
 			}
 		}
 		finally
@@ -1094,31 +1127,38 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		boolean returnMisses = cacheDirective.contains(CacheDirective.ReturnMisses);
 
 		boolean targetCacheAccess = !loadContainerResult && !cacheValueResult;
-		boolean filteringNecessary = isFilteringNecessary(targetCache);
-
-		ArrayList<IPrivilege> privilegesOfObjRefsToGet = null;
+		final boolean filteringNecessary = isFilteringNecessary(targetCache);
+		int getCount = objRefsToGet.size();
+		IPrivilege[] privilegesOfObjRefsToGet = null;
 		if (filteringNecessary)
 		{
 			IList<IPrivilege> privileges = getPrivilegesByObjRefWithoutReadLock(objRefsToGet);
 			ArrayList<IObjRef> filteredObjRefsToGet = new ArrayList<IObjRef>(objRefsToGet.size());
-			privilegesOfObjRefsToGet = new ArrayList<IPrivilege>(objRefsToGet.size());
+			privilegesOfObjRefsToGet = new IPrivilege[objRefsToGet.size()];
+			RootCacheValue[] filteredRootCacheValuesToGet = rootCacheValuesToGet != null ? new RootCacheValue[objRefsToGet.size()] : null;
+			getCount = 0;
 			for (int a = 0, size = objRefsToGet.size(); a < size; a++)
 			{
 				IPrivilege privilege = privileges.get(a);
 				if (privilege != null && privilege.isReadAllowed())
 				{
+					getCount++;
 					filteredObjRefsToGet.add(objRefsToGet.get(a));
-					privilegesOfObjRefsToGet.add(privilege);
+					privilegesOfObjRefsToGet[a] = privilege;
+					if (rootCacheValuesToGet != null)
+					{
+						filteredRootCacheValuesToGet[a] = rootCacheValuesToGet[a];
+					}
 				}
-				else if (returnMisses)
+				else
 				{
 					filteredObjRefsToGet.add(null);
-					privilegesOfObjRefsToGet.add(null);
 				}
 			}
+			rootCacheValuesToGet = filteredRootCacheValuesToGet;
 			objRefsToGet = filteredObjRefsToGet;
 		}
-		if (objRefsToGet.size() == 0)
+		if (getCount == 0)
 		{
 			return new ArrayList<Object>(0);
 		}
@@ -1130,8 +1170,10 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		try
 		{
 			ArrayList<Object> result = new ArrayList<Object>(objRefsToGet.size());
+			ArrayList<IBackgroundWorkerParamDelegate<IdentityHashSet<IObjRef>>> runnables = null;
 			ArrayList<IObjRef> tempObjRefList = null;
-			IdentityHashMap<IObjRef, ObjRef> alreadyClonedObjRefs = null;
+			IdentityHashMap<IObjRef, IObjRef> alreadyClonedObjRefs = null;
+			IdentityHashSet<IObjRef> greyListObjRefs = null;
 			for (int a = 0, size = objRefsToGet.size(); a < size; a++)
 			{
 				IObjRef objRefToGet = objRefsToGet.get(a);
@@ -1166,25 +1208,41 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 				}
 				if (loadContainerResult)
 				{
-					IObjRef[][] relations = cacheValue.getRelations();
-					LoadContainer loadContainer = new LoadContainer();
-					loadContainer.setReference(new ObjRef(cacheValue.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, cacheValue.getId(), cacheValue.getVersion()));
+					final IObjRef[][] relations = cacheValue.getRelations();
+					final LoadContainer loadContainer = new LoadContainer();
+					loadContainer.setReference(objRefFactory.createObjRef(cacheValue));
 					loadContainer.setPrimitives(cacheValue.getPrimitives());
-					relations = filterRelations(relations, filteringNecessary);
-					if (relations != null && relations.length > 0)
+
+					if (relations.length == 0 || !filteringNecessary)
 					{
-						if (alreadyClonedObjRefs == null)
-						{
-							alreadyClonedObjRefs = new IdentityHashMap<IObjRef, ObjRef>();
-						}
-						IObjRef[][] objRefsClone = new IObjRef[relations.length][];
-						for (int b = relations.length; b-- > 0;)
-						{
-							objRefsClone[b] = cloneObjectRefArray(relations[b], alreadyClonedObjRefs);
-						}
-						relations = objRefsClone;
+						loadContainer.setRelations(relations);
+						result.add(loadContainer);
+						continue;
 					}
-					loadContainer.setRelations(relations);
+					if (runnables == null)
+					{
+						runnables = new ArrayList<IBackgroundWorkerParamDelegate<IdentityHashSet<IObjRef>>>(size);
+						greyListObjRefs = new IdentityHashSet<IObjRef>();
+						alreadyClonedObjRefs = new IdentityHashMap<IObjRef, IObjRef>();
+						tempObjRefList = new ArrayList<IObjRef>();
+					}
+					scanForAllKnownRelations(relations, greyListObjRefs);
+
+					final ArrayList<IObjRef> fTempObjRefList = tempObjRefList;
+					final IdentityHashMap<IObjRef, IObjRef> fAlreadyClonedObjRefs = alreadyClonedObjRefs;
+					runnables.add(new IBackgroundWorkerParamDelegate<IdentityHashSet<IObjRef>>()
+					{
+						@Override
+						public void invoke(IdentityHashSet<IObjRef> whiteListObjRefs) throws Throwable
+						{
+							IObjRef[][] whiteListedRelations = filterRelations(relations, whiteListObjRefs, fTempObjRefList);
+							for (int b = whiteListedRelations.length; b-- > 0;)
+							{
+								whiteListedRelations[b] = cloneObjectRefArray(whiteListedRelations[b], fAlreadyClonedObjRefs);
+							}
+							loadContainer.setRelations(whiteListedRelations);
+						}
+					});
 					result.add(loadContainer);
 				}
 				else if (cacheValueResult)
@@ -1199,8 +1257,24 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 						tempObjRefList.add(new ObjRef());
 					}
 					Object cacheHitObject = createObjectFromScratch(metaData, cacheValue, targetCache, tempObjRefList, filteringNecessary,
-							privilegesOfObjRefsToGet != null ? privilegesOfObjRefsToGet.get(a) : null);
+							privilegesOfObjRefsToGet != null ? privilegesOfObjRefsToGet[a] : null);
 					result.add(cacheHitObject);
+				}
+			}
+			if (runnables != null)
+			{
+				IdentityHashSet<IObjRef> whiteListObjRefs = buildWhiteListedObjRefs(greyListObjRefs);
+				try
+				{
+					for (int a = runnables.size(); a-- > 0;)
+					{
+						IBackgroundWorkerParamDelegate<IdentityHashSet<IObjRef>> runnable = runnables.get(a);
+						runnable.invoke(whiteListObjRefs);
+					}
+				}
+				catch (Throwable e)
+				{
+					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
 			return result;
@@ -1234,8 +1308,19 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 				return cacheObject;
 			}
 			cacheObject = targetCache.createCacheValueInstance(metaData, null);
+			IPropertyChangeConfigurable pcc = null;
+			if (cacheObject instanceof IPropertyChangeConfigurable)
+			{
+				// we deactivate the current PCE processing because we just created the entity
+				// we know that there is no property change listener that might handle the initial PCEs
+				pcc = (IPropertyChangeConfigurable) cacheObject;
+				pcc.set__PropertyChangeActive(false);
+			}
 			updateExistingObject(metaData, cacheValue, cacheObject, targetCache, filteringNecessary, privilegeOfObjRef);
-
+			if (pcc != null)
+			{
+				pcc.set__PropertyChangeActive(true);
+			}
 			metaData.postLoad(cacheObject);
 			return cacheObject;
 		}
@@ -1251,6 +1336,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	{
 		IConversionHelper conversionHelper = this.conversionHelper;
 		IObjectCopier objectCopier = this.objectCopier;
+		IPrivilegeProvider privilegeProvider = this.privilegeProvider;
 		Object id = cacheValue.getId();
 		Object version = cacheValue.getVersion();
 		metaData.getIdMember().setValue(obj, id);
@@ -1258,20 +1344,36 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		{
 			((IParentCacheValueHardRef) obj).setParentCacheValueHardRef(cacheValue);
 		}
-		ITypeInfoItem versionMember = metaData.getVersionMember();
+		Member versionMember = metaData.getVersionMember();
 		if (versionMember != null)
 		{
 			versionMember.setValue(obj, version);
 		}
-		ITypeInfoItem[] primitiveMembers = metaData.getPrimitiveMembers();
-		Object[] primitiveTemplates = cacheValue.getPrimitives();
+		Member[] primitiveMembers = metaData.getPrimitiveMembers();
 
-		for (int a = primitiveMembers.length; a-- > 0;)
+		for (int primitiveIndex = primitiveMembers.length; primitiveIndex-- > 0;)
 		{
-			ITypeInfoItem primitiveMember = primitiveMembers[a];
-			Class<?> memberType = primitiveMember.getRealType();
+			Member primitiveMember = primitiveMembers[primitiveIndex];
 
-			Object primitiveTemplate = primitiveTemplates[a];
+			Object primitiveTemplate = null;
+			if (!filteringNecessary)
+			{
+				primitiveTemplate = cacheValue.getPrimitive(primitiveIndex);
+			}
+			else
+			{
+				if (privilegeOfObjRef == null)
+				{
+					privilegeOfObjRef = privilegeProvider.getPrivilegeByObjRef(new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, version));
+				}
+				if (privilegeOfObjRef.getPrimitivePropertyPrivilege(primitiveIndex).isReadAllowed())
+				{
+					// current user has no permission to read the property of the given entity
+					// so we treat this case as if the property is null/empty anyway
+					// effectively we handle user-specific data-blinding this way
+					primitiveTemplate = cacheValue.getPrimitive(primitiveIndex);
+				}
+			}
 
 			if (primitiveTemplate != null && filteringNecessary)
 			{
@@ -1279,7 +1381,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 				{
 					privilegeOfObjRef = getPrivilegeByObjRefWithoutReadLock(new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, version));
 				}
-				if (!privilegeOfObjRef.getPrimitivePropertyPrivilege(a).isReadAllowed())
+				if (!privilegeOfObjRef.getPrimitivePropertyPrivilege(primitiveIndex).isReadAllowed())
 				{
 					// current user has no permission to read the property of the given entity
 					// so we treat this case as if the property is null/empty anyway
@@ -1288,6 +1390,8 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 				}
 			}
 			Object primitive = null;
+
+			Class<?> memberType = primitiveMember.getRealType();
 
 			if (Collection.class.isAssignableFrom(memberType))
 			{
@@ -1344,7 +1448,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		}
 		IObjRef[][] relations = cacheValue.getRelations();
 		relations = filterRelations(relations, filteringNecessary);
-		targetCache.addDirect(metaData, id, version, obj, primitiveTemplates, relations);
+		targetCache.addDirect(metaData, id, version, obj, cacheValue, relations);
 	}
 
 	protected IPrivilege getPrivilegeByObjRefWithoutReadLock(IObjRef objRef)
@@ -1391,13 +1495,8 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		}
 	}
 
-	protected IObjRef[][] filterRelations(IObjRef[][] relations, boolean filteringNecessary)
+	protected void scanForAllKnownRelations(IObjRef[][] relations, IdentityHashSet<IObjRef> allKnownRelations)
 	{
-		if (relations.length == 0 || !filteringNecessary)
-		{
-			return relations;
-		}
-		ArrayList<IObjRef> allKnownRelations = new ArrayList<IObjRef>();
 		for (int a = relations.length; a-- > 0;)
 		{
 			IObjRef[] relationsOfMember = relations[a];
@@ -1414,26 +1513,50 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 				allKnownRelations.add(relationOfMember);
 			}
 		}
-		if (allKnownRelations.size() == 0)
-		{
-			// nothing to filter
-			return relations;
-		}
-		IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet.create(allKnownRelations.size());
-		IList<IPrivilege> privileges = getPrivilegesByObjRefWithoutReadLock(allKnownRelations);
+	}
+
+	protected IdentityHashSet<IObjRef> buildWhiteListedObjRefs(IdentityHashSet<IObjRef> greyListObjRefs)
+	{
+		IObjRef[] greyListArray = greyListObjRefs.toArray(IObjRef.class);
+		IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet.create(greyListArray.length);
+		IList<IPrivilege> privileges = getPrivilegesByObjRefWithoutReadLock(greyListObjRefs);
 		for (int a = privileges.size(); a-- > 0;)
 		{
 			IPrivilege privilege = privileges.get(a);
 			if (privilege.isReadAllowed())
 			{
-				whiteListObjRefs.add(allKnownRelations.get(a));
+				whiteListObjRefs.add(greyListArray[a]);
 			}
 		}
+		return whiteListObjRefs;
+	}
+
+	protected IObjRef[][] filterRelations(IObjRef[][] relations, boolean filteringNecessary)
+	{
+		if (relations.length == 0 || !filteringNecessary)
+		{
+			return relations;
+		}
+		IdentityHashSet<IObjRef> allKnownRelations = new IdentityHashSet<IObjRef>();
+		scanForAllKnownRelations(relations, allKnownRelations);
+		if (allKnownRelations.size() == 0)
+		{
+			// nothing to filter
+			return relations;
+		}
+		IdentityHashSet<IObjRef> whiteListObjRefs = buildWhiteListedObjRefs(allKnownRelations);
+		return filterRelations(relations, whiteListObjRefs, null);
+	}
+
+	protected IObjRef[][] filterRelations(IObjRef[][] relations, IdentityHashSet<IObjRef> whiteListObjRefs, ArrayList<IObjRef> tempList)
+	{
 		IObjRef[][] filteredRelations = new IObjRef[relations.length][];
 
-		allKnownRelations.clear();
+		if (tempList == null)
+		{
+			tempList = new ArrayList<IObjRef>();
+		}
 		// reuse list instance for performance reasons
-		ArrayList<IObjRef> filteredRelationsOfMember = allKnownRelations;
 		for (int a = relations.length; a-- > 0;)
 		{
 			IObjRef[] relationsOfMember = relations[a];
@@ -1441,7 +1564,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			{
 				continue;
 			}
-			filteredRelationsOfMember.clear();
+			tempList.clear();
 			for (IObjRef relationOfMember : relationsOfMember)
 			{
 				if (relationOfMember == null)
@@ -1450,10 +1573,10 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 				}
 				if (whiteListObjRefs.contains(relationOfMember))
 				{
-					filteredRelationsOfMember.add(relationOfMember);
+					tempList.add(relationOfMember);
 				}
 			}
-			filteredRelations[a] = filteredRelationsOfMember.size() > 0 ? filteredRelationsOfMember.toArray(IObjRef.class) : ObjRef.EMPTY_ARRAY;
+			filteredRelations[a] = tempList.size() > 0 ? tempList.toArray(IObjRef.class) : ObjRef.EMPTY_ARRAY;
 		}
 		return filteredRelations;
 	}
@@ -1616,7 +1739,8 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	}
 
 	@Override
-	public void addDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object[] primitives, IObjRef[][] relations)
+	public void addDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object parentCacheValueOrArray,
+			IObjRef[][] relations)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
@@ -1822,7 +1946,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		}
 
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(ori.getRealType());
-		ITypeInfoItem versionMember = metaData.getVersionMember();
+		Member versionMember = metaData.getVersionMember();
 		if (versionMember == null)
 		{
 			return;
@@ -1846,13 +1970,13 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	protected void ensureRelationsExist(RootCacheValue cacheValue, IEntityMetaData metaData, LinkedHashSet<IObjRef> cascadeNeededORIs,
 			ArrayList<DirectValueHolderRef> pendingValueHolders)
 	{
-		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 		IObjRef[][] relations = cacheValue.getRelations();
 		for (int a = relations.length; a-- > 0;)
 		{
 			IObjRef[] relationsOfMember = relations[a];
 
-			IRelationInfoItem relationMember = relationMembers[a];
+			RelationMember relationMember = relationMembers[a];
 
 			CascadeLoadMode loadCascadeMode = relationMember.getCascadeLoadMode();
 			switch (loadCascadeMode)
@@ -1874,7 +1998,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 						// ObjRefs already loaded. Nothing to do
 						continue;
 					}
-					// TODO load ONLY the ObjRefs now...
+					pendingValueHolders.add(new IndirectValueHolderRef(cacheValue, relationMember, this, true));
 					break;
 				}
 				default:
@@ -1884,31 +2008,21 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	}
 
 	@Override
-	public boolean applyValues(Object targetObject, ICacheIntern targetCache)
+	public boolean applyValues(Object targetObject, ICacheIntern targetCache, IPrivilege privilege)
 	{
 		if (targetObject == null)
 		{
 			return false;
 		}
-		ICacheModification cacheModification = this.cacheModification;
-		boolean oldCacheModificationValue = cacheModification.isActive();
-		cacheModification.setActive(true);
-		try
+		IEntityMetaData metaData = ((IEntityMetaDataHolder) targetObject).get__EntityMetaData();
+		Object id = metaData.getIdMember().getValue(targetObject, false);
+		RootCacheValue cacheValue = getCacheValue(metaData, ObjRef.PRIMARY_KEY_INDEX, id);
+		if (cacheValue == null) // Cache miss
 		{
-			IEntityMetaData metaData = ((IEntityMetaDataHolder) targetObject).get__EntityMetaData();
-			Object id = metaData.getIdMember().getValue(targetObject, false);
-			RootCacheValue cacheValue = getCacheValue(metaData, ObjRef.PRIMARY_KEY_INDEX, id);
-			if (cacheValue == null) // Cache miss
-			{
-				return false;
-			}
-			updateExistingObject(metaData, cacheValue, targetObject, targetCache, isFilteringNecessary(targetCache), null);
-			return true;
+			return false;
 		}
-		finally
-		{
-			cacheModification.setActive(oldCacheModificationValue);
-		}
+		updateExistingObject(metaData, cacheValue, targetObject, targetCache, isFilteringNecessary(targetCache), privilege);
+		return true;
 	}
 
 	@Override
@@ -2060,5 +2174,11 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	public void endOffline()
 	{
 		// Intended blank
+	}
+
+	@Override
+	public void assignEntityToCache(Object entity)
+	{
+		throw new UnsupportedOperationException();
 	}
 }

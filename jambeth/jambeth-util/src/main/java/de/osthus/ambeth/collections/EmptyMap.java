@@ -1,8 +1,8 @@
 package de.osthus.ambeth.collections;
 
 import java.lang.reflect.Array;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 public final class EmptyMap<K, V> implements ILinkedMap<K, V>
@@ -130,15 +130,15 @@ public final class EmptyMap<K, V> implements ILinkedMap<K, V>
 	}
 
 	@Override
-	public void keySet(ISet<K> targetKeySet)
+	public void keySet(Collection<K> targetKeySet)
 	{
 		// intended blank
 	}
 
 	@Override
-	public void toKeysList(List<K> list)
+	public IList<K> keyList()
 	{
-		// intended blank
+		return EmptyList.<K> getInstance();
 	}
 
 	@Override
@@ -156,7 +156,7 @@ public final class EmptyMap<K, V> implements ILinkedMap<K, V>
 	@Override
 	public IList<V> values()
 	{
-		return null;
+		return EmptyList.<V> getInstance();
 	}
 
 	@Override

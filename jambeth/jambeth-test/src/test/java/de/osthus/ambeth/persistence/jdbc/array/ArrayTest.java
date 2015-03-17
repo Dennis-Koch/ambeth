@@ -17,7 +17,7 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.persistence.jdbc.array.ArrayTest.ArrayTestModule;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -28,7 +28,7 @@ import de.osthus.ambeth.util.ParamChecker;
 @SQLStructure("array_structure.sql")
 @TestModule(ArrayTestModule.class)
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/jdbc/array/array_orm.xml")
-public class ArrayTest extends AbstractPersistenceTest
+public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static class ArrayTestModule implements IInitializingModule
 	{

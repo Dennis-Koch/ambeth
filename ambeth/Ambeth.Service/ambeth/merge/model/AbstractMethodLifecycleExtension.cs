@@ -40,8 +40,10 @@ namespace De.Osthus.Ambeth.Merge.Model
             }
         }
 
-        public abstract void PrePersist(Object entity);
+        public abstract void PostCreate(IEntityMetaData metaData, Object newEntity);
 
-        public abstract void PostLoad(Object entity);
+        public abstract void PrePersist(IEntityMetaData metaData, Object entity);
+
+        public abstract void PostLoad(IEntityMetaData metaData, Object entity);
     }
 }

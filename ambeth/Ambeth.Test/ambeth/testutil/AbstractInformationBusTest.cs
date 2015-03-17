@@ -1,7 +1,7 @@
+using De.Osthus.Ambeth.Bytecode.Config;
 using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Log;
-using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace De.Osthus.Ambeth.Testutil
@@ -23,12 +23,13 @@ namespace De.Osthus.Ambeth.Testutil
     [DeploymentItem(@"Ambeth.Service.dll")]
     //[DeploymentItem(@"Ambeth.Stream.dll")]
     [TestFrameworkModule(typeof(BytecodeModule), typeof(CacheModule), typeof(CacheBytecodeModule), typeof(CacheDataChangeModule), /*typeof(CacheStreamModule), */typeof(DataChangeModule),
-            typeof(EventModule), typeof(EventDataChangeModule), typeof(MappingModule), typeof(MergeModule), typeof(CompositeIdModule), typeof(ObjectCopierModule), typeof(SecurityModule), typeof(PrivilegeModule),
+            typeof(EventModule), typeof(EventDataChangeModule), typeof(MappingModule), typeof(MergeModule), typeof(MergeBytecodeModule), typeof(ObjectCopierModule), typeof(SecurityModule), typeof(PrivilegeModule),
         /*typeof(SensorModule), */typeof(ServiceModule)/*, typeof(StreamModule)*/)]
     [TestProperties(Name = ServiceConfigurationConstants.IndependentMetaData, Value = "true")]
+    [TestProperties(Name = BytecodeConfigurationConstants.EnhancementTraceDirectory, Value = "${user.home}/ambeth-temp")]
     public abstract class AbstractInformationBusTest : AbstractIocTest
     {
 	    [LogInstance]
-	    public ILogger Log { private get; set; }
+	    public new ILogger Log { private get; set; }
     }
 }

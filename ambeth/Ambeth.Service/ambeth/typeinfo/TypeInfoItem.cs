@@ -18,10 +18,6 @@ namespace De.Osthus.Ambeth.Typeinfo
             {
                 throw new Exception("TypeInfoItem not supported: " + member);
             }
-            if (member is RelationInfoItem)
-            {
-                ((RelationInfoItem)member).Configure(properties);
-            }
         }
 
         public abstract bool IsXMLIgnore { get; }

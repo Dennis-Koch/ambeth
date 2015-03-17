@@ -1,4 +1,6 @@
-﻿using System.Reflection.Emit;
+﻿using System;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 
 namespace De.Osthus.Ambeth.Bytecode.Visitor
@@ -13,6 +15,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         {
             this.fv = fv;
             this.sb = sb;
+        }
+
+        public void VisitAnnotation(ConstructorInfo annotationConstructor, params Object[] arguments)
+        {
+            if (fv != null)
+            {
+                fv.VisitAnnotation(annotationConstructor, arguments);
+            }
         }
 
         public void VisitEnd()

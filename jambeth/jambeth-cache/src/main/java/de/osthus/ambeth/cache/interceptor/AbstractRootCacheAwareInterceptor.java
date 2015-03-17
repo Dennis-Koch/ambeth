@@ -58,7 +58,7 @@ public abstract class AbstractRootCacheAwareInterceptor extends AbstractSimpleIn
 	protected IRootCache acquireRootCache(boolean privileged, ThreadLocal<RootCache> currentRootCacheTL, ICacheRetriever cacheRetriever, Lock readLock,
 			Lock writeLock)
 	{
-		IBeanRuntime<RootCache> rootCacheBR = serviceContext.registerAnonymousBean(RootCache.class).propertyValue("CacheRetriever", cacheRetriever);
+		IBeanRuntime<RootCache> rootCacheBR = serviceContext.registerBean(RootCache.class).propertyValue("CacheRetriever", cacheRetriever);
 		if (readLock != null)
 		{
 			rootCacheBR.propertyValue("ReadLock", readLock);

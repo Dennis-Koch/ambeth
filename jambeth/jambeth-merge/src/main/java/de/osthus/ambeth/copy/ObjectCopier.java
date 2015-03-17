@@ -5,50 +5,34 @@ import java.util.Collection;
 
 import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.util.ImmutableTypeSet;
-import de.osthus.ambeth.util.ParamChecker;
 
 /**
  * Reference implementation for the <code>IObjectCopier</code> interface. Provides an extension point to customize to copy behavior on specific object types.
  * 
  */
-public class ObjectCopier extends ThreadLocal<ObjectCopierState> implements IInitializingBean, IObjectCopier, IObjectCopierExtendable, IThreadLocalCleanupBean
+public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, IThreadLocalCleanupBean
 {
-	/**
-	 * Save an instance of ObjectCopierState per-thread for performance reasons
-	 */
-	protected final ThreadLocal<ObjectCopierState> ocStateTL = new ThreadLocal<ObjectCopierState>()
-	{
-		@Override
-		protected ObjectCopierState initialValue()
-		{
-			return new ObjectCopierState(ObjectCopier.this);
-		};
-	};
-
-	protected final ClassExtendableContainer<IObjectCopierExtension> extensions = new ClassExtendableContainer<IObjectCopierExtension>("objectCopierExtension",
-			"type");
-
+	@Autowired
 	protected IPropertyInfoProvider propertyInfoProvider;
 
 	/**
-	 * {@inheritDoc}
+	 * Save an instance of ObjectCopierState per-thread for performance reasons
 	 */
-	@Override
-	public void afterPropertiesSet()
-	{
-		ParamChecker.assertNotNull(propertyInfoProvider, "PropertyInfoProvider");
-	}
+	protected final ThreadLocal<ObjectCopierState> ocStateTL = new ThreadLocal<ObjectCopierState>();
 
-	public void setPropertyInfoProvider(IPropertyInfoProvider propertyInfoProvider)
-	{
-		this.propertyInfoProvider = propertyInfoProvider;
-	}
+	// / <summary>
+	// / Saves the current instance of ocStateTL to recognize recursive calls to the same ObjectCopier
+	// / </summary>
+	protected final ThreadLocal<ObjectCopierState> usedOcStateTL = new ThreadLocal<ObjectCopierState>();
+
+	protected final ClassExtendableContainer<IObjectCopierExtension> extensions = new ClassExtendableContainer<IObjectCopierExtension>("objectCopierExtension",
+			"type");
 
 	/**
 	 * {@inheritDoc}
@@ -58,13 +42,19 @@ public class ObjectCopier extends ThreadLocal<ObjectCopierState> implements IIni
 	{
 		// Cleanup the TL variables. This is to be safe against memory leaks in thread pooling architectures
 		ocStateTL.remove();
-		remove();
+		usedOcStateTL.remove();
 	}
 
 	protected ObjectCopierState acquireObjectCopierState()
 	{
 		// Creates automatically a valid instance if this thread does not already have one
-		return ocStateTL.get();
+		ObjectCopierState ocState = ocStateTL.get();
+		if (ocState == null)
+		{
+			ocState = new ObjectCopierState(this);
+			ocStateTL.set(ocState);
+		}
+		return ocState;
 	}
 
 	/**
@@ -79,7 +69,7 @@ public class ObjectCopier extends ThreadLocal<ObjectCopierState> implements IIni
 			return source;
 		}
 		// Try to access current "in-use" ObjectCopierState first
-		ObjectCopierState ocState = get();
+		ObjectCopierState ocState = usedOcStateTL.get();
 		if (ocState != null)
 		{
 			// Reuse TL instance. And do not bother with cleanup
@@ -88,7 +78,7 @@ public class ObjectCopier extends ThreadLocal<ObjectCopierState> implements IIni
 		// No ObjectCopierState "in-use". So we set the TL instance "in-use" and clean it up in the end
 		// because we are responsible for this in this case
 		ocState = acquireObjectCopierState();
-		set(ocState);
+		usedOcStateTL.set(ocState);
 		try
 		{
 			return cloneRecursive(source, ocState);
@@ -96,7 +86,7 @@ public class ObjectCopier extends ThreadLocal<ObjectCopierState> implements IIni
 		finally
 		{
 			// Clear "in-use" instance
-			remove();
+			usedOcStateTL.remove();
 			// Cleanup ObjectCopierState to allow reusage in the same thread later
 			ocState.clear();
 		}

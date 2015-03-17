@@ -2,6 +2,9 @@ package de.osthus.ambeth.persistence;
 
 import java.util.List;
 
+import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.merge.model.IObjRef;
+
 public interface IServiceUtil
 {
 	/**
@@ -38,4 +41,6 @@ public interface IServiceUtil
 	 * @return If successful Requested object, otherwise null.
 	 */
 	<T> T loadObject(Class<T> entityType, IVersionItem item);
+
+	IList<IObjRef> loadObjRefs(Class<?> entityType, int idIndex, IVersionCursor cursor);
 }

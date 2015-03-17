@@ -9,6 +9,8 @@ namespace De.Osthus.Ambeth.Bytecode
     {
         public const String CONSTRUCTOR_NAME = ".ctor";
 
+        public static readonly ConstructorInstance defaultConstructor = new ConstructorInstance(ReflectUtil.GetDeclaredConstructor(false, typeof(Object), new NewType[0]));
+
         public ConstructorInstance(ConstructorInfo constructor)
             : base(NewType.GetType(constructor.DeclaringType), constructor.Attributes, NewType.VOID_TYPE, CONSTRUCTOR_NAME, 
                 TypeUtil.GetClassesToTypes(constructor.GetParameters()))

@@ -1,6 +1,10 @@
 package de.osthus.ambeth.bytecode.visitor;
 
+import java.util.Collection;
+import java.util.Iterator;
+
 import de.osthus.ambeth.annotation.IgnoreToBeUpdated;
+import de.osthus.ambeth.annotation.ParentChild;
 import de.osthus.ambeth.bytecode.ClassGenerator;
 import de.osthus.ambeth.bytecode.FieldInstance;
 import de.osthus.ambeth.bytecode.MethodGenerator;
@@ -8,25 +12,24 @@ import de.osthus.ambeth.bytecode.MethodInstance;
 import de.osthus.ambeth.bytecode.PropertyInstance;
 import de.osthus.ambeth.bytecode.Script;
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.compositeid.CompositeIdTypeInfoItem;
+import de.osthus.ambeth.compositeid.CompositeIdMember;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
+import de.osthus.ambeth.mixin.DataObjectMixin;
 import de.osthus.ambeth.model.IDataObject;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.AnnotationVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
-import de.osthus.ambeth.template.DataObjectTemplate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 
 public class DataObjectVisitor extends ClassGenerator
 {
-	public static final Class<?> templateType = DataObjectTemplate.class;
+	public static final Class<?> templateType = DataObjectMixin.class;
 
-	protected static final String templatePropertyName = templateType.getSimpleName();
+	protected static final String templatePropertyName = "__" + templateType.getSimpleName();
 
 	public static final MethodInstance m_toBeUpdatedChanged = new MethodInstance(null, templateType, void.class, "toBeUpdatedChanged", IDataObject.class,
 			boolean.class, boolean.class);
@@ -68,21 +71,153 @@ public class DataObjectVisitor extends ClassGenerator
 	{
 		PropertyInstance p_toBeCreated = implementToBeCreated(template_p_toBeCreated);
 
-		// ToBeUpdated
+		PropertyInstance p_toBeUpdated = implementToBeUpdated();
+
+		// ToBeDeleted
+		final FieldInstance f_toBeDeleted = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "$toBeDeleted", null,
+				template_p_toBeDeleted.getPropertyType()));
+
+		PropertyInstance p_toBeDeleted = implementProperty(template_p_toBeDeleted, new Script()
+
+		{
+			@Override
+			public void execute(MethodGenerator mg)
+			{
+				mg.getThisField(f_toBeDeleted);
+				mg.returnValue();
+			}
+		}, new Script()
+		{
+			@Override
+			public void execute(MethodGenerator mg)
+			{
+				mg.putThisField(f_toBeDeleted, new Script()
+				{
+					@Override
+					public void execute(MethodGenerator mg)
+					{
+						mg.loadArg(0);
+					}
+				});
+				mg.returnValue();
+			}
+		});
+		p_toBeDeleted.addAnnotation(c_ignoreToBeUpdated);
+
+		implementHasPendingChanges(p_hasPendingChanges, p_toBeUpdated, p_toBeCreated, p_toBeDeleted);
+
+		super.visitEnd();
+	}
+
+	protected PropertyInstance implementToBeUpdated()
+	{
+		final PropertyInstance p_dataObjectTemplate = getDataObjectTemplatePI(this);
+
 		final FieldInstance f_toBeUpdated = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "$toBeUpdated", null,
 				template_p_toBeUpdated.getPropertyType()));
 
-		final PropertyInstance p_dataObjectTemplate = getDataObjectTemplatePI(this);
-
+		boolean atLeastOneToManyMember = false;
+		final ArrayList<RelationMember> parentChildMembers = new ArrayList<RelationMember>();
+		for (RelationMember relationMember : metaData.getRelationMembers())
+		{
+			if (relationMember.getAnnotation(ParentChild.class) != null)
+			{
+				parentChildMembers.add(relationMember);
+				if (relationMember.isToMany())
+				{
+					atLeastOneToManyMember = true;
+				}
+			}
+		}
+		final boolean fAtLeastOneToManyMember = atLeastOneToManyMember;
 		PropertyInstance p_toBeUpdated = implementProperty(template_p_toBeUpdated, new Script()
 		{
 			@Override
 			public void execute(MethodGenerator mg)
 			{
-				AnnotationVisitor av = mg.visitAnnotation(Type.getDescriptor(c_ignoreToBeUpdated), true);
-				av.visitEnd();
-				mg.getThisField(f_toBeUpdated);
-				mg.returnValue();
+				if (parentChildMembers.size() == 0)
+				{
+					mg.getThisField(f_toBeUpdated);
+					mg.returnValue();
+				}
+				else
+				{
+					int loc_iterator = -1;
+					if (fAtLeastOneToManyMember)
+					{
+						loc_iterator = mg.newLocal(Iterator.class);
+					}
+					// we have to check the toBeUpdated-State for our "parentChild" members to decide our own toBeUpdate-State by OR-concatenation
+					int loc_parentChildValue = mg.newLocal(Object.class);
+					Label trueLabel = mg.newLabel();
+
+					mg.getThisField(f_toBeUpdated);
+					mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
+
+					for (RelationMember parentChildMember : parentChildMembers)
+					{
+						int relationIndex = metaData.getIndexByRelationName(parentChildMember.getName());
+						Label l_valueIsNull = mg.newLabel();
+						// load this RelationMember at runtime to be able to call its "getValue(Object obj)"
+
+						mg.loadThis();
+						mg.push(relationIndex);
+
+						mg.invokeVirtual(MethodInstance.findByTemplate(RelationsGetterVisitor.m_template_isInitialized_Member, false));
+
+						mg.ifZCmp(GeneratorAdapter.EQ, l_valueIsNull); // skip this member if it is not initialized
+
+						mg.loadThis();
+						mg.push(relationIndex);
+						mg.invokeVirtual(MethodInstance.findByTemplate(RelationsGetterVisitor.m_template_getValueDirect_Member, false));
+
+						mg.storeLocal(loc_parentChildValue);
+
+						mg.loadLocal(loc_parentChildValue);
+						mg.ifNull(l_valueIsNull);
+
+						mg.loadLocal(loc_parentChildValue);
+
+						if (parentChildMember.isToMany())
+						{
+							Label l_startLoop = mg.newLabel();
+							Label l_endLoop = mg.newLabel();
+
+							mg.checkCast(Collection.class);
+							mg.invokeInterface(new MethodInstance(null, Collection.class, Iterator.class, "iterator"));
+							mg.storeLocal(loc_iterator);
+
+							mg.mark(l_startLoop);
+							mg.loadLocal(loc_iterator);
+							mg.invokeInterface(new MethodInstance(null, Iterator.class, boolean.class, "hasNext"));
+
+							mg.ifZCmp(GeneratorAdapter.EQ, l_endLoop);
+							mg.loadLocal(loc_iterator);
+							mg.invokeInterface(new MethodInstance(null, Iterator.class, Object.class, "next"));
+
+							mg.checkCast(IDataObject.class);
+							mg.invokeInterface(template_p_toBeUpdated.getGetter());
+							mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
+
+							mg.goTo(l_startLoop);
+							mg.mark(l_endLoop);
+						}
+						else
+						{
+							mg.checkCast(IDataObject.class);
+							mg.invokeInterface(template_p_toBeUpdated.getGetter());
+							mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
+						}
+						mg.mark(l_valueIsNull);
+					}
+
+					mg.push(false);
+					mg.returnValue();
+
+					mg.mark(trueLabel);
+					mg.push(true);
+					mg.returnValue();
+				}
 			}
 		}, new Script()
 		{
@@ -122,41 +257,8 @@ public class DataObjectVisitor extends ClassGenerator
 				mv.returnValue();
 			}
 		});
-
-		// ToBeDeleted
-		final FieldInstance f_toBeDeleted = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "$toBeDeleted", null,
-				template_p_toBeDeleted.getPropertyType()));
-
-		PropertyInstance p_toBeDeleted = implementProperty(template_p_toBeDeleted, new Script()
-
-		{
-			@Override
-			public void execute(MethodGenerator mg)
-			{
-				mg.getThisField(f_toBeDeleted);
-				mg.returnValue();
-			}
-		}, new Script()
-		{
-			@Override
-			public void execute(MethodGenerator mg)
-			{
-				mg.putThisField(f_toBeDeleted, new Script()
-				{
-					@Override
-					public void execute(MethodGenerator mg)
-					{
-						mg.loadArg(0);
-					}
-				});
-				mg.returnValue();
-			}
-		});
-		p_toBeDeleted.addAnnotation(c_ignoreToBeUpdated);
-
-		implementHasPendingChanges(p_hasPendingChanges, p_toBeUpdated, p_toBeCreated, p_toBeDeleted);
-
-		super.visitEnd();
+		p_toBeUpdated.addAnnotation(c_ignoreToBeUpdated);
+		return p_toBeUpdated;
 	}
 
 	/**
@@ -168,11 +270,11 @@ public class DataObjectVisitor extends ClassGenerator
 	{
 		MethodGenerator mg = visitMethod(p_toBeCreated.getGetter());
 		p_toBeCreated = PropertyInstance.findByTemplate(p_toBeCreated, false);
-		ITypeInfoItem idMember = metaData.getIdMember();
-		if (idMember instanceof CompositeIdTypeInfoItem)
+		Member idMember = metaData.getIdMember();
+		if (idMember instanceof CompositeIdMember)
 		{
 			ArrayList<String> names = new ArrayList<String>();
-			for (ITypeInfoItem itemMember : ((CompositeIdTypeInfoItem) idMember).getMembers())
+			for (Member itemMember : ((CompositeIdMember) idMember).getMembers())
 			{
 				names.add(itemMember.getName());
 			}

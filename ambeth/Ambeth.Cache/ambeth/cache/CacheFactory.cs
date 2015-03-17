@@ -2,9 +2,9 @@ using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Log;
+using De.Osthus.Ambeth.Merge.Config;
 using De.Osthus.Ambeth.Security;
-using De.Osthus.Ambeth.Security.Config;
-using De.Osthus.Ambeth.Util;
+using System;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -22,32 +22,32 @@ namespace De.Osthus.Ambeth.Cache
         [Autowired(Optional = true)]
         public ISecurityActivation SecurityActivation { protected get; set; }
        
-        [Property(SecurityConfigurationConstants.SecurityActive, DefaultValue = "false")]
+        [Property(MergeConfigurationConstants.SecurityActive, DefaultValue = "false")]
 	    public bool SecurityActive { protected get; set; }
 
-	    public IDisposableCache Create(CacheFactoryDirective cacheFactoryDirective)
+	    public IDisposableCache Create(CacheFactoryDirective cacheFactoryDirective, String name)
 	    {
-		    return CreateIntern(cacheFactoryDirective, false, false, null);
+            return CreateIntern(cacheFactoryDirective, false, false, null, name);
 	    }
 
-        public IDisposableCache CreatePrivileged(CacheFactoryDirective cacheFactoryDirective)
+        public IDisposableCache CreatePrivileged(CacheFactoryDirective cacheFactoryDirective, String name)
         {
-            return CreateIntern(cacheFactoryDirective, true, false, null);
+            return CreateIntern(cacheFactoryDirective, true, false, null, name);
         }
 
-	    public IDisposableCache Create(CacheFactoryDirective cacheFactoryDirective, bool foreignThreadAware, bool? useWeakEntries)
+        public IDisposableCache Create(CacheFactoryDirective cacheFactoryDirective, bool foreignThreadAware, bool? useWeakEntries, String name)
 	    {
-            return CreateIntern(cacheFactoryDirective, false, foreignThreadAware, useWeakEntries);
+            return CreateIntern(cacheFactoryDirective, false, foreignThreadAware, useWeakEntries, name);
         }
 
-        public IDisposableCache CreatePrivileged(CacheFactoryDirective cacheFactoryDirective, bool foreignThreadAware, bool? useWeakEntries)
+        public IDisposableCache CreatePrivileged(CacheFactoryDirective cacheFactoryDirective, bool foreignThreadAware, bool? useWeakEntries, String name)
         {
-            return CreateIntern(cacheFactoryDirective, true, foreignThreadAware, useWeakEntries);
+            return CreateIntern(cacheFactoryDirective, true, foreignThreadAware, useWeakEntries, name);
         }
 
-        protected IDisposableCache CreateIntern(CacheFactoryDirective cacheFactoryDirective, bool privileged, bool foreignThreadAware, bool? useWeakEntries)
+        protected IDisposableCache CreateIntern(CacheFactoryDirective cacheFactoryDirective, bool privileged, bool foreignThreadAware, bool? useWeakEntries, String name)
         {
-		    IBeanRuntime<ChildCache> firstLevelCacheBC = BeanContext.RegisterAnonymousBean<ChildCache>();
+		    IBeanRuntime<ChildCache> firstLevelCacheBC = BeanContext.RegisterBean<ChildCache>();
             if (!foreignThreadAware)
             {
                 // Do not inject EventQueue because caches without foreign interest will never receive async DCEs
@@ -57,9 +57,13 @@ namespace De.Osthus.Ambeth.Cache
             {
                 firstLevelCacheBC.PropertyValue("WeakEntries", useWeakEntries.Value);
             }
+            if (name != null)
+            {
+                firstLevelCacheBC.PropertyValue("Name", name);
+            }
             firstLevelCacheBC.PropertyValue("Privileged", privileged);
             ChildCache firstLevelCache = firstLevelCacheBC.Finish();
-		    FirstLevelCacheExtendable.RegisterFirstLevelCache(firstLevelCache, cacheFactoryDirective, foreignThreadAware);
+		    FirstLevelCacheExtendable.RegisterFirstLevelCache(firstLevelCache, cacheFactoryDirective, foreignThreadAware, name);
 		    return firstLevelCache;
 	    }
     }

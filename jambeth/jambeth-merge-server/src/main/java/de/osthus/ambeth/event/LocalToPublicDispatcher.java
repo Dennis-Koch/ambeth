@@ -57,14 +57,20 @@ public class LocalToPublicDispatcher implements IEventListener
 				{
 					publicEventDispatcher.enableEventQueue();
 				}
-				for (int i = 0; i < publicDataChanges.size(); i++)
+				try
 				{
-					IDataChange publicDataChange = publicDataChanges.get(i);
-					publicEventDispatcher.dispatchEvent(publicDataChange, dispatchTime, sequenceId);
+					for (int i = 0; i < publicDataChanges.size(); i++)
+					{
+						IDataChange publicDataChange = publicDataChanges.get(i);
+						publicEventDispatcher.dispatchEvent(publicDataChange, dispatchTime, sequenceId);
+					}
 				}
-				if (publicDataChanges.size() > 1)
+				finally
 				{
-					publicEventDispatcher.flushEventQueue();
+					if (publicDataChanges.size() > 1)
+					{
+						publicEventDispatcher.flushEventQueue();
+					}
 				}
 			}
 		}

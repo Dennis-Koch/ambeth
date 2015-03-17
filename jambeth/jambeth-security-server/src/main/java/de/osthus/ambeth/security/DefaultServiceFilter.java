@@ -7,7 +7,6 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
-import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 
 public class DefaultServiceFilter implements IServiceFilter
 {

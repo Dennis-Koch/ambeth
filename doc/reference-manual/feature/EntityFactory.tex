@@ -1,0 +1,36 @@
+\SetAPI{J-C}
+\section{Create Entities}
+\label{feature:EntityFactory}
+\ClearAPI
+The \type{EntityFactory} allows to create new instances of entities. Using this factory is obligatory: \AMBETH{} is not able to handle instances of entities which have been created directly by invoking an entity constructor (this neither works with the new keyword nor with calling constructors by reflection). The reason is that \AMBETH{} does apply \emph{a lot} of additional features to the managed entities at runtime.\\\\
+
+As a result an abstract class or even a simple interface is enough to be handled as an \AMBETH{} entity because necessary property-implementations are generated at runtime or sophisticated lazy-loading algorithms applied to relational accessors - see \prettyref{feature:ValueHolderContainer} or \prettyref{module:Bytecode} for more details.
+
+The entity enhancing pipeline can be customized via \prettyref{extendable:IImplementAbstractObjectFactoryExtendable}.
+
+See also \prettyref{feature:BytecodeBehavior} for a list of all behaviors provided by \AMBETH{}.
+
+\tip{Any type of behavior for bytecode enhancement with \AMBETH{} can be included via \prettyref{extendable:IBytecodeBehaviorExtendable}. This does apply for any enhancement usecase - not only for entities.}
+
+\begin{lstlisting}[style=Java,caption={Usage example for \type{EntityFactory} (Java)}]
+@Autowired
+protected IEntityFactory entityFactory;
+
+public MyEntity create()
+{
+	MyEntity myEntity = entityFactory.createEntity(MyEntity.class);
+	...
+	return myEntity;
+}
+\end{lstlisting}
+\begin{lstlisting}[style=Csharp,caption={Usage example for \type{EntityFactory} (C\#)}]
+[Autowired]
+public IEntityFactory EntityFactory { protected get; set; }
+
+public MyEntity Create()
+{
+	MyEntity myEntity = EntityFactory.CreateEntity<MyEntity>();
+	...
+	return myEntity;
+}
+\end{lstlisting}

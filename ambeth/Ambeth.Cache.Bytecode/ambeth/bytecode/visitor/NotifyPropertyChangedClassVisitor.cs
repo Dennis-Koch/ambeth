@@ -4,8 +4,10 @@ using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Collections.Specialized;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Merge;
+using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Model;
-using De.Osthus.Ambeth.Template;
+using De.Osthus.Ambeth.Proxy;
+using De.Osthus.Ambeth.Mixin;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using System;
@@ -46,9 +48,9 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
         }
 
-        public static readonly Type templateType = typeof(PropertyChangeTemplate);
+        public static readonly Type templateType = typeof(PropertyChangeMixin);
 
-        protected static readonly String templatePropertyName = templateType.Name;
+        protected static readonly String templatePropertyName = "__" + templateType.Name;
 
         public static readonly MethodInstance template_m_collectionChanged = new MethodInstance(null, typeof(INotifyCollectionChangedListener),
                 typeof(void), "CollectionChanged", typeof(Object), typeof(NotifyCollectionChangedEventArgs));
@@ -60,6 +62,12 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public static readonly MethodInstance template_m_onPropertyChanged_Values = new MethodInstance(null, typeof(INotifyPropertyChangedSource),
             typeof(void), "OnPropertyChanged", typeof(String), typeof(Object), typeof(Object));
+
+        public static readonly MethodInstance template_m_isPropertyChangeActive = new MethodInstance(null, typeof(IPropertyChangeConfigurable), typeof(bool),
+            "Is__PropertyChangeActive");
+
+        public static readonly MethodInstance template_m_setPropertyChangeActive = new MethodInstance(null, typeof(IPropertyChangeConfigurable), typeof(void),
+            "Set__PropertyChangeActive", typeof(bool));
 
         public static readonly MethodInstance m_handlePropertyChange = new MethodInstance(null, templateType, typeof(void), "HandleParentChildPropertyChange", typeof(INotifyPropertyChangedSource), typeof(Object), typeof(PropertyChangedEventArgs));
 
@@ -80,10 +88,10 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         protected static readonly MethodInstance m_removePropertyChangeListener = new MethodInstance(null, templateType,
                 typeof(void), "RemovePropertyChangeListener", typeof(PropertyChangeSupport), typeof(PropertyChangedEventHandler));
 
-        public static readonly MethodInstance template_m_firePropertyChange = new MethodInstance(null, MethodAttributes.HideBySig | MethodAttributes.Family, typeof(void), "FirePropertyChange", 
+        public static readonly MethodInstance template_m_firePropertyChange = new MethodInstance(null, MethodAttributes.HideBySig | MethodAttributes.Family, typeof(void), "FirePropertyChange",
                 typeof(PropertyChangeSupport), typeof(IPropertyInfo), typeof(Object), typeof(Object));
 
-        protected static readonly MethodInstance template_m_getOrCreatePropertyChangeSupport = new MethodInstance(null, MethodAttributes.HideBySig | MethodAttributes.Public, typeof(PropertyChangeSupport), "Use$PropertyChangeSupport");
+        protected static readonly MethodInstance template_m_usePropertyChangeSupport = new MethodInstance(null, MethodAttributes.HideBySig | MethodAttributes.Public, typeof(PropertyChangeSupport), "Use$PropertyChangeSupport");
 
         public static readonly PropertyInstance p_propertyChangeSupport = new PropertyInstance(typeof(INotifyPropertyChangedSource).GetProperty("PropertyChangeSupport"));
 
@@ -149,12 +157,15 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         /** property infos of enhanced type */
         protected readonly String[] properties;
 
+        protected IEntityMetaData metaData;
+
         [Autowired]
         public IPropertyInfoProvider PropertyInfoProvider { protected get; set; }
 
-        public NotifyPropertyChangedClassVisitor(IClassVisitor cv, String[] properties)
+        public NotifyPropertyChangedClassVisitor(IClassVisitor cv, IEntityMetaData metaData, String[] properties)
             : base(cv)
         {
+            this.metaData = metaData;
             this.properties = properties;
         }
 
@@ -166,7 +177,10 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             FieldInstance f_propertyChangeSupport = GetPropertyChangeSupportField();
             PropertyInstance p_propertyChangeTemplate = GetPropertyChangeTemplatePI(this);
 
-            MethodInstance m_getPropertyChangeSupport = ImplementGetPropertyChangeSupport(p_propertyChangeTemplate, f_propertyChangeSupport);
+            ImplementPropertyChangeConfigurable();
+
+            MethodInstance m_getPropertyChangeSupport = ImplementUsePropertyChangeSupport(p_propertyChangeTemplate, f_propertyChangeSupport);
+            f_propertyChangeSupport = State.GetAlreadyImplementedField(f_propertyChangeSupport.Name);
 
             ImplementNotifyPropertyChanged(p_propertyChangeTemplate, m_getPropertyChangeSupport);
 
@@ -211,6 +225,10 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         {
             // add property change detection and notification
             if (propertyInfo.Getter == null || propertyInfo.Setter == null)
+            {
+                return;
+            }
+            if (InitializeEmbeddedMemberVisitor.IsEmbeddedMember(metaData, propertyInfo.Name))
             {
                 return;
             }
@@ -396,12 +414,25 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
          */
         protected MethodInstance ImplementFirePropertyChange(PropertyInstance p_propertyChangeTemplate)
         {
-            MethodInstance existingMethod = MethodInstance.FindByTemplate(template_m_firePropertyChange, true);
-            if (existingMethod != null)
+            MethodInstance m_firePropertyChange_super = MethodInstance.FindByTemplate(template_m_firePropertyChange, true);
+
+            IMethodVisitor mg;
+            if (m_firePropertyChange_super == null)
             {
-                return existingMethod;
+                // implement new
+                mg = VisitMethod(template_m_firePropertyChange);
             }
-            IMethodVisitor mg = VisitMethod(template_m_firePropertyChange);
+            else
+            {
+                // override existing
+                mg = VisitMethod(m_firePropertyChange_super);
+            }
+            Label l_propertyChangeIsInactive = mg.NewLabel();
+
+            MethodInstance m_isPropertyChangeActive = MethodInstance.FindByTemplate(template_m_isPropertyChangeActive, false);
+
+            mg.CallThisGetter(m_isPropertyChangeActive);
+            mg.IfZCmp(CompareOperator.EQ, l_propertyChangeIsInactive);
 
             mg.CallThisGetter(p_propertyChangeTemplate);
             mg.LoadThis();
@@ -409,6 +440,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             // firePropertyChange(thisPointer, propertyChangeSupport, property, oldValue, newValue)
             mg.InvokeVirtual(m_firePropertyChange);
             mg.PopIfReturnValue(m_firePropertyChange);
+            mg.Mark(l_propertyChangeIsInactive);
 
             mg.ReturnVoidOrThis();
             mg.EndMethod();
@@ -426,15 +458,15 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             return f_propertyChangeSupport;
         }
 
-        protected MethodInstance ImplementGetPropertyChangeSupport(PropertyInstance p_propertyChangeTemplate, FieldInstance f_propertyChangeSupport)
+        protected MethodInstance ImplementUsePropertyChangeSupport(PropertyInstance p_propertyChangeTemplate, FieldInstance f_propertyChangeSupport)
         {
-            MethodInstance m_getPropertyChangeSupport = MethodInstance.FindByTemplate(template_m_getOrCreatePropertyChangeSupport, true);
+            MethodInstance m_getPropertyChangeSupport = MethodInstance.FindByTemplate(template_m_usePropertyChangeSupport, true);
 
             if (m_getPropertyChangeSupport == null)
             {
                 // create field that holds propertyChangeSupport
                 f_propertyChangeSupport = ImplementField(f_propertyChangeSupport);
-                IMethodVisitor mg = VisitMethod(template_m_getOrCreatePropertyChangeSupport);
+                IMethodVisitor mg = VisitMethod(template_m_usePropertyChangeSupport);
                 HideFromDebug(mg.Method);
                 Label l_pcsValid = mg.NewLabel();
                 mg.GetThisField(f_propertyChangeSupport);
@@ -476,8 +508,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 mv.LoadArg(0);
                 mv.InvokeVirtual(m_getMethodHandle);
 
-                mv.LoadArg(0);
                 mv.LoadArg(1);
+                mv.LoadArg(2);
                 // firePropertyChange(sender, propertyChangeSupport, property, oldValue, newValue)
                 mv.InvokeVirtual(m_firePropertyChange);
                 mv.PopIfReturnValue(m_firePropertyChange);
@@ -611,6 +643,44 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 mg.EndMethod();
             }
         }
+
+        protected void ImplementPropertyChangeConfigurable()
+	    {
+		    String fieldName = "__propertyChangeActive";
+		    if (State.GetAlreadyImplementedField(fieldName) != null)
+		    {
+			    if (properties == null)
+			    {
+				    throw new Exception("It seems that this visitor has been executing twice");
+			    }
+			    return;
+		    }
+		    else if (properties != null)
+		    {
+			    // do not apply in this case
+			    return;
+		    }
+		    FieldInstance f_propertyChangeActive = ImplementField(new FieldInstance(FieldAttributes.Private, fieldName, typeof(bool)));
+
+            ConstructorInfo[] constructors = State.CurrentType.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+		    for (int a = constructors.Length; a-- > 0;)
+		    {
+			    ConstructorInstance ci = new ConstructorInstance(constructors[a]);
+			    IMethodVisitor mv = VisitMethod(ci);
+			    mv.LoadThis();
+			    mv.LoadArgs();
+			    mv.InvokeSuperOfCurrentMethod();
+
+			    mv.PutThisField(f_propertyChangeActive, delegate(IMethodVisitor mg)
+				    {
+					    mg.Push(true);
+				    });
+			    mv.ReturnValue();
+			    mv.EndMethod();
+		    }
+		    ImplementGetter(template_m_isPropertyChangeActive, f_propertyChangeActive);
+		    ImplementSetter(template_m_setPropertyChangeActive, f_propertyChangeActive);
+	    }
 
         public static NotifyCollectionChangedEventHandler CreateCollectionEventHandler(Object entity)
         {

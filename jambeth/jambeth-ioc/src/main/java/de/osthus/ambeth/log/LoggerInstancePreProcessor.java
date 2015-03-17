@@ -2,10 +2,10 @@ package de.osthus.ambeth.log;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import de.osthus.ambeth.annotation.AnnotationCache;
-import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.WeakSmartCopyMap;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -14,11 +14,13 @@ import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.config.IPropertyConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
+import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.util.EqualsUtil;
+import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ReflectUtil;
 
-public class LoggerInstancePreProcessor extends WeakSmartCopyMap<Class<?>, ILogger> implements IBeanPreProcessor, IInitializingBean, ILoggerCache
+public class LoggerInstancePreProcessor extends WeakSmartCopyMap<Class<?>, ILogger> implements IBeanPreProcessor, ILoggerCache, IInitializingBean
 {
 	protected final AnnotationCache<LogInstance> logInstanceCache = new AnnotationCache<LogInstance>(LogInstance.class)
 	{
@@ -29,34 +31,44 @@ public class LoggerInstancePreProcessor extends WeakSmartCopyMap<Class<?>, ILogg
 		}
 	};
 
-	protected final HashSet<String> logHistory = new HashSet<String>();
+	protected IThreadLocalObjectCollector objectCollector;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		// Intended blank
+		ParamChecker.assertNotNull(objectCollector, "objectCollector");
+	}
+
+	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
+	{
+		this.objectCollector = objectCollector;
 	}
 
 	@Override
-	public void preProcessProperties(IBeanContextFactory beanContextFactory, IProperties props, String beanName, Object service, Class<?> beanType,
-			List<IPropertyConfiguration> propertyConfigs, IPropertyInfo[] properties)
+	public void preProcessProperties(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IProperties props, String beanName, Object service,
+			Class<?> beanType, List<IPropertyConfiguration> propertyConfigs, Set<String> ignoredPropertyNames, IPropertyInfo[] properties)
 	{
-		scanForLogField(props, service, beanType, service.getClass());
+		scanForLogField(props, service, beanType, service.getClass(), ignoredPropertyNames);
 	}
 
-	protected void scanForLogField(IProperties props, Object service, Class<?> beanType, Class<?> type)
+	protected void scanForLogField(IProperties props, Object service, Class<?> beanType, Class<?> type, Set<String> ignoredPropertyNames)
 	{
 		if (type == null || Object.class.equals(type))
 		{
 			return;
 		}
-		scanForLogField(props, service, beanType, type.getSuperclass());
+		scanForLogField(props, service, beanType, type.getSuperclass(), ignoredPropertyNames);
 		Field[] fields = ReflectUtil.getDeclaredFields(type);
 		for (int a = fields.length; a-- > 0;)
 		{
 			Field field = fields[a];
 			if (!field.getType().equals(ILogger.class))
 			{
+				continue;
+			}
+			if (ignoredPropertyNames.contains(field.getName()))
+			{
+				// do not handle this property
 				continue;
 			}
 			ILogger logger = getLoggerIfNecessary(props, beanType, field);
@@ -91,14 +103,14 @@ public class LoggerInstancePreProcessor extends WeakSmartCopyMap<Class<?>, ILogg
 	}
 
 	@Override
-	public ILogger getCachedLogger(IServiceContext serviceContext, Class<?> loggerBeanType)
+	public ILogger getCachedLogger(IServiceContext beanContext, Class<?> loggerBeanType)
 	{
 		ILogger logger = get(loggerBeanType);
 		if (logger != null)
 		{
 			return logger;
 		}
-		return getCachedLogger(serviceContext.getService(IProperties.class), loggerBeanType);
+		return getCachedLogger(beanContext.getService(IProperties.class), loggerBeanType);
 	}
 
 	@Override
@@ -120,6 +132,10 @@ public class LoggerInstancePreProcessor extends WeakSmartCopyMap<Class<?>, ILogg
 				return logger;
 			}
 			logger = LoggerFactory.getLogger(loggerBeanType, properties);
+			if (logger instanceof IConfigurableLogger)
+			{
+				((IConfigurableLogger) logger).setObjectCollector(objectCollector);
+			}
 			put(loggerBeanType, logger);
 			return logger;
 		}

@@ -1,15 +1,22 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using De.Osthus.Ambeth.Bytecode.Behavior;
+using De.Osthus.Ambeth.Bytecode.Config;
 using De.Osthus.Ambeth.Bytecode.Visitor;
 using De.Osthus.Ambeth.Collections;
+using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Exceptions;
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Ioc.Extendable;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Util;
+#if !SILVERLIGHT
+using Microsoft.Win32.SafeHandles;
+#endif
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using System.Text;
 
 namespace De.Osthus.Ambeth.Bytecode.Core
 {
@@ -31,14 +38,17 @@ namespace De.Osthus.Ambeth.Bytecode.Core
                     return changeCount;
                 }
             }
-        }
-
+        }          
+        
         [LogInstance]
         public ILogger Log { private get; set; }
 
         public IServiceContext BeanContext { protected get; set; }
 
         public IBytecodeClassLoader BytecodeClassLoader { protected get; set; }
+
+        [Property(BytecodeConfigurationConstants.EnhancementTraceDirectory, Mandatory = false)]
+        public String TraceDir { protected get; set; }
 
         protected readonly WeakDictionary<Type, ValueType> typeToExtendedType = new WeakDictionary<Type, ValueType>();
 
@@ -139,6 +149,54 @@ namespace De.Osthus.Ambeth.Bytecode.Core
                 newTypeNamePrefix = targetNameHint.GetTargetName(typeToEnhance);
             }
             return GetEnhancedType(typeToEnhance, newTypeNamePrefix, hint);
+        }        
+
+        protected void LogBytecodeOutput(String typeName, String bytecodeOutput)
+        {
+#if SILVERLIGHT
+            DirectoryInfo outputFileDir = new DirectoryInfo(TraceDir + Path.DirectorySeparatorChar + GetType().FullName);
+            outputFileDir.Create();
+            String formattedName = outputFileDir.FullName + Path.DirectorySeparatorChar + typeName + ".txt";
+            try
+            {
+                using(FileStream outputFile = new FileStream(formattedName, FileMode.Create, FileAccess.Write, FileShare.Read))
+#else
+            // the following code allows to write to directories with a length > 260 chars
+            char sep = System.IO.Path.DirectorySeparatorChar;
+            String dirName = LongPath.CreateDir(TraceDir + sep + GetType().FullName);
+            String formattedName = dirName + sep + typeName + ".txt";
+            try
+            {                
+                // Create a file with generic write access
+                SafeFileHandle fileHandle = LongPath.CreateFile(formattedName, FileAccess.ReadWrite, FileShare.ReadWrite, FileMode.OpenOrCreate);                
+                try
+                {
+                    using (FileStream outputFile = new FileStream(fileHandle, FileAccess.Write))
+#endif
+                    {
+                        System.IO.StreamWriter fw = new System.IO.StreamWriter(outputFile);
+                        try
+                        {
+                            fw.Write(bytecodeOutput);
+                        }
+                        finally
+                        {
+                            fw.Close();
+                        }
+                    }
+#if SILVERLIGHT
+#else
+                }
+                finally
+                {
+                    fileHandle.Close();
+                }
+#endif
+            }
+            catch (Exception e)
+            {
+                throw RuntimeExceptionUtil.Mask(e, "Error occurred while trying to write to '" + formattedName + "'");
+            }
         }
 
         public Type GetEnhancedType(Type typeToEnhance, String newTypeNamePrefix, IEnhancementHint hint)
@@ -177,32 +235,108 @@ namespace De.Osthus.Ambeth.Bytecode.Core
                 IBytecodeBehavior[] extensions = bytecodeBehaviorExtensions.GetExtensions();
                 pendingBehaviors.AddRange(extensions);
 
-                Type enhancedEntityType;
+                Type enhancedType;
                 if (pendingBehaviors.Count > 0)
                 {
-                    enhancedEntityType = EnhanceTypeIntern(typeToEnhance, newTypeNamePrefix, pendingBehaviors, hint);
+                    enhancedType = EnhanceTypeIntern(typeToEnhance, newTypeNamePrefix, pendingBehaviors, hint);
                 }
                 else
                 {
-                    enhancedEntityType = typeToEnhance;
+                    enhancedType = typeToEnhance;
                 }
                 WeakReference entityTypeR = typeToExtendedType.GetWeakReferenceEntry(typeToEnhance);
 			    if (entityTypeR == null)
 			    {
 				    throw new Exception("Must never happen");
 			    }
-                hardRefToTypes.Add(enhancedEntityType);
+                hardRefToTypes.Add(enhancedType);
                 hardRefToTypes.Add(typeToEnhance);
-                WeakReference enhancedEntityTypeR = new WeakReference(enhancedEntityType);
-                valueType.Put(hint, enhancedEntityTypeR);
-                extendedTypeToType.Add(enhancedEntityType, entityTypeR);
-                if (Log.DebugEnabled)
+
+                if (TraceDir != null)
                 {
-                    Log.Debug(BytecodeClassLoader.ToPrintableBytecode(enhancedEntityType));
+                    LogBytecodeOutput(enhancedType.FullName, BytecodeClassLoader.ToPrintableBytecode(enhancedType));
                 }
-                return enhancedEntityType;
+                else if (Log.DebugEnabled)
+                {
+                    // note that this intentionally will only be logged to the console if the traceDir is NOT specified already
+                    Log.Debug(BytecodeClassLoader.ToPrintableBytecode(enhancedType));
+                }
+                try
+                {
+                    CheckEnhancedTypeConsistency(enhancedType);
+                }
+                catch (Exception e)
+                {
+                    if (Log.ErrorEnabled)
+                    {
+                        Log.Error(BytecodeClassLoader.ToPrintableBytecode(enhancedType), e);
+                    }
+                    BytecodeClassLoader.Save();
+                    throw;
+                }
+                WeakReference enhancedEntityTypeR = new WeakReference(enhancedType);
+                valueType.Put(hint, enhancedEntityTypeR);
+                extendedTypeToType.Add(enhancedType, entityTypeR);
+                if (Log.InfoEnabled)
+                {
+                    Log.Info("Enhancement finished successfully with type: " + enhancedType);
+                }
+                return enhancedType;
             }
         }
+
+        protected void CheckEnhancedTypeConsistency(Type type)
+	    {
+		    IdentityHashSet<MethodInfo> allMethods = new IdentityHashSet<MethodInfo>();
+		    foreach (Type interf in type.GetInterfaces())
+		    {
+			    allMethods.AddAll(interf.GetMethods());
+		    }
+		    Type currType = type;
+		    while (currType != typeof(Object) && currType != null)
+		    {
+                allMethods.AddAll(currType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly));
+			    currType = currType.BaseType;
+		    }
+		    if (allMethods.Count == 0)
+		    {
+			    throw new Exception("Type invalid (not a single method): " + type);
+		    }
+            if (type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly).Length == 0)
+		    {
+			    throw new Exception("Type invalid (not a single constructor): " + type);
+		    }
+		    if (!type.IsAbstract)
+		    {
+			    foreach (MethodInfo method in allMethods)
+			    {
+				    MethodInfo method2 = ReflectUtil.GetDeclaredMethod(true, type, method.ReturnType, method.Name, TypeUtil.GetParameterTypesToTypes(method.GetParameters()));
+				    if (method2 == null || method2.IsAbstract)
+				    {
+					    throw new Exception("Type is not abstract but has at least one abstract method: " + method);
+				    }
+			    }
+		    }
+		    Type[] interfaces = type.GetInterfaces();
+		    foreach (Type interf in interfaces)
+		    {
+			    MethodInfo[] interfaceMethods = ReflectUtil.GetDeclaredMethods(interf);
+			    foreach (MethodInfo interfaceMethod in interfaceMethods)
+			    {
+				    try
+				    {
+                        if (type.GetMethod(interfaceMethod.Name, TypeUtil.GetParameterTypesToTypes(interfaceMethod.GetParameters())) == null)
+                        {
+                            throw new Exception("Type is not abstract but has at least one abstract method: " + interfaceMethod);
+                        }
+				    }
+				    catch (Exception e)
+				    {
+					    throw new Exception("Type is not abstract but has at least one abstract method: " + interfaceMethod, e);
+				    }
+			    }
+		    }
+	    }
 
         protected Type EnhanceTypeIntern(Type originalType, String newTypeNamePrefix, IList<IBytecodeBehavior> pendingBehaviors,
                 IEnhancementHint hint)
@@ -216,7 +350,8 @@ namespace De.Osthus.Ambeth.Bytecode.Core
 		    {
 			    throw new Exception("Must never happen");
 		    }
-            newTypeNamePrefix = newTypeNamePrefix.Replace(".", "/");
+            String lastTypeHandleName = newTypeNamePrefix;
+            newTypeNamePrefix = newTypeNamePrefix.Replace('.', '/');
             StringBuilder sw = new StringBuilder();
             try
             {
@@ -234,15 +369,23 @@ namespace De.Osthus.Ambeth.Bytecode.Core
                     }
                 }
                 int iterationCount = 0;
+
+                List<BytecodeBehaviorState> pendingStatesToPostProcess = new List<BytecodeBehaviorState>();
                 Type currentContent = currentType; //BytecodeClassLoader.ReadTypeAsBinary(currentType);
                 while (pendingBehaviors.Count > 0)
                 {
                     iterationCount++;
 
                     NewType newTypeHandle = NewType.GetObjectType(newTypeNamePrefix + "$A" + iterationCount);
+                    lastTypeHandleName = newTypeHandle.ClassName;
 
                     IBytecodeBehavior[] currentPendingBehaviors = ListUtil.ToArray(pendingBehaviors);
                     pendingBehaviors.Clear();
+
+                    if (currentPendingBehaviors.Length > 0 && Log.DebugEnabled)
+                    {
+                        Log.Debug("Applying behaviors on " + newTypeHandle.ClassName + ": " + Arrays.ToString(currentPendingBehaviors));
+                    }
                     BytecodeEnhancer This = this;
                     Type fCurrentContent = currentContent;
 
@@ -265,18 +408,30 @@ namespace De.Osthus.Ambeth.Bytecode.Core
                     }
                     Type newType = newContent;// BytecodeClassLoader.LoadClass(newTypeHandle.InternalName, newContent);
                     extendedTypeToType.Add(newType, originalTypeR);
-                    acquiredState.PostProcessCreatedType(newType);
+                    pendingStatesToPostProcess.Add(acquiredState);
                     currentContent = newContent;
                     currentType = newType;
+                }
+                for (int a = 0, size = pendingStatesToPostProcess.Count; a < size; a++)
+                {
+                    pendingStatesToPostProcess[a].PostProcessCreatedType(currentType);
                 }
                 return currentType;
             }
             catch (Exception e)
             {
+                BytecodeClassLoader.Save();
                 String classByteCode = sw.ToString();
                 if (classByteCode.Length > 0)
                 {
-                    throw RuntimeExceptionUtil.Mask(e, "Bytecode:\n" + classByteCode);
+                    if (TraceDir != null)
+                    {
+                        LogBytecodeOutput(lastTypeHandleName, classByteCode);
+                    }
+                    else
+                    {
+                        throw RuntimeExceptionUtil.Mask(e, "Bytecode:\n" + classByteCode);
+                    }
                 }
                 throw;
             }
@@ -286,7 +441,7 @@ namespace De.Osthus.Ambeth.Bytecode.Core
                 IList<IBytecodeBehavior> cascadePendingBehaviors)
         {
             IBytecodeBehaviorState state = BytecodeBehaviorState.State;
-            Type content = BytecodeClassLoader.BuildTypeFromParent(state.NewType.InternalName, currentContent, sw, delegate(IClassVisitor cv)
+            Type content = BytecodeClassLoader.BuildTypeFromParent(state.NewType.ClassName, currentContent, sw, delegate(IClassVisitor cv)
                 {
                     IBytecodeBehavior[] currPendingBehaviors = pendingBehaviors;
                     for (int a = 0; a < currPendingBehaviors.Length; a++)

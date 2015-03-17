@@ -7,9 +7,6 @@ import de.osthus.ambeth.annotation.ConfigurationConstants;
 public final class PersistenceJdbcConfigurationConstants
 {
 	@ConfigurationConstantDescription("TODO")
-	public static final String AdditionalConnectionInterfaces = "jdbc.connection.interfaces";
-
-	@ConfigurationConstantDescription("TODO")
 	public static final String AdditionalConnectionModules = "jdbc.connection.modules";
 
 	@ConfigurationConstantDescription("TODO")
@@ -95,6 +92,9 @@ public final class PersistenceJdbcConfigurationConstants
 
 	@ConfigurationConstantDescription("TODO")
 	public static final String DataSourceName = "datasource.name";
+
+	@ConfigurationConstantDescription("TODO")
+	public static final String PreparedConnectionInstances = "connections.prepared";
 
 	private PersistenceJdbcConfigurationConstants()
 	{

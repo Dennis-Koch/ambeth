@@ -16,7 +16,7 @@ import de.osthus.ambeth.filter.model.IPagingRequest;
 import de.osthus.ambeth.filter.model.IPagingResponse;
 import de.osthus.ambeth.filter.model.ISortDescriptor;
 import de.osthus.ambeth.merge.model.IObjRef;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -25,7 +25,7 @@ import de.osthus.ambeth.util.ParamChecker;
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/alternateid/MultiAlternateIdQuery_orm.xml")
 @SQLStructure("MultiAlternateIdQuery_structure.sql")
 @SQLData("MultiAlternateIdQuery_data.sql")
-public class MultiAlternateIdQueryTest extends AbstractPersistenceTest
+public class MultiAlternateIdQueryTest extends AbstractInformationBusWithPersistenceTest
 {
 	protected IFilterToQueryBuilder filterToQueryBuilder;
 

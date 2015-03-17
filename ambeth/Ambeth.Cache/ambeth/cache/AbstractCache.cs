@@ -10,6 +10,7 @@ using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
@@ -20,27 +21,28 @@ using System.Threading;
 
 namespace De.Osthus.Ambeth.Cache
 {
-    public abstract class AbstractCache<V> : ICache, IInitializingBean, IDisposable
+    public abstract class AbstractCache
     {
-        protected static readonly CacheKey[] emptyCacheKeyArray = new CacheKey[0];
+        protected static readonly ThreadLocal<bool> failInCacheHierarchyModeActiveTL = new ThreadLocal<bool>();
 
-        private static readonly ILogger LOG = LoggerFactory.GetLogger<AbstractCache<Object>>();
-
-        protected static readonly ThreadLocal<bool> failEarlyModeActiveTL = new ThreadLocal<bool>();
-
-        private static readonly ThreadLocal<IdentityHashSet<Object>> hardRefTL = new ThreadLocal<IdentityHashSet<Object>>();
-
-        public static bool FailEarlyModeActive
+        public static bool FailInCacheHierarchyModeActive
         {
             get
             {
-                return failEarlyModeActiveTL.Value;
+                return failInCacheHierarchyModeActiveTL.Value;
             }
             set
             {
-                failEarlyModeActiveTL.Value = value;
+                failInCacheHierarchyModeActiveTL.Value = value;
             }
         }
+    }
+
+    public abstract class AbstractCache<V> : AbstractCache, ICache, IInitializingBean, IDisposable
+    {
+        protected static readonly CacheKey[] emptyCacheKeyArray = new CacheKey[0];
+
+        private static readonly ThreadLocal<IdentityHashSet<Object>> hardRefTL = new ThreadLocal<IdentityHashSet<Object>>();
 
         protected CacheHashMap keyToCacheValueDict;
 
@@ -70,6 +72,8 @@ namespace De.Osthus.Ambeth.Cache
 
         public virtual bool WeakEntries { protected get; set; }
 
+        public abstract bool Privileged { get; set; }
+    
         protected DateTime lastCleanupTime = DateTime.Now;
 
         protected int changeVersion = 1;
@@ -101,25 +105,9 @@ namespace De.Osthus.Ambeth.Cache
             ProxyHelper = null;
             keyToCacheValueDict = null;
         }
-
-        protected void PrepareCacheKeyss(IEntityMetaData metaData, CacheKey cacheKey, IObjRef objRef)
-        {
-            sbyte idNameIndex = objRef.IdNameIndex;
-            cacheKey.EntityType = metaData.EntityType;
-            cacheKey.IdNameIndex = idNameIndex;
-            ITypeInfoItem idMember = metaData.GetIdMemberByIdIndex(idNameIndex);
-            cacheKey.Id = ConversionHelper.ConvertValueToType(idMember.RealType, objRef.Id);
-        }
-
-        protected void PrepareCacheKeyss(IEntityMetaData metaData, CacheKey cacheKey, sbyte idNameIndex, Object id)
-        {
-            ParamChecker.AssertParamNotNull(id, "id");
-            cacheKey.EntityType = metaData.EntityType;
-            cacheKey.IdNameIndex = idNameIndex;
-            ITypeInfoItem idMember = metaData.GetIdMemberByIdIndex(idNameIndex);
-            cacheKey.Id = ConversionHelper.ConvertValueToType(idMember.RealType, id);
-        }
-
+        
+        public ICache CurrentCache { get { return this; } }
+        
         [Property(Mandatory = false)]
         public Lock ReadLock
         {
@@ -226,7 +214,7 @@ namespace De.Osthus.Ambeth.Cache
         protected V ExistsValue(IObjRef ori)
         {
             IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(ori.RealType);
-            ITypeInfoItem idMember = metaData.GetIdMemberByIdIndex(ori.IdNameIndex);
+            PrimitiveMember idMember = metaData.GetIdMemberByIdIndex(ori.IdNameIndex);
             Object id = ConversionHelper.ConvertValueToType(idMember.RealType, ori.Id);
             Lock readLock = ReadLock;
             readLock.Lock();
@@ -238,7 +226,7 @@ namespace De.Osthus.Ambeth.Cache
                 {
                     return default(V);
                 }
-                ITypeInfoItem versionMember = metaData.VersionMember;
+                PrimitiveMember versionMember = metaData.VersionMember;
                 if (versionMember == null)
                 {
                     if (WeakEntries)
@@ -315,7 +303,7 @@ namespace De.Osthus.Ambeth.Cache
                 }
                 alternateCacheKey.EntityType = entityType;
                 alternateCacheKey.Id = alternateId;
-                alternateCacheKey.IdNameIndex = (sbyte)idIndex;
+                alternateCacheKey.IdIndex = (sbyte)idIndex;
             }
         }
 
@@ -323,18 +311,21 @@ namespace De.Osthus.Ambeth.Cache
 
         public void Remove(Type type, Object id)
         {
+            CheckNotDisposed();
             IEntityMetaData metaData = this.EntityMetaDataProvider.GetMetaData(type);
             RemoveCacheValueFromCacheCascade(metaData, ObjRef.PRIMARY_KEY_INDEX, id);
         }
 
         public void Remove(IObjRef ori)
         {
+            CheckNotDisposed();
             IEntityMetaData metaData = this.EntityMetaDataProvider.GetMetaData(ori.RealType);
             RemoveCacheValueFromCacheCascade(metaData, ori.IdNameIndex, ori.Id);
         }
 
         public void Remove(IList<IObjRef> oris)
         {
+            CheckNotDisposed();
             for (int a = oris.Count; a-- > 0; )
             {
                 IObjRef ori = oris[a];
@@ -344,6 +335,7 @@ namespace De.Osthus.Ambeth.Cache
 
         public virtual void RemovePriorVersions(IObjRef ori)
         {
+            CheckNotDisposed();
             if (ori.Version != null)
             {
                 CacheKey cacheKey = new CacheKey();
@@ -359,6 +351,7 @@ namespace De.Osthus.Ambeth.Cache
 
         public virtual void RemovePriorVersions(IList<IObjRef> oris)
         {
+            CheckNotDisposed();
             for (int a = oris.Count; a-- > 0; )
             {
                 IObjRef ori = oris[a];
@@ -369,7 +362,7 @@ namespace De.Osthus.Ambeth.Cache
         protected void RemoveCacheValueFromCacheCascade(IEntityMetaData metaData, sbyte idIndex, Object id)
         {
             Type entityType = metaData.EntityType;
-            ITypeInfoItem idMember = metaData.GetIdMemberByIdIndex(idIndex);
+            PrimitiveMember idMember = metaData.GetIdMemberByIdIndex(idIndex);
             id = ConversionHelper.ConvertValueToType(idMember.RealType, id);
             Lock writeLock = WriteLock;
             writeLock.Lock();
@@ -407,7 +400,7 @@ namespace De.Osthus.Ambeth.Cache
             {
                 return null;
             }
-            return RemoveKeyFromCache(cacheKey.EntityType, cacheKey.IdNameIndex, cacheKey.Id);
+            return RemoveKeyFromCache(cacheKey.EntityType, cacheKey.IdIndex, cacheKey.Id);
         }
 
         protected virtual Object RemoveKeyFromCache(Type entityType, sbyte idIndex, Object id)
@@ -444,7 +437,7 @@ namespace De.Osthus.Ambeth.Cache
 
         protected void RemoveCacheValueFromCacheSingle(IEntityMetaData metaData, sbyte idIndex, Object id)
         {
-            ITypeInfoItem idMember = metaData.GetIdMemberByIdIndex(idIndex);
+            PrimitiveMember idMember = metaData.GetIdMemberByIdIndex(idIndex);
             id = ConversionHelper.ConvertValueToType(idMember.RealType, id);
             RemoveKeyFromCache(metaData.EntityType, idIndex, id);
         }
@@ -503,7 +496,7 @@ namespace De.Osthus.Ambeth.Cache
 
         protected virtual Object GetVersionOfObject(IEntityMetaData metaData, Object obj)
         {
-            ITypeInfoItem versionMember = metaData.VersionMember;
+            PrimitiveMember versionMember = metaData.VersionMember;
             return versionMember != null ? versionMember.GetValue(obj, false) : null;
         }
 
@@ -519,7 +512,7 @@ namespace De.Osthus.Ambeth.Cache
 
         protected abstract void PutInternObjRelation(V cacheValue, IEntityMetaData metaData, IObjRelation objRelation, IObjRef[] relationsOfMember);
 
-        protected void PutIntern(Object objectToCache, List<Object> hardRefsToCacheValue, IdentityHashSet<Object> alreadyHandledSet, HashSet<IObjRef> cascadeNeededORIs)
+        protected virtual void PutIntern(Object objectToCache, List<Object> hardRefsToCacheValue, IdentityHashSet<Object> alreadyHandledSet, HashSet<IObjRef> cascadeNeededORIs)
         {
             if (objectToCache == null || !alreadyHandledSet.Add(objectToCache))
             {
@@ -608,12 +601,21 @@ namespace De.Osthus.Ambeth.Cache
                     hardRefsToCacheValue.Add(cacheValue);
                 }
             }
+		    else
+		    {
+			    PutInternUnpersistedEntity(objectToCache);
+		    }
 
             // Even if it has no id we look for its relations and cache them
             for (int a = relationValues.Count; a-- > 0; )
             {
                 PutIntern(relationValues[a], hardRefsToCacheValue, alreadyHandledSet, cascadeNeededORIs);
             }
+        }
+
+        protected virtual void PutInternUnpersistedEntity(Object entity)
+        {
+            // Intended blank
         }
 
         protected virtual bool AllowCacheValueReplacement()
@@ -671,7 +673,7 @@ namespace De.Osthus.Ambeth.Cache
                 CacheKey alternateCacheKey = alternateCacheKeys[a];
                 if (alternateCacheKey != null)
                 {
-                    keyToCacheValueDict.Put(alternateCacheKey.EntityType, alternateCacheKey.IdNameIndex, alternateCacheKey.Id, cacheValueR);
+                    keyToCacheValueDict.Put(alternateCacheKey.EntityType, alternateCacheKey.IdIndex, alternateCacheKey.Id, cacheValueR);
                 }
             }
         }
@@ -702,7 +704,7 @@ namespace De.Osthus.Ambeth.Cache
 
         protected Object GetCacheValueR(IEntityMetaData metaData, sbyte idIndex, Object id)
         {
-            ITypeInfoItem idMember = metaData.GetIdMemberByIdIndex(idIndex);
+            PrimitiveMember idMember = metaData.GetIdMemberByIdIndex(idIndex);
             id = ConversionHelper.ConvertValueToType(idMember.RealType, id);
             Object cacheValueR = keyToCacheValueDict.Get(metaData.EntityType, idIndex, id);
             CacheValueHasBeenRead(cacheValueR);
@@ -919,7 +921,7 @@ namespace De.Osthus.Ambeth.Cache
                 {
                     CacheKey cacheKey = new CacheKey();
                     cacheKey.Id = entry.Id;
-                    cacheKey.IdNameIndex = entry.IdIndex;
+                    cacheKey.IdIndex = entry.IdIndex;
                     cacheKey.EntityType = entry.EntityType;
                     pendingKeysToRemove.Add(cacheKey);
                 }
@@ -928,7 +930,7 @@ namespace De.Osthus.Ambeth.Cache
             {
                 CacheKey pendingKeyToRemove = pendingKeysToRemove[a];
                 IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(pendingKeyToRemove.EntityType);
-                RemoveCacheValueFromCacheCascade(metaData, pendingKeyToRemove.IdNameIndex, pendingKeyToRemove.Id);
+                RemoveCacheValueFromCacheCascade(metaData, pendingKeyToRemove.IdIndex, pendingKeyToRemove.Id);
             }
         }
 

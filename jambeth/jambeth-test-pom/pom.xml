@@ -8,11 +8,11 @@
 	<parent>
 		<groupId>de.osthus.ambeth</groupId>
 		<artifactId>jambeth-pom</artifactId>
-		<version>2.1.X-SNAPSHOT</version>
+		<version>2.3.X-SNAPSHOT</version>
 	</parent>
 
 	<modules>
-		<module>../jambeth-audit-test</module>
+		<module>../jambeth-audit-server-test</module>
 		<module>../jambeth-bytecode-test</module>
 		<module>../jambeth-cache-test</module>
 		<module>../jambeth-cache-bytecode-test</module>
@@ -25,6 +25,8 @@
 		<module>../jambeth-event-datachange-test</module>
 		<module>../jambeth-event-server-test</module>
 		<module>../jambeth-examples-test</module>
+		<module>../jambeth-expr-test</module>
+		<module>../jambeth-expr-exp4j-test</module>
 		<module>../jambeth-filter-test</module>
 		<module>../jambeth-ioc-test</module>
 		<module>../jambeth-job-test</module>
@@ -38,6 +40,7 @@
 		<module>../jambeth-persistence-api-test</module>
 		<module>../jambeth-persistence-h2-test</module>
 		<module>../jambeth-persistence-jdbc-test</module>
+		<module>../jambeth-persistence-mssql-test</module>
 		<module>../jambeth-persistence-oracle11-test</module>
 		<module>../jambeth-platform-test</module>
 		<module>../jambeth-query-test</module>
@@ -45,9 +48,10 @@
 		<module>../jambeth-query-jdbc-test</module>
 		<module>../jambeth-security-test</module>
 		<module>../jambeth-security-bytecode-test</module>
+		<module>../jambeth-security-job-test</module>
+		<module>../jambeth-security-persistence-test</module>
 		<module>../jambeth-security-server-test</module>
 		<module>../jambeth-sensor-test</module>
-		<module>../jambeth-server-helloworld-test</module>
 		<module>../jambeth-server-rest-test</module>
 		<module>../jambeth-service-test</module>
 		<module>../jambeth-soap-test</module>
@@ -57,11 +61,17 @@
 		<!-- REMOVED till migrated from other repo <module>../jAmbeth.Xml.File</module> -->
 
 		<module>../jambeth-test</module>
-		<module>../jambeth-testutil</module>
-		<module>../jambeth-testutil-persistence</module>
 	</modules>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/java</directory>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+			</resource>
+		</resources>
 		<testResources>
 			<testResource>
 				<directory>src/test/java</directory>
@@ -71,5 +81,4 @@
 			</testResource>
 		</testResources>
 	</build>
-
 </project>

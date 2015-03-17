@@ -8,7 +8,5 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class DeleteContainer extends AbstractChangeContainer
 {
-
 	// Intended blank
-
 }

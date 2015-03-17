@@ -4,19 +4,18 @@ import java.util.List;
 
 import de.osthus.ambeth.cache.transfer.ServiceResult;
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.IPreparedObjRefFactory;
 import de.osthus.ambeth.persistence.ILinkCursor;
 import de.osthus.ambeth.persistence.ILinkCursorItem;
 import de.osthus.ambeth.persistence.IVersionCursor;
 import de.osthus.ambeth.persistence.IVersionItem;
 import de.osthus.ambeth.persistence.ServiceUtil;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
-import de.osthus.ambeth.util.IConversionHelper;
 
 public class CacheServiceUtil extends ServiceUtil
 {
@@ -36,33 +35,14 @@ public class CacheServiceUtil extends ServiceUtil
 			return;
 		}
 
-		ArrayList<IObjRef> objRefs = new ArrayList<IObjRef>();
+		IList<IObjRef> objRefs;
 		if (cursor != null)
 		{
-			IConversionHelper conversionHelper = this.conversionHelper;
-			try
-			{
-				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-				Class<?> idType = metaData.getIdMember().getRealType();
-				Class<?> versionType = null;
-				ITypeInfoItem versionMember = metaData.getVersionMember();
-				if (versionMember != null)
-				{
-					versionType = versionMember.getRealType();
-				}
-				while (cursor.moveNext())
-				{
-					IVersionItem item = cursor.getCurrent();
-					Object id = conversionHelper.convertValueToType(idType, item.getId());
-					Object version = versionType != null ? conversionHelper.convertValueToType(versionType, item.getVersion()) : null;
-					objRefs.add(new ObjRef(entityType, ObjRef.PRIMARY_KEY_INDEX, id, version));
-				}
-			}
-			finally
-			{
-				cursor.dispose();
-				cursor = null;
-			}
+			objRefs = loadObjRefs(entityType, ObjRef.PRIMARY_KEY_INDEX, cursor);
+		}
+		else
+		{
+			objRefs = new ArrayList<IObjRef>();
 		}
 		oriResultHolder.setServiceResult(new ServiceResult(objRefs));
 	}
@@ -79,7 +59,8 @@ public class CacheServiceUtil extends ServiceUtil
 		{
 			try
 			{
-				objRefs.add(new ObjRef(entityType, ObjRef.PRIMARY_KEY_INDEX, item.getId(), item.getVersion()));
+
+				objRefs.add(objRefFactory.createObjRef(entityType, ObjRef.PRIMARY_KEY_INDEX, item.getId(), item.getVersion()));
 			}
 			finally
 			{
@@ -104,10 +85,11 @@ public class CacheServiceUtil extends ServiceUtil
 		{
 			try
 			{
+				IPreparedObjRefFactory preparedObjRefFactory = objRefFactory.prepareObjRefFactory(entityType, cursor.getToIdIndex());
 				while (cursor.moveNext())
 				{
 					ILinkCursorItem item = cursor.getCurrent();
-					objRefs.add(new ObjRef(entityType, ObjRef.PRIMARY_KEY_INDEX, item.getToId(), null));
+					objRefs.add(preparedObjRefFactory.createObjRef(item.getToId(), null));
 				}
 			}
 			finally

@@ -5,12 +5,16 @@ import java.util.List;
 
 import de.osthus.ambeth.bytecode.EmbeddedEnhancementHint;
 import de.osthus.ambeth.bytecode.EntityEnhancementHint;
+import de.osthus.ambeth.bytecode.util.EntityUtil;
 import de.osthus.ambeth.bytecode.visitor.InterfaceAdder;
 import de.osthus.ambeth.bytecode.visitor.NotifyPropertyChangedClassVisitor;
 import de.osthus.ambeth.collections.specialized.INotifyCollectionChangedListener;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.merge.IEntityMetaDataProvider;
+import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.model.INotifyPropertyChanged;
 import de.osthus.ambeth.model.INotifyPropertyChangedSource;
+import de.osthus.ambeth.proxy.IPropertyChangeConfigurable;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 
@@ -21,7 +25,17 @@ import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 public class NotifyPropertyChangedBehavior extends AbstractBehavior
 {
 	@Autowired
+	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	@Autowired
 	protected IPropertyInfoProvider propertyInfoProvider;
+
+	@Override
+	public Class<?>[] getEnhancements()
+	{
+		return new Class<?>[] { INotifyCollectionChangedListener.class, INotifyPropertyChanged.class, INotifyPropertyChangedSource.class,
+				PropertyChangeListener.class, IPropertyChangeConfigurable.class };
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -36,7 +50,7 @@ public class NotifyPropertyChangedBehavior extends AbstractBehavior
 			return visitor;
 		}
 		// DefaultPropertiesBehavior executes in this cascade
-
+		final IEntityMetaData metaData = entityMetaDataProvider.getMetaData(EntityUtil.getEntityType(state.getContext()));
 		AbstractBehavior cascadeBehavior = new AbstractBehavior()
 		{
 			@Override
@@ -52,9 +66,10 @@ public class NotifyPropertyChangedBehavior extends AbstractBehavior
 					{
 						// NotifyPropertyChangedBehavior executes in this cascade
 						// add IPropertyChanged
+
 						visitor = new InterfaceAdder(visitor, INotifyPropertyChanged.class, INotifyPropertyChangedSource.class, PropertyChangeListener.class,
-								INotifyCollectionChangedListener.class);
-						visitor = beanContext.registerWithLifecycle(new NotifyPropertyChangedClassVisitor(visitor, null)).finish();
+								INotifyCollectionChangedListener.class, IPropertyChangeConfigurable.class);
+						visitor = beanContext.registerWithLifecycle(new NotifyPropertyChangedClassVisitor(visitor, metaData, null)).finish();
 						return visitor;
 					}
 				};

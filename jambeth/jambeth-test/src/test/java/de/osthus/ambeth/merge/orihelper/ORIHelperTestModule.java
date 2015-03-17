@@ -9,7 +9,7 @@ public class ORIHelperTestModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(ORIHelperTestServiceImpl.class).autowireable(ORIHelperTestService.class);
+		beanContextFactory.registerBean(ORIHelperTestServiceImpl.class).autowireable(ORIHelperTestService.class);
 	}
 
 }

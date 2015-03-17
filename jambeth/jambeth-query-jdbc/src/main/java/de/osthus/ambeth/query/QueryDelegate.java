@@ -1,74 +1,42 @@
 package de.osthus.ambeth.query;
 
-import java.sql.Connection;
 import java.util.List;
-import java.util.Map;
 
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.database.ResultingDatabaseCallback;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IDataCursor;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IVersionCursor;
-import de.osthus.ambeth.persistence.IVersionItem;
-import de.osthus.ambeth.util.ParamChecker;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 
-public class QueryDelegate<T> implements IInitializingBean, IQuery<T>, IQueryIntern<T>
+public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IServiceContext beanContext;
 
-	protected Connection connection;
-
-	protected IQuery<T> query;
-
-	protected IQuery<T> transactionalQuery;
-
+	@Autowired
 	protected ITransaction transaction;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(beanContext, "BeanContext");
-		ParamChecker.assertNotNull(connection, "Connection");
-		ParamChecker.assertNotNull(query, "Query");
-		ParamChecker.assertNotNull(transaction, "transaction");
-		ParamChecker.assertNotNull(transactionalQuery, "TransactionalQuery");
-	}
+	@Autowired
+	protected IQuery<T> query;
 
-	public void setBeanContext(IServiceContext beanContext)
-	{
-		this.beanContext = beanContext;
-	}
+	@Autowired
+	protected IQueryIntern<T> queryIntern;
 
-	public void setConnection(Connection connection)
-	{
-		this.connection = connection;
-	}
-
-	public void setQuery(IQuery<T> query)
-	{
-		this.query = query;
-	}
-
-	public void setTransaction(ITransaction transaction)
-	{
-		this.transaction = transaction;
-	}
-
-	public void setTransactionalQuery(IQuery<T> transactionalQuery)
-	{
-		this.transactionalQuery = transactionalQuery;
-	}
+	@Autowired
+	protected IQuery<T> transactionalQuery;
 
 	@Override
 	public void dispose()
@@ -89,7 +57,7 @@ public class QueryDelegate<T> implements IInitializingBean, IQuery<T>, IQueryInt
 	}
 
 	@Override
-	public IQueryKey getQueryKey(Map<Object, Object> nameToValueMap)
+	public IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap)
 	{
 		return query.getQueryKey(nameToValueMap);
 	}
@@ -106,18 +74,28 @@ public class QueryDelegate<T> implements IInitializingBean, IQuery<T>, IQueryInt
 		return query.retrieveAsData();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public IDataCursor retrieveAsData(Map<Object, Object> nameToValueMap)
+	public IDataCursor retrieveAsData(IMap<Object, Object> nameToValueMap)
 	{
-		return ((IQueryIntern<T>) query).retrieveAsData(nameToValueMap);
+		return queryIntern.retrieveAsData(nameToValueMap);
 	}
 
 	@Override
-	@Deprecated
-	public IVersionCursor retrieveAsVersions(Map<Object, Object> nameToValueMap)
+	public IVersionCursor retrieveAsVersions(IMap<Object, Object> nameToValueMap)
 	{
-		return query.retrieveAsVersions(nameToValueMap);
+		return queryIntern.retrieveAsVersions(nameToValueMap, true);
+	}
+
+	@Override
+	public IVersionCursor retrieveAsVersions(boolean retrieveAlternateIds)
+	{
+		return query.retrieveAsVersions(retrieveAlternateIds);
+	}
+
+	@Override
+	public IVersionCursor retrieveAsVersions(IMap<Object, Object> paramNameToValueMap, boolean retrieveAlternateIds)
+	{
+		return queryIntern.retrieveAsVersions(paramNameToValueMap, retrieveAlternateIds);
 	}
 
 	@Override
@@ -127,10 +105,9 @@ public class QueryDelegate<T> implements IInitializingBean, IQuery<T>, IQueryInt
 	}
 
 	@Override
-	@Deprecated
-	public IEntityCursor<T> retrieveAsCursor(Map<Object, Object> nameToValueMap)
+	public IEntityCursor<T> retrieveAsCursor(IMap<Object, Object> nameToValueMap)
 	{
-		return query.retrieveAsCursor(nameToValueMap);
+		return queryIntern.retrieveAsCursor(nameToValueMap);
 	}
 
 	@Override
@@ -151,27 +128,20 @@ public class QueryDelegate<T> implements IInitializingBean, IQuery<T>, IQueryInt
 	}
 
 	@Override
-	@Deprecated
-	public IList<T> retrieve(final Map<Object, Object> nameToValueMap)
+	public IList<T> retrieve(final IMap<Object, Object> nameToValueMap)
 	{
 		if (transaction.isActive())
 		{
-			return query.retrieve(nameToValueMap);
+			return queryIntern.retrieve(nameToValueMap);
 		}
 		return transaction.processAndCommit(new ResultingDatabaseCallback<IList<T>>()
 		{
 			@Override
 			public IList<T> callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
 			{
-				return query.retrieve(nameToValueMap);
+				return queryIntern.retrieve(nameToValueMap);
 			}
 		}, true, true);
-	}
-
-	@Override
-	public IVersionItem retrieveAsVersion()
-	{
-		return transactionalQuery.retrieveAsVersion();
 	}
 
 	@Override
@@ -184,5 +154,73 @@ public class QueryDelegate<T> implements IInitializingBean, IQuery<T>, IQueryInt
 	public IQuery<T> param(Object paramKey, Object param)
 	{
 		return query.param(paramKey, param);
+	}
+
+	@Override
+	public long count()
+	{
+		if (transaction.isActive())
+		{
+			return query.count();
+		}
+		return transaction.processAndCommit(new ResultingDatabaseCallback<Long>()
+		{
+			@Override
+			public Long callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
+			{
+				return Long.valueOf(query.count());
+			}
+		}).longValue();
+	}
+
+	@Override
+	public long count(final IMap<Object, Object> paramNameToValueMap)
+	{
+		if (transaction.isActive())
+		{
+			return queryIntern.count(paramNameToValueMap);
+		}
+		return transaction.processAndCommit(new ResultingDatabaseCallback<Long>()
+		{
+			@Override
+			public Long callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
+			{
+				return Long.valueOf(queryIntern.count(paramNameToValueMap));
+			}
+		}).intValue();
+	}
+
+	@Override
+	public boolean isEmpty()
+	{
+		if (transaction.isActive())
+		{
+			return query.isEmpty();
+		}
+		return transaction.runInTransaction(new IResultingBackgroundWorkerDelegate<Boolean>()
+		{
+			@Override
+			public Boolean invoke() throws Throwable
+			{
+				return Boolean.valueOf(query.isEmpty());
+			}
+		}).booleanValue();
+	}
+
+	@Override
+	public boolean isEmpty(final IMap<Object, Object> paramNameToValueMap)
+	{
+		if (transaction.isActive())
+		{
+			return queryIntern.isEmpty(paramNameToValueMap);
+		}
+		return transaction.processAndCommit(new ResultingDatabaseCallback<Boolean>()
+		{
+			@Override
+			public Boolean callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
+			{
+				return Boolean.valueOf(queryIntern.isEmpty(paramNameToValueMap));
+			}
+		}).booleanValue();
 	}
 }

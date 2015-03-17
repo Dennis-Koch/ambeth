@@ -168,7 +168,9 @@ namespace De.Osthus.Ambeth.Service
             serviceDescription.MethodName = syncMethod.Name;
             serviceDescription.ParamTypes = types;
             serviceDescription.Arguments = syncArguments;
-            serviceDescription.SecurityScopes = securityScopes;
+            ISecurityScope[] securityScopesWeb = new ISecurityScope[securityScopes.Length];
+            Array.Copy(securityScopes, 0, securityScopesWeb, 0, securityScopes.Length);
+            serviceDescription.SecurityScopes = securityScopesWeb;
             return serviceDescription;
         }
 

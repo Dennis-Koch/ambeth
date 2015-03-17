@@ -17,7 +17,7 @@ namespace De.Osthus.Ambeth.Ioc
         {
             beanContextFactory.RegisterBean<BytecodeEnhancer>("bytecodeEnhancer").Autowireable(typeof(IBytecodeEnhancer), typeof(IBytecodeBehaviorExtendable));
 
-            IBeanConfiguration bytecodeClassLoaderBC = beanContextFactory.RegisterAnonymousBean<BytecodeClassLoader>().Autowireable(typeof(IBytecodeClassLoader),
+            IBeanConfiguration bytecodeClassLoaderBC = beanContextFactory.RegisterBean<BytecodeClassLoader>().Autowireable(typeof(IBytecodeClassLoader),
                     typeof(IBytecodePrinter));
             beanContextFactory.Link(bytecodeClassLoaderBC).To<IEventListenerExtendable>().With(typeof(ClearAllCachesEvent)).Optional();
         }
@@ -29,7 +29,7 @@ namespace De.Osthus.Ambeth.Ioc
 
         public static IBeanConfiguration AddDefaultBytecodeBehavior(IBeanContextFactory beanContextFactory, Type behaviorType)
         {
-            IBeanConfiguration behaviorBC = beanContextFactory.RegisterAnonymousBean(behaviorType);
+            IBeanConfiguration behaviorBC = beanContextFactory.RegisterBean(behaviorType);
             beanContextFactory.Link(behaviorBC).To<IBytecodeBehaviorExtendable>();
             return behaviorBC;
         }

@@ -1,5 +1,6 @@
 package de.osthus.ambeth.proxy;
 
+import java.lang.reflect.AnnotatedElement;
 import java.util.Set;
 
 import de.osthus.ambeth.annotation.AnnotationCache;
@@ -9,7 +10,6 @@ import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.proxy.PersistenceContext.PersistenceContextType;
 import de.osthus.ambeth.util.EqualsUtil;
 
 public class PersistencePostProcessor extends AbstractCascadePostProcessor
@@ -30,7 +30,7 @@ public class PersistencePostProcessor extends AbstractCascadePostProcessor
 	protected final IBehaviorTypeExtractor<PersistenceContext, PersistenceContextType> btExtractor = new IBehaviorTypeExtractor<PersistenceContext, PersistenceContextType>()
 	{
 		@Override
-		public PersistenceContextType extractBehaviorType(PersistenceContext annotation)
+		public PersistenceContextType extractBehaviorType(PersistenceContext annotation, AnnotatedElement annotatedElement)
 		{
 			return annotation.value();
 		}

@@ -89,13 +89,18 @@ namespace De.Osthus.Ambeth.Proxy
                 CacheInterceptor interceptor = new CacheInterceptor();
                 if (beanContext.IsRunning)
                 {
-                    interceptor = beanContext.RegisterWithLifecycle(interceptor).PropertyValue("ServiceName", serviceName).PropertyValue("Behavior", behavior)
-                        .IgnoreProperties("ProcessService").Finish();
+                    interceptor = beanContext.RegisterWithLifecycle(interceptor)//
+                        .PropertyValue("ServiceName", serviceName)//
+                        .PropertyValue("Behavior", behavior)//
+                        .IgnoreProperties("ProcessService")//
+                        .Finish();
                     beanContext.Link(beanName).To<IServiceExtendable>().With(serviceName);
                 }
                 else
                 {
-                    beanContextFactory.RegisterWithLifecycle(interceptor).PropertyValue("ServiceName", serviceName).PropertyValue("Behavior", behavior)
+                    beanContextFactory.RegisterWithLifecycle(interceptor)//
+                        .PropertyValue("ServiceName", serviceName)//
+                        .PropertyValue("Behavior", behavior)//
                         .IgnoreProperties("ProcessService");
                     beanContextFactory.Link(beanName).To<IServiceExtendable>().With(serviceName);
                 }
@@ -133,11 +138,16 @@ namespace De.Osthus.Ambeth.Proxy
             CacheInterceptor interceptor = new CacheInterceptor();
             if (beanContext.IsRunning)
             {
-                interceptor = beanContext.RegisterWithLifecycle(interceptor).PropertyValue("ServiceName", serviceName).PropertyValue("Behavior", behavior).Finish();
+                interceptor = beanContext.RegisterWithLifecycle(interceptor)//
+                    .PropertyValue("ServiceName", serviceName)//
+                    .PropertyValue("Behavior", behavior)//
+                    .Finish();
             }
             else
             {
-                beanContextFactory.RegisterWithLifecycle(interceptor).PropertyValue("ServiceName", serviceName).PropertyValue("Behavior", behavior);
+                beanContextFactory.RegisterWithLifecycle(interceptor)//
+                    .PropertyValue("ServiceName", serviceName)//
+                    .PropertyValue("Behavior", behavior);
             }
 
             if (Log.InfoEnabled)

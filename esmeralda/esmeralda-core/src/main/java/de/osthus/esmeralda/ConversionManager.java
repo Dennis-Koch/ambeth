@@ -1,0 +1,461 @@
+package de.osthus.esmeralda;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.regex.Matcher;
+
+import javax.annotation.processing.AbstractProcessor;
+import javax.tools.Diagnostic;
+import javax.tools.DiagnosticListener;
+import javax.tools.JavaCompiler;
+import javax.tools.JavaCompiler.CompilationTask;
+import javax.tools.JavaFileObject;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
+
+import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.LinkedHashMap;
+import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.IStartingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.log.ILogger;
+import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.esmeralda.handler.IASTHelper;
+import de.osthus.esmeralda.handler.IClassHandler;
+import de.osthus.esmeralda.handler.csharp.CsSpecific;
+import de.osthus.esmeralda.handler.csharp.ICsHelper;
+import de.osthus.esmeralda.handler.js.IJsHelper;
+import de.osthus.esmeralda.handler.js.JsSpecific;
+import de.osthus.esmeralda.misc.IEsmeFileUtil;
+import de.osthus.esmeralda.misc.IToDoWriter;
+import de.osthus.esmeralda.misc.Lang;
+import de.osthus.esmeralda.misc.StatementCount;
+import demo.codeanalyzer.common.model.JavaClassInfo;
+
+public class ConversionManager implements IStartingBean
+{
+	private static final String LANGUAGE_PATH_CSHARP = "csharp";
+
+	private static final String LANGUAGE_PATH_JS = "js";
+
+	private static final String NS_PREFIX_OSTHUS = "de.osthus.";
+
+	private static final Comparator<Object[]> METHOD_NAME_COUNT_COMPARATOR = new Comparator<Object[]>()
+	{
+		@Override
+		public int compare(Object[] o1, Object[] o2)
+		{
+			int result = ((Integer) o2[1]).compareTo((Integer) o1[1]);
+			if (result == 0)
+			{
+				result = ((String) o1[0]).compareTo((String) o2[0]);
+			}
+			return result;
+		}
+	};
+
+	@SuppressWarnings("unused")
+	@LogInstance
+	private ILogger log;
+
+	@Autowired
+	protected IASTHelper astHelper;
+
+	@Autowired
+	protected IClassInfoManager classInfoManager;
+
+	@Autowired("jsClasspathManager")
+	protected IClasspathManager jsClasspathManager;
+
+	@Autowired
+	protected CodeProcessor codeProcessor;
+
+	@Autowired
+	protected IConversionContext context;
+
+	@Autowired("csClassHandler")
+	protected IClassHandler csClassHandler;
+
+	@Autowired("jsClassHandler")
+	protected IClassHandler jsClassHandler;
+
+	@Autowired
+	protected ICsHelper csHelper;
+
+	@Autowired
+	protected IJsHelper jsHelper;
+
+	@Autowired
+	protected IEsmeFileUtil fileUtil;
+
+	@Autowired
+	protected IToDoWriter todoWriter;
+
+	@Property(name = "source-path")
+	protected File[] sourcePath;
+
+	@Property(name = "snippet-path")
+	protected File snippetPath;
+
+	@Property(name = "target-path")
+	protected File targetPath;
+
+	@Override
+	public void afterStarted() throws Throwable
+	{
+		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+
+		try (StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);)
+		{
+			File[] allSourceFiles = fileUtil.findAllSourceFiles(sourcePath).toArray(File.class);
+			Iterable<? extends JavaFileObject> fileObjects = fileManager.getJavaFileObjects(allSourceFiles);
+
+			CompilationTask task = compiler.getTask(null, fileManager, new DiagnosticListener<JavaFileObject>()
+			{
+				@Override
+				public void report(Diagnostic<? extends JavaFileObject> diagnostic)
+				{
+					System.out.println(diagnostic.getMessage(null));
+				}
+			}, null, null, fileObjects);
+
+			ArrayList<AbstractProcessor> processors = new ArrayList<AbstractProcessor>();
+			processors.add(codeProcessor);
+			task.setProcessors(processors);
+
+			try
+			{
+				task.call();
+			}
+			catch (FastBreakException e)
+			{
+				// intended blank
+			}
+			catch (RuntimeException e)
+			{
+				if (!(e.getCause() instanceof FastBreakException))
+				{
+					throw e;
+				}
+				// intended blank
+			}
+		}
+
+		ArrayList<JavaClassInfo> classInfos = codeProcessor.getClassInfos();
+
+		{
+			ConversionContext tempContext = createDefaultCsContext();
+			IConversionContext oldContext = context.getCurrent();
+			context.setCurrent(tempContext);
+			try
+			{
+				classInfoManager.init(classInfos);
+			}
+			catch (Throwable e)
+			{
+				log.error(e);
+			}
+			finally
+			{
+				context.setCurrent(oldContext);
+			}
+		}
+
+		ConversionContext csDefaultContext = createDefaultCsContext();
+		ConversionContext jsDefaultContext = createDefaultJsContext();
+
+		int classInfoProgress = 0, classInfoCount = classInfos.size();
+		long lastLog = System.currentTimeMillis();
+
+		todoWriter.clearToDoFolder(LANGUAGE_PATH_CSHARP);
+		todoWriter.clearToDoFolder(LANGUAGE_PATH_JS);
+
+		for (JavaClassInfo classInfo : classInfos)
+		{
+			String packageName = classInfo.getPackageName();
+			if (packageName == null)
+			{
+				log.warn("Skipped classinfo without a package name: " + classInfo);
+				classInfoCount--;
+				continue;
+			}
+
+			ConversionContext csContext = createClassScopeContext(csDefaultContext);
+			csContext.setClassInfo(classInfo);
+			invokeClassHandler(csClassHandler, csContext);
+
+			ConversionContext jsContext = createClassScopeContext(jsDefaultContext);
+			jsContext.setClassInfo(classInfo);
+			invokeClassHandler(jsClassHandler, jsContext);
+
+			classInfoProgress++;
+			lastLog = logProgress(classInfoProgress, classInfoCount, lastLog, classInfo);
+		}
+
+		logMetric(csDefaultContext, jsDefaultContext);
+	}
+
+	protected ConversionContext createDefaultCsContext()
+	{
+		ILanguageSpecific csSpecific = new CsSpecific();
+		StatementCount csMetric = new StatementCount("C#");
+		HashMap<String, Integer> csCalledMethods = new HashMap<>();
+		HashSet<String> csDefinedMethods = new HashSet<>();
+
+		ConversionContext csContext = new ConversionContext();
+		csContext.setLanguage(Lang.C_SHARP);
+		csContext.setTargetPath(targetPath);
+		csContext.setSnippetPath(snippetPath);
+		csContext.setPathPrefixRemove(NS_PREFIX_OSTHUS);
+		csContext.setLanguagePath(LANGUAGE_PATH_CSHARP);
+		csContext.setGenericTypeSupported(true);
+		csContext.setLanguageSpecific(csSpecific);
+		csContext.setMetric(csMetric);
+		csContext.setClassInfoManager(classInfoManager);
+		csContext.setLanguageHelper(csHelper);
+		csContext.setCalledMethods(csCalledMethods);
+		csContext.setDefinedMethods(csDefinedMethods);
+
+		return csContext;
+	}
+
+	protected ConversionContext createDefaultJsContext()
+	{
+		ILanguageSpecific jsSpecific = new JsSpecific();
+		StatementCount jsMetric = new StatementCount("JS");
+		HashMap<String, Integer> jsCalledMethods = new HashMap<>();
+		HashSet<String> jsDefinedMethods = new HashSet<>();
+
+		ConversionContext jsContext = new ConversionContext();
+		jsContext.setLanguage(Lang.JS);
+		jsContext.setTargetPath(targetPath);
+		jsContext.setSnippetPath(snippetPath);
+		jsContext.setPathPrefixRemove(NS_PREFIX_OSTHUS);
+		jsContext.setLanguagePath(LANGUAGE_PATH_JS);
+		jsContext.setGenericTypeSupported(false);
+		jsContext.setLanguageSpecific(jsSpecific);
+		jsContext.setMetric(jsMetric);
+		jsContext.setNsPrefixRemove(NS_PREFIX_OSTHUS);
+		jsContext.setClassInfoManager(classInfoManager);
+		jsContext.setLanguageHelper(jsHelper);
+		jsContext.setCalledMethods(jsCalledMethods);
+		jsContext.setDefinedMethods(jsDefinedMethods);
+
+		return jsContext;
+	}
+
+	protected ConversionContext createClassScopeContext(ConversionContext defaultContext)
+	{
+		ConversionContext context = new ConversionContext();
+
+		context.setLanguage(defaultContext.getLanguage());
+		context.setTargetPath(defaultContext.getTargetPath());
+		context.setSnippetPath(defaultContext.getSnippetPath());
+		context.setPathPrefixRemove(defaultContext.getPathPrefixRemove());
+		context.setLanguagePath(defaultContext.getLanguagePath());
+		context.setGenericTypeSupported(defaultContext.isGenericTypeSupported());
+		context.setLanguageSpecific(defaultContext.getLanguageSpecific());
+		context.setMetric(defaultContext.getMetric());
+		context.setNsPrefixRemove(defaultContext.getNsPrefixRemove());
+		context.setCalledMethods(defaultContext.getCalledMethods());
+		context.setDefinedMethods(defaultContext.getDefinedMethods());
+		context.setLanguageHelper(defaultContext.getLanguageHelper());
+		context.setClassInfoManager(classInfoManager);
+
+		return context;
+	}
+
+	protected void invokeClassHandler(IClassHandler classHandler, IConversionContext newContext)
+	{
+		IConversionContext oldContext = context.getCurrent();
+		context.setCurrent(newContext);
+		try
+		{
+			invokeHandleMethod(classHandler);
+		}
+		catch (TypeResolveException e)
+		{
+			log.error(e);
+		}
+		catch (Throwable e)
+		{
+			JavaClassInfo classInfo = newContext.getClassInfo();
+			log.error(RuntimeExceptionUtil.mask(e, "Error occured while processing type '" + classInfo.getName() + "'"));
+		}
+		finally
+		{
+			context.setCurrent(oldContext);
+		}
+	}
+
+	protected void invokeHandleMethod(final IClassHandler classHandler)
+	{
+		IConversionContext context = this.context.getCurrent();
+
+		ILanguageHelper languageHelper = classHandler.getLanguageHelper();
+
+		IBackgroundWorkerDelegate writeToWriterDelegate = new IBackgroundWorkerDelegate()
+		{
+			@Override
+			public void invoke() throws Throwable
+			{
+				classHandler.handle();
+			}
+		};
+
+		// PHASE 1: parse the current classInfo to collect all used types. We need the usedTypes to decided later which type we can reference by its simple name
+		// without ambiguity
+		HashSet<TypeUsing> usedTypes = new HashSet<TypeUsing>();
+		context.setDryRun(true);
+		context.setUsedTypes(usedTypes);
+		try
+		{
+			astHelper.writeToStash(writeToWriterDelegate);
+		}
+		catch (SkipGenerationException e)
+		{
+			return;
+		}
+		finally
+		{
+			context.setUsedTypes(null);
+			context.setDryRun(false);
+		}
+		// PHASE 2: scan all usedTypes to decide if its simple name reference is ambiguous or not
+		HashMap<String, Set<String>> simpleNameToPackagesMap = new HashMap<String, Set<String>>();
+		for (TypeUsing usedType : usedTypes)
+		{
+			String[] parsedGenericType = astHelper.parseGenericType(usedType.getTypeName());
+			Matcher matcher = CodeVisitor.fqPattern.matcher(parsedGenericType[0]);
+			if (!matcher.matches())
+			{
+				continue;
+			}
+			String packageName = matcher.group(1);
+			String simpleName = matcher.group(2);
+			Set<String> list = simpleNameToPackagesMap.get(simpleName);
+			if (list == null)
+			{
+				list = new HashSet<String>();
+				simpleNameToPackagesMap.put(simpleName, list);
+			}
+			list.add(packageName);
+		}
+		String classNamespace = languageHelper.createNamespace();
+
+		// PHASE 3: fill imports and usings information for this class file
+		LinkedHashMap<String, String> imports = new LinkedHashMap<String, String>();
+		HashSet<TypeUsing> usings = new HashSet<TypeUsing>();
+		for (Entry<String, Set<String>> entry : simpleNameToPackagesMap)
+		{
+			Set<String> packagesSet = entry.getValue();
+			if (packagesSet.size() > 1)
+			{
+				continue;
+			}
+			String packageName = (String) packagesSet.toArray()[0];
+			// simpleName is unique. So we can use an import for them
+			String fqTypeName = packageName + "." + entry.getKey();
+			imports.put(fqTypeName, entry.getKey());
+			if (classNamespace.equals(packageName))
+			{
+				// do not create a "using" for types in our own namespace
+				continue;
+			}
+			TypeUsing existingTypeUsing = usedTypes.get(new TypeUsing(fqTypeName, false));
+			TypeUsing newPackageUsing = new TypeUsing(packageName, existingTypeUsing.isInSilverlightOnly());
+			TypeUsing existingPackageUsing = usings.get(newPackageUsing);
+			if (existingPackageUsing != null)
+			{
+				boolean isInSilverlightOnly = existingPackageUsing.isInSilverlightOnly() && newPackageUsing.isInSilverlightOnly();
+				newPackageUsing = new TypeUsing(packageName, isInSilverlightOnly);
+			}
+			usings.add(newPackageUsing);
+		}
+
+		String newFileContent;
+		context.setUsings(usings.toList());
+		context.setImports(imports);
+		try
+		{
+			newFileContent = astHelper.writeToStash(writeToWriterDelegate);
+		}
+		finally
+		{
+			context.setImports(null);
+			context.setUsings(null);
+		}
+		fileUtil.updateFile(newFileContent, languageHelper.createTargetFile());
+	}
+
+	protected void logMissingMethods(String languagePath, HashMap<String, Integer> calledMethods, HashSet<String> definedMethods,
+			IClasspathManager classpathManager)
+	{
+		HashMap<String, Integer> missingMethods = new HashMap<>(calledMethods);
+		HashSet<String> existingMethods = new HashSet<>();
+		existingMethods.addAll(definedMethods);
+		existingMethods.addAll(classpathManager.getClasspathMethods());
+
+		for (String existingMethod : existingMethods)
+		{
+			missingMethods.remove(existingMethod);
+		}
+
+		Object[][] methodArray = new Object[missingMethods.size()][];
+		int index = 0;
+		for (Entry<String, Integer> missingMethod : missingMethods)
+		{
+			methodArray[index++] = new Object[] { missingMethod.getKey(), missingMethod.getValue() };
+		}
+		Arrays.sort(methodArray, METHOD_NAME_COUNT_COMPARATOR);
+
+		for (Object[] fullMethodNameCount : methodArray)
+		{
+			String fullMethodName = (String) fullMethodNameCount[0];
+			// Workaround since interface methods are not known as 'defined'
+			if (fullMethodName.startsWith("Ambeth."))
+			{
+				continue;
+			}
+
+			Integer count = (Integer) fullMethodNameCount[1];
+			todoWriter.write("Missing methods", count + "\t" + fullMethodName, languagePath, false);
+		}
+	}
+
+	protected long logProgress(int classInfoProgress, int classInfoCount, long lastLog, JavaClassInfo classInfo)
+	{
+		if (System.currentTimeMillis() - lastLog < 5000)
+		{
+			return lastLog;
+		}
+		log.info("Handled " + ((int) ((classInfoProgress * 10000) / (double) classInfoCount)) / 100.0 + "% of java source. Last conversion '"
+				+ classInfo.toString() + "'");
+		lastLog = System.currentTimeMillis();
+		return lastLog;
+	}
+
+	protected void logMetric(ConversionContext csContext, ConversionContext jsContext)
+	{
+		if (log.isInfoEnabled())
+		{
+			// TODO logMissingMethods(csCalledMethods, csDefinedMethods, IClassPathManager.EXISTING_METHODS_CS);
+
+			HashMap<String, Integer> jsCalledMethods = jsContext.getCalledMethods();
+			HashSet<String> jsDefinedMethods = jsContext.getDefinedMethods();
+			logMissingMethods(LANGUAGE_PATH_JS, jsCalledMethods, jsDefinedMethods, jsClasspathManager);
+
+			StatementCount csMetric = csContext.getMetric();
+			StatementCount jsMetric = jsContext.getMetric();
+			log.info(csMetric.toString());
+			log.info(jsMetric.toString());
+		}
+	}
+}

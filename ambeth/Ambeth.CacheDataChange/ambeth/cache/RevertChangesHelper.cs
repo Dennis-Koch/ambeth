@@ -21,6 +21,7 @@ using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Proxy;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -91,7 +92,7 @@ namespace De.Osthus.Ambeth.Cache
                 }
             });
 
-            return BeanContext.RegisterAnonymousBean<RevertChangesSavepoint>().PropertyValue("Changes", weakObjectsToBackup).Finish();
+            return BeanContext.RegisterBean<RevertChangesSavepoint>().PropertyValue("Changes", weakObjectsToBackup).Finish();
         }
 
         protected void BackupObjects(Object obj, IDictionary<Object, RevertChangesSavepoint.IBackup> originalToValueBackup)
@@ -192,10 +193,10 @@ namespace De.Osthus.Ambeth.Cache
             Object id = metaData.IdMember.GetValue(obj);
             objList.Add(obj);
             objRefs.Add(new ObjRef(metaData.EntityType, ObjRef.PRIMARY_KEY_INDEX, id, null));
-            ITypeInfoItem[] relationMembers = metaData.RelationMembers;
+            RelationMember[] relationMembers = metaData.RelationMembers;
             for (int a = relationMembers.Length; a-- > 0; )
             {
-                ITypeInfoItem relationMember = relationMembers[a];
+                RelationMember relationMember = relationMembers[a];
                 Object item = relationMember.GetValue(obj);
                 FindAllObjectsToBackup(item, objList, objRefs, alreadyProcessedSet);
             }
@@ -281,8 +282,8 @@ namespace De.Osthus.Ambeth.Cache
             if (recursive)
             {
                 IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
-                IRelationInfoItem[] relations = metaData.RelationMembers;
-                foreach (IRelationInfoItem relation in relations)
+                RelationMember[] relations = metaData.RelationMembers;
+                foreach (RelationMember relation in relations)
                 {
                     Object value = relation.GetValue(obj);
                     FillRevertList(value, alreadyScannedSet, revertList, recursive);
@@ -505,8 +506,8 @@ namespace De.Osthus.Ambeth.Cache
                                 {
                                     bool oldCacheModificationValue = CacheModification.Active;
                                     CacheModification.Active = true;
-                                    bool oldFailEarlyModeActive = AbstractCache<Object>.FailEarlyModeActive;
-                                    AbstractCache<Object>.FailEarlyModeActive = true;
+                                    bool oldFailEarlyModeActive = AbstractCache.FailInCacheHierarchyModeActive;
+                                    AbstractCache.FailInCacheHierarchyModeActive = true;
                                     try
                                     {
                                         IList<IWritableCache> firstLevelCaches = FirstLevelCacheManager.SelectFirstLevelCaches();
@@ -523,7 +524,7 @@ namespace De.Osthus.Ambeth.Cache
                                                 {
                                                     continue;
                                                 }
-                                                RootCache.ApplyValues(persistedObjectInThisCache, (ICacheIntern)firstLevelCache);
+                                                RootCache.ApplyValues(persistedObjectInThisCache, (ICacheIntern)firstLevelCache, null);
                                             }
                                         }
                                         for (int a = objectsToRevert.Count; a-- > 0; )
@@ -543,7 +544,7 @@ namespace De.Osthus.Ambeth.Cache
                                     }
                                     finally
                                     {
-                                        AbstractCache<Object>.FailEarlyModeActive = oldFailEarlyModeActive;
+                                        AbstractCache.FailInCacheHierarchyModeActive = oldFailEarlyModeActive;
                                         CacheModification.Active = oldCacheModificationValue;
                                     }
                                 }

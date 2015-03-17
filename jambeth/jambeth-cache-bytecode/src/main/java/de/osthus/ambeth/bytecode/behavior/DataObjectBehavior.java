@@ -22,7 +22,7 @@ public class DataObjectBehavior extends AbstractBehavior
 {
 	public static class CascadeBehavior extends AbstractBehavior
 	{
-		protected IEntityMetaData metaData;
+		protected final IEntityMetaData metaData;
 
 		@Autowired
 		protected IPropertyInfoProvider propertyInfoProvider;
@@ -56,7 +56,7 @@ public class DataObjectBehavior extends AbstractBehavior
 			// ToBeUpdated & ToBeDeleted have to fire PropertyChange-Events by themselves
 			String[] properties = new String[] { DataObjectVisitor.template_p_toBeUpdated.getName(), DataObjectVisitor.template_p_toBeDeleted.getName() };
 
-			CascadeBehavior2 cascadeBehavior2 = beanContext.registerWithLifecycle(new CascadeBehavior2(properties)).finish();
+			CascadeBehavior2 cascadeBehavior2 = beanContext.registerWithLifecycle(new CascadeBehavior2(metaData, properties)).finish();
 			cascadePendingBehaviors.add(cascadeBehavior2);
 
 			return visitor;
@@ -65,10 +65,13 @@ public class DataObjectBehavior extends AbstractBehavior
 
 	public static class CascadeBehavior2 extends AbstractBehavior
 	{
+		private final IEntityMetaData metaData;
+
 		private final String[] properties;
 
-		public CascadeBehavior2(String[] properties)
+		public CascadeBehavior2(IEntityMetaData metaData, String[] properties)
 		{
+			this.metaData = metaData;
 			this.properties = properties;
 		}
 
@@ -76,7 +79,7 @@ public class DataObjectBehavior extends AbstractBehavior
 		public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
 				List<IBytecodeBehavior> cascadePendingBehaviors)
 		{
-			visitor = beanContext.registerWithLifecycle(new NotifyPropertyChangedClassVisitor(visitor, properties)).finish();
+			visitor = beanContext.registerWithLifecycle(new NotifyPropertyChangedClassVisitor(visitor, metaData, properties)).finish();
 			return visitor;
 		}
 	}

@@ -14,11 +14,24 @@ using De.Osthus.Ambeth.Threading;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+#if SILVERLIGHT
+using De.Osthus.Ambeth.Util;
+#else
+using System.Threading;
+#endif
 
 namespace De.Osthus.Ambeth.Merge
 {
     public class MergeProcess : IMergeProcess
     {
+        private static readonly ThreadLocal<bool?> addNewlyPersistedEntitiesTL = new ThreadLocal<bool?>();
+
+	    public static bool IsAddNewlyPersistedEntities()
+	    {
+		    bool? value = addNewlyPersistedEntitiesTL.Value;
+            return value.HasValue && value.Value;
+	    }
+
         [LogInstance]
         public ILogger Log { private get; set; }
 
@@ -54,31 +67,56 @@ namespace De.Osthus.Ambeth.Merge
 
         public void Process(Object objectToMerge, Object objectToDelete, ProceedWithMergeHook proceedHook, MergeFinishedCallback mergeFinishedCallback)
         {
-            GuiThreadHelper.InvokeOutOfGui(delegate()
-            {
-                MergePhase1(objectToMerge, objectToDelete, proceedHook, mergeFinishedCallback);
-            });
+            Process(objectToMerge, objectToDelete, proceedHook, mergeFinishedCallback, true);
         }
 
-        protected void MergePhase1(Object objectToMerge, Object objectToDelete, ProceedWithMergeHook proceedHook, MergeFinishedCallback mergeFinishedCallback)
+        public void Process(Object objectToMerge, Object objectToDelete, ProceedWithMergeHook proceedHook, MergeFinishedCallback mergeFinishedCallback, bool addNewEntitiesToCache)
         {
-            IDisposableCache childCache = CacheFactory.Create(CacheFactoryDirective.NoDCE, false, false);
+            if (GuiThreadHelper.IsInGuiThread())
+            {
+                GuiThreadHelper.InvokeOutOfGui(delegate()
+                {
+                    MergePhase1(objectToMerge, objectToDelete, proceedHook, mergeFinishedCallback, addNewEntitiesToCache);
+                });
+            }
+            else
+            {
+                MergePhase1(objectToMerge, objectToDelete, proceedHook, mergeFinishedCallback, addNewEntitiesToCache);
+            }
+        }
+
+        protected void MergePhase1(Object objectToMerge, Object objectToDelete, ProceedWithMergeHook proceedHook, MergeFinishedCallback mergeFinishedCallback, bool addNewEntitiesToCache)
+        {
+            ICUDResult cudResult;
+		    MergeHandle mergeHandle;
+            IDisposableCache childCache = CacheFactory.Create(CacheFactoryDirective.NoDCE, false, false, "MergeProcess.ORIGINAL");
             try
             {
-                MergeHandle mergeHandle = BeanContext.RegisterAnonymousBean<MergeHandle>().PropertyValue("Cache", childCache).Finish();
-                ICUDResult cudResult = MergeController.MergeDeep(objectToMerge, mergeHandle);
-                GuiThreadHelper.InvokeInGui(delegate()
-                {
-                    MergePhase2(objectToMerge, objectToDelete, mergeHandle, cudResult, proceedHook, mergeFinishedCallback);
-                });
+                mergeHandle = BeanContext.RegisterBean<MergeHandle>()//
+					.PropertyValue("Cache", childCache)//
+					.Finish();
+			    cudResult = MergeController.MergeDeep(objectToMerge, mergeHandle);
+			    mergeHandle.Cache = null;
             }
             finally
             {
                 childCache.Dispose();
+                childCache = null;
+            }
+            if (GuiThreadHelper.IsInGuiThread())
+            {
+                MergePhase2(objectToMerge, objectToDelete, mergeHandle, cudResult, proceedHook, mergeFinishedCallback, addNewEntitiesToCache);
+            }
+            else
+            {
+                GuiThreadHelper.InvokeInGui(delegate()
+                {
+                    MergePhase2(objectToMerge, objectToDelete, mergeHandle, cudResult, proceedHook, mergeFinishedCallback, addNewEntitiesToCache);
+                });
             }
         }
 
-        protected void MergePhase2(Object objectToMerge, Object objectToDelete, MergeHandle mergeHandle, ICUDResult cudResult, ProceedWithMergeHook proceedHook, MergeFinishedCallback mergeFinishedCallback)
+        protected void MergePhase2(Object objectToMerge, Object objectToDelete, MergeHandle mergeHandle, ICUDResult cudResult, ProceedWithMergeHook proceedHook, MergeFinishedCallback mergeFinishedCallback, bool addNewEntitiesToCache)
         {
             List<Object> unpersistedObjectsToDelete = new List<Object>();
             RemoveUnpersistedDeletedObjectsFromCudResult(cudResult.AllChanges, cudResult.GetOriginalRefs(), unpersistedObjectsToDelete);
@@ -90,19 +128,27 @@ namespace De.Osthus.Ambeth.Merge
             }
 
             // Store the MergeFinishedCallback from this thread on the stack and set the property null (for following calls):
-            GuiThreadHelper.InvokeOutOfGui(delegate()
+            if (GuiThreadHelper.IsInGuiThread())
             {
-                MergePhase3(objectToMerge, unpersistedObjectsToDelete, cudResult, proceedHook, mergeFinishedCallback);
-            });
+                GuiThreadHelper.InvokeOutOfGui(delegate()
+                {
+                    MergePhase3(objectToMerge, unpersistedObjectsToDelete, cudResult, proceedHook, mergeFinishedCallback, addNewEntitiesToCache);
+                });
+            }
+            else
+            {
+                MergePhase3(objectToMerge, unpersistedObjectsToDelete, cudResult, proceedHook, mergeFinishedCallback, addNewEntitiesToCache);
+            }
         }
 
-        protected void MergePhase3(Object objectToMerge, IList<Object> unpersistedObjectsToDelete, ICUDResult cudResult, ProceedWithMergeHook proceedHook, MergeFinishedCallback mergeFinishedCallback)
+        protected void MergePhase3(Object objectToMerge, IList<Object> unpersistedObjectsToDelete, ICUDResult cudResult, ProceedWithMergeHook proceedHook, MergeFinishedCallback mergeFinishedCallback,
+            bool addNewEntitiesToCache)
         {
             // Take over callback stored threadlocally from foreign calling thread to current thread
             bool success = false;
             try
             {
-                ProcessCUDResult(objectToMerge, cudResult, unpersistedObjectsToDelete, proceedHook);
+                ProcessCUDResult(objectToMerge, cudResult, unpersistedObjectsToDelete, proceedHook, addNewEntitiesToCache);
                 success = true;
             }
             finally
@@ -261,7 +307,7 @@ namespace De.Osthus.Ambeth.Merge
         }
 
         protected virtual void ProcessCUDResult(Object objectToMerge, ICUDResult cudResult, IList<Object> unpersistedObjectsToDelete,
-            ProceedWithMergeHook proceedHook)
+            ProceedWithMergeHook proceedHook, bool addNewEntitiesToCache)
         {
             if (cudResult.AllChanges.Count > 0 || (unpersistedObjectsToDelete != null && unpersistedObjectsToDelete.Count > 0))
             {
@@ -290,8 +336,18 @@ namespace De.Osthus.Ambeth.Merge
                     EventDispatcher.Pause(Cache);
                     try
                     {
-                        oriColl = MergeService.Merge(cudResult, null);
-                        PostProcessOriCollection(cudResult, oriColl);
+                        bool? oldNewlyPersistedEntities = addNewlyPersistedEntitiesTL.Value;
+                        addNewlyPersistedEntitiesTL.Value = addNewEntitiesToCache;
+                        try
+                        {
+                            oriColl = MergeService.Merge(cudResult, null);
+
+                            MergeController.ApplyChangesToOriginals(cudResult, oriColl, null);
+                        }
+                        finally
+                        {
+                            addNewlyPersistedEntitiesTL.Value = oldNewlyPersistedEntities;
+                        }
                     }
                     finally
                     {
@@ -361,14 +417,6 @@ namespace De.Osthus.Ambeth.Merge
                 EventDispatcher.DispatchEvent(dataChange, DateTime.Now, -1);
             }
             RevertChangesHelper.RevertChanges(objectToMerge);
-        }
-
-        protected virtual void PostProcessOriCollection(ICUDResult cudResult, IOriCollection oriCollection)
-        {
-            GuiThreadHelper.InvokeInGuiAndWait(delegate()
-            {
-                MergeController.ApplyChangesToOriginals(cudResult.GetOriginalRefs(), oriCollection.AllChangeORIs, oriCollection.ChangedOn, oriCollection.ChangedBy);
-            });
         }
     }
 }

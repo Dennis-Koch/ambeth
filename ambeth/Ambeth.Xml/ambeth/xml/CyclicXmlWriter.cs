@@ -1,14 +1,11 @@
-using De.Osthus.Ambeth.Ioc;
-using De.Osthus.Ambeth.Log;
-using System;
-using De.Osthus.Ambeth.Util;
-using System.Collections.Generic;
-using De.Osthus.Ambeth.Merge;
-using De.Osthus.Ambeth.Typeinfo;
-using System.Text;
-using System.IO;
-using De.Osthus.Ambeth.Xml.PostProcess;
+using De.Osthus.Ambeth.Appendable;
 using De.Osthus.Ambeth.Collections;
+using De.Osthus.Ambeth.Ioc;
+using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Xml.PostProcess;
+using System;
+using System.IO;
+using System.Text;
 
 namespace De.Osthus.Ambeth.Xml
 {
@@ -32,7 +29,7 @@ namespace De.Osthus.Ambeth.Xml
             StringBuilder sb = new StringBuilder();
             String rootElement = XmlDictionary.RootElement;
 
-            DefaultXmlWriter writer = new DefaultXmlWriter(new StringBuilderAppendable(sb), XmlController);
+            DefaultXmlWriter writer = new DefaultXmlWriter(new AppendableStringBuilder(sb), XmlController);
 
             writer.WriteOpenElement(rootElement);
             writer.WriteObject(obj);

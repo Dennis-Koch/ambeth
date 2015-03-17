@@ -5,7 +5,7 @@ package de.osthus.ambeth.util;
  * basic Ambeth context has a bean autowired to this interface. The conversion feature is extendable via the {@wiki wikipedia_en Extensibility_pattern
  * Extensibility pattern} by implementing the {@link IDedicatedConverter} interface and linking the bean to {@link IDedicatedConverterExtendable}.
  */
-public interface IConversionHelper
+public abstract class IConversionHelper
 {
 	/**
 	 * Primary method to convert values.
@@ -16,7 +16,7 @@ public interface IConversionHelper
 	 *            Value to be converted.
 	 * @return Representation of the given value as the target type.
 	 */
-	<T> T convertValueToType(Class<T> expectedType, Object value);
+	public abstract <T> T convertValueToType(Class<T> expectedType, Object value);
 
 	/**
 	 * Secondary method to convert values to specific types. Only used if the conversion needs additional informations, e.g. lost generic types, date format,
@@ -30,5 +30,5 @@ public interface IConversionHelper
 	 *            Additional information needed for this conversion.
 	 * @return Representation of the given value as the target type.
 	 */
-	<T> T convertValueToType(Class<T> expectedType, Object value, Object additionalInformation);
+	public abstract <T> T convertValueToType(Class<T> expectedType, Object value, Object additionalInformation);
 }

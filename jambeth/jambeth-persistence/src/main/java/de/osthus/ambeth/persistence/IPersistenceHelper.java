@@ -3,6 +3,7 @@ package de.osthus.ambeth.persistence;
 import java.util.Collection;
 import java.util.List;
 
+import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.IList;
 
 public interface IPersistenceHelper
@@ -11,7 +12,7 @@ public interface IPersistenceHelper
 
 	String buildStringOfValues(List<?> ids);
 
-	StringBuilder appendStringOfValues(List<?> ids, StringBuilder sb);
+	IAppendable appendStringOfValues(List<?> ids, IAppendable sb);
 
 	IList<IList<Object>> splitValues(List<?> ids);
 
@@ -19,5 +20,5 @@ public interface IPersistenceHelper
 
 	IList<IList<Object>> splitValues(Collection<?> ids);
 
-	StringBuilder appendSplittedValues(String idColumnName, Class<?> fieldType, List<?> ids, List<Object> parameters, StringBuilder sb);
+	IAppendable appendSplittedValues(String idColumnName, Class<?> fieldType, List<?> ids, List<Object> parameters, IAppendable sb);
 }

@@ -7,6 +7,26 @@ import de.osthus.ambeth.util.IPrintable;
 
 public abstract class AbstractTypePrivilege implements ITypePrivilege, IPrintable, IImmutableType
 {
+	public static int arraySizeForIndex()
+	{
+		return 81 * 3;
+	}
+
+	public static int calcIndex(Boolean create, Boolean read, Boolean update, Boolean delete, Boolean execute)
+	{
+		return toBitValue(create, 1, 1 * 2) + toBitValue(read, 3, 3 * 2) + toBitValue(update, 9, 9 * 2) + toBitValue(delete, 27, 27 * 2)
+				+ toBitValue(execute, 81, 81 * 2);
+	}
+
+	public static int toBitValue(Boolean value, int valueIfTrue, int valueIfFalse)
+	{
+		if (value == null)
+		{
+			return 0;
+		}
+		return value.booleanValue() ? valueIfTrue : valueIfFalse;
+	}
+
 	public AbstractTypePrivilege(Boolean create, Boolean read, Boolean update, Boolean delete, Boolean execute,
 			ITypePropertyPrivilege[] primitivePropertyPrivileges, ITypePropertyPrivilege[] relationPropertyPrivileges)
 	{

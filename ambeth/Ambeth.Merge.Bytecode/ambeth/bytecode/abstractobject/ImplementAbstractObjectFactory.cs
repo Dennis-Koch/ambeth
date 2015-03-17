@@ -16,7 +16,7 @@ namespace De.Osthus.Ambeth.Bytecode.AbstractObject
      * ImplementAbstractObjectFactory implements objects based on interfaces. Optionally the implementations can inherit from an (abstract) base type
      */
     public class ImplementAbstractObjectFactory : IDisposableBean, IImplementAbstractObjectFactory, IImplementAbstractObjectFactoryExtendable,
-            IEntityFactoryExtension, IInitializingBean
+            IEntityInstantiationExtension, IInitializingBean
     {
         [LogInstance]
         public ILogger Log { private get; set; }
@@ -28,7 +28,7 @@ namespace De.Osthus.Ambeth.Bytecode.AbstractObject
         public IEntityFactory EntityFactory { protected get; set; }
 
         [Autowired]
-        public IEntityFactoryExtensionExtendable EntityFactoryExtensionExtendable { protected get; set; }
+        public IEntityInstantiationExtensionExtendable EntityInstantiationExtensionExtendable { protected get; set; }
 
         [Autowired]
         public IPropertyInfoProvider PropertyInfoProvider { protected get; set; }
@@ -38,7 +38,7 @@ namespace De.Osthus.Ambeth.Bytecode.AbstractObject
         protected readonly IMapExtendableContainer<Type, Type[]> interfaceTypes = new MapExtendableContainer<Type, Type[]>("interfaceTypes", "keyType");
 
         [Self]
-        public IEntityFactoryExtension Self { protected get; set; }
+        public IEntityInstantiationExtension Self { protected get; set; }
 
         public virtual void AfterPropertiesSet()
         {
@@ -104,7 +104,7 @@ namespace De.Osthus.Ambeth.Bytecode.AbstractObject
             if (oldBaseType == null)
             {
                 baseTypes.Register(baseType, keyType);
-                EntityFactoryExtensionExtendable.RegisterEntityFactoryExtension(Self, keyType);
+                EntityInstantiationExtensionExtendable.RegisterEntityInstantiationExtension(Self, keyType);
             }
             else
             {
@@ -186,7 +186,7 @@ namespace De.Osthus.Ambeth.Bytecode.AbstractObject
                 this.interfaceTypes.Unregister(interfaceTypes, keyType);
             }
             baseTypes.Unregister(baseType, keyType);
-            EntityFactoryExtensionExtendable.UnregisterEntityFactoryExtension(Self, keyType);
+            EntityInstantiationExtensionExtendable.UnregisterEntityInstantiationExtension(Self, keyType);
         }
 
         /**
@@ -281,14 +281,6 @@ namespace De.Osthus.Ambeth.Bytecode.AbstractObject
         public Type GetMappedEntityType(Type type)
         {
             return GetImplementingType(type);
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        public virtual Object PostProcessMappedEntity(Type originalType, IEntityMetaData metaData, Object mappedEntity)
-        {
-            return mappedEntity;
         }
     }
 }

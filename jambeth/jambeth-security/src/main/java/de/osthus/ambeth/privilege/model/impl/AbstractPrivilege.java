@@ -1,12 +1,31 @@
 package de.osthus.ambeth.privilege.model.impl;
 
+import java.io.Serializable;
+
 import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.privilege.model.IPropertyPrivilege;
 import de.osthus.ambeth.util.IImmutableType;
 import de.osthus.ambeth.util.IPrintable;
 
-public abstract class AbstractPrivilege implements IPrivilege, IPrintable, IImmutableType
+public abstract class AbstractPrivilege implements IPrivilege, IPrintable, IImmutableType, Serializable
 {
+	private static final long serialVersionUID = 1549203069449950797L;
+
+	public static int arraySizeForIndex()
+	{
+		return 1 << 8;
+	}
+
+	public static int calcIndex(boolean create, boolean read, boolean update, boolean delete, boolean execute)
+	{
+		return toBitValue(create, 0) + toBitValue(read, 1) + toBitValue(update, 2) + toBitValue(delete, 3) + toBitValue(execute, 4);
+	}
+
+	public static int toBitValue(boolean value, int startingBit)
+	{
+		return value ? 1 << startingBit : 0;
+	}
+
 	public static char upperOrLower(boolean flag, char oneChar)
 	{
 		if (flag)

@@ -50,6 +50,29 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 			    MethodInstance m_getter = MethodInstance.FindByTemplate(m_getterTemplate, true);
 			    MethodInstance m_setter = MethodInstance.FindByTemplate(m_setterTemplate, true);
 
+                if (m_getter != null && m_setter != null)
+                {
+                    // ensure both accessors are public
+                    if (!m_getter.Access.HasFlag(MethodAttributes.Public))
+                    {
+                        IMethodVisitor mv = VisitMethod(m_getter.DeriveAccess(MethodAttributes.Public));
+                        mv.LoadThis();
+                        mv.LoadArgs();
+                        mv.InvokeSuper(m_getter);
+                        mv.ReturnValue();
+                        mv.EndMethod();
+                    }
+                    if (!m_setter.Access.HasFlag(MethodAttributes.Public))
+                    {
+                        IMethodVisitor mv = VisitMethod(m_setter.DeriveAccess(MethodAttributes.Public));
+                        mv.LoadThis();
+                        mv.LoadArgs();
+                        mv.InvokeSuper(m_getter);
+                        mv.ReturnValue();
+                        mv.EndMethod();
+                    }
+                    continue;
+                }
 			    if (m_getter != null || m_setter != null)
 			    {
 				    // at least one of the accessors is explicitly implemented
@@ -140,7 +163,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                     f_backingField = new FieldInstance(FieldAttributes.Family, StringConversionHelper.LowerCaseFirst(propertyInfo.Name),
                             NewType.GetType(propertyInfo.PropertyType));
 
-                    ImplementField(f_backingField);
+                    f_backingField = ImplementField(f_backingField);
                 }
                 return f_backingField;
             }

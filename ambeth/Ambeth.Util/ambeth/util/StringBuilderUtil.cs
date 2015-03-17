@@ -24,6 +24,14 @@ namespace De.Osthus.Ambeth.Util
             }
         }
 
+        public static void AppendTabs(StringBuilder sb, int tabCount)
+	    {
+		    for (int a = tabCount; a-- > 0;)
+		    {
+			    sb.Append('\t');
+		    }
+	    }
+
         private StringBuilderUtil()
         {
         }

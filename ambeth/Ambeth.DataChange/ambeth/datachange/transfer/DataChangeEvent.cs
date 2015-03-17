@@ -130,7 +130,7 @@ namespace De.Osthus.Ambeth.Datachange.Transfer
                 return Deletes.Count == 0 && Updates.Count == 0 && Inserts.Count == 0;
             }
         }
-
+        
         public DataChangeEvent()
         {
             // Intended blank
@@ -145,6 +145,35 @@ namespace De.Osthus.Ambeth.Datachange.Transfer
             this.ChangeTime = changeTime;
             this.IsLocalSource = isLocalSource;
         }
+
+        public bool IsEmptyByType(Type entityType)
+	    {
+		    IList<IDataChangeEntry> entries = Inserts;
+		    for (int a = entries.Count; a-- > 0;)
+		    {
+			    if (entries[a].EntityType.IsAssignableFrom(entityType))
+			    {
+				    return false;
+			    }
+		    }
+		    entries = Updates;
+            for (int a = entries.Count; a-- > 0; )
+		    {
+                if (entries[a].EntityType.IsAssignableFrom(entityType))
+			    {
+				    return false;
+			    }
+		    }
+		    entries = Deletes;
+            for (int a = entries.Count; a-- > 0; )
+		    {
+                if (entries[a].EntityType.IsAssignableFrom(entityType))
+			    {
+				    return false;
+			    }
+		    }
+		    return true;
+	    }
 
         public IDataChange Derive(params Type[] interestedEntityTypes)
         {

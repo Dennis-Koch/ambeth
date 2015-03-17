@@ -59,6 +59,11 @@
     <Compile Include="ambeth\merge\IEntityMetaDataRefresher.cs" />
     <Compile Include="ambeth\merge\IValueObjectConfig.cs" />
     <Compile Include="ambeth\merge\ValueObjectMemberType.cs" />
+    <Compile Include="ambeth\metadata\IntermediateEmbeddedRelationMember.cs" />
+    <Compile Include="ambeth\metadata\IntermediateEmbeddedPrimitiveMember.cs" />
+    <Compile Include="ambeth\metadata\IntermediateRelationMember.cs" />
+    <Compile Include="ambeth\metadata\IntermediatePrimitiveMember.cs" />
+    <Compile Include="ambeth\metadata\Embeddable.cs" />
     <Compile Include="ambeth\model\ILoadContainer.cs" />
     <Compile Include="ambeth\merge\model\IObjRef.cs" />
     <Compile Include="ambeth\model\IObjRelation.cs" />
@@ -108,7 +113,7 @@
     <Compile Include="ambeth\typeinfo\TypeInfoItem.cs" />
     <Compile Include="ambeth\typeinfo\TypeInfoProvider.cs" />
     <Compile Include="ambeth\typeinfo\TypeInfoProviderFactory.cs" />
-    <Compile Include="ioc\ServiceModule.cs" />
+    <Compile Include="ambeth\ioc\ServiceModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -127,9 +132,6 @@
       <Project>{271e6992-6b52-41ee-9d4c-5a56fd173c2e}</Project>
       <Name>Ambeth.Util</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ambeth\typeinfo\RelationInfoItem.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\typeinfo\FieldInfoItem.cs" />
@@ -152,6 +154,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\proxy\MethodLevelHashMap.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\metadata\EmbeddedMember.cs" />
+    <Compile Include="ambeth\metadata\IEmbeddedMember.cs" />
+    <Compile Include="ambeth\metadata\IPrimitiveMemberWrite.cs" />
+    <Compile Include="ambeth\metadata\IRelationMemberWrite.cs" />
+    <Compile Include="ambeth\metadata\Member.cs" />
+    <Compile Include="ambeth\metadata\PrimitiveMember.cs" />
+    <Compile Include="ambeth\metadata\RelationMember.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

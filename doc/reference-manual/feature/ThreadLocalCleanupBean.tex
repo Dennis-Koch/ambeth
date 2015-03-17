@@ -1,0 +1,7 @@
+\SetAPI{J-C}
+\section{ThreadLocalCleanupBean}
+\label{feature:ThreadLocalCleanupBean}
+\ClearAPI
+Threadlocal beans are another special type of beans basically providing just one variable but exact one instance for each thread. In multithreaded purposes (e.g. multitthreaded access to databases) these type of beans enables the Ambeth container to manage beans even in multithreading scenarios.
+\TODO : type?
+Use the \type{de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean}  interface to get autocratically get informed about cleanupThreadLocal events.

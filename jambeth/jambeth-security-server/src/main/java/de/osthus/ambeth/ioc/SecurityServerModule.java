@@ -7,6 +7,7 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IMergeSecurityManager;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.privilege.IEntityPermissionRule;
 import de.osthus.ambeth.privilege.IEntityPermissionRuleExtendable;
 import de.osthus.ambeth.privilege.IEntityTypePermissionRule;
@@ -16,11 +17,16 @@ import de.osthus.ambeth.security.AuthenticationManager;
 import de.osthus.ambeth.security.DefaultServiceFilter;
 import de.osthus.ambeth.security.IActionPermission;
 import de.osthus.ambeth.security.IAuthenticationManager;
+import de.osthus.ambeth.security.IPBEncryptor;
 import de.osthus.ambeth.security.IPasswordUtil;
+import de.osthus.ambeth.security.IPrivateKeyProvider;
 import de.osthus.ambeth.security.ISecurityManager;
 import de.osthus.ambeth.security.IServiceFilterExtendable;
+import de.osthus.ambeth.security.ISignatureUtil;
+import de.osthus.ambeth.security.PBEncryptor;
 import de.osthus.ambeth.security.PasswordUtil;
-import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
+import de.osthus.ambeth.security.PersistedPrivateKeyProvider;
+import de.osthus.ambeth.security.SignatureUtil;
 import de.osthus.ambeth.security.privilegeprovider.ActionPermissionRule;
 import de.osthus.ambeth.security.proxy.SecurityPostProcessor;
 
@@ -31,26 +37,29 @@ public class SecurityServerModule implements IInitializingModule
 	@LogInstance
 	private ILogger log;
 
-	@Property(name = SecurityConfigurationConstants.SecurityActive, defaultValue = "false")
+	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean isSecurityActive;
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(PasswordUtil.class).autowireable(IPasswordUtil.class);
+		beanContextFactory.registerBean(PasswordUtil.class).autowireable(IPasswordUtil.class);
+		beanContextFactory.registerBean(PBEncryptor.class).autowireable(IPBEncryptor.class);
+		beanContextFactory.registerBean(SignatureUtil.class).autowireable(ISignatureUtil.class);
+		beanContextFactory.registerBean(PersistedPrivateKeyProvider.class).autowireable(IPrivateKeyProvider.class);
 
 		if (isSecurityActive)
 		{
-			beanContextFactory.registerAnonymousBean(SecurityPostProcessor.class);
+			beanContextFactory.registerBean(SecurityPostProcessor.class);
 
-			beanContextFactory.registerAnonymousBean(AuthenticationManager.class).autowireable(IAuthenticationManager.class);
+			beanContextFactory.registerBean(AuthenticationManager.class).autowireable(IAuthenticationManager.class);
 
-			beanContextFactory.registerAnonymousBean(de.osthus.ambeth.security.SecurityManager.class).autowireable(ISecurityManager.class,
-					IMergeSecurityManager.class, IServiceFilterExtendable.class);
+			beanContextFactory.registerBean(de.osthus.ambeth.security.SecurityManager.class).autowireable(ISecurityManager.class, IMergeSecurityManager.class,
+					IServiceFilterExtendable.class);
 
 			registerAndLinkPermissionRule(beanContextFactory, ActionPermissionRule.class, IActionPermission.class);
 
-			IBeanConfiguration defaultServiceFilterBC = beanContextFactory.registerAnonymousBean(DefaultServiceFilter.class);
+			IBeanConfiguration defaultServiceFilterBC = beanContextFactory.registerBean(DefaultServiceFilter.class);
 			beanContextFactory.link(defaultServiceFilterBC).to(IServiceFilterExtendable.class);
 		}
 	}
@@ -58,7 +67,7 @@ public class SecurityServerModule implements IInitializingModule
 	public static void registerAndLinkPermissionRule(IBeanContextFactory beanContextFactory, Class<? extends IPermissionRule> permissionRuleType,
 			Class<?>... entityTypes)
 	{
-		IBeanConfiguration permissionRule = beanContextFactory.registerAnonymousBean(permissionRuleType);
+		IBeanConfiguration permissionRule = beanContextFactory.registerBean(permissionRuleType);
 		for (Class<?> entityType : entityTypes)
 		{
 			linkPermissionRule(beanContextFactory, permissionRule, entityType);

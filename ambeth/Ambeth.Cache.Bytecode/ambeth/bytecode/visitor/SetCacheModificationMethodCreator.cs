@@ -15,7 +15,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         private static readonly MethodInstance m_callCacheModificationInternalUpdate = new MethodInstance(null, typeof(SetCacheModificationMethodCreator), typeof(void), "CallCacheModificationInternalUpdate",
         typeof(ICacheModification), typeof(bool), typeof(bool));
 
-        private static readonly String cacheModificationName = "f_cacheModification";
+        private static readonly String cacheModificationName = "__CacheModification";
 
         public static PropertyInstance GetCacheModificationPI(IClassVisitor cv)
 	    {

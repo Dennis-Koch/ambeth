@@ -30,6 +30,7 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 	protected static Properties application;
 
 	protected final LinkedHashMap<String, Object> dictionary = new LinkedHashMap<String, Object>();
+
 	protected IProperties parent;
 
 	static
@@ -137,16 +138,26 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 	@Override
 	public Object get(String key)
 	{
+		return get(key, this);
+	}
+
+	@Override
+	public Object get(String key, IProperties initiallyCalledProps)
+	{
+		if (initiallyCalledProps == null)
+		{
+			initiallyCalledProps = this;
+		}
 		Object propertyValue = dictionary.get(key);
 		if (propertyValue == null && parent != null)
 		{
-			return parent.get(key);
+			return parent.get(key, initiallyCalledProps);
 		}
 		if (!(propertyValue instanceof String))
 		{
 			return propertyValue;
 		}
-		return resolvePropertyParts((String) propertyValue);
+		return initiallyCalledProps.resolvePropertyParts((String) propertyValue);
 	}
 
 	/*
@@ -244,7 +255,12 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 	@Override
 	public String getString(String key)
 	{
-		return (String) get(key);
+		Object value = get(key);
+		if (value == null)
+		{
+			return null;
+		}
+		return value.toString();
 	}
 
 	/*

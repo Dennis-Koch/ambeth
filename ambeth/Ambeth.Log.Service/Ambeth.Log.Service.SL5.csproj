@@ -72,10 +72,10 @@
     <Reference Include="System.Windows.Browser" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ambeth\ioc\LogServiceModule.cs" />
     <Compile Include="ambeth\log\ClientLogger.cs" />
     <Compile Include="ambeth\service\ILogService.cs" />
     <Compile Include="ambeth\service\LogServiceModelProvider.cs" />
-    <Compile Include="ioc\LogServiceModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

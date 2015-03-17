@@ -1,0 +1,59 @@
+%% feature-condition=DefaultPropertiesBehavior
+\SetAPI{J-C}
+\section{Generic Interface Implementation}
+\label{feature:InterfaceImpl}
+\ClearAPI
+With \AMBETH{} it is possible to define a whole information model solely with interface entities - there is no need for an implementation of any accessor or relation or collection instantiation logic. Even if you need some complex custom logic or business specific generated values in your entities you can do that with \type{EntityTemplates} (described later in more detail) to prevent exposing the implementation of functionality to the user of your information model. This safes many lines of code which are copy\&paste in most cases any way. In addition \AMBETH{} is able to implement many sophisticated functionality of enterprise models with bytecode enhancement, too. Please take your time for the following example:
+
+\inputjava{An \AMBETH{}-managed entity defined as an interface at compile time}
+	{jambeth-examples/src/main/java/de/osthus/ambeth/example/bytecode/ExampleEntity.java}
+
+As you can see for several properties there is not even a setter defined. \AMBETH{} allows to define read-only properties - e.g. for generated values on application as well as on database layer. Six properties of an entity have a special semantic by the way \AMBETH{} manages them so there is no need (from a technical perspective) to ``see'' those setters:
+
+\begin{itemize}
+	\item \typeprop{Id}
+		\begin{itemize}
+			\item By convention the property for the primary key
+			\item The name can be customized for each entity type in your information model
+		\end{itemize}
+	\item \typeprop{Version}
+		\begin{itemize}
+			\item By convention the property for the version
+			\item Optional though recommended to \emph{always} define a version property if you are able to by any means.
+			\item The name can be customized for each entity type in your information model
+			\item In most cases (and by convention) it is an int or long with sequence-semantics - but even a timestamp semantics is possible though not recommended
+		\end{itemize}
+	\item \typeprop{UpdatedBy}
+		\begin{itemize}
+			\item Optional
+			\item If non-null describes the name of the user which implied the last update to this entity
+			\item \prettyref{feature:CurrentUser} describes what exactly the property contains from the current user
+		\end{itemize}
+	\item \typeprop{UpdatedOn}
+		\begin{itemize}
+			\item Optional
+			\item If non-null describes the time in milliseconds since 01.01.1970 (UTC) when the user (described in \typeprop{UpdatedBy}) implied the initial creation of this entity
+		\end{itemize}
+	\item \typeprop{CreatedBy}
+		\begin{itemize}
+			\item Optional
+			\item	Describes the name of the user which implied the initial creation of this entity
+			\item In most cases this will be a non-null property for any persisted entity
+		\end{itemize}
+	\item \typeprop{CreatedOn}
+		\begin{itemize}
+			\item Optional
+			\item Describes the time in milliseconds since 01.01.1970 (UTC) when the user (described in \typeprop{CreatedBy}) implied the initial creation of this entity
+			\item In most cases this will be a non-null or >=0 property for any persisted entity.
+			\item \prettyref{feature:CurrentUser} describes what exactly the property contains from the current user
+		\end{itemize}
+\end{itemize}
+
+Compare the definition above with the information we get when debugging an instance of this entity at runtime:\\
+
+\def\showimgref{img/ExampleEntity-DebugEclipse}
+\showimg{Instance of an entity interface implemented at runtime by \AMBETH{}}
+
+You might notice a bunch of generated fields in addition to the already ``expected'' fields which hold the state solely defined by the accessors on the entity interface: Each of these generated fields has been added to the base class definition in a pipeline pattern named \type{Bytecode Behaviors}. There are a dozen of behaviors specifically for enhancing entity types. There have been applied at least 7 behaviors which can be extracted from the class definition name at runtime: \emph{ExampleEntity\$A7}. For maintainability reasons in many cases \AMBETH{} applies some of the complex behaviors by subclassing the already enhanced class definition which allows to override virtual (=non-final) enhanced methods.\\
+
+Please refer to \prettyref{configuration:AmbethBytecodeTracedir} regarding the possibility to introspect all \AMBETH{} generated code for debugging or educational purpose.

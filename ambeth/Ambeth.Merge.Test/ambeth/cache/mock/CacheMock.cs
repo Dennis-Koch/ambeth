@@ -80,5 +80,15 @@ namespace De.Osthus.Ambeth.Cache.Mock
         {
             get { throw new NotImplementedException(); }
         }
+
+        public bool Privileged
+        {
+            get { return true; }
+        }
+
+        public ICache CurrentCache
+        {
+            get { return this; }
+        }
     }
 }

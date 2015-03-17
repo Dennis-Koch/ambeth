@@ -26,9 +26,9 @@ public class FilterPersistenceModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(FilterToQueryBuilder.class).autowireable(IFilterToQueryBuilder.class);
+		beanContextFactory.registerBean(FilterToQueryBuilder.class).autowireable(IFilterToQueryBuilder.class);
 
-		IBeanConfiguration queryResultCache = beanContextFactory.registerAnonymousBean(QueryResultCache.class).autowireable(IQueryResultCache.class);
+		IBeanConfiguration queryResultCache = beanContextFactory.registerBean(QueryResultCache.class).autowireable(IQueryResultCache.class);
 		beanContextFactory.link(queryResultCache, "handleClearAllCaches").to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 		beanContextFactory.link(queryResultCache, "handleDatabaseRelease").to(IEventListenerExtendable.class).with(IDatabaseReleaseEvent.class);
 		beanContextFactory.link(queryResultCache, "handleDataChange").to(IEventListenerExtendable.class).with(IDataChange.class);

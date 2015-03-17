@@ -1,26 +1,23 @@
 package de.osthus.ambeth.query;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
+import de.osthus.ambeth.appendable.AppendableStringBuilder;
+import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptyList;
+import de.osthus.ambeth.collections.EmptyMap;
 import de.osthus.ambeth.collections.HashMap;
-import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.database.ITransaction;
-import de.osthus.ambeth.database.ResultingDatabaseCallback;
-import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.filter.QueryConstants;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.EntityCursor;
 import de.osthus.ambeth.persistence.IDataCursor;
@@ -28,143 +25,76 @@ import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IServiceUtil;
 import de.osthus.ambeth.persistence.IVersionCursor;
-import de.osthus.ambeth.persistence.IVersionItem;
 import de.osthus.ambeth.persistence.Table;
 import de.osthus.ambeth.proxy.PersistenceContext;
 import de.osthus.ambeth.query.sql.ITableAliasHolder;
 import de.osthus.ambeth.util.IConversionHelper;
-import de.osthus.ambeth.util.ParamChecker;
 
 @PersistenceContext
-public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, ISubQuery<T>
+public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IServiceContext beanContext;
 
-	protected IDatabase database;
-
-	protected Class<T> entityType;
-
-	protected boolean containsSubQuery;
-
+	@Autowired
 	protected IConversionHelper conversionHelper;
 
+	@Autowired
+	protected IDatabase database;
+
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
-	protected IOperand rootOperand;
-
-	protected IOperand[] orderByOperands;
-
-	protected IOperand[] selectOperands;
-
-	protected ITableAliasHolder tableAliasHolder;
-
-	protected IStringQuery stringQuery;
-
+	@Autowired
 	protected IServiceUtil serviceUtil;
 
-	protected List<Class<?>> relatedEntityTypes;
+	@Autowired
+	protected IStringQuery stringQuery;
 
-	protected IQueryKey queryKey;
+	@Autowired
+	protected ITableAliasHolder tableAliasHolder;
 
-	protected IQueryIntern<T> transactionalQuery;
-
+	@Autowired
 	protected ITransaction transaction;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(beanContext, "BeanContext");
-		ParamChecker.assertNotNull(conversionHelper, "ConversionHelper");
-		ParamChecker.assertNotNull(database, "Database");
-		ParamChecker.assertNotNull(entityType, "EntityType");
-		ParamChecker.assertNotNull(objectCollector, "ObjectCollector");
-		ParamChecker.assertNotNull(relatedEntityTypes, "RelatedEntityTypes");
-		ParamChecker.assertNotNull(rootOperand, "RootOperand");
-		ParamChecker.assertNotNull(serviceUtil, "ServiceUtil");
-		ParamChecker.assertNotNull(stringQuery, "StringQuery");
-		ParamChecker.assertNotNull(tableAliasHolder, "tableAliasHolder");
-		ParamChecker.assertNotNull(transaction, "Transaction");
-		ParamChecker.assertNotNull(transactionalQuery, "TransactionalQuery");
-	}
+	@Property
+	protected Class<T> entityType;
 
-	public void setBeanContext(IServiceContext beanContext)
-	{
-		this.beanContext = beanContext;
-	}
+	@Property(defaultValue = "false")
+	protected boolean containsSubQuery;
 
-	public void setConversionHelper(IConversionHelper conversionHelper)
-	{
-		this.conversionHelper = conversionHelper;
-	}
+	@Property
+	protected IOperand rootOperand;
 
-	public void setDatabase(IDatabase database)
-	{
-		this.database = database;
-	}
+	@Property
+	protected IOperand[] groupByOperands;
 
-	public void setEntityType(Class<T> entityType)
-	{
-		this.entityType = entityType;
-	}
+	@Property
+	protected IOperand[] orderByOperands;
 
-	public void setContainsSubQuery(boolean containsSubQuery)
-	{
-		this.containsSubQuery = containsSubQuery;
-	}
+	@Property
+	protected IOperand limitOperand;
 
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
+	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
+	protected boolean securityActive;
 
-	public void setOrderByOperands(IOperand[] orderByOperands)
-	{
-		this.orderByOperands = orderByOperands;
-	}
+	@Property
+	protected IOperand[] selectOperands;
 
-	public void setSelectOperands(IOperand[] selectOperands)
-	{
-		this.selectOperands = selectOperands;
-	}
+	@Property
+	protected List<Class<?>> relatedEntityTypes;
 
-	public void setRelatedEntityTypes(List<Class<?>> relatedEntityTypes)
-	{
-		this.relatedEntityTypes = relatedEntityTypes;
-	}
+	@Property
+	protected IQueryIntern<T> transactionalQuery;
 
-	public void setRootOperand(IOperand rootOperand)
-	{
-		this.rootOperand = rootOperand;
-	}
+	@Property
+	protected IQueryBuilderExtension[] queryBuilderExtensions;
 
-	public void setServiceUtil(IServiceUtil serviceUtil)
-	{
-		this.serviceUtil = serviceUtil;
-	}
-
-	public void setStringQuery(IStringQuery stringQuery)
-	{
-		this.stringQuery = stringQuery;
-	}
-
-	public void setTableAliasHolder(ITableAliasHolder tableAliasHolder)
-	{
-		this.tableAliasHolder = tableAliasHolder;
-	}
-
-	public void setTransaction(ITransaction transaction)
-	{
-		this.transaction = transaction;
-	}
-
-	public void setTransactionalQuery(IQueryIntern<T> transactionalQuery)
-	{
-		this.transactionalQuery = transactionalQuery;
-	}
+	protected IQueryKey queryKey;
 
 	@Override
 	public void dispose()
@@ -189,7 +119,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 	}
 
 	@Override
-	public IQueryKey getQueryKey(Map<Object, Object> nameToValueMap)
+	public IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap)
 	{
 		if (this.queryKey == null)
 		{
@@ -208,6 +138,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 			{
 				for (int i = 0; i < sqlParts.length; i++)
 				{
+					sb.append('#');
 					if (sqlParts[i] != null)
 					{
 						sb.append(sqlParts[i]);
@@ -224,97 +155,81 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 		return this.queryKey;
 	}
 
-	protected Object retrieveAsVersionsIntern(Map<Object, Object> nameToValueMapSrc, boolean versionOnly)
+	protected Object buildCursor(IMap<Object, Object> nameToValueMapSrc, RetrievalType retrievalType, int limitValue, boolean retrieveAlternateIds)
 	{
 		if (!transaction.isActive())
 		{
 			throw new IllegalStateException(IQuery.class.getSimpleName() + ".retrieveAsVersions() can only be called from within a @"
 					+ PersistenceContext.class.getSimpleName() + ". This is because the IVersionCursor may hold active resources of underlying databases");
 		}
-		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-
 		HashMap<Object, Object> nameToValueMap = new HashMap<Object, Object>();
 		if (nameToValueMapSrc == null)
 		{
-			nameToValueMapSrc = Collections.<Object, Object> emptyMap();
+			nameToValueMapSrc = EmptyMap.emptyMap();
 		}
 		else
 		{
-			Iterator<Entry<Object, Object>> iter = nameToValueMapSrc.entrySet().iterator();
-			while (iter.hasNext())
-			{
-				Entry<Object, Object> entry = iter.next();
-				nameToValueMap.put(entry.getKey(), entry.getValue());
-			}
+			nameToValueMap.putAll(nameToValueMapSrc);
 		}
 		if (containsSubQuery)
 		{
 			nameToValueMap.put(QueryConstants.USE_TABLE_ALIAS, Boolean.TRUE);
 		}
+		if (limitValue > 0)
+		{
+			nameToValueMap.put(QueryConstants.LIMIT_VALUE, Integer.valueOf(limitValue));
+		}
+		else
+		{
+			nameToValueMap.put(QueryConstants.LIMIT_VALUE, null);
+		}
 
 		ArrayList<String> additionalSelectColumnList = new ArrayList<String>();
-		StringBuilder whereSB = tlObjectCollector.create(StringBuilder.class);
 		ArrayList<Object> parameters = new ArrayList<Object>();
-		try
+		Object pagingSizeObject = nameToValueMap.get(QueryConstants.PAGING_SIZE_OBJECT);
+
+		String[] sqlParts = getSqlParts(nameToValueMap, parameters, additionalSelectColumnList);
+		String joinSql = sqlParts[0];
+		String whereSql = sqlParts[1];
+		String orderBySql = sqlParts[2];
+		String limitSql = sqlParts[3];
+
+		String tableAlias = (stringQuery.isJoinQuery() || containsSubQuery) ? tableAliasHolder.getTableAlias() : null;
+
+		Table table = (Table) this.database.getTableByType(this.entityType);
+
+		if (RetrievalType.DATA.equals(retrievalType))
 		{
-			Object pagingSizeObject = nameToValueMap.get(QueryConstants.PAGING_SIZE_OBJECT);
-
-			String[] sqlParts = getSqlParts(nameToValueMap, parameters, additionalSelectColumnList);
-			String joinSql = sqlParts[0];
-			String whereSql = sqlParts[1];
-			String orderBySql = sqlParts[2];
-
-			String tableAlias = (stringQuery.isJoinQuery() || containsSubQuery) ? tableAliasHolder.getTableAlias() : null;
-
-			Table table = (Table) this.database.getTableByType(this.entityType);
-
-			if (!versionOnly)
-			{
-				fillAdditionalFieldsSQL(additionalSelectColumnList, null, nameToValueMap, stringQuery.isJoinQuery(), parameters);
-			}
-			if (pagingSizeObject == null)
-			{
-				if (!orderBySql.isEmpty())
-				{
-					whereSB.append(whereSql).append(' ').append(orderBySql);
-					if (versionOnly)
-					{
-						return table.selectVersionJoin(additionalSelectColumnList, joinSql, whereSB, parameters, tableAlias);
-					}
-					return table.selectDataJoin(additionalSelectColumnList, joinSql, whereSB, parameters, tableAlias);
-				}
-				else if (versionOnly)
-				{
-					return table.selectVersionJoin(additionalSelectColumnList, joinSql, whereSql, parameters, tableAlias);
-				}
-				else
-				{
-					return table.selectDataJoin(additionalSelectColumnList, joinSql, whereSql, parameters, tableAlias);
-				}
-			}
-			else
-			{
-				Object pagingIndexObject = nameToValueMap.get(QueryConstants.PAGING_INDEX_OBJECT);
-
-				int pagingLimit = conversionHelper.convertValueToType(Integer.TYPE, pagingSizeObject);
-				int pagingOffset = conversionHelper.convertValueToType(Integer.TYPE, pagingIndexObject);
-
-				if (versionOnly)
-				{
-					return table.selectVersionPaging(additionalSelectColumnList, joinSql, whereSql, orderBySql, pagingOffset, pagingLimit, parameters,
-							tableAlias);
-				}
-				return table.selectDataPaging(additionalSelectColumnList, joinSql, whereSql, orderBySql, pagingOffset, pagingLimit, parameters);
-			}
+			fillAdditionalFieldsSQL(additionalSelectColumnList, null, nameToValueMap, stringQuery.isJoinQuery(), parameters);
 		}
-		finally
+		if (pagingSizeObject == null)
 		{
-			tlObjectCollector.dispose(whereSB);
+			if (RetrievalType.VERSION.equals(retrievalType))
+			{
+				return table.selectVersionJoin(additionalSelectColumnList, joinSql, whereSql, orderBySql, limitSql, parameters, tableAlias,
+						retrieveAlternateIds);
+			}
+			else if (RetrievalType.COUNT.equals(retrievalType))
+			{
+				return Long.valueOf(table.selectCountJoin(joinSql, whereSql, orderBySql, parameters, tableAlias));
+			}
+			return table.selectDataJoin(additionalSelectColumnList, joinSql, whereSql, orderBySql, limitSql, parameters, tableAlias);
 		}
+		Object pagingIndexObject = nameToValueMap.get(QueryConstants.PAGING_INDEX_OBJECT);
+
+		int pagingLimit = conversionHelper.convertValueToType(Integer.TYPE, pagingSizeObject);
+		int pagingOffset = conversionHelper.convertValueToType(Integer.TYPE, pagingIndexObject);
+
+		if (RetrievalType.VERSION.equals(retrievalType))
+		{
+			return table.selectVersionPaging(additionalSelectColumnList, joinSql, whereSql, orderBySql, limitSql, pagingOffset, pagingLimit, parameters,
+					tableAlias, retrieveAlternateIds);
+		}
+		return table.selectDataPaging(additionalSelectColumnList, joinSql, whereSql, orderBySql, limitSql, pagingOffset, pagingLimit, parameters);
 	}
 
 	@Override
-	public String[] getSqlParts(Map<Object, Object> nameToValueMap, List<Object> parameters, List<String> additionalSelectColumnList)
+	public String[] getSqlParts(IMap<Object, Object> nameToValueMap, IList<Object> parameters, IList<String> additionalSelectColumnList)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 
@@ -323,7 +238,10 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 		{
 			nameToValueMap.put(QueryConstants.USE_TABLE_ALIAS, Boolean.TRUE);
 		}
-
+		for (IQueryBuilderExtension queryBuilderExtension : queryBuilderExtensions)
+		{
+			queryBuilderExtension.applyOnQuery(nameToValueMap, parameters, additionalSelectColumnList);
+		}
 		String joinSql, whereSql;
 		boolean joinQuery = stringQuery.isJoinQuery();
 		if (!joinQuery)
@@ -338,25 +256,28 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 			joinSql = sqlParts[0];
 			whereSql = sqlParts[1];
 		}
-		StringBuilder orderBySB = tlObjectCollector.create(StringBuilder.class);
+		AppendableStringBuilder tempSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
 		{
-			fillOrderBySQL(additionalSelectColumnList, orderBySB, nameToValueMap, joinQuery, parameters);
-
-			String[] sqlParts = { joinSql, whereSql, orderBySB.toString() };
+			fillOrderBySQL(additionalSelectColumnList, tempSB, nameToValueMap, joinQuery, parameters);
+			String orderBySql = tempSB.length() > 0 ? tempSB.toString() : null;
+			tempSB.reset();
+			fillLimitSQL(additionalSelectColumnList, tempSB, nameToValueMap, joinQuery, parameters);
+			String limitSql = tempSB.length() > 0 ? tempSB.toString() : null;
+			String[] sqlParts = { joinSql, whereSql, orderBySql, limitSql };
 			return sqlParts;
 		}
 		finally
 		{
 			nameToValueMap.put(QueryConstants.USE_TABLE_ALIAS, useTableAliasOriginal);
-			tlObjectCollector.dispose(orderBySB);
+			tlObjectCollector.dispose(tempSB);
 		}
 	}
 
-	protected void fillOrderBySQL(List<String> additionalSelectColumnList, StringBuilder orderBySB, Map<Object, Object> nameToValueMap, boolean joinQuery,
-			List<Object> parameters)
+	protected void fillOrderBySQL(List<String> additionalSelectColumnList, IAppendable orderBySB, IMap<Object, Object> nameToValueMap, boolean joinQuery,
+			IList<Object> parameters)
 	{
-		if (orderByOperands == null)
+		if (orderByOperands.length == 0 && groupByOperands.length == 0)
 		{
 			return;
 		}
@@ -364,14 +285,24 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 		nameToValueMap.put(QueryConstants.ADDITIONAL_SELECT_SQL_SB, additionalSelectColumnList);
 		try
 		{
+			boolean firstGroupBy = true;
+			for (int a = 0, size = groupByOperands.length; a < size; a++)
+			{
+				if (firstGroupBy)
+				{
+					orderBySB.append("GROUP BY ");
+					firstGroupBy = false;
+				}
+				else
+				{
+					orderBySB.append(',');
+				}
+				groupByOperands[a].expandQuery(orderBySB, nameToValueMap, joinQuery, parameters);
+			}
 			for (int a = 0, size = orderByOperands.length; a < size; a++)
 			{
 				orderByOperands[a].expandQuery(orderBySB, nameToValueMap, joinQuery, parameters);
 			}
-		}
-		catch (IOException e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally
 		{
@@ -380,10 +311,20 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 		}
 	}
 
-	protected void fillAdditionalFieldsSQL(List<String> additionalSelectColumnList, Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery,
-			List<Object> parameters)
+	protected void fillLimitSQL(List<String> additionalSelectColumnList, IAppendable limitSB, IMap<Object, Object> nameToValueMap, boolean joinQuery,
+			IList<Object> parameters)
 	{
-		if (selectOperands == null)
+		if (limitOperand == null)
+		{
+			return;
+		}
+		limitOperand.expandQuery(limitSB, nameToValueMap, joinQuery, parameters);
+	}
+
+	protected void fillAdditionalFieldsSQL(IList<String> additionalSelectColumnList, IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			boolean joinQuery, IList<Object> parameters)
+	{
+		if (selectOperands.length == 0)
 		{
 			return;
 		}
@@ -395,10 +336,6 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 				selectOperands[a].expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 			}
 		}
-		catch (IOException e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
 		finally
 		{
 			nameToValueMap.remove(QueryConstants.ADDITIONAL_SELECT_SQL_SB);
@@ -408,25 +345,37 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 	@Override
 	public IVersionCursor retrieveAsVersions()
 	{
-		return (IVersionCursor) retrieveAsVersionsIntern(null, true);
+		return (IVersionCursor) buildCursor(null, RetrievalType.VERSION, 0, true);
 	}
 
 	@Override
-	public IVersionCursor retrieveAsVersions(Map<Object, Object> nameToValueMap)
+	public IVersionCursor retrieveAsVersions(boolean retrieveAlternateIds)
 	{
-		return (IVersionCursor) retrieveAsVersionsIntern(nameToValueMap, true);
+		return (IVersionCursor) buildCursor(null, RetrievalType.VERSION, 0, retrieveAlternateIds);
+	}
+
+	@Override
+	public IVersionCursor retrieveAsVersions(IMap<Object, Object> nameToValueMap)
+	{
+		return (IVersionCursor) buildCursor(nameToValueMap, RetrievalType.VERSION, 0, true);
+	}
+
+	@Override
+	public IVersionCursor retrieveAsVersions(IMap<Object, Object> nameToValueMap, boolean retrieveAlternateIds)
+	{
+		return (IVersionCursor) buildCursor(nameToValueMap, RetrievalType.VERSION, 0, retrieveAlternateIds);
 	}
 
 	@Override
 	public IDataCursor retrieveAsData()
 	{
-		return (IDataCursor) retrieveAsVersionsIntern(null, false);
+		return (IDataCursor) buildCursor(null, RetrievalType.DATA, 0, false);
 	}
 
 	@Override
-	public IDataCursor retrieveAsData(Map<Object, Object> nameToValueMap)
+	public IDataCursor retrieveAsData(IMap<Object, Object> nameToValueMap)
 	{
-		return (IDataCursor) retrieveAsVersionsIntern(nameToValueMap, false);
+		return (IDataCursor) buildCursor(nameToValueMap, RetrievalType.DATA, 0, false);
 	}
 
 	@Override
@@ -436,7 +385,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 	}
 
 	@Override
-	public IEntityCursor<T> retrieveAsCursor(Map<Object, Object> nameToValueMap)
+	public IEntityCursor<T> retrieveAsCursor(IMap<Object, Object> nameToValueMap)
 	{
 		IVersionCursor cursor = retrieveAsVersions(nameToValueMap);
 		return new EntityCursor<T>(cursor, this.entityType, this.serviceUtil);
@@ -450,7 +399,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public IList<T> retrieve(Map<Object, Object> nameToValueMap)
+	public IList<T> retrieve(IMap<Object, Object> nameToValueMap)
 	{
 		IVersionCursor cursor = retrieveAsVersions(nameToValueMap);
 		if (cursor == null)
@@ -463,43 +412,50 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 	}
 
 	@Override
-	public IVersionItem retrieveAsVersion()
+	public T retrieveSingle()
 	{
-		if (!transaction.isActive())
-		{
-			return transaction.processAndCommit(new ResultingDatabaseCallback<IVersionItem>()
-			{
-
-				@Override
-				public IVersionItem callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-				{
-					return retrieveAsVersion();
-				}
-			});
-		}
-		IVersionCursor cursor = retrieveAsVersions();
-		if (cursor == null || !cursor.moveNext())
+		IList<T> result = retrieve();
+		if (result == null || result.size() == 0)
 		{
 			return null;
 		}
-		IVersionItem item = cursor.getCurrent();
-		cursor.dispose();
-		return item;
+		if (result.size() != 1)
+		{
+			throw new IllegalStateException("Query result is not unique: " + result.size());
+		}
+		return result.get(0);
 	}
 
 	@Override
-	public T retrieveSingle()
+	public long count()
 	{
-		IList<T> resultList = retrieve();
-		if (resultList == null)
+		return count(null);
+	}
+
+	@Override
+	public long count(IMap<Object, Object> paramNameToValueMap)
+	{
+		return ((Long) buildCursor(paramNameToValueMap, RetrievalType.COUNT, 0, false)).longValue();
+	}
+
+	@Override
+	public boolean isEmpty()
+	{
+		return isEmpty(null);
+	}
+
+	@Override
+	public boolean isEmpty(IMap<Object, Object> paramNameToValueMap)
+	{
+		IVersionCursor versionCursor = (IVersionCursor) buildCursor(paramNameToValueMap, RetrievalType.VERSION, 1, false);
+		try
 		{
-			return null;
+			return !versionCursor.moveNext();
 		}
-		if (resultList.size() == 0)
+		finally
 		{
-			return null;
+			versionCursor.dispose();
 		}
-		return resultList.get(0);
 	}
 
 	@Override

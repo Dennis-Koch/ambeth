@@ -18,12 +18,13 @@ import de.osthus.ambeth.model.Unit;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.service.IMaterialService;
 import de.osthus.ambeth.service.TestServicesModule;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.ParamChecker;
 
 @TestModule({ TestServicesModule.class })
@@ -32,7 +33,7 @@ import de.osthus.ambeth.util.ParamChecker;
 @TestPropertiesList({ @TestProperties(name = PersistenceConfigurationConstants.DatabaseTablePrefix, value = "D_"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabaseFieldPrefix, value = "F_"),
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml") })
-public class RootCacheInvalidationTest extends AbstractPersistenceTest
+public class RootCacheInvalidationTest extends AbstractInformationBusWithPersistenceTest
 {
 	protected ICacheContext cacheContext;
 
@@ -76,11 +77,11 @@ public class RootCacheInvalidationTest extends AbstractPersistenceTest
 	@Test
 	public void testRootCacheDataChangePerformance() throws Throwable
 	{
-		final IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE);
-		cacheContext.executeWithCache(cache, new ISingleCacheRunnable<Object>()
+		final IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
+		cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>()
 		{
 			@Override
-			public Object run() throws Throwable
+			public Object invoke() throws Throwable
 			{
 				MaterialGroup mg = cache.getObject(MaterialGroup.class, "pl");
 				Unit unit = cache.getObject(Unit.class, (long) 1);
@@ -116,11 +117,11 @@ public class RootCacheInvalidationTest extends AbstractPersistenceTest
 	@Test
 	public void testRootCacheInvalidation2() throws Throwable
 	{
-		final IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE);
-		cacheContext.executeWithCache(cache, new ISingleCacheRunnable<Object>()
+		final IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, "test");
+		cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>()
 		{
 			@Override
-			public Object run() throws Throwable
+			public Object invoke() throws Throwable
 			{
 				MaterialGroup mg = cache.getObject(MaterialGroup.class, "pl");
 				Unit unit = cache.getObject(Unit.class, (long) 1);

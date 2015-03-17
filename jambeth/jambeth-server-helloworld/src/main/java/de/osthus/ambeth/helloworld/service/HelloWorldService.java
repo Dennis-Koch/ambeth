@@ -15,7 +15,7 @@ import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.proxy.Service;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.security.SecurityContext;
-import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
+import de.osthus.ambeth.security.SecurityContextType;
 import de.osthus.ambeth.util.ParamChecker;
 
 @Service(name = "HelloWorldService", value = IHelloWorldService.class)

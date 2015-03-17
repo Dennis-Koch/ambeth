@@ -4,17 +4,17 @@ import de.osthus.ambeth.merge.IObjRefProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
+import de.osthus.ambeth.metadata.Member;
 
 public class MappingObjRefProvider implements IObjRefProvider
 {
-	protected final ITypeInfoItem refBOBuidMember;
+	protected final Member refBOBuidMember;
 
-	protected final ITypeInfoItem refBOVersionMember;
+	protected final Member refBOVersionMember;
 
 	protected final byte refBOBuidIndex;
 
-	public MappingObjRefProvider(ITypeInfoItem refBOBuidMember, ITypeInfoItem refBOVersionMember, byte refBOBuidIndex)
+	public MappingObjRefProvider(Member refBOBuidMember, Member refBOVersionMember, byte refBOBuidIndex)
 	{
 		this.refBOBuidMember = refBOBuidMember;
 		this.refBOVersionMember = refBOVersionMember;

@@ -22,9 +22,6 @@ public final class ServiceConfigurationConstants
 	public static final String TypeInfoProviderType = "service.typeinfoprovider.type";
 
 	@ConfigurationConstantDescription("TODO")
-	public static final String ServiceRemoteInterceptorType = "service.remoteinterceptor.type";
-
-	@ConfigurationConstantDescription("TODO")
 	public static final String ToOneDefaultCascadeLoadMode = "cache.cascadeload.toone";
 
 	@ConfigurationConstantDescription("TODO")
@@ -53,15 +50,6 @@ public final class ServiceConfigurationConstants
 
 	@ConfigurationConstantDescription("TODO")
 	public static final String IndependentMetaData = "metadata.independent";
-
-	@ConfigurationConstantDescription("TODO")
-	public static final String ProcessServiceBeanActive = "process.service.active";
-
-	@ConfigurationConstantDescription("TODO")
-	public static final String UserName = "username";
-
-	@ConfigurationConstantDescription("TODO")
-	public static final String Password = "password";
 
 	@ConfigurationConstantDescription("TODO")
 	public static final String mappingFile = "mapping.file";

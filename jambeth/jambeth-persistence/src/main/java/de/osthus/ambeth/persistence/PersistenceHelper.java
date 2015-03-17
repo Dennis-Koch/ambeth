@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import de.osthus.ambeth.appendable.AppendableStringBuilder;
+import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.Property;
@@ -103,7 +105,7 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 	@Override
 	public IList<String> buildStringListOfValues(List<?> values)
 	{
-		StringBuilder sb = objectCollector.create(StringBuilder.class);
+		AppendableStringBuilder sb = objectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			int currentBatchSize = 0;
@@ -130,7 +132,7 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 					{
 						sqlStrings.add(sb.toString());
 						currentBatchSize = 0;
-						sb.setLength(0);
+						sb.reset();
 						first = true;
 					}
 				}
@@ -145,7 +147,7 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 			if (sb.length() > 0)
 			{
 				sqlStrings.add(sb.toString());
-				sb.setLength(0);
+				sb.reset();
 			}
 
 			return sqlStrings;
@@ -159,7 +161,7 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 	@Override
 	public String buildStringOfValues(List<?> values)
 	{
-		StringBuilder sb = objectCollector.create(StringBuilder.class);
+		AppendableStringBuilder sb = objectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			return appendStringOfValues(values, sb).toString();
@@ -171,7 +173,7 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 	}
 
 	@Override
-	public StringBuilder appendStringOfValues(List<?> values, StringBuilder sb)
+	public IAppendable appendStringOfValues(List<?> values, IAppendable sb)
 	{
 		boolean first = true;
 
@@ -192,7 +194,7 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 	}
 
 	@Override
-	public StringBuilder appendSplittedValues(String idColumnName, Class<?> fieldType, List<?> ids, List<Object> parameters, StringBuilder sb)
+	public IAppendable appendSplittedValues(String idColumnName, Class<?> fieldType, List<?> ids, List<Object> parameters, IAppendable sb)
 	{
 		if (ids.size() > maxInClauseBatchThreshold)
 		{

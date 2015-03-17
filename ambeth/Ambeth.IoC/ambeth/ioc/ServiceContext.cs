@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
-using De.Osthus.Ambeth.Collections;
+﻿using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Hierarchy;
 using De.Osthus.Ambeth.Ioc.Config;
 using De.Osthus.Ambeth.Ioc.Exceptions;
@@ -10,7 +6,12 @@ using De.Osthus.Ambeth.Ioc.Factory;
 using De.Osthus.Ambeth.Ioc.Hierarchy;
 using De.Osthus.Ambeth.Ioc.Link;
 using De.Osthus.Ambeth.Log;
+using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Util;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading;
 
 namespace De.Osthus.Ambeth.Ioc
 {
@@ -26,12 +27,15 @@ namespace De.Osthus.Ambeth.Ioc
 		    return new ArgumentException("A bean is already bound to name " + beanName + ".\nBean 1: " + bean1 + "\nBean 2: " + bean2);
 	    }
 
+        protected static readonly Random rnd = new Random();
+
         protected LinkedHashMap<String, Object> nameToServiceDict;
+
         protected readonly HashMap<Type, Object> typeToServiceDict = new HashMap<Type, Object>();
 
         protected IList<ILinkContainer> linkContainers;
 
-        protected IList<Object> disposableObjects;
+        protected List<Object> disposableObjects;
 
         protected IList<IBeanPreProcessor> preProcessors;
         protected IList<IBeanPostProcessor> postProcessors;
@@ -131,10 +135,14 @@ namespace De.Osthus.Ambeth.Ioc
 
         public void ChildContextDisposed(IServiceContext childContext)
         {
+            if (children == null)
+            {
+                return;
+            }
             writeLock.Lock();
             try
             {
-                this.children.Remove(childContext);
+                children.Remove(childContext);
             }
             finally
             {
@@ -440,11 +448,11 @@ namespace De.Osthus.Ambeth.Ioc
                                 }
                             }
                         }
-                        else if (disposableObject is WaitCallback)
+                        else if (disposableObject is IBackgroundWorkerParamDelegate<IServiceContext>)
                         {
                             try
                             {
-                                ((WaitCallback)disposableObject).Invoke(this);
+                                ((IBackgroundWorkerParamDelegate<IServiceContext>)disposableObject).Invoke(this);
                             }
                             catch (System.Exception e)
                             {
@@ -500,15 +508,15 @@ namespace De.Osthus.Ambeth.Ioc
             return CreateService(contextName, null, serviceModuleTypes);
         }
 
-        public IServiceContext CreateService(RegisterPhaseDelegate registerPhaseDelegate, params Type[] serviceModuleTypes)
+        public IServiceContext CreateService(IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, params Type[] serviceModuleTypes)
         {
             return CreateService(null, registerPhaseDelegate, serviceModuleTypes);
         }
 
-        public IServiceContext CreateService(String contextName, RegisterPhaseDelegate registerPhaseDelegate, params Type[] serviceModuleTypes)
+        public IServiceContext CreateService(String contextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, params Type[] serviceModuleTypes)
         {
             CheckNotDisposed();
-            IBeanContextInitializer beanContextInitializer = RegisterAnonymousBean<BeanContextInitializer>().Finish();
+            IBeanContextInitializer beanContextInitializer = RegisterBean<BeanContextInitializer>().Finish();
 
             if (contextName == null && registerPhaseDelegate == null && serviceModuleTypes.Length == 1)
             {
@@ -543,15 +551,15 @@ namespace De.Osthus.Ambeth.Ioc
             return CreateService<I>(contextName, null, serviceModuleTypes);
         }
 
-        public IBeanContextHolder<I> CreateService<I>(RegisterPhaseDelegate registerPhaseDelegate, params Type[] serviceModuleTypes)
+        public IBeanContextHolder<I> CreateService<I>(IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, params Type[] serviceModuleTypes)
         {
             return CreateService<I>(null, registerPhaseDelegate, serviceModuleTypes);
         }
 
-        public IBeanContextHolder<I> CreateService<I>(String contextName, RegisterPhaseDelegate registerPhaseDelegate, params Type[] serviceModuleTypes)
+        public IBeanContextHolder<I> CreateService<I>(String contextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, params Type[] serviceModuleTypes)
         {
             CheckNotDisposed();
-            IBeanContextInitializer beanContextInitializer = RegisterAnonymousBean<BeanContextInitializer>().Finish();
+            IBeanContextInitializer beanContextInitializer = RegisterBean<BeanContextInitializer>().Finish();
 
             if (contextName == null && registerPhaseDelegate == null && serviceModuleTypes.Length == 1)
             {
@@ -755,61 +763,69 @@ namespace De.Osthus.Ambeth.Ioc
 
         public void RegisterDisposable(IDisposableBean disposableBean)
         {
-            CheckNotDisposed();
-            ParamChecker.AssertParamNotNull(disposableBean, "disposableBean");
-            if (IsRunning)
-            {
-                Lock writeLock = this.writeLock;
-                writeLock.Lock();
-                try
-                {
-                    if (this.disposableObjects == null)
-                    {
-                        this.disposableObjects = new List<Object>();
-                    }
-                    IList<Object> disposableObjects = this.disposableObjects;
-                    if (disposableObjects.Count % 100 == 0)
-                    {
-                        for (int a = disposableObjects.Count; a-- > 0; )
-                        {
-                            Object disposableObject = disposableObjects[a];
-                            if (disposableObject is WeakReference)
-                            {
-                                disposableObject = ((WeakReference)disposableObject).Target;
-                            }
-                            if (disposableObject == null)
-                            {
-                                disposableObjects.RemoveAt(a);
-                            }
-                        }
-                    }
-                    disposableObjects.Add(new WeakReference(disposableBean));
-                }
-                finally
-                {
-                    writeLock.Unlock();
-                }
-            }
-            else
-            {
-                if (this.disposableObjects == null)
-                {
-                    this.disposableObjects = new List<Object>();
-                }
-                disposableObjects.Add(disposableBean);
-            }
+            RegisterDisposableIntern(disposableBean, true);
         }
 
-        public void RegisterDisposeHook(WaitCallback waitCallback)
+        public void RegisterDisposeHook(IBackgroundWorkerParamDelegate<IServiceContext> waitCallback)
         {
-            CheckNotDisposed();
-            ParamChecker.AssertParamNotNull(waitCallback, "waitCallback");
-            if (disposableObjects == null)
-            {
-                disposableObjects = new List<Object>();
-            }
-            disposableObjects.Add(waitCallback);
+            RegisterDisposableIntern(waitCallback, false);
         }
+
+        public void AddDisposables(IList<Object> disposableObjects)
+        {
+            if (this.disposableObjects == null)
+            {
+                this.disposableObjects = new List<Object>(disposableObjects.Count);
+            }
+            this.disposableObjects.AddRange(disposableObjects);
+        }
+
+        protected void RegisterDisposableIntern(Object obj, bool registerWeakOnRunning)
+	    {
+		    CheckNotDisposed();
+		    ParamChecker.AssertParamNotNull(obj, "obj");
+		    if (!IsRunning)
+		    {
+			    if (disposableObjects == null)
+			    {
+				    disposableObjects = new List<Object>();
+			    }
+			    disposableObjects.Add(obj);
+                return;
+		    }
+		    Lock writeLock = this.writeLock;
+		    writeLock.Lock();
+		    try
+		    {
+			    List<Object> disposableObjects = this.disposableObjects;
+			    if (disposableObjects == null)
+			    {
+				    disposableObjects = new List<Object>();
+				    this.disposableObjects = disposableObjects;
+			    }
+			    // "monte carlo" approach to check for disposable objects without noticeable impact on the runtime performance
+			    while (disposableObjects.Count > 0)
+			    {
+				    int randomIndex = rnd.Next(disposableObjects.Count);
+				    Object disposableObject = disposableObjects[randomIndex];
+				    if (disposableObject is WeakReference)
+				    {
+					    disposableObject = ((WeakReference) disposableObject).Target;
+				    }
+				    if (disposableObject != null)
+				    {
+					    // not a collected object. we finish the search for collected disposables
+					    break;
+				    }
+				    disposableObjects.RemoveAt(randomIndex);
+			    }
+			    disposableObjects.Add(registerWeakOnRunning ? new WeakReference(obj) : obj);
+		    }
+		    finally
+		    {
+			    writeLock.Unlock();
+		    }
+	    }
 
         public I GetService<I>()
         {
@@ -835,7 +851,6 @@ namespace De.Osthus.Ambeth.Ioc
                 readLock.Unlock();
             }
         }
-
 
         public I GetServiceIntern<I>(SearchType searchType)
         {
@@ -1164,14 +1179,25 @@ namespace De.Osthus.Ambeth.Ioc
             }
         }
 
-
+        [Obsolete]
         public IBeanRuntime<V> RegisterAnonymousBean<V>()
+        {
+            return RegisterBean<V>();
+        }
+
+        [Obsolete]
+        public IBeanRuntime<Object> RegisterAnonymousBean<Object>(Type type)
+        {
+            return RegisterBean<Object>(type);
+        }
+
+        public IBeanRuntime<V> RegisterBean<V>()
         {
             CheckNotDisposed();
             return new BeanRuntime<V>(this, typeof(V), true);
         }
 
-        public IBeanRuntime<Object> RegisterAnonymousBean<Object>(Type type)
+        public IBeanRuntime<Object> RegisterBean<Object>(Type type)
         {
             CheckNotDisposed();
             ParamChecker.AssertParamNotNull(type, "type");

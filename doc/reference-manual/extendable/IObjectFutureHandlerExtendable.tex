@@ -1,0 +1,24 @@
+\SetAPI{J-C}
+\section{IObjectFutureHandlerExtendable}
+\label{extendable:IObjectFutureHandlerExtendable}
+\ClearAPI
+\javadoc{de.osthus.ambeth.xml.pending.IObjectFutureHandlerExtendable}{IObjectFutureHandlerExtendable}
+\javadoc{de.osthus.ambeth.xml.pending.IObjectFutureHandler}{IObjectFutureHandler}
+\TODO
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{IObjectFutureHandler}}
+{jambeth-xml/src/main/java/de/osthus/ambeth/xml/pending/IObjectFutureHandlerExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+bcf.link(myExtension).to(IObjectFutureHandlerExtendable.class).with(...);
+\end{lstlisting}
+\inputcsharp{Extension point for instances of \type{IObjectFutureHandler}}
+{Ambeth.Xml/ambeth/xml/pending/IObjectFutureHandlerExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<IObjectFutureHandlerExtendable>().With(...);
+\end{lstlisting}
+%% GENERATED LISTINGS END

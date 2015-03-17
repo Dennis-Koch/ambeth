@@ -25,6 +25,11 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 			// Type matched exactly - 'strong' registration
 			return 0;
 		}
+		if (existingRequestedType.isArray() && type.isArray())
+		{
+			// if both types are an array their distance is measured by the distance of their component type
+			return getDistanceForType(existingRequestedType.getComponentType(), type.getComponentType());
+		}
 		int bestDistance = Integer.MAX_VALUE;
 		Class<?>[] currInterfaces = existingRequestedType.getInterfaces();
 
@@ -76,6 +81,26 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 	public ClassExtendableContainer(String message, String keyMessage, boolean multiValue)
 	{
 		super(message, keyMessage, multiValue);
+	}
+
+	@SuppressWarnings("unchecked")
+	public void clearWeakCache()
+	{
+		Lock writeLock = getWriteLock();
+		writeLock.lock();
+		try
+		{
+			ClassExtendableContainer<V> tempCC = new ClassExtendableContainer<V>("", "");
+			for (Entry<Class<?>, Object> entry : this)
+			{
+				tempCC.register((V) entry.getValue(), entry.getKey());
+			}
+			this.classEntry = tempCC.classEntry;
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
 	}
 
 	public V getExtensionHardKey(Class<?> key)

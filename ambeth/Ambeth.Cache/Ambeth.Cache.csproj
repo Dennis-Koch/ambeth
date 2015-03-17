@@ -51,14 +51,17 @@
     <Compile Include="ambeth\cache\CacheRetrieverRegistry.cs" />
     <Compile Include="ambeth\cache\ChildCache.cs" />
     <Compile Include="ambeth\cache\AbstractCache.cs" />
-    <Compile Include="ambeth\cache\CacheUnmodifiedObjectProvider.cs" />
+    <Compile Include="ambeth\cache\config\CacheConfigurationConstants.cs" />
+    <Compile Include="ambeth\cache\config\CacheNamedBeans.cs" />
+    <Compile Include="ambeth\cache\ExecuteServiceDelegate.cs" />
+    <Compile Include="ambeth\cache\GetDataDelegate.cs" />
+    <Compile Include="ambeth\cache\interceptor\SingleCacheProvider.cs" />
+    <Compile Include="ambeth\cache\IParentEntityAware.cs" />
     <Compile Include="ambeth\cache\IParentCacheValueHardRef.cs" />
     <Compile Include="ambeth\cache\FlcEntry.cs" />
     <Compile Include="ambeth\cache\interceptor\TransactionalRootCacheInterceptor.cs" />
-    <Compile Include="ambeth\cache\ISingleCacheParamRunnable.cs" />
     <Compile Include="ambeth\cache\ICacheIntern.cs" />
     <Compile Include="ambeth\cache\PagingQueryServiceResultProcessor.cs" />
-    <Compile Include="ambeth\cache\PendingValueHolders.cs" />
     <Compile Include="ambeth\cache\ServiceResultCacheKey.cs" />
     <Compile Include="ambeth\cache\ServiceResultCache.cs" />
     <Compile Include="ambeth\cache\interceptor\CacheInterceptor.cs" />
@@ -66,9 +69,10 @@
     <Compile Include="ambeth\cache\EntityCallback.cs" />
     <Compile Include="ambeth\cache\RootCache.cs" />
     <Compile Include="ambeth\cache\interceptor\ThreadLocalRootCacheInterceptor.cs" />
-    <Compile Include="ambeth\config\CacheConfigurationConstants.cs" />
+    <Compile Include="ambeth\cache\ValueHolderIEC.cs" />
     <Compile Include="ambeth\debug\ValueHolderFlattenHierarchyProxy.cs" />
     <Compile Include="ambeth\exceptions\LazyInitialiationException.cs" />
+    <Compile Include="ambeth\merge\CacheUnmodifiedObjectProvider.cs" />
     <Compile Include="ambeth\proxy\CachePostProcessor.cs" />
     <Compile Include="ambeth\proxy\IValueHolderContainer.cs" />
     <Compile Include="ambeth\service\CacheServiceDelegate.cs" />
@@ -78,20 +82,21 @@
     <Compile Include="ambeth\service\ICacheService.cs" />
     <Compile Include="ambeth\service\ICacheServiceByNameExtendable.cs" />
     <Compile Include="ambeth\service\ICacheServiceWCF.cs" />
-    <Compile Include="ambeth\template\EmbeddedTypeTemplate.cs" />
-    <Compile Include="ambeth\template\PropertyChangeTemplate.cs" />
-    <Compile Include="ambeth\template\ValueHolderContainerTemplate.cs" />
-    <Compile Include="ambeth\template\DataObjectTemplate.cs" />
-    <Compile Include="ambeth\transfer\ObjRelation.cs" />
-    <Compile Include="ambeth\transfer\ObjRelationResult.cs" />
-    <Compile Include="ambeth\transfer\LoadContainer.cs" />
+    <Compile Include="ambeth\mixin\EntityEqualsMixin.cs" />
+    <Compile Include="ambeth\mixin\EmbeddedTypeMixin.cs" />
+    <Compile Include="ambeth\mixin\PropertyChangeMixin.cs" />
+    <Compile Include="ambeth\mixin\ValueHolderContainerMixin.cs" />
+    <Compile Include="ambeth\mixin\DataObjectMixin.cs" />
+    <Compile Include="ambeth\cache\transfer\ObjRelation.cs" />
+    <Compile Include="ambeth\cache\transfer\ObjRelationResult.cs" />
+    <Compile Include="ambeth\cache\transfer\LoadContainer.cs" />
     <Compile Include="ambeth\util\AlreadyHandledItem.cs" />
     <Compile Include="ambeth\util\CacheHelper.cs" />
     <Compile Include="ambeth\util\CachePath.cs" />
     <Compile Include="ambeth\util\CascadeLoadItem.cs" />
+    <Compile Include="ambeth\util\AppendableCachePath.cs" />
     <Compile Include="ambeth\util\ICachePathHelper.cs" />
-    <Compile Include="ambeth\ValueHolderIEC.cs" />
-    <Compile Include="ioc\CacheModule.cs" />
+    <Compile Include="ambeth\ioc\CacheModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -137,12 +142,7 @@
     <Compile Include="ambeth\cache\CacheFactory.cs" />
     <Compile Include="ambeth\cache\CacheProvider.cs" />
     <Compile Include="ambeth\cache\CacheType.cs" />
-    <Compile Include="ambeth\cache\ICacheContext.cs" />
     <Compile Include="ambeth\cache\ICacheProviderExtendable.cs" />
-    <Compile Include="ambeth\cache\ISingleCacheRunnable.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ambeth\config\CacheNamedBeans.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\proxy\CacheContextPostProcessor.cs" />
@@ -170,9 +170,6 @@
     <Compile Include="ambeth\proxy\IEntityEquals.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ambeth\proxy\CacheEntityFactory.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="ambeth\cache\collections\CacheMapEntry.cs" />
     <Compile Include="ambeth\cache\collections\CacheHashMap.cs" />
     <Compile Include="ambeth\cache\collections\CacheMapEntryEnhancementHint.cs" />
@@ -187,9 +184,9 @@
   <ItemGroup>
     <Compile Include="ambeth\cache\rootcachevalue\RootCacheValue.cs" />
     <Compile Include="ambeth\cache\rootcachevalue\DefaultRootCacheValue.cs" />
-    <Compile Include="ambeth\cache\rootcachevalue\IRootCacheValueTypeProvider.cs" />
+    <Compile Include="ambeth\cache\rootcachevalue\IRootCacheValueFactory.cs" />
     <Compile Include="ambeth\cache\rootcachevalue\RootCacheValueEnhancementHint.cs" />
-    <Compile Include="ambeth\cache\rootcachevalue\RootCacheValueTypeProvider.cs" />
+    <Compile Include="ambeth\cache\rootcachevalue\RootCacheValueFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\cache\collections\ICacheMapEntryAware.cs" />
@@ -206,6 +203,23 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\cache\interceptor\AbstractRootCacheAwareInterceptor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\proxy\IPropertyChangeConfigurable.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\walker\CacheWalker.cs" />
+    <Compile Include="ambeth\cache\walker\ICacheWalker.cs" />
+    <Compile Include="ambeth\cache\walker\CacheWalkerResult.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\walker\ICacheWalkerResult.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\rootcachevalue\RootCacheValueFactoryDelegate.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\rootcachevalue\DefaultRootCacheValueFactoryDelegate.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

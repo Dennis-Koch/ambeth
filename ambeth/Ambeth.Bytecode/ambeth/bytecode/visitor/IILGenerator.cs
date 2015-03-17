@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Diagnostics.SymbolStore;
 using System.Text;
 
-namespace De.Osthus.Ambeth.Visitor
+namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
     public interface IILGenerator
     {

@@ -22,6 +22,8 @@ import de.osthus.ambeth.cache.CacheFactoryDirective;
 import de.osthus.ambeth.cache.ChildCache;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheFactory;
+import de.osthus.ambeth.cache.IRootCache;
+import de.osthus.ambeth.cache.rootcachevalue.RootCacheValue;
 import de.osthus.ambeth.change.ILinkChangeCommand;
 import de.osthus.ambeth.change.ITableChange;
 import de.osthus.ambeth.collections.HashMap;
@@ -57,7 +59,7 @@ import de.osthus.ambeth.persistence.xml.model.Employee;
 import de.osthus.ambeth.persistence.xml.model.EmployeeType;
 import de.osthus.ambeth.persistence.xml.model.Project;
 import de.osthus.ambeth.proxy.ICascadedInterceptor;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -70,7 +72,7 @@ import de.osthus.ambeth.testutil.TestPropertiesList;
 		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile, value = "de/osthus/ambeth/persistence/xml/value-object.xml"),
 		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true") })
 @TestModule(TestServicesModule.class)
-public class MergeServiceTest extends AbstractPersistenceTest
+public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Autowired
 	protected ICacheFactory cacheFactory;
@@ -78,14 +80,16 @@ public class MergeServiceTest extends AbstractPersistenceTest
 	@Autowired
 	protected ICache cache;
 
+	@Autowired
+	protected IProxyHelper proxyHelper;
+
 	protected IMergeServiceExtension fixtureProxy;
 
 	protected PersistenceMergeServiceExtension fixture;
 
 	protected ChildCache childCache;
 
-	@Autowired
-	protected IProxyHelper proxyHelper;
+	protected IRootCache rootCache;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -97,22 +101,8 @@ public class MergeServiceTest extends AbstractPersistenceTest
 		ICascadedInterceptor inter = (ICascadedInterceptor) proxy.getCallbacks()[0];
 		fixture = (PersistenceMergeServiceExtension) inter.getTarget();
 
-		childCache = (ChildCache) cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE);
-	}
-
-	public void setCache(ICache cache)
-	{
-		this.cache = cache;
-	}
-
-	public void setCacheFactory(ICacheFactory cacheFactory)
-	{
-		this.cacheFactory = cacheFactory;
-	}
-
-	public void setProxyHelper(IProxyHelper proxyHelper)
-	{
-		this.proxyHelper = proxyHelper;
+		childCache = (ChildCache) cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
+		rootCache = ((IRootCache) childCache.getParent()).getCurrentRootCache();
 	}
 
 	@Test
@@ -267,24 +257,23 @@ public class MergeServiceTest extends AbstractPersistenceTest
 	public void testLoadEntitiesForDeletion()
 	{
 		IList<IObjRef> toLoadForDeletion = new de.osthus.ambeth.collections.ArrayList<IObjRef>();
-		IMap<IObjRef, Object> toDeleteMap = new HashMap<IObjRef, Object>();
-		fixture.loadEntitiesForDeletion(toLoadForDeletion, toDeleteMap, childCache);
+		IMap<IObjRef, RootCacheValue> toDeleteMap = new HashMap<IObjRef, RootCacheValue>();
+		fixture.loadEntitiesForDeletion(toLoadForDeletion, toDeleteMap, rootCache);
 		assertTrue(toLoadForDeletion.isEmpty());
 		assertTrue(toDeleteMap.isEmpty());
 
 		toLoadForDeletion.add(new ObjRef(Employee.class, 1, 1));
 		toLoadForDeletion.add(new ObjRef(Project.class, 21, 1));
 		toLoadForDeletion.add(new ObjRef(Address.class, 13, 1));
-		fixture.loadEntitiesForDeletion(toLoadForDeletion, toDeleteMap, childCache);
+		fixture.loadEntitiesForDeletion(toLoadForDeletion, toDeleteMap, rootCache);
 		assertEquals(3, toLoadForDeletion.size());
 		assertEquals(4, toDeleteMap.size()); // 3 + 1 alternate ID entry for the Employee
 		assertEquals(3, new HashSet<Object>(toDeleteMap.values()).size()); // proving 3 + 1 theory
 
 		for (IObjRef ori : toLoadForDeletion)
 		{
-			Object actual = toDeleteMap.get(ori);
-			Class<?> realType = proxyHelper.getRealType(actual.getClass());
-			assertEquals(ori.getRealType(), realType);
+			RootCacheValue actual = toDeleteMap.get(ori);
+			assertEquals(ori.getRealType(), actual.getEntityType());
 		}
 	}
 
@@ -303,10 +292,11 @@ public class MergeServiceTest extends AbstractPersistenceTest
 		IMap<String, ITableChange> tableChangeMap = new HashMap<String, ITableChange>();
 		ILinkedMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap = new LinkedHashMap<Class<?>, IList<IObjRef>>();
 		ILinkedMap<ITableChange, IList<ILinkChangeCommand>> linkChangeCommands = new LinkedHashMap<ITableChange, IList<ILinkChangeCommand>>();
-		IMap<IObjRef, Object> toDeleteMap = new HashMap<IObjRef, Object>();
+		IMap<IObjRef, RootCacheValue> toDeleteMap = new HashMap<IObjRef, RootCacheValue>();
+		IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap = new HashMap<IObjRef, IChangeContainer>();
 
 		fixture.convertChangeContainersToCommands(fixture.database.getCurrent(), allChanges, tableChangeMap, typeToIdlessReferenceMap, linkChangeCommands,
-				toDeleteMap);
+				toDeleteMap, objRefToChangeContainerMap, (IRootCache) ((ChildCache) cache.getCurrentCache()).getParent().getCurrentCache(), null);
 
 		fail("Not yet implemented"); // TODO
 	}

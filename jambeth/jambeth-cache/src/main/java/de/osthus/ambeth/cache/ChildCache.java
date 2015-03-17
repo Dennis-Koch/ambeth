@@ -2,9 +2,7 @@ package de.osthus.ambeth.cache;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import de.osthus.ambeth.annotation.CascadeLoadMode;
@@ -16,33 +14,35 @@ import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptyList;
-import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.event.IEventQueue;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.garbageproxy.IGarbageProxyFactory;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityFactory;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.merge.model.IDirectObjRef;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.proxy.IDefaultCollection;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
-import de.osthus.ambeth.util.CachePath;
+import de.osthus.ambeth.security.ISecurityActivation;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.ICacheHelper;
 import de.osthus.ambeth.util.ICachePathHelper;
+import de.osthus.ambeth.util.IDisposable;
 import de.osthus.ambeth.util.IParamHolder;
 import de.osthus.ambeth.util.ListUtil;
 import de.osthus.ambeth.util.Lock;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ParamHolder;
 
 public class ChildCache extends AbstractCache<Object> implements ICacheIntern, IWritableCache, IDisposableCache
@@ -52,8 +52,6 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	private ILogger log;
 
 	protected CacheHashMap keyToAlternateIdsMap;
-
-	protected IMap<Class<?>, List<CachePath>> membersToInitialize;
 
 	@Autowired
 	protected ICacheModification cacheModification;
@@ -71,9 +69,23 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	protected IFirstLevelCacheExtendable firstLevelCacheExtendable;
 
 	@Autowired
+	protected IGarbageProxyFactory garbageProxyFactory;
+
+	@Autowired
 	protected ICacheIntern parent;
 
+	@Autowired(optional = true)
+	protected ISecurityActivation securityActivation;
+
+	@Property(mandatory = false)
+	protected String name;
+
 	protected int cacheId;
+
+	protected ICacheIntern gcProxy;
+
+	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
+	protected boolean securityActive;
 
 	@Property(name = CacheConfigurationConstants.ValueholderOnEmptyToOne, defaultValue = "false")
 	protected boolean valueholderOnEmptyToOne;
@@ -90,6 +102,8 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 		super.afterPropertiesSet();
 
 		keyToAlternateIdsMap = new CacheHashMap(cacheMapEntryTypeProvider);
+
+		gcProxy = garbageProxyFactory.createGarbageProxy(this, (IDisposable) null, ICacheIntern.class, IWritableCache.class);
 	}
 
 	@Property(name = CacheConfigurationConstants.FirstLevelCacheWeakActive, defaultValue = "true")
@@ -120,12 +134,16 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	{
 		if (cacheId != 0)
 		{
-			firstLevelCacheExtendable.unregisterFirstLevelCache(this, null, false);
+			firstLevelCacheExtendable.unregisterFirstLevelCache(this, null, false, name);
+		}
+		if (gcProxy != null)
+		{
+			((IDisposable) gcProxy).dispose(); // cuts the reference of all entities to this cache instance
+			gcProxy = null;
 		}
 		entityFactory = null;
 		firstLevelCacheExtendable = null;
 		parent = null;
-		membersToInitialize = null;
 		keyToAlternateIdsMap = null;
 		super.dispose();
 	}
@@ -208,7 +226,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	@Override
 	protected Object getVersionOfCacheValue(IEntityMetaData metaData, Object cacheValue)
 	{
-		ITypeInfoItem versionMember = metaData.getVersionMember();
+		Member versionMember = metaData.getVersionMember();
 		if (versionMember == null)
 		{
 			return null;
@@ -219,17 +237,12 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	@Override
 	protected void setVersionOfCacheValue(IEntityMetaData metaData, Object cacheValue, Object version)
 	{
-		ITypeInfoItem versionMember = metaData.getVersionMember();
+		Member versionMember = metaData.getVersionMember();
 		if (versionMember == null)
 		{
 			return;
 		}
 		versionMember.setValue(cacheValue, version);
-	}
-
-	public Map<Class<?>, List<CachePath>> getMembersToInitialize()
-	{
-		return membersToInitialize;
 	}
 
 	@Override
@@ -292,10 +305,6 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 					IList<Object> result = getObjectsRetry(orisToGet, cacheDirective, doAnotherRetry);
 					if (!Boolean.TRUE.equals(doAnotherRetry.getValue()))
 					{
-						if (!cacheDirective.contains(CacheDirective.FailEarly))
-						{
-							cachePathHelper.ensureInitializedRelations(result, membersToInitialize);
-						}
 						return result;
 					}
 				}
@@ -465,7 +474,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	}
 
 	@Override
-	public IList<IObjRelationResult> getObjRelations(List<IObjRelation> objRels, ICacheIntern targetCache, Set<CacheDirective> cacheDirective)
+	public IList<IObjRelationResult> getObjRelations(final List<IObjRelation> objRels, final ICacheIntern targetCache, final Set<CacheDirective> cacheDirective)
 	{
 		checkNotDisposed();
 		IEventQueue eventQueue = this.eventQueue;
@@ -481,7 +490,26 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 			cacheModification.setActive(true);
 			try
 			{
-				return parent.getObjRelations(objRels, targetCache, cacheDirective);
+				if (securityActive && ((targetCache == null && isPrivileged()) || (targetCache != null && targetCache.isPrivileged())//
+						&& securityActivation != null && securityActivation.isFilterActivated()))
+				{
+					return securityActivation.executeWithoutFiltering(new IResultingBackgroundWorkerDelegate<IList<IObjRelationResult>>()
+					{
+						@Override
+						public IList<IObjRelationResult> invoke() throws Throwable
+						{
+							return parent.getObjRelations(objRels, targetCache, cacheDirective);
+						}
+					});
+				}
+				else
+				{
+					return parent.getObjRelations(objRels, targetCache, cacheDirective);
+				}
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
 			}
 			finally
 			{
@@ -499,7 +527,8 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	}
 
 	@Override
-	public void addDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object[] primitives, IObjRef[][] relations)
+	public void addDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object parentCacheValueOrArray,
+			IObjRef[][] relations)
 	{
 		if (id == null)
 		{
@@ -548,12 +577,12 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 			if (newAlternateCacheKeys == null)
 			{
 				// Allocate new array to hold alternate ids
-				newAlternateCacheKeys = extractAlternateCacheKeys(metaData, primitives);
+				newAlternateCacheKeys = extractAlternateCacheKeys(metaData, parentCacheValueOrArray);
 			}
 			else
 			{
 				// reuse existing array for new alternate id-values
-				extractAlternateCacheKeys(metaData, primitives, newAlternateCacheKeys);
+				extractAlternateCacheKeys(metaData, parentCacheValueOrArray, newAlternateCacheKeys);
 			}
 			if (newAlternateCacheKeys.length > 0)
 			{
@@ -569,13 +598,10 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 		{
 			addHardRefTL(cacheValue);
 		}
+		assignEntityToCache(primitiveFilledObject);
 		if (relations != null && relations.length > 0)
 		{
-			IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
-
-			IValueHolderContainer vhc = (IValueHolderContainer) primitiveFilledObject;
-			vhc.set__TargetCache(this);
-			handleValueHolderContainer(vhc, relationMembers, relations);
+			handleValueHolderContainer((IValueHolderContainer) primitiveFilledObject, metaData.getRelationMembers(), relations);
 		}
 		if (primitiveFilledObject instanceof IDataObject)
 		{
@@ -584,13 +610,13 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	}
 
 	@SuppressWarnings("unchecked")
-	protected void handleValueHolderContainer(IValueHolderContainer vhc, IRelationInfoItem[] relationMembers, IObjRef[][] relations)
+	protected void handleValueHolderContainer(IValueHolderContainer vhc, RelationMember[] relationMembers, IObjRef[][] relations)
 	{
 		ICacheHelper cacheHelper = this.cacheHelper;
 		ICacheIntern parent = this.parent;
 		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 		{
-			IRelationInfoItem relationMember = relationMembers[relationIndex];
+			RelationMember relationMember = relationMembers[relationIndex];
 			IObjRef[] relationsOfMember = relations[relationIndex];
 
 			if (!CascadeLoadMode.EAGER.equals(relationMember.getCascadeLoadMode()))
@@ -640,8 +666,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 			// Now we have to refresh the current content eagerly
 
 			// load entities as if we were an "eager valueholder" here
-			IList<Object> potentialNewItems = parent.getObjects(new ArrayList<IObjRef>(relationsOfMember), this,
-					isFailEarlyModeActive() ? EnumSet.of(CacheDirective.FailEarly) : CacheDirective.none());
+			IList<Object> potentialNewItems = parent.getObjects(new ArrayList<IObjRef>(relationsOfMember), this, CacheDirective.none());
 			if (overwriteToManyRelations)
 			{
 				Object newRelationValue = cacheHelper.convertResultListToExpectedType(potentialNewItems, relationMember.getRealType(),
@@ -760,35 +785,6 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	}
 
 	@Override
-	public void cascadeLoadPath(Class<?> entityType, String cascadeLoadPath)
-	{
-		ParamChecker.assertParamNotNull(cascadeLoadPath, "cascadeLoadPath");
-
-		Lock writeLock = getWriteLock();
-		writeLock.lock();
-		try
-		{
-			if (membersToInitialize == null)
-			{
-				membersToInitialize = new HashMap<Class<?>, List<CachePath>>();
-			}
-
-			List<CachePath> cachePaths = membersToInitialize.get(entityType);
-			if (cachePaths == null)
-			{
-				cachePaths = new ArrayList<CachePath>();
-				membersToInitialize.put(entityType, cachePaths);
-			}
-
-			cachePathHelper.buildCachePath(entityType, cascadeLoadPath, cachePaths);
-		}
-		finally
-		{
-			writeLock.unlock();
-		}
-	}
-
-	@Override
 	protected void putInternObjRelation(Object cacheValue, IEntityMetaData metaData, IObjRelation objRelation, IObjRef[] relationsOfMember)
 	{
 		int relationIndex = metaData.getIndexByRelationName(objRelation.getMemberName());
@@ -799,5 +795,28 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 			return;
 		}
 		vhc.set__ObjRefs(relationIndex, relationsOfMember);
+	}
+
+	@Override
+	protected void putInternUnpersistedEntity(Object entity)
+	{
+		assignEntityToCache(entity);
+		super.putInternUnpersistedEntity(entity);
+	}
+
+	@Override
+	public void assignEntityToCache(Object entity)
+	{
+		((IValueHolderContainer) entity).set__TargetCache(gcProxy);
+	}
+
+	@Override
+	public String toString()
+	{
+		if (name != null)
+		{
+			return name + " " + super.toString();
+		}
+		return super.toString();
 	}
 }

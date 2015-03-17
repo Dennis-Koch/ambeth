@@ -9,11 +9,31 @@ import java.util.regex.Pattern;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.log.ILogger;
 
-public class FileUtil
+public final class FileUtil
 {
+	private static final ThreadLocal<Class<?>> currentTypeScopeTL = new ThreadLocal<Class<?>>();
+
 	private static final Pattern CONFIG_SEPARATOR = Pattern.compile(";");
 
 	private static final Pattern PATH_SEPARATOR = Pattern.compile(File.pathSeparator);
+
+	public static final Class<?> setCurrentTypeScope(Class<?> currentTypeScope)
+	{
+		Class<?> oldCurrentTypeScope = currentTypeScopeTL.get();
+		if (oldCurrentTypeScope == currentTypeScope)
+		{
+			return oldCurrentTypeScope;
+		}
+		if (currentTypeScope == null)
+		{
+			currentTypeScopeTL.remove();
+		}
+		else
+		{
+			currentTypeScopeTL.set(currentTypeScope);
+		}
+		return oldCurrentTypeScope;
+	}
 
 	protected FileUtil()
 	{
@@ -93,10 +113,24 @@ public class FileUtil
 
 	public static InputStream openFileStream(String fileName, ILogger log)
 	{
-		InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(fileName);
+		ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+		InputStream inputStream = null;
+		Class<?> currentTypeScope = currentTypeScopeTL.get();
+		String lookupName = fileName;
+		if (currentTypeScope != null)
+		{
+			// check first to look for the fileName relative to our current typeScope
+			lookupName = currentTypeScope.getPackage().getName().replace('.', '/') + "/" + fileName;
+			inputStream = contextClassLoader.getResourceAsStream(lookupName);
+		}
+		if (inputStream == null)
+		{
+			lookupName = fileName;
+			inputStream = contextClassLoader.getResourceAsStream(lookupName);
+		}
 		if (inputStream != null && log != null && log.isDebugEnabled())
 		{
-			log.debug("Using stream resource '" + fileName + "'");
+			log.debug("Using stream resource '" + lookupName + "'");
 		}
 		else
 		{

@@ -6,6 +6,8 @@ import java.util.Map.Entry;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.config.UtilConfigurationConstants;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.persistence.IDirectedLink;
 import de.osthus.ambeth.persistence.ILink;
@@ -16,15 +18,10 @@ import de.osthus.ambeth.service.IChangeAggregator;
  */
 public class LinkTableChange extends AbstractTableChange
 {
-	protected final IMap<IObjRef, ILinkChangeCommand> rowCommands = new HashMap<IObjRef, ILinkChangeCommand>();
+	protected final HashMap<IObjRef, ILinkChangeCommand> rowCommands = new HashMap<IObjRef, ILinkChangeCommand>();
 
-	@Override
-	public void dispose()
-	{
-		rowCommands.clear();
-
-		super.dispose();
-	}
+	@Property(name = UtilConfigurationConstants.DebugMode, defaultValue = "false")
+	protected boolean debugMode;
 
 	@Override
 	public void addChangeCommand(IChangeCommand command)
@@ -42,32 +39,39 @@ public class LinkTableChange extends AbstractTableChange
 	@Override
 	public void addChangeCommand(ILinkChangeCommand command)
 	{
-		if (!rowCommands.containsKey(command.getReference()))
+		HashMap<IObjRef, ILinkChangeCommand> rowCommands = this.rowCommands;
+		IObjRef reference = command.getReference();
+		ILinkChangeCommand existingCommand = rowCommands.get(reference);
+		if (existingCommand != null)
 		{
-			rowCommands.put(command.getReference(), command);
+			existingCommand.addCommand(command);
 		}
 		else
 		{
-			rowCommands.get(command.getReference()).addCommand(command);
+			rowCommands.put(reference, command);
 		}
 	}
 
 	@Override
 	public void execute(IChangeAggregator changeAggreagator)
 	{
-		ArrayList<Object> ids = new ArrayList<Object>();
-		for (Entry<IObjRef, ILinkChangeCommand> entry : rowCommands)
+		ILink link = null;
+		try
 		{
-			ILinkChangeCommand command = entry.getValue();
-			if (!command.isReadyToExecute())
+			ArrayList<Object> ids = new ArrayList<Object>();
+			for (Entry<IObjRef, ILinkChangeCommand> entry : rowCommands)
 			{
-				throw new IllegalCommandException("LinkChangeCommand is not ready to be executed!");
-			}
-			IDirectedLink directedLink = command.getDirectedLink();
-			ILink link = directedLink.getLink();
-			link.startBatch();
-			try
-			{
+				ILinkChangeCommand command = entry.getValue();
+				if (debugMode && !command.isReadyToExecute())
+				{
+					throw new IllegalCommandException("LinkChangeCommand is not ready to be executed!");
+				}
+				IDirectedLink directedLink = command.getDirectedLink();
+				if (link == null)
+				{
+					link = directedLink.getLink();
+					link.startBatch();
+				}
 				Object id = command.getReference().getId();
 				{
 					List<IObjRef> refs = command.getRefsToLink();
@@ -93,12 +97,23 @@ public class LinkTableChange extends AbstractTableChange
 						ids.clear();
 					}
 				}
+			}
+			if (link != null)
+			{
 				link.finishBatch();
 			}
-			finally
+		}
+		finally
+		{
+			if (link != null)
 			{
 				link.clearBatch();
 			}
 		}
+	}
+
+	public IMap<IObjRef, ILinkChangeCommand> getRowCommands()
+	{
+		return rowCommands;
 	}
 }

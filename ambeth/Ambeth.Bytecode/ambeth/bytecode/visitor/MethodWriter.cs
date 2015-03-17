@@ -1,17 +1,11 @@
-﻿using De.Osthus.Ambeth.Bytecode;
-using De.Osthus.Ambeth.Bytecode.Behavior;
-using De.Osthus.Ambeth.Cache;
-using De.Osthus.Ambeth.CompositeId;
+﻿using De.Osthus.Ambeth.Bytecode.Behavior;
 using De.Osthus.Ambeth.Exceptions;
-using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
-using De.Osthus.Ambeth.Visitor;
 
 namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
@@ -87,6 +81,12 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         public virtual void CallThisGetter(MethodInstance method)
         {
             ParamChecker.AssertParamNotNull(method, "method");
+            MethodInstance existingMethodInstance = MethodInstance.FindByTemplate(method, false);
+            if (!existingMethodInstance.Owner.Equals(method.Owner))
+            {
+                CallThisGetter(existingMethodInstance);
+                return;
+            }
             if (!method.Access.HasFlag(MethodAttributes.Static))
             {
                 LoadThis();
@@ -128,6 +128,11 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         public virtual void CheckCast(Type castedType)
         {
             gen.Emit(OpCodes.Castclass, castedType);
+        }
+
+        public virtual void CheckCast(NewType castedType)
+        {
+            gen.Emit(OpCodes.Castclass, castedType.Type);
         }
 
         public virtual void Dup()
@@ -278,67 +283,18 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             InvokeOnExactOwner(method);
         }
 
-        public virtual void InvokeGetValue(ITypeInfoItem member, Script thisScript)
+        public virtual void GetField(FieldInstance field)
         {
-            if (member is PropertyInfoItem)
+            ParamChecker.AssertParamNotNull(field, "field");
+            if (!field.Access.HasFlag(FieldAttributes.Static))
             {
-                MethodInfo getter = ((MethodPropertyInfo)((PropertyInfoItem)member).Property).Getter;
-                MethodInstance m_getter = new MethodInstance(getter);
-
-                if (thisScript != null)
-                {
-                    thisScript.Invoke(this);
-                }
-                if (getter.DeclaringType.IsInterface)
-                {
-                    InvokeInterface(m_getter);
-                }
-                else
-                {
-                    InvokeVirtual(m_getter);
-                }
-            }
-            else if (member is CompositeIdTypeInfoItem)
-            {
-                CompositeIdTypeInfoItem cidMember = (CompositeIdTypeInfoItem)member;
-
-                ConstructorInstance c_compositeId = new ConstructorInstance(cidMember.GetRealTypeConstructorAccess());
-                NewInstance(c_compositeId, delegate(IMethodVisitor mg)
-                {
-                    ITypeInfoItem[] members = cidMember.Members;
-                    for (int a = 0, size = members.Length; a < size; a++)
-                    {
-                        InvokeGetValue(members[a], thisScript);
-                    }
-                });
-            }
-            else if (member is IEmbeddedTypeInfoItem)
-            {
-                IEmbeddedTypeInfoItem embedded = (IEmbeddedTypeInfoItem)member;
-                ITypeInfoItem[] memberPath = embedded.MemberPath;
-                InvokeGetValue(memberPath[0], thisScript);
-                for (int a = 1, size = memberPath.Length; a < size; a++)
-                {
-                    InvokeGetValue(memberPath[a], null);
-                }
-                InvokeGetValue(embedded.ChildMember, null);
+                gen.Emit(OpCodes.Ldfld, field.Field);
             }
             else
             {
-                FieldInstance field = new FieldInstance(((FieldInfoItem)member).Field);
-
-                if (thisScript != null)
-                {
-                    thisScript.Invoke(this);
-                }
-                GetField(field);
+                GetStatic(field);
             }
-        }
 
-        public virtual void GetField(FieldInstance field)
-        {
-            FieldInstance implementedField = State.GetAlreadyImplementedField(field.Name);
-            gen.Emit(OpCodes.Ldfld, implementedField.Field);
         }
 
         public virtual void GetThisField(FieldInstance field)
@@ -422,6 +378,24 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             IfZCmp(CompareOperator.NE, l_isTrue);
             executeIfFalse(this);
             Mark(l_isTrue);
+        }
+
+        public virtual void IfZCmp(NewType type, CompareOperator compareOperator, Label label)
+        {
+            IfZCmp(type.Type, compareOperator, label);
+        }
+
+        public virtual void IfZCmp(Type type, CompareOperator compareOperator, Label label)
+        {
+            if (typeof(double).Equals(type) || typeof(float).Equals(type) || typeof(long).Equals(type))
+            {
+                PushNullOrZero(type);
+                IfCmp(type, compareOperator, label);
+            }
+            else
+            {
+                IfZCmp(compareOperator, label);
+            }
         }
 
         public virtual void IfZCmp(CompareOperator compareOperator, Label label)
@@ -575,6 +549,23 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
         }
 
+        public virtual void Push(bool? value)
+        {
+            if (!value.HasValue)
+            {
+                ConstructorInfo nullValueType = typeof(Nullable<bool>).GetConstructor(new Type[0]);
+                NewInstance(new ConstructorInstance(nullValueType), null);
+            }
+            else
+            {
+                ConstructorInfo hasValueType = typeof(Nullable<bool>).GetConstructor(new Type[] { typeof(bool) });
+                NewInstance(new ConstructorInstance(hasValueType), delegate(IMethodVisitor mv)
+                {
+                    mv.Push(value.Value);
+                });
+            }
+        }
+
         public virtual void Push(double value)
         {
             gen.Emit(OpCodes.Ldc_R8, value);
@@ -676,6 +667,11 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             gen.Emit(OpCodes.Ldnull);
         }
 
+        public virtual void PushNullOrZero(NewType type)
+        {
+            PushNullOrZero(type.Type);
+        }
+
         public virtual void PushNullOrZero(Type type)
         {
             if (typeof(long).Equals(type))
@@ -718,8 +714,16 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public virtual void PutField(FieldInstance field)
         {
-            FieldInstance implementedField = State.GetAlreadyImplementedField(field.Name);
-            gen.Emit(OpCodes.Stfld, implementedField.Field);
+            ParamChecker.AssertParamNotNull(field, "field");
+            if (!field.Access.HasFlag(FieldAttributes.Static))
+            {
+                gen.Emit(OpCodes.Stfld, field.Field);
+            }
+            else
+            {
+                PutStatic(field);
+            }
+            
         }
 
         public virtual void PutStatic(FieldInstance field)
@@ -822,12 +826,59 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public virtual void Unbox(Type unboxedType)
         {
-            gen.Emit(OpCodes.Unbox_Any, unboxedType);
+            if (typeof(short) == unboxedType)
+            {
+                InvokeStatic(typeof(Convert).GetMethod("ToInt16", new Type[] { typeof(Object) }));
+            }
+            else if (typeof(int) == unboxedType)
+            {
+                InvokeStatic(typeof(Convert).GetMethod("ToInt32", new Type[] { typeof(Object) }));
+            }
+            else if (typeof(long) == unboxedType)
+            {
+                InvokeStatic(typeof(Convert).GetMethod("ToInt64", new Type[] { typeof(Object) }));
+            }
+            else if (typeof(float) == unboxedType)
+            {
+                InvokeStatic(typeof(Convert).GetMethod("ToSingle", new Type[] { typeof(Object) }));
+            }
+            else if (typeof(double) == unboxedType)
+            {
+                InvokeStatic(typeof(Convert).GetMethod("ToDouble", new Type[] { typeof(Object) }));
+            }
+            else if (typeof(bool) == unboxedType)
+            {
+                InvokeStatic(typeof(Convert).GetMethod("ToBoolean", new Type[] { typeof(Object) }));
+            }
+            else if (typeof(byte) == unboxedType)
+            {
+                InvokeStatic(typeof(Convert).GetMethod("ToByte", new Type[] { typeof(Object) }));
+            }
+            else if (typeof(char) == unboxedType)
+            {
+                InvokeStatic(typeof(Convert).GetMethod("ToChar", new Type[] { typeof(Object) }));
+            }
+            else
+            {
+                gen.Emit(OpCodes.Unbox_Any, unboxedType);
+            }
         }
 
         public virtual void ValueOf(Type type)
         {
             Box(type);
+        }
+
+        public virtual void VisitAnnotation(ConstructorInfo annotationConstructor, params Object[] arguments)
+        {
+            ((MethodBuilder)Method.Method).SetCustomAttribute(new CustomAttributeBuilder(annotationConstructor, arguments));
+        }
+
+        public virtual void VisitTableSwitchInsn(int min, int max, Label defaultCaseLabel, params Label[] caseLabels)
+        {
+            gen.Emit(OpCodes.Switch, caseLabels);
+
+            gen.Emit(OpCodes.Br, defaultCaseLabel);
         }
     }
 }

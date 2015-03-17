@@ -1,9 +1,10 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace De.Osthus.Ambeth.Collections
 {
-    public static class EmptySet<V>
+    public static class EmptySet
     {
         public static IISet<T> Empty<T>()
         {
@@ -147,7 +148,17 @@ namespace De.Osthus.Ambeth.Collections
                 throw new NotSupportedException("Set is read-only");
             }
 
-            public bool AddAll(System.Collections.IEnumerable coll)
+            public bool AddAll(IEnumerable coll)
+            {
+                throw new NotSupportedException("Set is read-only");
+            }
+
+            public bool ContainsAny(IEnumerable c)
+            {
+                throw new NotSupportedException("Set is read-only");
+            }
+
+            public bool RemoveAll(IEnumerable c)
             {
                 throw new NotSupportedException("Set is read-only");
             }

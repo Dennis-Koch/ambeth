@@ -1,37 +1,29 @@
 package de.osthus.ambeth.change;
 
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.merge.model.IChangeContainer;
-import de.osthus.ambeth.merge.transfer.CreateContainer;
+import de.osthus.ambeth.merge.model.ICreateOrUpdateContainer;
+import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.persistence.ITable;
 
 public class CreateCommand extends AbstractChangeCommand implements ICreateCommand
 {
+	protected final LinkedHashMap<String, Object> items = new LinkedHashMap<String, Object>();
 
-	protected final ILinkedMap<String, Object> items = new LinkedHashMap<String, Object>();
-
-	@Override
-	public void dispose()
+	public CreateCommand(IObjRef reference)
 	{
-		super.dispose();
-		items.clear();
+		super(reference);
 	}
 
 	@Override
 	public void configureFromContainer(IChangeContainer changeContainer, ITable table)
 	{
-		CreateContainer container = (CreateContainer) changeContainer;
-		super.configureFromContainer(container, table);
+		super.configureFromContainer(changeContainer, table);
 
-		if (container.getPrimitives() != null)
-		{
-			repackPuis(container.getPrimitives(), this.items);
-		}
+		repackPuis(((ICreateOrUpdateContainer) changeContainer).getFullPUIs(), items);
 	}
 
 	@Override
@@ -43,21 +35,18 @@ public class CreateCommand extends AbstractChangeCommand implements ICreateComma
 	@Override
 	public IChangeCommand addCommand(IUpdateCommand other)
 	{
-		Map<String, Object> items = other.getItems();
-		Iterator<Entry<String, Object>> entryIter = items.entrySet().iterator();
-		while (entryIter.hasNext())
+		LinkedHashMap<String, Object> items = this.items;
+		for (Entry<String, Object> entry : other.getItems())
 		{
-			Entry<String, Object> entry = entryIter.next();
 			if (entry.getValue() != null)
 			{
-				this.items.put(entry.getKey(), entry.getValue());
+				items.put(entry.getKey(), entry.getValue());
 			}
 			else
 			{
-				this.items.putIfNotExists(entry.getKey(), entry.getValue());
+				items.putIfNotExists(entry.getKey(), entry.getValue());
 			}
 		}
-
 		return this;
 	}
 
@@ -70,6 +59,6 @@ public class CreateCommand extends AbstractChangeCommand implements ICreateComma
 	@Override
 	public ILinkedMap<String, Object> getItems()
 	{
-		return this.items;
+		return items;
 	}
 }

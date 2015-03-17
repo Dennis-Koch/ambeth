@@ -112,7 +112,8 @@ public class ClassGenerator extends ClassVisitor
 	public PropertyInstance implementAssignedReadonlyProperty(String propertyName, Object fieldValue)
 	{
 		ParamChecker.assertParamNotNull(fieldValue, "fieldValue");
-		FieldInstance field = implementStaticAssignedField("sf_" + propertyName, fieldValue);
+		String fieldName = propertyName.startsWith("__") ? "sf" + propertyName : "sf__" + propertyName;
+		FieldInstance field = implementStaticAssignedField(fieldName, fieldValue);
 		MethodInstance getter = new MethodInstance(getState().getNewType(), Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, field.getType(), "get" + propertyName,
 				null);
 		getter = implementGetter(getter, field);
@@ -145,6 +146,7 @@ public class ClassGenerator extends ClassVisitor
 	{
 		IBytecodeBehaviorState state = BytecodeBehaviorState.getState();
 		MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
+
 		if (mv instanceof MethodGenerator)
 		{
 			return (MethodGenerator) mv;

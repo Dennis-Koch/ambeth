@@ -14,7 +14,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.persistence.jdbc.alternateid.AlternateIdEntity;
 import de.osthus.ambeth.proxy.IProxyFactory;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -24,7 +24,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 @SQLStructure("cachetype_structure.sql")
 @TestModule(CacheTypeTestModule.class)
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/cache/cachetype/cachetype_orm.xml")
-public class CacheTypeTest extends AbstractPersistenceTest
+public class CacheTypeTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static class CacheTypeTestModule implements IInitializingModule
 	{

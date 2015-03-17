@@ -1,5 +1,6 @@
 using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Exceptions;
+using De.Osthus.Ambeth.Ioc.Exceptions;
 using De.Osthus.Ambeth.Ioc.Proxy;
 using De.Osthus.Ambeth.Proxy;
 using System;
@@ -63,7 +64,7 @@ namespace De.Osthus.Ambeth.Ioc.Config
                 {
                     if (declarationStackTrace != null)
                     {
-                        throw RuntimeExceptionUtil.Mask(e, "Declaration information:\n" + declarationStackTrace);
+                        throw new BeanContextDeclarationException(declarationStackTrace, e);
                     }
                     else
                     {

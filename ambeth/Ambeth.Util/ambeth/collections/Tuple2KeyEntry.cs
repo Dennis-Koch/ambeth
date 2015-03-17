@@ -1,3 +1,4 @@
+using System;
 namespace De.Osthus.Ambeth.Collections
 {
     public class Tuple2KeyEntry<Key1, Key2, V>
@@ -55,5 +56,10 @@ namespace De.Osthus.Ambeth.Collections
         {
             return value;
         }
+
+	    public override String ToString()
+	    {
+            return "(" + GetKey1() + ":" + GetKey2() + "," + GetValue();
+	    }
     }
 }

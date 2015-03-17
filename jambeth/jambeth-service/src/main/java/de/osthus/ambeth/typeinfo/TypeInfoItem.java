@@ -20,10 +20,6 @@ public abstract class TypeInfoItem implements ITypeInfoItem
 		{
 			throw new IllegalStateException("TypeInfoItem not supported: " + member);
 		}
-		if (member instanceof RelationInfoItem)
-		{
-			((RelationInfoItem) member).configure(properties);
-		}
 	}
 
 	protected Class<?> elementType;
@@ -47,7 +43,7 @@ public abstract class TypeInfoItem implements ITypeInfoItem
 	public Class<?> getDeclaringType()
 	{
 		return declaringType;
-		}
+	}
 
 	@Override
 	public boolean canRead()
@@ -90,7 +86,7 @@ public abstract class TypeInfoItem implements ITypeInfoItem
 				if (Set.class.isAssignableFrom(realType))
 				{
 					return new ObservableHashSet<Object>();
-}
+				}
 				return new ObservableArrayList<Object>();
 			}
 			try

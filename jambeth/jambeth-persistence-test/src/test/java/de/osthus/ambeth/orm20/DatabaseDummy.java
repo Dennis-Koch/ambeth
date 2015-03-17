@@ -1,6 +1,5 @@
 package de.osthus.ambeth.orm20;
 
-import java.util.Collection;
 import java.util.List;
 
 import de.osthus.ambeth.collections.IList;
@@ -9,6 +8,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IContextProvider;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IDatabaseDisposeHook;
+import de.osthus.ambeth.persistence.IDatabaseMetaData;
 import de.osthus.ambeth.persistence.IDatabasePool;
 import de.osthus.ambeth.persistence.ILink;
 import de.osthus.ambeth.persistence.ISavepoint;
@@ -50,12 +50,6 @@ public class DatabaseDummy implements IDatabase
 
 	@Override
 	public IContextProvider getContextProvider()
-	{
-		return null;
-	}
-
-	@Override
-	public Collection<Class<?>> getHandledEntities()
 	{
 		return null;
 	}
@@ -124,31 +118,7 @@ public class DatabaseDummy implements IDatabase
 	}
 
 	@Override
-	public ITable mapTable(String tableName, Class<?> entityType)
-	{
-		return null;
-	}
-
-	@Override
-	public ITable mapArchiveTable(String tableName, Class<?> entityType)
-	{
-		return null;
-	}
-
-	@Override
 	public ITable getTableByName(String tableName)
-	{
-		return null;
-	}
-
-	@Override
-	public ILink getLinkByName(String linkName)
-	{
-		return null;
-	}
-
-	@Override
-	public ILink getLinkByDefiningName(String definingName)
 	{
 		return null;
 	}
@@ -202,11 +172,6 @@ public class DatabaseDummy implements IDatabase
 	}
 
 	@Override
-	public void addLinkByTables(ILink link)
-	{
-	}
-
-	@Override
 	public List<ILink> getLinksByTables(ITable table1, ITable table2)
 	{
 		return null;
@@ -231,5 +196,11 @@ public class DatabaseDummy implements IDatabase
 	{
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public IDatabaseMetaData getMetaData()
+	{
+		return null;
 	}
 }

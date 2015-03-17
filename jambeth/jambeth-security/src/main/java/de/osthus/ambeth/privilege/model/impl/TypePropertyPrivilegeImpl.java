@@ -1,5 +1,8 @@
 package de.osthus.ambeth.privilege.model.impl;
 
+import java.io.ObjectStreamException;
+import java.io.Serializable;
+
 import de.osthus.ambeth.privilege.model.ITypePrivilege;
 import de.osthus.ambeth.privilege.model.ITypePropertyPrivilege;
 import de.osthus.ambeth.privilege.transfer.ITypePrivilegeOfService;
@@ -7,11 +10,13 @@ import de.osthus.ambeth.privilege.transfer.ITypePropertyPrivilegeOfService;
 import de.osthus.ambeth.util.IImmutableType;
 import de.osthus.ambeth.util.IPrintable;
 
-public final class TypePropertyPrivilegeImpl implements ITypePropertyPrivilege, IPrintable, IImmutableType
+public final class TypePropertyPrivilegeImpl implements ITypePropertyPrivilege, IPrintable, IImmutableType, Serializable
 {
+	private static final long serialVersionUID = -8157005380166070281L;
+
 	public static final ITypePropertyPrivilege[] EMPTY_PROPERTY_PRIVILEGES = new ITypePropertyPrivilege[0];
 
-	private static final TypePropertyPrivilegeImpl[] array = new TypePropertyPrivilegeImpl[1 << 8];
+	private static final TypePropertyPrivilegeImpl[] array = new TypePropertyPrivilegeImpl[arraySizeForIndex()];
 
 	static
 	{
@@ -46,29 +51,26 @@ public final class TypePropertyPrivilegeImpl implements ITypePropertyPrivilege, 
 		put(create, read, update, Boolean.TRUE);
 	}
 
-	public static int toBitValue(Boolean value, int startingBit)
+	public static int arraySizeForIndex()
 	{
-		if (value == null)
-		{
-			return 0;
-		}
-		return value.booleanValue() ? 1 << startingBit : 1 << (startingBit + 1);
+		return 27 * 3;
 	}
 
-	public static int toBitValue(Boolean create, Boolean read, Boolean update, Boolean delete, Boolean execute)
+	public static int calcIndex(Boolean create, Boolean read, Boolean update, Boolean delete)
 	{
-		return toBitValue(create, 0) + toBitValue(read, 2) + toBitValue(update, 4) + toBitValue(delete, 6) + toBitValue(execute, 8);
+		return AbstractTypePrivilege.toBitValue(create, 1, 1 * 2) + AbstractTypePrivilege.toBitValue(read, 3, 3 * 2)
+				+ AbstractTypePrivilege.toBitValue(update, 9, 9 * 2) + AbstractTypePrivilege.toBitValue(delete, 27, 27 * 2);
 	}
 
 	private static void put(Boolean create, Boolean read, Boolean update, Boolean delete)
 	{
-		int index = toBitValue(create, 0) + toBitValue(read, 2) + toBitValue(update, 4) + toBitValue(delete, 6);
+		int index = calcIndex(create, read, update, delete);
 		array[index] = new TypePropertyPrivilegeImpl(create, read, update, delete);
 	}
 
 	public static ITypePropertyPrivilege create(Boolean create, Boolean read, Boolean update, Boolean delete)
 	{
-		int index = toBitValue(create, 0) + toBitValue(read, 2) + toBitValue(update, 4) + toBitValue(delete, 6);
+		int index = calcIndex(create, read, update, delete);
 		return array[index];
 	}
 
@@ -128,27 +130,6 @@ public final class TypePropertyPrivilegeImpl implements ITypePropertyPrivilege, 
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == this)
-		{
-			return true;
-		}
-		if (!(obj instanceof TypePropertyPrivilegeImpl))
-		{
-			return false;
-		}
-		TypePropertyPrivilegeImpl other = (TypePropertyPrivilegeImpl) obj;
-		return create == other.create && read == other.read && update == other.update && delete == other.delete;
-	}
-
-	@Override
-	public int hashCode()
-	{
-		return toBitValue(create, read, update, delete, null);
-	}
-
-	@Override
 	public final String toString()
 	{
 		StringBuilder sb = new StringBuilder();
@@ -163,5 +144,10 @@ public final class TypePropertyPrivilegeImpl implements ITypePropertyPrivilege, 
 		sb.append(AbstractPrivilege.upperOrLower(isReadAllowed(), 'r'));
 		sb.append(AbstractPrivilege.upperOrLower(isUpdateAllowed(), 'u'));
 		sb.append(AbstractPrivilege.upperOrLower(isDeleteAllowed(), 'd'));
+	}
+
+	private Object readResolve() throws ObjectStreamException
+	{
+		return create(create, read, update, delete);
 	}
 }

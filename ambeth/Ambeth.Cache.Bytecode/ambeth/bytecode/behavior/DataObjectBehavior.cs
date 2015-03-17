@@ -36,7 +36,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
                 // ToBeUpdated & ToBeDeleted have to fire PropertyChange-Events by themselves
                 String[] properties = { DataObjectVisitor.template_p_toBeUpdated.Name, DataObjectVisitor.template_p_toBeDeleted.Name };
 
-                CascadeBehavior2 cascadeBehavior2 = BeanContext.RegisterWithLifecycle(new CascadeBehavior2(properties)).Finish();
+                CascadeBehavior2 cascadeBehavior2 = BeanContext.RegisterWithLifecycle(new CascadeBehavior2(metaData, properties)).Finish();
                 cascadePendingBehaviors.Add(cascadeBehavior2);
 
                 return visitor;
@@ -45,17 +45,20 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
 
         public class CascadeBehavior2 : AbstractBehavior
         {
+            private readonly IEntityMetaData metaData;
+
             private readonly String[] properties;
 
-            public CascadeBehavior2(String[] properties)
+            public CascadeBehavior2(IEntityMetaData metaData, String[] properties)
             {
+                this.metaData = metaData;
                 this.properties = properties;
             }
 
             public override IClassVisitor Extend(IClassVisitor visitor, IBytecodeBehaviorState state, IList<IBytecodeBehavior> remainingPendingBehaviors,
                     IList<IBytecodeBehavior> cascadePendingBehaviors)
             {
-                visitor = BeanContext.RegisterWithLifecycle(new NotifyPropertyChangedClassVisitor(visitor, properties)).Finish();
+                visitor = BeanContext.RegisterWithLifecycle(new NotifyPropertyChangedClassVisitor(visitor, metaData, properties)).Finish();
                 return visitor;
             }
         }

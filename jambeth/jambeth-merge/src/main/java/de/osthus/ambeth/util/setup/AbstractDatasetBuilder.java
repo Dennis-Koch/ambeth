@@ -2,16 +2,16 @@ package de.osthus.ambeth.util.setup;
 
 import java.util.Collection;
 
+import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
+import de.osthus.ambeth.merge.IMergeProcess;
 
 public abstract class AbstractDatasetBuilder implements IDatasetBuilder
 {
-	private static final ThreadLocal<Collection<Object>> INITIAL_TEST_DATASET_TL = new ThreadLocal<Collection<Object>>();
-
 	@LogInstance
 	private ILogger log;
 
@@ -21,40 +21,43 @@ public abstract class AbstractDatasetBuilder implements IDatasetBuilder
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
-	protected abstract void buildDatasetInternal();
+	@Autowired
+	protected IMergeProcess mergeProcess;
+
+	protected final ThreadLocal<Collection<Object>> initialTestDatasetTL = new ThreadLocal<Collection<Object>>();
 
 	@Override
-	public Collection<Class<? extends IDatasetBuilder>> getDependsOn()
+	public Collection<Object> buildDataset()
 	{
-		return null;
-	}
-
-	@Override
-	public void buildDataset(Collection<Object> initialTestDataset)
-	{
-		Collection<Object> oldSet = INITIAL_TEST_DATASET_TL.get();
-		INITIAL_TEST_DATASET_TL.set(initialTestDataset);
+		beforeBuildDataset();
 		try
 		{
 			buildDatasetInternal();
+			return initialTestDatasetTL.get();
 		}
 		finally
 		{
-			if (oldSet != null)
-			{
-				INITIAL_TEST_DATASET_TL.set(oldSet);
-			}
-			else
-			{
-				INITIAL_TEST_DATASET_TL.remove();
-			}
+			afterBuildDataset();
 		}
+	}
+
+	protected abstract void buildDatasetInternal();
+
+	protected void beforeBuildDataset()
+	{
+		IdentityHashSet<Object> initialTestDataset = new IdentityHashSet<Object>();
+		initialTestDatasetTL.set(initialTestDataset);
+	}
+
+	protected void afterBuildDataset()
+	{
+		initialTestDatasetTL.remove();
 	}
 
 	protected <V> V createEntity(Class<V> entityType)
 	{
 		V entity = entityFactory.createEntity(entityType);
-		INITIAL_TEST_DATASET_TL.get().add(entity);
+		initialTestDatasetTL.get().add(entity);
 		return entity;
 	}
 }

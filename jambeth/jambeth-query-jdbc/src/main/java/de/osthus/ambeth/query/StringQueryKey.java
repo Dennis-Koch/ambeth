@@ -37,4 +37,10 @@ public class StringQueryKey implements IQueryKey
 	{
 		return entityType.hashCode() ^ value.hashCode();
 	}
+
+	@Override
+	public String toString()
+	{
+		return entityType.getName() + value;
+	}
 }

@@ -1,13 +1,14 @@
 package de.osthus.ambeth.collections;
 
+import java.util.Collection;
 import java.util.List;
 
 import de.osthus.ambeth.util.StringBuilderUtil;
 
 /**
- * Erweiterte Map, welche zus�tzlich zu den �blichen Key/Value-Entries eine Liste aller Eintr�ge verwaltet. Somit die Komplexit�t f�r das Iterieren
- * �ber eine solchen Map mit O(n) = n identisch mit jener einer �blichen Array-Liste. Der Tradeoff sind hierbei nat�rlich die leicht aufw�ndigeren
- * put()- und remove()-Operationen, welche jedoch weiterhin bzgl. der Komplexit�t mit O(n) = 1 konstant bleiben.
+ * Erweiterte Map, welche zus�tzlich zu den �blichen Key/Value-Entries eine Liste aller Eintr�ge verwaltet. Somit die Komplexit�t f�r das Iterieren �ber eine
+ * solchen Map mit O(n) = n identisch mit jener einer �blichen Array-Liste. Der Tradeoff sind hierbei nat�rlich die leicht aufw�ndigeren put()- und
+ * remove()-Operationen, welche jedoch weiterhin bzgl. der Komplexit�t mit O(n) = 1 konstant bleiben.
  * 
  * @author kochd
  * @param <K>
@@ -104,17 +105,6 @@ public abstract class AbstractLinkedMap<K, V> extends AbstractHashMap<K, K, V> i
 	}
 
 	@Override
-	public void toKeysList(final List<K> list)
-	{
-		MapLinkedEntry<K, V> pointer = fastIterationList.getFirstElem();
-		while (pointer != null)
-		{
-			list.add(pointer.getKey());
-			pointer = pointer.getNext();
-		}
-	}
-
-	@Override
 	protected void setNextEntry(final IMapEntry<K, V> e, final IMapEntry<K, V> nextEntry)
 	{
 		((MapLinkedEntry<K, V>) e).setNextEntry((MapLinkedEntry<K, V>) nextEntry);
@@ -141,14 +131,6 @@ public abstract class AbstractLinkedMap<K, V> extends AbstractHashMap<K, K, V> i
 	}
 
 	@Override
-	public ISet<Entry<K, V>> entrySet()
-	{
-		LinkedHashSet<Entry<K, V>> set = LinkedHashSet.create(size());
-		entrySet(set);
-		return set;
-	}
-
-	@Override
 	public void entrySet(ISet<Entry<K, V>> targetEntrySet)
 	{
 		MapLinkedIterator<K, V> iter = iterator();
@@ -160,15 +142,7 @@ public abstract class AbstractLinkedMap<K, V> extends AbstractHashMap<K, K, V> i
 	}
 
 	@Override
-	public ISet<K> keySet()
-	{
-		LinkedHashSet<K> set = LinkedHashSet.create(size());
-		keySet(set);
-		return set;
-	}
-
-	@Override
-	public void keySet(ISet<K> targetKeySet)
+	public void keySet(Collection<K> targetKeySet)
 	{
 		MapLinkedIterator<K, V> iter = iterator();
 		while (iter.hasNext())

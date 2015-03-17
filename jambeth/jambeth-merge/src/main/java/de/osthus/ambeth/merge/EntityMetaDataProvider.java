@@ -11,6 +11,9 @@ import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 
 import de.osthus.ambeth.accessor.IAccessorTypeProvider;
+import de.osthus.ambeth.bytecode.EntityEnhancementHint;
+import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
+import de.osthus.ambeth.cache.ICacheModification;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
@@ -37,24 +40,23 @@ import de.osthus.ambeth.merge.model.IEntityLifecycleExtension;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.PostLoadMethodLifecycleExtension;
 import de.osthus.ambeth.merge.model.PrePersistMethodLifecycleExtension;
+import de.osthus.ambeth.metadata.IMemberTypeProvider;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.PrimitiveMember;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.proxy.IProxyFactory;
-import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.MethodAccess;
-import de.osthus.ambeth.typeinfo.AbstractPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
-import de.osthus.ambeth.typeinfo.MethodPropertyInfo;
-import de.osthus.ambeth.typeinfo.MethodPropertyInfoASM;
-import de.osthus.ambeth.typeinfo.PropertyInfoItem;
 import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.ImmutableTypeSet;
 import de.osthus.ambeth.util.ReflectUtil;
 import de.osthus.ambeth.xml.IXmlTypeHelper;
 
 public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMetaData> implements IEntityMetaDataProvider, IEntityMetaDataRefresher,
-		IEntityMetaDataExtendable, IEntityLifecycleExtendable, ITechnicalEntityTypeExtendable, IValueObjectConfigExtendable, IInitializingBean
+		IEntityMetaDataExtendable, IEntityLifecycleExtendable, ITechnicalEntityTypeExtendable, IEntityInstantiationExtensionExtendable,
+		IValueObjectConfigExtendable, IInitializingBean
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -66,11 +68,20 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	@Autowired
 	protected IServiceContext beanContext;
 
+	@Autowired
+	protected IBytecodeEnhancer bytecodeEnhancer;
+
+	@Autowired
+	protected ICacheModification cacheModification;
+
 	@Autowired(optional = true)
 	protected IEntityFactory entityFactory;
 
 	@Autowired
 	protected IEventDispatcher eventDispatcher;
+
+	@Autowired
+	protected IMemberTypeProvider memberTypeProvider;
 
 	@Autowired
 	protected IPropertyInfoProvider propertyInfoProvider;
@@ -90,11 +101,14 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	@Autowired
 	protected ValueObjectMap valueObjectMap;
 
+	protected final ThreadLocal<ClassExtendableContainer<IEntityMetaData>> pendingToRefreshMetaDatasTL = new ThreadLocal<ClassExtendableContainer<IEntityMetaData>>();
+
 	protected IEntityMetaData alreadyHandled;
 
 	protected Class<?>[] businessObjectSaveOrder;
 
-	protected final ThreadLocal<ArrayList<Class<?>>> pendingToRefreshMetaDataTL = new ThreadLocal<ArrayList<Class<?>>>();
+	protected final ClassExtendableContainer<IEntityInstantiationExtension> entityInstantiationExtensions = new ClassExtendableContainer<IEntityInstantiationExtension>(
+			"entityFactoryExtension", "entityType");
 
 	protected final HashMap<Class<?>, IMap<String, ITypeInfoItem>> typeToPropertyMap = new HashMap<Class<?>, IMap<String, ITypeInfoItem>>();
 
@@ -132,13 +146,21 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		IdentityHashSet<IEntityMetaData> extensions = new IdentityHashSet<IEntityMetaData>(getExtensions().values());
 		for (IEntityMetaData metaData : extensions)
 		{
-			for (IRelationInfoItem relationMember : metaData.getRelationMembers())
+			if (metaData == alreadyHandled)
+			{
+				continue;
+			}
+			for (RelationMember relationMember : metaData.getRelationMembers())
 			{
 				addTypeRelatedByTypes(typeRelatedByTypes, metaData.getEntityType(), relationMember.getElementType());
 			}
 		}
 		for (IEntityMetaData metaData : extensions)
 		{
+			if (metaData == alreadyHandled)
+			{
+				continue;
+			}
 			Class<?> entityType = metaData.getEntityType();
 			ISet<Class<?>> relatedByTypes = typeRelatedByTypes.get(entityType);
 			if (relatedByTypes == null)
@@ -146,7 +168,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 				relatedByTypes = new HashSet<Class<?>>();
 			}
 			((EntityMetaData) metaData).setTypesRelatingToThis(relatedByTypes.toArray(Class.class));
-			((EntityMetaData) metaData).initialize(entityFactory);
+			refreshMembers(metaData);
 		}
 	}
 
@@ -155,38 +177,48 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	{
 		if (metaData.getEnhancedType() == null)
 		{
-			return;
+			((EntityMetaData) metaData).initialize(cacheModification, entityFactory);
+			IEntityInstantiationExtension eie = entityInstantiationExtensions.getExtension(metaData.getEntityType());
+			Class<?> baseType = eie != null ? eie.getMappedEntityType(metaData.getEntityType()) : metaData.getEntityType();
+			((EntityMetaData) metaData).setEnhancedType(bytecodeEnhancer.getEnhancedType(baseType, EntityEnhancementHint.Instance));
 		}
-		for (ITypeInfoItem member : metaData.getRelationMembers())
+		RelationMember[] relationMembers = metaData.getRelationMembers();
+		for (int a = relationMembers.length; a-- > 0;)
 		{
-			refreshMember(metaData, member);
+			relationMembers[a] = (RelationMember) refreshMember(metaData, relationMembers[a]);
 		}
-		for (ITypeInfoItem member : metaData.getPrimitiveMembers())
+		PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();
+		for (int a = primitiveMembers.length; a-- > 0;)
 		{
-			refreshMember(metaData, member);
+			primitiveMembers[a] = (PrimitiveMember) refreshMember(metaData, primitiveMembers[a]);
 		}
-		refreshMember(metaData, metaData.getIdMember());
-		refreshMember(metaData, metaData.getVersionMember());
+		PrimitiveMember[] alternateIdMembers = metaData.getAlternateIdMembers();
+		for (int a = alternateIdMembers.length; a-- > 0;)
+		{
+			alternateIdMembers[a] = (PrimitiveMember) refreshMember(metaData, alternateIdMembers[a]);
+		}
+		((EntityMetaData) metaData).setIdMember((PrimitiveMember) refreshMember(metaData, metaData.getIdMember()));
+		((EntityMetaData) metaData).setVersionMember((PrimitiveMember) refreshMember(metaData, metaData.getVersionMember()));
+		((EntityMetaData) metaData).setUpdatedByMember((PrimitiveMember) refreshMember(metaData, metaData.getUpdatedByMember()));
+		((EntityMetaData) metaData).setUpdatedOnMember((PrimitiveMember) refreshMember(metaData, metaData.getUpdatedOnMember()));
+		((EntityMetaData) metaData).setCreatedByMember((PrimitiveMember) refreshMember(metaData, metaData.getCreatedByMember()));
+		((EntityMetaData) metaData).setCreatedOnMember((PrimitiveMember) refreshMember(metaData, metaData.getCreatedOnMember()));
 
 		updateEntityMetaDataWithLifecycleExtensions(metaData);
+		((EntityMetaData) metaData).initialize(cacheModification, entityFactory);
 	}
 
-	protected void refreshMember(IEntityMetaData metaData, ITypeInfoItem member)
+	protected Member refreshMember(IEntityMetaData metaData, Member member)
 	{
-		if (!(member instanceof PropertyInfoItem))
+		if (member == null)
 		{
-			return;
+			return null;
 		}
-		PropertyInfoItem pMember = (PropertyInfoItem) member;
-		AbstractPropertyInfo propertyInfo = (AbstractPropertyInfo) pMember.getProperty();
-		propertyInfo.refreshAccessors(metaData.getEnhancedType());
-		if (propertyInfo instanceof MethodPropertyInfo && !(propertyInfo instanceof MethodPropertyInfoASM))
+		if (member instanceof RelationMember)
 		{
-			MethodPropertyInfo mpi = (MethodPropertyInfo) propertyInfo;
-			MethodAccess methodAcess = MethodAccess.get(metaData.getEnhancedType());
-			mpi = new MethodPropertyInfoASM(metaData.getEnhancedType(), propertyInfo.getName(), mpi.getGetter(), mpi.getSetter(), null, methodAcess);
-			pMember.setProperty(mpi);
+			return memberTypeProvider.getRelationMember(metaData.getEnhancedType(), member.getName());
 		}
+		return memberTypeProvider.getPrimitiveMember(metaData.getEnhancedType(), member.getName());
 	}
 
 	protected IList<Class<?>> addLoadedMetaData(List<Class<?>> entityTypes, List<IEntityMetaData> loadedMetaData)
@@ -205,17 +237,12 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 				{
 					continue;
 				}
-				if (existingMetaData == alreadyHandled)
-				{
-					unregister(alreadyHandled, entityType);
-				}
-				register(missingMetaDataItem, entityType);
-				pendingToRefreshMetaDataTL.get().add(entityType);
+				pendingToRefreshMetaDatasTL.get().register(missingMetaDataItem, entityType);
 			}
 			for (int a = loadedMetaData.size(); a-- > 0;)
 			{
 				IEntityMetaData missingMetaDataItem = loadedMetaData.get(a);
-				for (ITypeInfoItem relationMember : missingMetaDataItem.getRelationMembers())
+				for (RelationMember relationMember : missingMetaDataItem.getRelationMembers())
 				{
 					Class<?> relationMemberType = relationMember.getElementType();
 					if (!containsKey(relationMemberType))
@@ -228,22 +255,70 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 					}
 				}
 			}
-			for (int a = entityTypes.size(); a-- > 0;)
-			{
-				Class<?> entityType = entityTypes.get(a);
-				if (!containsKey(entityType))
-				{
-					// add dummy items to ensure that this type does not
-					// get queried a second time
-					register(alreadyHandled, entityType);
-				}
-			}
 			return cascadeMissingEntityTypes != null ? cascadeMissingEntityTypes.toList() : null;
 		}
 		finally
 		{
 			writeLock.unlock();
 		}
+	}
+
+	@Override
+	public IEntityMetaData getExtensionHardKey(Class<?> key)
+	{
+		IEntityMetaData metaData = super.getExtensionHardKey(key);
+		if (metaData != null)
+		{
+			return metaData;
+		}
+		ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas = pendingToRefreshMetaDatasTL.get();
+		if (pendingToRefreshMetaDatas == null)
+		{
+			return null;
+		}
+		return pendingToRefreshMetaDatas.getExtensionHardKey(key);
+	}
+
+	public IEntityMetaData getExtensionHardKeyGlobalOnly(Class<?> key)
+	{
+		return super.getExtensionHardKey(key);
+	}
+
+	@Override
+	public IEntityMetaData getExtension(Class<?> key)
+	{
+		IEntityMetaData metaData = super.getExtension(key);
+		if (metaData != null)
+		{
+			return metaData;
+		}
+		ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas = pendingToRefreshMetaDatasTL.get();
+		if (pendingToRefreshMetaDatas == null)
+		{
+			return null;
+		}
+		return pendingToRefreshMetaDatas.getExtension(key);
+	}
+
+	@Override
+	public IList<IEntityMetaData> getExtensions(Class<?> key)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	public boolean containsKey(Class<?> key)
+	{
+		boolean contains = super.containsKey(key);
+		if (contains)
+		{
+			return true;
+		}
+		ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas = pendingToRefreshMetaDatasTL.get();
+		if (pendingToRefreshMetaDatas == null)
+		{
+			return contains;
+		}
+		return pendingToRefreshMetaDatas.containsKey(key);
 	}
 
 	@Override
@@ -289,6 +364,11 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	@Override
 	public IList<IEntityMetaData> getMetaData(List<Class<?>> entityTypes)
 	{
+		return getMetaData(entityTypes, true);
+	}
+
+	protected IList<IEntityMetaData> getMetaData(List<Class<?>> entityTypes, boolean askRemoteOnMiss)
+	{
 		ArrayList<IEntityMetaData> result = new ArrayList<IEntityMetaData>(entityTypes.size());
 		IList<Class<?>> missingEntityTypes = null;
 		for (int a = entityTypes.size(); a-- > 0;)
@@ -298,7 +378,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			if (metaDataItem == alreadyHandled)
 			{
 				metaDataItem = getExtensionHardKey(entityType);
-				if (metaDataItem == null)
+				if (metaDataItem == null && askRemoteOnMiss)
 				{
 					if (missingEntityTypes == null)
 					{
@@ -306,19 +386,18 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 					}
 					missingEntityTypes.add(entityType);
 				}
-				else
-				{
-					result.add(null);
-				}
 				continue;
 			}
 			if (metaDataItem == null)
 			{
-				if (missingEntityTypes == null)
+				if (askRemoteOnMiss)
 				{
-					missingEntityTypes = new ArrayList<Class<?>>();
+					if (missingEntityTypes == null)
+					{
+						missingEntityTypes = new ArrayList<Class<?>>();
+					}
+					missingEntityTypes.add(entityType);
 				}
-				missingEntityTypes.add(entityType);
 				continue;
 			}
 			result.add(metaDataItem);
@@ -330,15 +409,15 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		boolean handlePendingMetaData = false;
 		try
 		{
+			ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas = pendingToRefreshMetaDatasTL.get();
+			if (pendingToRefreshMetaDatas == null)
+			{
+				pendingToRefreshMetaDatas = new ClassExtendableContainer<IEntityMetaData>("metaData", "entityType");
+				pendingToRefreshMetaDatasTL.set(pendingToRefreshMetaDatas);
+				handlePendingMetaData = true;
+			}
 			while (missingEntityTypes != null && missingEntityTypes.size() > 0)
 			{
-				ArrayList<Class<?>> pendingToRefreshMetaData = pendingToRefreshMetaDataTL.get();
-				if (pendingToRefreshMetaData == null)
-				{
-					pendingToRefreshMetaData = new ArrayList<Class<?>>();
-					pendingToRefreshMetaDataTL.set(pendingToRefreshMetaData);
-					handlePendingMetaData = true;
-				}
 				IList<IEntityMetaData> loadedMetaData = remoteEntityMetaDataProvider.getMetaData(missingEntityTypes);
 
 				IList<Class<?>> cascadeMissingEntityTypes = addLoadedMetaData(missingEntityTypes, loadedMetaData);
@@ -352,20 +431,58 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 					missingEntityTypes.clear();
 				}
 			}
+			if (handlePendingMetaData)
+			{
+				ILinkedMap<Class<?>, IEntityMetaData> extensions = pendingToRefreshMetaDatas.getExtensions();
+				for (Entry<Class<?>, IEntityMetaData> entry : extensions)
+				{
+					IEntityMetaData metaData = entry.getValue();
+					if (metaData == alreadyHandled)
+					{
+						continue;
+					}
+					refreshMembers(metaData);
+				}
+				Lock writeLock = getWriteLock();
+				writeLock.lock();
+				try
+				{
+					for (Entry<Class<?>, IEntityMetaData> entry : pendingToRefreshMetaDatas.getExtensions())
+					{
+						Class<?> entityType = entry.getKey();
+						IEntityMetaData existingMetaData = getExtensionHardKeyGlobalOnly(entityType);
+						if (existingMetaData != null && existingMetaData != alreadyHandled)
+						{
+							// existing entry is already a valid non-null entry
+							continue;
+						}
+						IEntityMetaData ownMetaData = entry.getValue();
+						if (existingMetaData == ownMetaData)
+						{
+							// existing entry is already a null-entry and our entry is a null-entry, too - so nothing to do
+							continue;
+						}
+						if (existingMetaData == alreadyHandled)
+						{
+							unregister(alreadyHandled, entityType);
+						}
+						register(ownMetaData, entityType);
+					}
+				}
+				finally
+				{
+					writeLock.unlock();
+				}
+			}
 		}
 		finally
 		{
 			if (handlePendingMetaData)
 			{
-				ArrayList<Class<?>> pendingToRefreshMetaData = pendingToRefreshMetaDataTL.get();
-				pendingToRefreshMetaDataTL.remove();
-				for (Class<?> pendingToRefreshType : pendingToRefreshMetaData)
-				{
-					refreshMembers(getMetaData(pendingToRefreshType));
-				}
+				pendingToRefreshMetaDatasTL.remove();
 			}
 		}
-		return getMetaData(entityTypes);
+		return getMetaData(entityTypes, false);
 	}
 
 	@Override
@@ -590,13 +707,13 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
 		for (Method prePersistMethod : prePersistMethods)
 		{
-			PrePersistMethodLifecycleExtension extension = beanContext.registerAnonymousBean(PrePersistMethodLifecycleExtension.class)
+			PrePersistMethodLifecycleExtension extension = beanContext.registerBean(PrePersistMethodLifecycleExtension.class)
 					.propertyValue("Method", prePersistMethod).finish();
 			allExtensions.add(extension);
 		}
 		for (Method postLoadMethod : postLoadMethods)
 		{
-			PostLoadMethodLifecycleExtension extension = beanContext.registerAnonymousBean(PostLoadMethodLifecycleExtension.class)
+			PostLoadMethodLifecycleExtension extension = beanContext.registerBean(PostLoadMethodLifecycleExtension.class)
 					.propertyValue("Method", postLoadMethod).finish();
 			allExtensions.add(extension);
 		}
@@ -646,7 +763,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		writeLock.lock();
 		try
 		{
-			this.businessObjectSaveOrder = null;
+			businessObjectSaveOrder = null;
 
 			HashMap<Class<?>, ISet<Class<?>>> boTypeToBeforeBoTypes = new HashMap<Class<?>, ISet<Class<?>>>();
 			HashMap<Class<?>, ISet<Class<?>>> boTypeToAfterBoTypes = new HashMap<Class<?>, ISet<Class<?>>>();
@@ -665,7 +782,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 				}
 				Map<String, ITypeInfoItem> boNameToVoMember = getTypeInfoMapForVo(valueType);
 
-				for (IRelationInfoItem boMember : metaData.getRelationMembers())
+				for (RelationMember boMember : metaData.getRelationMembers())
 				{
 					String boMemberName = boMember.getName();
 					String voMemberName = voConfig.getValueObjectMemberName(boMemberName);
@@ -853,11 +970,11 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			{
 				addTypeInfoMapping(typeInfoMap, config, boMetaData.getVersionMember().getName(), sb);
 			}
-			for (ITypeInfoItem primitiveMember : boMetaData.getPrimitiveMembers())
+			for (Member primitiveMember : boMetaData.getPrimitiveMembers())
 			{
 				addTypeInfoMapping(typeInfoMap, config, primitiveMember.getName(), sb);
 			}
-			for (ITypeInfoItem relationMember : boMetaData.getRelationMembers())
+			for (RelationMember relationMember : boMetaData.getRelationMembers())
 			{
 				addTypeInfoMapping(typeInfoMap, config, relationMember.getName(), null);
 			}
@@ -899,5 +1016,19 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	public Class<?>[] getEntityPersistOrder()
 	{
 		return businessObjectSaveOrder;
+	}
+
+	@Override
+	public void registerEntityInstantiationExtension(IEntityInstantiationExtension entityInstantiationExtension, Class<?> type)
+	{
+		entityInstantiationExtensions.register(entityInstantiationExtension, type);
+		initialize();
+	}
+
+	@Override
+	public void unregisterEntityInstantiationExtension(IEntityInstantiationExtension entityInstantiationExtension, Class<?> type)
+	{
+		entityInstantiationExtensions.unregister(entityInstantiationExtension, type);
+		initialize();
 	}
 }

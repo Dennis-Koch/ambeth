@@ -13,42 +13,28 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
-import de.osthus.ambeth.config.UtilConfigurationConstants;
-import de.osthus.ambeth.event.EntityMetaDataAddedEvent;
-import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.ioc.BytecodeModule;
-import de.osthus.ambeth.ioc.CompositeIdModule;
+import de.osthus.ambeth.ioc.CacheBytecodeModule;
+import de.osthus.ambeth.ioc.CacheDataChangeModule;
+import de.osthus.ambeth.ioc.CacheModule;
 import de.osthus.ambeth.ioc.EventModule;
-import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.IocBootstrapModule;
+import de.osthus.ambeth.ioc.IocModule;
+import de.osthus.ambeth.ioc.MappingModule;
+import de.osthus.ambeth.ioc.MergeBytecodeModule;
 import de.osthus.ambeth.ioc.MergeModule;
-import de.osthus.ambeth.ioc.annotation.FrameworkModule;
-import de.osthus.ambeth.ioc.config.IBeanConfiguration;
-import de.osthus.ambeth.ioc.extendable.ExtendableBean;
+import de.osthus.ambeth.ioc.ServiceModule;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
-import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
-import de.osthus.ambeth.merge.DefaultProxyHelper;
-import de.osthus.ambeth.merge.EntityMetaDataProvider;
-import de.osthus.ambeth.merge.IEntityMetaDataExtendable;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
-import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.IValueObjectConfig;
-import de.osthus.ambeth.merge.IValueObjectConfigExtendable;
-import de.osthus.ambeth.merge.ValueObjectMap;
-import de.osthus.ambeth.merge.config.EntityMetaDataReader;
-import de.osthus.ambeth.merge.config.IEntityMetaDataReader;
-import de.osthus.ambeth.merge.config.IndependentEntityMetaDataReader;
-import de.osthus.ambeth.merge.config.ValueObjectConfigReader;
-import de.osthus.ambeth.merge.model.IEntityLifecycleExtendable;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.transfer.ObjRef;
-import de.osthus.ambeth.orm.IOrmXmlReaderExtendable;
-import de.osthus.ambeth.orm.IOrmXmlReaderRegistry;
-import de.osthus.ambeth.orm.OrmXmlReader20;
-import de.osthus.ambeth.orm.OrmXmlReaderLegathy;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.persistence.xml.model.Address;
 import de.osthus.ambeth.persistence.xml.model.AddressType;
 import de.osthus.ambeth.persistence.xml.model.Employee;
@@ -56,22 +42,12 @@ import de.osthus.ambeth.persistence.xml.model.EmployeeSmallType;
 import de.osthus.ambeth.persistence.xml.model.EmployeeType;
 import de.osthus.ambeth.persistence.xml.model.Project;
 import de.osthus.ambeth.persistence.xml.model.ProjectType;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.testutil.category.ReminderTests;
-import de.osthus.ambeth.typeinfo.IRelationProvider;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
-import de.osthus.ambeth.typeinfo.RelationProvider;
-import de.osthus.ambeth.typeinfo.TypeInfoProvider;
-import de.osthus.ambeth.util.ParamChecker;
-import de.osthus.ambeth.util.XmlConfigUtil;
-import de.osthus.ambeth.util.xml.IXmlConfigUtil;
-import de.osthus.ambeth.xml.IXmlTypeHelper;
-import de.osthus.ambeth.xml.XmlTypeHelper;
 
 @SQLData("Relations_data.sql")
 @SQLStructure("Relations_structure.sql")
@@ -81,85 +57,32 @@ import de.osthus.ambeth.xml.XmlTypeHelper;
 		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile, value = IndependentMetaDataComparisonTest.basePath
 				+ "independent-value-object.xml;" + IndependentMetaDataComparisonTest.basePath + "independent-value-object2.xml"),
 		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true") })
-public class IndependentMetaDataComparisonTest extends AbstractPersistenceTest
+public class IndependentMetaDataComparisonTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static final String basePath = "de/osthus/ambeth/persistence/xml/";
 
-	@FrameworkModule
-	public static final class ClientTestModule implements IInitializingModule
+	private IServiceContext createClientBeanContext()
 	{
-		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			IBeanConfiguration valueObjectMap = beanContextFactory.registerAnonymousBean(ValueObjectMap.class);
-
-			beanContextFactory
-					.registerBean("independentMetaDataProvider", EntityMetaDataProvider.class)
-					.propertyRef("ValueObjectMap", valueObjectMap)
-					.autowireable(IEntityMetaDataProvider.class, IValueObjectConfigExtendable.class, IEntityLifecycleExtendable.class,
-							IEntityMetaDataExtendable.class);
-			beanContextFactory.registerBean(MergeModule.INDEPENDENT_META_DATA_READER, IndependentEntityMetaDataReader.class);
-			beanContextFactory.registerBean("entityMetaDataReader", EntityMetaDataReader.class).autowireable(IEntityMetaDataReader.class);
-			beanContextFactory.registerBean("proxyHelper", DefaultProxyHelper.class).autowireable(IProxyHelper.class);
-			beanContextFactory.registerBean("relationProvider", RelationProvider.class).autowireable(IRelationProvider.class);
-			beanContextFactory.registerBean("typeInfoProvider", TypeInfoProvider.class).autowireable(ITypeInfoProvider.class);
-			beanContextFactory.registerBean("valueObjectConfigReader", ValueObjectConfigReader.class);
-			beanContextFactory.link("valueObjectConfigReader").to(IEventListenerExtendable.class).with(EntityMetaDataAddedEvent.class);
-
-			beanContextFactory.registerBean("xmlConfigUtil", XmlConfigUtil.class).autowireable(IXmlConfigUtil.class);
-			beanContextFactory.registerBean("xmlTypeHelper", XmlTypeHelper.class).autowireable(IXmlTypeHelper.class);
-
-			beanContextFactory.registerBean("ormXmlReader", ExtendableBean.class).propertyValue(ExtendableBean.P_PROVIDER_TYPE, IOrmXmlReaderRegistry.class)
-					.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, IOrmXmlReaderExtendable.class)
-					.propertyRef(ExtendableBean.P_DEFAULT_BEAN, "ormXmlReaderLegathy").autowireable(IOrmXmlReaderRegistry.class, IOrmXmlReaderExtendable.class);
-			beanContextFactory.registerBean("ormXmlReaderLegathy", OrmXmlReaderLegathy.class);
-			IBeanConfiguration ormXmlReader20BC = beanContextFactory.registerAnonymousBean(OrmXmlReader20.class);
-			beanContextFactory.link(ormXmlReader20BC).to(IOrmXmlReaderExtendable.class).with(OrmXmlReader20.ORM_XML_NS);
-		}
-	}
-
-	private static IServiceContext createClientBeanContext()
-	{
-		Properties baseProps = new Properties(Properties.getApplication());
-		baseProps.put(ServiceConfigurationConstants.mappingFile, IndependentMetaDataComparisonTest.basePath + "independent-orm.xml;"
-				+ IndependentMetaDataComparisonTest.basePath + "independent-orm2.xml");
-		baseProps.put(ServiceConfigurationConstants.valueObjectFile, IndependentMetaDataComparisonTest.basePath + "independent-value-object.xml;"
-				+ IndependentMetaDataComparisonTest.basePath + "independent-value-object2.xml");
+		IProperties serverProperties = beanContext.getService(IProperties.class);
+		Properties baseProps = new Properties(serverProperties);
 		baseProps.put(ServiceConfigurationConstants.GenericTransferMapping, "true");
 		baseProps.put(ServiceConfigurationConstants.NetworkClientMode, "true");
 		baseProps.put(ServiceConfigurationConstants.IndependentMetaData, "true");
-		String bootstrapPropertyFile = Properties.getSystem().getString(UtilConfigurationConstants.BootstrapPropertyFile);
-		if (bootstrapPropertyFile != null)
-		{
-			baseProps.load(bootstrapPropertyFile);
-		}
-		Properties.loadBootstrapPropertyFile();
 
 		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(baseProps);
-		IServiceContext beanContext = bootstrapContext.createService(BytecodeModule.class, ClientTestModule.class, CompositeIdModule.class, EventModule.class,
-				IocBootstrapModule.class);
+		IServiceContext beanContext = bootstrapContext.createService(BytecodeModule.class, CacheModule.class, CacheBytecodeModule.class,
+				CacheDataChangeModule.class, EventModule.class, IocModule.class, MappingModule.class, MergeBytecodeModule.class, MergeModule.class,
+				ServiceModule.class);
 
 		return beanContext;
 	}
 
+	@Autowired
+	protected IEntityMetaDataProvider serverFixture;
+
 	private IServiceContext clientBeanContext;
 
-	private IEntityMetaDataProvider serverFixture;
-
 	private IEntityMetaDataProvider clientFixture;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(serverFixture, "serverFixture");
-	}
-
-	public void setServerFixture(IEntityMetaDataProvider serverFixture)
-	{
-		this.serverFixture = serverFixture;
-	}
 
 	@Before
 	public void setUp() throws Exception
@@ -172,7 +95,10 @@ public class IndependentMetaDataComparisonTest extends AbstractPersistenceTest
 	public void tearDown() throws Exception
 	{
 		clientFixture = null;
-		clientBeanContext.dispose();
+		if (clientBeanContext != null)
+		{
+			clientBeanContext.dispose();
+		}
 	}
 
 	@Test
@@ -244,8 +170,8 @@ public class IndependentMetaDataComparisonTest extends AbstractPersistenceTest
 			Assert.assertEquals(entityName, expectedIIP.length, actualIIP.length);
 			for (int j = expectedIIP.length; j-- > 0;)
 			{
-				ITypeInfoItem expectedTypeInfoItem = expected.getPrimitiveMembers()[expectedIIP[i]];
-				ITypeInfoItem actualTypeInfoItem = actual.getPrimitiveMembers()[actualIIP[i]];
+				PrimitiveMember expectedTypeInfoItem = expected.getPrimitiveMembers()[expectedIIP[i]];
+				PrimitiveMember actualTypeInfoItem = actual.getPrimitiveMembers()[actualIIP[i]];
 				Assert.assertEquals(entityName, expectedTypeInfoItem.getName(), actualTypeInfoItem.getName());
 			}
 		}
@@ -266,13 +192,13 @@ public class IndependentMetaDataComparisonTest extends AbstractPersistenceTest
 	}
 
 	// Asserts the existence of content, not the order.
-	private static void assertEquals(String message, ITypeInfoItem[] expected, ITypeInfoItem[] actual)
+	private static void assertEquals(String message, Member[] expected, Member[] actual)
 	{
 		Assert.assertEquals(message, expected.length, actual.length);
 
-		outerLoop: for (ITypeInfoItem actualItem : actual)
+		outerLoop: for (Member actualItem : actual)
 		{
-			for (ITypeInfoItem expectedItem : expected)
+			for (Member expectedItem : expected)
 			{
 				if (expectedItem.getName().equals(actualItem.getName()))
 				{
@@ -284,19 +210,16 @@ public class IndependentMetaDataComparisonTest extends AbstractPersistenceTest
 		}
 	}
 
-	private static void assertEquals(String message, ITypeInfoItem expected, ITypeInfoItem actual)
+	private static void assertEquals(String message, Member expected, Member actual)
 	{
 		message += "." + expected.getName();
 		Assert.assertEquals(message, expected.getName(), actual.getName());
-		Assert.assertEquals(message, expected.getXMLName(), actual.getXMLName());
-		Assert.assertEquals(message, expected.getDefaultValue(), actual.getDefaultValue());
 		Assert.assertEquals(message, expected.getNullEquivalentValue(), actual.getNullEquivalentValue());
 		Assert.assertEquals(message, expected.canRead(), actual.canRead());
 		Assert.assertEquals(message, expected.canWrite(), actual.canWrite());
-		Assert.assertEquals(message, expected.getDeclaringType(), actual.getDeclaringType());
+		Assert.assertEquals(message, expected.getDeclaringType().getName(), actual.getDeclaringType().getName());
 		Assert.assertEquals(message, expected.getElementType(), actual.getElementType());
 		Assert.assertEquals(message, expected.getRealType(), actual.getRealType());
-		Assert.assertEquals(message, expected.isXMLIgnore(), actual.isXMLIgnore());
 	}
 
 }

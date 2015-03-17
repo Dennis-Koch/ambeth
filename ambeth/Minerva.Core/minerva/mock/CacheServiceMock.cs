@@ -4,6 +4,7 @@ using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Model;
 using De.Osthus.Ambeth.Service;
 using De.Osthus.Ambeth.Typeinfo;
@@ -69,7 +70,7 @@ namespace De.Osthus.Minerva.Mock
             }
         }
 
-        public void AddObject(IObjRef objRef, IPrimitiveUpdateItem[] primitiveUpdates, IRelationUpdateItem[] relationUpdates, String changedBy, DateTime changedOn)
+        public void AddObject(IObjRef objRef, IPrimitiveUpdateItem[] primitiveUpdates, IRelationUpdateItem[] relationUpdates, String changedBy, long changedOn)
         {
             IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(objRef.RealType);
 
@@ -99,8 +100,8 @@ namespace De.Osthus.Minerva.Mock
 
         protected int GetPrimitiveMemberIndex(IEntityMetaData metaData, String primitiveMemberName)
         {
-            ITypeInfoItem[] primitiveMembers = metaData.PrimitiveMembers;
-            ITypeInfoItem member = metaData.GetMemberByName(primitiveMemberName);
+            PrimitiveMember[] primitiveMembers = metaData.PrimitiveMembers;
+            Member member = metaData.GetMemberByName(primitiveMemberName);
             for (int b = primitiveMembers.Length; b-- > 0; )
             {
                 if (primitiveMembers[b] == member)
@@ -111,7 +112,7 @@ namespace De.Osthus.Minerva.Mock
             throw new Exception("Primitive member with name '" + primitiveMemberName + "' not found on entity of type '" + metaData.EntityType);
         }
 
-        public void ChangeObject(IObjRef objRef, IPrimitiveUpdateItem[] primitiveUpdates, IRelationUpdateItem[] relationUpdates, String changedBy, DateTime changedOn)
+        public void ChangeObject(IObjRef objRef, IPrimitiveUpdateItem[] primitiveUpdates, IRelationUpdateItem[] relationUpdates, String changedBy, long changedOn)
         {
             writeLock.Lock();
             try
@@ -148,12 +149,12 @@ namespace De.Osthus.Minerva.Mock
 
                 if (primitiveUpdates != null)
                 {
-                    ITypeInfoItem[] primitiveMembers = metaData.PrimitiveMembers;
+                    PrimitiveMember[] primitiveMembers = metaData.PrimitiveMembers;
                     for (int a = primitiveUpdates.Length; a-- > 0; )
                     {
                         IPrimitiveUpdateItem pui = primitiveUpdates[a];
 
-                        ITypeInfoItem member = metaData.GetMemberByName(pui.MemberName);
+                        Member member = metaData.GetMemberByName(pui.MemberName);
                         for (int b = primitiveMembers.Length; b-- > 0; )
                         {
                             if (primitiveMembers[b] == member)
@@ -236,10 +237,10 @@ namespace De.Osthus.Minerva.Mock
                         // This object does not refer to instances of deleted type
                     }
                     IEntityMetaData typeRelatingMetaData = EntityMetaDataProvider.GetMetaData(key.RealType);
-                    ITypeInfoItem[] relationMembers = typeRelatingMetaData.RelationMembers;
+                    RelationMember[] relationMembers = typeRelatingMetaData.RelationMembers;
                     for (int a = relationMembers.Length; a-- > 0; )
                     {
-                        ITypeInfoItem relationMember = relationMembers[a];
+                        RelationMember relationMember = relationMembers[a];
                         if (!deletedType.Equals(relationMember.ElementType))
                         {
                             continue;

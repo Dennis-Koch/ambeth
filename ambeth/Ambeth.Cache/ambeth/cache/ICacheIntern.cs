@@ -9,7 +9,7 @@ namespace De.Osthus.Ambeth.Cache
     {
         Object CreateCacheValueInstance(IEntityMetaData metaData, Object obj);
 
-        void AddDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object[] alternateIds, IObjRef[][] relations);
+        void AddDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object parentCacheValueOrArray, IObjRef[][] relations);
 
         Object GetObject(IObjRef oriToGet, ICacheIntern targetCache, CacheDirective cacheDirective);
 
@@ -18,9 +18,9 @@ namespace De.Osthus.Ambeth.Cache
         IList<IObjRelationResult> GetObjRelations(IList<IObjRelation> objRels, ICacheIntern targetCache, CacheDirective cacheDirective);
         
         bool AcquireHardRefTLIfNotAlready();
-
-        bool Privileged { get; }
-
+        
         void ClearHardRefs(bool acquirementSuccessful);
+
+        void AssignEntityToCache(Object entity);
     }
 }

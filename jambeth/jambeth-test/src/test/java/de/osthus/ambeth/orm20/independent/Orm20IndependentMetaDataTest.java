@@ -12,8 +12,9 @@ import org.junit.Test;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.merge.model.EntityMetaData;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.testutil.TestProperties;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/orm20/independent/orm20.xml")
 public class Orm20IndependentMetaDataTest extends AbstractIndependentOrm20Test
@@ -67,12 +68,13 @@ public class Orm20IndependentMetaDataTest extends AbstractIndependentOrm20Test
 		assertEquals(alternateIdCount, metaDataA.getAlternateIdCount());
 
 		// Alternate Id members
-		ITypeInfoItem[] alternateIdMembers = metaDataA.getAlternateIdMembers();
+		PrimitiveMember[] alternateIdMembers = metaDataA.getAlternateIdMembers();
 		assertEquals(alternateIdCount, alternateIdMembers.length);
-		ITypeInfoItem alternateIdMember = alternateIdMembers[0];
+		PrimitiveMember alternateIdMember = alternateIdMembers[0];
 		assertEquals("Name", alternateIdMember.getName());
 		assertEquals(String.class, alternateIdMember.getRealType());
-		assertEquals(EntityA.class, alternateIdMember.getDeclaringType());
+		assertTrue(EntityA.class.isAssignableFrom(metaDataA.getEnhancedType()));
+		assertEquals(metaDataA.getEnhancedType(), alternateIdMember.getDeclaringType());
 		assertTrue(metaDataA.isAlternateId(alternateIdMember));
 		assertEquals((byte) 0, metaDataA.getIdIndexByMemberName(alternateIdMember.getName()));
 		assertEquals(alternateIdMember, metaDataA.getIdMemberByIdIndex((byte) 0));
@@ -81,9 +83,9 @@ public class Orm20IndependentMetaDataTest extends AbstractIndependentOrm20Test
 		int[][] alternateIdMemberIndicesInPrimitives = metaDataA.getAlternateIdMemberIndicesInPrimitives();
 		assertEquals(alternateIdCount, alternateIdMemberIndicesInPrimitives.length);
 		int indexInPrimitives = alternateIdMemberIndicesInPrimitives[0][0];
-		ITypeInfoItem[] primitiveMembers = metaDataA.getPrimitiveMembers();
+		PrimitiveMember[] primitiveMembers = metaDataA.getPrimitiveMembers();
 		assertTrue(indexInPrimitives < primitiveMembers.length);
-		ITypeInfoItem alternateIdMemberByIndex = primitiveMembers[indexInPrimitives];
+		PrimitiveMember alternateIdMemberByIndex = primitiveMembers[indexInPrimitives];
 		assertEquals(alternateIdMember, alternateIdMemberByIndex);
 	}
 
@@ -95,7 +97,7 @@ public class Orm20IndependentMetaDataTest extends AbstractIndependentOrm20Test
 		assertEquals(0, metaDataB.getAlternateIdCount());
 
 		// Alternate Id members
-		ITypeInfoItem[] alternateIdMembers = metaDataB.getAlternateIdMembers();
+		PrimitiveMember[] alternateIdMembers = metaDataB.getAlternateIdMembers();
 		assertEquals(0, alternateIdMembers.length);
 
 		// Indices in Primitives
@@ -111,7 +113,7 @@ public class Orm20IndependentMetaDataTest extends AbstractIndependentOrm20Test
 		assertEquals(0, metaDataC.getAlternateIdCount());
 
 		// Alternate Id members
-		ITypeInfoItem[] alternateIdMembers = metaDataC.getAlternateIdMembers();
+		PrimitiveMember[] alternateIdMembers = metaDataC.getAlternateIdMembers();
 		assertEquals(0, alternateIdMembers.length);
 
 		// Indices in Primitives
@@ -124,24 +126,25 @@ public class Orm20IndependentMetaDataTest extends AbstractIndependentOrm20Test
 	{
 		IEntityMetaData metaDataA = retrieveMetaData(EntityA.class);
 
-		ITypeInfoItem[] primitiveMembers = metaDataA.getPrimitiveMembers();
+		PrimitiveMember[] primitiveMembers = metaDataA.getPrimitiveMembers();
 		assertEquals(3 + 4, primitiveMembers.length); // + 4 technical members
 
-		ITypeInfoItem nameMember = metaDataA.getMemberByName("Name");
+		Member nameMember = metaDataA.getMemberByName("Name");
 		assertNotNull(nameMember);
 		assertEquals("Name", nameMember.getName());
 		assertEquals(String.class, nameMember.getRealType());
-		assertEquals(EntityA.class, nameMember.getDeclaringType());
+		assertTrue(EntityA.class.isAssignableFrom(metaDataA.getEnhancedType()));
+		assertEquals(metaDataA.getEnhancedType(), nameMember.getDeclaringType());
 		assertTrue(metaDataA.isAlternateId(nameMember));
 		int nameIndex = metaDataA.getIndexByPrimitive(nameMember);
 		assertEquals(nameMember, primitiveMembers[nameIndex]);
 
-		ITypeInfoItem valuesMember = metaDataA.getMemberByName("Values");
+		Member valuesMember = metaDataA.getMemberByName("Values");
 		assertNotNull(valuesMember);
 		assertEquals("Values", valuesMember.getName());
 		assertEquals(List.class, valuesMember.getRealType());
 		assertEquals(Integer.class, valuesMember.getElementType());
-		assertEquals(EntityA.class, valuesMember.getDeclaringType());
+		assertEquals(metaDataA.getEnhancedType(), valuesMember.getDeclaringType());
 		assertFalse(metaDataA.isAlternateId(valuesMember));
 		int valuesIndex = metaDataA.getIndexByPrimitive(valuesMember);
 		assertEquals(valuesMember, primitiveMembers[valuesIndex]);
@@ -189,26 +192,26 @@ public class Orm20IndependentMetaDataTest extends AbstractIndependentOrm20Test
 	{
 		IEntityMetaData metaData = retrieveMetaData(entityType);
 
-		ITypeInfoItem idMember = metaData.getIdMember();
+		PrimitiveMember idMember = metaData.getIdMember();
 		testTechnicalMember(idMember, EntityMetaData.DEFAULT_NAME_ID + memberNamePostfix, metaData);
 
-		ITypeInfoItem versionMember = metaData.getVersionMember();
+		PrimitiveMember versionMember = metaData.getVersionMember();
 		testTechnicalMember(versionMember, EntityMetaData.DEFAULT_NAME_VERSION + memberNamePostfix, metaData);
 
-		ITypeInfoItem createdByMember = metaData.getCreatedByMember();
+		PrimitiveMember createdByMember = metaData.getCreatedByMember();
 		testTechnicalMember(createdByMember, EntityMetaData.DEFAULT_NAME_CREATED_BY + memberNamePostfix, metaData);
 
-		ITypeInfoItem createdOnMember = metaData.getCreatedOnMember();
+		PrimitiveMember createdOnMember = metaData.getCreatedOnMember();
 		testTechnicalMember(createdOnMember, EntityMetaData.DEFAULT_NAME_CREATED_ON + memberNamePostfix, metaData);
 
-		ITypeInfoItem updatedByMember = metaData.getUpdatedByMember();
+		PrimitiveMember updatedByMember = metaData.getUpdatedByMember();
 		testTechnicalMember(updatedByMember, EntityMetaData.DEFAULT_NAME_UPDATED_BY + memberNamePostfix, metaData);
 
-		ITypeInfoItem updatedOnMember = metaData.getUpdatedOnMember();
+		PrimitiveMember updatedOnMember = metaData.getUpdatedOnMember();
 		testTechnicalMember(updatedOnMember, EntityMetaData.DEFAULT_NAME_UPDATED_ON + memberNamePostfix, metaData);
 	}
 
-	protected void testTechnicalMember(ITypeInfoItem member, String memberName, IEntityMetaData metaData)
+	protected void testTechnicalMember(PrimitiveMember member, String memberName, IEntityMetaData metaData)
 	{
 		assertNotNull("Property '" + metaData.getEntityType().getSimpleName() + "." + memberName + "' not found", member);
 		assertTrue(member.isTechnicalMember());
@@ -221,7 +224,7 @@ public class Orm20IndependentMetaDataTest extends AbstractIndependentOrm20Test
 	{
 		IEntityMetaData metaData = retrieveMetaData(entityType);
 
-		ITypeInfoItem[] primitiveMembers = metaData.getPrimitiveMembers();
+		PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();
 		assertEquals(4, primitiveMembers.length); // Just the 4 technical members
 	}
 }

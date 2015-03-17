@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="ambeth\config\PropertiesPreProcessor.cs" />
     <Compile Include="ambeth\config\PropertyAttribute.cs" />
+    <Compile Include="ambeth\converter\StringToFileConverter.cs" />
     <Compile Include="ambeth\debug\FlattenHierarchyProxy.cs" />
     <Compile Include="ambeth\ioc\annotation\AutowiredAttribute.cs" />
     <Compile Include="ambeth\ioc\config\AbstractBeanConfiguration.cs" />
@@ -60,6 +61,8 @@
     <Compile Include="ambeth\ioc\config\PropertyEmbeddedRefConfiguration.cs" />
     <Compile Include="ambeth\ioc\config\PropertyRefConfiguration.cs" />
     <Compile Include="ambeth\ioc\config\PropertyValueConfiguration.cs" />
+    <Compile Include="ambeth\ioc\DisposableBeanHook.cs" />
+    <Compile Include="ambeth\ioc\DisposableHook.cs" />
     <Compile Include="ambeth\ioc\proxy\EmptyInterceptor.cs" />
     <Compile Include="ambeth\ioc\exception\BeanContextDeclarationException.cs" />
     <Compile Include="ambeth\ioc\exception\BeanContextInitException.cs" />
@@ -128,8 +131,10 @@
     <Compile Include="ambeth\ioc\proxy\CallingProxyPostProcessor.cs" />
     <Compile Include="ambeth\ioc\proxy\InterfaceBean.cs" />
     <Compile Include="ambeth\ioc\proxy\Self.cs" />
-    <Compile Include="ambeth\ioc\RegisterPhaseDelegate.cs" />
     <Compile Include="ambeth\ioc\ServiceContext.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\ForkProcessorValueResolver.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\IForkProcessor.cs" />
+    <Compile Include="ambeth\log\LoggerHistoryKey.cs" />
     <Compile Include="ambeth\log\ILoggerCache.cs" />
     <Compile Include="ambeth\log\LoggerInstancePreProcessor.cs" />
     <Compile Include="ambeth\threading\UIThreadWrapper.cs" />
@@ -138,10 +143,23 @@
     <Compile Include="ambeth\typeinfo\MethodPropertyInfoASM2.cs" />
     <Compile Include="ambeth\typeinfo\PropertyInfoEntry.cs" />
     <Compile Include="ambeth\typeinfo\PropertyInfoProvider.cs" />
+    <Compile Include="ambeth\util\AbstractRunnableHandle.cs" />
+    <Compile Include="ambeth\util\CatchingRunnable.cs" />
     <Compile Include="ambeth\util\ClassTupleExtendableContainer.cs" />
     <Compile Include="ambeth\util\ConversionKey.cs" />
     <Compile Include="ambeth\util\DelegatingConversionHelper.cs" />
-    <Compile Include="ioc\IocModule.cs" />
+    <Compile Include="ambeth\ioc\IocModule.cs" />
+    <Compile Include="ambeth\util\IAggregrateResultHandler.cs" />
+	<Compile Include="ambeth\util\ImmutableTypeSet.cs" />
+    <Compile Include="ambeth\util\IMultithreadingHelper.cs" />
+    <Compile Include="ambeth\util\INamedRunnable.cs" />
+    <Compile Include="ambeth\util\InterruptingParamHolder.cs" />
+    <Compile Include="ambeth\util\MultithreadingHelper.cs" />
+    <Compile Include="ambeth\util\ParallelRunnable.cs" />
+    <Compile Include="ambeth\util\ResultingParallelRunnable.cs" />
+    <Compile Include="ambeth\util\ResultingRunnableHandle.cs" />
+    <Compile Include="ambeth\util\RunnableHandle.cs" />
+    <Compile Include="ambeth\util\WrappingNamedRunnable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -197,16 +215,12 @@
     <Compile Include="ambeth\ioc\IBeanContextAware.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ambeth\ioc\threadlocal\ThreadLocalCleanupPreProcessor.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="ambeth\ioc\factory\BeanConfigState.cs" />
     <Compile Include="ambeth\ioc\factory\OrderState.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\accessor\AccessorClassLoader.cs" />
     <Compile Include="ambeth\accessor\AccessorTypeProvider.cs" />
-    <Compile Include="ambeth\accessor\DefaultAccessor.cs" />
     <Compile Include="ambeth\accessor\IAccessorTypeProvider.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -232,6 +246,28 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\ioc\PostProcessorOrder.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\ioc\link\AutoLinkPreProcessor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\ioc\threadlocal\Forkable.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\ForkableType.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\ForkState.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\ForkStateEntry.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\IForkedValueResolver.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\IForkState.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\ReferenceValueResolver.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\ShallowCopyValueResolver.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\garbageproxy\GarbageProxyFactory.cs" />
+    <Compile Include="ambeth\garbageproxy\GCProxy.cs" />
+    <Compile Include="ambeth\garbageproxy\IGarbageProxyConstructor.cs" />
+    <Compile Include="ambeth\garbageproxy\IGarbageProxyFactory.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\ioc\exception\BeanAlreadyDisposedException.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

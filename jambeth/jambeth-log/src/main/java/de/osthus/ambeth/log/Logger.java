@@ -2,16 +2,20 @@ package de.osthus.ambeth.log;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
+import de.osthus.ambeth.config.UtilConfigurationConstants;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.ParamChecker;
@@ -19,9 +23,7 @@ import de.osthus.ambeth.util.SystemUtil;
 
 public class Logger implements IConfigurableLogger
 {
-	public static IThreadLocalObjectCollector objectCollector;
-
-	protected static final DateFormat format = new SimpleDateFormat("[yyyy-MM-dd HH:mm:ss.SSS]");
+	protected static final DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
 	private static boolean logStreamEnabled;
 
@@ -53,7 +55,7 @@ public class Logger implements IConfigurableLogger
 				}
 				try
 				{
-					loggerStream = new BufferedWriter(new FileWriter(logfileHandle, appendModeActive));
+					loggerStream = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(logfileHandle, appendModeActive), Charset.forName("UTF-8")));
 				}
 				catch (IOException e)
 				{
@@ -100,11 +102,15 @@ public class Logger implements IConfigurableLogger
 		Logger.logStreamEnabled = logStreamEnabled;
 	}
 
-	protected boolean isDebugEnabled = true, isInfoEnabled = true, isWarnEnabled = true, isErrorEnabled = true, logToConsole = true;
+	protected boolean debugEnabled = true, infoEnabled = true, warnEnabled = true, errorEnabled = true, logToConsole = true;
 
 	private final String source, shortSource;
 
+	protected String forkName;
+
 	protected LogSourceLevel logSourceLevel = LogSourceLevel.DEFAULT;
+
+	protected IThreadLocalObjectCollector objectCollector;
 
 	public Logger(String source)
 	{
@@ -120,6 +126,18 @@ public class Logger implements IConfigurableLogger
 		}
 	}
 
+	@Override
+	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
+	{
+		this.objectCollector = objectCollector;
+	}
+
+	@Override
+	public void postProcess(IProperties properties)
+	{
+		forkName = properties.getString(UtilConfigurationConstants.ForkName);
+	}
+
 	protected DateFormat getFormat()
 	{
 		return format;
@@ -128,13 +146,13 @@ public class Logger implements IConfigurableLogger
 	@Override
 	public boolean isDebugEnabled()
 	{
-		return isDebugEnabled;
+		return debugEnabled;
 	}
 
 	@Override
 	public void setDebugEnabled(boolean value)
 	{
-		isDebugEnabled = value;
+		debugEnabled = value;
 	}
 
 	@Override
@@ -165,37 +183,37 @@ public class Logger implements IConfigurableLogger
 	@Override
 	public boolean isInfoEnabled()
 	{
-		return isInfoEnabled;
+		return infoEnabled;
 	}
 
 	@Override
 	public void setInfoEnabled(boolean value)
 	{
-		isInfoEnabled = value;
+		infoEnabled = value;
 	}
 
 	@Override
 	public boolean isWarnEnabled()
 	{
-		return isWarnEnabled;
+		return warnEnabled;
 	}
 
 	@Override
 	public void setWarnEnabled(boolean value)
 	{
-		isWarnEnabled = value;
+		warnEnabled = value;
 	}
 
 	@Override
 	public boolean isErrorEnabled()
 	{
-		return isErrorEnabled;
+		return errorEnabled;
 	}
 
 	@Override
 	public void setErrorEnabled(boolean value)
 	{
-		isErrorEnabled = value;
+		errorEnabled = value;
 	}
 
 	@Override
@@ -442,19 +460,13 @@ public class Logger implements IConfigurableLogger
 		StringBuilder sb = acquireStringBuilder();
 		try
 		{
-			String dateString;
-			// DateFormat is not thread-safe
-			DateFormat format = getFormat();
-			formatWriteLock.lock();
-			try
+			String dateString = formatDate(date);
+			sb.append('[');
+			if (forkName != null)
 			{
-				dateString = format.format(date);
+				sb.append(forkName).append('-');
 			}
-			finally
-			{
-				formatWriteLock.unlock();
-			}
-			sb.append('[').append(currentThread.getId()).append(": ").append(threadName).append("] ");
+			sb.append(currentThread.getId()).append(": ").append(threadName).append("] ");
 
 			String printedSource;
 			switch (logSourceLevel)
@@ -473,7 +485,7 @@ public class Logger implements IConfigurableLogger
 					throw new IllegalStateException("Enum " + logSourceLevel + " not supported");
 			}
 
-			sb.append(dateString).append(' ').append(logLevel.name());
+			sb.append('[').append(dateString).append("] ").append(logLevel.name());
 			for (int a = logLevel.name().length(); a < 5; a++)
 			{
 				sb.append(' ');
@@ -491,14 +503,29 @@ public class Logger implements IConfigurableLogger
 		}
 	}
 
+	protected String formatDate(Date date)
+	{
+		// DateFormat is not thread-safe
+		DateFormat format = getFormat();
+		formatWriteLock.lock();
+		try
+		{
+			return format.format(date);
+		}
+		finally
+		{
+			formatWriteLock.unlock();
+		}
+	}
+
 	protected StringBuilder acquireStringBuilder()
 	{
-		IThreadLocalObjectCollector localObjectCollector = objectCollector;
-		if (localObjectCollector == null)
+		IThreadLocalObjectCollector objectCollector = this.objectCollector;
+		if (objectCollector == null)
 		{
 			return new StringBuilder();
 		}
-		return localObjectCollector.create(StringBuilder.class);
+		return objectCollector.create(StringBuilder.class);
 	}
 
 	protected void dispose(StringBuilder sb)

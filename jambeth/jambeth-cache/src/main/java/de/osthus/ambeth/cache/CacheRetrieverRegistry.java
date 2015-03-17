@@ -1,6 +1,5 @@
 package de.osthus.ambeth.cache;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -21,12 +20,15 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.service.ICacheRetrieverExtendable;
 import de.osthus.ambeth.service.ICacheService;
 import de.osthus.ambeth.service.ICacheServiceByNameExtendable;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
+import de.osthus.ambeth.util.IAggregrateResultHandler;
 import de.osthus.ambeth.util.IDisposable;
+import de.osthus.ambeth.util.IMultithreadingHelper;
 import de.osthus.ambeth.util.ParamChecker;
 
 public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverExtendable, ICacheServiceByNameExtendable
@@ -46,6 +48,9 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	@Autowired
+	protected IMultithreadingHelper multithreadingHelper;
 
 	@Override
 	public void registerCacheRetriever(ICacheRetriever cacheRetriever, Class<?> handledType)
@@ -160,7 +165,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 			IObjRelation orelToLoad = orisToLoad.get(i);
 			Class<?> typeOfContainerBO = orelToLoad.getRealType();
 			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(typeOfContainerBO);
-			ITypeInfoItem relationMember = metaData.getMemberByName(orelToLoad.getMemberName());
+			Member relationMember = metaData.getMemberByName(orelToLoad.getMemberName());
 
 			Class<?> type = relationMember.getElementType();
 			IList<IObjRelation> objRefs = sortedIObjRefs.get(type);
@@ -214,28 +219,31 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 		return serviceToAssignedObjRefsDict;
 	}
 
-	protected <V, R> void getData(ILinkedMap<ICacheRetriever, IList<V>> assignedArguments, List<R> result, GetDataDelegate<V, R> getDataDelegate)
+	protected <V, R> void getData(ILinkedMap<ICacheRetriever, IList<V>> assignedArguments, final List<R> result, final GetDataDelegate<V, R> getDataDelegate)
 	{
 		// Serialize GetEntities() requests
-		Iterator<Entry<ICacheRetriever, IList<V>>> iter = assignedArguments.iterator();
-
-		while (iter.hasNext())
+		multithreadingHelper.invokeAndWait(assignedArguments, new IResultingBackgroundWorkerParamDelegate<List<R>, Entry<ICacheRetriever, IList<V>>>()
 		{
-			Entry<ICacheRetriever, IList<V>> entry = iter.next();
-			ICacheRetriever cacheRetriever = entry.getKey();
-			IList<V> paramList = entry.getValue();
-			iter.remove();
-
-			List<R> partResult = getDataDelegate.invoke(cacheRetriever, paramList);
-			for (int a = 0, size = partResult.size(); a < size; a++)
+			@Override
+			public List<R> invoke(Entry<ICacheRetriever, IList<V>> item) throws Throwable
 			{
-				R partItem = partResult.get(a);
-				result.add(partItem);
+				return getDataDelegate.invoke(item.getKey(), item.getValue());
 			}
-			if (partResult instanceof IDisposable)
+		}, new IAggregrateResultHandler<List<R>, Entry<ICacheRetriever, IList<V>>>()
+		{
+			@Override
+			public void aggregateResult(List<R> resultOfFork, Entry<ICacheRetriever, IList<V>> itemOfFork)
 			{
-				((IDisposable) partResult).dispose();
+				for (int a = 0, size = resultOfFork.size(); a < size; a++)
+				{
+					R partItem = resultOfFork.get(a);
+					result.add(partItem);
+				}
+				if (resultOfFork instanceof IDisposable)
+				{
+					((IDisposable) resultOfFork).dispose();
+				}
 			}
-		}
+		});
 	}
 }

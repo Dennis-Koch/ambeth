@@ -30,6 +30,6 @@ public class TypeInfoProviderFactory implements ITypeInfoProviderFactory, IIniti
 	@Override
 	public ITypeInfoProvider createTypeInfoProvider()
 	{
-		return serviceContext.registerAnonymousBean(typeInfoProviderType).propertyValue("Synchronized", Boolean.FALSE).finish();
+		return serviceContext.registerBean(typeInfoProviderType).propertyValue("Synchronized", Boolean.FALSE).finish();
 	}
 }

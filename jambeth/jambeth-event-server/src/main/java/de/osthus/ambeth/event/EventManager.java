@@ -2,6 +2,10 @@ package de.osthus.ambeth.event;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
@@ -12,12 +16,14 @@ import de.osthus.ambeth.event.store.IEventStoreHandler;
 import de.osthus.ambeth.event.store.IEventStoreHandlerExtendable;
 import de.osthus.ambeth.event.store.IReplacedEvent;
 import de.osthus.ambeth.event.transfer.EventItem;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class EventManager implements IEventProvider, IEventStore, IEventListener, IEventStoreHandlerExtendable, IInitializingBean
+public class EventManager implements IEventProvider, IEventStore, IEventListener, IEventStoreHandlerExtendable
 {
+	@Autowired
+	protected IEventBatcher eventBatcher;
+
 	protected final InterfaceFastList<IQueuedEvent> eventQueue = new InterfaceFastList<IQueuedEvent>();
 
 	protected volatile long eventSequence;
@@ -31,18 +37,9 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
 	protected final ClassExtendableContainer<IEventStoreHandler> eventStoreHandlers = new ClassExtendableContainer<IEventStoreHandler>("eventStoreHandler",
 			"eventType");
 
-	protected IEventBatcher eventBatcher;
+	protected final Lock eventQueueLock = new ReentrantLock();
 
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(eventBatcher, "EventBatcher");
-	}
-
-	public void setEventBatcher(IEventBatcher eventBatcher)
-	{
-		this.eventBatcher = eventBatcher;
-	}
+	protected final Condition cond = eventQueueLock.newCondition();
 
 	public long getMaxEventHistoryTime()
 	{
@@ -86,7 +83,8 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
 	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId)
 	{
 		eventObject = preSaveToStore(eventObject);
-		synchronized (eventQueue)
+		eventQueueLock.lock();
+		try
 		{
 			checkEventHistoryForCleanupIntern();
 			IListElem<IQueuedEvent> queuedEventLE = null;
@@ -107,7 +105,11 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
 				queuedEventLE = new QueuedEvent(eventObject, dispatchTime, sequenceNumber);
 			}
 			eventQueue.pushLast(queuedEventLE);
-			eventQueue.notifyAll();
+			cond.signalAll();
+		}
+		finally
+		{
+			eventQueueLock.unlock();
 		}
 	}
 
@@ -121,7 +123,8 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
 			eventObject = preSaveToStore(eventObject);
 			eventObjects.set(i, eventObject);
 		}
-		synchronized (eventQueue)
+		eventQueueLock.lock();
+		try
 		{
 			checkEventHistoryForCleanupIntern();
 			long dispatchTime = System.currentTimeMillis();
@@ -147,7 +150,11 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
 				}
 				eventQueue.pushLast(queuedEventLE);
 			}
-			eventQueue.notifyAll();
+			cond.signalAll();
+		}
+		finally
+		{
+			eventQueueLock.unlock();
 		}
 	}
 
@@ -159,7 +166,8 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
 		long maximumWaitTime = maxResponseDelay < requestedMaximumWaitTime ? maxResponseDelay : requestedMaximumWaitTime;
 		ArrayList<IQueuedEvent> selectedEvents = new ArrayList<IQueuedEvent>();
 		long startedTime = System.currentTimeMillis();
-		synchronized (eventQueue)
+		eventQueueLock.lock();
+		try
 		{
 			try
 			{
@@ -169,6 +177,10 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
 			{
 				checkEventHistoryForCleanupIntern();
 			}
+		}
+		finally
+		{
+			eventQueueLock.unlock();
 		}
 		if (selectedEvents.size() == 0)
 		{
@@ -259,7 +271,7 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
 				if (eventItem.getSequenceNumber() <= eventSequenceSince)
 				{
 					// This event is now older than the events we are interested in
-					// Since all events are ordered we can go one stop further
+					// Since all events are ordered we can go one step further
 					break;
 				}
 				startLE = currentLE;
@@ -282,17 +294,21 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
 			{
 				return;
 			}
-			synchronized (eventQueue)
+			eventQueueLock.lock();
+			try
 			{
 				try
 				{
-					eventQueue.wait(waitTimeSpan);
+					cond.await(waitTimeSpan, TimeUnit.MILLISECONDS);
 				}
 				catch (InterruptedException e)
 				{
 					// Intended blank
 				}
-				eventQueue.notifyAll();
+			}
+			finally
+			{
+				eventQueueLock.unlock();
 			}
 		}
 	}
@@ -327,10 +343,14 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
 
 	public void checkEventHistoryForCleanup()
 	{
-		synchronized (eventQueue)
+		eventQueueLock.lock();
+		try
 		{
 			checkEventHistoryForCleanupIntern();
-			eventQueue.notifyAll();
+		}
+		finally
+		{
+			eventQueueLock.unlock();
 		}
 	}
 

@@ -17,11 +17,12 @@ namespace De.Osthus.Ambeth.Merge.Transfer
 
         public DirectObjRef()
         {
-            // Intended blank
+            CreateContainerIndex = -1;
         }
 
         public DirectObjRef(Type realType, Object direct)
         {
+            CreateContainerIndex = -1;
             RealType = realType;
             this.Direct = direct;
         }

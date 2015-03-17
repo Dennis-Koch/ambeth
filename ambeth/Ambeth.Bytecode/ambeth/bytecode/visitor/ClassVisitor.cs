@@ -4,6 +4,7 @@ using De.Osthus.Ambeth.Bytecode.Behavior;
 using De.Osthus.Ambeth.Util;
 using System;
 using System.Reflection;
+using System.Reflection.Emit;
 
 namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
@@ -233,10 +234,19 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         {
             if (cv != null)
             {
-                cv.StartOverrideWithSuperCall(superMethod);
+                return cv.StartOverrideWithSuperCall(superMethod);
             }
             return null;
         }
+
+        public MethodInstance ImplementSwitchByIndex(MethodInstance method, String exceptionMessageOnIllegalIndex, int indexSize, ScriptWithIndex script)
+	    {
+            if (cv != null)
+            {
+                return cv.ImplementSwitchByIndex(method, exceptionMessageOnIllegalIndex, indexSize, script);
+            }
+            return null;
+	    }
 
         public virtual void Visit(TypeAttributes access, String name, Type superName, Type[] interfaces)
         {

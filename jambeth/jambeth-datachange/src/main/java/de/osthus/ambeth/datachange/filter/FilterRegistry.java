@@ -14,7 +14,6 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
-import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 
 public class FilterRegistry implements IFilterExtendable, IEventDispatcher
 {
@@ -173,12 +172,6 @@ public class FilterRegistry implements IFilterExtendable, IEventDispatcher
 			}
 			topicToFilterDict.remove(topic);
 		}
-	}
-
-	@Override
-	public <R> R invokeWithoutLocks(IResultingBackgroundWorkerDelegate<R> runnable)
-	{
-		throw new UnsupportedOperationException();
 	}
 
 	@Override

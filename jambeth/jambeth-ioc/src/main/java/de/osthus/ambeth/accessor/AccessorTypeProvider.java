@@ -23,25 +23,12 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.Method;
+import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.util.ReflectUtil;
 import de.osthus.ambeth.util.TypeUtil;
 
 public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializingBean
 {
-	protected static final Constructor<? extends AbstractAccessor> ci;
-
-	static
-	{
-		try
-		{
-			ci = DefaultAccessor.class.getConstructor(Class.class, String.class, Class.class);
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -81,9 +68,9 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 	}
 
 	@Override
-	public AbstractAccessor getAccessorType(Class<?> type, String propertyName, Class<?> propertyType)
+	public AbstractAccessor getAccessorType(Class<?> type, IPropertyInfo property)
 	{
-		Reference<AbstractAccessor> accessorR = typeToAccessorMap.get(type, propertyName);
+		Reference<AbstractAccessor> accessorR = typeToAccessorMap.get(type, property.getName());
 		AbstractAccessor accessor = accessorR != null ? accessorR.get() : null;
 		if (accessor != null)
 		{
@@ -94,7 +81,7 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 		try
 		{
 			// concurrent thread might have been faster
-			accessorR = typeToAccessorMap.get(type, propertyName);
+			accessorR = typeToAccessorMap.get(type, property.getName());
 			accessor = accessorR != null ? accessorR.get() : null;
 			if (accessor != null)
 			{
@@ -102,26 +89,19 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 			}
 			try
 			{
-				Class<?> enhancedType = getAccessorTypeIntern(type, propertyName, propertyType);
-				if (enhancedType != AbstractAccessor.class)
+				Class<?> enhancedType = getAccessorTypeIntern(type, property);
+				if (enhancedType == AbstractAccessor.class)
 				{
-					Constructor<?> constructor = enhancedType.getConstructor(Class.class, String.class);
-					accessor = (AbstractAccessor) constructor.newInstance(type, propertyName);
+					throw new IllegalStateException("Must never happen. No enhancement for " + AbstractAccessor.class + " has been done");
 				}
+				Constructor<?> constructor = enhancedType.getConstructor(Class.class, IPropertyInfo.class);
+				accessor = (AbstractAccessor) constructor.newInstance(type, property);
 			}
 			catch (Throwable e)
 			{
-				if (log.isWarnEnabled())
-				{
-					log.warn(e);
-				}
+				throw RuntimeExceptionUtil.mask(e);
 			}
-			if (accessor == null)
-			{
-				// something serious happened during enhancement: continue with a fallback
-				accessor = ci.newInstance(type, propertyName, propertyType);
-			}
-			typeToAccessorMap.put(type, propertyName, new WeakReference<AbstractAccessor>(accessor));
+			typeToAccessorMap.put(type, property.getName(), new WeakReference<AbstractAccessor>(accessor));
 			return accessor;
 		}
 		catch (Throwable e)
@@ -194,9 +174,9 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 		}
 	}
 
-	protected Class<?> getAccessorTypeIntern(Class<?> targetType, String propertyName, Class<?> propertyType)
+	protected Class<?> getAccessorTypeIntern(Class<?> targetType, IPropertyInfo property)
 	{
-		String accessClassName = targetType.getName() + "$" + AbstractAccessor.class.getSimpleName() + "$" + propertyName;
+		String accessClassName = targetType.getName() + "$" + AbstractAccessor.class.getSimpleName() + "$" + property.getName();
 		if (accessClassName.startsWith("java."))
 		{
 			accessClassName = "ambeth." + accessClassName;
@@ -211,7 +191,7 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 			}
 			catch (ClassNotFoundException ignored)
 			{
-				return createType(loader, accessClassName, targetType, propertyName, propertyType);
+				return createType(loader, accessClassName, targetType, property);
 			}
 		}
 		finally
@@ -225,11 +205,11 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 		return new GeneratorAdapter(cv.visitMethod(access, name, desc, null, null), access, name, desc);
 	}
 
-	protected Class<?> createType(AccessorClassLoader loader, String accessClassName, Class<?> targetType, String propertyName, Class<?> propertyType)
+	protected Class<?> createType(AccessorClassLoader loader, String accessClassName, Class<?> targetType, IPropertyInfo property)
 	{
 		if (log.isDebugEnabled())
 		{
-			log.debug("Creating accessor for " + targetType.getName() + "." + propertyName);
+			log.debug("Creating accessor for " + targetType.getName() + "." + property.getName());
 		}
 		String accessClassNameInternal = accessClassName.replace('.', '/');
 
@@ -249,12 +229,13 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 			mv.returnValue();
 			mv.endMethod();
 		}
-		java.lang.reflect.Method r_get = ReflectUtil.getDeclaredMethod(true, targetType, propertyType, "get" + propertyName, new Class<?>[0]);
+		java.lang.reflect.Method r_get = ReflectUtil.getDeclaredMethod(true, targetType, property.getPropertyType(), "get" + property.getName(),
+				new Class<?>[0]);
 		if (r_get == null)
 		{
-			r_get = ReflectUtil.getDeclaredMethod(true, targetType, propertyType, "is" + propertyName, new Class<?>[0]);
+			r_get = ReflectUtil.getDeclaredMethod(true, targetType, property.getPropertyType(), "is" + property.getName(), new Class<?>[0]);
 		}
-		java.lang.reflect.Method r_set = ReflectUtil.getDeclaredMethod(true, targetType, null, "set" + propertyName, propertyType);
+		java.lang.reflect.Method r_set = ReflectUtil.getDeclaredMethod(true, targetType, null, "set" + property.getName(), property.getPropertyType());
 
 		{
 			String desc = Type.getMethodDescriptor(Type.BOOLEAN_TYPE);
@@ -276,7 +257,8 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 
 			if (r_get == null)
 			{
-				mv.throwException(Type.getType(UnsupportedOperationException.class), "Property not readable: " + targetType.getName() + "." + propertyName);
+				mv.throwException(Type.getType(UnsupportedOperationException.class),
+						"Property not readable: " + targetType.getName() + "." + property.getName());
 			}
 			else
 			{
@@ -295,7 +277,8 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 
 			if (r_set == null)
 			{
-				mv.throwException(Type.getType(UnsupportedOperationException.class), "Property not writable: " + targetType.getName() + "." + propertyName);
+				mv.throwException(Type.getType(UnsupportedOperationException.class),
+						"Property not writable: " + targetType.getName() + "." + property.getName());
 			}
 			else
 			{
@@ -360,7 +343,7 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 		}
 		java.lang.reflect.Method[] r_methods = delegateType.getMethods();
 
-		Constructor<?>[] constructors = targetType.getConstructors();
+		Constructor<?>[] constructors = targetType.getDeclaredConstructors();
 		for (Constructor<?> constructor : constructors)
 		{
 			Class<?>[] constructorParams = constructor.getParameterTypes();

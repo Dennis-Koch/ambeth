@@ -5,14 +5,16 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LoggerFactory;
 
 public class TestContext implements ITestContext
 {
-	private static final String nl = System.getProperty("line.separator");
+	private static final Pattern pathSeparator = Pattern.compile(Pattern.quote(File.pathSeparator));
 
-	private static final Pattern pathSeparator = Pattern.compile(File.pathSeparator);
+	@Property(name = "line.separator")
+	protected String nl;
 
 	protected final AmbethIocRunner runner;
 

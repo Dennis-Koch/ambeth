@@ -9,15 +9,16 @@ import de.osthus.ambeth.annotation.Find;
 import de.osthus.ambeth.annotation.Merge;
 import de.osthus.ambeth.annotation.NoProxy;
 import de.osthus.ambeth.annotation.Remove;
-import de.osthus.ambeth.ioc.IBeanRuntime;
+import de.osthus.ambeth.ioc.IOrderedBeanPostProcessor;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.PostProcessorOrder;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.interceptor.MergeInterceptor;
 
-public class MergePostProcessor extends AbstractCascadePostProcessor
+public class MergePostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanPostProcessor
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -33,6 +34,12 @@ public class MergePostProcessor extends AbstractCascadePostProcessor
 	};
 
 	@Override
+	public PostProcessorOrder getOrder()
+	{
+		return PostProcessorOrder.HIGH;
+	}
+
+	@Override
 	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory, IServiceContext beanContext,
 			IBeanConfiguration beanConfiguration, Class<?> type, Set<Class<?>> requestedTypes)
 	{
@@ -46,11 +53,14 @@ public class MergePostProcessor extends AbstractCascadePostProcessor
 		MergeInterceptor mergeInterceptor = new MergeInterceptor();
 		if (beanContext.isRunning())
 		{
-			IBeanRuntime<MergeInterceptor> interceptorBC = beanContext.registerWithLifecycle(mergeInterceptor);
-			interceptorBC.propertyValue("Behavior", behavior);
-			return interceptorBC.finish();
+			return beanContext.registerWithLifecycle(mergeInterceptor)//
+					.propertyValue("Behavior", behavior)//
+					.ignoreProperties("ServiceName")//
+					.finish();
 		}
-		beanContextFactory.registerWithLifecycle(mergeInterceptor).propertyValue("Behavior", behavior);
+		beanContextFactory.registerWithLifecycle(mergeInterceptor)//
+				.propertyValue("Behavior", behavior)//
+				.ignoreProperties("ServiceName");
 		return mergeInterceptor;
 	}
 

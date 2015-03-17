@@ -35,12 +35,10 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
                 // Type matched exactly - 'strong' registration
                 return 0;
             }
-            if (existingRequestedType.IsArray)
+            if (existingRequestedType.IsArray && type.IsArray)
             {
-                if (!type.GetElementType().IsAssignableFrom(existingRequestedType.GetElementType()))
-                {
-                    return NO_VALID_DISTANCE;
-                }
+                // if both types are an array their distance is measured by the distance of their component type
+                return GetDistanceForType(existingRequestedType.GetElementType(), type.GetElementType());
             }
             int bestDistance = Int32.MaxValue;
             Type[] currInterfaces = existingRequestedType.GetInterfaces();
@@ -96,8 +94,22 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
         {
             // Intended blank		
         }
+		
+		public void ClearWeakCache()
+	    {
+		    Object writeLock = GetWriteLock();
+		    lock (writeLock)
+		    {
+			    ClassExtendableContainer<V> tempCC = new ClassExtendableContainer<V>("", "");
+			    foreach (Entry<Type, Object> entry in this)
+			    {
+				    tempCC.Register((V) entry.Value, entry.Key);
+			    }
+			    this.classEntry = tempCC.classEntry;
+		    }
+	    }
 
-        public V GetExtensionHardKey(Type key)
+        public virtual V GetExtensionHardKey(Type key)
         {
             return base.GetExtension(key);
         }

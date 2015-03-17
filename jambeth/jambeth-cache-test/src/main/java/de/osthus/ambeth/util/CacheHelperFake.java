@@ -2,7 +2,8 @@ package de.osthus.ambeth.util;
 
 import java.util.List;
 
-import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.collections.ILinkedMap;
+import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
@@ -12,23 +13,17 @@ public class CacheHelperFake implements ICacheHelper, ICachePathHelper
 {
 	public Class<?> entityType;
 	public String memberToInitialize;
-	public List<CachePath> cachePaths;
+	public ISet<AppendableCachePath> cachePaths;
 
 	@Autowired
 	protected IServiceContext beanContext;
 
 	@Override
-	public void buildCachePath(Class<?> entityType, String memberToInitialize, List<CachePath> cachePaths)
+	public void buildCachePath(Class<?> entityType, String memberToInitialize, ISet<AppendableCachePath> cachePaths)
 	{
 		this.entityType = entityType;
 		this.memberToInitialize = memberToInitialize;
 		this.cachePaths = cachePaths;
-	}
-
-	@Override
-	public <V extends List<CachePath>> IPrefetchState ensureInitializedRelations(Object objects, IMap<Class<?>, V> typeToMembersToInitialize)
-	{
-		return null;
 	}
 
 	@Override
@@ -62,20 +57,31 @@ public class CacheHelperFake implements ICacheHelper, ICachePathHelper
 	}
 
 	@Override
-	public IPrefetchConfig createPrefetch()
-	{
-		return beanContext.registerAnonymousBean(PrefetchConfig.class).finish();
-	}
-
-	@Override
-	public IPrefetchState prefetch(Object objects, IMap<Class<?>, List<String>> typeToMembersToInitialize)
+	public CachePath copyAppendableToCachePath(AppendableCachePath cachePath)
 	{
 		return null;
 	}
 
 	@Override
-	public IPrefetchState prefetch(Object objects)
+	public CachePath[] copyAppendableToCachePath(ISet<AppendableCachePath> children)
 	{
 		return null;
+	}
+
+	@Override
+	public AppendableCachePath copyCachePathToAppendable(CachePath cachePath)
+	{
+		return null;
+	}
+
+	@Override
+	public IPrefetchState ensureInitializedRelations(Object objects, ILinkedMap<Class<?>, CachePath[]> entityTypeToPrefetchSteps)
+	{
+		return null;
+	}
+
+	@Override
+	public void unionCachePath(AppendableCachePath cachePath, AppendableCachePath other)
+	{
 	}
 }

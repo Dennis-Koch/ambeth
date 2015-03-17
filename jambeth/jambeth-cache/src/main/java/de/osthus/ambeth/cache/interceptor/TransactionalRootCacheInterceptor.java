@@ -13,12 +13,12 @@ import de.osthus.ambeth.cache.rootcachevalue.RootCacheValue;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.security.ISecurityActivation;
-import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.service.ICacheRetriever;
-import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
 public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInterceptor implements ITransactionalRootCache, ISecondLevelCacheManager
 {
@@ -34,14 +34,17 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
 	@Autowired(optional = true)
 	protected ISecurityActivation securityActivation;
 
-	@Property(name = SecurityConfigurationConstants.SecurityActive, defaultValue = "false")
+	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
 
-	protected final ThreadLocal<RootCache> privilegedRootCacheTL = new SensitiveThreadLocal<RootCache>();
+	@Forkable
+	protected final ThreadLocal<RootCache> privilegedRootCacheTL = new ThreadLocal<RootCache>();
 
-	protected final ThreadLocal<RootCache> rootCacheTL = new SensitiveThreadLocal<RootCache>();
+	@Forkable
+	protected final ThreadLocal<RootCache> rootCacheTL = new ThreadLocal<RootCache>();
 
-	protected final ThreadLocal<Boolean> transactionalRootCacheActiveTL = new SensitiveThreadLocal<Boolean>();
+	@Forkable
+	protected final ThreadLocal<Boolean> transactionalRootCacheActiveTL = new ThreadLocal<Boolean>();
 
 	@Override
 	public void cleanupThreadLocal()
@@ -52,6 +55,11 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
 	}
 
 	protected IRootCache getCurrentRootCache(boolean privileged)
+	{
+		return getCurrentRootCache(privileged, true);
+	}
+
+	protected IRootCache getCurrentRootCache(boolean privileged, boolean forceInstantiation)
 	{
 		IRootCache rootCache = privileged ? privilegedRootCacheTL.get() : rootCacheTL.get();
 		if (rootCache != null)
@@ -68,6 +76,11 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
 		IRootCache privilegedRootCache = privilegedRootCacheTL.get();
 		if (privilegedRootCache == null)
 		{
+			if (!forceInstantiation)
+			{
+				// do not create an instance of anything in this case
+				return null;
+			}
 			// here we know that the non-privileged one could not have existed before, so we simply create the privileged one
 			privilegedRootCache = acquireRootCache(true, privilegedRootCacheTL);
 		}
@@ -79,6 +92,11 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
 		IRootCache nonPrivilegedRootCache = rootCacheTL.get();
 		if (nonPrivilegedRootCache == null)
 		{
+			if (!forceInstantiation)
+			{
+				// do not create an instance of anything in this case
+				return null;
+			}
 			// share the locks from the privileged rootCache
 			nonPrivilegedRootCache = acquireRootCache(privileged, rootCacheTL, (ICacheRetriever) privilegedRootCache, privilegedRootCache.getReadLock(),
 					privilegedRootCache.getWriteLock());
@@ -90,6 +108,18 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
 	public IRootCache selectSecondLevelCache()
 	{
 		return getCurrentRootCache(isCurrentPrivileged());
+	}
+
+	@Override
+	public IRootCache selectPrivilegedSecondLevelCache(boolean forceInstantiation)
+	{
+		return getCurrentRootCache(!securityActive || true, forceInstantiation);
+	}
+
+	@Override
+	public IRootCache selectNonPrivilegedSecondLevelCache(boolean forceInstantiation)
+	{
+		return getCurrentRootCache(!securityActive || false, forceInstantiation);
 	}
 
 	protected boolean isCurrentPrivileged()

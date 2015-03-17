@@ -15,6 +15,6 @@ public class HelloWorldFrameworkModule implements IInitializingModule
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
 		beanContextFactory.registerBean("userHandleFactory", HelloWorldAuthorizationManager.class).autowireable(IAuthorizationManager.class);
-		beanContextFactory.registerAnonymousBean(HelloworldUserResolver.class).autowireable(IUserResolver.class);
+		beanContextFactory.registerBean(HelloworldUserResolver.class).autowireable(IUserResolver.class);
 	}
 }

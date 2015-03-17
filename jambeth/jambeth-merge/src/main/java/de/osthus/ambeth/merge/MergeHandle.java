@@ -11,12 +11,11 @@ import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.collections.IdentityLinkedMap;
 import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.model.IUpdateItem;
 
-public class MergeHandle implements IInitializingBean
+public class MergeHandle
 {
 	protected final IdentityHashSet<Object> alreadyProcessedSet = new IdentityHashSet<Object>();
 	protected final IdentityHashMap<Object, IObjRef> objToOriDict = new IdentityHashMap<Object, IObjRef>();
@@ -27,6 +26,7 @@ public class MergeHandle implements IInitializingBean
 	protected final ArrayList<IObjRef> newOrList = new ArrayList<IObjRef>();
 	protected ICache cache;
 
+	@Property(name = MergeConfigurationConstants.FieldBasedMergeActive, defaultValue = "true")
 	protected boolean fieldBasedMergeActive;
 
 	protected boolean handleExistingIdAsNewId;
@@ -38,18 +38,6 @@ public class MergeHandle implements IInitializingBean
 	protected final ArrayList<Object> pendingValueHolders = new ArrayList<Object>();
 
 	protected final ArrayList<Runnable> pendingRunnables = new ArrayList<Runnable>();
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		// Intended blank
-	}
-
-	@Property(name = MergeConfigurationConstants.FieldBasedMergeActive, defaultValue = "true")
-	public void setFieldBasedMergeActive(boolean fieldBasedMergeActive)
-	{
-		this.fieldBasedMergeActive = fieldBasedMergeActive;
-	}
 
 	public boolean isFieldBasedMergeActive()
 	{

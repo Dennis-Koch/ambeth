@@ -1,45 +1,41 @@
 package de.osthus.ambeth.database;
 
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
+import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IDatabasePool;
 import de.osthus.ambeth.proxy.ITargetProvider;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class DatabaseProvider extends SensitiveThreadLocal<IDatabase> implements ITargetProvider, IInitializingBean, IDatabaseProvider
+public class DatabaseProvider implements ITargetProvider, IDatabaseProvider, IThreadLocalCleanupBean
 {
+	@Autowired
 	protected IDatabasePool databasePool;
 
-	protected DatabaseType databaseType = DatabaseType.PERSISTENT;
+	@Property(defaultValue = "PERSISTENT")
+	protected DatabaseType databaseType;
+
+	@Forkable
+	protected final SensitiveThreadLocal<IDatabase> databaseTL = new SensitiveThreadLocal<IDatabase>();
 
 	@Override
-	public void afterPropertiesSet()
+	public void cleanupThreadLocal()
 	{
-		ParamChecker.assertNotNull(databasePool, "DatabasePool");
-		ParamChecker.assertNotNull(databaseType, "DatabaseType");
-	}
-
-	public void setDatabasePool(IDatabasePool databasePool)
-	{
-		this.databasePool = databasePool;
-	}
-
-	public void setDatabaseType(DatabaseType databaseType)
-	{
-		this.databaseType = databaseType;
+		databaseTL.remove();
 	}
 
 	@Override
 	public IDatabase tryGetInstance()
 	{
-		return get();
+		return databaseTL.get();
 	}
 
 	@Override
 	public ThreadLocal<IDatabase> getDatabaseLocal()
 	{
-		return this;
+		return databaseTL;
 	}
 
 	@Override
@@ -56,8 +52,8 @@ public class DatabaseProvider extends SensitiveThreadLocal<IDatabase> implements
 		{
 			throw new RuntimeException("Instance already acquired. Maybe you must not acquire instances at your current application scope?");
 		}
-		database = this.databasePool.acquireDatabase(readonly);
-		set(database);
+		database = databasePool.acquireDatabase(readonly);
+		databaseTL.set(database);
 		return database;
 	}
 

@@ -34,7 +34,7 @@ public class EventModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(EventListenerRegistry.class).autowireable(IEventListenerExtendable.class,
+		beanContextFactory.registerBean(EventListenerRegistry.class).autowireable(IEventListenerExtendable.class,
 				IEventTargetListenerExtendable.class, IEventBatcherExtendable.class, IEventTargetExtractorExtendable.class, IEventBatcher.class,
 				IEventDispatcher.class, IEventListener.class, IEventQueue.class);
 

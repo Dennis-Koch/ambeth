@@ -68,7 +68,7 @@ namespace De.Osthus.Ambeth.Xml.Test
                 cache.Dispose();
                 cache = null;
             }
-            cache = CacheFactory.Create(CacheFactoryDirective.NoDCE);
+            cache = CacheFactory.Create(CacheFactoryDirective.NoDCE, "test");
         }
 
         public TestData getSimpleEntityTestData()

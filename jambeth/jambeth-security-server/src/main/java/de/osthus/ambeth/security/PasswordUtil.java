@@ -14,6 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -29,6 +30,7 @@ import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.merge.MergeFinishedCallback;
 import de.osthus.ambeth.privilege.IPrivilegeProvider;
@@ -36,6 +38,7 @@ import de.osthus.ambeth.privilege.model.ITypePrivilege;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.model.IPassword;
+import de.osthus.ambeth.security.model.ISignature;
 import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.util.ParamChecker;
 
@@ -46,10 +49,22 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 	private ILogger log;
 
 	@Autowired
+	protected IEntityFactory entityFactory;
+
+	@Autowired
 	protected IMergeProcess mergeProcess;
 
 	@Autowired
 	protected IPrivilegeProvider privilegeProvider;
+
+	@Autowired
+	protected ISecurityContextHolder securityContextHolder;
+
+	@Autowired
+	protected ISignatureUtil signatureUtil;
+
+	@Autowired(optional = true)
+	protected IUserIdentifierProvider userIdentifierProvider;
 
 	@Autowired
 	protected IQueryBuilderFactory queryBuilderFactory;
@@ -106,7 +121,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 
 		if (loginSaltPassword != null)
 		{
-			decodedLoginSaltPassword = createSaltKeyFromPassword(loginSaltPassword);
+			decodedLoginSaltPassword = createKeySpecFromPassword(loginSaltPassword);
 			if (log.isInfoEnabled())
 			{
 				log.info("ACTIVATED: password-based security for password salt");
@@ -181,15 +196,15 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 			throw new IllegalArgumentException("Given clearTextPassword does not match for " + existingPassword);
 		}
 		// password should be rehashed, but it is the same clearTextPassword so we do NOT recalculate its changeAfter date
-		fillPassword(clearTextPassword, existingPassword, false);
+		fillPassword(clearTextPassword, existingPassword, null, false);
 		mergeProcess.process(existingPassword, null, null, null);
 	}
 
-	protected SecretKeySpec createSaltKeyFromPassword(char[] newSaltPassword)
+	public SecretKeySpec createKeySpecFromPassword(char[] encodedClearTextPassword)
 	{
 		try
 		{
-			return createSaltKeyFromPassword(Base64.decode(newSaltPassword));
+			return createSaltKeyFromPassword(Base64.decode(encodedClearTextPassword));
 		}
 		catch (IOException e)
 		{
@@ -236,12 +251,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 			ArrayList<IPassword> changedPasswords = new ArrayList<IPassword>(allPasswords.size());
 			for (IPassword password : allPasswords)
 			{
-				if (!isReencryptSaltRecommended(password))
-				{
-					continue;
-				}
 				byte[] decryptedSalt = decryptSalt(password);
-				password.setSaltAlgorithm(saltAlgorithm);
 				encryptSalt(password, decryptedSalt, newDecodedLoginSaltPassword);
 				changedPasswords.add(password);
 			}
@@ -250,10 +260,17 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 				@Override
 				public void invoke(boolean success)
 				{
-					decodedLoginSaltPassword = newDecodedLoginSaltPassword;
-					if (log.isInfoEnabled())
+					if (success)
 					{
-						log.info("Reencryption of all salts finished successfully!");
+						decodedLoginSaltPassword = newDecodedLoginSaltPassword;
+						if (log.isInfoEnabled())
+						{
+							log.info("Reencryption of all salts finished successfully!");
+						}
+					}
+					else
+					{
+						log.error("Reencryption of all salts failed");
 					}
 				}
 			});
@@ -298,7 +315,12 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 
 	protected boolean isReencryptSaltRecommended(IPassword password)
 	{
-		if (!saltAlgorithm.equals(password.getSaltAlgorithm()))
+		if (decodedLoginSaltPassword != null && !saltAlgorithm.equals(password.getSaltAlgorithm()))
+		{
+			// recommended algorithm configuration changed
+			return true;
+		}
+		if (decodedLoginSaltPassword != null && !saltKeySpec.equals(password.getSaltKeySpec()))
 		{
 			// recommended algorithm configuration changed
 			return true;
@@ -324,7 +346,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 	}
 
 	@Override
-	public void fillNewPassword(char[] clearTextPassword, IPassword newEmptyPassword, IUser user)
+	public void assignNewPassword(char[] clearTextPassword, IPassword newEmptyPassword, IUser user)
 	{
 		ParamChecker.assertParamNotNull(clearTextPassword, "clearTextPassword");
 		ParamChecker.assertParamNotNull(newEmptyPassword, "newEmptyPassword");
@@ -338,12 +360,12 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		{
 			throw createIllegalPasswordException();
 		}
-		fillPassword(clearTextPassword, newEmptyPassword);
+		fillPassword(clearTextPassword, newEmptyPassword, user, true);
 		setNewPasswordIntern(user, newEmptyPassword);
 	}
 
 	@Override
-	public String generateNewPassword(IPassword newEmptyPassword, IUser user)
+	public String assignNewRandomPassword(IPassword newEmptyPassword, IUser user)
 	{
 		ParamChecker.assertParamNotNull(newEmptyPassword, "newEmptyPassword");
 		ParamChecker.assertParamNotNull(user, "user");
@@ -363,7 +385,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 				break;
 			}
 		}
-		fillPassword(clearTextPassword, newEmptyPassword);
+		fillPassword(clearTextPassword, newEmptyPassword, user, true);
 		setNewPasswordIntern(user, newEmptyPassword);
 		return new String(clearTextPassword);
 	}
@@ -460,12 +482,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		}
 	}
 
-	protected void fillPassword(char[] clearTextPassword, IPassword password)
-	{
-		fillPassword(clearTextPassword, password, true);
-	}
-
-	protected void fillPassword(char[] clearTextPassword, IPassword password, boolean assignNewChangeAfter)
+	protected void fillPassword(char[] clearTextPassword, IPassword password, IUser user, boolean assignNewChangeAfter)
 	{
 		if (assignNewChangeAfter)
 		{
@@ -487,6 +504,37 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
+		if (user == null)
+		{
+			return;
+		}
+		ISignature signature = user.getSignature();
+		if (signature != null)
+		{
+			if (userIdentifierProvider == null)
+			{
+				throw new IllegalStateException("No instanceof of " + IUserIdentifierProvider.class + " found to create a new signature due to password change");
+			}
+			// create a NEW signature because we can not decrypt the now invalid private key of the signature
+			// without knowing the previous password in clear-text. As a result we need a new instance for a signature
+			// because of a potential audit-trail functionality we can NOT reuse the existing signature entity
+			signature = entityFactory.createEntity(ISignature.class);
+			signatureUtil.generateNewSignature(signature, clearTextPassword);
+			user.setSignature(signature);
+			ISecurityContext context = securityContextHolder.getContext();
+			IAuthorization authorization = context != null ? context.getAuthorization() : null;
+			if (authorization != null)
+			{
+				// check whether we changed our own current authentication and refresh this information
+				// this is due to the fact that the usage of the newly generated signature with the newly assigned password
+				// can only be decrypted if the current authentication contains this newly assigned password from now on
+				String sid = userIdentifierProvider.getSID(user);
+				if (authorization.getSID().equals(sid))
+				{
+					context.setAuthentication(new DefaultAuthentication(context.getAuthentication().getUserName(), clearTextPassword, PasswordType.PLAIN));
+				}
+			}
+		}
 	}
 
 	protected byte[] decryptSalt(IPassword password)
@@ -503,10 +551,10 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 			if (decodedLoginSaltPassword == null)
 			{
 				throw new IllegalStateException("Property '" + SecurityServerConfigurationConstants.LoginSaltPassword
-						+ "' specified but reading an encrypted salt from " + password);
+						+ "' is not specified but reading an encrypted salt from " + password);
 			}
 			Cipher cipher = Cipher.getInstance(saltAlgorithm);
-			cipher.init(Cipher.DECRYPT_MODE, decodedLoginSaltPassword);
+			cipher.init(Cipher.DECRYPT_MODE, decodedLoginSaltPassword, new IvParameterSpec(new byte[cipher.getBlockSize()]));
 			return cipher.doFinal(encryptedSalt);
 		}
 		catch (Throwable e)
@@ -527,9 +575,10 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 			}
 			String saltAlgorithm = this.saltAlgorithm;
 			Cipher cipher = Cipher.getInstance(saltAlgorithm);
-			cipher.init(Cipher.ENCRYPT_MODE, decodedLoginSaltPassword);
+			cipher.init(Cipher.ENCRYPT_MODE, decodedLoginSaltPassword, new IvParameterSpec(new byte[cipher.getBlockSize()]));
 			byte[] encryptedSalt = cipher.doFinal(salt);
 			password.setSaltAlgorithm(saltAlgorithm);
+			password.setSaltKeySpec(saltKeySpec);
 			password.setSalt(Base64.encodeBytes(encryptedSalt).toCharArray());
 		}
 		catch (Throwable e)

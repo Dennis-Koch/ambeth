@@ -47,7 +47,7 @@ public class ExtendableBean extends AbstractSimpleInterceptor implements IFactor
 			return beanContextFactory.registerBean(beanName, ExtendableBean.class).propertyValue(ExtendableBean.P_PROVIDER_TYPE, providerType)
 					.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, extendableType).autowireable(providerType, extendableType);
 		}
-		return beanContextFactory.registerAnonymousBean(ExtendableBean.class).propertyValue(ExtendableBean.P_PROVIDER_TYPE, providerType)
+		return beanContextFactory.registerBean(ExtendableBean.class).propertyValue(ExtendableBean.P_PROVIDER_TYPE, providerType)
 				.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, extendableType).autowireable(providerType, extendableType);
 	}
 

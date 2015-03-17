@@ -26,20 +26,20 @@ import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IMergeController;
 import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.model.IDataObject;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
-import de.osthus.ambeth.util.MultithreadingHelper;
+import de.osthus.ambeth.util.IMultithreadingHelper;
 import de.osthus.ambeth.util.ReflectUtil;
 
 @SQLStructure("MergeControllerTest_structure.sql")
 @SQLData("MergeControllerTest_data.sql")
 @TestModule(MergeControllerTestModule.class)
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/merge/mergecontroller/MergeControllerTest-orm.xml") })
-public class MergeControllerClientTest extends AbstractPersistenceTest
+public class MergeControllerClientTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Autowired
 	protected ICache cache;
@@ -55,6 +55,9 @@ public class MergeControllerClientTest extends AbstractPersistenceTest
 
 	@Autowired
 	protected IMergeController mergeController;
+
+	@Autowired
+	protected IMultithreadingHelper multithreadingHelper;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -139,7 +142,7 @@ public class MergeControllerClientTest extends AbstractPersistenceTest
 				}
 			}
 		};
-		MultithreadingHelper.invokeInParallel(beanContext, parentModifierRunnable, childModifierRunnable);
+		multithreadingHelper.invokeInParallel(beanContext, parentModifierRunnable, childModifierRunnable);
 	}
 
 	@Test
@@ -193,7 +196,7 @@ public class MergeControllerClientTest extends AbstractPersistenceTest
 				}
 			}
 		};
-		MultithreadingHelper.invokeInParallel(beanContext, parentModifierRunnable, childModifierRunnable);
+		multithreadingHelper.invokeInParallel(beanContext, parentModifierRunnable, childModifierRunnable);
 	}
 
 	@Test
@@ -304,7 +307,7 @@ public class MergeControllerClientTest extends AbstractPersistenceTest
 	@Test
 	public void testGenericElementOfList() throws Throwable
 	{
-		Class<?> parentType = bytecodeEnhancer.getEnhancedType(Parent.class, EntityEnhancementHint.EntityEnhancementHint);
+		Class<?> parentType = bytecodeEnhancer.getEnhancedType(Parent.class, EntityEnhancementHint.Instance);
 		{
 			Method originalMethod = Parent.class.getMethod("getOtherChildren");
 			Method method = parentType.getMethod("getOtherChildren");

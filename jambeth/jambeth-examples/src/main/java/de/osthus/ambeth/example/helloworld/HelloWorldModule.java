@@ -4,11 +4,9 @@ import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.util.IDedicatedConverterExtendable;
 
-public class HelloWorldModule implements IInitializingModule
-{
+public class HelloWorldModule implements IInitializingModule {
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 		beanContextFactory.registerBean("helloWorldService", HelloWorldService.class);
 
 		beanContextFactory.registerBean("helloWorldConverter", HelloWorldConverter.class);

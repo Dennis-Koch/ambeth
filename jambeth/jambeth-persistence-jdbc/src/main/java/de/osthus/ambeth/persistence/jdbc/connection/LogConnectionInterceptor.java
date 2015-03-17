@@ -19,6 +19,7 @@ import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.log.interceptor.LogInterceptor;
 import de.osthus.ambeth.persistence.SQLState;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.event.ConnectionClosedEvent;
@@ -27,7 +28,7 @@ import de.osthus.ambeth.proxy.ICgLibUtil;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.util.IPrintable;
 
-public class LogConnectionInterceptor extends AbstractSimpleInterceptor
+public class LogConnectionInterceptor extends AbstractSimpleInterceptor implements IPreparedConnectionHolder
 {
 	public static final Method createStatementMethod;
 
@@ -72,10 +73,16 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 	@Autowired
 	protected Connection connection;
 
+	protected boolean preparedConnection;
+
 	@Property(name = PersistenceConfigurationConstants.FetchSize, defaultValue = "100")
 	protected int fetchSize;
 
 	protected final IConnectionKeyHandle connectionKeyHandle;
+
+	protected Class<?>[] pstmInterfaces;
+
+	protected Class<?>[] stmInterfaces;
 
 	public LogConnectionInterceptor(IConnectionKeyHandle connectionKeyHandle)
 	{
@@ -85,6 +92,18 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 	public void setConnection(Connection connection)
 	{
 		this.connection = connection;
+	}
+
+	@Override
+	public boolean isPreparedConnection()
+	{
+		return preparedConnection;
+	}
+
+	@Override
+	public void setPreparedConnection(boolean preparedConnection)
+	{
+		this.preparedConnection = preparedConnection;
 	}
 
 	@Override
@@ -106,13 +125,23 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 			}
 			throw new SQLException(SQLState.CONNECTION_NOT_OPEN.getMessage(), SQLState.CONNECTION_NOT_OPEN.getXopen());
 		}
-		if (isWrapperForMethod.equals(method) && IConnectionKeyHandle.class.equals(args[0]))
+		if (isWrapperForMethod.equals(method))
 		{
-			return Boolean.TRUE;
+			if (IConnectionKeyHandle.class.equals(args[0]) || IPreparedConnectionHolder.class.equals(args[0]))
+			{
+				return Boolean.TRUE;
+			}
 		}
-		else if (unwrapMethod.equals(method) && IConnectionKeyHandle.class.equals(args[0]))
+		else if (unwrapMethod.equals(method))
 		{
-			return connectionKeyHandle;
+			if (IConnectionKeyHandle.class.equals(args[0]))
+			{
+				return connectionKeyHandle;
+			}
+			if (IPreparedConnectionHolder.class.equals(args[0]))
+			{
+				return this;
+			}
 		}
 		try
 		{
@@ -121,29 +150,53 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 				PreparedStatement pstm = (PreparedStatement) proxy.invoke(connection, args);
 
 				pstm.setFetchSize(fetchSize);
-				MethodInterceptor logPstmInterceptor = beanContext.registerAnonymousBean(LogPreparedStatementInterceptor.class)
-						.propertyValue("PreparedStatement", pstm).propertyValue("Statement", pstm).propertyValue("Connection", obj)
-						.propertyValue("sql", args[0]).finish();
-				return proxyFactory.createProxy(cgLibUtil.getAllInterfaces(pstm, IPrintable.class, ISqlValue.class), logPstmInterceptor);
+				MethodInterceptor logPstmInterceptor = beanContext.registerBean(LogPreparedStatementInterceptor.class)//
+						.propertyValue("PreparedStatement", pstm)//
+						.propertyValue("Statement", pstm)//
+						.propertyValue("Connection", obj)//
+						.propertyValue("Sql", args[0])//
+						.finish();
+				if (pstmInterfaces == null)
+				{
+					pstmInterfaces = cgLibUtil.getAllInterfaces(pstm, IPrintable.class, ISqlValue.class);
+				}
+				return proxyFactory.createProxy(PreparedStatement.class, pstmInterfaces, logPstmInterceptor);
 			}
 			else if (Statement.class.isAssignableFrom(method.getReturnType()))
 			{
 				Statement stm = (Statement) proxy.invoke(connection, args);
 
 				stm.setFetchSize(fetchSize);
-				MethodInterceptor logStmInterceptor = beanContext.registerAnonymousBean(LogStatementInterceptor.class).propertyValue("Statement", stm)
-						.propertyValue("Connection", obj).finish();
-				return proxyFactory.createProxy(cgLibUtil.getAllInterfaces(stm, IPrintable.class), logStmInterceptor);
+				MethodInterceptor logStmInterceptor = beanContext.registerBean(LogStatementInterceptor.class)//
+						.propertyValue("Statement", stm)//
+						.propertyValue("Connection", obj)//
+						.finish();
+				if (stmInterfaces == null)
+				{
+					stmInterfaces = cgLibUtil.getAllInterfaces(stm, IPrintable.class);
+				}
+				return proxyFactory.createProxy(Statement.class, stmInterfaces, logStmInterceptor);
 			}
 			Object result = proxy.invoke(connection, args);
 
 			if (pooledCloseMethod.equals(method) || closeMethod.equals(method))
 			{
+				if (log.isDebugEnabled())
+				{
+					log.debug("[" + System.identityHashCode(connection) + "] closed connection");
+				}
 				if (eventDispatcher != null)
 				{
 					eventDispatcher.dispatchEvent(new ConnectionClosedEvent((Connection) obj));
 				}
 				connection = null;
+			}
+			else if (unwrapMethod.equals(method))
+			{
+				LogInterceptor logInterceptor = beanContext.registerBean(LogInterceptor.class)//
+						.propertyValue("Target", result)//
+						.finish();
+				result = proxyFactory.createProxy(cgLibUtil.getAllInterfaces(result), logInterceptor);
 			}
 			return result;
 		}

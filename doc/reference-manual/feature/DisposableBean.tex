@@ -1,0 +1,5 @@
+\SetAPI{J-C}
+\section{DisposableBean}
+\label{feature:DisposableBean}
+\ClearAPI
+The defined method "dispose" is called when the container is assigned to stop and shutdown. Before the container stops all beans implementing this interfaces are called in a unspecified order. This is useful to stop working thread, free resources an so on.

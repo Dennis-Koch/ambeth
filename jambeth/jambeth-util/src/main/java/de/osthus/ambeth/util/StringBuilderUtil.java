@@ -8,6 +8,14 @@ public final class StringBuilderUtil
 	{
 	}
 
+	public static final void appendTabs(StringBuilder sb, int tabCount)
+	{
+		for (int a = tabCount; a-- > 0;)
+		{
+			sb.append('\t');
+		}
+	}
+
 	public static final String concat(IObjectCollector objectCollector, Object s1, Object s2)
 	{
 		StringBuilder sb = objectCollector.create(StringBuilder.class);

@@ -1,14 +1,15 @@
 package de.osthus.ambeth.service;
 
+import de.osthus.ambeth.cache.rootcachevalue.RootCacheValue;
 import de.osthus.ambeth.persistence.IDirectedLink;
 
 public class EntityLinkKey
 {
-	protected final Object entity;
+	protected final RootCacheValue entity;
 
 	protected final IDirectedLink link;
 
-	public EntityLinkKey(Object entity, IDirectedLink link)
+	public EntityLinkKey(RootCacheValue entity, IDirectedLink link)
 	{
 		this.entity = entity;
 		this.link = link;
@@ -38,6 +39,6 @@ public class EntityLinkKey
 	@Override
 	public String toString()
 	{
-		return entity + " - " + link.getName();
+		return entity + " - " + link.getMetaData().getName();
 	}
 }

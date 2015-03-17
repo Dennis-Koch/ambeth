@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -11,10 +12,6 @@ namespace De.Osthus.Ambeth.Exceptions
 
         public static Exception Mask(Exception e, String message)
 	    {
-            //if (e is InvocationTargetException)
-            //{
-            //    return mask(((InvocationTargetException) e).getTargetException(), message);
-            //}
 		    if (e is MaskingRuntimeException && e.Message == null)
 		    {
 			    return Mask(e.InnerException, message);

@@ -28,11 +28,10 @@ public class ObjectCopierModule implements IInitializingModule
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
 		// Default ObjectCopier implementation
-		IBeanConfiguration objectCopier = beanContextFactory.registerAnonymousBean(ObjectCopier.class).autowireable(IObjectCopier.class,
-				IObjectCopierExtendable.class);
+		beanContextFactory.registerBean(ObjectCopier.class).autowireable(IObjectCopier.class, IObjectCopierExtendable.class);
 
 		// Default ObjectCopier extensions
-		IBeanConfiguration stringBuilderOCE = beanContextFactory.registerAnonymousBean(StringBuilderOCE.class);
+		IBeanConfiguration stringBuilderOCE = beanContextFactory.registerBean(StringBuilderOCE.class);
 		beanContextFactory.link(stringBuilderOCE).to(IObjectCopierExtendable.class).with(StringBuilder.class);
 	}
 }

@@ -9,6 +9,9 @@ using De.Osthus.Ambeth.Merge.Transfer;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Proxy;
+using De.Osthus.Ambeth.Metadata;
+using De.Osthus.Ambeth.Collections;
+using De.Osthus.Ambeth.Cache.Model;
 
 namespace De.Osthus.Ambeth.Merge
 {
@@ -18,7 +21,10 @@ namespace De.Osthus.Ambeth.Merge
         public ICompositeIdFactory CompositeIdFactory { protected get; set; }
 
         [Autowired]
-        public IConversionHelper ConversionHelper { protected get; set; }
+        public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
+
+        [Autowired]
+        public IObjRefFactory ObjRefFactory { protected get; set; }
 
         public IList<IObjRef> ExtractObjRefList(Object objValue, MergeHandle mergeHandle)
         {
@@ -96,7 +102,11 @@ namespace De.Osthus.Ambeth.Merge
         {
             if (objValue == null)
             {
-                return new List<IObjRef>(0);
+                if (targetOriList == null)
+                {
+                    targetOriList = EmptyList.Empty<IObjRef>();
+                }
+                return targetOriList;
             }
             if (objValue is IList)
             {
@@ -182,9 +192,21 @@ namespace De.Osthus.Ambeth.Merge
             {
                 return (IObjRef)obj;
             }
+            if (!(obj is IEntityMetaDataHolder))
+		    {
+			    return null;
+		    }
             IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
 
-            Object keyValue = metaData.IdMember.GetValue(obj, false);
+            Object keyValue;
+		    if (obj is AbstractCacheValue)
+		    {
+			    keyValue = ((AbstractCacheValue) obj).Id;
+		    }
+		    else
+		    {
+			    keyValue = metaData.IdMember.GetValue(obj, false);
+		    }
             if (keyValue == null || mergeHandle != null && mergeHandle.HandleExistingIdAsNewId)
             {
                 IDirectObjRef dirOri = new DirectObjRef(metaData.EntityType, obj);
@@ -196,8 +218,17 @@ namespace De.Osthus.Ambeth.Merge
             }
             else
             {
-                ITypeInfoItem versionMember = metaData.VersionMember;
-                ori = new ObjRef(metaData.EntityType, ObjRef.PRIMARY_KEY_INDEX, keyValue, versionMember != null ? versionMember.GetValue(obj, true) : null);
+                Object version;
+			    if (obj is AbstractCacheValue)
+			    {
+				    version = ((AbstractCacheValue) obj).Version;
+			    }
+			    else
+			    {
+                    Member versionMember = metaData.VersionMember;
+				    version = versionMember != null ? versionMember.GetValue(obj, true) : null;
+			    }
+                ori = ObjRefFactory.CreateObjRef(metaData.EntityType, ObjRef.PRIMARY_KEY_INDEX, keyValue, version);
             }
             if (objToOriDict != null)
             {
@@ -222,7 +253,7 @@ namespace De.Osthus.Ambeth.Merge
             return EntityToObjRef(entity, ObjRef.PRIMARY_KEY_INDEX, ((IEntityMetaDataHolder)entity).Get__EntityMetaData(), forceOri);
         }
 
-        public IObjRef EntityToObjRef(Object entity, sbyte idIndex)
+        public IObjRef EntityToObjRef(Object entity, int idIndex)
         {
             return EntityToObjRef(entity, idIndex, ((IEntityMetaDataHolder)entity).Get__EntityMetaData());
         }
@@ -232,16 +263,16 @@ namespace De.Osthus.Ambeth.Merge
             return EntityToObjRef(entity, ObjRef.PRIMARY_KEY_INDEX, metaData);
         }
 
-        public IObjRef EntityToObjRef(Object entity, sbyte idIndex, IEntityMetaData metaData)
+        public IObjRef EntityToObjRef(Object entity, int idIndex, IEntityMetaData metaData)
         {
             return EntityToObjRef(entity, idIndex, metaData, false);
         }
 
-        public IObjRef EntityToObjRef(Object entity, sbyte idIndex, IEntityMetaData metaData, bool forceOri)
+        public IObjRef EntityToObjRef(Object entity, int idIndex, IEntityMetaData metaData, bool forceOri)
         {
             Object id;
             Object version;
-            ITypeInfoItem versionMember = metaData.VersionMember;
+            Member versionMember = metaData.VersionMember;
             if (entity is AbstractCacheValue)
             {
                 AbstractCacheValue cacheValue = (AbstractCacheValue)entity;
@@ -255,6 +286,19 @@ namespace De.Osthus.Ambeth.Merge
                 }
                 version = cacheValue.Version;
             }
+            else if (entity is ILoadContainer)
+		    {
+			    ILoadContainer lc = (ILoadContainer) entity;
+			    if (idIndex == ObjRef.PRIMARY_KEY_INDEX)
+			    {
+				    id = lc.Reference.Id;
+			    }
+			    else
+			    {
+				    id = CompositeIdFactory.CreateIdFromPrimitives(metaData, idIndex, lc.Primitives);
+			    }
+			    version = lc.Reference.Version;
+		    }
             else
             {
                 id = metaData.GetIdMemberByIdIndex(idIndex).GetValue(entity, false);
@@ -264,15 +308,7 @@ namespace De.Osthus.Ambeth.Merge
 
             if (id != null || forceOri)
             {
-                Type idType = metaData.GetIdMemberByIdIndex(idIndex).ElementType;
-                id = ConversionHelper.ConvertValueToType(idType, id);
-
-                if (versionMember != null)
-                {
-                    Type versionType = metaData.VersionMember.ElementType;
-                    version = ConversionHelper.ConvertValueToType(versionType, version);
-                }
-                ori = new ObjRef(metaData.EntityType, idIndex, id, version);
+                ori = ObjRefFactory.CreateObjRef(metaData.EntityType, idIndex, id, version);
             }
             else
             {
@@ -289,27 +325,21 @@ namespace De.Osthus.Ambeth.Merge
 
             Type entityType = metaData.EntityType;
             // Convert id and version to the correct metadata type
-            ITypeInfoItem versionMember = metaData.VersionMember;
-            if (versionMember != null && version != null)
-            {
-                version = ConversionHelper.ConvertValueToType(versionMember.RealType, version);
-            }
             if (id != null)
             {
-                id = ConversionHelper.ConvertValueToType(metaData.IdMember.RealType, id);
-                allOris.Add(new ObjRef(entityType, ObjRef.PRIMARY_KEY_INDEX, id, version));
+                allOris.Add(ObjRefFactory.CreateObjRef(entityType, ObjRef.PRIMARY_KEY_INDEX, id, version));
             }
             if (alternateIdCount > 0)
             {
-                ITypeInfoItem[] alternateIdMembers = metaData.AlternateIdMembers;
+                Member[] alternateIdMembers = metaData.AlternateIdMembers;
 
-                ITypeInfoItem[] primitiveMembers = metaData.PrimitiveMembers;
+                Member[] primitiveMembers = metaData.PrimitiveMembers;
                 for (int a = primitiveMembers.Length; a-- > 0; )
                 {
-                    ITypeInfoItem primitiveMember = primitiveMembers[a];
+                    Member primitiveMember = primitiveMembers[a];
                     for (int b = alternateIdMembers.Length; b-- > 0; )
                     {
-                        ITypeInfoItem alternateIdMember = alternateIdMembers[b];
+                        Member alternateIdMember = alternateIdMembers[b];
                         if (alternateIdMember == primitiveMember)
                         {
                             Object alternateId = primitives[a];
@@ -319,8 +349,7 @@ namespace De.Osthus.Ambeth.Merge
                                 // If they are not specified, they are simply ignored
                                 continue;
                             }
-                            alternateId = ConversionHelper.ConvertValueToType(alternateIdMember.RealType, alternateId);
-                            allOris.Add(new ObjRef(entityType, (sbyte)b, alternateId, version));
+                            allOris.Add(ObjRefFactory.CreateObjRef(entityType, (sbyte)b, alternateId, version));
                             break;
                         }
                     }
@@ -331,7 +360,12 @@ namespace De.Osthus.Ambeth.Merge
 
         public IList<IObjRef> EntityToAllObjRefs(Object entity)
         {
-            return EntityToAllObjRefs(entity, ((IEntityMetaDataHolder)entity).Get__EntityMetaData());
+            if (entity is IEntityMetaDataHolder)
+		    {
+                return EntityToAllObjRefs(entity, ((IEntityMetaDataHolder)entity).Get__EntityMetaData());
+		    }
+		    ILoadContainer lc = (ILoadContainer) entity;
+		    return EntityToAllObjRefs(entity, EntityMetaDataProvider.GetMetaData(lc.Reference.RealType));
         }
 
         public IList<IObjRef> EntityToAllObjRefs(Object entity, IEntityMetaData metaData)

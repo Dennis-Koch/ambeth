@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>de.osthus.ambeth</groupId>
 		<artifactId>jambeth-test-pom</artifactId>
-		<version>2.1.X-SNAPSHOT</version>
+		<version>2.3.X-SNAPSHOT</version>
 		<relativePath>../jambeth-test-pom/pom.xml</relativePath>
 	</parent>
 
@@ -22,10 +22,25 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-information-bus-test</artifactId>
 		</dependency>
+		
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-information-bus-with-persistence-test</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-audit</artifactId>
+			<artifactId>jambeth-server-with-persistence-test</artifactId>
+			<type>pom</type>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-audit-server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-audit-server-test</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
@@ -117,22 +132,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-query-jdbc-test</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-security-server</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-testutil</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-testutil-persistence</artifactId>
-			<scope>test</scope>
 		</dependency>
 
 		<dependency>

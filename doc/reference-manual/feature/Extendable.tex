@@ -1,0 +1,41 @@
+%% feature-condition=ILinkExtendable
+\SetAPI{J-C}
+\section{Extendable}
+\label{feature:Extendable}
+\ClearAPI
+\TODO
+\feature
+	{de.osthus.ambeth.ioc.link.ILinkExtendable}
+	{Java \& C\#}
+	{1.0.0}
+	{-}
+	{-}
+	{module:IoC}
+	{de.osthus.ambeth.ioc.link.LinkContainerTest}
+
+The extendable pattern is a design pattern used in software development to encapsulate the processes of registering and unregistering container managed extensions. The container links all extensions to the corresponding extendables after each bean has been initialized in its \type{AfterPropertiesSet} phase and before any bean gets initialized in its \type{AfterStarted} phase (\prettyref{feature:IoCLifecycle}). They are consequently unlinked before any bean starts its \type{Destroy} phase during the shutdown sequence of the container.\newline
+
+\def\showimgref{img/gen/2013-08-20-JH-Extendable-Pattern-1}
+\showimg{Extensions extend Extendables}
+
+\subsubsection{Existing problems}
+The \textit{Extendable Pattern} describes how extensions can be registered, unregistered and looked-up on an extendable registry. Normally the programmer has to work directly with the registry. This may be a problem in an IoC based application if the registration should happen during startup when the registry bean may not have bean instantiated yet. Also since referenced objects can not be removed by garbage collection each extension has to be unregistered at the right time. Otherwise the registry may become a memory leak.
+
+\subsubsection{Description}
+With the extendable pattern extension registrations may be done at the startup of the IoC container or at run-time. The defined link between the extension and the registry is managed by the container as a bean with live cycle. Every link bean is responsible to unregister its extension when the container shuts down. Notice that the container may be a child of another container that continues to run, in server environments for a very long time.\newline
+
+This pattern overlaps with the extensibility pattern as mentioned above. In addition it can also be used to manage relations between observables and observers. Since that pattern causes the same risk of memory leaks in an IoC environment this approach provides the same benefits. 
+
+\subsubsection{Advantages}
+\begin{itemize}
+	\item Prevents memory leaks by ensuring the unregistration.
+  \item Couples the existence of the extensions registration to the life cycle of an IoC container.
+  \item Extension, registry and link can each be defined in another IoC container and are coupled to its life-cycle. 
+\end{itemize}
+
+\subsubsection{Disadvantages}
+\begin{itemize}
+	\item Since the link is container managed it could cause a problem when manually accessing the registry and unregister the extension.
+  \item It does not prevent memory leaks when registering a bean from a sibling container in a registry of the parent container. The sibling bean could be retrieved if it is already registered in a service of the parent container. When the sibling container is shut down the bean is still referenced by the registry in the parent container since the container defining lives on. The bean can be collected after the link unregistered, but meanwhile it has already bean disposed and may not be usable anymore.
+  \item The link (read: the container where the link is defined) may only live while both the extension and the registry are alive. Otherwise the system might produce errors since extension or registry could be in an unusable state. 
+\end{itemize}

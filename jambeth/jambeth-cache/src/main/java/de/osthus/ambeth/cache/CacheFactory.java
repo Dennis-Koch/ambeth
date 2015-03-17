@@ -6,8 +6,8 @@ import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.security.ISecurityActivation;
-import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 
 public class CacheFactory implements ICacheFactory
 {
@@ -24,36 +24,37 @@ public class CacheFactory implements ICacheFactory
 	@Autowired(optional = true)
 	protected ISecurityActivation securityActivation;
 
-	@Property(name = SecurityConfigurationConstants.SecurityActive, defaultValue = "false")
+	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
 
 	@Override
-	public IDisposableCache create(CacheFactoryDirective cacheFactoryDirective)
+	public IDisposableCache create(CacheFactoryDirective cacheFactoryDirective, String name)
 	{
-		return createIntern(cacheFactoryDirective, !securityActive || !securityActivation.isFilterActivated(), false, null);
+		return createIntern(cacheFactoryDirective, !securityActive || !securityActivation.isFilterActivated(), false, null, name);
 	}
 
 	@Override
-	public IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective)
+	public IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective, String name)
 	{
-		return createIntern(cacheFactoryDirective, true, false, null);
+		return createIntern(cacheFactoryDirective, true, false, null, name);
 	}
 
 	@Override
-	public IDisposableCache create(CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, Boolean useWeakEntries)
+	public IDisposableCache create(CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, Boolean useWeakEntries, String name)
 	{
-		return createIntern(cacheFactoryDirective, !securityActive || !securityActivation.isFilterActivated(), foreignThreadAware, useWeakEntries);
+		return createIntern(cacheFactoryDirective, !securityActive || !securityActivation.isFilterActivated(), foreignThreadAware, useWeakEntries, name);
 	}
 
 	@Override
-	public IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, Boolean useWeakEntries)
+	public IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, Boolean useWeakEntries, String name)
 	{
-		return createIntern(cacheFactoryDirective, true, foreignThreadAware, useWeakEntries);
+		return createIntern(cacheFactoryDirective, true, foreignThreadAware, useWeakEntries, name);
 	}
 
-	protected IDisposableCache createIntern(CacheFactoryDirective cacheFactoryDirective, boolean privileged, boolean foreignThreadAware, Boolean useWeakEntries)
+	protected IDisposableCache createIntern(CacheFactoryDirective cacheFactoryDirective, boolean privileged, boolean foreignThreadAware,
+			Boolean useWeakEntries, String name)
 	{
-		IBeanRuntime<ChildCache> firstLevelCacheBC = beanContext.registerAnonymousBean(ChildCache.class);
+		IBeanRuntime<ChildCache> firstLevelCacheBC = beanContext.registerBean(ChildCache.class);
 		if (!foreignThreadAware)
 		{
 			// Do not inject EventQueue because caches without foreign interest will never receive async DCEs
@@ -63,9 +64,13 @@ public class CacheFactory implements ICacheFactory
 		{
 			firstLevelCacheBC.propertyValue("WeakEntries", useWeakEntries);
 		}
+		if (name != null)
+		{
+			firstLevelCacheBC.propertyValue("Name", name);
+		}
 		firstLevelCacheBC.propertyValue("Privileged", Boolean.valueOf(privileged));
 		ChildCache firstLevelCache = firstLevelCacheBC.finish();
-		firstLevelCacheExtendable.registerFirstLevelCache(firstLevelCache, cacheFactoryDirective, foreignThreadAware);
+		firstLevelCacheExtendable.registerFirstLevelCache(firstLevelCache, cacheFactoryDirective, foreignThreadAware, name);
 		return firstLevelCache;
 	}
 }

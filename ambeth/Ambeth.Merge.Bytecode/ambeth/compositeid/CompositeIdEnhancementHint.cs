@@ -1,4 +1,5 @@
 using De.Osthus.Ambeth.Bytecode;
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using System;
@@ -8,9 +9,9 @@ namespace De.Osthus.Ambeth.CompositeId
 {
     public class CompositeIdEnhancementHint : IEnhancementHint, ITargetNameEnhancementHint, IPrintable
     {
-        private readonly ITypeInfoItem[] idMembers;
+        private readonly Member[] idMembers;
 
-        public CompositeIdEnhancementHint(ITypeInfoItem[] idMembers)
+        public CompositeIdEnhancementHint(Member[] idMembers)
         {
             this.idMembers = idMembers;
         }
@@ -21,7 +22,7 @@ namespace De.Osthus.Ambeth.CompositeId
             sb.Append(GetType().Namespace).Append('.').Append("CompositeId");
             for (int a = 0, size = idMembers.Length; a < size; a++)
             {
-                ITypeInfoItem idMember = idMembers[a];
+                Member idMember = idMembers[a];
                 sb.Append('$').Append(idMember.Name);
             }
             return sb.ToString();
@@ -44,8 +45,8 @@ namespace De.Osthus.Ambeth.CompositeId
             }
             for (int a = idMembers.Length; a-- > 0; )
             {
-                ITypeInfoItem idMember = idMembers[a];
-                ITypeInfoItem otherIdMember = other.idMembers[a];
+                Member idMember = idMembers[a];
+                Member otherIdMember = other.idMembers[a];
                 if (!Object.Equals(idMember.Name, otherIdMember.Name) || !Object.Equals(idMember.RealType, otherIdMember.RealType))
                 {
                     return false;
@@ -59,13 +60,13 @@ namespace De.Osthus.Ambeth.CompositeId
             int hash = typeof(CompositeIdEnhancementHint).GetHashCode();
             for (int a = idMembers.Length; a-- > 0; )
             {
-                ITypeInfoItem idMember = idMembers[a];
+                Member idMember = idMembers[a];
                 hash ^= idMember.Name.GetHashCode() ^ idMember.RealType.GetHashCode();
             }
             return hash;
         }
 
-        public ITypeInfoItem[] IdMembers
+        public Member[] IdMembers
         {
             get
             {

@@ -77,17 +77,7 @@ namespace De.Osthus.Ambeth.Collections
         {
             size--;
         }
-
-        protected override int GetHashOfEntry(MapEntry<K, V> entry)
-        {
-            return entry.Hash;
-        }
-
-        protected override MapEntry<K, V> GetNextEntry(MapEntry<K, V> entry)
-        {
-            return entry.NextEntryReal;
-        }
-
+        
         protected override void SetNextEntry(MapEntry<K, V> entry, MapEntry<K, V> nextEntry)
         {
             entry.NextEntryReal = nextEntry;

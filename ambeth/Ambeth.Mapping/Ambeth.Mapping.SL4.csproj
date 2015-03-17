@@ -68,6 +68,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\exception\MappingException.cs" />
+    <Compile Include="ambeth\ioc\MappingModule.cs" />
     <Compile Include="ambeth\mapping\CompositIdentityClassKey.cs" />
     <Compile Include="ambeth\mapping\config\MappingConfigurationConstants.cs" />
     <Compile Include="ambeth\mapping\CopyDirection.cs" />
@@ -82,7 +83,6 @@
     <Compile Include="ambeth\mapping\MapperServiceWeakReference.cs" />
     <Compile Include="ambeth\mapping\MappingObjRefProvider.cs" />
     <Compile Include="ambeth\mapping\ModelTransferMapper.cs" />
-    <Compile Include="ioc\MappingModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

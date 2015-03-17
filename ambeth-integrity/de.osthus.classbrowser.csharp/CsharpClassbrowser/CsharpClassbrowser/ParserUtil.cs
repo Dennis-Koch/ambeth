@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Microsoft.CSharp;
+using System;
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Reflection;
-using Microsoft.CSharp;
+using System.Text.RegularExpressions;
 
 namespace CsharpClassbrowser
 {
@@ -31,7 +32,11 @@ namespace CsharpClassbrowser
         public const string MODIFIER_ABSTRACT = "abstract";
         public const string MODIFIER_INTERNAL = "internal";
 
+        public static readonly List<String> MODIFIERS_CONSTANT = new List<String>(new String[] { MODIFIER_STATIC, MODIFIER_FINAL });
+
         public const string GENERIC_TYPE_PREFIX = "generic:";
+
+        public static readonly Regex backingFieldPattern = new Regex("<(.+)>k__BackingField");
 
         #endregion
 
@@ -64,26 +69,14 @@ namespace CsharpClassbrowser
                         var typeType = ParserUtil.GetTypeType(type);
                         if (typeType != null && !IsTypeSkipped(type))
                         {
-                            int genericTypeParams = CountGenericTypeParams(type);
-                            string simpleName = RemoveGenericTypeParamsFromName(type.Name);
-                            string fullTypeName = RemoveGenericTypeParamsFromName(type.FullName);
-                            string moduleName;
-                            if (moduleMap != null)
-                            {
-                                moduleName = GetModuleFromSources(type, moduleMap);
-                            }
-                            else
-                            {
-                                moduleName = GetModuleFromAssembly(source);
-                            }
-                            TypeDescription typeDescription = new TypeDescription(source, moduleName, type.Namespace, simpleName, fullTypeName, typeType, genericTypeParams);
-                            AddAnnotations(type, typeDescription);
-                            AddMethodDescriptions(type, typeDescription);
-                            AddFieldDescriptions(type, typeDescription);
-                            log(typeDescription);
+                            TypeDescription typeDescription = AnalyzeType(type, typeType, source, moduleMap);
                             foundTypes.Add(typeDescription);
                         }
                     }
+                }
+                catch (ReflectionTypeLoadException ex)
+                {
+                    Console.WriteLine("Assembly '" + assembly.FullName + "' can't be parsed due to: " + ex.LoaderExceptions[0].Message);
                 }
                 catch (Exception ex)
                 {
@@ -122,7 +115,7 @@ namespace CsharpClassbrowser
                 throw new ArgumentException("Mandatory value missing!");
             }
 
-            string typeName = typeToBeAnalyzed.FullName.ToLower();
+            string typeName = RemoveGenericTypeParamsFromName(typeToBeAnalyzed.FullName).ToLower();
             // TODO: Remove the HACK
             string fileName = typeName.Replace("de.osthus.", string.Empty).ToLower() + ".cs";
 
@@ -147,6 +140,35 @@ namespace CsharpClassbrowser
                 throw new ArgumentException("Mandatory value missing!");
             }
             return System.IO.Path.GetFileNameWithoutExtension(assemblySourceFilePath);
+        }
+
+        public static TypeDescription AnalyzeType(Type typeToBeAnalyzed, string typeType, string source, IDictionary<string, string> moduleMap)
+        {
+            int genericTypeParams = CountGenericTypeParams(typeToBeAnalyzed);
+            string simpleName = RemoveGenericTypeParamsFromName(typeToBeAnalyzed.Name);
+            string fullTypeName = RemoveGenericTypeParamsFromName(typeToBeAnalyzed.FullName);
+            string moduleName;
+            if (moduleMap != null)
+            {
+                moduleName = GetModuleFromSources(typeToBeAnalyzed, moduleMap);
+            }
+            else
+            {
+                moduleName = GetModuleFromAssembly(source);
+            }
+
+            Type superclass = typeToBeAnalyzed.BaseType;
+            String superclassName = superclass == null || typeof(Object).Equals(superclass) ? null : superclass.FullName;
+
+            TypeDescription typeDescription = new TypeDescription(source, moduleName, typeToBeAnalyzed.Namespace, simpleName, fullTypeName, typeType, genericTypeParams);
+            typeDescription.SuperType = superclassName;
+            AddInterfaces(typeToBeAnalyzed, typeDescription);
+            AddAnnotations(typeToBeAnalyzed, typeDescription);
+            AddMethodDescriptions(typeToBeAnalyzed, typeDescription);
+            AddFieldDescriptions(typeToBeAnalyzed, typeDescription);
+            log(typeDescription);
+
+            return typeDescription;
         }
 
         /// <summary>
@@ -239,6 +261,16 @@ namespace CsharpClassbrowser
             }
         }
 
+        private static void AddInterfaces(Type typeToBeAnalyzed, TypeDescription typeDescription)
+        {
+            Type[] interfaces = typeToBeAnalyzed.GetInterfaces();
+            IList<String> interfaceNames = typeDescription.Interfaces;
+            foreach (Type iface in interfaces)
+            {
+                interfaceNames.Add(iface.FullName);
+            }
+        }
+
         /// <summary>
         /// Add all runtime visible attributes from the given type to the given description.
         /// </summary>
@@ -246,7 +278,7 @@ namespace CsharpClassbrowser
         /// <param name="typeDescription">Description to write the attribute infos to; mandatory</param>
         private static void AddAnnotations(Type givenType, TypeDescription typeDescription)
         {
-            GetAnnotationNames(givenType, typeDescription.Annotations);
+            GetAnnotationInfo(givenType, typeDescription.Annotations);
         }
 
         /// <summary>
@@ -297,26 +329,61 @@ namespace CsharpClassbrowser
             {
                 bool isEnum = ParserUtil.TYPE_ENUM.Equals(typeDescription.TypeType);
 
+                IList<FieldDescription> fieldDescriptions = typeDescription.FieldDescriptions;
                 foreach (var fieldInfo in fieldInfos)
                 {
-                    IList<String> attributes = GetAnnotationNames(fieldInfo);
-                    bool isLoggerField = attributes.Contains("De.Osthus.Ambeth.Log.LogInstanceAttribute");
-                    bool isAutowired = attributes.Contains("De.Osthus.Ambeth.Ioc.Annotation.AutowiredAttribute");
-                    // on enums only "recognize" the enum values and not the internal field to save the integer value
-                    bool isEnumAndEnumConstant = isEnum && fieldInfo.IsStatic;
+                    IList<AnnotationInfo> attributes = GetAnnotationInfo(fieldInfo);
+                    var fieldDescription = CreateFieldDescriptionFrom(fieldInfo);
+                    fieldDescriptions.Add(fieldDescription);
 
-                    if (isAutowired || isLoggerField || isEnumAndEnumConstant)
+                    Match match = backingFieldPattern.Match(fieldInfo.Name);
+                    if (match.Success)
                     {
-                        var fieldDescription = CreateFieldDescriptionFrom(fieldInfo);
-                        IList<String> annotations = fieldDescription.Annotations;
-                        foreach (String attribute in attributes)
+                        // check for a .NET property of the field to map the annotations from there to the current field
+
+                        String propertyName = match.Groups[1].Value;
+                        PropertyInfo pi = givenType.GetProperty(propertyName);
+                        if (pi == null)
                         {
-                            annotations.Add(attribute);
+                            throw new Exception("Property not found: " + givenType.FullName + "." + propertyName);
                         }
-                        typeDescription.FieldDescriptions.Add(fieldDescription);
+                        IList<AnnotationInfo> propertyAttributes = GetAnnotationInfo(pi);
+                        foreach (AnnotationInfo propertyAttribute in propertyAttributes)
+                        {
+                            attributes.Add(propertyAttribute);
+                        }
+                    }
+
+                    // on enums only "recognize" the enum values and not the internal field to save the integer value
+                    fieldDescription.EnumConstant = isEnum && fieldInfo.IsStatic;
+
+                    IList<AnnotationInfo> annotations = fieldDescription.Annotations;
+                    foreach (AnnotationInfo attribute in attributes)
+                    {
+                        annotations.Add(attribute);
+                    }
+
+                    // Record the value of primitive and string constants.
+                    if (ContainsAll((List<string>)fieldDescription.Modifiers, MODIFIERS_CONSTANT)
+                            && (fieldInfo.FieldType.IsPrimitive || typeof(String).Equals(fieldInfo.FieldType)))
+                    {
+                        Object initialValue = fieldInfo.GetValue(null);
+                        fieldDescription.InitialValue = initialValue.ToString();
                     }
                 }
             }
+        }
+
+        private static bool ContainsAll(List<string> list, List<string> otherList)
+        {
+            foreach (string value in otherList)
+            {
+                if (!list.Contains(value))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         /// <summary>
@@ -332,24 +399,27 @@ namespace CsharpClassbrowser
             }
 
             string returnType = null;
-            IList<string> attributes = null;
+            IList<AnnotationInfo> attributes = null;
             IList<string> modifiers = null;
-            IList<string> parameterTypes = null;
+            IList<String> parameterTypes = null;
+            IList<String> parameterNames = null;
             foreach (var methodInfo in methodInfos)
             {
                 if ("Invoke" == methodInfo.Name)
                 {
                     returnType = GetReturnTypeFrom(methodInfo);
-                    parameterTypes = GetParameterTypesFrom(methodInfo);
-                    attributes = GetAnnotationNames(methodInfo);
+                    parameterTypes = new List<String>();
+                    parameterNames = new List<String>();
+                    GetParameterInfoFrom(methodInfo, parameterTypes, parameterNames);
+                    attributes = GetAnnotationInfo(methodInfo);
                 }
             }
 
-            MethodDescription methodDescription = new MethodDescription("Invoke", returnType, modifiers, parameterTypes);
+            MethodDescription methodDescription = new MethodDescription("Invoke", returnType, modifiers, parameterTypes, parameterNames);
             if (attributes != null)
             {
-                IList<String> annotations = methodDescription.Annotations;
-                foreach (String attribute in attributes)
+                IList<AnnotationInfo> annotations = methodDescription.Annotations;
+                foreach (AnnotationInfo attribute in attributes)
                 {
                     annotations.Add(attribute);
                 }
@@ -371,10 +441,12 @@ namespace CsharpClassbrowser
 
             var returnType = GetReturnTypeFrom(methodInfo);
             var modifiers = GetModifiersFrom(methodInfo);
-            var parameterTypes = GetParameterTypesFrom(methodInfo);
+            IList<String> parameterTypes = new List<String>();
+            IList<String> parameterNames = new List<String>();
+            GetParameterInfoFrom(methodInfo, parameterTypes, parameterNames);
 
-            MethodDescription methodDescription = new MethodDescription(methodInfo.Name, returnType, modifiers, parameterTypes);
-            GetAnnotationNames(methodInfo, methodDescription.Annotations);
+            MethodDescription methodDescription = new MethodDescription(methodInfo.Name, returnType, modifiers, parameterTypes, parameterNames);
+            GetAnnotationInfo(methodInfo, methodDescription.Annotations);
 
             return methodDescription;
         }
@@ -545,6 +617,10 @@ namespace CsharpClassbrowser
             {
                 modifiers.Add(MODIFIER_STATIC);
             }
+            if (fieldInfo.IsLiteral)
+            {
+                modifiers.Add(MODIFIER_FINAL);
+            }
 
             return modifiers;
         }
@@ -554,7 +630,7 @@ namespace CsharpClassbrowser
         /// </summary>
         /// <param name="methodInfo">MethodInfo to get the infos from; mandatory</param>
         /// <returns>List of parameter types; never null (but may be empty)</returns>
-        public static IList<string> GetParameterTypesFrom(MethodInfo methodInfo)
+        public static IList<string> GetParameterInfoFrom(MethodInfo methodInfo, IList<String> parameterTypes, IList<String> parameterNames)
         {
             if (methodInfo == null)
             {
@@ -562,10 +638,13 @@ namespace CsharpClassbrowser
             }
 
             IList<string> parameters = new List<string>();
-            foreach (var parameter in methodInfo.GetParameters())
+            foreach (ParameterInfo parameter in methodInfo.GetParameters())
             {
-                var paramType = GetTypeFrom(parameter.ParameterType);
-                parameters.Add(paramType);
+                string paramType = GetTypeFrom(parameter.ParameterType);
+                parameterTypes.Add(paramType);
+
+                string paramName = parameter.Name;
+                parameterNames.Add(paramName);
             }
 
             return parameters;
@@ -582,26 +661,74 @@ namespace CsharpClassbrowser
         /// </summary>
         /// <param name="attributeProvider">Object to be analysed; mandatory</param>
         /// <returns>List of the full annotation names; never null (but may be empty)</returns>
-        private static List<String> GetAnnotationNames(MemberInfo attributeProvider)
+        public static List<AnnotationInfo> GetAnnotationInfo(MemberInfo attributeProvider)
         {
-            List<String> annotationNames = new List<String>();
-            GetAnnotationNames(attributeProvider, annotationNames);
-            return annotationNames;
+            List<AnnotationInfo> annotationInfo = new List<AnnotationInfo>();
+            GetAnnotationInfo(attributeProvider, annotationInfo);
+            return annotationInfo;
         }
 
         // FIXME Attribute name is always 'System.Runtime.CompilerServices.CompilerGeneratedAttribute'
-        private static void GetAnnotationNames(MemberInfo attributeProvider, IList<String> target)
+        private static void GetAnnotationInfo(MemberInfo attributeProvider, IList<AnnotationInfo> target)
         {
             Object[] attributes = attributeProvider.GetCustomAttributes(true);
             foreach (Object attr in attributes)
             {
                 Attribute attribute = (Attribute)attr;
-                String name = attribute.GetType().FullName;
-                if (!"System.Runtime.CompilerServices.CompilerGeneratedAttribute".Equals(name))
+                Type annotationType = attribute.GetType();
+                String annotationTypeName = annotationType.FullName;
+                if ("System.Runtime.CompilerServices.CompilerGeneratedAttribute".Equals(annotationTypeName))
                 {
-                    target.Add(name);
+                    continue;
+                }
+
+                Attribute defaultAttribute = null;
+                try
+                {
+                    defaultAttribute = Activator.CreateInstance(annotationType) as Attribute;
+                }
+                catch
+                {
+                    // We could search the constructor with the lowest number of parameters.
+                    // But for now we just do not get the default values.
+                }
+
+                PropertyInfo[] methods = annotationType.GetProperties();
+                List<AnnotationParamInfo> parameters = new List<AnnotationParamInfo>();
+                foreach (PropertyInfo method in methods)
+                {
+                    Type declaringClass = method.DeclaringType;
+                    String declaringClassName = declaringClass.FullName;
+                    if (!annotationTypeName.Equals(declaringClassName))
+                    {
+                        continue;
+                    }
+
+                    String paramName = method.Name;
+                    String paramType = method.PropertyType.ToString();
+                    Object defaultValue = defaultAttribute != null ? method.GetValue(defaultAttribute, null) : null;
+                    Object currentValue = method.GetValue(attribute, null);
+
+                    AnnotationParamInfo param = new AnnotationParamInfo(paramName, paramType, defaultValue, currentValue);
+                    parameters.Add(param);
+                }
+
+                AnnotationInfo info = new AnnotationInfo(annotationTypeName, parameters);
+                target.Add(info);
+            }
+        }
+
+        private static bool ContainsAnnotation(IList<AnnotationInfo> annotationInfo, String annotationType)
+        {
+            foreach (AnnotationInfo annotation in annotationInfo)
+            {
+                String type = annotation.AnnotationType;
+                if (type.Equals(annotationType))
+                {
+                    return true;
                 }
             }
+            return false;
         }
 
         private static void log(TypeDescription typeDescription)

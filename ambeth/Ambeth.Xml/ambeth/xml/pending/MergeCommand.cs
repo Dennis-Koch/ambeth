@@ -12,6 +12,7 @@ using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Cache;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Xml.Pending
 {
@@ -31,8 +32,6 @@ namespace De.Osthus.Ambeth.Xml.Pending
             base.AfterPropertiesSet();
 
             ParamChecker.AssertParamOfType(Parent, "Parent", typeof(IChangeContainer));
-
-            ParamChecker.AssertNotNull(EntityMetaDataProvider, "MetadataProvider");
         }
 
         public override void Execute(IReader reader)
@@ -77,7 +76,7 @@ namespace De.Osthus.Ambeth.Xml.Pending
             {
                 String memberName = pui.MemberName;
                 Object newValue = pui.NewValue;
-                ITypeInfoItem member = metadata.GetMemberByName(memberName);
+                Member member = metadata.GetMemberByName(memberName);
                 member.SetValue(entity, newValue);
             }
         }
@@ -85,7 +84,7 @@ namespace De.Osthus.Ambeth.Xml.Pending
         protected void ApplyRelationUpdateItems(IObjRefContainer entity, IRelationUpdateItem[] ruis, bool isUpdate, IEntityMetaData metadata, IReader reader)
         {
             List<Object> toPrefetch = new List<Object>();
-            IRelationInfoItem[] relationMembers = metadata.RelationMembers;
+            RelationMember[] relationMembers = metadata.RelationMembers;
             foreach (IRelationUpdateItem rui in ruis)
             {
                 String memberName = rui.MemberName;
@@ -142,7 +141,7 @@ namespace De.Osthus.Ambeth.Xml.Pending
                     }
                 }
 
-                IRelationInfoItem member = relationMembers[relationIndex];
+                RelationMember member = relationMembers[relationIndex];
                 if (isUpdate)
                 {
                     entity.Set__ObjRefs(relationIndex, newORIs);
@@ -165,7 +164,7 @@ namespace De.Osthus.Ambeth.Xml.Pending
             }
         }
 
-        protected void BuildSetterCommands(Object entity, IObjRef[] newORIs, IRelationInfoItem member, IReader reader)
+        protected void BuildSetterCommands(Object entity, IObjRef[] newORIs, RelationMember member, IReader reader)
         {
             if (!member.IsToMany)
             {

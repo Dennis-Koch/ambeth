@@ -3,15 +3,21 @@ package de.osthus.ambeth.merge.model;
 import java.util.Arrays;
 import java.util.Set;
 
+import de.osthus.ambeth.cache.ICacheModification;
+import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.collections.SmartCopySet;
-import de.osthus.ambeth.compositeid.CompositeIdTypeInfoItem;
+import de.osthus.ambeth.compositeid.CompositeIdMember;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.transfer.ObjRef;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
+import de.osthus.ambeth.metadata.EmbeddedMember;
+import de.osthus.ambeth.metadata.IPrimitiveMemberWrite;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.PrimitiveMember;
+import de.osthus.ambeth.metadata.RelationMember;
+import de.osthus.ambeth.util.ListUtil;
 
 public class EntityMetaData implements IEntityMetaData
 {
@@ -31,9 +37,9 @@ public class EntityMetaData implements IEntityMetaData
 
 	public static final Class<?>[] emptyTypes = new Class<?>[0];
 
-	public static final ITypeInfoItem[] emptyTypeInfoItems = new ITypeInfoItem[0];
+	public static final PrimitiveMember[] emptyPrimitiveMembers = new PrimitiveMember[0];
 
-	public static final IRelationInfoItem[] emptyRelationInfoItems = new IRelationInfoItem[0];
+	public static final RelationMember[] emptyRelationMembers = new RelationMember[0];
 
 	public static final IEntityLifecycleExtension[] emptyEntityLifecycleExtensions = new IEntityLifecycleExtension[0];
 
@@ -53,37 +59,39 @@ public class EntityMetaData implements IEntityMetaData
 
 	protected IEntityLifecycleExtension[] entityLifecycleExtensions = emptyEntityLifecycleExtensions;
 
-	protected IRelationInfoItem[] relationMembers = emptyRelationInfoItems;
+	protected RelationMember[] relationMembers = emptyRelationMembers;
 
-	protected ITypeInfoItem[] primitiveMembers = emptyTypeInfoItems;
+	protected PrimitiveMember[] primitiveMembers = emptyPrimitiveMembers;
 
-	protected ITypeInfoItem[] alternateIdMembers = emptyTypeInfoItems;
+	protected PrimitiveMember[] primitiveToManyMembers = emptyPrimitiveMembers;
 
-	protected ITypeInfoItem[] fulltextMembers = emptyTypeInfoItems;
+	protected PrimitiveMember[] alternateIdMembers = emptyPrimitiveMembers;
 
-	protected ITypeInfoItem versionMember;
+	protected PrimitiveMember[] fulltextMembers = emptyPrimitiveMembers;
 
-	protected ITypeInfoItem idMember;
+	protected PrimitiveMember versionMember;
 
-	protected ITypeInfoItem createdOn;
+	protected PrimitiveMember idMember;
 
-	protected ITypeInfoItem createdBy;
+	protected PrimitiveMember createdOn;
 
-	protected ITypeInfoItem updatedOn;
+	protected PrimitiveMember createdBy;
 
-	protected ITypeInfoItem updatedBy;
+	protected PrimitiveMember updatedOn;
+
+	protected PrimitiveMember updatedBy;
 
 	protected int[][] alternateIdMemberIndicesInPrimitives = emptyShortArray;
 
-	protected final HashSet<ITypeInfoItem> fulltextMemberSet = new HashSet<ITypeInfoItem>(0.5f);
+	protected final HashSet<Member> fulltextMemberSet = new HashSet<Member>(0.5f);
 
-	protected final HashSet<ITypeInfoItem> alternateIdMemberSet = new HashSet<ITypeInfoItem>(0.5f);
+	protected final HashSet<Member> alternateIdMemberSet = new HashSet<Member>(0.5f);
 
-	protected final SmartCopySet<ITypeInfoItem> interningMemberSet = new SmartCopySet<ITypeInfoItem>(0.5f);
+	protected final SmartCopySet<Member> interningMemberSet = new SmartCopySet<Member>(0.5f);
 
-	protected final HashMap<String, ITypeInfoItem> nameToMemberDict = new HashMap<String, ITypeInfoItem>(0.5f);
+	protected final HashMap<String, Member> nameToMemberDict = new HashMap<String, Member>(0.5f);
 
-	protected final HashMap<ITypeInfoItem, Boolean> memberToMergeRelevanceDict = new HashMap<ITypeInfoItem, Boolean>(0.5f);
+	protected final HashMap<Member, Boolean> memberToMergeRelevanceDict = new HashMap<Member, Boolean>(0.5f);
 
 	protected final HashMap<String, Byte> memberNameToIdIndexDict = new HashMap<String, Byte>(0.5f);
 
@@ -91,9 +99,11 @@ public class EntityMetaData implements IEntityMetaData
 
 	protected final HashMap<String, Integer> primMemberNameToIndexDict = new HashMap<String, Integer>(0.5f);
 
-	protected final IdentityHashMap<IRelationInfoItem, Integer> relMemberToIndexDict = new IdentityHashMap<IRelationInfoItem, Integer>(0.5f);
+	protected final IdentityHashMap<RelationMember, Integer> relMemberToIndexDict = new IdentityHashMap<RelationMember, Integer>(0.5f);
 
-	protected final IdentityHashMap<ITypeInfoItem, Integer> primMemberToIndexDict = new IdentityHashMap<ITypeInfoItem, Integer>(0.5f);
+	protected final IdentityHashMap<Member, Integer> primMemberToIndexDict = new IdentityHashMap<Member, Integer>(0.5f);
+
+	protected ICacheModification cacheModification;
 
 	protected IEntityFactory entityFactory;
 
@@ -142,18 +152,18 @@ public class EntityMetaData implements IEntityMetaData
 	}
 
 	@Override
-	public ITypeInfoItem getIdMember()
+	public PrimitiveMember getIdMember()
 	{
 		return idMember;
 	}
 
-	public void setIdMember(ITypeInfoItem idMember)
+	public void setIdMember(PrimitiveMember idMember)
 	{
 		this.idMember = idMember;
 	}
 
 	@Override
-	public ITypeInfoItem getIdMemberByIdIndex(byte idIndex)
+	public PrimitiveMember getIdMemberByIdIndex(int idIndex)
 	{
 		if (idIndex == ObjRef.PRIMARY_KEY_INDEX)
 		{
@@ -163,23 +173,23 @@ public class EntityMetaData implements IEntityMetaData
 	}
 
 	@Override
-	public ITypeInfoItem getVersionMember()
+	public PrimitiveMember getVersionMember()
 	{
 		return versionMember;
 	}
 
-	public void setVersionMember(ITypeInfoItem versionMember)
+	public void setVersionMember(PrimitiveMember versionMember)
 	{
 		this.versionMember = versionMember;
 	}
 
 	@Override
-	public ITypeInfoItem[] getAlternateIdMembers()
+	public PrimitiveMember[] getAlternateIdMembers()
 	{
 		return alternateIdMembers;
 	}
 
-	public void setAlternateIdMembers(ITypeInfoItem[] alternateIdMembers)
+	public void setAlternateIdMembers(PrimitiveMember[] alternateIdMembers)
 	{
 		this.alternateIdMembers = alternateIdMembers;
 		alternateIdMemberSet.clear();
@@ -202,7 +212,7 @@ public class EntityMetaData implements IEntityMetaData
 	}
 
 	@Override
-	public boolean isAlternateId(ITypeInfoItem primitiveMember)
+	public boolean isAlternateId(Member primitiveMember)
 	{
 		return alternateIdMemberSet.contains(primitiveMember);
 	}
@@ -219,13 +229,13 @@ public class EntityMetaData implements IEntityMetaData
 	}
 
 	@Override
-	public boolean hasInterningBehavior(ITypeInfoItem primitiveMember)
+	public boolean hasInterningBehavior(Member primitiveMember)
 	{
 		return interningMemberSet.contains(primitiveMember);
 	}
 
 	@Override
-	public void changeInterningBehavior(ITypeInfoItem primitiveMember, boolean state)
+	public void changeInterningBehavior(Member primitiveMember, boolean state)
 	{
 		if (state)
 		{
@@ -238,78 +248,78 @@ public class EntityMetaData implements IEntityMetaData
 	}
 
 	@Override
-	public ITypeInfoItem getCreatedOnMember()
+	public PrimitiveMember getCreatedOnMember()
 	{
 		return createdOn;
 	}
 
-	public void setCreatedOnMember(ITypeInfoItem createdOn)
+	public void setCreatedOnMember(PrimitiveMember createdOn)
 	{
 		this.createdOn = createdOn;
 	}
 
 	@Override
-	public ITypeInfoItem getCreatedByMember()
+	public PrimitiveMember getCreatedByMember()
 	{
 		return createdBy;
 	}
 
-	public void setCreatedByMember(ITypeInfoItem createdBy)
+	public void setCreatedByMember(PrimitiveMember createdBy)
 	{
 		this.createdBy = createdBy;
 	}
 
 	@Override
-	public ITypeInfoItem getUpdatedOnMember()
+	public PrimitiveMember getUpdatedOnMember()
 	{
 		return updatedOn;
 	}
 
-	public void setUpdatedOnMember(ITypeInfoItem updatedOn)
+	public void setUpdatedOnMember(PrimitiveMember updatedOn)
 	{
 		this.updatedOn = updatedOn;
 	}
 
 	@Override
-	public ITypeInfoItem getUpdatedByMember()
+	public PrimitiveMember getUpdatedByMember()
 	{
 		return updatedBy;
 	}
 
-	public void setUpdatedByMember(ITypeInfoItem updatedBy)
+	public void setUpdatedByMember(PrimitiveMember updatedBy)
 	{
 		this.updatedBy = updatedBy;
 	}
 
 	@Override
-	public ITypeInfoItem[] getFulltextMembers()
+	public PrimitiveMember[] getFulltextMembers()
 	{
 		return fulltextMembers;
 	}
 
-	public void setFulltextMembers(ITypeInfoItem[] fulltextMembers)
+	public void setFulltextMembers(PrimitiveMember[] fulltextMembers)
 	{
 		this.fulltextMembers = fulltextMembers;
 	}
 
 	@Override
-	public ITypeInfoItem[] getPrimitiveMembers()
+	public PrimitiveMember[] getPrimitiveMembers()
 	{
 		return primitiveMembers;
 	}
 
-	public void setPrimitiveMembers(ITypeInfoItem[] primitiveMembers)
+	public void setPrimitiveMembers(PrimitiveMember[] primitiveMembers)
 	{
 		this.primitiveMembers = primitiveMembers;
 	}
 
 	@Override
-	public IRelationInfoItem[] getRelationMembers()
+	public RelationMember[] getRelationMembers()
 	{
 		return relationMembers;
 	}
 
-	public void setRelationMembers(IRelationInfoItem[] relationMembers)
+	public void setRelationMembers(RelationMember[] relationMembers)
 	{
 		this.relationMembers = relationMembers;
 	}
@@ -320,25 +330,25 @@ public class EntityMetaData implements IEntityMetaData
 	}
 
 	@Override
-	public boolean isFulltextRelevant(ITypeInfoItem member)
+	public boolean isFulltextRelevant(Member member)
 	{
 		return fulltextMemberSet.contains(member);
 	}
 
 	@Override
-	public boolean isMergeRelevant(ITypeInfoItem member)
+	public boolean isMergeRelevant(Member member)
 	{
 		Boolean relevance = memberToMergeRelevanceDict.get(member);
 		return relevance == null || relevance.booleanValue();
 	}
 
-	public void setMergeRelevant(ITypeInfoItem member, boolean relevant)
+	public void setMergeRelevant(Member member, boolean relevant)
 	{
 		memberToMergeRelevanceDict.put(member, Boolean.valueOf(relevant));
 	}
 
 	@Override
-	public ITypeInfoItem getMemberByName(String memberName)
+	public Member getMemberByName(String memberName)
 	{
 		return nameToMemberDict.get(memberName);
 	}
@@ -367,7 +377,7 @@ public class EntityMetaData implements IEntityMetaData
 	}
 
 	@Override
-	public int getIndexByRelation(IRelationInfoItem relationMember)
+	public int getIndexByRelation(Member relationMember)
 	{
 		Integer index = relMemberToIndexDict.get(relationMember);
 		if (index == null)
@@ -389,7 +399,7 @@ public class EntityMetaData implements IEntityMetaData
 	}
 
 	@Override
-	public int getIndexByPrimitive(ITypeInfoItem primitiveMember)
+	public int getIndexByPrimitive(Member primitiveMember)
 	{
 		Integer index = primMemberToIndexDict.get(primitiveMember);
 		if (index == null)
@@ -428,11 +438,43 @@ public class EntityMetaData implements IEntityMetaData
 	}
 
 	@Override
+	public void postProcessNewEntity(Object newEntity)
+	{
+		PrimitiveMember[] primitiveToManyMembers = this.primitiveToManyMembers;
+		if (primitiveToManyMembers.length > 0)
+		{
+			boolean oldInternalUpdate = cacheModification.isInternalUpdate();
+			if (!oldInternalUpdate)
+			{
+				cacheModification.setInternalUpdate(true);
+			}
+			try
+			{
+				for (PrimitiveMember primitiveMember : primitiveToManyMembers)
+				{
+					primitiveMember.setValue(newEntity, ListUtil.createObservableCollectionOfType(primitiveMember.getRealType()));
+				}
+			}
+			finally
+			{
+				if (!oldInternalUpdate)
+				{
+					cacheModification.setInternalUpdate(false);
+				}
+			}
+		}
+		for (IEntityLifecycleExtension entityLifecycleExtension : entityLifecycleExtensions)
+		{
+			entityLifecycleExtension.postCreate(this, newEntity);
+		}
+	}
+
+	@Override
 	public void postLoad(Object entity)
 	{
 		for (IEntityLifecycleExtension entityLifecycleExtension : entityLifecycleExtensions)
 		{
-			entityLifecycleExtension.postLoad(entity);
+			entityLifecycleExtension.postLoad(this, entity);
 		}
 	}
 
@@ -441,7 +483,7 @@ public class EntityMetaData implements IEntityMetaData
 	{
 		for (IEntityLifecycleExtension entityLifecycleExtension : entityLifecycleExtensions)
 		{
-			entityLifecycleExtension.prePersist(entity);
+			entityLifecycleExtension.prePersist(this, entity);
 		}
 	}
 
@@ -459,22 +501,31 @@ public class EntityMetaData implements IEntityMetaData
 		this.entityLifecycleExtensions = entityLifecycleExtensions;
 	}
 
-	@SuppressWarnings("unchecked")
-	public void initialize(IEntityFactory entityFactory)
+	public void initialize(ICacheModification cacheModification, IEntityFactory entityFactory)
 	{
+		this.cacheModification = cacheModification;
 		this.entityFactory = entityFactory;
 		if (primitiveMembers == null)
 		{
-			primitiveMembers = emptyTypeInfoItems;
+			primitiveMembers = emptyPrimitiveMembers;
 		}
 		else
 		{
 			// Arrays.sort(primitiveMembers, typeInfoItemComparator);
 		}
+		ArrayList<PrimitiveMember> primitiveToManyMembers = new ArrayList<PrimitiveMember>();
+		for (PrimitiveMember primitiveMember : getPrimitiveMembers())
+		{
+			if (primitiveMember.isToMany())
+			{
+				primitiveToManyMembers.add(primitiveMember);
+			}
+		}
+		this.primitiveToManyMembers = primitiveToManyMembers.toArray(PrimitiveMember.class);
 
 		if (relationMembers == null)
 		{
-			relationMembers = emptyRelationInfoItems;
+			relationMembers = emptyRelationMembers;
 		}
 		else
 		{
@@ -483,7 +534,7 @@ public class EntityMetaData implements IEntityMetaData
 
 		if (alternateIdMembers == null)
 		{
-			alternateIdMembers = emptyTypeInfoItems;
+			alternateIdMembers = emptyPrimitiveMembers;
 		}
 		else
 		{
@@ -492,7 +543,7 @@ public class EntityMetaData implements IEntityMetaData
 
 		if (fulltextMembers == null)
 		{
-			fulltextMembers = emptyTypeInfoItems;
+			fulltextMembers = emptyPrimitiveMembers;
 		}
 
 		fulltextMemberSet.clear();
@@ -507,33 +558,15 @@ public class EntityMetaData implements IEntityMetaData
 		primMemberNameToIndexDict.clear();
 		if (getIdMember() != null)
 		{
-			nameToMemberDict.put(getIdMember().getName(), idMember);
-			idMember.setTechnicalMember(true);
+			nameToMemberDict.put(getIdMember().getName(), getIdMember());
 		}
-		if (versionMember != null)
+		if (getVersionMember() != null)
 		{
-			nameToMemberDict.put(versionMember.getName(), versionMember);
-			versionMember.setTechnicalMember(true);
-		}
-		if (createdBy != null)
-		{
-			createdBy.setTechnicalMember(true);
-		}
-		if (createdOn != null)
-		{
-			createdOn.setTechnicalMember(true);
-		}
-		if (updatedBy != null)
-		{
-			updatedBy.setTechnicalMember(true);
-		}
-		if (updatedOn != null)
-		{
-			updatedOn.setTechnicalMember(true);
+			nameToMemberDict.put(getVersionMember().getName(), getVersionMember());
 		}
 		for (int a = primitiveMembers.length; a-- > 0;)
 		{
-			ITypeInfoItem member = primitiveMembers[a];
+			Member member = primitiveMembers[a];
 			if (nameToMemberDict.put(member.getName(), member) != null)
 			{
 				throw new IllegalArgumentException("Duplicate property: " + entityType.getName() + "." + member.getName());
@@ -550,7 +583,7 @@ public class EntityMetaData implements IEntityMetaData
 		}
 		for (int a = relationMembers.length; a-- > 0;)
 		{
-			IRelationInfoItem member = relationMembers[a];
+			RelationMember member = relationMembers[a];
 			if (nameToMemberDict.put(member.getName(), member) != null)
 			{
 				throw new IllegalArgumentException("Duplicate relation property: " + entityType.getName() + "." + member.getName());
@@ -568,24 +601,25 @@ public class EntityMetaData implements IEntityMetaData
 		for (int idIndex = alternateIdMembers.length; idIndex-- > 0;)
 		{
 			int[] compositeIndex = null;
-			ITypeInfoItem alternateIdMember = alternateIdMembers[idIndex];
-			ITypeInfoItem[] memberItems;
-			if (alternateIdMember instanceof CompositeIdTypeInfoItem)
+			Member alternateIdMember = alternateIdMembers[idIndex];
+			Member[] memberItems;
+			if (alternateIdMember instanceof CompositeIdMember)
 			{
-				memberItems = ((CompositeIdTypeInfoItem) alternateIdMember).getMembers();
+				memberItems = ((CompositeIdMember) alternateIdMember).getMembers();
 			}
 			else
 			{
-				memberItems = new ITypeInfoItem[] { alternateIdMember };
+				memberItems = new Member[] { alternateIdMember };
 			}
 			compositeIndex = new int[memberItems.length];
 
 			for (int compositePosition = compositeIndex.length; compositePosition-- > 0;)
 			{
-				ITypeInfoItem memberItem = memberItems[compositePosition];
+				compositeIndex[compositePosition] = -1;
+				Member memberItem = memberItems[compositePosition];
 				for (int primitiveIndex = primitiveMembers.length; primitiveIndex-- > 0;)
 				{
-					if (memberItem == primitiveMembers[primitiveIndex])
+					if (memberItem.equals(primitiveMembers[primitiveIndex]))
 					{
 						compositeIndex[compositePosition] = primitiveIndex;
 						break;
@@ -611,6 +645,21 @@ public class EntityMetaData implements IEntityMetaData
 		{
 			changeInterningBehavior(getUpdatedByMember(), true);
 		}
+		setTechnicalMember(getIdMember());
+		setTechnicalMember(getVersionMember());
+		setTechnicalMember(getCreatedByMember());
+		setTechnicalMember(getCreatedOnMember());
+		setTechnicalMember(getUpdatedByMember());
+		setTechnicalMember(getUpdatedOnMember());
+	}
+
+	protected void setTechnicalMember(PrimitiveMember member)
+	{
+		if (member == null)
+		{
+			return;
+		}
+		((IPrimitiveMemberWrite) member).setTechnicalMember(true);
 	}
 
 	@Override
@@ -623,5 +672,55 @@ public class EntityMetaData implements IEntityMetaData
 	public Object newInstance()
 	{
 		return entityFactory.createEntity(this);
+	}
+
+	@Override
+	public Member getWidenedMatchingMember(String memberPath)
+	{
+		Member member = getMemberByName(memberPath);
+		if (member != null)
+		{
+			// fast case
+			return member;
+		}
+		String[] memberPathSplit = EmbeddedMember.split(memberPath);
+		int length = memberPathSplit.length - 1; // the full length has already been tested in the fast case
+		StringBuilder sb = new StringBuilder();
+		member = getMemberByName(buildMemberName(memberPathSplit, length, sb));
+		while (member == null && length > 0)
+		{
+			length--;
+			member = getMemberByName(buildMemberName(memberPathSplit, length, sb));
+		}
+		return member;
+	}
+
+	@Override
+	public Member getWidenedMatchingMember(String[] memberPath)
+	{
+		int length = memberPath.length;
+		StringBuilder sb = new StringBuilder();
+		Member member = getMemberByName(buildMemberName(memberPath, length, sb));
+		while (member == null && length > 0)
+		{
+			length--;
+			member = getMemberByName(buildMemberName(memberPath, length, sb));
+		}
+		return member;
+	}
+
+	protected String buildMemberName(String[] memberNameTokens, int length, StringBuilder sb)
+	{
+		sb.setLength(0);
+		for (int a = 0; a < length; a++)
+		{
+			String memberNameToken = memberNameTokens[a];
+			if (a > 0)
+			{
+				sb.append('.');
+			}
+			sb.append(memberNameToken);
+		}
+		return sb.toString();
 	}
 }

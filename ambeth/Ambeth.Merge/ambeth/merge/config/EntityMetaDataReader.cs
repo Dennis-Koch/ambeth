@@ -15,6 +15,7 @@ using De.Osthus.Ambeth.Event;
 using De.Osthus.Ambeth.Orm;
 using De.Osthus.Ambeth.CompositeId;
 using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Merge.Config
 {
@@ -29,11 +30,14 @@ namespace De.Osthus.Ambeth.Merge.Config
 	    public ICompositeIdFactory CompositeIdFactory { protected get; set; }
 
         [Autowired]
-	    public IRelationProvider RelationProvider { protected get; set; }
+        public IIntermediateMemberTypeProvider IntermediateMemberTypeProvider { protected get; set; }
 
         [Autowired]
-	    public ITypeInfoProvider TypeInfoProvider { protected get; set; }
-        
+        public IPropertyInfoProvider PropertyInfoProvider { protected get; set; }
+
+        [Autowired]
+	    public IRelationProvider RelationProvider { protected get; set; }
+                
         public void AddMembers(EntityMetaData metaData, EntityConfig entityConfig)
         {
 		    Type realType = entityConfig.RealType;
@@ -42,19 +46,20 @@ namespace De.Osthus.Ambeth.Merge.Config
             IList<IMemberConfig> embeddedMembers = new List<IMemberConfig>();
             IMap<String, IMemberConfig> nameToMemberConfig = new HashMap<String, IMemberConfig>();
             IMap<String, IRelationConfig> nameToRelationConfig = new HashMap<String, IRelationConfig>();
+            IdentityLinkedMap<String, Member> nameToMemberMap = new IdentityLinkedMap<String, Member>();
 
             FillNameCollections(entityConfig, memberNamesToIgnore, embeddedMembers, nameToMemberConfig, nameToRelationConfig);
 
-            IdentityLinkedSet<ITypeInfoItem> alternateIdMembers = new IdentityLinkedSet<ITypeInfoItem>();
-            IdentityLinkedSet<ITypeInfoItem> primitiveMembers = new IdentityLinkedSet<ITypeInfoItem>();
-            IdentityLinkedSet<IRelationInfoItem> relationMembers = new IdentityLinkedSet<IRelationInfoItem>();
-            IdentityLinkedSet<ITypeInfoItem> notMergeRelevant = new IdentityLinkedSet<ITypeInfoItem>();
+            IdentityLinkedSet<PrimitiveMember> alternateIdMembers = new IdentityLinkedSet<PrimitiveMember>();
+            IdentityLinkedSet<PrimitiveMember> primitiveMembers = new IdentityLinkedSet<PrimitiveMember>();
+            IdentityLinkedSet<RelationMember> relationMembers = new IdentityLinkedSet<RelationMember>();
+            IdentityLinkedSet<Member> notMergeRelevant = new IdentityLinkedSet<Member>();
 
-            IdentityLinkedSet<ITypeInfoItem> containedInAlternateIdMember = new IdentityLinkedSet<ITypeInfoItem>();
+            IdentityLinkedSet<Member> containedInAlternateIdMember = new IdentityLinkedSet<Member>();
 
-            ITypeInfo typeInfo = TypeInfoProvider.GetTypeInfo(realType);
+            IPropertyInfo[] properties = PropertyInfoProvider.GetProperties(realType);
 
-            IdentityLinkedMap<IOrmConfig, ITypeInfoItem> memberConfigToInfoItem = new IdentityLinkedMap<IOrmConfig, ITypeInfoItem>();
+            IdentityLinkedMap<IOrmConfig, Member> memberConfigToInfoItem = new IdentityLinkedMap<IOrmConfig, Member>();
 
             // Resolve members for all explicit configurations - both simple and composite ones, each with embedded
             // functionality (dot-member-path)
@@ -77,11 +82,11 @@ namespace De.Osthus.Ambeth.Merge.Config
 		    metaData.UpdatedByMember = HandleMemberConfig(metaData, realType, entityConfig.UpdatedByMemberConfig, memberConfigToInfoItem);
 		    metaData.UpdatedOnMember = HandleMemberConfig(metaData, realType, entityConfig.UpdatedOnMemberConfig, memberConfigToInfoItem);
 
-		    IdentityHashSet<ITypeInfoItem> idMembers = new IdentityHashSet<ITypeInfoItem>();
-		    ITypeInfoItem idMember = metaData.IdMember;
-		    if (idMember is CompositeIdTypeInfoItem)
+            IdentityHashSet<Member> idMembers = new IdentityHashSet<Member>();
+            Member idMember = metaData.IdMember;
+		    if (idMember is CompositeIdMember)
 		    {
-			    idMembers.AddAll(((CompositeIdTypeInfoItem) idMember).Members);
+			    idMembers.AddAll(((CompositeIdMember) idMember).Members);
 		    }
 		    else
 		    {
@@ -89,10 +94,10 @@ namespace De.Osthus.Ambeth.Merge.Config
 		    }
 
 		    // Handle all explicitly configurated members
-		    foreach (Entry<IOrmConfig, ITypeInfoItem> entry in memberConfigToInfoItem)
+            foreach (Entry<IOrmConfig, Member> entry in memberConfigToInfoItem)
 		    {
 			    IOrmConfig ormConfig = entry.Key;
-			    ITypeInfoItem member = entry.Value;
+                Member member = entry.Value;
 
 			    if (idMembers.Contains(member))
 			    {
@@ -104,7 +109,7 @@ namespace De.Osthus.Ambeth.Merge.Config
 			    }
 			    if (ormConfig is IRelationConfig)
 			    {
-				    if (!relationMembers.Add((IRelationInfoItem) member))
+                    if (!relationMembers.Add((RelationMember)member))
 				    {
 					    throw new Exception("Member has been registered as relation multiple times: " + member.Name);
 				    }
@@ -116,96 +121,126 @@ namespace De.Osthus.Ambeth.Merge.Config
 			    }
 			    if (((IMemberConfig) ormConfig).AlternateId)
 			    {
-				    if (!alternateIdMembers.Add(member))
+                    if (!alternateIdMembers.Add((PrimitiveMember)member))
 				    {
 					    throw new Exception("Member has been registered as alternate id multiple times: " + member.Name);
 				    }
-				    if (member is CompositeMemberConfig)
+                    if (member is CompositeIdMember)
 				    {
-					    ITypeInfoItem[] containedMembers = ((CompositeIdTypeInfoItem) member).Members;
+                        Member[] containedMembers = ((CompositeIdMember)member).Members;
 					    containedInAlternateIdMember.AddAll(containedMembers);
 				    }
 			    }
-			    if (!(member is CompositeIdTypeInfoItem) && metaData.VersionMember != member)
+			    if (!(member is CompositeIdMember) && metaData.VersionMember != member)
 			    {
 				    // Alternate Ids are normally primitives, too. But Composite Alternate Ids not - only their composite
 				    // items are primitives
-				    primitiveMembers.Add(member);
+                    primitiveMembers.Add((PrimitiveMember)member);
 			    }
 		    }
-		    IdentityHashSet<ITypeInfoItem> explicitTypeInfoItems = IdentityHashSet<ITypeInfoItem>.Create(memberConfigToInfoItem.Count);
-		    foreach (Entry<IOrmConfig, ITypeInfoItem> entry in memberConfigToInfoItem)
+            IdentityHashSet<String> explicitTypeInfoItems = IdentityHashSet<String>.Create(memberConfigToInfoItem.Count);
+            foreach (Entry<IOrmConfig, Member> entry in memberConfigToInfoItem)
 		    {
-			    ITypeInfoItem member = entry.Value;
-			    explicitTypeInfoItems.Add(member);
-			    if (member is IEmbeddedTypeInfoItem)
+                Member member = entry.Value;
+			    explicitTypeInfoItems.Add(member.Name);
+                if (member is IEmbeddedMember)
 			    {
-				    explicitTypeInfoItems.Add(((IEmbeddedTypeInfoItem) member).MemberPath[0]);
+                    explicitTypeInfoItems.Add(((IEmbeddedMember)member).GetMemberPath()[0].Name);
 			    }
 		    }
 		    // Go through the available members to look for potential auto-mapping (simple, no embedded)
-		    ITypeInfoItem[] members = typeInfo.Members;
-		    for (int i = 0; i < members.Length; i++)
+            for (int i = 0; i < properties.Length; i++)
 		    {
-			    ITypeInfoItem member = members[i];
-			    String memberName = member.Name;
-
+                IPropertyInfo property = properties[i];
+                String memberName = property.Name;
 			    if (memberNamesToIgnore.Contains(memberName))
 			    {
 				    continue;
 			    }
-			    if (explicitTypeInfoItems.Contains(member))
+                if (explicitTypeInfoItems.Contains(memberName))
 			    {
 				    // already configured, no auto mapping needed for this member
 				    continue;
 			    }
+                MethodPropertyInfo mProperty = (MethodPropertyInfo) property;
+			    Type elementType = TypeInfoItemUtil.GetElementTypeUsingReflection(mProperty.Getter.ReturnType, null);
+			    if ((nameToMemberMap.Get(property.Name) is RelationMember) || RelationProvider.IsEntityType(elementType))
+			    {
+				    RelationMember member = GetRelationMember(metaData.EntityType, property, nameToMemberMap);
+				    relationMembers.Add(member);
+				    continue;
+			    }
+                PrimitiveMember member2 = GetPrimitiveMember(metaData.EntityType, property, nameToMemberMap);
 			    if (metaData.IdMember == null && memberName.Equals(EntityMetaData.DEFAULT_NAME_ID))
 			    {
-				    metaData.IdMember = member;
+				    metaData.IdMember = member2;
 				    continue;
 			    }
-			    if (idMembers.Contains(member) && !alternateIdMembers.Contains(member) && !containedInAlternateIdMember.Contains(member))
+			    if (idMembers.Contains(member2) && !alternateIdMembers.Contains(member2) && !containedInAlternateIdMember.Contains(member2))
 			    {
 				    continue;
 			    }
+                if (member2.Equals(metaData.IdMember) || member2.Equals(metaData.VersionMember) || member2.Equals(metaData.CreatedByMember)
+                    || member2.Equals(metaData.CreatedOnMember) || member2.Equals(metaData.UpdatedByMember) || member2.Equals(metaData.UpdatedOnMember))
+                {
+                    continue;
+                }
 			    if (metaData.VersionMember == null && memberName.Equals(EntityMetaData.DEFAULT_NAME_VERSION))
 			    {
-				    metaData.VersionMember = member;
+				    metaData.VersionMember = member2;
 				    continue;
 			    }
 			    if (metaData.CreatedByMember == null && memberName.Equals(EntityMetaData.DEFAULT_NAME_CREATED_BY))
 			    {
-				    metaData.CreatedByMember = member;
+				    metaData.CreatedByMember = member2;
 			    }
 			    else if (metaData.CreatedOnMember == null && memberName.Equals(EntityMetaData.DEFAULT_NAME_CREATED_ON))
 			    {
-				    metaData.CreatedOnMember = member;
+				    metaData.CreatedOnMember = member2;
 			    }
 			    else if (metaData.UpdatedByMember == null && memberName.Equals(EntityMetaData.DEFAULT_NAME_UPDATED_BY))
 			    {
-				    metaData.UpdatedByMember = member;
+				    metaData.UpdatedByMember = member2;
 			    }
 			    else if (metaData.UpdatedOnMember == null && memberName.Equals(EntityMetaData.DEFAULT_NAME_UPDATED_ON))
 			    {
-				    metaData.UpdatedOnMember = member;
+				    metaData.UpdatedOnMember = member2;
 			    }
-			    if (!member.CanWrite)
-			    {
-				    continue;
-			    }
-			    if (RelationProvider.IsEntityType(member.ElementType))
-			    {
-				    relationMembers.Add((IRelationInfoItem) member);
-				    continue;
-			    }
-			    primitiveMembers.Add(member);
+			    primitiveMembers.Add(member2);
 		    }
+            foreach (PrimitiveMember member in primitiveMembers)
+		    {
+			    String memberName = member.Name;
+                if (metaData.CreatedByMember == null && memberName.Equals(EntityMetaData.DEFAULT_NAME_CREATED_BY))
+                {
+                    metaData.CreatedByMember = member;
+                }
+                else if (metaData.CreatedOnMember == null && memberName.Equals(EntityMetaData.DEFAULT_NAME_CREATED_ON))
+                {
+                    metaData.CreatedOnMember = member;
+                }
+                else if (metaData.UpdatedByMember == null && memberName.Equals(EntityMetaData.DEFAULT_NAME_UPDATED_BY))
+                {
+                    metaData.UpdatedByMember = member;
+                }
+                else if (metaData.UpdatedOnMember == null && memberName.Equals(EntityMetaData.DEFAULT_NAME_UPDATED_ON))
+                {
+                    metaData.UpdatedOnMember = member;
+                }
+		    }
+            FilterWrongRelationMappings(relationMembers);
 		    // Order of setter calls is important
-		    metaData.PrimitiveMembers = primitiveMembers.ToArray();
-		    metaData.AlternateIdMembers = alternateIdMembers.ToArray();
-		    metaData.RelationMembers = relationMembers.ToArray();
+		    PrimitiveMember[] primitives = primitiveMembers.ToArray();
+		    PrimitiveMember[] alternateIds = alternateIdMembers.ToArray();
+		    RelationMember[] relations = relationMembers.ToArray();
+		    Array.Sort(primitives);
+            Array.Sort(alternateIds);
+		    Array.Sort(relations);
+		    metaData.PrimitiveMembers = primitives;
+		    metaData.AlternateIdMembers = alternateIds;
+		    metaData.RelationMembers = relations;
 
-		    foreach (ITypeInfoItem member in notMergeRelevant)
+		    foreach (Member member in notMergeRelevant)
 		    {
 			    metaData.SetMergeRelevant(member, false);
 		    }
@@ -215,14 +250,80 @@ namespace De.Osthus.Ambeth.Merge.Config
             }
         }
 
-        protected ITypeInfoItem HandleMemberConfigIfNew(Type entityType, IMemberConfig itemConfig, IMap<IOrmConfig, ITypeInfoItem> memberConfigToInfoItem)
+        protected void FilterWrongRelationMappings(IISet<RelationMember> relationMembers)
+        {
+            // filter all relations which can not be a relation because of explicit embedded property mapping
+            IdentityHashSet<RelationMember> toRemove = new IdentityHashSet<RelationMember>();
+            foreach (RelationMember relationMember in relationMembers)
+            {
+                String[] memberPath = EmbeddedMember.Split(relationMember.Name);
+                foreach (RelationMember otherRelationMember in relationMembers)
+                {
+                    if (Object.ReferenceEquals(relationMember, otherRelationMember) || toRemove.Contains(otherRelationMember))
+                    {
+                        continue;
+                    }
+                    if (!(otherRelationMember is IEmbeddedMember))
+                    {
+                        // only embedded members can help identifying other wrong relation members
+                        continue;
+                    }
+                    String[] otherMemberPath = ((IEmbeddedMember)otherRelationMember).GetMemberPathToken();
+                    if (memberPath.Length > otherMemberPath.Length)
+                    {
+                        continue;
+                    }
+                    bool match = true;
+                    for (int a = 0, size = memberPath.Length; a < size; a++)
+                    {
+                        if (!memberPath[a].Equals(otherMemberPath[a]))
+                        {
+                            match = false;
+                            break;
+                        }
+                    }
+                    if (match)
+                    {
+                        toRemove.Add(relationMember);
+                        break;
+                    }
+                }
+            }
+            relationMembers.RemoveAll(toRemove);
+        }
+
+        protected PrimitiveMember GetPrimitiveMember(Type entityType, IPropertyInfo property, IMap<String, Member> nameToMemberMap)
 	    {
-		    ITypeInfoItem member = memberConfigToInfoItem.Get(itemConfig);
+		    PrimitiveMember member = (PrimitiveMember) nameToMemberMap.Get(property.Name);
 		    if (member != null)
 		    {
 			    return member;
 		    }
-		    member = TypeInfoProvider.GetHierarchicMember(entityType, itemConfig.Name);
+            member = IntermediateMemberTypeProvider.GetIntermediatePrimitiveMember(entityType, property.Name);
+		    nameToMemberMap.Put(property.Name, member);
+		    return member;
+	    }
+
+        protected RelationMember GetRelationMember(Type entityType, IPropertyInfo property, IMap<String, Member> nameToMemberMap)
+	    {
+            RelationMember member = (RelationMember)nameToMemberMap.Get(property.Name);
+		    if (member != null)
+		    {
+			    return member;
+		    }
+            member = IntermediateMemberTypeProvider.GetIntermediateRelationMember(entityType, property.Name);
+		    nameToMemberMap.Put(property.Name, member);
+		    return member;
+	    }
+
+        protected PrimitiveMember HandleMemberConfigIfNew(Type entityType, IMemberConfig itemConfig, IMap<IOrmConfig, Member> memberConfigToInfoItem)
+	    {
+            PrimitiveMember member = (PrimitiveMember) memberConfigToInfoItem.Get(itemConfig);
+		    if (member != null)
+		    {
+			    return member;
+		    }
+            member = IntermediateMemberTypeProvider.GetIntermediatePrimitiveMember(entityType, itemConfig.Name);
 		    if (member == null)
 		    {
 			    throw new Exception("No member with name '" + itemConfig.Name + "' found on entity type '" + entityType.Name + "'");
@@ -231,8 +332,8 @@ namespace De.Osthus.Ambeth.Merge.Config
 		    return member;
 	    }
 
-        protected ITypeInfoItem HandleMemberConfig(IEntityMetaData metaData, Type realType, IMemberConfig memberConfig,
-			IMap<IOrmConfig, ITypeInfoItem> memberConfigToInfoItem)
+        protected PrimitiveMember HandleMemberConfig(IEntityMetaData metaData, Type realType, IMemberConfig memberConfig,
+			IMap<IOrmConfig, Member> memberConfigToInfoItem)
 	    {
 		    if (memberConfig == null)
 		    {
@@ -243,30 +344,30 @@ namespace De.Osthus.Ambeth.Merge.Config
 			    return HandleMemberConfigIfNew(realType, memberConfig, memberConfigToInfoItem);
 		    }
 		    MemberConfig[] memberConfigs = ((CompositeMemberConfig) memberConfig).GetMembers();
-		    ITypeInfoItem[] members = new ITypeInfoItem[memberConfigs.Length];
+            PrimitiveMember[] members = new PrimitiveMember[memberConfigs.Length];
 		    for (int a = memberConfigs.Length; a-- > 0;)
 		    {
 			    MemberConfig memberPart = memberConfigs[a];
-			    ITypeInfoItem member = HandleMemberConfigIfNew(realType, memberPart, memberConfigToInfoItem);
+                PrimitiveMember member = HandleMemberConfigIfNew(realType, memberPart, memberConfigToInfoItem);
 			    members[a] = member;
 		    }
-		    ITypeInfoItem compositeIdMember = CompositeIdFactory.CreateCompositeIdMember(metaData, members);
+            PrimitiveMember compositeIdMember = CompositeIdFactory.CreateCompositeIdMember(metaData, members);
 		    memberConfigToInfoItem.Put(memberConfig, compositeIdMember);
 		    return compositeIdMember;
 	    }
 
-	    protected ITypeInfoItem HandleRelationConfig(Type realType, IRelationConfig relationConfig, IMap<IOrmConfig, ITypeInfoItem> relationConfigToInfoItem)
+        protected Member HandleRelationConfig(Type realType, IRelationConfig relationConfig, IMap<IOrmConfig, Member> relationConfigToInfoItem)
 	    {
 		    if (relationConfig == null)
 		    {
 			    return null;
 		    }
-		    ITypeInfoItem member = relationConfigToInfoItem.Get(relationConfig);
+            Member member = relationConfigToInfoItem.Get(relationConfig);
 		    if (member != null)
 		    {
 			    return member;
 		    }
-		    member = TypeInfoProvider.GetHierarchicMember(realType, relationConfig.Name);
+            member = IntermediateMemberTypeProvider.GetIntermediateRelationMember(realType, relationConfig.Name);
 		    if (member == null)
 		    {
                 throw new Exception("No member with name '" + relationConfig.Name + "' found on entity type '" + realType.Name + "'");

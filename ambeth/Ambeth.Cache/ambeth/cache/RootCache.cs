@@ -29,13 +29,14 @@ using De.Osthus.Ambeth.Copy;
 using De.Osthus.Ambeth.Exceptions;
 using De.Osthus.Ambeth.Cache.Collections;
 using De.Osthus.Ambeth.Ioc.Annotation;
-using De.Osthus.Ambeth.Template;
+using De.Osthus.Ambeth.Mixin;
 using De.Osthus.Ambeth.Cache.Rootcachevalue;
 using De.Osthus.Ambeth.Privilege;
 using De.Osthus.Ambeth.Security;
 using De.Osthus.Ambeth.Privilege.Model;
-using De.Osthus.Ambeth.Security.Config;
 using De.Osthus.Ambeth.Proxy;
+using De.Osthus.Ambeth.Metadata;
+using De.Osthus.Ambeth.Merge.Config;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -96,13 +97,16 @@ namespace De.Osthus.Ambeth.Cache
         public IObjectCopier ObjectCopier { protected get; set; }
 
         [Autowired]
+        public IObjRefFactory ObjRefFactory { protected get; set; }
+
+        [Autowired]
         public IObjRefHelper OriHelper { protected get; set; }
 
         [Autowired]
         public IPrefetchHelper PrefetchHelper { protected get; set; }
 
         [Autowired]
-        public IRootCacheValueTypeProvider RootCacheValueTypeProvider { protected get; set; }
+        public IRootCacheValueFactory RootCacheValueFactory { protected get; set; }
 
         [Autowired(Optional = true)]
 	    public ISecurityActivation SecurityActivation { protected get; set; }
@@ -114,20 +118,30 @@ namespace De.Osthus.Ambeth.Cache
 	    public IPrivilegeProvider PrivilegeProvider { protected get; set; }
         
         [Property(Mandatory = false)]
-        public bool Privileged { get; set; }
+        public override bool Privileged { get; set; }
 
         protected readonly Lock pendingKeysReadLock, pendingKeysWriteLock;
 
-        [Property(CacheConfigurationConstants.CacheLruThreshold, DefaultValue = "10000")]
+        [Property(CacheConfigurationConstants.CacheLruThreshold, DefaultValue = "0")]
         public int LruThreshold { protected get; set; }
 
-        [Property(SecurityConfigurationConstants.SecurityActive, DefaultValue = "false")]
+        [Property(MergeConfigurationConstants.SecurityActive, DefaultValue = "false")]
         public bool SecurityActive { protected get; set; }
 
         [Property(ServiceConfigurationConstants.NetworkClientMode, DefaultValue = "false")]
         public bool IsClientMode { protected get; set; }
 
+	    public IRootCache Parent
+	    {
+            get
+            {
+		        return CacheRetriever is IRootCache ? (IRootCache) CacheRetriever : null;
+            }
+	    }
+
         public override int CacheId { get { return -1; } set { throw new NotSupportedException(); } }
+
+        public IRootCache CurrentRootCache { get { return this; } }
 
         public RootCache()
         {
@@ -169,9 +183,7 @@ namespace De.Osthus.Ambeth.Cache
 
         public override Object CreateCacheValueInstance(IEntityMetaData metaData, Object obj)
         {
-            Type entityType = metaData.EntityType;
-            ConstructorInfo constructor = RootCacheValueTypeProvider.GetRootCacheValueType(entityType);
-            return (RootCacheValue)constructor.Invoke(new Object[] { metaData });
+            return RootCacheValueFactory.CreateRootCacheValue(metaData);
         }
 
         protected override Object GetIdOfCacheValue(IEntityMetaData metaData, RootCacheValue cacheValue)
@@ -191,7 +203,7 @@ namespace De.Osthus.Ambeth.Cache
 
         protected override void SetVersionOfCacheValue(IEntityMetaData metaData, RootCacheValue cacheValue, Object version)
         {
-            ITypeInfoItem versionMember = metaData.VersionMember;
+            PrimitiveMember versionMember = metaData.VersionMember;
             if (versionMember == null)
             {
                 return;
@@ -205,6 +217,27 @@ namespace De.Osthus.Ambeth.Cache
             cacheValue.SetPrimitives(primitives);
             cacheValue.SetRelations(relations);
         }
+
+        protected bool IsCacheRetrieverCallAllowed(CacheDirective cacheDirective)
+	    {
+		    if (CacheRetriever == null)
+		    {
+			    // without a valid cacheRetriever a call is never allowed
+			    return false;
+		    }
+		    if (cacheDirective.HasFlag(CacheDirective.FailEarly))
+		    {
+			    // with FailEarly a cascading call is never allowed
+			    return false;
+		    }
+		    if (cacheDirective.HasFlag(CacheDirective.FailInCacheHierarchy) && !(CacheRetriever is IRootCache))
+		    {
+			    // with FailInCacheHierarchy a cascading call is only allowed if the cacheRetriever is itself an instance of IRootCache
+			    return false;
+		    }
+		    // in the end a call is only allowed if it is not forbidden for the current thread
+		    return !AbstractCache.FailInCacheHierarchyModeActive;
+	    }
 
         public Object GetObject(IObjRef oriToGet, ICacheIntern targetCache, CacheDirective cacheDirective)
         {
@@ -239,11 +272,11 @@ namespace De.Osthus.Ambeth.Cache
             ICacheIntern targetCache;
             if (Privileged && !SecurityActivation.FilterActivated)
             {
-                targetCache = (ICacheIntern)CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE);
+                targetCache = (ICacheIntern)CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, "RootCache.ADHOC");
             }
             else
             {
-                targetCache = (ICacheIntern)CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE);
+                targetCache = (ICacheIntern)CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, "RootCache.ADHOC");
             }
             return GetObjects(orisToGet, targetCache, cacheDirective);
         }
@@ -255,6 +288,7 @@ namespace De.Osthus.Ambeth.Cache
             {
                 return new List<Object>(0);
             }
+            bool isCacheRetrieverCallAllowed = IsCacheRetrieverCallAllowed(cacheDirective);
             IEventQueue eventQueue = EventQueue;
             if (eventQueue != null)
             {
@@ -264,14 +298,19 @@ namespace De.Osthus.Ambeth.Cache
             {
                 Lock readLock = ReadLock;
                 Lock writeLock = WriteLock;
-                bool oldCacheModificationValue = CacheModification.Active;
+                ICacheModification cacheModification = this.CacheModification;
+                bool oldCacheModificationValue = cacheModification.Active;
                 bool acquireSuccess = AcquireHardRefTLIfNotAlready(orisToGet.Count);
-                CacheModification.Active = true;
+                if (!oldCacheModificationValue)
+                {
+                    cacheModification.Active = true;
+                }
                 try
                 {
-                    if (cacheDirective.HasFlag(CacheDirective.FailEarly) || cacheDirective.HasFlag(CacheDirective.FailInCacheHierarchy)
-                        || CacheRetriever == null || AbstractCache<Object>.FailEarlyModeActive)
+                    if (!isCacheRetrieverCallAllowed)
                     {
+                        // if the cascading call is not allowed we need no pre-scanning for cache-misses
+                        // we have to do our best while we create the result directly
                         readLock.Lock();
                         try
                         {
@@ -316,7 +355,10 @@ namespace De.Osthus.Ambeth.Cache
                 }
                 finally
                 {
-                    CacheModification.Active = oldCacheModificationValue;
+                    if (!oldCacheModificationValue)
+                    {
+                        cacheModification.Active = oldCacheModificationValue;
+                    }
                     ClearHardRefs(acquireSuccess);
                 }
             }
@@ -343,7 +385,7 @@ namespace De.Osthus.Ambeth.Cache
             if (orisToLoad.Count == 0)
             {
                 // Everything found in the cache. We STILL hold the readlock so we can immediately create the result
-                // We already even checked the version. So we do not bother version anymore here
+                // We already even checked the version. So we do not bother with versions anymore here
                 try
                 {
                     return CreateResult(orisToGet, rootCacheValuesToGet, cacheDirective, targetCache, false);
@@ -436,7 +478,7 @@ namespace De.Osthus.Ambeth.Cache
         public IList<IObjRelationResult> GetObjRelations(IList<IObjRelation> objRels, ICacheIntern targetCache, CacheDirective cacheDirective)
         {
             CheckNotDisposed();
-            bool failEarly = cacheDirective.HasFlag(CacheDirective.FailEarly) || cacheDirective.HasFlag(CacheDirective.FailInCacheHierarchy);
+            bool isCacheRetrieverCallAllowed = IsCacheRetrieverCallAllowed(cacheDirective);
             bool returnMisses = cacheDirective.HasFlag(CacheDirective.ReturnMisses);
             IList<IObjRelationResult> objRelResults = new List<IObjRelationResult>(objRels.Count);
 
@@ -450,7 +492,7 @@ namespace De.Osthus.Ambeth.Cache
                 Lock readLock = ReadLock;
                 IList<IObjRelation> objRelMisses = new List<IObjRelation>();
                 Dictionary<IObjRelation, IObjRelationResult> objRelToResultMap = new Dictionary<IObjRelation, IObjRelationResult>();
-                IdentityDictionary<IObjRef, ObjRef> alreadyClonedObjRefs = new IdentityDictionary<IObjRef, ObjRef>();
+                IdentityDictionary<IObjRef, IObjRef> alreadyClonedObjRefs = new IdentityDictionary<IObjRef, IObjRef>();
 
                 ICacheModification cacheModification = this.CacheModification;
                 IProxyHelper proxyHelper = this.ProxyHelper;
@@ -466,7 +508,7 @@ namespace De.Osthus.Ambeth.Cache
                         for (int a = 0, size = objRels.Count; a < size; a++)
                         {
                             IObjRelation objRel = objRels[a];
-                            if (targetCache != null)
+                            if (targetCache != null && targetCache != this)
                             {
                                 IList<Object> cacheResult = targetCache.GetObjects(objRel.ObjRefs, CacheDirective.FailEarly);
                                 if (cacheResult.Count > 0)
@@ -479,8 +521,8 @@ namespace De.Osthus.Ambeth.Cache
                                     }
                                 }
                             }
-                            IObjRelationResult selfResult = GetObjRelationIfValid(objRel, null, alreadyClonedObjRefs);
-                            if (selfResult == null && !failEarly)
+                            IObjRelationResult selfResult = GetObjRelationIfValid(objRel, targetCache, null, alreadyClonedObjRefs);
+                            if (selfResult == null && isCacheRetrieverCallAllowed)
                             {
                                 objRelMisses.Add(objRel);
                             }
@@ -551,10 +593,10 @@ namespace De.Osthus.Ambeth.Cache
             }
         }
 
-        protected IObjRelationResult GetObjRelationIfValid(IObjRelation objRel, Dictionary<IObjRelation, IObjRelationResult> objRelToResultMap,
-            IdentityDictionary<IObjRef, ObjRef> alreadyClonedObjRefs)
+        protected IObjRelationResult GetObjRelationIfValid(IObjRelation objRel, ICacheIntern targetCache, Dictionary<IObjRelation, IObjRelationResult> objRelToResultMap,
+            IdentityDictionary<IObjRef, IObjRef> alreadyClonedObjRefs)
         {
-            IList<Object> cacheValues = GetObjects(objRel.ObjRefs, failEarlyCacheValueResultSet);
+            IList<Object> cacheValues = GetObjects(objRel.ObjRefs, targetCache, failEarlyCacheValueResultSet);
             if (cacheValues.Count == 0)
             {
                 if (objRelToResultMap != null)
@@ -579,24 +621,22 @@ namespace De.Osthus.Ambeth.Cache
         }
 
         protected IList<IObjRelationResult> CreateResult(IList<IObjRelation> objRels, ICacheIntern targetCache,
-                Dictionary<IObjRelation, IObjRelationResult> objRelToResultMap, IdentityDictionary<IObjRef, ObjRef> alreadyClonedObjRefs, bool returnMisses)
+                Dictionary<IObjRelation, IObjRelationResult> objRelToResultMap, IdentityDictionary<IObjRef, IObjRef> alreadyClonedObjRefs, bool returnMisses)
         {
-            IEntityMetaDataProvider entityMetaDataProvider = this.EntityMetaDataProvider;
             IObjRefHelper oriHelper = this.OriHelper;
-            IProxyHelper proxyHelper = this.ProxyHelper;
             IList<IObjRelationResult> objRelResults = new List<IObjRelationResult>(objRels.Count);
 
             for (int a = 0, size = objRels.Count; a < size; a++)
             {
                 IObjRelation objRel = objRels[a];
                 IList<Object> cacheResult = null;
-                if (targetCache != null)
+                if (targetCache != null && targetCache != this)
                 {
                     cacheResult = targetCache.GetObjects(objRel.ObjRefs, CacheDirective.FailEarly);
                 }
                 if (cacheResult == null || cacheResult.Count == 0)
                 {
-                    IObjRelationResult selfResult = GetObjRelationIfValid(objRel, objRelToResultMap, alreadyClonedObjRefs);
+                    IObjRelationResult selfResult = GetObjRelationIfValid(objRel, targetCache, objRelToResultMap, alreadyClonedObjRefs);
                     if (selfResult != null || returnMisses)
                     {
                         objRelResults.Add(selfResult);
@@ -606,7 +646,7 @@ namespace De.Osthus.Ambeth.Cache
                 IObjRefContainer item = (IObjRefContainer)cacheResult[0]; // Only first hit is needed
                 IEntityMetaData metaData = item.Get__EntityMetaData();
                 int relationIndex = metaData.GetIndexByRelationName(objRel.MemberName);
-                IRelationInfoItem member = metaData.RelationMembers[relationIndex];
+                RelationMember member = metaData.RelationMembers[relationIndex];
 
                 if (ValueHolderState.INIT != item.Get__State(relationIndex))
                 {
@@ -620,7 +660,7 @@ namespace De.Osthus.Ambeth.Cache
                     }
                     else
                     {
-                        IObjRelationResult selfResult = GetObjRelationIfValid(objRel, objRelToResultMap, alreadyClonedObjRefs);
+                        IObjRelationResult selfResult = GetObjRelationIfValid(objRel, targetCache, objRelToResultMap, alreadyClonedObjRefs);
                         if (selfResult != null || returnMisses)
                         {
                             objRelResults.Add(selfResult);
@@ -769,7 +809,7 @@ namespace De.Osthus.Ambeth.Cache
 		    return objRelResults;
 	    }
 
-        protected IObjRef[] CloneObjectRefArray(IObjRef[] objRefs, IdentityDictionary<IObjRef, ObjRef> alreadyClonedObjRefs)
+        protected IObjRef[] CloneObjectRefArray(IObjRef[] objRefs, IdentityDictionary<IObjRef, IObjRef> alreadyClonedObjRefs)
         {
             if (objRefs == null || objRefs.Length == 0)
             {
@@ -785,10 +825,10 @@ namespace De.Osthus.Ambeth.Cache
                 {
                     continue;
                 }
-                ObjRef objRefClone = DictionaryExtension.ValueOrDefault(alreadyClonedObjRefs, objRef);
+                IObjRef objRefClone = DictionaryExtension.ValueOrDefault(alreadyClonedObjRefs, objRef);
                 if (objRefClone == null)
                 {
-                    objRefClone = new ObjRef(objRef.RealType, objRef.IdNameIndex, objRef.Id, objRef.Version);
+                    objRefClone = ObjRefFactory.Dup(objRef);
                     alreadyClonedObjRefs.Add(objRef, objRefClone);
                 }
                 objRefsClone[b] = objRefClone;
@@ -810,26 +850,23 @@ namespace De.Osthus.Ambeth.Cache
 
                     objRelToResultMap.Add(objRel, objRelResult);
 
-                    IList<Object> cacheValues = GetObjects(objRel.ObjRefs, failEarlyCacheValueResultSet);
-
+                    IList<Object> cacheValues = GetObjects(objRel.ObjRefs, CacheDirective.CacheValueResult);
                     if (cacheValues.Count == 0)
                     {
                         continue;
                     }
                     RootCacheValue cacheValue = (RootCacheValue)cacheValues[0]; // Only first hit needed
-                    IObjRef[][] relations = cacheValue.GetRelations();
-
+                    
                     IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(objRel.RealType);
                     int index = metaData.GetIndexByRelationName(objRel.MemberName);
-                    UnregisterRelations(relations[index]);
+                    UnregisterRelations(cacheValue.GetRelation(index));
                     IObjRef[] relationsOfMember = objRelResult.Relations;
                     if (relationsOfMember.Length == 0)
                     {
                         relationsOfMember = ObjRef.EMPTY_ARRAY;
                     }
-                    relations[index] = relationsOfMember;
                     cacheValue.SetRelation(index, relationsOfMember);
-                    RegisterRelations(relations[index]);
+                    RegisterRelations(relationsOfMember);
                 }
             }
             finally
@@ -1001,30 +1038,37 @@ namespace De.Osthus.Ambeth.Cache
             bool returnMisses = cacheDirective.HasFlag(CacheDirective.ReturnMisses);
             bool targetCacheAccess = !loadContainerResult && !cacheValueResult;
             bool filteringNecessary = IsFilteringNecessary(targetCache);
-
-            List<IPrivilege> privilegesOfObjRefsToGet = null;
+            int getCount = objRefsToGet.Count;
+            IPrivilege[] privilegesOfObjRefsToGet = null;
             if (filteringNecessary)
             {
                 IList<IPrivilege> privileges = GetPrivilegesByObjRefWithoutReadLock(objRefsToGet);
                 List<IObjRef> filteredObjRefsToGet = new List<IObjRef>(objRefsToGet.Count);
-                privilegesOfObjRefsToGet = new List<IPrivilege>(objRefsToGet.Count);
+                privilegesOfObjRefsToGet = new IPrivilege[objRefsToGet.Count];
+                RootCacheValue[] filteredRootCacheValuesToGet = rootCacheValuesToGet != null ? new RootCacheValue[objRefsToGet.Count] : null;
+                getCount = 0;
                 for (int a = 0, size = objRefsToGet.Count; a < size; a++)
                 {
                     IPrivilege privilege = privileges[a];
                     if (privilege != null && privilege.ReadAllowed)
                     {
+                        getCount++;
                         filteredObjRefsToGet.Add(objRefsToGet[a]);
-                        privilegesOfObjRefsToGet.Add(privilege);
+                        privilegesOfObjRefsToGet[a] = privilege;
+                        if (rootCacheValuesToGet != null)
+                        {
+                            filteredRootCacheValuesToGet[a] = rootCacheValuesToGet[a];
+                        }
                     }
-                    else if (returnMisses)
+                    else
                     {
                         filteredObjRefsToGet.Add(null);
-                        privilegesOfObjRefsToGet.Add(null);
                     }
                 }
+                rootCacheValuesToGet = filteredRootCacheValuesToGet;
                 objRefsToGet = filteredObjRefsToGet;
             }
-            if (objRefsToGet.Count == 0)
+            if (getCount == 0)
             {
                 return new List<Object>(0);
             }
@@ -1036,8 +1080,10 @@ namespace De.Osthus.Ambeth.Cache
             try
             {
                 List<Object> result = new List<Object>(objRefsToGet.Count);
+                List<IBackgroundWorkerParamDelegate<IdentityHashSet<IObjRef>>> runnables = null;
                 List<IObjRef> tempObjRefList = null;
-                IdentityDictionary<IObjRef, ObjRef> alreadyClonedObjRefs = null;
+                IdentityDictionary<IObjRef, IObjRef> alreadyClonedObjRefs = null;
+                IdentityHashSet<IObjRef> greyListObjRefs = null;
                 for (int a = 0, size = objRefsToGet.Count; a < size; a++)
                 {
                     IObjRef objRefToGet = objRefsToGet[a];
@@ -1066,23 +1112,35 @@ namespace De.Osthus.Ambeth.Cache
                     {
                         IObjRef[][] relations = cacheValue.GetRelations();
                         LoadContainer loadContainer = new LoadContainer();
-                        loadContainer.Reference = new ObjRef(cacheValue.EntityType, ObjRef.PRIMARY_KEY_INDEX, cacheValue.Id, cacheValue.Version);
+                        loadContainer.Reference = ObjRefFactory.CreateObjRef(cacheValue);
                         loadContainer.Primitives = cacheValue.GetPrimitives();
-                        relations = FilterRelations(relations, targetCache, filteringNecessary);
-                        if (relations != null && relations.Length > 0)
-                        {
-                            if (alreadyClonedObjRefs == null)
-                            {
-                                alreadyClonedObjRefs = new IdentityDictionary<IObjRef, ObjRef>();
-                            }
-                            IObjRef[][] objRefsClone = new IObjRef[relations.Length][];
-                            for (int b = relations.Length; b-- > 0; )
-                            {
-                                objRefsClone[b] = CloneObjectRefArray(relations[b], alreadyClonedObjRefs);
-                            }
-                            relations = objRefsClone;
-                        }
-                        loadContainer.Relations = relations;
+                        
+                        if (relations.Length == 0 || !filteringNecessary)
+					    {
+						    loadContainer.Relations = relations;
+						    result.Add(loadContainer);
+						    continue;
+					    }
+					    if (runnables == null)
+					    {
+						    runnables = new List<IBackgroundWorkerParamDelegate<IdentityHashSet<IObjRef>>>(size);
+						    greyListObjRefs = new IdentityHashSet<IObjRef>();
+                            alreadyClonedObjRefs = new IdentityDictionary<IObjRef, IObjRef>();
+						    tempObjRefList = new List<IObjRef>();
+					    }
+					    ScanForAllKnownRelations(relations, greyListObjRefs);
+
+					    List<IObjRef> fTempObjRefList = tempObjRefList;
+					    IdentityDictionary<IObjRef, IObjRef> fAlreadyClonedObjRefs = alreadyClonedObjRefs;
+					    runnables.Add(new IBackgroundWorkerParamDelegate<IdentityHashSet<IObjRef>>(delegate(IdentityHashSet<IObjRef> whiteListObjRefs)
+						    {
+							    IObjRef[][] whiteListedRelations = FilterRelations(relations, whiteListObjRefs, fTempObjRefList);
+							    for (int b = whiteListedRelations.Length; b-- > 0;)
+							    {
+								    whiteListedRelations[b] = CloneObjectRefArray(whiteListedRelations[b], fAlreadyClonedObjRefs);
+							    }
+							    loadContainer.Relations = whiteListedRelations;
+						    }));
                         result.Add(loadContainer);
                     }
                     else if (cacheValueResult)
@@ -1096,8 +1154,18 @@ namespace De.Osthus.Ambeth.Cache
                             tempObjRefList = new List<IObjRef>(1);
                             tempObjRefList.Add(new ObjRef());
                         }
-                        Object cacheHitObject = CreateObjectFromScratch(metaData, cacheValue, targetCache, tempObjRefList, filteringNecessary);
+                        Object cacheHitObject = CreateObjectFromScratch(metaData, cacheValue, targetCache, tempObjRefList, filteringNecessary,
+                            privilegesOfObjRefsToGet != null ? privilegesOfObjRefsToGet[a] : null);
                         result.Add(cacheHitObject);
+                    }
+                }
+                if (runnables != null)
+                {
+                    IdentityHashSet<IObjRef> whiteListObjRefs = BuildWhiteListedObjRefs(greyListObjRefs);
+                    for (int a = runnables.Count; a-- > 0; )
+                    {
+                        IBackgroundWorkerParamDelegate<IdentityHashSet<IObjRef>> runnable = runnables[a];
+                        runnable(whiteListObjRefs);
                     }
                 }
                 return result;
@@ -1112,7 +1180,7 @@ namespace De.Osthus.Ambeth.Cache
         }
 
         protected Object CreateObjectFromScratch(IEntityMetaData metaData, RootCacheValue cacheValue, ICacheIntern targetCache,
-            List<IObjRef> tempObjRefList, bool filteringNecessary)
+            List<IObjRef> tempObjRefList, bool filteringNecessary, IPrivilege privilegeOfObjRef)
         {
             Type entityType = cacheValue.EntityType;
 
@@ -1131,8 +1199,19 @@ namespace De.Osthus.Ambeth.Cache
                     return cacheObject;
                 }
                 cacheObject = targetCache.CreateCacheValueInstance(metaData, null);
-                UpdateExistingObject(metaData, cacheValue, cacheObject, targetCache, filteringNecessary);
-
+                IPropertyChangeConfigurable pcc = null;
+			    if (cacheObject is IPropertyChangeConfigurable)
+			    {
+				    // we deactivate the current PCE processing because we just created the entity
+				    // we know that there is no property change listener that might handle the initial PCEs
+				    pcc = (IPropertyChangeConfigurable) cacheObject;
+				    pcc.Set__PropertyChangeActive(false);
+			    }
+                UpdateExistingObject(metaData, cacheValue, cacheObject, targetCache, filteringNecessary, privilegeOfObjRef);
+                if (pcc != null)
+                {
+                    pcc.Set__PropertyChangeActive(true);
+                }
                 metaData.PostLoad(cacheObject);
                 return cacheObject;
             }
@@ -1142,8 +1221,11 @@ namespace De.Osthus.Ambeth.Cache
             }
         }
 
-        protected void UpdateExistingObject(IEntityMetaData metaData, RootCacheValue cacheValue, Object obj, ICacheIntern targetCache, bool filteringNecessary)
+        protected void UpdateExistingObject(IEntityMetaData metaData, RootCacheValue cacheValue, Object obj, ICacheIntern targetCache, bool filteringNecessary, IPrivilege privilegeOfObjRef)
         {
+            IConversionHelper conversionHelper = ConversionHelper;
+            IObjectCopier objectCopier = ObjectCopier;
+            IPrivilegeProvider privilegeProvider = PrivilegeProvider;
             Object id = cacheValue.Id;
             Object version = cacheValue.Version;
             metaData.IdMember.SetValue(obj, id);
@@ -1151,52 +1233,111 @@ namespace De.Osthus.Ambeth.Cache
             {
                 ((IParentCacheValueHardRef)obj).ParentCacheValueHardRef = cacheValue;
             }
-            ITypeInfoItem versionMember = metaData.VersionMember;
+            PrimitiveMember versionMember = metaData.VersionMember;
             if (versionMember != null)
             {
                 versionMember.SetValue(obj, version);
             }
-            ITypeInfoItem[] primitiveMembers = metaData.PrimitiveMembers;
-            Object[] primitiveTemplates = cacheValue.GetPrimitives();
+            PrimitiveMember[] primitiveMembers = metaData.PrimitiveMembers;
 
-            for (int a = primitiveMembers.Length; a-- > 0; )
+            for (int primitiveIndex = primitiveMembers.Length; primitiveIndex-- > 0; )
             {
-                ITypeInfoItem primitiveMember = primitiveMembers[a];
-                Type memberType = primitiveMember.RealType;
+                PrimitiveMember primitiveMember = primitiveMembers[primitiveIndex];
 
-                Object primitiveTemplate = primitiveTemplates[a];
+                Object primitiveTemplate = null;
+			    if (!filteringNecessary)
+			    {
+				    primitiveTemplate = cacheValue.GetPrimitive(primitiveIndex);
+			    }
+			    else
+			    {
+				    if (privilegeOfObjRef == null)
+				    {
+					    privilegeOfObjRef = privilegeProvider.GetPrivilegeByObjRef(new ObjRef(metaData.EntityType, ObjRef.PRIMARY_KEY_INDEX, id, version));
+				    }
+				    if (privilegeOfObjRef.GetPrimitivePropertyPrivilege(primitiveIndex).ReadAllowed)
+				    {
+					    // current user has no permission to read the property of the given entity
+					    // so we treat this case as if the property is null/empty anyway
+					    // effectively we handle user-specific data-blinding this way
+					    primitiveTemplate = cacheValue.GetPrimitive(primitiveIndex);
+				    }
+			    }
 
-                Object primitive;
+			    if (primitiveTemplate != null && filteringNecessary)
+			    {
+				    if (privilegeOfObjRef == null)
+				    {
+					    privilegeOfObjRef = GetPrivilegeByObjRefWithoutReadLock(new ObjRef(metaData.EntityType, ObjRef.PRIMARY_KEY_INDEX, id, version));
+				    }
+				    if (!privilegeOfObjRef.GetPrimitivePropertyPrivilege(primitiveIndex).ReadAllowed)
+				    {
+					    // current user has no permission to read the property of the given entity
+					    // so we treat this case as if the property is null/empty anyway
+					    // effectively we handle user-specific data-blinding this way
+					    primitiveTemplate = null;
+				    }
+			    }
+			    Object primitive = null;
 
-                if (primitiveTemplate == null)
-                {
-                    if (typeof(IEnumerable).IsAssignableFrom(memberType) && !typeof(String).IsAssignableFrom(memberType))
-                    {
-                        primitive = ListUtil.CreateCollectionOfType(memberType, 0);
-                    }
-                    else if (memberType.IsArray)
-                    {
-                        primitive = Array.CreateInstance(memberType, 0);
-                    }
-                    else
-                    {
-                        primitive = null;
-                    }
-                }
-                else if (ObjectCopier != null)
-                {
-                    primitive = ObjectCopier.Clone(primitiveTemplate);
-                    primitive = ConversionHelper.ConvertValueToType(memberType, primitive);
-                }
-                else
-                {
-                    primitive = CreatePrimitiveFromTemplate(memberType, primitiveTemplate);
-                }
-                primitiveMember.SetValue(obj, primitive);
+			    Type memberType = primitiveMember.RealType;
+
+			    if (ListUtil.IsCollection(memberType))
+			    {
+				    Object existingCollection = (Object) primitiveMember.GetValue(obj, false);
+				    if (existingCollection != null)
+				    {
+                        ListUtil.ClearList(existingCollection);
+					    if (primitiveTemplate == null)
+					    {
+						    // intended blank
+					    }
+					    else if (objectCopier != null)
+					    {
+						    primitive = objectCopier.Clone(primitiveTemplate);
+						    primitive = conversionHelper.ConvertValueToType(memberType, primitive);
+                            ListUtil.FillList(existingCollection, (IEnumerable) primitive);
+					    }
+					    else
+					    {
+						    primitive = CreatePrimitiveFromTemplate(memberType, primitiveTemplate);
+                            ListUtil.FillList(existingCollection, (IEnumerable) primitive);
+					    }
+					    primitive = existingCollection;
+				    }
+			    }
+			    if (primitive == null)
+			    {
+				    if (primitiveTemplate == null)
+				    {
+					    if (ListUtil.IsCollection(memberType))
+					    {
+						    primitive = ListUtil.CreateObservableCollectionOfType(memberType, 0);
+					    }
+					    else
+					    {
+						    primitive = null;
+					    }
+				    }
+				    else if (objectCopier != null)
+				    {
+					    primitive = objectCopier.Clone(primitiveTemplate);
+					    primitive = conversionHelper.ConvertValueToType(memberType, primitive);
+				    }
+				    else
+				    {
+					    primitive = CreatePrimitiveFromTemplate(memberType, primitiveTemplate);
+				    }
+				    primitiveMember.SetValue(obj, primitive);
+			    }
+                if (primitive is IParentEntityAware)
+			    {
+				    ((IParentEntityAware) primitive).SetParentEntity(obj, primitiveMember);
+			    }
             }
             IObjRef[][] relations = cacheValue.GetRelations();
-            relations = FilterRelations(relations, targetCache, filteringNecessary);
-            targetCache.AddDirect(metaData, id, version, obj, primitiveTemplates, cacheValue.GetRelations());
+            relations = FilterRelations(relations, filteringNecessary);
+            targetCache.AddDirect(metaData, id, version, obj, cacheValue, relations);
         }
 
         protected IPrivilege GetPrivilegeByObjRefWithoutReadLock(IObjRef objRef)
@@ -1243,46 +1384,68 @@ namespace De.Osthus.Ambeth.Cache
 		    }
 	    }
 
-        protected IObjRef[][] FilterRelations(IObjRef[][] relations, ICacheIntern targetCache, bool filteringNecessary)
-        {
-            if (relations.Length == 0 || !filteringNecessary)
-            {
-                return relations;
-            }
-            List<IObjRef> allKnownRelations = new List<IObjRef>();
-            for (int a = relations.Length; a-- > 0; )
-            {
-                IObjRef[] relationsOfMember = relations[a];
-                if (relationsOfMember == null)
-                {
-                    continue;
-                }
-                foreach (IObjRef relationOfMember in relationsOfMember)
-                {
-                    if (relationOfMember == null)
-                    {
-                        continue;
-                    }
-                    allKnownRelations.Add(relationOfMember);
-                }
-            }
-            if (allKnownRelations.Count == 0)
-            {
-                // nothing to filter
-                return relations;
-            }
-            IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet<IObjRef>.Create(allKnownRelations.Count);
-            IList<IPrivilege> privileges = GetPrivilegesByObjRefWithoutReadLock(allKnownRelations);
-            for (int a = privileges.Count; a-- > 0; )
-            {
-                IPrivilege privilege = privileges[a];
-                if (privilege.ReadAllowed)
-                {
-                    whiteListObjRefs.Add(allKnownRelations[a]);
-                }
-            }
+        protected void ScanForAllKnownRelations(IObjRef[][] relations, IdentityHashSet<IObjRef> allKnownRelations)
+	    {
+		    for (int a = relations.Length; a-- > 0;)
+		    {
+			    IObjRef[] relationsOfMember = relations[a];
+			    if (relationsOfMember == null)
+			    {
+				    continue;
+			    }
+			    foreach (IObjRef relationOfMember in relationsOfMember)
+			    {
+				    if (relationOfMember == null)
+				    {
+					    continue;
+				    }
+				    allKnownRelations.Add(relationOfMember);
+			    }
+		    }
+	    }
+
+	    protected IdentityHashSet<IObjRef> BuildWhiteListedObjRefs(IdentityHashSet<IObjRef> greyListObjRefs)
+	    {
+		    IObjRef[] greyListArray = greyListObjRefs.ToArray();
+		    IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet<IObjRef>.Create(greyListArray.Length);
+		    IList<IPrivilege> privileges = GetPrivilegesByObjRefWithoutReadLock(greyListObjRefs);
+		    for (int a = privileges.Count; a-- > 0;)
+		    {
+			    IPrivilege privilege = privileges[a];
+			    if (privilege.ReadAllowed)
+			    {
+				    whiteListObjRefs.Add(greyListArray[a]);
+			    }
+		    }
+		    return whiteListObjRefs;
+	    }
+
+	    protected IObjRef[][] FilterRelations(IObjRef[][] relations, bool filteringNecessary)
+	    {
+		    if (relations.Length == 0 || !filteringNecessary)
+		    {
+			    return relations;
+		    }
+		    IdentityHashSet<IObjRef> allKnownRelations = new IdentityHashSet<IObjRef>();
+		    ScanForAllKnownRelations(relations, allKnownRelations);
+		    if (allKnownRelations.Count == 0)
+		    {
+			    // nothing to filter
+			    return relations;
+		    }
+		    IdentityHashSet<IObjRef> whiteListObjRefs = BuildWhiteListedObjRefs(allKnownRelations);
+		    return FilterRelations(relations, whiteListObjRefs, null);
+	    }
+
+        protected IObjRef[][] FilterRelations(IObjRef[][] relations, IdentityHashSet<IObjRef> whiteListObjRefs, List<IObjRef> tempList)
+	    {
             IObjRef[][] filteredRelations = new IObjRef[relations.Length][];
-            List<IObjRef> filteredRelationsOfMember = new List<IObjRef>();
+            
+            if (tempList == null)
+		    {
+			    tempList = new List<IObjRef>();
+		    }
+		    // reuse list instance for performance reasons
             for (int a = relations.Length; a-- > 0; )
             {
                 IObjRef[] relationsOfMember = relations[a];
@@ -1290,7 +1453,7 @@ namespace De.Osthus.Ambeth.Cache
                 {
                     continue;
                 }
-                filteredRelationsOfMember.Clear();
+                tempList.Clear();
                 foreach (IObjRef relationOfMember in relationsOfMember)
                 {
                     if (relationOfMember == null)
@@ -1299,10 +1462,10 @@ namespace De.Osthus.Ambeth.Cache
                     }
                     if (whiteListObjRefs.Contains(relationOfMember))
                     {
-                        filteredRelationsOfMember.Add(relationOfMember);
+                        tempList.Add(relationOfMember);
                     }
                 }
-                filteredRelations[a] = filteredRelationsOfMember.Count > 0 ? filteredRelationsOfMember.ToArray() : ObjRef.EMPTY_ARRAY;
+                filteredRelations[a] = tempList.Count > 0 ? tempList.ToArray() : ObjRef.EMPTY_ARRAY;
             }
             return filteredRelations;
         }
@@ -1483,7 +1646,7 @@ namespace De.Osthus.Ambeth.Cache
             return null;
         }
 
-        public void AddDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object[] primitives, IObjRef[][] relations)
+        public void AddDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object parentCacheValueOrArray, IObjRef[][] relations)
         {
             throw new NotSupportedException("Not implemented");
         }
@@ -1678,7 +1841,7 @@ namespace De.Osthus.Ambeth.Cache
             }
 
             IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(ori.RealType);
-            ITypeInfoItem versionMember = metaData.VersionMember;
+            PrimitiveMember versionMember = metaData.VersionMember;
             if (versionMember == null)
             {
                 return;
@@ -1700,13 +1863,13 @@ namespace De.Osthus.Ambeth.Cache
         protected void EnsureRelationsExist(RootCacheValue cacheValue, IEntityMetaData metaData, ISet<IObjRef> cascadeNeededORIs,
             IList<DirectValueHolderRef> pendingValueHolders)
         {
-            IRelationInfoItem[] relationMembers = metaData.RelationMembers;
+            RelationMember[] relationMembers = metaData.RelationMembers;
             IObjRef[][] relations = cacheValue.GetRelations();
             for (int a = relations.Length; a-- > 0; )
             {
                 IObjRef[] relationsOfMember = relations[a];
 
-                IRelationInfoItem relationMember = relationMembers[a];
+                RelationMember relationMember = relationMembers[a];
 
                 CascadeLoadMode loadCascadeMode = relationMember.CascadeLoadMode;
                 switch (loadCascadeMode)
@@ -1729,7 +1892,7 @@ namespace De.Osthus.Ambeth.Cache
                                 // ObjRefs already loaded. Nothing to do
                                 continue;
                             }
-                            // TODO load ONLY the ObjRefs now...
+                            pendingValueHolders.Add(new IndirectValueHolderRef(cacheValue, relationMember, this, true));
                             break;
                         }
                     default:
@@ -1738,30 +1901,21 @@ namespace De.Osthus.Ambeth.Cache
             }
         }
 
-        public bool ApplyValues(Object targetObject, ICacheIntern targetCache)
+        public bool ApplyValues(Object targetObject, ICacheIntern targetCache, IPrivilege privilege)
         {
             if (targetObject == null)
             {
                 return false;
             }
-            bool oldCacheModificationValue = CacheModification.Active;
-            CacheModification.Active = true;
-            try
+            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(targetObject.GetType());
+            Object id = metaData.IdMember.GetValue(targetObject, false);
+            RootCacheValue cacheValue = GetCacheValue(metaData, ObjRef.PRIMARY_KEY_INDEX, id);
+            if (cacheValue == null) // Cache miss
             {
-                IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(targetObject.GetType());
-                Object id = metaData.IdMember.GetValue(targetObject, false);
-                RootCacheValue cacheValue = GetCacheValue(metaData, ObjRef.PRIMARY_KEY_INDEX, id);
-                if (cacheValue == null) // Cache miss
-                {
-                    return false;
-                }
-                UpdateExistingObject(metaData, cacheValue, targetObject, targetCache, IsFilteringNecessary(targetCache));
-                return true;
+                return false;
             }
-            finally
-            {
-                CacheModification.Active = oldCacheModificationValue;
-            }
+            UpdateExistingObject(metaData, cacheValue, targetObject, targetCache, IsFilteringNecessary(targetCache), privilege);
+            return true;
         }
 
         public override void GetContent(HandleContentDelegate handleContentDelegate)
@@ -1900,6 +2054,11 @@ namespace De.Osthus.Ambeth.Cache
         public void EndOffline()
         {
             // Intended blank
+        }
+
+        public void AssignEntityToCache(Object entity)
+        {
+            throw new NotSupportedException();
         }
     }
 }

@@ -35,6 +35,14 @@ namespace De.Osthus.Ambeth.Rest
     {
         public const String DEFLATE_MIME_TYPE = "application/octet-stream";
 
+        static RESTClientInterceptor()
+        {
+#if !SILVERLIGHT
+            System.Net.ServicePointManager.DefaultConnectionLimit = 10;
+            System.Net.ServicePointManager.Expect100Continue = false;
+#endif
+        }
+
         [LogInstance]
         public ILogger Log { private get; set; }
 
@@ -104,6 +112,7 @@ namespace De.Osthus.Ambeth.Rest
                     Monitor.Wait(clientLock);
                 }
             }
+            DateTime m1 = DateTime.Now;
             MethodInfo method = invocation.Method;
             String url = ServiceBaseUrl + "/" + ServiceName + "/" + method.Name;
 
@@ -119,6 +128,8 @@ namespace De.Osthus.Ambeth.Rest
             }
 #else
             webRequest = (HttpWebRequest)WebRequest.Create(url);
+            webRequest.Proxy = null;
+            webRequest.KeepAlive = true;
 #endif
             Object result = null;
             bool hasResult = false;
@@ -214,9 +225,11 @@ namespace De.Osthus.Ambeth.Rest
                             }
                             webRequest.BeginGetResponse(delegate(IAsyncResult asyncResult2)
                             {
+                                DateTime m4 = DateTime.Now;
                                 try
                                 {
                                     HttpWebResponse response = (HttpWebResponse)webRequest.EndGetResponse(asyncResult2);
+                                    DateTime m5 = DateTime.Now;
                                     using (Stream responseStream = response.GetResponseStream())
                                     using (Stream memoryStream = new MemoryStream())
                                     {

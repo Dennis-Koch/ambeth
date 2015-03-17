@@ -4,11 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import java.util.Collections;
-
 import org.junit.Test;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
@@ -16,7 +15,7 @@ import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.ISubQuery;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -24,7 +23,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/subquery/SubQuery_orm.xml")
 @SQLStructure("SubQuery_structure.sql")
 @SQLData("SubQuery_data.sql")
-public class SubQueryTest extends AbstractPersistenceTest
+public class SubQueryTest extends AbstractInformationBusWithPersistenceTest
 {
 	protected IQueryBuilder<EntityA> qb;
 
@@ -42,12 +41,13 @@ public class SubQueryTest extends AbstractPersistenceTest
 		ISubQuery<EntityA> subQuery = qb.buildSubQuery();
 		assertNotNull(subQuery);
 
-		String[] sqlParts = subQuery.getSqlParts(new HashMap<Object, Object>(), new ArrayList<Object>(0), Collections.<String> emptyList());
+		String[] sqlParts = subQuery.getSqlParts(new HashMap<Object, Object>(), new ArrayList<Object>(0), EmptyList.<String> getInstance());
 		assertNotNull(sqlParts);
-		assertEquals(3, sqlParts.length);
+		assertEquals(4, sqlParts.length);
 		assertNull(sqlParts[0]);
-		assertEquals("1=1", sqlParts[1]);
+		assertEquals(null, sqlParts[1]);
 		assertEquals("", sqlParts[2]);
+		assertEquals("", sqlParts[3]);
 	}
 
 	@Test

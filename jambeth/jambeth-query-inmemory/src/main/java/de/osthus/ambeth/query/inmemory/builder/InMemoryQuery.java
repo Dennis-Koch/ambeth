@@ -1,13 +1,12 @@
 package de.osthus.ambeth.query.inmemory.builder;
 
 import java.util.List;
-import java.util.Map;
 
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.persistence.IDataCursor;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IVersionCursor;
-import de.osthus.ambeth.persistence.IVersionItem;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryIntern;
 import de.osthus.ambeth.query.IQueryKey;
@@ -41,13 +40,7 @@ public class InMemoryQuery<T> implements IQuery<T>, IQueryIntern<T>
 	}
 
 	@Override
-	public IQueryKey getQueryKey(Map<Object, Object> nameToValueMap)
-	{
-		return null;
-	}
-
-	@Override
-	public IVersionItem retrieveAsVersion()
+	public IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap)
 	{
 		return null;
 	}
@@ -65,7 +58,19 @@ public class InMemoryQuery<T> implements IQuery<T>, IQueryIntern<T>
 	}
 
 	@Override
-	public IVersionCursor retrieveAsVersions(Map<Object, Object> nameToValueMap)
+	public IVersionCursor retrieveAsVersions(boolean retrieveAlternateIds)
+	{
+		return null;
+	}
+
+	@Override
+	public IVersionCursor retrieveAsVersions(IMap<Object, Object> paramNameToValueMap, boolean retrieveAlternateIds)
+	{
+		return null;
+	}
+
+	@Override
+	public IVersionCursor retrieveAsVersions(IMap<Object, Object> nameToValueMap)
 	{
 		return null;
 	}
@@ -77,7 +82,7 @@ public class InMemoryQuery<T> implements IQuery<T>, IQueryIntern<T>
 	}
 
 	@Override
-	public IEntityCursor<T> retrieveAsCursor(Map<Object, Object> nameToValueMap)
+	public IEntityCursor<T> retrieveAsCursor(IMap<Object, Object> nameToValueMap)
 	{
 		return null;
 	}
@@ -95,7 +100,7 @@ public class InMemoryQuery<T> implements IQuery<T>, IQueryIntern<T>
 	}
 
 	@Override
-	public IList<T> retrieve(Map<Object, Object> nameToValueMap)
+	public IList<T> retrieve(IMap<Object, Object> nameToValueMap)
 	{
 		return null;
 	}
@@ -108,8 +113,32 @@ public class InMemoryQuery<T> implements IQuery<T>, IQueryIntern<T>
 	}
 
 	@Override
-	public IDataCursor retrieveAsData(Map<Object, Object> nameToValueMap)
+	public IDataCursor retrieveAsData(IMap<Object, Object> nameToValueMap)
 	{
 		return null;
+	}
+
+	@Override
+	public long count()
+	{
+		return 0;
+	}
+
+	@Override
+	public long count(IMap<Object, Object> paramNameToValueMap)
+	{
+		return 0;
+	}
+
+	@Override
+	public boolean isEmpty()
+	{
+		return true;
+	}
+
+	@Override
+	public boolean isEmpty(IMap<Object, Object> paramNameToValueMap)
+	{
+		return true;
 	}
 }

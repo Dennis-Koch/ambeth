@@ -27,7 +27,8 @@ namespace CsharpClassbrowser
             }
             this.Name = fieldName;
             this.FieldType = fieldType;
-            this.Annotations = new List<String>();
+            this.EnumConstant = false;
+            this.Annotations = new List<AnnotationInfo>();
             this.Modifiers = modifiers == null ? new List<string>() : modifiers;
         }
 
@@ -39,7 +40,9 @@ namespace CsharpClassbrowser
 
         public string Name { get; internal set; }
         public string FieldType { get; internal set; }
-        public IList<String> Annotations { get; internal set; }
+        public string InitialValue { get; set; }
+        public bool EnumConstant { get; set; }
+        public IList<AnnotationInfo> Annotations { get; internal set; }
         public IList<String> Modifiers { get; internal set; }
 
         #endregion

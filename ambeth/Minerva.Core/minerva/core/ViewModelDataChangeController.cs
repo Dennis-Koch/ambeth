@@ -17,6 +17,7 @@ using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Minerva.FilterProvider;
 using De.Osthus.Ambeth.Merge.Transfer;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Minerva.Core
 {
@@ -345,7 +346,7 @@ namespace De.Osthus.Minerva.Core
                         continue;
                     }
                     Type oldEntityType = ProxyHelper.GetRealType(oldEntity.GetType());
-                    ITypeInfoItem idMember = typeToMetaDataDict[oldEntityType].IdMember;
+                    PrimitiveMember idMember = typeToMetaDataDict[oldEntityType].IdMember;
                     Object oldEntityId = idMember.GetValue(oldEntity, false);
                     if (oldEntityId == null)
                     {
@@ -403,7 +404,7 @@ namespace De.Osthus.Minerva.Core
                     {
                         T newEntity = interestingEntities[a];
                         Type newEntityType = ProxyHelper.GetRealType(newEntity.GetType());
-                        ITypeInfoItem idMember = typeToMetaDataDict[newEntityType].IdMember;
+                        PrimitiveMember idMember = typeToMetaDataDict[newEntityType].IdMember;
                         Object newEntityId = idMember.GetValue(newEntity, false);
 
                         IObjRef newObjRef = new ObjRef(newEntityType, ObjRef.PRIMARY_KEY_INDEX, newEntityId, null);

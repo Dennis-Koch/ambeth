@@ -121,5 +121,15 @@ namespace De.Osthus.Ambeth.Xml.Test
         {
             get { throw new NotImplementedException(); }
         }
+
+        public bool Privileged
+        {
+            get { return true; }
+        }
+
+        public ICache CurrentCache
+        {
+            get { return this; }
+        }
     }
 }
