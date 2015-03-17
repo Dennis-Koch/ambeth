@@ -50,7 +50,7 @@ public class TestService1 extends BaseClass implements ITestInterface
 
 		final String str1 = hello;
 		String str2 = WORLD;
-		String msg = "";
+		String msg = "".toString().toString();
 		try
 		{
 			msg = str1 + testMethod3() + str2;

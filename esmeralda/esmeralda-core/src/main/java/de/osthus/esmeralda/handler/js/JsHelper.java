@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.lang.model.element.AnnotationValue;
@@ -34,14 +33,17 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringConversionHelper;
+import de.osthus.esmeralda.IClassInfoManager;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.TypeUsing;
-import de.osthus.esmeralda.handler.ASTHelper;
 import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IExpressionHandler;
 import de.osthus.esmeralda.handler.IExpressionHandlerRegistry;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
+import de.osthus.esmeralda.handler.IUsedVariableDelegate;
+import de.osthus.esmeralda.handler.IVariable;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalBlockHandler;
 import de.osthus.esmeralda.misc.IToDoWriter;
 import de.osthus.esmeralda.misc.IWriter;
@@ -49,6 +51,7 @@ import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
+import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.FieldInfo;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
@@ -68,6 +71,8 @@ public class JsHelper implements IJsHelper
 			"isPrototypeOf", "NaN", "prototype", "undefined", "valueOf"));
 
 	protected static final HashMap<String, String[]> javaTypeToJsMap = new HashMap<String, String[]>();
+
+	protected static final Pattern dotSplit = Pattern.compile(Pattern.quote("."));
 
 	static
 	{
@@ -109,8 +114,8 @@ public class JsHelper implements IJsHelper
 		// put(java.lang.RuntimeException.class.getName(), "System.Exception");
 		// put(java.lang.StackTraceElement.class.getName(), "System.Diagnostics.StackFrame");
 		put(java.lang.ThreadLocal.class.getName(), "Ambeth.util.ThreadLocal");
-		put(de.osthus.ambeth.collections.IList.class.getName(), "Ambeth.collections.IList");
-		put(de.osthus.ambeth.collections.HashSet.class.getName(), "Ambeth.collections.CHashSet");
+		// put(de.osthus.ambeth.collections.IList.class.getName(), "Ambeth.collections.IList");
+		// put(de.osthus.ambeth.collections.HashSet.class.getName(), "Ambeth.collections.CHashSet");
 		put(java.util.Map.Entry.class.getName(), "Ambeth.collections.Entry");
 	}
 
@@ -125,6 +130,9 @@ public class JsHelper implements IJsHelper
 
 	@Autowired
 	protected IASTHelper astHelper;
+
+	@Autowired
+	protected IClassInfoManager classInfoManager;
 
 	@Autowired
 	protected IConversionContext context;
@@ -229,6 +237,39 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
+	public void forAllUsedVariables(IUsedVariableDelegate usedVariableDelegate)
+	{
+		IConversionContext context = this.context.getCurrent();
+		JavaClassInfo classInfo = context.getClassInfo();
+
+		forAllUsedVariables(classInfo, usedVariableDelegate);
+	}
+
+	@Override
+	public void forAllUsedVariables(JavaClassInfo classInfo, IUsedVariableDelegate usedVariableDelegate)
+	{
+		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
+		IWriter writer = context.getWriter();
+		IList<IVariable> allUsedVariables = classInfo.getAllUsedVariables();
+
+		boolean firstVariable = true;
+		HashSet<String> alreadyHandled = new HashSet<>();
+		for (IVariable usedVariable : allUsedVariables)
+		{
+			String name = usedVariable.getName();
+			if (!alreadyHandled.add(name))
+			{
+				// The IVariable instances have no equals(). So there are duplicates.
+				continue;
+			}
+
+			usedVariableDelegate.invoke(usedVariable, firstVariable, context, languageHelper, writer);
+			firstVariable = false;
+		}
+	}
+
+	@Override
 	public File createTargetFile()
 	{
 		IConversionContext context = this.context.getCurrent();
@@ -245,9 +286,19 @@ public class JsHelper implements IJsHelper
 	@Override
 	public Path createRelativeTargetPath()
 	{
-		String namespace = createNamespace();
+		IConversionContext context = this.context.getCurrent();
+		JavaClassInfo classInfo = context.getClassInfo();
 
-		String relativeTargetPathName = namespace.replace(".", File.separator);
+		String packageName = classInfo.getPackageName();
+
+		String pathPrefixRemove = context.getPathPrefixRemove();
+		if (pathPrefixRemove != null && packageName.toLowerCase().startsWith(pathPrefixRemove.toLowerCase()))
+		{
+			int removeLength = pathPrefixRemove.length();
+			packageName = packageName.substring(removeLength);
+		}
+
+		String relativeTargetPathName = packageName.replace('.', File.separatorChar);
 
 		String languagePath = context.getLanguagePath();
 		if (languagePath != null && !languagePath.isEmpty())
@@ -263,7 +314,14 @@ public class JsHelper implements IJsHelper
 	public String createTargetFileName(JavaClassInfo classInfo)
 	{
 		String nonGenericType = astHelper.extractNonGenericType(classInfo.getName());
+		nonGenericType = handleAnonymousClassName(nonGenericType);
 		return nonGenericType + ".js";
+	}
+
+	protected String handleAnonymousClassName(String name)
+	{
+		name = name.replaceAll("\\$(\\d+)", "\\$c$1");
+		return name;
 	}
 
 	@Override
@@ -312,7 +370,19 @@ public class JsHelper implements IJsHelper
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		String className = classInfo.getName().split("<", 2)[0];
+		String className = classInfo.getNonGenericName();
+		className = handleAnonymousClassName(className);
+		writer.append(className);
+	}
+
+	@Override
+	public void writeSimpleNonGenericName(JavaClassInfo classInfo)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		String className = classInfo.getNonGenericName();
+		className = handleAnonymousClassName(className);
 		writer.append(className);
 	}
 
@@ -386,8 +456,22 @@ public class JsHelper implements IJsHelper
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		String prefix = model instanceof FieldInfo ? "m$p_" : "m$f_";
-		String name = (model instanceof MethodInfo && ((MethodInfo) model).isConstructor()) ? "constructor" : model.getName();
+		String prefix;
+		String name;
+		if (model instanceof FieldInfo)
+		{
+			prefix = "m$p_";
+			name = convertVariableName(model.getName());
+		}
+		else if (model instanceof MethodInfo)
+		{
+			prefix = "m$f_";
+			name = ((MethodInfo) model).isConstructor() ? "constructor" : model.getName();
+		}
+		else
+		{
+			throw new RuntimeException("Unknown model type: '" + model.getClass().getName() + "'");
+		}
 
 		newLineIndentWithCommaIfFalse(false);
 		writer.append('"').append(prefix).append(name).append("\": {");
@@ -445,7 +529,7 @@ public class JsHelper implements IJsHelper
 				{
 					String[] paramNames = new String[i];
 
-					String methodNamePostfix = createOverloadedMethodNamePostfix(method.getParameters());
+					String methodNamePostfix = createOverloadedMethodNamePostfix(createTypeNamesFromParams(method.getParameters()));
 					String fullMethodName = methodName + methodNamePostfix;
 					firstMethod = writeStringIfFalse(",", firstMethod);
 					newLineIndentIfFalse(singleMethod);
@@ -642,14 +726,53 @@ public class JsHelper implements IJsHelper
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		// TODO
-		// if (!getLanguageSpecific().getMethodScopeVars().contains(varName))
-		// {
-		// writer.append("this.");
-		// }
-
 		varName = convertVariableName(varName);
 
+		writer.append(varName);
+	}
+
+	@Override
+	public void writeVariableNameAccess(String varName)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		JavaClassInfo variableClassInfo = context.lookupVariableDecl(varName);
+		Field ownerField = variableClassInfo == null && !varName.equals("this") && !varName.equals("super") ? context.getClassInfo().getField(varName, true)
+				: null;
+		varName = convertVariableName(varName);
+		if (ownerField == null)
+		{
+			writer.append(varName);
+			return;
+		}
+		Method method = context.getMethod();
+		if (method == null)
+		{
+			// create function code
+			if (!ownerField.isStatic())
+			{
+				writer.append("this.");
+			}
+			else
+			{
+				writeType(ownerField.getOwningClass().getFqName());
+				writer.append('.');
+			}
+		}
+		else if (!ownerField.isStatic() && !method.isStatic())
+		{
+			writer.append("this.");
+		}
+		else if (ownerField.isStatic() && method.isStatic())
+		{
+			writer.append("this.");
+		}
+		else
+		{
+			writeType(ownerField.getOwningClass().getFqName());
+			writer.append('.');
+		}
 		writer.append(varName);
 	}
 
@@ -659,6 +782,10 @@ public class JsHelper implements IJsHelper
 		if (RESERVED_WORDS.contains(varName))
 		{
 			varName += "_";
+		}
+		else if (getLanguageSpecific().getDuplicateNames().contains(varName))
+		{
+			varName += "_deDup";
 		}
 		return varName;
 	}
@@ -730,10 +857,10 @@ public class JsHelper implements IJsHelper
 				convertedType += "[]";
 				return convertedType;
 			}
-			Matcher genericTypeMatcher = ASTHelper.genericTypePattern.matcher(typeName);
-			if (genericTypeMatcher.matches())
+			String[] typeAndGeneric = astHelper.parseGenericType(typeName);
+			if (typeAndGeneric.length == 2)
 			{
-				String plainType = genericTypeMatcher.group(1);
+				String plainType = typeAndGeneric[0];
 				String convertedType = convertType(plainType, direct);
 				return convertedType;
 			}
@@ -741,11 +868,7 @@ public class JsHelper implements IJsHelper
 			if (!direct)
 			{
 				typeName = astHelper.resolveFqTypeFromTypeName(typeName);
-				genericTypeMatcher = ASTHelper.genericTypePattern.matcher(typeName);
-				if (genericTypeMatcher.matches())
-				{
-					typeName = genericTypeMatcher.group(1);
-				}
+				typeName = astHelper.extractNonGenericType(typeName);
 				typeName = prefixModification(typeName, context);
 				mappedTypeName = new String[] { StringConversionHelper.upperCaseFirst(objectCollector, typeName) };
 			}
@@ -765,6 +888,8 @@ public class JsHelper implements IJsHelper
 		{
 			convertedType = OBJECT;
 		}
+
+		convertedType = handleAnonymousClassName(convertedType);
 
 		return convertedType;
 	}
@@ -796,21 +921,19 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
-	public String createOverloadedMethodNamePostfix(IList<VariableElement> parameters)
+	public String createOverloadedMethodNamePostfix(IList<String> paramTypeNames)
 	{
-		if (parameters.isEmpty())
+		if (paramTypeNames.isEmpty())
 		{
 			return "_none";
 		}
 		else
 		{
-			int length = parameters.size();
+			int length = paramTypeNames.size();
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < length; i++)
 			{
-				VariableElement param = parameters.get(i);
-				VarSymbol var = (VarSymbol) param;
-				String paramTypeName = var.type.toString();
+				String paramTypeName = paramTypeNames.get(i);
 				paramTypeName = removeGenerics(paramTypeName);
 				paramTypeName = paramTypeName.replaceAll("\\.", "_");
 				paramTypeName = StringConversionHelper.underscoreToCamelCase(objectCollector, paramTypeName);
@@ -826,8 +949,59 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
+	public IList<String> createTypeNamesFromParams(List<VariableElement> parameters)
+	{
+		if (parameters.isEmpty())
+		{
+			return new ArrayList<>();
+		}
+		else
+		{
+			int length = parameters.size();
+			ArrayList<String> paramTypeNames = new ArrayList<>();
+			for (int i = 0; i < length; i++)
+			{
+				VariableElement param = parameters.get(i);
+				VarSymbol var = (VarSymbol) param;
+				String paramTypeName = var.type.toString();
+				paramTypeNames.add(paramTypeName);
+			}
+			return paramTypeNames;
+		}
+	}
+
+	@Override
 	public String removeGenerics(String name)
 	{
 		return name.replaceAll("<.*>", "");
+	}
+
+	@Override
+	public JavaClassInfo findClassInHierarchy(String className, JavaClassInfo current)
+	{
+		while (current != null)
+		{
+			if (current.getNonGenericFqName().equals(className))
+			{
+				return current;
+			}
+			current = classInfoManager.resolveClassInfo(current.getNameOfSuperClass());
+		}
+		return null;
+	}
+
+	@Override
+	public Field findFieldInHierarchy(String fieldName, JavaClassInfo current)
+	{
+		while (current != null)
+		{
+			Field field = current.getField(fieldName, true);
+			if (field != null)
+			{
+				return field;
+			}
+			current = classInfoManager.resolveClassInfo(current.getNameOfSuperClass());
+		}
+		return null;
 	}
 }

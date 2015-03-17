@@ -16,5 +16,7 @@ public interface ITransformedMethod
 
 	boolean isPropertyInvocation();
 
+	boolean isIndexedInvocation();
+
 	IMethodParameterProcessor getParameterProcessor();
 }

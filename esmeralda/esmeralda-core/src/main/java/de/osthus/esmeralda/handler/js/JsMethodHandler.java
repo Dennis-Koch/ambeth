@@ -17,6 +17,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.esmeralda.IClassInfoManager;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IMethodHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
@@ -25,6 +26,7 @@ import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 import de.osthus.esmeralda.snippet.ISnippetManagerFactory;
+import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 
 public class JsMethodHandler implements IMethodHandler
@@ -32,6 +34,9 @@ public class JsMethodHandler implements IMethodHandler
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IClassInfoManager classInfoManager;
 
 	@Autowired
 	protected IConversionContext context;
@@ -82,7 +87,7 @@ public class JsMethodHandler implements IMethodHandler
 		if (hasOverloads)
 		{
 			// Add parameter type names to function name
-			String methodNamePostfix = languageHelper.createOverloadedMethodNamePostfix(parameters);
+			String methodNamePostfix = languageHelper.createOverloadedMethodNamePostfix(languageHelper.createTypeNamesFromParams(parameters));
 			writer.append(methodNamePostfix);
 		}
 		writer.append("\": function (");
@@ -113,49 +118,88 @@ public class JsMethodHandler implements IMethodHandler
 			return;
 		}
 
-		ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager(methodTree, languageHelper);
-		context.setSnippetManager(snippetManager);
+		boolean pushedVariableBlock = false;
+		if (!method.isStatic())
+		{
+			pushedVariableBlock = true;
+			context.pushVariableDeclBlock();
+			context.pushVariableDecl("this", (JavaClassInfo) method.getOwningClass());
+			String nameOfSuperClass = method.getOwningClass().getNameOfSuperClass();
+			if (nameOfSuperClass == null)
+			{
+				nameOfSuperClass = Object.class.getName();
+			}
+			JavaClassInfo superCI = classInfoManager.resolveClassInfo(nameOfSuperClass);
+			context.pushVariableDecl("super", superCI);
+		}
+		if (parameters.size() > 0)
+		{
+			if (!pushedVariableBlock)
+			{
+				pushedVariableBlock = true;
+				context.pushVariableDeclBlock();
+			}
+			for (int a = 0, size = parameters.size(); a < size; a++)
+			{
+				VariableElement parameter = parameters.get(a);
+				JavaClassInfo parameterCI = classInfoManager.resolveClassInfo(parameter.asType().toString());
+				context.pushVariableDecl(parameter.getSimpleName().toString(), parameterCI);
+			}
+		}
 		try
 		{
-			BlockTree methodBodyBlock = methodTree.getBody();
-			if (methodBodyBlock != null)
+			ISnippetManager originalSnippetManager = context.getSnippetManager();
+			ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager();
+			context.setSnippetManager(snippetManager);
+			try
 			{
-				IStatementHandlerExtension<BlockTree> blockHandler = statementHandlerRegistry.getExtension(Lang.JS + methodBodyBlock.getKind());
-
-				if (method.isConstructor())
+				BlockTree methodBodyBlock = methodTree.getBody();
+				if (methodBodyBlock != null)
 				{
-					// Skip only this() and super() calls without parameters
-					boolean newSkip = isFirstStatementToSkip(methodBodyBlock);
+					IStatementHandlerExtension<BlockTree> blockHandler = statementHandlerRegistry.getExtension(Lang.JS + methodBodyBlock.getKind());
 
-					boolean oldSkip = context.isSkipFirstBlockStatement();
-					context.setSkipFirstBlockStatement(newSkip);
-					try
+					if (!method.isConstructor())
 					{
 						blockHandler.handle(methodBodyBlock);
 					}
-					finally
+					else
 					{
-						context.setSkipFirstBlockStatement(oldSkip);
+						// Skip only this() and super() calls without parameters
+						boolean newSkip = isFirstStatementToSkip(methodBodyBlock);
+
+						boolean oldSkip = context.isSkipFirstBlockStatement();
+						context.setSkipFirstBlockStatement(newSkip);
+						try
+						{
+							blockHandler.handle(methodBodyBlock);
+						}
+						finally
+						{
+							context.setSkipFirstBlockStatement(oldSkip);
+						}
 					}
+
+					// Runs check for unused (old) snippet files for this method
+					snippetManager.finished();
 				}
 				else
 				{
-					blockHandler.handle(methodBodyBlock);
+					// FIXME Annotation methods have no body code
+					writer.append("{}");
 				}
-
-				// Runs check for unused (old) snippet files for this method
-				snippetManager.finished();
 			}
-			else
+			finally
 			{
-				// FIXME Annotation methods have no body code
-				writer.append("{}");
+				context.setSnippetManager(originalSnippetManager);
+				languageHelper.getLanguageSpecific().getMethodScopeVars().clear();
 			}
 		}
 		finally
 		{
-			context.setSnippetManager(null);
-			languageHelper.getLanguageSpecific().getMethodScopeVars().clear();
+			if (pushedVariableBlock)
+			{
+				context.popVariableDeclBlock();
+			}
 		}
 
 		if (!hasOverloads)

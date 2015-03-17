@@ -659,6 +659,11 @@ namespace De.Osthus.Ambeth.Cache
 
         protected void ChangeFirstLevelCachesIntern(CacheDependencyNode node, ISet<IObjRef> intermediateDeletes)
 	    {
+			List<CacheDependencyNode> childNodes = node.childNodes;
+            for (int a = childNodes.Count; a-- > 0; )
+            {
+                ChangeFirstLevelCachesIntern(childNodes[a], intermediateDeletes);
+            }
 		    CacheChangeItem[] cacheChangeItems = node.cacheChangeItems;
 		    if (cacheChangeItems == null)
 		    {

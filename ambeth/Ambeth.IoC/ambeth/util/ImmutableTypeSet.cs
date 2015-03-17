@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using De.Osthus.Ambeth.Collections;
 using System.Text.RegularExpressions;
 using System.IO;
+using De.Osthus.Ambeth.Ioc.Extendable;
 
 namespace De.Osthus.Ambeth.Util
 {
@@ -11,6 +12,8 @@ namespace De.Osthus.Ambeth.Util
 	    protected static readonly CHashSet<Type> immutableTypeSet = new CHashSet<Type>(0.5f);
 
         protected static readonly HashMap<Type, Type> wrapperTypesMap = new HashMap<Type, Type>(0.5f);
+
+        private static readonly ClassExtendableContainer<Type> immutableSuperTypes = new ClassExtendableContainer<Type>("", "");
 
 	    static ImmutableTypeSet()
 	    {
@@ -79,8 +82,14 @@ namespace De.Osthus.Ambeth.Util
 
 	    public static bool IsImmutableType(Type type)
 	    {
-		    return type.IsPrimitive || type.IsValueType || type.IsEnum || immutableTypeSet.Contains(type) || typeof(IImmutableType).IsAssignableFrom(type) || "RuntimeType".Equals(type.Name);
+		    return type.IsPrimitive || type.IsValueType || type.IsEnum || immutableTypeSet.Contains(type) || typeof(IImmutableType).IsAssignableFrom(type) || "RuntimeType".Equals(type.Name)
+                || immutableSuperTypes.GetExtension(type) != null;
 	    }
+
+        public static void FlushState()
+        {
+            immutableSuperTypes.ClearWeakCache();
+        }
 
 	    private ImmutableTypeSet()
 	    {

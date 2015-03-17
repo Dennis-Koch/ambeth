@@ -34,15 +34,72 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 		IWriter writer = context.getWriter();
 		List<JCExpression> arguments = methodInvocation.getArguments();
 
-		if (owner != null)
+		if (transformedMethod.isPropertyInvocation())
 		{
-			ownerWriter.writeOwner(owner);
-			writer.append('.');
-		}
-		writer.append(transformedMethod.getName());
+			if (owner != null)
+			{
+				ownerWriter.writeOwner(owner);
+				writer.append('.');
+			}
+			writer.append(transformedMethod.getName());
+			if (arguments.size() == 1)
+			{
+				JCExpression argument = arguments.get(0);
 
-		if (!transformedMethod.isPropertyInvocation())
+				writer.append(" = ");
+				languageHelper.writeExpressionTree(argument);
+				writer.append(';');
+			}
+			else if (arguments.size() > 0)
+			{
+				// C# will be an assignment to a property (setter-semantics)
+				throw new IllegalStateException("Property assignment not yet supported: " + methodInvocation);
+				// writer.append(" = ");
+				// boolean firstArgument = true;
+				// for (JCExpression argument : methodInvocation.getArguments())
+				// {
+				// firstArgument = languageHelper.writeStringIfFalse(", ", firstArgument);
+				// languageHelper.writeExpressionTree(argument);
+				// }
+				// writer.append(';');
+			}
+		}
+		else if (transformedMethod.isIndexedInvocation())
 		{
+			if (owner != null)
+			{
+				ownerWriter.writeOwner(owner);
+			}
+			if (arguments.size() == 1)
+			{
+				JCExpression argument = arguments.get(0);
+
+				writer.append('[');
+				languageHelper.writeExpressionTree(argument);
+				writer.append(']');
+			}
+			else if (arguments.size() > 0)
+			{
+				// C# will be an assignment to a property (setter-semantics)
+				throw new IllegalStateException("Property assignment not yet supported: " + methodInvocation);
+				// writer.append(" = ");
+				// boolean firstArgument = true;
+				// for (JCExpression argument : methodInvocation.getArguments())
+				// {
+				// firstArgument = languageHelper.writeStringIfFalse(", ", firstArgument);
+				// languageHelper.writeExpressionTree(argument);
+				// }
+				// writer.append(';');
+			}
+		}
+		else
+		{
+			if (owner != null)
+			{
+				ownerWriter.writeOwner(owner);
+				writer.append('.');
+			}
+			writer.append(transformedMethod.getName());
 			writer.append('(');
 			for (int a = 0, size = arguments.size(); a < size; a++)
 			{
@@ -54,19 +111,6 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 				languageHelper.writeExpressionTree(arg);
 			}
 			writer.append(')');
-		}
-		else if (methodInvocation.getArguments().size() > 0)
-		{
-			// C# will be an assignment to a property (setter-semantics)
-			throw new IllegalStateException("Property assignment not yet supported: " + methodInvocation);
-			// writer.append(" = ");
-			// boolean firstArgument = true;
-			// for (JCExpression argument : methodInvocation.getArguments())
-			// {
-			// firstArgument = languageHelper.writeStringIfFalse(", ", firstArgument);
-			// languageHelper.writeExpressionTree(argument);
-			// }
-			// writer.append(';');
 		}
 	}
 }
