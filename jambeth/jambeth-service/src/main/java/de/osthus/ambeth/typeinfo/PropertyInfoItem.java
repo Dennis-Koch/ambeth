@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.XmlTransient;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 
-public class PropertyInfoItem extends RelationInfoItem
+public class PropertyInfoItem extends TypeInfoItem
 {
 	protected IPropertyInfoIntern property;
 

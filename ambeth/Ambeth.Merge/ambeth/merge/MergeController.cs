@@ -18,6 +18,7 @@ using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Merge
 {
@@ -43,10 +44,16 @@ namespace De.Osthus.Ambeth.Merge
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
         [Autowired]
+        public IGuiThreadHelper GuiThreadHelper { protected get; set; }
+
+        [Autowired]
         public IPrefetchHelper PrefetchHelper { protected get; set; }
 
         [Autowired]
         public ICUDResultHelper CUDResultHelper { protected get; set; }
+
+        [Autowired]
+        public IObjRefFactory ObjRefFactory { protected get; set; }
 
         [Autowired]
         public IObjRefHelper OriHelper { protected get; set; }
@@ -56,6 +63,9 @@ namespace De.Osthus.Ambeth.Merge
 
         [Property(MergeConfigurationConstants.ExactVersionForOptimisticLockingRequired, DefaultValue = "false")]
         public bool ExactVersionForOptimisticLockingRequired { protected get; set; }
+
+        [Property(MergeConfigurationConstants.AlwaysUpdateVersionInChangedEntities, DefaultValue = "false")]
+        public bool AlwaysUpdateVersionInChangedEntities { protected get; set; }
         
         public void RegisterMergeExtension(IMergeExtension mergeExtension, Type entityType)
         {
@@ -67,8 +77,31 @@ namespace De.Osthus.Ambeth.Merge
             mergeExtensions.Unregister(mergeExtension, entityType);
         }
 
-        public void ApplyChangesToOriginals(IList<Object> originalRefs, IList<IObjRef> oriList, DateTime? changedOn, String changedBy)
-        {
+        public void ApplyChangesToOriginals(ICUDResult cudResult, IOriCollection oriCollection, ICache cache)
+	    {
+		    if (GuiThreadHelper.IsInGuiThread())
+		    {
+			    ApplyChangesToOriginalsIntern(cudResult, oriCollection, cache);
+			    return;
+		    }
+		    GuiThreadHelper.InvokeInGuiAndWait(new IBackgroundWorkerDelegate(delegate()
+			    {
+				    ApplyChangesToOriginalsIntern(cudResult, oriCollection, cache);
+			    }));
+	    }
+
+	    protected void ApplyChangesToOriginalsIntern(ICUDResult cudResult, IOriCollection oriCollection, ICache cache)
+	    {
+            ICacheModification cacheModification = this.CacheModification;
+            IConversionHelper conversionHelper = this.ConversionHelper;
+            IEntityMetaDataProvider entityMetaDataProvider = this.EntityMetaDataProvider;
+            IList<Object> originalRefs = cudResult.GetOriginalRefs();
+            IList<IObjRef> allChangeORIs = oriCollection.AllChangeORIs;
+            String[] allChangedBy = oriCollection.AllChangedBy;
+            long[] allChangedOn = oriCollection.AllChangedOn;
+            String singleChangedBy = oriCollection.ChangedBy;
+            long? singleChangedOn = oriCollection.ChangedOn;
+
             bool newInstanceOnCall = CacheProvider.IsNewInstanceOnCall;
             IList<Object> validObjects = new List<Object>(originalRefs.Count);
             bool oldCacheModificationValue = CacheModification.Active;
@@ -78,7 +111,7 @@ namespace De.Osthus.Ambeth.Merge
                 for (int a = originalRefs.Count; a-- > 0; )
                 {
                     Object originalRef = originalRefs[a];
-                    IObjRef ori = oriList[a];
+                    IObjRef ori = allChangeORIs[a];
 
                     if (originalRef == null)
                     {
@@ -89,12 +122,14 @@ namespace De.Osthus.Ambeth.Merge
                     {
                         continue;
                     }
+                    long? changedOn = allChangedOn != null ? allChangedOn[a] : singleChangedOn;
+                    String changedBy = allChangedBy != null ? allChangedBy[a] : singleChangedBy;
                     IEntityMetaData metaData = ((IEntityMetaDataHolder) originalRef).Get__EntityMetaData();
-                    ITypeInfoItem versionMember = metaData.VersionMember;
+                    PrimitiveMember versionMember = metaData.VersionMember;
 
-                    ITypeInfoItem keyMember = metaData.IdMember;
+                    PrimitiveMember keyMember = metaData.IdMember;
 
-                    ITypeInfoItem onMember, byMember;
+                    PrimitiveMember onMember, byMember;
                     if (keyMember.GetValue(originalRef, false) == null)
                     {
                         onMember = metaData.CreatedOnMember;
@@ -132,7 +167,7 @@ namespace De.Osthus.Ambeth.Merge
                     keyMember.SetValue(originalRef, ConversionHelper.ConvertValueToType(keyMember.RealType, ori.Id));
                     if (versionMember != null)
                     {
-                        if (newInstanceOnCall)
+                        if (AlwaysUpdateVersionInChangedEntities)
                         {
                             versionMember.SetValue(originalRef, ConversionHelper.ConvertValueToType(versionMember.RealType, ori.Version));
                         }
@@ -151,7 +186,7 @@ namespace De.Osthus.Ambeth.Merge
                     }
                     validObjects.Add(originalRef);
                 }
-                PutInstancesToCurrentCache(validObjects);
+                PutInstancesToCurrentCache(validObjects, cache);
             }
             finally
             {
@@ -159,15 +194,14 @@ namespace De.Osthus.Ambeth.Merge
             }
         }
 
-        protected void PutInstancesToCurrentCache(IList<Object> validObjects)
+        protected void PutInstancesToCurrentCache(IList<Object> validObjects, ICache cache)
         {
-            if (validObjects.Count == 0 || CacheProvider.IsNewInstanceOnCall)
+            if (!MergeProcess.IsAddNewlyPersistedEntities())
             {
-                // Following code only necessary if cache instance is singleton or threadlocal
                 return;
             }
-            IWritableCache cache = (IWritableCache)CacheProvider.GetCurrentCache();
-            cache.Put(validObjects);
+            IWritableCache currentCache = cache != null ? (IWritableCache)cache : (IWritableCache)CacheProvider.GetCurrentCache();
+            currentCache.Put(validObjects);
         }
 
         public virtual ICUDResult MergeDeep(Object obj, MergeHandle handle)
@@ -175,7 +209,7 @@ namespace De.Osthus.Ambeth.Merge
             ICache cache = handle.Cache;
             if (cache == null && CacheFactory != null)
             {
-                cache = CacheFactory.Create(CacheFactoryDirective.NoDCE);
+                cache = CacheFactory.Create(CacheFactoryDirective.NoDCE, false, false, "MergeController.ORIGINAL");
                 handle.Cache = cache;
             }
             IMap<Type, IList<Object>> typeToObjectsToMerge = null;
@@ -188,41 +222,38 @@ namespace De.Osthus.Ambeth.Merge
             List<ValueHolderRef> valueHolderKeys = new List<ValueHolderRef>();
             IList<Object> objectsToMerge = ScanForInitializedObjects(obj, handle.IsDeepMerge, typeToObjectsToMerge, objRefs, valueHolderKeys);
             IList<Object> eagerlyLoadedOriginals = null;
-            if (cache != null)
+            // Load all requested object originals in one roundtrip
+            if (objRefs.Count > 0)
             {
-                // Load all requested object originals in one roundtrip
-                if (objRefs.Count > 0)
+                eagerlyLoadedOriginals = cache.GetObjects(objRefs, CacheDirective.ReturnMisses);
+                for (int a = eagerlyLoadedOriginals.Count; a-- > 0; )
                 {
-                    eagerlyLoadedOriginals = cache.GetObjects(objRefs, CacheDirective.ReturnMisses);
-                    for (int a = eagerlyLoadedOriginals.Count; a-- > 0; )
+                    IObjRef existingOri = objRefs[a];
+                    if (eagerlyLoadedOriginals[a] == null && existingOri != null && existingOri.Id != null)
                     {
-                        IObjRef existingOri = objRefs[a];
-                        if (eagerlyLoadedOriginals[a] == null && existingOri != null && existingOri.Id != null)
-                        {
-                            // Cache miss for an entity we want to merge. This is an OptimisticLock-State
-                            throw new OptimisticLockException(null, null, existingOri);
-                        }
+                        // Cache miss for an entity we want to merge. This is an OptimisticLock-State
+                        throw new OptimisticLockException(null, null, existingOri);
                     }
-                    List<IObjRef> objRefsOfVhks = new List<IObjRef>(valueHolderKeys.Count);
-                    for (int a = 0, size = valueHolderKeys.Count; a < size; a++)
+                }
+                List<IObjRef> objRefsOfVhks = new List<IObjRef>(valueHolderKeys.Count);
+                for (int a = 0, size = valueHolderKeys.Count; a < size; a++)
+                {
+                    objRefsOfVhks.Add(valueHolderKeys[a].ObjRef);
+                }
+                IList<Object> objectsOfVhks = cache.GetObjects(objRefsOfVhks, CacheDirective.FailEarly | CacheDirective.ReturnMisses);
+                for (int relationIndex = valueHolderKeys.Count; relationIndex-- > 0; )
+                {
+                    IObjRefContainer objectOfVhk = (IObjRefContainer)objectsOfVhks[relationIndex];
+                    if (objectOfVhk == null)
                     {
-                        objRefsOfVhks.Add(valueHolderKeys[a].ObjRef);
+                        continue;
                     }
-                    IList<Object> objectsOfVhks = cache.GetObjects(objRefsOfVhks, CacheDirective.FailEarly | CacheDirective.ReturnMisses);
-                    for (int relationIndex = valueHolderKeys.Count; relationIndex-- > 0; )
+                    ValueHolderRef valueHolderRef = valueHolderKeys[relationIndex];
+                    RelationMember member = valueHolderRef.Member;
+                    if (ValueHolderState.INIT != objectOfVhk.Get__State(relationIndex))
                     {
-                        IObjRefContainer objectOfVhk = (IObjRefContainer)objectsOfVhks[relationIndex];
-                        if (objectOfVhk == null)
-                        {
-                            continue;
-                        }
-                        ValueHolderRef valueHolderRef = valueHolderKeys[relationIndex];
-                        IRelationInfoItem member = valueHolderRef.Member;
-                        if (ValueHolderState.INIT != objectOfVhk.Get__State(relationIndex))
-                        {
-                            DirectValueHolderRef vhcKey = new DirectValueHolderRef(objectOfVhk, member);
-                            handle.PendingValueHolders.Add(vhcKey);
-                        }
+                        DirectValueHolderRef vhcKey = new DirectValueHolderRef(objectOfVhk, member);
+                        handle.PendingValueHolders.Add(vhcKey);
                     }
                 }
             }
@@ -298,11 +329,11 @@ namespace De.Osthus.Ambeth.Merge
             {
                 return;
             }
-            ObjRef objRef = null;
+            IObjRef objRef = null;
 		    Object id = metaData.IdMember.GetValue(obj, false);
 		    if (id != null)
 		    {
-			    objRef = new ObjRef(metaData.EntityType, ObjRef.PRIMARY_KEY_INDEX, id, null);
+                objRef = ObjRefFactory.CreateObjRef(metaData.EntityType, ObjRef.PRIMARY_KEY_INDEX, id, null);
 		    }
 		    if (!(obj is IDataObject) || ((IDataObject) obj).HasPendingChanges)
 		    {
@@ -323,7 +354,7 @@ namespace De.Osthus.Ambeth.Merge
 		    {
 			    return;
 		    }
-            IRelationInfoItem[] relationMembers = metaData.RelationMembers;
+            RelationMember[] relationMembers = metaData.RelationMembers;
             if (relationMembers.Length == 0)
             {
                 return;
@@ -331,7 +362,7 @@ namespace De.Osthus.Ambeth.Merge
             IObjRefContainer vhc = (IObjRefContainer)obj;
             for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
             {
-                IRelationInfoItem relationMember = relationMembers[relationIndex];
+                RelationMember relationMember = relationMembers[relationIndex];
                 if (ValueHolderState.INIT != vhc.Get__State(relationIndex))
                 {
                     continue;
@@ -461,13 +492,13 @@ namespace De.Osthus.Ambeth.Merge
 
             AddModification(obj, handle); // Ensure entity will be persisted even if no single property is specified
 
-            IRelationInfoItem[] relationMembers = metaData.RelationMembers;
+            RelationMember[] relationMembers = metaData.RelationMembers;
             if (relationMembers.Length > 0)
             {
                 IObjRefContainer vhc = (IObjRefContainer)obj;
                 for (int relationIndex = relationMembers.Length; relationIndex-- > 0;)
                 {
-                    IRelationInfoItem relationMember = relationMembers[relationIndex];
+                    RelationMember relationMember = relationMembers[relationIndex];
                     if (ValueHolderState.INIT != vhc.Get__State(relationIndex))
                     {
                         continue;
@@ -481,7 +512,7 @@ namespace De.Osthus.Ambeth.Merge
                     AddOriModification(obj, relationMember.Name, objMember, null, handle);
                 }
             }
-            foreach (ITypeInfoItem primitiveMember in metaData.PrimitiveMembers)
+            foreach (PrimitiveMember primitiveMember in metaData.PrimitiveMembers)
             {
                 if (primitiveMember.TechnicalMember)
                 {
@@ -505,13 +536,13 @@ namespace De.Osthus.Ambeth.Merge
             bool oneChangeOccured = false;
             try
             {
-                IRelationInfoItem[] relationMembers = metaData.RelationMembers;
+                RelationMember[] relationMembers = metaData.RelationMembers;
                 if (relationMembers.Length > 0)
                 {
                     IObjRefContainer vhc = (IObjRefContainer)obj;
                     for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
                     {
-                        IRelationInfoItem relationMember = relationMembers[relationIndex];
+                        RelationMember relationMember = relationMembers[relationIndex];
                         if (!metaData.IsMergeRelevant(relationMember))
                         {
                             continue;
@@ -550,7 +581,7 @@ namespace De.Osthus.Ambeth.Merge
                 do
                 {
                     additionalRound = !oneChangeOccured;
-                    foreach (ITypeInfoItem primitiveMember in metaData.PrimitiveMembers)
+                    foreach (PrimitiveMember primitiveMember in metaData.PrimitiveMembers)
                     {
                         if (!metaData.IsMergeRelevant(primitiveMember))
                         {
@@ -574,7 +605,7 @@ namespace De.Osthus.Ambeth.Merge
             }
             finally
             {
-                ITypeInfoItem versionMember = metaData.VersionMember;
+                PrimitiveMember versionMember = metaData.VersionMember;
                 if (oneChangeOccured && versionMember !=null)
                 {
                     // Check for early optimistic locking (Another, later level is directly on persistence layer)
@@ -592,7 +623,7 @@ namespace De.Osthus.Ambeth.Merge
 
         protected void MergePrimitivesFieldBased(IEntityMetaData metaData, Object obj, Object clone, MergeHandle handle)
         {
-            foreach (ITypeInfoItem primitiveMember in metaData.PrimitiveMembers)
+            foreach (PrimitiveMember primitiveMember in metaData.PrimitiveMembers)
             {
                 if (!metaData.IsMergeRelevant(primitiveMember))
                 {
@@ -607,7 +638,7 @@ namespace De.Osthus.Ambeth.Merge
             }
         }
 
-        protected bool ArePrimitivesEqual(IEntityMetaData metaData, ITypeInfoItem primitiveMember, Object objValue, Object cloneValue, MergeHandle handle)
+        protected bool ArePrimitivesEqual(IEntityMetaData metaData, PrimitiveMember primitiveMember, Object objValue, Object cloneValue, MergeHandle handle)
         {
             if (objValue != null && cloneValue != null)
             {
@@ -735,11 +766,11 @@ namespace De.Osthus.Ambeth.Merge
 
         protected virtual IList<IUpdateItem> AddModification(Object obj, MergeHandle handle)
         {
-            IList<IUpdateItem> modItemList = DictionaryExtension.ValueOrDefault(handle.objToModDict, obj);
+            IList<IUpdateItem> modItemList = handle.objToModDict.Get(obj);
             if (modItemList == null)
             {
                 modItemList = new List<IUpdateItem>();
-                handle.objToModDict.Add(obj, modItemList);
+                handle.objToModDict.Put(obj, modItemList);
             }
             return modItemList;
         }
@@ -790,34 +821,11 @@ namespace De.Osthus.Ambeth.Merge
                 IList<IObjRef> oldOriList = OriHelper.ExtractObjRefList(cloneValue, handle, handle.oldOriList);
                 IList<IObjRef> newOriList = OriHelper.ExtractObjRefList(value, handle, handle.newOriList);
 
-                // Check unchanged ORIs
-                for (int a = oldOriList.Count; a-- > 0; )
+                IRelationUpdateItem oriModItem = CreateRUI(memberName, oldOriList, newOriList);
+                if (oriModItem == null)
                 {
-                    IObjRef oldOri = oldOriList[a];
-                    for (int b = newOriList.Count; b-- > 0; )
-                    {
-                        IObjRef newOri = newOriList[b];
-                        if (oldOri.Equals(newOri))
-                        {
-                            // Old ORIs, which exist as new ORIs, too, are unchanged
-                            newOriList.RemoveAt(b);
-                            oldOriList.RemoveAt(a);
-                            break;
-                        }
-                    }
+                    return;
                 }
-                // Old ORIs are now handled as REMOVE, New ORIs as ADD
-                RelationUpdateItem oriModItem = new RelationUpdateItem();
-                oriModItem.MemberName = memberName;
-                if (oldOriList.Count > 0)
-                {
-                    oriModItem.RemovedORIs = oldOriList.ToArray();
-                }
-                if (newOriList.Count > 0)
-                {
-                    oriModItem.AddedORIs = newOriList.ToArray();
-                }
-
                 IList<IUpdateItem> modItemList = AddModification(obj, handle);
 
                 modItemList.Add(oriModItem);
@@ -828,6 +836,87 @@ namespace De.Osthus.Ambeth.Merge
                 handle.newOriList.Clear();
             }
         }
+
+        public IRelationUpdateItem CreateRUI(String memberName, IList<IObjRef> oldOriList, IList<IObjRef> newOriList)
+	    {
+		    if (oldOriList.Count == 0 && newOriList.Count == 0)
+		    {
+			    return null;
+		    }
+		    IISet<IObjRef> oldSet = oldOriList.Count > 0 ? new CHashSet<IObjRef>(oldOriList) : EmptySet.Empty<IObjRef>();
+		    IISet<IObjRef> newSet = newOriList.Count > 0 ? new CHashSet<IObjRef>(newOriList) : EmptySet.Empty<IObjRef>();
+
+		    IISet<IObjRef> smallerSet = ((ICollection)oldSet).Count > ((ICollection)newSet).Count ? newSet : oldSet;
+		    IISet<IObjRef> greaterSet = ((ICollection)oldSet).Count > ((ICollection)newSet).Count ? oldSet : newSet;
+
+		    // Check unchanged ORIs
+		    Iterator<IObjRef> smallerIter = smallerSet.Iterator();
+		    while (smallerIter.MoveNext())
+		    {
+			    // Old ORIs, which exist as new ORIs, too, are unchanged
+			    IObjRef objRef = smallerIter.Current;
+			    if (greaterSet.Remove(objRef))
+			    {
+				    smallerIter.Remove();
+			    }
+		    }
+		    if (((ICollection)oldSet).Count == 0 && ((ICollection)newSet).Count == 0)
+		    {
+			    return null;
+		    }
+		    // Old ORIs are now handled as REMOVE, New ORIs as ADD
+		    RelationUpdateItem rui = new RelationUpdateItem();
+		    rui.MemberName = memberName;
+		    if (((ICollection)oldSet).Count > 0)
+		    {
+			    rui.RemovedORIs = oldSet.ToArray();
+		    }
+		    if (((ICollection)newSet).Count > 0)
+		    {
+			    rui.AddedORIs = newSet.ToArray();
+		    }
+		    return rui;
+	    }
+
+	    public RelationUpdateItemBuild CreateRUIBuild(String memberName, IList<IObjRef> oldOriList, IList<IObjRef> newOriList)
+	    {
+		    if (oldOriList.Count == 0 && newOriList.Count == 0)
+		    {
+			    return null;
+		    }
+            IISet<IObjRef> oldSet = oldOriList.Count > 0 ? new CHashSet<IObjRef>(oldOriList) : EmptySet.Empty<IObjRef>();
+            IISet<IObjRef> newSet = newOriList.Count > 0 ? new CHashSet<IObjRef>(newOriList) : EmptySet.Empty<IObjRef>();
+
+            IISet<IObjRef> smallerSet = ((ICollection)oldSet).Count > ((ICollection)newSet).Count ? newSet : oldSet;
+            IISet<IObjRef> greaterSet = ((ICollection)oldSet).Count > ((ICollection)newSet).Count ? oldSet : newSet;
+
+            // Check unchanged ORIs
+            Iterator<IObjRef> smallerIter = smallerSet.Iterator();
+            while (smallerIter.MoveNext())
+            {
+                // Old ORIs, which exist as new ORIs, too, are unchanged
+                IObjRef objRef = smallerIter.Current;
+                if (greaterSet.Remove(objRef))
+                {
+                    smallerIter.Remove();
+                }
+            }
+            if (((ICollection)oldSet).Count == 0 && ((ICollection)newSet).Count == 0)
+            {
+                return null;
+            }
+		    // Old ORIs are now handled as REMOVE, New ORIs as ADD
+		    RelationUpdateItemBuild rui = new RelationUpdateItemBuild(memberName);
+            if (((ICollection)oldSet).Count > 0)
+            {
+                rui.RemoveObjRefs(oldSet);
+            }
+            if (((ICollection)newSet).Count > 0)
+            {
+                rui.AddObjRefs(newSet);
+            }
+		    return rui;
+	    }
 
         protected virtual bool IsMemberModified(Object objValue, Object cloneValue, MergeHandle handle, IEntityMetaData metaData)
         {
@@ -905,7 +994,7 @@ namespace De.Osthus.Ambeth.Merge
             {
                 return false;
             }
-            ITypeInfoItem keyMember = metaData.IdMember;
+            PrimitiveMember keyMember = metaData.IdMember;
             return Object.Equals(keyMember.GetValue(clone, true), keyMember.GetValue(original, true));
         }
     }

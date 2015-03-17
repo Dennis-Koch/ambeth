@@ -157,7 +157,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
 
         public void MethodImplemented(MethodInstance method)
         {
-            if (!implementedMethods.PutIfNotExists(new MethodKeyOfType(method.Name, method.Parameters), method))
+            if (!implementedMethods.PutIfNotExists(new MethodKeyOfType(method.ReturnType, method.Name, method.Parameters), method))
             {
                 throw new Exception("Method already implemented: " + method);
             }
@@ -266,26 +266,29 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
 
         public bool IsMethodAlreadyImplementedOnNewType(MethodInstance method)
         {
-            return implementedMethods.ContainsKey(new MethodKeyOfType(method.Name, method.Parameters));
+            return implementedMethods.ContainsKey(new MethodKeyOfType(method.ReturnType, method.Name, method.Parameters));
         }
 
         public void PostProcessCreatedType(Type newType)
 	    {
             foreach (Entry<String, IValueResolveDelegate> entry in initializeStaticFields)
             {
-                FieldInfo field = ReflectUtil.GetDeclaredField(newType, entry.Key);
-                if (field == null)
+                FieldInfo[] fields = ReflectUtil.GetDeclaredFieldInHierarchy(newType, entry.Key);
+                if (fields.Length == 0)
                 {
                     throw new Exception("Field not found: '" + newType.FullName + "." + entry.Key);
                 }
                 Object value = entry.Value.Invoke(entry.Key, newType);
-                try
+                foreach (FieldInfo field in fields)
                 {
-                    field.SetValue(null, value);
-                }
-                catch (Exception e)
-                {
-                    throw RuntimeExceptionUtil.Mask(e, "Error occured while setting field: " + field);
+                    try
+                    {
+                        field.SetValue(null, value);
+                    }
+                    catch (Exception e)
+                    {
+                        throw RuntimeExceptionUtil.Mask(e, "Error occured while setting field: " + field);
+                    }
                 }
             }
             initializeStaticFields.Clear();

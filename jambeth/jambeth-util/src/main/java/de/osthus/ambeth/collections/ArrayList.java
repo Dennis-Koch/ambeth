@@ -5,15 +5,17 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.util.IPrintable;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class ArrayList<V> implements IList<V>, Externalizable, IPrintable
+public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Cloneable
 {
 	public static class FastIterator<V> implements ListIterator<V>
 	{
@@ -205,6 +207,7 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable
 		return (V) array[index];
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public final V peek()
 	{
@@ -219,6 +222,7 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable
 		}
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public final V popLastElement()
 	{
@@ -246,6 +250,28 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable
 			array[a] = null;
 		}
 		this.size = index;
+	}
+
+	/**
+	 * Returns a shallow copy of this <tt>ArrayList</tt> instance. (The elements themselves are not copied.)
+	 * 
+	 * @return a clone of this <tt>ArrayList</tt> instance
+	 */
+	@Override
+	public Object clone()
+	{
+		try
+		{
+			@SuppressWarnings("unchecked")
+			ArrayList<V> v = (ArrayList<V>) super.clone();
+			v.array = Arrays.copyOf(array, size);
+			v.size = size;
+			return v;
+		}
+		catch (CloneNotSupportedException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
 	}
 
 	@Override
@@ -622,8 +648,9 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable
 	@Override
 	public void toString(StringBuilder sb)
 	{
-		sb.append(size()).append(" items: [");
-		for (int a = 0, size = size(); a < size; a++)
+		int size = size();
+		sb.append(size).append(" items: [");
+		for (int a = 0; a < size; a++)
 		{
 			if (a > 0)
 			{

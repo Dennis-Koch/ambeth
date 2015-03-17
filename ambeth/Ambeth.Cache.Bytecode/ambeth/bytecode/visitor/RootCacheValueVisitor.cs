@@ -1,5 +1,6 @@
 using De.Osthus.Ambeth.Cache.Rootcachevalue;
 using De.Osthus.Ambeth.Merge.Model;
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using System;
@@ -60,14 +61,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected void ImplementPrimitives()
         {
-            ITypeInfoItem[] primitiveMembers = metaData.PrimitiveMembers;
+            Member[] primitiveMembers = metaData.PrimitiveMembers;
             FieldInstance[] f_primitives = new FieldInstance[primitiveMembers.Length];
             FieldInstance[] f_nullFlags = new FieldInstance[primitiveMembers.Length];
             Type[] fieldType = new Type[primitiveMembers.Length];
 
             for (int primitiveIndex = 0, size = primitiveMembers.Length; primitiveIndex < size; primitiveIndex++)
             {
-                ITypeInfoItem member = primitiveMembers[primitiveIndex];
+                Member member = primitiveMembers[primitiveIndex];
                 Type realType = member.RealType;
                 Type nativeType = ImmutableTypeSet.GetUnwrappedType(realType);
                 bool isNullable = true;
@@ -95,7 +96,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             ImplementSetPrimitives(primitiveMembers, f_primitives, f_nullFlags);
         }
 
-        protected void ImplementGetPrimitive(ITypeInfoItem[] primitiveMember, FieldInstance[] f_primitives, FieldInstance[] f_nullFlags)
+        protected void ImplementGetPrimitive(Member[] primitiveMember, FieldInstance[] f_primitives, FieldInstance[] f_nullFlags)
 	    {
 		    MethodInstance template_m_getPrimitive = new MethodInstance(null, typeof(RootCacheValue), typeof(Object), "GetPrimitive", typeof(int));
 
@@ -148,7 +149,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 		    mv.EndMethod();
 	    }
 
-        protected void ImplementGetPrimitives(ITypeInfoItem[] primitiveMembers, FieldInstance[] f_primitives, FieldInstance[] f_nullFlags)
+        protected void ImplementGetPrimitives(Member[] primitiveMembers, FieldInstance[] f_primitives, FieldInstance[] f_nullFlags)
         {
             MethodInstance template_m_getPrimitives = new MethodInstance(null, typeof(RootCacheValue), typeof(Object[]), "GetPrimitives");
 
@@ -189,7 +190,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             mv.EndMethod();
         }
 
-        protected void ImplementSetPrimitives(ITypeInfoItem[] primitiveMembers, FieldInstance[] f_primitives, FieldInstance[] f_nullFlags)
+        protected void ImplementSetPrimitives(Member[] primitiveMembers, FieldInstance[] f_primitives, FieldInstance[] f_nullFlags)
         {
             MethodInstance template_m_setPrimitives = new MethodInstance(null, typeof(RootCacheValue), typeof(void), "SetPrimitives", typeof(Object[]));
 
@@ -200,7 +201,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             {
                 FieldInstance f_primitive = f_primitives[primitiveIndex];
                 FieldInstance f_nullFlag = f_nullFlags[primitiveIndex];
-                ITypeInfoItem member = primitiveMembers[primitiveIndex];
+                Member member = primitiveMembers[primitiveIndex];
 			    Type originalType = member.RealType;
 
                 Script script_loadArrayValue = new Script(delegate(IMethodVisitor mg)
@@ -283,12 +284,12 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected void ImplementRelations()
         {
-            IRelationInfoItem[] relationMembers = metaData.RelationMembers;
+            RelationMember[] relationMembers = metaData.RelationMembers;
             FieldInstance[] f_relations = new FieldInstance[relationMembers.Length];
 
             for (int relationIndex = 0, size = relationMembers.Length; relationIndex < size; relationIndex++)
             {
-                IRelationInfoItem member = relationMembers[relationIndex];
+                RelationMember member = relationMembers[relationIndex];
                 FieldInstance f_relation = ImplementField(new FieldInstance(FieldAttributes.Private, CacheMapEntryVisitor.GetFieldName(member), typeof(IObjRef[])));
                 f_relations[relationIndex] = f_relation;
             }
@@ -298,7 +299,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             ImplementSetRelation(relationMembers, f_relations);
         }
 
-        protected void ImplementGetRelation(IRelationInfoItem[] relationMembers, FieldInstance[] f_relations)
+        protected void ImplementGetRelation(RelationMember[] relationMembers, FieldInstance[] f_relations)
 	    {
 		    MethodInstance template_m_getRelation = new MethodInstance(null, typeof(RootCacheValue), typeof(IObjRef[]), "GetRelation", typeof(int));
 
@@ -332,7 +333,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 		    mv.EndMethod();
 	    }
 
-        protected void ImplementSetRelation(IRelationInfoItem[] relationMembers, FieldInstance[] f_relations)
+        protected void ImplementSetRelation(RelationMember[] relationMembers, FieldInstance[] f_relations)
         {
             MethodInstance template_m_setRelation = new MethodInstance(null, typeof(RootCacheValue), typeof(void), "SetRelation", typeof(int), typeof(IObjRef[]));
 
@@ -363,7 +364,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             mv.EndMethod();
         }
 
-        protected void ImplementSetRelations(IRelationInfoItem[] relationMembers, FieldInstance[] fields)
+        protected void ImplementSetRelations(RelationMember[] relationMembers, FieldInstance[] fields)
         {
             MethodInstance template_m_setRelations = new MethodInstance(null, typeof(RootCacheValue), typeof(void), "SetRelations", typeof(IObjRef[][]));
 
@@ -385,7 +386,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             mv.EndMethod();
         }
 
-        protected void ImplementGetRelations(IRelationInfoItem[] relationMembers, FieldInstance[] f_relations)
+        protected void ImplementGetRelations(RelationMember[] relationMembers, FieldInstance[] f_relations)
         {
             MethodInstance template_m_getRelations = new MethodInstance(null, typeof(RootCacheValue), typeof(IObjRef[][]), "GetRelations");
 

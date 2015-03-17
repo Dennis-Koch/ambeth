@@ -45,7 +45,7 @@ public class AbstractCacheTest extends AbstractInformationBusTest
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 		{
-			IBeanConfiguration cacheRetrieverFakeBC = beanContextFactory.registerAnonymousBean(CacheRetrieverFake.class);
+			IBeanConfiguration cacheRetrieverFakeBC = beanContextFactory.registerBean(CacheRetrieverFake.class);
 			beanContextFactory.link(cacheRetrieverFakeBC).to(ICacheRetrieverExtendable.class).with(Material.class);
 			beanContextFactory.link(cacheRetrieverFakeBC).to(ICacheRetrieverExtendable.class).with(Unit.class);
 		}
@@ -74,6 +74,18 @@ public class AbstractCacheTest extends AbstractInformationBusTest
 	{
 		this.fixture = new AbstractCache<AbstractCacheValue>()
 		{
+			@Override
+			public ICache getCurrentCache()
+			{
+				return this;
+			}
+
+			@Override
+			public boolean isPrivileged()
+			{
+				return true;
+			}
+
 			@Override
 			public IList<Object> getObjects(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective)
 			{
@@ -332,11 +344,5 @@ public class AbstractCacheTest extends AbstractInformationBusTest
 	public void testGetContent()
 	{
 		this.fixture.getContent(null);
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testCascadeLoadPath()
-	{
-		this.fixture.cascadeLoadPath(null, null);
 	}
 }

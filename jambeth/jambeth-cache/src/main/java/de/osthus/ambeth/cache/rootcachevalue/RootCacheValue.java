@@ -1,6 +1,7 @@
 package de.osthus.ambeth.cache.rootcachevalue;
 
 import de.osthus.ambeth.cache.AbstractCacheValue;
+import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ValueHolderState;
 import de.osthus.ambeth.collections.IListElem;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
@@ -18,6 +19,12 @@ public abstract class RootCacheValue extends AbstractCacheValue implements IList
 		// Intended blank
 	}
 
+	@Override
+	public ICache get__Cache()
+	{
+		return null;
+	}
+
 	public abstract void setPrimitives(Object[] primitives);
 
 	public abstract IObjRef[][] getRelations();
@@ -31,7 +38,7 @@ public abstract class RootCacheValue extends AbstractCacheValue implements IList
 	@Override
 	public Object getListHandle()
 	{
-		return this.listHandle;
+		return listHandle;
 	}
 
 	@Override

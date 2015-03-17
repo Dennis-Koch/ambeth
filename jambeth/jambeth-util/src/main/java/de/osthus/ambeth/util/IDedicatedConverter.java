@@ -15,5 +15,5 @@ public interface IDedicatedConverter
 	 *            Optional information if neede for this conversion
 	 * @return Value converted to expectedType
 	 */
-	Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value, Object additionalInformation);
+	Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value, Object additionalInformation) throws Throwable;
 }

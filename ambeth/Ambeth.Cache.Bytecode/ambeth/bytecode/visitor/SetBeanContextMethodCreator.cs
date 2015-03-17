@@ -1,35 +1,37 @@
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Util;
+using System;
 using System.Reflection;
 
 namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
-	public class SetBeanContextMethodCreator : ClassVisitor
-	{
-		private static readonly FieldAndSetterTemplate template = new FieldAndSetterTemplate(FieldAttributes.Family, "f_beanContext", ReflectUtil.GetDeclaredMethod(
-				false, typeof(IBeanContextAware), typeof(void), "set_BeanContext", typeof(IServiceContext)));
+    public class SetBeanContextMethodCreator : ClassVisitor
+    {
+        private static readonly String beanContextName = "$beanContext";
 
-		public static MethodInstance GetBeanContextSetter(IClassVisitor cg)
-		{
-			return template.GetSetter(cg);
-		}
+        public static PropertyInstance GetBeanContextPI(IClassVisitor cv)
+        {
+            Object bean = State.BeanContext.GetService<IServiceContext>();
+            PropertyInstance pi = State.GetProperty(beanContextName, NewType.GetType(bean.GetType()));
+            if (pi != null)
+            {
+                return pi;
+            }
+            return cv.ImplementAssignedReadonlyProperty(beanContextName, bean);
+        }
 
-		public static FieldInstance GetBeanContextField(IClassVisitor cg)
-		{
-			return template.GetField(cg);
-		}
+        public SetBeanContextMethodCreator(IClassVisitor cv)
+            : base(cv)
+        {
+            // intended blank
+        }
 
-		public SetBeanContextMethodCreator(IClassVisitor cv) : base(new InterfaceAdder(cv, typeof(IBeanContextAware)))
-		{
-			// Intended blank
-		}
+        public override void VisitEnd()
+        {
+            // force implementation
+            GetBeanContextPI(this);
 
-		public override void VisitEnd()
-		{
-			// force implementation
-			template.GetField(this);
-
-			base.VisitEnd();
-		}
-	}
+            base.VisitEnd();
+        }
+    }
 }

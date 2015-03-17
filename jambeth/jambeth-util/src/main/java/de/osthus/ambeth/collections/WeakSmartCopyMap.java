@@ -19,11 +19,11 @@ public class WeakSmartCopyMap<K, V> extends WeakHashMap<K, V>
 {
 	private final Lock writeLock = new ReentrantLock();
 
-	private boolean autoCleanupReference;
+	private boolean autoCleanupNullValue;
 
 	public WeakSmartCopyMap()
 	{
-		super(0.5f);
+		super();
 	}
 
 	public WeakSmartCopyMap(float loadFactor)
@@ -38,12 +38,17 @@ public class WeakSmartCopyMap<K, V> extends WeakHashMap<K, V>
 
 	public WeakSmartCopyMap(int initialCapacity)
 	{
-		super(initialCapacity, 0.5f);
+		super(initialCapacity);
 	}
 
-	public void setAutoCleanupReference(boolean autoCleanupReference)
+	public boolean isAutoCleanupNullValue()
 	{
-		this.autoCleanupReference = autoCleanupReference;
+		return autoCleanupNullValue;
+	}
+
+	public void setAutoCleanupNullValue(boolean autoCleanupNullValue)
+	{
+		this.autoCleanupNullValue = autoCleanupNullValue;
 	}
 
 	public Lock getWriteLock()
@@ -51,13 +56,17 @@ public class WeakSmartCopyMap<K, V> extends WeakHashMap<K, V>
 		return writeLock;
 	}
 
-	protected WeakHashMap<K, V> createCopy()
+	protected WeakHashMap<K, V> createEmptyInstance()
 	{
 		final WeakSmartCopyMap<K, V> This = this;
-		// Copy existing data in FULLY NEW STRUCTURE
-		IMapEntry<K, V>[] table = this.table;
-		WeakHashMap<K, V> backupMap = new WeakHashMap<K, V>(table.length, this.loadFactor)
+		return new WeakHashMap<K, V>(table.length, this.loadFactor)
 		{
+			@Override
+			protected IMapEntry<K, V> createEntry(int hash, K key, V value, IMapEntry<K, V> nextEntry)
+			{
+				return This.createEntry(hash, key, value, nextEntry);
+			}
+
 			@Override
 			protected boolean equalKeys(K key, IMapEntry<K, V> entry)
 			{
@@ -70,7 +79,14 @@ public class WeakSmartCopyMap<K, V> extends WeakHashMap<K, V>
 				return This.extractHash(key);
 			}
 		};
-		if (autoCleanupReference)
+	}
+
+	protected WeakHashMap<K, V> createCopy()
+	{
+		// Copy existing data in FULLY NEW STRUCTURE
+		IMapEntry<K, V>[] table = this.table;
+		WeakHashMap<K, V> backupMap = createEmptyInstance();
+		if (autoCleanupNullValue)
 		{
 			for (int a = table.length; a-- > 0;)
 			{

@@ -1,10 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>de.osthus.ambeth</groupId>
 	<artifactId>jambeth-pom</artifactId>
-	<version>2.1.X-SNAPSHOT</version>
+	<version>2.3.X-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<parent>
@@ -19,7 +18,7 @@
 	</properties>
 
 	<modules>
-		<module>jambeth-audit</module>
+		<module>jambeth-audit-server</module>
 		<module>jambeth-bytecode</module>
 		<module>jambeth-cache</module>
 		<module>jambeth-cache-bytecode</module>
@@ -32,6 +31,8 @@
 		<module>jambeth-event-datachange</module>
 		<module>jambeth-event-server</module>
 		<module>jambeth-examples</module>
+		<module>jambeth-expr</module>
+		<module>jambeth-expr-exp4j</module>
 		<module>jambeth-filter</module>
 		<module>jambeth-ioc</module>
 		<module>jambeth-job</module>
@@ -45,6 +46,7 @@
 		<module>jambeth-persistence-api</module>
 		<module>jambeth-persistence-h2</module>
 		<module>jambeth-persistence-jdbc</module>
+		<module>jambeth-persistence-mssql</module>
 		<module>jambeth-persistence-oracle11</module>
 		<module>jambeth-platform</module>
 		<module>jambeth-query</module>
@@ -53,12 +55,13 @@
 		<module>jambeth-rdf</module>
 		<module>jambeth-security</module>
 		<module>jambeth-security-bytecode</module>
+		<module>jambeth-security-job</module>
+		<module>jambeth-security-persistence</module>
 		<module>jambeth-security-server</module>
 		<module>jambeth-sensor</module>
 		<module>jambeth-server-helloworld</module>
 		<module>jambeth-server-rest</module>
 		<module>jambeth-service</module>
-		<module>jambeth-service-rest</module>
 		<module>jambeth-soap</module>
 		<module>jambeth-stream</module>
 		<module>jambeth-util</module>
@@ -98,9 +101,15 @@
 			</dependency>
 
 			<dependency>
+				<groupId>org.eclipse.persistence</groupId>
+				<artifactId>javax.persistence</artifactId>
+				<version>2.0.0</version>
+			</dependency>
+
+			<dependency>
 				<groupId>org.javassist</groupId>
 				<artifactId>javassist</artifactId>
-				<version>3.16.1-GA</version>
+				<version>3.18.2-GA</version>
 			</dependency>
 
 			<dependency>
@@ -115,15 +124,21 @@
 				<version>1.1.4c</version>
 			</dependency>
 
+			<dependency>
+				<groupId>net.objecthunter</groupId>
+				<artifactId>exp4j</artifactId>
+				<version>0.4.4</version>
+			</dependency>
+
 			<!-- jAmbeth dependencies -->
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
-				<artifactId>jambeth-audit</artifactId>
+				<artifactId>jambeth-audit-server</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
-				<artifactId>jambeth-audit-test</artifactId>
+				<artifactId>jambeth-audit-server-test</artifactId>
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
@@ -256,6 +271,36 @@
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-event-server-test</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-examples</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-expr</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-expr-test</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-expr-exp4j</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-expr-exp4j-test</artifactId>
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
@@ -415,6 +460,18 @@
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
+			
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-persistence-mssql</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-persistence-mssql-test</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
 
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
@@ -502,6 +559,31 @@
 
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-security-job</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-security-job-test</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-security-persistence</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-security-persistence-test</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-security-server</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -574,20 +656,6 @@
 
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
-				<artifactId>jambeth-testutil</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>de.osthus.ambeth</groupId>
-				<artifactId>jambeth-testutil-persistence</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-util</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -613,8 +681,38 @@
 			<!-- BUNDLES -->
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-information-bus</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-information-bus-test</artifactId>
 				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-information-bus-with-persistence</artifactId>
+				<version>${project.version}</version>
+				<type>pom</type>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-information-bus-with-persistence-test</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-server</artifactId>
+				<version>${project.version}</version>
+				<type>pom</type>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-server-test</artifactId>
+				<version>${project.version}</version>
+				<type>pom</type>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
@@ -728,6 +826,56 @@
 				<local.server.port>8089</local.server.port>
 			</properties>
 		</profile>
-	</profiles>
 
+		<profile>
+			<id>jenkins</id>
+			<activation>
+				<property>
+					<name>env.JENKINS_HOME</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<forkCount>1C</forkCount>
+							<reuseForks>true</reuseForks>
+							<!-- add argLine only if jacoco is activated like it is in the jenkins profile -->
+							<argLine>-XX:MaxPermSize=128m ${argLine}</argLine>
+							<systemPropertyVariables>
+								<ambeth.test.forkname>f${surefire.forkNumber}</ambeth.test.forkname>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		
+		<profile>
+			<id>non-jenkins</id>
+			<activation>
+				<property>
+					<name>!env.JENKINS_HOME</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<forkCount>1C</forkCount>
+							<reuseForks>true</reuseForks>
+							<argLine>-XX:MaxPermSize=128m</argLine>
+							<systemPropertyVariables>
+								<ambeth.test.forkname>f${surefire.forkNumber}</ambeth.test.forkname>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

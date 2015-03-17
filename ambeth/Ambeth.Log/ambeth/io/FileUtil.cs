@@ -7,6 +7,7 @@ using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Util;
 using System.Reflection;
 using De.Osthus.Ambeth.Config;
+using System.Threading;
 #if SILVERLIGHT
 using System.Windows.Resources;
 using System.Windows;
@@ -14,13 +15,26 @@ using System.Windows;
 
 namespace De.Osthus.Ambeth.Io
 {
-    public class FileUtil
+    public sealed class FileUtil
     {
+        private static readonly ThreadLocal<Type> currentTypeScopeTL = new ThreadLocal<Type>();
+
         private const char CONFIG_SEPARATOR = ';';
 
         private const char PATH_SEPARATOR = '\\';
 
-        protected FileUtil()
+        public static Type SetCurrentTypeScope(Type currentTypeScope)
+	    {
+            Type oldCurrentTypeScope = currentTypeScopeTL.Value;
+		    if (Object.ReferenceEquals(oldCurrentTypeScope, currentTypeScope))
+		    {
+			    return oldCurrentTypeScope;
+		    }
+		    currentTypeScopeTL.Value = currentTypeScope;
+		    return oldCurrentTypeScope;
+	    }
+
+        private FileUtil()
         {
             // Intended blank
         }
@@ -151,7 +165,7 @@ namespace De.Osthus.Ambeth.Io
             return fileStream;
         }
 
-        protected static String Combine(String[] strings)
+        private static String Combine(String[] strings)
         {
             if (strings == null || strings.Length == 0)
             {

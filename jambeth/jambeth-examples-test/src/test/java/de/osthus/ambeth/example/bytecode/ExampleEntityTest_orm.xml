@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://osthus.de/ambeth/ambeth_orm_2_0">
+
+	<link-mappings>
+		<independent-link alias="ExampleEntity-OtherEntity" left="de.osthus.ambeth.example.bytecode.ExampleEntity" right="de.osthus.ambeth.example.bytecode.ExampleEntity"/>
+	</link-mappings>
+
+	<entity-mappings>
+		<entity class="de.osthus.ambeth.example.bytecode.ExampleEntity">
+			<attributes>
+				<relation name="OtherEntities" link="ExampleEntity-OtherEntity" this="left"/>
+			</attributes>
+		</entity>
+	</entity-mappings>
+	
+</or-mappings>

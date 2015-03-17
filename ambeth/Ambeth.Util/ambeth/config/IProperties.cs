@@ -10,6 +10,8 @@ namespace De.Osthus.Ambeth.Config
 
         Object Get(String key);
 
+        Object Get(String key, IProperties initiallyCalledProps);
+
         String GetString(String key);
 
         String GetString(String key, String defaultValue);

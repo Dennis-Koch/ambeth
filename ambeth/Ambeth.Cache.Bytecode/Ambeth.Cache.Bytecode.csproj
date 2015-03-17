@@ -101,17 +101,14 @@
     <Compile Include="ambeth\bytecode\behavior\LazyRelationsBehavior.cs" />
     <Compile Include="ambeth\bytecode\behavior\NotifyPropertyChangedBehavior.cs" />
     <Compile Include="ambeth\bytecode\behavior\ParentCacheHardRefBehavior.cs" />
-    <Compile Include="ambeth\bytecode\behavior\PublicEmbeddedConstructorBehavior.cs" />
     <Compile Include="ambeth\bytecode\util\EnhancerUtil.cs" />
     <Compile Include="ambeth\bytecode\visitor\DataObjectVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\DefaultPropertiesMethodVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\EntityEqualsVisitor.cs" />
-    <Compile Include="ambeth\bytecode\visitor\FieldAndSetterTemplate.cs" />
     <Compile Include="ambeth\bytecode\visitor\GetBaseTypeMethodCreator.cs" />
     <Compile Include="ambeth\bytecode\visitor\GetIdMethodCreator.cs" />
     <Compile Include="ambeth\bytecode\visitor\NotifyPropertyChangedClassVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\ParentCacheHardRefVisitor.cs" />
-    <Compile Include="ambeth\bytecode\visitor\PublicEmbeddedConstructorVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\RelationsGetterVisitor.cs" />
     <Compile Include="ambeth\ioc\CacheBytecodeModule.cs" />
   </ItemGroup>
@@ -126,6 +123,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\bytecode\visitor\EntityMetaDataHolderVisitor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\behavior\InitializeEmbeddedMemberBehavior.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\visitor\InitializeEmbeddedMemberVisitor.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

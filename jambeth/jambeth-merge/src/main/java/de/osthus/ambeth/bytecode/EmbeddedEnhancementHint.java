@@ -1,7 +1,11 @@
 package de.osthus.ambeth.bytecode;
 
-public class EmbeddedEnhancementHint implements ITargetNameEnhancementHint
+import java.io.Serializable;
+
+public class EmbeddedEnhancementHint implements ITargetNameEnhancementHint, Serializable
 {
+	private static final long serialVersionUID = -8425591662442655129L;
+
 	public static boolean hasMemberPath(IEnhancementHint hint)
 	{
 		return getMemberPath(hint) != null;

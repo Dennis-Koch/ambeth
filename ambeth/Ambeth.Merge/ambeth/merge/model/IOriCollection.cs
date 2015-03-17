@@ -12,8 +12,12 @@ namespace De.Osthus.Ambeth.Merge.Model
 
         IList<IObjRef> GetChangeRefs(Type type);
 
-        DateTime? ChangedOn { get; }
+        long? ChangedOn { get; }
 
         String ChangedBy { get; }
+
+        long[] AllChangedOn { get; }
+
+        String[] AllChangedBy { get; }
     }
 }

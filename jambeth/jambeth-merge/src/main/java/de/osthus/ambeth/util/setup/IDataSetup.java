@@ -4,5 +4,7 @@ import java.util.Collection;
 
 public interface IDataSetup
 {
+	void eraseEntityReferences();
+
 	Collection<Object> executeDatasetBuilders();
 }

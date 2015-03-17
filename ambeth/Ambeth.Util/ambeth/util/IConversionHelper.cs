@@ -10,9 +10,9 @@ namespace De.Osthus.Ambeth.Util
     /// basic Ambeth context has a bean autowired to this interface. The conversion feature is extendable via the {@wiki wikipedia_en Extensibility_pattern
     /// Extensibility pattern} by implementing the {@link IDedicatedConverter} interface and linking the bean to {@link IDedicatedConverterExtendable}.
     /// </summary>
-    public interface IConversionHelper
+    public abstract class IConversionHelper
     {
-        bool DateTimeUTC { set; }
+        public abstract bool DateTimeUTC { set; }
 
         /// <summary>
         /// Primary method to convert values.
@@ -20,7 +20,7 @@ namespace De.Osthus.Ambeth.Util
         /// <typeparam name="T">Conversion target type.</typeparam>
         /// <param name="value">Value to be converted.</param>
         /// <returns>Representation of the given value as the target type.</returns>
-	    T ConvertValueToType<T>(Object value);
+        public abstract T ConvertValueToType<T>(Object value);
 
         /// <summary>
         /// Secondary method to convert values to specific types. Only used if the conversion needs additional informations, e.g. lost generic types, date format, string encoding.
@@ -29,7 +29,7 @@ namespace De.Osthus.Ambeth.Util
         /// <param name="value">Value to be converted.</param>
         /// <param name="additionalInformation">Additional information needed for this conversion.</param>
         /// <returns>Representation of the given value as the target type.</returns>
-        T ConvertValueToType<T>(Object value, Object additionalInformation);
+        public abstract T ConvertValueToType<T>(Object value, Object additionalInformation);
 
         /// <summary>
         /// Primary method to convert values.
@@ -37,7 +37,7 @@ namespace De.Osthus.Ambeth.Util
         /// <param name="expectedType">Conversion target type.</param>
         /// <param name="value">Value to be converted.</param>
         /// <returns>Representation of the given value as the target type.</returns>
-        Object ConvertValueToType(Type expectedType, Object value);
+        public abstract Object ConvertValueToType(Type expectedType, Object value);
 
         /// <summary>
         /// Secondary method to convert values to specific types. Only used if the conversion needs additional informations, e.g. lost generic types, date format, string encoding.
@@ -46,6 +46,6 @@ namespace De.Osthus.Ambeth.Util
         /// <param name="value">Value to be converted.</param>
         /// <param name="additionalInformation">Additional information needed for this conversion.</param>
         /// <returns>Representation of the given value as the target type.</returns>
-        Object ConvertValueToType(Type expectedType, Object value, Object additionalInformation);
+        public abstract Object ConvertValueToType(Type expectedType, Object value, Object additionalInformation);
     }
 }

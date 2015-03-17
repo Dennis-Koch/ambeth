@@ -2,11 +2,13 @@ package de.osthus.ambeth.cache;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
+import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 
-public class CacheModification implements ICacheModification
+public class CacheModification implements ICacheModification, IThreadLocalCleanupBean
 {
 	private static final Integer ACTIVE = Integer.valueOf(1), FLUSHING = Integer.valueOf(2);
 
@@ -14,11 +16,21 @@ public class CacheModification implements ICacheModification
 	private ILogger log;
 
 	// Intentionally no SensitiveThreadLocal
+	@Forkable
 	protected final ThreadLocal<Integer> activeTL = new ThreadLocal<Integer>();
 
+	@Forkable
 	protected final ThreadLocal<Boolean> internalUpdateTL = new ThreadLocal<Boolean>();
 
 	protected final ThreadLocal<ArrayList<IBackgroundWorkerDelegate>> queuedEventsTL = new ThreadLocal<ArrayList<IBackgroundWorkerDelegate>>();
+
+	@Override
+	public void cleanupThreadLocal()
+	{
+		activeTL.remove();
+		internalUpdateTL.remove();
+		queuedEventsTL.remove();
+	}
 
 	@Override
 	public boolean isActiveOrFlushing()

@@ -3,50 +3,50 @@ using System.Runtime.CompilerServices;
 
 namespace De.Osthus.Ambeth.Collections
 {
-    public class TempHashMap<K, V> : HashMap<K, V>
+    public class TempHashMap<E, K, V> : AbstractHashMap<E, K, V> where E : IMapEntry<K, V>
     {
-        public delegate bool EqualsKeysDelegate(K key, MapEntry<K, V> entry);
+        public delegate bool EqualsKeysDelegate(K key, E entry);
 
         public delegate int ExtractHashDelegate(K key);
 
-        public static TempHashMap<K, V> Create(int size, EqualsKeysDelegate equalsKeysDelegate, ExtractHashDelegate equalsHashDelegate)
-        {
-            return new TempHashMap<K, V>((int)(size / DEFAULT_LOAD_FACTOR) + 1, equalsKeysDelegate, equalsHashDelegate);
-        }
+        public delegate E CreateEntryDelegate(int hash, K key, V value, E nextEntry);
+
+        public delegate void SetNextEntryDelegate(E entry, E nextEntry);
+
+        public delegate V SetValueForEntryDelegate(E entry, V value);
+
+        protected readonly CreateEntryDelegate createEntryDelegate;
 
         protected readonly EqualsKeysDelegate equalsKeysDelegate;
 
         protected readonly ExtractHashDelegate extractHashDelegate;
 
-        public TempHashMap(EqualsKeysDelegate equalsKeysDelegate, ExtractHashDelegate extractHashDelegate)
-            : base(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR)
-        {
-            this.equalsKeysDelegate = equalsKeysDelegate;
-            this.extractHashDelegate = extractHashDelegate;
-        }
+        protected readonly SetNextEntryDelegate setNextEntryDelegate;
 
-        public TempHashMap(float loadFactor, EqualsKeysDelegate equalsKeysDelegate, ExtractHashDelegate extractHashDelegate)
-            : base(DEFAULT_INITIAL_CAPACITY, loadFactor)
-        {
-            this.equalsKeysDelegate = equalsKeysDelegate;
-            this.extractHashDelegate = extractHashDelegate;
-        }
+        protected readonly SetValueForEntryDelegate setValueForEntryDelegate;
 
-        public TempHashMap(int initialCapacity, EqualsKeysDelegate equalsKeysDelegate, ExtractHashDelegate extractHashDelegate)
-            : base(initialCapacity, DEFAULT_LOAD_FACTOR)
-        {
-            this.equalsKeysDelegate = equalsKeysDelegate;
-            this.extractHashDelegate = extractHashDelegate;
-        }
+        protected int size;
 
-        public TempHashMap(int initialCapacity, float loadFactor, EqualsKeysDelegate equalsKeysDelegate, ExtractHashDelegate equalsHashDelegate)
+        public TempHashMap(int initialCapacity, float loadFactor, CreateEntryDelegate createEntryDelegate, EqualsKeysDelegate equalsKeysDelegate, ExtractHashDelegate equalsHashDelegate,
+            SetNextEntryDelegate setNextEntryDelegate, SetValueForEntryDelegate setValueForEntryDelegate)
             : base(initialCapacity, loadFactor)
         {
+            this.createEntryDelegate = createEntryDelegate;
             this.equalsKeysDelegate = equalsKeysDelegate;
             this.extractHashDelegate = equalsHashDelegate;
+            this.setNextEntryDelegate = setNextEntryDelegate;
+            this.setValueForEntryDelegate = setValueForEntryDelegate;
         }
 
-        public MapEntry<K, V>[] GetTable()
+        public override int Count
+        {
+            get
+            {
+                return size;
+            }
+        }
+
+        public E[] GetTable()
         {
             return table;
         }
@@ -61,14 +61,29 @@ namespace De.Osthus.Ambeth.Collections
             return tableLengthMinusOne;
         }
 
-        protected override bool EqualKeys(K key, MapEntry<K, V> entry)
+        protected override E CreateEntry(int hash, K key, V value, E nextEntry)
         {
-            return equalsKeysDelegate.Invoke(key, entry);
+            return createEntryDelegate(hash, key, value, nextEntry);
+        }
+
+        protected override void SetNextEntry(E entry, E nextEntry)
+        {
+            setNextEntryDelegate(entry, nextEntry);
+        }
+
+        protected override V SetValueForEntry(E entry, V value)
+        {
+            return setValueForEntryDelegate(entry, value);
+        }
+
+        protected override bool EqualKeys(K key, E entry)
+        {
+            return equalsKeysDelegate(key, entry);
         }
 
         protected override int ExtractHash(K key)
         {
-            return extractHashDelegate.Invoke(key);
+            return extractHashDelegate(key);
         }
     }
 }

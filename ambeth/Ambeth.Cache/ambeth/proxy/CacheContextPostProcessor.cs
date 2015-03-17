@@ -42,11 +42,16 @@ namespace De.Osthus.Ambeth.Proxy
             CacheInterceptor interceptor = new CacheInterceptor();
             if (beanContext.IsRunning)
             {
-                interceptor = beanContext.RegisterWithLifecycle(interceptor).PropertyValue("Behavior", cacheBehavior).IgnoreProperties("ProcessService").Finish();
+                interceptor = beanContext.RegisterWithLifecycle(interceptor)//
+                    .PropertyValue("Behavior", cacheBehavior)//
+                    .IgnoreProperties("ProcessService", "ServiceName")//
+                    .Finish();
             }
             else
             {
-                beanContextFactory.RegisterWithLifecycle(interceptor).PropertyValue("Behavior", cacheBehavior).IgnoreProperties("ProcessService");
+                beanContextFactory.RegisterWithLifecycle(interceptor)//
+                    .PropertyValue("Behavior", cacheBehavior)//
+                    .IgnoreProperties("ProcessService", "ServiceName");
             }
 
             CacheType cacheType = cacheContext.CacheType;
@@ -78,15 +83,14 @@ namespace De.Osthus.Ambeth.Proxy
             CacheContextInterceptor ccInterceptor = new CacheContextInterceptor();
             if (beanContext.IsRunning)
             {
-                IBeanRuntime<CacheContextInterceptor> interceptorBR = beanContext.RegisterWithLifecycle(ccInterceptor);
-                interceptorBR.PropertyRef("CacheProvider", cacheProviderName).PropertyValue("Target", interceptor);
-                ccInterceptor = interceptorBR.Finish();
+                return beanContext.RegisterWithLifecycle(ccInterceptor)//
+                    .PropertyRef("CacheProvider", cacheProviderName)//
+                    .PropertyValue("Target", interceptor)//
+                    .Finish();
             }
-            else
-            {
-                IBeanConfiguration interceptorBC = beanContextFactory.RegisterWithLifecycle(ccInterceptor);
-                interceptorBC.PropertyRef("CacheProvider", cacheProviderName).PropertyValue("Target", interceptor);
-            }
+            beanContextFactory.RegisterWithLifecycle(ccInterceptor)//
+                .PropertyRef("CacheProvider", cacheProviderName)//
+                .PropertyValue("Target", interceptor);
             return ccInterceptor;
         }
     }

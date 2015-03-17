@@ -80,6 +80,7 @@
     <Compile Include="ambeth\config\ServiceConfigurationConstants.cs" />
     <Compile Include="ambeth\exceptions\OptimisticLockException.cs" />
     <Compile Include="ambeth\exceptions\ReconnectException.cs" />
+    <Compile Include="ambeth\ioc\ServiceModule.cs" />
     <Compile Include="ambeth\merge\IEntityMetaDataProvider.cs" />
     <Compile Include="ambeth\merge\IEntityMetaDataRefresher.cs" />
     <Compile Include="ambeth\merge\IValueObjectConfig.cs" />
@@ -91,6 +92,18 @@
     <Compile Include="ambeth\merge\model\IEntityMetaData.cs" />
     <Compile Include="ambeth\merge\model\IObjRef.cs" />
     <Compile Include="ambeth\merge\ValueObjectMemberType.cs" />
+    <Compile Include="ambeth\metadata\Embeddable.cs" />
+    <Compile Include="ambeth\metadata\EmbeddedMember.cs" />
+    <Compile Include="ambeth\metadata\IEmbeddedMember.cs" />
+    <Compile Include="ambeth\metadata\IntermediateEmbeddedPrimitiveMember.cs" />
+    <Compile Include="ambeth\metadata\IntermediateEmbeddedRelationMember.cs" />
+    <Compile Include="ambeth\metadata\IntermediatePrimitiveMember.cs" />
+    <Compile Include="ambeth\metadata\IntermediateRelationMember.cs" />
+    <Compile Include="ambeth\metadata\IPrimitiveMemberWrite.cs" />
+    <Compile Include="ambeth\metadata\IRelationMemberWrite.cs" />
+    <Compile Include="ambeth\metadata\Member.cs" />
+    <Compile Include="ambeth\metadata\PrimitiveMember.cs" />
+    <Compile Include="ambeth\metadata\RelationMember.cs" />
     <Compile Include="ambeth\model\IObjRelationResult.cs" />
     <Compile Include="ambeth\model\IServiceResult.cs" />
     <Compile Include="ambeth\model\ILoadContainer.cs" />
@@ -140,12 +153,10 @@
     <Compile Include="ambeth\typeinfo\FieldInfoItemASM.cs" />
     <Compile Include="ambeth\typeinfo\PropertyInfoItem.cs" />
     <Compile Include="ambeth\typeinfo\PropertyInfoItemASM.cs" />
-    <Compile Include="ambeth\typeinfo\RelationInfoItem.cs" />
     <Compile Include="ambeth\typeinfo\TypeInfoProvider.cs" />
     <Compile Include="ambeth\typeinfo\TypeInfoProviderFactory.cs" />
     <Compile Include="ambeth\xml\IXmlTypeHelper.cs" />
     <Compile Include="ambeth\xml\XmlTypeHelper.cs" />
-    <Compile Include="ioc\ServiceModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

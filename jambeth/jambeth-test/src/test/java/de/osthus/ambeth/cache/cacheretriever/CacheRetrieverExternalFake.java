@@ -12,20 +12,20 @@ import de.osthus.ambeth.cache.model.IObjRelationResult;
 import de.osthus.ambeth.cache.model.IServiceResult;
 import de.osthus.ambeth.cache.transfer.LoadContainer;
 import de.osthus.ambeth.cache.transfer.ObjRelationResult;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.IObjRefFactory;
 import de.osthus.ambeth.model.IServiceDescription;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.service.ICacheService;
 import de.osthus.ambeth.util.IPrintable;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class CacheRetrieverExternalFake implements ICacheService, IInitializingBean
+public class CacheRetrieverExternalFake implements ICacheService
 {
 	@LogInstance
 	private ILogger log;
@@ -34,26 +34,14 @@ public class CacheRetrieverExternalFake implements ICacheService, IInitializingB
 
 	protected final Set<Class<?>> entityTypes = new HashSet<Class<?>>(Arrays.<Class<?>> asList(ExternalEntity.class, ExternalEntity2.class));
 
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
+	@Autowired
+	protected IObjRefFactory objRefFactory;
+
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
-
-	@Override
-	public void afterPropertiesSet()
-	{
-		ParamChecker.assertNotNull(entityMetaDataProvider, "EntityMetaDataProvider");
-		ParamChecker.assertNotNull(objectCollector, "ObjectCollector");
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
 
 	@Override
 	public List<ILoadContainer> getEntities(List<IObjRef> orisToLoad)
@@ -191,7 +179,7 @@ public class CacheRetrieverExternalFake implements ICacheService, IInitializingB
 		IObjRef[][] relations = new IObjRef[metaData.getRelationMembers().length][];
 		if (metaData.getEntityType().equals(ExternalEntity2.class))
 		{
-			IObjRef refToLocal = new ObjRef(LocalEntity.class, (byte) 0, "LocalEntity 893", null);
+			IObjRef refToLocal = objRefFactory.createObjRef(LocalEntity.class, 0, "LocalEntity 893", null);
 
 			relations[metaData.getIndexByRelationName("Parent")] = parentRelation;
 			relations[metaData.getIndexByRelationName("Local")] = new IObjRef[] { refToLocal };

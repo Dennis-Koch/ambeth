@@ -8,6 +8,8 @@ using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Metadata;
+using De.Osthus.Ambeth.Cache;
 
 namespace De.Osthus.Ambeth.Converter.Merge
 {
@@ -17,14 +19,17 @@ namespace De.Osthus.Ambeth.Converter.Merge
 		public ILogger Log { private get; set; }
 
         [Autowired]
+        public ICacheModification CacheModification { protected get; set; }
+
+        [Autowired]
         public IEntityFactory EntityFactory { protected get; set; }
 
         [Autowired]
-        public IProxyHelper ProxyHelper { protected get; set; }
-
-        [Autowired]
-        public ITypeInfoProvider TypeInfoProvider { protected get; set; }
+        public IIntermediateMemberTypeProvider IntermediateMemberTypeProvider { protected get; set; }
         
+        [Autowired]
+        public IProxyHelper ProxyHelper { protected get; set; }
+                
 	    public Object ConvertValueToType(Type expectedType, Type sourceType, Object value, Object additionalInformation)
 	    {
             if (sourceType.IsAssignableFrom(typeof(EntityMetaData)))
@@ -45,12 +50,12 @@ namespace De.Osthus.Ambeth.Converter.Merge
 			    target.AlternateIdMemberIndicesInPrimitives = source.AlternateIdMemberIndicesInPrimitives;
 			    target.TypesRelatingToThis = source.TypesRelatingToThis;
 			    target.TypesToCascadeDelete = ListUtil.ToArray(source.CascadeDeleteTypes);
-       			ITypeInfoItem[] primitiveMembers = source.PrimitiveMembers;
-			    ITypeInfoItem[] relationMembers = source.RelationMembers;
+                PrimitiveMember[] primitiveMembers = source.PrimitiveMembers;
+			    RelationMember[] relationMembers = source.RelationMembers;
 			    IList<String> mergeRelevantNames = new List<String>();
 			    for (int a = primitiveMembers.Length; a-- > 0;)
 			    {
-				    ITypeInfoItem member = primitiveMembers[a];
+                    PrimitiveMember member = primitiveMembers[a];
 				    if (source.IsMergeRelevant(member))
 				    {
 					    mergeRelevantNames.Add(GetNameOfMember(member));
@@ -58,7 +63,7 @@ namespace De.Osthus.Ambeth.Converter.Merge
 			    }
 			    for (int a = relationMembers.Length; a-- > 0;)
 			    {
-				    ITypeInfoItem member = relationMembers[a];
+                    RelationMember member = relationMembers[a];
 				    if (source.IsMergeRelevant(member))
 				    {
 					    mergeRelevantNames.Add(GetNameOfMember(member));
@@ -71,21 +76,21 @@ namespace De.Osthus.Ambeth.Converter.Merge
 		    {
 			    EntityMetaDataTransfer source = (EntityMetaDataTransfer) value;
 
-                HashMap<String, ITypeInfoItem> nameToMemberDict = new HashMap<String, ITypeInfoItem>();
+                HashMap<String, Member> nameToMemberDict = new HashMap<String, Member>();
 
                 EntityMetaData target = new EntityMetaData();
                 Type entityType = source.EntityType;
                 Type realType = ProxyHelper.GetRealType(entityType);
                 target.EntityType = entityType;
                 target.RealType = realType;
-                target.IdMember = GetMember(entityType, source.IdMemberName, nameToMemberDict);
-                target.VersionMember = GetMember(entityType, source.VersionMemberName, nameToMemberDict);
-                target.CreatedByMember = GetMember(entityType, source.CreatedByMemberName, nameToMemberDict);
-                target.CreatedOnMember = GetMember(entityType, source.CreatedOnMemberName, nameToMemberDict);
-                target.UpdatedByMember = GetMember(entityType, source.UpdatedByMemberName, nameToMemberDict);
-                target.UpdatedOnMember = GetMember(entityType, source.UpdatedOnMemberName, nameToMemberDict);
-                target.AlternateIdMembers = GetMembers(entityType, source.AlternateIdMemberNames, nameToMemberDict);
-                target.PrimitiveMembers = GetMembers(entityType, source.PrimitiveMemberNames, nameToMemberDict);
+                target.IdMember = GetPrimitiveMember(entityType, source.IdMemberName, nameToMemberDict);
+                target.VersionMember = GetPrimitiveMember(entityType, source.VersionMemberName, nameToMemberDict);
+                target.CreatedByMember = GetPrimitiveMember(entityType, source.CreatedByMemberName, nameToMemberDict);
+                target.CreatedOnMember = GetPrimitiveMember(entityType, source.CreatedOnMemberName, nameToMemberDict);
+                target.UpdatedByMember = GetPrimitiveMember(entityType, source.UpdatedByMemberName, nameToMemberDict);
+                target.UpdatedOnMember = GetPrimitiveMember(entityType, source.UpdatedOnMemberName, nameToMemberDict);
+                target.AlternateIdMembers = GetPrimitiveMembers(entityType, source.AlternateIdMemberNames, nameToMemberDict);
+                target.PrimitiveMembers = GetPrimitiveMembers(entityType, source.PrimitiveMemberNames, nameToMemberDict);
                 target.RelationMembers = GetRelationMembers(entityType, source.RelationMemberNames, nameToMemberDict);
 			    target.AlternateIdMemberIndicesInPrimitives = source.AlternateIdMemberIndicesInPrimitives;
 			    target.TypesRelatingToThis = source.TypesRelatingToThis;
@@ -100,7 +105,7 @@ namespace De.Osthus.Ambeth.Converter.Merge
                 {
                     for (int a = mergeRelevantNames.Length; a-- > 0; )
                     {
-                        ITypeInfoItem resolvedMember = GetMember(entityType, mergeRelevantNames[a], nameToMemberDict);
+                        Member resolvedMember = nameToMemberDict.Get(mergeRelevantNames[a]);
                         target.SetMergeRelevant(resolvedMember, true);
                     }
                 }
@@ -110,13 +115,13 @@ namespace De.Osthus.Ambeth.Converter.Merge
                 SetMergeRelevant(target, target.UpdatedOnMember, false);
                 SetMergeRelevant(target, target.IdMember, false);
                 SetMergeRelevant(target, target.VersionMember, false);
-                target.Initialize(EntityFactory);
+                //target.Initialize(CacheModification, EntityFactory);
 			    return target;
 		    }
 		    throw new Exception("Source of type " + sourceType.Name + " not supported");
 	    }
 
-        protected void SetMergeRelevant(EntityMetaData metaData, ITypeInfoItem member, bool value)
+        protected void SetMergeRelevant(EntityMetaData metaData, Member member, bool value)
         {
             if (member != null)
             {
@@ -124,18 +129,18 @@ namespace De.Osthus.Ambeth.Converter.Merge
             }
         }
 
-        protected ITypeInfoItem GetMember(Type entityType, String memberName, IMap<String, ITypeInfoItem> nameToMemberDict)
+        protected IntermediatePrimitiveMember GetPrimitiveMember(Type entityType, String memberName, IMap<String, Member> nameToMemberDict)
 	    {
             if (memberName == null)
             {
                 return null;
             }
-            ITypeInfoItem member = nameToMemberDict.Get(memberName);
+            IntermediatePrimitiveMember member = (IntermediatePrimitiveMember)nameToMemberDict.Get(memberName);
             if (member != null)
             {
                 return member;
             }
-            member = TypeInfoProvider.GetHierarchicMember(entityType, memberName);
+            member = IntermediateMemberTypeProvider.GetIntermediatePrimitiveMember(entityType, memberName);
             if (member == null)
             {
                 throw new Exception("No member with name '" + memberName + "' found on entity type '" + entityType.FullName + "'");
@@ -144,35 +149,51 @@ namespace De.Osthus.Ambeth.Converter.Merge
             return member;
 	    }
 
-        protected ITypeInfoItem[] GetMembers(Type entityType, String[] memberNames, IMap<String, ITypeInfoItem> nameToMemberDict)
+	    protected RelationMember GetRelationMember(Type entityType, String memberName, IMap<String, Member> nameToMemberDict)
+	    {
+		    RelationMember member = (RelationMember) nameToMemberDict.Get(memberName);
+		    if (member != null)
+		    {
+			    return member;
+		    }
+            member = IntermediateMemberTypeProvider.GetIntermediateRelationMember(entityType, memberName);
+		    if (member == null)
+		    {
+			    throw new Exception("No member with name '" + memberName + "' found on entity type '" + entityType.FullName + "'");
+		    }
+		    nameToMemberDict.Put(memberName, member);
+		    return member;
+	    }
+
+        protected PrimitiveMember[] GetPrimitiveMembers(Type entityType, String[] memberNames, IMap<String, Member> nameToMemberDict)
 	    {
 		    if (memberNames == null)
 		    {
-			    return EntityMetaData.EmptyTypeInfoItems;
+			    return EntityMetaData.EmptyPrimitiveMembers;
 		    }
-		    ITypeInfoItem[] members = new ITypeInfoItem[memberNames.Length];
+            PrimitiveMember[] members = new PrimitiveMember[memberNames.Length];
 		    for (int a = memberNames.Length; a-- > 0;)
 		    {
-                members[a] = GetMember(entityType, memberNames[a], nameToMemberDict);
+                members[a] = GetPrimitiveMember(entityType, memberNames[a], nameToMemberDict);
 		    }
 		    return members;
 	    }
 
-        protected IRelationInfoItem[] GetRelationMembers(Type entityType, String[] memberNames, IMap<String, ITypeInfoItem> nameToMemberDict)
+        protected RelationMember[] GetRelationMembers(Type entityType, String[] memberNames, IMap<String, Member> nameToMemberDict)
 	    {
 		    if (memberNames == null)
 		    {
-			    return EntityMetaData.EmptyRelationInfoItems;
+			    return EntityMetaData.EmptyRelationMembers;
 		    }
-		    IRelationInfoItem[] members = new IRelationInfoItem[memberNames.Length];
+            RelationMember[] members = new RelationMember[memberNames.Length];
 		    for (int a = memberNames.Length; a-- > 0;)
 		    {
-			    members[a] = (IRelationInfoItem) GetMember(entityType, memberNames[a], nameToMemberDict);
+			    members[a] = GetRelationMember(entityType, memberNames[a], nameToMemberDict);
 		    }
 		    return members;
 	    }
 
-	    protected String GetNameOfMember(ITypeInfoItem member)
+        protected String GetNameOfMember(Member member)
 	    {
 		    if (member == null)
 		    {
@@ -181,7 +202,7 @@ namespace De.Osthus.Ambeth.Converter.Merge
 		    return member.Name;
 	    }
 
-	    protected String[] GetNamesOfMembers(ITypeInfoItem[] members)
+        protected String[] GetNamesOfMembers(Member[] members)
 	    {
 		    if (members == null)
 		    {

@@ -9,7 +9,7 @@ public class H2TestModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(H2Module.class);
-		beanContextFactory.registerAnonymousBean(H2TestDialect.class).autowireable(IConnectionTestDialect.class);
+		beanContextFactory.registerBean(H2Module.class);
+		beanContextFactory.registerBean(H2TestDialect.class).autowireable(IConnectionTestDialect.class);
 	}
 }

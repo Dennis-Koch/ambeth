@@ -1,13 +1,11 @@
 package de.osthus.ambeth.testutil;
 
+import java.io.PrintStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Ignore;
-import org.junit.runner.Description;
-import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
@@ -17,31 +15,49 @@ import org.junit.runners.model.Statement;
 import de.osthus.ambeth.annotation.AnnotationInfo;
 import de.osthus.ambeth.annotation.IAnnotationInfo;
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.config.Properties;
-import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.io.FileUtil;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.RegisterPhaseDelegate;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
-import de.osthus.ambeth.log.Logger;
-import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
+import de.osthus.ambeth.util.NullPrintStream;
 
 public class AmbethIocRunner extends BlockJUnit4ClassRunner
 {
+	protected boolean hasContextBeenRebuildForThisTest;
+
+	protected boolean isRebuildContextForThisTestRecommended;
 
 	protected IServiceContext testClassLevelContext;
 
 	protected IServiceContext beanContext;
 
-	protected boolean objectCollectorOfLoggerSet;
+	protected final ThreadLocal<Object> targetProxyTL = new ThreadLocal<Object>();
 
 	public AmbethIocRunner(Class<?> testClass) throws InitializationError
 	{
 		super(testClass);
+	}
+
+	@Override
+	protected void finalize() throws Throwable
+	{
+		if (beanContext != null)
+		{
+			beanContext.getRoot().dispose();
+			beanContext = null;
+		}
+		if (testClassLevelContext != null)
+		{
+			testClassLevelContext.getRoot().dispose();
+			testClassLevelContext = null;
+		}
+		super.finalize();
 	}
 
 	public IServiceContext getBeanContext()
@@ -64,29 +80,25 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 		if (testClassLevelContext != null)
 		{
 			IThreadLocalCleanupController tlCleanupController = testClassLevelContext.getService(IThreadLocalCleanupController.class);
-			testClassLevelContext.dispose();
+			testClassLevelContext.getRoot().dispose();
 			testClassLevelContext = null;
 			beanContext = null;
-			if (objectCollectorOfLoggerSet)
-			{
-				Logger.objectCollector = null;
-			}
 			tlCleanupController.cleanupThreadLocal();
 		}
 	}
 
 	protected List<Class<? extends IInitializingModule>> buildTestModuleList(FrameworkMethod frameworkMethod)
 	{
-		List<IAnnotationInfo<?>> testFrameworkModulesList = findAnnotations(getTestClass().getJavaClass(),
-				frameworkMethod != null ? frameworkMethod.getMethod() : null, TestModule.class);
+		List<IAnnotationInfo<?>> testModulesList = findAnnotations(getTestClass().getJavaClass(), frameworkMethod != null ? frameworkMethod.getMethod() : null,
+				TestModule.class);
 
-		ArrayList<Class<? extends IInitializingModule>> frameworkModuleList = new ArrayList<Class<? extends IInitializingModule>>();
-		for (IAnnotationInfo<?> testModuleItem : testFrameworkModulesList)
+		ArrayList<Class<? extends IInitializingModule>> moduleList = new ArrayList<Class<? extends IInitializingModule>>();
+		for (IAnnotationInfo<?> testModuleItem : testModulesList)
 		{
 			TestModule testFrameworkModule = (TestModule) testModuleItem.getAnnotation();
-			frameworkModuleList.addAll(Arrays.asList(testFrameworkModule.value()));
+			moduleList.addAll(testFrameworkModule.value());
 		}
-		return frameworkModuleList;
+		return moduleList;
 	}
 
 	protected List<Class<? extends IInitializingModule>> buildFrameworkTestModuleList(FrameworkMethod frameworkMethod)
@@ -98,7 +110,7 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 		for (IAnnotationInfo<?> testModuleItem : testFrameworkModulesList)
 		{
 			TestFrameworkModule testFrameworkModule = (TestFrameworkModule) testModuleItem.getAnnotation();
-			frameworkModuleList.addAll(Arrays.asList(testFrameworkModule.value()));
+			frameworkModuleList.addAll(testFrameworkModule.value());
 		}
 		return frameworkModuleList;
 	}
@@ -108,48 +120,60 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 	{
 		disposeContext();
 		Properties.resetApplication();
-		Properties.loadBootstrapPropertyFile();
+
+		PrintStream oldPrintStream = System.out;
+		System.setOut(NullPrintStream.INSTANCE);
+		try
+		{
+			Properties.loadBootstrapPropertyFile();
+		}
+		finally
+		{
+			System.setOut(oldPrintStream);
+		}
 
 		Properties baseProps = new Properties(Properties.getApplication());
 
 		extendProperties(frameworkMethod, baseProps);
 
-		HashSet<Class<? extends IInitializingModule>> testClassLevelTestFrameworkModulesList = new HashSet<Class<? extends IInitializingModule>>();
-		HashSet<Class<? extends IInitializingModule>> testClassLevelTestModulesList = new HashSet<Class<? extends IInitializingModule>>();
+		LinkedHashSet<Class<? extends IInitializingModule>> testClassLevelTestFrameworkModulesList = new LinkedHashSet<Class<? extends IInitializingModule>>();
+		LinkedHashSet<Class<? extends IInitializingModule>> testClassLevelTestModulesList = new LinkedHashSet<Class<? extends IInitializingModule>>();
 
 		testClassLevelTestModulesList.addAll(buildTestModuleList(frameworkMethod));
 		testClassLevelTestFrameworkModulesList.addAll(buildFrameworkTestModuleList(frameworkMethod));
 
-		Class<? extends IInitializingModule>[] frameworkModules = testClassLevelTestFrameworkModulesList.toList().toArray(Class.class);
-		Class<? extends IInitializingModule>[] bootstrapModules = testClassLevelTestModulesList.toList().toArray(Class.class);
+		Class<? extends IInitializingModule>[] frameworkModules = testClassLevelTestFrameworkModulesList.toArray(Class.class);
+		Class<? extends IInitializingModule>[] applicationModules = testClassLevelTestModulesList.toArray(Class.class);
 
 		testClassLevelContext = BeanContextFactory.createBootstrap(baseProps);
 		boolean success = false;
 		try
 		{
-			if (Logger.objectCollector == null)
+			Class<?> oldTypeScope = FileUtil.setCurrentTypeScope(getTestClass().getJavaClass());
+			try
 			{
-				Logger.objectCollector = testClassLevelContext.getService(IThreadLocalObjectCollector.class);
-				objectCollectorOfLoggerSet = true;
-			}
-			IServiceContext currentBeanContext = testClassLevelContext;
-			if (frameworkModules.length > 0)
-			{
-				currentBeanContext = currentBeanContext.createService("framework", new RegisterPhaseDelegate()
+				IServiceContext currentBeanContext = testClassLevelContext;
+				if (frameworkModules.length > 0)
 				{
-
-					@Override
-					public void invoke(IBeanContextFactory childContextFactory)
+					currentBeanContext = currentBeanContext.createService("framework", new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
 					{
-						rebuildContextDetails(childContextFactory);
-					}
-				}, frameworkModules);
+						@Override
+						public void invoke(IBeanContextFactory childContextFactory)
+						{
+							rebuildContextDetails(childContextFactory);
+						}
+					}, frameworkModules);
+				}
+				if (applicationModules.length > 0)
+				{
+					currentBeanContext = currentBeanContext.createService("application", applicationModules);
+				}
+				beanContext = currentBeanContext;
 			}
-			if (bootstrapModules.length > 0)
+			finally
 			{
-				currentBeanContext = currentBeanContext.createService("application", bootstrapModules);
+				FileUtil.setCurrentTypeScope(oldTypeScope);
 			}
-			beanContext = currentBeanContext;
 			success = true;
 		}
 		finally
@@ -230,12 +254,17 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 	protected void rebuildContextDetails(IBeanContextFactory childContextFactory)
 	{
 		childContextFactory.registerExternalBean(new TestContext(this)).autowireable(ITestContext.class);
+		Class<? extends ICleanupAfter> cleanupAfterType = getCleanupAfterType();
+		if (cleanupAfterType != null)
+		{
+			childContextFactory.registerBean(cleanupAfterType).autowireable(ICleanupAfter.class);
+		}
 	}
 
 	@Override
-	protected final Statement withAfterClasses(Statement statement)
+	protected Statement withAfterClasses(Statement statement)
 	{
-		final Statement withAfterClasses = withAfterClassesWithinContext(statement);
+		final Statement withAfterClasses = super.withAfterClasses(statement);
 
 		return new Statement()
 		{
@@ -245,13 +274,61 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 			{
 				withAfterClasses.evaluate();
 				disposeContext();
+				System.gc();
 			}
 		};
 	}
 
-	protected Statement withAfterClassesWithinContext(Statement statement)
+	protected Class<? extends ICleanupAfter> getCleanupAfterType()
 	{
-		return super.withAfterClasses(statement);
+		return CleanupAfterIoc.class;
+	}
+
+	@SuppressWarnings("deprecation")
+	@Override
+	protected Statement withAfters(FrameworkMethod method, final Object target, Statement statement)
+	{
+		final Statement returningStatement = super.withAfters(method, target, statement);
+		return new Statement()
+		{
+			@Override
+			public void evaluate() throws Throwable
+			{
+				Object targetProxy;
+				if (IRunnerAware.class.isAssignableFrom(target.getClass()))
+				{
+					targetProxy = beanContext.registerWithLifecycle(target).propertyValue("Runner", AmbethIocRunner.this).finish();
+				}
+				else
+				{
+					targetProxy = beanContext.registerWithLifecycle(target).finish();
+				}
+				Object oldTargetProxy = targetProxyTL.get();
+				targetProxyTL.set(targetProxy);
+				try
+				{
+					returningStatement.evaluate();
+				}
+				finally
+				{
+					targetProxyTL.set(oldTargetProxy);
+
+					if (beanContext != null)
+					{
+						ICleanupAfter cleanupAfter = beanContext.getService(ICleanupAfter.class, false);
+						if (cleanupAfter != null)
+						{
+							cleanupAfter.cleanup();
+						}
+					}
+					else if (testClassLevelContext != null)
+					{
+						IThreadLocalCleanupController tlCleanupController = testClassLevelContext.getService(IThreadLocalCleanupController.class);
+						tlCleanupController.cleanupThreadLocal();
+					}
+				}
+			}
+		};
 	}
 
 	@Override
@@ -262,70 +339,88 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 	}
 
 	@Override
-	protected Statement methodInvoker(FrameworkMethod method, Object test)
+	protected Statement methodInvoker(final FrameworkMethod method, final Object test)
 	{
-		if (beanContext == null)
+		final Statement statement = super.methodInvoker(method, test);
+		return new Statement()
 		{
-			rebuildContext(method);
-		}
-		if (IRunnerAware.class.isAssignableFrom(test.getClass()))
-		{
-			test = beanContext.registerWithLifecycle(test).propertyValue("Runner", this).finish();
-		}
-		else
-		{
-			test = beanContext.registerWithLifecycle(test).finish();
-		}
-		return super.methodInvoker(method, test);
+			@Override
+			public void evaluate() throws Throwable
+			{
+				Object targetProxy = targetProxyTL.get();
+				if (targetProxy != null)
+				{
+					method.invokeExplosively(targetProxy);
+				}
+				else
+				{
+					statement.evaluate();
+				}
+			}
+		};
 	}
 
 	@Override
-	protected final void runChild(FrameworkMethod method, RunNotifier notifier)
+	protected Statement methodBlock(final FrameworkMethod method)
 	{
-		runChildWithContext(method, notifier, false);
+		final Statement statement = super.methodBlock(method);
+		return new Statement()
+		{
+			@Override
+			public void evaluate() throws Throwable
+			{
+				if (!hasContextBeenRebuildForThisTest)
+				{
+					if (method == null || method.getAnnotation(Ignore.class) == null)
+					{
+						List<IAnnotationInfo<?>> rebuildContextList = findAnnotations(getTestClass().getJavaClass(), TestRebuildContext.class);
+						if (rebuildContextList.size() > 0)
+						{
+							boolean rebuildContext = ((TestRebuildContext) rebuildContextList.get(rebuildContextList.size() - 1).getAnnotation()).value();
+							if (rebuildContext)
+							{
+								rebuildContext(method);
+								hasContextBeenRebuildForThisTest = true;
+								isRebuildContextForThisTestRecommended = false;
+							}
+						}
+						if (method != null)
+						{
+							Method targetMethod = method.getMethod();
+
+							if (targetMethod.isAnnotationPresent(TestModule.class) || targetMethod.isAnnotationPresent(TestFrameworkModule.class)
+									|| targetMethod.isAnnotationPresent(TestPropertiesList.class) || targetMethod.isAnnotationPresent(TestProperties.class))
+							{
+								rebuildContext(method);
+								hasContextBeenRebuildForThisTest = true;
+								isRebuildContextForThisTestRecommended = false;
+							}
+						}
+					}
+				}
+				if (beanContext == null || isRebuildContextForThisTestRecommended)
+				{
+					rebuildContext(method);
+				}
+				statement.evaluate();
+			}
+		};
 	}
 
-	protected void runChildWithContext(FrameworkMethod method, RunNotifier notifier, boolean hasContextBeenRebuild)
+	@Override
+	protected void runChild(FrameworkMethod method, RunNotifier notifier)
 	{
+		Class<?> oldTypeScope = FileUtil.setCurrentTypeScope(getTestClass().getJavaClass());
 		try
 		{
-			if (!hasContextBeenRebuild && (method == null || method.getAnnotation(Ignore.class) == null))
-			{
-				List<IAnnotationInfo<?>> rebuildContextList = findAnnotations(getTestClass().getJavaClass(), TestRebuildContext.class);
-				if (rebuildContextList.size() > 0)
-				{
-					boolean rebuildContext = ((TestRebuildContext) rebuildContextList.get(rebuildContextList.size() - 1).getAnnotation()).value();
-					if (rebuildContext)
-					{
-						rebuildContext(method);
-						hasContextBeenRebuild = true;
-					}
-				}
-				if (!hasContextBeenRebuild && method != null)
-				{
-					Method targetMethod = method.getMethod();
-
-					if (targetMethod.isAnnotationPresent(TestModule.class) || targetMethod.isAnnotationPresent(TestFrameworkModule.class)
-							|| targetMethod.isAnnotationPresent(TestPropertiesList.class) || targetMethod.isAnnotationPresent(TestProperties.class))
-					{
-						rebuildContext(method);
-						hasContextBeenRebuild = true;
-					}
-				}
-			}
+			hasContextBeenRebuildForThisTest = false;
+			isRebuildContextForThisTestRecommended = false;
+			super.runChild(method, notifier);
 		}
-		catch (MaskingRuntimeException e)
+		finally
 		{
-			notifier.fireTestFailure(new Failure(Description.createTestDescription(getTestClass().getJavaClass(), method.getName()), e.getMessage() == null ? e
-					.getCause() : e));
-			return;
+			FileUtil.setCurrentTypeScope(oldTypeScope);
 		}
-		catch (Throwable e)
-		{
-			notifier.fireTestFailure(new Failure(Description.createTestDescription(getTestClass().getJavaClass(), method.getName()), e));
-			return;
-		}
-		super.runChild(method, notifier);
 	}
 
 	protected List<IAnnotationInfo<?>> findAnnotations(Class<?> type, Class<?>... annotationTypes)

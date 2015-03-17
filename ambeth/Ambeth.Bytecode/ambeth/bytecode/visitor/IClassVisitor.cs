@@ -54,6 +54,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         void OverrideConstructors(IOverrideConstructorDelegate overrideConstructorDelegate);
 
         IMethodVisitor StartOverrideWithSuperCall(MethodInstance superMethod);
+
+        MethodInstance ImplementSwitchByIndex(MethodInstance method, String exceptionMessageOnIllegalIndex, int indexSize, ScriptWithIndex script);
         
         void Visit(TypeAttributes access, String name, Type superName, Type[] interfaces);
 

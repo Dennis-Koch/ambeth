@@ -72,10 +72,15 @@ public class WeakHashSet<K> extends AbstractHashSet<K>
 	}
 
 	@Override
-	protected void entryRemoved(ISetEntry<K> entry)
+	protected final void entryRemoved(ISetEntry<K> entry)
+	{
+		entryRemovedNoCleanup(entry);
+		checkForCleanup();
+	}
+
+	protected void entryRemovedNoCleanup(ISetEntry<K> entry)
 	{
 		size--;
-		checkForCleanup();
 	}
 
 	@Override
@@ -116,32 +121,18 @@ public class WeakHashSet<K> extends AbstractHashSet<K>
 	@SuppressWarnings("unchecked")
 	public void checkForCleanup()
 	{
-		ArrayList<WeakSetEntry<K>> removes = null;
+		ISetEntry<K>[] table = this.table;
+		int tableLengthMinusOne = table.length - 1;
 		WeakSetEntry<K> removedEntry;
 		ReferenceQueue<K> referenceQueue = this.referenceQueue;
 		while ((removedEntry = (WeakSetEntry<K>) referenceQueue.poll()) != null)
 		{
-			if (removes == null)
-			{
-				removes = new ArrayList<WeakSetEntry<K>>();
-			}
-			removes.add(removedEntry);
-		}
-		if (removes == null)
-		{
-			return;
-		}
-		for (int a = removes.size(); a-- > 0;)
-		{
-			removedEntry = removes.get(a);
-			ISetEntry<K>[] table = this.table;
-			int tableLengthMinusOne = table.length - 1;
 			int i = removedEntry.hash & tableLengthMinusOne;
 			ISetEntry<K> entry = table[i];
 			if (entry == removedEntry)
 			{
 				table[i] = entry.getNextEntry();
-				entryRemoved(entry);
+				entryRemovedNoCleanup(entry);
 				continue;
 			}
 			ISetEntry<K> prevEntry = entry;
@@ -151,7 +142,7 @@ public class WeakHashSet<K> extends AbstractHashSet<K>
 				if (entry == removedEntry)
 				{
 					setNextEntry(prevEntry, entry.getNextEntry());
-					entryRemoved(entry);
+					entryRemovedNoCleanup(entry);
 					break;
 				}
 				prevEntry = entry;

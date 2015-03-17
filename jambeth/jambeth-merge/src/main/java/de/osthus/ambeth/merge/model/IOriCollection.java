@@ -14,4 +14,8 @@ public interface IOriCollection
 	Long getChangedOn();
 
 	String getChangedBy();
+
+	Long[] getAllChangedOn();
+
+	String[] getAllChangedBy();
 }

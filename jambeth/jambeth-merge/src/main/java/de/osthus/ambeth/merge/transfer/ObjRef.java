@@ -1,5 +1,7 @@
 package de.osthus.ambeth.merge.transfer;
 
+import java.util.Comparator;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -20,6 +22,25 @@ public class ObjRef implements IObjRef, IPrintable
 	public static final byte PRIMARY_KEY_INDEX = -1;
 
 	public static final byte UNDEFINED_KEY_INDEX = Byte.MIN_VALUE;
+
+	public static final Comparator<IObjRef> comparator = new Comparator<IObjRef>()
+	{
+		@Override
+		public int compare(IObjRef o1, IObjRef o2)
+		{
+			int result = o1.getRealType().getName().compareTo(o2.getRealType().getName());
+			if (result != 0)
+			{
+				return result;
+			}
+			result = o1.getIdNameIndex() == o2.getIdNameIndex() ? 0 : o1.getIdNameIndex() > o2.getIdNameIndex() ? 1 : -1;
+			if (result != 0)
+			{
+				return result;
+			}
+			return o1.getId().toString().compareTo(o2.getId().toString());
+		}
+	};
 
 	@XmlElement(required = true)
 	protected byte idNameIndex = ObjRef.PRIMARY_KEY_INDEX;
@@ -160,7 +181,7 @@ public class ObjRef implements IObjRef, IPrintable
 	@Override
 	public int hashCode()
 	{
-		return getId().hashCode() ^ getRealType().hashCode();
+		return getId().hashCode() ^ getRealType().hashCode() ^ getIdNameIndex();
 	}
 
 	@Override
@@ -171,15 +192,19 @@ public class ObjRef implements IObjRef, IPrintable
 		return sb.toString();
 	}
 
-	protected String getClassName()
-	{
-		return "ObjRef";
-	}
-
 	@Override
 	public void toString(StringBuilder sb)
 	{
-		sb.append(getClassName()).append(" id=").append(idNameIndex).append(",");
+		sb.append("ObjRef ");
+		byte idIndex = getIdNameIndex();
+		if (idIndex == ObjRef.PRIMARY_KEY_INDEX)
+		{
+			sb.append("PK=");
+		}
+		else
+		{
+			sb.append("AK").append(idIndex).append('=');
+		}
 		StringBuilderUtil.appendPrintable(sb, getId());
 		sb.append(" version=").append(getVersion()).append(" type=").append(getRealType().getName());
 	}

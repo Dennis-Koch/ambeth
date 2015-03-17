@@ -6,10 +6,12 @@ using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Ioc.Factory;
 using De.Osthus.Ambeth.Ioc.Threadlocal;
 using De.Osthus.Ambeth.Log;
+using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Persistence;
 using De.Osthus.Ambeth.Util;
 using System;
 using System.Collections.Generic;
+
 namespace De.Osthus.Ambeth.Platform
 {
     public class AmbethPlatformContext : IAmbethPlatformContext
@@ -68,7 +70,7 @@ namespace De.Osthus.Ambeth.Platform
                         }, frameworkModules);
                 }
 
-                ITransaction transaction = frameworkBeanContext.GetService<ITransaction>(false);
+                ILightweightTransaction transaction = frameworkBeanContext.GetService<ILightweightTransaction>(false);
                 if (transaction != null)
                 {
                     ILogger log = LoggerFactory.GetLogger(typeof(AmbethPlatformContext), props);
@@ -76,7 +78,7 @@ namespace De.Osthus.Ambeth.Platform
                     {
                         log.Info("Starting initial database transaction to receive metadata for OR-Mappings...");
                     }
-                    transaction.ProcessAndCommit(delegate(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+                    transaction.RunInTransaction(delegate()
                         {
                             // Intended blank
                         });
@@ -126,6 +128,7 @@ namespace De.Osthus.Ambeth.Platform
             beanContext.GetService<IThreadLocalCleanupController>().CleanupThreadLocal();
             rootContext.Dispose();
             beanContext = null;
+			ImmutableTypeSet.FlushState();
         }
 
         public IServiceContext GetBeanContext()

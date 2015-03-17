@@ -14,6 +14,7 @@ using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Threading;
 
 namespace De.Osthus.Ambeth.Ioc.Factory
 {
@@ -57,6 +58,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             CallingProxyPostProcessor callingProxyPostProcessor = new CallingProxyPostProcessor();
             ProxyFactory proxyFactory = new ProxyFactory();
             DelegateFactory delegateFactory = new DelegateFactory();
+            AutoLinkPreProcessor threadLocalCleanupPreProcessor = new AutoLinkPreProcessor();
 
             callingProxyPostProcessor.PropertyInfoProvider = propertyInfoProvider;
             delegatingConversionHelper.DefaultConversionHelper = conversionHelper;
@@ -67,13 +69,10 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             beanContextInitializer.ConversionHelper = delegatingConversionHelper;
             beanContextInitializer.PropertyInfoProvider = propertyInfoProvider;
             propertyInfoProvider.AccessorTypeProvider = accessorTypeProvider;
+            threadLocalCleanupPreProcessor.SetExtendableRegistry(extendableRegistry);
+			threadLocalCleanupPreProcessor.SetExtendableType(typeof(IThreadLocalCleanupBeanExtendable));
 
             LoggerInstancePreProcessor loggerInstancePreProcessor = new LoggerInstancePreProcessor();
-            loggerInstancePreProcessor.AfterPropertiesSet();
-
-            ThreadLocalCleanupPreProcessor threadLocalCleanupPreProcessor = new ThreadLocalCleanupPreProcessor();
-            threadLocalCleanupPreProcessor.ThreadLocalCleanupBeanExtendable = threadLocalCleanupController;
-            threadLocalCleanupPreProcessor.AfterPropertiesSet();
 
             propertyInfoProvider.AfterPropertiesSet();
 
@@ -96,6 +95,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             loggerHistory.AfterPropertiesSet();
             beanContextInitializer.AfterPropertiesSet();
             threadLocalCleanupController.AfterPropertiesSet();
+            threadLocalCleanupPreProcessor.AfterPropertiesSet();
 
             PropertiesPreProcessor propertiesPreProcessor = new PropertiesPreProcessor();
             propertiesPreProcessor.ConversionHelper = delegatingConversionHelper;
@@ -103,7 +103,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             propertiesPreProcessor.AfterPropertiesSet();
 
             // The DelegatingConversionHelper is functional, but has yet no properties set
-            propertiesPreProcessor.PreProcessProperties(null, newProps, "delegatingConversionHelper", delegatingConversionHelper, typeof(DelegatingConversionHelper), null, null);
+            propertiesPreProcessor.PreProcessProperties(null, null, newProps, "delegatingConversionHelper", delegatingConversionHelper, typeof(DelegatingConversionHelper), null, EmptySet.Empty<String>(), null);
             delegatingConversionHelper.AfterPropertiesSet();
 
             BeanContextFactory parentContextFactory = new BeanContextFactory(linkController, beanContextInitializer, proxyFactory, null, newProps, null);
@@ -117,7 +117,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
 
             parentContextFactory.RegisterWithLifecycle(accessorTypeProvider).Autowireable<IAccessorTypeProvider>();
 
-            parentContextFactory.RegisterWithLifecycle(loggerInstancePreProcessor).Autowireable<ILoggerCache>();
+            parentContextFactory.RegisterExternalBean(loggerInstancePreProcessor).Autowireable<ILoggerCache>();
 
             parentContextFactory.RegisterWithLifecycle(extendableRegistry).Autowireable<IExtendableRegistry>();
 
@@ -131,7 +131,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             {
                 for (int a = 0, size = bootstrapModules.Length; a < size; a++)
                 {
-                    parentContextFactory.RegisterAnonymousBean(bootstrapModules[a]);
+                    parentContextFactory.RegisterBean(bootstrapModules[a]);
                 }
             }
             if (bootstrapModuleInstances != null)
@@ -151,14 +151,12 @@ namespace De.Osthus.Ambeth.Ioc.Factory
         protected static void ScanForLogInstance(IBeanPreProcessor beanPreProcessor, IPropertyInfoProvider propertyInfoProvider, IProperties properties, Object bean)
         {
             IPropertyInfo[] props = propertyInfoProvider.GetProperties(bean.GetType());
-            beanPreProcessor.PreProcessProperties(null, properties, null, bean, bean.GetType(), null, props);
+            beanPreProcessor.PreProcessProperties(null, null, properties, null, bean, bean.GetType(), null, EmptySet.Empty<String>(), props);
         }
 
         protected IList<IBeanConfiguration> beanConfigurations;
 
         protected HashMap<String, IBeanConfiguration> nameToBeanConfMap;
-
-        protected IList<Object> disposableObjects;
 
         protected IDictionary<String, String> aliasToBeanNameMap;
 
@@ -198,7 +196,6 @@ namespace De.Osthus.Ambeth.Ioc.Factory
         {
             beanConfigurations = null;
             nameToBeanConfMap = null;
-            disposableObjects = null;
             aliasToBeanNameMap = null;
             beanNameToAliasesMap = null;
             linkController = null;
@@ -299,24 +296,24 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             return contextName + " " + value;
         }
 
-        public IServiceContext Create(String contextName, RegisterPhaseDelegate registerPhaseDelegate, IList<IBeanPreProcessor> preProcessors,
+        public IServiceContext Create(String contextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, IList<IBeanPreProcessor> preProcessors,
             IList<IBeanPostProcessor> postProcessors)
         {
             return Create(contextName, registerPhaseDelegate, preProcessors, postProcessors, emptyServiceModules);
         }
 
-        public IServiceContext Create(String contextName, RegisterPhaseDelegate registerPhaseDelegate, IList<IBeanPreProcessor> preProcessors,
+        public IServiceContext Create(String contextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, IList<IBeanPreProcessor> preProcessors,
             IList<IBeanPostProcessor> postProcessors, Type[] serviceModuleTypes)
         {
             ServiceContext context = new ServiceContext(GenerateUniqueContextName(contextName, null), null);
 
             if (registerPhaseDelegate != null)
             {
-                registerPhaseDelegate.Invoke(this);
+                registerPhaseDelegate(this);
             }
             foreach (Type serviceModuleType in serviceModuleTypes)
             {
-                RegisterAnonymousBean(serviceModuleType);
+                RegisterBean(serviceModuleType);
             }
             if (preProcessors != null)
             {
@@ -336,22 +333,22 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             return context;
         }
 
-        public IServiceContext Create(String contextName, ServiceContext parent, RegisterPhaseDelegate registerPhaseDelegate)
+        public IServiceContext Create(String contextName, ServiceContext parent, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate)
         {
             return Create(contextName, parent, registerPhaseDelegate, emptyServiceModules);
         }
 
-        public IServiceContext Create(String contextName, ServiceContext parent, RegisterPhaseDelegate registerPhaseDelegate, Type[] serviceModuleTypes)
+        public IServiceContext Create(String contextName, ServiceContext parent, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, Type[] serviceModuleTypes)
         {
             ServiceContext context = new ServiceContext(GenerateUniqueContextName(contextName, null), parent);
 
             if (registerPhaseDelegate != null)
             {
-                registerPhaseDelegate.Invoke(this);
+                registerPhaseDelegate(this);
             }
             foreach (Type serviceModuleType in serviceModuleTypes)
             {
-                RegisterAnonymousBean(serviceModuleType);
+                RegisterBean(serviceModuleType);
             }
             IList<IBeanPreProcessor> preProcessors = parent.GetPreProcessors();
             if (preProcessors != null)
@@ -460,12 +457,24 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             return beanConfiguration;
         }
 
+        [Obsolete]
         public IBeanConfiguration RegisterAnonymousBean<T>()
         {
-            return RegisterAnonymousBean(typeof(T));
+            return RegisterBean<T>();
         }
 
+        [Obsolete]
         public IBeanConfiguration RegisterAnonymousBean(Type beanType)
+        {
+            return RegisterBean(beanType);
+        }
+
+        public IBeanConfiguration RegisterBean<T>()
+        {
+            return RegisterBean(typeof(T));
+        }
+
+        public IBeanConfiguration RegisterBean(Type beanType)
         {
             ParamChecker.AssertParamNotNull(beanType, "beanType");
 
@@ -521,21 +530,13 @@ namespace De.Osthus.Ambeth.Ioc.Factory
         public void RegisterDisposable(IDisposable disposable)
         {
             ParamChecker.AssertParamNotNull(disposable, "disposable");
-            if (disposableObjects == null)
-            {
-                disposableObjects = new List<Object>();
-            }
-            disposableObjects.Add(disposable);
+            RegisterWithLifecycle(new DisposableHook(disposable));
         }
 
         public void RegisterDisposable(IDisposableBean disposableBean)
         {
             ParamChecker.AssertParamNotNull(disposableBean, "disposableBean");
-            if (disposableObjects == null)
-            {
-                disposableObjects = new List<Object>();
-            }
-            disposableObjects.Add(disposableBean);
+            RegisterWithLifecycle(new DisposableBeanHook(disposableBean));
         }
 
         public ILinkRegistryNeededConfiguration Link(String listenerBeanName)

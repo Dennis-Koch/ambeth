@@ -85,7 +85,7 @@ namespace De.Osthus.Ambeth.Privilege.Factory
 
         public override int GetHashCode()
         {
-            return GetType().GetHashCode() ^ EntityType.GetHashCode() ^ TypePropertyPrivilegeImpl.ToBitValue(Create, Read, Update, Delete, Execute);
+            return GetType().GetHashCode() ^ EntityType.GetHashCode() ^ AbstractTypePrivilege.CalcIndex(Create, Read, Update, Delete, Execute);
         }
 
         public T Unwrap<T>() where T : IEnhancementHint

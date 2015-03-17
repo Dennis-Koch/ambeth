@@ -10,7 +10,7 @@ public class ByteArrayConverter extends AbstractEncodingArrayConverter implement
 		EncodingType sourceEncoding = getSourceEncoding(additionalInformation);
 		EncodingType targetEncoding = getTargetEncoding(additionalInformation);
 
-		if (byte[].class.equals(sourceType) && String.class.equals(expectedType))
+		if (byte[].class.equals(sourceType) && CharSequence.class.isAssignableFrom(expectedType))
 		{
 			byte[] bytes = switchEncoding((byte[]) value, sourceEncoding, targetEncoding);
 			String text = new String(bytes, CHARSET_UTF8);
@@ -19,6 +19,12 @@ public class ByteArrayConverter extends AbstractEncodingArrayConverter implement
 		else if (String.class.equals(sourceType) && byte[].class.equals(expectedType))
 		{
 			byte[] bytes = ((String) value).getBytes(CHARSET_UTF8);
+			bytes = switchEncoding(bytes, sourceEncoding, targetEncoding);
+			return bytes;
+		}
+		else if (CharSequence.class.isAssignableFrom(sourceType) && byte[].class.equals(expectedType))
+		{
+			byte[] bytes = ((CharSequence) value).toString().getBytes(CHARSET_UTF8);
 			bytes = switchEncoding(bytes, sourceEncoding, targetEncoding);
 			return bytes;
 		}

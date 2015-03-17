@@ -8,6 +8,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+import de.osthus.ambeth.audit.UserIdentifierProvider;
 import de.osthus.ambeth.cache.HandleContentDelegate;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.IRootCache;
@@ -18,7 +19,6 @@ import de.osthus.ambeth.cache.imc.InMemoryCacheRetriever;
 import de.osthus.ambeth.codec.Base64;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
-import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.database.ResultingDatabaseCallback;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -26,16 +26,19 @@ import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.ITechnicalEntityTypeExtendable;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.xml.TestServicesModule;
 import de.osthus.ambeth.persistence.xml.model.Employee;
 import de.osthus.ambeth.persistence.xml.model.IBusinessService;
 import de.osthus.ambeth.persistence.xml.model.IEmployeeService;
-import de.osthus.ambeth.security.SecurityTest.SecurityTestModule;
-import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
+import de.osthus.ambeth.security.SecurityTest.SecurityTestFrameworkModule;
+import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.model.IPassword;
+import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.service.ICacheRetrieverExtendable;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestFrameworkModule;
@@ -47,23 +50,27 @@ import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 
 @SQLData("/de/osthus/ambeth/persistence/xml/Relations_data.sql")
 @SQLStructure("/de/osthus/ambeth/persistence/xml/Relations_structure.sql")
-@TestProperties(name = SecurityConfigurationConstants.SecurityActive, value = "true")
+@TestProperties(name = MergeConfigurationConstants.SecurityActive, value = "true")
 @TestPropertiesList({
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/orm.xml;de/osthus/ambeth/security/orm.xml"),
-		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false") })
+		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false"),
+		@TestProperties(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive, value = "false") })
 @TestModule(TestServicesModule.class)
-@TestFrameworkModule(SecurityTestModule.class)
-public class SecurityTest extends AbstractPersistenceTest
+@TestFrameworkModule(SecurityTestFrameworkModule.class)
+public class SecurityTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static final String IN_MEMORY_CACHE_RETRIEVER = "inMemoryCacheRetriever";
 
-	public static class SecurityTestModule implements IInitializingModule
+	public static class SecurityTestFrameworkModule implements IInitializingModule
 	{
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 		{
-			beanContextFactory.registerAnonymousBean(TestAuthorizationManager.class).autowireable(IAuthorizationManager.class);
-			beanContextFactory.registerAnonymousBean(TestUserResolver.class).autowireable(IUserResolver.class);
+			beanContextFactory.registerBean(TestAuthorizationManager.class).autowireable(IAuthorizationManager.class);
+			beanContextFactory.registerBean(UserIdentifierProvider.class).autowireable(IUserIdentifierProvider.class);
+			beanContextFactory.registerBean(TestUserResolver.class).autowireable(IUserResolver.class);
+
+			beanContextFactory.link(IUser.class).to(ITechnicalEntityTypeExtendable.class).with(User.class);
 
 			IBeanConfiguration inMemoryCacheRetriever = beanContextFactory.registerBean(IN_MEMORY_CACHE_RETRIEVER, InMemoryCacheRetriever.class);
 			beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class).with(User.class);
@@ -92,9 +99,6 @@ public class SecurityTest extends AbstractPersistenceTest
 	@Autowired
 	protected ISecurityActivation securityActivation;
 
-	@Autowired
-	protected ITransaction transaction;
-
 	@Autowired(IN_MEMORY_CACHE_RETRIEVER)
 	protected InMemoryCacheRetriever inMemoryCacheRetriever;
 
@@ -111,7 +115,7 @@ public class SecurityTest extends AbstractPersistenceTest
 		IInMemoryConfig password10 = inMemoryCacheRetriever.add(Password.class, 10).primitive(IPassword.Salt, salt)
 				.primitive(IPassword.Algorithm, Passwords.ALGORITHM).primitive(IPassword.IterationCount, Passwords.ITERATION_COUNT)
 				.primitive(IPassword.KeySize, Passwords.KEY_SIZE).primitive(IPassword.Value, value);
-		inMemoryCacheRetriever.add(User.class, 1).primitive(User.SID, userName1.toLowerCase()).addRelation(User.Password, password10);
+		inMemoryCacheRetriever.add(User.class, 1).primitive(User.SID, userName1.toLowerCase()).addRelation(IUser.Password, password10);
 	}
 
 	@Test
@@ -141,7 +145,6 @@ public class SecurityTest extends AbstractPersistenceTest
 				});
 			}
 		};
-		System.out.println();
 		transaction.processAndCommit(new ResultingDatabaseCallback<Object>()
 		{
 			@Override
@@ -169,6 +172,5 @@ public class SecurityTest extends AbstractPersistenceTest
 		});
 		// test committed root cache
 		checkRootCache.invoke();
-		System.out.println();
 	}
 }

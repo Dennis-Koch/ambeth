@@ -2,6 +2,7 @@ package de.osthus.ambeth.ioc.hierarchy;
 
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBeanExtendable;
 import de.osthus.ambeth.log.ILogger;
@@ -14,6 +15,7 @@ public class ThreadLocalContextHandle extends AbstractChildContextHandle impleme
 	@LogInstance
 	private ILogger log;
 
+	@Forkable
 	protected final ThreadLocal<IServiceContext> childContextTL = new SensitiveThreadLocal<IServiceContext>();
 
 	@Autowired

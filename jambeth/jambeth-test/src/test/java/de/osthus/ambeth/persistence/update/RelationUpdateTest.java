@@ -23,20 +23,20 @@ import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.persistence.update.RelationUpdateTest.RelationUpdateTestModule;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
-import de.osthus.ambeth.util.ICacheHelper;
 import de.osthus.ambeth.util.IPrefetchHandle;
+import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.ParamChecker;
 
 @SQLData("RelationUpdate_data.sql")
 @SQLStructure("RelationUpdate_structure.sql")
 @TestModule(RelationUpdateTestModule.class)
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/update/orm.xml")
-public class RelationUpdateTest extends AbstractPersistenceTest
+public class RelationUpdateTest extends AbstractInformationBusWithPersistenceTest
 {
 
 	public static class RelationUpdateTestModule implements IInitializingModule
@@ -234,8 +234,8 @@ public class RelationUpdateTest extends AbstractPersistenceTest
 		IQueryBuilder<EntityA> qb = queryBuilderFactory.create(EntityA.class);
 		IQuery<EntityA> query = qb.build();
 		IList<EntityA> resultA = query.retrieve();
-		ICacheHelper cacheHelper = beanContext.getService(ICacheHelper.class);
-		IPrefetchHandle prefetch = cacheHelper.createPrefetch().add(EntityA.class, "EntityCs").build();
+		IPrefetchHelper prefetchHelper = beanContext.getService(IPrefetchHelper.class);
+		IPrefetchHandle prefetch = prefetchHelper.createPrefetch().add(EntityA.class, "EntityCs").build();
 		prefetch.prefetch(resultA);
 
 	}

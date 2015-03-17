@@ -4,23 +4,42 @@ import java.lang.reflect.Method;
 
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.exceptions.InvalidUserException;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.proxy.CascadedInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
-import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 
 public class SecurityFilterInterceptor extends CascadedInterceptor
 {
 	public static final String PROP_CHECK_METHOD_ACCESS = "CheckMethodAccess";
+
+	private static final ThreadLocal<Boolean> ignoreInvalidUserTL = new ThreadLocal<Boolean>();
+
+	public static boolean setIgnoreInvalidUser(boolean value)
+	{
+		Boolean oldValue = ignoreInvalidUserTL.get();
+		if (value)
+		{
+			ignoreInvalidUserTL.set(Boolean.TRUE);
+		}
+		else
+		{
+			ignoreInvalidUserTL.set(null);
+		}
+		return oldValue != null ? oldValue.booleanValue() : false;
+	}
 
 	@LogInstance
 	private ILogger log;
 
 	@Autowired
 	protected IAuthenticationManager authenticationManager;
+
+	@Autowired(optional = true)
+	protected IAuthorizationExceptionFactory authorizationExceptionFactory;
 
 	@Autowired
 	protected IMethodLevelBehavior<SecurityContextType> methodLevelBehaviour;
@@ -43,19 +62,24 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 	@Autowired
 	protected IAuthorizationManager authorizationManager;
 
-	@Property
-	protected boolean checkMethodAccess = true;
+	@Property(defaultValue = "true")
+	protected boolean checkMethodAccess;
 
 	@Override
 	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
+		if (finalizeMethod.equals(method))
+		{
+			return null;
+		}
 		if (method.getDeclaringClass().equals(Object.class) || !securityActivation.isSecured())
 		{
 			return invokeTarget(obj, method, args, proxy);
 		}
 		SecurityContextType behaviourOfMethod = methodLevelBehaviour.getBehaviourOfMethod(method);
 
-		IAuthorization oldAuthorization = securityContextHolder.getCreateContext().getAuthorization();
+		ISecurityContext securityContext = securityContextHolder.getContext();
+		IAuthorization oldAuthorization = securityContext != null ? securityContext.getAuthorization() : null;
 		IAuthorization authorization = null;
 		if (oldAuthorization == null && !SecurityContextType.NOT_REQUIRED.equals(behaviourOfMethod))
 		{
@@ -65,14 +89,24 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 		{
 			authorization = oldAuthorization;
 		}
-		if (authorization == null || !authorization.isValid())
+		if (authorization == null || (!Boolean.TRUE.equals(ignoreInvalidUserTL.get()) && !authorization.isValid()))
 		{
 			if (!SecurityContextType.NOT_REQUIRED.equals(behaviourOfMethod))
 			{
 				IAuthentication authentication = getAuthentication();
+
+				if (authorizationExceptionFactory != null)
+				{
+					Throwable authorizationException = authorizationExceptionFactory.createAuthorizationException(authentication, authorization);
+					if (authorizationException != null)
+					{
+						throw authorizationException;
+					}
+				}
 				String userName = authentication != null ? authentication.getUserName() : null;
 				String sid = authorization != null ? authorization.getSID() : null;
-				throw new SecurityException("User is not a valid user. '" + userName + "' with SID '" + sid + "'");
+
+				throw new InvalidUserException(userName, sid);
 			}
 		}
 		ISecurityScope[] oldSecurityScopes = securityScopeProvider.getSecurityScopes();

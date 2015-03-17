@@ -5,6 +5,7 @@ import java.util.List;
 import de.osthus.ambeth.accessor.AccessorTypeProvider;
 import de.osthus.ambeth.accessor.IAccessorTypeProvider;
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.EmptySet;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IMap;
@@ -14,17 +15,21 @@ import de.osthus.ambeth.config.IocConfigurationConstants;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.PropertiesPreProcessor;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.garbageproxy.GarbageProxyFactory;
+import de.osthus.ambeth.garbageproxy.IGarbageProxyFactory;
+import de.osthus.ambeth.ioc.DisposableBeanHook;
+import de.osthus.ambeth.ioc.DisposableHook;
 import de.osthus.ambeth.ioc.IBeanPostProcessor;
 import de.osthus.ambeth.ioc.IBeanPreProcessor;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.RegisterPhaseDelegate;
 import de.osthus.ambeth.ioc.ServiceContext;
 import de.osthus.ambeth.ioc.config.BeanConfiguration;
 import de.osthus.ambeth.ioc.config.BeanInstanceConfiguration;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.extendable.ExtendableRegistry;
 import de.osthus.ambeth.ioc.extendable.IExtendableRegistry;
+import de.osthus.ambeth.ioc.link.AutoLinkPreProcessor;
 import de.osthus.ambeth.ioc.link.ILinkController;
 import de.osthus.ambeth.ioc.link.ILinkRegistryNeededConfiguration;
 import de.osthus.ambeth.ioc.link.ILinkRegistryNeededRuntime;
@@ -34,7 +39,6 @@ import de.osthus.ambeth.ioc.proxy.CallingProxyPostProcessor;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBeanExtendable;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.ioc.threadlocal.ThreadLocalCleanupController;
-import de.osthus.ambeth.ioc.threadlocal.ThreadLocalCleanupPreProcessor;
 import de.osthus.ambeth.log.ILoggerCache;
 import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LoggerHistory;
@@ -47,6 +51,7 @@ import de.osthus.ambeth.objectcollector.ObjectCollector;
 import de.osthus.ambeth.objectcollector.ThreadLocalObjectCollector;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.proxy.ProxyFactory;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
@@ -151,11 +156,14 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			LoggerHistory loggerHistory = new LoggerHistory();
 			AccessorTypeProvider accessorTypeProvider = new AccessorTypeProvider();
 			ExtendableRegistry extendableRegistry = new ExtendableRegistry();
+			GarbageProxyFactory garbageProxyFactory = new GarbageProxyFactory();
 			PropertyInfoProvider propertyInfoProvider = new PropertyInfoProvider();
 			BeanContextInitializer beanContextInitializer = new BeanContextInitializer();
 			CallingProxyPostProcessor callingProxyPostProcessor = new CallingProxyPostProcessor();
 			ProxyFactory proxyFactory = new ProxyFactory();
 			DelegateFactory delegateFactory = new DelegateFactory();
+			AutoLinkPreProcessor threadLocalCleanupPreProcessor = new AutoLinkPreProcessor();
+			LoggerInstancePreProcessor loggerInstancePreProcessor = new LoggerInstancePreProcessor();
 
 			callingProxyPostProcessor.setPropertyInfoProvider(propertyInfoProvider);
 			delegatingConversionHelper.setDefaultConversionHelper(conversionHelper);
@@ -167,16 +175,13 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			beanContextInitializer.setConversionHelper(delegatingConversionHelper);
 			beanContextInitializer.setObjectCollector(tlObjectCollector);
 			beanContextInitializer.setPropertyInfoProvider(propertyInfoProvider);
-			propertyInfoProvider.setAccessorTypeProvider(accessorTypeProvider);
+			garbageProxyFactory.setAccessorTypeProvider(accessorTypeProvider);
+			loggerInstancePreProcessor.setObjectCollector(tlObjectCollector);
 			propertyInfoProvider.setObjectCollector(tlObjectCollector);
+			threadLocalCleanupPreProcessor.setExtendableRegistry(extendableRegistry);
+			threadLocalCleanupPreProcessor.setExtendableType(IThreadLocalCleanupBeanExtendable.class);
 
-			LoggerInstancePreProcessor loggerInstancePreProcessor = new LoggerInstancePreProcessor();
 			loggerInstancePreProcessor.afterPropertiesSet();
-
-			ThreadLocalCleanupPreProcessor threadLocalCleanupPreProcessor = new ThreadLocalCleanupPreProcessor();
-			threadLocalCleanupPreProcessor.setThreadLocalCleanupBeanExtendable(threadLocalCleanupController);
-			threadLocalCleanupPreProcessor.afterPropertiesSet();
-
 			propertyInfoProvider.afterPropertiesSet();
 
 			scanForLogInstance(loggerInstancePreProcessor, propertyInfoProvider, newProps, accessorTypeProvider);
@@ -194,10 +199,12 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			callingProxyPostProcessor.afterPropertiesSet();
 			delegatingConversionHelper.afterPropertiesSet();
 			extendableRegistry.afterPropertiesSet();
+			garbageProxyFactory.afterPropertiesSet();
 			linkController.afterPropertiesSet();
 			loggerHistory.afterPropertiesSet();
 			beanContextInitializer.afterPropertiesSet();
 			threadLocalCleanupController.afterPropertiesSet();
+			threadLocalCleanupPreProcessor.afterPropertiesSet();
 
 			PropertiesPreProcessor propertiesPreProcessor = new PropertiesPreProcessor();
 			propertiesPreProcessor.setConversionHelper(delegatingConversionHelper);
@@ -205,8 +212,8 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			propertiesPreProcessor.afterPropertiesSet();
 
 			// The DelegatingConversionHelper is functional, but has yet no properties set
-			propertiesPreProcessor.preProcessProperties(null, newProps, "delegatingConversionHelper", delegatingConversionHelper,
-					DelegatingConversionHelper.class, null, null);
+			propertiesPreProcessor.preProcessProperties(null, null, newProps, "delegatingConversionHelper", delegatingConversionHelper,
+					DelegatingConversionHelper.class, null, EmptySet.<String> emptySet(), null);
 			delegatingConversionHelper.afterPropertiesSet();
 
 			BeanContextFactory parentContextFactory = new BeanContextFactory(tlObjectCollector, linkController, beanContextInitializer, proxyFactory, null,
@@ -233,9 +240,11 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 
 			parentContextFactory.registerWithLifecycle(accessorTypeProvider).autowireable(IAccessorTypeProvider.class);
 
-			parentContextFactory.registerWithLifecycle(loggerInstancePreProcessor).autowireable(ILoggerCache.class);
+			parentContextFactory.registerExternalBean(loggerInstancePreProcessor).autowireable(ILoggerCache.class);
 
 			parentContextFactory.registerWithLifecycle(extendableRegistry).autowireable(IExtendableRegistry.class);
+
+			parentContextFactory.registerWithLifecycle(garbageProxyFactory).autowireable(IGarbageProxyFactory.class);
 
 			parentContextFactory.registerWithLifecycle(callingProxyPostProcessor).autowireable(CallingProxyPostProcessor.class);
 
@@ -247,7 +256,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			{
 				for (int a = 0, size = bootstrapModules.length; a < size; a++)
 				{
-					parentContextFactory.registerAnonymousBean(bootstrapModules[a]);
+					parentContextFactory.registerBean(bootstrapModules[a]);
 				}
 			}
 			if (bootstrapModuleInstances != null)
@@ -279,14 +288,12 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 	protected static void scanForLogInstance(IBeanPreProcessor beanPreProcessor, IPropertyInfoProvider propertyInfoProvider, IProperties properties, Object bean)
 	{
 		IPropertyInfo[] props = propertyInfoProvider.getProperties(bean.getClass());
-		beanPreProcessor.preProcessProperties(null, properties, null, bean, bean.getClass(), null, props);
+		beanPreProcessor.preProcessProperties(null, null, properties, null, bean, bean.getClass(), null, EmptySet.<String> emptySet(), props);
 	}
 
 	protected List<IBeanConfiguration> beanConfigurations;
 
 	protected IMap<String, IBeanConfiguration> nameToBeanConfMap;
-
-	protected List<Object> disposableObjects;
 
 	protected ILinkedMap<String, String> aliasToBeanNameMap;
 
@@ -331,7 +338,6 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 	{
 		beanConfigurations = null;
 		nameToBeanConfMap = null;
-		disposableObjects = null;
 		aliasToBeanNameMap = null;
 		beanNameToAliasesMap = null;
 		linkController = null;
@@ -442,24 +448,31 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 		return contextName + " " + value;
 	}
 
-	public IServiceContext create(String contextName, RegisterPhaseDelegate registerPhaseDelegate, List<IBeanPreProcessor> preProcessors,
-			List<IBeanPostProcessor> postProcessors)
+	public IServiceContext create(String contextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
+			List<IBeanPreProcessor> preProcessors, List<IBeanPostProcessor> postProcessors)
 	{
 		return create(contextName, registerPhaseDelegate, preProcessors, postProcessors, emptyServiceModules);
 	}
 
-	public IServiceContext create(String contextName, RegisterPhaseDelegate registerPhaseDelegate, List<IBeanPreProcessor> preProcessors,
-			List<IBeanPostProcessor> postProcessors, Class<?>... serviceModuleTypes)
+	public IServiceContext create(String contextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
+			List<IBeanPreProcessor> preProcessors, List<IBeanPostProcessor> postProcessors, Class<?>... serviceModuleTypes)
 	{
 		ServiceContext context = new ServiceContext(generateUniqueContextName(contextName, null), objectCollector);
 
 		if (registerPhaseDelegate != null)
 		{
-			registerPhaseDelegate.invoke(this);
+			try
+			{
+				registerPhaseDelegate.invoke(this);
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
 		}
 		for (Class<?> serviceModuleType : serviceModuleTypes)
 		{
-			registerAnonymousBean(serviceModuleType);
+			registerBean(serviceModuleType);
 		}
 		if (preProcessors != null)
 		{
@@ -479,22 +492,30 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 		return context;
 	}
 
-	public IServiceContext create(String contextName, ServiceContext parent, RegisterPhaseDelegate registerPhaseDelegate)
+	public IServiceContext create(String contextName, ServiceContext parent, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate)
 	{
 		return create(contextName, parent, registerPhaseDelegate, emptyServiceModules);
 	}
 
-	public IServiceContext create(String contextName, ServiceContext parent, RegisterPhaseDelegate registerPhaseDelegate, Class<?>... serviceModuleTypes)
+	public IServiceContext create(String contextName, ServiceContext parent, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
+			Class<?>... serviceModuleTypes)
 	{
 		ServiceContext context = new ServiceContext(generateUniqueContextName(contextName, parent), parent);
 
 		if (registerPhaseDelegate != null)
 		{
-			registerPhaseDelegate.invoke(this);
+			try
+			{
+				registerPhaseDelegate.invoke(this);
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
 		}
 		for (Class<?> serviceModuleType : serviceModuleTypes)
 		{
-			registerAnonymousBean(serviceModuleType);
+			registerBean(serviceModuleType);
 		}
 		List<IBeanPreProcessor> preProcessors = parent.getPreProcessors();
 		if (preProcessors != null)
@@ -602,8 +623,15 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 		return beanConfiguration;
 	}
 
+	@Deprecated
 	@Override
 	public IBeanConfiguration registerAnonymousBean(Class<?> beanType)
+	{
+		return registerBean(beanType);
+	}
+
+	@Override
+	public IBeanConfiguration registerBean(Class<?> beanType)
 	{
 		ParamChecker.assertParamNotNull(beanType, "beanType");
 
@@ -662,25 +690,17 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 	}
 
 	@Override
-	public void registerDisposable(IDisposable disposable)
+	public void registerDisposable(final IDisposable disposable)
 	{
 		ParamChecker.assertParamNotNull(disposable, "disposable");
-		if (disposableObjects == null)
-		{
-			disposableObjects = new ArrayList<Object>();
-		}
-		disposableObjects.add(disposable);
+		registerWithLifecycle(new DisposableHook(disposable));
 	}
 
 	@Override
-	public void registerDisposable(IDisposableBean disposableBean)
+	public void registerDisposable(final IDisposableBean disposableBean)
 	{
 		ParamChecker.assertParamNotNull(disposableBean, "disposableBean");
-		if (disposableObjects == null)
-		{
-			disposableObjects = new ArrayList<Object>();
-		}
-		disposableObjects.add(disposableBean);
+		registerWithLifecycle(new DisposableBeanHook(disposableBean));
 	}
 
 	@Override

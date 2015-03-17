@@ -108,7 +108,7 @@ namespace De.Osthus.Ambeth.Collections
          *            the new capacity, MUST be a power of two; must be greater than current capacity unless current capacity is MAXIMUM_CAPACITY (in which case
          *            value is irrelevant).
          */
-        protected void Resize(int newCapacity)
+        protected virtual void Resize(int newCapacity)
         {
             Tuple2KeyEntry<Key1, Key2, V>[] oldTable = table;
             int oldCapacity = oldTable.Length;
@@ -124,7 +124,7 @@ namespace De.Osthus.Ambeth.Collections
             threshold = (int)(newCapacity * loadFactor);
         }
 
-        protected void Transfer(Tuple2KeyEntry<Key1, Key2, V>[] newTable)
+        protected virtual void Transfer(Tuple2KeyEntry<Key1, Key2, V>[] newTable)
         {
             int newCapacityMinus1 = newTable.Length - 1;
             Tuple2KeyEntry<Key1, Key2, V>[] table = this.table;

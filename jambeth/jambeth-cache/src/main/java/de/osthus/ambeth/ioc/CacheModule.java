@@ -34,11 +34,14 @@ import de.osthus.ambeth.cache.config.CacheNamedBeans;
 import de.osthus.ambeth.cache.interceptor.CacheProviderInterceptor;
 import de.osthus.ambeth.cache.interceptor.ThreadLocalRootCacheInterceptor;
 import de.osthus.ambeth.cache.interceptor.TransactionalRootCacheInterceptor;
-import de.osthus.ambeth.cache.rootcachevalue.IRootCacheValueTypeProvider;
-import de.osthus.ambeth.cache.rootcachevalue.RootCacheValueTypeProvider;
-import de.osthus.ambeth.config.Properties;
+import de.osthus.ambeth.cache.rootcachevalue.IRootCacheValueFactory;
+import de.osthus.ambeth.cache.rootcachevalue.RootCacheValueFactory;
+import de.osthus.ambeth.cache.walker.CacheWalker;
+import de.osthus.ambeth.cache.walker.ICacheWalker;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
+import de.osthus.ambeth.databinding.ICollectionChangeExtensionExtendable;
+import de.osthus.ambeth.databinding.IPropertyChangeExtensionExtendable;
 import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.event.IEventTargetExtractorExtendable;
 import de.osthus.ambeth.filter.model.IPagingResponse;
@@ -49,9 +52,12 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IProxyHelper;
-import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
+import de.osthus.ambeth.mixin.DataObjectMixin;
+import de.osthus.ambeth.mixin.EmbeddedTypeMixin;
+import de.osthus.ambeth.mixin.EntityEqualsMixin;
+import de.osthus.ambeth.mixin.PropertyChangeMixin;
+import de.osthus.ambeth.mixin.ValueHolderContainerMixin;
 import de.osthus.ambeth.proxy.CacheContextPostProcessor;
-import de.osthus.ambeth.proxy.CacheEntityFactory;
 import de.osthus.ambeth.proxy.CachePostProcessor;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.service.ICacheRetrieverExtendable;
@@ -65,7 +71,7 @@ import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.ParamChecker;
 
 @FrameworkModule
-public class CacheModule implements IInitializingModule, IPropertyLoadingBean
+public class CacheModule implements IInitializingModule
 {
 	public static final String CACHE_DATA_CHANGE_LISTENER = "cache.dcl";
 
@@ -101,12 +107,6 @@ public class CacheModule implements IInitializingModule, IPropertyLoadingBean
 	protected boolean secondLevelCacheActive;
 
 	@Override
-	public void applyProperties(Properties contextProperties)
-	{
-		contextProperties.putString(MergeConfigurationConstants.EntityFactoryType, CacheEntityFactory.class.getName());
-	}
-
-	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
 		if (defaultCacheType == null)
@@ -115,16 +115,18 @@ public class CacheModule implements IInitializingModule, IPropertyLoadingBean
 		}
 		ParamChecker.assertNotNull(proxyFactory, "proxyFactory");
 
-		IBeanConfiguration serviceResultcache = beanContextFactory.registerAnonymousBean(ServiceResultCache.class).autowireable(IServiceResultCache.class);
+		IBeanConfiguration serviceResultcache = beanContextFactory.registerBean(ServiceResultCache.class).autowireable(IServiceResultCache.class);
 		beanContextFactory.link(serviceResultcache, "handleClearAllCaches").to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 
-		beanContextFactory.registerBean("proxyHelper", ValueHolderIEC.class).autowireable(ValueHolderIEC.class, IProxyHelper.class);
+		beanContextFactory.registerBean(ValueHolderIEC.class).autowireable(ValueHolderIEC.class, IProxyHelper.class);
 
-		beanContextFactory.registerAnonymousBean(CacheHelper.class).autowireable(ICacheHelper.class, ICachePathHelper.class, IPrefetchHelper.class);
+		beanContextFactory.registerBean(CacheHelper.class).autowireable(ICacheHelper.class, ICachePathHelper.class, IPrefetchHelper.class);
+
+		beanContextFactory.registerBean(CacheWalker.class).autowireable(ICacheWalker.class);
 
 		beanContextFactory.registerAutowireableBean(ICacheMapEntryTypeProvider.class, CacheMapEntryTypeProvider.class);
 
-		beanContextFactory.registerAutowireableBean(IRootCacheValueTypeProvider.class, RootCacheValueTypeProvider.class);
+		beanContextFactory.registerAutowireableBean(IRootCacheValueFactory.class, RootCacheValueFactory.class);
 
 		beanContextFactory.registerBean(ROOT_CACHE_RETRIEVER, CacheRetrieverRegistry.class).autowireable(ICacheServiceByNameExtendable.class,
 				ICacheRetrieverExtendable.class);
@@ -169,7 +171,7 @@ public class CacheModule implements IInitializingModule, IPropertyLoadingBean
 		beanContextFactory.registerBean("cacheEventTargetExtractor", CacheEventTargetExtractor.class);
 		beanContextFactory.link("cacheEventTargetExtractor").to(IEventTargetExtractorExtendable.class).with(ICache.class).optional();
 
-		beanContextFactory.registerAnonymousBean(CacheFactory.class).autowireable(ICacheFactory.class);
+		beanContextFactory.registerBean(CacheFactory.class).autowireable(ICacheFactory.class);
 
 		MethodInterceptor cacheProviderInterceptor = (MethodInterceptor) beanContextFactory
 				.registerBean("cacheProviderInterceptor", CacheProviderInterceptor.class)
@@ -212,8 +214,8 @@ public class CacheModule implements IInitializingModule, IPropertyLoadingBean
 		beanContextFactory.link(defaultCacheProviderBeanName).to(ICacheProviderExtendable.class);
 
 		// CacheContextPostProcessor must be registered AFTER CachePostProcessor...
-		Object cachePostProcessor = beanContextFactory.registerAnonymousBean(CachePostProcessor.class).getInstance();
-		beanContextFactory.registerAnonymousBean(CacheContextPostProcessor.class).propertyValue("CachePostProcessor", cachePostProcessor);
+		Object cachePostProcessor = beanContextFactory.registerBean(CachePostProcessor.class).getInstance();
+		beanContextFactory.registerBean(CacheContextPostProcessor.class).propertyValue("CachePostProcessor", cachePostProcessor);
 
 		if (isNetworkClientMode)
 		{
@@ -223,5 +225,12 @@ public class CacheModule implements IInitializingModule, IPropertyLoadingBean
 		{
 
 		}
+
+		beanContextFactory.registerBean(DataObjectMixin.class).autowireable(DataObjectMixin.class);
+		beanContextFactory.registerBean(EntityEqualsMixin.class).autowireable(EntityEqualsMixin.class);
+		beanContextFactory.registerBean(EmbeddedTypeMixin.class).autowireable(EmbeddedTypeMixin.class);
+		beanContextFactory.registerBean(PropertyChangeMixin.class).autowireable(PropertyChangeMixin.class,
+				IPropertyChangeExtensionExtendable.class, ICollectionChangeExtensionExtendable.class);
+		beanContextFactory.registerBean(ValueHolderContainerMixin.class).autowireable(ValueHolderContainerMixin.class);
 	}
 }

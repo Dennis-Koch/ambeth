@@ -1,0 +1,24 @@
+\SetAPI{J-C}
+\section{IThreadLocalCleanupBeanExtendable}
+\label{extendable:IThreadLocalCleanupBeanExtendable}
+\ClearAPI
+\javadoc{de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBeanExtendable}{IThreadLocalCleanupBeanExtendable}
+\javadoc{de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean}{IThreadLocalCleanupBean}
+\TODO
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{IThreadLocalCleanupBean}}
+{jambeth-ioc/src/main/java/de/osthus/ambeth/ioc/threadlocal/IThreadLocalCleanupBeanExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+bcf.link(myExtension).to(IThreadLocalCleanupBeanExtendable.class);
+\end{lstlisting}
+\inputcsharp{Extension point for instances of \type{IThreadLocalCleanupBean}}
+{Ambeth.IoC/ambeth/ioc/threadlocal/IThreadLocalCleanupBeanExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<IThreadLocalCleanupBeanExtendable>();
+\end{lstlisting}
+%% GENERATED LISTINGS END

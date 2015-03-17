@@ -4,7 +4,7 @@ namespace De.Osthus.Ambeth.Util
 {
     public class ParamHolder<T> : IParamHolder<T>
     {
-	    public T Value { get; set; }
+	    public virtual T Value { get; set; }
 
 	    public ParamHolder()
 	    {

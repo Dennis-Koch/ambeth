@@ -26,11 +26,13 @@ import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IMergeSecurityManager;
 import de.osthus.ambeth.merge.model.ICUDResult;
 import de.osthus.ambeth.merge.model.IChangeContainer;
+import de.osthus.ambeth.merge.model.IDirectObjRef;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.model.IPrimitiveUpdateItem;
 import de.osthus.ambeth.merge.model.IRelationUpdateItem;
 import de.osthus.ambeth.merge.transfer.CreateContainer;
+import de.osthus.ambeth.merge.transfer.DirectObjRef;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
 import de.osthus.ambeth.model.IMethodDescription;
 import de.osthus.ambeth.model.ISecurityScope;
@@ -39,7 +41,6 @@ import de.osthus.ambeth.privilege.IPrivilegeProviderIntern;
 import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.privilege.model.IPropertyPrivilege;
 import de.osthus.ambeth.privilege.model.ReadPermission;
-import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 import de.osthus.ambeth.util.IDisposable;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
@@ -362,13 +363,22 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 	{
 		HashSet<IObjRef> relatedObjRefs = new HashSet<IObjRef>();
 
+		List<Object> originalRefs = cudResult.getOriginalRefs();
 		List<IChangeContainer> allChanges = cudResult.getAllChanges();
 		for (int a = allChanges.size(); a-- > 0;)
 		{
 			IChangeContainer changeContainer = allChanges.get(a);
 			IObjRef reference = changeContainer.getReference();
-			relatedObjRefs.add(reference);
 
+			if (reference instanceof IDirectObjRef && ((IDirectObjRef) reference).getDirect() instanceof IChangeContainer)
+			{
+				Object directEntity = originalRefs.get(((IDirectObjRef) reference).getCreateContainerIndex());
+				relatedObjRefs.add(new DirectObjRef(reference.getRealType(), directEntity));
+			}
+			else
+			{
+				relatedObjRefs.add(reference);
+			}
 			IRelationUpdateItem[] ruis = null;
 			if (changeContainer instanceof CreateContainer)
 			{
@@ -384,8 +394,8 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 			}
 			for (IRelationUpdateItem rui : ruis)
 			{
-				addRelatedObjRefs(rui.getAddedORIs(), relatedObjRefs);
-				addRelatedObjRefs(rui.getRemovedORIs(), relatedObjRefs);
+				addRelatedObjRefs(rui.getAddedORIs(), relatedObjRefs, originalRefs);
+				addRelatedObjRefs(rui.getRemovedORIs(), relatedObjRefs, originalRefs);
 			}
 		}
 		return relatedObjRefs;
@@ -404,7 +414,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 			if (!privilege.isReadAllowed())
 			{
 				// just for robustness
-				throw new SecurityException("Current user has no permssion to read entity and is therefore not allowed to imply any change: " + reference);
+				throw new SecurityException("Current user has no permission to read entity and is therefore not allowed to imply any change: " + reference);
 			}
 
 			IRelationUpdateItem[] ruis = null;
@@ -412,7 +422,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 			{
 				if (!privilege.isCreateAllowed())
 				{
-					throw new SecurityException("Current user has no permssion to create entity: " + reference);
+					throw new SecurityException("Current user has no permission to create entity: " + reference);
 				}
 				evaluatePermissionOnEntityCreate((CreateContainer) changeContainer, privilege);
 				ruis = ((CreateContainer) changeContainer).getRelations();
@@ -421,14 +431,14 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 			{
 				if (!privilege.isUpdateAllowed())
 				{
-					throw new SecurityException("Current user has no permssion to update entity: " + reference);
+					throw new SecurityException("Current user has no permission to update entity: " + reference);
 				}
 				evaluatePermissionOnEntityUpdate((UpdateContainer) changeContainer, privilege);
 				ruis = ((UpdateContainer) changeContainer).getRelations();
 			}
 			else if (!privilege.isDeleteAllowed())
 			{
-				throw new SecurityException("Current user has no permssion to delete entity: " + reference);
+				throw new SecurityException("Current user has no permission to delete entity: " + reference);
 			}
 			if (ruis == null)
 			{
@@ -546,13 +556,24 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 		}
 	}
 
-	protected void addRelatedObjRefs(IObjRef[] objRefs, ISet<IObjRef> relatedObjRefs)
+	protected void addRelatedObjRefs(IObjRef[] objRefs, ISet<IObjRef> relatedObjRefs, List<Object> originalRefs)
 	{
 		if (objRefs == null)
 		{
 			return;
 		}
-		relatedObjRefs.addAll(objRefs);
+		for (IObjRef objRef : objRefs)
+		{
+			if (objRef instanceof IDirectObjRef && ((IDirectObjRef) objRef).getDirect() instanceof IChangeContainer)
+			{
+				Object directEntity = originalRefs.get(((IDirectObjRef) objRef).getCreateContainerIndex());
+				relatedObjRefs.add(new DirectObjRef(objRef.getRealType(), directEntity));
+			}
+			else
+			{
+				relatedObjRefs.add(objRef);
+			}
+		}
 	}
 
 	protected void evaulatePermissionOnRelatedObjRefs(IObjRef[] objRefs, Map<IObjRef, IPrivilege> objRefToPrivilege)

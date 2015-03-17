@@ -11,6 +11,7 @@ import de.osthus.ambeth.bytecode.MethodInstance;
 import de.osthus.ambeth.bytecode.PropertyInstance;
 import de.osthus.ambeth.bytecode.Script;
 import de.osthus.ambeth.bytecode.behavior.BytecodeBehaviorState;
+import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheIntern;
 import de.osthus.ambeth.cache.ValueHolderIEC;
 import de.osthus.ambeth.cache.ValueHolderIEC.ValueHolderContainerEntry;
@@ -20,6 +21,10 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.IEmbeddedMember;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
+import de.osthus.ambeth.mixin.ValueHolderContainerMixin;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
@@ -27,21 +32,37 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
-import de.osthus.ambeth.template.ValueHolderContainerTemplate;
-import de.osthus.ambeth.typeinfo.EmbeddedRelationInfoItem;
-import de.osthus.ambeth.typeinfo.EmbeddedTypeInfoItem;
-import de.osthus.ambeth.typeinfo.IEmbeddedTypeInfoItem;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
+import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.typeinfo.MethodPropertyInfo;
-import de.osthus.ambeth.typeinfo.PropertyInfoItem;
 
 public class RelationsGetterVisitor extends ClassGenerator
 {
-	public static final Class<?> templateType = ValueHolderContainerTemplate.class;
+	public class ValueHolderContainerEntryValueResolver implements IValueResolveDelegate
+	{
+		private final ValueHolderIEC valueHolderContainerHelper;
 
-	protected static final String templatePropertyName = templateType.getSimpleName();
+		public ValueHolderContainerEntryValueResolver(ValueHolderIEC valueHolderContainerHelper)
+		{
+			this.valueHolderContainerHelper = valueHolderContainerHelper;
+		}
+
+		@Override
+		public Class<?> getValueType()
+		{
+			return ValueHolderContainerEntry.class;
+		}
+
+		@Override
+		public Object invoke(String fieldName, Class<?> enhancedType)
+		{
+			return valueHolderContainerHelper.getVhcEntry(enhancedType);
+		}
+	}
+
+	public static final Class<?> templateType = ValueHolderContainerMixin.class;
+
+	protected static final String templatePropertyName = "__" + templateType.getSimpleName();
 
 	private static final Type objRefArrayType = Type.getType(IObjRef[].class);
 
@@ -74,13 +95,15 @@ public class RelationsGetterVisitor extends ClassGenerator
 	private static final MethodInstance m_vhce_setUninitialized_Member = new MethodInstance(null, ValueHolderContainerEntry.class, void.class,
 			"setUninitialized", Object.class, int.class, IObjRef[].class);
 
+	private static final MethodInstance m_template_getCache = new MethodInstance(null, IObjRefContainer.class, ICache.class, "get__Cache");
+
 	private static final MethodInstance m_template_getState_Member = new MethodInstance(null, IObjRefContainer.class, ValueHolderState.class, "get__State",
 			int.class);
 
 	private static final MethodInstance m_template_setInitPending_Member = new MethodInstance(null, IValueHolderContainer.class, void.class,
 			"set__InitPending", int.class);
 
-	private static final MethodInstance m_template_isInitialized_Member = new MethodInstance(null, IObjRefContainer.class, boolean.class, "is__Initialized",
+	public static final MethodInstance m_template_isInitialized_Member = new MethodInstance(null, IObjRefContainer.class, boolean.class, "is__Initialized",
 			int.class);
 
 	private static final MethodInstance m_template_getObjRefs_Member = new MethodInstance(null, IObjRefContainer.class, IObjRef[].class, "get__ObjRefs",
@@ -89,7 +112,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 	private static final MethodInstance m_template_setObjRefs_Member = new MethodInstance(null, IObjRefContainer.class, void.class, "set__ObjRefs", int.class,
 			IObjRef[].class);
 
-	private static final MethodInstance m_template_getValueDirect_Member = new MethodInstance(null, IValueHolderContainer.class, Object.class,
+	public static final MethodInstance m_template_getValueDirect_Member = new MethodInstance(null, IValueHolderContainer.class, Object.class,
 			"get__ValueDirect", int.class);
 
 	private static final MethodInstance m_template_setValueDirect_Member = new MethodInstance(null, IValueHolderContainer.class, void.class,
@@ -102,7 +125,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 			int.class);
 
 	private static final MethodInstance m_template_getValue = new MethodInstance(null, templateType, Object.class, "getValue", IObjRefContainer.class,
-			IRelationInfoItem[].class, int.class, ICacheIntern.class, IObjRef[].class);
+			RelationMember[].class, int.class, ICacheIntern.class, IObjRef[].class);
 
 	public static PropertyInstance getValueHolderContainerTemplatePI(ClassGenerator cv)
 	{
@@ -141,40 +164,33 @@ public class RelationsGetterVisitor extends ClassGenerator
 
 	private final IEntityMetaData metaData;
 
+	private final IPropertyInfoProvider propertyInfoProvider;
+
 	private final ValueHolderIEC valueHolderContainerHelper;
 
-	public RelationsGetterVisitor(ClassVisitor cv, IEntityMetaData metaData, ValueHolderIEC valueHolderContainerHelper)
+	public RelationsGetterVisitor(ClassVisitor cv, IEntityMetaData metaData, ValueHolderIEC valueHolderContainerHelper,
+			IPropertyInfoProvider propertyInfoProvider)
 	{
 		super(cv);
 		this.metaData = metaData;
 		this.valueHolderContainerHelper = valueHolderContainerHelper;
+		this.propertyInfoProvider = propertyInfoProvider;
 	}
 
 	@Override
 	public void visitEnd()
 	{
 		PropertyInstance p_valueHolderContainerTemplate = getValueHolderContainerTemplatePI(this);
-		PropertyInstance p_relationMembers = implementAssignedReadonlyProperty("sf_$relationMembers", metaData.getRelationMembers());
+		PropertyInstance p_relationMembers = implementAssignedReadonlyProperty("__RelationMembers", metaData.getRelationMembers());
 
 		PropertyInstance p_targetCache = implementTargetCache(p_valueHolderContainerTemplate);
 
 		if (!EmbeddedEnhancementHint.hasMemberPath(getState().getContext()))
 		{
-			PropertyInstance p_valueHolderContainerEntry = implementAssignedReadonlyProperty("ValueHolderContainerEntry", new IValueResolveDelegate()
-			{
-				@Override
-				public Class<?> getValueType()
-				{
-					return ValueHolderContainerEntry.class;
-				}
-
-				@Override
-				public Object invoke(String fieldName, Class<?> enhancedType)
-				{
-					return valueHolderContainerHelper.getVhcEntry(enhancedType);
-				}
-			});
+			PropertyInstance p_valueHolderContainerEntry = implementAssignedReadonlyProperty("ValueHolderContainerEntry",
+					new ValueHolderContainerEntryValueResolver(valueHolderContainerHelper));
 			implementGetState(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
+			implementSetInitPending(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
 			implementIsInitialized(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
 			implementGetObjRefs(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
 			implementSetObjRefs(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
@@ -195,13 +211,13 @@ public class RelationsGetterVisitor extends ClassGenerator
 		{
 			return;
 		}
-		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 		final ArrayList<FieldInstance[]> fieldsList = new ArrayList<FieldInstance[]>();
 
 		for (int a = relationMembers.length; a-- > 0;)
 		{
-			IRelationInfoItem relationMember = relationMembers[a];
-			relationMember = (IRelationInfoItem) getApplicableMember(relationMember);
+			RelationMember relationMember = relationMembers[a];
+			relationMember = (RelationMember) getApplicableMember(relationMember);
 			if (relationMember == null)
 			{
 				// member is handled in another type
@@ -396,7 +412,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 		if (EmbeddedEnhancementHint.hasMemberPath(getState().getContext()))
 		{
 			final PropertyInstance p_rootEntity = EmbeddedTypeVisitor.getRootEntityProperty(this);
-			return implementProperty(p_template_targetCache, new Script()
+			PropertyInstance p_targetCache = implementProperty(p_template_targetCache, new Script()
 			{
 				@Override
 				public void execute(MethodGenerator mg)
@@ -411,13 +427,14 @@ public class RelationsGetterVisitor extends ClassGenerator
 					mg.returnValue();
 				}
 			}, null);
+			return p_targetCache;
 		}
 		implementSelfGetter(p_valueHolderContainerTemplate);
 
-		final FieldInstance f_targetCache = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "$targetCache", p_template_targetCache.getSignature(),
+		final FieldInstance f_targetCache = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "__targetCache", p_template_targetCache.getSignature(),
 				p_template_targetCache.getPropertyType()));
 
-		return implementProperty(p_template_targetCache, new Script()
+		PropertyInstance p_targetCache = implementProperty(p_template_targetCache, new Script()
 		{
 			@Override
 			public void execute(MethodGenerator mg)
@@ -441,22 +458,29 @@ public class RelationsGetterVisitor extends ClassGenerator
 				mg.returnValue();
 			}
 		});
+		{
+			MethodGenerator mg = visitMethod(m_template_getCache);
+			mg.callThisGetter(p_targetCache);
+			mg.returnValue();
+			mg.endMethod();
+		}
+		return p_targetCache;
 	}
 
 	protected void implementValueHolderCode(PropertyInstance p_valueHolderContainerTemplate, PropertyInstance p_targetCache, PropertyInstance p_relationMembers)
 	{
-		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 		{
-			IRelationInfoItem relationMember = relationMembers[relationIndex];
-			relationMember = (IRelationInfoItem) getApplicableMember(relationMember);
+			RelationMember relationMember = relationMembers[relationIndex];
+			relationMember = (RelationMember) getApplicableMember(relationMember);
 			if (relationMember == null)
 			{
 				// member is handled in another type
 				continue;
 			}
 			String propertyName = relationMember.getName();
-			IPropertyInfo propertyInfo = ((PropertyInfoItem) relationMember).getProperty();
+			IPropertyInfo propertyInfo = propertyInfoProvider.getProperty(relationMember.getDeclaringType(), propertyName);
 			PropertyInstance prop = PropertyInstance.findByTemplate(propertyInfo, true);
 			MethodInstance m_get = prop != null ? prop.getGetter() : new MethodInstance(((MethodPropertyInfo) propertyInfo).getGetter());
 			MethodInstance m_set = prop != null ? prop.getSetter() : new MethodInstance(((MethodPropertyInfo) propertyInfo).getSetter());
@@ -470,10 +494,19 @@ public class RelationsGetterVisitor extends ClassGenerator
 			if (f_objRefs_existing == null)
 			{
 				f_objRefs_existing = implementField(f_objRefs);
+				implementGetter(new MethodInstance(null, Opcodes.ACC_PUBLIC, f_objRefs_existing.getType(), "get" + f_objRefs_existing.getName(), null),
+						f_objRefs_existing);
+				implementSetter(
+						new MethodInstance(null, Opcodes.ACC_PUBLIC, Type.VOID_TYPE, "set" + f_objRefs_existing.getName(), null, f_objRefs_existing.getType()),
+						f_objRefs_existing);
 			}
 			if (f_initialized_existing == null)
 			{
 				f_initialized_existing = implementField(f_initialized);
+				implementGetter(new MethodInstance(null, Opcodes.ACC_PUBLIC, f_initialized_existing.getType(), "get" + f_initialized_existing.getName(), null),
+						f_initialized_existing);
+				implementSetter(new MethodInstance(null, Opcodes.ACC_PUBLIC, Type.VOID_TYPE, "set" + f_initialized_existing.getName(), null,
+						f_initialized_existing.getType()), f_initialized_existing);
 			}
 
 			implementRelationGetter(propertyName, m_get, m_set, relationIndex, p_valueHolderContainerTemplate, p_targetCache, p_relationMembers,
@@ -482,10 +515,10 @@ public class RelationsGetterVisitor extends ClassGenerator
 		}
 	}
 
-	public static ITypeInfoItem getApplicableMember(ITypeInfoItem relationMember)
+	public static Member getApplicableMember(Member relationMember)
 	{
 		String propertyName = relationMember.getName();
-		if (relationMember instanceof IEmbeddedTypeInfoItem)
+		if (relationMember instanceof IEmbeddedMember)
 		{
 			String memberPath = EmbeddedEnhancementHint.getMemberPath(getState().getContext());
 			if (memberPath != null)
@@ -501,13 +534,9 @@ public class RelationsGetterVisitor extends ClassGenerator
 					// This relation has to be handled by another child embedded type of this embedded type
 					return null;
 				}
-				if (relationMember instanceof EmbeddedRelationInfoItem)
+				if (relationMember instanceof IEmbeddedMember)
 				{
-					relationMember = ((EmbeddedRelationInfoItem) relationMember).getChildMember();
-				}
-				else
-				{
-					relationMember = ((EmbeddedTypeInfoItem) relationMember).getChildMember();
+					relationMember = ((IEmbeddedMember) relationMember).getChildMember();
 				}
 			}
 			else if (propertyName.contains("."))
@@ -618,9 +647,9 @@ public class RelationsGetterVisitor extends ClassGenerator
 		{
 			PropertyInstance p_cacheModification = SetCacheModificationMethodCreator.getCacheModificationPI(this);
 			final MethodInstance m_getMethod_scoped = new MethodInstance(BytecodeBehaviorState.getState().getNewType(),
-					Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, Type.VOID_TYPE, m_getMethod_template.getName() + "$getValue", null);
+					Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, Type.VOID_TYPE, propertyName + "$doInitialize", null);
 			{
-				MethodGenerator mg = super.visitMethod(m_getMethod_scoped);
+				MethodGenerator mg = visitMethod(m_getMethod_scoped);
 
 				// property => for this.setPropertyName(...)
 				mg.loadThis();

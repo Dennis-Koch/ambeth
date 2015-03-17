@@ -15,49 +15,40 @@ import de.osthus.ambeth.event.IEntityMetaDataEvent;
 import de.osthus.ambeth.event.IEventListener;
 import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.ioc.IDisposableBean;
-import de.osthus.ambeth.ioc.IInitializingBean;
-import de.osthus.ambeth.ioc.IStartingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IDatabase;
-import de.osthus.ambeth.persistence.ITable;
+import de.osthus.ambeth.persistence.IDatabaseMetaData;
+import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.database.TransactionBeginEvent;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class OracleDatabaseChangeRegistration implements IInitializingBean, IStartingBean, IDisposableBean, IEventListener
+public class OracleDatabaseChangeRegistration implements IDisposableBean, IEventListener
 {
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IConnectionFactory connectionFactory;
 
-	protected IDatabase database;
+	@Autowired
+	protected IDatabaseMetaData databaseMetaData;
 
+	@Autowired
 	protected ITransaction transaction;
 
+	@Autowired(optional = true)
 	protected DatabaseChangeListener databaseChangeListener;
 
+	@Autowired(optional = true)
 	protected DatabaseChangeRegistration databaseChangeRegistration;
 
+	@Autowired
 	protected IEventListenerExtendable eventListenerExtendable;
 
 	protected boolean firstMapping;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(connectionFactory, "ConnectionFactory");
-		ParamChecker.assertNotNull(database, "Database");
-		ParamChecker.assertNotNull(eventListenerExtendable, "eventListenerExtendable");
-		ParamChecker.assertNotNull(transaction, "Transaction");
-	}
-
-	@Override
-	public void afterStarted() throws Throwable
-	{
-	}
 
 	@Override
 	public void destroy() throws Throwable
@@ -69,37 +60,12 @@ public class OracleDatabaseChangeRegistration implements IInitializingBean, ISta
 		Connection connection = connectionFactory.create();
 		try
 		{
-			((OracleConnection) connection).unregisterDatabaseChangeNotification(databaseChangeRegistration);
+			connection.unwrap(OracleConnection.class).unregisterDatabaseChangeNotification(databaseChangeRegistration);
 		}
 		finally
 		{
 			JdbcUtil.close(connection);
 		}
-	}
-
-	public void setConnectionFactory(IConnectionFactory connectionFactory)
-	{
-		this.connectionFactory = connectionFactory;
-	}
-
-	public void setDatabase(IDatabase database)
-	{
-		this.database = database;
-	}
-
-	public void setDatabaseChangeListener(DatabaseChangeListener databaseChangeListener)
-	{
-		this.databaseChangeListener = databaseChangeListener;
-	}
-
-	public void setEventListenerExtendable(IEventListenerExtendable eventListenerExtendable)
-	{
-		this.eventListenerExtendable = eventListenerExtendable;
-	}
-
-	public void setTransaction(ITransaction transaction)
-	{
-		this.transaction = transaction;
 	}
 
 	@Override
@@ -148,7 +114,7 @@ public class OracleDatabaseChangeRegistration implements IInitializingBean, ISta
 
 		for (Entry<Object, IDatabase> entry : persistenceUnitToDatabaseMap)
 		{
-			OracleConnection connection = entry.getValue().getAutowiredBeanInContext(OracleConnection.class);
+			OracleConnection connection = entry.getValue().getAutowiredBeanInContext(Connection.class).unwrap(OracleConnection.class);
 			databaseChangeRegistration = connection.registerDatabaseChangeNotification(prop);
 			databaseChangeRegistration.addListener(databaseChangeListener);
 
@@ -157,7 +123,7 @@ public class OracleDatabaseChangeRegistration implements IInitializingBean, ISta
 			{
 				((OracleStatement) stm).setDatabaseChangeRegistration(databaseChangeRegistration);
 
-				for (ITable table : database.getTables())
+				for (ITableMetaData table : databaseMetaData.getTables())
 				{
 					String tableName = table.getFullqualifiedEscapedName();
 

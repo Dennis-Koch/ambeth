@@ -7,7 +7,7 @@ import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IMergeProcess;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -16,7 +16,7 @@ import de.osthus.ambeth.util.ParamChecker;
 @TestModule({})
 @SQLStructure("structure.sql")
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/jdbc/interf/orm.xml")
-public class InterfaceEntityTest extends AbstractPersistenceTest
+public class InterfaceEntityTest extends AbstractInformationBusWithPersistenceTest
 {
 	@SuppressWarnings("unused")
 	@LogInstance

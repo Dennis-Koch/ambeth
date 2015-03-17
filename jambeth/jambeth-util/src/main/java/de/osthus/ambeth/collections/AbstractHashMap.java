@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.lang.reflect.Array;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.util.IPrintable;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
@@ -22,7 +24,7 @@ import de.osthus.ambeth.util.StringBuilderUtil;
  * @param <V>
  *            Typ der Values
  */
-public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPrintable
+public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPrintable, Cloneable
 {
 	public static final int DEFAULT_INITIAL_CAPACITY = 16;
 
@@ -244,6 +246,31 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 				}
 			}
 		}
+	}
+
+	/**
+	 * Returns a shallow copy of this <tt>HashMap</tt> instance: the keys and values themselves are not cloned.
+	 * 
+	 * @return a shallow copy of this map
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public Object clone()
+	{
+		AbstractHashMap<WrappedK, K, V> result = null;
+		try
+		{
+			result = (AbstractHashMap<WrappedK, K, V>) super.clone();
+		}
+		catch (CloneNotSupportedException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		for (Entry<K, V> entry : this)
+		{
+			result.put(entry.getKey(), entry.getValue());
+		}
+		return result;
 	}
 
 	/**
@@ -533,7 +560,7 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	@Override
 	public ISet<Entry<K, V>> entrySet()
 	{
-		final LinkedHashSet<Entry<K, V>> entrySet = new LinkedHashSet<Entry<K, V>>((int) (size() / AbstractHashSet.DEFAULT_LOAD_FACTOR) + 1);
+		final LinkedHashSet<Entry<K, V>> entrySet = LinkedHashSet.create(size());
 		entrySet(entrySet);
 		return entrySet;
 	}
@@ -581,13 +608,13 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	@Override
 	public ISet<K> keySet()
 	{
-		final LinkedHashSet<K> keySet = new LinkedHashSet<K>((int) (size() / AbstractHashSet.DEFAULT_LOAD_FACTOR) + 1);
+		LinkedHashSet<K> keySet = LinkedHashSet.create(size());
 		keySet(keySet);
 		return keySet;
 	}
 
 	@Override
-	public void keySet(ISet<K> targetKeySet)
+	public void keySet(Collection<K> targetKeySet)
 	{
 		IMapEntry<K, V>[] table = this.table;
 		for (int a = table.length; a-- > 0;)
@@ -599,6 +626,14 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 				entry = entry.getNextEntry();
 			}
 		}
+	}
+
+	@Override
+	public IList<K> keyList()
+	{
+		ArrayList<K> keySet = new ArrayList<K>(size());
+		keySet(keySet);
+		return keySet;
 	}
 
 	@Override

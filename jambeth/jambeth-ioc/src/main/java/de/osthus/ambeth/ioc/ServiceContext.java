@@ -20,6 +20,7 @@ import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.exception.BeanContextInitException;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.BeanContextInitializer;
+import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextInitializer;
 import de.osthus.ambeth.ioc.hierarchy.IBeanContextHolder;
 import de.osthus.ambeth.ioc.hierarchy.SearchType;
@@ -76,7 +77,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 
 	protected IList<ILinkContainer> linkContainers;
 
-	protected IList<Object> disposableObjects;
+	protected ArrayList<Object> disposableObjects;
 
 	protected IList<IBeanPreProcessor> preProcessors;
 
@@ -573,21 +574,23 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 	}
 
 	@Override
-	public IServiceContext createService(RegisterPhaseDelegate registerPhaseDelegate, Class<?>... serviceModuleTypes)
+	public IServiceContext createService(IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, Class<?>... serviceModuleTypes)
 	{
 		return createService(null, IServiceContext.class, registerPhaseDelegate, serviceModuleTypes);
 	}
 
 	@Override
-	public IServiceContext createService(String contextName, RegisterPhaseDelegate registerPhaseDelegate, Class<?>... serviceModuleTypes)
+	public IServiceContext createService(String contextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
+			Class<?>... serviceModuleTypes)
 	{
 		return createService(contextName, IServiceContext.class, registerPhaseDelegate, serviceModuleTypes);
 	}
 
-	public <I> I createService(String contextName, Class<I> serviceClass, RegisterPhaseDelegate registerPhaseDelegate, Class<?>... serviceModuleTypes)
+	public <I> I createService(String contextName, Class<I> serviceClass, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
+			Class<?>... serviceModuleTypes)
 	{
 		checkNotDisposed();
-		IBeanContextInitializer beanContextInitializer = registerAnonymousBean(BeanContextInitializer.class).finish();
+		IBeanContextInitializer beanContextInitializer = registerBean(BeanContextInitializer.class).finish();
 
 		if (contextName == null && registerPhaseDelegate == null && serviceModuleTypes.length == 1)
 		{
@@ -729,50 +732,59 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		registerDisposableIntern(waitCallback, false);
 	}
 
-	protected void registerDisposableIntern(Object object, boolean registerWeakOnRunning)
+	public void addDisposables(List<Object> disposableObjects)
+	{
+		if (this.disposableObjects == null)
+		{
+			this.disposableObjects = new ArrayList<Object>(disposableObjects.size());
+		}
+		this.disposableObjects.addAll(disposableObjects);
+	}
+
+	protected void registerDisposableIntern(Object obj, boolean registerWeakOnRunning)
 	{
 		checkNotDisposed();
-		ParamChecker.assertParamNotNull(object, "object");
-		if (isRunning())
-		{
-			Lock writeLock = this.writeLock;
-			writeLock.lock();
-			try
-			{
-				if (disposableObjects == null)
-				{
-					disposableObjects = new ArrayList<Object>();
-				}
-				IList<Object> disposableObjects = this.disposableObjects;
-				if (disposableObjects.size() % 100 == 0)
-				{
-					for (int a = disposableObjects.size(); a-- > 0;)
-					{
-						Object disposableObject = disposableObjects.get(a);
-						if (disposableObject instanceof Reference)
-						{
-							disposableObject = ((Reference<?>) disposableObject).get();
-						}
-						if (disposableObject == null)
-						{
-							disposableObjects.remove(a);
-						}
-					}
-				}
-				disposableObjects.add(registerWeakOnRunning ? new WeakReference<Object>(object) : object);
-			}
-			finally
-			{
-				writeLock.unlock();
-			}
-		}
-		else
+		ParamChecker.assertParamNotNull(obj, "obj");
+		if (!isRunning())
 		{
 			if (disposableObjects == null)
 			{
 				disposableObjects = new ArrayList<Object>();
 			}
-			disposableObjects.add(object);
+			disposableObjects.add(obj);
+			return;
+		}
+		Lock writeLock = this.writeLock;
+		writeLock.lock();
+		try
+		{
+			ArrayList<Object> disposableObjects = this.disposableObjects;
+			if (disposableObjects == null)
+			{
+				disposableObjects = new ArrayList<Object>();
+				this.disposableObjects = disposableObjects;
+			}
+			// "monte carlo" approach to check for disposable objects without noticeable impact on the runtime performance
+			while (disposableObjects.size() > 0)
+			{
+				int randomIndex = (int) (Math.random() * disposableObjects.size());
+				Object disposableObject = disposableObjects.get(randomIndex);
+				if (disposableObject instanceof Reference)
+				{
+					disposableObject = ((Reference<?>) disposableObject).get();
+				}
+				if (disposableObject != null)
+				{
+					// not a collected object. we finish the search for collected disposables
+					break;
+				}
+				disposableObjects.remove(randomIndex);
+			}
+			disposableObjects.add(registerWeakOnRunning ? new WeakReference<Object>(obj) : obj);
+		}
+		finally
+		{
+			writeLock.unlock();
 		}
 	}
 
@@ -1183,8 +1195,15 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		}
 	}
 
+	@Deprecated
 	@Override
 	public <V> IBeanRuntime<V> registerAnonymousBean(Class<V> beanType)
+	{
+		return registerBean(beanType);
+	}
+
+	@Override
+	public <V> IBeanRuntime<V> registerBean(Class<V> beanType)
 	{
 		checkNotDisposed();
 		ParamChecker.assertParamNotNull(beanType, "beanType");

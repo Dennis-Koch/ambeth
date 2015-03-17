@@ -161,11 +161,14 @@ namespace De.Osthus.Ambeth.Privilege
         public IPrivilegeService PrivilegeService { protected get; set; }
 
         [Autowired]
+        public ISecurityContextHolder SecurityContextHolder { protected get; set; }
+
+        [Autowired]
         public ISecurityScopeProvider SecurityScopeProvider { protected get; set; }
 
         protected readonly Object writeLock = new Object();
 
-        protected readonly HashMap<PrivilegeKey, IPrivilege> privilegeCache = new HashMap<PrivilegeKey, IPrivilege>();
+        protected readonly LinkedHashMap<PrivilegeKey, IPrivilege> privilegeCache = new LinkedHashMap<PrivilegeKey, IPrivilege>();
 
         protected readonly Tuple3KeyHashMap<Type, String, String, ITypePrivilege> entityTypePrivilegeCache = new Tuple3KeyHashMap<Type, String, String, ITypePrivilege>();
 
@@ -206,7 +209,8 @@ namespace De.Osthus.Ambeth.Privilege
 
         public IList<IPrivilege> GetPrivilegesByObjRef<V>(IEnumerable<V> objRefs, params ISecurityScope[] securityScopes) where V : IObjRef
         {
-            IAuthorization authorization = SecurityScopeProvider.Authorization;
+            ISecurityContext context = SecurityContextHolder.Context;
+            IAuthorization authorization = context != null ? context.Authorization : null;
             if (authorization == null)
             {
                 throw new SecurityException("User must be authenticated to be able to check for privileges");
@@ -270,24 +274,17 @@ namespace De.Osthus.Ambeth.Privilege
 	    {
 		    IPropertyPrivilegeOfService[] propertyPrivilegesOfService = privilegeOfService.PropertyPrivileges;
 
-		    IPropertyPrivilege defaultPropertyPrivilege = PropertyPrivilegeImpl.createFrom(privilegeOfService);
-		    if (propertyPrivilegesOfService == null || propertyPrivilegesOfService.Length == 0)
-		    {
-			    return new SimplePrivilegeImpl(privilegeOfService.CreateAllowed, privilegeOfService.ReadAllowed, privilegeOfService.UpdateAllowed,
-					    privilegeOfService.DeleteAllowed, privilegeOfService.ExecuteAllowed, defaultPropertyPrivilege);
-		    }
+            if (propertyPrivilegesOfService == null || propertyPrivilegesOfService.Length == 0)
+            {
+                return SimplePrivilegeImpl.CreateFrom(privilegeOfService);
+            }
 		    String[] propertyPrivilegeNames = privilegeOfService.PropertyPrivilegeNames;
             IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(objRef.RealType);
 		    IPropertyPrivilege[] primitivePropertyPrivileges = new IPropertyPrivilege[metaData.PrimitiveMembers.Length];
             IPropertyPrivilege[] relationPropertyPrivileges = new IPropertyPrivilege[metaData.RelationMembers.Length];
-            for (int a = primitivePropertyPrivileges.Length; a-- > 0; )
-            {
-                primitivePropertyPrivileges[a] = defaultPropertyPrivilege;
-            }
-            for (int a = relationPropertyPrivileges.Length; a-- > 0; )
-            {
-                relationPropertyPrivileges[a] = defaultPropertyPrivilege;
-            }
+            IPropertyPrivilege defaultPropertyPrivilege = PropertyPrivilegeImpl.CreateFrom(privilegeOfService);
+            Arrays.Fill(primitivePropertyPrivileges, defaultPropertyPrivilege);
+            Arrays.Fill(relationPropertyPrivileges, defaultPropertyPrivilege);
 		    for (int b = propertyPrivilegesOfService.Length; b-- > 0;)
 		    {
 			    IPropertyPrivilegeOfService propertyPrivilegeOfService = propertyPrivilegesOfService[b];
@@ -374,10 +371,11 @@ namespace De.Osthus.Ambeth.Privilege
 
         public IList<ITypePrivilege> GetPrivilegesByType(IEnumerable<Type> entityTypes, params ISecurityScope[] securityScopes)
         {
-            IAuthorization authorization = SecurityScopeProvider.Authorization;
+            ISecurityContext context = SecurityContextHolder.Context;
+            IAuthorization authorization = context != null ? context.Authorization : null;
             if (authorization == null)
             {
-                throw new SecurityException("User must be authenticated to be able to check for privileges");
+                throw new SecurityException("User must be authorized to be able to check for privileges");
             }
             if (securityScopes.Length == 0)
             {
@@ -537,16 +535,22 @@ namespace De.Osthus.Ambeth.Privilege
             return result;
         }
 
+        public void HandleClearAllCaches(ClearAllCachesEvent evnt)
+        {
+            lock (writeLock)
+            {
+                privilegeCache.Clear();
+                entityTypePrivilegeCache.Clear();
+            }
+        }
+
         public void DataChanged(IDataChange dataChange, DateTime dispatchTime, long sequenceId)
         {
             if (dataChange.IsEmpty)
             {
                 return;
             }
-            lock (writeLock)
-            {
-                privilegeCache.Clear();
-            }
+            HandleClearAllCaches(null);
         }
     }
 }

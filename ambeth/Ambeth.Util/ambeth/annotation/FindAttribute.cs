@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Runtime.Serialization;
 
 namespace De.Osthus.Ambeth.Annotation
 {
@@ -20,7 +16,6 @@ namespace De.Osthus.Ambeth.Annotation
             EntityType = typeof(Object); // Default value
             QueryName = ""; // Default value
             ResultType = QueryResultType.REFERENCES; // Default value
-        }
-        
+        }        
     }
 }

@@ -1,0 +1,32 @@
+\SetAPI{J-C}
+\section{ConversionHelper}
+\label{feature:ConversionHelper}
+\ClearAPI
+Core functionality and intensively used by \AMBETH{} itself to provide a flexible, extensible but also high performance implementation to convert objects to other types. In the common scenario the \type{IConversionHelper}-bean expects two arguments to be able to work - the expected result type and the value (object instance) to be converted:
+
+\inputjava{Usage example of the \type{IConversionHelper}-bean}
+{jambeth-examples/src/main/java/de/osthus/ambeth/example/conversionhelper/ConversionHelperExample.java}
+
+The implementation algorithm evaluates at runtime the appropriate internal conversion process according to the given expected type - which is far more sophisticated than a simple key/value mapping. Note that in the example above the given \type{Calendar} instance is an abstract class. So we know at runtime the passed instance must be of any subclass. To find the correct configured extension a dynamic evaluation of the given object polymorphic information is done. The following example shows a common scenario:
+
+\begin{lstlisting}[style=Java]
+public interface IA {}
+public interface IB {}
+public class A implements IA {}
+public class B implements IB {}
+
+// somewhere in a module
+IBeanConfiguration myConverterExtension1 = beanContextFactory.registerAnonymousBean(MyConverterExtension1.class);
+IBeanConfiguration myConverterExtension2 = beanContextFactory.registerAnonymousBean(MyConverterExtension2.class);
+beanContextFactory.link(myConverterExtension1).to(IDedicatedConverterExtendable.class).with(IA.class, IB.class);
+beanContextFactory.link(myConverterExtension2).to(IDedicatedConverterExtendable.class).with(IA.class, B.class);
+
+// somewhere in a usecase for the IConversionHelper-bean
+A a = new A();
+IB ib = conversionHelper.convertValueToType(IB.class, a); // ``extension 1'' will be selected for conversion
+B b = conversionHelper.convertValueToType(B.class, a);		// ``extension 2'' will be selected for conversion
+\end{lstlisting}
+
+The selection algorithm makes use of a metric introduced by \AMBETH{} called \prettyref{feature:PolymorphicDistance}. The extension with the smallest value is selected for each convert scenario. Of course the internal implementation is smart enough to cache each scenario for each extension in order. That way the runtime performance of the selection algorithm is indeed as fast as a native \type{HashMap} access - with a complexity of O(1). If two different extensions have the same calculated distance for a given conversion scenario the selected extension instance is not consistent - though technically not a problem at all.
+
+As already mentioned the capabilities of \type{IConversionHelper}-bean can be extensively customized by making use of the corresponding extension point. See \prettyref{extendable:IDedicatedConverterExtendable}.

@@ -1,6 +1,5 @@
 package de.osthus.ambeth.query.sql;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
@@ -12,16 +11,20 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.query.IOperand;
+import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
+import de.osthus.ambeth.query.IQueryKey;
 import de.osthus.ambeth.query.OrderByType;
 import de.osthus.ambeth.query.QueryEntity;
 import de.osthus.ambeth.query.StringQuery;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -29,7 +32,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/Query_orm.xml")
 @SQLStructure("../Query_structure.sql")
 @SQLData("../Query_data.sql")
-public class SqlQueryTest extends AbstractPersistenceTest
+public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -65,16 +68,22 @@ public class SqlQueryTest extends AbstractPersistenceTest
 
 	protected String buildQuery(IOperand rootOperand)
 	{
-		StringQuery query = beanContext.registerAnonymousBean(StringQuery.class).propertyValue("RootOperand", rootOperand).finish();
+		StringQuery query = beanContext.registerBean(StringQuery.class)//
+				.propertyValue("EntityType", Object.class)//
+				.propertyValue("RootOperand", rootOperand)//
+				.finish();
 
 		ArrayList<Object> parameters = new ArrayList<Object>();
 
 		return query.fillQuery(nameToValueMap, parameters);
 	}
 
-	protected String buildSimpleQuery(String paramName, Object value, IOperand rootOperand, List<Object> parameters)
+	protected String buildSimpleQuery(String paramName, Object value, IOperand rootOperand, IList<Object> parameters)
 	{
-		StringQuery query = beanContext.registerAnonymousBean(StringQuery.class).propertyValue("RootOperand", rootOperand).finish();
+		StringQuery query = beanContext.registerBean(StringQuery.class)//
+				.propertyValue("EntityType", Object.class)//
+				.propertyValue("RootOperand", rootOperand)//
+				.finish();
 
 		nameToValueMap.put(paramName, value);
 
@@ -85,9 +94,12 @@ public class SqlQueryTest extends AbstractPersistenceTest
 		return query.fillQuery(nameToValueMap, parameters);
 	}
 
-	protected String buildCompositeQuery(String paramName1, Object value1, String paramName2, Object value2, IOperand rootOperand, List<Object> parameters)
+	protected String buildCompositeQuery(String paramName1, Object value1, String paramName2, Object value2, IOperand rootOperand, IList<Object> parameters)
 	{
-		StringQuery query = beanContext.registerAnonymousBean(StringQuery.class).propertyValue("RootOperand", rootOperand).finish();
+		StringQuery query = beanContext.registerBean(StringQuery.class)//
+				.propertyValue("EntityType", Object.class)//
+				.propertyValue("RootOperand", rootOperand)//
+				.finish();
 
 		if (parameters == null)
 		{
@@ -157,6 +169,13 @@ public class SqlQueryTest extends AbstractPersistenceTest
 		Assert.assertEquals("Wrong query string", "(\"" + columnName1 + "\" LIKE ? ESCAPE '\\')", queryString);
 	}
 
+	@Test
+	public void sqlCount() throws Exception
+	{
+		IQuery<?> query = qb.build();
+		Assert.assertEquals(6, query.count());
+	}
+
 	@SuppressWarnings("deprecation")
 	@Test
 	public void sqlEndsWith() throws Exception
@@ -167,6 +186,17 @@ public class SqlQueryTest extends AbstractPersistenceTest
 		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
 		Assert.assertEquals("%" + value1, parameters.get(0));
 		Assert.assertEquals("Wrong query string", "(\"" + columnName1 + "\" LIKE ?)", queryString);
+	}
+
+	@SuppressWarnings("deprecation")
+	@Test
+	public void sqlGroupBy() throws Exception
+	{
+		qb.groupBy(qb.column(columnName1));
+
+		IQuery<?> query = qb.build(qb.all());
+		IQueryKey queryKey = query.getQueryKey(null);
+		Assert.assertEquals(QueryEntity.class.getName() + "###GROUP BY \"" + columnName1 + "\"#", queryKey.toString());
 	}
 
 	@SuppressWarnings("deprecation")
@@ -191,6 +221,13 @@ public class SqlQueryTest extends AbstractPersistenceTest
 		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
 		Assert.assertEquals("%" + value1 + "%", parameters.get(0));
 		Assert.assertEquals("Wrong query string", "(LOWER(\"" + columnName1 + "\") LIKE LOWER(?) ESCAPE '\\')", queryString);
+	}
+
+	@Test
+	public void sqlIsEmpty() throws Exception
+	{
+		IQuery<?> query = qb.build();
+		Assert.assertFalse(query.isEmpty());
 	}
 
 	@SuppressWarnings("deprecation")
@@ -413,6 +450,25 @@ public class SqlQueryTest extends AbstractPersistenceTest
 		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
 		Assert.assertEquals(value1, parameters.get(0));
 		Assert.assertEquals("Wrong query string", "(\"" + columnName1 + "\" NOT LIKE ? ESCAPE '\\')", queryString);
+	}
+
+	@Test
+	public void sqlRegexpLike() throws Exception
+	{
+		Object value1 = "testValue1";
+		Object value2 = "testValue2";
+
+		IOperand rootOperand = qb.regexpLike(qb.property("Name1"), qb.valueName(paramName1));
+		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
+		Assert.assertEquals(value1, parameters.get(0));
+		Assert.assertEquals("Wrong query string", "REGEXP_LIKE(\"" + columnName1 + "\",?)", queryString);
+
+		parameters = new ArrayList<Object>();
+		rootOperand = qb.regexpLike(qb.property("Name1"), qb.valueName(paramName1), qb.valueName(paramName2));
+		queryString = buildCompositeQuery(paramName1, value1, paramName2, value2, rootOperand, parameters);
+		Assert.assertEquals(value1, parameters.get(0));
+		Assert.assertEquals(value2, parameters.get(1));
+		Assert.assertEquals("Wrong query string", "REGEXP_LIKE(\"" + columnName1 + "\",?,?)", queryString);
 	}
 
 	@SuppressWarnings("deprecation")

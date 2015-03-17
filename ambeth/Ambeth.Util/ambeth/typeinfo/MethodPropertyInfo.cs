@@ -44,6 +44,31 @@ namespace De.Osthus.Ambeth.Typeinfo
             Init();
         }
 
+        protected void RefreshDeclaringType()
+	    {
+		    Type fieldDC = BackingField != null ? BackingField.DeclaringType : null;
+            Type getterDC = Getter != null ? Getter.DeclaringType : null;
+            Type setterDC = Setter != null ? Setter.DeclaringType : null;
+            Type mostSpecificDC = fieldDC;
+		    if (mostSpecificDC == null)
+		    {
+			    mostSpecificDC = getterDC;
+		    }
+		    else if (getterDC != null)
+		    {
+			    mostSpecificDC = getterDC.IsAssignableFrom(mostSpecificDC) ? mostSpecificDC : getterDC;
+		    }
+		    if (mostSpecificDC == null)
+		    {
+			    mostSpecificDC = setterDC;
+		    }
+		    else if (setterDC != null)
+		    {
+                mostSpecificDC = setterDC.IsAssignableFrom(mostSpecificDC) ? mostSpecificDC : setterDC;
+		    }
+		    DeclaringType = mostSpecificDC;
+	    }
+
         protected override void Init()
         {
             if (EntityType == null)
@@ -101,7 +126,7 @@ namespace De.Osthus.Ambeth.Typeinfo
                 PutAnnotations(Getter);
                 if (Setter != null)
                 {
-                    if (Setter.GetParameters().Length != 1 || !Setter.GetParameters()[0].ParameterType.Equals(PropertyType))
+                    if (Setter.GetParameters().Length != 1 || !PropertyType.IsAssignableFrom(Setter.GetParameters()[0].ParameterType))
                     {
                         throw new Exception("Misfitting property methods for property '" + Name + "' on class '" + EntityType.Name + "'");
                     }
@@ -134,7 +159,7 @@ namespace De.Osthus.Ambeth.Typeinfo
                 ElementType = TypeInfoItemUtil.GetElementTypeUsingReflection(PropertyType, null);
                 PutAnnotations(Setter);
             }
-            DeclaringType = BackingField != null ? BackingField.DeclaringType : Getter != null ? Getter.DeclaringType : Setter.DeclaringType;
+            RefreshDeclaringType();
             base.Init();
         }
 
@@ -145,6 +170,7 @@ namespace De.Osthus.Ambeth.Typeinfo
 		    Setter = ReflectUtil.GetDeclaredMethod(true, realType, null, "set_" + Name, PropertyType);
             IsWritable = this.Setter != null && !Setter.IsPrivate;
 		    IsReadable = this.Getter != null && !Getter.IsPrivate;
+            RefreshDeclaringType();
 	    }
 
         public override Object GetValue(Object obj)

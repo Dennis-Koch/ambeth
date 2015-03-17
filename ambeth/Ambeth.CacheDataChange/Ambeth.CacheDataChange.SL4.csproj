@@ -73,14 +73,16 @@
     <Reference Include="System.Windows.Browser" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ambeth\cache\CacheChangeItem.cs" />
+    <Compile Include="ambeth\cache\CacheDataChangeListener.cs" />
+    <Compile Include="ambeth\cache\CacheDependencyNode.cs" />
+    <Compile Include="ambeth\cache\CacheDependencyNodeFactory.cs" />
+    <Compile Include="ambeth\cache\CacheValueAndPrivilege.cs" />
     <Compile Include="ambeth\cache\RootCacheClearEventListener.cs" />
-    <Compile Include="ambeth\cache\DataChangeEventBatcher.cs" />
     <Compile Include="ambeth\cache\RevertChangesSavepoint.cs" />
     <Compile Include="ambeth\cache\RevertChangesHelper.cs" />
-    <Compile Include="ambeth\cache\ServiceResultCacheClearEventListener.cs" />
     <Compile Include="ambeth\cache\ServiceResultCacheDCL.cs" />
-    <Compile Include="ambeth\datachange\CacheChangeItem.cs" />
-    <Compile Include="ambeth\datachange\CacheDataChangeListener.cs" />
+    <Compile Include="ambeth\datachange\DataChangeEventBatcher.cs" />
     <Compile Include="ioc\CacheDataChangeModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -108,6 +110,10 @@
     <ProjectReference Include="..\Ambeth.Merge\Ambeth.Merge.SL4.csproj">
       <Project>{BA00BDE1-75CB-438F-85B6-3BA2A6F0F6D3}</Project>
       <Name>Ambeth.Merge.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Security\Ambeth.Security.SL4.csproj">
+      <Project>{6b20e123-53aa-4b41-a16e-6634ca212691}</Project>
+      <Name>Ambeth.Security.SL4</Name>
     </ProjectReference>
     <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.SL4.csproj">
       <Project>{AAA73AA7-506D-43B3-B74E-CFD2382ADFDE}</Project>

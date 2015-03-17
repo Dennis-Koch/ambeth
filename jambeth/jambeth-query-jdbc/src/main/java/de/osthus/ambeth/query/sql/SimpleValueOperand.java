@@ -1,15 +1,16 @@
 package de.osthus.ambeth.query.sql;
 
-import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
+import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.filter.QueryConstants;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
@@ -18,50 +19,27 @@ import de.osthus.ambeth.query.IMultiValueOperand;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IValueOperand;
 import de.osthus.ambeth.sql.ParamsUtil;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueOperand, IInitializingBean
+public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueOperand
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
+	@Autowired
 	protected ListToSqlUtil listToSqlUtil;
 
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
+	@Property
 	protected String paramName;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(entityMetaDataProvider, "EntityMetaDataProvider");
-		ParamChecker.assertNotNull(listToSqlUtil, "listToSqlUtil");
-		ParamChecker.assertNotNull(objectCollector, "ObjectCollector");
-		ParamChecker.assertNotNull(paramName, "paramName");
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setListToSqlUtil(ListToSqlUtil listToSqlUtil)
-	{
-		this.listToSqlUtil = listToSqlUtil;
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
-	public void setParamName(String paramName)
-	{
-		this.paramName = paramName;
-	}
+	@Property(mandatory = false)
+	protected boolean tryOnly;
 
 	@Override
 	public boolean isNull(Map<Object, Object> nameToValueMap)
@@ -93,7 +71,7 @@ public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueO
 		Object value = nameToValueMap.get(paramName);
 		if (value == null)
 		{
-			if (!nameToValueMap.containsKey(paramName))
+			if (!tryOnly && !nameToValueMap.containsKey(paramName))
 			{
 				throw new IllegalArgumentException("No entry for paramName '" + paramName + "' found to expand query");
 			}
@@ -118,7 +96,7 @@ public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueO
 	}
 
 	@Override
-	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
+	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
 	{
 		Object value = getValue(nameToValueMap);
 

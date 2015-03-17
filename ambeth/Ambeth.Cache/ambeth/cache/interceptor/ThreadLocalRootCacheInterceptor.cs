@@ -25,6 +25,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
         [Property(DefaultValue = "false")]
         public bool privileged { protected get; set; }
 
+        [Forkable]
         protected readonly ThreadLocal<RootCache> rootCacheTL = new ThreadLocal<RootCache>();
 
         protected IRootCache GetCurrentRootCache()

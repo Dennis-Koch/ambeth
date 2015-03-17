@@ -1,11 +1,11 @@
 package de.osthus.ambeth.query.sql;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
+import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.query.IMultiValueOperand;
@@ -50,7 +50,7 @@ public class NullValueOperand implements IOperand, IValueOperand, IMultiValueOpe
 	}
 
 	@Override
-	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
+	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
 	{
 		querySB.append("NULL");
 	}

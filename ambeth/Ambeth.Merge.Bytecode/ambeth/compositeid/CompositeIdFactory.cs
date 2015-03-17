@@ -4,6 +4,7 @@ using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Merge.Model;
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using System;
@@ -22,6 +23,9 @@ namespace De.Osthus.Ambeth.CompositeId
         [Autowired]
         public IConversionHelper ConversionHelper { protected get; set; }
 
+        [Autowired]
+        public IMemberTypeProvider MemberTypeProvider { protected get; set; }
+
         public virtual void AfterPropertiesSet()
         {
             if (BytecodeEnhancer == null)
@@ -30,12 +34,12 @@ namespace De.Osthus.Ambeth.CompositeId
             }
         }
 
-        public ITypeInfoItem CreateCompositeIdMember(IEntityMetaData metaData, ITypeInfoItem[] idMembers)
+        public PrimitiveMember CreateCompositeIdMember(IEntityMetaData metaData, PrimitiveMember[] idMembers)
         {
             return CreateCompositeIdMember(metaData.EntityType, idMembers);
         }
 
-        public ITypeInfoItem CreateCompositeIdMember(Type entityType, ITypeInfoItem[] idMembers)
+        public PrimitiveMember CreateCompositeIdMember(Type entityType, PrimitiveMember[] idMembers)
         {
             if (BytecodeEnhancer == null)
             {
@@ -53,14 +57,14 @@ namespace De.Osthus.Ambeth.CompositeId
                 nameSB.Append(name);
             }
             Type compositeIdType = BytecodeEnhancer.GetEnhancedType(typeof(Object), new CompositeIdEnhancementHint(idMembers));
-            return new CompositeIdTypeInfoItem(entityType, compositeIdType, nameSB.ToString(), idMembers);
+            return new CompositeIdMember(entityType, compositeIdType, nameSB.ToString(), idMembers, MemberTypeProvider);
         }
 
-        public Object CreateCompositeId(IEntityMetaData metaData, ITypeInfoItem compositeIdMember, params Object[] ids)
+        public Object CreateCompositeId(IEntityMetaData metaData, PrimitiveMember compositeIdMember, params Object[] ids)
         {
             IConversionHelper conversionHelper = this.ConversionHelper;
-            CompositeIdTypeInfoItem cIdTypeInfoItem = (CompositeIdTypeInfoItem)compositeIdMember;
-            ITypeInfoItem[] members = cIdTypeInfoItem.Members;
+            CompositeIdMember cIdTypeInfoItem = (CompositeIdMember)compositeIdMember;
+            PrimitiveMember[] members = cIdTypeInfoItem.Members;
             for (int a = ids.Length; a-- > 0; )
             {
                 Object id = ids[a];
@@ -82,7 +86,7 @@ namespace De.Osthus.Ambeth.CompositeId
             {
                 return primitives[compositeIndex[0]];
             }
-            ITypeInfoItem compositeIdMember = metaData.AlternateIdMembers[idIndex];
+            PrimitiveMember compositeIdMember = metaData.AlternateIdMembers[idIndex];
             Object[] ids = new Object[compositeIndex.Length];
             for (int a = compositeIndex.Length; a-- > 0; )
             {
@@ -100,11 +104,30 @@ namespace De.Osthus.Ambeth.CompositeId
             {
                 return cacheValue.GetPrimitive(compositeIndex[0]);
             }
-            ITypeInfoItem compositeIdMember = metaData.AlternateIdMembers[idIndex];
+            PrimitiveMember compositeIdMember = metaData.AlternateIdMembers[idIndex];
             Object[] ids = new Object[compositeIndex.Length];
             for (int a = compositeIndex.Length; a-- > 0; )
             {
                 ids[a] = cacheValue.GetPrimitive(compositeIndex[a]);
+            }
+            return CreateCompositeId(metaData, compositeIdMember, ids);
+        }
+
+        public Object CreateIdFromEntity(IEntityMetaData metaData, int idIndex, Object entity)
+        {
+            int[][] alternateIdMemberIndicesInPrimitives = metaData.AlternateIdMemberIndicesInPrimitives;
+            int[] compositeIndex = alternateIdMemberIndicesInPrimitives[idIndex];
+
+            if (compositeIndex.Length == 1)
+            {
+                return metaData.PrimitiveMembers[compositeIndex[0]].GetValue(entity);
+            }
+            PrimitiveMember compositeIdMember = metaData.AlternateIdMembers[idIndex];
+            PrimitiveMember[] primitiveMembers = metaData.PrimitiveMembers;
+            Object[] ids = new Object[compositeIndex.Length];
+            for (int a = compositeIndex.Length; a-- > 0; )
+            {
+                ids[a] = primitiveMembers[compositeIndex[a]].GetValue(entity);
             }
             return CreateCompositeId(metaData, compositeIdMember, ids);
         }

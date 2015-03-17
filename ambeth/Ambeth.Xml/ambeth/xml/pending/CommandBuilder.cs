@@ -47,7 +47,7 @@ namespace De.Osthus.Ambeth.Xml.Pending
             }
             else
             {
-                    command = BuildIntern<ObjectSetterCommand>(commandTypeRegistry, objectFuture, parent).PropertyValue("Member", optionals[0]).Finish();
+                command = BuildIntern<ObjectSetterCommand>(commandTypeRegistry, objectFuture, parent).PropertyValue("Member", optionals[0]).Finish();
             }
 
             return command;
@@ -61,7 +61,7 @@ namespace De.Osthus.Ambeth.Xml.Pending
             {
                 commandType = overridingCommandType;
             }
-            IBeanRuntime<C> beanRuntime = BeanContext.RegisterAnonymousBean<C>(commandType).PropertyValue("ObjectFuture", objectFuture).PropertyValue("Parent", parent);
+            IBeanRuntime<C> beanRuntime = BeanContext.RegisterBean<C>(commandType).PropertyValue("ObjectFuture", objectFuture).PropertyValue("Parent", parent);
             return beanRuntime;
         }
     }

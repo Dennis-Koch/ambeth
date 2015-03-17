@@ -6,10 +6,12 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.collections.Tuple3KeyHashMap;
 import de.osthus.ambeth.datachange.IDataChangeListener;
 import de.osthus.ambeth.datachange.model.IDataChange;
@@ -41,6 +43,7 @@ import de.osthus.ambeth.privilege.transfer.IPropertyPrivilegeOfService;
 import de.osthus.ambeth.privilege.transfer.ITypePrivilegeOfService;
 import de.osthus.ambeth.privilege.transfer.ITypePropertyPrivilegeOfService;
 import de.osthus.ambeth.security.IAuthorization;
+import de.osthus.ambeth.security.ISecurityContext;
 import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.service.IPrivilegeService;
@@ -142,7 +145,7 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 
 	protected final Lock writeLock = new ReentrantLock();
 
-	protected final HashMap<PrivilegeKey, IPrivilege> privilegeCache = new HashMap<PrivilegeKey, IPrivilege>();
+	protected final LinkedHashMap<PrivilegeKey, IPrivilege> privilegeCache = new LinkedHashMap<PrivilegeKey, IPrivilege>();
 
 	protected final Tuple3KeyHashMap<Class<?>, String, String, ITypePrivilege> entityTypePrivilegeCache = new Tuple3KeyHashMap<Class<?>, String, String, ITypePrivilege>();
 
@@ -158,7 +161,7 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	@Override
 	public IPrivilegeCache createPrivilegeCache()
 	{
-		return beanContext.registerAnonymousBean(PrivilegeCache.class).finish();
+		return beanContext.registerBean(PrivilegeCache.class).finish();
 	}
 
 	@Override
@@ -230,10 +233,11 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	@Override
 	public IList<IPrivilege> getPrivilegesByObjRef(Collection<? extends IObjRef> objRefs, ISecurityScope[] securityScopes)
 	{
-		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
+		ISecurityContext context = securityContextHolder.getContext();
+		IAuthorization authorization = context != null ? context.getAuthorization() : null;
 		if (authorization == null)
 		{
-			throw new SecurityException("User must be authorized to be able to check for privileges");
+			throw new SecurityException("User must be authenticated to be able to check for privileges");
 		}
 		if (securityScopes.length == 0)
 		{
@@ -305,16 +309,15 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	{
 		IPropertyPrivilegeOfService[] propertyPrivilegesOfService = privilegeOfService.getPropertyPrivileges();
 
-		IPropertyPrivilege defaultPropertyPrivilege = PropertyPrivilegeImpl.createFrom(privilegeOfService);
 		if (propertyPrivilegesOfService == null || propertyPrivilegesOfService.length == 0)
 		{
-			return new SimplePrivilegeImpl(privilegeOfService.isCreateAllowed(), privilegeOfService.isReadAllowed(), privilegeOfService.isUpdateAllowed(),
-					privilegeOfService.isDeleteAllowed(), privilegeOfService.isExecuteAllowed(), defaultPropertyPrivilege);
+			return SimplePrivilegeImpl.createFrom(privilegeOfService);
 		}
 		String[] propertyPrivilegeNames = privilegeOfService.getPropertyPrivilegeNames();
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
 		IPropertyPrivilege[] primitivePropertyPrivileges = new IPropertyPrivilege[metaData.getPrimitiveMembers().length];
 		IPropertyPrivilege[] relationPropertyPrivileges = new IPropertyPrivilege[metaData.getRelationMembers().length];
+		IPropertyPrivilege defaultPropertyPrivilege = PropertyPrivilegeImpl.createFrom(privilegeOfService);
 		Arrays.fill(primitivePropertyPrivileges, defaultPropertyPrivilege);
 		Arrays.fill(relationPropertyPrivileges, defaultPropertyPrivilege);
 		for (int b = propertyPrivilegesOfService.length; b-- > 0;)
@@ -411,7 +414,8 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	@Override
 	public IList<ITypePrivilege> getPrivilegesByType(Collection<Class<?>> entityTypes, ISecurityScope[] securityScopes)
 	{
-		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
+		ISecurityContext context = securityContextHolder.getContext();
+		IAuthorization authorization = context != null ? context.getAuthorization() : null;
 		if (authorization == null)
 		{
 			throw new SecurityException("User must be authorized to be able to check for privileges");
@@ -584,13 +588,8 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 		return result;
 	}
 
-	@Override
-	public void dataChanged(IDataChange dataChange, long dispatchTime, long sequenceId)
+	public void handleClearAllCaches(ClearAllCachesEvent evnt)
 	{
-		if (dataChange.isEmpty())
-		{
-			return;
-		}
 		writeLock.lock();
 		try
 		{
@@ -601,5 +600,15 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 		{
 			writeLock.unlock();
 		}
+	}
+
+	@Override
+	public void dataChanged(IDataChange dataChange, long dispatchTime, long sequenceId)
+	{
+		if (dataChange.isEmpty())
+		{
+			return;
+		}
+		handleClearAllCaches(null);
 	}
 }

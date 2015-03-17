@@ -18,7 +18,6 @@ using System.Diagnostics;
 
 namespace De.Osthus.Ambeth.Ioc.Factory
 {
-
     public class BeanContextInitializer : IBeanContextInitializer, IInitializingBean
     {
         [LogInstance]
@@ -35,19 +34,39 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             ImmutableTypeSet.AddImmutableTypesTo(primitiveSet);
             primitiveSet.Add(typeof(Object));
 
-            precedenceOrder.Put(PrecedenceType.LOWEST, 0);
-            precedenceOrder.Put(PrecedenceType.LOWER, 1);
-            precedenceOrder.Put(PrecedenceType.LOW, 2);
+            precedenceOrder.Put(PrecedenceType.LOWEST, 6);
+            precedenceOrder.Put(PrecedenceType.LOWER, 5);
+            precedenceOrder.Put(PrecedenceType.LOW, 4);
             precedenceOrder.Put(PrecedenceType.MEDIUM, 3);
             precedenceOrder.Put(PrecedenceType.DEFAULT, 3);
-            precedenceOrder.Put(PrecedenceType.HIGH, 4);
-            precedenceOrder.Put(PrecedenceType.HIGHER, 5);
-            precedenceOrder.Put(PrecedenceType.HIGHEST, 6);
+            precedenceOrder.Put(PrecedenceType.HIGH, 2);
+            precedenceOrder.Put(PrecedenceType.HIGHER, 1);
+            precedenceOrder.Put(PrecedenceType.HIGHEST, 0);
         }
 
         static void AddPrimitive(Type type)
         {
             primitiveSet.Add(type);
+        }
+
+        public static IBeanContextFactory GetCurrentBeanContextFactory()
+        {
+            BeanContextInit beanContextInit = currentBeanContextInitTL.Value;
+            if (beanContextInit == null)
+            {
+                return null;
+            }
+            return beanContextInit.beanContextFactory;
+        }
+
+        public static IServiceContext GetCurrentBeanContext()
+        {
+            BeanContextInit beanContextInit = currentBeanContextInitTL.Value;
+            if (beanContextInit == null)
+            {
+                return null;
+            }
+            return beanContextInit.beanContext;
         }
 
         public CallingProxyPostProcessor CallingProxyPostProcessor { protected get; set; }
@@ -81,6 +100,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                 return;
             }
             IdentityLinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = new IdentityLinkedMap<Object, IBeanConfiguration>();
+            IdentityHashMap<Object, IBeanConfiguration> objectToHandledBeanConfigurationMap = new IdentityHashMap<Object, IBeanConfiguration>();
             HashMap<String, IBeanConfiguration> nameToBeanConfigurationMap = new HashMap<String, IBeanConfiguration>();
             HashMap<Type, IBeanConfiguration> typeToBeanConfigurationMap = new HashMap<Type, IBeanConfiguration>();
             IdentityHashSet<Object> allLifeCycledBeansSet = new IdentityHashSet<Object>();
@@ -97,6 +117,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                 beanContextInit.beanContext = beanContext;
                 beanContextInit.beanContextFactory = beanContextFactory;
                 beanContextInit.objectToBeanConfigurationMap = objectToBeanConfigurationMap;
+                beanContextInit.objectToHandledBeanConfigurationMap = objectToHandledBeanConfigurationMap;
                 beanContextInit.allLifeCycledBeansSet = allLifeCycledBeansSet;
                 beanContextInit.initializedOrdering = initializedOrdering;
 
@@ -198,10 +219,13 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             }
             catch (Exception)
             {
-                List<IDisposableBean> toDestroyOnError = beanContextInit.toDestroyOnError;
-                for (int a = 0, size = toDestroyOnError.Count; a < size; a++)
+                try
                 {
-                    toDestroyOnError[a].Destroy();
+                    beanContext.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    throw RuntimeExceptionUtil.Mask(ex, "Error occurred while disposing context while starting the context due to bean exception");
                 }
                 throw;
             }
@@ -256,8 +280,8 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             {
                 return;
             }
-            //IServiceContext beanContext = beanContextInit.beanContext;
-            //IdentityHashMap<Object, IBeanConfiguration> objectToHandledBeanConfigurationMap = beanContextInit.objectToHandledBeanConfigurationMap;
+            IServiceContext beanContext = beanContextInit.beanContext;
+            IdentityHashMap<Object, IBeanConfiguration> objectToHandledBeanConfigurationMap = beanContextInit.objectToHandledBeanConfigurationMap;
             //final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
             //final List<ObjectName> mBeans = new ArrayList<ObjectName>();
             //boolean success = false;
@@ -443,6 +467,10 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             {
                 ((IInitializingBean)bean).AfterPropertiesSet();
             }
+            if (bean is IDisposableBean)
+			{
+				beanContextInit.toDestroyOnError.Add((IDisposableBean) bean);
+			}
             if (bean is IPropertyLoadingBean)
             {
                 ((IPropertyLoadingBean)bean).ApplyProperties(beanContextInit.properties);
@@ -492,6 +520,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                 currentBeanContextInit.beanContext = beanContext;
                 currentBeanContextInit.beanContextFactory = beanContextFactory;
                 currentBeanContextInit.objectToBeanConfigurationMap = new IdentityLinkedMap<Object, IBeanConfiguration>();
+                currentBeanContextInit.objectToHandledBeanConfigurationMap = new IdentityHashMap<Object, IBeanConfiguration>();
 
                 currentBeanContextInit.properties = beanContext.GetService<Properties>();
             }
@@ -505,9 +534,8 @@ namespace De.Osthus.Ambeth.Ioc.Factory
 
         public void InitializeBean(BeanContextInit beanContextInit, Object bean)
         {
-            IdentityLinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = beanContextInit.objectToBeanConfigurationMap;
-            IBeanConfiguration beanConfiguration = objectToBeanConfigurationMap.Get(bean);
-            objectToBeanConfigurationMap.Remove(bean);
+            IBeanConfiguration beanConfiguration = beanContextInit.objectToBeanConfigurationMap.Remove(bean);
+            beanContextInit.objectToHandledBeanConfigurationMap.Put(bean, beanConfiguration);
             IISet<Object> allLifeCycledBeansSet = beanContextInit.allLifeCycledBeansSet;
 
             IList<IBeanConfiguration> beanConfHierarchy = new List<IBeanConfiguration>(3);
@@ -535,13 +563,13 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             BeanContextFactory beanContextFactory = beanContextInit.beanContextFactory;
             IList<IBeanPreProcessor> preProcessors = beanContext.GetPreProcessors();
 
-            IList<IPropertyConfiguration> propertyConfigurations = new List<IPropertyConfiguration>();
-            IISet<String> ignoredPropertyNames = new De.Osthus.Ambeth.Collections.CHashSet<String>();
-            IISet<String> alreadySpecifiedPropertyNamesSet = new De.Osthus.Ambeth.Collections.CHashSet<String>();
+            List<IPropertyConfiguration> propertyConfigurations = new List<IPropertyConfiguration>();
+            CHashSet<String> alreadySpecifiedPropertyNamesSet = new CHashSet<String>();
             try
             {
                 Type beanType = ResolveTypeInHierarchy(beanConfHierarchy);
                 ResolveAllBeanConfInHierarchy(beanConfHierarchy, propertyConfigurations);
+                IISet<String> ignoredPropertyNames = ResolveAllIgnoredPropertiesInHierarchy(beanConfHierarchy, beanType);
 
                 IPropertyInfo[] propertyInfos = PropertyInfoProvider.GetProperties(beanType);
 
@@ -552,11 +580,11 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                     for (int a = 0, size = preProcessors.Count; a < size; a++)
                     {
                         IBeanPreProcessor preProcessor = preProcessors[a];
-                        preProcessor.PreProcessProperties(beanContextFactory, properties, beanName, bean, beanType, propertyConfigurations, propertyInfos);
+                        preProcessor.PreProcessProperties(beanContextFactory, beanContext, properties, beanName, bean, beanType, propertyConfigurations,
+                            ignoredPropertyNames, propertyInfos);
                     }
                 }
                 InitializeDefining(beanContextInit, beanConfiguration, bean, beanType, propertyInfos, propertyConfigurations, alreadySpecifiedPropertyNamesSet);
-                ResolveAllIgnoredPropertiesInHierarchy(beanConfHierarchy, beanType, ignoredPropertyNames);
 
                 InitializeAutowiring(beanContextInit, beanConfiguration, bean, beanType, propertyInfos, alreadySpecifiedPropertyNamesSet, ignoredPropertyNames);
                 CallInitializingCallbacks(beanContextInit, bean, joinLifecycle);
@@ -1170,8 +1198,9 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             return null;
         }
 
-        protected void ResolveAllIgnoredPropertiesInHierarchy(IList<IBeanConfiguration> beanConfHierarchy, Type beanType, IISet<String> ignoredProperties)
+        protected IISet<String> ResolveAllIgnoredPropertiesInHierarchy(IList<IBeanConfiguration> beanConfHierarchy, Type beanType)
         {
+            IISet<String> ignoredProperties = null;
             IMap<String, IPropertyInfo> propertyMap = PropertyInfoProvider.GetPropertyMap(beanType);
             for (int a = 0, size = beanConfHierarchy.Count; a < size; a++)
             {
@@ -1196,9 +1225,18 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                         }
                         ignoredPropertyName = uppercaseFirst;
                     }
+                    if (ignoredProperties == null)
+                    {
+                        ignoredProperties = new CHashSet<String>();
+                    }
                     ignoredProperties.Add(ignoredPropertyName);
                 }
             }
+            if (ignoredProperties == null)
+		    {
+			    ignoredProperties = EmptySet.Empty<String>();
+		    }
+		    return ignoredProperties;
         }
 
         protected void ResolveAllAutowireableInterfacesInHierarchy(IList<IBeanConfiguration> beanConfHierarchy, IISet<Type> autowireableInterfaces)

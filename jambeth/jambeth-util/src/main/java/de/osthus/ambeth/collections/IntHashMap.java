@@ -13,7 +13,7 @@ public class IntHashMap implements Externalizable
 
 		public void init(final InterfaceFastList<IntHashMapEntry> listToIterate)
 		{
-			this.currPointer = listToIterate.first();
+			currPointer = listToIterate.first();
 		}
 
 		public final boolean hasNext()
@@ -153,7 +153,7 @@ public class IntHashMap implements Externalizable
 
 	public IntHashMap(final boolean fastListIteration)
 	{
-		this.loadFactor = DEFAULT_LOAD_FACTOR;
+		loadFactor = DEFAULT_LOAD_FACTOR;
 		threshold = (int) (DEFAULT_INITIAL_CAPACITY * DEFAULT_LOAD_FACTOR);
 		table = new IntHashMapEntry[DEFAULT_INITIAL_CAPACITY];
 		tableLengthMinusOne = table.length - 1;
@@ -616,7 +616,7 @@ public class IntHashMap implements Externalizable
 	private final void transfer(IntHashMapEntry[] newTable)
 	{
 		IntHashMapEntry[] src = table;
-		final int newTableLengthMinusOne = newTable.length;
+		final int newTableLengthMinusOne = newTable.length - 1;
 		int i;
 		IntHashMapEntry e, next;
 		for (int j = 0; j < src.length; j++)
@@ -636,6 +636,18 @@ public class IntHashMap implements Externalizable
 				while (e != null);
 			}
 		}
+	}
+
+	public final IntArrayList values()
+	{
+		IntArrayList values = new IntArrayList(size(), false);
+		IntIterator iter = iterator();
+		while (iter.hasNext())
+		{
+			int value = iter.next();
+			values.add(value);
+		}
+		return values;
 	}
 
 	public final IntIterator iterator()

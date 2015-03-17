@@ -5,9 +5,9 @@ import de.osthus.ambeth.collections.IListElem;
 import de.osthus.ambeth.datachange.model.IDataChange;
 import de.osthus.ambeth.event.IQueuedEvent;
 import de.osthus.ambeth.event.store.IReplacedEvent;
-import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.objrefstore.ObjRefStore;
 
-public class DataChangeStoreItem extends ArrayList<ObjRef> implements IQueuedEvent, IListElem<IQueuedEvent>, IReplacedEvent
+public class DataChangeStoreItem extends ArrayList<ObjRefStore> implements IQueuedEvent, IListElem<IQueuedEvent>, IReplacedEvent
 {
 	protected final int insertCount, updateCount;
 
@@ -19,7 +19,7 @@ public class DataChangeStoreItem extends ArrayList<ObjRef> implements IQueuedEve
 
 	protected IListElem<IQueuedEvent> prev, next;
 
-	public DataChangeStoreItem(ObjRef[] allArray, int insertCount, int updateCount, long changeTime)
+	public DataChangeStoreItem(ObjRefStore[] allArray, int insertCount, int updateCount, long changeTime)
 	{
 		super(allArray);
 		this.insertCount = insertCount;

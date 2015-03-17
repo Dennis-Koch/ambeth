@@ -29,7 +29,7 @@ public class ParentCacheHardRefVisitor extends ClassGenerator
 		FieldInstance f_pcvhr = new FieldInstance(Opcodes.ACC_PRIVATE, "$pcvhr", template_m_setParentCacheValueHardRef.getSignatureFromParameterType(0),
 				template_m_setParentCacheValueHardRef.getParameters()[0]);
 
-		implementField(f_pcvhr);
+		f_pcvhr = implementField(f_pcvhr);
 		implementSetter(template_m_setParentCacheValueHardRef, f_pcvhr);
 	}
 }

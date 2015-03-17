@@ -25,7 +25,6 @@ import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.database.DatabaseCallback;
-import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.merge.model.IChangeContainer;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.model.IOriCollection;
@@ -44,7 +43,7 @@ import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.service.IMaterialService;
 import de.osthus.ambeth.service.IMergeService;
 import de.osthus.ambeth.service.TestServicesModule;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -60,7 +59,7 @@ import de.osthus.ambeth.util.ParamChecker;
 		@TestProperties(name = PersistenceConfigurationConstants.DatabaseFieldPrefix, value = "F_"),
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml"),
 		@TestProperties(name = CacheConfigurationConstants.FirstLevelCacheType, value = "PROTOTYPE") })
-public class JDBCDatabaseTest extends AbstractPersistenceTest
+public class JDBCDatabaseTest extends AbstractInformationBusWithPersistenceTest
 {
 	protected ICache cache;
 
@@ -112,7 +111,6 @@ public class JDBCDatabaseTest extends AbstractPersistenceTest
 	@Test
 	public void test() throws Throwable
 	{
-		ITransaction transaction = beanContext.getService(ITransaction.class);
 		transaction.processAndCommit(new DatabaseCallback()
 		{
 			@Override
@@ -124,8 +122,8 @@ public class JDBCDatabaseTest extends AbstractPersistenceTest
 		});
 		ICacheFactory cacheFactory = beanContext.getService(ICacheFactory.class);
 
-		IDisposableCache cache1 = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE);
-		IDisposableCache cache2 = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE);
+		IDisposableCache cache1 = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
+		IDisposableCache cache2 = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
 		try
 		{
 			Material material = cache1.getObject(Material.class, 1);
@@ -172,7 +170,7 @@ public class JDBCDatabaseTest extends AbstractPersistenceTest
 	public void testChildReferenceEquals() throws Throwable
 	{
 		ICacheFactory cacheFactory = beanContext.getService(ICacheFactory.class);
-		ICache cache = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE);
+		ICache cache = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
 
 		Material material = cache.getObject(Material.class, 1);
 		Material material2 = cache.getObject(Material.class, 1);
@@ -243,7 +241,7 @@ public class JDBCDatabaseTest extends AbstractPersistenceTest
 		ICacheFactory cacheFactory = beanContext.getService(ICacheFactory.class, true);
 		ICache cache = beanContext.getService(ICache.class);
 
-		ICache childCache = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE);
+		ICache childCache = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
 
 		List<Material> allMaterials = materialService.getAllMaterials();
 		Assert.assertTrue("Materials count is 0", allMaterials.size() > 0);

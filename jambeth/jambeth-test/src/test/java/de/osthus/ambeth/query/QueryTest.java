@@ -6,16 +6,17 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.persistence.criteria.JoinType;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
@@ -25,14 +26,20 @@ import de.osthus.ambeth.filter.IPagingQuery;
 import de.osthus.ambeth.filter.QueryConstants;
 import de.osthus.ambeth.filter.model.IPagingResponse;
 import de.osthus.ambeth.filter.model.PagingRequest;
+import de.osthus.ambeth.ioc.exception.BeanAlreadyDisposedException;
 import de.osthus.ambeth.merge.IMergeProcess;
+import de.osthus.ambeth.model.AbstractEntity;
+import de.osthus.ambeth.persistence.IDataCursor;
+import de.osthus.ambeth.persistence.IDataItem;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IVersionCursor;
+import de.osthus.ambeth.proxy.PersistenceContext;
+import de.osthus.ambeth.proxy.PersistenceContextType;
 import de.osthus.ambeth.query.config.QueryConfigurationConstants;
 import de.osthus.ambeth.query.sql.SqlColumnOperand;
 import de.osthus.ambeth.query.sql.SqlJoinOperator;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -40,7 +47,8 @@ import de.osthus.ambeth.testutil.TestProperties;
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/Query_orm.xml")
 @SQLStructure("Query_structure.sql")
 @SQLData("Query_data.sql")
-public class QueryTest extends AbstractPersistenceTest
+@PersistenceContext(PersistenceContextType.NOT_REQUIRED)
+public class QueryTest extends AbstractInformationBusWithPersistenceTest
 {
 	protected static final String paramName1 = "param.1";
 	protected static final String paramName2 = "param.2";
@@ -75,28 +83,31 @@ public class QueryTest extends AbstractPersistenceTest
 		assertNotNull(qb.build(rootOperand));
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test(expected = BeanAlreadyDisposedException.class)
 	public void testFinalize_alreadBuild1() throws Exception
 	{
 		qb.build();
+		qb.dispose();
 		qb.build();
 	}
 
 	@SuppressWarnings("deprecation")
-	@Test(expected = IllegalStateException.class)
+	@Test(expected = BeanAlreadyDisposedException.class)
 	public void testFinalize_alreadyBuild2() throws Exception
 	{
 		IOperand rootOperand = qb.isEqualTo(qb.column(columnName1), qb.valueName(paramName1));
 		qb.build(rootOperand);
+		qb.dispose();
 		qb.build(rootOperand);
 	}
 
 	@SuppressWarnings("deprecation")
-	@Test(expected = IllegalStateException.class)
+	@Test(expected = BeanAlreadyDisposedException.class)
 	public void testFinalize_alreadyBuild3() throws Exception
 	{
 		IOperand rootOperand = qb.isEqualTo(qb.column(columnName1), qb.valueName(paramName1));
 		qb.build(rootOperand, new ISqlJoin[0]);
+		qb.dispose();
 		qb.build(rootOperand);
 	}
 
@@ -248,7 +259,7 @@ public class QueryTest extends AbstractPersistenceTest
 		List<Integer> expected = Arrays.asList(new Integer[] { 1, 2, 3, 4, 5, 6 });
 
 		IQuery<QueryEntity> query = qb.build();
-
+		IQueryKey queryKey = query.getQueryKey(nameToValueMap);
 		List<QueryEntity> actual = query.retrieve(nameToValueMap);
 		assertSimilar(expected, actual);
 	}
@@ -280,6 +291,43 @@ public class QueryTest extends AbstractPersistenceTest
 	}
 
 	@Test
+	@PersistenceContext
+	public void retrieveAllGroupByOrderBy() throws Exception
+	{
+		IOperand versionOp = qb.property(AbstractEntity.Version);
+		IOperand maxName1 = qb.function("MAX", qb.property(QueryEntity.Name1));
+		int maxIndex = qb.select(maxName1);
+		int versionIndex = qb.select(versionOp);
+		IQuery<QueryEntity> query = qb.groupBy(versionOp).orderBy(versionOp, OrderByType.DESC).build(qb.isNotEqualTo(maxName1, qb.value(0)));
+
+		Object[][] expected = { { 2, "name2" }, { 1, "name3" } };
+		IDataCursor dataCursor = query.retrieveAsData();
+		try
+		{
+			int index = 0;
+			if (expected.length > 0)
+			{
+				Assert.assertEquals(expected[0].length, dataCursor.getFieldCount());
+			}
+			while (dataCursor.moveNext())
+			{
+				IDataItem dataItem = dataCursor.getCurrent();
+				Object version = dataItem.getValue(versionIndex);
+				Object max = dataItem.getValue(maxIndex);
+				Object[] expectedItem = expected[index];
+				Assert.assertEquals(expectedItem[0].toString(), version.toString());
+				Assert.assertEquals(expectedItem[1].toString(), max.toString());
+				index++;
+			}
+			Assert.assertEquals(expected.length, index);
+		}
+		finally
+		{
+			dataCursor.dispose();
+		}
+	}
+
+	@Test
 	@TestProperties(name = QueryConfigurationConstants.PagingPrefetchBehavior, value = "true")
 	public void retrievePagingAfterUpdate() throws Exception
 	{
@@ -302,7 +350,6 @@ public class QueryTest extends AbstractPersistenceTest
 				beanContext.getService(IMergeProcess.class).process(changedQueryEntity, null, null, null);
 
 				IPagingResponse<QueryEntity> allAfterUpdate = query.retrieve(pr);
-				IPagingResponse<QueryEntity> allAfterUpdate2 = query.retrieve(pr);
 				assertSimilar(expectedAfterUpdate, allAfterUpdate.getResult());
 			}
 		});

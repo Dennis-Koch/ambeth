@@ -21,14 +21,14 @@ public class BytecodeModule implements IInitializingModule
 	{
 		beanContextFactory.registerBean("bytecodeEnhancer", BytecodeEnhancer.class).autowireable(IBytecodeEnhancer.class, IBytecodeBehaviorExtendable.class);
 
-		IBeanConfiguration bytecodeClassLoaderBC = beanContextFactory.registerAnonymousBean(BytecodeClassLoader.class).autowireable(IBytecodeClassLoader.class,
+		IBeanConfiguration bytecodeClassLoaderBC = beanContextFactory.registerBean(BytecodeClassLoader.class).autowireable(IBytecodeClassLoader.class,
 				IBytecodePrinter.class);
 		beanContextFactory.link(bytecodeClassLoaderBC).to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class).optional();
 	}
 
 	public static IBeanConfiguration addDefaultBytecodeBehavior(IBeanContextFactory beanContextFactory, Class<? extends IBytecodeBehavior> behaviorType)
 	{
-		IBeanConfiguration behaviorBC = beanContextFactory.registerAnonymousBean(behaviorType);
+		IBeanConfiguration behaviorBC = beanContextFactory.registerBean(behaviorType);
 		beanContextFactory.link(behaviorBC).to(IBytecodeBehaviorExtendable.class);
 		return behaviorBC;
 	}

@@ -18,7 +18,7 @@ namespace De.Osthus.Ambeth.Collections
      * @param <V>
      *            Typ der Values
      */
-    public abstract class AbstractHashSet<E, K> : IISet<K>, IPrintable
+    public abstract class AbstractHashSet<E, K> : IISet<K>, IPrintable where E : class
     {
         public const int DEFAULT_INITIAL_CAPACITY = 16;
 
@@ -140,7 +140,7 @@ namespace De.Osthus.Ambeth.Collections
          *            the new capacity, MUST be a power of two; must be greater than current capacity unless current capacity is MAXIMUM_CAPACITY (in which case
          *            value is irrelevant).
          */
-        protected void Resize(int newCapacity)
+        protected virtual void Resize(int newCapacity)
         {
             E[] oldTable = table;
             int oldCapacity = oldTable.Length;
@@ -155,10 +155,41 @@ namespace De.Osthus.Ambeth.Collections
             threshold = (int)(newCapacity * loadFactor);
         }
 
-        protected void Transfer(E[] newTable)
+        protected virtual void Transfer(E[] newTable)
         {
             int newCapacityMinus1 = newTable.Length - 1;
             E[] table = this.table;
+            if (Object.ReferenceEquals(table, newTable))
+            {
+                // re-check entries on existing table
+                for (int a = table.Length; a-- > 0; )
+                {
+                    E entry = table[a], previous = null, next;
+                    while (entry != null)
+                    {
+                        next = GetNextEntry(entry);
+                        if (IsEntryValid(entry))
+                        {
+                            previous = entry;
+                        }
+                        else
+                        {
+                            if (Object.ReferenceEquals(entry, table[a]))
+                            {
+                                // first entry in bucket
+                                table[a] = next;
+                            }
+                            else
+                            {
+                                SetNextEntry(previous, next);
+                            }
+                            EntryRemoved(entry);
+                        }
+                        entry = next;
+                    }
+                }
+                return;
+            }
 
             for (int a = table.Length; a-- > 0; )
             {
@@ -166,12 +197,24 @@ namespace De.Osthus.Ambeth.Collections
                 while (entry != null)
                 {
                     next = GetNextEntry(entry);
-                    int i = GetHashOfEntry(entry) & newCapacityMinus1;
-                    SetNextEntry(entry, newTable[i]);
-                    newTable[i] = entry;
+                    if (IsEntryValid(entry))
+                    {
+                        int i = GetHashOfEntry(entry) & newCapacityMinus1;
+                        SetNextEntry(entry, newTable[i]);
+                        newTable[i] = entry;
+                    }
+				    else
+				    {
+					    EntryRemoved(entry);
+				    }
                     entry = next;
                 }
             }
+        }
+
+        protected virtual bool IsEntryValid(E entry)
+        {
+            return true;
         }
 
         public virtual void Clear()
@@ -348,6 +391,18 @@ namespace De.Osthus.Ambeth.Collections
                 }
             }
             return true;
+        }
+
+        public bool ContainsAny(IEnumerable c)
+        {
+            foreach (Object key in c)
+            {
+                if (Contains((K)key))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public virtual bool RemoveAll(IEnumerable c)

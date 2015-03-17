@@ -18,34 +18,35 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import de.osthus.ambeth.collections.FastList;
+import de.osthus.ambeth.util.IDisposable;
 
-public class FastThreadPool implements ExecutorService, IFastThreadPool
+public class FastThreadPool implements ExecutorService, IFastThreadPool, IDisposable
 {
-	private static final Random random = new Random();
+	protected static final Random random = new Random();
 
-	private final FastList<QueueItem> actionQueue = new FastList<QueueItem>();
+	protected final FastList<QueueItem> actionQueue = new FastList<QueueItem>();
 
-	private final FastList<FastThreadPoolThread> freeThreadList = new FastList<FastThreadPoolThread>();
+	protected final FastList<FastThreadPoolThread> freeThreadList = new FastList<FastThreadPoolThread>();
 
-	private final FastList<FastThreadPoolThread> busyThreadList = new FastList<FastThreadPoolThread>();
+	protected final FastList<FastThreadPoolThread> busyThreadList = new FastList<FastThreadPoolThread>();
 
-	private FastThreadPoolThread blockingThread = null;
+	protected FastThreadPoolThread blockingThread = null;
 
-	private final HashSet<Class<?>> blockingSet = new HashSet<Class<?>>();
+	protected final HashSet<Class<?>> blockingSet = new HashSet<Class<?>>();
 
-	private boolean shutdown = false, variableThreads = true;
+	protected boolean shutdown = false, variableThreads = true;
 
-	private final int timeout, threadPoolID = Math.abs(random.nextInt());
+	protected final int timeout, threadPoolID = Math.abs(random.nextInt());
 
-	private int threadCounter;
+	protected int threadCounter;
 
-	private int coreThreadCount, maxThreadCount;
+	protected int coreThreadCount, maxThreadCount;
 
-	private String name;
+	protected String name;
 
-	private final Lock lock = new ReentrantLock();
+	protected final Lock lock = new ReentrantLock();
 
-	private final Condition syncCond = lock.newCondition();
+	protected final Condition syncCond = lock.newCondition();
 
 	public FastThreadPool()
 	{
@@ -59,7 +60,8 @@ public class FastThreadPool implements ExecutorService, IFastThreadPool
 		setCoreThreadCount(coreThreadCount);
 	}
 
-	public void destroy() throws Exception
+	@Override
+	public void dispose()
 	{
 		shutdown();
 	}
@@ -522,7 +524,7 @@ public class FastThreadPool implements ExecutorService, IFastThreadPool
 		lock.lock();
 		try
 		{
-			this.shutdown = true;
+			shutdown = true;
 			syncCond.signalAll();
 		}
 		finally

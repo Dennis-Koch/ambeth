@@ -10,7 +10,7 @@ import org.junit.Test;
 
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -20,7 +20,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 @SQLStructure("SplitLoading_structure.sql")
 @TestModule(TestServicesModule.class)
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/jdbc/splitloading/orm.xml")
-public class SplitLoadingTest extends AbstractPersistenceTest
+public class SplitLoadingTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Test
 	public void testDataSetup()

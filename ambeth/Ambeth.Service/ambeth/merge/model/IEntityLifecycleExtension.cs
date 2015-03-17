@@ -4,8 +4,10 @@ namespace De.Osthus.Ambeth.Merge.Model
 {
     public interface IEntityLifecycleExtension
     {
-        void PostLoad(Object entity);
+        void PostCreate(IEntityMetaData metaData, Object newEntity);
 
-        void PrePersist(Object entity);
+        void PostLoad(IEntityMetaData metaData, Object entity);
+
+        void PrePersist(IEntityMetaData metaData, Object entity);
     }
 }

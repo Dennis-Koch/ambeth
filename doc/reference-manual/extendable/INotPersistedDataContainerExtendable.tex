@@ -1,0 +1,17 @@
+\SetAPI{C}
+\section{INotPersistedDataContainerExtendable}
+\label{extendable:INotPersistedDataContainerExtendable}
+\ClearAPI
+\javadoc{De.Osthus.Minerva.Core.INotPersistedDataContainerExtendable}{INotPersistedDataContainerExtendable}
+\javadoc{object}{object}
+\TODO
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputcsharp{Extension point for instances of \type{object}}
+{Minerva.Core/minerva/core/INotPersistedDataContainerExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<INotPersistedDataContainerExtendable>();
+\end{lstlisting}
+%% GENERATED LISTINGS END

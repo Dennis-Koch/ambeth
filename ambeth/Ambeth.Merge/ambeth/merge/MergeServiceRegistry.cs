@@ -14,10 +14,21 @@ using De.Osthus.Ambeth.Model;
 using De.Osthus.Ambeth.Service;
 using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Security;
+using De.Osthus.Ambeth.Merge.Incremental;
+using System.Runtime.CompilerServices;
+#if SILVERLIGHT
+using Castle.Core.Interceptor;
+#else
+using Castle.DynamicProxy;
+using System.Threading;
+#endif
+using De.Osthus.Ambeth.Proxy;
+using De.Osthus.Ambeth.Ioc.Threadlocal;
 
 namespace De.Osthus.Ambeth.Cache
 {
-    public class MergeServiceRegistry : IMergeService, IMergeServiceExtensionExtendable
+    public class MergeServiceRegistry : IMergeService, IMergeServiceExtensionExtendable, IMergeListenerExtendable, IThreadLocalCleanupBean
     {
         public class MergeOperation
         {
@@ -30,6 +41,21 @@ namespace De.Osthus.Ambeth.Cache
         public ILogger Log { private get; set; }
 
         [Autowired]
+        public ICacheContext CacheContext { protected get; set; }
+
+        [Autowired]
+        public ICacheFactory CacheFactory { protected get; set; }
+
+        [Autowired]
+        public ICUDResultApplier CudResultApplier { protected get; set; }
+
+        [Autowired]
+        public ICUDResultComparer CudResultComparer { protected get; set; }
+
+        [Autowired(Optional = true)]
+        public ICUDResultPrinter CudResultPrinter { protected get; set; }
+        
+        [Autowired]
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
         [Autowired]
@@ -41,80 +67,363 @@ namespace De.Osthus.Ambeth.Cache
         [Autowired]
         public IMergeController MergeController { protected get; set; }
 
+        [Autowired(Optional = true)]
+        public IMergeSecurityManager MergeSecurityManager { protected get; set; }
+
+        [Autowired(Optional = true)]
+        public ISecurityActivation SecurityActive { protected get; set; }
+
+        [Autowired(Optional = true)]
+        public ILightweightTransaction Transaction { protected get; set; }
+
         protected readonly ClassExtendableContainer<IMergeServiceExtension> mergeServiceExtensions = new ClassExtendableContainer<IMergeServiceExtension>("mergeServiceExtension", "entityType");
 
-        public void RegisterMergeServiceExtension(IMergeServiceExtension mergeServiceExtension, Type entityType)
-        {
-            mergeServiceExtensions.Register(mergeServiceExtension, entityType);
-        }
+        protected readonly DefaultExtendableContainer<IMergeListener> mergeListeners = new DefaultExtendableContainer<IMergeListener>("mergeListener");
+        
+        [Forkable]
+	    protected readonly ThreadLocal<long?> startTimeTL = new ThreadLocal<long?>();
 
-        public void UnregisterMergeServiceExtension(IMergeServiceExtension mergeServiceExtension, Type entityType)
-        {
-            mergeServiceExtensions.Unregister(mergeServiceExtension, entityType);
-        }
+	    public void CleanupThreadLocal()
+	    {
+            // intended blank. Interface is just needed to make the @Forkable annotation work
+	    }
 
         public IOriCollection Merge(ICUDResult cudResult, IMethodDescription methodDescription)
         {
             ParamChecker.AssertParamNotNull(cudResult, "cudResult");
 
-            IList<IChangeContainer> allChanges = cudResult.AllChanges;
-            IList<Object> originalRefs = cudResult.GetOriginalRefs();
-
-            IDictionary<IChangeContainer, int> changeToChangeIndexDict = new IdentityDictionary<IChangeContainer, int>();
-            for (int a = allChanges.Count; a-- > 0; )
+            long? startTime = startTimeTL.Value;
+            bool startTimeHasBeenSet = false;
+            if (!startTime.HasValue)
             {
-                changeToChangeIndexDict.Add(allChanges[a], a);
+                startTime = DateTimeUtil.CurrentTimeMillis();
+                startTimeTL.Value = startTime;
+                startTimeHasBeenSet = true;
             }
-
-            IDictionary<Type, IList<IChangeContainer>> sortedChanges = BucketSortChanges(allChanges);
-            IList<MergeOperation> mergeOperationSequence = CreateMergeOperationSequence(sortedChanges);
-
-            OriCollection oriCollection = new OriCollection();
-
-            IList<IOriCollection> hardRefsToNestedOriCollections = new List<IOriCollection>();
-            IObjRef[] objRefs = new IObjRef[allChanges.Count];
-
-            EventDispatcher.EnableEventQueue();
             try
             {
-                for (int a = 0, size = mergeOperationSequence.Count; a < size; a++)
+                if (Transaction == null || Transaction.Active)
                 {
-                    MergeOperation mergeOperation = mergeOperationSequence[a];
-                    IMergeServiceExtension mergeServiceExtension = mergeOperation.MergeServiceExtension;
-                    IList<IChangeContainer> changesForMergeService = mergeOperation.ChangeContainer;
-
-                    Object[] msOriginalRefs = new Object[changesForMergeService.Count];
-                    for (int b = changesForMergeService.Count; b-- > 0; )
-                    {
-                        int index = changeToChangeIndexDict[changesForMergeService[b]];
-                        msOriginalRefs[b] = originalRefs[index];
-                    }
-                    CUDResult msCudResult = new CUDResult(changesForMergeService, msOriginalRefs);
-                    IOriCollection msOriCollection = mergeServiceExtension.Merge(msCudResult, methodDescription);
-
-                    // Store the result of the merge operation as a hard ref. as long as we maintain the ref, the rootcache will
-                    // NOT loose related information due to any GC
-                    hardRefsToNestedOriCollections.Add(msOriCollection);
-
-                    PostProcessOriCollection(msCudResult, msOriCollection);
-
-                    IList<IObjRef> allChangeORIs = msOriCollection.AllChangeORIs;
-                    for (int b = changesForMergeService.Count; b-- > 0; )
-                    {
-                        int index = changeToChangeIndexDict[changesForMergeService[b]];
-                        objRefs[index] = allChangeORIs[b];
-                    }
+                    return MergeIntern(cudResult, methodDescription);
                 }
-                oriCollection.AllChangeORIs = objRefs;
-                oriCollection.HardRefs = hardRefsToNestedOriCollections;
-                // TODO DCE must be fired HERE  <---
-                return oriCollection;
+                return Transaction.RunInLazyTransaction(delegate()
+                    {
+                        return MergeIntern(cudResult, methodDescription);
+                    });
             }
             finally
             {
-                EventDispatcher.FlushEventQueue();
+                if (startTimeHasBeenSet)
+                {
+                    startTimeTL.Value = null;
+                }
             }
         }
+
+	    protected IOriCollection MergeIntern(ICUDResult cudResultOriginal, IMethodDescription methodDescription)
+	    {
+		    IResultingBackgroundWorkerDelegate<IOriCollection> runnable = new IResultingBackgroundWorkerDelegate<IOriCollection>(delegate()
+		    {
+				IDisposableCache childCache = CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, false,
+						"MergeServiceRegistry.STATE");
+				try
+				{
+					IncrementalMergeState state = (IncrementalMergeState) CudResultApplier.AcquireNewState(childCache);
+					ICUDResult cudResultOfCache = CudResultApplier.ApplyCUDResultOnEntitiesOfCache(cudResultOriginal, true, state);
+					if (Log.DebugEnabled)
+					{
+						if (CudResultPrinter != null)
+						{
+							Log.Debug("Initial merge [" + RuntimeHelpers.GetHashCode(state) + "]:\n" + CudResultPrinter.PrintCUDResult(cudResultOfCache, state));
+						}
+						else
+						{
+                            Log.Debug("Initial merge [" + RuntimeHelpers.GetHashCode(state) + "]. No Details available");
+						}
+					}
+					List<MergeOperation> mergeOperationSequence = new List<MergeOperation>();
+					ICUDResult extendedCudResult = WhatIfMerged(cudResultOfCache, methodDescription, mergeOperationSequence, state);
+
+					if (Log.DebugEnabled)
+					{
+                        Log.Debug("Merge finished [" + RuntimeHelpers.GetHashCode(state) + "]");
+					}
+					if (MergeSecurityManager != null)
+					{
+						MergeSecurityManager.CheckMergeAccess(extendedCudResult, methodDescription);
+					}
+					List<Object> originalRefsOfCache = new List<Object>(cudResultOfCache.GetOriginalRefs());
+					List<Object> originalRefsExtended = new List<Object>(extendedCudResult.GetOriginalRefs());
+					IOriCollection oriCollExtended = Intern(extendedCudResult, methodDescription, mergeOperationSequence, state);
+
+					IList<IChangeContainer> allChangesOriginal = cudResultOriginal.AllChanges;
+					IList<IObjRef> allChangedObjRefsExtended = oriCollExtended.AllChangeORIs;
+                    IObjRef[] allChangedObjRefsResult = new IObjRef[allChangesOriginal.Count];
+
+                    IdentityHashMap<Object, int?> originalRefOfCacheToIndexMap = new IdentityHashMap<Object, int?>();
+					for (int a = originalRefsOfCache.Count; a-- > 0;)
+					{
+						originalRefOfCacheToIndexMap.Put(originalRefsOfCache[a], a);
+					}
+					for (int a = originalRefsExtended.Count; a-- > 0;)
+					{
+						int? indexOfCache = originalRefOfCacheToIndexMap.Get(originalRefsExtended[a]);
+						if (indexOfCache == null)
+						{
+							// this is a change implied by a rule or an persistence-implicit change
+							// we do not know about it in the outer original CUDResult
+							continue;
+						}
+						IObjRef objRefExtended = allChangedObjRefsExtended[a];
+						IObjRef objRefOriginal = allChangesOriginal[indexOfCache.Value].Reference;
+						if (objRefExtended == null)
+						{
+							// entity has been deleted
+							objRefOriginal.Id = null;
+							objRefOriginal.Version = null;
+						}
+						else
+						{
+							objRefOriginal.Id = objRefExtended.Id;
+							objRefOriginal.Version = objRefExtended.Version;
+						}
+						if (objRefOriginal is IDirectObjRef)
+						{
+							((IDirectObjRef) objRefOriginal).Direct = null;
+						}
+                        allChangedObjRefsResult[indexOfCache.Value] = objRefOriginal;
+					}
+					OriCollection oriCollection = new OriCollection(new List<IObjRef>(allChangedObjRefsResult));
+
+					return oriCollection;
+				}
+				finally
+				{
+					childCache.Dispose();
+				}
+		    });
+			if (SecurityActive == null || !SecurityActive.FilterActivated)
+			{
+				return runnable();
+			}
+			else
+			{
+				return SecurityActive.ExecuteWithoutFiltering(runnable);
+			}
+	    }
+
+	    protected ICUDResult WhatIfMerged(ICUDResult cudResult, IMethodDescription methodDescription, List<MergeOperation> mergeOperationSequence,
+			    IncrementalMergeState incrementalState)
+	    {
+		    IList<MergeOperation> lastMergeOperationSequence;
+		    while (true)
+		    {
+			    IMap<Type, IList<IChangeContainer>> sortedChanges = BucketSortChanges(cudResult.AllChanges);
+			    lastMergeOperationSequence = CreateMergeOperationSequence(sortedChanges);
+
+			    ParamHolder<bool> hasAtLeastOneImplicitChange = new ParamHolder<bool>(false);
+				IList<MergeOperation> fLastMergeOperationSequence = lastMergeOperationSequence;
+				cudResult = CacheContext.ExecuteWithCache(incrementalState.GetStateCache(), delegate(ICUDResult cudResult2)
+						{
+							for (int a = 0, size = fLastMergeOperationSequence.Count; a < size; a++)
+							{
+								MergeOperation mergeOperation = fLastMergeOperationSequence[a];
+								IMergeServiceExtension mergeServiceExtension = mergeOperation.MergeServiceExtension;
+
+								ICUDResult explAndImplCudResult = mergeServiceExtension.EvaluateImplicitChanges(cudResult2, incrementalState);
+								cudResult2 = MergeCudResult(cudResult2, explAndImplCudResult, mergeServiceExtension, hasAtLeastOneImplicitChange,
+										incrementalState);
+							}
+							return cudResult2;
+						}, cudResult);
+			    foreach (IMergeListener mergeListener in mergeListeners.GetExtensions())
+			    {
+				    ICUDResult explAndImplCudResult = mergeListener.PreMerge(cudResult, incrementalState.GetStateCache());
+				    cudResult = MergeCudResult(cudResult, explAndImplCudResult, mergeListener, hasAtLeastOneImplicitChange, incrementalState);
+			    }
+			    if (!hasAtLeastOneImplicitChange.Value)
+			    {
+				    break;
+			    }
+		    }
+		    mergeOperationSequence.AddRange(lastMergeOperationSequence);
+		    return cudResult;
+	    }
+
+	    protected IOriCollection Intern(ICUDResult cudResult, IMethodDescription methodDescription, IList<MergeOperation> mergeOperationSequence,
+			    IncrementalMergeState state)
+	    {
+		    IList<IChangeContainer> allChanges = cudResult.AllChanges;
+		    IList<Object> originalRefs = cudResult.GetOriginalRefs();
+		    IdentityHashMap<IChangeContainer, int> changeToChangeIndexDict = new IdentityHashMap<IChangeContainer, int>();
+
+		    for (int a = allChanges.Count; a-- > 0;)
+		    {
+			    changeToChangeIndexDict.Put(allChanges[a], a);
+		    }
+		    IObjRef[] objRefs = new IObjRef[allChanges.Count];
+            long[] allChangedOn = new long[allChanges.Count];
+		    String[] allChangedBy = new String[allChanges.Count];
+
+		    CHashSet<long> changedOnSet = new CHashSet<long>();
+		    CHashSet<String> changedBySet = new CHashSet<String>();
+
+		    for (int a = 0, size = mergeOperationSequence.Count; a < size; a++)
+		    {
+			    MergeOperation mergeOperation = mergeOperationSequence[a];
+			    IMergeServiceExtension mergeServiceExtension = mergeOperation.MergeServiceExtension;
+
+			    IList<IChangeContainer> changesForMergeService = mergeOperation.ChangeContainer;
+			    ICUDResult msCudResult = BuildCUDResult(changesForMergeService, changeToChangeIndexDict, originalRefs);
+
+			    IOriCollection msOriCollection = mergeServiceExtension.Merge(msCudResult, methodDescription);
+
+			    MergeController.ApplyChangesToOriginals(msCudResult, msOriCollection, state.GetStateCache());
+
+			    IList<IObjRef> allChangeORIs = msOriCollection.AllChangeORIs;
+
+			    long? msDefaultChangedOn = msOriCollection.ChangedOn;
+			    String msDefaultChangedBy = msOriCollection.ChangedBy;
+
+			    long[] msAllChangedOn = msOriCollection.AllChangedOn;
+			    String[] msAllChangedBy = msOriCollection.AllChangedBy;
+			    for (int b = changesForMergeService.Count; b-- > 0;)
+			    {
+				    int index = changeToChangeIndexDict.Get(changesForMergeService[b]);
+				    objRefs[index] = allChangeORIs[b];
+
+				    if (msAllChangedOn != null)
+				    {
+					    long msChangedOn = msAllChangedOn[b];
+					    allChangedOn[index] = msChangedOn;
+					    changedOnSet.Add(msChangedOn);
+				    }
+				    else
+				    {
+					    allChangedOn[index] = msDefaultChangedOn.Value;
+				    }
+				    if (msAllChangedBy != null)
+				    {
+					    String msChangedBy = msAllChangedBy[b];
+					    allChangedBy[index] = msChangedBy;
+					    changedBySet.Add(msChangedBy);
+				    }
+				    else
+				    {
+					    allChangedBy[index] = msDefaultChangedBy;
+				    }
+			    }
+			    if (msDefaultChangedOn != null)
+			    {
+				    changedOnSet.Add(msDefaultChangedOn.Value);
+			    }
+			    if (msDefaultChangedBy != null)
+			    {
+				    changedBySet.Add(msDefaultChangedBy);
+			    }
+		    }
+		    OriCollection oriCollection = new OriCollection();
+		    oriCollection.AllChangeORIs = new List<IObjRef>(objRefs);
+
+		    if (changedBySet.Count == 1)
+		    {
+                Iterator<String> iter = changedBySet.Iterator();
+                iter.MoveNext();
+			    oriCollection.ChangedBy = iter.Current;
+		    }
+		    else
+		    {
+			    oriCollection.AllChangedBy = allChangedBy;
+		    }
+		    if (changedOnSet.Count == 1)
+		    {
+                Iterator<long> iter = changedOnSet.Iterator();
+                iter.MoveNext();
+                oriCollection.ChangedOn = iter.Current;
+		    }
+		    else
+		    {
+			    oriCollection.AllChangedOn = allChangedOn;
+		    }
+		    foreach (IMergeListener mergeListener in mergeListeners.GetExtensions())
+		    {
+			    mergeListener.PostMerge(cudResult, objRefs);
+		    }
+		    if (originalRefs != null)
+		    {
+			    // Set each original ref to null in order to suppress a post-processing in a potentially calling IMergeProcess
+			    for (int a = originalRefs.Count; a-- > 0;)
+			    {
+				    originalRefs[a] = null;
+			    }
+		    }
+		    // TODO DCE must be fired HERE <---
+		    return oriCollection;
+	    }
+
+	    protected ICUDResult MergeCudResult(ICUDResult cudResult, ICUDResult explAndImplCudResult, Object implyingHandle,
+			    ParamHolder<Boolean> hasAtLeastOneImplicitChange, IncrementalMergeState state)
+	    {
+		    if (explAndImplCudResult == null || Object.ReferenceEquals(cudResult, explAndImplCudResult))
+		    {
+			    return cudResult;
+		    }
+		    ICUDResult diffCUDResult = CudResultComparer.DiffCUDResult(cudResult, explAndImplCudResult);
+		    if (diffCUDResult == null)
+		    {
+			    return cudResult;
+		    }
+		    hasAtLeastOneImplicitChange.Value = true;
+		    CudResultApplier.ApplyCUDResultOnEntitiesOfCache(diffCUDResult, false, state);
+		    if (Log.DebugEnabled)
+		    {
+			    Object currHandle = implyingHandle;
+                if (currHandle is IProxyTargetAccessor)
+			    {
+                    IInterceptor interceptor = ((IProxyTargetAccessor)currHandle).GetInterceptors()[0];
+				    while (interceptor is CascadedInterceptor)
+				    {
+					    Object target = ((CascadedInterceptor) interceptor).Target;
+                        if (target is IInterceptor)
+					    {
+                            interceptor = ((IInterceptor)target);
+						    continue;
+					    }
+					    currHandle = target;
+					    break;
+				    }
+			    }
+			    if (currHandle == null)
+			    {
+				    currHandle = implyingHandle;
+			    }
+			    if (CudResultPrinter != null)
+			    {
+                    Log.Debug("Incremental merge [" + RuntimeHelpers.GetHashCode(state) + "] (" + currHandle.GetType().Name + "):\n"
+                            + CudResultPrinter.PrintCUDResult(diffCUDResult, state));
+			    }
+			    else
+			    {
+                    Log.Debug("Incremental merge [" + RuntimeHelpers.GetHashCode(state) + "]  (" + currHandle.GetType().Name + "). No Details printable");
+			    }
+		    }
+		    return explAndImplCudResult;
+	    }
+
+	    protected ICUDResult BuildCUDResult(IList<IChangeContainer> changesForMergeService, IMap<IChangeContainer, int> changeToChangeIndexDict,
+			    IList<Object> originalRefs)
+	    {
+		    Object[] msOriginalRefs = new Object[changesForMergeService.Count];
+		    for (int b = changesForMergeService.Count; b-- > 0;)
+		    {
+			    int index = changeToChangeIndexDict.Get(changesForMergeService[b]);
+			    if (originalRefs != null)
+			    {
+				    msOriginalRefs[b] = originalRefs[index];
+			    }
+		    }
+		    return new CUDResult(changesForMergeService, new List<Object>(msOriginalRefs));
+	    }
 
         public IList<IEntityMetaData> GetMetaData(IList<Type> entityTypes)
         {
@@ -126,9 +435,9 @@ namespace De.Osthus.Ambeth.Cache
 			    IMergeServiceExtension mergeServiceExtension = mergeServiceExtensions.GetExtension(entityType);
                 if (mergeServiceExtension == null)
                 {
-                    throw new ArgumentException("No " + typeof(IMergeServiceExtension).FullName + " registered for type '" + entityType.FullName + "'");
+                    continue;
                 }
-			    IList<Type> groupedEntityTypes = mseToEntityTypes.Get(mergeServiceExtension);
+                IList<Type> groupedEntityTypes = mseToEntityTypes.Get(mergeServiceExtension);
 			    if (groupedEntityTypes == null)
 			    {
 				    groupedEntityTypes = new List<Type>();
@@ -164,27 +473,27 @@ namespace De.Osthus.Ambeth.Cache
             return mse;
         }
 
-        protected IDictionary<Type, IList<IChangeContainer>> BucketSortChanges(IList<IChangeContainer> allChanges)
+        protected IMap<Type, IList<IChangeContainer>> BucketSortChanges(IList<IChangeContainer> allChanges)
         {
-            IDictionary<Type, IList<IChangeContainer>> sortedChanges = new Dictionary<Type, IList<IChangeContainer>>();
+            HashMap<Type, IList<IChangeContainer>> sortedChanges = new HashMap<Type, IList<IChangeContainer>>();
 
             for (int i = allChanges.Count; i-- > 0; )
             {
                 IChangeContainer changeContainer = allChanges[i];
                 IObjRef objRef = changeContainer.Reference;
                 Type type = objRef.RealType;
-                IList<IChangeContainer> changeContainers = DictionaryExtension.ValueOrDefault(sortedChanges, type);
+                IList<IChangeContainer> changeContainers = sortedChanges.Get(type);
                 if (changeContainers == null)
                 {
                     changeContainers = new List<IChangeContainer>();
-                    sortedChanges.Add(type, changeContainers);
+                    sortedChanges.Put(type, changeContainers);
                 }
                 changeContainers.Add(changeContainer);
             }
             return sortedChanges;
         }
 
-        protected IList<MergeOperation> CreateMergeOperationSequence(IDictionary<Type, IList<IChangeContainer>> sortedChanges)
+        protected IList<MergeOperation> CreateMergeOperationSequence(IMap<Type, IList<IChangeContainer>> sortedChanges)
         {
             Type[] entityPersistOrder = EntityMetaDataProvider.GetEntityPersistOrder();
             IList<MergeOperation> mergeOperations = new List<MergeOperation>();
@@ -194,7 +503,7 @@ namespace De.Osthus.Ambeth.Cache
                 for (int a = entityPersistOrder.Length; a-- > 0; )
                 {
                     Type orderedEntityType = entityPersistOrder[a];
-                    IList<IChangeContainer> changes = DictionaryExtension.ValueOrDefault(sortedChanges, orderedEntityType);
+                    IList<IChangeContainer> changes = sortedChanges.Get(orderedEntityType);
                     if (changes == null)
                     {
                         // No changes of current type found. Nothing to do here
@@ -225,7 +534,7 @@ namespace De.Osthus.Ambeth.Cache
                     }
                     else
                     {
-                        sortedChanges[orderedEntityType] = insertsAndUpdates;
+                        sortedChanges.Put(orderedEntityType, insertsAndUpdates);
                     }
                     IMergeServiceExtension mergeServiceExtension = GetServiceForType(orderedEntityType);
                     MergeOperation mergeOperation = new MergeOperation();
@@ -238,7 +547,7 @@ namespace De.Osthus.Ambeth.Cache
                 for (int a = 0, size = entityPersistOrder.Length; a < size; a++)
                 {
                     Type orderedEntityType = entityPersistOrder[a];
-                    IList<IChangeContainer> changes = DictionaryExtension.ValueOrDefault(sortedChanges, orderedEntityType);
+                    IList<IChangeContainer> changes = sortedChanges.Get(orderedEntityType);
                     if (changes == null)
                     {
                         // No changes of current type found. Nothing to do here
@@ -271,10 +580,17 @@ namespace De.Osthus.Ambeth.Cache
             }
 
             // Everything which is left in the sortedChanges map can be merged without global order, so batch together as much as possible
-            DictionaryExtension.Loop(sortedChanges, delegate(Type type, IList<IChangeContainer> unorderedChanges)
-            {
+            foreach (Entry<Type, IList<IChangeContainer>> entry in sortedChanges)
+		    {
+			    Type type = entry.Key;
+			    IList<IChangeContainer> unorderedChanges = entry.Value;
                 IMergeServiceExtension mergeServiceExtension = GetServiceForType(type);
 
+                if (mergeServiceExtension == null)
+                {
+                    throw new Exception("No extension found to merge entities of type '" + type.FullName + "'");
+                }
+                bool cont = false;
                 foreach (MergeOperation existingMergeOperation in mergeOperations)
                 {
                     if (Object.ReferenceEquals(existingMergeOperation.MergeServiceExtension, mergeServiceExtension))
@@ -284,24 +600,51 @@ namespace De.Osthus.Ambeth.Cache
                         {
                             orderedChanges.Add(unorderedChanges[b]);
                         }
-                        return;
+                        cont = true;
+                        break;
                     }
+                }
+                if (cont)
+                {
+                    continue;
                 }
                 MergeOperation mergeOperation = new MergeOperation();
                 mergeOperation.MergeServiceExtension = mergeServiceExtension;
                 mergeOperation.ChangeContainer = unorderedChanges;
 
                 mergeOperations.Add(mergeOperation);
-            });
+            };
             return mergeOperations;
         }
 
-        protected virtual void PostProcessOriCollection(ICUDResult cudResult, IOriCollection oriCollection)
+        public long GetStartTime()
         {
-            GuiThreadHelper.InvokeInGuiAndWait(delegate()
+            long? startTime = startTimeTL.Value;
+            if (!startTime.HasValue)
             {
-                MergeController.ApplyChangesToOriginals(cudResult.GetOriginalRefs(), oriCollection.AllChangeORIs, oriCollection.ChangedOn, oriCollection.ChangedBy);
-            });
+                throw new Exception("No merge process is currently active");
+            }
+            return startTime.Value;
         }
+
+	    public void RegisterMergeServiceExtension(IMergeServiceExtension mergeServiceExtension, Type entityType)
+	    {
+		    mergeServiceExtensions.Register(mergeServiceExtension, entityType);
+	    }
+
+	    public void UnregisterMergeServiceExtension(IMergeServiceExtension mergeServiceExtension, Type entityType)
+	    {
+		    mergeServiceExtensions.Unregister(mergeServiceExtension, entityType);
+	    }
+
+	    public void RegisterMergeListener(IMergeListener mergeListener)
+	    {
+		    mergeListeners.Register(mergeListener);
+	    }
+
+	    public void UnregisterMergeListener(IMergeListener mergeListener)
+	    {
+		    mergeListeners.Unregister(mergeListener);
+	    }
     }
 }

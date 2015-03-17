@@ -39,7 +39,7 @@ public class StreamModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		IBeanConfiguration genericConverterBC = beanContextFactory.registerAnonymousBean(GenericInputSourceConverter.class);
+		IBeanConfiguration genericConverterBC = beanContextFactory.registerBean(GenericInputSourceConverter.class);
 		beanContextFactory.link(genericConverterBC).to(IDedicatedConverterExtendable.class).with(IInputSource.class, IInputStream.class);
 
 		registerConverter(beanContextFactory, BinaryBooleanConverter.class, boolean[].class, IBooleanInputStream.class, IBooleanInputSource.class);
@@ -53,7 +53,7 @@ public class StreamModule implements IInitializingModule
 	public static IBeanConfiguration registerConverter(IBeanContextFactory beanContextFactory, Class<? extends IDedicatedConverter> type, Class<?> fromType,
 			Class<? extends IInputStream> inputStreamType, Class<? extends IInputSource> inputSourceType)
 	{
-		IBeanConfiguration converterBC = beanContextFactory.registerAnonymousBean(type);
+		IBeanConfiguration converterBC = beanContextFactory.registerBean(type);
 		beanContextFactory.link(converterBC).to(IDedicatedConverterExtendable.class).with(fromType, IBinaryInputStream.class);
 		beanContextFactory.link(converterBC).to(IDedicatedConverterExtendable.class).with(fromType, inputStreamType);
 		beanContextFactory.link(converterBC).to(IDedicatedConverterExtendable.class).with(inputSourceType, inputStreamType);

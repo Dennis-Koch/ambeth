@@ -1,62 +1,80 @@
 package de.osthus.ambeth.persistence.xml.model;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.IStartingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.persistence.IDatabase;
-import de.osthus.ambeth.persistence.IField;
-import de.osthus.ambeth.persistence.IServiceUtil;
-import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.proxy.PersistenceContext;
 import de.osthus.ambeth.proxy.Service;
-import de.osthus.ambeth.util.ParamChecker;
+import de.osthus.ambeth.query.IOperand;
+import de.osthus.ambeth.query.IQuery;
+import de.osthus.ambeth.query.IQueryBuilder;
+import de.osthus.ambeth.query.IQueryBuilderFactory;
+import de.osthus.ambeth.query.OrderByType;
 
 @Service(IEmployeeService.class)
 @PersistenceContext
-public class EmployeeService implements IInitializingBean, IEmployeeService
+public class EmployeeService implements IInitializingBean, IEmployeeService, IStartingBean
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	protected IDatabase database;
+	@Autowired
+	protected IQueryBuilderFactory queryBuilderFactory;
 
-	protected IServiceUtil serviceUtil;
+	protected IQuery<Employee> queryEmployeeByName;
+
+	protected IQuery<Employee> queryEmployeeAll;
+
+	protected IQuery<Employee> queryEmployeeByNameOrderedAsc;
+
+	protected IQuery<Employee> queryEmployeeByNameOrderedDesc;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertNotNull(serviceUtil, "serviceUtil");
-		ParamChecker.assertNotNull(database, "database");
+
 	}
 
-	public void setServiceUtil(IServiceUtil serviceUtil)
+	@Override
+	public void afterStarted() throws Throwable
 	{
-		this.serviceUtil = serviceUtil;
-	}
-
-	public void setDatabase(IDatabase database)
-	{
-		this.database = database;
+		{
+			IQueryBuilder<Employee> qb = queryBuilderFactory.create(Employee.class);
+			queryEmployeeByName = qb.build(qb.isEqualTo(qb.property(Employee.Name), qb.valueName(Employee.Name)));
+		}
+		{
+			queryEmployeeAll = queryBuilderFactory.create(Employee.class).build();
+		}
+		{
+			IQueryBuilder<Employee> qb = queryBuilderFactory.create(Employee.class);
+			IOperand nameOp = qb.property(Employee.Name);
+			qb.orderBy(nameOp, OrderByType.ASC);
+			queryEmployeeByNameOrderedAsc = qb.build();
+		}
+		{
+			IQueryBuilder<Employee> qb = queryBuilderFactory.create(Employee.class);
+			IOperand nameOp = qb.property(Employee.Name);
+			qb.orderBy(nameOp, OrderByType.DESC);
+			queryEmployeeByNameOrderedDesc = qb.build();
+		}
 	}
 
 	@Override
 	public List<Employee> getAll()
 	{
-		List<Employee> employees = new ArrayList<Employee>();
-		serviceUtil.loadObjectsIntoCollection(employees, Employee.class, database.getTableByType(Employee.class).selectAll());
-		return employees;
+		return queryEmployeeAll.retrieve();
 	}
 
 	@Override
 	public Employee getByName(String name)
 	{
-		IField nameField = database.getTableByType(Employee.class).getFieldByMemberName("Name");
-		return serviceUtil.loadObject(Employee.class, nameField.findSingle(name));
+		return queryEmployeeByName.param(Employee.Name, name).retrieveSingle();
 	}
 
 	@Override
@@ -110,10 +128,11 @@ public class EmployeeService implements IInitializingBean, IEmployeeService
 	@Override
 	public List<Employee> retrieveOrderedByName(boolean reverse)
 	{
-		List<Employee> result = new ArrayList<Employee>();
-		ITable table = database.getTableByType(Employee.class);
-		serviceUtil.loadObjectsIntoCollection(result, Employee.class, table.selectVersionWhere("1=1 ORDER BY \"NAME\"" + (reverse ? " DESC" : "")));
-		return result;
+		if (reverse)
+		{
+			return queryEmployeeByNameOrderedDesc.retrieve();
+		}
+		return queryEmployeeByNameOrderedAsc.retrieve();
 	}
 
 	@Override

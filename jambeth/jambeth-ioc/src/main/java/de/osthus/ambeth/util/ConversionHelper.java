@@ -6,6 +6,7 @@ import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
@@ -19,7 +20,7 @@ import de.osthus.ambeth.format.XmlHint;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
-public class ConversionHelper implements IConversionHelper, IThreadLocalCleanupBean
+public class ConversionHelper extends IConversionHelper implements IThreadLocalCleanupBean
 {
 	protected static final boolean java7recognized = "1.7".equals(System.getProperty("java.specification.version"));
 
@@ -123,7 +124,7 @@ public class ConversionHelper implements IConversionHelper, IThreadLocalCleanupB
 			}
 			else if (String.class.isAssignableFrom(type))
 			{
-				return Long.valueOf((String) value);
+				return Long.valueOf((long) Double.parseDouble((String) value));
 			}
 			else if (Boolean.class.isAssignableFrom(type))
 			{
@@ -192,7 +193,7 @@ public class ConversionHelper implements IConversionHelper, IThreadLocalCleanupB
 			}
 			else if (String.class.isAssignableFrom(type))
 			{
-				return Integer.valueOf((String) value);
+				return Integer.valueOf((int) Double.parseDouble((String) value));
 			}
 			else if (Boolean.class.isAssignableFrom(type))
 			{
@@ -215,7 +216,7 @@ public class ConversionHelper implements IConversionHelper, IThreadLocalCleanupB
 			}
 			else if (String.class.isAssignableFrom(type))
 			{
-				return Float.valueOf((String) value);
+				return Float.valueOf((float) Double.parseDouble((String) value));
 			}
 			else if (Boolean.class.isAssignableFrom(type))
 			{
@@ -238,7 +239,7 @@ public class ConversionHelper implements IConversionHelper, IThreadLocalCleanupB
 			}
 			else if (String.class.isAssignableFrom(type))
 			{
-				return Short.valueOf((String) value);
+				return Short.valueOf((short) Double.parseDouble((String) value));
 			}
 			else if (Boolean.class.isAssignableFrom(type))
 			{
@@ -261,7 +262,7 @@ public class ConversionHelper implements IConversionHelper, IThreadLocalCleanupB
 			}
 			else if (String.class.isAssignableFrom(type))
 			{
-				return Byte.valueOf((String) value);
+				return Byte.valueOf((byte) Double.parseDouble((String) value));
 			}
 			else if (Boolean.class.isAssignableFrom(type))
 			{
@@ -445,7 +446,7 @@ public class ConversionHelper implements IConversionHelper, IThreadLocalCleanupB
 				}
 			}
 		}
-		else if (String.class.equals(expectedType))
+		else if (CharSequence.class.isAssignableFrom(expectedType))
 		{
 			if (Class.class.isAssignableFrom(type))
 			{
@@ -457,6 +458,10 @@ public class ConversionHelper implements IConversionHelper, IThreadLocalCleanupB
 				{
 					return getISO_8601_DateFormat().format(value);
 				}
+			}
+			if (Calendar.class.isAssignableFrom(type))
+			{
+				return getISO_8601_DateFormat().format(((Calendar) value).getTime());
 			}
 			return value.toString();
 		}

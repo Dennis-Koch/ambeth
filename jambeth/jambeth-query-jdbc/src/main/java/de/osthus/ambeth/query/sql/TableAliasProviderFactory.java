@@ -29,6 +29,6 @@ public class TableAliasProviderFactory implements IFactoryBean, IInitializingBea
 	@Override
 	public Object getObject() throws Throwable
 	{
-		return beanContext.registerAnonymousBean(TableAliasProvider.class).finish();
+		return beanContext.registerBean(TableAliasProvider.class).finish();
 	}
 }

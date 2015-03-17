@@ -1,39 +1,21 @@
 package de.osthus.ambeth.query.inmemory.text;
 
-import java.util.Map;
-
+import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.query.inmemory.AbstractOperator;
 import de.osthus.ambeth.query.inmemory.IInMemoryBooleanOperand;
 import de.osthus.ambeth.query.inmemory.IInMemoryTextOperand;
-import de.osthus.ambeth.util.ParamChecker;
 
 public abstract class AbstractBinaryTextOperator extends AbstractOperator implements IInMemoryBooleanOperand
 {
+	@Property
 	protected IInMemoryTextOperand leftOperand;
 
+	@Property
 	protected IInMemoryTextOperand rightOperand;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(leftOperand, "leftOperand");
-		ParamChecker.assertNotNull(rightOperand, "rightOperand");
-	}
-
-	public void setLeftOperand(IInMemoryTextOperand leftOperand)
-	{
-		this.leftOperand = leftOperand;
-	}
-
-	public void setRightOperand(IInMemoryTextOperand rightOperand)
-	{
-		this.rightOperand = rightOperand;
-	}
-
-	@Override
-	public final Boolean evaluate(Map<Object, Object> nameToValueMap)
+	public final Boolean evaluate(IMap<Object, Object> nameToValueMap)
 	{
 		String leftValue = leftOperand.evaluateText(nameToValueMap);
 		if (leftValue == null)

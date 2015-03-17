@@ -6,6 +6,7 @@ using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Merge;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Xml.Namehandler
 {
@@ -19,13 +20,16 @@ namespace De.Osthus.Ambeth.Xml.Namehandler
         [Autowired]
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
+        [Autowired]
+        public IObjRefFactory ObjRefFactory { protected get; set; }
+
         public virtual bool WritesCustom(Object obj, Type type, IWriter writer)
         {
-            if (!typeof(ObjRef).Equals(type))
-            {
-                return false;
-            }
-            ObjRef ori = (ObjRef)obj;
+            if (!typeof(IObjRef).IsAssignableFrom(type) || typeof(IDirectObjRef).IsAssignableFrom(type))
+		    {
+			    return false;
+		    }
+            IObjRef ori = (IObjRef)obj;
             WriteOpenElement(ori, writer);
             writer.WriteObject(ori.RealType);
             writer.WriteObject(ori.Id);
@@ -55,7 +59,7 @@ namespace De.Osthus.Ambeth.Xml.Namehandler
                 {
                     if (objId != null)
                     {
-                        ITypeInfoItem idMember = metaData.GetIdMemberByIdIndex(idIndex);
+                        PrimitiveMember idMember = metaData.GetIdMemberByIdIndex(idIndex);
                         if (objId.Equals(idMember.NullEquivalentValue))
                         {
                             objId = null;
@@ -63,7 +67,7 @@ namespace De.Osthus.Ambeth.Xml.Namehandler
                     }
                     if (version != null)
                     {
-                        ITypeInfoItem versionMember = metaData.VersionMember;
+                        PrimitiveMember versionMember = metaData.VersionMember;
                         if (versionMember != null)
                         {
                             if (version.Equals(versionMember.NullEquivalentValue))
@@ -75,12 +79,12 @@ namespace De.Osthus.Ambeth.Xml.Namehandler
                 }
             }
 
-            ObjRef obj = new ObjRef(realType, idIndex, objId, version);
+            IObjRef obj = ObjRefFactory.CreateObjRef(realType, idIndex, objId, version);
 
 		    return obj;
         }
 
-        protected void WriteOpenElement(ObjRef ori, IWriter writer)
+        protected void WriteOpenElement(IObjRef ori, IWriter writer)
         {
             writer.WriteStartElement(XmlDictionary.EntityRefElement);
             int id = writer.AcquireIdForObject(ori);

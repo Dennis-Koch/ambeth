@@ -4,7 +4,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 
@@ -13,7 +13,7 @@ import de.osthus.ambeth.testutil.SQLStructure;
  */
 @SQLData("TestSetup_data.sql")
 @SQLStructure("TestSetup_structure.sql")
-public class TestSetupTest extends AbstractPersistenceTest
+public class TestSetupTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Test
 	public void testDataSetup()

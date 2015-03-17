@@ -8,8 +8,12 @@ namespace De.Osthus.Ambeth.Collections
     {
         K Get(K key);
 
+        bool ContainsAny(IEnumerable c);
+
         IList<K> ToList();
 
         K RemoveAndGet(K key);
+
+        bool RemoveAll(IEnumerable c);
     }
 }

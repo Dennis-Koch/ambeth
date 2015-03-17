@@ -16,7 +16,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.model.Material;
 import de.osthus.ambeth.model.MaterialGroup;
 import de.osthus.ambeth.service.ProcessServiceTestModule;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -26,7 +26,7 @@ import de.osthus.ambeth.xml.ICyclicXMLHandler;
 @SQLStructure("../service/ProcessServiceTest_structure.sql")
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/service/orm.xml")
 @TestModule({ BootstrapScannerModule.class, XmlModule.class, ProcessServiceTestModule.class })
-public class ServiceResultDeSerializationTest extends AbstractPersistenceTest
+public class ServiceResultDeSerializationTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Autowired
 	protected ICache cache;

@@ -6,18 +6,24 @@ import de.osthus.ambeth.bytecode.MethodGenerator;
 import de.osthus.ambeth.bytecode.MethodInstance;
 import de.osthus.ambeth.bytecode.Script;
 import de.osthus.ambeth.cache.collections.CacheMapEntry;
-import de.osthus.ambeth.compositeid.CompositeIdTypeInfoItem;
+import de.osthus.ambeth.compositeid.CompositeIdMember;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.ImmutableTypeSet;
-
 public class CacheMapEntryVisitor extends ClassGenerator
 {
+	private static final MethodInstance template_m_getEntityType = new MethodInstance(null, CacheMapEntry.class, Class.class, "getEntityType");
+	private static final MethodInstance template_m_getIdIndex = new MethodInstance(null, CacheMapEntry.class, byte.class, "getIdIndex");
+	private static final MethodInstance template_m_getId = new MethodInstance(null, CacheMapEntry.class, Object.class, "getId");
+	private static final MethodInstance template_m_setId = new MethodInstance(null, CacheMapEntry.class, void.class, "setId", Object.class);
+	private static final MethodInstance template_m_isEqualTo = new MethodInstance(null, CacheMapEntry.class, boolean.class, "isEqualTo", Class.class,
+			byte.class, Object.class);
+
 	protected final IEntityMetaData metaData;
 
 	protected final byte idIndex;
@@ -32,12 +38,6 @@ public class CacheMapEntryVisitor extends ClassGenerator
 	@Override
 	public void visitEnd()
 	{
-		MethodInstance template_m_getEntityType = new MethodInstance(null, CacheMapEntry.class, Class.class, "getEntityType");
-		MethodInstance template_m_getIdIndex = new MethodInstance(null, CacheMapEntry.class, byte.class, "getIdIndex");
-		MethodInstance template_m_getId = new MethodInstance(null, CacheMapEntry.class, Object.class, "getId");
-		MethodInstance template_m_setId = new MethodInstance(null, CacheMapEntry.class, void.class, "setId", Object.class);
-		MethodInstance template_m_isEqualTo = new MethodInstance(null, CacheMapEntry.class, boolean.class, "isEqualTo", Class.class, byte.class, Object.class);
-
 		Type entityType = Type.getType(metaData.getEntityType());
 		{
 			MethodGenerator mv = visitMethod(template_m_getEntityType);
@@ -84,12 +84,12 @@ public class CacheMapEntryVisitor extends ClassGenerator
 		super.visitEnd();
 	}
 
-	public static String getFieldName(ITypeInfoItem member)
+	public static String getFieldName(Member member)
 	{
 		return "$" + member.getName().replaceAll("\\.", "_");
 	}
 
-	public static FieldInstance implementNativeField(ClassGenerator cv, ITypeInfoItem member, MethodInstance m_get, MethodInstance m_set)
+	public static FieldInstance implementNativeField(ClassGenerator cv, Member member, MethodInstance m_get, MethodInstance m_set)
 	{
 		if (member == null)
 		{
@@ -107,8 +107,7 @@ public class CacheMapEntryVisitor extends ClassGenerator
 			}
 			return null;
 		}
-		if (member instanceof CompositeIdTypeInfoItem
-				|| (!member.getRealType().isPrimitive() && ImmutableTypeSet.getUnwrappedType(member.getRealType()) == null))
+		if (member instanceof CompositeIdMember || (!member.getRealType().isPrimitive() && ImmutableTypeSet.getUnwrappedType(member.getRealType()) == null))
 		{
 			// no business case for any complex efforts
 			FieldInstance f_id = cv.implementField(new FieldInstance(Opcodes.ACC_PRIVATE, getFieldName(member), null, Object.class));

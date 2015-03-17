@@ -5,10 +5,15 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import de.osthus.ambeth.annotation.ParentChild;
+
 @XmlRootElement(namespace = "HelloWorld")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class EmbeddedObject
 {
+	@XmlElement
+	protected TestEntity2 relationOfEmbeddedObject;
+
 	@XmlElement
 	protected String name;
 
@@ -33,5 +38,16 @@ public class EmbeddedObject
 	public void setValue(int value)
 	{
 		this.value = value;
+	}
+
+	@ParentChild
+	public TestEntity2 getRelationOfEmbeddedObject()
+	{
+		return relationOfEmbeddedObject;
+	}
+
+	public void setRelationOfEmbeddedObject(TestEntity2 relationOfEmbeddedObject)
+	{
+		this.relationOfEmbeddedObject = relationOfEmbeddedObject;
 	}
 }

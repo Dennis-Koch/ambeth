@@ -1,8 +1,11 @@
 using De.Osthus.Ambeth.Bytecode;
 using De.Osthus.Ambeth.Bytecode.Behavior;
+using De.Osthus.Ambeth.Bytecode.Core;
 using De.Osthus.Ambeth.Util;
 using System;
+using System.Diagnostics;
 using System.Reflection;
+using System.Threading;
 
 namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
@@ -23,16 +26,34 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         //    }
         //    return base.VisitField(field);
         //}
-
-        //public override IMethodVisitor VisitMethod(MethodInstance method)
-        //{
-        //    IBytecodeBehaviorState state = State;
-        //    if (state != null)
-        //    {
-        //        ((BytecodeBehaviorState)state).MethodImplemented(method);
-        //    }
-        //    return base.VisitMethod(method);
-        //}
+        
+        protected String ExtractCallingVisitor(String fromMethodName)
+	    {
+		    StackFrame[] stes = new StackTrace().GetFrames();
+		    StackFrame ste = null;
+		    for (int index = 0, size = stes.Length; index < size; index++)
+		    {
+                //if (stes[index].GetMethod().DeclaringType.Equals(typeof(Thread)))
+                //{
+                //    continue;
+                //}
+                //if (stes[index].getClassName().equals(ClassGenerator.class.getName()))
+                //{
+                //    continue;
+                //}
+                //if (stes[index].getClassName().equals(LogImplementationsClassVisitor.class.getName()))
+                //{
+                //    continue;
+                //}
+			    if (stes[index].GetMethod().Name.Equals(fromMethodName))
+			    {
+				    continue;
+			    }
+			    ste = stes[index];
+			    break;
+		    }
+		    return ste.GetMethod().DeclaringType.FullName + "#" + ste.GetMethod().Name;
+	    }
 
         public override IMethodVisitor VisitMethod(MethodAttributes access, String name, NewType returnType, params NewType[] parameters)
         {
@@ -42,7 +63,9 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 MethodInstance method = new MethodInstance(state.NewType, access, returnType, name, parameters);
                 ((BytecodeBehaviorState)state).MethodImplemented(method);
             }
-            return base.VisitMethod(access, name, returnType, parameters);
+            IMethodVisitor mv = base.VisitMethod(access, name, returnType, parameters);
+            mv.VisitAnnotation(typeof(ByVisitor).GetConstructor(new Type[] { typeof(String) }), ExtractCallingVisitor("VisitMethod"));
+		    return mv;
         }
     }
 }

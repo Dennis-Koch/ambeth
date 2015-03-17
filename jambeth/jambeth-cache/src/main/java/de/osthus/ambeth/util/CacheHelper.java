@@ -24,6 +24,7 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.collections.IdentityLinkedMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
+import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.collections.ObservableArrayList;
 import de.osthus.ambeth.collections.ObservableHashSet;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -36,13 +37,14 @@ import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.IMemberTypeProvider;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.PrimitiveMember;
+import de.osthus.ambeth.metadata.RelationMember;
+import de.osthus.ambeth.mixin.ValueHolderContainerMixin;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
-import de.osthus.ambeth.template.ValueHolderContainerTemplate;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 
 public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHelper
 {
@@ -66,103 +68,87 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Autowired
+	protected IMemberTypeProvider memberTypeProvider;
+
+	@Autowired
 	protected IObjRefHelper oriHelper;
 
 	@Autowired
-	protected ITypeInfoProvider typeInfoProvider;
-
-	@Autowired
-	protected ValueHolderContainerTemplate valueHolderContainerTemplate;
+	protected ValueHolderContainerMixin valueHolderContainerTemplate;
 
 	@Override
-	public void buildCachePath(Class<?> entityType, String memberToInitialize, List<CachePath> cachePaths)
+	public void buildCachePath(Class<?> entityType, String memberToInitialize, ISet<AppendableCachePath> cachePaths)
 	{
-		String[] path = memberToInitialize.split("\\.");
-		CachePath currentCachePath = null;
 		Class<?> currentType = entityType;
+		String requestedMemberName = memberToInitialize;
+		AppendableCachePath currentCachePath = null;
+		ISet<AppendableCachePath> currentCachePaths = cachePaths;
 
-		for (String pathItem : path)
+		while (true)
 		{
-			if (currentCachePath == null)
+			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(currentType);
+			Member widenedMember = metaData.getWidenedMatchingMember(requestedMemberName);
+			if (widenedMember == null)
 			{
-				currentCachePath = getOrCreateCachePath(cachePaths, currentType, pathItem);
+				throw new IllegalArgumentException("No member found to resolve path " + entityType.getName() + "." + memberToInitialize);
 			}
-			else
+			String widenedMemberName = widenedMember.getName();
+			if (widenedMember instanceof PrimitiveMember)
 			{
-				if (currentCachePath.children == null)
+				if (widenedMemberName.equals(memberToInitialize))
 				{
-					currentCachePath.children = new ArrayList<CachePath>();
+					// this member does not need to be prefetched
+					return;
 				}
-				currentCachePath = getOrCreateCachePath(currentCachePath.children, currentType, pathItem);
+				// widened member has been found but not the full path of the requested member name
+				throw new IllegalArgumentException("No member found to resolve path " + entityType.getName() + "." + memberToInitialize);
 			}
-			currentType = currentCachePath.memberType;
-		}
-	}
-
-	protected IList<CachePath> buildCachePath(Class<?> entityType, List<String> membersToInitialize)
-	{
-		ArrayList<CachePath> cachePaths = new ArrayList<CachePath>();
-		for (int a = membersToInitialize.size(); a-- > 0;)
-		{
-			String memberName = membersToInitialize.get(a);
-			buildCachePath(entityType, memberName, cachePaths);
-		}
-		return cachePaths;
-	}
-
-	protected CachePath getOrCreateCachePath(List<CachePath> cachePaths, Class<?> entityType, String memberName)
-	{
-		for (int a = cachePaths.size(); a-- > 0;)
-		{
-			CachePath cachePath = cachePaths.get(a);
-			if (memberName.equals(cachePath.memberName))
+			AppendableCachePath childCachePath = null;
+			if (currentCachePaths == null)
 			{
-				return cachePath;
+				currentCachePaths = new LinkedHashSet<AppendableCachePath>();
+				currentCachePath.children = currentCachePaths;
 			}
+			for (AppendableCachePath cachePath : currentCachePaths)
+			{
+				if (widenedMemberName.equals(cachePath.memberName))
+				{
+					childCachePath = cachePath;
+					break;
+				}
+			}
+			if (childCachePath == null)
+			{
+				int relationIndex = metaData.getIndexByRelation(widenedMember);
+				childCachePath = new AppendableCachePath(widenedMember.getElementType(), relationIndex, widenedMemberName);
+				currentCachePaths.add(childCachePath);
+			}
+			if (widenedMemberName.equals(requestedMemberName))
+			{
+				// we have travered the full path of the requested member name
+				return;
+			}
+			requestedMemberName = requestedMemberName.substring(widenedMemberName.length() + 1);
+			currentCachePath = childCachePath;
+			currentType = currentCachePath.memberType;
+			currentCachePaths = currentCachePath.children;
 		}
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-
-		ITypeInfoItem member = metaData.getMemberByName(memberName);
-		if (member == null)
-		{
-			throw new IllegalArgumentException("Member " + entityType.getName() + "." + memberName + " not found");
-		}
-		CachePath newCachePath = new CachePath(member.getElementType(), metaData.getIndexByRelationName(memberName), memberName);
-		cachePaths.add(newCachePath);
-		return newCachePath;
 	}
 
 	@Override
 	public IPrefetchConfig createPrefetch()
 	{
-		return beanContext.registerAnonymousBean(PrefetchConfig.class).finish();
+		return beanContext.registerBean(PrefetchConfig.class).finish();
 	}
 
 	@Override
-	public IPrefetchState prefetch(Object objects, IMap<Class<?>, List<String>> typeToMembersToInitialize)
+	public IPrefetchState ensureInitializedRelations(Object objects, ILinkedMap<Class<?>, CachePath[]> entityTypeToPrefetchSteps)
 	{
-		if (objects == null || typeToMembersToInitialize == null || typeToMembersToInitialize.size() == 0)
+		if (objects == null || entityTypeToPrefetchSteps == null || entityTypeToPrefetchSteps.size() == 0)
 		{
 			return null;
 		}
-		HashMap<Class<?>, IList<CachePath>> typeToCachePathsDict = HashMap.create(typeToMembersToInitialize.size());
-		for (Entry<Class<?>, List<String>> entry : typeToMembersToInitialize)
-		{
-			Class<?> entityType = entry.getKey();
-			List<String> membersToInitialize = entry.getValue();
-			typeToCachePathsDict.put(entityType, buildCachePath(entityType, membersToInitialize));
-		}
-		return ensureInitializedRelations(objects, typeToCachePathsDict);
-	}
-
-	@Override
-	public <V extends List<CachePath>> IPrefetchState ensureInitializedRelations(Object objects, IMap<Class<?>, V> typeToMembersToInitialize)
-	{
-		if (objects == null || typeToMembersToInitialize == null || typeToMembersToInitialize.size() == 0)
-		{
-			return null;
-		}
-		return ensureInitializedRelationsIntern(objects, typeToMembersToInitialize);
+		return ensureInitializedRelationsIntern(objects, entityTypeToPrefetchSteps);
 	}
 
 	@Override
@@ -171,8 +157,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		return ensureInitializedRelationsIntern(objects, null);
 	}
 
-	protected <V extends List<CachePath>> List<CachePath> mergeCachePaths(Class<?> entityType, List<CachePath> baseCachePath,
-			Map<Class<?>, V> typeToMembersToInitialize)
+	protected CachePath[] mergeCachePaths(Class<?> entityType, CachePath[] baseCachePath, Map<Class<?>, CachePath[]> typeToMembersToInitialize)
 	{
 		if (typeToMembersToInitialize == null)
 		{
@@ -183,7 +168,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		{
 			return baseCachePath;
 		}
-		List<CachePath> cachePathsOfType = typeToMembersToInitialize.get(metaData.getEntityType());
+		CachePath[] cachePathsOfType = typeToMembersToInitialize.get(metaData.getEntityType());
 		if (cachePathsOfType == null)
 		{
 			return baseCachePath;
@@ -192,12 +177,13 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		{
 			return cachePathsOfType;
 		}
-		ArrayList<CachePath> cachePaths = new ArrayList<CachePath>(baseCachePath);
-		cachePaths.addAll(cachePathsOfType);
+		CachePath[] cachePaths = new CachePath[baseCachePath.length + cachePathsOfType.length];
+		System.arraycopy(baseCachePath, 0, cachePaths, 0, baseCachePath.length);
+		System.arraycopy(cachePathsOfType, 0, cachePaths, baseCachePath.length, cachePathsOfType.length);
 		return cachePaths;
 	}
 
-	protected <V extends List<CachePath>> IPrefetchState ensureInitializedRelationsIntern(Object objects, Map<Class<?>, V> typeToMembersToInitialize)
+	protected IPrefetchState ensureInitializedRelationsIntern(Object objects, ILinkedMap<Class<?>, CachePath[]> entityTypeToPrefetchSteps)
 	{
 		if (objects == null)
 		{
@@ -223,11 +209,11 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				}
 
 				IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
-				ValueHolderContainerTemplate valueHolderContainerTemplate = this.valueHolderContainerTemplate;
+				ValueHolderContainerMixin valueHolderContainerTemplate = this.valueHolderContainerTemplate;
 				IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisLoadedHistory = new IdentityLinkedMap<ICacheIntern, ISet<IObjRef>>();
 				IdentityLinkedMap<ICacheIntern, ISet<IObjRelation>> cacheToOrelsLoadedHistory = new IdentityLinkedMap<ICacheIntern, ISet<IObjRelation>>();
 				IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad = new IdentityLinkedMap<ICacheIntern, ISet<IObjRef>>();
-				IdentityLinkedMap<ICacheIntern, ISet<IObjRelation>> cacheToOrelsToLoad = new IdentityLinkedMap<ICacheIntern, ISet<IObjRelation>>();
+				IdentityLinkedMap<ICacheIntern, IMap<IObjRelation, Boolean>> cacheToOrelsToLoad = new IdentityLinkedMap<ICacheIntern, IMap<IObjRelation, Boolean>>();
 
 				ArrayList<CascadeLoadItem> loadItems = new ArrayList<CascadeLoadItem>();
 
@@ -239,12 +225,12 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 						{
 							continue;
 						}
-						List<CachePath> cachePaths = null;
-						if (typeToMembersToInitialize != null)
+						CachePath[] cachePaths = null;
+						if (entityTypeToPrefetchSteps != null)
 						{
 							IEntityMetaData metaData = entityMetaDataProvider.getMetaData(item.getClass());
 
-							cachePaths = typeToMembersToInitialize.get(metaData.getEntityType());
+							cachePaths = entityTypeToPrefetchSteps.get(metaData.getEntityType());
 
 							if (cachePaths == null)
 							{
@@ -257,11 +243,11 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				}
 				else
 				{
-					List<CachePath> cachePaths = null;
-					if (typeToMembersToInitialize != null)
+					CachePath[] cachePaths = null;
+					if (entityTypeToPrefetchSteps != null)
 					{
 						IEntityMetaData metaData = ((IEntityMetaDataHolder) objects).get__EntityMetaData();
-						cachePaths = typeToMembersToInitialize.get(metaData.getEntityType());
+						cachePaths = entityTypeToPrefetchSteps.get(metaData.getEntityType());
 
 						if (cachePaths == null)
 						{
@@ -300,36 +286,29 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 					loadItems.clear();
 					for (CascadeLoadItem cascadeLoadItem : currentLoadItems)
 					{
-						Object valueHolder = cascadeLoadItem.valueHolder;
-						List<CachePath> cachePaths = cascadeLoadItem.cachePaths;
+						DirectValueHolderRef valueHolder = cascadeLoadItem.valueHolder;
+						CachePath[] cachePaths = cascadeLoadItem.cachePaths;
 
 						// Merge the root prefetch path with the relative prefetch path
-						cachePaths = mergeCachePaths(cascadeLoadItem.realType, cachePaths, typeToMembersToInitialize);
+						cachePaths = mergeCachePaths(cascadeLoadItem.realType, cachePaths, entityTypeToPrefetchSteps);
 
-						IObjRefContainer vhc;
+						IObjRefContainer vhc = valueHolder.getVhc();
+						RelationMember member = valueHolder.getMember();
 						ICacheIntern targetCache;
-						IRelationInfoItem member;
 						boolean doSetValue = false;
-						Object obj;
 						if (valueHolder instanceof IndirectValueHolderRef)
 						{
 							IndirectValueHolderRef valueHolderKey = (IndirectValueHolderRef) valueHolder;
-							vhc = valueHolderKey.getVhc();
 							targetCache = valueHolderKey.getRootCache();
-							member = valueHolderKey.getMember();
 						}
 						else
 						{
-							DirectValueHolderRef valueHolderKey = (DirectValueHolderRef) valueHolder;
-							IValueHolderContainer vhcTemp = (IValueHolderContainer) valueHolderKey.getVhc();
-							vhc = vhcTemp;
-							targetCache = vhcTemp.get__TargetCache();
-							member = valueHolderKey.getMember();
+							targetCache = ((IValueHolderContainer) vhc).get__TargetCache();
 							doSetValue = true;
 						}
 						int relationIndex = vhc.get__EntityMetaData().getIndexByRelation(member);
 						IObjRef[] objRefs = vhc.get__ObjRefs(relationIndex);
-						obj = valueHolderContainerTemplate.getValue(vhc, relationIndex, member, targetCache, objRefs, CacheDirective.failEarly());
+						Object obj = valueHolderContainerTemplate.getValue(vhc, relationIndex, member, targetCache, objRefs, CacheDirective.failEarly());
 						if (doSetValue && obj != null)
 						{
 							member.setValue(vhc, obj);
@@ -402,30 +381,41 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		orisLoadedHistory.addAll(orisToLoad);
 	}
 
-	protected void loadAndAddOrels(ILinkedMap<ICacheIntern, ISet<IObjRelation>> cacheToOrelsToLoad, List<Object> hardRefList,
+	protected void loadAndAddOrels(ILinkedMap<ICacheIntern, IMap<IObjRelation, Boolean>> cacheToOrelsToLoad, List<Object> hardRefList,
 			Map<ICacheIntern, ISet<IObjRelation>> cacheToOrelsLoadedHistory, ILinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad)
 	{
-		Iterator<Entry<ICacheIntern, ISet<IObjRelation>>> iter = cacheToOrelsToLoad.iterator();
+		Iterator<Entry<ICacheIntern, IMap<IObjRelation, Boolean>>> iter = cacheToOrelsToLoad.iterator();
 		while (iter.hasNext())
 		{
-			Entry<ICacheIntern, ISet<IObjRelation>> entry = iter.next();
+			Entry<ICacheIntern, IMap<IObjRelation, Boolean>> entry = iter.next();
 			ICacheIntern cache = entry.getKey();
-			ISet<IObjRelation> orelsToLoad = entry.getValue();
+			IMap<IObjRelation, Boolean> orelsToLoad = entry.getValue();
 			iter.remove();
 
 			loadAndAddOrels(cache, orelsToLoad, hardRefList, cacheToOrelsLoadedHistory, cacheToOrisToLoad);
 		}
 	}
 
-	protected void loadAndAddOrels(ICacheIntern cache, ISet<IObjRelation> orelsToLoad, List<Object> hardRefList,
+	protected void loadAndAddOrels(ICacheIntern cache, IMap<IObjRelation, Boolean> orelsToLoad, List<Object> hardRefList,
 			Map<ICacheIntern, ISet<IObjRelation>> cacheToOrelsLoadedHistory, ILinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad)
 	{
-		IList<IObjRelationResult> objRelResults = cache.getObjRelations(orelsToLoad.toList(), cache, CacheDirective.none());
+		IList<IObjRelation> objRelList = orelsToLoad.keyList();
+		IList<IObjRelationResult> objRelResults = cache.getObjRelations(objRelList, cache, CacheDirective.returnMisses());
 
 		ISet<IObjRef> orisToLoad = null;
 		for (int a = 0, size = objRelResults.size(); a < size; a++)
 		{
+			IObjRelation objRel = objRelList.get(a);
+			if (orelsToLoad.get(objRel).booleanValue())
+			{
+				// fetch only the objRefs, not the objects themselves
+				continue;
+			}
 			IObjRelationResult objRelResult = objRelResults.get(a);
+			if (objRelResult == null)
+			{
+				continue;
+			}
 			for (IObjRef objRef : objRelResult.getRelations())
 			{
 				if (orisToLoad == null)
@@ -446,11 +436,11 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			orelsLoadedHistory = new HashSet<IObjRelation>();
 			cacheToOrelsLoadedHistory.put(cache, orelsLoadedHistory);
 		}
-		orelsLoadedHistory.addAll(orelsToLoad);
+		orelsLoadedHistory.addAll(objRelList);
 	}
 
-	protected void ensureInitializedRelationsIntern(Object obj, List<CachePath> cachePaths, Map<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad,
-			Map<ICacheIntern, ISet<IObjRelation>> cacheToOrelsToLoad, Map<ICacheIntern, ISet<IObjRef>> cacheToOrisLoadedHistory,
+	protected void ensureInitializedRelationsIntern(Object obj, CachePath[] cachePaths, Map<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad,
+			Map<ICacheIntern, IMap<IObjRelation, Boolean>> cacheToOrelsToLoad, Map<ICacheIntern, ISet<IObjRef>> cacheToOrisLoadedHistory,
 			Map<ICacheIntern, ISet<IObjRelation>> cacheToOrelsLoadedHistory, Set<AlreadyHandledItem> alreadyHandledSet, List<CascadeLoadItem> cascadeLoadItems)
 	{
 		if (obj == null)
@@ -506,18 +496,18 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			return;
 		}
 		IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
-		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 		if (relationMembers.length == 0)
 		{
 			return;
 		}
 		IValueHolderContainer vhc = (IValueHolderContainer) obj;
-		for (int a = cachePaths.size(); a-- > 0;)
+		for (int a = cachePaths.length; a-- > 0;)
 		{
-			CachePath path = cachePaths.get(a);
+			CachePath path = cachePaths[a];
 
 			int relationIndex = path.memberIndex;
-			IRelationInfoItem member = relationMembers[relationIndex];
+			RelationMember member = relationMembers[relationIndex];
 
 			if (ValueHolderState.INIT != vhc.get__State(relationIndex))
 			{
@@ -536,11 +526,11 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		}
 	}
 
-	protected boolean handleValueHolder(DirectValueHolderRef vhr, List<CachePath> cachePaths, Map<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad,
-			Map<ICacheIntern, ISet<IObjRelation>> cacheToOrelsToLoad, Map<ICacheIntern, ISet<IObjRef>> cacheToOrisLoadedHistory,
+	protected boolean handleValueHolder(DirectValueHolderRef vhr, CachePath[] cachePaths, Map<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad,
+			Map<ICacheIntern, IMap<IObjRelation, Boolean>> cacheToOrelsToLoad, Map<ICacheIntern, ISet<IObjRef>> cacheToOrisLoadedHistory,
 			Map<ICacheIntern, ISet<IObjRelation>> cacheToOrelsLoadedHistory, Set<AlreadyHandledItem> alreadyHandledSet, List<CascadeLoadItem> cascadeLoadItems)
 	{
-		IRelationInfoItem member = vhr.getMember();
+		RelationMember member = vhr.getMember();
 		boolean newOriToLoad = false;
 		if (vhr instanceof IndirectValueHolderRef)
 		{
@@ -555,20 +545,18 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				ISet<IObjRelation> orelsLoadedHistory = cacheToOrelsLoadedHistory.get(rootCache);
 				if (orelsLoadedHistory == null || !orelsLoadedHistory.contains(self))
 				{
-					ISet<IObjRelation> orelsToLoad = cacheToOrelsToLoad.get(rootCache);
+					IMap<IObjRelation, Boolean> orelsToLoad = cacheToOrelsToLoad.get(rootCache);
 					if (orelsToLoad == null)
 					{
-						orelsToLoad = new HashSet<IObjRelation>();
+						orelsToLoad = new HashMap<IObjRelation, Boolean>();
 						cacheToOrelsToLoad.put(rootCache, orelsToLoad);
 					}
-					orelsToLoad.add(self);
-
-					CascadeLoadItem cascadeLoadItem = new CascadeLoadItem(member.getElementType(), vhr, cachePaths);
-					cascadeLoadItems.add(cascadeLoadItem);
+					orelsToLoad.put(self, Boolean.valueOf(vhr.isObjRefsOnly()));
+					addCascadeLoadItem(member, vhr, cachePaths, cascadeLoadItems);
 				}
 				return false;
 			}
-			else if (rcvObjRefs.length > 0)
+			else if (!vhr.isObjRefsOnly() && rcvObjRefs.length > 0)
 			{
 				ISet<IObjRef> orisLoadedHistory = cacheToOrisLoadedHistory.get(rootCache);
 				for (int b = rcvObjRefs.length; b-- > 0;)
@@ -595,8 +583,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				}
 				if (newOriToLoad)
 				{
-					CascadeLoadItem cascadeLoadItem = new CascadeLoadItem(member.getElementType(), vhr, cachePaths);
-					cascadeLoadItems.add(cascadeLoadItem);
+					addCascadeLoadItem(member, vhr, cachePaths, cascadeLoadItems);
 				}
 			}
 			return false;
@@ -622,16 +609,14 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				ISet<IObjRelation> orelsLoadedHistory = cacheToOrelsLoadedHistory.get(cache);
 				if (orelsLoadedHistory == null || !orelsLoadedHistory.contains(self))
 				{
-					ISet<IObjRelation> orelsToLoad = cacheToOrelsToLoad.get(cache);
+					IMap<IObjRelation, Boolean> orelsToLoad = cacheToOrelsToLoad.get(cache);
 					if (orelsToLoad == null)
 					{
-						orelsToLoad = new HashSet<IObjRelation>();
+						orelsToLoad = new HashMap<IObjRelation, Boolean>();
 						cacheToOrelsToLoad.put(cache, orelsToLoad);
 					}
-					orelsToLoad.add(self);
-
-					CascadeLoadItem cascadeLoadItem = new CascadeLoadItem(member.getElementType(), vhr, cachePaths);
-					cascadeLoadItems.add(cascadeLoadItem);
+					orelsToLoad.put(self, vhr.isObjRefsOnly());
+					addCascadeLoadItem(member, vhr, cachePaths, cascadeLoadItems);
 				}
 				return false;
 			}
@@ -641,7 +626,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				vhc.set__ObjRefs(relationIndex, objRefs);
 			}
 		}
-		if (objRefs != null && objRefs.length > 0)
+		if (!vhr.isObjRefsOnly() && objRefs != null && objRefs.length > 0)
 		{
 			List<Object> loadedObjects = cache.getObjects(new ArrayList<IObjRef>(objRefs), cache, failEarlyReturnMisses);
 			try
@@ -683,11 +668,19 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		}
 		if (objRefs == null || newOriToLoad)
 		{
-			CascadeLoadItem cascadeLoadItem = new CascadeLoadItem(member.getElementType(), vhr, cachePaths);
-			cascadeLoadItems.add(cascadeLoadItem);
+			addCascadeLoadItem(member, vhr, cachePaths, cascadeLoadItems);
 			return false;
 		}
 		return true;
+	}
+
+	protected void addCascadeLoadItem(RelationMember member, DirectValueHolderRef vhr, CachePath[] cachePaths, List<CascadeLoadItem> cascadeLoadItems)
+	{
+		if (cachePaths != null || !vhr.isObjRefsOnly())
+		{
+			CascadeLoadItem cascadeLoadItem = new CascadeLoadItem(member.getElementType(), vhr, cachePaths);
+			cascadeLoadItems.add(cascadeLoadItem);
+		}
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -743,7 +736,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 	@Override
 	public Object[] extractPrimitives(IEntityMetaData metaData, Object obj)
 	{
-		ITypeInfoItem[] primitiveMembers = metaData.getPrimitiveMembers();
+		Member[] primitiveMembers = metaData.getPrimitiveMembers();
 		Object[] primitives;
 
 		if (primitiveMembers.length == 0)
@@ -755,9 +748,9 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			primitives = new Object[primitiveMembers.length];
 			for (int a = primitiveMembers.length; a-- > 0;)
 			{
-				ITypeInfoItem primitiveMember = primitiveMembers[a];
+				Member primitiveMember = primitiveMembers[a];
 
-				Object primitiveValue = primitiveMember.getValue(obj, false);
+				Object primitiveValue = primitiveMember.getValue(obj, true);
 
 				if (primitiveValue != null && java.util.Date.class.isAssignableFrom(primitiveValue.getClass()))
 				{
@@ -779,7 +772,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 	@Override
 	public IObjRef[][] extractRelations(IEntityMetaData metaData, Object obj, List<Object> relationValues)
 	{
-		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 
 		if (relationMembers.length == 0)
 		{
@@ -821,13 +814,13 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 	public <T, S> IList<T> extractTargetEntities(List<S> sourceEntities, String sourceToTargetEntityPropertyPath, Class<S> sourceEntityType)
 	{
 		// Einen Accessor ermitteln, der die gesamte Hierachie aus dem propertyPath ('A.B.C') selbststaendig traversiert
-		ITypeInfoItem member = typeInfoProvider.getHierarchicMember(sourceEntityType, sourceToTargetEntityPropertyPath);
+		Member member = memberTypeProvider.getMember(sourceEntityType, sourceToTargetEntityPropertyPath);
 
 		// MetaDaten der Ziel-Entity ermitteln, da wir (generisch) den PK brauchen, um damit ein DISTINCT-Behavior durch
 		// eine Map als Zwischenstruktur zu
 		// erreichen
 		IEntityMetaData targetMetaData = entityMetaDataProvider.getMetaData(member.getElementType());
-		ITypeInfoItem targetIdMember = targetMetaData.getIdMember();
+		Member targetIdMember = targetMetaData.getIdMember();
 
 		// Damit bei der Traversion keine Initialisierungen mit DB-Roundtrips entstehen, machen wir vorher eine Prefetch
 		// passend zum PropertyPath auf allen
@@ -884,5 +877,73 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		}
 		// Alle values sind unsere eindeutigen Target Entities ohne Duplikate
 		return targetDistinctMap.values();
+	}
+
+	@Override
+	public AppendableCachePath copyCachePathToAppendable(CachePath cachePath)
+	{
+		CachePath[] children = cachePath.children;
+		LinkedHashSet<AppendableCachePath> clonedChildren = null;
+		if (children != null)
+		{
+			clonedChildren = LinkedHashSet.create(children.length);
+			for (int a = children.length; a-- > 0;)
+			{
+				clonedChildren.add(copyCachePathToAppendable(children[a]));
+			}
+		}
+		AppendableCachePath clonedCachePath = new AppendableCachePath(cachePath.memberType, cachePath.memberIndex, cachePath.memberName);
+		clonedCachePath.children = clonedChildren;
+		return clonedCachePath;
+	}
+
+	@Override
+	public CachePath[] copyAppendableToCachePath(ISet<AppendableCachePath> children)
+	{
+		if (children == null)
+		{
+			return null;
+		}
+		CachePath[] clonedChildren = new CachePath[children.size()];
+		int index = 0;
+		for (AppendableCachePath child : children)
+		{
+			clonedChildren[index] = copyAppendableToCachePath(child);
+			index++;
+		}
+		return clonedChildren;
+	}
+
+	@Override
+	public CachePath copyAppendableToCachePath(AppendableCachePath cachePath)
+	{
+		CachePath[] clonedChildren = copyAppendableToCachePath(cachePath.children);
+		return new CachePath(cachePath.memberType, cachePath.memberIndex, cachePath.memberName, clonedChildren);
+	}
+
+	@Override
+	public void unionCachePath(AppendableCachePath cachePath, AppendableCachePath other)
+	{
+		ISet<AppendableCachePath> otherChildren = other.children;
+		if (otherChildren == null)
+		{
+			// fast case 1
+			return;
+		}
+		ISet<AppendableCachePath> children = cachePath.children;
+		if (children == null)
+		{
+			// fast case 2
+			cachePath.children = otherChildren;
+			return;
+		}
+		for (AppendableCachePath otherCachePath : otherChildren)
+		{
+			if (children.add(otherCachePath))
+			{
+				continue;
+			}
+			unionCachePath(children.get(otherCachePath), otherCachePath);
+		}
 	}
 }

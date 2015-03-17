@@ -1,12 +1,18 @@
 package de.osthus.ambeth.bytecode.core;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
@@ -20,13 +26,17 @@ import de.osthus.ambeth.bytecode.behavior.BytecodeBehaviorState;
 import de.osthus.ambeth.bytecode.behavior.IBytecodeBehavior;
 import de.osthus.ambeth.bytecode.behavior.IBytecodeBehaviorExtendable;
 import de.osthus.ambeth.bytecode.behavior.IBytecodeBehaviorState;
+import de.osthus.ambeth.bytecode.config.BytecodeConfigurationConstants;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.collections.WeakSmartCopyMap;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.ExtendableContainer;
 import de.osthus.ambeth.ioc.extendable.IExtendableContainer;
@@ -39,7 +49,7 @@ import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.ParamHolder;
 import de.osthus.ambeth.util.ReflectUtil;
 
-public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExtendable
+public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExtendable, IStartingBean
 {
 	public static class ValueType extends SmartCopyMap<IEnhancementHint, Reference<Class<?>>>
 	{
@@ -66,6 +76,12 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 	@Autowired
 	protected IBytecodeClassLoader bytecodeClassLoader;
 
+	@Autowired(optional = true)
+	protected IBytecodeStore bytecodeStore;
+
+	@Property(name = BytecodeConfigurationConstants.EnhancementTraceDirectory, mandatory = false)
+	protected String traceDir;
+
 	protected final WeakSmartCopyMap<Class<?>, ValueType> typeToExtendedType = new WeakSmartCopyMap<Class<?>, ValueType>();
 
 	protected final WeakSmartCopyMap<Class<?>, Reference<Class<?>>> extendedTypeToType = new WeakSmartCopyMap<Class<?>, Reference<Class<?>>>();
@@ -77,9 +93,20 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 	protected final IExtendableContainer<IBytecodeBehavior> bytecodeBehaviorExtensions = new ExtendableContainer<IBytecodeBehavior>(IBytecodeBehavior.class,
 			"bytecodeBehavior");
 
+	protected Map<BytecodeStoreKey, BytecodeStoreItem> enhancedTypes;
+
 	public BytecodeEnhancer()
 	{
-		extendedTypeToType.setAutoCleanupReference(true);
+		extendedTypeToType.setAutoCleanupNullValue(true);
+	}
+
+	@Override
+	public void afterStarted() throws Throwable
+	{
+		if (bytecodeStore != null)
+		{
+			enhancedTypes = bytecodeStore.loadEnhancedTypes(this, bytecodeBehaviorExtensions.getExtensions());
+		}
 	}
 
 	@Override
@@ -143,14 +170,32 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 		ValueType valueType = typeToExtendedType.get(entityType);
 		if (valueType == null)
 		{
-			return null;
+			return getEnhancedTypeFromStore(entityType, enhancementHint);
 		}
 		Reference<Class<?>> extendedTypeR = valueType.get(enhancementHint);
 		if (extendedTypeR == null)
 		{
-			return null;
+			return getEnhancedTypeFromStore(entityType, enhancementHint);
 		}
 		return extendedTypeR.get();
+	}
+
+	protected Class<?> getEnhancedTypeFromStore(Class<?> entityType, IEnhancementHint enhancementHint)
+	{
+		BytecodeStoreItem bytecodeStoreItem = enhancedTypes != null ? enhancedTypes.get(new BytecodeStoreKey(entityType, enhancementHint)) : null;
+		if (bytecodeStoreItem == null)
+		{
+			return null;
+		}
+		Class<?> enhancedType = bytecodeStoreItem.readEnhancedType(bytecodeClassLoader);
+		ValueType valueType = typeToExtendedType.get(entityType);
+		if (valueType == null)
+		{
+			valueType = new ValueType();
+			typeToExtendedType.put(entityType, valueType);
+		}
+		valueType.put(enhancementHint, new WeakReference<Class<?>>(enhancedType));
+		return enhancedType;
 	}
 
 	@Override
@@ -167,6 +212,29 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 			newTypeNamePrefix = targetNameHint.getTargetName(typeToEnhance);
 		}
 		return getEnhancedType(typeToEnhance, newTypeNamePrefix, hint);
+	}
+
+	protected void logBytecodeOutput(String typeName, String bytecodeOutput)
+	{
+		File outputFileDir = new File(traceDir, getClass().getName());
+		outputFileDir.mkdirs();
+		File outputFile = new File(outputFileDir, typeName + ".txt");
+		try
+		{
+			OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(outputFile), Charset.forName("UTF-8"));
+			try
+			{
+				fw.write(bytecodeOutput);
+			}
+			finally
+			{
+				fw.close();
+			}
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e, "Error occurred while trying to write to '" + outputFile.getAbsolutePath() + "'");
+		}
 	}
 
 	@Override
@@ -204,13 +272,14 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 			}
 			ArrayList<IBytecodeBehavior> pendingBehaviors = new ArrayList<IBytecodeBehavior>();
 
-			IBytecodeBehavior[] extensions = bytecodeBehaviorExtensions.getExtensions();
-			pendingBehaviors.addAll(extensions);
+			IBytecodeBehavior[] allBehaviors = bytecodeBehaviorExtensions.getExtensions();
+			pendingBehaviors.addAll(allBehaviors);
 
+			ArrayList<Class<?>> enhancedTypesPipeline = new ArrayList<Class<?>>();
 			Class<?> enhancedType;
 			if (pendingBehaviors.size() > 0)
 			{
-				enhancedType = enhanceTypeIntern(typeToEnhance, newTypeNamePrefix, pendingBehaviors, hint);
+				enhancedType = enhanceTypeIntern(typeToEnhance, newTypeNamePrefix, pendingBehaviors, hint, enhancedTypesPipeline);
 			}
 			else
 			{
@@ -221,15 +290,36 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 			{
 				throw new IllegalStateException("Must never happen");
 			}
-			if (log.isDebugEnabled())
+			if (traceDir != null)
 			{
+				logBytecodeOutput(enhancedType.getName(), bytecodeClassLoader.toPrintableBytecode(enhancedType));
+			}
+			else if (log.isDebugEnabled())
+			{
+				// note that this intentionally will only be logged to the console if the traceDir is NOT specified already
 				log.debug(bytecodeClassLoader.toPrintableBytecode(enhancedType));
 			}
-			checkEnhancedTypeConsistency(enhancedType);
+			try
+			{
+				checkEnhancedTypeConsistency(enhancedType);
+			}
+			catch (Throwable e)
+			{
+				if (log.isErrorEnabled())
+				{
+					log.error(bytecodeClassLoader.toPrintableBytecode(enhancedType), e);
+				}
+				throw RuntimeExceptionUtil.mask(e);
+			}
 
 			WeakReference<Class<?>> enhancedTypeR = new WeakReference<Class<?>>(enhancedType);
 			valueType.put(hint, enhancedTypeR);
 			extendedTypeToType.put(enhancedType, entityTypeR);
+
+			if (bytecodeStore != null)
+			{
+				bytecodeStore.storeEnhancedType(this, allBehaviors, typeToEnhance, hint, enhancedType, enhancedTypesPipeline);
+			}
 			if (log.isInfoEnabled())
 			{
 				log.info("Enhancement finished successfully with type: " + enhancedType);
@@ -244,20 +334,31 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 
 	protected void checkEnhancedTypeConsistency(Class<?> type)
 	{
-		Method[] methods = ReflectUtil.getDeclaredMethods(type);
-		if (methods.length == 0)
+		IdentityHashSet<Method> allMethods = new IdentityHashSet<Method>();
+		for (Class<?> interf : type.getInterfaces())
+		{
+			allMethods.addAll(interf.getMethods());
+		}
+		Class<?> currType = type;
+		while (currType != Object.class && currType != null)
+		{
+			allMethods.addAll(currType.getDeclaredMethods());
+			currType = currType.getSuperclass();
+		}
+		if (allMethods.size() == 0)
 		{
 			throw new IllegalStateException("Type invalid (not a single method): " + type);
 		}
-		if (type.getConstructors().length == 0)
+		if (type.getDeclaredConstructors().length == 0)
 		{
 			throw new IllegalStateException("Type invalid (not a single constructor): " + type);
 		}
 		if (!Modifier.isAbstract(type.getModifiers()))
 		{
-			for (Method method : methods)
+			for (Method method : allMethods)
 			{
-				if (Modifier.isAbstract(method.getModifiers()))
+				Method method2 = ReflectUtil.getDeclaredMethod(true, type, method.getReturnType(), method.getName(), method.getParameterTypes());
+				if (method2 == null || Modifier.isAbstract(method2.getModifiers()))
 				{
 					throw new IllegalStateException("Type is not abstract but has at least one abstract method: " + method);
 				}
@@ -283,7 +384,7 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 
 	@SuppressWarnings("resource")
 	protected Class<?> enhanceTypeIntern(Class<?> originalType, String newTypeNamePrefix, final IList<IBytecodeBehavior> pendingBehaviors,
-			final IEnhancementHint hint)
+			final IEnhancementHint hint, List<Class<?>> enhancedTypesPipeline)
 	{
 		if (pendingBehaviors.size() == 0)
 		{
@@ -294,6 +395,7 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 		{
 			throw new IllegalStateException("Must never happen");
 		}
+		String lastTypeHandleName = newTypeNamePrefix;
 		newTypeNamePrefix = newTypeNamePrefix.replaceAll(Pattern.quote("."), "/");
 		final StringWriter sw = new StringWriter();
 		try
@@ -320,9 +422,15 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 				iterationCount++;
 
 				Type newTypeHandle = Type.getObjectType(newTypeNamePrefix + "$A" + iterationCount);
+				lastTypeHandleName = newTypeHandle.getClassName();
 
 				final IBytecodeBehavior[] currentPendingBehaviors = pendingBehaviors.toArray(IBytecodeBehavior.class);
 				pendingBehaviors.clear();
+
+				if (currentPendingBehaviors.length > 0 && log.isDebugEnabled())
+				{
+					log.debug("Applying behaviors on " + newTypeHandle.getClassName() + ": " + Arrays.toString(currentPendingBehaviors));
+				}
 				final BytecodeEnhancer This = this;
 				final byte[] fCurrentContent = currentContent;
 
@@ -352,6 +460,7 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 				pendingStatesToPostProcess.add(acquiredState.getValue());
 				currentContent = newContent;
 				currentType = newType;
+				enhancedTypesPipeline.add(currentType);
 			}
 			for (int a = 0, size = pendingStatesToPostProcess.size(); a < size; a++)
 			{
@@ -364,7 +473,14 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 			String classByteCode = sw.toString();
 			if (classByteCode.length() > 0)
 			{
-				throw RuntimeExceptionUtil.mask(e, "Bytecode:\n" + classByteCode);
+				if (traceDir != null)
+				{
+					logBytecodeOutput(lastTypeHandleName, classByteCode);
+				}
+				else
+				{
+					throw RuntimeExceptionUtil.mask(e, "Bytecode:\n" + classByteCode);
+				}
 			}
 			throw RuntimeExceptionUtil.mask(e);
 		}

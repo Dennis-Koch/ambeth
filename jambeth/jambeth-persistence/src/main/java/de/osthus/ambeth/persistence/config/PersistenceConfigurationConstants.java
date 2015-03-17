@@ -2,7 +2,6 @@ package de.osthus.ambeth.persistence.config;
 
 import de.osthus.ambeth.annotation.ConfigurationConstantDescription;
 import de.osthus.ambeth.annotation.ConfigurationConstants;
-import de.osthus.ambeth.ioc.PersistenceModule;
 
 @ConfigurationConstants
 public final class PersistenceConfigurationConstants
@@ -56,6 +55,12 @@ public final class PersistenceConfigurationConstants
 	public static final String DatabaseArchiveTablePostfix = "database.archivetable.postfix";
 
 	@ConfigurationConstantDescription("TODO")
+	public static final String DatabasePermissionGroupPrefix = "database.permissiongrouptable.prefix";
+
+	@ConfigurationConstantDescription("TODO")
+	public static final String DatabasePermissionGroupPostfix = "database.permissiongrouptable.postfix";
+
+	@ConfigurationConstantDescription("TODO")
 	public static final String DatabaseFieldPrefix = "database.field.prefix";
 
 	@ConfigurationConstantDescription("TODO")
@@ -69,13 +74,6 @@ public final class PersistenceConfigurationConstants
 
 	@ConfigurationConstantDescription("TODO")
 	public static final String QueryCacheActive = "cache.query.active";
-
-	@ConfigurationConstantDescription("True if the parallel read feature should be activated. If activated reads caused by read-only transactions will be executed in parallel if technically possible. Reads which are done after an uncommitted transaction has merged any changes will NOT be parallelized to ensure data consistency. It practice this feature is specifically worthy on find/retrieve service executions. In other cases it will intentionally not work - but will neither produce any overhead")
-	public static final String ParallelReadActive = "persistence.parallel.read.active";
-
-	@ConfigurationConstantDescription("Allows to define a custom executor bean to be used by the parallel read feature. This property is ignored if property 'ParallelReadActive' is not active. It defaults to '"
-			+ PersistenceModule.DEFAULT_PARALLEL_READ_EXECUTOR_NAME + "'")
-	public static final String ParallelReadExecutorName = "persistence.parallel.executor.name";
 
 	@ConfigurationConstantDescription("TODO")
 	public static final String LinkClass = "link.type";

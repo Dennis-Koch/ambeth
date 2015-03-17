@@ -13,7 +13,7 @@ namespace De.Osthus.Ambeth.Ioc.Performance
         public const String count_prop = "count_prop";
 
         [LogInstance]
-        public ILogger Log { private get; set; }
+        public new ILogger Log { private get; set; }
 
         [TestMethod]
         [TestProperties(Name = IocPerformanceTest.count_prop, Value = "50000")]

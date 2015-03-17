@@ -51,15 +51,15 @@ public class Oracle10gSimpleModule implements IInitializingModule
 				}
 			}
 		}
-		beanContextFactory.registerAnonymousBean(Oracle10gSequencePrimaryKeyProvider.class).autowireable(IPrimaryKeyProvider.class);
+		beanContextFactory.registerBean(Oracle10gSequencePrimaryKeyProvider.class).autowireable(IPrimaryKeyProvider.class);
 
-		IBeanConfiguration timestampConverter = beanContextFactory.registerAnonymousBean(OracleTimestampConverter.class);
+		IBeanConfiguration timestampConverter = beanContextFactory.registerBean(OracleTimestampConverter.class);
 		beanContextFactory.link(timestampConverter).to(IDedicatedConverterExtendable.class).with(oracle.sql.TIMESTAMP.class, Long.class);
 		beanContextFactory.link(timestampConverter).to(IDedicatedConverterExtendable.class).with(oracle.sql.TIMESTAMP.class, Long.TYPE);
 		beanContextFactory.link(timestampConverter).to(IDedicatedConverterExtendable.class).with(oracle.sql.TIMESTAMP.class, Date.class);
 		beanContextFactory.link(timestampConverter).to(IDedicatedConverterExtendable.class).with(oracle.sql.TIMESTAMP.class, Calendar.class);
 
-		IBeanConfiguration arrayConverter = beanContextFactory.registerAnonymousBean(OracleArrayConverter.class);
+		IBeanConfiguration arrayConverter = beanContextFactory.registerBean(OracleArrayConverter.class);
 		beanContextFactory.link(arrayConverter).to(IDedicatedConverterExtendable.class).with(oracle.sql.ARRAY.class, Collection.class);
 		beanContextFactory.link(arrayConverter).to(IDedicatedConverterExtendable.class).with(oracle.sql.ARRAY.class, String.class);
 	}

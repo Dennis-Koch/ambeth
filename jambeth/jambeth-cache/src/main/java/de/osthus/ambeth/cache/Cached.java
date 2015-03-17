@@ -12,4 +12,6 @@ public @interface Cached
 	Class<?> type() default void.class;
 
 	String alternateIdName() default "";
+
+	boolean returnMisses() default false;
 }

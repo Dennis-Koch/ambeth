@@ -1,0 +1,22 @@
+\SetAPI{J-C}
+\section{ambeth.bytecode.tracedir}
+\label{configuration:AmbethBytecodeTracedir}
+\ClearAPI
+If specified \AMBETH{} will write all information about generated code to the corresponding directory. The directory will be transparently created if necessary. It is not recommended to use this feature in live environments due to its file IO implications.
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{De.Osthus.Ambeth.Bytecode.Core.BytecodeEnhancer} &
+		\prettyref{module:Bytecode} \\
+	\hline
+		\type{de.osthus.ambeth.bytecode.core.BytecodeEnhancer} &
+		\prettyref{module:Bytecode} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{ambeth.bytecode.tracedir}}]
+ambeth.bytecode.tracedir=${user.home}/introspect-ambeth-bytecode
+\end{lstlisting}
+
+

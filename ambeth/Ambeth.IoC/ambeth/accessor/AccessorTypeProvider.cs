@@ -1,6 +1,7 @@
 using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Log;
+using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using System;
 using System.Reflection;
@@ -9,13 +10,11 @@ using System.Reflection.Emit;
 namespace De.Osthus.Ambeth.Accessor
 {
     public class AccessorTypeProvider : IAccessorTypeProvider, IInitializingBean
-    {
-        protected static readonly ConstructorInfo ci = typeof(DefaultAccessor).GetConstructor(new Type[] { typeof(Type), typeof(String), typeof(Type) });
-
+    {        
         [LogInstance]
         public ILogger Log { private get; set; }
 
-        protected readonly Tuple2KeyHashMap<Type, String, AbstractAccessor> typeToAccessorMap = new Tuple2KeyHashMap<Type, String, AbstractAccessor>();
+        protected readonly Tuple2KeyHashMap<Type, String, WeakReference> typeToAccessorMap = new Tuple2KeyHashMap<Type, String, WeakReference>();
 
         protected readonly HashMap<Type, Object> typeToConstructorMap = new HashMap<Type, Object>();
 
@@ -26,9 +25,10 @@ namespace De.Osthus.Ambeth.Accessor
             // Intended blank
         }
 
-        public AbstractAccessor GetAccessorType(Type type, String propertyName, Type propertyType)
+        public AbstractAccessor GetAccessorType(Type type, IPropertyInfo property)
         {
-            AbstractAccessor accessor = typeToAccessorMap.Get(type, propertyName);
+            WeakReference accessorR = typeToAccessorMap.Get(type, property.Name);
+            AbstractAccessor accessor = accessorR != null ? (AbstractAccessor)accessorR.Target : null;
             if (accessor != null)
             {
                 return accessor;
@@ -37,33 +37,20 @@ namespace De.Osthus.Ambeth.Accessor
             lock (writeLock)
             {
                 // concurrent thread might have been faster
-                accessor = typeToAccessorMap.Get(type, propertyName);
+                accessorR = typeToAccessorMap.Get(type, property.Name);
+                accessor = accessorR != null ? (AbstractAccessor)accessorR.Target : null;
                 if (accessor != null)
                 {
                     return accessor;
                 }
-                try
+                Type enhancedType = GetAccessorTypeIntern(type, property);
+                if (enhancedType == typeof(AbstractAccessor))
                 {
-                    Type enhancedType = GetAccessorTypeIntern(type, propertyName, propertyType);
-                    if (enhancedType != typeof(AbstractAccessor))
-                    {
-                        ConstructorInfo constructor = enhancedType.GetConstructor(new Type[] { typeof(Type), typeof(String) });
-                        accessor = (AbstractAccessor)constructor.Invoke(new Object[] { type, propertyName });
-                    }
+                    throw new Exception("Must never happen. No enhancement for " + typeof(AbstractAccessor) + " has been done");
                 }
-                catch (Exception e)
-                {
-                    if (Log.WarnEnabled)
-                    {
-                        Log.Warn(e);
-                    }
-                }
-                if (accessor == null)
-                {
-                    // something serious happened during enhancement: continue with a fallback
-                    accessor = (AbstractAccessor)ci.Invoke(new Object[] { type, propertyName });
-                }
-                typeToAccessorMap.Put(type, propertyName, accessor);
+                ConstructorInfo constructor = enhancedType.GetConstructor(new Type[] { typeof(Type), typeof(String) });
+                accessor = (AbstractAccessor)constructor.Invoke(new Object[] { type, property });
+                typeToAccessorMap.Put(type, property.Name, new WeakReference(accessor));
                 return accessor;
             }
         }
@@ -106,9 +93,9 @@ namespace De.Osthus.Ambeth.Accessor
             }
         }
 
-        protected Type GetAccessorTypeIntern(Type targetType, String propertyName, Type propertyType)
+        protected Type GetAccessorTypeIntern(Type targetType, IPropertyInfo property)
         {
-            String accessClassName = targetType.FullName + "$" + typeof(AbstractAccessor).Name + "$" + propertyName;
+            String accessClassName = targetType.FullName + "$" + typeof(AbstractAccessor).Name + "$" + property.Name;
             lock (writeLock)
             {
                 AccessorClassLoader loader = AccessorClassLoader.Get(targetType);
@@ -117,15 +104,15 @@ namespace De.Osthus.Ambeth.Accessor
                 {
                     return type;
                 }
-                return CreateType(loader, accessClassName, targetType, propertyName, propertyType);
+                return CreateType(loader, accessClassName, targetType, property);
             }
         }
-        
-        protected Type CreateType(AccessorClassLoader loader, String accessClassName, Type targetType, String propertyName, Type propertyType)
+
+        protected Type CreateType(AccessorClassLoader loader, String accessClassName, Type targetType, IPropertyInfo property)
         {
             if (Log.DebugEnabled)
             {
-                Log.Debug("Creating accessor for " + targetType.FullName + "." + propertyName);
+                Log.Debug("Creating accessor for " + targetType.FullName + "." + property.Name);
             }
             Type abstractAccessorType = typeof(AbstractAccessor);
             Type objType = typeof(Object);
@@ -140,19 +127,19 @@ namespace De.Osthus.Ambeth.Accessor
                 mv.Emit(OpCodes.Call, baseConstructor);
                 mv.Emit(OpCodes.Ret);
             }
-            MethodInfo r_get = ReflectUtil.GetDeclaredMethod(true, targetType, propertyType, "get_" + propertyName, new Type[0]);
+            MethodInfo r_get = ReflectUtil.GetDeclaredMethod(true, targetType, property.PropertyType, "get_" + property.Name, new Type[0]);
             if (r_get == null)
             {
-                r_get = ReflectUtil.GetDeclaredMethod(true, targetType, propertyType, "Get" + propertyName, new Type[0]);
+                r_get = ReflectUtil.GetDeclaredMethod(true, targetType, property.PropertyType, "Get" + property.Name, new Type[0]);
             }
             if (r_get == null)
             {
-                r_get = ReflectUtil.GetDeclaredMethod(true, targetType, propertyType, "Is" + propertyName, new Type[0]);
+                r_get = ReflectUtil.GetDeclaredMethod(true, targetType, property.PropertyType, "Is" + property.Name, new Type[0]);
             }
-            MethodInfo r_set = ReflectUtil.GetDeclaredMethod(true, targetType, propertyType, "set_" + propertyName, new Type[] { null });
+            MethodInfo r_set = ReflectUtil.GetDeclaredMethod(true, targetType, property.PropertyType, "set_" + property.Name, new Type[] { null });
             if (r_set == null)
             {
-                r_set = ReflectUtil.GetDeclaredMethod(true, targetType, propertyType, "Set" + propertyName, new Type[] { null });
+                r_set = ReflectUtil.GetDeclaredMethod(true, targetType, property.PropertyType, "Set" + property.Name, new Type[] { null });
             }
             {
                 ILGenerator mv = cw.DefineMethod("get_CanRead", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig, CallingConventions.HasThis, typeof(bool), Type.EmptyTypes).GetILGenerator();
@@ -169,7 +156,7 @@ namespace De.Osthus.Ambeth.Accessor
 
                 if (r_get == null)
                 {
-                    mv.Emit(OpCodes.Ldstr, "Property not readable: " + targetType.FullName + "." + propertyName);
+                    mv.Emit(OpCodes.Ldstr, "Property not readable: " + targetType.FullName + "." + property.Name);
                     mv.ThrowException(typeof(NotSupportedException));
                 }
                 else
@@ -194,7 +181,7 @@ namespace De.Osthus.Ambeth.Accessor
                 
                 if (r_set == null)
                 {
-                    mv.Emit(OpCodes.Ldstr, "Property not writable: " + targetType.FullName + "." + propertyName);
+                    mv.Emit(OpCodes.Ldstr, "Property not writable: " + targetType.FullName + "." + property.Name);
                     mv.ThrowException(typeof(NotSupportedException));
                 }
                 else
@@ -244,7 +231,11 @@ namespace De.Osthus.Ambeth.Accessor
                 cw = loader.CreateNewType(TypeAttributes.Public, constructorClassName, superType, Type.EmptyTypes);
             }
             {
-                ConstructorInfo baseConstructor = superType.GetConstructor(Type.EmptyTypes);
+                ConstructorInfo baseConstructor = superType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, Type.EmptyTypes, null);
+                if (baseConstructor == null)
+                {
+                    throw new Exception("Constructor not found: " + superType.FullName);
+                }
                 ILGenerator mv = cw.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, Type.EmptyTypes).GetILGenerator();
                 mv.Emit(OpCodes.Ldarg_0);
                 mv.Emit(OpCodes.Call, baseConstructor);

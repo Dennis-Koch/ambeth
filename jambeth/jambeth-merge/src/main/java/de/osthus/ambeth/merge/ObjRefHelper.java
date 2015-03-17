@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import de.osthus.ambeth.cache.AbstractCacheValue;
+import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.IList;
@@ -15,9 +16,9 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.DirectObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.IObjRefFactory;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
-import de.osthus.ambeth.util.IConversionHelper;
 
 public class ObjRefHelper implements IObjRefHelper
 {
@@ -25,7 +26,10 @@ public class ObjRefHelper implements IObjRefHelper
 	protected ICompositeIdFactory compositeIdFactory;
 
 	@Autowired
-	protected IConversionHelper conversionHelper;
+	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	@Autowired
+	protected IObjRefFactory objRefFactory;
 
 	@Override
 	public IList<IObjRef> extractObjRefList(Object objValue, MergeHandle mergeHandle)
@@ -50,13 +54,13 @@ public class ObjRefHelper implements IObjRefHelper
 			}
 			return targetOriList;
 		}
-		if (targetOriList == null)
-		{
-			targetOriList = new ArrayList<IObjRef>();
-		}
 		if (objValue.getClass().isArray())
 		{
 			Object[] array = (Object[]) objValue;
+			if (targetOriList == null)
+			{
+				targetOriList = new ArrayList<IObjRef>(array.length);
+			}
 			for (int a = 0, size = array.length; a < size; a++)
 			{
 				extractObjRefList(array[a], mergeHandle, targetOriList, entityCallback);
@@ -65,6 +69,10 @@ public class ObjRefHelper implements IObjRefHelper
 		else if (objValue instanceof List<?>)
 		{
 			List<?> list = (List<?>) objValue;
+			if (targetOriList == null)
+			{
+				targetOriList = new ArrayList<IObjRef>(list.size());
+			}
 			for (int a = 0, size = list.size(); a < size; a++)
 			{
 				extractObjRefList(list.get(a), mergeHandle, targetOriList, entityCallback);
@@ -73,6 +81,10 @@ public class ObjRefHelper implements IObjRefHelper
 		else if (objValue instanceof Iterable<?>)
 		{
 			Iterator<?> objEnumerator = ((Iterable<?>) objValue).iterator();
+			if (targetOriList == null)
+			{
+				targetOriList = new ArrayList<IObjRef>();
+			}
 			while (objEnumerator.hasNext())
 			{
 				extractObjRefList(objEnumerator.next(), mergeHandle, targetOriList, entityCallback);
@@ -80,6 +92,10 @@ public class ObjRefHelper implements IObjRefHelper
 		}
 		else
 		{
+			if (targetOriList == null)
+			{
+				targetOriList = new ArrayList<IObjRef>(1);
+			}
 			getCreateORIs(objValue, mergeHandle, targetOriList, entityCallback);
 		}
 		return targetOriList;
@@ -88,13 +104,17 @@ public class ObjRefHelper implements IObjRefHelper
 	@Override
 	public IList<IObjRef> extractObjRefList(Object objValue, IObjRefProvider oriProvider, IList<IObjRef> targetOriList, EntityCallback entityCallback)
 	{
+		if (objValue == null)
+		{
+			if (targetOriList == null)
+			{
+				targetOriList = EmptyList.getInstance();
+			}
+			return targetOriList;
+		}
 		if (targetOriList == null)
 		{
 			targetOriList = new ArrayList<IObjRef>();
-		}
-		if (objValue == null)
-		{
-			return targetOriList;
 		}
 		if (objValue.getClass().isArray())
 		{
@@ -188,9 +208,21 @@ public class ObjRefHelper implements IObjRefHelper
 		{
 			return (IObjRef) obj;
 		}
+		if (!(obj instanceof IEntityMetaDataHolder))
+		{
+			return null;
+		}
 		IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
 
-		Object keyValue = metaData.getIdMember().getValue(obj, false);
+		Object keyValue;
+		if (obj instanceof AbstractCacheValue)
+		{
+			keyValue = ((AbstractCacheValue) obj).getId();
+		}
+		else
+		{
+			keyValue = metaData.getIdMember().getValue(obj, false);
+		}
 		if (keyValue == null || mergeHandle != null && mergeHandle.isHandleExistingIdAsNewId())
 		{
 			IDirectObjRef dirOri = new DirectObjRef(metaData.getEntityType(), obj);
@@ -202,8 +234,17 @@ public class ObjRefHelper implements IObjRefHelper
 		}
 		else
 		{
-			ITypeInfoItem versionMember = metaData.getVersionMember();
-			ori = new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, keyValue, versionMember != null ? versionMember.getValue(obj, true) : null);
+			Object version;
+			if (obj instanceof AbstractCacheValue)
+			{
+				version = ((AbstractCacheValue) obj).getVersion();
+			}
+			else
+			{
+				Member versionMember = metaData.getVersionMember();
+				version = versionMember != null ? versionMember.getValue(obj, true) : null;
+			}
+			ori = objRefFactory.createObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, keyValue, version);
 		}
 		if (objToOriDict != null)
 		{
@@ -242,7 +283,7 @@ public class ObjRefHelper implements IObjRefHelper
 	}
 
 	@Override
-	public IObjRef entityToObjRef(Object entity, byte idIndex)
+	public IObjRef entityToObjRef(Object entity, int idIndex)
 	{
 		return entityToObjRef(entity, idIndex, ((IEntityMetaDataHolder) entity).get__EntityMetaData());
 	}
@@ -254,17 +295,17 @@ public class ObjRefHelper implements IObjRefHelper
 	}
 
 	@Override
-	public IObjRef entityToObjRef(Object entity, byte idIndex, IEntityMetaData metaData)
+	public IObjRef entityToObjRef(Object entity, int idIndex, IEntityMetaData metaData)
 	{
 		return entityToObjRef(entity, idIndex, metaData, false);
 	}
 
 	@Override
-	public IObjRef entityToObjRef(Object entity, byte idIndex, IEntityMetaData metaData, boolean forceOri)
+	public IObjRef entityToObjRef(Object entity, int idIndex, IEntityMetaData metaData, boolean forceOri)
 	{
 		Object id;
 		Object version;
-		ITypeInfoItem versionMember = metaData.getVersionMember();
+		Member versionMember = metaData.getVersionMember();
 		if (entity instanceof AbstractCacheValue)
 		{
 			AbstractCacheValue cacheValue = (AbstractCacheValue) entity;
@@ -278,6 +319,19 @@ public class ObjRefHelper implements IObjRefHelper
 			}
 			version = cacheValue.getVersion();
 		}
+		else if (entity instanceof ILoadContainer)
+		{
+			ILoadContainer lc = (ILoadContainer) entity;
+			if (idIndex == ObjRef.PRIMARY_KEY_INDEX)
+			{
+				id = lc.getReference().getId();
+			}
+			else
+			{
+				id = compositeIdFactory.createIdFromPrimitives(metaData, idIndex, lc.getPrimitives());
+			}
+			version = lc.getReference().getVersion();
+		}
 		else
 		{
 			id = metaData.getIdMemberByIdIndex(idIndex).getValue(entity, false);
@@ -287,14 +341,7 @@ public class ObjRefHelper implements IObjRefHelper
 
 		if (id != null || forceOri)
 		{
-			Class<?> idType = metaData.getIdMemberByIdIndex(idIndex).getElementType();
-			id = conversionHelper.convertValueToType(idType, id);
-			if (versionMember != null)
-			{
-				Class<?> versionType = versionMember.getElementType();
-				version = conversionHelper.convertValueToType(versionType, version);
-			}
-			ori = new ObjRef(metaData.getEntityType(), idIndex, id, version);
+			ori = objRefFactory.createObjRef(metaData.getEntityType(), idIndex, id, version);
 		}
 		else
 		{
@@ -313,27 +360,21 @@ public class ObjRefHelper implements IObjRefHelper
 
 		Class<?> entityType = metaData.getEntityType();
 		// Convert id and version to the correct metadata type
-		ITypeInfoItem versionMember = metaData.getVersionMember();
-		if (versionMember != null && version != null)
-		{
-			version = conversionHelper.convertValueToType(versionMember.getRealType(), version);
-		}
 		if (id != null)
 		{
-			id = conversionHelper.convertValueToType(metaData.getIdMember().getRealType(), id);
-			allOris.add(new ObjRef(entityType, ObjRef.PRIMARY_KEY_INDEX, id, version));
+			allOris.add(objRefFactory.createObjRef(entityType, ObjRef.PRIMARY_KEY_INDEX, id, version));
 		}
 		if (alternateIdCount > 0)
 		{
-			ITypeInfoItem[] alternateIdMembers = metaData.getAlternateIdMembers();
+			Member[] alternateIdMembers = metaData.getAlternateIdMembers();
 
-			ITypeInfoItem[] primitiveMembers = metaData.getPrimitiveMembers();
+			Member[] primitiveMembers = metaData.getPrimitiveMembers();
 			for (int a = primitiveMembers.length; a-- > 0;)
 			{
-				ITypeInfoItem primitiveMember = primitiveMembers[a];
+				Member primitiveMember = primitiveMembers[a];
 				for (int b = alternateIdMembers.length; b-- > 0;)
 				{
-					ITypeInfoItem alternateIdMember = alternateIdMembers[b];
+					Member alternateIdMember = alternateIdMembers[b];
 					if (alternateIdMember == primitiveMember)
 					{
 						Object alternateId = primitives[a];
@@ -343,8 +384,7 @@ public class ObjRefHelper implements IObjRefHelper
 							// If they are not specified, they are simply ignored
 							continue;
 						}
-						alternateId = conversionHelper.convertValueToType(alternateIdMember.getRealType(), alternateId);
-						allOris.add(new ObjRef(entityType, (byte) b, alternateId, version));
+						allOris.add(objRefFactory.createObjRef(entityType, b, alternateId, version));
 						break;
 					}
 				}
@@ -361,7 +401,12 @@ public class ObjRefHelper implements IObjRefHelper
 	@Override
 	public IList<IObjRef> entityToAllObjRefs(Object entity)
 	{
-		return entityToAllObjRefs(entity, ((IEntityMetaDataHolder) entity).get__EntityMetaData());
+		if (entity instanceof IEntityMetaDataHolder)
+		{
+			return entityToAllObjRefs(entity, ((IEntityMetaDataHolder) entity).get__EntityMetaData());
+		}
+		ILoadContainer lc = (ILoadContainer) entity;
+		return entityToAllObjRefs(entity, entityMetaDataProvider.getMetaData(lc.getReference().getRealType()));
 	}
 
 	/*

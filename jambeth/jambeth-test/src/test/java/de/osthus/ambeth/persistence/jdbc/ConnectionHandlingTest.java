@@ -11,12 +11,11 @@ import org.junit.Test;
 
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.database.DatabaseCallback;
-import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.testutil.TestRebuildContext;
@@ -24,13 +23,12 @@ import de.osthus.ambeth.testutil.TestRebuildContext;
 @TestPropertiesList({ @TestProperties(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionPool, value = "true"),
 		@TestProperties(name = PersistenceJdbcConfigurationConstants.DatabaseBehaviourStrict, value = "true") })
 @TestRebuildContext
-public class ConnectionHandlingTest extends AbstractPersistenceTest
+public class ConnectionHandlingTest extends AbstractInformationBusWithPersistenceTest
 {
 	// Normal behavior. No Exception and only one created connection in log.
 	@Test
 	public void testClosedConnection_1()
 	{
-		ITransaction transaction = beanContext.getService(ITransaction.class);
 		transaction.processAndCommit(new DatabaseCallback()
 		{
 			@Override
@@ -54,7 +52,6 @@ public class ConnectionHandlingTest extends AbstractPersistenceTest
 	public void testClosedConnection_2()
 	{
 		final Connection connection = beanContext.getService(Connection.class);
-		ITransaction transaction = beanContext.getService(ITransaction.class);
 		try
 		{
 			transaction.processAndCommit(new DatabaseCallback()
@@ -96,7 +93,6 @@ public class ConnectionHandlingTest extends AbstractPersistenceTest
 	public void testClosedConnection_3()
 	{
 		final Connection connection = beanContext.getService(Connection.class);
-		ITransaction transaction = beanContext.getService(ITransaction.class);
 		try
 		{
 			transaction.processAndCommit(new DatabaseCallback()

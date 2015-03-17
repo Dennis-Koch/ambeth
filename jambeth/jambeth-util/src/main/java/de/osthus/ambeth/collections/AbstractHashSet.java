@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.util.IPrintable;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
@@ -23,7 +24,7 @@ import de.osthus.ambeth.util.StringBuilderUtil;
  * @param <V>
  *            Typ der Values
  */
-public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable
+public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable, Cloneable
 {
 	public static final int DEFAULT_INITIAL_CAPACITY = 16;
 
@@ -201,6 +202,37 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable
 	{
 		final int newCapacityMinus1 = newTable.length - 1;
 		ISetEntry<K>[] table = this.table;
+		if (table == newTable)
+		{
+			// re-check entries on existing table
+			for (int a = table.length; a-- > 0;)
+			{
+				ISetEntry<K> entry = table[a], previous = null, next;
+				while (entry != null)
+				{
+					next = entry.getNextEntry();
+					if (isEntryValid(entry))
+					{
+						previous = entry;
+					}
+					else
+					{
+						if (entry == table[a])
+						{
+							// first entry in bucket
+							table[a] = next;
+						}
+						else
+						{
+							setNextEntry(previous, next);
+						}
+						entryRemoved(entry);
+					}
+					entry = next;
+				}
+			}
+			return;
+		}
 
 		for (int a = table.length; a-- > 0;)
 		{
@@ -208,12 +240,24 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable
 			while (entry != null)
 			{
 				next = entry.getNextEntry();
-				int i = entry.getHash() & newCapacityMinus1;
-				setNextEntry(entry, newTable[i]);
-				newTable[i] = entry;
+				if (isEntryValid(entry))
+				{
+					int i = entry.getHash() & newCapacityMinus1;
+					setNextEntry(entry, newTable[i]);
+					newTable[i] = entry;
+				}
+				else
+				{
+					entryRemoved(entry);
+				}
 				entry = next;
 			}
 		}
+	}
+
+	protected boolean isEntryValid(ISetEntry<K> entry)
+	{
+		return true;
 	}
 
 	/**
@@ -242,6 +286,31 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable
 				}
 			}
 		}
+	}
+
+	/**
+	 * Returns a shallow copy of this <tt>HashSet</tt> instance: the keys themselves are not cloned.
+	 * 
+	 * @return a shallow copy of this set
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public Object clone()
+	{
+		AbstractHashSet<K> result = null;
+		try
+		{
+			result = (AbstractHashSet<K>) super.clone();
+		}
+		catch (CloneNotSupportedException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		for (K key : this)
+		{
+			result.add(key);
+		}
+		return result;
 	}
 
 	/**
@@ -423,6 +492,21 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable
 		return true;
 	}
 
+	@Override
+	public boolean containsAny(Collection<?> coll)
+	{
+		Iterator<?> iter = coll.iterator();
+		while (iter.hasNext())
+		{
+			Object key = iter.next();
+			if (contains(key))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * @see java.util.Set#removeAll(java.util.Collection)
 	 */
@@ -446,6 +530,17 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable
 				Object key = iter.next();
 				changed |= remove(key);
 			}
+		}
+		return changed;
+	}
+
+	@Override
+	public <S extends K> boolean removeAll(S[] array)
+	{
+		boolean changed = false;
+		for (int a = 0, size = array.length; a < size; a++)
+		{
+			changed |= remove(array[a]);
 		}
 		return changed;
 	}

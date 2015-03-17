@@ -73,6 +73,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\config\XmlConfigurationConstants.cs" />
+    <Compile Include="ambeth\ioc\BootstrapScannerModule.cs" />
+    <Compile Include="ambeth\ioc\XmlModule.cs" />
+    <Compile Include="ambeth\merge\CUDResultPrinter.cs" />
     <Compile Include="ambeth\util\ClasspathScanner.cs" />
     <Compile Include="ambeth\util\IClasspathScanner.cs" />
     <Compile Include="ambeth\util\ModuleScanner.cs" />
@@ -83,7 +86,6 @@
     <Compile Include="ambeth\xml\CyclicXmlWriter.cs" />
     <Compile Include="ambeth\xml\DefaultXmlReader.cs" />
     <Compile Include="ambeth\xml\DefaultXmlWriter.cs" />
-    <Compile Include="ambeth\xml\IAppendable.cs" />
     <Compile Include="ambeth\xml\ICyclicObjectHandler.cs" />
     <Compile Include="ambeth\xml\ICyclicXmlController.cs" />
     <Compile Include="ambeth\xml\ICyclicXmlDictionary.cs" />
@@ -103,11 +105,11 @@
     <Compile Include="ambeth\xml\namehandler\ClassNameHandler.cs" />
     <Compile Include="ambeth\xml\namehandler\CollectionElementHandler.cs" />
     <Compile Include="ambeth\xml\namehandler\ObjRefElementHandler.cs" />
+    <Compile Include="ambeth\xml\namehandler\ObjRefWrapperElementHandler.cs" />
     <Compile Include="ambeth\xml\namehandler\TimeSpanElementHandler.cs" />
     <Compile Include="ambeth\xml\namehandler\DateElementHandler.cs" />
     <Compile Include="ambeth\xml\namehandler\EnumNameHandler.cs" />
     <Compile Include="ambeth\xml\namehandler\StringNameHandler.cs" />
-    <Compile Include="ambeth\xml\namehandler\OriWrapperElementHandler.cs" />
     <Compile Include="ambeth\xml\pending\AbstractObjectCommand.cs" />
     <Compile Include="ambeth\xml\pending\ArraySetterCommand.cs" />
     <Compile Include="ambeth\xml\pending\CollectionSetterCommand.cs" />
@@ -134,14 +136,10 @@
     <Compile Include="ambeth\xml\postprocess\IXmlPostProcessorRegistry.cs" />
     <Compile Include="ambeth\xml\postprocess\merge\MergeArraySetterCommand.cs" />
     <Compile Include="ambeth\xml\postprocess\merge\MergeXmlPostProcessor.cs" />
-    <Compile Include="ambeth\xml\simple\AppendableStreamEncoder.cs" />
-    <Compile Include="ambeth\xml\simple\AppendableStringBuilder.cs" />
     <Compile Include="ambeth\xml\simple\ExtendedStreamReader.cs" />
     <Compile Include="ambeth\xml\simple\SimpleXmlController.cs" />
     <Compile Include="ambeth\xml\simple\SimpleXmlReader.cs" />
     <Compile Include="ambeth\xml\simple\SimpleXmlWriter.cs" />
-    <Compile Include="ambeth\xml\StreamWriterAppendable.cs" />
-    <Compile Include="ambeth\xml\StringBuilderAppendable.cs" />
     <Compile Include="ambeth\xml\typehandler\AbstractHandler.cs" />
     <Compile Include="ambeth\xml\typehandler\NumberTypeHandler.cs" />
     <Compile Include="ambeth\xml\typehandler\ObjectTypeHandler.cs" />
@@ -149,8 +147,6 @@
     <Compile Include="ambeth\xml\XmlTypeKey.cs" />
     <Compile Include="ambeth\xml\XmlTypeNotFoundException.cs" />
     <Compile Include="ambeth\xml\XmlTypeRegistry.cs" />
-    <Compile Include="ioc\BootstrapScannerModule.cs" />
-    <Compile Include="ioc\XmlModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

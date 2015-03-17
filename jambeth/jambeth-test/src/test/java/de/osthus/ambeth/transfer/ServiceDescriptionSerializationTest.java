@@ -21,7 +21,7 @@ import de.osthus.ambeth.objectcollector.IObjectCollector;
 import de.osthus.ambeth.service.ProcessServiceTestModule;
 import de.osthus.ambeth.service.SyncToAsyncUtil;
 import de.osthus.ambeth.service.TestService;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -31,7 +31,7 @@ import de.osthus.ambeth.xml.ICyclicXMLHandler;
 @SQLStructure("../service/ProcessServiceTest_structure.sql")
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/service/orm.xml")
 @TestModule({ BootstrapScannerModule.class, XmlModule.class, ProcessServiceTestModule.class })
-public class ServiceDescriptionSerializationTest extends AbstractPersistenceTest
+public class ServiceDescriptionSerializationTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Autowired
 	protected ICache cache;
@@ -117,7 +117,7 @@ public class ServiceDescriptionSerializationTest extends AbstractPersistenceTest
 	@SQLData("../service/ProcessServiceTest_data.sql")
 	public void testChangedEntityParamNoReturn() throws Exception
 	{
-		ICache cache = cacheFactory.create(CacheFactoryDirective.NoDCE);
+		ICache cache = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
 
 		String methodName = "entityParamNoReturn";
 		Class<?>[] paramTypes = { MaterialGroup.class };

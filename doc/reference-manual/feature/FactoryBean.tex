@@ -1,0 +1,8 @@
+\SetAPI{J-C}
+\section{FactoryBean}
+\label{feature:FactoryBean}
+\ClearAPI
+\TODO
+
+This type of bean controls the instantiation of another bean and Ambeth uses the another bean to resolve dependencies and inject it to others. The container controls both the factory bean and the created bean but the factory bean will not be visible or injectable to the application. A Factory Bean is defined just by implementing the interface IFactoryBean. By implementing the method "getObject" the developer can control how to create the wanted bean.
+

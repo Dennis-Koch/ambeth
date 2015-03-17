@@ -1,0 +1,95 @@
+package de.osthus.ambeth.extscanner;
+
+import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.log.ILogger;
+import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.util.EqualsUtil;
+
+public class ConfigurationEntry implements IMultiPlatformFeature, Comparable<ConfigurationEntry>
+{
+	@LogInstance
+	private ILogger log;
+
+	public boolean inJavascript;
+
+	@Override
+	public boolean inJavascript()
+	{
+		return false;
+	}
+
+	public boolean inJava;
+
+	@Override
+	public boolean inJava()
+	{
+		return inJava;
+	}
+
+	public boolean inCSharp;
+
+	@Override
+	public boolean inCSharp()
+	{
+		return inCSharp;
+	}
+
+	public Boolean isMandatory;
+
+	public final String propertyName;
+
+	public final String moduleName;
+
+	protected boolean defaultValueSpecified = false;
+
+	private String defaultValue;
+
+	public final ArrayList<String> contantDefinitions = new ArrayList<String>();
+
+	public final ArrayList<TypeEntry> usedInTypes = new ArrayList<TypeEntry>();
+
+	@Override
+	public int compareTo(ConfigurationEntry o)
+	{
+		return propertyName.compareTo(o.propertyName);
+	}
+
+	public boolean isDefaultValueSpecified()
+	{
+		return defaultValueSpecified;
+	}
+
+	public String getDefaultValue()
+	{
+		return defaultValue;
+	}
+
+	public void setDefaultValue(String defaultValue)
+	{
+		if (defaultValueSpecified && !EqualsUtil.equals(this.defaultValue, defaultValue))
+		{
+			log.warn("Default value for property '" + propertyName + "' is not unique: '" + this.defaultValue + "' vs. '" + defaultValue + "'");
+			return;
+		}
+		if (Property.DEFAULT_VALUE.equals(defaultValue))
+		{
+			// nothing to do
+			return;
+		}
+		defaultValueSpecified = true;
+		this.defaultValue = defaultValue;
+	}
+
+	public String[] possibleValues;
+
+	public String labelName;
+
+	public ConfigurationEntry(ILogger log, String propertyName, String propertyLabelName, String moduleName)
+	{
+		this.log = log;
+		this.propertyName = propertyName;
+		labelName = propertyLabelName;
+		this.moduleName = moduleName;
+	}
+}

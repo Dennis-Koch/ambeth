@@ -97,6 +97,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
         }
 
+        public virtual void CheckCast(NewType castedType)
+        {
+            if (mv != null)
+            {
+                mv.CheckCast(castedType);
+            }
+        }
+
         public virtual void Dup()
         {
             if (mv != null)
@@ -182,6 +190,22 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             if (mv != null)
             {
                 mv.IfZCmp(compareOperator, label);
+            }
+        }
+
+        public virtual void IfZCmp(NewType type, CompareOperator compareOperator, Label label)
+        {
+            if (mv != null)
+            {
+                mv.IfZCmp(type, compareOperator, label);
+            }
+        }
+
+        public virtual void IfZCmp(Type type, CompareOperator compareOperator, Label label)
+        {
+            if (mv != null)
+            {
+                mv.IfZCmp(type, compareOperator, label);
             }
         }
 
@@ -273,14 +297,6 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
         }
 
-        public virtual void InvokeGetValue(ITypeInfoItem member, Script thisScript)
-        {
-            if (mv != null)
-            {
-                mv.InvokeGetValue(member, thisScript);
-            }
-        }
-
         public virtual void LoadArg(int argIndex)
         {
             if (mv != null)
@@ -326,6 +342,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             if (mv != null)
             {
                 mv.NewArray(componentType);
+            }
+        }
+
+        public virtual void NewInstance(ConstructorInstance constructor, Script argumentsScript)
+        {
+            if (mv != null)
+            {
+                mv.NewInstance(constructor, argumentsScript);
             }
         }
 
@@ -390,6 +414,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         }
 
         public virtual void Push(bool value)
+        {
+            if (mv != null)
+            {
+                mv.Push(value);
+            }
+        }
+
+        public virtual void Push(bool? value)
         {
             if (mv != null)
             {
@@ -462,6 +494,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         }
 
         public virtual void PushNullOrZero(Type type)
+        {
+            if (mv != null)
+            {
+                mv.PushNullOrZero(type);
+            }
+        }
+
+        public virtual void PushNullOrZero(NewType type)
         {
             if (mv != null)
             {
@@ -554,6 +594,22 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             if (mv != null)
             {
                 mv.ValueOf(type);
+            }
+        }
+
+        public virtual void VisitAnnotation(ConstructorInfo annotationConstructor, params Object[] arguments)
+        {
+            if (mv != null)
+            {
+                mv.VisitAnnotation(annotationConstructor, arguments);
+            }
+        }
+
+        public virtual void VisitTableSwitchInsn(int min, int max, Label dflt, params Label[] labels)
+        {
+            if (mv != null)
+            {
+                mv.VisitTableSwitchInsn(min, max, dflt, labels);
             }
         }
     }

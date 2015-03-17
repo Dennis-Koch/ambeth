@@ -20,7 +20,7 @@ import de.osthus.ambeth.proxy.ICascadedInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.MethodLevelBehavior;
 import de.osthus.ambeth.proxy.MethodLevelHashMap;
-import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
+import de.osthus.ambeth.security.SecurityContextType;
 import de.osthus.ambeth.security.SecurityFilterInterceptor;
 import de.osthus.ambeth.typeinfo.TypeInfoItemUtil;
 import de.osthus.ambeth.util.ReflectUtil;

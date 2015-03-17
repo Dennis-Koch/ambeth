@@ -17,11 +17,6 @@ public class InterfaceListElem<V> implements IListElem<V>
 		this.value = value;
 	}
 
-	public void init(final V value)
-	{
-		this.value = value;
-	}
-
 	@Override
 	public Object getListHandle()
 	{

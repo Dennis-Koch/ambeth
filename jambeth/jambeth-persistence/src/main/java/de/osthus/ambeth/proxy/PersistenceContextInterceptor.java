@@ -9,12 +9,11 @@ import de.osthus.ambeth.database.IDatabaseProvider;
 import de.osthus.ambeth.database.IDatabaseProviderRegistry;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.database.ResultingDatabaseCallback;
-import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.ITransactionState;
 import de.osthus.ambeth.persistence.IDatabase;
-import de.osthus.ambeth.proxy.PersistenceContext.PersistenceContextType;
 import de.osthus.ambeth.util.IDisposable;
 
 public class PersistenceContextInterceptor extends CascadedInterceptor
@@ -28,6 +27,9 @@ public class PersistenceContextInterceptor extends CascadedInterceptor
 
 	@Autowired
 	protected ITransaction transaction;
+
+	@Autowired
+	protected ITransactionState transactionState;
 
 	@Autowired
 	protected IMethodLevelBehavior<PersistenceContextType> methodLevelBehaviour;
@@ -60,20 +62,17 @@ public class PersistenceContextInterceptor extends CascadedInterceptor
 			// Do nothing if there is no transaction explicitly required for this method
 			return invokeTarget(obj, method, args, proxy);
 		}
+		if (transactionState.isTransactionActive())
+		{
+			return invokeTarget(obj, method, args, proxy);
+		}
 		boolean readOnly = PersistenceContextType.REQUIRED_READ_ONLY.equals(behaviourOfMethod);
 		return transaction.processAndCommit(new ResultingDatabaseCallback<Object>()
 		{
 			@Override
-			public Object callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+			public Object callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
 			{
-				try
-				{
-					return invokeTarget(obj, method, args, proxy);
-				}
-				catch (Throwable e)
-				{
-					throw RuntimeExceptionUtil.mask(e);
-				}
+				return invokeTarget(obj, method, args, proxy);
 			}
 		}, false, readOnly);
 	}

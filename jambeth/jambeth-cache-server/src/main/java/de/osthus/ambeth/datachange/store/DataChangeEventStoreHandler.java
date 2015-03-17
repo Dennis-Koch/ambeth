@@ -6,30 +6,43 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.datachange.model.IDataChange;
 import de.osthus.ambeth.datachange.model.IDataChangeEntry;
 import de.osthus.ambeth.datachange.transfer.DataChangeEntry;
 import de.osthus.ambeth.datachange.transfer.DataChangeEvent;
 import de.osthus.ambeth.event.store.IEventStoreHandler;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.objrefstore.IObjRefStoreEntryProvider;
+import de.osthus.ambeth.objrefstore.ObjRefStore;
+import de.osthus.ambeth.objrefstore.ObjRefStoreSet;
 
 public class DataChangeEventStoreHandler implements IEventStoreHandler, IInitializingBean
 {
-	protected final HashSet<ObjRefStore> objRefToDataChangeEntrySet = new HashSet<ObjRefStore>();
-
-	protected final Lock writeLock = new ReentrantLock();
-
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
+	protected IObjRefStoreEntryProvider objRefStoreEntryProvider;
+
+	protected ObjRefStoreSet objRefToDataChangeEntrySet;
+
+	protected final Lock writeLock = new ReentrantLock();
+
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		// Intended blank
+		objRefToDataChangeEntrySet = new ObjRefStoreSet(objRefStoreEntryProvider);
+	}
+
+	protected ObjRefStore createObjRef(Class<?> entityType, int idIndex, Object id, Object version)
+	{
+		ObjRefStore objRefStore = objRefStoreEntryProvider.createObjRefStore(entityType, (byte) idIndex, id);
+		objRefStore.setVersion(version);
+		return objRefStore;
 	}
 
 	@Override
@@ -43,28 +56,26 @@ public class DataChangeEventStoreHandler implements IEventStoreHandler, IInitial
 		int insertCount = inserts.size(), updateCount = updates.size();
 		ObjRefStore[] allArray = new ObjRefStore[insertCount + updateCount + deletes.size()];
 		int index = 0;
-		ObjRefStore objRef = new ObjRefStore();
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
 		try
 		{
 			for (int a = insertCount; a-- > 0;)
 			{
-				allArray[index++] = writeToCacheEntry(objRef, inserts.get(a), false);
+				allArray[index++] = writeToCacheEntry(inserts.get(a), false);
 			}
 			for (int a = updateCount; a-- > 0;)
 			{
-				allArray[index++] = writeToCacheEntry(objRef, updates.get(a), false);
+				allArray[index++] = writeToCacheEntry(updates.get(a), false);
 			}
 			for (int a = deletes.size(); a-- > 0;)
 			{
-				allArray[index++] = writeToCacheEntry(objRef, deletes.get(a), true);
+				allArray[index++] = writeToCacheEntry(deletes.get(a), true);
 			}
 		}
 		finally
 		{
 			writeLock.unlock();
-			objRef = null;
 		}
 		DataChangeStoreItem dcStoreItem = new DataChangeStoreItem(allArray, insertCount, updateCount, dataChange.getChangeTime());
 		return dcStoreItem;
@@ -104,42 +115,36 @@ public class DataChangeEventStoreHandler implements IEventStoreHandler, IInitial
 				cachedObjRefStore.getVersion());
 	}
 
-	protected ObjRefStore writeToCacheEntry(ObjRefStore tempObjRef, IDataChangeEntry dataChangeEntry, boolean isDeleteEntry)
+	protected ObjRefStore writeToCacheEntry(IDataChangeEntry dataChangeEntry, boolean isDeleteEntry)
 	{
-		HashSet<ObjRefStore> objRefToDataChangeEntrySet = this.objRefToDataChangeEntrySet;
-		tempObjRef.init(dataChangeEntry.getEntityType(), dataChangeEntry.getIdNameIndex(), dataChangeEntry.getId(), dataChangeEntry.getVersion());
+		ObjRefStoreSet objRefToDataChangeEntrySet = this.objRefToDataChangeEntrySet;
 		ObjRefStore cachedEntry;
 		if (isDeleteEntry)
 		{
 			// After a specific delete the ObjRefStore will never be used by any other insert/update/delete again
 			// So there is no need to hold an entry in our usage-set
-			cachedEntry = objRefToDataChangeEntrySet.removeAndGet(tempObjRef);
+			cachedEntry = objRefToDataChangeEntrySet.remove(dataChangeEntry.getEntityType(), dataChangeEntry.getIdNameIndex(), dataChangeEntry.getId());
 			if (cachedEntry == null)
 			{
-				cachedEntry = new ObjRefStore(dataChangeEntry.getEntityType(), dataChangeEntry.getIdNameIndex(), dataChangeEntry.getId(),
+				cachedEntry = createObjRef(dataChangeEntry.getEntityType(), dataChangeEntry.getIdNameIndex(), dataChangeEntry.getId(),
 						dataChangeEntry.getVersion());
 			}
 			else
 			{
-				cachedEntry.setVersion(tempObjRef.getVersion());
+				cachedEntry.setVersion(dataChangeEntry.getVersion());
 			}
-			cachedEntry.usageCount = ObjRefStore.UNDEFINED_USAGE;
+			cachedEntry.setUsageCount(ObjRefStore.UNDEFINED_USAGE);
 		}
 		else
 		{
-			cachedEntry = objRefToDataChangeEntrySet.get(tempObjRef);
+			cachedEntry = objRefToDataChangeEntrySet.get(dataChangeEntry.getEntityType(), dataChangeEntry.getIdNameIndex(), dataChangeEntry.getId());
 			if (cachedEntry == null)
 			{
-				cachedEntry = new ObjRefStore(dataChangeEntry.getEntityType(), dataChangeEntry.getIdNameIndex(), dataChangeEntry.getId(),
-						dataChangeEntry.getVersion());
-				objRefToDataChangeEntrySet.add(cachedEntry);
+				cachedEntry = objRefToDataChangeEntrySet.put(dataChangeEntry.getEntityType(), dataChangeEntry.getIdNameIndex(), dataChangeEntry.getId());
 			}
-			else
-			{
-				// Cached version is supposed to be always OLDER than the given one
-				cachedEntry.setVersion(tempObjRef.getVersion());
-			}
-			cachedEntry.usageCount++;
+			// Cached version is supposed to be always OLDER than the given one
+			cachedEntry.setVersion(dataChangeEntry.getVersion());
+			cachedEntry.incUsageCount();
 		}
 		return cachedEntry;
 	}
@@ -150,7 +155,7 @@ public class DataChangeEventStoreHandler implements IEventStoreHandler, IInitial
 		DataChangeStoreItem dataChangeStoreItem = (DataChangeStoreItem) eventObject;
 		ObjRefStore[] items = dataChangeStoreItem.getBackingArray();
 
-		HashSet<ObjRefStore> objRefToDataChangeEntrySet = this.objRefToDataChangeEntrySet;
+		ObjRefStoreSet objRefToDataChangeEntrySet = this.objRefToDataChangeEntrySet;
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
 		try
@@ -158,8 +163,8 @@ public class DataChangeEventStoreHandler implements IEventStoreHandler, IInitial
 			for (int a = items.length; a-- > 0;)
 			{
 				ObjRefStore objRefStore = items[a];
-				objRefStore.usageCount--;
-				if (objRefStore.usageCount == 0)
+				objRefStore.decUsageCount();
+				if (objRefStore.getUsageCount() == 0)
 				{
 					objRefToDataChangeEntrySet.remove(objRefStore);
 				}

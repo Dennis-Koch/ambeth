@@ -1,37 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<entity-mappings xmlns="http://www.osthus.de/ambeth/ambeth_orm_1_2">
+<or-mappings xmlns="http://osthus.de/ambeth/ambeth_orm_2_0">
 
-	<entity class="de.osthus.ambeth.helloworld.transfer.TestEntity">
-		<attributes>
-			<id name="Id" />
-			<version name="Version" />
-			<basic name="EmbeddedObject.Name">
-				<column name="NAME" />
-			</basic>
-			<basic name="EmbeddedObject.Value">
-				<column name="VALUE" />
-			</basic>
-			<to-many name="Relations" target-entity="de.osthus.ambeth.helloworld.transfer.TestEntity3">
-				<join-table name="TEST_ENTITY3">
-					<join-column name="TEST_ID" />
-					<inverse-join-column name="ID"/>
-				</join-table>
-			</to-many>
-		</attributes>
-	</entity>
+	<link-mappings>
+		<link alias="TestEntity-EmbeddedObject-TestEntity2" source="LINK_TEST_EMB_TEST2_FK1"/>
+	</link-mappings>
 
-	<entity class="de.osthus.ambeth.helloworld.transfer.TestEntity2">
-		<attributes>
-			<id name="Id" />
-			<version name="Version" />
-		</attributes>
-	</entity>
+	<entity-mappings>
+		<entity class="de.osthus.ambeth.helloworld.transfer.TestEntity">
+			<attributes>
+				<basic name="EmbeddedObject.Name" column="NAME" />
+				<basic name="EmbeddedObject.Value" column="VALUE" />
+				<relation name="EmbeddedObject.RelationOfEmbeddedObject" link="TestEntity-EmbeddedObject-TestEntity2"/>
+			</attributes>
+		</entity>
 
-	<entity class="de.osthus.ambeth.helloworld.transfer.TestEntity3">
-		<attributes>
-			<id name="Id" />
-			<version name="Version" />
-		</attributes>
-	</entity>
+		<entity class="de.osthus.ambeth.helloworld.transfer.TestEntity2">
+		</entity>
 
-</entity-mappings>
+		<entity class="de.osthus.ambeth.helloworld.transfer.TestEntity3">
+		</entity>
+
+	</entity-mappings>
+</or-mappings>

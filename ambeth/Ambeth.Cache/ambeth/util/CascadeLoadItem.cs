@@ -20,11 +20,11 @@ namespace De.Osthus.Ambeth.Util
     {
         public readonly Type realType;
 
-        public readonly Object valueHolder;
+        public readonly DirectValueHolderRef valueHolder;
 
-        public readonly IList<CachePath> cachePaths;
+        public readonly CachePath[] cachePaths;
 
-        public CascadeLoadItem(Type realType, Object valueHolder, IList<CachePath> cachePaths)
+        public CascadeLoadItem(Type realType, DirectValueHolderRef valueHolder, CachePath[] cachePaths)
         {
             this.realType = realType;
             this.valueHolder = valueHolder;

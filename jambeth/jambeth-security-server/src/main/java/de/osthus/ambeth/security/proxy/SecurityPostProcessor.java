@@ -1,5 +1,6 @@
 package de.osthus.ambeth.security.proxy;
 
+import java.lang.reflect.AnnotatedElement;
 import java.util.Set;
 
 import de.osthus.ambeth.annotation.AnnotationCache;
@@ -17,7 +18,7 @@ import de.osthus.ambeth.proxy.ICascadedInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.MethodLevelBehavior;
 import de.osthus.ambeth.security.SecurityContext;
-import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
+import de.osthus.ambeth.security.SecurityContextType;
 import de.osthus.ambeth.security.SecurityFilterInterceptor;
 import de.osthus.ambeth.util.EqualsUtil;
 
@@ -39,7 +40,7 @@ public class SecurityPostProcessor extends AbstractCascadePostProcessor implemen
 	protected final IBehaviorTypeExtractor<SecurityContext, SecurityContextType> btExtractor = new IBehaviorTypeExtractor<SecurityContext, SecurityContextType>()
 	{
 		@Override
-		public SecurityContextType extractBehaviorType(SecurityContext annotation)
+		public SecurityContextType extractBehaviorType(SecurityContext annotation, AnnotatedElement annotatedElement)
 		{
 			return annotation.value();
 		}
@@ -71,6 +72,6 @@ public class SecurityPostProcessor extends AbstractCascadePostProcessor implemen
 	@Override
 	public PostProcessorOrder getOrder()
 	{
-		return PostProcessorOrder.HIGH;
+		return PostProcessorOrder.HIGHER;
 	}
 }

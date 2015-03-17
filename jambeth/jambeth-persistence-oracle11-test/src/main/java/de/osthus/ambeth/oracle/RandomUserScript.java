@@ -1,13 +1,17 @@
 package de.osthus.ambeth.oracle;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.persistence.PersistenceException;
 
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.Property;
@@ -16,7 +20,7 @@ import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IStartingBean;
-import de.osthus.ambeth.ioc.IocBootstrapModule;
+import de.osthus.ambeth.ioc.IocModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
@@ -24,10 +28,14 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IConnectionDialect;
+import de.osthus.ambeth.persistence.IPersistenceHelper;
+import de.osthus.ambeth.persistence.PersistenceHelper;
 import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.connection.ConnectionFactory;
+import de.osthus.ambeth.sql.ISqlBuilder;
+import de.osthus.ambeth.sql.SqlBuilder;
 import de.osthus.ambeth.util.IPersistenceExceptionUtil;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.PersistenceExceptionUtil;
@@ -83,10 +91,12 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 		@Override
 		public void afterPropertiesSet(final IBeanContextFactory beanContextFactory) throws Throwable
 		{
-			beanContextFactory.registerAnonymousBean(Oracle10gThinDialect.class).autowireable(IConnectionDialect.class);
-			beanContextFactory.registerAnonymousBean(PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
-			beanContextFactory.registerAnonymousBean(ConnectionFactory.class).autowireable(IConnectionFactory.class);
-			beanContextFactory.registerAnonymousBean(RandomUserScript.class);
+			beanContextFactory.registerBean(Oracle10gThinDialect.class).autowireable(IConnectionDialect.class);
+			beanContextFactory.registerBean(PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
+			beanContextFactory.registerBean(ConnectionFactory.class).autowireable(IConnectionFactory.class);
+			beanContextFactory.registerBean(SqlBuilder.class).autowireable(ISqlBuilder.class);
+			beanContextFactory.registerBean(PersistenceHelper.class).autowireable(IPersistenceHelper.class);
+			beanContextFactory.registerBean(RandomUserScript.class);
 		}
 	}
 
@@ -109,7 +119,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(props);
 		try
 		{
-			bootstrapContext.createService("randomUser", RandomUserModule.class, IocBootstrapModule.class);
+			bootstrapContext.createService("randomUser", RandomUserModule.class, IocModule.class);
 		}
 		finally
 		{
@@ -222,10 +232,12 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 
 	private String createUser(final Connection connection, final String username, final String password, final String quota) throws SQLException
 	{
-		String[] privileges = { "RESOURCE", "CONNECT", "CTXAPP", "create procedure", "create sequence", "create session", "create table", "create trigger",
-				"create type", "create view", "create user", "drop user", "CHANGE NOTIFICATION", "EXECUTE ON CTXSYS.CTX_CLS", "EXECUTE ON CTXSYS.CTX_DDL",
-				"EXECUTE ON CTXSYS.CTX_DOC", "EXECUTE ON CTXSYS.CTX_OUTPUT", "EXECUTE ON CTXSYS.CTX_QUERY", "EXECUTE ON CTXSYS.CTX_REPORT",
-				"EXECUTE ON CTXSYS.CTX_THES", "EXECUTE ON CTXSYS.CTX_ULEXER", "SELECT ON V_$SQLAREA" };
+		String[] privileges = { "RESOURCE", "CONNECT", "CTXAPP", "SELECT_CATALOG_ROLE", "create procedure", "create sequence", "create session",
+				"create table", "create trigger", "create type", "create view", "create user", "drop user", "CHANGE NOTIFICATION", "EXECUTE ON CTXSYS.CTX_CLS",
+				"EXECUTE ON CTXSYS.CTX_DDL", "EXECUTE ON CTXSYS.CTX_DOC", "EXECUTE ON CTXSYS.CTX_OUTPUT", "EXECUTE ON CTXSYS.CTX_QUERY",
+				"EXECUTE ON CTXSYS.CTX_REPORT", "EXECUTE ON CTXSYS.CTX_THES", "EXECUTE ON CTXSYS.CTX_ULEXER", "SELECT ON V_$SQLAREA", "SELECT ON SYS.CON$",
+				"SELECT ON SYS.CDEF$", "SELECT ON SYS.CCOL$", "SELECT ON SYS.COL$", "SELECT ON SYS.USER$", "SELECT ON SYS.\"_CURRENT_EDITION_OBJ\"",
+				"SELECT ON SYS.ATTRCOL$" };
 
 		String createdUserName = null;
 		Statement stm = connection.createStatement();
@@ -238,7 +250,8 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 			while (tryCount++ < tries)
 			{
 				// Ensure that we have maximum 28 characters: prefix has 7, long has maximum 19 + 2 random digits
-				String randomName = username != null ? username : "CI_TMP_" + System.nanoTime() + String.format("%02d", (int) (Math.random() * 99));
+				String randomName = username != null ? username.toUpperCase() : "CI_TMP_" + System.nanoTime()
+						+ String.format("%02d", (int) (Math.random() * 99));
 				try
 				{
 					stm.execute("CREATE USER " + randomName + " IDENTIFIED BY \"" + password + "\" DEFAULT TABLESPACE \"" + userTablespace
@@ -267,7 +280,14 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 			{
 				for (int a = privileges.length; a-- > 0;)
 				{
-					stm.execute("GRANT " + privileges[a] + " to " + createdUserName);
+					try
+					{
+						stm.execute("GRANT " + privileges[a] + " to " + createdUserName);
+					}
+					catch (PersistenceException e)
+					{
+						log.error(e);
+					}
 				}
 				stm.execute("ALTER USER " + createdUserName + " QUOTA " + quota + " ON \"" + userTablespace + "\"");
 				stm.execute("ALTER USER " + createdUserName + " ACCOUNT UNLOCK");
@@ -302,10 +322,10 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 			throw new IllegalArgumentException("Mandatory values not set!");
 		}
 		File propertyFile = new File(propertyFileName);
-		FileWriter fileWriter = null;
+		OutputStreamWriter fileWriter = null;
 		try
 		{
-			fileWriter = new FileWriter(propertyFile);
+			fileWriter = new OutputStreamWriter(new FileOutputStream(propertyFile), Charset.forName("UTF-8"));
 			String content = createPropertyFileContent(createdUserNames, passwords);
 			fileWriter.append(content);
 		}
@@ -380,6 +400,6 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 
 	private static void deleteUser(final Statement statement, final String userName) throws SQLException
 	{
-		statement.execute("DROP USER \"" + userName + "\" CASCADE");
+		statement.execute("DROP USER \"" + userName.toUpperCase() + "\" CASCADE");
 	}
 }

@@ -1,6 +1,6 @@
 using De.Osthus.Ambeth.Cache;
 using De.Osthus.Ambeth.Cache.Rootcachevalue;
-using De.Osthus.Ambeth.Typeinfo;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Util
 {
@@ -8,10 +8,16 @@ namespace De.Osthus.Ambeth.Util
     {
 	    protected readonly RootCache rootCache;
 
-	    public IndirectValueHolderRef(RootCacheValue cacheValue, IRelationInfoItem member, RootCache rootCache) : base(cacheValue, member)
+	    public IndirectValueHolderRef(RootCacheValue cacheValue, RelationMember member, RootCache rootCache) : base(cacheValue, member)
 	    {
 		    this.rootCache = rootCache;
 	    }
+
+        public IndirectValueHolderRef(RootCacheValue cacheValue, RelationMember member, RootCache rootCache, bool objRefsOnly)
+            : base(cacheValue, member, objRefsOnly)
+        {
+            this.rootCache = rootCache;
+        }
 
 	    public RootCache RootCache
 	    {

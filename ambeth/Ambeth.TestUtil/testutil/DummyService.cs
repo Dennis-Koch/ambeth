@@ -56,5 +56,10 @@ namespace De.Osthus.Ambeth.Testutil
         {
             throw new NotImplementedException();
         }
+
+        public Merge.Model.ICUDResult EvaluateImplicitChanges(Merge.Model.ICUDResult cudResult, Merge.Incremental.IIncrementalMergeState incrementalState)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

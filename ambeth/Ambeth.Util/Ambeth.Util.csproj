@@ -47,6 +47,8 @@
     <Compile Include="ambeth\annotation\AnnotationEntry.cs" />
     <Compile Include="ambeth\annotation\AnnotationUtil.cs" />
     <Compile Include="ambeth\annotation\CascadeAttribute.cs" />
+    <Compile Include="ambeth\annotation\ConfigurationConstants.cs" />
+    <Compile Include="ambeth\annotation\NoProxyAttribute.cs" />
     <Compile Include="ambeth\annotation\PropertyAccessor.cs" />
     <Compile Include="ambeth\annotation\IgnoreToBeUpdated.cs" />
     <Compile Include="ambeth\annotation\FireThisOnPropertyChange.cs" />
@@ -62,6 +64,10 @@
     <Compile Include="ambeth\annotation\QueryResultType.cs" />
     <Compile Include="ambeth\annotation\RemoveAttribute.cs" />
     <Compile Include="ambeth\annotation\XmlTypeAttribute.cs" />
+    <Compile Include="ambeth\appendable\AppendableStreamEncoder.cs" />
+    <Compile Include="ambeth\appendable\AppendableStringBuilder.cs" />
+    <Compile Include="ambeth\appendable\IAppendable.cs" />
+    <Compile Include="ambeth\appendable\StreamWriterAppendable.cs" />
     <Compile Include="ambeth\collections\AbstractHashSet.cs" />
     <Compile Include="ambeth\collections\AbstractLinkedSet.cs" />
     <Compile Include="ambeth\collections\AbstractTuple3KeyHashMap.cs" />
@@ -111,7 +117,6 @@
     <Compile Include="ambeth\proxy\DelegateInterceptor.cs" />
     <Compile Include="ambeth\proxy\IProxyFactory.cs" />
     <Compile Include="ambeth\proxy\ITargetProvider.cs" />
-    <Compile Include="ambeth\proxy\ProxyAttribute.cs" />
     <Compile Include="ambeth\proxy\TargetingInterceptor.cs" />
     <Compile Include="ambeth\proxy\CascadedInterceptor.cs" />
     <Compile Include="ambeth\proxy\ICascadedInterceptor.cs" />
@@ -150,7 +155,6 @@
     <Compile Include="ambeth\typeinfo\EmbeddedTypeInfoItem.cs" />
     <Compile Include="ambeth\typeinfo\IPropertyInfoProvider.cs" />
     <Compile Include="ambeth\typeinfo\PropertyInfoHelper.cs" />
-    <Compile Include="ambeth\typeinfo\RelationProvider.cs" />
     <Compile Include="ambeth\typeinfo\ITypeInfoProvider.cs" />
     <Compile Include="ambeth\typeinfo\ITypeInfo.cs" />
     <Compile Include="ambeth\typeinfo\IRelationProvider.cs" />
@@ -170,6 +174,9 @@
     <Compile Include="ambeth\util\converter\SByteArrayConverter.cs" />
     <Compile Include="ambeth\util\Arrays.cs" />
     <Compile Include="ambeth\collections\WeakHashSet.cs" />
+    <Compile Include="ambeth\util\LongPath.cs" />
+    <Compile Include="ambeth\util\PrintableDelegateWrapper.cs" />
+    <Compile Include="ambeth\util\PrintableDelegate.cs" />
     <Compile Include="ambeth\util\MethodKey.cs" />
     <Compile Include="ambeth\util\NewType.cs" />
     <Compile Include="ambeth\util\ReflectUtil.cs" />
@@ -179,7 +186,6 @@
     <Compile Include="ambeth\util\IDedicatedConverter.cs" />
     <Compile Include="ambeth\util\IDedicatedConverterExtendable.cs" />
     <Compile Include="ambeth\util\IDelegateFactory.cs" />
-    <Compile Include="ambeth\util\ImmutableTypeSet.cs" />
     <Compile Include="ambeth\util\INamed.cs" />
     <Compile Include="ambeth\util\InterningFeature.cs" />
     <Compile Include="ambeth\util\IParamHolder.cs" />
@@ -195,6 +201,7 @@
     <Compile Include="ambeth\util\ParamChecker.cs" />
     <Compile Include="ambeth\util\ParamHolder.cs" />
     <Compile Include="ambeth\util\ReadWriteLock.cs" />
+    <Compile Include="ambeth\util\Runnable.cs" />
     <Compile Include="ambeth\util\StreamUtil.cs" />
     <Compile Include="ambeth\util\StringBuilderUtil.cs" />
     <Compile Include="ambeth\util\StringConversionHelper.cs" />
@@ -234,8 +241,6 @@
     <Compile Include="ambeth\collections\CHashSet.cs" />
     <Compile Include="ambeth\collections\IdentityLinkedMap.cs" />
     <Compile Include="ambeth\collections\IdentityLinkedSet.cs" />
-    <Compile Include="ambeth\typeinfo\IRelationInfoItem.cs" />
-    <Compile Include="ambeth\typeinfo\EmbeddedRelationInfoItem.cs" />
     <Compile Include="ambeth\util\MethodKeyOfType.cs" />
     <Compile Include="ambeth\annotation\EntityEqualsAspect.cs" />
     <Compile Include="ambeth\collections\specialized\INotifyCollectionChangedListener.cs" />
@@ -260,6 +265,26 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\util\IImmutableType.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\collections\IdentityWeakHashMap.cs" />
+    <Compile Include="ambeth\collections\IdentityWeakSmartCopyMap.cs" />
+    <Compile Include="ambeth\collections\WeakHashMap.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\collections\WeakMapEntry.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\collections\WeakSmartCopyMap.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\collections\CleanupInvalidKeysSet.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\collections\IInvalidKeyChecker.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\collections\InterfaceListElem.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -19,15 +19,11 @@ namespace De.Osthus.Ambeth.Ioc
 	    {
             beanContextFactory.RegisterBean<RevertChangesHelper>("revertChangesHelper").Autowireable<IRevertChangesHelper>();
 
-       		IBeanConfiguration serviceResultCacheClearEventListenerBC = beanContextFactory.RegisterAnonymousBean<ServiceResultCacheClearEventListener>()
-				.PropertyRefs("serviceResultCache");
-    		beanContextFactory.Link(serviceResultCacheClearEventListenerBC).To<IEventListenerExtendable>().With(typeof(ClearAllCachesEvent));
-
-	    	IBeanConfiguration rootCacheClearEventListenerBC = beanContextFactory.RegisterAnonymousBean<RootCacheClearEventListener>().PropertyRefs(CacheModule.COMMITTED_ROOT_CACHE);
+	    	IBeanConfiguration rootCacheClearEventListenerBC = beanContextFactory.RegisterBean<RootCacheClearEventListener>().PropertyRefs(CacheModule.COMMITTED_ROOT_CACHE);
 		    beanContextFactory.Link(rootCacheClearEventListenerBC).To<IEventListenerExtendable>().With(typeof(ClearAllCachesEvent));
 
-		    IBeanConfiguration serviceResultCacheDCL = beanContextFactory.RegisterAnonymousBean<UnfilteredDataChangeListener>().PropertyRef(
-				    beanContextFactory.RegisterAnonymousBean<ServiceResultCacheDCL>());
+		    IBeanConfiguration serviceResultCacheDCL = beanContextFactory.RegisterBean<UnfilteredDataChangeListener>().PropertyRef(
+				    beanContextFactory.RegisterBean<ServiceResultCacheDCL>());
             beanContextFactory.Link(serviceResultCacheDCL).To<IEventListenerExtendable>().With(typeof(IDataChange));
 
 		    IBeanConfiguration cacheDCListener = beanContextFactory.RegisterBean<CacheDataChangeListener>("cacheDataChangeListener");

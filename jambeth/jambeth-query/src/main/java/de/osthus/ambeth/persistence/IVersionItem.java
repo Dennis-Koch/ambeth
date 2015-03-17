@@ -6,9 +6,9 @@ public interface IVersionItem extends IDisposable
 {
 	Object getId();
 
-	Object getId(byte idIndex);
+	Object getId(int idIndex);
 
 	Object getVersion();
 
-	byte getAlternateIdCount();
+	int getAlternateIdCount();
 }

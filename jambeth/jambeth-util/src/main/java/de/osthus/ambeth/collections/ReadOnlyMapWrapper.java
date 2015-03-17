@@ -1,7 +1,7 @@
 package de.osthus.ambeth.collections;
 
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 public class ReadOnlyMapWrapper<K, V> implements IMap<K, V>, ILinkedMap<K, V>
@@ -93,12 +93,6 @@ public class ReadOnlyMapWrapper<K, V> implements IMap<K, V>, ILinkedMap<K, V>
 	}
 
 	@Override
-	public void toKeysList(List<K> list)
-	{
-		linkedHashMap.toKeysList(list);
-	}
-
-	@Override
 	public ISet<Entry<K, V>> entrySet()
 	{
 		return hashMap.entrySet();
@@ -117,9 +111,15 @@ public class ReadOnlyMapWrapper<K, V> implements IMap<K, V>, ILinkedMap<K, V>
 	}
 
 	@Override
-	public void keySet(ISet<K> targetKeySet)
+	public void keySet(Collection<K> targetKeySet)
 	{
 		hashMap.keySet(targetKeySet);
+	}
+
+	@Override
+	public IList<K> keyList()
+	{
+		return hashMap.keyList();
 	}
 
 	@Override

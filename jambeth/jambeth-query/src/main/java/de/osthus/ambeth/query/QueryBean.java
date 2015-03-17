@@ -3,16 +3,15 @@ package de.osthus.ambeth.query;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.List;
-import java.util.Map;
 
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IDataCursor;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IVersionCursor;
-import de.osthus.ambeth.persistence.IVersionItem;
 
 public class QueryBean<T> implements IQuery<T>
 {
@@ -70,28 +69,28 @@ public class QueryBean<T> implements IQuery<T>
 	}
 
 	@Override
-	public IQueryKey getQueryKey(Map<Object, Object> nameToValueMap)
+	public IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap)
 	{
 		return getQuery().getQueryKey(nameToValueMap);
 	}
 
 	@Override
 	@Deprecated
-	public IVersionCursor retrieveAsVersions(Map<Object, Object> nameToValueMap)
+	public IVersionCursor retrieveAsVersions(IMap<Object, Object> nameToValueMap)
 	{
 		return getQuery().retrieveAsVersions(nameToValueMap);
 	}
 
 	@Override
 	@Deprecated
-	public IEntityCursor<T> retrieveAsCursor(Map<Object, Object> nameToValueMap)
+	public IEntityCursor<T> retrieveAsCursor(IMap<Object, Object> nameToValueMap)
 	{
 		return getQuery().retrieveAsCursor(nameToValueMap);
 	}
 
 	@Override
 	@Deprecated
-	public IList<T> retrieve(Map<Object, Object> nameToValueMap)
+	public IList<T> retrieve(IMap<Object, Object> nameToValueMap)
 	{
 		return getQuery().retrieve(nameToValueMap);
 	}
@@ -115,21 +114,33 @@ public class QueryBean<T> implements IQuery<T>
 	}
 
 	@Override
+	public IVersionCursor retrieveAsVersions(boolean retrieveAlternateIds)
+	{
+		return getQuery().retrieveAsVersions(retrieveAlternateIds);
+	}
+
+	@Override
 	public IDataCursor retrieveAsData()
 	{
 		return getQuery().retrieveAsData();
 	}
 
 	@Override
-	public IVersionItem retrieveAsVersion()
-	{
-		return getQuery().retrieveAsVersion();
-	}
-
-	@Override
 	public T retrieveSingle()
 	{
 		return getQuery().retrieveSingle();
+	}
+
+	@Override
+	public long count()
+	{
+		return getQuery().count();
+	}
+
+	@Override
+	public boolean isEmpty()
+	{
+		return getQuery().isEmpty();
 	}
 
 	@Override

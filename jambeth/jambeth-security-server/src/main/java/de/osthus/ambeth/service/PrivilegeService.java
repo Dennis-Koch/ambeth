@@ -1,6 +1,8 @@
 package de.osthus.ambeth.service;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map.Entry;
 
 import de.osthus.ambeth.cache.CacheDirective;
 import de.osthus.ambeth.cache.CacheFactoryDirective;
@@ -8,15 +10,21 @@ import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheContext;
 import de.osthus.ambeth.cache.ICacheFactory;
 import de.osthus.ambeth.cache.IDisposableCache;
-import de.osthus.ambeth.cache.ISingleCacheRunnable;
+import de.osthus.ambeth.cache.interceptor.SingleCacheOnDemandProvider;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.ISet;
+import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableListContainer;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
+import de.osthus.ambeth.ioc.threadlocal.IForkProcessor;
+import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
@@ -24,15 +32,19 @@ import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.model.ISecurityScope;
+import de.osthus.ambeth.privilege.EntityPermissionRuleAddedEvent;
+import de.osthus.ambeth.privilege.EntityPermissionRuleRemovedEvent;
 import de.osthus.ambeth.privilege.IEntityPermissionRule;
 import de.osthus.ambeth.privilege.IEntityPermissionRuleExtendable;
+import de.osthus.ambeth.privilege.IEntityPermissionRuleProvider;
 import de.osthus.ambeth.privilege.IEntityTypePermissionRule;
 import de.osthus.ambeth.privilege.IEntityTypePermissionRuleExtendable;
+import de.osthus.ambeth.privilege.IEntityTypePermissionRuleProvider;
 import de.osthus.ambeth.privilege.evaluation.impl.EntityPermissionEvaluation;
-import de.osthus.ambeth.privilege.evaluation.impl.EntityPropertyPermissionEvaluation;
 import de.osthus.ambeth.privilege.evaluation.impl.ScopedEntityPermissionEvaluation;
-import de.osthus.ambeth.privilege.evaluation.impl.ScopedEntityPropertyPermissionEvaluation;
 import de.osthus.ambeth.privilege.model.ITypePrivilege;
 import de.osthus.ambeth.privilege.model.ITypePropertyPrivilege;
 import de.osthus.ambeth.privilege.transfer.IPrivilegeOfService;
@@ -48,18 +60,42 @@ import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.SecurityContext;
-import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
+import de.osthus.ambeth.security.SecurityContextType;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IInterningFeature;
 import de.osthus.ambeth.util.IPrefetchConfig;
 import de.osthus.ambeth.util.IPrefetchHandle;
 import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.IPrefetchState;
 
-public class PrivilegeService implements IPrivilegeService, IEntityPermissionRuleExtendable, IEntityTypePermissionRuleExtendable
+public class PrivilegeService implements IPrivilegeService, IEntityPermissionRuleExtendable, IEntityTypePermissionRuleExtendable,
+		IEntityPermissionRuleProvider, IEntityTypePermissionRuleProvider, IThreadLocalCleanupBean
 {
+	public static class PrivilegeServiceForkProcessor implements IForkProcessor
+	{
+		@Autowired
+		protected IPrivilegeService privilegeService;
+
+		@Override
+		public Object resolveOriginalValue(Object bean, String fieldName, ThreadLocal<?> fieldValueTL)
+		{
+			return ((PrivilegeService) privilegeService).getOrCreatePrivilegeCache();
+		}
+
+		@Override
+		public Object createForkedValue(Object value)
+		{
+			return value;
+		}
+
+		@Override
+		public void returnForkedValue(Object value, Object forkedValue)
+		{
+		}
+
+	}
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -67,7 +103,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	protected final ClassExtendableListContainer<IEntityPermissionRule<?>> entityPermissionRules = new ClassExtendableListContainer<IEntityPermissionRule<?>>(
 			"entityPermissionRule", "entityType");
 
-	protected final ClassExtendableListContainer<IEntityTypePermissionRule<?>> entityTypePermissionRules = new ClassExtendableListContainer<IEntityTypePermissionRule<?>>(
+	protected final ClassExtendableListContainer<IEntityTypePermissionRule> entityTypePermissionRules = new ClassExtendableListContainer<IEntityTypePermissionRule>(
 			"entityTypePermissionRule", "entityType");
 
 	@Autowired
@@ -81,6 +117,9 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	@Autowired
+	protected IEventDispatcher eventDispatcher;
 
 	@Autowired
 	protected IInterningFeature interningFeature;
@@ -130,6 +169,32 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	@Property(name = SecurityConfigurationConstants.DefaultDeletePropertyPrivilegeActive, defaultValue = "true")
 	protected boolean isDefaultDeletePropertyPrivilege;
 
+	@Forkable(processor = PrivilegeServiceForkProcessor.class)
+	protected final ThreadLocal<IDisposableCache> privilegeCacheTL = new ThreadLocal<IDisposableCache>();
+
+	@Override
+	public void cleanupThreadLocal()
+	{
+		IDisposableCache privilegeCache = privilegeCacheTL.get();
+		if (privilegeCache != null)
+		{
+			privilegeCacheTL.set(null);
+			privilegeCache.dispose();
+		}
+	}
+
+	public IDisposableCache getOrCreatePrivilegeCache()
+	{
+		IDisposableCache privilegeCache = privilegeCacheTL.get();
+		if (privilegeCache != null)
+		{
+			return privilegeCache;
+		}
+		privilegeCache = cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, Boolean.FALSE, "Privilege.ORIGINAL");
+		privilegeCacheTL.set(privilegeCache);
+		return privilegeCache;
+	}
+
 	public boolean isCreateAllowed(Object entity, ISecurityScope[] securityScopes)
 	{
 		return getPrivileges(entity, securityScopes).isCreateAllowed();
@@ -171,13 +236,31 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		}
 	}
 
+	protected SingleCacheOnDemandProvider createCacheProvider()
+	{
+		return new SingleCacheOnDemandProvider()
+		{
+			@Override
+			public void dispose()
+			{
+				// intended blank
+			}
+
+			@Override
+			protected ICache resolveCurrentCache()
+			{
+				return getOrCreatePrivilegeCache();
+			}
+		};
+	}
+
 	@Override
 	public List<IPrivilegeOfService> getPrivileges(final IObjRef[] objRefs, final ISecurityScope[] securityScopes)
 	{
-		IDisposableCache cacheForSecurityChecks = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.FALSE);
+		SingleCacheOnDemandProvider cacheProviderForSecurityChecks = createCacheProvider();
 		try
 		{
-			return cacheContext.executeWithCache(cacheForSecurityChecks, new PrivilegeServiceCall(objRefs, securityScopes, this));
+			return cacheContext.executeWithCache(cacheProviderForSecurityChecks, new PrivilegeServiceCall(objRefs, securityScopes, this));
 		}
 		catch (Throwable e)
 		{
@@ -185,20 +268,20 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		}
 		finally
 		{
-			cacheForSecurityChecks.dispose();
+			cacheProviderForSecurityChecks.dispose();
 		}
 	}
 
 	@Override
 	public List<ITypePrivilegeOfService> getPrivilegesOfTypes(final Class<?>[] entityTypes, final ISecurityScope[] securityScopes)
 	{
-		IDisposableCache cacheForSecurityChecks = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.FALSE);
+		SingleCacheOnDemandProvider cacheProviderForSecurityChecks = createCacheProvider();
 		try
 		{
-			return cacheContext.executeWithCache(cacheForSecurityChecks, new ISingleCacheRunnable<List<ITypePrivilegeOfService>>()
+			return cacheContext.executeWithCache(cacheProviderForSecurityChecks, new IResultingBackgroundWorkerDelegate<List<ITypePrivilegeOfService>>()
 			{
 				@Override
-				public List<ITypePrivilegeOfService> run() throws Throwable
+				public List<ITypePrivilegeOfService> invoke() throws Throwable
 				{
 					return getPrivilegesOfTypesIntern(entityTypes, securityScopes);
 				}
@@ -210,7 +293,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		}
 		finally
 		{
-			cacheForSecurityChecks.dispose();
+			cacheProviderForSecurityChecks.dispose();
 		}
 	}
 
@@ -218,6 +301,10 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	{
 		try
 		{
+			if (!securityActivation.isSecured())
+			{
+				return getPrivilegesIntern2(objRefs, securityScopes);
+			}
 			return securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<List<IPrivilegeOfService>>()
 			{
 				@Override
@@ -308,21 +395,57 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		{
 			requestedTypesArray = requestedTypes.toArray(Class.class);
 		}
-		@SuppressWarnings("unused")
-		IPrefetchState prefetchState;
-		IPrefetchConfig prefetchConfig = prefetchHelper.createPrefetch();
+		HashSet<Class<?>> entityTypeWithPermissionRule = HashSet.<Class<?>> create(requestedTypesArray.length);
+		boolean hasAnEntityTypeWithoutPermissionRule = false;
+		IPrefetchConfig prefetchConfig = null;
 		for (Class<?> requestedType : requestedTypesArray)
 		{
-			IList<IEntityPermissionRule<?>> extensions = entityPermissionRules.getExtensions(requestedType);
+			IList<IEntityPermissionRule<?>> extensions = getEntityPermissionRules(requestedType);
+			if (extensions.size() == 0)
+			{
+				hasAnEntityTypeWithoutPermissionRule = true;
+				continue;
+			}
+			entityTypeWithPermissionRule.add(requestedType);
+			if (prefetchConfig == null)
+			{
+				prefetchConfig = prefetchHelper.createPrefetch();
+			}
 			for (int a = 0, size = extensions.size(); a < size; a++)
 			{
 				IEntityPermissionRule extension = extensions.get(a);
 				extension.buildPrefetchConfig(requestedType, prefetchConfig);
 			}
 		}
-		IList<Object> entitiesToCheck = cache.getObjects(objRefs, CacheDirective.returnMisses());
-		IPrefetchHandle prefetchHandle = prefetchConfig.build();
-		prefetchState = prefetchHandle.prefetch(entitiesToCheck);
+		boolean isObjRefsToCheckEmpty = false;
+		IObjRef[] objRefsToCheck = objRefs;
+		if (hasAnEntityTypeWithoutPermissionRule)
+		{
+			// filter all objRefs which makes no sense to load them here because there is no rule configured working on this entity instance
+			// this means there is neither a row-level nor cell-level security necessary
+			// this optimization here can result in a major performance boost
+			objRefsToCheck = new IObjRef[objRefs.length];
+			isObjRefsToCheckEmpty = true;
+			for (int a = objRefs.length; a-- > 0;)
+			{
+				IObjRef objRef = objRefs[a];
+				if (!entityTypeWithPermissionRule.contains(objRef.getRealType()))
+				{
+					continue;
+				}
+				objRefsToCheck[a] = objRef;
+				isObjRefsToCheckEmpty = false;
+			}
+		}
+		@SuppressWarnings("unused")
+		IPrefetchState prefetchState = null;
+		IList<Object> entitiesToCheck = null;
+		if (!isObjRefsToCheckEmpty)
+		{
+			entitiesToCheck = cache.getObjects(objRefsToCheck, CacheDirective.returnMisses());
+			IPrefetchHandle prefetchHandle = prefetchConfig.build();
+			prefetchState = prefetchHandle.prefetch(entitiesToCheck);
+		}
 		ArrayList<IPrivilegeOfService> privilegeResults = new ArrayList<IPrivilegeOfService>();
 
 		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
@@ -338,23 +461,27 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 				continue;
 			}
 			Class<?> entityType = objRef.getRealType();
-			Object entity = entitiesToCheck.get(a);
 
 			pe.reset();
 			applyEntityTypePermission(pe, authorization, entityType, securityScopes);
-			if (entity != null)
+
+			if (objRefsToCheck[a] != null)
 			{
-				IList<IEntityPermissionRule<?>> extensions = entityPermissionRules.getExtensions(entityType);
-				for (int c = 0, sizeC = extensions.size(); c < sizeC; c++)
+				Object entity = entitiesToCheck.get(a);
+				if (entity != null)
 				{
-					IEntityPermissionRule extension = extensions.get(c);
-					extension.evaluatePermissionOnInstance(objRef, entity, authorization, securityScopes, pe);
+					IList<IEntityPermissionRule<?>> extensions = entityPermissionRules.getExtensions(entityType);
+					for (int c = 0, sizeC = extensions.size(); c < sizeC; c++)
+					{
+						IEntityPermissionRule extension = extensions.get(c);
+						extension.evaluatePermissionOnInstance(objRef, entity, authorization, securityScopes, pe);
+					}
 				}
-			}
-			else
-			{
-				// an entity which can not be read even without active security is not valid
-				pe.denyEach();
+				else
+				{
+					// an entity which can not be read even without active security is not valid
+					pe.denyEach();
+				}
 			}
 			if (securityScopes.length > 1)
 			{
@@ -394,7 +521,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 			}
 			pe.reset();
 			applyEntityTypePermission(pe, authorization, entityType, securityScopes);
-			IList<IEntityTypePermissionRule<?>> extensions = entityTypePermissionRules.getExtensions(entityType);
+			IList<IEntityTypePermissionRule> extensions = entityTypePermissionRules.getExtensions(entityType);
 			for (int c = 0, sizeC = extensions.size(); c < sizeC; c++)
 			{
 				IEntityTypePermissionRule extension = extensions.get(c);
@@ -482,13 +609,13 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 			return;
 		}
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-		ITypeInfoItem[] primitiveMembers = metaData.getPrimitiveMembers();
+		Member[] primitiveMembers = metaData.getPrimitiveMembers();
 		for (int primitiveIndex = primitiveMembers.length; primitiveIndex-- > 0;)
 		{
 			ITypePropertyPrivilege propertyPrivilege = entityTypePrivilege.getPrimitivePropertyPrivilege(primitiveIndex);
 			pe.applyTypePropertyPrivilege(primitiveMembers[primitiveIndex].getName(), propertyPrivilege);
 		}
-		ITypeInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 		{
 			ITypePropertyPrivilege propertyPrivilege = entityTypePrivilege.getRelationPropertyPrivilege(relationIndex);
@@ -498,55 +625,10 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 
 	protected PrivilegeOfService buildPrivilegeResult(IObjRef objRef, EntityPermissionEvaluation pe, ISecurityScope scope, ScopedEntityPermissionEvaluation spe)
 	{
-		Boolean create = null, read = null, update = null, delete = null, execute = null;
-		if (spe != null)
-		{
-			create = spe.getCreate();
-			read = spe.getRead();
-			update = spe.getUpdate();
-			delete = spe.getDelete();
-			execute = spe.getExecute();
-		}
-		if (create == null)
-		{
-			create = pe.getCreate();
-		}
-		if (read == null)
-		{
-			read = pe.getRead();
-		}
-		if (update == null)
-		{
-			update = pe.getUpdate();
-		}
-		if (delete == null)
-		{
-			delete = pe.getDelete();
-		}
-		if (execute == null)
-		{
-			execute = pe.getExecute();
-		}
-		if (create == null)
-		{
-			create = Boolean.valueOf(isDefaultCreatePrivilege);
-		}
-		if (read == null)
-		{
-			read = Boolean.valueOf(isDefaultReadPrivilege);
-		}
-		if (update == null)
-		{
-			update = Boolean.valueOf(isDefaultUpdatePrivilege);
-		}
-		if (delete == null)
-		{
-			delete = Boolean.valueOf(isDefaultDeletePrivilege);
-		}
-		if (execute == null)
-		{
-			execute = Boolean.valueOf(isDefaultExecutePrivilege);
-		}
+		PrivilegeHandle ph = new PrivilegeHandle();
+		ph.applyIfNull(spe);
+		ph.applyIfNull(pe);
+		ph.applyIfNull(isDefaultCreatePrivilege, isDefaultReadPrivilege, isDefaultUpdatePrivilege, isDefaultDeletePrivilege, isDefaultExecutePrivilege);
 
 		boolean hasPropertyPrivileges = pe.getPropertyPermissions().size() > 0 || (spe != null && spe.getPropertyPermissions().size() > 0);
 
@@ -564,100 +646,33 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 			for (int a = 0, size = propertyNames.length; a < size; a++)
 			{
 				String propertyName = interningFeature.intern(propertyNames[a]);
-				Boolean pCreate = null, pRead = null, pUpdate = null, pDelete = null;
-				if (spe != null)
-				{
-					ScopedEntityPropertyPermissionEvaluation sppe = spe.getPropertyPermissions().get(propertyName);
-					if (sppe != null)
-					{
-						pCreate = sppe.getCreate();
-						pRead = sppe.getRead();
-						pUpdate = sppe.getUpdate();
-						pDelete = sppe.getDelete();
-					}
-				}
-				EntityPropertyPermissionEvaluation ppe = pe.getPropertyPermissions().get(propertyName);
-				if (pCreate == null && ppe != null)
-				{
-					pCreate = ppe.getCreate();
-				}
-				if (pRead == null && ppe != null)
-				{
-					pRead = ppe.getRead();
-				}
-				if (pUpdate == null && ppe != null)
-				{
-					pUpdate = ppe.getUpdate();
-				}
-				if (pDelete == null && ppe != null)
-				{
-					pDelete = ppe.getDelete();
-				}
-				if (pCreate == null)
-				{
-					pCreate = create;
-				}
-				if (pRead == null)
-				{
-					pRead = read;
-				}
-				if (pUpdate == null)
-				{
-					pUpdate = update;
-				}
-				if (pDelete == null)
-				{
-					pDelete = delete;
-				}
+				PrivilegeHandle propPH = new PrivilegeHandle();
+				propPH.applyPropertySpecifics(spe, propertyName);
+				propPH.applyPropertySpecifics(pe, propertyName);
+				propPH.applyIfNull(ph);
 				propertyNames[a] = propertyName;
-				propertyPrivileges[a] = PropertyPrivilegeOfService.create(pCreate.booleanValue(), pRead.booleanValue(), pUpdate.booleanValue(),
-						pDelete.booleanValue());
+				propertyPrivileges[a] = PropertyPrivilegeOfService.create(propPH.create.booleanValue(), propPH.read.booleanValue(),
+						propPH.update.booleanValue(), propPH.delete.booleanValue());
 			}
 			privilegeResult.setPropertyPrivileges(propertyPrivileges);
 			privilegeResult.setPropertyPrivilegeNames(propertyNames);
 		}
 		privilegeResult.setReference(objRef);
 		privilegeResult.setSecurityScope(scope);
-		privilegeResult.setReadAllowed(read.booleanValue());
-		privilegeResult.setCreateAllowed(create.booleanValue());
-		privilegeResult.setUpdateAllowed(update.booleanValue());
-		privilegeResult.setDeleteAllowed(delete.booleanValue());
-		privilegeResult.setExecuteAllowed(execute.booleanValue());
+		privilegeResult.setCreateAllowed(ph.create);
+		privilegeResult.setReadAllowed(ph.read);
+		privilegeResult.setUpdateAllowed(ph.update);
+		privilegeResult.setDeleteAllowed(ph.delete);
+		privilegeResult.setExecuteAllowed(ph.execute);
 		return privilegeResult;
 	}
 
 	protected TypePrivilegeOfService buildTypePrivilegeResult(Class<?> entityType, EntityPermissionEvaluation pe, ISecurityScope scope,
 			ScopedEntityPermissionEvaluation spe)
 	{
-		Boolean create = null, read = null, update = null, delete = null, execute = null;
-		if (spe != null)
-		{
-			create = spe.getCreate();
-			read = spe.getRead();
-			update = spe.getUpdate();
-			delete = spe.getDelete();
-			execute = spe.getExecute();
-		}
-		if (create == null)
-		{
-			create = pe.getCreate();
-		}
-		if (read == null)
-		{
-			read = pe.getRead();
-		}
-		if (update == null)
-		{
-			update = pe.getUpdate();
-		}
-		if (delete == null)
-		{
-			delete = pe.getDelete();
-		}
-		if (execute == null)
-		{
-			execute = pe.getExecute();
-		}
+		PrivilegeHandle ph = new PrivilegeHandle();
+		ph.applyIfNull(spe);
+		ph.applyIfNull(pe);
 		boolean hasPropertyPrivileges = pe.getPropertyPermissions().size() > 0 || (spe != null && spe.getPropertyPermissions().size() > 0);
 
 		TypePrivilegeOfService privilegeResult = new TypePrivilegeOfService();
@@ -674,64 +689,23 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 			for (int a = 0, size = propertyNames.length; a < size; a++)
 			{
 				String propertyName = interningFeature.intern(propertyNames[a]);
-				Boolean pCreate = null, pRead = null, pUpdate = null, pDelete = null;
-				if (spe != null)
-				{
-					ScopedEntityPropertyPermissionEvaluation sppe = spe.getPropertyPermissions().get(propertyName);
-					if (sppe != null)
-					{
-						pCreate = sppe.getCreate();
-						pRead = sppe.getRead();
-						pUpdate = sppe.getUpdate();
-						pDelete = sppe.getDelete();
-					}
-				}
-				EntityPropertyPermissionEvaluation ppe = pe.getPropertyPermissions().get(propertyName);
-				if (pCreate == null && ppe != null)
-				{
-					pCreate = ppe.getCreate();
-				}
-				if (pRead == null && ppe != null)
-				{
-					pRead = ppe.getRead();
-				}
-				if (pUpdate == null && ppe != null)
-				{
-					pUpdate = ppe.getUpdate();
-				}
-				if (pDelete == null && ppe != null)
-				{
-					pDelete = ppe.getDelete();
-				}
-				if (pCreate == null)
-				{
-					pCreate = create;
-				}
-				if (pRead == null)
-				{
-					pRead = read;
-				}
-				if (pUpdate == null)
-				{
-					pUpdate = update;
-				}
-				if (pDelete == null)
-				{
-					pDelete = delete;
-				}
+				PrivilegeHandle propPH = new PrivilegeHandle();
+				propPH.applyPropertySpecifics(spe, propertyName);
+				propPH.applyPropertySpecifics(pe, propertyName);
+				propPH.applyIfNull(ph);
 				propertyNames[a] = propertyName;
-				propertyPrivileges[a] = TypePropertyPrivilegeOfService.create(pCreate, pRead, pUpdate, pDelete);
+				propertyPrivileges[a] = TypePropertyPrivilegeOfService.create(propPH.create, propPH.read, propPH.update, propPH.delete);
 			}
 			privilegeResult.setPropertyPrivileges(propertyPrivileges);
 			privilegeResult.setPropertyPrivilegeNames(propertyNames);
 		}
 		privilegeResult.setEntityType(entityType);
 		privilegeResult.setSecurityScope(scope);
-		privilegeResult.setReadAllowed(read);
-		privilegeResult.setCreateAllowed(create);
-		privilegeResult.setUpdateAllowed(update);
-		privilegeResult.setDeleteAllowed(delete);
-		privilegeResult.setExecuteAllowed(execute);
+		privilegeResult.setCreateAllowed(ph.create);
+		privilegeResult.setReadAllowed(ph.read);
+		privilegeResult.setUpdateAllowed(ph.update);
+		privilegeResult.setDeleteAllowed(ph.delete);
+		privilegeResult.setExecuteAllowed(ph.execute);
 		return privilegeResult;
 	}
 
@@ -740,6 +714,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	public <T> void registerEntityPermissionRule(IEntityPermissionRule<? super T> entityPermissionRule, Class<T> entityType)
 	{
 		entityPermissionRules.register(entityPermissionRule, entityType);
+		eventDispatcher.dispatchEvent(new EntityPermissionRuleAddedEvent(entityPermissionRule, entityType));
 	}
 
 	@Override
@@ -747,19 +722,52 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	public <T> void unregisterEntityPermissionRule(IEntityPermissionRule<? super T> entityPermissionRule, Class<T> entityType)
 	{
 		entityPermissionRules.unregister(entityPermissionRule, entityType);
+		eventDispatcher.dispatchEvent(new EntityPermissionRuleRemovedEvent(entityPermissionRule, entityType));
+	}
+
+	@Override
+	public IList<IEntityPermissionRule<?>> getEntityPermissionRules(Class<?> entityType)
+	{
+		return entityPermissionRules.getExtensions(entityType);
+	}
+
+	@Override
+	public ILinkedMap<Class<?>, IList<IEntityPermissionRule<?>>> getAllEntityPermissionRules()
+	{
+		LinkedHashMap<Class<?>, IList<IEntityPermissionRule<?>>> allEntityPermissionRules = new LinkedHashMap<Class<?>, IList<IEntityPermissionRule<?>>>();
+		for (Entry<Class<?>, Object> entry : entityPermissionRules)
+		{
+			Class<?> entityType = entry.getKey();
+			Object value = entry.getValue();
+			if (value instanceof Collection)
+			{
+				allEntityPermissionRules.put(entityType, new ArrayList<IEntityPermissionRule<?>>((Collection) value));
+			}
+			else
+			{
+				allEntityPermissionRules.put(entityType, new ArrayList<IEntityPermissionRule<?>>(new Object[] { value }));
+			}
+		}
+		return allEntityPermissionRules;
 	}
 
 	@Override
 	@SecurityContext(SecurityContextType.NOT_REQUIRED)
-	public <T> void registerEntityTypePermissionRule(IEntityTypePermissionRule<? super T> entityTypePermissionRule, Class<T> entityType)
+	public void registerEntityTypePermissionRule(IEntityTypePermissionRule entityTypePermissionRule, Class<?> entityType)
 	{
 		entityTypePermissionRules.register(entityTypePermissionRule, entityType);
 	}
 
 	@Override
 	@SecurityContext(SecurityContextType.NOT_REQUIRED)
-	public <T> void unregisterEntityTypePermissionRule(IEntityTypePermissionRule<? super T> entityTypePermissionRule, Class<T> entityType)
+	public void unregisterEntityTypePermissionRule(IEntityTypePermissionRule entityTypePermissionRule, Class<?> entityType)
 	{
 		entityTypePermissionRules.unregister(entityTypePermissionRule, entityType);
+	}
+
+	@Override
+	public IList<IEntityTypePermissionRule> getEntityTypePermissionRules(Class<?> entityType)
+	{
+		return entityTypePermissionRules.getExtensions(entityType);
 	}
 }

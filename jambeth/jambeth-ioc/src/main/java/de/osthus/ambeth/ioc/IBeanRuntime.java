@@ -5,7 +5,7 @@ import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 /**
  * Fluent interface to configure a new bean instance in a running jAmbeth IoC context.
  * 
- * @see IServiceContext#registerAnonymousBean(Class)
+ * @see IServiceContext#registerBean(Class)
  * 
  * @param <V>
  *            Type of the new bean instance.

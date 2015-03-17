@@ -10,7 +10,7 @@ import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.merge.IValueObjectConfig;
 import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
@@ -19,7 +19,7 @@ import de.osthus.ambeth.testutil.category.ReminderTests;
 
 @TestRebuildContext
 @SQLStructure("PropertyMappingValidation_structure.sql")
-public class PropertyMappingValidationTest extends AbstractPersistenceTest
+public class PropertyMappingValidationTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Test
 	@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/validation/orm_ok_minimal.xml")

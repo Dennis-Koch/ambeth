@@ -1,0 +1,24 @@
+\SetAPI{J-C}
+\section{IEventTargetListenerExtendable}
+\label{extendable:IEventTargetListenerExtendable}
+\ClearAPI
+\javadoc{de.osthus.ambeth.event.IEventTargetListenerExtendable}{IEventTargetListenerExtendable}
+\javadoc{de.osthus.ambeth.event.IEventTargetEventListener}{IEventTargetEventListener}
+\TODO
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{IEventTargetEventListener}}
+{jambeth-event/src/main/java/de/osthus/ambeth/event/IEventTargetListenerExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+bcf.link(myExtension).to(IEventTargetListenerExtendable.class);
+\end{lstlisting}
+\inputcsharp{Extension point for instances of \type{IEventTargetEventListener}}
+{Ambeth.Event/ambeth/event/IEventTargetListenerExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<IEventTargetListenerExtendable>();
+\end{lstlisting}
+%% GENERATED LISTINGS END

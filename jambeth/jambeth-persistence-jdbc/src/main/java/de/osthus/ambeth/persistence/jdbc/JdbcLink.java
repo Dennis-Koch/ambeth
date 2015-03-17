@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map.Entry;
 
+import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -50,7 +51,7 @@ public class JdbcLink extends SqlLink
 			{
 				pstm.executeBatch();
 			}
-			catch (SQLException e)
+			catch (Throwable e)
 			{
 				throw RuntimeExceptionUtil.mask(e);
 			}
@@ -86,11 +87,11 @@ public class JdbcLink extends SqlLink
 			if (pstm == null)
 			{
 				IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-				StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
+				AppendableStringBuilder sb = tlObjectCollector.create(AppendableStringBuilder.class);
 				try
 				{
 					sb.append("INSERT INTO ");
-					sqlBuilder.appendName(getName(), sb);
+					sqlBuilder.appendName(getMetaData().getName(), sb);
 					sb.append(" (").append(names).append(") VALUES (?,?)");
 					pstm = connection.prepareStatement(sb.toString());
 					namesToPstmMap.put(names, pstm);
@@ -123,11 +124,11 @@ public class JdbcLink extends SqlLink
 			PreparedStatement pstm = namesToPstmMap.get(whereSQL);
 			if (pstm == null)
 			{
-				StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
+				AppendableStringBuilder sb = tlObjectCollector.create(AppendableStringBuilder.class);
 				try
 				{
 					sb.append("DELETE FROM ");
-					sqlBuilder.appendName(getName(), sb);
+					sqlBuilder.appendName(getMetaData().getName(), sb);
 					sb.append(" WHERE ").append(whereSQL);
 
 					pstm = connection.prepareStatement(sb.toString());

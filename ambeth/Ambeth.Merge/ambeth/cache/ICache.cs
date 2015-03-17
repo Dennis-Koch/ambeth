@@ -8,8 +8,23 @@ using De.Osthus.Ambeth.Cache.Model;
 namespace De.Osthus.Ambeth.Cache
 {
     public interface ICache
-    {
-        void CascadeLoadPath(Type entityType, String cascadeLoadPath);
+    {        
+        /// <summary>
+        /// Checks whether this cache instance provides security-filtered or unfiltered content
+        /// </summary>
+        bool Privileged { get; }
+
+        /// <summary>
+        /// If the given cache instance is some kind of proxy or thread-local implementation this method retrieves the internally bound real cache instance. This
+	    /// method is intended to be used for performance critical algorithms where multiple calls through the proxy implementation can be skipped.<br/>
+	    /// <br/>
+	    /// CAUTION: The resulting instance is not intended to be used solely within the method which did this call. To be precise: Do NOT pass the resulting
+	    /// instance to any other method or bean as an argument and do NOT store the resulting instance on an object field. Leave it solely as a method stack
+	    /// variable
+        /// </summary>
+        ICache CurrentCache { get; }
+
+        void CascadeLoadPath(Type entityType, String relationPath);
 
         IList<E> GetObjects<E>(params Object[] ids);
 

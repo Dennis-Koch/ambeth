@@ -1,0 +1,163 @@
+\SetAPI{J-C}
+\section{IoC}
+\label{module:IoC}
+\ClearAPI
+\TODO
+
+%% MAVEN GENERATED START
+\begin{lstlisting}[style=POM,caption={Maven modules to use \emph{Ambeth IoC}}]
+<dependency>
+	<groupId>de.osthus.ambeth</groupId>
+	<artifactId>Ambeth.IoC</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>de.osthus.ambeth</groupId>
+	<artifactId>jambeth-ioc</artifactId>
+	<version>§\version§</version>
+</dependency>
+\end{lstlisting}
+%% MAVEN END
+\subsection{Features}
+\begin{itemize}
+	%% FEATURES START
+	\item \prettyref{feature:AccessorTypeProvider}
+	\item \prettyref{feature:AutoLinkPreProcessor}
+	\item \prettyref{annotation:Autowired}
+	\item \prettyref{feature:BeanPreProcessor}
+	\item \prettyref{feature:BeanPostProcessor}
+	\item \prettyref{annotation:BootstrapModule}
+	\item \prettyref{feature:ContainerHierarchy}
+	\item \prettyref{feature:ConversionHelper}
+	\item \prettyref{feature:DeclarationStackTraceAware}
+	\item \prettyref{feature:DisposableBean}
+	\item \prettyref{feature:Extendable}
+	\item \prettyref{feature:ExtendableBean}
+	\item \prettyref{feature:ExtendableContainer}
+	\item \prettyref{feature:FactoryBean}
+	\item \prettyref{annotation:FrameworkModule}
+	\item \prettyref{feature:InitializingBean}
+	\item \prettyref{feature:InitializingModule}
+	\item \prettyref{feature:InterfaceBean}
+	\item \prettyref{feature:IoCLifecycle}
+	\item \prettyref{feature:JMXBean}
+	\item \prettyref{feature:Link}
+	\item \prettyref{feature:LoggerCache}
+	\item \prettyref{feature:LoggerHistory}
+	\item \prettyref{annotation:LogInstance}
+	\item \prettyref{annotation:NoProxy}
+	\item \prettyref{feature:OrderedBeanPostProcessor}
+	\item \prettyref{feature:PostProcessorOrder}
+	\item \prettyref{feature:PrecedenceType}
+	\item \prettyref{feature:PropertyLoadingBean}
+	\item \prettyref{annotation:Property}
+	\item \prettyref{feature:Self}
+	\item \prettyref{feature:StartingBean}
+	\item \prettyref{feature:StartingModule}
+	\item \prettyref{feature:ThreadLocalCleanupBean}
+	%% FEATURES GENERATED START
+	%% FEATURES END
+\end{itemize}
+
+%% CONFIGURATION GENERATED START
+\subsection{Configuration}
+\begin{itemize}
+	\item \prettyref{configuration:AmbethDatetimeUtc}
+	\item \prettyref{configuration:AmbethIocDebugActive}
+	\item \prettyref{configuration:AmbethIocDeclarationTraceActive}
+	\item \prettyref{configuration:AmbethIocMonitoringActive}
+	\item \prettyref{configuration:AmbethIocObjectcollectorActive}
+	\item \prettyref{configuration:AmbethMthTimeout}
+\end{itemize}
+%% CONFIGURATION END
+
+\subsection{DI (Dependency Injection)}
+
+The IoC container handles the dependencies for defined beans so that the beans get the references to beans they depend on. There are several possibilities to inject dependencies. Ambeth uses 2 possibilities described in the following list. 
+
+\begin{itemize}
+	\item \textbf{Setter Injection}: The dependencies of a bean are instantiated and set by calling the setter method of the dependent bean. This allows to define cycles. It's the standard and preferred way to inject dependencies.
+	\item \textbf{Field Injection}: Dependencies can be set via reflection directly to the field so it is not necessary to implement a setter, interface or parametrized constructor. But in consequence to this the setter, interface method or parametrized constructor aren't called even if they exists. This may lead to a strange behaviour at runtime, especially when this beans are combined with proxies.
+\end{itemize}	
+
+Ambeth does not support constructor injection nor does it support interface injection. Constructor injection does not solve the cyclic dependency problem and produces unreadable code with a lot of injections necessary in one function signature. Interface injection is not flexible enough because \TODO
+
+\subsection{IoC (Inversion of Control Container)}
+The basic part of Ambeth Framework is an Ambeth specific implementation of an IoC container. While there are other frameworks implementing a similar functionality there are some reasons not to use these frameworks but implement an own solution within Ambeth Framework:
+
+\begin{itemize}
+	\item Exactly the same code and API in C\# and Java
+	\item Extensibility
+	\item Performance
+	\item Integration of other Ambeth modules
+\end{itemize}
+
+\subsubsection{IoC Container}
+\TODO
+
+To create and start the Ambeth Container the class "BeanContextFactory" is used. Calling the static method "createBootstrap" without parameters creates a container with the "ConversionHelper" from Ambeth as only bean. By using the parametrized methods modules can be specified and the resulting context contains all beans defined by the given modules. An instance "IServiceContext" represents the created container.
+Creating a new context may be done in the "main" method, during the initialization of a web servlet context or even anytime at runtime.
+
+To work with the container from outside the container the instance of "IServiceContext" can be used that is returned when the container is created.
+
+To stop the Ambeth Container the method "dispose" is called on the "IServiceContext" that was previously created to start the container.
+
+
+\begin{lstlisting}[style=Java,caption={Start, use and stop an Ambeth Bean Container}]
+IServiceContext beanContext = BeanContextFactory.createBootstrap(HelloWorldModule.class);
+HelloWorldService service = (HelloWorldService) beanContext.getService("helloWorldService");
+service.speak();
+beanContext.dispose();
+\end{lstlisting}
+At first a container is created. The definition of the container content is made in the given module. When the container is created it is asked for a bean named "helloWorldService". The bean is used to call the method "speak". The last step is stopping the container by calling the method "dispose".
+
+\subsubsection{IoC Modules}
+\TODO
+\subsubsection{IoC Bean}
+A bean is an object which is managed by the container during its whole lifecycle. It may be an entity, but also a service and is implemented as POJO. Regularly beans are singletons but this is not mandatory.
+
+\subsubsection{Bean Lifecycle}
+
+The lifecycle consists of the three main phases Init, Lifespan and Destroy, each tailored into smaller sub phases and fully controlled by the Ambeth Container. All accesses have to done via the container.
+
+Starting with the "constructor()" phase all objects are intantiated. In the Init phase alle (public) properties and dependencies are injected, followed by calling the "afterPropertiesSet" method (if available) of each bean as soon as all injections have been mave for this bean.
+When all injections are done and the "afterPropertiesSet" methods are called the Lifespan phase begins. As the first step of this phase the container calls the "afterStarted" Method of all beans implementing the "IStartingBean" interface.
+At the end of the Lifespan phase the Destroy phase begins by calling the "destroy" method of all beans implementing the "IDisposableBean" interface. Having done this the container stops itself and all objects, including the container itself, and its resources can be freed by the garbage collector.
+
+\def\showimgref{img/bean-lifecycle.png}
+\showimgfull{Bean Lifecycle}
+
+The Ambeth IoC container defines interfaces that may be implemented by beans that need to be notified about state change of their lifecycle. These interfaces are:
+
+\begin{itemize}
+	\item \prettyref{feature:InitializingBean} after properties are set
+	\item \prettyref{feature:StartingBean} after context started
+	\item \prettyref{feature:DisposableBean} on stop and shutdown of context
+\end{itemize}
+
+\subsubsection{Customize IoC Beans}
+
+There some more ways to customize beans beyond their lifecycle:
+
+\begin{itemize}
+	\item \prettyref{feature:FactoryBean} create a custom made bean
+	\item \prettyref{feature:BeanPreProcessor} hook on the creation before injection
+	\item \prettyref{feature:BeanPostProcessor} hook on a bean after lifecycle startup of that bean
+\end{itemize}
+
+\subsection{Unit Testing}
+\TODO
+\subsection{Features}
+\begin{itemize}
+	\item \prettyref{annotation:SQLData}
+	\item \prettyref{annotation:SQLDataList}
+	\item \prettyref{annotation:SQLDataRebuild}
+	\item \prettyref{annotation:SQLStructure}
+	\item \prettyref{annotation:SQLStructureList}
+	\item \prettyref{annotation:SQLTableSynonyms}
+	\item \prettyref{annotation:TestFrameworkModule}
+	\item \prettyref{annotation:TestModule}
+	\item \prettyref{annotation:TestProperties}
+	\item \prettyref{annotation:TestRebuildContext}
+\end{itemize}

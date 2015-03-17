@@ -10,43 +10,23 @@ import de.osthus.ambeth.cache.ICacheContext;
 import de.osthus.ambeth.cache.ICacheProvider;
 import de.osthus.ambeth.cache.ICacheProviderExtendable;
 import de.osthus.ambeth.cache.IRootCache;
-import de.osthus.ambeth.cache.ISingleCacheParamRunnable;
-import de.osthus.ambeth.cache.ISingleCacheRunnable;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
+import de.osthus.ambeth.ioc.threadlocal.ForkableType;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.AbstractSimpleInterceptor;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 import de.osthus.ambeth.util.ParamChecker;
 
 public class CacheProviderInterceptor extends AbstractSimpleInterceptor implements ICacheProviderExtendable, ICacheProvider, ICacheContext,
 		IThreadLocalCleanupBean
 {
-	public static class SingleCacheProvider implements ICacheProvider
-	{
-		protected final ICache cache;
-
-		public SingleCacheProvider(ICache cache)
-		{
-			this.cache = cache;
-		}
-
-		@Override
-		public ICache getCurrentCache()
-		{
-			return cache;
-		}
-
-		@Override
-		public boolean isNewInstanceOnCall()
-		{
-			return false;
-		}
-	}
-
 	private static final Set<Method> methodsDirectlyToRootCache = new HashSet<Method>();
 
 	static
@@ -68,6 +48,7 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 
 	protected final Stack<ICacheProvider> cacheProviderStack = new Stack<ICacheProvider>();
 
+	@Forkable(ForkableType.SHALLOW_COPY)
 	protected final ThreadLocal<Stack<ICacheProvider>> cacheProviderStackTL = new SensitiveThreadLocal<Stack<ICacheProvider>>();
 
 	@Autowired
@@ -123,41 +104,22 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 	}
 
 	@Override
-	public <R> R executeWithCache(ISingleCacheRunnable<R> runnable) throws Throwable
+	public <R> R executeWithCache(IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable
 	{
 		return executeWithCache(threadLocalCacheProvider, runnable);
 	}
 
 	@Override
-	public <R, T> R executeWithCache(ISingleCacheParamRunnable<R, T> runnable, T state) throws Throwable
+	public <R, T> R executeWithCache(IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state) throws Throwable
 	{
 		return executeWithCache(threadLocalCacheProvider, runnable, state);
 	}
 
 	@Override
-	public <R> R executeWithCache(ICacheProvider cacheProvider, ISingleCacheRunnable<R> runnable) throws Throwable
+	public <R> R executeWithCache(ICacheProvider cacheProvider, IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable
 	{
 		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
 		ParamChecker.assertParamNotNull(runnable, "runnable");
-		ICache cache = cacheProvider.getCurrentCache();
-		return executeWithCache(cache, runnable);
-	}
-
-	@Override
-	public <R, T> R executeWithCache(ICacheProvider cacheProvider, ISingleCacheParamRunnable<R, T> runnable, T state) throws Throwable
-	{
-		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
-		ParamChecker.assertParamNotNull(runnable, "runnable");
-		ICache cache = cacheProvider.getCurrentCache();
-		return executeWithCache(cache, runnable, state);
-	}
-
-	@Override
-	public <R> R executeWithCache(final ICache cache, ISingleCacheRunnable<R> runnable) throws Throwable
-	{
-		ParamChecker.assertParamNotNull(cache, "cache");
-		ParamChecker.assertParamNotNull(runnable, "runnable");
-		ICacheProvider singletonCacheProvider = new SingleCacheProvider(cache);
 
 		Stack<ICacheProvider> stack = cacheProviderStackTL.get();
 		if (stack == null)
@@ -165,14 +127,14 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 			stack = new Stack<ICacheProvider>();
 			cacheProviderStackTL.set(stack);
 		}
-		stack.push(singletonCacheProvider);
+		stack.push(cacheProvider);
 		try
 		{
-			return runnable.run();
+			return runnable.invoke();
 		}
 		finally
 		{
-			if (stack.pop() != singletonCacheProvider)
+			if (stack.pop() != cacheProvider)
 			{
 				throw new IllegalStateException("Must never happen");
 			}
@@ -180,11 +142,10 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 	}
 
 	@Override
-	public <R, T> R executeWithCache(ICache cache, ISingleCacheParamRunnable<R, T> runnable, T state) throws Throwable
+	public <R, T> R executeWithCache(ICacheProvider cacheProvider, IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state) throws Throwable
 	{
-		ParamChecker.assertParamNotNull(cache, "cache");
+		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
 		ParamChecker.assertParamNotNull(runnable, "runnable");
-		ICacheProvider singletonCacheProvider = new SingleCacheProvider(cache);
 
 		Stack<ICacheProvider> stack = cacheProviderStackTL.get();
 		if (stack == null)
@@ -192,18 +153,34 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 			stack = new Stack<ICacheProvider>();
 			cacheProviderStackTL.set(stack);
 		}
-		stack.push(singletonCacheProvider);
+		stack.push(cacheProvider);
 		try
 		{
-			return runnable.run(state);
+			return runnable.invoke(state);
 		}
 		finally
 		{
-			if (stack.pop() != singletonCacheProvider)
+			if (stack.pop() != cacheProvider)
 			{
 				throw new IllegalStateException("Must never happen");
 			}
 		}
+	}
+
+	@Override
+	public <R> R executeWithCache(ICache cache, IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable
+	{
+		ParamChecker.assertParamNotNull(cache, "cache");
+		ParamChecker.assertParamNotNull(runnable, "runnable");
+		return executeWithCache(new SingleCacheProvider(cache), runnable);
+	}
+
+	@Override
+	public <R, T> R executeWithCache(ICache cache, IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state) throws Throwable
+	{
+		ParamChecker.assertParamNotNull(cache, "cache");
+		ParamChecker.assertParamNotNull(runnable, "runnable");
+		return executeWithCache(new SingleCacheProvider(cache), runnable, state);
 	}
 
 	@Override

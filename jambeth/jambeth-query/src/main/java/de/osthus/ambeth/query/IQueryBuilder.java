@@ -8,6 +8,8 @@ import de.osthus.ambeth.util.IParamHolder;
 
 public interface IQueryBuilder<T> extends IDisposable
 {
+	Class<?> getEntityType();
+
 	IOperator and(IOperand leftOperand, IOperand rightOperand);
 
 	IOperator and(IOperand... operands);
@@ -105,6 +107,12 @@ public interface IQueryBuilder<T> extends IDisposable
 
 	IOperator like(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);
 
+	IOperand regexpLike(IOperand sourceString, IOperand pattern);
+
+	IOperand regexpLike(IOperand sourceString, IOperand pattern, IOperand matchParameter);
+
+	IQueryBuilder<T> limit(IOperand operand);
+
 	IOperator startsWith(IOperand leftOperand, IOperand rightOperand);
 
 	IOperator startsWith(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);
@@ -117,7 +125,9 @@ public interface IQueryBuilder<T> extends IDisposable
 
 	IOperand function(String functionName, IOperand... operands);
 
-	IQueryBuilder<T> orderBy(IOperand column, OrderByType orderByType);
+	IQueryBuilder<T> groupBy(IOperand... operand);
+
+	IQueryBuilder<T> orderBy(IOperand operand, OrderByType orderByType);
 
 	/**
 	 * Please use selectProperty() instead
@@ -132,6 +142,8 @@ public interface IQueryBuilder<T> extends IDisposable
 	int selectColumn(String columnName, ISqlJoin join);
 
 	int selectProperty(String propertyName);
+
+	int select(IOperand operand);
 
 	ISqlJoin join(Class<?> entityType, IOperand columnBase, IOperand columnJoined, JoinType joinType);
 

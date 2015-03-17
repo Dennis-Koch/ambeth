@@ -9,7 +9,7 @@ using De.Osthus.Ambeth.Bytecode;
 using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Bytecode.Behavior;
 
-namespace De.Osthus.Ambeth.Visitor
+namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
     public class TraceILGenerator : IILGenerator
     {

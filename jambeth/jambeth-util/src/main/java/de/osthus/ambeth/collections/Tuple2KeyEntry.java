@@ -55,4 +55,10 @@ public class Tuple2KeyEntry<Key1, Key2, V>
 	{
 		return value;
 	}
+
+	@Override
+	public String toString()
+	{
+		return "(" + getKey1() + ":" + getKey2() + "," + getValue();
+	}
 }

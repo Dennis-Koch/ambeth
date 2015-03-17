@@ -2,11 +2,12 @@ package de.osthus.ambeth.query.inmemory.builder;
 
 import javax.persistence.criteria.JoinType;
 
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.filter.IPagingQuery;
 import de.osthus.ambeth.ioc.IBeanRuntime;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.query.IOperand;
@@ -33,37 +34,28 @@ import de.osthus.ambeth.query.inmemory.text.StartsWithOperator;
 import de.osthus.ambeth.util.IParamHolder;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>, IInitializingBean
+public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IServiceContext beanContext;
 
+	@Property
 	protected Class<?> entityType;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(beanContext, "beanContext");
-		ParamChecker.assertNotNull(entityType, "entityType");
-	}
-
-	public void setBeanContext(IServiceContext beanContext)
-	{
-		this.beanContext = beanContext;
-	}
-
-	public void setEntityType(Class<?> entityType)
-	{
-		this.entityType = entityType;
-	}
 
 	@Override
 	public void dispose()
 	{
 		// Intended blank
+	}
+
+	@Override
+	public Class<?> getEntityType()
+	{
+		return entityType;
 	}
 
 	protected IOperator createUnaryOperator(Class<? extends IOperator> operatorType, Object operand, Boolean caseSensitive)
@@ -72,7 +64,7 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>, IInitializingB
 		ParamChecker.assertParamNotNull(operand, "operand");
 		try
 		{
-			IBeanRuntime<? extends IOperator> operatorBC = beanContext.registerAnonymousBean(operatorType).propertyValue("Operand", operand);
+			IBeanRuntime<? extends IOperator> operatorBC = beanContext.registerBean(operatorType).propertyValue("Operand", operand);
 			if (caseSensitive != null)
 			{
 				operatorBC.propertyValue("CaseSensitive", caseSensitive);
@@ -92,7 +84,7 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>, IInitializingB
 		ParamChecker.assertParamNotNull(rightOperand, "rightOperand");
 		try
 		{
-			IBeanRuntime<? extends IOperator> operatorBC = beanContext.registerAnonymousBean(operatorType).propertyValue("LeftOperand", leftOperand)
+			IBeanRuntime<? extends IOperator> operatorBC = beanContext.registerBean(operatorType).propertyValue("LeftOperand", leftOperand)
 					.propertyValue("RightOperand", rightOperand);
 			if (caseSensitive != null)
 			{
@@ -112,7 +104,7 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>, IInitializingB
 		ParamChecker.assertParamNotNull(operands, "operands");
 		try
 		{
-			IBeanRuntime<? extends IOperator> operatorBC = beanContext.registerAnonymousBean(operatorType).propertyValue("Operands", operands);
+			IBeanRuntime<? extends IOperator> operatorBC = beanContext.registerBean(operatorType).propertyValue("Operands", operands);
 			return operatorBC.finish();
 		}
 		catch (Throwable e)
@@ -148,13 +140,13 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>, IInitializingB
 	@Override
 	public IOperator trueOperator()
 	{
-		return beanContext.registerAnonymousBean(TrueOperator.class).finish();
+		return beanContext.registerBean(TrueOperator.class).finish();
 	}
 
 	@Override
 	public IOperator falseOperator()
 	{
-		return beanContext.registerAnonymousBean(FalseOperator.class).finish();
+		return beanContext.registerBean(FalseOperator.class).finish();
 	}
 
 	@Override
@@ -368,6 +360,24 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>, IInitializingB
 	}
 
 	@Override
+	public IOperand regexpLike(IOperand sourceString, IOperand pattern)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public IOperand regexpLike(IOperand sourceString, IOperand pattern, IOperand matchParameter)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public IQueryBuilder<T> limit(IOperand operand)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public IOperator startsWith(IOperand leftOperand, IOperand rightOperand)
 	{
 		return createBinaryOperator(StartsWithOperator.class, leftOperand, rightOperand, null);
@@ -404,6 +414,12 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>, IInitializingB
 	}
 
 	@Override
+	public IQueryBuilder<T> groupBy(IOperand... operand)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public IQueryBuilder<T> orderBy(IOperand column, OrderByType orderByType)
 	{
 		throw new UnsupportedOperationException();
@@ -423,6 +439,12 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>, IInitializingB
 
 	@Override
 	public int selectProperty(String propertyName)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public int select(IOperand operand)
 	{
 		throw new UnsupportedOperationException();
 	}

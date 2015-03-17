@@ -1,9 +1,8 @@
+using De.Osthus.Ambeth.Merge;
 namespace De.Osthus.Ambeth.Database
 {
-    public interface ITransaction
+    public interface ITransaction : ILightweightTransaction
     {
-        bool Active { get; }
-
         void Begin(bool readOnly);
 
         void Commit();

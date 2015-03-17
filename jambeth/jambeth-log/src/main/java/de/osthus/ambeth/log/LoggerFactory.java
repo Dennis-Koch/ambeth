@@ -112,7 +112,8 @@ public final class LoggerFactory
 	{
 		HashSet<String> allPropertiesSet = new HashSet<String>();
 		appProps.collectAllPropertyKeys(allPropertiesSet);
-		int highestPrecisionFound = 0;
+		// highest precision found
+		int logLevelHPF = 0, logConsoleHPF = 0, logSourceHPF = 0;
 		for (String key : allPropertiesSet)
 		{
 			Matcher matcher = LoggerFactory.logRegex.matcher(key);
@@ -132,11 +133,11 @@ public final class LoggerFactory
 			}
 			if (logLevelPropertyName.equals(type))
 			{
-				if (target.length() < highestPrecisionFound)
+				if (target.length() < logLevelHPF)
 				{
 					continue;
 				}
-				highestPrecisionFound = target.length();
+				logLevelHPF = target.length();
 				String value = appProps.getString(key).toLowerCase();
 				if (logLevelDebug.equals(value))
 				{
@@ -169,11 +170,21 @@ public final class LoggerFactory
 			}
 			else if (logConsolePropertyName.equals(type))
 			{
+				if (target.length() < logConsoleHPF)
+				{
+					continue;
+				}
+				logConsoleHPF = target.length();
 				String value = appProps.getString(key).toLowerCase();
 				logger.setLogToConsole(Boolean.parseBoolean(value));
 			}
 			else if (logSourcePropertyName.equals(type))
 			{
+				if (target.length() < logSourceHPF)
+				{
+					continue;
+				}
+				logSourceHPF = target.length();
 				String value = appProps.getString(key).toUpperCase();
 				logger.setLogSourceLevel(LogSourceLevel.valueOf(value));
 			}
@@ -182,6 +193,7 @@ public final class LoggerFactory
 				throw new IllegalStateException("Property: " + key + " not supported");
 			}
 		}
+		logger.postProcess(appProps);
 	}
 
 	private LoggerFactory()

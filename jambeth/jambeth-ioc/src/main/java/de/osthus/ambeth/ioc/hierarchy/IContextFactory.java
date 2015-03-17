@@ -1,9 +1,10 @@
 package de.osthus.ambeth.ioc.hierarchy;
 
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.RegisterPhaseDelegate;
+import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 
 public interface IContextFactory
 {
-	IServiceContext createChildContext(RegisterPhaseDelegate registerPhaseDelegate);
+	IServiceContext createChildContext(IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate);
 }

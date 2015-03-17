@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace De.Osthus.Ambeth.Ioc
 {
-    public class LoggingPostProcessor : AbstractCascadePostProcessor, IOrderedBeanPostProcessor
+    public class LoggingPostProcessor : AbstractCascadePostProcessor
     {
         [LogInstance]
 		public ILogger Log { private get; set; }
@@ -78,9 +78,9 @@ namespace De.Osthus.Ambeth.Ioc
             //return ProxyFactory.CreateProxy(requestedType, logInterceptor);
         }
 
-        public PostProcessorOrder GetOrder()
+        public override PostProcessorOrder GetOrder()
         {
-            return PostProcessorOrder.HIGHER;
+            return PostProcessorOrder.HIGHEST;
         }
     }
 }

@@ -4,8 +4,8 @@ using De.Osthus.Ambeth.Util;
 using System;
 using System.Collections.Generic;
 
-namespace De.Osthus.Ambeth.Ioc{
-
+namespace De.Osthus.Ambeth.Ioc
+{
     public class DefaultExtendableContainer<V> : IExtendableContainer<V>
     {
         protected String message;
@@ -24,6 +24,11 @@ namespace De.Osthus.Ambeth.Ioc{
             ReadWriteLock rwLock = new ReadWriteLock();
             readLock = rwLock.ReadLock;
             writeLock = rwLock.WriteLock;
+        }
+
+        public Lock GetWriteLock()
+        {
+            return writeLock;
         }
 
         public void Register(V listener)

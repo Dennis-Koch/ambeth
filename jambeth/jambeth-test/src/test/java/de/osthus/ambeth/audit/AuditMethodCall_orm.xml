@@ -3,6 +3,23 @@
 
 	<entity-mappings>
 		<entity class="de.osthus.ambeth.audit.AuditEntry" />
-	</entity-mappings>
-	
+		
+		<entity class="de.osthus.ambeth.audit.AuditedEntity" />
+		
+		<entity class="de.osthus.ambeth.audit.AuditedEntityRef" />
+		
+		<entity class="de.osthus.ambeth.audit.AuditedEntityPrimitiveProperty">
+			<table name="AE_PRIMITIVE"/>
+		</entity>
+
+		<entity class="de.osthus.ambeth.audit.AuditedEntityRelationProperty">
+			<table name="AE_RELATION"/>
+		</entity>
+
+		<entity class="de.osthus.ambeth.audit.AuditedEntityRelationPropertyItem">
+			<table name="AE_RELATION_ITEM"/>
+		</entity>
+		
+		<entity class="de.osthus.ambeth.audit.AuditedService" />		
+	</entity-mappings>	
 </or-mappings>

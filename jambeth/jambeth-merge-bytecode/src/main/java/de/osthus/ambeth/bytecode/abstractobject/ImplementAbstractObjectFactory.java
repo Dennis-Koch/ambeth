@@ -13,16 +13,15 @@ import de.osthus.ambeth.ioc.proxy.Self;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityFactory;
-import de.osthus.ambeth.merge.IEntityFactoryExtension;
-import de.osthus.ambeth.merge.IEntityFactoryExtensionExtendable;
-import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.merge.IEntityInstantiationExtension;
+import de.osthus.ambeth.merge.IEntityInstantiationExtensionExtendable;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 
 /**
  * ImplementAbstractObjectFactory implements objects based on interfaces. Optionally the implementations can inherit from an (abstract) base type
  */
 public class ImplementAbstractObjectFactory implements IDisposableBean, IImplementAbstractObjectFactory, IImplementAbstractObjectFactoryExtendable,
-		IEntityFactoryExtension, IInitializingBean
+		IEntityInstantiationExtension, IInitializingBean
 {
 	@LogInstance
 	private ILogger log;
@@ -34,7 +33,7 @@ public class ImplementAbstractObjectFactory implements IDisposableBean, IImpleme
 	protected IEntityFactory entityFactory;
 
 	@Autowired
-	protected IEntityFactoryExtensionExtendable entityFactoryExtensionExtendable;
+	protected IEntityInstantiationExtensionExtendable entityInstantiationExtensionExtendable;
 
 	@Autowired
 	protected IPropertyInfoProvider propertyInfoProvider;
@@ -44,7 +43,7 @@ public class ImplementAbstractObjectFactory implements IDisposableBean, IImpleme
 	protected final IMapExtendableContainer<Class<?>, Class<?>[]> interfaceTypes = new MapExtendableContainer<Class<?>, Class<?>[]>("interfaceTypes", "keyType");
 
 	@Self
-	protected IEntityFactoryExtension self;
+	protected IEntityInstantiationExtension self;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -114,7 +113,7 @@ public class ImplementAbstractObjectFactory implements IDisposableBean, IImpleme
 		if (oldBaseType == null)
 		{
 			baseTypes.register(baseType, keyType);
-			entityFactoryExtensionExtendable.registerEntityFactoryExtension(self, keyType);
+			entityInstantiationExtensionExtendable.registerEntityInstantiationExtension(self, keyType);
 		}
 		else
 		{
@@ -204,7 +203,7 @@ public class ImplementAbstractObjectFactory implements IDisposableBean, IImpleme
 			this.interfaceTypes.unregister(interfaceTypes, keyType);
 		}
 		baseTypes.unregister(baseType, keyType);
-		entityFactoryExtensionExtendable.unregisterEntityFactoryExtension(self, keyType);
+		entityInstantiationExtensionExtendable.unregisterEntityInstantiationExtension(self, keyType);
 	}
 
 	/**
@@ -294,7 +293,8 @@ public class ImplementAbstractObjectFactory implements IDisposableBean, IImpleme
 	{
 		if (isRegistered(keyType))
 		{
-			return (Class<? extends T>) bytecodeEnhancer.getEnhancedType(keyType, ImplementAbstractObjectEnhancementHint.ImplementAbstractObjectEnhancementHint);
+			return (Class<? extends T>) bytecodeEnhancer
+					.getEnhancedType(keyType, ImplementAbstractObjectEnhancementHint.ImplementAbstractObjectEnhancementHint);
 		}
 		throw new IllegalArgumentException(keyType.getName() + " is not a registered type");
 	}
@@ -306,14 +306,5 @@ public class ImplementAbstractObjectFactory implements IDisposableBean, IImpleme
 	public <T> Class<? extends T> getMappedEntityType(Class<T> type)
 	{
 		return getImplementingType(type);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Object postProcessMappedEntity(Class<?> originalType, IEntityMetaData metaData, Object mappedEntity)
-	{
-		return mappedEntity;
 	}
 }

@@ -5,23 +5,19 @@ import java.util.Set;
 
 import de.osthus.ambeth.model.AbstractEntity;
 
-public class Employee extends AbstractEntity
+public abstract class Employee extends AbstractEntity
 {
+	public static final String Name = "Name";
+
 	protected String name;
 
-	protected List<String> nicknames;
-
 	protected Address primaryAddress;
-
-	protected Set<Address> otherAddresses;
 
 	protected Employee supervisor;
 
 	protected Project primaryProject;
 
 	protected Project secondaryProject;
-
-	protected Set<Project> allProjects;
 
 	protected Car car;
 
@@ -42,15 +38,7 @@ public class Employee extends AbstractEntity
 		this.name = name;
 	}
 
-	public List<String> getNicknames()
-	{
-		return nicknames;
-	}
-
-	public void setNicknames(List<String> nicknames)
-	{
-		this.nicknames = nicknames;
-	}
+	public abstract List<String> getNicknames();
 
 	public Address getPrimaryAddress()
 	{
@@ -62,15 +50,7 @@ public class Employee extends AbstractEntity
 		this.primaryAddress = primaryAddress;
 	}
 
-	public Set<Address> getOtherAddresses()
-	{
-		return otherAddresses;
-	}
-
-	public void setOtherAddresses(Set<Address> otherAddresses)
-	{
-		this.otherAddresses = otherAddresses;
-	}
+	public abstract Set<Address> getOtherAddresses();
 
 	public Employee getSupervisor()
 	{
@@ -102,15 +82,7 @@ public class Employee extends AbstractEntity
 		this.secondaryProject = secondaryProject;
 	}
 
-	public Set<Project> getAllProjects()
-	{
-		return allProjects;
-	}
-
-	public void setAllProjects(Set<Project> projects)
-	{
-		this.allProjects = projects;
-	}
+	public abstract Set<Project> getAllProjects();
 
 	public Car getCar()
 	{

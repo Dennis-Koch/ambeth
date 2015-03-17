@@ -20,11 +20,12 @@ import javax.persistence.PersistenceException;
 
 import org.junit.Test;
 
+import de.osthus.ambeth.cache.ChildCache;
 import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheContext;
 import de.osthus.ambeth.cache.ICacheProvider;
-import de.osthus.ambeth.cache.ISingleCacheRunnable;
+import de.osthus.ambeth.cache.RootCache;
 import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
 import de.osthus.ambeth.cache.config.CacheNamedBeans;
 import de.osthus.ambeth.cache.interceptor.CacheInterceptor;
@@ -33,6 +34,7 @@ import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
+import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.persistence.exception.NullConstraintException;
 import de.osthus.ambeth.persistence.xml.model.Address;
 import de.osthus.ambeth.persistence.xml.model.Boat;
@@ -40,12 +42,19 @@ import de.osthus.ambeth.persistence.xml.model.Employee;
 import de.osthus.ambeth.persistence.xml.model.IBusinessService;
 import de.osthus.ambeth.persistence.xml.model.IEmployeeService;
 import de.osthus.ambeth.persistence.xml.model.Project;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.security.IAuthentication;
+import de.osthus.ambeth.security.IAuthorization;
+import de.osthus.ambeth.security.ISecurityContext;
+import de.osthus.ambeth.security.ISecurityContextHolder;
+import de.osthus.ambeth.security.ISecurityScopeProvider;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.IParamHolder;
 import de.osthus.ambeth.util.ParamHolder;
 
@@ -54,7 +63,7 @@ import de.osthus.ambeth.util.ParamHolder;
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/orm.xml"),
 		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false") })
 @TestModule(TestServicesModule.class)
-public class RelationsTest extends AbstractPersistenceTest
+public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Autowired
 	protected IBusinessService businessService;
@@ -64,6 +73,15 @@ public class RelationsTest extends AbstractPersistenceTest
 
 	@Autowired
 	protected IEmployeeService employeeService;
+
+	@Autowired
+	protected ISecurityContextHolder securityContextHolder;
+
+	@Autowired
+	protected ISecurityScopeProvider securityScopeProvider;
+
+	@Autowired
+	protected IThreadLocalCleanupController threadLocalCleanupController;
 
 	@Test
 	public void testNullableToOne() throws Throwable
@@ -175,12 +193,32 @@ public class RelationsTest extends AbstractPersistenceTest
 	@Test
 	public void testCascadDelete() throws Throwable
 	{
-		Employee employee = cache.getObject(Employee.class, 1);
+		final Employee employee = cache.getObject(Employee.class, 1);
 		assertFalse(employee.getOtherAddresses().isEmpty());
 		Address actual = employee.getOtherAddresses().iterator().next();
 		assertNotNull(cache.getObject(Address.class, actual.getId()));
 
-		employeeService.delete(employee);
+		try
+		{
+			transaction.runInTransaction(new IBackgroundWorkerDelegate()
+			{
+				@Override
+				public void invoke() throws Throwable
+				{
+					employeeService.delete(employee);
+					throw new RuntimeException();
+				}
+			});
+		}
+		catch (RuntimeException e)
+		{
+			// intended blank
+		}
+		ChildCache childCache = (ChildCache) cache.getCurrentCache();
+		childCache.clear();
+		((RootCache) childCache.getParent().getCurrentCache()).clear();
+		final Employee employee3 = cache.getObject(Employee.class, 1);
+		employeeService.delete(employee3);
 
 		assertNull(cache.getObject(Address.class, actual.getId()));
 	}
@@ -203,10 +241,15 @@ public class RelationsTest extends AbstractPersistenceTest
 	@Test
 	public void testListDelete() throws Throwable
 	{
-		List<Employee> employees = cache.getObjects(Employee.class, 1, 2, 3);
+		// List<Employee> employees = cache.getObjects(Employee.class, 1, 2, 3);
+		// employeeService.delete(employees);
+		//
+		// assertTrue(cache.getObjects(Employee.class, 1, 2, 3).isEmpty());
+
+		List<Employee> employees = cache.getObjects(Employee.class, 1);
 		employeeService.delete(employees);
 
-		assertTrue(cache.getObjects(Employee.class, 1, 2, 3).isEmpty());
+		assertTrue(cache.getObjects(Employee.class, 1).isEmpty());
 	}
 
 	@Test
@@ -497,6 +540,11 @@ public class RelationsTest extends AbstractPersistenceTest
 
 		final ICacheContext cacheContext = beanContext.getService(ICacheContext.class);
 
+		ISecurityContext context = securityContextHolder.getContext();
+		final ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
+		final IAuthentication authentication = context != null ? context.getAuthentication() : null;
+		final IAuthorization authorization = context != null ? context.getAuthorization() : null;
+
 		Thread savingThread = new Thread(new Runnable()
 		{
 			@Override
@@ -504,11 +552,19 @@ public class RelationsTest extends AbstractPersistenceTest
 			{
 				try
 				{
-					cacheContext.executeWithCache(cacheProvider, new ISingleCacheRunnable<Object>()
+					cacheContext.executeWithCache(cacheProvider, new IResultingBackgroundWorkerDelegate<Object>()
 					{
 						@Override
-						public Object run() throws Throwable
+						public Object invoke() throws Throwable
 						{
+							if (authentication != null || authorization != null)
+							{
+								ISecurityContext context = securityContextHolder.getCreateContext();
+								context.setAuthentication(authentication);
+								context.setAuthorization(authorization);
+							}
+							securityScopeProvider.setSecurityScopes(securityScopes);
+
 							List<Employee> employees = employeeService.getAll();
 
 							barrier1.await();
@@ -566,11 +622,19 @@ public class RelationsTest extends AbstractPersistenceTest
 			{
 				try
 				{
-					cacheContext.executeWithCache(cacheProvider, new ISingleCacheRunnable<Object>()
+					cacheContext.executeWithCache(cacheProvider, new IResultingBackgroundWorkerDelegate<Object>()
 					{
 						@Override
-						public Object run() throws Throwable
+						public Object invoke() throws Throwable
 						{
+							if (authentication != null || authorization != null)
+							{
+								ISecurityContext context = securityContextHolder.getCreateContext();
+								context.setAuthentication(authentication);
+								context.setAuthorization(authorization);
+							}
+							securityScopeProvider.setSecurityScopes(securityScopes);
+
 							List<Employee> employees = employeeService.getAll();
 
 							barrier1.await();
@@ -671,7 +735,8 @@ public class RelationsTest extends AbstractPersistenceTest
 	public void testListOfStrings()
 	{
 		Employee employee = cache.getObject(Employee.class, 1);
-		employee.setNicknames(Arrays.asList("nick1", "nick2"));
+		employee.getNicknames().add("nick1");
+		employee.getNicknames().add("nick2");
 		employeeService.save(employee);
 	}
 }

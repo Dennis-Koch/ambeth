@@ -1,11 +1,13 @@
 ﻿using De.Osthus.Ambeth.Helloworld.Transfer;
 using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Service;
 using De.Osthus.Ambeth.Test;
 using De.Osthus.Ambeth.Testutil;
 using De.Osthus.Ambeth.Threading;
+using De.Osthus.Ambeth.Walker;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.ComponentModel;
@@ -16,6 +18,12 @@ namespace De.Osthus.Ambeth.Cache.DataChange
     [TestClass]
     public class DataChangeTest : AbstractHelloWorldTest
     {
+        [LogInstance]
+        public new ILogger Log { private get; set; }
+
+        [Autowired]
+        public ICacheWalker CacheWalker { protected get; set; }
+
         [Autowired]
         public IMergeService MergeService { protected get; set; }
 
@@ -32,6 +40,9 @@ namespace De.Osthus.Ambeth.Cache.DataChange
             WaitForUI();
 
             newTestEntity.Relation = EntityFactory.CreateEntity<TestEntity2>();
+
+            ICacheWalkerResult cwResult = CacheWalker.WalkEntities(newTestEntity);
+            Log.Info(cwResult.ToString());
 
             ICUDResult mergeResult = MergeController.MergeDeep(newTestEntity, new MergeHandle());
 

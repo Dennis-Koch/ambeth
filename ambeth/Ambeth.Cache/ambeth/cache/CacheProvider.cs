@@ -1,13 +1,13 @@
-using System;
-using System.Threading;
+using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Ioc;
+using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Ioc.Threadlocal;
 using De.Osthus.Ambeth.Log;
-using De.Osthus.Ambeth.Util;
-using De.Osthus.Ambeth.Ioc.Annotation;
-using De.Osthus.Ambeth.Config;
+using De.Osthus.Ambeth.Merge.Config;
 using De.Osthus.Ambeth.Security;
-using De.Osthus.Ambeth.Security.Config;
+using De.Osthus.Ambeth.Util;
+using System;
+using System.Threading;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -25,7 +25,7 @@ namespace De.Osthus.Ambeth.Cache
         [Autowired(Optional = true)]
         public ISecurityActivation SecurityActivation { protected get; set; }
 
-        [Property(SecurityConfigurationConstants.SecurityActive, DefaultValue = "false")]
+        [Property(MergeConfigurationConstants.SecurityActive, DefaultValue = "false")]
         public bool SecurityActive { protected get; set; }
 
         [Property]
@@ -35,8 +35,10 @@ namespace De.Osthus.Ambeth.Cache
 
         protected volatile ICache privilegedSingletonCache;
 
+        [Forkable]
         protected ThreadLocal<IDisposableCache> cacheTL;
 
+        [Forkable]
         protected ThreadLocal<IDisposableCache> privilegedCacheTL;
 
         protected readonly Lock writeLock = new ReadWriteLock().WriteLock;
@@ -118,9 +120,9 @@ namespace De.Osthus.Ambeth.Cache
                     {
                         if (!SecurityActive || !SecurityActivation.FilterActivated)
                         {
-                            return CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, null);
+                            return CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, null, "CacheProvider.PROTOTYPE");
                         }
-                        return CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, false, null);
+                        return CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, false, null, "CacheProvider.PROTOTYPE");
                     }
                 case CacheType.SINGLETON:
                     {
@@ -131,7 +133,7 @@ namespace De.Osthus.Ambeth.Cache
                             {
                                 if (privilegedSingletonCache == null)
                                 {
-                                    privilegedSingletonCache = CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, true, null);
+                                    privilegedSingletonCache = CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, true, null, "CacheProvider.SINGLETON");
                                 }
                                 return privilegedSingletonCache;
                             }
@@ -139,7 +141,7 @@ namespace De.Osthus.Ambeth.Cache
                             {
                                 if (singletonCache == null)
                                 {
-                                    singletonCache = CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, true, null);
+                                    singletonCache = CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, true, null, "CacheProvider.SINGLETON");
                                 }
                                 return singletonCache;
                             }
@@ -156,7 +158,7 @@ namespace De.Osthus.Ambeth.Cache
                             IDisposableCache cache = privilegedCacheTL.Value;
                             if (cache == null)
                             {
-                                cache = CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, false);
+                                cache = CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, false, "CacheProvider.THREAD_LOCAL");
                                 privilegedCacheTL.Value = cache;
                             }
                             return cache;
@@ -166,7 +168,7 @@ namespace De.Osthus.Ambeth.Cache
                             IDisposableCache cache = cacheTL.Value;
                             if (cache == null)
                             {
-                                cache = CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, false, false);
+                                cache = CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, false, false, "CacheProvider.THREAD_LOCAL");
                                 cacheTL.Value = cache;
                             }
                             return cache;

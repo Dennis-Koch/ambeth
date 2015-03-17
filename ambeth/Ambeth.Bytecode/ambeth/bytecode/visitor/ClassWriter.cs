@@ -128,7 +128,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public virtual IFieldVisitor VisitField(FieldInstance field)
         {
-            if (Log.DebugEnabled)
+            if (Log.DebugEnabled && !State.OriginalType.Name.Contains("Member"))
             {
                 Log.Debug("Implement field: " + field.ToString());
             }
@@ -151,12 +151,12 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public virtual IMethodVisitor VisitMethod(MethodInstance method)
         {
-            if (Log.DebugEnabled)
+            NewType owner = State.NewType;
+            method = method.DeriveOwner();
+            if (Log.DebugEnabled && !State.OriginalType.Name.Contains("Member"))
             {
                 Log.Debug("Implement method: " + method.ToString());
             }
-            NewType owner = State.NewType;
-            method = method.DeriveOwner();
             Type[] parameters = new Type[method.Parameters.Length];
             for (int a = parameters.Length; a-- > 0; )
             {
@@ -311,7 +311,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         {
             ParamChecker.AssertParamNotNull(propertyName, "propertyName");
             ParamChecker.AssertParamNotNull(fieldValue, "fieldValue");
-            FieldInstance field = ImplementStaticAssignedField("sf_" + propertyName, fieldValue);
+            String fieldName = propertyName.StartsWith("__") ? "sf" + propertyName : "sf__" + propertyName;
+            FieldInstance field = ImplementStaticAssignedField(fieldName, fieldValue);
             MethodInstance getter = new MethodInstance(State.NewType, MethodAttributes.Public | MethodAttributes.Static, field.Type, "get_" + propertyName);
             getter = HideFromDebug(ImplementGetter(getter, field));
             PropertyInstance property = State.GetProperty(propertyName, field.Type);
@@ -334,7 +335,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             IFieldVisitor fv = VisitField(field);
             if (script != null)
             {
-                script.Invoke(fv);
+                script(fv);
             }
             fv.VisitEnd();
             return State.GetAlreadyImplementedField(field.Name);
@@ -461,6 +462,44 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             mg.InvokeSuper(superMethod);
 
             return mg;
+        }
+
+        public MethodInstance ImplementSwitchByIndex(MethodInstance method, String exceptionMessageOnIllegalIndex, int indexSize, ScriptWithIndex script)
+        {
+            IMethodVisitor mv = VisitMethod(method);
+
+            if (indexSize == 0)
+            {
+                mv.ThrowException(typeof(ArgumentException), exceptionMessageOnIllegalIndex);
+                mv.PushNull();
+                mv.ReturnValue();
+                mv.EndMethod();
+                return mv.Method;
+            }
+
+            Label l_default = mv.NewLabel();
+            Label[] l_fields = new Label[indexSize];
+            for (int index = 0, size = indexSize; index < size; index++)
+            {
+                l_fields[index] = mv.NewLabel();
+            }
+
+            mv.LoadArg(0);
+            mv.VisitTableSwitchInsn(0, l_fields.Length - 1, l_default, l_fields);
+
+            for (int index = 0, size = l_fields.Length; index < size; index++)
+            {
+                mv.Mark(l_fields[index]);
+
+                script(mv, index);
+            }
+            mv.Mark(l_default);
+
+            mv.ThrowException(typeof(ArgumentException), "Given relationIndex not known");
+            mv.PushNull();
+            mv.ReturnValue();
+            mv.EndMethod();
+            return mv.Method;
         }
 
         public void Visit(TypeAttributes access, String name, Type superName, Type[] interfaces)

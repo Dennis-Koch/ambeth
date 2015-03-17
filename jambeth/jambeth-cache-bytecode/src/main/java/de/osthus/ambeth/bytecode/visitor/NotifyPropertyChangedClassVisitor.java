@@ -21,14 +21,16 @@ import de.osthus.ambeth.collections.specialized.INotifyCollectionChangedListener
 import de.osthus.ambeth.collections.specialized.NotifyCollectionChangedEvent;
 import de.osthus.ambeth.collections.specialized.PropertyChangeSupport;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.mixin.PropertyChangeMixin;
 import de.osthus.ambeth.model.INotifyPropertyChanged;
 import de.osthus.ambeth.model.INotifyPropertyChangedSource;
+import de.osthus.ambeth.proxy.IPropertyChangeConfigurable;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
-import de.osthus.ambeth.template.PropertyChangeTemplate;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 
@@ -39,9 +41,9 @@ import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
  */
 public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 {
-	public static final Class<?> templateType = PropertyChangeTemplate.class;
+	public static final Class<?> templateType = PropertyChangeMixin.class;
 
-	protected static final String templatePropertyName = templateType.getSimpleName();
+	protected static final String templatePropertyName = "__" + templateType.getSimpleName();
 
 	public static final MethodInstance template_m_collectionChanged = new MethodInstance(null, INotifyCollectionChangedListener.class, void.class,
 			"collectionChanged", NotifyCollectionChangedEvent.class);
@@ -54,6 +56,12 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 
 	public static final MethodInstance template_m_onPropertyChanged_Values = new MethodInstance(null, INotifyPropertyChangedSource.class, void.class,
 			"onPropertyChanged", String.class, Object.class, Object.class);
+
+	public static final MethodInstance template_m_isPropertyChangeActive = new MethodInstance(null, IPropertyChangeConfigurable.class, boolean.class,
+			"is__PropertyChangeActive");
+
+	public static final MethodInstance template_m_setPropertyChangeActive = new MethodInstance(null, IPropertyChangeConfigurable.class, void.class,
+			"set__PropertyChangeActive", boolean.class);
 
 	public static final MethodInstance m_handlePropertyChange = new MethodInstance(null, templateType, void.class, "handleParentChildPropertyChange",
 			INotifyPropertyChangedSource.class, PropertyChangeEvent.class);
@@ -107,15 +115,18 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 		return cv.implementAssignedReadonlyProperty(templatePropertyName, bean);
 	}
 
-	/** property infos of enhanced type */
-	protected String[] properties;
-
 	@Autowired
 	protected IPropertyInfoProvider propertyInfoProvider;
 
-	public NotifyPropertyChangedClassVisitor(ClassVisitor cv, String[] properties)
+	/** property infos of enhanced type */
+	protected String[] properties;
+
+	protected IEntityMetaData metaData;
+
+	public NotifyPropertyChangedClassVisitor(ClassVisitor cv, IEntityMetaData metaData, String[] properties)
 	{
 		super(cv);
+		this.metaData = metaData;
 		this.properties = properties;
 	}
 
@@ -128,7 +139,10 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 		FieldInstance f_propertyChangeSupport = getPropertyChangeSupportField();
 		PropertyInstance p_propertyChangeTemplate = getPropertyChangeTemplatePI(this);
 
+		implementPropertyChangeConfigurable();
+
 		MethodInstance m_usePropertyChangeSupport = implementUsePropertyChangeSupport(p_propertyChangeTemplate, f_propertyChangeSupport);
+		f_propertyChangeSupport = getState().getAlreadyImplementedField(f_propertyChangeSupport.getName());
 
 		implementNotifyPropertyChanged(p_propertyChangeTemplate, m_usePropertyChangeSupport);
 
@@ -222,6 +236,11 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 		{
 			return;
 		}
+		if (InitializeEmbeddedMemberVisitor.isEmbeddedMember(metaData, propertyInfo.getName()))
+		{
+			return;
+		}
+
 		PropertyInstance p_setterMethodHandle = implementAssignedReadonlyProperty(getPropertyNameForGetterMethodHandle(propertyInfo.getName()),
 				new IValueResolveDelegate()
 				{
@@ -377,12 +396,21 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 			// override existing
 			mg = visitMethod(m_firePropertyChange_super);
 		}
+		Label l_propertyChangeIsInactive = mg.newLabel();
+
+		MethodInstance m_isPropertyChangeActive = MethodInstance.findByTemplate(template_m_isPropertyChangeActive, false);
+
+		mg.callThisGetter(m_isPropertyChangeActive);
+		mg.ifZCmp(GeneratorAdapter.EQ, l_propertyChangeIsInactive);
+
 		mg.callThisGetter(p_propertyChangeTemplate);
 		mg.loadThis();
 		mg.loadArgs();
 		// firePropertyChange(thisPointer, propertyChangeSupport, property, oldValue, newValue)
 		mg.invokeVirtual(m_firePropertyChange);
 		mg.popIfReturnValue(m_firePropertyChange);
+		mg.mark(l_propertyChangeIsInactive);
+
 		mg.returnVoidOrThis();
 		mg.endMethod();
 
@@ -451,8 +479,8 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 			mv.loadArg(0);
 			mv.invokeVirtual(m_getMethodHandle);
 
-			mv.loadArg(0);
 			mv.loadArg(1);
+			mv.loadArg(2);
 			// firePropertyChange(sender, propertyChangeSupport, property, oldValue, newValue)
 			mv.invokeVirtual(m_firePropertyChange);
 			mv.popIfReturnValue(m_firePropertyChange);
@@ -560,5 +588,47 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 			mg.returnValue();
 			mg.endMethod();
 		}
+	}
+
+	protected void implementPropertyChangeConfigurable()
+	{
+		String fieldName = "__propertyChangeActive";
+		if (getState().getAlreadyImplementedField(fieldName) != null)
+		{
+			if (properties == null)
+			{
+				throw new IllegalStateException("It seems that this visitor has been executing twice");
+			}
+			return;
+		}
+		else if (properties != null)
+		{
+			// do not apply in this case
+			return;
+		}
+		FieldInstance f_propertyChangeActive = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, fieldName, null, boolean.class));
+
+		Constructor<?>[] constructors = BytecodeBehaviorState.getState().getCurrentType().getDeclaredConstructors();
+		for (int a = constructors.length; a-- > 0;)
+		{
+			ConstructorInstance ci = new ConstructorInstance(constructors[a]);
+			MethodGenerator mv = visitMethod(ci);
+			mv.loadThis();
+			mv.loadArgs();
+			mv.invokeSuperOfCurrentMethod();
+
+			mv.putThisField(f_propertyChangeActive, new Script()
+			{
+				@Override
+				public void execute(MethodGenerator mg)
+				{
+					mg.push(true);
+				}
+			});
+			mv.returnValue();
+			mv.endMethod();
+		}
+		implementGetter(template_m_isPropertyChangeActive, f_propertyChangeActive);
+		implementSetter(template_m_setPropertyChangeActive, f_propertyChangeActive);
 	}
 }

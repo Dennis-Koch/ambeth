@@ -6,11 +6,11 @@ import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ValueHolderState;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.proxy.IObjRefContainer;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.TestModule;
 
 @TestModule(RelationsTestModule.class)
-public abstract class AbstractRelationsTest extends AbstractPersistenceTest
+public abstract class AbstractRelationsTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Autowired
 	protected ICache cache;

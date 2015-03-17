@@ -30,6 +30,7 @@ import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.mixin.ValueHolderContainerMixin;
 import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.model.IEmbeddedType;
 import de.osthus.ambeth.model.INotifyPropertyChanged;
@@ -37,7 +38,6 @@ import de.osthus.ambeth.model.INotifyPropertyChangedSource;
 import de.osthus.ambeth.proxy.IEntityEquals;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
-import de.osthus.ambeth.template.ValueHolderContainerTemplate;
 import de.osthus.ambeth.testutil.AbstractInformationBusTest;
 import de.osthus.ambeth.testutil.TestFrameworkModule;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -45,7 +45,6 @@ import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.testutil.TestRebuildContext;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.util.ReflectUtil;
 
 @TestPropertiesList({ @TestProperties(name = CacheConfigurationConstants.AsyncPropertyChangeActive, value = "false"),
@@ -81,7 +80,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest
 	protected IProxyHelper proxyHelper;
 
 	@Autowired
-	protected ValueHolderContainerTemplate valueHolderContainerTemplate;
+	protected ValueHolderContainerMixin valueHolderContainerTemplate;
 
 	// static int count = 10000000;
 	//
@@ -746,8 +745,8 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest
 
 		IObjRef typeObjRef = oriHelper.entityToObjRef(obj);
 
-		IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.NoDCE);
-		((IValueHolderContainer) parentEntity).set__TargetCache((ICacheIntern) cache);
+		IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
+		((ICacheIntern) cache).assignEntityToCache(parentEntity);
 		((IObjRefContainer) parentEntity).set__ObjRefs(relationIndex, new IObjRef[] { typeObjRef });
 
 		Assert.assertEquals(ValueHolderState.INIT, ((IObjRefContainer) parentEntity).get__State(relationIndex));
@@ -793,8 +792,8 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest
 		Assert.assertEquals(2, matCounter.size());
 		Assert.assertTrue(matCounter.containsKey("ToBeUpdated"));
 		Assert.assertTrue(matCounter.containsKey("HasPendingChanges"));
-		Assert.assertEquals(1, matCounter.get("ToBeUpdated").intValue());
-		Assert.assertEquals(1, matCounter.get("HasPendingChanges").intValue());
+		Assert.assertEquals(5, matCounter.get("ToBeUpdated").intValue());
+		Assert.assertEquals(5, matCounter.get("HasPendingChanges").intValue());
 
 		Assert.assertEquals(5, matTypeCounter.size());
 		Assert.assertTrue(matTypeCounter.containsKey("Name"));
@@ -851,8 +850,8 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest
 		Assert.assertEquals(2, matCounter.size());
 		Assert.assertTrue(matCounter.containsKey("ToBeUpdated"));
 		Assert.assertTrue(matCounter.containsKey("HasPendingChanges"));
-		Assert.assertEquals(1, matCounter.get("ToBeUpdated").intValue());
-		Assert.assertEquals(1, matCounter.get("HasPendingChanges").intValue());
+		Assert.assertEquals(10, matCounter.get("ToBeUpdated").intValue());
+		Assert.assertEquals(10, matCounter.get("HasPendingChanges").intValue());
 	}
 
 	@Test

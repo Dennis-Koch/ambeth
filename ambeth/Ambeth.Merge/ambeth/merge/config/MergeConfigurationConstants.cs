@@ -1,8 +1,10 @@
+using De.Osthus.Ambeth.Annotation;
 using System;
 
 namespace De.Osthus.Ambeth.Merge.Config
 {
-    public class MergeConfigurationConstants
+    [ConfigurationConstants]
+    public sealed class MergeConfigurationConstants
     {
         public const String EntityFactoryType = "ambeth.merge.entityfactory.type";
 
@@ -14,7 +16,11 @@ namespace De.Osthus.Ambeth.Merge.Config
 
         public const String ExactVersionForOptimisticLockingRequired = "ambeth.merge.exact.version.required";
 
+        public const String AlwaysUpdateVersionInChangedEntities = "ambeth.merge.update.version.always";
+
         public const String ValueObjectConfigValidationActive = "ambeth.mapping.config.validate.active";
+
+        public const String SecurityActive = "ambeth.security.active";
 
         private MergeConfigurationConstants()
         {

@@ -8,6 +8,7 @@ import de.osthus.ambeth.bytecode.MethodInstance;
 import de.osthus.ambeth.bytecode.PropertyInstance;
 import de.osthus.ambeth.bytecode.behavior.BytecodeBehaviorState;
 import de.osthus.ambeth.bytecode.behavior.IBytecodeBehaviorState;
+import de.osthus.ambeth.bytecode.core.ByVisitor;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.AnnotationVisitor;
@@ -30,12 +31,46 @@ public class LogImplementationsClassVisitor extends ClassGenerator
 	{
 		IBytecodeBehaviorState state = BytecodeBehaviorState.getState();
 		FieldInstance field = new FieldInstance(state.getNewType(), access, name, signature, Type.getType(desc));
-		if (log.isDebugEnabled())
+		if (log.isDebugEnabled() && !getState().getOriginalType().getSimpleName().contains("Member"))
 		{
 			log.debug("Implement field: " + field.toString());
 		}
 		((BytecodeBehaviorState) state).fieldImplemented(field);
-		return super.visitField(access, name, desc, signature, value);
+		FieldVisitor fv = super.visitField(access, name, desc, signature, value);
+		{
+			AnnotationVisitor av = fv.visitAnnotation(Type.getDescriptor(ByVisitor.class), true);
+			av.visit("value", extractCallingVisitor("visitField"));
+			av.visitEnd();
+		}
+		return fv;
+	}
+
+	protected String extractCallingVisitor(String fromMethodName)
+	{
+		StackTraceElement[] stes = Thread.currentThread().getStackTrace();
+		StackTraceElement ste = null;
+		for (int index = 0, size = stes.length; index < size; index++)
+		{
+			if (stes[index].getClassName().equals(Thread.class.getName()))
+			{
+				continue;
+			}
+			if (stes[index].getClassName().equals(ClassGenerator.class.getName()))
+			{
+				continue;
+			}
+			if (stes[index].getClassName().equals(LogImplementationsClassVisitor.class.getName()))
+			{
+				continue;
+			}
+			if (stes[index].getMethodName().equals(fromMethodName))
+			{
+				continue;
+			}
+			ste = stes[index];
+			break;
+		}
+		return ste.getClassName() + "#" + ste.getMethodName();
 	}
 
 	@Override
@@ -43,7 +78,7 @@ public class LogImplementationsClassVisitor extends ClassGenerator
 	{
 		IBytecodeBehaviorState state = BytecodeBehaviorState.getState();
 		MethodInstance method = new MethodInstance(state.getNewType(), access, name, signature, desc);
-		if (log.isDebugEnabled())
+		if (log.isDebugEnabled() && !getState().getOriginalType().getSimpleName().contains("Member"))
 		{
 			log.debug("Implement method: " + method.toString());
 		}
@@ -148,6 +183,11 @@ public class LogImplementationsClassVisitor extends ClassGenerator
 		{
 			AnnotationVisitor av = mg.visitAnnotation(Type.getDescriptor(PropertyAccessor.class), true);
 			av.visit("value", nameFromPropertyContext);
+			av.visitEnd();
+		}
+		{
+			AnnotationVisitor av = mg.visitAnnotation(Type.getDescriptor(ByVisitor.class), true);
+			av.visit("value", extractCallingVisitor("visitMethod"));
 			av.visitEnd();
 		}
 		return mg;

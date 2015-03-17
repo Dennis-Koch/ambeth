@@ -13,6 +13,7 @@ import de.osthus.ambeth.bytecode.Script;
 import de.osthus.ambeth.bytecode.behavior.BytecodeBehaviorState;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.expr.PropertyExpression;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
@@ -64,11 +65,39 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator
 				setter = ReflectUtil.getDeclaredMethod(true, getState().getCurrentType(), void.class, "set" + propertyInfo.getName(),
 						propertyInfo.getPropertyType());
 			}
+			if (getter != null && getter.isAnnotationPresent(PropertyExpression.class))
+			{
+				// this member will be handled by another visitor
+				continue;
+			}
 			MethodInstance m_getterTemplate = getter != null ? new MethodInstance(getter) : null;
 			MethodInstance m_setterTemplate = setter != null ? new MethodInstance(setter) : null;
 			MethodInstance m_getter = MethodInstance.findByTemplate(m_getterTemplate, true);
 			MethodInstance m_setter = MethodInstance.findByTemplate(m_setterTemplate, true);
 
+			if (m_getter != null && m_setter != null)
+			{
+				// ensure both accessors are public
+				if ((m_getter.getAccess() & Opcodes.ACC_PUBLIC) == 0)
+				{
+					MethodGenerator mv = visitMethod(m_getter.deriveAccess(Opcodes.ACC_PUBLIC));
+					mv.loadThis();
+					mv.loadArgs();
+					mv.invokeSuper(m_getter);
+					mv.returnValue();
+					mv.endMethod();
+				}
+				if ((m_setter.getAccess() & Opcodes.ACC_PUBLIC) == 0)
+				{
+					MethodGenerator mv = visitMethod(m_setter.deriveAccess(Opcodes.ACC_PUBLIC));
+					mv.loadThis();
+					mv.loadArgs();
+					mv.invokeSuper(m_setter);
+					mv.returnValue();
+					mv.endMethod();
+				}
+				continue;
+			}
 			if (m_getter != null || m_setter != null)
 			{
 				// at least one of the accessors is explicitly implemented
@@ -165,7 +194,7 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator
 				f_backingField = new FieldInstance(Opcodes.ACC_PROTECTED, StringConversionHelper.lowerCaseFirst(objectCollector, propertyInfo.getName()),
 						fieldSignature, Type.getType(propertyInfo.getPropertyType()));
 
-				implementField(f_backingField);
+				f_backingField = implementField(f_backingField);
 			}
 			return f_backingField;
 		}

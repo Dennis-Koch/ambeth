@@ -45,7 +45,7 @@ public class ConnectionFactory extends AbstractConnectionFactory
 			{
 				if (log.isDebugEnabled())
 				{
-					log.debug("Done creating jdbc connection");
+					log.debug("[" + System.identityHashCode(connection) + "] created connection");
 				}
 				DatabaseMetaData dbmd = connection.getMetaData();
 				// if (dbmd.supportsTransactionIsolationLevel(Connection.TRANSACTION_SERIALIZABLE))

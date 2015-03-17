@@ -34,7 +34,7 @@ namespace De.Osthus.Ambeth.Ioc.Link
         public static int propertyChangedReceivedCount;
 
         [LogInstance]
-        public ILogger Log { private get; set; }
+        public new ILogger Log { private get; set; }
 
         protected IServiceContext childContext;
 

@@ -14,6 +14,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.IParamHolder;
+import de.osthus.ambeth.util.ImmutableTypeSet;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ReflectUtil;
 import de.osthus.ambeth.util.StringBuilderUtil;
@@ -194,7 +195,7 @@ public class ExtendableRegistry extends SmartCopyMap<KeyItem, FastMethod[]> impl
 					{
 						Class<?> paramInfo = paramInfos[a];
 						Class<?> argumentType = argumentTypes[a - 1];
-						if (argumentType != null && !paramInfo.isAssignableFrom(argumentType))
+						if (argumentType != null && !unboxType(paramInfo).isAssignableFrom(unboxType(argumentType)))
 						{
 							match = false;
 							break;
@@ -212,7 +213,7 @@ public class ExtendableRegistry extends SmartCopyMap<KeyItem, FastMethod[]> impl
 					{
 						Class<?> paramInfo = paramInfos[a];
 						Class<?> argumentType = argumentTypes[a - 1];
-						if (argumentType != null && !paramInfo.isAssignableFrom(argumentType))
+						if (argumentType != null && !unboxType(paramInfo).isAssignableFrom(unboxType(argumentType)))
 						{
 							match = false;
 							break;
@@ -240,6 +241,16 @@ public class ExtendableRegistry extends SmartCopyMap<KeyItem, FastMethod[]> impl
 		{
 			writeLock.unlock();
 		}
+	}
+
+	protected Class<?> unboxType(Class<?> type)
+	{
+		Class<?> unwrappedType = ImmutableTypeSet.getUnwrappedType(type);
+		if (unwrappedType != null)
+		{
+			return unwrappedType;
+		}
+		return type;
 	}
 
 	@Override

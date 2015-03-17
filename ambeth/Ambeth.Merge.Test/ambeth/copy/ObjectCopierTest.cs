@@ -13,7 +13,7 @@ namespace De.Osthus.Ambeth.Ioc
     public class ObjectCopierTest : AbstractIocTest
     {
         [LogInstance]
-        public ILogger Log { private get; set; }
+        public new ILogger Log { private get; set; }
 
         public IObjectCopier ObjectCopier { protected get; set; }
 

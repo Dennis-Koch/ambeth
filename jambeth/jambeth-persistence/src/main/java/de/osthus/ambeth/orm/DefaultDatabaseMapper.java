@@ -1,15 +1,15 @@
 package de.osthus.ambeth.orm;
 
-import de.osthus.ambeth.config.Property;
+import java.sql.Connection;
+
 import de.osthus.ambeth.database.IDatabaseMapper;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.persistence.IDatabase;
-import de.osthus.ambeth.persistence.IField;
-import de.osthus.ambeth.persistence.ITable;
-import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
-import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
+import de.osthus.ambeth.persistence.IDatabaseMetaData;
+import de.osthus.ambeth.persistence.IFieldMetaData;
+import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.util.ParamChecker;
 
 public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
@@ -18,96 +18,18 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	@LogInstance
 	private ILogger log;
 
-	protected ITypeInfoProvider typeInfoProvider;
-
 	protected String idName = "Id";
 
 	protected String versionName = "Version";
 
-	protected String tablePrefix = "";
-
-	protected String tablePostfix = "";
-
-	protected String archiveTablePrefix = "";
-
-	protected String archiveTablePostfix = "";
-
-	protected String fieldPrefix = "";
-
-	protected String fieldPostfix = "";
-
-	protected String sequencePrefix = "";
-
-	protected String sequencePostfix = "";
+	@Autowired
+	protected IOrmPatternMatcher ormPatternMatcher;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertNotNull(typeInfoProvider, "typeInfoProvider");
 		ParamChecker.assertNotNull(idName, "idName");
 		ParamChecker.assertNotNull(versionName, "versionName");
-
-		if (this.archiveTablePrefix.isEmpty() && this.archiveTablePostfix.isEmpty())
-		{
-			this.archiveTablePostfix = "_ARC";
-		}
-		if (this.sequencePrefix.isEmpty() && this.sequencePostfix.isEmpty())
-		{
-			this.sequencePostfix = "_SEQ";
-		}
-	}
-
-	public void setTypeInfoProvider(ITypeInfoProvider typeInfoProvider)
-	{
-		this.typeInfoProvider = typeInfoProvider;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseTablePrefix, mandatory = false)
-	public void setTablePrefix(String prefix)
-	{
-		this.tablePrefix = prefix;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseTablePostfix, mandatory = false)
-	public void setTablePostfix(String postfix)
-	{
-		this.tablePostfix = postfix;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseArchiveTablePrefix, mandatory = false)
-	public void setArchiveTablePrefix(String prefix)
-	{
-		this.archiveTablePrefix = prefix;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseArchiveTablePostfix, mandatory = false)
-	public void setArchiveTablePostfix(String postfix)
-	{
-		this.archiveTablePostfix = postfix;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseFieldPrefix, mandatory = false)
-	public void setFieldPrefix(String prefix)
-	{
-		this.fieldPrefix = prefix;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseFieldPostfix, mandatory = false)
-	public void setFieldPostfix(String postfix)
-	{
-		this.fieldPostfix = postfix;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseSequencePrefix, mandatory = false)
-	public void setSequencePrefix(String prefix)
-	{
-		this.sequencePrefix = prefix;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseSequencePostfix, mandatory = false)
-	public void setSequencePostfix(String postfix)
-	{
-		this.sequencePostfix = postfix;
 	}
 
 	/**
@@ -143,7 +65,7 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	 *            Database to map to.
 	 */
 	@Override
-	public void mapFields(IDatabase database)
+	public void mapFields(Connection connection, IDatabaseMetaData database)
 	{
 		// Intended blank
 	}
@@ -155,7 +77,7 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	 *            Database to map to.
 	 */
 	@Override
-	public void mapLinks(IDatabase database)
+	public void mapLinks(Connection connection, IDatabaseMetaData database)
 	{
 		// Intended blank
 	}
@@ -166,7 +88,7 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	 * @param table
 	 *            Table to map to.
 	 */
-	protected void mapIdAndVersion(ITable table)
+	protected void mapIdAndVersion(ITableMetaData table)
 	{
 		mapIdAndVersion(table, idName, versionName);
 	}
@@ -181,10 +103,10 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	 * @param versionName
 	 *            Name of the version field.
 	 */
-	protected void mapIdAndVersion(ITable table, String idName, String versionName)
+	protected void mapIdAndVersion(ITableMetaData table, String idName, String versionName)
 	{
 		table.mapField(table.getIdField().getName(), idName);
-		IField versionField = table.getVersionField();
+		IFieldMetaData versionField = table.getVersionField();
 		if (versionField != null)
 		{
 			table.mapField(versionField.getName(), versionName);

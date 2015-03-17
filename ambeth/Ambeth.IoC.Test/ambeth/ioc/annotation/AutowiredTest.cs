@@ -80,7 +80,7 @@ namespace De.Osthus.Ambeth.Ioc.Annotation
 	    }
 
 	    [LogInstance]
-	    public ILogger Log { private get; set; }
+	    public new ILogger Log { private get; set; }
 
 	    [TestMethod]
 	    [TestModule(typeof(AutowiredTestModule))]

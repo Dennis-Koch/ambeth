@@ -23,7 +23,7 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.DirectObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.ParamChecker;
 
@@ -246,8 +246,8 @@ public class DataChangeEventBatcher implements IEventBatcher, IInitializingBean
 		Object id = dataChangeEntry.getId();
 		byte idIndex = dataChangeEntry.getIdNameIndex();
 
-		ITypeInfoItem idMember = metaData.getIdMemberByIdIndex(idIndex);
-		ITypeInfoItem versionMember = metaData.getVersionMember();
+		Member idMember = metaData.getIdMemberByIdIndex(idIndex);
+		Member versionMember = metaData.getVersionMember();
 		id = conversionHelper.convertValueToType(idMember.getRealType(), id);
 		Object version = versionMember != null ? conversionHelper.convertValueToType(versionMember.getRealType(), dataChangeEntry.getVersion()) : null;
 		return new ObjRef(dataChangeEntry.getEntityType(), idIndex, id, version);

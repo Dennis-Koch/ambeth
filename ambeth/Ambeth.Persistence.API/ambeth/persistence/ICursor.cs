@@ -5,9 +5,9 @@ namespace De.Osthus.Ambeth.Persistence
 {
     public interface ICursor : IDisposable, IEnumerator<ICursorItem>
     {
-        IField[] GetFields();
+        IFieldMetaData[] GetFields();
 
-        IField GetFieldByMemberName(String memberName);
+        IFieldMetaData GetFieldByMemberName(String memberName);
 
         int GetFieldIndexByMemberName(String memberName);
 

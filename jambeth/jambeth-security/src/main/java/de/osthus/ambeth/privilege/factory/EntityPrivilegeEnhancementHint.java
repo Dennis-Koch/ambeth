@@ -1,13 +1,16 @@
 package de.osthus.ambeth.privilege.factory;
 
+import java.io.Serializable;
+
 import de.osthus.ambeth.bytecode.IEnhancementHint;
 import de.osthus.ambeth.bytecode.ITargetNameEnhancementHint;
 import de.osthus.ambeth.privilege.model.impl.AbstractPrivilege;
-import de.osthus.ambeth.privilege.model.impl.PropertyPrivilegeImpl;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 
-public class EntityPrivilegeEnhancementHint implements IEnhancementHint, ITargetNameEnhancementHint
+public class EntityPrivilegeEnhancementHint implements IEnhancementHint, ITargetNameEnhancementHint, Serializable
 {
+	private static final long serialVersionUID = 5155522230482776781L;
+
 	protected final Class<?> entityType;
 
 	protected final boolean create, read, update, delete, execute;
@@ -71,7 +74,7 @@ public class EntityPrivilegeEnhancementHint implements IEnhancementHint, ITarget
 	@Override
 	public int hashCode()
 	{
-		return getClass().hashCode() ^ getEntityType().hashCode() ^ PropertyPrivilegeImpl.toBitValue(isCreate(), isRead(), isUpdate(), isDelete(), isExecute());
+		return getClass().hashCode() ^ getEntityType().hashCode() ^ AbstractPrivilege.calcIndex(create, read, update, delete, execute);
 	}
 
 	@SuppressWarnings("unchecked")

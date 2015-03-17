@@ -8,11 +8,22 @@ public final class RuntimeExceptionUtil
 {
 	public static final StackTraceElement[] EMPTY_STACK_TRACE = new StackTraceElement[0];
 
-	public static Throwable mask(Throwable e, Class<?>[] exceptionTypes)
+	public static Throwable mask(Throwable e, Class<?>... exceptionTypes)
 	{
 		while (e instanceof InvocationTargetException)
 		{
 			e = ((InvocationTargetException) e).getTargetException();
+		}
+		if (e instanceof MaskingRuntimeException && e.getMessage() == null)
+		{
+			Throwable cause = e.getCause();
+			for (int a = exceptionTypes.length; a-- > 0;)
+			{
+				if (exceptionTypes[a].isAssignableFrom(cause.getClass()))
+				{
+					return cause;
+				}
+			}
 		}
 		if (e instanceof RuntimeException)
 		{
@@ -32,9 +43,9 @@ public final class RuntimeExceptionUtil
 
 	public static RuntimeException mask(Throwable e, String message)
 	{
-		if (e instanceof InvocationTargetException)
+		while (e instanceof InvocationTargetException)
 		{
-			return mask(((InvocationTargetException) e).getTargetException(), message);
+			e = ((InvocationTargetException) e).getTargetException();
 		}
 		if (e instanceof MaskingRuntimeException && e.getMessage() == null)
 		{

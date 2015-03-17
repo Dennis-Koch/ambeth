@@ -14,7 +14,7 @@ import de.osthus.ambeth.database.DatabaseCallback;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -22,7 +22,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 @SQLData("autoindex_data.sql")
 @SQLStructure("autoindex_structure.sql")
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/jdbc/auto/autoindex_orm.xml")
-public class AutoIndexTest extends AbstractPersistenceTest
+public class AutoIndexTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Test
 	@TestProperties(name = PersistenceConfigurationConstants.AutoIndexForeignKeys, value = "false")

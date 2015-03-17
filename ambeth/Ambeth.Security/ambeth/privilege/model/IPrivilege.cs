@@ -12,10 +12,10 @@ namespace De.Osthus.Ambeth.Privilege.Model
 
         bool ExecuteAllowed { get; }
 
-        IPropertyPrivilege getDefaultPropertyPrivilegeIfValid();
+        IPropertyPrivilege GetDefaultPropertyPrivilegeIfValid();
 
-        IPropertyPrivilege getPrimitivePropertyPrivilege(int primitiveIndex);
+        IPropertyPrivilege GetPrimitivePropertyPrivilege(int primitiveIndex);
 
-        IPropertyPrivilege getRelationPropertyPrivilege(int relationIndex);
+        IPropertyPrivilege GetRelationPropertyPrivilege(int relationIndex);
     }
 }

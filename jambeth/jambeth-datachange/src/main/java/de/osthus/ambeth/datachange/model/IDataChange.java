@@ -19,6 +19,8 @@ public interface IDataChange
 
 	boolean isEmpty();
 
+	boolean isEmptyByType(Class<?> entityType);
+
 	boolean isLocalSource();
 
 	IDataChange derive(Class<?>... interestedEntityTypes);

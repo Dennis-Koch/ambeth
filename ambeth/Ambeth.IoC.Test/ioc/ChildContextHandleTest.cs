@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using De.Osthus.Ambeth.Ioc;
+﻿using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Ioc.Factory;
 using De.Osthus.Ambeth.Ioc.Hierarchy;
+using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace De.Osthus.Ambeth.Test.ambeth.ioc
 {
@@ -26,9 +27,9 @@ namespace De.Osthus.Ambeth.Test.ambeth.ioc
         {
             public void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
             {
-                beanContextFactory.RegisterBean<SingletonContextHandle>(SINGLETON_CCH).PropertyValue("Content", new RegisterPhaseDelegate(new DummyListTestModule().AfterPropertiesSet));
-                beanContextFactory.RegisterBean<ThreadLocalContextHandle>(THREADLOCAL_CCH).PropertyValue("Content", new RegisterPhaseDelegate(new DummyListTestModule().AfterPropertiesSet));
-                beanContextFactory.RegisterBean<PrototypeContextHandle>(PROTOTYPE_CCH).PropertyValue("Content", new RegisterPhaseDelegate(new DummyListTestModule().AfterPropertiesSet));
+                beanContextFactory.RegisterBean<SingletonContextHandle>(SINGLETON_CCH).PropertyValue("Content", new IBackgroundWorkerParamDelegate<IBeanContextFactory>(new DummyListTestModule().AfterPropertiesSet));
+                beanContextFactory.RegisterBean<ThreadLocalContextHandle>(THREADLOCAL_CCH).PropertyValue("Content", new IBackgroundWorkerParamDelegate<IBeanContextFactory>(new DummyListTestModule().AfterPropertiesSet));
+                beanContextFactory.RegisterBean<PrototypeContextHandle>(PROTOTYPE_CCH).PropertyValue("Content", new IBackgroundWorkerParamDelegate<IBeanContextFactory>(new DummyListTestModule().AfterPropertiesSet));
 
                 beanContextFactory.RegisterBean<SingletonContextHandle>(SINGLETON_CCH_WITH_CCF).PropertyRef("ContextFactory", CHILD_CONTEXT_FACTORY);
             }
@@ -101,7 +102,7 @@ namespace De.Osthus.Ambeth.Test.ambeth.ioc
 
             CountdownEvent countDownLatch = new CountdownEvent(1);
 
-            ThreadPool.QueueUserWorkItem(delegate(Object state)
+            System.Threading.ThreadPool.QueueUserWorkItem(delegate(Object state)
             {
                 IServiceContext threadLocalChildContext1_2 = threadLocalCCH.Start();
                 IServiceContext threadLocalChildContext2_2 = threadLocalCCH.Start();

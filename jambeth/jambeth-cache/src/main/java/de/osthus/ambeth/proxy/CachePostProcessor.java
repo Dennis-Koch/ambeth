@@ -16,7 +16,6 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.service.IServiceExtendable;
-import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 import de.osthus.ambeth.util.EqualsUtil;
 
 public class CachePostProcessor extends MergePostProcessor
@@ -66,7 +65,7 @@ public class CachePostProcessor extends MergePostProcessor
 	{
 		if (serviceName == null || serviceName.length() == 0)
 		{
-			serviceName = beanContext.getService(ITypeInfoProvider.class).getTypeInfo(type).getSimpleName();
+			serviceName = type.getSimpleName();
 			if (serviceName.endsWith("Proxy"))
 			{
 				serviceName = serviceName.substring(0, serviceName.length() - 5);
@@ -96,13 +95,18 @@ public class CachePostProcessor extends MergePostProcessor
 			CacheInterceptor interceptor = new CacheInterceptor();
 			if (beanContext.isRunning())
 			{
-				interceptor = beanContext.registerWithLifecycle(interceptor).propertyValue("ServiceName", serviceName).propertyValue("Behavior", behavior)
-						.ignoreProperties("ProcessService").finish();
+				interceptor = beanContext.registerWithLifecycle(interceptor)//
+						.propertyValue("ServiceName", serviceName)//
+						.propertyValue("Behavior", behavior)//
+						.ignoreProperties("ProcessService")//
+						.finish();
 				beanContext.link(beanName).to(IServiceExtendable.class).with(serviceName);
 			}
 			else
 			{
-				beanContextFactory.registerWithLifecycle(interceptor).propertyValue("ServiceName", serviceName).propertyValue("Behavior", behavior)
+				beanContextFactory.registerWithLifecycle(interceptor)//
+						.propertyValue("ServiceName", serviceName)//
+						.propertyValue("Behavior", behavior)//
 						.ignoreProperties("ProcessService");
 				beanContextFactory.link(beanName).to(IServiceExtendable.class).with(serviceName);
 			}
@@ -140,12 +144,17 @@ public class CachePostProcessor extends MergePostProcessor
 		CacheInterceptor interceptor = new CacheInterceptor();
 		if (beanContext != null)
 		{
-			interceptor = beanContext.registerWithLifecycle(interceptor).propertyValue("ServiceName", serviceName).propertyValue("Behavior", behavior).finish();
+			interceptor = beanContext.registerWithLifecycle(interceptor)//
+					.propertyValue("ServiceName", serviceName)//
+					.propertyValue("Behavior", behavior)//
+					.finish();
 			// beanContext.link(cacheInterceptorName).to(ICacheServiceByNameExtendable.class).with(serviceName);
 		}
 		else
 		{
-			beanContextFactory.registerWithLifecycle(interceptor).propertyValue("ServiceName", serviceName).propertyValue("Behavior", behavior);
+			beanContextFactory.registerWithLifecycle(interceptor)//
+					.propertyValue("ServiceName", serviceName)//
+					.propertyValue("Behavior", behavior);
 			// beanContextFactory.link(cacheInterceptorName).to(ICacheServiceByNameExtendable.class).with(serviceName);
 		}
 

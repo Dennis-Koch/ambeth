@@ -10,7 +10,7 @@ import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IDatabasePool;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.AmbethIocRunner;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
@@ -18,7 +18,7 @@ import de.osthus.ambeth.testutil.TestPropertiesList;
 @TestPropertiesList({ @TestProperties(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionPool, value = "true"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolPassivate, value = "true") })
 @RunWith(AmbethIocRunner.class)
-public class ConnectionTest extends AbstractPersistenceTest
+public class ConnectionTest extends AbstractInformationBusWithPersistenceTest
 {
 	@LogInstance
 	private ILogger log;

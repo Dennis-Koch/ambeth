@@ -46,6 +46,6 @@ public class LoggingPostProcessor extends AbstractCascadePostProcessor implement
 	@Override
 	public PostProcessorOrder getOrder()
 	{
-		return PostProcessorOrder.HIGHER;
+		return PostProcessorOrder.HIGHEST;
 	}
 }

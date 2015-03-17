@@ -38,7 +38,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
 
         protected IRootCache AcquireRootCache(bool privileged, ThreadLocal<RootCache> currentRootCacheTL, ICacheRetriever cacheRetriever, Lock readLock, Lock writeLock)
         {
-            IBeanRuntime<RootCache> rootCacheBR = ServiceContext.RegisterAnonymousBean<RootCache>().PropertyValue("CacheRetriever", cacheRetriever);
+            IBeanRuntime<RootCache> rootCacheBR = ServiceContext.RegisterBean<RootCache>().PropertyValue("CacheRetriever", cacheRetriever);
             if (readLock != null)
             {
                 rootCacheBR.PropertyValue("ReadLock", readLock);

@@ -2,44 +2,42 @@ package de.osthus.ambeth.persistence;
 
 import java.util.List;
 
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.util.IAlreadyLinkedCache;
 import de.osthus.ambeth.util.ParamChecker;
 
 public class Link implements ILink, IInitializingBean
 {
-	protected ITable fromTable;
-
-	protected ITable toTable;
-
-	protected boolean nullable = false;
-
-	protected IDirectedLink directedLink;
-
-	protected IDirectedLink reverseDirectedLink;
-
+	@Autowired
 	protected IAlreadyLinkedCache alreadyLinkedCache;
 
-	protected String name;
+	@Property
+	protected ILinkMetaData metaData;
 
-	protected String tableName;
+	@Property
+	protected ITable fromTable;
 
-	protected String archiveTableName;
+	@Property(mandatory = false)
+	protected ITable toTable;
+
+	@Property
+	protected IDirectedLink directedLink;
+
+	@Property
+	protected IDirectedLink reverseDirectedLink;
 
 	@Override
 	public void afterPropertiesSet()
 	{
-		ParamChecker.assertNotNull(name, "name");
-		ParamChecker.assertNotNull(fromTable, "fromTable");
-		ParamChecker.assertNotNull(directedLink, "directedLink");
-		ParamChecker.assertTrue(toTable != null || directedLink.getToMember() != null, "toTable or toMember");
-		ParamChecker.assertNotNull(reverseDirectedLink, "reverseDirectedLink");
-		ParamChecker.assertNotNull(alreadyLinkedCache, "alreadyLinkedCache");
+		ParamChecker.assertTrue(toTable != null || directedLink.getMetaData().getToMember() != null, "toTable or toMember");
 	}
 
-	public void setAlreadyLinkedCache(IAlreadyLinkedCache alreadyLinkedCache)
+	@Override
+	public ILinkMetaData getMetaData()
 	{
-		this.alreadyLinkedCache = alreadyLinkedCache;
+		return metaData;
 	}
 
 	@Override
@@ -48,49 +46,10 @@ public class Link implements ILink, IInitializingBean
 		return fromTable;
 	}
 
-	public void setFromTable(ITable fromTable)
-	{
-		this.fromTable = fromTable;
-	}
-
 	@Override
 	public ITable getToTable()
 	{
 		return toTable;
-	}
-
-	public void setToTable(ITable toTable)
-	{
-		this.toTable = toTable;
-	}
-
-	@Override
-	public IField getFromField()
-	{
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
-	@Override
-	public IField getToField()
-	{
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
-	@Override
-	public boolean isNullable()
-	{
-		return this.nullable;
-	}
-
-	@Override
-	public boolean hasLinkTable()
-	{
-		return directedLink.isStandaloneLink() && reverseDirectedLink.isStandaloneLink();
-	}
-
-	public void setNullable(boolean nullable)
-	{
-		this.nullable = nullable;
 	}
 
 	@Override
@@ -99,66 +58,10 @@ public class Link implements ILink, IInitializingBean
 		return directedLink;
 	}
 
-	public void setDirectedLink(IDirectedLink directedLink)
-	{
-		this.directedLink = directedLink;
-	}
-
 	@Override
 	public IDirectedLink getReverseDirectedLink()
 	{
 		return reverseDirectedLink;
-	}
-
-	public void setReverseDirectedLink(IDirectedLink reverseDirectedLink)
-	{
-		this.reverseDirectedLink = reverseDirectedLink;
-	}
-
-	@Override
-	public String getName()
-	{
-		return name;
-	}
-
-	public void setName(String name)
-	{
-		this.name = name;
-	}
-
-	@Override
-	public String getTableName()
-	{
-		if (hasLinkTable())
-		{
-			return name;
-		}
-		else
-		{
-			return tableName;
-		}
-	}
-
-	public void setTableName(String tableName)
-	{
-		this.tableName = tableName;
-	}
-
-	@Override
-	public String getFullqualifiedEscapedTableName()
-	{
-		return getTableName();
-	}
-
-	@Override
-	public String getArchiveTableName()
-	{
-		return archiveTableName;
-	}
-
-	public void setArchiveTableName(String archiveTableName)
-	{
-		this.archiveTableName = archiveTableName;
 	}
 
 	@Override
@@ -238,7 +141,7 @@ public class Link implements ILink, IInitializingBean
 	@Override
 	public String toString()
 	{
-		return "Link: " + getName();
+		return "Link: " + getMetaData().getName();
 	}
 
 	@Override

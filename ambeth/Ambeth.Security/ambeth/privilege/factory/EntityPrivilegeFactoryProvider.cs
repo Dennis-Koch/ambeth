@@ -21,7 +21,7 @@ namespace De.Osthus.Ambeth.Privilege.Factory
         [Autowired]
         public IAccessorTypeProvider AccessorTypeProvider { protected get; set; }
 
-        protected readonly HashMap<Type, IEntityPrivilegeFactory> typeToConstructorMap = new HashMap<Type, IEntityPrivilegeFactory>();
+        protected readonly HashMap<Type, IEntityPrivilegeFactory[]> typeToConstructorMap = new HashMap<Type, IEntityPrivilegeFactory[]>();
 
         protected readonly Object writeLock = new Object();
 
@@ -31,7 +31,9 @@ namespace De.Osthus.Ambeth.Privilege.Factory
             {
                 return ci;
             }
-            IEntityPrivilegeFactory factory = typeToConstructorMap.Get(entityType);
+            int index = AbstractPrivilege.CalcIndex(create, read, update, delete, execute);
+            IEntityPrivilegeFactory[] factories = typeToConstructorMap.Get(entityType);
+            IEntityPrivilegeFactory factory = factories != null ? factories[index] : null;
             if (factory != null)
             {
                 return factory;
@@ -40,7 +42,8 @@ namespace De.Osthus.Ambeth.Privilege.Factory
             lock (writeLock)
             {
                 // concurrent thread might have been faster
-                factory = typeToConstructorMap.Get(entityType);
+                factories = typeToConstructorMap.Get(entityType);
+                factory = factories != null ? factories[index] : null;
                 if (factory != null)
                 {
                     return factory;
@@ -69,7 +72,12 @@ namespace De.Osthus.Ambeth.Privilege.Factory
                     // something serious happened during enhancement: continue with a fallback
                     factory = ci;
                 }
-                typeToConstructorMap.Put(entityType, factory);
+                if (factories == null)
+                {
+                    factories = new IEntityPrivilegeFactory[AbstractPrivilege.ArraySizeForIndex()];
+                    typeToConstructorMap.Put(entityType, factories);
+                }
+                factories[index] = factory;
                 return factory;
             }
         }

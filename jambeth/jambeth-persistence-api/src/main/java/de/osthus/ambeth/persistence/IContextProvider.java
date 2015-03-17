@@ -1,7 +1,5 @@
 package de.osthus.ambeth.persistence;
 
-import de.osthus.ambeth.util.IAlreadyLoadedCache;
-
 public interface IContextProvider
 {
 	Long getCurrentTime();
@@ -11,8 +9,6 @@ public interface IContextProvider
 	String getCurrentUser();
 
 	void setCurrentUser(String currentUser);
-
-	IAlreadyLoadedCache getAlreadyLoadedCache();
 
 	void acquired();
 

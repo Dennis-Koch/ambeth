@@ -71,7 +71,7 @@ public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T>
 			beanTypeToBehavior.put(key, noBehavior);
 			return null;
 		}
-		T defaultBehaviour = behaviourTypeExtractor.extractBehaviorType(annotation);
+		T defaultBehaviour = behaviourTypeExtractor.extractBehaviorType(annotation, beanType);
 		MethodLevelHashMap<T> methodLevelBehaviour = null;
 
 		Method[] methods = ReflectUtil.getMethods(beanType);
@@ -85,7 +85,7 @@ public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T>
 				{
 					methodLevelBehaviour = new MethodLevelHashMap<T>();
 				}
-				T behaviourTypeOnMethod = behaviourTypeExtractor.extractBehaviorType(annotationOnMethod);
+				T behaviourTypeOnMethod = behaviourTypeExtractor.extractBehaviorType(annotationOnMethod, method);
 				if (behaviourTypeOnMethod != null)
 				{
 					methodLevelBehaviour.put(method.getName(), method.getParameterTypes(), behaviourTypeOnMethod);
@@ -134,4 +134,5 @@ public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T>
 		}
 		return behaviourOfMethod;
 	}
+
 }

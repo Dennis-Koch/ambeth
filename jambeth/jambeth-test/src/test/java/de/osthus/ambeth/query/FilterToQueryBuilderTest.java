@@ -18,7 +18,7 @@ import de.osthus.ambeth.filter.model.FilterOperator;
 import de.osthus.ambeth.filter.model.IFilterDescriptor;
 import de.osthus.ambeth.filter.model.IPagingResponse;
 import de.osthus.ambeth.filter.model.LogicalOperator;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -29,7 +29,7 @@ import de.osthus.ambeth.util.ParamChecker;
 @SQLData("FilterDescriptor_data.sql")
 @SQLStructure("FilterDescriptor_structure.sql")
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/FilterDescriptor_orm.xml")
-public class FilterToQueryBuilderTest extends AbstractPersistenceTest
+public class FilterToQueryBuilderTest extends AbstractInformationBusWithPersistenceTest
 {
 	private IFilterToQueryBuilder filterToQueryBuilder;
 

@@ -1,46 +1,48 @@
 package de.osthus.ambeth.security;
 
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
+import de.osthus.ambeth.ioc.threadlocal.IForkProcessor;
+import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
-public class SecurityContextHolder implements IAuthorizationChangeListenerExtendable, ISecurityContextHolder
+public class SecurityContextHolder implements IAuthorizationChangeListenerExtendable, ISecurityContextHolder, IThreadLocalCleanupBean
 {
+	public static class SecurityContextForkProcessor implements IForkProcessor
+	{
+		@Override
+		public Object resolveOriginalValue(Object bean, String fieldName, ThreadLocal<?> fieldValueTL)
+		{
+			return fieldValueTL.get();
+		}
+
+		@Override
+		public Object createForkedValue(Object value)
+		{
+			if (value == null)
+			{
+				return null;
+			}
+			SecurityContextImpl original = (SecurityContextImpl) value;
+			SecurityContextImpl forkedValue = new SecurityContextImpl(original.securityContextHolder);
+			forkedValue.setAuthentication(original.getAuthentication());
+			forkedValue.setAuthorization(original.getAuthorization());
+			return forkedValue;
+		}
+
+		@Override
+		public void returnForkedValue(Object value, Object forkedValue)
+		{
+			// Intended blank
+		}
+	}
+
 	protected final DefaultExtendableContainer<IAuthorizationChangeListener> authorizationChangeListeners = new DefaultExtendableContainer<IAuthorizationChangeListener>(
 			IAuthorizationChangeListener.class, "authorizationChangeListener");
 
-	private class SecurityContextImpl implements ISecurityContext
-	{
-		protected IAuthentication authentication;
-
-		protected IAuthorization authorization;
-
-		@Override
-		public void setAuthentication(IAuthentication authentication)
-		{
-			this.authentication = authentication;
-		}
-
-		@Override
-		public IAuthentication getAuthentication()
-		{
-			return authentication;
-		}
-
-		@Override
-		public void setAuthorization(IAuthorization authorization)
-		{
-			this.authorization = authorization;
-			notifyAuthorizationChangeListeners(authorization);
-		}
-
-		@Override
-		public IAuthorization getAuthorization()
-		{
-			return authorization;
-		}
-
-	}
+	@Forkable(processor = SecurityContextForkProcessor.class)
+	protected final ThreadLocal<ISecurityContext> contextTL = new SensitiveThreadLocal<ISecurityContext>();
 
 	protected void notifyAuthorizationChangeListeners(IAuthorization authorization)
 	{
@@ -48,6 +50,12 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 		{
 			authorizationChangeListener.authorizationChanged(authorization);
 		}
+	}
+
+	@Override
+	public void cleanupThreadLocal()
+	{
+		clearContext();
 	}
 
 	@Override
@@ -61,8 +69,6 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 	{
 		authorizationChangeListeners.unregister(authorizationChangeListener);
 	}
-
-	protected final ThreadLocal<ISecurityContext> contextTL = new SensitiveThreadLocal<ISecurityContext>();
 
 	/*
 	 * (non-Javadoc)
@@ -86,7 +92,7 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 		ISecurityContext securityContext = getContext();
 		if (securityContext == null)
 		{
-			securityContext = new SecurityContextImpl();
+			securityContext = new SecurityContextImpl(this);
 			contextTL.set(securityContext);
 		}
 		return securityContext;
@@ -104,6 +110,7 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 		if (securityContext != null)
 		{
 			securityContext.setAuthentication(null);
+			securityContext.setAuthorization(null);
 			contextTL.remove();
 		}
 	}
@@ -121,8 +128,7 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 		boolean created = false;
 		if (securityContext == null)
 		{
-			securityContext = new SecurityContextImpl();
-			contextTL.set(securityContext);
+			securityContext = getCreateContext();
 			created = true;
 		}
 		IAuthorization oldAuthorization = securityContext.getAuthorization();
@@ -149,7 +155,7 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 		{
 			if (created)
 			{
-				contextTL.remove();
+				clearContext();
 			}
 		}
 	}

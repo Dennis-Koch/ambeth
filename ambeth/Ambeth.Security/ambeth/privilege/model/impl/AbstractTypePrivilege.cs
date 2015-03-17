@@ -6,6 +6,26 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
 {
     public abstract class AbstractTypePrivilege : ITypePrivilege, IPrintable, IImmutableType
     {
+        public static int ArraySizeForIndex()
+        {
+            return 1 << 8;
+        }
+
+        public static int CalcIndex(bool? create, bool? read, bool? update, bool? delete, bool? execute)
+        {
+            return ToBitValue(create, 1, 1 * 2) + ToBitValue(read, 3, 3 * 2) + ToBitValue(update, 9, 9 * 2) + ToBitValue(delete, 27, 27 * 2)
+                    + ToBitValue(execute, 81, 81 * 2);
+        }
+
+        public static int ToBitValue(bool? value, int valueIfTrue, int valueIfFalse)
+        {
+            if (!value.HasValue)
+            {
+                return 0;
+            }
+            return value.Value ? valueIfTrue : valueIfFalse;
+        }
+
         public AbstractTypePrivilege(bool? create, bool? read, bool? update, bool? delete, bool? execute,
                 ITypePropertyPrivilege[] primitivePropertyPrivileges, ITypePropertyPrivilege[] relationPropertyPrivileges)
         {
@@ -13,9 +33,9 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
         }
 
 
-        public abstract ITypePropertyPrivilege getPrimitivePropertyPrivilege(int primitiveIndex);
+        public abstract ITypePropertyPrivilege GetPrimitivePropertyPrivilege(int primitiveIndex);
 
-        public abstract ITypePropertyPrivilege getRelationPropertyPrivilege(int relationIndex);
+        public abstract ITypePropertyPrivilege GetRelationPropertyPrivilege(int relationIndex);
 
         public override String ToString()
         {
@@ -43,6 +63,6 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
 
         public abstract bool? ExecuteAllowed { get; }
 
-        public abstract ITypePropertyPrivilege getDefaultPropertyPrivilegeIfValid();
+        public abstract ITypePropertyPrivilege GetDefaultPropertyPrivilegeIfValid();
     }
 }

@@ -70,10 +70,8 @@
     <Compile Include="ambeth\privilege\PrivilegeProvider.cs" />
     <Compile Include="ambeth\security\CallPermission.cs" />
     <Compile Include="ambeth\security\config\SecurityConfigurationConstants.cs" />
-    <Compile Include="ambeth\security\SecurityScopeHandle.cs" />
     <Compile Include="ambeth\security\IActionPermission.cs" />
     <Compile Include="ambeth\security\PermissionApplyType.cs" />
-    <Compile Include="ambeth\security\ISecurityScopeProvider.cs" />
     <Compile Include="ambeth\security\ISecurityManager.cs" />
     <Compile Include="ambeth\security\IServiceFilterExtendable.cs" />
     <Compile Include="ambeth\security\ReadPermission.cs" />
@@ -81,9 +79,6 @@
     <Compile Include="ambeth\security\IServicePermission.cs" />
     <Compile Include="ambeth\security\IAuthorization.cs" />
     <Compile Include="ambeth\security\IAuthorizationManager.cs" />
-    <Compile Include="ambeth\security\SecurityActivation.cs" />
-    <Compile Include="ambeth\security\SecurityScopeProvider.cs" />
-    <Compile Include="ambeth\security\UserIndependentAttribute.cs" />
     <Compile Include="ambeth\service\IPrivilegeService.cs" />
     <Compile Include="ambeth\service\IPrivilegeServiceWCF.cs" />
     <Compile Include="ambeth\service\ISecurityService.cs" />
@@ -91,8 +86,8 @@
     <Compile Include="ambeth\service\PrivilegeServiceModelProvider.cs" />
     <Compile Include="ambeth\service\SecurityServiceDelegate.cs" />
     <Compile Include="ambeth\service\SecurityServiceModelProvider.cs" />
-    <Compile Include="ioc\PrivilegeModule.cs" />
-    <Compile Include="ioc\SecurityModule.cs" />
+    <Compile Include="ambeth\ioc\PrivilegeModule.cs" />
+    <Compile Include="ambeth\ioc\SecurityModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -129,13 +124,6 @@
     <Compile Include="ambeth\privilege\model\ReadPermission.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ambeth\security\ISecurityScopeChangeListener.cs" />
-    <Compile Include="ambeth\security\ISecurityScopeChangeListenerExtendable.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ambeth\security\ISecurityActivation.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="ambeth\privilege\model\IPropertyPrivilege.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -159,6 +147,28 @@
     <Compile Include="ambeth\privilege\factory\EntityPrivilegeFactoryProvider.cs" />
     <Compile Include="ambeth\privilege\factory\EntityTypePrivilegeEnhancementHint.cs" />
     <Compile Include="ambeth\privilege\factory\EntityTypePrivilegeFactoryProvider.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\ISecurityContext.cs" />
+    <Compile Include="ambeth\security\ISecurityContextHolder.cs" />
+    <Compile Include="ambeth\security\SecurityContext.cs" />
+    <Compile Include="ambeth\security\SecurityContextHolder.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\IAuthorizationChangeListener.cs" />
+    <Compile Include="ambeth\security\IAuthorizationChangeListenerExtendable.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\SecurityContextType.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\SecurityContextImpl.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\IAuthentication.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\PasswordType.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
