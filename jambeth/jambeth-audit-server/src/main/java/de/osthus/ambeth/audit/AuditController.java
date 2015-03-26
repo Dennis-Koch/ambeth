@@ -437,6 +437,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		{
 			auditEntry.setHashAlgorithm(hashAlgorithm);
 			auditEntry.setProtocol(protocol);
+			auditEntryContainer.ensurePrimitive(IAuditEntry.UserIdentifier).setNewValue(auditEntry.getUserIdentifier());
+			auditEntryContainer.ensurePrimitive(IAuditEntry.HashAlgorithm).setNewValue(auditEntry.getHashAlgorithm());
+			auditEntryContainer.ensurePrimitive(IAuditEntry.Protocol).setNewValue(auditEntry.getProtocol());
 
 			writeToSignatureHandle(signatureHandle, auditEntry, auditEntryContainer);
 
