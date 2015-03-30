@@ -204,8 +204,8 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter
 			@Override
 			public int compare(CreateOrUpdateContainerBuild o1, CreateOrUpdateContainerBuild o2)
 			{
-				int order1 = ((Number) o1.getFullPUIs()[orderIndex]).intValue();
-				int order2 = ((Number) o2.getFullPUIs()[orderIndex]).intValue();
+				int order1 = ((Number) o1.getFullPUIs()[orderIndex].getNewValue()).intValue();
+				int order2 = ((Number) o2.getFullPUIs()[orderIndex].getNewValue()).intValue();
 				if (order1 == order2)
 				{
 					return 0;
@@ -310,8 +310,8 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter
 			@Override
 			public int compare(CreateOrUpdateContainerBuild o1, CreateOrUpdateContainerBuild o2)
 			{
-				int order1 = ((Number) o1.getFullPUIs()[orderIndex]).intValue();
-				int order2 = ((Number) o2.getFullPUIs()[orderIndex]).intValue();
+				int order1 = ((Number) o1.getFullPUIs()[orderIndex].getNewValue()).intValue();
+				int order2 = ((Number) o2.getFullPUIs()[orderIndex].getNewValue()).intValue();
 				if (order1 == order2)
 				{
 					return 0;
@@ -363,8 +363,8 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter
 			@Override
 			public int compare(CreateOrUpdateContainerBuild o1, CreateOrUpdateContainerBuild o2)
 			{
-				int order1 = ((Number) o1.getFullPUIs()[orderIndex]).intValue();
-				int order2 = ((Number) o2.getFullPUIs()[orderIndex]).intValue();
+				int order1 = ((Number) o1.getFullPUIs()[orderIndex].getNewValue()).intValue();
+				int order2 = ((Number) o2.getFullPUIs()[orderIndex].getNewValue()).intValue();
 				if (order1 == order2)
 				{
 					return 0;
@@ -416,8 +416,8 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter
 			@Override
 			public int compare(CreateOrUpdateContainerBuild o1, CreateOrUpdateContainerBuild o2)
 			{
-				int order1 = ((Number) o1.getFullPUIs()[orderIndex]).intValue();
-				int order2 = ((Number) o2.getFullPUIs()[orderIndex]).intValue();
+				int order1 = ((Number) o1.getFullPUIs()[orderIndex].getNewValue()).intValue();
+				int order2 = ((Number) o2.getFullPUIs()[orderIndex].getNewValue()).intValue();
 				if (order1 == order2)
 				{
 					return 0;

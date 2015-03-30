@@ -134,6 +134,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		char[] passwordOfUser = "abc".toCharArray();
 		User user = entityFactory.createEntity(User.class);
 		user.setName("MyName");
+		user.setSID("mySid");
 
 		auditController.pushAuditReason("junit test");
 
@@ -153,6 +154,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		char[] passwordOfUser = "abc".toCharArray();
 		User user = entityFactory.createEntity(User.class);
 		user.setName("MyName");
+		user.setSID("mySid");
 
 		Password password = entityFactory.createEntity(Password.class);
 		passwordUtil.assignNewPassword(passwordOfUser, password, user);
