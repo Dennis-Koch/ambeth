@@ -11,11 +11,14 @@ namespace De.Osthus.Ambeth.Util
 
         protected RelationMember member;
 
-        public ValueHolderRef(IObjRef objRef, RelationMember member)
-        {
-            this.objRef = objRef;
-            this.member = member;
-        }
+		protected int relationIndex;
+
+		public ValueHolderRef(IObjRef objRef, RelationMember member, int relationIndex)
+		{
+			this.objRef = objRef;
+			this.member = member;
+			this.relationIndex = relationIndex;
+		}
 
         public IObjRef ObjRef
         {
@@ -33,6 +36,14 @@ namespace De.Osthus.Ambeth.Util
             }
         }
 
+		public int RelationIndex
+		{
+			get
+			{
+				return relationIndex;
+			}
+		}
+
         public override bool Equals(Object obj)
         {
             if (obj == this)
@@ -44,12 +55,12 @@ namespace De.Osthus.Ambeth.Util
                 return false;
             }
             ValueHolderRef other = (ValueHolderRef)obj;
-            return Object.Equals(ObjRef, other.ObjRef) && Object.Equals(Member, other.Member);
+			return Object.Equals(ObjRef, other.ObjRef) && RelationIndex == other.RelationIndex;
         }
 
         public override int GetHashCode()
         {
-            return ObjRef.GetHashCode() ^ Member.GetHashCode();
+			return ObjRef.GetHashCode() ^ RelationIndex;
         }
     }
 }
