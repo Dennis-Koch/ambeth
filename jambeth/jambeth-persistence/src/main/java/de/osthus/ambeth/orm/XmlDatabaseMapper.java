@@ -268,6 +268,10 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 				{
 					throw new IllegalStateException("Member configurations of type '" + memberConfig.getClass().getName() + "' not yet supported");
 				}
+				if (memberConfig.isTransient())
+				{
+					continue;
+				}
 				mapBasic(table, (MemberConfig) memberConfig);
 				if (memberConfig.isIgnore())
 				{

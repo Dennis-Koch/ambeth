@@ -19,6 +19,13 @@ namespace De.Osthus.Ambeth.Persistence
          */
         sbyte getIdIndex();
 
+		/**
+		 * Returns the index this field is managed on its owning table
+		 * 
+		 * @return >= 0 if this field is managed by a table
+		 */
+		int getIndexOnTable();
+
         /**
          * Returns the information whether a mapping to a property of an entity is expected. If a mapping is not possible a warning will be logged if the mapping is
          * expected (flag is true)

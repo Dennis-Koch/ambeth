@@ -21,6 +21,8 @@ namespace De.Osthus.Ambeth.Metadata
 
         protected bool technicalMember;
 
+		protected bool isTransient;
+
         public IntermediatePrimitiveMember(Type declaringType, Type entityType, Type realType, Type elementType, String propertyName, Attribute[] annotations)
         {
             this.declaringType = declaringType;
@@ -104,6 +106,19 @@ namespace De.Osthus.Ambeth.Metadata
         {
             this.technicalMember = technicalMember;
         }
+
+		public override bool Transient
+		{
+			get
+			{
+				return isTransient;
+			}
+		}
+
+		public virtual void SetTransient(bool isTransient)
+		{
+			this.isTransient = isTransient;
+		}
 
         public override Object NullEquivalentValue
         {

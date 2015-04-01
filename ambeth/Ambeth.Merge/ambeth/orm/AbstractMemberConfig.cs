@@ -13,6 +13,8 @@ namespace De.Osthus.Ambeth.Orm
 
         public bool ExplicitlyNotMergeRelevant { get; set; }
 
+		public bool Transient { get; set; }
+
         public AbstractMemberConfig(String name)
         {
             ParamChecker.AssertParamNotNullOrEmpty(name, "name");

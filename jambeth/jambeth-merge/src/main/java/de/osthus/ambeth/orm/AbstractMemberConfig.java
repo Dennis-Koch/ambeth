@@ -10,6 +10,8 @@ public abstract class AbstractMemberConfig implements IMemberConfig
 
 	private boolean ignore;
 
+	private boolean isTransient;
+
 	private boolean explicitlyNotMergeRelevant;
 
 	public AbstractMemberConfig(String name)
@@ -33,6 +35,17 @@ public abstract class AbstractMemberConfig implements IMemberConfig
 	public void setAlternateId(boolean alternateId)
 	{
 		this.alternateId = alternateId;
+	}
+
+	@Override
+	public boolean isTransient()
+	{
+		return isTransient;
+	}
+
+	public void setTransient(boolean isTransient)
+	{
+		this.isTransient = isTransient;
 	}
 
 	@Override

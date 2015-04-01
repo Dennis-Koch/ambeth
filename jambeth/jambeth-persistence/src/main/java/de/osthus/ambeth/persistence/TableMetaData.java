@@ -356,7 +356,7 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 		this.sequenceName = sequenceName;
 	}
 
-	public void mapField(IFieldMetaData field)
+	public void mapField(FieldMetaData field)
 	{
 		String fieldName = field.getName();
 		if (getFieldByName(fieldName) != null)
@@ -366,7 +366,9 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 		primitiveFields.add(field);
 		allFields.add(field);
 		fieldName = fieldName.toUpperCase();
-		fieldNameToFieldIndexDict.put(fieldName, Integer.valueOf(fieldNameToFieldIndexDict.size()));
+		Integer index = Integer.valueOf(fieldNameToFieldIndexDict.size());
+		field.setIndexOnTable(index.intValue());
+		fieldNameToFieldIndexDict.put(fieldName, index);
 		fieldNameToFieldDict.put(fieldName, field);
 	}
 

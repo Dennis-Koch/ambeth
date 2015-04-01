@@ -1,6 +1,7 @@
 package de.osthus.ambeth.persistence.xml.model;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import de.osthus.ambeth.model.AbstractEntity;
@@ -22,6 +23,8 @@ public abstract class Employee extends AbstractEntity
 	protected Car car;
 
 	protected Boat boat;
+
+	protected Map<Object, Object> attributes;
 
 	protected Employee()
 	{
@@ -103,4 +106,8 @@ public abstract class Employee extends AbstractEntity
 	{
 		this.boat = boat;
 	}
+
+	public abstract Map<Object, Object> getAttributes();
+
+	public abstract void setAttributes(Map<Object, Object> attributes);
 }
