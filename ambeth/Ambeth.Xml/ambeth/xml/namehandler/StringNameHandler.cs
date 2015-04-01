@@ -15,7 +15,7 @@ namespace De.Osthus.Ambeth.Xml.Namehandler
 
     	private static readonly String cdataEndSeq = "]]>";
 
-        protected static readonly Regex cdataPattern = new Regex("([\\s\\S]*?\\])(\\][\\s\\S]*)");
+		protected static readonly Regex cdataPattern = new Regex("\\]\\]");
 
 	    public virtual bool WritesCustom(Object obj, Type type, IWriter writer)
 	    {
@@ -36,40 +36,48 @@ namespace De.Osthus.Ambeth.Xml.Namehandler
             }
             writer.WriteStartElementEnd();
 
-            bool firstCdataElement = true;
-            while (true)
-            {
-                Match matcher = cdataPattern.Match(value);
-                if (!matcher.Success)
-                {
-                    if (!firstCdataElement)
-                    {
-                        writer.WriteStartElement("s");
-                        writer.WriteStartElementEnd();
-                    }
-                    writer.Write(cdataStartSeq);
-                    writer.Write(value);
-                    writer.Write(cdataEndSeq);
-                    if (!firstCdataElement)
-                    {
-                        writer.WriteCloseElement("s");
-                    }
-                    break;
-                }
-                firstCdataElement = false;
+			String[] parts = cdataPattern.Split(value);
+			if (parts.Length == 1)
+			{
+				writer.Write(cdataStartSeq);
+				writer.Write(value);
+				writer.Write(cdataEndSeq);
+			}
+			else
+			{
+				// First part
+				writer.WriteOpenElement(stringElement);
+				writer.Write(cdataStartSeq);
+				writer.Write(parts[0]);
+				writer.Write(']');
+				writer.Write(cdataEndSeq);
+				writer.WriteCloseElement(stringElement);
 
-                String leftSeq = matcher.Groups[1].Value;
-                String rightSeq = matcher.Groups[2].Value;
-                writer.WriteStartElement("s");
-                writer.WriteStartElementEnd();
-                writer.Write(cdataStartSeq);
-                writer.Write(leftSeq);
-                writer.Write(cdataEndSeq);
-                writer.WriteCloseElement("s");
-                value = rightSeq;
-            }
-            writer.WriteCloseElement(stringElement);
-            return true;
+				// All parts in between
+				int lastIndex = parts.Length - 1;
+				for (int i = 1; i < lastIndex; i++)
+				{
+					writer.WriteOpenElement(stringElement);
+					writer.Write(cdataStartSeq);
+					writer.Write(']');
+					writer.Write(parts[i]);
+					writer.Write(']');
+					writer.Write(cdataEndSeq);
+					writer.WriteCloseElement(stringElement);
+				}
+
+				// Last part
+				writer.WriteOpenElement(stringElement);
+				writer.Write(cdataStartSeq);
+				writer.Write(']');
+				writer.Write(parts[lastIndex]);
+				writer.Write(cdataEndSeq);
+				writer.WriteCloseElement(stringElement);
+			}
+
+			writer.WriteCloseElement(stringElement);
+
+			return true;
 	    }
 
         public virtual Object ReadObject(Type returnType, String elementName, int id, IReader reader)

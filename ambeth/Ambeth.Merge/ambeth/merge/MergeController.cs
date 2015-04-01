@@ -241,22 +241,21 @@ namespace De.Osthus.Ambeth.Merge
                     objRefsOfVhks.Add(valueHolderKeys[a].ObjRef);
                 }
                 IList<Object> objectsOfVhks = cache.GetObjects(objRefsOfVhks, CacheDirective.FailEarly | CacheDirective.ReturnMisses);
-                for (int relationIndex = valueHolderKeys.Count; relationIndex-- > 0; )
-                {
-                    IObjRefContainer objectOfVhk = (IObjRefContainer)objectsOfVhks[relationIndex];
-                    if (objectOfVhk == null)
-                    {
-                        continue;
-                    }
-                    ValueHolderRef valueHolderRef = valueHolderKeys[relationIndex];
-                    RelationMember member = valueHolderRef.Member;
-                    if (ValueHolderState.INIT != objectOfVhk.Get__State(relationIndex))
-                    {
-                        DirectValueHolderRef vhcKey = new DirectValueHolderRef(objectOfVhk, member);
-                        handle.PendingValueHolders.Add(vhcKey);
-                    }
-                }
-            }
+				for (int a = valueHolderKeys.Count; a-- > 0; )
+				{
+					IObjRefContainer objectOfVhk = (IObjRefContainer)objectsOfVhks[a];
+					if (objectOfVhk == null)
+					{
+						continue;
+					}
+					ValueHolderRef valueHolderRef = valueHolderKeys[a];
+					if (ValueHolderState.INIT != objectOfVhk.Get__State(valueHolderRef.RelationIndex))
+					{
+						DirectValueHolderRef vhcKey = new DirectValueHolderRef(objectOfVhk, valueHolderRef.Member);
+						handle.PendingValueHolders.Add(vhcKey);
+					}
+				}
+			}
             if (typeToObjectsToMerge != null)
             {
                 foreach (Type orderedEntityType in entityPersistOrder)
@@ -362,15 +361,15 @@ namespace De.Osthus.Ambeth.Merge
             IObjRefContainer vhc = (IObjRefContainer)obj;
             for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
             {
-                RelationMember relationMember = relationMembers[relationIndex];
                 if (ValueHolderState.INIT != vhc.Get__State(relationIndex))
                 {
                     continue;
                 }
-                Object item = relationMembers[relationIndex].GetValue(obj);
+				RelationMember relationMember = relationMembers[relationIndex];
+				Object item = relationMember.GetValue(obj);
                 if (objRef != null && item != null)
                 {
-                    ValueHolderRef vhk = new ValueHolderRef(objRef, relationMember);
+					ValueHolderRef vhk = new ValueHolderRef(objRef, relationMember, relationIndex);
                     valueHolderKeys.Add(vhk);
                 }
                 ScanForInitializedObjectsIntern(item, isDeepMerge, objects, typeToObjectsToMerge, alreadyHandledObjectsSet, objRefs, valueHolderKeys);

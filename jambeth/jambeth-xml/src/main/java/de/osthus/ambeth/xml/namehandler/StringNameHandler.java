@@ -1,6 +1,5 @@
 package de.osthus.ambeth.xml.namehandler;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.log.ILogger;
@@ -22,7 +21,7 @@ public class StringNameHandler extends AbstractHandler implements INameBasedHand
 
 	private static final String cdataEndSeq = "]]>";
 
-	protected static final Pattern cdataPattern = Pattern.compile("([\\s\\S]*?\\])(\\][\\s\\S]*)");
+	protected static final Pattern cdataPattern = Pattern.compile("\\]\\]");
 
 	@Override
 	public boolean writesCustom(Object obj, Class<?> type, IWriter writer)
@@ -45,39 +44,47 @@ public class StringNameHandler extends AbstractHandler implements INameBasedHand
 		}
 		writer.writeStartElementEnd();
 
-		boolean firstCdataElement = true;
-		while (true)
+		String[] parts = cdataPattern.split(value);
+		if (parts.length == 1)
 		{
-			Matcher matcher = cdataPattern.matcher(value);
-			if (!matcher.matches())
-			{
-				if (!firstCdataElement)
-				{
-					writer.writeStartElement("s");
-					writer.writeStartElementEnd();
-				}
-				writer.write(cdataStartSeq);
-				writer.write(value);
-				writer.write(cdataEndSeq);
-				if (!firstCdataElement)
-				{
-					writer.writeCloseElement("s");
-				}
-				break;
-			}
-			firstCdataElement = false;
-
-			String leftSeq = matcher.group(1);
-			String rightSeq = matcher.group(2);
-			writer.writeStartElement("s");
-			writer.writeStartElementEnd();
 			writer.write(cdataStartSeq);
-			writer.write(leftSeq);
+			writer.write(value);
 			writer.write(cdataEndSeq);
-			writer.writeCloseElement("s");
-			value = rightSeq;
 		}
+		else
+		{
+			// First part
+			writer.writeOpenElement(stringElement);
+			writer.write(cdataStartSeq);
+			writer.write(parts[0]);
+			writer.write(']');
+			writer.write(cdataEndSeq);
+			writer.writeCloseElement(stringElement);
+
+			// All parts in between
+			int lastIndex = parts.length - 1;
+			for (int i = 1; i < lastIndex; i++)
+			{
+				writer.writeOpenElement(stringElement);
+				writer.write(cdataStartSeq);
+				writer.write(']');
+				writer.write(parts[i]);
+				writer.write(']');
+				writer.write(cdataEndSeq);
+				writer.writeCloseElement(stringElement);
+			}
+
+			// Last part
+			writer.writeOpenElement(stringElement);
+			writer.write(cdataStartSeq);
+			writer.write(']');
+			writer.write(parts[lastIndex]);
+			writer.write(cdataEndSeq);
+			writer.writeCloseElement(stringElement);
+		}
+
 		writer.writeCloseElement(stringElement);
+
 		return true;
 	}
 
