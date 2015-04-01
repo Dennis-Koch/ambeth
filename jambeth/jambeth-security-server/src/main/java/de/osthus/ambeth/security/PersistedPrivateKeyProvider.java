@@ -33,7 +33,16 @@ public class PersistedPrivateKeyProvider implements IPrivateKeyProvider
 		{
 			return null;
 		}
-		ISignature signature = user.getSignature();
+		return getSigningHandle(user.getSignature(), clearTextPassword);
+	}
+
+	@Override
+	public Signature getSigningHandle(ISignature signature, char[] clearTextPassword)
+	{
+		if (clearTextPassword == null)
+		{
+			return null;
+		}
 		if (signature == null)
 		{
 			return null;

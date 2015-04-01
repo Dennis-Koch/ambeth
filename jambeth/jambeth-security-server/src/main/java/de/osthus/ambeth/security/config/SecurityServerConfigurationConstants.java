@@ -144,6 +144,8 @@ public final class SecurityServerConfigurationConstants
 
 	public static final String EncryptionPaddedKeySaltSize = "security.crypto.paddedkey.saltsize";
 
+	public static final String SignatureActive = "security.signature.active";
+
 	private SecurityServerConfigurationConstants()
 	{
 		// Intended blank
