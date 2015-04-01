@@ -38,11 +38,10 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.ICUDResultApplier;
 import de.osthus.ambeth.merge.ICUDResultHelper;
-import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IMergeListener;
 import de.osthus.ambeth.merge.IMergeProcess;
-import de.osthus.ambeth.merge.ProceedWithMergeHook;
+import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.model.CreateOrUpdateContainerBuild;
 import de.osthus.ambeth.merge.model.ICUDResult;
 import de.osthus.ambeth.merge.model.IChangeContainer;
@@ -73,7 +72,6 @@ import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IPrefetchHandle;
 import de.osthus.ambeth.util.IPrefetchHelper;
-import de.osthus.ambeth.util.ParamHolder;
 
 public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogger, IMergeListener, IAuditEntryVerifier, ITransactionListener, IStartingBean,
 		IAuditEntryWriterExtendable, IAuditInfoController
@@ -97,9 +95,6 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	protected IDatabase database;
 
 	@Autowired
-	protected IEntityFactory entityFactory;
-
-	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Autowired
@@ -110,6 +105,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 
 	@Autowired
 	protected IMergeService mergeService;
+
+	@Autowired
+	protected IObjRefHelper objRefHelper;
 
 	@Autowired
 	protected IPrefetchHelper prefetchHelper;
@@ -182,17 +180,20 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		}
 		try
 		{
-			IAuditEntry auditEntry = entityFactory.createEntity(IAuditEntry.class);
-
 			Long currentTime = database.getContextProvider().getCurrentTime();
-			auditEntry.setTimestamp(currentTime.longValue());
-			auditEntry.setProtocol(protocol);
+
+			auditEntryState = new AuditControllerState(cudResultApplier.acquireNewState(null), entityMetaDataProvider);
+			CreateOrUpdateContainerBuild auditEntry = auditEntryState.getAuditEntry();
+
+			auditEntry.ensurePrimitive(IAuditEntry.Timestamp).setNewValue(currentTime.longValue());
+			auditEntry.ensurePrimitive(IAuditEntry.Protocol).setNewValue(protocol);
+			auditEntry.ensurePrimitive(IAuditEntry.Context).setNewValue(peekAuditContext());
+			auditEntry.ensurePrimitive(IAuditEntry.Reason).setNewValue(peekAuditReason());
 
 			ISecurityContext context = securityContextHolder.getContext();
 			IAuthorization authorization = context != null ? context.getAuthorization() : null;
 			if (authorization != null)
 			{
-				getAdditionalAuditInfo().clearTextPassword = context.getAuthentication().getPassword();
 				final String currentSID = authorization.getSID();
 				IUser currentUser = securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<IUser>()
 				{
@@ -202,13 +203,15 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 						return userResolver.resolveUserBySID(currentSID);
 					}
 				});
-				auditEntry.setUser(currentUser);
+				auditEntry.ensureRelation(IAuditEntry.User).addObjRef(objRefHelper.entityToObjRef(currentUser));
+				auditEntry.ensurePrimitive(IAuditEntry.UserIdentifier).setNewValue(userIdentifierProvider.getSID(currentUser));
+
+				ISignature signatureOfUser = currentUser.getSignature();
+				if (signatureOfUser != null)
+				{
+					auditEntryState.setSignatureOfUser(signatureOfUser);
+				}
 			}
-			auditEntryState = new AuditControllerState(cudResultApplier.acquireNewState(null), entityMetaDataProvider);
-			auditEntryState.auditEntry = auditEntry;
-
-			auditEntryState.createEntity(IAuditEntry.class); // create auditEntry at index zero
-
 			auditEntryTL.set(auditEntryState);
 			return auditEntryState;
 		}
@@ -222,8 +225,6 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	public IMethodCallHandle logMethodCallStart(Method method, Object[] args)
 	{
 		AuditControllerState auditControllerState = ensureAuditEntry();
-
-		auditControllerState.auditEntry.setContext(peekAuditContext());
 
 		CreateOrUpdateContainerBuild auditEntry = auditControllerState.auditedChanges.get(0);
 		RelationUpdateItemBuild servicesRUI = auditEntry.ensureRelation(IAuditEntry.Services);
@@ -278,8 +279,6 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			Object originalRef = originalRefs.get(index);
 			auditChangeContainer(originalRef, updatedObjRef, changeContainer, auditControllerState, objRefToRefMap);
 		}
-		auditControllerState.auditEntry.setReason(peekAuditReason());
-		auditControllerState.auditEntry.setContext(peekAuditContext());
 	}
 
 	protected void auditChangeContainer(Object originalRef, IObjRef updatedObjRef, IChangeContainer changeContainer, AuditControllerState auditControllerState,
@@ -418,31 +417,30 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		propertyItem.ensurePrimitive(IAuditedEntityRelationPropertyItem.Order).setNewValue(Integer.valueOf(items.getAddedCount()));
 	}
 
-	protected void signAuditEntry(IAuditEntry auditEntry, CreateOrUpdateContainerBuild auditEntryContainer)
+	protected void signAuditEntry(CreateOrUpdateContainerBuild auditEntry, char[] clearTextPassword, ISignature signature)
 	{
-		IUser user = auditEntry.getUser();
-		char[] clearTextPassword = getAdditionalAuditInfo().clearTextPassword;
-
-		java.security.Signature signatureHandle = privateKeyProvider.getSigningHandle(user, clearTextPassword);
-		auditEntry.setUserIdentifier(user != null ? userIdentifierProvider.getSID(user) : null);
-		auditEntry.setSignatureOfUser(user != null ? user.getSignature() : null);
+		java.security.Signature signatureHandle = privateKeyProvider.getSigningHandle(signature, clearTextPassword);
 		if (signatureHandle == null)
 		{
-			auditEntry.setSignature(null);
-			auditEntry.setHashAlgorithm(null);
-			auditEntry.setSignature(null);
+			auditEntry.ensurePrimitive(IAuditEntry.HashAlgorithm).setNewValue(null);
+			auditEntry.ensurePrimitive(IAuditEntry.Signature).setNewValue(null);
+			auditEntry.ensurePrimitive(IAuditEntry.Protocol).setNewValue(null);
 			return;
 		}
 		try
 		{
-			auditEntry.setHashAlgorithm(hashAlgorithm);
-			auditEntry.setProtocol(protocol);
+			auditEntry.ensurePrimitive(IAuditEntry.HashAlgorithm).setNewValue(hashAlgorithm);
+			auditEntry.ensurePrimitive(IAuditEntry.Protocol).setNewValue(protocol);
 
-			writeToSignatureHandle(signatureHandle, auditEntry, auditEntryContainer);
+			if (signature != null)
+			{
+				auditEntry.ensureRelation(IAuditEntry.SignatureOfUser).addObjRef(objRefHelper.entityToObjRef(signature));
+			}
+			writeToSignatureHandle(signatureHandle, null, auditEntry);
 
 			byte[] sign = signatureHandle.sign();
 
-			auditEntry.setSignature(Base64.encodeBytes(sign).toCharArray());
+			auditEntry.ensurePrimitive(IAuditEntry.Signature).setNewValue(Base64.encodeBytes(sign).toCharArray());
 		}
 		catch (Throwable e)
 		{
@@ -487,17 +485,36 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		return allEntriesValid;
 	}
 
+	protected int getProtocol(IAuditEntry auditEntry, CreateOrUpdateContainerBuild auditEntryContainer)
+	{
+		if (auditEntry != null)
+		{
+			return auditEntry.getProtocol();
+		}
+		return conversionHelper.convertValueToType(Integer.class, auditEntryContainer.findPrimitive(IAuditEntry.Protocol).getNewValue()).intValue();
+	}
+
+	protected String getHashAlgorithm(IAuditEntry auditEntry, CreateOrUpdateContainerBuild auditEntryContainer)
+	{
+		if (auditEntry != null)
+		{
+			return auditEntry.getHashAlgorithm();
+		}
+		return conversionHelper.convertValueToType(String.class, auditEntryContainer.findPrimitive(IAuditEntry.HashAlgorithm).getNewValue());
+	}
+
 	protected void writeToSignatureHandle(java.security.Signature signatureHandle, IAuditEntry auditEntry, CreateOrUpdateContainerBuild auditEntryContainer)
 	{
 		try
 		{
-			IAuditEntryWriter auditEntryWriter = auditEntryWriters.getExtension(Integer.valueOf(auditEntry.getProtocol()));
+			int protocol = getProtocol(auditEntry, auditEntryContainer);
+			IAuditEntryWriter auditEntryWriter = auditEntryWriters.getExtension(protocol);
 			if (auditEntryWriter == null)
 			{
-				throw new IllegalArgumentException("Not instance of " + IAuditEntryWriter.class.getSimpleName() + " found for protocol '"
-						+ auditEntry.getProtocol() + "' of " + auditEntry);
+				throw new IllegalArgumentException("Not instance of " + IAuditEntryWriter.class.getSimpleName() + " found for protocol '" + protocol + "' of "
+						+ auditEntry);
 			}
-			String hashAlgorithm = auditEntry.getHashAlgorithm();
+			String hashAlgorithm = getHashAlgorithm(auditEntry, auditEntryContainer);
 			if (hashAlgorithm != null && hashAlgorithm.length() > 0)
 			{
 				// build a good hash from the audited information: to sign its hash is faster than to sign the audited information itself
@@ -508,13 +525,13 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 				DigestOutputStream digestOS = new DigestOutputStream(new NullOutputStream(), md);
 				DataOutputStream dos = new DataOutputStream(digestOS);
 
-				if (auditEntryContainer != null)
+				if (auditEntry != null)
 				{
-					auditEntryWriter.writeAuditEntry(auditEntryContainer, dos);
+					auditEntryWriter.writeAuditEntry(auditEntry, dos);
 				}
 				else
 				{
-					auditEntryWriter.writeAuditEntry(auditEntry, dos);
+					auditEntryWriter.writeAuditEntry(auditEntryContainer, dos);
 				}
 				dos.close();
 
@@ -526,14 +543,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 				// we have no hashAlgorithm: so we sign the whole audited information
 				SignatureOutputStream sos = new SignatureOutputStream(new NullOutputStream(), signatureHandle);
 				DataOutputStream dos = new DataOutputStream(sos);
-				if (auditEntryContainer != null)
-				{
-					auditEntryWriter.writeAuditEntry(auditEntryContainer, dos);
-				}
-				else
-				{
-					auditEntryWriter.writeAuditEntry(auditEntry, dos);
-				}
+				auditEntryWriter.writeAuditEntry(auditEntry, dos);
 				dos.close();
 			}
 		}
@@ -546,7 +556,12 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Override
 	public void handlePostBegin(long sessionId) throws Throwable
 	{
-		// intended blank
+		ISecurityContext context = securityContextHolder.getContext();
+		IAuthorization authorization = context != null ? context.getAuthorization() : null;
+		if (authorization != null)
+		{
+			getAdditionalAuditInfo().clearTextPassword = context.getAuthentication().getPassword();
+		}
 	}
 
 	@Override
@@ -562,14 +577,17 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		final AuditControllerState auditEntryState = auditEntryTL.get();
 		if (auditEntryState == null)
 		{
+			getAdditionalAuditInfo().clearTextPassword = null;
 			return;
 		}
 		auditEntryTL.set(null);
 
-		getAdditionalAuditInfo().ownAuditMergeActive = Boolean.TRUE;
+		AdditionalAuditInfo additionalAuditInfo = getAdditionalAuditInfo();
+		additionalAuditInfo.ownAuditMergeActive = Boolean.TRUE;
 		try
 		{
-			final ParamHolder<ICUDResult> cudResultHolder = new ParamHolder<ICUDResult>();
+			final char[] clearTextPassword = additionalAuditInfo.clearTextPassword;
+
 			securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>()
 			{
 				@Override
@@ -577,38 +595,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 				{
 					ArrayList<CreateOrUpdateContainerBuild> auditedChanges = auditEntryState.auditedChanges;
 					CreateOrUpdateContainerBuild auditEntryContainer = auditedChanges.get(0);
-					signAuditEntry(auditEntryState.auditEntry, auditEntryContainer);
 
-					mergeProcess.process(auditEntryState.auditEntry, null, new ProceedWithMergeHook()
-					{
-						@Override
-						public boolean checkToProceed(ICUDResult result)
-						{
-							cudResultHolder.setValue(result);
-							return false;
-						}
-					}, null, false);
+					signAuditEntry(auditEntryContainer, clearTextPassword, auditEntryState.getSignatureOfUser());
 
-					ICUDResult auditEntryMerge = cudResultHolder.getValue();
-					IChangeContainer signedAuditEntryContainer = auditEntryMerge.getAllChanges().get(0);
-					{
-						IPrimitiveUpdateItem[] puis = ((CreateContainer) signedAuditEntryContainer).getPrimitives();
-						if (puis != null)
-						{
-							for (IPrimitiveUpdateItem pui : puis)
-							{
-								auditEntryContainer.addPrimitive(pui);
-							}
-						}
-						IRelationUpdateItem[] ruis = ((CreateContainer) signedAuditEntryContainer).getRelations();
-						if (ruis != null)
-						{
-							for (IRelationUpdateItem rui : ruis)
-							{
-								auditEntryContainer.addRelation(rui);
-							}
-						}
-					}
 					ArrayList<IChangeContainer> finalizedAuditChanges = new ArrayList<IChangeContainer>(auditedChanges.size());
 					for (int a = 0, size = auditedChanges.size(); a < size; a++)
 					{
@@ -646,8 +635,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		}
 		finally
 		{
-			getAdditionalAuditInfo().ownAuditMergeActive = null;
-			getAdditionalAuditInfo().clearTextPassword = null;
+			additionalAuditInfo.ownAuditMergeActive = null;
+			additionalAuditInfo.clearTextPassword = null;
 		}
 	}
 
