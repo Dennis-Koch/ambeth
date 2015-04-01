@@ -43,10 +43,23 @@ namespace De.Osthus.Ambeth.Metadata
             }
 	    }
 
+		public override bool Transient
+		{
+			get
+			{
+				return childMember.Transient;
+			}
+		}
+
 	    public override void SetTechnicalMember(bool technicalMember)
 	    {
 		    ((IPrimitiveMemberWrite) childMember).SetTechnicalMember(technicalMember);
 	    }
+
+		public override void SetTransient(bool isTransient)
+		{
+			((IPrimitiveMemberWrite)childMember).SetTransient(isTransient);
+		}
 
         public Member[] GetMemberPath()
         {

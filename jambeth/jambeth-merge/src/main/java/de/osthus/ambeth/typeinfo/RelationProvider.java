@@ -19,7 +19,8 @@ public class RelationProvider implements IRelationProvider
 		ImmutableTypeSet.addImmutableTypesTo(primitiveTypes);
 
 		primitiveTypes.addAll(Arrays.asList(new Class<?>[] { Object.class, java.util.Date.class, java.sql.Date.class, java.sql.Timestamp.class,
-				java.util.Calendar.class }));
+				java.util.Calendar.class, java.lang.Integer.class, java.lang.Long.class, java.lang.Double.class, java.lang.Float.class, java.lang.Short.class,
+				java.lang.Character.class, java.lang.Byte.class }));
 		primitiveTypes.add(XMLGregorianCalendar.class);
 	}
 

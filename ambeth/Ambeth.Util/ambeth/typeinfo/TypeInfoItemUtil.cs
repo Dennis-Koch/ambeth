@@ -1,4 +1,6 @@
-﻿using System;
+﻿using De.Osthus.Ambeth.Collections;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace De.Osthus.Ambeth.Typeinfo
@@ -7,18 +9,23 @@ namespace De.Osthus.Ambeth.Typeinfo
     {
         public static Type GetElementTypeUsingReflection(Type type, Type genericType_onlyUsedInJava)
         {
-            if (type.IsGenericType)
-            {
-                Type genericTypeDef = type.GetGenericTypeDefinition();
-                if (typeof(IList<>).IsAssignableFrom(genericTypeDef))
-                {
-                    return type.GetGenericArguments()[0];
-                }
-            }
-            if (type.HasElementType)
-            {
-                return type.GetElementType();
-            }
+			if (type.HasElementType)
+			{
+				return type.GetElementType();
+			}
+			else if (!type.IsGenericType)
+			{
+				return type;
+			}
+			Type genericTypeDef = type.GetGenericTypeDefinition();
+			if (typeof(IList<>).IsAssignableFrom(genericTypeDef))
+			{
+				return type.GetGenericArguments()[0];
+			}
+			if (typeof(IMap<,>).IsAssignableFrom(genericTypeDef))
+			{
+				return GetElementTypeUsingReflection(type.GetGenericArguments()[1], null);
+			}
             return type;
         }
 

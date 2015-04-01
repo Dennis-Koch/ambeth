@@ -236,6 +236,21 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 				}
 			});
 
+			{
+				PrimitiveMember[] existingPrimitiveMembers = metaData.getPrimitiveMembers();
+				if (existingPrimitiveMembers != null)
+				{
+					for (PrimitiveMember primitiveMember : existingPrimitiveMembers)
+					{
+						if (primitiveMember.isTransient())
+						{
+							// ensure that transient members are not dropped because no persisted column has been found in the database table
+							primitiveMembers.add(primitiveMember);
+						}
+					}
+				}
+			}
+
 			// Order of setter calls is important
 			metaData.setCreatedByMember(findPrimitiveMember(metaData.getCreatedByMember(), primitiveMembers));
 			metaData.setCreatedOnMember(findPrimitiveMember(metaData.getCreatedOnMember(), primitiveMembers));

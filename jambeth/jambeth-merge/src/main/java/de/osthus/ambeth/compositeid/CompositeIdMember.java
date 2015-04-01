@@ -32,6 +32,8 @@ public class CompositeIdMember extends PrimitiveMember implements IPrimitiveMemb
 
 	protected boolean technicalMember;
 
+	private boolean isTransient;
+
 	public CompositeIdMember(Class<?> declaringType, Class<?> realType, String name, PrimitiveMember[] members, IMemberTypeProvider memberTypeProvider)
 	{
 		this.declaringType = declaringType;
@@ -66,6 +68,18 @@ public class CompositeIdMember extends PrimitiveMember implements IPrimitiveMemb
 	public void setTechnicalMember(boolean technicalMember)
 	{
 		this.technicalMember = technicalMember;
+	}
+
+	@Override
+	public boolean isTransient()
+	{
+		return isTransient;
+	}
+
+	@Override
+	public void setTransient(boolean isTransient)
+	{
+		this.isTransient = isTransient;
 	}
 
 	@Override

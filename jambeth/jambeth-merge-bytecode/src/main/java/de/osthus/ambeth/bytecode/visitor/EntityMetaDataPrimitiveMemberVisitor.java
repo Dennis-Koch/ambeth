@@ -16,6 +16,11 @@ public class EntityMetaDataPrimitiveMemberVisitor extends ClassGenerator
 	protected static final MethodInstance template_m_setTechnicalMember = new MethodInstance(null, IPrimitiveMemberWrite.class, void.class,
 			"setTechnicalMember", boolean.class);
 
+	protected static final MethodInstance template_m_isTransient = new MethodInstance(null, PrimitiveMember.class, boolean.class, "isTransient");
+
+	protected static final MethodInstance template_m_setTransient = new MethodInstance(null, IPrimitiveMemberWrite.class, void.class, "setTransient",
+			boolean.class);
+
 	protected final Class<?> entityType;
 
 	protected final String memberName;
@@ -33,15 +38,24 @@ public class EntityMetaDataPrimitiveMemberVisitor extends ClassGenerator
 	@Override
 	public void visitEnd()
 	{
-		implementIsTechnicalMember();
+		implementTechnicalMember();
+		implementTransient();
 		super.visitEnd();
 	}
 
-	protected void implementIsTechnicalMember()
+	protected void implementTechnicalMember()
 	{
 		FieldInstance f_technicalMember = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "__technicalMember", null, boolean.class));
 
 		implementGetter(template_m_isTechnicalMember, f_technicalMember);
 		implementSetter(template_m_setTechnicalMember, f_technicalMember);
+	}
+
+	protected void implementTransient()
+	{
+		FieldInstance f_transient = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "__transient", null, boolean.class));
+
+		implementGetter(template_m_isTransient, f_transient);
+		implementSetter(template_m_setTransient, f_transient);
 	}
 }

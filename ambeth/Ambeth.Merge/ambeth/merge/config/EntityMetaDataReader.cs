@@ -59,7 +59,7 @@ namespace De.Osthus.Ambeth.Merge.Config
 
             IPropertyInfo[] properties = PropertyInfoProvider.GetProperties(realType);
 
-            IdentityLinkedMap<IOrmConfig, Member> memberConfigToInfoItem = new IdentityLinkedMap<IOrmConfig, Member>();
+            IdentityLinkedMap<IOrmConfig, Member> memberConfigToMember = new IdentityLinkedMap<IOrmConfig, Member>();
 
             // Resolve members for all explicit configurations - both simple and composite ones, each with embedded
             // functionality (dot-member-path)
@@ -69,18 +69,18 @@ namespace De.Osthus.Ambeth.Merge.Config
 			    {
 				    continue;
 			    }
-			    HandleMemberConfig(metaData, realType, memberConfig, memberConfigToInfoItem);
+			    HandleMemberConfig(metaData, realType, memberConfig, memberConfigToMember);
 		    }
 		    foreach (IRelationConfig relationConfig in entityConfig.GetRelationConfigIterable())
 		    {
-			    HandleRelationConfig(realType, relationConfig, memberConfigToInfoItem);
+			    HandleRelationConfig(realType, relationConfig, memberConfigToMember);
 		    }
-		    metaData.IdMember = HandleMemberConfig(metaData, realType, entityConfig.IdMemberConfig, memberConfigToInfoItem);
-		    metaData.VersionMember = HandleMemberConfig(metaData, realType, entityConfig.VersionMemberConfig, memberConfigToInfoItem);
-		    metaData.CreatedByMember = HandleMemberConfig(metaData, realType, entityConfig.CreatedByMemberConfig, memberConfigToInfoItem);
-		    metaData.CreatedOnMember = HandleMemberConfig(metaData, realType, entityConfig.CreatedOnMemberConfig, memberConfigToInfoItem);
-		    metaData.UpdatedByMember = HandleMemberConfig(metaData, realType, entityConfig.UpdatedByMemberConfig, memberConfigToInfoItem);
-		    metaData.UpdatedOnMember = HandleMemberConfig(metaData, realType, entityConfig.UpdatedOnMemberConfig, memberConfigToInfoItem);
+		    metaData.IdMember = HandleMemberConfig(metaData, realType, entityConfig.IdMemberConfig, memberConfigToMember);
+		    metaData.VersionMember = HandleMemberConfig(metaData, realType, entityConfig.VersionMemberConfig, memberConfigToMember);
+		    metaData.CreatedByMember = HandleMemberConfig(metaData, realType, entityConfig.CreatedByMemberConfig, memberConfigToMember);
+		    metaData.CreatedOnMember = HandleMemberConfig(metaData, realType, entityConfig.CreatedOnMemberConfig, memberConfigToMember);
+		    metaData.UpdatedByMember = HandleMemberConfig(metaData, realType, entityConfig.UpdatedByMemberConfig, memberConfigToMember);
+		    metaData.UpdatedOnMember = HandleMemberConfig(metaData, realType, entityConfig.UpdatedOnMemberConfig, memberConfigToMember);
 
             IdentityHashSet<Member> idMembers = new IdentityHashSet<Member>();
             Member idMember = metaData.IdMember;
@@ -94,7 +94,7 @@ namespace De.Osthus.Ambeth.Merge.Config
 		    }
 
 		    // Handle all explicitly configurated members
-            foreach (Entry<IOrmConfig, Member> entry in memberConfigToInfoItem)
+            foreach (Entry<IOrmConfig, Member> entry in memberConfigToMember)
 		    {
 			    IOrmConfig ormConfig = entry.Key;
                 Member member = entry.Value;
@@ -138,8 +138,8 @@ namespace De.Osthus.Ambeth.Merge.Config
                     primitiveMembers.Add((PrimitiveMember)member);
 			    }
 		    }
-            IdentityHashSet<String> explicitTypeInfoItems = IdentityHashSet<String>.Create(memberConfigToInfoItem.Count);
-            foreach (Entry<IOrmConfig, Member> entry in memberConfigToInfoItem)
+            IdentityHashSet<String> explicitTypeInfoItems = IdentityHashSet<String>.Create(memberConfigToMember.Count);
+            foreach (Entry<IOrmConfig, Member> entry in memberConfigToMember)
 		    {
                 Member member = entry.Value;
 			    explicitTypeInfoItems.Add(member.Name);
@@ -341,7 +341,9 @@ namespace De.Osthus.Ambeth.Merge.Config
 		    }
 		    if (!(memberConfig is CompositeMemberConfig))
 		    {
-			    return HandleMemberConfigIfNew(realType, memberConfig, memberConfigToInfoItem);
+				PrimitiveMember member = HandleMemberConfigIfNew(realType, memberConfig, memberConfigToInfoItem);
+				((IPrimitiveMemberWrite)member).SetTransient(memberConfig.Transient);
+				return member;
 		    }
 		    MemberConfig[] memberConfigs = ((CompositeMemberConfig) memberConfig).GetMembers();
             PrimitiveMember[] members = new PrimitiveMember[memberConfigs.Length];
@@ -353,7 +355,8 @@ namespace De.Osthus.Ambeth.Merge.Config
 		    }
             PrimitiveMember compositeIdMember = CompositeIdFactory.CreateCompositeIdMember(metaData, members);
 		    memberConfigToInfoItem.Put(memberConfig, compositeIdMember);
-		    return compositeIdMember;
+			((IPrimitiveMemberWrite)compositeIdMember).SetTransient(memberConfig.Transient);
+			return compositeIdMember;
 	    }
 
         protected Member HandleRelationConfig(Type realType, IRelationConfig relationConfig, IMap<IOrmConfig, Member> relationConfigToInfoItem)
