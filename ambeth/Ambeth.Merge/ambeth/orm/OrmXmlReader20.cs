@@ -373,7 +373,7 @@ namespace De.Osthus.Ambeth.Orm
 			String transientValue = XmlConfigUtil.GetAttribute(memberElement, XmlConstants.TRANSIENT);
 			if (transientValue.Length != 0)
 			{
-				memberConfig.SetTransient(Boolean.Parse(transientValue));
+				memberConfig.Transient = Boolean.Parse(transientValue);
 			}
             return memberConfig;
         }
