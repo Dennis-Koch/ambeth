@@ -131,7 +131,7 @@ namespace De.Osthus.Ambeth.CompositeId
 		{
 			get
 			{
-				return transient;
+				return isTransient;
 			}
 		}
 
