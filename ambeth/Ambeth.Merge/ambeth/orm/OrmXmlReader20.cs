@@ -370,7 +370,11 @@ namespace De.Osthus.Ambeth.Orm
             {
                 memberConfig.ColumnName = columnName;
             }
-
+			String transientValue = XmlConfigUtil.GetAttribute(memberElement, XmlConstants.TRANSIENT);
+			if (transientValue.Length != 0)
+			{
+				memberConfig.Transient = Boolean.Parse(transientValue);
+			}
             return memberConfig;
         }
 

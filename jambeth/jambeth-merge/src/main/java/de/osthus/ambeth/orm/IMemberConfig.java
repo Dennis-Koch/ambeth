@@ -5,4 +5,6 @@ public interface IMemberConfig extends IOrmConfig
 	boolean isAlternateId();
 
 	boolean isIgnore();
+
+	boolean isTransient();
 }

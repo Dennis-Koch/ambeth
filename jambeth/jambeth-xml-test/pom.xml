@@ -16,10 +16,10 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-xml</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-information-bus</artifactId>
-			<type>pom</type>
 		</dependency>
 
 		<dependency>

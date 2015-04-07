@@ -28,7 +28,7 @@ namespace De.Osthus.Ambeth.Persistence
          *            Map of member names and primitive values.
          * @return New version converted to the correct type.
          */
-        Object Insert(Object id, out Object newId, ILinkedMap<String, Object> puis);
+		Object Insert(Object id, out Object newId, ILinkedMap<IFieldMetaData, Object> puis);
 
         /**
          * Updates a persisted object in storage.
@@ -41,7 +41,7 @@ namespace De.Osthus.Ambeth.Persistence
          *            Map of primitive values to update.
          * @return New version converted to the correct type.
          */
-        Object Update(Object id, Object version, ILinkedMap<String, Object> puis);
+		Object Update(Object id, Object version, ILinkedMap<IFieldMetaData, Object> puis);
 
         /**
          * Deletes a list of persisted objects from storage identified by ids and versions.

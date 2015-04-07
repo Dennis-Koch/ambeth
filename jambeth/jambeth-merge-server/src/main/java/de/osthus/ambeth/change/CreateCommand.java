@@ -3,15 +3,16 @@ package de.osthus.ambeth.change;
 import java.util.Map.Entry;
 
 import de.osthus.ambeth.collections.ILinkedMap;
-import de.osthus.ambeth.collections.LinkedHashMap;
+import de.osthus.ambeth.collections.IdentityLinkedMap;
 import de.osthus.ambeth.merge.model.IChangeContainer;
 import de.osthus.ambeth.merge.model.ICreateOrUpdateContainer;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.persistence.IFieldMetaData;
 import de.osthus.ambeth.persistence.ITable;
 
 public class CreateCommand extends AbstractChangeCommand implements ICreateCommand
 {
-	protected final LinkedHashMap<String, Object> items = new LinkedHashMap<String, Object>();
+	protected final IdentityLinkedMap<IFieldMetaData, Object> items = new IdentityLinkedMap<IFieldMetaData, Object>();
 
 	public CreateCommand(IObjRef reference)
 	{
@@ -35,8 +36,8 @@ public class CreateCommand extends AbstractChangeCommand implements ICreateComma
 	@Override
 	public IChangeCommand addCommand(IUpdateCommand other)
 	{
-		LinkedHashMap<String, Object> items = this.items;
-		for (Entry<String, Object> entry : other.getItems())
+		IdentityLinkedMap<IFieldMetaData, Object> items = this.items;
+		for (Entry<IFieldMetaData, Object> entry : other.getItems())
 		{
 			if (entry.getValue() != null)
 			{
@@ -57,7 +58,7 @@ public class CreateCommand extends AbstractChangeCommand implements ICreateComma
 	}
 
 	@Override
-	public ILinkedMap<String, Object> getItems()
+	public ILinkedMap<IFieldMetaData, Object> getItems()
 	{
 		return items;
 	}

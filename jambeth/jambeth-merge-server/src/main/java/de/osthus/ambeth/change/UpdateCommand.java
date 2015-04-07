@@ -4,21 +4,21 @@ import java.util.Map.Entry;
 
 import de.osthus.ambeth.collections.EmptyMap;
 import de.osthus.ambeth.collections.ILinkedMap;
-import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.collections.ReadOnlyMapWrapper;
 import de.osthus.ambeth.merge.model.IChangeContainer;
 import de.osthus.ambeth.merge.model.ICreateOrUpdateContainer;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.model.IPrimitiveUpdateItem;
+import de.osthus.ambeth.persistence.IFieldMetaData;
 import de.osthus.ambeth.persistence.ITable;
 
 public class UpdateCommand extends AbstractChangeCommand implements IUpdateCommand
 {
-	private static final ILinkedMap<String, Object> emptyItems = EmptyMap.<String, Object> emptyMap();
+	private static final ILinkedMap<IFieldMetaData, Object> emptyItems = EmptyMap.<IFieldMetaData, Object> emptyMap();
 
-	protected ILinkedMap<String, Object> items = emptyItems;
-	protected ILinkedMap<String, Object> roItems = emptyItems;
+	protected ILinkedMap<IFieldMetaData, Object> items = emptyItems;
+	protected ILinkedMap<IFieldMetaData, Object> roItems = emptyItems;
 
 	public UpdateCommand(IObjRef reference)
 	{
@@ -48,10 +48,10 @@ public class UpdateCommand extends AbstractChangeCommand implements IUpdateComma
 	@Override
 	public IChangeCommand addCommand(IUpdateCommand other)
 	{
-		IMap<String, Object> otherItems = other.getItems();
+		ILinkedMap<IFieldMetaData, Object> otherItems = other.getItems();
 		if (otherItems != emptyItems)
 		{
-			for (Entry<String, Object> entry : otherItems)
+			for (Entry<IFieldMetaData, Object> entry : otherItems)
 			{
 				Object actualValue = items.get(entry.getKey());
 				if (actualValue == null)
@@ -75,14 +75,14 @@ public class UpdateCommand extends AbstractChangeCommand implements IUpdateComma
 		return other;
 	}
 
-	public void put(String fieldName, Object foreignKey)
+	public void put(IFieldMetaData field, Object foreignKey)
 	{
 		ensureWritableMap();
-		items.put(fieldName, foreignKey);
+		items.put(field, foreignKey);
 	}
 
 	@Override
-	public ILinkedMap<String, Object> getItems()
+	public ILinkedMap<IFieldMetaData, Object> getItems()
 	{
 		return roItems;
 	}
@@ -91,8 +91,8 @@ public class UpdateCommand extends AbstractChangeCommand implements IUpdateComma
 	{
 		if (items == emptyItems)
 		{
-			items = new LinkedHashMap<String, Object>();
-			roItems = new ReadOnlyMapWrapper<String, Object>(items);
+			items = new LinkedHashMap<IFieldMetaData, Object>();
+			roItems = new ReadOnlyMapWrapper<IFieldMetaData, Object>(items);
 		}
 	}
 }

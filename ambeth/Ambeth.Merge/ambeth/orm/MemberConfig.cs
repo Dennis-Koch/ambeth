@@ -34,5 +34,10 @@ namespace De.Osthus.Ambeth.Orm
         {
             return GetType().GetHashCode() ^ Name.GetHashCode();
         }
+
+		public override String ToString()
+		{
+			return Name;
+		}
     }
 }

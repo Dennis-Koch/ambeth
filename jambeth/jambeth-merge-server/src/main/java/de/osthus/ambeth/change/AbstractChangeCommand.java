@@ -1,10 +1,10 @@
 package de.osthus.ambeth.change;
 
-import java.util.Map;
-
+import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.merge.model.IChangeContainer;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.model.IPrimitiveUpdateItem;
+import de.osthus.ambeth.persistence.IFieldMetaData;
 import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.persistence.ITableMetaData;
 
@@ -64,7 +64,7 @@ public abstract class AbstractChangeCommand implements IChangeCommand
 		return this.getClass() + " for " + reference;
 	}
 
-	protected void repackPuis(IPrimitiveUpdateItem[] puis, Map<String, Object> target)
+	protected void repackPuis(IPrimitiveUpdateItem[] puis, ILinkedMap<IFieldMetaData, Object> target)
 	{
 		if (puis == null)
 		{
@@ -78,7 +78,13 @@ public abstract class AbstractChangeCommand implements IChangeCommand
 			{
 				continue;
 			}
-			target.put(table.getFieldByMemberName(pui.getMemberName()).getName(), pui.getNewValue());
+			IFieldMetaData field = table.getFieldByMemberName(pui.getMemberName());
+			if (field == null)
+			{
+				// field is transient
+				continue;
+			}
+			target.put(field, pui.getNewValue());
 		}
 	}
 

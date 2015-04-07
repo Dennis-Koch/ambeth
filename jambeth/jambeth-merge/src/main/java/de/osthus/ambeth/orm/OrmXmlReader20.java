@@ -225,8 +225,7 @@ public class OrmXmlReader20 implements IOrmXmlReader, IInitializingBean
 			}
 			if (entityDefs.containsKey(XmlConstants.PERMISSION_GROUP))
 			{
-				String permissionGroupName = xmlConfigUtil.getRequiredAttribute(entityDefs.get(XmlConstants.PERMISSION_GROUP).get(0),
-						XmlConstants.NAME);
+				String permissionGroupName = xmlConfigUtil.getRequiredAttribute(entityDefs.get(XmlConstants.PERMISSION_GROUP).get(0), XmlConstants.NAME);
 				entityConfig.setPermissionGroupName(permissionGroupName);
 			}
 			if (entityDefs.containsKey(XmlConstants.SEQ))
@@ -380,7 +379,11 @@ public class OrmXmlReader20 implements IOrmXmlReader, IInitializingBean
 		{
 			memberConfig.setColumnName(columnName);
 		}
-
+		String transientValue = xmlConfigUtil.getAttribute(memberElement, XmlConstants.TRANSIENT);
+		if (!transientValue.isEmpty())
+		{
+			memberConfig.setTransient(Boolean.parseBoolean(transientValue));
+		}
 		return memberConfig;
 	}
 
