@@ -183,7 +183,10 @@ namespace De.Osthus.Ambeth.Merge
 		    {
 			    return MemberTypeProvider.GetRelationMember(metaData.EnhancedType, member.Name);
 		    }
-            return MemberTypeProvider.GetPrimitiveMember(metaData.EnhancedType, member.Name);
+			PrimitiveMember refreshedMember = MemberTypeProvider.GetPrimitiveMember(metaData.EnhancedType, member.Name);
+			((IPrimitiveMemberWrite)refreshedMember).SetTechnicalMember(((PrimitiveMember)member).TechnicalMember);
+			((IPrimitiveMemberWrite)refreshedMember).SetTransient(((PrimitiveMember)member).Transient);
+			return refreshedMember;
         }
 
         protected IList<Type> AddLoadedMetaData(IList<Type> entityTypes, IList<IEntityMetaData> loadedMetaData)

@@ -26,6 +26,7 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.EmbeddedMember;
 import de.osthus.ambeth.metadata.IEmbeddedMember;
 import de.osthus.ambeth.metadata.IIntermediateMemberTypeProvider;
+import de.osthus.ambeth.metadata.IPrimitiveMemberWrite;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
@@ -82,7 +83,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 
 		IPropertyInfo[] properties = propertyInfoProvider.getProperties(realType);
 
-		IdentityLinkedMap<IOrmConfig, Member> memberConfigToInfoItem = new IdentityLinkedMap<IOrmConfig, Member>();
+		IdentityLinkedMap<IOrmConfig, Member> memberConfigToMember = new IdentityLinkedMap<IOrmConfig, Member>();
 
 		// Resolve members for all explicit configurations - both simple and composite ones, each with embedded
 		// functionality (dot-member-path)
@@ -92,18 +93,18 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 			{
 				continue;
 			}
-			handleMemberConfig(metaData, realType, memberConfig, memberConfigToInfoItem);
+			handleMemberConfig(metaData, realType, memberConfig, memberConfigToMember);
 		}
 		for (IRelationConfig relationConfig : entityConfig.getRelationConfigIterable())
 		{
-			handleRelationConfig(realType, relationConfig, memberConfigToInfoItem);
+			handleRelationConfig(realType, relationConfig, memberConfigToMember);
 		}
-		metaData.setIdMember(handleMemberConfig(metaData, realType, entityConfig.getIdMemberConfig(), memberConfigToInfoItem));
-		metaData.setVersionMember(handleMemberConfig(metaData, realType, entityConfig.getVersionMemberConfig(), memberConfigToInfoItem));
-		metaData.setCreatedByMember(handleMemberConfig(metaData, realType, entityConfig.getCreatedByMemberConfig(), memberConfigToInfoItem));
-		metaData.setCreatedOnMember(handleMemberConfig(metaData, realType, entityConfig.getCreatedOnMemberConfig(), memberConfigToInfoItem));
-		metaData.setUpdatedByMember(handleMemberConfig(metaData, realType, entityConfig.getUpdatedByMemberConfig(), memberConfigToInfoItem));
-		metaData.setUpdatedOnMember(handleMemberConfig(metaData, realType, entityConfig.getUpdatedOnMemberConfig(), memberConfigToInfoItem));
+		metaData.setIdMember(handleMemberConfig(metaData, realType, entityConfig.getIdMemberConfig(), memberConfigToMember));
+		metaData.setVersionMember(handleMemberConfig(metaData, realType, entityConfig.getVersionMemberConfig(), memberConfigToMember));
+		metaData.setCreatedByMember(handleMemberConfig(metaData, realType, entityConfig.getCreatedByMemberConfig(), memberConfigToMember));
+		metaData.setCreatedOnMember(handleMemberConfig(metaData, realType, entityConfig.getCreatedOnMemberConfig(), memberConfigToMember));
+		metaData.setUpdatedByMember(handleMemberConfig(metaData, realType, entityConfig.getUpdatedByMemberConfig(), memberConfigToMember));
+		metaData.setUpdatedOnMember(handleMemberConfig(metaData, realType, entityConfig.getUpdatedOnMemberConfig(), memberConfigToMember));
 
 		IdentityHashSet<Member> idMembers = new IdentityHashSet<Member>();
 		Member idMember = metaData.getIdMember();
@@ -117,7 +118,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		}
 
 		// Handle all explicitly configurated members
-		for (Entry<IOrmConfig, Member> entry : memberConfigToInfoItem)
+		for (Entry<IOrmConfig, Member> entry : memberConfigToMember)
 		{
 			IOrmConfig ormConfig = entry.getKey();
 			Member member = entry.getValue();
@@ -161,8 +162,8 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 				primitiveMembers.add((PrimitiveMember) member);
 			}
 		}
-		IdentityHashSet<String> explicitTypeInfoItems = IdentityHashSet.<String> create(memberConfigToInfoItem.size());
-		for (Entry<IOrmConfig, Member> entry : memberConfigToInfoItem)
+		IdentityHashSet<String> explicitTypeInfoItems = IdentityHashSet.<String> create(memberConfigToMember.size());
+		for (Entry<IOrmConfig, Member> entry : memberConfigToMember)
 		{
 			Member member = entry.getValue();
 			explicitTypeInfoItems.add(member.getName());
@@ -366,7 +367,9 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		}
 		if (!(memberConfig instanceof CompositeMemberConfig))
 		{
-			return handleMemberConfigIfNew(realType, memberConfig, memberConfigToInfoItem);
+			PrimitiveMember member = handleMemberConfigIfNew(realType, memberConfig, memberConfigToInfoItem);
+			((IPrimitiveMemberWrite) member).setTransient(memberConfig.isTransient());
+			return member;
 		}
 		MemberConfig[] memberConfigs = ((CompositeMemberConfig) memberConfig).getMembers();
 		PrimitiveMember[] members = new PrimitiveMember[memberConfigs.length];
@@ -378,6 +381,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		}
 		PrimitiveMember compositeIdMember = compositeIdFactory.createCompositeIdMember(metaData, members);
 		memberConfigToInfoItem.put(memberConfig, compositeIdMember);
+		((IPrimitiveMemberWrite) compositeIdMember).setTransient(memberConfig.isTransient());
 		return compositeIdMember;
 	}
 

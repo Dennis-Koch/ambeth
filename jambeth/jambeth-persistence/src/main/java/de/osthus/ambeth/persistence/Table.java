@@ -206,13 +206,13 @@ public class Table implements ITable, IInitializingBean
 	}
 
 	@Override
-	public Object insert(Object id, IParamHolder<Object> newId, ILinkedMap<String, Object> puis)
+	public Object insert(Object id, IParamHolder<Object> newId, ILinkedMap<IFieldMetaData, Object> puis)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override
-	public Object update(Object id, Object version, ILinkedMap<String, Object> puis)
+	public Object update(Object id, Object version, ILinkedMap<IFieldMetaData, Object> puis)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}

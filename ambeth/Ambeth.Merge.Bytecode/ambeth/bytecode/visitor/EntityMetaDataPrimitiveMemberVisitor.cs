@@ -17,6 +17,11 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         protected static readonly MethodInstance template_m_setTechnicalMember = new MethodInstance(null, typeof(IPrimitiveMemberWrite), typeof(void),
                 "SetTechnicalMember", typeof(bool));
 
+		protected static readonly MethodInstance template_m_isTransient = new MethodInstance(null, typeof(PrimitiveMember), typeof(bool), "get_Transient");
+
+		protected static readonly MethodInstance template_m_setTransient = new MethodInstance(null, typeof(IPrimitiveMemberWrite), typeof(void),
+				"SetTransient", typeof(bool));
+
         protected readonly Type entityType;
 
         protected readonly String memberName;
@@ -33,6 +38,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         public override void VisitEnd()
         {
             ImplementIsTechnicalMember();
+			ImplementTransient();
             base.VisitEnd();
         }
 
@@ -43,5 +49,13 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             ImplementGetter(template_m_isTechnicalMember, f_technicalMember);
             ImplementSetter(template_m_setTechnicalMember, f_technicalMember);
         }
+
+		protected void ImplementTransient()
+		{
+			FieldInstance f_transient = ImplementField(new FieldInstance(FieldAttributes.Private, "__transient", typeof(bool)));
+
+			ImplementGetter(template_m_isTechnicalMember, f_transient);
+			ImplementSetter(template_m_setTechnicalMember, f_transient);
+		}
     }
 }

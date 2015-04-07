@@ -269,7 +269,7 @@ public class JdbcTable extends SqlTable
 	}
 
 	@Override
-	public Object insert(Object id, IParamHolder<Object> newId, ILinkedMap<String, Object> puis)
+	public Object insert(Object id, IParamHolder<Object> newId, ILinkedMap<IFieldMetaData, Object> puis)
 	{
 		ParamChecker.assertParamNotNull(id, "id");
 		ParamChecker.assertParamNotNull(newId, "newId");
@@ -349,7 +349,7 @@ public class JdbcTable extends SqlTable
 	}
 
 	@Override
-	public Object update(Object id, Object version, ILinkedMap<String, Object> puis)
+	public Object update(Object id, Object version, ILinkedMap<IFieldMetaData, Object> puis)
 	{
 		ParamChecker.assertParamNotNull(id, "id");
 		ITableMetaData metaData = getMetaData();
@@ -806,30 +806,23 @@ public class JdbcTable extends SqlTable
 		}
 	}
 
-	protected String generateNamesKey(ILinkedMap<String, Object> puis, String[] fieldNames, Object[] values)
+	protected String generateNamesKey(ILinkedMap<IFieldMetaData, Object> puis, String[] fieldNames, Object[] values)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		ITableMetaData metaData = getMetaData();
 		IConversionHelper conversionHelper = this.conversionHelper;
 		StringBuilder namesKeySB = tlObjectCollector.create(StringBuilder.class);
 		try
 		{
-			List<IFieldMetaData> allFields = metaData.getAllFields();
-			for (Entry<String, Object> entry : puis)
+			for (Entry<IFieldMetaData, Object> entry : puis)
 			{
-				String fieldName = entry.getKey();
+				IFieldMetaData field = entry.getKey();
 				Object newValue = entry.getValue();
-				int fieldIndex = metaData.getFieldIndexByName(fieldName);
-				if (fieldIndex < 0)
-				{
-					throw new RuntimeException("No field found for member name '" + fieldName + "' on entity '" + metaData.getEntityType().getName() + "'");
-				}
-				IFieldMetaData field = allFields.get(fieldIndex);
 				if (newValue == null && java.sql.Array.class.isAssignableFrom(field.getFieldType()))
 				{
 					newValue = Array.newInstance(field.getFieldSubType(), 0);
 				}
 				Object convertedValue = conversionHelper.convertValueToType(field.getFieldType(), newValue, field.getFieldSubType());
+				int fieldIndex = field.getIndexOnTable();
 				values[fieldIndex] = convertedValue;
 				fieldNames[fieldIndex] = field.getName();
 			}

@@ -26,6 +26,8 @@ public class FieldMetaData implements IFieldMetaData, IInitializingBean
 
 	protected byte idIndex = ObjRef.UNDEFINED_KEY_INDEX;
 
+	protected int indexOnTable = -1;
+
 	@Override
 	public void afterPropertiesSet()
 	{
@@ -150,5 +152,16 @@ public class FieldMetaData implements IFieldMetaData, IInitializingBean
 	public String toString()
 	{
 		return "Field: " + getName();
+	}
+
+	@Override
+	public int getIndexOnTable()
+	{
+		return indexOnTable;
+	}
+
+	public void setIndexOnTable(int indexOnTable)
+	{
+		this.indexOnTable = indexOnTable;
 	}
 }
