@@ -21,7 +21,7 @@ public class StringNameHandler extends AbstractHandler implements INameBasedHand
 
 	private static final String cdataEndSeq = "]]>";
 
-	protected static final Pattern cdataPattern = Pattern.compile("\\]\\]");
+	protected static final Pattern cdataPattern = Pattern.compile(Pattern.quote(cdataEndSeq));
 
 	@Override
 	public boolean writesCustom(Object obj, Class<?> type, IWriter writer)
@@ -57,7 +57,7 @@ public class StringNameHandler extends AbstractHandler implements INameBasedHand
 			writer.writeOpenElement(stringElement);
 			writer.write(cdataStartSeq);
 			writer.write(parts[0]);
-			writer.write(']');
+			writer.write("]]");
 			writer.write(cdataEndSeq);
 			writer.writeCloseElement(stringElement);
 
@@ -67,9 +67,9 @@ public class StringNameHandler extends AbstractHandler implements INameBasedHand
 			{
 				writer.writeOpenElement(stringElement);
 				writer.write(cdataStartSeq);
-				writer.write(']');
+				writer.write('>');
 				writer.write(parts[i]);
-				writer.write(']');
+				writer.write("]]");
 				writer.write(cdataEndSeq);
 				writer.writeCloseElement(stringElement);
 			}
@@ -77,7 +77,7 @@ public class StringNameHandler extends AbstractHandler implements INameBasedHand
 			// Last part
 			writer.writeOpenElement(stringElement);
 			writer.write(cdataStartSeq);
-			writer.write(']');
+			writer.write('>');
 			writer.write(parts[lastIndex]);
 			writer.write(cdataEndSeq);
 			writer.writeCloseElement(stringElement);
