@@ -15,7 +15,7 @@ namespace De.Osthus.Ambeth.Xml.Namehandler
 
     	private static readonly String cdataEndSeq = "]]>";
 
-		protected static readonly Regex cdataPattern = new Regex("\\]\\]");
+		protected static readonly Regex cdataPattern = new Regex(Regex.Escape(cdataEndSeq));
 
 	    public virtual bool WritesCustom(Object obj, Type type, IWriter writer)
 	    {
@@ -49,7 +49,7 @@ namespace De.Osthus.Ambeth.Xml.Namehandler
 				writer.WriteOpenElement(stringElement);
 				writer.Write(cdataStartSeq);
 				writer.Write(parts[0]);
-				writer.Write(']');
+				writer.Write("]]");
 				writer.Write(cdataEndSeq);
 				writer.WriteCloseElement(stringElement);
 
@@ -59,9 +59,9 @@ namespace De.Osthus.Ambeth.Xml.Namehandler
 				{
 					writer.WriteOpenElement(stringElement);
 					writer.Write(cdataStartSeq);
-					writer.Write(']');
+					writer.Write('>');
 					writer.Write(parts[i]);
-					writer.Write(']');
+					writer.Write("]]");
 					writer.Write(cdataEndSeq);
 					writer.WriteCloseElement(stringElement);
 				}
@@ -69,7 +69,7 @@ namespace De.Osthus.Ambeth.Xml.Namehandler
 				// Last part
 				writer.WriteOpenElement(stringElement);
 				writer.Write(cdataStartSeq);
-				writer.Write(']');
+				writer.Write('>');
 				writer.Write(parts[lastIndex]);
 				writer.Write(cdataEndSeq);
 				writer.WriteCloseElement(stringElement);
