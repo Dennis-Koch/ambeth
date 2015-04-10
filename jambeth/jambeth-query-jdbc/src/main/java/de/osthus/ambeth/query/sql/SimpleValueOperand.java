@@ -19,12 +19,16 @@ import de.osthus.ambeth.query.IMultiValueOperand;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IValueOperand;
 import de.osthus.ambeth.sql.ParamsUtil;
+import de.osthus.ambeth.util.IConversionHelper;
 
 public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueOperand
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IConversionHelper conversionHelper;
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
@@ -99,7 +103,11 @@ public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueO
 	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
 	{
 		Object value = getValue(nameToValueMap);
-
+		Class<?> expectedTypeHint = (Class<?>) nameToValueMap.get(QueryConstants.EXPECTED_TYPE_HINT);
+		if (expectedTypeHint != null)
+		{
+			value = conversionHelper.convertValueToType(expectedTypeHint, value);
+		}
 		if (parameters != null)
 		{
 			String preValue = (String) nameToValueMap.get(QueryConstants.PRE_VALUE_KEY);
