@@ -22,6 +22,8 @@ public final class QueryConstants
 
 	public static final Object CONSUME_RIGHT_OPERAND_HANDLE = new Object();
 
+	public static final Object EXPECTED_TYPE_HINT = new Object();
+
 	public static final String LIMIT_VALUE = "#limitValue";
 
 	private QueryConstants()
