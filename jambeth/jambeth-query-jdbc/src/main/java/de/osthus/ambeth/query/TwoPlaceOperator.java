@@ -5,6 +5,7 @@ import java.util.Map;
 import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.filter.QueryConstants;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.query.sql.SqlColumnOperand;
@@ -49,7 +50,22 @@ public abstract class TwoPlaceOperator extends BasicTwoPlaceOperator
 	protected void processRightOperand(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, Class<?> leftValueOperandType,
 			IList<Object> parameters)
 	{
-		rightOperand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
+		Object existingHint = nameToValueMap.put(QueryConstants.EXPECTED_TYPE_HINT, leftValueOperandType);
+		try
+		{
+			rightOperand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
+		}
+		finally
+		{
+			if (existingHint != null)
+			{
+				nameToValueMap.put(QueryConstants.EXPECTED_TYPE_HINT, existingHint);
+			}
+			else
+			{
+				nameToValueMap.remove(QueryConstants.EXPECTED_TYPE_HINT);
+			}
+		}
 	}
 
 	@Override
