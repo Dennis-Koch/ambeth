@@ -265,6 +265,7 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			metaData.setPrimitiveMembers(primitives);
 			metaData.setFulltextMembers(fulltexts);
 			metaData.setAlternateIdMembers(alternateIdMembers);
+			checkRelationMember(metaData, relations);
 			metaData.setRelationMembers(relations);
 			metaData.setEnhancedType(null);
 
@@ -308,6 +309,16 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			mergeServiceExtensionExtendable.registerMergeServiceExtension(persistenceMergeServiceExtension, entityType);
 			cacheRetrieverExtendable.registerCacheRetriever(persistenceCacheRetriever, entityType);
 			handledMetaDatas.add(newMetaData);
+		}
+	}
+
+	protected void checkRelationMember(EntityMetaData metaData, RelationMember[] relationsNew)
+	{
+		RelationMember[] relationsOld = metaData.getRelationMembers();
+		if (!Arrays.equals(relationsOld, relationsNew))
+		{
+			throw new IllegalStateException("Relation member arrays for entity '" + metaData.getEntityType().getName() + "' do not match. From object model: "
+					+ Arrays.deepToString(relationsOld) + ", from database model: " + Arrays.deepToString(relationsNew));
 		}
 	}
 

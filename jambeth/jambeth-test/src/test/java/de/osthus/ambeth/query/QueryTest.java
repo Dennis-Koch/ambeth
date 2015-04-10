@@ -549,14 +549,14 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest
 	@Test
 	public void testJoinQuery() throws Exception
 	{
-		List<Integer> expectedIds = Arrays.asList(new Integer[] { 1, 4 });
+		List<Integer> expectedIds = Arrays.asList(1, 4);
 
 		// Query used:
 		// SELECT "QUERY_ENTITY"."ID","QUERY_ENTITY"."VERSION" FROM "QUERY_ENTITY"
 		// LEFT OUTER JOIN "JOIN_QUERY_ENTITY" ON ("QUERY_ENTITY"."FK"="JOIN_QUERY_ENTITY"."ID")
 		// WHERE ("JOIN_QUERY_ENTITY"."VERSION"=3)
 
-		IOperand fkA = qb.property(propertyName3);
+		IOperand fkA = qb.property(propertyName3); // FIXME produces a wrong operand
 		IOperand idB = qb.column(columnName1);
 		ISqlJoin joinClause = qb.join(JoinQueryEntity.class, fkA, idB, JoinType.LEFT);
 
@@ -565,13 +565,10 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest
 
 		IQuery<QueryEntity> query = qb.build(whereClause, joinClause);
 
-		nameToValueMap.put(paramName1, 3);
-		List<QueryEntity> actual = query.retrieve(nameToValueMap);
+		List<QueryEntity> actual = query.param(paramName1, 3).retrieve();
 		assertSimilar(expectedIds, actual);
 
-		nameToValueMap.clear();
-		nameToValueMap.put(paramName1, 2);
-		actual = query.retrieve(nameToValueMap);
+		actual = query.param(paramName1, 2).retrieve();
 		assertNotNull(actual);
 		assertEquals(2, actual.size());
 		assertEquals(6, actual.get(0).getId());
