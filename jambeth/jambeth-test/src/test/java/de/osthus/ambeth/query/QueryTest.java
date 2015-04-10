@@ -273,6 +273,19 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest
 	public void retrieveByDate_Date()
 	{
 		long updatedOn = updateQueryEntity1();
+		java.util.Date updatedOnDate = new java.util.Date(updatedOn);
+
+		IQuery<QueryEntity> query = qb.build(qb.isEqualTo(qb.property("UpdatedOn"), qb.value(updatedOnDate)));
+		IList<QueryEntity> res = query.retrieve();
+		Assert.assertNotNull(res);
+		Assert.assertEquals(1, res.size());
+		Assert.assertEquals(1, res.get(0).getId());
+	}
+
+	@Test
+	public void retrieveByDate_SqlDate()
+	{
+		long updatedOn = updateQueryEntity1();
 		Date updatedOnDate = new Date(updatedOn);
 
 		IQuery<QueryEntity> query = qb.build(qb.isEqualTo(qb.property("UpdatedOn"), qb.value(updatedOnDate)));
@@ -575,7 +588,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest
 		// LEFT OUTER JOIN "JOIN_QUERY_ENTITY" ON ("QUERY_ENTITY"."FK"="JOIN_QUERY_ENTITY"."ID")
 		// WHERE ("JOIN_QUERY_ENTITY"."VERSION"=3)
 
-		IOperand fkA = qb.property(propertyName3);
+		IOperand fkA = qb.column(columnName3);
 		IOperand idB = qb.column(columnName1);
 		ISqlJoin joinClause = qb.join(JoinQueryEntity.class, fkA, idB, JoinType.LEFT);
 
