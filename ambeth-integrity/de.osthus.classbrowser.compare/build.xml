@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project basedir="." default="jar" name="Classcomparer">
+	<property name="debuglevel" value="source,lines,vars" />
+	<property name="target" value="1.6" />
+	<property name="source" value="1.6" />
+	<property name="source.dir" value="src" />
+	<property name="dist.dir" value="dist" />
+	<property name="classbrowser.dir" value="../de.osthus.classbrowser.java/dist" />
+	<property name="target.dir" value="target" />
+	<property name="target.classes.dir" value="${target.dir}/classes" />
+	<property name="jar.file" value="${dist.dir}/${ant.project.name}.jar" />
+	<property name="main-class" value="de.osthus.classbrowser.compare.CompareApplication" />
+
+	<path id="libraries.path">
+		<pathelement location="${classbrowser.dir}/JavaClassbrowser.jar" />
+	</path>
+
+	<target name="clean">
+		<delete dir="${dist.dir}" />
+		<delete dir="${target.dir}" />
+	</target>
+
+	<target name="compile" description="build class files" depends="clean">
+		<echo message="Compiling ${ant.project.name} from ${ant.file}" />
+		<mkdir dir="${target.classes.dir}" />
+		<javac srcdir="${source.dir}" destdir="${target.classes.dir}" debug="true" debuglevel="${debuglevel}" includeantruntime="false" source="${source}" target="${target}">
+			<classpath refid="libraries.path" />
+		</javac>
+	</target>
+
+	<target name="jar" depends="compile">
+		<echo message="Packing ${ant.project.name} to ${jar.file}" />
+		<mkdir dir="${dist.dir}" />
+
+		<manifestclasspath property="manifest.classpath" jarfile="${jar.file}">
+			<classpath refid="libraries.path" />
+		</manifestclasspath>
+
+		<jar destfile="${jar.file}" basedir="${target.classes.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="${main-class}" />
+				<!--attribute name="Class-Path" value="${manifest.classpath}"/-->
+			</manifest>
+			<zipgroupfileset dir="${classbrowser.dir}" includes="**/*.jar" />
+		</jar>
+	</target>
+
+</project>
