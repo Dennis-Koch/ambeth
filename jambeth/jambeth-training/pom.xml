@@ -1,0 +1,323 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>jambeth-training</artifactId>
+
+	<properties>
+		<ambeth.version>2.3.X-SNAPSHOT</ambeth.version>
+	</properties>
+	<parent>
+		<groupId>de.osthus</groupId>
+		<artifactId>osthus-pom</artifactId>
+		<version>0.0.31</version>
+	</parent>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-information-bus-with-persistence</artifactId>
+			<type>pom</type>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-information-bus-with-persistence-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-server-with-persistence-test</artifactId>
+			<type>pom</type>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-persistence-oracle11</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-information-bus-with-persistence</artifactId>
+			<type>pom</type>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-information-bus-with-persistence-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-persistence-oracle11</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-expr-exp4j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+
+		<!-- This dependency is explicitly added to set its scope to provided. If not, the application and Tomcat will use distinct database classes -->
+		<dependency>
+			<groupId>com.oracle</groupId>
+			<artifactId>ojdbc6</artifactId>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>de.osthus.rtc.egxp</groupId>
+				<artifactId>egxp-core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.rtc.egxp</groupId>
+				<artifactId>egxp-core-test</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.rtc.egxp</groupId>
+				<artifactId>rtc-egxp-client</artifactId>
+				<version>${project.version}</version>
+				<type>zip</type>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.rtc.egxp</groupId>
+				<artifactId>egxp-core</artifactId>
+				<type>test-jar</type>
+				<scope>test</scope>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-information-bus-with-persistence</artifactId>
+				<version>${ambeth.version}</version>
+				<type>pom</type>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-information-bus-with-persistence-test</artifactId>
+				<version>${ambeth.version}</version>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-server-with-persistence-test</artifactId>
+				<version>${ambeth.version}</version>
+				<type>pom</type>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-server-with-persistence</artifactId>
+				<version>${ambeth.version}</version>
+				<type>pom</type>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-persistence-oracle11</artifactId>
+				<version>${ambeth.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-expr-exp4j</artifactId>
+				<version>${ambeth.version}</version>
+			</dependency>
+
+			<!-- This dependency is explicitly added to set its scope to provided. If not, the application and Tomcat will use distinct database classes -->
+			<dependency>
+				<groupId>com.oracle</groupId>
+				<artifactId>ojdbc6</artifactId>
+				<version>11.2.0.3</version>
+				<scope>provided</scope>
+			</dependency>
+
+			<!-- Spring & Ext JS -->
+			<dependency>
+				<groupId>ch.ralscha</groupId>
+				<artifactId>extdirectspring</artifactId>
+				<version>1.3.7</version>
+			</dependency>
+			<dependency>
+				<groupId>javax.servlet</groupId>
+				<artifactId>javax.servlet-api</artifactId>
+				<version>3.0.1</version>
+				<scope>provided</scope>
+			</dependency>
+
+			<!-- Hibernate Validator is needed to startup the Spring Container -->
+			<dependency>
+				<groupId>org.hibernate</groupId>
+				<artifactId>hibernate-validator</artifactId>
+				<version>5.1.2.Final</version>
+			</dependency>
+
+			<!-- Apache Commons -->
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>3.0</version>
+			</dependency>
+
+			<!-- junit -->
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>4.11</version>
+				<scope>test</scope>
+			</dependency>
+
+			<!-- Mail service is provided by the servlet container -->
+			<dependency>
+				<groupId>javax.mail</groupId>
+				<artifactId>mail</artifactId>
+				<scope>provided</scope>
+				<version>1.4.7</version>
+			</dependency>
+
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<attachClasses>true</attachClasses>
+					<nonFilteredFileExtensions>
+						<nonFilteredFileExtension>xlsm</nonFilteredFileExtension>
+						<nonFilteredFileExtension>xls</nonFilteredFileExtension>
+						<nonFilteredFileExtension>pdf</nonFilteredFileExtension>
+					</nonFilteredFileExtensions>
+					<webResources>
+						<resource>
+							<directory>${basedir}/src/main/webapp</directory>
+							<filtering>true</filtering>
+						</resource>
+						<!-- <resource> <targetPath>WEB-INF/classes</targetPath> <directory>src/main/environment/${deploy.env}</directory> <includes> <include>*.properties</include> </includes> </resource> -->
+					</webResources>
+					<overlays>
+						<!-- <overlay> <id>rtc-egxp-client</id> <type>zip</type> <targetPath>/</targetPath> </overlay> -->
+					</overlays>
+				</configuration>
+			</plugin>
+
+
+
+			<plugin>
+				<!-- <groupId>org.codehaus.mojo</groupId> <artifactId>tomcat-maven-plugin</artifactId> -->
+				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat7-maven-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<url>http://${webserver.host}:${webserver.port}/manager/text</url>
+					<server>${server.id}</server>
+					<path>/${application.context}</path>
+					<!-- Port for locally started Tomcat servers: mvn tomcat:run -->
+					<port>${local.server.port}</port>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>rtc-server-local</id>
+			<activation>
+				<property>
+					<name>!deploy.env</name>
+				</property>
+			</activation>
+			<properties>
+				<webserver.host>localhost</webserver.host>
+				<webserver.port>9090</webserver.port>
+				<deploy.env>test</deploy.env>
+				<local.server.port>8089</local.server.port>
+				<server.id>tomcat</server.id>
+			</properties>
+		</profile>
+		<profile>
+			<id>rtc-server-dev</id>
+			<activation>
+				<property>
+					<name>deploy.env</name>
+					<value>dev</value>
+				</property>
+			</activation>
+			<properties>
+				<webserver.host></webserver.host>
+				<webserver.port>8080</webserver.port>
+				<server.id>dev.rtc.tomcat.server</server.id>
+			</properties>
+		</profile>
+
+		<profile>
+			<id>war-profile</id>
+			<activation>
+				<file>
+					<exists>src/main/webapp</exists>
+				</file>
+			</activation>
+			<properties>
+				<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
+				<timestamp>${maven.build.timestamp}</timestamp>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-war-plugin</artifactId>
+						<version>2.4</version>
+						<configuration>
+							<attachClasses>true</attachClasses>
+							<warName>${project.build.finalName}</warName>
+							<webResources>
+								<resource>
+									<directory>${basedir}/src/main/webapp</directory>
+									<filtering>true</filtering>
+								</resource>
+								<!-- <resource> <targetPath>WEB-INF/classes</targetPath> <directory>src/main/environment/${deploy.env}</directory> <includes> <include>*.properties</include> </includes> </resource> -->
+							</webResources>
+							<overlays>
+								<!-- <overlay> <groupId>de.osthus.rtc.egxp</groupId> <artifactId>rtc-egxp-client</artifactId> <type>zip</type> <targetPath>/</targetPath> </overlay> -->
+							</overlays>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+</project>
