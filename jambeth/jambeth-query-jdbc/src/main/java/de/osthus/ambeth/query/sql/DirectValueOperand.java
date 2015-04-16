@@ -8,8 +8,9 @@ import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.filter.QueryConstants;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
@@ -18,50 +19,28 @@ import de.osthus.ambeth.query.IMultiValueOperand;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IValueOperand;
 import de.osthus.ambeth.sql.ParamsUtil;
-import de.osthus.ambeth.util.ParamChecker;
+import de.osthus.ambeth.util.IConversionHelper;
 
-public class DirectValueOperand implements IOperand, IValueOperand, IMultiValueOperand, IInitializingBean
+public class DirectValueOperand implements IOperand, IValueOperand, IMultiValueOperand
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IConnectionExtension connectionExtension;
 
+	@Autowired
+	protected IConversionHelper conversionHelper;
+
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
+	@Autowired
 	protected ListToSqlUtil listToSqlUtil;
 
+	@Property
 	protected Object value;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(connectionExtension, "ConnectionExtension");
-		ParamChecker.assertNotNull(listToSqlUtil, "listToSqlUtil");
-		ParamChecker.assertNotNull(objectCollector, "objectCollector");
-		ParamChecker.assertNotNull(value, "value");
-	}
-
-	public void setConnectionExtension(IConnectionExtension connectionExtension)
-	{
-		this.connectionExtension = connectionExtension;
-	}
-
-	public void setListToSqlUtil(ListToSqlUtil listToSqlUtil)
-	{
-		this.listToSqlUtil = listToSqlUtil;
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
-	public void setValue(Object value)
-	{
-		this.value = value;
-	}
 
 	@Override
 	public boolean isNull(Map<Object, Object> nameToValueMap)
@@ -105,7 +84,11 @@ public class DirectValueOperand implements IOperand, IValueOperand, IMultiValueO
 	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
 	{
 		Object value = getValue(nameToValueMap);
-
+		Class<?> expectedTypeHint = (Class<?>) nameToValueMap.get(QueryConstants.EXPECTED_TYPE_HINT);
+		if (expectedTypeHint != null)
+		{
+			value = conversionHelper.convertValueToType(expectedTypeHint, value);
+		}
 		if (parameters != null)
 		{
 			String preValue = (String) nameToValueMap.get(QueryConstants.PRE_VALUE_KEY);

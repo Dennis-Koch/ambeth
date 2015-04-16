@@ -186,7 +186,6 @@
     <Compile Include="ambeth\util\IDedicatedConverter.cs" />
     <Compile Include="ambeth\util\IDedicatedConverterExtendable.cs" />
     <Compile Include="ambeth\util\IDelegateFactory.cs" />
-    <Compile Include="ambeth\util\ImmutableTypeSet.cs" />
     <Compile Include="ambeth\util\INamed.cs" />
     <Compile Include="ambeth\util\InterningFeature.cs" />
     <Compile Include="ambeth\util\IParamHolder.cs" />

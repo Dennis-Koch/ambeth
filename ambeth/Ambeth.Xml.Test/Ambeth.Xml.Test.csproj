@@ -55,6 +55,7 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ambeth\xml\namehandler\StringNameHandlerTest.cs" />
     <Compile Include="ambeth\xml\pending\CollectionSetterCommandTest.cs" />
     <Compile Include="ioc\XmlTestModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

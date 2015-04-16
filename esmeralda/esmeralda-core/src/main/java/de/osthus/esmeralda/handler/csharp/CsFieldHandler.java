@@ -87,7 +87,7 @@ public class CsFieldHandler implements IFieldHandler
 		}
 		else
 		{
-			writer.append(field.getName());
+			languageHelper.writeVariableName(field.getName());
 		}
 		ExpressionTree initializer = ((FieldInfo) field).getInitializer();
 		if (initializer != null)

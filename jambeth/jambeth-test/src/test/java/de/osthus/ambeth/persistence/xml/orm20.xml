@@ -17,6 +17,7 @@
 			<attributes>
 				<basic name="Car.Make" column="CAR_MAKE" />
 				<basic name="Car.Model" column="CAR_MODEL" />
+				<basic name="Attributes" transient="true"/>
 				<relation name="Supervisor" this="left" />
 				<relation name="PrimaryAddress" link="Employee-Address" />
 				<relation name="OtherAddresses" link="LINK_ADDRESS_EMPLOYEE_FK1" />

@@ -695,6 +695,11 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 
 	protected void changeFirstLevelCachesIntern(CacheDependencyNode node, ISet<IObjRef> intermediateDeletes)
 	{
+		ArrayList<CacheDependencyNode> childNodes = node.childNodes;
+		for (int a = childNodes.size(); a-- > 0;)
+		{
+			changeFirstLevelCachesIntern(childNodes.get(a), intermediateDeletes);
+		}
 		CacheChangeItem[] cacheChangeItems = node.cacheChangeItems;
 		if (cacheChangeItems == null)
 		{

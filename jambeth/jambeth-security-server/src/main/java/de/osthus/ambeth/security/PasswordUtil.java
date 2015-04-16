@@ -109,6 +109,9 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 
 	protected volatile SecretKeySpec decodedLoginSaltPassword;
 
+	@Property(name = SecurityServerConfigurationConstants.SignatureActive, defaultValue = "false")
+	protected boolean signatureActive;
+
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
@@ -509,30 +512,31 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 			return;
 		}
 		ISignature signature = user.getSignature();
-		if (signature != null)
+		if (signature == null && !signatureActive)
 		{
-			if (userIdentifierProvider == null)
+			return;
+		}
+		if (userIdentifierProvider == null)
+		{
+			throw new IllegalStateException("No instanceof of " + IUserIdentifierProvider.class + " found to create a new signature due to password change");
+		}
+		// create a NEW signature because we can not decrypt the now invalid private key of the signature
+		// without knowing the previous password in clear-text. As a result we need a new instance for a signature
+		// because of a potential audit-trail functionality we can NOT reuse the existing signature entity
+		signature = entityFactory.createEntity(ISignature.class);
+		signatureUtil.generateNewSignature(signature, clearTextPassword);
+		user.setSignature(signature);
+		ISecurityContext context = securityContextHolder.getContext();
+		IAuthorization authorization = context != null ? context.getAuthorization() : null;
+		if (authorization != null)
+		{
+			// check whether we changed our own current authentication and refresh this information
+			// this is due to the fact that the usage of the newly generated signature with the newly assigned password
+			// can only be decrypted if the current authentication contains this newly assigned password from now on
+			String sid = userIdentifierProvider.getSID(user);
+			if (authorization.getSID().equals(sid))
 			{
-				throw new IllegalStateException("No instanceof of " + IUserIdentifierProvider.class + " found to create a new signature due to password change");
-			}
-			// create a NEW signature because we can not decrypt the now invalid private key of the signature
-			// without knowing the previous password in clear-text. As a result we need a new instance for a signature
-			// because of a potential audit-trail functionality we can NOT reuse the existing signature entity
-			signature = entityFactory.createEntity(ISignature.class);
-			signatureUtil.generateNewSignature(signature, clearTextPassword);
-			user.setSignature(signature);
-			ISecurityContext context = securityContextHolder.getContext();
-			IAuthorization authorization = context != null ? context.getAuthorization() : null;
-			if (authorization != null)
-			{
-				// check whether we changed our own current authentication and refresh this information
-				// this is due to the fact that the usage of the newly generated signature with the newly assigned password
-				// can only be decrypted if the current authentication contains this newly assigned password from now on
-				String sid = userIdentifierProvider.getSID(user);
-				if (authorization.getSID().equals(sid))
-				{
-					context.setAuthentication(new DefaultAuthentication(context.getAuthentication().getUserName(), clearTextPassword, PasswordType.PLAIN));
-				}
+				context.setAuthentication(new DefaultAuthentication(context.getAuthentication().getUserName(), clearTextPassword, PasswordType.PLAIN));
 			}
 		}
 	}

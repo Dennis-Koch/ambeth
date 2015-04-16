@@ -80,14 +80,14 @@ public class TableChange extends AbstractTableChange
 	public void addChangeCommand(ILinkChangeCommand command)
 	{
 		IDirectedLinkMetaData link = command.getDirectedLink().getMetaData();
-		String localField;
+		IFieldMetaData localField;
 		IList<IObjRef> refs = new ArrayList<IObjRef>();
 		Object foreignKey = null;
 		IObjRef reference = command.getReference();
 		if (table.getMetaData().getEntityType() == reference.getRealType())
 		{
 			refs.add(reference);
-			localField = link.getFromField().getName();
+			localField = link.getFromField();
 			if (!command.getRefsToLink().isEmpty())
 			{
 				// Foreign key link has to have exactly one id or has to be null
@@ -117,7 +117,7 @@ public class TableChange extends AbstractTableChange
 		}
 		else
 		{
-			localField = link.getToField().getName();
+			localField = link.getToField();
 			IFieldMetaData foreignField = link.getFromField();
 			byte neededIdIndex = foreignField.getIdIndex();
 			if (reference instanceof IDirectObjRef)

@@ -2,6 +2,7 @@ package de.osthus.esmeralda.handler.uni.expr;
 
 import java.util.regex.Pattern;
 
+import com.sun.source.tree.Tree.Kind;
 import com.sun.source.tree.VariableTree;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
@@ -23,10 +24,13 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.AbstractExpressionHandler;
+import de.osthus.esmeralda.handler.IExpressionHandler;
+import de.osthus.esmeralda.handler.IExpressionHandlerRegistry;
 import de.osthus.esmeralda.handler.IMethodMatcher;
 import de.osthus.esmeralda.handler.IMethodTransformer;
 import de.osthus.esmeralda.handler.IOwnerWriter;
@@ -43,6 +47,9 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IExpressionHandlerRegistry expressionHandlerRegistry;
 
 	@Autowired
 	protected IMethodMatcher methodMatcher;
@@ -91,6 +98,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 		boolean writeOwnerAsType = false;
 		boolean writeMethodDot = false;
 		boolean writeOwnerAsTypeof = false;
+		boolean doTransformMethod = true;
 
 		String typeOfOwner;
 		if (methodInvocation.meth instanceof JCIdent)
@@ -103,34 +111,64 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 		else
 		{
 			JCFieldAccess meth = (JCFieldAccess) methodInvocation.meth;
+
 			if (meth.selected instanceof JCLiteral)
 			{
-				owner = ((JCLiteral) meth.selected).value.toString();
-				typeOfOwner = context.resolveClassInfo(((JCLiteral) meth.selected).type.toString()).getFqName();
+				final JCLiteral literal = (JCLiteral) meth.selected;
+				String lang = context.getLanguage();
+				Kind kind = meth.selected.getKind(); // There are multiple literal kinds
+				final IExpressionHandler expressionHandler = expressionHandlerRegistry.getExtension(lang + kind);
+				owner = astHelper.writeToStash(new IBackgroundWorkerDelegate()
+				{
+					@Override
+					public void invoke() throws Throwable
+					{
+						expressionHandler.handleExpression(literal);
+					}
+				});
+				typeOfOwner = classInfoManager.resolveClassInfo(literal.type.toString()).getFqName();
 			}
 			else if (meth.selected instanceof JCFieldAccess)
 			{
 				JCFieldAccess fieldAccess = (JCFieldAccess) meth.selected;
-				JavaClassInfo classInfoFromFA = context.resolveClassInfo(fieldAccess.toString(), true);
-				if (classInfoFromFA != null)
+				if (fieldAccess.name.contentEquals("class"))
 				{
-					typeOfOwner = classInfoFromFA.getFqName();
+					typeOfOwner = java.lang.Class.class.getName();
+					if (fieldAccess.type == null)
+					{
+						owner = classInfoManager.resolveClassInfo(fieldAccess.selected.toString()).getFqName();
+					}
+					else
+					{
+						owner = fieldAccess.type.allparams().get(0).toString();
+					}
 					writeOwnerAsType = true;
+					writeOwnerAsTypeof = true;
+					doTransformMethod = false;
 				}
 				else
 				{
-					typeOfOwner = astHelper.writeToStash(new IResultingBackgroundWorkerParamDelegate<String, JCExpression>()
+					JavaClassInfo classInfoFromFA = classInfoManager.resolveClassInfo(fieldAccess.selected.toString(), true);
+					if (classInfoFromFA != null)
 					{
-						@Override
-						public String invoke(JCExpression state) throws Throwable
+						typeOfOwner = classInfoFromFA.getFqName();
+						writeOwnerAsType = true;
+					}
+					else
+					{
+						typeOfOwner = astHelper.writeToStash(new IResultingBackgroundWorkerParamDelegate<String, JCExpression>()
 						{
-							IConversionContext context = MethodInvocationExpressionHandler.this.context.getCurrent();
-							languageHelper.writeExpressionTree(state);
-							return context.getTypeOnStack();
-						}
-					}, fieldAccess);
+							@Override
+							public String invoke(JCExpression state) throws Throwable
+							{
+								IConversionContext context = MethodInvocationExpressionHandler.this.context.getCurrent();
+								languageHelper.writeExpressionTree(state);
+								return context.getTypeOnStack();
+							}
+						}, fieldAccess);
+					}
+					owner = null;
 				}
-				owner = null;
 				writeMethodDot = true;
 			}
 			else if (meth.selected instanceof JCMethodInvocation || meth.selected instanceof JCNewClass || meth.selected instanceof JCParens
@@ -146,11 +184,8 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 						return context.getTypeOnStack();
 					}
 				}, meth.selected);
-				if (meth.selected instanceof JCNewClass)
-				{
-					languageHelper.writeExpressionTree(meth.selected);
-					writer.append('.');
-				}
+				languageHelper.writeExpressionTree(meth.selected);
+				writer.append('.');
 				owner = null;
 				writeMethodDot = true;
 			}
@@ -183,13 +218,13 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 							}
 						}
 					}
-					typeOfOwner = selected.sym.type != null ? context.resolveClassInfo(selected.sym.type.toString()).getFqName() : astHelper
+					typeOfOwner = selected.sym.type != null ? classInfoManager.resolveClassInfo(selected.sym.type.toString()).getFqName() : astHelper
 							.resolveTypeFromVariableName(owner);
 				}
 				else if (sym instanceof ClassSymbol)
 				{
 					owner = selected.type.toString();
-					typeOfOwner = context.resolveClassInfo(selected.type.toString()).getFqName();
+					typeOfOwner = classInfoManager.resolveClassInfo(selected.type.toString()).getFqName();
 					writeOwnerAsType = true;
 				}
 				else if (sym == null)
@@ -207,13 +242,23 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 		}
 		ITransformedMethod transformedMethod = methodTransformer.transform(typeOfOwner, methodName, methodInvocation.getArguments());
 
-		context.addCalledMethod(transformedMethod);
-
-		if (Boolean.TRUE.equals(transformedMethod.isWriteOwner()) || (transformedMethod.isWriteOwner() == null && writeOwnerAsType))
+		if (transformedMethod.getOwner() != null)
 		{
-			owner = transformedMethod.getOwner();
+			context.addCalledMethod(transformedMethod);
 		}
-		writeOwnerAsType |= transformedMethod.isOwnerAType();
+
+		if (doTransformMethod)
+		{
+			if (Boolean.TRUE.equals(transformedMethod.isWriteOwner()) || (transformedMethod.isWriteOwner() == null && writeOwnerAsType))
+			{
+				String transformedOwner = transformedMethod.getOwner();
+				if (transformedOwner != null)
+				{
+					owner = transformedOwner;
+				}
+			}
+			writeOwnerAsType |= transformedMethod.isOwnerAType();
+		}
 
 		final boolean fWriteOwnerAsType = writeOwnerAsType;
 		final boolean fWriteMethodDot = writeMethodDot;
@@ -243,7 +288,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 					else
 					{
 						owner = context.getTransformedSymbol(owner);
-						writer.append(owner);
+						languageHelper.writeVariableNameAccess(owner);
 					}
 				}
 			}
@@ -254,7 +299,19 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 		{
 			String returnType = methodInvocation.type.toString();
 			returnType = trimCaptureOfPattern.matcher(returnType).replaceAll("");
-			context.setTypeOnStack(returnType);
+			if ("?".equals(returnType))
+			{
+				returnType = Object.class.getName();
+			}
+			JavaClassInfo classInfo = classInfoManager.resolveClassInfo(returnType);
+			if (classInfo.getName().equals("?"))
+			{
+				context.setTypeOnStack(classInfo.getExtendsFrom().getFqName());
+			}
+			else
+			{
+				context.setTypeOnStack(classInfo.getFqName());
+			}
 			return;
 		}
 		String returnType = methodMatcher.resolveMethodReturnType(typeOfOwner, methodName, argTypes);

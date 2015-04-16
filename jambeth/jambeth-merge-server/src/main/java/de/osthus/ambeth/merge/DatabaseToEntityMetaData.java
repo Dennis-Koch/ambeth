@@ -236,6 +236,21 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 				}
 			});
 
+			{
+				PrimitiveMember[] existingPrimitiveMembers = metaData.getPrimitiveMembers();
+				if (existingPrimitiveMembers != null)
+				{
+					for (PrimitiveMember primitiveMember : existingPrimitiveMembers)
+					{
+						if (primitiveMember.isTransient())
+						{
+							// ensure that transient members are not dropped because no persisted column has been found in the database table
+							primitiveMembers.add(primitiveMember);
+						}
+					}
+				}
+			}
+
 			// Order of setter calls is important
 			metaData.setCreatedByMember(findPrimitiveMember(metaData.getCreatedByMember(), primitiveMembers));
 			metaData.setCreatedOnMember(findPrimitiveMember(metaData.getCreatedOnMember(), primitiveMembers));
@@ -250,6 +265,8 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			metaData.setPrimitiveMembers(primitives);
 			metaData.setFulltextMembers(fulltexts);
 			metaData.setAlternateIdMembers(alternateIdMembers);
+			// FIXME To many tests fail with this line
+			// checkRelationMember(metaData, relations);
 			metaData.setRelationMembers(relations);
 			metaData.setEnhancedType(null);
 
@@ -293,6 +310,16 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			mergeServiceExtensionExtendable.registerMergeServiceExtension(persistenceMergeServiceExtension, entityType);
 			cacheRetrieverExtendable.registerCacheRetriever(persistenceCacheRetriever, entityType);
 			handledMetaDatas.add(newMetaData);
+		}
+	}
+
+	protected void checkRelationMember(EntityMetaData metaData, RelationMember[] relationsNew)
+	{
+		RelationMember[] relationsOld = metaData.getRelationMembers();
+		if (!Arrays.equals(relationsOld, relationsNew))
+		{
+			throw new IllegalStateException("Relation member arrays for entity '" + metaData.getEntityType().getName() + "' do not match. From object model: "
+					+ Arrays.deepToString(relationsOld) + ", from database model: " + Arrays.deepToString(relationsNew));
 		}
 	}
 

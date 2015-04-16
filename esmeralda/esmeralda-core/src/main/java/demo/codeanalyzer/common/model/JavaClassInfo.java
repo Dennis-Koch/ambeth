@@ -6,6 +6,7 @@ import javax.lang.model.element.NestingKind;
 import javax.lang.model.element.VariableElement;
 
 import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.TypeParameterTree;
 import com.sun.source.util.TreePath;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -13,7 +14,7 @@ import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.collections.LinkedHashSet;
-import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.IClassInfoManager;
 import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.IVariable;
 
@@ -31,7 +32,6 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	private boolean isAnnotation;
 	private boolean isEnum;
 	private boolean isSerializable;
-	private boolean isArray;
 	private JavaSourceTreeInfo sourceTreeInfo;
 	private ArrayList<Method> methods = new ArrayList<Method>();
 	private ArrayList<Method> constructors = new ArrayList<Method>();
@@ -41,27 +41,26 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	private LinkedHashSet<IVariable> allUsedVariables = null;
 	private boolean isAnonymous;
 
-	public IConversionContext context;
+	public IClassInfoManager classInfoManager;
 
 	private JavaClassInfo extendsFrom;
 
 	private TreePath treePath;
 	private ClassTree classTree;
 	private JavaClassInfo[] typeArguments;
+	private String nonGenericName;
+	private String nonGenericFqName;
+	private String fqName;
+	private JavaClassInfo componentType;
 
-	public JavaClassInfo(IConversionContext context)
+	public JavaClassInfo(IClassInfoManager classInfoManager)
 	{
-		this.context = context;
-	}
-
-	public void setArray(boolean isArray)
-	{
-		this.isArray = isArray;
+		this.classInfoManager = classInfoManager;
 	}
 
 	public boolean isArray()
 	{
-		return isArray;
+		return componentType != null;
 	}
 
 	public void addField(Field field)
@@ -75,6 +74,7 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 		return getField(fieldName, false);
 	}
 
+	@Override
 	public Field getField(String fieldName, boolean tryOnly)
 	{
 		Field field = fields.get(fieldName);
@@ -104,7 +104,7 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 		String nameOfSuperClass = getNameOfSuperClass();
 		if (nameOfSuperClass != null)
 		{
-			JavaClassInfo superClassInfo = context.resolveClassInfo(nameOfSuperClass);
+			JavaClassInfo superClassInfo = classInfoManager.resolveClassInfo(nameOfSuperClass);
 			if ("super".equals(fieldName))
 			{
 				FieldInfo thisField = new FieldInfo();
@@ -126,7 +126,7 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 		}
 		for (String interfaceName : getNameOfInterfaces())
 		{
-			JavaClassInfo interfaceCI = context.resolveClassInfo(interfaceName);
+			JavaClassInfo interfaceCI = classInfoManager.resolveClassInfo(interfaceName);
 			if (interfaceCI == null)
 			{
 				continue;
@@ -152,6 +152,10 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 
 	public void setNameOfSuperClass(String superClass)
 	{
+		if (superClass != null)
+		{
+			superClass = superClass.intern();
+		}
 		nameOfSuperClass = superClass;
 	}
 
@@ -163,7 +167,13 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 
 	public void setPackageName(String packageName)
 	{
+		if (packageName != null)
+		{
+			packageName = packageName.intern();
+		}
 		this.packageName = packageName;
+		updateFqName();
+		updateNonGenericFqName();
 	}
 
 	public String getPackageName()
@@ -221,7 +231,7 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 			{
 				VariableElement existingParameter = existingParameters.get(a);
 				VariableElement parameter = parameters.get(a);
-				if (!existingParameter.asType().equals(parameter.asType()))
+				if (!existingParameter.asType().toString().equals(parameter.asType().toString()))
 				{
 					parametersIdentical = false;
 					break;
@@ -363,13 +373,19 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	@Override
 	public String getFqName()
 	{
-		StringBuilder sb = new StringBuilder();
+		return fqName;
+	}
+
+	private void updateFqName()
+	{
 		if (getPackageName() != null)
 		{
-			sb.append(getPackageName()).append('.');
+			fqName = (getPackageName() + "." + getName()).intern();
 		}
-		sb.append(getName());
-		return sb.toString();
+		else
+		{
+			fqName = getName();
+		}
 	}
 
 	@Override
@@ -451,5 +467,80 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	public void setExtendsFrom(JavaClassInfo extendsFrom)
 	{
 		this.extendsFrom = extendsFrom;
+	}
+
+	@Override
+	public void setName(String name)
+	{
+		if (name != null)
+		{
+			name = name.intern();
+		}
+		super.setName(name);
+		updateFqName();
+		setNonGenericName(getName());
+	}
+
+	@Override
+	public String getNonGenericName()
+	{
+		return nonGenericName;
+	}
+
+	public void setNonGenericName(String nonGenericName)
+	{
+		if (nonGenericName != null)
+		{
+			nonGenericName = nonGenericName.intern();
+		}
+		this.nonGenericName = nonGenericName;
+		updateNonGenericFqName();
+	}
+
+	public String getNonGenericFqName()
+	{
+		return nonGenericFqName;
+	}
+
+	private void updateNonGenericFqName()
+	{
+		if (getPackageName() != null)
+		{
+			nonGenericFqName = (getPackageName() + "." + getNonGenericName()).intern();
+		}
+		else
+		{
+			nonGenericFqName = getNonGenericName();
+		}
+	}
+
+	public JavaClassInfo getComponentType()
+	{
+		return componentType;
+	}
+
+	public void setComponentType(JavaClassInfo componentType)
+	{
+		this.componentType = componentType;
+	}
+
+	public void fillTypeArgumentsIfNecessary()
+	{
+		if (getTypeArguments() != null)
+		{
+			return;
+		}
+		ClassTree classTree = getClassTree();
+		if (classTree == null)
+		{
+			return;
+		}
+		List<? extends TypeParameterTree> typeParameters = classTree.getTypeParameters();
+		typeArguments = new JavaClassInfo[typeParameters.size()];
+		for (int a = typeParameters.size(); a-- > 0;)
+		{
+			TypeParameterTree typeParameter = typeParameters.get(a);
+			typeArguments[a] = classInfoManager.resolveClassInfo(typeParameter.getName().toString());
+		}
 	}
 }

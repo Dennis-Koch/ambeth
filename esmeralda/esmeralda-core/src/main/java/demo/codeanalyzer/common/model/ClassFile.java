@@ -9,10 +9,11 @@ import de.osthus.ambeth.collections.IList;
  */
 public interface ClassFile extends BaseJavaClassModel
 {
-
 	IList<Field> getFields();
 
 	Field getField(String fieldName);
+
+	Field getField(String fieldName, boolean tryOnly);
 
 	/**
 	 * @return all the methods that are present in this class. This includes methods that are added by compiler as well, e.g. clinit and init methods.
@@ -60,4 +61,5 @@ public interface ClassFile extends BaseJavaClassModel
 
 	String getFqName();
 
+	String getNonGenericName();
 }

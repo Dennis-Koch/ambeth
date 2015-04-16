@@ -1,6 +1,6 @@
 package de.osthus.esmeralda.handler;
 
-public interface ITransformedMemberAccess
+public interface ITransformedField
 {
 	String getOwner();
 

@@ -28,7 +28,7 @@ public interface ITable
 	 *            Map of member names and primitive values.
 	 * @return New version converted to the correct type.
 	 */
-	Object insert(Object id, IParamHolder<Object> newId, ILinkedMap<String, Object> puis);
+	Object insert(Object id, IParamHolder<Object> newId, ILinkedMap<IFieldMetaData, Object> puis);
 
 	/**
 	 * Updates a persisted object in storage.
@@ -41,7 +41,7 @@ public interface ITable
 	 *            Map of primitive values to update.
 	 * @return New version converted to the correct type.
 	 */
-	Object update(Object id, Object version, ILinkedMap<String, Object> puis);
+	Object update(Object id, Object version, ILinkedMap<IFieldMetaData, Object> puis);
 
 	/**
 	 * Deletes a list of persisted objects from storage identified by ids and versions.

@@ -21,6 +21,8 @@ public class QueryEntity extends AbstractEntity
 
 	protected String ftname2;
 
+	protected double content;
+
 	protected QueryEntity()
 	{
 		// Intended blank
@@ -84,5 +86,15 @@ public class QueryEntity extends AbstractEntity
 	public String getFtname2()
 	{
 		return ftname2;
+	}
+
+	public double getContent()
+	{
+		return content;
+	}
+
+	public void setContent(double content)
+	{
+		this.content = content;
 	}
 }

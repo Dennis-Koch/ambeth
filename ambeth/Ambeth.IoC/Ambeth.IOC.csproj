@@ -150,6 +150,7 @@
     <Compile Include="ambeth\util\DelegatingConversionHelper.cs" />
     <Compile Include="ambeth\ioc\IocModule.cs" />
     <Compile Include="ambeth\util\IAggregrateResultHandler.cs" />
+	<Compile Include="ambeth\util\ImmutableTypeSet.cs" />
     <Compile Include="ambeth\util\IMultithreadingHelper.cs" />
     <Compile Include="ambeth\util\INamedRunnable.cs" />
     <Compile Include="ambeth\util\InterruptingParamHolder.cs" />

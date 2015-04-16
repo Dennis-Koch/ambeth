@@ -19,6 +19,7 @@ public final class XmlConstants
 	public static final String UPDATED_BY = "updated-by";
 	public static final String BASIC = "basic";
 	public static final String ALT_ID = "alternate-id";
+	public static final String TRANSIENT = "transient";
 	public static final String TRUE = "true";
 	public static final String TO_ONE = "to-one";
 	public static final String TO_MANY = "to-many";

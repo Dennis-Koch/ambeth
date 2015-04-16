@@ -26,11 +26,13 @@ import de.osthus.ambeth.typeinfo.MethodPropertyInfoASM;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ReflectUtil;
 
-public class CallingProxyPostProcessor extends WeakSmartCopyMap<Class<?>, Reference<IPropertyInfo[]>> implements IInitializingBean
+public class CallingProxyPostProcessor implements IInitializingBean
 {
 	protected static final IPropertyInfo[] EMPTY_MEMBERS = new IPropertyInfo[0];
 
 	protected static final SoftReference<IPropertyInfo[]> EMPTY_MEMBERS_R = new SoftReference<IPropertyInfo[]>(EMPTY_MEMBERS);
+
+	protected final WeakSmartCopyMap<Class<?>, Reference<IPropertyInfo[]>> typeToMembersMap = new WeakSmartCopyMap<Class<?>, Reference<IPropertyInfo[]>>(0.5f);
 
 	protected final AnnotationCache<Self> logInstanceCache = new AnnotationCache<Self>(Self.class)
 	{
@@ -42,11 +44,6 @@ public class CallingProxyPostProcessor extends WeakSmartCopyMap<Class<?>, Refere
 	};
 
 	protected IPropertyInfoProvider propertyInfoProvider;
-
-	public CallingProxyPostProcessor()
-	{
-		super(0.5f);
-	}
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -85,7 +82,7 @@ public class CallingProxyPostProcessor extends WeakSmartCopyMap<Class<?>, Refere
 
 	protected IPropertyInfo[] getMembersIntern(Class<?> type)
 	{
-		Reference<IPropertyInfo[]> membersR = get(type);
+		Reference<IPropertyInfo[]> membersR = typeToMembersMap.get(type);
 		IPropertyInfo[] members = null;
 		if (membersR != null)
 		{
@@ -110,7 +107,7 @@ public class CallingProxyPostProcessor extends WeakSmartCopyMap<Class<?>, Refere
 			// discard own members
 			return members;
 		}
-		Lock writeLock = getWriteLock();
+		Lock writeLock = typeToMembersMap.getWriteLock();
 		writeLock.lock();
 		try
 		{
@@ -121,7 +118,7 @@ public class CallingProxyPostProcessor extends WeakSmartCopyMap<Class<?>, Refere
 				return members;
 			}
 			members = ownMembers.toArray(IPropertyInfo.class);
-			put(type, members.length > 0 ? new SoftReference<IPropertyInfo[]>(members) : EMPTY_MEMBERS_R);
+			typeToMembersMap.put(type, members.length > 0 ? new SoftReference<IPropertyInfo[]>(members) : EMPTY_MEMBERS_R);
 			return members.length > 0 ? members : EMPTY_MEMBERS;
 		}
 		finally
