@@ -43,4 +43,10 @@ public class MemberConfig extends AbstractMemberConfig
 	{
 		return getClass().hashCode() ^ getName().hashCode();
 	}
+
+	@Override
+	public String toString()
+	{
+		return getName();
+	}
 }

@@ -41,6 +41,7 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.PostLoadMethodLifecycleExtension;
 import de.osthus.ambeth.merge.model.PrePersistMethodLifecycleExtension;
 import de.osthus.ambeth.metadata.IMemberTypeProvider;
+import de.osthus.ambeth.metadata.IPrimitiveMemberWrite;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
@@ -218,7 +219,10 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		{
 			return memberTypeProvider.getRelationMember(metaData.getEnhancedType(), member.getName());
 		}
-		return memberTypeProvider.getPrimitiveMember(metaData.getEnhancedType(), member.getName());
+		PrimitiveMember refreshedMember = memberTypeProvider.getPrimitiveMember(metaData.getEnhancedType(), member.getName());
+		((IPrimitiveMemberWrite) refreshedMember).setTechnicalMember(((PrimitiveMember) member).isTechnicalMember());
+		((IPrimitiveMemberWrite) refreshedMember).setTransient(((PrimitiveMember) member).isTransient());
+		return refreshedMember;
 	}
 
 	protected IList<Class<?>> addLoadedMetaData(List<Class<?>> entityTypes, List<IEntityMetaData> loadedMetaData)

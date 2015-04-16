@@ -22,6 +22,7 @@ namespace De.Osthus.Ambeth.Util.Xml
         public static readonly XName UPDATED_BY = XName.Get("updated-by");
         public static readonly XName BASIC = XName.Get("basic");
         public static readonly XName ALT_ID = XName.Get("alternate-id");
+		public static readonly XName TRANSIENT = XName.Get("transient");
         public static readonly XName TRUE = XName.Get("true");
         public static readonly XName TO_ONE = XName.Get("to-one");
         public static readonly XName TO_MANY = XName.Get("to-many");

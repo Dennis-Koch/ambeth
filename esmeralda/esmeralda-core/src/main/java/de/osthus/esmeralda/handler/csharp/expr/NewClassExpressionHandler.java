@@ -5,8 +5,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.sun.source.tree.StatementTree;
+import com.sun.source.tree.Tree;
 import com.sun.source.tree.Tree.Kind;
 import com.sun.source.util.TreePath;
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -14,6 +17,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
+import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
@@ -23,6 +27,7 @@ import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.AbstractExpressionHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
+import de.osthus.esmeralda.handler.IUsedVariableDelegate;
 import de.osthus.esmeralda.handler.IVariable;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
@@ -40,6 +45,57 @@ public class NewClassExpressionHandler extends AbstractExpressionHandler<JCNewCl
 			return fqName;
 		}
 		return anonymousMatcher.group(1) + anonymousMatcher.group(2);
+	}
+
+	public static final String getFqName(JCClassDecl classTree)
+	{
+		StringBuilder sb = new StringBuilder(classTree.sym.toString());
+		boolean first = true;
+		for (JCTypeParameter param : classTree.typarams)
+		{
+			if (first)
+			{
+				first = false;
+				sb.append("<");
+			}
+			else
+			{
+				sb.append(',');
+			}
+			sb.append(param.toString());
+		}
+		if (!first)
+		{
+			sb.append('>');
+		}
+		String name = getFqNameFromAnonymousName(sb.toString());
+		sb.setLength(0);
+		Tree extendsClause = classTree.getExtendsClause();
+		if (!(extendsClause instanceof JCTypeApply) || !classTree.getSimpleName().contentEquals(""))
+		{
+			return name;
+		}
+		sb.append(name);
+		ClassType classType = (ClassType) ((JCTypeApply) extendsClause).type;
+		first = true;
+		for (Type param : classType.typarams_field)
+		{
+			if (first)
+			{
+				first = false;
+				sb.append("<");
+			}
+			else
+			{
+				sb.append(',');
+			}
+			sb.append(param.toString());
+		}
+		if (!first)
+		{
+			sb.append('>');
+		}
+		return sb.toString();
 	}
 
 	public static final String findFqAnonymousName(TreePath path)
@@ -100,11 +156,6 @@ public class NewClassExpressionHandler extends AbstractExpressionHandler<JCNewCl
 	@Override
 	protected void handleExpressionIntern(JCNewClass newClass)
 	{
-		IConversionContext context = this.context.getCurrent();
-		ILanguageHelper languageHelper = context.getLanguageHelper();
-		IWriter writer = context.getWriter();
-
-		List<JCExpression> arguments = newClass.args;
 		// the type can be null in the case of the internal constructor of enums
 		String owner = newClass.type != null ? newClass.type.toString() : null;
 		if (owner == null || "<any>".equals(owner))
@@ -113,22 +164,37 @@ public class NewClassExpressionHandler extends AbstractExpressionHandler<JCNewCl
 		}
 		owner = astHelper.resolveFqTypeFromTypeName(owner);
 		JCClassDecl def = newClass.def;
-		if (def == null)
+		boolean isAnonymousClass = def != null;
+		if (!isAnonymousClass)
 		{
-			writer.append("new ");
-			languageHelper.writeType(owner);
-			languageHelper.writeMethodArguments(arguments);
-			String typeOnStack = context.getClassInfo().getFqName();
-			if (newClass.type != null || newClass.clazz instanceof JCIdent)
-			{
-				typeOnStack = owner;
-			}
-			context.setTypeOnStack(typeOnStack);
+			writeNormalInstantiation(newClass, owner);
 			return;
 		}
-		// this is an anonymous class instantiation
-		// writeDelegate(owner, def);
-		writeAnonymousInstantiation(owner, def);
+		else
+		{
+			// this is an anonymous class instantiation
+			// writeDelegate(owner, def);
+			writeAnonymousInstantiation(owner, def);
+		}
+	}
+
+	protected void writeNormalInstantiation(JCNewClass newClass, String owner)
+	{
+		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
+		IWriter writer = context.getWriter();
+
+		List<JCExpression> arguments = newClass.args;
+
+		writer.append("new ");
+		languageHelper.writeType(owner);
+		languageHelper.writeMethodArguments(arguments);
+		String typeOnStack = context.getClassInfo().getFqName();
+		if (newClass.type != null || newClass.clazz instanceof JCIdent)
+		{
+			typeOnStack = owner;
+		}
+		context.setTypeOnStack(typeOnStack);
 	}
 
 	protected void writeAnonymousInstantiation(String owner, JCClassDecl def)
@@ -137,18 +203,21 @@ public class NewClassExpressionHandler extends AbstractExpressionHandler<JCNewCl
 		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
-		owner = NewClassExpressionHandler.getFqNameFromAnonymousName(def.sym.toString());
-		JavaClassInfo newClassInfo = context.resolveClassInfo(owner);
+		owner = NewClassExpressionHandler.getFqName(def);
+		JavaClassInfo newClassInfo = classInfoManager.resolveClassInfo(owner);
 
 		writer.append("new ");
 		languageHelper.writeType(owner);
 		writer.append('(');
-		boolean firstParameter = true;
-		for (IVariable usedVariable : newClassInfo.getAllUsedVariables())
+		languageHelper.forAllUsedVariables(newClassInfo, new IUsedVariableDelegate()
 		{
-			firstParameter = languageHelper.writeStringIfFalse(", ", firstParameter);
-			writer.append(usedVariable.getName());
-		}
+			@Override
+			public void invoke(IVariable usedVariable, boolean firstVariable, IConversionContext context, ILanguageHelper languageHelper, IWriter writer)
+			{
+				languageHelper.writeStringIfFalse(", ", firstVariable);
+				writer.append(usedVariable.getName());
+			}
+		});
 		writer.append(')');
 		context.setTypeOnStack(owner);
 	}

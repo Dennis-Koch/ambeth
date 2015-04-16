@@ -33,9 +33,7 @@ public interface IConversionContext
 
 	File getSnippetPath();
 
-	void setFqNameToClassInfoMap(IMap<String, JavaClassInfo> fqNameToClassInfoMap);
-
-	IMap<String, JavaClassInfo> getFqNameToClassInfoMap();
+	String getPathPrefixRemove();
 
 	IWriter getWriter();
 
@@ -46,10 +44,6 @@ public interface IConversionContext
 	boolean isDryRun();
 
 	void setDryRun(boolean dryRun);
-
-	JavaClassInfo resolveClassInfo(String fqTypeName);
-
-	JavaClassInfo resolveClassInfo(String fqTypeName, boolean tryOnly);
 
 	void setTargetFile(File targetFile);
 
@@ -97,6 +91,8 @@ public interface IConversionContext
 
 	void setMethod(Method method);
 
+	void setMethodIntern(Method method);
+
 	ISnippetManager getSnippetManager();
 
 	void setSnippetManager(ISnippetManager snippetManager);
@@ -130,4 +126,18 @@ public interface IConversionContext
 	Tree getCurrentTree();
 
 	void setCurrentTree(Tree currentTree);
+
+	Object pushTypeErasureHint(JavaClassInfo classInfo);
+
+	void popTypeErasureHint(Object pushResult);
+
+	JavaClassInfo lookupTypeErasureHint(String fqName);
+
+	void pushVariableDeclBlock();
+
+	void popVariableDeclBlock();
+
+	void pushVariableDecl(String variableName, JavaClassInfo type);
+
+	JavaClassInfo lookupVariableDecl(String variableName);
 }

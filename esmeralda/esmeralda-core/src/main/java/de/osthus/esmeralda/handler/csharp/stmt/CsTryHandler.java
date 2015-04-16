@@ -18,7 +18,6 @@ import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalBlockHandler;
 import de.osthus.esmeralda.misc.IWriter;
-import de.osthus.esmeralda.misc.Lang;
 
 public class CsTryHandler extends AbstractCsStatementHandler<JCTry> implements IStatementHandlerExtension<JCTry>
 {
@@ -75,19 +74,27 @@ public class CsTryHandler extends AbstractCsStatementHandler<JCTry> implements I
 		handleChildStatement(tryStatement.getBlock());
 		for (JCCatch catchStatement : catches)
 		{
-			JCVariableDecl parameter = catchStatement.getParameter();
-
-			languageHelper.newLineIndent();
-			writer.append("catch (");
-			IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + parameter.getKind());
-			stmtHandler.handle(parameter, false);
-			writer.append(')');
-			handleChildStatement(catchStatement.getBlock());
+			context.pushVariableDeclBlock();
+			try
+			{
+				JCVariableDecl parameter = catchStatement.getParameter();
+				languageHelper.newLineIndent();
+				writer.append("catch (");
+				IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.getExtension(context.getLanguage() + parameter.getKind());
+				stmtHandler.handle(parameter, false);
+				writer.append(')');
+				handleChildStatement(catchStatement.getBlock());
+			}
+			finally
+			{
+				context.popVariableDeclBlock();
+			}
 		}
 		if (finallyBlock != null)
 		{
 			languageHelper.newLineIndent();
 			writer.append("finally");
+
 			handleChildStatement(tryStatement.getFinallyBlock());
 		}
 	}

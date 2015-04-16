@@ -43,6 +43,7 @@ import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.metadata.IObjRefFactory;
 import de.osthus.ambeth.metadata.IPreparedObjRefFactory;
 import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.persistence.parallel.ParallelLoadItem;
 import de.osthus.ambeth.proxy.IObjRefContainer;
@@ -798,6 +799,8 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		Class<?> primIdType = tableMD.getIdField().getFieldType();
 		IFieldMetaData versionField = tableMD.getVersionField();
 		Class<?> versionTypeOfObject = versionField != null ? versionField.getMember().getElementType() : null;
+		int primitiveMemberCount = metaData.getPrimitiveMembers().length;
+		int relationMemberCount = metaData.getRelationMembers().length;
 
 		Tuple3KeyHashMap<Class<?>, Integer, Object, IObjRef> objRefMap = getObjRefMap();
 		Tuple3KeyHashMap<Class<?>, Integer, Object, ILoadContainer> loadContainerMap = getLoadContainerMap();
@@ -812,8 +815,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 
 			IFieldMetaData[] cursorFields = cursor.getFields();
 			int[] cursorFieldToPrimitiveIndex = new int[cursorFields.length];
-			int[] memberCounts = createMappingIndexes(cursor, cursorFieldToPrimitiveIndex, table, standaloneDirectedLinks, directedLinks,
-					fieldToDirectedLinkIndex);
+			createMappingIndexes(cursor, cursorFieldToPrimitiveIndex, table, standaloneDirectedLinks, directedLinks, fieldToDirectedLinkIndex);
 
 			for (int a = standaloneDirectedLinks.length; a-- > 0;)
 			{
@@ -852,7 +854,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 						version = interningFeature.intern(version);
 					}
 				}
-				Object[] primitives = new Object[memberCounts[0]];
+				Object[] primitives = new Object[primitiveMemberCount];
 
 				Object[] cursorValues = item.getValues();
 				for (int a = cursorFields.length; a-- > 0;)
@@ -930,10 +932,10 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 
 				IList<IObjRef>[] relationBuilds;
 				IObjRef[][] relations;
-				if (memberCounts[1] != 0)
+				if (relationMemberCount != 0)
 				{
-					relationBuilds = new IList[memberCounts[1]];
-					relations = new IObjRef[memberCounts[1]][];
+					relationBuilds = new IList[relationMemberCount];
+					relations = new IObjRef[relationMemberCount][];
 				}
 				else
 				{
@@ -1093,19 +1095,16 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		}
 	}
 
-	protected int[] createMappingIndexes(ICursor cursor, int[] cursorFieldToPrimitiveIndex, ITable table, IDirectedLink[] standaloneDirectedLinks,
+	protected void createMappingIndexes(ICursor cursor, int[] cursorFieldToPrimitiveIndex, ITable table, IDirectedLink[] standaloneDirectedLinks,
 			IDirectedLink[] directedLinks, IMap<IFieldMetaData, Integer> fieldToDirectedLinkIndex)
 	{
 		ITableMetaData tableMD = table.getMetaData();
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(tableMD.getEntityType());
 		Arrays.fill(cursorFieldToPrimitiveIndex, -1);
 		IFieldMetaData[] cursorFields = cursor.getFields();
+		PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();
 		RelationMember[] relationMembers = metaData.getRelationMembers();
-		int[] memberCounts = { 0, 0 };
 
-		Member[] primitiveMembers = metaData.getPrimitiveMembers();
-
-		int nextIndex = 0;
 		for (int a = 0, size = primitiveMembers.length; a < size; a++)
 		{
 			Member primitiveMember = primitiveMembers[a];
@@ -1127,13 +1126,12 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 			{
 				continue;
 			}
-			memberCounts[0]++;
 			for (int b = cursorFields.length; b-- > 0;)
 			{
 				IFieldMetaData cursorField = cursorFields[b];
 				if (cursorField.equals(mappedField))
 				{
-					cursorFieldToPrimitiveIndex[b] = nextIndex++;
+					cursorFieldToPrimitiveIndex[b] = a;
 					break;
 				}
 			}
@@ -1154,7 +1152,6 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 				}
 				continue;
 			}
-			memberCounts[1]++;
 			IDirectedLinkMetaData directedLinkMD = directedLink.getMetaData();
 
 			if (directedLinkMD.isStandaloneLink())
@@ -1167,8 +1164,6 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 				fieldToDirectedLinkIndex.put(directedLinkMD.getFromField(), Integer.valueOf(a));
 			}
 		}
-
-		return memberCounts;
 	}
 
 	protected LoadContainer unionLoadContainers(ITable table, Object id, Object version, Object[] alternateIds)

@@ -20,7 +20,6 @@ import com.sun.source.util.TreeScanner;
 import com.sun.source.util.Trees;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.Type.TypeVar;
 import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -33,9 +32,10 @@ import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashSet;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.esmeralda.CodeVisitor;
+import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IVariable;
 import de.osthus.esmeralda.handler.Variable;
 import de.osthus.esmeralda.handler.csharp.expr.NewClassExpressionHandler;
@@ -45,7 +45,6 @@ import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.LocationInfo;
 import demo.codeanalyzer.common.model.Method;
 import demo.codeanalyzer.common.model.MethodInfo;
-import demo.codeanalyzer.common.util.CodeAnalyzerUtil;
 
 /**
  * Helper class to set the properties of a method to the java class model
@@ -55,6 +54,8 @@ import demo.codeanalyzer.common.util.CodeAnalyzerUtil;
  */
 public class MethodInfoDataSetter
 {
+	@Autowired
+	protected IASTHelper astHelper;
 
 	/**
 	 * Set the attributes of the currently visiting method to the java class model
@@ -68,19 +69,19 @@ public class MethodInfoDataSetter
 	 * @param trees
 	 *            trees
 	 */
-	public static void populateMethodInfo(JavaClassInfo clazzInfo, MethodTree methodTree, TreePath path, Trees trees)
+	public MethodInfo populateMethodInfo(JavaClassInfo clazzInfo, MethodTree methodTree, TreePath path, Trees trees)
 	{
+		// Set modifier details
+		Element e = trees.getElement(path);
+		if (e == null)
+		{
+			return null;
+		}
 		final MethodInfo methodInfo = new MethodInfo();
 		methodInfo.setPath(path);
 		methodInfo.setMethodTree(methodTree);
 		String methodName = methodTree.getName().toString();
 		methodInfo.setOwningClass(clazzInfo);
-		// Set modifier details
-		Element e = trees.getElement(path);
-		if (e == null)
-		{
-			return;
-		}
 		// Set the param type and return path
 		visitExecutable(e, methodInfo);
 
@@ -104,12 +105,12 @@ public class MethodInfoDataSetter
 				}
 				else if (leaf instanceof JCClassDecl)
 				{
-					String className = NewClassExpressionHandler.findFqAnonymousName(parentTreePath);
+					String className = NewClassExpressionHandler.getFqName((JCClassDecl) parentTreePath.getLeaf());
 					className = NewClassExpressionHandler.getFqNameFromAnonymousName(className);
 					JavaClassInfo parentClassInfo = null;
 					for (JavaClassInfo classInfoItem : CodeVisitor.getClassInfoStack())
 					{
-						if (classInfoItem.toString().equals(className))
+						if (classInfoItem.getFqName().equals(className))
 						{
 							parentClassInfo = classInfoItem;
 							break;
@@ -117,7 +118,23 @@ public class MethodInfoDataSetter
 					}
 					if (parentClassInfo == null)
 					{
-						throw new IllegalStateException();
+						String[] parsedGenericType = astHelper.parseGenericType(className);
+						if (parsedGenericType.length == 2)
+						{
+							String nonGenericClassName = parsedGenericType[0];
+							for (JavaClassInfo classInfoItem : CodeVisitor.getClassInfoStack())
+							{
+								if (classInfoItem.getFqName().equals(nonGenericClassName))
+								{
+									parentClassInfo = classInfoItem;
+									break;
+								}
+							}
+						}
+					}
+					if (parentClassInfo == null)
+					{
+						throw new IllegalStateException("No classinfo found on stack with the name '" + className + "'");
 					}
 					for (Field field : parentClassInfo.getFields())
 					{
@@ -221,7 +238,7 @@ public class MethodInfoDataSetter
 		// Check if the method is a default constructor
 		if (methodName.equals(DEFAULT_CONSTRUCTOR_NAME))
 		{
-			methodInfo.setName(CodeAnalyzerUtil.getSimpleNameFromQualifiedName(clazzInfo.getName()));
+			methodInfo.setName(clazzInfo.getNonGenericName());
 			clazzInfo.addConstructor(methodInfo);
 		}
 		else
@@ -235,96 +252,114 @@ public class MethodInfoDataSetter
 		if (methodInfo.getOwningClass().isAnnotation())
 		{
 			clazzInfo.addMethod(methodInfo);
-			return;
+			return methodInfo;
 		}
 		List<? extends TypeParameterTree> typeParameters = methodInfo.getMethodTree().getTypeParameters();
 		if (typeParameters.size() == 0)
 		{
 			// nothing special for a non-generic method declaration
 			clazzInfo.addMethod(methodInfo);
-			return;
+			return methodInfo;
 		}
 		// check if it contains exactly 1 parameter with the generic type "java.util.Class<T>"
-		VarSymbol genericParameterOfClass = null;
+		ArrayList<VarSymbol> genericParametersToIgnoreOnMethod = new ArrayList<VarSymbol>();
+		ArrayList<VarSymbol> parametersNeededGenericMethod = new ArrayList<VarSymbol>();
+		ArrayList<VarSymbol> parametersNeededNongenericMethod = new ArrayList<VarSymbol>();
 		if (methodInfo.getMethodTree().getReturnType() instanceof JCTypeApply)
 		{
 			// TODO: handle this
 			clazzInfo.addMethod(methodInfo);
-			return;
+			return methodInfo;
 		}
 		if (methodInfo.getMethodTree().getReturnType() instanceof JCPrimitiveTypeTree)
 		{
 			// TODO: handle this
 			clazzInfo.addMethod(methodInfo);
-			return;
+			return methodInfo;
 		}
 		if (methodInfo.getMethodTree().getReturnType() instanceof JCArrayTypeTree)
 		{
 			// TODO: handle this
 			clazzInfo.addMethod(methodInfo);
-			return;
+			return methodInfo;
 		}
-		JCIdent returnTypeSymbol = (JCIdent) methodInfo.getMethodTree().getReturnType();
-		if (!(returnTypeSymbol.type instanceof TypeVar))
-		{
-			// TODO: handle this
-			clazzInfo.addMethod(methodInfo);
-			return;
-		}
-		TypeVar returnType = (TypeVar) returnTypeSymbol.type;
+		// JCIdent returnTypeSymbol = (JCIdent) methodInfo.getMethodTree().getReturnType();
+		// if (!(returnTypeSymbol.type instanceof TypeVar))
+		// {
+		// // TODO: handle this
+		// clazzInfo.addMethod(methodInfo);
+		// return;
+		// }
+		// TypeVar returnType = (TypeVar) returnTypeSymbol.type;
 
 		for (VariableElement parameter : methodInfo.getParameters())
 		{
 			VarSymbol varSymbol = (VarSymbol) parameter;
-			for (Type typeArgumentOfParameter : varSymbol.type.getTypeArguments())
+			if (!varSymbol.type.tsym.toString().equals("java.lang.Class"))
 			{
-				if (typeArgumentOfParameter == returnType)
-				{
-					genericParameterOfClass = varSymbol;
-					break;
-				}
+				parametersNeededGenericMethod.add(varSymbol);
+				parametersNeededNongenericMethod.add(varSymbol);
+				continue;
 			}
-			if (genericParameterOfClass != null)
+			com.sun.tools.javac.util.List<Type> typeArguments = varSymbol.type.getTypeArguments();
+			if (typeArguments.size() == 0)
 			{
-				break;
+				parametersNeededGenericMethod.add(varSymbol);
+				parametersNeededNongenericMethod.add(varSymbol);
+				continue;
 			}
+			// Type typeArgumentClassParameter = typeArguments.get(0);
+			parametersNeededNongenericMethod.add(varSymbol);
 		}
-		if (genericParameterOfClass == null)
+		if (parametersNeededGenericMethod.size() == parametersNeededNongenericMethod.size())
 		{
 			clazzInfo.addMethod(methodInfo);
-			return;
+			return methodInfo;
 		}
 		if (methodName.equals(DEFAULT_CONSTRUCTOR_NAME))
 		{
 			clazzInfo.addMethod(methodInfo);
-			return;
+			return methodInfo;
 		}
 		// create a method signature for the genericParameters in addition to the "default" one
 		// so we intentionally create 2 different C# methods for the given single java method
 		// first we create the non-generic method with a System.Type as Argument and System.Object as result
-		Method methodInfoNonGeneric = createMethodHandleNonGeneric(methodInfo, genericParameterOfClass);
+		MethodInfo methodInfoNonGeneric = createMethodHandleNonGeneric(methodInfo, parametersNeededNongenericMethod);
 		clazzInfo.addMethod(methodInfoNonGeneric);
-		Method methodInfoGeneric = createMethodHandle(methodInfo, genericParameterOfClass);
+		MethodInfo methodInfoGeneric = createMethodHandle(methodInfo, parametersNeededGenericMethod);
 		clazzInfo.addMethod(methodInfoGeneric);
+		return methodInfoGeneric;
 	}
 
-	protected static Method createMethodHandleNonGeneric(Method methodTemplate, VarSymbol genericParameterOfClass)
+	protected MethodInfo createMethodHandleNonGeneric(Method methodTemplate, List<VarSymbol> parametersNeededNongenericMethod)
 	{
 		MethodInfo method = new MethodInfo();
 		copyMethodAttributes(methodTemplate, method);
 
 		method.setReturnType(Object.class.getName());
 
-		IList<VariableElement> parameters = methodTemplate.getParameters();
-		for (int a = 0, size = parameters.size(); a < size; a++)
+		List<? extends TypeParameterTree> typeParameters = method.getMethodTree().getTypeParameters();
+
+		for (int a = 0, size = parametersNeededNongenericMethod.size(); a < size; a++)
 		{
-			VariableElement parameterTemplate = parameters.get(a);
+			VariableElement parameterTemplate = parametersNeededNongenericMethod.get(a);
 			method.addParameters(parameterTemplate);
-			if (parameterTemplate == genericParameterOfClass)
-			{
-				method.addParameterIndexToEraseGenericType(a);
-			}
 		}
+		method.setTypeParameters(new TypeParameterTree[0]);
+		// IList<VariableElement> parameters = methodTemplate.getParameters();
+		// for (int a = 0, size = parameters.size(); a < size; a++)
+		// {
+		// VariableElement parameterTemplate = parameters.get(a);
+		// method.addParameters(parameterTemplate);
+		// for (VarSymbol genericParameterOfClass : genericParametersOfClass)
+		// {
+		// if (parameterTemplate == genericParameterOfClass)
+		// {
+		// method.addParameterIndexToEraseGenericType(a);
+		// break;
+		// }
+		// }
+		// }
 		// VarSymbol vs = (VarSymbol) parameterTemplate;
 		// ClassType givenClassType = (ClassType) vs.type;
 		// ClassType classType = new ClassType(givenClassType.supertype_field, new ArrayList<Type>(), givenClassType.tsym);
@@ -336,7 +371,7 @@ public class MethodInfoDataSetter
 		return method;
 	}
 
-	protected static void copyMethodAttributes(Method sourceMethod, MethodInfo targetMethod)
+	protected void copyMethodAttributes(Method sourceMethod, MethodInfo targetMethod)
 	{
 		targetMethod.setName(sourceMethod.getName());
 		targetMethod.setOwningClass(sourceMethod.getOwningClass());
@@ -358,25 +393,39 @@ public class MethodInfoDataSetter
 		}
 	}
 
-	protected static Method createMethodHandle(Method methodTemplate, VarSymbol genericParameterOfClass)
+	protected MethodInfo createMethodHandle(Method methodTemplate, List<VarSymbol> parametersNeededGenericMethod)
 	{
 		MethodInfo method = new MethodInfo();
 		copyMethodAttributes(methodTemplate, method);
 
 		method.setReturnType(methodTemplate.getReturnType());
 
-		IList<VariableElement> parameters = methodTemplate.getParameters();
-		for (int a = 0, size = parameters.size(); a < size; a++)
+		for (int a = 0, size = parametersNeededGenericMethod.size(); a < size; a++)
 		{
-			VariableElement parameterTemplate = parameters.get(a);
-			if (parameterTemplate == genericParameterOfClass)
-			{
-				// skip the parameter of the generic class because we write this information in the methodName later
-				method.addParameterIndexToDelete(a);
-				continue;
-			}
+			VariableElement parameterTemplate = parametersNeededGenericMethod.get(a);
 			method.addParameters(parameterTemplate);
 		}
+		// IList<VariableElement> parameters = methodTemplate.getParameters();
+		// for (int a = 0, size = parameters.size(); a < size; a++)
+		// {
+		// VariableElement parameterTemplate = parameters.get(a);
+		// boolean isToDelete = false;
+		// for (VarSymbol genericParameterOfClass : genericParametersOfClass)
+		// {
+		// if (parameterTemplate == genericParameterOfClass)
+		// {
+		// // skip the parameter of the generic class because we write this information in the methodName later
+		// isToDelete = true;
+		// break;
+		// }
+		// }
+		// if (isToDelete)
+		// {
+		// method.addParameterIndexToDelete(a);
+		// continue;
+		// }
+		// method.addParameters(parameterTemplate);
+		// }
 		return method;
 	}
 
@@ -388,7 +437,7 @@ public class MethodInfoDataSetter
 	 * @param methodInfo
 	 *            Model which holds method-level attributes
 	 */
-	private static void visitExecutable(Element e, MethodInfo methodInfo)
+	private void visitExecutable(Element e, MethodInfo methodInfo)
 	{
 		e.accept(new SimpleElementVisitor6<Object, MethodInfo>()
 		{

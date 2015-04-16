@@ -21,6 +21,8 @@ public class IntermediatePrimitiveMember extends PrimitiveMember implements IPri
 
 	protected boolean technicalMember;
 
+	protected boolean isTransient;
+
 	public IntermediatePrimitiveMember(Class<?> declaringType, Class<?> entityType, Class<?> realType, Class<?> elementType, String propertyName,
 			Annotation[] annotations)
 	{
@@ -95,6 +97,18 @@ public class IntermediatePrimitiveMember extends PrimitiveMember implements IPri
 	public void setTechnicalMember(boolean technicalMember)
 	{
 		this.technicalMember = technicalMember;
+	}
+
+	@Override
+	public boolean isTransient()
+	{
+		return isTransient;
+	}
+
+	@Override
+	public void setTransient(boolean isTransient)
+	{
+		this.isTransient = isTransient;
 	}
 
 	@Override

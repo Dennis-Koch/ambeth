@@ -198,14 +198,14 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter
 		{
 			services.add((CreateOrUpdateContainerBuild) ((IDirectObjRef) addedORI).getDirect());
 		}
-		final int orderIndex = auditedEntityMetaData.getIndexByRelationName(IAuditedService.Order);
+		final int orderIndex = auditedEntityMetaData.getIndexByPrimitiveName(IAuditedService.Order);
 		Collections.sort(services, new Comparator<CreateOrUpdateContainerBuild>()
 		{
 			@Override
 			public int compare(CreateOrUpdateContainerBuild o1, CreateOrUpdateContainerBuild o2)
 			{
-				int order1 = ((Number) o1.getFullPUIs()[orderIndex]).intValue();
-				int order2 = ((Number) o2.getFullPUIs()[orderIndex]).intValue();
+				int order1 = ((Number) o1.getFullPUIs()[orderIndex].getNewValue()).intValue();
+				int order2 = ((Number) o2.getFullPUIs()[orderIndex].getNewValue()).intValue();
 				if (order1 == order2)
 				{
 					return 0;
@@ -251,7 +251,7 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter
 		{
 			services.add((CreateOrUpdateContainerBuild) ((IDirectObjRef) addedORI).getDirect());
 		}
-		final int orderIndex = auditedServiceMetaData.getIndexByRelationName(IAuditedService.Order);
+		final int orderIndex = auditedServiceMetaData.getIndexByPrimitiveName(IAuditedService.Order);
 		Collections.sort(services, new Comparator<CreateOrUpdateContainerBuild>()
 		{
 			@Override
@@ -304,14 +304,14 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter
 		{
 			primitives.add((CreateOrUpdateContainerBuild) ((IDirectObjRef) addedORI).getDirect());
 		}
-		final int orderIndex = auditedEntityPrimitiveMetaData.getIndexByRelationName(IAuditedEntityPrimitiveProperty.Order);
+		final int orderIndex = auditedEntityPrimitiveMetaData.getIndexByPrimitiveName(IAuditedEntityPrimitiveProperty.Order);
 		Collections.sort(primitives, new Comparator<CreateOrUpdateContainerBuild>()
 		{
 			@Override
 			public int compare(CreateOrUpdateContainerBuild o1, CreateOrUpdateContainerBuild o2)
 			{
-				int order1 = ((Number) o1.getFullPUIs()[orderIndex]).intValue();
-				int order2 = ((Number) o2.getFullPUIs()[orderIndex]).intValue();
+				int order1 = ((Number) o1.getFullPUIs()[orderIndex].getNewValue()).intValue();
+				int order2 = ((Number) o2.getFullPUIs()[orderIndex].getNewValue()).intValue();
 				if (order1 == order2)
 				{
 					return 0;
@@ -357,14 +357,14 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter
 		{
 			relations.add((CreateOrUpdateContainerBuild) ((IDirectObjRef) addedORI).getDirect());
 		}
-		final int orderIndex = auditedEntityRelationMetaData.getIndexByRelationName(IAuditedEntityRelationProperty.Order);
+		final int orderIndex = auditedEntityRelationMetaData.getIndexByPrimitiveName(IAuditedEntityRelationProperty.Order);
 		Collections.sort(relations, new Comparator<CreateOrUpdateContainerBuild>()
 		{
 			@Override
 			public int compare(CreateOrUpdateContainerBuild o1, CreateOrUpdateContainerBuild o2)
 			{
-				int order1 = ((Number) o1.getFullPUIs()[orderIndex]).intValue();
-				int order2 = ((Number) o2.getFullPUIs()[orderIndex]).intValue();
+				int order1 = ((Number) o1.getFullPUIs()[orderIndex].getNewValue()).intValue();
+				int order2 = ((Number) o2.getFullPUIs()[orderIndex].getNewValue()).intValue();
 				if (order1 == order2)
 				{
 					return 0;
@@ -410,14 +410,14 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter
 		{
 			items.add((CreateOrUpdateContainerBuild) ((IDirectObjRef) addedORI).getDirect());
 		}
-		final int orderIndex = relationItemMetaData.getIndexByRelationName(IAuditedEntityRelationPropertyItem.Order);
+		final int orderIndex = relationItemMetaData.getIndexByPrimitiveName(IAuditedEntityRelationPropertyItem.Order);
 		Collections.sort(items, new Comparator<CreateOrUpdateContainerBuild>()
 		{
 			@Override
 			public int compare(CreateOrUpdateContainerBuild o1, CreateOrUpdateContainerBuild o2)
 			{
-				int order1 = ((Number) o1.getFullPUIs()[orderIndex]).intValue();
-				int order2 = ((Number) o2.getFullPUIs()[orderIndex]).intValue();
+				int order1 = ((Number) o1.getFullPUIs()[orderIndex].getNewValue()).intValue();
+				int order2 = ((Number) o2.getFullPUIs()[orderIndex].getNewValue()).intValue();
 				if (order1 == order2)
 				{
 					return 0;

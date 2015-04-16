@@ -39,7 +39,9 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringConversionHelper;
+import de.osthus.esmeralda.CodeVisitor;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.TypeUsing;
 import de.osthus.esmeralda.handler.ASTHelper;
 import de.osthus.esmeralda.handler.IASTHelper;
@@ -47,6 +49,8 @@ import de.osthus.esmeralda.handler.IExpressionHandler;
 import de.osthus.esmeralda.handler.IExpressionHandlerRegistry;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
+import de.osthus.esmeralda.handler.IUsedVariableDelegate;
+import de.osthus.esmeralda.handler.IVariable;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalBlockHandler;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
@@ -65,56 +69,73 @@ public class CsHelper implements ICsHelper
 
 	protected static final HashMap<String, String[]> javaTypeToCsharpMap = new HashMap<String, String[]>();
 
+	protected static final HashMap<String, String> javaTypeToCsharpRenameMap = new HashMap<String, String>();
+
 	protected static final HashMap<String, String> implicitJavaImportsMap = new HashMap<String, String>();
 
 	protected static final HashMap<String, String> annotationTargetMap = new HashMap<String, String>();
 
 	protected static final Pattern dotSplit = Pattern.compile(Pattern.quote("."));
 
+	protected static final Pattern upperCaseStart = Pattern.compile("^[A-Z].*");
+
 	static
 	{
-		put("void", "void");
-		put("boolean", "bool");
-		put("char", "char");
-		put("byte", "sbyte");
-		put("short", "short");
-		put("int", "int");
-		put("long", "long");
-		put("float", "float");
-		put("double", "double");
-		put(java.lang.Void.class.getName(), "void");
-		put(java.lang.Boolean.class.getName(), "bool?");
-		put(java.lang.Character.class.getName(), "char?");
-		put(java.lang.Byte.class.getName(), "sbyte?");
-		put(java.lang.Short.class.getName(), "short?");
-		put(java.lang.Integer.class.getName(), "int?");
-		put(java.lang.Long.class.getName(), "long?");
-		put(java.lang.Float.class.getName(), "float?");
-		put(java.lang.Double.class.getName(), "double?");
-		put(java.lang.String.class.getName(), "System.String");
+		mapReplace("void", "void");
+		mapReplace("boolean", "bool");
+		mapReplace("char", "char");
+		mapReplace("byte", "sbyte");
+		mapReplace("short", "short");
+		mapReplace("int", "int");
+		mapReplace("long", "long");
+		mapReplace("float", "float");
+		mapReplace("double", "double");
+		mapReplace(java.lang.Void.class.getName(), "void");
+		mapReplace(java.lang.Boolean.class.getName(), "bool?");
+		mapReplace(java.lang.Character.class.getName(), "char?");
+		mapReplace(java.lang.Byte.class.getName(), "sbyte?");
+		mapReplace(java.lang.Short.class.getName(), "short?");
+		mapReplace(java.lang.Integer.class.getName(), "int?");
+		mapReplace(java.lang.Long.class.getName(), "long?");
+		mapReplace(java.lang.Float.class.getName(), "float?");
+		mapReplace(java.lang.Double.class.getName(), "double?");
+		mapReplace(java.lang.String.class.getName(), "System.String");
+		mapReplace(java.lang.annotation.Annotation.class.getName(), "System.Attribute");
+		mapReplace(java.lang.annotation.Target.class.getName(), "System.AttributeUsageAttribute");
+		mapReplace(java.lang.Class.class.getName(), "System.Type");
+		mapReplace(java.lang.Class.class.getName() + "<?>", "System.Type");
+		mapReplace(java.lang.Exception.class.getName(), "System.Exception");
+		mapReplace(java.lang.IllegalArgumentException.class.getName(), "System.ArgumentException");
+		mapReplace(java.lang.IllegalStateException.class.getName(), "System.Exception");
+		mapReplace(java.lang.Iterable.class.getName(), "System.Collections.Generic.IEnumerable");
+		mapReplace(java.lang.Throwable.class.getName(), "System.Exception");
+		mapReplace(java.lang.Object.class.getName(), "System.Object");
+		mapReplace(java.lang.StringBuilder.class.getName(), "System.Text.StringBuilder");
+		mapReplace(java.lang.reflect.Constructor.class.getName(), "System.Reflection.ConstructorInfo");
+		mapReplace(java.lang.reflect.Field.class.getName(), "System.Reflection.FieldInfo");
+		mapReplace(java.lang.reflect.Method.class.getName(), "System.Reflection.MethodInfo");
+		mapReplace(java.lang.ref.Reference.class.getName(), "System.WeakReference");
+		mapReplace(java.lang.ref.SoftReference.class.getName(), "System.WeakReference");
+		mapReplace(java.lang.ref.WeakReference.class.getName(), "System.WeakReference");
+		mapReplace(java.lang.RuntimeException.class.getName(), "System.Exception");
+		mapReplace(java.lang.StackTraceElement.class.getName(), "System.Diagnostics.StackFrame");
+		mapReplace(java.lang.ThreadLocal.class.getName(), "System.Threading.ThreadLocal", "De.Osthus.Ambeth.Util.ThreadLocal");
+		mapReplace(java.io.InputStream.class.getName(), "System.IO.Stream");
+		mapReplace(java.io.OutputStream.class.getName(), "System.IO.Stream");
+		mapReplace(java.util.ArrayList.class.getName(), "System.Collections.Generic.List");
+		mapReplace(java.util.Collection.class.getName(), "System.Collections.Generic.ICollection");
+		mapReplace(java.util.Enumeration.class.getName(), "System.Collections.Generic.IEnumerator");
+		mapReplace(java.util.Iterator.class.getName(), "System.Collections.Generic.IEnumerator");
+		mapReplace(java.util.List.class.getName(), "System.Collections.Generic.IList");
+		mapReplace(java.util.Map.class.getName(), "De.Osthus.Ambeth.Collections.IMap");
+		mapReplace(java.util.Map.class.getName() + ".Entry", "De.Osthus.Ambeth.Collections.Entry"); // Inner classes are appended with '$'
+		mapReplace(java.util.regex.Pattern.class.getName(), "System.Text.RegularExpressions.Regex");
+		mapReplace(java.util.concurrent.locks.Lock.class.getName(), "De.Osthus.Ambeth.Util.Lock");
+		mapReplace(de.osthus.ambeth.collections.ArrayList.class.getName(), "System.Collections.Generic.List");
+		mapReplace(de.osthus.ambeth.collections.IList.class.getName(), "System.Collections.Generic.IList");
+		mapRename(de.osthus.ambeth.collections.HashSet.class.getName(), "De.Osthus.Ambeth.Collections.CHashSet");
 
-		put(java.io.InputStream.class.getName(), "System.IO.Stream");
-		put(java.io.OutputStream.class.getName(), "System.IO.Stream");
-		put(java.util.List.class.getName(), "System.Collections.Generic.IList");
-		put(java.util.regex.Pattern.class.getName(), "System.Text.RegularExpressions.Regex");
-		put(java.lang.annotation.Annotation.class.getName(), "System.Attribute");
-		put(java.lang.annotation.Target.class.getName(), "System.AttributeUsageAttribute");
-		put(java.lang.Class.class.getName(), "System.Type");
-		put(java.lang.Class.class.getName() + "<?>", "System.Type");
-		put(java.lang.Exception.class.getName(), "System.Exception");
-		put(java.lang.IllegalArgumentException.class.getName(), "System.ArgumentException");
-		put(java.lang.IllegalStateException.class.getName(), "System.Exception");
-		put(java.lang.Throwable.class.getName(), "System.Exception");
-		put(java.lang.Object.class.getName(), "System.Object");
-		put(java.lang.StringBuilder.class.getName(), "System.Text.StringBuilder");
-		put(java.lang.reflect.Field.class.getName(), "System.Reflection.FieldInfo");
-		put(java.lang.RuntimeException.class.getName(), "System.Exception");
-		put(java.lang.StackTraceElement.class.getName(), "System.Diagnostics.StackFrame");
-		put(java.lang.ThreadLocal.class.getName(), "System.Threading.ThreadLocal", "De.Osthus.Ambeth.Util.ThreadLocal");
-		put(de.osthus.ambeth.collections.IList.class.getName(), "System.Collections.Generic.IList");
-		put(de.osthus.ambeth.collections.ArrayList.class.getName(), "System.Collections.Generic.List");
-		put(de.osthus.ambeth.collections.HashSet.class.getName(), "De.Osthus.Ambeth.Collections.CHashSet");
-		put(java.util.Map.Entry.class.getName(), "De.Osthus.Ambeth.Collections.Entry");
+		// mapRename(de.osthus.ambeth.collections.IList.class.getName(), "De.Osthus.Ambeth.Collections.IIList");
 
 		annotationTargetMap.put(ElementType.class.getName() + "." + ElementType.TYPE.name(), "Class");
 		annotationTargetMap.put(ElementType.class.getName() + "." + ElementType.PARAMETER.name(), "Parameter");
@@ -144,9 +165,14 @@ public class CsHelper implements ICsHelper
 		implicitJavaImportsMap.put("String", String.class.getName());
 	}
 
-	protected static final void put(String key, String... values)
+	protected static final void mapReplace(String key, String... values)
 	{
 		javaTypeToCsharpMap.put(key, values);
+	}
+
+	protected static final void mapRename(String key, String value)
+	{
+		javaTypeToCsharpRenameMap.put(key, value);
 	}
 
 	@SuppressWarnings("unused")
@@ -228,6 +254,40 @@ public class CsHelper implements ICsHelper
 		writer.append('}');
 	}
 
+	// TODO Move the next to method (and those from the JsHelper) to new class (?EsmeraldaHelper?)
+	@Override
+	public void forAllUsedVariables(IUsedVariableDelegate usedVariableDelegate)
+	{
+		IConversionContext context = this.context.getCurrent();
+		JavaClassInfo classInfo = context.getClassInfo();
+
+		forAllUsedVariables(classInfo, usedVariableDelegate);
+	}
+
+	@Override
+	public void forAllUsedVariables(JavaClassInfo classInfo, IUsedVariableDelegate usedVariableDelegate)
+	{
+		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
+		IWriter writer = context.getWriter();
+		IList<IVariable> allUsedVariables = classInfo.getAllUsedVariables();
+
+		boolean firstVariable = true;
+		HashSet<String> alreadyHandled = new HashSet<>();
+		for (IVariable usedVariable : allUsedVariables)
+		{
+			String name = usedVariable.getName();
+			if (!alreadyHandled.add(name))
+			{
+				// The IVariable instances have no equals(). So there are duplicates.
+				continue;
+			}
+
+			usedVariableDelegate.invoke(usedVariable, firstVariable, context, languageHelper, writer);
+			firstVariable = false;
+		}
+	}
+
 	@Override
 	public void writeAsTypeOf(String typeName)
 	{
@@ -267,10 +327,10 @@ public class CsHelper implements ICsHelper
 				writer.append("[]");
 				return;
 			}
-			Matcher genericTypeMatcher = ASTHelper.genericTypePattern.matcher(typeName);
-			if (genericTypeMatcher.matches())
+			String[] typeAndGeneric = astHelper.parseGenericType(typeName);
+			if (typeAndGeneric.length == 2)
 			{
-				String plainType = genericTypeMatcher.group(1);
+				String plainType = typeAndGeneric[0];
 
 				writeTypeIntern(plainType, direct);
 				if (Class.class.getName().equals(plainType))
@@ -278,25 +338,37 @@ public class CsHelper implements ICsHelper
 					// in C# the type handle is not generic so we intentionally "lose" the generic type information here
 					return;
 				}
-				writer.append('<');
 
-				String typeArguments = genericTypeMatcher.group(2);
+				writer.append('<');
+				String typeArguments = typeAndGeneric[1];
+				typeArguments = ASTHelper.genericTypeExtendsPattern.matcher(typeArguments).replaceAll("");
 				String[] typeArgumentsSplit = astHelper.splitTypeArgument(typeArguments);
 				boolean firstArgument = true;
 				for (String typeArgumentSplit : typeArgumentsSplit)
 				{
 					firstArgument = writeStringIfFalse(",", firstArgument);
-					writeTypeIntern(typeArgumentSplit, direct);
+					if ("?".equals(typeArgumentSplit))
+					{
+						writeTypeIntern("Object", true);
+					}
+					else
+					{
+						writeTypeIntern(typeArgumentSplit, direct);
+					}
 				}
 				writer.append('>');
 				return;
 			}
+			String renamedTypeName = getValueFromFqNameMap(javaTypeToCsharpRenameMap, typeName);
+			if (renamedTypeName != null)
+			{
+				typeName = renamedTypeName;
+			}
 			if (!direct)
 			{
 				typeName = astHelper.resolveFqTypeFromTypeName(typeName);
-				String[] typeNameSplit = dotSplit.split(createNamespace(typeName));
-				typeNameSplit = camelCaseName(typeNameSplit);
-				mappedTypeName = new String[] { StringConversionHelper.implode(objectCollector, typeNameSplit, ".") };
+				typeName = createFqName(typeName);
+				mappedTypeName = new String[] { typeName };
 			}
 			else
 			{
@@ -331,7 +403,12 @@ public class CsHelper implements ICsHelper
 			}
 
 		}
-		writer.append(mappedTypeName[0]);
+		String csharpName = javaTypeToCsharpRenameMap.get(mappedTypeName[0]);
+		if (csharpName == null)
+		{
+			csharpName = mappedTypeName[0];
+		}
+		writer.append(removeDollars(csharpName));
 	}
 
 	@Override
@@ -357,10 +434,108 @@ public class CsHelper implements ICsHelper
 		return false;
 	}
 
+	protected <V> V getValueFromFqNameMap(IMap<String, V> map, String fqName)
+	{
+		V value = map.get(fqName);
+		if (value != null)
+		{
+			return value;
+		}
+		String[] parsedGenericType = astHelper.parseGenericType(fqName);
+		return map.get(parsedGenericType[0]);
+	}
+
 	@Override
 	public void writeSimpleName(JavaClassInfo classInfo)
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		String[] csharpNames = getValueFromFqNameMap(javaTypeToCsharpMap, classInfo.getFqName());
+		String csharpName = null;
+		if (csharpNames != null)
+		{
+			csharpName = csharpNames[0];
+		}
+		if (csharpName == null)
+		{
+			csharpName = getValueFromFqNameMap(javaTypeToCsharpRenameMap, classInfo.getFqName());
+		}
+		if (csharpName == null)
+		{
+			String simpleName = classInfo.getName();
+			simpleName = removeDollars(simpleName);
+			writer.append(simpleName);
+			if (classInfo.getNonGenericName().equals(simpleName))
+			{
+				// check if there are really no generic type arguments
+				writeGenericTypeArguments(classInfo.getTypeArguments());
+			}
+			return;
+		}
+		String[] csharpGenericName = astHelper.parseGenericType(csharpName);
+		if (csharpGenericName.length == 1)
+		{
+			String[] javaGenericName = astHelper.parseGenericType(classInfo.getFqName());
+			if (javaGenericName.length == 2)
+			{
+				// append generic info to the csharp type
+				csharpName += "<" + javaGenericName[1] + ">";
+			}
+		}
+		Matcher matcher = CodeVisitor.fqPattern.matcher(csharpName);
+		if (!matcher.matches())
+		{
+			throw new IllegalStateException("Not a full qualified type: " + csharpName);
+		}
+		String simpleName = matcher.group(2);
+		simpleName = removeDollars(simpleName);
+		writer.append(simpleName);
+	}
+
+	protected String resolveSimpleNonGenericName(JavaClassInfo classInfo, boolean noDollars)
+	{
+		String[] csharpNames = getValueFromFqNameMap(javaTypeToCsharpMap, classInfo.getFqName());
+		String csharpName = null;
+		if (csharpNames != null)
+		{
+			csharpName = csharpNames[0];
+		}
+		if (csharpName == null)
+		{
+			csharpName = getValueFromFqNameMap(javaTypeToCsharpRenameMap, classInfo.getFqName());
+		}
+		if (csharpName == null)
+		{
+			String className = classInfo.getNonGenericName();
+			if (noDollars)
+			{
+				className = removeDollars(className);
+			}
+			return className;
+		}
+		String[] parsedGenericType = astHelper.parseGenericType(csharpName);
+		Matcher matcher = CodeVisitor.fqPattern.matcher(parsedGenericType[0]);
+		if (!matcher.matches())
+		{
+			throw new IllegalStateException("Not a full qualified type: " + parsedGenericType[0]);
+		}
+		String simpleNonGenericName = matcher.group(2);
+		if (noDollars)
+		{
+			simpleNonGenericName = removeDollars(simpleNonGenericName);
+		}
+		return simpleNonGenericName;
+	}
+
+	@Override
+	public void writeSimpleNonGenericName(JavaClassInfo classInfo)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		String simpleNonGenericName = resolveSimpleNonGenericName(classInfo, true);
+		writer.append(simpleNonGenericName);
 	}
 
 	@Override
@@ -369,6 +544,7 @@ public class CsHelper implements ICsHelper
 		IConversionContext context = this.context.getCurrent();
 		JavaClassInfo classInfo = context.getClassInfo();
 		File targetPath = context.getTargetPath();
+
 		Path relativeTargetPath = createRelativeTargetPath();
 		File targetFileDir = new File(targetPath, relativeTargetPath.toString());
 		targetFileDir.mkdirs();
@@ -380,8 +556,23 @@ public class CsHelper implements ICsHelper
 	@Override
 	public Path createRelativeTargetPath()
 	{
-		String namespace = createNamespace();
-		String relativeTargetPathName = namespace.replace(".", File.separator);
+		IConversionContext context = this.context.getCurrent();
+		JavaClassInfo classInfo = context.getClassInfo();
+
+		String packageName = classInfo.getPackageName();
+
+		String pathPrefixRemove = context.getPathPrefixRemove();
+		if (pathPrefixRemove != null && packageName.toLowerCase().startsWith(pathPrefixRemove.toLowerCase()))
+		{
+			int removeLength = pathPrefixRemove.length();
+			packageName = packageName.substring(removeLength);
+		}
+		// packageName = packageName.toLowerCase();
+
+		String[] packageSplit = dotSplit.split(packageName);
+		checkForInnerClassPackage(packageSplit);
+		packageSplit = camelCaseName(packageSplit);
+		String relativeTargetPathName = StringConversionHelper.implode(objectCollector, packageSplit, File.separator);
 
 		String languagePath = context.getLanguagePath();
 		if (languagePath != null && !languagePath.isEmpty())
@@ -396,8 +587,8 @@ public class CsHelper implements ICsHelper
 	@Override
 	public String createTargetFileName(JavaClassInfo classInfo)
 	{
-		String nonGenericType = astHelper.extractNonGenericType(classInfo.getName());
-		return nonGenericType + ".cs";
+		String nonGenericName = resolveSimpleNonGenericName(classInfo, false);
+		return nonGenericName + ".cs";
 	}
 
 	@Override
@@ -412,17 +603,32 @@ public class CsHelper implements ICsHelper
 		return namespace;
 	}
 
+	private String createFqName(String fqTypeName)
+	{
+		Pattern fqNamePattern = Pattern.compile("((.+)\\.)([^\\.]+?)");
+		Matcher matcher = fqNamePattern.matcher(fqTypeName);
+		if (matcher.matches())
+		{
+			String packageName = matcher.group(2);
+			String simpleName = matcher.group(3);
+			packageName = createNamespace(packageName);
+			fqTypeName = packageName + "." + simpleName;
+		}
+		return fqTypeName;
+	}
+
 	@Override
 	public String createNamespace(String packageName)
 	{
 		IConversionContext context = this.context.getCurrent();
 
 		String nsPrefixRemove = context.getNsPrefixRemove();
-		if (packageName.toLowerCase().startsWith(nsPrefixRemove.toLowerCase()))
+		if (nsPrefixRemove != null && packageName.toLowerCase().startsWith(nsPrefixRemove.toLowerCase()))
 		{
 			int removeLength = nsPrefixRemove.length();
 			packageName = packageName.substring(removeLength);
 		}
+		// packageName = packageName.toLowerCase();
 
 		String nsPrefixAdd = context.getNsPrefixAdd();
 		if (nsPrefixAdd != null)
@@ -431,10 +637,49 @@ public class CsHelper implements ICsHelper
 		}
 
 		String[] packageSplit = dotSplit.split(packageName);
+		checkForInnerClassPackage(packageSplit);
+		checkForWordException(packageSplit);
 		packageSplit = camelCaseName(packageSplit);
 		String namespace = StringConversionHelper.implode(objectCollector, packageSplit, ".");
 
 		return namespace;
+	}
+
+	/**
+	 * Prevents a collision between a class name and a package name.
+	 * 
+	 * @param packageSplit
+	 *            Parts of the package name
+	 */
+	protected void checkForInnerClassPackage(String[] packageSplit)
+	{
+		for (int i = packageSplit.length; i-- > 0;)
+		{
+			String part = packageSplit[i];
+			if (!upperCaseStart.matcher(part).matches())
+			{
+				break;
+			}
+
+			packageSplit[i] = part + "NS";
+		}
+	}
+
+	/**
+	 * Prevents a collision between the Exception class and a package name.
+	 * 
+	 * @param packageSplit
+	 */
+	private void checkForWordException(String[] packageSplit)
+	{
+		for (int i = 0, length = packageSplit.length; i < length; i++)
+		{
+			String part = packageSplit[i];
+			if ("exception".equalsIgnoreCase(part))
+			{
+				packageSplit[i] = part + "s";
+			}
+		}
 	}
 
 	protected String[] camelCaseName(String[] strings)
@@ -445,13 +690,22 @@ public class CsHelper implements ICsHelper
 			camelCase[a] = StringConversionHelper.upperCaseFirst(objectCollector, strings[a]);
 		}
 		return camelCase;
+		// return strings;
 	}
 
 	@Override
 	public String createMethodName(String methodName)
 	{
+		methodName = methodName.split("<", 2)[0]; // Generics are written elsewhere
+		methodName = removeDollars(methodName);
 		methodName = StringConversionHelper.upperCaseFirst(objectCollector, methodName);
 		return methodName;
+	}
+
+	protected String removeDollars(String name)
+	{
+		name = name.replaceAll("\\$", "_");
+		return name;
 	}
 
 	@Override
@@ -505,6 +759,27 @@ public class CsHelper implements ICsHelper
 				writer.append(", ");
 			}
 			writeType(genericTypeArgument.toString());
+		}
+		writer.append('>');
+	}
+
+	public void writeGenericTypeArguments(JavaClassInfo[] genericTypeArguments)
+	{
+		if (genericTypeArguments == null || genericTypeArguments.length == 0)
+		{
+			return;
+		}
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+		writer.append('<');
+		for (int a = 0, size = genericTypeArguments.length; a < size; a++)
+		{
+			JavaClassInfo genericTypeArgument = genericTypeArguments[a];
+			if (a > 0)
+			{
+				writer.append(", ");
+			}
+			writeType(genericTypeArgument.getFqName());
 		}
 		writer.append('>');
 	}
@@ -651,7 +926,7 @@ public class CsHelper implements ICsHelper
 			writer.append(propertyName).append(" = ");
 			writer.append(entry.getValue().toString());
 		}
-		writer.append(')');
+		writer.append(")]");
 	}
 
 	@Override
@@ -680,20 +955,40 @@ public class CsHelper implements ICsHelper
 			firstKeyWord = writeStringIfFalse(" ", firstKeyWord);
 			writer.append("abstract");
 		}
+		boolean isStaticWritten = false;
 		if (javaClassModel.isStatic())
 		{
-			firstKeyWord = writeStringIfFalse(" ", firstKeyWord);
-			writer.append("static");
+			boolean isEnum = false;
+			boolean isInnerClass = false;
+			if (javaClassModel instanceof JavaClassInfo)
+			{
+				// A class cannot be static and sealed at the same time. Enums are generated as sealed.
+				// Also inner classes in Java are often declared static to be instantiatable independend from its owner - this has the opposite effect in C#.
+				JavaClassInfo javaClassInfo = (JavaClassInfo) javaClassModel;
+				isEnum = javaClassInfo.isEnum();
+				isInnerClass = "MEMBER".equals(javaClassInfo.getNestingKind());
+			}
+			if (!isEnum && !isInnerClass)
+			{
+				firstKeyWord = writeStringIfFalse(" ", firstKeyWord);
+				writer.append("static");
+				isStaticWritten = true;
+			}
 		}
 		if (javaClassModel.isFinal())
 		{
-			firstKeyWord = writeStringIfFalse(" ", firstKeyWord);
 			if (javaClassModel instanceof JavaClassInfo)
 			{
-				writer.append("sealed");
+				// A class cannot be static and sealed at the same time
+				if (!isStaticWritten)
+				{
+					firstKeyWord = writeStringIfFalse(" ", firstKeyWord);
+					writer.append("sealed");
+				}
 			}
 			else
 			{
+				firstKeyWord = writeStringIfFalse(" ", firstKeyWord);
 				writer.append("readonly");
 			}
 		}
@@ -709,6 +1004,12 @@ public class CsHelper implements ICsHelper
 		varName = convertVariableName(varName);
 
 		writer.append(varName);
+	}
+
+	@Override
+	public void writeVariableNameAccess(String varName)
+	{
+		writeVariableName(varName);
 	}
 
 	@Override

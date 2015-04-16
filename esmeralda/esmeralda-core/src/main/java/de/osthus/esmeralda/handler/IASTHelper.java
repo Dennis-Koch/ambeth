@@ -2,6 +2,7 @@ package de.osthus.esmeralda.handler;
 
 import java.util.List;
 
+import com.sun.source.tree.Tree.Kind;
 import com.sun.source.tree.TypeParameterTree;
 
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
@@ -29,6 +30,8 @@ public interface IASTHelper
 	String[] splitTypeArgument(String typeArguments);
 
 	String[] parseGenericType(String fqTypeName);
+
+	String getTypeNameForLiteralKind(Kind kind);
 
 	String writeToStash(IBackgroundWorkerDelegate run);
 

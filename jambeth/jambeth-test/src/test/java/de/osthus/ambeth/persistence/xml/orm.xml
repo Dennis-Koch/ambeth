@@ -4,6 +4,7 @@
 	<entity class="de.osthus.ambeth.persistence.xml.model.Employee">
 		<sequence-generator name="EMPLOYEE_SEQU" />
 		<attributes>
+			<ignore name="Attributes" />
 			<to-one name="Supervisor" target-entity="de.osthus.ambeth.persistence.xml.model.Employee">
 				<join-table name="EMPLOYEE">
 					<join-column name="SUPERVISOR" />

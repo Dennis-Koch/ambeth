@@ -5,5 +5,7 @@ namespace De.Osthus.Ambeth.Orm
         bool AlternateId { get; }
 
         bool Ignore { get; }
+
+		bool Transient { get; }
     }
 }

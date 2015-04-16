@@ -18,8 +18,8 @@ public class IntermediateEmbeddedPrimitiveMember extends IntermediatePrimitiveMe
 		super(entityType, entityType, realType, elementType, propertyName, null);
 		this.memberPath = memberPath;
 		this.childMember = childMember;
-		this.memberPathToken = EmbeddedMember.buildMemberPathToken(memberPath);
-		this.memberPathString = EmbeddedMember.buildMemberPathString(memberPath);
+		memberPathToken = EmbeddedMember.buildMemberPathToken(memberPath);
+		memberPathString = EmbeddedMember.buildMemberPathString(memberPath);
 	}
 
 	@Override
@@ -41,9 +41,21 @@ public class IntermediateEmbeddedPrimitiveMember extends IntermediatePrimitiveMe
 	}
 
 	@Override
+	public boolean isTransient()
+	{
+		return childMember.isTransient();
+	}
+
+	@Override
 	public void setTechnicalMember(boolean technicalMember)
 	{
 		((IPrimitiveMemberWrite) childMember).setTechnicalMember(technicalMember);
+	}
+
+	@Override
+	public void setTransient(boolean isTransient)
+	{
+		((IPrimitiveMemberWrite) childMember).setTransient(isTransient);
 	}
 
 	@Override
