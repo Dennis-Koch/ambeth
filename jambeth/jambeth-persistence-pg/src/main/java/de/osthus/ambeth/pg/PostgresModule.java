@@ -9,6 +9,7 @@ import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.IConnectionExtension;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
+import de.osthus.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
 import de.osthus.ambeth.sql.IPrimaryKeyProvider;
 
 public class PostgresModule implements IInitializingModule
@@ -36,6 +37,7 @@ public class PostgresModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
+		beanContextFactory.registerBean(PostgresConnectionUrlProvider.class).autowireable(IDatabaseConnectionUrlProvider.class);
 		beanContextFactory.registerBean(PostgresConnectionExtension.class).autowireable(IConnectionExtension.class);
 		beanContextFactory.registerBean(PostgresDialect.class).autowireable(IConnectionDialect.class);
 		beanContextFactory.registerBean(PostgresSequencePrimaryKeyProvider.class).autowireable(IPrimaryKeyProvider.class);
