@@ -33,7 +33,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 
 @SQLStructure("PersistenceStream_structure.sql")
-@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml") })
+@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/jdbc/stream/orm.xml") })
 public class PersistenceStreamTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static final String clobValue = "hallo";

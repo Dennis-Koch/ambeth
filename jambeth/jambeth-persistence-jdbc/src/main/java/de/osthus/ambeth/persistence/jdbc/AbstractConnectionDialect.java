@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
+import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IDisposableBean;
@@ -18,6 +19,7 @@ import de.osthus.ambeth.merge.ITransactionState;
 import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
+import de.osthus.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
 
 public abstract class AbstractConnectionDialect implements IConnectionDialect, IInitializingBean, IDisposableBean
 {
@@ -25,11 +27,14 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
+	protected IDatabaseConnectionUrlProvider databaseConnectionUrlProvider;
+
+	@Autowired
+	protected IProperties props;
+
 	@Autowired(optional = true)
 	protected ITransactionState transactionState;
-
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseConnection)
-	protected String connectionString;
 
 	@Property(name = PersistenceConfigurationConstants.ExternalTransactionManager, defaultValue = "false")
 	protected boolean externalTransactionManager;
@@ -55,7 +60,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 		{
 			try
 			{
-				DriverManager.getDriver(connectionString);
+				DriverManager.getDriver(databaseConnectionUrlProvider.getConnectionUrl());
 			}
 			catch (SQLException e)
 			{
