@@ -246,8 +246,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 			while (tryCount++ < tries)
 			{
 				// Ensure that we have maximum 28 characters: prefix has 7, long has maximum 19 + 2 random digits
-				String randomName = username != null ? username.toUpperCase() : "CI_TMP_" + System.nanoTime()
-						+ String.format("%02d", (int) (Math.random() * 99));
+				String randomName = username != null ? username : "CI_TMP_" + System.nanoTime() + String.format("%02d", (int) (Math.random() * 99));
 				try
 				{
 					stm.execute("CREATE USER " + randomName + " IDENTIFIED BY \"" + password + "\" DEFAULT TABLESPACE \"" + userTablespace
@@ -396,6 +395,6 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 
 	private static void deleteUser(final Statement statement, final String userName) throws SQLException
 	{
-		statement.execute("DROP USER \"" + userName.toUpperCase() + "\" CASCADE");
+		statement.execute("DROP USER " + userName + " CASCADE");
 	}
 }

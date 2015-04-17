@@ -5,12 +5,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.persistence.PersistenceException;
 
 import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.Property;
@@ -20,6 +24,10 @@ import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IocModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
+import de.osthus.ambeth.log.ILogger;
+import de.osthus.ambeth.log.ILoggerHistory;
+import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.log.PersistenceWarnUtil;
 import de.osthus.ambeth.oracle.RandomUserScript.RandomUserModule;
 import de.osthus.ambeth.orm.IOrmPatternMatcher;
 import de.osthus.ambeth.persistence.PermissionGroup;
@@ -35,11 +43,23 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 
 	public static final String ROOT_DATABASE_PASS = "ambeth.root.database.pass";
 
+	@LogInstance
+	private ILogger log;
+
+	@Autowired
+	protected ILoggerHistory loggerHistory;
+
 	@Autowired
 	protected IOrmPatternMatcher ormPatternMatcher;
 
 	@Autowired
 	protected ISqlBuilder sqlBuilder;
+
+	@Property(name = PersistenceConfigurationConstants.AutoArrayTypes, defaultValue = "true")
+	protected boolean autoArrayTypes;
+
+	@Property(name = PersistenceConfigurationConstants.AutoIndexForeignKeys, defaultValue = "false")
+	protected boolean autoIndexForeignKeys;
 
 	@Property(name = PersistenceConfigurationConstants.DatabaseTableIgnore, mandatory = false)
 	protected String ignoredTableProperty;
@@ -57,7 +77,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 	{
 		if (ignoredTableProperty != null)
 		{
-			ignoredTables.addAll(ignoredTableProperty.toUpperCase().split("[;:]"));
+			ignoredTables.addAll(connectionDialect.toDefaultCase(ignoredTableProperty).split("[;:]"));
 		}
 	}
 
@@ -116,7 +136,169 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 	@Override
 	public void preProcessConnectionForTest(Connection connection, String[] schemaNames, boolean forcePreProcessing)
 	{
-		// intended blank
+		try
+		{
+			handleIndices(connection);
+
+			if (autoArrayTypes)
+			{
+				handleArrayTypes(connection);
+			}
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	protected void handleIndices(Connection connection) throws SQLException
+	{
+		Statement stm = connection.createStatement();
+		Statement createIndexStm = null;
+		ResultSet rs = null;
+		try
+		{
+			rs = stm.executeQuery("select table_name, constraint_name,cname1"
+					+ "|| nvl2(cname2,','||cname2,null) || nvl2(cname3,','||cname3,null) || nvl2(cname4,','||cname4,null)"
+					+ "|| nvl2(cname5,','||cname5,null) || nvl2(cname6,','||cname6,null) || nvl2(cname7,','||cname7,null) || nvl2(cname8,','||cname8,null)"
+					+ " columns" + " from ( select b.table_name," + " b.constraint_name," + " max(decode( position, 1, column_name, null )) cname1,"
+					+ " max(decode( position, 2, column_name, null )) cname2, max(decode( position, 3, column_name, null )) cname3,"
+					+ " max(decode( position, 4, column_name, null )) cname4, max(decode( position, 5, column_name, null )) cname5,"
+					+ " max(decode( position, 6, column_name, null )) cname6, max(decode( position, 7, column_name, null )) cname7,"
+					+ " max(decode( position, 8, column_name, null )) cname8, count(*) col_cnt from (select substr(table_name,1,30) table_name,"
+					+ " substr(constraint_name,1,30) constraint_name, substr(column_name,1,30) column_name, position from user_cons_columns ) a,"
+					+ " user_constraints b where a.constraint_name = b.constraint_name and b.constraint_type = 'R'"
+					+ " group by b.table_name, b.constraint_name ) cons where col_cnt > ALL ( select count(*) from user_ind_columns i"
+					+ " where i.table_name = cons.table_name and i.column_name in (cname1, cname2, cname3, cname4, cname5, cname6, cname7, cname8 )"
+					+ " and i.column_position <= cons.col_cnt group by i.index_name )");
+
+			int maxIndexLength = -1;
+			boolean constraintFound = false;
+			while (rs.next())
+			{
+				constraintFound = true;
+				String tableName = rs.getString("table_name");
+				String constraintName = rs.getString("constraint_name");
+				String columns = rs.getString("columns");
+
+				if (autoIndexForeignKeys)
+				{
+					if (createIndexStm == null)
+					{
+						createIndexStm = connection.createStatement();
+						maxIndexLength = connection.getMetaData().getMaxTableNameLength();
+					}
+					String indexName = "IX_" + constraintName;
+					if (indexName.length() > maxIndexLength)
+					{
+						// Index has to be truncated and randomized to 'ensure' uniqueness
+						indexName = indexName.substring(0, maxIndexLength - 2) + (int) (Math.random() * 98 + 1);
+					}
+					String sql = "CREATE INDEX \"" + indexName + "\" ON \"" + tableName + "\" (\"" + columns + "\")";
+					createIndexStm.addBatch(sql);
+				}
+				else
+				{
+					if (log.isWarnEnabled())
+					{
+						PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection, "No index for constraint '" + constraintName + "' on table '"
+								+ tableName + "' for column '" + columns + "' found");
+					}
+				}
+			}
+			if (createIndexStm != null)
+			{
+				createIndexStm.executeBatch();
+				if (log.isDebugEnabled())
+				{
+					log.debug("Runtime creation of indexes for foreign key constraints successful. This has been done because '"
+							+ PersistenceConfigurationConstants.AutoIndexForeignKeys + "' has been specified to 'true'");
+				}
+			}
+			if (constraintFound && !autoIndexForeignKeys)
+			{
+				if (log.isWarnEnabled())
+				{
+					PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection,
+							"At least one missing index found on foreign key constraints. Maybe you should specify '"
+									+ PersistenceConfigurationConstants.AutoIndexForeignKeys
+									+ "=true' to allow auto-indexing at runtime or review your database schema");
+				}
+			}
+		}
+		finally
+		{
+			JdbcUtil.close(createIndexStm);
+			JdbcUtil.close(stm, rs);
+		}
+	}
+
+	protected void handleArrayTypes(Connection connection) throws SQLException
+	{
+		Statement stm = connection.createStatement();
+		ResultSet rs = null;
+		try
+		{
+			rs = stm.executeQuery("SELECT object_type, object_name FROM user_objects WHERE object_type IN ('TYPE')");
+
+			LinkedHashMap<String, Class<?>> nameToArrayTypeMap = new LinkedHashMap<String, Class<?>>();
+			for (Entry<Class<?>, String[]> entry : Oracle10gDialect.typeToArrayTypeNameMap)
+			{
+				Class<?> type = entry.getKey();
+				nameToArrayTypeMap.put(entry.getValue()[0], type);
+			}
+
+			while (rs.next())
+			{
+				String typeName = rs.getString("object_name");
+				nameToArrayTypeMap.remove(typeName);
+			}
+			JdbcUtil.close(rs);
+			rs = null;
+			StringBuilder sb = new StringBuilder();
+			for (Entry<String, Class<?>> entry : nameToArrayTypeMap)
+			{
+				String necessaryTypeName = entry.getKey();
+
+				sb.setLength(0);
+				;
+				sb.append("CREATE TYPE ").append(necessaryTypeName).append(" AS VARRAY(4000) OF ");
+				String arrayTypeName = Oracle10gDialect.typeToArrayTypeNameMap.get(entry.getValue())[1];
+				sb.append(arrayTypeName);
+				stm.execute(sb.toString());
+			}
+		}
+		finally
+		{
+			JdbcUtil.close(stm, rs);
+		}
+	}
+
+	@Override
+	public void resetStatementCache(Connection connection)
+	{
+		Statement stm = null;
+		try
+		{
+			stm = connection.createStatement();
+			stm.execute("alter system flush shared_pool");
+		}
+		catch (PersistenceException e)
+		{
+			if (e.getCause() instanceof SQLException && "42000".equals(((SQLException) e.getCause()).getSQLState()))
+			{
+				return;
+			}
+			throw e;
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			JdbcUtil.close(stm);
+		}
 	}
 
 	@SuppressWarnings("resource")

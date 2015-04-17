@@ -20,6 +20,7 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.ISet;
+import de.osthus.ambeth.collections.ISetEntry;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -40,6 +41,7 @@ import de.osthus.ambeth.persistence.DatabaseMetaData;
 import de.osthus.ambeth.persistence.DirectedExternalLinkMetaData;
 import de.osthus.ambeth.persistence.DirectedLinkMetaData;
 import de.osthus.ambeth.persistence.IConfigurableDatabaseMetaData;
+import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.IDatabaseMetaData;
 import de.osthus.ambeth.persistence.IFieldMetaData;
 import de.osthus.ambeth.persistence.ILinkMetaData;
@@ -105,6 +107,9 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 	protected Set<EntityConfig> localEntities = new LinkedHashSet<EntityConfig>();
 
 	protected Set<EntityConfig> externalEntities = new LinkedHashSet<EntityConfig>();
+
+	@Autowired
+	protected IConnectionDialect connectionDialect;
 
 	@Autowired
 	protected IEntityMetaDataExtendable entityMetaDataExtendable;
@@ -204,6 +209,20 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		{
 			handleExternalEntities();
 		}
+		HashSet<String> allFullqualifiedSequences = new HashSet<String>(connectionDialect.getAllFullqualifiedSequences(connection))
+		{
+			@Override
+			protected boolean equalKeys(String key, ISetEntry<String> entry)
+			{
+				return key.equalsIgnoreCase(entry.getKey());
+			}
+
+			@Override
+			protected int extractHash(String key)
+			{
+				return key.toLowerCase().hashCode();
+			}
+		};
 		int maxNameLength = database.getMaxNameLength();
 		Iterator<EntityConfig> iter = localEntities.iterator();
 		while (iter.hasNext())
@@ -230,6 +249,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 				sequenceName = ormPatternMatcher.buildSequenceFromTableName(table.getName(), maxNameLength);
 			}
 			sequenceName = getFqObjectName(table, sequenceName);
+			sequenceName = allFullqualifiedSequences.get(sequenceName); // important: set the camelCase of the existing sequence in the database
 			if (table instanceof TableMetaData)
 			{
 				((TableMetaData) table).setSequenceName(sequenceName);
@@ -321,7 +341,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 					// Field already mapped
 					continue;
 				}
-				String fieldName = field.getName().toUpperCase();
+				String fieldName = field.getName();
 				IPropertyInfo propertyInfo = ucPropertyMap.get(fieldName);
 				if (propertyInfo == null)
 				{
@@ -411,7 +431,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 	{
 		if (hardName != null && hardName.length() > 0)
 		{
-			ITableMetaData table = database.getTableByName(hardName.toUpperCase());
+			ITableMetaData table = database.getTableByName(connectionDialect.toDefaultCase(hardName));
 			if (table == null)
 			{
 				throw new IllegalArgumentException("No table found with name '" + hardName + "'");
@@ -461,7 +481,6 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		set.add(assumedName);
 		set.add(assumedName.toUpperCase());
 		set.add(assumedName.toLowerCase());
-
 		return set;
 	}
 
@@ -516,18 +535,25 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		{
 			String assumedFieldName1 = ormPatternMatcher.buildFieldNameFromSoftName(name, maxNameLength);
 			String assumedFieldName2 = assumedFieldName1 + "_ID";
+			String assumedFieldName3 = assumedFieldName1 + "_id";
 
-			if (!ucPropertyMap.putIfNotExists(assumedFieldName1, propertyInfo))
+			if (!ucPropertyMap.putIfNotExists(assumedFieldName1, propertyInfo) && ucPropertyMap.get(assumedFieldName1) != propertyInfo)
 			{
 				// Property is not uniquely resolvable if transformed to uppercase
 				// So it will be no candidate for automated field mapping!
 				ucPropertyMap.put(assumedFieldName1, null);
 			}
-			if (!ucPropertyMap.putIfNotExists(assumedFieldName2, propertyInfo))
+			if (!ucPropertyMap.putIfNotExists(assumedFieldName2, propertyInfo) && ucPropertyMap.get(assumedFieldName2) != propertyInfo)
 			{
 				// Property is not uniquely resolvable if transformed to uppercase
 				// So it will be no candidate for automated field mapping!
 				ucPropertyMap.put(assumedFieldName2, null);
+			}
+			if (!ucPropertyMap.putIfNotExists(assumedFieldName3, propertyInfo) && ucPropertyMap.get(assumedFieldName3) != propertyInfo)
+			{
+				// Property is not uniquely resolvable if transformed to uppercase
+				// So it will be no candidate for automated field mapping!
+				ucPropertyMap.put(assumedFieldName3, null);
 			}
 		}
 	}
@@ -586,7 +612,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 	{
 		if (objectName == null || objectName.contains("."))
 		{
-			return objectName;
+			return connectionDialect.toDefaultCase(objectName);
 		}
 		Matcher matcher = fqToSoftTableNamePattern.matcher(table.getName());
 		if (!matcher.matches())
@@ -826,7 +852,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		}
 		else
 		{
-			cascadeDeletes[0] = !entityIdentifier.toString().equals(cascadeDeleteDirection.toString());
+			cascadeDeletes[0] = !entityIdentifier.name().equals(cascadeDeleteDirection.name());
 			cascadeDeletes[1] = !cascadeDeletes[0];
 		}
 		return cascadeDeletes;
@@ -860,7 +886,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		{
 			return null;
 		}
-		constraintName = constraintName.toUpperCase();
+		constraintName = connectionDialect.toDefaultCase(constraintName);
 		List<ILinkMetaData> links = database.getLinks();
 		for (int a = links.size(); a-- > 0;)
 		{

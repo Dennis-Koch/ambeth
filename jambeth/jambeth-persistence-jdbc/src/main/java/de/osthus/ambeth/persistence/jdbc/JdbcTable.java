@@ -83,8 +83,8 @@ public class JdbcTable extends SqlTable
 			IDirectedLink directedLink = alreadyCreatedLinkMap.get(directedLinkMD);
 			links.add(directedLink);
 
-			linkNameToLinkDict.put(directedLinkMD.getName().toUpperCase(), directedLink);
-			fieldNameToLinkDict.put(directedLinkMD.getFromField().getName().toUpperCase(), directedLink);
+			linkNameToLinkDict.put(directedLinkMD.getName(), directedLink);
+			fieldNameToLinkDict.put(directedLinkMD.getFromField().getName(), directedLink);
 
 			RelationMember member = directedLinkMD.getMember();
 			if (member == null)

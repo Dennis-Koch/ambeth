@@ -160,13 +160,13 @@ public class Table implements ITable, IInitializingBean
 	@Override
 	public IDirectedLink getLinkByName(String linkName)
 	{
-		return linkNameToLinkDict.get(linkName.toUpperCase());
+		return linkNameToLinkDict.get(linkName);
 	}
 
 	@Override
 	public IDirectedLink getLinkByFieldName(String fieldName)
 	{
-		return fieldNameToLinkDict.get(fieldName.toUpperCase());
+		return fieldNameToLinkDict.get(fieldName);
 	}
 
 	@Override

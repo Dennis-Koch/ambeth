@@ -16,7 +16,7 @@ public class PostgresConnectionUrlProvider extends AbstractConnectionUrlProvider
 	{
 		return resolveProperty(PersistenceJdbcConfigurationConstants.DatabaseProtocol) + "://"//
 				+ resolveProperty(PersistenceJdbcConfigurationConstants.DatabaseHost) + ":"//
-				+ resolveProperty(PersistenceJdbcConfigurationConstants.DatabasePort) + "/"//
-				+ resolveProperty(PersistenceJdbcConfigurationConstants.DatabaseName);
+				+ resolveProperty(PersistenceJdbcConfigurationConstants.DatabasePort) + "/";
+		// + "/" + resolveProperty(PersistenceJdbcConfigurationConstants.DatabaseName);
 	}
 }

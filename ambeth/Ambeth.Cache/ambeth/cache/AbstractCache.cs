@@ -67,6 +67,9 @@ namespace De.Osthus.Ambeth.Cache
         [Autowired]
         public IProxyHelper ProxyHelper { protected get; set; }
 
+		[Property(Mandatory = false)]
+		public Thread BoundThread { protected get; set; }
+
         [Property(CacheConfigurationConstants.CacheReferenceCleanupInterval, DefaultValue = "60000")]
         public TimeSpan ReferenceCleanupInterval { protected get; set; }
 
@@ -100,6 +103,7 @@ namespace De.Osthus.Ambeth.Cache
             CacheMapEntryTypeProvider = null;
             CompositeIdFactory = null;
             ConversionHelper = null;
+			BoundThread = null;
             EntityMetaDataProvider = null;
             GuiThreadHelper = null;
             ProxyHelper = null;

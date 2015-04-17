@@ -82,6 +82,9 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 	@Autowired
 	protected IProxyHelper proxyHelper;
 
+	@Property(mandatory = false)
+	protected Thread boundThread;
+
 	protected boolean weakEntries;
 
 	protected volatile int changeVersion = 1;
@@ -114,6 +117,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 		cacheMapEntryTypeProvider = null;
 		compositeIdFactory = null;
 		conversionHelper = null;
+		boundThread = null;
 		entityMetaDataProvider = null;
 		guiThreadHelper = null;
 		proxyHelper = null;

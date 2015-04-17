@@ -1,6 +1,5 @@
 package de.osthus.ambeth.pg;
 
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,6 +10,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.orm.XmlDatabaseMapper;
+import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.sql.AbstractCachingPrimaryKeyProvider;
@@ -23,6 +23,9 @@ public class PostgresSequencePrimaryKeyProvider extends AbstractCachingPrimaryKe
 
 	@Autowired
 	protected Connection connection;
+
+	@Autowired
+	protected IConnectionDialect connectionDialect;
 
 	@Override
 	protected void acquireIdsIntern(ITable table, int count, List<Object> targetIdList)
@@ -37,8 +40,8 @@ public class PostgresSequencePrimaryKeyProvider extends AbstractCachingPrimaryKe
 		ResultSet rs = null;
 		try
 		{
-			pstm = connection.prepareStatement("SELECT " + XmlDatabaseMapper.escapeName(schemaAndName[0], schemaAndName[1])
-					+ ".nextval FROM DUAL CONNECT BY level<=?");
+			pstm = connection.prepareStatement("SELECT nextval('" + XmlDatabaseMapper.escapeName(schemaAndName[0], schemaAndName[1])
+					+ "') FROM generate_series(1,?)");
 			pstm.setInt(1, count);
 			rs = pstm.executeQuery();
 			while (rs.next())

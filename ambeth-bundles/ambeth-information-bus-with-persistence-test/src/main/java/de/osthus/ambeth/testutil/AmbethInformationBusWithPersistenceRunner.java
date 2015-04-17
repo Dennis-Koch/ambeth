@@ -343,7 +343,6 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		Class<?> callingClass = getTestClass().getJavaClass();
 		try
 		{
-			getOrCreateSchemaContext().getService(IConnectionTestDialect.class).preStructureRebuild(getConnection());
 			Connection connection = getConnection();
 
 			boolean oldAutoCommit = connection.getAutoCommit();
@@ -355,6 +354,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			{
 				ensureSchemaEmpty(connection);
 
+				getOrCreateSchemaContext().getService(IConnectionTestDialect.class).preStructureRebuild(getConnection());
 				ISchemaRunnable[] structureRunnables = getStructureRunnables(callingClass, callingClass);
 				for (ISchemaRunnable structRunnable : structureRunnables)
 				{
@@ -777,9 +777,10 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 	private String[] getSchemaNames()
 	{
-		IProperties properties = getOrCreateSchemaContext().getService(IProperties.class);
+		IServiceContext schemaContext = getOrCreateSchemaContext();
+		IProperties properties = schemaContext.getService(IProperties.class);
 		String schemaProperty = (String) properties.get(PersistenceJdbcConfigurationConstants.DatabaseSchemaName);
-		String[] schemaNames = schemaProperty.toUpperCase().split("[:;]");
+		String[] schemaNames = schemaContext.getService(IConnectionDialect.class).toDefaultCase(schemaProperty).split("[:;]");
 		return schemaNames;
 	}
 

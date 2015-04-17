@@ -34,6 +34,7 @@ import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.ioc.threadlocal.IForkProcessor;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
+import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
@@ -136,6 +137,9 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	@Autowired
+	protected ILoggerHistory loggerHistory;
 
 	@Autowired
 	protected IMultithreadingHelper multithreadingHelper;
@@ -1115,8 +1119,8 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 			{
 				if (log.isWarnEnabled())
 				{
-					log.warn("Member '" + metaData.getEntityType().getName() + "." + primitiveMember.getName() + "' is neither mapped to a field of table "
-							+ table.getMetaData().getName() + " nor marked as transient");
+					loggerHistory.warnOnce(log, this, "Member '" + metaData.getEntityType().getName() + "." + primitiveMember.getName()
+							+ "' is neither mapped to a field of table " + table.getMetaData().getName() + " nor marked as transient");
 				}
 				continue;
 			}

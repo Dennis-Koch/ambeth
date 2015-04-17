@@ -32,6 +32,7 @@ import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.connection.ConnectionFactory;
+import de.osthus.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
 import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.sql.SqlBuilder;
 import de.osthus.ambeth.util.IPersistenceExceptionUtil;
@@ -89,6 +90,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 		@Override
 		public void afterPropertiesSet(final IBeanContextFactory beanContextFactory) throws Throwable
 		{
+			beanContextFactory.registerBean(PostgresConnectionUrlProvider.class).autowireable(IDatabaseConnectionUrlProvider.class);
 			beanContextFactory.registerBean(PostgresDialect.class).autowireable(IConnectionDialect.class);
 			beanContextFactory.registerBean(PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
 			beanContextFactory.registerBean(ConnectionFactory.class).autowireable(IConnectionFactory.class);
@@ -249,9 +251,10 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 				String randomName = username != null ? username : "CI_TMP_" + System.nanoTime() + String.format("%02d", (int) (Math.random() * 99));
 				try
 				{
-					stm.execute("CREATE USER " + randomName + " WITH PASSWORD '" + password + "'");
-					stm.execute("CREATE DATABASE " + randomName);
-					stm.execute("GRANT ALL PRIVILEGES ON DATABASE " + randomName + " TO " + randomName);
+					stm.execute("CREATE USER \"" + randomName + "\" WITH PASSWORD '" + password + "'");
+					stm.execute("CREATE DATABASE \"" + randomName + "\" WITH OWNER \"" + randomName + "\"");
+
+					// stm.execute("GRANT ALL PRIVILEGES ON DATABASE " + randomName + " TO " + randomName);
 
 					createdUserName = randomName;
 					break;
@@ -386,6 +389,6 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 
 	private static void deleteUser(final Statement statement, final String userName) throws SQLException
 	{
-		statement.execute("DROP USER \"" + userName.toUpperCase() + "\" CASCADE");
+		statement.execute("DROP USER \"" + userName + "\" CASCADE");
 	}
 }
