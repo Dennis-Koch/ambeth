@@ -149,20 +149,21 @@ public class H2Dialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public IList<String[]> disableConstraints(Connection connection, String... schemaNames)
+	public IList<String> disableConstraints(Connection connection, String... schemaNames)
 	{
 		Statement stm = null;
 		try
 		{
 			List<String> allTableNames = getAllFullqualifiedTableNames(connection, schemaNames);
-			ArrayList<String[]> sql = new ArrayList<String[]>(allTableNames.size());
+			ArrayList<String> sql = new ArrayList<String>(allTableNames.size());
 
 			stm = connection.createStatement();
 			for (int i = allTableNames.size(); i-- > 0;)
 			{
 				String tableName = allTableNames.get(i);
 				String disableSql = "ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY FALSE";
-				sql.add(new String[] { disableSql, tableName });
+				String enableSql = "ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY TRUE CHECK";
+				sql.add(enableSql);
 
 				stm.addBatch(disableSql);
 			}
@@ -180,9 +181,9 @@ public class H2Dialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public void enableConstraints(Connection connection, IList<String[]> disabled)
+	public void enableConstraints(Connection connection, IList<String> enableConstraintsSQL)
 	{
-		if (disabled == null || disabled.isEmpty())
+		if (enableConstraintsSQL == null || enableConstraintsSQL.isEmpty())
 		{
 			return;
 		}
@@ -190,11 +191,9 @@ public class H2Dialect extends AbstractConnectionDialect
 		try
 		{
 			stm = connection.createStatement();
-			for (int i = disabled.size(); i-- > 0;)
+			for (int i = enableConstraintsSQL.size(); i-- > 0;)
 			{
-				String tableName = disabled.get(i)[1];
-
-				stm.addBatch("ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY TRUE CHECK");
+				stm.addBatch(enableConstraintsSQL.get(i));
 			}
 			stm.executeBatch();
 		}
@@ -349,5 +348,12 @@ public class H2Dialect extends AbstractConnectionDialect
 	protected String buildDeferrableForeignKeyConstraintsSelectSQL(String[] schemaNames)
 	{
 		return null;
+	}
+
+	@Override
+	protected void handleRow(String schemaName, String tableName, String constraintName, ArrayList<String> disableConstraintsSQL,
+			ArrayList<String> enableConstraintsSQL)
+	{
+		throw new UnsupportedOperationException();
 	}
 }

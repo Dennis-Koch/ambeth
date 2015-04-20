@@ -378,7 +378,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		for (int i = allLinks.size(); i-- > 0;)
 		{
 			ILinkMetaData link = allLinks.get(i);
-			if (link.getName().equals(link.getTableName()))
+			if (link.getName().equalsIgnoreCase(link.getTableName()))
 			{
 				String archiveTableName = ormPatternMatcher.buildArchiveFromTableName(link.getName(), maxNameLength);
 				if (confDatabase.isLinkArchiveTable(archiveTableName))
@@ -644,7 +644,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			}
 			else
 			{
-				boolean useLinkTable = !table.getName().equals(joinTableName) && !table2.getName().equals(joinTableName);
+				boolean useLinkTable = !table.getName().equalsIgnoreCase(joinTableName) && !table2.getName().equalsIgnoreCase(joinTableName);
 				if (!useLinkTable)
 				{
 					linkName = mapDataTableWithLink(database, table, table2, relationConfig, false);
@@ -669,7 +669,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			String toAttributeName = relationConfig.getToAttributeName();
 			Member toMember = getMemberByTypeAndName(linkedEntityType, toAttributeName);
 
-			boolean useLinkTable = !table.getName().equals(joinTableName);
+			boolean useLinkTable = !table.getName().equalsIgnoreCase(joinTableName);
 
 			if (!useLinkTable)
 			{
@@ -717,7 +717,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			}
 			else
 			{
-				boolean useLinkTable = !table.getName().equals(joinTableName) && !table2.getName().equals(joinTableName);
+				boolean useLinkTable = !table.getName().equalsIgnoreCase(joinTableName) && !table2.getName().equalsIgnoreCase(joinTableName);
 
 				if (!useLinkTable)
 				{
@@ -744,7 +744,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			String toAttributeName = relationConfig.getToAttributeName();
 			Member toMember = getMemberByTypeAndName(linkedEntityType, toAttributeName);
 
-			if (joinTableName.equals(table.getName()))
+			if (joinTableName.equalsIgnoreCase(table.getName()))
 			{
 				String fromFieldName = relationConfig.getFromFieldName();
 				IFieldMetaData fromField = table.getFieldByName(fromFieldName);
@@ -886,7 +886,6 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		{
 			return null;
 		}
-		constraintName = connectionDialect.toDefaultCase(constraintName);
 		List<ILinkMetaData> links = database.getLinks();
 		for (int a = links.size(); a-- > 0;)
 		{
@@ -900,16 +899,16 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			{
 				DirectedLinkMetaData linkForward = (DirectedLinkMetaData) link.getDirectedLink();
 				DirectedLinkMetaData linkReverse = (DirectedLinkMetaData) link.getReverseDirectedLink();
-				if (constraintName.equals(linkForward.getConstraintName()))
+				if (constraintName.equalsIgnoreCase(linkForward.getConstraintName()))
 				{
 					return linkForward.getName();
 				}
-				if (constraintName.equals(linkReverse.getConstraintName()))
+				if (constraintName.equalsIgnoreCase(linkReverse.getConstraintName()))
 				{
 					return linkReverse.getName();
 				}
 			}
-			if (constraintName.equals(constraintNameOfLink))
+			if (constraintName.equalsIgnoreCase(constraintNameOfLink))
 			{
 				return link.getName();
 			}
@@ -922,7 +921,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 	{
 		String joinTableName = getFqJoinTableName(table, relationConfig);
 		ITableMetaData fromTable, toTable;
-		if (table.getName().equals(joinTableName))
+		if (table.getName().equalsIgnoreCase(joinTableName))
 		{
 			fromTable = table;
 			toTable = table2;
@@ -955,7 +954,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 
 	protected void mapFieldToMember(ITableMetaData table, String joinTableName, String fieldName, String memberName)
 	{
-		if (table.getName().equals(joinTableName) && table.getFieldByName(fieldName).getMember() == null)
+		if (table.getName().equalsIgnoreCase(joinTableName) && table.getFieldByName(fieldName).getMember() == null)
 		{
 			table.mapField(fieldName, memberName);
 			if (log.isDebugEnabled())

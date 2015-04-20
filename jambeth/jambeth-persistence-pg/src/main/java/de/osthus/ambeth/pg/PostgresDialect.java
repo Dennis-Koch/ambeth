@@ -161,7 +161,7 @@ public class PostgresDialect extends AbstractConnectionDialect
 		try
 		{
 			stm = connection.createStatement();
-			stm.execute("SET SCHEMA '" + schemaNames[0].toLowerCase() + "'");
+			stm.execute("SET SCHEMA '" + toDefaultCase(schemaNames[0]) + "'");
 		}
 		catch (Throwable e)
 		{
@@ -414,6 +414,15 @@ public class PostgresDialect extends AbstractConnectionDialect
 		}
 
 		return allViewNames;
+	}
+
+	@Override
+	protected void handleRow(String schemaName, String tableName, String constraintName, de.osthus.ambeth.collections.ArrayList<String> disableConstraintsSQL,
+			de.osthus.ambeth.collections.ArrayList<String> enableConstraintsSQL)
+	{
+		String fullName = "\"" + schemaName + "\".\"" + constraintName + "\"";
+		disableConstraintsSQL.add("SET CONSTRAINTS " + fullName + " DEFERRED");
+		enableConstraintsSQL.add("SET CONSTRAINTS " + fullName + " IMMEDIATE");
 	}
 
 	@Override

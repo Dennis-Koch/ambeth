@@ -13,6 +13,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.ReadOnlyList;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -33,25 +34,25 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 {
 	public static class ConnectionKeyValue
 	{
-		protected String[] constraintSql;
+		protected String[] disableConstraintsSQL;
 
-		protected String[][] disabledSql;
+		protected String[] enableConstraintsSQL;
 
-		public ConnectionKeyValue(String[] constraintSql, String[][] disabledSql)
+		public ConnectionKeyValue(String[] disableConstraintsSQL, String[] enableConstraintsSQL)
 		{
 			super();
-			this.constraintSql = constraintSql;
-			this.disabledSql = disabledSql;
+			this.disableConstraintsSQL = disableConstraintsSQL;
+			this.enableConstraintsSQL = enableConstraintsSQL;
 		}
 
-		public String[] getConstraintSql()
+		public String[] getDisableConstraintsSQL()
 		{
-			return constraintSql;
+			return disableConstraintsSQL;
 		}
 
-		public String[][] getDisabledSql()
+		public String[] getEnableConstraintsSQL()
 		{
-			return disabledSql;
+			return enableConstraintsSQL;
 		}
 	}
 
@@ -206,10 +207,8 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 	}
 
 	@Override
-	public IList<String[]> disableConstraints(Connection connection, String... schemaNames)
+	public IList<String> disableConstraints(Connection connection, String... schemaNames)
 	{
-		ArrayList<String[]> disabled = new ArrayList<String[]>();
-
 		try
 		{
 			ConnectionKeyValue connectionKeyValue;
@@ -234,10 +233,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 			{
 				throw new IllegalStateException("Connection is not a wrapper for " + IConnectionKeyHandle.class.getName());
 			}
-			String[][] disabledSql = connectionKeyValue.getDisabledSql();
-			disabled.addAll(disabledSql);
-
-			String[] constraintSql = connectionKeyValue.getConstraintSql();
+			String[] constraintSql = connectionKeyValue.getDisableConstraintsSQL();
 
 			if (constraintSql.length > 0)
 			{
@@ -255,35 +251,28 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 					JdbcUtil.close(stm);
 				}
 			}
+			return new ReadOnlyList<String>(connectionKeyValue.getEnableConstraintsSQL());
 		}
 		catch (Throwable e)
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
-
-		return disabled;
 	}
 
 	@Override
-	public void enableConstraints(Connection connection, IList<String[]> disabled)
+	public void enableConstraints(Connection connection, IList<String> enableConstraintsSQL)
 	{
-		if (disabled == null || disabled.isEmpty())
+		if (enableConstraintsSQL == null || enableConstraintsSQL.isEmpty())
 		{
 			return;
 		}
-		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-
 		Statement stmt = null;
-		StringBuilder sql = null;
 		try
 		{
-			sql = tlObjectCollector.create(StringBuilder.class);
 			stmt = connection.createStatement();
-			for (int i = disabled.size(); i-- > 0;)
+			for (int i = enableConstraintsSQL.size(); i-- > 0;)
 			{
-				sql.append("SET CONSTRAINT ").append(disabled.get(i)[1]).append(" IMMEDIATE");
-				stmt.addBatch(sql.toString());
-				sql.setLength(0);
+				stmt.addBatch(enableConstraintsSQL.get(i));
 			}
 			stmt.executeBatch();
 		}
@@ -293,7 +282,6 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 		}
 		finally
 		{
-			tlObjectCollector.dispose(sql);
 			JdbcUtil.close(stmt);
 		}
 	}
@@ -368,8 +356,8 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 		Statement stm = connection.createStatement();
 		try
 		{
-			ArrayList<String> constraintSqlList = new ArrayList<String>();
-			ArrayList<String[]> disabled = new ArrayList<String[]>();
+			ArrayList<String> disableConstraintsSQL = new ArrayList<String>();
+			ArrayList<String> enableConstraintsSQL = new ArrayList<String>();
 			String sql = buildDeferrableForeignKeyConstraintsSelectSQL(schemaNames);
 			if (sql != null)
 			{
@@ -380,12 +368,12 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 					String tableName = rs.getString("TABLE_NAME");
 					String constraintName = rs.getString("CONSTRAINT_NAME");
 
-					handleRow(schemaName, tableName, constraintName, constraintSqlList, disabled);
+					handleRow(schemaName, tableName, constraintName, disableConstraintsSQL, enableConstraintsSQL);
 				}
 			}
-			String[] constraintSqlArray = constraintSqlList.toArray(new String[constraintSqlList.size()]);
-			String[][] disabledArray = disabled.toArray(new String[disabled.size()][]);
-			ConnectionKeyValue connectionKeyValue = new ConnectionKeyValue(constraintSqlArray, disabledArray);
+			String[] disableConstraintsArray = disableConstraintsSQL.toArray(new String[disableConstraintsSQL.size()]);
+			String[] enabledConstraintsArray = enableConstraintsSQL.toArray(new String[enableConstraintsSQL.size()]);
+			ConnectionKeyValue connectionKeyValue = new ConnectionKeyValue(disableConstraintsArray, enabledConstraintsArray);
 
 			return connectionKeyValue;
 		}
@@ -397,15 +385,8 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 
 	protected abstract String buildDeferrableForeignKeyConstraintsSelectSQL(String[] schemaNames);
 
-	protected void handleRow(String schemaName, String tableName, String constraintName, ArrayList<String> constraintSqlList, ArrayList<String[]> disabled)
-	{
-		String fullName = toDefaultCase("\"" + schemaName + "\".\"" + constraintName + "\"");
-		constraintSqlList.add("SET CONSTRAINT " + fullName + " DEFERRED");
-		String[] toRemember = new String[2];
-		toRemember[1] = fullName;
-		toRemember[0] = toDefaultCase("\"" + schemaName + "\".\"" + tableName + "\"");
-		disabled.add(toRemember);
-	}
+	protected abstract void handleRow(String schemaName, String tableName, String constraintName, ArrayList<String> disableConstraintsSQL,
+			ArrayList<String> enableConstraintsSQL);
 
 	protected String buildSchemaInClause(final String... schemaNames)
 	{

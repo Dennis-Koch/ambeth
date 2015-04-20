@@ -94,7 +94,7 @@ public class MSSqlDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public IList<String[]> disableConstraints(Connection connection, String... schemaNames)
+	public IList<String> disableConstraints(Connection connection, String... schemaNames)
 	{
 		Statement stm = null;
 		try
@@ -125,7 +125,7 @@ public class MSSqlDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public void enableConstraints(Connection connection, IList<String[]> disabled)
+	public void enableConstraints(Connection connection, IList<String> disabled)
 	{
 		if (disabled == null || disabled.isEmpty())
 		{
@@ -296,5 +296,12 @@ public class MSSqlDialect extends AbstractConnectionDialect
 	public List<String> getAllFullqualifiedSequences(Connection connection)
 	{
 		throw new UnsupportedOperationException("Not yet implemented");
+	}
+
+	@Override
+	protected void handleRow(String schemaName, String tableName, String constraintName, ArrayList<String> disableConstraintsSQL,
+			ArrayList<String> enableConstraintsSQL)
+	{
+		throw new UnsupportedOperationException();
 	}
 }

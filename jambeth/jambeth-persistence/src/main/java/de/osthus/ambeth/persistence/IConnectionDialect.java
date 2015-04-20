@@ -24,9 +24,9 @@ public interface IConnectionDialect
 
 	boolean isSystemTable(String tableName);
 
-	IList<String[]> disableConstraints(Connection connection, String... schemaNames);
+	IList<String> disableConstraints(Connection connection, String... schemaNames);
 
-	void enableConstraints(Connection connection, IList<String[]> disabled);
+	void enableConstraints(Connection connection, IList<String> disabled);
 
 	void commit(Connection connection) throws SQLException;
 

@@ -936,7 +936,17 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
 		{
 			nameToObjectMap.put(softName, link);
 		}
-		nameToObjectMap.put(schemaName + "." + softName, link);
+		nameToObjectMap.putIfNotExists(schemaName + "." + softName, link);
+		nameToObjectMap.putIfNotExists(schemaName + "." + softName.toUpperCase(), link);
+		nameToObjectMap.putIfNotExists(schemaName + "." + softName.toLowerCase(), link);
+		nameToObjectMap.putIfNotExists((schemaName + "." + softName).toUpperCase(), link);
+		nameToObjectMap.putIfNotExists((schemaName + "." + softName).toLowerCase(), link);
+		nameToObjectMap.putIfNotExists(schemaName.toUpperCase() + "." + softName, link);
+		nameToObjectMap.putIfNotExists(schemaName.toUpperCase() + "." + softName.toUpperCase(), link);
+		nameToObjectMap.putIfNotExists(schemaName.toUpperCase() + "." + softName.toLowerCase(), link);
+		nameToObjectMap.putIfNotExists(schemaName.toLowerCase() + "." + softName, link);
+		nameToObjectMap.putIfNotExists(schemaName.toLowerCase() + "." + softName.toUpperCase(), link);
+		nameToObjectMap.putIfNotExists(schemaName.toLowerCase() + "." + softName.toLowerCase(), link);
 	}
 
 	protected void handleLinkTableToExtern(Connection connection, String linkName, List<String[]> values) throws SQLException

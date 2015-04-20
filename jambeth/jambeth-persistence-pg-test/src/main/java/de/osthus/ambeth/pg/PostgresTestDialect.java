@@ -461,13 +461,9 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 	public String prepareCommand(String sqlCommand)
 	{
 		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1 *, *0 *\\)", " BOOLEAN");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *3 *, *0 *\\)", " INTEGER");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *5 *, *0 *\\)", " INTEGER");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *9 *, *0 *\\)", " INTEGER");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *10 *, *0 *\\)", " LONG");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *12 *, *0 *\\)", " LONG");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *18 *, *0 *\\)", " BIGINT");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\* *, *0 *\\)", " BIGINT");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *[0-9] *, *0 *\\)", " INTEGER");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1[0,1,2,3,4,5,6,7,8] *, *0 *\\)", " BIGINT");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\* *, *0 *\\)", " NUMERIC");
 		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER", " NUMERIC");
 		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER\\(", " NUMERIC\\(");
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR2 *\\( *(\\d+) +BYTE\\)", " VARCHAR(\\2)");
@@ -480,6 +476,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 
 		sqlCommand = prepareCommandIntern(sqlCommand, " NOORDER", "");
 		sqlCommand = prepareCommandIntern(sqlCommand, " NOCYCLE", "");
+		sqlCommand = prepareCommandIntern(sqlCommand, " USING +INDEX", "");
 
 		sqlCommand = prepareCommandIntern(sqlCommand, " 999999999999999999999999999 ", " 9223372036854775807 ");
 
@@ -494,6 +491,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 		try
 		{
 			stmt = connection.createStatement();
+			connection.setReadOnly(false);
 			stmt.execute("DROP SCHEMA IF EXISTS \"" + connectionDialect.toDefaultCase(schemaName) + "\" CASCADE");
 		}
 		catch (SQLException e)

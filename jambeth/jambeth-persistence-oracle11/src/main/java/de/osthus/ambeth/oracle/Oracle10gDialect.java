@@ -141,13 +141,15 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	protected void handleRow(String schemaName, String tableName, String constraintName, ArrayList<String> constraintSqlList, ArrayList<String[]> disabled)
+	protected void handleRow(String schemaName, String tableName, String constraintName, ArrayList<String> disableConstraintsSQL, ArrayList<String> enableConstraintsSQL)
 	{
 		if (BIN_TABLE_NAME.matcher(tableName).matches())
 		{
 			return;
 		}
-		super.handleRow(schemaName, tableName, constraintName, constraintSqlList, disabled);
+		String fullName = "\"" + schemaName + "\".\"" + constraintName + "\"";
+		disableConstraintsSQL.add("SET CONSTRAINT " + fullName + " DEFERRED");
+		enableConstraintsSQL.add("SET CONSTRAINT " + fullName + " IMMEDIATE");
 	}
 
 	@Override
@@ -251,25 +253,19 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public void enableConstraints(Connection connection, IList<String[]> disabled)
+	public void enableConstraints(Connection connection, IList<String> disabled)
 	{
 		if (disabled == null || disabled.isEmpty())
 		{
 			return;
 		}
-		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-
 		Statement stmt = null;
-		StringBuilder sql = null;
 		try
 		{
-			sql = tlObjectCollector.create(StringBuilder.class);
 			stmt = connection.createStatement();
 			for (int i = disabled.size(); i-- > 0;)
 			{
-				sql.append("SET CONSTRAINT ").append(disabled.get(i)[1]).append(" IMMEDIATE");
-				stmt.addBatch(sql.toString());
-				sql.setLength(0);
+				stmt.addBatch(disabled.get(i));
 			}
 			stmt.executeBatch();
 		}
@@ -279,7 +275,6 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 		}
 		finally
 		{
-			tlObjectCollector.dispose(sql);
 			JdbcUtil.close(stmt);
 		}
 	}

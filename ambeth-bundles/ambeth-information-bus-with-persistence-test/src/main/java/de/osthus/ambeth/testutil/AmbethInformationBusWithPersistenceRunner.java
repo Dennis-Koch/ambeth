@@ -983,12 +983,12 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			boolean success = false;
 			try
 			{
-				IList<String[]> disabled = getOrCreateSchemaContext().getService(IConnectionDialect.class).disableConstraints(conn, getSchemaNames());
+				IList<String> enableConstraintsSQL = getOrCreateSchemaContext().getService(IConnectionDialect.class).disableConstraints(conn, getSchemaNames());
 				for (ISchemaRunnable schemaRunnable : schemaRunnables)
 				{
 					schemaRunnable.executeSchemaSql(conn);
 				}
-				getOrCreateSchemaContext().getService(IConnectionDialect.class).enableConstraints(conn, disabled);
+				getOrCreateSchemaContext().getService(IConnectionDialect.class).enableConstraints(conn, enableConstraintsSQL);
 				conn.commit();
 				success = true;
 			}
