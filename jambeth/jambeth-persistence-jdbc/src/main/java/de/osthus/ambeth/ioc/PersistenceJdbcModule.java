@@ -83,13 +83,6 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 		{
 			contextProperties.put(PersistenceConfigurationConstants.LinkClass, JdbcLink.class.getName());
 		}
-		String databaseConnection = contextProperties.getString(PersistenceJdbcConfigurationConstants.DatabaseConnection);
-		if (databaseConnection == null)
-		{
-			contextProperties.put(PersistenceJdbcConfigurationConstants.DatabaseConnection, "${" + PersistenceJdbcConfigurationConstants.DatabaseProtocol
-					+ "}:@" + "${" + PersistenceJdbcConfigurationConstants.DatabaseHost + "}" + ":" + "${" + PersistenceJdbcConfigurationConstants.DatabasePort
-					+ "}" + ":" + "${" + PersistenceJdbcConfigurationConstants.DatabaseName + "}");
-		}
 	}
 
 	@Override

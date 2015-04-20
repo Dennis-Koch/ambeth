@@ -13,6 +13,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
+import de.osthus.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
 import de.osthus.ambeth.sql.IPrimaryKeyProvider;
 import de.osthus.ambeth.util.IDedicatedConverterExtendable;
 
@@ -36,6 +37,7 @@ public class Oracle10gSimpleModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
+		beanContextFactory.registerBean(OracleConnectionUrlProvider.class).autowireable(IDatabaseConnectionUrlProvider.class);
 		if (!externalTransactionManager && !databaseBehaviourStrict)
 		{
 			beanContextFactory.registerBean("connectionDialect", Oracle10gThinDialect.class).autowireable(IConnectionDialect.class);

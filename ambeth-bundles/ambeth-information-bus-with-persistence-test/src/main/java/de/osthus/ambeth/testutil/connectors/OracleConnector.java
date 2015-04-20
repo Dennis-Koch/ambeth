@@ -7,9 +7,11 @@ import de.osthus.ambeth.oracle.Oracle10gDialect;
 import de.osthus.ambeth.oracle.Oracle10gModule;
 import de.osthus.ambeth.oracle.Oracle10gTestDialect;
 import de.osthus.ambeth.oracle.Oracle10gTestModule;
+import de.osthus.ambeth.oracle.OracleConnectionUrlProvider;
 import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.jdbc.IConnectionTestDialect;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
+import de.osthus.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
 
 public class OracleConnector
 {
@@ -43,6 +45,7 @@ public class OracleConnector
 		{
 			return false;
 		}
+		beanContextFactory.registerBean(OracleConnectionUrlProvider.class).autowireable(IDatabaseConnectionUrlProvider.class);
 		beanContextFactory.registerBean(Oracle10gDialect.class).autowireable(IConnectionDialect.class);
 		beanContextFactory.registerBean(Oracle10gTestDialect.class).autowireable(IConnectionTestDialect.class);
 		return true;

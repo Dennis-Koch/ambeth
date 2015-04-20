@@ -34,6 +34,7 @@ import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.connection.ConnectionFactory;
+import de.osthus.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
 import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.sql.SqlBuilder;
 import de.osthus.ambeth.util.IPersistenceExceptionUtil;
@@ -91,6 +92,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 		@Override
 		public void afterPropertiesSet(final IBeanContextFactory beanContextFactory) throws Throwable
 		{
+			beanContextFactory.registerBean(OracleConnectionUrlProvider.class).autowireable(IDatabaseConnectionUrlProvider.class);
 			beanContextFactory.registerBean(Oracle10gThinDialect.class).autowireable(IConnectionDialect.class);
 			beanContextFactory.registerBean(PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
 			beanContextFactory.registerBean(ConnectionFactory.class).autowireable(IConnectionFactory.class);
@@ -110,12 +112,6 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 
 		Properties props = Properties.getApplication();
 
-		if (props.get(PersistenceJdbcConfigurationConstants.DatabaseConnection) == null)
-		{
-			props.put(PersistenceJdbcConfigurationConstants.DatabaseConnection, "${" + PersistenceJdbcConfigurationConstants.DatabaseProtocol + "}:@" + "${"
-					+ PersistenceJdbcConfigurationConstants.DatabaseHost + "}" + ":" + "${" + PersistenceJdbcConfigurationConstants.DatabasePort + "}" + "/"
-					+ "${" + PersistenceJdbcConfigurationConstants.DatabaseName + "}");
-		}
 		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(props);
 		try
 		{
