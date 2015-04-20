@@ -59,7 +59,7 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
 	{
 		ParamChecker.assertNotNull(schemaName, "schemaName");
 
-		schemaNames = schemaName.toUpperCase().split("[:;]");
+		schemaNames = connectionDialect.toDefaultCase(schemaName).split("[:;]");
 	}
 
 	@Override

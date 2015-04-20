@@ -57,7 +57,7 @@ public class H2Dialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public void preProcessConnection(Connection connection, String[] schemaNames, boolean forcePreProcessing)
+	protected ConnectionKeyValue preProcessConnectionIntern(Connection connection, String[] schemaNames, boolean forcePreProcessing) throws SQLException
 	{
 		Statement stm = null;
 		ResultSet rs = null;
@@ -77,10 +77,11 @@ public class H2Dialect extends AbstractConnectionDialect
 			HashSet<String> functionAliases = new HashSet<String>();
 			while (rs.next())
 			{
-				functionAliases.add(rs.getString("alias_name").toUpperCase());
+				functionAliases.add(rs.getString("alias_name"));
 			}
 			rs.close();
 			createAliasIfNecessary("TO_TIMESTAMP", Functions.class.getName() + ".toTimestamp", functionAliases, stm);
+			return super.preProcessConnectionIntern(connection, schemaNames, forcePreProcessing);
 		}
 		catch (Throwable e)
 		{
@@ -94,15 +95,15 @@ public class H2Dialect extends AbstractConnectionDialect
 
 	protected void createAliasIfNecessary(String aliasName, String functionName, Set<String> functionAliases, Statement stm) throws SQLException
 	{
-		if (functionAliases.contains(aliasName.toUpperCase()))
+		if (functionAliases.contains(aliasName))
 		{
 			return;
 		}
-		stm.execute("CREATE ALIAS \"" + aliasName + "\" FOR \"" + functionName + "\"");
+		stm.execute("CREATE ALIAS \"" + toDefaultCase(aliasName) + "\" FOR \"" + toDefaultCase(functionName) + "\"");
 	}
 
 	@Override
-	public IList<IMap<String, String>> getExportedKeys(Connection connection, String schemaName) throws SQLException
+	public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames) throws SQLException
 	{
 		Statement stm = null;
 		ResultSet rs = null;
@@ -118,12 +119,12 @@ public class H2Dialect extends AbstractConnectionDialect
 			{
 				HashMap<String, String> foreignKey = new HashMap<String, String>();
 
-				foreignKey.put("OWNER", schemaName);
-				foreignKey.put("CONSTRAINT_NAME", rs.getString("FK_NAME").toUpperCase());
-				foreignKey.put("FKTABLE_NAME", rs.getString("FKTABLE_NAME").toUpperCase());
-				foreignKey.put("FKCOLUMN_NAME", rs.getString("FKCOLUMN_NAME").toUpperCase());
-				foreignKey.put("PKTABLE_NAME", rs.getString("PKTABLE_NAME").toUpperCase());
-				foreignKey.put("PKCOLUMN_NAME", rs.getString("PKCOLUMN_NAME").toUpperCase());
+				foreignKey.put("OWNER", schemaNames[0]);
+				foreignKey.put("CONSTRAINT_NAME", rs.getString("FK_NAME"));
+				foreignKey.put("FKTABLE_NAME", rs.getString("FKTABLE_NAME"));
+				foreignKey.put("FKCOLUMN_NAME", rs.getString("FKCOLUMN_NAME"));
+				foreignKey.put("PKTABLE_NAME", rs.getString("PKTABLE_NAME"));
+				foreignKey.put("PKCOLUMN_NAME", rs.getString("PKCOLUMN_NAME"));
 
 				allForeignKeys.add(foreignKey);
 			}
@@ -148,20 +149,21 @@ public class H2Dialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public IList<String[]> disableConstraints(Connection connection, String... schemaNames)
+	public IList<String> disableConstraints(Connection connection, String... schemaNames)
 	{
 		Statement stm = null;
 		try
 		{
 			List<String> allTableNames = getAllFullqualifiedTableNames(connection, schemaNames);
-			ArrayList<String[]> sql = new ArrayList<String[]>(allTableNames.size());
+			ArrayList<String> sql = new ArrayList<String>(allTableNames.size());
 
 			stm = connection.createStatement();
 			for (int i = allTableNames.size(); i-- > 0;)
 			{
 				String tableName = allTableNames.get(i);
 				String disableSql = "ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY FALSE";
-				sql.add(new String[] { disableSql, tableName });
+				String enableSql = "ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY TRUE CHECK";
+				sql.add(enableSql);
 
 				stm.addBatch(disableSql);
 			}
@@ -179,9 +181,9 @@ public class H2Dialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public void enableConstraints(Connection connection, IList<String[]> disabled)
+	public void enableConstraints(Connection connection, IList<String> enableConstraintsSQL)
 	{
-		if (disabled == null || disabled.isEmpty())
+		if (enableConstraintsSQL == null || enableConstraintsSQL.isEmpty())
 		{
 			return;
 		}
@@ -189,11 +191,9 @@ public class H2Dialect extends AbstractConnectionDialect
 		try
 		{
 			stm = connection.createStatement();
-			for (int i = disabled.size(); i-- > 0;)
+			for (int i = enableConstraintsSQL.size(); i-- > 0;)
 			{
-				String tableName = disabled.get(i)[1];
-
-				stm.addBatch("ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY TRUE CHECK");
+				stm.addBatch(enableConstraintsSQL.get(i));
 			}
 			stm.executeBatch();
 		}
@@ -249,6 +249,12 @@ public class H2Dialect extends AbstractConnectionDialect
 	public String getFieldTypeNameByComponentType(Class<?> componentType)
 	{
 		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public List<String> getAllFullqualifiedSequences(Connection connection)
+	{
+		throw new UnsupportedOperationException("Not yet implemented");
 	}
 
 	@Override
@@ -336,5 +342,18 @@ public class H2Dialect extends AbstractConnectionDialect
 		{
 			JdbcUtil.close(tableColumnsRS);
 		}
+	}
+
+	@Override
+	protected String buildDeferrableForeignKeyConstraintsSelectSQL(String[] schemaNames)
+	{
+		return null;
+	}
+
+	@Override
+	protected void handleRow(String schemaName, String tableName, String constraintName, ArrayList<String> disableConstraintsSQL,
+			ArrayList<String> enableConstraintsSQL)
+	{
+		throw new UnsupportedOperationException();
 	}
 }

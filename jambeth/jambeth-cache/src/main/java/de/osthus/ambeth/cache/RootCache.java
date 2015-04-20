@@ -370,7 +370,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 					readLock.lock();
 					try
 					{
-						return createResult(orisToGet, null, cacheDirective, targetCache, true);
+						return createResult(orisToGet, null, cacheDirective, targetCache, true, null);
 					}
 					finally
 					{
@@ -433,18 +433,39 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			ParamHolder<Boolean> doAnotherRetry, LinkedHashSet<IObjRef> neededObjRefs, ArrayList<DirectValueHolderRef> pendingValueHolders)
 	{
 		final ArrayList<IObjRef> orisToLoad = new ArrayList<IObjRef>();
-		RootCacheValue[] rootCacheValuesToGet = new RootCacheValue[orisToGet.size()];
 		Lock readLock = getReadLock();
 		Lock writeLock = getWriteLock();
-		int cacheVersionBeforeLongTimeAction = waitForConcurrentReadFinish(orisToGet, rootCacheValuesToGet, orisToLoad, cacheDirective);
 
-		if (orisToLoad.size() == 0)
+		int cacheVersionBeforeLongTimeAction;
+		if (boundThread == null)
 		{
-			// Everything found in the cache. We STILL hold the readlock so we can immediately create the result
-			// We already even checked the version. So we do not bother with versions anymore here
+			RootCacheValue[] rootCacheValuesToGet = new RootCacheValue[orisToGet.size()];
+			cacheVersionBeforeLongTimeAction = waitForConcurrentReadFinish(orisToGet, rootCacheValuesToGet, orisToLoad, cacheDirective);
+			if (orisToLoad.size() == 0)
+			{
+				// Everything found in the cache. We STILL hold the readlock so we can immediately create the result
+				// We already even checked the version. So we do not bother with versions anymore here
+				try
+				{
+					return createResult(orisToGet, rootCacheValuesToGet, cacheDirective, targetCache, false, null);
+				}
+				finally
+				{
+					readLock.unlock();
+				}
+			}
+		}
+		else
+		{
+			readLock.lock();
 			try
 			{
-				return createResult(orisToGet, rootCacheValuesToGet, cacheDirective, targetCache, false);
+				IList<Object> result = createResult(orisToGet, null, cacheDirective, targetCache, false, orisToLoad);
+				if (orisToLoad.size() == 0)
+				{
+					return result;
+				}
+				cacheVersionBeforeLongTimeAction = changeVersion;
 			}
 			finally
 			{
@@ -521,7 +542,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			readLock.lock();
 			try
 			{
-				return createResult(orisToGet, null, cacheDirective, targetCache, false);
+				return createResult(orisToGet, null, cacheDirective, targetCache, false, null);
 			}
 			finally
 			{
@@ -1115,7 +1136,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	}
 
 	protected IList<Object> createResult(List<IObjRef> objRefsToGet, RootCacheValue[] rootCacheValuesToGet, Set<CacheDirective> cacheDirective,
-			ICacheIntern targetCache, boolean checkVersion)
+			ICacheIntern targetCache, boolean checkVersion, List<IObjRef> objRefsToLoad)
 	{
 		boolean loadContainerResult = cacheDirective.contains(CacheDirective.LoadContainerResult);
 		boolean cacheValueResult = cacheDirective.contains(CacheDirective.CacheValueResult) || targetCache == this;
@@ -1202,6 +1223,10 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 					if (returnMisses)
 					{
 						result.add(null);
+					}
+					if (objRefsToLoad != null)
+					{
+						objRefsToLoad.add(objRefToGet);
 					}
 					// But we already loaded before so we can do nothing now
 					continue;

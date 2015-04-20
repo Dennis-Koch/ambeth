@@ -63,7 +63,7 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 	{
 		if (ignoredTableProperty != null)
 		{
-			ignoredTables.addAll(ignoredTableProperty.toUpperCase().split("[;:]"));
+			ignoredTables.addAll(connectionDialect.toDefaultCase(ignoredTableProperty).split("[;:]"));
 		}
 	}
 

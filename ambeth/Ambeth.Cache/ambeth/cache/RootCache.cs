@@ -314,7 +314,7 @@ namespace De.Osthus.Ambeth.Cache
                         readLock.Lock();
                         try
                         {
-                            return CreateResult(orisToGet, null, cacheDirective, targetCache, true);
+                            return CreateResult(orisToGet, null, cacheDirective, targetCache, true, null);
                         }
                         finally
                         {
@@ -376,25 +376,46 @@ namespace De.Osthus.Ambeth.Cache
         {
             doAnotherRetry = false;
             List<IObjRef> orisToLoad = new List<IObjRef>();
-            RootCacheValue[] rootCacheValuesToGet = new RootCacheValue[orisToGet.Count];
 
             Lock readLock = ReadLock;
             Lock writeLock = WriteLock;
-            int cacheVersionBeforeLongTimeAction = WaitForConcurrentReadFinish(orisToGet, rootCacheValuesToGet, orisToLoad);
 
-            if (orisToLoad.Count == 0)
-            {
-                // Everything found in the cache. We STILL hold the readlock so we can immediately create the result
-                // We already even checked the version. So we do not bother with versions anymore here
-                try
-                {
-                    return CreateResult(orisToGet, rootCacheValuesToGet, cacheDirective, targetCache, false);
-                }
-                finally
-                {
-                    readLock.Unlock();
-                }
-            }
+			int cacheVersionBeforeLongTimeAction;
+			if (BoundThread == null)
+			{
+				RootCacheValue[] rootCacheValuesToGet = new RootCacheValue[orisToGet.Count];
+				cacheVersionBeforeLongTimeAction = WaitForConcurrentReadFinish(orisToGet, rootCacheValuesToGet, orisToLoad);
+				if (orisToLoad.Count == 0)
+				{
+					// Everything found in the cache. We STILL hold the readlock so we can immediately create the result
+					// We already even checked the version. So we do not bother with versions anymore here
+					try
+					{
+						return CreateResult(orisToGet, rootCacheValuesToGet, cacheDirective, targetCache, false);
+					}
+					finally
+					{
+						readLock.Unlock();
+					}
+				}
+			}
+			else
+			{
+				readLock.Lock();
+			try
+			{
+				IList<Object> result = CreateResult(orisToGet, null, cacheDirective, targetCache, false, orisToLoad);
+				if (orisToLoad.Count == 0)
+				{
+					return result;
+				}
+				cacheVersionBeforeLongTimeAction = changeVersion;
+			}
+			finally
+			{
+				readLock.Unlock();
+			}
+			}
             int cacheVersionAfterLongTimeAction;
             bool releaseWriteLock = false;
             try
@@ -1027,7 +1048,8 @@ namespace De.Osthus.Ambeth.Cache
                     || (targetCache == null && SecurityActivation != null && SecurityActivation.FilterActivated);
         }
 
-        protected IList<Object> CreateResult(IList<IObjRef> objRefsToGet, RootCacheValue[] rootCacheValuesToGet, CacheDirective cacheDirective, ICacheIntern targetCache, bool checkVersion)
+        protected IList<Object> CreateResult(IList<IObjRef> objRefsToGet, RootCacheValue[] rootCacheValuesToGet, CacheDirective cacheDirective, ICacheIntern targetCache, bool checkVersion,
+			IList<IObjRef> objRefsToLoad)
         {
             bool loadContainerResult = cacheDirective.HasFlag(CacheDirective.LoadContainerResult);
             bool cacheValueResult = cacheDirective.HasFlag(CacheDirective.CacheValueResult);
@@ -1105,6 +1127,10 @@ namespace De.Osthus.Ambeth.Cache
                         {
                             result.Add(null);
                         }
+						if (objRefsToLoad != null)
+						{
+							objRefsToLoad.Add(objRefToGet);
+						}
                         // But we already loaded before so we can do nothing now
                         continue;
                     }

@@ -162,7 +162,7 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest
 		assertEquals("anonymous", actual.getChangedBy());
 		assertEquals(1, actual.getAllChangeORIs().size());
 		IObjRef ori = actual.getAllChangeORIs().get(0);
-		assertSame(expected, ori);
+		assertEquals(expected, ori);
 		assertEquals(Employee.class, ori.getRealType());
 		assertNotNull(ori.getId());
 		assertTrue(0 > Integer.valueOf(0).compareTo((Integer) ori.getId()));
@@ -206,7 +206,7 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest
 		assertTrue(System.currentTimeMillis() - actual.getChangedOn() < 500);
 		assertEquals("anonymous", actual.getChangedBy());
 		assertEquals(2, actual.getAllChangeORIs().size());
-		assertSame(expected, actual.getAllChangeORIs().get(1));
+		assertEquals(expected, actual.getAllChangeORIs().get(1));
 		IObjRef ori = actual.getAllChangeORIs().get(0);
 		assertSame(expected, ori);
 		assertEquals(Employee.class, ori.getRealType());

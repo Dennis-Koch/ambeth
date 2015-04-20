@@ -246,13 +246,13 @@ public class JDBCDatabaseWrapper extends Database
 	}
 
 	@Override
-	public IList<String[]> disableConstraints()
+	public IList<String> disableConstraints()
 	{
 		return connectionDialect.disableConstraints(connection);
 	}
 
 	@Override
-	public void enableConstraints(IList<String[]> disabled)
+	public void enableConstraints(IList<String> disabled)
 	{
 		connectionDialect.enableConstraints(connection, disabled);
 	}

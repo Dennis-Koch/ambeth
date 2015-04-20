@@ -50,6 +50,11 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 	@Property(name = ROOT_DATABASE_PASS, defaultValue = "developer")
 	protected String rootDatabasePass;
 
+	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName)
+	protected String schemaName;
+
+	protected String[] schemaNames;
+
 	protected final HashSet<String> ignoredTables = new HashSet<String>();
 
 	@Override
@@ -57,8 +62,9 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 	{
 		if (ignoredTableProperty != null)
 		{
-			ignoredTables.addAll(ignoredTableProperty.toUpperCase().split("[;:]"));
+			ignoredTables.addAll(connectionDialect.toDefaultCase(ignoredTableProperty).split("[;:]"));
 		}
+		schemaNames = connectionDialect.toDefaultCase(schemaName).split("[:;]");
 	}
 
 	@Override
@@ -68,7 +74,9 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 		{
 			return false;
 		}
-		if (!"28P01".equals(((SQLException) reason).getSQLState())) // INVALID PASSWORD, FATAL: password authentication failed for user "xxx"
+		if (!"28P01".equals(((SQLException) reason).getSQLState()) // INVALID PASSWORD, FATAL: password authentication failed for user "xxx"
+				&& !"3D000".equals(((SQLException) reason).getSQLState()) // FATAL: database "xxx" does not exist
+		)
 		{
 			return false;
 		}
@@ -114,6 +122,27 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 	}
 
 	@Override
+	public void preStructureRebuild(Connection connection) throws SQLException
+	{
+		super.preStructureRebuild(connection);
+
+		Statement stm = null;
+		try
+		{
+			stm = connection.createStatement();
+			for (String schemaName : schemaNames)
+			{
+				stm.execute("CREATE SCHEMA IF NOT EXISTS \"" + schemaName + "\"");
+			}
+			stm.execute("SET SCHEMA '" + schemaNames[0] + "'");
+		}
+		finally
+		{
+			JdbcUtil.close(stm);
+		}
+	}
+
+	@Override
 	public void preProcessConnectionForTest(Connection connection, String[] schemaNames, boolean forcePreProcessing)
 	{
 		// intended blank
@@ -127,9 +156,9 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 		try
 		{
 			stmt = connection.createStatement();
-			rs = stmt.executeQuery("SELECT count(*) FROM information_schema.triggers"//
-					+ " UNION SELECT count(*) FROM information_schema.tables WHERE table_schema='public'"//
-					+ " UNION SELECT count(*) FROM information_schema.sequences");
+
+			rs = stmt
+					.executeQuery("SELECT count(*) FROM pg_class c INNER JOIN pg_namespace n ON c.relnamespace=n.oid WHERE n.nspname='" + schemaNames[0] + "'");
 			rs.next();
 			return rs.getInt(1) == 0;
 		}
@@ -175,30 +204,43 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 			JdbcUtil.close(tableColumnsRS);
 		}
 		int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
-		AppendableStringBuilder sb = new AppendableStringBuilder();
 		String triggerName = ormPatternMatcher.buildOptimisticLockTriggerFromTableName(fullyQualifiedTableName, maxProcedureNameLength);
-		sb.append("create or replace TRIGGER \"").append(triggerName);
-		sb.append("\" BEFORE UPDATE");
-		if (tableColumns.size() > 0)
+
+		String functionName = "f_" + triggerName;
+		String[] sql = new String[2];
 		{
-			sb.append(" OF ");
-			for (int a = 0, size = tableColumns.size(); a < size; a++)
-			{
-				if (a > 0)
-				{
-					sb.append(',');
-				}
-				sqlBuilder.escapeName(tableColumns.get(a), sb);
-			}
+			AppendableStringBuilder sb = new AppendableStringBuilder();
+			sb.append("CREATE OR REPLACE FUNCTION ").append(functionName).append("() RETURNS TRIGGER AS $").append(functionName).append("$\n");
+			sb.append(" BEGIN\n");
+			sb.append("  IF NEW.\"").append("VERSION").append("\" <= OLD.\"").append("VERSION").append("\" THEN\n");
+			sb.append("  RAISE EXCEPTION '").append(Integer.toString(PostgresDialect.getOptimisticLockErrorCode())).append(" Optimistic Lock Exception';\n");
+			sb.append("  END IF;\n");
+			sb.append("  RETURN NEW;");
+			sb.append(" END;\n");
+			sb.append("$").append(functionName).append("$ LANGUAGE plpgsql COST 1");
+			sql[0] = sb.toString();
 		}
-		sb.append(" ON \"").append(names[1]).append("\" FOR EACH ROW");
-		sb.append(" BEGIN");
-		sb.append(" if( :new.\"VERSION\" <= :old.\"VERSION\" ) then");
-		sb.append(" raise_application_error( -");
-		sb.append(Integer.toString(PostgresDialect.getOptimisticLockErrorCode())).append(", 'Optimistic Lock Exception');");
-		sb.append(" end if;");
-		sb.append(" END;");
-		return new String[] { sb.toString() };
+		{
+			AppendableStringBuilder sb = new AppendableStringBuilder();
+
+			sb.append("CREATE TRIGGER \"").append(triggerName);
+			sb.append("\" BEFORE UPDATE");
+			if (tableColumns.size() > 0)
+			{
+				sb.append(" OF ");
+				for (int a = 0, size = tableColumns.size(); a < size; a++)
+				{
+					if (a > 0)
+					{
+						sb.append(',');
+					}
+					sqlBuilder.escapeName(tableColumns.get(a), sb);
+				}
+			}
+			sb.append(" ON \"").append(names[1]).append("\" FOR EACH ROW EXECUTE PROCEDURE ").append(functionName).append("()");
+			sql[1] = sb.toString();
+		}
+		return sql;
 	}
 
 	@Override
@@ -211,8 +253,10 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 			stmt = connection.createStatement();
 
 			HashSet<String> existingOptimisticLockTriggers = new HashSet<String>();
+
 			rs = stmt
-					.executeQuery("SELECT USER || '.' || TNAME FULL_NAME FROM DUAL, TAB T JOIN COLS C ON T.TNAME = C.TABLE_NAME WHERE T.TABTYPE='TABLE' AND C.COLUMN_NAME='VERSION'");
+					.executeQuery("SELECT DISTINCT n.nspname || '.' || c.relname AS FULL_NAME FROM pg_trigger t JOIN pg_class c ON t.tgrelid=c.oid JOIN pg_namespace n ON c.relnamespace=n.oid WHERE n.nspname='"
+							+ schemaNames[0] + "'");
 			ArrayList<String> tableNamesWhichNeedOptimisticLockTrigger = new ArrayList<String>();
 			while (rs.next())
 			{
@@ -233,7 +277,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 				tableNamesWhichNeedOptimisticLockTrigger.add(tableName);
 			}
 			JdbcUtil.close(rs);
-			rs = stmt.executeQuery("SELECT TRIGGER_NAME FROM ALL_TRIGGERS");
+			rs = stmt.executeQuery("SELECT t.tgname AS TRIGGER_NAME FROM pg_trigger t");
 			while (rs.next())
 			{
 				String triggerName = rs.getString("TRIGGER_NAME");
@@ -305,8 +349,10 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 			stmt = connection.createStatement();
 
 			HashSet<String> existingPermissionGroups = new HashSet<String>();
-			rs = stmt.executeQuery("SELECT TNAME FROM TAB T JOIN COLS C ON T.TNAME = C.TABLE_NAME WHERE T.TABTYPE='TABLE' AND C.COLUMN_NAME='"
-					+ PermissionGroup.permGroupIdNameOfData + "'");
+
+			rs = stmt.executeQuery("SELECT c.table_name AS TNAME FROM information_schema.columns c WHERE c.column_name='"
+					+ PermissionGroup.permGroupIdNameOfData + "' AND table_schema='" + schemaNames[0] + "'");
+
 			ArrayList<String> tableNamesWhichNeedPermissionGroup = new ArrayList<String>();
 			while (rs.next())
 			{
@@ -333,7 +379,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 				tableNamesWhichNeedPermissionGroup.add(tableName);
 			}
 			JdbcUtil.close(rs);
-			rs = stmt.executeQuery("SELECT TNAME FROM TAB T");
+			rs = stmt.executeQuery("SELECT t.table_name AS TNAME FROM information_schema.tables t");
 			while (rs.next())
 			{
 				String tableName = rs.getString("TNAME");
@@ -414,12 +460,25 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 	@Override
 	public String prepareCommand(String sqlCommand)
 	{
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1 *, *0 *\\)", " BOOLEAN");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *[0-9] *, *0 *\\)", " INTEGER");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1[0,1,2,3,4,5,6,7,8] *, *0 *\\)", " BIGINT");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\* *, *0 *\\)", " NUMERIC");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER", " NUMERIC");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER\\(", " NUMERIC\\(");
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR2 *\\( *(\\d+) +BYTE\\)", " VARCHAR(\\2)");
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR2 *\\( *(\\d+) +CHAR\\)", " VARCHAR(\\2)");
 
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER\\(", " NUMERIC\\(");
-
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " PRIMARY KEY (\\([^\\)]+\\)) USING INDEX", " PRIMARY KEY \\2");
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " PRIMARY KEY (\\([^\\)]+\\)) USING INDEX", " PRIMARY KEY \\2");
+
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, "([^a-zA-Z0-9])STRING_ARRAY([^a-zA-Z0-9])", "\\2TEXT\\3");
+
+		sqlCommand = prepareCommandIntern(sqlCommand, " NOORDER", "");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NOCYCLE", "");
+		sqlCommand = prepareCommandIntern(sqlCommand, " USING +INDEX", "");
+
+		sqlCommand = prepareCommandIntern(sqlCommand, " 999999999999999999999999999 ", " 9223372036854775807 ");
 
 		return sqlCommand;
 	}
@@ -432,44 +491,8 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 		try
 		{
 			stmt = connection.createStatement();
-			stmt2 = connection.createStatement();
-			stmt.execute("SELECT TNAME, TABTYPE FROM TAB");
-			rs = stmt.getResultSet();
-			while (rs.next())
-			{
-				String tableName = rs.getString(1);
-				if (PostgresDialect.BIN_TABLE_NAME.matcher(tableName).matches() || PostgresDialect.IDX_TABLE_NAME.matcher(tableName).matches())
-				{
-					continue;
-				}
-				String tableType = rs.getString(2);
-				if ("VIEW".equalsIgnoreCase(tableType))
-				{
-					stmt2.execute("DROP VIEW " + escapeName(schemaName, tableName) + " CASCADE CONSTRAINTS");
-				}
-				else if ("TABLE".equalsIgnoreCase(tableType))
-				{
-					stmt2.execute("DROP TABLE " + escapeName(schemaName, tableName) + " CASCADE CONSTRAINTS");
-				}
-				else if ("SYNONYM".equalsIgnoreCase(tableType))
-				{
-					stmt2.execute("DROP SYNONYM " + escapeName(schemaName, tableName));
-				}
-			}
-			JdbcUtil.close(rs);
-			rs = stmt
-					.executeQuery("SELECT object_type, object_name FROM user_objects WHERE object_type IN ('FUNCTION', 'INDEX', 'PACKAGE', 'PACKAGE BODY', 'PROCEDURE', 'SEQUENCE', 'SYNONYM', 'TABLE', 'TYPE', 'VIEW')");
-			while (rs.next())
-			{
-				String objectType = rs.getString("object_type");
-				String objectName = rs.getString("object_name");
-				if (PostgresDialect.BIN_TABLE_NAME.matcher(objectName).matches() || PostgresDialect.IDX_TABLE_NAME.matcher(objectName).matches())
-				{
-					continue;
-				}
-				stmt2.execute("DROP " + objectType + " " + escapeName(schemaName, objectName));
-			}
-			stmt2.execute("PURGE RECYCLEBIN");
+			connection.setReadOnly(false);
+			stmt.execute("DROP SCHEMA IF EXISTS \"" + connectionDialect.toDefaultCase(schemaName) + "\" CASCADE");
 		}
 		catch (SQLException e)
 		{

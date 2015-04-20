@@ -1,12 +1,13 @@
 package de.osthus.ambeth.collections;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-public class ReadOnlyList<V> implements List<V>, Serializable
+public class ReadOnlyList<V> implements IList<V>, Serializable
 {
 	private static final long serialVersionUID = -9172592637280733333L;
 
@@ -210,6 +211,13 @@ public class ReadOnlyList<V> implements List<V>, Serializable
 		return array;
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T[] toArray(Class<T> componentType)
+	{
+		return toArray((T[]) Array.newInstance(componentType, size()));
+	}
+
 	@Override
 	public int indexOf(Object o)
 	{
@@ -279,7 +287,7 @@ public class ReadOnlyList<V> implements List<V>, Serializable
 	}
 
 	@Override
-	public List<V> subList(int startIndex, int endIndex)
+	public IList<V> subList(int startIndex, int endIndex)
 	{
 		return new ReadOnlyList<V>(this, startIndex, endIndex);
 	}
@@ -315,6 +323,12 @@ public class ReadOnlyList<V> implements List<V>, Serializable
 	}
 
 	@Override
+	public <T extends V> boolean addAll(T[] array)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public void clear()
 	{
 		throw new UnsupportedOperationException();
@@ -322,6 +336,22 @@ public class ReadOnlyList<V> implements List<V>, Serializable
 
 	@Override
 	public boolean containsAll(Collection<?> arg0)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public V peek()
+	{
+		if (size() > 0)
+		{
+			return get(size() - 1);
+		}
+		return null;
+	}
+
+	@Override
+	public V popLastElement()
 	{
 		throw new UnsupportedOperationException();
 	}
@@ -340,6 +370,12 @@ public class ReadOnlyList<V> implements List<V>, Serializable
 
 	@Override
 	public boolean removeAll(Collection<?> arg0)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public <T extends V> boolean removeAll(T[] array)
 	{
 		throw new UnsupportedOperationException();
 	}

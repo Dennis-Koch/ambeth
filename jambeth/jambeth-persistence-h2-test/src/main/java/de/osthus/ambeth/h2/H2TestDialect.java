@@ -40,7 +40,7 @@ public class H2TestDialect extends AbstractConnectionTestDialect
 			HashSet<String> functionAliases = new HashSet<String>();
 			while (rs.next())
 			{
-				functionAliases.add(rs.getString("alias_name").toUpperCase());
+				functionAliases.add(rs.getString("alias_name"));
 			}
 			rs.close();
 			createAliasIfNecessary("TO_TIMESTAMP", Functions.class.getName() + ".toTimestamp", functionAliases, stm);
@@ -57,11 +57,11 @@ public class H2TestDialect extends AbstractConnectionTestDialect
 
 	protected void createAliasIfNecessary(String aliasName, String functionName, Set<String> functionAliases, Statement stm) throws SQLException
 	{
-		if (functionAliases.contains(aliasName.toUpperCase()))
+		if (functionAliases.contains(aliasName))
 		{
 			return;
 		}
-		stm.execute("CREATE ALIAS \"" + aliasName + "\" FOR \"" + functionName + "\"");
+		stm.execute("CREATE ALIAS \"" + connectionDialect.toDefaultCase(aliasName) + "\" FOR \"" + connectionDialect.toDefaultCase(functionName) + "\"");
 	}
 
 	@Override

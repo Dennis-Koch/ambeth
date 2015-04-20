@@ -354,13 +354,13 @@ public class Database implements IDatabase, IInitializingBean, IStartingBean, ID
 	}
 
 	@Override
-	public IList<String[]> disableConstraints()
+	public IList<String> disableConstraints()
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override
-	public void enableConstraints(IList<String[]> disabled)
+	public void enableConstraints(IList<String> disabled)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}

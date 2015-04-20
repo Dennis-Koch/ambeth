@@ -400,6 +400,6 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 
 	private static void deleteUser(final Statement statement, final String userName) throws SQLException
 	{
-		statement.execute("DROP USER \"" + userName.toUpperCase() + "\" CASCADE");
+		statement.execute("DROP USER " + userName + " CASCADE");
 	}
 }

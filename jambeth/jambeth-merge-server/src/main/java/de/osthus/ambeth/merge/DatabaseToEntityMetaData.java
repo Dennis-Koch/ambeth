@@ -357,6 +357,7 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 		Member member = newMemberField.getMember();
 		if (member == null)
 		{
+			((FieldMetaData) newMemberField).setMember(existingMember);
 			return false;
 		}
 		if (existingMember == null)

@@ -25,6 +25,9 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
+	protected IConnectionDialect connectionDialect;
+
 	protected final ArrayList<IFieldMetaData> primitiveFields;
 
 	protected final ArrayList<IFieldMetaData> fulltextFields;
@@ -190,6 +193,12 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 	public void setIdFields(IFieldMetaData[] idFields)
 	{
 		this.idFields = idFields;
+		for (IFieldMetaData field : idFields)
+		{
+			fieldNameToFieldDict.put(field.getName(), field);
+			fieldNameToFieldDict.put(field.getName().toUpperCase(), field);
+			fieldNameToFieldDict.put(field.getName().toLowerCase(), field);
+		}
 	}
 
 	@Override
@@ -201,6 +210,9 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 	public void setVersionField(IFieldMetaData versionField)
 	{
 		this.versionField = versionField;
+		fieldNameToFieldDict.put(versionField.getName(), versionField);
+		fieldNameToFieldDict.put(versionField.getName().toUpperCase(), versionField);
+		fieldNameToFieldDict.put(versionField.getName().toLowerCase(), versionField);
 	}
 
 	@Override
@@ -365,11 +377,12 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 		}
 		primitiveFields.add(field);
 		allFields.add(field);
-		fieldName = fieldName.toUpperCase();
 		Integer index = Integer.valueOf(fieldNameToFieldIndexDict.size());
 		field.setIndexOnTable(index.intValue());
 		fieldNameToFieldIndexDict.put(fieldName, index);
 		fieldNameToFieldDict.put(fieldName, field);
+		fieldNameToFieldDict.put(fieldName.toUpperCase(), field);
+		fieldNameToFieldDict.put(fieldName.toLowerCase(), field);
 	}
 
 	@Override
@@ -420,6 +433,8 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 		if (fieldName != null)
 		{
 			fieldNameToIgnoreDict.add(fieldName);
+			fieldNameToIgnoreDict.add(fieldName.toUpperCase());
+			fieldNameToIgnoreDict.add(fieldName.toLowerCase());
 		}
 		if (memberName != null)
 		{
@@ -447,8 +462,12 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 			throw new RuntimeException("Link '" + getName() + "." + link + "' already configured");
 		}
 		links.add(link);
+		linkNameToLinkDict.put(linkName, link);
 		linkNameToLinkDict.put(linkName.toUpperCase(), link);
+		linkNameToLinkDict.put(linkName.toLowerCase(), link);
+		fieldNameToLinkDict.put(link.getFromField().getName(), link);
 		fieldNameToLinkDict.put(link.getFromField().getName().toUpperCase(), link);
+		fieldNameToLinkDict.put(link.getFromField().getName().toLowerCase(), link);
 	}
 
 	@Override
@@ -472,7 +491,9 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 		// {
 		memberNameToLinkDict.put(memberName, link);
 		// }
+		linkNameToMemberNameDict.put(linkName, memberName);
 		linkNameToMemberNameDict.put(linkName.toUpperCase(), memberName);
+		linkNameToMemberNameDict.put(linkName.toLowerCase(), memberName);
 		return link;
 	}
 
@@ -483,6 +504,7 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 		{
 			return null;
 		}
+		fieldName = connectionDialect.toDefaultCase(fieldName);
 		if (idFields != null)
 		{
 			for (IFieldMetaData idField : idFields)
@@ -497,7 +519,7 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 		{
 			return versionField;
 		}
-		return fieldNameToFieldDict.get(fieldName.toUpperCase());
+		return fieldNameToFieldDict.get(fieldName);
 	}
 
 	@Override
@@ -547,13 +569,13 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 	@Override
 	public IDirectedLinkMetaData getLinkByName(String linkName)
 	{
-		return linkNameToLinkDict.get(linkName.toUpperCase());
+		return linkNameToLinkDict.get(linkName);
 	}
 
 	@Override
 	public IDirectedLinkMetaData getLinkByFieldName(String fieldName)
 	{
-		return fieldNameToLinkDict.get(fieldName.toUpperCase());
+		return fieldNameToLinkDict.get(fieldName);
 	}
 
 	@Override
@@ -565,7 +587,7 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 	@Override
 	public String getMemberNameByLinkName(String linkName)
 	{
-		return linkNameToMemberNameDict.get(linkName.toUpperCase());
+		return linkNameToMemberNameDict.get(linkName);
 	}
 
 	@Override

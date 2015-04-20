@@ -10,7 +10,6 @@ import de.osthus.ambeth.cache.HandleContentDelegate;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheProvider;
 import de.osthus.ambeth.cache.IRootCache;
-import de.osthus.ambeth.cache.RootCache;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
@@ -122,7 +121,7 @@ public class CacheWalker implements ICacheWalker
 					break;
 				}
 				checkParentCache(parent, currentParent, child, cacheToChildCaches, cacheToProxyCache);
-				parent = ((RootCache) currentParent).getParent();
+				parent = ((IRootCache) currentParent).getParent();
 				child = currentParent;
 			}
 			checkParentCache(committedRootCache, currentCommittedRootCache, child, cacheToChildCaches, cacheToProxyCache);

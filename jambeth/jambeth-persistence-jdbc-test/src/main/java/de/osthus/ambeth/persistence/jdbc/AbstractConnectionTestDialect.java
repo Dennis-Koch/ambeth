@@ -8,14 +8,25 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.config.IProperties;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.persistence.IConnectionDialect;
 
 public abstract class AbstractConnectionTestDialect implements IConnectionTestDialect
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IConnectionDialect connectionDialect;
+
+	@Override
+	public void resetStatementCache(Connection connection)
+	{
+		// intended blank
+	}
 
 	protected String escapeName(String schemaName, String tableName)
 	{
@@ -84,7 +95,11 @@ public abstract class AbstractConnectionTestDialect implements IConnectionTestDi
 			return sqlCommand;
 		}
 		String left = concat(matcher.group(1), replacement, pattern);
-		String right = concat(matcher.group(3), replacement, pattern);
-		return left + replacement.replace("\\2", matcher.group(2)) + right;
+		String right = concat(matcher.group(matcher.groupCount()), replacement, pattern);
+		for (int a = 2; a < matcher.groupCount(); a++)
+		{
+			replacement = replacement.replace("\\" + a, matcher.group(a));
+		}
+		return left + replacement + right;
 	}
 }

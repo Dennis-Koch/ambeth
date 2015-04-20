@@ -2,13 +2,13 @@ package de.osthus.ambeth.persistence;
 
 public enum SQLState
 {
-	CONNECTION_NOT_OPEN("08003"), ACCESS_VIOLATION("42000");
+	CONNECTION_NOT_OPEN("08003"), ACCESS_VIOLATION("42000"), NULL_CONSTRAINT("23502");
 
 	private String xopen;
 
 	private SQLState(String bothCode)
 	{
-		this.xopen = bothCode;
+		xopen = bothCode;
 	}
 
 	public String getXopen()
