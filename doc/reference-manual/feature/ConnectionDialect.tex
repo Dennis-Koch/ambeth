@@ -1,0 +1,28 @@
+\SetAPI{J}
+\section{ConnectionDialect}
+\label{feature:ConnectionDialect}
+\ClearAPI
+
+\Ambeth{} supports by design integrating any kind of data source to read from & write to via an integrated information model. This can be a simple file (in any format), a remote web service or any kind of database (SQL/NoSQL). Specifically for SQL databases there is already a sophisticated handling via JDBC provided by the \textit{jambeth-persistence-jdbc} maven module. For such databases with a JDBC interface it is in most cases sufficient to simply implement a custom dialect bean. The whole SQL handling to select, insert, update, delete data, handling foreign key constraints, building queries & sub-queries is handling by \Ambeth{}. The generic algorithms \Ambeth{} uses to build & execute all SQL statements are robust as well as very fast making intensive use of the following JDBC patterns:
+
+\begin{itemize}
+	\item Modifying statement batching (\textit{CREATE / UPDATE / DELETE} in batched roundtrip)
+	\item Multi-Selection (\textit{SELECT <a> WHERE <b> IN <c>} clauses)
+	\item Deferrable constraints (if the corresponding database supports it)
+	\item Optimistic locking (\textit{SELECT <a> WHERE <version>=...})
+	\item Pessimistic locking (\textit{SELECT <a> FOR UPDATE NOWAIT})
+\end{itemize}
+
+\Ambeth{} currently provides several dialects by itself (the corresponding maven modules containing the dialect have to be included in your project explicitly):
+
+\begin{longtable}{ l l c c c } \hline \textbf{SQL Database} & \textbf{Maven module} & \textbf{Applied on JDBC Protocol} \
+	\endhead
+	\hline
+		OracleDB 11g				&	jambeth-persistence-oracle11	&	jdbc:oracle:thin	\\
+		PostgreSQL 9.4			&	jambeth-persistence-pg				&	jdbc:postgresql		\\
+		H2 1.4							& jambeth-persistence-h2				& jdbc:h2:mem				\\
+		MS SQL Server 2012	& jambeth-persistence-mssql			& jdbc:sqlserver		\\
+	\hline
+\end{longtable}
+
+\Ambeth{} currently does not support binding more than one dialect directly into the same \Ambeth{} instance at the same time. However any number of (disjunct) \Ambeth{} instances (IoC containers) can be started within the same VM process.
