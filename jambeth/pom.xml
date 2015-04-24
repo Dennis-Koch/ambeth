@@ -25,6 +25,8 @@
 		<module>jambeth-cache-datachange</module>
 		<module>jambeth-cache-server</module>
 		<module>jambeth-cache-stream</module>
+		<module>jambeth-chemspider</module>
+		<module>jambeth-chemspider-service</module>
 		<module>jambeth-datachange</module>
 		<module>jambeth-datachange-persistence</module>
 		<module>jambeth-event</module>
@@ -214,6 +216,24 @@
 				<artifactId>jambeth-cache-stream-test</artifactId>
 				<version>${project.version}</version>
 				<scope>test</scope>
+			</dependency>
+			
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-chemspider</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-chemspider-test</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
+			
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-chemspider-service</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 
 			<dependency>
