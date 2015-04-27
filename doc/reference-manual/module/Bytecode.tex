@@ -41,19 +41,21 @@
 \end{itemize}
 %% CONFIGURATION END
 
-There are two major approaches to enhance existing object logic at runtime. Both try to deal with seperation of concerns and single point of responsibility considerations:
+There are only two major approaches to enhance existing object logic at runtime via OO design principles. Both try to deal with ``separation of concerns'' and ``single point of responsibility'' considerations:
 \begin{enumerate}
-	\item By Proxies - This is approach is often used in AOP or IoC bean postprocessing but has several drawbacks in other scenarios
+	\item By Proxies - This approach is often used in AOP or IoC bean postprocessing but has several drawbacks in other scenarios
 		\begin{itemize}
-			\item Generates at least an additional object (the proxy) which increases heap overhead if several thousands of objects need to be proxied (like entities for example)
-			\item In most cases a second additional object (the interceptor) is created to hold some kind of state of the proxy-based logic
+			\item It generates at least one additional object (the proxy) which increases heap overhead if several thousands or millions of objects need to be proxied (like it is the case for entities of a big information model for example)
+			\item The implementation can get in many cases dirty if the proxy has to inherit an abstract class instead of just a bunch of interfaces. Because that also implies invoking constructors and initializing fields of the abstract class which is often not wanted or helpful for the proxy instance. In any case it further increases the heap overhead.
+			\item In most cases even a second additional object (the interceptor) is created to hold some kind of state of the proxy-based logic
 			\item Some scenarios can not be solved with proxies at all: e.g. object identity comparisons or commutative constraints on the \type{Object}.equals() methods\cite{com14}
 			\item These issues are true in most programming languages - especially for Java \& C\#
+			\item But it is specifically feasible of you have already an existing instance of an object which you want to enhance. A good example for this approach is the SecurityFilterInterceptor of \AMBETH{}-Security which intercepts and validates calls to secured beans - without ``touching'' the beans itself.
 		\end{itemize}
-	\item By manipulating the base class before instantiating and using the object
+	\item By intentionally inheriting from the base class at runtime, customizing methods/constructors in the subclass and instantiating the subclass to be used instead of the instance of the base class. This approach is called ``bytecode enhancement''.
 		\begin{itemize}
-			\item This is of course only possible if you have a control of the instantiation phase of an object
-			\item This can specifically ensured by forcing the developer to use factory-services to gain access to his objects. A major example for this approach is the feature \prettyref{feature:EntityFactory}.
+			\item This is of course only possible if you have a control of the instantiation phase of an object - before it gets used by any code
+			\item The easiest way to ensure this is by forcing the developer to use factory-services to gain access to the object instances. A good example for this approach is the feature \prettyref{feature:EntityFactory}.
 			\item This way there is no additional object instance making equals- or identity-hazard obsolete
 		\end{itemize}
 \end{enumerate}
@@ -61,55 +63,61 @@ There are two major approaches to enhance existing object logic at runtime. Both
 \AMBETH{} makes intensive use of both approaches according to the required functionality and specific scenario for maximum performance \& good maintainability:
 \begin{itemize}
 	\item IoC beans are enhanced by proxies through the \type{BeanPostProcessor} pipeline (\prettyref{feature:BeanPostProcessor})
-	\item Entities, \type{ObjRefs} or cache-internal meta-structures are scrolled through the bytecode-enhancement pipeline
+	\item Entities, \type{ObjRefs} or cache-internal structures are scrolled through the bytecode-enhancement pipeline
 \end{itemize}
-Regarding the latter example it can be stated that many generic algorithms across all modules gain great performance benefits (lower memory consumption as well as higher iteration counts per time) by implementing parts of their algorithm at runtime.
+Regarding the latter example it can be stated that many generic algorithms across all modules gain great performance benefits (both lower memory consumption as well as higher iteration counts per time interval) by implementing parts of their algorithm at runtime.
 
 \tip{\AMBETH{} does not rely on reflection when invoking high-frequency method-calls (e.g. getter/setters of entities) or when creating entities: Instead it generates classes at runtime which then implement code to access the target getters, setters or constructors of entities.}
 
-These generated classes are instantiated once while each implementing a specific contract interface. If \AMBETH{} e.g. needs a value from a specific getter this way it calls the ``anonymous'' \type{Member}.\typeprop{getValue} method of the corresponding generated getter. As a result the runtime performance for generic algorithms of \AMBETH{} is as high as if you would have implemented \& optimized the ``spirit'' of the whole generic algorithm solely for your specific scenario manually. In most cases the framework is indeed even faster than a developer could manually implement the corresponding complex logic by hand.
+These generated classes are instantiated once and implement a specific contract interface. If \AMBETH{} e.g. needs a value from a specific getter this way it calls the ``anonymous'' \type{de.osthus.ambeth.metadata.Member}.\typeprop{getValue} method of the corresponding generated getter. As a result the runtime performance for generic algorithms of \AMBETH{} is as high as if you would have implemented \& optimized the ``spirit'' of the whole generic algorithm manually \& solely for your specific scenario. In most cases the framework is indeed even faster than a developer could manually implement the corresponding complex logic by hand.
 
-Let's take a deeper look to this ``allegation'' with a specific example:
+Taking a deeper look to this ``allegation'' with a specific example:
 \begin{lstlisting}[style=Java,caption={Example entity definition (Java)}]
 public interface QueryEntity
 {
-	Integer getId();
-	Short getVersion();
-	String getUpdatedBy();
-	String getCreatedBy();
-	Date getUpdatedOn();
-	Date getCreatedOn();
-	String getName1();
+	java.lang.Integer getId();
+	java.lang.Short getVersion();
+	java.lang.String getUpdatedBy();
+	java.lang.String getCreatedBy();
+	java.util.Date getUpdatedOn();
+	java.util.Date getCreatedOn();
+	java.lang.String getName();
 }
 \end{lstlisting}
 
-In the example above there are 7 properties defined. Each of them is a reference type and therefore each backing field consumes 8 bytes heap on a x64 VM (for the heap pointer). Adding the 16 bytes \textit{base} overhead for each ``empty'' object on a x64 VM each instance of \type{QueryEntity} will at first take 72 bytes of heap memory for itself. In addition both Date properties consume 24 bytes each (16 \textit{base} + 8 for their long value) because they can \emph{not} be shared across entities even if they have the same internal value\footnote{That is because of their mutability: \type{java.util.Date} has a method \type{setTime} changing its state. Compared to \type{java.util.String} or boxed numbers which are each immutable.}. Last but not least the Integer instance of each \emph{id} will be mostly unique and will therefore consume additional 20 bytes for its existence (16 bytes \textit{base} + 4 bytes for its int value) though it \emph{could} be shared across entities. The \emph{version} and each of the remaining three string properties shall be assumed to be zero / null references for the sake of simplicity.\newline
+In the example above there are 7 properties defined. Each of them is a reference type and therefore each field containing the value of the getter consumes 8 bytes heap on a x64 VM (to contain the heap pointer) - Modern VMs are capable to compress 64-bit pointers if the used heap fits into 32-bit but for the sake of simplicity we ignore this feature. Each object (it does not matter of which class it is) needs 16 bytes to be existent on the heap - this is true even if the object itself might only contain a simple boolean field as an attribute, so just 1 bit of information. So the calculation of the shallow memory footprint of an instance of QueryEntity is as follows:\\
 
-The assumed deep memory consumption in a common scenario may therefore be:
+\[16+7\times8=72\]\\
 
-\[72+2\times24+20=140\]
+To calculate the deep memory footprint considering even the needed space of each attribute of QueryEntity consider the following:
+Both \type{java.util.Date} properties consume 24 bytes each (16 \textit{base} + 8 for their internal attribute of type \type{long}) because they can \emph{not} be shared across entities even if they have the same internal value\footnote{That is because of their mutability: \type{java.util.Date} has a method \type{setTime} changing its state. Compared to \type{java.util.String} or boxed numbers which are each immutable.}. Last but not least the Integer instance of each \emph{id} will be mostly unique and will therefore consume additional 20 bytes for its existence (16 bytes \textit{base} + 4 bytes for its internal attribute of type int) though it \emph{could} be shared across entities if applicable. The \emph{version} and each of the remaining three string properties shall be assumed to be zero / null references for the sake of simplicity here, because the statistical variance of Version is quite low and the needed space for a String can be arbitrary much\newline
 
-Let us compare this with information from a runtime heap dump:
+The assumed deep memory consumption in a common scenario may therefore (at least) be:
+
+\[72+2\times24+20=140\]\\
+
+Comparing the calculation above with empiric information from a runtime heap dump of an \AMBETH{} application in Java:
 
 \def\showimgref{img/visualvm-queryentity}
 \showimg{Bytecode enhanced cache instance (screenshot from \textit{VisualVM})}
 
 There may be some surprising differences:
 \begin{itemize}
-	\item \emph{id} is stored as a native \type{int} instead of the boxing \type{Integer}
+	\item \emph{id} is stored as a native \type{int} instead of the boxing \type{java.lang.Integer}
 		\begin{itemize}
-			\item This reduces the memory overhead by 24 bytes: The backing field is a native 4 byte field instead of a 8 byte reference. In addition we prevent the need for a whole \type{Integer} object (20 bytes).
+			\item This reduces the memory overhead by 24 bytes: The backing field is a native 4 byte field instead of a 8 byte reference. In addition we prevent the need for a whole \type{Integer} object (16+4=20 bytes).
 		\end{itemize}
-	\item \emph{version} is stored as a native \type{short} instead of the boxing \type{Short}
+	\item \emph{version} is stored as a native \type{short} instead of the boxing \type{java.lang.Short}
 		\begin{itemize}
-			\item This reduces the memory overhead by 6 bytes: The backing field is a native 2 byte field instead of a 8 byte reference.
+			\item This reduces the memory overhead by 6 bytes: The backing field is a native 2 byte field instead of a 8 byte reference. If we would not have shared the instances of type \type{Short} the reduction would be even bigger.
 		\end{itemize}
-	\item \emph{UpdatedOn} and \emph{CreatedOn} is stored as a native \type{long} instead of the \type{Date} instance
+	\item \emph{UpdatedOn} and \emph{CreatedOn} is stored as a native \type{long} instead of the \type{java.util.Date} instance
 		\begin{itemize}
-			\item This reduces the memory overhead by 24 bytes each: The backing field is a native 8 byte field instead of a 8 byte reference - so no change here. In addition we prevent the need for two \type{Date} objects (24 bytes each).
+			\item This reduces the memory overhead again by 24 bytes each: The backing field is a native 8 byte field instead of a 8 byte reference - so no change regarding memory here. But in addition we prevent the need for two \type{Date} objects (16+8=24 bytes each).
 		\end{itemize}
 \end{itemize}
 
 Taking the previous 140 bytes as base we now can assume:
 
-\[140-24-6-2\times24=62\] bytes which results in 56\% - or rounded 50\% - less memory consumption (and preventing the need of 4 of 5 objects in that example) helping against GC pressure when managing thousands to several millions of entities in memory with \AMBETH.
+\[140-24-6-2\times24=62\]\\
+which results in 56\% - or rounded 50\% - less memory consumption. But not less important is the fact that we prevent the need for 4 of 5 objects in that example which help reducing heap-management / GC pressure by 80\%. This can be seen as a representative example why most design decisions have been made: They all try to help being capable to manage millions of entities in memory with \AMBETH.
