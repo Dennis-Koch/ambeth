@@ -460,19 +460,37 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 	@Override
 	public String prepareCommand(String sqlCommand)
 	{
+		Pattern pattern = Pattern.compile(" *create or replace TYPE ([^ ]+) AS VARRAY\\(\\d+\\) OF +(.+)", Pattern.CASE_INSENSITIVE);
+		Matcher matcher = pattern.matcher(sqlCommand);
+		if (matcher.matches())
+		{
+			String arrayTypeName = matcher.group(1);
+			if (arrayTypeName.equalsIgnoreCase("STRING_ARRAY"))
+			{
+				return "";
+			}
+		}
+
+		sqlCommand = prepareCommandIntern(sqlCommand, " BLOB", " BYTEA");
+		sqlCommand = prepareCommandIntern(sqlCommand, " CLOB", " TEXT");
+
 		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1 *, *0 *\\)", " BOOLEAN");
 		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *[0-9] *, *0 *\\)", " INTEGER");
 		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1[0,1,2,3,4,5,6,7,8] *, *0 *\\)", " BIGINT");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\* *, *0 *\\)", " NUMERIC");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER", " NUMERIC");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER\\(", " NUMERIC\\(");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\d+ *\\, *\\d+ *\\)", " NUMERIC");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\d+ *\\)", " NUMERIC");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER[^\"]", " NUMERIC");
+		// sqlCommand = prepareCommandIntern(sqlCommand, "(?: |\")NUMBER *\\(", " NUMERIC\\(");
+
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR *\\( *(\\d+) +CHAR *\\)", " TEXT");
+
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR2 *\\( *(\\d+) +BYTE\\)", " VARCHAR(\\2)");
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR2 *\\( *(\\d+) +CHAR\\)", " VARCHAR(\\2)");
 
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " PRIMARY KEY (\\([^\\)]+\\)) USING INDEX", " PRIMARY KEY \\2");
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " PRIMARY KEY (\\([^\\)]+\\)) USING INDEX", " PRIMARY KEY \\2");
 
-		sqlCommand = prepareCommandInternWithGroup(sqlCommand, "([^a-zA-Z0-9])STRING_ARRAY([^a-zA-Z0-9])", "\\2TEXT\\3");
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, "([^a-zA-Z0-9])STRING_ARRAY([^a-zA-Z0-9])", "\\2TEXT[]\\3");
 
 		sqlCommand = prepareCommandIntern(sqlCommand, " NOORDER", "");
 		sqlCommand = prepareCommandIntern(sqlCommand, " NOCYCLE", "");
@@ -491,7 +509,6 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 		try
 		{
 			stmt = connection.createStatement();
-			connection.setReadOnly(false);
 			stmt.execute("DROP SCHEMA IF EXISTS \"" + connectionDialect.toDefaultCase(schemaName) + "\" CASCADE");
 		}
 		catch (SQLException e)

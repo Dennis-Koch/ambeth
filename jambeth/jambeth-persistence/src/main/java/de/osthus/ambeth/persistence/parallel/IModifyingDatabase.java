@@ -4,9 +4,9 @@ public interface IModifyingDatabase
 {
 	boolean isModifyingAllowed();
 
-	void setModifyingAllowed(boolean isModifyingAllowed);
+	void setModifyingAllowed(boolean modifyingAllowed);
 
 	boolean isModifyingDatabase();
 
-	void setModifyingDatabase(boolean modifying);
+	void setModifyingDatabase(boolean modifyingDatabase);
 }

@@ -40,6 +40,7 @@ import de.osthus.ambeth.persistence.IColumnEntry;
 import de.osthus.ambeth.persistence.SQLState;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.exception.NullConstraintException;
+import de.osthus.ambeth.persistence.exception.UniqueConstraintException;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionDialect;
 import de.osthus.ambeth.persistence.jdbc.ColumnEntry;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
@@ -268,6 +269,12 @@ public class PostgresDialect extends AbstractConnectionDialect
 			ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
 			return ex;
 		}
+		else if (SQLState.UNIQUE_CONSTRAINT.getXopen().equals(sqlState))
+		{
+			UniqueConstraintException ex = new UniqueConstraintException(e.getMessage(), relatedSql, e);
+			ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
+			return ex;
+		}
 		int errorCode = e.getErrorCode();
 
 		if (e.getMessage().contains("" + getOptimisticLockErrorCode()))
@@ -306,11 +313,7 @@ public class PostgresDialect extends AbstractConnectionDialect
 		{
 			return null;
 		}
-		if (fieldTypeName.endsWith("]"))
-		{
-			throw new UnsupportedOperationException("Array type not yet supported");
-		}
-		return null;
+		return arrayTypeNameToTypeMap.get(fieldTypeName);
 	}
 
 	@Override
@@ -442,7 +445,10 @@ public class PostgresDialect extends AbstractConnectionDialect
 				int typeIndex = tableColumnsRS.getInt("DATA_TYPE");
 
 				String typeName = tableColumnsRS.getString("TYPE_NAME");
-
+				while (typeName.startsWith("_"))
+				{
+					typeName = typeName.substring(1) + "[]";
+				}
 				String isNullable = tableColumnsRS.getString("IS_NULLABLE");
 				boolean nullable = "YES".equalsIgnoreCase(isNullable);
 

@@ -186,6 +186,7 @@ public final class JdbcUtil
 				return Float.class;
 			}
 			case Types.BLOB:
+			case Types.BINARY:
 			{
 				return Blob.class;
 			}

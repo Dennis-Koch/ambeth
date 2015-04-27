@@ -1,7 +1,5 @@
 package de.osthus.ambeth.persistence;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +18,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.persistence.parallel.IModifyingDatabase;
 import de.osthus.ambeth.proxy.ICascadedInterceptor;
 import de.osthus.ambeth.util.ParamChecker;
 
@@ -29,9 +28,6 @@ public class Database implements IDatabase, IInitializingBean, IStartingBean, ID
 	private ILogger log;
 
 	@Autowired
-	protected Connection connection;
-
-	@Autowired
 	protected IContextProvider contextProvider;
 
 	@Autowired
@@ -39,6 +35,9 @@ public class Database implements IDatabase, IInitializingBean, IStartingBean, ID
 
 	@Autowired
 	protected IDatabaseMetaData metaData;
+
+	@Autowired
+	protected IModifyingDatabase modifyingDatabase;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
@@ -141,14 +140,7 @@ public class Database implements IDatabase, IInitializingBean, IStartingBean, ID
 	@Override
 	public void acquired(boolean readOnly)
 	{
-		try
-		{
-			connection.setReadOnly(readOnly);
-		}
-		catch (SQLException e)
-		{
-			// Intended blank
-		}
+		modifyingDatabase.setModifyingAllowed(!readOnly);
 		contextProvider.acquired();
 		contextProvider.setCurrentTime(Long.valueOf(System.currentTimeMillis()));
 	}
@@ -198,6 +190,7 @@ public class Database implements IDatabase, IInitializingBean, IStartingBean, ID
 			databaseLocal.remove();
 		}
 		clear();
+		modifyingDatabase.setModifyingAllowed(true);
 		if (pool != null)
 		{
 			pool.releaseDatabase(this, !errorOccured);
@@ -207,7 +200,6 @@ public class Database implements IDatabase, IInitializingBean, IStartingBean, ID
 	@Override
 	public void destroy() throws Throwable
 	{
-		connection = null;
 		ThreadLocal<IDatabase> databaseLocal = databaseProvider.getDatabaseLocal();
 		IDatabase currentDatabase = databaseLocal.get();
 		if (currentDatabase instanceof Factory)

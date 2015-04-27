@@ -37,6 +37,7 @@ import de.osthus.ambeth.persistence.IColumnEntry;
 import de.osthus.ambeth.persistence.SQLState;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.exception.NullConstraintException;
+import de.osthus.ambeth.persistence.exception.UniqueConstraintException;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionDialect;
 import de.osthus.ambeth.persistence.jdbc.ColumnEntry;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
@@ -141,7 +142,8 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	protected void handleRow(String schemaName, String tableName, String constraintName, ArrayList<String> disableConstraintsSQL, ArrayList<String> enableConstraintsSQL)
+	protected void handleRow(String schemaName, String tableName, String constraintName, ArrayList<String> disableConstraintsSQL,
+			ArrayList<String> enableConstraintsSQL)
 	{
 		if (BIN_TABLE_NAME.matcher(tableName).matches())
 		{
@@ -311,6 +313,12 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 		if (errorCode == 1400)
 		{
 			NullConstraintException ex = new NullConstraintException(e.getMessage(), relatedSql, e);
+			ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
+			return ex;
+		}
+		else if (errorCode == 2091)
+		{
+			UniqueConstraintException ex = new UniqueConstraintException(e.getMessage(), relatedSql, e);
 			ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
 			return ex;
 		}

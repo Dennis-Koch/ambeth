@@ -33,20 +33,18 @@ public class AuditModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		if (!auditActive)
-		{
-			return;
-		}
-		beanContextFactory.registerBean(AuditMethodCallPostProcessor.class);
-
-		IBeanConfiguration auditEntryWriterV1 = beanContextFactory.registerBean(AuditEntryWriterV1.class);
-		beanContextFactory.link(auditEntryWriterV1).to(IAuditEntryWriterExtendable.class).with(Integer.valueOf(1));
-
 		beanContextFactory.registerBean(AuditConfigurationProvider.class).autowireable(IAuditConfigurationProvider.class, IAuditConfigurationExtendable.class);
 
 		IBeanConfiguration auditEntryController = beanContextFactory.registerBean(AuditController.class).autowireable(IMethodCallLogger.class,
 				IAuditEntryVerifier.class, IAuditEntryWriterExtendable.class, IAuditInfoController.class);
-		beanContextFactory.link(auditEntryController).to(ITransactionListenerExtendable.class);
-		beanContextFactory.link(auditEntryController).to(IMergeListenerExtendable.class);
+
+		if (auditActive)
+		{
+			beanContextFactory.registerBean(AuditMethodCallPostProcessor.class);
+			IBeanConfiguration auditEntryWriterV1 = beanContextFactory.registerBean(AuditEntryWriterV1.class);
+			beanContextFactory.link(auditEntryWriterV1).to(IAuditEntryWriterExtendable.class).with(Integer.valueOf(1));
+			beanContextFactory.link(auditEntryController).to(ITransactionListenerExtendable.class);
+			beanContextFactory.link(auditEntryController).to(IMergeListenerExtendable.class);
+		}
 	}
 }

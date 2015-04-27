@@ -935,6 +935,8 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
 		if (schemaName.equals(schemaNames[0]))
 		{
 			nameToObjectMap.put(softName, link);
+			nameToObjectMap.put(softName.toUpperCase(), link);
+			nameToObjectMap.put(softName.toLowerCase(), link);
 		}
 		nameToObjectMap.putIfNotExists(schemaName + "." + softName, link);
 		nameToObjectMap.putIfNotExists(schemaName + "." + softName.toUpperCase(), link);

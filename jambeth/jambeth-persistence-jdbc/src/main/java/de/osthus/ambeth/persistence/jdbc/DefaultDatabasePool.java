@@ -200,7 +200,6 @@ public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDi
 		}
 		database.acquired(readOnly);
 		IModifyingDatabase modifyingDatabase = database.getAutowiredBeanInContext(IModifyingDatabase.class);
-		modifyingDatabase.setModifyingAllowed(!readOnly);
 		modifyingDatabase.setModifyingDatabase(false);
 		return database;
 	}

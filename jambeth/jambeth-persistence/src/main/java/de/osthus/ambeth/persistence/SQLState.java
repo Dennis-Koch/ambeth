@@ -2,7 +2,7 @@ package de.osthus.ambeth.persistence;
 
 public enum SQLState
 {
-	CONNECTION_NOT_OPEN("08003"), ACCESS_VIOLATION("42000"), NULL_CONSTRAINT("23502");
+	CONNECTION_NOT_OPEN("08003"), ACCESS_VIOLATION("42000"), NULL_CONSTRAINT("23502"), UNIQUE_CONSTRAINT("23505");
 
 	private String xopen;
 

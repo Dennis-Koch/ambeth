@@ -1,6 +1,7 @@
 package de.osthus.ambeth.sql;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.collections.ArrayList;
@@ -27,6 +28,8 @@ import de.osthus.ambeth.util.IConversionHelper;
 
 public class SqlTable extends Table
 {
+	public static final Pattern quotesPattern = Pattern.compile("\"", Pattern.LITERAL);
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -350,7 +353,7 @@ public class SqlTable extends Table
 				{
 					String additionalSelectColumn = additionalSelectColumnList.get(a);
 					// additional columns are already escaped
-					additionalSelectColumn = additionalSelectColumn.replace("\"", "");
+					additionalSelectColumn = quotesPattern.matcher(additionalSelectColumn).replaceAll("");
 					additionalSelectColumnSet.add(additionalSelectColumn);
 				}
 			}
@@ -400,8 +403,8 @@ public class SqlTable extends Table
 			{
 				for (String additionalFieldName : additionalSelectColumnSet)
 				{
-					selectSB.append(',').append(additionalFieldName);
-					// selectSB.append(',').append(sqlBuilder.escapeName(additionalFieldName));
+					selectSB.append(',');
+					sqlBuilder.escapeName(additionalFieldName, selectSB);
 				}
 			}
 			ResultSetPkVersionCursor versionCursor = retrieveAlternateIds ? new ResultSetVersionCursor() : new ResultSetPkVersionCursor();
