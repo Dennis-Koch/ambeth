@@ -42,7 +42,6 @@ import de.osthus.ambeth.persistence.jdbc.AbstractConnectionDialect;
 import de.osthus.ambeth.persistence.jdbc.ColumnEntry;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.sql.ISqlBuilder;
-import de.osthus.ambeth.util.IConversionHelper;
 
 public class Oracle10gDialect extends AbstractConnectionDialect
 {
@@ -104,9 +103,6 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	private ILogger log;
 
 	protected final DateFormat defaultDateFormat = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
-
-	@Autowired
-	protected IConversionHelper conversionHelper;
 
 	@Autowired
 	protected ILoggerHistory loggerHistory;

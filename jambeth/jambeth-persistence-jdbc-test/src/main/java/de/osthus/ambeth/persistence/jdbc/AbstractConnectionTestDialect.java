@@ -76,6 +76,12 @@ public abstract class AbstractConnectionTestDialect implements IConnectionTestDi
 		// intended blank
 	}
 
+	@Override
+	public String[] createAdditionalTriggers(Connection connection, String tableName) throws SQLException
+	{
+		return new String[0];
+	}
+
 	protected String prepareCommandIntern(String sqlCommand, String regex, String replacement)
 	{
 		return Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(sqlCommand).replaceAll(replacement);

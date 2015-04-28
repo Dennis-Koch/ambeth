@@ -472,6 +472,7 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
 			FieldMetaData field = new FieldMetaData();
 			field.setExpectsMapping(columnEntry.expectsMapping());
 			field.setName(columnEntry.getFieldName());
+			field.setOriginalTypeName(columnEntry.getTypeName());
 			field.setFieldType(columnEntry.getJavaType());
 			field.setFieldSubType(fieldSubType);
 

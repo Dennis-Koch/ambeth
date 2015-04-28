@@ -64,6 +64,7 @@ import de.osthus.ambeth.service.ICacheRetrieverExtendable;
 import de.osthus.ambeth.service.ICacheServiceByNameExtendable;
 import de.osthus.ambeth.service.IOfflineListener;
 import de.osthus.ambeth.service.IOfflineListenerExtendable;
+import de.osthus.ambeth.service.IPropertyCacheRetrieverExtendable;
 import de.osthus.ambeth.util.CacheHelper;
 import de.osthus.ambeth.util.ICacheHelper;
 import de.osthus.ambeth.util.ICachePathHelper;
@@ -129,7 +130,7 @@ public class CacheModule implements IInitializingModule
 		beanContextFactory.registerAutowireableBean(IRootCacheValueFactory.class, RootCacheValueFactory.class);
 
 		beanContextFactory.registerBean(ROOT_CACHE_RETRIEVER, CacheRetrieverRegistry.class).autowireable(ICacheServiceByNameExtendable.class,
-				ICacheRetrieverExtendable.class);
+				ICacheRetrieverExtendable.class, IPropertyCacheRetrieverExtendable.class);
 
 		beanContextFactory.registerBean("firstLevelCacheManager", FirstLevelCacheManager.class).autowireable(IFirstLevelCacheExtendable.class,
 				IFirstLevelCacheManager.class);
@@ -229,8 +230,8 @@ public class CacheModule implements IInitializingModule
 		beanContextFactory.registerBean(DataObjectMixin.class).autowireable(DataObjectMixin.class);
 		beanContextFactory.registerBean(EntityEqualsMixin.class).autowireable(EntityEqualsMixin.class);
 		beanContextFactory.registerBean(EmbeddedTypeMixin.class).autowireable(EmbeddedTypeMixin.class);
-		beanContextFactory.registerBean(PropertyChangeMixin.class).autowireable(PropertyChangeMixin.class,
-				IPropertyChangeExtensionExtendable.class, ICollectionChangeExtensionExtendable.class);
+		beanContextFactory.registerBean(PropertyChangeMixin.class).autowireable(PropertyChangeMixin.class, IPropertyChangeExtensionExtendable.class,
+				ICollectionChangeExtensionExtendable.class);
 		beanContextFactory.registerBean(ValueHolderContainerMixin.class).autowireable(ValueHolderContainerMixin.class);
 	}
 }

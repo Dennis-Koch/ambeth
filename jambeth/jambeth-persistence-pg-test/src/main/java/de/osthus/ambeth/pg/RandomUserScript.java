@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -251,9 +252,26 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 				String randomName = username != null ? username : "CI_TMP_" + System.nanoTime() + String.format("%02d", (int) (Math.random() * 99));
 				try
 				{
-					stm.execute("CREATE USER \"" + randomName + "\" WITH PASSWORD '" + password + "'");
+					stm.execute("CREATE USER \"" + randomName + "\" WITH PASSWORD '" + password + "' SUPERUSER");
 					stm.execute("CREATE DATABASE \"" + randomName + "\" WITH OWNER \"" + randomName + "\"");
 
+					Connection userConnection = DriverManager.getConnection(connection.getMetaData().getURL(), randomName, password);
+					try
+					{
+						Statement userStm = userConnection.createStatement();
+						try
+						{
+							userStm.execute("DROP SCHEMA IF EXISTS public CASCADE");
+						}
+						finally
+						{
+							JdbcUtil.close(userStm);
+						}
+					}
+					finally
+					{
+						userConnection.close();
+					}
 					// stm.execute("GRANT ALL PRIVILEGES ON DATABASE " + randomName + " TO " + randomName);
 
 					createdUserName = randomName;

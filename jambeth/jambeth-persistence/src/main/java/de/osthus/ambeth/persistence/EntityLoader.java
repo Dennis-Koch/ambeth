@@ -124,6 +124,9 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 	protected ICompositeIdFactory compositeIdFactory;
 
 	@Autowired
+	protected IConnectionDialect connectionDialect;
+
+	@Autowired
 	protected IConversionHelper conversionHelper;
 
 	@Autowired
@@ -894,7 +897,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 						else
 						{
 							// The column is only a primitive field
-							primitiveValue = conversionHelper.convertValueToType(expectedType, dbValue);
+							primitiveValue = connectionDialect.convertFromFieldType(database, field, expectedType, dbValue);
 						}
 						if (interningFeature != null && (metaData.hasInterningBehavior(fieldMember) || metaData.isAlternateId(fieldMember)))
 						{

@@ -14,6 +14,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.util.IDedicatedConverter;
 
 public class LobConverter implements IDedicatedConverter
@@ -24,6 +25,9 @@ public class LobConverter implements IDedicatedConverter
 
 	@Autowired
 	protected Connection connection;
+
+	@Autowired
+	protected IConnectionDialect connectionDialect;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
@@ -37,27 +41,34 @@ public class LobConverter implements IDedicatedConverter
 			{
 				Blob blob = (Blob) value;
 
-				InputStream is = blob.getBinaryStream();
 				int length = (int) blob.length();
-				byte[] array = new byte[length];
-				int bytesRead = is.read(array, 0, length);
-				if (bytesRead < length)
+				InputStream is = blob.getBinaryStream();
+				try
 				{
-					int index = bytesRead;
-					byte[] oneByte = new byte[1];
-					while ((bytesRead = is.read(oneByte, index, 1)) != -1)
+					byte[] array = new byte[length];
+					int bytesRead = is.read(array, 0, length);
+					if (bytesRead < length)
 					{
-						array[index] = oneByte[0];
-						index += bytesRead;
+						int index = bytesRead;
+						byte[] oneByte = new byte[1];
+						while ((bytesRead = is.read(oneByte, index, 1)) != -1)
+						{
+							array[index] = oneByte[0];
+							index += bytesRead;
+						}
+					}
+					if (byte[].class.equals(expectedType))
+					{
+						return array;
+					}
+					else if (String.class.equals(expectedType))
+					{
+						return new String(array, Properties.CHARSET_UTF_8);
 					}
 				}
-				if (byte[].class.equals(expectedType))
+				finally
 				{
-					return array;
-				}
-				else if (String.class.equals(expectedType))
-				{
-					return new String(array, Properties.CHARSET_UTF_8);
+					is.close();
 				}
 			}
 			else if (Clob.class.isAssignableFrom(sourceType))
@@ -98,7 +109,7 @@ public class LobConverter implements IDedicatedConverter
 			{
 				if (Blob.class.isAssignableFrom(expectedType))
 				{
-					Blob blob = connection.createBlob();
+					Blob blob = connectionDialect.createBlob(connection);
 					OutputStream os = blob.setBinaryStream(1);
 					try
 					{

@@ -44,7 +44,7 @@ public class TableChange extends AbstractTableChange
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Autowired
-	protected IObjRefHelper oriHelper;
+	protected IObjRefHelper objRefHelper;
 
 	@Property(name = MergeConfigurationConstants.DeleteDataChangesByAlternateIds, defaultValue = "false")
 	protected boolean deleteDataChangesByAlternateIds;
@@ -250,7 +250,7 @@ public class TableChange extends AbstractTableChange
 					IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objects.get(0).getClass());
 					for (int i = objects.size(); i-- > 0;)
 					{
-						IList<IObjRef> allOris = oriHelper.entityToAllObjRefs(objects.get(i), metaData);
+						IList<IObjRef> allOris = objRefHelper.entityToAllObjRefs(objects.get(i), metaData);
 						for (int j = allOris.size(); j-- > 0;)
 						{
 							changeAggregator.dataChangeDelete(allOris.get(j));

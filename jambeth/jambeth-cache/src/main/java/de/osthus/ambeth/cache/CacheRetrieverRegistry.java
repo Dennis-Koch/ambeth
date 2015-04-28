@@ -2,17 +2,18 @@ package de.osthus.ambeth.cache;
 
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.locks.Lock;
 
 import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.IdentityLinkedMap;
-import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.exception.ExtendableException;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
 import de.osthus.ambeth.ioc.extendable.MapExtendableContainer;
 import de.osthus.ambeth.log.ILogger;
@@ -25,13 +26,15 @@ import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.service.ICacheRetrieverExtendable;
 import de.osthus.ambeth.service.ICacheService;
 import de.osthus.ambeth.service.ICacheServiceByNameExtendable;
+import de.osthus.ambeth.service.IPropertyCacheRetriever;
+import de.osthus.ambeth.service.IPropertyCacheRetrieverExtendable;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.IAggregrateResultHandler;
 import de.osthus.ambeth.util.IDisposable;
 import de.osthus.ambeth.util.IMultithreadingHelper;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverExtendable, ICacheServiceByNameExtendable
+public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverExtendable, IPropertyCacheRetrieverExtendable, ICacheServiceByNameExtendable
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -39,6 +42,9 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 
 	protected final ClassExtendableContainer<ICacheRetriever> typeToCacheRetrieverMap = new ClassExtendableContainer<ICacheRetriever>("cacheRetriever",
 			"entityType");
+
+	protected final ClassExtendableContainer<HashMap<String, IPropertyCacheRetriever>> typeToPropertyCacheRetrieverMap = new ClassExtendableContainer<HashMap<String, IPropertyCacheRetriever>>(
+			"cacheRetriever", "entityType");
 
 	protected final MapExtendableContainer<String, ICacheService> nameToCacheServiceMap = new MapExtendableContainer<String, ICacheService>("cacheService",
 			"serviceName");
@@ -65,6 +71,54 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 	}
 
 	@Override
+	public void registerPropertyCacheRetriever(IPropertyCacheRetriever propertyCacheRetriever, Class<?> handledType, String propertyName)
+	{
+		Lock writeLock = typeToPropertyCacheRetrieverMap.getWriteLock();
+		writeLock.lock();
+		try
+		{
+			HashMap<String, IPropertyCacheRetriever> map = typeToPropertyCacheRetrieverMap.getExtension(handledType);
+			if (map == null)
+			{
+				map = new HashMap<String, IPropertyCacheRetriever>();
+				typeToPropertyCacheRetrieverMap.register(map, handledType);
+			}
+			if (!map.putIfNotExists(propertyName, propertyCacheRetriever))
+			{
+				throw new ExtendableException("Key '" + handledType.getName() + "." + propertyName + "' already added");
+			}
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
+	}
+
+	@Override
+	public void unregisterPropertyCacheRetriever(IPropertyCacheRetriever propertyCacheRetriever, Class<?> handledType, String propertyName)
+	{
+		Lock writeLock = typeToPropertyCacheRetrieverMap.getWriteLock();
+		writeLock.lock();
+		try
+		{
+			HashMap<String, IPropertyCacheRetriever> map = typeToPropertyCacheRetrieverMap.getExtension(handledType);
+			if (map == null || !map.removeIfValue(propertyName, propertyCacheRetriever))
+			{
+				throw new ExtendableException("Provided extension is not registered at key '" + handledType + "." + propertyName + "'. Extension: "
+						+ propertyCacheRetriever);
+			}
+			if (map.size() == 0)
+			{
+				typeToPropertyCacheRetrieverMap.unregister(map, handledType);
+			}
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
+	}
+
+	@Override
 	public void registerCacheService(ICacheService cacheService, String serviceName)
 	{
 		nameToCacheServiceMap.register(cacheService, serviceName);
@@ -81,19 +135,34 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 	{
 		ParamChecker.assertParamNotNull(orisToLoad, "orisToLoad");
 
-		List<ILoadContainer> result = new ArrayList<ILoadContainer>(orisToLoad.size());
+		final ArrayList<ILoadContainer> result = new ArrayList<ILoadContainer>(orisToLoad.size());
 
-		ILinkedMap<Class<?>, IList<IObjRef>> sortedObjRefs = bucketSortObjRefs(orisToLoad);
-		ILinkedMap<ICacheRetriever, IList<IObjRef>> assignedObjRefs = assignObjRefsToCacheRetriever(sortedObjRefs);
+		ILinkedMap<ICacheRetriever, IList<IObjRef>> assignedObjRefs = bucketSortObjRefs(orisToLoad);
 
-		getData(assignedObjRefs, result, new GetDataDelegate<IObjRef, ILoadContainer>()
-		{
-			@Override
-			public List<ILoadContainer> invoke(ICacheRetriever cacheRetriever, List<IObjRef> objRefsForService)
-			{
-				return cacheRetriever.getEntities(objRefsForService);
-			}
-		});
+		multithreadingHelper.invokeAndWait(assignedObjRefs,
+				new IResultingBackgroundWorkerParamDelegate<List<ILoadContainer>, Entry<ICacheRetriever, IList<IObjRef>>>()
+				{
+					@Override
+					public List<ILoadContainer> invoke(Entry<ICacheRetriever, IList<IObjRef>> item) throws Throwable
+					{
+						return item.getKey().getEntities(item.getValue());
+					}
+				}, new IAggregrateResultHandler<List<ILoadContainer>, Entry<ICacheRetriever, IList<IObjRef>>>()
+				{
+					@Override
+					public void aggregateResult(List<ILoadContainer> resultOfFork, Entry<ICacheRetriever, IList<IObjRef>> itemOfFork)
+					{
+						for (int a = 0, size = resultOfFork.size(); a < size; a++)
+						{
+							ILoadContainer partItem = resultOfFork.get(a);
+							result.add(partItem);
+						}
+						if (resultOfFork instanceof IDisposable)
+						{
+							((IDisposable) resultOfFork).dispose();
+						}
+					}
+				});
 		return result;
 	}
 
@@ -102,18 +171,33 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 	{
 		ParamChecker.assertParamNotNull(objRelations, "objRelations");
 
-		List<IObjRelationResult> result = new ArrayList<IObjRelationResult>(objRelations.size());
+		ILinkedMap<IPropertyCacheRetriever, IList<IObjRelation>> assignedObjRelations = bucketSortObjRels(objRelations);
 
-		ILinkedMap<Class<?>, IList<IObjRelation>> sortedObjRelations = bucketSortObjRels(objRelations);
-		ILinkedMap<ICacheRetriever, IList<IObjRelation>> assignedObjRelations = assignObjRelsToCacheRetriever(sortedObjRelations);
-		getData(assignedObjRelations, result, new GetDataDelegate<IObjRelation, IObjRelationResult>()
-		{
-			@Override
-			public List<IObjRelationResult> invoke(ICacheRetriever cacheRetriever, List<IObjRelation> objRelationsForService)
-			{
-				return cacheRetriever.getRelations(objRelationsForService);
-			}
-		});
+		final ArrayList<IObjRelationResult> result = new ArrayList<IObjRelationResult>(objRelations.size());
+		multithreadingHelper.invokeAndWait(assignedObjRelations,
+				new IResultingBackgroundWorkerParamDelegate<List<IObjRelationResult>, Entry<IPropertyCacheRetriever, IList<IObjRelation>>>()
+				{
+					@Override
+					public List<IObjRelationResult> invoke(Entry<IPropertyCacheRetriever, IList<IObjRelation>> item) throws Throwable
+					{
+						return item.getKey().getRelations(item.getValue());
+					}
+				}, new IAggregrateResultHandler<List<IObjRelationResult>, Entry<IPropertyCacheRetriever, IList<IObjRelation>>>()
+				{
+					@Override
+					public void aggregateResult(List<IObjRelationResult> resultOfFork, Entry<IPropertyCacheRetriever, IList<IObjRelation>> itemOfFork)
+					{
+						for (int a = 0, size = resultOfFork.size(); a < size; a++)
+						{
+							IObjRelationResult partItem = resultOfFork.get(a);
+							result.add(partItem);
+						}
+						if (resultOfFork instanceof IDisposable)
+						{
+							((IDisposable) resultOfFork).dispose();
+						}
+					}
+				});
 		return result;
 	}
 
@@ -140,110 +224,66 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 		return cacheRetriever;
 	}
 
-	protected <V extends IObjRef> ILinkedMap<Class<?>, IList<V>> bucketSortObjRefs(List<V> orisToLoad)
+	protected IPropertyCacheRetriever getPropertyRetrieverForType(Class<?> type, String propertyName)
 	{
-		LinkedHashMap<Class<?>, IList<V>> sortedIObjRefs = new LinkedHashMap<Class<?>, IList<V>>();
-
-		for (int i = orisToLoad.size(); i-- > 0;)
+		if (type == null)
 		{
-			Class<?> type = orisToLoad.get(i).getRealType();
-			if (!sortedIObjRefs.containsKey(type))
-			{
-				sortedIObjRefs.put(type, new ArrayList<V>());
-			}
-			sortedIObjRefs.get(type).add(orisToLoad.get(i));
+			return null;
 		}
-		return sortedIObjRefs;
+		HashMap<String, IPropertyCacheRetriever> map = typeToPropertyCacheRetrieverMap.getExtension(type);
+		if (map == null)
+		{
+			return null;
+		}
+		return map.get(propertyName);
 	}
 
-	protected ILinkedMap<Class<?>, IList<IObjRelation>> bucketSortObjRels(List<IObjRelation> orisToLoad)
-	{
-		LinkedHashMap<Class<?>, IList<IObjRelation>> sortedIObjRefs = new LinkedHashMap<Class<?>, IList<IObjRelation>>();
-
-		for (int i = orisToLoad.size(); i-- > 0;)
-		{
-			IObjRelation orelToLoad = orisToLoad.get(i);
-			Class<?> typeOfContainerBO = orelToLoad.getRealType();
-			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(typeOfContainerBO);
-			Member relationMember = metaData.getMemberByName(orelToLoad.getMemberName());
-
-			Class<?> type = relationMember.getElementType();
-			IList<IObjRelation> objRefs = sortedIObjRefs.get(type);
-			if (objRefs == null)
-			{
-				objRefs = new ArrayList<IObjRelation>();
-				sortedIObjRefs.put(type, objRefs);
-			}
-			objRefs.add(orelToLoad);
-		}
-		return sortedIObjRefs;
-	}
-
-	protected <V> ILinkedMap<ICacheRetriever, IList<IObjRef>> assignObjRefsToCacheRetriever(IMap<Class<?>, IList<IObjRef>> sortedIObjRefs)
+	protected ILinkedMap<ICacheRetriever, IList<IObjRef>> bucketSortObjRefs(List<IObjRef> orisToLoad)
 	{
 		IdentityLinkedMap<ICacheRetriever, IList<IObjRef>> serviceToAssignedObjRefsDict = new IdentityLinkedMap<ICacheRetriever, IList<IObjRef>>();
 
-		for (Entry<Class<?>, IList<IObjRef>> entry : sortedIObjRefs)
+		for (int i = orisToLoad.size(); i-- > 0;)
 		{
-			Class<?> type = entry.getKey();
-			IList<IObjRef> objRefs = entry.getValue();
-			ICacheRetriever cacheRetriever = getRetrieverForType(type);
+			IObjRef objRef = orisToLoad.get(i);
+			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
+
+			ICacheRetriever cacheRetriever = getRetrieverForType(metaData.getEntityType());
 			IList<IObjRef> assignedObjRefs = serviceToAssignedObjRefsDict.get(cacheRetriever);
 			if (assignedObjRefs == null)
 			{
 				assignedObjRefs = new ArrayList<IObjRef>();
 				serviceToAssignedObjRefsDict.put(cacheRetriever, assignedObjRefs);
 			}
-			assignedObjRefs.addAll(objRefs);
+			assignedObjRefs.add(objRef);
 		}
 		return serviceToAssignedObjRefsDict;
 	}
 
-	protected <V> ILinkedMap<ICacheRetriever, IList<IObjRelation>> assignObjRelsToCacheRetriever(IMap<Class<?>, IList<IObjRelation>> sortedIObjRefs)
+	protected ILinkedMap<IPropertyCacheRetriever, IList<IObjRelation>> bucketSortObjRels(List<IObjRelation> orisToLoad)
 	{
-		IdentityLinkedMap<ICacheRetriever, IList<IObjRelation>> serviceToAssignedObjRefsDict = new IdentityLinkedMap<ICacheRetriever, IList<IObjRelation>>();
+		IdentityLinkedMap<IPropertyCacheRetriever, IList<IObjRelation>> serviceToAssignedObjRefsDict = new IdentityLinkedMap<IPropertyCacheRetriever, IList<IObjRelation>>();
 
-		for (Entry<Class<?>, IList<IObjRelation>> entry : sortedIObjRefs)
+		for (int i = orisToLoad.size(); i-- > 0;)
 		{
-			Class<?> type = entry.getKey();
-			IList<IObjRelation> objRefs = entry.getValue();
-			ICacheRetriever cacheRetriever = getRetrieverForType(type);
+			IObjRelation orelToLoad = orisToLoad.get(i);
+			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(orelToLoad.getRealType());
+			Member relationMember = metaData.getMemberByName(orelToLoad.getMemberName());
+
+			// look first for a specific retriever for the requested property of the owning entity type
+			IPropertyCacheRetriever cacheRetriever = getPropertyRetrieverForType(metaData.getEntityType(), relationMember.getName());
+			if (cacheRetriever == null)
+			{
+				// fallback to retriever registered for the target entity type
+				cacheRetriever = getRetrieverForType(relationMember.getElementType());
+			}
 			IList<IObjRelation> assignedObjRefs = serviceToAssignedObjRefsDict.get(cacheRetriever);
 			if (assignedObjRefs == null)
 			{
 				assignedObjRefs = new ArrayList<IObjRelation>();
 				serviceToAssignedObjRefsDict.put(cacheRetriever, assignedObjRefs);
 			}
-			assignedObjRefs.addAll(objRefs);
+			assignedObjRefs.add(orelToLoad);
 		}
 		return serviceToAssignedObjRefsDict;
-	}
-
-	protected <V, R> void getData(ILinkedMap<ICacheRetriever, IList<V>> assignedArguments, final List<R> result, final GetDataDelegate<V, R> getDataDelegate)
-	{
-		// Serialize GetEntities() requests
-		multithreadingHelper.invokeAndWait(assignedArguments, new IResultingBackgroundWorkerParamDelegate<List<R>, Entry<ICacheRetriever, IList<V>>>()
-		{
-			@Override
-			public List<R> invoke(Entry<ICacheRetriever, IList<V>> item) throws Throwable
-			{
-				return getDataDelegate.invoke(item.getKey(), item.getValue());
-			}
-		}, new IAggregrateResultHandler<List<R>, Entry<ICacheRetriever, IList<V>>>()
-		{
-			@Override
-			public void aggregateResult(List<R> resultOfFork, Entry<ICacheRetriever, IList<V>> itemOfFork)
-			{
-				for (int a = 0, size = resultOfFork.size(); a < size; a++)
-				{
-					R partItem = resultOfFork.get(a);
-					result.add(partItem);
-				}
-				if (resultOfFork instanceof IDisposable)
-				{
-					((IDisposable) resultOfFork).dispose();
-				}
-			}
-		});
 	}
 }

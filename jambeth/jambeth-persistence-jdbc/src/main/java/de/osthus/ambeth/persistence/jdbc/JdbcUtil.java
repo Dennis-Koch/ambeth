@@ -101,6 +101,10 @@ public final class JdbcUtil
 			{
 				return Boolean.class;
 			}
+			case Types.DISTINCT:
+			{
+				return Object.class;
+			}
 			case Types.CHAR:
 			case Types.VARCHAR:
 			{

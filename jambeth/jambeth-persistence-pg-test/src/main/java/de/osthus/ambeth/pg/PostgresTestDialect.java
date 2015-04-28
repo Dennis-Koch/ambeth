@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.Property;
@@ -21,6 +22,7 @@ import de.osthus.ambeth.ioc.IocModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.orm.IOrmPatternMatcher;
+import de.osthus.ambeth.persistence.IColumnEntry;
 import de.osthus.ambeth.persistence.PermissionGroup;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionTestDialect;
@@ -133,6 +135,8 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 			for (String schemaName : schemaNames)
 			{
 				stm.execute("CREATE SCHEMA IF NOT EXISTS \"" + schemaName + "\"");
+				// stm.execute("CREATE DOMAIN \"" + schemaName + "\".lo AS oid");
+				stm.execute("CREATE EXTENSION IF NOT EXISTS lo SCHEMA \"" + schemaName + "\"");
 			}
 			stm.execute("SET SCHEMA '" + schemaNames[0] + "'");
 		}
@@ -169,14 +173,52 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 	}
 
 	@Override
-	public String[] createOptimisticLockTrigger(Connection connection, String fullyQualifiedTableName) throws SQLException
+	public String[] createAdditionalTriggers(Connection connection, String fqTableName) throws SQLException
 	{
-		if (PostgresDialect.BIN_TABLE_NAME.matcher(fullyQualifiedTableName).matches()
-				|| PostgresDialect.IDX_TABLE_NAME.matcher(fullyQualifiedTableName).matches())
+		IList<IColumnEntry> allFieldsOfTable = connectionDialect.getAllFieldsOfTable(connection, fqTableName);
+		ArrayList<String> sql = new ArrayList<String>();
+		String[] schemaAndTableName = sqlBuilder.getSchemaAndTableName(fqTableName);
+		for (IColumnEntry columnEntry : allFieldsOfTable)
+		{
+			if (!PostgresDialect.isLobColumnName(columnEntry.getTypeName()))
+			{
+				continue;
+			}
+			String triggerName = schemaAndTableName[1] + "_lob_" + columnEntry.getFieldName();
+			{
+				AppendableStringBuilder sb = new AppendableStringBuilder();
+
+				sb.append("CREATE TRIGGER ").append(triggerName);
+				sb.append(" BEFORE UPDATE OF ");
+				sqlBuilder.escapeName(columnEntry.getFieldName(), sb);
+				sb.append(" OR DELETE ");
+				sb.append(" ON \"").append(schemaAndTableName[1]).append("\" FOR EACH ROW EXECUTE PROCEDURE lo_manage(");
+				sqlBuilder.escapeName(columnEntry.getFieldName(), sb);
+				sb.append(")");
+				sql.add(sb.toString());
+			}
+			{
+				AppendableStringBuilder sb = new AppendableStringBuilder();
+
+				sb.append("CREATE TRIGGER ").append(triggerName).append("_t");
+				sb.append(" BEFORE TRUNCATE");
+				sb.append(" ON \"").append(schemaAndTableName[1]).append("\" EXECUTE PROCEDURE lo_manage(");
+				sqlBuilder.escapeName(columnEntry.getFieldName(), sb);
+				sb.append(")");
+				sql.add(sb.toString());
+			}
+		}
+		return sql.toArray(String.class);
+	}
+
+	@Override
+	public String[] createOptimisticLockTrigger(Connection connection, String fqTableName) throws SQLException
+	{
+		if (PostgresDialect.BIN_TABLE_NAME.matcher(fqTableName).matches() || PostgresDialect.IDX_TABLE_NAME.matcher(fqTableName).matches())
 		{
 			return new String[0];
 		}
-		String[] names = sqlBuilder.getSchemaAndTableName(fullyQualifiedTableName);
+		String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
 		ArrayList<String> tableColumns = new ArrayList<String>();
 		ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
 		try
@@ -204,7 +246,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 			JdbcUtil.close(tableColumnsRS);
 		}
 		int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
-		String triggerName = ormPatternMatcher.buildOptimisticLockTriggerFromTableName(fullyQualifiedTableName, maxProcedureNameLength);
+		String triggerName = ormPatternMatcher.buildOptimisticLockTriggerFromTableName(fqTableName, maxProcedureNameLength);
 
 		String functionName = "f_" + triggerName;
 		String[] sql = new String[2];
@@ -471,7 +513,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 			}
 		}
 
-		sqlCommand = prepareCommandIntern(sqlCommand, " BLOB", " BYTEA");
+		sqlCommand = prepareCommandIntern(sqlCommand, " BLOB", " LO");
 		sqlCommand = prepareCommandIntern(sqlCommand, " CLOB", " TEXT");
 
 		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1 *, *0 *\\)", " BOOLEAN");

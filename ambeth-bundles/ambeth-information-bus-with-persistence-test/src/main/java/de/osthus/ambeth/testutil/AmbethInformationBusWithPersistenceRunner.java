@@ -354,7 +354,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			{
 				ensureSchemaEmpty(connection);
 
-				getOrCreateSchemaContext().getService(IConnectionTestDialect.class).preStructureRebuild(getConnection());
+				getOrCreateSchemaContext().getService(IConnectionTestDialect.class).preStructureRebuild(connection);
 				ISchemaRunnable[] structureRunnables = getStructureRunnables(callingClass, callingClass);
 				for (ISchemaRunnable structRunnable : structureRunnables)
 				{
@@ -372,7 +372,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			}
 			isStructureRebuildAlreadyHandled = true;
 		}
-		catch (Exception e)
+		catch (Throwable e)
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
@@ -1242,6 +1242,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		for (String tableName : tableNames)
 		{
 			sql.addAll(connectionDialect.createOptimisticLockTrigger(conn, tableName));
+			sql.addAll(connectionDialect.createAdditionalTriggers(conn, tableName));
 		}
 		executeScript(sql, conn, false);
 	}

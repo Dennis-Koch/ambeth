@@ -16,6 +16,8 @@ public interface IConnectionTestDialect
 
 	String[] createOptimisticLockTrigger(Connection connection, String tableName) throws SQLException;
 
+	String[] createAdditionalTriggers(Connection connection, String tableName) throws SQLException;
+
 	List<String> getTablesWithoutPermissionGroup(Connection conn) throws SQLException;
 
 	String[] createPermissionGroup(Connection conn, String tableName) throws SQLException;

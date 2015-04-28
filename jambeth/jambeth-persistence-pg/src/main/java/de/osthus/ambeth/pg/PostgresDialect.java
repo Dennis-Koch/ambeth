@@ -2,6 +2,7 @@ package de.osthus.ambeth.pg;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -22,6 +23,8 @@ import javax.persistence.PersistenceException;
 import javax.persistence.PessimisticLockException;
 
 import org.postgresql.Driver;
+import org.postgresql.PGConnection;
+import org.postgresql.largeobject.LargeObjectManager;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
@@ -37,6 +40,8 @@ import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.ITransactionState;
 import de.osthus.ambeth.persistence.IColumnEntry;
+import de.osthus.ambeth.persistence.IDatabase;
+import de.osthus.ambeth.persistence.IFieldMetaData;
 import de.osthus.ambeth.persistence.SQLState;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.exception.NullConstraintException;
@@ -46,7 +51,6 @@ import de.osthus.ambeth.persistence.jdbc.ColumnEntry;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.connection.IConnectionKeyHandle;
 import de.osthus.ambeth.sql.ISqlBuilder;
-import de.osthus.ambeth.util.IConversionHelper;
 
 public class PostgresDialect extends AbstractConnectionDialect
 {
@@ -100,15 +104,17 @@ public class PostgresDialect extends AbstractConnectionDialect
 		return 54;
 	}
 
+	public static boolean isLobColumnName(String typeName)
+	{
+		return "lo".equals(typeName);
+	}
+
 	@LogInstance
 	private ILogger log;
 
 	protected final DateFormat defaultDateFormat = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
 
 	protected final WeakHashMap<IConnectionKeyHandle, ConnectionKeyValue> connectionToConstraintSqlMap = new WeakHashMap<IConnectionKeyHandle, ConnectionKeyValue>();
-
-	@Autowired
-	protected IConversionHelper conversionHelper;
 
 	@Autowired
 	protected ILoggerHistory loggerHistory;
@@ -153,6 +159,49 @@ public class PostgresDialect extends AbstractConnectionDialect
 	public int getMaxInClauseBatchThreshold()
 	{
 		return 4000;
+	}
+
+	@Override
+	public Blob createBlob(Connection connection) throws SQLException
+	{
+		return new PostgresBlobMock(connection.unwrap(PGConnection.class));
+	}
+
+	@Override
+	public Object convertToFieldType(IFieldMetaData field, Object value)
+	{
+		if (!isLobColumnName(field.getOriginalTypeName()))
+		{
+			return super.convertToFieldType(field, value);
+		}
+		return conversionHelper.convertValueToType(Blob.class, value, field.getFieldSubType());
+	}
+
+	@Override
+	public Object convertFromFieldType(IDatabase database, IFieldMetaData field, Class<?> expectedType, Object value)
+	{
+		if (!isLobColumnName(field.getOriginalTypeName()))
+		{
+			return super.convertFromFieldType(database, field, expectedType, value);
+		}
+		long oid = conversionHelper.convertValueToType(Number.class, value).longValue();
+		try
+		{
+			PGConnection connection = database.getAutowiredBeanInContext(Connection.class).unwrap(PGConnection.class);
+			PostgresBlobMock blob = new PostgresBlobMock(connection, oid, LargeObjectManager.READ);
+			try
+			{
+				return conversionHelper.convertValueToType(expectedType, blob);
+			}
+			finally
+			{
+				blob.free();
+			}
+		}
+		catch (SQLException e)
+		{
+			throw createPersistenceException(e, null);
+		}
 	}
 
 	@Override

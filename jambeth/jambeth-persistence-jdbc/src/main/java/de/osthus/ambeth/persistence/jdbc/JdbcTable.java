@@ -127,6 +127,10 @@ public class JdbcTable extends SqlTable
 			executeBatchedStatements(fieldsToInsertStmtMap);
 			return new int[0];
 		}
+		catch (SQLException e)
+		{
+			throw connectionDialect.createPersistenceException(e, null);
+		}
 		catch (Throwable e)
 		{
 			throw RuntimeExceptionUtil.mask(e);
@@ -158,7 +162,7 @@ public class JdbcTable extends SqlTable
 		}
 	}
 
-	protected void executeBatchedStatements(ILinkedMap<Integer, ILinkedMap<String, PreparedStatement>> fieldsToStmtMap)
+	protected void executeBatchedStatements(ILinkedMap<Integer, ILinkedMap<String, PreparedStatement>> fieldsToStmtMap) throws SQLException
 	{
 		if (fieldsToStmtMap.size() == 0)
 		{
@@ -176,10 +180,6 @@ public class JdbcTable extends SqlTable
 					prep.executeBatch();
 				}
 			}
-		}
-		catch (SQLException e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally
 		{
@@ -809,7 +809,6 @@ public class JdbcTable extends SqlTable
 	protected String generateNamesKey(ILinkedMap<IFieldMetaData, Object> puis, String[] fieldNames, Object[] values)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		IConversionHelper conversionHelper = this.conversionHelper;
 		StringBuilder namesKeySB = tlObjectCollector.create(StringBuilder.class);
 		try
 		{
@@ -821,7 +820,7 @@ public class JdbcTable extends SqlTable
 				{
 					newValue = Array.newInstance(field.getFieldSubType(), 0);
 				}
-				Object convertedValue = conversionHelper.convertValueToType(field.getFieldType(), newValue, field.getFieldSubType());
+				Object convertedValue = connectionDialect.convertToFieldType(field, newValue);
 				int fieldIndex = field.getIndexOnTable();
 				values[fieldIndex] = convertedValue;
 				fieldNames[fieldIndex] = field.getName();

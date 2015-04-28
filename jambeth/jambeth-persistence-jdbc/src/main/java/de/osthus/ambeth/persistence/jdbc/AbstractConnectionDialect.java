@@ -1,5 +1,6 @@
 package de.osthus.ambeth.persistence.jdbc;
 
+import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
@@ -25,10 +26,13 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.ITransactionState;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IConnectionDialect;
+import de.osthus.ambeth.persistence.IDatabase;
+import de.osthus.ambeth.persistence.IFieldMetaData;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.connection.IConnectionKeyHandle;
 import de.osthus.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
+import de.osthus.ambeth.util.IConversionHelper;
 
 public abstract class AbstractConnectionDialect implements IConnectionDialect, IInitializingBean, IDisposableBean
 {
@@ -59,6 +63,9 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IConversionHelper conversionHelper;
 
 	@Autowired
 	protected IDatabaseConnectionUrlProvider databaseConnectionUrlProvider;
@@ -102,6 +109,24 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 	}
 
 	protected abstract Class<?> getDriverType();
+
+	@Override
+	public Blob createBlob(Connection connection) throws SQLException
+	{
+		return connection.createBlob();
+	}
+
+	@Override
+	public Object convertToFieldType(IFieldMetaData field, Object value)
+	{
+		return conversionHelper.convertValueToType(field.getFieldType(), value, field.getFieldSubType());
+	}
+
+	@Override
+	public Object convertFromFieldType(IDatabase database, IFieldMetaData field, Class<?> expectedType, Object value)
+	{
+		return conversionHelper.convertValueToType(expectedType, value);
+	}
 
 	@Override
 	public String toDefaultCase(String identifier)
