@@ -400,7 +400,9 @@ public class SqlTable extends Table
 			{
 				for (String additionalFieldName : additionalSelectColumnSet)
 				{
-					selectSB.append(',').append(additionalFieldName);
+					selectSB.append(',');
+					sqlBuilder.appendName(additionalFieldName, selectSB);
+					// selectSB.append(',').append(additionalFieldName);
 					// selectSB.append(',').append(sqlBuilder.escapeName(additionalFieldName));
 				}
 			}
