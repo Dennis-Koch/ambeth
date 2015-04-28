@@ -80,6 +80,16 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 			}
 			Properties props = new Properties(de.osthus.ambeth.config.Properties.getApplication());
 			IPlatformContextConfiguration pcc = PlatformContextConfiguration.create();
+			pcc.addFrameworkModule(new IInitializingModule()
+			{
+				@Override
+				public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
+				{
+					beanContextFactory.registerExternalBean(servletContext).autowireable(ServletContext.class);
+					beanContextFactory.registerBean(HttpSessionBean.class).ignoreProperties("CurrentHttpSession")
+							.autowireable(HttpSession.class, IHttpSessionSetter.class);
+				}
+			});
 			pcc.addProperties(props);
 			// HOTFIX: Should be coded better if there is time
 			pcc.addProviderModule(new BootstrapScannerModule()
@@ -88,14 +98,6 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 				protected ServletContext getServletContext()
 				{
 					return servletContext;
-				}
-			});
-			pcc.addProviderModule(new IInitializingModule()
-			{
-				@Override
-				public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-				{
-					beanContextFactory.registerExternalBean("servletContext", servletContext).autowireable(ServletContext.class);
 				}
 			});
 			context = pcc.createPlatformContext();
@@ -186,6 +188,9 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 		String passwordType = servletRequest.getParameter(USER_PASS_TYPE);
 		HttpSession session = ((HttpServletRequest) servletRequest).getSession();
 		ServletContext servletContext = sre.getServletContext();
+
+		getService(servletContext, IHttpSessionSetter.class).setCurrentHttpSession(session);
+
 		if (userName != null)
 		{
 			PasswordType passwordTypeEnum = passwordType != null ? PasswordType.valueOf(passwordType) : PasswordType.PLAIN;
@@ -206,20 +211,16 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 	@Override
 	public void requestDestroyed(ServletRequestEvent sre)
 	{
-		postServiceCall(sre.getServletContext());
+		IServiceContext beanContext = getServiceContext(sre.getServletContext());
+		beanContext.getService(IHttpSessionSetter.class).setCurrentHttpSession(null);
+		beanContext.getService(ISecurityContextHolder.class).clearContext();
+		beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
 	}
 
 	protected void setAuthentication(ServletContext servletContext, IAuthentication authentication)
 	{
 		ISecurityContext securityContext = getService(servletContext, ISecurityContextHolder.class).getCreateContext();
 		securityContext.setAuthentication(authentication);
-	}
-
-	protected void postServiceCall(ServletContext servletContext)
-	{
-		IServiceContext beanContext = getServiceContext(servletContext);
-		beanContext.getService(ISecurityContextHolder.class).clearContext();
-		beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
 	}
 
 	protected <T> T getService(ServletContext servletContext, Class<T> serviceType)

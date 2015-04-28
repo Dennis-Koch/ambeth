@@ -353,6 +353,10 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable, Cloneab
 
 	protected boolean addIntern(K key)
 	{
+		if (key == null)
+		{
+			return false;
+		}
 		final int hash = hash(extractHash(key));
 		ISetEntry<K>[] table = this.table;
 		final int i = hash & table.length - 1;
