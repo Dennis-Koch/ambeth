@@ -37,6 +37,7 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.FieldVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.MethodVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
+import de.osthus.ambeth.repackaged.org.objectweb.asm.TypePath;
 
 /**
  * A {@link de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor ClassVisitor} that generates SAX 2.0
@@ -81,7 +82,7 @@ public final class SAXClassAdapter extends ClassVisitor {
      *            {@link ContentHandler#endDocument() endDocument()} events.
      */
     public SAXClassAdapter(final ContentHandler h, boolean singleDocument) {
-        super(Opcodes.ASM4);
+        super(Opcodes.ASM5);
         this.sa = new SAXAdapter(h);
         this.singleDocument = singleDocument;
         if (!singleDocument) {
@@ -122,6 +123,13 @@ public final class SAXClassAdapter extends ClassVisitor {
             final boolean visible) {
         return new SAXAnnotationAdapter(sa, "annotation", visible ? 1 : -1,
                 null, desc);
+    }
+
+    @Override
+    public AnnotationVisitor visitTypeAnnotation(int typeRef,
+            TypePath typePath, String desc, boolean visible) {
+        return new SAXAnnotationAdapter(sa, "typeAnnotation", visible ? 1 : -1,
+                null, desc, typeRef, typePath);
     }
 
     @Override
@@ -320,6 +328,9 @@ public final class SAXClassAdapter extends ClassVisitor {
         }
         if ((access & Opcodes.ACC_DEPRECATED) != 0) {
             sb.append("deprecated ");
+        }
+        if ((access & Opcodes.ACC_MANDATED) != 0) {
+            sb.append("mandated ");
         }
     }
 }

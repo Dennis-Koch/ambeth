@@ -1,2 +1,4 @@
 Exported and Repackaged
-Origin: http://reflectasm.googlecode.com/svn/tags/1.07/src
+JH 2015-04-28
+Origin: https://github.com/EsotericSoftware/reflectasm
+Version: 1.11.0

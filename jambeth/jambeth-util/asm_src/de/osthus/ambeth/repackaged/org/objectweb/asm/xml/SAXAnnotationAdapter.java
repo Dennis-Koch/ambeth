@@ -34,6 +34,7 @@ import org.xml.sax.helpers.AttributesImpl;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.AnnotationVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
+import de.osthus.ambeth.repackaged.org.objectweb.asm.TypePath;
 
 /**
  * SAXAnnotationAdapter
@@ -48,17 +49,43 @@ public final class SAXAnnotationAdapter extends AnnotationVisitor {
 
     public SAXAnnotationAdapter(final SAXAdapter sa, final String elementName,
             final int visible, final String name, final String desc) {
-        this(Opcodes.ASM4, sa, elementName, visible, desc, name, -1);
+        this(Opcodes.ASM5, sa, elementName, visible, desc, name, -1, -1, null,
+                null, null, null);
     }
 
     public SAXAnnotationAdapter(final SAXAdapter sa, final String elementName,
             final int visible, final int parameter, final String desc) {
-        this(Opcodes.ASM4, sa, elementName, visible, desc, null, parameter);
+        this(Opcodes.ASM5, sa, elementName, visible, desc, null, parameter, -1,
+                null, null, null, null);
+    }
+
+    public SAXAnnotationAdapter(final SAXAdapter sa, final String elementName,
+            final int visible, final String name, final String desc,
+            final int typeRef, final TypePath typePath) {
+        this(Opcodes.ASM5, sa, elementName, visible, desc, name, -1, typeRef,
+                typePath, null, null, null);
+    }
+
+    public SAXAnnotationAdapter(final SAXAdapter sa, final String elementName,
+            final int visible, final String name, final String desc,
+            int typeRef, TypePath typePath, final String[] start,
+            final String[] end, final int[] index) {
+        this(Opcodes.ASM5, sa, elementName, visible, desc, name, -1, typeRef,
+                typePath, start, end, index);
     }
 
     protected SAXAnnotationAdapter(final int api, final SAXAdapter sa,
             final String elementName, final int visible, final String desc,
             final String name, final int parameter) {
+        this(api, sa, elementName, visible, desc, name, parameter, -1, null,
+                null, null, null);
+    }
+
+    protected SAXAnnotationAdapter(final int api, final SAXAdapter sa,
+            final String elementName, final int visible, final String desc,
+            final String name, final int parameter, final int typeRef,
+            final TypePath typePath, final String[] start, final String[] end,
+            final int[] index) {
         super(api);
         this.sa = sa;
         this.elementName = elementName;
@@ -77,6 +104,36 @@ public final class SAXAnnotationAdapter extends AnnotationVisitor {
         }
         if (desc != null) {
             att.addAttribute("", "desc", "desc", "", desc);
+        }
+        if (typeRef != -1) {
+            att.addAttribute("", "typeRef", "typeRef", "",
+                    Integer.toString(typeRef));
+        }
+        if (typePath != null) {
+            att.addAttribute("", "typePath", "typePath", "",
+                    typePath.toString());
+        }
+        if (start != null) {
+            StringBuffer value = new StringBuffer(start[0]);
+            for (int i = 1; i < start.length; ++i) {
+                value.append(" ").append(start[i]);
+            }
+            att.addAttribute("", "start", "start", "", value.toString());
+        }
+        if (end != null) {
+            StringBuffer value = new StringBuffer(end[0]);
+            for (int i = 1; i < end.length; ++i) {
+                value.append(" ").append(end[i]);
+            }
+            att.addAttribute("", "end", "end", "", value.toString());
+        }
+        if (index != null) {
+            StringBuffer value = new StringBuffer();
+            value.append(index[0]);
+            for (int i = 1; i < index.length; ++i) {
+                value.append(" ").append(index[i]);
+            }
+            att.addAttribute("", "index", "index", "", value.toString());
         }
 
         sa.addStart(elementName, att);
