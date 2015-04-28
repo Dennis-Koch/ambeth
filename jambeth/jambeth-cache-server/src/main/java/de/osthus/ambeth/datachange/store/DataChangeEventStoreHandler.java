@@ -60,6 +60,24 @@ public class DataChangeEventStoreHandler implements IEventStoreHandler, IInitial
 		writeLock.lock();
 		try
 		{
+			// important to process the deletes first: technically it may be possible that a new entity in the same transaction
+			// got the (released) primary id of a deleted entity. So we need to release the deletes first
+			for (int a = deletes.size(); a-- > 0;)
+			{
+				ObjRefStore objRefStore = writeToCacheEntry(deletes.get(a), true);
+				if (objRefStore == null)
+				{
+					continue;
+				}
+				allArray[index++] = objRefStore;
+			}
+			if (index != deletes.size())
+			{
+				// at least one deleted entity has no assigned ObjRefStore
+				ObjRefStore[] newAllArray = new ObjRefStore[allArray.length - deletes.size() + index];
+				System.arraycopy(allArray, 0, newAllArray, 0, index);
+				allArray = newAllArray;
+			}
 			for (int a = insertCount; a-- > 0;)
 			{
 				allArray[index++] = writeToCacheEntry(inserts.get(a), false);
@@ -67,10 +85,6 @@ public class DataChangeEventStoreHandler implements IEventStoreHandler, IInitial
 			for (int a = updateCount; a-- > 0;)
 			{
 				allArray[index++] = writeToCacheEntry(updates.get(a), false);
-			}
-			for (int a = deletes.size(); a-- > 0;)
-			{
-				allArray[index++] = writeToCacheEntry(deletes.get(a), true);
 			}
 		}
 		finally
@@ -119,15 +133,22 @@ public class DataChangeEventStoreHandler implements IEventStoreHandler, IInitial
 	{
 		ObjRefStoreSet objRefToDataChangeEntrySet = this.objRefToDataChangeEntrySet;
 		ObjRefStore cachedEntry;
+		Class<?> entityType = dataChangeEntry.getEntityType();
+		byte idIndex = dataChangeEntry.getIdNameIndex();
+		Object id = dataChangeEntry.getId();
 		if (isDeleteEntry)
 		{
+			if (id == null)
+			{
+				// this happens if an unpersisted entity gets deleted in the same transaction
+				return null;
+			}
 			// After a specific delete the ObjRefStore will never be used by any other insert/update/delete again
 			// So there is no need to hold an entry in our usage-set
-			cachedEntry = objRefToDataChangeEntrySet.remove(dataChangeEntry.getEntityType(), dataChangeEntry.getIdNameIndex(), dataChangeEntry.getId());
+			cachedEntry = objRefToDataChangeEntrySet.remove(entityType, idIndex, id);
 			if (cachedEntry == null)
 			{
-				cachedEntry = createObjRef(dataChangeEntry.getEntityType(), dataChangeEntry.getIdNameIndex(), dataChangeEntry.getId(),
-						dataChangeEntry.getVersion());
+				cachedEntry = createObjRef(entityType, idIndex, id, dataChangeEntry.getVersion());
 			}
 			else
 			{
@@ -137,10 +158,10 @@ public class DataChangeEventStoreHandler implements IEventStoreHandler, IInitial
 		}
 		else
 		{
-			cachedEntry = objRefToDataChangeEntrySet.get(dataChangeEntry.getEntityType(), dataChangeEntry.getIdNameIndex(), dataChangeEntry.getId());
+			cachedEntry = objRefToDataChangeEntrySet.get(entityType, idIndex, id);
 			if (cachedEntry == null)
 			{
-				cachedEntry = objRefToDataChangeEntrySet.put(dataChangeEntry.getEntityType(), dataChangeEntry.getIdNameIndex(), dataChangeEntry.getId());
+				cachedEntry = objRefToDataChangeEntrySet.put(entityType, idIndex, id);
 			}
 			// Cached version is supposed to be always OLDER than the given one
 			cachedEntry.setVersion(dataChangeEntry.getVersion());

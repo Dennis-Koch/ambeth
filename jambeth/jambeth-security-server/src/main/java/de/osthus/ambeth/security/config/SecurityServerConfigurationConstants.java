@@ -130,21 +130,50 @@ public final class SecurityServerConfigurationConstants
 	@ConfigurationConstantDescription("Configures the keyspec name which is used to encrypt salts. Must be compatible to the configured 'security.login.salt.algorithm.name'. Value itself is not considered unless a specific salt password is defined. Optional parameter. Default = AES")
 	public static final String SignatureEncryptionKeySpecName = "security.signature.encryption.keyspec.name";
 
+	@ConfigurationConstantDescription("TODO")
 	public static final String SignaturePaddedKeyIterationCount = "security.signature.encryption.algorithm.iterationcount";
 
+	@ConfigurationConstantDescription("TODO")
 	public static final String EncryptionKeySpecName = "security.crypto.keyspec.name";
 
+	@ConfigurationConstantDescription("TODO")
 	public static final String EncryptionAlgorithmName = "security.crypto.algorithm.name";
 
+	@ConfigurationConstantDescription("TODO")
 	public static final String EncryptionPaddedKeyAlgorithmName = "security.crypto.paddedkey.algorithm.name";
 
+	@ConfigurationConstantDescription("TODO")
 	public static final String EncryptionPaddedKeyIterationCount = "security.crypto.paddedkey.iterationcount";
 
+	@ConfigurationConstantDescription("TODO")
 	public static final String EncryptionPaddedKeySize = "security.crypto.paddedkey.size";
 
+	@ConfigurationConstantDescription("TODO")
 	public static final String EncryptionPaddedKeySaltSize = "security.crypto.paddedkey.saltsize";
 
+	@ConfigurationConstantDescription("TODO")
 	public static final String SignatureActive = "security.signature.active";
+
+	@ConfigurationConstantDescription("TODO")
+	public static final String AuthenticationManagerType = "security.authmanager.type";
+
+	@ConfigurationConstantDescription("TODO")
+	public static final String LdapDomain = "security.ldap.domain";
+
+	@ConfigurationConstantDescription("TODO")
+	public static final String LdapHost = "security.ldap.host";
+
+	@ConfigurationConstantDescription("TODO")
+	public static final String LdapBase = "security.ldap.base";
+
+	@ConfigurationConstantDescription("TODO")
+	public static final String LdapUserAttribute = "security.ldap.userattribute";
+
+	@ConfigurationConstantDescription("TODO")
+	public static final String LdapCtxFactory = "security.ldap.ctxfactory";
+
+	@ConfigurationConstantDescription("TODO")
+	public static final String LdapFilter = "security.ldap.filter";
 
 	private SecurityServerConfigurationConstants()
 	{

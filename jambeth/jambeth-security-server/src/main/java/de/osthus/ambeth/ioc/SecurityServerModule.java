@@ -1,6 +1,8 @@
 package de.osthus.ambeth.ioc;
 
+import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
@@ -13,7 +15,6 @@ import de.osthus.ambeth.privilege.IEntityPermissionRuleExtendable;
 import de.osthus.ambeth.privilege.IEntityTypePermissionRule;
 import de.osthus.ambeth.privilege.IEntityTypePermissionRuleExtendable;
 import de.osthus.ambeth.privilege.IPermissionRule;
-import de.osthus.ambeth.security.AuthenticationManager;
 import de.osthus.ambeth.security.DefaultServiceFilter;
 import de.osthus.ambeth.security.IActionPermission;
 import de.osthus.ambeth.security.IAuthenticationManager;
@@ -27,6 +28,10 @@ import de.osthus.ambeth.security.PBEncryptor;
 import de.osthus.ambeth.security.PasswordUtil;
 import de.osthus.ambeth.security.PersistedPrivateKeyProvider;
 import de.osthus.ambeth.security.SignatureUtil;
+import de.osthus.ambeth.security.auth.EmbeddedAuthenticationManager;
+import de.osthus.ambeth.security.auth.AuthenticationResultCache;
+import de.osthus.ambeth.security.auth.IAuthenticationResultCache;
+import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.privilegeprovider.ActionPermissionRule;
 import de.osthus.ambeth.security.proxy.SecurityPostProcessor;
 
@@ -40,6 +45,9 @@ public class SecurityServerModule implements IInitializingModule
 	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean isSecurityActive;
 
+	@Property(name = SecurityServerConfigurationConstants.AuthenticationManagerType, mandatory = false)
+	protected Class<?> authenticationManagerType;
+
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
@@ -52,7 +60,20 @@ public class SecurityServerModule implements IInitializingModule
 		{
 			beanContextFactory.registerBean(SecurityPostProcessor.class);
 
-			beanContextFactory.registerBean(AuthenticationManager.class).autowireable(IAuthenticationManager.class);
+			if (authenticationManagerType == null)
+			{
+				authenticationManagerType = EmbeddedAuthenticationManager.class;
+			}
+
+			// Check to Object.class is a "feature" to allow to fully customize the bean definition from another module
+			if (authenticationManagerType != Object.class)
+			{
+				beanContextFactory.registerBean(authenticationManagerType).autowireable(IAuthenticationManager.class);
+			}
+			IBeanConfiguration authenticationResultCache = beanContextFactory.registerBean(AuthenticationResultCache.class).autowireable(
+					IAuthenticationResultCache.class);
+			beanContextFactory.link(authenticationResultCache, AuthenticationResultCache.DELEGATE_HANDLE_CLEAR_ALL_CACHES_EVENT)
+					.to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 
 			beanContextFactory.registerBean(de.osthus.ambeth.security.SecurityManager.class).autowireable(ISecurityManager.class, IMergeSecurityManager.class,
 					IServiceFilterExtendable.class);
