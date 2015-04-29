@@ -12,6 +12,7 @@ import de.osthus.ambeth.audit.model.IAuditedEntityRef;
 import de.osthus.ambeth.audit.model.IAuditedEntityRelationProperty;
 import de.osthus.ambeth.audit.model.IAuditedEntityRelationPropertyItem;
 import de.osthus.ambeth.audit.model.IAuditedService;
+import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.exceptions.AuditReasonMissingException;
@@ -30,10 +31,20 @@ import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.privilege.IEntityPermissionRule;
 import de.osthus.ambeth.privilege.evaluation.IEntityPermissionEvaluation;
+import de.osthus.ambeth.query.IQuery;
+import de.osthus.ambeth.query.IQueryBuilder;
+import de.osthus.ambeth.query.OrderByType;
+import de.osthus.ambeth.security.CallPermission;
+import de.osthus.ambeth.security.DefaultAuthentication;
+import de.osthus.ambeth.security.DefaultAuthorization;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.IPasswordUtil;
+import de.osthus.ambeth.security.ISecurityContext;
+import de.osthus.ambeth.security.ISecurityContextHolder;
+import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.IUserIdentifierProvider;
 import de.osthus.ambeth.security.IUserResolver;
+import de.osthus.ambeth.security.PasswordType;
 import de.osthus.ambeth.security.TestUserResolver;
 import de.osthus.ambeth.security.model.IPassword;
 import de.osthus.ambeth.security.model.ISignature;
@@ -114,13 +125,22 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 	protected IAuditInfoController auditController;
 
 	@Autowired
-	protected ITestAuditService testAuditService;
+	protected IAuditEntryVerifier auditEntryVerifier;
 
 	@Autowired
 	protected IMergeProcess mergeProcess;
 
 	@Autowired
 	protected IPasswordUtil passwordUtil;
+
+	@Autowired
+	protected ISecurityContextHolder securityContextHolder;
+
+	@Autowired
+	protected ISecurityScopeProvider securityScopeProvider;
+
+	@Autowired
+	protected ITestAuditService testAuditService;
 
 	@Test
 	public void myTest()
@@ -161,6 +181,51 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		user.setPassword(password);
 
 		mergeProcess.process(user, null, null, null);
+	}
+
+	@Test
+	public void verify()
+	{
+		char[] passwordOfUser = "abc".toCharArray();
+		User user = entityFactory.createEntity(User.class);
+		user.setName("MyName");
+		user.setSID("mySid");
+		user.setSignature(entityFactory.createEntity(ISignature.class));
+
+		Password password = entityFactory.createEntity(Password.class);
+		passwordUtil.assignNewPassword(passwordOfUser, password, user);
+		user.setPassword(password);
+
+		auditController.pushAuditReason("junit test");
+		try
+		{
+			mergeProcess.process(user, null, null, null);
+
+			// ISecurityScope[] scopes = new ISecurityScope[] { DefaultSecurityScope.INSTANCE };
+			ISecurityContext context = securityContextHolder.getCreateContext();
+			context.setAuthentication(new DefaultAuthentication(user.getSID(), passwordOfUser, PasswordType.PLAIN));
+			IAuthorization authorization = new DefaultAuthorization(user.getSID(), new ISecurityScope[0], CallPermission.UNDEFINED);
+			context.setAuthorization(authorization);
+			// securityScopeProvider.setSecurityScopes(scopes);
+
+			user.setName(user.getName() + "2");
+			mergeProcess.process(user, null, null, null);
+		}
+		finally
+		{
+			auditController.popAuditReason();
+		}
+
+		String refPath = IAuditEntry.Entities + "." + IAuditedEntity.Ref;
+		IQueryBuilder<IAuditEntry> qb = queryBuilderFactory.create(IAuditEntry.class);
+		qb.orderBy(qb.property(IAuditEntry.Timestamp), OrderByType.ASC);
+
+		IQuery<IAuditEntry> query = qb.build(qb.and(qb.isEqualTo(qb.property(refPath + "." + IAuditedEntityRef.EntityType), qb.value(User.class)),
+				qb.isEqualTo(qb.property(refPath + "." + IAuditedEntityRef.EntityId), qb.value(user.getId()))));
+
+		IList<IAuditEntry> auditEntriesOfUser = query.retrieve();
+		Assert.assertEquals(2, auditEntriesOfUser.size());
+		Assert.assertTrue(auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser.subList(1, auditEntriesOfUser.size())));
 	}
 
 	@Test

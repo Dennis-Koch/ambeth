@@ -1,12 +1,8 @@
 package de.osthus.ambeth.security;
 
-import java.lang.reflect.Method;
-
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.model.ISecurityScope;
-import de.osthus.ambeth.privilege.model.ITypePrivilege;
-import de.osthus.ambeth.privilege.model.impl.SkipAllTypePrivilege;
 
 public class TestAuthorizationManager implements IAuthorizationManager
 {
@@ -17,43 +13,6 @@ public class TestAuthorizationManager implements IAuthorizationManager
 	@Override
 	public IAuthorization authorize(final String sid, final ISecurityScope[] securityScopes)
 	{
-		return new IAuthorization()
-		{
-			@Override
-			public boolean isValid()
-			{
-				return true;
-			}
-
-			@Override
-			public boolean hasActionPermission(String actionPermissionName, ISecurityScope[] securityScopes)
-			{
-				return true;
-			}
-
-			@Override
-			public ISecurityScope[] getSecurityScopes()
-			{
-				return securityScopes;
-			}
-
-			@Override
-			public String getSID()
-			{
-				return sid;
-			}
-
-			@Override
-			public CallPermission getCallPermission(Method serviceOperation, ISecurityScope[] securityScopes)
-			{
-				return CallPermission.ALLOWED;
-			}
-
-			@Override
-			public ITypePrivilege getEntityTypePrivilege(Class<?> entityType, ISecurityScope[] securityScopes)
-			{
-				return SkipAllTypePrivilege.INSTANCE;
-			}
-		};
+		return new DefaultAuthorization(sid, securityScopes, CallPermission.ALLOWED);
 	}
 }

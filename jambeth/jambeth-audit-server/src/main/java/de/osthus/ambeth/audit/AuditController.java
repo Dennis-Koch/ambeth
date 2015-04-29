@@ -40,7 +40,6 @@ import de.osthus.ambeth.merge.ICUDResultApplier;
 import de.osthus.ambeth.merge.ICUDResultHelper;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IMergeListener;
-import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.model.CreateOrUpdateContainerBuild;
 import de.osthus.ambeth.merge.model.ICUDResult;
@@ -101,9 +100,6 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	protected IFirstLevelCacheManager firstLevelCacheManager;
 
 	@Autowired
-	protected IMergeProcess mergeProcess;
-
-	@Autowired
 	protected IMergeService mergeService;
 
 	@Autowired
@@ -130,6 +126,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Autowired
 	protected ISignatureUtil signatureUtil;
 
+	@Property(name = AuditConfigurationConstants.AuditVerifyExpectSignature, defaultValue = "true")
+	protected boolean expectSignatureOnVerify;
+
 	@Property(name = AuditConfigurationConstants.ProtocolVersion, defaultValue = "1")
 	protected int protocol;
 
@@ -150,6 +149,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 
 	protected IPrefetchHandle prefetchAuditEntries;
 
+	protected IPrefetchHandle prefetchSignaturesOfUser;
+
 	@Override
 	public void afterStarted() throws Throwable
 	{
@@ -158,7 +159,11 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 				.add(IAuditEntry.class, IAuditEntry.Entities)//
 				.add(IAuditedEntity.class, IAuditedEntity.Primitives)//
 				.add(IAuditedEntity.class, IAuditedEntity.Relations)//
-				.add(IAuditedEntityRelationProperty.class, IAuditedEntityRelationProperty.Items).build();
+				.add(IAuditedEntityRelationProperty.class, IAuditedEntityRelationProperty.Items)//
+				.build();
+		prefetchSignaturesOfUser = prefetchHelper.createPrefetch()//
+				.add(IAuditEntry.class, IAuditEntry.SignatureOfUser)//
+				.build();
 	}
 
 	@Override
@@ -451,38 +456,53 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Override
 	public boolean verifyAuditEntries(Collection<? extends IAuditEntry> auditEntries)
 	{
-		prefetchAuditEntries.prefetch(auditEntries);
-		boolean allEntriesValid = true;
+		prefetchSignaturesOfUser.prefetch(auditEntries);
+		ArrayList<IAuditEntry> auditEntriesToVerify = new ArrayList<IAuditEntry>(auditEntries.size());
 		HashMap<ISignature, java.security.Signature> signatureToSignatureHandleMap = new HashMap<ISignature, java.security.Signature>();
 		for (IAuditEntry auditEntry : auditEntries)
 		{
-			ISignature signature = auditEntry.getSignatureOfUser();
-			if (signature == null)
+			ISignature signatureOfUser = auditEntry.getSignatureOfUser();
+			char[] signature = auditEntry.getSignature();
+			if (signature == null && expectSignatureOnVerify)
 			{
-				if (auditEntry.getSignature() == null)
+				return false;
+			}
+			if (signatureOfUser == null)
+			{
+				if (signature == null)
 				{
 					// audit entries without a signature can not be verified but are intentionally treated as "valid"
 					continue;
 				}
-				throw new IllegalArgumentException(IAuditEntry.class.getSimpleName() + " has no signature to verify: " + auditEntry);
+				throw new IllegalArgumentException(IAuditEntry.class.getSimpleName() + " has no relation to a user signature: " + auditEntry);
 			}
+			auditEntriesToVerify.add(auditEntry);
+		}
+		prefetchAuditEntries.prefetch(auditEntriesToVerify);
+		for (IAuditEntry auditEntry : auditEntriesToVerify)
+		{
+			ISignature signatureOfUser = auditEntry.getSignatureOfUser();
+			char[] signature = auditEntry.getSignature();
 			try
 			{
-				java.security.Signature signatureHandle = signatureToSignatureHandleMap.get(signature);
+				java.security.Signature signatureHandle = signatureToSignatureHandleMap.get(signatureOfUser);
 				if (signatureHandle == null)
 				{
-					signatureHandle = signatureUtil.createVerifyHandle(signature.getSignAndVerify(), Base64.decode(signature.getPublicKey()));
-					signatureToSignatureHandleMap.put(signature, signatureHandle);
+					signatureHandle = signatureUtil.createVerifyHandle(signatureOfUser.getSignAndVerify(), Base64.decode(signatureOfUser.getPublicKey()));
+					signatureToSignatureHandleMap.put(signatureOfUser, signatureHandle);
 				}
 				writeToSignatureHandle(signatureHandle, auditEntry, null);
-				allEntriesValid |= signatureHandle.verify(Base64.decode(auditEntry.getSignature()));
+				if (!signatureHandle.verify(Base64.decode(signature)))
+				{
+					return false;
+				}
 			}
 			catch (Throwable e)
 			{
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
-		return allEntriesValid;
+		return true;
 	}
 
 	protected int getProtocol(IAuditEntry auditEntry, CreateOrUpdateContainerBuild auditEntryContainer)

@@ -8,18 +8,23 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 
 public class PrefetchConfig implements IPrefetchConfig
 {
-	protected final HashMap<Class<?>, List<String>> typeToMembersToInitialize = new HashMap<Class<?>, List<String>>();
+	protected final HashMap<Class<?>, ArrayList<String>> typeToMembersToInitialize = new HashMap<Class<?>, ArrayList<String>>();
 
 	@Autowired
 	protected ICachePathHelper cachePathHelper;
 
+	@Autowired
+	protected IEntityMetaDataProvider entityMetaDataProvider;
+
 	@Override
 	public IPrefetchConfig add(Class<?> entityType, String propertyPath)
 	{
-		List<String> membersToInitialize = typeToMembersToInitialize.get(entityType);
+		entityType = entityMetaDataProvider.getMetaData(entityType).getEntityType();
+		ArrayList<String> membersToInitialize = typeToMembersToInitialize.get(entityType);
 		if (membersToInitialize == null)
 		{
 			membersToInitialize = new ArrayList<String>();
@@ -30,13 +35,27 @@ public class PrefetchConfig implements IPrefetchConfig
 	}
 
 	@Override
+	public IPrefetchConfig add(Class<?> entityType, String... propertyPaths)
+	{
+		entityType = entityMetaDataProvider.getMetaData(entityType).getEntityType();
+		ArrayList<String> membersToInitialize = typeToMembersToInitialize.get(entityType);
+		if (membersToInitialize == null)
+		{
+			membersToInitialize = new ArrayList<String>();
+			typeToMembersToInitialize.put(entityType, membersToInitialize);
+		}
+		membersToInitialize.addAll(propertyPaths);
+		return this;
+	}
+
+	@Override
 	public IPrefetchHandle build()
 	{
 		LinkedHashMap<Class<?>, CachePath[]> entityTypeToPrefetchSteps = LinkedHashMap.create(typeToMembersToInitialize.size());
-		for (Entry<Class<?>, List<String>> entry : typeToMembersToInitialize)
+		for (Entry<Class<?>, ArrayList<String>> entry : typeToMembersToInitialize)
 		{
 			Class<?> entityType = entry.getKey();
-			List<String> membersToInitialize = entry.getValue();
+			ArrayList<String> membersToInitialize = entry.getValue();
 			entityTypeToPrefetchSteps.put(entityType, buildCachePath(entityType, membersToInitialize));
 		}
 		return new PrefetchHandle(entityTypeToPrefetchSteps, cachePathHelper);

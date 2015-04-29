@@ -1,6 +1,5 @@
 package de.osthus.ambeth.security;
 
-import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -57,8 +56,6 @@ import de.osthus.ambeth.privilege.IEntityPermissionRuleEvent;
 import de.osthus.ambeth.privilege.IEntityPermissionRuleProvider;
 import de.osthus.ambeth.privilege.IPrivilegeProvider;
 import de.osthus.ambeth.privilege.model.IPrivilege;
-import de.osthus.ambeth.privilege.model.ITypePrivilege;
-import de.osthus.ambeth.privilege.model.impl.SkipAllTypePrivilege;
 import de.osthus.ambeth.proxy.PersistenceContext;
 import de.osthus.ambeth.proxy.PersistenceContextType;
 import de.osthus.ambeth.query.IQuery;
@@ -863,43 +860,6 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 			}
 			return authorization;
 		}
-		return new IAuthorization()
-		{
-			@Override
-			public boolean isValid()
-			{
-				return true;
-			}
-
-			@Override
-			public boolean hasActionPermission(String actionPermissionName, ISecurityScope[] securityScopes)
-			{
-				return true;
-			}
-
-			@Override
-			public ISecurityScope[] getSecurityScopes()
-			{
-				return securityScopes;
-			}
-
-			@Override
-			public String getSID()
-			{
-				return sid;
-			}
-
-			@Override
-			public ITypePrivilege getEntityTypePrivilege(Class<?> entityType, ISecurityScope[] securityScopes)
-			{
-				return SkipAllTypePrivilege.INSTANCE;
-			}
-
-			@Override
-			public CallPermission getCallPermission(Method serviceOperation, ISecurityScope[] securityScopes)
-			{
-				return CallPermission.FORBIDDEN;
-			}
-		};
+		return new DefaultAuthorization(sid, securityScopes, CallPermission.FORBIDDEN);
 	}
 }
