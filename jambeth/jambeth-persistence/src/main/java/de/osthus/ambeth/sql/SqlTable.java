@@ -404,7 +404,10 @@ public class SqlTable extends Table
 				for (String additionalFieldName : additionalSelectColumnSet)
 				{
 					selectSB.append(',');
-					sqlBuilder.escapeName(additionalFieldName, selectSB);
+					sqlBuilder.appendName(additionalFieldName, selectSB);
+					// JH 2015-04-28: Field names have to be escaped. Field from orderBy are processed here.
+					// selectSB.append(',').append(additionalFieldName);
+					// selectSB.append(',').append(sqlBuilder.escapeName(additionalFieldName));
 				}
 			}
 			ResultSetPkVersionCursor versionCursor = retrieveAlternateIds ? new ResultSetVersionCursor() : new ResultSetPkVersionCursor();

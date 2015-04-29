@@ -200,6 +200,14 @@ public class MergeControllerClientTest extends AbstractInformationBusWithPersist
 	}
 
 	@Test
+	public void deleteUnpersistedEntity()
+	{
+		Parent parent = entityFactory.createEntity(Parent.class);
+		((IDataObject) parent).setToBeDeleted(true);
+		parentService.save(parent);
+	}
+
+	@Test
 	public void testSetAnotherChild()
 	{
 		Parent parent = cache.getObject(Parent.class, 1);

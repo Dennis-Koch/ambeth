@@ -1,18 +1,24 @@
-package de.osthus.ambeth.security;
+package de.osthus.ambeth.security.auth;
 
 import de.osthus.ambeth.cache.ICache;
-import de.osthus.ambeth.config.IocConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.security.AuthenticationException;
+import de.osthus.ambeth.security.IAuthentication;
+import de.osthus.ambeth.security.IAuthenticationResult;
+import de.osthus.ambeth.security.ICheckPasswordResult;
+import de.osthus.ambeth.security.IPasswordUtil;
+import de.osthus.ambeth.security.ISecurityActivation;
+import de.osthus.ambeth.security.IUserResolver;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.model.IPassword;
 import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 
-public class AuthenticationManager implements IAuthenticationManager
+public class EmbeddedAuthenticationManager extends AbstractAuthenticationManager
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -29,9 +35,6 @@ public class AuthenticationManager implements IAuthenticationManager
 
 	@Autowired
 	protected ISecurityActivation securityActivation;
-
-	@Property(name = IocConfigurationConstants.DebugModeActive, defaultValue = "false")
-	protected boolean debugModeActive;
 
 	@Property(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive, defaultValue = "true")
 	protected boolean autoRehashPasswords;
@@ -114,17 +117,5 @@ public class AuthenticationManager implements IAuthenticationManager
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
-	}
-
-	protected AuthenticationException createAuthenticationException(IAuthentication authentication)
-	{
-		// flush the stacktrace so that it can not be reconstructed whether the user existed or why specifically the authentication failed
-		// due to security reasons because the source code and its knowledge around it is considered unsafe
-		AuthenticationException e = new AuthenticationException("User '" + authentication.getUserName() + "' not found or credentials not valid");
-		if (!debugModeActive)
-		{
-			e.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
-		}
-		return e;
 	}
 }

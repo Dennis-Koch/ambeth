@@ -3,19 +3,24 @@ using System.Collections.Generic;
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Collections;
+using De.Osthus.Ambeth.Merge;
 
 namespace De.Osthus.Ambeth.Util
 {
     public class PrefetchConfig : IPrefetchConfig
     {
-        protected readonly HashMap<Type, IList<String>> typeToMembersToInitialize = new HashMap<Type, IList<String>>();
+        protected readonly HashMap<Type, List<String>> typeToMembersToInitialize = new HashMap<Type, List<String>>();
 
         [Autowired]
         public ICachePathHelper CachePathHelper { protected get; set; }
 
+		[Autowired]
+		public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
+
         public IPrefetchConfig Add(Type entityType, String propertyPath)
         {
-            IList<String> membersToInitialize = typeToMembersToInitialize.Get(entityType);
+			entityType = EntityMetaDataProvider.GetMetaData(entityType).EntityType;
+			List<String> membersToInitialize = typeToMembersToInitialize.Get(entityType);
             if (membersToInitialize == null)
             {
                 membersToInitialize = new List<String>();
@@ -25,13 +30,26 @@ namespace De.Osthus.Ambeth.Util
             return this;
         }
 
+		public IPrefetchConfig Add(Type entityType, params String[] propertyPaths)
+		{
+			entityType = EntityMetaDataProvider.GetMetaData(entityType).EntityType;
+			List<String> membersToInitialize = typeToMembersToInitialize.Get(entityType);
+			if (membersToInitialize == null)
+			{
+				membersToInitialize = new List<String>();
+				typeToMembersToInitialize.Put(entityType, membersToInitialize);
+			}
+			membersToInitialize.AddRange(propertyPaths);
+			return this;
+		}
+
         public IPrefetchHandle Build()
         {
             LinkedHashMap<Type, CachePath[]> entityTypeToPrefetchSteps = LinkedHashMap<Type, CachePath[]>.Create(typeToMembersToInitialize.Count);
-            foreach (Entry<Type, IList<String>> entry in typeToMembersToInitialize)
+            foreach (Entry<Type, List<String>> entry in typeToMembersToInitialize)
             {
                 Type entityType = entry.Key;
-                IList<String> membersToInitialize = entry.Value;
+				List<String> membersToInitialize = entry.Value;
                 entityTypeToPrefetchSteps.Put(entityType, BuildCachePath(entityType, membersToInitialize));
             }
             return new PrefetchHandle(entityTypeToPrefetchSteps, CachePathHelper);
