@@ -64,7 +64,8 @@ import de.osthus.ambeth.service.ICacheRetrieverExtendable;
 import de.osthus.ambeth.service.ICacheServiceByNameExtendable;
 import de.osthus.ambeth.service.IOfflineListener;
 import de.osthus.ambeth.service.IOfflineListenerExtendable;
-import de.osthus.ambeth.service.IPropertyCacheRetrieverExtendable;
+import de.osthus.ambeth.service.IPrimitiveRetrieverExtendable;
+import de.osthus.ambeth.service.IRelationRetrieverExtendable;
 import de.osthus.ambeth.util.CacheHelper;
 import de.osthus.ambeth.util.ICacheHelper;
 import de.osthus.ambeth.util.ICachePathHelper;
@@ -130,7 +131,7 @@ public class CacheModule implements IInitializingModule
 		beanContextFactory.registerAutowireableBean(IRootCacheValueFactory.class, RootCacheValueFactory.class);
 
 		beanContextFactory.registerBean(ROOT_CACHE_RETRIEVER, CacheRetrieverRegistry.class).autowireable(ICacheServiceByNameExtendable.class,
-				ICacheRetrieverExtendable.class, IPropertyCacheRetrieverExtendable.class);
+				ICacheRetrieverExtendable.class, IRelationRetrieverExtendable.class, IPrimitiveRetrieverExtendable.class);
 
 		beanContextFactory.registerBean("firstLevelCacheManager", FirstLevelCacheManager.class).autowireable(IFirstLevelCacheExtendable.class,
 				IFirstLevelCacheManager.class);
