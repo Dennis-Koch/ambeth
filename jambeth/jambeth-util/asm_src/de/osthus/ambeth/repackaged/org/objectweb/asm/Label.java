@@ -29,6 +29,7 @@
  */
 package de.osthus.ambeth.repackaged.org.objectweb.asm;
 
+
 /**
  * A label represents a position in the bytecode of a method. Labels are used
  * for jump, goto, and switch instructions, and for try catch blocks. A label
@@ -473,7 +474,7 @@ public class Label {
     void addToSubroutine(final long id, final int nbSubroutines) {
         if ((status & VISITED) == 0) {
             status |= VISITED;
-            srcAndRefPositions = new int[(nbSubroutines - 1) / 32 + 1];
+            srcAndRefPositions = new int[nbSubroutines / 32 + 1];
         }
         srcAndRefPositions[(int) (id >>> 32)] |= (int) id;
     }

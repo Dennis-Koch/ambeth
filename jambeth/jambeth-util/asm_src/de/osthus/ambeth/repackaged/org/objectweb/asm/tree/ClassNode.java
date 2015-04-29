@@ -39,6 +39,7 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.FieldVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.MethodVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
+import de.osthus.ambeth.repackaged.org.objectweb.asm.TypePath;
 
 /**
  * A node that represents a class.
@@ -118,7 +119,7 @@ public class ClassNode extends ClassVisitor {
      * The runtime visible annotations of this class. This list is a list of
      * {@link AnnotationNode} objects. May be <tt>null</tt>.
      * 
-     * @associates org.objectweb.asm.tree.AnnotationNode
+     * @associates de.osthus.ambeth.repackaged.org.objectweb.asm.tree.AnnotationNode
      * @label visible
      */
     public List<AnnotationNode> visibleAnnotations;
@@ -127,16 +128,34 @@ public class ClassNode extends ClassVisitor {
      * The runtime invisible annotations of this class. This list is a list of
      * {@link AnnotationNode} objects. May be <tt>null</tt>.
      * 
-     * @associates org.objectweb.asm.tree.AnnotationNode
+     * @associates de.osthus.ambeth.repackaged.org.objectweb.asm.tree.AnnotationNode
      * @label invisible
      */
     public List<AnnotationNode> invisibleAnnotations;
 
     /**
+     * The runtime visible type annotations of this class. This list is a list
+     * of {@link TypeAnnotationNode} objects. May be <tt>null</tt>.
+     * 
+     * @associates de.osthus.ambeth.repackaged.org.objectweb.asm.tree.TypeAnnotationNode
+     * @label visible
+     */
+    public List<TypeAnnotationNode> visibleTypeAnnotations;
+
+    /**
+     * The runtime invisible type annotations of this class. This list is a list
+     * of {@link TypeAnnotationNode} objects. May be <tt>null</tt>.
+     * 
+     * @associates de.osthus.ambeth.repackaged.org.objectweb.asm.tree.TypeAnnotationNode
+     * @label invisible
+     */
+    public List<TypeAnnotationNode> invisibleTypeAnnotations;
+
+    /**
      * The non standard attributes of this class. This list is a list of
      * {@link Attribute} objects. May be <tt>null</tt>.
      * 
-     * @associates org.objectweb.asm.Attribute
+     * @associates de.osthus.ambeth.repackaged.org.objectweb.asm.Attribute
      */
     public List<Attribute> attrs;
 
@@ -144,7 +163,7 @@ public class ClassNode extends ClassVisitor {
      * Informations about the inner classes of this class. This list is a list
      * of {@link InnerClassNode} objects.
      * 
-     * @associates org.objectweb.asm.tree.InnerClassNode
+     * @associates de.osthus.ambeth.repackaged.org.objectweb.asm.tree.InnerClassNode
      */
     public List<InnerClassNode> innerClasses;
 
@@ -152,7 +171,7 @@ public class ClassNode extends ClassVisitor {
      * The fields of this class. This list is a list of {@link FieldNode}
      * objects.
      * 
-     * @associates org.objectweb.asm.tree.FieldNode
+     * @associates de.osthus.ambeth.repackaged.org.objectweb.asm.tree.FieldNode
      */
     public List<FieldNode> fields;
 
@@ -160,7 +179,7 @@ public class ClassNode extends ClassVisitor {
      * The methods of this class. This list is a list of {@link MethodNode}
      * objects.
      * 
-     * @associates org.objectweb.asm.tree.MethodNode
+     * @associates de.osthus.ambeth.repackaged.org.objectweb.asm.tree.MethodNode
      */
     public List<MethodNode> methods;
 
@@ -168,9 +187,15 @@ public class ClassNode extends ClassVisitor {
      * Constructs a new {@link ClassNode}. <i>Subclasses must not use this
      * constructor</i>. Instead, they must use the {@link #ClassNode(int)}
      * version.
+     * 
+     * @throws IllegalStateException
+     *             If a subclass calls this constructor.
      */
     public ClassNode() {
-        this(Opcodes.ASM4);
+        this(Opcodes.ASM5);
+        if (getClass() != ClassNode.class) {
+            throw new IllegalStateException();
+        }
     }
 
     /**
@@ -178,7 +203,7 @@ public class ClassNode extends ClassVisitor {
      * 
      * @param api
      *            the ASM API version implemented by this visitor. Must be one
-     *            of {@link Opcodes#ASM4}.
+     *            of {@link Opcodes#ASM4} or {@link Opcodes#ASM5}.
      */
     public ClassNode(final int api) {
         super(api);
@@ -239,6 +264,24 @@ public class ClassNode extends ClassVisitor {
     }
 
     @Override
+    public AnnotationVisitor visitTypeAnnotation(int typeRef,
+            TypePath typePath, String desc, boolean visible) {
+        TypeAnnotationNode an = new TypeAnnotationNode(typeRef, typePath, desc);
+        if (visible) {
+            if (visibleTypeAnnotations == null) {
+                visibleTypeAnnotations = new ArrayList<TypeAnnotationNode>(1);
+            }
+            visibleTypeAnnotations.add(an);
+        } else {
+            if (invisibleTypeAnnotations == null) {
+                invisibleTypeAnnotations = new ArrayList<TypeAnnotationNode>(1);
+            }
+            invisibleTypeAnnotations.add(an);
+        }
+        return an;
+    }
+
+    @Override
     public void visitAttribute(final Attribute attr) {
         if (attrs == null) {
             attrs = new ArrayList<Attribute>(1);
@@ -286,10 +329,26 @@ public class ClassNode extends ClassVisitor {
      * API than the given version.
      * 
      * @param api
-     *            an ASM API version. Must be one of {@link Opcodes#ASM4}.
+     *            an ASM API version. Must be one of {@link Opcodes#ASM4} or
+     *            {@link Opcodes#ASM5}.
      */
     public void check(final int api) {
-        // nothing to do
+        if (api == Opcodes.ASM4) {
+            if (visibleTypeAnnotations != null
+                    && visibleTypeAnnotations.size() > 0) {
+                throw new RuntimeException();
+            }
+            if (invisibleTypeAnnotations != null
+                    && invisibleTypeAnnotations.size() > 0) {
+                throw new RuntimeException();
+            }
+            for (FieldNode f : fields) {
+                f.check(api);
+            }
+            for (MethodNode m : methods) {
+                m.check(api);
+            }
+        }
     }
 
     /**
@@ -322,6 +381,19 @@ public class ClassNode extends ClassVisitor {
         for (i = 0; i < n; ++i) {
             AnnotationNode an = invisibleAnnotations.get(i);
             an.accept(cv.visitAnnotation(an.desc, false));
+        }
+        n = visibleTypeAnnotations == null ? 0 : visibleTypeAnnotations.size();
+        for (i = 0; i < n; ++i) {
+            TypeAnnotationNode an = visibleTypeAnnotations.get(i);
+            an.accept(cv.visitTypeAnnotation(an.typeRef, an.typePath, an.desc,
+                    true));
+        }
+        n = invisibleTypeAnnotations == null ? 0 : invisibleTypeAnnotations
+                .size();
+        for (i = 0; i < n; ++i) {
+            TypeAnnotationNode an = invisibleTypeAnnotations.get(i);
+            an.accept(cv.visitTypeAnnotation(an.typeRef, an.typePath, an.desc,
+                    false));
         }
         n = attrs == null ? 0 : attrs.size();
         for (i = 0; i < n; ++i) {
