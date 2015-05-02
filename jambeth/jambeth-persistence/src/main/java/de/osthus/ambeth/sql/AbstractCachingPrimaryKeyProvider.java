@@ -12,7 +12,7 @@ import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.persistence.ITable;
+import de.osthus.ambeth.persistence.IPrimaryKeyProvider;
 import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.util.IConversionHelper;
@@ -34,14 +34,13 @@ public abstract class AbstractCachingPrimaryKeyProvider implements IPrimaryKeyPr
 	protected final Lock writeLock = new ReentrantLock();
 
 	@Override
-	public IList<Object> acquireIds(ITable table, int count)
+	public IList<Object> acquireIds(ITableMetaData table, int count)
 	{
 		if (count == 0)
 		{
 			return EmptyList.getInstance();
 		}
-		ITableMetaData tableMD = table.getMetaData();
-		String sequenceName = tableMD.getSequenceName();
+		String sequenceName = table.getSequenceName();
 
 		ArrayList<Object> ids = new ArrayList<Object>(count);
 		int prefetchIdAmount = this.prefetchIdAmount;
@@ -82,7 +81,7 @@ public abstract class AbstractCachingPrimaryKeyProvider implements IPrimaryKeyPr
 		acquireIdsIntern(table, count + prefetchIdAmount, newIds);
 
 		IConversionHelper conversionHelper = this.conversionHelper;
-		Class<?> idType = tableMD.getIdField().getMember().getRealType();
+		Class<?> idType = table.getIdField().getMember().getRealType();
 
 		writeLock.lock();
 		try
@@ -109,5 +108,5 @@ public abstract class AbstractCachingPrimaryKeyProvider implements IPrimaryKeyPr
 		}
 	}
 
-	protected abstract void acquireIdsIntern(ITable table, int count, List<Object> targetIdList);
+	protected abstract void acquireIdsIntern(ITableMetaData table, int count, List<Object> targetIdList);
 }

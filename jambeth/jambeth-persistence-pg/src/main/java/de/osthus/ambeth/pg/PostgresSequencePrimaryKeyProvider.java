@@ -11,7 +11,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.orm.XmlDatabaseMapper;
 import de.osthus.ambeth.persistence.IConnectionDialect;
-import de.osthus.ambeth.persistence.ITable;
+import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.sql.AbstractCachingPrimaryKeyProvider;
 
@@ -28,13 +28,13 @@ public class PostgresSequencePrimaryKeyProvider extends AbstractCachingPrimaryKe
 	protected IConnectionDialect connectionDialect;
 
 	@Override
-	protected void acquireIdsIntern(ITable table, int count, List<Object> targetIdList)
+	protected void acquireIdsIntern(ITableMetaData table, int count, List<Object> targetIdList)
 	{
-		String[] schemaAndName = XmlDatabaseMapper.splitSchemaAndName(table.getMetaData().getSequenceName());
+		String[] schemaAndName = XmlDatabaseMapper.splitSchemaAndName(table.getSequenceName());
 		if (schemaAndName[0] == null)
 		{
 			// if no schema is explicitly specified in the sequence we look in the schema of the table
-			schemaAndName[0] = XmlDatabaseMapper.splitSchemaAndName(table.getMetaData().getFullqualifiedEscapedName())[0];
+			schemaAndName[0] = XmlDatabaseMapper.splitSchemaAndName(table.getFullqualifiedEscapedName())[0];
 		}
 		PreparedStatement pstm = null;
 		ResultSet rs = null;

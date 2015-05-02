@@ -7,11 +7,11 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IConnectionDialect;
+import de.osthus.ambeth.persistence.IPrimaryKeyProvider;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.IConnectionExtension;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
-import de.osthus.ambeth.sql.IPrimaryKeyProvider;
 
 @FrameworkModule
 public class PostgresModule implements IInitializingModule

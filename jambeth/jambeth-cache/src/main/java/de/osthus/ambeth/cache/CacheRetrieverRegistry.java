@@ -317,7 +317,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 		return map.get(propertyName);
 	}
 
-	protected ILinkedMap<ICacheRetriever, IList<IObjRef>> bucketSortObjRefs(List<IObjRef> orisToLoad)
+	protected ILinkedMap<ICacheRetriever, IList<IObjRef>> bucketSortObjRefs(List<? extends IObjRef> orisToLoad)
 	{
 		IdentityLinkedMap<ICacheRetriever, IList<IObjRef>> serviceToAssignedObjRefsDict = new IdentityLinkedMap<ICacheRetriever, IList<IObjRef>>();
 
@@ -338,7 +338,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 		return serviceToAssignedObjRefsDict;
 	}
 
-	protected ILinkedMap<Object, IList<IObjRelation>> bucketSortObjRels(List<IObjRelation> orisToLoad)
+	protected ILinkedMap<Object, IList<IObjRelation>> bucketSortObjRels(List<? extends IObjRelation> orisToLoad)
 	{
 		IdentityLinkedMap<Object, IList<IObjRelation>> retrieverToAssignedObjRelsDict = new IdentityLinkedMap<Object, IList<IObjRelation>>();
 

@@ -21,6 +21,7 @@ import de.osthus.ambeth.persistence.ICursor;
 import de.osthus.ambeth.persistence.IDataCursor;
 import de.osthus.ambeth.persistence.IFieldMetaData;
 import de.osthus.ambeth.persistence.IPersistenceHelper;
+import de.osthus.ambeth.persistence.IPrimaryKeyProvider;
 import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.persistence.IVersionCursor;
 import de.osthus.ambeth.persistence.Table;
@@ -106,7 +107,7 @@ public class SqlTable extends Table
 	@Override
 	public IList<Object> acquireIds(int count)
 	{
-		return primaryKeyProvider.acquireIds(this, count);
+		return primaryKeyProvider.acquireIds(getMetaData(), count);
 	}
 
 	@Override
