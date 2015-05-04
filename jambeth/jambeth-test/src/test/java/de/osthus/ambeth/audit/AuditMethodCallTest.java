@@ -3,6 +3,7 @@ package de.osthus.ambeth.audit;
 import org.junit.Assert;
 import org.junit.Test;
 
+import de.osthus.ambeth.IAuditEntryVerifier;
 import de.osthus.ambeth.audit.AuditMethodCallTest.AuditMethodCallTestFrameworkModule;
 import de.osthus.ambeth.audit.AuditMethodCallTest.AuditMethodCallTestModule;
 import de.osthus.ambeth.audit.model.IAuditEntry;
