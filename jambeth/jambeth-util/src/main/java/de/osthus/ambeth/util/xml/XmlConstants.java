@@ -62,6 +62,7 @@ public final class XmlConstants
 	public static final String TARGET_MEMBER = "target-member";
 	public static final String NO_VERSION = "no-version";
 	public static final String THIS = "this";
+	public static final String DEFINED_BY = "defined-by";
 
 	private XmlConstants()
 	{

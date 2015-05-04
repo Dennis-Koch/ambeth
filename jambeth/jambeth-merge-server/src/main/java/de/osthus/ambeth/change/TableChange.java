@@ -95,7 +95,16 @@ public class TableChange extends AbstractTableChange
 				IObjRef ref = command.getRefsToLink().get(0);
 				if (!foreignField.isAlternateId() || foreignField.getIdIndex() == ref.getIdNameIndex())
 				{
-					foreignKey = ref.getId();
+					if (ref instanceof IDirectObjRef)
+					{
+						IDirectObjRef directRef = (IDirectObjRef) ref;
+						Object container = directRef.getDirect();
+						foreignKey = getPrimaryIdValue(container);
+					}
+					if (foreignKey == null)
+					{
+						foreignKey = ref.getId();
+					}
 				}
 				else if (ref instanceof IDirectObjRef)
 				{
@@ -132,7 +141,12 @@ public class TableChange extends AbstractTableChange
 				}
 				else
 				{
-					foreignKey = directRef.getId();
+					Object container = directRef.getDirect();
+					foreignKey = getPrimaryIdValue(container);
+					if (foreignKey == null)
+					{
+						foreignKey = directRef.getId();
+					}
 				}
 			}
 			else if (neededIdIndex == reference.getIdNameIndex())
@@ -293,5 +307,11 @@ public class TableChange extends AbstractTableChange
 			value = metaData.getAlternateIdMembers()[idIndex].getValue(container);
 		}
 		return value;
+	}
+
+	protected Object getPrimaryIdValue(Object container)
+	{
+		IEntityMetaData metaData = ((IEntityMetaDataHolder) container).get__EntityMetaData();
+		return metaData.getIdMember().getValue(container);
 	}
 }

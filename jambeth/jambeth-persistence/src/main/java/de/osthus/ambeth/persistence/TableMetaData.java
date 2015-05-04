@@ -9,6 +9,8 @@ import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.IEntityMetaDataProvider;
+import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.metadata.IMemberTypeProvider;
 import de.osthus.ambeth.metadata.Member;
@@ -75,6 +77,9 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 	protected IFieldMetaData updatedOnField;
 
 	protected String sequenceName;
+
+	@Autowired
+	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Autowired
 	protected IMemberTypeProvider memberTypeProvider;
@@ -388,7 +393,8 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 	@Override
 	public IFieldMetaData mapField(String fieldName, String memberName)
 	{
-		Member member = memberTypeProvider.getPrimitiveMember(getEntityType(), memberName);
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+		Member member = metaData.getMemberByName(memberName);
 
 		if (member == null)
 		{

@@ -10,6 +10,9 @@
 		
 		<entity class="de.osthus.ambeth.audit.AuditedEntityPrimitiveProperty">
 			<table name="AE_PRIMITIVE"/>
+			<attributes>
+				<basic name="NewValue" defined-by="NewValueType" />				
+			</attributes>
 		</entity>
 
 		<entity class="de.osthus.ambeth.audit.AuditedEntityRelationProperty">

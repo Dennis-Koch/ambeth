@@ -822,7 +822,9 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 
 			IFieldMetaData[] cursorFields = cursor.getFields();
 			int[] cursorFieldToPrimitiveIndex = new int[cursorFields.length];
-			createMappingIndexes(cursor, cursorFieldToPrimitiveIndex, table, standaloneDirectedLinks, directedLinks, fieldToDirectedLinkIndex);
+			int[] primitiveIndexToDefinedByCursorField = new int[primitiveMemberCount];
+			createMappingIndexes(cursor, cursorFieldToPrimitiveIndex, primitiveIndexToDefinedByCursorField, table, standaloneDirectedLinks, directedLinks,
+					fieldToDirectedLinkIndex);
 
 			for (int a = standaloneDirectedLinks.length; a-- > 0;)
 			{
@@ -888,6 +890,14 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 							// store Date-instances only with their long-value for decreased heap consumption
 							expectedType = long.class;
 						}
+
+						int definedByCursorIndex = primitiveIndexToDefinedByCursorField[primitiveIndex];
+						if (definedByCursorIndex != -1)
+						{
+							Object definedByValue = cursorValues[definedByCursorIndex];
+							expectedType = conversionHelper.convertValueToType(Class.class, definedByValue);
+						}
+
 						Object primitiveValue;
 						if (field.getFieldSubType() != null && (Collection.class.isAssignableFrom(expectedType) || expectedType.isArray()))
 						{
@@ -897,7 +907,15 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 						else
 						{
 							// The column is only a primitive field
-							primitiveValue = connectionDialect.convertFromFieldType(database, field, expectedType, dbValue);
+							try
+							{
+								primitiveValue = connectionDialect.convertFromFieldType(database, field, expectedType, dbValue);
+							}
+							catch (Throwable e)
+							{
+								throw RuntimeExceptionUtil.mask(e, "Error occured while handling member: " + fieldMember.getDeclaringType().getName() + "."
+										+ fieldMember.getName());
+							}
 						}
 						if (interningFeature != null && (metaData.hasInterningBehavior(fieldMember) || metaData.isAlternateId(fieldMember)))
 						{
@@ -1102,19 +1120,20 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		}
 	}
 
-	protected void createMappingIndexes(ICursor cursor, int[] cursorFieldToPrimitiveIndex, ITable table, IDirectedLink[] standaloneDirectedLinks,
-			IDirectedLink[] directedLinks, IMap<IFieldMetaData, Integer> fieldToDirectedLinkIndex)
+	protected void createMappingIndexes(ICursor cursor, int[] cursorFieldToPrimitiveIndex, int[] primitiveIndexToDefinedByCursorField, ITable table,
+			IDirectedLink[] standaloneDirectedLinks, IDirectedLink[] directedLinks, IMap<IFieldMetaData, Integer> fieldToDirectedLinkIndex)
 	{
 		ITableMetaData tableMD = table.getMetaData();
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(tableMD.getEntityType());
 		Arrays.fill(cursorFieldToPrimitiveIndex, -1);
+		Arrays.fill(primitiveIndexToDefinedByCursorField, -1);
 		IFieldMetaData[] cursorFields = cursor.getFields();
 		PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();
 		RelationMember[] relationMembers = metaData.getRelationMembers();
 
-		for (int a = 0, size = primitiveMembers.length; a < size; a++)
+		for (int primitiveIndex = 0, size = primitiveMembers.length; primitiveIndex < size; primitiveIndex++)
 		{
-			Member primitiveMember = primitiveMembers[a];
+			PrimitiveMember primitiveMember = primitiveMembers[primitiveIndex];
 
 			IFieldMetaData field = tableMD.getFieldByMemberName(primitiveMember.getName());
 
@@ -1138,7 +1157,22 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 				IFieldMetaData cursorField = cursorFields[b];
 				if (cursorField.equals(mappedField))
 				{
-					cursorFieldToPrimitiveIndex[b] = a;
+					cursorFieldToPrimitiveIndex[b] = primitiveIndex;
+					break;
+				}
+			}
+			PrimitiveMember definedBy = primitiveMember.getDefinedBy();
+			if (definedBy == null)
+			{
+				continue;
+			}
+			IFieldMetaData definedByField = cursor.getFieldByMemberName(definedBy.getName());
+			for (int b = cursorFields.length; b-- > 0;)
+			{
+				IFieldMetaData cursorField = cursorFields[b];
+				if (cursorField.equals(definedByField))
+				{
+					primitiveIndexToDefinedByCursorField[primitiveIndex] = b;
 					break;
 				}
 			}

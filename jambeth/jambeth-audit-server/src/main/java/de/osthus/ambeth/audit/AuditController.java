@@ -46,6 +46,7 @@ import de.osthus.ambeth.merge.transfer.CUDResult;
 import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.DeleteContainer;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.ISecurityActivation;
@@ -143,23 +144,35 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			auditEntry.ensurePrimitive(IAuditEntry.Context).setNewValue(peekAuditContext());
 			auditEntry.ensurePrimitive(IAuditEntry.Reason).setNewValue(peekAuditReason());
 
-			ISecurityContext context = securityContextHolder.getContext();
-			IAuthorization authorization = context != null ? context.getAuthorization() : null;
-			if (authorization != null)
+			AdditionalAuditInfo additionalAuditInfo = additionalAuditInfoTL.get();
+			IUser authorizedUser = null;
+			if (additionalAuditInfo != null)
 			{
-				final String currentSID = authorization.getSID();
-				IUser currentUser = securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<IUser>()
+				authorizedUser = additionalAuditInfo.authorizedUser;
+			}
+			if (authorizedUser == null)
+			{
+				ISecurityContext context = securityContextHolder.getContext();
+				IAuthorization authorization = context != null ? context.getAuthorization() : null;
+				if (authorization != null)
 				{
-					@Override
-					public IUser invoke() throws Throwable
+					final String currentSID = authorization.getSID();
+					authorizedUser = securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<IUser>()
 					{
-						return userResolver.resolveUserBySID(currentSID);
-					}
-				});
-				auditEntry.ensureRelation(IAuditEntry.User).addObjRef(objRefHelper.entityToObjRef(currentUser));
-				auditEntry.ensurePrimitive(IAuditEntry.UserIdentifier).setNewValue(userIdentifierProvider.getSID(currentUser));
+						@Override
+						public IUser invoke() throws Throwable
+						{
+							return userResolver.resolveUserBySID(currentSID);
+						}
+					});
+				}
+			}
+			if (authorizedUser != null)
+			{
+				auditEntry.ensureRelation(IAuditEntry.User).addObjRef(objRefHelper.entityToObjRef(authorizedUser));
+				auditEntry.ensurePrimitive(IAuditEntry.UserIdentifier).setNewValue(userIdentifierProvider.getSID(authorizedUser));
 
-				ISignature signatureOfUser = currentUser.getSignature();
+				ISignature signatureOfUser = authorizedUser.getSignature();
 				if (signatureOfUser != null)
 				{
 					auditEntryState.setSignatureOfUser(signatureOfUser);
@@ -260,14 +273,14 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		{
 			auditedEntity.ensurePrimitive(IAuditedEntity.ChangeType).setNewValue(AuditedEntityChangeType.INSERT);
 			auditedEntity.ensureRelation(IAuditedEntity.Ref).addObjRef(getOrCreateRef(updatedObjRef, auditControllerState, objRefToRefMap));
-			auditPUIs(((CreateContainer) changeContainer).getPrimitives(), auditedEntity, auditConfiguration, auditControllerState);
+			auditPUIs(updatedObjRef.getRealType(), ((CreateContainer) changeContainer).getPrimitives(), auditedEntity, auditConfiguration, auditControllerState);
 			auditRUIs(((CreateContainer) changeContainer).getRelations(), auditedEntity, auditConfiguration, auditControllerState, objRefToRefMap);
 		}
 		else if (changeContainer instanceof UpdateContainer)
 		{
 			auditedEntity.ensurePrimitive(IAuditedEntity.ChangeType).setNewValue(AuditedEntityChangeType.UPDATE);
 			auditedEntity.ensureRelation(IAuditedEntity.Ref).addObjRef(getOrCreateRef(updatedObjRef, auditControllerState, objRefToRefMap));
-			auditPUIs(((UpdateContainer) changeContainer).getPrimitives(), auditedEntity, auditConfiguration, auditControllerState);
+			auditPUIs(updatedObjRef.getRealType(), ((UpdateContainer) changeContainer).getPrimitives(), auditedEntity, auditConfiguration, auditControllerState);
 			auditRUIs(((UpdateContainer) changeContainer).getRelations(), auditedEntity, auditConfiguration, auditControllerState, objRefToRefMap);
 		}
 		else if (changeContainer instanceof DeleteContainer)
@@ -295,13 +308,14 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		return ref;
 	}
 
-	protected void auditPUIs(IPrimitiveUpdateItem[] puis, CreateOrUpdateContainerBuild auditedEntity, IAuditConfiguration auditConfiguration,
-			AuditControllerState auditControllerState)
+	protected void auditPUIs(Class<?> entityType, IPrimitiveUpdateItem[] puis, CreateOrUpdateContainerBuild auditedEntity,
+			IAuditConfiguration auditConfiguration, AuditControllerState auditControllerState)
 	{
 		if (puis == null)
 		{
 			return;
 		}
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 		for (IPrimitiveUpdateItem pui : puis)
 		{
 			if (!auditConfiguration.getMemberConfiguration(pui.getMemberName()).isAuditActive())
@@ -315,6 +329,10 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.Name).setNewValue(pui.getMemberName());
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.NewValue).setNewValue(
 					conversionHelper.convertValueToType(String.class, pui.getNewValue()));
+
+			Member member = metaData.getMemberByName(pui.getMemberName());
+			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.NewValueType).setNewValue(member.getRealType());
+
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.Order).setNewValue(Integer.valueOf(primitives.getAddedCount()));
 		}
 	}
@@ -377,7 +395,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		IAuthorization authorization = context != null ? context.getAuthorization() : null;
 		if (authorization != null)
 		{
-			getAdditionalAuditInfo().clearTextPassword = context.getAuthentication().getPassword();
+			AdditionalAuditInfo additionalAuditInfo = getAdditionalAuditInfo();
+			additionalAuditInfo.clearTextPassword = context.getAuthentication().getPassword();
+			additionalAuditInfo.doClearPassword = true;
 		}
 	}
 
@@ -385,7 +405,11 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	public void handlePostRollback(long sessionId) throws Throwable
 	{
 		auditEntryTL.set(null);
-		getAdditionalAuditInfo().clearTextPassword = null;
+		AdditionalAuditInfo additionalAuditInfo = additionalAuditInfoTL.get();
+		if (additionalAuditInfo != null && additionalAuditInfo.doClearPassword)
+		{
+			additionalAuditInfo.clearTextPassword = null;
+		}
 	}
 
 	@Override
@@ -394,7 +418,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		final AuditControllerState auditEntryState = auditEntryTL.get();
 		if (auditEntryState == null)
 		{
-			getAdditionalAuditInfo().clearTextPassword = null;
+			handlePostRollback(sessionId);
 			return;
 		}
 		auditEntryTL.set(null);
@@ -453,7 +477,10 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		finally
 		{
 			additionalAuditInfo.ownAuditMergeActive = null;
-			additionalAuditInfo.clearTextPassword = null;
+			if (additionalAuditInfo.doClearPassword)
+			{
+				additionalAuditInfo.clearTextPassword = null;
+			}
 		}
 	}
 
@@ -508,5 +535,33 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	public String peekAuditContext()
 	{
 		return getAdditionalAuditInfo().auditContextContainer.peek();
+	}
+
+	@Override
+	public IAuditInfoRevert setAuthorizedUser(final IUser user, final char[] clearTextPassword)
+	{
+		final AdditionalAuditInfo additionalAuditInfo = getAdditionalAuditInfo();
+		final IUser oldAuthorizedUser = additionalAuditInfo.authorizedUser;
+		final char[] oldClearTextPassword = additionalAuditInfo.clearTextPassword;
+		additionalAuditInfo.authorizedUser = user;
+		additionalAuditInfo.clearTextPassword = clearTextPassword;
+		additionalAuditInfo.doClearPassword = false;
+		return new IAuditInfoRevert()
+		{
+			@Override
+			public void revert()
+			{
+				if (additionalAuditInfo.authorizedUser != user)
+				{
+					throw new IllegalStateException("Illegal state: user does not match");
+				}
+				if (additionalAuditInfo.clearTextPassword != clearTextPassword)
+				{
+					throw new IllegalStateException("Illegal state: clearTextPassword does not match");
+				}
+				additionalAuditInfo.clearTextPassword = oldClearTextPassword;
+				additionalAuditInfo.authorizedUser = oldAuthorizedUser;
+			}
+		};
 	}
 }
