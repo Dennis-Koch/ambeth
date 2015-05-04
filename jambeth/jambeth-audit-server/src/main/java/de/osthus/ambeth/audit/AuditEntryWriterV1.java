@@ -25,12 +25,16 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.model.IPrimitiveUpdateItem;
 import de.osthus.ambeth.merge.model.IRelationUpdateItem;
+import de.osthus.ambeth.util.IConversionHelper;
 
 public class AuditEntryWriterV1 implements IAuditEntryWriter
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IConversionHelper conversionHelper;
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
@@ -154,7 +158,7 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter
 			else
 			{
 				os.writeBoolean(true);
-				os.writeUTF(value.toString());
+				os.writeUTF(conversionHelper.convertValueToType(String.class, value));
 			}
 		}
 		catch (Throwable e)
