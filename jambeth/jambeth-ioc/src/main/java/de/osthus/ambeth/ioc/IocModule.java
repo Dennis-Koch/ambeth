@@ -1,9 +1,11 @@
 package de.osthus.ambeth.ioc;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.appendable.AppendableStringBuilder;
+import de.osthus.ambeth.converter.StringToCharsetConverter;
 import de.osthus.ambeth.converter.StringToClassArrayConverter;
 import de.osthus.ambeth.converter.StringToDoubleArrayConverter;
 import de.osthus.ambeth.converter.StringToFileConverter;
@@ -15,6 +17,8 @@ import de.osthus.ambeth.converter.StringToStringArrayConverter;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
+import de.osthus.ambeth.jaxb.IJAXBContextProvider;
+import de.osthus.ambeth.jaxb.JAXBContextProvider;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.AppendableStringBuilderCollectableController;
@@ -58,6 +62,9 @@ public class IocModule implements IInitializingModule
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToFileConverter, String.class, File.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToFileConverter, String.class, File[].class);
 
+		IBeanConfiguration stringToCharsetConverter = beanContextFactory.registerBean(StringToCharsetConverter.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, stringToCharsetConverter, String.class, Charset.class);
+
 		IBeanConfiguration stringToClassArrayConverter = beanContextFactory.registerBean(StringToClassArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToClassArrayConverter, String.class, Class[].class);
 
@@ -88,6 +95,8 @@ public class IocModule implements IInitializingModule
 		beanContextFactory.registerBean("cgLibUtil", CgLibUtil.class).autowireable(ICgLibUtil.class);
 
 		beanContextFactory.registerBean("guiThreadHelper", GuiThreadHelper.class).autowireable(IGuiThreadHelper.class);
+
+		beanContextFactory.registerBean(JAXBContextProvider.class).autowireable(IJAXBContextProvider.class);
 
 		final FastThreadPool fastThreadPool = new FastThreadPool(0, Integer.MAX_VALUE, 60000)
 		{

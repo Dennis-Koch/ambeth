@@ -520,8 +520,9 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *[0-9] *, *0 *\\)", " INTEGER");
 		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1[0,1,2,3,4,5,6,7,8] *, *0 *\\)", " BIGINT");
 		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\d+ *\\, *\\d+ *\\)", " NUMERIC");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\* *\\, *\\d+ *\\)", " NUMERIC");
 		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\d+ *\\)", " NUMERIC");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER[^\"]", " NUMERIC");
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " NUMBER([^\"])", " NUMERIC\\2");
 		// sqlCommand = prepareCommandIntern(sqlCommand, "(?: |\")NUMBER *\\(", " NUMERIC\\(");
 
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR *\\( *(\\d+) +CHAR *\\)", " TEXT");

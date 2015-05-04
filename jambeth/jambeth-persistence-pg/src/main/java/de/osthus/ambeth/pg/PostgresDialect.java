@@ -164,7 +164,7 @@ public class PostgresDialect extends AbstractConnectionDialect
 	@Override
 	public Blob createBlob(Connection connection) throws SQLException
 	{
-		return new PostgresBlobMock(connection.unwrap(PGConnection.class));
+		return new PostgresBlob(connection.unwrap(PGConnection.class));
 	}
 
 	@Override
@@ -188,7 +188,7 @@ public class PostgresDialect extends AbstractConnectionDialect
 		try
 		{
 			PGConnection connection = database.getAutowiredBeanInContext(Connection.class).unwrap(PGConnection.class);
-			PostgresBlobMock blob = new PostgresBlobMock(connection, oid, LargeObjectManager.READ);
+			PostgresBlob blob = new PostgresBlob(connection, oid, LargeObjectManager.READ);
 			try
 			{
 				return conversionHelper.convertValueToType(expectedType, blob);

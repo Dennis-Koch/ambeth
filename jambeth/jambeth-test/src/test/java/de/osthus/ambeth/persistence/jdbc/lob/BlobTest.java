@@ -7,9 +7,11 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import de.osthus.ambeth.cache.IRootCache;
+import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
+import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.ioc.IInitializingModule;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.model.BlobObject;
 import de.osthus.ambeth.persistence.jdbc.lob.BlobTest.BlobTestModule;
@@ -35,6 +37,9 @@ public class BlobTest extends AbstractInformationBusWithPersistenceTest
 			beanContextFactory.registerAutowireableBean(IBlobObjectService.class, BlobObjectService.class);
 		}
 	}
+
+	@Autowired
+	protected IEventDispatcher eventDispatcher;
 
 	protected BlobObject createAndSaveBlob(int size)
 	{
@@ -79,7 +84,8 @@ public class BlobTest extends AbstractInformationBusWithPersistenceTest
 	public void readNullBlob()
 	{
 		BlobObject blob = createAndSaveBlob(-1);
-		beanContext.getService(IRootCache.class).clear();
+
+		eventDispatcher.dispatchEvent(ClearAllCachesEvent.getInstance());
 
 		IBlobObjectService blobObjectService = beanContext.getService(IBlobObjectService.class);
 
@@ -103,23 +109,25 @@ public class BlobTest extends AbstractInformationBusWithPersistenceTest
 	@Test
 	public void updateBlob()
 	{
-		IRootCache rootCache = beanContext.getService(IRootCache.class);
-
 		IBlobObjectService blobObjectService = beanContext.getService(IBlobObjectService.class);
 
 		BlobObject blob = createAndSaveBlob(1234);
 
 		short v1 = blob.getVersion();
-		int newBlobSize = 23450;
+		byte[] content = new byte[23450];
+		for (int a = content.length; a-- > 0;)
+		{
+			content[a] = (byte) (Math.random() * Short.MAX_VALUE);
+		}
+		blob.setContent(content);
 
-		blob.setContent(new byte[newBlobSize]);
 		blobObjectService.updateBlobObject(blob);
 
 		short v2 = blob.getVersion();
 
 		Assert.assertNotSame("Version should be different", v1, v2);
 
-		rootCache.clear(); // Clear the whole cache
+		eventDispatcher.dispatchEvent(ClearAllCachesEvent.getInstance());
 
 		List<BlobObject> blobObjects = blobObjectService.getBlobObjects(blob.getId());
 
@@ -130,14 +138,13 @@ public class BlobTest extends AbstractInformationBusWithPersistenceTest
 		Assert.assertNotNull("Reloaded blob must be valid", reloadedBlob);
 
 		Assert.assertNotNull("Blob must have been valid", reloadedBlob.getContent());
-		Assert.assertEquals("Blob length must have been correct", newBlobSize, reloadedBlob.getContent().length);
+		Assert.assertEquals("Blob length must have been correct", content.length, reloadedBlob.getContent().length);
+		Assert.assertArrayEquals("Blob content must be equal", content, reloadedBlob.getContent());
 	}
 
 	@Test
 	public void updateBlobWithContent()
 	{
-		IRootCache rootCache = beanContext.getService(IRootCache.class);
-
 		IBlobObjectService blobObjectService = beanContext.getService(IBlobObjectService.class);
 
 		byte[] content = { 1, 2, 3, 4, 5 };
@@ -148,7 +155,7 @@ public class BlobTest extends AbstractInformationBusWithPersistenceTest
 		blob.setContent(newContent);
 		blobObjectService.updateBlobObject(blob);
 
-		rootCache.clear(); // Clear the whole cache
+		eventDispatcher.dispatchEvent(ClearAllCachesEvent.getInstance());
 
 		List<BlobObject> blobObjects = blobObjectService.getBlobObjects(blob.getId());
 
@@ -173,8 +180,6 @@ public class BlobTest extends AbstractInformationBusWithPersistenceTest
 
 		Assert.assertEquals("Wrong id", 0, blob.getId());
 		Assert.assertEquals("Wrong version", 0, blob.getVersion());
-
-		// rootCache.clear(); // Clear the whole cache
 
 		List<BlobObject> blobObjects = blobObjectService.getAllBlobObjects();
 

@@ -391,6 +391,10 @@ public class SqlTable extends Table
 					if (additionalSelectColumnSet != null)
 					{
 						additionalSelectColumnSet.remove(fieldName);
+						if (tableAlias != null)
+						{
+							additionalSelectColumnSet.remove(tableAlias + "." + fieldName);
+						}
 					}
 					selectSB.append(',');
 					if (tableAlias != null)
@@ -405,7 +409,12 @@ public class SqlTable extends Table
 				for (String additionalFieldName : additionalSelectColumnSet)
 				{
 					selectSB.append(',');
-					sqlBuilder.appendName(additionalFieldName, selectSB);
+					String[] schemaAndTableName = sqlBuilder.getSchemaAndTableName(additionalFieldName);
+					if (schemaAndTableName[0] != null)
+					{
+						selectSB.append(schemaAndTableName[0]).append('.');
+					}
+					sqlBuilder.appendName(schemaAndTableName[1], selectSB);
 					// JH 2015-04-28: Field names have to be escaped. Field from orderBy are processed here.
 					// selectSB.append(',').append(additionalFieldName);
 					// selectSB.append(',').append(sqlBuilder.escapeName(additionalFieldName));
