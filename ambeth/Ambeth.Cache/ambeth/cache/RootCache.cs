@@ -391,7 +391,7 @@ namespace De.Osthus.Ambeth.Cache
 					// We already even checked the version. So we do not bother with versions anymore here
 					try
 					{
-						return CreateResult(orisToGet, rootCacheValuesToGet, cacheDirective, targetCache, false);
+						return CreateResult(orisToGet, rootCacheValuesToGet, cacheDirective, targetCache, false, null);
 					}
 					finally
 					{
@@ -404,7 +404,7 @@ namespace De.Osthus.Ambeth.Cache
 				readLock.Lock();
 			try
 			{
-				IList<Object> result = CreateResult(orisToGet, null, cacheDirective, targetCache, false, orisToLoad);
+				IList<Object> result = CreateResult(orisToGet, null, cacheDirective, targetCache, false, null);
 				if (orisToLoad.Count == 0)
 				{
 					return result;
@@ -475,7 +475,7 @@ namespace De.Osthus.Ambeth.Cache
                 readLock.Lock();
                 try
                 {
-                    return CreateResult(orisToGet, null, cacheDirective, targetCache, false);
+					return CreateResult(orisToGet, null, cacheDirective, targetCache, false, orisToLoad);
                 }
                 finally
                 {

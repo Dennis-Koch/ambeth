@@ -160,7 +160,7 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 				alternateIdMembers[b] = (PrimitiveMember) alternateIdField.getMember();
 			}
 			ArrayList<Member> fulltextMembers = new ArrayList<Member>();
-			HashSet<Member> primitiveMembers = new HashSet<Member>();
+			HashSet<PrimitiveMember> primitiveMembers = new HashSet<PrimitiveMember>();
 			HashSet<RelationMember> relationMembers = new HashSet<RelationMember>();
 			HashMap<Member, Object> memberToFieldOrLinkMap = new HashMap<Member, Object>();
 
@@ -203,7 +203,7 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 				memberToFieldOrLinkMap.put(member, field);
 				if (!alreadyHandledFields.contains(field))
 				{
-					primitiveMembers.add(member);
+					primitiveMembers.add((PrimitiveMember) member);
 				}
 			}
 
@@ -332,7 +332,7 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 		set.add(member);
 	}
 
-	protected PrimitiveMember findPrimitiveMember(PrimitiveMember memberToFind, ISet<Member> members)
+	protected PrimitiveMember findPrimitiveMember(PrimitiveMember memberToFind, ISet<PrimitiveMember> members)
 	{
 		if (memberToFind == null)
 		{

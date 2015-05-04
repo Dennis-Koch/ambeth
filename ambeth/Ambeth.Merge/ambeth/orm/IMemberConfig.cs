@@ -1,3 +1,5 @@
+using System;
+
 namespace De.Osthus.Ambeth.Orm
 {
     public interface IMemberConfig : IOrmConfig
@@ -7,5 +9,7 @@ namespace De.Osthus.Ambeth.Orm
         bool Ignore { get; }
 
 		bool Transient { get; }
+
+		String DefinedBy { get; }
     }
 }

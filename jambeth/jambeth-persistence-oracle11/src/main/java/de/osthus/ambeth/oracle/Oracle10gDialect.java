@@ -84,7 +84,7 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 
 		for (Entry<Class<?>, String[]> entry : typeToArrayTypeNameMap)
 		{
-			arrayTypeNameToTypeMap.put(entry.getValue()[0], entry.getKey());
+			arrayTypeNameToTypeMap.putIfNotExists(entry.getValue()[0], entry.getKey());
 		}
 	}
 

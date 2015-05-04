@@ -33,6 +33,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.merge.MergeFinishedCallback;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.privilege.IPrivilegeProvider;
 import de.osthus.ambeth.privilege.model.ITypePrivilege;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
@@ -102,6 +103,9 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 	@Property(name = SecurityServerConfigurationConstants.LoginSaltPassword, mandatory = false)
 	protected char[] loginSaltPassword;
 
+	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
+	protected boolean securityActive;
+
 	protected final SmartCopyMap<String, Reference<SecretKeyFactory>> algorithmToSecretKeyFactoryMap = new SmartCopyMap<String, Reference<SecretKeyFactory>>(
 			0.5f);
 
@@ -130,12 +134,9 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 				log.info("ACTIVATED: password-based security for password salt");
 			}
 		}
-		else
+		else if (securityActive && log.isInfoEnabled())
 		{
-			if (log.isInfoEnabled())
-			{
-				log.info("INACTIVE: password-based security for password salt");
-			}
+			log.info("INACTIVE: password-based security for password salt");
 		}
 	}
 

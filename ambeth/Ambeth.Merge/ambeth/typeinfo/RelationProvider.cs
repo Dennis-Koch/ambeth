@@ -3,15 +3,18 @@ using System.Collections.Generic;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Annotation;
 using De.Osthus.Ambeth.Metadata;
+using De.Osthus.Ambeth.Collections;
 
 namespace De.Osthus.Ambeth.Typeinfo
 {
     public class RelationProvider : IRelationProvider
     {
-       	protected static readonly ISet<Type> primitiveTypes = new HashSet<Type>();
+		protected readonly CHashSet<Type> primitiveTypes = new CHashSet<Type>();
 
-	    static RelationProvider()
+	    public RelationProvider()
 	    {
+			ImmutableTypeSet.AddImmutableTypesTo(primitiveTypes);
+
 		    primitiveTypes.Add(typeof(Object));
             primitiveTypes.Add(typeof(DateTime));
             primitiveTypes.Add(typeof(TimeSpan));
@@ -20,7 +23,7 @@ namespace De.Osthus.Ambeth.Typeinfo
 
         public virtual bool IsEntityType(Type type)
         {
-            if (type == null || ImmutableTypeSet.IsImmutableType(type) || primitiveTypes.Contains(type) || type.IsEnum)
+            if (type == null || type.IsPrimitive || type.IsEnum || primitiveTypes.Contains(type))
             {
                 return false;
             }

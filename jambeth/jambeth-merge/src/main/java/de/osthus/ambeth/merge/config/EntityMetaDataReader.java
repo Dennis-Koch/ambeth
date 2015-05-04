@@ -89,7 +89,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		// functionality (dot-member-path)
 		for (IMemberConfig memberConfig : entityConfig.getMemberConfigIterable())
 		{
-			nameToConfigMap.put(memberConfig.getName(), memberConfig);
+			putNameToConfigMap(memberConfig, nameToConfigMap);
 			if (memberConfig.isIgnore())
 			{
 				continue;
@@ -98,9 +98,16 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		}
 		for (IRelationConfig relationConfig : entityConfig.getRelationConfigIterable())
 		{
-			nameToConfigMap.put(relationConfig.getName(), relationConfig);
+			putNameToConfigMap(relationConfig, nameToConfigMap);
 			handleRelationConfig(realType, relationConfig, explicitlyConfiguredMemberNameToMember);
 		}
+		putNameToConfigMap(entityConfig.getIdMemberConfig(), nameToConfigMap);
+		putNameToConfigMap(entityConfig.getVersionMemberConfig(), nameToConfigMap);
+		putNameToConfigMap(entityConfig.getCreatedByMemberConfig(), nameToConfigMap);
+		putNameToConfigMap(entityConfig.getCreatedOnMemberConfig(), nameToConfigMap);
+		putNameToConfigMap(entityConfig.getUpdatedByMemberConfig(), nameToConfigMap);
+		putNameToConfigMap(entityConfig.getUpdatedOnMemberConfig(), nameToConfigMap);
+
 		metaData.setIdMember(handleMemberConfig(metaData, realType, entityConfig.getIdMemberConfig(), explicitlyConfiguredMemberNameToMember, nameToMemberMap));
 		metaData.setVersionMember(handleMemberConfig(metaData, realType, entityConfig.getVersionMemberConfig(), explicitlyConfiguredMemberNameToMember,
 				nameToMemberMap));
@@ -282,6 +289,22 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		if (metaData.getIdMember() == null)
 		{
 			throw new IllegalStateException("No ID member could be resolved for entity of type " + metaData.getRealType());
+		}
+	}
+
+	protected void putNameToConfigMap(IOrmConfig config, Map<String, IOrmConfig> nameToConfigMap)
+	{
+		if (config == null)
+		{
+			return;
+		}
+		nameToConfigMap.put(config.getName(), config);
+		if (config instanceof CompositeMemberConfig)
+		{
+			for (MemberConfig member : ((CompositeMemberConfig) config).getMembers())
+			{
+				putNameToConfigMap(member, nameToConfigMap);
+			}
 		}
 	}
 

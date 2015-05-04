@@ -233,12 +233,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		{
 			return null;
 		}
-		PrimitiveMember member = nameToPrimitiveMember.get(memberToRefresh.getName());
-		if (member == null)
-		{
-			throw new IllegalStateException("Must never happen");
-		}
-		return member;
+		return nameToPrimitiveMember.get(memberToRefresh.getName());
 	}
 
 	protected PrimitiveMember refreshDefinedBy(PrimitiveMember member, IMap<String, PrimitiveMember> nameToPrimitiveMember)

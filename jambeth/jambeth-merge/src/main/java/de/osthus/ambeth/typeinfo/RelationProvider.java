@@ -1,7 +1,6 @@
 package de.osthus.ambeth.typeinfo;
 
 import java.util.Arrays;
-import java.util.Set;
 
 import javax.persistence.Embeddable;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -12,9 +11,9 @@ import de.osthus.ambeth.util.ImmutableTypeSet;
 
 public class RelationProvider implements IRelationProvider
 {
-	protected static final Set<Class<?>> primitiveTypes = new HashSet<Class<?>>();
+	protected final HashSet<Class<?>> primitiveTypes = new HashSet<Class<?>>();
 
-	static
+	public RelationProvider()
 	{
 		ImmutableTypeSet.addImmutableTypesTo(primitiveTypes);
 
