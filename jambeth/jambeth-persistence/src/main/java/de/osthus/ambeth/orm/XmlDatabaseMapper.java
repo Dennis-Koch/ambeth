@@ -197,7 +197,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 	}
 
 	@Override
-	public void mapFields(Connection connection, IDatabaseMetaData database)
+	public void mapFields(Connection connection, String[] schemaNames, IDatabaseMetaData database)
 	{
 		if (xmlFileName == null)
 		{
@@ -209,20 +209,28 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		{
 			handleExternalEntities();
 		}
-		HashSet<String> allFullqualifiedSequences = new HashSet<String>(connectionDialect.getAllFullqualifiedSequences(connection))
+		HashSet<String> allFullqualifiedSequences;
+		try
 		{
-			@Override
-			protected boolean equalKeys(String key, ISetEntry<String> entry)
+			allFullqualifiedSequences = new HashSet<String>(connectionDialect.getAllFullqualifiedSequences(connection, schemaNames))
 			{
-				return key.equalsIgnoreCase(entry.getKey());
-			}
+				@Override
+				protected boolean equalKeys(String key, ISetEntry<String> entry)
+				{
+					return key.equalsIgnoreCase(entry.getKey());
+				}
 
-			@Override
-			protected int extractHash(String key)
-			{
-				return key.toLowerCase().hashCode();
-			}
-		};
+				@Override
+				protected int extractHash(String key)
+				{
+					return key.toLowerCase().hashCode();
+				}
+			};
+		}
+		catch (SQLException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
 		int maxNameLength = database.getMaxNameLength();
 		Iterator<EntityConfig> iter = localEntities.iterator();
 		while (iter.hasNext())
@@ -242,21 +250,13 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			{
 				database.mapArchiveTable(archiveTable.getName(), entityType);
 			}
-			String sequenceName = entityConfig.getSequenceName();
 
-			if (sequenceName == null)
+			configureTableSequence(table, entityConfig.getSequenceName(), maxNameLength, allFullqualifiedSequences);
+
+			ITableMetaData pgTable = database.getTableByName(ormPatternMatcher.buildPermissionGroupFromTableName(table.getName(), maxNameLength));
+			if (pgTable != null)
 			{
-				sequenceName = ormPatternMatcher.buildSequenceFromTableName(table.getName(), maxNameLength);
-			}
-			sequenceName = getFqObjectName(table, sequenceName);
-			sequenceName = allFullqualifiedSequences.get(sequenceName); // important: set the camelCase of the existing sequence in the database
-			if (table instanceof TableMetaData)
-			{
-				((TableMetaData) table).setSequenceName(sequenceName);
-			}
-			else
-			{
-				throw new IllegalStateException("Cannot set sequence name");
+				configureTableSequence(pgTable, null, maxNameLength, allFullqualifiedSequences);
 			}
 
 			if (entityConfig.getIdMemberConfig() != null)
@@ -361,11 +361,22 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			}
 			mapIdAndVersion(table, idName, versionName);
 		}
-		super.mapFields(connection, database);
+		super.mapFields(connection, schemaNames, database);
+	}
+
+	protected void configureTableSequence(ITableMetaData table, String sequenceName, int maxNameLength, ISet<String> allFullqualifiedSequences)
+	{
+		if (sequenceName == null)
+		{
+			sequenceName = ormPatternMatcher.buildSequenceFromTableName(table.getName(), maxNameLength);
+		}
+		sequenceName = getFqObjectName(table, sequenceName);
+		sequenceName = allFullqualifiedSequences.get(sequenceName); // important: set the camelCase of the existing sequence in the database
+		((TableMetaData) table).setSequenceName(sequenceName);
 	}
 
 	@Override
-	public void mapLinks(Connection connection, IDatabaseMetaData database)
+	public void mapLinks(Connection connection, String[] schemaNames, IDatabaseMetaData database)
 	{
 		if (xmlFileName == null)
 		{
@@ -424,7 +435,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			}
 		}
 
-		super.mapLinks(connection, database);
+		super.mapLinks(connection, schemaNames, database);
 	}
 
 	protected ITableMetaData tryResolveTable(IDatabaseMetaData database, String hardName, String softName)

@@ -282,11 +282,11 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
 		IList<IDatabaseMapper> objects = serviceContext.getObjects(IDatabaseMapper.class);
 		for (int a = objects.size(); a-- > 0;)
 		{
-			objects.get(a).mapFields(connection, this);
+			objects.get(a).mapFields(connection, schemaNames, this);
 		}
 		for (int a = objects.size(); a-- > 0;)
 		{
-			objects.get(a).mapLinks(connection, this);
+			objects.get(a).mapLinks(connection, schemaNames, this);
 		}
 		int maxNameLength = getMaxNameLength();
 		for (ITableMetaData table : getTables())

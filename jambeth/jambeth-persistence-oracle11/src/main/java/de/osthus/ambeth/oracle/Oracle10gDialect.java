@@ -370,7 +370,7 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public List<String> getAllFullqualifiedSequences(Connection connection)
+	public List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames) throws SQLException
 	{
 		List<String> allSequenceNames = new ArrayList<String>();
 

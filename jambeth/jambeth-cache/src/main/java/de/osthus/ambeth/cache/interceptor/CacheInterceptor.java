@@ -194,7 +194,7 @@ public class CacheInterceptor extends MergeInterceptor
 	{
 		List<IObjRef> objRefs = serviceResult.getObjRefs();
 		IList<Object> syncObjects = null;
-		if (annotation instanceof Find && ((Find) annotation).resultType() != QueryResultType.REFERENCES)
+		if (!(annotation instanceof Find) || ((Find) annotation).resultType() != QueryResultType.REFERENCES)
 		{
 			syncObjects = cache.getObjects(objRefs, CacheDirective.none());
 		}

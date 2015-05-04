@@ -65,7 +65,7 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	 *            Database to map to.
 	 */
 	@Override
-	public void mapFields(Connection connection, IDatabaseMetaData database)
+	public void mapFields(Connection connection, String[] schemaNames, IDatabaseMetaData database)
 	{
 		// Intended blank
 	}
@@ -77,7 +77,7 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	 *            Database to map to.
 	 */
 	@Override
-	public void mapLinks(Connection connection, IDatabaseMetaData database)
+	public void mapLinks(Connection connection, String[] schemaNames, IDatabaseMetaData database)
 	{
 		// Intended blank
 	}

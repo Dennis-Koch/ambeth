@@ -293,7 +293,7 @@ public class MSSqlDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public List<String> getAllFullqualifiedSequences(Connection connection)
+	public List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames) throws SQLException
 	{
 		throw new UnsupportedOperationException("Not yet implemented");
 	}

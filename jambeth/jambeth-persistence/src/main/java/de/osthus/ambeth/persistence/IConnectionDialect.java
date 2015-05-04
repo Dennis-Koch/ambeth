@@ -53,7 +53,7 @@ public interface IConnectionDialect
 
 	List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames) throws SQLException;
 
-	List<String> getAllFullqualifiedSequences(Connection connection);
+	List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames) throws SQLException;
 
 	IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) throws SQLException;
 

@@ -580,6 +580,9 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 
 		sql.add("CREATE INDEX \"" + permissionGroupName + "_IDX\"" + " ON \"" + permissionGroupName + "\" (\"" + PermissionGroup.permGroupIdName + "\")");
 
+		sql.add("CREATE SEQUENCE \"" + permissionGroupName
+				+ "_SEQ\" MINVALUE 1 MAXVALUE 999999999999999999999999999 INCREMENT BY 1 START WITH 10000 CACHE 20 NOORDER NOCYCLE");
+
 		// PreparedStatement pstm = null;
 		// ResultSet rs = null;
 		// try
