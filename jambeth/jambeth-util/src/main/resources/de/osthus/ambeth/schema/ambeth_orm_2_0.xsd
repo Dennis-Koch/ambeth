@@ -164,6 +164,7 @@
 		<xs:attribute name="name" type="ast:propertyName" use="required" />
 		<xs:attribute name="column" type="ast:sqlName" />
 		<xs:attribute name="transient" type="xs:boolean"/>
+		<xs:attribute name="defined-by" type="ast:propertyName" />
 	</xs:complexType>
 
 	<xs:complexType name="noVersionType" />

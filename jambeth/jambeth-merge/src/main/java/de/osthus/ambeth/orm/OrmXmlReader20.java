@@ -384,6 +384,11 @@ public class OrmXmlReader20 implements IOrmXmlReader, IInitializingBean
 		{
 			memberConfig.setTransient(Boolean.parseBoolean(transientValue));
 		}
+		String definedByValue = xmlConfigUtil.getAttribute(memberElement, XmlConstants.DEFINED_BY);
+		if (!definedByValue.isEmpty())
+		{
+			memberConfig.setDefinedBy(definedByValue);
+		}
 		return memberConfig;
 	}
 

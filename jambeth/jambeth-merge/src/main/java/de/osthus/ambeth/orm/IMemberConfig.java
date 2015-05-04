@@ -7,4 +7,6 @@ public interface IMemberConfig extends IOrmConfig
 	boolean isIgnore();
 
 	boolean isTransient();
+
+	String getDefinedBy();
 }

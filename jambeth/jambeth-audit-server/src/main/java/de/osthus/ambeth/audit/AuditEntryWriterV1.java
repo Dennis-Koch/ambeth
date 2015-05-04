@@ -78,7 +78,7 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter
 
 	protected void writeProperty(String name, IPrimitiveUpdateItem[] fullPUIs, IEntityMetaData metaData, DataOutputStream os)
 	{
-		writeProperty(name, fullPUIs[metaData.getIndexByPrimitiveName(name)], os);
+		writeProperty(name, fullPUIs[metaData.getIndexByPrimitiveName(name)].getNewValue(), os);
 	}
 
 	@Override

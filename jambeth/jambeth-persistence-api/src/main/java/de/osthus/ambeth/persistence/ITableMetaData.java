@@ -176,7 +176,7 @@ public interface ITableMetaData
 	 *            Name of the identifying member.
 	 * @return Field index mapped to the member (correlating to the list of getAllFields())
 	 */
-	int getFieldIndexByName(String memberName);
+	int getFieldIndexByName(String fieldName);
 
 	/**
 	 * Getter for a field identified by the name of the property (primitive, relation, id, and version) mapped to this field.

@@ -6,6 +6,8 @@ public abstract class AbstractMemberConfig implements IMemberConfig
 {
 	private final String name;
 
+	private String definedBy;
+
 	private boolean alternateId;
 
 	private boolean ignore;
@@ -46,6 +48,17 @@ public abstract class AbstractMemberConfig implements IMemberConfig
 	public void setTransient(boolean isTransient)
 	{
 		this.isTransient = isTransient;
+	}
+
+	@Override
+	public String getDefinedBy()
+	{
+		return definedBy;
+	}
+
+	public void setDefinedBy(String definedBy)
+	{
+		this.definedBy = definedBy;
 	}
 
 	@Override

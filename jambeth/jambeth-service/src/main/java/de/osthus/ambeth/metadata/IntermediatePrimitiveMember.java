@@ -23,6 +23,8 @@ public class IntermediatePrimitiveMember extends PrimitiveMember implements IPri
 
 	protected boolean isTransient;
 
+	protected PrimitiveMember definedBy;
+
 	public IntermediatePrimitiveMember(Class<?> declaringType, Class<?> entityType, Class<?> realType, Class<?> elementType, String propertyName,
 			Annotation[] annotations)
 	{
@@ -109,6 +111,18 @@ public class IntermediatePrimitiveMember extends PrimitiveMember implements IPri
 	public void setTransient(boolean isTransient)
 	{
 		this.isTransient = isTransient;
+	}
+
+	@Override
+	public void setDefinedBy(PrimitiveMember definedBy)
+	{
+		this.definedBy = definedBy;
+	}
+
+	@Override
+	public PrimitiveMember getDefinedBy()
+	{
+		return definedBy;
 	}
 
 	@Override

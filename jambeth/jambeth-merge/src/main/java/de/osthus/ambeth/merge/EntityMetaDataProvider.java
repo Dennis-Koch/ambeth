@@ -193,20 +193,72 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		{
 			primitiveMembers[a] = (PrimitiveMember) refreshMember(metaData, primitiveMembers[a]);
 		}
+
+		HashMap<String, PrimitiveMember> nameToPrimitiveMember = new HashMap<String, PrimitiveMember>();
+		for (int a = primitiveMembers.length; a-- > 0;)
+		{
+			PrimitiveMember member = primitiveMembers[a];
+			nameToPrimitiveMember.put(member.getName(), member);
+		}
 		PrimitiveMember[] alternateIdMembers = metaData.getAlternateIdMembers();
 		for (int a = alternateIdMembers.length; a-- > 0;)
 		{
 			alternateIdMembers[a] = (PrimitiveMember) refreshMember(metaData, alternateIdMembers[a]);
 		}
-		((EntityMetaData) metaData).setIdMember((PrimitiveMember) refreshMember(metaData, metaData.getIdMember()));
-		((EntityMetaData) metaData).setVersionMember((PrimitiveMember) refreshMember(metaData, metaData.getVersionMember()));
-		((EntityMetaData) metaData).setUpdatedByMember((PrimitiveMember) refreshMember(metaData, metaData.getUpdatedByMember()));
-		((EntityMetaData) metaData).setUpdatedOnMember((PrimitiveMember) refreshMember(metaData, metaData.getUpdatedOnMember()));
-		((EntityMetaData) metaData).setCreatedByMember((PrimitiveMember) refreshMember(metaData, metaData.getCreatedByMember()));
-		((EntityMetaData) metaData).setCreatedOnMember((PrimitiveMember) refreshMember(metaData, metaData.getCreatedOnMember()));
 
+		((EntityMetaData) metaData).setIdMember(refreshDefinedBy((PrimitiveMember) refreshMember(metaData, metaData.getIdMember()), nameToPrimitiveMember));
+		((EntityMetaData) metaData).setVersionMember(refreshDefinedBy((PrimitiveMember) refreshMember(metaData, metaData.getVersionMember()),
+				nameToPrimitiveMember));
+
+		((EntityMetaData) metaData).setUpdatedByMember(getIfExists(metaData.getUpdatedByMember(), nameToPrimitiveMember));
+		((EntityMetaData) metaData).setUpdatedOnMember(getIfExists(metaData.getUpdatedOnMember(), nameToPrimitiveMember));
+		((EntityMetaData) metaData).setCreatedByMember(getIfExists(metaData.getCreatedByMember(), nameToPrimitiveMember));
+		((EntityMetaData) metaData).setCreatedOnMember(getIfExists(metaData.getCreatedOnMember(), nameToPrimitiveMember));
+
+		for (int a = primitiveMembers.length; a-- > 0;)
+		{
+			refreshDefinedBy(primitiveMembers[a], nameToPrimitiveMember);
+		}
+		for (int a = alternateIdMembers.length; a-- > 0;)
+		{
+			refreshDefinedBy(alternateIdMembers[a], nameToPrimitiveMember);
+		}
 		updateEntityMetaDataWithLifecycleExtensions(metaData);
 		((EntityMetaData) metaData).initialize(cacheModification, entityFactory);
+	}
+
+	protected PrimitiveMember getIfExists(PrimitiveMember memberToRefresh, IMap<String, PrimitiveMember> nameToPrimitiveMember)
+	{
+		if (memberToRefresh == null)
+		{
+			return null;
+		}
+		PrimitiveMember member = nameToPrimitiveMember.get(memberToRefresh.getName());
+		if (member == null)
+		{
+			throw new IllegalStateException("Must never happen");
+		}
+		return member;
+	}
+
+	protected PrimitiveMember refreshDefinedBy(PrimitiveMember member, IMap<String, PrimitiveMember> nameToPrimitiveMember)
+	{
+		if (member == null)
+		{
+			return member;
+		}
+		PrimitiveMember definedBy = member.getDefinedBy();
+		if (definedBy == null)
+		{
+			return member;
+		}
+		PrimitiveMember refreshedDefinedBy = nameToPrimitiveMember.get(definedBy.getName());
+		if (refreshedDefinedBy == null)
+		{
+			throw new IllegalStateException("Must never happen");
+		}
+		((IPrimitiveMemberWrite) member).setDefinedBy(refreshedDefinedBy);
+		return member;
 	}
 
 	protected Member refreshMember(IEntityMetaData metaData, Member member)
@@ -222,6 +274,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		PrimitiveMember refreshedMember = memberTypeProvider.getPrimitiveMember(metaData.getEnhancedType(), member.getName());
 		((IPrimitiveMemberWrite) refreshedMember).setTechnicalMember(((PrimitiveMember) member).isTechnicalMember());
 		((IPrimitiveMemberWrite) refreshedMember).setTransient(((PrimitiveMember) member).isTransient());
+		((IPrimitiveMemberWrite) refreshedMember).setDefinedBy(((PrimitiveMember) member).getDefinedBy());
 		return refreshedMember;
 	}
 
