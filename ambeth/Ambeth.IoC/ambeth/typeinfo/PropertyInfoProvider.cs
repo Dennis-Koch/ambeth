@@ -226,27 +226,49 @@ namespace De.Osthus.Ambeth.Typeinfo
                 }
 
                 Type mostConcreteType = null;
-                foreach (MapEntry<Type, HashMap<String, MethodInfo>> typedEntries in typedHashMap)
+                Type mostConcreteGetterType = null;
+                Type mostConcreteSetterType = null;
+                foreach (Entry<Type, HashMap<String, MethodInfo>> typedEntries in typedHashMap)
                 {
+                    Type currentType = typedEntries.Key;
                     HashMap<String, MethodInfo> accessorMap = typedEntries.Value;
                     if (accessorMap.Count != 2)
                     {
+                        if (accessorMap.Get("get") != null)
+                        {
+                            if (mostConcreteGetterType == null || mostConcreteGetterType.IsAssignableFrom(currentType))
+                            {
+                                mostConcreteGetterType = currentType;
+                            }
+                        }
+                        else
+                        {
+                            if (mostConcreteSetterType == null || mostConcreteSetterType.IsAssignableFrom(currentType))
+                            {
+                                mostConcreteSetterType = currentType;
+                            }
+                        }
                         continue;
                     }
 
-                    Type currentType = typedEntries.Key;
                     if (mostConcreteType == null || mostConcreteType.IsAssignableFrom(currentType))
                     {
                         mostConcreteType = currentType;
                     }
                 }
-                if (mostConcreteType == null)
-                {
-                    throw new Exception("No accessors with matching type found for " + entityType.FullName + "." + propName);
-                }
-
+                if (mostConcreteType != null)
                 {
                     HashMap<String, MethodInfo> accessorMap = typedHashMap.Get(mostConcreteType);
+                    filteredMethods.Put(propName, accessorMap);
+                }
+                else if (mostConcreteGetterType != null)
+                {
+                    HashMap<String, MethodInfo> accessorMap = typedHashMap.Get(mostConcreteGetterType);
+                    filteredMethods.Put(propName, accessorMap);
+                }
+                else if (mostConcreteSetterType != null)
+                {
+                    HashMap<String, MethodInfo> accessorMap = typedHashMap.Get(mostConcreteSetterType);
                     filteredMethods.Put(propName, accessorMap);
                 }
             }
