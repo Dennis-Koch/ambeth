@@ -215,13 +215,12 @@ namespace De.Osthus.Ambeth.Typeinfo
             {
                 String propName = entry.Key;
                 HashMap<Type, HashMap<String, MethodInfo>> typedHashMap = entry.Value;
-                HashMap<String, MethodInfo> accessorMap;
 
                 if (typedHashMap.Count == 1)
                 {
                     IEnumerator<HashMap<String, MethodInfo>> iter = typedHashMap.Values().GetEnumerator();
                     iter.MoveNext();
-                    accessorMap = iter.Current;
+                    HashMap<String, MethodInfo> accessorMap = iter.Current;
                     filteredMethods.Put(propName, accessorMap);
                     continue;
                 }
@@ -229,7 +228,7 @@ namespace De.Osthus.Ambeth.Typeinfo
                 Type mostConcreteType = null;
                 foreach (MapEntry<Type, HashMap<String, MethodInfo>> typedEntries in typedHashMap)
                 {
-                    accessorMap = typedEntries.Value;
+                    HashMap<String, MethodInfo> accessorMap = typedEntries.Value;
                     if (accessorMap.Count != 2)
                     {
                         continue;
@@ -246,8 +245,10 @@ namespace De.Osthus.Ambeth.Typeinfo
                     throw new Exception("No accessors with matching type found for " + entityType.FullName + "." + propName);
                 }
 
-                accessorMap = typedHashMap.Get(mostConcreteType);
-                filteredMethods.Put(propName, accessorMap);
+                {
+                    HashMap<String, MethodInfo> accessorMap = typedHashMap.Get(mostConcreteType);
+                    filteredMethods.Put(propName, accessorMap);
+                }
             }
 
             return filteredMethods;
