@@ -71,7 +71,8 @@ namespace De.Osthus.Ambeth.Typeinfo
                     // Concurrent thread might have been faster
                     return propertyEntry;
                 }
-                HashMap<String, IMap<String, MethodInfo>> sortedMethods = new HashMap<String, IMap<String, MethodInfo>>();
+
+                HashMap<String, HashMap<Type, HashMap<String, MethodInfo>>> sortedMethods = new HashMap<String, HashMap<Type, HashMap<String, MethodInfo>>>();
                 MethodInfo[] methods = ReflectUtil.GetMethods(type);
 
                 foreach (MethodInfo method in methods)
@@ -87,36 +88,55 @@ namespace De.Osthus.Ambeth.Typeinfo
                         {
                             continue;
                         }
-                        IMap<String, MethodInfo> sortedMethod = sortedMethods.Get(propName);
+
+                        HashMap<Type, HashMap<String, MethodInfo>> sortedMethod = sortedMethods.Get(propName);
                         if (sortedMethod == null)
                         {
-                            sortedMethod = HashMap<String, MethodInfo>.Create(2);
+                            sortedMethod = HashMap<Type, HashMap<String, MethodInfo>>.Create(1);
                             sortedMethods.Put(propName, sortedMethod);
                         }
-                        if (method.GetParameters().Length == 1)
+
+                        ParameterInfo[] parameterInfos = method.GetParameters();
+                        Type propertyType;
+                        String prefix;
+                        if (parameterInfos.Length == 1)
                         {
-                            sortedMethod.Put("set", method);
+                            propertyType = parameterInfos[0].ParameterType;
+                            prefix = "set";
                         }
-                        else if (method.GetParameters().Length == 0)
+                        else if (parameterInfos.Length == 0)
                         {
-                            sortedMethod.Put("get", method);
+                            propertyType = method.ReturnType;
+                            prefix = "get";
                         }
                         else
                         {
                             throw new Exception("Method is not an accessor: " + method);
                         }
+
+                        HashMap<String, MethodInfo> methodPerType = sortedMethod.Get(propertyType);
+                        if (methodPerType == null)
+                        {
+                            methodPerType = HashMap<String, MethodInfo>.Create(2);
+                            sortedMethod.Put(propertyType, methodPerType);
+                        }
+
+                        methodPerType.Put(prefix, method);
                     }
                     catch (Exception e)
                     {
                         throw RuntimeExceptionUtil.Mask(e, "Error occured while processing " + method);
                     }
                 }
+
+                HashMap<String, HashMap<String, MethodInfo>> filteredMethods = FilterOverriddenMethods(sortedMethods, type);
+
                 HashMap<String, IPropertyInfo> propertyMap = new HashMap<String, IPropertyInfo>(0.5f);
-                foreach (Entry<String, IMap<String, MethodInfo>> propertyData in sortedMethods)
+                foreach (MapEntry<String, HashMap<String, MethodInfo>> propertyData in filteredMethods)
                 {
                     String propertyName = propertyData.Key;
 
-                    IMap<String, MethodInfo> propertyMethods = propertyData.Value;
+                    HashMap<String, MethodInfo> propertyMethods = propertyData.Value;
                     MethodInfo getter = propertyMethods.Get("get");
                     MethodInfo setter = propertyMethods.Get("set");
 
@@ -141,9 +161,9 @@ namespace De.Osthus.Ambeth.Typeinfo
                             continue;
                         }
                         MethodInfo getter = null;
-                        MethodInfo setter =null;
+                        MethodInfo setter = null;
 
-                        MethodPropertyInfo propertyInfo = (MethodPropertyInfo) propertyMap.Get(property.Name);
+                        MethodPropertyInfo propertyInfo = (MethodPropertyInfo)propertyMap.Get(property.Name);
                         if (propertyInfo != null)
                         {
                             getter = propertyInfo.Getter;
@@ -185,7 +205,54 @@ namespace De.Osthus.Ambeth.Typeinfo
                 return propertyEntry;
             }
         }
-        
+
+        protected HashMap<String, HashMap<String, MethodInfo>> FilterOverriddenMethods(HashMap<String, HashMap<Type, HashMap<String, MethodInfo>>> sortedMethods,
+                Type entityType)
+        {
+            HashMap<String, HashMap<String, MethodInfo>> filteredMethods = HashMap<String, HashMap<String, MethodInfo>>.Create(sortedMethods.Count);
+
+            foreach (MapEntry<String, HashMap<Type, HashMap<String, MethodInfo>>> entry in sortedMethods)
+            {
+                String propName = entry.Key;
+                HashMap<Type, HashMap<String, MethodInfo>> typedHashMap = entry.Value;
+                HashMap<String, MethodInfo> accessorMap;
+
+                if (typedHashMap.Count == 1)
+                {
+                    IEnumerator<HashMap<String, MethodInfo>> iter = typedHashMap.Values().GetEnumerator();
+                    iter.MoveNext();
+                    accessorMap = iter.Current;
+                    filteredMethods.Put(propName, accessorMap);
+                    continue;
+                }
+
+                Type mostConcreteType = null;
+                foreach (MapEntry<Type, HashMap<String, MethodInfo>> typedEntries in typedHashMap)
+                {
+                    accessorMap = typedEntries.Value;
+                    if (accessorMap.Count != 2)
+                    {
+                        continue;
+                    }
+
+                    Type currentType = typedEntries.Key;
+                    if (mostConcreteType == null || mostConcreteType.IsAssignableFrom(currentType))
+                    {
+                        mostConcreteType = currentType;
+                    }
+                }
+                if (mostConcreteType == null)
+                {
+                    throw new Exception("No accessors with matching type found for " + entityType.FullName + "." + propName);
+                }
+
+                accessorMap = typedHashMap.Get(mostConcreteType);
+                filteredMethods.Put(propName, accessorMap);
+            }
+
+            return filteredMethods;
+        }
+
         public String GetPropertyNameFor(FieldInfo field)
         {
             return StringBuilderUtil.UpperCaseFirst(field.Name);
