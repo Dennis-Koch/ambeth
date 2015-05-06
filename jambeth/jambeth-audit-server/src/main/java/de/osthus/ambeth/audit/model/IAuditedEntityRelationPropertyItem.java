@@ -10,14 +10,7 @@ public interface IAuditedEntityRelationPropertyItem
 
 	int getOrder();
 
-	void setOrder(int order);
-
 	IAuditedEntityRef getRef();
 
-	void setRef(IAuditedEntityRef ref);
-
 	AuditedEntityPropertyItemChangeType getChangeType();
-
-	void setChangeType(AuditedEntityPropertyItemChangeType changeType);
-
 }

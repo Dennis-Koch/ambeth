@@ -31,39 +31,21 @@ public interface IAuditEntry
 
 	int getProtocol();
 
-	void setProtocol(int protocol);
-
 	long getTimestamp();
-
-	void setTimestamp(long timestamp);
 
 	IUser getUser();
 
-	void setUser(IUser user);
-
 	String getUserIdentifier();
-
-	void setUserIdentifier(String userIdentifier);
 
 	String getReason();
 
-	void setReason(String reason);
-
 	String getContext();
-
-	void setContext(String context);
 
 	ISignature getSignatureOfUser();
 
-	void setSignatureOfUser(ISignature signatureOfUser);
-
 	char[] getSignature();
 
-	void setSignature(char[] signature);
-
 	String getHashAlgorithm();
-
-	void setHashAlgorithm(String hashAlgorithm);
 
 	List<? extends IAuditedService> getServices();
 

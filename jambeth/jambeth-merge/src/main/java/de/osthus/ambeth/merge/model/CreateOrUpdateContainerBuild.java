@@ -6,9 +6,10 @@ import de.osthus.ambeth.merge.transfer.AbstractChangeContainer;
 import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.PrimitiveUpdateItem;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
+import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class CreateOrUpdateContainerBuild extends AbstractChangeContainer implements ICreateOrUpdateContainer
+public class CreateOrUpdateContainerBuild extends AbstractChangeContainer implements ICreateOrUpdateContainer, IEntityMetaDataHolder
 {
 	protected IPrimitiveUpdateItem[] fullPUIs;
 
@@ -18,19 +19,28 @@ public class CreateOrUpdateContainerBuild extends AbstractChangeContainer implem
 
 	protected IRelationUpdateItem[] fullRUIs;
 
+	protected final IEntityMetaData metaData;
+
 	protected int ruiCount, puiCount;
 
 	protected boolean isCreate;
 
 	protected final ICUDResultHelper cudResultHelper;
 
-	public CreateOrUpdateContainerBuild(boolean isCreate, HashMap<String, Integer> relationNameToIndexMap, HashMap<String, Integer> primitiveNameToIndexMap,
-			ICUDResultHelper cudResultHelper)
+	public CreateOrUpdateContainerBuild(IEntityMetaData metaData, boolean isCreate, HashMap<String, Integer> relationNameToIndexMap,
+			HashMap<String, Integer> primitiveNameToIndexMap, ICUDResultHelper cudResultHelper)
 	{
+		this.metaData = metaData;
 		this.isCreate = isCreate;
 		this.relationNameToIndexMap = relationNameToIndexMap;
 		this.primitiveNameToIndexMap = primitiveNameToIndexMap;
 		this.cudResultHelper = cudResultHelper;
+	}
+
+	@Override
+	public IEntityMetaData get__EntityMetaData()
+	{
+		return metaData;
 	}
 
 	public boolean isCreate()

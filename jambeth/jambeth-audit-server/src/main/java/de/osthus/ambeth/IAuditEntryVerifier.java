@@ -9,5 +9,5 @@ public interface IAuditEntryVerifier
 {
 	boolean verifyEntities(List<? extends IObjRef> objRefs);
 
-	boolean verifyAuditEntries(List<? extends IAuditEntry> auditEntries);
+	boolean[] verifyAuditEntries(List<? extends IAuditEntry> auditEntries);
 }

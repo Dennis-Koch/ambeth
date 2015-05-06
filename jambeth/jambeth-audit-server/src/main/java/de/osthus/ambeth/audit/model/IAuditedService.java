@@ -14,21 +14,11 @@ public interface IAuditedService
 
 	int getOrder();
 
-	void setOrder(int order);
-
 	String getServiceType();
 
-	void setServiceType(String serviceType);
-
 	String getMethodName();
-
-	void setMethodName(String methodName);
-
-	void setArguments(String[] parameters);
 
 	String[] getArguments();
 
 	long getSpentTime();
-
-	void setSpentTime(long spentTime);
 }

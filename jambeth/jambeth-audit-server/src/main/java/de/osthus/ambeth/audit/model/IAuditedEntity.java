@@ -16,15 +16,9 @@ public interface IAuditedEntity
 
 	int getOrder();
 
-	void setOrder(int order);
-
 	IAuditedEntityRef getRef();
 
-	void setRef(IAuditedEntityRef ref);
-
 	AuditedEntityChangeType getChangeType();
-
-	void setChangeType(AuditedEntityChangeType changeType);
 
 	List<? extends IAuditedEntityPrimitiveProperty> getPrimitives();
 

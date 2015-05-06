@@ -12,11 +12,7 @@ public interface IAuditedEntityRelationProperty
 
 	int getOrder();
 
-	void setOrder(int order);
-
 	String getName();
-
-	void setName(String name);
 
 	List<? extends IAuditedEntityRelationPropertyItem> getItems();
 }

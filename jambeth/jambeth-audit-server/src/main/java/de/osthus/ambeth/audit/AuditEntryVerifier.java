@@ -324,15 +324,28 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IStartingBean
 		}
 		IList<IAuditEntry> auditEntries = query.retrieve();
 		IList<IAuditEntry> auditEntriesToVerify = filterAuditEntries(auditEntries, remainingPropertyMap);
-		return verifyAuditEntries(auditEntriesToVerify);
+		boolean[] verifyAuditEntries = verifyAuditEntries(auditEntriesToVerify);
+		for (boolean result : verifyAuditEntries)
+		{
+			if (!result)
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 
 	@Override
-	public boolean verifyAuditEntries(List<? extends IAuditEntry> auditEntries)
+	public boolean[] verifyAuditEntries(List<? extends IAuditEntry> auditEntries)
 	{
+		if (auditEntries.size() == 0)
+		{
+			return new boolean[0];
+		}
 		@SuppressWarnings("unused")
 		IPrefetchState prefetch2 = prefetchSignaturesOfUser.prefetch(auditEntries);
 
+		boolean[] result = new boolean[auditEntries.size()];
 		ArrayList<IAuditEntry> auditEntriesToVerify = new ArrayList<IAuditEntry>(auditEntries.size());
 		HashMap<ISignature, java.security.Signature> signatureToSignatureHandleMap = new HashMap<ISignature, java.security.Signature>();
 		for (IAuditEntry auditEntry : auditEntries)
@@ -341,12 +354,13 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IStartingBean
 			char[] signature = auditEntry.getSignature();
 			if (signature == null && expectSignatureOnVerify)
 			{
-				return false;
+				continue;
 			}
 			if (signatureOfUser == null)
 			{
 				if (signature == null)
 				{
+					auditEntriesToVerify.add(null);
 					// audit entries without a signature can not be verified but are intentionally treated as "valid"
 					continue;
 				}
@@ -357,8 +371,14 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IStartingBean
 		@SuppressWarnings("unused")
 		IPrefetchState prefetch = pref_verifyAuditEntries.prefetch(auditEntriesToVerify);
 
-		for (IAuditEntry auditEntry : auditEntriesToVerify)
+		for (int a = 0, size = auditEntriesToVerify.size(); a < size; a++)
 		{
+			IAuditEntry auditEntry = auditEntriesToVerify.get(a);
+			if (auditEntry == null)
+			{
+				result[a] = true;
+				continue;
+			}
 			ISignature signatureOfUser = auditEntry.getSignatureOfUser();
 			char[] signature = auditEntry.getSignature();
 			try
@@ -370,17 +390,14 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IStartingBean
 					signatureToSignatureHandleMap.put(signatureOfUser, signatureHandle);
 				}
 				auditEntryToSignature.writeToSignatureHandle(signatureHandle, auditEntry, null);
-				if (!signatureHandle.verify(Base64.decode(signature)))
-				{
-					return false;
-				}
+				result[a] = signatureHandle.verify(Base64.decode(signature));
 			}
 			catch (Throwable e)
 			{
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
-		return true;
+		return result;
 	}
 
 	protected ILinkedMap<IEntityMetaData, IList<IObjRef>> bucketSortObjRefs(List<? extends IObjRef> orisToLoad)

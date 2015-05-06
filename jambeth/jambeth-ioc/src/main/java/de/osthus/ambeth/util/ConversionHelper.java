@@ -52,6 +52,15 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 		primitiveNameToTypeMap.put("double", Double.TYPE);
 	}
 
+	public static final DateFormat createISO8601DateFormat()
+	{
+		if (java7recognized)
+		{
+			return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
+		}
+		return new ISO8601DateFormat();
+	}
+
 	protected final ThreadLocal<DateFormat> iso8601_DateFormatTL = new SensitiveThreadLocal<DateFormat>();
 
 	public ConversionHelper()
@@ -69,7 +78,7 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 	@Override
 	public void cleanupThreadLocal()
 	{
-		iso8601_DateFormatTL.remove();
+		iso8601_DateFormatTL.set(null);
 	}
 
 	protected DateFormat getISO_8601_DateFormat()
@@ -77,14 +86,7 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 		DateFormat dateFormat = iso8601_DateFormatTL.get();
 		if (dateFormat == null)
 		{
-			if (java7recognized)
-			{
-				dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
-			}
-			else
-			{
-				dateFormat = new ISO8601DateFormat();
-			}
+			dateFormat = createISO8601DateFormat();
 			iso8601_DateFormatTL.set(dateFormat);
 		}
 		return dateFormat;
@@ -180,7 +182,7 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 				return BigDecimal.valueOf((Boolean) value ? 1 : 0);
 			}
 		}
-		else if (Double.class.equals(expectedType) || Double.TYPE.equals(expectedType))
+		else if (Double.class.equals(expectedType) || Double.TYPE.equals(expectedType) || Number.class.equals(expectedType))
 		{
 			if (Double.class.equals(type))
 			{
@@ -505,7 +507,8 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 					}
 					else
 					{
-						return Thread.currentThread().getContextClassLoader().loadClass(sValue);
+						return Class.forName(sValue);
+						// return Thread.currentThread().getContextClassLoader().loadClass(sValue);
 					}
 				}
 				catch (Throwable e)

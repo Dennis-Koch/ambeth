@@ -22,6 +22,7 @@ import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.database.ITransactionListener;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.exceptions.AuditReasonMissingException;
+import de.osthus.ambeth.format.XmlHint;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
@@ -46,9 +47,9 @@ import de.osthus.ambeth.merge.transfer.CUDResult;
 import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.DeleteContainer;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
-import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.security.IAuthorization;
+import de.osthus.ambeth.security.IAuthorizedUserHolder;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityContext;
 import de.osthus.ambeth.security.ISecurityContextHolder;
@@ -67,6 +68,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 
 	@Autowired
 	protected IAuditConfigurationProvider auditConfigurationProvider;
+
+	@Autowired
+	protected IAuthorizedUserHolder authorizedUserHolder;
 
 	@Autowired
 	protected IAuditEntryToSignature auditEntryToSignature;
@@ -315,7 +319,6 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		{
 			return;
 		}
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 		for (IPrimitiveUpdateItem pui : puis)
 		{
 			if (!auditConfiguration.getMemberConfiguration(pui.getMemberName()).isAuditActive())
@@ -328,10 +331,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.Name).setNewValue(pui.getMemberName());
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.NewValue).setNewValue(
-					conversionHelper.convertValueToType(String.class, pui.getNewValue()));
-
-			Member member = metaData.getMemberByName(pui.getMemberName());
-			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.NewValueType).setNewValue(member.getRealType());
+					conversionHelper.convertValueToType(String.class, pui.getNewValue(), XmlHint.WRITE_ATTRIBUTE));
 
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.Order).setNewValue(Integer.valueOf(primitives.getAddedCount()));
 		}
@@ -540,17 +540,27 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Override
 	public IAuditInfoRevert setAuthorizedUser(final IUser user, final char[] clearTextPassword)
 	{
+		final String oldAuthorizedUserSID = authorizedUserHolder.getAuthorizedUserSID();
 		final AdditionalAuditInfo additionalAuditInfo = getAdditionalAuditInfo();
 		final IUser oldAuthorizedUser = additionalAuditInfo.authorizedUser;
 		final char[] oldClearTextPassword = additionalAuditInfo.clearTextPassword;
+		final String sid = userIdentifierProvider.getSID(user);
+
 		additionalAuditInfo.authorizedUser = user;
 		additionalAuditInfo.clearTextPassword = clearTextPassword;
 		additionalAuditInfo.doClearPassword = false;
+		authorizedUserHolder.setAuthorizedUserSID(sid);
 		return new IAuditInfoRevert()
 		{
 			@Override
 			public void revert()
 			{
+				if (authorizedUserHolder.getAuthorizedUserSID() != sid)
+				{
+					throw new IllegalStateException("Illegal state: authorizedUserSID does not match");
+				}
+				authorizedUserHolder.setAuthorizedUserSID(oldAuthorizedUserSID);
+
 				if (additionalAuditInfo.authorizedUser != user)
 				{
 					throw new IllegalStateException("Illegal state: user does not match");

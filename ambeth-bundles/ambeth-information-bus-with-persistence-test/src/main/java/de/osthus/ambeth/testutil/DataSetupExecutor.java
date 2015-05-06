@@ -15,6 +15,7 @@ import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.setup.IDataSetup;
+import de.osthus.ambeth.util.setup.IDataSetupWithAuthorization;
 
 public class DataSetupExecutor implements IStartingBean
 {
@@ -78,7 +79,9 @@ public class DataSetupExecutor implements IStartingBean
 				@Override
 				public Object invoke() throws Throwable
 				{
-					transaction.runInTransaction(new IBackgroundWorkerDelegate()
+					final Collection<Object> dataSet = dataSetup.executeDatasetBuilders();
+
+					final IBackgroundWorkerDelegate transactionDelegate = new IBackgroundWorkerDelegate()
 					{
 						@Override
 						public void invoke() throws Throwable
@@ -88,7 +91,6 @@ public class DataSetupExecutor implements IStartingBean
 								@Override
 								public Object invoke() throws Throwable
 								{
-									final Collection<Object> dataSet = dataSetup.executeDatasetBuilders();
 									if (dataSet.size() > 0)
 									{
 										mergeProcess.process(dataSet, null, null, null);
@@ -98,7 +100,24 @@ public class DataSetupExecutor implements IStartingBean
 							});
 							permissionGroupUpdater.fillEmptyPermissionGroups();
 						}
-					});
+					};
+					IDataSetupWithAuthorization dataSetupWithAuthorization = dataSetup.resolveDataSetupWithAuthorization();
+					if (dataSetupWithAuthorization != null)
+					{
+						dataSetupWithAuthorization.executeWithAuthorization(new IResultingBackgroundWorkerDelegate<Object>()
+						{
+							@Override
+							public Object invoke() throws Throwable
+							{
+								transaction.runInTransaction(transactionDelegate);
+								return null;
+							}
+						});
+					}
+					else
+					{
+						transaction.runInTransaction(transactionDelegate);
+					}
 					return null;
 				}
 			});

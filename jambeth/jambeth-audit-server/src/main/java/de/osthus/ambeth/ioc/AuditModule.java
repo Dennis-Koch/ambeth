@@ -7,6 +7,7 @@ import de.osthus.ambeth.audit.AuditEntryToSignature;
 import de.osthus.ambeth.audit.AuditEntryVerifier;
 import de.osthus.ambeth.audit.AuditEntryWriterV1;
 import de.osthus.ambeth.audit.AuditMethodCallPostProcessor;
+import de.osthus.ambeth.audit.AuditVerifierJob;
 import de.osthus.ambeth.audit.IAuditConfigurationExtendable;
 import de.osthus.ambeth.audit.IAuditConfigurationProvider;
 import de.osthus.ambeth.audit.IAuditEntryToSignature;
@@ -21,6 +22,7 @@ import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
+import de.osthus.ambeth.job.IJobExtendable;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IMergeListenerExtendable;
@@ -35,6 +37,9 @@ public class AuditModule implements IInitializingModule
 	@Property(name = AuditConfigurationConstants.AuditActive, defaultValue = "false")
 	protected boolean auditActive;
 
+	@Property(name = AuditConfigurationConstants.VerifierCrontab, mandatory = false)
+	protected String auditVerifierCrontab;
+
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
@@ -45,6 +50,12 @@ public class AuditModule implements IInitializingModule
 
 		if (auditActive)
 		{
+			if (auditVerifierCrontab != null)
+			{
+				IBeanConfiguration auditVerifierJob = beanContextFactory.registerBean(AuditVerifierJob.class);
+				beanContextFactory.link(auditVerifierJob).to(IJobExtendable.class).with(AuditVerifierJob.class.getSimpleName(), auditVerifierCrontab).optional();
+			}
+
 			IBeanConfiguration auditEntryVerifier = beanContextFactory.registerBean(AuditEntryVerifier.class).autowireable(IAuditEntryVerifier.class);
 			beanContextFactory.link(auditEntryVerifier, AuditEntryVerifier.HANDLE_CLEAR_ALL_CACHES_EVENT).to(IEventListenerExtendable.class)
 					.with(ClearAllCachesEvent.class);
