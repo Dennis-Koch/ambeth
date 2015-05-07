@@ -68,6 +68,7 @@
 				<version>1.6.2</version>
 				<executions>
 					<execution>
+						<id>MassAPIWsdl</id>
 						<goals>
 							<goal>wsdl2code</goal>
 						</goals>
@@ -76,6 +77,18 @@
 							<packageName>com.chemspider.www</packageName>
 							<wsdlFile>src/main/wsdl/MassSpecAPI.wsdl</wsdlFile>
 							<portName>MassSpecAPISoap12</portName>
+						</configuration>
+					</execution>
+					<execution>
+						<id>SearchWsdl</id>
+						<goals>
+							<goal>wsdl2code</goal>
+						</goals>
+						<configuration>
+							<dataBindingName>xmlbeans</dataBindingName>
+							<packageName>com.chemspider.www</packageName>
+							<wsdlFile>src/main/wsdl/SearchAPI.wsdl</wsdlFile>
+							<portName>SearchSoap12</portName>
 						</configuration>
 					</execution>
 				</executions>
