@@ -54,6 +54,10 @@ namespace De.Osthus.Ambeth.Collections
             {
                 return value;
             }
+			set
+			{
+				this.value = value;
+			}
         }
 
         public override bool Equals(Object obj)

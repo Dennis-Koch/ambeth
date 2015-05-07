@@ -317,14 +317,14 @@ namespace De.Osthus.Ambeth.Cache
         {
             CheckNotDisposed();
             IEntityMetaData metaData = this.EntityMetaDataProvider.GetMetaData(type);
-            RemoveCacheValueFromCacheCascade(metaData, ObjRef.PRIMARY_KEY_INDEX, id);
+            RemoveCacheValueFromCacheCascade(metaData, ObjRef.PRIMARY_KEY_INDEX, id, true);
         }
 
         public void Remove(IObjRef ori)
         {
             CheckNotDisposed();
             IEntityMetaData metaData = this.EntityMetaDataProvider.GetMetaData(ori.RealType);
-            RemoveCacheValueFromCacheCascade(metaData, ori.IdNameIndex, ori.Id);
+			RemoveCacheValueFromCacheCascade(metaData, ori.IdNameIndex, ori.Id, true);
         }
 
         public void Remove(IList<IObjRef> oris)
@@ -363,7 +363,7 @@ namespace De.Osthus.Ambeth.Cache
             }
         }
 
-        protected void RemoveCacheValueFromCacheCascade(IEntityMetaData metaData, sbyte idIndex, Object id)
+		protected void RemoveCacheValueFromCacheCascade(IEntityMetaData metaData, sbyte idIndex, Object id, bool checkCleanUpOnMiss)
         {
             Type entityType = metaData.EntityType;
             PrimitiveMember idMember = metaData.GetIdMemberByIdIndex(idIndex);
@@ -376,14 +376,22 @@ namespace De.Osthus.Ambeth.Cache
                 V cacheValue = GetCacheValueFromReference(cacheValueR);
                 if (cacheValue == null)
                 {
+					if (checkCleanUpOnMiss)
+					{
+						CheckForCleanup();
+					}
                     return;
                 }
-                CacheValueHasBeenRemoved(entityType, idIndex, id, cacheValue);
                 Object primaryId = GetIdOfCacheValue(metaData, cacheValue);
-                if (primaryId != null)
-                {
-                    RemoveCacheValueFromCacheSingle(metaData, ObjRef.PRIMARY_KEY_INDEX, GetIdOfCacheValue(metaData, cacheValue));
-                }
+				if (primaryId != null)
+				{
+					CacheValueHasBeenRemoved(metaData, ObjRef.PRIMARY_KEY_INDEX, primaryId, cacheValue);
+					RemoveCacheValueFromCacheSingle(metaData, ObjRef.PRIMARY_KEY_INDEX, primaryId);
+				}
+				else
+				{
+					CacheValueHasBeenRemoved(metaData, idIndex, id, cacheValue);
+				}
                 CacheKey[] alternateCacheKeys = GetAlternateCacheKeysFromCacheValue(metaData, cacheValue);
                 for (int a = alternateCacheKeys.Length; a-- > 0; )
                 {
@@ -739,7 +747,7 @@ namespace De.Osthus.Ambeth.Cache
             CheckForCleanup();
         }
 
-        protected virtual void CacheValueHasBeenRemoved(Type entityType, sbyte idIndex, Object id, V cacheValue)
+        protected virtual void CacheValueHasBeenRemoved(IEntityMetaData metaData, sbyte idIndex, Object id, V cacheValue)
         {
             CheckForCleanup();
         }
@@ -915,9 +923,9 @@ namespace De.Osthus.Ambeth.Cache
             lastCleanupTime = DateTime.Now;
         }
 
-        protected virtual void DoCleanUpIntern()
+		protected virtual int DoCleanUpIntern()
         {
-            List<CacheKey> pendingKeysToRemove = new List<CacheKey>();
+            List<CacheKey> pendingKeysToRemove = null;
 
             foreach (CacheMapEntry entry in keyToCacheValueDict)
             {
@@ -927,15 +935,24 @@ namespace De.Osthus.Ambeth.Cache
                     cacheKey.Id = entry.Id;
                     cacheKey.IdIndex = entry.IdIndex;
                     cacheKey.EntityType = entry.EntityType;
+					if (pendingKeysToRemove == null)
+					{
+						pendingKeysToRemove = new List<CacheKey>();
+					}
                     pendingKeysToRemove.Add(cacheKey);
                 }
             }
+			if (pendingKeysToRemove == null)
+			{
+				return 0;
+			}
             for (int a = pendingKeysToRemove.Count; a-- > 0; )
             {
                 CacheKey pendingKeyToRemove = pendingKeysToRemove[a];
                 IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(pendingKeyToRemove.EntityType);
-                RemoveCacheValueFromCacheCascade(metaData, pendingKeyToRemove.IdIndex, pendingKeyToRemove.Id);
+                RemoveCacheValueFromCacheCascade(metaData, pendingKeyToRemove.IdIndex, pendingKeyToRemove.Id, false);
             }
+			return pendingKeysToRemove.Count;
         }
 
         public int Size()

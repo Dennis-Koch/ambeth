@@ -330,14 +330,14 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 	{
 		checkNotDisposed();
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(type);
-		removeCacheValueFromCacheCascade(metaData, ObjRef.PRIMARY_KEY_INDEX, id);
+		removeCacheValueFromCacheCascade(metaData, ObjRef.PRIMARY_KEY_INDEX, id, true);
 	}
 
 	public void remove(IObjRef ori)
 	{
 		checkNotDisposed();
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(ori.getRealType());
-		removeCacheValueFromCacheCascade(metaData, ori.getIdNameIndex(), ori.getId());
+		removeCacheValueFromCacheCascade(metaData, ori.getIdNameIndex(), ori.getId(), true);
 	}
 
 	public void remove(List<IObjRef> oris)
@@ -376,7 +376,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 		}
 	}
 
-	protected void removeCacheValueFromCacheCascade(IEntityMetaData metaData, byte idIndex, Object id)
+	protected void removeCacheValueFromCacheCascade(IEntityMetaData metaData, byte idIndex, Object id, boolean checkCleanUpOnMiss)
 	{
 		Class<?> entityType = metaData.getEntityType();
 		Member idMember = metaData.getIdMemberByIdIndex(idIndex);
@@ -389,13 +389,21 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 			V cacheValue = getCacheValueFromReference(cacheValueR);
 			if (cacheValue == null)
 			{
+				if (checkCleanUpOnMiss)
+				{
+					checkForCleanup();
+				}
 				return;
 			}
-			cacheValueHasBeenRemoved(entityType, idIndex, id, cacheValue);
 			Object primaryId = getIdOfCacheValue(metaData, cacheValue);
 			if (primaryId != null)
 			{
-				removeCacheValueFromCacheSingle(metaData, ObjRef.PRIMARY_KEY_INDEX, getIdOfCacheValue(metaData, cacheValue));
+				cacheValueHasBeenRemoved(metaData, ObjRef.PRIMARY_KEY_INDEX, primaryId, cacheValue);
+				removeCacheValueFromCacheSingle(metaData, ObjRef.PRIMARY_KEY_INDEX, primaryId);
+			}
+			else
+			{
+				cacheValueHasBeenRemoved(metaData, idIndex, id, cacheValue);
 			}
 			CacheKey[] alternateCacheKeys = getAlternateCacheKeysFromCacheValue(metaData, cacheValue);
 			for (int a = alternateCacheKeys.length; a-- > 0;)
@@ -756,7 +764,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 		checkForCleanup();
 	}
 
-	protected void cacheValueHasBeenRemoved(Class<?> entityType, byte idIndex, Object id, V cacheValue)
+	protected void cacheValueHasBeenRemoved(IEntityMetaData metaData, byte idIndex, Object id, V cacheValue)
 	{
 		checkForCleanup();
 	}
@@ -884,8 +892,9 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 		}
 	}
 
-	protected void doCleanUpIntern()
+	protected int doCleanUpIntern()
 	{
+		int cleanupCount = 0;
 		ICacheReference cacheValueR;
 		while ((cacheValueR = (ICacheReference) referenceQueue.poll()) != null)
 		{
@@ -894,14 +903,16 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 			Object id = cacheValueR.getId();
 			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 
+			cleanupCount++;
 			Object existingCacheValueR = getCacheValueR(metaData, idIndex, id);
 			if (existingCacheValueR != cacheValueR)
 			{
 				// new entry is already another instance reflecting the same entity
 				continue;
 			}
-			removeCacheValueFromCacheCascade(metaData, idIndex, id);
+			removeCacheValueFromCacheCascade(metaData, idIndex, id, false);
 		}
+		return cleanupCount;
 	}
 
 	public int size()

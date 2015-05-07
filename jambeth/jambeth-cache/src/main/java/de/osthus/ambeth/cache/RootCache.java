@@ -9,8 +9,10 @@ import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -105,7 +107,19 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	@LogInstance
 	private ILogger log;
 
-	protected final HashMap<IObjRef, Integer> relationOris = new HashMap<IObjRef, Integer>();
+	protected final HashMap<IObjRef, Integer> relationOris = new HashMap<IObjRef, Integer>()
+	{
+		@Override
+		protected boolean isResizeNeeded()
+		{
+			if (!super.isResizeNeeded())
+			{
+				return false;
+			}
+			doRelationObjRefsRefresh();
+			return super.isResizeNeeded();
+		}
+	};
 
 	protected final HashSet<IObjRef> currentPendingKeys = new HashSet<IObjRef>();
 
@@ -157,6 +171,10 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
 	@Property(mandatory = false)
 	protected boolean privileged;
+
+	protected long relationObjRefsRefreshThrottleOnGC = 60000; // throttle refresh to at most 1 time per minute
+
+	protected long lastRelationObjRefsRefreshTime;
 
 	protected final Lock pendingKeysReadLock, pendingKeysWriteLock;
 
@@ -1816,15 +1834,23 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	{
 		super.cacheValueHasBeenUpdated(metaData, primitives, relations, cacheValueR);
 
-		unregisterAllRelations(getCacheValueFromReference(cacheValueR).getRelations());
+		RelationMember[] relationMembers = metaData.getRelationMembers();
+		RootCacheValue cacheValue = getCacheValueFromReference(cacheValueR);
+		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
+		{
+			unregisterRelations(cacheValue.getRelation(relationIndex));
+		}
 		registerAllRelations(relations);
 	}
 
 	@Override
-	protected void cacheValueHasBeenRemoved(Class<?> entityType, byte idIndex, Object id, RootCacheValue cacheValue)
+	protected void cacheValueHasBeenRemoved(IEntityMetaData metaData, byte idIndex, Object id, RootCacheValue cacheValue)
 	{
-		unregisterAllRelations(cacheValue.getRelations());
-
+		RelationMember[] relationMembers = metaData.getRelationMembers();
+		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
+		{
+			unregisterRelations(cacheValue.getRelation(relationIndex));
+		}
 		if (lruThreshold == 0)
 		{
 			// LRU handling disabled
@@ -1841,7 +1867,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		{
 			lruLock.unlock();
 		}
-		super.cacheValueHasBeenRemoved(entityType, idIndex, id, cacheValue);
+		super.cacheValueHasBeenRemoved(metaData, idIndex, id, cacheValue);
 	}
 
 	@Override
@@ -2141,6 +2167,17 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	}
 
 	@Override
+	protected int doCleanUpIntern()
+	{
+		int cleanupCount = super.doCleanUpIntern();
+		if (cleanupCount > 0 && System.currentTimeMillis() - lastRelationObjRefsRefreshTime >= relationObjRefsRefreshThrottleOnGC)
+		{
+			doRelationObjRefsRefresh();
+		}
+		return cleanupCount;
+	}
+
+	@Override
 	protected void putInternObjRelation(RootCacheValue cacheValue, IEntityMetaData metaData, IObjRelation objRelation, IObjRef[] relationsOfMember)
 	{
 		int relationIndex = metaData.getIndexByRelationName(objRelation.getMemberName());
@@ -2205,5 +2242,47 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	public void assignEntityToCache(Object entity)
 	{
 		throw new UnsupportedOperationException();
+	}
+
+	protected void doRelationObjRefsRefresh()
+	{
+		lastRelationObjRefsRefreshTime = System.currentTimeMillis();
+		if (!weakEntries)
+		{
+			return;
+		}
+		Integer zero = Integer.valueOf(0);
+		for (Entry<IObjRef, Integer> entry : relationOris)
+		{
+			entry.setValue(zero);
+		}
+		final IdentityHashSet<RootCacheValue> alreadyHandledSet = IdentityHashSet.create(keyToCacheValueDict.size());
+		getContent(new HandleContentDelegate()
+		{
+			@Override
+			public void invoke(Class<?> entityType, byte idIndex, Object id, Object value)
+			{
+				RootCacheValue cacheValue = (RootCacheValue) value;
+				if (!alreadyHandledSet.add(cacheValue))
+				{
+					return;
+				}
+				IEntityMetaData metaData = cacheValue.get__EntityMetaData();
+				for (int relationIndex = metaData.getRelationMembers().length; relationIndex-- > 0;)
+				{
+					registerRelations(cacheValue.getRelation(relationIndex));
+				}
+			}
+		});
+
+		Iterator<Entry<IObjRef, Integer>> iter = relationOris.iterator();
+		while (iter.hasNext())
+		{
+			Entry<IObjRef, Integer> entry = iter.next();
+			if (entry.getValue() == zero)
+			{
+				iter.remove();
+			}
+		}
 	}
 }
