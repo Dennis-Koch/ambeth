@@ -4,11 +4,15 @@ import java.util.List;
 
 public interface IAuditedEntityRelationProperty
 {
+	public static final String Entity = "Entity";
+
 	public static final String Items = "Items";
 
 	public static final String Name = "Name";
 
 	public static final String Order = "Order";
+
+	IAuditedEntity getEntity();
 
 	int getOrder();
 

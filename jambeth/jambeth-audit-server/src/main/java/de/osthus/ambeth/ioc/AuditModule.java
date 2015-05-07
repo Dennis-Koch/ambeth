@@ -3,6 +3,7 @@ package de.osthus.ambeth.ioc;
 import de.osthus.ambeth.IAuditEntryVerifier;
 import de.osthus.ambeth.audit.AuditConfigurationProvider;
 import de.osthus.ambeth.audit.AuditController;
+import de.osthus.ambeth.audit.AuditEntryReader;
 import de.osthus.ambeth.audit.AuditEntryToSignature;
 import de.osthus.ambeth.audit.AuditEntryVerifier;
 import de.osthus.ambeth.audit.AuditEntryWriterV1;
@@ -10,6 +11,7 @@ import de.osthus.ambeth.audit.AuditMethodCallPostProcessor;
 import de.osthus.ambeth.audit.AuditVerifierJob;
 import de.osthus.ambeth.audit.IAuditConfigurationExtendable;
 import de.osthus.ambeth.audit.IAuditConfigurationProvider;
+import de.osthus.ambeth.audit.IAuditEntryReader;
 import de.osthus.ambeth.audit.IAuditEntryToSignature;
 import de.osthus.ambeth.audit.IAuditEntryWriterExtendable;
 import de.osthus.ambeth.audit.IAuditInfoController;
@@ -50,10 +52,13 @@ public class AuditModule implements IInitializingModule
 
 		if (auditActive)
 		{
+			beanContextFactory.registerBean(AuditEntryReader.class).autowireable(IAuditEntryReader.class);
+
 			if (auditVerifierCrontab != null)
 			{
 				IBeanConfiguration auditVerifierJob = beanContextFactory.registerBean(AuditVerifierJob.class);
-				beanContextFactory.link(auditVerifierJob).to(IJobExtendable.class).with(AuditVerifierJob.class.getSimpleName(), auditVerifierCrontab).optional();
+				beanContextFactory.link(auditVerifierJob).to(IJobExtendable.class).with(AuditVerifierJob.class.getSimpleName(), auditVerifierCrontab)
+						.optional();
 			}
 
 			IBeanConfiguration auditEntryVerifier = beanContextFactory.registerBean(AuditEntryVerifier.class).autowireable(IAuditEntryVerifier.class);
