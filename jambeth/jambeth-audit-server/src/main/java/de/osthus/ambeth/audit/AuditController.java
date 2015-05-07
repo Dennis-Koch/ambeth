@@ -201,6 +201,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 
 		CreateOrUpdateContainerBuild auditedService = auditControllerState.createEntity(IAuditedService.class);
 		servicesRUI.addObjRef(auditedService.getReference());
+		auditedService.ensureRelation(IAuditedService.Entry).addObjRef(auditEntry.getReference());
 
 		auditedService.ensurePrimitive(IAuditedService.Order).setNewValue(Integer.valueOf(servicesRUI.getAddedCount()));
 		auditedService.ensurePrimitive(IAuditedService.ServiceType).setNewValue(method.getDeclaringClass().getName());
@@ -271,6 +272,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		CreateOrUpdateContainerBuild auditEntry = auditControllerState.auditedChanges.get(0);
 		RelationUpdateItemBuild entities = auditEntry.ensureRelation(IAuditEntry.Entities);
 		entities.addObjRef(auditedEntity.getReference());
+
+		auditedEntity.ensureRelation(IAuditedEntity.Entry).addObjRef(auditEntry.getReference());
 		auditedEntity.ensurePrimitive(IAuditedEntity.Order).setNewValue(entities.getAddedCount());
 
 		if (changeContainer instanceof CreateContainer)
@@ -328,6 +331,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			CreateOrUpdateContainerBuild primitiveProperty = auditControllerState.createEntity(IAuditedEntityPrimitiveProperty.class);
 			RelationUpdateItemBuild primitives = auditedEntity.ensureRelation(IAuditedEntity.Primitives);
 			primitives.addObjRef(primitiveProperty.getReference());
+			primitiveProperty.ensureRelation(IAuditedEntityPrimitiveProperty.Entity).addObjRef(auditedEntity.getReference());
 
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.Name).setNewValue(pui.getMemberName());
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.NewValue).setNewValue(
@@ -353,6 +357,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			CreateOrUpdateContainerBuild relationProperty = auditControllerState.createEntity(IAuditedEntityRelationProperty.class);
 			RelationUpdateItemBuild relations = auditedEntity.ensureRelation(IAuditedEntity.Relations);
 			relations.addObjRef(relationProperty.getReference());
+			relationProperty.ensureRelation(IAuditedEntityRelationProperty.Entity).addObjRef(auditedEntity.getReference());
 
 			relationProperty.ensurePrimitive(IAuditedEntityRelationProperty.Name).setNewValue(rui.getMemberName());
 			relationProperty.ensurePrimitive(IAuditedEntityRelationProperty.Order).setNewValue(Integer.valueOf(relations.getAddedCount()));
