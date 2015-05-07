@@ -180,7 +180,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 		String[] schemaAndTableName = sqlBuilder.getSchemaAndTableName(fqTableName);
 		for (IColumnEntry columnEntry : allFieldsOfTable)
 		{
-			if (!PostgresDialect.isLobColumnName(columnEntry.getTypeName()))
+			if (!PostgresDialect.isBLobColumnName(columnEntry.getTypeName()))
 			{
 				continue;
 			}
@@ -525,7 +525,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " NUMBER([^\"])", " NUMERIC\\2");
 		// sqlCommand = prepareCommandIntern(sqlCommand, "(?: |\")NUMBER *\\(", " NUMERIC\\(");
 
-		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR *\\( *(\\d+) +CHAR *\\)", " TEXT");
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR *\\( *(\\d+) +CHAR *\\)", " VARCHAR(\\2)");
 
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR2 *\\( *(\\d+) +BYTE\\)", " VARCHAR(\\2)");
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR2 *\\( *(\\d+) +CHAR\\)", " VARCHAR(\\2)");
@@ -541,6 +541,16 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 
 		sqlCommand = prepareCommandIntern(sqlCommand, " 999999999999999999999999999 ", " 9223372036854775807 ");
 
+		sqlCommand = prepareCommandIntern(sqlCommand, "\\s+TABLESPACE\\s+[a-zA-Z0-9_]+", " ");
+		// Pattern tablespacePattern = Pattern.compile("CREATE\\s+TABLESPACE\\s+([\\S]+)\\s*.*\\sDATAFILE\\s+'([^']+)'.*", Pattern.CASE_INSENSITIVE);
+		// Matcher tablespaceMatcher = tablespacePattern.matcher(sqlCommand);
+		// if (tablespaceMatcher.matches())
+		// {
+		// String tablespace = tablespaceMatcher.group(1);
+		// String file = tablespaceMatcher.group(2);
+		//
+		// sqlCommand = "CREATE TABLESPACE " + tablespace + " LOCATION '" + file + "'";
+		// }
 		return sqlCommand;
 	}
 

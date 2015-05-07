@@ -8,6 +8,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.ILightweightTransaction;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.IDataCursor;
 import de.osthus.ambeth.persistence.IDataItem;
 import de.osthus.ambeth.persistence.IDatabase;
@@ -22,6 +23,9 @@ import de.osthus.ambeth.util.IConversionHelper;
 
 public class LobInputSourceController implements ILobInputSourceController
 {
+	@Autowired
+	protected IConnectionDialect connectionDialect;
+
 	@Autowired
 	protected IConversionHelper conversionHelper;
 
@@ -85,6 +89,7 @@ public class LobInputSourceController implements ILobInputSourceController
 	protected IInputStream deriveBinaryInputStreamIntern(final Object parentEntity, final Member member)
 	{
 		IEntityMetaData metaData = ((IEntityMetaDataHolder) parentEntity).get__EntityMetaData();
+		IDatabase database = this.database.getCurrent();
 		Table table = (Table) database.getTableByType(metaData.getEntityType());
 
 		IFieldMetaData idField = table.getMetaData().getIdField();
@@ -109,13 +114,13 @@ public class LobInputSourceController implements ILobInputSourceController
 			IDataItem dataItem = dataCursor.getCurrent();
 			if (Clob.class.equals(lobField.getFieldType()))
 			{
-				Clob value = (Clob) dataItem.getValue(0);
+				Clob value = (Clob) connectionDialect.convertFromFieldType(database, lobField, Clob.class, dataItem.getValue(0));
 				success = true;
 				return new ClobInputStream(dataCursor, value);
 			}
 			else
 			{
-				Blob value = (Blob) dataItem.getValue(0);
+				Blob value = (Blob) connectionDialect.convertFromFieldType(database, lobField, Blob.class, dataItem.getValue(0));
 				success = true;
 				return new BlobInputStream(dataCursor, value);
 			}

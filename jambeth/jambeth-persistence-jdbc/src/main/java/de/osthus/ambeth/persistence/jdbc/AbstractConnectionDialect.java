@@ -1,6 +1,7 @@
 package de.osthus.ambeth.persistence.jdbc;
 
 import java.sql.Blob;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
@@ -117,6 +118,12 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 	}
 
 	@Override
+	public Clob createClob(Connection connection) throws SQLException
+	{
+		return connection.createClob();
+	}
+
+	@Override
 	public Object convertToFieldType(IFieldMetaData field, Object value)
 	{
 		return conversionHelper.convertValueToType(field.getFieldType(), value, field.getFieldSubType());
@@ -125,6 +132,11 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 	@Override
 	public Object convertFromFieldType(IDatabase database, IFieldMetaData field, Class<?> expectedType, Object value)
 	{
+		if (value instanceof Clob)
+		{
+			String sValue = conversionHelper.convertValueToType(String.class, value);
+			return conversionHelper.convertValueToType(expectedType, sValue);
+		}
 		return conversionHelper.convertValueToType(expectedType, value);
 	}
 

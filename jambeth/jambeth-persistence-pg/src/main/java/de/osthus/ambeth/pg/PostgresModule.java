@@ -3,15 +3,19 @@ package de.osthus.ambeth.pg;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
+import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IConnectionDialect;
+import de.osthus.ambeth.persistence.IExtendedConnectionDialect;
 import de.osthus.ambeth.persistence.IPrimaryKeyProvider;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.IConnectionExtension;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
+import de.osthus.ambeth.stream.chars.ICharacterInputSource;
+import de.osthus.ambeth.util.IDedicatedConverterExtendable;
 
 @FrameworkModule
 public class PostgresModule implements IInitializingModule
@@ -42,6 +46,10 @@ public class PostgresModule implements IInitializingModule
 		beanContextFactory.registerBean(PostgresConnectionUrlProvider.class).autowireable(IDatabaseConnectionUrlProvider.class);
 		beanContextFactory.registerBean(PostgresConnectionExtension.class).autowireable(IConnectionExtension.class);
 		beanContextFactory.registerBean(PostgresDialect.class).autowireable(IConnectionDialect.class);
+		beanContextFactory.registerBean(PostgresExtendedDialect.class).autowireable(IExtendedConnectionDialect.class);
 		beanContextFactory.registerBean(PostgresSequencePrimaryKeyProvider.class).autowireable(IPrimaryKeyProvider.class);
+
+		IBeanConfiguration stringToCharacterInputSourceConverter = beanContextFactory.registerBean(StringToCharacterInputSourceConverter.class);
+		beanContextFactory.link(stringToCharacterInputSourceConverter).to(IDedicatedConverterExtendable.class).with(String.class, ICharacterInputSource.class);
 	}
 }

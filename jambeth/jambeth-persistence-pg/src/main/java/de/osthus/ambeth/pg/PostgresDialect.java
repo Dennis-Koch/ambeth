@@ -3,6 +3,7 @@ package de.osthus.ambeth.pg;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Blob;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -24,7 +25,6 @@ import javax.persistence.PessimisticLockException;
 
 import org.postgresql.Driver;
 import org.postgresql.PGConnection;
-import org.postgresql.largeobject.LargeObjectManager;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
@@ -104,9 +104,14 @@ public class PostgresDialect extends AbstractConnectionDialect
 		return 54;
 	}
 
-	public static boolean isLobColumnName(String typeName)
+	public static boolean isBLobColumnName(String typeName)
 	{
 		return "lo".equals(typeName);
+	}
+
+	public static boolean isCLobColumnName(String typeName)
+	{
+		return "text".equals(typeName);
 	}
 
 	@LogInstance
@@ -164,44 +169,90 @@ public class PostgresDialect extends AbstractConnectionDialect
 	@Override
 	public Blob createBlob(Connection connection) throws SQLException
 	{
-		return new PostgresBlob(connection.unwrap(PGConnection.class));
+		PGConnection pgConnection = connection.unwrap(PGConnection.class);
+		long oid = pgConnection.getLargeObjectAPI().createLO();
+		return new PostgresBlob(pgConnection, oid);
+	}
+
+	@Override
+	public Clob createClob(Connection connection) throws SQLException
+	{
+		PGConnection pgConnection = connection.unwrap(PGConnection.class);
+		long oid = pgConnection.getLargeObjectAPI().createLO();
+		return new PostgresClob(pgConnection, oid);
 	}
 
 	@Override
 	public Object convertToFieldType(IFieldMetaData field, Object value)
 	{
-		if (!isLobColumnName(field.getOriginalTypeName()))
+		if (isBLobColumnName(field.getOriginalTypeName()))
 		{
-			return super.convertToFieldType(field, value);
+			return conversionHelper.convertValueToType(Blob.class, value, field.getFieldSubType());
 		}
-		return conversionHelper.convertValueToType(Blob.class, value, field.getFieldSubType());
+		else if (isCLobColumnName(field.getOriginalTypeName()))
+		{
+			return conversionHelper.convertValueToType(Clob.class, value, field.getFieldSubType());
+		}
+		return super.convertToFieldType(field, value);
 	}
 
 	@Override
 	public Object convertFromFieldType(IDatabase database, IFieldMetaData field, Class<?> expectedType, Object value)
 	{
-		if (!isLobColumnName(field.getOriginalTypeName()))
+		if (isBLobColumnName(field.getOriginalTypeName()))
 		{
-			return super.convertFromFieldType(database, field, expectedType, value);
-		}
-		long oid = conversionHelper.convertValueToType(Number.class, value).longValue();
-		try
-		{
-			PGConnection connection = database.getAutowiredBeanInContext(Connection.class).unwrap(PGConnection.class);
-			PostgresBlob blob = new PostgresBlob(connection, oid, LargeObjectManager.READ);
+			long oid = conversionHelper.convertValueToType(Number.class, value).longValue();
 			try
 			{
-				return conversionHelper.convertValueToType(expectedType, blob);
+				PGConnection connection = database.getAutowiredBeanInContext(Connection.class).unwrap(PGConnection.class);
+				PostgresBlob blob = new PostgresBlob(connection, oid);
+				Object targetValue = null;
+				try
+				{
+					targetValue = conversionHelper.convertValueToType(expectedType, blob);
+				}
+				finally
+				{
+					if (targetValue != blob)
+					{
+						blob.free();
+					}
+				}
+				return targetValue;
 			}
-			finally
+			catch (SQLException e)
 			{
-				blob.free();
+				throw createPersistenceException(e, null);
 			}
 		}
-		catch (SQLException e)
+		else if (isCLobColumnName(field.getOriginalTypeName()))
 		{
-			throw createPersistenceException(e, null);
+			long oid = conversionHelper.convertValueToType(Number.class, value).longValue();
+			try
+			{
+				PGConnection connection = database.getAutowiredBeanInContext(Connection.class).unwrap(PGConnection.class);
+				PostgresClob clob = new PostgresClob(connection, oid);
+
+				Object targetValue = null;
+				try
+				{
+					targetValue = conversionHelper.convertValueToType(expectedType, clob);
+				}
+				finally
+				{
+					if (targetValue != clob)
+					{
+						clob.free();
+					}
+				}
+				return targetValue;
+			}
+			catch (SQLException e)
+			{
+				throw createPersistenceException(e, null);
+			}
 		}
+		return super.convertFromFieldType(database, field, expectedType, value);
 	}
 
 	@Override
@@ -485,7 +536,7 @@ public class PostgresDialect extends AbstractConnectionDialect
 		try
 		{
 			ArrayList<IColumnEntry> columns = new ArrayList<IColumnEntry>();
-			columns.add(new ColumnEntry("ROWID", -1, Object.class, null, false, 0, false));
+			columns.add(new ColumnEntry("ctid", -1, Object.class, null, false, 0, false));
 
 			while (tableColumnsRS.next())
 			{
@@ -506,6 +557,14 @@ public class PostgresDialect extends AbstractConnectionDialect
 				int radix = tableColumnsRS.getInt("NUM_PREC_RADIX");
 
 				Class<?> javaType = JdbcUtil.getJavaTypeFromJdbcType(typeIndex, scale, digits);
+				if ("lo".equalsIgnoreCase(typeName))
+				{
+					javaType = Blob.class;
+				}
+				else if ("text".equalsIgnoreCase(typeName))
+				{
+					javaType = Clob.class;
+				}
 
 				ColumnEntry entry = new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable, radix, true);
 				columns.add(entry);
