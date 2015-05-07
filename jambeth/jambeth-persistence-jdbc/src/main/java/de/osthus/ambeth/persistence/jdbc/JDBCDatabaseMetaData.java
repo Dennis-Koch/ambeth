@@ -5,10 +5,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Comparator;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -17,10 +15,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
+import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.database.IDatabaseMappedListener;
 import de.osthus.ambeth.database.IDatabaseMappedListenerExtendable;
@@ -232,6 +233,14 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
 
 				putTableByName(fqTableName, table);
 			}
+			Collections.sort(getTables(), new Comparator<ITableMetaData>()
+			{
+				@Override
+				public int compare(ITableMetaData o1, ITableMetaData o2)
+				{
+					return o1.getName().compareTo(o2.getName());
+				}
+			});
 			findAndAssignFulltextFields(connection);
 
 			for (Entry<String, List<String[]>> entry : linkNameToEntryMap)

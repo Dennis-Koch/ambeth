@@ -9,6 +9,7 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IConnectionDialect;
+import de.osthus.ambeth.persistence.IExtendedConnectionDialect;
 import de.osthus.ambeth.persistence.IPrimaryKeyProvider;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.IConnectionExtension;
@@ -50,6 +51,7 @@ public class MSSqlModule implements IInitializingModule, IPropertyLoadingBean
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
 		beanContextFactory.registerBean(MSSqlConnectionUrlProvider.class).autowireable(IDatabaseConnectionUrlProvider.class);
+		beanContextFactory.registerBean(MSSqlExtendedDialect.class).autowireable(IExtendedConnectionDialect.class);
 		if (!externalTransactionManager && !databaseBehaviourStrict)
 		{
 			beanContextFactory.registerBean(MSSqlDialect.class).autowireable(IConnectionDialect.class);

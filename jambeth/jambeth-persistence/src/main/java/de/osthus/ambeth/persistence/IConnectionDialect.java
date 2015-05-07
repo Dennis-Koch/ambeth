@@ -1,6 +1,7 @@
 package de.osthus.ambeth.persistence;
 
 import java.sql.Blob;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,6 +17,8 @@ import de.osthus.ambeth.collections.IMap;
 public interface IConnectionDialect
 {
 	Blob createBlob(Connection connection) throws SQLException;
+
+	Clob createClob(Connection connection) throws SQLException;
 
 	String toDefaultCase(String unquotedIdentifier);
 

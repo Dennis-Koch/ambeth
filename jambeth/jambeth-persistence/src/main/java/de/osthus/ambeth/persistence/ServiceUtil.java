@@ -86,16 +86,10 @@ public class ServiceUtil implements IServiceUtil
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 		Class<?> idTypeOfObject = metaData.getIdMember().getRealType();
 		Class<?> versionTypeOfObject = metaData.getVersionMember() != null ? metaData.getVersionMember().getRealType() : null;
-		try
-		{
-			Object id = conversionHelper.convertValueToType(idTypeOfObject, item.getId());
-			Object version = conversionHelper.convertValueToType(versionTypeOfObject, item.getVersion());
-			return (T) cache.getObject(new ObjRef(entityType, ObjRef.PRIMARY_KEY_INDEX, id, version), CacheDirective.none());
-		}
-		finally
-		{
-			item.dispose();
-		}
+
+		Object id = conversionHelper.convertValueToType(idTypeOfObject, item.getId());
+		Object version = conversionHelper.convertValueToType(versionTypeOfObject, item.getVersion());
+		return (T) cache.getObject(new ObjRef(entityType, ObjRef.PRIMARY_KEY_INDEX, id, version), CacheDirective.none());
 	}
 
 	@SuppressWarnings("unchecked")

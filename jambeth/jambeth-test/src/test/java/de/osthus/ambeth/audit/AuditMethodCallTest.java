@@ -227,7 +227,12 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 
 		IList<IAuditEntry> auditEntriesOfUser = query.retrieve();
 		Assert.assertEquals(1, auditEntriesOfUser.size());
-		Assert.assertTrue(auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser));
+		boolean[] verifyAuditEntries = auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser);
+		Assert.assertEquals(auditEntriesOfUser.size(), verifyAuditEntries.length);
+		for (boolean verify : verifyAuditEntries)
+		{
+			Assert.assertTrue(verify);
+		}
 	}
 
 	@Test

@@ -21,6 +21,7 @@ import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.IMergeProcess;
+import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.stream.IInputStream;
 import de.osthus.ambeth.stream.binary.IBinaryInputSource;
 import de.osthus.ambeth.stream.binary.IBinaryInputStream;
@@ -44,6 +45,9 @@ public class PersistenceStreamTest extends AbstractInformationBusWithPersistence
 	protected ICache cache;
 
 	@Autowired
+	protected IConnectionDialect connectionDialect;
+
+	@Autowired
 	protected IMergeProcess mergeProcess;
 
 	@Before
@@ -52,8 +56,8 @@ public class PersistenceStreamTest extends AbstractInformationBusWithPersistence
 		Connection connection = connectionFactory.create();
 		try
 		{
-			PreparedStatement pstm = connection.prepareStatement("INSERT INTO ENTITY_WITH_LOB (ID, BLOB, CLOB, VERSION) VALUES (?,?,?,?)");
-			Blob blob = connection.createBlob();
+			PreparedStatement pstm = connection.prepareStatement("INSERT INTO \"ENTITY_WITH_LOB\" (\"ID\", \"BLOB\", \"CLOB\", \"VERSION\") VALUES (?,?,?,?)");
+			Blob blob = connectionDialect.createBlob(connection);
 			{
 				OutputStream os = blob.setBinaryStream(1);
 				try
@@ -65,7 +69,7 @@ public class PersistenceStreamTest extends AbstractInformationBusWithPersistence
 					os.close();
 				}
 			}
-			Clob clob = connection.createClob();
+			Clob clob = connectionDialect.createClob(connection);
 			{
 				Writer os = clob.setCharacterStream(1);
 				try
@@ -82,6 +86,7 @@ public class PersistenceStreamTest extends AbstractInformationBusWithPersistence
 			pstm.setClob(3, clob);
 			pstm.setInt(4, 1);
 			pstm.execute();
+			connection.commit();
 		}
 		finally
 		{

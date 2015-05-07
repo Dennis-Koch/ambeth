@@ -2,7 +2,6 @@ package de.osthus.ambeth.persistence.jdbc.lob;
 
 import java.sql.Blob;
 import java.sql.Clob;
-import java.sql.Connection;
 import java.util.Arrays;
 
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -23,9 +22,6 @@ import de.osthus.ambeth.util.IConversionHelper;
 
 public class LobInputSourceController implements ILobInputSourceController
 {
-	@Autowired
-	protected Connection connection;
-
 	@Autowired
 	protected IConversionHelper conversionHelper;
 
@@ -98,8 +94,8 @@ public class LobInputSourceController implements ILobInputSourceController
 		IFieldMetaData lobField = table.getMetaData().getFieldByMemberName(member.getName());
 
 		boolean success = false;
-		IDataCursor dataCursor = table
-				.selectDataJoin(Arrays.asList(lobField.getName()), null, idField.getName() + "=?", null, null, Arrays.asList(persistedId));
+		IDataCursor dataCursor = table.selectDataJoin(Arrays.asList("\"" + lobField.getName() + "\""), null, "\"" + idField.getName() + "\"=?", null, null,
+				Arrays.asList(persistedId));
 		try
 		{
 			if (!dataCursor.moveNext())

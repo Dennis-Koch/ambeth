@@ -27,6 +27,7 @@ import de.osthus.ambeth.stream.int64.ILongInputStream;
 import de.osthus.ambeth.stream.strings.BinaryStringConverter;
 import de.osthus.ambeth.stream.strings.IStringInputSource;
 import de.osthus.ambeth.stream.strings.IStringInputStream;
+import de.osthus.ambeth.typeinfo.INoEntityTypeExtendable;
 import de.osthus.ambeth.util.IDedicatedConverter;
 import de.osthus.ambeth.util.IDedicatedConverterExtendable;
 
@@ -39,6 +40,8 @@ public class StreamModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
+		beanContextFactory.link(IInputSource.class).to(INoEntityTypeExtendable.class);
+
 		IBeanConfiguration genericConverterBC = beanContextFactory.registerBean(GenericInputSourceConverter.class);
 		beanContextFactory.link(genericConverterBC).to(IDedicatedConverterExtendable.class).with(IInputSource.class, IInputStream.class);
 

@@ -57,16 +57,7 @@ public class CacheServiceUtil extends ServiceUtil
 		ArrayList<IObjRef> objRefs = new ArrayList<IObjRef>();
 		if (item != null)
 		{
-			try
-			{
-
-				objRefs.add(objRefFactory.createObjRef(entityType, ObjRef.PRIMARY_KEY_INDEX, item.getId(), item.getVersion()));
-			}
-			finally
-			{
-				item.dispose();
-				item = null;
-			}
+			objRefs.add(objRefFactory.createObjRef(entityType, ObjRef.PRIMARY_KEY_INDEX, item.getId(), item.getVersion()));
 		}
 		oriResultHolder.setServiceResult(new ServiceResult(objRefs));
 		return null;

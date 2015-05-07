@@ -13,22 +13,12 @@ public class PostgresBlob implements Blob
 {
 	private long oid;
 
-	private int mode;
-
 	private LargeObjectManager largeObjectManager;
 
-	public PostgresBlob(PGConnection connection) throws SQLException
-	{
-		largeObjectManager = connection.getLargeObjectAPI();
-		oid = largeObjectManager.createLO();
-		mode = LargeObjectManager.READWRITE;
-	}
-
-	public PostgresBlob(PGConnection connection, long oid, int mode) throws SQLException
+	public PostgresBlob(PGConnection connection, long oid) throws SQLException
 	{
 		this.oid = oid;
 		largeObjectManager = connection.getLargeObjectAPI();
-		this.mode = mode;
 	}
 
 	@Override

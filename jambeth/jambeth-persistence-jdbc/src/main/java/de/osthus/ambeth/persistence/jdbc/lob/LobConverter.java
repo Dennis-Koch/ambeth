@@ -41,68 +41,94 @@ public class LobConverter implements IDedicatedConverter
 			{
 				Blob blob = (Blob) value;
 
+				byte[] array;
 				int length = (int) blob.length();
-				InputStream is = blob.getBinaryStream();
-				try
+				if (length == 0)
 				{
-					byte[] array = new byte[length];
-					int bytesRead = is.read(array, 0, length);
-					if (bytesRead < length)
+					array = new byte[0];
+				}
+				else
+				{
+					InputStream is = blob.getBinaryStream();
+					try
 					{
-						int index = bytesRead;
-						byte[] oneByte = new byte[1];
-						while ((bytesRead = is.read(oneByte, index, 1)) != -1)
+						array = new byte[length];
+
+						int bytesRead;
+						int index = 0;
+						while ((bytesRead = is.read(array, index, length - index)) != -1)
 						{
-							array[index] = oneByte[0];
 							index += bytesRead;
+							if (index == length)
+							{
+								break;
+							}
 						}
 					}
-					if (byte[].class.equals(expectedType))
+					finally
 					{
-						return array;
-					}
-					else if (String.class.equals(expectedType))
-					{
-						return new String(array, Properties.CHARSET_UTF_8);
+						is.close();
 					}
 				}
-				finally
+				if (byte[].class.equals(expectedType))
 				{
-					is.close();
+					return array;
+				}
+				else if (String.class.equals(expectedType))
+				{
+					return new String(array, Properties.CHARSET_UTF_8);
 				}
 			}
 			else if (Clob.class.isAssignableFrom(sourceType))
 			{
 				Clob clob = (Clob) value;
 
-				Reader reader = clob.getCharacterStream();
-				try
+				int length = (int) clob.length();
+				char[] array;
+				if (length == 0)
 				{
-					int length = (int) clob.length();
-					char[] array = new char[length];
-					int bytesRead = reader.read(array, 0, length);
-					if (bytesRead < length)
+					array = new char[0];
+				}
+				else
+				{
+					Reader is = clob.getCharacterStream();
+					try
 					{
-						int index = bytesRead;
-						char[] oneChar = new char[1];
-						while ((bytesRead = reader.read(oneChar, index, 1)) != -1)
+						array = new char[length];
+
+						int bytesRead;
+						int index = 0;
+						while ((bytesRead = is.read(array, index, length - index)) != -1)
 						{
-							array[index] = oneChar[0];
 							index += bytesRead;
+							if (index == length)
+							{
+								break;
+							}
+						}
+						if (array.length > index)
+						{
+							char[] newArray = new char[index];
+							System.arraycopy(array, 0, newArray, 0, newArray.length);
+							array = newArray;
 						}
 					}
-					if (char[].class.equals(expectedType))
+					finally
 					{
-						return array;
-					}
-					else if (String.class.equals(expectedType))
-					{
-						return new String(array);
+						is.close();
 					}
 				}
-				finally
+				if (char[].class.equals(expectedType))
 				{
-					reader.close();
+					return array;
+				}
+				else if (String.class.equals(expectedType))
+				{
+					if (array.length == 0)
+					{
+						return "";
+					}
+					return new String(array);
 				}
 			}
 			else if (byte[].class.isAssignableFrom(sourceType))
@@ -126,7 +152,7 @@ public class LobConverter implements IDedicatedConverter
 			{
 				if (Clob.class.isAssignableFrom(expectedType))
 				{
-					Clob clob = connection.createClob();
+					Clob clob = connectionDialect.createClob(connection);
 					IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 					StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
 					Writer writer = clob.setCharacterStream(1);
@@ -147,7 +173,7 @@ public class LobConverter implements IDedicatedConverter
 			{
 				if (Clob.class.isAssignableFrom(expectedType))
 				{
-					Clob clob = connection.createClob();
+					Clob clob = connectionDialect.createClob(connection);
 					Writer writer = clob.setCharacterStream(1);
 					try
 					{

@@ -667,7 +667,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	private final Pattern[] ignoreIfContains = { Pattern.compile(".*?DROP CONSTRAINT.*?") };
 
 	private final Pattern[][] sqlCommands = {
-			{ Pattern.compile("CREATE( +OR +REPLACE)? +(?:TABLE|VIEW|INDEX|TYPE|SEQUENCE|SYNONYM) +.+", Pattern.CASE_INSENSITIVE),
+			{ Pattern.compile("CREATE( +OR +REPLACE)? +(?:TABLE|VIEW|INDEX|TYPE|SEQUENCE|SYNONYM|TABLESPACE) +.+", Pattern.CASE_INSENSITIVE),
 					Pattern.compile(".*?([;\\/]|@@@)") },
 			{ Pattern.compile("CREATE( +OR +REPLACE)? +(?:FUNCTION|PROCEDURE|TRIGGER) +.+", Pattern.CASE_INSENSITIVE),
 					Pattern.compile(".*?END(?:[;\\/]|@@@)", Pattern.CASE_INSENSITIVE) },
