@@ -4,12 +4,15 @@ using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Annotation;
 using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Collections;
+using De.Osthus.Ambeth.Ioc.Extendable;
 
 namespace De.Osthus.Ambeth.Typeinfo
 {
-    public class RelationProvider : IRelationProvider
+	public class RelationProvider : IRelationProvider, INoEntityTypeExtendable
     {
-		protected readonly CHashSet<Type> primitiveTypes = new CHashSet<Type>();
+		protected readonly SmartCopySet<Type> primitiveTypes = new SmartCopySet<Type>();
+
+		protected readonly ClassExtendableContainer<bool> noEntityTypeExtendables = new ClassExtendableContainer<bool>("flag", "noEntityType");
 
 	    public RelationProvider()
 	    {
@@ -23,7 +26,7 @@ namespace De.Osthus.Ambeth.Typeinfo
 
         public virtual bool IsEntityType(Type type)
         {
-            if (type == null || type.IsPrimitive || type.IsEnum || primitiveTypes.Contains(type))
+			if (type == null || type.IsPrimitive || type.IsEnum || primitiveTypes.Contains(type) || noEntityTypeExtendables.GetExtension(type))
             {
                 return false;
             }
@@ -34,52 +37,14 @@ namespace De.Osthus.Ambeth.Typeinfo
             return true;
         }
 
-        public virtual String CreatedOnMemberName
-        {
-            get
-            {
-                return null;
-            }
-        }
+		public void RegisterNoEntityType(Type noEntityType)
+		{
+			noEntityTypeExtendables.Register(true, noEntityType);
+		}
 
-        public virtual String CreatedByMemberName
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        public virtual String UpdatedOnMemberName
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        public virtual String UpdatedByMemberName
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        public virtual String VersionMemberName
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        public virtual String IdMemberName
-        {
-            get
-            {
-                return null;
-            }
-        }
+		public void UnregisterNoEntityType(Type noEntityType)
+		{
+			noEntityTypeExtendables.Unregister(true, noEntityType);
+		}
     }
 }
