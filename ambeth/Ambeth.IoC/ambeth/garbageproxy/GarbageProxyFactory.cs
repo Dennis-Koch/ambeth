@@ -18,6 +18,11 @@ namespace De.Osthus.Ambeth.Garbageproxy
         {
             return key1.Equals(entry.GetKey1()) && Arrays.Equals(key2, entry.GetKey2());
         }
+
+		protected override int ExtractHash(Type key1, Type[] key2)
+		{
+			return (key1 != null ? key1.GetHashCode() : 3) ^ (key2 != null ? Arrays.GetHashCode(key2) : 5);
+		}
     }
 
     public class GarbageProxyFactory : IGarbageProxyFactory, IInitializingBean

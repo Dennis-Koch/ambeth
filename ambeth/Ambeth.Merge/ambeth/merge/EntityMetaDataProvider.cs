@@ -157,21 +157,66 @@ namespace De.Osthus.Ambeth.Merge
 		    {
 			    primitiveMembers[a] = (PrimitiveMember) RefreshMember(metaData, primitiveMembers[a]);
 		    }
+
+			HashMap<String, PrimitiveMember> nameToPrimitiveMember = new HashMap<String, PrimitiveMember>();
+			for (int a = primitiveMembers.Length; a-- > 0; )
+			{
+				PrimitiveMember member = primitiveMembers[a];
+				nameToPrimitiveMember.Put(member.Name, member);
+			}
 		    PrimitiveMember[] alternateIdMembers = metaData.AlternateIdMembers;
             for (int a = alternateIdMembers.Length; a-- > 0; )
 		    {
 			    alternateIdMembers[a] = (PrimitiveMember) RefreshMember(metaData, alternateIdMembers[a]);
 		    }
-		    ((EntityMetaData) metaData).IdMember = (PrimitiveMember) RefreshMember(metaData, metaData.IdMember);
-            ((EntityMetaData)metaData).VersionMember = (PrimitiveMember)RefreshMember(metaData, metaData.VersionMember);
-            ((EntityMetaData)metaData).UpdatedByMember = (PrimitiveMember)RefreshMember(metaData, metaData.UpdatedByMember);
-            ((EntityMetaData)metaData).UpdatedOnMember = (PrimitiveMember)RefreshMember(metaData, metaData.UpdatedOnMember);
-            ((EntityMetaData)metaData).CreatedByMember = (PrimitiveMember)RefreshMember(metaData, metaData.CreatedByMember);
-            ((EntityMetaData)metaData).CreatedOnMember = (PrimitiveMember)RefreshMember(metaData, metaData.CreatedOnMember);
+		    ((EntityMetaData) metaData).IdMember = RefreshDefinedBy((PrimitiveMember) RefreshMember(metaData, metaData.IdMember), nameToPrimitiveMember);
+            ((EntityMetaData)metaData).VersionMember = RefreshDefinedBy((PrimitiveMember)RefreshMember(metaData, metaData.VersionMember), nameToPrimitiveMember);
 
+			((EntityMetaData)metaData).UpdatedByMember = GetIfExists(metaData.UpdatedByMember, nameToPrimitiveMember);
+			((EntityMetaData)metaData).UpdatedOnMember = GetIfExists(metaData.UpdatedOnMember, nameToPrimitiveMember);
+			((EntityMetaData)metaData).CreatedByMember = GetIfExists(metaData.CreatedByMember, nameToPrimitiveMember);
+			((EntityMetaData)metaData).CreatedOnMember = GetIfExists(metaData.CreatedOnMember, nameToPrimitiveMember);
+
+			for (int a = primitiveMembers.Length; a-- > 0; )
+			{
+				RefreshDefinedBy(primitiveMembers[a], nameToPrimitiveMember);
+			}
+			for (int a = alternateIdMembers.Length; a-- > 0; )
+			{
+				RefreshDefinedBy(alternateIdMembers[a], nameToPrimitiveMember);
+			}
 		    UpdateEntityMetaDataWithLifecycleExtensions(metaData);
 		    ((EntityMetaData) metaData).Initialize(CacheModification, EntityFactory);
         }
+
+		protected PrimitiveMember GetIfExists(PrimitiveMember memberToRefresh, IMap<String, PrimitiveMember> nameToPrimitiveMember)
+		{
+			if (memberToRefresh == null)
+			{
+				return null;
+			}
+			return nameToPrimitiveMember.Get(memberToRefresh.Name);
+		}
+
+		protected PrimitiveMember RefreshDefinedBy(PrimitiveMember member, IMap<String, PrimitiveMember> nameToPrimitiveMember)
+		{
+			if (member == null)
+			{
+				return member;
+			}
+			PrimitiveMember definedBy = member.DefinedBy;
+			if (definedBy == null)
+			{
+				return member;
+			}
+			PrimitiveMember refreshedDefinedBy = nameToPrimitiveMember.Get(definedBy.Name);
+			if (refreshedDefinedBy == null)
+			{
+				throw new Exception("Must never happen");
+			}
+			((IPrimitiveMemberWrite)member).SetDefinedBy(refreshedDefinedBy);
+			return member;
+		}
 
         protected Member RefreshMember(IEntityMetaData metaData, Member member)
         {

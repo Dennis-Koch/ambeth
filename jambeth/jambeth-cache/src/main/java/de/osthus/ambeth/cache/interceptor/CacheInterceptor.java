@@ -8,6 +8,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import net.sf.cglib.proxy.MethodProxy;
+import de.osthus.ambeth.annotation.Find;
+import de.osthus.ambeth.annotation.QueryResultType;
 import de.osthus.ambeth.cache.CacheDirective;
 import de.osthus.ambeth.cache.Cached;
 import de.osthus.ambeth.cache.ICache;
@@ -73,7 +75,7 @@ public class CacheInterceptor extends MergeInterceptor
 			ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
 			serviceDescription = SyncToAsyncUtil.createServiceDescription(serviceName, method, args, securityScopes);
 			serviceResult = cacheService.getORIsForServiceRequest(serviceDescription);
-			return createResultObject(serviceResult, returnType, args);
+			return createResultObject(serviceResult, returnType, args, annotation);
 		}
 
 		if (args.length != 1)
@@ -112,7 +114,7 @@ public class CacheInterceptor extends MergeInterceptor
 		boolean returnMisses = cached.returnMisses();
 		ArrayList<IObjRef> orisToGet = new ArrayList<IObjRef>();
 		fillOrisToGet(orisToGet, args, entityType, idIndex, returnMisses);
-		return createResultObject(orisToGet, returnType, returnMisses);
+		return createResultObject(orisToGet, returnType, returnMisses, annotation);
 	}
 
 	protected void fillOrisToGet(List<IObjRef> orisToGet, Object[] args, Class<?> entityType, byte idIndex, boolean returnMisses)
@@ -188,39 +190,65 @@ public class CacheInterceptor extends MergeInterceptor
 		}
 	}
 
-	protected Object createResultObject(IServiceResult serviceResult, Class<?> expectedType, Object[] originalArgs)
+	protected Object createResultObject(IServiceResult serviceResult, Class<?> expectedType, Object[] originalArgs, Annotation annotation)
 	{
 		List<IObjRef> objRefs = serviceResult.getObjRefs();
-		IList<Object> syncObjects = cache.getObjects(objRefs, CacheDirective.none());
-		return postProcessCacheResult(syncObjects, expectedType, serviceResult, originalArgs);
+		IList<Object> syncObjects = null;
+		if (!(annotation instanceof Find) || ((Find) annotation).resultType() != QueryResultType.REFERENCES)
+		{
+			syncObjects = cache.getObjects(objRefs, CacheDirective.none());
+		}
+		return postProcessCacheResult(objRefs, syncObjects, expectedType, serviceResult, originalArgs, annotation);
 	}
 
-	protected Object createResultObject(List<IObjRef> objRefs, Class<?> expectedType, boolean returnMisses)
+	protected Object createResultObject(List<IObjRef> objRefs, Class<?> expectedType, boolean returnMisses, Annotation annotation)
 	{
 		IList<Object> syncObjects = cache.getObjects(objRefs, returnMisses ? CacheDirective.returnMisses() : CacheDirective.none());
-		return postProcessCacheResult(syncObjects, expectedType, null, null);
+		return postProcessCacheResult(objRefs, syncObjects, expectedType, null, null, annotation);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected Object postProcessCacheResult(IList<Object> cacheResult, Class<?> expectedType, IServiceResult serviceResult, Object[] originalArgs)
+	protected Object postProcessCacheResult(List<IObjRef> objRefs, IList<Object> cacheResult, Class<?> expectedType, IServiceResult serviceResult,
+			Object[] originalArgs, Annotation annotation)
 	{
-		int cacheResultSize = cacheResult.size();
+		int cacheResultSize = cacheResult != null ? cacheResult.size() : objRefs.size();
 		if (Collection.class.isAssignableFrom(expectedType))
 		{
 			Collection targetCollection = ListUtil.createCollectionOfType(expectedType, cacheResultSize);
 
-			for (int a = 0; a < cacheResultSize; a++)
+			if (cacheResult != null)
 			{
-				targetCollection.add(cacheResult.get(a));
+				for (int a = 0; a < cacheResultSize; a++)
+				{
+					targetCollection.add(cacheResult.get(a));
+				}
+			}
+			else
+			{
+				for (int a = 0; a < cacheResultSize; a++)
+				{
+					targetCollection.add(objRefs.get(a));
+				}
 			}
 			return targetCollection;
 		}
 		else if (expectedType.isArray())
 		{
 			Object[] array = (Object[]) Array.newInstance(expectedType.getComponentType(), cacheResultSize);
-			for (int a = 0; a < cacheResultSize; a++)
+
+			if (cacheResult != null)
 			{
-				array[a] = cacheResult.get(a);
+				for (int a = 0; a < cacheResultSize; a++)
+				{
+					array[a] = cacheResult.get(a);
+				}
+			}
+			else
+			{
+				for (int a = 0; a < cacheResultSize; a++)
+				{
+					array[a] = objRefs.get(a);
+				}
 			}
 			return array;
 		}
@@ -234,7 +262,7 @@ public class CacheInterceptor extends MergeInterceptor
 			}
 			else if (cacheResultSize == 1)
 			{
-				return cacheResult.get(0);
+				return cacheResult != null ? cacheResult.get(0) : objRefs.get(0);
 			}
 		}
 		Object additionalInformation = serviceResult != null ? serviceResult.getAdditionalInformation() : null;
@@ -243,7 +271,7 @@ public class CacheInterceptor extends MergeInterceptor
 			throw new IllegalStateException("Can not convert list of " + cacheResultSize + " results from cache to type " + expectedType.getName());
 		}
 		IServiceResultProcessor serviceResultProcessor = serviceResultProcessorRegistry.getServiceResultProcessor(expectedType);
-		return serviceResultProcessor.processServiceResult(additionalInformation, cacheResult, expectedType, originalArgs);
+		return serviceResultProcessor.processServiceResult(additionalInformation, objRefs, cacheResult, expectedType, originalArgs, annotation);
 	}
 
 	@Override

@@ -20,6 +20,7 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.ISet;
+import de.osthus.ambeth.collections.ISetEntry;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -40,6 +41,7 @@ import de.osthus.ambeth.persistence.DatabaseMetaData;
 import de.osthus.ambeth.persistence.DirectedExternalLinkMetaData;
 import de.osthus.ambeth.persistence.DirectedLinkMetaData;
 import de.osthus.ambeth.persistence.IConfigurableDatabaseMetaData;
+import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.IDatabaseMetaData;
 import de.osthus.ambeth.persistence.IFieldMetaData;
 import de.osthus.ambeth.persistence.ILinkMetaData;
@@ -105,6 +107,9 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 	protected Set<EntityConfig> localEntities = new LinkedHashSet<EntityConfig>();
 
 	protected Set<EntityConfig> externalEntities = new LinkedHashSet<EntityConfig>();
+
+	@Autowired
+	protected IConnectionDialect connectionDialect;
 
 	@Autowired
 	protected IEntityMetaDataExtendable entityMetaDataExtendable;
@@ -192,7 +197,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 	}
 
 	@Override
-	public void mapFields(Connection connection, IDatabaseMetaData database)
+	public void mapFields(Connection connection, String[] schemaNames, IDatabaseMetaData database)
 	{
 		if (xmlFileName == null)
 		{
@@ -203,6 +208,28 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		if (!externalEntities.isEmpty())
 		{
 			handleExternalEntities();
+		}
+		HashSet<String> allFullqualifiedSequences;
+		try
+		{
+			allFullqualifiedSequences = new HashSet<String>(connectionDialect.getAllFullqualifiedSequences(connection, schemaNames))
+			{
+				@Override
+				protected boolean equalKeys(String key, ISetEntry<String> entry)
+				{
+					return key.equalsIgnoreCase(entry.getKey());
+				}
+
+				@Override
+				protected int extractHash(String key)
+				{
+					return key.toLowerCase().hashCode();
+				}
+			};
+		}
+		catch (SQLException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
 		}
 		int maxNameLength = database.getMaxNameLength();
 		Iterator<EntityConfig> iter = localEntities.iterator();
@@ -223,20 +250,13 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			{
 				database.mapArchiveTable(archiveTable.getName(), entityType);
 			}
-			String sequenceName = entityConfig.getSequenceName();
 
-			if (sequenceName == null)
+			configureTableSequence(table, entityConfig.getSequenceName(), maxNameLength, allFullqualifiedSequences);
+
+			ITableMetaData pgTable = database.getTableByName(ormPatternMatcher.buildPermissionGroupFromTableName(table.getName(), maxNameLength));
+			if (pgTable != null)
 			{
-				sequenceName = ormPatternMatcher.buildSequenceFromTableName(table.getName(), maxNameLength);
-			}
-			sequenceName = getFqObjectName(table, sequenceName);
-			if (table instanceof TableMetaData)
-			{
-				((TableMetaData) table).setSequenceName(sequenceName);
-			}
-			else
-			{
-				throw new IllegalStateException("Cannot set sequence name");
+				configureTableSequence(pgTable, null, maxNameLength, allFullqualifiedSequences);
 			}
 
 			if (entityConfig.getIdMemberConfig() != null)
@@ -321,7 +341,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 					// Field already mapped
 					continue;
 				}
-				String fieldName = field.getName().toUpperCase();
+				String fieldName = field.getName();
 				IPropertyInfo propertyInfo = ucPropertyMap.get(fieldName);
 				if (propertyInfo == null)
 				{
@@ -341,11 +361,22 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			}
 			mapIdAndVersion(table, idName, versionName);
 		}
-		super.mapFields(connection, database);
+		super.mapFields(connection, schemaNames, database);
+	}
+
+	protected void configureTableSequence(ITableMetaData table, String sequenceName, int maxNameLength, ISet<String> allFullqualifiedSequences)
+	{
+		if (sequenceName == null)
+		{
+			sequenceName = ormPatternMatcher.buildSequenceFromTableName(table.getName(), maxNameLength);
+		}
+		sequenceName = getFqObjectName(table, sequenceName);
+		sequenceName = allFullqualifiedSequences.get(sequenceName); // important: set the camelCase of the existing sequence in the database
+		((TableMetaData) table).setSequenceName(sequenceName);
 	}
 
 	@Override
-	public void mapLinks(Connection connection, IDatabaseMetaData database)
+	public void mapLinks(Connection connection, String[] schemaNames, IDatabaseMetaData database)
 	{
 		if (xmlFileName == null)
 		{
@@ -358,7 +389,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		for (int i = allLinks.size(); i-- > 0;)
 		{
 			ILinkMetaData link = allLinks.get(i);
-			if (link.getName().equals(link.getTableName()))
+			if (link.getName().equalsIgnoreCase(link.getTableName()))
 			{
 				String archiveTableName = ormPatternMatcher.buildArchiveFromTableName(link.getName(), maxNameLength);
 				if (confDatabase.isLinkArchiveTable(archiveTableName))
@@ -404,14 +435,14 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			}
 		}
 
-		super.mapLinks(connection, database);
+		super.mapLinks(connection, schemaNames, database);
 	}
 
 	protected ITableMetaData tryResolveTable(IDatabaseMetaData database, String hardName, String softName)
 	{
 		if (hardName != null && hardName.length() > 0)
 		{
-			ITableMetaData table = database.getTableByName(hardName.toUpperCase());
+			ITableMetaData table = database.getTableByName(connectionDialect.toDefaultCase(hardName));
 			if (table == null)
 			{
 				throw new IllegalArgumentException("No table found with name '" + hardName + "'");
@@ -461,7 +492,6 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		set.add(assumedName);
 		set.add(assumedName.toUpperCase());
 		set.add(assumedName.toLowerCase());
-
 		return set;
 	}
 
@@ -516,18 +546,25 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		{
 			String assumedFieldName1 = ormPatternMatcher.buildFieldNameFromSoftName(name, maxNameLength);
 			String assumedFieldName2 = assumedFieldName1 + "_ID";
+			String assumedFieldName3 = assumedFieldName1 + "_id";
 
-			if (!ucPropertyMap.putIfNotExists(assumedFieldName1, propertyInfo))
+			if (!ucPropertyMap.putIfNotExists(assumedFieldName1, propertyInfo) && ucPropertyMap.get(assumedFieldName1) != propertyInfo)
 			{
 				// Property is not uniquely resolvable if transformed to uppercase
 				// So it will be no candidate for automated field mapping!
 				ucPropertyMap.put(assumedFieldName1, null);
 			}
-			if (!ucPropertyMap.putIfNotExists(assumedFieldName2, propertyInfo))
+			if (!ucPropertyMap.putIfNotExists(assumedFieldName2, propertyInfo) && ucPropertyMap.get(assumedFieldName2) != propertyInfo)
 			{
 				// Property is not uniquely resolvable if transformed to uppercase
 				// So it will be no candidate for automated field mapping!
 				ucPropertyMap.put(assumedFieldName2, null);
+			}
+			if (!ucPropertyMap.putIfNotExists(assumedFieldName3, propertyInfo) && ucPropertyMap.get(assumedFieldName3) != propertyInfo)
+			{
+				// Property is not uniquely resolvable if transformed to uppercase
+				// So it will be no candidate for automated field mapping!
+				ucPropertyMap.put(assumedFieldName3, null);
 			}
 		}
 	}
@@ -586,7 +623,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 	{
 		if (objectName == null || objectName.contains("."))
 		{
-			return objectName;
+			return connectionDialect.toDefaultCase(objectName);
 		}
 		Matcher matcher = fqToSoftTableNamePattern.matcher(table.getName());
 		if (!matcher.matches())
@@ -618,7 +655,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			}
 			else
 			{
-				boolean useLinkTable = !table.getName().equals(joinTableName) && !table2.getName().equals(joinTableName);
+				boolean useLinkTable = !table.getName().equalsIgnoreCase(joinTableName) && !table2.getName().equalsIgnoreCase(joinTableName);
 				if (!useLinkTable)
 				{
 					linkName = mapDataTableWithLink(database, table, table2, relationConfig, false);
@@ -643,7 +680,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			String toAttributeName = relationConfig.getToAttributeName();
 			Member toMember = getMemberByTypeAndName(linkedEntityType, toAttributeName);
 
-			boolean useLinkTable = !table.getName().equals(joinTableName);
+			boolean useLinkTable = !table.getName().equalsIgnoreCase(joinTableName);
 
 			if (!useLinkTable)
 			{
@@ -691,7 +728,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			}
 			else
 			{
-				boolean useLinkTable = !table.getName().equals(joinTableName) && !table2.getName().equals(joinTableName);
+				boolean useLinkTable = !table.getName().equalsIgnoreCase(joinTableName) && !table2.getName().equalsIgnoreCase(joinTableName);
 
 				if (!useLinkTable)
 				{
@@ -718,7 +755,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			String toAttributeName = relationConfig.getToAttributeName();
 			Member toMember = getMemberByTypeAndName(linkedEntityType, toAttributeName);
 
-			if (joinTableName.equals(table.getName()))
+			if (joinTableName.equalsIgnoreCase(table.getName()))
 			{
 				String fromFieldName = relationConfig.getFromFieldName();
 				IFieldMetaData fromField = table.getFieldByName(fromFieldName);
@@ -826,7 +863,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		}
 		else
 		{
-			cascadeDeletes[0] = !entityIdentifier.toString().equals(cascadeDeleteDirection.toString());
+			cascadeDeletes[0] = !entityIdentifier.name().equals(cascadeDeleteDirection.name());
 			cascadeDeletes[1] = !cascadeDeletes[0];
 		}
 		return cascadeDeletes;
@@ -860,7 +897,6 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		{
 			return null;
 		}
-		constraintName = constraintName.toUpperCase();
 		List<ILinkMetaData> links = database.getLinks();
 		for (int a = links.size(); a-- > 0;)
 		{
@@ -874,16 +910,16 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			{
 				DirectedLinkMetaData linkForward = (DirectedLinkMetaData) link.getDirectedLink();
 				DirectedLinkMetaData linkReverse = (DirectedLinkMetaData) link.getReverseDirectedLink();
-				if (constraintName.equals(linkForward.getConstraintName()))
+				if (constraintName.equalsIgnoreCase(linkForward.getConstraintName()))
 				{
 					return linkForward.getName();
 				}
-				if (constraintName.equals(linkReverse.getConstraintName()))
+				if (constraintName.equalsIgnoreCase(linkReverse.getConstraintName()))
 				{
 					return linkReverse.getName();
 				}
 			}
-			if (constraintName.equals(constraintNameOfLink))
+			if (constraintName.equalsIgnoreCase(constraintNameOfLink))
 			{
 				return link.getName();
 			}
@@ -896,7 +932,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 	{
 		String joinTableName = getFqJoinTableName(table, relationConfig);
 		ITableMetaData fromTable, toTable;
-		if (table.getName().equals(joinTableName))
+		if (table.getName().equalsIgnoreCase(joinTableName))
 		{
 			fromTable = table;
 			toTable = table2;
@@ -929,7 +965,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 
 	protected void mapFieldToMember(ITableMetaData table, String joinTableName, String fieldName, String memberName)
 	{
-		if (table.getName().equals(joinTableName) && table.getFieldByName(fieldName).getMember() == null)
+		if (table.getName().equalsIgnoreCase(joinTableName) && table.getFieldByName(fieldName).getMember() == null)
 		{
 			table.mapField(fieldName, memberName);
 			if (log.isDebugEnabled())

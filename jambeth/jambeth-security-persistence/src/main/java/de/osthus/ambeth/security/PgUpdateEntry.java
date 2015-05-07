@@ -17,9 +17,9 @@ public class PgUpdateEntry
 
 	protected IList<IObjRef> objRefs;
 
-	private Object[] permissionGroupIds;
+	protected IList<Object> permissionGroupIds;
 
-	private int startIndexInAllObjRefs;
+	protected int startIndexInAllObjRefs;
 
 	public PgUpdateEntry(Class<?> entityType, IPermissionGroup permissionGroup)
 	{
@@ -67,12 +67,12 @@ public class PgUpdateEntry
 		this.objRefs = objRefs;
 	}
 
-	public Object[] getPermissionGroupIds()
+	public IList<Object> getPermissionGroupIds()
 	{
 		return permissionGroupIds;
 	}
 
-	public void setPermissionGroupIds(Object[] permissionGroupIds)
+	public void setPermissionGroupIds(IList<Object> permissionGroupIds)
 	{
 		this.permissionGroupIds = permissionGroupIds;
 	}

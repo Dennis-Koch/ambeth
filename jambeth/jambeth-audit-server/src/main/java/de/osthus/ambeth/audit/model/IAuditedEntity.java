@@ -6,6 +6,8 @@ public interface IAuditedEntity
 {
 	public static final String ChangeType = "ChangeType";
 
+	public static final String Entry = "Entry";
+
 	public static final String Order = "Order";
 
 	public static final String Primitives = "Primitives";
@@ -14,19 +16,15 @@ public interface IAuditedEntity
 
 	public static final String Relations = "Relations";
 
-	int getOrder();
-
-	void setOrder(int order);
-
-	IAuditedEntityRef getRef();
-
-	void setRef(IAuditedEntityRef ref);
-
 	AuditedEntityChangeType getChangeType();
 
-	void setChangeType(AuditedEntityChangeType changeType);
+	IAuditEntry getEntry();
+
+	int getOrder();
 
 	List<? extends IAuditedEntityPrimitiveProperty> getPrimitives();
+
+	IAuditedEntityRef getRef();
 
 	List<? extends IAuditedEntityRelationProperty> getRelations();
 }

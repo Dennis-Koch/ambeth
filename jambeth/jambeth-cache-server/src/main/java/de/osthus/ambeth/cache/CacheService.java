@@ -19,6 +19,7 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.filter.model.IPagingResponse;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -234,7 +235,21 @@ public class CacheService implements ICacheService, IInitializingBean, ExecuteSe
 
 			if (postCallServiceResult == null)
 			{
-				List<IObjRef> oris = oriHelper.extractObjRefList(result, null, null);
+				Object currResult = result;
+				if (currResult instanceof IPagingResponse)
+				{
+					IPagingResponse<?> pr = (IPagingResponse<?>) currResult;
+					List<IObjRef> refResult = pr.getRefResult();
+					if (refResult != null)
+					{
+						currResult = refResult;
+					}
+					else
+					{
+						currResult = pr.getResult();
+					}
+				}
+				List<IObjRef> oris = oriHelper.extractObjRefList(currResult, null, null);
 				for (int a = oris.size(); a-- > 0;)
 				{
 					if (oris.get(a) instanceof IDirectObjRef)

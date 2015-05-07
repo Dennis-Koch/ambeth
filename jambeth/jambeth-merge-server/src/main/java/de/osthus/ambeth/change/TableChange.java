@@ -44,7 +44,7 @@ public class TableChange extends AbstractTableChange
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Autowired
-	protected IObjRefHelper oriHelper;
+	protected IObjRefHelper objRefHelper;
 
 	@Property(name = MergeConfigurationConstants.DeleteDataChangesByAlternateIds, defaultValue = "false")
 	protected boolean deleteDataChangesByAlternateIds;
@@ -95,7 +95,16 @@ public class TableChange extends AbstractTableChange
 				IObjRef ref = command.getRefsToLink().get(0);
 				if (!foreignField.isAlternateId() || foreignField.getIdIndex() == ref.getIdNameIndex())
 				{
-					foreignKey = ref.getId();
+					if (ref instanceof IDirectObjRef)
+					{
+						IDirectObjRef directRef = (IDirectObjRef) ref;
+						Object container = directRef.getDirect();
+						foreignKey = getPrimaryIdValue(container);
+					}
+					if (foreignKey == null)
+					{
+						foreignKey = ref.getId();
+					}
 				}
 				else if (ref instanceof IDirectObjRef)
 				{
@@ -132,7 +141,12 @@ public class TableChange extends AbstractTableChange
 				}
 				else
 				{
-					foreignKey = directRef.getId();
+					Object container = directRef.getDirect();
+					foreignKey = getPrimaryIdValue(container);
+					if (foreignKey == null)
+					{
+						foreignKey = directRef.getId();
+					}
 				}
 			}
 			else if (neededIdIndex == reference.getIdNameIndex())
@@ -250,7 +264,7 @@ public class TableChange extends AbstractTableChange
 					IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objects.get(0).getClass());
 					for (int i = objects.size(); i-- > 0;)
 					{
-						IList<IObjRef> allOris = oriHelper.entityToAllObjRefs(objects.get(i), metaData);
+						IList<IObjRef> allOris = objRefHelper.entityToAllObjRefs(objects.get(i), metaData);
 						for (int j = allOris.size(); j-- > 0;)
 						{
 							changeAggregator.dataChangeDelete(allOris.get(j));
@@ -293,5 +307,11 @@ public class TableChange extends AbstractTableChange
 			value = metaData.getAlternateIdMembers()[idIndex].getValue(container);
 		}
 		return value;
+	}
+
+	protected Object getPrimaryIdValue(Object container)
+	{
+		IEntityMetaData metaData = ((IEntityMetaDataHolder) container).get__EntityMetaData();
+		return metaData.getIdMember().getValue(container);
 	}
 }

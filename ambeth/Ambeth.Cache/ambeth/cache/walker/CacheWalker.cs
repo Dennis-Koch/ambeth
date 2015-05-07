@@ -104,7 +104,7 @@ namespace De.Osthus.Ambeth.Walker
                         break;
                     }
                     CheckParentCache(parent, currentParent, child, cacheToChildCaches, cacheToProxyCache);
-                    parent = ((RootCache)currentParent).Parent;
+					parent = ((IRootCache)currentParent).Parent;
                     child = currentParent;
                 }
                 CheckParentCache(CommittedRootCache, currentCommittedRootCache, child, cacheToChildCaches, cacheToProxyCache);

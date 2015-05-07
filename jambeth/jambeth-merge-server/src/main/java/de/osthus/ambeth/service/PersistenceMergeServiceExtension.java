@@ -1286,7 +1286,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 		try
 		{
 			RuntimeException primaryException = null;
-			IList<String[]> disabled = database.disableConstraints();
+			IList<String> disabled = database.disableConstraints();
 			try
 			{
 				executeTableChanges(tableChangeList, changeAggregator);

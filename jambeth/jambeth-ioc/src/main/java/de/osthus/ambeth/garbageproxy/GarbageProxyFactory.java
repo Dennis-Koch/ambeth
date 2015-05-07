@@ -41,6 +41,12 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 		{
 			return key1.equals(entry.getKey1()) && Arrays.equals(key2, entry.getKey2());
 		}
+
+		@Override
+		protected int extractHash(Class<?> key1, Class<?>[] key2)
+		{
+			return (key1 != null ? key1.hashCode() : 3) ^ (key2 != null ? Arrays.hashCode(key2) : 5);
+		}
 	};
 
 	protected final Lock writeLock = new ReentrantLock();

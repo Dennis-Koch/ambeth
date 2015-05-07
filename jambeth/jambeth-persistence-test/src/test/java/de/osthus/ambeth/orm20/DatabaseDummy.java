@@ -161,13 +161,13 @@ public class DatabaseDummy implements IDatabase
 	}
 
 	@Override
-	public IList<String[]> disableConstraints()
+	public IList<String> disableConstraints()
 	{
 		return null;
 	}
 
 	@Override
-	public void enableConstraints(IList<String[]> disabled)
+	public void enableConstraints(IList<String> disabled)
 	{
 	}
 

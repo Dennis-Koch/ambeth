@@ -9,6 +9,8 @@ import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.IEntityMetaDataProvider;
+import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.metadata.IMemberTypeProvider;
 import de.osthus.ambeth.metadata.Member;
@@ -24,6 +26,9 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IConnectionDialect connectionDialect;
 
 	protected final ArrayList<IFieldMetaData> primitiveFields;
 
@@ -72,6 +77,9 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 	protected IFieldMetaData updatedOnField;
 
 	protected String sequenceName;
+
+	@Autowired
+	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Autowired
 	protected IMemberTypeProvider memberTypeProvider;
@@ -190,6 +198,12 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 	public void setIdFields(IFieldMetaData[] idFields)
 	{
 		this.idFields = idFields;
+		for (IFieldMetaData field : idFields)
+		{
+			fieldNameToFieldDict.put(field.getName(), field);
+			fieldNameToFieldDict.put(field.getName().toUpperCase(), field);
+			fieldNameToFieldDict.put(field.getName().toLowerCase(), field);
+		}
 	}
 
 	@Override
@@ -201,6 +215,9 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 	public void setVersionField(IFieldMetaData versionField)
 	{
 		this.versionField = versionField;
+		fieldNameToFieldDict.put(versionField.getName(), versionField);
+		fieldNameToFieldDict.put(versionField.getName().toUpperCase(), versionField);
+		fieldNameToFieldDict.put(versionField.getName().toLowerCase(), versionField);
 	}
 
 	@Override
@@ -365,17 +382,19 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 		}
 		primitiveFields.add(field);
 		allFields.add(field);
-		fieldName = fieldName.toUpperCase();
 		Integer index = Integer.valueOf(fieldNameToFieldIndexDict.size());
 		field.setIndexOnTable(index.intValue());
 		fieldNameToFieldIndexDict.put(fieldName, index);
 		fieldNameToFieldDict.put(fieldName, field);
+		fieldNameToFieldDict.put(fieldName.toUpperCase(), field);
+		fieldNameToFieldDict.put(fieldName.toLowerCase(), field);
 	}
 
 	@Override
 	public IFieldMetaData mapField(String fieldName, String memberName)
 	{
-		Member member = memberTypeProvider.getPrimitiveMember(getEntityType(), memberName);
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+		Member member = metaData.getMemberByName(memberName);
 
 		if (member == null)
 		{
@@ -420,6 +439,8 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 		if (fieldName != null)
 		{
 			fieldNameToIgnoreDict.add(fieldName);
+			fieldNameToIgnoreDict.add(fieldName.toUpperCase());
+			fieldNameToIgnoreDict.add(fieldName.toLowerCase());
 		}
 		if (memberName != null)
 		{
@@ -447,8 +468,12 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 			throw new RuntimeException("Link '" + getName() + "." + link + "' already configured");
 		}
 		links.add(link);
+		linkNameToLinkDict.put(linkName, link);
 		linkNameToLinkDict.put(linkName.toUpperCase(), link);
+		linkNameToLinkDict.put(linkName.toLowerCase(), link);
+		fieldNameToLinkDict.put(link.getFromField().getName(), link);
 		fieldNameToLinkDict.put(link.getFromField().getName().toUpperCase(), link);
+		fieldNameToLinkDict.put(link.getFromField().getName().toLowerCase(), link);
 	}
 
 	@Override
@@ -472,7 +497,9 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 		// {
 		memberNameToLinkDict.put(memberName, link);
 		// }
+		linkNameToMemberNameDict.put(linkName, memberName);
 		linkNameToMemberNameDict.put(linkName.toUpperCase(), memberName);
+		linkNameToMemberNameDict.put(linkName.toLowerCase(), memberName);
 		return link;
 	}
 
@@ -483,6 +510,7 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 		{
 			return null;
 		}
+		fieldName = connectionDialect.toDefaultCase(fieldName);
 		if (idFields != null)
 		{
 			for (IFieldMetaData idField : idFields)
@@ -497,7 +525,7 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 		{
 			return versionField;
 		}
-		return fieldNameToFieldDict.get(fieldName.toUpperCase());
+		return fieldNameToFieldDict.get(fieldName);
 	}
 
 	@Override
@@ -547,13 +575,13 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 	@Override
 	public IDirectedLinkMetaData getLinkByName(String linkName)
 	{
-		return linkNameToLinkDict.get(linkName.toUpperCase());
+		return linkNameToLinkDict.get(linkName);
 	}
 
 	@Override
 	public IDirectedLinkMetaData getLinkByFieldName(String fieldName)
 	{
-		return fieldNameToLinkDict.get(fieldName.toUpperCase());
+		return fieldNameToLinkDict.get(fieldName);
 	}
 
 	@Override
@@ -565,7 +593,7 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 	@Override
 	public String getMemberNameByLinkName(String linkName)
 	{
-		return linkNameToMemberNameDict.get(linkName.toUpperCase());
+		return linkNameToMemberNameDict.get(linkName);
 	}
 
 	@Override

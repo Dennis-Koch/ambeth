@@ -77,9 +77,16 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		@Autowired
 		protected IPrivilegeService privilegeService;
 
+		@Autowired
+		protected ISecurityActivation securityActivation;
+
 		@Override
 		public Object resolveOriginalValue(Object bean, String fieldName, ThreadLocal<?> fieldValueTL)
 		{
+			if (!securityActivation.isFilterActivated())
+			{
+				return null;
+			}
 			return ((PrivilegeService) privilegeService).getOrCreatePrivilegeCache();
 		}
 

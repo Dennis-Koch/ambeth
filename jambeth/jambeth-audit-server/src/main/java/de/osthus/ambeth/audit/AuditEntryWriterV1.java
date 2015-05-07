@@ -1,6 +1,7 @@
 package de.osthus.ambeth.audit;
 
 import java.io.DataOutputStream;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -25,124 +26,174 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.model.IPrimitiveUpdateItem;
 import de.osthus.ambeth.merge.model.IRelationUpdateItem;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.model.IDataObject;
+import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
+import de.osthus.ambeth.util.IConversionHelper;
 
 public class AuditEntryWriterV1 implements IAuditEntryWriter
 {
+	private static final String[] auditedPropertiesOfEntry = { IAuditEntry.Context,//
+			IAuditEntry.HashAlgorithm,//
+			IAuditEntry.Protocol,//
+			IAuditEntry.Reason,//
+			IAuditEntry.Timestamp,//
+			IAuditEntry.UserIdentifier };
+
+	private static final String[] auditedPropertiesOfService = { IAuditedService.Order,//
+			IAuditedService.MethodName,//
+			IAuditedService.ServiceType,//
+			IAuditedService.SpentTime,//
+			IAuditedService.Arguments };
+
+	private static final String[] auditedPropertiesOfEntity = { IAuditedEntity.Order,//
+			IAuditedEntity.ChangeType };
+
+	private static final String[] auditedPropertiesOfRef = { IAuditedEntityRef.EntityType,//
+			IAuditedEntityRef.EntityId,//
+			IAuditedEntityRef.EntityVersion };
+
+	private static final String[] auditedPropertiesOfPrimitive = { IAuditedEntityPrimitiveProperty.Order,//
+			IAuditedEntityPrimitiveProperty.Name,//
+			IAuditedEntityPrimitiveProperty.NewValue };
+
+	private static final String[] auditedPropertiesOfRelation = { IAuditedEntityRelationProperty.Order,//
+			IAuditedEntityRelationProperty.Name };
+
+	private static final String[] auditedPropertiesOfRelationItem = { IAuditedEntityRelationPropertyItem.Order,//
+			IAuditedEntityRelationPropertyItem.ChangeType };
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Autowired
+	protected IConversionHelper conversionHelper;
+
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	protected String[] getAuditedPropertiesOfEntry()
+	{
+		return auditedPropertiesOfEntry;
+	}
+
+	protected String[] getAuditedPropertiesOfService()
+	{
+		return auditedPropertiesOfService;
+	}
+
+	protected String[] getAuditedPropertiesOfEntity()
+	{
+		return auditedPropertiesOfEntity;
+	}
+
+	protected String[] getAuditedPropertiesOfRef()
+	{
+		return auditedPropertiesOfRef;
+	}
+
+	protected String[] getAuditedPropertiesOfPrimitive()
+	{
+		return auditedPropertiesOfPrimitive;
+	}
+
+	protected String[] getAuditedPropertiesOfRelation()
+	{
+		return auditedPropertiesOfRelation;
+	}
+
+	protected String[] getAuditedPropertiesOfRelationItem()
+	{
+		return auditedPropertiesOfRelationItem;
+	}
+
+	protected void writeProperties(String[] props, IEntityMetaDataHolder obj, DataOutputStream os)
+	{
+		IConversionHelper conversionHelper = this.conversionHelper;
+		IEntityMetaData metaData = obj.get__EntityMetaData();
+		if (obj instanceof IDataObject)
+		{
+			for (String prop : props)
+			{
+				Member member = metaData.getMemberByName(prop);
+				Object value = member.getValue(obj);
+				String sValue = conversionHelper.convertValueToType(String.class, value);
+				writeProperty(prop, sValue, os);
+			}
+			return;
+		}
+		IPrimitiveUpdateItem[] fullPUIs = ((CreateOrUpdateContainerBuild) obj).getFullPUIs();
+		for (String prop : props)
+		{
+			Object value = fullPUIs[metaData.getIndexByPrimitiveName(prop)].getNewValue();
+			String sValue = conversionHelper.convertValueToType(String.class, value);
+			writeProperty(prop, sValue, os);
+		}
+	}
+
+	protected IEntityMetaDataHolder getMember(String memberName, Object obj)
+	{
+		IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
+		if (obj instanceof IDataObject)
+		{
+			Member member = metaData.getMemberByName(memberName);
+			return (IEntityMetaDataHolder) member.getValue(obj);
+		}
+		IRelationUpdateItem rui = ((CreateOrUpdateContainerBuild) obj).getFullRUIs()[metaData.getIndexByRelationName(memberName)];
+		if (rui == null)
+		{
+			return null;
+		}
+		IObjRef[] addedORIs = rui.getAddedORIs();
+		return (CreateOrUpdateContainerBuild) ((IDirectObjRef) addedORIs[0]).getDirect();
+	}
 
 	@Override
 	public void writeAuditEntry(IAuditEntry auditEntry, DataOutputStream os)
 	{
-		writeProperty(IAuditEntry.UserIdentifier, auditEntry.getUserIdentifier(), os);
-		writeProperty(IAuditEntry.Timestamp, auditEntry.getTimestamp(), os);
-		writeProperty(IAuditEntry.Protocol, auditEntry.getProtocol(), os);
-		for (IAuditedService auditedService : sortAuditServices(auditEntry))
-		{
-			writeProperty(IAuditedService.ServiceType, auditedService.getServiceType(), os);
-			writeProperty(IAuditedService.MethodName, auditedService.getMethodName(), os);
-			writeProperty(IAuditedService.SpentTime, auditedService.getSpentTime(), os);
-		}
-		for (IAuditedEntity auditedEntity : sortAuditEntities(auditEntry))
-		{
-			IAuditedEntityRef ref = auditedEntity.getRef();
-			writeProperty(IAuditedEntityRef.EntityType, ref.getEntityType(), os);
-			writeProperty(IAuditedEntityRef.EntityId, ref.getEntityId(), os);
-			writeProperty(IAuditedEntityRef.EntityVersion, ref.getEntityVersion(), os);
-			writeProperty(IAuditedEntity.ChangeType, auditedEntity.getChangeType(), os);
-
-			for (IAuditedEntityPrimitiveProperty property : sortAuditedEntityPrimitives(auditedEntity))
-			{
-				writeProperty(IAuditedEntityPrimitiveProperty.Name, property.getName(), os);
-				writeProperty(IAuditedEntityPrimitiveProperty.NewValue, property.getNewValue(), os);
-			}
-			for (IAuditedEntityRelationProperty property : sortAuditedEntityRelations(auditedEntity))
-			{
-				writeProperty(IAuditedEntityRelationProperty.Name, property.getName(), os);
-
-				for (IAuditedEntityRelationPropertyItem item : sortAuditedEntityRelationItems(property))
-				{
-					IAuditedEntityRef itemRef = item.getRef();
-					writeProperty(IAuditedEntityRef.EntityType, itemRef.getEntityType(), os);
-					writeProperty(IAuditedEntityRef.EntityId, itemRef.getEntityId(), os);
-					writeProperty(IAuditedEntityRef.EntityVersion, itemRef.getEntityVersion(), os);
-					writeProperty(IAuditedEntityRelationPropertyItem.ChangeType, item.getChangeType(), os);
-				}
-			}
-		}
-	}
-
-	protected void writeProperty(String name, IPrimitiveUpdateItem[] fullPUIs, IEntityMetaData metaData, DataOutputStream os)
-	{
-		writeProperty(name, fullPUIs[metaData.getIndexByPrimitiveName(name)], os);
+		writeAuditEntryIntern((IEntityMetaDataHolder) auditEntry, os);
 	}
 
 	@Override
 	public void writeAuditEntry(CreateOrUpdateContainerBuild auditEntry, DataOutputStream os) throws Throwable
 	{
-		IEntityMetaData auditEntryMetaData = entityMetaDataProvider.getMetaData(IAuditEntry.class);
-		IEntityMetaData auditedServiceMetaData = entityMetaDataProvider.getMetaData(IAuditedService.class);
-		IEntityMetaData auditedEntityMetaData = entityMetaDataProvider.getMetaData(IAuditedEntity.class);
-		IEntityMetaData auditedEntityRefMetaData = entityMetaDataProvider.getMetaData(IAuditedEntityRef.class);
-		IEntityMetaData auditedEntityPrimitiveMetaData = entityMetaDataProvider.getMetaData(IAuditedEntityPrimitiveProperty.class);
-		IEntityMetaData auditedEntityRelationMetaData = entityMetaDataProvider.getMetaData(IAuditedEntityRelationProperty.class);
-		IEntityMetaData auditedEntityRelationItemMetaData = entityMetaDataProvider.getMetaData(IAuditedEntityRelationPropertyItem.class);
+		writeAuditEntryIntern(auditEntry, os);
+	}
 
-		IPrimitiveUpdateItem[] auditEntryPUIs = auditEntry.getFullPUIs();
-		writeProperty(IAuditEntry.UserIdentifier, auditEntryPUIs, auditEntryMetaData, os);
-		writeProperty(IAuditEntry.Timestamp, auditEntryPUIs, auditEntryMetaData, os);
-		writeProperty(IAuditEntry.Protocol, auditEntryPUIs, auditEntryMetaData, os);
-		for (CreateOrUpdateContainerBuild auditedService : sortAuditServices(auditEntry, auditEntryMetaData, auditedServiceMetaData))
+	protected void writeAuditEntryIntern(IEntityMetaDataHolder auditEntry, DataOutputStream os)
+	{
+		writeProperties(getAuditedPropertiesOfEntry(), auditEntry, os);
+		for (IEntityMetaDataHolder auditedService : sortOrderedMember(IAuditEntry.Services, IAuditedService.Order, auditEntry))
 		{
-			IPrimitiveUpdateItem[] auditedServicePUIs = auditedService.getFullPUIs();
-			writeProperty(IAuditedService.ServiceType, auditedServicePUIs, auditedServiceMetaData, os);
-			writeProperty(IAuditedService.MethodName, auditedServicePUIs, auditedServiceMetaData, os);
-			writeProperty(IAuditedService.SpentTime, auditedServicePUIs, auditedServiceMetaData, os);
+			writeProperties(getAuditedPropertiesOfService(), auditedService, os);
 		}
-		for (CreateOrUpdateContainerBuild auditedEntity : sortAuditEntities(auditEntry, auditEntryMetaData, auditedEntityMetaData))
+		for (IEntityMetaDataHolder auditedEntity : sortOrderedMember(IAuditEntry.Entities, IAuditedEntity.Order, auditEntry))
 		{
-			IPrimitiveUpdateItem[] auditedEntityPUIs = auditedEntity.getFullPUIs();
-			CreateOrUpdateContainerBuild ref = (CreateOrUpdateContainerBuild) ((IDirectObjRef) auditedEntity.getFullRUIs()[auditedEntityMetaData
-					.getIndexByRelationName(IAuditedEntity.Ref)].getAddedORIs()[0]).getDirect();
-			IPrimitiveUpdateItem[] auditedEntityRefPUIs = ref.getFullPUIs();
-			writeProperty(IAuditedEntityRef.EntityType, auditedEntityRefPUIs, auditedEntityRefMetaData, os);
-			writeProperty(IAuditedEntityRef.EntityId, auditedEntityRefPUIs, auditedEntityRefMetaData, os);
-			writeProperty(IAuditedEntityRef.EntityVersion, auditedEntityRefPUIs, auditedEntityRefMetaData, os);
-			writeProperty(IAuditedEntity.ChangeType, auditedEntityPUIs, auditedEntityMetaData, os);
+			IEntityMetaDataHolder ref = getMember(IAuditedEntity.Ref, auditedEntity);
+			writeProperties(getAuditedPropertiesOfRef(), ref, os);
+			writeProperties(getAuditedPropertiesOfEntity(), auditedEntity, os);
 
-			for (CreateOrUpdateContainerBuild primitiveProperty : sortAuditedEntityPrimitives(auditedEntity, auditedEntityMetaData,
-					auditedEntityPrimitiveMetaData))
+			for (IEntityMetaDataHolder property : sortOrderedMember(IAuditedEntity.Primitives, IAuditedEntityPrimitiveProperty.Order, auditedEntity))
 			{
-				IPrimitiveUpdateItem[] primitivePropertyPUIs = primitiveProperty.getFullPUIs();
-				writeProperty(IAuditedEntityPrimitiveProperty.Name, primitivePropertyPUIs, auditedEntityPrimitiveMetaData, os);
-				writeProperty(IAuditedEntityPrimitiveProperty.NewValue, primitivePropertyPUIs, auditedEntityPrimitiveMetaData, os);
+				writeProperties(getAuditedPropertiesOfPrimitive(), property, os);
 			}
-			for (CreateOrUpdateContainerBuild relationProperty : sortAuditedEntityRelations(auditedEntity, auditedEntityMetaData, auditedEntityRelationMetaData))
+			for (IEntityMetaDataHolder property : sortOrderedMember(IAuditedEntity.Relations, IAuditedEntityRelationProperty.Order, auditedEntity))
 			{
-				IPrimitiveUpdateItem[] relationPUIs = relationProperty.getFullPUIs();
-				writeProperty(IAuditedEntityRelationProperty.Name, relationPUIs, auditedEntityRelationMetaData, os);
+				writeProperties(getAuditedPropertiesOfRelation(), property, os);
 
-				for (CreateOrUpdateContainerBuild item : sortAuditedEntityRelationItems(relationProperty, auditedEntityRelationMetaData,
-						auditedEntityRelationItemMetaData))
+				for (IEntityMetaDataHolder item : sortOrderedMember(IAuditedEntityRelationProperty.Items, IAuditedEntityRelationPropertyItem.Order, property))
 				{
-					IPrimitiveUpdateItem[] itemPUIs = item.getFullPUIs();
-					CreateOrUpdateContainerBuild itemRef = (CreateOrUpdateContainerBuild) ((IDirectObjRef) item.getFullRUIs()[auditedEntityRelationItemMetaData
-							.getIndexByRelationName(IAuditedEntityRelationPropertyItem.Ref)].getAddedORIs()[0]).getDirect();
-					IPrimitiveUpdateItem[] itemRefPUIs = itemRef.getFullPUIs();
-					writeProperty(IAuditedEntityRef.EntityType, itemRefPUIs, auditedEntityRefMetaData, os);
-					writeProperty(IAuditedEntityRef.EntityId, itemRefPUIs, auditedEntityRefMetaData, os);
-					writeProperty(IAuditedEntityRef.EntityVersion, itemRefPUIs, auditedEntityRefMetaData, os);
-					writeProperty(IAuditedEntityRelationPropertyItem.ChangeType, itemPUIs, auditedEntityRelationItemMetaData, os);
+					IEntityMetaDataHolder itemRef = getMember(IAuditedEntityRelationPropertyItem.Ref, auditedEntity);
+
+					writeProperties(getAuditedPropertiesOfRef(), itemRef, os);
+					writeProperties(getAuditedPropertiesOfRelationItem(), item, os);
 				}
 			}
 		}
 	}
 
-	protected void writeProperty(String name, Object value, DataOutputStream os)
+	protected void writeProperty(String name, String value, DataOutputStream os)
 	{
 		try
 		{
@@ -154,7 +205,7 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter
 			else
 			{
 				os.writeBoolean(true);
-				os.writeUTF(value.toString());
+				os.writeUTF(value);
 			}
 		}
 		catch (Throwable e)
@@ -163,254 +214,54 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter
 		}
 	}
 
-	protected List<IAuditedEntity> sortAuditEntities(IAuditEntry auditEntry)
+	@SuppressWarnings("unchecked")
+	protected List<? extends IEntityMetaDataHolder> sortOrderedMember(String memberName, String orderName, Object obj)
 	{
-		ArrayList<IAuditedEntity> entities = new ArrayList<IAuditedEntity>(auditEntry.getEntities());
+		IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
+		Member member = metaData.getMemberByName(memberName);
 
-		Collections.sort(entities, new Comparator<IAuditedEntity>()
+		if (obj instanceof IDataObject)
 		{
-			@Override
-			public int compare(IAuditedEntity o1, IAuditedEntity o2)
+			Collection<? extends IEntityMetaDataHolder> coll = (Collection<? extends IEntityMetaDataHolder>) member.getValue(obj);
+			if (coll.size() == 0)
 			{
-				int order1 = o1.getOrder();
-				int order2 = o2.getOrder();
-				if (order1 == order2)
-				{
-					return 0;
-				}
-				return order1 < order2 ? -1 : 1;
+				return EmptyList.<IEntityMetaDataHolder> getInstance();
 			}
-		});
-		return entities;
-	}
+			IEntityMetaData itemMetaData = entityMetaDataProvider.getMetaData(member.getElementType());
+			final Member orderMember = itemMetaData.getMemberByName(orderName);
 
-	protected List<CreateOrUpdateContainerBuild> sortAuditEntities(CreateOrUpdateContainerBuild auditEntry, IEntityMetaData auditEntryMetaData,
-			IEntityMetaData auditedEntityMetaData)
-	{
-		IRelationUpdateItem entitiesRUI = auditEntry.getFullRUIs()[auditEntryMetaData.getIndexByRelationName(IAuditEntry.Entities)];
-		if (entitiesRUI == null)
-		{
-			return EmptyList.<CreateOrUpdateContainerBuild> getInstance();
-		}
-		IObjRef[] addedORIs = entitiesRUI.getAddedORIs();
-		ArrayList<CreateOrUpdateContainerBuild> services = new ArrayList<CreateOrUpdateContainerBuild>(addedORIs.length);
-		for (IObjRef addedORI : addedORIs)
-		{
-			services.add((CreateOrUpdateContainerBuild) ((IDirectObjRef) addedORI).getDirect());
-		}
-		final int orderIndex = auditedEntityMetaData.getIndexByPrimitiveName(IAuditedService.Order);
-		Collections.sort(services, new Comparator<CreateOrUpdateContainerBuild>()
-		{
-			@Override
-			public int compare(CreateOrUpdateContainerBuild o1, CreateOrUpdateContainerBuild o2)
+			ArrayList<IEntityMetaDataHolder> items = new ArrayList<IEntityMetaDataHolder>(coll);
+
+			Collections.sort(items, new Comparator<IEntityMetaDataHolder>()
 			{
-				int order1 = ((Number) o1.getFullPUIs()[orderIndex].getNewValue()).intValue();
-				int order2 = ((Number) o2.getFullPUIs()[orderIndex].getNewValue()).intValue();
-				if (order1 == order2)
+				@Override
+				public int compare(IEntityMetaDataHolder o1, IEntityMetaDataHolder o2)
 				{
-					return 0;
+					int order1 = orderMember.getIntValue(o1);
+					int order2 = orderMember.getIntValue(o2);
+					if (order1 == order2)
+					{
+						return 0;
+					}
+					return order1 < order2 ? -1 : 1;
 				}
-				return order1 < order2 ? -1 : 1;
-			}
-		});
-		return services;
-	}
-
-	protected List<IAuditedService> sortAuditServices(IAuditEntry auditEntry)
-	{
-		ArrayList<IAuditedService> services = new ArrayList<IAuditedService>(auditEntry.getServices());
-
-		Collections.sort(services, new Comparator<IAuditedService>()
-		{
-			@Override
-			public int compare(IAuditedService o1, IAuditedService o2)
-			{
-				int order1 = o1.getOrder();
-				int order2 = o2.getOrder();
-				if (order1 == order2)
-				{
-					return 0;
-				}
-				return order1 < order2 ? -1 : 1;
-			}
-		});
-		return services;
-	}
-
-	protected List<CreateOrUpdateContainerBuild> sortAuditServices(CreateOrUpdateContainerBuild auditEntry, IEntityMetaData auditEntryMetaData,
-			IEntityMetaData auditedServiceMetaData)
-	{
-		IRelationUpdateItem servicesRUI = auditEntry.getFullRUIs()[auditEntryMetaData.getIndexByRelationName(IAuditEntry.Services)];
-		if (servicesRUI == null)
-		{
-			return EmptyList.<CreateOrUpdateContainerBuild> getInstance();
+			});
+			return items;
 		}
-		IObjRef[] addedORIs = servicesRUI.getAddedORIs();
-		ArrayList<CreateOrUpdateContainerBuild> services = new ArrayList<CreateOrUpdateContainerBuild>(addedORIs.length);
-		for (IObjRef addedORI : addedORIs)
+		IRelationUpdateItem rui = ((CreateOrUpdateContainerBuild) obj).getFullRUIs()[metaData.getIndexByRelationName(memberName)];
+		if (rui == null)
 		{
-			services.add((CreateOrUpdateContainerBuild) ((IDirectObjRef) addedORI).getDirect());
+			return EmptyList.<IEntityMetaDataHolder> getInstance();
 		}
-		final int orderIndex = auditedServiceMetaData.getIndexByPrimitiveName(IAuditedService.Order);
-		Collections.sort(services, new Comparator<CreateOrUpdateContainerBuild>()
-		{
-			@Override
-			public int compare(CreateOrUpdateContainerBuild o1, CreateOrUpdateContainerBuild o2)
-			{
-				int order1 = ((Number) o1.getFullPUIs()[orderIndex]).intValue();
-				int order2 = ((Number) o2.getFullPUIs()[orderIndex]).intValue();
-				if (order1 == order2)
-				{
-					return 0;
-				}
-				return order1 < order2 ? -1 : 1;
-			}
-		});
-		return services;
-	}
-
-	protected List<IAuditedEntityPrimitiveProperty> sortAuditedEntityPrimitives(IAuditedEntity auditedEntity)
-	{
-		ArrayList<IAuditedEntityPrimitiveProperty> properties = new ArrayList<IAuditedEntityPrimitiveProperty>(auditedEntity.getPrimitives());
-
-		Collections.sort(properties, new Comparator<IAuditedEntityPrimitiveProperty>()
-		{
-			@Override
-			public int compare(IAuditedEntityPrimitiveProperty o1, IAuditedEntityPrimitiveProperty o2)
-			{
-				int order1 = o1.getOrder();
-				int order2 = o2.getOrder();
-				if (order1 == order2)
-				{
-					return 0;
-				}
-				return order1 < order2 ? -1 : 1;
-			}
-		});
-		return properties;
-	}
-
-	protected List<CreateOrUpdateContainerBuild> sortAuditedEntityPrimitives(CreateOrUpdateContainerBuild auditedEntity, IEntityMetaData auditedEntityMetaData,
-			IEntityMetaData auditedEntityPrimitiveMetaData)
-	{
-		IRelationUpdateItem primitivesRUI = auditedEntity.getFullRUIs()[auditedEntityMetaData.getIndexByRelationName(IAuditedEntity.Primitives)];
-		if (primitivesRUI == null)
-		{
-			return EmptyList.<CreateOrUpdateContainerBuild> getInstance();
-		}
-		IObjRef[] addedORIs = primitivesRUI.getAddedORIs();
-		ArrayList<CreateOrUpdateContainerBuild> primitives = new ArrayList<CreateOrUpdateContainerBuild>(addedORIs.length);
-		for (IObjRef addedORI : addedORIs)
-		{
-			primitives.add((CreateOrUpdateContainerBuild) ((IDirectObjRef) addedORI).getDirect());
-		}
-		final int orderIndex = auditedEntityPrimitiveMetaData.getIndexByPrimitiveName(IAuditedEntityPrimitiveProperty.Order);
-		Collections.sort(primitives, new Comparator<CreateOrUpdateContainerBuild>()
-		{
-			@Override
-			public int compare(CreateOrUpdateContainerBuild o1, CreateOrUpdateContainerBuild o2)
-			{
-				int order1 = ((Number) o1.getFullPUIs()[orderIndex].getNewValue()).intValue();
-				int order2 = ((Number) o2.getFullPUIs()[orderIndex].getNewValue()).intValue();
-				if (order1 == order2)
-				{
-					return 0;
-				}
-				return order1 < order2 ? -1 : 1;
-			}
-		});
-		return primitives;
-	}
-
-	protected List<IAuditedEntityRelationProperty> sortAuditedEntityRelations(IAuditedEntity auditedEntity)
-	{
-		ArrayList<IAuditedEntityRelationProperty> properties = new ArrayList<IAuditedEntityRelationProperty>(auditedEntity.getRelations());
-
-		Collections.sort(properties, new Comparator<IAuditedEntityRelationProperty>()
-		{
-			@Override
-			public int compare(IAuditedEntityRelationProperty o1, IAuditedEntityRelationProperty o2)
-			{
-				int order1 = o1.getOrder();
-				int order2 = o2.getOrder();
-				if (order1 == order2)
-				{
-					return 0;
-				}
-				return order1 < order2 ? -1 : 1;
-			}
-		});
-		return properties;
-	}
-
-	protected List<CreateOrUpdateContainerBuild> sortAuditedEntityRelations(CreateOrUpdateContainerBuild auditedEntity, IEntityMetaData auditedEntityMetaData,
-			IEntityMetaData auditedEntityRelationMetaData)
-	{
-		IRelationUpdateItem relationsRUI = auditedEntity.getFullRUIs()[auditedEntityMetaData.getIndexByRelationName(IAuditedEntity.Relations)];
-		if (relationsRUI == null)
-		{
-			return EmptyList.<CreateOrUpdateContainerBuild> getInstance();
-		}
-		IObjRef[] addedORIs = relationsRUI.getAddedORIs();
-		ArrayList<CreateOrUpdateContainerBuild> relations = new ArrayList<CreateOrUpdateContainerBuild>(addedORIs.length);
-		for (IObjRef addedORI : addedORIs)
-		{
-			relations.add((CreateOrUpdateContainerBuild) ((IDirectObjRef) addedORI).getDirect());
-		}
-		final int orderIndex = auditedEntityRelationMetaData.getIndexByPrimitiveName(IAuditedEntityRelationProperty.Order);
-		Collections.sort(relations, new Comparator<CreateOrUpdateContainerBuild>()
-		{
-			@Override
-			public int compare(CreateOrUpdateContainerBuild o1, CreateOrUpdateContainerBuild o2)
-			{
-				int order1 = ((Number) o1.getFullPUIs()[orderIndex].getNewValue()).intValue();
-				int order2 = ((Number) o2.getFullPUIs()[orderIndex].getNewValue()).intValue();
-				if (order1 == order2)
-				{
-					return 0;
-				}
-				return order1 < order2 ? -1 : 1;
-			}
-		});
-		return relations;
-	}
-
-	protected List<IAuditedEntityRelationPropertyItem> sortAuditedEntityRelationItems(IAuditedEntityRelationProperty property)
-	{
-		ArrayList<IAuditedEntityRelationPropertyItem> items = new ArrayList<IAuditedEntityRelationPropertyItem>(property.getItems());
-
-		Collections.sort(items, new Comparator<IAuditedEntityRelationPropertyItem>()
-		{
-			@Override
-			public int compare(IAuditedEntityRelationPropertyItem o1, IAuditedEntityRelationPropertyItem o2)
-			{
-				int order1 = o1.getOrder();
-				int order2 = o2.getOrder();
-				if (order1 == order2)
-				{
-					return 0;
-				}
-				return order1 < order2 ? -1 : 1;
-			}
-		});
-		return items;
-	}
-
-	protected List<CreateOrUpdateContainerBuild> sortAuditedEntityRelationItems(CreateOrUpdateContainerBuild relation, IEntityMetaData relationMetaData,
-			IEntityMetaData relationItemMetaData)
-	{
-		IRelationUpdateItem itemsRUI = relation.getFullRUIs()[relationMetaData.getIndexByRelationName(IAuditedEntityRelationProperty.Items)];
-		if (itemsRUI == null)
-		{
-			return EmptyList.<CreateOrUpdateContainerBuild> getInstance();
-		}
-		IObjRef[] addedORIs = itemsRUI.getAddedORIs();
+		IObjRef[] addedORIs = rui.getAddedORIs();
 		ArrayList<CreateOrUpdateContainerBuild> items = new ArrayList<CreateOrUpdateContainerBuild>(addedORIs.length);
 		for (IObjRef addedORI : addedORIs)
 		{
 			items.add((CreateOrUpdateContainerBuild) ((IDirectObjRef) addedORI).getDirect());
 		}
-		final int orderIndex = relationItemMetaData.getIndexByPrimitiveName(IAuditedEntityRelationPropertyItem.Order);
+		IEntityMetaData itemMetaData = entityMetaDataProvider.getMetaData(member.getElementType());
+		final int orderIndex = itemMetaData.getIndexByPrimitiveName(orderName);
+
 		Collections.sort(items, new Comparator<CreateOrUpdateContainerBuild>()
 		{
 			@Override

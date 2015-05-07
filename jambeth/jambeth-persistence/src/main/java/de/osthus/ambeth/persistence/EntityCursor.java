@@ -1,15 +1,9 @@
 package de.osthus.ambeth.persistence;
 
 import de.osthus.ambeth.cache.ICache;
-import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LogInstance;
 
 public class EntityCursor<T> extends BasicEnumerator<T> implements IEntityCursor<T>
 {
-	@SuppressWarnings("unused")
-	@LogInstance(EntityCursor.class)
-	private ILogger log;
-
 	protected IVersionCursor cursor;
 
 	protected Class<T> entityType;
@@ -69,9 +63,12 @@ public class EntityCursor<T> extends BasicEnumerator<T> implements IEntityCursor
 	@Override
 	public void dispose()
 	{
-		this.cursor.dispose();
-		this.cursor = null;
-		this.cache = null;
-		this.current = null;
+		if (cursor != null)
+		{
+			cursor.dispose();
+			cursor = null;
+		}
+		cache = null;
+		current = null;
 	}
 }

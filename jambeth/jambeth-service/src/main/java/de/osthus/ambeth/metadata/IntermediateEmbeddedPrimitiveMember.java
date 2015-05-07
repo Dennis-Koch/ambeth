@@ -59,6 +59,12 @@ public class IntermediateEmbeddedPrimitiveMember extends IntermediatePrimitiveMe
 	}
 
 	@Override
+	public void setDefinedBy(PrimitiveMember definedBy)
+	{
+		((IPrimitiveMemberWrite) childMember).setDefinedBy(definedBy);
+	}
+
+	@Override
 	public Member[] getMemberPath()
 	{
 		return memberPath;

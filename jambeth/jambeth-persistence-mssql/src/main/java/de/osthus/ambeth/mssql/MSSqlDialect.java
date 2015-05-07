@@ -65,43 +65,7 @@ public class MSSqlDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public void preProcessConnection(Connection connection, String[] schemaNames, boolean forcePreProcessing)
-	{
-		Statement stm = null;
-		ResultSet rs = null;
-		try
-		{
-			// stm = connection.createStatement();
-			// stm.execute("SET MULTI_THREADED 1");
-			//
-			// if ("jdbc:h2:mem".equals(protocol))
-			// {
-			// stm.execute("SET DB_CLOSE_DELAY -1");
-			// }
-			// stm.execute("CREATE SCHEMA IF NOT EXISTS \"" + schemaNames[0] + "\"");
-			// stm.execute("SET SCHEMA \"" + schemaNames[0] + "\"");
-			//
-			// rs = stm.executeQuery("SELECT alias_name FROM INFORMATION_SCHEMA.FUNCTION_ALIASES");
-			// HashSet<String> functionAliases = new HashSet<String>();
-			// while (rs.next())
-			// {
-			// functionAliases.add(rs.getString("alias_name").toUpperCase());
-			// }
-			// rs.close();
-			// createAliasIfNecessary("TO_TIMESTAMP", Functions.class.getName() + ".toTimestamp", functionAliases, stm);
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally
-		{
-			JdbcUtil.close(stm, rs);
-		}
-	}
-
-	@Override
-	public IList<IMap<String, String>> getExportedKeys(Connection connection, String schemaName) throws SQLException
+	public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames) throws SQLException
 	{
 		Statement stm = null;
 		ResultSet rs = null;
@@ -130,7 +94,7 @@ public class MSSqlDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public IList<String[]> disableConstraints(Connection connection, String... schemaNames)
+	public IList<String> disableConstraints(Connection connection, String... schemaNames)
 	{
 		Statement stm = null;
 		try
@@ -161,7 +125,7 @@ public class MSSqlDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public void enableConstraints(Connection connection, IList<String[]> disabled)
+	public void enableConstraints(Connection connection, IList<String> disabled)
 	{
 		if (disabled == null || disabled.isEmpty())
 		{
@@ -320,5 +284,24 @@ public class MSSqlDialect extends AbstractConnectionDialect
 		{
 			JdbcUtil.close(tableColumnsRS);
 		}
+	}
+
+	@Override
+	protected String buildDeferrableForeignKeyConstraintsSelectSQL(String[] schemaNames)
+	{
+		return null;
+	}
+
+	@Override
+	public List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames) throws SQLException
+	{
+		throw new UnsupportedOperationException("Not yet implemented");
+	}
+
+	@Override
+	protected void handleRow(String schemaName, String tableName, String constraintName, ArrayList<String> disableConstraintsSQL,
+			ArrayList<String> enableConstraintsSQL)
+	{
+		throw new UnsupportedOperationException();
 	}
 }

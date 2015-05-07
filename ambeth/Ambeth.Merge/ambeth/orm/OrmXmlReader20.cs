@@ -375,6 +375,11 @@ namespace De.Osthus.Ambeth.Orm
 			{
 				memberConfig.Transient = Boolean.Parse(transientValue);
 			}
+			String definedByValue = XmlConfigUtil.GetAttribute(memberElement, XmlConstants.DEFINED_BY);
+			if (definedByValue.Length != 0)
+			{
+				memberConfig.DefinedBy = definedByValue;
+			}
             return memberConfig;
         }
 

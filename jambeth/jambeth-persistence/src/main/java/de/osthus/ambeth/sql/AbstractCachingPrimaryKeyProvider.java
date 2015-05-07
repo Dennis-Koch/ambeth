@@ -12,7 +12,8 @@ import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.persistence.ITable;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.persistence.IPrimaryKeyProvider;
 import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.util.IConversionHelper;
@@ -34,15 +35,17 @@ public abstract class AbstractCachingPrimaryKeyProvider implements IPrimaryKeyPr
 	protected final Lock writeLock = new ReentrantLock();
 
 	@Override
-	public IList<Object> acquireIds(ITable table, int count)
+	public IList<Object> acquireIds(ITableMetaData table, int count)
 	{
 		if (count == 0)
 		{
 			return EmptyList.getInstance();
 		}
-		ITableMetaData tableMD = table.getMetaData();
-		String sequenceName = tableMD.getSequenceName();
-
+		String sequenceName = table.getSequenceName();
+		if (sequenceName == null)
+		{
+			throw new IllegalStateException("No sequence configured for table " + table);
+		}
 		ArrayList<Object> ids = new ArrayList<Object>(count);
 		int prefetchIdAmount = this.prefetchIdAmount;
 
@@ -82,7 +85,8 @@ public abstract class AbstractCachingPrimaryKeyProvider implements IPrimaryKeyPr
 		acquireIdsIntern(table, count + prefetchIdAmount, newIds);
 
 		IConversionHelper conversionHelper = this.conversionHelper;
-		Class<?> idType = tableMD.getIdField().getMember().getRealType();
+		Member idMember = table.getIdField().getMember();
+		Class<?> idType = idMember != null ? idMember.getRealType() : null;
 
 		writeLock.lock();
 		try
@@ -90,7 +94,7 @@ public abstract class AbstractCachingPrimaryKeyProvider implements IPrimaryKeyPr
 			for (int a = 0, size = newIds.size(); a < size; a++)
 			{
 				Object id = newIds.get(a);
-				id = conversionHelper.convertValueToType(idType, id);
+				id = idType != null ? conversionHelper.convertValueToType(idType, id) : id;
 				if (count > 0)
 				{
 					count--;
@@ -109,5 +113,5 @@ public abstract class AbstractCachingPrimaryKeyProvider implements IPrimaryKeyPr
 		}
 	}
 
-	protected abstract void acquireIdsIntern(ITable table, int count, List<Object> targetIdList);
+	protected abstract void acquireIdsIntern(ITableMetaData table, int count, List<Object> targetIdList);
 }

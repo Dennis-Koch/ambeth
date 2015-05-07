@@ -68,6 +68,7 @@ import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.SecurityActivation;
 import de.osthus.ambeth.security.SecurityScopeProvider;
 import de.osthus.ambeth.service.IMergeService;
+import de.osthus.ambeth.typeinfo.INoEntityTypeExtendable;
 import de.osthus.ambeth.typeinfo.IRelationProvider;
 import de.osthus.ambeth.typeinfo.RelationProvider;
 import de.osthus.ambeth.util.DedicatedConverterUtil;
@@ -152,7 +153,7 @@ public class MergeModule implements IInitializingModule
 
 		beanContextFactory.registerBean(XmlConfigUtil.class).autowireable(IXmlConfigUtil.class);
 
-		beanContextFactory.registerBean(RelationProvider.class).autowireable(IRelationProvider.class);
+		beanContextFactory.registerBean(RelationProvider.class).autowireable(IRelationProvider.class, INoEntityTypeExtendable.class);
 
 		beanContextFactory.registerBean(MemberTypeProvider.class).autowireable(IMemberTypeProvider.class, IIntermediateMemberTypeProvider.class);
 		beanContextFactory.registerBean(EmbeddedMemberMixin.class).autowireable(EmbeddedMemberMixin.class);

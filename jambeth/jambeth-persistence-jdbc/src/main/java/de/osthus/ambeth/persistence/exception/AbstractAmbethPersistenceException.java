@@ -34,6 +34,10 @@ public abstract class AbstractAmbethPersistenceException extends PersistenceExce
 	@Override
 	public String getMessage()
 	{
+		if (relatedSql == null)
+		{
+			return super.getMessage();
+		}
 		return super.getMessage() + ". Related SQL: " + relatedSql;
 	}
 }

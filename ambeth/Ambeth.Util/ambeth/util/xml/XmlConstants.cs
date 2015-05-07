@@ -65,6 +65,7 @@ namespace De.Osthus.Ambeth.Util.Xml
         public static readonly XName TARGET_MEMBER = XName.Get("target-member");
         public static readonly XName NO_VERSION = XName.Get("no-version");
         public static readonly XName THIS = XName.Get("this");
+		public static readonly XName DEFINED_BY = XName.Get("defined-by");
 
         private XmlConstants()
         {

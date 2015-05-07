@@ -63,7 +63,7 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 	{
 		if (ignoredTableProperty != null)
 		{
-			ignoredTables.addAll(ignoredTableProperty.toUpperCase().split("[;:]"));
+			ignoredTables.addAll(connectionDialect.toDefaultCase(ignoredTableProperty).split("[;:]"));
 		}
 	}
 
@@ -432,29 +432,6 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " PRIMARY KEY (\\([^\\)]+\\)) USING INDEX", " PRIMARY KEY \\2");
 
 		return sqlCommand;
-	}
-
-	protected String prepareCommandIntern(String sqlCommand, String regex, String replacement)
-	{
-		return Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(sqlCommand).replaceAll(replacement);
-	}
-
-	protected String prepareCommandInternWithGroup(String sqlCommand, String regex, String replacement)
-	{
-		Pattern pattern = Pattern.compile("(.*)" + regex + "(.*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-		return concat(sqlCommand, replacement, pattern);
-	}
-
-	protected String concat(String sqlCommand, String replacement, Pattern pattern)
-	{
-		Matcher matcher = pattern.matcher(sqlCommand);
-		if (!matcher.matches())
-		{
-			return sqlCommand;
-		}
-		String left = concat(matcher.group(1), replacement, pattern);
-		String right = concat(matcher.group(3), replacement, pattern);
-		return left + replacement.replace("\\2", matcher.group(2)) + right;
 	}
 
 	@Override

@@ -2,6 +2,7 @@ package de.osthus.ambeth.testutil.connectors;
 
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.h2.H2ConnectionModule;
+import de.osthus.ambeth.h2.H2ConnectionUrlProvider;
 import de.osthus.ambeth.h2.H2Dialect;
 import de.osthus.ambeth.h2.H2Module;
 import de.osthus.ambeth.h2.H2TestDialect;
@@ -10,6 +11,7 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.jdbc.IConnectionTestDialect;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
+import de.osthus.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
 
 public class H2Connector
 {
@@ -44,6 +46,7 @@ public class H2Connector
 		{
 			return false;
 		}
+		beanContextFactory.registerBean(H2ConnectionUrlProvider.class).autowireable(IDatabaseConnectionUrlProvider.class);
 		beanContextFactory.registerBean(H2Dialect.class).autowireable(IConnectionDialect.class);
 		beanContextFactory.registerBean(H2TestDialect.class).autowireable(IConnectionTestDialect.class);
 		return true;

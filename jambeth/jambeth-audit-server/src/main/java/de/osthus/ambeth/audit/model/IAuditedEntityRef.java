@@ -1,6 +1,5 @@
 package de.osthus.ambeth.audit.model;
 
-
 public interface IAuditedEntityRef
 {
 	public static final String EntityId = "EntityId";
@@ -11,13 +10,7 @@ public interface IAuditedEntityRef
 
 	Object getEntityId();
 
-	void setEntityId(Object entityId);
-
 	Class<?> getEntityType();
 
-	void setEntityType(Class<?> entityType);
-
 	Object getEntityVersion();
-
-	void setEntityVersion(Object entityVersion);
 }

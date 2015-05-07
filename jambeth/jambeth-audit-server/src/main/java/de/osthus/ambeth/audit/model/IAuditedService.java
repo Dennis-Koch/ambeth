@@ -4,6 +4,8 @@ public interface IAuditedService
 {
 	public static final String Arguments = "Arguments";
 
+	public static final String Entry = "Entry";
+
 	public static final String MethodName = "MethodName";
 
 	public static final String Order = "Order";
@@ -12,23 +14,15 @@ public interface IAuditedService
 
 	public static final String SpentTime = "SpentTime";
 
-	int getOrder();
+	String[] getArguments();
 
-	void setOrder(int order);
-
-	String getServiceType();
-
-	void setServiceType(String serviceType);
+	IAuditEntry getEntry();
 
 	String getMethodName();
 
-	void setMethodName(String methodName);
+	int getOrder();
 
-	void setArguments(String[] parameters);
-
-	String[] getArguments();
+	String getServiceType();
 
 	long getSpentTime();
-
-	void setSpentTime(long spentTime);
 }

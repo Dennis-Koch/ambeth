@@ -343,21 +343,36 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		Class<?> callingClass = getTestClass().getJavaClass();
 		try
 		{
-			getOrCreateSchemaContext().getService(IConnectionTestDialect.class).preStructureRebuild(getConnection());
 			Connection connection = getConnection();
-			ensureSchemaEmpty(connection);
 
-			ISchemaRunnable[] structureRunnables = getStructureRunnables(callingClass, callingClass);
-			for (ISchemaRunnable structRunnable : structureRunnables)
+			boolean oldAutoCommit = connection.getAutoCommit();
+			if (!oldAutoCommit)
 			{
-				structRunnable.executeSchemaSql(connection);
+				connection.setAutoCommit(true);
 			}
+			try
+			{
+				ensureSchemaEmpty(connection);
 
-			ensureExistanceOfNeededDatabaseObjects(connection);
+				getOrCreateSchemaContext().getService(IConnectionTestDialect.class).preStructureRebuild(connection);
+				ISchemaRunnable[] structureRunnables = getStructureRunnables(callingClass, callingClass);
+				for (ISchemaRunnable structRunnable : structureRunnables)
+				{
+					structRunnable.executeSchemaSql(connection);
+				}
 
+				ensureExistanceOfNeededDatabaseObjects(connection);
+			}
+			finally
+			{
+				if (!oldAutoCommit)
+				{
+					connection.setAutoCommit(false);
+				}
+			}
 			isStructureRebuildAlreadyHandled = true;
 		}
-		catch (Exception e)
+		catch (Throwable e)
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
@@ -652,7 +667,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	private final Pattern[] ignoreIfContains = { Pattern.compile(".*?DROP CONSTRAINT.*?") };
 
 	private final Pattern[][] sqlCommands = {
-			{ Pattern.compile("CREATE( +OR +REPLACE)? +(?:TABLE|VIEW|INDEX|TYPE|SEQUENCE|SYNONYM) +.+", Pattern.CASE_INSENSITIVE),
+			{ Pattern.compile("CREATE( +OR +REPLACE)? +(?:TABLE|VIEW|INDEX|TYPE|SEQUENCE|SYNONYM|TABLESPACE) +.+", Pattern.CASE_INSENSITIVE),
 					Pattern.compile(".*?([;\\/]|@@@)") },
 			{ Pattern.compile("CREATE( +OR +REPLACE)? +(?:FUNCTION|PROCEDURE|TRIGGER) +.+", Pattern.CASE_INSENSITIVE),
 					Pattern.compile(".*?END(?:[;\\/]|@@@)", Pattern.CASE_INSENSITIVE) },
@@ -762,9 +777,10 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 	private String[] getSchemaNames()
 	{
-		IProperties properties = getOrCreateSchemaContext().getService(IProperties.class);
+		IServiceContext schemaContext = getOrCreateSchemaContext();
+		IProperties properties = schemaContext.getService(IProperties.class);
 		String schemaProperty = (String) properties.get(PersistenceJdbcConfigurationConstants.DatabaseSchemaName);
-		String[] schemaNames = schemaProperty.toUpperCase().split("[:;]");
+		String[] schemaNames = schemaContext.getService(IConnectionDialect.class).toDefaultCase(schemaProperty).split("[:;]");
 		return schemaNames;
 	}
 
@@ -967,12 +983,12 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			boolean success = false;
 			try
 			{
-				IList<String[]> disabled = getOrCreateSchemaContext().getService(IConnectionDialect.class).disableConstraints(conn, getSchemaNames());
+				IList<String> enableConstraintsSQL = getOrCreateSchemaContext().getService(IConnectionDialect.class).disableConstraints(conn, getSchemaNames());
 				for (ISchemaRunnable schemaRunnable : schemaRunnables)
 				{
 					schemaRunnable.executeSchemaSql(conn);
 				}
-				getOrCreateSchemaContext().getService(IConnectionDialect.class).enableConstraints(conn, disabled);
+				getOrCreateSchemaContext().getService(IConnectionDialect.class).enableConstraints(conn, enableConstraintsSQL);
 				conn.commit();
 				success = true;
 			}
@@ -1226,6 +1242,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		for (String tableName : tableNames)
 		{
 			sql.addAll(connectionDialect.createOptimisticLockTrigger(conn, tableName));
+			sql.addAll(connectionDialect.createAdditionalTriggers(conn, tableName));
 		}
 		executeScript(sql, conn, false);
 	}
