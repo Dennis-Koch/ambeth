@@ -1,6 +1,7 @@
 package de.osthus.ambeth.audit;
 
 import de.osthus.ambeth.annotation.AnnotationUtil;
+import de.osthus.ambeth.audit.model.Audited;
 import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.Property;
@@ -13,7 +14,6 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
-import de.osthus.ambeth.security.model.Audited;
 
 public class AuditConfigurationProvider implements IAuditConfigurationProvider, IAuditConfigurationExtendable
 {

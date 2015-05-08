@@ -1,4 +1,4 @@
-package de.osthus.ambeth.security.model;
+package de.osthus.ambeth.audit.model;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

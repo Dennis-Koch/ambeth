@@ -1,5 +1,7 @@
 package de.osthus.ambeth.security.model;
 
+import de.osthus.ambeth.audit.model.Audited;
+
 @Audited(false)
 public interface ISignature
 {

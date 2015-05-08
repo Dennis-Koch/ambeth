@@ -3,6 +3,7 @@ package de.osthus.ambeth.audit;
 import java.lang.reflect.Method;
 
 import net.sf.cglib.proxy.MethodProxy;
+import de.osthus.ambeth.audit.model.AuditedArg;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -12,7 +13,6 @@ import de.osthus.ambeth.merge.ILightweightTransaction;
 import de.osthus.ambeth.merge.ITransactionState;
 import de.osthus.ambeth.proxy.CascadedInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
-import de.osthus.ambeth.security.model.AuditedArg;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 
 public class AuditMethodCallInterceptor extends CascadedInterceptor

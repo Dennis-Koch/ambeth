@@ -2,8 +2,6 @@ package de.osthus.ambeth.audit.model;
 
 import java.util.List;
 
-import de.osthus.ambeth.security.model.Audited;
-
 @Audited(false)
 public interface IAuditedEntityRelationProperty
 {

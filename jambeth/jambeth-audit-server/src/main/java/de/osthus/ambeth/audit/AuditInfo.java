@@ -1,7 +1,7 @@
 package de.osthus.ambeth.audit;
 
-import de.osthus.ambeth.security.model.Audited;
-import de.osthus.ambeth.security.model.AuditedArg;
+import de.osthus.ambeth.audit.model.Audited;
+import de.osthus.ambeth.audit.model.AuditedArg;
 
 public class AuditInfo
 {

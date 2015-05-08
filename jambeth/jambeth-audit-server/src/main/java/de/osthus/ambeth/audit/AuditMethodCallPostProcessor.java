@@ -6,6 +6,8 @@ import java.lang.reflect.Method;
 import java.util.Set;
 
 import de.osthus.ambeth.annotation.AnnotationCache;
+import de.osthus.ambeth.audit.model.Audited;
+import de.osthus.ambeth.audit.model.AuditedArg;
 import de.osthus.ambeth.ioc.IBeanRuntime;
 import de.osthus.ambeth.ioc.IOrderedBeanPostProcessor;
 import de.osthus.ambeth.ioc.IServiceContext;
@@ -19,8 +21,6 @@ import de.osthus.ambeth.proxy.IBehaviorTypeExtractor;
 import de.osthus.ambeth.proxy.ICascadedInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.MethodLevelBehavior;
-import de.osthus.ambeth.security.model.Audited;
-import de.osthus.ambeth.security.model.AuditedArg;
 
 public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanPostProcessor
 {

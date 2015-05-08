@@ -1,10 +1,10 @@
 package de.osthus.ambeth.audit;
 
+import de.osthus.ambeth.audit.model.Audited;
+import de.osthus.ambeth.audit.model.AuditedArg;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.PersistenceContext;
-import de.osthus.ambeth.security.model.Audited;
-import de.osthus.ambeth.security.model.AuditedArg;
 
 @Audited(false)
 @PersistenceContext
