@@ -1,13 +1,7 @@
 package de.osthus.ambeth.audit;
 
-import java.io.DataOutputStream;
-import java.security.DigestOutputStream;
-import java.security.MessageDigest;
-
 import de.osthus.ambeth.audit.model.IAuditEntry;
-import de.osthus.ambeth.audit.util.NullOutputStream;
-import de.osthus.ambeth.audit.util.SignatureOutputStream;
-import de.osthus.ambeth.codec.Base64;
+import de.osthus.ambeth.audit.model.IAuditedEntity;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -65,11 +59,13 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 			{
 				auditEntry.ensureRelation(IAuditEntry.SignatureOfUser).addObjRef(objRefHelper.entityToObjRef(signature));
 			}
-			writeToSignatureHandle(signatureHandle, null, auditEntry);
-
-			byte[] sign = signatureHandle.sign();
-
-			auditEntry.ensurePrimitive(IAuditEntry.Signature).setNewValue(Base64.encodeBytes(sign).toCharArray());
+			IAuditEntryWriter auditEntryWriter = auditEntryWriters.getExtension(protocol);
+			if (auditEntryWriter == null)
+			{
+				throw new IllegalArgumentException("Not instance of " + IAuditEntryWriter.class.getSimpleName() + " found for protocol '" + protocol + "' of "
+						+ auditEntry);
+			}
+			auditEntryWriter.writeAuditEntry(auditEntry, hashAlgorithm, signatureHandle);
 		}
 		catch (Throwable e)
 		{
@@ -78,49 +74,26 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 	}
 
 	@Override
-	public void writeToSignatureHandle(java.security.Signature signatureHandle, IAuditEntry auditEntry, CreateOrUpdateContainerBuild auditEntryContainer)
+	public byte[] createVerifyDigest(IAuditEntry auditEntry)
 	{
 		try
 		{
-			int protocol = getProtocol(auditEntry, auditEntryContainer);
+			int protocol = auditEntry.getProtocol();
 			IAuditEntryWriter auditEntryWriter = auditEntryWriters.getExtension(protocol);
 			if (auditEntryWriter == null)
 			{
 				throw new IllegalArgumentException("Not instance of " + IAuditEntryWriter.class.getSimpleName() + " found for protocol '" + protocol + "' of "
 						+ auditEntry);
 			}
-			String hashAlgorithm = getHashAlgorithm(auditEntry, auditEntryContainer);
-			if (hashAlgorithm != null && hashAlgorithm.length() > 0)
+			String hashAlgorithm = auditEntry.getHashAlgorithm();
+			if (hashAlgorithm == null || hashAlgorithm.length() == 0)
 			{
-				// build a good hash from the audited information: to sign its hash is faster than to sign the audited information itself
-				// the clue is to choose a good hash algorithm which is fast enough to make sense but much stronger than e.g. MD5 as well...
-
-				MessageDigest md = MessageDigest.getInstance(hashAlgorithm);
-
-				DigestOutputStream digestOS = new DigestOutputStream(new NullOutputStream(), md);
-				DataOutputStream dos = new DataOutputStream(digestOS);
-
-				if (auditEntry != null)
-				{
-					auditEntryWriter.writeAuditEntry(auditEntry, dos);
-				}
-				else
-				{
-					auditEntryWriter.writeAuditEntry(auditEntryContainer, dos);
-				}
-				dos.close();
-
-				byte[] digestToSign = md.digest();
-				signatureHandle.update(digestToSign);
+				throw new IllegalArgumentException("No hash algorithm specified");
 			}
-			else
-			{
-				// we have no hashAlgorithm: so we sign the whole audited information
-				SignatureOutputStream sos = new SignatureOutputStream(new NullOutputStream(), signatureHandle);
-				DataOutputStream dos = new DataOutputStream(sos);
-				auditEntryWriter.writeAuditEntry(auditEntry, dos);
-				dos.close();
-			}
+			// build a good hash from the audited information: to sign its hash is faster than to sign the audited information itself
+			// the clue is to choose a good hash algorithm which is fast enough to make sense but much stronger than e.g. MD5 as well...
+
+			return auditEntryWriter.writeAuditEntry(auditEntry, hashAlgorithm);
 		}
 		catch (Throwable e)
 		{
@@ -128,22 +101,33 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 		}
 	}
 
-	protected int getProtocol(IAuditEntry auditEntry, CreateOrUpdateContainerBuild auditEntryContainer)
+	@Override
+	public byte[] createVerifyDigest(IAuditedEntity auditedEntity)
 	{
-		if (auditEntry != null)
+		try
 		{
-			return auditEntry.getProtocol();
-		}
-		return conversionHelper.convertValueToType(Integer.class, auditEntryContainer.findPrimitive(IAuditEntry.Protocol).getNewValue()).intValue();
-	}
+			IAuditEntry auditEntry = auditedEntity.getEntry();
+			int protocol = auditEntry.getProtocol();
+			IAuditEntryWriter auditEntryWriter = auditEntryWriters.getExtension(protocol);
+			if (auditEntryWriter == null)
+			{
+				throw new IllegalArgumentException("Not instance of " + IAuditEntryWriter.class.getSimpleName() + " found for protocol '" + protocol + "' of "
+						+ auditEntry);
+			}
+			String hashAlgorithm = auditEntry.getHashAlgorithm();
+			if (hashAlgorithm == null || hashAlgorithm.length() == 0)
+			{
+				throw new IllegalArgumentException("No hash algorithm specified");
+			}
+			// build a good hash from the audited information: to sign its hash is faster than to sign the audited information itself
+			// the clue is to choose a good hash algorithm which is fast enough to make sense but much stronger than e.g. MD5 as well...
 
-	protected String getHashAlgorithm(IAuditEntry auditEntry, CreateOrUpdateContainerBuild auditEntryContainer)
-	{
-		if (auditEntry != null)
-		{
-			return auditEntry.getHashAlgorithm();
+			return auditEntryWriter.writeAuditedEntity(auditedEntity, hashAlgorithm);
 		}
-		return conversionHelper.convertValueToType(String.class, auditEntryContainer.findPrimitive(IAuditEntry.HashAlgorithm).getNewValue());
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
 	}
 
 	@Override

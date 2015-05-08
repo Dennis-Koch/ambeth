@@ -1,5 +1,7 @@
 package de.osthus.ambeth.audit;
 
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -13,7 +15,6 @@ import de.osthus.ambeth.audit.model.IAuditedEntityRef;
 import de.osthus.ambeth.audit.model.IAuditedEntityRelationProperty;
 import de.osthus.ambeth.audit.model.IAuditedEntityRelationPropertyItem;
 import de.osthus.ambeth.audit.model.IAuditedService;
-import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.exceptions.AuditReasonMissingException;
@@ -32,9 +33,6 @@ import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.privilege.IEntityPermissionRule;
 import de.osthus.ambeth.privilege.evaluation.IEntityPermissionEvaluation;
-import de.osthus.ambeth.query.IQuery;
-import de.osthus.ambeth.query.IQueryBuilder;
-import de.osthus.ambeth.query.OrderByType;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.IPasswordUtil;
 import de.osthus.ambeth.security.ISecurityContextHolder;
@@ -120,6 +118,9 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 
 	@Autowired
 	protected IAuditInfoController auditController;
+
+	@Autowired
+	protected IAuditEntryReader auditEntryReader;
 
 	@Autowired
 	protected IAuditEntryVerifier auditEntryVerifier;
@@ -218,20 +219,27 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 			auditController.popAuditReason();
 		}
 
-		String refPath = IAuditEntry.Entities + "." + IAuditedEntity.Ref;
-		IQueryBuilder<IAuditEntry> qb = queryBuilderFactory.create(IAuditEntry.class);
-		qb.orderBy(qb.property(IAuditEntry.Timestamp), OrderByType.ASC);
-
-		IQuery<IAuditEntry> query = qb.build(qb.and(qb.isEqualTo(qb.property(refPath + "." + IAuditedEntityRef.EntityType), qb.value(User.class)),
-				qb.isEqualTo(qb.property(refPath + "." + IAuditedEntityRef.EntityId), qb.value(user.getId()))));
-
-		IList<IAuditEntry> auditEntriesOfUser = query.retrieve();
-		Assert.assertEquals(1, auditEntriesOfUser.size());
-		boolean[] verifyAuditEntries = auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser);
-		Assert.assertEquals(auditEntriesOfUser.size(), verifyAuditEntries.length);
-		for (boolean verify : verifyAuditEntries)
 		{
-			Assert.assertTrue(verify);
+			List<IAuditedEntity> auditedEntitiesOfUser = auditEntryReader.getAllAuditedEntitiesOfEntity(user);
+
+			Assert.assertEquals(1, auditedEntitiesOfUser.size());
+			boolean[] verifyAuditedEntities = auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfUser);
+			Assert.assertEquals(auditedEntitiesOfUser.size(), verifyAuditedEntities.length);
+			for (boolean verify : verifyAuditedEntities)
+			{
+				Assert.assertTrue(verify);
+			}
+		}
+		{
+			List<IAuditEntry> auditEntriesOfUser = auditEntryReader.getAllAuditEntriesOfEntity(user);
+
+			Assert.assertEquals(1, auditEntriesOfUser.size());
+			boolean[] verifyAuditEntries = auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser);
+			Assert.assertEquals(auditEntriesOfUser.size(), verifyAuditEntries.length);
+			for (boolean verify : verifyAuditEntries)
+			{
+				Assert.assertTrue(verify);
+			}
 		}
 	}
 

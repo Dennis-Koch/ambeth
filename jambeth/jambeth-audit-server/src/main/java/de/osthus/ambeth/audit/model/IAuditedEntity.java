@@ -16,6 +16,8 @@ public interface IAuditedEntity
 
 	public static final String Relations = "Relations";
 
+	public static final String Signature = "Signature";
+
 	AuditedEntityChangeType getChangeType();
 
 	IAuditEntry getEntry();
@@ -27,4 +29,6 @@ public interface IAuditedEntity
 	IAuditedEntityRef getRef();
 
 	List<? extends IAuditedEntityRelationProperty> getRelations();
+
+	char[] getSignature();
 }

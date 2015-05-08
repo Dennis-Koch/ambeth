@@ -10,6 +10,7 @@ import de.osthus.ambeth.audit.model.IAuditedEntity;
 import de.osthus.ambeth.audit.model.IAuditedEntityPrimitiveProperty;
 import de.osthus.ambeth.audit.model.IAuditedEntityRef;
 import de.osthus.ambeth.audit.model.IAuditedEntityRelationProperty;
+import de.osthus.ambeth.audit.model.IAuditedEntityRelationPropertyItem;
 import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.codec.Base64;
 import de.osthus.ambeth.collections.ArrayList;
@@ -84,7 +85,8 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IStartingBean
 	// this feature is still alpha status: optimize audit entry verification scope (do only set it to TRUE if you know what you do)
 	protected boolean filterAuditEntries = false;
 
-	protected IPrefetchHandle pref_filterAuditEntries, pref_verifyAuditEntries, prefetchSignaturesOfUser;
+	protected IPrefetchHandle pref_filterAuditEntries, pref_verifyAuditEntries, prefetchSignaturesOfUser, prefetchSignaturesOfUserFromAuditedEntity,
+			pref_verifyAuditEntriesFromAuditedEntity;
 
 	@Override
 	public void afterStarted() throws Throwable
@@ -93,16 +95,28 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IStartingBean
 				.add(IAuditEntry.class, IAuditEntry.Entities)//
 				.add(IAuditedEntity.class, IAuditedEntity.Ref, IAuditedEntity.Primitives, IAuditedEntity.Relations)//
 				.add(IAuditedEntityRelationProperty.class, IAuditedEntityRelationProperty.Items)//
+				.add(IAuditedEntityRelationPropertyItem.class, IAuditedEntityRelationPropertyItem.Ref)//
 				.build();
 
 		pref_verifyAuditEntries = prefetchHelper.createPrefetch()//
 				.add(IAuditEntry.class, IAuditEntry.Services, IAuditEntry.Entities)//
 				.add(IAuditedEntity.class, IAuditedEntity.Ref, IAuditedEntity.Primitives, IAuditedEntity.Relations)//
 				.add(IAuditedEntityRelationProperty.class, IAuditedEntityRelationProperty.Items)//
+				.add(IAuditedEntityRelationPropertyItem.class, IAuditedEntityRelationPropertyItem.Ref)//
 				.build();
 
 		prefetchSignaturesOfUser = prefetchHelper.createPrefetch()//
 				.add(IAuditEntry.class, IAuditEntry.SignatureOfUser)//
+				.build();
+
+		prefetchSignaturesOfUserFromAuditedEntity = prefetchHelper.createPrefetch()//
+				.add(IAuditedEntity.class, IAuditedEntity.Entry + "." + IAuditEntry.SignatureOfUser)//
+				.build();
+
+		pref_verifyAuditEntriesFromAuditedEntity = prefetchHelper.createPrefetch()//
+				.add(IAuditedEntity.class, IAuditedEntity.Ref, IAuditedEntity.Primitives, IAuditedEntity.Relations)//
+				.add(IAuditedEntityRelationProperty.class, IAuditedEntityRelationProperty.Items)//
+				.add(IAuditedEntityRelationPropertyItem.class, IAuditedEntityRelationPropertyItem.Ref)//
 				.build();
 	}
 
@@ -389,7 +403,74 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IStartingBean
 					signatureHandle = signatureUtil.createVerifyHandle(signatureOfUser.getSignAndVerify(), Base64.decode(signatureOfUser.getPublicKey()));
 					signatureToSignatureHandleMap.put(signatureOfUser, signatureHandle);
 				}
-				auditEntryToSignature.writeToSignatureHandle(signatureHandle, auditEntry, null);
+				byte[] digest = auditEntryToSignature.createVerifyDigest(auditEntry);
+				signatureHandle.update(digest);
+				result[a] = signatureHandle.verify(Base64.decode(signature));
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
+		return result;
+	}
+
+	@Override
+	public boolean[] verifyAuditedEntities(List<? extends IAuditedEntity> auditedEntities)
+	{
+		if (auditedEntities.size() == 0)
+		{
+			return new boolean[0];
+		}
+		@SuppressWarnings("unused")
+		IPrefetchState prefetch2 = prefetchSignaturesOfUserFromAuditedEntity.prefetch(auditedEntities);
+
+		boolean[] result = new boolean[auditedEntities.size()];
+		ArrayList<IAuditedEntity> auditEntriesToVerify = new ArrayList<IAuditedEntity>(auditedEntities.size());
+		HashMap<ISignature, java.security.Signature> signatureToSignatureHandleMap = new HashMap<ISignature, java.security.Signature>();
+		for (IAuditedEntity auditedEntity : auditedEntities)
+		{
+			ISignature signatureOfUser = auditedEntity.getEntry().getSignatureOfUser();
+			char[] signature = auditedEntity.getSignature();
+			if (signature == null && expectSignatureOnVerify)
+			{
+				continue;
+			}
+			if (signatureOfUser == null)
+			{
+				if (signature == null)
+				{
+					auditEntriesToVerify.add(null);
+					// audit entries without a signature can not be verified but are intentionally treated as "valid"
+					continue;
+				}
+				throw new IllegalArgumentException(IAuditedEntity.class.getSimpleName() + " has no relation to a user signature: " + auditedEntity);
+			}
+			auditEntriesToVerify.add(auditedEntity);
+		}
+		@SuppressWarnings("unused")
+		IPrefetchState prefetch = pref_verifyAuditEntriesFromAuditedEntity.prefetch(auditEntriesToVerify);
+
+		for (int a = 0, size = auditEntriesToVerify.size(); a < size; a++)
+		{
+			IAuditedEntity auditEntry = auditEntriesToVerify.get(a);
+			if (auditEntry == null)
+			{
+				result[a] = true;
+				continue;
+			}
+			ISignature signatureOfUser = auditEntry.getEntry().getSignatureOfUser();
+			char[] signature = auditEntry.getSignature();
+			try
+			{
+				java.security.Signature signatureHandle = signatureToSignatureHandleMap.get(signatureOfUser);
+				if (signatureHandle == null)
+				{
+					signatureHandle = signatureUtil.createVerifyHandle(signatureOfUser.getSignAndVerify(), Base64.decode(signatureOfUser.getPublicKey()));
+					signatureToSignatureHandleMap.put(signatureOfUser, signatureHandle);
+				}
+				byte[] digest = auditEntryToSignature.createVerifyDigest(auditEntry);
+				signatureHandle.update(digest);
 				result[a] = signatureHandle.verify(Base64.decode(signature));
 			}
 			catch (Throwable e)
