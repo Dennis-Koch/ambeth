@@ -1,6 +1,5 @@
 package de.osthus.ambeth.ioc;
 
-import de.osthus.ambeth.IAuditEntryVerifier;
 import de.osthus.ambeth.audit.AuditConfigurationProvider;
 import de.osthus.ambeth.audit.AuditController;
 import de.osthus.ambeth.audit.AuditEntryReader;
@@ -13,6 +12,7 @@ import de.osthus.ambeth.audit.IAuditConfigurationExtendable;
 import de.osthus.ambeth.audit.IAuditConfigurationProvider;
 import de.osthus.ambeth.audit.IAuditEntryReader;
 import de.osthus.ambeth.audit.IAuditEntryToSignature;
+import de.osthus.ambeth.audit.IAuditEntryVerifier;
 import de.osthus.ambeth.audit.IAuditEntryWriterExtendable;
 import de.osthus.ambeth.audit.IAuditInfoController;
 import de.osthus.ambeth.audit.IMethodCallLogger;

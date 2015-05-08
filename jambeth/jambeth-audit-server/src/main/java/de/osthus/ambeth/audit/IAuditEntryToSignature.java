@@ -9,7 +9,7 @@ public interface IAuditEntryToSignature
 {
 	void signAuditEntry(CreateOrUpdateContainerBuild auditEntry, char[] clearTextPassword, ISignature signature);
 
-	byte[] createVerifyDigest(IAuditEntry auditEntry);
+	byte[] createVerifyDigest(IAuditEntry auditEntry, java.security.Signature signature);
 
 	byte[] createVerifyDigest(IAuditedEntity auditedEntity);
 }

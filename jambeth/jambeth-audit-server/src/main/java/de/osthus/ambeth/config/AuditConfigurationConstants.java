@@ -31,6 +31,9 @@ public final class AuditConfigurationConstants
 	public static final String AuditVerifyExpectSignature = "audit.verify.expectsignature";
 
 	@ConfigurationConstantDescription("TODO")
+	public static final String VerifyEntitiesOnLoadActive = "audit.verify.onload.active";
+
+	@ConfigurationConstantDescription("TODO")
 	public static final String VerifierCrontab = "audit.verify.crontab";
 
 	@ConfigurationConstantDescription("TODO")

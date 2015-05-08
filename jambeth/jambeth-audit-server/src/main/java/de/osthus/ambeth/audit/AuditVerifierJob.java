@@ -3,7 +3,6 @@ package de.osthus.ambeth.audit;
 import java.util.Collections;
 import java.util.Comparator;
 
-import de.osthus.ambeth.IAuditEntryVerifier;
 import de.osthus.ambeth.audit.model.IAuditEntry;
 import de.osthus.ambeth.cache.CacheDirective;
 import de.osthus.ambeth.cache.CacheFactoryDirective;

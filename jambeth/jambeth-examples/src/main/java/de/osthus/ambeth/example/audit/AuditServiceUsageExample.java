@@ -1,8 +1,8 @@
 package de.osthus.ambeth.example.audit;
 
-import de.osthus.ambeth.audit.Audited;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.security.model.Audited;
 
 @Audited
 public class AuditServiceUsageExample implements IMyAuditedService {

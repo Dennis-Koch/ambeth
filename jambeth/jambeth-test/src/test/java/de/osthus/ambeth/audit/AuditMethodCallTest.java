@@ -5,7 +5,6 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import de.osthus.ambeth.IAuditEntryVerifier;
 import de.osthus.ambeth.audit.AuditMethodCallTest.AuditMethodCallTestFrameworkModule;
 import de.osthus.ambeth.audit.AuditMethodCallTest.AuditMethodCallTestModule;
 import de.osthus.ambeth.audit.model.IAuditEntry;
@@ -15,8 +14,11 @@ import de.osthus.ambeth.audit.model.IAuditedEntityRef;
 import de.osthus.ambeth.audit.model.IAuditedEntityRelationProperty;
 import de.osthus.ambeth.audit.model.IAuditedEntityRelationPropertyItem;
 import de.osthus.ambeth.audit.model.IAuditedService;
+import de.osthus.ambeth.cache.ClearAllCachesEvent;
+import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
+import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exceptions.AuditReasonMissingException;
 import de.osthus.ambeth.ioc.AuditModule;
 import de.osthus.ambeth.ioc.IInitializingModule;
@@ -56,7 +58,8 @@ import de.osthus.ambeth.util.IPrefetchConfig;
 @TestFrameworkModule({ AuditModule.class, AuditMethodCallTestFrameworkModule.class })
 @TestModule(AuditMethodCallTestModule.class)
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "AuditMethodCall_orm.xml;security-orm.xml"),
-		@TestProperties(name = AuditConfigurationConstants.AuditActive, value = "true") })
+		@TestProperties(name = AuditConfigurationConstants.AuditActive, value = "true"),
+		@TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoadActive, value = "true") })
 @SQLStructureList({ @SQLStructure("security-structure.sql"),//
 		@SQLStructure("audit-structure.sql") })
 public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTest
@@ -218,7 +221,6 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		{
 			auditController.popAuditReason();
 		}
-
 		{
 			List<IAuditedEntity> auditedEntitiesOfUser = auditEntryReader.getAllAuditedEntitiesOfEntity(user);
 
@@ -241,6 +243,9 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 				Assert.assertTrue(verify);
 			}
 		}
+		beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
+
+		User reloadedUser = beanContext.getService(ICache.class).getObject(User.class, user.getId());
 	}
 
 	@Test

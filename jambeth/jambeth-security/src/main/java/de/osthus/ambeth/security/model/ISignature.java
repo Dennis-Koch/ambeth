@@ -1,7 +1,6 @@
 package de.osthus.ambeth.security.model;
 
-import de.osthus.ambeth.security.IPBEConfiguration;
-
+@Audited(false)
 public interface ISignature
 {
 	public static final String Algorithm = "Algorithm";

@@ -2,9 +2,11 @@ package de.osthus.ambeth.audit.model;
 
 import java.util.List;
 
+import de.osthus.ambeth.security.model.Audited;
 import de.osthus.ambeth.security.model.ISignature;
 import de.osthus.ambeth.security.model.IUser;
 
+@Audited(false)
 public interface IAuditEntry
 {
 	public static final String Protocol = "Protocol";

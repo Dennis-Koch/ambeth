@@ -1,7 +1,10 @@
 package de.osthus.ambeth.audit;
 
+import java.security.Signature;
+
 import de.osthus.ambeth.audit.model.IAuditEntry;
 import de.osthus.ambeth.audit.model.IAuditedEntity;
+import de.osthus.ambeth.codec.Base64;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -74,7 +77,7 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 	}
 
 	@Override
-	public byte[] createVerifyDigest(IAuditEntry auditEntry)
+	public byte[] createVerifyDigest(IAuditEntry auditEntry, Signature signature)
 	{
 		try
 		{
@@ -89,6 +92,15 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 			if (hashAlgorithm == null || hashAlgorithm.length() == 0)
 			{
 				throw new IllegalArgumentException("No hash algorithm specified");
+			}
+			for (IAuditedEntity auditedEntity : auditEntry.getEntities())
+			{
+				byte[] auditedEntityDigest = auditEntryWriter.writeAuditedEntity(auditedEntity, hashAlgorithm);
+				signature.update(auditedEntityDigest);
+				if (!signature.verify(Base64.decode(auditedEntity.getSignature())))
+				{
+					return null;
+				}
 			}
 			// build a good hash from the audited information: to sign its hash is faster than to sign the audited information itself
 			// the clue is to choose a good hash algorithm which is fast enough to make sense but much stronger than e.g. MD5 as well...

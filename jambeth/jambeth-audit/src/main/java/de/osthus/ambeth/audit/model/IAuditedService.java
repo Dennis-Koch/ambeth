@@ -1,5 +1,8 @@
 package de.osthus.ambeth.audit.model;
 
+import de.osthus.ambeth.security.model.Audited;
+
+@Audited(false)
 public interface IAuditedService
 {
 	public static final String Arguments = "Arguments";

@@ -1,4 +1,4 @@
-package de.osthus.ambeth.security;
+package de.osthus.ambeth.security.model;
 
 public interface IPBEConfiguration
 {

@@ -12,6 +12,7 @@ import de.osthus.ambeth.merge.ILightweightTransaction;
 import de.osthus.ambeth.merge.ITransactionState;
 import de.osthus.ambeth.proxy.CascadedInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
+import de.osthus.ambeth.security.model.AuditedArg;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 
 public class AuditMethodCallInterceptor extends CascadedInterceptor

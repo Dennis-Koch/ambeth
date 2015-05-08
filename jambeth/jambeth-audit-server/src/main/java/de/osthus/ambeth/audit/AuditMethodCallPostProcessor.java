@@ -19,6 +19,8 @@ import de.osthus.ambeth.proxy.IBehaviorTypeExtractor;
 import de.osthus.ambeth.proxy.ICascadedInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.MethodLevelBehavior;
+import de.osthus.ambeth.security.model.Audited;
+import de.osthus.ambeth.security.model.AuditedArg;
 
 public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanPostProcessor
 {

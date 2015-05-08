@@ -13,6 +13,7 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
+import de.osthus.ambeth.security.model.Audited;
 
 public class AuditConfigurationProvider implements IAuditConfigurationProvider, IAuditConfigurationExtendable
 {
