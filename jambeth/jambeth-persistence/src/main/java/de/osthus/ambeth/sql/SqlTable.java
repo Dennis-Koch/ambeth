@@ -8,7 +8,6 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptyMap;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
-import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -21,7 +20,6 @@ import de.osthus.ambeth.persistence.ICursor;
 import de.osthus.ambeth.persistence.IDataCursor;
 import de.osthus.ambeth.persistence.IFieldMetaData;
 import de.osthus.ambeth.persistence.IPersistenceHelper;
-import de.osthus.ambeth.persistence.IPrimaryKeyProvider;
 import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.persistence.IVersionCursor;
 import de.osthus.ambeth.persistence.Table;
@@ -43,9 +41,6 @@ public class SqlTable extends Table
 
 	@Autowired
 	protected IPersistenceHelper persistenceHelper;
-
-	@Autowired
-	protected IPrimaryKeyProvider primaryKeyProvider;
 
 	@Autowired
 	protected ISqlConnection sqlConnection;
@@ -102,12 +97,6 @@ public class SqlTable extends Table
 	public void deleteAll()
 	{
 		sqlConnection.queueDeleteAll(getMetaData().getFullqualifiedEscapedName());
-	}
-
-	@Override
-	public IList<Object> acquireIds(int count)
-	{
-		return primaryKeyProvider.acquireIds(getMetaData(), count);
 	}
 
 	@Override

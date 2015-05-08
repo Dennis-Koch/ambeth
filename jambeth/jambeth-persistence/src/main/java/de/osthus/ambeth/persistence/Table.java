@@ -5,7 +5,6 @@ import java.util.List;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.ILinkedMap;
-import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
@@ -15,7 +14,6 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.IAlreadyLinkedCache;
-import de.osthus.ambeth.util.IParamHolder;
 
 public class Table implements ITable, IInitializingBean
 {
@@ -59,12 +57,6 @@ public class Table implements ITable, IInitializingBean
 	public List<IDirectedLink> getLinks()
 	{
 		return links;
-	}
-
-	@Override
-	public IList<Object> acquireIds(int count)
-	{
-		return new ArrayList<Object>(count);
 	}
 
 	@Override
@@ -206,7 +198,7 @@ public class Table implements ITable, IInitializingBean
 	}
 
 	@Override
-	public Object insert(Object id, IParamHolder<Object> newId, ILinkedMap<IFieldMetaData, Object> puis)
+	public Object insert(Object id, ILinkedMap<IFieldMetaData, Object> puis)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}

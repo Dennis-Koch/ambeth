@@ -16,6 +16,7 @@ namespace De.Osthus.Ambeth.Util.Xml
         public static readonly XName ATTR = XName.Get("attributes");
         public static readonly XName ID = XName.Get("id");
         public static readonly XName VERSION = XName.Get("version");
+		public static readonly XName DESCRIMINATOR = XName.Get("descriminator");
         public static readonly XName CREATED_ON = XName.Get("created-on");
         public static readonly XName CREATED_BY = XName.Get("created-by");
         public static readonly XName UPDATED_ON = XName.Get("updated-on");

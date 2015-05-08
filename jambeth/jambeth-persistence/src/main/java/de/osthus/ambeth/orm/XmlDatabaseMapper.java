@@ -265,11 +265,11 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 				idName = idMemberConfig.getName();
 				if (idMemberConfig instanceof MemberConfig)
 				{
-					handleIdField((MemberConfig) idMemberConfig, table);
+					handleIdField(new MemberConfig[] { (MemberConfig) idMemberConfig }, table);
 				}
 				else
 				{
-					throw new IllegalStateException("Member configurations of type '" + idMemberConfig.getClass().getName() + "' not yet supported");
+					handleIdField(((CompositeMemberConfig) idMemberConfig).getMembers(), table);
 				}
 			}
 
@@ -279,20 +279,31 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 				versionName = versionMemberConfig.getName();
 				handleVersionField(versionMemberConfig, table);
 			}
+			if (entityConfig.getDescriminatorName() != null)
+			{
+				handleDescriminatorField(entityConfig.getDescriminatorName(), table);
+			}
 
 			HashSet<String> ignoredMembers = new HashSet<String>();
 			Iterable<IMemberConfig> memberIter = entityConfig.getMemberConfigIterable();
 			for (IMemberConfig memberConfig : memberIter)
 			{
-				if (!(memberConfig instanceof MemberConfig))
-				{
-					throw new IllegalStateException("Member configurations of type '" + memberConfig.getClass().getName() + "' not yet supported");
-				}
 				if (memberConfig.isTransient())
 				{
 					continue;
 				}
-				mapBasic(table, (MemberConfig) memberConfig);
+				if (memberConfig instanceof CompositeMemberConfig)
+				{
+					MemberConfig[] members = ((CompositeMemberConfig) memberConfig).getMembers();
+					for (MemberConfig member : members)
+					{
+						mapBasic(table, member);
+					}
+				}
+				else
+				{
+					mapBasic(table, (MemberConfig) memberConfig);
+				}
 				if (memberConfig.isIgnore())
 				{
 					ignoredMembers.add(memberConfig.getName());
@@ -370,9 +381,13 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		{
 			sequenceName = ormPatternMatcher.buildSequenceFromTableName(table.getName(), maxNameLength);
 		}
-		sequenceName = getFqObjectName(table, sequenceName);
-		sequenceName = allFullqualifiedSequences.get(sequenceName); // important: set the camelCase of the existing sequence in the database
-		((TableMetaData) table).setSequenceName(sequenceName);
+		String fqSequenceName = getFqObjectName(table, sequenceName);
+		fqSequenceName = allFullqualifiedSequences.get(fqSequenceName); // important: set the camelCase of the existing sequence in the database
+		if (fqSequenceName == null)
+		{
+			fqSequenceName = sequenceName;
+		}
+		((TableMetaData) table).setSequenceName(fqSequenceName);
 	}
 
 	@Override
@@ -495,22 +510,27 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		return set;
 	}
 
-	protected void handleIdField(MemberConfig idMemberConfig, ITableMetaData table)
+	protected void handleIdField(MemberConfig[] idMemberConfig, ITableMetaData table)
 	{
-		IFieldMetaData idField = table.getIdField();
-		if (idField == null)
+		IFieldMetaData[] idFields = table.getIdFields();
+		if (idFields != null)
 		{
-			String idColumnName = idMemberConfig.getColumnName();
+			return;
+		}
+		idFields = new IFieldMetaData[idMemberConfig.length];
+		for (int a = 0, size = idMemberConfig.length; a < size; a++)
+		{
+			String idColumnName = idMemberConfig[a].getColumnName();
 			if (idColumnName != null && !idColumnName.isEmpty() && table instanceof TableMetaData)
 			{
-				idField = table.getFieldByName(idColumnName);
-				((TableMetaData) table).setIdFields(new IFieldMetaData[] { idField });
+				idFields[a] = table.getFieldByName(idColumnName);
 			}
 			else
 			{
 				throw new IllegalStateException("Cannot set id field");
 			}
 		}
+		((TableMetaData) table).setIdFields(idFields);
 	}
 
 	protected void handleVersionField(IMemberConfig versionMemberConfig, ITableMetaData table)
@@ -535,6 +555,23 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			else
 			{
 				throw new IllegalStateException("Cannot set version field");
+			}
+		}
+	}
+
+	protected void handleDescriminatorField(String descriminatorName, ITableMetaData table)
+	{
+		IFieldMetaData descriminatorField = table.getDescriminatorField();
+		if (descriminatorField == null)
+		{
+			if (descriminatorName != null && !descriminatorName.isEmpty() && table instanceof TableMetaData)
+			{
+				descriminatorField = table.getFieldByName(descriminatorName);
+				((TableMetaData) table).setDescriminatorField(descriminatorField);
+			}
+			else
+			{
+				throw new IllegalStateException("Cannot set descriminator field");
 			}
 		}
 	}

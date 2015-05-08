@@ -11,6 +11,7 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.ISet;
+import de.osthus.ambeth.compositeid.CompositeIdMember;
 import de.osthus.ambeth.database.IDatabaseMappedListener;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -108,7 +109,24 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			}
 			// metaData.setEntityType(entityType);
 			// metaData.setRealType(null);
-			if (isMemberOnFieldBetter(entityType, metaData.getIdMember(), table.getIdField()))
+			IFieldMetaData[] idFields = table.getIdFields();
+			if (idFields.length > 1)
+			{
+				PrimitiveMember idMember = metaData.getIdMember();
+				if (!(idMember instanceof CompositeIdMember))
+				{
+					throw new IllegalStateException("Not yet handled");
+				}
+				PrimitiveMember[] members = ((CompositeIdMember) idMember).getMembers();
+				for (int a = members.length; a-- > 0;)
+				{
+					if (isMemberOnFieldBetter(entityType, members[a], idFields[a]))
+					{
+						metaData.setIdMember((PrimitiveMember) idFields[a].getMember());
+					}
+				}
+			}
+			else if (isMemberOnFieldBetter(entityType, metaData.getIdMember(), table.getIdField()))
 			{
 				metaData.setIdMember((PrimitiveMember) table.getIdField().getMember());
 			}

@@ -1,8 +1,9 @@
 package de.osthus.ambeth.persistence;
 
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.merge.model.IObjRef;
 
 public interface IPrimaryKeyProvider
 {
-	IList<Object> acquireIds(ITableMetaData table, int count);
+	void acquireIds(ITableMetaData table, IList<IObjRef> idlessObjRefs);
 }

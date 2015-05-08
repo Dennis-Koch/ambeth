@@ -5,6 +5,7 @@ import java.util.List;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -24,11 +25,28 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 
 	public static final IFieldMetaData[] EMPTY_FIELD_ARRAY = new IFieldMetaData[0];
 
+	public static final IFieldMetaData[][] EMPTY_FIELD_ARRAY_ARRAY = new IFieldMetaData[0][0];
+
 	@LogInstance
 	private ILogger log;
 
 	@Autowired
 	protected IConnectionDialect connectionDialect;
+
+	@Autowired
+	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	@Autowired
+	protected IMemberTypeProvider memberTypeProvider;
+
+	@Autowired
+	protected IThreadLocalObjectCollector objectCollector;
+
+	@Property
+	protected String name;
+
+	@Property
+	protected boolean viewBased;
 
 	protected final ArrayList<IFieldMetaData> primitiveFields;
 
@@ -56,10 +74,6 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 
 	protected final HashMap<String, String> linkNameToMemberNameDict = new HashMap<String, String>();
 
-	protected String name;
-
-	protected boolean viewBased = false;
-
 	protected Class<?> entityType;
 
 	protected boolean archive = false, permissionGroup = false;
@@ -67,6 +81,8 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 	protected IFieldMetaData[] idFields;
 
 	protected IFieldMetaData versionField;
+
+	protected IFieldMetaData descriminatorField;
 
 	protected IFieldMetaData createdByField;
 
@@ -77,15 +93,6 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 	protected IFieldMetaData updatedOnField;
 
 	protected String sequenceName;
-
-	@Autowired
-	protected IEntityMetaDataProvider entityMetaDataProvider;
-
-	@Autowired
-	protected IMemberTypeProvider memberTypeProvider;
-
-	@Autowired
-	protected IThreadLocalObjectCollector objectCollector;
 
 	protected IFieldMetaData[] alternateIdFields = EMPTY_FIELD_ARRAY;
 
@@ -124,11 +131,6 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 		return name;
 	}
 
-	public void setName(String name)
-	{
-		this.name = name;
-	}
-
 	@Override
 	public String getFullqualifiedEscapedName()
 	{
@@ -139,11 +141,6 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 	public boolean isViewBased()
 	{
 		return viewBased;
-	}
-
-	public void setViewBased(boolean viewBased)
-	{
-		this.viewBased = viewBased;
 	}
 
 	@Override
@@ -195,6 +192,12 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 		return idFields != null ? idFields[0] : null;
 	}
 
+	@Override
+	public IFieldMetaData[] getIdFields()
+	{
+		return idFields;
+	}
+
 	public void setIdFields(IFieldMetaData[] idFields)
 	{
 		this.idFields = idFields;
@@ -218,6 +221,20 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 		fieldNameToFieldDict.put(versionField.getName(), versionField);
 		fieldNameToFieldDict.put(versionField.getName().toUpperCase(), versionField);
 		fieldNameToFieldDict.put(versionField.getName().toLowerCase(), versionField);
+	}
+
+	@Override
+	public IFieldMetaData getDescriminatorField()
+	{
+		return descriminatorField;
+	}
+
+	public void setDescriminatorField(IFieldMetaData descriminatorField)
+	{
+		this.descriminatorField = descriminatorField;
+		fieldNameToFieldDict.put(descriminatorField.getName(), descriminatorField);
+		fieldNameToFieldDict.put(descriminatorField.getName().toUpperCase(), descriminatorField);
+		fieldNameToFieldDict.put(descriminatorField.getName().toLowerCase(), descriminatorField);
 	}
 
 	@Override

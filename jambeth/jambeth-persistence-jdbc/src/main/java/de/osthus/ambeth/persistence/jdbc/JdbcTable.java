@@ -17,12 +17,15 @@ import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
+import de.osthus.ambeth.compositeid.CompositeIdMember;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
+import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.metadata.RelationMember;
@@ -37,7 +40,6 @@ import de.osthus.ambeth.sql.IResultSet;
 import de.osthus.ambeth.sql.IResultSetProvider;
 import de.osthus.ambeth.sql.SqlTable;
 import de.osthus.ambeth.util.IConversionHelper;
-import de.osthus.ambeth.util.IParamHolder;
 import de.osthus.ambeth.util.OptimisticLockUtil;
 import de.osthus.ambeth.util.ParamChecker;
 
@@ -51,6 +53,9 @@ public class JdbcTable extends SqlTable
 
 	@Autowired
 	protected IConnectionDialect connectionDialect;
+
+	@Autowired
+	protected IEntityMetaDataProvider entitydMetaDataProvider;
 
 	protected boolean batching = false;
 
@@ -269,10 +274,9 @@ public class JdbcTable extends SqlTable
 	}
 
 	@Override
-	public Object insert(Object id, IParamHolder<Object> newId, ILinkedMap<IFieldMetaData, Object> puis)
+	public Object insert(Object id, ILinkedMap<IFieldMetaData, Object> puis)
 	{
 		ParamChecker.assertParamNotNull(id, "id");
-		ParamChecker.assertParamNotNull(newId, "newId");
 		ParamChecker.assertTrue(batching, "batching");
 
 		ITableMetaData metaData = getMetaData();
@@ -289,16 +293,28 @@ public class JdbcTable extends SqlTable
 			prep = createInsertStatement(fieldNames);
 			perCount.put(namesKey, prep);
 		}
-		IFieldMetaData idField = metaData.getIdField();
+		IFieldMetaData[] idFields = metaData.getIdFields();
 		IFieldMetaData versionField = metaData.getVersionField() != null ? metaData.getVersionField() : null;
 		Object initialVersion = getMetaData().getInitialVersion();
-		newId.setValue(conversionHelper.convertValueToType(idField.getMember().getRealType(), id));
 		Object newVersion = versionField != null ? conversionHelper.convertValueToType(versionField.getMember().getRealType(), initialVersion) : null;
 
 		try
 		{
 			int index = 1;
-			prep.setObject(index++, conversionHelper.convertValueToType(idField.getFieldType(), id));
+			if (idFields.length == 1)
+			{
+				prep.setObject(index++, conversionHelper.convertValueToType(idFields[0].getFieldType(), id));
+			}
+			else
+			{
+				IEntityMetaData metaData2 = entitydMetaDataProvider.getMetaData(metaData.getEntityType());
+				CompositeIdMember idMember = (CompositeIdMember) metaData2.getIdMember();
+				for (int a = 0, size = idFields.length; a < size; a++)
+				{
+					IFieldMetaData idField = idFields[a];
+					prep.setObject(index++, conversionHelper.convertValueToType(idField.getFieldType(), idMember.getDecompositedValue(id, a)));
+				}
+			}
 			if (versionField != null)
 			{
 				prep.setObject(index++, conversionHelper.convertValueToType(versionField.getFieldType(), initialVersion));
@@ -550,7 +566,7 @@ public class JdbcTable extends SqlTable
 	protected PreparedStatement createInsertStatement(String[] fieldNames)
 	{
 		ITableMetaData metaData = getMetaData();
-		IFieldMetaData idField = metaData.getIdField();
+		IFieldMetaData[] idFields = metaData.getIdFields();
 		IFieldMetaData versionField = metaData.getVersionField();
 
 		int variableCount = 0;
@@ -560,8 +576,15 @@ public class JdbcTable extends SqlTable
 		{
 			sqlSB.append("INSERT INTO ");
 			sqlBuilder.appendName(metaData.getFullqualifiedEscapedName(), sqlSB).append(" (");
-			sqlBuilder.appendName(idField.getName(), sqlSB);
-			variableCount++;
+			for (IFieldMetaData idField : idFields)
+			{
+				if (variableCount > 0)
+				{
+					sqlSB.append(',');
+				}
+				sqlBuilder.appendName(idField.getName(), sqlSB);
+				variableCount++;
+			}
 			if (versionField != null)
 			{
 				sqlSB.append(',');
@@ -617,9 +640,7 @@ public class JdbcTable extends SqlTable
 				log.debug("prepare: " + sql);
 			}
 
-			PreparedStatement pstm = connection.prepareStatement(sql);
-			pstm.setQueryTimeout(30);
-			return pstm;
+			return connection.prepareStatement(sql);
 		}
 		catch (Throwable e)
 		{
@@ -762,9 +783,7 @@ public class JdbcTable extends SqlTable
 				log.debug("prepare: " + sqlSB.toString());
 			}
 
-			PreparedStatement pstm = connection.prepareStatement(sqlSB.toString());
-			pstm.setQueryTimeout(30);
-			return pstm;
+			return connection.prepareStatement(sqlSB.toString());
 		}
 		catch (Throwable e)
 		{

@@ -4,7 +4,7 @@ import java.util.concurrent.CountDownLatch;
 
 import de.osthus.ambeth.collections.ListElem;
 
-public class QueueItem
+public class QueueItem extends ListElem<QueueItem>
 {
 	private final Object context;
 
@@ -14,10 +14,9 @@ public class QueueItem
 
 	private final CountDownLatch latch;
 
-	private final ListElem<QueueItem> threadingLE = new ListElem<QueueItem>(this);
-
 	public QueueItem(Object context, Object object, HandlerRunnable<?, ?> handler, CountDownLatch latch)
 	{
+		super.value = this;
 		this.context = context;
 		this.object = object;
 		this.handler = handler;
@@ -36,7 +35,7 @@ public class QueueItem
 
 	public ListElem<QueueItem> getThreadingLE()
 	{
-		return threadingLE;
+		return this;
 	}
 
 	public HandlerRunnable<?, ?> getHandler()

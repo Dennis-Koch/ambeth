@@ -233,6 +233,12 @@ public class OrmXmlReader20 implements IOrmXmlReader, IInitializingBean
 				String sequenceName = xmlConfigUtil.getRequiredAttribute(entityDefs.get(XmlConstants.SEQ).get(0), XmlConstants.NAME);
 				entityConfig.setSequenceName(sequenceName);
 			}
+			if (entityDefs.containsKey(XmlConstants.DESCRIMINATOR))
+			{
+				String descriminatorName = xmlConfigUtil.getRequiredAttribute(entityDefs.get(XmlConstants.DESCRIMINATOR).get(0), XmlConstants.NAME);
+				entityConfig.setDescriminatorName(descriminatorName);
+			}
+
 			if (entityDefs.containsKey(XmlConstants.ATTR))
 			{
 				attributeMap = xmlConfigUtil.toElementMap(entityDefs.get(XmlConstants.ATTR).get(0).getChildNodes());

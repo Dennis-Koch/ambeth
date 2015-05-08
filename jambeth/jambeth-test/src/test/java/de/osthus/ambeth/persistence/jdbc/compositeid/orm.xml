@@ -4,6 +4,7 @@
 	<entity-mappings>
 
 		<entity class="de.osthus.ambeth.persistence.jdbc.compositeid.models.CompositeIdEntity">
+			<sequence-generator name="de.osthus.ambeth.persistence.jdbc.compositeid.models.SeqGenId"/>
 			<attributes>
 				<id-composite>
 					<id-fragment name="Id1" />
@@ -16,7 +17,6 @@
 					<id-fragment name="AltId4" />
 				</alternate-id-composite>
 				<alternate-id-composite>
-					<id-fragment name="Id2" />
 					<id-fragment name="AltId1" />
 					<id-fragment name="AltId4" />
 				</alternate-id-composite>

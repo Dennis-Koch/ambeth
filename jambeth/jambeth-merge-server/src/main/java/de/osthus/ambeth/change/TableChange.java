@@ -25,7 +25,6 @@ import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.service.IChangeAggregator;
 import de.osthus.ambeth.util.IConversionHelper;
-import de.osthus.ambeth.util.ParamHolder;
 
 /**
  * Change collector for entity tables
@@ -212,8 +211,7 @@ public class TableChange extends AbstractTableChange
 				{
 					ICreateCommand command = (ICreateCommand) changeCommand;
 
-					ParamHolder<Object> newId = new ParamHolder<Object>();
-					Object version = table.insert(reference.getId(), newId, command.getItems());
+					Object version = table.insert(reference.getId(), command.getItems());
 					if (reference instanceof IDirectObjRef)
 					{
 						((IDirectObjRef) reference).setDirect(null);
@@ -227,7 +225,6 @@ public class TableChange extends AbstractTableChange
 					{
 						reference.setVersion(null);
 					}
-					reference.setId(newId.getValue());
 					changeAggregator.dataChangeInsert(reference);
 				}
 				else if (changeCommand instanceof IUpdateCommand)

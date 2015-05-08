@@ -496,20 +496,11 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 				}
 				try
 				{
-
 					if (primitiveNameToTypeMap.containsKey(sValue))
 					{
 						return primitiveNameToTypeMap.get(sValue);
 					}
-					else if (lengthFromEnd == 1)
-					{
-						return Class.forName(sValue);
-					}
-					else
-					{
-						return Class.forName(sValue);
-						// return Thread.currentThread().getContextClassLoader().loadClass(sValue);
-					}
+					return Class.forName(sValue, true, Thread.currentThread().getContextClassLoader());
 				}
 				catch (Throwable e)
 				{

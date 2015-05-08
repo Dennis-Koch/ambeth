@@ -76,6 +76,7 @@ import de.osthus.ambeth.persistence.IContextProvider;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IDatabaseMetaData;
 import de.osthus.ambeth.persistence.IDirectedLinkMetaData;
+import de.osthus.ambeth.persistence.IPrimaryKeyProvider;
 import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.persistence.parallel.IModifyingDatabase;
@@ -175,6 +176,9 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 
 	@Autowired
 	protected IPrefetchHelper prefetchHelper;
+
+	@Autowired
+	protected IPrimaryKeyProvider primaryKeyProvider;
 
 	@Autowired
 	protected IRelationMergeService relationMergeService;
@@ -804,7 +808,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 
 					if (mockIdToObjRefMap == null)
 					{
-						aquireAndAssignIds(database, typeToIdlessReferenceMap);
+						aquireAndAssignIds(typeToIdlessReferenceMap);
 					}
 					else
 					{
@@ -1137,19 +1141,20 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 		}
 	}
 
-	protected void aquireAndAssignIds(IDatabase database, ILinkedMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap)
+	protected void aquireAndAssignIds(ILinkedMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap)
 	{
 		for (Entry<Class<?>, IList<IObjRef>> entry : typeToIdlessReferenceMap)
 		{
-			ITable entityHandler = getEnsureTable(database, entry.getKey());
-			IList<IObjRef> idlessReferences = entry.getValue();
-			IList<Object> acquiredIds = entityHandler.acquireIds(idlessReferences.size());
-			for (int i = idlessReferences.size(); i-- > 0;)
+			Class<?> entityType = entry.getKey();
+			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+			ITableMetaData table = databaseMetaData.getTableByType(metaData.getEntityType());
+			if (table == null)
 			{
-				IObjRef reference = idlessReferences.get(i);
-				reference.setId(acquiredIds.get(i));
-				reference.setIdNameIndex(ObjRef.PRIMARY_KEY_INDEX);
+				throw new RuntimeException("No table configured for entity '" + entityType + "'");
 			}
+			IList<IObjRef> idlessReferences = entry.getValue();
+
+			primaryKeyProvider.acquireIds(table, idlessReferences);
 		}
 	}
 
