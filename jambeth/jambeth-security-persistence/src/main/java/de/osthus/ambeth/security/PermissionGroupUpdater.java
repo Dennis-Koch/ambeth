@@ -474,7 +474,17 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 										default:
 											throw RuntimeExceptionUtil.createEnumNotSupportedException(pgUpdateEntry.getUpdateType());
 									}
-									IList<Object> permissionGroupIds = primaryKeyProvider.acquireIds(permissionGroup.getTable(), objRefs.size());
+									ArrayList<IObjRef> permissionObjRefs = new ArrayList<IObjRef>(objRefs.size());
+									for (int a = objRefs.size(); a-- > 0;)
+									{
+										permissionObjRefs.add(new ObjRef(IPermissionGroup.class, ObjRef.PRIMARY_KEY_INDEX, null, null));
+									}
+									primaryKeyProvider.acquireIds(permissionGroup.getTable(), permissionObjRefs);
+									ArrayList<Object> permissionGroupIds = new ArrayList<Object>(permissionObjRefs.size());
+									for (int a = 0, size = permissionObjRefs.size(); a < size; a++)
+									{
+										permissionGroupIds.add(permissionObjRefs.get(a).getId());
+									}
 									updateEntityRows(objRefs, permissionGroupIds, permissionGroup, table);
 
 									pgUpdateEntry.setObjRefs(objRefs);

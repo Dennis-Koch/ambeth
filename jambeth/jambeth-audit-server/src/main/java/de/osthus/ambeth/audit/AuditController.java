@@ -307,9 +307,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		CreateOrUpdateContainerBuild auditedEntityRef = auditControllerState.createEntity(IAuditedEntityRef.class);
 		ref = (IDirectObjRef) auditedEntityRef.getReference();
 
-		auditedEntityRef.ensurePrimitive(IAuditedEntityRef.EntityId).setNewValue(objRef.getId());
+		auditedEntityRef.ensurePrimitive(IAuditedEntityRef.EntityId).setNewValue(conversionHelper.convertValueToType(String.class, objRef.getId()));
 		auditedEntityRef.ensurePrimitive(IAuditedEntityRef.EntityType).setNewValue(objRef.getRealType());
-		auditedEntityRef.ensurePrimitive(IAuditedEntityRef.EntityVersion).setNewValue(objRef.getVersion());
+		auditedEntityRef.ensurePrimitive(IAuditedEntityRef.EntityVersion).setNewValue(conversionHelper.convertValueToType(String.class, objRef.getVersion()));
 
 		objRefToRefMap.put(objRef, ref);
 		return ref;

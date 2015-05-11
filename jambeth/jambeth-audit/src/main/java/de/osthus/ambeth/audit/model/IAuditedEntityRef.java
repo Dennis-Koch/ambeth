@@ -1,6 +1,5 @@
 package de.osthus.ambeth.audit.model;
 
-
 @Audited(false)
 public interface IAuditedEntityRef
 {
@@ -10,9 +9,9 @@ public interface IAuditedEntityRef
 
 	public static final String EntityVersion = "EntityVersion";
 
-	Object getEntityId();
+	String getEntityId();
 
 	Class<?> getEntityType();
 
-	Object getEntityVersion();
+	String getEntityVersion();
 }
