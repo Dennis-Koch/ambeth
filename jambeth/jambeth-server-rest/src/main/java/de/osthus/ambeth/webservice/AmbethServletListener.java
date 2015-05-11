@@ -14,9 +14,12 @@ import javax.servlet.ServletRequestEvent;
 import javax.servlet.ServletRequestListener;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpSessionEvent;
+import javax.servlet.http.HttpSessionListener;
 import javax.ws.rs.ext.Provider;
 
 import de.osthus.ambeth.config.Properties;
+import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.ioc.BootstrapScannerModule;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
@@ -36,7 +39,7 @@ import de.osthus.ambeth.util.ClassLoaderUtil;
 import de.osthus.ambeth.util.ImmutableTypeSet;
 
 @Provider
-public class AmbethServletListener implements ServletContextListener, ServletRequestListener
+public class AmbethServletListener implements ServletContextListener, ServletRequestListener, HttpSessionListener
 {
 	public static final String ATTRIBUTE_AUTHENTICATION_HANDLE = "ambeth.authentication.handle";
 
@@ -241,4 +244,18 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 	{
 		return (IServiceContext) servletContext.getAttribute(ATTRIBUTE_I_SERVICE_CONTEXT);
 	}
+
+	@Override
+	public void sessionCreated(HttpSessionEvent se)
+	{
+		// TODO wrap httpsession events, to get create events
+		// getService(IEventDispatcher.class).dispatchEvent(se);
+	}
+
+	@Override
+	public void sessionDestroyed(HttpSessionEvent se)
+	{
+		getServiceContext(se.getSession().getServletContext()).getService(IEventDispatcher.class).dispatchEvent(se);
+	}
+
 }

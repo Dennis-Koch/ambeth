@@ -133,19 +133,16 @@ public class ChangeController implements IChangeController, IChangeControllerExt
 		{
 			Object newEntity = newEntities.get(index);
 			Object oldEntity = oldEntities.get(index);
-			if (newEntity == oldEntity)
+			if (((IDataObject) newEntity).isToBeDeleted())
+			{
+				// The entity has just been deleted and not yet erased. To make this case easier to identify, we set newEntity to null
+				newEntity = null;
+			}
+			else if (newEntity == oldEntity)
 			{
 				// If newEntity and oldEntity are the same objects, we have the special case that the entity...
-				if (((IDataObject) newEntity).isToBeDeleted())
-				{
-					// has just been deleted and not yet erased. To make this case easier to identify, we set newEntity to null
-					newEntity = null;
-				}
-				else
-				{
-					// .. has been just created and is not yet stored. To make this case easier to identify, we set oldEntity to null
-					oldEntity = null;
-				}
+				// has been just created and is not yet stored. To make this case easier to identify, we set oldEntity to null
+				oldEntity = null;
 			}
 			extensionCalled |= processChange(newEntity, oldEntity, views);
 		}
