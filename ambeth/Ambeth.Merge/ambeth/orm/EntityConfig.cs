@@ -22,6 +22,8 @@ namespace De.Osthus.Ambeth.Orm
 
         public IMemberConfig VersionMemberConfig { get; set; }
 
+		public String DescriminatorName { get; set; }
+
         public bool VersionRequired { get; set; }
 
         public IMemberConfig CreatedByMemberConfig { get; set; }

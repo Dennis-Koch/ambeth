@@ -19,6 +19,7 @@
 		<module>../jambeth-cache-datachange-test</module>
 		<module>../jambeth-cache-server-test</module>
 		<module>../jambeth-cache-stream-test</module>
+		<module>../jambeth-chemspider-test</module>
 		<module>../jambeth-datachange-test</module>
 		<module>../jambeth-datachange-persistence-test</module>
 		<module>../jambeth-event-test</module>
@@ -42,6 +43,7 @@
 		<module>../jambeth-persistence-jdbc-test</module>
 		<module>../jambeth-persistence-mssql-test</module>
 		<module>../jambeth-persistence-oracle11-test</module>
+		<module>../jambeth-persistence-pg-test</module>
 		<module>../jambeth-platform-test</module>
 		<module>../jambeth-query-test</module>
 		<module>../jambeth-query-inmemory-test</module>

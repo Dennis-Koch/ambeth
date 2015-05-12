@@ -6,6 +6,8 @@ import java.lang.reflect.Method;
 import java.util.Set;
 
 import de.osthus.ambeth.annotation.AnnotationCache;
+import de.osthus.ambeth.audit.model.Audited;
+import de.osthus.ambeth.audit.model.AuditedArg;
 import de.osthus.ambeth.ioc.IBeanRuntime;
 import de.osthus.ambeth.ioc.IOrderedBeanPostProcessor;
 import de.osthus.ambeth.ioc.IServiceContext;

@@ -1,6 +1,7 @@
 package de.osthus.ambeth.audit;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.security.model.IUser;
 
 public class AdditionalAuditInfo
 {
@@ -11,4 +12,8 @@ public class AdditionalAuditInfo
 	public Boolean ownAuditMergeActive;
 
 	public char[] clearTextPassword;
+
+	public boolean doClearPassword;
+
+	public IUser authorizedUser;
 }

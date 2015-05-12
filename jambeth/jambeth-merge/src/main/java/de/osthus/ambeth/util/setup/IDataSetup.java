@@ -6,5 +6,7 @@ public interface IDataSetup
 {
 	void eraseEntityReferences();
 
+	IDataSetupWithAuthorization resolveDataSetupWithAuthorization();
+
 	Collection<Object> executeDatasetBuilders();
 }

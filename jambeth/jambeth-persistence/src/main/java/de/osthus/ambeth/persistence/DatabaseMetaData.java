@@ -489,7 +489,7 @@ public class DatabaseMetaData implements IDatabaseMetaData, IConfigurableDatabas
 		fromFieldName = buildFqName(XmlDatabaseMapper.splitSchemaAndName(fromFieldName));
 		toTableName = buildFqName(XmlDatabaseMapper.splitSchemaAndName(toTableName));
 		toFieldName = buildFqName(XmlDatabaseMapper.splitSchemaAndName(toFieldName));
-		return "LINK_" + fromTableName + "_" + fromFieldName + "-" + toTableName + "_" + toFieldName;
+		return "LINK$" + fromTableName + "$" + fromFieldName + "$" + toTableName + "$" + toFieldName;
 	}
 
 	protected String buildFqName(String[] fqNameSplit)

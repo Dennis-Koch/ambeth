@@ -8,11 +8,15 @@ import de.osthus.ambeth.config.IProperties;
 
 public interface IConnectionTestDialect
 {
+	void resetStatementCache(Connection connection);
+
 	void dropAllSchemaContent(Connection conn, String schemaName);
 
 	List<String> getTablesWithoutOptimisticLockTrigger(Connection connection) throws SQLException;
 
 	String[] createOptimisticLockTrigger(Connection connection, String tableName) throws SQLException;
+
+	String[] createAdditionalTriggers(Connection connection, String tableName) throws SQLException;
 
 	List<String> getTablesWithoutPermissionGroup(Connection conn) throws SQLException;
 

@@ -9,10 +9,12 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IConnectionDialect;
+import de.osthus.ambeth.persistence.IExtendedConnectionDialect;
+import de.osthus.ambeth.persistence.IPrimaryKeyProvider;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.IConnectionExtension;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
-import de.osthus.ambeth.sql.IPrimaryKeyProvider;
+import de.osthus.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
 
 @FrameworkModule
 public class H2Module implements IInitializingModule, IPropertyLoadingBean
@@ -48,6 +50,8 @@ public class H2Module implements IInitializingModule, IPropertyLoadingBean
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
+		beanContextFactory.registerBean(H2ConnectionUrlProvider.class).autowireable(IDatabaseConnectionUrlProvider.class);
+		beanContextFactory.registerBean(H2ExtendedDialect.class).autowireable(IExtendedConnectionDialect.class);
 		if (!externalTransactionManager && !databaseBehaviourStrict)
 		{
 			beanContextFactory.registerBean(H2Dialect.class).autowireable(IConnectionDialect.class);

@@ -114,7 +114,7 @@ public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRe
 	@Override
 	public IAppendable appendName(String name, IAppendable sb)
 	{
-		// if (escapedNames.contains(name.toUpperCase()))
+		// if (escapedNames.contains(name))
 		// {
 		if (name.startsWith("\""))
 		{

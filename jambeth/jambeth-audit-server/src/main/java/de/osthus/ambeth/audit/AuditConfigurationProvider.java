@@ -1,5 +1,7 @@
 package de.osthus.ambeth.audit;
 
+import de.osthus.ambeth.annotation.AnnotationUtil;
+import de.osthus.ambeth.audit.model.Audited;
 import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.Property;
@@ -31,7 +33,7 @@ public class AuditConfigurationProvider implements IAuditConfigurationProvider, 
 	@Property(name = AuditConfigurationConstants.AuditedEntityPropertyDefaultModeActive, defaultValue = "true")
 	protected boolean auditedEntityPropertyDefaultModeActive;
 
-	private final MapExtendableContainer<Class<?>, IAuditConfiguration> entityTypeToAuditConfigurationMap = new MapExtendableContainer<Class<?>, IAuditConfiguration>(
+	protected final MapExtendableContainer<Class<?>, IAuditConfiguration> entityTypeToAuditConfigurationMap = new MapExtendableContainer<Class<?>, IAuditConfiguration>(
 			"auditConfiguration", "entityType");
 
 	@Override
@@ -51,10 +53,8 @@ public class AuditConfigurationProvider implements IAuditConfigurationProvider, 
 	{
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 
-		// TODO: DM to DeK: You used "getEnhancedType" but Annotations are not inherited and so were not present at the enhanced classes. Is the usage of
-		// getEntityType correct?
-		Audited audited = metaData.getEntityType().getAnnotation(Audited.class);
-		AuditReasonRequired auditReasonRequired = metaData.getEntityType().getAnnotation(AuditReasonRequired.class);
+		Audited audited = AnnotationUtil.getAnnotation(Audited.class, metaData.getEnhancedType(), true);
+		AuditReasonRequired auditReasonRequired = AnnotationUtil.getAnnotation(AuditReasonRequired.class, metaData.getEnhancedType(), true);
 
 		boolean auditActive = audited != null ? audited.value() : auditedEntityDefaultModeActive;
 
@@ -68,6 +68,10 @@ public class AuditConfigurationProvider implements IAuditConfigurationProvider, 
 		for (RelationMember member : metaData.getRelationMembers())
 		{
 			memberToConfigurationMap.put(member, resolveMemberConfiguration(member));
+		}
+		if (metaData.getVersionMember() != null)
+		{
+			memberToConfigurationMap.put(metaData.getVersionMember(), resolveMemberConfiguration(metaData.getVersionMember()));
 		}
 		return new AuditConfiguration(auditActive, reasonRequired, memberToConfigurationMap);
 	}

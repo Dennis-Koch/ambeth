@@ -7,6 +7,6 @@ namespace De.Osthus.Ambeth.Collections
     {
         K Key { get; }
 
-        V Value { get; }
+		V Value { get; set; }
     }
 }

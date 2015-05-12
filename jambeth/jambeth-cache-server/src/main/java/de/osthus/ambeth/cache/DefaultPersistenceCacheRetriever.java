@@ -2,6 +2,7 @@ package de.osthus.ambeth.cache;
 
 import java.util.List;
 
+import de.osthus.ambeth.audit.IAuditEntryVerifier;
 import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
@@ -24,6 +25,9 @@ public class DefaultPersistenceCacheRetriever implements ICacheRetriever
 
 	protected int maxDebugItems = 50;
 
+	@Autowired(optional = true)
+	protected IAuditEntryVerifier auditEntryVerifier;
+
 	@Autowired
 	protected ILoadContainerProvider loadContainerProvider;
 
@@ -39,6 +43,16 @@ public class DefaultPersistenceCacheRetriever implements ICacheRetriever
 		}
 		ArrayList<ILoadContainer> targetEntities = new ArrayList<ILoadContainer>(orisToLoad.size());
 		loadContainerProvider.assignInstances(orisToLoad, targetEntities);
+
+		if (auditEntryVerifier != null)
+		{
+			ArrayList<IObjRef> objRefsToReturn = new ArrayList<IObjRef>(targetEntities.size());
+			for (int a = targetEntities.size(); a-- > 0;)
+			{
+				objRefsToReturn.add(targetEntities.get(a).getReference());
+			}
+			auditEntryVerifier.verifyEntitiesOnLoad(objRefsToReturn);
+		}
 		return targetEntities;
 	}
 

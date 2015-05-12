@@ -95,11 +95,16 @@ namespace De.Osthus.Ambeth.Collections
             e = CreateEntry(hash, key, e);
             table[bucketIndex] = e;
             EntryAdded(e);
-            if (Count >= threshold)
+			if (IsResizeNeeded())
             {
                 Resize(2 * table.Length);
             }
         }
+
+		protected virtual bool IsResizeNeeded()
+		{
+			return Count >= threshold;
+		}
 
         public K Get(K key)
         {

@@ -32,6 +32,7 @@ import de.osthus.ambeth.cache.interceptor.CacheInterceptor;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.XmlModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.model.ISecurityScope;
@@ -50,6 +51,7 @@ import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
+import de.osthus.ambeth.testutil.TestFrameworkModule;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
@@ -62,6 +64,7 @@ import de.osthus.ambeth.util.ParamHolder;
 @SQLStructure("/de/osthus/ambeth/persistence/xml/Relations_structure.sql")
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/orm.xml"),
 		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false") })
+@TestFrameworkModule(XmlModule.class)
 @TestModule(TestServicesModule.class)
 public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 {
@@ -121,6 +124,11 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 		employeeService.save(employee);
 
 		Employee actual = cache.getObject(Employee.class, employee.getId());
+
+		if (actual.getPrimaryAddress() == null)
+		{
+			System.out.println("kfeowejmfwef");
+		}
 		assertEquals(address.getId(), actual.getPrimaryAddress().getId());
 
 		Address moved = entityFactory.createEntity(Address.class);

@@ -33,11 +33,11 @@ public class MultithreadingHelper implements IMultithreadingHelper
 	@Override
 	public void invokeInParallel(IServiceContext serviceContext, Runnable runnable, int workerCount)
 	{
-		invokeInParallel(serviceContext, false, runnable, workerCount);
+		invokeInParallel(serviceContext, false, timeout, runnable, workerCount);
 	}
 
 	@Override
-	public void invokeInParallel(IServiceContext serviceContext, boolean inheritThreadLocals, Runnable runnable, int workerCount)
+	public void invokeInParallel(IServiceContext serviceContext, boolean inheritThreadLocals, long timeout, Runnable runnable, int workerCount)
 	{
 		Runnable[] runnables = new Runnable[workerCount];
 		for (int a = workerCount; a-- > 0;)
@@ -52,17 +52,17 @@ public class MultithreadingHelper implements IMultithreadingHelper
 				runnables[a] = runnable;
 			}
 		}
-		invokeInParallel(serviceContext, inheritThreadLocals, runnables);
+		invokeInParallel(serviceContext, inheritThreadLocals, timeout, runnables);
 	}
 
 	@Override
 	public void invokeInParallel(final IServiceContext serviceContext, Runnable... runnables)
 	{
-		invokeInParallel(serviceContext, false, runnables);
+		invokeInParallel(serviceContext, false, timeout, runnables);
 	}
 
 	@Override
-	public void invokeInParallel(IServiceContext serviceContext, boolean inheritThreadLocals, Runnable... runnables)
+	public void invokeInParallel(IServiceContext serviceContext, boolean inheritThreadLocals, long timeout, Runnable... runnables)
 	{
 		CountDownLatch latch = new CountDownLatch(runnables.length);
 		ParamHolder<Throwable> throwableHolder = new ParamHolder<Throwable>();

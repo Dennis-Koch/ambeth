@@ -89,7 +89,7 @@ public class CacheHashMap implements Iterable<CacheMapEntry>
 		e = createEntry(entityType, id, idIndex, value, e);
 		table[bucketIndex] = e;
 		entryAdded(e);
-		if (size() >= threshold)
+		if (isResizeNeeded())
 		{
 			resize(2 * table.length);
 		}
@@ -97,6 +97,11 @@ public class CacheHashMap implements Iterable<CacheMapEntry>
 		{
 			((ICacheMapEntryAware) value).setCacheMapEntry(e);
 		}
+	}
+
+	protected boolean isResizeNeeded()
+	{
+		return size() >= threshold;
 	}
 
 	protected void resize(final int newCapacity)
@@ -290,8 +295,7 @@ public class CacheHashMap implements Iterable<CacheMapEntry>
 		return oldValue;
 	}
 
-	protected CacheMapEntry createEntry(final Class<?> entityType, final Object id, final byte idIndex, final Object value,
-			final CacheMapEntry nextEntry)
+	protected CacheMapEntry createEntry(final Class<?> entityType, final Object id, final byte idIndex, final Object value, final CacheMapEntry nextEntry)
 	{
 		ICacheMapEntryFactory factory = cacheMapEntryTypeProvider.getCacheMapEntryType(entityType, idIndex);
 		return factory.createCacheMapEntry(entityType, idIndex, id, value, nextEntry);

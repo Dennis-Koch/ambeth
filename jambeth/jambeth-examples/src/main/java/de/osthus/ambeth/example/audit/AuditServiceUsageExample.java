@@ -1,6 +1,6 @@
 package de.osthus.ambeth.example.audit;
 
-import de.osthus.ambeth.audit.Audited;
+import de.osthus.ambeth.audit.model.Audited;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 

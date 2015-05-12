@@ -97,7 +97,7 @@ namespace De.Osthus.Ambeth.Cache.Collections
             e = CreateEntry(entityType, id, idIndex, value, e);
             table[bucketIndex] = e;
             EntryAdded(e);
-            if (Count >= threshold)
+			if (IsResizeNeeded())
             {
                 Resize(2 * table.Length);
             }
@@ -106,6 +106,11 @@ namespace De.Osthus.Ambeth.Cache.Collections
 			    ((ICacheMapEntryAware) value).SetCacheMapEntry(e);
 		    }
         }
+
+		protected bool IsResizeNeeded()
+		{
+			return Count >= threshold;
+		}
 
         protected void Resize(int newCapacity)
         {

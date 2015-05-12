@@ -1,5 +1,7 @@
 package de.osthus.ambeth.persistence;
 
+import java.sql.Blob;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,17 +16,23 @@ import de.osthus.ambeth.collections.IMap;
 
 public interface IConnectionDialect
 {
+	Blob createBlob(Connection connection) throws SQLException;
+
+	Clob createClob(Connection connection) throws SQLException;
+
+	String toDefaultCase(String unquotedIdentifier);
+
 	void preProcessConnection(Connection connection, String[] schemaNames, boolean forcePreProcessing);
 
-	IList<IMap<String, String>> getExportedKeys(Connection connection, String schemaName) throws SQLException;
+	IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames) throws SQLException;
 
 	ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection, String schemaName) throws SQLException;
 
 	boolean isSystemTable(String tableName);
 
-	IList<String[]> disableConstraints(Connection connection, String... schemaNames);
+	IList<String> disableConstraints(Connection connection, String... schemaNames);
 
-	void enableConstraints(Connection connection, IList<String[]> disabled);
+	void enableConstraints(Connection connection, IList<String> disabled);
 
 	void commit(Connection connection) throws SQLException;
 
@@ -48,7 +56,13 @@ public interface IConnectionDialect
 
 	List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames) throws SQLException;
 
+	List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames) throws SQLException;
+
 	IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) throws SQLException;
 
 	int getMaxInClauseBatchThreshold();
+
+	Object convertToFieldType(IFieldMetaData field, Object value);
+
+	Object convertFromFieldType(IDatabase database, IFieldMetaData field, Class<?> expectedType, Object value);
 }

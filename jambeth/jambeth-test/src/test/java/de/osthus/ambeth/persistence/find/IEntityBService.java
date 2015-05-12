@@ -9,11 +9,9 @@ import de.osthus.ambeth.filter.model.IFilterDescriptor;
 import de.osthus.ambeth.filter.model.IPagingRequest;
 import de.osthus.ambeth.filter.model.IPagingResponse;
 import de.osthus.ambeth.filter.model.ISortDescriptor;
-import de.osthus.ambeth.proxy.PersistenceContext;
 import de.osthus.ambeth.proxy.Service;
 
 @Service(IEntityBService.class)
-@PersistenceContext
 public interface IEntityBService
 {
 	@Cached

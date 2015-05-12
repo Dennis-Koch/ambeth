@@ -3,9 +3,7 @@ package de.osthus.ambeth.persistence;
 import java.util.List;
 
 import de.osthus.ambeth.collections.ILinkedMap;
-import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.merge.model.IObjRef;
-import de.osthus.ambeth.util.IParamHolder;
 
 public interface ITable
 {
@@ -22,13 +20,11 @@ public interface ITable
 	 * 
 	 * @param id
 	 *            Unique ID identifying the object in storage.
-	 * @param newId
-	 *            Id converted to the correct type. Outgoing parameter.
 	 * @param puis
 	 *            Map of member names and primitive values.
 	 * @return New version converted to the correct type.
 	 */
-	Object insert(Object id, IParamHolder<Object> newId, ILinkedMap<IFieldMetaData, Object> puis);
+	Object insert(Object id, ILinkedMap<IFieldMetaData, Object> puis);
 
 	/**
 	 * Updates a persisted object in storage.
@@ -55,15 +51,6 @@ public interface ITable
 	 * Truncates this table.
 	 */
 	void deleteAll();
-
-	/**
-	 * Acquires a list of new and unique IDs for this table.
-	 * 
-	 * @param count
-	 *            Number of IDs to fetch.
-	 * @return List of new IDs.
-	 */
-	IList<Object> acquireIds(int count);
 
 	/**
 	 * Selects ID and version of all entities in table.

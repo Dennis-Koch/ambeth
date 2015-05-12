@@ -3,7 +3,11 @@ package de.osthus.ambeth.threading;
 import static org.junit.Assert.fail;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Exchanger;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -14,6 +18,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 
 public class FastThreadPoolTest
 {
@@ -54,6 +60,65 @@ public class FastThreadPoolTest
 		Assert.assertEquals("Timeout", 50000, newFtp.getTimeout());
 
 		newFtp.shutdown();
+	}
+
+	@Test
+	public void throughput()
+	{
+		FastThreadPool newFtp = new FastThreadPool(1, 1, 60000);
+		newFtp.setVariableThreads(false);
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+		long warmup = 10000;
+		queue(newFtp, warmup);
+		queue(executorService, warmup);
+
+		long duration = 30000;
+
+		long jdkThroughput = queue(executorService, duration);
+		long ambethThroughput = queue(newFtp, duration);
+
+		System.out.println("AMBETH: " + (long) (1000 * ambethThroughput / (double) duration) + ", JDK: " + (long) (1000 * jdkThroughput / (double) duration)
+				+ " (calls per second)");
+		Assert.assertTrue(ambethThroughput > jdkThroughput);
+		executorService.shutdownNow();
+		newFtp.shutdown();
+	}
+
+	protected long queue(Executor executor, long time)
+	{
+		try
+		{
+			long till = System.currentTimeMillis() + time;
+			long iterationCount = 0;
+			while (System.currentTimeMillis() < till)
+			{
+
+				final Exchanger<Object> ex = new Exchanger<Object>();
+				executor.execute(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						try
+						{
+							ex.exchange(this);
+						}
+						catch (InterruptedException e)
+						{
+							throw RuntimeExceptionUtil.mask(e);
+						}
+					}
+				});
+				ex.exchange(null);
+				iterationCount++;
+			}
+			return iterationCount;
+		}
+		catch (InterruptedException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
 	}
 
 	@Ignore

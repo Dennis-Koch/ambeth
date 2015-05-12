@@ -106,7 +106,7 @@ namespace De.Osthus.Ambeth.Ioc
 
 		    beanContextFactory.RegisterBean<XmlConfigUtil>().Autowireable<IXmlConfigUtil>();
 
-            beanContextFactory.RegisterBean<RelationProvider>().Autowireable<IRelationProvider>();
+            beanContextFactory.RegisterBean<RelationProvider>().Autowireable(typeof(IRelationProvider), typeof(INoEntityTypeExtendable));
 
             beanContextFactory.RegisterBean<MemberTypeProvider>().Autowireable<IMemberTypeProvider>().Autowireable<IIntermediateMemberTypeProvider>();
 		    beanContextFactory.RegisterBean<EmbeddedMemberMixin>().Autowireable<EmbeddedMemberMixin>();

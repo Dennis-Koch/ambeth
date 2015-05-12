@@ -40,6 +40,19 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable
 	}
 
 	@Override
+	public IDataSetupWithAuthorization resolveDataSetupWithAuthorization()
+	{
+		for (IDatasetBuilder datasetBuilder : datasetBuilderContainer.getExtensions())
+		{
+			if (datasetBuilder instanceof IDataSetupWithAuthorization)
+			{
+				return (IDataSetupWithAuthorization) datasetBuilder;
+			}
+		}
+		return null;
+	}
+
+	@Override
 	public Collection<Object> executeDatasetBuilders()
 	{
 		IdentityHashSet<Object> initialDataset = new IdentityHashSet<Object>();

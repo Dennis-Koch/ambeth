@@ -10,6 +10,8 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.persistence.IConnectionDialect;
+import de.osthus.ambeth.persistence.IExtendedConnectionDialect;
 import de.osthus.ambeth.stream.binary.IBinaryInputSource;
 import de.osthus.ambeth.stream.binary.IBinaryInputStream;
 import de.osthus.ambeth.stream.chars.ICharacterInputSource;
@@ -26,7 +28,10 @@ public class LobStreamConverter implements IDedicatedConverter
 	protected Connection connection;
 
 	@Autowired
-	protected ILobInputSourceController lobInputSourceController;
+	protected IConnectionDialect connectionDialect;
+
+	@Autowired
+	protected IExtendedConnectionDialect extendedConnectionDialect;
 
 	@Override
 	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value, Object additionalInformation)
@@ -35,15 +40,15 @@ public class LobStreamConverter implements IDedicatedConverter
 		{
 			if (Blob.class.isAssignableFrom(sourceType))
 			{
-				return new BlobInputSource(lobInputSourceController);
+				return extendedConnectionDialect.createBinaryInputSource((Blob) value);
 			}
 			else if (Clob.class.isAssignableFrom(sourceType))
 			{
-				return new ClobInputSource(lobInputSourceController);
+				return extendedConnectionDialect.createCharacterInputSource((Clob) value);
 			}
 			else if (IBinaryInputSource.class.isAssignableFrom(sourceType))
 			{
-				Blob blob = connection.createBlob();
+				Blob blob = connectionDialect.createBlob(connection);
 				OutputStream os = blob.setBinaryStream(1);
 				try
 				{
@@ -69,7 +74,7 @@ public class LobStreamConverter implements IDedicatedConverter
 			}
 			else if (ICharacterInputSource.class.isAssignableFrom(sourceType))
 			{
-				Clob clob = connection.createClob();
+				Clob clob = connectionDialect.createClob(connection);
 				Writer os = clob.setCharacterStream(1);
 				try
 				{
