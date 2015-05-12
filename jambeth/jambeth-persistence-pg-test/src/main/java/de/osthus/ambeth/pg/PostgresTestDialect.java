@@ -78,6 +78,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect implement
 		}
 		if (!"28P01".equals(((SQLException) reason).getSQLState()) // INVALID PASSWORD, FATAL: password authentication failed for user "xxx"
 				&& !"3D000".equals(((SQLException) reason).getSQLState()) // FATAL: database "xxx" does not exist
+				&& !"28000".equals(((SQLException) reason).getSQLState()) // INVALID AUTHORIZATION SPECIFICATION undefined role tried to access the server
 		)
 		{
 			return false;
