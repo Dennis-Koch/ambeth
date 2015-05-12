@@ -104,31 +104,34 @@ To work with the container from outside the container the instance of \type{ISer
 To stop the \AMBETH{} container the method \type{dispose()} of the service context instance is called. This shuts down all child contexts and all contained service beans.
 
 
-\begin{lstlisting}[style=Java,caption={Start, use and stop an Ambeth Bean Container}]
+\begin{lstlisting}[style=Java,caption={Hoe to start, use and stop an \AMBETH{} Bean Container}]
 IServiceContext beanContext = BeanContextFactory.createBootstrap(HelloWorldModule.class);
-HelloWorldService service = (HelloWorldService) beanContext.getService("helloWorldService");
-service.speak();
-beanContext.dispose();
+try {
+	HelloWorldService service = (HelloWorldService) beanContext.getService("helloWorldService");
+	service.speak();
+} finally {
+	beanContext.dispose();
+}
 \end{lstlisting}
-At first a container is created. The definition of the container content is made in the given module. When the container is created it is asked for a bean named "helloWorldService". The bean is used to call the method "speak". The last step is stopping the container by calling the method "dispose".
+At first a container is created. The definition of the container content is made in the given module. When the container is created it is asked for a bean named ``helloWorldService''. The bean is used to call the method \type{speak()}. The last step is stopping the container by calling the method \type{dispose()}.
 
 \subsubsection{IoC Modules}
 \TODO
 \subsubsection{IoC Bean}
-A bean is an object which is managed by the container during its whole lifecycle. It may be an entity, but also a service and is implemented as POJO. Regularly beans are singletons but this is not mandatory.
+A bean is an object who's life cycle is managed by the container. It is a service or util class, never an entity. Regularly beans are singletons but this is not mandatory.
 
-\subsubsection{Bean Lifecycle}
+\subsubsection{Bean Life Cycle}
 
-The lifecycle consists of the three main phases Init, Lifespan and Destroy, each tailored into smaller sub phases and fully controlled by the Ambeth Container. All accesses have to done via the container.
+The life cycle of an IoC bean consists of the three main phases - Init, Lifespan and Destroy. Each divided into smaller sub phases and fully controlled by the \AMBETH{} IoC container. Acquiring such a bean has to be done via the container.
 
-Starting with the "constructor()" phase all objects are intantiated. In the Init phase alle (public) properties and dependencies are injected, followed by calling the "afterPropertiesSet" method (if available) of each bean as soon as all injections have been mave for this bean.
-When all injections are done and the "afterPropertiesSet" methods are called the Lifespan phase begins. As the first step of this phase the container calls the "afterStarted" Method of all beans implementing the "IStartingBean" interface.
-At the end of the Lifespan phase the Destroy phase begins by calling the "destroy" method of all beans implementing the "IDisposableBean" interface. Having done this the container stops itself and all objects, including the container itself, and its resources can be freed by the garbage collector.
+Starting with the \textit{Constructor} phase all objects are instantiated. In the Init phase all properties and service dependencies are injected, followed by (if available) calling the \type{afterPropertiesSet()} method of each bean as soon as all injections have been made for this bean.
+When all injections are done and the \type{afterPropertiesSet()} methods have been called the Lifespan phase begins. As the first step of this phase the container calls the \type{afterStarted()} Method of all beans implementing the \type{IStartingBean} interface.
+At the end of the Lifespan phase the Destroy phase begins by calling the \type{destroy()} method of all beans implementing the \type{IDisposableBean} interface. Having done this the container stops itself and all objects, including the container itself, and its resources can be freed by the garbage collector.
 
 \def\showimgref{img/bean-lifecycle.png}
 \showimgfull{Bean Lifecycle}
 
-The Ambeth IoC container defines interfaces that may be implemented by beans that need to be notified about state change of their lifecycle. These interfaces are:
+The \AMBETH{} IoC project defines interfaces that may be implemented by beans that need to be notified about state change of their life cycle. These interfaces are:
 
 \begin{itemize}
 	\item \prettyref{feature:InitializingBean} after properties are set
@@ -138,12 +141,12 @@ The Ambeth IoC container defines interfaces that may be implemented by beans tha
 
 \subsubsection{Customize IoC Beans}
 
-There some more ways to customize beans beyond their lifecycle:
+There some more ways to customize bean creation outside their normal life cycle hooks:
 
 \begin{itemize}
-	\item \prettyref{feature:FactoryBean} create a custom made bean
-	\item \prettyref{feature:BeanPreProcessor} hook on the creation before injection
-	\item \prettyref{feature:BeanPostProcessor} hook on a bean after lifecycle startup of that bean
+	\item \prettyref{feature:FactoryBean} instantiate beans manually
+	\item \prettyref{feature:BeanPreProcessor} process beans before they get their injections
+	\item \prettyref{feature:BeanPostProcessor} process beans after dependency injection (mostly for embedding in a proxy)
 \end{itemize}
 
 \subsection{Unit Testing}
