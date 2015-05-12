@@ -28,6 +28,8 @@ public class FieldMetaData implements IFieldMetaData, IInitializingBean
 
 	protected int indexOnTable = -1;
 
+	protected String originalTypeName;
+
 	@Override
 	public void afterPropertiesSet()
 	{
@@ -163,5 +165,16 @@ public class FieldMetaData implements IFieldMetaData, IInitializingBean
 	public void setIndexOnTable(int indexOnTable)
 	{
 		this.indexOnTable = indexOnTable;
+	}
+
+	@Override
+	public String getOriginalTypeName()
+	{
+		return originalTypeName;
+	}
+
+	public void setOriginalTypeName(String originalTypeName)
+	{
+		this.originalTypeName = originalTypeName;
 	}
 }

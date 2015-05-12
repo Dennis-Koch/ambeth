@@ -26,6 +26,8 @@ namespace De.Osthus.Ambeth.CompositeId
 
         protected bool technicalMember;
 
+		protected PrimitiveMember definedBy;
+
 		protected bool isTransient;
 
         public CompositeIdMember(Type declaringType, Type realType, String name, PrimitiveMember[] members, IMemberTypeProvider memberTypeProvider)
@@ -138,6 +140,19 @@ namespace De.Osthus.Ambeth.CompositeId
 		public void SetTransient(bool isTransient)
 		{
 			this.isTransient = isTransient;
+		}
+
+		public void SetDefinedBy(PrimitiveMember definedBy)
+		{
+			this.definedBy = definedBy;
+		}
+
+		public override PrimitiveMember DefinedBy
+		{
+			get
+			{
+				return definedBy;
+			}
 		}
 
         public Object GetDecompositedValue(Object compositeId, int compositeMemberIndex)

@@ -13,6 +13,7 @@ public final class XmlConstants
 	public static final String ATTR = "attributes";
 	public static final String ID = "id";
 	public static final String VERSION = "version";
+	public static final String DESCRIMINATOR = "descriminator";
 	public static final String CREATED_ON = "created-on";
 	public static final String CREATED_BY = "created-by";
 	public static final String UPDATED_ON = "updated-on";
@@ -62,6 +63,7 @@ public final class XmlConstants
 	public static final String TARGET_MEMBER = "target-member";
 	public static final String NO_VERSION = "no-version";
 	public static final String THIS = "this";
+	public static final String DEFINED_BY = "defined-by";
 
 	private XmlConstants()
 	{

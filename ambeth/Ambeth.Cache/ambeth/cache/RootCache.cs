@@ -42,6 +42,26 @@ namespace De.Osthus.Ambeth.Cache
 {
     public class RootCache : AbstractCache<RootCacheValue>, IRootCache, IOfflineListener, ICacheRetriever
     {
+		public class RelationObjRefs : HashMap<IObjRef, int>
+		{
+			private readonly RootCache parent;
+
+			public RelationObjRefs(RootCache parent)
+			{
+				this.parent = parent;
+			}
+
+			protected override bool IsResizeNeeded()
+			{
+				if (!base.IsResizeNeeded())
+				{
+					return false;
+				}
+				parent.DoRelationObjRefsRefresh();
+				return base.IsResizeNeeded();
+			}
+		}
+
         protected static readonly IDictionary<Type, Array> typeToEmptyArray = new Dictionary<Type, Array>();
 
         protected static readonly CacheDirective failEarlyCacheValueResultSet = CacheDirective.FailEarly | CacheDirective.CacheValueResult;
@@ -73,7 +93,7 @@ namespace De.Osthus.Ambeth.Cache
         [LogInstance]
         public ILogger Log { private get; set; }
 
-        protected readonly HashMap<IObjRef, int> relationOris = new HashMap<IObjRef, int>();
+        protected readonly HashMap<IObjRef, int> relationOris;
 
         protected readonly HashSet<IObjRef> currentPendingKeys = new HashSet<IObjRef>();
 
@@ -120,16 +140,20 @@ namespace De.Osthus.Ambeth.Cache
         [Property(Mandatory = false)]
         public override bool Privileged { get; set; }
 
+		[Property(CacheConfigurationConstants.CacheLruThreshold, DefaultValue = "0")]
+		public int LruThreshold { protected get; set; }
+
+		[Property(MergeConfigurationConstants.SecurityActive, DefaultValue = "false")]
+		public bool SecurityActive { protected get; set; }
+
+		[Property(ServiceConfigurationConstants.NetworkClientMode, DefaultValue = "false")]
+		public bool IsClientMode { protected get; set; }
+
+		protected long relationObjRefsRefreshThrottleOnGC = 60000; // throttle refresh to at most 1 time per minute
+
+		protected long lastRelationObjRefsRefreshTime;
+
         protected readonly Lock pendingKeysReadLock, pendingKeysWriteLock;
-
-        [Property(CacheConfigurationConstants.CacheLruThreshold, DefaultValue = "0")]
-        public int LruThreshold { protected get; set; }
-
-        [Property(MergeConfigurationConstants.SecurityActive, DefaultValue = "false")]
-        public bool SecurityActive { protected get; set; }
-
-        [Property(ServiceConfigurationConstants.NetworkClientMode, DefaultValue = "false")]
-        public bool IsClientMode { protected get; set; }
 
 	    public IRootCache Parent
 	    {
@@ -148,6 +172,7 @@ namespace De.Osthus.Ambeth.Cache
             ReadWriteLock pendingKeysRwLock = new ReadWriteLock();
             pendingKeysReadLock = pendingKeysRwLock.ReadLock;
             pendingKeysWriteLock = pendingKeysRwLock.WriteLock;
+			relationOris = new RelationObjRefs(this);
         }
 
         public override void Dispose()
@@ -314,7 +339,7 @@ namespace De.Osthus.Ambeth.Cache
                         readLock.Lock();
                         try
                         {
-                            return CreateResult(orisToGet, null, cacheDirective, targetCache, true);
+                            return CreateResult(orisToGet, null, cacheDirective, targetCache, true, null);
                         }
                         finally
                         {
@@ -376,25 +401,46 @@ namespace De.Osthus.Ambeth.Cache
         {
             doAnotherRetry = false;
             List<IObjRef> orisToLoad = new List<IObjRef>();
-            RootCacheValue[] rootCacheValuesToGet = new RootCacheValue[orisToGet.Count];
 
             Lock readLock = ReadLock;
             Lock writeLock = WriteLock;
-            int cacheVersionBeforeLongTimeAction = WaitForConcurrentReadFinish(orisToGet, rootCacheValuesToGet, orisToLoad);
 
-            if (orisToLoad.Count == 0)
-            {
-                // Everything found in the cache. We STILL hold the readlock so we can immediately create the result
-                // We already even checked the version. So we do not bother with versions anymore here
-                try
-                {
-                    return CreateResult(orisToGet, rootCacheValuesToGet, cacheDirective, targetCache, false);
-                }
-                finally
-                {
-                    readLock.Unlock();
-                }
-            }
+			int cacheVersionBeforeLongTimeAction;
+			if (BoundThread == null)
+			{
+				RootCacheValue[] rootCacheValuesToGet = new RootCacheValue[orisToGet.Count];
+				cacheVersionBeforeLongTimeAction = WaitForConcurrentReadFinish(orisToGet, rootCacheValuesToGet, orisToLoad);
+				if (orisToLoad.Count == 0)
+				{
+					// Everything found in the cache. We STILL hold the readlock so we can immediately create the result
+					// We already even checked the version. So we do not bother with versions anymore here
+					try
+					{
+						return CreateResult(orisToGet, rootCacheValuesToGet, cacheDirective, targetCache, false, null);
+					}
+					finally
+					{
+						readLock.Unlock();
+					}
+				}
+			}
+			else
+			{
+				readLock.Lock();
+			try
+			{
+				IList<Object> result = CreateResult(orisToGet, null, cacheDirective, targetCache, false, null);
+				if (orisToLoad.Count == 0)
+				{
+					return result;
+				}
+				cacheVersionBeforeLongTimeAction = changeVersion;
+			}
+			finally
+			{
+				readLock.Unlock();
+			}
+			}
             int cacheVersionAfterLongTimeAction;
             bool releaseWriteLock = false;
             try
@@ -454,7 +500,7 @@ namespace De.Osthus.Ambeth.Cache
                 readLock.Lock();
                 try
                 {
-                    return CreateResult(orisToGet, null, cacheDirective, targetCache, false);
+					return CreateResult(orisToGet, null, cacheDirective, targetCache, false, orisToLoad);
                 }
                 finally
                 {
@@ -1027,7 +1073,8 @@ namespace De.Osthus.Ambeth.Cache
                     || (targetCache == null && SecurityActivation != null && SecurityActivation.FilterActivated);
         }
 
-        protected IList<Object> CreateResult(IList<IObjRef> objRefsToGet, RootCacheValue[] rootCacheValuesToGet, CacheDirective cacheDirective, ICacheIntern targetCache, bool checkVersion)
+        protected IList<Object> CreateResult(IList<IObjRef> objRefsToGet, RootCacheValue[] rootCacheValuesToGet, CacheDirective cacheDirective, ICacheIntern targetCache, bool checkVersion,
+			IList<IObjRef> objRefsToLoad)
         {
             bool loadContainerResult = cacheDirective.HasFlag(CacheDirective.LoadContainerResult);
             bool cacheValueResult = cacheDirective.HasFlag(CacheDirective.CacheValueResult);
@@ -1105,6 +1152,10 @@ namespace De.Osthus.Ambeth.Cache
                         {
                             result.Add(null);
                         }
+						if (objRefsToLoad != null)
+						{
+							objRefsToLoad.Add(objRefToGet);
+						}
                         // But we already loaded before so we can do nothing now
                         continue;
                     }
@@ -1693,16 +1744,22 @@ namespace De.Osthus.Ambeth.Cache
         {
             base.CacheValueHasBeenUpdated(metaData, primitives, relations, cacheValueR);
 
-            UnregisterAllRelations(GetCacheValueFromReference(cacheValueR).GetRelations());
+			RelationMember[] relationMembers = metaData.RelationMembers;
+			RootCacheValue cacheValue = GetCacheValueFromReference(cacheValueR);
+			for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
+			{
+				UnregisterRelations(cacheValue.GetRelation(relationIndex));
+			}
             RegisterAllRelations(relations);
         }
 
-        protected override void CacheValueHasBeenRemoved(Type entityType, sbyte idIndex, Object id, RootCacheValue cacheValue)
+		protected override void CacheValueHasBeenRemoved(IEntityMetaData metaData, sbyte idIndex, Object id, RootCacheValue cacheValue)
         {
-            base.CacheValueHasBeenRemoved(entityType, idIndex, id, cacheValue);
-
-            UnregisterAllRelations(cacheValue.GetRelations());
-
+			RelationMember[] relationMembers = metaData.RelationMembers;
+			for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
+			{
+				UnregisterRelations(cacheValue.GetRelation(relationIndex));
+			}
             if (this.LruThreshold == 0)
             {
                 // LRU handling disabled
@@ -1719,6 +1776,7 @@ namespace De.Osthus.Ambeth.Cache
             {
                 lruLock.Unlock();
             }
+			base.CacheValueHasBeenRemoved(metaData, idIndex, id, cacheValue);
         }
 
 	    public override void RemovePriorVersions(IList<IObjRef> oris)
@@ -2000,6 +2058,16 @@ namespace De.Osthus.Ambeth.Cache
             }
         }
 
+		protected override int DoCleanUpIntern()
+		{
+			int cleanupCount = base.DoCleanUpIntern();
+			if (cleanupCount > 0 && DateTimeUtil.CurrentTimeMillis() - lastRelationObjRefsRefreshTime >= relationObjRefsRefreshThrottleOnGC)
+			{
+				DoRelationObjRefsRefresh();
+			}
+			return cleanupCount;
+		}
+
         protected override void PutInternObjRelation(RootCacheValue cacheValue, IEntityMetaData metaData, IObjRelation objRelation, IObjRef[] relationsOfMember)
         {
             int relationIndex = metaData.GetIndexByRelationName(objRelation.MemberName);
@@ -2060,5 +2128,43 @@ namespace De.Osthus.Ambeth.Cache
         {
             throw new NotSupportedException();
         }
+
+		protected void DoRelationObjRefsRefresh()
+		{
+			lastRelationObjRefsRefreshTime = DateTimeUtil.CurrentTimeMillis();
+			if (!WeakEntries)
+			{
+				return;
+			}
+			int zero = 0;
+			foreach (Entry<IObjRef, int> entry in relationOris)
+			{
+				entry.Value = zero;
+			}
+			IdentityHashSet<RootCacheValue> alreadyHandledSet = IdentityHashSet<RootCacheValue>.Create(keyToCacheValueDict.Count);
+			GetContent(delegate(Type entityType, sbyte idIndex, Object id, Object value)
+				{
+					RootCacheValue cacheValue = (RootCacheValue) value;
+					if (!alreadyHandledSet.Add(cacheValue))
+					{
+						return;
+					}
+					IEntityMetaData metaData = cacheValue.Get__EntityMetaData();
+					for (int relationIndex = metaData.RelationMembers.Length; relationIndex-- > 0;)
+					{
+						RegisterRelations(cacheValue.GetRelation(relationIndex));
+					}
+				});
+
+			Iterator<Entry<IObjRef, int>> iter = relationOris.Iterator();
+			while (iter.MoveNext())
+			{
+				Entry<IObjRef, int> entry = iter.Current;
+				if (entry.Value == zero)
+				{
+					iter.Remove();
+				}
+			}
+		}
     }
 }

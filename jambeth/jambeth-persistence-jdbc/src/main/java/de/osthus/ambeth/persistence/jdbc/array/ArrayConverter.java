@@ -8,7 +8,7 @@ import java.util.Set;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.jdbc.IConnectionExtension;
@@ -17,32 +17,17 @@ import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IDedicatedConverter;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class ArrayConverter implements IDedicatedConverter, IInitializingBean
+public class ArrayConverter implements IDedicatedConverter
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IConnectionExtension connectionExtension;
 
+	@Autowired
 	protected IConversionHelper conversionHelper;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(connectionExtension, "connectionExtension");
-		ParamChecker.assertNotNull(conversionHelper, "conversionHelper");
-	}
-
-	public void setConnectionExtension(IConnectionExtension connectionExtension)
-	{
-		this.connectionExtension = connectionExtension;
-	}
-
-	public void setConversionHelper(IConversionHelper conversionHelper)
-	{
-		this.conversionHelper = conversionHelper;
-	}
 
 	@Override
 	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value, Object additionalInformation)
@@ -108,7 +93,9 @@ public class ArrayConverter implements IDedicatedConverter, IInitializingBean
 			{
 				if (Array.class.isAssignableFrom(expectedType))
 				{
-					return connectionExtension.createJDBCArray(null, value);
+					ParamChecker.assertParamNotNull(additionalInformation, "additionalInformation");
+					Class<?> componentType = (Class<?>) additionalInformation;
+					return connectionExtension.createJDBCArray(componentType, value);
 				}
 				else if (Set.class.isAssignableFrom(expectedType))
 				{

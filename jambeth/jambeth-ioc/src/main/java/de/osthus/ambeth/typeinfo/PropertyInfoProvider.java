@@ -262,27 +262,51 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 			}
 
 			Class<?> mostConcreteType = null;
+			Class<?> mostConcreteGetterType = null;
+			Class<?> mostConcreteSetterType = null;
 			for (Entry<Class<?>, HashMap<String, Method>> typedEntries : typedHashMap)
 			{
+				Class<?> currentType = typedEntries.getKey();
 				HashMap<String, Method> accessorMap = typedEntries.getValue();
 				if (accessorMap.size() != 2)
 				{
+					if (accessorMap.get("get") != null)
+					{
+						if (mostConcreteGetterType == null || mostConcreteGetterType.isAssignableFrom(currentType))
+						{
+							mostConcreteGetterType = currentType;
+						}
+					}
+					else
+					{
+						if (mostConcreteSetterType == null || mostConcreteSetterType.isAssignableFrom(currentType))
+						{
+							mostConcreteSetterType = currentType;
+						}
+					}
 					continue;
 				}
 
-				Class<?> currentType = typedEntries.getKey();
 				if (mostConcreteType == null || mostConcreteType.isAssignableFrom(currentType))
 				{
 					mostConcreteType = currentType;
 				}
 			}
-			if (mostConcreteType == null)
+			if (mostConcreteType != null)
 			{
-				throw new IllegalStateException("No accessors with matching type found for " + entityType.getName() + "." + propName);
+				HashMap<String, Method> accessorMap = typedHashMap.get(mostConcreteType);
+				filteredMethods.put(propName, accessorMap);
 			}
-
-			HashMap<String, Method> accessorMap = typedHashMap.get(mostConcreteType);
-			filteredMethods.put(propName, accessorMap);
+			else if (mostConcreteGetterType != null)
+			{
+				HashMap<String, Method> accessorMap = typedHashMap.get(mostConcreteGetterType);
+				filteredMethods.put(propName, accessorMap);
+			}
+			else if (mostConcreteSetterType != null)
+			{
+				HashMap<String, Method> accessorMap = typedHashMap.get(mostConcreteSetterType);
+				filteredMethods.put(propName, accessorMap);
+			}
 		}
 
 		return filteredMethods;

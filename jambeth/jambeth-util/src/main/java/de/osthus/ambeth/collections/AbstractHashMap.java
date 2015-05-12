@@ -106,10 +106,15 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 		e = createEntry(hash, key, value, e);
 		table[bucketIndex] = e;
 		entryAdded(e);
-		if (size() >= threshold)
+		if (isResizeNeeded())
 		{
 			resize(2 * table.length);
 		}
+	}
+
+	protected boolean isResizeNeeded()
+	{
+		return size() >= threshold;
 	}
 
 	protected void entryAdded(final IMapEntry<K, V> entry)

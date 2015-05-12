@@ -215,13 +215,13 @@ public interface IDatabase extends IDisposable, IDatabaseDisposeHookExtendable
 	 * 
 	 * @return List of names of disabled constraint
 	 */
-	IList<String[]> disableConstraints();
+	IList<String> disableConstraints();
 
 	/**
 	 * Re-enable the constraints.
 	 * 
-	 * @param disabled
+	 * @param enableConstraintsSQL
 	 *            List of names of disabled constraint
 	 */
-	void enableConstraints(IList<String[]> disabled);
+	void enableConstraints(IList<String> enableConstraintsSQL);
 }

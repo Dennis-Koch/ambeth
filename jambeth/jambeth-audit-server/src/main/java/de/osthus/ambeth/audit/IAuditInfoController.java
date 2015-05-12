@@ -1,5 +1,7 @@
 package de.osthus.ambeth.audit;
 
+import de.osthus.ambeth.security.model.IUser;
+
 public interface IAuditInfoController
 {
 	void pushAuditReason(String auditReason);
@@ -15,4 +17,6 @@ public interface IAuditInfoController
 	String peekAuditContext();
 
 	void removeAuditInfo();
+
+	IAuditInfoRevert setAuthorizedUser(IUser user, char[] clearTextPassword);
 }

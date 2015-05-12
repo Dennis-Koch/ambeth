@@ -2,7 +2,7 @@ using System;
 
 namespace De.Osthus.Ambeth.Persistence
 {
-    public interface IVersionItem : IDisposable
+    public interface IVersionItem
     {
         Object GetId();
 

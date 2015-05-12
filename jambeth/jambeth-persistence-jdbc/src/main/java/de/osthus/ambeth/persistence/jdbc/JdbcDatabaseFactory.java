@@ -124,7 +124,22 @@ public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExt
 				if (firstInstance)
 				{
 					firstInstance = false;
-					((JDBCDatabaseMetaData) databaseMetaData).init(conn);
+
+					IConnectionHolder connectionHolder = this.connectionHolder;
+					Connection oldConnection = connectionHolder.getConnection();
+					if (oldConnection != null)
+					{
+						connectionHolder.setConnection(null);
+					}
+					try
+					{
+						connectionHolder.setConnection(conn);
+						((JDBCDatabaseMetaData) databaseMetaData).init(conn);
+					}
+					finally
+					{
+						connectionHolder.setConnection(oldConnection);
+					}
 				}
 			}
 			finally
@@ -178,10 +193,6 @@ public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExt
 			}
 			finally
 			{
-				if (oldConnection != null)
-				{
-					connectionHolder.setConnection(null);
-				}
 				connectionHolder.setConnection(oldConnection);
 			}
 			// Re-bind the LCI to the child context. This is to allow bean injection to subsequently created LogStatements from the child context

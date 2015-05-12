@@ -10,6 +10,7 @@ import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationCons
 import de.osthus.ambeth.testutil.connectors.H2Connector;
 import de.osthus.ambeth.testutil.connectors.MSSqlConnector;
 import de.osthus.ambeth.testutil.connectors.OracleConnector;
+import de.osthus.ambeth.testutil.connectors.PostgresConnector;
 
 public class DialectSelectorModule implements IInitializingModule
 {
@@ -30,6 +31,10 @@ public class DialectSelectorModule implements IInitializingModule
 			return;
 		}
 		else if (MSSqlConnector.handleProperties(props, databaseProtocol))
+		{
+			return;
+		}
+		else if (PostgresConnector.handleProperties(props, databaseProtocol))
 		{
 			return;
 		}
@@ -55,6 +60,10 @@ public class DialectSelectorModule implements IInitializingModule
 			return;
 		}
 		else if (MSSqlConnector.handleTest(beanContextFactory, databaseProtocol))
+		{
+			return;
+		}
+		else if (PostgresConnector.handleTest(beanContextFactory, databaseProtocol))
 		{
 			return;
 		}

@@ -1,5 +1,6 @@
 package de.osthus.ambeth.persistence.jdbc;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map.Entry;
 
@@ -25,6 +26,9 @@ public class JDBCDatabaseWrapper extends Database
 {
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected Connection connection;
 
 	@Autowired
 	protected IAlreadyLinkedCache alreadyLinkedCache;
@@ -115,6 +119,13 @@ public class JDBCDatabaseWrapper extends Database
 		}
 	}
 
+	@Override
+	public void destroy() throws Throwable
+	{
+		connection = null;
+		super.destroy();
+	}
+
 	protected <K, V> V getExistingValue(IdentityHashMap<K, V> map, K key)
 	{
 		if (key == null)
@@ -136,9 +147,9 @@ public class JDBCDatabaseWrapper extends Database
 		{
 			connectionDialect.commit(connection);
 		}
-		catch (Throwable e)
+		catch (SQLException e)
 		{
-			throw RuntimeExceptionUtil.mask(e);
+			throw connectionDialect.createPersistenceException(e, null);
 		}
 	}
 
@@ -150,9 +161,9 @@ public class JDBCDatabaseWrapper extends Database
 		{
 			connectionDialect.rollback(connection);
 		}
-		catch (Throwable e)
+		catch (SQLException e)
 		{
-			throw RuntimeExceptionUtil.mask(e);
+			throw connectionDialect.createPersistenceException(e, null);
 		}
 	}
 
@@ -200,13 +211,6 @@ public class JDBCDatabaseWrapper extends Database
 	}
 
 	@Override
-	public void dispose()
-	{
-		connection = null;
-		super.dispose();
-	}
-
-	@Override
 	public ISavepoint setSavepoint()
 	{
 		try
@@ -215,7 +219,7 @@ public class JDBCDatabaseWrapper extends Database
 		}
 		catch (SQLException e)
 		{
-			throw RuntimeExceptionUtil.mask(e);
+			throw connectionDialect.createPersistenceException(e, null);
 		}
 	}
 
@@ -241,18 +245,18 @@ public class JDBCDatabaseWrapper extends Database
 		}
 		catch (SQLException e)
 		{
-			throw RuntimeExceptionUtil.mask(e);
+			throw connectionDialect.createPersistenceException(e, null);
 		}
 	}
 
 	@Override
-	public IList<String[]> disableConstraints()
+	public IList<String> disableConstraints()
 	{
 		return connectionDialect.disableConstraints(connection);
 	}
 
 	@Override
-	public void enableConstraints(IList<String[]> disabled)
+	public void enableConstraints(IList<String> disabled)
 	{
 		connectionDialect.enableConstraints(connection, disabled);
 	}

@@ -1,6 +1,6 @@
 package de.osthus.ambeth.persistence.exception;
 
-public class NullConstraintException extends AbstractAmbethPersistenceException
+public class NullConstraintException extends ConstraintException
 {
 	private static final long serialVersionUID = 7448945580470173927L;
 

@@ -265,31 +265,31 @@ public class RootCacheTest extends AbstractInformationBusTest
 		List<IObjRef> orisToGet = new ArrayList<IObjRef>(new IObjRef[] { oriHelper.entityToObjRef(material1), oriHelper.entityToObjRef(material2),
 				new ObjRef(Material.class, 2, 1) });
 
-		assertEquals(0, fixture.createResult(orisToGet, null, CacheDirective.loadContainerResult(), null, true).size());
+		assertEquals(0, fixture.createResult(orisToGet, null, CacheDirective.loadContainerResult(), null, true, null).size());
 
 		fixture.put(material1);
 		fixture.put(material2);
 
-		assertNull(fixture.createResult(orisToGet, null, Collections.<CacheDirective> emptySet(), null, true));
-		IList<Object> actual = fixture.createResult(orisToGet, null, CacheDirective.loadContainerResult(), null, true);
+		assertNull(fixture.createResult(orisToGet, null, Collections.<CacheDirective> emptySet(), null, true, null));
+		IList<Object> actual = fixture.createResult(orisToGet, null, CacheDirective.loadContainerResult(), null, true, null);
 		assertNotNull(actual);
 		assertEquals(2, actual.size());
 		assertEquals("Wrong result type!", LoadContainer.class, actual.get(0).getClass());
 		assertEquals("Wrong result type!", LoadContainer.class, actual.get(1).getClass());
 
-		actual = fixture.createResult(orisToGet, null, EnumSet.of(CacheDirective.LoadContainerResult, CacheDirective.ReturnMisses), null, true);
+		actual = fixture.createResult(orisToGet, null, EnumSet.of(CacheDirective.LoadContainerResult, CacheDirective.ReturnMisses), null, true, null);
 		assertNotNull(actual);
 		assertEquals(3, actual.size());
 
 		actual = fixture.createResult(orisToGet, null, Collections.<CacheDirective> emptySet(),
-				(ICacheIntern) cacheFactory.create(CacheFactoryDirective.NoDCE, "test"), true);
+				(ICacheIntern) cacheFactory.create(CacheFactoryDirective.NoDCE, "test"), true, null);
 		assertNotNull(actual);
 		assertEquals(2, actual.size());
 		assertEquals("Wrong result type!", Material.class, proxyHelper.getRealType(actual.get(0).getClass()));
 		assertEquals("Wrong result type!", Material.class, proxyHelper.getRealType(actual.get(1).getClass()));
 
 		actual = fixture.createResult(orisToGet, null, CacheDirective.loadContainerResult(),
-				(ICacheIntern) cacheFactory.create(CacheFactoryDirective.NoDCE, "test"), true);
+				(ICacheIntern) cacheFactory.create(CacheFactoryDirective.NoDCE, "test"), true, null);
 		assertNotNull(actual);
 		assertEquals(2, actual.size());
 		assertEquals("Wrong result type!", LoadContainer.class, actual.get(0).getClass());

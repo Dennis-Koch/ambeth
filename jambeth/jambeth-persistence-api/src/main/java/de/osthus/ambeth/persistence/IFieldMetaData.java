@@ -62,6 +62,13 @@ public interface IFieldMetaData extends INamed
 	Class<?> getFieldSubType();
 
 	/**
+	 * Returns the proprietary type name given directly from the persistence provider (e.g. JDBC driver)
+	 * 
+	 * @return The proprietary type name given directly from the persistence provider (e.g. JDBC driver)
+	 */
+	String getOriginalTypeName();
+
+	/**
 	 * Getter for the type info of the member linked to this field.
 	 * 
 	 * @return Type info of the linked member.

@@ -8,8 +8,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.cache.ClearAllCachesEvent;
@@ -48,6 +46,7 @@ import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IDatabaseMetaData;
 import de.osthus.ambeth.persistence.IPermissionGroup;
+import de.osthus.ambeth.persistence.IPrimaryKeyProvider;
 import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.persistence.IVersionCursor;
 import de.osthus.ambeth.persistence.IVersionItem;
@@ -116,6 +115,9 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 
 	@Autowired
 	protected IPrefetchHelper prefetchHelper;
+
+	@Autowired
+	protected IPrimaryKeyProvider primaryKeyProvider;
 
 	@Autowired
 	protected IPrivilegeProvider privilegeProvider;
@@ -472,7 +474,17 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 										default:
 											throw RuntimeExceptionUtil.createEnumNotSupportedException(pgUpdateEntry.getUpdateType());
 									}
-									Object[] permissionGroupIds = createPermissionGroupIds(objRefs, permissionGroup);
+									ArrayList<IObjRef> permissionObjRefs = new ArrayList<IObjRef>(objRefs.size());
+									for (int a = objRefs.size(); a-- > 0;)
+									{
+										permissionObjRefs.add(new ObjRef(IPermissionGroup.class, ObjRef.PRIMARY_KEY_INDEX, null, null));
+									}
+									primaryKeyProvider.acquireIds(permissionGroup.getTable(), permissionObjRefs);
+									ArrayList<Object> permissionGroupIds = new ArrayList<Object>(permissionObjRefs.size());
+									for (int a = 0, size = permissionObjRefs.size(); a < size; a++)
+									{
+										permissionGroupIds.add(permissionObjRefs.get(a).getId());
+									}
 									updateEntityRows(objRefs, permissionGroupIds, permissionGroup, table);
 
 									pgUpdateEntry.setObjRefs(objRefs);
@@ -747,15 +759,15 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 	protected void insertPermissionGroupsForUsers(PgUpdateEntry pgUpdateEntry, IAuthorization[] authorizations, IList<IPrivilege>[] allPrivilegesOfAllUsers)
 			throws Throwable
 	{
-		Object[] permissionGroupIds = pgUpdateEntry.getPermissionGroupIds();
+		IList<Object> permissionGroupIds = pgUpdateEntry.getPermissionGroupIds();
 		int startIndexInAllObjRefs = pgUpdateEntry.getStartIndexInAllObjRefs();
 
 		PreparedStatement insertPermissionGroupPstm = buildInsertPermissionGroupStm(pgUpdateEntry.getPermissionGroup());
 		try
 		{
-			for (int b = permissionGroupIds.length; b-- > 0;)
+			for (int b = permissionGroupIds.size(); b-- > 0;)
 			{
-				Object permissionGroupId = permissionGroupIds[b];
+				Object permissionGroupId = permissionGroupIds.get(b);
 
 				insertPermissionGroupPstm.setObject(2, permissionGroupId);
 
@@ -790,36 +802,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		}
 	}
 
-	private volatile int id = 0;
-
-	private final Lock idLock = new ReentrantLock();
-
-	protected Object[] createPermissionGroupIds(IList<IObjRef> objRefs, IPermissionGroup permissionGroup)
-	{
-		Class<?> permissionGroupIdFieldType = permissionGroup.getPermissionGroupFieldOnTarget().getFieldType();
-
-		int id;
-		idLock.lock();
-		try
-		{
-			id = this.id;
-			this.id += objRefs.size();
-		}
-		finally
-		{
-			idLock.unlock();
-		}
-		IConversionHelper conversionHelper = this.conversionHelper;
-		Object[] permissionGroupIds = new Object[objRefs.size()];
-		for (int a = objRefs.size(); a-- > 0;)
-		{
-			Object persistentPermissionGroupId = conversionHelper.convertValueToType(permissionGroupIdFieldType, Integer.valueOf(++id));
-			permissionGroupIds[a] = persistentPermissionGroupId;
-		}
-		return permissionGroupIds;
-	}
-
-	protected void updateEntityRows(IList<IObjRef> objRefs, Object[] permissionGroupIds, IPermissionGroup permissionGroup, ITableMetaData table)
+	protected void updateEntityRows(IList<IObjRef> objRefs, IList<Object> permissionGroupIds, IPermissionGroup permissionGroup, ITableMetaData table)
 			throws Throwable
 	{
 		IConversionHelper conversionHelper = this.conversionHelper;
@@ -832,7 +815,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 				IObjRef objRef = objRefs.get(a);
 
 				Object persistentEntityId = conversionHelper.convertValueToType(idType, objRef.getId());
-				updateEntityRowPstm.setObject(1, permissionGroupIds[a]);
+				updateEntityRowPstm.setObject(1, permissionGroupIds.get(a));
 				updateEntityRowPstm.setObject(2, persistentEntityId);
 
 				updateEntityRowPstm.addBatch();

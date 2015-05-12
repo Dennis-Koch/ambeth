@@ -1,5 +1,7 @@
 package de.osthus.ambeth.security;
 
+import de.osthus.ambeth.security.model.IPBEConfiguration;
+
 public interface IPBEncryptor
 {
 	byte[] doPaddingForPassword(IPBEConfiguration pbeConfiguration, char[] clearTextPassword);

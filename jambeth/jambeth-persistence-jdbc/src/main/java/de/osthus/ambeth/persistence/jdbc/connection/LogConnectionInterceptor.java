@@ -12,6 +12,7 @@ import javax.sql.PooledConnection;
 
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
+import de.osthus.ambeth.collections.IdentityWeakSmartCopyMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -84,9 +85,12 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor implemen
 
 	protected Class<?>[] stmInterfaces;
 
+	protected final IdentityWeakSmartCopyMap<Object, Object> unwrappedObjectToProxyMap = new IdentityWeakSmartCopyMap<Object, Object>();
+
 	public LogConnectionInterceptor(IConnectionKeyHandle connectionKeyHandle)
 	{
 		this.connectionKeyHandle = connectionKeyHandle;
+		unwrappedObjectToProxyMap.setAutoCleanupNullValue(true);
 	}
 
 	public void setConnection(Connection connection)
@@ -193,10 +197,16 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor implemen
 			}
 			else if (unwrapMethod.equals(method))
 			{
-				LogInterceptor logInterceptor = beanContext.registerBean(LogInterceptor.class)//
-						.propertyValue("Target", result)//
-						.finish();
-				result = proxyFactory.createProxy(cgLibUtil.getAllInterfaces(result), logInterceptor);
+				Object proxyOfResult = unwrappedObjectToProxyMap.get(result);
+				if (proxyOfResult == null)
+				{
+					LogInterceptor logInterceptor = beanContext.registerBean(LogInterceptor.class)//
+							.propertyValue("Target", result)//
+							.finish();
+					proxyOfResult = proxyFactory.createProxy(cgLibUtil.getAllInterfaces(result), logInterceptor);
+					unwrappedObjectToProxyMap.put(result, proxyOfResult);
+				}
+				result = proxyOfResult;
 			}
 			return result;
 		}

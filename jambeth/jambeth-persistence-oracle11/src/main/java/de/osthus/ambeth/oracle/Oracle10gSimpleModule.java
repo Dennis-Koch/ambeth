@@ -11,9 +11,11 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IConnectionDialect;
+import de.osthus.ambeth.persistence.IExtendedConnectionDialect;
+import de.osthus.ambeth.persistence.IPrimaryKeyProvider;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
-import de.osthus.ambeth.sql.IPrimaryKeyProvider;
+import de.osthus.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
 import de.osthus.ambeth.util.IDedicatedConverterExtendable;
 
 public class Oracle10gSimpleModule implements IInitializingModule
@@ -36,13 +38,15 @@ public class Oracle10gSimpleModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
+		beanContextFactory.registerBean(OracleConnectionUrlProvider.class).autowireable(IDatabaseConnectionUrlProvider.class);
+		beanContextFactory.registerBean(Oracle10gExtendedDialect.class).autowireable(IExtendedConnectionDialect.class);
 		if (!externalTransactionManager && !databaseBehaviourStrict)
 		{
-			beanContextFactory.registerBean("connectionDialect", Oracle10gThinDialect.class).autowireable(IConnectionDialect.class);
+			beanContextFactory.registerBean(Oracle10gThinDialect.class).autowireable(IConnectionDialect.class);
 		}
 		else
 		{
-			beanContextFactory.registerBean("connectionDialect", Oracle10gDialect.class).autowireable(IConnectionDialect.class);
+			beanContextFactory.registerBean(Oracle10gDialect.class).autowireable(IConnectionDialect.class);
 			if (externalTransactionManager && integratedConnectionPool && log.isWarnEnabled())
 			{
 				if (!databasePassivate)

@@ -7,6 +7,8 @@ namespace De.Osthus.Ambeth.Orm
     {
         private readonly String name;
 
+		public String DefinedBy { get; set; }
+
         public bool AlternateId { get; set; }
 
         public bool Ignore { get; set; }

@@ -14,6 +14,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.format.ISO8601DateFormat;
 import de.osthus.ambeth.format.XmlHint;
@@ -25,6 +26,40 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 	protected static final boolean java7recognized = "1.7".equals(System.getProperty("java.specification.version"));
 
 	protected final Method enumValueOf;
+
+	protected static final HashMap<Character, Class<?>> primitiveCharToTypeMap = new HashMap<Character, Class<?>>(0.5f);
+
+	protected static final HashMap<String, Class<?>> primitiveNameToTypeMap = new HashMap<String, Class<?>>(0.5f);
+
+	static
+	{
+		primitiveCharToTypeMap.put(Character.valueOf('Z'), Boolean.TYPE);
+		primitiveCharToTypeMap.put(Character.valueOf('B'), Byte.TYPE);
+		primitiveCharToTypeMap.put(Character.valueOf('C'), Character.TYPE);
+		primitiveCharToTypeMap.put(Character.valueOf('S'), Short.TYPE);
+		primitiveCharToTypeMap.put(Character.valueOf('I'), Integer.TYPE);
+		primitiveCharToTypeMap.put(Character.valueOf('F'), Float.TYPE);
+		primitiveCharToTypeMap.put(Character.valueOf('J'), Long.TYPE);
+		primitiveCharToTypeMap.put(Character.valueOf('D'), Double.TYPE);
+
+		primitiveNameToTypeMap.put("boolean", Boolean.TYPE);
+		primitiveNameToTypeMap.put("byte", Byte.TYPE);
+		primitiveNameToTypeMap.put("char", Character.TYPE);
+		primitiveNameToTypeMap.put("short", Short.TYPE);
+		primitiveNameToTypeMap.put("int", Integer.TYPE);
+		primitiveNameToTypeMap.put("float", Float.TYPE);
+		primitiveNameToTypeMap.put("long", Long.TYPE);
+		primitiveNameToTypeMap.put("double", Double.TYPE);
+	}
+
+	public static final DateFormat createISO8601DateFormat()
+	{
+		if (java7recognized)
+		{
+			return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
+		}
+		return new ISO8601DateFormat();
+	}
 
 	protected final ThreadLocal<DateFormat> iso8601_DateFormatTL = new SensitiveThreadLocal<DateFormat>();
 
@@ -43,7 +78,7 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 	@Override
 	public void cleanupThreadLocal()
 	{
-		iso8601_DateFormatTL.remove();
+		iso8601_DateFormatTL.set(null);
 	}
 
 	protected DateFormat getISO_8601_DateFormat()
@@ -51,14 +86,7 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 		DateFormat dateFormat = iso8601_DateFormatTL.get();
 		if (dateFormat == null)
 		{
-			if (java7recognized)
-			{
-				dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
-			}
-			else
-			{
-				dateFormat = new ISO8601DateFormat();
-			}
+			dateFormat = createISO8601DateFormat();
 			iso8601_DateFormatTL.set(dateFormat);
 		}
 		return dateFormat;
@@ -154,7 +182,7 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 				return BigDecimal.valueOf((Boolean) value ? 1 : 0);
 			}
 		}
-		else if (Double.class.equals(expectedType) || Double.TYPE.equals(expectedType))
+		else if (Double.class.equals(expectedType) || Double.TYPE.equals(expectedType) || Number.class.equals(expectedType))
 		{
 			if (Double.class.equals(type))
 			{
@@ -359,9 +387,22 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 				}
 			}
 		}
-		else if (GregorianCalendar.class.equals(expectedType))
+		else if (Calendar.class.equals(expectedType) || GregorianCalendar.class.equals(expectedType))
 		{
-			if (Date.class.isAssignableFrom(type))
+			if (String.class.isAssignableFrom(type))
+			{
+				try
+				{
+					GregorianCalendar calendar = new GregorianCalendar();
+					calendar.setTime(getISO_8601_DateFormat().parse((String) value));
+					return calendar;
+				}
+				catch (ParseException e)
+				{
+					throw RuntimeExceptionUtil.mask(e);
+				}
+			}
+			else if (Date.class.isAssignableFrom(type))
 			{
 				GregorianCalendar c = new GregorianCalendar();
 				c.setTime((Date) value);
@@ -436,9 +477,30 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 		{
 			if (String.class.isAssignableFrom(type))
 			{
+				String sValue = (String) value;
+				int lengthFromEnd = 0;
+				for (int a = sValue.length(); a-- > 0;)
+				{
+					char oneChar = sValue.charAt(a);
+					if (oneChar == '[')
+					{
+						break;
+					}
+					lengthFromEnd++;
+					if (lengthFromEnd > 1)
+					{
+						// not a primitive array
+						lengthFromEnd = -1;
+						break;
+					}
+				}
 				try
 				{
-					return Thread.currentThread().getContextClassLoader().loadClass((String) value);
+					if (primitiveNameToTypeMap.containsKey(sValue))
+					{
+						return primitiveNameToTypeMap.get(sValue);
+					}
+					return Class.forName(sValue, true, Thread.currentThread().getContextClassLoader());
 				}
 				catch (Throwable e)
 				{

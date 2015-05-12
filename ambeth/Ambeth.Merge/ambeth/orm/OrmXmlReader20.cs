@@ -224,6 +224,12 @@ namespace De.Osthus.Ambeth.Orm
                     String sequenceName = XmlConfigUtil.GetRequiredAttribute(entityDefs.Get(XmlConstants.SEQ.LocalName)[0], XmlConstants.NAME);
                     entityConfig.SequenceName = sequenceName;
                 }
+				if (attributeMap.ContainsKey(XmlConstants.DESCRIMINATOR.LocalName))
+				{
+					String descriminatorName = XmlConfigUtil.GetRequiredAttribute(entityDefs.Get(XmlConstants.DESCRIMINATOR.LocalName)[0], XmlConstants.NAME);
+					entityConfig.DescriminatorName = descriminatorName;
+				}
+
                 if (entityDefs.ContainsKey(XmlConstants.ATTR.LocalName))
                 {
                     attributeMap = XmlConfigUtil.ToElementMap(entityDefs.Get(XmlConstants.ATTR.LocalName)[0].Elements());
@@ -287,7 +293,6 @@ namespace De.Osthus.Ambeth.Orm
                     {
                         throw new ArgumentException("Version member name has to be set on external entities");
                     }
-
                     if (attributeMap.ContainsKey(XmlConstants.CREATED_BY.LocalName))
                     {
                         MemberConfig createdByMemberConfig = ReadUniqueMemberConfig(XmlConstants.CREATED_BY.LocalName, attributeMap);
@@ -374,6 +379,11 @@ namespace De.Osthus.Ambeth.Orm
 			if (transientValue.Length != 0)
 			{
 				memberConfig.Transient = Boolean.Parse(transientValue);
+			}
+			String definedByValue = XmlConfigUtil.GetAttribute(memberElement, XmlConstants.DEFINED_BY);
+			if (definedByValue.Length != 0)
+			{
+				memberConfig.DefinedBy = definedByValue;
 			}
             return memberConfig;
         }

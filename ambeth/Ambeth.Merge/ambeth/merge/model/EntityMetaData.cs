@@ -337,7 +337,15 @@ namespace De.Osthus.Ambeth.Merge.Model
             primMemberNameToIndexDict.Clear();
             if (IdMember != null)
             {
-                nameToMemberDict.Add(IdMember.Name, IdMember);
+                PrimitiveMember idMember = IdMember;
+				nameToMemberDict.Add(idMember.Name, idMember);
+				if (idMember is CompositeIdMember)
+				{
+					foreach (PrimitiveMember member in ((CompositeIdMember) idMember).Members)
+					{
+						nameToMemberDict.Add(member.Name, member);
+					}
+				}
             }
             if (VersionMember != null)
             {

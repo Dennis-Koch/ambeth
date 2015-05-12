@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>de.osthus</groupId>
 		<artifactId>osthus-pom</artifactId>
-		<version>0.0.34</version>
+		<version>0.0.35</version>
 	</parent>
 
 	<properties>
@@ -18,6 +18,7 @@
 	</properties>
 
 	<modules>
+		<module>jambeth-audit</module>
 		<module>jambeth-audit-server</module>
 		<module>jambeth-bytecode</module>
 		<module>jambeth-cache</module>
@@ -25,6 +26,8 @@
 		<module>jambeth-cache-datachange</module>
 		<module>jambeth-cache-server</module>
 		<module>jambeth-cache-stream</module>
+		<module>jambeth-chemspider</module>
+		<module>jambeth-chemspider-service</module>
 		<module>jambeth-datachange</module>
 		<module>jambeth-datachange-persistence</module>
 		<module>jambeth-event</module>
@@ -48,6 +51,7 @@
 		<module>jambeth-persistence-jdbc</module>
 		<module>jambeth-persistence-mssql</module>
 		<module>jambeth-persistence-oracle11</module>
+		<module>jambeth-persistence-pg</module>
 		<module>jambeth-platform</module>
 		<module>jambeth-query</module>
 		<module>jambeth-query-inmemory</module>
@@ -133,6 +137,12 @@
 			<!-- jAmbeth dependencies -->
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-audit</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-audit-server</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -213,6 +223,24 @@
 				<artifactId>jambeth-cache-stream-test</artifactId>
 				<version>${project.version}</version>
 				<scope>test</scope>
+			</dependency>
+			
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-chemspider</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-chemspider-test</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
+			
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-chemspider-service</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 
 			<dependency>
@@ -481,6 +509,18 @@
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-persistence-oracle11-test</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
+			
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-persistence-pg</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-persistence-pg-test</artifactId>
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>

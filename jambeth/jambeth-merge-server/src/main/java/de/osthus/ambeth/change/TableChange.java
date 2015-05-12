@@ -25,7 +25,6 @@ import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.service.IChangeAggregator;
 import de.osthus.ambeth.util.IConversionHelper;
-import de.osthus.ambeth.util.ParamHolder;
 
 /**
  * Change collector for entity tables
@@ -44,7 +43,7 @@ public class TableChange extends AbstractTableChange
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Autowired
-	protected IObjRefHelper oriHelper;
+	protected IObjRefHelper objRefHelper;
 
 	@Property(name = MergeConfigurationConstants.DeleteDataChangesByAlternateIds, defaultValue = "false")
 	protected boolean deleteDataChangesByAlternateIds;
@@ -95,7 +94,16 @@ public class TableChange extends AbstractTableChange
 				IObjRef ref = command.getRefsToLink().get(0);
 				if (!foreignField.isAlternateId() || foreignField.getIdIndex() == ref.getIdNameIndex())
 				{
-					foreignKey = ref.getId();
+					if (ref instanceof IDirectObjRef)
+					{
+						IDirectObjRef directRef = (IDirectObjRef) ref;
+						Object container = directRef.getDirect();
+						foreignKey = getPrimaryIdValue(container);
+					}
+					if (foreignKey == null)
+					{
+						foreignKey = ref.getId();
+					}
 				}
 				else if (ref instanceof IDirectObjRef)
 				{
@@ -132,7 +140,12 @@ public class TableChange extends AbstractTableChange
 				}
 				else
 				{
-					foreignKey = directRef.getId();
+					Object container = directRef.getDirect();
+					foreignKey = getPrimaryIdValue(container);
+					if (foreignKey == null)
+					{
+						foreignKey = directRef.getId();
+					}
 				}
 			}
 			else if (neededIdIndex == reference.getIdNameIndex())
@@ -198,8 +211,7 @@ public class TableChange extends AbstractTableChange
 				{
 					ICreateCommand command = (ICreateCommand) changeCommand;
 
-					ParamHolder<Object> newId = new ParamHolder<Object>();
-					Object version = table.insert(reference.getId(), newId, command.getItems());
+					Object version = table.insert(reference.getId(), command.getItems());
 					if (reference instanceof IDirectObjRef)
 					{
 						((IDirectObjRef) reference).setDirect(null);
@@ -213,7 +225,6 @@ public class TableChange extends AbstractTableChange
 					{
 						reference.setVersion(null);
 					}
-					reference.setId(newId.getValue());
 					changeAggregator.dataChangeInsert(reference);
 				}
 				else if (changeCommand instanceof IUpdateCommand)
@@ -250,7 +261,7 @@ public class TableChange extends AbstractTableChange
 					IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objects.get(0).getClass());
 					for (int i = objects.size(); i-- > 0;)
 					{
-						IList<IObjRef> allOris = oriHelper.entityToAllObjRefs(objects.get(i), metaData);
+						IList<IObjRef> allOris = objRefHelper.entityToAllObjRefs(objects.get(i), metaData);
 						for (int j = allOris.size(); j-- > 0;)
 						{
 							changeAggregator.dataChangeDelete(allOris.get(j));
@@ -293,5 +304,11 @@ public class TableChange extends AbstractTableChange
 			value = metaData.getAlternateIdMembers()[idIndex].getValue(container);
 		}
 		return value;
+	}
+
+	protected Object getPrimaryIdValue(Object container)
+	{
+		IEntityMetaData metaData = ((IEntityMetaDataHolder) container).get__EntityMetaData();
+		return metaData.getIdMember().getValue(container);
 	}
 }

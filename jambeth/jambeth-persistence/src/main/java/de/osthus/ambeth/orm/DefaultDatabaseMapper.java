@@ -65,7 +65,7 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	 *            Database to map to.
 	 */
 	@Override
-	public void mapFields(Connection connection, IDatabaseMetaData database)
+	public void mapFields(Connection connection, String[] schemaNames, IDatabaseMetaData database)
 	{
 		// Intended blank
 	}
@@ -77,7 +77,7 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	 *            Database to map to.
 	 */
 	@Override
-	public void mapLinks(Connection connection, IDatabaseMetaData database)
+	public void mapLinks(Connection connection, String[] schemaNames, IDatabaseMetaData database)
 	{
 		// Intended blank
 	}
@@ -105,7 +105,16 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	 */
 	protected void mapIdAndVersion(ITableMetaData table, String idName, String versionName)
 	{
-		table.mapField(table.getIdField().getName(), idName);
+		IFieldMetaData[] idFields = table.getIdFields();
+		String[] idNames = idName.split("-");
+		if (idNames.length != idFields.length)
+		{
+			throw new IllegalArgumentException("Member count (" + idNames.length + ") does not match with field count (" + idFields.length + ")");
+		}
+		for (int a = idFields.length; a-- > 0;)
+		{
+			table.mapField(idFields[a].getName(), idNames[a]);
+		}
 		IFieldMetaData versionField = table.getVersionField();
 		if (versionField != null)
 		{

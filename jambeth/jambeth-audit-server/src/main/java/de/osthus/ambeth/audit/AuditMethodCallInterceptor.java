@@ -3,6 +3,7 @@ package de.osthus.ambeth.audit;
 import java.lang.reflect.Method;
 
 import net.sf.cglib.proxy.MethodProxy;
+import de.osthus.ambeth.audit.model.AuditedArg;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.annotation.Autowired;

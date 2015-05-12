@@ -67,9 +67,11 @@ public class AmbethCron4jJob extends Task
 			try
 			{
 				thread.setName("Job " + jobName);
-				final AmbethCron4jJobContext jobContext = beanContext.registerBean(AmbethCron4jJobContext.class)
-						.propertyValue("TaskExecutionContext", context).finish();
+				final AmbethCron4jJobContext jobContext = beanContext.registerBean(AmbethCron4jJobContext.class)//
+					.propertyValue("TaskExecutionContext", context)//
+					.finish();
 
+				long start = System.currentTimeMillis();
 				if (log.isDebugEnabled())
 				{
 					log.debug("Executing job '" + jobName + "'");
@@ -94,7 +96,8 @@ public class AmbethCron4jJob extends Task
 					}
 					if (log.isDebugEnabled())
 					{
-						log.debug("Execution of job '" + jobName + "' finished");
+						long end = System.currentTimeMillis();
+						log.debug("Execution of job '" + jobName + "' finished (" + (end - start) + " ms)");
 					}
 				}
 				catch (Throwable e)

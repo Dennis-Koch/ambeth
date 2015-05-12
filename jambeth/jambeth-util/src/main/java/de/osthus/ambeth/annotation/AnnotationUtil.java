@@ -46,7 +46,7 @@ public final class AnnotationUtil
 		{
 			for (Class<?> interfaceType : annotatedType.getInterfaces())
 			{
-				annotation = interfaceType.getAnnotation(annotationType);
+				annotation = getAnnotation(annotationType, interfaceType, inherit);
 				if (annotation != null)
 				{
 					return annotation;
@@ -94,8 +94,7 @@ public final class AnnotationUtil
 			{
 				try
 				{
-					method = interfaceType.getMethod(methodName, parameterTypes);
-					annotation = method.getAnnotation(annotationType);
+					annotation = getAnnotation(annotationType, interfaceType, methodName, parameterTypes);
 					if (annotation != null)
 					{
 						return annotation;

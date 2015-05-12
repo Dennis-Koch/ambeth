@@ -360,6 +360,7 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 				Method method2 = ReflectUtil.getDeclaredMethod(true, type, method.getReturnType(), method.getName(), method.getParameterTypes());
 				if (method2 == null || Modifier.isAbstract(method2.getModifiers()))
 				{
+					// FIXME: if method2 is null, the following exception text is misleading
 					throw new IllegalStateException("Type is not abstract but has at least one abstract method: " + method);
 				}
 			}

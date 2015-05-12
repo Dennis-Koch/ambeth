@@ -87,7 +87,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
                 ISecurityScope[] securityScopes = SecurityScopeProvider.SecurityScopes;
 			    serviceDescription = SyncToAsyncUtil.CreateServiceDescription(ServiceName, method, args, securityScopes);
                 serviceResult = CacheService.GetORIsForServiceRequest(serviceDescription);
-                return CreateResultObject(serviceResult, returnType, args);
+				return CreateResultObject(serviceResult, returnType, args, annotation);
 		    }
 
 		    if (args.Length != 1)
@@ -126,7 +126,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             bool returnMisses = cached.ReturnMisses;
 		    List<IObjRef> orisToGet = new List<IObjRef>();
             FillOrisToGet(orisToGet, args, entityType, idIndex, returnMisses);
-            return CreateResultObject(orisToGet, returnType, returnMisses);
+			return CreateResultObject(orisToGet, returnType, returnMisses, annotation);
         }
 
         protected virtual void FillOrisToGet(IList<IObjRef> orisToGet, Object[] args, Type entityType, sbyte idIndex, bool returnMisses)
@@ -181,22 +181,27 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             }
 	    }
 
-      	protected Object CreateResultObject(IServiceResult serviceResult, Type expectedType, Object[] originalArgs)
+		protected Object CreateResultObject(IServiceResult serviceResult, Type expectedType, Object[] originalArgs, Attribute annotation)
 	    {
 		    IList<IObjRef> objRefs = serviceResult.ObjRefs;
-		    IList<Object> syncObjects = Cache.GetObjects(objRefs, CacheDirective.None);
-		    return PostProcessCacheResult(syncObjects, expectedType, serviceResult, originalArgs);
+			IList<Object> syncObjects = null;
+			if (annotation is FindAttribute && ((FindAttribute)annotation).ResultType != QueryResultType.REFERENCES)
+			{
+				syncObjects = Cache.GetObjects(objRefs, CacheDirective.None);
+			}
+			return PostProcessCacheResult(objRefs, syncObjects, expectedType, serviceResult, originalArgs, annotation);
 	    }
 
-        protected virtual Object CreateResultObject(IList<IObjRef> oris, Type expectedType, bool returnMisses)
+		protected virtual Object CreateResultObject(IList<IObjRef> objRefs, Type expectedType, bool returnMisses, Attribute annotation)
 	    {
-            IList<Object> syncObjects = Cache.GetObjects(oris, returnMisses ? CacheDirective.ReturnMisses : CacheDirective.None);
-		    return PostProcessCacheResult(syncObjects, expectedType, null, null);
+			IList<Object> syncObjects = Cache.GetObjects(objRefs, returnMisses ? CacheDirective.ReturnMisses : CacheDirective.None);
+			return PostProcessCacheResult(objRefs, syncObjects, expectedType, null, null, annotation);
 	    }
 
-        protected virtual Object PostProcessCacheResult(IList<Object> cacheResult, Type expectedType, IServiceResult serviceResult, Object[] originalArgs)
+		protected virtual Object PostProcessCacheResult(IList<IObjRef> objRefs, IList<Object> cacheResult, Type expectedType, IServiceResult serviceResult, Object[] originalArgs,
+			Attribute annotation)
         {
-            int cacheResultSize = cacheResult.Count;
+			int cacheResultSize = cacheResult != null ? cacheResult.Count : objRefs.Count;
 			if (typeof(IEnumerable).IsAssignableFrom(expectedType))
 			{
 				Object targetCollection = ListUtil.CreateCollectionOfType(expectedType);
@@ -204,19 +209,41 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
                 MethodInfo addMethod = targetCollection.GetType().GetMethod("Add");
                 Object[] parameters = new Object[1];
 
-				for (int a = 0; a < cacheResultSize; a++)
+				if (cacheResult != null)
 				{
-                    parameters[0] = cacheResult[a];
-                    addMethod.Invoke(targetCollection, parameters);
+					for (int a = 0; a < cacheResultSize; a++)
+					{
+						parameters[0] = cacheResult[a];
+						addMethod.Invoke(targetCollection, parameters);
+					}
+				}
+				else
+				{
+					for (int a = 0; a < cacheResultSize; a++)
+					{
+						parameters[0] = objRefs[a];
+						addMethod.Invoke(targetCollection, parameters);
+					}
 				}
 				return targetCollection;
 			}
 			else if (expectedType.IsArray)
 			{
 				Array array = Array.CreateInstance(expectedType.GetElementType(), cacheResultSize);
-				for (int a = 0; a < cacheResultSize; a++)
+
+				if (cacheResult != null)
 				{
-                    array.SetValue(cacheResult[a], a);
+					for (int a = 0; a < cacheResultSize; a++)
+					{
+						array.SetValue(cacheResult[a], a);
+					}
+				}
+				else
+				{
+					for (int a = 0; a < cacheResultSize; a++)
+					{
+						array.SetValue(objRefs[a], a);
+					}
 				}
 				return array;
 			}
@@ -230,7 +257,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
                 }
                 else if (cacheResultSize == 1)
                 {
-                    return cacheResult[0];
+                    return cacheResult != null ? cacheResult[0] : objRefs[0];
                 }
             }
             Object additionalInformation = serviceResult != null ? serviceResult.AdditionalInformation : null;
@@ -239,7 +266,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
                 throw new Exception("Can not convert list of " + cacheResultSize + " results from cache to type " + expectedType.FullName);
             }
             IServiceResultProcessor serviceResultProcessor = ServiceResultProcessorRegistry.GetServiceResultProcessor(expectedType);
-            return serviceResultProcessor.ProcessServiceResult(additionalInformation, cacheResult, expectedType, originalArgs);
+			return serviceResultProcessor.ProcessServiceResult(additionalInformation, objRefs, cacheResult, expectedType, originalArgs, annotation);
         }
     }
 }

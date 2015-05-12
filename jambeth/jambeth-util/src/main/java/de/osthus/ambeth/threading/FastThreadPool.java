@@ -569,7 +569,32 @@ public class FastThreadPool implements ExecutorService, IFastThreadPool, IDispos
 	@Override
 	public void execute(Runnable command)
 	{
-		queueAction(command, null, null);
+		Lock lock = this.lock;
+		lock.lock();
+		try
+		{
+			if (shutdown)
+			{
+				throw new RejectedExecutionException();
+			}
+			QueueItem queueItem = new QueueItem(null, command, null, null);
+			actionQueue.pushLast(queueItem.getThreadingLE());
+			if (blockingThread == null)
+			{
+				if (!isThreadMaximum() && freeThreadList.size() == 0)
+				{
+					createThread();
+				}
+				else
+				{
+					syncCond.signal();
+				}
+			}
+		}
+		finally
+		{
+			lock.unlock();
+		}
 	}
 
 	public int getThreadPoolID()

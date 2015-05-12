@@ -11,6 +11,7 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.ISet;
+import de.osthus.ambeth.compositeid.CompositeIdMember;
 import de.osthus.ambeth.database.IDatabaseMappedListener;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -108,7 +109,24 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			}
 			// metaData.setEntityType(entityType);
 			// metaData.setRealType(null);
-			if (isMemberOnFieldBetter(entityType, metaData.getIdMember(), table.getIdField()))
+			IFieldMetaData[] idFields = table.getIdFields();
+			if (idFields.length > 1)
+			{
+				PrimitiveMember idMember = metaData.getIdMember();
+				if (!(idMember instanceof CompositeIdMember))
+				{
+					throw new IllegalStateException("Not yet handled");
+				}
+				PrimitiveMember[] members = ((CompositeIdMember) idMember).getMembers();
+				for (int a = members.length; a-- > 0;)
+				{
+					if (isMemberOnFieldBetter(entityType, members[a], idFields[a]))
+					{
+						metaData.setIdMember((PrimitiveMember) idFields[a].getMember());
+					}
+				}
+			}
+			else if (isMemberOnFieldBetter(entityType, metaData.getIdMember(), table.getIdField()))
 			{
 				metaData.setIdMember((PrimitiveMember) table.getIdField().getMember());
 			}
@@ -160,7 +178,7 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 				alternateIdMembers[b] = (PrimitiveMember) alternateIdField.getMember();
 			}
 			ArrayList<Member> fulltextMembers = new ArrayList<Member>();
-			HashSet<Member> primitiveMembers = new HashSet<Member>();
+			HashSet<PrimitiveMember> primitiveMembers = new HashSet<PrimitiveMember>();
 			HashSet<RelationMember> relationMembers = new HashSet<RelationMember>();
 			HashMap<Member, Object> memberToFieldOrLinkMap = new HashMap<Member, Object>();
 
@@ -203,7 +221,7 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 				memberToFieldOrLinkMap.put(member, field);
 				if (!alreadyHandledFields.contains(field))
 				{
-					primitiveMembers.add(member);
+					primitiveMembers.add((PrimitiveMember) member);
 				}
 			}
 
@@ -332,7 +350,7 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 		set.add(member);
 	}
 
-	protected PrimitiveMember findPrimitiveMember(PrimitiveMember memberToFind, ISet<Member> members)
+	protected PrimitiveMember findPrimitiveMember(PrimitiveMember memberToFind, ISet<PrimitiveMember> members)
 	{
 		if (memberToFind == null)
 		{
@@ -357,6 +375,7 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 		Member member = newMemberField.getMember();
 		if (member == null)
 		{
+			((FieldMetaData) newMemberField).setMember(existingMember);
 			return false;
 		}
 		if (existingMember == null)

@@ -1,7 +1,6 @@
 package de.osthus.ambeth.sql;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import de.osthus.ambeth.persistence.ICursor;
 import de.osthus.ambeth.persistence.ICursorItem;
@@ -12,9 +11,9 @@ public class ResultSetCursor extends ResultSetVersionCursor implements ICursor, 
 {
 	public static final String SENSOR_NAME = "de.osthus.ambeth.sql.ResultSetCursor";
 
-	protected final Map<String, IFieldMetaData> memberNameToFieldDict = new HashMap<String, IFieldMetaData>();
-	protected final Map<String, Integer> memberNameToFieldIndexDict = new HashMap<String, Integer>();
-	protected final Map<String, Integer> fieldNameToFieldIndexDict = new HashMap<String, Integer>();
+	protected final HashMap<String, IFieldMetaData> memberNameToFieldDict = new HashMap<String, IFieldMetaData>();
+	protected final HashMap<String, Integer> memberNameToFieldIndexDict = new HashMap<String, Integer>();
+	protected final HashMap<String, Integer> fieldNameToFieldIndexDict = new HashMap<String, Integer>();
 
 	protected Object[] values;
 	protected IFieldMetaData[] fields;
@@ -62,7 +61,7 @@ public class ResultSetCursor extends ResultSetVersionCursor implements ICursor, 
 	{
 		if (super.moveNext())
 		{
-			Object[] current = getResultSet().getCurrent();
+			Object[] current = resultSet.getCurrent();
 			IFieldMetaData[] fields = this.fields;
 			int systemColumnCount = this.systemColumnCount;
 			Object[] values = this.values;
