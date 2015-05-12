@@ -74,23 +74,23 @@
 
 \subsection{DI (Dependency Injection)}
 
-The IoC container handles the dependencies for defined beans so that the beans get the references to beans they depend on. There are several possibilities to inject dependencies. Ambeth uses 2 possibilities described in the following list. 
+The IoC container handles the declared dependencies for all defined service beans. They get at runtime the references to the services they depend on. There are several possibilities to inject dependencies. \AMBETH{} uses two different methods described in the following list. Both of them support cyclic dependencies.
 
 \begin{itemize}
-	\item \textbf{Setter Injection}: The dependencies of a bean are instantiated and set by calling the setter method of the dependent bean. This allows to define cycles. It's the standard and preferred way to inject dependencies.
-	\item \textbf{Field Injection}: Dependencies can be set via reflection directly to the field so it is not necessary to implement a setter, interface or parametrized constructor. But in consequence to this the setter, interface method or parametrized constructor aren't called even if they exists. This may lead to a strange behaviour at runtime, especially when this beans are combined with proxies.
+	\item \textbf{Field Injection}: Dependencies can be set via reflection directly into the field. So it is not necessary to implement a setter, interface or parametrized constructor. Fields for injection are typed to the class or interface the required service is autowired to and are annotated with \type{@Autowired}. Since field injection needs no setters or null checks the implementations are less bulky and better readable.
+	\item \textbf{Setter Injection}: The dependencies of a bean injected by calling a setter method of the dependent bean. This means the bean needs one setter fore each of its dependencies. Also there should be a null check for every dependency in the \type{afterPropertiesSet()} life-cycle method. It is the ``old'' way of DI in \AMBETH.
 \end{itemize}	
 
-Ambeth does not support constructor injection nor does it support interface injection. Constructor injection does not solve the cyclic dependency problem and produces unreadable code with a lot of injections necessary in one function signature. Interface injection is not flexible enough because \TODO
+\AMBETH{} does not support constructor injection nor does it support interface injection. Constructor injection does not solve the cyclic dependency problem and produces unreadable code with a lot of injections necessary in one function signature. Interface injection is not flexible enough because it needs one specific interface per required service to be implemented by the depending bean. Also this leads to unreadable class signatures and unnecessary setters. Interface injection is needed in environments where it is not possible or desired to work with reflection.
 
 \subsection{IoC (Inversion of Control Container)}
-The basic part of Ambeth Framework is an Ambeth specific implementation of an IoC container. While there are other frameworks implementing a similar functionality there are some reasons not to use these frameworks but implement an own solution within Ambeth Framework:
+The most central part of the \AMBETH{} Framework is an IoC container. While there are other frameworks implementing a similar functionality there are some reasons not to use these frameworks but implement a new solution within the \AMBETH{} Framework:
 
 \begin{itemize}
-	\item Exactly the same code and API in C\# and Java
-	\item Extensibility
-	\item Performance
-	\item Integration of other Ambeth modules
+	\item exactly the same code and API in C\# and Java
+	\item outstanding extensibility
+	\item excellent performance
+	\item flexible integration of other \AMBETH{} modules
 \end{itemize}
 
 \subsubsection{IoC Container}
