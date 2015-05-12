@@ -73,7 +73,7 @@ For more information about the signature configuration \& algorithms please take
 Any number of instances of an \type{AuditEntry} can be verified using the \type{IAuditEntryVerifier}-Bean:
 
 \inputjava{The \type{IAuditEntryVerifier}-Bean}
-	{jambeth-audit-server/src/main/java/de/osthus/ambeth/audit/IAuditEntryVerifier.java}
+	{jambeth-audit/src/main/java/de/osthus/ambeth/audit/IAuditEntryVerifier.java}
 
 The internal verifying algorithm uses the signature configuration and the public key of the signature owned by the user which did the signing of each \type{AuditEntry}.
 
