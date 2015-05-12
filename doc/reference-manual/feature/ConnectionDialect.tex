@@ -6,7 +6,7 @@
 \AMBETH{} supports by design integrating any kind of data source to read from \& write to via an integrated information model. This can be a simple file (in any format), a remote web service or any kind of database (SQL/NoSQL). Specifically for SQL databases there is already a sophisticated handling via JDBC provided by the \textit{jambeth-persistence-jdbc} maven module. For such databases with a JDBC interface it is in most cases sufficient to simply implement a custom dialect bean. The whole SQL handling to select, insert, update, delete data, handling foreign key constraints, building queries \& sub-queries is handling by \AMBETH{}. The generic algorithms \AMBETH{} uses to build \& execute all SQL statements are robust as well as very fast making intensive use of the following JDBC patterns:
 
 \begin{itemize}
-	\item Modifying statement batching (\textit{CREATE / UPDATE / DELETE} in batched roundtrip)
+	\item Modifying statement batching (\textit{CREATE / UPDATE / DELETE} in batched round trip)
 	\item Multi-Selection (\textit{SELECT <a> WHERE <b> IN <c>} clauses)
 	\item Deferrable constraints (if the corresponding database supports it)
 	\item Optimistic locking (\textit{SELECT <a> WHERE <version>=...})
