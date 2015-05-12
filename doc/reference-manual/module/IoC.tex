@@ -96,12 +96,12 @@ The most central part of the \AMBETH{} Framework is an IoC container. While ther
 \subsubsection{IoC Container}
 \TODO
 
-To create and start the Ambeth Container the class "BeanContextFactory" is used. Calling the static method "createBootstrap" without parameters creates a container with the "ConversionHelper" from Ambeth as only bean. By using the parametrized methods modules can be specified and the resulting context contains all beans defined by the given modules. An instance "IServiceContext" represents the created container.
-Creating a new context may be done in the "main" method, during the initialization of a web servlet context or even anytime at runtime.
+To create and start an \AMBETH{} container static methods of the class \type{BeanContextFactory} are used. Calling the static method \type{createBootstrap()} without parameters creates a container containing the \type{ConversionHelper} from \AMBETH{} as its only bean. By using the parametrized methods modules can be specified and the resulting context contains all beans defined by the given modules. An instance \type{IServiceContext} represents the created container.
+Creating a new context may be done in the \type{main()} method, during the initialization of a web \type{ServletContext} or even anytime at runtime.
 
-To work with the container from outside the container the instance of "IServiceContext" can be used that is returned when the container is created.
+To work with the container from outside the container the instance of \type{IServiceContext} can be used that is returned when the container is created.
 
-To stop the Ambeth Container the method "dispose" is called on the "IServiceContext" that was previously created to start the container.
+To stop the \AMBETH{} container the method \type{dispose()} of the service context instance is called. This shuts down all child contexts and all contained service beans.
 
 
 \begin{lstlisting}[style=Java,caption={Start, use and stop an Ambeth Bean Container}]
