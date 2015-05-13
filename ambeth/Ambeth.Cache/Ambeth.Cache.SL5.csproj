@@ -72,6 +72,7 @@
     <Reference Include="System.Windows.Browser" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ambeth\audit\IVerifyOnLoad.cs" />
     <Compile Include="ambeth\cache\AbstractCache.cs" />
     <Compile Include="ambeth\cache\CacheContext.cs" />
     <Compile Include="ambeth\cache\CachedAttribute.cs" />

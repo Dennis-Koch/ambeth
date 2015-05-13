@@ -1,6 +1,7 @@
 package de.osthus.ambeth.cache;
 
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IBeanRuntime;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -8,6 +9,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.security.ISecurityActivation;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 
 public class CacheFactory implements ICacheFactory
 {
@@ -26,6 +28,27 @@ public class CacheFactory implements ICacheFactory
 
 	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
+
+	protected final ThreadLocal<ICache> parentTL = new ThreadLocal<ICache>();
+
+	@Override
+	public IDisposableCache withParent(ICache parent, IResultingBackgroundWorkerDelegate<IDisposableCache> runnable)
+	{
+		ICache oldParent = parentTL.get();
+		parentTL.set(parent);
+		try
+		{
+			return runnable.invoke();
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			parentTL.set(oldParent);
+		}
+	}
 
 	@Override
 	public IDisposableCache create(CacheFactoryDirective cacheFactoryDirective, String name)
@@ -67,6 +90,11 @@ public class CacheFactory implements ICacheFactory
 		if (name != null)
 		{
 			firstLevelCacheBC.propertyValue("Name", name);
+		}
+		ICache parent = parentTL.get();
+		if (parent != null)
+		{
+			firstLevelCacheBC.propertyValue("Parent", parent);
 		}
 		firstLevelCacheBC.propertyValue("Privileged", Boolean.valueOf(privileged));
 		ChildCache firstLevelCache = firstLevelCacheBC.finish();

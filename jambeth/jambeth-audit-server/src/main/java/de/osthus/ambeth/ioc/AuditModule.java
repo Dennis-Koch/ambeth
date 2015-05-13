@@ -16,6 +16,7 @@ import de.osthus.ambeth.audit.IAuditEntryVerifier;
 import de.osthus.ambeth.audit.IAuditEntryWriterExtendable;
 import de.osthus.ambeth.audit.IAuditInfoController;
 import de.osthus.ambeth.audit.IMethodCallLogger;
+import de.osthus.ambeth.audit.IVerifyOnLoad;
 import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.Property;
@@ -61,7 +62,8 @@ public class AuditModule implements IInitializingModule
 						.optional();
 			}
 
-			IBeanConfiguration auditEntryVerifier = beanContextFactory.registerBean(AuditEntryVerifier.class).autowireable(IAuditEntryVerifier.class);
+			IBeanConfiguration auditEntryVerifier = beanContextFactory.registerBean(AuditEntryVerifier.class).autowireable(IAuditEntryVerifier.class,
+					IVerifyOnLoad.class);
 			beanContextFactory.link(auditEntryVerifier, AuditEntryVerifier.HANDLE_CLEAR_ALL_CACHES_EVENT).to(IEventListenerExtendable.class)
 					.with(ClearAllCachesEvent.class);
 

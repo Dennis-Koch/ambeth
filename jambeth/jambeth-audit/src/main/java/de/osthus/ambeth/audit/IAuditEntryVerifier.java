@@ -13,6 +13,4 @@ public interface IAuditEntryVerifier
 	boolean[] verifyAuditEntries(List<? extends IAuditEntry> auditEntries);
 
 	boolean[] verifyAuditedEntities(List<? extends IAuditedEntity> auditedEntities);
-
-	void verifyEntitiesOnLoad(List<? extends IObjRef> objRefs);
 }
