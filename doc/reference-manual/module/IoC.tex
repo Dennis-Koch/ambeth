@@ -73,62 +73,61 @@
 %% CONFIGURATION END
 
 \subsection{DI (Dependency Injection)}
-
-The IoC container handles the dependencies for defined beans so that the beans get the references to beans they depend on. There are several possibilities to inject dependencies. Ambeth uses 2 possibilities described in the following list. 
+The IoC container handles the declared dependencies for all defined service beans. They get at runtime the references to the services they depend on. There are several possibilities to inject dependencies. \AMBETH{} uses two different methods described in the following list. Both of them support cyclic dependencies.
 
 \begin{itemize}
-	\item \textbf{Setter Injection}: The dependencies of a bean are instantiated and set by calling the setter method of the dependent bean. This allows to define cycles. It's the standard and preferred way to inject dependencies.
-	\item \textbf{Field Injection}: Dependencies can be set via reflection directly to the field so it is not necessary to implement a setter, interface or parametrized constructor. But in consequence to this the setter, interface method or parametrized constructor aren't called even if they exists. This may lead to a strange behaviour at runtime, especially when this beans are combined with proxies.
+	\item \textbf{Field Injection}: Dependencies can be set via reflection directly into the field. So it is not necessary to implement a setter, interface or parametrized constructor. Fields for injection are typed to the class or interface the required service is autowired to and are annotated with \type{@Autowired}. Since field injection needs no setters or null checks the implementations are less bulky and better readable.
+	\item \textbf{Setter Injection}: The dependencies of a bean injected by calling a setter method of the dependent bean. This means the bean needs one setter fore each of its dependencies. Also there should be a null check for every dependency in the \type{afterPropertiesSet()} life-cycle method. It is the ``old'' way of DI in \AMBETH.
 \end{itemize}	
 
-Ambeth does not support constructor injection nor does it support interface injection. Constructor injection does not solve the cyclic dependency problem and produces unreadable code with a lot of injections necessary in one function signature. Interface injection is not flexible enough because \TODO
+\AMBETH{} does not support constructor injection nor does it support interface injection. Constructor injection does not solve the cyclic dependency problem and produces unreadable code with a lot of injections necessary in one function signature. Interface injection is not flexible enough because it needs one specific interface per required service to be implemented by the depending bean. Also this leads to unreadable class signatures and unnecessary setters. Interface injection is needed in environments where it is not possible or desired to work with reflection.
 
 \subsection{IoC (Inversion of Control Container)}
-The basic part of Ambeth Framework is an Ambeth specific implementation of an IoC container. While there are other frameworks implementing a similar functionality there are some reasons not to use these frameworks but implement an own solution within Ambeth Framework:
+The most central part of the \AMBETH{} Framework is an IoC container. While there are other frameworks implementing a similar functionality there are some reasons not to use these frameworks but implement a new solution within the \AMBETH{} Framework:
 
 \begin{itemize}
-	\item Exactly the same code and API in C\# and Java
-	\item Extensibility
-	\item Performance
-	\item Integration of other Ambeth modules
+	\item exactly the same code and API in C\# and Java
+	\item outstanding extensibility
+	\item excellent performance
+	\item flexible integration of other \AMBETH{} modules
 \end{itemize}
 
 \subsubsection{IoC Container}
-\TODO
+To create and start an \AMBETH{} container static methods of the class \type{BeanContextFactory} are used. Calling the static method \type{createBootstrap()} without parameters creates a container containing the \type{ConversionHelper} from \AMBETH{} as its only bean. By using the parametrized methods modules can be specified and the resulting context contains all beans defined by the given modules. An instance \type{IServiceContext} represents the created container.
+Creating a new context may be done in the \type{main()} method, during the initialization of a web \type{ServletContext} or even anytime at runtime.
 
-To create and start the Ambeth Container the class "BeanContextFactory" is used. Calling the static method "createBootstrap" without parameters creates a container with the "ConversionHelper" from Ambeth as only bean. By using the parametrized methods modules can be specified and the resulting context contains all beans defined by the given modules. An instance "IServiceContext" represents the created container.
-Creating a new context may be done in the "main" method, during the initialization of a web servlet context or even anytime at runtime.
+To work with the container from outside the container the instance of \type{IServiceContext} can be used that is returned when the container is created.
 
-To work with the container from outside the container the instance of "IServiceContext" can be used that is returned when the container is created.
+To stop the \AMBETH{} container the method \type{dispose()} of the service context instance is called. This shuts down all child contexts and all contained service beans.
 
-To stop the Ambeth Container the method "dispose" is called on the "IServiceContext" that was previously created to start the container.
-
-
-\begin{lstlisting}[style=Java,caption={Start, use and stop an Ambeth Bean Container}]
+\begin{lstlisting}[style=Java,caption={Hoe to start, use and stop an \AMBETH{} Bean Container}]
 IServiceContext beanContext = BeanContextFactory.createBootstrap(HelloWorldModule.class);
-HelloWorldService service = (HelloWorldService) beanContext.getService("helloWorldService");
-service.speak();
-beanContext.dispose();
+try {
+	HelloWorldService service = (HelloWorldService) beanContext.getService("helloWorldService");
+	service.speak();
+} finally {
+	beanContext.dispose();
+}
 \end{lstlisting}
-At first a container is created. The definition of the container content is made in the given module. When the container is created it is asked for a bean named "helloWorldService". The bean is used to call the method "speak". The last step is stopping the container by calling the method "dispose".
+At first a container is created. The definition of the container content is made in the given module. When the container is created it is asked for a bean named ``helloWorldService''. The bean is used to call the method \type{speak()}. The last step is stopping the container by calling the method \type{dispose()}.
 
 \subsubsection{IoC Modules}
 \TODO
 \subsubsection{IoC Bean}
-A bean is an object which is managed by the container during its whole lifecycle. It may be an entity, but also a service and is implemented as POJO. Regularly beans are singletons but this is not mandatory.
+A bean is an object who's life cycle is managed by the container. It is a service or util class, never an entity. Regularly beans are singletons but this is not mandatory.
 
-\subsubsection{Bean Lifecycle}
+\subsubsection{Bean Life Cycle}
 
-The lifecycle consists of the three main phases Init, Lifespan and Destroy, each tailored into smaller sub phases and fully controlled by the Ambeth Container. All accesses have to done via the container.
+The life cycle of an IoC bean consists of the three main phases - Init, Lifespan and Destroy. Each divided into smaller sub phases and fully controlled by the \AMBETH{} IoC container. Acquiring such a bean has to be done via the container.
 
-Starting with the "constructor()" phase all objects are intantiated. In the Init phase alle (public) properties and dependencies are injected, followed by calling the "afterPropertiesSet" method (if available) of each bean as soon as all injections have been mave for this bean.
-When all injections are done and the "afterPropertiesSet" methods are called the Lifespan phase begins. As the first step of this phase the container calls the "afterStarted" Method of all beans implementing the "IStartingBean" interface.
-At the end of the Lifespan phase the Destroy phase begins by calling the "destroy" method of all beans implementing the "IDisposableBean" interface. Having done this the container stops itself and all objects, including the container itself, and its resources can be freed by the garbage collector.
+Starting with the \textit{Constructor} phase all objects are instantiated. In the Init phase all properties and service dependencies are injected, followed by (if available) calling the \type{afterPropertiesSet()} method of each bean as soon as all injections have been made for this bean.
+When all injections are done and the \type{afterPropertiesSet()} methods have been called the Lifespan phase begins. As the first step of this phase the container calls the \type{afterStarted()} Method of all beans implementing the \type{IStartingBean} interface.
+At the end of the Lifespan phase the Destroy phase begins by calling the \type{destroy()} method of all beans implementing the \type{IDisposableBean} interface. Having done this the container stops itself and all objects, including the container itself, and its resources can be freed by the garbage collector.
 
 \def\showimgref{img/bean-lifecycle.png}
 \showimgfull{Bean Lifecycle}
 
-The Ambeth IoC container defines interfaces that may be implemented by beans that need to be notified about state change of their lifecycle. These interfaces are:
+The \AMBETH{} IoC project defines interfaces that may be implemented by beans that need to be notified about state change of their life cycle. These interfaces are:
 
 \begin{itemize}
 	\item \prettyref{feature:InitializingBean} after properties are set
@@ -138,16 +137,17 @@ The Ambeth IoC container defines interfaces that may be implemented by beans tha
 
 \subsubsection{Customize IoC Beans}
 
-There some more ways to customize beans beyond their lifecycle:
+There some more ways to customize bean creation beyond their normal life cycle hooks:
 
 \begin{itemize}
-	\item \prettyref{feature:FactoryBean} create a custom made bean
-	\item \prettyref{feature:BeanPreProcessor} hook on the creation before injection
-	\item \prettyref{feature:BeanPostProcessor} hook on a bean after lifecycle startup of that bean
+	\item \prettyref{feature:FactoryBean} instantiate beans manually
+	\item \prettyref{feature:BeanPreProcessor} process beans before they get their injections
+	\item \prettyref{feature:BeanPostProcessor} process beans after dependency injection (mostly for embedding in a proxy)
 \end{itemize}
 
 \subsection{Unit Testing}
 \TODO
+
 \subsection{Features}
 \begin{itemize}
 	\item \prettyref{annotation:SQLData}

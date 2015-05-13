@@ -73,17 +73,17 @@ For more information about the signature configuration \& algorithms please take
 Any number of instances of an \type{AuditEntry} can be verified using the \type{IAuditEntryVerifier}-Bean:
 
 \inputjava{The \type{IAuditEntryVerifier}-Bean}
-	{jambeth-audit-server/src/main/java/de/osthus/ambeth/audit/IAuditEntryVerifier.java}
+	{jambeth-audit/src/main/java/de/osthus/ambeth/audit/IAuditEntryVerifier.java}
 
 The internal verifying algorithm uses the signature configuration and the public key of the signature owned by the user which did the signing of each \type{AuditEntry}.
 
 \subsection{Customize Entity Audit}
-Despite this annotation-based approach to configure the audited information mentioned in \prettyref{feature:AuditedEntity} it is possible to fully customize which changes on an entity should be audited by any kind of business rule at runtime. Just link your configuration to the \prettyref{extendable:IAuditConfigurationExtendable} during container start. If you intend to register your configuration after the container start be aware that your configuration needs to be registered before this configuration is needed for the first time (e.g. when the corresponding entity gets changed \& persisted).
+Despite this annotation-based approach to configure the audited information mentioned in \prettyref{feature:AuditedEntity} it is possible to fully customize what changes on an entity should be audited by any kind of business rule at runtime. Just link your configuration to the \prettyref{extendable:IAuditConfigurationExtendable} during container start. If you intend to register your configuration after the container start be aware that your configuration needs to be registered before this configuration is needed for the first time (e.g. when the corresponding entity gets changed \& persisted).
 
 \subsection{Customize audit serialization protocol}
 During evolvement of an application it may be necessary to even change the serialization approach of the audit process of \type{Ambeth}. With a naive approach all existing \type{AuditEntry} instances in the persistence layer could not be verified any more if another protocol is used. So the chosen approach is to define a protocol version and link your custom serialiation protocol with your newly defined protocol version. The default shipped protocol version is ``1'' and is implemented in \type{AuditEntryWriterV1}. It is recommended to start your custom versioning with at least number ``10'' to be compatible with future evolvement of Ambeth.
 
-\inputjava{Custom serialization protocols is provided the to-be-signed \type{AuditEntry} an the target \type{DataOutputStream} from which the signature will be built}
+\inputjava{\TODO}
 	{jambeth-audit-server/src/main/java/de/osthus/ambeth/audit/IAuditEntryWriter.java}
 		
 \subsection{Managing the signature of a user}

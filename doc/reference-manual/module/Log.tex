@@ -35,3 +35,15 @@
 	\item \prettyref{configuration:AmbethLogFile}
 \end{itemize}
 %% CONFIGURATION END
+
+\subsection{Usage}
+An instance of the \AMBETH logger is injected in fields of the type \type{ILogger} that are annotated with \type{@LogInstance}. Since this is done during start-up the type of the bean is known. This is used to inject a correctly typed logger, this way the logger does not have to figure out the type of the logging class at runtime by creating an \type{Exception} instance to have a look in the stack trace. There are different logger instances for different types of beans, but if there are multiple instances of the same bean type the same logger instance is used.
+
+\begin{lstlisting}[style=Java,caption={Example of a logger injection field}]
+public class ... {
+  @LogInstance
+	private ILogger log;
+
+...
+}
+\end{lstlisting}
