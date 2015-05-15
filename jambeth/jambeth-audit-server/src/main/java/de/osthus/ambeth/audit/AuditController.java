@@ -72,7 +72,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Autowired
 	protected IAuthorizedUserHolder authorizedUserHolder;
 
-	@Autowired
+	@Autowired(optional = true)
 	protected IAuditEntryToSignature auditEntryToSignature;
 
 	@Autowired
@@ -99,10 +99,10 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Autowired
 	protected IObjRefHelper objRefHelper;
 
-	@Autowired
+	@Autowired(optional = true)
 	protected IUserIdentifierProvider userIdentifierProvider;
 
-	@Autowired
+	@Autowired(optional = true)
 	protected IUserResolver userResolver;
 
 	@Autowired

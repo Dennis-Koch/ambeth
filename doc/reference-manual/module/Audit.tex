@@ -69,13 +69,22 @@ The \type{AuditEntry}.\typeprop{UserIdentifier} is retrieved from the current \t
 
 For more information about the signature configuration \& algorithms please take a look at \prettyref{feature:Cryptography}.
 
-\subsection{Verify existing AuditEntry}
+\subsection{Verify existing AuditEntry manually}
 Any number of instances of an \type{AuditEntry} can be verified using the \type{IAuditEntryVerifier}-Bean:
 
 \inputjava{The \type{IAuditEntryVerifier}-Bean}
 	{jambeth-audit/src/main/java/de/osthus/ambeth/audit/IAuditEntryVerifier.java}
 
 The internal verifying algorithm uses the signature configuration and the public key of the signature owned by the user which did the signing of each \type{AuditEntry}.
+
+\subsection{Verify existing AuditEntry automatically}
+It is also possible to verify all audited entities that are loaded by ambeth. If the business requirement expects that every loaded entity is verified it is possible to enable this behavior. Attention this will produce a higher load in the application because every entity that is loaded will be verified prior to be available in the \type{IRootCache}. 
+
+\TODO add links to the configuration options.
+ 
+The internal verifying algorithm uses the signature configuration and the public key of the signature owned by the user which did the signing of each \type{AuditEntry}.
+
+also
 
 \subsection{Customize Entity Audit}
 Despite this annotation-based approach to configure the audited information mentioned in \prettyref{feature:AuditedEntity} it is possible to fully customize what changes on an entity should be audited by any kind of business rule at runtime. Just link your configuration to the \prettyref{extendable:IAuditConfigurationExtendable} during container start. If you intend to register your configuration after the container start be aware that your configuration needs to be registered before this configuration is needed for the first time (e.g. when the corresponding entity gets changed \& persisted).
