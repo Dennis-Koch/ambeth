@@ -21,9 +21,11 @@ import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.database.DatabaseCallback;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.format.PaddingDecimalFormat;
+import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.jdbc.JDBCResultSet;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
@@ -32,7 +34,7 @@ import de.osthus.ambeth.persistence.jdbc.connection.DefaultStatementPerformanceL
 import de.osthus.ambeth.sensor.IntervalInfo;
 import de.osthus.ambeth.sensor.ReentrantIntervalSensor;
 
-public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<StatementInfo> implements IStatementPerformanceReport
+public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<StatementInfo> implements IStatementPerformanceReport, IInitializingBean
 {
 	public static class StatementInfo extends IntervalInfo
 	{
@@ -67,12 +69,23 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
 	protected Connection connection;
 
 	@Autowired
+	protected IConnectionDialect connectionDialect;
+
+	@Autowired
 	protected ITransaction transaction;
 
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName)
+	protected String schemaName;
+
 	protected String[] schemaNames;
 
 	protected final LinkedHashMap<String, StatementEntry> sqlToEntryMap = new LinkedHashMap<String, StatementEntry>();
+
+	@Override
+	public void afterPropertiesSet() throws Throwable
+	{
+		schemaNames = connectionDialect.toDefaultCase(schemaName).split("[:;]");
+	}
 
 	@Override
 	protected StatementInfo createIntervalInfo(String sensorName)

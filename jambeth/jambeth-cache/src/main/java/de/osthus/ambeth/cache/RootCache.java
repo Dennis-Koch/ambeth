@@ -9,12 +9,15 @@ import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 import de.osthus.ambeth.annotation.CascadeLoadMode;
+import de.osthus.ambeth.audit.IVerifyOnLoad;
 import de.osthus.ambeth.cache.collections.CacheMapEntry;
 import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
 import de.osthus.ambeth.cache.model.ILoadContainer;
@@ -105,7 +108,19 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	@LogInstance
 	private ILogger log;
 
-	protected final HashMap<IObjRef, Integer> relationOris = new HashMap<IObjRef, Integer>();
+	protected final HashMap<IObjRef, Integer> relationOris = new HashMap<IObjRef, Integer>()
+	{
+		@Override
+		protected boolean isResizeNeeded()
+		{
+			if (!super.isResizeNeeded())
+			{
+				return false;
+			}
+			doRelationObjRefsRefresh();
+			return super.isResizeNeeded();
+		}
+	};
 
 	protected final HashSet<IObjRef> currentPendingKeys = new HashSet<IObjRef>();
 
@@ -143,6 +158,9 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	@Autowired
 	protected IPrefetchHelper prefetchHelper;
 
+	@Autowired(optional = true)
+	protected IPrivilegeProviderIntern privilegeProvider;
+
 	@Autowired
 	protected IRootCacheValueFactory rootCacheValueFactory;
 
@@ -153,10 +171,14 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	protected ISecurityScopeProvider securityScopeProvider;
 
 	@Autowired(optional = true)
-	protected IPrivilegeProviderIntern privilegeProvider;
+	protected IVerifyOnLoad verifyOnLoad;
 
 	@Property(mandatory = false)
 	protected boolean privileged;
+
+	protected long relationObjRefsRefreshThrottleOnGC = 60000; // throttle refresh to at most 1 time per minute
+
+	protected long lastRelationObjRefsRefreshTime;
 
 	protected final Lock pendingKeysReadLock, pendingKeysWriteLock;
 
@@ -333,7 +355,31 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	}
 
 	@Override
-	public IList<Object> getObjects(List<IObjRef> orisToGet, ICacheIntern targetCache, Set<CacheDirective> cacheDirective)
+	public IList<Object> getObjects(final List<IObjRef> orisToGet, final ICacheIntern targetCache, final Set<CacheDirective> cacheDirective)
+	{
+		IVerifyOnLoad verifyOnLoad = this.verifyOnLoad;
+		if (verifyOnLoad == null)
+		{
+			return getObjectsIntern(orisToGet, targetCache, cacheDirective);
+		}
+		try
+		{
+			return verifyOnLoad.verifyEntitiesOnLoad(new IResultingBackgroundWorkerDelegate<IList<Object>>()
+			{
+				@Override
+				public IList<Object> invoke() throws Throwable
+				{
+					return getObjectsIntern(orisToGet, targetCache, cacheDirective);
+				}
+			});
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	protected IList<Object> getObjectsIntern(List<IObjRef> orisToGet, ICacheIntern targetCache, Set<CacheDirective> cacheDirective)
 	{
 		checkNotDisposed();
 		if (orisToGet == null || orisToGet.size() == 0)
@@ -370,7 +416,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 					readLock.lock();
 					try
 					{
-						return createResult(orisToGet, null, cacheDirective, targetCache, true);
+						return createResult(orisToGet, null, cacheDirective, targetCache, true, null);
 					}
 					finally
 					{
@@ -433,18 +479,39 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			ParamHolder<Boolean> doAnotherRetry, LinkedHashSet<IObjRef> neededObjRefs, ArrayList<DirectValueHolderRef> pendingValueHolders)
 	{
 		final ArrayList<IObjRef> orisToLoad = new ArrayList<IObjRef>();
-		RootCacheValue[] rootCacheValuesToGet = new RootCacheValue[orisToGet.size()];
 		Lock readLock = getReadLock();
 		Lock writeLock = getWriteLock();
-		int cacheVersionBeforeLongTimeAction = waitForConcurrentReadFinish(orisToGet, rootCacheValuesToGet, orisToLoad, cacheDirective);
 
-		if (orisToLoad.size() == 0)
+		int cacheVersionBeforeLongTimeAction;
+		if (boundThread == null)
 		{
-			// Everything found in the cache. We STILL hold the readlock so we can immediately create the result
-			// We already even checked the version. So we do not bother with versions anymore here
+			RootCacheValue[] rootCacheValuesToGet = new RootCacheValue[orisToGet.size()];
+			cacheVersionBeforeLongTimeAction = waitForConcurrentReadFinish(orisToGet, rootCacheValuesToGet, orisToLoad, cacheDirective);
+			if (orisToLoad.size() == 0)
+			{
+				// Everything found in the cache. We STILL hold the readlock so we can immediately create the result
+				// We already even checked the version. So we do not bother with versions anymore here
+				try
+				{
+					return createResult(orisToGet, rootCacheValuesToGet, cacheDirective, targetCache, false, null);
+				}
+				finally
+				{
+					readLock.unlock();
+				}
+			}
+		}
+		else
+		{
+			readLock.lock();
 			try
 			{
-				return createResult(orisToGet, rootCacheValuesToGet, cacheDirective, targetCache, false);
+				IList<Object> result = createResult(orisToGet, null, cacheDirective, targetCache, false, orisToLoad);
+				if (orisToLoad.size() == 0)
+				{
+					return result;
+				}
+				cacheVersionBeforeLongTimeAction = changeVersion;
 			}
 			finally
 			{
@@ -521,7 +588,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			readLock.lock();
 			try
 			{
-				return createResult(orisToGet, null, cacheDirective, targetCache, false);
+				return createResult(orisToGet, null, cacheDirective, targetCache, false, null);
 			}
 			finally
 			{
@@ -544,11 +611,36 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	}
 
 	@Override
-	public IList<IObjRelationResult> getObjRelations(List<IObjRelation> objRels, ICacheIntern targetCache, Set<CacheDirective> cacheDirective)
+	public IList<IObjRelationResult> getObjRelations(final List<IObjRelation> objRels, final ICacheIntern targetCache, final Set<CacheDirective> cacheDirective)
+	{
+		IVerifyOnLoad verifyOnLoad = this.verifyOnLoad;
+		if (verifyOnLoad == null)
+		{
+			return getObjRelationsIntern(objRels, targetCache, cacheDirective);
+		}
+		try
+		{
+			return verifyOnLoad.verifyEntitiesOnLoad(new IResultingBackgroundWorkerDelegate<IList<IObjRelationResult>>()
+			{
+				@Override
+				public IList<IObjRelationResult> invoke() throws Throwable
+				{
+					return getObjRelationsIntern(objRels, targetCache, cacheDirective);
+				}
+			});
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	protected IList<IObjRelationResult> getObjRelationsIntern(List<IObjRelation> objRels, ICacheIntern targetCache, Set<CacheDirective> cacheDirective)
 	{
 		checkNotDisposed();
 		boolean isCacheRetrieverCallAllowed = isCacheRetrieverCallAllowed(cacheDirective);
 		boolean returnMisses = cacheDirective.contains(CacheDirective.ReturnMisses);
+
 		IEventQueue eventQueue = this.eventQueue;
 		if (eventQueue != null)
 		{
@@ -1115,7 +1207,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	}
 
 	protected IList<Object> createResult(List<IObjRef> objRefsToGet, RootCacheValue[] rootCacheValuesToGet, Set<CacheDirective> cacheDirective,
-			ICacheIntern targetCache, boolean checkVersion)
+			ICacheIntern targetCache, boolean checkVersion, List<IObjRef> objRefsToLoad)
 	{
 		boolean loadContainerResult = cacheDirective.contains(CacheDirective.LoadContainerResult);
 		boolean cacheValueResult = cacheDirective.contains(CacheDirective.CacheValueResult) || targetCache == this;
@@ -1202,6 +1294,10 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 					if (returnMisses)
 					{
 						result.add(null);
+					}
+					if (objRefsToLoad != null)
+					{
+						objRefsToLoad.add(objRefToGet);
 					}
 					// But we already loaded before so we can do nothing now
 					continue;
@@ -1791,15 +1887,23 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	{
 		super.cacheValueHasBeenUpdated(metaData, primitives, relations, cacheValueR);
 
-		unregisterAllRelations(getCacheValueFromReference(cacheValueR).getRelations());
+		RelationMember[] relationMembers = metaData.getRelationMembers();
+		RootCacheValue cacheValue = getCacheValueFromReference(cacheValueR);
+		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
+		{
+			unregisterRelations(cacheValue.getRelation(relationIndex));
+		}
 		registerAllRelations(relations);
 	}
 
 	@Override
-	protected void cacheValueHasBeenRemoved(Class<?> entityType, byte idIndex, Object id, RootCacheValue cacheValue)
+	protected void cacheValueHasBeenRemoved(IEntityMetaData metaData, byte idIndex, Object id, RootCacheValue cacheValue)
 	{
-		unregisterAllRelations(cacheValue.getRelations());
-
+		RelationMember[] relationMembers = metaData.getRelationMembers();
+		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
+		{
+			unregisterRelations(cacheValue.getRelation(relationIndex));
+		}
 		if (lruThreshold == 0)
 		{
 			// LRU handling disabled
@@ -1816,7 +1920,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		{
 			lruLock.unlock();
 		}
-		super.cacheValueHasBeenRemoved(entityType, idIndex, id, cacheValue);
+		super.cacheValueHasBeenRemoved(metaData, idIndex, id, cacheValue);
 	}
 
 	@Override
@@ -2116,6 +2220,17 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	}
 
 	@Override
+	protected int doCleanUpIntern()
+	{
+		int cleanupCount = super.doCleanUpIntern();
+		if (cleanupCount > 0 && System.currentTimeMillis() - lastRelationObjRefsRefreshTime >= relationObjRefsRefreshThrottleOnGC)
+		{
+			doRelationObjRefsRefresh();
+		}
+		return cleanupCount;
+	}
+
+	@Override
 	protected void putInternObjRelation(RootCacheValue cacheValue, IEntityMetaData metaData, IObjRelation objRelation, IObjRef[] relationsOfMember)
 	{
 		int relationIndex = metaData.getIndexByRelationName(objRelation.getMemberName());
@@ -2180,5 +2295,47 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	public void assignEntityToCache(Object entity)
 	{
 		throw new UnsupportedOperationException();
+	}
+
+	protected void doRelationObjRefsRefresh()
+	{
+		lastRelationObjRefsRefreshTime = System.currentTimeMillis();
+		if (!weakEntries)
+		{
+			return;
+		}
+		Integer zero = Integer.valueOf(0);
+		for (Entry<IObjRef, Integer> entry : relationOris)
+		{
+			entry.setValue(zero);
+		}
+		final IdentityHashSet<RootCacheValue> alreadyHandledSet = IdentityHashSet.create(keyToCacheValueDict.size());
+		getContent(new HandleContentDelegate()
+		{
+			@Override
+			public void invoke(Class<?> entityType, byte idIndex, Object id, Object value)
+			{
+				RootCacheValue cacheValue = (RootCacheValue) value;
+				if (!alreadyHandledSet.add(cacheValue))
+				{
+					return;
+				}
+				IEntityMetaData metaData = cacheValue.get__EntityMetaData();
+				for (int relationIndex = metaData.getRelationMembers().length; relationIndex-- > 0;)
+				{
+					registerRelations(cacheValue.getRelation(relationIndex));
+				}
+			}
+		});
+
+		Iterator<Entry<IObjRef, Integer>> iter = relationOris.iterator();
+		while (iter.hasNext())
+		{
+			Entry<IObjRef, Integer> entry = iter.next();
+			if (entry.getValue() == zero)
+			{
+				iter.remove();
+			}
+		}
 	}
 }

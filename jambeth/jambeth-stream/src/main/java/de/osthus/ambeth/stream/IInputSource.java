@@ -1,5 +1,6 @@
 package de.osthus.ambeth.stream;
 
+
 /**
  * Marker interface
  */

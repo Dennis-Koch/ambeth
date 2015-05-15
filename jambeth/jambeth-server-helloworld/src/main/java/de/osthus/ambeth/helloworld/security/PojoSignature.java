@@ -1,6 +1,6 @@
 package de.osthus.ambeth.helloworld.security;
 
-import de.osthus.ambeth.security.IPBEConfiguration;
+import de.osthus.ambeth.security.model.IPBEConfiguration;
 import de.osthus.ambeth.security.model.ISignAndVerify;
 import de.osthus.ambeth.security.model.ISignature;
 import de.osthus.ambeth.security.model.IUser;

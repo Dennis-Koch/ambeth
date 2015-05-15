@@ -2,14 +2,20 @@ package de.osthus.ambeth.merge.config;
 
 import de.osthus.ambeth.annotation.ConfigurationConstantDescription;
 import de.osthus.ambeth.annotation.ConfigurationConstants;
+import de.osthus.ambeth.merge.IEntityFactory;
 
 @ConfigurationConstants
 public final class MergeConfigurationConstants
 {
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * Defines which {@link IEntityFactory} should be used. Has to be a fully qualified class name. If not specified a default {@link IEntityFactory} will be
+	 * used.
+	 */
 	public static final String EntityFactoryType = "ambeth.merge.entityfactory.type";
 
-	@ConfigurationConstantDescription("If true datachanges for deletes are generated for every ID (PK & AKs), default=false")
+	/**
+	 * If true datachanges for deletes are generated for every ID (PK & AKs). Valid values are "true" and "false", default is "false".
+	 */
 	public static final String DeleteDataChangesByAlternateIds = "ambeth.merge.datachanges.delete.alternateids";
 
 	@ConfigurationConstantDescription("TODO")
@@ -21,7 +27,9 @@ public final class MergeConfigurationConstants
 	@ConfigurationConstantDescription("TODO")
 	public static final String AlwaysUpdateVersionInChangedEntities = "ambeth.merge.update.version.always";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * Allows to check the value-object mapping during parsing the mapping file. Valid values: "true" or "false". Default is "false".
+	 */
 	public static final String ValueObjectConfigValidationActive = "ambeth.mapping.config.validate.active";
 
 	@ConfigurationConstantDescription("TODO")

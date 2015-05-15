@@ -3,6 +3,7 @@ package de.osthus.ambeth.typeinfo;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.regex.Matcher;
@@ -40,10 +41,8 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 		this.objectCollector = objectCollector;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.osthus.ambeth.typeinfo.IPropertyInfoProvider#getProperty(java.lang.Object, java.lang.String)
+	/**
+	 * {@inheritDoc}
 	 */
 	@Override
 	public IPropertyInfo getProperty(Object obj, String propertyName)
@@ -51,10 +50,8 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 		return getProperty(obj.getClass(), propertyName);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.osthus.ambeth.typeinfo.IPropertyInfoProvider#getProperty(java.lang.Class, java.lang.String)
+	/**
+	 * {@inheritDoc}
 	 */
 	@Override
 	public IPropertyInfo getProperty(Class<?> type, String propertyName)
@@ -63,10 +60,8 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 		return map.get(propertyName);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.osthus.ambeth.typeinfo.IPropertyInfoProvider#getProperties(java.lang.Object)
+	/**
+	 * {@inheritDoc}
 	 */
 	@Override
 	public IPropertyInfo[] getProperties(Object obj)
@@ -74,10 +69,8 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 		return getProperties(obj.getClass());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.osthus.ambeth.typeinfo.IPropertyInfoProvider#getProperties(java.lang.Class)
+	/**
+	 * {@inheritDoc}
 	 */
 	@Override
 	public IPropertyInfo[] getProperties(Class<?> type)
@@ -85,10 +78,8 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 		return getPropertyEntry(type).properties;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.osthus.ambeth.typeinfo.IPropertyInfoProvider#getPropertyMap(java.lang.Object)
+	/**
+	 * {@inheritDoc}
 	 */
 	@Override
 	public IMap<String, IPropertyInfo> getPropertyMap(Object obj)
@@ -96,10 +87,8 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 		return getPropertyMap(obj.getClass());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.osthus.ambeth.typeinfo.IPropertyInfoProvider#getPropertyMap(java.lang.Class)
+	/**
+	 * {@inheritDoc}
 	 */
 	@Override
 	public IMap<String, IPropertyInfo> getPropertyMap(Class<?> type)
@@ -125,7 +114,8 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 				// Concurrent thread might have been faster
 				return propertyEntry;
 			}
-			HashMap<String, Map<String, Method>> sortedMethods = new HashMap<String, Map<String, Method>>();
+
+			HashMap<String, HashMap<Class<?>, HashMap<String, Method>>> sortedMethods = new HashMap<String, HashMap<Class<?>, HashMap<String, Method>>>();
 			Method[] methods = ReflectUtil.getMethods(type);
 
 			MethodAccess methodAccess = null;
@@ -144,36 +134,54 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 					{
 						continue;
 					}
-					Map<String, Method> sortedMethod = sortedMethods.get(propName);
+
+					HashMap<Class<?>, HashMap<String, Method>> sortedMethod = sortedMethods.get(propName);
 					if (sortedMethod == null)
 					{
-						sortedMethod = HashMap.create(2);
+						sortedMethod = HashMap.create(1);
 						sortedMethods.put(propName, sortedMethod);
 					}
-					if (method.getParameterTypes().length == 1)
+
+					Class<?>[] parameterTypes = method.getParameterTypes();
+					Class<?> propertyType;
+					String prefix;
+					if (parameterTypes.length == 1)
 					{
-						sortedMethod.put("set", method);
+						propertyType = parameterTypes[0];
+						prefix = "set";
 					}
-					else if (method.getParameterTypes().length == 0)
+					else if (parameterTypes.length == 0)
 					{
-						sortedMethod.put("get", method);
+						propertyType = method.getReturnType();
+						prefix = "get";
 					}
 					else
 					{
 						throw new IllegalStateException("Method is not an accessor: " + method);
 					}
+
+					HashMap<String, Method> methodPerType = sortedMethod.get(propertyType);
+					if (methodPerType == null)
+					{
+						methodPerType = HashMap.create(2);
+						sortedMethod.put(propertyType, methodPerType);
+					}
+
+					methodPerType.put(prefix, method);
 				}
 				catch (Throwable e)
 				{
 					throw RuntimeExceptionUtil.mask(e, "Error occured while processing " + method);
 				}
 			}
-			HashMap<String, IPropertyInfo> propertyMap = new HashMap<String, IPropertyInfo>(0.5f);
 
-			for (Entry<String, Map<String, Method>> propertyData : sortedMethods)
+			HashMap<String, HashMap<String, Method>> filteredMethods = filterOverriddenMethods(sortedMethods, type);
+
+			HashMap<String, IPropertyInfo> propertyMap = new HashMap<String, IPropertyInfo>(0.5f);
+			for (Entry<String, HashMap<String, Method>> propertyData : filteredMethods)
 			{
 				String propertyName = propertyData.getKey();
-				Map<String, Method> propertyMethods = propertyData.getValue();
+				HashMap<String, Method> propertyMethods = propertyData.getValue();
 				Method getter = propertyMethods.get("get");
 				Method setter = propertyMethods.get("set");
 
@@ -235,8 +243,77 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 		}
 	}
 
+	protected HashMap<String, HashMap<String, Method>> filterOverriddenMethods(HashMap<String, HashMap<Class<?>, HashMap<String, Method>>> sortedMethods,
+			Class<?> entityType)
+	{
+		HashMap<String, HashMap<String, Method>> filteredMethods = HashMap.create(sortedMethods.size());
+
+		for (Entry<String, HashMap<Class<?>, HashMap<String, Method>>> entry : sortedMethods)
+		{
+			String propName = entry.getKey();
+			HashMap<Class<?>, HashMap<String, Method>> typedHashMap = entry.getValue();
+
+			if (typedHashMap.size() == 1)
+			{
+				Iterator<HashMap<String, Method>> iter = typedHashMap.values().iterator();
+				HashMap<String, Method> accessorMap = iter.next();
+				filteredMethods.put(propName, accessorMap);
+				continue;
+			}
+
+			Class<?> mostConcreteType = null;
+			Class<?> mostConcreteGetterType = null;
+			Class<?> mostConcreteSetterType = null;
+			for (Entry<Class<?>, HashMap<String, Method>> typedEntries : typedHashMap)
+			{
+				Class<?> currentType = typedEntries.getKey();
+				HashMap<String, Method> accessorMap = typedEntries.getValue();
+				if (accessorMap.size() != 2)
+				{
+					if (accessorMap.get("get") != null)
+					{
+						if (mostConcreteGetterType == null || mostConcreteGetterType.isAssignableFrom(currentType))
+						{
+							mostConcreteGetterType = currentType;
+						}
+					}
+					else
+					{
+						if (mostConcreteSetterType == null || mostConcreteSetterType.isAssignableFrom(currentType))
+						{
+							mostConcreteSetterType = currentType;
+						}
+					}
+					continue;
+				}
+
+				if (mostConcreteType == null || mostConcreteType.isAssignableFrom(currentType))
+				{
+					mostConcreteType = currentType;
+				}
+			}
+			if (mostConcreteType != null)
+			{
+				HashMap<String, Method> accessorMap = typedHashMap.get(mostConcreteType);
+				filteredMethods.put(propName, accessorMap);
+			}
+			else if (mostConcreteGetterType != null)
+			{
+				HashMap<String, Method> accessorMap = typedHashMap.get(mostConcreteGetterType);
+				filteredMethods.put(propName, accessorMap);
+			}
+			else if (mostConcreteSetterType != null)
+			{
+				HashMap<String, Method> accessorMap = typedHashMap.get(mostConcreteSetterType);
+				filteredMethods.put(propName, accessorMap);
+			}
+		}
+
+		return filteredMethods;
+	}
+
 	/**
-	 * @inhericDoc
+	 * {@inheritDoc}
 	 */
 	@Override
 	public String getPropertyNameFor(Method method)
@@ -270,7 +347,7 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 	}
 
 	/**
-	 * @inhericDoc
+	 * {@inheritDoc}
 	 */
 	@Override
 	public String getPropertyNameFor(Field field)

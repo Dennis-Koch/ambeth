@@ -10,7 +10,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IObjectCollector;
-import de.osthus.ambeth.persistence.ITable;
+import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.sql.AbstractCachingPrimaryKeyProvider;
 import de.osthus.ambeth.util.StringBuilderUtil;
@@ -28,9 +28,9 @@ public class H2SequencePrimaryKeyProvider extends AbstractCachingPrimaryKeyProvi
 	protected IObjectCollector objectCollector;
 
 	@Override
-	protected void acquireIdsIntern(ITable table, int count, List<Object> targetIdList)
+	protected void acquireIdsIntern(ITableMetaData table, int count, List<Object> targetIdList)
 	{
-		String sql = StringBuilderUtil.concat(objectCollector.getCurrent(), "SELECT ", table.getMetaData().getSequenceName(), ".nextval FROM DUAL");
+		String sql = StringBuilderUtil.concat(objectCollector.getCurrent(), "SELECT ", table.getSequenceName(), ".nextval FROM DUAL");
 		PreparedStatement pstm = null;
 		ResultSet rs = null;
 		try

@@ -7,5 +7,7 @@ namespace De.Osthus.Ambeth.Metadata
         void SetTechnicalMember(bool technicalMember);
 
 		void SetTransient(bool isTransient);
+
+		void SetDefinedBy(PrimitiveMember definedBy);
     }
 }

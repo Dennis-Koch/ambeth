@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptyList;
@@ -41,7 +40,7 @@ public class H2TestDialect extends AbstractConnectionTestDialect
 			HashSet<String> functionAliases = new HashSet<String>();
 			while (rs.next())
 			{
-				functionAliases.add(rs.getString("alias_name").toUpperCase());
+				functionAliases.add(rs.getString("alias_name"));
 			}
 			rs.close();
 			createAliasIfNecessary("TO_TIMESTAMP", Functions.class.getName() + ".toTimestamp", functionAliases, stm);
@@ -58,11 +57,11 @@ public class H2TestDialect extends AbstractConnectionTestDialect
 
 	protected void createAliasIfNecessary(String aliasName, String functionName, Set<String> functionAliases, Statement stm) throws SQLException
 	{
-		if (functionAliases.contains(aliasName.toUpperCase()))
+		if (functionAliases.contains(aliasName))
 		{
 			return;
 		}
-		stm.execute("CREATE ALIAS \"" + aliasName + "\" FOR \"" + functionName + "\"");
+		stm.execute("CREATE ALIAS \"" + connectionDialect.toDefaultCase(aliasName) + "\" FOR \"" + connectionDialect.toDefaultCase(functionName) + "\"");
 	}
 
 	@Override
@@ -109,11 +108,6 @@ public class H2TestDialect extends AbstractConnectionTestDialect
 		sqlCommand = prepareCommandIntern(sqlCommand, "DBMS_RANDOM\\.VALUE", "RAND()");
 		sqlCommand = prepareCommandIntern(sqlCommand, "to_timestamp\\(", "TO_TIMESTAMP(");
 		return sqlCommand;
-	}
-
-	protected String prepareCommandIntern(String sqlCommand, String regex, String replacement)
-	{
-		return Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(sqlCommand).replaceAll(replacement);
 	}
 
 	@Override

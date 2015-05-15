@@ -178,14 +178,18 @@ public class IncrementalMergeState implements IIncrementalMergeState
 	@Override
 	public CreateOrUpdateContainerBuild newCreateContainer(Class<?> entityType)
 	{
-		return new CreateOrUpdateContainerBuild(true, getOrCreateRelationMemberNameToIndexMap(entityType, typeToMemberNameToIndexMap),
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+		entityType = metaData.getEntityType();
+		return new CreateOrUpdateContainerBuild(metaData, true, getOrCreateRelationMemberNameToIndexMap(entityType, typeToMemberNameToIndexMap),
 				getOrCreatePrimitiveMemberNameToIndexMap(entityType, typeToPrimitiveMemberNameToIndexMap), cudResultHelper);
 	}
 
 	@Override
 	public CreateOrUpdateContainerBuild newUpdateContainer(Class<?> entityType)
 	{
-		return new CreateOrUpdateContainerBuild(false, getOrCreateRelationMemberNameToIndexMap(entityType, typeToMemberNameToIndexMap),
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+		entityType = metaData.getEntityType();
+		return new CreateOrUpdateContainerBuild(metaData, false, getOrCreateRelationMemberNameToIndexMap(entityType, typeToMemberNameToIndexMap),
 				getOrCreatePrimitiveMemberNameToIndexMap(entityType, typeToPrimitiveMemberNameToIndexMap), cudResultHelper);
 	}
 }

@@ -8,6 +8,7 @@ import javax.persistence.PersistenceException;
 
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
@@ -18,8 +19,8 @@ public class ConnectionFactory extends AbstractConnectionFactory
 	@LogInstance
 	private ILogger log;
 
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseConnection)
-	protected String databaseConnection;
+	@Autowired
+	protected IDatabaseConnectionUrlProvider databaseConnectionUrlProvider;
 
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseUser)
 	protected String userName;
@@ -33,14 +34,15 @@ public class ConnectionFactory extends AbstractConnectionFactory
 	@Override
 	protected Connection createIntern() throws Exception
 	{
+		String connectionUrl = databaseConnectionUrlProvider.getConnectionUrl();
 		try
 		{
 			if (log.isInfoEnabled())
 			{
-				log.info("Creating jdbc connection to '" + databaseConnection + "' with user='" + userName + "'");
+				log.info("Creating jdbc connection to '" + connectionUrl + "' with user='" + userName + "'");
 			}
 			boolean success = false;
-			Connection connection = DriverManager.getConnection(databaseConnection, userName, userPass);
+			Connection connection = DriverManager.getConnection(connectionUrl, userName, userPass);
 			try
 			{
 				if (log.isDebugEnabled())
@@ -78,7 +80,7 @@ public class ConnectionFactory extends AbstractConnectionFactory
 		}
 		catch (Throwable e)
 		{
-			throw RuntimeExceptionUtil.mask(e, "Error occured while connecting to '" + databaseConnection + "' with user='" + userName + "'");
+			throw RuntimeExceptionUtil.mask(e, "Error occured while connecting to '" + connectionUrl + "' with user='" + userName + "'");
 		}
 	}
 }

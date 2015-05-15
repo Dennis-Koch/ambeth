@@ -21,6 +21,19 @@
 			</attributes>
 		</entity>
 		
-		<entity class="de.osthus.ambeth.audit.Signature"/>
+		<entity class="de.osthus.ambeth.audit.Signature">
+			<attributes>
+				<basic name="SignAndVerify.SignatureAlgorithm" column="SIGNATURE_ALGORITHM"/>
+				<basic name="SignAndVerify.KeyFactoryAlgorithm" column="KEY_FACTORY_ALGORITHM"/>
+				<basic name="PBEConfiguration.EncryptionAlgorithm" column="ENCRYPTION_ALGORITHM"/>
+				<basic name="PBEConfiguration.EncryptionKeySpec" column="ENCRYPTION_KEY_SPEC"/>
+				<basic name="PBEConfiguration.EncryptionKeyIV" column="ENCRYPTION_KEY_IV"/>
+				<basic name="PBEConfiguration.PaddedKeyAlgorithm" column="PADDED_KEY_ALGORITHM"/>
+				<basic name="PBEConfiguration.PaddedKeySize" column="PADDED_KEY_SIZE"/>
+				<basic name="PBEConfiguration.PaddedKeyIterations" column="PADDED_KEY_ITERATIONS"/>
+				<basic name="PBEConfiguration.PaddedKeySaltSize" column="PADDED_KEY_SALT_SIZE"/>
+				<basic name="PBEConfiguration.PaddedKeySalt" column="PADDED_KEY_SALT"/>				
+			</attributes>
+		</entity>
 	</entity-mappings>	
 </or-mappings>

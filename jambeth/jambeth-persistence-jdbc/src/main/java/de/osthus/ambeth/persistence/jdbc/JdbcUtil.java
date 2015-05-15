@@ -101,6 +101,10 @@ public final class JdbcUtil
 			{
 				return Boolean.class;
 			}
+			case Types.DISTINCT:
+			{
+				return Object.class;
+			}
 			case Types.CHAR:
 			case Types.VARCHAR:
 			{
@@ -186,6 +190,7 @@ public final class JdbcUtil
 				return Float.class;
 			}
 			case Types.BLOB:
+			case Types.BINARY:
 			{
 				return Blob.class;
 			}

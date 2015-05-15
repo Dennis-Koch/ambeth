@@ -1,13 +1,13 @@
 package de.osthus.ambeth.sql;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptyMap;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
-import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -27,6 +27,8 @@ import de.osthus.ambeth.util.IConversionHelper;
 
 public class SqlTable extends Table
 {
+	public static final Pattern quotesPattern = Pattern.compile("\"", Pattern.LITERAL);
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -39,9 +41,6 @@ public class SqlTable extends Table
 
 	@Autowired
 	protected IPersistenceHelper persistenceHelper;
-
-	@Autowired
-	protected IPrimaryKeyProvider primaryKeyProvider;
 
 	@Autowired
 	protected ISqlConnection sqlConnection;
@@ -98,12 +97,6 @@ public class SqlTable extends Table
 	public void deleteAll()
 	{
 		sqlConnection.queueDeleteAll(getMetaData().getFullqualifiedEscapedName());
-	}
-
-	@Override
-	public IList<Object> acquireIds(int count)
-	{
-		return primaryKeyProvider.acquireIds(this, count);
 	}
 
 	@Override
@@ -350,7 +343,7 @@ public class SqlTable extends Table
 				{
 					String additionalSelectColumn = additionalSelectColumnList.get(a);
 					// additional columns are already escaped
-					additionalSelectColumn = additionalSelectColumn.replace("\"", "");
+					additionalSelectColumn = quotesPattern.matcher(additionalSelectColumn).replaceAll("");
 					additionalSelectColumnSet.add(additionalSelectColumn);
 				}
 			}
@@ -387,6 +380,10 @@ public class SqlTable extends Table
 					if (additionalSelectColumnSet != null)
 					{
 						additionalSelectColumnSet.remove(fieldName);
+						if (tableAlias != null)
+						{
+							additionalSelectColumnSet.remove(tableAlias + "." + fieldName);
+						}
 					}
 					selectSB.append(',');
 					if (tableAlias != null)
@@ -401,7 +398,13 @@ public class SqlTable extends Table
 				for (String additionalFieldName : additionalSelectColumnSet)
 				{
 					selectSB.append(',');
-					sqlBuilder.appendName(additionalFieldName, selectSB);
+					String[] schemaAndTableName = sqlBuilder.getSchemaAndTableName(additionalFieldName);
+					if (schemaAndTableName[0] != null)
+					{
+						selectSB.append(schemaAndTableName[0]).append('.');
+					}
+					sqlBuilder.appendName(schemaAndTableName[1], selectSB);
+					// JH 2015-04-28: Field names have to be escaped. Field from orderBy are processed here.
 					// selectSB.append(',').append(additionalFieldName);
 					// selectSB.append(',').append(sqlBuilder.escapeName(additionalFieldName));
 				}

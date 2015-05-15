@@ -558,7 +558,15 @@ public class EntityMetaData implements IEntityMetaData
 		primMemberNameToIndexDict.clear();
 		if (getIdMember() != null)
 		{
-			nameToMemberDict.put(getIdMember().getName(), getIdMember());
+			PrimitiveMember idMember = getIdMember();
+			nameToMemberDict.put(idMember.getName(), idMember);
+			if (idMember instanceof CompositeIdMember)
+			{
+				for (PrimitiveMember member : ((CompositeIdMember) idMember).getMembers())
+				{
+					nameToMemberDict.put(member.getName(), member);
+				}
+			}
 		}
 		if (getVersionMember() != null)
 		{

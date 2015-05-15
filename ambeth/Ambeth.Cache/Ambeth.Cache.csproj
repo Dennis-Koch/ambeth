@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ambeth\audit\IVerifyOnLoad.cs" />
     <Compile Include="ambeth\cache\CachedAttribute.cs" />
     <Compile Include="ambeth\cache\CacheKey.cs" />
     <Compile Include="ambeth\cache\CacheRetrieverRegistry.cs" />

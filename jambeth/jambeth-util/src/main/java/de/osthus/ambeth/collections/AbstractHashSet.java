@@ -107,10 +107,15 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable, Cloneab
 		e = createEntry(hash, key, e);
 		table[bucketIndex] = e;
 		entryAdded(e);
-		if (size() >= threshold)
+		if (isResizeNeeded())
 		{
 			resize(2 * table.length);
 		}
+	}
+
+	protected boolean isResizeNeeded()
+	{
+		return size() >= threshold;
 	}
 
 	@Override

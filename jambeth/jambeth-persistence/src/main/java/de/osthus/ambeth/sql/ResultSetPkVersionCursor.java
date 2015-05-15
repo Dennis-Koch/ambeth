@@ -26,11 +26,6 @@ public class ResultSetPkVersionCursor implements IVersionCursor, IVersionItem, I
 		this.containsVersion = containsVersion;
 	}
 
-	public IResultSet getResultSet()
-	{
-		return resultSet;
-	}
-
 	public void setResultSet(IResultSet resultSet)
 	{
 		this.resultSet = resultSet;

@@ -4,6 +4,7 @@ import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -19,6 +20,9 @@ import de.osthus.ambeth.database.IDatabaseMappedListenerExtendable;
 import de.osthus.ambeth.database.IDatabaseMapperExtendable;
 import de.osthus.ambeth.database.IDatabaseProviderExtendable;
 import de.osthus.ambeth.database.ITransaction;
+import de.osthus.ambeth.event.EntityMetaDataAddedEvent;
+import de.osthus.ambeth.event.EntityMetaDataRemovedEvent;
+import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
@@ -50,14 +54,18 @@ import de.osthus.ambeth.persistence.jdbc.lob.BlobInputSource;
 import de.osthus.ambeth.persistence.jdbc.lob.BlobInputSourceObjectCopier;
 import de.osthus.ambeth.persistence.jdbc.lob.ClobInputSource;
 import de.osthus.ambeth.persistence.jdbc.lob.ClobInputSourceObjectCopier;
+import de.osthus.ambeth.persistence.jdbc.lob.ClobToEnumConverter;
+import de.osthus.ambeth.persistence.jdbc.lob.ExtendedCLobConverter;
 import de.osthus.ambeth.persistence.jdbc.lob.ILobInputSourceController;
 import de.osthus.ambeth.persistence.jdbc.lob.LobConverter;
 import de.osthus.ambeth.persistence.jdbc.lob.LobInputSourceController;
 import de.osthus.ambeth.persistence.jdbc.lob.LobStreamConverter;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.sql.ISqlConnection;
+import de.osthus.ambeth.stream.IUnmodifiedInputSource;
 import de.osthus.ambeth.stream.binary.IBinaryInputSource;
 import de.osthus.ambeth.stream.chars.ICharacterInputSource;
+import de.osthus.ambeth.typeinfo.INoEntityTypeExtendable;
 import de.osthus.ambeth.util.DedicatedConverterUtil;
 
 @FrameworkModule
@@ -82,13 +90,6 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 		if (linkType == null)
 		{
 			contextProperties.put(PersistenceConfigurationConstants.LinkClass, JdbcLink.class.getName());
-		}
-		String databaseConnection = contextProperties.getString(PersistenceJdbcConfigurationConstants.DatabaseConnection);
-		if (databaseConnection == null)
-		{
-			contextProperties.put(PersistenceJdbcConfigurationConstants.DatabaseConnection, "${" + PersistenceJdbcConfigurationConstants.DatabaseProtocol
-					+ "}:@" + "${" + PersistenceJdbcConfigurationConstants.DatabaseHost + "}" + ":" + "${" + PersistenceJdbcConfigurationConstants.DatabasePort
-					+ "}" + ":" + "${" + PersistenceJdbcConfigurationConstants.DatabaseName + "}");
 		}
 	}
 
@@ -127,6 +128,8 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 			}
 		}
 
+		beanContextFactory.link(IUnmodifiedInputSource.class).to(INoEntityTypeExtendable.class);
+
 		beanContextFactory.registerBean(JdbcDatabaseFactory.class).propertyRefs("databaseProvider")
 				.propertyValue("AdditionalModules", connectionModuleTypes.toArray(new Class<?>[connectionModuleTypes.size()]))
 				.autowireable(IDatabaseFactory.class, IDatabaseMapperExtendable.class);
@@ -158,6 +161,12 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 		IBeanConfiguration clobInputSourceObjectCopier = beanContextFactory.registerBean(ClobInputSourceObjectCopier.class);
 		beanContextFactory.link(clobInputSourceObjectCopier).to(IObjectCopierExtendable.class).with(ClobInputSource.class);
 
+		IBeanConfiguration clobToEnumConverter = beanContextFactory.registerBean(ClobToEnumConverter.class);
+		beanContextFactory.link(clobToEnumConverter, ClobToEnumConverter.HANDLE_ENTITY_META_DATA_ADDED_EVENT).to(IEventListenerExtendable.class)
+				.with(EntityMetaDataAddedEvent.class);
+		beanContextFactory.link(clobToEnumConverter, ClobToEnumConverter.HANDLE_ENTITY_META_DATA_REMOVED_EVENT).to(IEventListenerExtendable.class)
+				.with(EntityMetaDataRemovedEvent.class);
+
 		IBeanConfiguration arrayConverter = beanContextFactory.registerBean(ArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, boolean[].class);
 		DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, Boolean[].class);
@@ -184,6 +193,37 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 		DedicatedConverterUtil.biLink(beanContextFactory, lobConverter, Blob.class, byte[].class);
 		DedicatedConverterUtil.biLink(beanContextFactory, lobConverter, Clob.class, char[].class);
 		DedicatedConverterUtil.biLink(beanContextFactory, lobConverter, Clob.class, String.class);
+
+		IBeanConfiguration extendedLobConverter = beanContextFactory.registerBean(ExtendedCLobConverter.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Boolean.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Boolean.TYPE);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Character.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Byte.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Short.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Integer.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Integer.TYPE);
+
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Float.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Long.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Double.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, boolean[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Boolean[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, byte[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Byte[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, char[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Character[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, short[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Short[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, int[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Integer[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, long[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Long[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, float[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Float[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, double[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Double[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Calendar.class);
+		// DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, GregorianCalendar.class);
 
 		IBeanConfiguration lobStreamConverter = beanContextFactory.registerBean(LobStreamConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, lobStreamConverter, Blob.class, IBinaryInputSource.class);

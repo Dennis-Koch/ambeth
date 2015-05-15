@@ -1,5 +1,7 @@
 package de.osthus.ambeth.audit;
 
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -12,8 +14,11 @@ import de.osthus.ambeth.audit.model.IAuditedEntityRef;
 import de.osthus.ambeth.audit.model.IAuditedEntityRelationProperty;
 import de.osthus.ambeth.audit.model.IAuditedEntityRelationPropertyItem;
 import de.osthus.ambeth.audit.model.IAuditedService;
+import de.osthus.ambeth.cache.ClearAllCachesEvent;
+import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
+import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exceptions.AuditReasonMissingException;
 import de.osthus.ambeth.ioc.AuditModule;
 import de.osthus.ambeth.ioc.IInitializingModule;
@@ -32,6 +37,8 @@ import de.osthus.ambeth.privilege.IEntityPermissionRule;
 import de.osthus.ambeth.privilege.evaluation.IEntityPermissionEvaluation;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.IPasswordUtil;
+import de.osthus.ambeth.security.ISecurityContextHolder;
+import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.IUserIdentifierProvider;
 import de.osthus.ambeth.security.IUserResolver;
 import de.osthus.ambeth.security.TestUserResolver;
@@ -45,12 +52,14 @@ import de.osthus.ambeth.testutil.TestFrameworkModule;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.IPrefetchConfig;
 
 @TestFrameworkModule({ AuditModule.class, AuditMethodCallTestFrameworkModule.class })
 @TestModule(AuditMethodCallTestModule.class)
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "AuditMethodCall_orm.xml;security-orm.xml"),
-		@TestProperties(name = AuditConfigurationConstants.AuditActive, value = "true") })
+		@TestProperties(name = AuditConfigurationConstants.AuditActive, value = "true"),
+		@TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoadActive, value = "true") })
 @SQLStructureList({ @SQLStructure("security-structure.sql"),//
 		@SQLStructure("audit-structure.sql") })
 public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTest
@@ -114,13 +123,25 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 	protected IAuditInfoController auditController;
 
 	@Autowired
-	protected ITestAuditService testAuditService;
+	protected IAuditEntryReader auditEntryReader;
+
+	@Autowired
+	protected IAuditEntryVerifier auditEntryVerifier;
 
 	@Autowired
 	protected IMergeProcess mergeProcess;
 
 	@Autowired
 	protected IPasswordUtil passwordUtil;
+
+	@Autowired
+	protected ISecurityContextHolder securityContextHolder;
+
+	@Autowired
+	protected ISecurityScopeProvider securityScopeProvider;
+
+	@Autowired
+	protected ITestAuditService testAuditService;
 
 	@Test
 	public void myTest()
@@ -161,6 +182,70 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		user.setPassword(password);
 
 		mergeProcess.process(user, null, null, null);
+	}
+
+	@Test
+	public void verify()
+	{
+		final char[] passwordOfUser = "abc".toCharArray();
+		final User user = entityFactory.createEntity(User.class);
+		user.setName("MyName");
+		user.setSID("mySid");
+		user.setSignature(entityFactory.createEntity(ISignature.class));
+
+		Password password = entityFactory.createEntity(Password.class);
+		passwordUtil.assignNewPassword(passwordOfUser, password, user);
+		user.setPassword(password);
+
+		auditController.pushAuditReason("junit test");
+		try
+		{
+			IAuditInfoRevert revert = auditController.setAuthorizedUser(user, passwordOfUser);
+			try
+			{
+				transaction.runInTransaction(new IBackgroundWorkerDelegate()
+				{
+					@Override
+					public void invoke() throws Throwable
+					{
+						mergeProcess.process(user, null, null, null);
+					}
+				});
+			}
+			finally
+			{
+				revert.revert();
+			}
+		}
+		finally
+		{
+			auditController.popAuditReason();
+		}
+		{
+			List<IAuditedEntity> auditedEntitiesOfUser = auditEntryReader.getAllAuditedEntitiesOfEntity(user);
+
+			Assert.assertEquals(1, auditedEntitiesOfUser.size());
+			boolean[] verifyAuditedEntities = auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfUser);
+			Assert.assertEquals(auditedEntitiesOfUser.size(), verifyAuditedEntities.length);
+			for (boolean verify : verifyAuditedEntities)
+			{
+				Assert.assertTrue(verify);
+			}
+		}
+		{
+			List<IAuditEntry> auditEntriesOfUser = auditEntryReader.getAllAuditEntriesOfEntity(user);
+
+			Assert.assertEquals(1, auditEntriesOfUser.size());
+			boolean[] verifyAuditEntries = auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser);
+			Assert.assertEquals(auditEntriesOfUser.size(), verifyAuditEntries.length);
+			for (boolean verify : verifyAuditEntries)
+			{
+				Assert.assertTrue(verify);
+			}
+		}
+		beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
+
+		User reloadedUser = beanContext.getService(ICache.class).getObject(User.class, user.getId());
 	}
 
 	@Test

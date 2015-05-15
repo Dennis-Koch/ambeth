@@ -1,4 +1,6 @@
+using De.Osthus.Ambeth.Threading;
 using System;
+
 namespace De.Osthus.Ambeth.Cache.Mock
 {
     /**
@@ -6,6 +8,11 @@ namespace De.Osthus.Ambeth.Cache.Mock
      */
     public class CacheFactoryMock : ICacheFactory
     {
+		public IDisposableCache WithParent(ICache parent, IResultingBackgroundWorkerDelegate<IDisposableCache> runnable)
+		{
+			return null;
+		}
+
         public IDisposableCache Create(CacheFactoryDirective cacheFactoryDirective, String name)
         {
             return null;

@@ -33,6 +33,8 @@ public class EntityConfig
 
 	private final Set<IRelationConfig> relationConfigs = new LinkedHashSet<IRelationConfig>();
 
+	private String descriminatorName;
+
 	@Deprecated
 	public EntityConfig(Class<?> entityType)
 	{
@@ -113,6 +115,16 @@ public class EntityConfig
 	public void setVersionMemberConfig(IMemberConfig versionMemberInfo)
 	{
 		versionMemberConfig = versionMemberInfo;
+	}
+
+	public String getDescriminatorName()
+	{
+		return descriminatorName;
+	}
+
+	public void setDescriminatorName(String descriminatorName)
+	{
+		this.descriminatorName = descriminatorName;
 	}
 
 	public boolean isVersionRequired()

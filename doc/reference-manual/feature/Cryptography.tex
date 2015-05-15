@@ -48,12 +48,12 @@ If you are interested in the basic assumptions regarding password hashing please
 \tip{As with all mentioned cryptographic configurations in \AMBETH{} the server admin is able to set/update the global salt password without server restart. Of course all managed salts of all secrets will be transparently decrypted with the old password and encrypted with the new password on-the-fly in a transactional scope - blocking concurrent cryptographic process steps for a short time according to ACID constraints.}
 
 \inputjava{A \type{ISignature} entity holds all information regarding public/private key functionality}
-	{jambeth-security-server/src/main/java/de/osthus/ambeth/security/model/ISignature.java}
+	{jambeth-security/src/main/java/de/osthus/ambeth/security/model/ISignature.java}
 
 Of course the property \type{ISignature}.\typeprop{PrivateKey} holds \emph{encrypted} information at runtime: Only the signature-owning user can decrypt with his own password the private key of his signature (e.g. to sign an audited operation). Please refer to \prettyref{module:Audit} regarding handling of signatures to ease audit trails.
 
 \inputjava{Maintainable cryptographic security with \type{IPBEConfiguration}}
-	{jambeth-security-server/src/main/java/de/osthus/ambeth/security/IPBEConfiguration.java}
+	{jambeth-security/src/main/java/de/osthus/ambeth/security/model/IPBEConfiguration.java}
 
 \begin{lstlisting}[style=SQL-Oracle,caption={Example schema definition to persist the \AMBETH{} \type{ISignature}-entity (Oracle SQL)}]
 CREATE TABLE "SIGNATURE"

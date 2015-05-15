@@ -6,7 +6,7 @@ import de.osthus.ambeth.persistence.IDatabaseMetaData;
 
 public interface IDatabaseMapper
 {
-	void mapFields(Connection connection, IDatabaseMetaData database);
+	void mapFields(Connection connection, String[] schemaNames, IDatabaseMetaData database);
 
-	void mapLinks(Connection connection, IDatabaseMetaData database);
+	void mapLinks(Connection connection, String[] schemaNames, IDatabaseMetaData database);
 }

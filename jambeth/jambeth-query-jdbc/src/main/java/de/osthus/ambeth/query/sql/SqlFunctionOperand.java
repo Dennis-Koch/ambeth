@@ -3,6 +3,7 @@ package de.osthus.ambeth.query.sql;
 import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.filter.QueryConstants;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -39,18 +40,34 @@ public class SqlFunctionOperand implements IOperand, IInitializingBean
 	@Override
 	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
 	{
-		querySB.append(name).append('(');
-		boolean notFirst = false;
-		for (int i = 0; i < operands.length; i++)
+		Object existingHint = nameToValueMap.get(QueryConstants.EXPECTED_TYPE_HINT);
+		if (existingHint != null)
 		{
-			IOperand operand = operands[i];
-			if (notFirst)
-			{
-				querySB.append(',');
-			}
-			notFirst = true;
-			operand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
+			nameToValueMap.put(QueryConstants.EXPECTED_TYPE_HINT, null);
 		}
-		querySB.append(')');
+		try
+		{
+			querySB.append(name).append('(');
+
+			boolean notFirst = false;
+			for (int i = 0; i < operands.length; i++)
+			{
+				IOperand operand = operands[i];
+				if (notFirst)
+				{
+					querySB.append(',');
+				}
+				notFirst = true;
+				operand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
+			}
+			querySB.append(')');
+		}
+		finally
+		{
+			if (existingHint != null)
+			{
+				nameToValueMap.put(QueryConstants.EXPECTED_TYPE_HINT, existingHint);
+			}
+		}
 	}
 }

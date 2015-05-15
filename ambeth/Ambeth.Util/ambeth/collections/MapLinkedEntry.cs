@@ -66,6 +66,10 @@ namespace De.Osthus.Ambeth.Collections
             {
                 return value;
             }
+			set
+			{
+				this.value = value;
+			}
         }
 
         public int Hash

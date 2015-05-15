@@ -45,11 +45,25 @@ public interface ITableMetaData
 	IFieldMetaData getIdField();
 
 	/**
+	 * Getter for the ID field of this table.
+	 * 
+	 * @return Representation of the primary key of this table.
+	 */
+	IFieldMetaData[] getIdFields();
+
+	/**
 	 * Getter for the version field of this table.
 	 * 
 	 * @return Representation of the object version of this table.
 	 */
 	IFieldMetaData getVersionField();
+
+	/**
+	 * Getter for the descriminator field of this table.
+	 * 
+	 * @return Representation of the descriminator of this table.
+	 */
+	IFieldMetaData getDescriminatorField();
 
 	/**
 	 * Get all primitive fields which are treated as unique and represent an alternate id for the entity retrieval
@@ -176,7 +190,7 @@ public interface ITableMetaData
 	 *            Name of the identifying member.
 	 * @return Field index mapped to the member (correlating to the list of getAllFields())
 	 */
-	int getFieldIndexByName(String memberName);
+	int getFieldIndexByName(String fieldName);
 
 	/**
 	 * Getter for a field identified by the name of the property (primitive, relation, id, and version) mapped to this field.

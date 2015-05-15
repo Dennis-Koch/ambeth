@@ -93,9 +93,10 @@ public class CUDResultComparer implements ICUDResultComparer
 			{
 				return containerBuild;
 			}
-			Class<?> entityType = getLeftContainer().getReference().getRealType();
-			containerBuild = new CreateOrUpdateContainerBuild(leftContainer instanceof CreateContainer, getOrCreateRelationMemberNameToIndexMap(entityType),
-					getOrCreatePrimitiveMemberNameToIndexMap(entityType), cudResultHelper);
+			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(getLeftContainer().getReference().getRealType());
+			containerBuild = new CreateOrUpdateContainerBuild(metaData, leftContainer instanceof CreateContainer,
+					getOrCreateRelationMemberNameToIndexMap(metaData.getEntityType()), getOrCreatePrimitiveMemberNameToIndexMap(metaData.getEntityType()),
+					cudResultHelper);
 			containerBuild.setReference(getLeftContainer().getReference());
 			return containerBuild;
 		}

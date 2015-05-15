@@ -1,33 +1,35 @@
 package de.osthus.ambeth.typeinfo;
 
 import java.util.Arrays;
-import java.util.Set;
 
 import javax.persistence.Embeddable;
-import javax.xml.datatype.XMLGregorianCalendar;
 
-import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.SmartCopySet;
+import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
 import de.osthus.ambeth.util.IImmutableType;
 import de.osthus.ambeth.util.ImmutableTypeSet;
 
-public class RelationProvider implements IRelationProvider
+public class RelationProvider implements IRelationProvider, INoEntityTypeExtendable
 {
-	protected static final Set<Class<?>> primitiveTypes = new HashSet<Class<?>>();
+	protected final SmartCopySet<Class<?>> primitiveTypes = new SmartCopySet<Class<?>>();
 
-	static
+	protected final ClassExtendableContainer<Boolean> noEntityTypeExtendables = new ClassExtendableContainer<Boolean>("flag", "noEntityType");
+
+	public RelationProvider()
 	{
 		ImmutableTypeSet.addImmutableTypesTo(primitiveTypes);
 
 		primitiveTypes.addAll(Arrays.asList(new Class<?>[] { Object.class, java.util.Date.class, java.sql.Date.class, java.sql.Timestamp.class,
 				java.util.Calendar.class, java.lang.Integer.class, java.lang.Long.class, java.lang.Double.class, java.lang.Float.class, java.lang.Short.class,
 				java.lang.Character.class, java.lang.Byte.class }));
-		primitiveTypes.add(XMLGregorianCalendar.class);
+		primitiveTypes.add(java.util.GregorianCalendar.class);
+		primitiveTypes.add(javax.xml.datatype.XMLGregorianCalendar.class);
 	}
 
 	@Override
 	public boolean isEntityType(Class<?> type)
 	{
-		if (type == null || type.isPrimitive() || type.isEnum() || primitiveTypes.contains(type))
+		if (type == null || type.isPrimitive() || type.isEnum() || primitiveTypes.contains(type) || Boolean.TRUE == noEntityTypeExtendables.getExtension(type))
 		{
 			return false;
 		}
@@ -39,38 +41,14 @@ public class RelationProvider implements IRelationProvider
 	}
 
 	@Override
-	public String getCreatedByMemberName()
+	public void registerNoEntityType(Class<?> noEntityType)
 	{
-		return null;
+		noEntityTypeExtendables.register(Boolean.TRUE, noEntityType);
 	}
 
 	@Override
-	public String getCreatedOnMemberName()
+	public void unregisterNoEntityType(Class<?> noEntityType)
 	{
-		return null;
-	}
-
-	@Override
-	public String getIdMemberName()
-	{
-		return null;
-	}
-
-	@Override
-	public String getUpdatedByMemberName()
-	{
-		return null;
-	}
-
-	@Override
-	public String getUpdatedOnMemberName()
-	{
-		return null;
-	}
-
-	@Override
-	public String getVersionMemberName()
-	{
-		return null;
+		noEntityTypeExtendables.unregister(Boolean.TRUE, noEntityType);
 	}
 }

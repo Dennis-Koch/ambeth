@@ -29,6 +29,7 @@
  */
 package de.osthus.ambeth.repackaged.org.objectweb.asm.signature;
 
+
 /**
  * A type signature parser to make a signature visitor visit an existing
  * signature.
