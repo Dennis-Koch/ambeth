@@ -14,7 +14,6 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
-import de.osthus.ambeth.stream.IInputSource;
 
 public class AuditConfigurationProvider implements IAuditConfigurationProvider, IAuditConfigurationExtendable
 {
@@ -81,15 +80,6 @@ public class AuditConfigurationProvider implements IAuditConfigurationProvider, 
 	{
 		Audited audited = member.getAnnotation(Audited.class);
 		boolean auditActive = audited != null ? audited.value() : auditedEntityPropertyDefaultModeActive;
-		if (auditActive && IInputSource.class.isAssignableFrom(member.getRealType()))
-		{
-			if (log.isWarnEnabled())
-			{
-				log.warn("Property not audited: '" + metaData.getEntityType().getName() + "." + member.getName()
-						+ "'. Large object content (Clob/Blob) is not covered by the Audit Trail yet");
-			}
-			auditActive = false;
-		}
 		return auditActive ? AuditMemberConfiguration.ACTIVE : AuditMemberConfiguration.INACTIVE;
 	}
 
