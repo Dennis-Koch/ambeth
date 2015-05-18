@@ -14,6 +14,7 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
+import de.osthus.ambeth.stream.IInputSource;
 
 public class AuditConfigurationProvider implements IAuditConfigurationProvider, IAuditConfigurationExtendable
 {
@@ -63,23 +64,32 @@ public class AuditConfigurationProvider implements IAuditConfigurationProvider, 
 		IdentityHashMap<Member, IAuditMemberConfiguration> memberToConfigurationMap = new IdentityHashMap<Member, IAuditMemberConfiguration>(0.5f);
 		for (PrimitiveMember member : metaData.getPrimitiveMembers())
 		{
-			memberToConfigurationMap.put(member, resolveMemberConfiguration(member));
+			memberToConfigurationMap.put(member, resolveMemberConfiguration(metaData, member));
 		}
 		for (RelationMember member : metaData.getRelationMembers())
 		{
-			memberToConfigurationMap.put(member, resolveMemberConfiguration(member));
+			memberToConfigurationMap.put(member, resolveMemberConfiguration(metaData, member));
 		}
 		if (metaData.getVersionMember() != null)
 		{
-			memberToConfigurationMap.put(metaData.getVersionMember(), resolveMemberConfiguration(metaData.getVersionMember()));
+			memberToConfigurationMap.put(metaData.getVersionMember(), resolveMemberConfiguration(metaData, metaData.getVersionMember()));
 		}
 		return new AuditConfiguration(auditActive, reasonRequired, memberToConfigurationMap);
 	}
 
-	protected IAuditMemberConfiguration resolveMemberConfiguration(Member member)
+	protected IAuditMemberConfiguration resolveMemberConfiguration(IEntityMetaData metaData, Member member)
 	{
 		Audited audited = member.getAnnotation(Audited.class);
 		boolean auditActive = audited != null ? audited.value() : auditedEntityPropertyDefaultModeActive;
+		if (auditActive && IInputSource.class.isAssignableFrom(member.getRealType()))
+		{
+			if (log.isWarnEnabled())
+			{
+				log.warn("Property not audited: '" + metaData.getEntityType().getName() + "." + member.getName()
+						+ "'. Large object content (Clob/Blob) is not covered by the Audit Trail yet");
+			}
+			auditActive = false;
+		}
 		return auditActive ? AuditMemberConfiguration.ACTIVE : AuditMemberConfiguration.INACTIVE;
 	}
 
