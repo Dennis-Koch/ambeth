@@ -10,12 +10,18 @@
 		<groupId>de.osthus</groupId>
 		<artifactId>osthus-pom</artifactId>
 		<version>0.0.35</version>
-	</parent>
+	</parent>	
 
 	<properties>
 		<jambeth.project.test>jambeth-test</jambeth.project.test>
 		<jambeth.path.test>../${jambeth.project.test}</jambeth.path.test>
 	</properties>
+	
+	<scm>		
+		<connection>scm:git:https://framework.allotrope.org/osthus-extensions/osthus-ambeth.git</connection>
+		<developerConnection>scm:git:https://framework.allotrope.org/osthus-extensions/osthus-ambeth.git</developerConnection>
+		<url>https://framework.allotrope.org/osthus-extensions/osthus-ambeth.git</url>
+	</scm>	
 
 	<modules>
 		<module>jambeth-audit</module>
