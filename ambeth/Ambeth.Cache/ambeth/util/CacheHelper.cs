@@ -213,7 +213,7 @@ namespace De.Osthus.Ambeth.Util
                                         }
                                     }
                                 }
-                                EnsureInitializedRelationsIntern(item, cachePaths, cacheToOrisToLoad, cacheToOrelsToLoad, cacheToOrisLoadedHistory,
+								EnsureInitializedRelationsIntern(item, cachePaths, entityTypeToPrefetchSteps, cacheToOrisToLoad, cacheToOrelsToLoad, cacheToOrisLoadedHistory,
                                         cacheToOrelsLoadedHistory, alreadyHandledSet, loadItems);
                             }
                         }
@@ -235,7 +235,7 @@ namespace De.Osthus.Ambeth.Util
                                     return;
                                 }
                             }
-                            EnsureInitializedRelationsIntern(objects, cachePaths, cacheToOrisToLoad, cacheToOrelsToLoad, cacheToOrisLoadedHistory,
+							EnsureInitializedRelationsIntern(objects, cachePaths, entityTypeToPrefetchSteps, cacheToOrisToLoad, cacheToOrelsToLoad, cacheToOrisLoadedHistory,
                                     cacheToOrelsLoadedHistory, alreadyHandledSet, loadItems);
                         }
                     }
@@ -312,7 +312,7 @@ namespace De.Osthus.Ambeth.Util
                                 {
                                     member.SetValue(vhc, obj);
                                 }
-                                EnsureInitializedRelationsIntern(obj, cachePaths, cacheToOrisToLoad, cacheToOrelsToLoad, cacheToOrisLoadedHistory,
+								EnsureInitializedRelationsIntern(obj, cachePaths, entityTypeToPrefetchSteps, cacheToOrisToLoad, cacheToOrelsToLoad, cacheToOrisLoadedHistory,
                                         cacheToOrelsLoadedHistory, alreadyHandledSet, loadItems);
                             }
                         }
@@ -439,7 +439,7 @@ namespace De.Osthus.Ambeth.Util
             orelsLoadedHistory.AddAll(objRelList);
         }
 
-        protected void EnsureInitializedRelationsIntern(Object obj, CachePath[] cachePaths,
+        protected void EnsureInitializedRelationsIntern(Object obj, CachePath[] cachePaths, ILinkedMap<Type, CachePath[]> entityTypeToPrefetchSteps,
             IMap<ICacheIntern, IISet<IObjRef>> cacheToOrisToLoad, IMap<ICacheIntern, IMap<IObjRelation, bool>> cacheToOrelsToLoad,
             IMap<ICacheIntern, IISet<IObjRef>> cacheToOrisLoadedHistory, IMap<ICacheIntern, IISet<IObjRelation>> cacheToOrelsLoadedHistory,
             ISet<AlreadyHandledItem> alreadyHandledSet, IList<CascadeLoadItem> cascadeLoadItems)
@@ -499,16 +499,23 @@ namespace De.Osthus.Ambeth.Util
                 }
                 foreach (Object item in items)
                 {
-                    EnsureInitializedRelationsIntern(item, cachePaths, cacheToOrisToLoad, cacheToOrelsToLoad,
+					EnsureInitializedRelationsIntern(item, cachePaths, entityTypeToPrefetchSteps, cacheToOrisToLoad, cacheToOrelsToLoad,
                         cacheToOrisLoadedHistory, cacheToOrelsLoadedHistory, alreadyHandledSet, cascadeLoadItems);
                 }
                 return;
             }
-            if (cachePaths == null)
-            {
-                return;
-            }
             IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
+			if (cachePaths == null)
+			{
+				if (entityTypeToPrefetchSteps != null)
+				{
+					cachePaths = entityTypeToPrefetchSteps.Get(metaData.EntityType);
+				}
+				if (cachePaths == null)
+				{
+					return;
+				}
+			}
             RelationMember[] relationMembers = metaData.RelationMembers;
             if (relationMembers.Length == 0)
             {
@@ -525,7 +532,7 @@ namespace De.Osthus.Ambeth.Util
                 if (ValueHolderState.INIT != vhc.Get__State(relationIndex))
                 {
                     DirectValueHolderRef vhk = new DirectValueHolderRef(vhc, member);
-                    EnsureInitializedRelationsIntern(vhk, path.children, cacheToOrisToLoad, cacheToOrelsToLoad, cacheToOrisLoadedHistory,
+					EnsureInitializedRelationsIntern(vhk, path.children, entityTypeToPrefetchSteps, cacheToOrisToLoad, cacheToOrelsToLoad, cacheToOrisLoadedHistory,
                             cacheToOrelsLoadedHistory, alreadyHandledSet, cascadeLoadItems);
                     continue;
                 }
@@ -534,7 +541,7 @@ namespace De.Osthus.Ambeth.Util
                 {
                     continue;
                 }
-                EnsureInitializedRelationsIntern(memberValue, path.children, cacheToOrisToLoad, cacheToOrelsToLoad,
+				EnsureInitializedRelationsIntern(memberValue, path.children, entityTypeToPrefetchSteps, cacheToOrisToLoad, cacheToOrelsToLoad,
                     cacheToOrisLoadedHistory, cacheToOrelsLoadedHistory, alreadyHandledSet, cascadeLoadItems);
             }
         }

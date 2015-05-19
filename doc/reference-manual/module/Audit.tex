@@ -69,13 +69,62 @@ The \type{AuditEntry}.\typeprop{UserIdentifier} is retrieved from the current \t
 
 For more information about the signature configuration \& algorithms please take a look at \prettyref{feature:Cryptography}.
 
-\subsection{Verify existing AuditEntry}
+\subsection{Verify existing AuditEntry manually}
 Any number of instances of an \type{AuditEntry} can be verified using the \type{IAuditEntryVerifier}-Bean:
 
 \inputjava{The \type{IAuditEntryVerifier}-Bean}
 	{jambeth-audit/src/main/java/de/osthus/ambeth/audit/IAuditEntryVerifier.java}
 
 The internal verifying algorithm uses the signature configuration and the public key of the signature owned by the user which did the signing of each \type{AuditEntry}.
+
+\subsection{Verify AuditEntries automatically}
+It is also possible to verify all audited entities that are loaded by ambeth. If the business requirement expects that every loaded entity is verified it is possible to enable this behavior. Attention this will produce a higher load in the application because every entity that is loaded will be verified prior to be available in the \type{IRootCache}. 
+
+\TODO add links to the configuration options.
+ 
+To explain the algorithm in more detail, a short, not complete ex course to the audit is needed.
+How does Ambeth stores audit information?
+\pagebreak
+\def\showimgref{img/audit-verify.png}
+\showimg{Basic, not complete audit structure.}
+
+\begin{itemize}
+	\item IAuditEntry: This entity encapsulates one audit operation. E.g. one database transaction with multiple entities.
+	\begin{itemize}
+		\item Signature=char[]: The combined cryptographically hash for one audit entry. It is based on the AuditedEntities Signature.
+	\end{itemize}
+	\item IAuditedService: This is used to audit service calls. It is out of scope for the entity verify.
+	\item IAuditedEntity: One audit entry can have multiple entities (all entities from one transaction for example)
+	\begin{itemize}
+		\item ChangeType: was the AuditedEntity: created, updated or deleted
+	\end{itemize}
+	\item IAuditedEntityPrimitiveProperty: Only the modified properties will be stored in the IAuditedEntity object.
+	\begin{itemize}
+		\item Name of the primitive property that was changed
+		\item NewValue of the primitive property. To get the ``OldValue'' a lookup back in the audit history is necessary.
+	\end{itemize}
+	\item IAuditedEntityRelationPropertyItem: Also relations and changes on the relations are audited
+	\begin{itemize}
+		\item ChangeType: was the relation added or removed from the audited entity
+		\item Ref: the reference to the target object of the relation
+	\end{itemize}
+	\item Signature = char[]: The signature for the current IAuditedEntity. Every IAuditedEntity gets its own signature. All IAudtedEntity signatures together will be combined in the IAuditEntry.Signature.
+\end{itemize}
+\TODO verify the following with the actual implementation.
+The audit verify algorithm does work in the following sequence:
+\begin{enumerate}
+	\item The application requests an entity. e.g. ORI(Entity:Project, ID:3, Version:1), which is not in the root cache by now.
+	\item The cache retriever (see \prettyref{extendable:ICacheRetrieverExtendable} ) loads this entity from the persistence layer.
+	\item ... \TODO ... magic happens here...
+	\item The loaded entity which needs to be verified is the ``current state'' 
+	\item Ambeth now loads the corresponding ``to be state'' from the audit trail.
+	\item Because we only need the ``current to be state'' we can load the audit trail backwards, starting with the newest entry for the matching ORI.
+	\item Tip 1: As mentioned earlier, only the ``changes'' on entities are audited
+	\item Tip 2: Ambeth is aware of all properties and relations of an entity
+	\item Those to tip's in mind, Ambeth loads IAuditedEntries with IAuditedEntities (matching the ORI) as long as all properties for the ``to be state'' are present.
+	\item While loading the IAuditedEntities, every IAuditedEntity's signature is verified against the users key.
+	\item If Ambeth collected all properties for the ``to be state'' it can be compared to the ``current state'' in the database. If the check fails, an error message is logged to the application log.
+\end{enumerate}
 
 \subsection{Customize Entity Audit}
 Despite this annotation-based approach to configure the audited information mentioned in \prettyref{feature:AuditedEntity} it is possible to fully customize what changes on an entity should be audited by any kind of business rule at runtime. Just link your configuration to the \prettyref{extendable:IAuditConfigurationExtendable} during container start. If you intend to register your configuration after the container start be aware that your configuration needs to be registered before this configuration is needed for the first time (e.g. when the corresponding entity gets changed \& persisted).

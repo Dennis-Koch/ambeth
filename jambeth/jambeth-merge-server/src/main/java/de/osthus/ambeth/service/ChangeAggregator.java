@@ -14,7 +14,7 @@ import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
+import de.osthus.ambeth.merge.config.MergeServerConfigurationConstants;
 import de.osthus.ambeth.merge.event.DataChangeOfSession;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
@@ -32,7 +32,7 @@ public class ChangeAggregator implements IChangeAggregator
 	@Autowired
 	protected IEventDispatcher eventDispatcher;
 
-	@Property(name = MergeConfigurationConstants.DeleteDataChangesByAlternateIds, defaultValue = "false")
+	@Property(name = MergeServerConfigurationConstants.DeleteDataChangesByAlternateIds, defaultValue = "false")
 	protected boolean deleteDataChangesByAlternateIds;
 
 	protected IList<IDataChangeEntry> inserts;

@@ -12,7 +12,7 @@ import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IObjRefHelper;
-import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
+import de.osthus.ambeth.merge.config.MergeServerConfigurationConstants;
 import de.osthus.ambeth.merge.model.IDirectObjRef;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
@@ -45,7 +45,7 @@ public class TableChange extends AbstractTableChange
 	@Autowired
 	protected IObjRefHelper objRefHelper;
 
-	@Property(name = MergeConfigurationConstants.DeleteDataChangesByAlternateIds, defaultValue = "false")
+	@Property(name = MergeServerConfigurationConstants.DeleteDataChangesByAlternateIds, defaultValue = "false")
 	protected boolean deleteDataChangesByAlternateIds;
 
 	public IMap<IObjRef, IRowCommand> getRowCommands()

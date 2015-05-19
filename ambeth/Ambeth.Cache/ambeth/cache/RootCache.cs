@@ -37,6 +37,7 @@ using De.Osthus.Ambeth.Privilege.Model;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Merge.Config;
+using De.Osthus.Ambeth.Audit;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -135,8 +136,11 @@ namespace De.Osthus.Ambeth.Cache
 	    public ISecurityScopeProvider SecurityScopeProvider { protected get; set; }
 
         [Autowired(Optional = true)]
-	    public IPrivilegeProvider PrivilegeProvider { protected get; set; }
-        
+		public IPrivilegeProvider PrivilegeProvider { protected get; set; }
+
+		[Autowired(Optional = true)]
+		public IVerifyOnLoad VerifyOnLoad { protected get; set; }
+
         [Property(Mandatory = false)]
         public override bool Privileged { get; set; }
 
@@ -308,6 +312,19 @@ namespace De.Osthus.Ambeth.Cache
 
         public IList<Object> GetObjects(IList<IObjRef> orisToGet, ICacheIntern targetCache, CacheDirective cacheDirective)
         {
+			IVerifyOnLoad verifyOnLoad = this.VerifyOnLoad;
+			if (verifyOnLoad == null)
+			{
+				return GetObjectsIntern(orisToGet, targetCache, cacheDirective);
+			}
+			return verifyOnLoad.VerifyEntitiesOnLoad(delegate()
+			{
+				return GetObjectsIntern(orisToGet, targetCache, cacheDirective);
+			});
+		}
+
+		protected IList<Object> GetObjectsIntern(IList<IObjRef> orisToGet, ICacheIntern targetCache, CacheDirective cacheDirective)
+		{
             CheckNotDisposed();
             if (orisToGet == null || orisToGet.Count == 0)
             {
@@ -523,6 +540,19 @@ namespace De.Osthus.Ambeth.Cache
 
         public IList<IObjRelationResult> GetObjRelations(IList<IObjRelation> objRels, ICacheIntern targetCache, CacheDirective cacheDirective)
         {
+			IVerifyOnLoad verifyOnLoad = this.VerifyOnLoad;
+			if (verifyOnLoad == null)
+			{
+				return GetObjRelationsIntern(objRels, targetCache, cacheDirective);
+			}
+			return verifyOnLoad.VerifyEntitiesOnLoad(delegate()
+				{
+					return GetObjRelationsIntern(objRels, targetCache, cacheDirective);
+				});
+		}
+
+		protected IList<IObjRelationResult> GetObjRelationsIntern(IList<IObjRelation> objRels, ICacheIntern targetCache, CacheDirective cacheDirective)
+		{
             CheckNotDisposed();
             bool isCacheRetrieverCallAllowed = IsCacheRetrieverCallAllowed(cacheDirective);
             bool returnMisses = cacheDirective.HasFlag(CacheDirective.ReturnMisses);

@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 import de.osthus.ambeth.annotation.CascadeLoadMode;
+import de.osthus.ambeth.audit.IVerifyOnLoad;
 import de.osthus.ambeth.cache.collections.CacheMapEntry;
 import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
 import de.osthus.ambeth.cache.model.ILoadContainer;
@@ -157,6 +158,9 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	@Autowired
 	protected IPrefetchHelper prefetchHelper;
 
+	@Autowired(optional = true)
+	protected IPrivilegeProviderIntern privilegeProvider;
+
 	@Autowired
 	protected IRootCacheValueFactory rootCacheValueFactory;
 
@@ -167,7 +171,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	protected ISecurityScopeProvider securityScopeProvider;
 
 	@Autowired(optional = true)
-	protected IPrivilegeProviderIntern privilegeProvider;
+	protected IVerifyOnLoad verifyOnLoad;
 
 	@Property(mandatory = false)
 	protected boolean privileged;
@@ -351,7 +355,31 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	}
 
 	@Override
-	public IList<Object> getObjects(List<IObjRef> orisToGet, ICacheIntern targetCache, Set<CacheDirective> cacheDirective)
+	public IList<Object> getObjects(final List<IObjRef> orisToGet, final ICacheIntern targetCache, final Set<CacheDirective> cacheDirective)
+	{
+		IVerifyOnLoad verifyOnLoad = this.verifyOnLoad;
+		if (verifyOnLoad == null)
+		{
+			return getObjectsIntern(orisToGet, targetCache, cacheDirective);
+		}
+		try
+		{
+			return verifyOnLoad.verifyEntitiesOnLoad(new IResultingBackgroundWorkerDelegate<IList<Object>>()
+			{
+				@Override
+				public IList<Object> invoke() throws Throwable
+				{
+					return getObjectsIntern(orisToGet, targetCache, cacheDirective);
+				}
+			});
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	protected IList<Object> getObjectsIntern(List<IObjRef> orisToGet, ICacheIntern targetCache, Set<CacheDirective> cacheDirective)
 	{
 		checkNotDisposed();
 		if (orisToGet == null || orisToGet.size() == 0)
@@ -583,11 +611,36 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	}
 
 	@Override
-	public IList<IObjRelationResult> getObjRelations(List<IObjRelation> objRels, ICacheIntern targetCache, Set<CacheDirective> cacheDirective)
+	public IList<IObjRelationResult> getObjRelations(final List<IObjRelation> objRels, final ICacheIntern targetCache, final Set<CacheDirective> cacheDirective)
+	{
+		IVerifyOnLoad verifyOnLoad = this.verifyOnLoad;
+		if (verifyOnLoad == null)
+		{
+			return getObjRelationsIntern(objRels, targetCache, cacheDirective);
+		}
+		try
+		{
+			return verifyOnLoad.verifyEntitiesOnLoad(new IResultingBackgroundWorkerDelegate<IList<IObjRelationResult>>()
+			{
+				@Override
+				public IList<IObjRelationResult> invoke() throws Throwable
+				{
+					return getObjRelationsIntern(objRels, targetCache, cacheDirective);
+				}
+			});
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	protected IList<IObjRelationResult> getObjRelationsIntern(List<IObjRelation> objRels, ICacheIntern targetCache, Set<CacheDirective> cacheDirective)
 	{
 		checkNotDisposed();
 		boolean isCacheRetrieverCallAllowed = isCacheRetrieverCallAllowed(cacheDirective);
 		boolean returnMisses = cacheDirective.contains(CacheDirective.ReturnMisses);
+
 		IEventQueue eventQueue = this.eventQueue;
 		if (eventQueue != null)
 		{

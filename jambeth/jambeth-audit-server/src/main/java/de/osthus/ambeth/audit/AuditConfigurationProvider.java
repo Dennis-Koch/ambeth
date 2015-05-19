@@ -63,20 +63,20 @@ public class AuditConfigurationProvider implements IAuditConfigurationProvider, 
 		IdentityHashMap<Member, IAuditMemberConfiguration> memberToConfigurationMap = new IdentityHashMap<Member, IAuditMemberConfiguration>(0.5f);
 		for (PrimitiveMember member : metaData.getPrimitiveMembers())
 		{
-			memberToConfigurationMap.put(member, resolveMemberConfiguration(member));
+			memberToConfigurationMap.put(member, resolveMemberConfiguration(metaData, member));
 		}
 		for (RelationMember member : metaData.getRelationMembers())
 		{
-			memberToConfigurationMap.put(member, resolveMemberConfiguration(member));
+			memberToConfigurationMap.put(member, resolveMemberConfiguration(metaData, member));
 		}
 		if (metaData.getVersionMember() != null)
 		{
-			memberToConfigurationMap.put(metaData.getVersionMember(), resolveMemberConfiguration(metaData.getVersionMember()));
+			memberToConfigurationMap.put(metaData.getVersionMember(), resolveMemberConfiguration(metaData, metaData.getVersionMember()));
 		}
 		return new AuditConfiguration(auditActive, reasonRequired, memberToConfigurationMap);
 	}
 
-	protected IAuditMemberConfiguration resolveMemberConfiguration(Member member)
+	protected IAuditMemberConfiguration resolveMemberConfiguration(IEntityMetaData metaData, Member member)
 	{
 		Audited audited = member.getAnnotation(Audited.class);
 		boolean auditActive = audited != null ? audited.value() : auditedEntityPropertyDefaultModeActive;
