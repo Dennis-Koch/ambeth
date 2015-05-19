@@ -21,10 +21,18 @@ public final class MergeConfigurationConstants
 	@ConfigurationConstantDescription("TODO")
 	public static final String FieldBasedMergeActive = "ambeth.merge.fieldbased.active";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * Defines whether the exact version is needed to avoid an OptimisticLockException during update of an entity or all versions equals or higher are accepted.
+	 * Valid values are "true" and "false", default is "false".
+	 */
 	public static final String ExactVersionForOptimisticLockingRequired = "ambeth.merge.exact.version.required";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * Defines how to handle entity changes and the reload of entities to the cache. By default ("false") the version is not updated in changed entities,
+	 * forcing the DataChangeEvent to refresh the cached object from the real data. If the version is updated the cache will not updated because the DCE will
+	 * 'see' an already valid object - but it is NOT valid because it may not contain bi-directional information which can only be resolved by reloading the
+	 * object from persistence layer. Valid values are "true" and "false", default is "false".
+	 */
 	public static final String AlwaysUpdateVersionInChangedEntities = "ambeth.merge.update.version.always";
 
 	/**
@@ -32,7 +40,9 @@ public final class MergeConfigurationConstants
 	 */
 	public static final String ValueObjectConfigValidationActive = "ambeth.mapping.config.validate.active";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * If security is enabled all security relevant tasks are checked whether they are allowed by the current user.
+	 */
 	public static final String SecurityActive = "ambeth.security.active";
 
 	private MergeConfigurationConstants()
