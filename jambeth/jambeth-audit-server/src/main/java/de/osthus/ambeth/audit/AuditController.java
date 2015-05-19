@@ -1,5 +1,6 @@
 package de.osthus.ambeth.audit;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -47,6 +48,7 @@ import de.osthus.ambeth.merge.transfer.CUDResult;
 import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.DeleteContainer;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
+import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.IAuthorizedUserHolder;
@@ -58,6 +60,11 @@ import de.osthus.ambeth.security.IUserResolver;
 import de.osthus.ambeth.security.model.ISignature;
 import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.service.IMergeService;
+import de.osthus.ambeth.stream.IInputSource;
+import de.osthus.ambeth.stream.binary.IBinaryInputSource;
+import de.osthus.ambeth.stream.binary.IBinaryInputStream;
+import de.osthus.ambeth.stream.chars.ICharacterInputSource;
+import de.osthus.ambeth.stream.chars.ICharacterInputStream;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.IConversionHelper;
 
@@ -95,6 +102,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 
 	@Autowired
 	protected IMergeService mergeService;
+
+	@Autowired
+	protected IThreadLocalObjectCollector objectCollector;
 
 	@Autowired
 	protected IObjRefHelper objRefHelper;
@@ -334,10 +344,74 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			primitiveProperty.ensureRelation(IAuditedEntityPrimitiveProperty.Entity).addObjRef(auditedEntity.getReference());
 
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.Name).setNewValue(pui.getMemberName());
-			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.NewValue).setNewValue(
-					conversionHelper.convertValueToType(String.class, pui.getNewValue(), XmlHint.WRITE_ATTRIBUTE));
-
+			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.NewValue).setNewValue(auditPrimitiveValue(pui.getNewValue()));
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.Order).setNewValue(Integer.valueOf(primitives.getAddedCount()));
+		}
+	}
+
+	protected String auditPrimitiveValue(Object value)
+	{
+		if (!(value instanceof IInputSource))
+		{
+			return conversionHelper.convertValueToType(String.class, value, XmlHint.WRITE_ATTRIBUTE);
+		}
+		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
+		StringBuilder sb = objectCollector.create(StringBuilder.class);
+		try
+		{
+			if (value instanceof IBinaryInputSource)
+			{
+				IBinaryInputStream is = ((IBinaryInputSource) value).deriveBinaryInputStream();
+				try
+				{
+					int oneByte;
+					while ((oneByte = is.readByte()) != -1)
+					{
+						sb.append((char) oneByte);
+					}
+					return sb.toString();
+				}
+				finally
+				{
+					try
+					{
+						is.close();
+					}
+					catch (IOException e)
+					{
+						throw RuntimeExceptionUtil.mask(e);
+					}
+				}
+			}
+			else if (value instanceof ICharacterInputSource)
+			{
+				ICharacterInputStream is = ((ICharacterInputSource) value).deriveCharacterInputStream();
+				try
+				{
+					int oneByte;
+					while ((oneByte = is.readChar()) != -1)
+					{
+						sb.append((char) oneByte);
+					}
+					value = sb.toString();
+				}
+				finally
+				{
+					try
+					{
+						is.close();
+					}
+					catch (IOException e)
+					{
+						throw RuntimeExceptionUtil.mask(e);
+					}
+				}
+			}
+			throw new IllegalArgumentException("Can not audit value '" + value + "'");
+		}
+		finally
+		{
+			objectCollector.dispose(sb);
 		}
 	}
 

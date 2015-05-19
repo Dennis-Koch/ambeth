@@ -49,6 +49,7 @@ import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.IObjRefFactory;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
@@ -135,6 +136,9 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
+
+	@Autowired
+	protected IObjRefFactory objRefFactory;
 
 	@Autowired
 	protected IObjRefHelper objRefHelper;
@@ -295,6 +299,19 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 		return query;
 	}
 
+	protected boolean isTrailedVersionTooNew(IEntityMetaData metaData, IObjRef tempObjRef, IAuditedEntityRef ref,
+			IMap<IObjRef, IObjRefContainer> objRefToEntityMap)
+	{
+		IObjRefContainer entity = objRefToEntityMap.get(tempObjRef);
+
+		Comparable versionOfEntity = (Comparable) metaData.getVersionMember().getValue(entity);
+		Comparable versionOfAuditedEntityRef = conversionHelper.convertValueToType(versionOfEntity.getClass(), ref.getEntityVersion());
+
+		// versionOfEntity is smaller than the audited version. This means we do not want to check the WHOLE audit trail for this entity
+		// but only to a specific time-point
+		return (versionOfEntity.compareTo(versionOfAuditedEntityRef) < 0);
+	}
+
 	protected IList<IAuditedEntity> filterAuditedEntities(IList<IAuditedEntity> auditedEntities, IMap<IObjRef, ISet<String>> objRefToPrimitiveMap,
 			IList<IObjRef> objRefs, boolean[] entitiesDataInvalid)
 	{
@@ -334,6 +351,8 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 		ObjRef tempObjRef = new ObjRef();
 		tempObjRef.setIdNameIndex(ObjRef.PRIMARY_KEY_INDEX);
 
+		ArrayList<IAuditedEntity> realAuditedEntities = new ArrayList<IAuditedEntity>(auditedEntities.size());
+
 		for (int a = 0, size = auditedEntities.size(); a < size; a++)
 		{
 			IAuditedEntity auditedEntity = auditedEntities.get(a);
@@ -344,6 +363,11 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 			tempObjRef.setRealType(entityType);
 			tempObjRef.setId(conversionHelper.convertValueToType(metaData.getIdMember().getRealType(), ref.getEntityId()));
 
+			if (isTrailedVersionTooNew(metaData, tempObjRef, ref, objRefToEntityMap))
+			{
+				continue;
+			}
+			realAuditedEntities.add(auditedEntity);
 			RelationMember[] relationMembers = metaData.getRelationMembers();
 
 			if (relationMembers.length > 0)
@@ -392,9 +416,9 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 		}
 		// audit entries are ordered by timestamp DESC. So the newest auditEntries are last
 		// so we do a reverse iteration because we are interested in the LAST/RECENT assigned value to primitives
-		for (int a = auditedEntities.size(); a-- > 0;)
+		for (int a = realAuditedEntities.size(); a-- > 0;)
 		{
-			IAuditedEntity auditedEntity = auditedEntities.get(a);
+			IAuditedEntity auditedEntity = realAuditedEntities.get(a);
 			IAuditedEntityRef ref = auditedEntity.getRef();
 
 			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(ref.getEntityType());
@@ -557,7 +581,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 			{
 				continue;
 			}
-			objRefsToVerify.add(objRef);
+			objRefsToVerify.add(objRefFactory.dup(objRef));
 		}
 	}
 

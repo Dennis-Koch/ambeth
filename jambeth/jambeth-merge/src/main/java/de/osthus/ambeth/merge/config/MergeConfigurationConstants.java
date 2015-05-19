@@ -13,11 +13,6 @@ public final class MergeConfigurationConstants
 	 */
 	public static final String EntityFactoryType = "ambeth.merge.entityfactory.type";
 
-	/**
-	 * If true datachanges for deletes are generated for every ID (PK & AKs). Valid values are "true" and "false", default is "false".
-	 */
-	public static final String DeleteDataChangesByAlternateIds = "ambeth.merge.datachanges.delete.alternateids";
-
 	@ConfigurationConstantDescription("TODO")
 	public static final String FieldBasedMergeActive = "ambeth.merge.fieldbased.active";
 
