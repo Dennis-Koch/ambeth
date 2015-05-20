@@ -47,6 +47,7 @@ import de.osthus.ambeth.merge.model.RelationUpdateItemBuild;
 import de.osthus.ambeth.merge.transfer.CUDResult;
 import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.DeleteContainer;
+import de.osthus.ambeth.merge.transfer.PrimitiveUpdateItem;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IDatabase;
@@ -312,6 +313,14 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		IDirectObjRef ref = objRefToRefMap.get(objRef);
 		if (ref != null)
 		{
+			IObjRef existingObjRef = objRefToRefMap.getKey(objRef);
+			if (((Comparable) existingObjRef.getVersion()).compareTo(objRef.getVersion()) >= 0)
+			{
+				return ref;
+			}
+			objRefToRefMap.put(objRef, ref);
+			PrimitiveUpdateItem entityVersion = ((CreateOrUpdateContainerBuild) ref.getDirect()).findPrimitive(IAuditedEntityRef.EntityVersion);
+			entityVersion.setNewValue(conversionHelper.convertValueToType(String.class, objRef.getVersion()));
 			return ref;
 		}
 		CreateOrUpdateContainerBuild auditedEntityRef = auditControllerState.createEntity(IAuditedEntityRef.class);
@@ -344,24 +353,27 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			primitiveProperty.ensureRelation(IAuditedEntityPrimitiveProperty.Entity).addObjRef(auditedEntity.getReference());
 
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.Name).setNewValue(pui.getMemberName());
-			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.NewValue).setNewValue(auditPrimitiveValue(pui.getNewValue()));
+
+			String auditedValue = createAuditedValueOfEntityPrimitive(pui.getNewValue());
+			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.NewValue).setNewValue(auditedValue);
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.Order).setNewValue(Integer.valueOf(primitives.getAddedCount()));
 		}
 	}
 
-	protected String auditPrimitiveValue(Object value)
+	@Override
+	public String createAuditedValueOfEntityPrimitive(Object primitiveValueOfEntity)
 	{
-		if (!(value instanceof IInputSource))
+		if (!(primitiveValueOfEntity instanceof IInputSource))
 		{
-			return conversionHelper.convertValueToType(String.class, value, XmlHint.WRITE_ATTRIBUTE);
+			return conversionHelper.convertValueToType(String.class, primitiveValueOfEntity, XmlHint.WRITE_ATTRIBUTE);
 		}
 		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
 		StringBuilder sb = objectCollector.create(StringBuilder.class);
 		try
 		{
-			if (value instanceof IBinaryInputSource)
+			if (primitiveValueOfEntity instanceof IBinaryInputSource)
 			{
-				IBinaryInputStream is = ((IBinaryInputSource) value).deriveBinaryInputStream();
+				IBinaryInputStream is = ((IBinaryInputSource) primitiveValueOfEntity).deriveBinaryInputStream();
 				try
 				{
 					int oneByte;
@@ -383,9 +395,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 					}
 				}
 			}
-			else if (value instanceof ICharacterInputSource)
+			else if (primitiveValueOfEntity instanceof ICharacterInputSource)
 			{
-				ICharacterInputStream is = ((ICharacterInputSource) value).deriveCharacterInputStream();
+				ICharacterInputStream is = ((ICharacterInputSource) primitiveValueOfEntity).deriveCharacterInputStream();
 				try
 				{
 					int oneByte;
@@ -393,7 +405,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 					{
 						sb.append((char) oneByte);
 					}
-					value = sb.toString();
+					return sb.toString();
 				}
 				finally
 				{
@@ -407,7 +419,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 					}
 				}
 			}
-			throw new IllegalArgumentException("Can not audit value '" + value + "'");
+			throw new IllegalArgumentException("Can not audit value '" + primitiveValueOfEntity + "'");
 		}
 		finally
 		{
@@ -614,6 +626,29 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	public String peekAuditContext()
 	{
 		return getAdditionalAuditInfo().auditContextContainer.peek();
+	}
+
+	@Override
+	public IAuditInfoRevert pushClearTextPassword(final char[] clearTextPassword)
+	{
+		final AdditionalAuditInfo additionalAuditInfo = getAdditionalAuditInfo();
+		final char[] oldClearTextPassword = additionalAuditInfo.clearTextPassword;
+		final boolean oldDoClearPassword = additionalAuditInfo.doClearPassword;
+		additionalAuditInfo.clearTextPassword = clearTextPassword;
+		additionalAuditInfo.doClearPassword = false;
+		return new IAuditInfoRevert()
+		{
+			@Override
+			public void revert()
+			{
+				if (additionalAuditInfo.clearTextPassword != clearTextPassword)
+				{
+					throw new IllegalStateException("Illegal state: clearTextPassword does not match");
+				}
+				additionalAuditInfo.clearTextPassword = oldClearTextPassword;
+				additionalAuditInfo.doClearPassword = oldDoClearPassword;
+			}
+		};
 	}
 
 	@Override

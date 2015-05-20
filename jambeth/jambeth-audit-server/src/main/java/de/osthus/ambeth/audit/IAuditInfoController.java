@@ -18,5 +18,9 @@ public interface IAuditInfoController
 
 	void removeAuditInfo();
 
+	IAuditInfoRevert pushClearTextPassword(char[] clearTextPassword);
+
+	String createAuditedValueOfEntityPrimitive(Object primitiveValueOfEntity);
+
 	IAuditInfoRevert setAuthorizedUser(IUser user, char[] clearTextPassword);
 }

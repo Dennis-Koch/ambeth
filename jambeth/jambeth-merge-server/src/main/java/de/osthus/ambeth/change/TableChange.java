@@ -80,7 +80,7 @@ public class TableChange extends AbstractTableChange
 	{
 		IDirectedLinkMetaData link = command.getDirectedLink().getMetaData();
 		IFieldMetaData localField;
-		IList<IObjRef> refs = new ArrayList<IObjRef>();
+		ArrayList<IObjRef> refs = new ArrayList<IObjRef>();
 		Object foreignKey = null;
 		IObjRef reference = command.getReference();
 		if (table.getMetaData().getEntityType() == reference.getRealType())
