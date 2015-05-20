@@ -66,12 +66,13 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		Class<?> realType = entityConfig.getRealType();
 
 		HashSet<String> memberNamesToIgnore = new HashSet<String>();
+		HashSet<String> explicitBasicMemberNames = new HashSet<String>();
 		ArrayList<IMemberConfig> embeddedMembers = new ArrayList<IMemberConfig>();
 		HashMap<String, IMemberConfig> nameToMemberConfig = new HashMap<String, IMemberConfig>();
 		HashMap<String, IRelationConfig> nameToRelationConfig = new HashMap<String, IRelationConfig>();
 		LinkedHashMap<String, Member> nameToMemberMap = new LinkedHashMap<String, Member>();
 
-		fillNameCollections(entityConfig, memberNamesToIgnore, embeddedMembers, nameToMemberConfig, nameToRelationConfig);
+		fillNameCollections(entityConfig, memberNamesToIgnore, explicitBasicMemberNames, embeddedMembers, nameToMemberConfig, nameToRelationConfig);
 
 		LinkedHashSet<PrimitiveMember> alternateIdMembers = new LinkedHashSet<PrimitiveMember>();
 		LinkedHashSet<PrimitiveMember> primitiveMembers = new LinkedHashSet<PrimitiveMember>();
@@ -131,7 +132,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 			idMembers.add(idMember);
 		}
 
-		// Handle all explicitly configurated members
+		// Handle all explicitly configured members
 		for (Entry<String, Member> entry : explicitlyConfiguredMemberNameToMember)
 		{
 			String memberName = entry.getKey();
@@ -202,10 +203,11 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 				// already configured, no auto mapping needed for this member
 				continue;
 			}
+
 			MethodPropertyInfo mProperty = (MethodPropertyInfo) property;
 			Class<?> elementType = TypeInfoItemUtil.getElementTypeUsingReflection(mProperty.getGetter().getReturnType(), mProperty.getGetter()
 					.getGenericReturnType());
-			if ((nameToMemberMap.get(property.getName()) instanceof RelationMember) || relationProvider.isEntityType(elementType))
+			if (nameToMemberMap.get(property.getName()) instanceof RelationMember || relationProvider.isEntityType(elementType))
 			{
 				RelationMember member = getRelationMember(metaData.getEntityType(), property, nameToMemberMap);
 				relationMembers.add(member);
@@ -253,6 +255,11 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		for (PrimitiveMember member : primitiveMembers)
 		{
 			String memberName = member.getName();
+			if (explicitBasicMemberNames.contains(memberName))
+			{
+				// Even if the name would match, this member was explicitly configured as "basic"
+				continue;
+			}
 			if (metaData.getCreatedByMember() == null && memberName.equals(EntityMetaData.DEFAULT_NAME_CREATED_BY))
 			{
 				metaData.setCreatedByMember(member);
@@ -447,8 +454,8 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		return member;
 	}
 
-	protected void fillNameCollections(EntityConfig entityConfig, ISet<String> memberNamesToIgnore, IList<IMemberConfig> embeddedMembers,
-			IMap<String, IMemberConfig> nameToMemberConfig, IMap<String, IRelationConfig> nameToRelationConfig)
+	protected void fillNameCollections(EntityConfig entityConfig, ISet<String> memberNamesToIgnore, HashSet<String> explicitBasicMemberNames,
+			IList<IMemberConfig> embeddedMembers, IMap<String, IMemberConfig> nameToMemberConfig, IMap<String, IRelationConfig> nameToRelationConfig)
 	{
 		for (IMemberConfig memberConfig : entityConfig.getMemberConfigIterable())
 		{
@@ -465,6 +472,8 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 				memberNamesToIgnore.add(memberName + "Specified");
 				continue;
 			}
+
+			explicitBasicMemberNames.add(memberName);
 
 			String[] parts = containsDot.split(memberName, 2);
 			boolean isEmbeddedMember = parts.length > 1;
