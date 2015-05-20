@@ -36,6 +36,7 @@
 		<module>jambeth-chemspider-service</module>
 		<module>jambeth-datachange</module>
 		<module>jambeth-datachange-persistence</module>
+		<module>jambeth-dot</module>
 		<module>jambeth-event</module>
 		<module>jambeth-event-datachange</module>
 		<module>jambeth-event-server</module>
@@ -271,6 +272,12 @@
 				<artifactId>jambeth-datachange-persistence-test</artifactId>
 				<version>${project.version}</version>
 				<scope>test</scope>
+			</dependency>
+			
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-dot</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 
 			<dependency>

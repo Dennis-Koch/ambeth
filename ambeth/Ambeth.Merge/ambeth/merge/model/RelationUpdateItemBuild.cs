@@ -1,11 +1,14 @@
 using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Merge.Transfer;
+using De.Osthus.Ambeth.Util;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
+
 namespace De.Osthus.Ambeth.Merge.Model
 {
-    public class RelationUpdateItemBuild : IRelationUpdateItem
+	public class RelationUpdateItemBuild : IRelationUpdateItem, IPrintable
     {
         protected String memberName;
 
@@ -124,5 +127,29 @@ namespace De.Osthus.Ambeth.Merge.Model
             rui.RemovedORIs = RemovedORIs;
             return rui;
         }
+
+		public override String ToString()
+		{
+			StringBuilder sb = new StringBuilder();
+			ToString(sb);
+			return sb.ToString();
+		}
+
+		public void ToString(StringBuilder sb)
+		{
+			sb.Append("PUI: MemberName=").Append(MemberName);
+			IObjRef[] addedORIs = AddedORIs;
+			IObjRef[] removedORIs = RemovedORIs;
+			if (addedORIs != null && addedORIs.Length > 0)
+			{
+				sb.Append(" AddedORIs=");
+				Arrays.ToString(sb, addedORIs);
+			}
+			if (removedORIs != null && removedORIs.Length > 0)
+			{
+				sb.Append(" RemovedORIs=");
+				Arrays.ToString(sb, removedORIs);
+			}
+		}
     }
 }

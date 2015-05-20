@@ -271,7 +271,10 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter
 	{
 		try
 		{
-			os.writeUTF(name);
+			for (int a = 0, size = name.length(); a < size; a++)
+			{
+				os.writeShort(name.charAt(a));
+			}
 			if (value == null)
 			{
 				os.writeBoolean(false);
@@ -279,7 +282,10 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter
 			else
 			{
 				os.writeBoolean(true);
-				os.writeUTF(value);
+				for (int a = 0, size = value.length(); a < size; a++)
+				{
+					os.writeShort(value.charAt(a));
+				}
 			}
 		}
 		catch (Throwable e)

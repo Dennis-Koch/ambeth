@@ -19,6 +19,8 @@ import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.query.OrderByType;
+import de.osthus.ambeth.security.IUserIdentifierProvider;
+import de.osthus.ambeth.security.model.IUser;
 
 public class AuditEntryReader implements IAuditEntryReader, IStartingBean
 {
@@ -30,11 +32,16 @@ public class AuditEntryReader implements IAuditEntryReader, IStartingBean
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Autowired
+	protected IUserIdentifierProvider userIdentifierProvider;
+
+	@Autowired
 	protected IQueryBuilderFactory queryBuilderFactory;
 
 	private IQuery<IAuditedEntity> q_auditedEntity_withVersion, q_auditedEntity_noVersion;
 
 	private IQuery<IAuditEntry> q_auditEntry_withVersion, q_auditEntry_noVersion;
+
+	private IQuery<IAuditEntry> q_allUserActions;
 
 	@Override
 	public void afterStarted() throws Throwable
@@ -90,6 +97,15 @@ public class AuditEntryReader implements IAuditEntryReader, IStartingBean
 			q_auditEntry_noVersion = qb.build(qb.and(//
 					qb.isEqualTo(entityType, qb.valueName(IAuditedEntityRef.EntityType)),//
 					qb.isEqualTo(entityId, qb.valueName(IAuditedEntityRef.EntityId))));
+		}
+		{
+			IQueryBuilder<IAuditEntry> qb = queryBuilderFactory.create(IAuditEntry.class);
+			IOperand userIdentifier = qb.property(IAuditEntry.UserIdentifier);
+
+			qb.orderBy(qb.property(IAuditEntry.Timestamp), OrderByType.ASC);
+
+			q_allUserActions = qb.build(qb.and(//
+					qb.isEqualTo(userIdentifier, qb.valueName(IAuditEntry.UserIdentifier))));
 		}
 	}
 
@@ -158,5 +174,11 @@ public class AuditEntryReader implements IAuditEntryReader, IStartingBean
 	public List<IAuditEntry> getAllAuditEntriesOfEntity(Object entity)
 	{
 		return getByEntity(q_auditEntry_noVersion, q_auditEntry_withVersion, entity);
+	}
+
+	@Override
+	public List<IAuditEntry> getAllAuditEntriesOfUser(IUser user)
+	{
+		return q_allUserActions.param(IAuditEntry.UserIdentifier, userIdentifierProvider.getSID(user)).retrieve();
 	}
 }

@@ -57,10 +57,10 @@ public class EntityMetaDataClient implements IEntityMetaDataProvider
 	public IList<IEntityMetaData> getMetaData(List<Class<?>> entityTypes)
 	{
 		ArrayList<Class<?>> realEntityTypes = new ArrayList<Class<?>>(entityTypes.size());
-        for (Class<?> entityType : entityTypes)
-        {
-            realEntityTypes.add(proxyHelper.getRealType(entityType));
-        }
+		for (Class<?> entityType : entityTypes)
+		{
+			realEntityTypes.add(proxyHelper.getRealType(entityType));
+		}
 		Lock readLock = cache.getReadLock();
 		LockState lockState = readLock.releaseAllLocks();
 		try
@@ -104,5 +104,11 @@ public class EntityMetaDataClient implements IEntityMetaDataProvider
 	public Class<?>[] getEntityPersistOrder()
 	{
 		return EMPTY_TYPES;
+	}
+
+	@Override
+	public String buildDotGraph()
+	{
+		throw new UnsupportedOperationException();
 	}
 }
