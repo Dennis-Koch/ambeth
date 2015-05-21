@@ -50,7 +50,11 @@ import de.osthus.ambeth.merge.transfer.DeleteContainer;
 import de.osthus.ambeth.merge.transfer.PrimitiveUpdateItem;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.IDatabase;
+import de.osthus.ambeth.persistence.IDatabaseMetaData;
+import de.osthus.ambeth.persistence.IFieldMetaData;
+import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.IAuthorizedUserHolder;
 import de.osthus.ambeth.security.ISecurityActivation;
@@ -84,6 +88,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	protected IAuditEntryToSignature auditEntryToSignature;
 
 	@Autowired
+	protected IConnectionDialect connectionDialect;
+
+	@Autowired
 	protected IConversionHelper conversionHelper;
 
 	@Autowired
@@ -94,6 +101,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 
 	@Autowired
 	protected IDatabase database;
+
+	@Autowired
+	protected IDatabaseMetaData databaseMetaData;
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
@@ -341,6 +351,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		{
 			return;
 		}
+		ITableMetaData table = null;
 		for (IPrimitiveUpdateItem pui : puis)
 		{
 			if (!auditConfiguration.getMemberConfiguration(pui.getMemberName()).isAuditActive())
@@ -355,6 +366,18 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.Name).setNewValue(pui.getMemberName());
 
 			String auditedValue = createAuditedValueOfEntityPrimitive(pui.getNewValue());
+			if (auditedValue.length() == 0)
+			{
+				if (table == null)
+				{
+					table = databaseMetaData.getTableByType(entityType);
+				}
+				IFieldMetaData field = table.getFieldByPropertyName(pui.getMemberName());
+				if (connectionDialect.isEmptyStringAsNullStored(field))
+				{
+					auditedValue = null;
+				}
+			}
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.NewValue).setNewValue(auditedValue);
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.Order).setNewValue(Integer.valueOf(primitives.getAddedCount()));
 		}
