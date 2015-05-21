@@ -9,6 +9,7 @@ import javax.persistence.PersistenceException;
 import javax.transaction.UserTransaction;
 
 import de.osthus.ambeth.cache.ITransactionalRootCache;
+import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.database.DatabaseCallback;
@@ -59,6 +60,8 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 		public Boolean etmActive;
 
 		public LinkedHashMap<Object, IDatabase> databaseMap;
+
+		public ArrayList<IBackgroundWorkerDelegate> preCommitRunnables;
 
 		public boolean lazyMode;
 
@@ -250,6 +253,7 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 		long tillPreCommitTime = System.currentTimeMillis();
 		boolean releaseSessionId = false;
 		long sessionId = sessionIdValue.longValue();
+
 		eventDispatcher.dispatchEvent(new DatabasePreCommitEvent(sessionId));
 		ITransactionListener[] transactionListeners = transactionListenerProvider.getTransactionListeners();
 		for (ITransactionListener transactionListener : transactionListeners)
@@ -263,6 +267,24 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
+		ArrayList<IBackgroundWorkerDelegate> preCommitRunnables = tli.preCommitRunnables;
+		while (preCommitRunnables != null && preCommitRunnables.size() > 0)
+		{
+			IBackgroundWorkerDelegate[] preCommitRunnablesArray = preCommitRunnables.toArray(IBackgroundWorkerDelegate.class);
+			preCommitRunnables.clear();
+			for (int a = 0, size = preCommitRunnablesArray.length; a < size; a++)
+			{
+				try
+				{
+					preCommitRunnablesArray[a].invoke();
+				}
+				catch (Throwable e)
+				{
+					throw RuntimeExceptionUtil.mask(e);
+				}
+			}
+		}
+
 		ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap = databaseProviderRegistry.getPersistenceUnitToDatabaseProviderMap();
 		ILinkedMap<Object, IConnectionHolder> persistenceUnitToConnectionHolderMap = connectionHolderRegistry.getPersistenceUnitToConnectionHolderMap();
 		try
@@ -778,5 +800,20 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 				return runnable.invoke();
 			}
 		}, false, false, true);
+	}
+
+	@Override
+	public void runOnTransactionPreCommit(IBackgroundWorkerDelegate runnable)
+	{
+		ThreadLocalItem tli = tliTL.get();
+		if (tli == null || tli.sessionId == null)
+		{
+			throw new IllegalStateException("No transaction is currently active");
+		}
+		if (tli.preCommitRunnables == null)
+		{
+			tli.preCommitRunnables = new ArrayList<IBackgroundWorkerDelegate>();
+		}
+		tli.preCommitRunnables.add(runnable);
 	}
 }

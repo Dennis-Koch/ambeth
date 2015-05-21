@@ -503,7 +503,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 			for (Entry<IObjRef, IChangeContainer> entry : objRefToChangeContainerMap)
 			{
 				IChangeContainer changeContainer = entry.getValue();
-				changeContainersSet.add(entry.getValue());
+				changeContainersSet.add(changeContainer);
 			}
 
 			IChangeContainer[] changeContainers = changeContainersSet.toArray(IChangeContainer.class);

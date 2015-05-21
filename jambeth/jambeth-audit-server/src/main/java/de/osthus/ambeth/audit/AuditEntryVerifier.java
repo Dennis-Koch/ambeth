@@ -1,6 +1,5 @@
 package de.osthus.ambeth.audit;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
@@ -13,12 +12,10 @@ import de.osthus.ambeth.audit.model.IAuditedEntityRef;
 import de.osthus.ambeth.audit.model.IAuditedEntityRelationProperty;
 import de.osthus.ambeth.audit.model.IAuditedEntityRelationPropertyItem;
 import de.osthus.ambeth.cache.CacheDirective;
-import de.osthus.ambeth.cache.CacheFactoryDirective;
 import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheContext;
 import de.osthus.ambeth.cache.ICacheFactory;
-import de.osthus.ambeth.cache.IDisposableCache;
 import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.codec.Base64;
 import de.osthus.ambeth.collections.ArrayList;
@@ -37,7 +34,6 @@ import de.osthus.ambeth.collections.Tuple3KeyHashMap;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.format.XmlHint;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.ioc.threadlocal.IForkProcessor;
@@ -45,10 +41,12 @@ import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
+import de.osthus.ambeth.merge.ILightweightTransaction;
 import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.IObjRefFactory;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
@@ -62,6 +60,7 @@ import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.query.OrderByType;
 import de.osthus.ambeth.security.ISignatureUtil;
 import de.osthus.ambeth.security.model.ISignature;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.DirectValueHolderRef;
 import de.osthus.ambeth.util.EqualsUtil;
@@ -116,7 +115,13 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 	protected IAuditConfigurationProvider auditConfigurationProvider;
 
 	@Autowired
+	protected IAuditInfoController auditInfoController;
+
+	@Autowired
 	protected IAuditEntryToSignature auditEntryToSignature;
+
+	@Autowired
+	protected IAuditVerifyOnLoadTask auditVerifyOnLoadTask;
 
 	@Autowired
 	protected ICache cache;
@@ -134,7 +139,13 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Autowired
+	protected ILightweightTransaction transaction;
+
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
+
+	@Autowired
+	protected IObjRefFactory objRefFactory;
 
 	@Autowired
 	protected IObjRefHelper objRefHelper;
@@ -151,8 +162,8 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 	@Property(name = AuditConfigurationConstants.AuditVerifyExpectSignature, defaultValue = "true")
 	protected boolean expectSignatureOnVerify;
 
-	@Property(name = AuditConfigurationConstants.VerifyEntitiesOnLoadActive, defaultValue = "false")
-	protected boolean verifyEntitiesOnLoadActive;
+	@Property(name = AuditConfigurationConstants.VerifyEntitiesOnLoad, defaultValue = "NONE")
+	protected VerifyOnLoadMode verifyOnLoadMode;
 
 	protected final SmartCopyMap<Integer, IQuery<IAuditedEntity>> entityTypeCountToQuery = new SmartCopyMap<Integer, IQuery<IAuditedEntity>>();
 
@@ -295,6 +306,19 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 		return query;
 	}
 
+	protected boolean isTrailedVersionTooNew(IEntityMetaData metaData, IObjRef tempObjRef, IAuditedEntityRef ref,
+			IMap<IObjRef, IObjRefContainer> objRefToEntityMap)
+	{
+		IObjRefContainer entity = objRefToEntityMap.get(tempObjRef);
+
+		Comparable versionOfEntity = (Comparable) metaData.getVersionMember().getValue(entity);
+		Comparable versionOfAuditedEntityRef = conversionHelper.convertValueToType(versionOfEntity.getClass(), ref.getEntityVersion());
+
+		// versionOfEntity is smaller than the audited version. This means we do not want to check the WHOLE audit trail for this entity
+		// but only to a specific time-point
+		return (versionOfEntity.compareTo(versionOfAuditedEntityRef) < 0);
+	}
+
 	protected IList<IAuditedEntity> filterAuditedEntities(IList<IAuditedEntity> auditedEntities, IMap<IObjRef, ISet<String>> objRefToPrimitiveMap,
 			IList<IObjRef> objRefs, boolean[] entitiesDataInvalid)
 	{
@@ -334,6 +358,8 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 		ObjRef tempObjRef = new ObjRef();
 		tempObjRef.setIdNameIndex(ObjRef.PRIMARY_KEY_INDEX);
 
+		ArrayList<IAuditedEntity> realAuditedEntities = new ArrayList<IAuditedEntity>(auditedEntities.size());
+
 		for (int a = 0, size = auditedEntities.size(); a < size; a++)
 		{
 			IAuditedEntity auditedEntity = auditedEntities.get(a);
@@ -344,6 +370,11 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 			tempObjRef.setRealType(entityType);
 			tempObjRef.setId(conversionHelper.convertValueToType(metaData.getIdMember().getRealType(), ref.getEntityId()));
 
+			if (isTrailedVersionTooNew(metaData, tempObjRef, ref, objRefToEntityMap))
+			{
+				continue;
+			}
+			realAuditedEntities.add(auditedEntity);
 			RelationMember[] relationMembers = metaData.getRelationMembers();
 
 			if (relationMembers.length > 0)
@@ -392,9 +423,9 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 		}
 		// audit entries are ordered by timestamp DESC. So the newest auditEntries are last
 		// so we do a reverse iteration because we are interested in the LAST/RECENT assigned value to primitives
-		for (int a = auditedEntities.size(); a-- > 0;)
+		for (int a = realAuditedEntities.size(); a-- > 0;)
 		{
-			IAuditedEntity auditedEntity = auditedEntities.get(a);
+			IAuditedEntity auditedEntity = realAuditedEntities.get(a);
 			IAuditedEntityRef ref = auditedEntity.getRef();
 
 			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(ref.getEntityType());
@@ -421,7 +452,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 				if (entity != null)
 				{
 					Member member = metaData.getMemberByName(memberName);
-					String entityValue = conversionHelper.convertValueToType(String.class, member.getValue(entity, true), XmlHint.WRITE_ATTRIBUTE);
+					String entityValue = auditInfoController.createAuditedValueOfEntityPrimitive(member.getValue(entity, true));
 					HashMap<String, Boolean> validPropertyMap = objRefToValidPropertyMap.get(tempObjRef);
 
 					String newValue = primitive.getNewValue();
@@ -459,7 +490,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 			{
 				RelationMember relationMember = relationMembers[relationIndex];
 				IList<IObjRef> relationsOfMember = objRefHelper.extractObjRefList(relationMember.getValue(entity), null);
-				Tuple3KeyHashMap<Class<?>, Byte, String, Boolean> relationMap = relationsMap.get(relationMember.getName());
+				Tuple3KeyHashMap<Class<?>, Byte, String, Boolean> relationMap = relationsMap != null ? relationsMap.get(relationMember.getName()) : null;
 				boolean valid;
 				if (relationMap == null)
 				{
@@ -557,14 +588,14 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 			{
 				continue;
 			}
-			objRefsToVerify.add(objRef);
+			objRefsToVerify.add(objRefFactory.dup(objRef));
 		}
 	}
 
 	@Override
 	public <R> R verifyEntitiesOnLoad(final IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable
 	{
-		if (!verifyEntitiesOnLoadActive)
+		if (VerifyOnLoadMode.NONE.equals(verifyOnLoadMode))
 		{
 			return runnable.invoke();
 		}
@@ -575,6 +606,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 				return runnable.invoke();
 			}
 		}
+
 		final ArrayList<IObjRef> objRefsToVerify = new ArrayList<IObjRef>();
 		objRefsToVerifyTL.set(objRefsToVerify);
 		try
@@ -584,30 +616,40 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 			{
 				return result;
 			}
-			IDisposableCache cache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.FALSE, "AuditEntryVerifier");
-			try
+			IBackgroundWorkerDelegate verifyRunnable = new IBackgroundWorkerDelegate()
 			{
-				cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<R>()
+				@Override
+				public void invoke() throws Throwable
 				{
-					@Override
-					public R invoke() throws Throwable
+					switch (verifyOnLoadMode)
 					{
-						while (objRefsToVerify.size() > 0)
+						case VERIFY_ASYNC:
 						{
-							IObjRef[] objRefsToVerifyNow = objRefsToVerify.toArray(IObjRef.class);
-							objRefsToVerify.clear();
-							if (!verifyEntities(new ArrayList<IObjRef>(objRefsToVerifyNow)))
-							{
-								log.error("Audit entry verification failed: " + Arrays.toString(objRefsToVerifyNow));
-							}
+							auditVerifyOnLoadTask.verifyEntitiesAsync(objRefsToVerify);
+							break;
 						}
-						return null;
+						case VERIFY_SYNC:
+						{
+							auditVerifyOnLoadTask.verifyEntitiesSync(objRefsToVerify);
+							break;
+						}
+						case NONE:
+						{
+							// intended blank
+							break;
+						}
+						default:
+							throw RuntimeExceptionUtil.createEnumNotSupportedException(verifyOnLoadMode);
 					}
-				});
-			}
-			finally
+				}
+			};
+			if (!transaction.isActive())
 			{
-				cache.dispose();
+				verifyRunnable.invoke();
+			}
+			else
+			{
+				transaction.runOnTransactionPreCommit(verifyRunnable);
 			}
 			return result;
 		}

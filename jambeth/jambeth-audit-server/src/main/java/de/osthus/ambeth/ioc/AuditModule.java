@@ -8,6 +8,7 @@ import de.osthus.ambeth.audit.AuditEntryVerifier;
 import de.osthus.ambeth.audit.AuditEntryWriterV1;
 import de.osthus.ambeth.audit.AuditMethodCallPostProcessor;
 import de.osthus.ambeth.audit.AuditVerifierJob;
+import de.osthus.ambeth.audit.AuditVerifyOnLoadTask;
 import de.osthus.ambeth.audit.IAuditConfigurationExtendable;
 import de.osthus.ambeth.audit.IAuditConfigurationProvider;
 import de.osthus.ambeth.audit.IAuditEntryReader;
@@ -15,6 +16,7 @@ import de.osthus.ambeth.audit.IAuditEntryToSignature;
 import de.osthus.ambeth.audit.IAuditEntryVerifier;
 import de.osthus.ambeth.audit.IAuditEntryWriterExtendable;
 import de.osthus.ambeth.audit.IAuditInfoController;
+import de.osthus.ambeth.audit.IAuditVerifyOnLoadTask;
 import de.osthus.ambeth.audit.IMethodCallLogger;
 import de.osthus.ambeth.audit.IVerifyOnLoad;
 import de.osthus.ambeth.cache.ClearAllCachesEvent;
@@ -66,6 +68,8 @@ public class AuditModule implements IInitializingModule
 					IVerifyOnLoad.class);
 			beanContextFactory.link(auditEntryVerifier, AuditEntryVerifier.HANDLE_CLEAR_ALL_CACHES_EVENT).to(IEventListenerExtendable.class)
 					.with(ClearAllCachesEvent.class);
+
+			beanContextFactory.registerBean(AuditVerifyOnLoadTask.class).autowireable(IAuditVerifyOnLoadTask.class);
 
 			beanContextFactory.registerBean(AuditEntryToSignature.class).autowireable(IAuditEntryToSignature.class, IAuditEntryWriterExtendable.class);
 

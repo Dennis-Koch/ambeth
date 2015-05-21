@@ -59,7 +59,7 @@ import de.osthus.ambeth.util.IPrefetchConfig;
 @TestModule(AuditMethodCallTestModule.class)
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "AuditMethodCall_orm.xml;security-orm.xml"),
 		@TestProperties(name = AuditConfigurationConstants.AuditActive, value = "true"),
-		@TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoadActive, value = "true") })
+		@TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad, value = "VERIFY_SYNC") })
 @SQLStructureList({ @SQLStructure("security-structure.sql"),//
 		@SQLStructure("audit-structure.sql") })
 public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTest

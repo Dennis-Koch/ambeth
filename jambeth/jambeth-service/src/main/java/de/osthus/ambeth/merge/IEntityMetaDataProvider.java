@@ -5,10 +5,6 @@ import java.util.List;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 
-/**
- * 
- * 
- */
 public interface IEntityMetaDataProvider
 {
 	IEntityMetaData getMetaData(Class<?> entityType);
@@ -26,4 +22,6 @@ public interface IEntityMetaDataProvider
 	List<Class<?>> getValueObjectTypesByEntityType(Class<?> entityType);
 
 	Class<?>[] getEntityPersistOrder();
+
+	String buildDotGraph();
 }

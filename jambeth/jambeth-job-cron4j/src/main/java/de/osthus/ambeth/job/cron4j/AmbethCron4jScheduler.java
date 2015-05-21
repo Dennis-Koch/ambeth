@@ -6,7 +6,6 @@ import it.sauronsoftware.cron4j.Task;
 import java.util.Map;
 
 import de.osthus.ambeth.collections.IMapEntry;
-import de.osthus.ambeth.ioc.IBeanRuntime;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
@@ -93,8 +92,10 @@ public class AmbethCron4jScheduler implements IJobScheduler, IInitializingBean, 
 				stopThread.interrupt();
 			}
 		});
+		stopThread.setName("Scheduler-StopThread");
 		stopThread.setContextClassLoader(Thread.currentThread().getContextClassLoader());
 		stopThread.setDaemon(true);
+		checkOfStopThread.setName("Scheduler-StopThread-Check");
 		checkOfStopThread.setContextClassLoader(Thread.currentThread().getContextClassLoader());
 		checkOfStopThread.setDaemon(true);
 		stopThread.start();
@@ -205,8 +206,10 @@ public class AmbethCron4jScheduler implements IJobScheduler, IInitializingBean, 
 
 	protected Task createTask(IJob job, String jobName, IAuthentication authentication)
 	{
-		IBeanRuntime<AmbethCron4jJob> jobConf = beanContext.registerBean(AmbethCron4jJob.class).propertyValue("Job", job)
-				.propertyValue("JobName", jobName).propertyValue("Authentication", authentication);
-		return jobConf.finish();
+		return beanContext.registerBean(AmbethCron4jJob.class)//
+				.propertyValue("Job", job)//
+				.propertyValue("JobName", jobName)//
+				.propertyValue("Authentication", authentication)//
+				.finish();
 	}
 }

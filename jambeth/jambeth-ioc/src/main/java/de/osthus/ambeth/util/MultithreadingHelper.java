@@ -19,6 +19,9 @@ import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 
 public class MultithreadingHelper implements IMultithreadingHelper
 {
+	/**
+	 * Defines the maximal amount of time threads is given to run a parallel task.
+	 */
 	public static final String TIMEOUT = "ambeth.mth.timeout";
 
 	@Autowired(optional = true)

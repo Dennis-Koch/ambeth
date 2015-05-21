@@ -68,6 +68,7 @@ import de.osthus.ambeth.security.TestAuthentication;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.NullPrintStream;
+import de.osthus.ambeth.util.setup.IDataSetup;
 import de.osthus.ambeth.util.setup.SetupModule;
 import de.osthus.ambeth.xml.DefaultXmlWriter;
 
@@ -543,7 +544,20 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	@Override
 	protected org.junit.runners.model.Statement methodInvoker(final FrameworkMethod method, Object test)
 	{
-		final org.junit.runners.model.Statement statement = AmbethInformationBusWithPersistenceRunner.super.methodInvoker(method, test);
+		final org.junit.runners.model.Statement parentStatement = AmbethInformationBusWithPersistenceRunner.super.methodInvoker(method, test);
+		final org.junit.runners.model.Statement statement = new org.junit.runners.model.Statement()
+		{
+			@Override
+			public void evaluate() throws Throwable
+			{
+				IDataSetup dataSetup = beanContext.getParent().getService(IDataSetup.class, false);
+				if (dataSetup != null)
+				{
+					dataSetup.refreshEntityReferences();
+				}
+				parentStatement.evaluate();
+			}
+		};
 		return new org.junit.runners.model.Statement()
 		{
 			@Override

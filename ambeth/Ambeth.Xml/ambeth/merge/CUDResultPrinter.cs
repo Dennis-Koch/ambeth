@@ -220,7 +220,10 @@ namespace De.Osthus.Ambeth.Merge
 		    }
 		    Object newValue = pui.NewValue;
 		    writer.WriteStartElement(pui.MemberName);
-		    writer.WriteAttribute("value", newValue == null ? "null" : ConversionHelper.ConvertValueToType<String>(newValue));
+
+			String sValue = ConversionHelper.ConvertValueToType<String>(newValue);
+
+			writer.WriteAttribute("value", sValue == null ? "null" : sValue.Length > 256 ? "[[skipped " + sValue.Length + " chars]]" : sValue);
 		    writer.WriteEndElement();
 	    }
     }

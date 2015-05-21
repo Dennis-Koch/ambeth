@@ -21,6 +21,11 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-datachange</artifactId>
 		</dependency>
+		
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-dot</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
