@@ -16,6 +16,7 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IocModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IObjRef;
@@ -43,6 +44,9 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 
 	@Autowired
 	protected ISecurityActivation securityActivation;
+
+	@Autowired
+	protected IThreadLocalCleanupController threadLocalCleanupController;
 
 	@Autowired(value = IocModule.THREAD_POOL_NAME)
 	protected Executor executor;
@@ -102,25 +106,42 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 		{
 			writeLock.unlock();
 		}
+		Thread currentThread = Thread.currentThread();
+		String oldName = currentThread.getName();
+		currentThread.setName(getClass().getSimpleName());
 		try
 		{
-			verifyEntitiesSync(objRefsToVerify);
-		}
-		finally
-		{
-			writeLock.lock();
 			try
 			{
-				if (queuedObjRefs.size() == 0 || isDestroyed)
-				{
-					isActive = false;
-					return;
-				}
-				executor.execute(this);
+				verifyEntitiesSync(objRefsToVerify);
 			}
 			finally
 			{
-				writeLock.unlock();
+				writeLock.lock();
+				try
+				{
+					if (queuedObjRefs.size() == 0 || isDestroyed)
+					{
+						isActive = false;
+						return;
+					}
+					executor.execute(this);
+				}
+				finally
+				{
+					writeLock.unlock();
+				}
+			}
+		}
+		finally
+		{
+			try
+			{
+				threadLocalCleanupController.cleanupThreadLocal();
+			}
+			finally
+			{
+				currentThread.setName(oldName);
 			}
 		}
 	}
