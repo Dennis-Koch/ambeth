@@ -404,6 +404,8 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 	{
 		IPassword existingPassword = user.getPassword();
 		user.setPassword(password);
+		IEntityMetaData passwordMetaData = entityMetaDataProvider.getMetaData(password.getClass());
+		passwordMetaData.getMemberByName(IPassword.User).setValue(password, user);
 		if (existingPassword != null)
 		{
 			Collection<? extends IPassword> passwordHistory = user.getPasswordHistory();
@@ -411,6 +413,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 			{
 				// ugly hack because of generics
 				((Collection<IPassword>) ((Collection) passwordHistory)).add(existingPassword);
+				passwordMetaData.getMemberByName(IPassword.HistoryUser).setValue(existingPassword, user);
 			}
 		}
 		cleanupPasswordHistory(user);
@@ -436,6 +439,8 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 			});
 			IPassword passwordToRemove = passwordHistoryList.get(passwordHistoryList.size() - 1);
 			passwordHistory.remove(passwordToRemove);
+			IEntityMetaData passwordMetaData = entityMetaDataProvider.getMetaData(passwordToRemove.getClass());
+			passwordMetaData.getMemberByName(IPassword.HistoryUser).setValue(passwordToRemove, null);
 		}
 	}
 
@@ -526,12 +531,12 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		{
 			throw new IllegalStateException("No instanceof of " + IUserIdentifierProvider.class + " found to create a new signature due to password change");
 		}
-		// create a NEW signature because we can not decrypt the now invalid private key of the signature
-		// without knowing the previous password in clear-text. As a result we need a new instance for a signature
-		// because of a potential audit-trail functionality we can NOT reuse the existing signature entity
 		IEntityMetaData signatureMetaData = entityMetaDataProvider.getMetaData(signature.getClass());
 		if (signatureMetaData.getIdMember().getValue(signature, false) != null)
 		{
+			// create a NEW signature because we can not decrypt the now invalid private key of the signature
+			// without knowing the previous password in clear-text. As a result we need a new instance for a signature
+			// because of a potential audit-trail functionality we can NOT reuse the existing signature entity
 			signature = entityFactory.createEntity(ISignature.class);
 		}
 		signatureUtil.generateNewSignature(signature, clearTextPassword);
