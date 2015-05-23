@@ -18,6 +18,7 @@ import de.osthus.ambeth.datachange.model.DirectDataChangeEntry;
 import de.osthus.ambeth.datachange.transfer.DataChangeEntry;
 import de.osthus.ambeth.datachange.transfer.DataChangeEvent;
 import de.osthus.ambeth.event.IEventDispatcher;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -36,6 +37,7 @@ import de.osthus.ambeth.merge.transfer.UpdateContainer;
 import de.osthus.ambeth.service.IMergeService;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 
 public class MergeProcess implements IMergeProcess
 {
@@ -75,6 +77,9 @@ public class MergeProcess implements IMergeProcess
 
 	@Autowired
 	protected IRevertChangesHelper revertChangesHelper;
+
+	@Autowired(optional = true)
+	protected ILightweightTransaction transaction;
 
 	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
 	protected boolean isNetworkClientMode;
@@ -402,9 +407,28 @@ public class MergeProcess implements IMergeProcess
 					addNewlyPersistedEntitiesTL.set(Boolean.valueOf(addNewEntitiesToCache));
 					try
 					{
-						oriColl = mergeService.merge(cudResult, null);
-
-						mergeController.applyChangesToOriginals(cudResult, oriColl, null);
+						IResultingBackgroundWorkerDelegate<IOriCollection> runnable = new IResultingBackgroundWorkerDelegate<IOriCollection>()
+						{
+							@Override
+							public IOriCollection invoke() throws Throwable
+							{
+								IOriCollection oriColl = mergeService.merge(cudResult, null);
+								mergeController.applyChangesToOriginals(cudResult, oriColl, null);
+								return oriColl;
+							}
+						};
+						if (transaction == null || transaction.isActive())
+						{
+							oriColl = runnable.invoke();
+						}
+						else
+						{
+							oriColl = transaction.runInLazyTransaction(runnable);
+						}
+					}
+					catch (Throwable e)
+					{
+						throw RuntimeExceptionUtil.mask(e);
 					}
 					finally
 					{

@@ -62,6 +62,8 @@ public interface IConnectionDialect
 
 	int getMaxInClauseBatchThreshold();
 
+	boolean isEmptyStringAsNullStored(IFieldMetaData field);
+
 	Object convertToFieldType(IFieldMetaData field, Object value);
 
 	Object convertFromFieldType(IDatabase database, IFieldMetaData field, Class<?> expectedType, Object value);

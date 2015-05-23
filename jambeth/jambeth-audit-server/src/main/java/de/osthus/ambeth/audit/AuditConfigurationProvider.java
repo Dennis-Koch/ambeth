@@ -1,5 +1,7 @@
 package de.osthus.ambeth.audit;
 
+import java.util.concurrent.locks.Lock;
+
 import de.osthus.ambeth.annotation.AnnotationUtil;
 import de.osthus.ambeth.audit.model.Audited;
 import de.osthus.ambeth.collections.IdentityHashMap;
@@ -44,9 +46,24 @@ public class AuditConfigurationProvider implements IAuditConfigurationProvider, 
 		{
 			return auditConfiguration;
 		}
-		auditConfiguration = buildAuditConfiguration(entityType);
-		entityTypeToAuditConfigurationMap.register(auditConfiguration, entityType);
-		return auditConfiguration;
+		Lock writeLock = entityTypeToAuditConfigurationMap.getWriteLock();
+		writeLock.lock();
+		try
+		{
+			auditConfiguration = entityTypeToAuditConfigurationMap.getExtension(entityType);
+			if (auditConfiguration != null)
+			{
+				// concurrent thread might have been faster
+				return auditConfiguration;
+			}
+			auditConfiguration = buildAuditConfiguration(entityType);
+			entityTypeToAuditConfigurationMap.register(auditConfiguration, entityType);
+			return auditConfiguration;
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
 	}
 
 	protected IAuditConfiguration buildAuditConfiguration(Class<?> entityType)
