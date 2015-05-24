@@ -13,6 +13,6 @@ public class TestAuthorizationManager implements IAuthorizationManager
 	@Override
 	public IAuthorization authorize(final String sid, final ISecurityScope[] securityScopes)
 	{
-		return new DefaultAuthorization(sid, securityScopes, CallPermission.ALLOWED);
+		return new DefaultAuthorization(sid, securityScopes, CallPermission.ALLOWED, System.currentTimeMillis());
 	}
 }

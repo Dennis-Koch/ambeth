@@ -14,12 +14,20 @@ public class DefaultAuthorization implements IAuthorization
 
 	private final CallPermission callPermission;
 
-	public DefaultAuthorization(String sid, ISecurityScope[] securityScopes, CallPermission callPermission)
+	private final long authorizationTime;
+
+	public DefaultAuthorization(String sid, ISecurityScope[] securityScopes, CallPermission callPermission, long authorizationTime)
 	{
-		super();
 		this.sid = sid;
 		this.securityScopes = securityScopes;
 		this.callPermission = callPermission;
+		this.authorizationTime = authorizationTime;
+	}
+
+	@Override
+	public long getAuthorizationTime()
+	{
+		return authorizationTime;
 	}
 
 	@Override

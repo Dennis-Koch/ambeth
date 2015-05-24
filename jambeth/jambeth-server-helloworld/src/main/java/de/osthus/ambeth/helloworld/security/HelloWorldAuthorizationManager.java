@@ -65,7 +65,7 @@ public class HelloWorldAuthorizationManager implements IAuthorizationManager
 		{
 			servicePermissionMap.put(securityScope, servicePermissions);
 		}
-		return new AbstractAuthorization(servicePermissionMap, securityScopes, null, null, null, null)
+		return new AbstractAuthorization(servicePermissionMap, securityScopes, null, null, null, null, System.currentTimeMillis())
 		{
 			@Override
 			public boolean isValid()

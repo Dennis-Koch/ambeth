@@ -18,6 +18,7 @@ import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 import javax.ws.rs.ext.Provider;
 
+import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.ioc.BootstrapScannerModule;
@@ -32,16 +33,27 @@ import de.osthus.ambeth.platform.IPlatformContextConfiguration;
 import de.osthus.ambeth.platform.PlatformContextConfiguration;
 import de.osthus.ambeth.security.DefaultAuthentication;
 import de.osthus.ambeth.security.IAuthentication;
+import de.osthus.ambeth.security.IAuthorization;
+import de.osthus.ambeth.security.IAuthorizationChangeListener;
+import de.osthus.ambeth.security.IAuthorizationChangeListenerExtendable;
 import de.osthus.ambeth.security.ISecurityContext;
 import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.PasswordType;
 import de.osthus.ambeth.util.ClassLoaderUtil;
+import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.ImmutableTypeSet;
+import de.osthus.ambeth.webservice.config.WebServiceConfigurationConstants;
 
 @Provider
 public class AmbethServletListener implements ServletContextListener, ServletRequestListener, HttpSessionListener
 {
 	public static final String ATTRIBUTE_AUTHENTICATION_HANDLE = "ambeth.authentication.handle";
+
+	public static final String ATTRIBUTE_AUTHORIZATION_HANDLE = "ambeth.authorization.handle";
+
+	public static final String ATTRIBUTE_AUTHORIZATION_CHANGE_LISTENER = "ambeth.authorization.changelistener";
+
+	public static final String ATTRIBUTE_AUTHORIZATION_CHANGE_REGISTERED = "ambeth.authorization.changelistener.registered";
 
 	/**
 	 * The name of the attribute in servlet context that holds an instance of IServiceContext
@@ -192,7 +204,8 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 		HttpSession session = ((HttpServletRequest) servletRequest).getSession();
 		ServletContext servletContext = sre.getServletContext();
 
-		getService(servletContext, IHttpSessionSetter.class).setCurrentHttpSession(session);
+		IServiceContext beanContext = getServiceContext(servletContext);
+		beanContext.getService(IHttpSessionSetter.class).setCurrentHttpSession(session);
 
 		if (userName != null)
 		{
@@ -206,15 +219,81 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 			IAuthentication authentication = (IAuthentication) session.getAttribute(ATTRIBUTE_AUTHENTICATION_HANDLE);
 			if (authentication != null)
 			{
+				beanContext.getService(ISecurityContextHolder.class).getCreateContext();
 				setAuthentication(servletContext, authentication);
+
+				Number servletAuthorizationTimeToLive = getProperty(sre.getServletContext(), Number.class,
+						WebServiceConfigurationConstants.SessionAuthorizationTimeToLive);
+				if (servletAuthorizationTimeToLive != null && servletAuthorizationTimeToLive.longValue() > 0)
+				{
+					IAuthorization authorization = (IAuthorization) session.getAttribute(ATTRIBUTE_AUTHORIZATION_HANDLE);
+
+					if (authorization != null
+							&& System.currentTimeMillis() - authorization.getAuthorizationTime() <= servletAuthorizationTimeToLive.longValue())
+					{
+						setAuthorization(servletContext, authorization);
+					}
+					else
+					{
+						IAuthorizationChangeListener authorizationChangeListener = getOrCreateAuthorizationChangeListener(session);
+						beanContext.getService(IAuthorizationChangeListenerExtendable.class).registerAuthorizationChangeListener(authorizationChangeListener);
+						session.setAttribute(ATTRIBUTE_AUTHORIZATION_CHANGE_REGISTERED, Boolean.TRUE);
+					}
+				}
 			}
+		}
+	}
+
+	protected IAuthorizationChangeListener getOrCreateAuthorizationChangeListener(HttpSession session)
+	{
+		IAuthorizationChangeListener authorizationChangeListener = (IAuthorizationChangeListener) session.getAttribute(ATTRIBUTE_AUTHORIZATION_CHANGE_LISTENER);
+		if (authorizationChangeListener != null)
+		{
+			return authorizationChangeListener;
+		}
+		final ServletContext servletContext = session.getServletContext();
+		authorizationChangeListener = new IAuthorizationChangeListener()
+		{
+			@Override
+			public void authorizationChanged(IAuthorization authorization)
+			{
+				if (authorization == null)
+				{
+					return;
+				}
+				IServiceContext beanContext = getServiceContext(servletContext);
+				HttpSession session = beanContext.getService(HttpSession.class);
+				session.setAttribute(ATTRIBUTE_AUTHORIZATION_HANDLE, authorization);
+				unregisterAuthorizationChangeListener(session, beanContext);
+			}
+		};
+		session.setAttribute(ATTRIBUTE_AUTHORIZATION_CHANGE_LISTENER, authorizationChangeListener);
+		return authorizationChangeListener;
+	}
+
+	protected <T> T getProperty(ServletContext servletContext, Class<T> propertyType, String propertyName)
+	{
+		Object value = getService(servletContext, IProperties.class).get(propertyName);
+		return getService(servletContext, IConversionHelper.class).convertValueToType(propertyType, value);
+	}
+
+	protected void unregisterAuthorizationChangeListener(HttpSession session, IServiceContext beanContext)
+	{
+		if (session.getAttribute(ATTRIBUTE_AUTHORIZATION_CHANGE_REGISTERED) != null)
+		{
+			beanContext.getService(IAuthorizationChangeListenerExtendable.class).unregisterAuthorizationChangeListener(
+					getOrCreateAuthorizationChangeListener(session));
+			session.setAttribute(ATTRIBUTE_AUTHORIZATION_CHANGE_REGISTERED, null);
 		}
 	}
 
 	@Override
 	public void requestDestroyed(ServletRequestEvent sre)
 	{
+		HttpSession session = ((HttpServletRequest) sre.getServletRequest()).getSession();
 		IServiceContext beanContext = getServiceContext(sre.getServletContext());
+
+		unregisterAuthorizationChangeListener(session, beanContext);
 		beanContext.getService(IHttpSessionSetter.class).setCurrentHttpSession(null);
 		beanContext.getService(ISecurityContextHolder.class).clearContext();
 		beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
@@ -224,6 +303,12 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 	{
 		ISecurityContext securityContext = getService(servletContext, ISecurityContextHolder.class).getCreateContext();
 		securityContext.setAuthentication(authentication);
+	}
+
+	protected void setAuthorization(ServletContext servletContext, IAuthorization authorization)
+	{
+		ISecurityContext securityContext = getService(servletContext, ISecurityContextHolder.class).getCreateContext();
+		securityContext.setAuthorization(authorization);
 	}
 
 	protected <T> T getService(ServletContext servletContext, Class<T> serviceType)
@@ -248,8 +333,7 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 	@Override
 	public void sessionCreated(HttpSessionEvent se)
 	{
-		// TODO wrap httpsession events, to get create events
-		// getService(IEventDispatcher.class).dispatchEvent(se);
+		// intended blank
 	}
 
 	@Override
