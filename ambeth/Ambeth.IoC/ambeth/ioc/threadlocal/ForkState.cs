@@ -11,10 +11,13 @@ namespace De.Osthus.Ambeth.Ioc.Threadlocal
 
         protected readonly IForkedValueResolver[] forkedValueResolvers;
 
+		protected readonly List<Object>[] forkedValues;
+
         public ForkState(ForkStateEntry[] forkStateEntries, IForkedValueResolver[] forkedValueResolvers)
         {
             this.forkStateEntries = forkStateEntries;
             this.forkedValueResolvers = forkedValueResolvers;
+			this.forkedValues = new List<Object>[forkStateEntries.Length];
         }
 
         protected Object[] SetThreadLocals()
@@ -35,29 +38,30 @@ namespace De.Osthus.Ambeth.Ioc.Threadlocal
 	    protected void RestoreThreadLocals(Object[] oldValues)
 	    {
 		    ForkStateEntry[] forkStateEntries = this.forkStateEntries;
-		    for (int a = 0, size = forkStateEntries.Length; a < size; a++)
-		    {
-                ForkStateEntry forkStateEntry = forkStateEntries[a];
-                ThreadLocal<Object> tlHandle = (ThreadLocal<Object>)forkStateEntry.valueTL;
-			    Object forkedValue = tlHandle.Value;
-			    Object oldValue = oldValues[a];
-			    tlHandle.Value = oldValue;
-			    IForkedValueResolver forkedValueResolver = forkedValueResolvers[a];
-			    if (!(forkedValueResolver is ForkProcessorValueResolver))
-			    {
-				    continue;
-			    }
-			    lock (forkStateEntry)
-			    {
-				    List<Object> forkedValues = forkStateEntry.forkedValues;
-				    if (forkedValues == null)
-				    {
-					    forkedValues = new List<Object>();
-					    forkStateEntry.forkedValues = forkedValues;
-				    }
-				    forkedValues.Add(forkedValue);
-			    }
-		    }
+			IForkedValueResolver[] forkedValueResolvers = this.forkedValueResolvers;
+			List<Object>[] forkedValues = this.forkedValues;
+			lock (this)
+			{
+				for (int a = 0, size = forkStateEntries.Length; a < size; a++)
+				{
+					ForkStateEntry forkStateEntry = forkStateEntries[a];
+					ThreadLocal<Object> tlHandle = (ThreadLocal<Object>)forkStateEntry.valueTL;
+					Object forkedValue = tlHandle.Value;
+					tlHandle.Value = oldValues[a];
+					IForkedValueResolver forkedValueResolver = forkedValueResolvers[a];
+					if (!(forkedValueResolver is ForkProcessorValueResolver))
+					{
+						continue;
+					}
+					List<Object> forkedValuesItem = forkedValues[a];
+					if (forkedValuesItem == null)
+					{
+						forkedValuesItem = new List<Object>();
+						forkedValues[a] = forkedValuesItem;
+					}
+					forkedValuesItem.Add(forkedValue);
+				}
+			}
 	    }
 
         public void Use(Runnable runnable)
@@ -129,10 +133,11 @@ namespace De.Osthus.Ambeth.Ioc.Threadlocal
         {
             ForkStateEntry[] forkStateEntries = this.forkStateEntries;
             IForkedValueResolver[] forkedValueResolvers = this.forkedValueResolvers;
+			List<Object>[] forkedValues = this.forkedValues;
             for (int a = 0, size = forkStateEntries.Length; a < size; a++)
             {
                 ForkStateEntry forkStateEntry = forkStateEntries[a];
-                List<Object> forkedValues = forkStateEntry.forkedValues;
+				List<Object> forkedValuesItem = forkedValues[a];
 
                 if (forkedValues == null)
                 {
@@ -140,9 +145,9 @@ namespace De.Osthus.Ambeth.Ioc.Threadlocal
                     continue;
                 }
                 Object originalValue = forkedValueResolvers[a].GetOriginalValue();
-                for (int b = 0, sizeB = forkedValues.Count; b < sizeB; b++)
+				for (int b = 0, sizeB = forkedValuesItem.Count; b < sizeB; b++)
                 {
-                    Object forkedValue = forkedValues[b];
+					Object forkedValue = forkedValuesItem[b];
                     forkStateEntry.forkProcessor.ReturnForkedValue(originalValue, forkedValue);
                 }
             }

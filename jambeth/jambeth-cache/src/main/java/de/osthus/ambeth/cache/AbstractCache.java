@@ -21,8 +21,6 @@ import de.osthus.ambeth.compositeid.ICompositeIdFactory;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
-import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
@@ -54,10 +52,6 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 	{
 		failInCacheHierarchyModeActiveTL.set(Boolean.valueOf(failInCacheHierarchyModeActive));
 	}
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	protected CacheHashMap keyToCacheValueDict;
 

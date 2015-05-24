@@ -20,8 +20,6 @@ namespace De.Osthus.Ambeth.Ioc.Threadlocal
 
         public readonly IForkProcessor forkProcessor;
 
-        public List<Object> forkedValues;
-
         public ForkStateEntry(IThreadLocalCleanupBean tlBean, String fieldName, Object valueTL, ForkableType forkableType, IForkProcessor forkProcessor)
         {
             this.tlBean = tlBean;

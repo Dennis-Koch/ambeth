@@ -1,13 +1,7 @@
 package de.osthus.ambeth.ioc.threadlocal;
 
-import java.util.concurrent.locks.ReentrantLock;
-
-import de.osthus.ambeth.collections.ArrayList;
-
-public class ForkStateEntry extends ReentrantLock
+public class ForkStateEntry
 {
-	private static final long serialVersionUID = 7116007903541849497L;
-
 	public final IThreadLocalCleanupBean tlBean;
 
 	public final String fieldName;
@@ -17,8 +11,6 @@ public class ForkStateEntry extends ReentrantLock
 	public final ForkableType forkableType;
 
 	public final IForkProcessor forkProcessor;
-
-	public ArrayList<Object> forkedValues;
 
 	public ForkStateEntry(IThreadLocalCleanupBean tlBean, String fieldName, ThreadLocal<?> valueTL, ForkableType forkableType, IForkProcessor forkProcessor)
 	{

@@ -141,10 +141,15 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 			((IDisposable) gcProxy).dispose(); // cuts the reference of all entities to this cache instance
 			gcProxy = null;
 		}
+		cacheModification = null;
+		cachePathHelper = null;
 		entityFactory = null;
 		firstLevelCacheExtendable = null;
+		garbageProxyFactory = null;
+		log = null;
 		parent = null;
 		keyToAlternateIdsMap = null;
+		securityActivation = null;
 		super.dispose();
 	}
 
