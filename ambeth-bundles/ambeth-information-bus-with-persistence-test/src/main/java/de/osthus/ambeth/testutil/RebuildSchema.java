@@ -102,7 +102,7 @@ public class RebuildSchema
 		try
 		{
 			// run after classes because the dummy test never realy gets invoked and then the after classes does not come, but we need it for tear down.
-			runner.withAfterClasses(statement).evaluate();
+			// runner.withAfterClasses(statement).evaluate();
 		}
 		catch (Throwable e)
 		{
