@@ -843,6 +843,6 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 			}
 			return authorization;
 		}
-		return new DefaultAuthorization(sid, securityScopes, CallPermission.FORBIDDEN);
+		return new DefaultAuthorization(sid, securityScopes, CallPermission.FORBIDDEN, System.currentTimeMillis());
 	}
 }
