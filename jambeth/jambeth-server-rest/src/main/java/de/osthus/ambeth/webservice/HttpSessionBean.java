@@ -6,6 +6,7 @@ import javax.servlet.http.HttpSession;
 
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
+import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.ioc.IFactoryBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.Forkable;
@@ -25,14 +26,14 @@ public class HttpSessionBean implements IFactoryBean, MethodInterceptor, IHttpSe
 	protected IProxyFactory proxyFactory;
 
 	@Forkable
-	protected final ThreadLocal<HttpSession> httpSessionTL = new ThreadLocal<HttpSession>();
+	protected final ThreadLocal<ArrayList<HttpSession>> httpSessionStackTL = new ThreadLocal<ArrayList<HttpSession>>();
 
 	protected Object obj;
 
 	@Override
 	public void cleanupThreadLocal()
 	{
-		if (httpSessionTL.get() != null)
+		if (httpSessionStackTL.get() != null)
 		{
 			throw new IllegalStateException("Must never happen");
 		}
@@ -52,11 +53,26 @@ public class HttpSessionBean implements IFactoryBean, MethodInterceptor, IHttpSe
 	@Override
 	public void setCurrentHttpSession(HttpSession httpSession)
 	{
-		if (httpSessionTL.get() != null && httpSession != null)
+		ArrayList<HttpSession> httpSessionStack = httpSessionStackTL.get();
+		if (httpSession != null)
 		{
-			throw new IllegalStateException("Session already bound");
+			if (httpSessionStack == null)
+			{
+				httpSessionStack = new ArrayList<HttpSession>(2);
+				httpSessionStackTL.set(httpSessionStack);
+			}
+			httpSessionStack.add(httpSession);
+			return;
 		}
-		httpSessionTL.set(httpSession);
+		if (httpSessionStack == null)
+		{
+			throw new IllegalStateException("No http session bound to this thread");
+		}
+		httpSessionStack.popLastElement();
+		if (httpSessionStack.size() == 0)
+		{
+			httpSessionStackTL.set(null);
+		}
 	}
 
 	@Override
@@ -70,11 +86,11 @@ public class HttpSessionBean implements IFactoryBean, MethodInterceptor, IHttpSe
 		{
 			return proxy.invoke(this, args);
 		}
-		Object target = httpSessionTL.get();
-		if (target == null)
+		ArrayList<HttpSession> httpSessionStack = httpSessionStackTL.get();
+		if (httpSessionStack == null)
 		{
-			throw new IllegalStateException("No session bound to this thread");
+			throw new IllegalStateException("No http session bound to this thread");
 		}
-		return proxy.invoke(target, args);
+		return proxy.invoke(httpSessionStack.peek(), args);
 	}
 }

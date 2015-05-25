@@ -590,6 +590,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 			if (decodedLoginSaltPassword == null)
 			{
 				password.setSaltAlgorithm(null);
+				password.setSaltKeySpec(null);
 				password.setSalt(Base64.encodeBytes(salt).toCharArray());
 				return;
 			}
