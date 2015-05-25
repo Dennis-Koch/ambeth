@@ -237,7 +237,7 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 					{
 						IAuthorizationChangeListener authorizationChangeListener = getOrCreateAuthorizationChangeListener(session);
 						beanContext.getService(IAuthorizationChangeListenerExtendable.class).registerAuthorizationChangeListener(authorizationChangeListener);
-						session.setAttribute(ATTRIBUTE_AUTHORIZATION_CHANGE_REGISTERED, Boolean.TRUE);
+						session.setAttribute(ATTRIBUTE_AUTHORIZATION_CHANGE_REGISTERED, new AttributeAuthorizationChangeRegistered(Boolean.TRUE));
 					}
 				}
 			}
@@ -279,24 +279,52 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 
 	protected void unregisterAuthorizationChangeListener(HttpSession session, IServiceContext beanContext)
 	{
-		if (session.getAttribute(ATTRIBUTE_AUTHORIZATION_CHANGE_REGISTERED) != null)
+		AttributeAuthorizationChangeRegistered attributeAuthorizationChangeRegistered = (AttributeAuthorizationChangeRegistered) session
+				.getAttribute(ATTRIBUTE_AUTHORIZATION_CHANGE_REGISTERED);
+		if (attributeAuthorizationChangeRegistered != null && attributeAuthorizationChangeRegistered.getRegistered() != null)
 		{
 			beanContext.getService(IAuthorizationChangeListenerExtendable.class).unregisterAuthorizationChangeListener(
 					getOrCreateAuthorizationChangeListener(session));
-			session.setAttribute(ATTRIBUTE_AUTHORIZATION_CHANGE_REGISTERED, null);
+			session.removeAttribute(ATTRIBUTE_AUTHORIZATION_CHANGE_REGISTERED);
+			// TODO: not sure if the change listerner must be removed from the session to?
+			session.removeAttribute(ATTRIBUTE_AUTHORIZATION_CHANGE_LISTENER);
+
 		}
 	}
 
 	@Override
 	public void requestDestroyed(ServletRequestEvent sre)
 	{
-		HttpSession session = ((HttpServletRequest) sre.getServletRequest()).getSession();
-		IServiceContext beanContext = getServiceContext(sre.getServletContext());
 
-		unregisterAuthorizationChangeListener(session, beanContext);
+		IServiceContext beanContext = getServiceContext(sre.getServletContext());
+		HttpServletRequest httpServletRequest = (HttpServletRequest) sre.getServletRequest();
+		try
+		{
+			if (httpServletRequest.isRequestedSessionIdValid())
+			{
+				HttpSession session = httpServletRequest.getSession();
+				unregisterAuthorizationChangeListener(session, beanContext);
+			}
+
+		}
+		catch (IllegalStateException e)
+		{
+
+			if (e.getMessage().equals("Cannot create a session after the response has been committed"))
+			{
+				// intentionally left blank
+				// this happens if the session is "gone" with .invalidate()
+			}
+			else
+			{
+				throw e;
+			}
+		}
+
 		beanContext.getService(IHttpSessionSetter.class).setCurrentHttpSession(null);
 		beanContext.getService(ISecurityContextHolder.class).clearContext();
 		beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
+
 	}
 
 	protected void setAuthentication(ServletContext servletContext, IAuthentication authentication)
@@ -339,7 +367,13 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 	@Override
 	public void sessionDestroyed(HttpSessionEvent se)
 	{
-		getServiceContext(se.getSession().getServletContext()).getService(IEventDispatcher.class).dispatchEvent(se);
+		IServiceContext beanContext = getServiceContext(se.getSession().getServletContext());
+
+		beanContext.getService(IEventDispatcher.class).dispatchEvent(se);
+
+		HttpSession session = se.getSession();
+		unregisterAuthorizationChangeListener(session, beanContext);
+
 	}
 
 }
