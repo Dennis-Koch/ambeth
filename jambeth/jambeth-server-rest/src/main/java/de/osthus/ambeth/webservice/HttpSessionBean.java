@@ -16,7 +16,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.AbstractSimpleInterceptor;
 import de.osthus.ambeth.proxy.IProxyFactory;
 
-public class HttpSessionBean implements IFactoryBean, MethodInterceptor, IHttpSessionSetter, IThreadLocalCleanupBean
+public class HttpSessionBean implements IFactoryBean, MethodInterceptor, IHttpSessionProvider, IThreadLocalCleanupBean
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -46,8 +46,19 @@ public class HttpSessionBean implements IFactoryBean, MethodInterceptor, IHttpSe
 		{
 			return obj;
 		}
-		obj = proxyFactory.createProxy(HttpSession.class, new Class<?>[] { IHttpSessionSetter.class }, this);
+		obj = proxyFactory.createProxy(HttpSession.class, new Class<?>[] { IHttpSessionProvider.class }, this);
 		return obj;
+	}
+
+	@Override
+	public HttpSession getCurrentHttpSession()
+	{
+		ArrayList<HttpSession> httpSessionStack = httpSessionStackTL.get();
+		if (httpSessionStack == null)
+		{
+			return null;
+		}
+		return httpSessionStack.peek();
 	}
 
 	@Override
@@ -82,15 +93,15 @@ public class HttpSessionBean implements IFactoryBean, MethodInterceptor, IHttpSe
 		{
 			return null;
 		}
-		if (IHttpSessionSetter.class.isAssignableFrom(method.getDeclaringClass()))
+		if (IHttpSessionProvider.class.isAssignableFrom(method.getDeclaringClass()))
 		{
 			return proxy.invoke(this, args);
 		}
-		ArrayList<HttpSession> httpSessionStack = httpSessionStackTL.get();
-		if (httpSessionStack == null)
+		HttpSession httpSession = getCurrentHttpSession();
+		if (httpSession == null)
 		{
 			throw new IllegalStateException("No http session bound to this thread");
 		}
-		return proxy.invoke(httpSessionStack.peek(), args);
+		return proxy.invoke(httpSession, args);
 	}
 }
