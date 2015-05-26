@@ -103,7 +103,7 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 				{
 					beanContextFactory.registerExternalBean(servletContext).autowireable(ServletContext.class);
 					beanContextFactory.registerBean(HttpSessionBean.class).ignoreProperties("CurrentHttpSession")
-							.autowireable(HttpSession.class, IHttpSessionSetter.class);
+							.autowireable(HttpSession.class, IHttpSessionProvider.class);
 
 					beanContextFactory.link(AmbethServletListener.this).to(IAuthorizationChangeListenerExtendable.class).optional();
 				}
@@ -208,7 +208,7 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 		ServletContext servletContext = sre.getServletContext();
 
 		IServiceContext beanContext = getServiceContext(servletContext);
-		beanContext.getService(IHttpSessionSetter.class).setCurrentHttpSession(session);
+		beanContext.getService(IHttpSessionProvider.class).setCurrentHttpSession(session);
 
 		if (userName != null)
 		{
@@ -230,15 +230,16 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 				if (servletAuthorizationTimeToLive != null && servletAuthorizationTimeToLive.longValue() > 0)
 				{
 					IAuthorization authorization = (IAuthorization) session.getAttribute(ATTRIBUTE_AUTHORIZATION_HANDLE);
+					// FIXME:Bad because not always sid == username, use IUserProvider
+					if (authorization != null && !authorization.getSID().equalsIgnoreCase(authentication.getUserName()))
+					{
+						throw new IllegalStateException("Different authorization and authentication, try to figure out why sid != username");
+					}
 
 					if (authorization != null
 							&& System.currentTimeMillis() - authorization.getAuthorizationTime() <= servletAuthorizationTimeToLive.longValue())
 					{
 						setAuthorization(servletContext, authorization);
-					}
-					else
-					{
-						activateAuthorizationChangeListener();
 					}
 				}
 			}
@@ -248,21 +249,16 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 	@Override
 	public void authorizationChanged(IAuthorization authorization)
 	{
-		ArrayList<Boolean> authorizationChangeActiveStack = authorizationChangeActiveTL.get();
-
-		if (authorizationChangeActiveStack == null)
-		{
-			authorizationChangeActiveStack = new ArrayList<Boolean>(2);
-			authorizationChangeActiveTL.set(authorizationChangeActiveStack);
-		}
-		if (authorization == null || !Boolean.TRUE.equals(authorizationChangeActiveStack.peek()))
+		if (authorization == null)
 		{
 			return;
 		}
 		IServiceContext beanContext = getServiceContext(servletContext);
-		HttpSession session = beanContext.getService(HttpSession.class);
-		session.setAttribute(ATTRIBUTE_AUTHORIZATION_HANDLE, authorization);
-		passivateAuthorizationChangeListener();
+		IHttpSessionProvider httpSessionProvider = beanContext.getService(IHttpSessionProvider.class);
+		if (httpSessionProvider.getCurrentHttpSession() != null)
+		{
+			beanContext.getService(HttpSession.class).setAttribute(ATTRIBUTE_AUTHORIZATION_HANDLE, authorization);
+		}
 	}
 
 	protected <T> T getProperty(ServletContext servletContext, Class<T> propertyType, String propertyName)
@@ -271,68 +267,13 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 		return getService(servletContext, IConversionHelper.class).convertValueToType(propertyType, value);
 	}
 
-	protected void passivateAuthorizationChangeListener()
-	{
-		ArrayList<Boolean> authorizationChangeActiveStack = authorizationChangeActiveTL.get();
-		if (authorizationChangeActiveStack == null)
-		{
-			// no listener registered, nothing todo
-			return;
-		}
-		authorizationChangeActiveStack.popLastElement();
-		if (log.isDebugEnabled())
-		{
-			log.debug("passivateAuthorizationChangeListener " + authorizationChangeActiveStack.size());
-		}
-	}
-
-	protected void activateAuthorizationChangeListener()
-	{
-
-		ArrayList<Boolean> authorizationChangeActiveStack = authorizationChangeActiveTL.get();
-		if (authorizationChangeActiveStack == null)
-		{
-			authorizationChangeActiveStack = new ArrayList<Boolean>(2);
-			authorizationChangeActiveTL.set(authorizationChangeActiveStack);
-		}
-		authorizationChangeActiveStack.add(Boolean.TRUE);
-		if (log.isDebugEnabled())
-		{
-			log.debug("activateAuthorizationChangeListener " + authorizationChangeActiveStack.size());
-		}
-	}
-
 	@Override
 	public void requestDestroyed(ServletRequestEvent sre)
 	{
 		IServiceContext beanContext = getServiceContext(sre.getServletContext());
-		HttpServletRequest httpServletRequest = (HttpServletRequest) sre.getServletRequest();
-		try
-		{
-			passivateAuthorizationChangeListener();
-		}
-		catch (IllegalStateException e)
-		{
-
-			if (e.getMessage().equals("Cannot create a session after the response has been committed"))
-			{
-				// intentionally left blank
-				// this happens if the session is "gone" with .invalidate()
-			}
-			else
-			{
-				if (log.isErrorEnabled())
-				{
-					log.error(e);
-				}
-				throw e;
-			}
-		}
-
-		beanContext.getService(IHttpSessionSetter.class).setCurrentHttpSession(null);
+		beanContext.getService(IHttpSessionProvider.class).setCurrentHttpSession(null);
 		beanContext.getService(ISecurityContextHolder.class).clearContext();
 		beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
-
 	}
 
 	protected void setAuthentication(ServletContext servletContext, IAuthentication authentication)
