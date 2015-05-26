@@ -207,6 +207,13 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	}
 
 	@Override
+	protected void cacheValueHasBeenRemoved(IEntityMetaData metaData, byte idIndex, Object id, Object cacheValue)
+	{
+		((IValueHolderContainer) cacheValue).set__TargetCache(null);
+		super.cacheValueHasBeenRemoved(metaData, idIndex, id, cacheValue);
+	}
+
+	@Override
 	public Object createCacheValueInstance(IEntityMetaData metaData, Object obj)
 	{
 		if (obj != null)

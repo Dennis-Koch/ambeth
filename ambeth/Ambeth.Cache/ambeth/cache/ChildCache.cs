@@ -170,6 +170,12 @@ namespace De.Osthus.Ambeth.Cache
             PutAlternateCacheKeysToCache(metaData, newAlternateCacheKeys, cacheValueR);
         }
 
+		protected override void CacheValueHasBeenRemoved(IEntityMetaData metaData, sbyte idIndex, object id, object cacheValue)
+		{
+			((IValueHolderContainer) cacheValue).__TargetCache = null;
+			base.CacheValueHasBeenRemoved(metaData, idIndex, id, cacheValue);
+		}
+
         public override Object CreateCacheValueInstance(IEntityMetaData metaData, Object obj)
         {
             if (obj != null)
