@@ -7,8 +7,10 @@ import de.osthus.ambeth.collections.EmptySet;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.merge.transfer.RelationUpdateItem;
+import de.osthus.ambeth.util.Arrays;
+import de.osthus.ambeth.util.IPrintable;
 
-public class RelationUpdateItemBuild implements IRelationUpdateItem
+public class RelationUpdateItemBuild implements IRelationUpdateItem, IPrintable
 {
 	protected String memberName;
 
@@ -130,5 +132,31 @@ public class RelationUpdateItemBuild implements IRelationUpdateItem
 		rui.setAddedORIs(getAddedORIs());
 		rui.setRemovedORIs(getRemovedORIs());
 		return rui;
+	}
+
+	@Override
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		toString(sb);
+		return sb.toString();
+	}
+
+	@Override
+	public void toString(StringBuilder sb)
+	{
+		sb.append("RUI: MemberName=").append(getMemberName());
+		IObjRef[] addedORIs = getAddedORIs();
+		IObjRef[] removedORIs = getRemovedORIs();
+		if (addedORIs != null && addedORIs.length > 0)
+		{
+			sb.append(" AddedORIs=");
+			Arrays.toString(sb, addedORIs);
+		}
+		if (removedORIs != null && removedORIs.length > 0)
+		{
+			sb.append(" RemovedORIs=");
+			Arrays.toString(sb, removedORIs);
+		}
 	}
 }

@@ -245,7 +245,10 @@ public class CUDResultPrinter implements ICUDResultPrinter
 		}
 		Object newValue = pui.getNewValue();
 		writer.writeStartElement(pui.getMemberName());
-		writer.writeAttribute("value", newValue == null ? "null" : conversionHelper.convertValueToType(CharSequence.class, newValue));
+
+		CharSequence sValue = conversionHelper.convertValueToType(CharSequence.class, newValue);
+
+		writer.writeAttribute("value", sValue == null ? "null" : sValue.length() > 256 ? "[[skipped " + sValue.length() + " chars]]" : sValue);
 		writer.writeEndElement();
 	}
 }

@@ -15,7 +15,6 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-examples</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>

@@ -447,4 +447,10 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 		}
 		sb.append(')');
 	}
+
+	@Override
+	public boolean isEmptyStringAsNullStored(IFieldMetaData field)
+	{
+		return false;
+	}
 }
