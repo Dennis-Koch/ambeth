@@ -18,6 +18,7 @@ import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 import javax.ws.rs.ext.Provider;
 
+import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.event.IEventDispatcher;
@@ -45,15 +46,11 @@ import de.osthus.ambeth.util.ImmutableTypeSet;
 import de.osthus.ambeth.webservice.config.WebServiceConfigurationConstants;
 
 @Provider
-public class AmbethServletListener implements ServletContextListener, ServletRequestListener, HttpSessionListener
+public class AmbethServletListener implements ServletContextListener, ServletRequestListener, HttpSessionListener, IAuthorizationChangeListener
 {
 	public static final String ATTRIBUTE_AUTHENTICATION_HANDLE = "ambeth.authentication.handle";
 
 	public static final String ATTRIBUTE_AUTHORIZATION_HANDLE = "ambeth.authorization.handle";
-
-	public static final String ATTRIBUTE_AUTHORIZATION_CHANGE_LISTENER = "ambeth.authorization.changelistener";
-
-	public static final String ATTRIBUTE_AUTHORIZATION_CHANGE_REGISTERED = "ambeth.authorization.changelistener.registered";
 
 	/**
 	 * The name of the attribute in servlet context that holds an instance of IServiceContext
@@ -70,12 +67,16 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 
 	protected final Charset utfCharset = Charset.forName("UTF-8");
 
+	protected ServletContext servletContext;
+
+	protected final ThreadLocal<ArrayList<Boolean>> authorizationChangeActiveTL = new ThreadLocal<ArrayList<Boolean>>();
+
 	private ILogger log;
 
 	@Override
 	public void contextInitialized(ServletContextEvent event)
 	{
-		final ServletContext servletContext = event.getServletContext();
+		servletContext = event.getServletContext();
 		@SuppressWarnings("unchecked")
 		Enumeration<String> initParameterNames = servletContext.getInitParameterNames();
 		while (initParameterNames.hasMoreElements())
@@ -103,6 +104,8 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 					beanContextFactory.registerExternalBean(servletContext).autowireable(ServletContext.class);
 					beanContextFactory.registerBean(HttpSessionBean.class).ignoreProperties("CurrentHttpSession")
 							.autowireable(HttpSession.class, IHttpSessionSetter.class);
+
+					beanContextFactory.link(AmbethServletListener.this).to(IAuthorizationChangeListenerExtendable.class).optional();
 				}
 			});
 			pcc.addProperties(props);
@@ -235,40 +238,31 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 					}
 					else
 					{
-						IAuthorizationChangeListener authorizationChangeListener = getOrCreateAuthorizationChangeListener(session);
-						beanContext.getService(IAuthorizationChangeListenerExtendable.class).registerAuthorizationChangeListener(authorizationChangeListener);
-						session.setAttribute(ATTRIBUTE_AUTHORIZATION_CHANGE_REGISTERED, new AttributeAuthorizationChangeRegistered(Boolean.TRUE));
+						activateAuthorizationChangeListener();
 					}
 				}
 			}
 		}
 	}
 
-	protected IAuthorizationChangeListener getOrCreateAuthorizationChangeListener(HttpSession session)
+	@Override
+	public void authorizationChanged(IAuthorization authorization)
 	{
-		IAuthorizationChangeListener authorizationChangeListener = (IAuthorizationChangeListener) session.getAttribute(ATTRIBUTE_AUTHORIZATION_CHANGE_LISTENER);
-		if (authorizationChangeListener != null)
+		ArrayList<Boolean> authorizationChangeActiveStack = authorizationChangeActiveTL.get();
+
+		if (authorizationChangeActiveStack == null)
 		{
-			return authorizationChangeListener;
+			authorizationChangeActiveStack = new ArrayList<Boolean>(2);
+			authorizationChangeActiveTL.set(authorizationChangeActiveStack);
 		}
-		final ServletContext servletContext = session.getServletContext();
-		authorizationChangeListener = new IAuthorizationChangeListener()
+		if (authorization == null || !Boolean.TRUE.equals(authorizationChangeActiveStack.peek()))
 		{
-			@Override
-			public void authorizationChanged(IAuthorization authorization)
-			{
-				if (authorization == null)
-				{
-					return;
-				}
-				IServiceContext beanContext = getServiceContext(servletContext);
-				HttpSession session = beanContext.getService(HttpSession.class);
-				session.setAttribute(ATTRIBUTE_AUTHORIZATION_HANDLE, authorization);
-				unregisterAuthorizationChangeListener(session, beanContext);
-			}
-		};
-		session.setAttribute(ATTRIBUTE_AUTHORIZATION_CHANGE_LISTENER, authorizationChangeListener);
-		return authorizationChangeListener;
+			return;
+		}
+		IServiceContext beanContext = getServiceContext(servletContext);
+		HttpSession session = beanContext.getService(HttpSession.class);
+		session.setAttribute(ATTRIBUTE_AUTHORIZATION_HANDLE, authorization);
+		passivateAuthorizationChangeListener();
 	}
 
 	protected <T> T getProperty(ServletContext servletContext, Class<T> propertyType, String propertyName)
@@ -277,35 +271,45 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 		return getService(servletContext, IConversionHelper.class).convertValueToType(propertyType, value);
 	}
 
-	protected void unregisterAuthorizationChangeListener(HttpSession session, IServiceContext beanContext)
+	protected void passivateAuthorizationChangeListener()
 	{
-		AttributeAuthorizationChangeRegistered attributeAuthorizationChangeRegistered = (AttributeAuthorizationChangeRegistered) session
-				.getAttribute(ATTRIBUTE_AUTHORIZATION_CHANGE_REGISTERED);
-		if (attributeAuthorizationChangeRegistered != null && attributeAuthorizationChangeRegistered.getRegistered() != null)
+		ArrayList<Boolean> authorizationChangeActiveStack = authorizationChangeActiveTL.get();
+		if (authorizationChangeActiveStack == null)
 		{
-			beanContext.getService(IAuthorizationChangeListenerExtendable.class).unregisterAuthorizationChangeListener(
-					getOrCreateAuthorizationChangeListener(session));
-			session.removeAttribute(ATTRIBUTE_AUTHORIZATION_CHANGE_REGISTERED);
-			// TODO: not sure if the change listerner must be removed from the session to?
-			session.removeAttribute(ATTRIBUTE_AUTHORIZATION_CHANGE_LISTENER);
+			// no listener registered, nothing todo
+			return;
+		}
+		authorizationChangeActiveStack.popLastElement();
+		if (log.isDebugEnabled())
+		{
+			log.debug("passivateAuthorizationChangeListener " + authorizationChangeActiveStack.size());
+		}
+	}
 
+	protected void activateAuthorizationChangeListener()
+	{
+
+		ArrayList<Boolean> authorizationChangeActiveStack = authorizationChangeActiveTL.get();
+		if (authorizationChangeActiveStack == null)
+		{
+			authorizationChangeActiveStack = new ArrayList<Boolean>(2);
+			authorizationChangeActiveTL.set(authorizationChangeActiveStack);
+		}
+		authorizationChangeActiveStack.add(Boolean.TRUE);
+		if (log.isDebugEnabled())
+		{
+			log.debug("activateAuthorizationChangeListener " + authorizationChangeActiveStack.size());
 		}
 	}
 
 	@Override
 	public void requestDestroyed(ServletRequestEvent sre)
 	{
-
 		IServiceContext beanContext = getServiceContext(sre.getServletContext());
 		HttpServletRequest httpServletRequest = (HttpServletRequest) sre.getServletRequest();
 		try
 		{
-			if (httpServletRequest.isRequestedSessionIdValid())
-			{
-				HttpSession session = httpServletRequest.getSession();
-				unregisterAuthorizationChangeListener(session, beanContext);
-			}
-
+			passivateAuthorizationChangeListener();
 		}
 		catch (IllegalStateException e)
 		{
@@ -317,6 +321,10 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 			}
 			else
 			{
+				if (log.isErrorEnabled())
+				{
+					log.error(e);
+				}
 				throw e;
 			}
 		}
@@ -367,13 +375,15 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 	@Override
 	public void sessionDestroyed(HttpSessionEvent se)
 	{
-		IServiceContext beanContext = getServiceContext(se.getSession().getServletContext());
+		IServiceContext beanContext = getServiceContext(servletContext);
 
 		beanContext.getService(IEventDispatcher.class).dispatchEvent(se);
-
-		HttpSession session = se.getSession();
-		unregisterAuthorizationChangeListener(session, beanContext);
-
 	}
+
+	// LOGIN:
+	// sessionCreated => requestInitialized => authChangeActive => login => authorizationChanged 5 => requestDestroyed
+	//
+	// LOGOUT
+	// requestInitialized => authorizationChanged => sessionDestroyed => requestDestroyed => authorizationChanged
 
 }
