@@ -65,7 +65,7 @@ public class SignatureUtil implements IInitializingBean, ISignatureUtil
 			KeyPair pair = keyGen.generateKeyPair();
 
 			byte[] unencryptedPrivateKey = pair.getPrivate().getEncoded();
-			byte[] encryptedPrivateKey = pbEncryptor.encrypt(newEmptySignature.getPBEConfiguration(), clearTextPassword, unencryptedPrivateKey);
+			byte[] encryptedPrivateKey = pbEncryptor.encrypt(newEmptySignature.getPBEConfiguration(), true, clearTextPassword, unencryptedPrivateKey);
 
 			newEmptySignature.setPublicKey(Base64.encodeBytes(pair.getPublic().getEncoded()).toCharArray());
 			newEmptySignature.setPrivateKey(Base64.encodeBytes(encryptedPrivateKey).toCharArray());
@@ -83,7 +83,7 @@ public class SignatureUtil implements IInitializingBean, ISignatureUtil
 		{
 			byte[] encryptedPrivateKey = Base64.decode(signature.getPrivateKey());
 			byte[] decryptedPrivateKey = pbEncryptor.decrypt(signature.getPBEConfiguration(), oldClearTextPassword, encryptedPrivateKey);
-			encryptedPrivateKey = pbEncryptor.encrypt(signature.getPBEConfiguration(), newClearTextPassword, decryptedPrivateKey);
+			encryptedPrivateKey = pbEncryptor.encrypt(signature.getPBEConfiguration(), true, newClearTextPassword, decryptedPrivateKey);
 			signature.setPrivateKey(Base64.encodeBytes(encryptedPrivateKey).toCharArray());
 		}
 		catch (Throwable e)

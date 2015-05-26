@@ -414,6 +414,13 @@ namespace De.Osthus.Ambeth.Util
                     return value.ToString();
                 }
             }
+			else if (typeof(char[]).Equals(expectedType))
+			{
+				if (typeof(String).Equals(type))
+				{
+					return value.ToString().ToCharArray();
+				}
+			}
             throw new ArgumentException("Cannot convert from '" + value.GetType() + "' to '" + expectedType + "'");
         }
     }

@@ -1,6 +1,5 @@
 package de.osthus.ambeth.security;
 
-import java.io.IOException;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
@@ -12,11 +11,8 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.crypto.Cipher;
 import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
 
 import de.osthus.ambeth.codec.Base64;
 import de.osthus.ambeth.collections.ArrayList;
@@ -40,6 +36,7 @@ import de.osthus.ambeth.privilege.IPrivilegeProvider;
 import de.osthus.ambeth.privilege.model.ITypePrivilege;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
+import de.osthus.ambeth.security.model.IPBEConfiguration;
 import de.osthus.ambeth.security.model.IPassword;
 import de.osthus.ambeth.security.model.ISignature;
 import de.osthus.ambeth.security.model.IUser;
@@ -59,6 +56,9 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 
 	@Autowired
 	protected IMergeProcess mergeProcess;
+
+	@Autowired
+	protected IPBEncryptor pbEncryptor;
 
 	@Autowired
 	protected IPrivilegeProvider privilegeProvider;
@@ -84,12 +84,6 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 	@Property(name = SecurityServerConfigurationConstants.LoginPasswordAlgorithmKeySize, defaultValue = "160")
 	protected int keySize;
 
-	@Property(name = SecurityServerConfigurationConstants.LoginSaltKeySpecName, defaultValue = "AES")
-	protected String saltKeySpec;
-
-	@Property(name = SecurityServerConfigurationConstants.LoginSaltAlgorithmName, defaultValue = "AES/CBC/PKCS5Padding")
-	protected String saltAlgorithm;
-
 	@Property(name = SecurityServerConfigurationConstants.LoginSaltLength, defaultValue = "16")
 	protected int saltLength;
 
@@ -111,15 +105,13 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
 
+	@Property(name = SecurityServerConfigurationConstants.SignatureActive, defaultValue = "false")
+	protected boolean signatureActive;
+
 	protected final SmartCopyMap<String, Reference<SecretKeyFactory>> algorithmToSecretKeyFactoryMap = new SmartCopyMap<String, Reference<SecretKeyFactory>>(
 			0.5f);
 
 	protected final Lock saltReencryptionLock = new ReentrantLock();
-
-	protected volatile SecretKeySpec decodedLoginSaltPassword;
-
-	@Property(name = SecurityServerConfigurationConstants.SignatureActive, defaultValue = "false")
-	protected boolean signatureActive;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -133,7 +125,6 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 
 		if (loginSaltPassword != null)
 		{
-			decodedLoginSaltPassword = createKeySpecFromPassword(loginSaltPassword);
 			if (log.isInfoEnabled())
 			{
 				log.info("ACTIVATED: password-based security for password salt");
@@ -209,59 +200,29 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		mergeProcess.process(existingPassword, null, null, null);
 	}
 
-	public SecretKeySpec createKeySpecFromPassword(char[] encodedClearTextPassword)
-	{
-		try
-		{
-			return createSaltKeyFromPassword(Base64.decode(encodedClearTextPassword));
-		}
-		catch (IOException e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
-	protected SecretKeySpec createSaltKeyFromPassword(byte[] newSaltBinaryPassword)
-	{
-		// byte[] dummySalt = { 0 };
-		// PBEKeySpec spec = new PBEKeySpec(newSaltPassword, dummySalt, 1, 160);
-		// SecretKeyFactory factory = getSecretKeyFactory(password.getAlgorithm());
-		// byte[] decodedSaltPassword = Base64.decode(newSaltPassword);
-		// if (decodedSaltPassword.length < 16)
-		// {
-		// byte[] paddedDecodedSaltPassword = new byte[16];
-		// System.arraycopy(decodedSaltPassword, 0, paddedDecodedSaltPassword, 0, decodedSaltPassword.length);
-		// decodedSaltPassword = paddedDecodedSaltPassword;
-		// }
-		// return new SecretKeySpec(decodedSaltPassword, saltKeySpec);
-		return new SecretKeySpec(newSaltBinaryPassword, saltKeySpec);
-	}
-
 	@Override
-	public void reencryptAllSalts(byte[] newSaltBinaryPassword, Class<? extends IPassword> passwordEntityType)
+	public void reencryptAllSalts(final char[] newLoginSaltPassword)
 	{
-		ParamChecker.assertParamNotNull(newSaltBinaryPassword, "newSaltBinaryPassword");
-		ParamChecker.assertParamNotNull(passwordEntityType, "passwordEntityType");
-		ITypePrivilege privilegeOnPasswordType = privilegeProvider.getPrivilegeByType(passwordEntityType);
+		ParamChecker.assertParamNotNull(newLoginSaltPassword, "newLoginSaltPassword");
+		ITypePrivilege privilegeOnPasswordType = privilegeProvider.getPrivilegeByType(IPassword.class);
 		if (!Boolean.TRUE.equals(privilegeOnPasswordType.isReadAllowed()) || !Boolean.TRUE.equals(privilegeOnPasswordType.isUpdateAllowed()))
 		{
 			// if the current user has no general right to modify ALL password entities we can not change the password salt consistently!
-			throw new SecurityException("Current user has no right to read & update all instances of " + passwordEntityType.getName());
+			throw new SecurityException("Current user has no right to read & update all instances of " + IPassword.class.getName());
 		}
 		saltReencryptionLock.lock();
 		try
 		{
-			final SecretKeySpec newDecodedLoginSaltPassword = createSaltKeyFromPassword(newSaltBinaryPassword);
 			if (log.isInfoEnabled())
 			{
 				log.info("Reencrypt all salts with new salt-password...");
 			}
-			IList<? extends IPassword> allPasswords = queryBuilderFactory.create(passwordEntityType).build().retrieve();
+			IList<IPassword> allPasswords = queryBuilderFactory.create(IPassword.class).build().retrieve();
 			ArrayList<IPassword> changedPasswords = new ArrayList<IPassword>(allPasswords.size());
 			for (IPassword password : allPasswords)
 			{
 				byte[] decryptedSalt = decryptSalt(password);
-				encryptSalt(password, decryptedSalt, newDecodedLoginSaltPassword);
+				encryptSalt(password, decryptedSalt, newLoginSaltPassword);
 				changedPasswords.add(password);
 			}
 			mergeProcess.process(changedPasswords, null, null, new MergeFinishedCallback()
@@ -271,7 +232,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 				{
 					if (success)
 					{
-						decodedLoginSaltPassword = newDecodedLoginSaltPassword;
+						loginSaltPassword = newLoginSaltPassword;
 						if (log.isInfoEnabled())
 						{
 							log.info("Reencryption of all salts finished successfully!");
@@ -324,15 +285,12 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 
 	protected boolean isReencryptSaltRecommended(IPassword password)
 	{
-		if (decodedLoginSaltPassword != null && !saltAlgorithm.equals(password.getSaltAlgorithm()))
+		if (loginSaltPassword != null)
 		{
-			// recommended algorithm configuration changed
-			return true;
-		}
-		if (decodedLoginSaltPassword != null && !saltKeySpec.equals(password.getSaltKeySpec()))
-		{
-			// recommended algorithm configuration changed
-			return true;
+			if (pbEncryptor.isReencryptionRecommended(password.getSaltPBEConfiguration()))
+			{
+				return true;
+			}
 		}
 		return false;
 	}
@@ -508,7 +466,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		password.setIterationCount(iterationCount);
 		password.setKeySize(keySize);
 		password.setSaltLength(saltLength);
-		encryptSalt(password, PasswordSalts.nextSalt(password.getSaltLength()), decodedLoginSaltPassword);
+		encryptSalt(password, PasswordSalts.nextSalt(password.getSaltLength()), loginSaltPassword);
 		try
 		{
 			byte[] hashedPassword = hashClearTextPassword(clearTextPassword, password);
@@ -529,7 +487,8 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		}
 		if (userIdentifierProvider == null)
 		{
-			throw new IllegalStateException("No instanceof of " + IUserIdentifierProvider.class + " found to create a new signature due to password change");
+			throw new IllegalStateException("No instanceof of " + IUserIdentifierProvider.class.getName()
+					+ " found to create a new signature due to password change");
 		}
 		IEntityMetaData signatureMetaData = entityMetaDataProvider.getMetaData(signature.getClass());
 		if (signatureMetaData.getIdMember().getValue(signature, false) != null)
@@ -562,20 +521,18 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		try
 		{
 			byte[] encryptedSalt = Base64.decode(password.getSalt());
-			String saltAlgorithm = password.getSaltAlgorithm();
+			String saltAlgorithm = password.getSaltPBEConfiguration().getEncryptionAlgorithm();
 			if (saltAlgorithm == null)
 			{
 				// salt is considered as "not encrypted"
 				return encryptedSalt;
 			}
-			if (decodedLoginSaltPassword == null)
+			if (loginSaltPassword == null)
 			{
 				throw new IllegalStateException("Property '" + SecurityServerConfigurationConstants.LoginSaltPassword
 						+ "' is not specified but reading an encrypted salt from " + password);
 			}
-			Cipher cipher = Cipher.getInstance(saltAlgorithm);
-			cipher.init(Cipher.DECRYPT_MODE, decodedLoginSaltPassword, new IvParameterSpec(new byte[cipher.getBlockSize()]));
-			return cipher.doFinal(encryptedSalt);
+			return pbEncryptor.decrypt(password.getSaltPBEConfiguration(), loginSaltPassword, encryptedSalt);
 		}
 		catch (Throwable e)
 		{
@@ -583,23 +540,26 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		}
 	}
 
-	protected void encryptSalt(IPassword password, byte[] salt, SecretKeySpec decodedLoginSaltPassword)
+	protected void encryptSalt(IPassword password, byte[] salt, char[] loginSaltPassword)
 	{
 		try
 		{
-			if (decodedLoginSaltPassword == null)
+			IPBEConfiguration saltPBEConfiguration = password.getSaltPBEConfiguration();
+			if (loginSaltPassword == null)
 			{
-				password.setSaltAlgorithm(null);
-				password.setSaltKeySpec(null);
+				if (saltPBEConfiguration != null)
+				{
+					saltPBEConfiguration.setEncryptionAlgorithm(null);
+					saltPBEConfiguration.setEncryptionKeySpec(null);
+					saltPBEConfiguration.setEncryptionKeyIV(null);
+					saltPBEConfiguration.setPaddedKeyAlgorithm(null);
+					saltPBEConfiguration.setPaddedKeyIterations(0);
+					saltPBEConfiguration.setPaddedKeySize(0);
+				}
 				password.setSalt(Base64.encodeBytes(salt).toCharArray());
 				return;
 			}
-			String saltAlgorithm = this.saltAlgorithm;
-			Cipher cipher = Cipher.getInstance(saltAlgorithm);
-			cipher.init(Cipher.ENCRYPT_MODE, decodedLoginSaltPassword, new IvParameterSpec(new byte[cipher.getBlockSize()]));
-			byte[] encryptedSalt = cipher.doFinal(salt);
-			password.setSaltAlgorithm(saltAlgorithm);
-			password.setSaltKeySpec(saltKeySpec);
+			byte[] encryptedSalt = pbEncryptor.encrypt(saltPBEConfiguration, false, loginSaltPassword, salt);
 			password.setSalt(Base64.encodeBytes(encryptedSalt).toCharArray());
 		}
 		catch (Throwable e)

@@ -16,6 +16,12 @@
 		
 		<entity class="de.osthus.ambeth.audit.Password">
 			<attributes>
+				<basic name="SaltPBEConfiguration.EncryptionAlgorithm" column="SALT_ENCRYPTION_ALGORITHM"/>
+				<basic name="SaltPBEConfiguration.EncryptionKeySpec" column="SALT_ENCRYPTION_KEY_SPEC"/>
+				<basic name="SaltPBEConfiguration.EncryptionKeyIV" column="SALT_ENCRYPTION_KEY_IV"/>
+				<basic name="SaltPBEConfiguration.PaddedKeyAlgorithm" column="SALT_PADDED_KEY_ALGORITHM"/>
+				<basic name="SaltPBEConfiguration.PaddedKeySize" column="SALT_PADDED_KEY_SIZE"/>
+				<basic name="SaltPBEConfiguration.PaddedKeyIterations" column="SALT_PADDED_KEY_ITERATIONS"/>
 				<relation name="User" link="User-Password"/>
 				<relation name="HistoryUser" link="User-PasswordHistory"/>
 			</attributes>
