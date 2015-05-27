@@ -6,7 +6,6 @@ import javax.servlet.http.HttpSession;
 
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
-import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.ioc.IFactoryBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.Forkable;
@@ -26,17 +25,14 @@ public class HttpSessionBean implements IFactoryBean, MethodInterceptor, IHttpSe
 	protected IProxyFactory proxyFactory;
 
 	@Forkable
-	protected final ThreadLocal<ArrayList<HttpSession>> httpSessionStackTL = new ThreadLocal<ArrayList<HttpSession>>();
+	protected final ThreadLocal<HttpSession> httpSessionStackTL = new ThreadLocal<HttpSession>();
 
 	protected Object obj;
 
 	@Override
 	public void cleanupThreadLocal()
 	{
-		if (httpSessionStackTL.get() != null)
-		{
-			throw new IllegalStateException("Must never happen");
-		}
+		// intended blank
 	}
 
 	@Override
@@ -53,37 +49,13 @@ public class HttpSessionBean implements IFactoryBean, MethodInterceptor, IHttpSe
 	@Override
 	public HttpSession getCurrentHttpSession()
 	{
-		ArrayList<HttpSession> httpSessionStack = httpSessionStackTL.get();
-		if (httpSessionStack == null)
-		{
-			return null;
-		}
-		return httpSessionStack.peek();
+		return httpSessionStackTL.get();
 	}
 
 	@Override
 	public void setCurrentHttpSession(HttpSession httpSession)
 	{
-		ArrayList<HttpSession> httpSessionStack = httpSessionStackTL.get();
-		if (httpSession != null)
-		{
-			if (httpSessionStack == null)
-			{
-				httpSessionStack = new ArrayList<HttpSession>(2);
-				httpSessionStackTL.set(httpSessionStack);
-			}
-			httpSessionStack.add(httpSession);
-			return;
-		}
-		if (httpSessionStack == null)
-		{
-			throw new IllegalStateException("No http session bound to this thread");
-		}
-		httpSessionStack.popLastElement();
-		if (httpSessionStack.size() == 0)
-		{
-			httpSessionStackTL.set(null);
-		}
+		httpSessionStackTL.set(httpSession);
 	}
 
 	@Override
