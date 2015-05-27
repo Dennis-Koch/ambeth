@@ -13,11 +13,11 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.config.MergeServerConfigurationConstants;
+import de.osthus.ambeth.merge.model.ICreateOrUpdateContainer;
 import de.osthus.ambeth.merge.model.IDirectObjRef;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.model.IPrimitiveUpdateItem;
-import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.persistence.IDirectedLinkMetaData;
 import de.osthus.ambeth.persistence.IFieldMetaData;
@@ -281,14 +281,18 @@ public class TableChange extends AbstractTableChange
 	protected Object getAlternateIdValue(Object container, String memberName)
 	{
 		Object value = null;
-		if (container instanceof CreateContainer)
+		if (container instanceof ICreateOrUpdateContainer)
 		{
-			IPrimitiveUpdateItem[] puis = ((CreateContainer) container).getPrimitives();
+			IPrimitiveUpdateItem[] puis = ((ICreateOrUpdateContainer) container).getFullPUIs();
 			if (puis != null)
 			{
 				for (int i = puis.length; i-- > 0;)
 				{
 					IPrimitiveUpdateItem pui = puis[i];
+					if (pui == null)
+					{
+						continue;
+					}
 					if (pui.getMemberName().equals(memberName))
 					{
 						value = pui.getNewValue();
@@ -308,6 +312,10 @@ public class TableChange extends AbstractTableChange
 
 	protected Object getPrimaryIdValue(Object container)
 	{
+		if (container instanceof ICreateOrUpdateContainer)
+		{
+			return ((ICreateOrUpdateContainer) container).getReference().getId();
+		}
 		IEntityMetaData metaData = ((IEntityMetaDataHolder) container).get__EntityMetaData();
 		return metaData.getIdMember().getValue(container);
 	}

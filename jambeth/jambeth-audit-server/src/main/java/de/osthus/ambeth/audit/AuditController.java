@@ -34,6 +34,7 @@ import de.osthus.ambeth.merge.ICUDResultHelper;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IMergeListener;
 import de.osthus.ambeth.merge.IObjRefHelper;
+import de.osthus.ambeth.merge.MergeProcess;
 import de.osthus.ambeth.merge.model.CreateOrUpdateContainerBuild;
 import de.osthus.ambeth.merge.model.ICUDResult;
 import de.osthus.ambeth.merge.model.IChangeContainer;
@@ -578,7 +579,17 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 						finalizedAuditChanges.add(cc);
 					}
 					CUDResult auditMerge = new CUDResult(finalizedAuditChanges, new ArrayList<Object>(new Object[auditedChanges.size()]));
-					mergeService.merge(auditMerge, null);
+
+					Boolean oldAddNewlyPersistedEntities = MergeProcess.getAddNewlyPersistedEntities();
+					MergeProcess.setAddNewlyPersistedEntities(Boolean.FALSE);
+					try
+					{
+						mergeService.merge(auditMerge, null);
+					}
+					finally
+					{
+						MergeProcess.setAddNewlyPersistedEntities(oldAddNewlyPersistedEntities);
+					}
 
 					return null;
 				}

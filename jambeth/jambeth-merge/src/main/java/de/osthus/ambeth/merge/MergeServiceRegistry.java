@@ -167,14 +167,16 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 			@Override
 			public IOriCollection invoke() throws Throwable
 			{
-				IDisposableCache childCache = cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, Boolean.FALSE,
-						"MergeServiceRegistry.STATE");
+				IDisposableCache childCache = null;
 				try
 				{
-					IncrementalMergeState state = (IncrementalMergeState) cudResultApplier.acquireNewState(childCache);
+					IncrementalMergeState state = null;
 					ICUDResult cudResultOfCache;
 					if (MergeProcess.isAddNewlyPersistedEntities())
 					{
+						childCache = cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, Boolean.FALSE,
+								"MergeServiceRegistry.STATE");
+						state = (IncrementalMergeState) cudResultApplier.acquireNewState(childCache);
 						cudResultOfCache = cudResultApplier.applyCUDResultOnEntitiesOfCache(cudResultOriginal, true, state);
 					}
 					else
@@ -185,11 +187,12 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 					{
 						if (cudResultPrinter != null)
 						{
-							log.debug("Initial merge [" + System.identityHashCode(state) + "]:\n" + cudResultPrinter.printCUDResult(cudResultOfCache, state));
+							log.debug("Initial merge [" + System.identityHashCode(state != null ? state : cudResultOfCache) + "]:\n"
+									+ cudResultPrinter.printCUDResult(cudResultOfCache, state));
 						}
 						else
 						{
-							log.debug("Initial merge [" + System.identityHashCode(state) + "]. No Details available");
+							log.debug("Initial merge [" + System.identityHashCode(state != null ? state : cudResultOfCache) + "]. No Details available");
 						}
 					}
 					IList<MergeOperation> mergeOperationSequence;
@@ -207,7 +210,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 					}
 					if (log.isDebugEnabled())
 					{
-						log.debug("Merge finished [" + System.identityHashCode(state) + "]");
+						log.debug("Merge finished [" + System.identityHashCode(state != null ? state : cudResultOfCache) + "]");
 					}
 					if (mergeSecurityManager != null)
 					{
@@ -260,7 +263,10 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 				}
 				finally
 				{
-					childCache.dispose();
+					if (childCache != null)
+					{
+						childCache.dispose();
+					}
 				}
 			}
 		};
@@ -359,7 +365,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 
 			IOriCollection msOriCollection = mergeServiceExtension.merge(msCudResult, methodDescription);
 
-			mergeController.applyChangesToOriginals(msCudResult, msOriCollection, state.getStateCache());
+			mergeController.applyChangesToOriginals(msCudResult, msOriCollection, state != null ? state.getStateCache() : null);
 
 			List<IObjRef> allChangeORIs = msOriCollection.getAllChangeORIs();
 
