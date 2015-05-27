@@ -16,4 +16,6 @@ public interface ISecurityActivation
 	void executeWithoutFiltering(IBackgroundWorkerDelegate noFilterRunnable) throws Throwable;
 
 	<R> R executeWithoutFiltering(IResultingBackgroundWorkerDelegate<R> noFilterRunnable) throws Throwable;
+
+	<R> R executeWithFiltering(IResultingBackgroundWorkerDelegate<R> filterRunnable) throws Throwable;
 }
