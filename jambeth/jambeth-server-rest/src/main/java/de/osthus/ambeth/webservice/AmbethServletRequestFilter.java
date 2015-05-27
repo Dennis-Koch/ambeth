@@ -16,6 +16,8 @@ import javax.ws.rs.ext.Provider;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
+import de.osthus.ambeth.log.ILogger;
+import de.osthus.ambeth.log.ILoggerCache;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.security.DefaultAuthentication;
 import de.osthus.ambeth.security.IAuthentication;
@@ -60,8 +62,10 @@ public class AmbethServletRequestFilter implements Filter
 		String passwordType = request.getParameter(USER_PASS_TYPE);
 		HttpSession session = ((HttpServletRequest) request).getSession();
 		ServletContext servletContext = request.getServletContext();
-
 		IServiceContext beanContext = getServiceContext(servletContext);
+
+		ILogger log = beanContext.getService(ILoggerCache.class).getCachedLogger(beanContext, AmbethServletRequestFilter.class);
+
 		ISecurityContextHolder securityContextHolder = beanContext.getService(ISecurityContextHolder.class);
 		if (userName != null)
 		{
@@ -86,9 +90,13 @@ public class AmbethServletRequestFilter implements Filter
 					// FIXME:Bad because not always sid == username, use IUserProvider
 					if (authorization != null && !authorization.getSID().equalsIgnoreCase(authentication.getUserName()))
 					{
-						throw new IllegalStateException("Different authorization and authentication, try to figure out why sid != username");
+						session.setAttribute(ATTRIBUTE_AUTHORIZATION_HANDLE, null);
+						log.info("User authorization '" + authorization.getSID() + "' has been invalidated because of authentication '"
+								+ authentication.getUserName() + "' has been bound to session");
+						authorization = null;
+						session.invalidate();
+						return;
 					}
-
 					if (authorization != null
 							&& System.currentTimeMillis() - authorization.getAuthorizationTime() <= servletAuthorizationTimeToLive.longValue())
 					{
