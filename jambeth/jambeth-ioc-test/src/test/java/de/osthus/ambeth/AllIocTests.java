@@ -13,8 +13,8 @@ import de.osthus.ambeth.util.ClassTupleExtendableContainerPerformanceTest;
 import de.osthus.ambeth.util.DelegatingConversionHelperTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ de.osthus.ambeth.ioc.AllTests.class, AmbethIocRunnerTest.class, ClassTupleExtendableContainerPerformanceTest.class, LinkContainerTest.class,
-		IocPerformanceTest.class, DelegatingConversionHelperTest.class, PropertyInfoProviderTest.class, PropertyInfoTest.class })
+@SuiteClasses({ de.osthus.ambeth.ioc.AllTests.class, AmbethTest.class, AmbethIocRunnerTest.class, ClassTupleExtendableContainerPerformanceTest.class,
+		LinkContainerTest.class, IocPerformanceTest.class, DelegatingConversionHelperTest.class, PropertyInfoProviderTest.class, PropertyInfoTest.class })
 public class AllIocTests
 {
 }
