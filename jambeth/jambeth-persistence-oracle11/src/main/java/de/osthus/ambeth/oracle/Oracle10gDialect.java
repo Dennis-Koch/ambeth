@@ -34,6 +34,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.ITransactionState;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IColumnEntry;
+import de.osthus.ambeth.persistence.IFieldMetaData;
 import de.osthus.ambeth.persistence.SQLState;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.exception.NullConstraintException;
@@ -499,5 +500,16 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 		{
 			JdbcUtil.close(tableColumnsRS);
 		}
+	}
+
+	@Override
+	public boolean isEmptyStringAsNullStored(IFieldMetaData field)
+	{
+		String originalTypeName = field.getOriginalTypeName();
+		if ("VARCHAR2".equals(originalTypeName) || "VARCHAR".equals(originalTypeName))
+		{
+			return true;
+		}
+		return false;
 	}
 }

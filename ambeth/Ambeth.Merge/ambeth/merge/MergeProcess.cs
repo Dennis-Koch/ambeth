@@ -62,6 +62,9 @@ namespace De.Osthus.Ambeth.Merge
         [Autowired]
         public IRevertChangesHelper RevertChangesHelper { protected get; set; }
 
+		[Autowired(Optional = true)]
+		public ILightweightTransaction Transaction { protected get; set; }
+
         [Property(ServiceConfigurationConstants.NetworkClientMode, DefaultValue = "false")]
         public bool IsNetworkClientMode { protected get; set; }
 
@@ -340,9 +343,20 @@ namespace De.Osthus.Ambeth.Merge
                         addNewlyPersistedEntitiesTL.Value = addNewEntitiesToCache;
                         try
                         {
-                            oriColl = MergeService.Merge(cudResult, null);
-
-                            MergeController.ApplyChangesToOriginals(cudResult, oriColl, null);
+							IResultingBackgroundWorkerDelegate<IOriCollection> runnable = new IResultingBackgroundWorkerDelegate<IOriCollection>(delegate()
+							{
+								IOriCollection oriColl2 = MergeService.Merge(cudResult, null);
+								MergeController.ApplyChangesToOriginals(cudResult, oriColl2, null);
+								return oriColl2;
+							});
+							if (Transaction == null || Transaction.Active)
+							{
+								oriColl = runnable();
+							}
+							else
+							{
+								oriColl = Transaction.RunInLazyTransaction(runnable);
+							}
                         }
                         finally
                         {

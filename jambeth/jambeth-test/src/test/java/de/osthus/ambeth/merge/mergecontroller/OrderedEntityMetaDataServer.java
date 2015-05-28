@@ -71,4 +71,10 @@ public class OrderedEntityMetaDataServer implements IEntityMetaDataProvider
 	{
 		return entityMetaDataProvider.getValueObjectTypesByEntityType(entityType);
 	}
+
+	@Override
+	public String buildDotGraph()
+	{
+		return entityMetaDataProvider.buildDotGraph();
+	}
 }

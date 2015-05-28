@@ -65,7 +65,7 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 			IAuditEntryWriter auditEntryWriter = auditEntryWriters.getExtension(protocol);
 			if (auditEntryWriter == null)
 			{
-				throw new IllegalArgumentException("Not instance of " + IAuditEntryWriter.class.getSimpleName() + " found for protocol '" + protocol + "' of "
+				throw new IllegalArgumentException("No instance of " + IAuditEntryWriter.class.getSimpleName() + " found for protocol '" + protocol + "' of "
 						+ auditEntry);
 			}
 			auditEntryWriter.writeAuditEntry(auditEntry, hashAlgorithm, signatureHandle);
@@ -85,7 +85,7 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 			IAuditEntryWriter auditEntryWriter = auditEntryWriters.getExtension(protocol);
 			if (auditEntryWriter == null)
 			{
-				throw new IllegalArgumentException("Not instance of " + IAuditEntryWriter.class.getSimpleName() + " found for protocol '" + protocol + "' of "
+				throw new IllegalArgumentException("No instance of " + IAuditEntryWriter.class.getSimpleName() + " found for protocol '" + protocol + "' of "
 						+ auditEntry);
 			}
 			String hashAlgorithm = auditEntry.getHashAlgorithm();
@@ -123,7 +123,7 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 			IAuditEntryWriter auditEntryWriter = auditEntryWriters.getExtension(protocol);
 			if (auditEntryWriter == null)
 			{
-				throw new IllegalArgumentException("Not instance of " + IAuditEntryWriter.class.getSimpleName() + " found for protocol '" + protocol + "' of "
+				throw new IllegalArgumentException("No instance of " + IAuditEntryWriter.class.getSimpleName() + " found for protocol '" + protocol + "' of "
 						+ auditEntry);
 			}
 			String hashAlgorithm = auditEntry.getHashAlgorithm();

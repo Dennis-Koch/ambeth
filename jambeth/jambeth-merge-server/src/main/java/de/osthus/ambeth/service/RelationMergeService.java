@@ -299,8 +299,10 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			{
 				continue;
 			}
-			final IObjRef[] removedORIs = rui.getRemovedORIs();
-			final IObjRef[] addedORIs = rui.getAddedORIs();
+			IObjRef[] removedORIs = rui.getRemovedORIs();
+			IObjRef[] addedORIs = rui.getAddedORIs();
+			LinkContainer linkContainer = null;
+			LinkChangeCommand command = null;
 			if (removedORIs != null && removedORIs.length > 0)
 			{
 				if (linkMD.isCascadeDelete())
@@ -334,13 +336,12 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 					}
 				}
 
-				LinkChangeCommand command = new LinkChangeCommand(reference, link);
-				command.addRefsToUnlink(removedORIs);
-
-				LinkContainer linkContainer = new LinkContainer();
+				command = new LinkChangeCommand(reference, link);
+				linkContainer = new LinkContainer();
 				linkContainer.setReference(reference);
 				linkContainer.setCommand(command);
-				changeContainers.add(linkContainer);
+
+				command.addRefsToUnlink(removedORIs);
 			}
 			if (addedORIs != null && addedORIs.length > 0)
 			{
@@ -367,14 +368,21 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 						movedOris.add(addedObjRef);
 					}
 				}
-				LinkChangeCommand command = new LinkChangeCommand(reference, link);
+				if (command == null)
+				{
+					command = new LinkChangeCommand(reference, link);
+				}
+				if (linkContainer == null)
+				{
+					linkContainer = new LinkContainer();
+					linkContainer.setReference(reference);
+					linkContainer.setCommand(command);
+				}
 				command.addRefsToLink(addedORIs);
-
-				LinkContainer linkContainer = new LinkContainer();
-				linkContainer.setReference(reference);
-				linkContainer.setCommand(command);
+			}
+			if (linkContainer != null)
+			{
 				changeContainers.add(linkContainer);
-
 				objRefToChangeContainerMap.put(linkContainer.getReference(), linkContainer);
 			}
 		}

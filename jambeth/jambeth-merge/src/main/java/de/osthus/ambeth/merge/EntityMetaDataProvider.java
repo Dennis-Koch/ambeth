@@ -1,5 +1,7 @@
 package de.osthus.ambeth.merge;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -22,9 +24,13 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.collections.IdentityHashSet;
+import de.osthus.ambeth.dot.DotWriter;
+import de.osthus.ambeth.dot.IDotNode;
+import de.osthus.ambeth.dot.IDotWriter;
 import de.osthus.ambeth.event.EntityMetaDataAddedEvent;
 import de.osthus.ambeth.event.EntityMetaDataRemovedEvent;
 import de.osthus.ambeth.event.IEventDispatcher;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.MergeModule;
@@ -45,6 +51,7 @@ import de.osthus.ambeth.metadata.IPrimitiveMemberWrite;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
+import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
@@ -83,6 +90,9 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
 	@Autowired
 	protected IMemberTypeProvider memberTypeProvider;
+
+	@Autowired
+	protected IThreadLocalObjectCollector objectCollector;
 
 	@Autowired
 	protected IPropertyInfoProvider propertyInfoProvider;
@@ -171,6 +181,167 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			((EntityMetaData) metaData).setTypesRelatingToThis(relatedByTypes.toArray(Class.class));
 			refreshMembers(metaData);
 		}
+	}
+
+	@Override
+	public String buildDotGraph()
+	{
+		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
+		final StringBuilder sb = objectCollector.create(StringBuilder.class);
+		try
+		{
+			IEntityMetaData[] extensions = new IdentityHashSet<IEntityMetaData>(getExtensions().values()).toArray(IEntityMetaData.class);
+
+			IDotWriter writer = new DotWriter(new Writer()
+			{
+				@Override
+				public void write(int c) throws IOException
+				{
+					sb.append(c);
+				}
+
+				@Override
+				public void write(String str) throws IOException
+				{
+					sb.append(str);
+				}
+
+				@Override
+				public void write(char[] cbuf, int off, int len) throws IOException
+				{
+					sb.append(cbuf, off, len);
+				}
+
+				@Override
+				public Writer append(char c) throws IOException
+				{
+					sb.append(c);
+					return this;
+				}
+
+				@Override
+				public Writer append(CharSequence csq) throws IOException
+				{
+					sb.append(csq);
+					return this;
+				}
+
+				@Override
+				public Writer append(CharSequence csq, int start, int end) throws IOException
+				{
+					sb.append(csq, start, end);
+					return this;
+				}
+
+				@Override
+				public void flush() throws IOException
+				{
+					// intended blank
+				}
+
+				@Override
+				public void close() throws IOException
+				{
+					// intended blank
+				}
+			});
+
+			try
+			{
+				// writer.write("\n\tgraph [truecolor=true mindist=2 overlap=prism];");
+				// writer.write("\n\tedge [len=4];");
+				for (IEntityMetaData metaData : extensions)
+				{
+					if (metaData == alreadyHandled)
+					{
+						continue;
+					}
+					{
+						IDotNode node = writer.openNode(metaData);
+						node.attribute("label", metaData.getEntityType().getSimpleName());
+						node.attribute("shape", "ellipse");
+						node.attribute("style", "filled");
+						node.attribute("fontcolor", "#ffffffff");
+						node.attribute("fillcolor", "#d0771eff");
+						node.endNode();
+					}
+
+					for (Member member : metaData.getPrimitiveMembers())
+					{
+						IDotNode node = writer.openNode(member);
+						node.attribute("label", member.getName());
+						node.attribute("shape", "ellipse");
+						node.attribute("style", "filled");
+						node.attribute("fontcolor", "#ffffffff");
+						node.attribute("fillcolor", "#0066ffff");
+						node.endNode();
+					}
+					for (Member member : metaData.getRelationMembers())
+					{
+						IDotNode node = writer.openNode(member);
+						node.attribute("label", member.getName());
+						node.attribute("shape", "ellipse");
+						node.attribute("style", "filled");
+						node.attribute("fontcolor", "#ffffffff");
+						node.attribute("fillcolor", "#0066ffff");
+						node.endNode();
+					}
+				}
+				for (IEntityMetaData metaData : extensions)
+				{
+					if (metaData == alreadyHandled)
+					{
+						continue;
+					}
+					for (Member member : metaData.getPrimitiveMembers())
+					{
+						writer.openEdge(metaData, member).attribute("arrowhead", "none").endEdge();
+					}
+					for (Member member : metaData.getRelationMembers())
+					{
+						writer.openEdge(metaData, member).attribute("arrowhead", "none").endEdge();
+
+						IEntityMetaData targetMetaData = getMetaData(member.getElementType(), true);
+						if (targetMetaData != null)
+						{
+							writer.openEdge(member, targetMetaData).endEdge();
+						}
+					}
+				}
+			}
+			finally
+			{
+				try
+				{
+					writer.close();
+				}
+				catch (Throwable e)
+				{
+					throw RuntimeExceptionUtil.mask(e);
+				}
+			}
+			return sb.toString();
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			objectCollector.dispose(sb);
+		}
+	}
+
+	protected String getNodeName(Object handle, IMap<Object, String> handleToNodeIdMap)
+	{
+		String nodeId = handleToNodeIdMap.get(handle);
+		if (nodeId != null)
+		{
+			return nodeId;
+		}
+		nodeId = Integer.valueOf(handleToNodeIdMap.size() + 1).toString();
+		handleToNodeIdMap.put(handle, nodeId);
+		return nodeId;
 	}
 
 	@Override
