@@ -4,7 +4,6 @@ import java.io.Closeable;
 import java.util.Properties;
 
 import de.osthus.ambeth.config.IProperties;
-import de.osthus.ambeth.ioc.IInitializingModule;
 
 public interface IAmbethConfiguration
 {
@@ -53,7 +52,7 @@ public interface IAmbethConfiguration
 	 *            Ambeth modules
 	 * @return This configuration object
 	 */
-	IAmbethConfiguration withAmbethModules(IInitializingModule... modules);
+	IAmbethConfiguration withAmbethModules(Class<?>... modules);
 
 	/**
 	 * Adds the provided module classes to the list of modules to start with the application context.
@@ -62,7 +61,7 @@ public interface IAmbethConfiguration
 	 *            Application modules
 	 * @return This configuration object
 	 */
-	IAmbethConfiguration withApplicationModules(IInitializingModule... modules);
+	IAmbethConfiguration withApplicationModules(Class<?>... modules);
 
 	/**
 	 * Starts the configured Ambeth context. It returns an {@link Closeable} Ambeth application object that also holds the configured application context.

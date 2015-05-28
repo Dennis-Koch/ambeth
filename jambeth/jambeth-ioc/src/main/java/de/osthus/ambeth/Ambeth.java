@@ -5,7 +5,6 @@ import java.io.IOException;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
-import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 
@@ -19,9 +18,9 @@ public class Ambeth implements IAmbethConfiguration, IAmbethApplication
 
 	protected Properties properties = new Properties();
 
-	protected ArrayList<IInitializingModule> ambethModules = new ArrayList<IInitializingModule>();
+	protected ArrayList<Class<?>> ambethModules = new ArrayList<Class<?>>();
 
-	protected ArrayList<IInitializingModule> applicationModules = new ArrayList<IInitializingModule>();
+	protected ArrayList<Class<?>> applicationModules = new ArrayList<Class<?>>();
 
 	private IServiceContext bootstrapContext;
 
@@ -79,7 +78,7 @@ public class Ambeth implements IAmbethConfiguration, IAmbethApplication
 	 * {@inheritDoc}
 	 */
 	@Override
-	public IAmbethConfiguration withAmbethModules(IInitializingModule... modules)
+	public IAmbethConfiguration withAmbethModules(Class<?>... modules)
 	{
 		ambethModules.addAll(modules);
 		return this;
@@ -89,7 +88,7 @@ public class Ambeth implements IAmbethConfiguration, IAmbethApplication
 	 * {@inheritDoc}
 	 */
 	@Override
-	public IAmbethConfiguration withApplicationModules(IInitializingModule... modules)
+	public IAmbethConfiguration withApplicationModules(Class<?>... modules)
 	{
 		applicationModules.addAll(modules);
 		return this;
@@ -102,6 +101,7 @@ public class Ambeth implements IAmbethConfiguration, IAmbethApplication
 	public IAmbethApplication start()
 	{
 		Properties properties = Properties.getApplication();
+		properties.load(this.properties);
 		Properties.loadBootstrapPropertyFile();
 
 		bootstrapContext = BeanContextFactory.createBootstrap(properties);
