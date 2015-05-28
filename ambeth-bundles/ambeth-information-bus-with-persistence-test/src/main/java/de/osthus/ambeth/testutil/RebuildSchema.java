@@ -2,7 +2,6 @@ package de.osthus.ambeth.testutil;
 
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
-import org.junit.runners.model.Statement;
 
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.UtilConfigurationConstants;
@@ -88,21 +87,17 @@ public class RebuildSchema
 			DataSetupExecutor.setAutoRebuildData(null);
 		}
 		runner.rebuildContext();
-
-		runner.methodInvoker(method, runner.createTest());
-		Statement statement = new Statement()
-		{
-
-			@Override
-			public void evaluate() throws Throwable
-			{
-				// left blank
-			}
-		};
 		try
 		{
-			// run after classes because the dummy test never realy gets invoked and then the after classes does not come, but we need it for tear down.
-			// runner.withAfterClasses(statement).evaluate();
+			runner.methodInvoker(method, runner.createTest());
+		}
+		finally
+		{
+			runner.disposeContext();
+		}
+		try
+		{
+			runner.finalize();
 		}
 		catch (Throwable e)
 		{
