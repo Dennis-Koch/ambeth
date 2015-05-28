@@ -469,16 +469,22 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 
 				if (dLink.getLink().hasLinkTable())
 				{
+					String linkJoinKey = joinKey + ".link";
 					Class<?> fromEntityType = dLink.getFromEntityType();
-					byte fromMemberIdIndex = dLink.getFromField().getIdIndex();
-					IEntityMetaData fromMetaData = entityMetaDataProvider.getMetaData(fromEntityType);
-					String fromMemberName = fromMetaData.getIdMemberByIdIndex(fromMemberIdIndex).getName();
-					IFieldMetaData fromField = dLink.getFromTable().getFieldByPropertyName(fromMemberName);
-					IOperand columnBase = columnIntern(fromField.getName(), fromField, prevJoin);
-					join = joinIntern(dLink.getLink().getName(), columnBase, columnIntern(currentFromField.getName(), currentFromField, null), joinType, null);
+					join = joinMap.get(linkJoinKey);
+					if (join == null)
+					{
+						byte fromMemberIdIndex = dLink.getFromField().getIdIndex();
+						IEntityMetaData fromMetaData = entityMetaDataProvider.getMetaData(fromEntityType);
+						String fromMemberName = fromMetaData.getIdMemberByIdIndex(fromMemberIdIndex).getName();
+						IFieldMetaData fromField = dLink.getFromTable().getFieldByPropertyName(fromMemberName);
+						IOperand columnBase = columnIntern(fromField.getName(), fromField, prevJoin);
 
-					joinMap.put(joinName.toString() + ".link", join);
+						join = joinIntern(dLink.getLink().getName(), columnBase, columnIntern(currentFromField.getName(), currentFromField, null), joinType,
+								null);
 
+						joinMap.put(linkJoinKey, join);
+					}
 					prevJoin = join;
 					IEntityMetaData toMetaData = entityMetaDataProvider.getMetaData(fromEntityType);
 					byte toMemberIdIndex = dLink.getToField().getIdIndex();

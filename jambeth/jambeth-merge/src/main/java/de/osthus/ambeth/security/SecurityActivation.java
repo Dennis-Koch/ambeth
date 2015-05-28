@@ -117,4 +117,28 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 			filterActiveTL.set(oldFilterActive);
 		}
 	}
+
+	@Override
+	public <R> R executeWithFiltering(IResultingBackgroundWorkerDelegate<R> filterRunnable) throws Throwable
+	{
+		Boolean oldFilterActive = filterActiveTL.get();
+		filterActiveTL.set(Boolean.TRUE);
+		try
+		{
+			Boolean oldSecurityActive = securityActiveTL.get();
+			securityActiveTL.set(Boolean.TRUE);
+			try
+			{
+				return filterRunnable.invoke();
+			}
+			finally
+			{
+				securityActiveTL.set(oldSecurityActive);
+			}
+		}
+		finally
+		{
+			filterActiveTL.set(oldFilterActive);
+		}
+	}
 }
