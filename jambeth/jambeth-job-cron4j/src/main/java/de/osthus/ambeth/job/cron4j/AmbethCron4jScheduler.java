@@ -73,7 +73,17 @@ public class AmbethCron4jScheduler implements IJobScheduler, IInitializingBean, 
 			@Override
 			public void run()
 			{
-				scheduler.stop();
+				try
+				{
+					if (scheduler.isStarted())
+					{
+						scheduler.stop();
+					}
+				}
+				catch (Throwable e)
+				{
+					log.error(e);
+				}
 			}
 		});
 		Thread checkOfStopThread = new Thread(new Runnable()
@@ -83,13 +93,20 @@ public class AmbethCron4jScheduler implements IJobScheduler, IInitializingBean, 
 			{
 				try
 				{
-					Thread.sleep(5000);
+					try
+					{
+						Thread.sleep(5000);
+					}
+					catch (InterruptedException e)
+					{
+						// Intended blank
+					}
+					stopThread.interrupt();
 				}
-				catch (InterruptedException e)
+				catch (Throwable e)
 				{
-					// Intended blank
+					log.error(e);
 				}
-				stopThread.interrupt();
 			}
 		});
 		stopThread.setName("Scheduler-StopThread");

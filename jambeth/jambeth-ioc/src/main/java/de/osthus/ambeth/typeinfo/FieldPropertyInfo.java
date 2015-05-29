@@ -1,12 +1,15 @@
 package de.osthus.ambeth.typeinfo;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 
 public class FieldPropertyInfo extends AbstractPropertyInfo
 {
+	protected boolean writable;
+
 	public FieldPropertyInfo(Class<?> entityType, String propertyName, Field field)
 	{
 		this(entityType, propertyName, field, null);
@@ -16,11 +19,11 @@ public class FieldPropertyInfo extends AbstractPropertyInfo
 	{
 		super(entityType, objectCollector);
 		field.setAccessible(true);
-		this.backingField = field;
-		this.name = propertyName;
-		this.declaringType = field.getDeclaringClass();
-		this.propertyType = field.getType();
-		this.elementType = TypeInfoItemUtil.getElementTypeUsingReflection(propertyType, field.getGenericType());
+		backingField = field;
+		name = propertyName;
+		declaringType = field.getDeclaringClass();
+		propertyType = field.getType();
+		elementType = TypeInfoItemUtil.getElementTypeUsingReflection(propertyType, field.getGenericType());
 		init(objectCollector);
 	}
 
@@ -29,6 +32,9 @@ public class FieldPropertyInfo extends AbstractPropertyInfo
 	{
 		putAnnotations(backingField);
 		super.init(objectCollector);
+
+		writable = (Modifier.isPublic(backingField.getModifiers()) || Modifier.isProtected(backingField.getModifiers()))
+				&& !Modifier.isFinal(backingField.getModifiers());
 	}
 
 	@Override
@@ -40,7 +46,13 @@ public class FieldPropertyInfo extends AbstractPropertyInfo
 	@Override
 	public boolean isWritable()
 	{
-		return true;
+		return writable;
+	}
+
+	@Override
+	public boolean isFieldWritable()
+	{
+		return writable;
 	}
 
 	@Override

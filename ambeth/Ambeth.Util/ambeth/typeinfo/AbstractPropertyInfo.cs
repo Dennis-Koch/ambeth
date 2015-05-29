@@ -32,6 +32,8 @@ namespace De.Osthus.Ambeth.Typeinfo
 
         public bool IsWritable { get; protected set; }
 
+		public bool IsFieldWritable { get; protected set; }
+
         public AbstractPropertyInfo(Type entityType)
         {
             this.EntityType = entityType;

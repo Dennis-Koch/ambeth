@@ -30,6 +30,11 @@ namespace De.Osthus.Ambeth.Copy
             objectToCloneDict.Add(source, clone);
         }
 
+		public void DeepCloneProperties<T>(T source, T clone)
+		{
+			objectCopier.DeepCloneProperties(source, clone, this);
+		}
+
         /// <summary>
         /// Called to prepare this instance for clean reusage
         /// </summary>

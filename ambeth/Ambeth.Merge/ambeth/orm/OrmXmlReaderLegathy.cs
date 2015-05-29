@@ -25,14 +25,14 @@ namespace De.Osthus.Ambeth.Orm
         [Autowired]
         public IXmlConfigUtil XmlConfigUtil { protected get; set; }
 
-        public ISet<EntityConfig> LoadFromDocument(XDocument doc)
+		public ISet<IEntityConfig> LoadFromDocument(XDocument doc)
         {
-            ISet<EntityConfig> entities = new CHashSet<EntityConfig>();
+			ISet<IEntityConfig> entities = new CHashSet<IEntityConfig>();
             LoadFromDocument(doc, entities, entities);
             return entities;
         }
 
-        public void LoadFromDocument(XDocument doc, ISet<EntityConfig> localEntities, ISet<EntityConfig> externalEntities)
+		public void LoadFromDocument(XDocument doc, ISet<IEntityConfig> localEntities, ISet<IEntityConfig> externalEntities)
         {
             List<XElement> entityNodes = new List<XElement>();
             IMap<String,IList<XElement>> childrenMap = XmlConfigUtil.ChildrenToElementMap(doc.Root);

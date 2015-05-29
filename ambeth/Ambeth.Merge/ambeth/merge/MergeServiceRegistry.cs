@@ -28,7 +28,7 @@ using De.Osthus.Ambeth.Ioc.Threadlocal;
 
 namespace De.Osthus.Ambeth.Cache
 {
-    public class MergeServiceRegistry : IMergeService, IMergeServiceExtensionExtendable, IMergeListenerExtendable, IThreadLocalCleanupBean
+	public class MergeServiceRegistry : IMergeService, IMergeServiceExtensionExtendable, IMergeListenerExtendable, IMergeTimeProvider, IThreadLocalCleanupBean
     {
         public class MergeOperation
         {

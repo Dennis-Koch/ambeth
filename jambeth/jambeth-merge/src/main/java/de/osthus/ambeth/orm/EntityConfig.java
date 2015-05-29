@@ -1,9 +1,8 @@
 package de.osthus.ambeth.orm;
 
 import java.util.LinkedHashSet;
-import java.util.Set;
 
-public class EntityConfig
+public class EntityConfig implements IEntityConfig
 {
 	private final Class<?> entityType, realType;
 
@@ -29,9 +28,9 @@ public class EntityConfig
 
 	private IMemberConfig updatedOnMemberConfig;
 
-	private final Set<IMemberConfig> memberConfigs = new LinkedHashSet<IMemberConfig>();
+	private final LinkedHashSet<IMemberConfig> memberConfigs = new LinkedHashSet<IMemberConfig>();
 
-	private final Set<IRelationConfig> relationConfigs = new LinkedHashSet<IRelationConfig>();
+	private final LinkedHashSet<IRelationConfig> relationConfigs = new LinkedHashSet<IRelationConfig>();
 
 	private String descriminatorName;
 
@@ -47,16 +46,19 @@ public class EntityConfig
 		this.realType = realType;
 	}
 
+	@Override
 	public Class<?> getEntityType()
 	{
 		return entityType;
 	}
 
+	@Override
 	public Class<?> getRealType()
 	{
 		return realType;
 	}
 
+	@Override
 	public boolean isLocal()
 	{
 		return local;
@@ -67,6 +69,7 @@ public class EntityConfig
 		this.local = local;
 	}
 
+	@Override
 	public String getTableName()
 	{
 		return tableName;
@@ -77,6 +80,7 @@ public class EntityConfig
 		this.tableName = tableName;
 	}
 
+	@Override
 	public String getPermissionGroupName()
 	{
 		return permissionGroupName;
@@ -87,6 +91,7 @@ public class EntityConfig
 		this.permissionGroupName = permissionGroupName;
 	}
 
+	@Override
 	public String getSequenceName()
 	{
 		return sequenceName;
@@ -97,6 +102,7 @@ public class EntityConfig
 		this.sequenceName = sequenceName;
 	}
 
+	@Override
 	public IMemberConfig getIdMemberConfig()
 	{
 		return idMemberConfig;
@@ -107,6 +113,7 @@ public class EntityConfig
 		idMemberConfig = idMemberInfo;
 	}
 
+	@Override
 	public IMemberConfig getVersionMemberConfig()
 	{
 		return versionMemberConfig;
@@ -117,6 +124,7 @@ public class EntityConfig
 		versionMemberConfig = versionMemberInfo;
 	}
 
+	@Override
 	public String getDescriminatorName()
 	{
 		return descriminatorName;
@@ -127,6 +135,7 @@ public class EntityConfig
 		this.descriminatorName = descriminatorName;
 	}
 
+	@Override
 	public boolean isVersionRequired()
 	{
 		return versionRequired;
@@ -137,6 +146,7 @@ public class EntityConfig
 		this.versionRequired = versionRequired;
 	}
 
+	@Override
 	public IMemberConfig getCreatedByMemberConfig()
 	{
 		return createdByMemberConfig;
@@ -147,6 +157,7 @@ public class EntityConfig
 		this.createdByMemberConfig = createdByMemberConfig;
 	}
 
+	@Override
 	public IMemberConfig getCreatedOnMemberConfig()
 	{
 		return createdOnMemberConfig;
@@ -157,6 +168,7 @@ public class EntityConfig
 		this.createdOnMemberConfig = createdOnMemberConfig;
 	}
 
+	@Override
 	public IMemberConfig getUpdatedByMemberConfig()
 	{
 		return updatedByMemberConfig;
@@ -167,6 +179,7 @@ public class EntityConfig
 		this.updatedByMemberConfig = updatedByMemberConfig;
 	}
 
+	@Override
 	public IMemberConfig getUpdatedOnMemberConfig()
 	{
 		return updatedOnMemberConfig;
@@ -177,6 +190,7 @@ public class EntityConfig
 		this.updatedOnMemberConfig = updatedOnMemberConfig;
 	}
 
+	@Override
 	public Iterable<IMemberConfig> getMemberConfigIterable()
 	{
 		return memberConfigs;
@@ -190,6 +204,7 @@ public class EntityConfig
 		}
 	}
 
+	@Override
 	public Iterable<IRelationConfig> getRelationConfigIterable()
 	{
 		return relationConfigs;
@@ -214,7 +229,7 @@ public class EntityConfig
 	{
 		if (obj instanceof EntityConfig)
 		{
-			EntityConfig other = (EntityConfig) obj;
+			IEntityConfig other = (IEntityConfig) obj;
 			return entityType.equals(other.getEntityType());
 		}
 		else

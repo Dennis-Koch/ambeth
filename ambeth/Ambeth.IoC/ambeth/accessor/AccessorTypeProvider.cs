@@ -241,13 +241,11 @@ namespace De.Osthus.Ambeth.Accessor
                 mv.Emit(OpCodes.Call, baseConstructor);
                 mv.Emit(OpCodes.Ret);
             }
-            MethodInfo[] r_methods = delegateType.GetMethods();
-
+            MethodInfo[] r_methods = ReflectUtil.GetMethods(delegateType);
             ConstructorInfo[] constructors = targetType.GetConstructors();
             foreach (ConstructorInfo constructor in constructors)
             {
                 ParameterInfo[] constructorParams = constructor.GetParameters();
-                MethodInfo r_selectedMethod = null;
                 for (int a = r_methods.Length; a-- > 0; )
                 {
                     MethodInfo r_method = r_methods[a];
@@ -283,27 +281,8 @@ namespace De.Osthus.Ambeth.Accessor
                         continue;
                     }
                     r_methods[a] = null;
-                    r_selectedMethod = r_method;
-                    break;
+					ImplementConstructorOfConstructorType(r_method, constructor, cw);
                 }
-                if (r_selectedMethod == null)
-                {
-                    // no delegate method found to invoke constructor
-                    continue;
-                }
-                MethodAttributes access = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig;
-                access |= MethodAttributes.ReuseSlot;
-                access &= ~MethodAttributes.VtableLayoutMask;
-
-                Type[] paramTypes = TypeUtil.GetClassesToTypesNative(r_selectedMethod.GetParameters());
-                MethodInfo method = r_selectedMethod;
-                ILGenerator mv = cw.DefineMethod(method.Name, access, CallingConventions.HasThis, method.ReturnType, paramTypes).GetILGenerator();
-                for (int b = 0, sizeB = paramTypes.Length; b < sizeB; b++)
-                {
-                    mv.Emit(OpCodes.Ldarg, b + 1);
-                }
-                mv.Emit(OpCodes.Newobj, constructor);
-                mv.Emit(OpCodes.Ret);
             }
             foreach (MethodInfo r_method in r_methods)
             {
@@ -315,5 +294,21 @@ namespace De.Osthus.Ambeth.Accessor
             }
             return loader.GetType(constructorClassName, cw);
         }
+
+		protected void ImplementConstructorOfConstructorType(MethodInfo r_method, ConstructorInfo constructor, TypeBuilder cw)
+		{
+			MethodAttributes access = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig;
+			access |= MethodAttributes.ReuseSlot;
+			access &= ~MethodAttributes.VtableLayoutMask;
+
+			Type[] paramTypes = TypeUtil.GetClassesToTypesNative(r_method.GetParameters());
+			ILGenerator mv = cw.DefineMethod(r_method.Name, access, CallingConventions.HasThis, r_method.ReturnType, paramTypes).GetILGenerator();
+			for (int b = 0, sizeB = paramTypes.Length; b < sizeB; b++)
+			{
+				mv.Emit(OpCodes.Ldarg, b + 1);
+			}
+			mv.Emit(OpCodes.Newobj, constructor);
+			mv.Emit(OpCodes.Ret);
+		}
     }
 }

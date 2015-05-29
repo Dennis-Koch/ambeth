@@ -139,6 +139,8 @@ namespace De.Osthus.Ambeth.Privilege
             }
         }
 
+		public static readonly String m_HandleClearAllCaches = "HandleClearAllCaches";
+
         [LogInstance]
         public ILogger Log { private get; set; }
 

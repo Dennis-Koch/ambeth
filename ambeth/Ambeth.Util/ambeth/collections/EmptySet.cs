@@ -1,3 +1,4 @@
+using De.Osthus.Ambeth.Util;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace De.Osthus.Ambeth.Collections
             return EmptySetIntern<T>.Instance;
         }
 
-        private sealed class EmptySetIntern<T> : IISet<T>
+		private sealed class EmptySetIntern<T> : IISet<T>, IImmutableType
         {
             public static readonly EmptySetIntern<T> Instance = new EmptySetIntern<T>();
             

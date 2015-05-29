@@ -98,6 +98,10 @@ namespace De.Osthus.Ambeth.Ioc
             {
             }
 
+			IBeanConfiguration ormConfigGroupProvider = beanContextFactory.RegisterBean<OrmConfigGroupProvider>().Autowireable<IOrmConfigGroupProvider>();
+			beanContextFactory.Link(ormConfigGroupProvider, OrmConfigGroupProvider.handleClearAllCachesEvent).To<IEventListenerExtendable>()
+					.With(typeof(ClearAllCachesEvent));
+
        		IBeanConfiguration ormXmlReaderLegathy = beanContextFactory.RegisterBean<OrmXmlReaderLegathy>();
 		    ExtendableBean.RegisterExtendableBean(beanContextFactory, typeof(IOrmXmlReaderRegistry), typeof(IOrmXmlReaderExtendable))//
 				    .PropertyRef(ExtendableBean.P_DEFAULT_BEAN, ormXmlReaderLegathy);

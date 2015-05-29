@@ -5,8 +5,8 @@ namespace De.Osthus.Ambeth.Orm
 {
     public interface IOrmXmlReader
     {
-        ISet<EntityConfig> LoadFromDocument(XDocument doc);
+		ISet<IEntityConfig> LoadFromDocument(XDocument doc);
 
-        void LoadFromDocument(XDocument doc, ISet<EntityConfig> localEntities, ISet<EntityConfig> externalEntities);
+		void LoadFromDocument(XDocument doc, ISet<IEntityConfig> localEntities, ISet<IEntityConfig> externalEntities);
     }
 }

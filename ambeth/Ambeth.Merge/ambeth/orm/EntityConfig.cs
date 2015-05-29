@@ -4,7 +4,7 @@ using De.Osthus.Ambeth.Collections;
 
 namespace De.Osthus.Ambeth.Orm
 {
-    public class EntityConfig
+    public class EntityConfig : IEntityConfig
     {
         public Type EntityType { get; private set; }
 

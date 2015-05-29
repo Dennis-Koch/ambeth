@@ -1,3 +1,4 @@
+using De.Osthus.Ambeth.Util;
 using System;
 using System.Collections.Generic;
 
@@ -12,7 +13,7 @@ namespace De.Osthus.Ambeth.Collections
             return EmptyMapIntern.Instance;
         }
 
-        private sealed class EmptyMapIntern : IMap<K, V>
+        private sealed class EmptyMapIntern : IMap<K, V>, IImmutableType
         {
             public static readonly EmptyMapIntern Instance = new EmptyMapIntern();
             
