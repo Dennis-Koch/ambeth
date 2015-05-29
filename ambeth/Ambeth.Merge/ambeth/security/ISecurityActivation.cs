@@ -11,5 +11,7 @@ namespace De.Osthus.Ambeth.Security
 	    R ExecuteWithoutSecurity<R>(IResultingBackgroundWorkerDelegate<R> pausedSecurityRunnable);
 
 	    R ExecuteWithoutFiltering<R>(IResultingBackgroundWorkerDelegate<R> noFilterRunnable);
+
+		R ExecuteWithFiltering<R>(IResultingBackgroundWorkerDelegate<R> filterRunnable);
     }
 }

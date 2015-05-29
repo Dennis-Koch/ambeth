@@ -88,5 +88,28 @@ namespace De.Osthus.Ambeth.Security
                 filterActiveTL.Value = oldFilterActive;
             }
         }
+
+		public R ExecuteWithFiltering<R>(IResultingBackgroundWorkerDelegate<R> filterRunnable)
+		{
+			bool? oldFilterActive = filterActiveTL.Value;
+			filterActiveTL.Value = true;
+			try
+			{
+				bool? oldSecurityActive = securityActiveTL.Value;
+				securityActiveTL.Value = true;
+				try
+				{
+					return filterRunnable();
+				}
+				finally
+				{
+					securityActiveTL.Value = oldSecurityActive;
+				}
+			}
+			finally
+			{
+				filterActiveTL.Value = oldFilterActive;
+			}
+		}
     }
 }
