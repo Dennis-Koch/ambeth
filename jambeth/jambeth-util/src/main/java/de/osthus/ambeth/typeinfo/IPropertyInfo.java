@@ -19,8 +19,6 @@ public interface IPropertyInfo
 
 	boolean isWritable();
 
-	boolean isFieldWritable();
-
 	Field getBackingField();
 
 	int getModifiers();

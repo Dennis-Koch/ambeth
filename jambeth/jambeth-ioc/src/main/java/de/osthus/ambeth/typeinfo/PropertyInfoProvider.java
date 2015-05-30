@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,11 +25,15 @@ import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ReflectUtil;
 import de.osthus.ambeth.util.StringConversionHelper;
 
-public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEntry> implements IPropertyInfoProvider, IInitializingBean
+public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializingBean
 {
 	private static final Pattern getSetIsPattern = Pattern.compile("(get|set|is)([A-ZÖÄÜ].*)");
 
 	protected IThreadLocalObjectCollector objectCollector;
+
+	protected final SmartCopyMap<Class<?>, PropertyInfoEntry> typeToIocPropertyMap = new SmartCopyMap<Class<?>, PropertyInfoEntry>();
+
+	protected final SmartCopyMap<Class<?>, PropertyInfoEntry> typeToPrivatePropertyMap = new SmartCopyMap<Class<?>, PropertyInfoEntry>();
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -75,7 +80,19 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 	@Override
 	public IPropertyInfo[] getProperties(Class<?> type)
 	{
-		return getPropertyEntry(type).properties;
+		return getPropertyEntry(type, typeToIocPropertyMap, true, false).properties;
+	}
+
+	@Override
+	public IPropertyInfo[] getIocProperties(Class<?> type)
+	{
+		return getPropertyEntry(type, typeToIocPropertyMap, true, true).properties;
+	}
+
+	@Override
+	public IPropertyInfo[] getPrivateProperties(Class<?> type)
+	{
+		return getPropertyEntry(type, typeToPrivatePropertyMap, false, false).properties;
 	}
 
 	/**
@@ -93,22 +110,34 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 	@Override
 	public IMap<String, IPropertyInfo> getPropertyMap(Class<?> type)
 	{
-		return getPropertyEntry(type).map;
+		return getPropertyEntry(type, typeToIocPropertyMap, true, false).map;
 	}
 
-	protected PropertyInfoEntry getPropertyEntry(Class<?> type)
+	@Override
+	public IMap<String, IPropertyInfo> getIocPropertyMap(Class<?> type)
+	{
+		return getPropertyEntry(type, typeToIocPropertyMap, true, true).map;
+	}
+
+	@Override
+	public IMap<String, IPropertyInfo> getPrivatePropertyMap(Class<?> type)
+	{
+		return getPropertyEntry(type, typeToPrivatePropertyMap, false, false).map;
+	}
+
+	protected PropertyInfoEntry getPropertyEntry(Class<?> type, SmartCopyMap<Class<?>, PropertyInfoEntry> map, boolean isOldIocMode, boolean isIocMode)
 	{
 		ParamChecker.assertParamNotNull(type, "type");
-		PropertyInfoEntry propertyEntry = get(type);
+		PropertyInfoEntry propertyEntry = map.get(type);
 		if (propertyEntry != null)
 		{
 			return propertyEntry;
 		}
-		Lock writeLock = getWriteLock();
+		Lock writeLock = map.getWriteLock();
 		writeLock.lock();
 		try
 		{
-			propertyEntry = get(type);
+			propertyEntry = map.get(type);
 			if (propertyEntry != null)
 			{
 				// Concurrent thread might have been faster
@@ -116,7 +145,7 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 			}
 
 			HashMap<String, HashMap<Class<?>, HashMap<String, Method>>> sortedMethods = new HashMap<String, HashMap<Class<?>, HashMap<String, Method>>>();
-			Method[] methods = ReflectUtil.getMethods(type);
+			Method[] methods = ReflectUtil.getDeclaredMethods(type);
 
 			MethodAccess methodAccess = null;
 			for (int i = methods.length; i-- > 0;)
@@ -126,15 +155,18 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 				{
 					continue;
 				}
+				int modifiers = method.getModifiers();
+				if (Modifier.isStatic(modifiers))
+				{
+					continue;
+				}
 				try
 				{
 					String propName = getPropertyNameFor(method);
-					int modifiers = method.getModifiers();
-					if (propName.isEmpty() || Modifier.isStatic(modifiers))
+					if (propName.isEmpty())
 					{
 						continue;
 					}
-
 					HashMap<Class<?>, HashMap<String, Method>> sortedMethod = sortedMethods.get(propName);
 					if (sortedMethod == null)
 					{
@@ -185,13 +217,21 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 				Method getter = propertyMethods.get("get");
 				Method setter = propertyMethods.get("set");
 
+				if (isIocMode)
+				{
+					if (setter == null
+							|| (!Modifier.isPublic(setter.getModifiers()) && !setter.isAnnotationPresent(Autowired.class) && !setter
+									.isAnnotationPresent(Property.class)))
+					{
+						continue;
+					}
+				}
 				IPropertyInfo propertyInfo;
 				if (methodAccess == null && !type.isInterface() && !type.isPrimitive())
 				{
 					methodAccess = MethodAccess.get(type);
 				}
-				if (methodAccess != null
-						&& (getter == null || !Modifier.isAbstract(getter.getModifiers()) && (setter == null || !Modifier.isAbstract(setter.getModifiers()))))
+				if (methodAccess != null && isNullOrNonAbstractNonPrivateMethod(getter) && isNullOrNonAbstractNonPrivateMethod(setter))
 				{
 					propertyInfo = new MethodPropertyInfoASM(type, propertyName, getter, setter, objectCollector, methodAccess);
 				}
@@ -206,9 +246,17 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 			Field[] fields = ReflectUtil.getDeclaredFieldsInHierarchy(type);
 			for (Field field : fields)
 			{
-				if (!field.isAnnotationPresent(Autowired.class) && !field.isAnnotationPresent(Property.class))
+				int modifiers = field.getModifiers();
+				if (Modifier.isStatic(modifiers))
 				{
 					continue;
+				}
+				if (isOldIocMode)
+				{
+					if (!field.isAnnotationPresent(Autowired.class) && !field.isAnnotationPresent(Property.class))
+					{
+						continue;
+					}
 				}
 				String propertyName = getPropertyNameFor(field);
 				IPropertyInfo existingProperty = propertyMap.get(propertyName);
@@ -234,13 +282,22 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 				propertyMap.put(propertyInfo.getName(), propertyInfo);
 			}
 			propertyEntry = new PropertyInfoEntry(propertyMap);
-			put(type, propertyEntry);
+			map.put(type, propertyEntry);
 			return propertyEntry;
 		}
 		finally
 		{
 			writeLock.unlock();
 		}
+	}
+
+	protected boolean isNullOrNonAbstractNonPrivateMethod(Method method)
+	{
+		if (method == null)
+		{
+			return true;
+		}
+		return !Modifier.isAbstract(method.getModifiers()) && !Modifier.isPrivate(method.getModifiers());
 	}
 
 	protected HashMap<String, HashMap<String, Method>> filterOverriddenMethods(HashMap<String, HashMap<Class<?>, HashMap<String, Method>>> sortedMethods,

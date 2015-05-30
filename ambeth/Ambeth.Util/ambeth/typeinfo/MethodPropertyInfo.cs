@@ -40,7 +40,6 @@ namespace De.Osthus.Ambeth.Typeinfo
             Setter = setter;
             IsWritable = setter != null && setter.IsPublic;
             IsReadable = getter != null && getter.IsPublic;
-
             Init();
         }
 
@@ -173,39 +172,39 @@ namespace De.Osthus.Ambeth.Typeinfo
             RefreshDeclaringType();
 	    }
 
-        public override Object GetValue(Object obj)
-        {
-            if (Getter == null)
-            {
-                return null;
-            }
-            try
-            {
-                return Getter.Invoke(obj, EMPTY_ARGS);
-            }
-            catch (Exception e)
-            {
-                throw RuntimeExceptionUtil.Mask(e, "Error occured while calling '" + Getter + "' on object '" + obj + "' of type '" + obj.GetType().ToString()
-                        + "'");
-            }
-        }
+		public override Object GetValue(Object obj)
+		{
+			if (Getter == null)
+			{
+				return null;
+			}
+			try
+			{
+				return Getter.Invoke(obj, EMPTY_ARGS);
+			}
+			catch (Exception e)
+			{
+				throw RuntimeExceptionUtil.Mask(e, "Error occured while calling '" + Getter + "' on object '" + obj + "' of type '" + obj.GetType().ToString()
+						+ "'");
+			}
+		}
 
-        public override void SetValue(Object obj, Object value)
-        {
-            if (Setter == null)
-            {
-                throw new NotSupportedException("No setter configure for property " + Name);
-            }
-            Object[] args = { value };
-            try
-            {
-                Setter.Invoke(obj, args);
-            }
-            catch (Exception e)
-            {
-                throw RuntimeExceptionUtil.Mask(e, "Error occured while calling '" + Setter + "' on object '" + obj + "' of type '" + obj.GetType().ToString()
-                        + "' with argument '" + value + "'");
-            }
-        }
+		public override void SetValue(Object obj, Object value)
+		{
+			if (Setter == null)
+			{
+				throw new NotSupportedException("No setter configure for property " + Name);
+			}
+			Object[] args = { value };
+			try
+			{
+				Setter.Invoke(obj, args);
+			}
+			catch (Exception e)
+			{
+				throw RuntimeExceptionUtil.Mask(e, "Error occured while calling '" + Setter + "' on object '" + obj + "' of type '" + obj.GetType().ToString()
+						+ "' with argument '" + value + "'");
+			}
+		}
     }
 }

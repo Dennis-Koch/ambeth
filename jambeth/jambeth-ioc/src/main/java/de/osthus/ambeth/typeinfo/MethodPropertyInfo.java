@@ -16,7 +16,7 @@ public class MethodPropertyInfo extends AbstractPropertyInfo
 
 	protected Method getter, setter;
 
-	protected boolean writable, readable, fieldWritable;
+	protected boolean writable, readable;
 
 	public MethodPropertyInfo(Class<?> entityType, String propertyName, Method getter, Method setter)
 	{
@@ -180,7 +180,6 @@ public class MethodPropertyInfo extends AbstractPropertyInfo
 		setter = ReflectUtil.getDeclaredMethod(true, realType, null, "set" + getName(), getPropertyType());
 		writable = setter != null && (Modifier.isPublic(setter.getModifiers()) || Modifier.isProtected(setter.getModifiers()));
 		readable = getter != null && (Modifier.isPublic(getter.getModifiers()) || Modifier.isProtected(getter.getModifiers()));
-		fieldWritable = writable || backingField != null && !Modifier.isFinal(backingField.getModifiers());
 		refreshDeclaringType();
 	}
 
@@ -188,12 +187,6 @@ public class MethodPropertyInfo extends AbstractPropertyInfo
 	public boolean isWritable()
 	{
 		return writable;
-	}
-
-	@Override
-	public boolean isFieldWritable()
-	{
-		return fieldWritable;
 	}
 
 	@Override
@@ -217,19 +210,7 @@ public class MethodPropertyInfo extends AbstractPropertyInfo
 	{
 		if (getter == null)
 		{
-			if (backingField == null)
-			{
-				return null;
-			}
-			try
-			{
-				backingField.get(obj);
-			}
-			catch (Throwable e)
-			{
-				throw RuntimeExceptionUtil.mask(e, "Error occured while getting '" + backingField + "' on object '" + obj + "' of type '"
-						+ obj.getClass().toString() + "'");
-			}
+			return null;
 		}
 		try
 		{
@@ -247,20 +228,7 @@ public class MethodPropertyInfo extends AbstractPropertyInfo
 	{
 		if (setter == null)
 		{
-			if (backingField == null)
-			{
-				throw new UnsupportedOperationException("No setter configure for property " + name);
-			}
-			try
-			{
-				backingField.set(obj, value);
-				return;
-			}
-			catch (Throwable e)
-			{
-				throw RuntimeExceptionUtil.mask(e, "Error occured while setting '" + backingField + "' on object '" + obj + "' of type '"
-						+ obj.getClass().toString() + "' with argument '" + value + "'");
-			}
+			throw new UnsupportedOperationException("No setter configure for property " + name);
 		}
 		Object[] args = { value };
 		try

@@ -31,9 +31,7 @@ namespace De.Osthus.Ambeth.Typeinfo
         public bool IsReadable { get; protected set; }
 
         public bool IsWritable { get; protected set; }
-
-		public bool IsFieldWritable { get; protected set; }
-
+		
         public AbstractPropertyInfo(Type entityType)
         {
             this.EntityType = entityType;
@@ -41,10 +39,6 @@ namespace De.Osthus.Ambeth.Typeinfo
 
         protected virtual void Init()
         {
-            //if (backingField != null)
-            //{
-            //    modifiers = backingField.getModifiers();
-            //}
             ParamChecker.AssertNotNull(EntityType, "entityType");
             ParamChecker.AssertNotNull(Name, "name");
             ParamChecker.AssertNotNull(DeclaringType, "declaringType");

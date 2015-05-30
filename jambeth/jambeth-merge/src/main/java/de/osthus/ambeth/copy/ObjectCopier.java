@@ -198,17 +198,11 @@ public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, ITh
 
 	protected void deepCloneProperties(Object source, Object clone, ObjectCopierState ocState)
 	{
-		IPropertyInfo[] properties = propertyInfoProvider.getProperties(source.getClass());
+		IPropertyInfo[] properties = propertyInfoProvider.getPrivateProperties(source.getClass());
 		for (IPropertyInfo property : properties)
 		{
-			if (!property.isFieldWritable())
+			if (!property.isWritable())
 			{
-				// Field backingField = property.getBackingField();
-				// if (backingField == null || Modifier.isFinal(backingField.getModifiers()))
-				// {
-				// continue;
-				// }
-
 				continue;
 			}
 			Object objValue = property.getValue(source);

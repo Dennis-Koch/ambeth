@@ -9,14 +9,19 @@ using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Util;
 using System.Collections.Generic;
+using De.Osthus.Ambeth.Config;
 
 namespace De.Osthus.Ambeth.Typeinfo
 {
-    public class PropertyInfoProvider : SmartCopyMap<Type, PropertyInfoEntry>, IPropertyInfoProvider, IInitializingBean
+    public class PropertyInfoProvider : IPropertyInfoProvider, IInitializingBean
     {
-        private static readonly Regex getSetIsPattern = new Regex("(get_|set_|Get|Set|Is)([A-ZÄÖÜ].*)");
+		private static readonly Regex getSetIsPattern = new Regex("(get_|set_|Get|get|Set|set|Is|is)([A-ZÄÖÜ].*)");
 
         public IAccessorTypeProvider AccessorTypeProvider { protected get; set; }
+
+		protected readonly SmartCopyMap<Type, PropertyInfoEntry> typeToIocPropertyMap = new SmartCopyMap<Type, PropertyInfoEntry>();
+
+		protected readonly SmartCopyMap<Type, PropertyInfoEntry> typeToPrivatePropertyMap = new SmartCopyMap<Type, PropertyInfoEntry>();
 
         public virtual void AfterPropertiesSet()
         {
@@ -41,31 +46,51 @@ namespace De.Osthus.Ambeth.Typeinfo
 
         public IPropertyInfo[] GetProperties(Type type)
         {
-            return GetPropertyEntry(type).properties;
+			return GetPropertyEntry(type, typeToIocPropertyMap, true, false).properties;
         }
 
-        public IMap<String, IPropertyInfo> GetPropertyMap(Object obj)
-        {
-            return GetPropertyMap(obj.GetType());
-        }
+		public IPropertyInfo[] GetIocProperties(Type type)
+		{
+			return GetPropertyEntry(type, typeToIocPropertyMap, true, true).properties;
+		}
 
-        public IMap<String, IPropertyInfo> GetPropertyMap(Type type)
-        {
-            return GetPropertyEntry(type).map;
-        }
+		public IPropertyInfo[] GetPrivateProperties(Type type)
+		{
+			return GetPropertyEntry(type, typeToIocPropertyMap, true, false).properties;
+		}
 
-        protected PropertyInfoEntry GetPropertyEntry(Type type)
-        {
+		public IMap<String, IPropertyInfo> GetPropertyMap(Object obj)
+		{
+			return GetPropertyMap(obj.GetType());
+		}
+
+		public IMap<String, IPropertyInfo> GetPropertyMap(Type type)
+		{
+			return GetPropertyEntry(type, typeToIocPropertyMap, true, false).map;
+		}
+
+		public IMap<String, IPropertyInfo> GetIocPropertyMap(Type type)
+		{
+			return GetPropertyEntry(type, typeToIocPropertyMap, true, true).map;
+		}
+
+		public IMap<String, IPropertyInfo> GetPrivatePropertyMap(Type type)
+		{
+			return GetPropertyEntry(type, typeToPrivatePropertyMap, false, false).map;
+		}
+
+		protected PropertyInfoEntry GetPropertyEntry(Type type, SmartCopyMap<Type, PropertyInfoEntry> map, bool isOldIocMode, bool isIocMode)
+		{
             ParamChecker.AssertParamNotNull(type, "type");
-            PropertyInfoEntry propertyEntry = Get(type);
+			PropertyInfoEntry propertyEntry = map.Get(type);
             if (propertyEntry != null)
             {
                 return propertyEntry;
             }
-            Object writeLock = GetWriteLock();
+			Object writeLock = map.GetWriteLock();
             lock (writeLock)
             {
-                propertyEntry = Get(type);
+				propertyEntry = map.Get(type);
                 if (propertyEntry != null)
                 {
                     // Concurrent thread might have been faster
@@ -73,7 +98,7 @@ namespace De.Osthus.Ambeth.Typeinfo
                 }
 
                 HashMap<String, HashMap<Type, HashMap<String, MethodInfo>>> sortedMethods = new HashMap<String, HashMap<Type, HashMap<String, MethodInfo>>>();
-                MethodInfo[] methods = ReflectUtil.GetMethods(type);
+				MethodInfo[] methods = ReflectUtil.GetDeclaredMethods(type);
 
                 foreach (MethodInfo method in methods)
                 {
@@ -81,14 +106,17 @@ namespace De.Osthus.Ambeth.Typeinfo
                     {
                         continue;
                     }
+					if (method.IsStatic)
+					{
+						continue;
+					}
                     try
                     {
                         String propName = GetPropertyNameFor(method);
-                        if (propName.Length == 0 || method.IsStatic)
+                        if (propName.Length == 0)
                         {
                             continue;
                         }
-
                         HashMap<Type, HashMap<String, MethodInfo>> sortedMethod = sortedMethods.Get(propName);
                         if (sortedMethod == null)
                         {
@@ -140,6 +168,15 @@ namespace De.Osthus.Ambeth.Typeinfo
                     MethodInfo getter = propertyMethods.Get("get");
                     MethodInfo setter = propertyMethods.Get("set");
 
+					if (isIocMode)
+					{
+						if (setter == null
+								|| (!setter.IsPublic && !AnnotationUtil.IsAnnotationPresent<AutowiredAttribute>(setter, false)
+								&& !AnnotationUtil.IsAnnotationPresent<PropertyAttribute>(setter, false)))
+						{
+							continue;
+						}
+					}
                     MethodPropertyInfo propertyInfo = new MethodPropertyInfo(type, propertyName, getter, setter);
                     propertyMap.Put(propertyInfo.Name, propertyInfo);
                 }
@@ -186,10 +223,17 @@ namespace De.Osthus.Ambeth.Typeinfo
                 FieldInfo[] fields = ReflectUtil.GetDeclaredFieldsInHierarchy(type);
                 foreach (FieldInfo field in fields)
                 {
-                    if (!AnnotationUtil.IsAnnotationPresent<AutowiredAttribute>(field, false))
-                    {
-                        continue;
-                    }
+					if (field.IsStatic)
+					{
+						continue;
+					}
+					if (isOldIocMode)
+					{
+						if (!AnnotationUtil.IsAnnotationPresent<AutowiredAttribute>(field, false) && !AnnotationUtil.IsAnnotationPresent<PropertyAttribute>(field, false))
+						{
+							continue;
+						}
+					}
                     String propertyName = GetPropertyNameFor(field);
                     IPropertyInfo existingProperty = propertyMap.Get(propertyName);
                     if (existingProperty != null && existingProperty.IsWritable)
@@ -201,10 +245,19 @@ namespace De.Osthus.Ambeth.Typeinfo
                     propertyMap.Put(propertyInfo.Name, propertyInfo);
                 }
                 propertyEntry = new PropertyInfoEntry(propertyMap);
-                Put(type, propertyEntry);
+				map.Put(type, propertyEntry);
                 return propertyEntry;
             }
         }
+
+		protected bool IsNullOrNonAbstractNonPrivateMethod(MethodInfo method)
+		{
+			if (method == null)
+			{
+				return true;
+			}
+			return !method.IsAbstract && !method.IsPrivate;
+		}
 
         protected HashMap<String, HashMap<String, MethodInfo>> FilterOverriddenMethods(HashMap<String, HashMap<Type, HashMap<String, MethodInfo>>> sortedMethods,
                 Type entityType)
@@ -295,15 +348,15 @@ namespace De.Osthus.Ambeth.Typeinfo
             }
             int paramLength = method.GetParameters().Length;
             String getSetIs = matcher.Groups[1].Value;
-            if (("get_".Equals(getSetIs) || "Get".Equals(getSetIs)) && (0 != paramLength || typeof(void).Equals(method.ReturnType)))
+			if (("get_".Equals(getSetIs) || "Get".Equals(getSetIs) || "get".Equals(getSetIs)) && (0 != paramLength || typeof(void).Equals(method.ReturnType)))
             {
                 return "";
             }
-            else if (("set_".Equals(getSetIs) || "Set".Equals(getSetIs)) && 1 != paramLength)
+            else if (("set_".Equals(getSetIs) || "Set".Equals(getSetIs) || "set".Equals(getSetIs)) && 1 != paramLength)
             {
                 return "";
             }
-            else if ("Is".Equals(getSetIs) && (0 != paramLength || typeof(void).Equals(method.ReturnType)))
+            else if (("Is".Equals(getSetIs) || "is".Equals(getSetIs)) && (0 != paramLength || typeof(void).Equals(method.ReturnType)))
             {
                 return "";
             }

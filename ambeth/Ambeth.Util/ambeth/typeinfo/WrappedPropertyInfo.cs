@@ -20,7 +20,6 @@ namespace De.Osthus.Ambeth.Typeinfo
 
             IsReadable = propertyInfo.GetGetMethod() != null ? propertyInfo.GetGetMethod().IsPublic || propertyInfo.GetGetMethod().IsFamily: false;
             IsWritable = propertyInfo.GetSetMethod() != null ? propertyInfo.GetSetMethod().IsPublic || propertyInfo.GetSetMethod().IsFamily : false;
-			IsFieldWritable = IsWritable || BackingField != null && !BackingField.IsInitOnly;
 			
             Init();
         }

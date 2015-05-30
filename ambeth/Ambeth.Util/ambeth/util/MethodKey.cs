@@ -14,10 +14,6 @@ namespace De.Osthus.Ambeth.Util
         {
             this.methodName = method.Name;
             ParameterInfo[] parameters = method.GetParameters();
-			if (parameterTypes == null)
-			{
-				int a = 5;
-			}
             parameterTypes = new Type[parameterTypes.Length];
             for (int a = parameterTypes.Length; a-- > 0; )
             {

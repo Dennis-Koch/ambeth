@@ -183,10 +183,10 @@ namespace De.Osthus.Ambeth.Copy
 
 		internal void DeepCloneProperties(Object source, Object clone, ObjectCopierState ocState)
 		{
-			IPropertyInfo[] properties = PropertyInfoProvider.GetProperties(source.GetType());
+			IPropertyInfo[] properties = PropertyInfoProvider.GetPrivateProperties(source.GetType());
 			foreach (IPropertyInfo property in properties)
 			{
-				if (!property.IsFieldWritable)
+				if (!property.IsWritable)
 				{
 					continue;
 				}
