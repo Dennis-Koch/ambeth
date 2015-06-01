@@ -5,6 +5,7 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.security.AuthorizedUserHolder;
 import de.osthus.ambeth.security.IAuthorizationChangeListenerExtendable;
 import de.osthus.ambeth.security.IAuthorizedUserHolder;
+import de.osthus.ambeth.security.ILightweightSecurityContext;
 import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.SecurityContextHolder;
 
@@ -16,6 +17,7 @@ public class SecurityModule implements IInitializingModule
 	{
 		beanContextFactory.registerBean(AuthorizedUserHolder.class).autowireable(IAuthorizedUserHolder.class);
 
-		beanContextFactory.registerBean(SecurityContextHolder.class).autowireable(ISecurityContextHolder.class, IAuthorizationChangeListenerExtendable.class);
+		beanContextFactory.registerBean(SecurityContextHolder.class).autowireable(ISecurityContextHolder.class, IAuthorizationChangeListenerExtendable.class,
+				ILightweightSecurityContext.class);
 	}
 }

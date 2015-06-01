@@ -60,8 +60,13 @@ namespace De.Osthus.Ambeth.Util
 
         public static MethodInfo[] GetDeclaredMethods(Type type)
         {
-            return type.GetMethods(BindingFlags.FlattenHierarchy | BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            return type.GetMethods(BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
         }
+
+		public static MethodInfo[] GetDeclaredMethodsInHierarchy(Type type)
+		{
+			return type.GetMethods(BindingFlags.FlattenHierarchy | BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+		}
 
         public static MethodInfo GetDeclaredMethod(bool tryOnly, Type type, Type returnType, String methodName, params Type[] parameters)
         {

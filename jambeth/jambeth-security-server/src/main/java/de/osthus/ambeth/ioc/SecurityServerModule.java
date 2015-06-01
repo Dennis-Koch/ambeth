@@ -6,6 +6,7 @@ import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
+import de.osthus.ambeth.job.JobScheduleConfiguration;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IMergeSecurityManager;
@@ -15,6 +16,7 @@ import de.osthus.ambeth.privilege.IEntityPermissionRuleExtendable;
 import de.osthus.ambeth.privilege.IEntityTypePermissionRule;
 import de.osthus.ambeth.privilege.IEntityTypePermissionRuleExtendable;
 import de.osthus.ambeth.privilege.IPermissionRule;
+import de.osthus.ambeth.security.CleanupUnusedSignatureJob;
 import de.osthus.ambeth.security.DefaultServiceFilter;
 import de.osthus.ambeth.security.IActionPermission;
 import de.osthus.ambeth.security.IAuthenticationManager;
@@ -28,8 +30,8 @@ import de.osthus.ambeth.security.PBEncryptor;
 import de.osthus.ambeth.security.PasswordUtil;
 import de.osthus.ambeth.security.PersistedPrivateKeyProvider;
 import de.osthus.ambeth.security.SignatureUtil;
-import de.osthus.ambeth.security.auth.EmbeddedAuthenticationManager;
 import de.osthus.ambeth.security.auth.AuthenticationResultCache;
+import de.osthus.ambeth.security.auth.EmbeddedAuthenticationManager;
 import de.osthus.ambeth.security.auth.IAuthenticationResultCache;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.privilegeprovider.ActionPermissionRule;
@@ -113,5 +115,16 @@ public class SecurityServerModule implements IInitializingModule
 			throw new IllegalArgumentException("Given bean does not implement any of the permission rule interfaces:"
 					+ entityOrEntityTypePermissionRule.getBeanType());
 		}
+	}
+
+	public static void registerCleanupSignatureJob(IBeanContextFactory beanContextFactory, String userName, char[] userPass, String cronPattern)
+	{
+		IBeanConfiguration cleanupUnusedSignatureJob = beanContextFactory.registerBean(CleanupUnusedSignatureJob.class);
+		beanContextFactory.registerBean(JobScheduleConfiguration.class) //
+				.propertyRef(JobScheduleConfiguration.JOB, cleanupUnusedSignatureJob) //
+				.propertyValue(JobScheduleConfiguration.JOB_NAME, CleanupUnusedSignatureJob.class.getSimpleName()) //
+				.propertyValue(JobScheduleConfiguration.CRON_PATTERN, cronPattern) //
+				.propertyValue(JobScheduleConfiguration.USER_NAME, userName) //
+				.propertyValue(JobScheduleConfiguration.USER_PASS, userPass);
 	}
 }

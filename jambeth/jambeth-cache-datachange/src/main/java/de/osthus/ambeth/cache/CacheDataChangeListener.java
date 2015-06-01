@@ -303,10 +303,10 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		IList<IObjRef> objRefs = objRefsToLoad.toList();
 		IList<Object> refreshResult = rootCache.getObjects(objRefs, cacheDirective);
 
-		IList<IPrivilege> privileges = null;
+		IPrivilege[] privileges = null;
 		if (securityActivation != null && privilegeProvider != null && securityActivation.isFilterActivated())
 		{
-			privileges = privilegeProvider.getPrivilegesByObjRef(objRefs);
+			privileges = privilegeProvider.getPrivilegesByObjRef(objRefs).getPrivileges();
 		}
 		for (int a = refreshResult.size(); a-- > 0;)
 		{
@@ -315,7 +315,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			{
 				continue;
 			}
-			objRefToLoadContainerDict.put(objRefs.get(a), new CacheValueAndPrivilege(cacheValue, privileges != null ? privileges.get(a) : null));
+			objRefToLoadContainerDict.put(objRefs.get(a), new CacheValueAndPrivilege(cacheValue, privileges != null ? privileges[a] : null));
 		}
 		checkCascadeRefreshNeeded(node);
 

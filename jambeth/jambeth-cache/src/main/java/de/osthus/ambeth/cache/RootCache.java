@@ -63,6 +63,7 @@ import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IPropertyChangeConfigurable;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
+import de.osthus.ambeth.security.SecurityDirective;
 import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.service.IOfflineListener;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
@@ -882,11 +883,11 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			}
 			permittedObjRefs.add(primaryObjRef);
 		}
-		IList<IPrivilege> privileges = getPrivilegesByObjRefWithoutReadLock(permittedObjRefs);
+		IPrivilege[] privileges = getPrivilegesByObjRefWithoutReadLock(permittedObjRefs);
 		HashMap<IObjRef, IntArrayList> relatedObjRefs = new HashMap<IObjRef, IntArrayList>();
 		for (int index = permittedObjRefs.size(); index-- > 0;)
 		{
-			IPrivilege privilege = privileges.get(index);
+			IPrivilege privilege = privileges[index];
 			if (privilege == null || !privilege.isReadAllowed())
 			{
 				permittedObjRefs.set(index, null);
@@ -909,7 +910,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		privileges = getPrivilegesByObjRefWithoutReadLock(relatedObjRefKeys);
 		for (int a = 0, size = relatedObjRefKeys.size(); a < size; a++)
 		{
-			IPrivilege privilege = privileges.get(a);
+			IPrivilege privilege = privileges[a];
 			if (privilege.isReadAllowed())
 			{
 				continue;
@@ -1224,14 +1225,14 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		IPrivilege[] privilegesOfObjRefsToGet = null;
 		if (filteringNecessary)
 		{
-			IList<IPrivilege> privileges = getPrivilegesByObjRefWithoutReadLock(objRefsToGet);
+			IPrivilege[] privileges = getPrivilegesByObjRefWithoutReadLock(objRefsToGet);
 			ArrayList<IObjRef> filteredObjRefsToGet = new ArrayList<IObjRef>(objRefsToGet.size());
 			privilegesOfObjRefsToGet = new IPrivilege[objRefsToGet.size()];
 			RootCacheValue[] filteredRootCacheValuesToGet = rootCacheValuesToGet != null ? new RootCacheValue[objRefsToGet.size()] : null;
 			getCount = 0;
 			for (int a = 0, size = objRefsToGet.size(); a < size; a++)
 			{
-				IPrivilege privilege = privileges.get(a);
+				IPrivilege privilege = privileges[a];
 				if (privilege != null && privilege.isReadAllowed())
 				{
 					getCount++;
@@ -1569,7 +1570,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		}
 	}
 
-	protected IList<IPrivilege> getPrivilegesByObjRefWithoutReadLock(Collection<? extends IObjRef> objRefs)
+	protected IPrivilege[] getPrivilegesByObjRefWithoutReadLock(List<? extends IObjRef> objRefs)
 	{
 		Lock readLock = getReadLock();
 		LockState lockState = null;
@@ -1580,7 +1581,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		}
 		try
 		{
-			return privilegeProvider.getPrivilegesByObjRef(objRefs);
+			return privilegeProvider.getPrivilegesByObjRef(objRefs).getPrivileges();
 		}
 		finally
 		{
@@ -1613,15 +1614,15 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
 	protected IdentityHashSet<IObjRef> buildWhiteListedObjRefs(IdentityHashSet<IObjRef> greyListObjRefs)
 	{
-		IObjRef[] greyListArray = greyListObjRefs.toArray(IObjRef.class);
-		IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet.create(greyListArray.length);
-		IList<IPrivilege> privileges = getPrivilegesByObjRefWithoutReadLock(greyListObjRefs);
-		for (int a = privileges.size(); a-- > 0;)
+		IList<IObjRef> greyList = greyListObjRefs.toList();
+		IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet.create(greyList.size());
+		IPrivilege[] privileges = getPrivilegesByObjRefWithoutReadLock(greyList);
+		for (int a = privileges.length; a-- > 0;)
 		{
-			IPrivilege privilege = privileges.get(a);
+			IPrivilege privilege = privileges[a];
 			if (privilege.isReadAllowed())
 			{
-				whiteListObjRefs.add(greyListArray[a]);
+				whiteListObjRefs.add(greyList.get(a));
 			}
 		}
 		return whiteListObjRefs;

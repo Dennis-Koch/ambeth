@@ -97,6 +97,11 @@ namespace De.Osthus.Ambeth.Merge
 
         protected void AddTypeRelatedByTypes(IMap<Type, IISet<Type>> typeRelatedByTypes, Type relating, Type relatedTo)
         {
+			IEntityMetaData metaData = GetMetaData(relatedTo, true);
+			if (metaData != null)
+			{
+				relatedTo = metaData.EntityType;
+			}
             IISet<Type> relatedByTypes = typeRelatedByTypes.Get(relatedTo);
             if (relatedByTypes == null)
             {

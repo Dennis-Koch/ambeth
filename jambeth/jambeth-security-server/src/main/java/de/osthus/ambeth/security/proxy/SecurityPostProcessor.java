@@ -1,6 +1,8 @@
 package de.osthus.ambeth.security.proxy;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Method;
 import java.util.Set;
 
 import de.osthus.ambeth.annotation.AnnotationCache;
@@ -17,9 +19,12 @@ import de.osthus.ambeth.proxy.IBehaviorTypeExtractor;
 import de.osthus.ambeth.proxy.ICascadedInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.MethodLevelBehavior;
+import de.osthus.ambeth.security.PasswordType;
 import de.osthus.ambeth.security.SecurityContext;
-import de.osthus.ambeth.security.SecurityContextType;
+import de.osthus.ambeth.security.SecurityContextPassword;
+import de.osthus.ambeth.security.SecurityContextUserName;
 import de.osthus.ambeth.security.SecurityFilterInterceptor;
+import de.osthus.ambeth.security.SecurityFilterInterceptor.SecurityMethodMode;
 import de.osthus.ambeth.util.EqualsUtil;
 
 public class SecurityPostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanPostProcessor
@@ -37,12 +42,46 @@ public class SecurityPostProcessor extends AbstractCascadePostProcessor implemen
 		}
 	};
 
-	protected final IBehaviorTypeExtractor<SecurityContext, SecurityContextType> btExtractor = new IBehaviorTypeExtractor<SecurityContext, SecurityContextType>()
+	protected final IBehaviorTypeExtractor<SecurityContext, SecurityMethodMode> btExtractor = new IBehaviorTypeExtractor<SecurityContext, SecurityMethodMode>()
 	{
 		@Override
-		public SecurityContextType extractBehaviorType(SecurityContext annotation, AnnotatedElement annotatedElement)
+		public SecurityMethodMode extractBehaviorType(SecurityContext annotation, AnnotatedElement annotatedElement)
 		{
-			return annotation.value();
+			if (!(annotatedElement instanceof Method))
+			{
+				return new SecurityMethodMode(annotation.value());
+			}
+			Method method = (Method) annotatedElement;
+			Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+			int userNameIndex = -1;
+			int passwordIndex = -1;
+			PasswordType passwordType = null;
+			for (int a = parameterAnnotations.length; a-- > 0;)
+			{
+				for (Annotation annotationOfParam : parameterAnnotations[a])
+				{
+					if (annotationOfParam instanceof SecurityContextUserName)
+					{
+						if (userNameIndex != -1)
+						{
+							throw new IllegalStateException("Annotation '" + SecurityContextUserName.class.getName() + "' ambiguous on method signature '"
+									+ method.toGenericString() + "'");
+						}
+						userNameIndex = a;
+					}
+					else if (annotationOfParam instanceof SecurityContextPassword)
+					{
+						if (passwordIndex != -1)
+						{
+							throw new IllegalStateException("Annotation '" + SecurityContextPassword.class.getName() + "' ambiguous on method signature '"
+									+ method.toGenericString() + "'");
+						}
+						passwordIndex = a;
+						passwordType = ((SecurityContextPassword) annotationOfParam).value();
+					}
+				}
+			}
+			return new SecurityMethodMode(annotation.value(), userNameIndex, passwordIndex, passwordType);
 		}
 	};
 
@@ -50,7 +89,7 @@ public class SecurityPostProcessor extends AbstractCascadePostProcessor implemen
 	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory, IServiceContext beanContext,
 			IBeanConfiguration beanConfiguration, Class<?> type, Set<Class<?>> requestedTypes)
 	{
-		IMethodLevelBehavior<SecurityContextType> behaviour = MethodLevelBehavior.create(type, annotationCache, SecurityContextType.class, btExtractor,
+		IMethodLevelBehavior<SecurityMethodMode> behaviour = MethodLevelBehavior.create(type, annotationCache, SecurityMethodMode.class, btExtractor,
 				beanContextFactory, beanContext);
 		if (behaviour == null)
 		{

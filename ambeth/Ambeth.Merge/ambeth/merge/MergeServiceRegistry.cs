@@ -150,7 +150,10 @@ namespace De.Osthus.Ambeth.Cache
 					}
 					if (MergeSecurityManager != null)
 					{
-						MergeSecurityManager.CheckMergeAccess(extendedCudResult, methodDescription);
+						SecurityActive.ExecuteWithSecurityDirective(SecurityDirective.ENABLE_ENTITY_CHECK, delegate()
+						{
+							MergeSecurityManager.CheckMergeAccess(extendedCudResult, methodDescription);
+						});
 					}
 					List<Object> originalRefsOfCache = new List<Object>(cudResultOfCache.GetOriginalRefs());
 					List<Object> originalRefsExtended = new List<Object>(extendedCudResult.GetOriginalRefs());

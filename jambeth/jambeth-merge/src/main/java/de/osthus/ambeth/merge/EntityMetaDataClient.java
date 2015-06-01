@@ -61,8 +61,9 @@ public class EntityMetaDataClient implements IEntityMetaDataProvider
 		{
 			realEntityTypes.add(proxyHelper.getRealType(entityType));
 		}
-		Lock readLock = cache.getReadLock();
-		LockState lockState = readLock.releaseAllLocks();
+		ICache cache = this.cache.getCurrentCache();
+		Lock readLock = cache != null ? cache.getReadLock() : null;
+		LockState lockState = readLock != null ? readLock.releaseAllLocks() : null;
 		try
 		{
 			List<IEntityMetaData> serviceResult = mergeService.getMetaData(realEntityTypes);
@@ -72,7 +73,10 @@ public class EntityMetaDataClient implements IEntityMetaDataProvider
 		}
 		finally
 		{
-			readLock.reacquireLocks(lockState);
+			if (readLock != null)
+			{
+				readLock.reacquireLocks(lockState);
+			}
 		}
 	}
 

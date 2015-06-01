@@ -7,7 +7,8 @@ import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
-public class SecurityContextHolder implements IAuthorizationChangeListenerExtendable, ISecurityContextHolder, IThreadLocalCleanupBean
+public class SecurityContextHolder implements IAuthorizationChangeListenerExtendable, ISecurityContextHolder, IThreadLocalCleanupBean,
+		ILightweightSecurityContext
 {
 	public static class SecurityContextForkProcessor implements IForkProcessor
 	{
@@ -158,5 +159,16 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 				clearContext();
 			}
 		}
+	}
+
+	@Override
+	public boolean isAuthenticated()
+	{
+		ISecurityContext securityContext = getContext();
+		if (securityContext == null)
+		{
+			return false;
+		}
+		return securityContext.getAuthorization() != null;
 	}
 }

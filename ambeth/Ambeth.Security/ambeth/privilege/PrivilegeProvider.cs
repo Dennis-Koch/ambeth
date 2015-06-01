@@ -185,31 +185,23 @@ namespace De.Osthus.Ambeth.Privilege
         public IPrivilege GetPrivilege(Object entity, params ISecurityScope[] securityScopes)
         {
             IList<IObjRef> objRefs = ObjRefHelper.ExtractObjRefList(entity, null);
-            IList<IPrivilege> result = GetPrivileges(objRefs, securityScopes);
-            if (result.Count == 0)
-            {
-                return DenyAllPrivilege.INSTANCE;
-            }
-            return result[0];
+            IPrivilegeResult result = GetPrivileges(objRefs, securityScopes);
+			return result.GetPrivileges()[0];
         }
 
         public IPrivilege GetPrivilegeByObjRef(IObjRef objRef, params ISecurityScope[] securityScopes)
         {
-            IList<IPrivilege> result = GetPrivilegesByObjRef(new List<IObjRef>(new IObjRef[] { objRef }), securityScopes);
-            if (result.Count == 0)
-            {
-                return DenyAllPrivilege.INSTANCE;
-            }
-            return result[0];
+			IPrivilegeResult result = GetPrivilegesByObjRef(new List<IObjRef>(new IObjRef[] { objRef }), securityScopes);
+			return result.GetPrivileges()[0];
         }
 
-        public IList<IPrivilege> GetPrivileges<V>(IEnumerable<V> entities, params ISecurityScope[] securityScopes)
+		public IPrivilegeResult GetPrivileges<V>(IList<V> entities, params ISecurityScope[] securityScopes)
         {
             IList<IObjRef> objRefs = ObjRefHelper.ExtractObjRefList(entities, null);
             return GetPrivilegesByObjRef(objRefs, securityScopes);
         }
 
-        public IList<IPrivilege> GetPrivilegesByObjRef<V>(IEnumerable<V> objRefs, params ISecurityScope[] securityScopes) where V : IObjRef
+		public IPrivilegeResult GetPrivilegesByObjRef<V>(IList<V> objRefs, params ISecurityScope[] securityScopes) where V : IObjRef
         {
             ISecurityContext context = SecurityContextHolder.Context;
             IAuthorization authorization = context != null ? context.Authorization : null;
@@ -224,7 +216,7 @@ namespace De.Osthus.Ambeth.Privilege
             List<IObjRef> missingObjRefs = new List<IObjRef>();
             lock (writeLock)
             {
-                IList<IPrivilege> result = CreateResult(objRefs, securityScopes, missingObjRefs, authorization, null);
+				IPrivilegeResult result = CreateResult(objRefs, securityScopes, missingObjRefs, authorization, null);
                 if (missingObjRefs.Count == 0)
                 {
                     return result;
@@ -363,15 +355,11 @@ namespace De.Osthus.Ambeth.Privilege
 
         public ITypePrivilege GetPrivilegeByType(Type entityType, params ISecurityScope[] securityScopes)
         {
-            IList<ITypePrivilege> result = GetPrivilegesByType(new Type[] { entityType }, securityScopes);
-            if (result.Count == 0)
-            {
-                return SkipAllTypePrivilege.INSTANCE;
-            }
-            return result[0];
+			ITypePrivilegeResult result = GetPrivilegesByType(new Type[] { entityType }, securityScopes);
+			return result.GetTypePrivileges()[0];
         }
 
-        public IList<ITypePrivilege> GetPrivilegesByType(IEnumerable<Type> entityTypes, params ISecurityScope[] securityScopes)
+		public ITypePrivilegeResult GetPrivilegesByType(IList<Type> entityTypes, params ISecurityScope[] securityScopes)
         {
             ISecurityContext context = SecurityContextHolder.Context;
             IAuthorization authorization = context != null ? context.Authorization : null;
@@ -387,7 +375,7 @@ namespace De.Osthus.Ambeth.Privilege
             Object writeLock = this.writeLock;
             lock (writeLock)
             {
-                IList<ITypePrivilege> result = CreateResultByType(entityTypes, securityScopes, missingEntityTypes, authorization);
+				ITypePrivilegeResult result = CreateResultByType(entityTypes, securityScopes, missingEntityTypes, authorization);
                 if (missingEntityTypes.Count == 0)
                 {
                     return result;
@@ -416,21 +404,21 @@ namespace De.Osthus.Ambeth.Privilege
             }
         }
 
-        protected IList<IPrivilege> CreateResult<V>(IEnumerable<V> objRefs, ISecurityScope[] securityScopes, List<IObjRef> missingObjRefs,
+		protected IPrivilegeResult CreateResult<V>(IList<V> objRefs, ISecurityScope[] securityScopes, List<IObjRef> missingObjRefs,
                 IAuthorization authorization, IMap<PrivilegeKey, IPrivilege> privilegeResultOfNewEntities) where V : IObjRef
         {
             PrivilegeKey privilegeKey = null;
 
-            List<IPrivilege> result = new List<IPrivilege>();
+            IPrivilege[] result = new IPrivilege[objRefs.Count];
             String userSID = authorization.SID;
 
-            foreach (IObjRef objRef in objRefs)
-            {
-                if (objRef == null)
-                {
-                    result.Add(null);
-                    continue;
-                }
+			for (int index = objRefs.Count; index-- > 0; )
+			{
+				IObjRef objRef = objRefs[index];
+				if (objRef == null)
+				{
+					continue;
+				}
                 if (privilegeKey == null)
                 {
                     privilegeKey = new PrivilegeKey();
@@ -475,31 +463,28 @@ namespace De.Osthus.Ambeth.Privilege
                     if (missingObjRefs != null)
                     {
                         missingObjRefs.Add(objRef);
+						continue;
                     }
-                    else
-                    {
-                        result.Add(DenyAllPrivilege.INSTANCE);
-                    }
-                    continue;
+					mergedPrivilegeItem = DenyAllPrivilege.INSTANCE;
                 }
-                result.Add(mergedPrivilegeItem);
+				result[index] = mergedPrivilegeItem;
             }
-            return result;
+            return new PrivilegeResult(authorization.SID, result);
         }
 
-        protected IList<ITypePrivilege> CreateResultByType(IEnumerable<Type> entityTypes, ISecurityScope[] securityScopes, IList<Type> missingEntityTypes,
+        protected ITypePrivilegeResult CreateResultByType(IList<Type> entityTypes, ISecurityScope[] securityScopes, IList<Type> missingEntityTypes,
             IAuthorization authorization)
         {
-            List<ITypePrivilege> result = new List<ITypePrivilege>();
+			ITypePrivilege[] result = new ITypePrivilege[entityTypes.Count];
             String userSID = authorization.SID;
 
-            foreach (Type entityType in entityTypes)
-            {
-                if (entityType == null)
-                {
-                    result.Add(null);
-                    continue;
-                }
+            for (int index = entityTypes.Count; index-- > 0;)
+			{
+				Type entityType = entityTypes[index];
+				if (entityType == null)
+				{
+					continue;
+				}
                 ITypePrivilege mergedTypePrivilege = null;
                 for (int a = securityScopes.Length; a-- > 0; )
                 {
@@ -525,16 +510,13 @@ namespace De.Osthus.Ambeth.Privilege
                     if (missingEntityTypes != null)
                     {
                         missingEntityTypes.Add(entityType);
+						continue;
                     }
-                    else
-                    {
-                        result.Add(SkipAllTypePrivilege.INSTANCE);
-                    }
-                    continue;
+					mergedTypePrivilege = SkipAllTypePrivilege.INSTANCE;
                 }
-                result.Add(mergedTypePrivilege);
+                result[index] = mergedTypePrivilege;
             }
-            return result;
+			return new TypePrivilegeResult(authorization.SID, result);
         }
 
         public void HandleClearAllCaches(ClearAllCachesEvent evnt)

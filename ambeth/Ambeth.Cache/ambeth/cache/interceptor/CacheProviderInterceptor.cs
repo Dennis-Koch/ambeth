@@ -25,10 +25,13 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
 
         private static readonly ISet<MethodInfo> methodsDirectlyToRootCache = new HashSet<MethodInfo>();
 
+		private static readonly MethodInfo currentCacheMethod;
+
         static CacheProviderInterceptor()
         {
             methodsDirectlyToRootCache.Add(typeof(ICache).GetProperty("ReadLock").GetGetMethod());
             methodsDirectlyToRootCache.Add(typeof(ICache).GetProperty("WriteLock").GetGetMethod());
+			currentCacheMethod = typeof(ICache).GetProperty("CurrentCache").GetGetMethod();
         }
 
         protected readonly Stack<ICacheProvider> cacheProviderStack = new Stack<ICacheProvider>();
@@ -70,7 +73,11 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             {
                 return stack.Peek();
             }
-            return cacheProviderStack.Peek();
+			if (cacheProviderStack.Count > 0)
+			{
+				return cacheProviderStack.Peek();
+			}
+			return null;
         }
 
         public ICache GetCurrentCache()
@@ -161,7 +168,12 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
         protected override void InterceptIntern(IInvocation invocation)
         {
             ICacheProvider cacheProvider = GetCurrentCacheProvider();
-            MethodInfo method = invocation.Method;
+			MethodInfo method = invocation.Method;
+			if (cacheProvider == null && currentCacheMethod.Equals(method))
+			{
+				invocation.ReturnValue = null;
+				return;
+			}
             if (method.DeclaringType.Equals(typeof(ICacheProvider)))
 		    {
                 invocation.ReturnValue = method.Invoke(cacheProvider, invocation.Arguments);

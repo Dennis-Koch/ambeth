@@ -511,7 +511,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 								pgUpdateEntry.setStartIndexInAllObjRefs(allObjRefs.size());
 								allObjRefs.addAll(pgUpdateEntry.getObjRefs());
 							}
-							final IList<IPrivilege>[] allPrivilegesOfAllUsers = evaluateAllPrivileges(allObjRefs, authentications, authorizations);
+							final IPrivilege[][] allPrivilegesOfAllUsers = evaluateAllPrivileges(allObjRefs, authentications, authorizations);
 
 							multithreadingHelper.invokeAndWait(entityToPgUpdateMap, new IBackgroundWorkerParamDelegate<Entry<Class<?>, PgUpdateEntry>>()
 							{
@@ -721,7 +721,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 	}
 
 	@SuppressWarnings("unchecked")
-	protected IList<IPrivilege>[] evaluateAllPrivileges(List<IObjRef> allObjRefs, IAuthentication[] authentications, IAuthorization[] authorizations)
+	protected IPrivilege[][] evaluateAllPrivileges(List<IObjRef> allObjRefs, IAuthentication[] authentications, IAuthorization[] authorizations)
 	{
 		IPrivilegeProvider privilegeProvider = this.privilegeProvider;
 		ISecurityContext securityContext = securityContextHolder.getCreateContext();
@@ -732,7 +732,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 			boolean oldIgnoreInvalidUser = SecurityFilterInterceptor.setIgnoreInvalidUser(true);
 			try
 			{
-				IList<IPrivilege>[] allPrivilegesOfAllUsers = new IList[authentications.length];
+				IPrivilege[][] allPrivilegesOfAllUsers = new IPrivilege[authentications.length][];
 				for (int a = authentications.length; a-- > 0;)
 				{
 					IAuthentication authentication = authentications[a];
@@ -740,7 +740,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 					securityContext.setAuthentication(authentication);
 					securityContext.setAuthorization(authorization);
 
-					allPrivilegesOfAllUsers[a] = privilegeProvider.getPrivilegesByObjRef(allObjRefs);
+					allPrivilegesOfAllUsers[a] = privilegeProvider.getPrivilegesByObjRef(allObjRefs).getPrivileges();
 				}
 				return allPrivilegesOfAllUsers;
 			}
@@ -756,7 +756,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		}
 	}
 
-	protected void insertPermissionGroupsForUsers(PgUpdateEntry pgUpdateEntry, IAuthorization[] authorizations, IList<IPrivilege>[] allPrivilegesOfAllUsers)
+	protected void insertPermissionGroupsForUsers(PgUpdateEntry pgUpdateEntry, IAuthorization[] authorizations, IPrivilege[][] allPrivilegesOfAllUsers)
 			throws Throwable
 	{
 		IList<Object> permissionGroupIds = pgUpdateEntry.getPermissionGroupIds();
@@ -774,11 +774,11 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 				for (int a = authorizations.length; a-- > 0;)
 				{
 					IAuthorization authorization = authorizations[a];
-					IList<IPrivilege> allPrivileges = allPrivilegesOfAllUsers[a];
+					IPrivilege[] allPrivileges = allPrivilegesOfAllUsers[a];
 
 					insertPermissionGroupPstm.setObject(1, authorization.getSID());
 
-					IPrivilege privilege = allPrivileges.get(startIndexInAllObjRefs + b);
+					IPrivilege privilege = allPrivileges[startIndexInAllObjRefs + b];
 
 					int readAllowed = privilege == null || privilege.isReadAllowed() ? 1 : 0;
 					int updateAllowed = privilege == null || privilege.isUpdateAllowed() ? 1 : 0;

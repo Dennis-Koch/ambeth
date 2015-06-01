@@ -39,6 +39,7 @@ import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.privilege.IPrivilegeProviderIntern;
 import de.osthus.ambeth.privilege.model.IPrivilege;
+import de.osthus.ambeth.privilege.model.IPrivilegeResult;
 import de.osthus.ambeth.privilege.model.IPropertyPrivilege;
 import de.osthus.ambeth.privilege.model.ReadPermission;
 import de.osthus.ambeth.util.IDisposable;
@@ -99,14 +100,14 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 			return list;
 		}
 		Object firstItem = list.get(0);
-		IList<IPrivilege> privileges;
+		IPrivilege[] privileges;
 		if (firstItem instanceof IObjRef)
 		{
-			privileges = privilegeProvider.getPrivilegesByObjRef((Collection<IObjRef>) list, securityScopes);
+			privileges = privilegeProvider.getPrivilegesByObjRef((List<IObjRef>) list, securityScopes).getPrivileges();
 		}
 		else if (firstItem != null && entityMetaDataProvider.getMetaData(firstItem.getClass(), true) != null)
 		{
-			privileges = privilegeProvider.getPrivileges(list, securityScopes);
+			privileges = privilegeProvider.getPrivileges(list, securityScopes).getPrivileges();
 		}
 		else
 		{
@@ -130,7 +131,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 				cloneCollection.add(null);
 				continue;
 			}
-			IPrivilege privilege = privileges.get(a);
+			IPrivilege privilege = privileges[a];
 			if (privilege.isReadAllowed())
 			{
 				cloneCollection.add(item);
@@ -228,20 +229,38 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 			// nothing to filter
 			return coll;
 		}
-		Iterator<?> iter = coll.iterator();
-		if (!iter.hasNext())
+		Object firstItem;
 		{
-			throw new IllegalStateException("Must never happen");
+			Iterator<?> iter = coll.iterator();
+			try
+			{
+				if (!iter.hasNext())
+				{
+					throw new IllegalStateException("Must never happen");
+				}
+				firstItem = iter.next();
+			}
+			finally
+			{
+				if (iter instanceof IDisposable)
+				{
+					((IDisposable) iter).dispose();
+				}
+			}
 		}
-		Object firstItem = iter.next();
-		IList<IPrivilege> privileges;
+		IPrivilege[] privileges;
+		List<?> listToCheck;
 		if (firstItem instanceof IObjRef)
 		{
-			privileges = privilegeProvider.getPrivilegesByObjRef((Collection<IObjRef>) coll, securityScopes);
+			List<IObjRef> list = coll instanceof List ? (List<IObjRef>) coll : new ArrayList<IObjRef>((Collection<? extends IObjRef>) coll);
+			privileges = privilegeProvider.getPrivilegesByObjRef(list, securityScopes).getPrivileges();
+			listToCheck = list;
 		}
 		else if (firstItem != null && entityMetaDataProvider.getMetaData(firstItem.getClass(), true) != null)
 		{
-			privileges = privilegeProvider.getPrivileges(coll, securityScopes);
+			List<?> list = coll instanceof List ? (List<?>) coll : new ArrayList<Object>(coll);
+			privileges = privilegeProvider.getPrivileges(list, securityScopes).getPrivileges();
+			listToCheck = list;
 		}
 		else
 		{
@@ -257,17 +276,15 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		int index = -1;
-		while (iter.hasNext())
+		for (int index = 0, size = listToCheck.size(); index < size; index++)
 		{
-			Object item = iter.next();
-			index++;
+			Object item = listToCheck.get(index);
 			if (item == null)
 			{
 				cloneCollection.add(null);
 				continue;
 			}
-			IPrivilege privilege = privileges.get(index);
+			IPrivilege privilege = privileges[index];
 			if (privilege.isReadAllowed())
 			{
 				cloneCollection.add(item);
@@ -284,10 +301,6 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 			// {
 			// cloneCollection.add(filteredItem);
 			// }
-		}
-		if (iter instanceof IDisposable)
-		{
-			((IDisposable) iter).dispose();
 		}
 		return cloneCollection;
 
@@ -340,23 +353,24 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 	@Override
 	public void checkMergeAccess(ICUDResult cudResult, IMethodDescription methodDescription)
 	{
-		if (!securityActivation.isSecured())
+		if (!securityActivation.isFilterActivated())
 		{
 			return;
 		}
 		ISet<IObjRef> relatedObjRefs = scanForAllObjRefs(cudResult);
 
 		IList<IObjRef> relatedObjRefsList = relatedObjRefs.toList();
-		IList<IPrivilege> privilegeItems = privilegeProvider.getPrivilegesByObjRef(relatedObjRefsList, securityScopeProvider.getSecurityScopes());
+		IPrivilegeResult privilegeResult = privilegeProvider.getPrivilegesByObjRef(relatedObjRefsList, securityScopeProvider.getSecurityScopes());
+		IPrivilege[] privilegeItems = privilegeResult.getPrivileges();
 		HashMap<IObjRef, IPrivilege> objRefToPrivilege = HashMap.<IObjRef, IPrivilege> create(relatedObjRefsList.size());
 
 		for (int a = relatedObjRefsList.size(); a-- > 0;)
 		{
 			IObjRef objRef = relatedObjRefsList.get(a);
-			IPrivilege privilegeItem = privilegeItems.get(a);
+			IPrivilege privilegeItem = privilegeItems[a];
 			objRefToPrivilege.put(objRef, privilegeItem);
 		}
-		evaluatePermssionOnAllObjRefs(cudResult, objRefToPrivilege);
+		evaluatePermssionOnAllObjRefs(cudResult, objRefToPrivilege, privilegeResult);
 	}
 
 	protected ISet<IObjRef> scanForAllObjRefs(ICUDResult cudResult)
@@ -401,7 +415,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 		return relatedObjRefs;
 	}
 
-	protected void evaluatePermssionOnAllObjRefs(ICUDResult cudResult, Map<IObjRef, IPrivilege> objRefToPrivilege)
+	protected void evaluatePermssionOnAllObjRefs(ICUDResult cudResult, Map<IObjRef, IPrivilege> objRefToPrivilege, IPrivilegeResult privilegeResult)
 	{
 		List<IChangeContainer> allChanges = cudResult.getAllChanges();
 		for (int a = allChanges.size(); a-- > 0;)
@@ -414,7 +428,8 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 			if (!privilege.isReadAllowed())
 			{
 				// just for robustness
-				throw new SecurityException("Current user has no permission to read entity and is therefore not allowed to imply any change: " + reference);
+				throw new SecurityException("User '" + privilegeResult.getSID()
+						+ "' has no permission to read entity and is therefore not allowed to imply any change: " + reference);
 			}
 
 			IRelationUpdateItem[] ruis = null;
@@ -422,7 +437,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 			{
 				if (!privilege.isCreateAllowed())
 				{
-					throw new SecurityException("Current user has no permission to create entity: " + reference);
+					throw new SecurityException("User '" + privilegeResult.getSID() + "' has no permission to create entity: " + reference);
 				}
 				evaluatePermissionOnEntityCreate((CreateContainer) changeContainer, privilege);
 				ruis = ((CreateContainer) changeContainer).getRelations();
@@ -431,14 +446,14 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 			{
 				if (!privilege.isUpdateAllowed())
 				{
-					throw new SecurityException("Current user has no permission to update entity: " + reference);
+					throw new SecurityException("User '" + privilegeResult.getSID() + "' has no permission to update entity: " + reference);
 				}
 				evaluatePermissionOnEntityUpdate((UpdateContainer) changeContainer, privilege);
 				ruis = ((UpdateContainer) changeContainer).getRelations();
 			}
 			else if (!privilege.isDeleteAllowed())
 			{
-				throw new SecurityException("Current user has no permission to delete entity: " + reference);
+				throw new SecurityException("User '" + privilegeResult.getSID() + "' has no permission to delete entity: " + reference);
 			}
 			if (ruis == null)
 			{

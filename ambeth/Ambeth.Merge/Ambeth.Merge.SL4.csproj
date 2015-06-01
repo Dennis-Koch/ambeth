@@ -233,11 +233,13 @@
     <Compile Include="ambeth\proxy\MergePostProcessor.cs" />
     <Compile Include="ambeth\proxy\PersistenceContext.cs" />
     <Compile Include="ambeth\proxy\PersistenceContextType.cs" />
+    <Compile Include="ambeth\security\ILightweightSecurityContext.cs" />
     <Compile Include="ambeth\security\ISecurityActivation.cs" />
     <Compile Include="ambeth\security\ISecurityScopeChangeListener.cs" />
     <Compile Include="ambeth\security\ISecurityScopeChangeListenerExtendable.cs" />
     <Compile Include="ambeth\security\ISecurityScopeProvider.cs" />
     <Compile Include="ambeth\security\SecurityActivation.cs" />
+    <Compile Include="ambeth\security\SecurityDirective.cs" />
     <Compile Include="ambeth\security\SecurityScopeHandle.cs" />
     <Compile Include="ambeth\security\SecurityScopeProvider.cs" />
     <Compile Include="ambeth\service\MergeServiceDelegate.cs" />

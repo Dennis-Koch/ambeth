@@ -718,15 +718,17 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 		IList<IObjRef> objRefsToAudit = remainingPropertyMap.keyList();
 		boolean[] entitiesDataInvalid = new boolean[objRefsToAudit.size()];
 		IList<IAuditedEntity> auditedEntitiesToVerify = filterAuditedEntities(auditedEntities, remainingPropertyMap, objRefsToAudit, entitiesDataInvalid);
-		boolean[] verifyAuditEntries = verifyAuditedEntities(auditedEntitiesToVerify);
-		for (boolean result : verifyAuditEntries)
-		{
-			if (!result)
-			{
-				return false;
-			}
-		}
+		boolean[] auditedEntitiesInvalid = verifyAuditedEntities(auditedEntitiesToVerify);
 		ArrayList<IObjRef> invalidEntities = new ArrayList<IObjRef>();
+		ArrayList<IAuditedEntity> invalidAuditedEntities = new ArrayList<IAuditedEntity>();
+		for (int a = auditedEntitiesInvalid.length; a-- > 0;)
+		{
+			if (!auditedEntitiesInvalid[a])
+			{
+				continue;
+			}
+			invalidAuditedEntities.add(auditedEntitiesToVerify.get(a));
+		}
 		for (int a = entitiesDataInvalid.length; a-- > 0;)
 		{
 			if (!entitiesDataInvalid[a])
@@ -736,14 +738,20 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 			invalidEntities.add(objRefsToAudit.get(a));
 		}
 		long end = System.currentTimeMillis();
-		if (invalidEntities.size() > 0)
+		if (invalidEntities.size() > 0 || invalidAuditedEntities.size() > 0)
 		{
 			StringBuilder sb = new StringBuilder();
 			sb.append("Verification failed: ").append(invalidEntities.size()).append(" OF ").append(count).append(" ENTITIES INVALID (").append(end - start)
 					.append(" ms):");
 			for (IObjRef objRef : invalidEntities)
 			{
-				sb.append("\n\t").append(objRef.toString());
+				sb.append("\n\t\t").append(objRef.toString());
+			}
+			sb.append("\n\t").append(invalidAuditedEntities.size()).append(" OF ").append(auditedEntitiesToVerify.size()).append(" AUDIT ENTIRES INVALID:");
+			for (IAuditedEntity auditedEntity : invalidAuditedEntities)
+			{
+				IAuditedEntityRef ref = auditedEntity.getRef();
+				sb.append("\n\t\t").append(new ObjRef(ref.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, ref.getEntityId(), ref.getEntityVersion()));
 			}
 			log.error(sb);
 		}
@@ -836,7 +844,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 		IPrefetchState prefetch2 = getPref_SignaturesOfUserFromAuditedEntity().prefetch(auditedEntities);
 
 		boolean[] result = new boolean[auditedEntities.size()];
-		ArrayList<IAuditedEntity> auditEntriesToVerify = new ArrayList<IAuditedEntity>(auditedEntities.size());
+		ArrayList<IAuditedEntity> auditedEntitiesToVerify = new ArrayList<IAuditedEntity>(auditedEntities.size());
 		HashMap<ISignature, java.security.Signature> signatureToSignatureHandleMap = new HashMap<ISignature, java.security.Signature>();
 		for (IAuditedEntity auditedEntity : auditedEntities)
 		{
@@ -850,27 +858,26 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 			{
 				if (signature == null)
 				{
-					auditEntriesToVerify.add(null);
+					auditedEntitiesToVerify.add(null);
 					// audit entries without a signature can not be verified but are intentionally treated as "valid"
 					continue;
 				}
 				throw new IllegalArgumentException(IAuditedEntity.class.getSimpleName() + " has no relation to a user signature: " + auditedEntity);
 			}
-			auditEntriesToVerify.add(auditedEntity);
+			auditedEntitiesToVerify.add(auditedEntity);
 		}
 		@SuppressWarnings("unused")
-		IPrefetchState prefetch = getPref_verifyAuditEntriesFromAuditedEntity().prefetch(auditEntriesToVerify);
+		IPrefetchState prefetch = getPref_verifyAuditEntriesFromAuditedEntity().prefetch(auditedEntitiesToVerify);
 
-		for (int a = 0, size = auditEntriesToVerify.size(); a < size; a++)
+		for (int a = 0, size = auditedEntitiesToVerify.size(); a < size; a++)
 		{
-			IAuditedEntity auditEntry = auditEntriesToVerify.get(a);
-			if (auditEntry == null)
+			IAuditedEntity auditedEntity = auditedEntitiesToVerify.get(a);
+			if (auditedEntity == null)
 			{
-				result[a] = true;
 				continue;
 			}
-			ISignature signatureOfUser = auditEntry.getEntry().getSignatureOfUser();
-			char[] signature = auditEntry.getSignature();
+			ISignature signatureOfUser = auditedEntity.getEntry().getSignatureOfUser();
+			char[] signature = auditedEntity.getSignature();
 			try
 			{
 				java.security.Signature signatureHandle = signatureToSignatureHandleMap.get(signatureOfUser);
@@ -879,9 +886,9 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 					signatureHandle = signatureUtil.createVerifyHandle(signatureOfUser.getSignAndVerify(), Base64.decode(signatureOfUser.getPublicKey()));
 					signatureToSignatureHandleMap.put(signatureOfUser, signatureHandle);
 				}
-				byte[] digest = auditEntryToSignature.createVerifyDigest(auditEntry);
+				byte[] digest = auditEntryToSignature.createVerifyDigest(auditedEntity);
 				signatureHandle.update(digest);
-				result[a] = signatureHandle.verify(Base64.decode(signature));
+				result[a] = !signatureHandle.verify(Base64.decode(signature));
 			}
 			catch (Throwable e)
 			{

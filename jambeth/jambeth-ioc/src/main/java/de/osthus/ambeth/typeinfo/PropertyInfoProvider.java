@@ -145,7 +145,7 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 			}
 
 			HashMap<String, HashMap<Class<?>, HashMap<String, Method>>> sortedMethods = new HashMap<String, HashMap<Class<?>, HashMap<String, Method>>>();
-			Method[] methods = ReflectUtil.getDeclaredMethods(type);
+			Method[] methods = ReflectUtil.getDeclaredMethodsInHierarchy(type);
 
 			MethodAccess methodAccess = null;
 			for (int i = methods.length; i-- > 0;)

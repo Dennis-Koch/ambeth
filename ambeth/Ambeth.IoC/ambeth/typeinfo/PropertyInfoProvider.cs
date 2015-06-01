@@ -98,7 +98,7 @@ namespace De.Osthus.Ambeth.Typeinfo
                 }
 
                 HashMap<String, HashMap<Type, HashMap<String, MethodInfo>>> sortedMethods = new HashMap<String, HashMap<Type, HashMap<String, MethodInfo>>>();
-				MethodInfo[] methods = ReflectUtil.GetDeclaredMethods(type);
+				MethodInfo[] methods = ReflectUtil.GetDeclaredMethodsInHierarchy(type);
 
                 foreach (MethodInfo method in methods)
                 {
