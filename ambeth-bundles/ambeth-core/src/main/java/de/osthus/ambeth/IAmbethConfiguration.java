@@ -64,10 +64,17 @@ public interface IAmbethConfiguration
 	IAmbethConfiguration withApplicationModules(Class<?>... modules);
 
 	/**
-	 * Starts the configured Ambeth context. It returns an {@link Closeable} Ambeth application object that also holds the configured application context.
-	 * Closing this object shuts down the root context and all of its child contexts.
+	 * Starts the configured Ambeth context. It returns an {@link Closeable} {@link IAmbethApplication} object that also holds the configured application
+	 * context. Closing this object shuts down the root context and all of its child contexts.
 	 * 
 	 * @return Ambeth application object
 	 */
 	IAmbethApplication start();
+
+	/**
+	 * Starts the configured Ambeth context. Also it registers the {@link IAmbethApplication#close()} method with the JVM as a shutdown hook. So after all
+	 * modules and services have finished their afterStarted() calls and the Thread leaves the main() methods the root context and application are cleanly shut
+	 * down as well.
+	 */
+	void startAndClose();
 }
