@@ -48,10 +48,16 @@ public final class PersistenceConfigurationConstants
 	@ConfigurationConstantDescription("TODO")
 	public static final String DatabaseTablePostfix = "database.table.postfix";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * The prefix the name of a table used to archive objects has to start with. Valid values are all strings of chars which can be used in database table
+	 * names, default value is empty.
+	 */
 	public static final String DatabaseArchiveTablePrefix = "database.archivetable.prefix";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * The postfix the name of a table used to archive objects has to end with. Valid values are all strings of chars which can be used in database table names,
+	 * default value is empty. If neither postfix nor prefix ({@link database.archivetable.prefix}) is given the postfix is set to "_ARC".
+	 */
 	public static final String DatabaseArchiveTablePostfix = "database.archivetable.postfix";
 
 	@ConfigurationConstantDescription("TODO")
@@ -72,16 +78,25 @@ public final class PersistenceConfigurationConstants
 	@ConfigurationConstantDescription("TODO")
 	public static final String DatabaseSequencePostfix = "database.sequence.postfix";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * Defines whether the query cache should be active, which stores results of queries to the persistence layer. Valid values are "true" and "false", default
+	 * is "true".
+	 */
 	public static final String QueryCacheActive = "cache.query.active";
 
 	@ConfigurationConstantDescription("TODO")
 	public static final String LinkClass = "link.type";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * Defines whether ambeth should create array types (e.g. STRING_ARRAY, LONG_ARRAY) in the database if they do not exist yet. Valid value are "true" and
+	 * "false", default is "true".
+	 */
 	public static final String AutoArrayTypes = "database.auto.arraytypes";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * Defines whether ambeth should create indexes for foreign key columns automatically if they do not exist yet. Valid value are "true" and "false", default
+	 * is "false".
+	 */
 	public static final String AutoIndexForeignKeys = "database.auto.indexonfk";
 
 	@ConfigurationConstantDescription("TODO")

@@ -11,12 +11,20 @@ public final class CacheConfigurationConstants
 		// intended blank
 	}
 
+	/**
+	 * Not used in JAmbeth currently!
+	 */
 	@ConfigurationConstantDescription("TODO")
 	public static final String CacheServiceName = "cache.service.name";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * Enables or disables the result cache. Valid values are "true" and "false", default is "false".
+	 */
 	public static final String ServiceResultCacheActive = "cache.resultcache.active";
 
+	/**
+	 * Not used in JAmbeth currently!
+	 */
 	@ConfigurationConstantDescription("TODO")
 	public static final String ValueholderOnEmptyToOne = "cache.valueholder.onEmptyToOne";
 
@@ -25,7 +33,10 @@ public final class CacheConfigurationConstants
 	 */
 	public static final String OverwriteToManyRelationsInChildCache = "cache.child.onupdate.overwritetomany";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * Sets the threshold of the Least Recently Used entries. If activated the RootCache contains references to the last n entities in the a list so they are
+	 * not garbage collected. Valid values are numbers > 0, default value is '0' which means the list is deactivated.
+	 */
 	public static final String CacheLruThreshold = "cache.lru.threshold";
 
 	/**
@@ -33,9 +44,14 @@ public final class CacheConfigurationConstants
 	 */
 	public static final String FirstLevelCacheType = "cache.firstlevel.type";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * Enables or disables the second level cache. Valid values are "true" and "false", default is "true".
+	 */
 	public static final String SecondLevelCacheActive = "cache.secondlevel.active";
 
+	/**
+	 * Not used in JAmbeth currently!
+	 */
 	@ConfigurationConstantDescription("TODO")
 	public static final String CacheReferenceCleanupInterval = "cache.weakref.cleanup.interval";
 
@@ -48,7 +64,9 @@ public final class CacheConfigurationConstants
 	 */
 	public static final String FirstLevelCacheWeakActive = "cache.firstlevel.weak.active";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * Enables whether the second level cache should work with weak references to avoid memory problems. Valid values are "true" and "false", default is "true".
+	 */
 	public static final String SecondLevelCacheWeakActive = "cache.secondlevel.weak.active";
 
 	/**
@@ -57,6 +75,9 @@ public final class CacheConfigurationConstants
 	 */
 	public static final String AsyncPropertyChangeActive = "cache.asyncpropertychange.active";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * Defines whether the old value should be added to a PropertyChangeEvent which is fired by the cache. Valid values are "true" and "false", default is
+	 * "false".
+	 */
 	public static final String FireOldPropertyValueActive = "cache.propertychange.fireoldvalue.active";
 }

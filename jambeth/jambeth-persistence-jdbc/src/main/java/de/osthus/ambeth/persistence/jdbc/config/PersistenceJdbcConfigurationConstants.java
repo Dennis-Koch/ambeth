@@ -93,7 +93,10 @@ public final class PersistenceJdbcConfigurationConstants
 	@ConfigurationConstantDescription("TODO")
 	public static final String DataSourceName = "datasource.name";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * Reference to prepared connections to the persistence store, which can be used instead of creating new ones. TODO: how can they be referenced in a text
+	 * property?
+	 */
 	public static final String PreparedConnectionInstances = "connections.prepared";
 
 	private PersistenceJdbcConfigurationConstants()

@@ -15,7 +15,6 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-core</artifactId>
 			<version>${project.version}</version>
-			<type>pom</type>
 		</dependency>
 
 		<dependency>

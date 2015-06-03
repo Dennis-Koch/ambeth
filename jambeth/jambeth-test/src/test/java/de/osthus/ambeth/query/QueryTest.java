@@ -46,8 +46,10 @@ import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
+import de.osthus.ambeth.testutil.TestPropertiesList;
 
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/Query_orm.xml")
+@TestPropertiesList({ @TestProperties(name = "ambeth.log.level.de.osthus.ambeth.persistence.jdbc.connection.LogPreparedStatementInterceptor", value = "DEBUG"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/Query_orm.xml") })
 @SQLStructure("Query_structure.sql")
 @SQLData("Query_data.sql")
 @PersistenceContext(PersistenceContextType.NOT_REQUIRED)
@@ -494,33 +496,31 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest
 		assertEquals(4, result.get(2).getId());
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void retrieveAllOrdered() throws Exception
 	{
 		List<Integer> expectedIds = Arrays.asList(new Integer[] { 1, 2, 3, 4, 5, 6 });
 
-		qb.orderBy(qb.column("ID"), OrderByType.ASC);
+		qb.orderBy(qb.property("Name1"), OrderByType.ASC);
 		IQuery<QueryEntity> queryAsc = qb.build(qb.all());
 		qb = queryBuilderFactory.create(QueryEntity.class);
-		qb.orderBy(qb.column("ID"), OrderByType.DESC);
+		qb.orderBy(qb.property("Id"), OrderByType.DESC);
 		IQuery<QueryEntity> queryDesc = qb.build(qb.all());
 
-		List<QueryEntity> actualAsc = queryAsc.retrieve(nameToValueMap);
+		List<QueryEntity> actualAsc = queryAsc.retrieve();
 		assertEquals(expectedIds.size(), actualAsc.size());
 		for (int i = actualAsc.size(); i-- > 0;)
 		{
 			assertEquals((int) expectedIds.get(i), actualAsc.get(i).getId());
 		}
 
-		List<QueryEntity> actualDesc = queryDesc.retrieve(nameToValueMap);
+		List<QueryEntity> actualDesc = queryDesc.retrieve();
 		int size = actualAsc.size();
 		assertEquals(size, actualDesc.size());
 		for (int i = size; i-- > 0;)
 		{
 			assertEquals(actualAsc.get(i), actualDesc.get(size - i - 1));
 		}
-
 	}
 
 	@SuppressWarnings("deprecation")
@@ -529,8 +529,8 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest
 	{
 		List<Integer> expected = Arrays.asList(new Integer[] { 4, 3, 2 });
 
-		qb.orderBy(qb.column("ID"), OrderByType.DESC);
-		qb.orderBy(qb.column("VERSION"), OrderByType.ASC);
+		qb.orderBy(qb.property("Id"), OrderByType.DESC);
+		qb.orderBy(qb.property("Version"), OrderByType.ASC);
 		IQuery<QueryEntity> query = qb.build(qb.all());
 
 		HashMap<Object, Object> currentNameToValueMap = new HashMap<Object, Object>(nameToValueMap);
