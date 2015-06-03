@@ -17,6 +17,7 @@ public class FieldPropertyInfo extends AbstractPropertyInfo
 		super(entityType, objectCollector);
 		field.setAccessible(true);
 		backingField = field;
+		modifiers = field.getModifiers();
 		name = propertyName;
 		declaringType = field.getDeclaringClass();
 		propertyType = field.getType();

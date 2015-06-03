@@ -237,4 +237,10 @@ public class EntityConfig implements IEntityConfig
 			return false;
 		}
 	}
+
+	@Override
+	public String toString()
+	{
+		return getClass().getSimpleName() + ": " + getEntityType();
+	}
 }

@@ -178,18 +178,25 @@ namespace De.Osthus.Ambeth.Typeinfo
                     typeInfo = new TypeInfo(type);
                     tempTypeInfoMap.Put(type, typeInfo);
 
-                    for (int a = allProperties.Count; a-- > 0; )
+                    foreach (IPropertyInfo property in allProperties)
                     {
-                        IPropertyInfo property = allProperties[a];
-                        if (property.GetAnnotation<IgnoreDataMemberAttribute>() != null)
-                        {
-                            continue; // Can not handle non datamember properties
-                        }
+						int modifiers = property.Modifiers;
+						if (Modifier.IsTransient(modifiers) || property.GetAnnotation<IgnoreDataMemberAttribute>() != null)
+						{
+							continue; // Can not handle non datamember properties
+						}
+						if (Modifier.IsFinal(modifiers))
+						{
+							continue;
+						}
+						if (!Modifier.IsPublic(modifiers))
+						{
+							continue;
+						}
                         memberList.Add(GetMember(type, property));
                     }
-                    for (int a = allFields.Count; a-- > 0; )
+                    foreach (FieldInfo field in allFields)
                     {
-                        FieldInfo field = allFields[a];
                         if (field.GetCustomAttributes(typeof(IgnoreDataMemberAttribute), true).Length > 0)
                         {
                             continue; // Can not handle non datamember fields

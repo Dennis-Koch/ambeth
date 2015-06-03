@@ -46,6 +46,27 @@ namespace De.Osthus.Ambeth.Typeinfo
             ParamChecker.AssertNotNull(PropertyType, "propertyType");
         }
 
+		protected void AddModifiers(FieldInfo field)
+		{
+			UpdateModifiers(field.IsStatic, (int)Modifier.STATIC);
+			UpdateModifiers(field.IsInitOnly, (int)Modifier.FINAL);
+			UpdateModifiers(field.IsPublic, (int)Modifier.PUBLIC);
+			UpdateModifiers(field.IsFamily || field.IsFamilyOrAssembly, (int)Modifier.PROTECTED);
+			UpdateModifiers(field.IsPrivate, (int)Modifier.PRIVATE);
+		}
+
+		protected void UpdateModifiers(bool flagState, int flagValue)
+		{
+			if (flagState)
+			{
+				Modifiers |= flagValue;
+			}
+			else
+			{
+				Modifiers &= ~flagValue;
+			}
+		}
+
         public abstract Object GetValue(Object obj);
 
         public abstract void SetValue(Object obj, Object value);

@@ -204,6 +204,7 @@
     <Compile Include="ambeth\typeinfo\IEmbeddedTypeInfoItem.cs" />
     <Compile Include="ambeth\typeinfo\INoEntityTypeExtendable.cs" />
     <Compile Include="ambeth\typeinfo\MethodPropertyInfoASM.cs" />
+    <Compile Include="ambeth\typeinfo\Modifier.cs" />
     <Compile Include="ambeth\typeinfo\NullEquivalentValueUtil.cs" />
     <Compile Include="ambeth\typeinfo\WrappedPropertyInfo.cs" />
     <Compile Include="ambeth\typeinfo\FieldPropertyInfo.cs" />

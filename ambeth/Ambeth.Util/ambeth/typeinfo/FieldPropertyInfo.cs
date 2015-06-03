@@ -10,6 +10,7 @@ namespace De.Osthus.Ambeth.Typeinfo
         {
             EntityType = entityType;
             BackingField = field;
+			AddModifiers(field);
             Name = propertyName;
             DeclaringType = field.DeclaringType;
             PropertyType = field.FieldType;

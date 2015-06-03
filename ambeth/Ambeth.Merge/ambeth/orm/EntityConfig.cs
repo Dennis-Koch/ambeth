@@ -94,5 +94,10 @@ namespace De.Osthus.Ambeth.Orm
                 return false;
             }
         }
+
+		public override String ToString()
+		{
+			return GetType().Name + ": " + EntityType;
+		}
     }
 }

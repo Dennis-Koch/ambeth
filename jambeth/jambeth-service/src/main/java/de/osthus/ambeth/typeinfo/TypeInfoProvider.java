@@ -220,9 +220,18 @@ public class TypeInfoProvider extends SmartCopyMap<Class<?>, TypeInfo> implement
 
 			for (IPropertyInfo property : allProperties)
 			{
-				if (property.getAnnotation(Transient.class) != null)
+				int modifiers = property.getModifiers();
+				if (Modifier.isTransient(modifiers) || property.getAnnotation(Transient.class) != null)
 				{
 					continue; // Can not handle non datamember properties
+				}
+				if (Modifier.isFinal(modifiers) || Modifier.isNative(modifiers))
+				{
+					continue;
+				}
+				if (!Modifier.isPublic(modifiers))
+				{
+					continue;
 				}
 				memberList.add(getMember(type, property));
 			}

@@ -120,7 +120,8 @@ namespace De.Osthus.Ambeth.Typeinfo
                 BackingField = backingField;
                 if (backingField != null)
                 {
-                    //PutAnnotations(backingField);
+					AddModifiers(backingField);
+                    PutAnnotations(backingField);
                 }
                 PutAnnotations(Getter);
                 if (Setter != null)
@@ -154,10 +155,51 @@ namespace De.Osthus.Ambeth.Typeinfo
                         BackingField = field;
                     }
                 }
+				if (BackingField != null)
+				{
+					AddModifiers(BackingField);
+				}
                 PropertyType = Setter.GetParameters()[0].ParameterType;
                 ElementType = TypeInfoItemUtil.GetElementTypeUsingReflection(PropertyType, null);
                 PutAnnotations(Setter);
             }
+			//if (Getter != null && Modifier.isNative(Getter.getModifiers()))
+			//{
+			//	modifiers |= Modifier.NATIVE;
+			//}
+			//if (Setter != null && Modifier.isNative(Setter.getModifiers()))
+			//{
+			//	modifiers |= Modifier.NATIVE;
+			//}
+			if (Setter != null)
+			{
+				UpdateModifiers(false, (int)Modifier.FINAL);
+			}
+			bool? getterIsPublic = Getter != null ? (bool?)(Getter.IsPublic) : null;
+			bool? setterIsPublic = Setter != null ? (bool?)(Setter.IsPublic) : null;
+			if (getterIsPublic == true || setterIsPublic == true)
+			{
+				UpdateModifiers(false, (int)Modifier.PRIVATE);
+				UpdateModifiers(false, (int)Modifier.PROTECTED);
+				UpdateModifiers(true, (int)Modifier.PUBLIC);
+			}
+			else
+			{
+				bool? GetterIsProtected = Getter != null ? (bool?)(Getter.IsFamily || Getter.IsFamilyOrAssembly) : null;
+				bool? SetterIsProtected = Setter != null ? (bool?)(Setter.IsFamily || Setter.IsFamilyOrAssembly) : null;
+				if (GetterIsProtected == true || SetterIsProtected == true)
+				{
+					UpdateModifiers(false, (int)Modifier.PRIVATE);
+					UpdateModifiers(false, (int)Modifier.PUBLIC);
+					UpdateModifiers(true, (int)Modifier.PROTECTED);
+				}
+				else
+				{
+					UpdateModifiers(false, (int)Modifier.PROTECTED);
+					UpdateModifiers(false, (int)Modifier.PUBLIC);
+					UpdateModifiers(true, (int)Modifier.PRIVATE);
+				}
+			}
             RefreshDeclaringType();
             base.Init();
         }
