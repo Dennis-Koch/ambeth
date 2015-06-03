@@ -1,13 +1,16 @@
 package de.osthus.ambeth.bundle;
 
+import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IocModule;
-import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 
 public class Core implements IBundleModule
 {
+	private static final Class<?>[] bundleModules = { IocModule.class };
+
+	@SuppressWarnings("unchecked")
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
+	public Class<? extends IInitializingModule>[] getBundleModules()
 	{
-		beanContextFactory.registerBean(IocModule.class);
+		return (Class<? extends IInitializingModule>[]) bundleModules;
 	}
 }

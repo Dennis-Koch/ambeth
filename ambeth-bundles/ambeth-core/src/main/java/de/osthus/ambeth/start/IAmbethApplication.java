@@ -1,4 +1,4 @@
-package de.osthus.ambeth;
+package de.osthus.ambeth.start;
 
 import java.io.Closeable;
 

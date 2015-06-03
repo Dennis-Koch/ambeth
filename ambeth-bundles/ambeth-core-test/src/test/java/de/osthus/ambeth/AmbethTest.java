@@ -9,6 +9,7 @@ import de.osthus.ambeth.bundle.Core;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IocModule;
+import de.osthus.ambeth.start.IAmbethApplication;
 import de.osthus.ambeth.util.IConversionHelper;
 
 public class AmbethTest
@@ -39,10 +40,28 @@ public class AmbethTest
 		}
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
-	public void testCreateBundle()
+	@Test
+	public void testCreateBundle() throws IOException
 	{
-		Ambeth.createBundle(Core.class);
+		IAmbethApplication ambethApplication = Ambeth.createBundle(Core.class).start();
+		Assert.assertNotNull(ambethApplication);
+		try
+		{
+			IServiceContext serviceContext = ambethApplication.getApplicationContext();
+			Assert.assertNotNull(serviceContext);
+
+			// Should be registered in root context
+			Object service = serviceContext.getService(IConversionHelper.class, false);
+			Assert.assertNotNull(service);
+
+			// Should be registered in IoCModule (contained in the Core bundle module)
+			service = serviceContext.getService("booleanArrayConverter", false);
+			Assert.assertNotNull(service);
+		}
+		finally
+		{
+			ambethApplication.close();
+		}
 	}
 
 	@Test

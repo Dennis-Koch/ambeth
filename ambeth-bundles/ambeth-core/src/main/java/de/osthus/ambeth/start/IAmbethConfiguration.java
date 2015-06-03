@@ -1,4 +1,4 @@
-package de.osthus.ambeth;
+package de.osthus.ambeth.start;
 
 import java.io.Closeable;
 import java.util.Properties;
@@ -52,7 +52,7 @@ public interface IAmbethConfiguration
 	 *            Ambeth modules
 	 * @return This configuration object
 	 */
-	IAmbethConfiguration withAmbethModules(Class<?>... modules);
+	IAmbethConfiguration withAmbethModules(Class<?>... moduleTypes);
 
 	/**
 	 * Adds the provided module classes to the list of modules to start with the application context.
@@ -61,7 +61,16 @@ public interface IAmbethConfiguration
 	 *            Application modules
 	 * @return This configuration object
 	 */
-	IAmbethConfiguration withApplicationModules(Class<?>... modules);
+	IAmbethConfiguration withApplicationModules(Class<?>... moduleTypes);
+
+	/**
+	 * Extension point to add new features to this fluent API.
+	 * 
+	 * @param extensionType
+	 *            Type of the extension to instantiate and return
+	 * @return Instance of the extension type
+	 */
+	<E extends IAmbethConfigurationExtension> E withExtension(Class<E> extensionType);
 
 	/**
 	 * Starts the configured Ambeth context. It returns an {@link Closeable} {@link IAmbethApplication} object that also holds the configured application
