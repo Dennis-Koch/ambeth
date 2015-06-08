@@ -25,6 +25,10 @@ public final class TypeInfoItemUtil
 			{
 				return getElementTypeUsingReflection((Class<?>) ((ParameterizedType) genericType).getRawType(), genericType);
 			}
+			else if (genericType instanceof WildcardType)
+			{
+				return getElementTypeUsingReflection(propertyType, ((WildcardType) genericType).getUpperBounds()[0]);
+			}
 			return propertyType;
 		}
 		if (propertyType.isArray())

@@ -136,6 +136,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Property(name = AuditConfigurationConstants.AuditedServiceDefaultModeActive, defaultValue = "true")
 	protected boolean auditedServiceDefaultModeActive;
 
+	@Property(name = AuditConfigurationConstants.AuditVerifyExpectSignature, defaultValue = "true")
+	protected boolean expectSignatureOnVerify;
+
 	@Forkable
 	private final ThreadLocal<AdditionalAuditInfo> additionalAuditInfoTL = new ThreadLocal<AdditionalAuditInfo>();
 
@@ -203,6 +206,11 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 				{
 					auditEntryState.setSignatureOfUser(signatureOfUser);
 				}
+			}
+			if (auditEntryState.getSignatureOfUser() == null && expectSignatureOnVerify)
+			{
+				throw new IllegalStateException("Failed to create an Audit Entry without a signature - which is mandatory because of '"
+						+ AuditConfigurationConstants.AuditVerifyExpectSignature + "'=true");
 			}
 			auditEntryTL.set(auditEntryState);
 			return auditEntryState;

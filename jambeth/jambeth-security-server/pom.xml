@@ -16,18 +16,27 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-audit</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-cache</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-merge</artifactId>
 		</dependency>
+		
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-job</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-security</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-query</artifactId>

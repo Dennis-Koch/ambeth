@@ -28,7 +28,7 @@ using De.Osthus.Ambeth.Ioc.Threadlocal;
 
 namespace De.Osthus.Ambeth.Cache
 {
-    public class MergeServiceRegistry : IMergeService, IMergeServiceExtensionExtendable, IMergeListenerExtendable, IThreadLocalCleanupBean
+	public class MergeServiceRegistry : IMergeService, IMergeServiceExtensionExtendable, IMergeListenerExtendable, IMergeTimeProvider, IThreadLocalCleanupBean
     {
         public class MergeOperation
         {
@@ -150,7 +150,10 @@ namespace De.Osthus.Ambeth.Cache
 					}
 					if (MergeSecurityManager != null)
 					{
-						MergeSecurityManager.CheckMergeAccess(extendedCudResult, methodDescription);
+						SecurityActive.ExecuteWithSecurityDirective(SecurityDirective.ENABLE_ENTITY_CHECK, delegate()
+						{
+							MergeSecurityManager.CheckMergeAccess(extendedCudResult, methodDescription);
+						});
 					}
 					List<Object> originalRefsOfCache = new List<Object>(cudResultOfCache.GetOriginalRefs());
 					List<Object> originalRefsExtended = new List<Object>(extendedCudResult.GetOriginalRefs());

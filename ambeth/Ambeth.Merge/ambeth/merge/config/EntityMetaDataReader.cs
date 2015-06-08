@@ -38,7 +38,7 @@ namespace De.Osthus.Ambeth.Merge.Config
         [Autowired]
         public IRelationProvider RelationProvider { protected get; set; }
 
-        public void AddMembers(EntityMetaData metaData, EntityConfig entityConfig)
+		public void AddMembers(EntityMetaData metaData, IEntityConfig entityConfig)
         {
             Type realType = entityConfig.RealType;
 
@@ -105,9 +105,11 @@ namespace De.Osthus.Ambeth.Merge.Config
             }
 
             // Handle all explicitly configured members
-            foreach (Entry<IOrmConfig, Member> entry in explicitlyConfiguredMemberNameToMember)
+			foreach (Entry<String, Member> entry in explicitlyConfiguredMemberNameToMember)
             {
-                IOrmConfig ormConfig = entry.Key;
+				String memberName = entry.Key;
+				IOrmConfig ormConfig = nameToConfigMap.Get(memberName);
+
                 Member member = entry.Value;
 
                 if (idMembers.Contains(member))
@@ -150,7 +152,7 @@ namespace De.Osthus.Ambeth.Merge.Config
                 }
             }
             IdentityHashSet<String> explicitTypeInfoItems = IdentityHashSet<String>.Create(explicitlyConfiguredMemberNameToMember.Count);
-            foreach (Entry<IOrmConfig, Member> entry in explicitlyConfiguredMemberNameToMember)
+			foreach (Entry<String, Member> entry in explicitlyConfiguredMemberNameToMember)
             {
                 Member member = entry.Value;
                 explicitTypeInfoItems.Add(member.Name);
@@ -421,7 +423,7 @@ namespace De.Osthus.Ambeth.Merge.Config
             return member;
         }
 
-        protected void FillNameCollections(EntityConfig entityConfig, ISet<String> memberNamesToIgnore, ISet<String> explicitBasicMemberNames, IList<IMemberConfig> embeddedMembers,
+		protected void FillNameCollections(IEntityConfig entityConfig, ISet<String> memberNamesToIgnore, ISet<String> explicitBasicMemberNames, IList<IMemberConfig> embeddedMembers,
                 IMap<String, IMemberConfig> nameToMemberConfig, IMap<String, IRelationConfig> nameToRelationConfig)
         {
             foreach (IMemberConfig memberConfig in entityConfig.GetMemberConfigIterable())

@@ -5,6 +5,6 @@ namespace De.Osthus.Ambeth.Merge.Config
 {
     public interface IEntityMetaDataReader
     {
-        void AddMembers(EntityMetaData metaData, EntityConfig entityConfig);
+		void AddMembers(EntityMetaData metaData, IEntityConfig entityConfig);
     }
 }

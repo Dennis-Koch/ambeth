@@ -32,11 +32,8 @@ public class IndependentEntityMetaDataReader : IStartingBean, IDisposableBean
 	public IEntityMetaDataReader EntityMetaDataReader { protected get; set; }
 
 	[Autowired]
-	public IOrmXmlReaderRegistry OrmXmlReaderRegistry { protected get; set; }
-
-	[Autowired]
-	public IXmlConfigUtil XmlConfigUtil { protected get; set; }
-
+	public IOrmConfigGroupProvider OrmConfigGroupProvider { protected get; set; }
+	
 	protected readonly LinkedHashSet<IEntityMetaData> managedEntityMetaData = new LinkedHashSet<IEntityMetaData>();
 
 	protected String xmlFileName = null;
@@ -45,9 +42,8 @@ public class IndependentEntityMetaDataReader : IStartingBean, IDisposableBean
 	{
 		if (xmlFileName != null)
 		{
-			XDocument[] docs = XmlConfigUtil.ReadXmlFiles(xmlFileName);
-			ParamChecker.AssertNotNull(docs, "docs");
-			ReadConfig(docs);
+			IOrmConfigGroup ormConfigGroup = OrmConfigGroupProvider.GetOrmConfigGroup(xmlFileName);
+			ReadConfig(ormConfigGroup);
 		}
 	}
 
@@ -73,18 +69,13 @@ public class IndependentEntityMetaDataReader : IStartingBean, IDisposableBean
         }
 	}
 
-	protected void ReadConfig(XDocument[] docs)
+	protected void ReadConfig(IOrmConfigGroup ormConfigGroup)
 	{
-        LinkedHashSet<EntityConfig> entities = new LinkedHashSet<EntityConfig>();
-		foreach (XDocument doc in docs)
-		{
-			String documentNamespace = XmlConfigUtil.ReadDocumentNamespace(doc);
-			IOrmXmlReader ormXmlReader = OrmXmlReaderRegistry.GetOrmXmlReader(documentNamespace);
+		LinkedHashSet<IEntityConfig> entities = new LinkedHashSet<IEntityConfig>();
+		entities.AddAll(ormConfigGroup.GetLocalEntityConfigs());
+		entities.AddAll(ormConfigGroup.GetExternalEntityConfigs());
 
-			ormXmlReader.LoadFromDocument(doc, entities, entities);
-		}
-
-		foreach (EntityConfig entityConfig in entities)
+		foreach (IEntityConfig entityConfig in entities)
 		{
 			Type entityType = entityConfig.EntityType;
 			if (EntityMetaDataProvider.GetMetaData(entityType, true) != null)

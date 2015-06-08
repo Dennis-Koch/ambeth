@@ -32,6 +32,15 @@ public class ObjectCopierState implements IObjectCopierState
 	 * @inheritDoc
 	 */
 	@Override
+	public <T> void deepCloneProperties(T source, T clone)
+	{
+		objectCopier.deepCloneProperties(source, clone, this);
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	@Override
 	public <T> T clone(T source)
 	{
 		return objectCopier.cloneRecursive(source, this);

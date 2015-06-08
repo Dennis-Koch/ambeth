@@ -55,6 +55,8 @@ public class AutowiredTest extends AbstractIocTest
 			beanContextFactory.registerBean(bean1Name, Bean1.class);
 			beanContextFactory.registerBean(bean2Name, Bean2.class).autowireable(Bean2.class);
 			beanContextFactory.registerBean(bean3Name, Bean3.class);
+
+			beanContextFactory.registerBean(AutowiredTestBean.class).autowireable(AutowiredTestBean.class);
 		}
 	}
 
@@ -144,5 +146,22 @@ public class AutowiredTest extends AbstractIocTest
 		{
 			beanContext.dispose();
 		}
+	}
+
+	@Test
+	@TestModule(AutowiredTestModule.class)
+	public void autowiredVisibility()
+	{
+		AutowiredTestBean bean = beanContext.getService(AutowiredTestBean.class);
+		Assert.assertSame(beanContext, bean.getBeanContextPrivate());
+		Assert.assertNull(bean.getBeanContextPrivateSetter());
+		Assert.assertSame(beanContext, bean.getBeanContextPrivateSetterAutowired());
+
+		Assert.assertSame(beanContext, bean.getBeanContextProtected());
+		Assert.assertNull(bean.getBeanContextProtectedSetter());
+		Assert.assertSame(beanContext, bean.getBeanContextProtectedSetterAutowired());
+
+		Assert.assertSame(beanContext, bean.getBeanContextPublic());
+		Assert.assertSame(beanContext, bean.getBeanContextPublicSetter());
 	}
 }

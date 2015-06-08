@@ -34,14 +34,14 @@ namespace De.Osthus.Ambeth.Orm
             validator = XmlConfigUtil.CreateValidator(XSD_FILE_NAMES);
         }
 
-        public ISet<EntityConfig> LoadFromDocument(XDocument doc)
+		public ISet<IEntityConfig> LoadFromDocument(XDocument doc)
         {
-            ISet<EntityConfig> entities = new HashSet<EntityConfig>();
+			ISet<IEntityConfig> entities = new HashSet<IEntityConfig>();
             LoadFromDocument(doc, entities, entities);
             return entities;
         }
 
-        public void LoadFromDocument(XDocument doc, ISet<EntityConfig> localEntities, ISet<EntityConfig> externalEntities)
+		public void LoadFromDocument(XDocument doc, ISet<IEntityConfig> localEntities, ISet<IEntityConfig> externalEntities)
         {
             ValidateDocument(doc);
 

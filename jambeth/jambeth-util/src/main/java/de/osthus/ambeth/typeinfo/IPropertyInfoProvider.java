@@ -21,6 +21,10 @@ public interface IPropertyInfoProvider
 	 */
 	IPropertyInfo[] getProperties(Class<?> type);
 
+	IPropertyInfo[] getIocProperties(Class<?> beanType);
+
+	IPropertyInfo[] getPrivateProperties(Class<?> type);
+
 	IMap<String, IPropertyInfo> getPropertyMap(Object obj);
 
 	/**
@@ -30,6 +34,10 @@ public interface IPropertyInfoProvider
 	 * @return
 	 */
 	IMap<String, IPropertyInfo> getPropertyMap(Class<?> type);
+
+	IMap<String, IPropertyInfo> getIocPropertyMap(Class<?> type);
+
+	IMap<String, IPropertyInfo> getPrivatePropertyMap(Class<?> type);
 
 	String getPropertyNameFor(Method method);
 

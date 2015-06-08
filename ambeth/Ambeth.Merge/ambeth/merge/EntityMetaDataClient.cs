@@ -46,15 +46,19 @@ namespace De.Osthus.Ambeth.Merge
             {
                 realEntityTypes.Add(ProxyHelper.GetRealType(entityType));
             }
-            Lock readLock = Cache.ReadLock;
-            LockState lockState = readLock.ReleaseAllLocks();
+			ICache cache = this.Cache.CurrentCache;
+			Lock readLock = cache != null ? cache.ReadLock : null;
+			LockState lockState = readLock != null ? readLock.ReleaseAllLocks() : default(LockState);
             try
             {
                 return MergeService.GetMetaData(realEntityTypes);
             }
             finally
             {
-                readLock.ReacquireLocks(lockState);
+				if (readLock != null)
+				{
+					readLock.ReacquireLocks(lockState);
+				}
             }
         }
 

@@ -267,10 +267,10 @@ namespace De.Osthus.Ambeth.Cache
 		    IList<IObjRef> objRefs = objRefsToLoad.ToList();
 		    IList<Object> refreshResult = rootCache.GetObjects(objRefs, cacheDirective);
 
-		    IList<IPrivilege> privileges = null;
+		    IPrivilege[] privileges = null;
             if (SecurityActivation != null && PrivilegeProvider != null && SecurityActivation.FilterActivated)
 		    {
-			    privileges = PrivilegeProvider.GetPrivilegesByObjRef(objRefs);
+			    privileges = PrivilegeProvider.GetPrivilegesByObjRef(objRefs).GetPrivileges();
 		    }
 		    for (int a = refreshResult.Count; a-- > 0;)
 		    {

@@ -363,6 +363,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 						String backwardsPropertyName = currentPropertyName.substring(1);
 						String targetEntityName = null;
 
+						Class<?> targetEntityType = null;
 						if (backwardsPropertyName.contains("#"))
 						{
 							Matcher matcher = PATTERN_ENTITY_NAME_WITH_MARKER.matcher(backwardsPropertyName);
@@ -371,6 +372,18 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 								throw new IllegalArgumentException("Unreadable property join definition: " + propertyName);
 							}
 							targetEntityName = matcher.group(1);
+							try
+							{
+								targetEntityType = Thread.currentThread().getContextClassLoader().loadClass(targetEntityName);
+							}
+							catch (ClassNotFoundException e)
+							{
+								// intended blank
+							}
+							if (targetEntityType != null)
+							{
+								targetEntityType = entityMetaDataProvider.getMetaData(targetEntityType).getEntityType();
+							}
 							backwardsPropertyName = matcher.replaceFirst("");
 						}
 
@@ -378,7 +391,8 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 						Class<?>[] typesRelatingToThis = metaData.getTypesRelatingToThis();
 						for (Class<?> other : typesRelatingToThis)
 						{
-							if (targetEntityName != null && !targetEntityName.equals(other.getSimpleName()) && !targetEntityName.equals(other.getName()))
+							if ((targetEntityType == null && targetEntityName != null && !targetEntityName.equals(other.getSimpleName()) && !targetEntityName
+									.equals(other.getName())) || (targetEntityType != null && !targetEntityType.equals(other)))
 							{
 								continue;
 							}

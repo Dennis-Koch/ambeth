@@ -5,17 +5,13 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.w3c.dom.Document;
-
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.EmptySet;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IMap;
@@ -48,12 +44,11 @@ import de.osthus.ambeth.persistence.ILinkMetaData;
 import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.persistence.LinkMetaData;
 import de.osthus.ambeth.persistence.TableMetaData;
+import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.sql.SqlLinkMetaData;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringConversionHelper;
-import de.osthus.ambeth.util.xml.IXmlConfigUtil;
 
 public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartingBean, IDisposableBean
 {
@@ -104,10 +99,6 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 	@LogInstance
 	private ILogger log;
 
-	protected Set<EntityConfig> localEntities = new LinkedHashSet<EntityConfig>();
-
-	protected Set<EntityConfig> externalEntities = new LinkedHashSet<EntityConfig>();
-
 	@Autowired
 	protected IConnectionDialect connectionDialect;
 
@@ -124,7 +115,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Autowired
-	protected IOrmXmlReaderRegistry ormXmlReaderRegistry;
+	protected IOrmConfigGroupProvider ormConfigGroupProvider;
 
 	@Autowired
 	protected IPropertyInfoProvider propertyInfoProvider;
@@ -133,20 +124,20 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 	protected IMemberTypeProvider memberTypeProvider;
 
 	@Autowired
-	protected IXmlConfigUtil xmlConfigUtil;
+	protected ISqlBuilder sqlBuilder;
 
 	protected String xmlFileName = null;
 
 	protected final List<EntityMetaData> registeredMetaDatas = new ArrayList<EntityMetaData>();
+
+	protected IOrmConfigGroup ormConfigGroup = new OrmConfigGroup(EmptySet.<IEntityConfig> emptySet(), EmptySet.<IEntityConfig> emptySet());
 
 	@Override
 	public void afterStarted() throws Throwable
 	{
 		if (xmlFileName != null)
 		{
-			Document[] docs = xmlConfigUtil.readXmlFiles(xmlFileName);
-			ParamChecker.assertNotNull(docs, "docs");
-			loadEntityMappings(docs);
+			ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(xmlFileName);
 		}
 	}
 
@@ -185,17 +176,6 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		xmlFileName = xmlResourceName;
 	}
 
-	protected void loadEntityMappings(Document[] docs)
-	{
-		for (Document doc : docs)
-		{
-			doc.normalizeDocument();
-			String documentNamespace = xmlConfigUtil.readDocumentNamespace(doc);
-			IOrmXmlReader ormXmlReader = ormXmlReaderRegistry.getOrmXmlReader(documentNamespace);
-			ormXmlReader.loadFromDocument(doc, localEntities, externalEntities);
-		}
-	}
-
 	@Override
 	public void mapFields(Connection connection, String[] schemaNames, IDatabaseMetaData database)
 	{
@@ -205,10 +185,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			return;
 		}
 
-		if (!externalEntities.isEmpty())
-		{
-			handleExternalEntities();
-		}
+		handleExternalEntities();
 		HashSet<String> allFullqualifiedSequences;
 		try
 		{
@@ -232,11 +209,8 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		int maxNameLength = database.getMaxNameLength();
-		Iterator<EntityConfig> iter = localEntities.iterator();
-		while (iter.hasNext())
+		for (IEntityConfig entityConfig : ormConfigGroup.getLocalEntityConfigs())
 		{
-			EntityConfig entityConfig = iter.next();
-
 			Class<?> entityType = entityConfig.getEntityType();
 			Class<?> realType = entityConfig.getRealType();
 			String idName = this.idName;
@@ -414,11 +388,8 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			}
 		}
 
-		Iterator<EntityConfig> iter = localEntities.iterator();
-		while (iter.hasNext())
+		for (IEntityConfig entityConfig : ormConfigGroup.getLocalEntityConfigs())
 		{
-			EntityConfig entityConfig = iter.next();
-
 			Class<?> entityType = entityConfig.getEntityType();
 
 			ITableMetaData table = getTableByType(database, entityType);
@@ -480,6 +451,22 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 				if (table != null)
 				{
 					break;
+				}
+			}
+			if (table == null)
+			{
+				List<ITableMetaData> tables = database.getTables();
+				for (String name : producedNameCandidates)
+				{
+					for (ITableMetaData currTable : tables)
+					{
+						String[] schemaAndTableName = sqlBuilder.getSchemaAndTableName(currTable.getName());
+						if (schemaAndTableName[1].equalsIgnoreCase(name))
+						{
+							table = currTable;
+							break;
+						}
+					}
 				}
 			}
 		}
@@ -1058,11 +1045,8 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		StringBuilder debugSb = tlObjectCollector.create(StringBuilder.class);
 		try
 		{
-			Iterator<EntityConfig> iter = externalEntities.iterator();
-			while (iter.hasNext())
+			for (IEntityConfig entityConfig : ormConfigGroup.getExternalEntityConfigs())
 			{
-				EntityConfig entityConfig = iter.next();
-
 				Class<?> entityType = entityConfig.getEntityType();
 				Class<?> realType = entityConfig.getRealType();
 

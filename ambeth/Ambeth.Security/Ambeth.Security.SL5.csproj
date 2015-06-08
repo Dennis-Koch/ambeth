@@ -88,6 +88,10 @@
     <Compile Include="ambeth\privilege\factory\IEntityTypePrivilegeFactory.cs" />
     <Compile Include="ambeth\privilege\factory\IEntityTypePrivilegeFactoryProvider.cs" />
     <Compile Include="ambeth\privilege\IPrivilegeProvider.cs" />
+    <Compile Include="ambeth\privilege\model\impl\PrivilegeResult.cs" />
+    <Compile Include="ambeth\privilege\model\impl\TypePrivilegeResult.cs" />
+    <Compile Include="ambeth\privilege\model\IPrivilegeResult.cs" />
+    <Compile Include="ambeth\privilege\model\ITypePrivilegeResult.cs" />
     <Compile Include="ambeth\privilege\model\ReadPermission.cs" />
     <Compile Include="ambeth\privilege\PrivilegeProvider.cs" />
     <Compile Include="ambeth\privilege\transfer\IPrivilegeOfService.cs" />
@@ -118,7 +122,9 @@
     <Compile Include="ambeth\security\SecurityContext.cs" />
     <Compile Include="ambeth\security\SecurityContextHolder.cs" />
     <Compile Include="ambeth\security\SecurityContextImpl.cs" />
+    <Compile Include="ambeth\security\SecurityContextPassword.cs" />
     <Compile Include="ambeth\security\SecurityContextType.cs" />
+    <Compile Include="ambeth\security\SecurityContextUserName.cs" />
     <Compile Include="ambeth\security\transfer\Country.cs" />
     <Compile Include="ambeth\security\transfer\Observable.cs" />
     <Compile Include="ambeth\security\transfer\Role.cs" />

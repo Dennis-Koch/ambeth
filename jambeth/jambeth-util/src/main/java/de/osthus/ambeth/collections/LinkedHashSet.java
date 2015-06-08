@@ -4,11 +4,11 @@ import java.util.Collection;
 import java.util.Set;
 
 /**
- * Auf Performance optimierte Version der �blichen LinkedHashSet aus dem java.util-Paket. Diese Implementierung hat zus�tzlich zur LinkedSet den Vorteil,
- * dass sie
+ * Auf Performance optimierte Version der �blichen LinkedHashSet aus dem java.util-Paket. Diese Implementierung hat zus�tzlich zur LinkedSet den Vorteil, dass
+ * sie
  * 
- * a) direkt Collectable ist, also ohne Umwege �ber den ObjectCollector verwaltet werden kann. Daraus folgt, dass eine h�ufige Verwendung leerer
- * StLinkedSets f�r kurze Zeit der Garbage f�r neue Instanzen vermieden wird
+ * a) direkt Collectable ist, also ohne Umwege �ber den ObjectCollector verwaltet werden kann. Daraus folgt, dass eine h�ufige Verwendung leerer StLinkedSets
+ * f�r kurze Zeit der Garbage f�r neue Instanzen vermieden wird
  * 
  * b) Auch die SetEntries sind Collectable. Hier speziell sogar Collectable f�r maximale Performance bei intensiver Nutzung derselben Set von wenigen Threads.
  * 

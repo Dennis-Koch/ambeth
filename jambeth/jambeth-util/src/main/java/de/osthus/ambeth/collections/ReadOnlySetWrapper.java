@@ -110,6 +110,12 @@ public class ReadOnlySetWrapper<K> implements ISet<K>
 	}
 
 	@Override
+	public boolean addAll(Iterable<? extends K> c)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public boolean addAll(Collection<? extends K> c)
 	{
 		throw new UnsupportedOperationException();

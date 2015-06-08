@@ -64,6 +64,7 @@ import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.PasswordType;
 import de.osthus.ambeth.security.SecurityContextType;
 import de.osthus.ambeth.security.SecurityFilterInterceptor;
+import de.osthus.ambeth.security.SecurityFilterInterceptor.SecurityMethodMode;
 import de.osthus.ambeth.security.TestAuthentication;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
@@ -587,18 +588,21 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 					return;
 				}
 				final ISecurityScope scope = new StringSecurityScope(authentication.scope());
-				IMethodLevelBehavior<SecurityContextType> behaviour = new IMethodLevelBehavior<SecurityContextType>()
+
+				IMethodLevelBehavior<SecurityMethodMode> behaviour = new IMethodLevelBehavior<SecurityMethodMode>()
 				{
+					private final SecurityMethodMode mode = new SecurityMethodMode(SecurityContextType.AUTHENTICATED);
+
 					@Override
-					public SecurityContextType getBehaviourOfMethod(Method method)
+					public SecurityMethodMode getBehaviourOfMethod(Method method)
 					{
-						return SecurityContextType.AUTHENTICATED;
+						return mode;
 					}
 
 					@Override
-					public SecurityContextType getDefaultBehaviour()
+					public SecurityMethodMode getDefaultBehaviour()
 					{
-						return SecurityContextType.AUTHENTICATED;
+						return mode;
 					}
 				};
 

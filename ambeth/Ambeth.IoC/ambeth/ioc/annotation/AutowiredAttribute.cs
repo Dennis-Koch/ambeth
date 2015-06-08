@@ -2,7 +2,7 @@ using System;
 
 namespace De.Osthus.Ambeth.Ioc.Annotation
 {
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
     public class AutowiredAttribute : Attribute
     {
         public String Value { get; set; }

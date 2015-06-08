@@ -141,6 +141,7 @@
     <Compile Include="ambeth\transfer\MethodDescription.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ambeth\typeinfo\Modifier.cs" />
     <Compile Include="ambeth\typeinfo\INoEntityTypeExtendable.cs" />
     <Compile Include="ambeth\typeinfo\FieldPropertyInfoASM.cs" />
     <Compile Include="ambeth\typeinfo\MethodPropertyInfoASM.cs" />

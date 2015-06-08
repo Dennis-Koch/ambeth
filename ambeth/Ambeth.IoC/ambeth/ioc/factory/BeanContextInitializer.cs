@@ -395,7 +395,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             foreach (IPropertyInfo prop in propertyInfos)
             {
                 String propertyName = prop.Name;
-                if (!prop.IsWritable || alreadySpecifiedPropertyNamesSet.Contains(propertyName))
+                if (alreadySpecifiedPropertyNamesSet.Contains(propertyName))
                 {
                     // Property already explicitly specified. No
                     // autowiring necessary here
@@ -571,7 +571,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                 ResolveAllBeanConfInHierarchy(beanConfHierarchy, propertyConfigurations);
                 IISet<String> ignoredPropertyNames = ResolveAllIgnoredPropertiesInHierarchy(beanConfHierarchy, beanType);
 
-                IPropertyInfo[] propertyInfos = PropertyInfoProvider.GetProperties(beanType);
+                IPropertyInfo[] propertyInfos = PropertyInfoProvider.GetIocProperties(beanType);
 
                 if (preProcessors != null)
                 {
@@ -1201,7 +1201,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
         protected IISet<String> ResolveAllIgnoredPropertiesInHierarchy(IList<IBeanConfiguration> beanConfHierarchy, Type beanType)
         {
             IISet<String> ignoredProperties = null;
-            IMap<String, IPropertyInfo> propertyMap = PropertyInfoProvider.GetPropertyMap(beanType);
+            IMap<String, IPropertyInfo> propertyMap = PropertyInfoProvider.GetIocPropertyMap(beanType);
             for (int a = 0, size = beanConfHierarchy.Count; a < size; a++)
             {
                 IBeanConfiguration beanConfiguration = beanConfHierarchy[a];

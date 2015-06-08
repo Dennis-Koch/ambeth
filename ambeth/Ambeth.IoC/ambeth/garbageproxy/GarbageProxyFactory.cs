@@ -107,7 +107,7 @@ namespace De.Osthus.Ambeth.Garbageproxy
                 {
                     throw new Exception("Constructor not found: " + abstractType.FullName);
                 }
-                ILGenerator mv = cw.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, Type.EmptyTypes).GetILGenerator();
+				ILGenerator mv = cw.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, TypeUtil.GetParameterTypesToTypes(baseConstructor.GetParameters())).GetILGenerator();
                 mv.Emit(OpCodes.Ldarg_0);
                 mv.Emit(OpCodes.Ldarg_1);
                 mv.Emit(OpCodes.Ldarg_2);
@@ -120,7 +120,7 @@ namespace De.Osthus.Ambeth.Garbageproxy
                 {
                     throw new Exception("Constructor not found: " + abstractType.FullName);
                 }
-                ILGenerator mv = cw.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, Type.EmptyTypes).GetILGenerator();
+                ILGenerator mv = cw.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, TypeUtil.GetParameterTypesToTypes(baseConstructor.GetParameters())).GetILGenerator();
                 mv.Emit(OpCodes.Ldarg_0);
                 mv.Emit(OpCodes.Ldarg_1);
                 mv.Emit(OpCodes.Call, baseConstructor);
@@ -128,7 +128,7 @@ namespace De.Osthus.Ambeth.Garbageproxy
             }
             MethodInfo targetMethod = ReflectUtil.GetDeclaredMethod(false, typeof(GCProxy), typeof(Object), "ResolveTarget");
 
-            CHashSet<MethodKey> alreadyImplementedMethods = new CHashSet<MethodKey>();
+			CHashSet<MethodInfo> alreadyImplementedMethods = new CHashSet<MethodInfo>();
             foreach (Type interfaceClass in interfaceClasses)
             {
                 MethodInfo[] methods = interfaceClass.GetMethods();
@@ -139,7 +139,7 @@ namespace De.Osthus.Ambeth.Garbageproxy
                         // will remain implemented by the GCProxy class
                         continue;
                     }
-                    if (!alreadyImplementedMethods.Add(new MethodKey(method)))
+                    if (!alreadyImplementedMethods.Add(method))
                     {
                         continue;
                     }

@@ -39,11 +39,7 @@ public abstract class AbstractPropertyInfo implements IPropertyInfoIntern, IPrin
 
 	protected void init(IThreadLocalObjectCollector objectCollector)
 	{
-		if (backingField != null)
-		{
-			modifiers = backingField.getModifiers();
-		}
-		ParamChecker.assertNotNull(this.entityType, "entityType");
+		ParamChecker.assertNotNull(entityType, "entityType");
 		ParamChecker.assertNotNull(name, "name");
 		ParamChecker.assertNotNull(declaringType, "declaringType");
 		ParamChecker.assertNotNull(elementType, "elementType");

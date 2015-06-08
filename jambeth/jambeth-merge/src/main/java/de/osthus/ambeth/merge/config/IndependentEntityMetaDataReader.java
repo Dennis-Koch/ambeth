@@ -1,7 +1,5 @@
 package de.osthus.ambeth.merge.config;
 
-import org.w3c.dom.Document;
-
 import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
@@ -15,11 +13,9 @@ import de.osthus.ambeth.merge.IEntityMetaDataExtendable;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.EntityMetaData;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
-import de.osthus.ambeth.orm.EntityConfig;
-import de.osthus.ambeth.orm.IOrmXmlReader;
-import de.osthus.ambeth.orm.IOrmXmlReaderRegistry;
-import de.osthus.ambeth.util.ParamChecker;
-import de.osthus.ambeth.util.xml.IXmlConfigUtil;
+import de.osthus.ambeth.orm.IEntityConfig;
+import de.osthus.ambeth.orm.IOrmConfigGroup;
+import de.osthus.ambeth.orm.IOrmConfigGroupProvider;
 
 public class IndependentEntityMetaDataReader implements IStartingBean, IDisposableBean
 {
@@ -39,10 +35,7 @@ public class IndependentEntityMetaDataReader implements IStartingBean, IDisposab
 	protected IEntityMetaDataReader entityMetaDataReader;
 
 	@Autowired
-	protected IOrmXmlReaderRegistry ormXmlReaderRegistry;
-
-	@Autowired
-	protected IXmlConfigUtil xmlConfigUtil;
+	protected IOrmConfigGroupProvider ormConfigGroupProvider;
 
 	protected final LinkedHashSet<IEntityMetaData> managedEntityMetaData = new LinkedHashSet<IEntityMetaData>();
 
@@ -53,9 +46,8 @@ public class IndependentEntityMetaDataReader implements IStartingBean, IDisposab
 	{
 		if (xmlFileName != null)
 		{
-			Document[] docs = xmlConfigUtil.readXmlFiles(xmlFileName);
-			ParamChecker.assertNotNull(docs, "docs");
-			readConfig(docs);
+			IOrmConfigGroup ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(xmlFileName);
+			readConfig(ormConfigGroup);
 		}
 	}
 
@@ -94,19 +86,13 @@ public class IndependentEntityMetaDataReader implements IStartingBean, IDisposab
 		xmlFileName = xmlResourceName;
 	}
 
-	protected void readConfig(Document[] docs)
+	protected void readConfig(IOrmConfigGroup ormConfigGroup)
 	{
-		LinkedHashSet<EntityConfig> entities = new LinkedHashSet<EntityConfig>();
-		for (Document doc : docs)
-		{
-			doc.normalizeDocument();
-			String documentNamespace = xmlConfigUtil.readDocumentNamespace(doc);
-			IOrmXmlReader ormXmlReader = ormXmlReaderRegistry.getOrmXmlReader(documentNamespace);
+		LinkedHashSet<IEntityConfig> entities = new LinkedHashSet<IEntityConfig>();
+		entities.addAll(ormConfigGroup.getLocalEntityConfigs());
+		entities.addAll(ormConfigGroup.getExternalEntityConfigs());
 
-			ormXmlReader.loadFromDocument(doc, entities, entities);
-		}
-
-		for (EntityConfig entityConfig : entities)
+		for (IEntityConfig entityConfig : entities)
 		{
 			Class<?> entityType = entityConfig.getEntityType();
 			if (entityMetaDataProvider.getMetaData(entityType, true) != null)

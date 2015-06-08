@@ -347,7 +347,6 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 		for (Constructor<?> constructor : constructors)
 		{
 			Class<?>[] constructorParams = constructor.getParameterTypes();
-			java.lang.reflect.Method r_selectedMethod = null;
 			for (int a = r_methods.length; a-- > 0;)
 			{
 				java.lang.reflect.Method r_method = r_methods[a];
@@ -383,27 +382,8 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 					continue;
 				}
 				r_methods[a] = null;
-				r_selectedMethod = r_method;
-				break;
+				implementConstructorOfConstructorType(r_method, constructor, cw);
 			}
-			if (r_selectedMethod == null)
-			{
-				// no delegate method found to invoke constructor
-				continue;
-			}
-			Type[] paramTypes = TypeUtil.getClassesToTypes(r_selectedMethod.getParameterTypes());
-			Method method = Method.getMethod(r_selectedMethod);
-			GeneratorAdapter mv = createGA(cw, Opcodes.ACC_PUBLIC, method.getName(), method.getDescriptor());
-			Type instanceType = Type.getType(constructor.getDeclaringClass());
-			mv.newInstance(instanceType);
-			mv.dup();
-			for (int b = 0, sizeB = paramTypes.length; b < sizeB; b++)
-			{
-				mv.loadArg(b);
-			}
-			mv.invokeConstructor(instanceType, Method.getMethod(constructor));
-			mv.returnValue();
-			mv.endMethod();
 		}
 		for (java.lang.reflect.Method r_method : r_methods)
 		{
@@ -416,6 +396,23 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 		cw.visitEnd();
 		byte[] data = cw.toByteArray();
 		return loader.defineClass(constructorClassName, data);
+	}
+
+	protected void implementConstructorOfConstructorType(java.lang.reflect.Method r_method, Constructor<?> constructor, ClassWriter cw)
+	{
+		Type[] paramTypes = TypeUtil.getClassesToTypes(r_method.getParameterTypes());
+		Method method = Method.getMethod(r_method);
+		GeneratorAdapter mv = createGA(cw, Opcodes.ACC_PUBLIC, method.getName(), method.getDescriptor());
+		Type instanceType = Type.getType(constructor.getDeclaringClass());
+		mv.newInstance(instanceType);
+		mv.dup();
+		for (int b = 0, sizeB = paramTypes.length; b < sizeB; b++)
+		{
+			mv.loadArg(b);
+		}
+		mv.invokeConstructor(instanceType, Method.getMethod(constructor));
+		mv.returnValue();
+		mv.endMethod();
 	}
 
 	public static void smartBox(MethodVisitor mv, Type unboxedType)

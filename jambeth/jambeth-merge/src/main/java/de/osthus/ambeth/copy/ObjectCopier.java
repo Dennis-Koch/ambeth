@@ -192,7 +192,13 @@ public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, ITh
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		ocState.objectToCloneDict.put(source, clone);
-		IPropertyInfo[] properties = propertyInfoProvider.getProperties(objType);
+		deepCloneProperties(source, clone, ocState);
+		return clone;
+	}
+
+	protected void deepCloneProperties(Object source, Object clone, ObjectCopierState ocState)
+	{
+		IPropertyInfo[] properties = propertyInfoProvider.getPrivateProperties(source.getClass());
 		for (IPropertyInfo property : properties)
 		{
 			if (!property.isWritable())
@@ -203,7 +209,6 @@ public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, ITh
 			Object cloneValue = cloneRecursive(objValue, ocState);
 			property.setValue(clone, cloneValue);
 		}
-		return clone;
 	}
 
 	/**

@@ -31,4 +31,12 @@ public interface IObjectCopierState
 	 *            The copied object which is currently in progress being "filled" with content
 	 */
 	<T> void addClone(T source, T clone);
+
+	/**
+	 * Processes a deep clone of each property from 'source' to the given 'clone'
+	 * 
+	 * @param source The object instance being currently copied
+	 * @param clone The copied object which is currently in progress being "filled" with content
+	 */
+	<T> void deepCloneProperties(T source, T clone);
 }

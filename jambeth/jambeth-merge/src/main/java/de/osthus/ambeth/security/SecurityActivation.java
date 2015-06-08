@@ -1,5 +1,7 @@
 package de.osthus.ambeth.security;
 
+import java.util.Set;
+
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
@@ -8,7 +10,6 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
-import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
 public class SecurityActivation implements ISecurityActivation, IThreadLocalCleanupBean
 {
@@ -17,10 +18,13 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 	private ILogger log;
 
 	@Forkable
-	protected final ThreadLocal<Boolean> securityActiveTL = new SensitiveThreadLocal<Boolean>();
+	protected final ThreadLocal<Boolean> serviceActiveTL = new ThreadLocal<Boolean>();
 
 	@Forkable
-	protected final ThreadLocal<Boolean> filterActiveTL = new SensitiveThreadLocal<Boolean>();
+	protected final ThreadLocal<Boolean> securityActiveTL = new ThreadLocal<Boolean>();
+
+	@Forkable
+	protected final ThreadLocal<Boolean> entityActiveTL = new ThreadLocal<Boolean>();
 
 	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
@@ -28,8 +32,10 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 	@Override
 	public void cleanupThreadLocal()
 	{
-		securityActiveTL.remove();
-		filterActiveTL.remove();
+		if (securityActiveTL.get() != null || entityActiveTL.get() != null || serviceActiveTL.get() != null)
+		{
+			throw new IllegalStateException("Must be null at this point");
+		}
 	}
 
 	@Override
@@ -46,16 +52,51 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 	@Override
 	public boolean isFilterActivated()
 	{
-		if (!isSecured())
+		return isEntitySecurityEnabled();
+	}
+
+	public boolean isEntitySecurityEnabled()
+	{
+		if (!securityActive)
 		{
-			return Boolean.FALSE;
+			return false;
 		}
-		Boolean value = filterActiveTL.get();
-		if (value == null)
+		Boolean value = securityActiveTL.get();
+		if (Boolean.FALSE.equals(value))
 		{
-			return true;
+			return false;
 		}
-		return value.booleanValue();
+		value = entityActiveTL.get();
+		if (value != null)
+		{
+			return value.booleanValue();
+		}
+		return true;
+	}
+
+	@Override
+	public boolean isServiceSecurityEnabled()
+	{
+		if (!securityActive)
+		{
+			return false;
+		}
+		Boolean value = securityActiveTL.get();
+		if (Boolean.FALSE.equals(value))
+		{
+			return false;
+		}
+		value = serviceActiveTL.get();
+		if (value != null)
+		{
+			return value.booleanValue();
+		}
+		return true;
+	}
+
+	public boolean isServiceOrEntitySecurityEnabled()
+	{
+		return isEntitySecurityEnabled() || isServiceSecurityEnabled();
 	}
 
 	@Override
@@ -91,54 +132,114 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 	@Override
 	public void executeWithoutFiltering(IBackgroundWorkerDelegate noFilterRunnable) throws Throwable
 	{
-		Boolean oldFilterActive = filterActiveTL.get();
-		filterActiveTL.set(Boolean.FALSE);
+		Boolean oldFilterActive = entityActiveTL.get();
+		entityActiveTL.set(Boolean.FALSE);
 		try
 		{
 			noFilterRunnable.invoke();
 		}
 		finally
 		{
-			filterActiveTL.set(oldFilterActive);
+			entityActiveTL.set(oldFilterActive);
 		}
 	}
 
 	@Override
 	public <R> R executeWithoutFiltering(IResultingBackgroundWorkerDelegate<R> noFilterRunnable) throws Throwable
 	{
-		Boolean oldFilterActive = filterActiveTL.get();
-		filterActiveTL.set(Boolean.FALSE);
+		Boolean oldFilterActive = entityActiveTL.get();
+		entityActiveTL.set(Boolean.FALSE);
 		try
 		{
 			return noFilterRunnable.invoke();
 		}
 		finally
 		{
-			filterActiveTL.set(oldFilterActive);
+			entityActiveTL.set(oldFilterActive);
 		}
 	}
 
 	@Override
-	public <R> R executeWithFiltering(IResultingBackgroundWorkerDelegate<R> filterRunnable) throws Throwable
+	public void executeWithSecurityDirective(Set<SecurityDirective> securityDirective, IBackgroundWorkerDelegate runnable) throws Throwable
 	{
-		Boolean oldFilterActive = filterActiveTL.get();
-		filterActiveTL.set(Boolean.TRUE);
+		Boolean entityActive = securityDirective.contains(SecurityDirective.DISABLE_ENTITY_CHECK) ? Boolean.FALSE : securityDirective
+				.contains(SecurityDirective.ENABLE_ENTITY_CHECK) ? Boolean.TRUE : null;
+		Boolean serviceActive = securityDirective.contains(SecurityDirective.DISABLE_SERVICE_CHECK) ? Boolean.FALSE : securityDirective
+				.contains(SecurityDirective.ENABLE_SERVICE_CHECK) ? Boolean.TRUE : null;
+		Boolean oldEntityActive = null, oldServiceActive = null;
+		if (entityActive != null)
+		{
+			oldEntityActive = entityActiveTL.get();
+			entityActiveTL.set(entityActive);
+		}
 		try
 		{
-			Boolean oldSecurityActive = securityActiveTL.get();
-			securityActiveTL.set(Boolean.TRUE);
+			if (serviceActive != null)
+			{
+				oldServiceActive = serviceActiveTL.get();
+				serviceActiveTL.set(serviceActive);
+			}
 			try
 			{
-				return filterRunnable.invoke();
+				runnable.invoke();
+				return;
 			}
 			finally
 			{
-				securityActiveTL.set(oldSecurityActive);
+				if (serviceActive != null)
+				{
+					serviceActiveTL.set(oldServiceActive);
+				}
 			}
 		}
 		finally
 		{
-			filterActiveTL.set(oldFilterActive);
+			if (entityActive != null)
+			{
+				entityActiveTL.set(oldEntityActive);
+			}
 		}
 	}
+
+	@Override
+	public <R> R executeWithSecurityDirective(Set<SecurityDirective> securityDirective, IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable
+	{
+		Boolean entityActive = securityDirective.contains(SecurityDirective.DISABLE_ENTITY_CHECK) ? Boolean.FALSE : securityDirective
+				.contains(SecurityDirective.ENABLE_ENTITY_CHECK) ? Boolean.TRUE : null;
+		Boolean serviceActive = securityDirective.contains(SecurityDirective.DISABLE_SERVICE_CHECK) ? Boolean.FALSE : securityDirective
+				.contains(SecurityDirective.ENABLE_SERVICE_CHECK) ? Boolean.TRUE : null;
+		Boolean oldEntityActive = null, oldServiceActive = null;
+		if (entityActive != null)
+		{
+			oldEntityActive = entityActiveTL.get();
+			entityActiveTL.set(entityActive);
+		}
+		try
+		{
+			if (serviceActive != null)
+			{
+				oldServiceActive = serviceActiveTL.get();
+				serviceActiveTL.set(serviceActive);
+			}
+			try
+			{
+				return runnable.invoke();
+			}
+			finally
+			{
+				if (serviceActive != null)
+				{
+					serviceActiveTL.set(oldServiceActive);
+				}
+			}
+		}
+		finally
+		{
+			if (entityActive != null)
+			{
+				entityActiveTL.set(oldEntityActive);
+			}
+		}
+	}
+
 }

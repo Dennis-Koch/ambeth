@@ -1,10 +1,12 @@
 package de.osthus.ambeth.ioc;
 
 import de.osthus.ambeth.cache.CacheModification;
+import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.cache.ICacheModification;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.copy.IObjectCopierExtendable;
+import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.config.PrecedenceType;
@@ -57,8 +59,10 @@ import de.osthus.ambeth.mixin.EmbeddedMemberMixin;
 import de.osthus.ambeth.mixin.ObjRefMixin;
 import de.osthus.ambeth.objrefstore.IObjRefStoreEntryProvider;
 import de.osthus.ambeth.objrefstore.ObjRefStoreEntryProvider;
+import de.osthus.ambeth.orm.IOrmConfigGroupProvider;
 import de.osthus.ambeth.orm.IOrmXmlReaderExtendable;
 import de.osthus.ambeth.orm.IOrmXmlReaderRegistry;
+import de.osthus.ambeth.orm.OrmConfigGroupProvider;
 import de.osthus.ambeth.orm.OrmXmlReader20;
 import de.osthus.ambeth.orm.OrmXmlReaderLegathy;
 import de.osthus.ambeth.proxy.EntityFactory;
@@ -144,6 +148,10 @@ public class MergeModule implements IInitializingModule
 		else
 		{
 		}
+
+		IBeanConfiguration ormConfigGroupProvider = beanContextFactory.registerBean(OrmConfigGroupProvider.class).autowireable(IOrmConfigGroupProvider.class);
+		beanContextFactory.link(ormConfigGroupProvider, OrmConfigGroupProvider.handleClearAllCachesEvent).to(IEventListenerExtendable.class)
+				.with(ClearAllCachesEvent.class);
 
 		IBeanConfiguration ormXmlReaderLegathy = beanContextFactory.registerBean(OrmXmlReaderLegathy.class);
 		ExtendableBean.registerExtendableBean(beanContextFactory, IOrmXmlReaderRegistry.class, IOrmXmlReaderExtendable.class)//

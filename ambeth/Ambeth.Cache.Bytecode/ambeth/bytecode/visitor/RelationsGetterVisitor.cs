@@ -69,6 +69,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         private static readonly MethodInstance m_template_getCache = new MethodInstance(null, typeof(IObjRefContainer), typeof(ICache), "Get__Cache");
 
+		private static readonly MethodInstance m_template_detach = new MethodInstance(null, typeof(IObjRefContainer), typeof(void), "Detach");
+
         private static readonly MethodInstance m_template_getState_Member = new MethodInstance(null, typeof(IObjRefContainer), typeof(ValueHolderState), "Get__State", typeof(int));
 
         private static readonly MethodInstance m_template_setInitPending_Member = new MethodInstance(null, typeof(IValueHolderContainer), typeof(void), "Set__InitPending", typeof(int));
@@ -401,6 +403,15 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 mg.ReturnValue();
                 mg.EndMethod();
             }
+			{
+				IMethodVisitor mg = VisitMethod(m_template_detach);
+				mg.CallThisSetter(p_targetCache, delegate(IMethodVisitor mg2)
+					{
+						mg2.PushNull();
+					});
+				mg.ReturnValue();
+				mg.EndMethod();
+			}
             return p_targetCache;
         }
 

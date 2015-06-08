@@ -129,6 +129,9 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 	protected IAuditEntryVerifier auditEntryVerifier;
 
 	@Autowired
+	protected IEventDispatcher eventDispatcher;
+
+	@Autowired
 	protected IMergeProcess mergeProcess;
 
 	@Autowired
@@ -144,6 +147,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 	protected ITestAuditService testAuditService;
 
 	@Test
+	@TestProperties(name = AuditConfigurationConstants.AuditVerifyExpectSignature, value = "false")
 	public void myTest()
 	{
 		Assert.assertEquals("5", testAuditService.auditedServiceCall(new Integer(5)));
@@ -156,6 +160,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		User user = entityFactory.createEntity(User.class);
 		user.setName("MyName");
 		user.setSID("mySid");
+		user.setSignature(entityFactory.createEntity(ISignature.class));
 
 		auditController.pushAuditReason("junit test");
 
@@ -163,13 +168,22 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		passwordUtil.assignNewPassword(passwordOfUser, password, user);
 		user.setPassword(password);
 
-		mergeProcess.process(user, null, null, null);
+		IAuditInfoRevert revert = auditController.setAuthorizedUser(user, passwordOfUser);
+		try
+		{
+			mergeProcess.process(user, null, null, null);
+		}
+		finally
+		{
+			revert.revert();
+		}
 		auditController.popAuditReason();
 		((IThreadLocalCleanupBean) auditController).cleanupThreadLocal();
 		Assert.assertTrue(user.getId() > 0);
 	}
 
 	@Test(expected = AuditReasonMissingException.class)
+	@TestProperties(name = AuditConfigurationConstants.AuditVerifyExpectSignature, value = "false")
 	public void auditedEntity_NoReasonThrowsException()
 	{
 		char[] passwordOfUser = "abc".toCharArray();
@@ -225,25 +239,25 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 			List<IAuditedEntity> auditedEntitiesOfUser = auditEntryReader.getAllAuditedEntitiesOfEntity(user);
 
 			Assert.assertEquals(1, auditedEntitiesOfUser.size());
-			boolean[] verifyAuditedEntities = auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfUser);
-			Assert.assertEquals(auditedEntitiesOfUser.size(), verifyAuditedEntities.length);
-			for (boolean verify : verifyAuditedEntities)
+			boolean[] failedAuditedEntities = auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfUser);
+			Assert.assertEquals(auditedEntitiesOfUser.size(), failedAuditedEntities.length);
+			for (boolean verifyFailed : failedAuditedEntities)
 			{
-				Assert.assertTrue(verify);
+				Assert.assertFalse(verifyFailed);
 			}
 		}
 		{
 			List<IAuditEntry> auditEntriesOfUser = auditEntryReader.getAllAuditEntriesOfEntity(user);
 
 			Assert.assertEquals(1, auditEntriesOfUser.size());
-			boolean[] verifyAuditEntries = auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser);
-			Assert.assertEquals(auditEntriesOfUser.size(), verifyAuditEntries.length);
-			for (boolean verify : verifyAuditEntries)
+			boolean[] failedAuditEntries = auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser);
+			Assert.assertEquals(auditEntriesOfUser.size(), failedAuditEntries.length);
+			for (boolean verifyFailed : failedAuditEntries)
 			{
-				Assert.assertTrue(verify);
+				Assert.assertFalse(verifyFailed);
 			}
 		}
-		beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
+		eventDispatcher.dispatchEvent(ClearAllCachesEvent.getInstance());
 
 		User reloadedUser = beanContext.getService(ICache.class).getObject(User.class, user.getId());
 	}
@@ -261,6 +275,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 	}
 
 	@Test
+	@TestProperties(name = AuditConfigurationConstants.AuditVerifyExpectSignature, value = "false")
 	public void testAuditedServiceCallWithAuditedArgument()
 	{
 		Assert.assertEquals("5", testAuditService.auditedServiceCallWithAuditedArgument(new Integer(5), "secret_not_audited"));

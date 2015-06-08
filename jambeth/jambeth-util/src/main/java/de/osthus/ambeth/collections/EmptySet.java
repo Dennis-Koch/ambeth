@@ -4,7 +4,9 @@ import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Iterator;
 
-public final class EmptySet<K> implements ISet<K>
+import de.osthus.ambeth.util.IImmutableType;
+
+public final class EmptySet<K> implements ISet<K>, IImmutableType
 {
 	private static final Object[] EMPTY_OBJECTS = new Object[0];
 
@@ -135,6 +137,12 @@ public final class EmptySet<K> implements ISet<K>
 	public void toList(Collection<K> targetList)
 	{
 		// intended blank
+	}
+
+	@Override
+	public boolean addAll(Iterable<? extends K> c)
+	{
+		throw new UnsupportedOperationException("Set is read-only");
 	}
 
 	@Override
