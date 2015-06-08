@@ -24,7 +24,7 @@ public class MappingObjRefProvider implements IObjRefProvider
 	@Override
 	public IObjRef getORI(Object obj, IEntityMetaData metaData)
 	{
-		String buid = (String) refBOBuidMember.getValue(obj, false);
+		Object buid = refBOBuidMember.getValue(obj, false);
 		Object version = refBOVersionMember != null ? refBOVersionMember.getValue(obj, true) : null;
 		IObjRef ori = new ObjRef(metaData.getEntityType(), refBOBuidIndex, buid, version);
 		return ori;
