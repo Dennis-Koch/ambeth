@@ -6,12 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.METHOD })
-public @interface TestAuthentication
+@Target({ ElementType.PARAMETER })
+public @interface SecurityContextScope
 {
-	String name();
-
-	String password();
-
-	String scope() default StringSecurityScope.DEFAULT_SCOPE_NAME;
+	// intended blank
 }

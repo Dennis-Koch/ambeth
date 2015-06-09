@@ -26,6 +26,7 @@ import de.osthus.ambeth.security.ISecurityContext;
 import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.PasswordType;
+import de.osthus.ambeth.security.StringSecurityScope;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.webservice.config.WebServiceConfigurationConstants;
 
@@ -139,7 +140,7 @@ public class AmbethServletRequestFilter implements Filter
 	{
 		ISecurityScopeProvider securityScopeProvider = beanContext.getService(ISecurityScopeProvider.class);
 		ISecurityScope[] oldSecurityScopes = securityScopeProvider.getSecurityScopes();
-		securityScopeProvider.setSecurityScopes(new ISecurityScope[] { DefaultSecurityScope.INSTANCE });
+		securityScopeProvider.setSecurityScopes(new ISecurityScope[] { StringSecurityScope.DEFAULT_SCOPE });
 		try
 		{
 			chain.doFilter(request, response);

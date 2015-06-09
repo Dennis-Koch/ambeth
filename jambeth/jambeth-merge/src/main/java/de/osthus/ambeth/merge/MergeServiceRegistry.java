@@ -174,7 +174,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 				{
 					IncrementalMergeState state = null;
 					ICUDResult cudResultOfCache;
-					if (MergeProcess.isAddNewlyPersistedEntities())
+					if (MergeProcess.isAddNewlyPersistedEntities() || (log.isDebugEnabled() && cudResultPrinter != null))
 					{
 						childCache = cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, Boolean.FALSE,
 								"MergeServiceRegistry.STATE");

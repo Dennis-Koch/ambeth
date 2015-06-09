@@ -72,6 +72,7 @@
     <Compile Include="ambeth\privilege\PrivilegeProvider.cs" />
     <Compile Include="ambeth\security\CallPermission.cs" />
     <Compile Include="ambeth\security\config\SecurityConfigurationConstants.cs" />
+    <Compile Include="ambeth\security\StringSecurityScope.cs" />
     <Compile Include="ambeth\security\SecurityContextPassword.cs" />
     <Compile Include="ambeth\security\SecurityContextUserName.cs" />
     <Compile Include="ambeth\security\IActionPermission.cs" />

@@ -3,7 +3,6 @@ package de.osthus.ambeth.persistence.xml;
 import java.sql.Connection;
 import java.util.Collection;
 
-import de.osthus.ambeth.audit.Password;
 import de.osthus.ambeth.audit.User;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -49,9 +48,7 @@ public class Relations20WithSecurityTestDataSetBuilder extends AbstractDatasetBu
 		user.setName(SecurityTest.userName1);
 		user.setActive(true);
 
-		Password password = createEntity(Password.class);
-		passwordUtil.assignNewPassword(SecurityTest.userPass1.toCharArray(), password, user);
-		user.setPassword(password);
+		passwordUtil.assignNewPassword(SecurityTest.userPass1.toCharArray(), user, null);
 	}
 
 	@Override

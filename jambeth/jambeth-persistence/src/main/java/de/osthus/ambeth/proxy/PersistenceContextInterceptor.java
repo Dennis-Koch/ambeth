@@ -57,6 +57,19 @@ public class PersistenceContextInterceptor extends CascadedInterceptor
 			}
 			return invokeTarget(obj, method, args, proxy);
 		}
+		if (PersistenceContextType.EXPECTED.equals(behaviourOfMethod))
+		{
+			ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap = databaseProviderRegistry.getPersistenceUnitToDatabaseProviderMap();
+			for (Entry<Object, IDatabaseProvider> entry : persistenceUnitToDatabaseProviderMap)
+			{
+				IDatabaseProvider databaseProvider = entry.getValue();
+				if (databaseProvider.tryGetInstance() == null)
+				{
+					throw new UnsupportedOperationException("It is not allowed to call " + method + " without an already active database context");
+				}
+			}
+			return invokeTarget(obj, method, args, proxy);
+		}
 		if (!PersistenceContextType.REQUIRED.equals(behaviourOfMethod) && !PersistenceContextType.REQUIRED_READ_ONLY.equals(behaviourOfMethod))
 		{
 			// Do nothing if there is no transaction explicitly required for this method

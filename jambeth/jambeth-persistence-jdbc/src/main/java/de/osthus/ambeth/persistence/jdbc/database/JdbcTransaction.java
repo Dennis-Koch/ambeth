@@ -63,6 +63,8 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 
 		public ArrayList<IBackgroundWorkerDelegate> preCommitRunnables;
 
+		public ArrayList<IBackgroundWorkerDelegate> postCommitRunnables;
+
 		public boolean lazyMode;
 
 		public long openTime;
@@ -237,6 +239,26 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 		}
 	}
 
+	protected void notifyRunnables(ArrayList<IBackgroundWorkerDelegate> runnables)
+	{
+		while (runnables != null && runnables.size() > 0)
+		{
+			IBackgroundWorkerDelegate[] preCommitRunnablesArray = runnables.toArray(IBackgroundWorkerDelegate.class);
+			runnables.clear();
+			for (int a = preCommitRunnablesArray.length; a-- > 0;)
+			{
+				try
+				{
+					preCommitRunnablesArray[a].invoke();
+				}
+				catch (Throwable e)
+				{
+					throw RuntimeExceptionUtil.mask(e);
+				}
+			}
+		}
+	}
+
 	@Override
 	public void commit()
 	{
@@ -267,24 +289,7 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
-		ArrayList<IBackgroundWorkerDelegate> preCommitRunnables = tli.preCommitRunnables;
-		while (preCommitRunnables != null && preCommitRunnables.size() > 0)
-		{
-			IBackgroundWorkerDelegate[] preCommitRunnablesArray = preCommitRunnables.toArray(IBackgroundWorkerDelegate.class);
-			preCommitRunnables.clear();
-			for (int a = 0, size = preCommitRunnablesArray.length; a < size; a++)
-			{
-				try
-				{
-					preCommitRunnablesArray[a].invoke();
-				}
-				catch (Throwable e)
-				{
-					throw RuntimeExceptionUtil.mask(e);
-				}
-			}
-		}
-
+		notifyRunnables(tli.preCommitRunnables);
 		ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap = databaseProviderRegistry.getPersistenceUnitToDatabaseProviderMap();
 		ILinkedMap<Object, IConnectionHolder> persistenceUnitToConnectionHolderMap = connectionHolderRegistry.getPersistenceUnitToConnectionHolderMap();
 		try
@@ -303,10 +308,10 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 				{
 					database.revert();
 				}
-				if (transactionalRootCache != null)
-				{
-					transactionalRootCache.disposeTransactionalRootCache(true);
-				}
+			}
+			if (transactionalRootCache != null)
+			{
+				transactionalRootCache.disposeTransactionalRootCache(true);
 			}
 			if (userTransaction != null)
 			{
@@ -329,7 +334,6 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 				database.setSessionId(-1);
 			}
 			long openTime = tli.openTime;
-			if (eventDispatcher != null)
 			{
 				Boolean oldReadOnly = tli.isReadOnly;
 				Boolean oldIgnoreReleaseDatabase = tli.ignoreReleaseDatabase;
@@ -340,7 +344,11 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 				tli.ignoreReleaseDatabase = Boolean.TRUE;
 				try
 				{
-					eventDispatcher.dispatchEvent(new DatabaseCommitEvent(sessionId));
+					notifyRunnables(tli.postCommitRunnables);
+					if (eventDispatcher != null)
+					{
+						eventDispatcher.dispatchEvent(new DatabaseCommitEvent(sessionId));
+					}
 				}
 				finally
 				{
@@ -435,11 +443,11 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 						connectionHolder.setConnection(null);
 					}
 					database.revert();
-					if (transactionalRootCache != null)
-					{
-						transactionalRootCache.disposeTransactionalRootCache(false);
-					}
 					database.release(fatalError);
+				}
+				if (transactionalRootCache != null)
+				{
+					transactionalRootCache.disposeTransactionalRootCache(false);
 				}
 			}
 			else if (readOnly)
@@ -815,5 +823,20 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 			tli.preCommitRunnables = new ArrayList<IBackgroundWorkerDelegate>();
 		}
 		tli.preCommitRunnables.add(runnable);
+	}
+
+	@Override
+	public void runOnTransactionPostCommit(IBackgroundWorkerDelegate runnable)
+	{
+		ThreadLocalItem tli = tliTL.get();
+		if (tli == null || tli.sessionId == null)
+		{
+			throw new IllegalStateException("No transaction is currently active");
+		}
+		if (tli.postCommitRunnables == null)
+		{
+			tli.postCommitRunnables = new ArrayList<IBackgroundWorkerDelegate>();
+		}
+		tli.postCommitRunnables.add(runnable);
 	}
 }

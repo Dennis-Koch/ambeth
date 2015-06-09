@@ -42,6 +42,7 @@ import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.IUserIdentifierProvider;
 import de.osthus.ambeth.security.IUserResolver;
 import de.osthus.ambeth.security.TestUserResolver;
+import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.model.IPassword;
 import de.osthus.ambeth.security.model.ISignature;
 import de.osthus.ambeth.security.model.IUser;
@@ -59,6 +60,7 @@ import de.osthus.ambeth.util.IPrefetchConfig;
 @TestModule(AuditMethodCallTestModule.class)
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "AuditMethodCall_orm.xml;security-orm.xml"),
 		@TestProperties(name = AuditConfigurationConstants.AuditActive, value = "true"),
+		@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "true"),
 		@TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad, value = "VERIFY_SYNC") })
 @SQLStructureList({ @SQLStructure("security-structure.sql"),//
 		@SQLStructure("audit-structure.sql") })
@@ -147,7 +149,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 	protected ITestAuditService testAuditService;
 
 	@Test
-	@TestProperties(name = AuditConfigurationConstants.AuditVerifyExpectSignature, value = "false")
+	@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "false")
 	public void myTest()
 	{
 		Assert.assertEquals("5", testAuditService.auditedServiceCall(new Integer(5)));
@@ -160,15 +162,12 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		User user = entityFactory.createEntity(User.class);
 		user.setName("MyName");
 		user.setSID("mySid");
-		user.setSignature(entityFactory.createEntity(ISignature.class));
 
 		auditController.pushAuditReason("junit test");
 
-		Password password = entityFactory.createEntity(Password.class);
-		passwordUtil.assignNewPassword(passwordOfUser, password, user);
-		user.setPassword(password);
+		passwordUtil.assignNewPassword(passwordOfUser, user, null);
 
-		IAuditInfoRevert revert = auditController.setAuthorizedUser(user, passwordOfUser);
+		IAuditInfoRevert revert = auditController.setAuthorizedUser(user, passwordOfUser, true);
 		try
 		{
 			mergeProcess.process(user, null, null, null);
@@ -183,7 +182,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 	}
 
 	@Test(expected = AuditReasonMissingException.class)
-	@TestProperties(name = AuditConfigurationConstants.AuditVerifyExpectSignature, value = "false")
+	@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "false")
 	public void auditedEntity_NoReasonThrowsException()
 	{
 		char[] passwordOfUser = "abc".toCharArray();
@@ -191,9 +190,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		user.setName("MyName");
 		user.setSID("mySid");
 
-		Password password = entityFactory.createEntity(Password.class);
-		passwordUtil.assignNewPassword(passwordOfUser, password, user);
-		user.setPassword(password);
+		passwordUtil.assignNewPassword(passwordOfUser, user, null);
 
 		mergeProcess.process(user, null, null, null);
 	}
@@ -205,16 +202,13 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		final User user = entityFactory.createEntity(User.class);
 		user.setName("MyName");
 		user.setSID("mySid");
-		user.setSignature(entityFactory.createEntity(ISignature.class));
 
-		Password password = entityFactory.createEntity(Password.class);
-		passwordUtil.assignNewPassword(passwordOfUser, password, user);
-		user.setPassword(password);
+		passwordUtil.assignNewPassword(passwordOfUser, user, null);
 
 		auditController.pushAuditReason("junit test");
 		try
 		{
-			IAuditInfoRevert revert = auditController.setAuthorizedUser(user, passwordOfUser);
+			IAuditInfoRevert revert = auditController.setAuthorizedUser(user, passwordOfUser, true);
 			try
 			{
 				transaction.runInTransaction(new IBackgroundWorkerDelegate()
@@ -275,7 +269,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 	}
 
 	@Test
-	@TestProperties(name = AuditConfigurationConstants.AuditVerifyExpectSignature, value = "false")
+	@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "false")
 	public void testAuditedServiceCallWithAuditedArgument()
 	{
 		Assert.assertEquals("5", testAuditService.auditedServiceCallWithAuditedArgument(new Integer(5), "secret_not_audited"));

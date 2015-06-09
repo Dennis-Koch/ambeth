@@ -55,9 +55,6 @@ public final class AuditConfigurationConstants
 	public static final String AuditedInformationHashAlgorithm = "audit.hashalgorithm.name";
 
 	@ConfigurationConstantDescription("TODO")
-	public static final String AuditVerifyExpectSignature = "audit.verify.expectsignature";
-
-	@ConfigurationConstantDescription("TODO")
 	public static final String VerifyEntitiesOnLoad = "audit.verify.onload";
 
 	@ConfigurationConstantDescription("TODO")

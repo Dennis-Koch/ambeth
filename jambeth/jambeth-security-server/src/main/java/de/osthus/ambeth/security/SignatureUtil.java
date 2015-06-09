@@ -18,6 +18,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
+import de.osthus.ambeth.security.model.IPBEConfiguration;
 import de.osthus.ambeth.security.model.ISignAndVerify;
 import de.osthus.ambeth.security.model.ISignature;
 import de.osthus.ambeth.util.ParamChecker;
@@ -82,8 +83,17 @@ public class SignatureUtil implements IInitializingBean, ISignatureUtil
 		try
 		{
 			byte[] encryptedPrivateKey = Base64.decode(signature.getPrivateKey());
-			byte[] decryptedPrivateKey = pbEncryptor.decrypt(signature.getPBEConfiguration(), oldClearTextPassword, encryptedPrivateKey);
-			encryptedPrivateKey = pbEncryptor.encrypt(signature.getPBEConfiguration(), true, newClearTextPassword, decryptedPrivateKey);
+			IPBEConfiguration pbec = signature.getPBEConfiguration();
+			byte[] decryptedPrivateKey = pbEncryptor.decrypt(pbec, oldClearTextPassword, encryptedPrivateKey);
+			pbec.setPaddedKeyAlgorithm(null);
+			pbec.setPaddedKeyIterations(0);
+			pbec.setPaddedKeySize(0);
+			pbec.setPaddedKeySaltSize(0);
+			pbec.setPaddedKeySalt(null);
+			pbec.setEncryptionAlgorithm(null);
+			pbec.setEncryptionKeySpec(null);
+			pbec.setEncryptionKeyIV(null);
+			encryptedPrivateKey = pbEncryptor.encrypt(pbec, true, newClearTextPassword, decryptedPrivateKey);
 			signature.setPrivateKey(Base64.encodeBytes(encryptedPrivateKey).toCharArray());
 		}
 		catch (Throwable e)
