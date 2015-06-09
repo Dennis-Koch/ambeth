@@ -11,6 +11,10 @@ namespace De.Osthus.Ambeth.Security
 
 		ENABLE_SERVICE_CHECK = 4, //
 
-		ENABLE_ENTITY_CHECK = 8 //
+		ENABLE_ENTITY_CHECK = 8, //
+
+		DISABLE_SECURITY = 16, //
+
+		ENABLE_SECURITY = 32
     }
 }

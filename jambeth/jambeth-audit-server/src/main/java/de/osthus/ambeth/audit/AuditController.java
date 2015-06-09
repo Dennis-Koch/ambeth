@@ -641,7 +641,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	{
 		final AdditionalAuditInfo additionalAuditInfo = getAdditionalAuditInfo();
 		final IUser oldAuthorizedUser = additionalAuditInfo.authorizedUser;
-		if (!forceGivenAuthorization && (oldAuthorizedUser != null || currentUserProvider.getCurrentUser() != null))
+		if (!forceGivenAuthorization && (oldAuthorizedUser != null || (currentUserProvider != null && currentUserProvider.getCurrentUser() != null)))
 		{
 			// do nothing
 			return new IAuditInfoRevert()
@@ -693,7 +693,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		{
 			authorizedUser = additionalAuditInfo.authorizedUser;
 		}
-		if (authorizedUser == null)
+		if (authorizedUser == null && currentUserProvider != null)
 		{
 			authorizedUser = currentUserProvider.getCurrentUser();
 		}

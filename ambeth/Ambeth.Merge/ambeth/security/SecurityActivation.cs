@@ -163,81 +163,115 @@ namespace De.Osthus.Ambeth.Security
 
 		public void ExecuteWithSecurityDirective(SecurityDirective securityDirective, IBackgroundWorkerDelegate runnable)
 		{
+			bool? securityActive = securityDirective.HasFlag(SecurityDirective.DISABLE_SECURITY) ? false : securityDirective
+					.HasFlag(SecurityDirective.ENABLE_SECURITY) ? true : default(bool?);
 			bool? entityActive = securityDirective.HasFlag(SecurityDirective.DISABLE_ENTITY_CHECK) ? false : securityDirective
 					.HasFlag(SecurityDirective.ENABLE_ENTITY_CHECK) ? true : default(bool?);
 			bool? serviceActive = securityDirective.HasFlag(SecurityDirective.DISABLE_SERVICE_CHECK) ? false : securityDirective
 					.HasFlag(SecurityDirective.ENABLE_SERVICE_CHECK) ? true : default(bool?);
-			bool? oldEntityActive = null, oldServiceActive = null;
-			if (entityActive != null)
+			bool? oldSecurityActive = null, oldEntityActive = null, oldServiceActive = null;
+			if (securityActive != null)
 			{
-				oldEntityActive = entityActiveTL.Value;
-				entityActiveTL.Value = entityActive;
+				oldSecurityActive = securityActiveTL.Value;
+				securityActiveTL.Value = securityActive;
 			}
 			try
 			{
-				if (serviceActive != null)
+				if (entityActive != null)
 				{
-					oldServiceActive = serviceActiveTL.Value;
-					serviceActiveTL.Value = serviceActive;
+					oldEntityActive = entityActiveTL.Value;
+					entityActiveTL.Value = entityActive;
 				}
 				try
 				{
-					runnable();
-					return;
+					if (serviceActive != null)
+					{
+						oldServiceActive = serviceActiveTL.Value;
+						serviceActiveTL.Value = serviceActive;
+					}
+					try
+					{
+						runnable();
+						return;
+					}
+					finally
+					{
+						if (serviceActive != null)
+						{
+							serviceActiveTL.Value = oldServiceActive;
+						}
+					}
 				}
 				finally
 				{
-					if (serviceActive != null)
+					if (entityActive != null)
 					{
-						serviceActiveTL.Value = oldServiceActive;
+						entityActiveTL.Value = oldEntityActive;
 					}
 				}
 			}
 			finally
 			{
-				if (entityActive != null)
+				if (securityActive != null)
 				{
-					entityActiveTL.Value = oldEntityActive;
+					securityActiveTL.Value = oldSecurityActive;
 				}
 			}
 		}
 
 		public R ExecuteWithSecurityDirective<R>(SecurityDirective securityDirective, IResultingBackgroundWorkerDelegate<R> runnable)
 		{
+			bool? securityActive = securityDirective.HasFlag(SecurityDirective.DISABLE_SECURITY) ? false : securityDirective
+					.HasFlag(SecurityDirective.ENABLE_SECURITY) ? true : default(bool?);
 			bool? entityActive = securityDirective.HasFlag(SecurityDirective.DISABLE_ENTITY_CHECK) ? false : securityDirective
 					.HasFlag(SecurityDirective.ENABLE_ENTITY_CHECK) ? true : default(bool?);
 			bool? serviceActive = securityDirective.HasFlag(SecurityDirective.DISABLE_SERVICE_CHECK) ? false : securityDirective
 					.HasFlag(SecurityDirective.ENABLE_SERVICE_CHECK) ? true : default(bool?);
-			bool? oldEntityActive = null, oldServiceActive = null;
-			if (entityActive != null)
+			bool? oldSecurityActive = null, oldEntityActive = null, oldServiceActive = null;
+			if (securityActive != null)
 			{
-				oldEntityActive = entityActiveTL.Value;
-				entityActiveTL.Value = entityActive;
+				oldSecurityActive = securityActiveTL.Value;
+				securityActiveTL.Value = securityActive;
 			}
 			try
 			{
-				if (serviceActive != null)
+				if (entityActive != null)
 				{
-					oldServiceActive = serviceActiveTL.Value;
-					serviceActiveTL.Value = serviceActive;
+					oldEntityActive = entityActiveTL.Value;
+					entityActiveTL.Value = entityActive;
 				}
 				try
 				{
-					return runnable();
+					if (serviceActive != null)
+					{
+						oldServiceActive = serviceActiveTL.Value;
+						serviceActiveTL.Value = serviceActive;
+					}
+					try
+					{
+						return runnable();
+					}
+					finally
+					{
+						if (serviceActive != null)
+						{
+							serviceActiveTL.Value = oldServiceActive;
+						}
+					}
 				}
 				finally
 				{
-					if (serviceActive != null)
+					if (entityActive != null)
 					{
-						serviceActiveTL.Value = oldServiceActive;
+						entityActiveTL.Value = oldEntityActive;
 					}
 				}
 			}
 			finally
 			{
-				if (entityActive != null)
+				if (securityActive != null)
 				{
-					entityActiveTL.Value = oldEntityActive;
+					securityActiveTL.Value = oldSecurityActive;
 				}
 			}
 		}
