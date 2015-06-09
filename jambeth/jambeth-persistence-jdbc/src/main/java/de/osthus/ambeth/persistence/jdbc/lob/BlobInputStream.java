@@ -41,14 +41,18 @@ public class BlobInputStream implements IBinaryInputStream, IInputStream
 	@Override
 	public void close() throws IOException
 	{
-		cursor.dispose();
 		try
 		{
+			is.close();
 			blob.free();
 		}
 		catch (SQLException e)
 		{
 			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			cursor.dispose();
 		}
 	}
 

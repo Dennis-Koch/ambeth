@@ -1044,12 +1044,11 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			{
 				log.debug("Using sql resource '" + fileName + "'");
 			}
-			else
-			{
-				log.debug("Cannot find sql resource '" + fileName + "'");
-			}
 		}
-
+		if (br == null)
+		{
+			throw new FileNotFoundException(fileName);
+		}
 		StringBuilder sb = new StringBuilder();
 		List<String> sql = new ArrayList<String>();
 		try
