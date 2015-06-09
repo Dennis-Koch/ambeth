@@ -53,7 +53,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil, IPassword
 	private ILogger log;
 
 	@Autowired
-	protected IAuthorizedUserHolder authorizedUserHolder;
+	protected IAuthenticatedUserHolder authenticatedUserHolder;
 
 	@Autowired
 	protected IEntityFactory entityFactory;
@@ -506,7 +506,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil, IPassword
 		}
 		if (oldClearTextPassword == null)
 		{
-			String currentSid = authorizedUserHolder.getAuthorizedUserSID();
+			String currentSid = authenticatedUserHolder.getAuthenticatedSID();
 			String sid = userIdentifierProvider.getSID(user);
 			if (currentSid != null && currentSid.equals(sid))
 			{

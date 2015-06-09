@@ -5,4 +5,6 @@ import de.osthus.ambeth.security.model.IUser;
 public interface ICurrentUserProvider
 {
 	IUser getCurrentUser();
+
+	boolean currentUserHasActionPermission(String permission);
 }
