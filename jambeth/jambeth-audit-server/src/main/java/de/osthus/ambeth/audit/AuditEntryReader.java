@@ -1,5 +1,6 @@
 package de.osthus.ambeth.audit;
 
+import java.util.Date;
 import java.util.List;
 
 import de.osthus.ambeth.audit.model.IAuditEntry;
@@ -24,6 +25,9 @@ import de.osthus.ambeth.security.model.IUser;
 
 public class AuditEntryReader implements IAuditEntryReader, IStartingBean
 {
+	private static final String VALUE_NAME_START = "auditEntryStart";
+	private static final String VALUE_NAME_END = "auditEntryEnd";
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -39,7 +43,7 @@ public class AuditEntryReader implements IAuditEntryReader, IStartingBean
 
 	private IQuery<IAuditedEntity> q_auditedEntity_withVersion, q_auditedEntity_noVersion;
 
-	private IQuery<IAuditEntry> q_auditEntry_withVersion, q_auditEntry_noVersion;
+	private IQuery<IAuditEntry> q_auditEntry_withVersion, q_auditEntry_noVersion, q_auditEntry_entityType, q_auditEntry_entityType_InTimeSlot;
 
 	private IQuery<IAuditEntry> q_allUserActions;
 
@@ -107,6 +111,29 @@ public class AuditEntryReader implements IAuditEntryReader, IStartingBean
 			q_allUserActions = qb.build(qb.and(//
 					qb.isEqualTo(userIdentifier, qb.valueName(IAuditEntry.UserIdentifier))));
 		}
+		{
+			IQueryBuilder<IAuditEntry> qb = queryBuilderFactory.create(IAuditEntry.class);
+			IOperand entityType = qb.property(IAuditEntry.Entities + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityType);
+
+			qb.orderBy(qb.property(IAuditEntry.Timestamp), OrderByType.ASC);
+
+			q_auditEntry_entityType = qb.build(//
+					qb.isEqualTo(entityType, qb.valueName(IAuditedEntityRef.EntityType)));//
+		}
+		{
+			IQueryBuilder<IAuditEntry> qb = queryBuilderFactory.create(IAuditEntry.class);
+			IOperand entityType = qb.property(IAuditEntry.Entities + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityType);
+			IOperand auditEntryStart = qb.property(IAuditEntry.Timestamp);
+			IOperand auditEntryEnd = qb.property(IAuditEntry.Timestamp);
+
+			qb.orderBy(qb.property(IAuditEntry.Timestamp), OrderByType.ASC);
+
+			q_auditEntry_entityType_InTimeSlot = qb.build(qb.and(
+					//
+					qb.isEqualTo(entityType, qb.valueName(IAuditedEntityRef.EntityType)),
+					qb.isGreaterThanOrEqualTo(auditEntryStart, qb.valueName(VALUE_NAME_START)),
+					qb.isLessThanOrEqualTo(auditEntryEnd, qb.valueName(VALUE_NAME_END))));//
+		}
 	}
 
 	protected <V> IList<V> getByObjRef(IQuery<V> q_NoVersion, IQuery<V> q_WithVersion, IObjRef objRef)
@@ -122,6 +149,14 @@ public class AuditEntryReader implements IAuditEntryReader, IStartingBean
 		return q_WithVersion.param(IAuditedEntityRef.EntityType, metaData.getEntityType())//
 				.param(IAuditedEntityRef.EntityId, objRef.getId())//
 				.param(IAuditedEntityRef.EntityVersion, objRef.getVersion())//
+				.retrieve();
+	}
+
+	protected <V> IList<V> getByEntityType(IQuery<V> q_entityType, Class<?> entityType)
+	{
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+
+		return q_entityType.param(IAuditedEntityRef.EntityType, metaData.getEntityType())//
 				.retrieve();
 	}
 
@@ -181,4 +216,19 @@ public class AuditEntryReader implements IAuditEntryReader, IStartingBean
 	{
 		return q_allUserActions.param(IAuditEntry.UserIdentifier, userIdentifierProvider.getSID(user)).retrieve();
 	}
+
+	@Override
+	public List<IAuditEntry> getAllAuditEntriesOfEntityType(Class<?> entityType)
+	{
+		return getByEntityType(q_auditEntry_entityType, entityType);
+	}
+
+	@Override
+	public List<IAuditEntry> getAllAuditEntriesOfEntityTypeInTimeSlot(Class<?> entityType, Date start, Date end)
+	{
+		return q_auditEntry_entityType_InTimeSlot.param(VALUE_NAME_START, start)//
+				.param(VALUE_NAME_END, end).param(IAuditedEntityRef.EntityType, entityType)//
+				.retrieve();
+	}
+
 }
