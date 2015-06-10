@@ -155,6 +155,12 @@ public class PostgresDialect extends AbstractConnectionDialect
 	}
 
 	@Override
+	public String getRegexpLikeFunctionName()
+	{
+		return "regexp_matches";
+	}
+
+	@Override
 	public String toDefaultCase(String identifier)
 	{
 		return identifier.toLowerCase();

@@ -1050,7 +1050,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			throw new FileNotFoundException(fileName);
 		}
 		StringBuilder sb = new StringBuilder();
-		List<String> sql = new ArrayList<String>();
+		ArrayList<String> sql = new ArrayList<String>();
 		try
 		{
 			String line = null;
