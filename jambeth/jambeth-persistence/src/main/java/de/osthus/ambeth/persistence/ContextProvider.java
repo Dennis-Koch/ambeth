@@ -4,32 +4,28 @@ import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.security.IAuthenticatedUserHolder;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.IAuthorizationChangeListener;
-import de.osthus.ambeth.security.IAuthenticatedUserHolder;
-import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.util.IAlreadyLinkedCache;
 import de.osthus.ambeth.util.IInterningFeature;
 
 public class ContextProvider implements IContextProvider, IAuthorizationChangeListener
 {
-	protected Long currentTime;
-
-	protected String currentUser;
-
-	protected Reference<Thread> boundThread;
-
 	@Autowired
 	protected IAuthenticatedUserHolder authenticatedUserHolder;
-
-	@Autowired
-	protected ISecurityScopeProvider securityScopeProvider;
 
 	@Autowired
 	protected IAlreadyLinkedCache alreadyLinkedCache;
 
 	@Autowired(optional = true)
 	protected IInterningFeature interningFeature;
+
+	protected Long currentTime;
+
+	protected String currentUser;
+
+	protected Reference<Thread> boundThread;
 
 	@Override
 	public void acquired()

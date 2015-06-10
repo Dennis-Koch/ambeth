@@ -40,6 +40,8 @@ public interface IConnectionDialect
 
 	void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException;
 
+	String getRegexpLikeFunctionName();
+
 	int getResourceBusyErrorCode();
 
 	PersistenceException createPersistenceException(SQLException e, String relatedSql);

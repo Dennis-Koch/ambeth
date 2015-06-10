@@ -1,6 +1,7 @@
 package de.osthus.ambeth.security;
 
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.ioc.threadlocal.IForkProcessor;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
@@ -39,6 +40,9 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 		}
 	}
 
+	@Autowired
+	protected IAuthenticatedUserHolder authenticatedUserHolder;
+
 	protected final DefaultExtendableContainer<IAuthorizationChangeListener> authorizationChangeListeners = new DefaultExtendableContainer<IAuthorizationChangeListener>(
 			IAuthorizationChangeListener.class, "authorizationChangeListener");
 
@@ -47,6 +51,7 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 
 	protected void notifyAuthorizationChangeListeners(IAuthorization authorization)
 	{
+		authenticatedUserHolder.setAuthenticatedSID(authorization != null ? authorization.getSID() : null);
 		for (IAuthorizationChangeListener authorizationChangeListener : authorizationChangeListeners.getExtensions())
 		{
 			authorizationChangeListener.authorizationChanged(authorization);
