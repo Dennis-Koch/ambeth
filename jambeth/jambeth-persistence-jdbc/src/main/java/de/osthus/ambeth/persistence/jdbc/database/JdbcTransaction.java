@@ -519,6 +519,7 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 	@Override
 	public void processAndCommit(DatabaseCallback databaseCallback, boolean expectOwnDatabaseSession, boolean readOnly)
 	{
+		readOnly = false;
 		ThreadLocalItem tli = getEnsureTLI();
 		if (isActive())
 		{
@@ -586,6 +587,7 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 
 	public <R> R processAndCommit(ResultingDatabaseCallback<R> databaseCallback, boolean expectOwnDatabaseSession, boolean readOnly, boolean lazyTransaction)
 	{
+		readOnly = false;
 		ThreadLocalItem tli = getEnsureTLI();
 		if (isActive())
 		{
