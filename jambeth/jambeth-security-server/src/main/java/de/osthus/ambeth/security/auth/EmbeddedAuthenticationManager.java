@@ -7,11 +7,13 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.security.AuthenticationException;
+import de.osthus.ambeth.security.AuthenticationResult;
 import de.osthus.ambeth.security.IAuthentication;
 import de.osthus.ambeth.security.IAuthenticationResult;
 import de.osthus.ambeth.security.ICheckPasswordResult;
 import de.osthus.ambeth.security.IPasswordUtil;
 import de.osthus.ambeth.security.ISecurityActivation;
+import de.osthus.ambeth.security.IUserIdentifierProvider;
 import de.osthus.ambeth.security.IUserResolver;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.model.IPassword;
@@ -26,6 +28,9 @@ public class EmbeddedAuthenticationManager extends AbstractAuthenticationManager
 
 	@Autowired
 	protected ICache cache;
+
+	@Autowired
+	protected IUserIdentifierProvider userIdentifierProvider;
 
 	@Autowired
 	protected IUserResolver userResolver;
@@ -90,28 +95,8 @@ public class EmbeddedAuthenticationManager extends AbstractAuthenticationManager
 				});
 				rehashRecommended = false;
 			}
-			final String userName = authentication.getUserName();
-			final boolean fRehashRecommended = rehashRecommended;
-			return new IAuthenticationResult()
-			{
-				@Override
-				public boolean isChangePasswordRecommended()
-				{
-					return checkPasswordResult.isChangePasswordRecommended();
-				}
-
-				@Override
-				public boolean isRehashPasswordRecommended()
-				{
-					return fRehashRecommended;
-				}
-
-				@Override
-				public String getUserName()
-				{
-					return userName;
-				}
-			};
+			String sid = userIdentifierProvider.getSID(user);
+			return new AuthenticationResult(sid, checkPasswordResult.isChangePasswordRecommended(), rehashRecommended);
 		}
 		catch (Throwable e)
 		{

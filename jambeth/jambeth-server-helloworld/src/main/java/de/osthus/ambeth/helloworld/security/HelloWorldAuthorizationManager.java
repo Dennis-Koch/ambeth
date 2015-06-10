@@ -8,6 +8,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.security.AbstractAuthorization;
+import de.osthus.ambeth.security.IAuthenticationResult;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.IAuthorizationManager;
 import de.osthus.ambeth.security.IServicePermission;
@@ -23,7 +24,7 @@ public class HelloWorldAuthorizationManager implements IAuthorizationManager
 	protected final Pattern denyForbiddenMethodPattern = Pattern.compile(IHelloWorldService.class.getName().replaceAll("\\.", "\\\\.") + "\\.forbiddenMethod");
 
 	@Override
-	public IAuthorization authorize(final String sid, final ISecurityScope[] securityScopes)
+	public IAuthorization authorize(String sid, ISecurityScope[] securityScopes, IAuthenticationResult authenticationResult)
 	{
 		// Allow all service methods
 		final Pattern[] allowPatterns = new Pattern[] { allowAllPattern };
@@ -65,7 +66,7 @@ public class HelloWorldAuthorizationManager implements IAuthorizationManager
 		{
 			servicePermissionMap.put(securityScope, servicePermissions);
 		}
-		return new AbstractAuthorization(servicePermissionMap, securityScopes, null, null, null, null, System.currentTimeMillis())
+		return new AbstractAuthorization(servicePermissionMap, securityScopes, null, null, null, null, System.currentTimeMillis(), authenticationResult)
 		{
 			@Override
 			public boolean isValid()

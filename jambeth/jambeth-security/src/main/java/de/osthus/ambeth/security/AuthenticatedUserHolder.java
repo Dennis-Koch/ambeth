@@ -7,7 +7,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
-public class AuthorizedUserHolder implements IAuthorizedUserHolder, IThreadLocalCleanupBean
+public class AuthenticatedUserHolder implements IAuthenticatedUserHolder, IThreadLocalCleanupBean
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -17,21 +17,21 @@ public class AuthorizedUserHolder implements IAuthorizedUserHolder, IThreadLocal
 	protected ISecurityContextHolder securityContextHolder;
 
 	@Forkable
-	protected final ThreadLocal<String> authorizedUserTL = new SensitiveThreadLocal<String>();
+	protected final ThreadLocal<String> authenticatedUserTL = new SensitiveThreadLocal<String>();
 
 	@Override
 	public void cleanupThreadLocal()
 	{
-		if (authorizedUserTL.get() != null)
+		if (authenticatedUserTL.get() != null)
 		{
 			throw new IllegalStateException("At this point the thread-local connection has to be already cleaned up gracefully");
 		}
 	}
 
 	@Override
-	public String getAuthorizedUserSID()
+	public String getAuthenticatedSID()
 	{
-		String authorizedUser = authorizedUserTL.get();
+		String authorizedUser = authenticatedUserTL.get();
 		if (authorizedUser != null)
 		{
 			return authorizedUser;
@@ -42,8 +42,8 @@ public class AuthorizedUserHolder implements IAuthorizedUserHolder, IThreadLocal
 	}
 
 	@Override
-	public void setAuthorizedUserSID(String sid)
+	public void setAuthenticatedSID(String sid)
 	{
-		authorizedUserTL.set(sid);
+		authenticatedUserTL.set(sid);
 	}
 }

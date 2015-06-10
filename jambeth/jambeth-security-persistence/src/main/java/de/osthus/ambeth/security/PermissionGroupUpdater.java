@@ -836,13 +836,13 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 	{
 		if (authorizationManager != null)
 		{
-			IAuthorization authorization = authorizationManager.authorize(sid, securityScopes);
+			IAuthorization authorization = authorizationManager.authorize(sid, securityScopes, new AuthenticationResult(sid, false, false));
 			if (authorization == null)
 			{
 				throw new IllegalStateException();
 			}
 			return authorization;
 		}
-		return new DefaultAuthorization(sid, securityScopes, CallPermission.FORBIDDEN, System.currentTimeMillis());
+		return new DefaultAuthorization(sid, securityScopes, CallPermission.FORBIDDEN, System.currentTimeMillis(), new AuthenticationResult(sid, false, false));
 	}
 }

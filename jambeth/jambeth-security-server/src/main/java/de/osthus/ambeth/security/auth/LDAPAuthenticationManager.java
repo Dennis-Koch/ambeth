@@ -23,6 +23,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.security.AuthenticationException;
+import de.osthus.ambeth.security.AuthenticationResult;
 import de.osthus.ambeth.security.IAuthentication;
 import de.osthus.ambeth.security.IAuthenticationResult;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
@@ -106,28 +107,8 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager
 	{
 		Map<String, Object> map = result.get(0);
 		Object nameValue = map.get(userPrincipalName);
-		final String userName = (String) nameValue;
-		return new IAuthenticationResult()
-		{
-
-			@Override
-			public boolean isRehashPasswordRecommended()
-			{
-				return false;
-			}
-
-			@Override
-			public boolean isChangePasswordRecommended()
-			{
-				return false;
-			}
-
-			@Override
-			public String getUserName()
-			{
-				return userName;
-			}
-		};
+		final String sid = (String) nameValue;
+		return new AuthenticationResult(sid, false, false);
 	}
 
 	@Override
@@ -145,7 +126,6 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager
 
 	protected IAuthenticationResult doLDAPAuthentication(final IAuthentication authentication) throws AuthenticationException
 	{
-
 		try
 		{
 			LdapContext ctxGC = createContext(authentication.getUserName(), new String(authentication.getPassword()));

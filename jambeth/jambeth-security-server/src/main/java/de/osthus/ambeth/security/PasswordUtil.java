@@ -22,6 +22,8 @@ import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.config.IocConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.exceptions.PasswordConstraintException;
+import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -44,14 +46,14 @@ import de.osthus.ambeth.security.model.ISignature;
 import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class PasswordUtil implements IInitializingBean, IPasswordUtil
+public class PasswordUtil implements IInitializingBean, IPasswordUtil, IPasswordValidationExtendable
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Autowired
-	protected IAuthorizedUserHolder authorizedUserHolder;
+	protected IAuthenticatedUserHolder authenticatedUserHolder;
 
 	@Autowired
 	protected IEntityFactory entityFactory;
@@ -115,6 +117,9 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 
 	protected final SmartCopyMap<String, Reference<SecretKeyFactory>> algorithmToSecretKeyFactoryMap = new SmartCopyMap<String, Reference<SecretKeyFactory>>(
 			0.5f);
+
+	protected final DefaultExtendableContainer<IPasswordValidationExtension> extensions = new DefaultExtendableContainer<IPasswordValidationExtension>(
+			IPasswordValidationExtension.class, "passwordValidadtionExtension");
 
 	protected final Lock saltReencryptionLock = new ReentrantLock();
 
@@ -322,6 +327,27 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 	{
 		ParamChecker.assertParamNotNull(clearTextPassword, "clearTextPassword");
 		ParamChecker.assertParamNotNull(user, "user");
+		StringBuilder validationErrorSB = null;
+		for (IPasswordValidationExtension extension : extensions.getExtensions())
+		{
+			String validationError = extension.validatePassword(clearTextPassword);
+			if (validationError != null)
+			{
+				if (validationErrorSB == null)
+				{
+					validationErrorSB = new StringBuilder();
+				}
+				else
+				{
+					validationErrorSB.append('\n');
+				}
+				validationErrorSB.append(validationError);
+			}
+		}
+		if (validationErrorSB != null)
+		{
+			throw new PasswordConstraintException(validationErrorSB.toString());
+		}
 		List<IPassword> passwordHistory = buildPasswordHistory(user);
 		if (isPasswordUsedInHistory(clearTextPassword, passwordHistory))
 		{
@@ -382,7 +408,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		{
 			return;
 		}
-		while (passwordHistory.size() > passwordHistoryCount)
+		while (passwordHistory.size() > passwordHistoryCount - 1) // the users current password is part of the history
 		{
 			ArrayList<IPassword> passwordHistoryList = new ArrayList<IPassword>(passwordHistory);
 			Collections.sort(passwordHistoryList, new Comparator<IPassword>()
@@ -393,7 +419,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 					return o1.getChangeAfter().compareTo(o2.getChangeAfter());
 				}
 			});
-			IPassword passwordToRemove = passwordHistoryList.get(passwordHistoryList.size() - 1);
+			IPassword passwordToRemove = passwordHistoryList.get(0);
 			passwordHistory.remove(passwordToRemove);
 			IEntityMetaData passwordMetaData = entityMetaDataProvider.getMetaData(passwordToRemove.getClass());
 			passwordMetaData.getMemberByName(IPassword.HistoryUser).setValue(passwordToRemove, null);
@@ -480,7 +506,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		}
 		if (oldClearTextPassword == null)
 		{
-			String currentSid = authorizedUserHolder.getAuthorizedUserSID();
+			String currentSid = authenticatedUserHolder.getAuthenticatedSID();
 			String sid = userIdentifierProvider.getSID(user);
 			if (currentSid != null && currentSid.equals(sid))
 			{
@@ -585,5 +611,17 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
+	}
+
+	@Override
+	public void registerPasswordValidationExtension(IPasswordValidationExtension passwordValidationExtension)
+	{
+		extensions.register(passwordValidationExtension);
+	}
+
+	@Override
+	public void unregisterPasswordValidationExtension(IPasswordValidationExtension passwordValidationExtension)
+	{
+		extensions.unregister(passwordValidationExtension);
 	}
 }

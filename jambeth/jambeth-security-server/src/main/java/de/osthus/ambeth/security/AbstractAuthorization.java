@@ -41,10 +41,12 @@ public abstract class AbstractAuthorization implements IAuthorization
 
 	private final long authorizationTime;
 
+	private final IAuthenticationResult authenticationResult;
+
 	public AbstractAuthorization(HashMap<ISecurityScope, IServicePermission[]> servicePermissions, ISecurityScope[] securityScopes,
 			Tuple2KeyHashMap<ISecurityScope, String, Boolean> actionPrivileges,
 			Tuple2KeyHashMap<ISecurityScope, Class<?>, ITypePrivilege> entityTypePrivileges, ITypePrivilege defaultEntityTypePrivilege,
-			IEntityMetaDataProvider entityMetaDataProvider, long authorizationTime)
+			IEntityMetaDataProvider entityMetaDataProvider, long authorizationTime, IAuthenticationResult authenticationResult)
 	{
 		this.servicePermissions = servicePermissions;
 		this.securityScopes = securityScopes;
@@ -53,6 +55,7 @@ public abstract class AbstractAuthorization implements IAuthorization
 		this.defaultEntityTypePrivilege = defaultEntityTypePrivilege;
 		this.entityMetaDataProvider = entityMetaDataProvider;
 		this.authorizationTime = authorizationTime;
+		this.authenticationResult = authenticationResult;
 
 		patternToValueMap = new IdentityHashMap<Pattern, Boolean>(0.5f);
 		HashMap<ISecurityScope, ArrayList<Pattern>> scopeToActionPatternsMap = new HashMap<ISecurityScope, ArrayList<Pattern>>();
@@ -86,6 +89,12 @@ public abstract class AbstractAuthorization implements IAuthorization
 	public long getAuthorizationTime()
 	{
 		return authorizationTime;
+	}
+
+	@Override
+	public IAuthenticationResult getAuthenticationResult()
+	{
+		return authenticationResult;
 	}
 
 	@Override

@@ -58,8 +58,8 @@ import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IDatabaseMetaData;
 import de.osthus.ambeth.persistence.IFieldMetaData;
 import de.osthus.ambeth.persistence.ITableMetaData;
+import de.osthus.ambeth.security.IAuthenticatedUserHolder;
 import de.osthus.ambeth.security.IAuthentication;
-import de.osthus.ambeth.security.IAuthorizedUserHolder;
 import de.osthus.ambeth.security.ICurrentUserProvider;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityContext;
@@ -86,7 +86,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	protected IAuditConfigurationProvider auditConfigurationProvider;
 
 	@Autowired
-	protected IAuthorizedUserHolder authorizedUserHolder;
+	protected IAuthenticatedUserHolder authenticatedUserHolder;
 
 	@Autowired(optional = true)
 	protected IAuditEntryToSignature auditEntryToSignature;
@@ -574,7 +574,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	public void removeAuditInfo()
 	{
 		additionalAuditInfoTL.set(null);
-		authorizedUserHolder.setAuthorizedUserSID(null);
+		authenticatedUserHolder.setAuthenticatedSID(null);
 	}
 
 	@Override
@@ -653,24 +653,24 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 				}
 			};
 		}
-		final String oldAuthorizedUserSID = authorizedUserHolder.getAuthorizedUserSID();
+		final String oldAuthorizedUserSID = authenticatedUserHolder.getAuthenticatedSID();
 		final char[] oldClearTextPassword = additionalAuditInfo.clearTextPassword;
 		final String sid = userIdentifierProvider.getSID(user);
 
 		additionalAuditInfo.authorizedUser = user;
 		additionalAuditInfo.clearTextPassword = clearTextPassword;
 		additionalAuditInfo.doClearPassword = false;
-		authorizedUserHolder.setAuthorizedUserSID(sid);
+		authenticatedUserHolder.setAuthenticatedSID(sid);
 		return new IAuditInfoRevert()
 		{
 			@Override
 			public void revert()
 			{
-				if (authorizedUserHolder.getAuthorizedUserSID() != sid)
+				if (authenticatedUserHolder.getAuthenticatedSID() != sid)
 				{
 					throw new IllegalStateException("Illegal state: authorizedUserSID does not match");
 				}
-				authorizedUserHolder.setAuthorizedUserSID(oldAuthorizedUserSID);
+				authenticatedUserHolder.setAuthenticatedSID(oldAuthorizedUserSID);
 
 				if (additionalAuditInfo.authorizedUser != user)
 				{

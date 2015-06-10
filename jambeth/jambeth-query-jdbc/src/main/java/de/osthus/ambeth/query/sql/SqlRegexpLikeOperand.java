@@ -3,32 +3,34 @@ package de.osthus.ambeth.query.sql;
 import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.query.IOperand;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class SqlRegexpLikeOperand implements IOperand, IInitializingBean
+public class SqlRegexpLikeOperand implements IOperand
 {
 	@LogInstance
 	private ILogger log;
 
-	protected IOperand sourceString;
-	protected IOperand pattern;
-	protected IOperand matchParameter;
+	@Autowired
+	protected IConnectionDialect connectionDialect;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(sourceString, "sourceString");
-		ParamChecker.assertNotNull(pattern, "pattern");
-	}
+	@Property
+	protected IOperand sourceString;
+
+	@Property
+	protected IOperand pattern;
+
+	@Property
+	protected IOperand matchParameter;
 
 	@Override
 	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
 	{
-		querySB.append("REGEXP_LIKE").append('(');
+		querySB.append(connectionDialect.getRegexpLikeFunctionName()).append('(');
 		sourceString.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 		querySB.append(',');
 		pattern.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
