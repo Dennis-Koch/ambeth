@@ -4,17 +4,11 @@ import java.util.Iterator;
 
 import de.osthus.ambeth.accessor.AbstractAccessor;
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
 
 public class PropertyExpansion extends AbstractAccessor
 {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected ArrayList<Member> memberPath;
 
 	private ArrayList<IEntityMetaData> metaDataPath;

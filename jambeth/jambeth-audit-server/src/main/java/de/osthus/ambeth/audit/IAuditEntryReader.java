@@ -1,5 +1,6 @@
 package de.osthus.ambeth.audit;
 
+import java.util.Date;
 import java.util.List;
 
 import de.osthus.ambeth.audit.model.IAuditEntry;
@@ -18,4 +19,8 @@ public interface IAuditEntryReader
 	List<IAuditEntry> getAllAuditEntriesOfEntity(IObjRef objRef);
 
 	List<IAuditEntry> getAllAuditEntriesOfUser(IUser user);
+
+	List<IAuditEntry> getAllAuditEntriesOfEntityType(Class<?> entityType);
+
+	List<IAuditEntry> getAllAuditEntriesOfEntityTypeInTimeSlot(Class<?> entityType, Date start, Date end);
 }
