@@ -13,6 +13,8 @@ public interface IAuthorization
 
 	boolean isValid();
 
+	IAuthenticationResult getAuthenticationResult();
+
 	ISecurityScope[] getSecurityScopes();
 
 	CallPermission getCallPermission(Method serviceOperation, ISecurityScope[] securityScopes);
