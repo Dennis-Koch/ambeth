@@ -408,7 +408,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil, IPassword
 		{
 			return;
 		}
-		while (passwordHistory.size() > passwordHistoryCount)
+		while (passwordHistory.size() > passwordHistoryCount - 1) // the users current password is part of the history
 		{
 			ArrayList<IPassword> passwordHistoryList = new ArrayList<IPassword>(passwordHistory);
 			Collections.sort(passwordHistoryList, new Comparator<IPassword>()
@@ -419,7 +419,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil, IPassword
 					return o1.getChangeAfter().compareTo(o2.getChangeAfter());
 				}
 			});
-			IPassword passwordToRemove = passwordHistoryList.get(passwordHistoryList.size() - 1);
+			IPassword passwordToRemove = passwordHistoryList.get(0);
 			passwordHistory.remove(passwordToRemove);
 			IEntityMetaData passwordMetaData = entityMetaDataProvider.getMetaData(passwordToRemove.getClass());
 			passwordMetaData.getMemberByName(IPassword.HistoryUser).setValue(passwordToRemove, null);
