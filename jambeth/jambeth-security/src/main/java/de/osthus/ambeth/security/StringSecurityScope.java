@@ -1,9 +1,13 @@
-package de.osthus.ambeth.testutil;
+package de.osthus.ambeth.security;
 
 import de.osthus.ambeth.model.ISecurityScope;
 
 public class StringSecurityScope implements ISecurityScope
 {
+	public static final String DEFAULT_SCOPE_NAME = "defaultScope";
+
+	public static final ISecurityScope DEFAULT_SCOPE = new StringSecurityScope(DEFAULT_SCOPE_NAME);
+
 	protected final String name;
 
 	public StringSecurityScope(String name)

@@ -14,6 +14,7 @@ import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.proxy.AbstractCascadePostProcessor;
 import de.osthus.ambeth.proxy.IBehaviorTypeExtractor;
 import de.osthus.ambeth.proxy.ICascadedInterceptor;
@@ -22,9 +23,11 @@ import de.osthus.ambeth.proxy.MethodLevelBehavior;
 import de.osthus.ambeth.security.PasswordType;
 import de.osthus.ambeth.security.SecurityContext;
 import de.osthus.ambeth.security.SecurityContextPassword;
+import de.osthus.ambeth.security.SecurityContextScope;
 import de.osthus.ambeth.security.SecurityContextUserName;
 import de.osthus.ambeth.security.SecurityFilterInterceptor;
 import de.osthus.ambeth.security.SecurityFilterInterceptor.SecurityMethodMode;
+import de.osthus.ambeth.security.StringSecurityScope;
 import de.osthus.ambeth.util.EqualsUtil;
 
 public class SecurityPostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanPostProcessor
@@ -56,6 +59,7 @@ public class SecurityPostProcessor extends AbstractCascadePostProcessor implemen
 			int userNameIndex = -1;
 			int passwordIndex = -1;
 			PasswordType passwordType = null;
+			int securityScopeIndex = -1;
 			for (int a = parameterAnnotations.length; a-- > 0;)
 			{
 				for (Annotation annotationOfParam : parameterAnnotations[a])
@@ -79,9 +83,19 @@ public class SecurityPostProcessor extends AbstractCascadePostProcessor implemen
 						passwordIndex = a;
 						passwordType = ((SecurityContextPassword) annotationOfParam).value();
 					}
+					else if (annotationOfParam instanceof SecurityContextScope)
+					{
+						if (securityScopeIndex != -1)
+						{
+							throw new IllegalStateException("Annotation '" + SecurityContextScope.class.getName() + "' ambiguous on method signature '"
+									+ method.toGenericString() + "'");
+						}
+						securityScopeIndex = a;
+					}
 				}
 			}
-			return new SecurityMethodMode(annotation.value(), userNameIndex, passwordIndex, passwordType);
+			ISecurityScope securityScope = securityScopeIndex == -1 ? StringSecurityScope.DEFAULT_SCOPE : null;
+			return new SecurityMethodMode(annotation.value(), userNameIndex, passwordIndex, passwordType, securityScopeIndex, securityScope);
 		}
 	};
 

@@ -162,41 +162,58 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 	@Override
 	public void executeWithSecurityDirective(Set<SecurityDirective> securityDirective, IBackgroundWorkerDelegate runnable) throws Throwable
 	{
+		Boolean securityActive = securityDirective.contains(SecurityDirective.DISABLE_SECURITY) ? Boolean.FALSE : securityDirective
+				.contains(SecurityDirective.ENABLE_SECURITY) ? Boolean.TRUE : null;
 		Boolean entityActive = securityDirective.contains(SecurityDirective.DISABLE_ENTITY_CHECK) ? Boolean.FALSE : securityDirective
 				.contains(SecurityDirective.ENABLE_ENTITY_CHECK) ? Boolean.TRUE : null;
 		Boolean serviceActive = securityDirective.contains(SecurityDirective.DISABLE_SERVICE_CHECK) ? Boolean.FALSE : securityDirective
 				.contains(SecurityDirective.ENABLE_SERVICE_CHECK) ? Boolean.TRUE : null;
-		Boolean oldEntityActive = null, oldServiceActive = null;
-		if (entityActive != null)
+		Boolean oldSecurityActive = null, oldEntityActive = null, oldServiceActive = null;
+		if (securityActive != null)
 		{
-			oldEntityActive = entityActiveTL.get();
-			entityActiveTL.set(entityActive);
+			oldSecurityActive = securityActiveTL.get();
+			securityActiveTL.set(securityActive);
 		}
 		try
 		{
-			if (serviceActive != null)
+			if (entityActive != null)
 			{
-				oldServiceActive = serviceActiveTL.get();
-				serviceActiveTL.set(serviceActive);
+				oldEntityActive = entityActiveTL.get();
+				entityActiveTL.set(entityActive);
 			}
 			try
 			{
-				runnable.invoke();
-				return;
+				if (serviceActive != null)
+				{
+					oldServiceActive = serviceActiveTL.get();
+					serviceActiveTL.set(serviceActive);
+				}
+				try
+				{
+					runnable.invoke();
+					return;
+				}
+				finally
+				{
+					if (serviceActive != null)
+					{
+						serviceActiveTL.set(oldServiceActive);
+					}
+				}
 			}
 			finally
 			{
-				if (serviceActive != null)
+				if (entityActive != null)
 				{
-					serviceActiveTL.set(oldServiceActive);
+					entityActiveTL.set(oldEntityActive);
 				}
 			}
 		}
 		finally
 		{
-			if (entityActive != null)
+			if (securityActive != null)
 			{
-				entityActiveTL.set(oldEntityActive);
+				securityActiveTL.set(oldSecurityActive);
 			}
 		}
 	}
@@ -204,42 +221,58 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 	@Override
 	public <R> R executeWithSecurityDirective(Set<SecurityDirective> securityDirective, IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable
 	{
+		Boolean securityActive = securityDirective.contains(SecurityDirective.DISABLE_SECURITY) ? Boolean.FALSE : securityDirective
+				.contains(SecurityDirective.ENABLE_SECURITY) ? Boolean.TRUE : null;
 		Boolean entityActive = securityDirective.contains(SecurityDirective.DISABLE_ENTITY_CHECK) ? Boolean.FALSE : securityDirective
 				.contains(SecurityDirective.ENABLE_ENTITY_CHECK) ? Boolean.TRUE : null;
 		Boolean serviceActive = securityDirective.contains(SecurityDirective.DISABLE_SERVICE_CHECK) ? Boolean.FALSE : securityDirective
 				.contains(SecurityDirective.ENABLE_SERVICE_CHECK) ? Boolean.TRUE : null;
-		Boolean oldEntityActive = null, oldServiceActive = null;
-		if (entityActive != null)
+		Boolean oldSecurityActive = null, oldEntityActive = null, oldServiceActive = null;
+		if (securityActive != null)
 		{
-			oldEntityActive = entityActiveTL.get();
-			entityActiveTL.set(entityActive);
+			oldSecurityActive = securityActiveTL.get();
+			securityActiveTL.set(securityActive);
 		}
 		try
 		{
-			if (serviceActive != null)
+			if (entityActive != null)
 			{
-				oldServiceActive = serviceActiveTL.get();
-				serviceActiveTL.set(serviceActive);
+				oldEntityActive = entityActiveTL.get();
+				entityActiveTL.set(entityActive);
 			}
 			try
 			{
-				return runnable.invoke();
+				if (serviceActive != null)
+				{
+					oldServiceActive = serviceActiveTL.get();
+					serviceActiveTL.set(serviceActive);
+				}
+				try
+				{
+					return runnable.invoke();
+				}
+				finally
+				{
+					if (serviceActive != null)
+					{
+						serviceActiveTL.set(oldServiceActive);
+					}
+				}
 			}
 			finally
 			{
-				if (serviceActive != null)
+				if (entityActive != null)
 				{
-					serviceActiveTL.set(oldServiceActive);
+					entityActiveTL.set(oldEntityActive);
 				}
 			}
 		}
 		finally
 		{
-			if (entityActive != null)
+			if (securityActive != null)
 			{
-				entityActiveTL.set(oldEntityActive);
+				securityActiveTL.set(oldSecurityActive);
 			}
 		}
 	}
-
 }

@@ -3,7 +3,6 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>jambeth-core</artifactId>
-	<packaging>pom</packaging>
 
 	<parent>
 		<groupId>de.osthus.ambeth</groupId>
@@ -25,6 +24,11 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-util</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.javassist</groupId>
+			<artifactId>javassist</artifactId>
 		</dependency>
 	</dependencies>
 

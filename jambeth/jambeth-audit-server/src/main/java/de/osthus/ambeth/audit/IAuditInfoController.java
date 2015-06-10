@@ -22,5 +22,5 @@ public interface IAuditInfoController
 
 	String createAuditedValueOfEntityPrimitive(Object primitiveValueOfEntity);
 
-	IAuditInfoRevert setAuthorizedUser(IUser user, char[] clearTextPassword);
+	IAuditInfoRevert setAuthorizedUser(IUser user, char[] clearTextPassword, boolean forceGivenAuthorization);
 }

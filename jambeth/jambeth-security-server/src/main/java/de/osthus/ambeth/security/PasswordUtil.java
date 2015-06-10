@@ -32,8 +32,10 @@ import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.merge.MergeFinishedCallback;
 import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.privilege.IPrivilegeProvider;
 import de.osthus.ambeth.privilege.model.ITypePrivilege;
+import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.model.IPBEConfiguration;
@@ -47,6 +49,9 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IAuthorizedUserHolder authorizedUserHolder;
 
 	@Autowired
 	protected IEntityFactory entityFactory;
@@ -196,8 +201,8 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 			throw new IllegalArgumentException("Given clearTextPassword does not match for " + existingPassword);
 		}
 		// password should be rehashed, but it is the same clearTextPassword so we do NOT recalculate its changeAfter date
-		fillPassword(clearTextPassword, existingPassword, null, false);
-		mergeProcess.process(existingPassword, null, null, null);
+		fillPassword(clearTextPassword, clearTextPassword, existingPassword, null, false);
+		mergeProcess.process(existingPassword.getUser(), null, null, null); // important to merge the user because of the relation to signature
 	}
 
 	@Override
@@ -313,48 +318,40 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 	}
 
 	@Override
-	public void assignNewPassword(char[] clearTextPassword, IPassword newEmptyPassword, IUser user)
+	public void assignNewPassword(char[] clearTextPassword, IUser user, char[] oldClearTextPassword)
 	{
 		ParamChecker.assertParamNotNull(clearTextPassword, "clearTextPassword");
-		ParamChecker.assertParamNotNull(newEmptyPassword, "newEmptyPassword");
 		ParamChecker.assertParamNotNull(user, "user");
 		List<IPassword> passwordHistory = buildPasswordHistory(user);
-		if (passwordHistory != null && passwordHistory.contains(newEmptyPassword))
-		{
-			throw new IllegalArgumentException("Given newEmptyPassword must be a new (unused) instance of a password");
-		}
 		if (isPasswordUsedInHistory(clearTextPassword, passwordHistory))
 		{
 			throw createIllegalPasswordException();
 		}
-		fillPassword(clearTextPassword, newEmptyPassword, user, true);
+		IPassword newEmptyPassword = entityFactory.createEntity(IPassword.class);
+		fillPassword(clearTextPassword, oldClearTextPassword, newEmptyPassword, user, true);
 		setNewPasswordIntern(user, newEmptyPassword);
 	}
 
 	@Override
-	public String assignNewRandomPassword(IPassword newEmptyPassword, IUser user)
+	public char[] assignNewRandomPassword(IUser user, char[] oldClearTextPassword)
 	{
-		ParamChecker.assertParamNotNull(newEmptyPassword, "newEmptyPassword");
 		ParamChecker.assertParamNotNull(user, "user");
 		List<IPassword> passwordHistory = buildPasswordHistory(user);
-		if (passwordHistory != null && passwordHistory.contains(newEmptyPassword))
-		{
-			throw new IllegalArgumentException("Given newEmptyPassword must be a new (unused) instance of a password");
-		}
-		char[] clearTextPassword = null;
+		char[] newClearTextPassword = null;
 		while (true)
 		{
 			// we use the secure salt implementation as our random "clearTextPassword"
-			clearTextPassword = Base64.encodeBytes(PasswordSalts.nextSalt(generatedPasswordLength)).toCharArray();
+			newClearTextPassword = Base64.encodeBytes(PasswordSalts.nextSalt(generatedPasswordLength)).toCharArray();
 
-			if (!isPasswordUsedInHistory(clearTextPassword, passwordHistory))
+			if (!isPasswordUsedInHistory(newClearTextPassword, passwordHistory))
 			{
 				break;
 			}
 		}
-		fillPassword(clearTextPassword, newEmptyPassword, user, true);
+		IPassword newEmptyPassword = entityFactory.createEntity(IPassword.class);
+		fillPassword(newClearTextPassword, oldClearTextPassword, newEmptyPassword, user, true);
 		setNewPasswordIntern(user, newEmptyPassword);
-		return new String(clearTextPassword);
+		return newClearTextPassword;
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -362,10 +359,11 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 	{
 		IPassword existingPassword = user.getPassword();
 		user.setPassword(password);
-		IEntityMetaData passwordMetaData = entityMetaDataProvider.getMetaData(password.getClass());
+		IEntityMetaData passwordMetaData = ((IEntityMetaDataHolder) password).get__EntityMetaData();
 		passwordMetaData.getMemberByName(IPassword.User).setValue(password, user);
 		if (existingPassword != null)
 		{
+			passwordMetaData.getMemberByName(IPassword.User).setValue(existingPassword, null);
 			Collection<? extends IPassword> passwordHistory = user.getPasswordHistory();
 			if (passwordHistory != null)
 			{
@@ -454,7 +452,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		}
 	}
 
-	protected void fillPassword(char[] clearTextPassword, IPassword password, IUser user, boolean assignNewChangeAfter)
+	protected void fillPassword(char[] newClearTextPassword, char[] oldClearTextPassword, IPassword password, IUser user, boolean assignNewChangeAfter)
 	{
 		if (assignNewChangeAfter)
 		{
@@ -469,7 +467,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		encryptSalt(password, PasswordSalts.nextSalt(password.getSaltLength()), loginSaltPassword);
 		try
 		{
-			byte[] hashedPassword = hashClearTextPassword(clearTextPassword, password);
+			byte[] hashedPassword = hashClearTextPassword(newClearTextPassword, password);
 			password.setValue(Base64.encodeBytes(hashedPassword).toCharArray());
 		}
 		catch (Throwable e)
@@ -480,27 +478,48 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		{
 			return;
 		}
-		ISignature signature = user.getSignature();
-		if (signature == null && !signatureActive)
+		if (oldClearTextPassword == null)
 		{
-			return;
+			String currentSid = authorizedUserHolder.getAuthorizedUserSID();
+			String sid = userIdentifierProvider.getSID(user);
+			if (currentSid != null && currentSid.equals(sid))
+			{
+				IAuthentication authentication = securityContextHolder.getContext().getAuthentication();
+				oldClearTextPassword = authentication.getPassword();
+			}
+		}
+		boolean isNewSignature = false;
+		ISignature signature = user.getSignature();
+		if (signature == null || oldClearTextPassword == null)
+		{
+			if (!signatureActive)
+			{
+				return;
+			}
+			IEntityMetaData signatureMetaData = entityMetaDataProvider.getMetaData(ISignature.class);
+			Member userMember = signatureMetaData.getMemberByName(ISignature.User);
+			if (signature != null)
+			{
+				userMember.setValue(signature, null);
+			}
+			signature = entityFactory.createEntity(ISignature.class);
+			user.setSignature(signature);
+			userMember.setValue(signature, user);
+			isNewSignature = true;
 		}
 		if (userIdentifierProvider == null)
 		{
 			throw new IllegalStateException("No instanceof of " + IUserIdentifierProvider.class.getName()
 					+ " found to create a new signature due to password change");
 		}
-		IEntityMetaData signatureMetaData = entityMetaDataProvider.getMetaData(signature.getClass());
-		if (signatureMetaData.getIdMember().getValue(signature, false) != null)
+		if (isNewSignature || ((IEntityMetaDataHolder) signature).get__EntityMetaData().getIdMember().getValue(signature, false) == null)
 		{
-			// create a NEW signature because we can not decrypt the now invalid private key of the signature
-			// without knowing the previous password in clear-text. As a result we need a new instance for a signature
-			// because of a potential audit-trail functionality we can NOT reuse the existing signature entity
-			signature = entityFactory.createEntity(ISignature.class);
+			signatureUtil.generateNewSignature(signature, newClearTextPassword);
 		}
-		signatureUtil.generateNewSignature(signature, clearTextPassword);
-		user.setSignature(signature);
-		signatureMetaData.getMemberByName(ISignature.User).setValue(signature, user);
+		else
+		{
+			signatureUtil.reencryptSignature(signature, oldClearTextPassword, newClearTextPassword);
+		}
 		ISecurityContext context = securityContextHolder.getContext();
 		IAuthorization authorization = context != null ? context.getAuthorization() : null;
 		if (authorization != null)
@@ -511,7 +530,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 			String sid = userIdentifierProvider.getSID(user);
 			if (authorization.getSID().equals(sid))
 			{
-				context.setAuthentication(new DefaultAuthentication(context.getAuthentication().getUserName(), clearTextPassword, PasswordType.PLAIN));
+				context.setAuthentication(new DefaultAuthentication(context.getAuthentication().getUserName(), newClearTextPassword, PasswordType.PLAIN));
 			}
 		}
 	}

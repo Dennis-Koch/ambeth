@@ -59,6 +59,7 @@ import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.query.OrderByType;
 import de.osthus.ambeth.security.ISignatureUtil;
+import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.model.ISignature;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
@@ -159,8 +160,8 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 	@Autowired
 	protected ISignatureUtil signatureUtil;
 
-	@Property(name = AuditConfigurationConstants.AuditVerifyExpectSignature, defaultValue = "true")
-	protected boolean expectSignatureOnVerify;
+	@Property(name = SecurityServerConfigurationConstants.SignatureActive, defaultValue = "false")
+	protected boolean signatureActive;
 
 	@Property(name = AuditConfigurationConstants.VerifyEntitiesOnLoad, defaultValue = "NONE")
 	protected VerifyOnLoadMode verifyOnLoadMode;
@@ -779,7 +780,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 		{
 			ISignature signatureOfUser = auditEntry.getSignatureOfUser();
 			char[] signature = auditEntry.getSignature();
-			if (signature == null && expectSignatureOnVerify)
+			if (signature == null && signatureActive)
 			{
 				continue;
 			}
@@ -850,7 +851,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 		{
 			ISignature signatureOfUser = auditedEntity.getEntry().getSignatureOfUser();
 			char[] signature = auditedEntity.getSignature();
-			if (signature == null && expectSignatureOnVerify)
+			if (signature == null && signatureActive)
 			{
 				continue;
 			}

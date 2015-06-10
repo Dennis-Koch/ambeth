@@ -5,30 +5,20 @@ import java.util.Comparator;
 import java.util.List;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IModuleProvider;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.annotation.BootstrapModule;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
-public class ModuleScanner implements IInitializingBean, IModuleProvider
+public class ModuleScanner implements IModuleProvider
 {
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IClasspathScanner classpathScanner;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(classpathScanner, "ClasspathScanner");
-	}
-
-	public void setClasspathScanner(IClasspathScanner classpathScanner)
-	{
-		this.classpathScanner = classpathScanner;
-	}
 
 	@Override
 	public Class<?>[] getFrameworkModules()

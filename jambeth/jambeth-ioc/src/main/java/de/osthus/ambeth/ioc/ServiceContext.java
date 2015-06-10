@@ -899,7 +899,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 			{
 				realServiceName = realBeanName;
 
-				serviceName = StringBuilderUtil.concat(objectCollector.getCurrent(), (factoryContentRequest ? "" : "&"), (parentOnlyRequest ? "*" : ""),
+				serviceName = StringBuilderUtil.concat(objectCollector.getCurrent(), factoryContentRequest ? "" : "&", parentOnlyRequest ? "*" : "",
 						realBeanName);
 			}
 		}

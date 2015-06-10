@@ -128,8 +128,19 @@ namespace De.Osthus.Ambeth.Cache
 						"MergeServiceRegistry.STATE");
 				try
 				{
-					IncrementalMergeState state = (IncrementalMergeState) CudResultApplier.AcquireNewState(childCache);
-					ICUDResult cudResultOfCache = CudResultApplier.ApplyCUDResultOnEntitiesOfCache(cudResultOriginal, true, state);
+					IncrementalMergeState state = null;
+					ICUDResult cudResultOfCache;
+					if (MergeProcess.IsAddNewlyPersistedEntities() || (Log.DebugEnabled && CudResultPrinter != null))
+					{
+						childCache = CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, false,
+								"MergeServiceRegistry.STATE");
+						state = (IncrementalMergeState)CudResultApplier.AcquireNewState(childCache);
+						cudResultOfCache = CudResultApplier.ApplyCUDResultOnEntitiesOfCache(cudResultOriginal, true, state);
+					}
+					else
+					{
+						cudResultOfCache = cudResultOriginal;
+					}
 					if (Log.DebugEnabled)
 					{
 						if (CudResultPrinter != null)

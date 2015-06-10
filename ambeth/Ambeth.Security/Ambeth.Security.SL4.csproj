@@ -141,6 +141,7 @@
     <Compile Include="ambeth\security\SecurityContextPassword.cs" />
     <Compile Include="ambeth\security\SecurityContextType.cs" />
     <Compile Include="ambeth\security\SecurityContextUserName.cs" />
+    <Compile Include="ambeth\security\StringSecurityScope.cs" />
     <Compile Include="ambeth\security\transfer\Country.cs" />
     <Compile Include="ambeth\security\transfer\Observable.cs" />
     <Compile Include="ambeth\security\transfer\Role.cs" />

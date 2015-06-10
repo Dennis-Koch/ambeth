@@ -5,9 +5,9 @@ import de.osthus.ambeth.security.model.IUser;
 
 public interface IPasswordUtil
 {
-	void assignNewPassword(char[] clearTextPassword, IPassword newEmptyPassword, IUser user);
+	void assignNewPassword(char[] clearTextPassword, IUser user, char[] oldClearTextPassword);
 
-	String assignNewRandomPassword(IPassword newEmptyPassword, IUser user);
+	char[] assignNewRandomPassword(IUser user, char[] oldClearTextPassword);
 
 	byte[] hashClearTextPassword(char[] clearTextPassword, IPassword password);
 

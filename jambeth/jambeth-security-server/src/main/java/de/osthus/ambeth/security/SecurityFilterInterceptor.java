@@ -26,20 +26,29 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 
 		public final PasswordType passwordType;
 
+		public final ISecurityScope securityScope;
+
+		public final int securityScopeIndex;
+
 		public SecurityMethodMode(SecurityContextType securityContextType)
 		{
 			this.securityContextType = securityContextType;
 			userNameIndex = -1;
 			userPasswordIndex = -1;
 			passwordType = null;
+			securityScopeIndex = -1;
+			securityScope = StringSecurityScope.DEFAULT_SCOPE;
 		}
 
-		public SecurityMethodMode(SecurityContextType securityContextType, int userNameIndex, int userPasswordIndex, PasswordType passwordType)
+		public SecurityMethodMode(SecurityContextType securityContextType, int userNameIndex, int userPasswordIndex, PasswordType passwordType,
+				int securityScopeIndex, ISecurityScope securityScope)
 		{
 			this.securityContextType = securityContextType;
 			this.userNameIndex = userNameIndex;
 			this.userPasswordIndex = userPasswordIndex;
 			this.passwordType = passwordType;
+			this.securityScopeIndex = securityScopeIndex;
+			this.securityScope = securityScope;
 		}
 	}
 
@@ -131,6 +140,34 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 			previousAuthentication = securityContext != null ? securityContext.getAuthentication() : null;
 			previousAuthorization = securityContext != null ? securityContext.getAuthorization() : null;
 		}
+		ISecurityScope[] previousSecurityScopes = null;
+		if (securityMethodMode.securityScopeIndex != -1)
+		{
+			final String securityScopeName = conversionHelper.convertValueToType(String.class, args[securityMethodMode.securityScopeIndex]);
+			previousSecurityScopes = securityScopeProvider.getSecurityScopes();
+			if (previousSecurityScopes.length == 1 && previousSecurityScopes[0].getName().equals(securityScopeName))
+			{
+				previousSecurityScopes = null;
+			}
+			else
+			{
+				ISecurityScope securityScope = securityScopeName.equals(StringSecurityScope.DEFAULT_SCOPE_NAME) ? StringSecurityScope.DEFAULT_SCOPE
+						: new StringSecurityScope(securityScopeName);
+				securityScopeProvider.setSecurityScopes(new ISecurityScope[] { securityScope });
+			}
+		}
+		else if (securityMethodMode.securityScope != null)
+		{
+			previousSecurityScopes = securityScopeProvider.getSecurityScopes();
+			if (previousSecurityScopes.length == 1 && previousSecurityScopes[0].getName().equals(securityMethodMode.securityScope.getName()))
+			{
+				previousSecurityScopes = null;
+			}
+			else
+			{
+				securityScopeProvider.setSecurityScopes(new ISecurityScope[] { securityMethodMode.securityScope });
+			}
+		}
 		try
 		{
 			if (securityContext == null)
@@ -210,6 +247,10 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 			{
 				securityContext.setAuthentication(previousAuthentication);
 				securityContext.setAuthorization(previousAuthorization);
+			}
+			if (previousSecurityScopes != null)
+			{
+				securityScopeProvider.setSecurityScopes(previousSecurityScopes);
 			}
 		}
 	}
