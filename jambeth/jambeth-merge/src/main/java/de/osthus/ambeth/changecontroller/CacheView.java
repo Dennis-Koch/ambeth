@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.util.ParamChecker;
 
 /**
@@ -13,7 +12,6 @@ import de.osthus.ambeth.util.ParamChecker;
  */
 public class CacheView
 {
-
 	// objects contains all new objects
 	protected final List<Object> newObjects, oldObjects;
 
@@ -74,8 +72,8 @@ public class CacheView
 	{
 		ParamChecker.assertTrue(clazz.isInterface(), clazz.getName() + " is not an interface");
 
-		IList<Object> newResult = new ArrayList<Object>();
-		IList<Object> oldResult = new ArrayList<Object>();
+		ArrayList<Object> newResult = new ArrayList<Object>();
+		ArrayList<Object> oldResult = new ArrayList<Object>();
 		int size = newObjects.size();
 		// Filter all objects that are an instance of the given class
 		for (int index = 0; index < size; index += 1)

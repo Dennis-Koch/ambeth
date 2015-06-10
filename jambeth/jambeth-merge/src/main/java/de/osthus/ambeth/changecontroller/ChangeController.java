@@ -19,7 +19,6 @@ import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableListContainer;
 import de.osthus.ambeth.merge.IMergeController;
-import de.osthus.ambeth.merge.IMergeExtendable;
 import de.osthus.ambeth.merge.IMergeListener;
 import de.osthus.ambeth.merge.MergeHandle;
 import de.osthus.ambeth.merge.model.ICUDResult;
@@ -33,10 +32,12 @@ import de.osthus.ambeth.util.ParamChecker;
 /**
  * A ChangeController listens on all changes that should be persisted by implementing a {@link IMergeListener}.
  * 
- * To use this controller, you have to link it with the {@link IMergeExtendable} interface.
+ * To use this controller, you have to link it with the {@link de.osthus.ambeth.merge.IMergeExtendable} interface.
  */
 public class ChangeController implements IChangeController, IChangeControllerExtendable, IMergeListener
 {
+	public static final String CLASSNAME = "de.osthus.rtc.egxp.core.changecontrol.ChangeController";
+
 	@Autowired
 	protected ICacheContext cacheContext;
 
