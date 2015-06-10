@@ -209,7 +209,7 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 					{
 						throw new AuthenticationMissingException(method);
 					}
-					throw new InvalidUserException(userName, sid);
+					throw new InvalidUserException(sid != null ? sid : userName);
 				}
 			}
 			ISecurityScope[] oldSecurityScopes = securityScopeProvider.getSecurityScopes();
