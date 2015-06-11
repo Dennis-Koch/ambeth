@@ -1,5 +1,6 @@
 package de.osthus.ambeth.audit;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Assert;
@@ -7,6 +8,7 @@ import org.junit.Test;
 
 import de.osthus.ambeth.audit.AuditMethodCallTest.AuditMethodCallTestFrameworkModule;
 import de.osthus.ambeth.audit.AuditMethodCallTest.AuditMethodCallTestModule;
+import de.osthus.ambeth.audit.model.AuditedEntityChangeType;
 import de.osthus.ambeth.audit.model.IAuditEntry;
 import de.osthus.ambeth.audit.model.IAuditedEntity;
 import de.osthus.ambeth.audit.model.IAuditedEntityPrimitiveProperty;
@@ -16,6 +18,7 @@ import de.osthus.ambeth.audit.model.IAuditedEntityRelationPropertyItem;
 import de.osthus.ambeth.audit.model.IAuditedService;
 import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.cache.ICache;
+import de.osthus.ambeth.collections.Tuple2KeyHashMap;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.event.IEventDispatcher;
@@ -33,8 +36,14 @@ import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.merge.ITechnicalEntityTypeExtendable;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.ISecurityScope;
+import de.osthus.ambeth.persistence.IDataCursor;
+import de.osthus.ambeth.persistence.IDataItem;
 import de.osthus.ambeth.privilege.IEntityPermissionRule;
 import de.osthus.ambeth.privilege.evaluation.IEntityPermissionEvaluation;
+import de.osthus.ambeth.query.IOperand;
+import de.osthus.ambeth.query.IQuery;
+import de.osthus.ambeth.query.IQueryBuilder;
+import de.osthus.ambeth.query.OrderByType;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.IPasswordUtil;
 import de.osthus.ambeth.security.ISecurityContextHolder;
@@ -54,13 +63,13 @@ import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
-import de.osthus.ambeth.util.IRevertDelegate;
 import de.osthus.ambeth.util.IPrefetchConfig;
+import de.osthus.ambeth.util.IRevertDelegate;
 
 @TestFrameworkModule({ AuditModule.class, AuditMethodCallTestFrameworkModule.class })
 @TestModule(AuditMethodCallTestModule.class)
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "AuditMethodCall_orm.xml;security-orm.xml"),
-		@TestProperties(name = AuditConfigurationConstants.AuditActive, value = "true"),
+		@TestProperties(name = AuditConfigurationConstants.AuditActive, value = "true"), @TestProperties(name = "ambeth.log.level", value = "DEBUG"),
 		@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "true"),
 		@TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad, value = "VERIFY_SYNC") })
 @SQLStructureList({ @SQLStructure("security-structure.sql"),//
@@ -105,17 +114,17 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 			beanContextFactory.registerBean(UserIdentifierProvider.class).autowireable(IUserIdentifierProvider.class);
 			beanContextFactory.registerBean(TestUserResolver.class).autowireable(IUserResolver.class);
 
+			beanContextFactory.link(IUser.class).to(ITechnicalEntityTypeExtendable.class).with(User.class);
+			beanContextFactory.link(IPassword.class).to(ITechnicalEntityTypeExtendable.class).with(Password.class);
+			beanContextFactory.link(ISignature.class).to(ITechnicalEntityTypeExtendable.class).with(Signature.class);
+			beanContextFactory.link(IAuditEntry.class).to(ITechnicalEntityTypeExtendable.class).with(AuditEntry.class);
 			beanContextFactory.link(IAuditedEntity.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedEntity.class);
+			beanContextFactory.link(IAuditedService.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedService.class);
 			beanContextFactory.link(IAuditedEntityRef.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityRef.class);
 			beanContextFactory.link(IAuditedEntityPrimitiveProperty.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityPrimitiveProperty.class);
 			beanContextFactory.link(IAuditedEntityRelationProperty.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityRelationProperty.class);
 			beanContextFactory.link(IAuditedEntityRelationPropertyItem.class).to(ITechnicalEntityTypeExtendable.class)
 					.with(AuditedEntityRelationPropertyItem.class);
-			beanContextFactory.link(IAuditedService.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedService.class);
-			beanContextFactory.link(IAuditEntry.class).to(ITechnicalEntityTypeExtendable.class).with(AuditEntry.class);
-			beanContextFactory.link(ISignature.class).to(ITechnicalEntityTypeExtendable.class).with(Signature.class);
-			beanContextFactory.link(IUser.class).to(ITechnicalEntityTypeExtendable.class).with(User.class);
-			beanContextFactory.link(IPassword.class).to(ITechnicalEntityTypeExtendable.class).with(Password.class);
 		}
 	}
 
@@ -154,6 +163,125 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 	public void myTest()
 	{
 		Assert.assertEquals("5", testAuditService.auditedServiceCall(new Integer(5)));
+	}
+
+	@Test
+	@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "false")
+	public void myTest2()
+	{
+		auditController.pushAuditReason("junit test");
+		try
+		{
+			char[] passwordOfUser = "abc".toCharArray();
+			User[] users = new User[2];
+			for (int a = users.length; a-- > 0;)
+			{
+				User user = entityFactory.createEntity(User.class);
+				user.setName("MyName" + a);
+				user.setSID("mySid" + a);
+
+				passwordUtil.assignNewPassword(passwordOfUser, user, null);
+
+				IRevertDelegate revert = auditController.setAuthorizedUser(user, passwordOfUser, true);
+				try
+				{
+					mergeProcess.process(user, null, null, null);
+				}
+				finally
+				{
+					revert.revert();
+				}
+				users[a] = user;
+			}
+			IRevertDelegate revert = auditController.setAuthorizedUser(users[0], passwordOfUser, true);
+			try
+			{
+				for (int a = users.length; a-- > 0;)
+				{
+					users[a].setName(users[a].getName() + "x");
+				}
+				mergeProcess.process(users, null, null, null);
+			}
+			finally
+			{
+				revert.revert();
+			}
+			revert = auditController.setAuthorizedUser(users[1], passwordOfUser, true);
+			try
+			{
+				for (int a = users.length; a-- > 0;)
+				{
+					users[a].setName(users[a].getName() + "x");
+				}
+				mergeProcess.process(users, null, null, null);
+			}
+			finally
+			{
+				revert.revert();
+			}
+		}
+		finally
+		{
+			auditController.popAuditReason();
+		}
+		final String startTime = "startTime", endTime = "endTime";
+		final int fieldValueIndex, entityTypeIndex, entityIdIndex;
+		final IQuery<IAuditedEntityPrimitiveProperty> query;
+		{
+			IQueryBuilder<IAuditedEntityPrimitiveProperty> qb = queryBuilderFactory.create(IAuditedEntityPrimitiveProperty.class);
+			IOperand name = qb.property(IAuditedEntityPrimitiveProperty.Name);
+
+			IOperand entityType = qb.property(IAuditedEntityPrimitiveProperty.Entity + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityType);
+			IOperand entityId = qb.property(IAuditedEntityPrimitiveProperty.Entity + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityId);
+			IOperand changeType = qb.property(IAuditedEntityPrimitiveProperty.Entity + "." + IAuditedEntity.ChangeType);
+			IOperand timestamp = qb.property(IAuditedEntityPrimitiveProperty.Entity + "." + IAuditedEntity.Entry + "." + IAuditEntry.Timestamp);
+
+			fieldValueIndex = qb.select(qb.function("to_char", qb.property(IAuditedEntityPrimitiveProperty.NewValue)));
+			entityTypeIndex = qb.select(entityType);
+			entityIdIndex = qb.select(entityId);
+
+			qb.orderBy(timestamp, OrderByType.DESC);
+
+			query = qb.build(qb.and(//
+					qb.isEqualTo(changeType, qb.valueName(IAuditedEntity.ChangeType)),//
+					qb.isIn(entityType, qb.valueName(IAuditedEntityRef.EntityType)),//
+					qb.isGreaterThan(timestamp, qb.valueName(startTime)),//
+					qb.isLessThanOrEqualTo(timestamp, qb.valueName(endTime)),//
+					qb.isEqualTo(name, qb.valueName(IAuditedEntityPrimitiveProperty.Name))//
+					));
+		}
+		transaction.runInTransaction(new IBackgroundWorkerDelegate()
+		{
+			@Override
+			public void invoke() throws Throwable
+			{
+				long start = System.currentTimeMillis() - 10000;
+				long end = System.currentTimeMillis();
+				Tuple2KeyHashMap<String, String, String> map = new Tuple2KeyHashMap<String, String, String>();
+				IDataCursor cursor = query.param(IAuditedEntityPrimitiveProperty.Name, "Name")//
+						.param(IAuditedEntity.ChangeType, AuditedEntityChangeType.UPDATE)//
+						.param(IAuditedEntityRef.EntityType, Arrays.asList(User.class.getName()))//
+						.param(startTime, start)//
+						.param(endTime, end)//
+						.retrieveAsData();
+				try
+				{
+					while (cursor.moveNext())
+					{
+						IDataItem item = cursor.getCurrent();
+						String lastValue = conversionHelper.convertValueToType(String.class, item.getValue(fieldValueIndex));
+						String entityTypeName = conversionHelper.convertValueToType(String.class, item.getValue(entityTypeIndex));
+						String entityId = conversionHelper.convertValueToType(String.class, item.getValue(entityIdIndex));
+
+						map.putIfNotExists(entityTypeName, entityId, lastValue);
+					}
+				}
+				finally
+				{
+					cursor.dispose();
+				}
+			}
+		});
 	}
 
 	@Test
