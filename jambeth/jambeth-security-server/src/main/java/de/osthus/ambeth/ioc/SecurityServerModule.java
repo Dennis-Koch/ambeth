@@ -22,6 +22,7 @@ import de.osthus.ambeth.security.IActionPermission;
 import de.osthus.ambeth.security.IAuthenticationManager;
 import de.osthus.ambeth.security.IPBEncryptor;
 import de.osthus.ambeth.security.IPasswordUtil;
+import de.osthus.ambeth.security.IPasswordValidationExtendable;
 import de.osthus.ambeth.security.IPrivateKeyProvider;
 import de.osthus.ambeth.security.ISecurityManager;
 import de.osthus.ambeth.security.IServiceFilterExtendable;
@@ -53,7 +54,7 @@ public class SecurityServerModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerBean(PasswordUtil.class).autowireable(IPasswordUtil.class);
+		beanContextFactory.registerBean(PasswordUtil.class).autowireable(IPasswordUtil.class, IPasswordValidationExtendable.class);
 		beanContextFactory.registerBean(PBEncryptor.class).autowireable(IPBEncryptor.class);
 		beanContextFactory.registerBean(SignatureUtil.class).autowireable(ISignatureUtil.class);
 		beanContextFactory.registerBean(PersistedPrivateKeyProvider.class).autowireable(IPrivateKeyProvider.class);

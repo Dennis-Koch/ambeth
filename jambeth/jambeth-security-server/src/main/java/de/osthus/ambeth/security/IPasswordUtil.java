@@ -2,6 +2,7 @@ package de.osthus.ambeth.security;
 
 import de.osthus.ambeth.security.model.IPassword;
 import de.osthus.ambeth.security.model.IUser;
+import de.osthus.ambeth.util.IRevertDelegate;
 
 public interface IPasswordUtil
 {
@@ -16,4 +17,6 @@ public interface IPasswordUtil
 	void rehashPassword(char[] clearTextPassword, IPassword existingPassword);
 
 	void reencryptAllSalts(char[] newLoginSaltPassword);
+
+	IRevertDelegate suppressPasswordValidation();
 }

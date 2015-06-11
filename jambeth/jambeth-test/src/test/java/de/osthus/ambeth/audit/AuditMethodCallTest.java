@@ -54,6 +54,7 @@ import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.ambeth.util.IRevertDelegate;
 import de.osthus.ambeth.util.IPrefetchConfig;
 
 @TestFrameworkModule({ AuditModule.class, AuditMethodCallTestFrameworkModule.class })
@@ -167,7 +168,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 
 		passwordUtil.assignNewPassword(passwordOfUser, user, null);
 
-		IAuditInfoRevert revert = auditController.setAuthorizedUser(user, passwordOfUser, true);
+		IRevertDelegate revert = auditController.setAuthorizedUser(user, passwordOfUser, true);
 		try
 		{
 			mergeProcess.process(user, null, null, null);
@@ -208,7 +209,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		auditController.pushAuditReason("junit test");
 		try
 		{
-			IAuditInfoRevert revert = auditController.setAuthorizedUser(user, passwordOfUser, true);
+			IRevertDelegate revert = auditController.setAuthorizedUser(user, passwordOfUser, true);
 			try
 			{
 				transaction.runInTransaction(new IBackgroundWorkerDelegate()
