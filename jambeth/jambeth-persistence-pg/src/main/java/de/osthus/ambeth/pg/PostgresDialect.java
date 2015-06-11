@@ -582,4 +582,10 @@ public class PostgresDialect extends AbstractConnectionDialect
 			JdbcUtil.close(tableColumnsRS);
 		}
 	}
+
+	@Override
+	public boolean isTransactionNecessaryDuringLobStreaming()
+	{
+		return true;
+	}
 }

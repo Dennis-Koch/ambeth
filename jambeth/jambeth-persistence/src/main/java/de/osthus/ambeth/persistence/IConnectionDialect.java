@@ -69,4 +69,6 @@ public interface IConnectionDialect
 	Object convertToFieldType(IFieldMetaData field, Object value);
 
 	Object convertFromFieldType(IDatabase database, IFieldMetaData field, Class<?> expectedType, Object value);
+
+	boolean isTransactionNecessaryDuringLobStreaming();
 }

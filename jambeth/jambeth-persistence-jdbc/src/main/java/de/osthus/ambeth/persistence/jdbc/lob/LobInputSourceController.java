@@ -1,11 +1,13 @@
 package de.osthus.ambeth.persistence.jdbc.lob;
 
+import java.io.IOException;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.util.Arrays;
 
+import de.osthus.ambeth.database.ITransaction;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
-import de.osthus.ambeth.merge.ILightweightTransaction;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.persistence.IConnectionDialect;
@@ -33,23 +35,12 @@ public class LobInputSourceController implements ILobInputSourceController
 	protected IDatabase database;
 
 	@Autowired
-	protected ILightweightTransaction transaction;
+	protected ITransaction transaction;
 
 	@Override
 	public IInputStream deriveInputStream(final Object parentEntity, final Member member)
 	{
-		if (transaction.isActive())
-		{
-			return deriveBinaryInputStreamIntern(parentEntity, member);
-		}
-		return transaction.runInTransaction(new IResultingBackgroundWorkerDelegate<IInputStream>()
-		{
-			@Override
-			public IInputStream invoke() throws Throwable
-			{
-				return deriveBinaryInputStreamIntern(parentEntity, member);
-			}
-		});
+		return deriveBinaryInputStreamIntern(parentEntity, member);
 	}
 
 	@Override
@@ -59,14 +50,48 @@ public class LobInputSourceController implements ILobInputSourceController
 		{
 			return (IBinaryInputStream) deriveBinaryInputStreamIntern(parentEntity, member);
 		}
-		return transaction.runInTransaction(new IResultingBackgroundWorkerDelegate<IBinaryInputStream>()
+		if (!connectionDialect.isTransactionNecessaryDuringLobStreaming())
 		{
-			@Override
-			public IBinaryInputStream invoke() throws Throwable
+			return transaction.runInTransaction(new IResultingBackgroundWorkerDelegate<IBinaryInputStream>()
 			{
-				return (IBinaryInputStream) deriveBinaryInputStreamIntern(parentEntity, member);
-			}
-		});
+				@Override
+				public IBinaryInputStream invoke() throws Throwable
+				{
+					return (IBinaryInputStream) deriveBinaryInputStreamIntern(parentEntity, member);
+				}
+			});
+		}
+		try
+		{
+			transaction.begin(true);
+			final IBinaryInputStream bis = (IBinaryInputStream) deriveBinaryInputStreamIntern(parentEntity, member);
+			return new IBinaryInputStream()
+			{
+				@Override
+				public void close() throws IOException
+				{
+					try
+					{
+						bis.close();
+					}
+					finally
+					{
+						transaction.rollback(false);
+					}
+				}
+
+				@Override
+				public int readByte()
+				{
+					return bis.readByte();
+				}
+			};
+		}
+		catch (Throwable e)
+		{
+			transaction.rollback(false);
+			throw RuntimeExceptionUtil.mask(e);
+		}
 	}
 
 	@Override

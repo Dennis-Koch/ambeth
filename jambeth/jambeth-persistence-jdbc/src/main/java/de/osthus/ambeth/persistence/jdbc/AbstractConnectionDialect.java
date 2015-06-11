@@ -455,6 +455,12 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 	}
 
 	@Override
+	public boolean isTransactionNecessaryDuringLobStreaming()
+	{
+		return false;
+	}
+
+	@Override
 	public boolean isEmptyStringAsNullStored(IFieldMetaData field)
 	{
 		return false;
