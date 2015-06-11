@@ -4,7 +4,6 @@ import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IPropertyLoadingBean;
-import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -16,14 +15,8 @@ import de.osthus.ambeth.persistence.jdbc.IConnectionExtension;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
 
-@FrameworkModule
 public class H2Module implements IInitializingModule, IPropertyLoadingBean
 {
-	public static boolean handlesDatabaseProtocol(String databaseProtocol)
-	{
-		return databaseProtocol.toLowerCase().startsWith("jdbc:h2");
-	}
-
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
