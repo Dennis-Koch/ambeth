@@ -17,6 +17,7 @@ import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.IFirstLevelCacheManager;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.Property;
@@ -32,8 +33,10 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.ICUDResultApplier;
 import de.osthus.ambeth.merge.ICUDResultHelper;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
+import de.osthus.ambeth.merge.ILightweightTransaction;
 import de.osthus.ambeth.merge.IMergeListener;
 import de.osthus.ambeth.merge.IObjRefHelper;
+import de.osthus.ambeth.merge.MergeProcess;
 import de.osthus.ambeth.merge.model.CreateOrUpdateContainerBuild;
 import de.osthus.ambeth.merge.model.ICUDResult;
 import de.osthus.ambeth.merge.model.IChangeContainer;
@@ -55,13 +58,14 @@ import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IDatabaseMetaData;
 import de.osthus.ambeth.persistence.IFieldMetaData;
 import de.osthus.ambeth.persistence.ITableMetaData;
-import de.osthus.ambeth.security.IAuthorization;
-import de.osthus.ambeth.security.IAuthorizedUserHolder;
+import de.osthus.ambeth.security.IAuthenticatedUserHolder;
+import de.osthus.ambeth.security.IAuthentication;
+import de.osthus.ambeth.security.ICurrentUserProvider;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityContext;
 import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.IUserIdentifierProvider;
-import de.osthus.ambeth.security.IUserResolver;
+import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.model.ISignature;
 import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.service.IMergeService;
@@ -71,6 +75,7 @@ import de.osthus.ambeth.stream.binary.IBinaryInputStream;
 import de.osthus.ambeth.stream.chars.ICharacterInputSource;
 import de.osthus.ambeth.stream.chars.ICharacterInputStream;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
+import de.osthus.ambeth.util.IRevertDelegate;
 import de.osthus.ambeth.util.IConversionHelper;
 
 public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogger, IMergeListener, ITransactionListener, IAuditInfoController
@@ -82,7 +87,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	protected IAuditConfigurationProvider auditConfigurationProvider;
 
 	@Autowired
-	protected IAuthorizedUserHolder authorizedUserHolder;
+	protected IAuthenticatedUserHolder authenticatedUserHolder;
 
 	@Autowired(optional = true)
 	protected IAuditEntryToSignature auditEntryToSignature;
@@ -98,6 +103,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 
 	@Autowired
 	protected ICUDResultHelper cudResultHelper;
+
+	@Autowired(optional = true)
+	protected ICurrentUserProvider currentUserProvider;
 
 	@Autowired
 	protected IDatabase database;
@@ -123,17 +131,20 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Autowired(optional = true)
 	protected IUserIdentifierProvider userIdentifierProvider;
 
-	@Autowired(optional = true)
-	protected IUserResolver userResolver;
-
 	@Autowired
 	protected ISecurityActivation securityActivation;
 
 	@Autowired
 	protected ISecurityContextHolder securityContextHolder;
 
+	@Autowired
+	protected ILightweightTransaction transaction;
+
 	@Property(name = AuditConfigurationConstants.AuditedServiceDefaultModeActive, defaultValue = "true")
 	protected boolean auditedServiceDefaultModeActive;
+
+	@Property(name = SecurityServerConfigurationConstants.SignatureActive, defaultValue = "false")
+	protected boolean signatureActive;
 
 	@Forkable
 	private final ThreadLocal<AdditionalAuditInfo> additionalAuditInfoTL = new ThreadLocal<AdditionalAuditInfo>();
@@ -166,43 +177,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			CreateOrUpdateContainerBuild auditEntry = auditEntryState.getAuditEntry();
 
 			auditEntry.ensurePrimitive(IAuditEntry.Timestamp).setNewValue(currentTime.longValue());
-			auditEntry.ensurePrimitive(IAuditEntry.Context).setNewValue(peekAuditContext());
-			auditEntry.ensurePrimitive(IAuditEntry.Reason).setNewValue(peekAuditReason());
 
-			AdditionalAuditInfo additionalAuditInfo = additionalAuditInfoTL.get();
-			IUser authorizedUser = null;
-			if (additionalAuditInfo != null)
-			{
-				authorizedUser = additionalAuditInfo.authorizedUser;
-			}
-			if (authorizedUser == null)
-			{
-				ISecurityContext context = securityContextHolder.getContext();
-				IAuthorization authorization = context != null ? context.getAuthorization() : null;
-				if (authorization != null)
-				{
-					final String currentSID = authorization.getSID();
-					authorizedUser = securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<IUser>()
-					{
-						@Override
-						public IUser invoke() throws Throwable
-						{
-							return userResolver.resolveUserBySID(currentSID);
-						}
-					});
-				}
-			}
-			if (authorizedUser != null)
-			{
-				auditEntry.ensureRelation(IAuditEntry.User).addObjRef(objRefHelper.entityToObjRef(authorizedUser));
-				auditEntry.ensurePrimitive(IAuditEntry.UserIdentifier).setNewValue(userIdentifierProvider.getSID(authorizedUser));
-
-				ISignature signatureOfUser = authorizedUser.getSignature();
-				if (signatureOfUser != null)
-				{
-					auditEntryState.setSignatureOfUser(signatureOfUser);
-				}
-			}
 			auditEntryTL.set(auditEntryState);
 			return auditEntryState;
 		}
@@ -505,14 +480,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Override
 	public void handlePostBegin(long sessionId) throws Throwable
 	{
-		ISecurityContext context = securityContextHolder.getContext();
-		IAuthorization authorization = context != null ? context.getAuthorization() : null;
-		if (authorization != null)
-		{
-			AdditionalAuditInfo additionalAuditInfo = getAdditionalAuditInfo();
-			additionalAuditInfo.clearTextPassword = context.getAuthentication().getPassword();
-			additionalAuditInfo.doClearPassword = true;
-		}
+		// intended blank
 	}
 
 	@Override
@@ -541,44 +509,38 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		additionalAuditInfo.ownAuditMergeActive = Boolean.TRUE;
 		try
 		{
-			final char[] clearTextPassword = additionalAuditInfo.clearTextPassword;
-
 			securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>()
 			{
 				@Override
 				public Object invoke() throws Throwable
 				{
 					ArrayList<CreateOrUpdateContainerBuild> auditedChanges = auditEntryState.auditedChanges;
-					CreateOrUpdateContainerBuild auditEntryContainer = auditedChanges.get(0);
+					CreateOrUpdateContainerBuild auditEntry = auditedChanges.get(0);
 
-					auditEntryToSignature.signAuditEntry(auditEntryContainer, clearTextPassword, auditEntryState.getSignatureOfUser());
-
-					ArrayList<IChangeContainer> finalizedAuditChanges = new ArrayList<IChangeContainer>(auditedChanges.size());
-					for (int a = 0, size = auditedChanges.size(); a < size; a++)
+					auditEntry.ensurePrimitive(IAuditEntry.Context).setNewValue(peekAuditContext());
+					auditEntry.ensurePrimitive(IAuditEntry.Reason).setNewValue(peekAuditReason());
+					AdditionalAuditInfo additionalAuditInfo = additionalAuditInfoTL.get();
+					IUser authorizedUser = getAuthorizedUser(additionalAuditInfo);
+					ISignature signatureOfUser = null;
+					if (authorizedUser != null)
 					{
-						CreateOrUpdateContainerBuild createOrUpdate = auditedChanges.get(a);
-						if (!createOrUpdate.isCreate())
-						{
-							throw new IllegalStateException();
-						}
-						ICreateOrUpdateContainer cc = createOrUpdate.build();
-						((IDirectObjRef) cc.getReference()).setDirect(cc);
-						IRelationUpdateItem[] ruis = cc.getFullRUIs();
-						if (ruis != null)
-						{
-							for (int b = ruis.length; b-- > 0;)
-							{
-								IRelationUpdateItem rui = ruis[b];
-								if (rui instanceof RelationUpdateItemBuild)
-								{
-									ruis[b] = ((RelationUpdateItemBuild) rui).buildRUI();
-								}
-							}
-						}
-						finalizedAuditChanges.add(cc);
+						auditEntry.ensureRelation(IAuditEntry.User).addObjRef(objRefHelper.entityToObjRef(authorizedUser));
+						auditEntry.ensurePrimitive(IAuditEntry.UserIdentifier).setNewValue(userIdentifierProvider.getSID(authorizedUser));
+						signatureOfUser = authorizedUser.getSignature();
 					}
-					CUDResult auditMerge = new CUDResult(finalizedAuditChanges, new ArrayList<Object>(new Object[auditedChanges.size()]));
-					mergeService.merge(auditMerge, null);
+					signAuditEntry(auditEntry, additionalAuditInfo, signatureOfUser);
+					ICUDResult auditMerge = buildAuditCUDResult(auditedChanges);
+
+					Boolean oldAddNewlyPersistedEntities = MergeProcess.getAddNewlyPersistedEntities();
+					MergeProcess.setAddNewlyPersistedEntities(Boolean.FALSE);
+					try
+					{
+						mergeService.merge(auditMerge, null);
+					}
+					finally
+					{
+						MergeProcess.setAddNewlyPersistedEntities(oldAddNewlyPersistedEntities);
+					}
 
 					return null;
 				}
@@ -613,6 +575,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	public void removeAuditInfo()
 	{
 		additionalAuditInfoTL.set(null);
+		authenticatedUserHolder.setAuthenticatedSID(null);
 	}
 
 	@Override
@@ -652,14 +615,14 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	}
 
 	@Override
-	public IAuditInfoRevert pushClearTextPassword(final char[] clearTextPassword)
+	public IRevertDelegate pushClearTextPassword(final char[] clearTextPassword)
 	{
 		final AdditionalAuditInfo additionalAuditInfo = getAdditionalAuditInfo();
 		final char[] oldClearTextPassword = additionalAuditInfo.clearTextPassword;
 		final boolean oldDoClearPassword = additionalAuditInfo.doClearPassword;
 		additionalAuditInfo.clearTextPassword = clearTextPassword;
 		additionalAuditInfo.doClearPassword = false;
-		return new IAuditInfoRevert()
+		return new IRevertDelegate()
 		{
 			@Override
 			public void revert()
@@ -675,28 +638,40 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	}
 
 	@Override
-	public IAuditInfoRevert setAuthorizedUser(final IUser user, final char[] clearTextPassword)
+	public IRevertDelegate setAuthorizedUser(final IUser user, final char[] clearTextPassword, boolean forceGivenAuthorization)
 	{
-		final String oldAuthorizedUserSID = authorizedUserHolder.getAuthorizedUserSID();
 		final AdditionalAuditInfo additionalAuditInfo = getAdditionalAuditInfo();
 		final IUser oldAuthorizedUser = additionalAuditInfo.authorizedUser;
+		if (!forceGivenAuthorization && (oldAuthorizedUser != null || (currentUserProvider != null && currentUserProvider.getCurrentUser() != null)))
+		{
+			// do nothing
+			return new IRevertDelegate()
+			{
+				@Override
+				public void revert()
+				{
+					// intended blank
+				}
+			};
+		}
+		final String oldAuthorizedUserSID = authenticatedUserHolder.getAuthenticatedSID();
 		final char[] oldClearTextPassword = additionalAuditInfo.clearTextPassword;
 		final String sid = userIdentifierProvider.getSID(user);
 
 		additionalAuditInfo.authorizedUser = user;
 		additionalAuditInfo.clearTextPassword = clearTextPassword;
 		additionalAuditInfo.doClearPassword = false;
-		authorizedUserHolder.setAuthorizedUserSID(sid);
-		return new IAuditInfoRevert()
+		authenticatedUserHolder.setAuthenticatedSID(sid);
+		return new IRevertDelegate()
 		{
 			@Override
 			public void revert()
 			{
-				if (authorizedUserHolder.getAuthorizedUserSID() != sid)
+				if (authenticatedUserHolder.getAuthenticatedSID() != sid)
 				{
 					throw new IllegalStateException("Illegal state: authorizedUserSID does not match");
 				}
-				authorizedUserHolder.setAuthorizedUserSID(oldAuthorizedUserSID);
+				authenticatedUserHolder.setAuthenticatedSID(oldAuthorizedUserSID);
 
 				if (additionalAuditInfo.authorizedUser != user)
 				{
@@ -710,5 +685,72 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 				additionalAuditInfo.authorizedUser = oldAuthorizedUser;
 			}
 		};
+	}
+
+	protected IUser getAuthorizedUser(AdditionalAuditInfo additionalAuditInfo)
+	{
+		IUser authorizedUser = null;
+		if (additionalAuditInfo != null)
+		{
+			authorizedUser = additionalAuditInfo.authorizedUser;
+		}
+		if (authorizedUser == null && currentUserProvider != null)
+		{
+			authorizedUser = currentUserProvider.getCurrentUser();
+		}
+		return authorizedUser;
+	}
+
+	protected void signAuditEntry(CreateOrUpdateContainerBuild auditEntry, AdditionalAuditInfo additionalAuditInfo, ISignature signatureOfUser)
+	{
+		if (signatureOfUser == null && signatureActive)
+		{
+			throw new IllegalStateException("Failed to create an Audit Entry without a signature - which is mandatory because of '"
+					+ SecurityServerConfigurationConstants.SignatureActive + "'=true");
+		}
+		char[] clearTextPassword = additionalAuditInfo.clearTextPassword;
+		if (clearTextPassword == null && signatureActive)
+		{
+			ISecurityContext securityContext = securityContextHolder.getContext();
+			IAuthentication authentication = securityContext != null ? securityContext.getAuthentication() : null;
+			if (authentication != null)
+			{
+				clearTextPassword = authentication.getPassword();
+			}
+		}
+		if (clearTextPassword == null && signatureActive)
+		{
+			throw new IllegalStateException("Failed to create an Audit Entry for a signature without a given cleartext password to decrypt the private key");
+		}
+		auditEntryToSignature.signAuditEntry(auditEntry, clearTextPassword, signatureOfUser);
+	}
+
+	protected ICUDResult buildAuditCUDResult(IList<CreateOrUpdateContainerBuild> auditedChanges)
+	{
+		ArrayList<IChangeContainer> finalizedAuditChanges = new ArrayList<IChangeContainer>(auditedChanges.size());
+		for (int a = 0, size = auditedChanges.size(); a < size; a++)
+		{
+			CreateOrUpdateContainerBuild createOrUpdate = auditedChanges.get(a);
+			if (!createOrUpdate.isCreate())
+			{
+				throw new IllegalStateException();
+			}
+			ICreateOrUpdateContainer cc = createOrUpdate.build();
+			((IDirectObjRef) cc.getReference()).setDirect(cc);
+			IRelationUpdateItem[] ruis = cc.getFullRUIs();
+			if (ruis != null)
+			{
+				for (int b = ruis.length; b-- > 0;)
+				{
+					IRelationUpdateItem rui = ruis[b];
+					if (rui instanceof RelationUpdateItemBuild)
+					{
+						ruis[b] = ((RelationUpdateItemBuild) rui).buildRUI();
+					}
+				}
+			}
+			finalizedAuditChanges.add(cc);
+		}
+		return new CUDResult(finalizedAuditChanges, new ArrayList<Object>(new Object[auditedChanges.size()]));
 	}
 }

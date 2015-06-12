@@ -30,7 +30,7 @@ import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.orm.CompositeMemberConfig;
-import de.osthus.ambeth.orm.EntityConfig;
+import de.osthus.ambeth.orm.IEntityConfig;
 import de.osthus.ambeth.orm.IMemberConfig;
 import de.osthus.ambeth.orm.IOrmConfig;
 import de.osthus.ambeth.orm.IRelationConfig;
@@ -61,7 +61,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 	protected IRelationProvider relationProvider;
 
 	@Override
-	public void addMembers(EntityMetaData metaData, EntityConfig entityConfig)
+	public void addMembers(EntityMetaData metaData, IEntityConfig entityConfig)
 	{
 		Class<?> realType = entityConfig.getRealType();
 
@@ -454,7 +454,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		return member;
 	}
 
-	protected void fillNameCollections(EntityConfig entityConfig, ISet<String> memberNamesToIgnore, HashSet<String> explicitBasicMemberNames,
+	protected void fillNameCollections(IEntityConfig entityConfig, ISet<String> memberNamesToIgnore, HashSet<String> explicitBasicMemberNames,
 			IList<IMemberConfig> embeddedMembers, IMap<String, IMemberConfig> nameToMemberConfig, IMap<String, IRelationConfig> nameToRelationConfig)
 	{
 		for (IMemberConfig memberConfig : entityConfig.getMemberConfigIterable())

@@ -48,6 +48,16 @@ public class MergeProcess implements IMergeProcess
 		return !Boolean.FALSE.equals(addNewlyPersistedEntitiesTL.get());
 	}
 
+	public static final Boolean getAddNewlyPersistedEntities()
+	{
+		return addNewlyPersistedEntitiesTL.get();
+	}
+
+	public static final void setAddNewlyPersistedEntities(Boolean value)
+	{
+		addNewlyPersistedEntitiesTL.set(value);
+	}
+
 	@LogInstance
 	private ILogger log;
 

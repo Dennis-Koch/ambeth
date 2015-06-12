@@ -2,7 +2,19 @@
 \section{Job}
 \label{module:Job}
 \ClearAPI
-\TODO
+The Ambeth Job API is a crontab styled cron job API. Use this API if you have repetitive jobs to do. For example a synchronization job or a processing pipeline with have load that you can not activate on a user request due to performance requirements. The Job API supports two types of registering a cron jobs:
+
+\begin{itemize}
+	\item registration via \prettyref{feature:Link} API: \prettyref{extendable:IJobExtendable} (preferred way)
+	\item \type{IJobScheduler}.scheduleJob() as a direct scheduling option.
+\end{itemize}
+
+The extendable has the advantage that a clean register and unregister will be done during the bean context life cycle.
+
+Currently the Job API is backed by the cron4j Scheduler, but could seamlessly replaced by any other scheduling framework. 
+
+See the \prettyref{extendable:IJobExtendable} for details on how to register your job.
+
 %% MAVEN GENERATED START
 \begin{lstlisting}[style=POM,caption={Maven modules to use \emph{Ambeth Job}}]
 <dependency>

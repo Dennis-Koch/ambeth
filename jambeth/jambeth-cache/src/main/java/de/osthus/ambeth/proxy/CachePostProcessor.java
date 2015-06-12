@@ -86,7 +86,6 @@ public class CachePostProcessor extends MergePostProcessor
 			// Do nothing if the service wants to be exported by some special way anywhere else
 			return null;
 		}
-		String beanName = beanConfiguration.getName();
 		String serviceName = extractServiceName(beanContext, serviceAnnotation.name(), type);
 		if (!isNetworkClientMode)
 		{
@@ -100,7 +99,7 @@ public class CachePostProcessor extends MergePostProcessor
 						.propertyValue("Behavior", behavior)//
 						.ignoreProperties("ProcessService")//
 						.finish();
-				beanContext.link(beanName).to(IServiceExtendable.class).with(serviceName);
+				beanContext.link(beanConfiguration).to(IServiceExtendable.class).with(serviceName);
 			}
 			else
 			{
@@ -108,7 +107,7 @@ public class CachePostProcessor extends MergePostProcessor
 						.propertyValue("ServiceName", serviceName)//
 						.propertyValue("Behavior", behavior)//
 						.ignoreProperties("ProcessService");
-				beanContextFactory.link(beanName).to(IServiceExtendable.class).with(serviceName);
+				beanContextFactory.link(beanConfiguration).to(IServiceExtendable.class).with(serviceName);
 			}
 			if (log.isInfoEnabled())
 			{
@@ -124,11 +123,11 @@ public class CachePostProcessor extends MergePostProcessor
 			}
 			if (beanContext.isRunning())
 			{
-				beanContext.link(beanName).to(IServiceExtendable.class).with(serviceName);
+				beanContext.link(beanConfiguration).to(IServiceExtendable.class).with(serviceName);
 			}
 			else
 			{
-				beanContextFactory.link(beanName).to(IServiceExtendable.class).with(serviceName);
+				beanContextFactory.link(beanConfiguration).to(IServiceExtendable.class).with(serviceName);
 			}
 			return null;
 		}

@@ -12,11 +12,19 @@ namespace De.Osthus.Ambeth.Typeinfo
 
         IPropertyInfo[] GetProperties(Object obj);
 
-        IPropertyInfo[] GetProperties(Type type);
+		IPropertyInfo[] GetProperties(Type type);
+
+		IPropertyInfo[] GetIocProperties(Type beanType);
+		
+		IPropertyInfo[] GetPrivateProperties(Type type);
 
         IMap<String, IPropertyInfo> GetPropertyMap(Object obj);
 
         IMap<String, IPropertyInfo> GetPropertyMap(Type type);
+
+		IMap<String, IPropertyInfo> GetIocPropertyMap(Type type);
+
+		IMap<String, IPropertyInfo> GetPrivatePropertyMap(Type type);
 
         String GetPropertyNameFor(FieldInfo field);
 

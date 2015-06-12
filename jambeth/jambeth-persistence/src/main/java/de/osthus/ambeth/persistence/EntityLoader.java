@@ -308,6 +308,18 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 			ITable targetingRequestTable = database.getTableByType(targetingRequestType);
 			IDirectedLink targetingRequestLink = targetingRequestTable.getLinkByMemberName(objRelType.getMemberName());
 
+			if (targetingRequestLink == null)
+			{
+				for (int a = orelLoadItems.size(); a-- > 0;)
+				{
+					OrelLoadItem orelLoadItem = orelLoadItems.get(a);
+					ObjRelationResult objRelResult = new ObjRelationResult();
+					objRelResult.setRelations(ObjRef.EMPTY_ARRAY);
+					objRelResult.setReference(orelLoadItem.getObjRel());
+					targetRelations.add(objRelResult);
+				}
+				continue;
+			}
 			RelationMember relationMember = targetingRequestLink.getMetaData().getMember();
 			Class<?> requestedType = relationMember.getElementType();
 			IEntityMetaData requestedMetaData = entityMetaDataProvider.getMetaData(requestedType);
@@ -398,7 +410,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 			ITable targetingRequestTable = database.getTableByType(targetingRequestType);
 			IDirectedLink targetingRequestLink = targetingRequestTable.getLinkByMemberName(orelToLoad.getMemberName());
 
-			byte idIndex = targetingRequestLink.getMetaData().getFromIdIndex();
+			byte idIndex = targetingRequestLink != null ? targetingRequestLink.getMetaData().getFromIdIndex() : ObjRef.PRIMARY_KEY_INDEX;
 			IObjRef objRef = idIndex + 1 < objRefItems.length ? objRefItems[idIndex + 1] : null;
 			if (objRef == null || objRef.getIdNameIndex() != idIndex)
 			{
@@ -1187,10 +1199,8 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 
 			if (directedLink == null)
 			{
-				if (log.isWarnEnabled())
-				{
-					log.warn("Member '" + table.getMetaData().getEntityType().getName() + "." + memberName + "' is not mappable to a link");
-				}
+				loggerHistory
+						.warnOnce(log, this, "Member '" + table.getMetaData().getEntityType().getName() + "." + memberName + "' is not mappable to a link");
 				continue;
 			}
 			IDirectedLinkMetaData directedLinkMD = directedLink.getMetaData();

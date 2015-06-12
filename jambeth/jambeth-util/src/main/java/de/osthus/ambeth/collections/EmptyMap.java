@@ -5,7 +5,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
-public final class EmptyMap<K, V> implements ILinkedMap<K, V>
+import de.osthus.ambeth.util.IImmutableType;
+
+public final class EmptyMap<K, V> implements ILinkedMap<K, V>, IImmutableType
 {
 	public static final class EmptyMapIterator<K, V> implements Iterator<Entry<K, V>>
 	{

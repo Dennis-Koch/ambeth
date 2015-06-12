@@ -1,7 +1,6 @@
 package de.osthus.ambeth.privilege;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -29,14 +28,18 @@ import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.privilege.factory.IEntityPrivilegeFactoryProvider;
 import de.osthus.ambeth.privilege.factory.IEntityTypePrivilegeFactoryProvider;
 import de.osthus.ambeth.privilege.model.IPrivilege;
+import de.osthus.ambeth.privilege.model.IPrivilegeResult;
 import de.osthus.ambeth.privilege.model.IPropertyPrivilege;
 import de.osthus.ambeth.privilege.model.ITypePrivilege;
+import de.osthus.ambeth.privilege.model.ITypePrivilegeResult;
 import de.osthus.ambeth.privilege.model.ITypePropertyPrivilege;
 import de.osthus.ambeth.privilege.model.impl.DenyAllPrivilege;
+import de.osthus.ambeth.privilege.model.impl.PrivilegeResult;
 import de.osthus.ambeth.privilege.model.impl.PropertyPrivilegeImpl;
 import de.osthus.ambeth.privilege.model.impl.SimplePrivilegeImpl;
 import de.osthus.ambeth.privilege.model.impl.SimpleTypePrivilegeImpl;
 import de.osthus.ambeth.privilege.model.impl.SkipAllTypePrivilege;
+import de.osthus.ambeth.privilege.model.impl.TypePrivilegeResult;
 import de.osthus.ambeth.privilege.model.impl.TypePropertyPrivilegeImpl;
 import de.osthus.ambeth.privilege.transfer.IPrivilegeOfService;
 import de.osthus.ambeth.privilege.transfer.IPropertyPrivilegeOfService;
@@ -174,12 +177,8 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	public IPrivilege getPrivilege(Object entity, ISecurityScope[] securityScopes)
 	{
 		IList<IObjRef> objRefs = objRefHelper.extractObjRefList(entity, null);
-		IList<IPrivilege> result = getPrivileges(objRefs, securityScopes);
-		if (result.size() == 0)
-		{
-			return DenyAllPrivilege.INSTANCE;
-		}
-		return result.get(0);
+		IPrivilegeResult result = getPrivileges(objRefs, securityScopes);
+		return result.getPrivileges()[0];
 	}
 
 	@Override
@@ -197,41 +196,37 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	@Override
 	public IPrivilege getPrivilegeByObjRef(IObjRef objRef, ISecurityScope[] securityScopes)
 	{
-		IList<IPrivilege> result = getPrivilegesByObjRef(new ArrayList<IObjRef>(new IObjRef[] { objRef }), securityScopes);
-		if (result.size() == 0)
-		{
-			return DenyAllPrivilege.INSTANCE;
-		}
-		return result.get(0);
+		IPrivilegeResult result = getPrivilegesByObjRef(new ArrayList<IObjRef>(new IObjRef[] { objRef }), securityScopes);
+		return result.getPrivileges()[0];
 	}
 
 	@Override
-	public IList<IPrivilege> getPrivileges(Collection<?> entities)
+	public IPrivilegeResult getPrivileges(List<?> entities)
 	{
 		return getPrivileges(entities, securityScopeProvider.getSecurityScopes());
 	}
 
 	@Override
-	public IList<IPrivilege> getPrivileges(Collection<?> entities, ISecurityScope[] securityScopes)
+	public IPrivilegeResult getPrivileges(List<?> entities, ISecurityScope[] securityScopes)
 	{
 		IList<IObjRef> objRefs = objRefHelper.extractObjRefList(entities, null);
 		return getPrivilegesByObjRef(objRefs, securityScopes);
 	}
 
 	@Override
-	public IList<IPrivilege> getPrivilegesByObjRef(Collection<? extends IObjRef> objRefs)
+	public IPrivilegeResult getPrivilegesByObjRef(List<? extends IObjRef> objRefs)
 	{
 		return getPrivilegesByObjRef(objRefs, securityScopeProvider.getSecurityScopes());
 	}
 
 	@Override
-	public IList<IPrivilege> getPrivilegesByObjRef(Collection<? extends IObjRef> objRefs, IPrivilegeCache privilegeCache)
+	public IPrivilegeResult getPrivilegesByObjRef(List<? extends IObjRef> objRefs, IPrivilegeCache privilegeCache)
 	{
 		return getPrivilegesByObjRef(objRefs);
 	}
 
 	@Override
-	public IList<IPrivilege> getPrivilegesByObjRef(Collection<? extends IObjRef> objRefs, ISecurityScope[] securityScopes)
+	public IPrivilegeResult getPrivilegesByObjRef(List<? extends IObjRef> objRefs, ISecurityScope[] securityScopes)
 	{
 		ISecurityContext context = securityContextHolder.getContext();
 		IAuthorization authorization = context != null ? context.getAuthorization() : null;
@@ -248,7 +243,7 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 		writeLock.lock();
 		try
 		{
-			IList<IPrivilege> result = createResult(objRefs, securityScopes, missingObjRefs, authorization, null);
+			IPrivilegeResult result = createResult(objRefs, securityScopes, missingObjRefs, authorization, null);
 			if (missingObjRefs.size() == 0)
 			{
 				return result;
@@ -397,22 +392,18 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	@Override
 	public ITypePrivilege getPrivilegeByType(Class<?> entityType, ISecurityScope[] securityScopes)
 	{
-		IList<ITypePrivilege> result = getPrivilegesByType(new ArrayList<Class<?>>(new Class<?>[] { entityType }), securityScopes);
-		if (result.size() == 0)
-		{
-			return SkipAllTypePrivilege.INSTANCE;
-		}
-		return result.get(0);
+		ITypePrivilegeResult result = getPrivilegesByType(new ArrayList<Class<?>>(new Class<?>[] { entityType }), securityScopes);
+		return result.getTypePrivileges()[0];
 	}
 
 	@Override
-	public IList<ITypePrivilege> getPrivilegesByType(Collection<Class<?>> entityTypes)
+	public ITypePrivilegeResult getPrivilegesByType(List<Class<?>> entityTypes)
 	{
 		return getPrivilegesByType(entityTypes, securityScopeProvider.getSecurityScopes());
 	}
 
 	@Override
-	public IList<ITypePrivilege> getPrivilegesByType(Collection<Class<?>> entityTypes, ISecurityScope[] securityScopes)
+	public ITypePrivilegeResult getPrivilegesByType(List<Class<?>> entityTypes, ISecurityScope[] securityScopes)
 	{
 		ISecurityContext context = securityContextHolder.getContext();
 		IAuthorization authorization = context != null ? context.getAuthorization() : null;
@@ -429,7 +420,7 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 		writeLock.lock();
 		try
 		{
-			IList<ITypePrivilege> result = createResultByType(entityTypes, securityScopes, missingEntityTypes, authorization);
+			ITypePrivilegeResult result = createResultByType(entityTypes, securityScopes, missingEntityTypes, authorization);
 			if (missingEntityTypes.size() == 0)
 			{
 				return result;
@@ -467,19 +458,19 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 		}
 	}
 
-	protected IList<IPrivilege> createResult(Collection<? extends IObjRef> objRefs, ISecurityScope[] securityScopes, List<IObjRef> missingObjRefs,
+	protected IPrivilegeResult createResult(List<? extends IObjRef> objRefs, ISecurityScope[] securityScopes, List<IObjRef> missingObjRefs,
 			IAuthorization authorization, IMap<PrivilegeKey, IPrivilege> privilegeResultOfNewEntities)
 	{
 		PrivilegeKey privilegeKey = null;
 
-		ArrayList<IPrivilege> result = new ArrayList<IPrivilege>(objRefs.size());
+		IPrivilege[] result = new IPrivilege[objRefs.size()];
 		String userSID = authorization.getSID();
 
-		for (IObjRef objRef : objRefs)
+		for (int index = objRefs.size(); index-- > 0;)
 		{
+			IObjRef objRef = objRefs.get(index);
 			if (objRef == null)
 			{
-				result.add(null);
 				continue;
 			}
 			if (privilegeKey == null)
@@ -526,29 +517,26 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 				if (missingObjRefs != null)
 				{
 					missingObjRefs.add(objRef);
+					continue;
 				}
-				else
-				{
-					result.add(DenyAllPrivilege.INSTANCE);
-				}
-				continue;
+				mergedPrivilegeItem = DenyAllPrivilege.INSTANCE;
 			}
-			result.add(mergedPrivilegeItem);
+			result[index] = mergedPrivilegeItem;
 		}
-		return result;
+		return new PrivilegeResult(authorization.getSID(), result);
 	}
 
-	protected IList<ITypePrivilege> createResultByType(Collection<Class<?>> entityTypes, ISecurityScope[] securityScopes, List<Class<?>> missingEntityTypes,
+	protected ITypePrivilegeResult createResultByType(List<Class<?>> entityTypes, ISecurityScope[] securityScopes, List<Class<?>> missingEntityTypes,
 			IAuthorization authorization)
 	{
-		ArrayList<ITypePrivilege> result = new ArrayList<ITypePrivilege>(entityTypes.size());
+		ITypePrivilege[] result = new ITypePrivilege[entityTypes.size()];
 		String userSID = authorization.getSID();
 
-		for (Class<?> entityType : entityTypes)
+		for (int index = entityTypes.size(); index-- > 0;)
 		{
+			Class<?> entityType = entityTypes.get(index);
 			if (entityType == null)
 			{
-				result.add(null);
 				continue;
 			}
 			ITypePrivilege mergedTypePrivilege = null;
@@ -576,16 +564,13 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 				if (missingEntityTypes != null)
 				{
 					missingEntityTypes.add(entityType);
+					continue;
 				}
-				else
-				{
-					result.add(SkipAllTypePrivilege.INSTANCE);
-				}
-				continue;
+				mergedTypePrivilege = SkipAllTypePrivilege.INSTANCE;
 			}
-			result.add(mergedTypePrivilege);
+			result[index] = mergedTypePrivilege;
 		}
-		return result;
+		return new TypePrivilegeResult(authorization.getSID(), result);
 	}
 
 	public void handleClearAllCaches(ClearAllCachesEvent evnt)

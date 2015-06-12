@@ -21,8 +21,6 @@ import de.osthus.ambeth.compositeid.ICompositeIdFactory;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
-import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
@@ -54,10 +52,6 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 	{
 		failInCacheHierarchyModeActiveTL.set(Boolean.valueOf(failInCacheHierarchyModeActive));
 	}
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	protected CacheHashMap keyToCacheValueDict;
 
@@ -343,36 +337,78 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 	public void remove(List<IObjRef> oris)
 	{
 		checkNotDisposed();
-		for (int a = oris.size(); a-- > 0;)
+		if (oris.size() == 0)
 		{
-			IObjRef ori = oris.get(a);
-			remove(ori);
+			return;
+		}
+		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
+		Lock writeLock = getWriteLock();
+		writeLock.lock();
+		try
+		{
+			for (int a = oris.size(); a-- > 0;)
+			{
+				IObjRef ori = oris.get(a);
+				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(ori.getRealType());
+				removeCacheValueFromCacheCascade(metaData, ori.getIdNameIndex(), ori.getId(), true);
+			}
+		}
+		finally
+		{
+			writeLock.unlock();
 		}
 	}
 
 	public void removePriorVersions(IObjRef ori)
 	{
 		checkNotDisposed();
-		if (ori.getVersion() != null)
+		Lock writeLock = getWriteLock();
+		writeLock.lock();
+		try
 		{
-			if (existsValue(ori) != null)
+			if (ori.getVersion() != null && existsValue(ori) != null)
 			{
 				// if there is a object in the cache with the requested version
 				// it
 				// has already been refreshed
 				return;
 			}
+			remove(ori);
 		}
-		remove(ori);
+		finally
+		{
+			writeLock.unlock();
+		}
 	}
 
 	public void removePriorVersions(List<IObjRef> oris)
 	{
 		checkNotDisposed();
-		for (int a = oris.size(); a-- > 0;)
+		if (oris.size() == 0)
 		{
-			IObjRef ori = oris.get(a);
-			removePriorVersions(ori);
+			return;
+		}
+		Lock writeLock = getWriteLock();
+		writeLock.lock();
+		try
+		{
+			ArrayList<IObjRef> reallyToRemove = new ArrayList<IObjRef>(oris.size());
+			for (int a = oris.size(); a-- > 0;)
+			{
+				IObjRef ori = oris.get(a);
+				if (ori.getVersion() != null && existsValue(ori) != null)
+				{
+					// if there is a object in the cache with the requested version
+					// it has already been refreshed
+					continue;
+				}
+				reallyToRemove.add(ori);
+			}
+			remove(reallyToRemove);
+		}
+		finally
+		{
+			writeLock.unlock();
 		}
 	}
 

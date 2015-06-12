@@ -8,10 +8,6 @@ namespace De.Osthus.Ambeth.Typeinfo
     {        
         protected readonly PropertyInfo propertyInfo;
 
-        protected bool isReadable;
-
-        protected bool isWritable;
-
         public WrappedPropertyInfo(Type entityType, PropertyInfo propertyInfo) : base(entityType)
         {
             EntityType = entityType;
@@ -24,7 +20,7 @@ namespace De.Osthus.Ambeth.Typeinfo
 
             IsReadable = propertyInfo.GetGetMethod() != null ? propertyInfo.GetGetMethod().IsPublic || propertyInfo.GetGetMethod().IsFamily: false;
             IsWritable = propertyInfo.GetSetMethod() != null ? propertyInfo.GetSetMethod().IsPublic || propertyInfo.GetSetMethod().IsFamily : false;
-
+			
             Init();
         }
 

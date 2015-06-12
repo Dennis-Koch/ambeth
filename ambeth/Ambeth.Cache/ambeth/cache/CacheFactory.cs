@@ -24,10 +24,7 @@ namespace De.Osthus.Ambeth.Cache
 
         [Autowired]
         public IFirstLevelCacheExtendable FirstLevelCacheExtendable { protected get; set; }
-
-        [Autowired(Optional = true)]
-        public ISecurityActivation SecurityActivation { protected get; set; }
-       
+		       
         [Property(MergeConfigurationConstants.SecurityActive, DefaultValue = "false")]
 	    public bool SecurityActive { protected get; set; }
 
@@ -49,6 +46,10 @@ namespace De.Osthus.Ambeth.Cache
 
 	    public IDisposableCache Create(CacheFactoryDirective cacheFactoryDirective, String name)
 	    {
+			if (!SecurityActive)
+			{
+				return CreatePrivileged(cacheFactoryDirective, name);
+			}
             return CreateIntern(cacheFactoryDirective, false, false, null, name);
 	    }
 
@@ -59,6 +60,10 @@ namespace De.Osthus.Ambeth.Cache
 
         public IDisposableCache Create(CacheFactoryDirective cacheFactoryDirective, bool foreignThreadAware, bool? useWeakEntries, String name)
 	    {
+			if (!SecurityActive)
+			{
+				return CreatePrivileged(cacheFactoryDirective, foreignThreadAware, useWeakEntries, name);
+			}
             return CreateIntern(cacheFactoryDirective, false, foreignThreadAware, useWeakEntries, name);
         }
 

@@ -104,7 +104,7 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension
 		String tableName = permissionGroup.getTable().getName();
 		IOperand columnOperand = queryBuilder.column(permissionGroup.getPermissionGroupFieldOnTarget().getName(), baseJoin, false);
 		IOperand readPermissionIdColumn = queryBuilder.column(permissionGroup.getPermissionGroupField().getName(), baseJoin, false);
-		ISqlJoin join = queryBuilder.joinIntern(tableName, columnOperand, readPermissionIdColumn, JoinType.INNER, queryBeanContextFactory);
+		ISqlJoin join = queryBuilder.joinIntern(tableName, columnOperand, readPermissionIdColumn, JoinType.LEFT, queryBeanContextFactory);
 		readPermissionValueColumns.add(queryBuilder.column(permissionGroup.getReadPermissionField().getName(), join, false));
 		readPermissionUserIdColumns.add(queryBuilder.column(permissionGroup.getUserField().getName(), join, false));
 		return join;

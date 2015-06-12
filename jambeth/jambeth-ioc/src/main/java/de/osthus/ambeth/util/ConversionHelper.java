@@ -527,6 +527,13 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 			}
 			return value.toString();
 		}
+		else if (char[].class.equals(expectedType))
+		{
+			if (CharSequence.class.isAssignableFrom(type))
+			{
+				return value.toString().toCharArray();
+			}
+		}
 		throw new IllegalArgumentException("Cannot convert from '" + value.getClass() + "' to '" + expectedType + "'");
 	}
 }

@@ -99,6 +99,7 @@ public class MethodPropertyInfo extends AbstractPropertyInfo
 			this.backingField = backingField;
 			if (backingField != null)
 			{
+				modifiers = backingField.getModifiers();
 				putAnnotations(backingField);
 			}
 			putAnnotations(getter);
@@ -134,11 +135,53 @@ public class MethodPropertyInfo extends AbstractPropertyInfo
 					backingField = field;
 				}
 			}
+			if (backingField != null)
+			{
+				modifiers = backingField.getModifiers();
+			}
 			propertyType = setter.getParameterTypes()[0];
 			Type[] paramTypes = setter.getGenericParameterTypes();
 			elementType = TypeInfoItemUtil.getElementTypeUsingReflection(propertyType, paramTypes[0]);
 			putAnnotations(setter);
 		}
+		if (getter != null && Modifier.isNative(getter.getModifiers()))
+		{
+			modifiers |= Modifier.NATIVE;
+		}
+		if (setter != null && Modifier.isNative(setter.getModifiers()))
+		{
+			modifiers |= Modifier.NATIVE;
+		}
+		if (setter != null)
+		{
+			modifiers &= ~Modifier.FINAL;
+		}
+		Boolean getterIsPublic = getter != null ? Boolean.valueOf(Modifier.isPublic(getter.getModifiers())) : null;
+		Boolean setterIsPublic = setter != null ? Boolean.valueOf(Modifier.isPublic(setter.getModifiers())) : null;
+		if (Boolean.TRUE.equals(getterIsPublic) || Boolean.TRUE.equals(setterIsPublic))
+		{
+			modifiers &= ~Modifier.PRIVATE;
+			modifiers &= ~Modifier.PROTECTED;
+			modifiers |= Modifier.PUBLIC;
+		}
+		else
+		{
+			Boolean getterIsProtected = getter != null ? Boolean.valueOf(Modifier.isProtected(getter.getModifiers())) : null;
+			Boolean setterIsProtected = setter != null ? Boolean.valueOf(Modifier.isProtected(setter.getModifiers())) : null;
+			if (Boolean.TRUE.equals(getterIsProtected) || Boolean.TRUE.equals(setterIsProtected))
+			{
+				modifiers &= ~Modifier.PRIVATE;
+				modifiers &= ~Modifier.PUBLIC;
+				modifiers |= Modifier.PROTECTED;
+			}
+			else
+			{
+				modifiers &= ~Modifier.PROTECTED;
+				modifiers &= ~Modifier.PUBLIC;
+				modifiers |= Modifier.PRIVATE;
+			}
+		}
+
 		refreshDeclaringType();
 		super.init(objectCollector);
 	}

@@ -28,7 +28,7 @@ namespace De.Osthus.Ambeth.Ioc
             IBeanConfiguration privilegeProvider = beanContextFactory.RegisterBean<PrivilegeProvider>().Autowireable<IPrivilegeProvider>();
             IBeanConfiguration ppEventListener = beanContextFactory.RegisterBean<UnfilteredDataChangeListener>().PropertyRefs(privilegeProvider);
             beanContextFactory.Link(ppEventListener).To<IEventListenerExtendable>().With(typeof(IDataChange));
-       		beanContextFactory.Link(privilegeProvider, "HandleClearAllCaches").To<IEventListenerExtendable>(typeof(ClearAllCachesEvent));
+       		beanContextFactory.Link(privilegeProvider, PrivilegeProvider.m_HandleClearAllCaches).To<IEventListenerExtendable>().With(typeof(ClearAllCachesEvent));
 
             beanContextFactory.RegisterBean<EntityPrivilegeFactoryProvider>().Autowireable<IEntityPrivilegeFactoryProvider>();
 		    beanContextFactory.RegisterBean<EntityTypePrivilegeFactoryProvider>().Autowireable<IEntityTypePrivilegeFactoryProvider>();

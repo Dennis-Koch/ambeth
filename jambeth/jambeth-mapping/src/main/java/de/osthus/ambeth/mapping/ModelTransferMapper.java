@@ -606,6 +606,8 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 		IListTypeHelper listTypeHelper = this.listTypeHelper;
 		HashMap<CompositIdentityClassKey, Object> reverseRelationMap = this.reverseRelationMap;
 
+		StringBuilder sb = new StringBuilder();
+
 		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 		{
 			RelationMember boMember = relationMembers[relationIndex];
@@ -622,6 +624,13 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 					Object convertedEmptyRelation = convertPrimitiveValue(Collections.emptyList(), boMember.getElementType(), boMember.getRealType(),
 							boMember.getElementType());
 					boMember.setValue(businessObject, convertedEmptyRelation);
+					continue;
+				}
+				sb.setLength(0);
+				String voSpecifiedName = sb.append(boMemberName).append("Specified").toString();
+				ITypeInfoItem voSpecifiedMember = boNameToVoMember.get(voSpecifiedName);
+				if (voSpecifiedMember != null && !Boolean.TRUE.equals(voSpecifiedMember.getValue(valueObject)))
+				{
 					continue;
 				}
 				voValue = voMember.getValue(valueObject);
@@ -1183,7 +1192,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 				}
 				for (RelationMember relationMember : boMetaData.getRelationMembers())
 				{
-					addTypeInfoMapping(typeInfoMap, config, relationMember.getName(), null);
+					addTypeInfoMapping(typeInfoMap, config, relationMember.getName(), sb);
 				}
 				typeToTypeInfoMap.put(config.getValueType(), typeInfoMap);
 			}

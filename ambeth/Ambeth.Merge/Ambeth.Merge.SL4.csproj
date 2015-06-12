@@ -95,6 +95,7 @@
     <Compile Include="ambeth\cache\IWritableCache.cs" />
     <Compile Include="ambeth\cache\ValueHolderState.cs" />
     <Compile Include="ambeth\compositeid\CompositeIdMember.cs" />
+    <Compile Include="ambeth\copy\AbstractCustomConstructorOCE.cs" />
     <Compile Include="ambeth\event\EntityMetaDataAddedEvent.cs" />
     <Compile Include="ambeth\event\EntityMetaDataRemovedEvent.cs" />
     <Compile Include="ambeth\event\IEntityMetaDataEvent.cs" />
@@ -201,6 +202,7 @@
     <Compile Include="ambeth\orm\CompositeMemberConfig.cs" />
     <Compile Include="ambeth\orm\EntityConfig.cs" />
     <Compile Include="ambeth\orm\ExternalLinkConfig.cs" />
+    <Compile Include="ambeth\orm\IEntityConfig.cs" />
     <Compile Include="ambeth\orm\ILinkConfig.cs" />
     <Compile Include="ambeth\orm\IMemberConfig.cs" />
     <Compile Include="ambeth\orm\IndependentLinkConfig.cs" />
@@ -231,11 +233,13 @@
     <Compile Include="ambeth\proxy\MergePostProcessor.cs" />
     <Compile Include="ambeth\proxy\PersistenceContext.cs" />
     <Compile Include="ambeth\proxy\PersistenceContextType.cs" />
+    <Compile Include="ambeth\security\ILightweightSecurityContext.cs" />
     <Compile Include="ambeth\security\ISecurityActivation.cs" />
     <Compile Include="ambeth\security\ISecurityScopeChangeListener.cs" />
     <Compile Include="ambeth\security\ISecurityScopeChangeListenerExtendable.cs" />
     <Compile Include="ambeth\security\ISecurityScopeProvider.cs" />
     <Compile Include="ambeth\security\SecurityActivation.cs" />
+    <Compile Include="ambeth\security\SecurityDirective.cs" />
     <Compile Include="ambeth\security\SecurityScopeHandle.cs" />
     <Compile Include="ambeth\security\SecurityScopeProvider.cs" />
     <Compile Include="ambeth\service\MergeServiceDelegate.cs" />
@@ -302,6 +306,12 @@
       <Project>{9E849E17-44AA-419E-8831-B048AE0589A7}</Project>
       <Name>Ambeth.Util.SL4</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\orm\IOrmConfigGroup.cs" />
+    <Compile Include="ambeth\orm\IOrmConfigGroupProvider.cs" />
+    <Compile Include="ambeth\orm\OrmConfigGroup.cs" />
+    <Compile Include="ambeth\orm\OrmConfigGroupProvider.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
   <ProjectExtensions>

@@ -22,6 +22,11 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 		protected static readonly MethodInstance template_m_setTransient = new MethodInstance(null, typeof(IPrimitiveMemberWrite), typeof(void),
 				"SetTransient", typeof(bool));
 
+		protected static readonly MethodInstance template_m_getDefinedBy = new MethodInstance(null, typeof(PrimitiveMember), typeof(PrimitiveMember), "get_DefinedBy");
+
+		protected static readonly MethodInstance template_m_setDefinedBy = new MethodInstance(null, typeof(IPrimitiveMemberWrite), typeof(void),
+				"SetDefinedBy", typeof(PrimitiveMember));
+
         protected readonly Type entityType;
 
         protected readonly String memberName;
@@ -39,6 +44,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         {
             ImplementIsTechnicalMember();
 			ImplementTransient();
+			ImplementDefinedBy();
             base.VisitEnd();
         }
 
@@ -54,8 +60,16 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 		{
 			FieldInstance f_transient = ImplementField(new FieldInstance(FieldAttributes.Private, "__transient", typeof(bool)));
 
-			ImplementGetter(template_m_isTechnicalMember, f_transient);
-			ImplementSetter(template_m_setTechnicalMember, f_transient);
+			ImplementGetter(template_m_isTransient, f_transient);
+			ImplementSetter(template_m_setTransient, f_transient);
+		}
+
+		protected void ImplementDefinedBy()
+		{
+			FieldInstance f_definedBy = ImplementField(new FieldInstance(FieldAttributes.Private, "__definedBy", typeof(PrimitiveMember)));
+
+			ImplementGetter(template_m_getDefinedBy, f_definedBy);
+			ImplementSetter(template_m_setDefinedBy, f_definedBy);
 		}
     }
 }

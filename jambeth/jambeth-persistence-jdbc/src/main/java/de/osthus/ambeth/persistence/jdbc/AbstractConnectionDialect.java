@@ -112,6 +112,12 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 	protected abstract Class<?> getDriverType();
 
 	@Override
+	public String getRegexpLikeFunctionName()
+	{
+		return "regexp_like";
+	}
+
+	@Override
 	public Blob createBlob(Connection connection) throws SQLException
 	{
 		return connection.createBlob();
@@ -446,6 +452,12 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 			first = false;
 		}
 		sb.append(')');
+	}
+
+	@Override
+	public boolean isTransactionNecessaryDuringLobStreaming()
+	{
+		return false;
 	}
 
 	@Override

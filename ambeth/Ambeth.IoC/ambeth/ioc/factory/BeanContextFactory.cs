@@ -15,6 +15,7 @@ using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Threading;
+using De.Osthus.Ambeth.Garbageproxy;
 
 namespace De.Osthus.Ambeth.Ioc.Factory
 {
@@ -53,6 +54,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             LoggerHistory loggerHistory = new LoggerHistory();
             AccessorTypeProvider accessorTypeProvider = new AccessorTypeProvider();
             ExtendableRegistry extendableRegistry = new ExtendableRegistry();
+			GarbageProxyFactory garbageProxyFactory = new GarbageProxyFactory();
             PropertyInfoProvider propertyInfoProvider = new PropertyInfoProvider();
             BeanContextInitializer beanContextInitializer = new BeanContextInitializer();
             CallingProxyPostProcessor callingProxyPostProcessor = new CallingProxyPostProcessor();
@@ -68,6 +70,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             beanContextInitializer.CallingProxyPostProcessor = callingProxyPostProcessor;
             beanContextInitializer.ConversionHelper = delegatingConversionHelper;
             beanContextInitializer.PropertyInfoProvider = propertyInfoProvider;
+			garbageProxyFactory.AccessorTypeProvider = accessorTypeProvider;
             propertyInfoProvider.AccessorTypeProvider = accessorTypeProvider;
             threadLocalCleanupPreProcessor.SetExtendableRegistry(extendableRegistry);
 			threadLocalCleanupPreProcessor.SetExtendableType(typeof(IThreadLocalCleanupBeanExtendable));
@@ -120,6 +123,8 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             parentContextFactory.RegisterExternalBean(loggerInstancePreProcessor).Autowireable<ILoggerCache>();
 
             parentContextFactory.RegisterWithLifecycle(extendableRegistry).Autowireable<IExtendableRegistry>();
+
+			parentContextFactory.RegisterWithLifecycle(garbageProxyFactory).Autowireable<IGarbageProxyFactory>();
 
             parentContextFactory.RegisterWithLifecycle(callingProxyPostProcessor).Autowireable<CallingProxyPostProcessor>();
 

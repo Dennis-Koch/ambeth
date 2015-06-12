@@ -11,10 +11,12 @@ import java.util.Set;
 
 import de.osthus.ambeth.cache.CacheDirective;
 import de.osthus.ambeth.cache.ICache;
+import de.osthus.ambeth.cache.IWritableCache;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -26,6 +28,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.proxy.IObjRefContainer;
+import de.osthus.ambeth.security.ILightweightSecurityContext;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.ReflectUtil;
 
@@ -39,6 +42,9 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable
 
 	@Autowired
 	protected IObjRefHelper objRefHelper;
+
+	@Autowired
+	protected ILightweightSecurityContext securityContext;
 
 	protected final IExtendableContainer<IDatasetBuilder> datasetBuilderContainer = new DefaultExtendableContainer<IDatasetBuilder>(IDatasetBuilder.class,
 			"TestBedBuilders");
@@ -188,9 +194,15 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable
 		ArrayList<IObjRef> objRefs = new ArrayList<IObjRef>();
 		ArrayList<IBackgroundWorkerDelegate> runnables = new ArrayList<IBackgroundWorkerDelegate>();
 		IdentityHashMap<IObjRef, Object> objRefToEntityMap = new IdentityHashMap<IObjRef, Object>();
+		boolean isAuthenticated = securityContext.isAuthenticated();
+		IdentityHashSet<ICache> cachesToClear = new IdentityHashSet<ICache>();
 		for (IDatasetBuilder extension : extensions)
 		{
-			refreshEntityReference(extension, objRefs, runnables, objRefToEntityMap);
+			refreshEntityReference(extension, objRefs, runnables, objRefToEntityMap, isAuthenticated, cachesToClear);
+		}
+		for (ICache cache : cachesToClear)
+		{
+			((IWritableCache) cache).clear();
 		}
 		IList<Object> objects = null;
 		if (objRefs.size() > 0)
@@ -225,7 +237,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable
 	}
 
 	protected void refreshEntityReference(final IDatasetBuilder datasetBuilder, IList<IObjRef> objRefs, IList<IBackgroundWorkerDelegate> runnables,
-			final IMap<IObjRef, Object> objRefToEntityMap)
+			final IMap<IObjRef, Object> objRefToEntityMap, boolean isAuthenticated, ISet<ICache> cachesToClear)
 	{
 		for (final Field field : ReflectUtil.getDeclaredFields(datasetBuilder.getClass()))
 		{
@@ -233,7 +245,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable
 			{
 				if (Modifier.isStatic(field.getModifiers()))
 				{
-					final IObjRef objRef = refreshFieldValue(field.get(null), objRefs, runnables, objRefToEntityMap);
+					final IObjRef objRef = refreshFieldValue(field.get(null), objRefs, runnables, objRefToEntityMap, isAuthenticated, cachesToClear);
 					if (objRef == null)
 					{
 						continue;
@@ -249,7 +261,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable
 					});
 					continue;
 				}
-				final IObjRef objRef = refreshFieldValue(field.get(datasetBuilder), objRefs, runnables, objRefToEntityMap);
+				final IObjRef objRef = refreshFieldValue(field.get(datasetBuilder), objRefs, runnables, objRefToEntityMap, isAuthenticated, cachesToClear);
 				if (objRef == null)
 				{
 					continue;
@@ -272,7 +284,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable
 	}
 
 	protected IObjRef refreshFieldValue(final Object value, IList<IObjRef> objRefs, IList<IBackgroundWorkerDelegate> runnables,
-			final IMap<IObjRef, Object> objRefToEntityMap)
+			final IMap<IObjRef, Object> objRefToEntityMap, boolean isAuthenticated, ISet<ICache> cachesToClear)
 	{
 		if (value == null)
 		{
@@ -280,6 +292,17 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable
 		}
 		if (value instanceof IObjRefContainer)
 		{
+			if (!isAuthenticated)
+			{
+				ICache cache = ((IObjRefContainer) value).get__Cache();
+				if (cache != null)
+				{
+					cachesToClear.add(cache.getCurrentCache());
+				}
+				((IObjRefContainer) value).detach();
+
+				return null;
+			}
 			return objRefHelper.entityToObjRef(value);
 		}
 		if (value.getClass().isArray())
@@ -287,7 +310,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable
 			int length = Array.getLength(value);
 			for (int a = 0, size = length; a < size; a++)
 			{
-				final IObjRef objRef = refreshFieldValue(Array.get(value, a), objRefs, runnables, objRefToEntityMap);
+				final IObjRef objRef = refreshFieldValue(Array.get(value, a), objRefs, runnables, objRefToEntityMap, isAuthenticated, cachesToClear);
 				if (objRef == null)
 				{
 					continue;
@@ -310,7 +333,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable
 			Object[] array = ((Collection<?>) value).toArray();
 			for (final Object item : array)
 			{
-				final IObjRef objRef = refreshFieldValue(item, objRefs, runnables, objRefToEntityMap);
+				final IObjRef objRef = refreshFieldValue(item, objRefs, runnables, objRefToEntityMap, isAuthenticated, cachesToClear);
 				if (objRef == null)
 				{
 					continue;

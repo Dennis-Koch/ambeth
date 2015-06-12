@@ -11,8 +11,10 @@ import de.osthus.ambeth.mapping.IDedicatedMapperExtendable;
 import de.osthus.ambeth.mapping.IDedicatedMapperRegistry;
 import de.osthus.ambeth.mapping.IListTypeHelper;
 import de.osthus.ambeth.mapping.IMapperServiceFactory;
+import de.osthus.ambeth.mapping.IPropertyExpansionProvider;
 import de.osthus.ambeth.mapping.ListTypeHelper;
 import de.osthus.ambeth.mapping.MapperServiceFactory;
+import de.osthus.ambeth.mapping.PropertyExpansionProvider;
 import de.osthus.ambeth.merge.config.ValueObjectConfigReader;
 
 @FrameworkModule
@@ -37,5 +39,7 @@ public class MappingModule implements IInitializingModule
 					.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, IDedicatedMapperExtendable.class)
 					.propertyValue(ExtendableBean.P_PROVIDER_TYPE, IDedicatedMapperRegistry.class).propertyValue("AllowMultiValue", true);
 		}
+
+		beanContextFactory.registerBean(PropertyExpansionProvider.class).autowireable(IPropertyExpansionProvider.class);
 	}
 }

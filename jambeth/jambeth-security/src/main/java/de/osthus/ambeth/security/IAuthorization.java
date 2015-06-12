@@ -7,9 +7,13 @@ import de.osthus.ambeth.privilege.model.ITypePrivilege;
 
 public interface IAuthorization
 {
+	long getAuthorizationTime();
+
 	String getSID();
 
 	boolean isValid();
+
+	IAuthenticationResult getAuthenticationResult();
 
 	ISecurityScope[] getSecurityScopes();
 

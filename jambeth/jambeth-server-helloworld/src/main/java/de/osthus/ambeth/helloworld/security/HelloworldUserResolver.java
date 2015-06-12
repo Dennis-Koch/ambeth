@@ -31,13 +31,9 @@ public class HelloworldUserResolver implements IUserResolver
 
 	protected IPassword createInMemoryPasswordBySID(IUser user, String sid)
 	{
-		PojoPassword password = new PojoPassword();
-		password.setUser(user);
-		PojoSignature signature = new PojoSignature();
-		signature.setUser(user);
 		char[] clearTextPassword = sid.toCharArray();
-		passwordUtil.assignNewPassword(clearTextPassword, password, user);
-		signatureUtil.generateNewSignature(signature, clearTextPassword);
-		return password;
+		passwordUtil.assignNewPassword(clearTextPassword, user, null);
+		signatureUtil.generateNewSignature(user.getSignature(), clearTextPassword);
+		return user.getPassword();
 	}
 }

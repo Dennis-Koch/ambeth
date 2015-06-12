@@ -8,6 +8,8 @@ public interface IObjRefContainer extends IEntityMetaDataHolder
 {
 	ICache get__Cache();
 
+	void detach();
+
 	ValueHolderState get__State(int relationIndex);
 
 	boolean is__Initialized(int relationIndex);

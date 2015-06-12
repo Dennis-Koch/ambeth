@@ -31,6 +31,7 @@ import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.mixin.ValueHolderContainerMixin;
 import de.osthus.ambeth.model.IDataObject;
@@ -39,6 +40,7 @@ import de.osthus.ambeth.privilege.IPrivilegeProvider;
 import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.proxy.IObjRefContainer;
+import de.osthus.ambeth.proxy.IValueHolderContainer;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
@@ -301,10 +303,10 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		IList<IObjRef> objRefs = objRefsToLoad.toList();
 		IList<Object> refreshResult = rootCache.getObjects(objRefs, cacheDirective);
 
-		IList<IPrivilege> privileges = null;
+		IPrivilege[] privileges = null;
 		if (securityActivation != null && privilegeProvider != null && securityActivation.isFilterActivated())
 		{
-			privileges = privilegeProvider.getPrivilegesByObjRef(objRefs);
+			privileges = privilegeProvider.getPrivilegesByObjRef(objRefs).getPrivileges();
 		}
 		for (int a = refreshResult.size(); a-- > 0;)
 		{
@@ -313,7 +315,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			{
 				continue;
 			}
-			objRefToLoadContainerDict.put(objRefs.get(a), new CacheValueAndPrivilege(cacheValue, privileges != null ? privileges.get(a) : null));
+			objRefToLoadContainerDict.put(objRefs.get(a), new CacheValueAndPrivilege(cacheValue, privileges != null ? privileges[a] : null));
 		}
 		checkCascadeRefreshNeeded(node);
 
@@ -753,6 +755,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 					}
 					if (objectsToUpdate != null && objectsToUpdate.size() > 0)
 					{
+						ArrayList<IObjRef> objRefsToForget = null;
 						for (int b = objectsToUpdate.size(); b-- > 0;)
 						{
 							Object objectInCache = objectsToUpdate.get(b);
@@ -766,6 +769,25 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 								continue;
 							}
 							CacheValueAndPrivilege cacheValueP = objRefToCacheValueMap.get(objRefInCache);
+							if (cacheValueP == null)
+							{
+								if (objRefsToForget == null)
+								{
+									objRefsToForget = new ArrayList<IObjRef>();
+								}
+								objRefsToForget.add(objRefInCache);
+
+								for (PrimitiveMember member : metaData.getPrimitiveMembers())
+								{
+									member.setValue(objectInCache, null);
+								}
+								RelationMember[] relationMembers = metaData.getRelationMembers();
+								for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
+								{
+									((IValueHolderContainer) objectInCache).set__Uninitialized(relationIndex, null);
+								}
+								continue;
+							}
 							if (!parentCache.applyValues(objectInCache, childCache, cacheValueP.privilege))
 							{
 								if (log.isWarnEnabled())
@@ -773,6 +795,10 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 									log.warn("No entry for object '" + objectInCache + "' found in second level cache");
 								}
 							}
+						}
+						if (objRefsToForget != null)
+						{
+							childCache.remove(objRefsToForget);
 						}
 					}
 				}

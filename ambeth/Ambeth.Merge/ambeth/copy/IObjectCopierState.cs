@@ -26,5 +26,13 @@ namespace De.Osthus.Ambeth.Copy
         /// <param name="source">The object instance being currently copied</param>
         /// <param name="clone">The copied object which is currently in progress being "filled" with content</param>
         void AddClone<T>(T source, T clone);
+
+		/// <summary>
+		/// Processes a deep clone of each property from 'source' to the given 'clone'
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="source">The object instance being currently copied</param>
+		/// <param name="clone">The copied object which is currently in progress being "filled" with content</param>
+		void DeepCloneProperties<T>(T source, T clone);
     }
 }

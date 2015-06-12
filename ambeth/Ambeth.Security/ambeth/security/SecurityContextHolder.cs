@@ -36,7 +36,7 @@ namespace De.Osthus.Ambeth.Security
 		}
 	}
 
-    public class SecurityContextHolder : IAuthorizationChangeListenerExtendable, ISecurityContextHolder, IThreadLocalCleanupBean
+	public class SecurityContextHolder : IAuthorizationChangeListenerExtendable, ISecurityContextHolder, IThreadLocalCleanupBean, ILightweightSecurityContext
     {
         protected readonly DefaultExtendableContainer<IAuthorizationChangeListener> authorizationChangeListeners = new DefaultExtendableContainer<IAuthorizationChangeListener>("authorizationChangeListener");
 
@@ -133,5 +133,15 @@ namespace De.Osthus.Ambeth.Security
                 }
             }
         }
+
+		public bool IsAuthenticated()
+		{
+			ISecurityContext securityContext = Context;
+			if (securityContext == null)
+			{
+				return false;
+			}
+			return securityContext.Authorization != null;
+		}
     }
 }

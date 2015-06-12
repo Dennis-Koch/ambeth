@@ -87,7 +87,21 @@ public class RebuildSchema
 			DataSetupExecutor.setAutoRebuildData(null);
 		}
 		runner.rebuildContext();
-
-		runner.methodInvoker(method, runner.createTest());
+		try
+		{
+			runner.methodInvoker(method, runner.createTest());
+		}
+		finally
+		{
+			runner.disposeContext();
+		}
+		try
+		{
+			runner.finalize();
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
 	}
 }

@@ -274,6 +274,11 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			metaData.setCreatedOnMember(findPrimitiveMember(metaData.getCreatedOnMember(), primitiveMembers));
 			metaData.setUpdatedByMember(findPrimitiveMember(metaData.getUpdatedByMember(), primitiveMembers));
 			metaData.setUpdatedOnMember(findPrimitiveMember(metaData.getUpdatedOnMember(), primitiveMembers));
+
+			for (RelationMember existingRelationMember : metaData.getRelationMembers())
+			{
+				relationMembers.add(existingRelationMember);
+			}
 			PrimitiveMember[] primitives = primitiveMembers.toArray(PrimitiveMember.class);
 			PrimitiveMember[] fulltexts = fulltextMembers.toArray(PrimitiveMember.class);
 			RelationMember[] relations = relationMembers.toArray(RelationMember.class);

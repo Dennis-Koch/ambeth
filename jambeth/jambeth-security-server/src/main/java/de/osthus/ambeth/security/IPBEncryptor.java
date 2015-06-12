@@ -8,7 +8,7 @@ public interface IPBEncryptor
 
 	byte[] decrypt(IPBEConfiguration pbeConfiguration, char[] clearTextPassword, byte[] dataToDecrypt);
 
-	byte[] encrypt(IPBEConfiguration pbeConfiguration, char[] clearTextPassword, byte[] dataToEncrypt);
+	byte[] encrypt(IPBEConfiguration pbeConfiguration, boolean forceUseSalt, char[] clearTextPassword, byte[] dataToEncrypt);
 
 	boolean isReencryptionRecommended(IPBEConfiguration pbeConfiguration);
 }

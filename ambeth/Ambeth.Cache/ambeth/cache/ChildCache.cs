@@ -19,6 +19,8 @@ using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Garbageproxy;
+using De.Osthus.Ambeth.Security;
+using De.Osthus.Ambeth.Merge.Config;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -49,6 +51,12 @@ namespace De.Osthus.Ambeth.Cache
 
         [Autowired]
         public ICacheIntern Parent { get; set; }
+
+		[Autowired(Optional = true)]
+		public ISecurityActivation SecurityActivation { protected get; set; }
+
+		[Property(MergeConfigurationConstants.SecurityActive, DefaultValue = "false")]
+		public bool SecurityActive { protected get; set; }
 
         [Property(CacheConfigurationConstants.ValueholderOnEmptyToOne, DefaultValue = "false")]
         public bool ValueholderOnEmptyToOne { protected get; set; }
@@ -110,10 +118,15 @@ namespace De.Osthus.Ambeth.Cache
             {
                 FirstLevelCacheExtendable.UnregisterFirstLevelCache(this, CacheFactoryDirective.NoDCE, false, Name);
             }
+			CacheModification = null;
+			CachePathHelper = null;
             EntityFactory = null;
             FirstLevelCacheExtendable = null;
+			GarbageProxyFactory = null;
+			Log = null;
             Parent = null;
             keyToAlternateIdsMap = null;
+			SecurityActivation = null;
             base.Dispose();
         }
 
@@ -156,6 +169,12 @@ namespace De.Osthus.Ambeth.Cache
             }
             PutAlternateCacheKeysToCache(metaData, newAlternateCacheKeys, cacheValueR);
         }
+
+		protected override void CacheValueHasBeenRemoved(IEntityMetaData metaData, sbyte idIndex, object id, object cacheValue)
+		{
+			((IValueHolderContainer) cacheValue).__TargetCache = null;
+			base.CacheValueHasBeenRemoved(metaData, idIndex, id, cacheValue);
+		}
 
         public override Object CreateCacheValueInstance(IEntityMetaData metaData, Object obj)
         {
@@ -436,7 +455,18 @@ namespace De.Osthus.Ambeth.Cache
                 CacheModification.Active = true;
                 try
                 {
-                    return Parent.GetObjRelations(objRels, targetCache, cacheDirective);
+					if (SecurityActive && ((targetCache == null && Privileged) || (targetCache != null && targetCache.Privileged)//
+						&& SecurityActivation != null && SecurityActivation.FilterActivated))
+					{
+						return SecurityActivation.ExecuteWithoutFiltering(delegate()
+						{
+							return Parent.GetObjRelations(objRels, targetCache, cacheDirective);
+						});
+					}
+					else
+					{
+						return Parent.GetObjRelations(objRels, targetCache, cacheDirective);
+					}
                 }
                 finally
                 {

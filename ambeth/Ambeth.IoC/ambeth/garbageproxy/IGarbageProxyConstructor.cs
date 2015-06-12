@@ -5,13 +5,13 @@ namespace De.Osthus.Ambeth.Garbageproxy
     {
         new T CreateInstance(IDisposable target);
 
-        new T CreateInstance(Object target, IDisposable disposable);
+		new T CreateInstance(Object target, IDisposable disposable);
     }
 
     public interface IGarbageProxyConstructor
     {
         Object CreateInstance(IDisposable target);
 
-        Object CreateInstance(Object target, IDisposable disposable);
+		Object CreateInstance(Object target, IDisposable disposable);
     }
 }

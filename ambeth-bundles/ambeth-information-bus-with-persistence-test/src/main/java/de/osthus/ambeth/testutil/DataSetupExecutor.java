@@ -10,10 +10,12 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.ILightweightTransaction;
 import de.osthus.ambeth.merge.IMergeProcess;
+import de.osthus.ambeth.security.IPasswordUtil;
 import de.osthus.ambeth.security.IPermissionGroupUpdater;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
+import de.osthus.ambeth.util.IRevertDelegate;
 import de.osthus.ambeth.util.setup.IDataSetup;
 import de.osthus.ambeth.util.setup.IDataSetupWithAuthorization;
 
@@ -52,6 +54,9 @@ public class DataSetupExecutor implements IStartingBean
 	protected IMergeProcess mergeProcess;
 
 	@Autowired
+	protected IPasswordUtil passwordUtil;
+
+	@Autowired
 	protected ISecurityActivation securityActivation;
 
 	@Autowired
@@ -79,46 +84,54 @@ public class DataSetupExecutor implements IStartingBean
 				@Override
 				public Object invoke() throws Throwable
 				{
-					final Collection<Object> dataSet = dataSetup.executeDatasetBuilders();
-
-					final IBackgroundWorkerDelegate transactionDelegate = new IBackgroundWorkerDelegate()
+					IRevertDelegate suppressPasswordValidationRevert = passwordUtil.suppressPasswordValidation();
+					try
 					{
-						@Override
-						public void invoke() throws Throwable
+						final Collection<Object> dataSet = dataSetup.executeDatasetBuilders();
+
+						final IBackgroundWorkerDelegate transactionDelegate = new IBackgroundWorkerDelegate()
 						{
-							permissionGroupUpdater.executeWithoutPermissionGroupUpdate(new IResultingBackgroundWorkerDelegate<Object>()
+							@Override
+							public void invoke() throws Throwable
+							{
+								permissionGroupUpdater.executeWithoutPermissionGroupUpdate(new IResultingBackgroundWorkerDelegate<Object>()
+								{
+									@Override
+									public Object invoke() throws Throwable
+									{
+										if (dataSet.size() > 0)
+										{
+											mergeProcess.process(dataSet, null, null, null);
+										}
+										return null;
+									}
+								});
+								permissionGroupUpdater.fillEmptyPermissionGroups();
+							}
+						};
+						IDataSetupWithAuthorization dataSetupWithAuthorization = dataSetup.resolveDataSetupWithAuthorization();
+						if (dataSetupWithAuthorization != null)
+						{
+							dataSetupWithAuthorization.executeWithAuthorization(new IResultingBackgroundWorkerDelegate<Object>()
 							{
 								@Override
 								public Object invoke() throws Throwable
 								{
-									if (dataSet.size() > 0)
-									{
-										mergeProcess.process(dataSet, null, null, null);
-									}
+									transaction.runInTransaction(transactionDelegate);
 									return null;
 								}
 							});
-							permissionGroupUpdater.fillEmptyPermissionGroups();
 						}
-					};
-					IDataSetupWithAuthorization dataSetupWithAuthorization = dataSetup.resolveDataSetupWithAuthorization();
-					if (dataSetupWithAuthorization != null)
-					{
-						dataSetupWithAuthorization.executeWithAuthorization(new IResultingBackgroundWorkerDelegate<Object>()
+						else
 						{
-							@Override
-							public Object invoke() throws Throwable
-							{
-								transaction.runInTransaction(transactionDelegate);
-								return null;
-							}
-						});
+							transaction.runInTransaction(transactionDelegate);
+						}
+						return null;
 					}
-					else
+					finally
 					{
-						transaction.runInTransaction(transactionDelegate);
+						suppressPasswordValidationRevert.revert();
 					}
-					return null;
 				}
 			});
 		}

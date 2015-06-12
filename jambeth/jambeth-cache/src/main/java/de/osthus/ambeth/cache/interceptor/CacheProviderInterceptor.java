@@ -29,12 +29,15 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 {
 	private static final Set<Method> methodsDirectlyToRootCache = new HashSet<Method>();
 
+	private static final Method currentCacheMethod;
+
 	static
 	{
 		try
 		{
 			methodsDirectlyToRootCache.add(ICache.class.getMethod("getReadLock"));
 			methodsDirectlyToRootCache.add(ICache.class.getMethod("getWriteLock"));
+			currentCacheMethod = ICache.class.getMethod("getCurrentCache");
 		}
 		catch (NoSuchMethodException e)
 		{
@@ -88,7 +91,11 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 		{
 			return stack.peek();
 		}
-		return cacheProviderStack.peek();
+		if (cacheProviderStack.size() > 0)
+		{
+			return cacheProviderStack.peek();
+		}
+		return null;
 	}
 
 	@Override
@@ -187,6 +194,10 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
 		ICacheProvider cacheProvider = getCurrentCacheProvider();
+		if (cacheProvider == null && currentCacheMethod.equals(method))
+		{
+			return null;
+		}
 		if (method.getDeclaringClass().equals(ICacheProvider.class))
 		{
 			return proxy.invoke(cacheProvider, args);

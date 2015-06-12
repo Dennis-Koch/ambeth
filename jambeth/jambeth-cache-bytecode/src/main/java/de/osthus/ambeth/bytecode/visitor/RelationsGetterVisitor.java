@@ -97,6 +97,8 @@ public class RelationsGetterVisitor extends ClassGenerator
 
 	private static final MethodInstance m_template_getCache = new MethodInstance(null, IObjRefContainer.class, ICache.class, "get__Cache");
 
+	private static final MethodInstance m_template_detach = new MethodInstance(null, IObjRefContainer.class, void.class, "detach");
+
 	private static final MethodInstance m_template_getState_Member = new MethodInstance(null, IObjRefContainer.class, ValueHolderState.class, "get__State",
 			int.class);
 
@@ -461,6 +463,19 @@ public class RelationsGetterVisitor extends ClassGenerator
 		{
 			MethodGenerator mg = visitMethod(m_template_getCache);
 			mg.callThisGetter(p_targetCache);
+			mg.returnValue();
+			mg.endMethod();
+		}
+		{
+			MethodGenerator mg = visitMethod(m_template_detach);
+			mg.callThisSetter(p_targetCache, new Script()
+			{
+				@Override
+				public void execute(MethodGenerator mg)
+				{
+					mg.pushNull();
+				}
+			});
 			mg.returnValue();
 			mg.endMethod();
 		}

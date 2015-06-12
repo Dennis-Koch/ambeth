@@ -436,7 +436,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 			for (int a = objRefs.length; a-- > 0;)
 			{
 				IObjRef objRef = objRefs[a];
-				if (!entityTypeWithPermissionRule.contains(objRef.getRealType()))
+				if (objRef == null || !entityTypeWithPermissionRule.contains(objRef.getRealType()))
 				{
 					continue;
 				}
@@ -449,6 +449,10 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		IList<Object> entitiesToCheck = null;
 		if (!isObjRefsToCheckEmpty)
 		{
+			if (prefetchConfig == null)
+			{
+				prefetchConfig = prefetchHelper.createPrefetch();
+			}
 			entitiesToCheck = cache.getObjects(objRefsToCheck, CacheDirective.returnMisses());
 			IPrefetchHandle prefetchHandle = prefetchConfig.build();
 			prefetchState = prefetchHandle.prefetch(entitiesToCheck);

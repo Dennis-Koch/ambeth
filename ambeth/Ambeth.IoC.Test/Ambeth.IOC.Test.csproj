@@ -122,6 +122,9 @@
     <Compile Include="testutil\ITestContext.cs" />
     <Compile Include="testutil\TestContext.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\ioc\annotation\AutowiredTestBean.cs" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

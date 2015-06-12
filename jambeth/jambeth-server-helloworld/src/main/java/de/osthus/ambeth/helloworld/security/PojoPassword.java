@@ -2,6 +2,7 @@ package de.osthus.ambeth.helloworld.security;
 
 import java.util.Calendar;
 
+import de.osthus.ambeth.security.model.IPBEConfiguration;
 import de.osthus.ambeth.security.model.IPassword;
 import de.osthus.ambeth.security.model.IUser;
 
@@ -13,8 +14,6 @@ public class PojoPassword implements IPassword
 	private int iterationCount;
 	private int keySize;
 	private char[] salt;
-	private String saltAlgorithm;
-	private String saltKeySpec;
 	private Integer saltLength;
 
 	private IUser user;
@@ -73,18 +72,6 @@ public class PojoPassword implements IPassword
 	}
 
 	@Override
-	public String getSaltKeySpec()
-	{
-		return saltKeySpec;
-	}
-
-	@Override
-	public void setSaltKeySpec(String saltKeySpec)
-	{
-		this.saltKeySpec = saltKeySpec;
-	}
-
-	@Override
 	public int getIterationCount()
 	{
 		return iterationCount;
@@ -121,18 +108,6 @@ public class PojoPassword implements IPassword
 	}
 
 	@Override
-	public String getSaltAlgorithm()
-	{
-		return saltAlgorithm;
-	}
-
-	@Override
-	public void setSaltAlgorithm(String saltAlgorithm)
-	{
-		this.saltAlgorithm = saltAlgorithm;
-	}
-
-	@Override
 	public Integer getSaltLength()
 	{
 		return saltLength;
@@ -142,5 +117,11 @@ public class PojoPassword implements IPassword
 	public void setSaltLength(Integer saltLength)
 	{
 		this.saltLength = saltLength;
+	}
+
+	@Override
+	public IPBEConfiguration getSaltPBEConfiguration()
+	{
+		return null;
 	}
 }

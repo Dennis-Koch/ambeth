@@ -11,6 +11,8 @@ namespace De.Osthus.Ambeth.Proxy
     {
         ICache Get__Cache();
 
+		void Detach();
+
         ValueHolderState Get__State(int relationIndex);
         
         bool Is__Initialized(int relationIndex);

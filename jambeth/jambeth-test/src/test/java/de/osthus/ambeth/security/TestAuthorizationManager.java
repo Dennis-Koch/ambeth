@@ -11,8 +11,8 @@ public class TestAuthorizationManager implements IAuthorizationManager
 	private ILogger log;
 
 	@Override
-	public IAuthorization authorize(final String sid, final ISecurityScope[] securityScopes)
+	public IAuthorization authorize(String sid, ISecurityScope[] securityScopes, IAuthenticationResult authenticationResult)
 	{
-		return new DefaultAuthorization(sid, securityScopes, CallPermission.ALLOWED);
+		return new DefaultAuthorization(sid, securityScopes, CallPermission.ALLOWED, System.currentTimeMillis(), authenticationResult);
 	}
 }

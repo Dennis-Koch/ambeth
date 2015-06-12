@@ -36,7 +36,9 @@ import de.osthus.ambeth.merge.transfer.OriCollection;
 import de.osthus.ambeth.model.IMethodDescription;
 import de.osthus.ambeth.proxy.CascadedInterceptor;
 import de.osthus.ambeth.security.ISecurityActivation;
+import de.osthus.ambeth.security.SecurityDirective;
 import de.osthus.ambeth.service.IMergeService;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
@@ -167,14 +169,16 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 			@Override
 			public IOriCollection invoke() throws Throwable
 			{
-				IDisposableCache childCache = cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, Boolean.FALSE,
-						"MergeServiceRegistry.STATE");
+				IDisposableCache childCache = null;
 				try
 				{
-					IncrementalMergeState state = (IncrementalMergeState) cudResultApplier.acquireNewState(childCache);
+					IncrementalMergeState state = null;
 					ICUDResult cudResultOfCache;
-					if (MergeProcess.isAddNewlyPersistedEntities())
+					if (MergeProcess.isAddNewlyPersistedEntities() || (log.isDebugEnabled() && cudResultPrinter != null))
 					{
+						childCache = cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, Boolean.FALSE,
+								"MergeServiceRegistry.STATE");
+						state = (IncrementalMergeState) cudResultApplier.acquireNewState(childCache);
 						cudResultOfCache = cudResultApplier.applyCUDResultOnEntitiesOfCache(cudResultOriginal, true, state);
 					}
 					else
@@ -185,15 +189,16 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 					{
 						if (cudResultPrinter != null)
 						{
-							log.debug("Initial merge [" + System.identityHashCode(state) + "]:\n" + cudResultPrinter.printCUDResult(cudResultOfCache, state));
+							log.debug("Initial merge [" + System.identityHashCode(state != null ? state : cudResultOfCache) + "]:\n"
+									+ cudResultPrinter.printCUDResult(cudResultOfCache, state));
 						}
 						else
 						{
-							log.debug("Initial merge [" + System.identityHashCode(state) + "]. No Details available");
+							log.debug("Initial merge [" + System.identityHashCode(state != null ? state : cudResultOfCache) + "]. No Details available");
 						}
 					}
 					IList<MergeOperation> mergeOperationSequence;
-					ICUDResult extendedCudResult;
+					final ICUDResult extendedCudResult;
 					if (cudResultOfCache != cudResultOriginal)
 					{
 						mergeOperationSequence = new ArrayList<MergeOperation>();
@@ -207,11 +212,18 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 					}
 					if (log.isDebugEnabled())
 					{
-						log.debug("Merge finished [" + System.identityHashCode(state) + "]");
+						log.debug("Merge finished [" + System.identityHashCode(state != null ? state : cudResultOfCache) + "]");
 					}
 					if (mergeSecurityManager != null)
 					{
-						mergeSecurityManager.checkMergeAccess(extendedCudResult, methodDescription);
+						securityActive.executeWithSecurityDirective(SecurityDirective.enableEntity(), new IBackgroundWorkerDelegate()
+						{
+							@Override
+							public void invoke() throws Throwable
+							{
+								mergeSecurityManager.checkMergeAccess(extendedCudResult, methodDescription);
+							}
+						});
 					}
 					ArrayList<Object> originalRefsOfCache = new ArrayList<Object>(cudResultOfCache.getOriginalRefs());
 					ArrayList<Object> originalRefsExtended = new ArrayList<Object>(extendedCudResult.getOriginalRefs());
@@ -260,7 +272,10 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 				}
 				finally
 				{
-					childCache.dispose();
+					if (childCache != null)
+					{
+						childCache.dispose();
+					}
 				}
 			}
 		};
@@ -359,7 +374,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 
 			IOriCollection msOriCollection = mergeServiceExtension.merge(msCudResult, methodDescription);
 
-			mergeController.applyChangesToOriginals(msCudResult, msOriCollection, state.getStateCache());
+			mergeController.applyChangesToOriginals(msCudResult, msOriCollection, state != null ? state.getStateCache() : null);
 
 			List<IObjRef> allChangeORIs = msOriCollection.getAllChangeORIs();
 

@@ -53,6 +53,8 @@
     <Compile Include="ambeth\privilege\factory\IEntityPrivilegeFactoryProvider.cs" />
     <Compile Include="ambeth\privilege\factory\IEntityTypePrivilegeFactory.cs" />
     <Compile Include="ambeth\privilege\factory\IEntityTypePrivilegeFactoryProvider.cs" />
+    <Compile Include="ambeth\privilege\model\ITypePrivilegeResult.cs" />
+    <Compile Include="ambeth\privilege\model\IPrivilegeResult.cs" />
     <Compile Include="ambeth\privilege\model\impl\AbstractPrivilege.cs" />
     <Compile Include="ambeth\privilege\model\impl\AbstractTypePrivilege.cs" />
     <Compile Include="ambeth\privilege\model\impl\AllowAllPrivilege.cs" />
@@ -70,6 +72,9 @@
     <Compile Include="ambeth\privilege\PrivilegeProvider.cs" />
     <Compile Include="ambeth\security\CallPermission.cs" />
     <Compile Include="ambeth\security\config\SecurityConfigurationConstants.cs" />
+    <Compile Include="ambeth\security\StringSecurityScope.cs" />
+    <Compile Include="ambeth\security\SecurityContextPassword.cs" />
+    <Compile Include="ambeth\security\SecurityContextUserName.cs" />
     <Compile Include="ambeth\security\IActionPermission.cs" />
     <Compile Include="ambeth\security\PermissionApplyType.cs" />
     <Compile Include="ambeth\security\ISecurityManager.cs" />
@@ -169,6 +174,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\security\PasswordType.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\privilege\model\impl\PrivilegeResult.cs" />
+    <Compile Include="ambeth\privilege\model\impl\TypePrivilegeResult.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

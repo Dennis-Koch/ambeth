@@ -82,5 +82,10 @@ namespace De.Osthus.Ambeth.Cache.Rootcachevalue
 	    }
 
         public abstract IEntityMetaData Get__EntityMetaData();
+
+		public void Detach()
+		{
+			// intended blank
+		}
     }
 }
