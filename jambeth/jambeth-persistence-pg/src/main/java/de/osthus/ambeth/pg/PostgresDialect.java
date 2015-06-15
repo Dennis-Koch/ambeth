@@ -569,9 +569,8 @@ public class PostgresDialect extends AbstractConnectionDialect
 				}
 				else if ("text".equalsIgnoreCase(typeName))
 				{
-					javaType = Clob.class;
+					javaType = String.class;
 				}
-
 				ColumnEntry entry = new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable, radix, true);
 				columns.add(entry);
 			}

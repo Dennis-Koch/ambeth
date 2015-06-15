@@ -828,8 +828,8 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		ParamChecker.assertParamNotNull(pattern, "pattern");
 		try
 		{
-			return getBeanContext().registerBean(SqlRegexpLikeOperand.class).propertyValue("sourceString", sourceString).propertyValue("pattern", pattern)
-					.propertyValue("matchParameter", matchParameter).finish();
+			return getBeanContext().registerBean(SqlRegexpLikeOperand.class).propertyValue("SourceString", sourceString).propertyValue("Pattern", pattern)
+					.propertyValue("MatchParameter", matchParameter).finish();
 		}
 		catch (Throwable e)
 		{
