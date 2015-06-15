@@ -2,7 +2,17 @@
 \section{Autowired}
 \label{annotation:Autowired}
 \ClearAPI
-\javadoc{de.osthus.ambeth.ioc.annotation.Autowired}{Autowired}
+
+\type{Autowired} as implemented in \javadoc{de.osthus.ambeth.ioc.annotation.Autowired}{Autowired} is used to mark properties which should be set by the dependence injection mechanisms (cf. \prettyref{module:IoC:DependencyInjection}).
+
+The annotation can be used instead of the setter injection. By default \AMBETH checks whether the injection was successful, i.e. no additional check is required.
+
+\paragraph{The following properties are available:}
+\begin{itemize}
+	\item[\emph{value}] \TODO
+	\item[\emph{optional}] If \emph{true} there is no error if no matching bean is found for injection. (Default: \emph{false})
+\end{itemize}
+
 \TODO
 
 %% GENERATED LISTINGS - DO NOT EDIT
