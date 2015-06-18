@@ -30,6 +30,8 @@ public final class ReflectUtil
 		HashMap<String, Field[]> nameToDeclaredFieldsInHierarchyMap;
 
 		Method[] declaredMethods;
+
+		Method[] declaredMethodsInHierarchy;
 	}
 
 	private static final Field[] EMPTY_FIELDS = new Field[0];
@@ -155,15 +157,28 @@ public final class ReflectUtil
 			{
 				return declaredMethods;
 			}
-			ArrayList<Method> declaredMethodsList = new ArrayList<Method>();
-			fillDeclaredMethods(type, declaredMethodsList);
-			declaredMethods = declaredMethodsList.toArray(Method.class);
-			for (Method declaredMethod : declaredMethods)
+			initDeclaredMethods(type, entry);
+			return entry.declaredMethods;
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
+	}
+
+	public static final Method[] getDeclaredMethodsInHierarchy(Class<?> type)
+	{
+		writeLock.lock();
+		try
+		{
+			ReflectEntry entry = getReflectEntry(type);
+			Method[] declaredMethodsInHierarchy = entry.declaredMethodsInHierarchy;
+			if (declaredMethodsInHierarchy != null)
 			{
-				declaredMethod.setAccessible(true);
+				return declaredMethodsInHierarchy;
 			}
-			entry.declaredMethods = declaredMethods;
-			return declaredMethods;
+			initDeclaredMethods(type, entry);
+			return entry.declaredMethodsInHierarchy;
 		}
 		finally
 		{
@@ -401,6 +416,33 @@ public final class ReflectUtil
 			entry.nameToDeclaredFieldsInHierarchyMap.put(declaredField.getName(), fieldsInHierarchy);
 			fieldsInHierarchy[fieldsInHierarchy.length - 1] = declaredField;
 		}
+	}
+
+	protected static void initDeclaredMethods(Class<?> type, ReflectEntry entry)
+	{
+		ArrayList<Method> declaredMethodsList = new ArrayList<Method>();
+		ArrayList<Method> allDeclaredMethodsList = new ArrayList<Method>();
+		fillDeclaredMethods(type, declaredMethodsList);
+		Method[] declaredMethods = declaredMethodsList.toArray(Method.class);
+		for (Method declaredMethod : declaredMethods)
+		{
+			declaredMethod.setAccessible(true);
+			allDeclaredMethodsList.add(declaredMethod);
+		}
+		entry.declaredMethods = declaredMethods;
+
+		Class<?> currType = type.getSuperclass();
+		if (currType != null && currType != Object.class)
+		{
+			Method[] currDeclaredMethods = getDeclaredMethodsInHierarchy(currType);
+			allDeclaredMethodsList.addAll(currDeclaredMethods);
+		}
+		for (Class<?> currInterface : type.getInterfaces())
+		{
+			Method[] currDeclaredMethods = getDeclaredMethodsInHierarchy(currInterface);
+			allDeclaredMethodsList.addAll(currDeclaredMethods);
+		}
+		entry.declaredMethodsInHierarchy = allDeclaredMethodsList.toArray(Method.class);
 	}
 
 	private ReflectUtil()

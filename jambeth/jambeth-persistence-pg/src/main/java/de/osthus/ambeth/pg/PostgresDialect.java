@@ -155,6 +155,12 @@ public class PostgresDialect extends AbstractConnectionDialect
 	}
 
 	@Override
+	public String getRegexpLikeFunctionName()
+	{
+		return "regexp_matches";
+	}
+
+	@Override
 	public String toDefaultCase(String identifier)
 	{
 		return identifier.toLowerCase();
@@ -563,9 +569,8 @@ public class PostgresDialect extends AbstractConnectionDialect
 				}
 				else if ("text".equalsIgnoreCase(typeName))
 				{
-					javaType = Clob.class;
+					javaType = String.class;
 				}
-
 				ColumnEntry entry = new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable, radix, true);
 				columns.add(entry);
 			}
@@ -575,5 +580,11 @@ public class PostgresDialect extends AbstractConnectionDialect
 		{
 			JdbcUtil.close(tableColumnsRS);
 		}
+	}
+
+	@Override
+	public boolean isTransactionNecessaryDuringLobStreaming()
+	{
+		return true;
 	}
 }

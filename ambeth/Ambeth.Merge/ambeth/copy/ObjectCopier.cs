@@ -86,7 +86,7 @@ namespace De.Osthus.Ambeth.Copy
         /// <summary>
         /// Gets called by the ObjectCopierState on custom / default behavior switches
         /// </summary>
-        public T CloneRecursive<T>(T source, ObjectCopierState ocState)
+        internal T CloneRecursive<T>(T source, ObjectCopierState ocState)
         {
             // Don't clone a null object or immutable objects. Return the identical reference in these cases
             if (source == null || ImmutableTypeSet.IsImmutableType(source.GetType()))
@@ -177,19 +177,24 @@ namespace De.Osthus.Ambeth.Copy
             Type objType = source.GetType();
             Object clone = Activator.CreateInstance(objType);
             ocState.objectToCloneDict.Add(source, clone);
-            IPropertyInfo[] properties = PropertyInfoProvider.GetProperties(objType);
-            foreach (IPropertyInfo property in properties)
-            {
-                if (!property.IsWritable)
-                {
-                    continue;
-                }
-                Object objValue = property.GetValue(source);
-                Object cloneValue = CloneRecursive(objValue, ocState);
-                property.SetValue(clone, cloneValue);
-            }
+			DeepCloneProperties(source, clone, ocState);
             return clone;
         }
+
+		internal void DeepCloneProperties(Object source, Object clone, ObjectCopierState ocState)
+		{
+			IPropertyInfo[] properties = PropertyInfoProvider.GetPrivateProperties(source.GetType());
+			foreach (IPropertyInfo property in properties)
+			{
+				if (!property.IsWritable)
+				{
+					continue;
+				}
+				Object objValue = property.GetValue(source);
+				Object cloneValue = CloneRecursive(objValue, ocState);
+				property.SetValue(clone, cloneValue);
+			}
+		}
 
         public void RegisterObjectCopierExtension(IObjectCopierExtension objectCopierExtension, Type type)
         {

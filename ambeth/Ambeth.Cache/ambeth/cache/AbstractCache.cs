@@ -330,37 +330,78 @@ namespace De.Osthus.Ambeth.Cache
         public void Remove(IList<IObjRef> oris)
         {
             CheckNotDisposed();
-            for (int a = oris.Count; a-- > 0; )
-            {
-                IObjRef ori = oris[a];
-                Remove(ori);
-            }
+			if (oris.Count == 0)
+			{
+				return;
+			}
+			IEntityMetaDataProvider entityMetaDataProvider = this.EntityMetaDataProvider;
+			Lock writeLock = WriteLock;
+			writeLock.Lock();
+			try
+			{
+				for (int a = oris.Count; a-- > 0;)
+				{
+					IObjRef ori = oris[a];
+					IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(ori.RealType);
+					RemoveCacheValueFromCacheCascade(metaData, ori.IdNameIndex, ori.Id, true);
+				}
+			}
+			finally
+			{
+				writeLock.Unlock();
+			}
         }
 
         public virtual void RemovePriorVersions(IObjRef ori)
         {
             CheckNotDisposed();
-            if (ori.Version != null)
-            {
-                CacheKey cacheKey = new CacheKey();
-                if (ExistsValue(ori) != null)
-                {
-                    // if there is a object in the cache with the requested version it
-                    // has already been refreshed
-                    return;
-                }
-            }
-            Remove(ori);
+			Lock writeLock = WriteLock;
+			writeLock.Lock();
+			try
+			{
+				if (ori.Version != null && ExistsValue(ori) != null)
+				{
+					// if there is a object in the cache with the requested version
+					// it has already been refreshed
+					return;
+				}
+				Remove(ori);
+			}
+			finally
+			{
+				writeLock.Unlock();
+			}
         }
 
         public virtual void RemovePriorVersions(IList<IObjRef> oris)
         {
             CheckNotDisposed();
-            for (int a = oris.Count; a-- > 0; )
-            {
-                IObjRef ori = oris[a];
-                RemovePriorVersions(ori);
-            }
+			if (oris.Count == 0)
+			{
+				return;
+			}
+			Lock writeLock = WriteLock;
+			writeLock.Lock();
+			try
+			{
+				List<IObjRef> reallyToRemove = new List<IObjRef>(oris.Count);
+				for (int a = oris.Count; a-- > 0;)
+				{
+					IObjRef ori = oris[a];
+					if (ori.Version != null && ExistsValue(ori) != null)
+					{
+						// if there is a object in the cache with the requested version
+						// it has already been refreshed
+						continue;
+					}
+					reallyToRemove.Add(ori);
+				}
+				Remove(reallyToRemove);
+			}
+			finally
+			{
+				writeLock.Unlock();
+			}
         }
 
 		protected void RemoveCacheValueFromCacheCascade(IEntityMetaData metaData, sbyte idIndex, Object id, bool checkCleanUpOnMiss)

@@ -40,13 +40,33 @@ namespace De.Osthus.Ambeth.Util
 
         public static MethodInfo[] GetMethods(Type type)
 	    {
+			if (type.IsInterface)
+			{
+				Type[] interfaces = type.GetInterfaces();
+				MethodInfo[] methods = type.GetMethods(BindingFlags.FlattenHierarchy | BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public);
+				if (interfaces.Length == 0)
+				{
+					return methods;
+				}
+				List<MethodInfo> methodList = new List<MethodInfo>(methods);
+				foreach (Type interfaceType in interfaces)
+				{
+					methodList.AddRange(interfaceType.GetMethods(BindingFlags.FlattenHierarchy | BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public));
+				}
+				return methodList.ToArray();
+			}
             return type.GetMethods(BindingFlags.FlattenHierarchy | BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public);
         }
 
         public static MethodInfo[] GetDeclaredMethods(Type type)
         {
-            return type.GetMethods(BindingFlags.FlattenHierarchy | BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            return type.GetMethods(BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
         }
+
+		public static MethodInfo[] GetDeclaredMethodsInHierarchy(Type type)
+		{
+			return type.GetMethods(BindingFlags.FlattenHierarchy | BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+		}
 
         public static MethodInfo GetDeclaredMethod(bool tryOnly, Type type, Type returnType, String methodName, params Type[] parameters)
         {

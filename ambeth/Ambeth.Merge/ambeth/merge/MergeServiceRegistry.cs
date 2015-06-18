@@ -28,7 +28,7 @@ using De.Osthus.Ambeth.Ioc.Threadlocal;
 
 namespace De.Osthus.Ambeth.Cache
 {
-    public class MergeServiceRegistry : IMergeService, IMergeServiceExtensionExtendable, IMergeListenerExtendable, IThreadLocalCleanupBean
+	public class MergeServiceRegistry : IMergeService, IMergeServiceExtensionExtendable, IMergeListenerExtendable, IMergeTimeProvider, IThreadLocalCleanupBean
     {
         public class MergeOperation
         {
@@ -128,8 +128,19 @@ namespace De.Osthus.Ambeth.Cache
 						"MergeServiceRegistry.STATE");
 				try
 				{
-					IncrementalMergeState state = (IncrementalMergeState) CudResultApplier.AcquireNewState(childCache);
-					ICUDResult cudResultOfCache = CudResultApplier.ApplyCUDResultOnEntitiesOfCache(cudResultOriginal, true, state);
+					IncrementalMergeState state = null;
+					ICUDResult cudResultOfCache;
+					if (MergeProcess.IsAddNewlyPersistedEntities() || (Log.DebugEnabled && CudResultPrinter != null))
+					{
+						childCache = CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, false,
+								"MergeServiceRegistry.STATE");
+						state = (IncrementalMergeState)CudResultApplier.AcquireNewState(childCache);
+						cudResultOfCache = CudResultApplier.ApplyCUDResultOnEntitiesOfCache(cudResultOriginal, true, state);
+					}
+					else
+					{
+						cudResultOfCache = cudResultOriginal;
+					}
 					if (Log.DebugEnabled)
 					{
 						if (CudResultPrinter != null)
@@ -150,7 +161,10 @@ namespace De.Osthus.Ambeth.Cache
 					}
 					if (MergeSecurityManager != null)
 					{
-						MergeSecurityManager.CheckMergeAccess(extendedCudResult, methodDescription);
+						SecurityActive.ExecuteWithSecurityDirective(SecurityDirective.ENABLE_ENTITY_CHECK, delegate()
+						{
+							MergeSecurityManager.CheckMergeAccess(extendedCudResult, methodDescription);
+						});
 					}
 					List<Object> originalRefsOfCache = new List<Object>(cudResultOfCache.GetOriginalRefs());
 					List<Object> originalRefsExtended = new List<Object>(extendedCudResult.GetOriginalRefs());

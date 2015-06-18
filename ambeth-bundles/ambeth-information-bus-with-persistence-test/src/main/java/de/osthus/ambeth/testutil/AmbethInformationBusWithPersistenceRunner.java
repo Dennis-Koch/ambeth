@@ -56,14 +56,17 @@ import de.osthus.ambeth.persistence.jdbc.IConnectionTestDialect;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.connection.IPreparedConnectionHolder;
+import de.osthus.ambeth.persistence.jdbc.connector.DialectSelectorModule;
+import de.osthus.ambeth.persistence.jdbc.testconnector.DialectSelectorTestModule;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.security.DefaultAuthentication;
 import de.osthus.ambeth.security.ISecurityContextHolder;
-import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.PasswordType;
 import de.osthus.ambeth.security.SecurityContextType;
 import de.osthus.ambeth.security.SecurityFilterInterceptor;
+import de.osthus.ambeth.security.SecurityFilterInterceptor.SecurityMethodMode;
+import de.osthus.ambeth.security.StringSecurityScope;
 import de.osthus.ambeth.security.TestAuthentication;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
@@ -138,7 +141,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			String databaseUser = props.getString(PersistenceJdbcConfigurationConstants.DatabaseUser);
 			props.putString(PersistenceJdbcConfigurationConstants.DatabaseUser, databaseUser + "_" + testForkSuffix);
 		}
-		DialectSelectorModule.fillTestProperties(props);
+		DialectSelectorModule.fillProperties(props);
 
 		try
 		{
@@ -163,7 +166,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	protected List<Class<? extends IInitializingModule>> buildFrameworkTestModuleList(FrameworkMethod frameworkMethod)
 	{
 		List<Class<? extends IInitializingModule>> frameworkTestModuleList = super.buildFrameworkTestModuleList(frameworkMethod);
-		frameworkTestModuleList.add(DialectSelectorModule.class);
+		frameworkTestModuleList.add(DialectSelectorTestModule.class);
 		frameworkTestModuleList.add(DataSetupExecutorModule.class);
 		frameworkTestModuleList.add(SetupModule.class);
 		return frameworkTestModuleList;
@@ -587,18 +590,21 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 					return;
 				}
 				final ISecurityScope scope = new StringSecurityScope(authentication.scope());
-				IMethodLevelBehavior<SecurityContextType> behaviour = new IMethodLevelBehavior<SecurityContextType>()
+
+				IMethodLevelBehavior<SecurityMethodMode> behaviour = new IMethodLevelBehavior<SecurityMethodMode>()
 				{
+					private final SecurityMethodMode mode = new SecurityMethodMode(SecurityContextType.AUTHENTICATED, -1, -1, null, -1, scope);
+
 					@Override
-					public SecurityContextType getBehaviourOfMethod(Method method)
+					public SecurityMethodMode getBehaviourOfMethod(Method method)
 					{
-						return SecurityContextType.AUTHENTICATED;
+						return mode;
 					}
 
 					@Override
-					public SecurityContextType getDefaultBehaviour()
+					public SecurityMethodMode getDefaultBehaviour()
 					{
-						return SecurityContextType.AUTHENTICATED;
+						return mode;
 					}
 				};
 
@@ -614,15 +620,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 					@Override
 					public Object invoke() throws Throwable
 					{
-						return beanContext.getService(ISecurityScopeProvider.class).executeWithSecurityScopes(new IResultingBackgroundWorkerDelegate<Object>()
-						{
-							@Override
-							public Object invoke() throws Throwable
-							{
-								fStatement.evaluate();
-								return null;
-							}
-						}, scope);
+						fStatement.evaluate();
+						return null;
 					}
 				});
 			}
@@ -1047,14 +1046,13 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			{
 				log.debug("Using sql resource '" + fileName + "'");
 			}
-			else
-			{
-				log.debug("Cannot find sql resource '" + fileName + "'");
-			}
 		}
-
+		if (br == null)
+		{
+			throw new FileNotFoundException(fileName);
+		}
 		StringBuilder sb = new StringBuilder();
-		List<String> sql = new ArrayList<String>();
+		ArrayList<String> sql = new ArrayList<String>();
 		try
 		{
 			String line = null;

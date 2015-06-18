@@ -48,15 +48,9 @@ public interface IPassword
 
 	void setSalt(char[] salt);
 
-	String getSaltAlgorithm();
-
-	void setSaltAlgorithm(String saltAlgorithm);
-
-	String getSaltKeySpec();
-
-	void setSaltKeySpec(String saltKeySpec);
-
 	Integer getSaltLength();
 
 	void setSaltLength(Integer saltLength);
+
+	IPBEConfiguration getSaltPBEConfiguration();
 }

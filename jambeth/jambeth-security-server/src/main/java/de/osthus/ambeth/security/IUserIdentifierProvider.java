@@ -6,5 +6,7 @@ public interface IUserIdentifierProvider
 {
 	String getSID(IUser user);
 
+	boolean isActive(IUser user);
+
 	String getPropertyNameOfSID();
 }

@@ -78,26 +78,31 @@ public class DefaultPersistenceCacheRetriever implements ICacheRetriever
 			}
 			sb.append(" [");
 
-			int printBorder = 3, skipped = count >= maxDebugItems ? Math.max(0, count - printBorder * 2) : 0;
-			for (int a = count; a-- > 0;)
+			int printBorder = 3;
+			if (count <= maxDebugItems || count <= printBorder * 2)
 			{
-				if (skipped > 1)
-				{
-					if (count - a > printBorder && a >= printBorder)
-					{
-						continue;
-					}
-					if (a == printBorder - 1)
-					{
-						sb.append("\r\n\t...skipped ").append(skipped).append(" items...");
-					}
-				}
-				IObjRef oriToLoad = orisToLoad.get(a);
-				if (count > 1)
+				for (int a = count; a-- > 0;)
 				{
 					sb.append("\r\n\t");
+					IObjRef oriToLoad = orisToLoad.get(a);
+					StringBuilderUtil.appendPrintable(sb, oriToLoad);
 				}
-				StringBuilderUtil.appendPrintable(sb, oriToLoad);
+			}
+			else
+			{
+				for (int a = count, pos = count - printBorder; a-- > pos;)
+				{
+					sb.append("\r\n\t");
+					IObjRef oriToLoad = orisToLoad.get(a);
+					StringBuilderUtil.appendPrintable(sb, oriToLoad);
+				}
+				sb.append("\r\n\t...skipped ").append(count - printBorder * 2).append(" items...");
+				for (int a = printBorder; a-- > 0;)
+				{
+					sb.append("\r\n\t");
+					IObjRef oriToLoad = orisToLoad.get(a);
+					StringBuilderUtil.appendPrintable(sb, oriToLoad);
+				}
 			}
 			sb.append("]");
 
@@ -124,26 +129,31 @@ public class DefaultPersistenceCacheRetriever implements ICacheRetriever
 			}
 			sb.append(" [");
 
-			int printBorder = 3, skipped = count >= maxDebugItems ? Math.max(0, count - printBorder * 2) : 0;
-			for (int a = count; a-- > 0;)
+			int printBorder = 3;
+			if (count <= maxDebugItems || count <= printBorder * 2)
 			{
-				if (skipped > 1)
-				{
-					if (count - a > printBorder && a >= printBorder)
-					{
-						continue;
-					}
-					if (a == printBorder - 1)
-					{
-						sb.append("\r\n\t...skipped ").append(skipped).append(" items...");
-					}
-				}
-				IObjRelation orelToLoad = orelsToLoad.get(a);
-				if (count > 1)
+				for (int a = count; a-- > 0;)
 				{
 					sb.append("\r\n\t");
+					IObjRelation orelToLoad = orelsToLoad.get(a);
+					StringBuilderUtil.appendPrintable(sb, orelToLoad);
 				}
-				StringBuilderUtil.appendPrintable(sb, orelToLoad);
+			}
+			else
+			{
+				for (int a = count, pos = count - printBorder; a-- > pos;)
+				{
+					sb.append("\r\n\t");
+					IObjRelation orelToLoad = orelsToLoad.get(a);
+					StringBuilderUtil.appendPrintable(sb, orelToLoad);
+				}
+				sb.append("\r\n\t...skipped ").append(count - printBorder * 2).append(" items...");
+				for (int a = printBorder; a-- > 0;)
+				{
+					sb.append("\r\n\t");
+					IObjRelation orelToLoad = orelsToLoad.get(a);
+					StringBuilderUtil.appendPrintable(sb, orelToLoad);
+				}
 			}
 			sb.append("]");
 

@@ -2,6 +2,7 @@ package de.osthus.ambeth.merge.config;
 
 import de.osthus.ambeth.annotation.ConfigurationConstantDescription;
 import de.osthus.ambeth.annotation.ConfigurationConstants;
+import de.osthus.ambeth.changecontroller.IChangeController;
 import de.osthus.ambeth.merge.IEntityFactory;
 
 @ConfigurationConstants
@@ -12,6 +13,12 @@ public final class MergeConfigurationConstants
 	 * used.
 	 */
 	public static final String EntityFactoryType = "ambeth.merge.entityfactory.type";
+
+	/**
+	 * Defines which {@link IChangeController} should be used. Has to be a fully qualified class name. If not specified a default {@link IChangeController} will
+	 * be used.
+	 */
+	public static final String ChangeControllerType = "ambeth.merge.changecontroller.type";
 
 	@ConfigurationConstantDescription("TODO")
 	public static final String FieldBasedMergeActive = "ambeth.merge.fieldbased.active";

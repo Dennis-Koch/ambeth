@@ -489,7 +489,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		for (IPropertyInfo prop : propertyInfos)
 		{
 			String propertyName = prop.getName();
-			if (!prop.isWritable() || alreadySpecifiedPropertyNamesSet.contains(propertyName))
+			if (alreadySpecifiedPropertyNamesSet.contains(propertyName))
 			{
 				// Property already explicitly specified. No
 				// auto-wiring necessary here
@@ -682,7 +682,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			resolveAllBeanConfInHierarchy(beanConfHierarchy, propertyConfigurations);
 			ISet<String> ignoredPropertyNames = resolveAllIgnoredPropertiesInHierarchy(beanConfHierarchy, beanType);
 
-			IPropertyInfo[] propertyInfos = propertyInfoProvider.getProperties(beanType);
+			IPropertyInfo[] propertyInfos = propertyInfoProvider.getIocProperties(beanType);
 
 			if (preProcessors != null)
 			{
@@ -1380,7 +1380,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 	protected ISet<String> resolveAllIgnoredPropertiesInHierarchy(List<IBeanConfiguration> beanConfHierarchy, Class<?> beanType)
 	{
 		ISet<String> ignoredProperties = null;
-		Map<String, IPropertyInfo> propertyMap = propertyInfoProvider.getPropertyMap(beanType);
+		Map<String, IPropertyInfo> propertyMap = propertyInfoProvider.getIocPropertyMap(beanType);
 		for (int a = 0, size = beanConfHierarchy.size(); a < size; a++)
 		{
 			IBeanConfiguration beanConfiguration = beanConfHierarchy.get(a);

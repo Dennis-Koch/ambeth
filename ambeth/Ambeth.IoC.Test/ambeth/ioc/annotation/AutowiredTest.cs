@@ -48,6 +48,8 @@ namespace De.Osthus.Ambeth.Ioc.Annotation
 			    beanContextFactory.RegisterBean(bean1Name, typeof(Bean1));
 			    beanContextFactory.RegisterBean(bean2Name, typeof(Bean2)).Autowireable<Bean2>();
 			    beanContextFactory.RegisterBean(bean3Name, typeof(Bean3));
+				
+				beanContextFactory.RegisterBean<AutowiredTestBean>().Autowireable<AutowiredTestBean>();
 		    }
 	    }
 
@@ -148,5 +150,22 @@ namespace De.Osthus.Ambeth.Ioc.Annotation
 			    beanContext.Dispose();
 		    }
 	    }
+
+		[TestMethod]
+	    [TestModule(typeof(AutowiredTestModule))]
+		public void autowiredVisibility()
+		{
+			AutowiredTestBean bean = BeanContext.GetService<AutowiredTestBean>();
+			Assert.AssertSame(BeanContext, bean.getBeanContextPrivate());
+			Assert.AssertNull(bean.getBeanContextPrivateSetter());
+			Assert.AssertSame(BeanContext, bean.getBeanContextPrivateSetterAutowired());
+
+			Assert.AssertSame(BeanContext, bean.getBeanContextProtected());
+			Assert.AssertNull(bean.getBeanContextProtectedSetter());
+			Assert.AssertSame(BeanContext, bean.getBeanContextProtectedSetterAutowired());
+
+			Assert.AssertSame(BeanContext, bean.getBeanContextPublic());
+			Assert.AssertSame(BeanContext, bean.getBeanContextPublicSetter());
+		}
     }
 }

@@ -1,6 +1,7 @@
 package de.osthus.ambeth.audit;
 
 import de.osthus.ambeth.security.model.IUser;
+import de.osthus.ambeth.util.IRevertDelegate;
 
 public interface IAuditInfoController
 {
@@ -18,9 +19,9 @@ public interface IAuditInfoController
 
 	void removeAuditInfo();
 
-	IAuditInfoRevert pushClearTextPassword(char[] clearTextPassword);
+	IRevertDelegate pushClearTextPassword(char[] clearTextPassword);
 
 	String createAuditedValueOfEntityPrimitive(Object primitiveValueOfEntity);
 
-	IAuditInfoRevert setAuthorizedUser(IUser user, char[] clearTextPassword);
+	IRevertDelegate setAuthorizedUser(IUser user, char[] clearTextPassword, boolean forceGivenAuthorization);
 }

@@ -18,6 +18,8 @@ public interface ISet<K> extends Set<K>
 
 	void toList(Collection<K> targetList);
 
+	boolean addAll(Iterable<? extends K> c);
+
 	<S extends K> boolean addAll(S[] array);
 
 	<S extends K> boolean removeAll(S[] array);

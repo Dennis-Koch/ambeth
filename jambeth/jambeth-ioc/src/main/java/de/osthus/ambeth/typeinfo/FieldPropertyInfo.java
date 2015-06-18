@@ -16,11 +16,12 @@ public class FieldPropertyInfo extends AbstractPropertyInfo
 	{
 		super(entityType, objectCollector);
 		field.setAccessible(true);
-		this.backingField = field;
-		this.name = propertyName;
-		this.declaringType = field.getDeclaringClass();
-		this.propertyType = field.getType();
-		this.elementType = TypeInfoItemUtil.getElementTypeUsingReflection(propertyType, field.getGenericType());
+		backingField = field;
+		modifiers = field.getModifiers();
+		name = propertyName;
+		declaringType = field.getDeclaringClass();
+		propertyType = field.getType();
+		elementType = TypeInfoItemUtil.getElementTypeUsingReflection(propertyType, field.getGenericType());
 		init(objectCollector);
 	}
 

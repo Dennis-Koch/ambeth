@@ -267,10 +267,10 @@ namespace De.Osthus.Ambeth.Cache
 		    IList<IObjRef> objRefs = objRefsToLoad.ToList();
 		    IList<Object> refreshResult = rootCache.GetObjects(objRefs, cacheDirective);
 
-		    IList<IPrivilege> privileges = null;
+		    IPrivilege[] privileges = null;
             if (SecurityActivation != null && PrivilegeProvider != null && SecurityActivation.FilterActivated)
 		    {
-			    privileges = PrivilegeProvider.GetPrivilegesByObjRef(objRefs);
+			    privileges = PrivilegeProvider.GetPrivilegesByObjRef(objRefs).GetPrivileges();
 		    }
 		    for (int a = refreshResult.Count; a-- > 0;)
 		    {
@@ -707,6 +707,7 @@ namespace De.Osthus.Ambeth.Cache
                         }
                         if (objectsToUpdate != null && objectsToUpdate.Count > 0)
                         {
+							List<IObjRef> objRefsToForget = null;
                             for (int b = objectsToUpdate.Count; b-- > 0; )
                             {
                                 Object objectInCache = objectsToUpdate[b];
@@ -720,6 +721,25 @@ namespace De.Osthus.Ambeth.Cache
                                     continue;
                                 }
                                 CacheValueAndPrivilege cacheValueP = objRefToCacheValueMap.Get(objRefInCache);
+								if (cacheValueP == null)
+								{
+									if (objRefsToForget == null)
+									{
+										objRefsToForget = new List<IObjRef>();
+									}
+									objRefsToForget.Add(objRefInCache);
+
+									foreach (PrimitiveMember member in metaData.PrimitiveMembers)
+									{
+										member.SetValue(objectInCache, null);
+									}
+									RelationMember[] relationMembers = metaData.RelationMembers;
+									for (int relationIndex = relationMembers.Length; relationIndex-- > 0;)
+									{
+										((IValueHolderContainer) objectInCache).Set__Uninitialized(relationIndex, null);
+									}
+									continue;
+								}
                                 if (!parentCache.ApplyValues(objectInCache, childCache, cacheValueP.privilege))
                                 {
                                     if (Log.WarnEnabled)
@@ -728,6 +748,10 @@ namespace De.Osthus.Ambeth.Cache
                                     }
                                 }
                             }
+							if (objRefsToForget != null)
+							{
+								childCache.Remove(objRefsToForget);
+							}
                         }
                     }
                     finally

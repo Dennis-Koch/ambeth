@@ -12,6 +12,12 @@ public class UserIdentifierProvider implements IUserIdentifierProvider
 	private ILogger log;
 
 	@Override
+	public boolean isActive(IUser user)
+	{
+		return true;
+	}
+
+	@Override
 	public String getSID(IUser user)
 	{
 		return ((User) user).getSID();

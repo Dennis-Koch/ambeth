@@ -110,4 +110,10 @@ public abstract class RootCacheValue extends AbstractCacheValue implements IList
 	{
 		setRelation(relationIndex, objRefs);
 	}
+
+	@Override
+	public void detach()
+	{
+		// intended blank
+	}
 }

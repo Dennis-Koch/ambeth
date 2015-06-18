@@ -1,8 +1,8 @@
 package de.osthus.ambeth.stream.chars;
 
-import java.io.Closeable;
+import de.osthus.ambeth.stream.IInputStream;
 
-public interface ICharacterInputStream extends Closeable
+public interface ICharacterInputStream extends IInputStream
 {
 	int readChar();
 }

@@ -358,6 +358,10 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable, Cloneab
 
 	protected boolean addIntern(K key)
 	{
+		if (key == null)
+		{
+			return false;
+		}
 		final int hash = hash(extractHash(key));
 		ISetEntry<K>[] table = this.table;
 		final int i = hash & table.length - 1;
@@ -448,6 +452,28 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable, Cloneab
 	 */
 	@Override
 	public boolean addAll(Collection<? extends K> c)
+	{
+		boolean changed = false;
+		if (c instanceof List)
+		{
+			List<? extends K> list = (List<? extends K>) c;
+			for (int a = 0, size = list.size(); a < size; a++)
+			{
+				changed |= addIntern(list.get(a));
+			}
+			return list.size() > 0;
+		}
+		Iterator<? extends K> iter = c.iterator();
+		while (iter.hasNext())
+		{
+			K key = iter.next();
+			changed |= addIntern(key);
+		}
+		return changed;
+	}
+
+	@Override
+	public boolean addAll(Iterable<? extends K> c)
 	{
 		boolean changed = false;
 		if (c instanceof List)

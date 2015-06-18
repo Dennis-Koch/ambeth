@@ -9,6 +9,7 @@ import de.osthus.ambeth.persistence.IPersistenceHelper;
 import de.osthus.ambeth.persistence.PersistenceHelper;
 import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.connection.ConnectionFactory;
+import de.osthus.ambeth.persistence.jdbc.testconnector.DialectSelectorSchemaModule;
 import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.sql.ISqlKeywordRegistry;
 import de.osthus.ambeth.sql.SqlBuilder;

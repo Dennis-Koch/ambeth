@@ -19,6 +19,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.ILightweightTransaction;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
@@ -47,6 +48,9 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 
 	@Autowired
 	protected IThreadLocalCleanupController threadLocalCleanupController;
+
+	@Autowired
+	protected ILightweightTransaction transaction;
 
 	@Autowired(value = IocModule.THREAD_POOL_NAME)
 	protected Executor executor;
@@ -149,25 +153,14 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 	@Override
 	public void verifyEntitiesSync(final IList<IObjRef> objRefsToVerify)
 	{
-		IDisposableCache cache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.FALSE, "AuditEntryVerifier");
 		try
 		{
-			cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>()
+			transaction.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<Object>()
 			{
 				@Override
 				public Object invoke() throws Throwable
 				{
-					securityActivation.executeWithoutSecurity(new IBackgroundWorkerDelegate()
-					{
-						@Override
-						public void invoke() throws Throwable
-						{
-							if (!auditEntryVerifier.verifyEntities(objRefsToVerify))
-							{
-								log.error("Audit entry verification failed: " + Arrays.toString(objRefsToVerify.toArray()));
-							}
-						}
-					});
+					runInLazyTransaction(objRefsToVerify);
 					return null;
 				}
 			});
@@ -179,9 +172,42 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
+
+	}
+
+	protected void runInLazyTransaction(final IList<IObjRef> objRefsToVerify) throws Throwable
+	{
+		IDisposableCache cache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.FALSE, "AuditEntryVerifier");
+		try
+		{
+			cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>()
+			{
+				@Override
+				public Object invoke() throws Throwable
+				{
+					executeWithCache(objRefsToVerify);
+					return null;
+				}
+			});
+		}
 		finally
 		{
 			cache.dispose();
 		}
+	}
+
+	protected void executeWithCache(final IList<IObjRef> objRefsToVerify) throws Throwable
+	{
+		securityActivation.executeWithoutSecurity(new IBackgroundWorkerDelegate()
+		{
+			@Override
+			public void invoke() throws Throwable
+			{
+				if (!auditEntryVerifier.verifyEntities(objRefsToVerify))
+				{
+					log.error("Audit entry verification failed: " + Arrays.toString(objRefsToVerify.toArray()));
+				}
+			}
+		});
 	}
 }

@@ -32,7 +32,7 @@ public class PBEncryptor implements IPBEncryptor
 	@Property(name = SecurityServerConfigurationConstants.EncryptionPaddedKeyAlgorithmName, defaultValue = "PBKDF2WithHmacSHA1")
 	protected String paddedKeyAlgorithm;
 
-	@Property(name = SecurityServerConfigurationConstants.EncryptionPaddedKeyIterationCount, defaultValue = "128")
+	@Property(name = SecurityServerConfigurationConstants.EncryptionPaddedKeyIterationCount, defaultValue = "8192")
 	protected int paddedKeyIterations;
 
 	@Property(name = SecurityServerConfigurationConstants.EncryptionPaddedKeySize, defaultValue = "128")
@@ -46,7 +46,7 @@ public class PBEncryptor implements IPBEncryptor
 	{
 		try
 		{
-			byte[] salt = Base64.decode(pbeConfiguration.getPaddedKeySalt());
+			byte[] salt = pbeConfiguration.getPaddedKeySalt() != null ? Base64.decode(pbeConfiguration.getPaddedKeySalt()) : new byte[1];
 
 			SecretKeyFactory f = SecretKeyFactory.getInstance(pbeConfiguration.getPaddedKeyAlgorithm());
 			KeySpec ks = new PBEKeySpec(clearTextPassword, salt, pbeConfiguration.getPaddedKeyIterations(), pbeConfiguration.getPaddedKeySize());
@@ -88,10 +88,13 @@ public class PBEncryptor implements IPBEncryptor
 			// recommended algorithm configuration changed
 			return true;
 		}
-		if (paddedKeySaltSize != pbeConfiguration.getPaddedKeySaltSize())
+		if (pbeConfiguration.getPaddedKeySalt() != null)
 		{
-			// recommended algorithm configuration changed
-			return true;
+			if (paddedKeySaltSize != pbeConfiguration.getPaddedKeySaltSize())
+			{
+				// recommended algorithm configuration changed
+				return true;
+			}
 		}
 		return false;
 	}
@@ -116,7 +119,7 @@ public class PBEncryptor implements IPBEncryptor
 		}
 	}
 
-	protected Cipher prepareCipherForEncryption(IPBEConfiguration pbeConfiguration, char[] clearTextPassword)
+	protected Cipher prepareCipherForEncryption(IPBEConfiguration pbeConfiguration, boolean forceUseSalt, char[] clearTextPassword)
 	{
 		try
 		{
@@ -128,15 +131,23 @@ public class PBEncryptor implements IPBEncryptor
 			{
 				pbeConfiguration.setPaddedKeyIterations(paddedKeyIterations);
 			}
-			if (pbeConfiguration.getPaddedKeySalt() == null)
-			{
-				byte[] salt = PasswordSalts.nextSalt(paddedKeySaltSize / 8);
-				pbeConfiguration.setPaddedKeySaltSize(paddedKeySaltSize);
-				pbeConfiguration.setPaddedKeySalt(Base64.encodeBytes(salt).toCharArray());
-			}
 			if (pbeConfiguration.getPaddedKeySize() == 0)
 			{
 				pbeConfiguration.setPaddedKeySize(paddedKeySize);
+			}
+			if (forceUseSalt)
+			{
+				if (pbeConfiguration.getPaddedKeySalt() == null)
+				{
+					byte[] salt = PasswordSalts.nextSalt(paddedKeySaltSize / 8);
+					pbeConfiguration.setPaddedKeySaltSize(paddedKeySaltSize);
+					pbeConfiguration.setPaddedKeySalt(Base64.encodeBytes(salt).toCharArray());
+				}
+			}
+			else
+			{
+				pbeConfiguration.setPaddedKeySaltSize(0);
+				pbeConfiguration.setPaddedKeySalt(null);
 			}
 			if (pbeConfiguration.getEncryptionAlgorithm() == null)
 			{
@@ -169,11 +180,11 @@ public class PBEncryptor implements IPBEncryptor
 	}
 
 	@Override
-	public byte[] encrypt(IPBEConfiguration pbeConfiguration, char[] clearTextPassword, byte[] dataToEncrypt)
+	public byte[] encrypt(IPBEConfiguration pbeConfiguration, boolean forceUseSalt, char[] clearTextPassword, byte[] dataToEncrypt)
 	{
 		try
 		{
-			Cipher cipher = prepareCipherForEncryption(pbeConfiguration, clearTextPassword);
+			Cipher cipher = prepareCipherForEncryption(pbeConfiguration, forceUseSalt, clearTextPassword);
 			return cipher.doFinal(dataToEncrypt);
 		}
 		catch (Throwable e)

@@ -18,7 +18,7 @@ namespace De.Osthus.Ambeth.Typeinfo
 	    bool IsReadable { get; }
 
 	    bool IsWritable { get; }
-
+		
 	    FieldInfo BackingField { get; }
 
         int Modifiers { get; }

@@ -477,7 +477,7 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 				continue;
 			}
 			String key = matcher.group(1);
-			Object value = null;
+			Object value;
 			if (matcher.groupCount() > 2)
 			{
 				String stringValue = matcher.group(2);
@@ -498,6 +498,10 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 			if (!overwriteParentExisting && get(key) != null)
 			{
 				continue;
+			}
+			if (value == null)
+			{
+				value = "";
 			}
 			putProperty(key, value);
 		}

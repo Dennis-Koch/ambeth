@@ -9,37 +9,34 @@ import java.util.Enumeration;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletRequestEvent;
-import javax.servlet.ServletRequestListener;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpSessionEvent;
+import javax.servlet.http.HttpSessionListener;
 import javax.ws.rs.ext.Provider;
 
+import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
+import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.ioc.BootstrapScannerModule;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
-import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LoggerFactory;
 import de.osthus.ambeth.platform.IAmbethPlatformContext;
 import de.osthus.ambeth.platform.IPlatformContextConfiguration;
 import de.osthus.ambeth.platform.PlatformContextConfiguration;
-import de.osthus.ambeth.security.DefaultAuthentication;
-import de.osthus.ambeth.security.IAuthentication;
-import de.osthus.ambeth.security.ISecurityContext;
-import de.osthus.ambeth.security.ISecurityContextHolder;
-import de.osthus.ambeth.security.PasswordType;
+import de.osthus.ambeth.security.IAuthorization;
+import de.osthus.ambeth.security.IAuthorizationChangeListener;
+import de.osthus.ambeth.security.IAuthorizationChangeListenerExtendable;
 import de.osthus.ambeth.util.ClassLoaderUtil;
+import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.ImmutableTypeSet;
 
 @Provider
-public class AmbethServletListener implements ServletContextListener, ServletRequestListener
+public class AmbethServletListener implements ServletContextListener, HttpSessionListener, IAuthorizationChangeListener
 {
-	public static final String ATTRIBUTE_AUTHENTICATION_HANDLE = "ambeth.authentication.handle";
-
 	/**
 	 * The name of the attribute in servlet context that holds an instance of IServiceContext
 	 */
@@ -47,21 +44,18 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 
 	public static final String ATTRIBUTE_I_PLATFORM_CONTEXT = "ambeth.PlatformContext";
 
-	public static final String USER_NAME = "login-name";
-
-	public static final String USER_PASS = "login-pass";
-
-	public static final String USER_PASS_TYPE = "login-pass-type";
-
 	protected final Charset utfCharset = Charset.forName("UTF-8");
+
+	protected ServletContext servletContext;
+
+	protected final ThreadLocal<ArrayList<Boolean>> authorizationChangeActiveTL = new ThreadLocal<ArrayList<Boolean>>();
 
 	private ILogger log;
 
 	@Override
 	public void contextInitialized(ServletContextEvent event)
 	{
-		final ServletContext servletContext = event.getServletContext();
-		@SuppressWarnings("unchecked")
+		servletContext = event.getServletContext();
 		Enumeration<String> initParameterNames = servletContext.getInitParameterNames();
 		while (initParameterNames.hasMoreElements())
 		{
@@ -80,6 +74,18 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 			}
 			Properties props = new Properties(de.osthus.ambeth.config.Properties.getApplication());
 			IPlatformContextConfiguration pcc = PlatformContextConfiguration.create();
+			pcc.addFrameworkModule(new IInitializingModule()
+			{
+				@Override
+				public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
+				{
+					beanContextFactory.registerExternalBean(servletContext).autowireable(ServletContext.class);
+					beanContextFactory.registerBean(HttpSessionBean.class).ignoreProperties("CurrentHttpSession")
+							.autowireable(HttpSession.class, IHttpSessionProvider.class);
+
+					beanContextFactory.link(AmbethServletListener.this).to(IAuthorizationChangeListenerExtendable.class).optional();
+				}
+			});
 			pcc.addProperties(props);
 			// HOTFIX: Should be coded better if there is time
 			pcc.addProviderModule(new BootstrapScannerModule()
@@ -88,14 +94,6 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 				protected ServletContext getServletContext()
 				{
 					return servletContext;
-				}
-			});
-			pcc.addProviderModule(new IInitializingModule()
-			{
-				@Override
-				public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-				{
-					beanContextFactory.registerExternalBean("servletContext", servletContext).autowireable(ServletContext.class);
 				}
 			});
 			context = pcc.createPlatformContext();
@@ -178,48 +176,24 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 	}
 
 	@Override
-	public void requestInitialized(ServletRequestEvent sre)
+	public void authorizationChanged(IAuthorization authorization)
 	{
-		ServletRequest servletRequest = sre.getServletRequest();
-		String userName = servletRequest.getParameter(USER_NAME);
-		String userPass = servletRequest.getParameter(USER_PASS);
-		String passwordType = servletRequest.getParameter(USER_PASS_TYPE);
-		HttpSession session = ((HttpServletRequest) servletRequest).getSession();
-		ServletContext servletContext = sre.getServletContext();
-		if (userName != null)
+		if (authorization == null)
 		{
-			PasswordType passwordTypeEnum = passwordType != null ? PasswordType.valueOf(passwordType) : PasswordType.PLAIN;
-			DefaultAuthentication authentication = new DefaultAuthentication(userName, userPass != null ? userPass.toCharArray() : null, passwordTypeEnum);
-			session.setAttribute(ATTRIBUTE_AUTHENTICATION_HANDLE, authentication);
-			setAuthentication(servletContext, authentication);
+			return;
 		}
-		else
-		{
-			IAuthentication authentication = (IAuthentication) session.getAttribute(ATTRIBUTE_AUTHENTICATION_HANDLE);
-			if (authentication != null)
-			{
-				setAuthentication(servletContext, authentication);
-			}
-		}
-	}
-
-	@Override
-	public void requestDestroyed(ServletRequestEvent sre)
-	{
-		postServiceCall(sre.getServletContext());
-	}
-
-	protected void setAuthentication(ServletContext servletContext, IAuthentication authentication)
-	{
-		ISecurityContext securityContext = getService(servletContext, ISecurityContextHolder.class).getCreateContext();
-		securityContext.setAuthentication(authentication);
-	}
-
-	protected void postServiceCall(ServletContext servletContext)
-	{
 		IServiceContext beanContext = getServiceContext(servletContext);
-		beanContext.getService(ISecurityContextHolder.class).clearContext();
-		beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
+		IHttpSessionProvider httpSessionProvider = beanContext.getService(IHttpSessionProvider.class);
+		if (httpSessionProvider.getCurrentHttpSession() != null)
+		{
+			beanContext.getService(HttpSession.class).setAttribute(AmbethServletRequestFilter.ATTRIBUTE_AUTHORIZATION_HANDLE, authorization);
+		}
+	}
+
+	protected <T> T getProperty(ServletContext servletContext, Class<T> propertyType, String propertyName)
+	{
+		Object value = getService(servletContext, IProperties.class).get(propertyName);
+		return getService(servletContext, IConversionHelper.class).convertValueToType(propertyType, value);
 	}
 
 	protected <T> T getService(ServletContext servletContext, Class<T> serviceType)
@@ -240,4 +214,25 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 	{
 		return (IServiceContext) servletContext.getAttribute(ATTRIBUTE_I_SERVICE_CONTEXT);
 	}
+
+	@Override
+	public void sessionCreated(HttpSessionEvent se)
+	{
+		// intended blank
+	}
+
+	@Override
+	public void sessionDestroyed(HttpSessionEvent se)
+	{
+		IServiceContext beanContext = getServiceContext(servletContext);
+
+		beanContext.getService(IEventDispatcher.class).dispatchEvent(se);
+	}
+
+	// LOGIN:
+	// sessionCreated => requestInitialized => authChangeActive => login => authorizationChanged 5 => requestDestroyed
+	//
+	// LOGOUT
+	// requestInitialized => authorizationChanged => sessionDestroyed => requestDestroyed => authorizationChanged
+
 }

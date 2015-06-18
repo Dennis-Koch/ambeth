@@ -520,6 +520,8 @@ namespace De.Osthus.Ambeth.Mapping
             IListTypeHelper listTypeHelper = this.ListTypeHelper;
             HashMap<CompositIdentityClassKey, Object> reverseRelationMap = this.reverseRelationMap;
 
+			StringBuilder sb = new StringBuilder();
+
             for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
             {
                 RelationMember boMember = relationMembers[relationIndex];
@@ -537,6 +539,13 @@ namespace De.Osthus.Ambeth.Mapping
                         boMember.SetValue(businessObject, convertedEmptyRelation);
                         continue;
                     }
+					sb.Length = 0;
+					String voSpecifiedName = sb.Append(boMemberName).Append("Specified").ToString();
+					ITypeInfoItem voSpecifiedMember = boNameToVoMember.Get(voSpecifiedName);
+					if (voSpecifiedMember != null && !(bool)(voSpecifiedMember.GetValue(valueObject)))
+					{
+						continue;
+					}
                     voValue = voMember.GetValue(valueObject);
                 }
                 else
@@ -1070,7 +1079,7 @@ namespace De.Osthus.Ambeth.Mapping
                 }
                 foreach (RelationMember relationMember in boMetaData.RelationMembers)
                 {
-                    AddTypeInfoMapping(typeInfoMap, config, relationMember.Name, null);
+					AddTypeInfoMapping(typeInfoMap, config, relationMember.Name, sb);
                 }
                 typeToTypeInfoMap.Put(config.ValueType, typeInfoMap);
             }

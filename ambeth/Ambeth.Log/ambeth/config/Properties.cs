@@ -315,6 +315,10 @@ namespace De.Osthus.Ambeth.Config
                 {
                     continue;
                 }
+				if (value == null]
+				{
+					value = "";
+				}
                 PutProperty(key, value);
             }
         }

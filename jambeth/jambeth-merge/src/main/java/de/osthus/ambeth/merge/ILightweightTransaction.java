@@ -14,4 +14,6 @@ public interface ILightweightTransaction
 	<R> R runInLazyTransaction(IResultingBackgroundWorkerDelegate<R> runnable);
 
 	void runOnTransactionPreCommit(IBackgroundWorkerDelegate runnable);
+
+	void runOnTransactionPostCommit(IBackgroundWorkerDelegate runnable);
 }

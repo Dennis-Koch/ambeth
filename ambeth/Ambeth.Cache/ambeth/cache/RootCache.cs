@@ -790,7 +790,7 @@ namespace De.Osthus.Ambeth.Cache
 			    }
 			    permittedObjRefs.Add(primaryObjRef);
 		    }
-            IList<IPrivilege> privileges = GetPrivilegesByObjRefWithoutReadLock(permittedObjRefs);
+            IPrivilege[] privileges = GetPrivilegesByObjRefWithoutReadLock(permittedObjRefs);
 		    HashMap<IObjRef, List<int>> relatedObjRefs = new HashMap<IObjRef, List<int>>();
 		    for (int index = permittedObjRefs.Count; index-- > 0;)
 		    {
@@ -1119,7 +1119,7 @@ namespace De.Osthus.Ambeth.Cache
             IPrivilege[] privilegesOfObjRefsToGet = null;
             if (filteringNecessary)
             {
-                IList<IPrivilege> privileges = GetPrivilegesByObjRefWithoutReadLock(objRefsToGet);
+                IPrivilege[] privileges = GetPrivilegesByObjRefWithoutReadLock(objRefsToGet);
                 List<IObjRef> filteredObjRefsToGet = new List<IObjRef>(objRefsToGet.Count);
                 privilegesOfObjRefsToGet = new IPrivilege[objRefsToGet.Count];
                 RootCacheValue[] filteredRootCacheValuesToGet = rootCacheValuesToGet != null ? new RootCacheValue[objRefsToGet.Count] : null;
@@ -1443,7 +1443,7 @@ namespace De.Osthus.Ambeth.Cache
             }
         }
 
-	    protected IList<IPrivilege> GetPrivilegesByObjRefWithoutReadLock<V>(IEnumerable<V> objRefs) where V : IObjRef
+	    protected IPrivilege[] GetPrivilegesByObjRefWithoutReadLock<V>(IList<V> objRefs) where V : IObjRef
 	    {
 		    Lock readLock = ReadLock;
             LockState lockState = default(LockState);
@@ -1454,7 +1454,7 @@ namespace De.Osthus.Ambeth.Cache
 		    }
 		    try
 		    {
-			    return PrivilegeProvider.GetPrivilegesByObjRef(objRefs);
+			    return PrivilegeProvider.GetPrivilegesByObjRef(objRefs).GetPrivileges();
 		    }
 		    finally
 		    {
@@ -1487,15 +1487,15 @@ namespace De.Osthus.Ambeth.Cache
 
 	    protected IdentityHashSet<IObjRef> BuildWhiteListedObjRefs(IdentityHashSet<IObjRef> greyListObjRefs)
 	    {
-		    IObjRef[] greyListArray = greyListObjRefs.ToArray();
-		    IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet<IObjRef>.Create(greyListArray.Length);
-		    IList<IPrivilege> privileges = GetPrivilegesByObjRefWithoutReadLock(greyListObjRefs);
-		    for (int a = privileges.Count; a-- > 0;)
+			IList<IObjRef> greyList = greyListObjRefs.ToList();
+			IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet<IObjRef>.Create(greyList.Count);
+			IPrivilege[] privileges = GetPrivilegesByObjRefWithoutReadLock(greyList);
+		    for (int a = privileges.Length; a-- > 0;)
 		    {
 			    IPrivilege privilege = privileges[a];
 			    if (privilege.ReadAllowed)
 			    {
-				    whiteListObjRefs.Add(greyListArray[a]);
+					whiteListObjRefs.Add(greyList[a]);
 			    }
 		    }
 		    return whiteListObjRefs;

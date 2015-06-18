@@ -142,6 +142,11 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
 	protected void addTypeRelatedByTypes(Map<Class<?>, ISet<Class<?>>> typeRelatedByTypes, Class<?> relating, Class<?> relatedTo)
 	{
+		IEntityMetaData metaData = getMetaData(relatedTo, true);
+		if (metaData != null)
+		{
+			relatedTo = metaData.getEntityType();
+		}
 		ISet<Class<?>> relatedByTypes = typeRelatedByTypes.get(relatedTo);
 		if (relatedByTypes == null)
 		{

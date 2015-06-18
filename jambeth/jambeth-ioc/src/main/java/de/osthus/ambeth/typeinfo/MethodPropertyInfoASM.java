@@ -19,19 +19,19 @@ public class MethodPropertyInfoASM extends MethodPropertyInfo
 		this.methodAccess = methodAccess;
 		getterIndex = getter != null ? methodAccess.getIndex(getter.getName(), getter.getParameterTypes()) : -1;
 		setterIndex = setter != null ? methodAccess.getIndex(setter.getName(), setter.getParameterTypes()) : -1;
-		this.readable = getterIndex != -1;
-		this.writable = setterIndex != -1;
+		readable = getterIndex != -1;
+		writable = setterIndex != -1;
 	}
 
 	@Override
 	public void refreshAccessors(Class<?> realType)
 	{
 		super.refreshAccessors(realType);
-		this.methodAccess = MethodAccess.get(realType);
+		methodAccess = MethodAccess.get(realType);
 		getterIndex = getter != null ? methodAccess.getIndex(getter.getName(), getter.getParameterTypes()) : -1;
 		setterIndex = setter != null ? methodAccess.getIndex(setter.getName(), setter.getParameterTypes()) : -1;
-		this.readable = getterIndex != -1;
-		this.writable = setterIndex != -1;
+		readable = getterIndex != -1;
+		writable = setterIndex != -1;
 	}
 
 	@Override

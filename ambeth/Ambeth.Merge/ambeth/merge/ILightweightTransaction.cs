@@ -13,5 +13,7 @@ namespace De.Osthus.Ambeth.Merge
         R RunInLazyTransaction<R>(IResultingBackgroundWorkerDelegate<R> runnable);
 
 		void RunOnTransactionPreCommit(IBackgroundWorkerDelegate runnable);
+
+		void RunOnTransactionPostCommit(IBackgroundWorkerDelegate runnable);
     }
 }

@@ -8,7 +8,6 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
-import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 
 public class CacheFactory implements ICacheFactory
@@ -22,9 +21,6 @@ public class CacheFactory implements ICacheFactory
 
 	@Autowired
 	protected IFirstLevelCacheExtendable firstLevelCacheExtendable;
-
-	@Autowired(optional = true)
-	protected ISecurityActivation securityActivation;
 
 	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
@@ -53,7 +49,11 @@ public class CacheFactory implements ICacheFactory
 	@Override
 	public IDisposableCache create(CacheFactoryDirective cacheFactoryDirective, String name)
 	{
-		return createIntern(cacheFactoryDirective, !securityActive || !securityActivation.isFilterActivated(), false, null, name);
+		if (!securityActive)
+		{
+			return createPrivileged(cacheFactoryDirective, name);
+		}
+		return createIntern(cacheFactoryDirective, false, false, null, name);
 	}
 
 	@Override
@@ -65,7 +65,11 @@ public class CacheFactory implements ICacheFactory
 	@Override
 	public IDisposableCache create(CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, Boolean useWeakEntries, String name)
 	{
-		return createIntern(cacheFactoryDirective, !securityActive || !securityActivation.isFilterActivated(), foreignThreadAware, useWeakEntries, name);
+		if (!securityActive)
+		{
+			return createPrivileged(cacheFactoryDirective, foreignThreadAware, useWeakEntries, name);
+		}
+		return createIntern(cacheFactoryDirective, false, foreignThreadAware, useWeakEntries, name);
 	}
 
 	@Override

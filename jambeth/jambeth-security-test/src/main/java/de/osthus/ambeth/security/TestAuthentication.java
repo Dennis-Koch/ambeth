@@ -13,5 +13,5 @@ public @interface TestAuthentication
 
 	String password();
 
-	String scope() default "defaultScope";
+	String scope() default StringSecurityScope.DEFAULT_SCOPE_NAME;
 }

@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.ListIterator;
 
+import de.osthus.ambeth.util.IImmutableType;
 import de.osthus.ambeth.util.IPrintable;
 
 /**
@@ -25,7 +26,7 @@ import de.osthus.ambeth.util.IPrintable;
  * @param <V>
  *            Typ der Liste
  */
-public class EmptyList<V> implements IList<V>, IPrintable
+public class EmptyList<V> implements IList<V>, IPrintable, IImmutableType
 {
 	@SuppressWarnings("rawtypes")
 	static final ListIterator emptyIter = new ListIterator()
