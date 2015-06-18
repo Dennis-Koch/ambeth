@@ -9,7 +9,10 @@ public final class PersistenceJdbcConfigurationConstants
 	@ConfigurationConstantDescription("TODO")
 	public static final String AdditionalConnectionModules = "jdbc.connection.modules";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * Whether the recyclebin contents should be removed during startup in databases which support them (e.g. Oracle 10g/11g).Valid values are "true" and
+	 * "false", default is "false".
+	 */
 	public static final String DatabaseAutoCleanupRecycleBin = "database.autocleanup.recyclebin";
 
 	@ConfigurationConstantDescription("TODO")
@@ -39,25 +42,39 @@ public final class PersistenceJdbcConfigurationConstants
 	@ConfigurationConstantDescription("TODO")
 	public static final String DatabaseLocalSchemaFile = "database.local.schema";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * The algorithm to calculate checksums for database entries.
+	 */
 	public static final String DatabaseChecksumAlgorithm = "database.checksum.algorithm";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * The URL to the database connection, e.g. "jdbc:oracle:thin:@127.0.0.1:1521:SID".
+	 */
 	public static final String DatabaseConnection = "database.connection";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * The host of the database. Only evaluated if database.connection is not set.
+	 */
 	public static final String DatabaseHost = "database.host";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * The port of the database. Only evaluated if database.connection is not set.
+	 */
 	public static final String DatabasePort = "database.port";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * The protocol of the database. Only evaluated if database.connection is not set.
+	 */
 	public static final String DatabaseProtocol = "database.protocol";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * The name of the database. Only evaluated if database.connection is not set.
+	 */
 	public static final String DatabaseName = "database.name";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * The name of the schema database schema to use. If multiple schemas can be addressed all schema names have to be separated by semicolons.
+	 */
 	public static final String DatabaseSchemaName = "database.schema.name";
 
 	@ConfigurationConstantDescription("TODO")
@@ -81,13 +98,18 @@ public final class PersistenceJdbcConfigurationConstants
 	@ConfigurationConstantDescription("TODO")
 	public static final String JdbcLogExceptionActive = "jdbc.logexception.active";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * Whether ambeth should use an integrated connection factory or connections are provided by data sources. If true, Ambeth will create its own database
+	 * connection, otherwise they are managed by the data source. Valid values are "true" and "false", default is "true".
+	 */
 	public static final String IntegratedConnectionFactory = "database.connection.factory";
 
 	@ConfigurationConstantDescription("TODO")
 	public static final String IntegratedConnectionPool = "database.connection.pool";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * Whether to use strict behavior for database connections. Valid values are "true" and "false", default is "false".
+	 */
 	public static final String DatabaseBehaviourStrict = "database.behaviour.strict";
 
 	@ConfigurationConstantDescription("TODO")
