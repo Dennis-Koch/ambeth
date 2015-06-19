@@ -78,16 +78,16 @@ The IoC container handles the declared dependencies for all defined service bean
 
 \begin{itemize}
 	\item \textbf{Field Injection}: Dependencies can be set via reflection directly into the field. So it is not necessary to implement a setter, interface or parametrized constructor. Fields for injection are typed to the class or interface the required service is autowired to and are annotated with \type{@Autowired} (see \prettyref{annotation:Autowired}). Since field injection needs no setters or null checks the implementations are less bulky and better readable.
-	\item \textbf{Setter Injection}: The dependencies of a bean injected by calling a setter method of the dependent bean. This means the bean needs one setter fore each of its dependencies. Also there should be a null check for every dependency in the \type{afterPropertiesSet()} life-cycle method. It is the ``old'' way of DI in \AMBETH.
+	\item \textbf{Setter Injection}: The dependencies of a bean are injected by calling a setter method of the dependent bean. This means the bean needs one setter for each of its dependencies. Also there should be a null check for every dependency in the \type{afterPropertiesSet()} life-cycle method. It is the ``old'' way of DI in \AMBETH.
 \end{itemize}	
 
 \AMBETH{} does not support constructor injection nor does it support interface injection. Constructor injection does not solve the cyclic dependency problem and produces unreadable code with a lot of injections necessary in one function signature. Interface injection is not flexible enough because it needs one specific interface per required service to be implemented by the depending bean. Also this leads to unreadable class signatures and unnecessary setters. Interface injection is needed in environments where it is not possible or desired to work with reflection.
 
 \subsection{IoC (Inversion of Control Container)}
-The most central part of the \AMBETH{} Framework is an IoC container. While there are other frameworks implementing a similar functionality there are some reasons not to use these frameworks but implement a new solution within the \AMBETH{} Framework:
+The most central part of the \AMBETH{} Framework is the IoC container. While there are other frameworks implementing a similar functionality there are some reasons not to use these frameworks but implement a new solution within the \AMBETH{} Framework:
 
 \begin{itemize}
-	\item exactly the same code and API in C\# and Java
+	\item exactly the same API and code in C\# and Java
 	\item outstanding extensibility
 	\item excellent performance
 	\item flexible integration of other \AMBETH{} modules
