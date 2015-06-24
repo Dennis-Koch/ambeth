@@ -41,7 +41,7 @@ namespace De.Osthus.Ambeth.Config
 
         public static void LoadBootstrapPropertyFile()
 	    {
-		    Console.WriteLine("Looking for environment property '" + UtilConfigurationConstants.BootstrapPropertyFile + "'...");
+		    Console.WriteLine("Ambeth is looking for environment property '" + UtilConfigurationConstants.BootstrapPropertyFile + "'...");
 		    String bootstrapPropertyFile = Application.GetString(UtilConfigurationConstants.BootstrapPropertyFile);
             if (bootstrapPropertyFile == null)
             {
@@ -49,14 +49,14 @@ namespace De.Osthus.Ambeth.Config
             }
 		    if (bootstrapPropertyFile != null)
 		    {
-			    Console.WriteLine("Environment property '" + UtilConfigurationConstants.BootstrapPropertyFile + "' found with value '" + bootstrapPropertyFile
+			    Console.WriteLine("  Environment property '" + UtilConfigurationConstants.BootstrapPropertyFile + "' found with value '" + bootstrapPropertyFile
 					    + "'");
 			    Application.Load(bootstrapPropertyFile, false);
-			    Console.WriteLine("External property file '" + bootstrapPropertyFile + "' successfully loaded");
+			    Console.WriteLine("  External property file '" + bootstrapPropertyFile + "' successfully loaded");
 		    }
 		    else
 		    {
-                Console.WriteLine("No Environment property '" + UtilConfigurationConstants.BootstrapPropertyFile
+                Console.WriteLine("  No Environment property '" + UtilConfigurationConstants.BootstrapPropertyFile
 					    + "' found. Skipping search for external bootstrap properties");
 		    }
 	    }

@@ -2,7 +2,19 @@
 \section{FactoryBean}
 \label{feature:FactoryBean}
 \ClearAPI
-\TODO
 
-This type of bean controls the instantiation of another bean and Ambeth uses the another bean to resolve dependencies and inject it to others. The container controls both the factory bean and the created bean but the factory bean will not be visible or injectable to the application. A Factory Bean is defined just by implementing the interface IFactoryBean. By implementing the method "getObject" the developer can control how to create the wanted bean.
+This type of bean controls the instantiation of another bean and \AMBETH{} uses the factory bean to aquire an instance of the real bean and inject it where needed. The container controls only the life-cycle of the factory bean. The created bean is not processed by the container in any way. A Factory Bean is defined just by implementing the interface \type{IFactoryBean}. It is autowired to the interface or class of the beans it produces.
 
+There are multiple scenarios where a factory bean can be used:
+
+\begin{itemize}
+	\item The life-cycle of a bean is controlled outside of the container, e.g. a database connection provided by an application server.
+	\item Instances of the bean should not be shared. In this case the factory creates a new instance for every call to the \type{getObject()} method.
+	\item The bean has a complex instantiation process and/or no parameter-less constructor.
+\end{itemize}
+
+\subsection{Usage}
+
+To create a FactoryBean you have to write a factory service and implement \type{IFactoryBean}. In the \type{getObject()} method you manage the creation of the bean you want to manage with this factory. Depending on the use-case you create or retrieve an instance of your bean and return it.
+
+You then autowire the FactoryBean to the interface or class of your managed bean (the factory does not need to implement the interface or class for this). Ambeth manages the voodoo magic in the background so that when an instance of your bean is needed the \type{getObject()} method of your factory is called.
