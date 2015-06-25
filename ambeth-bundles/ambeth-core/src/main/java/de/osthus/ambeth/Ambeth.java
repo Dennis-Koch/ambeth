@@ -193,12 +193,15 @@ public class Ambeth implements IAmbethConfiguration, IAmbethApplication
 
 		scanForModules();
 
+		final IAmbethApplication ambethApplication = this;
 		IServiceContext frameworkContext = rootContext.createService(new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
 		{
 
 			@Override
 			public void invoke(IBeanContextFactory beanContextFactory) throws Throwable
 			{
+				beanContextFactory.registerExternalBean(ambethApplication).autowireable(IAmbethApplication.class);
+
 				for (Entry<Class<?>, Object> autowiring : autowiredInstances)
 				{
 					Class<?> typeToPublish = autowiring.getKey();
