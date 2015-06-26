@@ -173,17 +173,27 @@ public class LogPreparedStatementInterceptor extends LogStatementInterceptor imp
 			sb.append("((?:[^\\?]*\\?){");
 			sb.append(index - 1); // PSTM param indices are 1-based
 			sb.append("}[^\\?]*)(\\?)(.*)");
-			Pattern pattern = Pattern.compile(sb.toString());
-
-			Matcher matcher = pattern.matcher(sql);
-			if (!matcher.matches())
+			// TODO: Code Review neede
+			try
 			{
-				return getSql();
+				Pattern pattern = Pattern.compile(sb.toString());
+
+				Matcher matcher = pattern.matcher(sql);
+				if (!matcher.matches())
+				{
+					return getSql();
+				}
+				sb.setLength(0);
+				sb.append(matcher.group(1));
+				sb.append(">>>?<<<");
+				sb.append(matcher.group(3));
 			}
-			sb.setLength(0);
-			sb.append(matcher.group(1));
-			sb.append(">>>?<<<");
-			sb.append(matcher.group(3));
+			// die silently if the regex is not applicable for "all sql"
+			catch (Throwable t)
+			{
+				log.error("Yes there is an exception, but it is just an exepction from a inspection utility, so maybe you did something wrong in your sql or you just can ignore it.");
+				log.error(t.getMessage());
+			}
 			return sb.toString();
 		}
 		finally

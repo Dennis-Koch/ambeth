@@ -3,6 +3,7 @@ package de.osthus.ambeth.merge.config;
 import de.osthus.ambeth.annotation.ConfigurationConstantDescription;
 import de.osthus.ambeth.annotation.ConfigurationConstants;
 import de.osthus.ambeth.merge.IEntityFactory;
+import de.osthus.ambeth.objectcollector.ICollectableControllerExtendable;
 
 @ConfigurationConstants
 public final class MergeConfigurationConstants
@@ -39,6 +40,14 @@ public final class MergeConfigurationConstants
 	 * If security is enabled all security relevant tasks are checked whether they are allowed by the current user.
 	 */
 	public static final String SecurityActive = "ambeth.security.active";
+	/**
+	 * Switches the object EDBL (Event Driven Business Logic) on ("true") or off ("false"). Default is "true". Business rules and validations are activated or
+	 * deactivated.
+	 * 
+	 * @see ICollectableControllerExtendable
+	 */
+	@ConfigurationConstantDescription("TODO")
+	public static final String edblActive = "ambeth.merge.edbl.active";
 
 	private MergeConfigurationConstants()
 	{

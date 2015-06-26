@@ -16,6 +16,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.ITechnicalEntityTypeExtendable;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.orm.XmlDatabaseMapper;
 import de.osthus.ambeth.typeinfo.IRelationProvider;
@@ -47,6 +48,9 @@ public class DatabaseMetaData implements IDatabaseMetaData, IConfigurableDatabas
 
 	@Autowired
 	protected ITypeInfoProvider typeInfoProvider;
+
+	@Autowired
+	protected ITechnicalEntityTypeExtendable technicalEntityTypeExtendable;
 
 	protected final HashMap<String, ITableMetaData> nameToTableDict = new HashMap<String, ITableMetaData>();
 
@@ -466,6 +470,16 @@ public class DatabaseMetaData implements IDatabaseMetaData, IConfigurableDatabas
 		ITableMetaData table = typeToTableDict.get(entityType);
 		if (table == null)
 		{
+			// fallback, maybe it is a technical entity
+			Class<?> backupEntityType = technicalEntityTypeExtendable.getEntityTypeForTechnicalEntity(entityType);
+			if (backupEntityType != null)
+			{
+				table = typeToTableDict.get(backupEntityType);
+				if (table != null)
+				{
+					return table;
+				}
+			}
 			throw new IllegalStateException("No table found for entity type '" + entityType.getName() + "'");
 		}
 		return table;

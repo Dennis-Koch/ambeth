@@ -532,4 +532,17 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>
 	{
 		throw new UnsupportedOperationException();
 	}
+
+	@Override
+	public IOperator overlaps(IOperand leftOperand, IOperand leftInterval, IOperand rightOperand, IOperand rightInterval)
+	{
+		throw new UnsupportedOperationException();
+
+	}
+
+	@Override
+	public IOperand intervalProperty(String intervalProperty, String intervalOperator, IOperand durationProperty)
+	{
+		throw new UnsupportedOperationException();
+	}
 }

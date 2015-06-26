@@ -16,4 +16,5 @@ public interface IPasswordUtil
 	void rehashPassword(char[] clearTextPassword, IPassword existingPassword);
 
 	void reencryptAllSalts(char[] newLoginSaltPassword);
+
 }

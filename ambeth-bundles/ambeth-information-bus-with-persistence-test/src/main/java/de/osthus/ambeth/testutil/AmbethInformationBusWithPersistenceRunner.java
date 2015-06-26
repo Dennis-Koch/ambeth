@@ -30,6 +30,7 @@ import org.junit.runners.model.InitializationError;
 
 import de.osthus.ambeth.annotation.IAnnotationInfo;
 import de.osthus.ambeth.appendable.AppendableStringBuilder;
+import de.osthus.ambeth.changecontroller.IChangeController;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
@@ -46,6 +47,7 @@ import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.ILoggerCache;
+import de.osthus.ambeth.merge.ChangeControllerState;
 import de.osthus.ambeth.merge.ILightweightTransaction;
 import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.model.ISecurityScope;
@@ -68,6 +70,7 @@ import de.osthus.ambeth.security.StringSecurityScope;
 import de.osthus.ambeth.security.TestAuthentication;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
+import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.NullPrintStream;
 import de.osthus.ambeth.util.setup.IDataSetup;
 import de.osthus.ambeth.util.setup.SetupModule;
@@ -576,6 +579,26 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 					statement.evaluate();
 					return;
 				}
+
+				ChangeControllerState changeControllerState = method.getAnnotation(ChangeControllerState.class);
+
+				boolean changeControllerActiveTest = false;
+				final IChangeController changeController = beanContext.getService(IChangeController.class);
+				if (changeControllerState != null)
+				{
+					if (changeController != null)
+					{
+						IConversionHelper conversionHelper = beanContext.getService(IConversionHelper.class);
+						Boolean active = conversionHelper.convertValueToType(Boolean.class, changeControllerState.active());
+						if (Boolean.TRUE.equals(active))
+						{
+							changeControllerActiveTest = true;
+						}
+					}
+
+				}
+				final boolean changeControllerActive = changeControllerActiveTest;
+
 				TestAuthentication authentication = method.getAnnotation(TestAuthentication.class);
 				if (authentication == null)
 				{
@@ -618,8 +641,25 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 					@Override
 					public Object invoke() throws Throwable
 					{
-						fStatement.evaluate();
+						if (changeControllerActive && changeController != null)
+						{
+							changeController.runWithoutEDBL(new IResultingBackgroundWorkerDelegate<Object>()
+							{
+
+								@Override
+								public Object invoke() throws Throwable
+								{
+									fStatement.evaluate();
+									return null;
+								}
+							});
+						}
+						else
+						{
+							fStatement.evaluate();
+						}
 						return null;
+
 					}
 				});
 			}

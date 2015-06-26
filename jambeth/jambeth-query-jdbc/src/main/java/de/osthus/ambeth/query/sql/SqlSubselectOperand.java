@@ -82,7 +82,7 @@ public class SqlSubselectOperand implements IOperand, IInitializingBean
 				querySB.append(',');
 			}
 			SqlColumnOperand column = selectedColumns[i];
-			querySB.append(tableAlias).append(".").append(column.columnName);
+			querySB.append(tableAlias).append(".").append('"').append(column.columnName).append('"');
 		}
 		querySB.append(" FROM ").append(tableName).append(" ").append(tableAlias);
 		if (joinSql != null && !joinSql.isEmpty())

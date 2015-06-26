@@ -544,6 +544,28 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 
 	@Override
 	@PersistenceContext(PersistenceContextType.REQUIRED)
+	public IOperand intervalProperty(String intervalProperty, String operator, IOperand durationProperty)
+	{
+
+		ParamChecker.assertNotNull(intervalProperty, "intervalProperty");
+		ParamChecker.assertNotNull(durationProperty, "operator");
+		ParamChecker.assertNotNull(durationProperty, "durationProperty");
+		try
+		{
+			IBeanRuntime<SqlIntervalOperand> br = getBeanContext().registerBean(SqlIntervalOperand.class);
+			br.propertyValue("intervalProperty", intervalProperty);
+			br.propertyValue("operator", operator);
+			br.propertyValue("durationProperty", durationProperty);
+			return br.finish();
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	@Override
+	@PersistenceContext(PersistenceContextType.REQUIRED)
 	@Deprecated
 	public IOperand column(String columnName)
 	{
@@ -990,6 +1012,28 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	}
 
 	@Override
+	public IOperator overlaps(IOperand leftOperand, IOperand leftInterval, IOperand rightOperand, IOperand rightInterval)
+	{
+		ParamChecker.assertParamNotNull(leftOperand, "leftOperand");
+		ParamChecker.assertParamNotNull(leftInterval, "leftInterval");
+		ParamChecker.assertParamNotNull(rightOperand, "rightOperand");
+		ParamChecker.assertParamNotNull(rightInterval, "rightInterval");
+		try
+		{
+			return getBeanContext().registerBean(SqlOverlapsOperator.class)//
+					.propertyValue("leftOperand", leftOperand)//
+					.propertyValue("leftInterval", leftInterval)//
+					.propertyValue("rightOperand", rightOperand)//
+					.propertyValue("rightInterval", rightInterval)//
+					.finish();
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	@Override
 	public IQueryBuilder<T> orderBy(IOperand operand, OrderByType orderByType)
 	{
 		ParamChecker.assertParamNotNull(operand, "operand");
@@ -1371,4 +1415,5 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
+
 }
