@@ -1,4 +1,4 @@
-package de.osthus.ambeth.query.ioc;
+package de.osthus.ambeth.ioc;
 
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
