@@ -24,7 +24,7 @@ public class InformationBusWithPersistence implements IBundleModule
 			FilterPersistenceModule.class, JobCron4jModule.class, MergeServerModule.class, PersistenceJdbcModule.class, PersistenceModule.class,
 			PrivilegeServerModule.class, SQLQueryModule.class, SecurityQueryModule.class, SecurityServerModule.class };
 
-	private static final Class<?>[] parentBundle = { InformationBus.class };
+	private static final Class<?>[] parentBundles = { InformationBus.class };
 
 	private static final Class<?>[] resultingBundleModules;
 
