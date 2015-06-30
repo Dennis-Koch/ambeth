@@ -40,16 +40,16 @@ mkdir "%csLibDir%" 1> nul 2> nul
 mkdir "%dataDir%" 1> nul 2> nul
 
 rem Copy all jAmbeth jars
-call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat  -f "%javaModuleDir2%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaSrcDir%" -DincludeGroupIds=de.osthus.ambeth -DexcludeTransitive=true
+call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat -o -f "%javaModuleDir2%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaSrcDir%" -DincludeGroupIds=de.osthus.ambeth -DexcludeTransitive=true
 
 rem Copy all external library jars
-call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat  -f "%javaModuleDir2%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaLibDir%" -DexcludeGroupIds=de.osthus.ambeth -DexcludeTransitive=true
+call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat -o -f "%javaModuleDir2%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaLibDir%" -DexcludeGroupIds=de.osthus.ambeth -DexcludeTransitive=true
 
 rem Copy all jAmbeth jars
-call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat  -f "%javaModuleDir%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaSrcDir%" -DincludeGroupIds=de.osthus.ambeth -DexcludeTransitive=true
+call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat -o -f "%javaModuleDir%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaSrcDir%" -DincludeGroupIds=de.osthus.ambeth -DexcludeTransitive=true
 
 rem Copy all external library jars
-call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat  -f "%javaModuleDir%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaLibDir%" -DexcludeGroupIds=de.osthus.ambeth -DexcludeTransitive=true
+call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat -o -f "%javaModuleDir%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaLibDir%" -DexcludeGroupIds=de.osthus.ambeth -DexcludeTransitive=true
 
 rem Copy all C# libs
 for /r "%csModuleDir%" %%x in (Ambeth.*.dll Ambeth.*.pdb Minerva.*.dll Minerva.*.pdb) do (
