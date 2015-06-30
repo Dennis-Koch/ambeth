@@ -69,7 +69,7 @@ set javaModules=jambeth-audit-server,jambeth-bytecode,jambeth-cache,jambeth-cach
 set csModules=Ambeth.Bytecode,Ambeth.Cache,Ambeth.Cache.Bytecode,Ambeth.CacheDataChange,Ambeth.DataChange,Ambeth.Event,Ambeth.Event.DataChange,Ambeth.Filter,Ambeth.IoC,Ambeth.Log,Ambeth.Mapping,Ambeth.Merge,Ambeth.Merge.Bytecode,Ambeth.Privilege,Ambeth.Security,Ambeth.Service,Ambeth.TestUtil,Ambeth.Util,Ambeth.Xml
 
 rem @call mvn exec:java -Dexec.mainClass="de.osthus.classbrowser.java.Program" -DjarFolders="%javaSrcDir%" -DlibraryJarFolders="%javaLibDir%" -DtargetPath="%dataDir%" -DmoduleRootPath="%javaModuleDir%"
-@call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat  exec:java -Dexec.mainClass="de.osthus.classbrowser.java.Program" -DjarFolders="%javaSrcDir%" -DlibraryJarFolders="%javaLibDir%" -DtargetPath="%dataDir%" -DmoduleRootPath="%javaModuleDir%"
+@call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat -f "%srcHome%\doc\reference-manual\pom.xml" exec:java -Dexec.mainClass="de.osthus.classbrowser.java.Program" -DjarFolders="%javaSrcDir%" -DlibraryJarFolders="%javaLibDir%" -DtargetPath="%dataDir%" -DmoduleRootPath="%javaModuleDir%"
 
 rem Create xml containing the description of the C# code
 set csClassBrowserDir=%integrityDir%\de.osthus.classbrowser.csharp\CsharpClassbrowser
