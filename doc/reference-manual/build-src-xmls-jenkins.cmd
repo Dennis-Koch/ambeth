@@ -72,7 +72,7 @@ rem @call mvn exec:java -Dexec.mainClass="de.osthus.classbrowser.java.Program" -
 @call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat  exec:java -Dexec.mainClass="de.osthus.classbrowser.java.Program" -DjarFolders="%javaSrcDir%" -DlibraryJarFolders="%javaLibDir%" -DtargetPath="%dataDir%" -DmoduleRootPath="%javaModuleDir%"
 
 rem Create xml containing the description of the C# code
-set csClassBrowserDir="%integrityDir%\de.osthus.classbrowser.csharp\CsharpClassbrowser"
+set csClassBrowserDir=%integrityDir%\de.osthus.classbrowser.csharp\CsharpClassbrowser
 
 @C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe "%csClassBrowserDir%\CsharpClassbrowser.sln" "/p:ContinueOnError=false" "/p:StopOnFirstFailure=true"
 @"%csClassBrowserDir%\CsharpClassbrowser\bin\Debug\CsharpClassbrowser.exe" -assemblyPaths="%csSrcDir%" -libraryAssemblyPaths="%csLibDir%" -targetPath="%dataDir%" -moduleRootPath="%csModuleDir%"
