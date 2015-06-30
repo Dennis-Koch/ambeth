@@ -1,7 +1,7 @@
 @echo off
 
 SETLOCAL
-IF NOT DEFINED PROJECT_HOME ( set PROJECT_HOME="%WORKSPACE%\osthus-ambeth")
+IF NOT DEFINED PROJECT_HOME ( set PROJECT_HOME="%WORKSPACE%")
 
 rem Define all needed variables
 set baseDir="%PROJECT_HOME%\doc\reference-manual\target"
