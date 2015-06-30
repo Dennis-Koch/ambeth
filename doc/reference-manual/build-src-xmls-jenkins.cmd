@@ -1,63 +1,63 @@
 @echo off
 
 SETLOCAL
-IF NOT DEFINED PROJECT_HOME ( set PROJECT_HOME=%CD%\..\..\..\..)
+IF NOT DEFINED PROJECT_HOME ( set PROJECT_HOME="%CD%\..\..\..\..")
 
 rem Define all needed variables
-set baseDir=%CD%\target
-set srcDir=%baseDir%\src
+set baseDir="%CD%\target"
+set srcDir="%baseDir%\src"
 
-set srcHome=%PROJECT_HOME%\source
-set javaSrcDir=%srcDir%\java
-set javaLibDir=%javaSrcDir%\libs
-set javaModuleDir=%srcHome%\osthus-ambeth\jambeth
-set javaModuleDir2=%srcHome%\ambeth
-set integrityDir=%srcHome%\integrity
+set srcHome="%PROJECT_HOME%\source"
+set javaSrcDir="%srcDir%\java"
+set javaLibDir="%javaSrcDir%\libs"
+set javaModuleDir="%srcHome%\osthus-ambeth\jambeth"
+set javaModuleDir2="%srcHome%\ambeth"
+set integrityDir="%srcHome%\integrity"
 
-set csSrcDir=%srcDir%\cs
-set csLibDir=%csSrcDir%\libs
-set csModuleDir=%srcHome%\osthus-ambeth\ambeth
-set csAmbethProperties=%csSrcDir%\ambeth.properties
+set csSrcDir="%srcDir%\cs"
+set csLibDir="%csSrcDir%\libs"
+set csModuleDir="%srcHome%\osthus-ambeth\ambeth"
+set csAmbethProperties="%csSrcDir%\ambeth.properties"
 set csSkipModuleScan=false
 
 set resultType=tc
-set dataDir=%baseDir%\data
+set dataDir="%baseDir%\data"
 
 
 rem If desired removed the target dir to start clean
-rmdir /s /q %baseDir% 1> nul 2> nul
+rmdir /s /q "%baseDir%" 1> nul 2> nul
 
 rem Create all needed folders if neccesary
-mkdir %baseDir% 1> nul 2> nul
-mkdir %srcDir% 1> nul 2> nul
+mkdir "%baseDir%" 1> nul 2> nul
+mkdir "%srcDir%" 1> nul 2> nul
 
-mkdir %javaSrcDir% 1> nul 2> nul
-mkdir %javaLibDir% 1> nul 2> nul
+mkdir "%javaSrcDir%" 1> nul 2> nul
+mkdir "%javaLibDir%" 1> nul 2> nul
 
-mkdir %csSrcDir% 1> nul 2> nul
-mkdir %csLibDir% 1> nul 2> nul
+mkdir "%csSrcDir%" 1> nul 2> nul
+mkdir "%csLibDir%" 1> nul 2> nul
 
-mkdir %dataDir% 1> nul 2> nul
-
-rem Copy all jAmbeth jars
-call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat  -f %javaModuleDir2%\pom.xml dependency:copy-dependencies -DoutputDirectory=%javaSrcDir% -DincludeGroupIds=de.osthus.ambeth
-
-rem Copy all external library jars
-call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat  -f %javaModuleDir2%\pom.xml dependency:copy-dependencies -DoutputDirectory=%javaLibDir% -DexcludeGroupIds=de.osthus.ambeth
+mkdir "%dataDir%" 1> nul 2> nul
 
 rem Copy all jAmbeth jars
-call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat  -f %javaModuleDir%\pom.xml dependency:copy-dependencies -DoutputDirectory=%javaSrcDir% -DincludeGroupIds=de.osthus.ambeth
+call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat  -f "%javaModuleDir2%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaSrcDir%" -DincludeGroupIds=de.osthus.ambeth
 
 rem Copy all external library jars
-call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat  -f %javaModuleDir%\pom.xml dependency:copy-dependencies -DoutputDirectory=%javaLibDir% -DexcludeGroupIds=de.osthus.ambeth
+call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat  -f "%javaModuleDir2%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaLibDir%" -DexcludeGroupIds=de.osthus.ambeth
+
+rem Copy all jAmbeth jars
+call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat  -f "%javaModuleDir%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaSrcDir%" -DincludeGroupIds=de.osthus.ambeth
+
+rem Copy all external library jars
+call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat  -f "%javaModuleDir%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaLibDir%" -DexcludeGroupIds=de.osthus.ambeth
 
 rem Copy all C# libs
-for /r %csModuleDir% %%x in (Ambeth.*.dll Ambeth.*.pdb Minerva.*.dll Minerva.*.pdb) do (
+for /r "%csModuleDir%" %%x in (Ambeth.*.dll Ambeth.*.pdb Minerva.*.dll Minerva.*.pdb) do (
   copy "%%x" "%csSrcDir%\" > nul
 )
 
-del %csSrcDir%\*.SL*.dll
-del %csSrcDir%\*.SL*.pdb
+del "%csSrcDir%\*.SL*.dll"
+del "%csSrcDir%\*.SL*.pdb"
 
 rem Copy all external library libs
 xcopy "%csModuleDir%\Ambeth.Util\libs\*.dll" "%csLibDir%" /I /Y > nul
@@ -72,7 +72,7 @@ rem @call mvn exec:java -Dexec.mainClass="de.osthus.classbrowser.java.Program" -
 @call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat  exec:java -Dexec.mainClass="de.osthus.classbrowser.java.Program" -DjarFolders="%javaSrcDir%" -DlibraryJarFolders="%javaLibDir%" -DtargetPath="%dataDir%" -DmoduleRootPath="%javaModuleDir%"
 
 rem Create xml containing the description of the C# code
-set csClassBrowserDir=%integrityDir%\de.osthus.classbrowser.csharp\CsharpClassbrowser
+set csClassBrowserDir="%integrityDir%\de.osthus.classbrowser.csharp\CsharpClassbrowser"
 
 @C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe "%csClassBrowserDir%\CsharpClassbrowser.sln" "/p:ContinueOnError=false" "/p:StopOnFirstFailure=true"
 @"%csClassBrowserDir%\CsharpClassbrowser\bin\Debug\CsharpClassbrowser.exe" -assemblyPaths="%csSrcDir%" -libraryAssemblyPaths="%csLibDir%" -targetPath="%dataDir%" -moduleRootPath="%csModuleDir%"
