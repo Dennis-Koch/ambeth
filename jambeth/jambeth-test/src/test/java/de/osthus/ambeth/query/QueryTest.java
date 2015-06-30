@@ -31,6 +31,7 @@ import de.osthus.ambeth.filter.model.PagingRequest;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.exception.BeanAlreadyDisposedException;
 import de.osthus.ambeth.merge.IMergeProcess;
+import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.AbstractEntity;
 import de.osthus.ambeth.persistence.IDataCursor;
 import de.osthus.ambeth.persistence.IDataItem;
@@ -501,7 +502,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest
 	{
 		List<Integer> expectedIds = Arrays.asList(new Integer[] { 1, 2, 3, 4, 5, 6 });
 
-		qb.orderBy(qb.property("Name1"), OrderByType.ASC);
+		qb.orderBy(qb.property("Id"), OrderByType.ASC);
 		IQuery<QueryEntity> queryAsc = qb.build(qb.all());
 		qb = queryBuilderFactory.create(QueryEntity.class);
 		qb.orderBy(qb.property("Id"), OrderByType.DESC);
@@ -543,6 +544,50 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest
 		{
 			assertEquals((int) expected.get(i), actual.get(i).getId());
 		}
+	}
+
+	/**
+	 * Written to reproduce bug ticket https://jira.osthus.de/browse/AMBETH-498<br>
+	 * The column of the alternate key is selected two times (once as AK and once for the 'orderBy').
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void retrievePagingAllOrderedByAK() throws Exception
+	{
+		List<Integer> expectedIds = Arrays.asList(new Integer[] { 2, 1, 5, 6, 3, 4 });
+
+		qb.orderBy(qb.property("Name1"), OrderByType.ASC);
+		IPagingQuery<QueryEntity> pagingQuery = qb.buildPaging(qb.all());
+
+		PagingRequest pagingRequest = new PagingRequest();
+		pagingRequest.setNumber(0);
+		pagingRequest.setSize(expectedIds.size());
+
+		IPagingResponse<QueryEntity> pagingResponse = pagingQuery.retrieveRefs(pagingRequest);
+		assertEquals(pagingRequest.getSize(), pagingResponse.getSize());
+
+		List<IObjRef> refResult = pagingResponse.getRefResult();
+		assertEquals(pagingRequest.getSize(), refResult.size());
+	}
+
+	@Test
+	public void retrievePagingAllOrderedByNotSelected() throws Exception
+	{
+		List<Integer> expectedIds = Arrays.asList(new Integer[] { 2, 1, 5, 6, 3, 4 });
+
+		qb.orderBy(qb.property("Name2"), OrderByType.ASC);
+		IPagingQuery<QueryEntity> pagingQuery = qb.buildPaging(qb.all());
+
+		PagingRequest pagingRequest = new PagingRequest();
+		pagingRequest.setNumber(0);
+		pagingRequest.setSize(expectedIds.size());
+
+		IPagingResponse<QueryEntity> pagingResponse = pagingQuery.retrieveRefs(pagingRequest);
+		assertEquals(pagingRequest.getSize(), pagingResponse.getSize());
+
+		List<IObjRef> refResult = pagingResponse.getRefResult();
+		assertEquals(pagingRequest.getSize(), refResult.size());
 	}
 
 	@SuppressWarnings("deprecation")

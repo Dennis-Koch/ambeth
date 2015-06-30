@@ -482,6 +482,7 @@ public class SqlTable extends Table
 			if (retrieveAlternateIds)
 			{
 				IFieldMetaData[] alternateIdFields = metaData.getAlternateIdFields();
+				int akCount = 0;
 				for (int a = alternateIdFields.length; a-- > 0;)
 				{
 					IFieldMetaData field = alternateIdFields[a];
@@ -496,7 +497,15 @@ public class SqlTable extends Table
 					{
 						selectSB.append(tableAlias).append(".");
 					}
-					sqlBuilder.appendName(field.getName(), selectSB);
+					String fieldName = field.getName();
+					sqlBuilder.appendName(fieldName, selectSB);
+
+					// To fix ticket https://jira.osthus.de/browse/AMBETH-498
+					// When ordering by an AK it is selected twice. So one needs an alias.
+					if (additionalSelectColumnList.contains("\"" + fieldName + "\""))
+					{
+						selectSB.append(" AS AK").append(Integer.toString(akCount));
+					}
 				}
 			}
 			ResultSetPkVersionCursor versionCursor = retrieveAlternateIds ? new ResultSetVersionCursor() : new ResultSetPkVersionCursor();

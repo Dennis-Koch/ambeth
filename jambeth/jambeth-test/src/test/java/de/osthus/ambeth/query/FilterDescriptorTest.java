@@ -115,6 +115,28 @@ public class FilterDescriptorTest extends AbstractInformationBusWithPersistenceT
 	}
 
 	@Test
+	public void retrievePagingWithEmptyResult() throws Exception
+	{
+		IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
+
+		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<QueryEntity>(QueryEntity.class);
+		fd.setOperator(FilterOperator.IS_IN);
+		fd.setMember("Id");
+		fd.withValue("-1");
+
+		PagingRequest pReq = new PagingRequest();
+		pReq.setNumber(0);
+		pReq.setSize(5);
+
+		IPagingQuery<QueryEntity> pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[0]);
+
+		IPagingResponse<QueryEntity> response = pagingQuery.retrieve(pReq);
+		List<QueryEntity> result = response.getResult();
+
+		Assert.assertEquals(0, result.size());
+	}
+
+	@Test
 	public void retrieveIsIn() throws Exception
 	{
 		IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
