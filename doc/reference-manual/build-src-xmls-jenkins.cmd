@@ -25,7 +25,7 @@ set dataDir=%baseDir%\data
 
 
 rem If desired removed the target dir to start clean
-rmdir /s /q "%baseDir%" 1> nul 2> nul
+rem rmdir /s /q "%baseDir%" 1> nul 2> nul
 
 rem Create all needed folders if neccesary
 mkdir "%baseDir%" 1> nul 2> nul
@@ -40,16 +40,16 @@ mkdir "%csLibDir%" 1> nul 2> nul
 mkdir "%dataDir%" 1> nul 2> nul
 
 rem Copy all jAmbeth jars
-call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat -o -Dmaven.repo.local=C:/.m2/repository -f "%javaModuleDir2%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaSrcDir%" -DincludeGroupIds=de.osthus.ambeth -DexcludeTransitive=true
+rem call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat -o -Dmaven.repo.local=C:/.m2/repository -f "%javaModuleDir2%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaSrcDir%" -DincludeGroupIds=de.osthus.ambeth -DexcludeTransitive=true
 
 rem Copy all external library jars
-call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat -o -Dmaven.repo.local=C:/.m2/repository -f "%javaModuleDir2%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaLibDir%" -DexcludeGroupIds=de.osthus.ambeth -DexcludeTransitive=true
+rem call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat -o -Dmaven.repo.local=C:/.m2/repository -f "%javaModuleDir2%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaLibDir%" -DexcludeGroupIds=de.osthus.ambeth -DexcludeTransitive=true
 
 rem Copy all jAmbeth jars
-call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat -o -Dmaven.repo.local=C:/.m2/repository -f "%javaModuleDir%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaSrcDir%" -DincludeGroupIds=de.osthus.ambeth -DexcludeTransitive=true
+rem call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat -o -Dmaven.repo.local=C:/.m2/repository -f "%javaModuleDir%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaSrcDir%" -DincludeGroupIds=de.osthus.ambeth -DexcludeTransitive=true
 
 rem Copy all external library jars
-call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat -o -Dmaven.repo.local=C:/.m2/repository -f "%javaModuleDir%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaLibDir%" -DexcludeGroupIds=de.osthus.ambeth -DexcludeTransitive=true
+rem call D:\jenkins\tools\hudson.tasks.Maven_MavenInstallation\Maven3\bin\mvn.bat -o -Dmaven.repo.local=C:/.m2/repository -f "%javaModuleDir%\pom.xml" dependency:copy-dependencies -DoutputDirectory="%javaLibDir%" -DexcludeGroupIds=de.osthus.ambeth -DexcludeTransitive=true
 
 rem Copy all C# libs
 for /r "%csModuleDir%" %%x in (Ambeth.*.dll Ambeth.*.pdb Minerva.*.dll Minerva.*.pdb) do (
