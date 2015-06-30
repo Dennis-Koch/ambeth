@@ -7,7 +7,7 @@ rem Define all needed variables
 set baseDir="%CD%\target"
 set srcDir="%baseDir%\src"
 
-set srcHome="%PROJECT_HOME%"
+set srcHome="%PROJECT_HOME%\osthus-ambeth"
 set javaSrcDir="%srcDir%\java"
 set javaLibDir="%javaSrcDir%\libs"
 set javaModuleDir="%srcHome%\osthus-ambeth\jambeth"
