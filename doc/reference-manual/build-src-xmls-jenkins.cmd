@@ -1,13 +1,13 @@
 @echo off
 
 SETLOCAL
-IF NOT DEFINED PROJECT_HOME ( set PROJECT_HOME="%CD%")
+IF NOT DEFINED PROJECT_HOME ( set PROJECT_HOME="%WORKSPACE%\osthus-ambeth")
 
 rem Define all needed variables
-set baseDir="%CD%\target"
+set baseDir="%PROJECT_HOME%\doc\reference-manual\target"
 set srcDir="%baseDir%\src"
 
-set srcHome="%PROJECT_HOME%\osthus-ambeth"
+set srcHome="%PROJECT_HOME%"
 set javaSrcDir="%srcDir%\java"
 set javaLibDir="%javaSrcDir%\libs"
 set javaModuleDir="%srcHome%\osthus-ambeth\jambeth"
