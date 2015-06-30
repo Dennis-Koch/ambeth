@@ -1,27 +1,27 @@
 @echo off
 
 SETLOCAL
-IF NOT DEFINED PROJECT_HOME ( set PROJECT_HOME="%WORKSPACE%")
+IF NOT DEFINED PROJECT_HOME ( set PROJECT_HOME=%WORKSPACE%)
 
 rem Define all needed variables
-set baseDir="%PROJECT_HOME%\doc\reference-manual\target"
-set srcDir="%baseDir%\src"
+set baseDir=%PROJECT_HOME%\doc\reference-manual\target
+set srcDir=%baseDir%\src
 
-set srcHome="%PROJECT_HOME%"
-set javaSrcDir="%srcDir%\java"
-set javaLibDir="%javaSrcDir%\libs"
-set javaModuleDir="%srcHome%\osthus-ambeth\jambeth"
-set javaModuleDir2="%srcHome%\ambeth"
-set integrityDir="%srcHome%\integrity"
+set srcHome=%PROJECT_HOME%
+set javaSrcDir=%srcDir%\java
+set javaLibDir=%javaSrcDir%\libs
+set javaModuleDir=%srcHome%\osthus-ambeth\jambeth
+set javaModuleDir2=%srcHome%\ambeth
+set integrityDir=%srcHome%\integrity
 
-set csSrcDir="%srcDir%\cs"
-set csLibDir="%csSrcDir%\libs"
-set csModuleDir="%srcHome%\osthus-ambeth\ambeth"
-set csAmbethProperties="%csSrcDir%\ambeth.properties"
+set csSrcDir=%srcDir%\cs
+set csLibDir=%csSrcDir%\libs
+set csModuleDir=%srcHome%\osthus-ambeth\ambeth
+set csAmbethProperties=%csSrcDir%\ambeth.properties
 set csSkipModuleScan=false
 
 set resultType=tc
-set dataDir="%baseDir%\data"
+set dataDir=%baseDir%\data
 
 
 rem If desired removed the target dir to start clean
