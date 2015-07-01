@@ -315,7 +315,7 @@ namespace De.Osthus.Ambeth.Config
                 {
                     continue;
                 }
-				if (value == null]
+				if (value == null)
 				{
 					value = "";
 				}
