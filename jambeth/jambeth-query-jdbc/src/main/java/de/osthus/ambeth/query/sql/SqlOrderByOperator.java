@@ -82,7 +82,9 @@ public class SqlOrderByOperator implements IOperator, IInitializingBean
 			try
 			{
 				column.expandQuery(sb, nameToValueMap, joinQuery, parameters);
-				if (!ignoredColumnNamesPattern.matcher(sb).matches())
+				// JH 2015-07-01: To fix https://jira.osthus.de/browse/AMBETH-495
+				String columnName = sb.toString();
+				if (!ignoredColumnNamesPattern.matcher(sb).matches() || !columnName.startsWith("S_"))
 				{
 					additionalSelectColumnList.add(sb.toString());
 				}
