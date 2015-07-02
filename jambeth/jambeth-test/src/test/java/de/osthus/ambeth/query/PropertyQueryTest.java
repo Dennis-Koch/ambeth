@@ -16,10 +16,12 @@ import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
+import de.osthus.ambeth.testutil.TestPropertiesList;
 
 @SQLData("PropertyQuery_data.sql")
 @SQLStructure("PropertyQuery_structure.sql")
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/Query_orm.xml")
+@TestPropertiesList({ @TestProperties(name = "ambeth.log.level.de.osthus.ambeth.persistence.jdbc.connection.LogPreparedStatementInterceptor", value = "DEBUG"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/Query_orm.xml") })
 public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest
 {
 	protected static final String paramName1 = "param.1";
@@ -138,9 +140,9 @@ public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest
 		List<Integer> expectedIds = Arrays.asList(1, 4);
 
 		// Query used:
-		// SELECT DISTINCT S_A."ID",S_A."VERSION" FROM "QUERY_ENTITY" S_A
-		// LEFT OUTER JOIN "JOIN_QUERY_ENTITY" J_A ON (S_A."FK"=J_A."ID")
-		// WHERE (J_A."JOIN_VALUE_1"=?)
+		// SELECT DISTINCT S_A."ID",S_A."VERSION" FROM "JAMBETH"."QUERY_ENTITY" S_A
+		// LEFT OUTER JOIN "JAMBETH"."JOIN_QUERY_ENTITY" J_A ON (S_A."FK"=J_A."ID")
+		// WHERE (J_A."CONTENT"=?)
 
 		IQuery<QueryEntity> query = qb.build(qb.isEqualTo(qb.property(propertyName3), qb.valueName(paramName1)));
 

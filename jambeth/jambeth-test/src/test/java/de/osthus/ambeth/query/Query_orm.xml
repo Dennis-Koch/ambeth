@@ -8,7 +8,6 @@
 		<entity class="de.osthus.ambeth.query.JoinQueryEntity">
 			<attributes>
 				<relation name="Parent" link="LINK_JQE_JQE_FK1" this="left" />
-				<basic name="JoinValue1" column="CONTENT" />
 			</attributes>
 		</entity>
 
