@@ -5,6 +5,7 @@ import java.io.IOException;
 import javax.servlet.ServletContext;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -12,9 +13,17 @@ import de.osthus.ambeth.bundle.Core;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.start.IAmbethApplication;
 import de.osthus.ambeth.start.ServletConfiguratonExtension;
+import de.osthus.ambeth.testutil.BundleTestUtil;
 
-public class AmbethTest
+public class AmbethServerTest
 {
+	// On the CI server the 'property.file' value is relative to the normal tests. The bundle tests have a different parent folder.
+	@BeforeClass
+	public static void beforeClass() throws IOException
+	{
+		BundleTestUtil.correctPropertyFilePath();
+	}
+
 	@Test
 	public void testWithServletConfig() throws IOException
 	{

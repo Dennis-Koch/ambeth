@@ -9,6 +9,7 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.ioc.BootstrapScannerModule;
 import de.osthus.ambeth.ioc.XmlModule;
@@ -19,6 +20,7 @@ import de.osthus.ambeth.merge.transfer.EntityMetaDataTransfer;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.testutil.AbstractInformationBusTest;
 import de.osthus.ambeth.testutil.TestModule;
+import de.osthus.ambeth.testutil.category.ReminderTests;
 import de.osthus.ambeth.xml.transfer.TestEnum;
 import de.osthus.ambeth.xml.transfer.TestXmlObject;
 
@@ -149,6 +151,7 @@ public class CyclicXmlWriterTest extends AbstractInformationBusTest
 	}
 
 	// FIXME Fails due to new bytecode enhancement features. When constructing an ObjRef now the metadata for the entity are checked.
+	@Category(ReminderTests.class)
 	@Test
 	public void writeObjRefs()
 	{
