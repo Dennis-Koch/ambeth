@@ -38,6 +38,7 @@ import de.osthus.ambeth.persistence.IDataItem;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IVersionCursor;
+import de.osthus.ambeth.persistence.IVersionItem;
 import de.osthus.ambeth.proxy.PersistenceContext;
 import de.osthus.ambeth.proxy.PersistenceContextType;
 import de.osthus.ambeth.query.config.QueryConfigurationConstants;
@@ -555,7 +556,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest
 	@Test
 	public void retrievePagingAllOrderedByAK() throws Exception
 	{
-		List<Integer> expectedIds = Arrays.asList(new Integer[] { 2, 1, 5, 6, 3, 4 });
+		List<Integer> expectedIds = Arrays.asList(2, 1, 5, 6, 3, 4);
 
 		qb.orderBy(qb.property("Name1"), OrderByType.ASC);
 		IPagingQuery<QueryEntity> pagingQuery = qb.buildPaging(qb.all());
@@ -571,23 +572,37 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest
 		assertEquals(pagingRequest.getSize(), refResult.size());
 	}
 
+	@PersistenceContext
 	@Test
-	public void retrievePagingAllOrderedByNotSelected() throws Exception
+	public void retrieveAllOrderedByNotSelectedChildProp() throws Exception
 	{
-		List<Integer> expectedIds = Arrays.asList(new Integer[] { 2, 1, 5, 6, 3, 4 });
+		List<Integer> expectedIds = Arrays.asList(3, 6, 4, 1, 5, 2);
 
-		qb.orderBy(qb.property("Name2"), OrderByType.ASC);
-		IPagingQuery<QueryEntity> pagingQuery = qb.buildPaging(qb.all());
+		// Query used:
+		// SELECT DISTINCT S_A."ID",S_A."VERSION",S_A."NAME1",J_A."ID" FROM "JAMBETH"."QUERY_ENTITY" S_A
+		// LEFT OUTER JOIN "JAMBETH"."JOIN_QUERY_ENTITY" J_A ON (S_A."FK"=J_A."ID")
+		// ORDER BY J_A."ID" ASC
 
-		PagingRequest pagingRequest = new PagingRequest();
-		pagingRequest.setNumber(0);
-		pagingRequest.setSize(expectedIds.size());
+		qb.orderBy(qb.property("Fk.Id"), OrderByType.ASC);
+		IQuery<QueryEntity> query = qb.build(qb.all());
 
-		IPagingResponse<QueryEntity> pagingResponse = pagingQuery.retrieveRefs(pagingRequest);
-		assertEquals(pagingRequest.getSize(), pagingResponse.getSize());
-
-		List<IObjRef> refResult = pagingResponse.getRefResult();
-		assertEquals(pagingRequest.getSize(), refResult.size());
+		IVersionCursor versionCursor = query.retrieveAsVersions(true);
+		try
+		{
+			int index = 0;
+			while (versionCursor.moveNext())
+			{
+				IVersionItem current = versionCursor.getCurrent();
+				Integer currentId = conversionHelper.convertValueToType(Integer.class, current.getId());
+				Integer expectedId = expectedIds.get(index++);
+				Assert.assertEquals(expectedId, currentId);
+			}
+			Assert.assertEquals(expectedIds.size(), index);
+		}
+		finally
+		{
+			versionCursor.dispose();
+		}
 	}
 
 	@SuppressWarnings("deprecation")
