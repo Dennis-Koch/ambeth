@@ -10,18 +10,18 @@
 		<groupId>de.osthus</groupId>
 		<artifactId>osthus-pom</artifactId>
 		<version>0.0.35</version>
-	</parent>	
+	</parent>
 
 	<properties>
 		<jambeth.project.test>jambeth-test</jambeth.project.test>
 		<jambeth.path.test>../${jambeth.project.test}</jambeth.path.test>
 	</properties>
-	
-	<scm>		
+
+	<scm>
 		<connection>scm:git:https://framework.allotrope.org/osthus-extensions/osthus-ambeth.git</connection>
 		<developerConnection>scm:git:https://framework.allotrope.org/osthus-extensions/osthus-ambeth.git</developerConnection>
 		<url>https://framework.allotrope.org/osthus-extensions/osthus-ambeth.git</url>
-	</scm>	
+	</scm>
 
 	<modules>
 		<module>jambeth-audit</module>
@@ -147,7 +147,7 @@
 				<artifactId>jambeth-audit</artifactId>
 				<version>${project.version}</version>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-audit-server</artifactId>
@@ -231,7 +231,7 @@
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-chemspider</artifactId>
@@ -243,7 +243,7 @@
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-chemspider-service</artifactId>
@@ -273,7 +273,7 @@
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-dot</artifactId>
@@ -501,7 +501,7 @@
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-persistence-mssql</artifactId>
@@ -525,7 +525,7 @@
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-persistence-pg</artifactId>
@@ -734,6 +734,17 @@
 			<!-- BUNDLES -->
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-core-test</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-information-bus</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -747,7 +758,6 @@
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-information-bus-with-persistence</artifactId>
 				<version>${project.version}</version>
-				<type>pom</type>
 			</dependency>
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
@@ -759,26 +769,22 @@
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-server</artifactId>
 				<version>${project.version}</version>
-				<type>pom</type>
 			</dependency>
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-server-test</artifactId>
 				<version>${project.version}</version>
-				<type>pom</type>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-server-with-persistence</artifactId>
 				<version>${project.version}</version>
-				<type>pom</type>
 			</dependency>
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-server-with-persistence-test</artifactId>
 				<version>${project.version}</version>
-				<type>pom</type>
 				<scope>test</scope>
 			</dependency>
 		</dependencies>

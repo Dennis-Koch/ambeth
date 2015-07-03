@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
@@ -18,11 +19,13 @@ public class JDBCResultSet implements IResultSet, IInitializingBean, IDisposable
 
 	protected ResultSet resultSet;
 
-	protected Object[] values;
-
 	protected String sql;
 
 	protected ISensor sensor;
+
+	protected Object[] values;
+
+	protected boolean[] isClob;
 
 	@Override
 	public void afterPropertiesSet()
@@ -34,6 +37,13 @@ public class JDBCResultSet implements IResultSet, IInitializingBean, IDisposable
 			ResultSetMetaData rsMetaData = resultSet.getMetaData();
 			int numberOfColumns = rsMetaData.getColumnCount();
 			values = new Object[numberOfColumns];
+			isClob = new boolean[numberOfColumns];
+
+			for (int i = 0; i < numberOfColumns; i++)
+			{
+				int columnType = rsMetaData.getColumnType(i + 1);
+				isClob[i] = columnType == Types.CLOB;
+			}
 		}
 		catch (SQLException e)
 		{
@@ -110,7 +120,14 @@ public class JDBCResultSet implements IResultSet, IInitializingBean, IDisposable
 			}
 			for (int a = values.length; a-- > 0;)
 			{
-				values[a] = resultSet.getObject(a + 1);
+				if (!isClob[a])
+				{
+					values[a] = resultSet.getObject(a + 1);
+				}
+				else
+				{
+					values[a] = resultSet.getClob(a + 1);
+				}
 			}
 			return true;
 		}

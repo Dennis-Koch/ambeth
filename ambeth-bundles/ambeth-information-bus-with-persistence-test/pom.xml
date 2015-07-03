@@ -13,7 +13,6 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-information-bus-with-persistence</artifactId>
-			<type>pom</type>
 			<scope>provided</scope>
 		</dependency>
 

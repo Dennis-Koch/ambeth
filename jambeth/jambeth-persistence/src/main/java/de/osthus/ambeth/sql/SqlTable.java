@@ -366,6 +366,7 @@ public class SqlTable extends Table
 
 			if (retrieveAlternateIds)
 			{
+				int akCount = 0;
 				IFieldMetaData[] alternateIdFields = metaData.getAlternateIdFields();
 				for (int a = 0; a < alternateIdFields.length; a++)
 				{
@@ -391,6 +392,13 @@ public class SqlTable extends Table
 						selectSB.append(tableAlias).append(".");
 					}
 					sqlBuilder.appendName(fieldName, selectSB);
+
+					// JH To fix ticket https://jira.osthus.de/browse/AMBETH-498
+					// When ordering by an AK it is selected twice. So one needs an alias.
+					if (additionalSelectColumnList.contains("\"" + fieldName + "\""))
+					{
+						selectSB.append(" AS AK").append(Integer.toString(akCount++));
+					}
 				}
 			}
 			if (additionalSelectColumnSet != null && additionalSelectColumnSet.size() > 0)
@@ -403,17 +411,19 @@ public class SqlTable extends Table
 					{
 						selectSB.append(schemaAndTableName[0]).append('.');
 					}
+					// JH 2015-04-28: Field names have to be escaped. Fields from orderBy are processed here.
 					sqlBuilder.appendName(schemaAndTableName[1], selectSB);
-					// JH 2015-04-28: Field names have to be escaped. Field from orderBy are processed here.
-					// selectSB.append(',').append(additionalFieldName);
-					// selectSB.append(',').append(sqlBuilder.escapeName(additionalFieldName));
 				}
 			}
+
+			String fqTableName = getMetaData().getFullqualifiedEscapedName();
+			IResultSet selectResult = sqlConnection.selectFields(fqTableName, selectSB, joinSql, whereSql, orderBySql, limitSql, parameters, tableAlias);
+
 			ResultSetPkVersionCursor versionCursor = retrieveAlternateIds ? new ResultSetVersionCursor() : new ResultSetPkVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
-			versionCursor.setResultSet(sqlConnection.selectFields(getMetaData().getFullqualifiedEscapedName(), selectSB.toString(), joinSql, whereSql,
-					orderBySql, limitSql, parameters, tableAlias));
+			versionCursor.setResultSet(selectResult);
 			versionCursor.afterPropertiesSet();
+
 			return versionCursor;
 		}
 		finally
@@ -482,6 +492,7 @@ public class SqlTable extends Table
 			if (retrieveAlternateIds)
 			{
 				IFieldMetaData[] alternateIdFields = metaData.getAlternateIdFields();
+				int akCount = 0;
 				for (int a = alternateIdFields.length; a-- > 0;)
 				{
 					IFieldMetaData field = alternateIdFields[a];
@@ -496,14 +507,27 @@ public class SqlTable extends Table
 					{
 						selectSB.append(tableAlias).append(".");
 					}
-					sqlBuilder.appendName(field.getName(), selectSB);
+					String fieldName = field.getName();
+					sqlBuilder.appendName(fieldName, selectSB);
+
+					// To fix ticket https://jira.osthus.de/browse/AMBETH-498
+					// When ordering by an AK it is selected twice. So one needs an alias.
+					if (additionalSelectColumnList.contains("\"" + fieldName + "\""))
+					{
+						selectSB.append(" AS AK").append(Integer.toString(akCount++));
+					}
 				}
 			}
+
+			String fqTableName = getMetaData().getFullqualifiedEscapedName();
+			IResultSet selectResult = sqlConnection.selectFields(fqTableName, selectSB, joinSql, whereSql, additionalSelectColumnList, orderBySql, limitSql,
+					offset, length, parameters, tableAlias);
+
 			ResultSetPkVersionCursor versionCursor = retrieveAlternateIds ? new ResultSetVersionCursor() : new ResultSetPkVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
-			versionCursor.setResultSet(sqlConnection.selectFields(getMetaData().getFullqualifiedEscapedName(), selectSB, joinSql, whereSql,
-					additionalSelectColumnList, orderBySql, limitSql, offset, length, parameters, tableAlias));
+			versionCursor.setResultSet(selectResult);
 			versionCursor.afterPropertiesSet();
+
 			return versionCursor;
 		}
 		finally

@@ -31,12 +31,14 @@ import de.osthus.ambeth.filter.model.PagingRequest;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.exception.BeanAlreadyDisposedException;
 import de.osthus.ambeth.merge.IMergeProcess;
+import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.AbstractEntity;
 import de.osthus.ambeth.persistence.IDataCursor;
 import de.osthus.ambeth.persistence.IDataItem;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IVersionCursor;
+import de.osthus.ambeth.persistence.IVersionItem;
 import de.osthus.ambeth.proxy.PersistenceContext;
 import de.osthus.ambeth.proxy.PersistenceContextType;
 import de.osthus.ambeth.query.config.QueryConfigurationConstants;
@@ -320,15 +322,13 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest
 		return updatedOn;
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void retrieveAll() throws Exception
 	{
 		List<Integer> expected = Arrays.asList(1, 2, 3, 4, 5, 6);
 
 		IQuery<QueryEntity> query = qb.build();
-		IQueryKey queryKey = query.getQueryKey(nameToValueMap);
-		List<QueryEntity> actual = query.retrieve(nameToValueMap);
+		List<QueryEntity> actual = query.retrieve();
 		assertSimilar(expected, actual);
 	}
 
@@ -501,7 +501,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest
 	{
 		List<Integer> expectedIds = Arrays.asList(new Integer[] { 1, 2, 3, 4, 5, 6 });
 
-		qb.orderBy(qb.property("Name1"), OrderByType.ASC);
+		qb.orderBy(qb.property("Id"), OrderByType.ASC);
 		IQuery<QueryEntity> queryAsc = qb.build(qb.all());
 		qb = queryBuilderFactory.create(QueryEntity.class);
 		qb.orderBy(qb.property("Id"), OrderByType.DESC);
@@ -545,25 +545,75 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest
 		}
 	}
 
-	@SuppressWarnings("deprecation")
+	/**
+	 * Written to reproduce bug ticket https://jira.osthus.de/browse/AMBETH-498<br>
+	 * The column of the alternate key is selected two times (once as AK and once for the 'orderBy').
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void retrievePagingAllOrderedByAK() throws Exception
+	{
+		List<Integer> expectedIds = Arrays.asList(2, 1, 5, 6, 3, 4);
+
+		qb.orderBy(qb.property("Name1"), OrderByType.ASC);
+		IPagingQuery<QueryEntity> pagingQuery = qb.buildPaging(qb.all());
+
+		PagingRequest pagingRequest = new PagingRequest();
+		pagingRequest.setNumber(0);
+		pagingRequest.setSize(expectedIds.size());
+
+		IPagingResponse<QueryEntity> pagingResponse = pagingQuery.retrieveRefs(pagingRequest);
+		assertEquals(pagingRequest.getSize(), pagingResponse.getSize());
+
+		List<IObjRef> refResult = pagingResponse.getRefResult();
+		assertEquals(pagingRequest.getSize(), refResult.size());
+	}
+
+	@PersistenceContext
+	@Test
+	public void retrieveAllOrderedByNotSelectedChildProp() throws Exception
+	{
+		List<Integer> expectedIds = Arrays.asList(3, 6, 4, 1, 5, 2);
+
+		// Query used:
+		// SELECT DISTINCT S_A."ID",S_A."VERSION",S_A."NAME1",J_A."ID" FROM "JAMBETH"."QUERY_ENTITY" S_A
+		// LEFT OUTER JOIN "JAMBETH"."JOIN_QUERY_ENTITY" J_A ON (S_A."FK"=J_A."ID")
+		// ORDER BY J_A."ID" ASC
+
+		qb.orderBy(qb.property("Fk.Id"), OrderByType.ASC);
+		IQuery<QueryEntity> query = qb.build(qb.all());
+
+		IVersionCursor versionCursor = query.retrieveAsVersions(true);
+		try
+		{
+			int index = 0;
+			while (versionCursor.moveNext())
+			{
+				IVersionItem current = versionCursor.getCurrent();
+				Integer currentId = conversionHelper.convertValueToType(Integer.class, current.getId());
+				Integer expectedId = expectedIds.get(index++);
+				Assert.assertEquals(expectedId, currentId);
+			}
+			Assert.assertEquals(expectedIds.size(), index);
+		}
+		finally
+		{
+			versionCursor.dispose();
+		}
+	}
+
 	@Test
 	public void testJoinQuery() throws Exception
 	{
 		List<Integer> expectedIds = Arrays.asList(1, 4);
 
 		// Query used:
-		// SELECT "QUERY_ENTITY"."ID","QUERY_ENTITY"."VERSION" FROM "QUERY_ENTITY"
-		// LEFT OUTER JOIN "JOIN_QUERY_ENTITY" ON ("QUERY_ENTITY"."FK"="JOIN_QUERY_ENTITY"."ID")
-		// WHERE ("JOIN_QUERY_ENTITY"."VERSION"=3)
+		// SELECT DISTINCT S_A."ID",S_A."VERSION",S_A."NAME1" FROM "JAMBETH"."QUERY_ENTITY"
+		// S_A LEFT OUTER JOIN "JAMBETH"."JOIN_QUERY_ENTITY" J_A ON (S_A."FK"=J_A."ID")
+		// WHERE (J_A."VERSION"=?)
 
-		IOperand fkA = qb.property(propertyName3); // FIXME produces a wrong operand
-		IOperand idB = qb.column(columnName1);
-		ISqlJoin joinClause = qb.join(JoinQueryEntity.class, fkA, idB, JoinType.LEFT);
-
-		IOperand verB = qb.column(columnName2, joinClause);
-		IOperand whereClause = qb.isEqualTo(verB, qb.valueName(paramName1));
-
-		IQuery<QueryEntity> query = qb.build(whereClause, joinClause);
+		IQuery<QueryEntity> query = qb.build(qb.isEqualTo(qb.property("Fk.Version"), qb.valueName(paramName1)));
 
 		List<QueryEntity> actual = query.param(paramName1, 3).retrieve();
 		assertSimilar(expectedIds, actual);

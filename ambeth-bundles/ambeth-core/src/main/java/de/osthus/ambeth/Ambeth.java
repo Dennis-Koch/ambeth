@@ -7,7 +7,6 @@ import java.util.Map.Entry;
 import de.osthus.ambeth.bundle.IBundleModule;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
-import de.osthus.ambeth.config.CoreConfigurationConstants;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -17,15 +16,11 @@ import de.osthus.ambeth.ioc.annotation.BootstrapModule;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
-import de.osthus.ambeth.start.CoreClasspathScanner;
+import de.osthus.ambeth.start.ConfigurableClasspathScanner;
 import de.osthus.ambeth.start.IAmbethApplication;
 import de.osthus.ambeth.start.IAmbethConfiguration;
 import de.osthus.ambeth.start.IAmbethConfigurationExtension;
-import de.osthus.ambeth.start.IClasspathInfo;
-import de.osthus.ambeth.start.SystemClasspathInfo;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
-import de.osthus.ambeth.util.IClasspathScanner;
-import de.osthus.ambeth.util.IConversionHelper;
 
 public class Ambeth implements IAmbethConfiguration, IAmbethApplication
 {
@@ -198,12 +193,15 @@ public class Ambeth implements IAmbethConfiguration, IAmbethApplication
 
 		scanForModules();
 
+		final IAmbethApplication ambethApplication = this;
 		IServiceContext frameworkContext = rootContext.createService(new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
 		{
 
 			@Override
 			public void invoke(IBeanContextFactory beanContextFactory) throws Throwable
 			{
+				beanContextFactory.registerExternalBean(ambethApplication).autowireable(IAmbethApplication.class);
+
 				for (Entry<Class<?>, Object> autowiring : autowiredInstances)
 				{
 					Class<?> typeToPublish = autowiring.getKey();
@@ -267,32 +265,10 @@ public class Ambeth implements IAmbethConfiguration, IAmbethApplication
 			return;
 		}
 
-		IServiceContext rootContext = this.rootContext;
-
-		final Class<?> classpathScannerClass = getConfiguredType(CoreConfigurationConstants.ClasspathScannerClass, CoreClasspathScanner.class.getName());
-		final Class<?> classpathInfoClass = getConfiguredType(CoreConfigurationConstants.ClasspathInfoClass, SystemClasspathInfo.class.getName());
-
-		IServiceContext scannerContext = rootContext.createService(new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
-		{
-
-			@Override
-			public void invoke(IBeanContextFactory beanContextFactory) throws Throwable
-			{
-				beanContextFactory.registerBean(classpathScannerClass).autowireable(IClasspathScanner.class);
-				beanContextFactory.registerBean(classpathInfoClass).autowireable(IClasspathInfo.class);
-
-				for (Entry<Class<?>, Object> autowiring : autowiredInstances)
-				{
-					Class<?> typeToPublish = autowiring.getKey();
-					Object externalBean = autowiring.getValue();
-					beanContextFactory.registerExternalBean(externalBean).autowireable(typeToPublish);
-				}
-			}
-		});
+		ConfigurableClasspathScanner classpathScanner = rootContext.registerBean(ConfigurableClasspathScanner.class)
+				.propertyValue("AutowiredInstances", autowiredInstances).finish();
 		try
 		{
-			IClasspathScanner classpathScanner = scannerContext.getService(IClasspathScanner.class);
-
 			if (scanForAmbethModules)
 			{
 				List<Class<?>> ambethModules = classpathScanner.scanClassesAnnotatedWith(FrameworkModule.class);
@@ -307,19 +283,7 @@ public class Ambeth implements IAmbethConfiguration, IAmbethApplication
 		}
 		finally
 		{
-			scannerContext.dispose();
+			classpathScanner.dispose();
 		}
-	}
-
-	protected Class<?> getConfiguredType(String propertyName, String defaulValue)
-	{
-		IServiceContext rootContext = this.rootContext;
-		IProperties properties = rootContext.getService(IProperties.class);
-		IConversionHelper conversionHelper = rootContext.getService(IConversionHelper.class);
-
-		String classpathScannerClassName = properties.getString(propertyName, defaulValue);
-		Class<?> classpathScannerClass = conversionHelper.convertValueToType(Class.class, classpathScannerClassName);
-
-		return classpathScannerClass;
 	}
 }

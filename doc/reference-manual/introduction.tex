@@ -7,16 +7,16 @@ of a C\# UI / Server project. After a while the source code was translated into 
 
 This document covers the Ambeth framework. The usage of components as well as the fundamental ideas and patterns, used in Ambeth are explained.
 
-As you can imaging, while taking a first look at the table of contents, the framework is very huge and the process of writing documentation is still an ongoing task. Please do not step back if you encounter \TODO parts in this document. If you need answers to this sections, just ask the technology@osthus.de team! We love to here your feedback.
+As you can imaging, while taking a first look at the table of contents, the framework is very huge and the process of writing documentation is still an ongoing task. Please do not step back if you encounter \TODO parts in this document. If you need answers to this sections, just ask the technology@osthus.de team! We love to hear your feedback.
 
 \section{The manual}
 This document is separated into 5 sections. The sections are described in the next chapters.
 \subsection{Modules}
 
 The \prettyref{ambeth:modules} are parts of Ambeth that can be bundled together to deliver a certain kind of functionality. There is of course a dependency between those module and 
-just using a single module won't work in the most cases. The dependencies between those modules are managed with \prettyref{stack:maven}. To support faster setting up your environment the
+just using a single module will not work in most cases. The dependencies between those modules are managed with \prettyref{stack:maven}. To support faster setting up your environment the
 necessary Maven dependency snippets are provided for every module for easy usage. For questions about Maven, please refer to the \prettyref{stack:maven} chapter of this manual.
-To even speed up the usage of Ambeth, so called "`ambeth-bundles"' are provided. For further questions please see the \prettyref{stack:bundles}.
+To even speed up the usage of Ambeth, so called ``ambeth-bundles'' are provided. For further questions please see the \prettyref{stack:bundles}.
 An example for a module is the \prettyref{module:Audit} module. Use this module if you need full \prettyref{regulations:21CFRPart11} Title 21 CFR Part 11 audit support for your application.
 
 \def\showimgref{img/platform-overview.png}
@@ -102,7 +102,7 @@ The Ambeth Framework speeds up software development by allowing programmers to f
 \subsection{Features}
 \subsubsection{Platform Independence}
 
-The Ambeth core is based on few open-source libraries that have proven to be stable, e.g. Apache CgLib and OW2 ASM for byte code-manipulation to provide generic functionality without reducing runtime-performance or processing throughput in any way. Ambeth provides reference implementations for common basic as well as high-level features. The framework provides consistent abstraction layers on top of exchangeable technical implementation modules for different environments. This reduces the overall complexity of integration and allows developers to focus on project specific coding of  business logic needs.
+The Ambeth core is based on few open-source libraries that have proven to be stable, e.g. Apache CgLib and OW2 ASM for byte code-manipulation to provide generic functionality without reducing runtime-performance or processing throughput in any way. Ambeth provides reference implementations for common basic as well as high-level features. The framework provides consistent abstraction layers on top of exchangeable technical implementation modules for different environments. This reduces the overall complexity of integration and allows developers to focus on project specific coding of business logic needs.
 
 \subsubsection{List of features}
 
@@ -119,4 +119,18 @@ The Ambeth core is based on few open-source libraries that have proven to be sta
 	\item Approved and versioned stack of compatible open-source libraries
 \end{itemize}
 
+\section{Use Case Reference}
 
+The following chapters provide a reference from a specified use case to the corresponding features/classes/modules provided by \AMBETH.
+
+\subsection{Starting an \AMBETH Context -- The Hello World Application}
+
+\TODO Unbedingt ueberpruefen, was ich(MW) hier geschrieben habe!
+
+To use any feature of \AMBETH you need create a ``context'' in which the different modules (see \prettyref{ambeth:modules}) are available. A context can be created as described in \prettyref{module:IoC}. Alternatively the \type{de.osthus.ambeth.Ambeth} class can be used. 
+
+\subsection{Inversion of Control -- Dependency Injection}
+
+In short, a dependency injection is that a dependency (service) is added to client's state by defining the type of the service. In other words, in your class you introduce a class variable and request that \AMBETH finds (an implementation of) the given type, instantiates an object, and sets the variable to point to this object.
+
+The IoC Container, one of \AMBETH's central modules, is dedicated to this task. See \prettyref{module:IoC} for further information. 
