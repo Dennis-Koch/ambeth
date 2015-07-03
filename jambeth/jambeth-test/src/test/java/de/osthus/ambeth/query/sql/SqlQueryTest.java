@@ -49,8 +49,17 @@ public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest
 	protected String paramName1 = "param.1";
 	protected String paramName2 = "param.2";
 
+	protected String columnId = "ID";
+	protected String columnVersion = "VERSION";
 	protected String columnName1 = "NAME1";
 	protected String columnName2 = "NAME2";
+	protected String columnContent = "CONTENT";
+
+	protected String propertyId = "Id";
+	protected String propertyVersion = "Version";
+	protected String propertyName1 = "Name1";
+	protected String propertyName2 = "Name2";
+	protected String propertyContent = "Content";
 
 	@Before
 	public void setUp() throws Exception
@@ -110,36 +119,33 @@ public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest
 		return query.fillQuery(nameToValueMap, parameters);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void testDirectValue() throws Exception
 	{
 		Object value1 = new Integer(55);
 
-		IOperand rootOperand = qb.isEqualTo(qb.column(columnName1), qb.value(value1));
+		IOperand rootOperand = qb.isEqualTo(qb.property(propertyName1), qb.value(value1));
 		String queryString = buildQuery(rootOperand);
 		Assert.assertEquals("Wrong query string", "(\"" + columnName1 + "\"=?)", queryString);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void simpleSimpleValue() throws Exception
 	{
 		Object value1 = new Integer(55);
 
-		IOperand rootOperand = qb.isEqualTo(qb.column(columnName1), qb.valueName(paramName1));
+		IOperand rootOperand = qb.isEqualTo(qb.property(propertyId), qb.valueName(paramName1));
 		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
-		Assert.assertEquals(value1, parameters.get(0));
-		Assert.assertEquals("Wrong query string", "(\"" + columnName1 + "\"=?)", queryString);
+		Assert.assertEquals(value1, conversionHelper.convertValueToType(Integer.class, parameters.get(0)));
+		Assert.assertEquals("Wrong query string", "(\"" + columnId + "\"=?)", queryString);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void escapeString() throws Exception
 	{
 		Object value1 = "testValue";
 
-		IOperand rootOperand = qb.isEqualTo(qb.column(columnName1), qb.valueName(paramName1));
+		IOperand rootOperand = qb.isEqualTo(qb.property(propertyName1), qb.valueName(paramName1));
 		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
 		Assert.assertEquals(value1, parameters.get(0));
 		Assert.assertEquals("Wrong query string", "(\"" + columnName1 + "\"=?)", queryString);
@@ -242,28 +248,26 @@ public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest
 		Assert.assertEquals("Wrong query string", "(\"" + columnName1 + "\"=?)", queryString);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void sqlIsGreaterThan() throws Exception
 	{
 		Object value1 = new Double(55);
 
-		IOperand rootOperand = qb.isGreaterThan(qb.column(columnName1), qb.valueName(paramName1));
+		IOperand rootOperand = qb.isGreaterThan(qb.property(propertyContent), qb.valueName(paramName1));
 		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
-		Assert.assertEquals(value1, parameters.get(0));
-		Assert.assertEquals("Wrong query string", "(\"" + columnName1 + "\">?)", queryString);
+		Assert.assertEquals(value1, conversionHelper.convertValueToType(Double.class, parameters.get(0)));
+		Assert.assertEquals("Wrong query string", "(\"" + columnContent + "\">?)", queryString);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void sqlIsGreaterThanOrEqualTo() throws Exception
 	{
-		Object value1 = new Float(55);
+		Object value1 = new Double(55);
 
-		IOperand rootOperand = qb.isGreaterThanOrEqualTo(qb.column(columnName1), qb.valueName(paramName1));
+		IOperand rootOperand = qb.isGreaterThanOrEqualTo(qb.property(propertyContent), qb.valueName(paramName1));
 		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
 		Assert.assertEquals(value1, parameters.get(0));
-		Assert.assertEquals("Wrong query string", "(\"" + columnName1 + "\">=?)", queryString);
+		Assert.assertEquals("Wrong query string", "(\"" + columnContent + "\">=?)", queryString);
 	}
 
 	@SuppressWarnings("deprecation")
@@ -292,28 +296,26 @@ public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest
 		Assert.assertEquals("Wrong query string", "(LOWER(\"" + columnName1 + "\") IN (LOWER(?)))", queryString);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void sqlIsLessThan() throws Exception
 	{
 		Object value1 = new Short((short) 55);
 
-		IOperand rootOperand = qb.isLessThan(qb.column(columnName1), qb.valueName(paramName1));
+		IOperand rootOperand = qb.isLessThan(qb.property(propertyId), qb.valueName(paramName1));
 		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
-		Assert.assertEquals(value1, parameters.get(0));
-		Assert.assertEquals("Wrong query string", "(\"" + columnName1 + "\"<?)", queryString);
+		Assert.assertEquals(value1, conversionHelper.convertValueToType(Short.class, parameters.get(0)));
+		Assert.assertEquals("Wrong query string", "(\"" + columnId + "\"<?)", queryString);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void sqlIsLessThanOrEqualTo() throws Exception
 	{
 		Object value1 = new Integer(55);
 
-		IOperand rootOperand = qb.isLessThanOrEqualTo(qb.column(columnName1), qb.valueName(paramName1));
+		IOperand rootOperand = qb.isLessThanOrEqualTo(qb.property(propertyId), qb.valueName(paramName1));
 		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
-		Assert.assertEquals(value1, parameters.get(0));
-		Assert.assertEquals("Wrong query string", "(\"" + columnName1 + "\"<=?)", queryString);
+		Assert.assertEquals(value1, conversionHelper.convertValueToType(Integer.class, parameters.get(0)));
+		Assert.assertEquals("Wrong query string", "(\"" + columnId + "\"<=?)", queryString);
 	}
 
 	@SuppressWarnings("deprecation")
@@ -340,38 +342,35 @@ public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest
 		Assert.assertEquals("Wrong query string", "(LOWER(\"" + columnName1 + "\") NOT LIKE LOWER(?) ESCAPE '\\')", queryString);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void sqlIsNotEqualTo() throws Exception
 	{
 		Object value1 = new Integer(55);
 
-		IOperand rootOperand = qb.isNotEqualTo(qb.column(columnName1), qb.valueName(paramName1));
+		IOperand rootOperand = qb.isNotEqualTo(qb.property(propertyId), qb.valueName(paramName1));
 		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
-		Assert.assertEquals(value1, parameters.get(0));
-		Assert.assertEquals("Wrong query string", "(\"" + columnName1 + "\"<>?)", queryString);
+		Assert.assertEquals(value1, conversionHelper.convertValueToType(Integer.class, parameters.get(0)));
+		Assert.assertEquals("Wrong query string", "(\"" + columnId + "\"<>?)", queryString);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void sqlIsNotIn() throws Exception
 	{
 		Object value1 = new Integer(55);
 
-		IOperand rootOperand = qb.isNotIn(qb.column(columnName1), qb.valueName(paramName1));
+		IOperand rootOperand = qb.isNotIn(qb.property(propertyId), qb.valueName(paramName1));
 		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
 		Assert.assertEquals(1, parameters.size());
-		Assert.assertEquals(value1, parameters.get(0));
-		Assert.assertEquals("Wrong query string", "(\"" + columnName1 + "\" NOT IN (?))", queryString);
+		Assert.assertEquals(value1, conversionHelper.convertValueToType(Integer.class, parameters.get(0)));
+		Assert.assertEquals("Wrong query string", "(\"" + columnId + "\" NOT IN (?))", queryString);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void sqlIsNotInIS() throws Exception
 	{
 		Object value1 = new Integer(55);
 
-		IOperand rootOperand = qb.isNotIn(qb.column(columnName1), qb.valueName(paramName1), Boolean.FALSE);
+		IOperand rootOperand = qb.isNotIn(qb.property(propertyName1), qb.valueName(paramName1), Boolean.FALSE);
 		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
 		Assert.assertEquals(1, parameters.size());
 		Assert.assertEquals(value1, parameters.get(0));
@@ -483,34 +482,32 @@ public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest
 		Assert.assertEquals("Wrong query string", "(\"" + columnName1 + "\" NOT LIKE ? ESCAPE '\\')", queryString);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void sqlOr() throws Exception
 	{
 		Object value1 = new Integer(55);
 		Object value2 = new Integer(77);
 
-		IOperand rootOperand = qb.or(qb.isEqualTo(qb.column(columnName1), qb.valueName(paramName1)),
-				qb.isEqualTo(qb.column(columnName2), qb.valueName(paramName2)));
+		IOperand rootOperand = qb.or(qb.isEqualTo(qb.property(propertyId), qb.valueName(paramName1)),
+				qb.isEqualTo(qb.property(propertyVersion), qb.valueName(paramName2)));
 		String queryString = buildCompositeQuery(paramName1, value1, paramName2, value2, rootOperand, parameters);
-		Assert.assertEquals(value1, parameters.get(0));
-		Assert.assertEquals(value2, parameters.get(1));
-		Assert.assertEquals("Wrong query string", "((\"" + columnName1 + "\"=?) OR (\"" + columnName2 + "\"=?))", queryString);
+		Assert.assertEquals(value1, conversionHelper.convertValueToType(Integer.class, parameters.get(0)));
+		Assert.assertEquals(value2, conversionHelper.convertValueToType(Integer.class, parameters.get(1)));
+		Assert.assertEquals("Wrong query string", "((\"" + columnId + "\"=?) OR (\"" + columnVersion + "\"=?))", queryString);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void sqlAnd() throws Exception
 	{
 		Object value1 = new Integer(55);
 		Object value2 = new Integer(77);
 
-		IOperand rootOperand = qb.and(qb.isEqualTo(qb.column(columnName1), qb.valueName(paramName1)),
-				qb.isEqualTo(qb.column(columnName2), qb.valueName(paramName2)));
+		IOperand rootOperand = qb.and(qb.isEqualTo(qb.property(propertyId), qb.valueName(paramName1)),
+				qb.isEqualTo(qb.property(propertyVersion), qb.valueName(paramName2)));
 		String queryString = buildCompositeQuery(paramName1, value1, paramName2, value2, rootOperand, parameters);
-		Assert.assertEquals(value1, parameters.get(0));
-		Assert.assertEquals(value2, parameters.get(1));
-		Assert.assertEquals("Wrong query string", "((\"" + columnName1 + "\"=?) AND (\"" + columnName2 + "\"=?))", queryString);
+		Assert.assertEquals(value1, conversionHelper.convertValueToType(Integer.class, parameters.get(0)));
+		Assert.assertEquals(value2, conversionHelper.convertValueToType(Integer.class, parameters.get(1)));
+		Assert.assertEquals("Wrong query string", "((\"" + columnId + "\"=?) AND (\"" + columnVersion + "\"=?))", queryString);
 	}
 
 	@SuppressWarnings("deprecation")
