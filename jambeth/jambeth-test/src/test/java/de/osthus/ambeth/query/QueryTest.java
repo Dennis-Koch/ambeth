@@ -322,15 +322,13 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest
 		return updatedOn;
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void retrieveAll() throws Exception
 	{
 		List<Integer> expected = Arrays.asList(1, 2, 3, 4, 5, 6);
 
 		IQuery<QueryEntity> query = qb.build();
-		IQueryKey queryKey = query.getQueryKey(nameToValueMap);
-		List<QueryEntity> actual = query.retrieve(nameToValueMap);
+		List<QueryEntity> actual = query.retrieve();
 		assertSimilar(expected, actual);
 	}
 
@@ -605,25 +603,17 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void testJoinQuery() throws Exception
 	{
 		List<Integer> expectedIds = Arrays.asList(1, 4);
 
 		// Query used:
-		// SELECT "QUERY_ENTITY"."ID","QUERY_ENTITY"."VERSION" FROM "QUERY_ENTITY"
-		// LEFT OUTER JOIN "JOIN_QUERY_ENTITY" ON ("QUERY_ENTITY"."FK"="JOIN_QUERY_ENTITY"."ID")
-		// WHERE ("JOIN_QUERY_ENTITY"."VERSION"=3)
+		// SELECT DISTINCT S_A."ID",S_A."VERSION",S_A."NAME1" FROM "JAMBETH"."QUERY_ENTITY"
+		// S_A LEFT OUTER JOIN "JAMBETH"."JOIN_QUERY_ENTITY" J_A ON (S_A."FK"=J_A."ID")
+		// WHERE (J_A."VERSION"=?)
 
-		IOperand fkA = qb.property(propertyName3); // FIXME produces a wrong operand
-		IOperand idB = qb.column(columnName1);
-		ISqlJoin joinClause = qb.join(JoinQueryEntity.class, fkA, idB, JoinType.LEFT);
-
-		IOperand verB = qb.column(columnName2, joinClause);
-		IOperand whereClause = qb.isEqualTo(verB, qb.valueName(paramName1));
-
-		IQuery<QueryEntity> query = qb.build(whereClause, joinClause);
+		IQuery<QueryEntity> query = qb.build(qb.isEqualTo(qb.property("Fk.Version"), qb.valueName(paramName1)));
 
 		List<QueryEntity> actual = query.param(paramName1, 3).retrieve();
 		assertSimilar(expectedIds, actual);
