@@ -13,6 +13,7 @@ import javax.persistence.PersistenceException;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.query.IOperand;
 
 public interface IConnectionDialect
 {
@@ -40,7 +41,7 @@ public interface IConnectionDialect
 
 	void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException;
 
-	String getRegexpLikeFunctionName();
+	IOperand getRegexpLikeFunction(IOperand sourceString, IOperand pattern, IOperand matchParameter);
 
 	int getResourceBusyErrorCode();
 

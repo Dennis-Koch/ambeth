@@ -1,4 +1,4 @@
-package de.osthus.ambeth.query.sql;
+package de.osthus.ambeth.pg;
 
 import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.IList;
@@ -10,7 +10,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.query.IOperand;
 
-public class SqlRegexpLikeOperand implements IOperand
+public class PgSqlRegexpLikeOperand implements IOperand
 {
 	@LogInstance
 	private ILogger log;
@@ -30,15 +30,15 @@ public class SqlRegexpLikeOperand implements IOperand
 	@Override
 	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
 	{
-		querySB.append(connectionDialect.getRegexpLikeFunctionName()).append('(');
+		querySB.append('(');
 		sourceString.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
-		querySB.append(',');
-		pattern.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
+		querySB.append(" ~");
 		if (matchParameter != null)
 		{
-			querySB.append(',');
 			matchParameter.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 		}
+		querySB.append(' ');
+		pattern.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 		querySB.append(')');
 	}
 }
