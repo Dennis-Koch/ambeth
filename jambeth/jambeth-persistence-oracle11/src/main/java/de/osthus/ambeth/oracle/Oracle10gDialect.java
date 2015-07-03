@@ -114,9 +114,6 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	@Autowired(optional = true)
 	protected ITransactionState transactionState;
 
-	@Property(name = PersistenceConfigurationConstants.ExternalTransactionManager, defaultValue = "false")
-	protected boolean externalTransactionManager;
-
 	@Override
 	protected Class<?> getDriverType()
 	{
