@@ -39,5 +39,5 @@ public final class IocConfigurationConstants
 	 * Allows Ambeth to transparently fork several algorithms to reduce execution time. This is very beneficial e.g. for large JDBC SELECT usecases or Ambeth
 	 * Entity Prefetch logic. Valid values: "true" or "false". Default is "true". is "false".
 	 */
-	public static final String TransparentParallelizationActive = "ambeth.transparent.parallel.active";;
+	public static final String TransparentParallelizationActive = "ambeth.transparent.parallel.active";
 }
