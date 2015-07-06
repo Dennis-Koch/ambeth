@@ -9,8 +9,8 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.BootstrapScannerModule;
 import de.osthus.ambeth.ioc.XmlModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -19,8 +19,9 @@ import de.osthus.ambeth.merge.transfer.CUDResult;
 import de.osthus.ambeth.merge.transfer.EntityMetaDataTransfer;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.testutil.AbstractInformationBusTest;
+import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.TestModule;
-import de.osthus.ambeth.testutil.category.ReminderTests;
+import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.xml.transfer.TestEnum;
 import de.osthus.ambeth.xml.transfer.TestXmlObject;
 
@@ -150,44 +151,46 @@ public class CyclicXmlWriterTest extends AbstractInformationBusTest
 		Assert.assertEquals("Wrong xml", XmlTestConstants.XmlOutput[6], xml);
 	}
 
-	// FIXME Fails due to new bytecode enhancement features. When constructing an ObjRef now the metadata for the entity are checked.
-	@Category(ReminderTests.class)
+	@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/xml/xml_orm.xml")
+	@SQLData("xml_data.sql")
 	@Test
 	public void writeObjRefs()
 	{
 		IObjRef[] allOris = new IObjRef[4];
 
-		ObjRef ori = new ObjRef(String.class, 2, 4);
+		Short shortFour = Short.valueOf((short) 4);
+
+		ObjRef ori = new ObjRef(Entity.class, 2, shortFour);
 		allOris[0] = ori;
 		String xml = cyclicXmlHandler.write(ori);
 		Assert.assertEquals("Wrong xml", XmlTestConstants.XmlOutput[15], xml);
 		Object actual = cyclicXmlHandler.read(xml);
-		Assert.assertSame("Wrong class", ObjRef.class, actual.getClass());
-		assertObjRefEquals(ori, (ObjRef) actual);
+		Assert.assertTrue("Wrong class", actual instanceof IObjRef);
+		assertObjRefEquals(ori, (IObjRef) actual);
 
-		ori = new ObjRef(String.class, (byte) -1, 2, 4);
+		ori = new ObjRef(Entity.class, (byte) -1, 2, shortFour);
 		allOris[1] = ori;
 		xml = cyclicXmlHandler.write(ori);
 		Assert.assertEquals("Wrong xml", XmlTestConstants.XmlOutput[15], xml);
 		actual = cyclicXmlHandler.read(xml);
-		Assert.assertSame("Wrong class", ObjRef.class, actual.getClass());
-		assertObjRefEquals(ori, (ObjRef) actual);
+		Assert.assertTrue("Wrong class", actual instanceof IObjRef);
+		assertObjRefEquals(ori, (IObjRef) actual);
 
-		ori = new ObjRef(String.class, (byte) 0, "zwei", 4);
+		ori = new ObjRef(Entity.class, (byte) 0, "zwei", shortFour);
 		allOris[2] = ori;
 		xml = cyclicXmlHandler.write(ori);
 		Assert.assertEquals("Wrong xml", XmlTestConstants.XmlOutput[16], xml);
 		actual = cyclicXmlHandler.read(xml);
-		Assert.assertSame("Wrong class", ObjRef.class, actual.getClass());
-		assertObjRefEquals(ori, (ObjRef) actual);
+		Assert.assertTrue("Wrong class", actual instanceof IObjRef);
+		assertObjRefEquals(ori, (IObjRef) actual);
 
-		ori = new ObjRef(String.class, (byte) 1, "zwei", 4);
+		ori = new ObjRef(Entity.class, (byte) 1, "zwei", shortFour);
 		allOris[3] = ori;
 		xml = cyclicXmlHandler.write(ori);
 		Assert.assertEquals("Wrong xml", XmlTestConstants.XmlOutput[17], xml);
 		actual = cyclicXmlHandler.read(xml);
-		Assert.assertSame("Wrong class", ObjRef.class, actual.getClass());
-		assertObjRefEquals(ori, (ObjRef) actual);
+		Assert.assertTrue("Wrong class", actual instanceof IObjRef);
+		assertObjRefEquals(ori, (IObjRef) actual);
 
 		xml = cyclicXmlHandler.write(allOris);
 		actual = cyclicXmlHandler.read(xml);
@@ -196,7 +199,7 @@ public class CyclicXmlWriterTest extends AbstractInformationBusTest
 		Assert.assertEquals(allOris.length, actualArray.length);
 		for (int i = 0; i < allOris.length; i++)
 		{
-			assertObjRefEquals((ObjRef) allOris[i], (ObjRef) actualArray[i]);
+			assertObjRefEquals(allOris[i], actualArray[i]);
 		}
 	}
 
@@ -550,7 +553,7 @@ public class CyclicXmlWriterTest extends AbstractInformationBusTest
 		return (T) result;
 	}
 
-	protected void assertObjRefEquals(ObjRef expected, ObjRef actual)
+	protected void assertObjRefEquals(IObjRef expected, IObjRef actual)
 	{
 		Assert.assertNotNull(expected);
 		Assert.assertTrue(expected.equals(actual));
