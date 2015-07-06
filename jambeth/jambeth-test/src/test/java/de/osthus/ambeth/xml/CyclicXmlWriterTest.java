@@ -168,7 +168,7 @@ public class CyclicXmlWriterTest extends AbstractInformationBusTest
 		Assert.assertTrue("Wrong class", actual instanceof IObjRef);
 		assertObjRefEquals(ori, (IObjRef) actual);
 
-		ori = new ObjRef(Entity.class, (byte) -1, 2, shortFour);
+		ori = new ObjRef(Entity.class, ObjRef.PRIMARY_KEY_INDEX, 2, shortFour);
 		allOris[1] = ori;
 		xml = cyclicXmlHandler.write(ori);
 		Assert.assertEquals("Wrong xml", XmlTestConstants.XmlOutput[15], xml);
