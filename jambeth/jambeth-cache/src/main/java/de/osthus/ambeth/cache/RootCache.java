@@ -63,7 +63,6 @@ import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IPropertyChangeConfigurable;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
-import de.osthus.ambeth.security.SecurityDirective;
 import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.service.IOfflineListener;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
@@ -1203,7 +1202,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
 	protected boolean isFilteringNecessary(ICacheIntern targetCache)
 	{
-		return securityActive && (isPrivileged() && targetCache != null && !targetCache.isPrivileged())
+		return privilegeProvider != null && securityActive && (isPrivileged() && targetCache != null && !targetCache.isPrivileged())
 				|| (targetCache == null && securityActivation != null && securityActivation.isFilterActivated());
 	}
 
