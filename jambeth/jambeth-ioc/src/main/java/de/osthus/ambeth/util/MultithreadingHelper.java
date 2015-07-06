@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.config.IocConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IServiceContext;
@@ -32,6 +33,9 @@ public class MultithreadingHelper implements IMultithreadingHelper
 
 	@Property(name = TIMEOUT, defaultValue = "30000")
 	protected long timeout;
+
+	@Property(name = IocConfigurationConstants.TransparentParallelizationActive, defaultValue = "true")
+	protected boolean transparentParallelizationActive;
 
 	@Override
 	public void invokeInParallel(IServiceContext serviceContext, Runnable runnable, int workerCount)
@@ -99,6 +103,11 @@ public class MultithreadingHelper implements IMultithreadingHelper
 		}
 	}
 
+	protected boolean isMultiThreadingAllowed()
+	{
+		return transparentParallelizationActive && executor != null;
+	}
+
 	@Override
 	public <R, V> void invokeAndWait(IList<V> items, IResultingBackgroundWorkerParamDelegate<R, V> itemHandler,
 			IAggregrateResultHandler<R, V> aggregateResultHandler)
@@ -107,8 +116,7 @@ public class MultithreadingHelper implements IMultithreadingHelper
 		{
 			return;
 		}
-		ExecutorService executor = this.executor;
-		if (items.size() == 1 || executor == null)
+		if (!isMultiThreadingAllowed() || items.size() == 1)
 		{
 			try
 			{
@@ -137,7 +145,6 @@ public class MultithreadingHelper implements IMultithreadingHelper
 		QueueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public <R, K, V> void invokeAndWait(IMap<K, V> items, IResultingBackgroundWorkerParamDelegate<R, Entry<K, V>> itemHandler,
 			IAggregrateResultHandler<R, Entry<K, V>> aggregateResultHandler)
@@ -146,8 +153,7 @@ public class MultithreadingHelper implements IMultithreadingHelper
 		{
 			return;
 		}
-		ExecutorService executor = this.executor;
-		if (items.size() == 1 || executor == null)
+		if (!isMultiThreadingAllowed() || items.size() == 1)
 		{
 			try
 			{
@@ -187,8 +193,7 @@ public class MultithreadingHelper implements IMultithreadingHelper
 		{
 			return;
 		}
-		ExecutorService executor = this.executor;
-		if (items.size() == 1 || executor == null)
+		if (!isMultiThreadingAllowed() || items.size() == 1)
 		{
 			try
 			{
@@ -212,7 +217,6 @@ public class MultithreadingHelper implements IMultithreadingHelper
 		QueueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public <K, V> void invokeAndWait(IMap<K, V> items, IBackgroundWorkerParamDelegate<Entry<K, V>> itemHandler)
 	{
@@ -220,8 +224,7 @@ public class MultithreadingHelper implements IMultithreadingHelper
 		{
 			return;
 		}
-		ExecutorService executor = this.executor;
-		if (items.size() == 1 || executor == null)
+		if (!isMultiThreadingAllowed() || items.size() == 1)
 		{
 			try
 			{

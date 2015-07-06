@@ -23,6 +23,12 @@ namespace De.Osthus.Ambeth.Config
 		/// </summary>
         public const String DebugModeActive = "ambeth.ioc.debug.active";
 
+		/// <summary>
+		/// Allows Ambeth to transparently fork several algorithms to reduce execution time. This is very beneficial e.g. for large JDBC SELECT usecases or Ambeth
+		/// Entity Prefetch logic. Valid values: "true" or "false". Default is "true". is "false".
+		/// </summary>
+		public const String TransparentParallelizationActive = "ambeth.transparent.parallel.active";
+
         private IocConfigurationConstants()
         {
         }
