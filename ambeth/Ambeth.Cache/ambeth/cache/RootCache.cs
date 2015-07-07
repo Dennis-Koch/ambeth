@@ -1099,7 +1099,7 @@ namespace De.Osthus.Ambeth.Cache
 
         protected bool IsFilteringNecessary(ICacheIntern targetCache)
         {
-            return SecurityActive && (Privileged && targetCache != null && !targetCache.Privileged)
+            return PrivilegeProvider != null && SecurityActive && (Privileged && targetCache != null && !targetCache.Privileged)
                     || (targetCache == null && SecurityActivation != null && SecurityActivation.FilterActivated);
         }
 

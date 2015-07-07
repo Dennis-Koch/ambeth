@@ -21,8 +21,11 @@ namespace De.Osthus.Ambeth.Util
         [Autowired]
         public IThreadLocalCleanupController ThreadLocalCleanupController { protected get; set; }
 
-        [Property(TIMEOUT, DefaultValue = "30000")]
-        public long Timeout { protected get; set; }
+		[Property(TIMEOUT, DefaultValue = "30000")]
+		public long Timeout { protected get; set; }
+
+		[Property(IocConfigurationConstants.TransparentParallelizationActive, DefaultValue = "true")]
+		public bool TransparentParallelizationActive { protected get; set; }
 
         public void InvokeInParallel(IServiceContext serviceContext, Runnable runnable, int workerCount)
         {
@@ -81,6 +84,11 @@ namespace De.Osthus.Ambeth.Util
             }
         }
 
+		protected bool IsMultiThreadingAllowed()
+		{
+			return TransparentParallelizationActive && ThreadPool != null;
+		}
+
 #if !SILVERLIGHT
         public void InvokeAndWait<R, V>(IList<V> items, IResultingBackgroundWorkerParamDelegate<R, V> itemHandler,
             IAggregrateResultHandler<R, V> aggregateResultHandler)
@@ -89,7 +97,7 @@ namespace De.Osthus.Ambeth.Util
             {
                 return;
             }
-            if (items.Count == 1 || ThreadPool == null)
+			if (!IsMultiThreadingAllowed() || items.Count == 1)
             {
                 for (int a = items.Count; a-- > 0; )
                 {
@@ -113,7 +121,7 @@ namespace De.Osthus.Ambeth.Util
             {
                 return;
             }
-            if (items.Count == 1 || ThreadPool == null)
+			if (!IsMultiThreadingAllowed() || items.Count == 1)
             {
                 foreach (Entry<K, V> item in items)
 				{
@@ -144,7 +152,7 @@ namespace De.Osthus.Ambeth.Util
             {
                 return;
             }
-            if (items.Count == 1 || ThreadPool == null)
+			if (!IsMultiThreadingAllowed() || items.Count == 1)
             {
                 for (int a = items.Count; a-- > 0; )
                 {
@@ -167,7 +175,7 @@ namespace De.Osthus.Ambeth.Util
             {
                 return;
             }
-            if (items.Count == 1 || ThreadPool == null)
+			if (!IsMultiThreadingAllowed() || items.Count == 1)
             {
                 foreach (Entry<K, V> item in items)
                 {
