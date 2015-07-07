@@ -1,6 +1,8 @@
 package de.osthus.ambeth.start;
 
+import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.regex.Pattern;
 
@@ -40,8 +42,11 @@ public class SystemClasspathInfo implements IClasspathInfo
 	}
 
 	@Override
-	public String lookupExistingPath(String path) throws Throwable
+	public File openAsFile(URL url) throws Throwable
 	{
-		return path;
+		URI uri = url.toURI();
+		String schemeSpecificPart = uri.getSchemeSpecificPart();
+		File file = new File(schemeSpecificPart);
+		return file;
 	}
 }
