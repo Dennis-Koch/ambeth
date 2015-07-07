@@ -47,6 +47,13 @@ public final class MergeConfigurationConstants
 	 */
 	public static final String SecurityActive = "ambeth.security.active";
 
+	/**
+	 * If true Ambeth encapsulates a specific Prefetch-API call within the "lazy transaction" pattern. If false each cache miss within a single Prefetch-API
+	 * usecase may acquire a individual short-term transaction. It is recommended to let this flag on its default value because there are very few cases where
+	 * deactivating this property makes sense. Default value is "true".
+	 */
+	public static final String PrefetchInLazyTransactionActive = "ambeth.prefetch.lazytransaction.active";
+
 	private MergeConfigurationConstants()
 	{
 		// Intended blank

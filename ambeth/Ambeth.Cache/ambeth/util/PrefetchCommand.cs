@@ -16,24 +16,21 @@ using De.Osthus.Ambeth.Typeinfo;
 
 namespace De.Osthus.Ambeth.Util
 {
-    public class CascadeLoadItem
+    public class PrefetchCommand
     {
-        public readonly Type realType;
-
         public readonly DirectValueHolderRef valueHolder;
 
-        public readonly CachePath[] cachePaths;
+        public readonly PrefetchPath[] prefetchPaths;
 
-        public CascadeLoadItem(Type realType, DirectValueHolderRef valueHolder, CachePath[] cachePaths)
+        public PrefetchCommand(DirectValueHolderRef valueHolder, PrefetchPath[] prefetchPaths)
         {
-            this.realType = realType;
             this.valueHolder = valueHolder;
-            this.cachePaths = cachePaths;
+            this.prefetchPaths = prefetchPaths;
         }
 
         public override int GetHashCode()
         {
-            return valueHolder.GetHashCode() ^ cachePaths.GetHashCode();
+            return valueHolder.GetHashCode() ^ prefetchPaths.GetHashCode();
         }
 
         public override bool Equals(object obj)
@@ -42,18 +39,18 @@ namespace De.Osthus.Ambeth.Util
             {
                 return true;
             }
-            if (!(obj is CascadeLoadItem))
+            if (!(obj is PrefetchCommand))
             {
                 return false;
             }
-            CascadeLoadItem other = (CascadeLoadItem)obj;
+            PrefetchCommand other = (PrefetchCommand)obj;
             if (valueHolder is DirectValueHolderRef)
 		    {
 			    // Use equals() of ValueHolderKey
-			    return valueHolder.Equals(other.valueHolder) && cachePaths == other.cachePaths;
+			    return valueHolder.Equals(other.valueHolder) && prefetchPaths == other.prefetchPaths;
 		    }
             return Object.ReferenceEquals(valueHolder, other.valueHolder)
-                && Object.ReferenceEquals(cachePaths, other.cachePaths);
+                && Object.ReferenceEquals(prefetchPaths, other.prefetchPaths);
         }
     }
 }

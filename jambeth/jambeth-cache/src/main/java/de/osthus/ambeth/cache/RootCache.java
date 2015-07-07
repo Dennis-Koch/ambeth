@@ -829,9 +829,14 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 				else
 				{
 					IObjRelationResult selfResult = getObjRelationIfValid(objRel, targetCache, objRelToResultMap, alreadyClonedObjRefs);
-					if (selfResult != null || returnMisses)
+					if (selfResult != null)
 					{
-						objRelResults.add(selfResult);
+						IObjRef[] relations = selfResult.getRelations();
+						item.set__ObjRefs(relationIndex, relations);
+						if (returnMisses)
+						{
+							objRelResults.add(selfResult);
+						}
 					}
 				}
 				continue;

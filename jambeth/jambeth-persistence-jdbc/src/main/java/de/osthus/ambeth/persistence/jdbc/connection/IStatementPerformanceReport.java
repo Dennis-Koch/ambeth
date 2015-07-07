@@ -7,4 +7,8 @@ public interface IStatementPerformanceReport
 	long getOverallDuration(boolean reset);
 
 	void printTop(StringBuilder sb, boolean reset);
+
+	void printTop(StringBuilder sb, boolean reset, boolean joinRemote);
+
+	IStatementPerformanceReportItem[] createReport(boolean reset, boolean joinRemote);
 }

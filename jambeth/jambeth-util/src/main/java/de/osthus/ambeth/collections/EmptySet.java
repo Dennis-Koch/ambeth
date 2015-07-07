@@ -79,6 +79,12 @@ public final class EmptySet<K> implements ISet<K>, IImmutableType
 	}
 
 	@Override
+	public <S extends K> boolean containsAny(S[] array)
+	{
+		return false;
+	}
+
+	@Override
 	public boolean containsAny(Collection<?> coll)
 	{
 		return false;

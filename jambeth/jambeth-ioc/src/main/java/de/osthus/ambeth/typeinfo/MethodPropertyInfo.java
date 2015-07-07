@@ -271,7 +271,7 @@ public class MethodPropertyInfo extends AbstractPropertyInfo
 	{
 		if (setter == null)
 		{
-			throw new UnsupportedOperationException("No setter configure for property " + name);
+			throw new UnsupportedOperationException("No setter configured for property " + name);
 		}
 		Object[] args = { value };
 		try

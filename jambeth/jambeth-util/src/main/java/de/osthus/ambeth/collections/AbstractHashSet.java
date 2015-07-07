@@ -538,6 +538,19 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable, Cloneab
 		return false;
 	}
 
+	@Override
+	public <S extends K> boolean containsAny(S[] array)
+	{
+		for (S key : array)
+		{
+			if (contains(key))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * @see java.util.Set#removeAll(java.util.Collection)
 	 */

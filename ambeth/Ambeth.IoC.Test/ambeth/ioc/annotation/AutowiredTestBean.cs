@@ -1,7 +1,7 @@
 namespace De.Osthus.Ambeth.Ioc.Annotation
 {
-public class AutowiredTestBean
-{
+	public class AutowiredTestBean
+	{
 		[Autowired]
 		private IServiceContext beanContextPrivate;
 

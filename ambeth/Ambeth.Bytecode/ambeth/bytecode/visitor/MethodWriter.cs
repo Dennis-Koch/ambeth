@@ -706,6 +706,11 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             {
                 Push((int)0);
             }
+			else if (type.IsValueType)
+            {
+				PushNull();
+				Unbox(type);
+			}
             else
             {
                 PushNull();

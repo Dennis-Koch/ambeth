@@ -10,6 +10,7 @@ import java.util.Set;
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.database.ITransactionInfo;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -86,6 +87,9 @@ public class LogStatementInterceptor extends AbstractSimpleInterceptor implement
 
 	@Autowired
 	protected IPersistenceExceptionUtil persistenceExceptionUtil;
+
+	@Autowired(optional = true)
+	protected ITransactionInfo transactionInfo;
 
 	protected int identityHashCode;
 
@@ -238,23 +242,23 @@ public class LogStatementInterceptor extends AbstractSimpleInterceptor implement
 		{
 			if (executeQueryMethod.equals(method))
 			{
-				log.error("[" + identityHashCode + "] " + method.getName() + ": " + args[0], e);
+				log.error("[cn:" + identityHashCode + " tx:" + getSessionId() + "] " + method.getName() + ": " + args[0], e);
 			}
 			else if (addBatchMethod.equals(method))
 			{
-				log.error("[" + identityHashCode + "] " + method.getName() + ": " + batchCount + ") " + args[0], e);
+				log.error("[cn:" + identityHashCode + " tx:" + getSessionId() + "] " + method.getName() + ": " + batchCount + ") " + args[0], e);
 			}
 			else if (executeBatchMethod.equals(method))
 			{
-				log.error("[" + identityHashCode + "] " + method.getName() + ": " + batchCount + " items", e);
+				log.error("[cn:" + identityHashCode + " tx:" + getSessionId() + "] " + method.getName() + ": " + batchCount + " items", e);
 			}
 			else if (method.getName().startsWith("execute"))
 			{
-				log.error("[" + identityHashCode + "] " + method.getName() + ": " + args[0], e);
+				log.error("[cn:" + identityHashCode + " tx:" + getSessionId() + "] " + method.getName() + ": " + args[0], e);
 			}
 			else if (isJdbcTraceActive)
 			{
-				log.error("[" + identityHashCode + "] " + LogTypesUtil.printMethod(method, true), e);
+				log.error("[cn:" + identityHashCode + " tx:" + getSessionId() + "] " + LogTypesUtil.printMethod(method, true), e);
 			}
 		}
 	}
@@ -266,23 +270,34 @@ public class LogStatementInterceptor extends AbstractSimpleInterceptor implement
 		{
 			if (addBatchMethod.equals(method))
 			{
-				log.debug(StringBuilderUtil.concat(objectCollector, "[", identityHashCode, " ", timeSpent, " ms] ", method.getName(), ": ", batchCount, ") ",
-						args[0]));
+				log.debug(StringBuilderUtil.concat(objectCollector, "[cn:", identityHashCode, " tx:", getSessionId(), " ", timeSpent, " ms] ",
+						method.getName(), ": ", batchCount, ") ", args[0]));
 			}
 			else if (executeBatchMethod.equals(method))
 			{
-				log.debug(StringBuilderUtil.concat(objectCollector, "[", identityHashCode, " ", timeSpent, " ms] ", method.getName(), ": ", batchCount,
-						" items"));
+				log.debug(StringBuilderUtil.concat(objectCollector, "[cn:", identityHashCode, " tx:", getSessionId(), " ", timeSpent, " ms] ",
+						method.getName(), ": ", batchCount, " items"));
 			}
 			else if (method.getName().startsWith("execute"))
 			{
-				log.debug(StringBuilderUtil.concat(objectCollector, "[", identityHashCode, " ", timeSpent, " ms] ", method.getName(), ": ", args[0]));
+				log.debug(StringBuilderUtil.concat(objectCollector, "[cn:", identityHashCode, " tx:", getSessionId(), " ", timeSpent, " ms] ",
+						method.getName(), ": ", args[0]));
 			}
 			else if (isJdbcTraceActive)
 			{
-				log.debug(StringBuilderUtil.concat(objectCollector, "[", identityHashCode, " ", timeSpent, " ms] ", LogTypesUtil.printMethod(method, true)));
+				log.debug(StringBuilderUtil.concat(objectCollector, "[cn:", identityHashCode, " tx:", getSessionId(), " ", timeSpent, " ms] ",
+						LogTypesUtil.printMethod(method, true)));
 			}
 		}
+	}
+
+	protected String getSessionId()
+	{
+		if (transactionInfo == null)
+		{
+			return "-";
+		}
+		return Long.toString(transactionInfo.getSessionId());
 	}
 
 	@Override

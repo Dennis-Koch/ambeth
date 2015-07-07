@@ -410,6 +410,18 @@ namespace De.Osthus.Ambeth.Collections
             return false;
         }
 
+		public bool ContainsAny<S>(S[] array) where S : K
+		{
+			foreach (S key in array)
+			{
+				if (Contains(key))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
         public virtual bool RemoveAll(IEnumerable c)
         {
             bool changed = false;

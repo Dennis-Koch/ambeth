@@ -258,7 +258,6 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                     MethodInfo m_getValue = pType.GetMethod("get_Value");
                     LocalVariableInfo loc_realValue = mv.NewLocal(m_getValue.ReturnType);
                     Label l_hasNoValue = mv.NewLabel();
-                    Label l_valueIsNonZero = mv.NewLabel();
 
                     mv.InvokeOnExactOwner(m_hasValue);
                     mv.IfZCmp(CompareOperator.EQ, l_hasNoValue);

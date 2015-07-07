@@ -7,13 +7,13 @@ public interface ICachePathHelper
 {
 	void buildCachePath(Class<?> entityType, String memberToInitialize, ISet<AppendableCachePath> cachePaths);
 
-	IPrefetchState ensureInitializedRelations(Object objects, ILinkedMap<Class<?>, CachePath[]> entityTypeToPrefetchSteps);
+	IPrefetchState ensureInitializedRelations(Object objects, ILinkedMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchSteps);
 
-	AppendableCachePath copyCachePathToAppendable(CachePath cachePath);
+	AppendableCachePath copyCachePathToAppendable(PrefetchPath cachePath);
 
-	CachePath[] copyAppendableToCachePath(ISet<AppendableCachePath> children);
+	PrefetchPath[] copyAppendableToCachePath(ISet<AppendableCachePath> children);
 
-	CachePath copyAppendableToCachePath(AppendableCachePath cachePath);
+	PrefetchPath copyAppendableToCachePath(AppendableCachePath cachePath);
 
 	void unionCachePath(AppendableCachePath cachePath, AppendableCachePath other);
 }

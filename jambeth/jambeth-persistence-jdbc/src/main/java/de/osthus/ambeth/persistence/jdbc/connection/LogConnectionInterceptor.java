@@ -14,6 +14,7 @@ import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.collections.IdentityWeakSmartCopyMap;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.database.ITransactionInfo;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IServiceContext;
@@ -60,7 +61,13 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor implemen
 	private ILogger log;
 
 	@Autowired
+	protected IServiceContext beanContext;
+
+	@Autowired
 	protected ICgLibUtil cgLibUtil;
+
+	@Autowired
+	protected Connection connection;
 
 	@Autowired(optional = true)
 	protected IEventDispatcher eventDispatcher;
@@ -68,11 +75,8 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor implemen
 	@Autowired
 	protected IProxyFactory proxyFactory;
 
-	@Autowired
-	protected IServiceContext beanContext;
-
-	@Autowired
-	protected Connection connection;
+	@Autowired(optional = true)
+	protected ITransactionInfo transactionInfo;
 
 	protected boolean preparedConnection;
 
@@ -187,7 +191,7 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor implemen
 			{
 				if (log.isDebugEnabled())
 				{
-					log.debug("[" + System.identityHashCode(connection) + "] closed connection");
+					log.debug("[cn:" + System.identityHashCode(connection) + " tx:" + getSessionId() + "] closed connection");
 				}
 				if (eventDispatcher != null)
 				{
@@ -214,6 +218,15 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor implemen
 		{
 			throw RuntimeExceptionUtil.mask(e, method.getExceptionTypes());
 		}
+	}
+
+	protected String getSessionId()
+	{
+		if (transactionInfo == null)
+		{
+			return "-";
+		}
+		return Long.toString(transactionInfo.getSessionId());
 	}
 
 	public Connection getConnection()

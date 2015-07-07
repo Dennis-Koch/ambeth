@@ -70,6 +70,10 @@ namespace De.Osthus.Ambeth.Ioc
 
             beanContextFactory.RegisterBean<CacheHelper>().Autowireable(typeof(ICacheHelper), typeof(ICachePathHelper), typeof(IPrefetchHelper));
 
+			IBeanConfiguration prioMembersProvider = beanContextFactory.RegisterBean<PrioMembersProvider>().Autowireable<IPrioMembersProvider>();
+			beanContextFactory.Link(prioMembersProvider, PrioMembersProvider.handleMetaDataAddedEvent).To<IEventListenerExtendable>()
+				.With(typeof(IEntityMetaDataEvent));
+
             beanContextFactory.RegisterBean<CacheWalker>().Autowireable<ICacheWalker>();
 
             beanContextFactory.RegisterAutowireableBean<ICacheMapEntryTypeProvider, CacheMapEntryTypeProvider>();

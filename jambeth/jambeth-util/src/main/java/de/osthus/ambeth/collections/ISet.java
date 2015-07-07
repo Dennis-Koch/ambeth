@@ -12,6 +12,8 @@ public interface ISet<K> extends Set<K>
 
 	boolean containsAny(Collection<?> coll);
 
+	<S extends K> boolean containsAny(S[] array);
+
 	IList<K> toList();
 
 	<T> T[] toArray(Class<T> componentType);
