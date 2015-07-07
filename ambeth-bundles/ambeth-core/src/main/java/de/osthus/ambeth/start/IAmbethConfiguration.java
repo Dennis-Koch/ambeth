@@ -37,6 +37,22 @@ public interface IAmbethConfiguration
 	IAmbethConfiguration withProperty(String name, String value);
 
 	/**
+	 * Adds the name of a properties file to load.
+	 * 
+	 * @param name
+	 *            Name of the properties file to load
+	 * @return This configuration object
+	 */
+	IAmbethConfiguration withPropertiesFile(String name);
+
+	/**
+	 * Switches off the search for an environment property 'property.file'.
+	 * 
+	 * @return This configuration object
+	 */
+	IAmbethConfiguration withoutPropertiesFileSearch();
+
+	/**
 	 * Adds the provided command line arguments to the root {@link de.osthus.ambeth.config.Properties} object.
 	 * 
 	 * @param args
