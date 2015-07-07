@@ -67,9 +67,9 @@ public class ServletClasspathInfo implements IClasspathInfo
 	}
 
 	@Override
-	public String lookupExistingPath(String path) throws Throwable
+	public File openAsFile(URL url) throws Throwable
 	{
-		String tempPath = path;
+		String tempPath = url.getPath();
 		while (true)
 		{
 			Matcher matcher = subPathPattern.matcher(tempPath);
@@ -91,7 +91,8 @@ public class ServletClasspathInfo implements IClasspathInfo
 					// }
 					throw new IllegalStateException("Path '" + realPath + "' does not exist!");
 				}
-				return realPath;
+				File file = new File(realPath);
+				return file;
 			}
 			catch (Throwable e)
 			{

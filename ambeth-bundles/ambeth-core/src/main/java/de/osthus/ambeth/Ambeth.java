@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import de.osthus.ambeth.bundle.IBundleModule;
+import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.config.IProperties;
@@ -56,6 +57,10 @@ public class Ambeth implements IAmbethConfiguration, IAmbethApplication
 
 	protected Properties properties = new Properties();
 
+	private ArrayList<String> propertiesFiles = new ArrayList<String>();
+
+	protected boolean scanForPropertiesFile = true;
+
 	protected HashSet<Class<?>> ambethModules = new HashSet<Class<?>>();
 
 	protected HashSet<Class<?>> applicationModules = new HashSet<Class<?>>();
@@ -105,6 +110,28 @@ public class Ambeth implements IAmbethConfiguration, IAmbethApplication
 	public IAmbethConfiguration withProperty(String name, String value)
 	{
 		properties.putString(name, value);
+
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public IAmbethConfiguration withPropertiesFile(String name)
+	{
+		propertiesFiles.add(name);
+
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public IAmbethConfiguration withoutPropertiesFileSearch()
+	{
+		scanForPropertiesFile = false;
 
 		return this;
 	}
@@ -181,8 +208,16 @@ public class Ambeth implements IAmbethConfiguration, IAmbethApplication
 	protected void startInternal(boolean andClose)
 	{
 		Properties properties = Properties.getApplication();
+		if (scanForPropertiesFile)
+		{
+			Properties.loadBootstrapPropertyFile();
+		}
 		properties.load(this.properties);
-		Properties.loadBootstrapPropertyFile();
+		for (int i = 0, size = propertiesFiles.size(); i < size; i++)
+		{
+			String filename = propertiesFiles.get(i);
+			properties.load(filename);
+		}
 
 		rootContext = BeanContextFactory.createBootstrap(properties);
 
