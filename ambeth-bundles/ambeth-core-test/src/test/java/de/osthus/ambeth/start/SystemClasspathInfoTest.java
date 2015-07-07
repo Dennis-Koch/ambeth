@@ -37,4 +37,14 @@ public class SystemClasspathInfoTest
 		Assert.assertNotNull(file);
 		Assert.assertTrue(file.canRead());
 	}
+
+	@Test
+	public void testOpenAsFile_pathWithSpace() throws Throwable
+	{
+		String filePath = "file:/home/user/name with space/lib";
+		URL url = new URL(filePath);
+
+		File file = systemClasspathInfo.openAsFile(url);
+		Assert.assertNotNull(file);
+	}
 }
