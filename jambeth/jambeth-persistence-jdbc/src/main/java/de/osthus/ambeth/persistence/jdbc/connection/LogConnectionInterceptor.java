@@ -1,5 +1,7 @@
 package de.osthus.ambeth.persistence.jdbc.connection;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -89,7 +91,7 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor implemen
 
 	protected Class<?>[] stmInterfaces;
 
-	protected final IdentityWeakSmartCopyMap<Object, Object> unwrappedObjectToProxyMap = new IdentityWeakSmartCopyMap<Object, Object>();
+	protected final IdentityWeakSmartCopyMap<Object, Reference<Object>> unwrappedObjectToProxyMap = new IdentityWeakSmartCopyMap<Object, Reference<Object>>();
 
 	public LogConnectionInterceptor(IConnectionKeyHandle connectionKeyHandle)
 	{
@@ -201,14 +203,15 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor implemen
 			}
 			else if (unwrapMethod.equals(method))
 			{
-				Object proxyOfResult = unwrappedObjectToProxyMap.get(result);
+				Reference<Object> proxyOfResultR = unwrappedObjectToProxyMap.get(result);
+				Object proxyOfResult = proxyOfResultR != null ? proxyOfResultR.get() : null;
 				if (proxyOfResult == null)
 				{
 					LogInterceptor logInterceptor = beanContext.registerBean(LogInterceptor.class)//
 							.propertyValue("Target", result)//
 							.finish();
 					proxyOfResult = proxyFactory.createProxy(cgLibUtil.getAllInterfaces(result), logInterceptor);
-					unwrappedObjectToProxyMap.put(result, proxyOfResult);
+					unwrappedObjectToProxyMap.put(result, new WeakReference<Object>(proxyOfResult));
 				}
 				result = proxyOfResult;
 			}
