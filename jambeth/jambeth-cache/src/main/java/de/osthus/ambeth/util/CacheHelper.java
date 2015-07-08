@@ -598,7 +598,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		{
 			return;
 		}
-		IObjRefContainer vhc = (IObjRefContainer) obj;
+		IValueHolderContainer vhc = (IValueHolderContainer) obj;
 		for (int a = cachePaths.length; a-- > 0;)
 		{
 			PrefetchPath path = cachePaths[a];
