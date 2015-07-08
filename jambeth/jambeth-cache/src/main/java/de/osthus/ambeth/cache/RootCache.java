@@ -833,10 +833,11 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 					{
 						IObjRef[] relations = selfResult.getRelations();
 						item.set__ObjRefs(relationIndex, relations);
-						if (returnMisses)
-						{
-							objRelResults.add(selfResult);
-						}
+						objRelResults.add(selfResult);
+					}
+					else if (returnMisses)
+					{
+						objRelResults.add(null);
 					}
 				}
 				continue;

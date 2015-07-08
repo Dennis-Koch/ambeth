@@ -741,10 +741,11 @@ namespace De.Osthus.Ambeth.Cache
 						{
 							IObjRef[] relations = selfResult.Relations;
 							item.Set__ObjRefs(relationIndex, relations);
-							if (returnMisses)
-							{
-								objRelResults.Add(selfResult);
-							}
+							objRelResults.Add(selfResult);
+						}
+						else if (returnMisses)
+						{
+							objRelResults.Add(null);
 						}
                     }
                     continue;
