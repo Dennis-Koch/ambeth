@@ -305,7 +305,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 
 			cachePaths = entityTypeToPrefetchPath.get(metaData.getEntityType());
 
-			if (cachePaths == null)
+			if (cachePaths == null || cachePaths.length == 0)
 			{
 				return;
 			}
@@ -582,13 +582,13 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			return;
 		}
 		IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
-		if (cachePaths == null)
+		if (cachePaths == null || cachePaths.length == 0)
 		{
 			if (entityTypeToPrefetchPaths != null)
 			{
 				cachePaths = entityTypeToPrefetchPaths.get(metaData.getEntityType());
 			}
-			if (cachePaths == null)
+			if (cachePaths == null || cachePaths.length == 0)
 			{
 				return;
 			}

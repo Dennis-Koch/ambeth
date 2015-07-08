@@ -237,7 +237,7 @@ namespace De.Osthus.Ambeth.Util
 
 				cachePaths = entityTypeToPrefetchPath.Get(metaData.EntityType);
 
-				if (cachePaths == null)
+				if (cachePaths == null || cachePaths.Length == 0)
 				{
 					return;
 				}
@@ -527,13 +527,13 @@ namespace De.Osthus.Ambeth.Util
                 return;
             }
             IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
-			if (cachePaths == null)
+			if (cachePaths == null || cachePaths.Length == 0)
 			{
 				if (entityTypeToPrefetchSteps != null)
 				{
 					cachePaths = entityTypeToPrefetchSteps.Get(metaData.EntityType);
 				}
-				if (cachePaths == null)
+				if (cachePaths == null || cachePaths.Length == 0)
 				{
 					return;
 				}
