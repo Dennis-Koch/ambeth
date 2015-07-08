@@ -14,13 +14,17 @@ public interface IChangeControllerExtension<T> extends Comparable<IChangeControl
 	 * This method is called for each entity of type T that has been changed (i.e. created, updated or deleted)
 	 * 
 	 * @param newEntity
-	 *            The entities' version after the change, <code>null</code> if it has been deleted.
+	 *            The entities' version after the change
 	 * @param oldEntity
-	 *            The entities' version before the change, <code>null</code> if it has been created. An implementation must not change this instance in any way.
+	 *            The entities' version before the change. An implementation must not change this instance in any way.
+	 * @param toBeDeleted
+	 *            true, if the new entity is to be deleted
+	 * @param toBeCreated
+	 *            true, if the new entity is to be created
 	 * @param views
 	 *            The views argument provides methods to access all changed entities.
 	 */
-	void processChange(T newEntity, T oldEntity, CacheView views);
+	void processChange(T newEntity, T oldEntity, boolean toBeDeleted, boolean toBeCreated, CacheView views);
 
 	/**
 	 * Returns a negative integer if this rule must be evaluated before the other rule or a positive integer if the rule must be evaluated after the other rule.
