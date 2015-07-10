@@ -335,7 +335,7 @@ namespace De.Osthus.Ambeth.Util
 					}
 				});
 				// Remove all oris which have already been tried to load before
-				if (cacheToOrisToLoad.Count == 0 && cacheToOrelsToLoad.Count == 0)
+				if (cacheToOrisToLoad.Count == 0 && cacheToOrelsToLoad.Count == 0 && pendingPrefetchCommands.Count == 0)
 				{
 					return;
 				}
@@ -462,7 +462,7 @@ namespace De.Osthus.Ambeth.Util
             orelsLoadedHistory.AddAll(objRelList);
         }
 
-        protected void EnsureInitializedRelationsIntern3(Object obj, PrefetchPath[] cachePaths, ILinkedMap<Type, PrefetchPath[]> entityTypeToPrefetchSteps,
+        protected void EnsureInitializedRelationsIntern3(Object obj, PrefetchPath[] cachePaths, ILinkedMap<Type, PrefetchPath[]> entityTypeToPrefetchPaths,
             IMap<ICacheIntern, IISet<IObjRef>> cacheToOrisToLoad, IMap<ICacheIntern, IMap<IObjRelation, bool>> cacheToOrelsToLoad,
             IMap<ICacheIntern, IISet<IObjRef>> cacheToOrisLoadedHistory, IMap<ICacheIntern, IISet<IObjRelation>> cacheToOrelsLoadedHistory,
 			AlreadyHandledSet alreadyHandledSet, IList<PrefetchCommand> cascadeLoadItems)
@@ -508,6 +508,10 @@ namespace De.Osthus.Ambeth.Util
                 // even then it might be possible that a concurrent thread initializes the valueholder to null (e.g. an empty to-one relation)
                 return;
             }
+            if ((cachePaths == null || cachePaths.Length == 0) && entityTypeToPrefetchPaths == null)
+            {
+                return;
+            }
             if (obj is IEnumerable)
             {
                 var items = new List<Object>();
@@ -521,7 +525,7 @@ namespace De.Osthus.Ambeth.Util
                 }
                 foreach (Object item in items)
                 {
-					EnsureInitializedRelationsIntern3(item, cachePaths, entityTypeToPrefetchSteps, cacheToOrisToLoad, cacheToOrelsToLoad,
+					EnsureInitializedRelationsIntern3(item, cachePaths, entityTypeToPrefetchPaths, cacheToOrisToLoad, cacheToOrelsToLoad,
                         cacheToOrisLoadedHistory, cacheToOrelsLoadedHistory, alreadyHandledSet, cascadeLoadItems);
                 }
                 return;
@@ -529,9 +533,9 @@ namespace De.Osthus.Ambeth.Util
             IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
 			if (cachePaths == null || cachePaths.Length == 0)
 			{
-				if (entityTypeToPrefetchSteps != null)
+				if (entityTypeToPrefetchPaths != null)
 				{
-					cachePaths = entityTypeToPrefetchSteps.Get(metaData.EntityType);
+					cachePaths = entityTypeToPrefetchPaths.Get(metaData.EntityType);
 				}
 				if (cachePaths == null || cachePaths.Length == 0)
 				{
@@ -554,7 +558,7 @@ namespace De.Osthus.Ambeth.Util
                 if (ValueHolderState.INIT != vhc.Get__State(relationIndex))
                 {
                     DirectValueHolderRef vhk = new DirectValueHolderRef(vhc, member);
-					EnsureInitializedRelationsIntern3(vhk, path.children, entityTypeToPrefetchSteps, cacheToOrisToLoad, cacheToOrelsToLoad, cacheToOrisLoadedHistory,
+					EnsureInitializedRelationsIntern3(vhk, path.children, entityTypeToPrefetchPaths, cacheToOrisToLoad, cacheToOrelsToLoad, cacheToOrisLoadedHistory,
                             cacheToOrelsLoadedHistory, alreadyHandledSet, cascadeLoadItems);
                     continue;
                 }
@@ -563,7 +567,7 @@ namespace De.Osthus.Ambeth.Util
                 {
                     continue;
                 }
-				EnsureInitializedRelationsIntern3(memberValue, path.children, entityTypeToPrefetchSteps, cacheToOrisToLoad, cacheToOrelsToLoad,
+				EnsureInitializedRelationsIntern3(memberValue, path.children, entityTypeToPrefetchPaths, cacheToOrisToLoad, cacheToOrelsToLoad,
                     cacheToOrisLoadedHistory, cacheToOrelsLoadedHistory, alreadyHandledSet, cascadeLoadItems);
             }
         }
