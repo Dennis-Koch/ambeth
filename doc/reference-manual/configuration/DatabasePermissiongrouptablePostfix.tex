@@ -2,7 +2,7 @@
 \section{database.permissiongrouptable.postfix}
 \label{configuration:DatabasePermissiongrouptablePostfix}
 \ClearAPI
-The postfix for a database table to be recognized as a permission group table for another table. E.g. the postfix is "\_PERMISSIONGROUP" and the table the permissions should be applied to is named "ADDRESSES", the table "ADDRESSES\_PERMISSIONGROUP" would be recognized as a table containing information about the permissions to access table "ADDRESSES". Valid values are all strings which can be used as table names, default value is "$_PG$".
+The postfix for a database table to be recognized as a permission group table for another table. E.g. the postfix is "\_PG" and the table the permissions should be applied to is named "ADDRESSES", the table "ADDRESSES\_PG" would be recognized as a table containing information about the permissions to access table "ADDRESSES". Valid values are all strings which can be used as table names.
 %% GENERATED USAGE REFERENCE - DO NOT EDIT
 \begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
 	\endhead
@@ -13,5 +13,5 @@ The postfix for a database table to be recognized as a permission group table fo
 \end{longtable}
 %% GENERATED USAGE REFERENCE END
 \begin{lstlisting}[style=Props,caption={Usage example for \textit{database.permissiongrouptable.postfix}}]
-database.permissiongrouptable.postfix=_PG
+database.permissiongrouptable.postfix=\_PG
 \end{lstlisting}

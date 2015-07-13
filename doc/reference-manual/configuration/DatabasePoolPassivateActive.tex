@@ -2,7 +2,7 @@
 \section{database.pool.passivate.active}
 \label{configuration:DatabasePoolPassivateActive}
 \ClearAPI
-Ensures that the database connection gets passivated when not used. Valid values are "true" and "false", default is "false".
+Ensures that the database connection gets passivated when not used. Passivation means, that the JDBC connection handle is removed from the Ambeth database object, so at a later reuse the Ambeth database object can be reused. This should not be used when working with a connection-pool (e.g. TomCat). If Ambeth stays in control of the connections the number of pooled Ambeth database objects and JDBC-connections stays always the same. Valid values are "true" and "false".
 %% GENERATED USAGE REFERENCE - DO NOT EDIT
 \begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
 	\endhead

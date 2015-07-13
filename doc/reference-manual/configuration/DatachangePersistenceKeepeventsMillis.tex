@@ -2,7 +2,7 @@
 \section{datachange.persistence.keepevents.millis}
 \label{configuration:DatachangePersistenceKeepeventsMillis}
 \ClearAPI
-The time in ms which datachange events should not be removed. After the time has expired the events are removed from the database. Valid values are all numbers > 0 and -1, whereas -1 means the events are stored forever.
+The time in ms which datachange events should not be removed. After the time has expired the events are removed from the database. Valid values are all numbers > 0 and -1, whereas -1 means the events are stored forever. This property takes only effect if the DataChangePersistentModule (\ref{module:DataChange}) is loaded.
 %% GENERATED USAGE REFERENCE - DO NOT EDIT
 \begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
 	\endhead

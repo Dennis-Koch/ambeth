@@ -2,7 +2,7 @@
 \section{ambeth.merge.update.version.always}
 \label{configuration:AmbethMergeUpdateVersionAlways}
 \ClearAPI
-Defines how to handle entity changes and the reload of entities to the cache. By default ("false") the version is not updated in changed entities, forcing the DataChangeEvent to refresh the cached object from the real data. If the version is updated the cache will not updated because the DCE will 'see' an already valid object - but it is NOT valid because it may not contain bi-directional information which can only be resolved by reloading the object from persistence layer. Valid values are "true" and "false", default is "false".
+Defines how to handle entity changes and the reload of entities to the cache. By default ("false") the version is not updated in changed entities, forcing the DataChangeEvent to refresh the cached object from the real data. If the version is updated the cache will not updated because the DCE will 'see' an already valid object - but it is NOT valid because it may not contain bi-directional information which can only be resolved by reloading the object from persistence layer. Valid values are "true" and "false".
 %% GENERATED USAGE REFERENCE - DO NOT EDIT
 \begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
 	\endhead
