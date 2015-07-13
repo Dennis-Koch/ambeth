@@ -3,7 +3,7 @@
 \label{module:Event}
 \ClearAPI
 \TODO
-The Ambeth Event module enables one to use the observer pattern (\url{http://en.wikipedia.org/wiki/Observer_pattern/}). 
+The Ambeth Event module enables one to use the observer pattern\cite{obs15}. 
 The subject, as mentioned in the wiki page, is an extension you would register to the \prettyref{extendable:IEventListenerExtendable}. The registration can be more specific with the extension configuration, e.g. .with\(IDataChange.class\) to enable listening to only object of the desired type.
 To enable loosely coupling, the concrete observer will not be notified directly, nor the subject will fire the event. To ``notify'' the extension, the IEventDispatcher service will be used to dispatch the event to Ambeth. Ambeth in turn will deliver the event object to every extension registered for this event or to every extension without any specific type parameter.
 
