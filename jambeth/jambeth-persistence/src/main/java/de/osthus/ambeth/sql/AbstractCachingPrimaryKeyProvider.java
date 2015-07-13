@@ -120,70 +120,71 @@ public abstract class AbstractCachingPrimaryKeyProvider implements IPrimaryKeyPr
 			throw new IllegalStateException("No sequence configured for table " + table);
 		}
 		ArrayList<Object> ids = new ArrayList<Object>(count);
-		int prefetchIdAmount = this.prefetchIdAmount;
+		int requestCount = count + prefetchIdAmount;
 
 		Lock writeLock = this.writeLock;
 		ArrayList<Object> cachedIds = null;
-		if (prefetchIdAmount > 0)
-		{
-			writeLock.lock();
-			try
-			{
-				cachedIds = seqToCachedIdsMap.get(sequenceName);
-				if (cachedIds == null)
-				{
-					cachedIds = new ArrayList<Object>(prefetchIdAmount + count);
-					seqToCachedIdsMap.put(sequenceName, cachedIds);
-				}
-				while (count > 0 && cachedIds.size() >= count)
-				{
-					Object cachedId = cachedIds.remove(cachedIds.size() - 1);
-					ids.add(cachedId);
-					count--;
-				}
-			}
-			finally
-			{
-				writeLock.unlock();
-			}
-			if (count == 0)
-			{
-				// ids could be fully satisfied by the cache
-				return ids;
-			}
-		}
-		ArrayList<Object> newIds = new ArrayList<Object>(count + prefetchIdAmount);
-
-		// Make sure after the request are still enough ids cached
-		acquireIdsIntern(table, count + prefetchIdAmount, newIds);
-
-		IConversionHelper conversionHelper = this.conversionHelper;
-		Member idMember = table.getIdField().getMember();
-		Class<?> idType = idMember != null ? idMember.getRealType() : null;
 
 		writeLock.lock();
 		try
 		{
-			for (int a = 0, size = newIds.size(); a < size; a++)
+			cachedIds = seqToCachedIdsMap.get(sequenceName);
+			if (cachedIds == null)
 			{
-				Object id = newIds.get(a);
-				id = idType != null ? conversionHelper.convertValueToType(idType, id) : id;
-				if (count > 0)
-				{
-					count--;
-					ids.add(id);
-				}
-				else
-				{
-					cachedIds.add(id);
-				}
+				cachedIds = new ArrayList<Object>(requestCount);
+				seqToCachedIdsMap.put(sequenceName, cachedIds);
 			}
-			return ids;
+			while (count > 0 && cachedIds.size() >= count)
+			{
+				Object cachedId = cachedIds.popLastElement();
+				ids.add(cachedId);
+				count--;
+			}
 		}
 		finally
 		{
 			writeLock.unlock();
 		}
+		if (count == 0)
+		{
+			// ids could be fully satisfied by the cache
+			return ids;
+		}
+		ArrayList<Object> newIds = new ArrayList<Object>(requestCount);
+
+		// Make sure after the request are still enough ids cached
+		acquireIdsIntern(table, requestCount, newIds);
+
+		IConversionHelper conversionHelper = this.conversionHelper;
+		Member idMember = table.getIdField().getMember();
+		Class<?> idType = idMember != null ? idMember.getRealType() : null;
+
+		if (newIds.size() < requestCount)
+		{
+			throw new IllegalStateException("Requested at least " + requestCount + " ids from sequence '" + sequenceName + "' but retrieved only "
+					+ newIds.size());
+		}
+		for (int a = 0; a < count; a++)
+		{
+			Object id = newIds.get(a);
+			id = idType != null ? conversionHelper.convertValueToType(idType, id) : id;
+			ids.add(id);
+		}
+		writeLock.lock();
+		try
+		{
+			for (int a = newIds.size(); a-- > count;)
+			{
+				Object id = newIds.get(a);
+				id = idType != null ? conversionHelper.convertValueToType(idType, id) : id;
+				cachedIds.add(id);
+			}
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
+		return ids;
 	}
 
 	protected abstract void acquireIdsIntern(ITableMetaData table, int count, List<Object> targetIdList);
