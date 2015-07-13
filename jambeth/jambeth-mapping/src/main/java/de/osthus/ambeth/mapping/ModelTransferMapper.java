@@ -493,7 +493,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 	}
 
 	/**
-	 * 2015-07-02 JH: Added to fix https://jira.osthus.de/browse/AMBETH-499
+	 * Added to fix https://jira.osthus.de/browse/AMBETH-499
 	 * 
 	 * @param valueObject
 	 * @param voMember
@@ -511,7 +511,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 			Object currentValue = voMember.getValue(valueObject);
 			if (currentValue == null)
 			{
-				String msg = "Property has only getter and is null: " + valueObject.getClass().getName() + "." + voMember.getName();
+				String msg = "Property has only a getter and is null: " + valueObject.getClass().getName() + "." + voMember.getName();
 				throw new IllegalStateException(msg);
 			}
 
@@ -521,12 +521,6 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 				Collection<Object> col = (Collection<Object>) currentValue;
 				col.clear();
 				col.addAll((Collection<? extends Object>) voMemberValue);
-			}
-			else if (Collection.class.isAssignableFrom(realType))
-			{
-				Map<Object, Object> col = (Map<Object, Object>) currentValue;
-				col.clear();
-				col.putAll((Map<? extends Object, ? extends Object>) voMemberValue);
 			}
 			else
 			{
@@ -1115,7 +1109,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 	{
 		ITypeInfoItem voIdMember = getVoIdMember(config, boMetaData, boNameToVoMember);
 		Object tempId = getNextTempIdAs(voIdMember.getElementType());
-		setPropertyValue(valueObject, voIdMember, tempId);
+		voIdMember.setValue(valueObject, tempId);
 		vosToRemoveTempIdFrom.add(valueObject);
 	}
 
@@ -1124,7 +1118,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 	{
 		ITypeInfoItem voIdMember = getVoIdMember(config, boMetaData, boNameToVoMember);
 		Object nullEquivalentValue = NullEquivalentValueUtil.getNullEquivalentValue(voIdMember.getElementType());
-		setPropertyValue(valueObject, voIdMember, nullEquivalentValue);
+		voIdMember.setValue(valueObject, nullEquivalentValue);
 	}
 
 	protected Object getIdFromBusinessObject(Object businessObject, IEntityMetaData metaData)

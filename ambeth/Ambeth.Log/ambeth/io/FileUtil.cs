@@ -24,15 +24,15 @@ namespace De.Osthus.Ambeth.Io
         private const char PATH_SEPARATOR = '\\';
 
         public static Type SetCurrentTypeScope(Type currentTypeScope)
-	    {
+        {
             Type oldCurrentTypeScope = currentTypeScopeTL.Value;
-		    if (Object.ReferenceEquals(oldCurrentTypeScope, currentTypeScope))
-		    {
-			    return oldCurrentTypeScope;
-		    }
-		    currentTypeScopeTL.Value = currentTypeScope;
-		    return oldCurrentTypeScope;
-	    }
+            if (Object.ReferenceEquals(oldCurrentTypeScope, currentTypeScope))
+            {
+                return oldCurrentTypeScope;
+            }
+            currentTypeScopeTL.Value = currentTypeScope;
+            return oldCurrentTypeScope;
+        }
 
         private FileUtil()
         {
@@ -104,8 +104,9 @@ namespace De.Osthus.Ambeth.Io
                 {
                     combinesFileNames = Combine(fileNames);
                 }
-                throw new ArgumentException(String.Format("File source '{0}' not found in filesystem and classpath. Filenames: '{1}'", fileName,
-                        combinesFileNames));
+                String workingDir = Directory.GetCurrentDirectory();
+                String msg = "File source '{0}' not found in filesystem and classpath. Filenames: '{1}', current working directory: {2}";
+                throw new ArgumentException(String.Format(msg, fileName, combinesFileNames, workingDir));
             }
 
             return streams;
@@ -145,7 +146,9 @@ namespace De.Osthus.Ambeth.Io
             fileStream = File.OpenRead(fileName);
             if (fileStream == null || !fileStream.CanRead)
             {
-                throw new ArgumentException("File '" + fileName + "' not readable");
+                String workingDir = Directory.GetCurrentDirectory();
+                String msg = "File source '{0}' not found in filesystem and classpath. Current working directory: {1}";
+                throw new ArgumentException(String.Format(msg, fileName, workingDir));
             }
 #else
 
