@@ -22,8 +22,8 @@ public final class PersistenceConfigurationConstants
 	public static final String DatabasePoolMaxPending = "database.pool.maxpending";
 
 	/**
-	 * Maximum number of used connections in the database pool. If the limit is exceeded all further requests for connections are refused. Valid values are all
-	 * numbers > 0, default is 2.
+	 * Maximum number of used connections in the database pool. If the limit is exceeded all further requests for connections are paused until either a
+	 * connection is available or the timeout from {@link #DatabasePoolTryTimeSpan} is reached. Valid values are all numbers > 0, default is 2.
 	 * 
 	 */
 	public static final String DatabasePoolMaxUsed = "database.pool.maxused";
@@ -94,23 +94,21 @@ public final class PersistenceConfigurationConstants
 	public static final String DatabasePermissionGroupPrefix = "database.permissiongrouptable.prefix";
 
 	/**
-	 * The postfix for a database table to be recognized as a permission group table for another table. E.g. the postfix is "_PERMISSIONGROUP" and the table the
-	 * permissions should be applied to is named "ADDRESSES", the table "ADDRESSES_PERMISSIONGROUP" would be recognized as a table containing information about
-	 * the permissions to access table "ADDRESSES".
+	 * The postfix for a database table to be recognized as a permission group table for another table. E.g. the postfix is "_PG" and the table the permissions
+	 * should be applied to is named "ADDRESSES", the table "ADDRESSES_PG" would be recognized as a table containing information about the permissions to access
+	 * table "ADDRESSES".
 	 */
 	public static final String DatabasePermissionGroupPostfix = "database.permissiongrouptable.postfix";
 
 	/**
-	 * The prefix for a database field to be recognized as the corresponding database part for an attribute in a java business object. E.g. the prefix is
-	 * "PREFIX" and the java attribute is "field1" the database field "PREFIX_FIELD1" would automatically be recognized as the counterpart to the java
-	 * attribute.
+	 * The prefix for a database field to be recognized as the corresponding database part for a property in an entity. E.g. the prefix is "PREFIX" and the java
+	 * property is "field1" the database field "PREFIX_FIELD1" would automatically be recognized as the counterpart to the java property.
 	 */
 	public static final String DatabaseFieldPrefix = "database.field.prefix";
 
 	/**
-	 * The postfix for a database field to be recognized as the corresponding database part for an attribute in a java business object. E.g. the postfix is
-	 * "_POSTFIX" and the java attribute is "field1" the database field "FIELD1_POSTFIX" would automatically be recognized as the counterpart to the java
-	 * attribute.
+	 * The postfix for a database field to be recognized as the corresponding database part for a property in an entity. E.g. the postfix is "_POSTFIX" and the
+	 * java property is "field1" the database field "FIELD1_POSTFIX" would automatically be recognized as the counterpart to the java property.
 	 */
 	public static final String DatabaseFieldPostfix = "database.field.postfix";
 

@@ -3,7 +3,7 @@
 \label{feature:FactoryBean}
 \ClearAPI
 
-This type of bean controls the instantiation of another bean and \AMBETH{} uses the factory bean to aquire an instance of the real bean and inject it where needed. The container controls only the life-cycle of the factory bean. The created bean is not processed by the container in any way. A Factory Bean is defined just by implementing the interface \type{IFactoryBean}. It is autowired to the interface or class of the beans it produces.
+This type of bean controls the instantiation of another bean and \AMBETH{} uses the factory bean to acquire an instance of the real bean and inject it where needed. The container controls only the life-cycle of the factory bean. The created bean is not processed by the container in any way. A Factory Bean is defined just by implementing the interface \type{IFactoryBean}. It is autowired to the interface or class of the beans it produces.
 
 There are multiple scenarios where a factory bean can be used:
 
@@ -17,4 +17,67 @@ There are multiple scenarios where a factory bean can be used:
 
 To create a FactoryBean you have to write a factory service and implement \type{IFactoryBean}. In the \type{getObject()} method you manage the creation of the bean you want to manage with this factory. Depending on the use-case you create or retrieve an instance of your bean and return it.
 
-You then autowire the FactoryBean to the interface or class of your managed bean (the factory does not need to implement the interface or class for this). Ambeth manages the voodoo magic in the background so that when an instance of your bean is needed the \type{getObject()} method of your factory is called.
+You then autowire the FactoryBean to the interface or class of your managed bean (the factory does not need to implement the interface or class for this). \AMBETH{} manages the voodoo magic in the background so that when an instance of your bean is needed the \type{getObject()} method of your factory is called.
+
+\subsection{Example}
+
+\subsubsection{Prototype}
+\begin{lstlisting}[style=Java,caption={Usage example for \type{IFactoryBean} creating one instance per call (Java)}]
+public class MyFactoryBean implements IFactoryBean
+{
+	@Override
+	public Object getObject() throws Throwable
+	{
+		PrototypeBean bean = new PrototypeBean();
+		return bean;
+	}
+}
+\end{lstlisting}
+\begin{lstlisting}[style=Csharp,caption={Usage example for \type{IFactoryBean} creating one instance per call (C\#)}]
+public class MyFactoryBean : IFactoryBean
+{
+	public Object GetObject()
+	{
+		PrototypeBean bean = new PrototypeBean();
+		return bean;
+	}
+}
+\end{lstlisting}
+
+\subsubsection{Singleton}
+\begin{lstlisting}[style=Java,caption={Usage example for \type{IFactoryBean} returning a singleton (Java)}]
+public class MyFactoryBean implements IFactoryBean, IInitializingBean
+{
+	protected SingletonBean instance;
+
+	@Override
+	public void afterPropertiesSet() throws Throwable
+	{
+		instance = new SingletonBean(may, be, many, parameters);
+		instance.orAnInitMethod();
+	}
+
+	@Override
+	public Object getObject() throws Throwable
+	{
+		return instance;
+	}
+}
+\end{lstlisting}
+\begin{lstlisting}[style=Csharp,caption={Usage example for \type{IFactoryBean} returning a singleton (C\#)}]
+public class MyFactoryBean : IFactoryBean, IInitializingBean
+{
+	protected SingletonBean instance;
+
+	public virtual void AfterPropertiesSet()
+	{
+		instance = new SingletonBean(may, be, many, parameters);
+		instance.OrAnInitMethod();
+	}
+
+	public Object GetObject()
+	{
+		return instance;
+	}
+}
+\end{lstlisting}

@@ -314,8 +314,8 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				cacheToOrelsLoadedHistory, alreadyHandledSet, loadItems);
 	}
 
-	protected void processPendingOrelsAndObjRefs(final ILinkedMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchPath,
-			final AlreadyHandledSet alreadyHandledSet, final IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisLoadedHistory,
+	protected void processPendingOrelsAndObjRefs(final ILinkedMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchPath, final AlreadyHandledSet alreadyHandledSet,
+			final IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisLoadedHistory,
 			final IdentityLinkedMap<ICacheIntern, ISet<IObjRelation>> cacheToOrelsLoadedHistory,
 			final IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad,
 			final IdentityLinkedMap<ICacheIntern, IMap<IObjRelation, Boolean>> cacheToOrelsToLoad, final ArrayList<PrefetchCommand> pendingPrefetchCommands,
@@ -408,7 +408,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				}
 			});
 			// Remove all oris which have already been tried to load before
-			if (cacheToOrisToLoad.size() == 0 && cacheToOrelsToLoad.size() == 0)
+			if (cacheToOrisToLoad.size() == 0 && cacheToOrelsToLoad.size() == 0 && pendingPrefetchCommands.size() == 0)
 			{
 				return;
 			}
@@ -566,6 +566,10 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		{
 			// this check is necessary because even if we create only instances of DirectValueHolderRef in cases where there is a not initalized relation
 			// even then it might be possible that a concurrent thread initializes the valueholder to null (e.g. an empty to-one relation)
+			return;
+		}
+		if ((cachePaths == null || cachePaths.length == 0) && entityTypeToPrefetchPaths == null)
+		{
 			return;
 		}
 		if (obj instanceof Iterable)
