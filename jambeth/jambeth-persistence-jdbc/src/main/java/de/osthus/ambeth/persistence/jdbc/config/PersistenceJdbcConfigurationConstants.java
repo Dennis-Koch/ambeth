@@ -43,11 +43,6 @@ public final class PersistenceJdbcConfigurationConstants
 	public static final String DatabaseLocalSchemaFile = "database.local.schema";
 
 	/**
-	 * The algorithm to calculate checksums for database entries.
-	 */
-	public static final String DatabaseChecksumAlgorithm = "database.checksum.algorithm";
-
-	/**
 	 * The URL to the database connection, e.g. "jdbc:oracle:thin:@127.0.0.1:1521:SID".
 	 */
 	public static final String DatabaseConnection = "database.connection";
@@ -112,7 +107,9 @@ public final class PersistenceJdbcConfigurationConstants
 	 */
 	public static final String DatabaseBehaviourStrict = "database.behaviour.strict";
 
-	@ConfigurationConstantDescription("TODO")
+	/**
+	 * The name of the datasource to use.
+	 */
 	public static final String DataSourceName = "datasource.name";
 
 	/**

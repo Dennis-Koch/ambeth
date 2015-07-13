@@ -1,6 +1,6 @@
 package de.osthus.ambeth.util;
 
-public class CachePath
+public class PrefetchPath
 {
 	public final int memberIndex;
 
@@ -8,14 +8,17 @@ public class CachePath
 
 	public final Class<?> memberType;
 
-	public final CachePath[] children;
+	public final PrefetchPath[] children;
 
-	public CachePath(Class<?> memberType, int memberIndex, String memberName, CachePath[] children)
+	public final Class<?>[] memberTypesOnDescendants;
+
+	public PrefetchPath(Class<?> memberType, int memberIndex, String memberName, PrefetchPath[] children, Class<?>[] memberTypesOnDescendants)
 	{
 		this.memberIndex = memberIndex;
 		this.memberName = memberName;
 		this.memberType = memberType;
 		this.children = children;
+		this.memberTypesOnDescendants = memberTypesOnDescendants;
 	}
 
 	@Override

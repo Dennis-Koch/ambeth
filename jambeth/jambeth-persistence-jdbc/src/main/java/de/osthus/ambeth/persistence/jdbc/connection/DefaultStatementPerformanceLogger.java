@@ -53,7 +53,7 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
 
 		protected int count;
 
-		protected int duration, cursorDuration;
+		protected long duration, cursorDuration;
 
 		public StatementEntry(String sql)
 		{
@@ -171,9 +171,9 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
 	}
 
 	@Override
-	public void printTop(StringBuilder sb, boolean reset)
+	public IStatementPerformanceReportItem[] createReport(boolean reset, boolean joinRemote)
 	{
-		IMap<String, StatementEntry> sqlToRemoteEntryMap = joinRemoteDatabaseInfo(schemaNames);
+		IMap<String, StatementEntry> sqlToRemoteEntryMap = joinRemote ? joinRemoteDatabaseInfo(schemaNames) : null;
 		final long currentTime;
 		final LinkedHashMap<String, StatementEntry> sqlToEntryMap = new LinkedHashMap<String, StatementEntry>();
 		ArrayList<StatementInfo> statementInfos = new ArrayList<StatementInfo>();
@@ -254,22 +254,24 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
 				return d1 < d2 ? 1 : -1;
 			}
 		});
-		DecimalFormat floatDF = new PaddingDecimalFormat("######0.00");
-		DecimalFormat integerDF = new PaddingDecimalFormat("#######");
+		final DecimalFormat floatDF = new PaddingDecimalFormat("######0.00");
+		final DecimalFormat integerDF = new PaddingDecimalFormat("#######");
 
 		String ignoreSql = getRemoteDatabaseInfoSql(schemaNames);
+		ArrayList<IStatementPerformanceReportItem> items = new ArrayList<IStatementPerformanceReportItem>(keysList.size());
+
 		for (int a = 0, size = keysList.size(); a < size; a++)
 		{
-			String sql = keysList.get(a);
+			final String sql = keysList.get(a);
 			if (sql.equals(ignoreSql))
 			{
 				continue;
 			}
 			StatementEntry se = sqlToEntryMap.get(sql);
 			List<StatementInfo> sis = sqlToStatementInfosMap.get(sql);
-			int count = (se != null ? se.count : 0) + (sis != null ? sis.size() : 0);
-			int duration = (se != null ? se.duration : 0);
-			int cursorDuration = (se != null ? se.cursorDuration : 0);
+			final int count = (se != null ? se.count : 0) + (sis != null ? sis.size() : 0);
+			long duration = (se != null ? se.duration : 0);
+			long cursorDuration = (se != null ? se.cursorDuration : 0);
 			if (sis != null)
 			{
 				for (int b = sis.size(); b-- > 0;)
@@ -277,15 +279,69 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
 					duration += (currentTime - sis.get(b).getStartedTime());
 				}
 			}
+			final double durationPerRequest = calculateDurationPerRequest(duration, count);
+			final double cursorDurationPerRequest = calculateDurationPerRequest(cursorDuration, count);
+			items.add(new IStatementPerformanceReportItem()
+			{
+				@Override
+				public String getStatement()
+				{
+					return sql;
+				}
+
+				@Override
+				public double getSpentTimePerExecution()
+				{
+					return durationPerRequest;
+				}
+
+				@Override
+				public double getSpentTimePerCursor()
+				{
+					return cursorDurationPerRequest;
+				}
+
+				@Override
+				public int getExecutionCount()
+				{
+					return count;
+				}
+
+				@Override
+				public String toString()
+				{
+					return integerDF.format(getExecutionCount()) + ' ' + floatDF.format(getSpentTimePerExecution()) + ' '
+							+ floatDF.format(getSpentTimePerCursor()) + ' ' + getStatement();
+				}
+			});
+		}
+		return items.toArray(IStatementPerformanceReportItem.class);
+	}
+
+	@Override
+	public void printTop(StringBuilder sb, boolean reset)
+	{
+		printTop(sb, reset, true);
+	}
+
+	@Override
+	public void printTop(StringBuilder sb, boolean reset, boolean joinRemote)
+	{
+		IStatementPerformanceReportItem[] items = createReport(reset, joinRemote);
+		DecimalFormat floatDF = new PaddingDecimalFormat("######0.00");
+		DecimalFormat integerDF = new PaddingDecimalFormat("#######");
+
+		for (int a = 0, size = items.length; a < size; a++)
+		{
+			IStatementPerformanceReportItem item = items[a];
 			if (a > 0)
 			{
 				sb.append(System.getProperty("line.separator"));
 			}
-			sb.append(integerDF.format(a + 1)).append(") ").append(integerDF.format(count)).append(" ")
-					.append(floatDF.format(calculateDurationPerRequest(duration, count))).append(" ")
-					.append(floatDF.format(calculateDurationPerRequest(cursorDuration, count)));
+			sb.append(integerDF.format(a + 1)).append(") ").append(integerDF.format(item.getExecutionCount())).append(" ")
+					.append(floatDF.format(item.getSpentTimePerExecution())).append(" ").append(floatDF.format(item.getSpentTimePerCursor()));
 
-			StatementEntry remoteEntry = sqlToRemoteEntryMap.get(sql);
+			StatementEntry remoteEntry = null;// sqlToRemoteEntryMap != null ? sqlToRemoteEntryMap.get(sql) : null;
 			if (remoteEntry != null)
 			{
 				sb.append(" ").append(integerDF.format(remoteEntry.count)).append(" ").append(floatDF.format(calculateDurationPerRequest(remoteEntry)));
@@ -294,7 +350,7 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
 			{
 				sb.append("       -        -   ");
 			}
-			sb.append(" ").append(sql);
+			sb.append(" ").append(item.getStatement());
 		}
 	}
 

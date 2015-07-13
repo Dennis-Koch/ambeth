@@ -2,7 +2,7 @@
 \section{database.pool.maxused}
 \label{configuration:DatabasePoolMaxused}
 \ClearAPI
-Maximum number of used connections in the database pool. If the limit is exceeded all further requests for connections are refused. Valid values are all numbers > 0, default is 2.
+Maximum number of used connections in the database pool. If the limit is exceeded all further requests for connections are paused until either a connection is available or the timeout from \ref{configuration:DatabasePoolMaxwait} is reached. Valid values are all numbers > 0.
 %% GENERATED USAGE REFERENCE - DO NOT EDIT
 \begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
 	\endhead

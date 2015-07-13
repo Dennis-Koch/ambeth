@@ -33,14 +33,14 @@ public abstract class AbstractRule<T> implements IChangeControllerExtension<T>
 	}
 
 	@Override
-	public void processChange(T newEntity, T oldEntity, CacheView views)
+	public void processChange(T newEntity, T oldEntity, boolean toBeDeleted, boolean toBeCreated, CacheView views)
 	{
 		onChange(newEntity, oldEntity, views);
-		if (newEntity == null)
+		if (toBeDeleted)
 		{
-			onDelete(oldEntity, views);
+			onDelete(newEntity, views);
 		}
-		else if (oldEntity == null)
+		else if (toBeCreated)
 		{
 			onCreate(newEntity, views);
 		}
@@ -48,7 +48,7 @@ public abstract class AbstractRule<T> implements IChangeControllerExtension<T>
 		{
 			onUpdate(newEntity, oldEntity, views);
 		}
-		if (newEntity != null)
+		if (!toBeDeleted)
 		{
 			validateInvariant(newEntity, oldEntity, views);
 		}

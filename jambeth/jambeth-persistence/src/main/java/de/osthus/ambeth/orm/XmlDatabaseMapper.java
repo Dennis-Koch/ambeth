@@ -821,7 +821,11 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			link = database.getLinkByDefiningName(linkSource);
 			if (link == null)
 			{
-				throw new IllegalArgumentException("Link defined by '" + linkSource + "' was not found");
+				link = database.getLinkByDefiningName(linkSource.toUpperCase());
+				if (link == null)
+				{
+					throw new IllegalArgumentException("Link defined by '" + linkSource + "' was not found");
+				}
 			}
 		}
 		else

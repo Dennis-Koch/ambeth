@@ -42,6 +42,7 @@ import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.databinding.ICollectionChangeExtensionExtendable;
 import de.osthus.ambeth.databinding.IPropertyChangeExtensionExtendable;
+import de.osthus.ambeth.event.IEntityMetaDataEvent;
 import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.event.IEventTargetExtractorExtendable;
 import de.osthus.ambeth.filter.model.IPagingResponse;
@@ -70,7 +71,9 @@ import de.osthus.ambeth.util.CacheHelper;
 import de.osthus.ambeth.util.ICacheHelper;
 import de.osthus.ambeth.util.ICachePathHelper;
 import de.osthus.ambeth.util.IPrefetchHelper;
+import de.osthus.ambeth.util.IPrioMembersProvider;
 import de.osthus.ambeth.util.ParamChecker;
+import de.osthus.ambeth.util.PrioMembersProvider;
 
 @FrameworkModule
 public class CacheModule implements IInitializingModule
@@ -123,6 +126,10 @@ public class CacheModule implements IInitializingModule
 		beanContextFactory.registerBean(ValueHolderIEC.class).autowireable(ValueHolderIEC.class, IProxyHelper.class);
 
 		beanContextFactory.registerBean(CacheHelper.class).autowireable(ICacheHelper.class, ICachePathHelper.class, IPrefetchHelper.class);
+
+		IBeanConfiguration prioMembersProvider = beanContextFactory.registerBean(PrioMembersProvider.class).autowireable(IPrioMembersProvider.class);
+		beanContextFactory.link(prioMembersProvider, PrioMembersProvider.handleMetaDataAddedEvent).to(IEventListenerExtendable.class)
+				.with(IEntityMetaDataEvent.class);
 
 		beanContextFactory.registerBean(CacheWalker.class).autowireable(ICacheWalker.class);
 

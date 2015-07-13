@@ -91,10 +91,9 @@
     <Compile Include="ambeth\cache\transfer\ObjRelation.cs" />
     <Compile Include="ambeth\cache\transfer\ObjRelationResult.cs" />
     <Compile Include="ambeth\cache\transfer\LoadContainer.cs" />
-    <Compile Include="ambeth\util\AlreadyHandledItem.cs" />
     <Compile Include="ambeth\util\CacheHelper.cs" />
-    <Compile Include="ambeth\util\CachePath.cs" />
-    <Compile Include="ambeth\util\CascadeLoadItem.cs" />
+    <Compile Include="ambeth\util\PrefetchPath.cs" />
+    <Compile Include="ambeth\util\PrefetchCommand.cs" />
     <Compile Include="ambeth\util\AppendableCachePath.cs" />
     <Compile Include="ambeth\util\ICachePathHelper.cs" />
     <Compile Include="ambeth\ioc\CacheModule.cs" />
@@ -221,6 +220,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\cache\rootcachevalue\DefaultRootCacheValueFactoryDelegate.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\util\IPrioMembersProvider.cs" />
+    <Compile Include="ambeth\util\PrioMembersKey.cs" />
+    <Compile Include="ambeth\util\PrioMembersProvider.cs" />
+    <Compile Include="ambeth\util\PrioMembersSmartCopyMap.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\util\MergePrefetchPathsCache.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\util\AlreadyHandledSet.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

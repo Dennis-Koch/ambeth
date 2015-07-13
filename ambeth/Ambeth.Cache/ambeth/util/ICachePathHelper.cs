@@ -8,13 +8,13 @@ namespace De.Osthus.Ambeth.Util
     {
         void BuildCachePath(Type entityType, String memberToInitialize, CHashSet<AppendableCachePath> cachePaths);
 
-	    IPrefetchState EnsureInitializedRelations(Object objects, ILinkedMap<Type, CachePath[]> entityTypeToPrefetchSteps);
+	    IPrefetchState EnsureInitializedRelations(Object objects, ILinkedMap<Type, PrefetchPath[]> entityTypeToPrefetchSteps);
 
-	    AppendableCachePath CopyCachePathToAppendable(CachePath cachePath);
+	    AppendableCachePath CopyCachePathToAppendable(PrefetchPath cachePath);
 
-        CachePath[] CopyAppendableToCachePath(CHashSet<AppendableCachePath> children);
+        PrefetchPath[] CopyAppendableToCachePath(CHashSet<AppendableCachePath> children);
 
-	    CachePath CopyAppendableToCachePath(AppendableCachePath cachePath);
+	    PrefetchPath CopyAppendableToCachePath(AppendableCachePath cachePath);
 
 	    void UnionCachePath(AppendableCachePath cachePath, AppendableCachePath other);
     }

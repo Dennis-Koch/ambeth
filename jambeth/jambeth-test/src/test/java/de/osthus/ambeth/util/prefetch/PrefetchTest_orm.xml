@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://osthus.de/ambeth/ambeth_orm_2_0">
+
+	<link-mappings>
+		<link alias="EntityA-EntityB" source="L_EntityA_EntityBs" />
+		<link alias="EntityB-EntityA" source="L_EntityB_EntityAs" />
+		<link alias="EntityA-Parent-Child" source="L_EntityA_EntityAs" />
+		<link alias="EntityB-Parent-Child" source="L_EntityB_EntityBs" />
+		<link alias="EntityC-Parent-Child" source="L_EntityC_EntityCs" />
+		<link alias="EntityD-Parent-Child" source="L_EntityD_EntityDs" />
+	</link-mappings>
+
+	<entity-mappings>
+		<entity class="de.osthus.ambeth.util.prefetch.EntityA">
+			<attributes>
+				<relation name="AsOfA" link="EntityA-Parent-Child" this="left"/>
+				<relation name="BsOfA" link="EntityA-EntityB"/>
+				<relation name="ParentAOfA" link="EntityA-Parent-Child" this="right"/>
+			</attributes>
+		</entity>
+		<entity class="de.osthus.ambeth.util.prefetch.EntityB">
+			<attributes>
+				<relation name="AsOfB" link="EntityB-EntityA"/>
+				<relation name="BsOfB" link="EntityB-Parent-Child" this="left"/>
+				<relation name="ParentBOfB" link="EntityB-Parent-Child" this="right"/>
+			</attributes>
+		</entity>
+		<entity class="de.osthus.ambeth.util.prefetch.EntityC">
+			<attributes>
+				<relation name="CsOfC" link="EntityC-Parent-Child" this="left"/>
+				<relation name="ParentCOfC" link="EntityC-Parent-Child" this="right"/>
+			</attributes>
+		</entity>
+		<entity class="de.osthus.ambeth.util.prefetch.EntityD">
+			<attributes>
+				<relation name="DsOfD" link="EntityD-Parent-Child" this="left"/>
+				<relation name="ParentDOfD" link="EntityD-Parent-Child" this="right"/>
+			</attributes>
+		</entity>
+	</entity-mappings>
+	
+</or-mappings>

@@ -56,7 +56,7 @@ namespace De.Osthus.Ambeth.Typeinfo
 
 		public IPropertyInfo[] GetPrivateProperties(Type type)
 		{
-			return GetPropertyEntry(type, typeToIocPropertyMap, true, false).properties;
+			return GetPropertyEntry(type, typeToPrivatePropertyMap, true, false).properties;
 		}
 
 		public IMap<String, IPropertyInfo> GetPropertyMap(Object obj)
@@ -214,6 +214,10 @@ namespace De.Osthus.Ambeth.Typeinfo
                         {
                             setter = property.GetSetMethod();
                         }
+						if (isIocMode && setter == null)
+						{
+							continue;
+						}
                         propertyInfo = new MethodPropertyInfo(type, property.Name, getter, setter);
                         propertyInfo.PutAnnotations(property);
                         propertyMap.Put(propertyInfo.Name, propertyInfo);

@@ -129,8 +129,8 @@ public class LogPreparedStatementInterceptor extends LogStatementInterceptor imp
 			}
 			else if (executeBatchMethod.equals(method))
 			{
-				log.debug(StringBuilderUtil.concat(objectCollector, "[", identityHashCode, " ", timeSpent, " ms] ", method.getName(), ": ", batchCount,
-						" times ", getSql()));
+				log.debug(StringBuilderUtil.concat(objectCollector, "[cn:", identityHashCode, " tx:", getSessionId(), " ", timeSpent, " ms] ",
+						method.getName(), ": ", batchCount, " times ", getSql()));
 				if (paramLogger != null)
 				{
 					paramLogger.doLogBatch();
@@ -139,8 +139,8 @@ public class LogPreparedStatementInterceptor extends LogStatementInterceptor imp
 			}
 			else if (executeMethod.equals(method) || executeUpdateMethod.equals(method) || executeQueryMethod.equals(method))
 			{
-				log.debug(StringBuilderUtil.concat(objectCollector, "[", identityHashCode, " ", timeSpent, " ms] ", method.getName(), ": ",
-						getSqlIntern(method, args)));
+				log.debug(StringBuilderUtil.concat(objectCollector, "[cn:", identityHashCode, " tx:", getSessionId(), " ", timeSpent, " ms] ",
+						method.getName(), ": ", getSqlIntern(method, args)));
 				if (paramLogger != null)
 				{
 					paramLogger.doLog();

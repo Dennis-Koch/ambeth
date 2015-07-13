@@ -60,7 +60,7 @@ namespace De.Osthus.Ambeth.Util
 
         public static MethodInfo[] GetDeclaredMethods(Type type)
         {
-            return type.GetMethods(BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+			return type.GetMethods(BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
         }
 
 		public static MethodInfo[] GetDeclaredMethodsInHierarchy(Type type)
@@ -75,7 +75,7 @@ namespace De.Osthus.Ambeth.Util
 
         public static MethodInfo GetDeclaredMethod(bool tryOnly, Type type, NewType returnType, String methodName, NewType[] parameters)
         {
-            foreach (MethodInfo method in GetDeclaredMethods(type))
+            foreach (MethodInfo method in GetDeclaredMethodsInHierarchy(type))
             {
                 if (!method.Name.Equals(methodName))
                 {

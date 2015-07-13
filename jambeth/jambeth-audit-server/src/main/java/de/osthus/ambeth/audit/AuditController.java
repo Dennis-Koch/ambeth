@@ -341,7 +341,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.Name).setNewValue(pui.getMemberName());
 
 			String auditedValue = createAuditedValueOfEntityPrimitive(pui.getNewValue());
-			if (auditedValue.length() == 0)
+			if (auditedValue == null || auditedValue.length() == 0)
 			{
 				if (table == null)
 				{
