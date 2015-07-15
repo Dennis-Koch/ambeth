@@ -446,7 +446,7 @@ namespace De.Osthus.Ambeth.Mapping
             }
             else
             {
-                String msg = "Property not accessible: " + valueObject.getClass().getName() + "." + voMember.getName();
+                String msg = "Property not accessible: " + valueObject.GetType().FullName + "." + voMember.Name;
                 throw new Exception(msg);
             }
         }
