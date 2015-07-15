@@ -136,7 +136,7 @@ public class ChangeController implements IChangeController, IChangeControllerExt
 			boolean toBeDeleted = ((IDataObject) newEntity).isToBeDeleted();
 			boolean toBeCreated = false;
 			Object oldEntity = oldEntities.get(index);
-			if (newEntity == oldEntity)
+			if (oldEntity == null)
 			{
 				toBeCreated = true;
 			}
