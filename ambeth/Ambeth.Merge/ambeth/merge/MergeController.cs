@@ -333,6 +333,7 @@ namespace De.Osthus.Ambeth.Merge
 		    if (id != null)
 		    {
                 objRef = ObjRefFactory.CreateObjRef(metaData.EntityType, ObjRef.PRIMARY_KEY_INDEX, id, null);
+				objRef.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
 		    }
 		    if (!(obj is IDataObject) || ((IDataObject) obj).HasPendingChanges)
 		    {

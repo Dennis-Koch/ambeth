@@ -110,6 +110,12 @@ public class ReadOnlySetWrapper<K> implements ISet<K>
 	}
 
 	@Override
+	public <S extends K> boolean containsAny(S[] array)
+	{
+		return hashSet.containsAny(array);
+	}
+
+	@Override
 	public boolean addAll(Iterable<? extends K> c)
 	{
 		throw new UnsupportedOperationException();

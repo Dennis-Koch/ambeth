@@ -21,6 +21,7 @@ import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -33,6 +34,8 @@ import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.connection.IConnectionKeyHandle;
 import de.osthus.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
+import de.osthus.ambeth.persistence.jdbc.sql.DefaultSqlRegexpLikeOperand;
+import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.util.IConversionHelper;
 
 public abstract class AbstractConnectionDialect implements IConnectionDialect, IInitializingBean, IDisposableBean
@@ -77,6 +80,9 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
+	@Autowired
+	protected IServiceContext beanContext;
+
 	@Autowired(optional = true)
 	protected ITransactionState transactionState;
 
@@ -112,9 +118,10 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 	protected abstract Class<?> getDriverType();
 
 	@Override
-	public String getRegexpLikeFunctionName()
+	public IOperand getRegexpLikeFunction(IOperand sourceString, IOperand pattern, IOperand matchParameter)
 	{
-		return "regexp_like";
+		return beanContext.registerBean(DefaultSqlRegexpLikeOperand.class).propertyValue("SourceString", sourceString).propertyValue("Pattern", pattern)
+				.propertyValue("MatchParameter", matchParameter).finish();
 	}
 
 	@Override
@@ -452,6 +459,12 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 			first = false;
 		}
 		sb.append(')');
+	}
+
+	@Override
+	public boolean isTransactionNecessaryDuringLobStreaming()
+	{
+		return false;
 	}
 
 	@Override

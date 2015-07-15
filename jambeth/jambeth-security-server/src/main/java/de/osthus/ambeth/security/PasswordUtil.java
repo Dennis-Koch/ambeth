@@ -26,6 +26,7 @@ import de.osthus.ambeth.exceptions.PasswordConstraintException;
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityFactory;
@@ -44,9 +45,10 @@ import de.osthus.ambeth.security.model.IPBEConfiguration;
 import de.osthus.ambeth.security.model.IPassword;
 import de.osthus.ambeth.security.model.ISignature;
 import de.osthus.ambeth.security.model.IUser;
+import de.osthus.ambeth.util.IRevertDelegate;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class PasswordUtil implements IInitializingBean, IPasswordUtil, IPasswordValidationExtendable
+public class PasswordUtil implements IInitializingBean, IPasswordUtil, IPasswordValidationExtendable, IThreadLocalCleanupBean
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -123,6 +125,8 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil, IPassword
 
 	protected final Lock saltReencryptionLock = new ReentrantLock();
 
+	protected final ThreadLocal<Boolean> suppressPasswordValidationTL = new ThreadLocal<Boolean>();
+
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
@@ -146,6 +150,15 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil, IPassword
 		}
 	}
 
+	@Override
+	public void cleanupThreadLocal()
+	{
+		if (suppressPasswordValidationTL.get() != null)
+		{
+			throw new IllegalStateException("TL variable must already be null at this point");
+		}
+	}
+
 	protected SecretKeyFactory getSecretKeyFactory(String algorithm)
 	{
 		Reference<SecretKeyFactory> secretKeyFactoryR = algorithmToSecretKeyFactoryMap.get(algorithm);
@@ -165,11 +178,25 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil, IPassword
 		return secretKeyFactory;
 	}
 
+	@Override
+	public IRevertDelegate suppressPasswordValidation()
+	{
+		final Boolean oldValue = suppressPasswordValidationTL.get();
+		suppressPasswordValidationTL.set(Boolean.TRUE);
+		return new IRevertDelegate()
+		{
+			@Override
+			public void revert()
+			{
+				suppressPasswordValidationTL.set(oldValue);
+			}
+		};
+	}
+
 	protected RuntimeException createIllegalPasswordException()
 	{
-		RuntimeException e = new SecurityException(
-				"New password does not meet the security criteria:\n1) ...\n2) ...\n3) Password has not already been used within the last "
-						+ passwordHistoryCount + " changes");
+		PasswordConstraintException e = new PasswordConstraintException(
+				"New password does not meet the security criteria: Password has already been used recently");
 		if (!debugModeActive)
 		{
 			e.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
@@ -322,16 +349,17 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil, IPassword
 		}
 	}
 
-	@Override
-	public void assignNewPassword(char[] clearTextPassword, IUser user, char[] oldClearTextPassword)
+	protected void validatePassword(char[] clearTextPassword)
 	{
-		ParamChecker.assertParamNotNull(clearTextPassword, "clearTextPassword");
-		ParamChecker.assertParamNotNull(user, "user");
+		if (Boolean.TRUE.equals(suppressPasswordValidationTL.get()))
+		{
+			return;
+		}
 		StringBuilder validationErrorSB = null;
 		for (IPasswordValidationExtension extension : extensions.getExtensions())
 		{
-			String validationError = extension.validatePassword(clearTextPassword);
-			if (validationError != null)
+			CharSequence validationError = extension.validatePassword(clearTextPassword);
+			if (validationError != null && validationError.length() > 0)
 			{
 				if (validationErrorSB == null)
 				{
@@ -346,8 +374,17 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil, IPassword
 		}
 		if (validationErrorSB != null)
 		{
-			throw new PasswordConstraintException(validationErrorSB.toString());
+			throw new PasswordConstraintException("New password does not meet the security criteria: " + validationErrorSB.toString());
 		}
+	}
+
+	@Override
+	public void assignNewPassword(char[] clearTextPassword, IUser user, char[] oldClearTextPassword)
+	{
+		ParamChecker.assertParamNotNull(clearTextPassword, "clearTextPassword");
+		ParamChecker.assertParamNotNull(user, "user");
+
+		validatePassword(clearTextPassword);
 		List<IPassword> passwordHistory = buildPasswordHistory(user);
 		if (isPasswordUsedInHistory(clearTextPassword, passwordHistory))
 		{

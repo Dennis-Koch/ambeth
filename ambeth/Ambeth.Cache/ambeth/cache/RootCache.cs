@@ -737,10 +737,16 @@ namespace De.Osthus.Ambeth.Cache
                     else
                     {
                         IObjRelationResult selfResult = GetObjRelationIfValid(objRel, targetCache, objRelToResultMap, alreadyClonedObjRefs);
-                        if (selfResult != null || returnMisses)
-                        {
-                            objRelResults.Add(selfResult);
-                        }
+						if (selfResult != null)
+						{
+							IObjRef[] relations = selfResult.Relations;
+							item.Set__ObjRefs(relationIndex, relations);
+							objRelResults.Add(selfResult);
+						}
+						else if (returnMisses)
+						{
+							objRelResults.Add(null);
+						}
                     }
                     continue;
                 }
@@ -1099,7 +1105,7 @@ namespace De.Osthus.Ambeth.Cache
 
         protected bool IsFilteringNecessary(ICacheIntern targetCache)
         {
-            return SecurityActive && (Privileged && targetCache != null && !targetCache.Privileged)
+            return PrivilegeProvider != null && SecurityActive && (Privileged && targetCache != null && !targetCache.Privileged)
                     || (targetCache == null && SecurityActivation != null && SecurityActivation.FilterActivated);
         }
 

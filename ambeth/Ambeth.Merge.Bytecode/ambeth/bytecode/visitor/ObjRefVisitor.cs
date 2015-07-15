@@ -108,14 +108,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             IMethodVisitor mv = VisitMethod(new ConstructorInstance(MethodAttributes.Public, typeof(Object), typeof(Object)));
             mv.LoadThis();
             mv.InvokeConstructor(ci_super);
-            mv.CallThisSetter(p_id, delegate(IMethodVisitor mg)
-                {
-                    mg.LoadArg(0);
-                });
-            mv.CallThisSetter(p_version, delegate(IMethodVisitor mg)
-                {
-                    mg.LoadArg(1);
-                });
+			mv.CallThisSetter(p_id, delegate(IMethodVisitor mg)
+				{
+					mg.LoadArg(0);
+				});
+			mv.CallThisSetter(p_version, delegate(IMethodVisitor mg)
+				{
+					mg.LoadArg(1);
+				});
             mv.ReturnValue();
             mv.EndMethod();
         }
@@ -171,56 +171,92 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 				"ConvertValueToType", typeof(Type), typeof(Object)));
 
             Type type = member.RealType;
-            FieldInstance field = ImplementField(new FieldInstance(FieldAttributes.Private, "f_" + property.Name, type));
+            FieldInstance field = ImplementField(new FieldInstance(FieldAttributes.Public, "f_" + property.Name, type));
             return ImplementProperty(property, delegate(IMethodVisitor mg)
                 {
-                    if (member.RealType.IsValueType)
+					if (field.Type.Type.IsPrimitive)
+					{
+						Label l_isNull = mg.NewLabel();
+						LocalVariableInfo loc_value = mg.NewLocal(field.Type);
+
+						mg.GetThisField(field);
+						mg.StoreLocal(loc_value);
+
+						mg.LoadLocal(loc_value);
+						mg.IfZCmp(field.Type, CompareOperator.EQ, l_isNull);
+
+						mg.LoadLocal(loc_value);
+						mg.Box(type);
+						mg.ReturnValue();
+
+						mg.Mark(l_isNull);
+						mg.PushNull();
+					}
+					else if (field.Type.Type.IsValueType)
+					{
+						Type pType = field.Type.Type;
+
+						mg.GetThisField(field);
+						MethodInfo m_hasValue = pType.GetMethod("get_HasValue");
+						if (m_hasValue != null)
+						{
+							LocalVariableInfo loc_value = mg.NewLocal(pType);
+							mg.StoreLocal(loc_value);
+							mg.LoadLocal(loc_value);
+
+							MethodInfo m_getValue = pType.GetMethod("get_Value");
+							LocalVariableInfo loc_realValue = mg.NewLocal(m_getValue.ReturnType);
+							Label l_hasNoValue = mg.NewLabel();
+
+							mg.InvokeOnExactOwner(m_hasValue);
+							mg.IfZCmp(CompareOperator.EQ, l_hasNoValue);
+							mg.LoadLocal(loc_value);
+							mg.InvokeOnExactOwner(m_getValue);
+							mg.StoreLocal(loc_realValue);
+							mg.LoadLocal(loc_realValue);
+							mg.IfZCmp(CompareOperator.EQ, l_hasNoValue);
+							mg.LoadLocal(loc_realValue);
+							mg.ValueOf(m_getValue.ReturnType);
+							mg.ReturnValue();
+
+							mg.Mark(l_hasNoValue);
+
+							mg.PushNullOrZero(mg.Method.ReturnType);
+						}
+						else
+						{
+							mg.Box(pType);
+						}
+					}
+					else
                     {
-                        Label l_isNull = mg.NewLabel();
-                        LocalVariableInfo loc_value = mg.NewLocal(field.Type);
-
                         mg.GetThisField(field);
-                        mg.StoreLocal(loc_value);
-
-                        mg.LoadLocal(loc_value);
-                        mg.IfZCmp(field.Type, CompareOperator.EQ, l_isNull);
-
-                        mg.LoadLocal(loc_value);
-                        mg.Box(type);
-                        mg.ReturnValue();
-
-                        mg.Mark(l_isNull);
-                        mg.PushNull();
-                        mg.ReturnValue();
                     }
-                    else
-                    {
-                        mg.GetThisField(field);
-                        mg.ReturnValue();
-                    }
+                    mg.ReturnValue();
                 }, delegate(IMethodVisitor mg)
                 {
-                    mg.PutThisField(field, delegate(IMethodVisitor mg2)
-                        {
-                            Label l_isNull = mg2.NewLabel();
-                            Label l_finish = mg2.NewLabel();
+					mg.PutThisField(field, delegate(IMethodVisitor mg2)
+						{
+							Label l_isNull = mg2.NewLabel();
+							Label l_finish = mg2.NewLabel();
 
-                            mg2.LoadArg(0);
-                            mg2.IfNull(l_isNull);
+							mg2.LoadArg(0);
+							mg2.IfNull(l_isNull);
 
-                            mg.CallThisGetter(p_conversionHelper);
-                            mg.Push(type);
-                            mg.LoadArg(0);
-                            mg.InvokeVirtual(m_convertValueToType);
+							mg.CallThisGetter(p_conversionHelper);
+							mg.Push(type);
+							mg.LoadArg(0);
+							mg.InvokeVirtual(m_convertValueToType);
 
-                            mg2.Unbox(type);
-                            mg2.GoTo(l_finish);
+							mg2.Unbox(type);
+							mg2.GoTo(l_finish);
 
-                            mg2.Mark(l_isNull);
-                            mg2.PushNullOrZero(field.Type);
+							mg2.Mark(l_isNull);
 
-                            mg2.Mark(l_finish);
-                        });
+							mg2.PushNullOrZero(field.Type);
+
+							mg2.Mark(l_finish);
+						});
                     mg.ReturnValue();
                 });
         }

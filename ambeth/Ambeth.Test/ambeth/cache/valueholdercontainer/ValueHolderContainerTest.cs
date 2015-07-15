@@ -18,11 +18,13 @@ using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Bytecode.Config;
 
 namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
 {
     [TestProperties(Name = CacheConfigurationConstants.AsyncPropertyChangeActive, Value = "true")]
     [TestProperties(Name = ServiceConfigurationConstants.MappingFile, Value = "ambeth/cache/valueholdercontainer/orm.xml")]
+	[TestProperties(Name = BytecodeConfigurationConstants.EnhancementTraceDirectory, Value = @"C:\dev\ambeth2\source\dump")]
     [TestFrameworkModule(typeof(ValueHolderContainerTestModule))]
     [TestRebuildContext]
     [TestClass]

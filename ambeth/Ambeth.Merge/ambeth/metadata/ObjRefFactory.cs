@@ -9,6 +9,7 @@ using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
 using System;
 using System.Reflection;
+using System.Text;
 
 namespace De.Osthus.Ambeth.Metadata
 {
@@ -30,6 +31,32 @@ namespace De.Osthus.Ambeth.Metadata
 
         protected readonly Object writeLock = new Object();
 
+		public class TestObjRef : IObjRef
+		{
+			public sbyte IdNameIndex { get; set; }
+
+			public Object Id { get; set; }
+
+			public Object Version { get; set; }
+
+			public Type RealType { get; set; }
+
+			public TestObjRef()
+			{
+				Console.WriteLine("A");
+			}
+
+			public TestObjRef(Object id, Object version)
+			{
+				Id = id;
+				Version = version;
+			}
+
+			public void ToString(StringBuilder sb)
+			{
+			}
+		}
+
         protected IPreparedObjRefFactory BuildDelegate(Type realType, int idIndex)
         {
             lock (writeLock)
@@ -39,6 +66,7 @@ namespace De.Osthus.Ambeth.Metadata
                 {
                     return objRefConstructorDelegate;
                 }
+
                 Type enhancedType = BytecodeEnhancer.GetEnhancedType(typeof(Object), new ObjRefEnhancementHint(realType, idIndex));
                 objRefConstructorDelegate = AccessorTypeProvider.GetConstructorType<IPreparedObjRefFactory>(enhancedType);
                 constructorDelegateMap.Put(realType, idIndex, objRefConstructorDelegate);
@@ -83,7 +111,6 @@ namespace De.Osthus.Ambeth.Metadata
             {
                 objRefConstructorDelegate = BuildDelegate(entityType, idIndex);
             }
-            MethodInfo[] methods = objRefConstructorDelegate.GetType().GetMethods();
             return objRefConstructorDelegate.CreateObjRef(id, version);
         }
 

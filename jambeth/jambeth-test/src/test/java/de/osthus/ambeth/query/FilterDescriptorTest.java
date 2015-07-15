@@ -24,6 +24,7 @@ import de.osthus.ambeth.filter.model.ISortDescriptor;
 import de.osthus.ambeth.filter.model.PagingRequest;
 import de.osthus.ambeth.filter.model.SortDescriptor;
 import de.osthus.ambeth.filter.model.SortDirection;
+import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -115,11 +116,55 @@ public class FilterDescriptorTest extends AbstractInformationBusWithPersistenceT
 	}
 
 	@Test
+	public void retrievePagingWithEmptyResult() throws Exception
+	{
+		IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
+
+		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<QueryEntity>(QueryEntity.class);
+		fd.setOperator(FilterOperator.IS_IN);
+		fd.setMember("Id");
+		fd.withValue("-1");
+
+		PagingRequest pReq = new PagingRequest();
+		pReq.setNumber(0);
+		pReq.setSize(5);
+
+		IPagingQuery<QueryEntity> pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[0]);
+
+		IPagingResponse<QueryEntity> response = pagingQuery.retrieve(pReq);
+		List<QueryEntity> result = response.getResult();
+
+		Assert.assertEquals(0, result.size());
+	}
+
+	@Test
+	public void retrievePagingRefOrderedByRef() throws Exception
+	{
+		IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
+
+		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<QueryEntity>(QueryEntity.class);
+
+		SortDescriptor sd = new SortDescriptor();
+		sd.setMember("Fk.Id");
+
+		PagingRequest pReq = new PagingRequest();
+		pReq.setNumber(0);
+		pReq.setSize(5);
+
+		IPagingQuery<QueryEntity> pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] { sd });
+
+		IPagingResponse<QueryEntity> pagingResponse = pagingQuery.retrieveRefs(pReq, QueryEntity.Name1);
+		List<IObjRef> refResult = pagingResponse.getRefResult();
+
+		Assert.assertEquals(5, refResult.size());
+	}
+
+	@Test
 	public void retrieveIsIn() throws Exception
 	{
 		IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
 
-		List<Integer> expected = Arrays.asList(new Integer[] { 3 });
+		List<Integer> expected = Arrays.asList(3);
 
 		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<QueryEntity>(QueryEntity.class);
 		fd.setOperator(FilterOperator.IS_IN);

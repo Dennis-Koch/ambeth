@@ -17,6 +17,7 @@ import de.osthus.ambeth.ioc.PersistenceJdbcModule;
 import de.osthus.ambeth.ioc.PersistenceModule;
 import de.osthus.ambeth.ioc.PrivilegeModule;
 import de.osthus.ambeth.ioc.PrivilegeServerModule;
+import de.osthus.ambeth.ioc.SQLQueryModule;
 import de.osthus.ambeth.ioc.SecurityQueryModule;
 import de.osthus.ambeth.ioc.SecurityServerModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -26,7 +27,6 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.proxy.IEntityEquals;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
-import de.osthus.ambeth.query.ioc.SQLQueryModule;
 import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest.PersistencePropertiesProvider;
 import de.osthus.ambeth.util.IConversionHelper;
 

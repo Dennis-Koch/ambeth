@@ -829,9 +829,15 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 				else
 				{
 					IObjRelationResult selfResult = getObjRelationIfValid(objRel, targetCache, objRelToResultMap, alreadyClonedObjRefs);
-					if (selfResult != null || returnMisses)
+					if (selfResult != null)
 					{
+						IObjRef[] relations = selfResult.getRelations();
+						item.set__ObjRefs(relationIndex, relations);
 						objRelResults.add(selfResult);
+					}
+					else if (returnMisses)
+					{
+						objRelResults.add(null);
 					}
 				}
 				continue;
@@ -1202,7 +1208,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
 	protected boolean isFilteringNecessary(ICacheIntern targetCache)
 	{
-		return securityActive && (isPrivileged() && targetCache != null && !targetCache.isPrivileged())
+		return privilegeProvider != null && securityActive && (isPrivileged() && targetCache != null && !targetCache.isPrivileged())
 				|| (targetCache == null && securityActivation != null && securityActivation.isFilterActivated());
 	}
 

@@ -27,9 +27,9 @@ public final class XmlTestConstants
 			"<root><a i=\"1\" s=\"3\" ti=\"2\" n=\"Byte\"><values v=\"f4AD\"/></a></root>",
 			"<root><a i=\"1\" s=\"3\" ti=\"2\" n=\"Char\"><values v=\"77+/AAM=\"/></a></root>",
 			"<root><a i=\"1\" s=\"3\" ti=\"2\" n=\"Bool\"><values v=\"101\"/></a></root>",
-			"<root><or i=\"1\"><c i=\"2\" n=\"String\"/><o i=\"3\" ti=\"4\" n=\"Int32N\" v=\"2\"/><o i=\"5\" ti=\"4\" v=\"4\"/></or></root>",
-			"<root><or i=\"1\" ix=\"0\"><c i=\"2\" n=\"String\"/><s i=\"3\"><![CDATA[zwei]]></s><o i=\"4\" ti=\"5\" n=\"Int32N\" v=\"4\"/></or></root>",
-			"<root><or i=\"1\" ix=\"1\"><c i=\"2\" n=\"String\"/><s i=\"3\"><![CDATA[zwei]]></s><o i=\"4\" ti=\"5\" n=\"Int32N\" v=\"4\"/></or></root>" };
+			"<root><or i=\"1\"><c i=\"2\" n=\"Entity\"/><o i=\"3\" ti=\"4\" n=\"Int32N\" v=\"2\"/><o i=\"5\" ti=\"6\" n=\"Int16N\" v=\"4\"/></or></root>",
+			"<root><or i=\"1\" ix=\"0\"><c i=\"2\" n=\"Entity\"/><s i=\"3\"><![CDATA[zwei]]></s><o i=\"4\" ti=\"5\" n=\"Int16N\" v=\"4\"/></or></root>",
+			"<root><or i=\"1\" ix=\"1\"><c i=\"2\" n=\"Entity\"/><s i=\"3\"><![CDATA[zwei]]></s><o i=\"4\" ti=\"5\" n=\"Int16N\" v=\"4\"/></or></root>" };
 
 	private XmlTestConstants()
 	{

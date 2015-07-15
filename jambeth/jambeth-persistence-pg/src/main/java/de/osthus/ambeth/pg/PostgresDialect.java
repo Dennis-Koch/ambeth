@@ -50,6 +50,7 @@ import de.osthus.ambeth.persistence.jdbc.AbstractConnectionDialect;
 import de.osthus.ambeth.persistence.jdbc.ColumnEntry;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.connection.IConnectionKeyHandle;
+import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.sql.ISqlBuilder;
 
 public class PostgresDialect extends AbstractConnectionDialect
@@ -111,7 +112,7 @@ public class PostgresDialect extends AbstractConnectionDialect
 
 	public static boolean isCLobColumnName(String typeName)
 	{
-		return "text".equals(typeName);
+		return false;// "text".equals(typeName);
 	}
 
 	@LogInstance
@@ -155,9 +156,10 @@ public class PostgresDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public String getRegexpLikeFunctionName()
+	public IOperand getRegexpLikeFunction(IOperand sourceString, IOperand pattern, IOperand matchParameter)
 	{
-		return "regexp_matches";
+		return beanContext.registerBean(PgSqlRegexpLikeOperand.class).propertyValue("SourceString", sourceString).propertyValue("Pattern", pattern)
+				.propertyValue("MatchParameter", matchParameter).finish();
 	}
 
 	@Override
@@ -569,9 +571,8 @@ public class PostgresDialect extends AbstractConnectionDialect
 				}
 				else if ("text".equalsIgnoreCase(typeName))
 				{
-					javaType = Clob.class;
+					javaType = String.class;
 				}
-
 				ColumnEntry entry = new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable, radix, true);
 				columns.add(entry);
 			}
@@ -581,5 +582,11 @@ public class PostgresDialect extends AbstractConnectionDialect
 		{
 			JdbcUtil.close(tableColumnsRS);
 		}
+	}
+
+	@Override
+	public boolean isTransactionNecessaryDuringLobStreaming()
+	{
+		return true;
 	}
 }

@@ -235,7 +235,7 @@ namespace De.Osthus.Ambeth.Typeinfo
 		{
 			if (Setter == null)
 			{
-				throw new NotSupportedException("No setter configure for property " + Name);
+				throw new NotSupportedException("No setter configured for property " + Name);
 			}
 			Object[] args = { value };
 			try

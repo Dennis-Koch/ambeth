@@ -3,6 +3,7 @@ package de.osthus.ambeth;
 import java.io.IOException;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import de.osthus.ambeth.bundle.Core;
@@ -10,10 +11,18 @@ import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IocModule;
 import de.osthus.ambeth.start.IAmbethApplication;
+import de.osthus.ambeth.testutil.BundleTestUtil;
 import de.osthus.ambeth.util.IConversionHelper;
 
 public class AmbethTest
 {
+	// On the CI server the 'property.file' value is relative to the normal tests. The bundle tests have a different parent folder.
+	@BeforeClass
+	public static void beforeClass() throws IOException
+	{
+		BundleTestUtil.correctPropertyFilePath();
+	}
+
 	// Basic create tests
 
 	@Test

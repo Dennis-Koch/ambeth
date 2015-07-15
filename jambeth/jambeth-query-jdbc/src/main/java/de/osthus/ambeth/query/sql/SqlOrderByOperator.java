@@ -1,6 +1,7 @@
 package de.osthus.ambeth.query.sql;
 
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.appendable.AppendableStringBuilder;
@@ -82,7 +83,11 @@ public class SqlOrderByOperator implements IOperator, IInitializingBean
 			try
 			{
 				column.expandQuery(sb, nameToValueMap, joinQuery, parameters);
-				if (!ignoredColumnNamesPattern.matcher(sb).matches())
+				// JH 2015-07-01: To fix https://jira.osthus.de/browse/AMBETH-495
+				Matcher matcher = ignoredColumnNamesPattern.matcher(sb);
+				boolean matches = matcher.matches();
+				String tableAlias = matches ? matcher.group(1) : null;
+				if (!matches || (tableAlias != null && !tableAlias.startsWith("S_")))
 				{
 					additionalSelectColumnList.add(sb.toString());
 				}

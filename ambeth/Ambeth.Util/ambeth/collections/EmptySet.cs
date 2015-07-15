@@ -156,8 +156,13 @@ namespace De.Osthus.Ambeth.Collections
 
             public bool ContainsAny(IEnumerable c)
             {
-                throw new NotSupportedException("Set is read-only");
+				return false;
             }
+
+			public bool ContainsAny<S>(S[] array) where S : T
+			{
+				return false;
+			}
 
             public bool RemoveAll(IEnumerable c)
             {

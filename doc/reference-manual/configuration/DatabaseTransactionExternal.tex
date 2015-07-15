@@ -2,7 +2,7 @@
 \section{database.transaction.external}
 \label{configuration:DatabaseTransactionExternal}
 \ClearAPI
-\TODO
+Defines whether the transaction is managed external ("true") or Ambeth should handle it ("false"). If the transaction is managed externally Ambeth does not commit or rollback any transaction and expects the manager to do the corresponding action. When a connection pool is used (e.g. TomCat, Weblogic) this value should always be "true". Valid values are "true" and "false".
 %% GENERATED USAGE REFERENCE - DO NOT EDIT
 \begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
 	\endhead

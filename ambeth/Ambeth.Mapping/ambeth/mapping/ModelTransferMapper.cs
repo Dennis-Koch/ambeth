@@ -55,7 +55,7 @@ namespace De.Osthus.Ambeth.Mapping
 
         [Autowired]
         public IPrefetchHelper PrefetchHelper { protected get; set; }
-        
+
         [Autowired]
         public IObjRefHelper OriHelper { protected get; set; }
 
@@ -85,7 +85,7 @@ namespace De.Osthus.Ambeth.Mapping
 
         [Property(MappingConfigurationConstants.InitDirectRelationsInBusinessObjects, DefaultValue = "true")]
         public bool initDirectRelationsInBusinessObjects { protected get; set; }
-        
+
         public void Dispose()
         {
             ConversionHelper = null;
@@ -118,7 +118,7 @@ namespace De.Osthus.Ambeth.Mapping
             {
                 return EmptyList.Empty<Object>();
             }
-            ICacheIntern cache = (ICacheIntern) this.Cache.CurrentCache;
+            ICacheIntern cache = (ICacheIntern)this.Cache.CurrentCache;
             IEntityMetaDataProvider entityMetaDataProvider = this.EntityMetaDataProvider;
             IdentityHashMap<Object, Object> voToBoMap = this.voToBoMap;
             List<Object> allValueObjects = new List<Object>(valueObjectList.Count);
@@ -241,14 +241,14 @@ namespace De.Osthus.Ambeth.Mapping
                 IList<Object> businessObjectList = cache.GetObjects(orisToGet, CacheDirective.FailEarly | CacheDirective.ReturnMisses);
                 ClearObjectsWithTempIds((IWritableCache)cache);
 
-                for (int a = allBusinessObjects.Count; a-- > 0;)
-			    {
-				    Object businessObject = allBusinessObjects[a];
-				    if (businessObject is IDataObject)
-				    {
-					    ((IDataObject) businessObject).ToBeUpdated = true;
-				    }
-			    }
+                for (int a = allBusinessObjects.Count; a-- > 0; )
+                {
+                    Object businessObject = allBusinessObjects[a];
+                    if (businessObject is IDataObject)
+                    {
+                        ((IDataObject)businessObject).ToBeUpdated = true;
+                    }
+                }
                 return businessObjectList;
             }
             finally
@@ -370,11 +370,11 @@ namespace De.Osthus.Ambeth.Mapping
             CopyPrimitives(businessObject, valueObject, config, CopyDirection.BO_TO_VO, businessObjectMetaData, boNameToVoMember);
 
             RelationMember[] relationMembers = businessObjectMetaData.RelationMembers;
-		    if (relationMembers.Length == 0)
-		    {
-			    return;
-		    }
-		    IObjRefContainer vhc = (IObjRefContainer) businessObject;
+            if (relationMembers.Length == 0)
+            {
+                return;
+            }
+            IObjRefContainer vhc = (IObjRefContainer)businessObject;
 
             for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
             {
@@ -389,7 +389,7 @@ namespace De.Osthus.Ambeth.Mapping
                 Object voMemberValue = CreateVOMemberValue(vhc, relationIndex, boMember, config, voMember, pendingValueHolders, runnables);
                 if (!Object.ReferenceEquals(voMemberValue, NOT_YET_READY))
                 {
-                    voMember.SetValue(valueObject, voMemberValue);
+                    SetPropertyValue(valueObject, voMember, voMemberValue);
                 }
                 else
                 {
@@ -400,9 +400,54 @@ namespace De.Osthus.Ambeth.Mapping
                         {
                             throw new Exception("Must never happen");
                         }
-                        voMember.SetValue(valueObject, voMemberValue2);
+                        SetPropertyValue(valueObject, voMember, voMemberValue2);
                     });
                 }
+            }
+        }
+
+        /// <summary>
+        /// Added to fix https://jira.osthus.de/browse/AMBETH-499
+        /// </summary>
+        /// <param name="valueObject"></param>
+        /// <param name="voMember"></param>
+        /// <param name="voMemberValue"></param>
+        protected void SetPropertyValue(Object valueObject, ITypeInfoItem voMember, Object voMemberValue)
+        {
+            if (voMember.CanWrite)
+            {
+                voMember.SetValue(valueObject, voMemberValue);
+            }
+            else if (voMember.CanRead)
+            {
+                Object currentValue = voMember.GetValue(valueObject);
+                if (currentValue == null)
+                {
+                    String msg = "Property has only a getter and is null: " + valueObject.GetType().FullName + "." + voMember.Name;
+                    throw new Exception(msg);
+                }
+
+                Type realType = voMember.RealType;
+                if (typeof(IList).IsAssignableFrom(realType))
+                {
+                    IList list = (IList)currentValue;
+                    list.Clear();
+                    foreach (Object elem in (IList)voMemberValue)
+                    {
+                        list.Add(elem);
+                    }
+                }
+                else
+                {
+                    String msg = "Handling of getter-only property type " + realType.FullName + " not yet implemented: " + valueObject.GetType().FullName + "."
+                            + voMember.Name;
+                    throw new Exception(msg);
+                }
+            }
+            else
+            {
+                String msg = "Property not accessible: " + valueObject.getClass().getName() + "." + voMember.getName();
+                throw new Exception(msg);
             }
         }
 
@@ -468,11 +513,11 @@ namespace De.Osthus.Ambeth.Mapping
         }
 
         protected Object CreateBusinessObject(IEntityMetaData boMetaData, ICacheIntern cache)
-	    {
-		    Object businessObject = EntityFactory.CreateEntity(boMetaData);
+        {
+            Object businessObject = EntityFactory.CreateEntity(boMetaData);
             cache.AssignEntityToCache(businessObject);
-		    return businessObject;
-	    }
+            return businessObject;
+        }
 
         protected void ResolvePrimitiveProperties(Object valueObject, ICacheIntern cache)
         {
@@ -510,7 +555,7 @@ namespace De.Osthus.Ambeth.Mapping
             {
                 return;
             }
-            IValueHolderContainer businessObject = (IValueHolderContainer) voToBoMap.Get(valueObject);
+            IValueHolderContainer businessObject = (IValueHolderContainer)voToBoMap.Get(valueObject);
             if (businessObject == null)
             {
                 throw new Exception("Must never happen");
@@ -520,7 +565,7 @@ namespace De.Osthus.Ambeth.Mapping
             IListTypeHelper listTypeHelper = this.ListTypeHelper;
             HashMap<CompositIdentityClassKey, Object> reverseRelationMap = this.reverseRelationMap;
 
-			StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
             {
@@ -539,13 +584,13 @@ namespace De.Osthus.Ambeth.Mapping
                         boMember.SetValue(businessObject, convertedEmptyRelation);
                         continue;
                     }
-					sb.Length = 0;
-					String voSpecifiedName = sb.Append(boMemberName).Append("Specified").ToString();
-					ITypeInfoItem voSpecifiedMember = boNameToVoMember.Get(voSpecifiedName);
-					if (voSpecifiedMember != null && !(bool)(voSpecifiedMember.GetValue(valueObject)))
-					{
-						continue;
-					}
+                    sb.Length = 0;
+                    String voSpecifiedName = sb.Append(boMemberName).Append("Specified").ToString();
+                    ITypeInfoItem voSpecifiedMember = boNameToVoMember.Get(voSpecifiedName);
+                    if (voSpecifiedMember != null && !(bool)(voSpecifiedMember.GetValue(valueObject)))
+                    {
+                        continue;
+                    }
                     voValue = voMember.GetValue(valueObject);
                 }
                 else
@@ -766,26 +811,26 @@ namespace De.Osthus.Ambeth.Mapping
                 else
                 {
                     if (referencedVOs != null && voMemberType.IsAssignableFrom(referencedVOs.GetType()))
-				    {
-					    voMemberValue = referencedVOs;
-				    }
-				    else if (voMemberType.IsArray)
-				    {
-					    if (referencedVOs == null)
-					    {
-						    referencedVOs = EmptyList.Empty<Object>();
-					    }
-                        voMemberValue = ListUtil.AnyToArray(referencedVOs, voMemberType.GetElementType());
-				    }
-				    else
-				    {
+                    {
+                        voMemberValue = referencedVOs;
+                    }
+                    else if (voMemberType.IsArray)
+                    {
                         if (referencedVOs == null)
                         {
                             referencedVOs = EmptyList.Empty<Object>();
                         }
-					    voMemberValue = ListUtil.CreateCollectionOfType(voMemberType, referencedVOs.Count);
-					    ListUtil.FillList(voMemberValue, referencedVOs);
-				    }
+                        voMemberValue = ListUtil.AnyToArray(referencedVOs, voMemberType.GetElementType());
+                    }
+                    else
+                    {
+                        if (referencedVOs == null)
+                        {
+                            referencedVOs = EmptyList.Empty<Object>();
+                        }
+                        voMemberValue = ListUtil.CreateCollectionOfType(voMemberType, referencedVOs.Count);
+                        ListUtil.FillList(voMemberValue, referencedVOs);
+                    }
                 }
             }
             else if (referencedVOs != null)
@@ -1079,7 +1124,7 @@ namespace De.Osthus.Ambeth.Mapping
                 }
                 foreach (RelationMember relationMember in boMetaData.RelationMembers)
                 {
-					AddTypeInfoMapping(typeInfoMap, config, relationMember.Name, sb);
+                    AddTypeInfoMapping(typeInfoMap, config, relationMember.Name, sb);
                 }
                 typeToTypeInfoMap.Put(config.ValueType, typeInfoMap);
             }
@@ -1127,7 +1172,7 @@ namespace De.Osthus.Ambeth.Mapping
                 String voMemberName = config.GetValueObjectMemberName(boMemberName);
                 sb.Length = 0;
                 String boSpecifiedMemberName = sb.Append(boMemberName).Append("Specified").ToString();
-                PrimitiveMember voMember = (PrimitiveMember) boNameToVoMember.Get(boMemberName);
+                ITypeInfoItem voMember = boNameToVoMember.Get(boMemberName);
                 ITypeInfoItem voSpecifiedMember = boNameToVoMember.Get(boSpecifiedMemberName);
                 bool isSpecified = true;
                 if (config.IsIgnoredMember(voMemberName) || voMember == null)
@@ -1201,7 +1246,7 @@ namespace De.Osthus.Ambeth.Mapping
                             {
                                 value = boMember.NullEquivalentValue;
                             }
-                            voMember.SetValue(valueObject, value);
+                            SetPropertyValue(valueObject, voMember, value);
                             break;
                         }
                     default:
@@ -1247,7 +1292,7 @@ namespace De.Osthus.Ambeth.Mapping
                 return ConversionHelper.ConvertValueToType(targetRealType, value);
             }
             IConversionHelper conversionHelper = this.ConversionHelper;
-            IEnumerable coll = (IEnumerable) value;
+            IEnumerable coll = (IEnumerable)value;
             List<Object> result = new List<Object>();
 
             foreach (Object item in (IEnumerable)value)

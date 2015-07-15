@@ -32,6 +32,7 @@ import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.IDatabaseMetaData;
 import de.osthus.ambeth.persistence.IDirectedLinkMetaData;
 import de.osthus.ambeth.persistence.IFieldMetaData;
@@ -76,6 +77,9 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	protected static final Pattern PATTERN_ALLOWED_SEPARATORS = Pattern.compile("[\\.\\s]+");
 
 	protected static final Pattern PATTERN_ENTITY_NAME_WITH_MARKER = Pattern.compile("([^A-Z]*[A-Z][^\\.]*)#");
+
+	@Autowired
+	protected IConnectionDialect connectionDialect;
 
 	@Autowired
 	protected IServiceContext beanContext;
@@ -850,8 +854,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		ParamChecker.assertParamNotNull(pattern, "pattern");
 		try
 		{
-			return getBeanContext().registerBean(SqlRegexpLikeOperand.class).propertyValue("sourceString", sourceString).propertyValue("pattern", pattern)
-					.propertyValue("matchParameter", matchParameter).finish();
+			return connectionDialect.getRegexpLikeFunction(sourceString, pattern, matchParameter);
 		}
 		catch (Throwable e)
 		{

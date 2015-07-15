@@ -12,7 +12,7 @@ public final class TestUtilConfigurationConstants
 	@ConfigurationConstantDescription("TODO")
 	public static final String DoExecuteStrict = "testutil.persistence.doexecutestrict";
 
-	@ConfigurationConstantDescription("Flat to activate the logging of prepared statement parameters (only to use in development for debbugin!)")
+	@ConfigurationConstantDescription("Flag to activate the logging of prepared statement parameters (only to use in development for debbuging!)")
 	public static final String ParamLoggerActive = "testutil.persistence.paramlogger.active";
 
 	private TestUtilConfigurationConstants()

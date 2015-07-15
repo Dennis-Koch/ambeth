@@ -10,6 +10,8 @@ namespace De.Osthus.Ambeth.Collections
 
         bool ContainsAny(IEnumerable c);
 
+		bool ContainsAny<S>(S[] array) where S : K;
+
         IList<K> ToList();
 
         K RemoveAndGet(K key);

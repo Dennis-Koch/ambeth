@@ -2,7 +2,70 @@
 \section{Autowired}
 \label{annotation:Autowired}
 \ClearAPI
-\javadoc{de.osthus.ambeth.ioc.annotation.Autowired}{Autowired}
+
+\type{Autowired} as implemented in \javadoc{de.osthus.ambeth.ioc.annotation.Autowired}{Autowired} is used to mark properties which should be set by the dependency injection mechanisms (cf. \prettyref{module:IoC:DependencyInjection}).
+
+The annotation can be used instead of the setter injection. By default \AMBETH{} checks whether the injection was successful, i.e. no additional check is required.
+
+\paragraph{The following properties are available:}
+\begin{itemize}
+	\item[\emph{value}] \TODO
+	\item[\emph{optional}] If \emph{true} there is no error if no matching bean is found for injection. (Default: \emph{false})
+\end{itemize}
+
+\begin{lstlisting}[style=Java,caption={Dependency injection with setter}]
+
+public class MyClass implements IInitializingBean
+{
+	// ...
+
+	protected IInterface aBean;
+
+	protected IOtherInterface anOtherBean;
+	
+	public void setABean(IInterface bean) {
+		this.aBean = bean;
+	}
+
+	public void setAnOtherBean(IOtherInterface bean) {
+		this.anOtherBean = bean;
+	}
+
+	
+  // ...
+	
+	@Override
+	public void afterPropertiesSet() throws Throwable {
+		super.afterPropertiesSet();
+		ParamChecker.assertNotNull(aBean, "A Bean");
+		// Check not required, this is optional
+		// ParamChecker.assertNotNull(anOtherBean, "Another Bean");
+	}
+	
+	// ...
+}
+
+\end{lstlisting}
+
+\begin{lstlisting}[style=Java,caption={Dependency injection with Autowired annotation}]
+
+public class MyClass
+{
+	// ...
+
+	@Autowired
+	protected IInterface aBean;
+
+	@Autowired(optional = true)
+	protected IOtherInterface anOtherBean;
+	
+  // ...
+}
+\end{lstlisting}
+Beans of type IInterface and IOtherInterface are injected, when registered in the context. When no suitable injection is possible, a RuntimeException (\TODO correct? Which one?) is thrown, unless the \emph{optional} property is set to \emph{true}. 
+
+Optionally injected beans can be used for additional, optional functionality. 
+
 \TODO
 
 %% GENERATED LISTINGS - DO NOT EDIT

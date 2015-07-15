@@ -183,13 +183,10 @@ public class CoreClasspathScanner implements IClasspathScanner
 			for (int a = 0, size = urls.size(); a < size; a++)
 			{
 				URL url = urls.get(a);
-				String path = url.getPath();
-
 				try
 				{
-					path = classpathInfo.lookupExistingPath(path);
-					File realPathFile = new File(path);
-					pool.appendPathList(path);
+					File realPathFile = classpathInfo.openAsFile(url);
+					pool.appendPathList(realPathFile.getCanonicalPath());
 					if (realPathFile.isFile())
 					{
 						JarFile jarFile = new JarFile(realPathFile);
@@ -210,7 +207,7 @@ public class CoreClasspathScanner implements IClasspathScanner
 				}
 				catch (Throwable e)
 				{
-					throw RuntimeExceptionUtil.mask(e, "Error occured while handling URL '" + url.getPath() + "'");
+					throw RuntimeExceptionUtil.mask(e, "Error occured while handling URL '" + url.toString() + "'");
 				}
 			}
 		}

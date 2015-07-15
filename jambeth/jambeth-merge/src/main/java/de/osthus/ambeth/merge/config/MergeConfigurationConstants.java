@@ -2,6 +2,7 @@ package de.osthus.ambeth.merge.config;
 
 import de.osthus.ambeth.annotation.ConfigurationConstantDescription;
 import de.osthus.ambeth.annotation.ConfigurationConstants;
+import de.osthus.ambeth.changecontroller.IChangeController;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.objectcollector.ICollectableControllerExtendable;
 
@@ -13,6 +14,12 @@ public final class MergeConfigurationConstants
 	 * used.
 	 */
 	public static final String EntityFactoryType = "ambeth.merge.entityfactory.type";
+
+	/**
+	 * Defines which {@link IChangeController} should be used. Has to be a fully qualified class name. If not specified a default {@link IChangeController} will
+	 * be used.
+	 */
+	public static final String ChangeControllerType = "ambeth.merge.changecontroller.type";
 
 	@ConfigurationConstantDescription("TODO")
 	public static final String FieldBasedMergeActive = "ambeth.merge.fieldbased.active";
@@ -48,6 +55,13 @@ public final class MergeConfigurationConstants
 	 */
 	@ConfigurationConstantDescription("TODO")
 	public static final String edblActive = "ambeth.merge.edbl.active";
+
+	/**
+	 * If true Ambeth encapsulates a specific Prefetch-API call within the "lazy transaction" pattern. If false each cache miss within a single Prefetch-API
+	 * usecase may acquire a individual short-term transaction. It is recommended to let this flag on its default value because there are very few cases where
+	 * deactivating this property makes sense. Default value is "true".
+	 */
+	public static final String PrefetchInLazyTransactionActive = "ambeth.prefetch.lazytransaction.active";
 
 	private MergeConfigurationConstants()
 	{

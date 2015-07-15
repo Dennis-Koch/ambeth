@@ -57,25 +57,25 @@ public class CacheHelperFake implements ICacheHelper, ICachePathHelper
 	}
 
 	@Override
-	public CachePath copyAppendableToCachePath(AppendableCachePath cachePath)
+	public PrefetchPath copyAppendableToCachePath(AppendableCachePath cachePath)
 	{
 		return null;
 	}
 
 	@Override
-	public CachePath[] copyAppendableToCachePath(ISet<AppendableCachePath> children)
+	public PrefetchPath[] copyAppendableToCachePath(ISet<AppendableCachePath> children)
 	{
 		return null;
 	}
 
 	@Override
-	public AppendableCachePath copyCachePathToAppendable(CachePath cachePath)
+	public AppendableCachePath copyCachePathToAppendable(PrefetchPath cachePath)
 	{
 		return null;
 	}
 
 	@Override
-	public IPrefetchState ensureInitializedRelations(Object objects, ILinkedMap<Class<?>, CachePath[]> entityTypeToPrefetchSteps)
+	public IPrefetchState ensureInitializedRelations(Object objects, ILinkedMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchSteps)
 	{
 		return null;
 	}

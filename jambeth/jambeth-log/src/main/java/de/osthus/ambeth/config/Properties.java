@@ -67,7 +67,7 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 
 	public static void loadBootstrapPropertyFile()
 	{
-		System.out.println("Looking for environment property '" + UtilConfigurationConstants.BootstrapPropertyFile + "'...");
+		System.out.println("Ambeth is looking for environment property '" + UtilConfigurationConstants.BootstrapPropertyFile + "'...");
 		String bootstrapPropertyFile = Properties.getApplication().getString(UtilConfigurationConstants.BootstrapPropertyFile);
 		if (bootstrapPropertyFile == null)
 		{
@@ -75,14 +75,14 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 		}
 		if (bootstrapPropertyFile != null)
 		{
-			System.out.println("Environment property '" + UtilConfigurationConstants.BootstrapPropertyFile + "' found with value '" + bootstrapPropertyFile
+			System.out.println("  Environment property '" + UtilConfigurationConstants.BootstrapPropertyFile + "' found with value '" + bootstrapPropertyFile
 					+ "'");
 			Properties.getApplication().load(bootstrapPropertyFile, false);
-			System.out.println("External property file '" + bootstrapPropertyFile + "' successfully loaded");
+			System.out.println("  External property file '" + bootstrapPropertyFile + "' successfully loaded");
 		}
 		else
 		{
-			System.out.println("No Environment property '" + UtilConfigurationConstants.BootstrapPropertyFile
+			System.out.println("  No Environment property '" + UtilConfigurationConstants.BootstrapPropertyFile
 					+ "' found. Skipping search for external bootstrap properties");
 		}
 	}
@@ -477,7 +477,7 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 				continue;
 			}
 			String key = matcher.group(1);
-			Object value = null;
+			Object value;
 			if (matcher.groupCount() > 2)
 			{
 				String stringValue = matcher.group(2);
@@ -498,6 +498,10 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 			if (!overwriteParentExisting && get(key) != null)
 			{
 				continue;
+			}
+			if (value == null)
+			{
+				value = "";
 			}
 			putProperty(key, value);
 		}

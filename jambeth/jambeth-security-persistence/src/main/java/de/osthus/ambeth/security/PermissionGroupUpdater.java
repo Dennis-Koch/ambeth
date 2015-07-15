@@ -63,7 +63,7 @@ import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
-import de.osthus.ambeth.util.CachePath;
+import de.osthus.ambeth.util.PrefetchPath;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IMultithreadingHelper;
 import de.osthus.ambeth.util.IPrefetchConfig;
@@ -211,13 +211,13 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		entityTypeToRuleReferredEntitiesMap.clear();
 	}
 
-	protected void addTypesOfCachePath(CachePath[] cachePath, Set<Class<?>> entityTypes)
+	protected void addTypesOfCachePath(PrefetchPath[] cachePath, Set<Class<?>> entityTypes)
 	{
 		if (cachePath == null)
 		{
 			return;
 		}
-		for (CachePath cachePathItem : cachePath)
+		for (PrefetchPath cachePathItem : cachePath)
 		{
 			entityTypes.add(cachePathItem.memberType);
 
@@ -340,10 +340,10 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 				entityPermissionRule.buildPrefetchConfig(entityType, prefetchConfig);
 			}
 			IPrefetchHandle prefetchHandle = prefetchConfig.build();
-			ILinkedMap<Class<?>, CachePath[]> entityTypeToPrefetchSteps = ((PrefetchHandle) prefetchHandle).getEntityTypeToPrefetchSteps();
+			ILinkedMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchSteps = ((PrefetchHandle) prefetchHandle).getEntityTypeToPrefetchSteps();
 
 			HashSet<Class<?>> touchedByRuleTypesSet = HashSet.<Class<?>> create(entityTypeToPrefetchSteps.size());
-			for (Entry<Class<?>, CachePath[]> prefetchEntry : entityTypeToPrefetchSteps)
+			for (Entry<Class<?>, PrefetchPath[]> prefetchEntry : entityTypeToPrefetchSteps)
 			{
 				Class<?> entityTypeOfPrefetch = prefetchEntry.getKey();
 				touchedByRuleTypesSet.add(entityTypeOfPrefetch);

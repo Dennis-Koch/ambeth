@@ -58,6 +58,8 @@ import de.osthus.ambeth.persistence.jdbc.IConnectionTestDialect;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.connection.IPreparedConnectionHolder;
+import de.osthus.ambeth.persistence.jdbc.connector.DialectSelectorModule;
+import de.osthus.ambeth.persistence.jdbc.testconnector.DialectSelectorTestModule;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.security.DefaultAuthentication;
@@ -142,7 +144,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			String databaseUser = props.getString(PersistenceJdbcConfigurationConstants.DatabaseUser);
 			props.putString(PersistenceJdbcConfigurationConstants.DatabaseUser, databaseUser + "_" + testForkSuffix);
 		}
-		DialectSelectorModule.fillTestProperties(props);
+		DialectSelectorModule.fillProperties(props);
 
 		try
 		{
@@ -167,7 +169,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	protected List<Class<? extends IInitializingModule>> buildFrameworkTestModuleList(FrameworkMethod frameworkMethod)
 	{
 		List<Class<? extends IInitializingModule>> frameworkTestModuleList = super.buildFrameworkTestModuleList(frameworkMethod);
-		frameworkTestModuleList.add(DialectSelectorModule.class);
+		frameworkTestModuleList.add(DialectSelectorTestModule.class);
 		frameworkTestModuleList.add(DataSetupExecutorModule.class);
 		frameworkTestModuleList.add(SetupModule.class);
 		return frameworkTestModuleList;

@@ -20,7 +20,6 @@ import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableListContainer;
 import de.osthus.ambeth.merge.IMergeController;
-import de.osthus.ambeth.merge.IMergeExtendable;
 import de.osthus.ambeth.merge.IMergeListener;
 import de.osthus.ambeth.merge.MergeHandle;
 import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
@@ -35,10 +34,12 @@ import de.osthus.ambeth.util.ParamChecker;
 /**
  * A ChangeController listens on all changes that should be persisted by implementing a {@link IMergeListener}.
  * 
- * To use this controller, you have to link it with the {@link IMergeExtendable} interface.
+ * To use this controller, you have to link it with the {@link de.osthus.ambeth.merge.IMergeExtendable} interface.
  */
 public class ChangeController implements IChangeController, IChangeControllerExtendable, IMergeListener
 {
+	public static final String CLASSNAME = "de.osthus.rtc.egxp.core.changecontrol.ChangeController";
+
 	@Autowired
 	protected ICacheContext cacheContext;
 
@@ -143,19 +144,14 @@ public class ChangeController implements IChangeController, IChangeControllerExt
 		for (int index = 0; index < size; index += 1)
 		{
 			Object newEntity = newEntities.get(index);
+			boolean toBeDeleted = ((IDataObject) newEntity).isToBeDeleted();
+			boolean toBeCreated = false;
 			Object oldEntity = oldEntities.get(index);
-			if (((IDataObject) newEntity).isToBeDeleted())
+			if (oldEntity == null)
 			{
-				// The entity has just been deleted and not yet erased. To make this case easier to identify, we set newEntity to null
-				newEntity = null;
+				toBeCreated = true;
 			}
-			else if (newEntity == oldEntity)
-			{
-				// If newEntity and oldEntity are the same objects, we have the special case that the entity...
-				// has been just created and is not yet stored. To make this case easier to identify, we set oldEntity to null
-				oldEntity = null;
-			}
-			extensionCalled |= processChange(newEntity, oldEntity, views);
+			extensionCalled |= processChange(newEntity, oldEntity, toBeDeleted, toBeCreated, views);
 		}
 		return extensionCalled;
 	}
@@ -165,13 +161,17 @@ public class ChangeController implements IChangeController, IChangeControllerExt
 	 * yes, the extensions are called with the change.
 	 * 
 	 * @param newEntity
-	 *            the new version of the entity, null if it has been deleted
+	 *            the new version of the entity
 	 * @param oldEntity
-	 *            the old version of the entity, null if it has been created
+	 *            the old version of the entity
+	 * @param toBeDeleted
+	 *            true, if the new entity is to be deleted
+	 * @param toBeCreated
+	 *            true, if the new entity is to be created
 	 * @param views
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected boolean processChange(Object newEntity, Object oldEntity, CacheView views)
+	protected boolean processChange(Object newEntity, Object oldEntity, boolean toBeDeleted, boolean toBeCreated, CacheView views)
 	{
 		boolean extensionCalled = false;
 		// Both objects should be of the same class, so we just need one them. We just have to keep in mind that one of them could be null.
@@ -186,7 +186,7 @@ public class ChangeController implements IChangeController, IChangeControllerExt
 		}
 		for (IChangeControllerExtension ext : sortedExtensions)
 		{
-			ext.processChange(newEntity, oldEntity, views);
+			ext.processChange(newEntity, oldEntity, toBeDeleted, toBeCreated, views);
 			extensionCalled = true;
 		}
 		return extensionCalled;

@@ -1,8 +1,8 @@
 package de.osthus.ambeth.stream.binary;
 
-import java.io.Closeable;
+import de.osthus.ambeth.stream.IInputStream;
 
-public interface IBinaryInputStream extends Closeable
+public interface IBinaryInputStream extends IInputStream
 {
 	int readByte();
 }

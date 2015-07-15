@@ -2,7 +2,6 @@ package de.osthus.ambeth.pg;
 
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingModule;
-import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
@@ -17,7 +16,6 @@ import de.osthus.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvid
 import de.osthus.ambeth.stream.chars.ICharacterInputSource;
 import de.osthus.ambeth.util.IDedicatedConverterExtendable;
 
-@FrameworkModule
 public class PostgresModule implements IInitializingModule
 {
 	public static boolean handlesDatabaseProtocol(String databaseProtocol)

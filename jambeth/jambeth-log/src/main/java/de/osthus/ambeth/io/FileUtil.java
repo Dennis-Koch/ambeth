@@ -96,8 +96,9 @@ public final class FileUtil
 			if (inputStream == null)
 			{
 				String combinesFileNames = combine(fileNames);
-				throw new IllegalArgumentException(String.format("File source '%s' not found in filesystem and classpath. Filenames: '%s'", fileName,
-						combinesFileNames), original);
+				String workingDir = System.getProperty("user.dir");
+				String msg = "File source '%s' not found in filesystem and classpath.  Filenames: '%s', current working directory: %s";
+				throw new IllegalArgumentException(String.format(msg, fileName, combinesFileNames, workingDir), original);
 			}
 			inputStreams[i] = inputStream;
 		}
@@ -150,7 +151,9 @@ public final class FileUtil
 
 		if (inputStream == null)
 		{
-			throw new IllegalArgumentException(String.format("File source '%s' not found in filesystem and classpath.", fileName));
+			String msg = "File source '%s' not found in filesystem and classpath. Current working directory: %s";
+			String workingDir = System.getProperty("user.dir");
+			throw new IllegalArgumentException(String.format(msg, fileName, workingDir));
 		}
 
 		return inputStream;

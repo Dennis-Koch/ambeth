@@ -26,7 +26,18 @@ namespace De.Osthus.Ambeth.Merge.Config
 		/// </summary>
         public const String ValueObjectConfigValidationActive = "ambeth.mapping.config.validate.active";
 
+		/// <summary>
+		/// If security is enabled all security relevant tasks are checked whether they are allowed by the current user.
+		/// </summary>
         public const String SecurityActive = "ambeth.security.active";
+
+		///
+		/// <summary>
+		/// If true Ambeth encapsulates a specific Prefetch-API call within the "lazy transaction" pattern. If false each cache miss within a single Prefetch-API
+		/// usecase may acquire a individual short-term transaction. It is recommended to let this flag on its default value because there are very few cases where
+		/// deactivating this property makes sense. Default value is "true".
+		/// </summary>
+		public const String PrefetchInLazyTransactionActive = "ambeth.prefetch.lazytransaction.active";
 
         private MergeConfigurationConstants()
         {

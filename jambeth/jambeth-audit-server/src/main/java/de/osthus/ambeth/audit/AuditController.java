@@ -76,6 +76,7 @@ import de.osthus.ambeth.stream.chars.ICharacterInputSource;
 import de.osthus.ambeth.stream.chars.ICharacterInputStream;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.IConversionHelper;
+import de.osthus.ambeth.util.IRevertDelegate;
 
 public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogger, IMergeListener, ITransactionListener, IAuditInfoController
 {
@@ -340,7 +341,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.Name).setNewValue(pui.getMemberName());
 
 			String auditedValue = createAuditedValueOfEntityPrimitive(pui.getNewValue());
-			if (auditedValue.length() == 0)
+			if (auditedValue != null && auditedValue.length() == 0)
 			{
 				if (table == null)
 				{
@@ -614,14 +615,14 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	}
 
 	@Override
-	public IAuditInfoRevert pushClearTextPassword(final char[] clearTextPassword)
+	public IRevertDelegate pushClearTextPassword(final char[] clearTextPassword)
 	{
 		final AdditionalAuditInfo additionalAuditInfo = getAdditionalAuditInfo();
 		final char[] oldClearTextPassword = additionalAuditInfo.clearTextPassword;
 		final boolean oldDoClearPassword = additionalAuditInfo.doClearPassword;
 		additionalAuditInfo.clearTextPassword = clearTextPassword;
 		additionalAuditInfo.doClearPassword = false;
-		return new IAuditInfoRevert()
+		return new IRevertDelegate()
 		{
 			@Override
 			public void revert()
@@ -637,14 +638,14 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	}
 
 	@Override
-	public IAuditInfoRevert setAuthorizedUser(final IUser user, final char[] clearTextPassword, boolean forceGivenAuthorization)
+	public IRevertDelegate setAuthorizedUser(final IUser user, final char[] clearTextPassword, boolean forceGivenAuthorization)
 	{
 		final AdditionalAuditInfo additionalAuditInfo = getAdditionalAuditInfo();
 		final IUser oldAuthorizedUser = additionalAuditInfo.authorizedUser;
 		if (!forceGivenAuthorization && (oldAuthorizedUser != null || (currentUserProvider != null && currentUserProvider.getCurrentUser() != null)))
 		{
 			// do nothing
-			return new IAuditInfoRevert()
+			return new IRevertDelegate()
 			{
 				@Override
 				public void revert()
@@ -661,7 +662,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		additionalAuditInfo.clearTextPassword = clearTextPassword;
 		additionalAuditInfo.doClearPassword = false;
 		authenticatedUserHolder.setAuthenticatedSID(sid);
-		return new IAuditInfoRevert()
+		return new IRevertDelegate()
 		{
 			@Override
 			public void revert()

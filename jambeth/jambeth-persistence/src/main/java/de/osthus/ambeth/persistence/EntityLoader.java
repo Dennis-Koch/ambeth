@@ -1199,10 +1199,8 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 
 			if (directedLink == null)
 			{
-				if (log.isWarnEnabled())
-				{
-					log.warn("Member '" + table.getMetaData().getEntityType().getName() + "." + memberName + "' is not mappable to a link");
-				}
+				loggerHistory
+						.warnOnce(log, this, "Member '" + table.getMetaData().getEntityType().getName() + "." + memberName + "' is not mappable to a link");
 				continue;
 			}
 			IDirectedLinkMetaData directedLinkMD = directedLink.getMetaData();

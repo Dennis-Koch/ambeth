@@ -468,7 +468,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 			Object voMemberValue = createVOMemberValue(vhc, relationIndex, boMember, config, voMember, pendingValueHolders, runnables);
 			if (voMemberValue != NOT_YET_READY)
 			{
-				voMember.setValue(valueObject, voMemberValue);
+				setPropertyValue(valueObject, voMember, voMemberValue);
 			}
 			else
 			{
@@ -485,10 +485,54 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 						{
 							throw new IllegalStateException("Must never happen");
 						}
-						voMember.setValue(valueObject, voMemberValue);
+						setPropertyValue(valueObject, voMember, voMemberValue);
 					}
 				});
 			}
+		}
+	}
+
+	/**
+	 * Added to fix https://jira.osthus.de/browse/AMBETH-499
+	 * 
+	 * @param valueObject
+	 * @param voMember
+	 * @param voMemberValue
+	 */
+	@SuppressWarnings("unchecked")
+	protected void setPropertyValue(Object valueObject, ITypeInfoItem voMember, Object voMemberValue)
+	{
+		if (voMember.canWrite())
+		{
+			voMember.setValue(valueObject, voMemberValue);
+		}
+		else if (voMember.canRead())
+		{
+			Object currentValue = voMember.getValue(valueObject);
+			if (currentValue == null)
+			{
+				String msg = "Property has only a getter and is null: " + valueObject.getClass().getName() + "." + voMember.getName();
+				throw new IllegalStateException(msg);
+			}
+
+			Class<?> realType = voMember.getRealType();
+			if (Collection.class.isAssignableFrom(realType))
+			{
+				Collection<Object> col = (Collection<Object>) currentValue;
+				col.clear();
+				col.addAll((Collection<? extends Object>) voMemberValue);
+			}
+			else
+			{
+				String msg = "Handling of getter-only property type " + realType.getName() + " not yet implemented: " + valueObject.getClass().getName() + "."
+						+ voMember.getName();
+				throw new IllegalStateException(msg);
+			}
+		}
+		else
+		{
+			String msg = "Property not accessible: " + valueObject.getClass().getName() + "." + voMember.getName();
+			throw new IllegalStateException(msg);
 		}
 	}
 
@@ -1322,7 +1366,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 						{
 							value = boMember.getNullEquivalentValue();
 						}
-						voMember.setValue(valueObject, value);
+						setPropertyValue(valueObject, voMember, value);
 						break;
 					}
 					default:

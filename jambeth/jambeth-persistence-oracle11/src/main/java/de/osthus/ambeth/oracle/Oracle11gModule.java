@@ -4,11 +4,9 @@ import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.event.IEntityMetaDataEvent;
 import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.ioc.IInitializingModule;
-import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 
-@FrameworkModule
 public class Oracle11gModule implements IInitializingModule
 {
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseChangeNotificationActive, defaultValue = "false")

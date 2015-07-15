@@ -1,5 +1,7 @@
 package de.osthus.ambeth.persistence.jdbc.connection;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -14,6 +16,7 @@ import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.collections.IdentityWeakSmartCopyMap;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.database.ITransactionInfo;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IServiceContext;
@@ -60,7 +63,13 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor implemen
 	private ILogger log;
 
 	@Autowired
+	protected IServiceContext beanContext;
+
+	@Autowired
 	protected ICgLibUtil cgLibUtil;
+
+	@Autowired
+	protected Connection connection;
 
 	@Autowired(optional = true)
 	protected IEventDispatcher eventDispatcher;
@@ -68,11 +77,8 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor implemen
 	@Autowired
 	protected IProxyFactory proxyFactory;
 
-	@Autowired
-	protected IServiceContext beanContext;
-
-	@Autowired
-	protected Connection connection;
+	@Autowired(optional = true)
+	protected ITransactionInfo transactionInfo;
 
 	protected boolean preparedConnection;
 
@@ -85,7 +91,7 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor implemen
 
 	protected Class<?>[] stmInterfaces;
 
-	protected final IdentityWeakSmartCopyMap<Object, Object> unwrappedObjectToProxyMap = new IdentityWeakSmartCopyMap<Object, Object>();
+	protected final IdentityWeakSmartCopyMap<Object, Reference<Object>> unwrappedObjectToProxyMap = new IdentityWeakSmartCopyMap<Object, Reference<Object>>();
 
 	public LogConnectionInterceptor(IConnectionKeyHandle connectionKeyHandle)
 	{
@@ -187,7 +193,7 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor implemen
 			{
 				if (log.isDebugEnabled())
 				{
-					log.debug("[" + System.identityHashCode(connection) + "] closed connection");
+					log.debug("[cn:" + System.identityHashCode(connection) + " tx:" + getSessionId() + "] closed connection");
 				}
 				if (eventDispatcher != null)
 				{
@@ -197,14 +203,15 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor implemen
 			}
 			else if (unwrapMethod.equals(method))
 			{
-				Object proxyOfResult = unwrappedObjectToProxyMap.get(result);
+				Reference<Object> proxyOfResultR = unwrappedObjectToProxyMap.get(result);
+				Object proxyOfResult = proxyOfResultR != null ? proxyOfResultR.get() : null;
 				if (proxyOfResult == null)
 				{
 					LogInterceptor logInterceptor = beanContext.registerBean(LogInterceptor.class)//
 							.propertyValue("Target", result)//
 							.finish();
 					proxyOfResult = proxyFactory.createProxy(cgLibUtil.getAllInterfaces(result), logInterceptor);
-					unwrappedObjectToProxyMap.put(result, proxyOfResult);
+					unwrappedObjectToProxyMap.put(result, new WeakReference<Object>(proxyOfResult));
 				}
 				result = proxyOfResult;
 			}
@@ -214,6 +221,15 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor implemen
 		{
 			throw RuntimeExceptionUtil.mask(e, method.getExceptionTypes());
 		}
+	}
+
+	protected String getSessionId()
+	{
+		if (transactionInfo == null)
+		{
+			return "-";
+		}
+		return Long.toString(transactionInfo.getSessionId());
 	}
 
 	public Connection getConnection()
