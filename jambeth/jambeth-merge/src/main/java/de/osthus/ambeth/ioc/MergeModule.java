@@ -3,9 +3,6 @@ package de.osthus.ambeth.ioc;
 import de.osthus.ambeth.cache.CacheModification;
 import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.cache.ICacheModification;
-import de.osthus.ambeth.changecontroller.ChangeController;
-import de.osthus.ambeth.changecontroller.IChangeController;
-import de.osthus.ambeth.changecontroller.IChangeControllerExtendable;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.copy.IObjectCopierExtendable;
@@ -95,9 +92,6 @@ public class MergeModule implements IInitializingModule
 	@Property(name = MergeConfigurationConstants.EntityFactoryType, mandatory = false)
 	protected Class<?> entityFactoryType;
 
-	@Property(name = MergeConfigurationConstants.ChangeControllerType, mandatory = false)
-	protected Class<?> changeControllerClass;
-
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
@@ -111,14 +105,6 @@ public class MergeModule implements IInitializingModule
 
 		beanContextFactory.registerBean(SecurityScopeProvider.class).autowireable(ISecurityScopeProvider.class, ISecurityScopeChangeListenerExtendable.class);
 		beanContextFactory.registerBean(SecurityActivation.class).autowireable(ISecurityActivation.class);
-
-		if (changeControllerClass == null)
-		{
-			changeControllerClass = ChangeController.class;
-		}
-		IBeanConfiguration changeController = beanContextFactory.registerBean(changeControllerClass).autowireable(IChangeController.class,
-				IChangeControllerExtendable.class);
-		beanContextFactory.link(changeController).to(IMergeListenerExtendable.class);
 
 		// if (isNetworkClientMode)
 		// {
