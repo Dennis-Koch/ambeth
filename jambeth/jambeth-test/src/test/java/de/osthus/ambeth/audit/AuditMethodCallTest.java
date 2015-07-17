@@ -38,6 +38,7 @@ import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.persistence.IDataCursor;
 import de.osthus.ambeth.persistence.IDataItem;
+import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.privilege.IEntityPermissionRule;
 import de.osthus.ambeth.privilege.evaluation.IEntityPermissionEvaluation;
 import de.osthus.ambeth.query.IOperand;
@@ -373,6 +374,79 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 			List<IAuditEntry> auditEntriesOfUser = auditEntryReader.getAllAuditEntriesOfEntity(user);
 
 			Assert.assertEquals(1, auditEntriesOfUser.size());
+			boolean[] failedAuditEntries = auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser);
+			Assert.assertEquals(auditEntriesOfUser.size(), failedAuditEntries.length);
+			for (boolean verifyFailed : failedAuditEntries)
+			{
+				Assert.assertFalse(verifyFailed);
+			}
+		}
+		eventDispatcher.dispatchEvent(ClearAllCachesEvent.getInstance());
+
+		User reloadedUser = beanContext.getService(ICache.class).getObject(User.class, user.getId());
+	}
+
+	@Test
+	@TestPropertiesList({ @TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad, value = "VERIFY_ASYNC"),
+			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "2"),
+			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "2") })
+	public void verifyWithConcurrentUpdate()
+	{
+		final char[] passwordOfUser = "abc".toCharArray();
+		final User user = entityFactory.createEntity(User.class);
+		user.setName("MyName");
+		user.setSID("mySid");
+
+		passwordUtil.assignNewPassword(passwordOfUser, user, null);
+
+		auditController.pushAuditReason("junit test");
+		try
+		{
+			IRevertDelegate revert = auditController.setAuthorizedUser(user, passwordOfUser, true);
+			try
+			{
+				transaction.runInTransaction(new IBackgroundWorkerDelegate()
+				{
+					@Override
+					public void invoke() throws Throwable
+					{
+						mergeProcess.process(user, null, null, null);
+					}
+				});
+				transaction.runInTransaction(new IBackgroundWorkerDelegate()
+				{
+					@Override
+					public void invoke() throws Throwable
+					{
+						user.setName(user.getName() + 1);
+						mergeProcess.process(user, null, null, null);
+					}
+				});
+			}
+			finally
+			{
+				revert.revert();
+			}
+		}
+		finally
+		{
+			auditController.popAuditReason();
+		}
+		{
+			List<IAuditedEntity> auditedEntitiesOfUser = auditEntryReader.getAllAuditedEntitiesOfEntity(user);
+
+			Assert.assertEquals(2, auditedEntitiesOfUser.size());
+			boolean[] failedAuditedEntities = auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfUser);
+			Assert.assertEquals(auditedEntitiesOfUser.size(), failedAuditedEntities.length);
+			for (boolean verifyFailed : failedAuditedEntities)
+			{
+				Assert.assertFalse(verifyFailed);
+			}
+		}
+		{
+			List<IAuditEntry> auditEntriesOfUser = auditEntryReader.getAllAuditEntriesOfEntity(user);
+
+			Assert.assertEquals(2, auditEntriesOfUser.size());
 			boolean[] failedAuditEntries = auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser);
 			Assert.assertEquals(auditEntriesOfUser.size(), failedAuditEntries.length);
 			for (boolean verifyFailed : failedAuditEntries)
