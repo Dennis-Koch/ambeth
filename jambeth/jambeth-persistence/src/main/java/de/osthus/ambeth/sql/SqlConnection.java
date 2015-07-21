@@ -315,7 +315,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 			{
 				sb.append(" WHERE ").append(whereSql);
 			}
-			sb.append(") as rns WHERE rn>? AND rn<=?");
+			sb.append(") rnSelect WHERE rn>? AND rn<=?"); 
 
 			ParamsUtil.addParam(parameters, offset);
 			ParamsUtil.addParam(parameters, offset + length);
