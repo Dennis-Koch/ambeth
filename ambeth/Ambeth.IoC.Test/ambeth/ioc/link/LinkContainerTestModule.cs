@@ -84,7 +84,7 @@ namespace De.Osthus.Ambeth.Ioc.Link
             {
                 ExtendableType = typeof(ITestListenerExtendable);
             }
-            ILinkConfiguration link2;
+            ILinkConfigWithOptional link2;
             switch (RegistryVariant)
             {
                 case RegistryVariant.BY_EXTENDABLE:
@@ -113,7 +113,8 @@ namespace De.Osthus.Ambeth.Ioc.Link
             }
             if (Optional)
             {
-                link2 = link2.Optional();
+                link2.Optional();
+                link2 = null;
             }
         }
     }

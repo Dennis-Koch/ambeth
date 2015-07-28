@@ -16,7 +16,7 @@ public interface ILinkRegistryNeededConfiguration<D>
 	 * @param eventDelegate
 	 * @return Optional next configuration step of the fluent interface.
 	 */
-	ILinkConfiguration to(String registryBeanName, IEventDelegate<D> eventDelegate);
+	ILinkConfigWithOptional to(String registryBeanName, IEventDelegate<D> eventDelegate);
 
 	/**
 	 * Identifies the registry to use by its name and specifies the registry class or interface to use.
@@ -27,7 +27,7 @@ public interface ILinkRegistryNeededConfiguration<D>
 	 *            Class/Interface containing the registry methods.
 	 * @return Optional next configuration step of the fluent interface.
 	 */
-	ILinkConfiguration to(String registryBeanName, Class<?> registryClass);
+	ILinkConfigWithOptional to(String registryBeanName, Class<?> registryClass);
 
 	/**
 	 * Identifies the registry to use by its name and specifies the registry method to use.
@@ -38,7 +38,7 @@ public interface ILinkRegistryNeededConfiguration<D>
 	 *            Name of the registry method.
 	 * @return Optional next configuration step of the fluent interface.
 	 */
-	ILinkConfiguration to(String registryBeanName, String propertyName);
+	ILinkConfigWithOptional to(String registryBeanName, String propertyName);
 
 	/**
 	 * Identifies the registry to use by its autowire interface.
@@ -47,7 +47,7 @@ public interface ILinkRegistryNeededConfiguration<D>
 	 *            Autowire interface of the registry.
 	 * @return Optional next configuration step of the fluent interface.
 	 */
-	ILinkConfiguration to(Class<?> autowiredRegistryClass);
+	ILinkConfigWithOptional to(Class<?> autowiredRegistryClass);
 
 	/**
 	 * Takes a registry instance to use for linking.
@@ -57,7 +57,7 @@ public interface ILinkRegistryNeededConfiguration<D>
 	 * @param eventDelegate
 	 * @return Optional next configuration step of the fluent interface.
 	 */
-	ILinkConfiguration to(Object registry, IEventDelegate<D> eventDelegate);
+	ILinkConfigWithOptional to(Object registry, IEventDelegate<D> eventDelegate);
 
 	/**
 	 * Takes a registry instance to use for linking and specifies the registry class or interface to use.
@@ -68,7 +68,7 @@ public interface ILinkRegistryNeededConfiguration<D>
 	 *            Class/Interface containing the registry methods.
 	 * @return Optional next configuration step of the fluent interface.
 	 */
-	ILinkConfiguration to(Object registry, Class<?> registryClass);
+	ILinkConfigWithOptional to(Object registry, Class<?> registryClass);
 
 	/**
 	 * Takes a registry instance to use for linking and specifies the registry method to use.
@@ -79,5 +79,5 @@ public interface ILinkRegistryNeededConfiguration<D>
 	 *            Name of the registry method.
 	 * @return Optional next configuration step of the fluent interface.
 	 */
-	ILinkConfiguration to(Object registry, String propertyName);
+	ILinkConfigWithOptional to(Object registry, String propertyName);
 }

@@ -4,7 +4,7 @@ import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.ioc.config.BeanConfiguration;
 import de.osthus.ambeth.proxy.IProxyFactory;
 
-public class LinkConfiguration<D> extends BeanConfiguration implements ILinkConfiguration, ILinkRegistryNeededConfiguration<D>
+public class LinkConfiguration<D> extends BeanConfiguration implements ILinkRegistryNeededConfiguration<D>, ILinkConfigWithOptional, ILinkConfigOptional
 {
 	public LinkConfiguration(Class<?> beanType, IProxyFactory proxyFactory, IProperties props)
 	{
@@ -12,21 +12,20 @@ public class LinkConfiguration<D> extends BeanConfiguration implements ILinkConf
 	}
 
 	@Override
-	public ILinkConfiguration with(Object... arguments)
+	public ILinkConfigOptional with(Object... arguments)
 	{
 		propertyValue(AbstractLinkContainer.PROPERTY_ARGUMENTS, arguments);
 		return this;
 	}
 
 	@Override
-	public ILinkConfiguration optional()
+	public void optional()
 	{
 		propertyValue(AbstractLinkContainer.PROPERTY_OPTIONAL, true);
-		return this;
 	}
 
 	@Override
-	public ILinkConfiguration to(String registryBeanName, Class<?> registryClass)
+	public ILinkConfigWithOptional to(String registryBeanName, Class<?> registryClass)
 	{
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_NAME, registryBeanName);
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_TYPE, registryClass);
@@ -34,7 +33,7 @@ public class LinkConfiguration<D> extends BeanConfiguration implements ILinkConf
 	}
 
 	@Override
-	public ILinkConfiguration to(String registryBeanName, String propertyName)
+	public ILinkConfigWithOptional to(String registryBeanName, String propertyName)
 	{
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_NAME, registryBeanName);
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_PROPERTY_NAME, propertyName);
@@ -42,26 +41,26 @@ public class LinkConfiguration<D> extends BeanConfiguration implements ILinkConf
 	}
 
 	@Override
-	public ILinkConfiguration to(String registryBeanName, IEventDelegate<D> eventDelegate)
+	public ILinkConfigWithOptional to(String registryBeanName, IEventDelegate<D> eventDelegate)
 	{
 		return to(registryBeanName, eventDelegate.getEventName());
 	}
 
 	@Override
-	public ILinkConfiguration to(Class<?> autowiredRegistryClass)
+	public ILinkConfigWithOptional to(Class<?> autowiredRegistryClass)
 	{
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_TYPE, autowiredRegistryClass);
 		return this;
 	}
 
 	@Override
-	public ILinkConfiguration to(Object registry, IEventDelegate<D> eventDelegate)
+	public ILinkConfigWithOptional to(Object registry, IEventDelegate<D> eventDelegate)
 	{
 		return to(registry, eventDelegate.getEventName());
 	}
 
 	@Override
-	public ILinkConfiguration to(Object registry, Class<?> registryClass)
+	public ILinkConfigWithOptional to(Object registry, Class<?> registryClass)
 	{
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY, registry);
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_TYPE, registryClass);
@@ -69,7 +68,7 @@ public class LinkConfiguration<D> extends BeanConfiguration implements ILinkConf
 	}
 
 	@Override
-	public ILinkConfiguration to(Object registry, String propertyName)
+	public ILinkConfigWithOptional to(Object registry, String propertyName)
 	{
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY, registry);
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_PROPERTY_NAME, propertyName);

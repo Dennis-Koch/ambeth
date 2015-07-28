@@ -4,31 +4,31 @@ namespace De.Osthus.Ambeth.Ioc.Link
 {
     public interface ILinkRegistryNeededConfiguration<D> : ILinkRegistryNeededConfiguration
     {
-        ILinkConfiguration To(String registryBeanName, IEventDelegate<D> eventDelegate);
+        ILinkConfigWithOptional To(String registryBeanName, IEventDelegate<D> eventDelegate);
 
-        ILinkConfiguration To(Object registry, IEventDelegate<D> eventDelegate);
+        ILinkConfigWithOptional To(Object registry, IEventDelegate<D> eventDelegate);
     }
 
     public interface ILinkRegistryNeededConfiguration
     {
-        ILinkConfiguration To<R>(String registryBeanName);
+        ILinkConfigWithOptional To<R>(String registryBeanName);
 
-        ILinkConfiguration To(String registryBeanName, Type registryClass);
+        ILinkConfigWithOptional To(String registryBeanName, Type registryClass);
 
-        ILinkConfiguration To(String registryBeanName, String propertyName);
+        ILinkConfigWithOptional To(String registryBeanName, String propertyName);
 
-        ILinkConfiguration To(String registryBeanName, IEventDelegate eventDelegate);
+        ILinkConfigWithOptional To(String registryBeanName, IEventDelegate eventDelegate);
 
-        ILinkConfiguration To<R>();
+        ILinkConfigWithOptional To<R>();
 
-        ILinkConfiguration To(Type autowiredRegistryClass);
+        ILinkConfigWithOptional To(Type autowiredRegistryClass);
 
-        ILinkConfiguration To<R>(Object registry);
-        
-	    ILinkConfiguration To(Object registry, Type registryClass);
+        ILinkConfigWithOptional To<R>(Object registry);
 
-	    ILinkConfiguration To(Object registry, String propertyName);
+        ILinkConfigWithOptional To(Object registry, Type registryClass);
 
-        ILinkConfiguration To(Object registry, IEventDelegate eventDelegate);
+        ILinkConfigWithOptional To(Object registry, String propertyName);
+
+        ILinkConfigWithOptional To(Object registry, IEventDelegate eventDelegate);
     }
 }
