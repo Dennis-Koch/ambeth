@@ -25,34 +25,64 @@ import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 
 public class Ambeth implements IAmbethConfiguration, IAmbethApplication
 {
+	/**
+	 * Creates an Ambeth context and scans for Ambeth and application modules.
+	 * 
+	 * @return Configuration object
+	 */
 	public static IAmbethConfiguration createDefault()
 	{
 		Ambeth ambeth = new Ambeth(true, true);
 		return ambeth;
 	}
 
+	/**
+	 * Creates an Ambeth context for a specific Ambeth bundle and scans for application modules.
+	 * 
+	 * @return Configuration object
+	 */
 	public static IAmbethConfiguration createBundle(Class<? extends IBundleModule> bundleModule)
+	{
+		Ambeth ambeth = new Ambeth(false, true);
+		setBundleModule(bundleModule, ambeth);
+		return ambeth;
+	}
+
+	/**
+	 * Creates an Ambeth context for a specific Ambeth bundle and does not scan for any modules.
+	 * 
+	 * @return Configuration object
+	 */
+	public static IAmbethConfiguration createEmptyBundle(Class<? extends IBundleModule> bundleModule)
+	{
+		Ambeth ambeth = new Ambeth(false, false);
+		setBundleModule(bundleModule, ambeth);
+		return ambeth;
+	}
+
+	/**
+	 * Creates an Ambeth context without any Ambeth or application modules.
+	 * 
+	 * @return Configuration object
+	 */
+	public static IAmbethConfiguration createEmpty()
+	{
+		Ambeth ambeth = new Ambeth(false, false);
+		return ambeth;
+	}
+
+	protected static void setBundleModule(Class<? extends IBundleModule> bundleModule, Ambeth ambeth)
 	{
 		try
 		{
-			Ambeth ambeth = new Ambeth(false, true);
-
 			IBundleModule bundleModuleInstance = bundleModule.newInstance();
 			Class<? extends IInitializingModule>[] bundleModules = bundleModuleInstance.getBundleModules();
 			ambeth.withAmbethModules(bundleModules);
-
-			return ambeth;
 		}
 		catch (Exception e)
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
-	}
-
-	public static IAmbethConfiguration createEmpty()
-	{
-		Ambeth ambeth = new Ambeth(false, false);
-		return ambeth;
 	}
 
 	protected Properties properties = new Properties();
