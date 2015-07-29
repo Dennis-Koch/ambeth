@@ -4,7 +4,7 @@ using System;
 
 namespace De.Osthus.Ambeth.Ioc.Link
 {
-    public class LinkRuntime<D> : BeanRuntime<ILinkContainer>, ILinkRegistryNeededRuntime<D>, ILinkRuntime
+    public class LinkRuntime<D> : BeanRuntime<ILinkContainer>, ILinkRegistryNeededRuntime<D>, ILinkRuntimeWithOptional, ILinkRuntimeOptional, ILinkRuntimeFinish
     {
         public LinkRuntime(ServiceContext serviceContext, Type beanType) : base(serviceContext, beanType, true)
         {
@@ -17,15 +17,15 @@ namespace De.Osthus.Ambeth.Ioc.Link
             return new LinkConfiguration<Object>(beanType, proxyFactory, null);
         }
 
-        public ILinkRuntime Optional()
+        public ILinkRuntimeOptional With(params Object[] arguments)
         {
-            PropertyValue(AbstractLinkContainer.PROPERTY_OPTIONAL, "true");
+            PropertyValue(AbstractLinkContainer.PROPERTY_ARGUMENTS, arguments);
             return this;
         }
 
-        public ILinkRuntime With(params Object[] arguments)
+        public ILinkRuntimeFinish Optional()
         {
-            PropertyValue(AbstractLinkContainer.PROPERTY_ARGUMENTS, arguments);
+            PropertyValue(AbstractLinkContainer.PROPERTY_OPTIONAL, "true");
             return this;
         }
 
@@ -58,61 +58,61 @@ namespace De.Osthus.Ambeth.Ioc.Link
             return this;
         }
 
-        public ILinkRuntime To<R>(String registryBeanName)
+        public ILinkRuntimeWithOptional To<R>(String registryBeanName)
         {
             return To(registryBeanName, typeof(R));
         }
 
-        public ILinkRuntime To(String registryBeanName, Type registryClass)
+        public ILinkRuntimeWithOptional To(String registryBeanName, Type registryClass)
         {
             PropertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_NAME, registryBeanName);
             PropertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_TYPE, registryClass);
             return this;
         }
 
-        public ILinkRuntime To(String registryBeanName, String propertyName)
+        public ILinkRuntimeWithOptional To(String registryBeanName, String propertyName)
         {
             PropertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_NAME, registryBeanName);
             PropertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_PROPERTY_NAME, propertyName);
             return this;
         }
 
-        public ILinkRuntime To(String registryBeanName, IEventDelegate<D> eventDelegate)
+        public ILinkRuntimeWithOptional To(String registryBeanName, IEventDelegate<D> eventDelegate)
         {
             return To(registryBeanName, eventDelegate.EventName);
         }
 
-        public ILinkRuntime To<R>()
+        public ILinkRuntimeWithOptional To<R>()
         {
             return To(typeof(R));
         }
 
-        public ILinkRuntime To(Type autowiredRegistryClass)
+        public ILinkRuntimeWithOptional To(Type autowiredRegistryClass)
         {
             PropertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_TYPE, autowiredRegistryClass);
             return this;
         }
 
-        public ILinkRuntime To<T>(Object registry)
+        public ILinkRuntimeWithOptional To<T>(Object registry)
         {
             return To(registry, typeof(T));
         }
 
-        public ILinkRuntime To(Object registry, String propertyName)
+        public ILinkRuntimeWithOptional To(Object registry, String propertyName)
         {
             PropertyValue(AbstractLinkContainer.PROPERTY_REGISTRY, registry);
             PropertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_PROPERTY_NAME, propertyName);
             return this;
         }
 
-        public ILinkRuntime To(Object registry, Type registryClass)
+        public ILinkRuntimeWithOptional To(Object registry, Type registryClass)
         {
             PropertyValue(AbstractLinkContainer.PROPERTY_REGISTRY, registry);
             PropertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_TYPE, registryClass);
             return this;
         }
 
-        public ILinkRuntime To(Object registry, IEventDelegate<D> eventDelegate)
+        public ILinkRuntimeWithOptional To(Object registry, IEventDelegate<D> eventDelegate)
         {
             return To(registry, eventDelegate.EventName);
         }
