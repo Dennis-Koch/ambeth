@@ -45,7 +45,6 @@ import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.proxy.IObjRefContainer;
-import de.osthus.ambeth.proxy.IValueHolderContainer;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
