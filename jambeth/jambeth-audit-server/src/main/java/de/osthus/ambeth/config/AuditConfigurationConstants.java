@@ -57,6 +57,12 @@ public final class AuditConfigurationConstants
 	@ConfigurationConstantDescription("TODO")
 	public static final String VerifyEntitiesOnLoad = "audit.verify.onload";
 
+	/**
+	 * Defines the maximum time (in ms) to keep the asynchronous transaction open during high verification load. If synchronous verification is activated this
+	 * property has no effect. Default value is 30000.
+	 */
+	public static final String VerifyEntitiesMaxTransactionTime = "audit.verify.maxtransaction.time";
+
 	@ConfigurationConstantDescription("TODO")
 	public static final String VerifierCrontab = "audit.verify.crontab";
 

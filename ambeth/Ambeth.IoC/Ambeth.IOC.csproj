@@ -63,6 +63,9 @@
     <Compile Include="ambeth\ioc\config\PropertyValueConfiguration.cs" />
     <Compile Include="ambeth\ioc\DisposableBeanHook.cs" />
     <Compile Include="ambeth\ioc\DisposableHook.cs" />
+    <Compile Include="ambeth\ioc\link\ILinkRuntimeFinish.cs" />
+    <Compile Include="ambeth\ioc\link\ILinkRuntimeOptional.cs" />
+    <Compile Include="ambeth\ioc\link\ILinkConfigOptional.cs" />
     <Compile Include="ambeth\ioc\proxy\EmptyInterceptor.cs" />
     <Compile Include="ambeth\ioc\exception\BeanContextDeclarationException.cs" />
     <Compile Include="ambeth\ioc\exception\BeanContextInitException.cs" />
@@ -113,13 +116,13 @@
     <Compile Include="ambeth\ioc\link\AbstractLinkContainerOld.cs" />
     <Compile Include="ambeth\ioc\link\EventDelegate.cs" />
     <Compile Include="ambeth\ioc\link\IEventDelegate.cs" />
-    <Compile Include="ambeth\ioc\link\ILinkConfiguration.cs" />
+    <Compile Include="ambeth\ioc\link\ILinkConfigWithOptional.cs" />
     <Compile Include="ambeth\ioc\link\ILinkContainer.cs" />
     <Compile Include="ambeth\ioc\link\ILinkController.cs" />
     <Compile Include="ambeth\ioc\link\ILinkExtendable.cs" />
     <Compile Include="ambeth\ioc\link\ILinkRegistryNeededConfiguration.cs" />
     <Compile Include="ambeth\ioc\link\ILinkRegistryNeededRuntime.cs" />
-    <Compile Include="ambeth\ioc\link\ILinkRuntime.cs" />
+    <Compile Include="ambeth\ioc\link\ILinkRuntimeWithOptional.cs" />
     <Compile Include="ambeth\ioc\link\ILinkRuntimeExtendable.cs" />
     <Compile Include="ambeth\ioc\link\LateDelegate.cs" />
     <Compile Include="ambeth\ioc\link\LinkConfiguration.cs" />
@@ -150,7 +153,7 @@
     <Compile Include="ambeth\util\DelegatingConversionHelper.cs" />
     <Compile Include="ambeth\ioc\IocModule.cs" />
     <Compile Include="ambeth\util\IAggregrateResultHandler.cs" />
-	<Compile Include="ambeth\util\ImmutableTypeSet.cs" />
+    <Compile Include="ambeth\util\ImmutableTypeSet.cs" />
     <Compile Include="ambeth\util\IMultithreadingHelper.cs" />
     <Compile Include="ambeth\util\INamedRunnable.cs" />
     <Compile Include="ambeth\util\InterruptingParamHolder.cs" />

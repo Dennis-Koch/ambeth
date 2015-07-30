@@ -75,8 +75,8 @@ import de.osthus.ambeth.stream.binary.IBinaryInputStream;
 import de.osthus.ambeth.stream.chars.ICharacterInputSource;
 import de.osthus.ambeth.stream.chars.ICharacterInputStream;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
-import de.osthus.ambeth.util.IRevertDelegate;
 import de.osthus.ambeth.util.IConversionHelper;
+import de.osthus.ambeth.util.IRevertDelegate;
 
 public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogger, IMergeListener, ITransactionListener, IAuditInfoController
 {
@@ -341,7 +341,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.Name).setNewValue(pui.getMemberName());
 
 			String auditedValue = createAuditedValueOfEntityPrimitive(pui.getNewValue());
-			if (auditedValue == null || auditedValue.length() == 0)
+			if (auditedValue != null && auditedValue.length() == 0)
 			{
 				if (table == null)
 				{

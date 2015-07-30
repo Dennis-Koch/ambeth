@@ -5,27 +5,27 @@ namespace De.Osthus.Ambeth.Ioc.Link
 {
     public interface ILinkRegistryNeededRuntime<D> : ILinkRegistryNeededRuntime
     {
-        ILinkRuntime To(String registryBeanName, IEventDelegate<D> eventDelegate);
+        ILinkRuntimeWithOptional To(String registryBeanName, IEventDelegate<D> eventDelegate);
 
-        ILinkRuntime To(Object registry, IEventDelegate<D> eventDelegate);
+        ILinkRuntimeWithOptional To(Object registry, IEventDelegate<D> eventDelegate);
     }
 
     public interface ILinkRegistryNeededRuntime
     {
-        ILinkRuntime To<R>(String registryBeanName);
+        ILinkRuntimeWithOptional To<R>(String registryBeanName);
 
-        ILinkRuntime To(String registryBeanName, Type registryClass);
+        ILinkRuntimeWithOptional To(String registryBeanName, Type registryClass);
 
-        ILinkRuntime To(String registryBeanName, String propertyName);
+        ILinkRuntimeWithOptional To(String registryBeanName, String propertyName);
 
-        ILinkRuntime To<R>();
+        ILinkRuntimeWithOptional To<R>();
 
-        ILinkRuntime To(Type autowiredRegistryClass);
+        ILinkRuntimeWithOptional To(Type autowiredRegistryClass);
 
-        ILinkRuntime To<R>(Object registry);
+        ILinkRuntimeWithOptional To<R>(Object registry);
 
-        ILinkRuntime To(Object registry, Type registryClass);
+        ILinkRuntimeWithOptional To(Object registry, Type registryClass);
 
-	    ILinkRuntime To(Object registry, String propertyName);
+        ILinkRuntimeWithOptional To(Object registry, String propertyName);
     }
 }

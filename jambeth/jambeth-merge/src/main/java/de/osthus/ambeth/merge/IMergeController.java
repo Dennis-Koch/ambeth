@@ -23,5 +23,5 @@ public interface IMergeController
 	RelationUpdateItemBuild createRUIBuild(String memberName, List<IObjRef> oldOriList, List<IObjRef> newOriList);
 
 	IList<Object> scanForInitializedObjects(Object obj, boolean isDeepMerge, Map<Class<?>, IList<Object>> typeToObjectsToMerge, List<IObjRef> objRefs,
-			List<ValueHolderRef> valueHolderRefs);
+			List<IObjRef> privilegedObjRefs, List<ValueHolderRef> valueHolderRefs);
 }
