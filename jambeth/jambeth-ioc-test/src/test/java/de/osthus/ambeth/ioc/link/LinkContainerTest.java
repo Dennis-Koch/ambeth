@@ -95,7 +95,7 @@ public class LinkContainerTest extends AbstractIocTest
 			{
 				extendableType = ITestListenerExtendable.class;
 			}
-			ILinkConfiguration link2;
+			ILinkConfigWithOptional link2;
 			switch (registryVariant)
 			{
 				case BY_EXTENDABLE:
@@ -138,7 +138,8 @@ public class LinkContainerTest extends AbstractIocTest
 			}
 			if (optional)
 			{
-				link2 = link2.optional();
+				link2.optional();
+				link2 = null;
 			}
 		}
 

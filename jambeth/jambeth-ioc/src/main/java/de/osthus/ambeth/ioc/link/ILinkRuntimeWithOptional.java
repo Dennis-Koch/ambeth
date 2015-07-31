@@ -5,7 +5,7 @@ package de.osthus.ambeth.ioc.link;
  * 
  * @see ILinkRuntimeExtendable
  */
-public interface ILinkRuntime
+public interface ILinkRuntimeWithOptional extends ILinkRuntimeOptional, ILinkRuntimeFinish
 {
 	/**
 	 * Adds key(s) to the configuration the bean will be registered for.
@@ -14,17 +14,5 @@ public interface ILinkRuntime
 	 *            Key(s) for the bean.
 	 * @return This configuration.
 	 */
-	ILinkRuntime with(Object... arguments);
-
-	/**
-	 * Sets the linking as optional. It may be omitted if the registry cannot be found.
-	 * 
-	 * @return This configuration.
-	 */
-	ILinkRuntime optional();
-
-	/**
-	 * Finishes the link configuration and executes it.
-	 */
-	void finishLink();
+	ILinkRuntimeOptional with(Object... arguments);
 }

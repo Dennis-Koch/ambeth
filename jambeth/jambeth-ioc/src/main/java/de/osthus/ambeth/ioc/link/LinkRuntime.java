@@ -6,7 +6,8 @@ import de.osthus.ambeth.ioc.config.BeanRuntime;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.proxy.IProxyFactory;
 
-public class LinkRuntime<D> extends BeanRuntime<ILinkContainer> implements ILinkRegistryNeededRuntime<D>, ILinkRuntime
+public class LinkRuntime<D> extends BeanRuntime<ILinkContainer> implements ILinkRegistryNeededRuntime<D>, ILinkRuntimeWithOptional, ILinkRuntimeOptional,
+		ILinkRuntimeFinish
 {
 	public LinkRuntime(ServiceContext serviceContext, Class<? extends ILinkContainer> beanType)
 	{
@@ -21,16 +22,16 @@ public class LinkRuntime<D> extends BeanRuntime<ILinkContainer> implements ILink
 	}
 
 	@Override
-	public ILinkRuntime optional()
+	public ILinkRuntimeOptional with(Object... arguments)
 	{
-		propertyValue(AbstractLinkContainer.PROPERTY_OPTIONAL, "true");
+		propertyValue(AbstractLinkContainer.PROPERTY_ARGUMENTS, arguments);
 		return this;
 	}
 
 	@Override
-	public ILinkRuntime with(Object... arguments)
+	public ILinkRuntimeFinish optional()
 	{
-		propertyValue(AbstractLinkContainer.PROPERTY_ARGUMENTS, arguments);
+		propertyValue(AbstractLinkContainer.PROPERTY_OPTIONAL, "true");
 		return this;
 	}
 
@@ -65,7 +66,7 @@ public class LinkRuntime<D> extends BeanRuntime<ILinkContainer> implements ILink
 	}
 
 	@Override
-	public ILinkRuntime to(String registryBeanName, Class<?> registryClass)
+	public ILinkRuntimeWithOptional to(String registryBeanName, Class<?> registryClass)
 	{
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_NAME, registryBeanName);
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_TYPE, registryClass);
@@ -73,7 +74,7 @@ public class LinkRuntime<D> extends BeanRuntime<ILinkContainer> implements ILink
 	}
 
 	@Override
-	public ILinkRuntime to(String registryBeanName, String propertyName)
+	public ILinkRuntimeWithOptional to(String registryBeanName, String propertyName)
 	{
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_NAME, registryBeanName);
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_PROPERTY_NAME, propertyName);
@@ -81,20 +82,20 @@ public class LinkRuntime<D> extends BeanRuntime<ILinkContainer> implements ILink
 	}
 
 	@Override
-	public ILinkRuntime to(String registryBeanName, IEventDelegate<D> eventDelegate)
+	public ILinkRuntimeWithOptional to(String registryBeanName, IEventDelegate<D> eventDelegate)
 	{
 		return to(registryBeanName, eventDelegate.getEventName());
 	}
 
 	@Override
-	public ILinkRuntime to(Class<?> autowiredRegistryClass)
+	public ILinkRuntimeWithOptional to(Class<?> autowiredRegistryClass)
 	{
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_TYPE, autowiredRegistryClass);
 		return this;
 	}
 
 	@Override
-	public ILinkRuntime to(Object registry, Class<?> registryClass)
+	public ILinkRuntimeWithOptional to(Object registry, Class<?> registryClass)
 	{
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY, registry);
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_TYPE, registryClass);
@@ -102,7 +103,7 @@ public class LinkRuntime<D> extends BeanRuntime<ILinkContainer> implements ILink
 	}
 
 	@Override
-	public ILinkRuntime to(Object registry, String propertyName)
+	public ILinkRuntimeWithOptional to(Object registry, String propertyName)
 	{
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY, registry);
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_PROPERTY_NAME, propertyName);
@@ -110,7 +111,7 @@ public class LinkRuntime<D> extends BeanRuntime<ILinkContainer> implements ILink
 	}
 
 	@Override
-	public ILinkRuntime to(Object registry, IEventDelegate<D> eventDelegate)
+	public ILinkRuntimeWithOptional to(Object registry, IEventDelegate<D> eventDelegate)
 	{
 		return to(registry, eventDelegate.getEventName());
 	}

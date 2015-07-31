@@ -435,7 +435,7 @@ public class SqlTable extends Table
 	@Override
 	public long selectCountJoin(CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, List<Object> parameters, String tableAlias)
 	{
-		IResultSet resultSet = sqlConnection.selectFields(getMetaData().getFullqualifiedEscapedName(), "COUNT(*)", joinSql, whereSql, orderBySql, null,
+		IResultSet resultSet = sqlConnection.selectFields(getMetaData().getFullqualifiedEscapedName(), "COUNT(*)", joinSql, whereSql, null, null,
 				parameters, tableAlias);
 		try
 		{

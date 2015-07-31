@@ -16,7 +16,7 @@ public interface ILinkRegistryNeededRuntime<D>
 	 * @param eventDelegate
 	 * @return Next configuration step of the fluent interface.
 	 */
-	ILinkRuntime to(String registryBeanName, IEventDelegate<D> eventDelegate);
+	ILinkRuntimeWithOptional to(String registryBeanName, IEventDelegate<D> eventDelegate);
 
 	/**
 	 * Identifies the registry to use by its name and specifies the registry class or interface to use.
@@ -27,7 +27,7 @@ public interface ILinkRegistryNeededRuntime<D>
 	 *            Class/Interface containing the registry methods.
 	 * @return Next configuration step of the fluent interface.
 	 */
-	ILinkRuntime to(String registryBeanName, Class<?> registryClass);
+	ILinkRuntimeWithOptional to(String registryBeanName, Class<?> registryClass);
 
 	/**
 	 * Identifies the registry to use by its name and specifies the registry method to use.
@@ -38,7 +38,7 @@ public interface ILinkRegistryNeededRuntime<D>
 	 *            Name of the registry method.
 	 * @return Next configuration step of the fluent interface.
 	 */
-	ILinkRuntime to(String registryBeanName, String propertyName);
+	ILinkRuntimeWithOptional to(String registryBeanName, String propertyName);
 
 	/**
 	 * Identifies the registry to use by its autowire interface.
@@ -47,7 +47,7 @@ public interface ILinkRegistryNeededRuntime<D>
 	 *            Autowire interface of the registry.
 	 * @return Next configuration step of the fluent interface.
 	 */
-	ILinkRuntime to(Class<?> autowiredRegistryClass);
+	ILinkRuntimeWithOptional to(Class<?> autowiredRegistryClass);
 
 	/**
 	 * Takes a registry instance to use for linking.
@@ -57,7 +57,7 @@ public interface ILinkRegistryNeededRuntime<D>
 	 * @param eventDelegate
 	 * @return Next configuration step of the fluent interface.
 	 */
-	ILinkRuntime to(Object registry, IEventDelegate<D> eventDelegate);
+	ILinkRuntimeWithOptional to(Object registry, IEventDelegate<D> eventDelegate);
 
 	/**
 	 * Takes a registry instance to use for linking and specifies the registry class or interface to use.
@@ -68,7 +68,7 @@ public interface ILinkRegistryNeededRuntime<D>
 	 *            Class/Interface containing the registry methods.
 	 * @return Next configuration step of the fluent interface.
 	 */
-	ILinkRuntime to(Object registry, Class<?> registryClass);
+	ILinkRuntimeWithOptional to(Object registry, Class<?> registryClass);
 
 	/**
 	 * Takes a registry instance to use for linking and specifies the registry method to use.
@@ -79,5 +79,5 @@ public interface ILinkRegistryNeededRuntime<D>
 	 *            Name of the registry method.
 	 * @return Next configuration step of the fluent interface.
 	 */
-	ILinkRuntime to(Object registry, String propertyName);
+	ILinkRuntimeWithOptional to(Object registry, String propertyName);
 }

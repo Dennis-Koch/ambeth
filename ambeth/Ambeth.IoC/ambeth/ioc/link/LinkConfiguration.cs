@@ -5,7 +5,7 @@ using De.Osthus.Ambeth.Config;
 
 namespace De.Osthus.Ambeth.Ioc.Link
 {
-    public class LinkConfiguration<D> : BeanConfiguration, ILinkConfiguration, ILinkRegistryNeededConfiguration<D>
+    public class LinkConfiguration<D> : BeanConfiguration, ILinkRegistryNeededConfiguration<D>, ILinkConfigWithOptional, ILinkConfigOptional
     {
         public LinkConfiguration(Type beanType, IProxyFactory proxyFactory, IProperties props)
             : base(beanType, null, proxyFactory, props)
@@ -13,83 +13,82 @@ namespace De.Osthus.Ambeth.Ioc.Link
             // Intended blank
         }
 
-        public ILinkConfiguration With(params Object[] arguments)
+        public ILinkConfigOptional With(params Object[] arguments)
         {
             PropertyValue(LinkContainer.PROPERTY_ARGUMENTS, arguments);
             return this;
         }
 
-        public ILinkConfiguration Optional()
+        public void Optional()
         {
             PropertyValue(LinkContainer.PROPERTY_OPTIONAL, true);
-            return this;
         }
 
-        public ILinkConfiguration To(String registryBeanName, Type registryClass)
+        public ILinkConfigWithOptional To(String registryBeanName, Type registryClass)
         {
             PropertyValue(LinkContainer.PROPERTY_REGISTRY_NAME, registryBeanName);
             PropertyValue(LinkContainer.PROPERTY_REGISTRY_TYPE, registryClass);
             return this;
         }
 
-        public ILinkConfiguration To(String registryBeanName, String propertyName)
+        public ILinkConfigWithOptional To(String registryBeanName, String propertyName)
         {
             PropertyValue(LinkContainer.PROPERTY_REGISTRY_NAME, registryBeanName);
             PropertyValue(LinkContainer.PROPERTY_REGISTRY_PROPERTY_NAME, propertyName);
             return this;
         }
 
-        public ILinkConfiguration To(String registryBeanName, IEventDelegate<D> eventDelegate)
+        public ILinkConfigWithOptional To(String registryBeanName, IEventDelegate<D> eventDelegate)
         {
             return To(registryBeanName, eventDelegate.EventName);
         }
 
-        public ILinkConfiguration To(Object registry, IEventDelegate<D> eventDelegate)
+        public ILinkConfigWithOptional To(Object registry, IEventDelegate<D> eventDelegate)
         {
             return To(registry, eventDelegate.EventName);
         }
 
-        public ILinkConfiguration To(String registryBeanName, IEventDelegate eventDelegate)
+        public ILinkConfigWithOptional To(String registryBeanName, IEventDelegate eventDelegate)
         {
             return To(registryBeanName, eventDelegate.EventName);
         }
 
-        public ILinkConfiguration To(Type autowiredRegistryClass)
+        public ILinkConfigWithOptional To(Type autowiredRegistryClass)
         {
             PropertyValue(LinkContainer.PROPERTY_REGISTRY_TYPE, autowiredRegistryClass);
             return this;
         }
 
-        public ILinkConfiguration To<T>()
+        public ILinkConfigWithOptional To<T>()
         {
             return To(typeof(T));
         }
-        
-        public ILinkConfiguration To<T>(String registryBeanName)
+
+        public ILinkConfigWithOptional To<T>(String registryBeanName)
         {
             return To(registryBeanName, typeof(T));
         }
-        
-        public ILinkConfiguration To<T>(Object registry)
+
+        public ILinkConfigWithOptional To<T>(Object registry)
         {
             return To(registry, typeof(T));
         }
-        
-        public ILinkConfiguration To(Object registry, Type registryClass)
-	    {
-		    PropertyValue(AbstractLinkContainer.PROPERTY_REGISTRY, registry);
-		    PropertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_TYPE, registryClass);
-		    return this;
-	    }
 
-	    public ILinkConfiguration To(Object registry, String propertyName)
-	    {
-		    PropertyValue(AbstractLinkContainer.PROPERTY_REGISTRY, registry);
-		    PropertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_PROPERTY_NAME, propertyName);
-		    return this;
-	    }
+        public ILinkConfigWithOptional To(Object registry, Type registryClass)
+        {
+            PropertyValue(AbstractLinkContainer.PROPERTY_REGISTRY, registry);
+            PropertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_TYPE, registryClass);
+            return this;
+        }
 
-        public ILinkConfiguration To(Object registry, IEventDelegate eventDelegate)
+        public ILinkConfigWithOptional To(Object registry, String propertyName)
+        {
+            PropertyValue(AbstractLinkContainer.PROPERTY_REGISTRY, registry);
+            PropertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_PROPERTY_NAME, propertyName);
+            return this;
+        }
+
+        public ILinkConfigWithOptional To(Object registry, IEventDelegate eventDelegate)
         {
             return To(registry, eventDelegate.EventName);
         }

@@ -12,6 +12,8 @@ import de.osthus.ambeth.cache.ICacheFactory;
 import de.osthus.ambeth.cache.IDisposableCache;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.config.AuditConfigurationConstants;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IocModule;
@@ -55,6 +57,9 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 	@Autowired(value = IocModule.THREAD_POOL_NAME)
 	protected Executor executor;
 
+	@Property(name = AuditConfigurationConstants.VerifyEntitiesMaxTransactionTime, defaultValue = "30000")
+	protected long verifyEntitiesMaxTransactionTime;
+
 	protected final ArrayList<IObjRef> queuedObjRefs = new ArrayList<IObjRef>();
 
 	protected boolean isActive, isDestroyed;
@@ -90,52 +95,45 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 	@Override
 	public void run()
 	{
-		if (isDestroyed)
+		final ArrayList<IObjRef> objRefsToVerify = pullObjRefsToVerify();
+		if (objRefsToVerify == null)
 		{
 			return;
 		}
-		final ArrayList<IObjRef> objRefsToVerify;
-		writeLock.lock();
-		try
-		{
-			if (queuedObjRefs.size() == 0)
-			{
-				isActive = false;
-				return;
-			}
-			objRefsToVerify = new ArrayList<IObjRef>(queuedObjRefs);
-			queuedObjRefs.clear();
-		}
-		finally
-		{
-			writeLock.unlock();
-		}
+		final long openTransactionUntil = System.currentTimeMillis() + verifyEntitiesMaxTransactionTime;
+		Boolean reQueue;
 		Thread currentThread = Thread.currentThread();
 		String oldName = currentThread.getName();
 		currentThread.setName(getClass().getSimpleName());
 		try
 		{
-			try
+			reQueue = transaction.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<Boolean>()
 			{
-				verifyEntitiesSync(objRefsToVerify);
-			}
-			finally
-			{
-				writeLock.lock();
-				try
+				@Override
+				public Boolean invoke() throws Throwable
 				{
-					if (queuedObjRefs.size() == 0 || isDestroyed)
+					ArrayList<IObjRef> currObjRefsToVerify = objRefsToVerify;
+					while (true)
 					{
-						isActive = false;
-						return;
+						try
+						{
+							verifyEntitiesSync(currObjRefsToVerify);
+							if (System.currentTimeMillis() > openTransactionUntil)
+							{
+								return Boolean.TRUE;
+							}
+						}
+						finally
+						{
+							currObjRefsToVerify = pullObjRefsToVerify();
+							if (currObjRefsToVerify == null)
+							{
+								return Boolean.FALSE;
+							}
+						}
 					}
-					executor.execute(this);
 				}
-				finally
-				{
-					writeLock.unlock();
-				}
-			}
+			});
 		}
 		finally
 		{
@@ -147,6 +145,39 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 			{
 				currentThread.setName(oldName);
 			}
+		}
+		if (Boolean.TRUE.equals(reQueue))
+		{
+			writeLock.lock();
+			try
+			{
+				isActive = true;
+				executor.execute(this);
+			}
+			finally
+			{
+				writeLock.unlock();
+			}
+		}
+	}
+
+	private ArrayList<IObjRef> pullObjRefsToVerify()
+	{
+		writeLock.lock();
+		try
+		{
+			if (queuedObjRefs.size() == 0 || isDestroyed)
+			{
+				isActive = false;
+				return null;
+			}
+			ArrayList<IObjRef> objRefsToVerify = new ArrayList<IObjRef>(queuedObjRefs);
+			queuedObjRefs.clear();
+			return objRefsToVerify;
+		}
+		finally
+		{
+			writeLock.unlock();
 		}
 	}
 

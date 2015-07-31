@@ -3,7 +3,7 @@ namespace De.Osthus.Ambeth.Ioc.Annotation
 	public class AutowiredTestBean
 	{
 		[Autowired]
-		private IServiceContext beanContextPrivate;
+		private IServiceContext beanContextPrivate = null;
 
 		[Autowired]
 		protected IServiceContext beanContextProtected;

@@ -5,7 +5,7 @@ package de.osthus.ambeth.ioc.link;
  * 
  * @see ILinkExtendable
  */
-public interface ILinkConfiguration
+public interface ILinkConfigWithOptional extends ILinkConfigOptional
 {
 	/**
 	 * Adds key(s) to the configuration the bean will be registered for.
@@ -14,12 +14,5 @@ public interface ILinkConfiguration
 	 *            Key(s) for the bean.
 	 * @return This configuration.
 	 */
-	ILinkConfiguration with(Object... arguments);
-
-	/**
-	 * Sets the linking as optional. It may be omitted if the registry cannot be found.
-	 * 
-	 * @return This configuration.
-	 */
-	ILinkConfiguration optional();
+	ILinkConfigOptional with(Object... arguments);
 }
