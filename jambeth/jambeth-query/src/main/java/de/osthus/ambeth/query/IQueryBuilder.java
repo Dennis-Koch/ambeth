@@ -35,8 +35,6 @@ public interface IQueryBuilder<T> extends IDisposable
 
 	IOperand property(String propertyName, JoinType joinType, IParamHolder<Class<?>> fieldType);
 
-	IOperand intervalProperty(String intervalProperty, String operator, IOperand durationProperty);
-
 	/**
 	 * Please use property() instead
 	 */
@@ -118,8 +116,6 @@ public interface IQueryBuilder<T> extends IDisposable
 	IOperator startsWith(IOperand leftOperand, IOperand rightOperand);
 
 	IOperator startsWith(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);
-
-	IOperator overlaps(IOperand leftOperand, IOperand leftInterval, IOperand rightOperand, IOperand rightInterval);
 
 	IOperand value(Object value);
 

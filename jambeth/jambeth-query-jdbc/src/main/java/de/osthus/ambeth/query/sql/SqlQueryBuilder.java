@@ -58,6 +58,37 @@ import de.osthus.ambeth.query.QueryDelegate;
 import de.osthus.ambeth.query.QueryType;
 import de.osthus.ambeth.query.StringQuery;
 import de.osthus.ambeth.query.SubQuery;
+import de.osthus.ambeth.query.sql.DirectValueOperand;
+import de.osthus.ambeth.query.sql.ITableAliasHolder;
+import de.osthus.ambeth.query.sql.ITableAliasProvider;
+import de.osthus.ambeth.query.sql.NullValueOperand;
+import de.osthus.ambeth.query.sql.SimpleValueOperand;
+import de.osthus.ambeth.query.sql.SqlAdditionalSelectOperand;
+import de.osthus.ambeth.query.sql.SqlAllOperand;
+import de.osthus.ambeth.query.sql.SqlAndOperator;
+import de.osthus.ambeth.query.sql.SqlColumnOperand;
+import de.osthus.ambeth.query.sql.SqlContainsOperator;
+import de.osthus.ambeth.query.sql.SqlEndsWithOperator;
+import de.osthus.ambeth.query.sql.SqlFunctionOperand;
+import de.osthus.ambeth.query.sql.SqlIsEqualToOperator;
+import de.osthus.ambeth.query.sql.SqlIsGreaterThanOperator;
+import de.osthus.ambeth.query.sql.SqlIsGreaterThanOrEqualToOperator;
+import de.osthus.ambeth.query.sql.SqlIsInOperator;
+import de.osthus.ambeth.query.sql.SqlIsLessThanOperator;
+import de.osthus.ambeth.query.sql.SqlIsLessThanOrEqualToOperator;
+import de.osthus.ambeth.query.sql.SqlIsNotEqualToOperator;
+import de.osthus.ambeth.query.sql.SqlIsNotInOperator;
+import de.osthus.ambeth.query.sql.SqlJoinOperator;
+import de.osthus.ambeth.query.sql.SqlLikeOperator;
+import de.osthus.ambeth.query.sql.SqlLimitOperator;
+import de.osthus.ambeth.query.sql.SqlNotContainsOperator;
+import de.osthus.ambeth.query.sql.SqlNotLikeOperator;
+import de.osthus.ambeth.query.sql.SqlNullCheck;
+import de.osthus.ambeth.query.sql.SqlOrOperator;
+import de.osthus.ambeth.query.sql.SqlOrderByOperator;
+import de.osthus.ambeth.query.sql.SqlStartsWithOperator;
+import de.osthus.ambeth.query.sql.SqlSubselectOperand;
+import de.osthus.ambeth.query.sql.TableAliasHolder;
 import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.IParamHolder;
@@ -548,28 +579,6 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 
 	@Override
 	@PersistenceContext(PersistenceContextType.REQUIRED)
-	public IOperand intervalProperty(String intervalProperty, String operator, IOperand durationProperty)
-	{
-
-		ParamChecker.assertNotNull(intervalProperty, "intervalProperty");
-		ParamChecker.assertNotNull(durationProperty, "operator");
-		ParamChecker.assertNotNull(durationProperty, "durationProperty");
-		try
-		{
-			IBeanRuntime<SqlIntervalOperand> br = getBeanContext().registerBean(SqlIntervalOperand.class);
-			br.propertyValue("intervalProperty", intervalProperty);
-			br.propertyValue("operator", operator);
-			br.propertyValue("durationProperty", durationProperty);
-			return br.finish();
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
-	@Override
-	@PersistenceContext(PersistenceContextType.REQUIRED)
 	@Deprecated
 	public IOperand column(String columnName)
 	{
@@ -1007,28 +1016,6 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		try
 		{
 			return getBeanContext().registerBean(SqlFunctionOperand.class).propertyValue("Name", name).propertyValue("Operands", operands).finish();
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
-	@Override
-	public IOperator overlaps(IOperand leftOperand, IOperand leftInterval, IOperand rightOperand, IOperand rightInterval)
-	{
-		ParamChecker.assertParamNotNull(leftOperand, "leftOperand");
-		ParamChecker.assertParamNotNull(leftInterval, "leftInterval");
-		ParamChecker.assertParamNotNull(rightOperand, "rightOperand");
-		ParamChecker.assertParamNotNull(rightInterval, "rightInterval");
-		try
-		{
-			return getBeanContext().registerBean(SqlOverlapsOperator.class)//
-					.propertyValue("leftOperand", leftOperand)//
-					.propertyValue("leftInterval", leftInterval)//
-					.propertyValue("rightOperand", rightOperand)//
-					.propertyValue("rightInterval", rightInterval)//
-					.finish();
 		}
 		catch (Throwable e)
 		{
