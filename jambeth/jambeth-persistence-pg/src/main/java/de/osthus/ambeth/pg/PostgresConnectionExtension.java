@@ -23,7 +23,7 @@ public class PostgresConnectionExtension implements IConnectionExtension
 	{
 		if (expectedComponentType == null)
 		{
-			System.out.println("df,dslfsdf");
+			expectedComponentType = javaArray.getClass().getComponentType();
 		}
 		String[] strings = PostgresDialect.typeToArrayTypeNameMap.get(expectedComponentType);
 		try
