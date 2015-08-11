@@ -73,6 +73,7 @@
 		<module>jambeth-server-helloworld</module>
 		<module>jambeth-server-rest</module>
 		<module>jambeth-service</module>
+		<module>jambeth-shell</module>
 		<module>jambeth-soap</module>
 		<module>jambeth-stream</module>
 		<module>jambeth-util</module>

@@ -201,98 +201,6 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 		return entityMetaDataProvider.getValueObjectConfig(valueType);
 	}
 
-	// protected IList<IChangeContainer> transformToBuildableCUDResult(ICUDResult cudResult,
-	// HashMap<Class<?>, HashMap<String, Integer>> typeToMemberNameToIndexMap,
-	// HashMap<Class<?>, HashMap<String, Integer>> typeToPrimitiveMemberNameToIndexMap,
-	// IMap<IChangeContainer, IChangeContainer> buildableToOriginalChangeContainerMap, IdentityHashMap<IObjRef, IObjRef> objRefReplaceMap)
-	// {
-	// List<IChangeContainer> allChanges = cudResult.getAllChanges();
-	// ArrayList<IChangeContainer> buildableAllChanges = new ArrayList<IChangeContainer>(allChanges.size());
-	// for (int a = 0, size = allChanges.size(); a < size; a++)
-	// {
-	// IChangeContainer changeContainer = allChanges.get(a);
-	// if (changeContainer instanceof CreateOrUpdateContainerBuild)
-	// {
-	// buildableToOriginalChangeContainerMap.put(changeContainer, changeContainer);
-	// buildableAllChanges.add(changeContainer);
-	// // nothing to do
-	// continue;
-	// }
-	// if (changeContainer instanceof DeleteContainer)
-	// {
-	// DeleteContainer deleteContainer = new DeleteContainer(); // important to clone the deleteContainer because the CUDResult in the end must be
-	// // disconnected from the provided CUDResult object graph
-	// deleteContainer.setReference(changeContainer.getReference()); // all objRefs from the provided object graph will be cloned later
-	// buildableAllChanges.add(deleteContainer);
-	// // nothing to do
-	// continue;
-	// }
-	// IObjRef objRef = replaceObjRefIfNecessary(changeContainer.getReference(), objRefReplaceMap);
-	// CreateOrUpdateContainerBuild buildableContainer = new CreateOrUpdateContainerBuild(changeContainer instanceof CreateContainer,
-	// getOrCreateRelationMemberNameToIndexMap(objRef.getRealType(), typeToMemberNameToIndexMap), getOrCreatePrimitiveMemberNameToIndexMap(
-	// objRef.getRealType(), typeToPrimitiveMemberNameToIndexMap));
-	// buildableAllChanges.add(buildableContainer);
-	// buildableToOriginalChangeContainerMap.put(buildableContainer, changeContainer);
-	// if (objRef instanceof IDirectObjRef)
-	// {
-	// ((IDirectObjRef) objRef).setDirect(buildableContainer);
-	// }
-	// buildableContainer.setReference(objRef);
-	// }
-	// for (Entry<IChangeContainer, IChangeContainer> entry : buildableToOriginalChangeContainerMap)
-	// {
-	// CreateOrUpdateContainerBuild buildableContainer = (CreateOrUpdateContainerBuild) entry.getKey();
-	// IChangeContainer changeContainer = entry.getValue();
-	//
-	// IPrimitiveUpdateItem[] puis = null;
-	// IRelationUpdateItem[] ruis = null;
-	// if (changeContainer instanceof CreateContainer)
-	// {
-	// puis = ((CreateContainer) changeContainer).getPrimitives();
-	// ruis = ((CreateContainer) changeContainer).getRelations();
-	// }
-	// else if (changeContainer instanceof UpdateContainer)
-	// {
-	// puis = ((UpdateContainer) changeContainer).getPrimitives();
-	// ruis = ((UpdateContainer) changeContainer).getRelations();
-	// }
-	// if (puis != null)
-	// {
-	// for (IPrimitiveUpdateItem pui : puis)
-	// {
-	// buildableContainer.addPrimitive(pui);
-	// }
-	// }
-	// if (ruis == null)
-	// {
-	// continue;
-	// }
-	// for (IRelationUpdateItem rui : ruis)
-	// {
-	// RelationUpdateItemBuild existingRui = buildableContainer.ensureRelation(rui.getMemberName());
-	// IObjRef[] addedORIs = rui.getAddedORIs();
-	// if (addedORIs != null)
-	// {
-	// for (IObjRef objRef : addedORIs)
-	// {
-	// IObjRef replacedObjRef = replaceObjRefIfNecessary(objRef, objRefReplaceMap);
-	// existingRui.addObjRef(replacedObjRef);
-	// }
-	// }
-	// IObjRef[] removedORIs = rui.getRemovedORIs();
-	// if (removedORIs != null)
-	// {
-	// for (IObjRef objRef : removedORIs)
-	// {
-	// IObjRef replacedObjRef = replaceObjRefIfNecessary(objRef, objRefReplaceMap);
-	// existingRui.removeObjRef(replacedObjRef);
-	// }
-	// }
-	// }
-	// }
-	// return buildableAllChanges;
-	// }
-
 	protected IList<IChangeContainer> transformToBuildableCUDResult(ICUDResult cudResult, IIncrementalMergeState incrementalState,
 			IMap<IChangeContainer, IChangeContainer> buildableToOriginalChangeContainerMap)
 	{
@@ -1012,7 +920,12 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 						changeCommands = new ArrayList<ILinkChangeCommand>();
 						linkChangeCommands.put(tableChange, changeCommands);
 					}
-					changeCommands.add(((LinkContainer) changeContainer).getCommand());
+					LinkContainer linkContainer = (LinkContainer) changeContainer;
+
+					changeCommands.add(linkContainer.getCommand());
+
+					// force bi-directional link-handling
+					objRefToChangeContainerMap.put(linkContainer.getReference(), linkContainer);
 					continue;
 				}
 

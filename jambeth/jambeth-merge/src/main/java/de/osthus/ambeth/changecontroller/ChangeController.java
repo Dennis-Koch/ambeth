@@ -95,7 +95,8 @@ public class ChangeController implements IChangeController, IChangeControllerExt
 					// Load all new objects from Cache (maybe there have been some created)
 					Collection<Object> objectsToMerge = retrieveChangedObjects(newObjects, cache);
 					// A merge handler that contains a reference to the old cache is needed ...
-					MergeHandle mergeHandle = beanContext.registerBean(MergeHandle.class).propertyValue("Cache", oldCache).finish();
+					MergeHandle mergeHandle = beanContext.registerBean(MergeHandle.class).propertyValue("Cache", oldCache)
+							.propertyValue("PrivilegedCache", oldCache).finish();
 					// ... to create a new CudResult via the mergeController
 					cudResult = mergeController.mergeDeep(objectsToMerge, mergeHandle);
 				}

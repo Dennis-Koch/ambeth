@@ -122,7 +122,6 @@ public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDi
 		ArrayList<IDatabase> unusedDatabases = this.unusedDatabases;
 		IdentityHashSet<IDatabase> usedDatabases = this.usedDatabases;
 		Lock writeLock = this.writeLock;
-		writeLock.lock();
 		try
 		{
 			while (true)
@@ -136,6 +135,7 @@ public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDi
 				{
 					throw new IllegalStateException("Waited " + (now - currentTime) + "ms without successfully receiving a database instance");
 				}
+				writeLock.lock();
 				if (unusedDatabases.size() > 0)
 				{
 					database = unusedDatabases.remove(unusedDatabases.size() - 1);
@@ -159,6 +159,8 @@ public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDi
 				}
 				try
 				{
+					// Unlock while waiting
+					writeLock.unlock();
 					// Wait the maximum remaining time
 					notEmptyCond.await(waitTill - now, TimeUnit.MILLISECONDS);
 				}
