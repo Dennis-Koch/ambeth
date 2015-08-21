@@ -172,9 +172,7 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean
 	@Override
 	public String readDocumentNamespace(Document doc)
 	{
-		Element root = (Element) doc.getFirstChild();
-		String value = getAttribute(root, "xmlns");
-		return value;
+		return getAttribute(doc.getDocumentElement(), "xmlns");
 	}
 
 	@Override
