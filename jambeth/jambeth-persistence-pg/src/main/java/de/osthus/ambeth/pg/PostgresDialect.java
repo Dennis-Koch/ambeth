@@ -26,6 +26,7 @@ import javax.persistence.PessimisticLockException;
 import org.postgresql.Driver;
 import org.postgresql.PGConnection;
 
+import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.ILinkedMap;
@@ -39,6 +40,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.ITransactionState;
+import de.osthus.ambeth.persistence.ArrayQueryItem;
 import de.osthus.ambeth.persistence.IColumnEntry;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IFieldMetaData;
@@ -52,6 +54,7 @@ import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.connection.IConnectionKeyHandle;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.sql.ISqlBuilder;
+import de.osthus.ambeth.sql.ParamsUtil;
 
 public class PostgresDialect extends AbstractConnectionDialect
 {
@@ -169,9 +172,78 @@ public class PostgresDialect extends AbstractConnectionDialect
 	}
 
 	@Override
+	public boolean isCompactMultiValueRecommended(IList<Object> values)
+	{
+		return true;
+	}
+
+	@Override
+	public void handleWithMultiValueLeftField(IAppendable querySB, IMap<Object, Object> nameToValueMap, IList<Object> parameters,
+			IList<IList<Object>> splitValues, boolean caseSensitive, Class<?> leftOperandFieldType)
+	{
+		if (splitValues.size() == 0)
+		{
+			// Special scenario with EMPTY argument
+			ArrayQueryItem aqi = new ArrayQueryItem(new Object[0], leftOperandFieldType);
+			ParamsUtil.addParam(parameters, aqi);
+			querySB.append("SELECT ");
+			if (!caseSensitive)
+			{
+				querySB.append("LOWER(");
+			}
+			querySB.append("COLUMN_VALUE");
+			if (!caseSensitive)
+			{
+				querySB.append(") COLUMN_VALUE");
+			}
+			querySB.append(" FROM UNNEST(ARRAY[?]) COLUMN_VALUE");
+		}
+		else
+		{
+			String placeholder;
+			if (caseSensitive)
+			{
+				placeholder = "COLUMN_VALUE";
+			}
+			else
+			{
+				placeholder = "LOWER(COLUMN_VALUE) COLUMN_VALUE";
+			}
+
+			for (int a = 0, size = splitValues.size(); a < size; a++)
+			{
+				IList<Object> values = splitValues.get(a);
+				if (a > 0)
+				{
+					// A union allows us to suppress the "ROWNUM" column because table(?) will already get materialized without it
+					querySB.append(" UNION ");
+				}
+				if (size > 1)
+				{
+					querySB.append('(');
+				}
+				ArrayQueryItem aqi = new ArrayQueryItem(values.toArray(), leftOperandFieldType);
+				ParamsUtil.addParam(parameters, aqi);
+
+				querySB.append("SELECT ").append(placeholder);
+				if (size < 2)
+				{
+					// No union active
+					// querySB.append(",ROWNUM");
+				}
+				querySB.append(" FROM UNNEST(ARRAY[?]) COLUMN_VALUE");
+				if (size > 1)
+				{
+					querySB.append(')');
+				}
+			}
+		}
+	}
+
+	@Override
 	public int getMaxInClauseBatchThreshold()
 	{
-		return 4000;
+		return Integer.MAX_VALUE;
 	}
 
 	@Override
@@ -281,6 +353,12 @@ public class PostgresDialect extends AbstractConnectionDialect
 			JdbcUtil.close(stm);
 		}
 		return scanForUndeferredDeferrableConstraints(connection, schemaNames);
+	}
+
+	@Override
+	public void appendIsInOperatorClause(IAppendable appendable)
+	{
+		appendable.append(" = ANY");
 	}
 
 	@Override

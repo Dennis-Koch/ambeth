@@ -25,6 +25,19 @@ public class PostgresConnectionExtension implements IConnectionExtension
 		{
 			expectedComponentType = javaArray.getClass().getComponentType();
 		}
+
+		if (Object.class.equals(expectedComponentType))
+		{
+			Object firstItem = null;
+			if (java.lang.reflect.Array.getLength(javaArray) > 0)
+			{
+				firstItem = java.lang.reflect.Array.get(javaArray, 0);
+			}
+			if (firstItem != null)
+			{
+				expectedComponentType = firstItem.getClass();
+			}
+		}
 		String[] strings = PostgresDialect.typeToArrayTypeNameMap.get(expectedComponentType);
 		try
 		{
