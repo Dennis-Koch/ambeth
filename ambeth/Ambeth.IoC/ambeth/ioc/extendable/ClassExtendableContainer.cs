@@ -6,9 +6,9 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
 {
     public class ClassEntry<V> : HashMap<Type, Object> 
     {
-        public readonly HashMap<Type, Object> typeToDefEntryMap = new HashMap<Type, Object>(0.5f);
+		public readonly LinkedHashMap<Type, Object> typeToDefEntryMap = new LinkedHashMap<Type, Object>(0.5f);
 
-        public readonly HashMap<StrongKey<V>, List<DefEntry<V>>> definitionReverseMap = new HashMap<StrongKey<V>, List<DefEntry<V>>>(0.5f);
+		public readonly LinkedHashMap<StrongKey<V>, List<DefEntry<V>>> definitionReverseMap = new LinkedHashMap<StrongKey<V>, List<DefEntry<V>>>(0.5f);
 
         public ClassEntry() : base(0.5f)
         {
@@ -155,8 +155,8 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
         protected ClassEntry<V> CopyStructure()
         {
             ClassEntry<V> newClassEntry = new ClassEntry<V>();
-            HashMap<Type, Object> newTypeToDefEntryMap = newClassEntry.typeToDefEntryMap;
-            HashMap<StrongKey<V>, List<DefEntry<V>>> newDefinitionReverseMap = newClassEntry.definitionReverseMap;
+			LinkedHashMap<Type, Object> newTypeToDefEntryMap = newClassEntry.typeToDefEntryMap;
+			LinkedHashMap<StrongKey<V>, List<DefEntry<V>>> newDefinitionReverseMap = newClassEntry.definitionReverseMap;
             IdentityHashMap<DefEntry<V>, DefEntry<V>> originalToCopyMap = new IdentityHashMap<DefEntry<V>, DefEntry<V>>();
             {
                 foreach (Entry<Type, Object> entry in classEntry.typeToDefEntryMap)
@@ -269,13 +269,13 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
                 base.Unregister(extension, key);
 
                 ClassEntry<V> classEntry = CopyStructure();
-                HashMap<StrongKey<V>, List<DefEntry<V>>> definitionReverseMap = classEntry.definitionReverseMap;
+				LinkedHashMap<StrongKey<V>, List<DefEntry<V>>> definitionReverseMap = classEntry.definitionReverseMap;
                 List<DefEntry<V>> weakEntriesOfStrongType = definitionReverseMap.Remove(new StrongKey<V>(extension, key));
                 if (weakEntriesOfStrongType == null)
                 {
                     return;
                 }
-                HashMap<Type, Object> typeToDefEntryMap = classEntry.typeToDefEntryMap;
+				LinkedHashMap<Type, Object> typeToDefEntryMap = classEntry.typeToDefEntryMap;
                 for (int a = weakEntriesOfStrongType.Count; a-- > 0; )
                 {
                     DefEntry<V> defEntry = weakEntriesOfStrongType[a];
@@ -318,7 +318,7 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
 
         protected bool AppendRegistration(Type strongType, Type type, V extension, int distance, ClassEntry<V> classEntry)
         {
-            HashMap<Type, Object> typeToDefEntryMap = classEntry.typeToDefEntryMap;
+			LinkedHashMap<Type, Object> typeToDefEntryMap = classEntry.typeToDefEntryMap;
             Object fastList = typeToDefEntryMap.Get(type);
             if (fastList != null && !Object.ReferenceEquals(fastList, alreadyHandled))
             {
@@ -341,7 +341,7 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
             }
             DefEntry<V> defEntry = new DefEntry<V>(extension, type, distance);
 
-            HashMap<StrongKey<V>, List<DefEntry<V>>> definitionReverseMap = classEntry.definitionReverseMap;
+			LinkedHashMap<StrongKey<V>, List<DefEntry<V>>> definitionReverseMap = classEntry.definitionReverseMap;
             StrongKey<V> strongKey = new StrongKey<V>(extension, strongType);
             List<DefEntry<V>> typeEntries = definitionReverseMap.Get(strongKey);
             if (typeEntries == null)
