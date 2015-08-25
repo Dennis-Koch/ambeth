@@ -10,7 +10,7 @@ import de.osthus.ambeth.log.LogInstance;
 public class SqlStartsWithOperator extends CaseSensitiveTwoPlaceOperator
 {
 	@SuppressWarnings("unused")
-	@LogInstance(SqlStartsWithOperator.class)
+	@LogInstance
 	private ILogger log;
 
 	@Override

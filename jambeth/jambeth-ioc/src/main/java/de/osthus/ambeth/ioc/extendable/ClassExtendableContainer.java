@@ -4,10 +4,10 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IListElem;
 import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.collections.InterfaceFastList;
+import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.util.ParamChecker;
 
 public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>, V>
@@ -157,8 +157,8 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 	protected ClassEntry<V> copyStructure()
 	{
 		ClassEntry<V> newClassEntry = new ClassEntry<V>();
-		HashMap<Class<?>, Object> newTypeToDefEntryMap = newClassEntry.typeToDefEntryMap;
-		HashMap<StrongKey<V>, List<DefEntry<V>>> newDefinitionReverseMap = newClassEntry.definitionReverseMap;
+		LinkedHashMap<Class<?>, Object> newTypeToDefEntryMap = newClassEntry.typeToDefEntryMap;
+		LinkedHashMap<StrongKey<V>, List<DefEntry<V>>> newDefinitionReverseMap = newClassEntry.definitionReverseMap;
 		IdentityHashMap<DefEntry<V>, DefEntry<V>> originalToCopyMap = new IdentityHashMap<DefEntry<V>, DefEntry<V>>();
 		{
 			for (Entry<Class<?>, Object> entry : classEntry.typeToDefEntryMap)
@@ -223,7 +223,7 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 				continue;
 			}
 			List<DefEntry<V>> defEntries = entry.getValue();
-			for (int a = defEntries.size(); a-- > 0;)
+			for (int a = 0, size = defEntries.size(); a < size; a++)
 			{
 				DefEntry<V> defEntry = defEntries.get(a);
 				changesHappened |= appendRegistration(registeredStrongType, type, defEntry.extension, distance, classEntry);
@@ -283,13 +283,13 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 			super.unregister(extension, key);
 
 			ClassEntry<V> classEntry = copyStructure();
-			HashMap<StrongKey<V>, List<DefEntry<V>>> definitionReverseMap = classEntry.definitionReverseMap;
+			LinkedHashMap<StrongKey<V>, List<DefEntry<V>>> definitionReverseMap = classEntry.definitionReverseMap;
 			List<DefEntry<V>> weakEntriesOfStrongType = definitionReverseMap.remove(new StrongKey<V>(extension, key));
 			if (weakEntriesOfStrongType == null)
 			{
 				return;
 			}
-			HashMap<Class<?>, Object> typeToDefEntryMap = classEntry.typeToDefEntryMap;
+			LinkedHashMap<Class<?>, Object> typeToDefEntryMap = classEntry.typeToDefEntryMap;
 			for (int a = weakEntriesOfStrongType.size(); a-- > 0;)
 			{
 				DefEntry<V> defEntry = weakEntriesOfStrongType.get(a);
@@ -338,7 +338,7 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 	@SuppressWarnings("unchecked")
 	protected boolean appendRegistration(Class<?> strongTypeKey, Class<?> key, V extension, int distance, ClassEntry<V> classEntry)
 	{
-		HashMap<Class<?>, Object> typeToDefEntryMap = classEntry.typeToDefEntryMap;
+		LinkedHashMap<Class<?>, Object> typeToDefEntryMap = classEntry.typeToDefEntryMap;
 		Object fastList = typeToDefEntryMap.get(key);
 		if (fastList != null && fastList != alreadyHandled)
 		{
@@ -361,7 +361,7 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 		}
 		DefEntry<V> defEntry = new DefEntry<V>(extension, key, distance);
 
-		HashMap<StrongKey<V>, List<DefEntry<V>>> definitionReverseMap = classEntry.definitionReverseMap;
+		LinkedHashMap<StrongKey<V>, List<DefEntry<V>>> definitionReverseMap = classEntry.definitionReverseMap;
 		StrongKey<V> strongKey = new StrongKey<V>(extension, strongTypeKey);
 		List<DefEntry<V>> typeEntries = definitionReverseMap.get(strongKey);
 		if (typeEntries == null)

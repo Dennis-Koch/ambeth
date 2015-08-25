@@ -6,6 +6,8 @@ import de.osthus.ambeth.accessor.AbstractAccessor;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.model.IDataObject;
+import de.osthus.ambeth.util.EqualsUtil;
 
 public class PropertyExpansion extends AbstractAccessor
 {
@@ -92,8 +94,13 @@ public class PropertyExpansion extends AbstractAccessor
 			// save the last member
 			targetMember = iterator.next();
 		}
-
 		// if we are here, then obj is the last element
-		targetMember.setValue(targetObj, value);
+		if (!EqualsUtil.equals(targetMember.getValue(targetObj), value))
+		{
+			targetMember.setValue(targetObj, value);
+			IDataObject dObj = (IDataObject) targetObj;
+			// FIXME: this hack tells the merge process that "we did something here"
+			dObj.setToBeUpdated(true);
+		}
 	}
 }

@@ -8,7 +8,6 @@ import de.osthus.ambeth.filter.QueryConstants;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.persistence.ArrayQueryItem;
 import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.IPersistenceHelper;
 import de.osthus.ambeth.query.IMultiValueOperand;
@@ -131,7 +130,7 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 		if (splitValues == null)
 		{
 			IList<Object> values = operand.getMultiValue(nameToValueMap);
-			if (values.size() > maxInClauseBatchThreshold)
+			if (connectionDialect.isCompactMultiValueRecommended(values))
 			{
 				splitValues = persistenceHelper.splitValues(values, maxInClauseBatchThreshold);
 				handleWithMultiValueLeftField(querySB, nameToValueMap, parameters, splitValues);
@@ -193,66 +192,8 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 	protected void handleWithMultiValueLeftField(IAppendable querySB, IMap<Object, Object> nameToValueMap, IList<Object> parameters,
 			IList<IList<Object>> splitValues)
 	{
-		Class<?> leftOperandFieldType;
-		leftOperandFieldType = getLeftOperandFieldSubType();
-		querySB.append("SELECT COLUMN_VALUE FROM (");
-		if (splitValues.size() == 0)
-		{
-			// Special scenario with EMPTY argument
-			ArrayQueryItem aqi = new ArrayQueryItem(new Object[0], leftOperandFieldType);
-			ParamsUtil.addParam(parameters, aqi);
-			querySB.append("SELECT ");
-			if (!caseSensitive)
-			{
-				querySB.append("LOWER(");
-			}
-			querySB.append("COLUMN_VALUE");
-			if (!caseSensitive)
-			{
-				querySB.append(") COLUMN_VALUE");
-			}
-			querySB.append(",ROWNUM FROM TABLE(?)");
-		}
-		else
-		{
-			String placeholder;
-			if (caseSensitive)
-			{
-				placeholder = "COLUMN_VALUE";
-			}
-			else
-			{
-				placeholder = "LOWER(COLUMN_VALUE) COLUMN_VALUE";
-			}
-
-			for (int a = 0, size = splitValues.size(); a < size; a++)
-			{
-				IList<Object> values = splitValues.get(a);
-				if (a > 0)
-				{
-					// A union allows us to suppress the "ROWNUM" column because table(?) will already get materialized without it
-					querySB.append(" UNION ");
-				}
-				if (size > 1)
-				{
-					querySB.append('(');
-				}
-				ArrayQueryItem aqi = new ArrayQueryItem(values.toArray(), leftOperandFieldType);
-				ParamsUtil.addParam(parameters, aqi);
-				querySB.append("SELECT ").append(placeholder);
-				if (size < 2)
-				{
-					// No union active
-					querySB.append(",ROWNUM");
-				}
-				querySB.append(" FROM TABLE(?)");
-				if (size > 1)
-				{
-					querySB.append(')');
-				}
-			}
-		}
-		querySB.append(')');
+		Class<?> leftOperandFieldType = getLeftOperandFieldSubType();
+		connectionDialect.handleWithMultiValueLeftField(querySB, nameToValueMap, parameters, splitValues, caseSensitive, leftOperandFieldType);
 		nameToValueMap.remove(QueryConstants.REMAINING_RIGHT_OPERAND_HANDLE);
 	}
 }

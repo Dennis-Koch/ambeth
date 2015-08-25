@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.IPrintable;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
@@ -490,7 +491,14 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 	@Override
 	public int lastIndexOf(final Object o)
 	{
-		throw new UnsupportedOperationException();
+		for (int a = size(); a-- > 0;)
+		{
+			if (EqualsUtil.equals(get(a), o))
+			{
+				return a;
+			}
+		}
+		return -1;
 	}
 
 	@Override

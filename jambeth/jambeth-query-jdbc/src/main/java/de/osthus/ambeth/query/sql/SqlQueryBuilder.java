@@ -1374,4 +1374,5 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
+
 }

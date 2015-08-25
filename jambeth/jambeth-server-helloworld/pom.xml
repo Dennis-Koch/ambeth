@@ -37,6 +37,10 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence-oracle11</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-persistence-oracle11-test</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>

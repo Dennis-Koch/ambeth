@@ -10,6 +10,7 @@ import java.util.List;
 
 import javax.persistence.PersistenceException;
 
+import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
@@ -72,4 +73,11 @@ public interface IConnectionDialect
 	Object convertFromFieldType(IDatabase database, IFieldMetaData field, Class<?> expectedType, Object value);
 
 	boolean isTransactionNecessaryDuringLobStreaming();
+
+	void appendIsInOperatorClause(IAppendable appendable);
+
+	boolean isCompactMultiValueRecommended(IList<Object> values);
+
+	void handleWithMultiValueLeftField(IAppendable querySB, IMap<Object, Object> nameToValueMap, IList<Object> parameters, IList<IList<Object>> splitValues,
+			boolean caseSensitive, Class<?> leftOperandFieldType);
 }

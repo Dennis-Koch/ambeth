@@ -24,7 +24,14 @@ public class MergeHandle
 
 	protected final ArrayList<IObjRef> oldOrList = new ArrayList<IObjRef>();
 	protected final ArrayList<IObjRef> newOrList = new ArrayList<IObjRef>();
+
 	protected ICache cache;
+
+	protected ICache privilegedCache;
+
+	protected boolean isCacheToDispose;
+
+	protected boolean isPrivilegedCacheToDispose;
 
 	@Property(name = MergeConfigurationConstants.FieldBasedMergeActive, defaultValue = "true")
 	protected boolean fieldBasedMergeActive;
@@ -69,6 +76,16 @@ public class MergeHandle
 		this.cache = cache;
 	}
 
+	public ICache getPrivilegedCache()
+	{
+		return privilegedCache;
+	}
+
+	public void setPrivilegedCache(ICache privilegedCache)
+	{
+		this.privilegedCache = privilegedCache;
+	}
+
 	public IList<IObjRef> getOldOrList()
 	{
 		return oldOrList;
@@ -109,4 +126,23 @@ public class MergeHandle
 		this.handleExistingIdAsNewId = handleExistingIdAsNewId;
 	}
 
+	public boolean isCacheToDispose()
+	{
+		return isCacheToDispose;
+	}
+
+	public void setCacheToDispose(boolean isCacheToDispose)
+	{
+		this.isCacheToDispose = isCacheToDispose;
+	}
+
+	public boolean isPrivilegedCacheToDispose()
+	{
+		return isPrivilegedCacheToDispose;
+	}
+
+	public void setPrivilegedCacheToDispose(boolean isPrivilegedCacheToDispose)
+	{
+		this.isPrivilegedCacheToDispose = isPrivilegedCacheToDispose;
+	}
 }

@@ -14,6 +14,7 @@ import de.osthus.ambeth.cache.ICacheFactory;
 import de.osthus.ambeth.cache.IDisposableCache;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.SmartCopyMap;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -21,6 +22,7 @@ import de.osthus.ambeth.ioc.extendable.ClassExtendableListContainer;
 import de.osthus.ambeth.merge.IMergeController;
 import de.osthus.ambeth.merge.IMergeListener;
 import de.osthus.ambeth.merge.MergeHandle;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.merge.model.ICUDResult;
 import de.osthus.ambeth.merge.model.IChangeContainer;
 import de.osthus.ambeth.merge.model.IObjRef;
@@ -44,11 +46,16 @@ public class ChangeController implements IChangeController, IChangeControllerExt
 	@Autowired
 	protected ICacheFactory cacheFactory;
 
+	protected ThreadLocal<Boolean> edblActiveTL = new ThreadLocal<Boolean>();
+
 	@Autowired
 	protected IServiceContext beanContext;
 
 	@Autowired
 	protected IMergeController mergeController;
+
+	@Property(name = MergeConfigurationConstants.edblActive, defaultValue = "true")
+	protected Boolean edblActive;
 
 	protected final ClassExtendableListContainer<IChangeControllerExtension<?>> extensions = new ClassExtendableListContainer<IChangeControllerExtension<?>>(
 			"change controller extension", "entity");
@@ -58,6 +65,10 @@ public class ChangeController implements IChangeController, IChangeControllerExt
 	@Override
 	public ICUDResult preMerge(ICUDResult cudResult, ICache cache)
 	{
+		if (!edblActive || (edblActiveTL.get() != null && Boolean.FALSE.equals(edblActiveTL.get())))
+		{
+			return cudResult;
+		}
 		List<IChangeContainer> changes = cudResult.getAllChanges();
 		if (!changes.isEmpty() && !extensions.isEmpty())
 		{
@@ -84,7 +95,8 @@ public class ChangeController implements IChangeController, IChangeControllerExt
 					// Load all new objects from Cache (maybe there have been some created)
 					Collection<Object> objectsToMerge = retrieveChangedObjects(newObjects, cache);
 					// A merge handler that contains a reference to the old cache is needed ...
-					MergeHandle mergeHandle = beanContext.registerBean(MergeHandle.class).propertyValue("Cache", oldCache).finish();
+					MergeHandle mergeHandle = beanContext.registerBean(MergeHandle.class).propertyValue("Cache", oldCache)
+							.propertyValue("PrivilegedCache", oldCache).finish();
 					// ... to create a new CudResult via the mergeController
 					cudResult = mergeController.mergeDeep(objectsToMerge, mergeHandle);
 				}
@@ -221,5 +233,20 @@ public class ChangeController implements IChangeController, IChangeControllerExt
 	{
 		extensions.unregister(extension, clazz);
 		typeToSortedExtensions.clear();
+	}
+
+	@Override
+	public <T> T runWithoutEDBL(IResultingBackgroundWorkerDelegate<T> runnable) throws Throwable
+	{
+		Boolean oldValue = edblActiveTL.get();
+		try
+		{
+			edblActiveTL.set(false);
+			return runnable.invoke();
+		}
+		finally
+		{
+			edblActiveTL.set(oldValue);
+		}
 	}
 }

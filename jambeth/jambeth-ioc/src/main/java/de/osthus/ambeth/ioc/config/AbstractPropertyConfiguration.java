@@ -29,7 +29,7 @@ public abstract class AbstractPropertyConfiguration implements IPropertyConfigur
 
 	public static StackTraceElement[] getCurrentStackTraceCompact()
 	{
-		return getCurrentStackTraceCompactIntern(null);
+		return getCurrentStackTraceCompact(null);
 	}
 
 	public static StackTraceElement[] getCurrentStackTraceCompact(Set<String> ignoreClassNames, IProperties props)
@@ -38,10 +38,10 @@ public abstract class AbstractPropertyConfiguration implements IPropertyConfigur
 		{
 			return null;
 		}
-		return getCurrentStackTraceCompactIntern(ignoreClassNames);
+		return getCurrentStackTraceCompact(ignoreClassNames);
 	}
 
-	protected static StackTraceElement[] getCurrentStackTraceCompactIntern(Set<String> ignoreClassNames)
+	public static StackTraceElement[] getCurrentStackTraceCompact(Set<String> ignoreClassNames)
 	{
 		StackTraceElement[] stes = Thread.currentThread().getStackTrace();
 		int start = 0, end = stes.length;

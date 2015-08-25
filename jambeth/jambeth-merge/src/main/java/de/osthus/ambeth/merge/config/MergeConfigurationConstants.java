@@ -2,8 +2,8 @@ package de.osthus.ambeth.merge.config;
 
 import de.osthus.ambeth.annotation.ConfigurationConstantDescription;
 import de.osthus.ambeth.annotation.ConfigurationConstants;
-import de.osthus.ambeth.changecontroller.IChangeController;
 import de.osthus.ambeth.merge.IEntityFactory;
+import de.osthus.ambeth.objectcollector.ICollectableControllerExtendable;
 
 @ConfigurationConstants
 public final class MergeConfigurationConstants
@@ -13,12 +13,6 @@ public final class MergeConfigurationConstants
 	 * used.
 	 */
 	public static final String EntityFactoryType = "ambeth.merge.entityfactory.type";
-
-	/**
-	 * Defines which {@link IChangeController} should be used. Has to be a fully qualified class name. If not specified a default {@link IChangeController} will
-	 * be used.
-	 */
-	public static final String ChangeControllerType = "ambeth.merge.changecontroller.type";
 
 	@ConfigurationConstantDescription("TODO")
 	public static final String FieldBasedMergeActive = "ambeth.merge.fieldbased.active";
@@ -46,6 +40,14 @@ public final class MergeConfigurationConstants
 	 * If security is enabled all security relevant tasks are checked whether they are allowed by the current user.
 	 */
 	public static final String SecurityActive = "ambeth.security.active";
+	/**
+	 * Switches the object EDBL (Event Driven Business Logic) on ("true") or off ("false"). Default is "true". Business rules and validations are activated or
+	 * deactivated.
+	 * 
+	 * @see ICollectableControllerExtendable
+	 */
+	@ConfigurationConstantDescription("TODO")
+	public static final String edblActive = "ambeth.merge.edbl.active";
 
 	/**
 	 * If true Ambeth encapsulates a specific Prefetch-API call within the "lazy transaction" pattern. If false each cache miss within a single Prefetch-API

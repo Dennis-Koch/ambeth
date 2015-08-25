@@ -5,10 +5,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import de.osthus.ambeth.cache.CacheFactoryDirective;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheFactory;
-import de.osthus.ambeth.cache.IDisposableCache;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashSet;
@@ -124,22 +122,10 @@ public class MergeProcess implements IMergeProcess
 	protected void mergePhase1(final Object objectToMerge, final Object objectToDelete, final ProceedWithMergeHook proceedHook,
 			final MergeFinishedCallback mergeFinishedCallback, final boolean addNewEntitiesToCache)
 	{
-		final ICUDResult cudResult;
-		final MergeHandle mergeHandle;
-		IDisposableCache childCache = cacheFactory.create(CacheFactoryDirective.NoDCE, false, Boolean.FALSE, "MergeProcess.ORIGINAL");
-		try
-		{
-			mergeHandle = beanContext.registerBean(MergeHandle.class)//
-					.propertyValue("Cache", childCache)//
-					.finish();
-			cudResult = mergeController.mergeDeep(objectToMerge, mergeHandle);
-			mergeHandle.setCache(null);
-		}
-		finally
-		{
-			childCache.dispose();
-			childCache = null;
-		}
+		final MergeHandle mergeHandle = beanContext.registerBean(MergeHandle.class)//
+				.ignoreProperties("Cache", "PrivilegedCache")//
+				.finish();
+		final ICUDResult cudResult = mergeController.mergeDeep(objectToMerge, mergeHandle);
 		if (guiThreadHelper.isInGuiThread())
 		{
 			mergePhase2(objectToMerge, objectToDelete, mergeHandle, cudResult, proceedHook, mergeFinishedCallback, addNewEntitiesToCache);

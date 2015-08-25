@@ -1,5 +1,7 @@
 package de.osthus.ambeth.util;
 
+import java.lang.reflect.Array;
+
 import de.osthus.ambeth.objectcollector.IObjectCollector;
 
 public final class Arrays
@@ -7,6 +9,14 @@ public final class Arrays
 	private Arrays()
 	{
 		// Intended blank
+	}
+
+	public static final <T> T[] removeElementAt(T[] array, int index)
+	{
+		Object arr = Array.newInstance(array.getClass().getComponentType(), array.length - 1);
+		System.arraycopy(array, 0, arr, 0, index);
+		System.arraycopy(array, index + 1, arr, index, array.length - index - 1);
+		return (T[]) arr;
 	}
 
 	public static final String toString(IObjectCollector objectCollector, Object[] array)

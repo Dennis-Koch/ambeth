@@ -92,7 +92,7 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 			Object value = values.get(a);
 			if (splitList == null || currentBatchSize >= batchSize)
 			{
-				splitList = new ArrayList<Object>(batchSize);
+				splitList = new ArrayList<Object>(Math.min(size - a, batchSize));
 				splittedLists.add(splitList);
 				currentBatchSize = 0;
 			}

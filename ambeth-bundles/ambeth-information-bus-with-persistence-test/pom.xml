@@ -63,6 +63,11 @@
 			<artifactId>jambeth-merge-server-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-merge-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>

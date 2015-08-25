@@ -532,4 +532,5 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>
 	{
 		throw new UnsupportedOperationException();
 	}
+
 }

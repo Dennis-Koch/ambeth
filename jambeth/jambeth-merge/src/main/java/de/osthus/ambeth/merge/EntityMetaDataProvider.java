@@ -838,6 +838,13 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	}
 
 	@Override
+	public Class<?> getEntityTypeForTechnicalEntity(Class<?> technicalEntitiyType)
+	{
+		IEntityMetaData metaData = this.getMetaData(technicalEntitiyType);
+		return metaData == null ? null : metaData.getEntityType();
+	}
+
+	@Override
 	public void registerTechnicalEntityType(Class<?> technicalEntityType, Class<?> entityType)
 	{
 		Lock writeLock = getWriteLock();

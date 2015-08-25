@@ -172,4 +172,5 @@ public interface IQueryBuilder<T> extends IDisposable
 	ISubQuery<T> buildSubQuery(IOperand whereClause);
 
 	ISubQuery<T> buildSubQuery(IOperand whereClause, ISqlJoin... joinClauses);
+
 }
