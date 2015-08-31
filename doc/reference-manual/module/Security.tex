@@ -139,16 +139,16 @@ After a successful authentication \& authorization the information gets stored i
  	}
  }
 \end{lstlisting}
-As with most of the Ambeth aspects you have to declare the annotation at class level explicitly to be able customize the relevant behavior on method level. If all methods should be treated with the same behavior the class level configuration suffices.
+As with most of the Ambeth aspects you have to declare the annotation at class level explicitly to be able to customize the relevant behavior on method level. If all methods should be treated with the same behavior the class level configuration suffices.
 
 \begin{itemize}
-	\item AUTHORIZED The user will be authenticated before calling this method. The method can not be invoked at runtime without user-specific call permission.
-	\item AUTHENTICATED The user will be authenticated before calling this method. The existence of a call permission to the method will NOT be checked. The method can not be invoked at runtime if the user authentication failed by any reason.
 	\item NOT\_REQUIRED The method or class is not specifically secured. The user may already be authenticated because of another method call in the thread stack or thread-local process.
+	\item AUTHENTICATED The user will be authenticated before calling this method. The existence of a call permission to the method will NOT be checked. The method can not be invoked at runtime if the user authentication failed by any reason.
+	\item AUTHORIZED The user will be authenticated before calling this method. The method can not be invoked at runtime without user-specific call permission.
 \end{itemize}
-
 
 \tip{
 Performance-wise the ``outermost'' beans of a client/server-request should already be annotated at least with \type{@SecurityContext(SecurityContextType.NOT\_REQUIRED)}:\newline This way necessary remote IO (e.g. LDAP requests) will only be necessary once. As an effect any complex server logic can make intensive use of security functionality without generating additional overhead in intermediate authentication and/or authorization logic.
 }
 
+\textit{Ambeth Security} can also be used to filter access to data through the combination of entity and entity-type permissions. While entity type privileges act as a general filter independent of concrete instances, entity permission rules handle access for specific instances (e.g. based on their properties).
