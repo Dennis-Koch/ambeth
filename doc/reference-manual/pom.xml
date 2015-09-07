@@ -61,7 +61,7 @@
 						<!-- the working directory, for temporary files and LaTeX processing relative to ${project.build.directory} -->
 						<tempDirectory>../../latex-tmp</tempDirectory>
 						<!-- clean up the working directory in the end? May be used for debugging -->
-						<cleanUp>true</cleanUp>
+						<cleanUp>false</cleanUp>
 						<!-- path to the TeX scripts, if none, it must be on the system path -->
 						<texPath/>
 						<!-- the latex command -->
