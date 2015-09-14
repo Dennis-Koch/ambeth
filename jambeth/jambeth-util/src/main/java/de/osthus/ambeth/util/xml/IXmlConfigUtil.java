@@ -2,6 +2,7 @@ package de.osthus.ambeth.util.xml;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import de.osthus.ambeth.collections.IList;
@@ -17,9 +18,11 @@ public interface IXmlConfigUtil
 
 	IList<Element> nodesToElements(NodeList nodeList);
 
-	IMap<String, IList<Element>> childrenToElementMap(Element parent);
+	IMap<String, IList<Element>> childrenToElementMap(Node parent);
 
 	IMap<String, IList<Element>> toElementMap(NodeList nodeList);
+
+	IList<Element> getElementsByName(String name, IMap<String, IList<Element>> elementMap);
 
 	Element getChildUnique(Element parent, String childTagName);
 

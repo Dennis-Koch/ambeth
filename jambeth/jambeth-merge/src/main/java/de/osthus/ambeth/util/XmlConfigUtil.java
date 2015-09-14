@@ -21,6 +21,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
@@ -212,7 +213,18 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean
 	}
 
 	@Override
-	public IMap<String, IList<Element>> childrenToElementMap(Element parent)
+	public IList<Element> getElementsByName(String name, IMap<String, IList<Element>> elementMap)
+	{
+		IList<Element> elements = elementMap.get(name);
+		if (elements != null)
+		{
+			return elements;
+		}
+		return EmptyList.<Element> getInstance();
+	}
+
+	@Override
+	public IMap<String, IList<Element>> childrenToElementMap(Node parent)
 	{
 		return toElementMap(parent.getChildNodes());
 	}
