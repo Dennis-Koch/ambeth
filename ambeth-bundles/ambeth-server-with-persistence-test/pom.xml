@@ -18,10 +18,12 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-information-bus-with-persistence-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-server-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 	</dependencies>
 

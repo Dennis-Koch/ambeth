@@ -57,6 +57,17 @@ public class OracleConnectionExtension implements IConnectionExtension
 			}
 			javaArray = longArray;
 		}
+		else if (short.class.equals(expectedComponentType) && Short.class.equals(javaArray.getClass().getComponentType()))
+		{
+
+			log.info("Oracle adapter does not support Short Java type, use primitive short");
+			short[] shortArray = new short[java.lang.reflect.Array.getLength(javaArray)];
+			for (int i = shortArray.length; i-- > 0;)
+			{
+				shortArray[i] = ((Number) java.lang.reflect.Array.get(javaArray, i)).shortValue();
+			}
+			javaArray = shortArray;
+		}
 		else if (expectedComponentType == char.class)
 		{
 			Character[] characterArray = new Character[java.lang.reflect.Array.getLength(javaArray)];

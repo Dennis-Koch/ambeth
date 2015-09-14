@@ -1,9 +1,5 @@
 package de.osthus.ambeth.query.sql;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
 import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
@@ -40,7 +36,7 @@ public class SqlIsInOperator extends CaseSensitiveTwoPlaceOperator
 		Class<?> leftOperandFieldType = getLeftOperandFieldType();
 		if (!java.sql.Array.class.isAssignableFrom(leftOperandFieldType))
 		{
-			querySB.append(" IN ");
+			connectionDialect.appendIsInOperatorClause(querySB);
 			return;
 		}
 		querySB.append(" INTERSECT ");
