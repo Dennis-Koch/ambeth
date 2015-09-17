@@ -89,7 +89,7 @@ namespace De.Osthus.Ambeth.Config
                     }
                     else
                     {
-                        value = stringValue;
+                        value = props.ResolvePropertyParts(stringValue);
                     }
                 }
                 value = ConversionHelper.ConvertValueToType(prop.PropertyType, value);

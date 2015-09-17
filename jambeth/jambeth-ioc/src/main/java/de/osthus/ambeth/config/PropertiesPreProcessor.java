@@ -107,7 +107,7 @@ public class PropertiesPreProcessor implements IBeanPreProcessor, IInitializingB
 				}
 				else
 				{
-					value = stringValue;
+					value = props.resolvePropertyParts(stringValue);
 				}
 			}
 			value = conversionHelper.convertValueToType(prop.getPropertyType(), value);
