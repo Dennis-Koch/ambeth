@@ -22,7 +22,7 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 	protected static final Pattern commentRegex = Pattern.compile(" *[#;'].*");
 	protected static final Pattern propertyRegex = Pattern.compile(" *([^= ]+) *(?:=? *(?:(.*)|'(.*)'|\"(.*)\") *)?");
 
-	public static final Pattern dynamicRegex = Pattern.compile("(.*)\\$\\{([^\\$\\{\\}]+)\\}(.*)");
+	public static final Pattern dynamicRegex = Pattern.compile("(.*)\\$\\{([^\\$\\{\\}]+)\\}(.*)", Pattern.DOTALL);
 
 	public static final Charset CHARSET_UTF_8 = Charset.forName("UTF-8");
 

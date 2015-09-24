@@ -15,7 +15,7 @@ namespace De.Osthus.Ambeth.Config
 
         protected static Regex propertyRegex = new Regex(" *([^= ]+) *(?:=? *(?:(.*)|'(.*)'|\"(.*)\") *)?");
 
-        public static Regex dynamicRegex = new Regex("(.*)\\$\\{([^\\$\\{\\}]+)\\}(.*)");
+		public static Regex dynamicRegex = new Regex("(.*)\\$\\{([^\\$\\{\\}]+)\\}(.*)", RegexOptions.Singleline);
 
         public static Properties System { get; private set; }
 
