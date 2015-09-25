@@ -1,10 +1,12 @@
 package de.osthus.ambeth.webservice;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Enumeration;
+import java.util.StringTokenizer;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -14,25 +16,29 @@ import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 import javax.ws.rs.ext.Provider;
 
+import de.osthus.ambeth.Ambeth;
+import de.osthus.ambeth.bundle.IBundleModule;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.event.IEventDispatcher;
-import de.osthus.ambeth.ioc.BootstrapScannerModule;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
+import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LoggerFactory;
-import de.osthus.ambeth.platform.IAmbethPlatformContext;
-import de.osthus.ambeth.platform.IPlatformContextConfiguration;
-import de.osthus.ambeth.platform.PlatformContextConfiguration;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.IAuthorizationChangeListener;
-import de.osthus.ambeth.security.IAuthorizationChangeListenerExtendable;
+import de.osthus.ambeth.start.IAmbethApplication;
+import de.osthus.ambeth.start.IAmbethConfiguration;
+import de.osthus.ambeth.start.ServletConfiguratonExtension;
 import de.osthus.ambeth.util.ClassLoaderUtil;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.ImmutableTypeSet;
+import de.osthus.ambeth.webservice.AmbethServletRequestFilter;
+import de.osthus.ambeth.webservice.IHttpSessionProvider;
+import de.osthus.ambeth.webservice.config.WebServiceConfigurationConstants;
 
 @Provider
 public class AmbethServletListener implements ServletContextListener, HttpSessionListener, IAuthorizationChangeListener
@@ -42,7 +48,7 @@ public class AmbethServletListener implements ServletContextListener, HttpSessio
 	 */
 	public static final String ATTRIBUTE_I_SERVICE_CONTEXT = "ambeth.IServiceContext";
 
-	public static final String ATTRIBUTE_I_PLATFORM_CONTEXT = "ambeth.PlatformContext";
+	public static final String ATTRIBUTE_I_APPLICATION = "ambeth.Application";
 
 	protected final Charset utfCharset = Charset.forName("UTF-8");
 
@@ -64,43 +70,56 @@ public class AmbethServletListener implements ServletContextListener, HttpSessio
 			de.osthus.ambeth.config.Properties.getApplication().put(initParamName, initParamValue);
 		}
 		de.osthus.ambeth.config.Properties.loadBootstrapPropertyFile();
-		IAmbethPlatformContext context = null;
 		log = LoggerFactory.getLogger(AmbethServletListener.class, de.osthus.ambeth.config.Properties.getApplication());
+
+		IAmbethApplication ambethApp = null;
 		try
 		{
 			if (log.isInfoEnabled())
 			{
 				log.info("Starting...");
 			}
-			Properties props = new Properties(de.osthus.ambeth.config.Properties.getApplication());
-			IPlatformContextConfiguration pcc = PlatformContextConfiguration.create();
-			pcc.addFrameworkModule(new IInitializingModule()
-			{
-				@Override
-				public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-				{
-					beanContextFactory.registerExternalBean(servletContext).autowireable(ServletContext.class);
-					beanContextFactory.registerBean(HttpSessionBean.class).ignoreProperties("CurrentHttpSession")
-							.autowireable(HttpSession.class, IHttpSessionProvider.class);
 
-					beanContextFactory.link(AmbethServletListener.this).to(IAuthorizationChangeListenerExtendable.class).optional();
-				}
-			});
-			pcc.addProperties(props);
-			// HOTFIX: Should be coded better if there is time
-			pcc.addProviderModule(new BootstrapScannerModule()
+			String classpathScanning = Properties.getApplication().getString(WebServiceConfigurationConstants.ClasspathScanning);
+			boolean scanClasspath = (classpathScanning == null ? true : Boolean.parseBoolean(classpathScanning));
+
+			String bundle = Properties.getApplication().getString(WebServiceConfigurationConstants.FrameworkBundle);
+			if (scanClasspath && bundle != null)
 			{
-				@Override
-				protected ServletContext getServletContext()
-				{
-					return servletContext;
-				}
-			});
-			context = pcc.createPlatformContext();
+				throw new RuntimeException(WebServiceConfigurationConstants.FrameworkBundle + " must not be set if "
+						+ WebServiceConfigurationConstants.ClasspathScanning + " is set to true");
+			}
+
+			IAmbethConfiguration ambethConfiguration = null;
+			if (scanClasspath)
+			{
+				ambethConfiguration = Ambeth.createDefault() //
+						.withExtension(ServletConfiguratonExtension.class).withServletContext(servletContext);
+			}
+			else if (bundle != null)
+			{
+				@SuppressWarnings("unchecked")
+				Class<IBundleModule> bundleClass = (Class<IBundleModule>) findClass(bundle);
+				ambethConfiguration = Ambeth.createBundle(bundleClass) //
+						.withExtension(ServletConfiguratonExtension.class).withServletContext(servletContext);
+			}
+			else
+			{
+				ambethConfiguration = Ambeth.createEmpty();
+			}
+			ambethConfiguration.withoutPropertiesFileSearch();
+
+			String frameworkModules = Properties.getApplication().getString(WebServiceConfigurationConstants.FrameworkModules);
+			String applicationModules = Properties.getApplication().getString(WebServiceConfigurationConstants.ApplicationModules);
+
+			addModules(ambethConfiguration, frameworkModules, true);
+			addModules(ambethConfiguration, applicationModules, false);
+
+			ambethApp = ambethConfiguration.start();
 
 			// store the instance of IServiceContext in servlet context
-			event.getServletContext().setAttribute(ATTRIBUTE_I_SERVICE_CONTEXT, context.getBeanContext());
-			event.getServletContext().setAttribute(ATTRIBUTE_I_PLATFORM_CONTEXT, context);
+			event.getServletContext().setAttribute(ATTRIBUTE_I_SERVICE_CONTEXT, ambethApp.getApplicationContext());
+			event.getServletContext().setAttribute(ATTRIBUTE_I_APPLICATION, ambethApp);
 
 			if (log.isInfoEnabled())
 			{
@@ -117,9 +136,10 @@ public class AmbethServletListener implements ServletContextListener, HttpSessio
 		}
 		finally
 		{
-			if (context != null)
+			if (ambethApp != null && ambethApp.getApplicationContext() != null)
 			{
-				context.clearThreadLocal();
+				IThreadLocalCleanupController threadLocalCleanupController = ambethApp.getApplicationContext().getService(IThreadLocalCleanupController.class);
+				threadLocalCleanupController.cleanupThreadLocal();
 			}
 		}
 	}
@@ -133,13 +153,20 @@ public class AmbethServletListener implements ServletContextListener, HttpSessio
 			// remove the instance of IServiceContext in servlet context
 			event.getServletContext().removeAttribute(ATTRIBUTE_I_SERVICE_CONTEXT);
 
-			IAmbethPlatformContext platformContext = (IAmbethPlatformContext) event.getServletContext().getAttribute(ATTRIBUTE_I_PLATFORM_CONTEXT);
-			event.getServletContext().removeAttribute(ATTRIBUTE_I_PLATFORM_CONTEXT);
+			IAmbethApplication ambethApp = (IAmbethApplication) event.getServletContext().getAttribute(ATTRIBUTE_I_APPLICATION);
+			event.getServletContext().removeAttribute(ATTRIBUTE_I_APPLICATION);
 
 			// dispose the IServiceContext
-			if (platformContext != null)
+			if (ambethApp != null)
 			{
-				platformContext.dispose();
+				try
+				{
+					ambethApp.close();
+				}
+				catch (IOException e)
+				{
+					log.error("Could not close ambeth application", e);
+				}
 			}
 			ClassLoader currentCL = Thread.currentThread().getContextClassLoader();
 			Enumeration<Driver> drivers = DriverManager.getDrivers();
@@ -235,4 +262,41 @@ public class AmbethServletListener implements ServletContextListener, HttpSessio
 	// LOGOUT
 	// requestInitialized => authorizationChanged => sessionDestroyed => requestDestroyed => authorizationChanged
 
+	private void addModules(IAmbethConfiguration ambethConfiguration, String modules, boolean framework)
+	{
+		if (modules == null)
+		{
+			return;
+		}
+		StringTokenizer st = new StringTokenizer(modules, ";");
+		while (st.hasMoreTokens())
+		{
+			@SuppressWarnings("unchecked")
+			Class<IInitializingModule> clazz = (Class<IInitializingModule>) findClass(st.nextToken());
+
+			if (framework)
+			{
+				ambethConfiguration.withAmbethModules(clazz);
+			}
+			else
+			{
+				ambethConfiguration.withApplicationModules(clazz);
+			}
+		}
+	}
+
+	private Class<?> findClass(String fullQualifiedName)
+	{
+		try
+		{
+			ClassLoader cl = this.getClass().getClassLoader();
+			Class<?> clazz = cl.loadClass(fullQualifiedName);
+			return clazz;
+		}
+		catch (ClassNotFoundException e)
+		{
+			RuntimeExceptionUtil.mask(e);
+		}
+		return null;
+	}
 }

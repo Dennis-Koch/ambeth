@@ -26,11 +26,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-server-rest</artifactId>
-		</dependency>
-
-		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
 		</dependency>
