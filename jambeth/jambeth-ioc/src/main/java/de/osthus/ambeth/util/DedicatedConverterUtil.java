@@ -21,4 +21,14 @@ public final class DedicatedConverterUtil
 		beanContextFactory.link(listenerBC).to(IDedicatedConverterExtendable.class).with(fromType, toType);
 		beanContextFactory.link(listenerBC).to(IDedicatedConverterExtendable.class).with(toType, fromType);
 	}
+
+	public static void link(IBeanContextFactory beanContextFactory, String listenerBeanName, Class<?> fromType, Class<?> toType)
+	{
+		beanContextFactory.link(listenerBeanName).to(IDedicatedConverterExtendable.class).with(fromType, toType);
+	}
+
+	public static void link(IBeanContextFactory beanContextFactory, IBeanConfiguration listenerBC, Class<?> fromType, Class<?> toType)
+	{
+		beanContextFactory.link(listenerBC).to(IDedicatedConverterExtendable.class).with(fromType, toType);
+	}
 }
