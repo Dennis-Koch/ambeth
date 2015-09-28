@@ -184,7 +184,16 @@ public abstract class AbstractServiceREST
 	protected void postServiceCall(ServletContext servletContext)
 	{
 		IServiceContext beanContext = getServiceContext();
-		beanContext.getService(ISecurityContextHolder.class).clearContext();
+
+		ISecurityContextHolder securityContextHolder = beanContext.getService(ISecurityContextHolder.class, false);
+		if (securityContextHolder != null)
+		{
+			securityContextHolder.clearContext();
+		}
+		else
+		{
+			getLog().info("No security context holder available. Skip clearing security context!");
+		}
 		beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
 	}
 
