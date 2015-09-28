@@ -35,8 +35,8 @@ namespace De.Osthus.Ambeth.Ioc
             DedicatedConverterUtil.BiLink(beanContextFactory, "charArrayConverter", typeof(String), typeof(char[]));
 
             IBeanConfiguration stringToFileConverter = beanContextFactory.RegisterBean<StringToFileConverter>();
-		    DedicatedConverterUtil.BiLink(beanContextFactory, stringToFileConverter, typeof(String), typeof(FileInfo));
-            DedicatedConverterUtil.BiLink(beanContextFactory, stringToFileConverter, typeof(String), typeof(DirectoryInfo));
+		    DedicatedConverterUtil.Link(beanContextFactory, stringToFileConverter, typeof(String), typeof(FileInfo));
+            DedicatedConverterUtil.Link(beanContextFactory, stringToFileConverter, typeof(String), typeof(DirectoryInfo));
 
             IBeanConfiguration stringToClassArrayConverter = beanContextFactory.RegisterBean<StringToClassArrayConverter>();
             DedicatedConverterUtil.BiLink(beanContextFactory, stringToClassArrayConverter, typeof(String), typeof(Type[]));

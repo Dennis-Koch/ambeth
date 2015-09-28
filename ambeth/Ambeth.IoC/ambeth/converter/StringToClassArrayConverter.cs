@@ -1,5 +1,4 @@
 using De.Osthus.Ambeth.Ioc.Annotation;
-using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Util;
 using System;
 using System.Text;
@@ -8,9 +7,6 @@ namespace De.Osthus.Ambeth.Converter
 {
     public class StringToClassArrayConverter : IDedicatedConverter
     {
-        [LogInstance]
-        public ILogger Log { private get; set; }
-
         [Autowired]
         public IConversionHelper ConversionHelper { protected get; set; }
 

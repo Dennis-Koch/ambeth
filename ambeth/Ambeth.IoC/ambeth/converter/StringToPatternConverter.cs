@@ -1,4 +1,3 @@
-using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Util;
 using System;
 using System.Text;
@@ -9,10 +8,7 @@ namespace De.Osthus.Ambeth.Converter
     public class StringToPatternConverter : IDedicatedConverter
     {
         public static readonly Regex splitPattern = new Regex(";");
-
-        [LogInstance]
-        public ILogger Log { private get; set; }
-
+		
         public Object ConvertValueToType(Type expectedType, Type sourceType, Object value, Object additionalInformation)
         {
             if (typeof(Regex).Equals(expectedType))
