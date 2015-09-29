@@ -6,12 +6,13 @@ import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.google.common.base.Strings;
+
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.shell.core.CommandBinding;
 import de.osthus.ambeth.shell.core.annotation.Command;
 import de.osthus.ambeth.shell.core.annotation.CommandArg;
-import de.osthus.ambeth.shell.util.Utils;
 
 public class CoreCommandBundle extends AbstractCommandBundle
 {
@@ -54,15 +55,18 @@ public class CoreCommandBundle extends AbstractCommandBundle
 	@Command(name = "echo", description = "Prints messages to the console")
 	public void echo(@CommandArg(name = "", alt = "message", description = "the message to print") String value)
 	{
-		shell.println(value);
+		String filteredValue = shell.getContext().filter(value);
+		shell.println(filteredValue);
 	}
 
 	@Command(name = "wait", description = "pauses execution for the given amount of milli seconds")
 	public void wait(@CommandArg String millis)
 	{
+		long lMillis = Long.valueOf(millis);
+		// shell.println("Waiting until " + new Date(System.currentTimeMillis() + lMillis));
 		try
 		{
-			Thread.sleep(Long.valueOf(millis));
+			Thread.sleep(Long.valueOf(lMillis));
 		}
 		catch (InterruptedException e)
 		{
@@ -102,7 +106,7 @@ public class CoreCommandBundle extends AbstractCommandBundle
 			for (String name : help.keySet())
 			{
 				description = help.get(name);
-				shell.print(Utils.stringPadEnd(name, max, ' '));
+				shell.print(Strings.padEnd(name, max, ' '));
 				if (!description.isEmpty())
 				{
 					shell.println(" - " + description);

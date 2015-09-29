@@ -1,11 +1,15 @@
 package de.osthus.ambeth.shell.core;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import com.google.common.base.Strings;
+import com.google.common.io.CharStreams;
 
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -13,7 +17,6 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.MethodAccess;
 import de.osthus.ambeth.shell.AmbethShell;
 import de.osthus.ambeth.shell.core.annotation.CommandArg;
-import de.osthus.ambeth.shell.util.Utils;
 
 /**
  * {@inheritDoc}
@@ -135,14 +138,15 @@ public class CommandBindingImpl implements CommandBinding
 			{
 				String argName = arg.name().isEmpty() ? "<" + arg.alt() + ">" : arg.name();
 				argName = !argName.isEmpty() && arg.optional() ? "[" + argName + "]" : argName;
-				shell.print(indent + Utils.stringPadEnd(argName, maxArgStringLength + 4, ' '));
+				shell.print(indent + Strings.padEnd(argName, maxArgStringLength + 4, ' '));
 				String description = arg.description();
 				if (!arg.descriptionFile().isEmpty())
 				{
 					// TODO implement read descriptions from files
 					try
 					{
-						description = Utils.readInputStream(Thread.currentThread().getContextClassLoader().getResourceAsStream(arg.descriptionFile()));
+						description = CharStreams
+								.toString(new InputStreamReader(Thread.currentThread().getContextClassLoader().getResourceAsStream(arg.descriptionFile())));
 					}
 					catch (IOException e)
 					{
