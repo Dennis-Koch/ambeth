@@ -19,8 +19,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.google.common.io.Closer;
-
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.format.ISO8601DateFormat;
@@ -95,27 +93,30 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 
 		if (batchFile != null && !batchFile.isEmpty())
 		{
+			BufferedReader scriptReader = null;
 			try
 			{
-				Closer closer = Closer.create();
-				try
-				{
-					BufferedReader scriptReader = closer.register(new BufferedReader(new FileReader(new File(batchFile))));
-					this.getContext().set(ECHO, true);
-					this.startInteractive(scriptReader);
-				}
-				catch (Throwable e)
-				{
-					throw closer.rethrow(e);
-				}
-				finally
-				{
-					closer.close();
-				}
+				scriptReader = new BufferedReader(new FileReader(new File(batchFile)));
+				this.getContext().set(ECHO, true);
+				this.startInteractive(scriptReader);
 			}
 			catch (IOException e)
 			{
 				throw RuntimeExceptionUtil.mask(e);
+			}
+			finally
+			{
+				if (scriptReader != null)
+				{
+					try
+					{
+						scriptReader.close();
+					}
+					catch (IOException e)
+					{
+						throw RuntimeExceptionUtil.mask(e);
+					}
+				}
 			}
 		}
 		else if (mainArgs != null && mainArgs.length > 0)

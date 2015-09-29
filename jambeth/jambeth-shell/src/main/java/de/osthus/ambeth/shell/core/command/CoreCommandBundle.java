@@ -6,13 +6,12 @@ import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import com.google.common.base.Strings;
-
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.shell.core.CommandBinding;
 import de.osthus.ambeth.shell.core.annotation.Command;
 import de.osthus.ambeth.shell.core.annotation.CommandArg;
+import de.osthus.ambeth.shell.util.Utils;
 
 public class CoreCommandBundle extends AbstractCommandBundle
 {
@@ -106,7 +105,7 @@ public class CoreCommandBundle extends AbstractCommandBundle
 			for (String name : help.keySet())
 			{
 				description = help.get(name);
-				shell.print(Strings.padEnd(name, max, ' '));
+				shell.print(Utils.stringPadEnd(name, max, ' '));
 				if (!description.isEmpty())
 				{
 					shell.println(" - " + description);
