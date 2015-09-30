@@ -32,18 +32,20 @@ public class ServletClasspathInfo implements IClasspathInfo
 
 		String libs = "/WEB-INF/lib";
 		Set<String> libJars = servletContext.getResourcePaths(libs);
-		for (String jar : libJars)
+		if (libJars != null && libJars.size() > 0)
 		{
-			try
+			for (String jar : libJars)
 			{
-				urls.add(servletContext.getResource(jar));
-			}
-			catch (MalformedURLException e)
-			{
-				throw new RuntimeException(e);
+				try
+				{
+					urls.add(servletContext.getResource(jar));
+				}
+				catch (MalformedURLException e)
+				{
+					throw new RuntimeException(e);
+				}
 			}
 		}
-
 		String classes = "/WEB-INF/classes";
 		Set<String> classesSet = servletContext.getResourcePaths(classes);
 		for (String jar : classesSet)
@@ -85,11 +87,11 @@ public class ServletClasspathInfo implements IClasspathInfo
 				File pathFile = new File(realPath);
 				if (!pathFile.exists())
 				{
-					// if (log.isWarnEnabled())
-					// {
-					// log.warn("Path '" + tempPath + "' does not exist!");
-					// }
-					throw new IllegalStateException("Path '" + realPath + "' does not exist!");
+					if (log.isWarnEnabled())
+					{
+						log.warn("Path '" + tempPath + "' does not exist!");
+					}
+					// throw new IllegalStateException("Path '" + realPath + "' does not exist!");
 				}
 				File file = new File(realPath);
 				return file;
