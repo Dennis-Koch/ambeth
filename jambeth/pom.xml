@@ -52,6 +52,7 @@
 		<module>jambeth-merge</module>
 		<module>jambeth-merge-bytecode</module>
 		<module>jambeth-merge-server</module>
+		<module>jambeth-mina</module>
 		<module>jambeth-persistence</module>
 		<module>jambeth-persistence-api</module>
 		<module>jambeth-persistence-h2</module>
@@ -451,6 +452,18 @@
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-merge-server-test</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-mina</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-mina-test</artifactId>
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
