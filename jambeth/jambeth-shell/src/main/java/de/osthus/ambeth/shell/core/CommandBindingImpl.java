@@ -1,6 +1,7 @@
 package de.osthus.ambeth.shell.core;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashSet;
 import java.util.List;

@@ -14,6 +14,10 @@ import de.osthus.ambeth.shell.core.ShellContext;
  */
 public interface AmbethShell
 {
+	public static final String PROPERTY_SHELL_MODE = "SHELL_MODE";
+	public static final String MODE_INTERACTIVE = "INTERACTIVE";
+	public static final String MODE_SERVICE = "SERVICE";
+
 	/**
 	 *
 	 * @return

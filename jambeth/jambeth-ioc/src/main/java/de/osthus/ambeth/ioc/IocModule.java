@@ -16,6 +16,7 @@ import de.osthus.ambeth.converter.StringToFileConverter;
 import de.osthus.ambeth.converter.StringToFloatArrayConverter;
 import de.osthus.ambeth.converter.StringToIntArrayConverter;
 import de.osthus.ambeth.converter.StringToLongArrayConverter;
+import de.osthus.ambeth.converter.StringToPathConverter;
 import de.osthus.ambeth.converter.StringToPatternConverter;
 import de.osthus.ambeth.converter.StringToStringArrayConverter;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
@@ -73,7 +74,7 @@ public class IocModule implements IInitializingModule
 		DedicatedConverterUtil.link(beanContextFactory, stringToFileConverter, String.class, File.class);
 		DedicatedConverterUtil.link(beanContextFactory, stringToFileConverter, String.class, File[].class);
 
-		IBeanConfiguration stringToPathConverter = beanContextFactory.registerBean(StringToFileConverter.class);
+		IBeanConfiguration stringToPathConverter = beanContextFactory.registerBean(StringToPathConverter.class);
 		DedicatedConverterUtil.link(beanContextFactory, stringToPathConverter, String.class, Path.class);
 		DedicatedConverterUtil.link(beanContextFactory, stringToPathConverter, String.class, Path[].class);
 

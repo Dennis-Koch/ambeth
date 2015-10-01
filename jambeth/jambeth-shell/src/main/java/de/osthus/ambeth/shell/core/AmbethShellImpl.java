@@ -34,7 +34,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 {
 	private static final boolean HIDE_IO_DEFAULT = true;
 	private static final boolean EXIT_ON_ERROR_DEFAULT = false;
-	private static final boolean VERBOSE_DEFAULT = true;
+	private static final boolean VERBOSE_DEFAULT = false;
 	private static final boolean ECHO_DEFAULT = false;
 
 	private static final String HIDE_IO = "hide.io";
@@ -57,7 +57,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	@Autowired
 	protected IConversionHelper conversionHelper;
 
-	protected PrintStream shellOut;
+	protected PrintStream shellOut = System.out;
 
 	@Property(name = ShellContext.BATCH_FILE, mandatory = false, defaultValue = "")
 	protected String batchFile;
@@ -72,7 +72,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	private static final DateFormat createIsoDateFormat()
 	{
 
-		DateFormat.getDateInstance().format(new Date());
+		SimpleDateFormat.getDateInstance().format(new Date());
 
 		String versionProperty = System.getProperty("java.version");
 		Matcher versionMatcher = versionExtractPattern.matcher(versionProperty);
@@ -86,7 +86,6 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 		}
 	}
 
-	@Override
 	public void startShell()
 	{
 		initSystemIO();
@@ -287,7 +286,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	}
 
 	/**
-	 * 
+	 *
 	 * @param cb
 	 * @param unparsedArgs
 	 * @param e
@@ -369,10 +368,9 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 
 	public void setContext(ShellContext shellContext)
 	{
-		context = shellContext;
+		this.context = shellContext;
 	}
 
-	@Override
 	public DateFormat getDateFormat()
 	{
 		DateFormat dateFormat = isoDateFormatTL.get();
