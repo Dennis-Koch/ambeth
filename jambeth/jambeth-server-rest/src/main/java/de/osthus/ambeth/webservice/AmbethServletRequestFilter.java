@@ -2,9 +2,7 @@ package de.osthus.ambeth.webservice;
 
 import java.io.IOException;
 
-import javax.servlet.Filter;
 import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -13,9 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.ext.Provider;
 
-import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.ILoggerCache;
 import de.osthus.ambeth.model.ISecurityScope;
@@ -27,11 +23,10 @@ import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.PasswordType;
 import de.osthus.ambeth.security.StringSecurityScope;
-import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.webservice.config.WebServiceConfigurationConstants;
 
 @Provider
-public class AmbethServletRequestFilter implements Filter
+public class AmbethServletRequestFilter extends AmbethSimpleServletRequestFilter
 {
 	public static final String ATTRIBUTE_AUTHENTICATION_HANDLE = "ambeth.authentication.handle";
 
@@ -44,19 +39,7 @@ public class AmbethServletRequestFilter implements Filter
 	public static final String USER_PASS_TYPE = "login-pass-type";
 
 	@Override
-	public void init(FilterConfig filterConfig) throws ServletException
-	{
-		// intended blank
-	}
-
-	@Override
-	public void destroy()
-	{
-		// intended blank
-	}
-
-	@Override
-	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException
+	protected void doFilterIntern(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException
 	{
 		String userName = request.getParameter(USER_NAME);
 		String userPass = request.getParameter(USER_PASS);
@@ -114,7 +97,6 @@ public class AmbethServletRequestFilter implements Filter
 		finally
 		{
 			securityContextHolder.clearContext();
-			beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
 		}
 	}
 
@@ -149,37 +131,6 @@ public class AmbethServletRequestFilter implements Filter
 		{
 			securityScopeProvider.setSecurityScopes(oldSecurityScopes);
 		}
-	}
-
-	protected <T> T getProperty(ServletContext servletContext, Class<T> propertyType, String propertyName)
-	{
-		Object value = getService(servletContext, IProperties.class).get(propertyName);
-		return getService(servletContext, IConversionHelper.class).convertValueToType(propertyType, value);
-	}
-
-	protected void setAuthentication(ServletContext servletContext, IAuthentication authentication)
-	{
-		ISecurityContext securityContext = getService(servletContext, ISecurityContextHolder.class).getCreateContext();
-		securityContext.setAuthentication(authentication);
-	}
-
-	protected <T> T getService(ServletContext servletContext, Class<T> serviceType)
-	{
-		return getServiceContext(servletContext).getService(serviceType);
-	}
-
-	protected <T> T getService(ServletContext servletContext, String beanName, Class<T> serviceType)
-	{
-		return getServiceContext(servletContext).getService(beanName, serviceType);
-	}
-
-	/**
-	 * 
-	 * @return The singleton IServiceContext which is stored in the context of the servlet
-	 */
-	protected IServiceContext getServiceContext(ServletContext servletContext)
-	{
-		return (IServiceContext) servletContext.getAttribute(AmbethServletListener.ATTRIBUTE_I_SERVICE_CONTEXT);
 	}
 
 	// LOGIN:

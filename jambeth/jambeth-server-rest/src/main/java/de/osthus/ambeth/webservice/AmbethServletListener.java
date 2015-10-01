@@ -36,8 +36,6 @@ import de.osthus.ambeth.start.ServletConfiguratonExtension;
 import de.osthus.ambeth.util.ClassLoaderUtil;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.ImmutableTypeSet;
-import de.osthus.ambeth.webservice.AmbethServletRequestFilter;
-import de.osthus.ambeth.webservice.IHttpSessionProvider;
 import de.osthus.ambeth.webservice.config.WebServiceConfigurationConstants;
 
 @Provider

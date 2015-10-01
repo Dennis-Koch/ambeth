@@ -135,6 +135,7 @@ public abstract class AbstractServiceREST
 	protected void preServiceCall()
 	{
 		IAuthentication authentication = readAuthentication();
+
 		if (authentication != null)
 		{
 			setAuthentication(authentication);
@@ -172,8 +173,18 @@ public abstract class AbstractServiceREST
 
 	protected void setAuthentication(IAuthentication authentication)
 	{
-		ISecurityContext securityContext = getServiceContext().getService(ISecurityContextHolder.class).getCreateContext();
-		securityContext.setAuthentication(authentication);
+		IServiceContext beanContext = getServiceContext();
+
+		ISecurityContextHolder securityContextHolder = beanContext.getService(ISecurityContextHolder.class, false);
+		if (securityContextHolder != null)
+		{
+			ISecurityContext securityContext = securityContextHolder.getCreateContext();
+			securityContext.setAuthentication(authentication);
+		}
+		else
+		{
+			getLog().info("No security context holder available. Skip creating security Context!");
+		}
 	}
 
 	protected void postServiceCall()
