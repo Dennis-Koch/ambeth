@@ -14,6 +14,7 @@ import org.apache.mina.core.filterchain.IoFilter;
 import org.apache.mina.core.future.ConnectFuture;
 import org.apache.mina.core.future.WriteFuture;
 import org.apache.mina.core.service.IoConnector;
+import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IdleStatusChecker;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.transport.serial.jssc.JSSCSerialConnector;
@@ -25,7 +26,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
-public class MinaClient implements IInitializingBean, IMinaClientHandlerCallback, IMinaClient
+public class MinaClient implements IInitializingBean, IMinaClient
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -42,7 +43,7 @@ public class MinaClient implements IInitializingBean, IMinaClientHandlerCallback
 
 	protected IoSession session;
 
-	protected MinaClientHandler minaClientHandler;
+	protected IoHandlerAdapter minaClientHandler;
 
 	protected MinaCommunicationParameter communicationParameter;
 
@@ -58,14 +59,9 @@ public class MinaClient implements IInitializingBean, IMinaClientHandlerCallback
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.osthus.jambeth.mina.client.IMinaClient#connect(java.lang.Integer, java.lang.String, de.osthus.jambeth.mina.client.MinaCommunicationParameter,
-	 * org.apache.mina.core.filterchain.IoFilter)
-	 */
 	@Override
-	public void connect(Integer nioPort, String serialPortName, MinaCommunicationParameter communicationParameter, IoFilter ioFilter)
+	public void connect(Integer nioPort, String serialPortName, MinaCommunicationParameter communicationParameter, IoHandlerAdapter clientHandler,
+			IoFilter ioFilter)
 	{
 		// Check prerequisites
 		if (StringUtils.isBlank(serialPortName) && nioPort == null)
@@ -85,6 +81,7 @@ public class MinaClient implements IInitializingBean, IMinaClientHandlerCallback
 		final IoConnector connector;
 		final SocketAddress portAddress;
 		this.communicationParameter = communicationParameter;
+		minaClientHandler = clientHandler;
 		if (!StringUtils.isBlank(serialPortName))
 		{
 			connector = new JSSCSerialConnector(idleStatusChecker);
@@ -95,19 +92,8 @@ public class MinaClient implements IInitializingBean, IMinaClientHandlerCallback
 			connector = new NioSocketConnector();
 			portAddress = new InetSocketAddress(nioPort);
 		}
-
-		// connector.getFilterChain().addLast("logger", new LoggingFilter());
 		connector.getFilterChain().addLast("codec", ioFilter);
 
-		minaClientHandler = new MinaClientHandler(this)
-		{
-
-			@Override
-			public void exceptionCaught(IoSession session, Throwable cause) throws Exception
-			{
-				throw new IllegalStateException("Exception when waiting for an answer to a message.", cause);
-			}
-		};
 		connector.setHandler(minaClientHandler);
 
 		ConnectFuture future = connector.connect(portAddress);
@@ -195,7 +181,11 @@ public class MinaClient implements IInitializingBean, IMinaClientHandlerCallback
 			throw new RuntimeException("More than one answer received, only one expected.");
 		}
 
-		String lastAnswer = lastAnswers.get(0);
+		String lastAnswer = null;
+		if (lastAnswers.size() == 1)
+		{
+			lastAnswer = lastAnswers.get(0);
+		}
 		if (lastAnswer == null || StringUtils.isBlank(lastAnswer))
 		{
 			String message = "Communication aborted - no answer detected after " + commandTimeoutInSeconds + " seconds.";

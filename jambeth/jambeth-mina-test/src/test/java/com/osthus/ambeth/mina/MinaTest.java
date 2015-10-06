@@ -1,17 +1,3 @@
-/*******************************************************************
- *                             Notice
- *
- * Copyright Osthus GmbH, All rights reserved.
- *
- * This software is part of the Bayer YSI Bioanalyzer Application
- * realized by Osthus GmbH.
- *
- * Address: Osthus GmbH
- *        : Eisenbahnweg 9 - 11 
- *        : 52068 Aachen
- *        : Germany
- *
- *******************************************************************/
 package com.osthus.ambeth.mina;
 
 import static org.junit.Assert.assertEquals;
@@ -56,7 +42,7 @@ public class MinaTest extends AbstractIocTest
 
 		minaServer.run(nioPort, new MinaServerHandler(), new ProtocolCodecFilter(new TextLineCodecFactory(charset, "\r\n", "\r")));
 
-		minaClient.connect(nioPort, null, null, new ProtocolCodecFilter(new TextLineCodecFactory(charset, "\r", "\r\n")));
+		minaClient.connect(nioPort, null, null, new MinaClientHandler(minaClient), new ProtocolCodecFilter(new TextLineCodecFactory(charset, "\r", "\r\n")));
 	}
 
 	@After
@@ -67,7 +53,7 @@ public class MinaTest extends AbstractIocTest
 	}
 
 	@Test
-	public void testClient_StatusOfInstrument()
+	public void testCommunication()
 	{
 		String answer = minaClient.executeCommand("test");
 		assertEquals(MinaServerHandler.ANSWER, answer);
