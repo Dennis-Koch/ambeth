@@ -54,15 +54,18 @@ public class CoreCommandBundle extends AbstractCommandBundle
 	@Command(name = "echo", description = "Prints messages to the console")
 	public void echo(@CommandArg(name = "", alt = "message", description = "the message to print") String value)
 	{
-		shell.println(value);
+		String filteredValue = shell.getContext().filter(value);
+		shell.println(filteredValue);
 	}
 
 	@Command(name = "wait", description = "pauses execution for the given amount of milli seconds")
 	public void wait(@CommandArg String millis)
 	{
+		long lMillis = Long.valueOf(millis);
+		// shell.println("Waiting until " + new Date(System.currentTimeMillis() + lMillis));
 		try
 		{
-			Thread.sleep(Long.valueOf(millis));
+			Thread.sleep(Long.valueOf(lMillis));
 		}
 		catch (InterruptedException e)
 		{

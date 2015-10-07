@@ -11,6 +11,8 @@ public interface IMinaServerNio
 	 * 
 	 * @param nioPort
 	 *            The port to use with NIO
+	 * @param serverHandler
+	 *            The server handler
 	 * @param ioFilter
 	 *            The MINA IoFilter
 	 */

@@ -1,17 +1,3 @@
-/*******************************************************************
- *                             Notice
- *
- * Copyright Osthus GmbH, All rights reserved.
- *
- * This software is part of the Bayer YSI Bioanalyzer Application
- * realized by Osthus GmbH.
- *
- * Address: Osthus GmbH
- *        : Eisenbahnweg 9 - 11 
- *        : 52068 Aachen
- *        : Germany
- *
- *******************************************************************/
 package com.osthus.ambeth.mina.server;
 
 import java.io.IOException;

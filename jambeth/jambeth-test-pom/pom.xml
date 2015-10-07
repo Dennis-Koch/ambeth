@@ -37,6 +37,7 @@
 		<module>../jambeth-merge-test</module>
 		<module>../jambeth-merge-bytecode-test</module>
 		<module>../jambeth-merge-server-test</module>
+		<module>../jambeth-mina-test</module>
 		<module>../jambeth-persistence-test</module>
 		<module>../jambeth-persistence-api-test</module>
 		<module>../jambeth-persistence-h2-test</module>
