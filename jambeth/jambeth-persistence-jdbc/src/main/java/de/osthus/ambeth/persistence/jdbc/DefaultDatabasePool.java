@@ -7,7 +7,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.IdentityHashSet;
+import de.osthus.ambeth.collections.IdentityWeakHashMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.log.ILogger;
@@ -37,7 +37,7 @@ public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDi
 
 	protected final Condition notEmptyCond = notFullCond;
 
-	protected final IdentityHashSet<IDatabase> usedDatabases = new IdentityHashSet<IDatabase>();
+	protected final IdentityWeakHashMap<IDatabase, Boolean> usedDatabases = new IdentityWeakHashMap<IDatabase, Boolean>();
 
 	protected final ArrayList<IDatabase> unusedDatabases = new ArrayList<IDatabase>();
 
@@ -120,7 +120,7 @@ public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDi
 		long waitTill = currentTime + maxPendingTryTime;
 		IDatabase database;
 		ArrayList<IDatabase> unusedDatabases = this.unusedDatabases;
-		IdentityHashSet<IDatabase> usedDatabases = this.usedDatabases;
+		IdentityWeakHashMap<IDatabase, Boolean> usedDatabases = this.usedDatabases;
 		Lock writeLock = this.writeLock;
 		try
 		{
@@ -171,7 +171,7 @@ public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDi
 			}
 			if (database != null)
 			{
-				usedDatabases.add(database);
+				usedDatabases.put(database, Boolean.TRUE);
 			}
 		}
 		finally
@@ -241,26 +241,32 @@ public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDi
 			// Nothing to do
 			return;
 		}
-		database.getAutowiredBeanInContext(IModifyingDatabase.class).setModifyingDatabase(false);
 		ReentrantLock writeLock = this.writeLock;
 		writeLock.lock();
 		try
 		{
-			if (!usedDatabases.remove(database))
+			if (usedDatabases.remove(database) == null)
 			{
-				throw new RuntimeException("Database " + database + " has not been acquired from this pool and can therefore not be released into this pool");
+				throw new RuntimeException("Database " + database + " has not been acquired from this pool");
 			}
-			database.setSessionId(-1);
-			if (backToPool && !shuttingDown && unusedDatabases.size() < maxUnusedCount)
+			try
 			{
-				if (passivateDatabases)
+				database.getAutowiredBeanInContext(IModifyingDatabase.class).setModifyingDatabase(false);
+				database.setSessionId(-1);
+				if (backToPool && !shuttingDown && unusedDatabases.size() < maxUnusedCount)
 				{
-					databaseFactory.passivate(database);
+					if (passivateDatabases)
+					{
+						databaseFactory.passivate(database);
+					}
+					unusedDatabases.add(database);
+					database = null;
 				}
-				unusedDatabases.add(database);
-				database = null;
 			}
-			notEmptyCond.signal();
+			finally
+			{
+				notEmptyCond.signal();
+			}
 		}
 		finally
 		{
