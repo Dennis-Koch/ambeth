@@ -1,9 +1,9 @@
 package de.osthus.ambeth.testutil.datagenerator;
 
+public interface ITestSetterExtendable
+{
 
-public interface ITestSetterExtendable {
+	void registerTestSetter(ITestSetter testSetter);
 
-	public void registerTestSetter(ITestSetter testSetter);
-
-	public void unregisterTestSetter(ITestSetter entityFilter);
+	void unregisterTestSetter(ITestSetter entityFilter);
 }
