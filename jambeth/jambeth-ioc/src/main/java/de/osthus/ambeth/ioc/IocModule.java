@@ -37,6 +37,7 @@ import de.osthus.ambeth.util.DedicatedConverterUtil;
 import de.osthus.ambeth.util.IInterningFeature;
 import de.osthus.ambeth.util.IMultithreadingHelper;
 import de.osthus.ambeth.util.InterningFeature;
+import de.osthus.ambeth.util.JREVersionProvider;
 import de.osthus.ambeth.util.MultithreadingHelper;
 import de.osthus.ambeth.util.converter.BooleanArrayConverter;
 import de.osthus.ambeth.util.converter.ByteArrayConverter;
@@ -63,9 +64,16 @@ public class IocModule implements IInitializingModule
 		beanContextFactory.registerBean("charArrayConverter", CharArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, "charArrayConverter", String.class, char[].class);
 
-		IBeanConfiguration fileToPathConverter = beanContextFactory.registerBean(FileToPathConverter.class);
-		DedicatedConverterUtil.biLink(beanContextFactory, fileToPathConverter, File.class, Path.class);
-		DedicatedConverterUtil.biLink(beanContextFactory, fileToPathConverter, File[].class, Path[].class);
+		if (JREVersionProvider.getVersion() >= 1.7)
+		{
+			IBeanConfiguration fileToPathConverter = beanContextFactory.registerBean(FileToPathConverter.class);
+			DedicatedConverterUtil.biLink(beanContextFactory, fileToPathConverter, File.class, Path.class);
+			DedicatedConverterUtil.biLink(beanContextFactory, fileToPathConverter, File[].class, Path[].class);
+
+			IBeanConfiguration stringToPathConverter = beanContextFactory.registerBean(StringToPathConverter.class);
+			DedicatedConverterUtil.link(beanContextFactory, stringToPathConverter, String.class, Path.class);
+			DedicatedConverterUtil.link(beanContextFactory, stringToPathConverter, String.class, Path[].class);
+		}
 
 		IBeanConfiguration stringToBlobConverter = beanContextFactory.registerBean(StringToBlobConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToBlobConverter, String.class, Blob.class);
@@ -73,10 +81,6 @@ public class IocModule implements IInitializingModule
 		IBeanConfiguration stringToFileConverter = beanContextFactory.registerBean(StringToFileConverter.class);
 		DedicatedConverterUtil.link(beanContextFactory, stringToFileConverter, String.class, File.class);
 		DedicatedConverterUtil.link(beanContextFactory, stringToFileConverter, String.class, File[].class);
-
-		IBeanConfiguration stringToPathConverter = beanContextFactory.registerBean(StringToPathConverter.class);
-		DedicatedConverterUtil.link(beanContextFactory, stringToPathConverter, String.class, Path.class);
-		DedicatedConverterUtil.link(beanContextFactory, stringToPathConverter, String.class, Path[].class);
 
 		IBeanConfiguration stringToCharsetConverter = beanContextFactory.registerBean(StringToCharsetConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToCharsetConverter, String.class, Charset.class);

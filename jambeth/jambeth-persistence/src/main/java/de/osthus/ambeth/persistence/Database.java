@@ -190,7 +190,14 @@ public class Database implements IDatabase, IInitializingBean, IStartingBean, ID
 			databaseLocal.remove();
 		}
 		clear();
-		modifyingDatabase.setModifyingAllowed(true);
+		try
+		{
+			modifyingDatabase.setModifyingAllowed(true);
+		}
+		catch (Throwable e)
+		{
+			// intended blank
+		}
 		if (pool != null)
 		{
 			pool.releaseDatabase(this, !errorOccured);
