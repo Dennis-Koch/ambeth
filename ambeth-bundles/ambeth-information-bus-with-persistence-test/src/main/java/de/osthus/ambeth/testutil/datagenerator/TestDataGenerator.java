@@ -15,6 +15,8 @@ import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.IExtendableContainer;
+import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.log.Logger;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
@@ -24,7 +26,10 @@ import de.osthus.ambeth.util.ParamChecker;
 public class TestDataGenerator implements IInitializingBean, ITestSetterExtendable, ITestDataGenerator
 {
 	@Autowired
-	IEntityFactory entityFactory;
+	protected IEntityFactory entityFactory;
+
+	@LogInstance
+	private Logger log;
 
 	protected final Map<Class<?>, Class<?>> wrapperPrimitiveMap = new HashMap<Class<?>, Class<?>>();
 	{
@@ -113,6 +118,7 @@ public class TestDataGenerator implements IInitializingBean, ITestSetterExtendab
 						continue;
 					}
 				}
+				log.warn("Unable to find matching 'setter' for type <<" + parameterType != null ? parameterType.getName() : "null" + ">>");
 			}
 			return instance;
 		}
