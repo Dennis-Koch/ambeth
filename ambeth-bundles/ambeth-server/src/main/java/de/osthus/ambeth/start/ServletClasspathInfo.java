@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import javax.servlet.ServletContext;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -18,7 +19,6 @@ public class ServletClasspathInfo implements IClasspathInfo
 {
 	private static final Pattern subPathPattern = Pattern.compile("(/[^/]+)?(/.+)");
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
@@ -51,15 +51,15 @@ public class ServletClasspathInfo implements IClasspathInfo
 			try
 			{
 				URL url = servletContext.getResource(jar);
-				String urlString = url.toString();
-				int index = urlString.lastIndexOf(classes);
-				urlString = urlString.substring(0, index + classes.length());
-				urls.add(new URL(urlString));
-				break;
+				File file = new File(url.toURI());
+				if (file.isDirectory())
+				{
+					urls.add(file.getParentFile().toURI().toURL());
+				}
 			}
-			catch (MalformedURLException e)
+			catch (Exception e)
 			{
-				throw new RuntimeException(e);
+				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
 
@@ -80,25 +80,35 @@ public class ServletClasspathInfo implements IClasspathInfo
 			tempPath = matcher.group(2);
 			try
 			{
-				String realPath = servletContext.getRealPath(tempPath);
+				String realPath;
+				File file = new File(url.toURI());
+				if (file.isAbsolute())
+				{
+					realPath = file.getAbsolutePath();
+				}
+				else
+				{
+					realPath = servletContext.getRealPath(file.getAbsolutePath());
+				}
+
 				// path has been handled correctly. check if it really exists
-				File pathFile = new File(realPath);
-				if (!pathFile.exists())
+				File realPathFile = new File(realPath);
+				if (!realPathFile.exists())
 				{
 					// if (log.isWarnEnabled())
 					// {
 					// log.warn("Path '" + tempPath + "' does not exist!");
 					// }
-					throw new IllegalStateException("Path '" + realPath + "' does not exist!");
+					throw new IllegalStateException("Path '" + realPathFile.getAbsolutePath() + "' does not exist!");
 				}
-				File file = new File(realPath);
-				return file;
+				return realPathFile;
 			}
 			catch (Throwable e)
 			{
 				if (matcher.group(1) == null || matcher.group(1).length() == 0)
 				{
-					// no prefix path anymore to potentially recover from this failure
+					// no prefix path anymore to potentially recover from this
+					// failure
 					throw e;
 				}
 				continue;
