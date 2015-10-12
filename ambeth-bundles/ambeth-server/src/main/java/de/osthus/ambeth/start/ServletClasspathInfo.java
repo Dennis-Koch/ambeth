@@ -59,7 +59,7 @@ public class ServletClasspathInfo implements IClasspathInfo
 			}
 			catch (Exception e)
 			{
-				RuntimeExceptionUtil.mask(e);
+				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
 
