@@ -134,7 +134,7 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder
 		{
 			int splitIndex = childCount / 2;
 			operand1 = buildBalancedTree(childFilterDescriptors.subList(0, splitIndex), logicalOperator, queryBuilder);
-			operand2 = buildBalancedTree(childFilterDescriptors.subList(splitIndex, childCount - 1), logicalOperator, queryBuilder);
+			operand2 = buildBalancedTree(childFilterDescriptors.subList(splitIndex, childCount), logicalOperator, queryBuilder);
 		}
 
 		switch (logicalOperator)
