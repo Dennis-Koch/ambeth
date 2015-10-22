@@ -11,6 +11,7 @@ import java.util.StringTokenizer;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import javax.servlet.annotation.WebListener;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
@@ -38,6 +39,7 @@ import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.ImmutableTypeSet;
 import de.osthus.ambeth.webservice.config.WebServiceConfigurationConstants;
 
+@WebListener
 @Provider
 public class AmbethServletListener implements ServletContextListener, HttpSessionListener, IAuthorizationChangeListener
 {

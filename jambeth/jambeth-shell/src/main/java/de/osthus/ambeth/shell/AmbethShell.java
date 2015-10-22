@@ -1,6 +1,7 @@
 package de.osthus.ambeth.shell;
 
 import java.io.BufferedReader;
+import java.io.PrintStream;
 import java.text.DateFormat;
 import java.util.Collection;
 
@@ -34,6 +35,13 @@ public interface AmbethShell
 	 * @param args
 	 */
 	void executeCommand(String... args);
+
+	/**
+	 * executes an unparsed (i.e. not processed command)
+	 *
+	 * @param unparsedCommandLine
+	 */
+	void executeRawCommand(String unparsedCommandLine);
 
 	/**
 	 *
@@ -75,4 +83,11 @@ public interface AmbethShell
 	 * @return
 	 */
 	DateFormat getDateFormat();
+
+	/**
+	 * register a PrintStream to which Commands print their results This is handled by a ThreadLocal
+	 *
+	 * @param ps
+	 */
+	void registerSystemOut(PrintStream ps);
 }

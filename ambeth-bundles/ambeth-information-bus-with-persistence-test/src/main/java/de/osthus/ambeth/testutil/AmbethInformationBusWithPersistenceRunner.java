@@ -70,6 +70,7 @@ import de.osthus.ambeth.security.SecurityFilterInterceptor;
 import de.osthus.ambeth.security.SecurityFilterInterceptor.SecurityMethodMode;
 import de.osthus.ambeth.security.StringSecurityScope;
 import de.osthus.ambeth.security.TestAuthentication;
+import de.osthus.ambeth.testutil.datagenerator.TestDataModule;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.IConversionHelper;
@@ -172,6 +173,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		frameworkTestModuleList.add(DialectSelectorTestModule.class);
 		frameworkTestModuleList.add(DataSetupExecutorModule.class);
 		frameworkTestModuleList.add(SetupModule.class);
+		frameworkTestModuleList.add(TestDataModule.class);
 		return frameworkTestModuleList;
 	}
 
