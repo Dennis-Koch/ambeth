@@ -51,10 +51,13 @@ public class ServletClasspathInfo implements IClasspathInfo
 			try
 			{
 				URL url = servletContext.getResource(jar);
-				File file = new File(url.toURI());
-				if (file.isDirectory())
+				if (url.toString().startsWith("file:/"))
 				{
-					urls.add(file.getParentFile().toURI().toURL());
+					File file = new File(url.toURI());
+					if (file.isDirectory())
+					{
+						urls.add(file.getParentFile().toURI().toURL());
+					}
 				}
 			}
 			catch (Exception e)
@@ -62,7 +65,6 @@ public class ServletClasspathInfo implements IClasspathInfo
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
-
 		return urls;
 	}
 
@@ -80,15 +82,14 @@ public class ServletClasspathInfo implements IClasspathInfo
 			tempPath = matcher.group(2);
 			try
 			{
-				String realPath;
-				File file = new File(url.toURI());
-				if (file.isAbsolute())
+				String realPath = servletContext.getRealPath(tempPath);
+				if (url.toString().startsWith("file:/"))
 				{
-					realPath = file.getAbsolutePath();
-				}
-				else
-				{
-					realPath = servletContext.getRealPath(file.getAbsolutePath());
+					File file = new File(url.toURI());
+					if (file.isAbsolute())
+					{
+						realPath = file.getAbsolutePath();
+					}
 				}
 
 				// path has been handled correctly. check if it really exists
