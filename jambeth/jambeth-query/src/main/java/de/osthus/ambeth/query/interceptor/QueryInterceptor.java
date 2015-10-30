@@ -108,12 +108,15 @@ public class QueryInterceptor extends CascadedInterceptor
 	{
 		Find findAnnotation = method.getAnnotation(Find.class);
 		QueryResultType resultType;
+		String referenceName;
 		if (findAnnotation == null)
 		{
+			referenceName = null;
 			resultType = QueryResultType.REFERENCES;
 		}
 		else
 		{
+			referenceName = findAnnotation.referenceIdName();
 			resultType = findAnnotation.resultType();
 		}
 
@@ -130,7 +133,14 @@ public class QueryInterceptor extends CascadedInterceptor
 		}
 		if (QueryResultType.REFERENCES == resultType)
 		{
-			pagingResponse = pagingQuery.retrieveRefs(pagingRequest);
+			if (referenceName == null || referenceName.length() == 0)
+			{
+				pagingResponse = pagingQuery.retrieveRefs(pagingRequest);
+			}
+			else
+			{
+				pagingResponse = pagingQuery.retrieveRefs(pagingRequest, referenceName);
+			}
 		}
 		if (QueryResultType.BOTH == resultType)
 		{
