@@ -14,4 +14,6 @@ public @interface Find
 	String queryName() default "";
 
 	QueryResultType resultType() default QueryResultType.REFERENCES;
+
+	String referenceIdName() default "";
 }
