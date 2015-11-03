@@ -89,6 +89,7 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 
 	// Intentionally not a SensitiveThreadLocal. It can not contain a memory leak, because the HashSet is cleared after each usage
 	protected final ThreadLocal<HashSet<String>> cyclicKeyCheckTL = new SensitiveThreadLocal<HashSet<String>>();
+	protected final ThreadLocal<HashSet<String>> unknownListTL = new SensitiveThreadLocal<HashSet<String>>();
 
 	public Properties()
 	{
@@ -172,57 +173,106 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 		{
 			return null;
 		}
-		String currStringValue = value;
-		while (true)
+
+		ThreadLocal<HashSet<String>> unknownListTL = this.unknownListTL;
+		HashSet<String> unknownList = unknownListTL.get();
+		boolean createdUnkownList = false;
+		boolean unkown = false;
+
+		try
 		{
-			if (!currStringValue.contains("${"))
+			String currStringValue = value;
+
+			while (true)
 			{
-				return currStringValue;
-			}
-			Matcher matcher = dynamicRegex.matcher(currStringValue);
-			if (!matcher.matches())
-			{
-				return currStringValue;
-			}
-			String leftFromVariable = matcher.group(1);
-			String variableName = matcher.group(2);
-			String rightFromVariable = matcher.group(3);
-			ThreadLocal<HashSet<String>> cyclicKeyCheckTL = this.cyclicKeyCheckTL;
-			HashSet<String> cyclicKeyCheck = cyclicKeyCheckTL.get();
-			boolean created = false, added = false;
-			if (cyclicKeyCheck == null)
-			{
-				cyclicKeyCheck = new HashSet<String>();
-				cyclicKeyCheckTL.set(cyclicKeyCheck);
-				created = true;
-			}
-			try
-			{
-				if (!cyclicKeyCheck.add(variableName))
+				if (!currStringValue.contains("${"))
 				{
-					throw new IllegalArgumentException("Cycle detected on dynamic property resolution with name: '" + variableName + "'. This is not supported");
+					return currStringValue;
 				}
-				added = true;
-				String resolvedVariable = getString(variableName);
-				if (resolvedVariable == null)
+				Matcher matcher = dynamicRegex.matcher(currStringValue);
+
+				String leftFromVariable;
+				String variableName;
+				String rightFromVariable;
+				String additionalRightFromVariable = "";
+
+				do
 				{
-					if (leftFromVariable.length() == 0 && rightFromVariable.length() == 0)
+					if (!matcher.matches())
 					{
-						return null;
+						return currStringValue;
+					}
+					leftFromVariable = matcher.group(1);
+					variableName = matcher.group(2);
+					rightFromVariable = matcher.group(3);
+
+					unkown = false;
+					if (unknownList != null && unknownList.contains(variableName))
+					{
+						unkown = true;
+						// this steps makes the string "smaller" so we need to keep the right part of the removed part
+						additionalRightFromVariable = "${" + variableName + "}" + rightFromVariable + additionalRightFromVariable;
+						matcher.region(matcher.start(1), matcher.end(1));
 					}
 				}
-				currStringValue = leftFromVariable + resolvedVariable + rightFromVariable;
+				while (unkown);
+
+				ThreadLocal<HashSet<String>> cyclicKeyCheckTL = this.cyclicKeyCheckTL;
+				HashSet<String> cyclicKeyCheck = cyclicKeyCheckTL.get();
+				boolean created = false, added = false;
+				if (cyclicKeyCheck == null)
+				{
+					cyclicKeyCheck = new HashSet<String>();
+					cyclicKeyCheckTL.set(cyclicKeyCheck);
+					created = true;
+				}
+				try
+				{
+					if (!cyclicKeyCheck.add(variableName))
+					{
+						throw new IllegalArgumentException("Cycle detected on dynamic property resolution with name: '" + variableName
+								+ "'. This is not supported");
+					}
+					added = true;
+					String resolvedVariable = getString(variableName);
+					if (resolvedVariable == null)
+					{
+						if (leftFromVariable.length() == 0 && rightFromVariable.length() == 0)
+						{
+							return null;
+						}
+						// add to unknown list
+						if (unknownList == null)
+						{
+							unknownList = new HashSet<String>();
+							unknownListTL.set(unknownList);
+							createdUnkownList = true;
+						}
+						unknownList.add(variableName);
+						resolvedVariable = "${" + variableName + "}";
+					}
+					currStringValue = leftFromVariable + resolvedVariable + rightFromVariable + additionalRightFromVariable;
+				}
+				finally
+				{
+					if (added)
+					{
+						cyclicKeyCheck.remove(variableName);
+					}
+					if (created)
+					{
+						cyclicKeyCheckTL.remove();
+					}
+
+				}
 			}
-			finally
+		}
+		finally
+		{
+
+			if (createdUnkownList)
 			{
-				if (added)
-				{
-					cyclicKeyCheck.remove(variableName);
-				}
-				if (created)
-				{
-					cyclicKeyCheckTL.remove();
-				}
+				unknownListTL.remove();
 			}
 		}
 	}

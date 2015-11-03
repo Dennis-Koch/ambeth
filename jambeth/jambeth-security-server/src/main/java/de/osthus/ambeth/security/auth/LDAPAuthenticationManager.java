@@ -56,7 +56,7 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager
 	@Property(name = SecurityServerConfigurationConstants.LdapCtxFactory, defaultValue = "com.sun.jndi.ldap.LdapCtxFactory")
 	protected String ldapContextFactory;
 
-	@Property(name = SecurityServerConfigurationConstants.LdapFilter, defaultValue = "(&(objectClass=user)(sAMAccountName=" + USER_NAME_VARIABLE_DEF + "))")
+	@Property(name = SecurityServerConfigurationConstants.LdapFilter, defaultValue = "(&(objectClass=user)(sAMAccountName=$${userName}))")
 	protected String searchFilter;
 
 	protected LdapContext createContext(String userName, String password)

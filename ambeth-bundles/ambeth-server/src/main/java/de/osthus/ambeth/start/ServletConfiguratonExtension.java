@@ -4,6 +4,7 @@ import javax.servlet.ServletContext;
 
 import de.osthus.ambeth.Ambeth;
 import de.osthus.ambeth.config.CoreConfigurationConstants;
+import de.osthus.ambeth.webservice.HttpSessionModule;
 
 public class ServletConfiguratonExtension implements IAmbethConfigurationExtension
 {
@@ -19,6 +20,8 @@ public class ServletConfiguratonExtension implements IAmbethConfigurationExtensi
 	{
 		ambethConfiguration.registerBean(servletContext, ServletContext.class);
 		ambethConfiguration.withProperty(CoreConfigurationConstants.ClasspathInfoClass, ServletClasspathInfo.class.getName());
+		ambethConfiguration.withAmbethModules(HttpSessionModule.class);
+
 		return ambethConfiguration;
 	}
 }
