@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import java.util.WeakHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -125,6 +126,25 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 	public void appendIsInOperatorClause(IAppendable appendable)
 	{
 		appendable.append(" IN ");
+	}
+
+	@Override
+	public void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType, IList<Object> splittedIds)
+	{
+		sb.append(" IN (");
+
+		for (int b = 0, sizeB = splittedIds.size(); b < sizeB; b++)
+		{
+			Object id = splittedIds.get(b);
+			if (b > 0)
+			{
+				sb.append(',');
+			}
+			sb.append('?');
+			ParamsUtil.addParam(parameters, id);
+		}
+
+		sb.append(')');
 	}
 
 	@Override
@@ -552,4 +572,5 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 	{
 		return false;
 	}
+
 }

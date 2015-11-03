@@ -80,4 +80,14 @@ public interface IConnectionDialect
 
 	void handleWithMultiValueLeftField(IAppendable querySB, IMap<Object, Object> nameToValueMap, IList<Object> parameters, IList<IList<Object>> splitValues,
 			boolean caseSensitive, Class<?> leftOperandFieldType);
+
+	/**
+	 * append the best suited list clause IN( ?,?,?,?,?) (with ids as single parameters) _OR_ = ANY [?] (with an array)
+	 * 
+	 * @param parameters
+	 * @param sb
+	 * @param fieldType
+	 * @param splittedIds
+	 */
+	void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType, IList<Object> splittedIds);
 }

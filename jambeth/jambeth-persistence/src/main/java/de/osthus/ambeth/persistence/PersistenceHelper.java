@@ -245,18 +245,9 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 				sb.append(" OR ");
 			}
 			sqlBuilder.appendName(idColumnName, sb);
-			sb.append(" IN (");
-			for (int b = 0, sizeB = splittedIds.size(); b < sizeB; b++)
-			{
-				Object id = splittedIds.get(b);
-				if (b > 0)
-				{
-					sb.append(',');
-				}
-				sb.append('?');
-				ParamsUtil.addParam(parameters, id);
-			}
-			sb.append(')');
+
+			connectionDialect.appendListClause(parameters, sb, fieldType, splittedIds);
+
 		}
 		if (splittedIdsList.size() > 1)
 		{
