@@ -12,7 +12,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
-import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 import javax.ws.rs.ext.Provider;
@@ -29,8 +28,6 @@ import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LoggerFactory;
-import de.osthus.ambeth.security.IAuthorization;
-import de.osthus.ambeth.security.IAuthorizationChangeListener;
 import de.osthus.ambeth.start.IAmbethApplication;
 import de.osthus.ambeth.start.IAmbethConfiguration;
 import de.osthus.ambeth.start.ServletConfiguratonExtension;
@@ -41,7 +38,7 @@ import de.osthus.ambeth.webservice.config.WebServiceConfigurationConstants;
 
 @WebListener
 @Provider
-public class AmbethServletListener implements ServletContextListener, HttpSessionListener, IAuthorizationChangeListener
+public class AmbethServletListener implements ServletContextListener, HttpSessionListener
 {
 	/**
 	 * The name of the attribute in servlet context that holds an instance of IServiceContext
@@ -199,21 +196,6 @@ public class AmbethServletListener implements ServletContextListener, HttpSessio
 		finally
 		{
 			ImmutableTypeSet.flushState();
-		}
-	}
-
-	@Override
-	public void authorizationChanged(IAuthorization authorization)
-	{
-		if (authorization == null)
-		{
-			return;
-		}
-		IServiceContext beanContext = getServiceContext(servletContext);
-		IHttpSessionProvider httpSessionProvider = beanContext.getService(IHttpSessionProvider.class);
-		if (httpSessionProvider.getCurrentHttpSession() != null)
-		{
-			beanContext.getService(HttpSession.class).setAttribute(AmbethServletRequestFilter.ATTRIBUTE_AUTHORIZATION_HANDLE, authorization);
 		}
 	}
 

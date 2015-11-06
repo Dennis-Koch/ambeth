@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.naming.directory.DirContext;
 import javax.servlet.ServletContext;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -53,10 +54,24 @@ public class ServletClasspathInfo implements IClasspathInfo
 				URL url = servletContext.getResource(jar);
 				if (url.toString().startsWith("file:/"))
 				{
+
 					File file = new File(url.toURI());
 					if (file.isDirectory())
 					{
 						urls.add(file.getParentFile().toURI().toURL());
+					}
+				}
+				else if (url.toString().startsWith("jndi:/"))
+				{
+					Object content = url.getContent(new Class[] { DirContext.class });
+					if (content != null && content instanceof DirContext)
+					{
+						DirContext dirContent = (DirContext) content;
+						File file = new File(dirContent.getNameInNamespace());
+						if (file.isDirectory())
+						{
+							urls.add(file.getParentFile().toURI().toURL());
+						}
 					}
 				}
 			}
