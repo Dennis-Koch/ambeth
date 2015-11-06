@@ -372,7 +372,15 @@ public class PostgresDialect extends AbstractConnectionDialect
 	{
 		sb.append(" = ANY (?)");
 		IConnectionExtension connectionExtension = serviceContext.getService(IConnectionExtension.class);
-		Array values = connectionExtension.createJDBCArray(fieldType, splittedIds.toArray(fieldType));
+
+		Object javaArray = java.lang.reflect.Array.newInstance(fieldType, splittedIds.size());
+		int index = 0;
+		for (Object object : splittedIds)
+		{
+			Object value = conversionHelper.convertValueToType(fieldType, object);
+			java.lang.reflect.Array.set(javaArray, index, value);
+		}
+		Array values = connectionExtension.createJDBCArray(fieldType, javaArray);
 
 		ParamsUtil.addParam(parameters, values);
 	}
