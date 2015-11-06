@@ -13,6 +13,10 @@ import java.util.WeakHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.transaction.SystemException;
+import javax.transaction.Transaction;
+import javax.transaction.TransactionManager;
+
 import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
@@ -95,6 +99,9 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName)
 	protected String schemaName;
+
+	@Autowired(optional = true)
+	protected TransactionManager transactionManager;
 
 	protected String[] schemaNames;
 
@@ -451,8 +458,22 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 		}
 		if (active.booleanValue())
 		{
-			// No Action!
-			// Transactions are externally managed.
+			// If transaction is externally managed and a rollback is required, tell the transaction manager
+			if (transactionManager != null)
+			{
+				try
+				{
+					Transaction transaction = transactionManager.getTransaction();
+					if (transaction != null)
+					{
+						transaction.setRollbackOnly();
+					}
+				}
+				catch (SystemException e)
+				{
+					throw RuntimeExceptionUtil.mask(e);
+				}
+			}
 		}
 		else
 		{
