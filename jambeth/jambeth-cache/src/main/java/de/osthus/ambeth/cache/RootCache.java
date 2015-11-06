@@ -110,6 +110,9 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
 	protected final HashMap<IObjRef, Integer> relationOris = new HashMap<IObjRef, Integer>()
 	{
+
+		protected boolean alreadyRefreshed = false;
+
 		@Override
 		protected boolean isResizeNeeded()
 		{
@@ -117,7 +120,13 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			{
 				return false;
 			}
-			doRelationObjRefsRefresh();
+			boolean alreadyRefreshed = this.alreadyRefreshed; // for debug purposes
+			if (!this.alreadyRefreshed)
+			{
+				this.alreadyRefreshed = true;
+				doRelationObjRefsRefresh();
+				this.alreadyRefreshed = false;
+			}
 			return super.isResizeNeeded();
 		}
 	};
