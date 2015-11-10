@@ -234,12 +234,13 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 								+ "'. This is not supported");
 					}
 					added = true;
+
 					String resolvedVariable = getString(variableName);
 					if (resolvedVariable == null)
 					{
 						if (leftFromVariable.length() == 0 && rightFromVariable.length() == 0)
 						{
-							return null;
+							return "${" + variableName + "}";
 						}
 						// add to unknown list
 						if (unknownList == null)
@@ -248,7 +249,9 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 							unknownListTL.set(unknownList);
 							createdUnkownList = true;
 						}
+
 						unknownList.add(variableName);
+
 						resolvedVariable = "${" + variableName + "}";
 					}
 					currStringValue = leftFromVariable + resolvedVariable + rightFromVariable + additionalRightFromVariable;
@@ -263,13 +266,11 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 					{
 						cyclicKeyCheckTL.remove();
 					}
-
 				}
 			}
 		}
 		finally
 		{
-
 			if (createdUnkownList)
 			{
 				unknownListTL.remove();

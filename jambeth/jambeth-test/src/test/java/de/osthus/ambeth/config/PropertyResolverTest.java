@@ -10,15 +10,7 @@ import de.osthus.ambeth.testutil.AbstractIocTest;
 
 public class PropertyResolverTest extends AbstractIocTest
 {
-	/**
-	 * knownVar=123 partOfVar=Var hugoVar=known${partOfVar} cycle=${cycle}
-	 * 
-	 * abc${knownVar} => abc123 abc${partOfVar} => abcVar abc${hugoVar} => abcknownVar abc${${hugoVar}=> abc${knownVar} => abc123
-	 * 
-	 * abc${unknownVar} = > abc${unknownVar}
-	 * 
-	 * abc${cycle} => EXCEPTION cycle…
-	 */
+
 	@LogInstance
 	private ILogger log;
 	private Properties props;
@@ -67,8 +59,7 @@ public class PropertyResolverTest extends AbstractIocTest
 	@Test(expected = IllegalArgumentException.class)
 	public void testUnknownPropertyWithCycleException()
 	{
-		Assert.assertEquals("test${unknownVar}testabc123test${unknownVar}qwer${unknownVar}qwer",
-				props.resolvePropertyParts("test${unknownVar}testabc${cycle}${${hugoVar}}test${unknownVar}qwer${unknownVar}qwer"));
+		props.resolvePropertyParts("test${unknownVar}testabc${cycle}${${hugoVar}}test${unknownVar}qwer${unknownVar}qwer");
 	}
 
 	@Test
@@ -76,9 +67,14 @@ public class PropertyResolverTest extends AbstractIocTest
 	{
 		// here nextUnknown is "known" but the next step "unknown" variable is not known, that means that nextUnknown can't be resolved completely and
 		// nextUnknown goes back into the string
-		Assert.assertEquals("abc${nextUnknown}", props.resolvePropertyParts("abc${nextUnknown}"));
-		Assert.assertEquals("abc${nextUnknown}asdfasdfsadf", props.resolvePropertyParts("abc${nextUnknown}asdfasdfsadf"));
-		Assert.assertEquals("abc${nextUnknown}asdfasdfVar", props.resolvePropertyParts("abc${nextUnknown}asdfasdf${partOfVar}"));
+		Assert.assertEquals("abc${unknownVar}", props.resolvePropertyParts("abc${nextUnknown}"));
+		Assert.assertEquals("${unknownVar}", props.get("nextUnknown"));
+
+		Assert.assertNull(props.get("unknownVar"));
+		Assert.assertNotNull(props.get("nextUnknown"));
+
+		Assert.assertEquals("abc${unknownVar}asdfasdfsadf", props.resolvePropertyParts("abc${nextUnknown}asdfasdfsadf"));
+		Assert.assertEquals("abc${unknownVar}asdfasdfVar", props.resolvePropertyParts("abc${nextUnknown}asdfasdf${partOfVar}"));
 	}
 
 }
