@@ -81,6 +81,25 @@ public class FinderTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
+	public void testFindReferencesAlternateIdName()
+	{
+		IPagingRequest pagingRequest = null;
+		FilterDescriptor<Entity> filterDescriptor = new FilterDescriptor<Entity>(Entity.class);
+		ISortDescriptor[] sortDescriptors = null;
+
+		filterDescriptor.setMember("Id");
+		filterDescriptor.setOperator(FilterOperator.IS_EQUAL_TO);
+		filterDescriptor.setValue(Collections.singletonList("2"));
+
+		IPagingResponse<Entity> pagingResponse = entityBService.findReferencesAlternate(pagingRequest, filterDescriptor, sortDescriptors);
+		assertNotNull(pagingResponse);
+		assertNotNull(pagingResponse.getRefResult());
+		assertEquals(1, pagingResponse.getRefResult().size());
+		assertEquals("AI2", pagingResponse.getRefResult().get(0).getId());
+		assertNull(pagingResponse.getResult());
+	}
+
+	@Test
 	public void testFindEntities()
 	{
 		IPagingRequest pagingRequest = null;

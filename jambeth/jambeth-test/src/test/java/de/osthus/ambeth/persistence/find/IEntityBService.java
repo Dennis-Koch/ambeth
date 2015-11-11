@@ -22,6 +22,9 @@ public interface IEntityBService
 
 	IPagingResponse<Entity> findReferences(IPagingRequest pagingRequest, IFilterDescriptor<Entity> filterDescriptor, ISortDescriptor[] sortDescriptors);
 
+	@Find(resultType = QueryResultType.REFERENCES, referenceIdName = Entity.ALTERNATE_ID)
+	IPagingResponse<Entity> findReferencesAlternate(IPagingRequest pagingRequest, IFilterDescriptor<Entity> filterDescriptor, ISortDescriptor[] sortDescriptors);
+
 	@Find(resultType = QueryResultType.ENTITIES)
 	IPagingResponse<Entity> findEntities(IPagingRequest pagingRequest, IFilterDescriptor<Entity> filterDescriptor, ISortDescriptor[] sortDescriptors);
 

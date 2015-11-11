@@ -2,6 +2,7 @@ package de.osthus.ambeth.pg;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
@@ -35,6 +36,7 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.ILoggerHistory;
@@ -50,6 +52,7 @@ import de.osthus.ambeth.persistence.exception.NullConstraintException;
 import de.osthus.ambeth.persistence.exception.UniqueConstraintException;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionDialect;
 import de.osthus.ambeth.persistence.jdbc.ColumnEntry;
+import de.osthus.ambeth.persistence.jdbc.IConnectionExtension;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.connection.IConnectionKeyHandle;
 import de.osthus.ambeth.query.IOperand;
@@ -124,6 +127,9 @@ public class PostgresDialect extends AbstractConnectionDialect
 	protected final DateFormat defaultDateFormat = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
 
 	protected final WeakHashMap<IConnectionKeyHandle, ConnectionKeyValue> connectionToConstraintSqlMap = new WeakHashMap<IConnectionKeyHandle, ConnectionKeyValue>();
+
+	@Autowired
+	protected IServiceContext serviceContext;
 
 	@Autowired
 	protected ILoggerHistory loggerHistory;
@@ -362,6 +368,24 @@ public class PostgresDialect extends AbstractConnectionDialect
 	}
 
 	@Override
+	public void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType, IList<Object> splittedIds)
+	{
+		sb.append(" = ANY (?)");
+		IConnectionExtension connectionExtension = serviceContext.getService(IConnectionExtension.class);
+
+		Object javaArray = java.lang.reflect.Array.newInstance(fieldType, splittedIds.size());
+		int index = 0;
+		for (Object object : splittedIds)
+		{
+			Object value = conversionHelper.convertValueToType(fieldType, object);
+			java.lang.reflect.Array.set(javaArray, index, value);
+		}
+		Array values = connectionExtension.createJDBCArray(fieldType, javaArray);
+
+		ParamsUtil.addParam(parameters, values);
+	}
+
+	@Override
 	protected String buildDeferrableForeignKeyConstraintsSelectSQL(String[] schemaNames)
 	{
 		StringBuilder sb = new StringBuilder(
@@ -483,7 +507,11 @@ public class PostgresDialect extends AbstractConnectionDialect
 		if (errorCode == 1400)
 		{
 		}
-		return null;
+
+		PersistenceException ex = new PersistenceException(relatedSql, e);
+		ex.setStackTrace(e.getStackTrace());
+
+		return ex;
 	}
 
 	@Override
