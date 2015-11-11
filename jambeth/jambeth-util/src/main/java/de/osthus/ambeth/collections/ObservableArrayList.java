@@ -607,7 +607,7 @@ public class ObservableArrayList<V> implements List<V>, IList<V>, Externalizable
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public boolean removeAll(final Collection<?> c)
 	{
-		final ArrayList result = new ArrayList(c.size());
+		final ArrayList<Object> result = new ArrayList<Object>(c.size());
 		if (c instanceof List)
 		{
 			final List list = (List) c;
