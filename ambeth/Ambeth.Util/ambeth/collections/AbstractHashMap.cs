@@ -1,3 +1,4 @@
+using De.Osthus.Ambeth.Util;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -30,6 +31,8 @@ namespace De.Osthus.Ambeth.Collections
         protected int threshold, tableLengthMinusOne;
 
         protected E[] table;
+
+		protected IResizeMapCallback resizeMapCallback;
 
         public AbstractHashMap(int initialCapacity, float loadFactor)
         {
@@ -100,9 +103,31 @@ namespace De.Osthus.Ambeth.Collections
             }
         }
 
-		protected virtual bool IsResizeNeeded()
+		public IResizeMapCallback GetResizeMapCallback()
 		{
-			return Count >= threshold;
+			return resizeMapCallback;
+		}
+
+		public void SetResizeMapCallback(IResizeMapCallback resizeMapCallback)
+		{
+			this.resizeMapCallback = resizeMapCallback;
+		}
+
+		protected bool IsResizeNeeded()
+		{
+			int threshold = this.threshold;
+			if (resizeMapCallback == null)
+			{
+				return Count >= threshold;
+			}
+			if (Count < threshold)
+			{
+				return false;
+			}
+			// try to throw away invalid entries to solve the need for a resize
+			// our criteria of "solving" the need is a invalidity ratio of at least 10%
+			resizeMapCallback.ResizeMapRequested(this);
+			return Count >= threshold * 0.9;
 		}
 
         protected virtual void EntryAdded(E entry)

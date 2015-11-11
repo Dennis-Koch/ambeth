@@ -642,10 +642,10 @@ public class ObservableArrayList<V> implements List<V>, IList<V>, Externalizable
 	@Override
 	public <T extends V> boolean removeAll(T[] array)
 	{
-		final ArrayList result = new ArrayList(array.length);
+		final ArrayList<T> result = new ArrayList<T>(array.length);
 		for (int a = array.length; a-- > 0;)
 		{
-			Object element = array[a];
+			T element = array[a];
 			if (internalRemove(element))
 			{
 				result.add(element);
