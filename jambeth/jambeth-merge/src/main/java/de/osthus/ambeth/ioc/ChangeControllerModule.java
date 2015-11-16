@@ -1,5 +1,6 @@
 package de.osthus.ambeth.ioc;
 
+import de.osthus.ambeth.changecontroller.AbstractRule;
 import de.osthus.ambeth.changecontroller.ChangeController;
 import de.osthus.ambeth.changecontroller.IChangeController;
 import de.osthus.ambeth.changecontroller.IChangeControllerExtendable;
@@ -27,4 +28,13 @@ public class ChangeControllerModule implements IInitializingModule
 		}
 
 	}
+
+	public static <T> IBeanConfiguration registerRule(IBeanContextFactory contextFactory, Class<? extends AbstractRule<T>> validatorClass,
+			Class<T> validatedEntity)
+	{
+		IBeanConfiguration beanConfig = contextFactory.registerBean(validatorClass);
+		contextFactory.link(beanConfig).to(IChangeControllerExtendable.class).with(validatedEntity);
+		return beanConfig;
+	}
+
 }
