@@ -2,7 +2,15 @@
 \section{Mapping}
 \label{module:Mapping}
 \ClearAPI
-\TODO
+\TODO The Ambeth mapping module should be used to map VO's (value objects) to BO's (business objects). Basically the mapper transfers values from the VO to the BO and reverse. Because Ambeth is aware of your business objects, the business object is first loaded from the database back end and the values from the value object will be applied to the business object. If for example, values change, Ambeth is then already aware of that change. 
+
+The IMapperService takes an XML configuration file into account for the definition which BO gets mapped to one or more VO's. The configuration file can also describe relations which will automatically loaded and fields that should be ignored while mapping.
+
+The \prettyref{extendable:IPropertyExpansionExtendable} allows linking a property on the value object to property on the business object that can is not directly represented on the business object itself, but on a related object of the business object. 
+
+Custom logic can be applied by adding an extensions to the \prettyref{extendable:IDedicatedMapperExtendable}.
+
+
 %% MAVEN GENERATED START
 \begin{lstlisting}[style=POM,caption={Maven modules to use \emph{Ambeth Mapping}}]
 <dependency>

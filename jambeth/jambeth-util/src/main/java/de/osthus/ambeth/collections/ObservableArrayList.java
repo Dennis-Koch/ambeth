@@ -607,7 +607,7 @@ public class ObservableArrayList<V> implements List<V>, IList<V>, Externalizable
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public boolean removeAll(final Collection<?> c)
 	{
-		final ArrayList result = new ArrayList(c.size());
+		final ArrayList<Object> result = new ArrayList<Object>(c.size());
 		if (c instanceof List)
 		{
 			final List list = (List) c;
@@ -642,10 +642,10 @@ public class ObservableArrayList<V> implements List<V>, IList<V>, Externalizable
 	@Override
 	public <T extends V> boolean removeAll(T[] array)
 	{
-		final ArrayList result = new ArrayList(array.length);
+		final ArrayList<T> result = new ArrayList<T>(array.length);
 		for (int a = array.length; a-- > 0;)
 		{
-			Object element = array[a];
+			T element = array[a];
 			if (internalRemove(element))
 			{
 				result.add(element);

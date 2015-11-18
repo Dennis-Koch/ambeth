@@ -2,7 +2,12 @@
 \section{Merge}
 \label{module:Merge}
 \ClearAPI
+The merge module is the back bone of the Ambeth object model. Changes to the object model will be calculated and expressed in CUDResults. The results can be persisted and also be send to clients in order to update the client cache. The merge process is also responsible to use the Ambeth Security module to check the authorization for changes to the object model.
+
+During the merge process, which happens in three phases, the ChangeController can be used to implement project specific business rules and validation rules. If a business rule updates the object model an incremental merge will be done for the changes.
+
 \TODO
+
 %% MAVEN GENERATED START
 \begin{lstlisting}[style=POM,caption={Maven modules to use \emph{Ambeth Merge}}]
 <dependency>

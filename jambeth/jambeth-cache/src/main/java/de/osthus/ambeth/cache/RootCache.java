@@ -33,6 +33,7 @@ import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IResizeMapCallback;
 import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.collections.IntArrayList;
@@ -81,6 +82,37 @@ import de.osthus.ambeth.util.ReadWriteLock;
 
 public class RootCache extends AbstractCache<RootCacheValue> implements IRootCache, IOfflineListener, ICacheRetriever
 {
+	static class DoRelationObjRefsRefreshOnResize implements IResizeMapCallback
+	{
+		private final RootCache rootCache;
+
+		protected boolean alreadyRefreshed = false;
+
+		DoRelationObjRefsRefreshOnResize(RootCache rootCache)
+		{
+			this.rootCache = rootCache;
+		}
+
+		@Override
+		public void resizeMapRequested(Object map)
+		{
+			boolean alreadyRefreshed = this.alreadyRefreshed;
+			if (alreadyRefreshed)
+			{
+				return;
+			}
+			this.alreadyRefreshed = true;
+			try
+			{
+				rootCache.doRelationObjRefsRefresh();
+			}
+			finally
+			{
+				this.alreadyRefreshed = false;
+			}
+		}
+	}
+
 	protected static final Map<Class<?>, Object> typeToEmptyArray = new HashMap<Class<?>, Object>(128, 0.5f);
 
 	public static final Set<CacheDirective> failEarlyCacheValueResultSet = EnumSet.of(CacheDirective.FailEarly, CacheDirective.CacheValueResult);
@@ -108,19 +140,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	@LogInstance
 	private ILogger log;
 
-	protected final HashMap<IObjRef, Integer> relationOris = new HashMap<IObjRef, Integer>()
-	{
-		@Override
-		protected boolean isResizeNeeded()
-		{
-			if (!super.isResizeNeeded())
-			{
-				return false;
-			}
-			doRelationObjRefsRefresh();
-			return super.isResizeNeeded();
-		}
-	};
+	protected final HashMap<IObjRef, Integer> relationOris = new HashMap<IObjRef, Integer>();
 
 	protected final HashSet<IObjRef> currentPendingKeys = new HashSet<IObjRef>();
 
@@ -187,6 +207,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		ReadWriteLock pendingKeysRwLock = new ReadWriteLock();
 		pendingKeysReadLock = pendingKeysRwLock.getReadLock();
 		pendingKeysWriteLock = pendingKeysRwLock.getWriteLock();
+		relationOris.setResizeMapCallback(new DoRelationObjRefsRefreshOnResize(this));
 	}
 
 	@Override

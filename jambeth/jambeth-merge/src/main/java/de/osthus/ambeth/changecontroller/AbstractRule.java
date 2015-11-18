@@ -2,6 +2,8 @@ package de.osthus.ambeth.changecontroller;
 
 /**
  * A base class for change controller listeners. It categorizes whether a call is a create, update or delete.
+ * 
+ * Rules have a defined order in which they are called. This is simply done by calling {@link #toString()} and sorting them alphabetically.
  */
 public abstract class AbstractRule<T> implements IChangeControllerExtension<T>
 {
@@ -20,7 +22,8 @@ public abstract class AbstractRule<T> implements IChangeControllerExtension<T>
 		else
 		{
 			// Compare both rules by their identifier strings
-			cmp = this.toString().compareTo(other.toString());
+			String otherKey = (other instanceof AbstractRule) ? ((AbstractRule<?>) other).getSortingKey() : toString();
+			cmp = this.getSortingKey().compareTo(otherKey);
 		}
 		return cmp;
 	}
@@ -30,6 +33,19 @@ public abstract class AbstractRule<T> implements IChangeControllerExtension<T>
 	{
 		int hashCode = System.identityHashCode(this);
 		return this.getClass().getName() + "_" + Integer.toHexString(hashCode);
+	}
+
+	/**
+	 * This property is used to specify a key by which rules are ordered.
+	 * 
+	 * Previously, only {@link #toString()} was used for this purpose but having a distinct method prevents an unwanted change in the order when a
+	 * {@link #toString()} will be overridden for other purposes like improved debugging.
+	 * 
+	 * It is highly recommended to override this method but not enforced to provide backward-compatibility.
+	 */
+	public String getSortingKey()
+	{
+		return this.toString();
 	}
 
 	@Override

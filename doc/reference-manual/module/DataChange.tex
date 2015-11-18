@@ -3,6 +3,14 @@
 \label{module:DataChange}
 \ClearAPI
 \TODO
+The DataChange module enables a detailed view to the changes which happen in the Ambeth object model. 
+
+DataChange events contain information about inserts, updates and deletes in the model. Events can be also propagated to connected clients to inform the clients about changes on the server side in order to pull updates.
+
+For clients which only periodical check the state, the data changes can also be temporarily persisted.
+
+To get information about data changes use the \prettyref{extendable:IEventListenerExtendable} with the parameter .with(IDataChange.class);
+
 %% MAVEN GENERATED START
 \begin{lstlisting}[style=POM,caption={Maven modules to use \emph{Ambeth DataChange}}]
 <dependency>

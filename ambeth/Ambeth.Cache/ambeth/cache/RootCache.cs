@@ -43,23 +43,33 @@ namespace De.Osthus.Ambeth.Cache
 {
     public class RootCache : AbstractCache<RootCacheValue>, IRootCache, IOfflineListener, ICacheRetriever
     {
-		public class RelationObjRefs : HashMap<IObjRef, int>
+		internal class DoRelationObjRefsRefreshOnResize : IResizeMapCallback
 		{
-			private readonly RootCache parent;
+			private readonly RootCache rootCache;
 
-			public RelationObjRefs(RootCache parent)
+			protected bool alreadyRefreshed = false;
+
+			internal DoRelationObjRefsRefreshOnResize(RootCache rootCache)
 			{
-				this.parent = parent;
+				this.rootCache = rootCache;
 			}
 
-			protected override bool IsResizeNeeded()
+			public void ResizeMapRequested(Object map)
 			{
-				if (!base.IsResizeNeeded())
+				bool alreadyRefreshed = this.alreadyRefreshed;
+				if (alreadyRefreshed)
 				{
-					return false;
+					return;
 				}
-				parent.DoRelationObjRefsRefresh();
-				return base.IsResizeNeeded();
+				this.alreadyRefreshed = true;
+				try
+				{
+					rootCache.DoRelationObjRefsRefresh();
+				}
+				finally
+				{
+					this.alreadyRefreshed = false;
+				}
 			}
 		}
 
@@ -94,7 +104,7 @@ namespace De.Osthus.Ambeth.Cache
         [LogInstance]
         public ILogger Log { private get; set; }
 
-        protected readonly HashMap<IObjRef, int> relationOris;
+		protected readonly HashMap<IObjRef, int> relationOris = new HashMap<IObjRef, int>();
 
         protected readonly HashSet<IObjRef> currentPendingKeys = new HashSet<IObjRef>();
 
@@ -176,7 +186,7 @@ namespace De.Osthus.Ambeth.Cache
             ReadWriteLock pendingKeysRwLock = new ReadWriteLock();
             pendingKeysReadLock = pendingKeysRwLock.ReadLock;
             pendingKeysWriteLock = pendingKeysRwLock.WriteLock;
-			relationOris = new RelationObjRefs(this);
+			relationOris.SetResizeMapCallback(new DoRelationObjRefsRefreshOnResize(this));
         }
 
         public override void Dispose()

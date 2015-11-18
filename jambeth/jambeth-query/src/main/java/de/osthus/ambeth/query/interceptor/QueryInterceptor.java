@@ -15,12 +15,10 @@ import de.osthus.ambeth.annotation.QueryResultType;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.filter.IFilterToQueryBuilder;
 import de.osthus.ambeth.filter.IPagingQuery;
-import de.osthus.ambeth.filter.model.FilterDescriptor;
 import de.osthus.ambeth.filter.model.IFilterDescriptor;
 import de.osthus.ambeth.filter.model.IPagingRequest;
 import de.osthus.ambeth.filter.model.IPagingResponse;
 import de.osthus.ambeth.filter.model.ISortDescriptor;
-import de.osthus.ambeth.filter.model.SortDescriptor;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -110,18 +108,21 @@ public class QueryInterceptor extends CascadedInterceptor
 	{
 		Find findAnnotation = method.getAnnotation(Find.class);
 		QueryResultType resultType;
+		String referenceName;
 		if (findAnnotation == null)
 		{
+			referenceName = null;
 			resultType = QueryResultType.REFERENCES;
 		}
 		else
 		{
+			referenceName = findAnnotation.referenceIdName();
 			resultType = findAnnotation.resultType();
 		}
 
 		IPagingRequest pagingRequest = (IPagingRequest) args[0];
-		IFilterDescriptor<?> filterDescriptor = (FilterDescriptor<?>) args[1];
-		ISortDescriptor[] sortDescriptors = (SortDescriptor[]) args[2];
+		IFilterDescriptor<?> filterDescriptor = (IFilterDescriptor<?>) args[1];
+		ISortDescriptor[] sortDescriptors = (ISortDescriptor[]) args[2];
 
 		IPagingQuery<?> pagingQuery = filterToQueryBuilder.buildQuery(filterDescriptor, sortDescriptors);
 
@@ -132,7 +133,14 @@ public class QueryInterceptor extends CascadedInterceptor
 		}
 		if (QueryResultType.REFERENCES == resultType)
 		{
-			pagingResponse = pagingQuery.retrieveRefs(pagingRequest);
+			if (referenceName == null || referenceName.length() == 0)
+			{
+				pagingResponse = pagingQuery.retrieveRefs(pagingRequest);
+			}
+			else
+			{
+				pagingResponse = pagingQuery.retrieveRefs(pagingRequest, referenceName);
+			}
 		}
 		if (QueryResultType.BOTH == resultType)
 		{

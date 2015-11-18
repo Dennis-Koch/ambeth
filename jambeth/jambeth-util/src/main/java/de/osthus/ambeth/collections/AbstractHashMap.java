@@ -38,6 +38,8 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 
 	protected IMapEntry<K, V>[] table;
 
+	protected IResizeMapCallback resizeMapCallback;
+
 	public AbstractHashMap(int initialCapacity, final float loadFactor, final Class<?> entryClass)
 	{
 		this.loadFactor = loadFactor;
@@ -112,9 +114,31 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 		}
 	}
 
+	public IResizeMapCallback getResizeMapCallback()
+	{
+		return resizeMapCallback;
+	}
+
+	public void setResizeMapCallback(IResizeMapCallback resizeMapCallback)
+	{
+		this.resizeMapCallback = resizeMapCallback;
+	}
+
 	protected boolean isResizeNeeded()
 	{
-		return size() >= threshold;
+		int threshold = this.threshold;
+		if (resizeMapCallback == null)
+		{
+			return size() >= threshold;
+		}
+		if (size() < threshold)
+		{
+			return false;
+		}
+		// try to throw away invalid entries to solve the need for a resize
+		// our criteria of "solving" the need is a invalidity ratio of at least 10%
+		resizeMapCallback.resizeMapRequested(this);
+		return size() >= threshold * 0.9;
 	}
 
 	protected void entryAdded(final IMapEntry<K, V> entry)

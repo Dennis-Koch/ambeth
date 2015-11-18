@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.naming.directory.DirContext;
 import javax.servlet.ServletContext;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -51,10 +52,27 @@ public class ServletClasspathInfo implements IClasspathInfo
 			try
 			{
 				URL url = servletContext.getResource(jar);
-				File file = new File(url.toURI());
-				if (file.isDirectory())
+				if (url.toString().startsWith("file:/"))
 				{
-					urls.add(file.getParentFile().toURI().toURL());
+
+					File file = new File(url.toURI());
+					if (file.isDirectory())
+					{
+						urls.add(file.getParentFile().toURI().toURL());
+					}
+				}
+				else if (url.toString().startsWith("jndi:/"))
+				{
+					Object content = url.getContent(new Class[] { DirContext.class });
+					if (content != null && content instanceof DirContext)
+					{
+						DirContext dirContent = (DirContext) content;
+						File file = new File(dirContent.getNameInNamespace());
+						if (file.isDirectory())
+						{
+							urls.add(file.getParentFile().toURI().toURL());
+						}
+					}
 				}
 			}
 			catch (Exception e)
@@ -62,7 +80,6 @@ public class ServletClasspathInfo implements IClasspathInfo
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
-
 		return urls;
 	}
 
@@ -80,15 +97,14 @@ public class ServletClasspathInfo implements IClasspathInfo
 			tempPath = matcher.group(2);
 			try
 			{
-				String realPath;
-				File file = new File(url.toURI());
-				if (file.isAbsolute())
+				String realPath = servletContext.getRealPath(tempPath);
+				if (url.toString().startsWith("file:/"))
 				{
-					realPath = file.getAbsolutePath();
-				}
-				else
-				{
-					realPath = servletContext.getRealPath(file.getAbsolutePath());
+					File file = new File(url.toURI());
+					if (file.isAbsolute())
+					{
+						realPath = file.getAbsolutePath();
+					}
 				}
 
 				// path has been handled correctly. check if it really exists
