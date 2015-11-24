@@ -488,9 +488,10 @@ public class TableMetaData implements ITableMetaData, IInitializingBean
 		linkNameToLinkDict.put(linkName, link);
 		linkNameToLinkDict.put(linkName.toUpperCase(), link);
 		linkNameToLinkDict.put(linkName.toLowerCase(), link);
-		fieldNameToLinkDict.put(link.getFromField().getName(), link);
-		fieldNameToLinkDict.put(link.getFromField().getName().toUpperCase(), link);
-		fieldNameToLinkDict.put(link.getFromField().getName().toLowerCase(), link);
+		String fieldName = link.getFromField().getName();
+		fieldNameToLinkDict.put(fieldName, link);
+		fieldNameToLinkDict.put(fieldName.toUpperCase(), link);
+		fieldNameToLinkDict.put(fieldName.toLowerCase(), link);
 	}
 
 	@Override
