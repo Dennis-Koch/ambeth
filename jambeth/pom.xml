@@ -600,7 +600,7 @@
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
-
+			
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-security</artifactId>
@@ -830,6 +830,12 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<type>maven-plugin</type>
+				<extensions>true</extensions>
 			</plugin>
 		</plugins>
 		<pluginManagement>
