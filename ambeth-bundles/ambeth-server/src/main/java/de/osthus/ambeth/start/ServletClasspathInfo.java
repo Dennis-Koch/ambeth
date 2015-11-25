@@ -47,7 +47,7 @@ public class ServletClasspathInfo implements IClasspathInfo
 
 		String classes = "/WEB-INF/classes";
 		Set<String> classesSet = servletContext.getResourcePaths(classes);
-		for (String jar : classesSet)
+		for (String folderElement : classesSet)
 		{
 			try
 			{
@@ -55,10 +55,9 @@ public class ServletClasspathInfo implements IClasspathInfo
 				// Then we have to determine what part of the path is the folder and what the package part
 				// That way we find classes folders from different projects in Eclipse
 				// There may be duplicates, so we have to use a Set for that.
-				URL url = servletContext.getResource(jar);
+				URL url = servletContext.getResource(folderElement);
 				if (url.toString().startsWith("file:/"))
 				{
-
 					File file = new File(url.toURI());
 					if (file.isDirectory())
 					{
