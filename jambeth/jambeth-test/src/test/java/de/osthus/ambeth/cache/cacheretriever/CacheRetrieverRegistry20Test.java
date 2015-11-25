@@ -7,4 +7,5 @@ import de.osthus.ambeth.testutil.TestProperties;
 		+ CacheRetrieverRegistry20Test.basePath + "external-orm_2.0.xml")
 public class CacheRetrieverRegistry20Test extends CacheRetrieverRegistryTest
 {
+	// TODO 2015-11 JH fix problem with external links (This test fails because of it)
 }

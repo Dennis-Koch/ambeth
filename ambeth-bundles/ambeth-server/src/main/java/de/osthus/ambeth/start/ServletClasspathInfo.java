@@ -51,6 +51,10 @@ public class ServletClasspathInfo implements IClasspathInfo
 		{
 			try
 			{
+				// FIXME 2015-11-24 JH We have to call getResourcePaths() until we get a file and than getResource().
+				// Then we have to determine what part of the path is the folder and what the package part
+				// That way we find classes folders from different projects in Eclipse
+				// There may be duplicates, so we have to use a Set for that.
 				URL url = servletContext.getResource(jar);
 				if (url.toString().startsWith("file:/"))
 				{
