@@ -379,6 +379,7 @@ public class PostgresDialect extends AbstractConnectionDialect
 		{
 			Object value = conversionHelper.convertValueToType(fieldType, object);
 			java.lang.reflect.Array.set(javaArray, index, value);
+			index++;
 		}
 		Array values = connectionExtension.createJDBCArray(fieldType, javaArray);
 
