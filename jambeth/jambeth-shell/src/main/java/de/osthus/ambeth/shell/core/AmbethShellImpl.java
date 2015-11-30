@@ -57,15 +57,13 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	@Autowired
 	protected IConversionHelper conversionHelper;
 
+	protected PrintStream shellOut = System.out;
+
 	@Property(name = ShellContext.BATCH_FILE, mandatory = false, defaultValue = "")
 	protected String batchFile;
 
 	@Property(name = ShellContext.MAIN_ARGS, mandatory = false)
 	protected String[] mainArgs;
-
-	protected ThreadLocal<PrintStream> shellOutTL = new ThreadLocal<PrintStream>();
-
-	protected String lineSeparator;
 
 	/**
 	 * 
@@ -89,14 +87,9 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	}
 
 	@Override
-	@SuppressWarnings("restriction")
 	public void startShell()
 	{
-		lineSeparator = java.security.AccessController.doPrivileged(new sun.security.action.GetPropertyAction("line.separator"));
-
-		// registerExecutionContext(new ExecutionContext());
-
-		registerSystemOut(System.out);
+		initSystemIO();
 		AmbethShellImpl.this.preventSystemOut();
 
 		if (batchFile != null && !batchFile.isEmpty())
@@ -144,10 +137,9 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 		}
 	}
 
-	@Override
-	public void registerSystemOut(PrintStream ps)
+	private void initSystemIO()
 	{
-		shellOutTL.set(ps);
+		shellOut = System.out;
 	}
 
 	private void preventSystemOut()
@@ -159,7 +151,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 			{
 				if (!getContext().get(HIDE_IO, HIDE_IO_DEFAULT))
 				{
-					shellOutTL.get().write(b);
+					shellOut.write(b);
 				}
 			}
 		});
@@ -280,6 +272,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	@Override
 	public void executeCommand(String... args)
 	{
+
 		if (args != null && args.length > 0)
 		{
 			String commandName = args[0].trim();
@@ -287,19 +280,54 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 			{
 				return;
 			}
-			List<String> argSet = new ArrayList<String>();
-			for (int i = 1; i < args.length; i++)
+			Map<String, Object> dFlags = new HashMap<String, Object>();
+			try
 			{
-				argSet.add(args[i]);
+				List<String> argSet = new ArrayList<String>();
+				String arg;
+				for (int i = 1; i < args.length; i++)
+				{
+					arg = args[i];
+					if (arg.startsWith("-D"))
+					{
+						arg = arg.replaceAll("-D", "");
+						if (arg.indexOf("=") != -1)
+						{
+							String[] kvPair = arg.split("=");
+							dFlags.put(kvPair[0], context.get(kvPair[0]));
+							context.set(kvPair[0], kvPair[1]);
+						}
+						else
+						{
+							dFlags.put(arg, context.get(arg));
+							context.set(arg, "true");
+						}
+					}
+					else
+					{
+						argSet.add(arg);
+					}
+				}
+				CommandBinding command = commandBindings.get(commandName.toLowerCase());
+				if (command == null)
+				{
+					println("Unknown command: " + commandName);
+					return;
+				}
+				// FIXME use conversion helper!!!
+				command.execute(argSet);
 			}
-			CommandBinding command = commandBindings.get(commandName.toLowerCase());
-			if (command == null)
+			catch (Exception e)
 			{
-				println("Unknown command: " + commandName);
-				return;
+				handleCommandError(e);
 			}
-			// FIXME use conversion helper!!!
-			command.execute(argSet);
+			finally
+			{
+				for (String key : dFlags.keySet())
+				{
+					context.set(key, dFlags.get(key));
+				}
+			}
 		}
 	}
 
@@ -313,7 +341,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	{
 		if (context.get(ShellContext.VERBOSE, VERBOSE_DEFAULT))
 		{
-			e.printStackTrace(shellOutTL.get());
+			e.printStackTrace(shellOut);
 		}
 		else
 		{
@@ -344,20 +372,19 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	@Override
 	public void print(Object object)
 	{
-		shellOutTL.get().print(object);
+		shellOut.print(object);
 	}
 
 	@Override
 	public void println()
 	{
-		print(lineSeparator);
+		shellOut.println();
 	}
 
 	@Override
 	public void println(Object object)
 	{
-		print(object);
-		print(lineSeparator);
+		shellOut.println(object);
 	}
 
 	@Override
@@ -385,11 +412,6 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 		return context;
 	}
 
-	public void setContext(ShellContext shellContext)
-	{
-		context = shellContext;
-	}
-
 	@Override
 	public DateFormat getDateFormat()
 	{
@@ -406,7 +428,6 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	public void cleanupThreadLocal()
 	{
 		isoDateFormatTL.set(null);
-		shellOutTL.set(null);
 	}
 
 }

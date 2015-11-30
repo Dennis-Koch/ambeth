@@ -1,7 +1,6 @@
 package de.osthus.ambeth.shell;
 
 import java.io.BufferedReader;
-import java.io.PrintStream;
 import java.text.DateFormat;
 import java.util.Collection;
 
@@ -9,9 +8,9 @@ import de.osthus.ambeth.shell.core.CommandBinding;
 import de.osthus.ambeth.shell.core.ShellContext;
 
 /**
- *
+ * 
  * @author daniel.mueller
- *
+ * 
  */
 public interface AmbethShell
 {
@@ -20,7 +19,7 @@ public interface AmbethShell
 	public static final String MODE_SERVICE = "SERVICE";
 
 	/**
-	 *
+	 * 
 	 * @return
 	 */
 	ShellContext getContext();
@@ -31,20 +30,20 @@ public interface AmbethShell
 	void startInteractive(BufferedReader br);
 
 	/**
-	 *
+	 * 
 	 * @param args
 	 */
 	void executeCommand(String... args);
 
 	/**
 	 * executes an unparsed (i.e. not processed command)
-	 *
+	 * 
 	 * @param unparsedCommandLine
 	 */
 	void executeRawCommand(String unparsedCommandLine);
 
 	/**
-	 *
+	 * 
 	 * @param name
 	 * @return
 	 */
@@ -56,13 +55,13 @@ public interface AmbethShell
 	Collection<CommandBinding> getCommandBindings();
 
 	/**
-	 *
+	 * 
 	 * @param object
 	 */
 	void print(Object object);
 
 	/**
-	 *
+	 * 
 	 * @param object
 	 */
 	void println(Object object);
@@ -84,10 +83,10 @@ public interface AmbethShell
 	 */
 	DateFormat getDateFormat();
 
-	/**
-	 * register a PrintStream to which Commands print their results This is handled by a ThreadLocal
-	 *
-	 * @param ps
-	 */
-	void registerSystemOut(PrintStream ps);
+	// /**
+	// * register a PrintStream to which Commands print their results This is handled by a ThreadLocal
+	// *
+	// * @param ps
+	// */
+	// void registerSystemOut(PrintStream ps);
 }
