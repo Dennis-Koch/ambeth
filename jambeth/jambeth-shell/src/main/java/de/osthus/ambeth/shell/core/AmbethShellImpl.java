@@ -315,7 +315,11 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 					return;
 				}
 				// FIXME use conversion helper!!!
-				command.execute(argSet);
+				Object execute = command.execute(argSet);
+				if (execute != null)
+				{
+					this.print(execute);
+				}
 			}
 			catch (Exception e)
 			{
@@ -429,5 +433,4 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	{
 		isoDateFormatTL.set(null);
 	}
-
 }
