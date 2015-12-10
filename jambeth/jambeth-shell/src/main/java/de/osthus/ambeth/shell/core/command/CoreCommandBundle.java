@@ -52,9 +52,9 @@ public class CoreCommandBundle extends AbstractCommandBundle
 	}
 
 	@Command(name = "echo", description = "Prints messages to the console")
-	public void echo(@CommandArg(name = "", alt = "message", description = "the message to print") String value)
+	public void echo(@CommandArg(name = "", alt = "message", description = "the message to print") Object value)
 	{
-		String filteredValue = shell.getContext().filter(value);
+		String filteredValue = shell.getContext().filter(value.toString());
 		shell.println(filteredValue);
 	}
 

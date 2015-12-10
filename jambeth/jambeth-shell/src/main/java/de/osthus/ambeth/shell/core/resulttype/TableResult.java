@@ -125,6 +125,26 @@ public class TableResult<T> extends CommandResult
 		return rows.size();
 	}
 
+	/**
+	 * get all the rows
+	 * 
+	 * @return List<{@link Row}
+	 */
+	public List<Row> getRows()
+	{
+		return rows;
+	}
+
+	/**
+	 * get a row
+	 * 
+	 * @return List<{@link Row}
+	 */
+	public Row getRow(int index)
+	{
+		return rows.get(index);
+	}
+
 	private Map<Integer, Integer> calColWidths()
 	{
 		Map<Integer, Integer> map = new HashMap<Integer, Integer>();

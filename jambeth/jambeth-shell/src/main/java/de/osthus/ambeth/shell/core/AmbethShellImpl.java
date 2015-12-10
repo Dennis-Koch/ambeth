@@ -16,6 +16,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,6 +28,7 @@ import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.shell.AmbethShell;
+import de.osthus.ambeth.shell.core.resulttype.CommandResult;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 import de.osthus.ambeth.util.IConversionHelper;
 
@@ -39,8 +41,12 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 
 	private static final String HIDE_IO = "hide.io";
 	private static final String PROMPT_SIGN = ">";
+	private static final String PROMPT_CONNECTOR = "&&";
 	private static final String DEFAULT_PROMPT = "AMBETH";
 	private static final String ECHO = "echo";
+
+	private static final String CHEVRON_OPERATOR = ">";
+	private static final String DEFAULT_RESULT_PROPERTY = "lastResult";
 
 	private static final Pattern versionExtractPattern = Pattern.compile("(\\d+\\.\\d+).*");
 
@@ -50,6 +56,8 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	protected final ThreadLocal<DateFormat> isoDateFormatTL = new SensitiveThreadLocal<DateFormat>();
 
 	protected final Map<String, CommandBinding> commandBindings = new HashMap<String, CommandBinding>();
+
+	protected Map<String, String> promptMap = new HashMap<String, String>();
 
 	@Autowired
 	protected ShellContext context;
@@ -260,17 +268,17 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void executeRawCommand(String unparsedCommandLine)
+	public CommandResult executeRawCommand(String unparsedCommandLine)
 	{
 		List<String> parts = parseCommandLine(unparsedCommandLine);
-		executeCommand(parts.toArray(new String[parts.size()]));
+		return executeCommand(parts.toArray(new String[parts.size()]));
 	}
 
 	/**
 	 * examples: set foo=bar echo "hello world" open test.adf
 	 */
 	@Override
-	public void executeCommand(String... args)
+	public CommandResult executeCommand(String... args)
 	{
 
 		if (args != null && args.length > 0)
@@ -278,47 +286,34 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 			String commandName = args[0].trim();
 			if (commandName.length() == 0)
 			{
-				return;
+				return null;
 			}
 			Map<String, Object> dFlags = new HashMap<String, Object>();
 			try
 			{
 				List<String> argSet = new ArrayList<String>();
-				String arg;
-				for (int i = 1; i < args.length; i++)
-				{
-					arg = args[i];
-					if (arg.startsWith("-D"))
-					{
-						arg = arg.replaceAll("-D", "");
-						if (arg.indexOf("=") != -1)
-						{
-							String[] kvPair = arg.split("=");
-							dFlags.put(kvPair[0], context.get(kvPair[0]));
-							context.set(kvPair[0], kvPair[1]);
-						}
-						else
-						{
-							dFlags.put(arg, context.get(arg));
-							context.set(arg, "true");
-						}
-					}
-					else
-					{
-						argSet.add(arg);
-					}
-				}
+				String resultVariableName = parseArguments(dFlags, argSet, args);
+
 				CommandBinding command = commandBindings.get(commandName.toLowerCase());
 				if (command == null)
 				{
 					println("Unknown command: " + commandName);
-					return;
+					return null;
 				}
 				// FIXME use conversion helper!!!
 				Object execute = command.execute(argSet);
 				if (execute != null)
 				{
-					this.print(execute);
+					if (resultVariableName == null)
+					{
+						// chevron operator is not set, print out execute result
+						this.print(execute);
+					}
+					this.getContext().set(resultVariableName != null ? resultVariableName : DEFAULT_RESULT_PROPERTY, execute);
+				}
+				if (execute instanceof CommandResult)
+				{
+					return (CommandResult) execute;
 				}
 			}
 			catch (Exception e)
@@ -333,6 +328,68 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 				}
 			}
 		}
+		return null;
+	}
+
+	/**
+	 * parse all the arguments
+	 * 
+	 * @param dParamMap
+	 *            map of all -D parameter
+	 * @param argSet
+	 *            target list of arguments for the command which exclude -D parameter and chevron operator
+	 * @param args
+	 *            all the input arguments
+	 * @return variable name for the command return result
+	 */
+	private String parseArguments(Map<String, Object> dParamMap, List<String> argSet, String... args)
+	{
+		String resultVariableName = null;
+		String arg;
+		for (int i = 1; i < args.length; i++)
+		{
+			arg = args[i];
+			if (arg.startsWith("-D"))
+			{
+				// parse -D parameter
+				arg = arg.replaceAll("-D", "");
+				if (arg.indexOf("=") != -1)
+				{
+					String[] kvPair = arg.split("=");
+					String value = kvPair[1];
+					dParamMap.put(kvPair[0], context.get(kvPair[0]));
+					if (value.startsWith("\"") && value.endsWith("\""))
+					{
+						value = value.substring(1, value.length() - 1);
+					}
+					context.set(kvPair[0], value);
+				}
+				else
+				{
+					dParamMap.put(arg, context.get(arg));
+					context.set(arg, "true");
+				}
+			}
+			else
+			{
+				if (CHEVRON_OPERATOR.equals(arg))
+				{
+					// parse chevron operator
+					if (i == args.length - 1 || "".equals(args[i + 1].trim()))
+					{
+						throw new RuntimeException("Please input the target variable name of the chevron operator!");
+					}
+					resultVariableName = args[i + 1].trim();
+					break;
+				}
+				else
+				{
+					argSet.add(arg);
+				}
+			}
+		}
+		return resultVariableName;
+
 	}
 
 	/**
@@ -369,7 +426,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 
 	private void prompt()
 	{
-		String promptValue = context.get(ShellContext.PROMPT, DEFAULT_PROMPT);
+		String promptValue = getPromptString();
 		print(promptValue + PROMPT_SIGN);
 	}
 
@@ -432,5 +489,41 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	public void cleanupThreadLocal()
 	{
 		isoDateFormatTL.set(null);
+	}
+
+	@Override
+	public void setPrompt(String key, String value)
+	{
+		promptMap.put(key, value);
+	}
+
+	@Override
+	public void removePrompt(String key)
+	{
+		promptMap.remove(key);
+	}
+
+	@Override
+	public String getPromptString()
+	{
+		String promptValue = null;
+		Set<String> keySet = promptMap.keySet();
+		for (String key : keySet)
+		{
+			if (promptValue == null)
+			{
+				promptValue = promptMap.get(key);
+			}
+			else
+			{
+				promptValue = promptValue + PROMPT_CONNECTOR + promptMap.get(key);
+			}
+
+		}
+		if (promptValue == null)
+		{
+			promptValue = context.get(ShellContext.PROMPT, DEFAULT_PROMPT);
+		}
+		return promptValue;
 	}
 }

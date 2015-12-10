@@ -6,6 +6,7 @@ import java.util.Collection;
 
 import de.osthus.ambeth.shell.core.CommandBinding;
 import de.osthus.ambeth.shell.core.ShellContext;
+import de.osthus.ambeth.shell.core.resulttype.CommandResult;
 
 /**
  * 
@@ -32,15 +33,17 @@ public interface AmbethShell
 	/**
 	 * 
 	 * @param args
+	 * @return {@link CommandResult}
 	 */
-	void executeCommand(String... args);
+	CommandResult executeCommand(String... args);
 
 	/**
 	 * executes an unparsed (i.e. not processed command)
 	 * 
 	 * @param unparsedCommandLine
+	 * @return {@link CommandResult}
 	 */
-	void executeRawCommand(String unparsedCommandLine);
+	CommandResult executeRawCommand(String unparsedCommandLine);
 
 	/**
 	 * 
@@ -83,6 +86,29 @@ public interface AmbethShell
 	 */
 	DateFormat getDateFormat();
 
+	/**
+	 * set prompt value to prompt information map
+	 * 
+	 * @param key
+	 *            key
+	 * @param value
+	 *            value
+	 */
+	void setPrompt(String key, String value);
+
+	/**
+	 * remove prompt value from prompt information map
+	 * 
+	 * @param key
+	 *            key
+	 */
+	void removePrompt(String key);
+
+	/**
+	 * 
+	 * @return
+	 */
+	String getPromptString();
 	// /**
 	// * register a PrintStream to which Commands print their results This is handled by a ThreadLocal
 	// *
