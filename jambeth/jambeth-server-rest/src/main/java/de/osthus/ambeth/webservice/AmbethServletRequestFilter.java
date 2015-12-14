@@ -2,14 +2,6 @@ package de.osthus.ambeth.webservice;
 
 import java.io.IOException;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.annotation.WebFilter;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import javax.ws.rs.ext.Provider;
 
 import de.osthus.ambeth.ioc.IServiceContext;
@@ -47,7 +39,7 @@ public class AmbethServletRequestFilter extends AmbethSimpleServletRequestFilter
 		String userPass = request.getParameter(USER_PASS);
 		String passwordType = request.getParameter(USER_PASS_TYPE);
 		HttpSession session = ((HttpServletRequest) request).getSession();
-		ServletContext servletContext = request.getServletContext();
+		ServletContext servletContext = session.getServletContext();
 		IServiceContext beanContext = getServiceContext(servletContext);
 
 		ILogger log = beanContext.getService(ILoggerCache.class).getCachedLogger(beanContext, AmbethServletRequestFilter.class);
