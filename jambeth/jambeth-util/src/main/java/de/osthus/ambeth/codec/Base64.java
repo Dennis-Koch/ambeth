@@ -1270,7 +1270,7 @@ public class Base64
 				ois = new java.io.ObjectInputStream(bais)
 				{
 					@Override
-					public Class<?> resolveClass(java.io.ObjectStreamClass streamClass) throws java.io.IOException, ClassNotFoundException
+					protected Class<?> resolveClass(java.io.ObjectStreamClass streamClass) throws java.io.IOException, ClassNotFoundException
 					{
 						Class<?> c = Class.forName(streamClass.getName(), false, loader);
 						if (c == null)
