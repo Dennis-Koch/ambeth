@@ -8,6 +8,8 @@ import de.osthus.ambeth.shell.AmbethShellStarter;
 import de.osthus.ambeth.shell.core.AmbethShellImpl;
 import de.osthus.ambeth.shell.core.AmbethShellIntern;
 import de.osthus.ambeth.shell.core.CommandBindingExtendable;
+import de.osthus.ambeth.shell.core.CommandExtensionExtendable;
+import de.osthus.ambeth.shell.core.CommandExtensionImpl;
 import de.osthus.ambeth.shell.core.ShellContext;
 import de.osthus.ambeth.shell.core.ShellContextImpl;
 import de.osthus.ambeth.shell.core.command.CoreCommandModule;
@@ -23,5 +25,6 @@ public class AmbethShellModule implements IInitializingModule
 		bcf.registerBean(AmbethShellStarter.class).precedence(PrecedenceType.LOWEST);
 		bcf.registerBean(CommandScanner.class);
 		bcf.registerBean(ShellContextImpl.class).autowireable(ShellContext.class);
+		bcf.registerBean(CommandExtensionImpl.class).autowireable(CommandExtensionExtendable.class);
 	}
 }

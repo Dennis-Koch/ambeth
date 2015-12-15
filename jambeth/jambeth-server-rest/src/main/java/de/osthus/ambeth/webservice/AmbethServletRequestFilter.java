@@ -47,7 +47,7 @@ public class AmbethServletRequestFilter extends AmbethSimpleServletRequestFilter
 		String userPass = request.getParameter(USER_PASS);
 		String passwordType = request.getParameter(USER_PASS_TYPE);
 		HttpSession session = ((HttpServletRequest) request).getSession();
-		ServletContext servletContext = request.getServletContext();
+		ServletContext servletContext = session.getServletContext();
 		IServiceContext beanContext = getServiceContext(servletContext);
 
 		ILogger log = beanContext.getService(ILoggerCache.class).getCachedLogger(beanContext, AmbethServletRequestFilter.class);
