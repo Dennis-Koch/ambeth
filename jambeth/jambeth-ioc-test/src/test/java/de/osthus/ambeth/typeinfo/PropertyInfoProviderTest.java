@@ -109,4 +109,47 @@ public class PropertyInfoProviderTest extends AbstractIocTest
 		method = MethodPropertyInfo.class.getMethod("setValue", Object.class, Object.class);
 		assertTrue("Wrong name!", propertyInfoProvider.getPropertyNameFor(method).isEmpty());
 	}
+
+	/**
+	 * Test method for {@link de.osthus.ambeth.typeinfo.MethodPropertyInfo#getIocProperties(java.lang.Object)} .
+	 */
+	@Test
+	public final void testGetIocProperties()
+	{
+		IPropertyInfo[] iocProperties = propertyInfoProvider.getIocProperties(MethodPropertyInfo.class);
+		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.iocPropNames, iocProperties);
+	}
+
+	/**
+	 * Test method for caching
+	 */
+	@Test
+	public final void testGetIocPropertiesCached()
+	{
+		IPropertyInfo[] iocProperties = propertyInfoProvider.getIocProperties(MethodPropertyInfo.class);
+		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.iocPropNames, iocProperties);
+
+		iocProperties = propertyInfoProvider.getIocProperties(MethodPropertyInfo.class);
+		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.iocPropNames, iocProperties);
+
+		iocProperties = propertyInfoProvider.getProperties(MethodPropertyInfo.class);
+		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.propNames, iocProperties);
+	}
+
+	/**
+	 * Test method for caching
+	 */
+	@Test
+	public final void testGetPropertiesCached()
+	{
+		IPropertyInfo[] iocProperties = propertyInfoProvider.getProperties(MethodPropertyInfo.class);
+		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.propNames, iocProperties);
+
+		iocProperties = propertyInfoProvider.getProperties(MethodPropertyInfo.class);
+		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.propNames, iocProperties);
+
+		iocProperties = propertyInfoProvider.getIocProperties(MethodPropertyInfo.class);
+		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.iocPropNames, iocProperties);
+
+	}
 }

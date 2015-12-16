@@ -31,6 +31,8 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 
 	protected IThreadLocalObjectCollector objectCollector;
 
+	protected final SmartCopyMap<Class<?>, PropertyInfoEntry> typeToPropertyMap = new SmartCopyMap<Class<?>, PropertyInfoEntry>();
+
 	protected final SmartCopyMap<Class<?>, PropertyInfoEntry> typeToIocPropertyMap = new SmartCopyMap<Class<?>, PropertyInfoEntry>();
 
 	protected final SmartCopyMap<Class<?>, PropertyInfoEntry> typeToPrivatePropertyMap = new SmartCopyMap<Class<?>, PropertyInfoEntry>();
@@ -80,7 +82,7 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 	@Override
 	public IPropertyInfo[] getProperties(Class<?> type)
 	{
-		return getPropertyEntry(type, typeToIocPropertyMap, true, false).properties;
+		return getPropertyEntry(type, typeToPropertyMap, true, false).properties;
 	}
 
 	@Override
@@ -110,7 +112,7 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 	@Override
 	public IMap<String, IPropertyInfo> getPropertyMap(Class<?> type)
 	{
-		return getPropertyEntry(type, typeToIocPropertyMap, true, false).map;
+		return getPropertyEntry(type, typeToPropertyMap, true, false).map;
 	}
 
 	@Override

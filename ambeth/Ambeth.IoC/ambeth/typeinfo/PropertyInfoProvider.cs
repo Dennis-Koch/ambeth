@@ -19,6 +19,8 @@ namespace De.Osthus.Ambeth.Typeinfo
 
         public IAccessorTypeProvider AccessorTypeProvider { protected get; set; }
 
+		protected readonly SmartCopyMap<Type, PropertyInfoEntry> typeToPropertyMap = new SmartCopyMap<Type, PropertyInfoEntry>();
+
 		protected readonly SmartCopyMap<Type, PropertyInfoEntry> typeToIocPropertyMap = new SmartCopyMap<Type, PropertyInfoEntry>();
 
 		protected readonly SmartCopyMap<Type, PropertyInfoEntry> typeToPrivatePropertyMap = new SmartCopyMap<Type, PropertyInfoEntry>();
@@ -46,7 +48,7 @@ namespace De.Osthus.Ambeth.Typeinfo
 
         public IPropertyInfo[] GetProperties(Type type)
         {
-			return GetPropertyEntry(type, typeToIocPropertyMap, true, false).properties;
+			return GetPropertyEntry(type, typeToPropertyMap, true, false).properties;
         }
 
 		public IPropertyInfo[] GetIocProperties(Type type)
@@ -66,7 +68,7 @@ namespace De.Osthus.Ambeth.Typeinfo
 
 		public IMap<String, IPropertyInfo> GetPropertyMap(Type type)
 		{
-			return GetPropertyEntry(type, typeToIocPropertyMap, true, false).map;
+			return GetPropertyEntry(type, typeToPropertyMap, true, false).map;
 		}
 
 		public IMap<String, IPropertyInfo> GetIocPropertyMap(Type type)
