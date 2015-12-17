@@ -126,7 +126,7 @@ public class CacheWalkerResult implements IPrintable, ICacheWalkerResult
 			@Override
 			public void toString(StringBuilder sb)
 			{
-				sb.append(System.lineSeparator());
+				sb.append(System.getProperty("line.separator"));
 				StringBuilderUtil.appendTabs(sb, tabCount);
 			}
 		}, null);
