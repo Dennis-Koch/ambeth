@@ -22,7 +22,7 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 	private ILogger log;
 
 	@Autowired(optional = true)
-	protected IOrmBlueprintProvider ormBlueprintProvider;
+	protected IBlueprintProvider blueprintProvider;
 
 	protected ClassPool pool;
 
@@ -31,16 +31,16 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 	@Override
 	public Class<?> resolveEntityType(String entityTypeName)
 	{
-		if (ormBlueprintProvider == null)
+		if (blueprintProvider == null)
 		{
-			throw new IllegalStateException("No " + IOrmBlueprintProvider.class.getName() + " injected. This is an illegal state");
+			throw new IllegalStateException("No " + IBlueprintProvider.class.getName() + " injected. This is an illegal state");
 		}
 
 		if (alreadLoadedClasses.containsKey(entityTypeName))
 		{
 			return alreadLoadedClasses.get(entityTypeName);
 		}
-		IEntityTypeBlueprint entityTypeBlueprint = ormBlueprintProvider.resolveEntityTypeBlueprint(entityTypeName);
+		IEntityTypeBlueprint entityTypeBlueprint = blueprintProvider.resolveEntityTypeBlueprint(entityTypeName);
 
 		CtClass interf = pool.makeInterface(entityTypeName);
 		try
@@ -49,9 +49,7 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 			{
 				for (String anInterface : entityTypeBlueprint.getInherits())
 				{
-
 					interf.addInterface(pool.get(anInterface));
-
 				}
 			}
 
