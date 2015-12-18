@@ -35,15 +35,15 @@ public class OrmXmlReaderLegathy implements IOrmXmlReader
 	protected IXmlConfigUtil xmlConfigUtil;
 
 	@Override
-	public Set<EntityConfig> loadFromDocument(Document doc)
+	public Set<EntityConfig> loadFromDocument(Document doc, IOrmEntityTypeProvider ormEntityTypeProvider)
 	{
 		Set<EntityConfig> entities = new LinkedHashSet<EntityConfig>();
-		loadFromDocument(doc, entities, entities);
+		loadFromDocument(doc, entities, entities, ormEntityTypeProvider);
 		return entities;
 	}
 
 	@Override
-	public void loadFromDocument(Document doc, Set<EntityConfig> localEntities, Set<EntityConfig> externalEntities)
+	public void loadFromDocument(Document doc, Set<EntityConfig> localEntities, Set<EntityConfig> externalEntities, IOrmEntityTypeProvider ormEntityTypeProvider)
 	{
 		NodeList entityNodeList = doc.getElementsByTagName(XmlConstants.ENTITY);
 		List<Element> entityNodes = xmlConfigUtil.nodesToElements(entityNodeList);

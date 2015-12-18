@@ -10,6 +10,7 @@ import de.osthus.ambeth.merge.CUDResultPrinter;
 import de.osthus.ambeth.merge.ICUDResultPrinter;
 import de.osthus.ambeth.objectcollector.ByteBuffer65536CollectableController;
 import de.osthus.ambeth.objectcollector.ICollectableControllerExtendable;
+import de.osthus.ambeth.orm.blueprint.JavassistOrmEntityTypeProvider;
 import de.osthus.ambeth.xml.CyclicXmlController;
 import de.osthus.ambeth.xml.CyclicXmlDictionary;
 import de.osthus.ambeth.xml.CyclicXmlHandler;
@@ -52,6 +53,8 @@ import de.osthus.ambeth.xml.typehandler.ObjectTypeHandler;
 @FrameworkModule
 public class XmlModule implements IInitializingModule
 {
+	public static final String JAVASSIST_ORM_ENTITY_TYPE_PROVIDER = "javassistOrmEntityTypeProvider";
+
 	public static final String CYCLIC_XML_HANDLER = "cyclicXmlHandler";
 
 	public static final String SIMPLE_XML_HANDLER = "simpleXmlHandler";
@@ -81,6 +84,8 @@ public class XmlModule implements IInitializingModule
 		}
 
 		beanContextFactory.registerBean(XmlTypeRegistry.class).autowireable(IXmlTypeRegistry.class, IXmlTypeExtendable.class);
+
+		beanContextFactory.registerBean(JAVASSIST_ORM_ENTITY_TYPE_PROVIDER, JavassistOrmEntityTypeProvider.class);
 
 		beanContextFactory.registerBean(CommandBuilder.class).autowireable(ICommandBuilder.class);
 
