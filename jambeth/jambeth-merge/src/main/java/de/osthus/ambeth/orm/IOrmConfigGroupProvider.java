@@ -1,11 +1,10 @@
 package de.osthus.ambeth.orm;
 
-import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LogInstance;
+import org.w3c.dom.Document;
 
 public interface IOrmConfigGroupProvider
 {
-
 	IOrmConfigGroup getOrmConfigGroup(String xmlFileNames);
 
+	IOrmConfigGroup getOrmConfigGroup(Document[] docs, IOrmEntityTypeProvider ormEntityTypeProvider);
 }

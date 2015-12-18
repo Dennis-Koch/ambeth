@@ -11,17 +11,14 @@ import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.ioc.annotation.Autowired;
-import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.util.xml.IXmlConfigUtil;
 
 public class OrmConfigGroupProvider implements IOrmConfigGroupProvider
 {
 	public static final String handleClearAllCachesEvent = "handleClearAllCachesEvent";
 
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
+	@Autowired
+	protected IOrmEntityTypeProvider defaultOrmEntityTypeProvider;
 
 	@Autowired
 	protected IOrmXmlReaderRegistry ormXmlReaderRegistry;
@@ -68,17 +65,8 @@ public class OrmConfigGroupProvider implements IOrmConfigGroupProvider
 		{
 			return ormConfigGroup;
 		}
-		LinkedHashSet<EntityConfig> localEntities = new LinkedHashSet<EntityConfig>();
-		LinkedHashSet<EntityConfig> externalEntities = new LinkedHashSet<EntityConfig>();
-
 		Document[] docs = xmlConfigUtil.readXmlFiles(xmlFileNames);
-		for (Document doc : docs)
-		{
-			doc.normalizeDocument();
-			String documentNamespace = xmlConfigUtil.readDocumentNamespace(doc);
-			IOrmXmlReader ormXmlReader = ormXmlReaderRegistry.getOrmXmlReader(documentNamespace);
-			ormXmlReader.loadFromDocument(doc, localEntities, externalEntities);
-		}
+		IOrmConfigGroup newOrmConfigGroup = getOrmConfigGroup(docs, defaultOrmEntityTypeProvider);
 		writeLock.lock();
 		try
 		{
@@ -89,14 +77,30 @@ public class OrmConfigGroupProvider implements IOrmConfigGroupProvider
 			}
 			if (ormConfigGroup == null)
 			{
-				ormConfigGroup = new OrmConfigGroup(new LinkedHashSet<IEntityConfig>(localEntities), new LinkedHashSet<IEntityConfig>(externalEntities));
-				xmlFileNamesConfigGroupMap.put(xmlFileNames, new WeakReference<IOrmConfigGroup>(ormConfigGroup));
+				xmlFileNamesConfigGroupMap.put(xmlFileNames, new WeakReference<IOrmConfigGroup>(newOrmConfigGroup));
+				ormConfigGroup = newOrmConfigGroup;
 			}
+			return ormConfigGroup;
 		}
 		finally
 		{
 			writeLock.unlock();
 		}
-		return ormConfigGroup;
+	}
+
+	@Override
+	public IOrmConfigGroup getOrmConfigGroup(Document[] docs, IOrmEntityTypeProvider ormEntityTypeProvider)
+	{
+		LinkedHashSet<EntityConfig> localEntities = new LinkedHashSet<EntityConfig>();
+		LinkedHashSet<EntityConfig> externalEntities = new LinkedHashSet<EntityConfig>();
+
+		for (Document doc : docs)
+		{
+			doc.normalizeDocument();
+			String documentNamespace = xmlConfigUtil.readDocumentNamespace(doc);
+			IOrmXmlReader ormXmlReader = ormXmlReaderRegistry.getOrmXmlReader(documentNamespace);
+			ormXmlReader.loadFromDocument(doc, localEntities, externalEntities, ormEntityTypeProvider);
+		}
+		return new OrmConfigGroup(new LinkedHashSet<IEntityConfig>(localEntities), new LinkedHashSet<IEntityConfig>(externalEntities));
 	}
 }

@@ -8,12 +8,13 @@ import org.junit.Test;
 import org.w3c.dom.Document;
 
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.orm.EntityConfig;
+import de.osthus.ambeth.orm.IOrmEntityTypeProvider;
 import de.osthus.ambeth.orm.OrmXmlReader20;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.testutil.AbstractIocTest;
 import de.osthus.ambeth.testutil.TestModule;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.xml.IXmlConfigUtil;
 
 @TestModule(OrmXmlReader20TestModule.class)
@@ -21,26 +22,14 @@ public class OrmXmlReader20Test extends AbstractIocTest
 {
 	protected static final IDatabase database = new DatabaseDummy();
 
+	@Autowired
+	protected IOrmEntityTypeProvider defaultOrmEntityTypeProvider;
+
+	@Autowired
 	protected OrmXmlReader20 reader;
 
+	@Autowired
 	protected IXmlConfigUtil xmlConfigUtil;
-
-	@Override
-	public void afterPropertiesSet() throws Exception
-	{
-		ParamChecker.assertNotNull(reader, "Reader");
-		ParamChecker.assertNotNull(xmlConfigUtil, "XmlConfigUtil");
-	}
-
-	public void setReader(OrmXmlReader20 reader)
-	{
-		this.reader = reader;
-	}
-
-	public void setXmlConfigUtil(IXmlConfigUtil xmlConfigUtil)
-	{
-		this.xmlConfigUtil = xmlConfigUtil;
-	}
 
 	@Test
 	public void testLoadFromDocument()
@@ -51,7 +40,7 @@ public class OrmXmlReader20Test extends AbstractIocTest
 
 		Set<EntityConfig> localEntities = new HashSet<EntityConfig>();
 		Set<EntityConfig> externalEntities = new HashSet<EntityConfig>();
-		reader.loadFromDocument(docs[0], localEntities, externalEntities);
+		reader.loadFromDocument(docs[0], localEntities, externalEntities, defaultOrmEntityTypeProvider);
 
 		assertEquals(4, localEntities.size());
 		assertEquals(0, externalEntities.size());
@@ -66,7 +55,7 @@ public class OrmXmlReader20Test extends AbstractIocTest
 
 		Set<EntityConfig> localEntities = new HashSet<EntityConfig>();
 		Set<EntityConfig> externalEntities = new HashSet<EntityConfig>();
-		reader.loadFromDocument(docs[0], localEntities, externalEntities);
+		reader.loadFromDocument(docs[0], localEntities, externalEntities, defaultOrmEntityTypeProvider);
 
 		assertEquals(4, localEntities.size());
 		assertEquals(2, externalEntities.size());
