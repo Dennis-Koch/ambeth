@@ -55,7 +55,7 @@ public class ChangeController implements IChangeController, IChangeControllerExt
 	protected IMergeController mergeController;
 
 	@Property(name = MergeConfigurationConstants.edblActive, defaultValue = "true")
-	protected Boolean edblActive;
+	protected boolean edblActive;
 
 	protected final ClassExtendableListContainer<IChangeControllerExtension<?>> extensions = new ClassExtendableListContainer<IChangeControllerExtension<?>>(
 			"change controller extension", "entity");
