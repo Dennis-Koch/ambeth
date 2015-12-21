@@ -12,7 +12,9 @@
 \usepackage{float} %allows to force floats being placed exactly where they are defined
 \usepackage{wrapfig} %allows the wraptable environment to wrap text around tabular environments, load wrapfig AFTER float
 \usepackage{eso-pic} % Osthus watermark
+\ifpdf
 \usepackage{subcaption} %allows subfigures within figures
+\fi
 
 \usepackage{wrapfig} %Wrap text around figures
 \usepackage{mdframed} %info boxes
@@ -76,7 +78,9 @@
 
 \begin{document}
 \input{cover}
+\ifpdf
 \tableofcontents
+\fi
 \renewcommand{\sectionbreak}{\clearpage}
 \input{introduction}
 \input{all-modules}
