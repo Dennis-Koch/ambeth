@@ -1,8 +1,8 @@
 package de.osthus.ambeth.shell.core;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
@@ -13,6 +13,8 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.MethodAccess;
 import de.osthus.ambeth.shell.AmbethShell;
+import de.osthus.ambeth.shell.core.CommandExtension.Parameter;
+import de.osthus.ambeth.shell.core.CommandExtension.Usage;
 import de.osthus.ambeth.shell.core.annotation.CommandArg;
 import de.osthus.ambeth.shell.util.Utils;
 
@@ -30,8 +32,6 @@ public class CommandBindingImpl implements CommandBinding
 	protected Object commandBean;
 	@Property
 	protected List<CommandArg> args;
-	// @Property
-	// protected String methodName;
 	@Property
 	protected int methodIndex;
 	@Property
@@ -41,6 +41,8 @@ public class CommandBindingImpl implements CommandBinding
 
 	@Autowired
 	protected AmbethShell shell;
+	@Autowired
+	protected CommandExtensionExtendable commandExtensions;
 
 	@Override
 	public Object execute(List<String> arguments)
@@ -157,6 +159,66 @@ public class CommandBindingImpl implements CommandBinding
 				}
 				shell.println();
 			}
+		}
+		// print addition info from extensions
+		printExtensionUsages(commandExtensions.getExtensionsOfCommand(name));
+	}
+
+	/**
+	 * print usage of command extensions
+	 * 
+	 * @param extensions
+	 */
+	private void printExtensionUsages(List<CommandExtension> extensions)
+	{
+		if (extensions == null || extensions.size() == 0)
+		{
+			return;
+		}
+		shell.println();
+
+		List<Usage> usages = new ArrayList<Usage>();
+		int maxParamLength = 0;
+		for (CommandExtension extension : extensions)
+		{
+			Usage usage = extension.getUsage();
+			if (usage == null)
+			{
+				continue;
+			}
+			usages.add(usage);
+
+			if (usage.getParameters() != null)
+			{
+				for (Parameter p : usage.getParameters())
+				{
+					maxParamLength = Math.max(p.getName().length(), maxParamLength);
+				}
+			}
+
+		}
+		maxParamLength += 3;
+
+		for (Usage usage : usages)
+		{
+
+			shell.println("Extension:   " + usage.getName());
+			shell.println("Description: " + usage.getDescription());
+			if (usage.getParameters() != null && usage.getParameters().size() > 0)
+			{
+				shell.println("Parameters:");
+				for (Parameter p : usage.getParameters())
+				{
+					shell.print("  " + Utils.stringPadEnd("[" + p.getName() + "]", maxParamLength, ' '));
+					shell.print(p.getDescription());
+					if (p.getDefaultValue() != null)
+					{
+						shell.print(" [Default: " + p.getDefaultValue() + "]");
+					}
+					shell.println();
+				}
+			}
+			shell.println();
 		}
 	}
 

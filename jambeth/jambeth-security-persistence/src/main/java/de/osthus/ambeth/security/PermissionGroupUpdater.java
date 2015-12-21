@@ -38,6 +38,7 @@ import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.ILightweightTransaction;
 import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
+import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.metadata.IObjRefFactory;
@@ -63,7 +64,6 @@ import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
-import de.osthus.ambeth.util.PrefetchPath;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IMultithreadingHelper;
 import de.osthus.ambeth.util.IPrefetchConfig;
@@ -71,6 +71,7 @@ import de.osthus.ambeth.util.IPrefetchHandle;
 import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.PrefetchHandle;
+import de.osthus.ambeth.util.PrefetchPath;
 import de.osthus.ambeth.util.setup.IDataSetup;
 
 @PersistenceContext(PersistenceContextType.NOT_REQUIRED)
@@ -231,6 +232,12 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		HashMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap = null;
 		for (Class<?> entityType : metaDataAvailableSet)
 		{
+			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+			// if this entity is not managed by Ambeth in the database the pg updater is not necessary
+			if (!metaData.isLocalEntity())
+			{
+				continue;
+			}
 			ITableMetaData table = databaseMetaData.getTableByType(entityType);
 			IPermissionGroup permissionGroup = databaseMetaData.getPermissionGroupOfTable(table.getName());
 			if (permissionGroup == null)

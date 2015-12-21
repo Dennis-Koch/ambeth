@@ -96,10 +96,6 @@
 		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-mina-test</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence-test</artifactId>
 		</dependency>
 

@@ -26,6 +26,8 @@ public class PropertyInfoTest extends AbstractIocTest
 	static final String[] propNames = { "Annotations", "BackingField", "DeclaringType", "ElementType", "EntityType", "Getter", "Modifiers", "Name",
 			"PropertyType", "Readable", "Setter", "Writable" };
 
+	static final String[] iocPropNames = { "ElementType" };
+
 	static final String[] propNamesASM2 = { "Annotations", "BackingField", "DeclaringType", "ElementType", "EntityType", "Getter", "Modifiers", "Name",
 			"PropertyType", "Readable", "Setter", "Writable", "Accessor" };
 
@@ -61,7 +63,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	@Test
 	public final void testPropertyInfo()
 	{
-		assertNotNull("Fixture is null!", this.fixture);
+		assertNotNull("Fixture is null!", fixture);
 	}
 
 	/**
@@ -118,7 +120,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	@Test
 	public final void testGetName()
 	{
-		for (Entry<String, IPropertyInfo> property : this.fixture)
+		for (Entry<String, IPropertyInfo> property : fixture)
 		{
 			assertEquals("Wrong name: " + property.getKey() + " --> " + property.getValue().getName(), property.getKey(), property.getValue().getName());
 		}
@@ -130,9 +132,9 @@ public class PropertyInfoTest extends AbstractIocTest
 	@Test
 	public final void testGetPropertyType()
 	{
-		assertEquals(String.class, this.fixture.get("Name").getPropertyType());
-		assertEquals(Method.class, this.fixture.get("Getter").getPropertyType());
-		assertEquals(boolean.class, this.fixture.get("Writable").getPropertyType());
+		assertEquals(String.class, fixture.get("Name").getPropertyType());
+		assertEquals(Method.class, fixture.get("Getter").getPropertyType());
+		assertEquals(boolean.class, fixture.get("Writable").getPropertyType());
 
 		Map<String, IPropertyInfo> dateProperties = propertyInfoProvider.getPropertyMap(Date.class);
 		assertEquals(long.class, dateProperties.get("Time").getPropertyType());
@@ -144,7 +146,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	@Test
 	public final void testIsWritable()
 	{
-		assertFalse(this.fixture.get("Name").isWritable());
+		assertFalse(fixture.get("Name").isWritable());
 
 		Map<String, IPropertyInfo> dateProperties = propertyInfoProvider.getPropertyMap(Date.class);
 		assertTrue(dateProperties.get("Time").isWritable());
@@ -156,7 +158,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	@Test
 	public final void testGetGetter()
 	{
-		assertNotNull("Getter is null!", ((MethodPropertyInfo) this.fixture.get("Name")).getGetter());
+		assertNotNull("Getter is null!", ((MethodPropertyInfo) fixture.get("Name")).getGetter());
 
 		Map<String, IPropertyInfo> dateProperties = propertyInfoProvider.getPropertyMap(Date.class);
 		assertNotNull("Getter is null!", ((MethodPropertyInfo) dateProperties.get("Time")).getGetter());
@@ -168,7 +170,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	@Test
 	public final void testGetSetter()
 	{
-		assertNull("Getter is not null!", ((MethodPropertyInfo) this.fixture.get("Name")).getSetter());
+		assertNull("Getter is not null!", ((MethodPropertyInfo) fixture.get("Name")).getSetter());
 
 		Map<String, IPropertyInfo> dateProperties = propertyInfoProvider.getPropertyMap(Date.class);
 		assertNotNull("Getter is null!", ((MethodPropertyInfo) dateProperties.get("Time")).getSetter());
@@ -187,7 +189,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	public final void testGetValue() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException, SecurityException,
 			NoSuchMethodException
 	{
-		assertEquals(this.fixture.get("Annotations").getName(), this.fixture.get("Name").getValue(this.fixture.get("Annotations")));
+		assertEquals(fixture.get("Annotations").getName(), fixture.get("Name").getValue(fixture.get("Annotations")));
 
 		MethodPropertyInfo newFixture = new MethodPropertyInfo(Date.class, "Time", null, Date.class.getMethod("setTime", long.class));
 		Date now = new Date();
@@ -204,7 +206,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	@Test
 	public final void testGetValue_Exception() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException
 	{
-		this.fixture.get("Name").getValue(this.fixture.get("Annotations"));
+		fixture.get("Name").getValue(fixture.get("Annotations"));
 	}
 
 	/**
@@ -235,7 +237,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	@Test(expected = UnsupportedOperationException.class)
 	public final void testSetValue_Exception() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException
 	{
-		this.fixture.get("Name").setValue(this.fixture.get("Annotations"), "test");
+		fixture.get("Name").setValue(fixture.get("Annotations"), "test");
 	}
 
 	/**
@@ -248,7 +250,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	@Test(expected = UnsupportedOperationException.class)
 	public final void testSetValue_Exception2() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException
 	{
-		this.fixture.get("Name").setValue(this.fixture.get("Annotations"), "test");
+		fixture.get("Name").setValue(fixture.get("Annotations"), "test");
 	}
 
 	/**
@@ -306,7 +308,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	@Test
 	public final void testGetPropertiesObject()
 	{
-		isPropertyArrayOK(propNames, propertyInfoProvider.getProperties(this.fixture.get("Name")));
+		isPropertyArrayOK(propNames, propertyInfoProvider.getProperties(fixture.get("Name")));
 	}
 
 	/**
@@ -324,7 +326,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	@Test
 	public final void testGetPropertyMapObject()
 	{
-		isPropertyMapOK(propNames, propertyInfoProvider.getPropertyMap(this.fixture.get("Name")));
+		isPropertyMapOK(propNames, propertyInfoProvider.getPropertyMap(fixture.get("Name")));
 	}
 
 	/**

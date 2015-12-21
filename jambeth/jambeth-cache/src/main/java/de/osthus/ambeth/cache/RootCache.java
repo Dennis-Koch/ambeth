@@ -55,7 +55,9 @@ import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.metadata.IObjRefFactory;
 import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
+import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.privilege.IPrivilegeProvider;
 import de.osthus.ambeth.privilege.IPrivilegeProviderIntern;
 import de.osthus.ambeth.privilege.model.IPrivilege;
@@ -1053,7 +1055,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
 				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRel.getRealType());
 				int index = metaData.getIndexByRelationName(objRel.getMemberName());
-				unregisterRelations(cacheValue.getRelation(index));
+				unregisterRelations(cacheValue.getRelation(index), cacheValue);
 				IObjRef[] relationsOfMember = objRelResult.getRelations();
 				if (relationsOfMember.length == 0)
 				{
@@ -1411,6 +1413,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		}
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Object createObjectFromScratch(IEntityMetaData metaData, RootCacheValue cacheValue, ICacheIntern targetCache, ArrayList<IObjRef> tempObjRefList,
 			boolean filteringNecessary, IPrivilege privilegeOfObjRef)
 	{
@@ -1428,6 +1431,19 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			Object cacheObject = targetCache.getObjects(tempObjRefList, CacheDirective.failEarlyAndReturnMisses()).get(0);
 			if (cacheObject != null)
 			{
+				// this flag is used from the CacheDataChangeListener to give the cache layers a hint that their are currently in "DCE-processing" mode
+				if (!AbstractCache.isFailInCacheHierarchyModeActive() && !((IDataObject) cacheObject).hasPendingChanges())
+				{
+					Object secondLevelVersion = getVersionOfCacheValue(metaData, cacheValue);
+					PrimitiveMember versionMember = metaData.getVersionMember();
+					Object firstLevelVersion = versionMember != null ? versionMember.getValue(cacheObject) : null;
+
+					// the secondLevelVersion (childCache) must not be ==null if the firstLevelVersion is !=null. So we intentionally provoke an NPE here
+					if (firstLevelVersion == null || ((Comparable) secondLevelVersion).compareTo(firstLevelVersion) > 0)
+					{
+						updateExistingObject(metaData, cacheValue, cacheObject, targetCache, filteringNecessary, privilegeOfObjRef);
+					}
+				}
 				return cacheObject;
 			}
 			cacheObject = targetCache.createCacheValueInstance(metaData, null);
@@ -1918,7 +1934,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		RootCacheValue cacheValue = getCacheValueFromReference(cacheValueR);
 		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 		{
-			unregisterRelations(cacheValue.getRelation(relationIndex));
+			unregisterRelations(cacheValue.getRelation(relationIndex), cacheValue);
 		}
 		registerAllRelations(relations);
 	}
@@ -1929,7 +1945,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		RelationMember[] relationMembers = metaData.getRelationMembers();
 		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 		{
-			unregisterRelations(cacheValue.getRelation(relationIndex));
+			unregisterRelations(cacheValue.getRelation(relationIndex), cacheValue);
 		}
 		if (lruThreshold == 0)
 		{
@@ -2036,11 +2052,11 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		}
 		for (IObjRef[] methodRelations : relations)
 		{
-			unregisterRelations(methodRelations);
+			unregisterRelations(methodRelations, null);
 		}
 	}
 
-	protected void unregisterRelations(IObjRef[] relations)
+	protected void unregisterRelations(IObjRef[] relations, RootCacheValue cacheValue)
 	{
 		if (relations == null)
 		{
@@ -2051,6 +2067,11 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		{
 			IObjRef related = relations[i];
 			Integer count = relationOris.get(related);
+			if (count == null)
+			{
+				log.warn("Potential inconsistency in RootCache: ObjRef unknown: '" + related + "' used in '" + cacheValue + "'");
+				continue;
+			}
 			if (count == 1)
 			{
 				relationOris.remove(related);

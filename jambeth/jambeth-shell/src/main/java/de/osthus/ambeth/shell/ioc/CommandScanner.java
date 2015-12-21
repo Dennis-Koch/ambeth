@@ -14,8 +14,10 @@ import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.MethodAccess;
 import de.osthus.ambeth.shell.core.CommandBinding;
 import de.osthus.ambeth.shell.core.CommandBindingExtendable;
 import de.osthus.ambeth.shell.core.CommandBindingImpl;
+import de.osthus.ambeth.shell.core.CommandExtensionExtendable;
 import de.osthus.ambeth.shell.core.annotation.Command;
 import de.osthus.ambeth.shell.core.annotation.CommandArg;
+import de.osthus.ambeth.shell.core.annotation.CommandExtension;
 import de.osthus.ambeth.util.ReflectUtil;
 
 public class CommandScanner implements IBeanPostProcessor
@@ -24,6 +26,19 @@ public class CommandScanner implements IBeanPostProcessor
 	@Override
 	public Object postProcessBean(IBeanContextFactory bcf, IServiceContext sc, IBeanConfiguration bc, Class<?> clazz, Object bean, Set<Class<?>> unknown)
 	{
+		CommandExtension commandExtension = clazz.getAnnotation(CommandExtension.class);
+		if (commandExtension != null)
+		{
+			if (sc.isRunning())
+			{
+				sc.link(bean).to(CommandExtensionExtendable.class).with(commandExtension.command()).finishLink();
+			}
+			else
+			{
+				bcf.link(bean).to(CommandExtensionExtendable.class).with(commandExtension.command());
+			}
+		}
+
 		Method[] methods = ReflectUtil.getDeclaredMethodsInHierarchy(clazz);
 		MethodAccess methodAccess = null;
 		for (Method method : methods)
@@ -48,9 +63,7 @@ public class CommandScanner implements IBeanPostProcessor
 				CommandBinding cbBeanConfig = sc.registerBean(CommandBindingImpl.class) //
 						.propertyValue("Name", commandAnnotation.name()) //
 						.propertyValue("Description", description) //
-						// .propertyValue("Method", method) //
 						.propertyValue("MethodAccess", methodAccess) //
-						// .propertyValue("MethodName", method.getName()) //
 						.propertyValue("ParameterTypes", method.getParameterTypes()) //
 						.propertyValue("MethodIndex", methodIndex) //
 						.propertyValue("CommandBean", bean) //
@@ -62,9 +75,7 @@ public class CommandScanner implements IBeanPostProcessor
 				IBeanConfiguration cbBeanConfig = bcf.registerBean(CommandBindingImpl.class) //
 						.propertyValue("Name", commandAnnotation.name()) //
 						.propertyValue("Description", description) //
-						// .propertyValue("Method", method) //
 						.propertyValue("MethodAccess", methodAccess) //
-						// .propertyValue("MethodName", method.getName()) //
 						.propertyValue("ParameterTypes", method.getParameterTypes()) //
 						.propertyValue("MethodIndex", methodIndex) //
 						.propertyValue("CommandBean", bean) //

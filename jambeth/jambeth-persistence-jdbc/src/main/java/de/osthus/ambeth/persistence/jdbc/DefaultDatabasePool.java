@@ -122,23 +122,24 @@ public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDi
 		ArrayList<IDatabase> unusedDatabases = this.unusedDatabases;
 		IdentityWeakHashMap<IDatabase, Boolean> usedDatabases = this.usedDatabases;
 		Lock writeLock = this.writeLock;
-		try
+		while (true)
 		{
-			while (true)
+			if (shuttingDown)
 			{
-				if (shuttingDown)
-				{
-					throw new RuntimeException("DatabasePool is shutting down");
-				}
-				long now = System.currentTimeMillis();
-				if (now >= waitTill)
-				{
-					throw new IllegalStateException("Waited " + (now - currentTime) + "ms without successfully receiving a database instance");
-				}
-				writeLock.lock();
+				throw new RuntimeException("DatabasePool is shutting down");
+			}
+			long now = System.currentTimeMillis();
+			if (now >= waitTill)
+			{
+				throw new IllegalStateException("Waited " + (now - currentTime) + "ms without successfully receiving a database instance");
+			}
+			writeLock.lock();
+			try
+			{
 				if (unusedDatabases.size() > 0)
 				{
 					database = unusedDatabases.remove(unusedDatabases.size() - 1);
+					usedDatabases.put(database, Boolean.TRUE);
 					break;
 				}
 				else if (tryOnly)
@@ -155,12 +156,11 @@ public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDi
 						continue;
 					}
 					database = newDatabase;
+					usedDatabases.put(database, Boolean.TRUE);
 					break;
 				}
 				try
 				{
-					// Unlock while waiting
-					writeLock.unlock();
 					// Wait the maximum remaining time
 					notEmptyCond.await(waitTill - now, TimeUnit.MILLISECONDS);
 				}
@@ -169,18 +169,10 @@ public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDi
 					continue;
 				}
 			}
-			if (database != null)
+			finally
 			{
-				usedDatabases.put(database, Boolean.TRUE);
+				writeLock.unlock();
 			}
-		}
-		finally
-		{
-			writeLock.unlock();
-		}
-		if (database == null)
-		{
-			throw new IllegalStateException("Database is null");
 		}
 		if (passivateDatabases)
 		{

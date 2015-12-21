@@ -2,6 +2,20 @@
 \section{Persistence}
 \label{module:Persistence}
 \ClearAPI
+The object module is backed by the persistence module. This module combines the merge, cache, filter and query module. If the security is enabled also the security module is taken into account.
+
+The combination of the modules is used to write data into various data back ends.
+
+Ambeth currently supports the following dialects:
+\begin{itemize}
+	\item Oracle (full)
+	\item PostgreSQL (full)
+	\item MSSQL (partial)
+	\item H2 (partial)
+\end{itemize}
+
+The persistence module strictly operates in batch mode and is applies different optimizations in order to gain a great performance.
+
 \TODO
 %% MAVEN GENERATED START
 \begin{lstlisting}[style=POM,caption={Maven modules to use \emph{Ambeth Persistence}}]

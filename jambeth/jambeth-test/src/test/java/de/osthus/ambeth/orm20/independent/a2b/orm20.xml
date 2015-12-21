@@ -7,7 +7,6 @@
 		<link source="LINK_ADDRESS_EMPLOYEE_FK1" cascade-delete="left" />
 		<link source="LINK_EMPLOYEE_BOAT_FK1" cascade-delete="right" />
 		<link source="LINK_EMPLOYEE_PROJECT" alias="Employee-Project" />
-		<external-link source="EMPLOYEE" source-column="GOOD_ID" target-member="Id" alias="Employee-Good" /> 
 	</link-mappings>
 
 	<entity-mappings>

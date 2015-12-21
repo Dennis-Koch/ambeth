@@ -47,7 +47,7 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager
 	@Property(name = SecurityServerConfigurationConstants.LdapHost)
 	protected String ldapHost;
 
-	@Property(name = SecurityServerConfigurationConstants.LdapBase)
+	@Property(name = SecurityServerConfigurationConstants.LdapBase, defaultValue = "")
 	protected String searchBase;
 
 	@Property(name = SecurityServerConfigurationConstants.LdapUserAttribute, defaultValue = "uid")
@@ -56,7 +56,7 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager
 	@Property(name = SecurityServerConfigurationConstants.LdapCtxFactory, defaultValue = "com.sun.jndi.ldap.LdapCtxFactory")
 	protected String ldapContextFactory;
 
-	@Property(name = SecurityServerConfigurationConstants.LdapFilter, defaultValue = "(&(objectClass=user)(sAMAccountName=$${userName}))")
+	@Property(name = SecurityServerConfigurationConstants.LdapFilter, defaultValue = "(&(objectClass=user)(sAMAccountName=" + USER_NAME_VARIABLE_DEF + "))")
 	protected String searchFilter;
 
 	protected LdapContext createContext(String userName, String password)
@@ -67,7 +67,10 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager
 			env.put(Context.INITIAL_CONTEXT_FACTORY, ldapContextFactory);
 			env.put(Context.PROVIDER_URL, ldapHost);
 			env.put(Context.SECURITY_AUTHENTICATION, "simple");
-			env.put(Context.SECURITY_PRINCIPAL, userName + "@" + domain);
+
+			String[] userNameAndDomain = getUserNameAndDomain(userName);
+			env.put(Context.SECURITY_PRINCIPAL, userNameAndDomain[0] + "@" + userNameAndDomain[1]);
+
 			env.put(Context.SECURITY_CREDENTIALS, new String(password));
 
 			return new InitialLdapContext(env, null);
@@ -92,7 +95,8 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager
 			searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
 
 			Properties props = new Properties();
-			props.putString(USER_NAME_VARIABLE, userName);
+			String[] userNameAndDomain = getUserNameAndDomain(userName);
+			props.putString(USER_NAME_VARIABLE, userNameAndDomain[0]);
 			String searchFilter = props.resolvePropertyParts(this.searchFilter);
 
 			return ctxGC.search(searchBase, searchFilter, searchCtls);
@@ -192,6 +196,33 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager
 		catch (Throwable e)
 		{
 			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	/**
+	 * Get the username and domain (the domain is taken from username if specified or default domain)
+	 * 
+	 * @param userName
+	 *            The username (with or without domain (e.g. "admin@example.com"))
+	 * @return String array with username and domain
+	 */
+	private String[] getUserNameAndDomain(String userName)
+	{
+		int index = userName.indexOf("@");
+		if (index > -1)
+		{
+			if (index == (userName.length() - 1))
+			{
+				throw new IllegalArgumentException("No domain specified in user name: " + userName);
+			}
+			String userNameWithoutDomain = userName.substring(0, index);
+			String domain = userName.substring(index + 1);
+			return new String[] { userNameWithoutDomain, domain };
+		}
+		else
+		{
+			// no domain specified in userName so use default domain
+			return new String[] { userName, domain };
 		}
 	}
 }

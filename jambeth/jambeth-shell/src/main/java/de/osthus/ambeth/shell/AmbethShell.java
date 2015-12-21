@@ -1,17 +1,17 @@
 package de.osthus.ambeth.shell;
 
 import java.io.BufferedReader;
-import java.io.PrintStream;
 import java.text.DateFormat;
 import java.util.Collection;
 
 import de.osthus.ambeth.shell.core.CommandBinding;
 import de.osthus.ambeth.shell.core.ShellContext;
+import de.osthus.ambeth.shell.core.resulttype.CommandResult;
 
 /**
- *
+ * 
  * @author daniel.mueller
- *
+ * 
  */
 public interface AmbethShell
 {
@@ -20,7 +20,7 @@ public interface AmbethShell
 	public static final String MODE_SERVICE = "SERVICE";
 
 	/**
-	 *
+	 * 
 	 * @return
 	 */
 	ShellContext getContext();
@@ -31,20 +31,22 @@ public interface AmbethShell
 	void startInteractive(BufferedReader br);
 
 	/**
-	 *
+	 * 
 	 * @param args
+	 * @return {@link CommandResult}
 	 */
-	void executeCommand(String... args);
+	CommandResult executeCommand(String... args);
 
 	/**
 	 * executes an unparsed (i.e. not processed command)
-	 *
+	 * 
 	 * @param unparsedCommandLine
+	 * @return {@link CommandResult}
 	 */
-	void executeRawCommand(String unparsedCommandLine);
+	CommandResult executeRawCommand(String unparsedCommandLine);
 
 	/**
-	 *
+	 * 
 	 * @param name
 	 * @return
 	 */
@@ -56,13 +58,13 @@ public interface AmbethShell
 	Collection<CommandBinding> getCommandBindings();
 
 	/**
-	 *
+	 * 
 	 * @param object
 	 */
 	void print(Object object);
 
 	/**
-	 *
+	 * 
 	 * @param object
 	 */
 	void println(Object object);
@@ -85,9 +87,32 @@ public interface AmbethShell
 	DateFormat getDateFormat();
 
 	/**
-	 * register a PrintStream to which Commands print their results This is handled by a ThreadLocal
-	 *
-	 * @param ps
+	 * set prompt value to prompt information map
+	 * 
+	 * @param key
+	 *            key
+	 * @param value
+	 *            value
 	 */
-	void registerSystemOut(PrintStream ps);
+	void setPrompt(String key, String value);
+
+	/**
+	 * remove prompt value from prompt information map
+	 * 
+	 * @param key
+	 *            key
+	 */
+	void removePrompt(String key);
+
+	/**
+	 * 
+	 * @return
+	 */
+	String getPromptString();
+	// /**
+	// * register a PrintStream to which Commands print their results This is handled by a ThreadLocal
+	// *
+	// * @param ps
+	// */
+	// void registerSystemOut(PrintStream ps);
 }
