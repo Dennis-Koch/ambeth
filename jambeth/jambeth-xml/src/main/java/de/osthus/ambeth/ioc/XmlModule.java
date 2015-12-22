@@ -10,6 +10,8 @@ import de.osthus.ambeth.merge.CUDResultPrinter;
 import de.osthus.ambeth.merge.ICUDResultPrinter;
 import de.osthus.ambeth.objectcollector.ByteBuffer65536CollectableController;
 import de.osthus.ambeth.objectcollector.ICollectableControllerExtendable;
+import de.osthus.ambeth.orm.blueprint.BlueprintEntityMetaDataReader;
+import de.osthus.ambeth.orm.blueprint.BlueprintValueObjectConfigReader;
 import de.osthus.ambeth.orm.blueprint.JavassistOrmEntityTypeProvider;
 import de.osthus.ambeth.xml.CyclicXmlController;
 import de.osthus.ambeth.xml.CyclicXmlDictionary;
@@ -59,6 +61,10 @@ public class XmlModule implements IInitializingModule
 
 	public static final String SIMPLE_XML_HANDLER = "simpleXmlHandler";
 
+	public static final String BLUEPRINT_META_DATA_READER = "blueprintMetaDataReader";
+
+	public static final String BLUEPRINT_VALUE_OBJECT_READER = "blueprintValueObjectReader";
+
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
@@ -86,6 +92,8 @@ public class XmlModule implements IInitializingModule
 		beanContextFactory.registerBean(XmlTypeRegistry.class).autowireable(IXmlTypeRegistry.class, IXmlTypeExtendable.class);
 
 		beanContextFactory.registerBean(JAVASSIST_ORM_ENTITY_TYPE_PROVIDER, JavassistOrmEntityTypeProvider.class);
+		beanContextFactory.registerBean(BLUEPRINT_META_DATA_READER, BlueprintEntityMetaDataReader.class);
+		beanContextFactory.registerBean(BLUEPRINT_VALUE_OBJECT_READER, BlueprintValueObjectConfigReader.class);
 
 		beanContextFactory.registerBean(CommandBuilder.class).autowireable(ICommandBuilder.class);
 
