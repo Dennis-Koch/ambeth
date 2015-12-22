@@ -10,9 +10,18 @@ public interface IEntityTypeBlueprint
 
 	void setName(String name);
 
-	Collection<String> getInherits();
+	boolean isClass();
+
+	void setIsClass(boolean isClass);
+
+	String getSuperclass();
+
+	void setSuperclass(String superclass);
+
+	Collection<String> getInterfaces();
 
 	Collection<IEntityPropertyBlueprint> getProperties();
 
 	Collection<IEntityAnnotationBlueprint> getAnnotations();
+
 }

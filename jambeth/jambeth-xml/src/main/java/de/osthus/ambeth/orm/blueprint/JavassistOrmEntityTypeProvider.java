@@ -4,7 +4,9 @@ import java.util.Collection;
 
 import javassist.ClassPool;
 import javassist.CtClass;
+import javassist.CtField;
 import javassist.CtMethod;
+import javassist.CtNewMethod;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.annotation.Annotation;
@@ -42,46 +44,76 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 		}
 		IEntityTypeBlueprint entityTypeBlueprint = blueprintProvider.resolveEntityTypeBlueprint(entityTypeName);
 
-		CtClass interf = pool.makeInterface(entityTypeName);
+		CtClass newClass;
+		if (entityTypeBlueprint.isClass())
+		{
+			newClass = pool.makeClass(entityTypeName);
+		}
+		else
+		{
+			newClass = pool.makeInterface(entityTypeName);
+		}
 		try
 		{
-			if (entityTypeBlueprint.getInherits() != null)
+			if (entityTypeBlueprint.getInterfaces() != null)
 			{
-				for (String anInterface : entityTypeBlueprint.getInherits())
+				for (String aClass : entityTypeBlueprint.getInterfaces())
 				{
-					interf.addInterface(pool.get(anInterface));
+					newClass.addInterface(pool.get(aClass));
 				}
 			}
 
-			ConstPool constPool = interf.getClassFile().getConstPool();
+			if (entityTypeBlueprint.getSuperclass() != null)
+			{
+				if (entityTypeBlueprint.isClass())
+				{
+					newClass.setSuperclass(pool.get(entityTypeBlueprint.getSuperclass()));
+				}
+				else
+				{
+					throw new IllegalArgumentException(entityTypeBlueprint.getName() + " is an interface but has a superclass.");
+				}
+			}
+
+			ConstPool constPool = newClass.getClassFile().getConstPool();
 			if (entityTypeBlueprint.getAnnotations() != null)
 			{
 				AnnotationsAttribute interfAnnotationAttributeInfo = createAnnotationAttribute(entityTypeBlueprint.getAnnotations(), constPool);
-				interf.getClassFile().addAttribute(interfAnnotationAttributeInfo);
+				newClass.getClassFile().addAttribute(interfAnnotationAttributeInfo);
 			}
 
 			if (entityTypeBlueprint.getProperties() != null)
 			{
 				for (IEntityPropertyBlueprint prop : entityTypeBlueprint.getProperties())
 				{
-					CtClass resultType = pool.get(prop.getType());
-					CtMethod ctGetMethod = new CtMethod(resultType, "get" + prop.getName(), null, interf);
-					interf.addMethod(ctGetMethod);
-					AnnotationsAttribute annotationAttributeInfo = createAnnotationAttribute(prop.getAnnotations(), constPool);
-					ctGetMethod.getMethodInfo().addAttribute(annotationAttributeInfo);
-					if (!prop.isReadonly())
+					if (entityTypeBlueprint.isClass())
 					{
-						CtClass[] parameters = new CtClass[] { resultType };
-						CtMethod ctSetMethod = new CtMethod(CtClass.voidType, "set" + prop.getName(), parameters, interf);
-						interf.addMethod(ctSetMethod);
+						CtField ctField = new CtField(pool.get(prop.getType()), prop.getName(), newClass);
+						newClass.addField(ctField);
+						newClass.addMethod(CtNewMethod.getter("get" + prop.getName(), ctField));
+						newClass.addMethod(CtNewMethod.setter("set" + prop.getName(), ctField));
+					}
+					else
+					{
+						CtClass resultType = pool.get(prop.getType());
+						CtMethod ctGetMethod = new CtMethod(resultType, "get" + prop.getName(), null, newClass);
+						newClass.addMethod(ctGetMethod);
+						AnnotationsAttribute annotationAttributeInfo = createAnnotationAttribute(prop.getAnnotations(), constPool);
+						ctGetMethod.getMethodInfo().addAttribute(annotationAttributeInfo);
+						if (!prop.isReadonly())
+						{
+							CtClass[] parameters = new CtClass[] { resultType };
+							CtMethod ctSetMethod = new CtMethod(CtClass.voidType, "set" + prop.getName(), parameters, newClass);
+							newClass.addMethod(ctSetMethod);
 
+						}
 					}
 				}
 			}
 
 			Class<?> entityType;
 
-			entityType = interf.toClass();
+			entityType = newClass.toClass();
 
 			alreadLoadedClasses.put(entityTypeName, entityType);
 			return entityType;
