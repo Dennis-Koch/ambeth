@@ -10,6 +10,15 @@ import javassist.CtNewMethod;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.annotation.Annotation;
+import javassist.bytecode.annotation.BooleanMemberValue;
+import javassist.bytecode.annotation.ByteMemberValue;
+import javassist.bytecode.annotation.CharMemberValue;
+import javassist.bytecode.annotation.DoubleMemberValue;
+import javassist.bytecode.annotation.FloatMemberValue;
+import javassist.bytecode.annotation.IntegerMemberValue;
+import javassist.bytecode.annotation.LongMemberValue;
+import javassist.bytecode.annotation.ShortMemberValue;
+import javassist.bytecode.annotation.StringMemberValue;
 import de.osthus.ambeth.collections.WeakHashMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IStartingBean;
@@ -17,6 +26,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.orm.IOrmEntityTypeProvider;
+import de.osthus.ambeth.util.IConversionHelper;
 
 public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, IStartingBean
 {
@@ -26,7 +36,12 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 	@Autowired(optional = true)
 	protected IBlueprintProvider blueprintProvider;
 
+	@Autowired
+	protected IConversionHelper conversionHelper;
+
 	protected ClassPool pool;
+
+	protected CtClass stringClass;
 
 	protected WeakHashMap<String, Class<?>> alreadLoadedClasses = new WeakHashMap<String, Class<?>>();
 
@@ -45,7 +60,7 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 		IEntityTypeBlueprint entityTypeBlueprint = blueprintProvider.resolveEntityTypeBlueprint(entityTypeName);
 
 		CtClass newClass;
-		if (entityTypeBlueprint.isClass())
+		if (entityTypeBlueprint.getIsClass())
 		{
 			newClass = pool.makeClass(entityTypeName);
 		}
@@ -65,7 +80,7 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 
 			if (entityTypeBlueprint.getSuperclass() != null)
 			{
-				if (entityTypeBlueprint.isClass())
+				if (entityTypeBlueprint.getIsClass())
 				{
 					newClass.setSuperclass(pool.get(entityTypeBlueprint.getSuperclass()));
 				}
@@ -86,7 +101,7 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 			{
 				for (IEntityPropertyBlueprint prop : entityTypeBlueprint.getProperties())
 				{
-					if (entityTypeBlueprint.isClass())
+					if (entityTypeBlueprint.getIsClass())
 					{
 						CtField ctField = new CtField(pool.get(prop.getType()), prop.getName(), newClass);
 						newClass.addField(ctField);
@@ -124,16 +139,63 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 		}
 	}
 
-	protected AnnotationsAttribute createAnnotationAttribute(Collection<IEntityAnnotationBlueprint> annotations, ConstPool constPool)
+	protected AnnotationsAttribute createAnnotationAttribute(Collection<IEntityAnnotationBlueprint> annotations, ConstPool constPool) throws Exception
 	{
 		AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
 		for (IEntityAnnotationBlueprint anno : annotations)
 		{
 			Annotation annot = new Annotation(anno.getType(), constPool);
+			CtClass annotClass = pool.get(anno.getType());
+
 			for (IEntityAnnotationPropertyBlueprint annonProp : anno.getProperties())
 			{
-				// TODO: Determine member type and set
-				// annot.addMemberValue(annonProp.getName(), new StringMemberValue(annonProp.getValue(), constPool));
+				CtMethod annonPropMethod = annotClass.getDeclaredMethod(annonProp.getName());
+
+				if (annonPropMethod.getReturnType().equals(CtClass.booleanType))
+				{
+					annot.addMemberValue(annonProp.getName(), //
+							new BooleanMemberValue(conversionHelper.convertValueToType(Boolean.class, annonProp.getValue()), constPool));
+				}
+				else if (annonPropMethod.getReturnType().equals(CtClass.byteType))
+				{
+					annot.addMemberValue(annonProp.getName(), //
+							new ByteMemberValue(conversionHelper.convertValueToType(Byte.class, annonProp.getValue()), constPool));
+				}
+				else if (annonPropMethod.getReturnType().equals(CtClass.charType))
+				{
+					annot.addMemberValue(annonProp.getName(), //
+							new CharMemberValue(conversionHelper.convertValueToType(Character.class, annonProp.getValue()), constPool));
+				}
+				else if (annonPropMethod.getReturnType().equals(CtClass.doubleType))
+				{
+					annot.addMemberValue(annonProp.getName(), //
+							new DoubleMemberValue(conversionHelper.convertValueToType(Double.class, annonProp.getValue()), constPool));
+				}
+				else if (annonPropMethod.getReturnType().equals(CtClass.floatType))
+				{
+					annot.addMemberValue(annonProp.getName(), //
+							new FloatMemberValue(conversionHelper.convertValueToType(Float.class, annonProp.getValue()), constPool));
+				}
+				else if (annonPropMethod.getReturnType().equals(CtClass.intType))
+				{
+					annot.addMemberValue(annonProp.getName(), //
+							new IntegerMemberValue(conversionHelper.convertValueToType(Integer.class, annonProp.getValue()), constPool));
+				}
+				else if (annonPropMethod.getReturnType().equals(CtClass.longType))
+				{
+					annot.addMemberValue(annonProp.getName(), //
+							new LongMemberValue(conversionHelper.convertValueToType(Long.class, annonProp.getValue()), constPool));
+				}
+				else if (annonPropMethod.getReturnType().equals(CtClass.shortType))
+				{
+					annot.addMemberValue(annonProp.getName(), //
+							new ShortMemberValue(conversionHelper.convertValueToType(Short.class, annonProp.getValue()), constPool));
+				}
+				else if (annonPropMethod.getReturnType().equals(stringClass))
+				{
+					annot.addMemberValue(annonProp.getName(), //
+							new StringMemberValue(conversionHelper.convertValueToType(String.class, annonProp.getValue()), constPool));
+				}
 			}
 			attr.addAnnotation(annot);
 		}
@@ -144,6 +206,7 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 	public void afterStarted() throws Throwable
 	{
 		pool = ClassPool.getDefault();
+		stringClass = pool.get(String.class.getName());
 	}
 
 }

@@ -10,7 +10,7 @@ public interface IEntityTypeBlueprint
 
 	void setName(String name);
 
-	boolean isClass();
+	boolean getIsClass();
 
 	void setIsClass(boolean isClass);
 
