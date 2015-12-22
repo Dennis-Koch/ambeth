@@ -1,8 +1,11 @@
 package de.osthus.ambeth.persistence.blueprint;
 
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
+import de.osthus.ambeth.audit.model.Audited;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.MappingModule;
@@ -32,6 +35,8 @@ import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
+import de.osthus.ambeth.util.ClasspathScanner;
+import de.osthus.ambeth.util.IClasspathScanner;
 
 @SQLStructure("OrmBlueprint_structure.sql")
 @SQLData("OrmBlueprint_data.sql")
@@ -58,6 +63,7 @@ public class OrmBlueprintTest extends AbstractInformationBusWithPersistenceTest
 			beanContextFactory.link(IEntityAnnotationBlueprint.class).to(ITechnicalEntityTypeExtendable.class).with(EntityAnnotationBlueprint.class);
 			beanContextFactory.link(IEntityAnnotationPropertyBlueprint.class).to(ITechnicalEntityTypeExtendable.class)
 					.with(EntityAnnotationPropertyBlueprint.class);
+			beanContextFactory.registerBean(ClasspathScanner.class).autowireable(IClasspathScanner.class);
 
 			// IBeanConfiguration inMemoryCacheRetriever = beanContextFactory.registerBean(IN_MEMORY_CACHE_RETRIEVER, InMemoryCacheRetriever.class);
 			// beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class).with(EntityTypeBlueprint.class);
@@ -83,6 +89,9 @@ public class OrmBlueprintTest extends AbstractInformationBusWithPersistenceTest
 	@Autowired
 	protected IMapperServiceFactory mapperServiceFactory;
 
+	@Autowired
+	protected IClasspathScanner classpathScanner;
+
 	@Test
 	public void testIntatiateBlueprintedEntity() throws Throwable
 	{
@@ -105,6 +114,10 @@ public class OrmBlueprintTest extends AbstractInformationBusWithPersistenceTest
 		prop.setValue(entity, "TestValue");
 
 		Assert.assertEquals("TestValue", prop.getValue(entity));
+
+		List<Class<?>> auditedClasses = classpathScanner.scanClassesAnnotatedWith(Audited.class);
+		Assert.assertTrue(auditedClasses.contains(resolveEntityType));
+
 	}
 
 	@Test
@@ -114,27 +127,20 @@ public class OrmBlueprintTest extends AbstractInformationBusWithPersistenceTest
 		Assert.assertNotNull(resolveEntityType);
 
 		Object entity = entityFactory.createEntity(resolveEntityType);
-		IPropertyInfo[] properties = propertyInfoProvider.getProperties(entity);
 
-		IPropertyInfo prop = null;
-		for (IPropertyInfo propertyInfo : properties)
-		{
-			if (propertyInfo.getName().equals(DE_OSTHUS_AMBETH_PERSISTENCE_BLUEPRINT_TEST_CLASS_PROP))
-			{
-				prop = propertyInfo;
-				break;
-			}
-		}
+		IPropertyInfo prop = propertyInfoProvider.getProperty(entity, DE_OSTHUS_AMBETH_PERSISTENCE_BLUEPRINT_TEST_CLASS_PROP);
 		Assert.assertNotNull(prop);
-		prop.setValue(entity, "TestValue");
+		String testValue = "TestValue";
+		prop.setValue(entity, testValue);
 
 		Class<?> valueObjectType = entityTypeProvider.resolveEntityType(DE_OSTHUS_AMBETH_PERSISTENCE_BLUEPRINT_TEST_CLASS + "V");
-		Class<?> valueObjectClass = entityFactory.createEntity(valueObjectType).getClass();
-
+		Assert.assertFalse(valueObjectType.isInterface());
 		IMapperService mapper = mapperServiceFactory.create();
 		try
 		{
-			Object valueObject = mapper.mapToValueObject(entity, valueObjectClass);
+			Object valueObject = mapper.mapToValueObject(entity, valueObjectType);
+			IPropertyInfo vomProperty = propertyInfoProvider.getProperty(valueObject, DE_OSTHUS_AMBETH_PERSISTENCE_BLUEPRINT_TEST_CLASS_PROP);
+			Assert.assertEquals(testValue, vomProperty.getValue(valueObject));
 		}
 		finally
 		{
