@@ -1,14 +1,8 @@
 package de.osthus.ambeth.persistence.blueprint;
 
-import java.io.StringReader;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
 
 import de.osthus.ambeth.cache.ICache;
-import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.orm.blueprint.IBlueprintOrmProvider;
@@ -20,12 +14,23 @@ public class SQLOrmBlueprintProvider implements IBlueprintProvider, IInitializin
 {
 	@Autowired
 	protected ICache cache;
-	private DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+
+	@Autowired
+	protected IOrmDocumentCreator ormDocumentCreator;
+
+	@Autowired
+	protected IVomDocumentCreator vomDocumentCreator;
+
+	protected Document vomDocument;
+
+	protected Document ormDocument;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		dbf.setNamespaceAware(true);
+		vomDocument = vomDocumentCreator
+				.getVomDocument("de.osthus.ambeth.persistence.blueprint.TestClass", "de.osthus.ambeth.persistence.blueprint.TestClassV");
+		ormDocument = ormDocumentCreator.getOrmDocument("de.osthus.ambeth.persistence.blueprint.TestClass", null);
 	}
 
 	@Override
@@ -37,37 +42,15 @@ public class SQLOrmBlueprintProvider implements IBlueprintProvider, IInitializin
 	@Override
 	public Document[] getOrmDocuments()
 	{
-		try
-		{
-			Document document = dbf
-					.newDocumentBuilder()
-					.parse(new InputSource(
-							new StringReader(
-									"<?xml version=\"1.0\" encoding=\"UTF-8\"?><or-mappings xmlns=\"http://osthus.de/ambeth/ambeth_orm_2_0\"><entity-mappings><external-entity class=\"de.osthus.ambeth.persistence.blueprint.TestClass\"/></entity-mappings></or-mappings>")));
-			return new Document[] { document };
-		}
-		catch (Exception e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
+
+		return new Document[] { ormDocument };
 	}
 
 	@Override
 	public Document[] getVomDocuments()
 	{
-		try
-		{
-			Document document = dbf
-					.newDocumentBuilder()
-					.parse(new InputSource(
-							new StringReader(
-									"<?xml version=\"1.0\" encoding=\"UTF-8\"?><value-object-mappings xmlns=\"http://osthus.de/ambeth/ambeth_vom_2_0\"><entity class=\"de.osthus.ambeth.persistence.blueprint.TestClass\"><value-object class=\"de.osthus.ambeth.persistence.blueprint.TestClassV\"/></entity></value-object-mappings>")));
-			return new Document[] { document };
-		}
-		catch (Exception e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
+
+		return new Document[] { vomDocument };
 	}
 
 }

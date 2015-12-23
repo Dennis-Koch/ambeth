@@ -1,12 +1,12 @@
 package de.osthus.ambeth.persistence.blueprint;
 
-import java.util.List;
-
 import org.junit.Assert;
 import org.junit.Test;
 
-import de.osthus.ambeth.audit.model.Audited;
+import de.osthus.ambeth.audit.IAuditConfiguration;
+import de.osthus.ambeth.audit.IAuditConfigurationProvider;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
+import de.osthus.ambeth.ioc.AuditModule;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.MappingModule;
 import de.osthus.ambeth.ioc.XmlModule;
@@ -35,20 +35,16 @@ import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
-import de.osthus.ambeth.util.ClasspathScanner;
-import de.osthus.ambeth.util.IClasspathScanner;
 
 @SQLStructure("OrmBlueprint_structure.sql")
 @SQLData("OrmBlueprint_data.sql")
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/blueprint/orm.xml"),
 		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true") })
-@TestFrameworkModule({ XmlModule.class, MappingModule.class, OrmBlueprintTestFrameworkModule.class })
+@TestFrameworkModule({ XmlModule.class, MappingModule.class, AuditModule.class, OrmBlueprintTestFrameworkModule.class })
 public class OrmBlueprintTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static final String DE_OSTHUS_AMBETH_PERSISTENCE_BLUEPRINT_TEST_CLASS = "de.osthus.ambeth.persistence.blueprint.TestClass";
 	public static final String DE_OSTHUS_AMBETH_PERSISTENCE_BLUEPRINT_TEST_CLASS_PROP = "Something";
-
-	public static final String IN_MEMORY_CACHE_RETRIEVER = "inMemoryCacheRetriever";
 
 	public static class OrmBlueprintTestFrameworkModule implements IInitializingModule
 	{
@@ -63,7 +59,7 @@ public class OrmBlueprintTest extends AbstractInformationBusWithPersistenceTest
 			beanContextFactory.link(IEntityAnnotationBlueprint.class).to(ITechnicalEntityTypeExtendable.class).with(EntityAnnotationBlueprint.class);
 			beanContextFactory.link(IEntityAnnotationPropertyBlueprint.class).to(ITechnicalEntityTypeExtendable.class)
 					.with(EntityAnnotationPropertyBlueprint.class);
-			beanContextFactory.registerBean(ClasspathScanner.class).autowireable(IClasspathScanner.class);
+			beanContextFactory.registerBean(OrmVomDocumentCreator.class).autowireable(IVomDocumentCreator.class, IOrmDocumentCreator.class);
 
 			// IBeanConfiguration inMemoryCacheRetriever = beanContextFactory.registerBean(IN_MEMORY_CACHE_RETRIEVER, InMemoryCacheRetriever.class);
 			// beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class).with(EntityTypeBlueprint.class);
@@ -73,7 +69,6 @@ public class OrmBlueprintTest extends AbstractInformationBusWithPersistenceTest
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
@@ -90,7 +85,7 @@ public class OrmBlueprintTest extends AbstractInformationBusWithPersistenceTest
 	protected IMapperServiceFactory mapperServiceFactory;
 
 	@Autowired
-	protected IClasspathScanner classpathScanner;
+	protected IAuditConfigurationProvider auditConfigurationProvider;
 
 	@Test
 	public void testIntatiateBlueprintedEntity() throws Throwable
@@ -115,8 +110,8 @@ public class OrmBlueprintTest extends AbstractInformationBusWithPersistenceTest
 
 		Assert.assertEquals("TestValue", prop.getValue(entity));
 
-		List<Class<?>> auditedClasses = classpathScanner.scanClassesAnnotatedWith(Audited.class);
-		Assert.assertTrue(auditedClasses.contains(resolveEntityType));
+		IAuditConfiguration auditConfiguration = auditConfigurationProvider.getAuditConfiguration(resolveEntityType);
+		Assert.assertTrue(auditConfiguration.isAuditActive());
 
 	}
 
