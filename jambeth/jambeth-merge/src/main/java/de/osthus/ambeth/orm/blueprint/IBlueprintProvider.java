@@ -8,4 +8,6 @@ package de.osthus.ambeth.orm.blueprint;
 public interface IBlueprintProvider
 {
 	IEntityTypeBlueprint resolveEntityTypeBlueprint(String entityTypeName);
+
+	String getDefaultInterface();
 }

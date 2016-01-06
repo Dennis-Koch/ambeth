@@ -70,12 +70,18 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 		}
 		try
 		{
+			String defaultInterface = blueprintProvider.getDefaultInterface();
 			if (entityTypeBlueprint.getInterfaces() != null)
 			{
 				for (String aClass : entityTypeBlueprint.getInterfaces())
 				{
 					newClass.addInterface(pool.get(aClass));
 				}
+			}
+
+			if (entityTypeBlueprint.getInterfaces() == null || !entityTypeBlueprint.getInterfaces().contains(defaultInterface))
+			{
+				newClass.addInterface(pool.get(defaultInterface));
 			}
 
 			if (entityTypeBlueprint.getSuperclass() != null)

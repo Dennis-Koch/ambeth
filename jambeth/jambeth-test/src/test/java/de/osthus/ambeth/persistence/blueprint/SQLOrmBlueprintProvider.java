@@ -5,6 +5,7 @@ import org.w3c.dom.Document;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.model.IAbstractEntity;
 import de.osthus.ambeth.orm.blueprint.IBlueprintOrmProvider;
 import de.osthus.ambeth.orm.blueprint.IBlueprintProvider;
 import de.osthus.ambeth.orm.blueprint.IBlueprintVomProvider;
@@ -53,4 +54,9 @@ public class SQLOrmBlueprintProvider implements IBlueprintProvider, IInitializin
 		return new Document[] { vomDocument };
 	}
 
+	@Override
+	public String getDefaultInterface()
+	{
+		return IAbstractEntity.class.getName();
+	}
 }

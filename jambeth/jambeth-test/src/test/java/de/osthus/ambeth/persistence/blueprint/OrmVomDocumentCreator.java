@@ -23,7 +23,9 @@ public class OrmVomDocumentCreator implements IInitializingBean, IVomDocumentCre
 
 	protected DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.osthus.ambeth.persistence.blueprint.IOrmDocumentCreator#getOrmDocument(java.lang.String, java.lang.String)
 	 */
 	@Override
@@ -48,6 +50,7 @@ public class OrmVomDocumentCreator implements IInitializingBean, IVomDocumentCre
 			entityElement.setAttribute(XmlConstants.NAME, table);
 			entityElement.appendChild(tableElement);
 		}
+		// TODO: Enhance with property name mapping (property names in DB can differ from name in entity due to length)
 		entitiesMappingElement.appendChild(entityElement);
 		entityElement.setAttribute(XmlConstants.CLASS, businessObjectType);
 
@@ -55,7 +58,9 @@ public class OrmVomDocumentCreator implements IInitializingBean, IVomDocumentCre
 
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.osthus.ambeth.persistence.blueprint.IVomDocumentCreator#getVomDocument(java.lang.String, java.lang.String)
 	 */
 	@Override
