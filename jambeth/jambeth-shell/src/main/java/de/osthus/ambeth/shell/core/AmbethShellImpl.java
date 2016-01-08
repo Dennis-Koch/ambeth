@@ -74,7 +74,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	protected String[] mainArgs;
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	private static final DateFormat createIsoDateFormat()
@@ -206,7 +206,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 
 	/**
 	 * // TODO find a regex Guru :)
-	 * 
+	 *
 	 * @param userInput
 	 * @return
 	 */
@@ -333,7 +333,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 
 	/**
 	 * parse all the arguments
-	 * 
+	 *
 	 * @param dParamMap
 	 *            map of all -D parameter
 	 * @param argSet
@@ -393,7 +393,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	}
 
 	/**
-	 * 
+	 *
 	 * @param cb
 	 * @param unparsedArgs
 	 * @param e

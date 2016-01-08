@@ -43,14 +43,14 @@ public class SingleResult extends CommandResult
 		value.append(string);
 	}
 
-	public void addValueWithLineSeparator(String string)
-	{
-		value.append(string).append(System.lineSeparator());
-	}
-
 	@Override
 	public String toString()
 	{
-		return getValue();
+		String value = getValue();
+		if (!value.endsWith(System.lineSeparator()))
+		{
+			value = value + System.lineSeparator();
+		}
+		return value;
 	}
 }
