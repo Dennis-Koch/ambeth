@@ -67,6 +67,16 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 
 	protected PrintStream shellOut = System.out;
 
+	public PrintStream getShellOut()
+	{
+		return shellOut;
+	}
+
+	public void setShellOut(PrintStream shellOut)
+	{
+		this.shellOut = shellOut;
+	}
+
 	@Property(name = ShellContext.BATCH_FILE, mandatory = false, defaultValue = "")
 	protected String batchFile;
 
