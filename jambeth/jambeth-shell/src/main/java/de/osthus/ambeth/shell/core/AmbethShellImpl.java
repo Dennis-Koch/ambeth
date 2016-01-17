@@ -562,7 +562,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 			{
 				filePath = Paths.get(baseFolder, fileName);
 			}
-			if (!filePath.startsWith(Paths.get(baseFolder)))
+			if (!filePath.normalize().startsWith(Paths.get(baseFolder)))
 			{
 				throw new IllegalArgumentException("The path " + fileName + " was not accepted");
 			}
