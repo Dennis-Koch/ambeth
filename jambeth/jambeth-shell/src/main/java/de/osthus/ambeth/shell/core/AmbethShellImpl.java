@@ -8,6 +8,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -67,11 +69,13 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 
 	protected PrintStream shellOut = System.out;
 
+	@Override
 	public PrintStream getShellOut()
 	{
 		return shellOut;
 	}
 
+	@Override
 	public void setShellOut(PrintStream shellOut)
 	{
 		this.shellOut = shellOut;
@@ -535,5 +539,59 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 			promptValue = context.get(ShellContext.PROMPT, DEFAULT_PROMPT);
 		}
 		return promptValue;
+	}
+
+	@Override
+	public Path getSecuredFileAsPath(String fileName)
+	{
+		if (fileName == null)
+		{
+			return null;
+		}
+		String baseFolder = this.getContext().get(SHELL_CONTEXT_BASE_FOLDER, String.class);
+		Path filePath = null;
+		if (baseFolder != null)
+		{
+			// check if the path is already OK
+			Path checkPath = Paths.get(fileName);
+			if (checkPath.isAbsolute())
+			{
+				if (!checkPath.startsWith(Paths.get(baseFolder)))
+				{
+					throw new IllegalArgumentException("The path " + fileName + " was not accepted");
+				}
+				filePath = checkPath;
+			}
+			else
+			{
+				filePath = Paths.get(baseFolder, fileName);
+			}
+		}
+		else
+		{
+			filePath = Paths.get(fileName);
+		}
+		Path absolutePath = filePath.toAbsolutePath();
+		// TODO: this can only handle pathes with filenames, if there is no filename not all dirs get created
+		// create all necessary dir's
+		absolutePath.getParent().toFile().mkdirs();
+		return absolutePath;
+	}
+
+	@Override
+	public String getSecuredFileAsString(String fileName)
+	{
+		if (fileName == null)
+		{
+			return null;
+		}
+		Path path = getSecuredFileAsPath(fileName);
+		return path.toString();
+	}
+
+	@Override
+	public Path getSecuredFileAsPath(Path resolve)
+	{
+		return getSecuredFileAsPath(resolve.toString());
 	}
 }
