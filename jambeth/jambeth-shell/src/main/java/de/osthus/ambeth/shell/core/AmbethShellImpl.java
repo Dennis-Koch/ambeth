@@ -556,21 +556,22 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 			Path checkPath = Paths.get(fileName);
 			if (checkPath.isAbsolute())
 			{
-				if (!checkPath.startsWith(Paths.get(baseFolder)))
-				{
-					throw new IllegalArgumentException("The path " + fileName + " was not accepted");
-				}
 				filePath = checkPath;
 			}
 			else
 			{
 				filePath = Paths.get(baseFolder, fileName);
 			}
+			if (!filePath.startsWith(Paths.get(baseFolder)))
+			{
+				throw new IllegalArgumentException("The path " + fileName + " was not accepted");
+			}
 		}
 		else
 		{
 			filePath = Paths.get(fileName);
 		}
+
 		Path absolutePath = filePath.toAbsolutePath();
 		// TODO: this can only handle pathes with filenames, if there is no filename not all dirs get created
 		// create all necessary dir's
