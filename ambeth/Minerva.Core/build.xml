@@ -197,6 +197,7 @@
 			<arg value="${source.all.dir}\\${ambeth.sln.file}"/>
 			<arg value="/p:ContinueOnError=false" />
 			<arg value="/p:StopOnFirstFailure=false" />
+			<arg value="/p:ProjectVersion=${version}" />
 		</exec>
 		
 		<copy todir="${target.dlls.SL4.dir}" overwrite="true" preservelastmodified="true" flatten="true">

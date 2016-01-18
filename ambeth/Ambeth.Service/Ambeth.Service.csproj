@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>De.Osthus.Ambeth</RootNamespace>
-    <AssemblyName>Ambeth.Service</AssemblyName>
+    <AssemblyName>net-jambeth-service-$(ProjectVersion)</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>De.Osthus.Ambeth.Progress</RootNamespace>
-    <AssemblyName>Ambeth.Progress</AssemblyName>
+    <AssemblyName>net-jambeth-progress-$(ProjectVersion)</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
