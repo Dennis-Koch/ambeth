@@ -606,12 +606,6 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 	}
 
 	@Override
-	public String prepareCommand(String sqlCommand)
-	{
-		return sqlCommand;
-	}
-
-	@Override
 	public void dropAllSchemaContent(Connection connection, String schemaName)
 	{
 		Statement stmt = null, stmt2 = null;

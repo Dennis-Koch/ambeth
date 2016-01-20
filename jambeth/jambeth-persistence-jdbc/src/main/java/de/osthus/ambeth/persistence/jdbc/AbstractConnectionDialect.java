@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.WeakHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.transaction.SystemException;
 import javax.transaction.Transaction;
@@ -594,4 +596,30 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 		return false;
 	}
 
+	protected String prepareCommandIntern(String sqlCommand, String regex, String replacement)
+	{
+		return Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(sqlCommand).replaceAll(replacement);
+	}
+
+	protected String prepareCommandInternWithGroup(String sqlCommand, String regex, String replacement)
+	{
+		Pattern pattern = Pattern.compile("(.*)" + regex + "(.*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+		return concat(sqlCommand, replacement, pattern);
+	}
+
+	protected String concat(String sqlCommand, String replacement, Pattern pattern)
+	{
+		Matcher matcher = pattern.matcher(sqlCommand);
+		if (!matcher.matches())
+		{
+			return sqlCommand;
+		}
+		String left = concat(matcher.group(1), replacement, pattern);
+		String right = concat(matcher.group(matcher.groupCount()), replacement, pattern);
+		for (int a = 2; a < matcher.groupCount(); a++)
+		{
+			replacement = replacement.replace("\\" + a, matcher.group(a));
+		}
+		return left + replacement + right;
+	}
 }

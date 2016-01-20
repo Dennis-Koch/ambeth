@@ -1533,7 +1533,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				}
 			}
 		}
-		command = getOrCreateSchemaContext().getService(IConnectionTestDialect.class).prepareCommand(command);
+		command = getOrCreateSchemaContext().getService(IConnectionDialect.class).prepareCommand(command);
 		int loopCount = ((Integer) options.get("loop")).intValue();
 		if (loopCount == 1)
 		{

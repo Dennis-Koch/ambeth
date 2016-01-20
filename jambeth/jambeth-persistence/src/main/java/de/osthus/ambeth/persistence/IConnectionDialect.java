@@ -90,4 +90,12 @@ public interface IConnectionDialect
 	 * @param splittedIds
 	 */
 	void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType, IList<Object> splittedIds);
+
+	/**
+	 * Replace Oracle SQL with connection dialect specific SQL
+	 * 
+	 * @param sqlCommand
+	 * @return
+	 */
+	String prepareCommand(String sqlCommand);
 }

@@ -18,6 +18,7 @@ import java.util.Map.Entry;
 import java.util.WeakHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.persistence.OptimisticLockException;
@@ -695,5 +696,60 @@ public class PostgresDialect extends AbstractConnectionDialect
 	public boolean isTransactionNecessaryDuringLobStreaming()
 	{
 		return true;
+	}
+
+	@Override
+	public String prepareCommand(String sqlCommand)
+	{
+		Pattern pattern = Pattern.compile(" *create or replace TYPE ([^ ]+) AS VARRAY\\(\\d+\\) OF +(.+)", Pattern.CASE_INSENSITIVE);
+		Matcher matcher = pattern.matcher(sqlCommand);
+		if (matcher.matches())
+		{
+			String arrayTypeName = matcher.group(1);
+			if (arrayTypeName.equalsIgnoreCase("STRING_ARRAY"))
+			{
+				return "";
+			}
+		}
+
+		sqlCommand = prepareCommandIntern(sqlCommand, " BLOB", " LO");
+		sqlCommand = prepareCommandIntern(sqlCommand, " CLOB", " TEXT");
+
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1 *, *0 *\\)", " BOOLEAN");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *[0-9] *, *0 *\\)", " INTEGER");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1[0,1,2,3,4,5,6,7,8] *, *0 *\\)", " BIGINT");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\d+ *\\, *\\d+ *\\)", " NUMERIC");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\* *\\, *\\d+ *\\)", " NUMERIC");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\d+ *\\)", " NUMERIC");
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " NUMBER([^\"])", " NUMERIC\\2");
+		// sqlCommand = prepareCommandIntern(sqlCommand, "(?: |\")NUMBER *\\(", " NUMERIC\\(");
+
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR *\\( *(\\d+) +CHAR *\\)", " VARCHAR(\\2)");
+
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR2 *\\( *(\\d+) +BYTE\\)", " VARCHAR(\\2)");
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR2 *\\( *(\\d+) +CHAR\\)", " VARCHAR(\\2)");
+
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " PRIMARY KEY (\\([^\\)]+\\)) USING INDEX", " PRIMARY KEY \\2");
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " PRIMARY KEY (\\([^\\)]+\\)) USING INDEX", " PRIMARY KEY \\2");
+
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, "([^a-zA-Z0-9])STRING_ARRAY([^a-zA-Z0-9])", "\\2TEXT[]\\3");
+
+		sqlCommand = prepareCommandIntern(sqlCommand, " NOORDER", "");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NOCYCLE", "");
+		sqlCommand = prepareCommandIntern(sqlCommand, " USING +INDEX", "");
+
+		sqlCommand = prepareCommandIntern(sqlCommand, " 999999999999999999999999999 ", " 9223372036854775807 ");
+
+		sqlCommand = prepareCommandIntern(sqlCommand, "\\s+TABLESPACE\\s+[a-zA-Z0-9_]+", " ");
+		// Pattern tablespacePattern = Pattern.compile("CREATE\\s+TABLESPACE\\s+([\\S]+)\\s*.*\\sDATAFILE\\s+'([^']+)'.*", Pattern.CASE_INSENSITIVE);
+		// Matcher tablespaceMatcher = tablespacePattern.matcher(sqlCommand);
+		// if (tablespaceMatcher.matches())
+		// {
+		// String tablespace = tablespaceMatcher.group(1);
+		// String file = tablespaceMatcher.group(2);
+		//
+		// sqlCommand = "CREATE TABLESPACE " + tablespace + " LOCATION '" + file + "'";
+		// }
+		return sqlCommand;
 	}
 }
