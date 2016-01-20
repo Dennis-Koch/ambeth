@@ -55,8 +55,8 @@ public class SQLOrmBlueprintProvider implements IBlueprintProvider, IInitializin
 	}
 
 	@Override
-	public String getDefaultInterface()
+	public Class<?> getDefaultInterface()
 	{
-		return IAbstractEntity.class.getName();
+		return IAbstractEntity.class;
 	}
 }

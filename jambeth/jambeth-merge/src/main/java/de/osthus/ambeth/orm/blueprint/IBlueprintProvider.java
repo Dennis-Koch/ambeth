@@ -9,5 +9,5 @@ public interface IBlueprintProvider
 {
 	IEntityTypeBlueprint resolveEntityTypeBlueprint(String entityTypeName);
 
-	String getDefaultInterface();
+	Class<?> getDefaultInterface();
 }

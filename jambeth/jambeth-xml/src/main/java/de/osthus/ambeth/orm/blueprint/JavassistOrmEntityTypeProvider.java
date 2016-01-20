@@ -70,7 +70,7 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 		}
 		try
 		{
-			String defaultInterface = blueprintProvider.getDefaultInterface();
+			Class<?> defaultInterface = blueprintProvider.getDefaultInterface();
 			if (entityTypeBlueprint.getInterfaces() != null)
 			{
 				for (String aClass : entityTypeBlueprint.getInterfaces())
@@ -79,9 +79,9 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 				}
 			}
 
-			if (entityTypeBlueprint.getInterfaces() == null || !entityTypeBlueprint.getInterfaces().contains(defaultInterface))
+			if (entityTypeBlueprint.getInterfaces() == null || !entityTypeBlueprint.getInterfaces().contains(defaultInterface.getName()))
 			{
-				newClass.addInterface(pool.get(defaultInterface));
+				newClass.addInterface(pool.get(defaultInterface.getName()));
 			}
 
 			if (entityTypeBlueprint.getSuperclass() != null)
