@@ -26,7 +26,7 @@ import de.osthus.ambeth.orm.blueprint.IEntityAnnotationPropertyBlueprint;
 import de.osthus.ambeth.orm.blueprint.IEntityPropertyBlueprint;
 import de.osthus.ambeth.orm.blueprint.IEntityTypeBlueprint;
 import de.osthus.ambeth.orm.blueprint.JavassistOrmEntityTypeProvider;
-import de.osthus.ambeth.persistence.blueprint.OrmBlueprintTest.OrmBlueprintTestFrameworkModule;
+import de.osthus.ambeth.persistence.blueprint.OrmBlueprintTest.OrmBlueprintTestModule;
 import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -40,32 +40,27 @@ import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 @SQLData("OrmBlueprint_data.sql")
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/blueprint/orm.xml"),
 		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true") })
-@TestFrameworkModule({ XmlModule.class, MappingModule.class, AuditModule.class, OrmBlueprintTestFrameworkModule.class })
+@TestFrameworkModule({ XmlModule.class, MappingModule.class, AuditModule.class, OrmBlueprintTestModule.class })
 public class OrmBlueprintTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static final String DE_OSTHUS_AMBETH_PERSISTENCE_BLUEPRINT_TEST_CLASS = "de.osthus.ambeth.persistence.blueprint.TestClass";
 	public static final String DE_OSTHUS_AMBETH_PERSISTENCE_BLUEPRINT_TEST_CLASS_PROP = "Something";
 
-	public static class OrmBlueprintTestFrameworkModule implements IInitializingModule
+	public static class OrmBlueprintTestModule implements IInitializingModule
 	{
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 		{
-			beanContextFactory.registerBean(SQLOrmBlueprintProvider.class).autowireable(IBlueprintProvider.class, IBlueprintOrmProvider.class,
-					IBlueprintVomProvider.class);
+			beanContextFactory.registerBean(InitialEntityTypeBluePrintLoadingService.class).autowireable(InitialEntityTypeBluePrintLoadingService.class);
 
 			beanContextFactory.link(IEntityTypeBlueprint.class).to(ITechnicalEntityTypeExtendable.class).with(EntityTypeBlueprint.class);
 			beanContextFactory.link(IEntityPropertyBlueprint.class).to(ITechnicalEntityTypeExtendable.class).with(EntityPropertyBlueprint.class);
 			beanContextFactory.link(IEntityAnnotationBlueprint.class).to(ITechnicalEntityTypeExtendable.class).with(EntityAnnotationBlueprint.class);
 			beanContextFactory.link(IEntityAnnotationPropertyBlueprint.class).to(ITechnicalEntityTypeExtendable.class)
 					.with(EntityAnnotationPropertyBlueprint.class);
+			beanContextFactory.registerBean(SQLOrmBlueprintProvider.class).autowireable(IBlueprintProvider.class, IBlueprintOrmProvider.class,
+					IBlueprintVomProvider.class);
 			beanContextFactory.registerBean(OrmVomDocumentCreator.class).autowireable(IVomDocumentCreator.class, IOrmDocumentCreator.class);
-
-			// IBeanConfiguration inMemoryCacheRetriever = beanContextFactory.registerBean(IN_MEMORY_CACHE_RETRIEVER, InMemoryCacheRetriever.class);
-			// beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class).with(EntityTypeBlueprint.class);
-			// beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class).with(EntityPropertyBlueprint.class);
-			// beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class).with(EntityAnnotationBlueprint.class);
-			// beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class).with(EntityAnnotationPropertyBlueprint.class);
 		}
 	}
 

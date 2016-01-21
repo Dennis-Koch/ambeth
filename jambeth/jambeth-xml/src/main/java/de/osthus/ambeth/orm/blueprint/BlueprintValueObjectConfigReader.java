@@ -57,16 +57,4 @@ public class BlueprintValueObjectConfigReader extends ValueObjectConfigReader im
 			}
 		}
 	}
-
-	// @Override
-	// protected Class<?> resolveEntityType(Element item)
-	// {
-	// Map<String, IList<Element>> configs = xmlConfigUtil.childrenToElementMap(item);
-	// if (!configs.containsKey(XmlConstants.VALUE_OBJECT))
-	// {
-	// return null;
-	// }
-	// String entityTypeName = xmlConfigUtil.getRequiredAttribute(item, XmlConstants.CLASS);
-	// return entityTypeProvider.resolveEntityType(entityTypeName);
-	// }
 }

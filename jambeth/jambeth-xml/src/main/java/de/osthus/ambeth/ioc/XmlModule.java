@@ -55,15 +55,15 @@ import de.osthus.ambeth.xml.typehandler.ObjectTypeHandler;
 @FrameworkModule
 public class XmlModule implements IInitializingModule
 {
-	public static final String JAVASSIST_ORM_ENTITY_TYPE_PROVIDER = "javassistOrmEntityTypeProvider";
-
 	public static final String CYCLIC_XML_HANDLER = "cyclicXmlHandler";
 
 	public static final String SIMPLE_XML_HANDLER = "simpleXmlHandler";
 
-	public static final String BLUEPRINT_META_DATA_READER = "blueprintMetaDataReader";
+	public static final String JAVASSIST_ORM_ENTITY_TYPE_PROVIDER = "javassistOrmEntityTypeProvider";
 
 	public static final String BLUEPRINT_VALUE_OBJECT_READER = "blueprintValueObjectReader";
+
+	public static final String BLUEPRINT_META_DATA_READER = "blueprintMetaDataReader";
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
@@ -90,10 +90,6 @@ public class XmlModule implements IInitializingModule
 		}
 
 		beanContextFactory.registerBean(XmlTypeRegistry.class).autowireable(IXmlTypeRegistry.class, IXmlTypeExtendable.class);
-
-		beanContextFactory.registerBean(JAVASSIST_ORM_ENTITY_TYPE_PROVIDER, JavassistOrmEntityTypeProvider.class);
-		beanContextFactory.registerBean(BLUEPRINT_META_DATA_READER, BlueprintEntityMetaDataReader.class);
-		beanContextFactory.registerBean(BLUEPRINT_VALUE_OBJECT_READER, BlueprintValueObjectConfigReader.class);
 
 		beanContextFactory.registerBean(CommandBuilder.class).autowireable(ICommandBuilder.class);
 
@@ -171,5 +167,10 @@ public class XmlModule implements IInitializingModule
 		beanContextFactory.link(byteBufferCC).to(ICollectableControllerExtendable.class).with(ByteBuffer.class);
 
 		beanContextFactory.registerBean(CUDResultPrinter.class).autowireable(ICUDResultPrinter.class);
+
+		beanContextFactory.registerBean(XmlModule.JAVASSIST_ORM_ENTITY_TYPE_PROVIDER, JavassistOrmEntityTypeProvider.class);
+		beanContextFactory.registerBean(XmlModule.BLUEPRINT_META_DATA_READER, BlueprintEntityMetaDataReader.class);
+		beanContextFactory.registerBean(XmlModule.BLUEPRINT_VALUE_OBJECT_READER, BlueprintValueObjectConfigReader.class);
+
 	}
 }
