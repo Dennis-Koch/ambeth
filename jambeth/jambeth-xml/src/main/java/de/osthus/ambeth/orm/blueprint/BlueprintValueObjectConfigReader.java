@@ -7,7 +7,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import de.osthus.ambeth.ioc.IStartingBean;
-import de.osthus.ambeth.ioc.XmlModule;
+import de.osthus.ambeth.ioc.XmlBlueprintModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -22,7 +22,7 @@ public class BlueprintValueObjectConfigReader extends ValueObjectConfigReader im
 	@Autowired(optional = true)
 	protected IBlueprintVomProvider blueprintVomProvider;
 
-	@Autowired(XmlModule.JAVASSIST_ORM_ENTITY_TYPE_PROVIDER)
+	@Autowired(XmlBlueprintModule.JAVASSIST_ORM_ENTITY_TYPE_PROVIDER)
 	protected JavassistOrmEntityTypeProvider entityTypeProvider;
 
 	@Override
