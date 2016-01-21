@@ -145,7 +145,8 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 		}
 	}
 
-	protected AnnotationsAttribute createAnnotationAttribute(Collection<IEntityAnnotationBlueprint> annotations, ConstPool constPool) throws Exception
+	protected AnnotationsAttribute createAnnotationAttribute(Collection<? extends IEntityAnnotationBlueprint> annotations, ConstPool constPool)
+			throws Exception
 	{
 		AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
 		for (IEntityAnnotationBlueprint anno : annotations)
