@@ -10,5 +10,5 @@ public interface IEntityAnnotationBlueprint
 
 	void setType(String type);
 
-	Collection<IEntityAnnotationPropertyBlueprint> getProperties();
+	Collection<? extends IEntityAnnotationPropertyBlueprint> getProperties();
 }

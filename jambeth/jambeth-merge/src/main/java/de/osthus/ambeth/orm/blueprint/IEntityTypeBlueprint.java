@@ -20,8 +20,8 @@ public interface IEntityTypeBlueprint
 
 	Collection<String> getInterfaces();
 
-	Collection<IEntityPropertyBlueprint> getProperties();
+	Collection<? extends IEntityPropertyBlueprint> getProperties();
 
-	Collection<IEntityAnnotationBlueprint> getAnnotations();
+	Collection<? extends IEntityAnnotationBlueprint> getAnnotations();
 
 }

@@ -25,5 +25,5 @@ public interface IEntityPropertyBlueprint
 
 	void setReadonly(boolean readonly);
 
-	Collection<IEntityAnnotationBlueprint> getAnnotations();
+	Collection<? extends IEntityAnnotationBlueprint> getAnnotations();
 }
