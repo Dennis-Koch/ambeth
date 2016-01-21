@@ -2,6 +2,7 @@ package de.osthus.ambeth.persistence.jdbc.lob;
 
 import java.sql.Clob;
 
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.event.EntityMetaDataAddedEvent;
 import de.osthus.ambeth.event.EntityMetaDataRemovedEvent;
@@ -31,11 +32,13 @@ public class ClobToEnumConverter extends ClobToAnythingConverter
 
 	protected final SmartCopyMap<Class<?>, Integer> propertyTypeToUsageCountMap = new SmartCopyMap<Class<?>, Integer>(0.5f);
 
+	protected HashMap<Class<?>, Runnable> deregisterRunnables = new HashMap<Class<?>, Runnable>();
+
 	public void handleEntityMetaDataAddedEvent(EntityMetaDataAddedEvent evnt)
 	{
 		for (Class<?> entityType : evnt.getEntityTypes())
 		{
-			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+			final IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 			for (PrimitiveMember member : metaData.getPrimitiveMembers())
 			{
 				Class<?> elementType = member.getElementType();
@@ -56,6 +59,33 @@ public class ClobToEnumConverter extends ClobToAnythingConverter
 				}
 				propertyTypeToUsageCountMap.put(elementType, usageCount);
 			}
+			deregisterRunnables.put(entityType, new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					for (PrimitiveMember member : metaData.getPrimitiveMembers())
+					{
+						Class<?> elementType = member.getElementType();
+						if (!elementType.isEnum())
+						{
+							continue;
+						}
+						Integer usageCount = propertyTypeToUsageCountMap.get(elementType);
+						if (usageCount == null)
+						{
+							throw new IllegalStateException("Must never happen");
+						}
+						usageCount = Integer.valueOf(usageCount.intValue() - 1);
+						if (usageCount.intValue() > 0)
+						{
+							dedicatedConverterExtendable.unregisterDedicatedConverter(ClobToEnumConverter.this, Clob.class, elementType);
+							dedicatedConverterExtendable.unregisterDedicatedConverter(ClobToEnumConverter.this, elementType, Clob.class);
+						}
+						propertyTypeToUsageCountMap.put(elementType, usageCount);
+					}
+				}
+			});
 		}
 	}
 
@@ -63,27 +93,12 @@ public class ClobToEnumConverter extends ClobToAnythingConverter
 	{
 		for (Class<?> entityType : evnt.getEntityTypes())
 		{
-			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-			for (PrimitiveMember member : metaData.getPrimitiveMembers())
+			Runnable runnable = deregisterRunnables.get(entityType);
+			if (runnable != null)
 			{
-				Class<?> elementType = member.getElementType();
-				if (!elementType.isEnum())
-				{
-					continue;
-				}
-				Integer usageCount = propertyTypeToUsageCountMap.get(elementType);
-				if (usageCount == null)
-				{
-					throw new IllegalStateException("Must never happen");
-				}
-				usageCount = Integer.valueOf(usageCount.intValue() - 1);
-				if (usageCount.intValue() > 0)
-				{
-					dedicatedConverterExtendable.unregisterDedicatedConverter(this, Clob.class, elementType);
-					dedicatedConverterExtendable.unregisterDedicatedConverter(this, elementType, Clob.class);
-				}
-				propertyTypeToUsageCountMap.put(elementType, usageCount);
+				runnable.run();
 			}
+			deregisterRunnables.remove(entityType);
 		}
 	}
 }
