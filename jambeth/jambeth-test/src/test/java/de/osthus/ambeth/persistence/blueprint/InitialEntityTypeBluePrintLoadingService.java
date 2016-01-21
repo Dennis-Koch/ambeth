@@ -3,8 +3,6 @@ package de.osthus.ambeth.persistence.blueprint;
 import java.util.List;
 
 import de.osthus.ambeth.annotation.Find;
-import de.osthus.ambeth.annotation.Merge;
-import de.osthus.ambeth.cache.ICacheIntern;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -22,7 +20,7 @@ import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.ReadWriteLock;
 
 @SecurityContext(SecurityContextType.NOT_REQUIRED)
-public class EntityTypeBluePrintService implements IStartingBean
+public class InitialEntityTypeBluePrintLoadingService implements IStartingBean
 {
 	@LogInstance
 	private ILogger log;
@@ -33,9 +31,6 @@ public class EntityTypeBluePrintService implements IStartingBean
 	@Autowired
 	protected IPrefetchHelper prefetchHelper;
 
-	@Autowired
-	protected ICacheIntern cache;
-
 	protected ReadWriteLock lock = new ReadWriteLock();
 
 	protected IQuery<EntityTypeBlueprint> qAll;
@@ -43,12 +38,6 @@ public class EntityTypeBluePrintService implements IStartingBean
 	protected IQuery<EntityTypeBlueprint> qByName;
 
 	protected IPrefetchHandle typeToAllPrefetchHandle;
-
-	@Merge
-	public void saveType(EntityTypeBlueprint entityTypeBlueprint)
-	{
-		throw new UnsupportedOperationException("Must never be called");
-	}
 
 	@Find
 	public List<EntityTypeBlueprint> getAll()

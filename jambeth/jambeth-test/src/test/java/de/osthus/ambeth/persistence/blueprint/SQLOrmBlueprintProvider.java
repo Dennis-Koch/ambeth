@@ -15,7 +15,7 @@ import de.osthus.ambeth.util.ReadWriteLock;
 public class SQLOrmBlueprintProvider implements IBlueprintProvider, IBlueprintOrmProvider, IBlueprintVomProvider
 {
 	@Autowired
-	protected EntityTypeBluePrintService entityTypeBluePrintService;
+	protected InitialEntityTypeBluePrintLoadingService entityTypeBluePrintService;
 
 	@Autowired
 	protected IOrmDocumentCreator ormDocumentCreator;

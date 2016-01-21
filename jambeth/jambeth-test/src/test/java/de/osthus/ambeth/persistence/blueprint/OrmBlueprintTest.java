@@ -51,7 +51,7 @@ public class OrmBlueprintTest extends AbstractInformationBusWithPersistenceTest
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 		{
-			beanContextFactory.registerBean(EntityTypeBluePrintService.class).autowireable(EntityTypeBluePrintService.class);
+			beanContextFactory.registerBean(InitialEntityTypeBluePrintLoadingService.class).autowireable(InitialEntityTypeBluePrintLoadingService.class);
 
 			beanContextFactory.link(IEntityTypeBlueprint.class).to(ITechnicalEntityTypeExtendable.class).with(EntityTypeBlueprint.class);
 			beanContextFactory.link(IEntityPropertyBlueprint.class).to(ITechnicalEntityTypeExtendable.class).with(EntityPropertyBlueprint.class);
