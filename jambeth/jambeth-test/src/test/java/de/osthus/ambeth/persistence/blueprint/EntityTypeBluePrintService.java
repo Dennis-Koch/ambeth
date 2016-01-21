@@ -1,6 +1,5 @@
 package de.osthus.ambeth.persistence.blueprint;
 
-import java.util.Collections;
 import java.util.List;
 
 import de.osthus.ambeth.annotation.Find;
@@ -12,7 +11,6 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.orm.blueprint.IEntityTypeBlueprint;
-import de.osthus.ambeth.proxy.MergeContext;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
@@ -21,9 +19,9 @@ import de.osthus.ambeth.security.SecurityContextType;
 import de.osthus.ambeth.util.IPrefetchConfig;
 import de.osthus.ambeth.util.IPrefetchHandle;
 import de.osthus.ambeth.util.IPrefetchHelper;
+import de.osthus.ambeth.util.ReadWriteLock;
 
 @SecurityContext(SecurityContextType.NOT_REQUIRED)
-@MergeContext
 public class EntityTypeBluePrintService implements IStartingBean
 {
 	@LogInstance
@@ -37,6 +35,8 @@ public class EntityTypeBluePrintService implements IStartingBean
 
 	@Autowired
 	protected ICacheIntern cache;
+
+	protected ReadWriteLock lock = new ReadWriteLock();
 
 	protected IQuery<EntityTypeBlueprint> qAll;
 
@@ -53,16 +53,13 @@ public class EntityTypeBluePrintService implements IStartingBean
 	@Find
 	public List<EntityTypeBlueprint> getAll()
 	{
-		if (qAll != null)
+		if (qAll == null)
 		{
-			IList<EntityTypeBlueprint> list = qAll.retrieve();
-			typeToAllPrefetchHandle.prefetch(list);
-			return list;
+			initializeQueries();
 		}
-		else
-		{
-			return Collections.emptyList();
-		}
+		IList<EntityTypeBlueprint> list = qAll.retrieve();
+		typeToAllPrefetchHandle.prefetch(list);
+		return list;
 	}
 
 	@Find
@@ -70,29 +67,47 @@ public class EntityTypeBluePrintService implements IStartingBean
 	{
 		if (qByName != null)
 		{
-			EntityTypeBlueprint entityTypeBlueprint = qByName.param(IEntityTypeBlueprint.NAME, name).retrieveSingle();
-			typeToAllPrefetchHandle.prefetch(entityTypeBlueprint);
-			return entityTypeBlueprint;
+			initializeQueries();
 		}
-		else
-		{
-			return cache.getObject(EntityTypeBlueprint.class, IEntityTypeBlueprint.NAME, name);
-		}
+		EntityTypeBlueprint entityTypeBlueprint = qByName.param(IEntityTypeBlueprint.NAME, name).retrieveSingle();
+		typeToAllPrefetchHandle.prefetch(entityTypeBlueprint);
+		return entityTypeBlueprint;
 	}
 
 	@Override
 	public void afterStarted() throws Throwable
 	{
-		IPrefetchConfig prefetchConfig = prefetchHelper.createPrefetch();
-		EntityTypeBlueprint plan = prefetchConfig.plan(EntityTypeBlueprint.class);
-		plan.getProperties().iterator().next().getAnnotations().iterator().next().getProperties().iterator().next();
-		plan.getAnnotations().iterator().next().getProperties().iterator().next();
-		typeToAllPrefetchHandle = prefetchConfig.build();
+		initializeQueries();
+	}
 
-		IQueryBuilder<EntityTypeBlueprint> qb = qbf.create(EntityTypeBlueprint.class);
-		qAll = qb.build();
+	protected void initializeQueries()
+	{
+		if (qAll != null)
+		{
+			return;
+		}
+		lock.getWriteLock().lock();
+		try
+		{
+			if (qAll != null)
+			{
+				return;
+			}
+			IPrefetchConfig prefetchConfig = prefetchHelper.createPrefetch();
+			EntityTypeBlueprint plan = prefetchConfig.plan(EntityTypeBlueprint.class);
+			plan.getProperties().iterator().next().getAnnotations().iterator().next().getProperties().iterator().next();
+			plan.getAnnotations().iterator().next().getProperties().iterator().next();
+			typeToAllPrefetchHandle = prefetchConfig.build();
 
-		qb = qbf.create(EntityTypeBlueprint.class);
-		qByName = qb.build(qb.isEqualTo(qb.property(IEntityTypeBlueprint.NAME), qb.valueName(IEntityTypeBlueprint.NAME)));
+			IQueryBuilder<EntityTypeBlueprint> qb = qbf.create(EntityTypeBlueprint.class);
+			qAll = qb.build();
+
+			qb = qbf.create(EntityTypeBlueprint.class);
+			qByName = qb.build(qb.isEqualTo(qb.property(IEntityTypeBlueprint.NAME), qb.valueName(IEntityTypeBlueprint.NAME)));
+		}
+		finally
+		{
+			lock.releaseAllLocks();
+		}
 	}
 }

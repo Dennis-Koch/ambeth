@@ -7,7 +7,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import de.osthus.ambeth.ioc.IStartingBean;
-import de.osthus.ambeth.ioc.XmlBlueprintModule;
+import de.osthus.ambeth.ioc.XmlModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -22,7 +22,7 @@ public class BlueprintValueObjectConfigReader extends ValueObjectConfigReader im
 	@Autowired(optional = true)
 	protected IBlueprintVomProvider blueprintVomProvider;
 
-	@Autowired(XmlBlueprintModule.JAVASSIST_ORM_ENTITY_TYPE_PROVIDER)
+	@Autowired(XmlModule.JAVASSIST_ORM_ENTITY_TYPE_PROVIDER)
 	protected JavassistOrmEntityTypeProvider entityTypeProvider;
 
 	@Override
@@ -57,16 +57,4 @@ public class BlueprintValueObjectConfigReader extends ValueObjectConfigReader im
 			}
 		}
 	}
-
-	// @Override
-	// protected Class<?> resolveEntityType(Element item)
-	// {
-	// Map<String, IList<Element>> configs = xmlConfigUtil.childrenToElementMap(item);
-	// if (!configs.containsKey(XmlConstants.VALUE_OBJECT))
-	// {
-	// return null;
-	// }
-	// String entityTypeName = xmlConfigUtil.getRequiredAttribute(item, XmlConstants.CLASS);
-	// return entityTypeProvider.resolveEntityType(entityTypeName);
-	// }
 }

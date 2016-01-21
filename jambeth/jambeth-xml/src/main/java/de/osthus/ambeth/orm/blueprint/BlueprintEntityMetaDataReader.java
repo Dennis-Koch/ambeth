@@ -2,7 +2,7 @@ package de.osthus.ambeth.orm.blueprint;
 
 import org.w3c.dom.Document;
 
-import de.osthus.ambeth.ioc.XmlBlueprintModule;
+import de.osthus.ambeth.ioc.XmlModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -17,7 +17,7 @@ public class BlueprintEntityMetaDataReader extends IndependentEntityMetaDataRead
 	@Autowired(optional = true)
 	protected IBlueprintOrmProvider blueprintOrmProvider;
 
-	@Autowired(XmlBlueprintModule.JAVASSIST_ORM_ENTITY_TYPE_PROVIDER)
+	@Autowired(XmlModule.JAVASSIST_ORM_ENTITY_TYPE_PROVIDER)
 	protected JavassistOrmEntityTypeProvider entityTypeProvider;
 
 	@Override

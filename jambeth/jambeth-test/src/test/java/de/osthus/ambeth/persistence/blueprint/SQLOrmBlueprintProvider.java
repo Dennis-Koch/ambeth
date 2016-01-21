@@ -34,7 +34,6 @@ public class SQLOrmBlueprintProvider implements IBlueprintProvider, IBlueprintOr
 		if (vomDocument == null)
 		{
 			lock.getWriteLock().lock();
-			;
 			try
 			{
 				if (vomDocument == null)
