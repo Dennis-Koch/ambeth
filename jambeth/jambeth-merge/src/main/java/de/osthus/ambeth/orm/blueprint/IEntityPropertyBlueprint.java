@@ -13,19 +13,6 @@ public interface IEntityPropertyBlueprint
 
 	void setName(String name);
 
-	/**
-	 * 
-	 * @return the technical name of this property, e.g. the name of the table column
-	 */
-	String getTechnicalName();
-
-	/**
-	 * 
-	 * @param name
-	 *            the technical name of this property, e.g. the name of the table column
-	 */
-	void setTechnicalName(String name);
-
 	String getType();
 
 	void setType(String type);
