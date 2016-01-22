@@ -13,6 +13,7 @@ import de.osthus.ambeth.audit.Signature;
 import de.osthus.ambeth.audit.User;
 import de.osthus.ambeth.cache.interceptor.CacheInterceptor;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
+import de.osthus.ambeth.ioc.ChangeControllerModule;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
@@ -40,7 +41,7 @@ import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.setup.IDatasetBuilderExtendable;
 
 @SQLStructureList({ @SQLStructure("Relations_structure_with_security.sql"), @SQLStructure("de/osthus/ambeth/audit/security-structure.sql") })
-@TestFrameworkModule(Relations20WithSecurityTestModule.class)
+@TestFrameworkModule({ Relations20WithSecurityTestModule.class, ChangeControllerModule.class })
 @TestPropertiesList({
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/orm20.xml;de/osthus/ambeth/audit/security-orm.xml"),
 		@TestProperties(name = MergeConfigurationConstants.SecurityActive, value = "true"),
