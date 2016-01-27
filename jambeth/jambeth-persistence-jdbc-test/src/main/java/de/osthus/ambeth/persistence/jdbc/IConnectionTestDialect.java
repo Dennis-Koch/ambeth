@@ -28,8 +28,6 @@ public interface IConnectionTestDialect
 
 	boolean isEmptySchema(Connection connection) throws SQLException;
 
-	String prepareCommand(String sqlCommand);
-
 	void preProcessConnectionForTest(Connection connection, String[] schemaNames, boolean forcePreProcessing);
 
 	void preStructureRebuild(Connection connection) throws SQLException;

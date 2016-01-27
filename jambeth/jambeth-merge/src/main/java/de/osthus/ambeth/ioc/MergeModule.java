@@ -59,7 +59,9 @@ import de.osthus.ambeth.mixin.EmbeddedMemberMixin;
 import de.osthus.ambeth.mixin.ObjRefMixin;
 import de.osthus.ambeth.objrefstore.IObjRefStoreEntryProvider;
 import de.osthus.ambeth.objrefstore.ObjRefStoreEntryProvider;
+import de.osthus.ambeth.orm.DefaultOrmEntityEntityProvider;
 import de.osthus.ambeth.orm.IOrmConfigGroupProvider;
+import de.osthus.ambeth.orm.IOrmEntityTypeProvider;
 import de.osthus.ambeth.orm.IOrmXmlReaderExtendable;
 import de.osthus.ambeth.orm.IOrmXmlReaderRegistry;
 import de.osthus.ambeth.orm.OrmConfigGroupProvider;
@@ -152,6 +154,8 @@ public class MergeModule implements IInitializingModule
 		IBeanConfiguration ormConfigGroupProvider = beanContextFactory.registerBean(OrmConfigGroupProvider.class).autowireable(IOrmConfigGroupProvider.class);
 		beanContextFactory.link(ormConfigGroupProvider, OrmConfigGroupProvider.handleClearAllCachesEvent).to(IEventListenerExtendable.class)
 				.with(ClearAllCachesEvent.class);
+
+		beanContextFactory.registerBean(DefaultOrmEntityEntityProvider.class).autowireable(IOrmEntityTypeProvider.class);
 
 		IBeanConfiguration ormXmlReaderLegathy = beanContextFactory.registerBean(OrmXmlReaderLegathy.class);
 		ExtendableBean.registerExtendableBean(beanContextFactory, IOrmXmlReaderRegistry.class, IOrmXmlReaderExtendable.class)//

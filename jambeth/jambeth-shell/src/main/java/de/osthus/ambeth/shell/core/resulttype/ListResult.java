@@ -55,10 +55,14 @@ public class ListResult<T> extends CommandResult
 	@Override
 	public String toString()
 	{
+		if (list == null)
+		{
+			return "";
+		}
 		StringBuffer strBuf = new StringBuffer();
 		for (T commandResult : list)
 		{
-			strBuf.append(commandResult.toString());
+			strBuf.append(commandResult.toString()).append(System.lineSeparator());
 		}
 		return strBuf.toString();
 	}

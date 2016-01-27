@@ -5,7 +5,7 @@ import java.util.List;
 /**
  *
  * Binds methods to commands and generates help and usage info
- * 
+ *
  * @author daniel.mueller
  *
  */
@@ -34,10 +34,10 @@ public interface CommandBinding
 	/**
 	 *
 	 */
-	void printHelp();
+	String printHelp();
 
 	/**
 	 *
 	 */
-	void printUsage();
+	String printUsage();
 }

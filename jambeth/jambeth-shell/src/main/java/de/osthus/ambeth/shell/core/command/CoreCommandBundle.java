@@ -11,22 +11,27 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.shell.core.CommandBinding;
 import de.osthus.ambeth.shell.core.annotation.Command;
 import de.osthus.ambeth.shell.core.annotation.CommandArg;
+import de.osthus.ambeth.shell.core.resulttype.CommandResult;
+import de.osthus.ambeth.shell.core.resulttype.ListResult;
+import de.osthus.ambeth.shell.core.resulttype.SingleResult;
 import de.osthus.ambeth.shell.util.Utils;
 
 public class CoreCommandBundle extends AbstractCommandBundle
 {
 
 	@Command(name = "set", description = "set variables into the shell context")
-	public void set(
+	public CommandResult set(
 			@CommandArg(alt = "variable=[value]", name = ".*", optional = true, //
 			description = "stores variables in shell context. Use without arguments or without value to print entire context or the value of the variable to the console")//
 			Entry<String, Object> entry)
 	{
+
 		if (entry != null)
 		{
 			if (entry.getValue() != null && entry.getKey() != null && !entry.getKey().isEmpty())
 			{
 				shell.getContext().set(entry.getKey(), entry.getValue());
+				return null;
 			}
 			else
 			{
@@ -36,7 +41,9 @@ public class CoreCommandBundle extends AbstractCommandBundle
 				{
 					value = "**********";
 				}
-				shell.println(key + "=" + value);
+				ListResult<String> cmdRst = new ListResult<String>();
+				cmdRst.addRecord(key + "=" + value);
+				return cmdRst;
 			}
 		}
 		else
@@ -44,22 +51,27 @@ public class CoreCommandBundle extends AbstractCommandBundle
 
 			IList<String> list = shell.getContext().getAll().keySet().toList();
 			Collections.sort(list);
+			ListResult<String> cmdRst = new ListResult<String>();
 			for (String key : list)
 			{
-				shell.println(key + "=" + shell.getContext().get(key));
+				cmdRst.addRecord(key + "=" + shell.getContext().get(key));
 			}
+			return cmdRst;
 		}
+
 	}
 
 	@Command(name = "echo", description = "Prints messages to the console")
-	public void echo(@CommandArg(name = "", alt = "message", description = "the message to print") Object value)
+	public CommandResult echo(@CommandArg(name = "", alt = "message", description = "the message to print") Object value)
 	{
 		String filteredValue = shell.getContext().filter(value.toString());
-		shell.println(filteredValue);
+		SingleResult cmdRst = new SingleResult("echo");
+		cmdRst.addValue(filteredValue);
+		return cmdRst;
 	}
 
 	@Command(name = "wait", description = "pauses execution for the given amount of milli seconds")
-	public void wait(@CommandArg String millis)
+	public CommandResult wait(@CommandArg String millis)
 	{
 		long lMillis = Long.valueOf(millis);
 		// shell.println("Waiting until " + new Date(System.currentTimeMillis() + lMillis));
@@ -71,17 +83,20 @@ public class CoreCommandBundle extends AbstractCommandBundle
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
+		return null;
 	}
 
 	@Command(name = "exit", description = "exit the shell")
-	public void exit(@CommandArg(optional = true, defaultValue = "0", alt = "exit-code", description = "the exit code") String exitStatus)
+	public CommandResult exit(@CommandArg(optional = true, defaultValue = "0", alt = "exit-code", description = "the exit code") String exitStatus)
 	{
 		shell.exit(Integer.parseInt(exitStatus));
+		return null;
 	}
 
 	@Command(name = "help", description = "list all commands, or print details for a specific command")
-	public void printHelp(@CommandArg(alt = "command-name", optional = true, description = "The name of a command") String commandName)
+	public CommandResult printHelp(@CommandArg(alt = "command-name", optional = true, description = "The name of a command") String commandName)
 	{
+		SingleResult cmdRst = new SingleResult();
 		if (commandName != null)
 		{
 			CommandBinding commandBinding = shell.getCommandBinding(commandName);
@@ -89,7 +104,7 @@ public class CoreCommandBundle extends AbstractCommandBundle
 			{
 				throw new RuntimeException("Unknown command: " + commandName);
 			}
-			commandBinding.printHelp();
+			cmdRst.setValue(commandBinding.printHelp());
 		}
 		else
 		{
@@ -102,20 +117,25 @@ public class CoreCommandBundle extends AbstractCommandBundle
 			}
 
 			String description;
+			StringBuffer strBuf = new StringBuffer();
+			int i = 0;
 			for (String name : help.keySet())
 			{
 				description = help.get(name);
-				shell.print(Utils.stringPadEnd(name, max, ' '));
+				strBuf.append(Utils.stringPadEnd(name, max, ' '));
 				if (!description.isEmpty())
 				{
-					shell.println(" - " + description);
+					strBuf.append(" - " + description);
 				}
-				else
+				if (i < help.keySet().size() - 1)
 				{
-					shell.println();
+					strBuf.append(System.lineSeparator());
 				}
+				i++;
 			}
+			cmdRst.setValue(strBuf.toString());
 		}
+		return cmdRst;
 	}
 
 	public static String readableFileSize(long size)

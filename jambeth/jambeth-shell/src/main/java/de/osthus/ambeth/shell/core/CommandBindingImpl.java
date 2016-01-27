@@ -1,6 +1,8 @@
 package de.osthus.ambeth.shell.core;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -79,7 +81,7 @@ public class CommandBindingImpl implements CommandBinding
 			}
 			if (translatedArgs[index] == null && !ca.optional())
 			{
-				printUsage();
+				shell.println(printUsage());
 				throw new RuntimeException("Mandatory argument is missing!");
 			}
 			index++;
@@ -96,129 +98,186 @@ public class CommandBindingImpl implements CommandBinding
 	}
 
 	@Override
-	public void printHelp()
+	public String printHelp()
 	{
-		if (!description.isEmpty())
+		StringWriter strWriter = new StringWriter();
+		PrintWriter pw = new PrintWriter(strWriter);
+		try
 		{
-			shell.println(description);
+			if (!description.isEmpty())
+			{
+				pw.println(description);
+			}
+
+			pw.print(printUsage());
+
+			return strWriter.toString();
 		}
-		printUsage();
+		finally
+		{
+			pw.close();
+			try
+			{
+				strWriter.close();
+			}
+			catch (IOException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
+
 	}
 
 	/**
 	 * http://courses.cms.caltech.edu/cs11/material/general/usage.html
 	 */
 	@Override
-	public void printUsage()
+	public String printUsage()
 	{
-		String indent = "  ";
-
-		shell.println("Usage:");
-		shell.print(indent + name + " ");
-		int maxArgStringLength = 0;
-		for (CommandArg arg : args)
+		StringWriter strWriter = new StringWriter();
+		PrintWriter pw = new PrintWriter(strWriter);
+		try
 		{
-			String argName = arg.name().isEmpty() ? "<" + arg.alt() + ">" : arg.name();
-			// String argName = arg.name();
+			String indent = "  ";
 
-			// argName += arg.defaultValue();
-
-			argName = !argName.isEmpty() && arg.optional() ? "[" + argName + "]" : argName;
-
-			shell.print(argName + " ");
-			maxArgStringLength = Math.max(maxArgStringLength, Math.max(argName.length(), arg.alt().length() + 2));
-		}
-		shell.println();
-
-		if (args.size() > 0)
-		{
-
-			shell.println("options:");
+			pw.println("Usage:");
+			pw.print(indent + name + " ");
+			int maxArgStringLength = 0;
 			for (CommandArg arg : args)
 			{
 				String argName = arg.name().isEmpty() ? "<" + arg.alt() + ">" : arg.name();
+				// String argName = arg.name();
+
+				// argName += arg.defaultValue();
+
 				argName = !argName.isEmpty() && arg.optional() ? "[" + argName + "]" : argName;
-				shell.print(indent + Utils.stringPadEnd(argName, maxArgStringLength + 4, ' '));
-				String description = arg.description();
-				if (!arg.descriptionFile().isEmpty())
+
+				pw.print(argName + " ");
+				maxArgStringLength = Math.max(maxArgStringLength, Math.max(argName.length(), arg.alt().length() + 2));
+			}
+			pw.println();
+			if (args.size() > 0)
+			{
+				pw.println("options:");
+				for (CommandArg arg : args)
 				{
-					// TODO implement read descriptions from files
-					try
+					String argName = arg.name().isEmpty() ? "<" + arg.alt() + ">" : arg.name();
+					argName = !argName.isEmpty() && arg.optional() ? "[" + argName + "]" : argName;
+					pw.print(indent + Utils.stringPadEnd(argName, maxArgStringLength + 4, ' '));
+					String description = arg.description();
+					if (!arg.descriptionFile().isEmpty())
 					{
-						description = Utils.readInputStream(Thread.currentThread().getContextClassLoader().getResourceAsStream(arg.descriptionFile()));
+						// TODO implement read descriptions from files
+						try
+						{
+							description = Utils.readInputStream(Thread.currentThread().getContextClassLoader().getResourceAsStream(arg.descriptionFile()));
+						}
+						catch (IOException e)
+						{
+							pw.println("Warning: Failure to load description file: " + arg.descriptionFile());
+						}
 					}
-					catch (IOException e)
+					pw.print(description);
+					if (!arg.defaultValue().isEmpty())
 					{
-						shell.println("Warning: Failure to load description file: " + arg.descriptionFile());
+						pw.print(" [DEFAULT: " + arg.defaultValue() + "]");
 					}
+					pw.println();
 				}
-				shell.print(description);
-				if (!arg.defaultValue().isEmpty())
-				{
-					shell.print(" [DEFAULT: " + arg.defaultValue() + "]");
-				}
-				shell.println();
+			}
+			// print addition info from extensions
+			pw.print(printExtensionUsages(commandExtensions.getExtensionsOfCommand(name)));
+
+			return strWriter.toString();
+		}
+		finally
+		{
+			pw.close();
+			try
+			{
+				strWriter.close();
+			}
+			catch (IOException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
-		// print addition info from extensions
-		printExtensionUsages(commandExtensions.getExtensionsOfCommand(name));
+
 	}
 
 	/**
 	 * print usage of command extensions
-	 * 
+	 *
 	 * @param extensions
 	 */
-	private void printExtensionUsages(List<CommandExtension> extensions)
+	private String printExtensionUsages(List<CommandExtension> extensions)
 	{
 		if (extensions == null || extensions.size() == 0)
 		{
-			return;
+			return "";
 		}
-		shell.println();
-
-		List<Usage> usages = new ArrayList<Usage>();
-		int maxParamLength = 0;
-		for (CommandExtension extension : extensions)
+		StringWriter strWriter = new StringWriter();
+		PrintWriter pw = new PrintWriter(strWriter);
+		try
 		{
-			Usage usage = extension.getUsage();
-			if (usage == null)
-			{
-				continue;
-			}
-			usages.add(usage);
+			pw.println();
 
-			if (usage.getParameters() != null)
+			List<Usage> usages = new ArrayList<Usage>();
+			int maxParamLength = 0;
+			for (CommandExtension extension : extensions)
 			{
-				for (Parameter p : usage.getParameters())
+				Usage usage = extension.getUsage();
+				if (usage == null)
 				{
-					maxParamLength = Math.max(p.getName().length(), maxParamLength);
+					continue;
 				}
-			}
+				usages.add(usage);
 
-		}
-		maxParamLength += 3;
-
-		for (Usage usage : usages)
-		{
-
-			shell.println("Extension:   " + usage.getName());
-			shell.println("Description: " + usage.getDescription());
-			if (usage.getParameters() != null && usage.getParameters().size() > 0)
-			{
-				shell.println("Parameters:");
-				for (Parameter p : usage.getParameters())
+				if (usage.getParameters() != null)
 				{
-					shell.print("  " + Utils.stringPadEnd("[" + p.getName() + "]", maxParamLength, ' '));
-					shell.print(p.getDescription());
-					if (p.getDefaultValue() != null)
+					for (Parameter p : usage.getParameters())
 					{
-						shell.print(" [Default: " + p.getDefaultValue() + "]");
+						maxParamLength = Math.max(p.getName().length(), maxParamLength);
 					}
-					shell.println();
 				}
+
 			}
-			shell.println();
+			maxParamLength += 3;
+
+			for (Usage usage : usages)
+			{
+
+				pw.println("Extension:   " + usage.getName());
+				pw.println("Description: " + usage.getDescription());
+				if (usage.getParameters() != null && usage.getParameters().size() > 0)
+				{
+					pw.println("Parameters:");
+					for (Parameter p : usage.getParameters())
+					{
+						pw.print("  " + Utils.stringPadEnd("[" + p.getName() + "]", maxParamLength, ' '));
+						pw.print(p.getDescription());
+						if (p.getDefaultValue() != null)
+						{
+							pw.print(" [Default: " + p.getDefaultValue() + "]");
+						}
+						pw.println();
+					}
+				}
+				pw.println();
+			}
+			return strWriter.toString();
+		}
+		finally
+		{
+			pw.close();
+			try
+			{
+				strWriter.close();
+			}
+			catch (IOException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
 		}
 	}
 

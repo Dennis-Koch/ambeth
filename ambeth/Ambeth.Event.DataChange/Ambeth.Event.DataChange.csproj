@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>De.Osthus.Ambeth</RootNamespace>
-    <AssemblyName>Ambeth.Event.DataChange</AssemblyName>
+    <AssemblyName>net-jambeth-event-datachange-$(ProjectVersion)</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

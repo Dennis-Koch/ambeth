@@ -507,4 +507,11 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 		}
 		return false;
 	}
+
+	@Override
+	public String prepareCommand(String sqlCommand)
+	{
+		return sqlCommand;
+	}
+
 }

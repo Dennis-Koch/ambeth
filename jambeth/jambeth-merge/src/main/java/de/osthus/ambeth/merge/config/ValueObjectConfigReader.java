@@ -30,6 +30,7 @@ import de.osthus.ambeth.merge.IValueObjectConfigExtendable;
 import de.osthus.ambeth.merge.ValueObjectConfig;
 import de.osthus.ambeth.merge.ValueObjectMemberType;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.orm.IOrmEntityTypeProvider;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.util.ParamChecker;
@@ -63,6 +64,9 @@ public class ValueObjectConfigReader implements IEventListener, IDisposableBean,
 	protected String xmlFileName = null;
 
 	protected HashMap<Class<?>, List<Element>> configsToConsume;
+
+	@Autowired
+	protected IOrmEntityTypeProvider ormEntityTypeProvider;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -207,7 +211,7 @@ public class ValueObjectConfigReader implements IEventListener, IDisposableBean,
 				Element voConfig = voConfigs.get(j);
 
 				String valueTypeName = xmlConfigUtil.getRequiredAttribute(voConfig, XmlConstants.CLASS);
-				Class<?> valueType = xmlConfigUtil.getTypeForName(valueTypeName);
+				Class<?> valueType = ormEntityTypeProvider.resolveEntityType(valueTypeName);
 
 				boolean exists = false;
 				for (IValueObjectConfig conf : managedValueObjectConfigs)

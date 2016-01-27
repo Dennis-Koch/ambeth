@@ -88,29 +88,6 @@ public class H2TestDialect extends AbstractConnectionTestDialect
 	}
 
 	@Override
-	public String prepareCommand(String sqlCommand)
-	{
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1 *, *0 *\\)", " BOOLEAN");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *3 *, *0 *\\)", " INT");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *5 *, *0 *\\)", " INT");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *9 *, *0 *\\)", " INT");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *10 *, *0 *\\)", " LONG");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *12 *, *0 *\\)", " LONG");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *18 *, *0 *\\)", " BIGINT");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\* *, *0 *\\)", " BIGINT");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER", " DOUBLE");
-		sqlCommand = prepareCommandIntern(sqlCommand, "VARCHAR2 *\\( *(\\d+) *BYTE *\\)", "VARCHAR($1)");
-		sqlCommand = prepareCommandIntern(sqlCommand, "VARCHAR2 *\\( *(\\d+) *CHAR *\\)", "VARCHAR($1)");
-		sqlCommand = prepareCommandIntern(sqlCommand, " DEFERRABLE *INITIALLY *(?:DEFERRED|IMMEDIATE)", "");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NOORDER", "");
-		sqlCommand = prepareCommandIntern(sqlCommand, " USING +INDEX", "");
-		sqlCommand = prepareCommandIntern(sqlCommand, "MAXVALUE *9{19,} ", "MAXVALUE 999999999999999999 ");
-		sqlCommand = prepareCommandIntern(sqlCommand, "DBMS_RANDOM\\.VALUE", "RAND()");
-		sqlCommand = prepareCommandIntern(sqlCommand, "to_timestamp\\(", "TO_TIMESTAMP(");
-		return sqlCommand;
-	}
-
-	@Override
 	public String[] createOptimisticLockTrigger(Connection connection, String tableName) throws SQLException
 	{
 		String forTriggerName = "TR_" + tableName + "_OL";

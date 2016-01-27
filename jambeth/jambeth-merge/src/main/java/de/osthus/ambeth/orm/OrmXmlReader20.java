@@ -47,15 +47,15 @@ public class OrmXmlReader20 implements IOrmXmlReader, IInitializingBean
 	}
 
 	@Override
-	public Set<EntityConfig> loadFromDocument(Document doc)
+	public Set<EntityConfig> loadFromDocument(Document doc, IOrmEntityTypeProvider ormEntityTypeProvider)
 	{
 		ISet<EntityConfig> entities = new HashSet<EntityConfig>();
-		loadFromDocument(doc, entities, entities);
+		loadFromDocument(doc, entities, entities, ormEntityTypeProvider);
 		return entities;
 	}
 
 	@Override
-	public void loadFromDocument(Document doc, Set<EntityConfig> localEntities, Set<EntityConfig> externalEntities)
+	public void loadFromDocument(Document doc, Set<EntityConfig> localEntities, Set<EntityConfig> externalEntities, IOrmEntityTypeProvider ormEntityTypeProvider)
 	{
 		validateDocument(doc);
 
@@ -109,7 +109,7 @@ public class OrmXmlReader20 implements IOrmXmlReader, IInitializingBean
 		for (int i = entityElements.size(); i-- > 0;)
 		{
 			Element entityTag = entityElements.get(i);
-			EntityConfig entityConfig = readEntityConfig(entityTag, nameToLinkMap);
+			EntityConfig entityConfig = readEntityConfig(entityTag, nameToLinkMap, ormEntityTypeProvider);
 			if (localEntities.contains(entityConfig) || externalEntities.contains(entityConfig))
 			{
 				throw new IllegalStateException("Duplicate orm configuration for entity '" + entityConfig.getEntityType().getName() + "'");
@@ -203,12 +203,12 @@ public class OrmXmlReader20 implements IOrmXmlReader, IInitializingBean
 		return link;
 	}
 
-	protected EntityConfig readEntityConfig(Element entityTag, Map<String, ILinkConfig> nameToLinkMap)
+	protected EntityConfig readEntityConfig(Element entityTag, Map<String, ILinkConfig> nameToLinkMap, IOrmEntityTypeProvider ormEntityTypeProvider)
 	{
 		String entityTypeName = xmlConfigUtil.getRequiredAttribute(entityTag, XmlConstants.CLASS);
 		try
 		{
-			Class<?> entityType = xmlConfigUtil.getTypeForName(entityTypeName);
+			Class<?> entityType = ormEntityTypeProvider.resolveEntityType(entityTypeName);
 			Class<?> realType = proxyHelper.getRealType(entityType);
 			EntityConfig entityConfig = new EntityConfig(entityType, realType);
 

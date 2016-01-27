@@ -158,5 +158,6 @@ public class XmlModule implements IInitializingModule
 		beanContextFactory.link(byteBufferCC).to(ICollectableControllerExtendable.class).with(ByteBuffer.class);
 
 		beanContextFactory.registerBean(CUDResultPrinter.class).autowireable(ICUDResultPrinter.class);
+
 	}
 }
