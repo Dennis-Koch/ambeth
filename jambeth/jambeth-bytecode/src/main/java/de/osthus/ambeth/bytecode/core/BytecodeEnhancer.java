@@ -11,6 +11,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -30,6 +31,7 @@ import de.osthus.ambeth.bytecode.config.BytecodeConfigurationConstants;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.collections.WeakSmartCopyMap;
@@ -51,6 +53,44 @@ import de.osthus.ambeth.util.ReflectUtil;
 
 public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExtendable, IStartingBean
 {
+	private class BytecodeBehaviorComparator implements Comparator<IBytecodeBehavior>
+	{
+		private final Lock writeLock;
+
+		private BytecodeBehaviorComparator(Lock writeLock)
+		{
+			this.writeLock = writeLock;
+		}
+
+		@Override
+		public int compare(IBytecodeBehavior o1, IBytecodeBehavior o2)
+		{
+			writeLock.lock();
+			try
+			{
+				Integer o1order = behaviorToOrderMap.get(o1);
+				Integer o2order = behaviorToOrderMap.get(o2);
+				if (o1order != null)
+				{
+					if (o2order != null)
+					{
+						return o1order.compareTo(o2order);
+					}
+					return -1;
+				}
+				else if (o2order != null)
+				{
+					return 1;
+				}
+				return 0;
+			}
+			finally
+			{
+				writeLock.unlock();
+			}
+		}
+	}
+
 	public static class ValueType extends SmartCopyMap<IEnhancementHint, Reference<Class<?>>>
 	{
 		private volatile int changeCount = 0;
@@ -92,6 +132,8 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 
 	protected final IExtendableContainer<IBytecodeBehavior> bytecodeBehaviorExtensions = new ExtendableContainer<IBytecodeBehavior>(IBytecodeBehavior.class,
 			"bytecodeBehavior");
+
+	protected final IdentityHashMap<IBytecodeBehavior, Integer> behaviorToOrderMap = new IdentityHashMap<IBytecodeBehavior, Integer>();
 
 	protected Map<BytecodeStoreKey, BytecodeStoreItem> enhancedTypes;
 
@@ -273,6 +315,7 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 			ArrayList<IBytecodeBehavior> pendingBehaviors = new ArrayList<IBytecodeBehavior>();
 
 			IBytecodeBehavior[] allBehaviors = bytecodeBehaviorExtensions.getExtensions();
+			Arrays.sort(allBehaviors, new BytecodeBehaviorComparator(writeLock));
 			pendingBehaviors.addAll(allBehaviors);
 
 			ArrayList<Class<?>> enhancedTypesPipeline = new ArrayList<Class<?>>();
@@ -521,14 +564,64 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 	@Override
 	public void registerBytecodeBehavior(IBytecodeBehavior bytecodeBehavior)
 	{
-		bytecodeBehaviorExtensions.register(bytecodeBehavior);
-		refreshSupportedEnhancements();
+		writeLock.lock();
+		try
+		{
+			bytecodeBehaviorExtensions.register(bytecodeBehavior);
+			refreshSupportedEnhancements();
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
+	}
+
+	@Override
+	public void registerBytecodeBehavior(IBytecodeBehavior bytecodeBehavior, int order)
+	{
+		writeLock.lock();
+		try
+		{
+			bytecodeBehaviorExtensions.register(bytecodeBehavior);
+			behaviorToOrderMap.put(bytecodeBehavior, Integer.valueOf(order));
+			refreshSupportedEnhancements();
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
 	}
 
 	@Override
 	public void unregisterBytecodeBehavior(IBytecodeBehavior bytecodeBehavior)
 	{
-		bytecodeBehaviorExtensions.unregister(bytecodeBehavior);
+		writeLock.lock();
+		try
+		{
+			bytecodeBehaviorExtensions.unregister(bytecodeBehavior);
+			behaviorToOrderMap.remove(bytecodeBehavior);
+			refreshSupportedEnhancements();
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
+	}
+
+	@Override
+	public void unregisterBytecodeBehavior(IBytecodeBehavior bytecodeBehavior, int order)
+	{
+		writeLock.lock();
+		try
+		{
+			bytecodeBehaviorExtensions.unregister(bytecodeBehavior);
+			behaviorToOrderMap.remove(bytecodeBehavior);
+			refreshSupportedEnhancements();
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
 	}
 
 	protected void refreshSupportedEnhancements()

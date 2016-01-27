@@ -23,7 +23,7 @@ public class CacheBytecodeModule implements IInitializingModule
 		// cascade $1
 		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, EmbeddedTypeBehavior.class);
 		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, EnhancedTypeBehavior.class);
-		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, DefaultPropertiesBehavior.class);
+		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, DefaultPropertiesBehavior.class, 1);
 		// cascade $2
 		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, LazyRelationsBehavior.class);
 
