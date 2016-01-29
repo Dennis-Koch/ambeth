@@ -78,4 +78,16 @@ public class SQLOrmBlueprintProvider implements IBlueprintProvider, IBlueprintOr
 	{
 		return IAbstractEntity.class;
 	}
+
+	@Override
+	public Document getVomDocument(IEntityTypeBlueprint entityTypeBlueprint)
+	{
+		return null;
+	}
+
+	@Override
+	public Document getOrmDocument(IEntityTypeBlueprint entityTypeBlueprint)
+	{
+		return ormDocumentCreator.getOrmDocument(entityTypeBlueprint.getName(), null);
+	}
 }

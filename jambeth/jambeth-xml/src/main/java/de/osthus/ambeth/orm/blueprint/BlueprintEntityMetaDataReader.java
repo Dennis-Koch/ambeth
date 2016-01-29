@@ -2,14 +2,15 @@ package de.osthus.ambeth.orm.blueprint;
 
 import org.w3c.dom.Document;
 
+import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.XmlBlueprintModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.merge.config.IndependentEntityMetaDataReader;
+import de.osthus.ambeth.merge.config.AbstractEntityMetaDataReader;
 import de.osthus.ambeth.orm.IOrmConfigGroup;
 
-public class BlueprintEntityMetaDataReader extends IndependentEntityMetaDataReader
+public class BlueprintEntityMetaDataReader extends AbstractEntityMetaDataReader implements IStartingBean, IRuntimeBlueprintEntityMetadataReader
 {
 	@LogInstance
 	private ILogger log;
@@ -29,5 +30,13 @@ public class BlueprintEntityMetaDataReader extends IndependentEntityMetaDataRead
 			IOrmConfigGroup ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(ormDocuments, entityTypeProvider);
 			readConfig(ormConfigGroup);
 		}
+	}
+
+	@Override
+	public void addEntityBlueprintOrm(IEntityTypeBlueprint entityTypeBlueprint)
+	{
+		Document ormDocument = blueprintOrmProvider.getOrmDocument(entityTypeBlueprint);
+		IOrmConfigGroup ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(new Document[] { ormDocument }, entityTypeProvider);
+		readConfig(ormConfigGroup);
 	}
 }

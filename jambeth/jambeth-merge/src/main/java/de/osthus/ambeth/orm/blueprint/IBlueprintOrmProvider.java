@@ -10,4 +10,6 @@ import org.w3c.dom.Document;
 public interface IBlueprintOrmProvider
 {
 	Document[] getOrmDocuments();
+
+	Document getOrmDocument(IEntityTypeBlueprint entityTypeBlueprint);
 }
