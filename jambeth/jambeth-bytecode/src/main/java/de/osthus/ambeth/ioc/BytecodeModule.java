@@ -32,12 +32,4 @@ public class BytecodeModule implements IInitializingModule
 		beanContextFactory.link(behaviorBC).to(IBytecodeBehaviorExtendable.class);
 		return behaviorBC;
 	}
-
-	public static IBeanConfiguration addDefaultBytecodeBehavior(IBeanContextFactory beanContextFactory, Class<? extends IBytecodeBehavior> behaviorType,
-			int order)
-	{
-		IBeanConfiguration behaviorBC = beanContextFactory.registerBean(behaviorType);
-		beanContextFactory.link(behaviorBC).to(IBytecodeBehaviorExtendable.class).with(order);
-		return behaviorBC;
-	}
 }

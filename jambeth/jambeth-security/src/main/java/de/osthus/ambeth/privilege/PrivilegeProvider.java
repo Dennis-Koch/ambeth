@@ -7,9 +7,11 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.collections.Tuple3KeyHashMap;
-import de.osthus.ambeth.collections.Tuple5KeyHashMap;
 import de.osthus.ambeth.datachange.IDataChangeListener;
 import de.osthus.ambeth.datachange.model.IDataChange;
 import de.osthus.ambeth.ioc.IInitializingBean;
@@ -48,10 +50,72 @@ import de.osthus.ambeth.security.ISecurityContext;
 import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.service.IPrivilegeService;
+import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.IInterningFeature;
 
 public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializingBean, IDataChangeListener
 {
+	public static class PrivilegeKey
+	{
+		public Class<?> entityType;
+
+		public Object id;
+
+		public byte idIndex;
+
+		public String securityScope;
+
+		public String userSID;
+
+		public PrivilegeKey()
+		{
+			// Intended blank
+		}
+
+		public PrivilegeKey(Class<?> entityType, byte IdIndex, Object id, String userSID)
+		{
+			this.entityType = entityType;
+			idIndex = IdIndex;
+			this.id = id;
+			this.userSID = userSID;
+		}
+
+		@Override
+		public int hashCode()
+		{
+			if (securityScope == null)
+			{
+				return getClass().hashCode() ^ entityType.hashCode() ^ id.hashCode() ^ userSID.hashCode();
+			}
+			else
+			{
+				return getClass().hashCode() ^ entityType.hashCode() ^ id.hashCode() ^ userSID.hashCode() ^ securityScope.hashCode();
+			}
+		}
+
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (this == obj)
+			{
+				return true;
+			}
+			if (!(obj instanceof PrivilegeKey))
+			{
+				return false;
+			}
+			PrivilegeKey other = (PrivilegeKey) obj;
+			return EqualsUtil.equals(id, other.id) && EqualsUtil.equals(entityType, other.entityType) && idIndex == other.idIndex
+					&& EqualsUtil.equals(userSID, other.userSID) && EqualsUtil.equals(securityScope, other.securityScope);
+		}
+
+		@Override
+		public String toString()
+		{
+			return "PrivilegeKey: " + entityType.getName() + "(" + idIndex + "," + id + ") SecurityScope: '" + securityScope + "',SID:" + userSID;
+		}
+	}
+
 	@LogInstance
 	protected ILogger log;
 
@@ -84,7 +148,7 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 
 	protected final Lock writeLock = new ReentrantLock();
 
-	protected final Tuple5KeyHashMap<Class<?>, Object, Byte, String, String, IPrivilege> privilegeCache = new Tuple5KeyHashMap<Class<?>, Object, Byte, String, String, IPrivilege>();
+	protected final LinkedHashMap<PrivilegeKey, IPrivilege> privilegeCache = new LinkedHashMap<PrivilegeKey, IPrivilege>();
 
 	protected final Tuple3KeyHashMap<Class<?>, String, String, ITypePrivilege> entityTypePrivilegeCache = new Tuple3KeyHashMap<Class<?>, String, String, ITypePrivilege>();
 
@@ -100,7 +164,7 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	@Override
 	public IPrivilegeCache createPrivilegeCache()
 	{
-		throw new UnsupportedOperationException("Not implemented");
+		return beanContext.registerBean(PrivilegeCache.class).finish();
 	}
 
 	@Override
@@ -199,34 +263,33 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 		writeLock.lock();
 		try
 		{
-			Tuple5KeyHashMap<Class<?>, Object, Byte, String, String, IPrivilege> privilegeResultOfNewEntities = null;
+			HashMap<PrivilegeKey, IPrivilege> privilegeResultOfNewEntities = null;
 			for (int a = 0, size = privilegeResults.size(); a < size; a++)
 			{
 				IPrivilegeOfService privilegeResult = privilegeResults.get(a);
 				IObjRef reference = privilegeResult.getReference();
 
+				PrivilegeKey privilegeKey = new PrivilegeKey(reference.getRealType(), reference.getIdNameIndex(), reference.getId(), userSID);
 				boolean useCache = true;
-				Object id = reference.getId();
-				Byte idIndex = Byte.valueOf(reference.getIdNameIndex());
-				if (id == null)
+				if (privilegeKey.id == null)
 				{
 					useCache = false;
-					id = reference;
+					privilegeKey.id = reference;
 				}
-				String securityScope = interningFeature.intern(privilegeResult.getSecurityScope().getName());
+				privilegeKey.securityScope = interningFeature.intern(privilegeResult.getSecurityScope().getName());
 
 				IPrivilege privilege = createPrivilegeFromServiceResult(reference, privilegeResult);
 				if (useCache)
 				{
-					privilegeCache.put(reference.getRealType(), id, idIndex, userSID, securityScope, privilege);
+					privilegeCache.put(privilegeKey, privilege);
 				}
 				else
 				{
 					if (privilegeResultOfNewEntities == null)
 					{
-						privilegeResultOfNewEntities = new Tuple5KeyHashMap<Class<?>, Object, Byte, String, String, IPrivilege>();
+						privilegeResultOfNewEntities = new HashMap<PrivilegeKey, IPrivilege>();
 					}
-					privilegeResultOfNewEntities.put(reference.getRealType(), id, idIndex, userSID, securityScope, privilege);
+					privilegeResultOfNewEntities.put(privilegeKey, privilege);
 				}
 			}
 			return createResult(objRefs, securityScopes, null, authorization, privilegeResultOfNewEntities);
@@ -396,16 +459,13 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	}
 
 	protected IPrivilegeResult createResult(List<? extends IObjRef> objRefs, ISecurityScope[] securityScopes, List<IObjRef> missingObjRefs,
-			IAuthorization authorization, Tuple5KeyHashMap<Class<?>, Object, Byte, String, String, IPrivilege> privilegeResultOfNewEntities)
+			IAuthorization authorization, IMap<PrivilegeKey, IPrivilege> privilegeResultOfNewEntities)
 	{
+		PrivilegeKey privilegeKey = null;
+
 		IPrivilege[] result = new IPrivilege[objRefs.size()];
 		String userSID = authorization.getSID();
 
-		String[] securityScopesNames = new String[securityScopes.length];
-		for (int a = securityScopes.length; a-- > 0;)
-		{
-			securityScopesNames[a] = interningFeature.intern(securityScopes[a].getName());
-		}
 		for (int index = objRefs.size(); index-- > 0;)
 		{
 			IObjRef objRef = objRefs.get(index);
@@ -413,25 +473,29 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 			{
 				continue;
 			}
+			if (privilegeKey == null)
+			{
+				privilegeKey = new PrivilegeKey();
+			}
 			boolean useCache = true;
-			Class<?> entityType = objRef.getRealType();
-			Byte idIndex = Byte.valueOf(objRef.getIdNameIndex());
-			Object id = objRef.getId();
-
-			if (id == null)
+			privilegeKey.entityType = objRef.getRealType();
+			privilegeKey.idIndex = objRef.getIdNameIndex();
+			privilegeKey.id = objRef.getId();
+			privilegeKey.userSID = userSID;
+			if (privilegeKey.id == null)
 			{
 				useCache = false;
 				// use the ObjRef instance as the id
-				id = objRef;
+				privilegeKey.id = objRef;
 			}
 
 			IPrivilege mergedPrivilegeItem = null;
-			for (int a = securityScopesNames.length; a-- > 0;)
+			for (int a = securityScopes.length; a-- > 0;)
 			{
-				String securityScope = securityScopesNames[a];
+				privilegeKey.securityScope = securityScopes[a].getName();
 
-				IPrivilege existingPrivilegeItem = useCache ? privilegeCache.get(entityType, id, idIndex, userSID, securityScope)
-						: privilegeResultOfNewEntities != null ? privilegeResultOfNewEntities.get(entityType, id, idIndex, userSID, securityScope) : null;
+				IPrivilege existingPrivilegeItem = useCache ? privilegeCache.get(privilegeKey)
+						: privilegeResultOfNewEntities != null ? privilegeResultOfNewEntities.get(privilegeKey) : null;
 				if (existingPrivilegeItem == null)
 				{
 					mergedPrivilegeItem = null;

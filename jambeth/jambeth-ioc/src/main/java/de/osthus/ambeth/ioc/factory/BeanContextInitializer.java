@@ -3,7 +3,6 @@ package de.osthus.ambeth.ioc.factory;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Field;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -527,29 +526,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			{
 				if (autowired != null && !autowired.optional())
 				{
-					ArrayList<Class<?>> moduleTypes = new ArrayList<Class<?>>();
-					for (Object beanAlreadyProcessed : beanContextInit.initializedOrdering)
-					{
-						if (beanAlreadyProcessed instanceof IInitializingModule)
-						{
-							moduleTypes.add(beanAlreadyProcessed.getClass());
-						}
-					}
-					Collections.sort(moduleTypes, new Comparator<Class<?>>()
-					{
-						@Override
-						public int compare(java.lang.Class<?> o1, java.lang.Class<?> o2)
-						{
-							return o1.getName().compareTo(o2.getName());
-						}
-					});
-					StringBuilder sb = new StringBuilder("Could not resolve mandatory autowiring constraint on property '");
-					sb.append(prop.getName()).append("' of type '").append(propertyType.getName()).append("'");
-					for (Class<?> moduleType : moduleTypes)
-					{
-						sb.append("\n\t+ ").append(moduleType.getName());
-					}
-					throw maskBeanBasedException(sb.toString(), beanConfiguration, null);
+					throw maskBeanBasedException("Could not resolve mandatory autowiring constraint on property '" + prop.getName() + "' of type '"
+							+ propertyType.getName() + "'", beanConfiguration, null);
 				}
 				continue;
 			}

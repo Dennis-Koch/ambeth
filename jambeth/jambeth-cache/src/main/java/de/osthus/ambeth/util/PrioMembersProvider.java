@@ -132,16 +132,12 @@ public class PrioMembersProvider implements IPrioMembersProvider
 			{
 				continue;
 			}
-			IEntityMetaData targetMetaData = entityMetaDataProvider.getMetaData(targetEntityType, true);
-			if (targetMetaData == null)
-			{
-				continue;
-			}
 			if (alreadyVisited == null)
 			{
 				alreadyVisited = new Tuple2KeyHashMap<Class<?>, PrefetchPath[], Boolean>();
 			}
-			if (isPrio2Member(metaData, targetMetaData, prefetchPaths, entityTypeToPrefetchPath, alreadyVisited, mergePrefetchPathsCache))
+			if (isPrio2Member(metaData, entityMetaDataProvider.getMetaData(targetEntityType), prefetchPaths, entityTypeToPrefetchPath, alreadyVisited,
+					mergePrefetchPathsCache))
 			{
 				prioMembersMap.add(member);
 				if (touchedTypesInPriority == null)
