@@ -299,7 +299,19 @@ public class Database implements IDatabase, IInitializingBean, IStartingBean, ID
 		ITable table = typeToTableDict.get(entityType);
 		if (table == null)
 		{
-			throw new IllegalStateException("No table found for entity type '" + entityType.getName() + "'");
+			ITableMetaData tableMetadata = metaData.getTableByType(entityType);
+			if (tableMetadata != null)
+			{
+				table = nameToTableDict.get(tableMetadata.getName());
+			}
+			if (table == null)
+			{
+				throw new IllegalStateException("No table found for entity type '" + entityType.getName() + "'");
+			}
+			else
+			{
+				typeToTableDict.put(entityType, table);
+			}
 		}
 		return table;
 	}

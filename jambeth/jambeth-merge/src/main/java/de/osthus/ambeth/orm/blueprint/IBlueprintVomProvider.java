@@ -11,5 +11,5 @@ public interface IBlueprintVomProvider
 {
 	Document[] getVomDocuments();
 
-	Document getVomDocument(IEntityTypeBlueprint entityTypeBlueprint);
+	Document getVomDocument(String businessObjectType, String valueObjectType);
 }

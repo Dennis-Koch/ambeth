@@ -59,9 +59,10 @@ public class BlueprintValueObjectConfigReader extends ValueObjectConfigReader im
 		}
 	}
 
-	public void addEntityBlueprintVom(IEntityTypeBlueprint entityTypeBlueprint)
+	@Override
+	public void addEntityBlueprintVom(String businessObjectType, String valueObjectType)
 	{
-		Document doc = blueprintVomProvider.getVomDocument(entityTypeBlueprint);
+		Document doc = blueprintVomProvider.getVomDocument(businessObjectType, valueObjectType);
 		HashMap<Class<?>, List<Element>> newConfigsToConsume = readConfig(new Document[] { doc });
 
 		for (Entry<Class<?>, List<Element>> entry : newConfigsToConsume)

@@ -93,7 +93,8 @@ public class DatabaseMetaData implements IDatabaseMetaData, IConfigurableDatabas
 		}
 	}
 
-	protected void handleTable(ITableMetaData table)
+	@Override
+	public void handleTable(ITableMetaData table)
 	{
 		if (table.isPermissionGroup())
 		{

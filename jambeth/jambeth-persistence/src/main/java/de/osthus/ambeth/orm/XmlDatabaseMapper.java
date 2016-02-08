@@ -33,6 +33,7 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.IMemberTypeProvider;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.orm.blueprint.IOrmDatabaseMapper;
 import de.osthus.ambeth.persistence.DatabaseMetaData;
 import de.osthus.ambeth.persistence.DirectedExternalLinkMetaData;
 import de.osthus.ambeth.persistence.DirectedLinkMetaData;
@@ -50,7 +51,7 @@ import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.util.StringConversionHelper;
 
-public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartingBean, IDisposableBean
+public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartingBean, IDisposableBean, IOrmDatabaseMapper
 {
 	public static final Pattern fqToSoftTableNamePattern = Pattern.compile("\"?(.+?)\"?\\.\"?(.+?)\"?");
 
@@ -132,6 +133,11 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 
 	protected IOrmConfigGroup ormConfigGroup = new OrmConfigGroup(EmptySet.<IEntityConfig> emptySet(), EmptySet.<IEntityConfig> emptySet());
 
+	protected HashSet<String> allFullqualifiedSequences;
+
+	@Autowired
+	protected IDatabaseMetaData databaseMetaData;
+
 	@Override
 	public void afterStarted() throws Throwable
 	{
@@ -179,14 +185,6 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 	@Override
 	public void mapFields(Connection connection, String[] schemaNames, IDatabaseMetaData database)
 	{
-		if (xmlFileName == null)
-		{
-			// No config source was set
-			return;
-		}
-
-		handleExternalEntities();
-		HashSet<String> allFullqualifiedSequences;
 		try
 		{
 			allFullqualifiedSequences = new HashSet<String>(connectionDialect.getAllFullqualifiedSequences(connection, schemaNames))
@@ -208,6 +206,20 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
+		if (xmlFileName == null)
+		{
+			// No config source was set
+			return;
+		}
+
+		handleExternalEntities();
+		mapFieldsIntern(ormConfigGroup, database);
+		super.mapFields(connection, schemaNames, database);
+	}
+
+	protected List<ITableMetaData> mapFieldsIntern(IOrmConfigGroup ormConfigGroup, IDatabaseMetaData database)
+	{
+		ArrayList<ITableMetaData> tables = new ArrayList<ITableMetaData>();
 		int maxNameLength = database.getMaxNameLength();
 		for (IEntityConfig entityConfig : ormConfigGroup.getLocalEntityConfigs())
 		{
@@ -345,8 +357,9 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 				table.mapField(field.getName(), propertyInfo.getName());
 			}
 			mapIdAndVersion(table, idName, versionName);
+			tables.add(table);
 		}
-		super.mapFields(connection, schemaNames, database);
+		return tables;
 	}
 
 	protected void configureTableSequence(ITableMetaData table, String sequenceName, int maxNameLength, ISet<String> allFullqualifiedSequences)
@@ -1193,6 +1206,17 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		link = (SqlLinkMetaData) confDatabase.mapLink(link);
 
 		return link;
+	}
+
+	@Override
+	public void mapFields(IOrmConfigGroup ormConfigGroup)
+	{
+		List<ITableMetaData> tables = mapFieldsIntern(ormConfigGroup, databaseMetaData);
+		for (ITableMetaData table : tables)
+		{
+			databaseMetaData.handleTable(table);
+		}
+
 	}
 
 }

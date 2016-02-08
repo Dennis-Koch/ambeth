@@ -144,4 +144,11 @@ public interface IDatabaseMetaData
 	 * @return Links connection the two tables.
 	 */
 	ILinkMetaData[] getLinksByTables(ITableMetaData table1, ITableMetaData table2);
+
+	/**
+	 * Add a single table to the database mapping
+	 * 
+	 * @param table
+	 */
+	void handleTable(ITableMetaData table);
 }

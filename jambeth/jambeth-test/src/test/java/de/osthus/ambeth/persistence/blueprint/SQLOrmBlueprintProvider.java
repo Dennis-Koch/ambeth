@@ -80,7 +80,7 @@ public class SQLOrmBlueprintProvider implements IBlueprintProvider, IBlueprintOr
 	}
 
 	@Override
-	public Document getVomDocument(IEntityTypeBlueprint entityTypeBlueprint)
+	public Document getVomDocument(String businessObjectType, String valueObjectType)
 	{
 		return null;
 	}
@@ -89,5 +89,11 @@ public class SQLOrmBlueprintProvider implements IBlueprintProvider, IBlueprintOr
 	public Document getOrmDocument(IEntityTypeBlueprint entityTypeBlueprint)
 	{
 		return ormDocumentCreator.getOrmDocument(entityTypeBlueprint.getName(), null);
+	}
+
+	@Override
+	public List<? extends IEntityTypeBlueprint> getAll()
+	{
+		return entityTypeBluePrintService.getAll();
 	}
 }

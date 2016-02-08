@@ -15,6 +15,7 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.orm.IOrmPatternMatcher;
 import de.osthus.ambeth.orm.OrmPatternMatcher;
 import de.osthus.ambeth.orm.XmlDatabaseMapper;
+import de.osthus.ambeth.orm.blueprint.IOrmDatabaseMapper;
 import de.osthus.ambeth.persistence.EntityLoader;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IEntityLoader;
@@ -57,7 +58,7 @@ public class PersistenceModule implements IInitializingModule
 
 		beanContextFactory.registerBean("databaseSessionIdController", DatabaseSessionIdController.class).autowireable(IDatabaseSessionIdController.class);
 
-		beanContextFactory.registerBean(XmlDatabaseMapper.class).precedence(PrecedenceType.HIGH);
+		beanContextFactory.registerBean(XmlDatabaseMapper.class).precedence(PrecedenceType.HIGH).autowireable(IOrmDatabaseMapper.class);
 
 		beanContextFactory.registerBean(OrmPatternMatcher.class).autowireable(IOrmPatternMatcher.class);
 
