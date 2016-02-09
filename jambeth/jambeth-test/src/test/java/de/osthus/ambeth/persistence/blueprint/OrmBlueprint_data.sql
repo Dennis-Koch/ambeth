@@ -1,5 +1,5 @@
 -- Business object
-INSERT INTO "BL_ENTITY_TYPE" (ID, VERSION, NAME, INTERFACES, IS_CLASS) VALUES (1, 1, 'de.osthus.ambeth.persistence.blueprint.TestClass', null, 0);
+INSERT INTO "BL_ENTITY_TYPE" (ID, VERSION, NAME, INTERFACES, IS_CLASS) VALUES (1, 1, 'de.osthus.ambeth.persistence.blueprint.TestClass',  STRING_ARRAY('de.osthus.ambeth.model.IAbstractEntity'), 0);
 
 INSERT INTO "BL_ENTITY_PROPERTY" (ID, VERSION, NAME, TYPE, "ORDER", READONLY)  VALUES (1, 1, 'Something', 'java.lang.String', 0, 0);
 INSERT INTO "BL_LINK_ENTITY_TO_ENTITY_PROP" (ENTITY_ID, ENTITY_PROP_ID) VALUES ('1', '1');
