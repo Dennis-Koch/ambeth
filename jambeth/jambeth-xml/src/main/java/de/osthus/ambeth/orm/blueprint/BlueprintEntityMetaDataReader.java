@@ -42,5 +42,6 @@ public class BlueprintEntityMetaDataReader extends AbstractEntityMetaDataReader 
 		Document ormDocument = blueprintOrmProvider.getOrmDocument(entityTypeBlueprint);
 		IOrmConfigGroup ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(new Document[] { ormDocument }, entityTypeProvider);
 		readConfig(ormConfigGroup);
+		blueprintDatabaseMapper.mapFields(ormConfigGroup);
 	}
 }
