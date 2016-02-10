@@ -6,6 +6,7 @@ import java.util.Map.Entry;
 
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashMap;
+import de.osthus.ambeth.database.IDatabaseMappedListener;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -259,5 +260,36 @@ public class JDBCDatabaseWrapper extends Database
 	public void enableConstraints(IList<String> disabled)
 	{
 		connectionDialect.enableConstraints(connection, disabled);
+	}
+
+	@Override
+	public void registerNewTable(String tableName)
+	{
+		ITableMetaData tableMD = ((JDBCDatabaseMetaData) metaData).getTableByName(tableName);
+		JdbcTable table = new JdbcTable();
+		tables.add(table);
+		// TODO: Handle links
+		table.init(tableMD, new IdentityHashMap<IDirectedLinkMetaData, IDirectedLink>());
+		table = serviceContext.registerWithLifecycle(table)//
+				.propertyValue("MetaData", tableMD)//
+				.finish();
+
+		Class<?> entityType = table.getMetaData().getEntityType();
+		nameToTableDict.put(table.getMetaData().getName(), table);
+
+		if (table.getMetaData().isArchive())
+		{
+			typeToArchiveTableDict.put(entityType, table);
+		}
+		else
+		{
+			typeToTableDict.put(entityType, table);
+		}
+
+		IList<IDatabaseMappedListener> databaseMappedListeners = serviceContext.getObjects(IDatabaseMappedListener.class);
+		for (IDatabaseMappedListener listener : databaseMappedListeners)
+		{
+			listener.newTableMetaData(table.getMetaData());
+		}
 	}
 }

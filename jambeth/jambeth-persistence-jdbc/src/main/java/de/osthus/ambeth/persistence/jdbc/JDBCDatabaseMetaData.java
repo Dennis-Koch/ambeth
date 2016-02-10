@@ -131,6 +131,39 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
 		singleSchema = schemaNames.length == 1;
 	}
 
+	@Override
+	public ITableMetaData registerNewTable(Connection connection, String fqTableName)
+	{
+		try
+		{
+			if (!XmlDatabaseMapper.fqToSoftTableNamePattern.matcher(fqTableName).matches())
+			{
+				fqTableName = getSchemaNames()[0] + "." + fqTableName;
+			}
+			Set<String> fqDataTableNames = new LinkedHashSet<String>();
+			fqDataTableNames.add(fqTableName);
+
+			LinkedHashMap<String, List<String[]>> linkNameToEntryMap = new LinkedHashMap<String, List<String[]>>();
+			Set<String> fkFields = new HashSet<String>();
+			final Map<String, List<FieldMetaData>> tableNameToFields = new HashMap<String, List<FieldMetaData>>();
+			Map<String, List<String>> tableNameToPkFieldsMap = new HashMap<String, List<String>>();
+
+			// Load required database metadata
+			loadLinkInfos(connection, linkNameToEntryMap, fkFields);
+			loadTableFields(connection, fqDataTableNames, tableNameToFields);
+			mapPrimaryKeys(connection, fqDataTableNames, tableNameToPkFieldsMap);
+
+			ITableMetaData newTable = createOneTable(connection, fkFields, tableNameToFields.get(fqTableName), tableNameToPkFieldsMap.get(fqTableName),
+					fqTableName);
+
+			return newTable;
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
 	public void init(Connection connection)
 	{
 		try
@@ -160,78 +193,7 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
 
 			for (String fqTableName : fqDataTableNames)
 			{
-				boolean isPermissionGroupTable = ormPatternMatcher.matchesPermissionGroupPattern(fqTableName);
-				if (log.isDebugEnabled())
-				{
-					if (isPermissionGroupTable)
-					{
-						log.debug("Recognizing table " + fqTableName + " as permission group table");
-					}
-					else
-					{
-						log.debug("Recognizing table " + fqTableName + " as entity table waiting");
-					}
-				}
-				SqlTableMetaData table = serviceContext.registerAnonymousBean(SqlTableMetaData.class)//
-						.propertyValue("InitialVersion", Integer.valueOf(1))//
-						.propertyValue("Name", fqTableName)//
-						.propertyValue("FullqualifiedEscapedName", XmlDatabaseMapper.escapeName(fqTableName))//
-						.propertyValue("ViewBased", viewNames.contains(fqTableName)).finish();
-
-				List<String> pkFieldNames = tableNameToPkFieldsMap.get(fqTableName);
-				List<FieldMetaData> fields = tableNameToFields.get(fqTableName);
-
-				if (pkFieldNames == null)
-				{
-					pkFieldNames = new ArrayList<String>(0); // Dummy empty list
-				}
-				FieldMetaData[] pkFields = new FieldMetaData[pkFieldNames.size()];
-				handleTechnicalFields(table, pkFieldNames, fields, pkFields);
-
-				if (pkFields.length > 1 && !isPermissionGroupTable && log.isWarnEnabled())
-				{
-					log.warn("TableMetaData '" + table.getName() + "' has a composite primary key which is currently not supported.");
-				}
-				if (pkFields.length > 0)
-				{
-					table.setIdFields(pkFields);
-					pkFields[0].setIdIndex(ObjRef.PRIMARY_KEY_INDEX);
-				}
-
-				ILinkedMap<String, String[]> uniqueNameToFieldsMap = getUniqueConstraints(connection, table);
-				Collections.sort(fields, namedItemComparator);
-
-				for (int a = 0, size = fields.size(); a < size; a++)
-				{
-					FieldMetaData field = fields.get(a);
-					field.setTable(table);
-					table.mapField(field);
-				}
-				List<IFieldMetaData> alternateIdFields = new ArrayList<IFieldMetaData>();
-				for (Entry<String, String[]> entry : uniqueNameToFieldsMap)
-				{
-					String[] columnNames = entry.getValue();
-					if (columnNames.length != 1)
-					{
-						continue;
-					}
-					String fkFieldsKey = tableAndFieldToFKKey(fqTableName, columnNames[0]);
-					if (fkFields.contains(fkFieldsKey))
-					{
-						continue;
-					}
-					// Single column unique constraints can be handled as alternate keys...
-					String columnName = columnNames[0];
-					IFieldMetaData uniqueConstraintField = table.getFieldByName(columnName);
-					((FieldMetaData) uniqueConstraintField).setAlternateId();
-					((FieldMetaData) uniqueConstraintField).setIdIndex((byte) alternateIdFields.size());
-					alternateIdFields.add(uniqueConstraintField);
-				}
-				table.setAlternateIdFields(alternateIdFields.toArray(new IFieldMetaData[alternateIdFields.size()]));
-
-				getTables().add(table);
-
-				putTableByName(fqTableName, table);
+				createOneTable(connection, fkFields, tableNameToFields.get(fqTableName), tableNameToPkFieldsMap.get(fqTableName), fqTableName);
 			}
 			Collections.sort(getTables(), new Comparator<ITableMetaData>()
 			{
@@ -317,6 +279,81 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
 		{
 			databaseMappedListeners.get(a).databaseMapped(this);
 		}
+	}
+
+	protected SqlTableMetaData createOneTable(Connection connection, Set<String> fkFields, List<FieldMetaData> fields, List<String> pkFieldNames,
+			String fqTableName) throws SQLException
+	{
+		boolean isPermissionGroupTable = ormPatternMatcher.matchesPermissionGroupPattern(fqTableName);
+		if (log.isDebugEnabled())
+		{
+			if (isPermissionGroupTable)
+			{
+				log.debug("Recognizing table " + fqTableName + " as permission group table");
+			}
+			else
+			{
+				log.debug("Recognizing table " + fqTableName + " as entity table waiting");
+			}
+		}
+		SqlTableMetaData table = serviceContext.registerAnonymousBean(SqlTableMetaData.class)//
+				.propertyValue("InitialVersion", Integer.valueOf(1))//
+				.propertyValue("Name", fqTableName)//
+				.propertyValue("FullqualifiedEscapedName", XmlDatabaseMapper.escapeName(fqTableName))//
+				.propertyValue("ViewBased", viewNames.contains(fqTableName)).finish();
+
+		if (pkFieldNames == null)
+		{
+			pkFieldNames = new ArrayList<String>(0); // Dummy empty list
+		}
+		FieldMetaData[] pkFields = new FieldMetaData[pkFieldNames.size()];
+		handleTechnicalFields(table, pkFieldNames, fields, pkFields);
+
+		if (pkFields.length > 1 && !isPermissionGroupTable && log.isWarnEnabled())
+		{
+			log.warn("TableMetaData '" + table.getName() + "' has a composite primary key which is currently not supported.");
+		}
+		if (pkFields.length > 0)
+		{
+			table.setIdFields(pkFields);
+			pkFields[0].setIdIndex(ObjRef.PRIMARY_KEY_INDEX);
+		}
+
+		ILinkedMap<String, String[]> uniqueNameToFieldsMap = getUniqueConstraints(connection, table);
+		Collections.sort(fields, namedItemComparator);
+
+		for (int a = 0, size = fields.size(); a < size; a++)
+		{
+			FieldMetaData field = fields.get(a);
+			field.setTable(table);
+			table.mapField(field);
+		}
+		List<IFieldMetaData> alternateIdFields = new ArrayList<IFieldMetaData>();
+		for (Entry<String, String[]> entry : uniqueNameToFieldsMap)
+		{
+			String[] columnNames = entry.getValue();
+			if (columnNames.length != 1)
+			{
+				continue;
+			}
+			String fkFieldsKey = tableAndFieldToFKKey(fqTableName, columnNames[0]);
+			if (fkFields.contains(fkFieldsKey))
+			{
+				continue;
+			}
+			// Single column unique constraints can be handled as alternate keys...
+			String columnName = columnNames[0];
+			IFieldMetaData uniqueConstraintField = table.getFieldByName(columnName);
+			((FieldMetaData) uniqueConstraintField).setAlternateId();
+			((FieldMetaData) uniqueConstraintField).setIdIndex((byte) alternateIdFields.size());
+			alternateIdFields.add(uniqueConstraintField);
+		}
+		table.setAlternateIdFields(alternateIdFields.toArray(new IFieldMetaData[alternateIdFields.size()]));
+
+		getTables().add(table);
+
+		putTableByName(fqTableName, table);
+		return table;
 	}
 
 	@Property(name = PersistenceConfigurationConstants.DatabaseTableIgnore, mandatory = false)

@@ -203,4 +203,10 @@ public class DatabaseDummy implements IDatabase
 	{
 		return null;
 	}
+
+	@Override
+	public void registerNewTable(String tableName)
+	{
+
+	}
 }

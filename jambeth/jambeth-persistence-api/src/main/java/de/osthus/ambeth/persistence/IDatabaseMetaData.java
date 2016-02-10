@@ -1,5 +1,6 @@
 package de.osthus.ambeth.persistence;
 
+import java.sql.Connection;
 import java.util.Collection;
 import java.util.List;
 
@@ -151,4 +152,15 @@ public interface IDatabaseMetaData
 	 * @param table
 	 */
 	void handleTable(ITableMetaData table);
+
+	/**
+	 * Register a new table after the context was started
+	 * 
+	 * @param connection
+	 *            the current connection
+	 * @param fqTableName
+	 *            the full qualified table name
+	 * @return the newly registered table metadata
+	 */
+	ITableMetaData registerNewTable(Connection connection, String fqTableName);
 }

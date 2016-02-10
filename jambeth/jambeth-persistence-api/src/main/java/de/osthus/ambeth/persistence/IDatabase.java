@@ -224,4 +224,11 @@ public interface IDatabase extends IDisposable, IDatabaseDisposeHookExtendable
 	 *            List of names of disabled constraint
 	 */
 	void enableConstraints(IList<String> enableConstraintsSQL);
+
+	/**
+	 * Register a new table after the context was started
+	 * 
+	 * @param tableName
+	 */
+	void registerNewTable(String tableName);
 }

@@ -375,4 +375,10 @@ public class Database implements IDatabase, IInitializingBean, IStartingBean, ID
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
+
+	@Override
+	public void registerNewTable(String tableName)
+	{
+		throw new UnsupportedOperationException("Not implemented");
+	}
 }

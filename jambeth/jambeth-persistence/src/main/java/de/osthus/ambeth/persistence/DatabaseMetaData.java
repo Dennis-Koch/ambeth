@@ -527,4 +527,10 @@ public class DatabaseMetaData implements IDatabaseMetaData, IConfigurableDatabas
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
+
+	@Override
+	public ITableMetaData registerNewTable(Connection connection, String fqTableName)
+	{
+		throw new UnsupportedOperationException("Not implemented");
+	}
 }

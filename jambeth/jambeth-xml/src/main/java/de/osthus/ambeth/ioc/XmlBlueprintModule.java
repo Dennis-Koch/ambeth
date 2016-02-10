@@ -7,6 +7,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.orm.blueprint.BlueprintEntityMetaDataReader;
 import de.osthus.ambeth.orm.blueprint.BlueprintValueObjectConfigReader;
 import de.osthus.ambeth.orm.blueprint.IRuntimeBlueprintEntityMetadataReader;
+import de.osthus.ambeth.orm.blueprint.IRuntimeBlueprintVomReader;
 import de.osthus.ambeth.orm.blueprint.JavassistOrmEntityTypeProvider;
 
 @BootstrapModule
@@ -25,7 +26,8 @@ public class XmlBlueprintModule implements IInitializingModule
 		beanContextFactory.registerBean(XmlBlueprintModule.JAVASSIST_ORM_ENTITY_TYPE_PROVIDER, JavassistOrmEntityTypeProvider.class);
 		beanContextFactory.registerBean(XmlBlueprintModule.BLUEPRINT_META_DATA_READER, BlueprintEntityMetaDataReader.class).autowireable(
 				IRuntimeBlueprintEntityMetadataReader.class);
-		beanContextFactory.registerBean(XmlBlueprintModule.BLUEPRINT_VALUE_OBJECT_READER, BlueprintValueObjectConfigReader.class);
+		beanContextFactory.registerBean(XmlBlueprintModule.BLUEPRINT_VALUE_OBJECT_READER, BlueprintValueObjectConfigReader.class).autowireable(
+				IRuntimeBlueprintVomReader.class);
 
 	}
 }
