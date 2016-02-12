@@ -64,7 +64,7 @@ public class DialectSelectorModule implements IInitializingModule, IPropertyLoad
 	{
 		if (databaseProtocol == null)
 		{
-			//At this point databaseProtocol MUST be initialized
+			// At this point databaseProtocol MUST be initialized
 			ParamChecker.assertNotNull(databaseProtocol, "databaseProtocol");
 		}
 		IConnector connector = loadConnector(databaseProtocol);
@@ -117,7 +117,7 @@ public class DialectSelectorModule implements IInitializingModule, IPropertyLoad
 		}
 		catch (Throwable e)
 		{
-			RuntimeExceptionUtil.mask(e, "The " + getClass().getSimpleName() + " was not able to get the database protocol from the dataSource");
+			throw RuntimeExceptionUtil.mask(e, "The " + getClass().getSimpleName() + " was not able to get the database protocol from the dataSource");
 			// Do nothing and hope that the connection is configured elsewhere
 		}
 	}
