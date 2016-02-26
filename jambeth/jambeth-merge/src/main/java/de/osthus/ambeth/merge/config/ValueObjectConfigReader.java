@@ -195,7 +195,7 @@ public class ValueObjectConfigReader implements IEventListener, IDisposableBean,
 			return null;
 		}
 		String entityTypeName = xmlConfigUtil.getRequiredAttribute(item, XmlConstants.CLASS);
-		return xmlConfigUtil.getTypeForName(entityTypeName);
+		return ormEntityTypeProvider.resolveEntityType(entityTypeName);
 	}
 
 	protected void consumeConfigs(IEntityMetaData metaData, List<Element> entities)
