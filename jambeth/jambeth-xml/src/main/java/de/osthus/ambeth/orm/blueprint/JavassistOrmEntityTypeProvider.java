@@ -58,6 +58,10 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 			return alreadLoadedClasses.get(entityTypeName);
 		}
 		IEntityTypeBlueprint entityTypeBlueprint = blueprintProvider.resolveEntityTypeBlueprint(entityTypeName);
+		if (entityTypeBlueprint == null)
+		{
+			throw RuntimeExceptionUtil.mask(new ClassNotFoundException(entityTypeName + " is not a blueprint class"));
+		}
 
 		CtClass newClass;
 		if (entityTypeBlueprint.getIsClass())

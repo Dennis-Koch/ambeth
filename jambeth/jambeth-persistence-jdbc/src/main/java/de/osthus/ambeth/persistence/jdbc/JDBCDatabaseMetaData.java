@@ -156,6 +156,37 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
 			ITableMetaData newTable = createOneTable(connection, fkFields, tableNameToFields.get(fqTableName), tableNameToPkFieldsMap.get(fqTableName),
 					fqTableName);
 
+			for (Entry<String, List<String[]>> entry : linkNameToEntryMap)
+			{
+				String linkName = entry.getKey();
+				if (!fqTableName.equals(linkName))
+				{
+					// Only handle links that are from the newly created table
+					continue;
+				}
+				List<String[]> values = entry.getValue();
+				List<FieldMetaData> fields = tableNameToFields.get(linkName);
+				ITableMetaData table = nameToTableDict.get(linkName);
+
+				int hasPermissionGroupField = fieldsContainPermissionGroup(fields);
+
+				if (table != null)
+				{
+					handleLinkWithinDataTable(connection, linkName, values, fields);
+				}
+				else if (((fields.size() - hasPermissionGroupField) == 3) && values.size() == 2)
+				{
+					handleLinkTable(connection, linkName, values);
+				}
+				else if (((fields.size() - hasPermissionGroupField) == 3) && values.size() == 1)
+				{
+					handleLinkTableToExtern(connection, linkName, values);
+				}
+				else
+				{
+					throw new IllegalStateException("Type of link can not be determined: '" + linkName + "'");
+				}
+			}
 			return newTable;
 		}
 		catch (Throwable e)
