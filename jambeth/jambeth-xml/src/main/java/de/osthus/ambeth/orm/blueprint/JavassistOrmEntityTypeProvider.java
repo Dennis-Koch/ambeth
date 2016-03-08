@@ -25,8 +25,10 @@ import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.orm.IOrmEntityTypeProvider;
 import de.osthus.ambeth.util.IConversionHelper;
+import de.osthus.ambeth.util.StringConversionHelper;
 
 public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, IStartingBean
 {
@@ -38,6 +40,9 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 
 	@Autowired
 	protected IConversionHelper conversionHelper;
+
+	@Autowired
+	protected IThreadLocalObjectCollector objectCollector;
 
 	protected ClassPool pool;
 
@@ -58,10 +63,6 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 			return alreadLoadedClasses.get(entityTypeName);
 		}
 		IEntityTypeBlueprint entityTypeBlueprint = blueprintProvider.resolveEntityTypeBlueprint(entityTypeName);
-		if (entityTypeBlueprint == null)
-		{
-			throw RuntimeExceptionUtil.mask(new ClassNotFoundException(entityTypeName + " is not a blueprint class"));
-		}
 
 		CtClass newClass;
 		if (entityTypeBlueprint.getIsClass())
@@ -107,7 +108,8 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 				{
 					if (entityTypeBlueprint.getIsClass())
 					{
-						CtField ctField = new CtField(pool.get(prop.getType()), prop.getName(), newClass);
+						CtField ctField = new CtField(pool.get(prop.getType()), StringConversionHelper.lowerCaseFirst(objectCollector, prop.getName()),
+								newClass);
 						newClass.addField(ctField);
 						newClass.addMethod(CtNewMethod.getter("get" + prop.getName(), ctField));
 						newClass.addMethod(CtNewMethod.setter("set" + prop.getName(), ctField));
