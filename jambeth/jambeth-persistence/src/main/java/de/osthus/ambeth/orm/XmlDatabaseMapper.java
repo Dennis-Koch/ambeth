@@ -14,13 +14,16 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptySet;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.collections.ISetEntry;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
+import de.osthus.ambeth.database.IDatabaseMappedListener;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IDisposableBean;
+import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -126,6 +129,9 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 
 	@Autowired
 	protected ISqlBuilder sqlBuilder;
+
+	@Autowired
+	protected IServiceContext serviceContext;
 
 	protected String xmlFileName = null;
 
@@ -1212,9 +1218,15 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 	public void mapFields(IOrmConfigGroup ormConfigGroup)
 	{
 		List<ITableMetaData> tables = mapFieldsIntern(ormConfigGroup, databaseMetaData);
+		IList<IDatabaseMappedListener> databaseMappedListeners = serviceContext.getObjects(IDatabaseMappedListener.class);
+
 		for (ITableMetaData table : tables)
 		{
 			databaseMetaData.handleTable(table);
+			for (IDatabaseMappedListener listener : databaseMappedListeners)
+			{
+				listener.newTableMetaData(table);
+			}
 		}
 
 	}
