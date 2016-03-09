@@ -6,7 +6,6 @@ import java.util.Map.Entry;
 
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashMap;
-import de.osthus.ambeth.database.IDatabaseMappedListener;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -39,14 +38,20 @@ public class JDBCDatabaseWrapper extends Database
 
 	protected long lastTestTime = System.currentTimeMillis(), trustTime = 10000;
 
+	protected IdentityHashMap<ITableMetaData, ITable> alreadyCreatedTableMap;
+
+	private IdentityHashMap<ILinkMetaData, ILink> alreadyCreatedLinkMap;
+
+	private IdentityHashMap<IDirectedLinkMetaData, IDirectedLink> alreadyCreatedDirectedLinkMap;
+
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
 		super.afterPropertiesSet();
 
-		IdentityHashMap<ILinkMetaData, ILink> alreadyCreatedLinkMap = new IdentityHashMap<ILinkMetaData, ILink>();
-		IdentityHashMap<IDirectedLinkMetaData, IDirectedLink> alreadyCreatedDirectedLinkMap = new IdentityHashMap<IDirectedLinkMetaData, IDirectedLink>();
-		IdentityHashMap<ITableMetaData, ITable> alreadyCreatedTableMap = new IdentityHashMap<ITableMetaData, ITable>();
+		alreadyCreatedLinkMap = new IdentityHashMap<ILinkMetaData, ILink>();
+		alreadyCreatedDirectedLinkMap = new IdentityHashMap<IDirectedLinkMetaData, IDirectedLink>();
+		alreadyCreatedTableMap = new IdentityHashMap<ITableMetaData, ITable>();
 
 		for (ITableMetaData tableMD : metaData.getTables())
 		{
@@ -266,13 +271,61 @@ public class JDBCDatabaseWrapper extends Database
 	public void registerNewTable(String tableName)
 	{
 		ITableMetaData tableMD = ((JDBCDatabaseMetaData) metaData).getTableByName(tableName);
+		String fqTableName = tableMD.getName();
 		JdbcTable table = new JdbcTable();
 		tables.add(table);
-		// TODO: Handle links
-		table.init(tableMD, new IdentityHashMap<IDirectedLinkMetaData, IDirectedLink>());
+
+		IdentityHashMap<ILinkMetaData, ILink> newlyCreatedLinkMap = new IdentityHashMap<ILinkMetaData, ILink>();
+		IdentityHashMap<IDirectedLinkMetaData, IDirectedLink> newlyCreatedDirectedLinkMap = new IdentityHashMap<IDirectedLinkMetaData, IDirectedLink>();
+		for (ILinkMetaData linkMD : metaData.getLinks())
+		{
+			JdbcLink link = new JdbcLink();
+			if (alreadyCreatedLinkMap.containsKey(linkMD))
+			{
+				continue;
+			}
+			links.add(link);
+			newlyCreatedLinkMap.put(linkMD, link);
+
+			newlyCreatedDirectedLinkMap.put(linkMD.getDirectedLink(), new DirectedLink());
+			newlyCreatedDirectedLinkMap.put(linkMD.getReverseDirectedLink(), new DirectedLink());
+		}
+		table.init(tableMD, newlyCreatedDirectedLinkMap);
 		table = serviceContext.registerWithLifecycle(table)//
 				.propertyValue("MetaData", tableMD)//
 				.finish();
+		alreadyCreatedTableMap.put(tableMD, table);
+
+		for (Entry<IDirectedLinkMetaData, IDirectedLink> entry : newlyCreatedDirectedLinkMap)
+		{
+			IDirectedLinkMetaData directedLinkMD = entry.getKey();
+			if (directedLinkMD.getFromTable().getName().equals(fqTableName) || directedLinkMD.getToTable().getName().equals(fqTableName))
+			{
+				DirectedLink directedLink = (DirectedLink) entry.getValue();
+				directedLink = serviceContext.registerWithLifecycle(directedLink)//
+						.propertyValue("MetaData", directedLinkMD)//
+						.propertyValue("FromTable", getExistingValue(alreadyCreatedTableMap, directedLinkMD.getFromTable()))//
+						.propertyValue("ToTable", getExistingValue(alreadyCreatedTableMap, directedLinkMD.getToTable()))//
+						.propertyValue("Link", getExistingValue(newlyCreatedLinkMap, directedLinkMD.getLink()))//
+						.propertyValue("Reverse", getExistingValue(newlyCreatedDirectedLinkMap, directedLinkMD.getReverseLink()))//
+						.finish();
+			}
+		}
+		for (Entry<ILinkMetaData, ILink> entry : newlyCreatedLinkMap)
+		{
+			ILinkMetaData linkMD = entry.getKey();
+			if (linkMD.getFromTable().getName().equals(fqTableName) || linkMD.getToTable().getName().equals(fqTableName))
+			{
+				JdbcLink link = (JdbcLink) entry.getValue();
+				link = serviceContext.registerWithLifecycle(link)//
+						.propertyValue("MetaData", linkMD)//
+						.propertyValue("FromTable", getExistingValue(alreadyCreatedTableMap, linkMD.getFromTable()))//
+						.propertyValue("ToTable", getExistingValue(alreadyCreatedTableMap, linkMD.getToTable()))//
+						.propertyValue("DirectedLink", getExistingValue(newlyCreatedDirectedLinkMap, linkMD.getDirectedLink()))//
+						.propertyValue("ReverseDirectedLink", getExistingValue(newlyCreatedDirectedLinkMap, linkMD.getReverseDirectedLink()))//
+						.finish();
+			}
+		}
 
 		Class<?> entityType = table.getMetaData().getEntityType();
 		nameToTableDict.put(table.getMetaData().getName(), table);
@@ -284,12 +337,6 @@ public class JDBCDatabaseWrapper extends Database
 		else
 		{
 			typeToTableDict.put(entityType, table);
-		}
-
-		IList<IDatabaseMappedListener> databaseMappedListeners = serviceContext.getObjects(IDatabaseMappedListener.class);
-		for (IDatabaseMappedListener listener : databaseMappedListeners)
-		{
-			listener.newTableMetaData(table.getMetaData());
 		}
 	}
 }
