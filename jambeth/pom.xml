@@ -843,7 +843,7 @@
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>findbugs-maven-plugin</artifactId>
-					<version>2.5.3</version>
+					<version>3.0.1</version>
 					<configuration>
 						<excludeFilterFile>${jambeth.path.test}/findbugs_exclude_checks.xml</excludeFilterFile>
 					</configuration>
@@ -908,6 +908,7 @@
 		</profile>
 
 		<profile>
+			<!-- TODO 2016-03-16 JH: When finished evaluating move to the JavaDoc Plugin in the OSTHUS pom -->
 			<id>javadoc-jdk8</id>
 			<activation>
 				<jdk>[1.8,1.9)</jdk>
@@ -915,7 +916,6 @@
 			<build>
 				<plugins>
 					<plugin>
-						<!-- TODO 2016-03-16 JH: When finished evaluating move to the JavaDoc Plugin in the OSTHUS pom -->
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
 						<configuration>
