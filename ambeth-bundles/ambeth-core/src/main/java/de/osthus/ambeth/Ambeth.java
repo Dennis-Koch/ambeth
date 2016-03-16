@@ -313,14 +313,14 @@ public class Ambeth implements IAmbethConfiguration, IAmbethApplication
 	protected void registerShutdownHook()
 	{
 		final IServiceContext rootContext = this.rootContext;
-		Runtime.getRuntime().addShutdownHook(new Thread()
+		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
 		{
 			@Override
 			public void run()
 			{
 				rootContext.dispose();
 			}
-		});
+		}));
 	}
 
 	protected void scanForModules()

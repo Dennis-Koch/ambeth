@@ -600,7 +600,7 @@
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-security</artifactId>
@@ -905,6 +905,25 @@
 				<deploy.env>test</deploy.env>
 				<local.server.port>8089</local.server.port>
 			</properties>
+		</profile>
+
+		<profile>
+			<id>javadoc-jdk8</id>
+			<activation>
+				<jdk>[1.8,1.9)</jdk>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<!-- TODO 2016-03-16 JH: When finished evaluating move to the JavaDoc Plugin in the OSTHUS pom -->
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<configuration>
+							<additionalparam>-Xdoclint:none</additionalparam>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
 		</profile>
 
 		<profile>
