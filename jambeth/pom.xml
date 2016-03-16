@@ -908,7 +908,7 @@
 		</profile>
 
 		<profile>
-			<!-- TODO 2016-03-16 JH: When finished evaluating move to the JavaDoc Plugin in the OSTHUS pom -->
+			<!-- TODO 2016-03-16 JH: When finished evaluating move into the OSTHUS pom -->
 			<id>javadoc-jdk8</id>
 			<activation>
 				<jdk>[1.8,1.9)</jdk>
