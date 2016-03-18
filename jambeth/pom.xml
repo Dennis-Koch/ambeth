@@ -600,7 +600,7 @@
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-security</artifactId>
@@ -843,7 +843,7 @@
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>findbugs-maven-plugin</artifactId>
-					<version>2.5.3</version>
+					<version>3.0.1</version>
 					<configuration>
 						<excludeFilterFile>${jambeth.path.test}/findbugs_exclude_checks.xml</excludeFilterFile>
 					</configuration>
@@ -908,6 +908,25 @@
 		</profile>
 
 		<profile>
+			<!-- TODO 2016-03-16 JH: When finished evaluating move into the OSTHUS pom -->
+			<id>javadoc-jdk8</id>
+			<activation>
+				<jdk>[1.8,1.9)</jdk>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<configuration>
+							<additionalparam>-Xdoclint:none</additionalparam>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
 			<id>jenkins</id>
 			<activation>
 				<property>
@@ -920,12 +939,18 @@
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-surefire-plugin</artifactId>
 						<configuration>
+							<testFailureIgnore>true</testFailureIgnore>
 							<forkCount>1C</forkCount>
 							<reuseForks>true</reuseForks>
 							<systemPropertyVariables>
 								<ambeth.test.forkname>f${surefire.forkNumber}</ambeth.test.forkname>
 							</systemPropertyVariables>
 						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>findbugs-maven-plugin</artifactId>
+						<version>3.0.1</version>
 					</plugin>
 				</plugins>
 			</build>

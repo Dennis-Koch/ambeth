@@ -31,18 +31,16 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-checkstyle-plugin</artifactId>
-					<version>2.11</version>
-					<configuration>
-						<configLocation>../jambeth/jambeth-test/checkstyle_checks.xml</configLocation>
-						<propertiesLocation>../jambeth/jambeth-test/checkstyle.properties</propertiesLocation>
+					<configuration><!-- Since the paths are used from the module directories, we need to go up two times -->
+						<configLocation>../../jambeth/jambeth-test/checkstyle_checks.xml</configLocation>
+						<propertiesLocation>../../jambeth/jambeth-test/checkstyle.properties</propertiesLocation>
 					</configuration>
 				</plugin>
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>findbugs-maven-plugin</artifactId>
-					<version>2.5.3</version>
-					<configuration>
-						<excludeFilterFile>../jambeth/jambeth-test/findbugs_exclude_checks.xml</excludeFilterFile>
+					<configuration><!-- Since the path is used from the module directories, we need to go up two times -->
+						<excludeFilterFile>../../jambeth/jambeth-test/findbugs_exclude_checks.xml</excludeFilterFile>
 					</configuration>
 				</plugin>
 				<plugin>
