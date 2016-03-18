@@ -21,13 +21,13 @@ public class BlueprintEntityMetaDataReader extends AbstractEntityMetaDataReader 
 	@Autowired(XmlBlueprintModule.JAVASSIST_ORM_ENTITY_TYPE_PROVIDER)
 	protected JavassistOrmEntityTypeProvider entityTypeProvider;
 
-	@Autowired
+	@Autowired(optional = true)
 	protected IOrmDatabaseMapper blueprintDatabaseMapper;
 
 	@Override
 	public void afterStarted() throws Throwable
 	{
-		if (blueprintOrmProvider != null)
+		if (blueprintOrmProvider != null && blueprintDatabaseMapper != null)
 		{
 			Document[] ormDocuments = blueprintOrmProvider.getOrmDocuments();
 			IOrmConfigGroup ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(ormDocuments, entityTypeProvider);
@@ -39,9 +39,12 @@ public class BlueprintEntityMetaDataReader extends AbstractEntityMetaDataReader 
 	@Override
 	public void addEntityBlueprintOrm(IEntityTypeBlueprint entityTypeBlueprint)
 	{
-		Document ormDocument = blueprintOrmProvider.getOrmDocument(entityTypeBlueprint);
-		IOrmConfigGroup ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(new Document[] { ormDocument }, entityTypeProvider);
-		readConfig(ormConfigGroup);
-		blueprintDatabaseMapper.mapFields(ormConfigGroup);
+		if (blueprintOrmProvider != null && blueprintDatabaseMapper != null)
+		{
+			Document ormDocument = blueprintOrmProvider.getOrmDocument(entityTypeBlueprint);
+			IOrmConfigGroup ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(new Document[] { ormDocument }, entityTypeProvider);
+			readConfig(ormConfigGroup);
+			blueprintDatabaseMapper.mapFields(ormConfigGroup);
+		}
 	}
 }
