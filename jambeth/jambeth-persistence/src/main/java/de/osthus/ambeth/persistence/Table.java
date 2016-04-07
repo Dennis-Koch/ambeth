@@ -12,6 +12,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.IAlreadyLinkedCache;
 
@@ -221,5 +222,22 @@ public class Table implements ITable, IInitializingBean
 	public String toString()
 	{
 		return "Table: " + getMetaData().getName();
+	}
+
+	@Override
+	public void updateLinks()
+	{
+		for (IDirectedLinkMetaData directedLinkMD : metaData.getLinks())
+		{
+			RelationMember member = directedLinkMD.getMember();
+
+			if (member == null || memberNameToLinkDict.containsKey(member.getName()))
+			{
+				continue;
+			}
+
+			IDirectedLink directedLink = linkNameToLinkDict.get(directedLinkMD.getName());
+			memberNameToLinkDict.put(member.getName(), directedLink);
+		}
 	}
 }

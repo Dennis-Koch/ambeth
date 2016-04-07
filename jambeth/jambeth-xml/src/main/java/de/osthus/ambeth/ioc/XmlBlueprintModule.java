@@ -1,6 +1,7 @@
 package de.osthus.ambeth.ioc;
 
 import de.osthus.ambeth.ioc.annotation.BootstrapModule;
+import de.osthus.ambeth.ioc.config.PrecedenceType;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -23,9 +24,10 @@ public class XmlBlueprintModule implements IInitializingModule
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
 
-		beanContextFactory.registerBean(XmlBlueprintModule.JAVASSIST_ORM_ENTITY_TYPE_PROVIDER, JavassistOrmEntityTypeProvider.class);
-		beanContextFactory.registerBean(XmlBlueprintModule.BLUEPRINT_META_DATA_READER, BlueprintEntityMetaDataReader.class).autowireable(
-				IRuntimeBlueprintEntityMetadataReader.class);
+		beanContextFactory.registerBean(XmlBlueprintModule.JAVASSIST_ORM_ENTITY_TYPE_PROVIDER, JavassistOrmEntityTypeProvider.class).precedence(
+				PrecedenceType.HIGHEST);
+		beanContextFactory.registerBean(XmlBlueprintModule.BLUEPRINT_META_DATA_READER, BlueprintEntityMetaDataReader.class)
+				.autowireable(IRuntimeBlueprintEntityMetadataReader.class).precedence(PrecedenceType.HIGH);
 		beanContextFactory.registerBean(XmlBlueprintModule.BLUEPRINT_VALUE_OBJECT_READER, BlueprintValueObjectConfigReader.class).autowireable(
 				IRuntimeBlueprintVomReader.class);
 

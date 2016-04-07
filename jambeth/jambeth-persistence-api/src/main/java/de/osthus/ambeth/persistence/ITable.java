@@ -154,4 +154,9 @@ public interface ITable
 	 * @return Link mapped to the member.
 	 */
 	IDirectedLink getLinkByMemberName(String memberName);
+
+	/**
+	 * Call this method if you created new links from/to this table
+	 */
+	void updateLinks();
 }

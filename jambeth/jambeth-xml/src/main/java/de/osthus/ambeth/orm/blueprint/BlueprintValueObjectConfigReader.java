@@ -38,24 +38,7 @@ public class BlueprintValueObjectConfigReader extends ValueObjectConfigReader im
 		if (blueprintVomProvider != null)
 		{
 			Document[] docs = blueprintVomProvider.getVomDocuments();
-			configsToConsume = readConfig(docs);
-
-			for (Entry<Class<?>, List<Element>> entry : configsToConsume)
-			{
-				Class<?> entityType = entry.getKey();
-				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType, true);
-				if (metaData == null)
-				{
-					if (log.isInfoEnabled())
-					{
-						log.info("Could not resolve entity meta data for '" + entityType.getName() + "'");
-					}
-				}
-				else
-				{
-					consumeConfigs(metaData, entry.getValue());
-				}
-			}
+			readAndConsumeDocs(docs);
 		}
 	}
 
@@ -63,17 +46,21 @@ public class BlueprintValueObjectConfigReader extends ValueObjectConfigReader im
 	public void addEntityBlueprintVom(String businessObjectType, String valueObjectType)
 	{
 		Document doc = blueprintVomProvider.getVomDocument(businessObjectType, valueObjectType);
-		HashMap<Class<?>, List<Element>> newConfigsToConsume = readConfig(new Document[] { doc });
+		readAndConsumeDocs(new Document[] { doc });
+	}
 
-		for (Entry<Class<?>, List<Element>> entry : newConfigsToConsume)
+	protected void readAndConsumeDocs(Document[] docs)
+	{
+		HashMap<Class<?>, List<Element>> configsToConsume = readConfig(docs);
+		for (Entry<Class<?>, List<Element>> entry : configsToConsume)
 		{
 			Class<?> entityType = entry.getKey();
 			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType, true);
 			if (metaData == null)
 			{
-				if (log.isInfoEnabled())
+				if (log.isWarnEnabled())
 				{
-					log.info("Could not resolve entity meta data for '" + entityType.getName() + "'");
+					log.warn("Could not resolve entity meta data for '" + entityType.getName() + "'");
 				}
 			}
 			else

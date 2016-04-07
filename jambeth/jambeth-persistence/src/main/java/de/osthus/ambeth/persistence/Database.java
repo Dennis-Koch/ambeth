@@ -310,6 +310,7 @@ public class Database implements IDatabase, IInitializingBean, IStartingBean, ID
 			}
 			else
 			{
+				table.updateLinks();
 				typeToTableDict.put(entityType, table);
 			}
 		}

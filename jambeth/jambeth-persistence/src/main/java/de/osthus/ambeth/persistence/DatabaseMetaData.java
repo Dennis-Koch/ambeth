@@ -2,12 +2,14 @@ package de.osthus.ambeth.persistence;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.Tuple2KeyHashMap;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
@@ -76,6 +78,8 @@ public class DatabaseMetaData implements IDatabaseMetaData, IConfigurableDatabas
 
 	private int maxNameLength;
 
+	protected HashMap<String, HashSet<IDirectedLinkMetaData>> incompleteLinks = new HashMap<String, HashSet<IDirectedLinkMetaData>>();
+
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
@@ -120,8 +124,47 @@ public class DatabaseMetaData implements IDatabaseMetaData, IConfigurableDatabas
 			typeToTableDict.put(fromType, table);
 		}
 
-		ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(fromType);
 		List<IDirectedLinkMetaData> links = table.getLinks();
+		handleTableLinks(table, links);
+		HashSet<IDirectedLinkMetaData> incompleteLinkSet = incompleteLinks.remove(table.getName());
+		if (incompleteLinkSet != null)
+		{
+			for (IDirectedLinkMetaData oneIncompleteLink : incompleteLinkSet)
+			{
+				handleTableLinks(oneIncompleteLink.getFromTable(), Arrays.asList(oneIncompleteLink));
+			}
+		}
+		// TODO Reactivate this check with embedded-type case handling
+		// for (ITypeInfoItem member : typeInfo.getChildMembers())
+		// {
+		// if (member.isXMLIgnore())
+		// {
+		// continue;
+		// }
+		// String memberName = member.getName();
+		// if (table.getFieldByMemberName(memberName) == null && table.getLinkByMemberName(memberName) == null)
+		// {
+		// throw new IllegalArgumentException("Member '" + fromType.getName() + "." + memberName
+		// + " is neither mapped to a link or a field and it is not annotated with " + Transient.class.getName());
+		// }
+		// }
+
+		// Remove not-mapped (and so not usable) alternate id fields
+		for (IFieldMetaData alternateIdMember : table.getAlternateIdFields())
+		{
+			if (alternateIdMember.getMember() != null)
+			{
+				alternateIdMembers.add(alternateIdMember);
+			}
+		}
+		((TableMetaData) table).setAlternateIdFields(alternateIdMembers.toArray(IFieldMetaData.class));
+	}
+
+	protected void handleTableLinks(ITableMetaData table, List<IDirectedLinkMetaData> links)
+	{
+		Class<?> fromType = table.getEntityType();
+		ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(fromType);
+
 		for (int linkIndex = links.size(); linkIndex-- > 0;)
 		{
 			IDirectedLinkMetaData link = links.get(linkIndex);
@@ -133,6 +176,13 @@ public class DatabaseMetaData implements IDatabaseMetaData, IConfigurableDatabas
 				toType = toTable.getEntityType();
 				if (toType == null)
 				{
+					HashSet<IDirectedLinkMetaData> incompleteLinkSet = incompleteLinks.get(toTable.getName());
+					if (incompleteLinkSet == null)
+					{
+						incompleteLinkSet = new HashSet<IDirectedLinkMetaData>();
+						incompleteLinks.put(toTable.getName(), incompleteLinkSet);
+					}
+					incompleteLinkSet.add(link);
 					if (log.isWarnEnabled())
 					{
 						log.warn("No entity mapped to table '" + toTable.getName() + "'. Error occured while handling link '" + link.getName() + "'");
@@ -205,30 +255,6 @@ public class DatabaseMetaData implements IDatabaseMetaData, IConfigurableDatabas
 			}
 			((TableMetaData) link.getFromTable()).mapLink(link.getName(), matchingMember.getName());
 		}
-		// TODO Reactivate this check with embedded-type case handling
-		// for (ITypeInfoItem member : typeInfo.getChildMembers())
-		// {
-		// if (member.isXMLIgnore())
-		// {
-		// continue;
-		// }
-		// String memberName = member.getName();
-		// if (table.getFieldByMemberName(memberName) == null && table.getLinkByMemberName(memberName) == null)
-		// {
-		// throw new IllegalArgumentException("Member '" + fromType.getName() + "." + memberName
-		// + " is neither mapped to a link or a field and it is not annotated with " + Transient.class.getName());
-		// }
-		// }
-
-		// Remove not-mapped (and so not usable) alternate id fields
-		for (IFieldMetaData alternateIdMember : table.getAlternateIdFields())
-		{
-			if (alternateIdMember.getMember() != null)
-			{
-				alternateIdMembers.add(alternateIdMember);
-			}
-		}
-		((TableMetaData) table).setAlternateIdFields(alternateIdMembers.toArray(IFieldMetaData.class));
 	}
 
 	@Override
