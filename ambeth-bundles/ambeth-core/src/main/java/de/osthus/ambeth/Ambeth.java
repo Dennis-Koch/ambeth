@@ -237,10 +237,10 @@ public class Ambeth implements IAmbethConfiguration, IAmbethApplication
 
 	protected void startInternal(boolean andClose)
 	{
-		Properties properties = Properties.getApplication();
+		Properties properties = new Properties(Properties.getApplication());
 		if (scanForPropertiesFile)
 		{
-			Properties.loadBootstrapPropertyFile();
+			Properties.loadBootstrapPropertyFile(properties);
 		}
 		properties.load(this.properties);
 		for (int i = 0, size = propertiesFiles.size(); i < size; i++)
