@@ -67,17 +67,22 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 
 	public static void loadBootstrapPropertyFile()
 	{
+		loadBootstrapPropertyFile(Properties.getApplication());
+	}
+
+	public static void loadBootstrapPropertyFile(Properties props)
+	{
 		System.out.println("Ambeth is looking for environment property '" + UtilConfigurationConstants.BootstrapPropertyFile + "'...");
-		String bootstrapPropertyFile = Properties.getApplication().getString(UtilConfigurationConstants.BootstrapPropertyFile);
+		String bootstrapPropertyFile = props.getString(UtilConfigurationConstants.BootstrapPropertyFile);
 		if (bootstrapPropertyFile == null)
 		{
-			bootstrapPropertyFile = Properties.getApplication().getString(UtilConfigurationConstants.BootstrapPropertyFile.toUpperCase());
+			bootstrapPropertyFile = props.getString(UtilConfigurationConstants.BootstrapPropertyFile.toUpperCase());
 		}
 		if (bootstrapPropertyFile != null)
 		{
 			System.out.println("  Environment property '" + UtilConfigurationConstants.BootstrapPropertyFile + "' found with value '" + bootstrapPropertyFile
 					+ "'");
-			Properties.getApplication().load(bootstrapPropertyFile, false);
+			props.load(bootstrapPropertyFile, false);
 			System.out.println("  External property file '" + bootstrapPropertyFile + "' successfully loaded");
 		}
 		else
