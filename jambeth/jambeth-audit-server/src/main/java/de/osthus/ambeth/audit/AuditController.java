@@ -74,7 +74,7 @@ import de.osthus.ambeth.stream.binary.IBinaryInputSource;
 import de.osthus.ambeth.stream.binary.IBinaryInputStream;
 import de.osthus.ambeth.stream.chars.ICharacterInputSource;
 import de.osthus.ambeth.stream.chars.ICharacterInputStream;
-import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IRevertDelegate;
 
@@ -509,13 +509,21 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		additionalAuditInfo.ownAuditMergeActive = Boolean.TRUE;
 		try
 		{
-			securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>()
+			securityActivation.executeWithoutSecurity(new IBackgroundWorkerDelegate()
 			{
 				@Override
-				public Object invoke() throws Throwable
+				public void invoke() throws Throwable
 				{
 					ArrayList<CreateOrUpdateContainerBuild> auditedChanges = auditEntryState.auditedChanges;
 					CreateOrUpdateContainerBuild auditEntry = auditedChanges.get(0);
+
+					RelationUpdateItemBuild entities = auditEntry.findRelation(IAuditEntry.Entities);
+					RelationUpdateItemBuild services = auditEntry.findRelation(IAuditEntry.Services);
+					if ((entities == null || entities.getAddedCount() == 0) && (services == null || services.getAddedCount() == 0))
+					{
+						// No entity changed, no service called
+						return;
+					}
 
 					auditEntry.ensurePrimitive(IAuditEntry.Context).setNewValue(peekAuditContext());
 					auditEntry.ensurePrimitive(IAuditEntry.Reason).setNewValue(peekAuditReason());
@@ -542,7 +550,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 						MergeProcess.setAddNewlyPersistedEntities(oldAddNewlyPersistedEntities);
 					}
 
-					return null;
+					return;
 				}
 			});
 		}
