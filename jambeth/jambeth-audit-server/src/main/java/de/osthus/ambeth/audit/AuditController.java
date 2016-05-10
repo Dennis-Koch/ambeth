@@ -254,7 +254,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		IObjRef objRef = changeContainer.getReference();
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
 		IAuditConfiguration auditConfiguration = auditConfigurationProvider.getAuditConfiguration(metaData.getEntityType());
-		if (auditConfiguration == null)
+		if (auditConfiguration == null || !auditConfiguration.isAuditActive())
 		{
 			return;
 		}
