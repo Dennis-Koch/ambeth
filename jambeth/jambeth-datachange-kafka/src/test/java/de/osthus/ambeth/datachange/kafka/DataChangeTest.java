@@ -122,6 +122,12 @@ public class DataChangeTest extends AbstractIocTest
 		}
 	}
 
+	protected Object lookupCacheEntry(IRootCache rootCache, TestEntity testEntity)
+	{
+		return rootCache.getObject(new ObjRef(TestEntity.class, ObjRef.PRIMARY_KEY_INDEX, testEntity.getId(), null),
+				EnumSet.of(CacheDirective.FailEarly, CacheDirective.LoadContainerResult));
+	}
+
 	private void testContexts(IServiceContext left, IServiceContext right) throws Throwable
 	{
 		IRootCache leftRootCache;
@@ -135,6 +141,8 @@ public class DataChangeTest extends AbstractIocTest
 
 			leftRootCache = left.getService(CacheModule.COMMITTED_ROOT_CACHE, IRootCache.class);
 			leftRootCache.put(testEntity);
+
+			Assert.assertNotNull(lookupCacheEntry(leftRootCache, testEntity));
 		}
 		{
 			// fire the DCE in "right"
@@ -145,9 +153,7 @@ public class DataChangeTest extends AbstractIocTest
 		Thread.sleep(2000);
 		{
 			// ensure that entry in "left" is removed
-			Object object = leftRootCache.getObject(new ObjRef(TestEntity.class, ObjRef.PRIMARY_KEY_INDEX, testEntity.getId(), null),
-					EnumSet.of(CacheDirective.FailEarly, CacheDirective.LoadContainerResult));
-			Assert.assertNull(object);
+			Assert.assertNull(lookupCacheEntry(leftRootCache, testEntity));
 		}
 	}
 }
