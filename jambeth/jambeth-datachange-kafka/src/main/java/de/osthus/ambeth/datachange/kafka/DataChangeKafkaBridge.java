@@ -22,7 +22,8 @@ public class DataChangeKafkaBridge implements IEventListener
 		{
 			return;
 		}
-		if (((IDataChange) eventObject).isEmpty())
+		IDataChange dataChange = (IDataChange) eventObject;
+		if (dataChange.isEmpty() || !dataChange.isLocalSource())
 		{
 			return;
 		}
