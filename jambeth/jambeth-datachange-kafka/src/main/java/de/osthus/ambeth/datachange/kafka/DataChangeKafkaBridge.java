@@ -1,8 +1,8 @@
 package de.osthus.ambeth.datachange.kafka;
 
-import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.datachange.model.IDataChange;
 import de.osthus.ambeth.event.IEventListener;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
@@ -12,7 +12,7 @@ public class DataChangeKafkaBridge implements IEventListener
 	@LogInstance
 	private ILogger log;
 
-	@Property
+	@Autowired
 	protected IEventListener eventListener;
 
 	@Override
