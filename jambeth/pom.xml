@@ -35,10 +35,12 @@
 		<module>jambeth-chemspider</module>
 		<module>jambeth-chemspider-service</module>
 		<module>jambeth-datachange</module>
+		<module>jambeth-datachange-kafka</module>
 		<module>jambeth-datachange-persistence</module>
 		<module>jambeth-dot</module>
 		<module>jambeth-event</module>
 		<module>jambeth-event-datachange</module>
+		<module>jambeth-event-kafka</module>
 		<module>jambeth-event-server</module>
 		<module>jambeth-examples</module>
 		<module>jambeth-expr</module>
@@ -264,6 +266,12 @@
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
+			
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-datachange-kafka</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
@@ -305,6 +313,12 @@
 				<artifactId>jambeth-event-datachange-test</artifactId>
 				<version>${project.version}</version>
 				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-event-kafka</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 
 			<dependency>
