@@ -19,6 +19,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.compositeid.ICompositeIdFactory;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.config.UtilConfigurationConstants;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
@@ -29,6 +30,7 @@ import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
+import de.osthus.ambeth.util.DebugMode;
 import de.osthus.ambeth.util.ICacheHelper;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IDisposable;
@@ -91,9 +93,13 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 	@Property(mandatory = false)
 	protected Lock writeLock;
 
+	@Property(name = UtilConfigurationConstants.DebugMode, defaultValue = "false")
+	protected boolean debugMode;
+
 	public AbstractCache()
 	{
-		ReadWriteLock rwLock = new ReadWriteLock();
+		DebugMode debugModeEnum = debugMode ? DebugMode.TRUE : DebugMode.FALSE;
+		ReadWriteLock rwLock = new ReadWriteLock(debugModeEnum);
 		readLock = rwLock.getReadLock();
 		writeLock = rwLock.getWriteLock();
 	}

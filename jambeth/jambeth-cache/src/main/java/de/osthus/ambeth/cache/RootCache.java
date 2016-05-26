@@ -574,22 +574,30 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
 				// Acquire write lock and mark this state. In the finally-Block the writeLock
 				// has to be released in a deterministic way
-				writeLock.lock();
-				releaseWriteLock = true;
-
-				cacheVersionAfterLongTimeAction = changeVersion;
-				loadObjects(loadedEntities, neededObjRefs, pendingValueHolders);
-
-				loadSuccess = true;
-
-				clearPendingKeysOfCurrentThread(orisToLoad);
-				orisToLoad.clear();
-
-				if (neededObjRefs.size() > 0 || pendingValueHolders.size() > 0)
+				LockState releasedState = writeLock.releaseAllLocks();
+				try
 				{
-					writeLock.unlock();
-					releaseWriteLock = false;
-					return null;
+					writeLock.lock();
+					releaseWriteLock = true;
+
+					cacheVersionAfterLongTimeAction = changeVersion;
+					loadObjects(loadedEntities, neededObjRefs, pendingValueHolders);
+
+					loadSuccess = true;
+
+					clearPendingKeysOfCurrentThread(orisToLoad);
+					orisToLoad.clear();
+
+					if (neededObjRefs.size() > 0 || pendingValueHolders.size() > 0)
+					{
+						writeLock.unlock();
+						releaseWriteLock = false;
+						return null;
+					}
+				}
+				finally
+				{
+					writeLock.reacquireLocks(releasedState);
 				}
 			}
 			finally

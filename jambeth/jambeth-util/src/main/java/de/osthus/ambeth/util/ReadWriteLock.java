@@ -15,14 +15,24 @@ public class ReadWriteLock
 
 	public ReadWriteLock()
 	{
-		this(false);
+		this(false, DebugMode.FALSE);
+	}
+
+	public ReadWriteLock(DebugMode debugMode)
+	{
+		this(false, debugMode);
 	}
 
 	public ReadWriteLock(boolean fair)
 	{
+		this(fair, DebugMode.FALSE);
+	}
+
+	public ReadWriteLock(boolean fair, DebugMode debugMode)
+	{
 		rwlSlim = new ReentrantReadWriteLock(fair);
-		this.readLock = new ReadLock(this, rwlSlim);
-		this.writeLock = new WriteLock(this, rwlSlim);
+		readLock = new ReadLock(this, rwlSlim);
+		writeLock = new WriteLock(this, rwlSlim, debugMode);
 	}
 
 	public Lock getReadLock()
@@ -170,10 +180,13 @@ public class ReadWriteLock
 
 		protected final java.util.concurrent.locks.Lock lock;
 
-		public WriteLock(ReadWriteLock rwLock, ReentrantReadWriteLock rwlSlim)
+		protected final DebugMode debugMode;
+
+		public WriteLock(ReadWriteLock rwLock, ReentrantReadWriteLock rwlSlim, DebugMode debugMode)
 		{
 			this.rwLock = rwLock;
 			this.rwlSlim = rwlSlim;
+			this.debugMode = debugMode;
 			lock = rwlSlim.writeLock();
 		}
 
@@ -192,6 +205,13 @@ public class ReadWriteLock
 		@Override
 		public void lock()
 		{
+			if (debugMode == DebugMode.TRUE)
+			{
+				if (isReadLockHeld())
+				{
+					throw new IllegalStateException("Can not upgrade to writeLock if readLock already held");
+				}
+			}
 			lock.lock();
 		}
 
