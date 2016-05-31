@@ -22,6 +22,8 @@ import de.osthus.ambeth.merge.config.ValueObjectConfigReader;
 @FrameworkModule
 public class MappingModule implements IInitializingModule
 {
+	public static final String EXPANSION_ENTITY_MAPPER = "expansionEntityMapper";
+
 	@Property(name = ServiceConfigurationConstants.GenericTransferMapping, defaultValue = "false")
 	protected boolean genericTransferMapping;
 
@@ -36,7 +38,7 @@ public class MappingModule implements IInitializingModule
 			beanContextFactory.registerBean("listTypeHelper", ListTypeHelper.class).autowireable(IListTypeHelper.class);
 			beanContextFactory.registerBean("mapperServiceFactory", MapperServiceFactory.class).autowireable(IMapperServiceFactory.class);
 
-			beanContextFactory.registerBean(ExpansionEntityMapper.class).autowireable(IPropertyExpansionExtendable.class);
+			beanContextFactory.registerBean(EXPANSION_ENTITY_MAPPER, ExpansionEntityMapper.class).autowireable(IPropertyExpansionExtendable.class);
 
 			beanContextFactory.registerBean("mapperExtensionRegistry", ExtendableBean.class)
 					.autowireable(IDedicatedMapperExtendable.class, IDedicatedMapperRegistry.class)
