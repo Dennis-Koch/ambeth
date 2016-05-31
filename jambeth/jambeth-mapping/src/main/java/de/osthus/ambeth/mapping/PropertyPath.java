@@ -1,23 +1,17 @@
 package de.osthus.ambeth.mapping;
 
-
 public class PropertyPath
 {
-	protected String propetyPath;
+	protected final String propertyPath;
 
-	public PropertyPath(String propetyPath)
+	public PropertyPath(String propertyPath)
 	{
 		super();
-		this.propetyPath = propetyPath;
+		this.propertyPath = propertyPath;
 	}
 
-	public String getPropetyPath()
+	public String getPropertyPath()
 	{
-		return propetyPath;
-	}
-
-	public void setPropetyPath(String propetyPath)
-	{
-		this.propetyPath = propetyPath;
+		return propertyPath;
 	}
 }

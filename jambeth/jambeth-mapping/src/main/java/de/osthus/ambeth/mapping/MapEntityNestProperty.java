@@ -5,8 +5,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+// Field annotation is allowed to be able to use frameworks like lombok
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.METHOD })
+@Target({ ElementType.METHOD, ElementType.FIELD })
 public @interface MapEntityNestProperty
 {
 	/**
