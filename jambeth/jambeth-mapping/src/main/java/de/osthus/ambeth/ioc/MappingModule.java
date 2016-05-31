@@ -5,6 +5,7 @@ import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.event.EntityMetaDataAddedEvent;
 import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
+import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.extendable.ExtendableBean;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.mapping.ExpansionEntityMapper;
@@ -22,8 +23,6 @@ import de.osthus.ambeth.merge.config.ValueObjectConfigReader;
 @FrameworkModule
 public class MappingModule implements IInitializingModule
 {
-	public static final String EXPANSION_ENTITY_MAPPER = "expansionEntityMapper";
-
 	@Property(name = ServiceConfigurationConstants.GenericTransferMapping, defaultValue = "false")
 	protected boolean genericTransferMapping;
 
@@ -38,7 +37,9 @@ public class MappingModule implements IInitializingModule
 			beanContextFactory.registerBean("listTypeHelper", ListTypeHelper.class).autowireable(IListTypeHelper.class);
 			beanContextFactory.registerBean("mapperServiceFactory", MapperServiceFactory.class).autowireable(IMapperServiceFactory.class);
 
-			beanContextFactory.registerBean(EXPANSION_ENTITY_MAPPER, ExpansionEntityMapper.class).autowireable(IPropertyExpansionExtendable.class);
+			IBeanConfiguration expansionEntityMapper = beanContextFactory.registerBean(ExpansionEntityMapper.class).autowireable(
+					IPropertyExpansionExtendable.class);
+			beanContextFactory.link(expansionEntityMapper).to(IDedicatedMapperExtendable.class).with(Object.class);
 
 			beanContextFactory.registerBean("mapperExtensionRegistry", ExtendableBean.class)
 					.autowireable(IDedicatedMapperExtendable.class, IDedicatedMapperRegistry.class)

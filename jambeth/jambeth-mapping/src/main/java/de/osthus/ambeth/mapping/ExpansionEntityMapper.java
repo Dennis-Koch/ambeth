@@ -50,9 +50,8 @@ public class ExpansionEntityMapper implements IDedicatedMapper, IPropertyExpansi
 		Class<? extends Object> transferClass = valueObject.getClass();
 		// load properties of transferClass
 		IPropertyInfo[] properties = propertyInfoProvider.getProperties(transferClass);
-		StringBuilder sb = objectCollector.create(StringBuilder.class);
+		StringBuilder sb = null;
 		IEntityMetaData metaData = ((IEntityMetaDataHolder) businessObject).get__EntityMetaData();
-
 		try
 		{
 			for (IPropertyInfo propertyInfo : properties)
@@ -78,6 +77,10 @@ public class ExpansionEntityMapper implements IDedicatedMapper, IPropertyExpansi
 					case VO_TO_BO:
 						// find out if the value was specified and we need to write it back
 
+						if (sb == null)
+						{
+							sb = objectCollector.create(StringBuilder.class);
+						}
 						sb.setLength(0);
 						String voSpecifiedName = sb.append(propertyInfo.getName()).append("Specified").toString();
 
@@ -96,7 +99,10 @@ public class ExpansionEntityMapper implements IDedicatedMapper, IPropertyExpansi
 		}
 		finally
 		{
-			objectCollector.dispose(sb);
+			if (sb != null)
+			{
+				objectCollector.dispose(sb);
+			}
 		}
 	}
 
