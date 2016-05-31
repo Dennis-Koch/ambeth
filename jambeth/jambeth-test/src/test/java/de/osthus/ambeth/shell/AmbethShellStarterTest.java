@@ -59,8 +59,7 @@ public class AmbethShellStarterTest
 	@Test(expected = IllegalArgumentException.class)
 	public void testWrongFormatForBatchFile_1() throws IOException
 	{
-		List<String> listAllCmd = getAllCmdsHasVariableSetting();
-		prepareAndExecute(listAllCmd, new String[] { batchFileName, "echo" });
+		executeAmbethShell(new String[] { batchFileName, "echo" });
 	}
 
 	/**
@@ -71,8 +70,7 @@ public class AmbethShellStarterTest
 	@Test(expected = IllegalArgumentException.class)
 	public void testWrongFormatForBatchFile_2() throws IOException
 	{
-		List<String> listAllCmd = getAllCmdsHasVariableSetting();
-		prepareAndExecute(listAllCmd, new String[] { batchFileName, "helpCmd=" });
+		executeAmbethShell(new String[] { batchFileName, "helpCmd=" });
 	}
 
 	/**
@@ -83,8 +81,7 @@ public class AmbethShellStarterTest
 	@Test(expected = IllegalArgumentException.class)
 	public void testWrongFormatForBatchFile_3() throws IOException
 	{
-		List<String> listAllCmd = getAllCmdsHasVariableSetting();
-		prepareAndExecute(listAllCmd, new String[] { batchFileName, "=echo" });
+		executeAmbethShell(new String[] { batchFileName, "=echo" });
 	}
 
 	/**
@@ -95,8 +92,7 @@ public class AmbethShellStarterTest
 	@Test(expected = IllegalArgumentException.class)
 	public void testWrongFormatForBatchFile_4() throws IOException
 	{
-		List<String> listAllCmd = getAllCmdsHasVariableSetting();
-		prepareAndExecute(listAllCmd, new String[] { batchFileName, "helpCmd=echo", "exit" });
+		executeAmbethShell(new String[] { batchFileName, "helpCmd=echo", "exit" });
 	}
 
 	/**
@@ -123,6 +119,21 @@ public class AmbethShellStarterTest
 		Assert.assertTrue(outFromShell + "\nthe 'help' command shoule output description of 'echo' command.",
 				outFromShell.contains("Prints messages to the console"));
 		Assert.assertTrue(outFromShell + "\nthe 'help' command shoule output description of 'exit' command.", outFromShell.contains("exit the shell"));
+	}
+
+	/**
+	 * test executing batch file, with setting variables from the command line (not very file shellOut, because useThread=true in
+	 * AmbethShellStarter.afterStarted())
+	 *
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testHasVarsForBatchFile_NoVerify() throws ClassNotFoundException, IOException, InterruptedException
+	{
+		List<String> listAllCmd = getAllCmdsHasVariableSetting();
+		prepareAndExecute(listAllCmd, new String[] { batchFileName, "helpCmd=echo" });
+		Thread.sleep(2000L);// sleep to let ambeth-shell thread run
 	}
 
 	/**
@@ -178,7 +189,6 @@ public class AmbethShellStarterTest
 	 *
 	 * @throws IOException
 	 */
-	@SuppressWarnings("unchecked")
 	private void prepareAndExecute(List<String> listAllCmd, String... cmdArgs) throws IOException
 	{
 		Assert.assertTrue(listAllCmd.size() > 0);
@@ -204,6 +214,12 @@ public class AmbethShellStarterTest
 			}
 		}
 
+		executeAmbethShell(cmdArgs);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void executeAmbethShell(String... cmdArgs)
+	{
 		// execute Ambeth-Shell
 		AmbethShellStarter.start(cmdArgs);
 	}
