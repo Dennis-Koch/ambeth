@@ -10,6 +10,7 @@ public interface ShellContext
 	static final String MAIN_ARGS = "main.args";
 	static final String EXIT_ON_ERROR = "exit.on.error";
 	static final String PROMPT = "shell.prompt";
+	static final String VARS_FOR_BATCH_FILE = "batch.file.variables";
 
 	void set(String key, Object value);
 
@@ -19,7 +20,7 @@ public interface ShellContext
 
 	<T> T get(String key, Class<T> expectedType);
 
-	<T> T  get(String key, T defaultValue);
+	<T> T get(String key, T defaultValue);
 
 	IMap<String, Object> getAll();
 
