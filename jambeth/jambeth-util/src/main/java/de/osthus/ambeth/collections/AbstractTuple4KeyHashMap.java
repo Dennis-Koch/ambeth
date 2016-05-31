@@ -299,6 +299,14 @@ public abstract class AbstractTuple4KeyHashMap<Key1, Key2, Key3, Key4, V> implem
 				&& EqualsUtil.equals(key4, entry.getKey4());
 	}
 
+	public void putAll(final AbstractTuple4KeyHashMap<? extends Key1, ? extends Key2, ? extends Key3, ? extends Key4, ? extends V> map)
+	{
+		for (Tuple4KeyEntry<? extends Key1, ? extends Key2, ? extends Key3, ? extends Key4, ? extends V> entry : map)
+		{
+			put(entry.getKey1(), entry.getKey2(), entry.getKey3(), entry.getKey4(), entry.getValue());
+		}
+	}
+
 	public V put(final Key1 key1, final Key2 key2, final Key3 key3, final Key4 key4, final V value)
 	{
 		final int hash = hash(extractHash(key1, key2, key3, key4));

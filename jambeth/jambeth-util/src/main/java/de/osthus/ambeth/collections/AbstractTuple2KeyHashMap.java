@@ -292,6 +292,14 @@ public abstract class AbstractTuple2KeyHashMap<Key1, Key2, V> implements IPrinta
 		return EqualsUtil.equals(key1, entry.getKey1()) && EqualsUtil.equals(key2, entry.getKey2());
 	}
 
+	public void putAll(final AbstractTuple2KeyHashMap<? extends Key1, ? extends Key2, ? extends V> map)
+	{
+		for (Tuple2KeyEntry<? extends Key1, ? extends Key2, ? extends V> entry : map)
+		{
+			put(entry.getKey1(), entry.getKey2(), entry.getValue());
+		}
+	}
+
 	public V put(final Key1 key1, final Key2 key2, final V value)
 	{
 		final int hash = hash(extractHash(key1, key2));

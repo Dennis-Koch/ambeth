@@ -294,6 +294,14 @@ public abstract class AbstractTuple3KeyHashMap<Key1, Key2, Key3, V> implements I
 		return EqualsUtil.equals(key1, entry.getKey1()) && EqualsUtil.equals(key2, entry.getKey2()) && EqualsUtil.equals(key3, entry.getKey3());
 	}
 
+	public void putAll(final AbstractTuple3KeyHashMap<? extends Key1, ? extends Key2, ? extends Key3, ? extends V> map)
+	{
+		for (Tuple3KeyEntry<? extends Key1, ? extends Key2, ? extends Key3, ? extends V> entry : map)
+		{
+			put(entry.getKey1(), entry.getKey2(), entry.getKey3(), entry.getValue());
+		}
+	}
+
 	public V put(final Key1 key1, final Key2 key2, final Key3 key3, final V value)
 	{
 		final int hash = hash(extractHash(key1, key2, key3));

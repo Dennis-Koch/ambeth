@@ -1,9 +1,8 @@
 package de.osthus.ambeth.mapping;
 
-import java.util.Iterator;
+import java.util.Arrays;
 
 import de.osthus.ambeth.accessor.AbstractAccessor;
-import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.model.IDataObject;
@@ -11,11 +10,11 @@ import de.osthus.ambeth.util.EqualsUtil;
 
 public class PropertyExpansion extends AbstractAccessor
 {
-	protected ArrayList<Member> memberPath;
+	private final Member[] memberPath;
 
-	private ArrayList<IEntityMetaData> metaDataPath;
+	private final IEntityMetaData[] metaDataPath;
 
-	public PropertyExpansion(ArrayList<Member> memberPath, ArrayList<IEntityMetaData> metaDataPath)
+	public PropertyExpansion(Member[] memberPath, IEntityMetaData[] metaDataPath)
 	{
 		this.memberPath = memberPath;
 		this.metaDataPath = metaDataPath;
@@ -63,41 +62,38 @@ public class PropertyExpansion extends AbstractAccessor
 	public void setValue(Object obj, Object value)
 	{
 		// if target object is null it is an error
-		if (obj == null || memberPath == null || memberPath.size() == 0)
+		if (obj == null || memberPath == null || memberPath.length == 0)
 		{
 			throw new NullPointerException("target object was null or the memberPath was invaldi");
 		}
 		Object targetObj = obj;
-		Object peekValue;
-		Iterator<Member> iterator = memberPath.iterator();
-		Member targetMember = iterator.next();
 
 		// travel down the path to the last element of the path
-		while (iterator.hasNext())
+		for (int a = 0, size = memberPath.length - 1; a < size; a++)
 		{
-			peekValue = targetMember.getValue(targetObj);
-			if (peekValue == null)
+			Member member = memberPath[a];
+			Object entity = member.getValue(targetObj);
+			if (entity == null)
 			{
 				// get meta data for next target to create
-				IEntityMetaData entityMetaData = metaDataPath.get(memberPath.indexOf(targetMember));
+				IEntityMetaData entityMetaData = metaDataPath[a];
 				// last element, or now meta data available
 				if (entityMetaData == null)
 				{
 					throw new IllegalStateException(
-							"Must never happen, because there is a next member, and that means that the current targetMember must have meta data.");
+							"Must never happen, because there is a next member, and that means that the current targetMember must have meta data: '"
+									+ Arrays.toString(memberPath) + "'");
 				}
-				peekValue = entityMetaData.newInstance();
-				targetMember.setValue(targetObj, peekValue);
-
+				entity = entityMetaData.newInstance();
+				member.setValue(targetObj, entity);
 			}
-			targetObj = peekValue;
-			// save the last member
-			targetMember = iterator.next();
+			targetObj = entity;
 		}
+		Member lastMember = memberPath[memberPath.length - 1];
 		// if we are here, then obj is the last element
-		if (!EqualsUtil.equals(targetMember.getValue(targetObj), value))
+		if (!EqualsUtil.equals(lastMember.getValue(targetObj), value))
 		{
-			targetMember.setValue(targetObj, value);
+			lastMember.setValue(targetObj, value);
 			IDataObject dObj = (IDataObject) targetObj;
 			// FIXME: this hack tells the merge process that "we did something here"
 			dObj.setToBeUpdated(true);

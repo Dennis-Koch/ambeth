@@ -302,6 +302,14 @@ public abstract class AbstractTuple5KeyHashMap<Key1, Key2, Key3, Key4, Key5, V> 
 				&& EqualsUtil.equals(key4, entry.getKey4()) && EqualsUtil.equals(key5, entry.getKey5());
 	}
 
+	public void putAll(final AbstractTuple5KeyHashMap<? extends Key1, ? extends Key2, ? extends Key3, ? extends Key4, ? extends Key5, ? extends V> map)
+	{
+		for (Tuple5KeyEntry<? extends Key1, ? extends Key2, ? extends Key3, ? extends Key4, ? extends Key5, ? extends V> entry : map)
+		{
+			put(entry.getKey1(), entry.getKey2(), entry.getKey3(), entry.getKey4(), entry.getKey5(), entry.getValue());
+		}
+	}
+
 	public V put(final Key1 key1, final Key2 key2, final Key3 key3, final Key4 key4, final Key5 key5, final V value)
 	{
 		final int hash = hash(extractHash(key1, key2, key3, key4, key5));

@@ -7,10 +7,12 @@ import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.extendable.ExtendableBean;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
+import de.osthus.ambeth.mapping.ExpansionEntityMapper;
 import de.osthus.ambeth.mapping.IDedicatedMapperExtendable;
 import de.osthus.ambeth.mapping.IDedicatedMapperRegistry;
 import de.osthus.ambeth.mapping.IListTypeHelper;
 import de.osthus.ambeth.mapping.IMapperServiceFactory;
+import de.osthus.ambeth.mapping.IPropertyExpansionExtendable;
 import de.osthus.ambeth.mapping.IPropertyExpansionProvider;
 import de.osthus.ambeth.mapping.ListTypeHelper;
 import de.osthus.ambeth.mapping.MapperServiceFactory;
@@ -33,6 +35,8 @@ public class MappingModule implements IInitializingModule
 
 			beanContextFactory.registerBean("listTypeHelper", ListTypeHelper.class).autowireable(IListTypeHelper.class);
 			beanContextFactory.registerBean("mapperServiceFactory", MapperServiceFactory.class).autowireable(IMapperServiceFactory.class);
+
+			beanContextFactory.registerBean(ExpansionEntityMapper.class).autowireable(IPropertyExpansionExtendable.class);
 
 			beanContextFactory.registerBean("mapperExtensionRegistry", ExtendableBean.class)
 					.autowireable(IDedicatedMapperExtendable.class, IDedicatedMapperRegistry.class)

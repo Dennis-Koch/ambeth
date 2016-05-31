@@ -3,8 +3,10 @@ package de.osthus.ambeth.mapping;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.AbstractTuple2KeyHashMap;
 import de.osthus.ambeth.collections.Tuple2KeyHashMap;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -21,9 +23,11 @@ public class PropertyExpansionProvider implements IPropertyExpansionProvider
 	private ILogger log;
 
 	@Autowired
-	IEntityMetaDataProvider entityMetaDataProvider;
+	protected IEntityMetaDataProvider entityMetaDataProvider;
 
-	Tuple2KeyHashMap<Class<?>, String, PropertyExpansion> propertyExpansionCache = new Tuple2KeyHashMap<Class<?>, String, PropertyExpansion>();
+	protected Tuple2KeyHashMap<Class<?>, String, PropertyExpansion> propertyExpansionCache = new Tuple2KeyHashMap<Class<?>, String, PropertyExpansion>();
+
+	protected final Lock writeLock = new ReentrantLock();
 
 	@Override
 	public PropertyExpansion getPropertyExpansion(Class<?> entityType, String propertyPath)
@@ -32,13 +36,35 @@ public class PropertyExpansionProvider implements IPropertyExpansionProvider
 		ParamChecker.assertParamNotNull(propertyPath, "propertyPath");
 
 		PropertyExpansion propertyExpansion = propertyExpansionCache.get(entityType, propertyPath);
+		if (propertyExpansion != null)
+		{
+			return propertyExpansion;
+		}
+		// we have a cache miss. create the propertyExpansion
+		propertyExpansion = getPropertyExpansionIntern(entityType, propertyPath);
 		if (propertyExpansion == null)
 		{
-			propertyExpansion = getPropertyExpansionIntern(entityType, propertyPath);
-			propertyExpansionCache.put(entityType, propertyPath, propertyExpansion);
+			return propertyExpansion;
 		}
-
-		return propertyExpansion;
+		// here: COPY-ON-WRITE pattern to be threadsafe with reads (above) without a lock. This makes sense because after a limited "warmup" phase there will
+		// not be a cache miss any more with further runtime
+		writeLock.lock();
+		try
+		{
+			Tuple2KeyHashMap<Class<?>, String, PropertyExpansion> propertyExpansionCache = new Tuple2KeyHashMap<Class<?>, String, PropertyExpansion>(
+					(int) (this.propertyExpansionCache.size() / AbstractTuple2KeyHashMap.DEFAULT_LOAD_FACTOR) + 2);
+			propertyExpansionCache.putAll(this.propertyExpansionCache);
+			if (!propertyExpansionCache.putIfNotExists(entityType, propertyPath, propertyExpansion))
+			{
+				return propertyExpansionCache.get(entityType, propertyPath);
+			}
+			this.propertyExpansionCache = propertyExpansionCache;
+			return propertyExpansion;
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
 	}
 
 	protected PropertyExpansion getPropertyExpansionIntern(Class<?> entityType, String propertyPath)
@@ -50,11 +76,13 @@ public class PropertyExpansionProvider implements IPropertyExpansionProvider
 			return null;
 		}
 
-		ArrayList<Member> memberPath = new ArrayList<Member>();
-		ArrayList<IEntityMetaData> metaDataPath = new ArrayList<IEntityMetaData>();
+		List<String> path = getPath(propertyPath);
+		Member[] memberPath = new Member[path.size()];
+		IEntityMetaData[] metaDataPath = new IEntityMetaData[path.size()];
 		Class<?> lastType = null;
-		for (String pathToken : getPath(propertyPath))
+		for (int a = 0, size = path.size(); a < size; a++)
 		{
+			String pathToken = path.get(a);
 			if (metaData == null)
 			{
 				throw new IllegalArgumentException("Could not find metaData for:" + (lastType == null ? "null" : lastType.toString()));
@@ -65,12 +93,11 @@ public class PropertyExpansionProvider implements IPropertyExpansionProvider
 				throw new IllegalArgumentException("The provided propertyPath can not be resolved. Check: " + pathToken
 						+ " (Hint: propertyNames need to start with an UpperCase letter!)");
 			}
-			memberPath.add(member);
+			memberPath[a] = member;
 			// get next metaData
 			metaData = entityMetaDataProvider.getMetaData(member.getRealType(), true);
-			metaDataPath.add(metaData);
+			metaDataPath[a] = metaData;
 			lastType = member.getRealType();
-
 		}
 
 		PropertyExpansion propertyExpansion = new PropertyExpansion(memberPath, metaDataPath);
