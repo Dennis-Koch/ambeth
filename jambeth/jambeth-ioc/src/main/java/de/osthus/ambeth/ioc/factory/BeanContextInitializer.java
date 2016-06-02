@@ -1190,7 +1190,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			allAutowireableTypes.add(implementingInterface);
 		}
 		// Do not manipulate the bean variable until all
-		// postprocessors are called without failure
+		// postprocessors have been called without failure
 		Object currBean = bean;
 
 		for (int b = 0, sizeB = postProcessors.size(); b < sizeB; b++)
@@ -1203,6 +1203,10 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			catch (Throwable e)
 			{
 				throw maskBeanBasedException("Error occured while post-processing with '" + postProcessor + "'", e, beanConfiguration, null);
+			}
+			if (currBean == null)
+			{
+				throw new IllegalStateException("Bean post processor " + postProcessor.getClass().getName() + " did not return the bean");
 			}
 		}
 		callingProxyPostProcessor.beanPostProcessed(beanContextFactory, beanContext, beanConfiguration, beanType, currBean, bean);
