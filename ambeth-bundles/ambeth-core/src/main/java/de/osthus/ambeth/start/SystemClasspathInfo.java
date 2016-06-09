@@ -12,7 +12,6 @@ import de.osthus.ambeth.log.LogInstance;
 
 public class SystemClasspathInfo implements IClasspathInfo
 {
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 

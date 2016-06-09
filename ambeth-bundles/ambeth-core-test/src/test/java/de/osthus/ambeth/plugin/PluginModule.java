@@ -1,6 +1,7 @@
 package de.osthus.ambeth.plugin;
 
-import javassist.ClassPool;
+import java.net.URLClassLoader;
+
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
@@ -19,8 +20,11 @@ public class PluginModule implements IInitializingModule
 
 		bcf.registerBean(SystemClasspathInfo.class).autowireable(IClasspathInfo.class);
 
-		bcf.registerBean(URLAddableURLClassLoader.class).autowireable(URLAddableURLClassLoader.class);
-		bcf.registerBean(ClassPool.class).autowireable(ClassPool.class);
+		bcf.registerBean(JarURLProvider.class).autowireable(IJarURLProvidable.class);
+
+		bcf.registerBean(PluginScanURLClassLoader.class).autowireable(PluginScanURLClassLoader.class);
+		bcf.registerBean(PluginScanClassPool.class).autowireable(PluginScanClassPool.class);
+		bcf.registerBean(PluginScanURLClassLoader.class).autowireable(URLClassLoader.class);
 		bcf.registerBean(PluginClasspathScanner.class).autowireable(IPluginClasspathScanner.class);
 	}
 }
