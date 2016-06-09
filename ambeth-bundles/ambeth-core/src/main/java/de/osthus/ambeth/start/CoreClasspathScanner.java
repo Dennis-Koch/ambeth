@@ -76,7 +76,7 @@ public class CoreClasspathScanner implements IClasspathScanner
 	@Override
 	public List<Class<?>> scanClassesAnnotatedWith(Class<?>... annotationTypes)
 	{
-		ClassPool pool = ClassPool.getDefault();
+		ClassPool pool = getClassPool();
 		IList<String> targetClassNames = scanForClasses(pool);
 		try
 		{
@@ -120,7 +120,7 @@ public class CoreClasspathScanner implements IClasspathScanner
 	@Override
 	public List<Class<?>> scanClassesImplementing(Class<?>... superTypes)
 	{
-		ClassPool pool = ClassPool.getDefault();
+		ClassPool pool = getClassPool();
 		IList<String> targetClassNames = scanForClasses(pool);
 		try
 		{
@@ -151,6 +151,11 @@ public class CoreClasspathScanner implements IClasspathScanner
 		}
 	}
 
+	protected ClassPool getClassPool()
+	{
+		return ClassPool.getDefault();
+	}
+
 	protected List<Class<?>> convertToClasses(List<CtClass> ctClasses)
 	{
 		HashSet<Class<?>> set = new HashSet<Class<?>>();
@@ -159,7 +164,7 @@ public class CoreClasspathScanner implements IClasspathScanner
 			CtClass ctClass = ctClasses.get(a);
 			try
 			{
-				set.add(Thread.currentThread().getContextClassLoader().loadClass(ctClass.getName()));
+				set.add(getClassLoader().loadClass(ctClass.getName()));
 			}
 			catch (Throwable e)
 			{
@@ -171,9 +176,14 @@ public class CoreClasspathScanner implements IClasspathScanner
 		return list;
 	}
 
+	protected ClassLoader getClassLoader()
+	{
+		return Thread.currentThread().getContextClassLoader();
+	}
+
 	protected IList<String> scanForClasses(ClassPool pool)
 	{
-		IList<URL> urls = classpathInfo.getJarURLs();
+		IList<URL> urls = this.getJarURLs();
 
 		ArrayList<String> namespacePatterns = new ArrayList<String>();
 		ArrayList<String> targetClassNames = new ArrayList<String>();
@@ -216,6 +226,11 @@ public class CoreClasspathScanner implements IClasspathScanner
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		return targetClassNames;
+	}
+
+	protected ArrayList<URL> getJarURLs()
+	{
+		return classpathInfo.getJarURLs();
 	}
 
 	protected void scanJarFile(JarFile jarFile, List<String> namespacePatterns, List<String> targetClassNames)
