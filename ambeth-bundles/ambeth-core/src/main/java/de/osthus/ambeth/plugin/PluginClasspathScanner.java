@@ -1,5 +1,6 @@
 package de.osthus.ambeth.plugin;
 
+import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
 
@@ -42,4 +43,11 @@ public class PluginClasspathScanner extends CoreClasspathScanner implements IPlu
 	{
 		return jarURLProvidable.getJarURLs();
 	}
+
+	@Override
+	protected File convertURLToFile(URL url) throws Throwable
+	{
+		return new File(url.getPath());
+	}
+
 }

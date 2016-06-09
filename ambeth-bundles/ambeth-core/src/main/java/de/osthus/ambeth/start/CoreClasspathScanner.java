@@ -195,7 +195,7 @@ public class CoreClasspathScanner implements IClasspathScanner
 				URL url = urls.get(a);
 				try
 				{
-					File realPathFile = classpathInfo.openAsFile(url);
+					File realPathFile = convertURLToFile(url);
 					pool.appendPathList(realPathFile.getCanonicalPath());
 					if (realPathFile.isFile())
 					{
@@ -231,6 +231,11 @@ public class CoreClasspathScanner implements IClasspathScanner
 	protected ArrayList<URL> getJarURLs()
 	{
 		return classpathInfo.getJarURLs();
+	}
+
+	protected File convertURLToFile(URL url) throws Throwable
+	{
+		return classpathInfo.openAsFile(url);
 	}
 
 	protected void scanJarFile(JarFile jarFile, List<String> namespacePatterns, List<String> targetClassNames)
