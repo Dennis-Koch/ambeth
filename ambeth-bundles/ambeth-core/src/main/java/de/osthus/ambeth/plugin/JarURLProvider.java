@@ -15,16 +15,13 @@ import de.osthus.ambeth.util.ParamChecker;
 public class JarURLProvider implements IJarURLProvidable, IInitializingBean
 {
 	@Property(name = CoreConfigurationConstants.ClasspathPluginPath)
-	protected String classScanPaths;
+	protected String[] jarPaths;
 
 	protected ArrayList<URL> jarURLs;
-
-	protected String[] jarPaths;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		jarPaths = classScanPaths.split(";");
 		jarURLs = this.extractJarURL(jarPaths);
 	}
 

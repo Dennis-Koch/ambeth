@@ -18,6 +18,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.CoreConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -27,7 +28,7 @@ import de.osthus.ambeth.util.IClasspathScanner;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class CoreClasspathScanner implements IClasspathScanner
+public class CoreClasspathScanner implements IClasspathScanner, IInitializingBean
 {
 	@LogInstance
 	private ILogger log;
@@ -48,6 +49,15 @@ public class CoreClasspathScanner implements IClasspathScanner
 	protected Pattern[] packageScanPatterns;
 
 	protected Pattern[] preceedingPackageScanPatterns;
+
+	@Override
+	public void afterPropertiesSet() throws Throwable
+	{
+		for (URL url : this.getJarURLs())
+		{
+			getClassPool().appendPathList(convertURLToFile(url).getCanonicalPath());
+		}
+	}
 
 	// Has to be used by getter since it might be needed before afterPropertiesSet() was called.
 	protected Pattern[] getPackageScanPatterns()
@@ -127,7 +137,11 @@ public class CoreClasspathScanner implements IClasspathScanner
 			CtClass[] ctSuperTypes = new CtClass[superTypes.length];
 			for (int a = superTypes.length; a-- > 0;)
 			{
-				ctSuperTypes[a] = pool.getCtClass(superTypes[a].getName());
+				ctSuperTypes[a] = pool.getOrNull(superTypes[a].getName());
+				if (ctSuperTypes[a] == null)
+				{
+					ctSuperTypes[a] = ClassPool.getDefault().get(superTypes[a].getName());
+				}
 			}
 			List<CtClass> classNamesFound = new ArrayList<CtClass>();
 			for (int a = 0, size = targetClassNames.size(); a < size; a++)
@@ -196,7 +210,6 @@ public class CoreClasspathScanner implements IClasspathScanner
 				try
 				{
 					File realPathFile = convertURLToFile(url);
-					pool.appendPathList(realPathFile.getCanonicalPath());
 					if (realPathFile.isFile())
 					{
 						JarFile jarFile = new JarFile(realPathFile);
