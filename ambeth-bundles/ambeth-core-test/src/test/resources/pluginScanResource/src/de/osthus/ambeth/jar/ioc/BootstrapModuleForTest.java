@@ -11,6 +11,7 @@ public class BootstrapModuleForTest implements IInitializingModule
 	{
 		@SuppressWarnings("unused")
 		IModuleServiceForTestA a = new ModuleServiceForTestA();
+		System.out.println("BootstrapModuleForTest -- static");
 	}
 
 	@Override

@@ -4,7 +4,7 @@ import java.net.URL;
 
 import de.osthus.ambeth.collections.ArrayList;
 
-public interface IJarURLProvidable
+public interface IJarURLProvider
 {
 	/**
 	 * supply the URLs for scan and load Class in jar file
@@ -12,11 +12,4 @@ public interface IJarURLProvidable
 	 * @return
 	 */
 	ArrayList<URL> getJarURLs();
-
-	/**
-	 * supply the path for scan and load Class in jar file
-	 * 
-	 * @return
-	 */
-	String[] getJarPaths();
 }

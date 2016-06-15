@@ -19,11 +19,11 @@ public final class CoreConfigurationConstants
 	 * Defines which implementation of the {@link IClasspathInfo} is used during startup. The default is the {@link de.osthus.ambeth.start.SystemClasspathInfo}.
 	 */
 	public static final String ClasspathInfoClass = "ambeth.classpath.info.class";
-	
+
 	/**
-	 * Defines which path to scann for the plugin class, every path separated  by semicolon, for example: c:\dev\plugins\*;c:\dev\others\hello.jar
+	 * Defines which path to scan for the plugin jars, every path separated by semicolon, for example: c:\dev\plugins\*;c:\dev\others\hello.jar
 	 */
-	public static final String ClasspathPluginPath = "ambeth.classpath.plugin.path";
+	public static final String PluginPaths = "ambeth.classpath.plugin.paths";
 
 	/**
 	 * Defines in which packages the Ambeth {@link IClasspathScanner} scans for classes which implement or are annotated with a given class (e.g
