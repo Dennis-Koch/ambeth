@@ -69,7 +69,7 @@ public class JarURLProvider implements IJarURLProvider, IInitializingBean
 			}
 			else
 			{
-				throw new IllegalArgumentException("path for scan plugin is not right format or the file not exists, path:" + path);
+				throw new IllegalArgumentException("path for scan plugin is not jar file or not exists, path:" + path);
 			}
 			return urls;
 		}
