@@ -1,8 +1,14 @@
 package de.osthus.ambeth.plugin;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -10,12 +16,14 @@ import de.osthus.ambeth.config.CoreConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
-import de.osthus.ambeth.util.ParamChecker;
 
 public class JarURLProvider implements IJarURLProvider, IInitializingBean
 {
 	@Property(name = CoreConfigurationConstants.PluginPaths)
 	protected String[] jarPaths;
+
+	@Property(name = CoreConfigurationConstants.PluginPathsRecursiveFlag, defaultValue = "true")
+	protected boolean isRecursive;
 
 	protected ArrayList<URL> jarURLs;
 
@@ -44,23 +52,20 @@ public class JarURLProvider implements IJarURLProvider, IInitializingBean
 	private List<URL> buildUrl(String path)
 	{
 		List<URL> urls = new ArrayList<URL>();
-		File dir = null;
+		File dir = new File(path);
 		try
 		{
-			if (path.toLowerCase().endsWith(".jar"))
+			if (dir.isFile() && path.toLowerCase().endsWith(".jar"))
 			{
 				urls.add(new URL("file:" + path));
 			}
-			else if ((dir = new File(path)).isDirectory())
+			else if (dir.isDirectory() && !isRecursive)
 			{
 				urls.addAll(listJars(dir));
 			}
-			else if (path.endsWith("\\*") || path.endsWith("/*"))
+			else if (dir.isDirectory() && isRecursive)
 			{
-				String trimedWildcardPath = path.substring(0, path.length() - 2);
-				File trimWildcardPath = new File(trimedWildcardPath);
-				ParamChecker.assertTrue(trimWildcardPath.isDirectory(), trimedWildcardPath);
-				urls.addAll(listAllJars(trimWildcardPath));
+				urls.addAll(listAllJars(dir));
 			}
 			else
 			{
@@ -74,20 +79,35 @@ public class JarURLProvider implements IJarURLProvider, IInitializingBean
 		}
 	}
 
+	/**
+	 * find all the jar files in a folder
+	 * 
+	 * @param dir
+	 *            to find jars folder
+	 * @return all the jars
+	 * @throws MalformedURLException
+	 */
 	private List<URL> listAllJars(File dir) throws MalformedURLException
 	{
-		List<URL> files = new ArrayList<URL>();
-		if (dir.isFile() && dir.getName().toLowerCase().endsWith(".jar"))
+		final List<URL> files = new ArrayList<URL>();
+		try
 		{
-			files.add(dir.toURI().toURL());
-		}
-		else if (dir.isDirectory())
-		{
-			File[] subFiles = dir.listFiles();
-			for (File subFile : subFiles)
+			Files.walkFileTree(dir.toPath(), new SimpleFileVisitor<Path>()
 			{
-				files.addAll(listAllJars(subFile));
-			}
+				@Override
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
+				{
+					if (checkJar(file.toFile()))
+					{
+						files.add(file.toUri().toURL());
+					}
+					return super.visitFile(file, attrs);
+				}
+			});
+		}
+		catch (IOException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
 		}
 		return files;
 	}
@@ -98,7 +118,7 @@ public class JarURLProvider implements IJarURLProvider, IInitializingBean
 		List<URL> result = new ArrayList<URL>();
 		for (File file : listFiles)
 		{
-			if (file.isFile() && file.getName().toLowerCase().endsWith(".jar"))
+			if (checkJar(dir))
 			{
 				result.add(file.toURI().toURL());
 			}
@@ -106,4 +126,8 @@ public class JarURLProvider implements IJarURLProvider, IInitializingBean
 		return result;
 	}
 
+	private boolean checkJar(File file)
+	{
+		return file.isFile() && file.getName().toLowerCase().endsWith(".jar");
+	}
 }

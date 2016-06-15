@@ -21,9 +21,14 @@ public final class CoreConfigurationConstants
 	public static final String ClasspathInfoClass = "ambeth.classpath.info.class";
 
 	/**
-	 * Defines which path to scan for the plugin jars, every path separated by semicolon, for example: c:\dev\plugins\*;c:\dev\others\hello.jar
+	 * Defines which path to scan for the plugin jars, every path separated by semicolon, for example: c:\dev\plugins;c:\dev\others\hello.jar
 	 */
 	public static final String PluginPaths = "ambeth.classpath.plugin.paths";
+
+	/**
+	 * if this property set true, then the can path sub folder will be scaned
+	 */
+	public static final String PluginPathsRecursiveFlag = "ambeth.classpath.plugin.paths.recursive.flag";
 
 	/**
 	 * Defines in which packages the Ambeth {@link IClasspathScanner} scans for classes which implement or are annotated with a given class (e.g

@@ -2,6 +2,7 @@ package de.osthus.ambeth.plugin;
 
 import java.io.File;
 import java.net.URL;
+import java.net.URLClassLoader;
 
 import javassist.ClassPool;
 import de.osthus.ambeth.collections.ArrayList;
@@ -12,12 +13,19 @@ public class PluginClasspathScanner extends CoreClasspathScanner implements IPlu
 {
 
 	@Autowired
-	protected IJarURLProvider jarURLProvidable;
+	protected IJarURLProvider jarURLProvider;
 
 	protected ClassPool classPool = new ClassPool(false);
 
-	@Autowired
-	protected PluginScanURLClassLoader pluginScanURLClassLoader;
+	protected URLClassLoader urlClassLoader;
+
+	@Override
+	public void afterPropertiesSet() throws Throwable
+	{
+		super.afterPropertiesSet();
+		URL[] urls = jarURLProvider.getJarURLs().toArray(URL.class);
+		urlClassLoader = new URLClassLoader(urls);
+	}
 
 	@Override
 	protected ClassPool getClassPool()
@@ -28,13 +36,13 @@ public class PluginClasspathScanner extends CoreClasspathScanner implements IPlu
 	@Override
 	protected ClassLoader getClassLoader()
 	{
-		return pluginScanURLClassLoader;
+		return urlClassLoader;
 	}
 
 	@Override
 	protected ArrayList<URL> getJarURLs()
 	{
-		return jarURLProvidable.getJarURLs();
+		return jarURLProvider.getJarURLs();
 	}
 
 	@Override

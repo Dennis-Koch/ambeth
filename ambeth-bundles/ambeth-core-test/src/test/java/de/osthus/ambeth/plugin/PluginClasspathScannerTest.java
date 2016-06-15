@@ -29,7 +29,7 @@ public class PluginClasspathScannerTest
 		// get the scan resource absolute root path
 		String pluginScanResource = new File(this.getClass().getResource("/pluginScanResource").toURI()).getAbsolutePath();
 		// build the scan absolute paths
-		String value = "/modules.jar;/jars/*;/onejarfolder".replaceAll("(^|;)", "$1" + Matcher.quoteReplacement(pluginScanResource));
+		String value = "/modules.jar;/jars/;/onejarfolder".replaceAll("(^|;)", "$1" + Matcher.quoteReplacement(pluginScanResource));
 		value = value.replace('/', File.separatorChar);
 
 		// init ambeth factory
