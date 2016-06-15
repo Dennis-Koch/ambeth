@@ -12,9 +12,9 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class JarURLProvider implements IJarURLProvidable, IInitializingBean
+public class JarURLProvider implements IJarURLProvider, IInitializingBean
 {
-	@Property(name = CoreConfigurationConstants.ClasspathPluginPath)
+	@Property(name = CoreConfigurationConstants.PluginPaths)
 	protected String[] jarPaths;
 
 	protected ArrayList<URL> jarURLs;
@@ -29,12 +29,6 @@ public class JarURLProvider implements IJarURLProvidable, IInitializingBean
 	public ArrayList<URL> getJarURLs()
 	{
 		return jarURLs;
-	}
-
-	@Override
-	public String[] getJarPaths()
-	{
-		return jarPaths;
 	}
 
 	private ArrayList<URL> extractJarURL(String... pathArray)
@@ -59,14 +53,18 @@ public class JarURLProvider implements IJarURLProvidable, IInitializingBean
 			}
 			else if ((dir = new File(path)).isDirectory())
 			{
-				urls.add(dir.toURI().toURL());
+				urls.addAll(listJars(dir));
 			}
-			else if (path.matches(".*(\\\\{1,2}|/)\\*+"))
+			else if (path.endsWith("\\*") || path.endsWith("/*"))
 			{
-				String newPath = path.replaceFirst("(\\\\{1,2}|/)\\*+$", "");
-				File trimEndPath = new File(newPath);
-				ParamChecker.assertTrue(trimEndPath.isDirectory(), newPath);
-				urls.addAll(findAllJarFiles(trimEndPath));
+				String trimedWildcardPath = path.substring(0, path.length() - 2);
+				File trimWildcardPath = new File(trimedWildcardPath);
+				ParamChecker.assertTrue(trimWildcardPath.isDirectory(), trimedWildcardPath);
+				urls.addAll(listAllJars(trimWildcardPath));
+			}
+			else
+			{
+				throw new IllegalArgumentException("path for scan plugin is not right format or the file not exists, path:" + path);
 			}
 			return urls;
 		}
@@ -76,22 +74,36 @@ public class JarURLProvider implements IJarURLProvidable, IInitializingBean
 		}
 	}
 
-	private List<URL> findAllJarFiles(File path) throws MalformedURLException
+	private List<URL> listAllJars(File dir) throws MalformedURLException
 	{
 		List<URL> files = new ArrayList<URL>();
-		if (path.isFile() && path.getName().toLowerCase().endsWith(".jar"))
+		if (dir.isFile() && dir.getName().toLowerCase().endsWith(".jar"))
 		{
-			files.add(path.toURI().toURL());
+			files.add(dir.toURI().toURL());
 		}
-		else if (path.isDirectory())
+		else if (dir.isDirectory())
 		{
-			File[] subFiles = path.listFiles();
+			File[] subFiles = dir.listFiles();
 			for (File subFile : subFiles)
 			{
-				files.addAll(findAllJarFiles(subFile));
+				files.addAll(listAllJars(subFile));
 			}
 		}
 		return files;
+	}
+
+	private List<URL> listJars(File dir) throws MalformedURLException
+	{
+		File[] listFiles = dir.listFiles();
+		List<URL> result = new ArrayList<URL>();
+		for (File file : listFiles)
+		{
+			if (file.isFile() && file.getName().toLowerCase().endsWith(".jar"))
+			{
+				result.add(file.toURI().toURL());
+			}
+		}
+		return result;
 	}
 
 }

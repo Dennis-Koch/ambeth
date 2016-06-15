@@ -11,6 +11,7 @@ public class FrameworkModuleForTest implements IInitializingModule
 	{
 		@SuppressWarnings("unused")
 		IModuleServiceForTestB b = new ModuleServiceForTestB();
+		System.out.println("FrameworkModuleForTest -- static");
 	}
 
 	@Override
