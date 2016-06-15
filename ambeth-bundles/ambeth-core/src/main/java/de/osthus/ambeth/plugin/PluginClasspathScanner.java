@@ -11,13 +11,12 @@ import de.osthus.ambeth.start.CoreClasspathScanner;
 
 public class PluginClasspathScanner extends CoreClasspathScanner implements IPluginClasspathScanner
 {
-	@Autowired
-	protected URLClassLoader urlClassLoader;
 
 	@Autowired
 	protected IJarURLProvidable jarURLProvidable;
 
 	protected ClassPool classPool = new ClassPool(false);
+	protected URLClassLoader urlClassLoader;
 
 	@Override
 	protected ClassPool getClassPool()

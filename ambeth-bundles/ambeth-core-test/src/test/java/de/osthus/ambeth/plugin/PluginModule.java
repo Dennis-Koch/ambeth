@@ -22,8 +22,6 @@ public class PluginModule implements IInitializingModule
 
 		bcf.registerBean(JarURLProvider.class).autowireable(IJarURLProvidable.class);
 
-		bcf.registerBean(PluginScanURLClassLoader.class).autowireable(PluginScanURLClassLoader.class);
-		bcf.registerBean(PluginScanURLClassLoader.class).autowireable(URLClassLoader.class);
 		bcf.registerBean(PluginClasspathScanner.class).autowireable(IPluginClasspathScanner.class);
 	}
 }
