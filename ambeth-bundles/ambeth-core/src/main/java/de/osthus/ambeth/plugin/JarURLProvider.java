@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.List;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.CoreConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -22,11 +23,11 @@ public class JarURLProvider implements IJarURLProvider, IInitializingBean
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		jarURLs = this.extractJarURL(jarPaths);
+		jarURLs = extractJarURL(jarPaths);
 	}
 
 	@Override
-	public ArrayList<URL> getJarURLs()
+	public IList<URL> getJarURLs()
 	{
 		return jarURLs;
 	}
@@ -64,7 +65,7 @@ public class JarURLProvider implements IJarURLProvider, IInitializingBean
 			}
 			else
 			{
-				throw new IllegalArgumentException("path for scan plugin is not right format or the file not exists, path:" + path);
+				throw new IllegalArgumentException("path for scan plugin is not right format or the file does not exist: '" + path + "'");
 			}
 			return urls;
 		}

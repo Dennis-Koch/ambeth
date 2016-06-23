@@ -1,29 +1,18 @@
 package de.osthus.ambeth.plugin;
 
-import java.io.File;
 import java.net.URL;
 
-import javassist.ClassPool;
-import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.start.CoreClasspathScanner;
 
 public class PluginClasspathScanner extends CoreClasspathScanner implements IPluginClasspathScanner
 {
-
 	@Autowired
 	protected IJarURLProvider jarURLProvidable;
 
-	protected ClassPool classPool = new ClassPool(false);
-
 	@Autowired
 	protected PluginScanURLClassLoader pluginScanURLClassLoader;
-
-	@Override
-	protected ClassPool getClassPool()
-	{
-		return classPool;
-	}
 
 	@Override
 	protected ClassLoader getClassLoader()
@@ -32,14 +21,8 @@ public class PluginClasspathScanner extends CoreClasspathScanner implements IPlu
 	}
 
 	@Override
-	protected ArrayList<URL> getJarURLs()
+	protected IList<URL> getJarURLs()
 	{
 		return jarURLProvidable.getJarURLs();
-	}
-
-	@Override
-	protected File convertURLToFile(URL url) throws Throwable
-	{
-		return new File(url.getPath());
 	}
 }

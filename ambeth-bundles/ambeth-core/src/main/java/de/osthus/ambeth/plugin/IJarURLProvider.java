@@ -2,7 +2,7 @@ package de.osthus.ambeth.plugin;
 
 import java.net.URL;
 
-import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.IList;
 
 public interface IJarURLProvider
 {
@@ -11,5 +11,5 @@ public interface IJarURLProvider
 	 * 
 	 * @return
 	 */
-	ArrayList<URL> getJarURLs();
+	IList<URL> getJarURLs();
 }

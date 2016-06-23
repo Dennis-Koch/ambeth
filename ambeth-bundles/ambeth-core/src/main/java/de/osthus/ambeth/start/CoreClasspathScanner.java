@@ -2,6 +2,8 @@ package de.osthus.ambeth.start;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
@@ -18,7 +20,6 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.CoreConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -28,7 +29,7 @@ import de.osthus.ambeth.util.IClasspathScanner;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class CoreClasspathScanner implements IClasspathScanner, IInitializingBean
+public class CoreClasspathScanner implements IClasspathScanner
 {
 	@LogInstance
 	private ILogger log;
@@ -43,19 +44,27 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 	@Autowired
 	protected IClasspathInfo classpathInfo;
 
-	@Property(name = CoreConfigurationConstants.PackageScanPatterns, defaultValue = "de/osthus.*")
+	@Property(name = CoreConfigurationConstants.PackageScanPatterns, defaultValue = "de/osthus.*;com/osthus.*")
 	protected String packageFilterPatterns;
 
 	protected Pattern[] packageScanPatterns;
 
 	protected Pattern[] preceedingPackageScanPatterns;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable
+	protected ClassPool classPool;
+
+	protected void initializeClassPool(ClassPool classPool)
 	{
-		for (URL url : this.getJarURLs())
+		for (URL url : getJarURLs())
 		{
-			getClassPool().appendPathList(convertURLToFile(url).getCanonicalPath());
+			try
+			{
+				classPool.appendPathList(convertURLToFile(url).toString());
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
 		}
 	}
 
@@ -167,7 +176,12 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 
 	protected ClassPool getClassPool()
 	{
-		return ClassPool.getDefault();
+		if (classPool == null)
+		{
+			classPool = new ClassPool();
+			initializeClassPool(classPool);
+		}
+		return classPool;
 	}
 
 	protected List<Class<?>> convertToClasses(List<CtClass> ctClasses)
@@ -197,7 +211,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 
 	protected IList<String> scanForClasses(ClassPool pool)
 	{
-		IList<URL> urls = this.getJarURLs();
+		IList<URL> urls = getJarURLs();
 
 		ArrayList<String> namespacePatterns = new ArrayList<String>();
 		ArrayList<String> targetClassNames = new ArrayList<String>();
@@ -209,10 +223,14 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 				URL url = urls.get(a);
 				try
 				{
-					File realPathFile = convertURLToFile(url);
-					if (realPathFile.isFile())
+					Path realPathFile = convertURLToFile(url);
+					if (Files.isDirectory(realPathFile))
 					{
-						JarFile jarFile = new JarFile(realPathFile);
+						scanDirectory(realPathFile, "", targetClassNames, false);
+					}
+					else
+					{
+						JarFile jarFile = new JarFile(realPathFile.toFile());
 						try
 						{
 							scanJarFile(jarFile, namespacePatterns, targetClassNames);
@@ -221,11 +239,6 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 						{
 							jarFile.close();
 						}
-						continue;
-					}
-					else if (realPathFile.isDirectory())
-					{
-						scanDirectory(realPathFile, "", targetClassNames, false);
 					}
 				}
 				catch (Throwable e)
@@ -241,12 +254,12 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 		return targetClassNames;
 	}
 
-	protected ArrayList<URL> getJarURLs()
+	protected IList<URL> getJarURLs()
 	{
 		return classpathInfo.getJarURLs();
 	}
 
-	protected File convertURLToFile(URL url) throws Throwable
+	protected Path convertURLToFile(URL url) throws Throwable
 	{
 		return classpathInfo.openAsFile(url);
 	}
@@ -311,16 +324,16 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 		}
 	}
 
-	protected void scanDirectory(File dir, String relativePath, List<String> targetClassNames, boolean addOnly)
+	protected void scanDirectory(Path dir, String relativePath, List<String> targetClassNames, boolean addOnly)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
 		try
 		{
-			File[] files = dir.listFiles();
+			File[] files = dir.toFile().listFiles();
 			if (files == null)
 			{
-				throw new IllegalStateException("Directory '" + dir.getAbsolutePath() + "' not accessible");
+				throw new IllegalStateException("Directory '" + dir.toFile().getAbsolutePath() + "' not accessible");
 			}
 			sb.append(relativePath);
 			if (relativePath.length() > 0)
@@ -338,27 +351,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 				{
 					sb.append(file.getName());
 					String classNamePart = sb.toString();
-					scanDirectory(file, classNamePart, targetClassNames, addOnly);
-					// if (addOnly)
-					// {
-					// scanDirectory(file, classNamePart, null, targetClassNames, addOnly);
-					// continue;
-					// }
-					//
-					// for (int b = classPathItems.length; b-- > 0;)
-					// {
-					// ClassPathItem classPathItem = classPathItems[b];
-					// Matcher matcher = classPathItem.getPattern().matcher(classNamePart);
-					// if (!matcher.matches())
-					// {
-					// continue;
-					// }
-					// if (classPathItem.isIncludeThis())
-					// {
-					// scanDirectory(file, classNamePart, null, targetClassNames, true);
-					// break;
-					// }
-					// }
+					scanDirectory(file.toPath(), classNamePart, targetClassNames, addOnly);
 					continue;
 				}
 				Matcher cutDollarMatcher = cutDollarPattern.matcher(file.getName());
