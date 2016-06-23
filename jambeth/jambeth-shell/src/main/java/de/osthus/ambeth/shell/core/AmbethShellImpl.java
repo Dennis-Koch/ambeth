@@ -84,6 +84,9 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	@Property(name = ShellContext.BATCH_FILE, mandatory = false, defaultValue = "")
 	protected String batchFile;
 
+	@Property(name = ShellContext.VARS_FOR_BATCH_FILE, mandatory = false)
+	protected HashMap<String, String> varsForBatchFile;
+
 	@Property(name = ShellContext.MAIN_ARGS, mandatory = false)
 	protected String[] mainArgs;
 
@@ -121,6 +124,17 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 			{
 				scriptReader = new BufferedReader(new FileReader(new File(batchFile)));
 				this.getContext().set(ECHO, true);
+
+				// save the variables for the batch file to shellContext
+				if (varsForBatchFile != null && varsForBatchFile.size() > 0)
+				{
+					Set<String> keySet = varsForBatchFile.keySet();
+					for (String variable : keySet)
+					{
+						this.getContext().set(variable, varsForBatchFile.get(variable));
+					}
+				}
+
 				this.startInteractive(scriptReader);
 			}
 			catch (IOException e)

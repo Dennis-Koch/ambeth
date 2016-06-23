@@ -18,6 +18,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.CoreConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -27,7 +28,7 @@ import de.osthus.ambeth.util.IClasspathScanner;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class CoreClasspathScanner implements IClasspathScanner
+public class CoreClasspathScanner implements IClasspathScanner, IInitializingBean
 {
 	@LogInstance
 	private ILogger log;
@@ -48,6 +49,15 @@ public class CoreClasspathScanner implements IClasspathScanner
 	protected Pattern[] packageScanPatterns;
 
 	protected Pattern[] preceedingPackageScanPatterns;
+
+	@Override
+	public void afterPropertiesSet() throws Throwable
+	{
+		for (URL url : this.getJarURLs())
+		{
+			getClassPool().appendPathList(convertURLToFile(url).getCanonicalPath());
+		}
+	}
 
 	// Has to be used by getter since it might be needed before afterPropertiesSet() was called.
 	protected Pattern[] getPackageScanPatterns()
@@ -76,7 +86,7 @@ public class CoreClasspathScanner implements IClasspathScanner
 	@Override
 	public List<Class<?>> scanClassesAnnotatedWith(Class<?>... annotationTypes)
 	{
-		ClassPool pool = ClassPool.getDefault();
+		ClassPool pool = getClassPool();
 		IList<String> targetClassNames = scanForClasses(pool);
 		try
 		{
@@ -120,14 +130,18 @@ public class CoreClasspathScanner implements IClasspathScanner
 	@Override
 	public List<Class<?>> scanClassesImplementing(Class<?>... superTypes)
 	{
-		ClassPool pool = ClassPool.getDefault();
+		ClassPool pool = getClassPool();
 		IList<String> targetClassNames = scanForClasses(pool);
 		try
 		{
 			CtClass[] ctSuperTypes = new CtClass[superTypes.length];
 			for (int a = superTypes.length; a-- > 0;)
 			{
-				ctSuperTypes[a] = pool.getCtClass(superTypes[a].getName());
+				ctSuperTypes[a] = pool.getOrNull(superTypes[a].getName());
+				if (ctSuperTypes[a] == null)
+				{
+					ctSuperTypes[a] = ClassPool.getDefault().get(superTypes[a].getName());
+				}
 			}
 			List<CtClass> classNamesFound = new ArrayList<CtClass>();
 			for (int a = 0, size = targetClassNames.size(); a < size; a++)
@@ -151,6 +165,11 @@ public class CoreClasspathScanner implements IClasspathScanner
 		}
 	}
 
+	protected ClassPool getClassPool()
+	{
+		return ClassPool.getDefault();
+	}
+
 	protected List<Class<?>> convertToClasses(List<CtClass> ctClasses)
 	{
 		HashSet<Class<?>> set = new HashSet<Class<?>>();
@@ -159,7 +178,7 @@ public class CoreClasspathScanner implements IClasspathScanner
 			CtClass ctClass = ctClasses.get(a);
 			try
 			{
-				set.add(Thread.currentThread().getContextClassLoader().loadClass(ctClass.getName()));
+				set.add(getClassLoader().loadClass(ctClass.getName()));
 			}
 			catch (Throwable e)
 			{
@@ -171,9 +190,14 @@ public class CoreClasspathScanner implements IClasspathScanner
 		return list;
 	}
 
+	protected ClassLoader getClassLoader()
+	{
+		return Thread.currentThread().getContextClassLoader();
+	}
+
 	protected IList<String> scanForClasses(ClassPool pool)
 	{
-		IList<URL> urls = classpathInfo.getJarURLs();
+		IList<URL> urls = this.getJarURLs();
 
 		ArrayList<String> namespacePatterns = new ArrayList<String>();
 		ArrayList<String> targetClassNames = new ArrayList<String>();
@@ -185,8 +209,7 @@ public class CoreClasspathScanner implements IClasspathScanner
 				URL url = urls.get(a);
 				try
 				{
-					File realPathFile = classpathInfo.openAsFile(url);
-					pool.appendPathList(realPathFile.getCanonicalPath());
+					File realPathFile = convertURLToFile(url);
 					if (realPathFile.isFile())
 					{
 						JarFile jarFile = new JarFile(realPathFile);
@@ -216,6 +239,16 @@ public class CoreClasspathScanner implements IClasspathScanner
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		return targetClassNames;
+	}
+
+	protected ArrayList<URL> getJarURLs()
+	{
+		return classpathInfo.getJarURLs();
+	}
+
+	protected File convertURLToFile(URL url) throws Throwable
+	{
+		return classpathInfo.openAsFile(url);
 	}
 
 	protected void scanJarFile(JarFile jarFile, List<String> namespacePatterns, List<String> targetClassNames)
