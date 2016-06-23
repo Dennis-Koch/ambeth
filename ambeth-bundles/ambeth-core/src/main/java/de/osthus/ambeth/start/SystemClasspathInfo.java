@@ -44,6 +44,16 @@ public class SystemClasspathInfo implements IClasspathInfo
 	@Override
 	public Path openAsFile(URL url) throws Throwable
 	{
-		return Paths.get(new URL(url.getProtocol(), url.getHost(), url.getFile().replace(" ", "%20")).toURI()).toAbsolutePath().normalize();
+		String filePath = url.getPath();
+		String authority = url.getAuthority();
+		if (authority != null && authority.length() > 0)
+		{
+			filePath = authority + filePath;
+		}
+		else if (filePath.startsWith("/"))
+		{
+			filePath = filePath.substring(1);
+		}
+		return Paths.get(filePath).toAbsolutePath().normalize();
 	}
 }
