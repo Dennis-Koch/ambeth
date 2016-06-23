@@ -20,6 +20,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.CoreConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -29,7 +30,7 @@ import de.osthus.ambeth.util.IClasspathScanner;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class CoreClasspathScanner implements IClasspathScanner
+public class CoreClasspathScanner implements IClasspathScanner, IInitializingBean
 {
 	@LogInstance
 	private ILogger log;
@@ -52,6 +53,12 @@ public class CoreClasspathScanner implements IClasspathScanner
 	protected Pattern[] preceedingPackageScanPatterns;
 
 	protected ClassPool classPool;
+
+	@Override
+	public void afterPropertiesSet() throws Throwable
+	{
+		// intended blank
+	}
 
 	protected void initializeClassPool(ClassPool classPool)
 	{

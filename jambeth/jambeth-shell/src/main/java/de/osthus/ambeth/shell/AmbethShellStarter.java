@@ -1,6 +1,7 @@
 package de.osthus.ambeth.shell;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import de.osthus.ambeth.Ambeth;
@@ -60,6 +61,8 @@ public class AmbethShellStarter implements IStartingBean, IDisposableBean
 	 * we cannot just let Ambeth absorb these properties because they have no name or key, e.g. java -jar shell.jar myscript.as or java -jar create test.adf
 	 * 
 	 *
+	 *
+	 *
 	 * @param args
 	 * @return
 	 */
@@ -72,6 +75,10 @@ public class AmbethShellStarter implements IStartingBean, IDisposableBean
 		{
 			if (arg.toLowerCase().endsWith(".as"))
 			{
+				if (!validateBatchFileVariables(mainProperties, arg, args))
+				{
+					throw new IllegalArgumentException("Variable settings are illegal. (required format: key=value) ");
+				}
 				mainProperties.put(ShellContext.BATCH_FILE, arg);
 			}
 			else
@@ -88,6 +95,46 @@ public class AmbethShellStarter implements IStartingBean, IDisposableBean
 		return mainProperties;
 	}
 
+	/**
+	 * validate the variable setting inputs for the batch file(.as file) and save them to Properties if all are valid.
+	 *
+	 * @param properties
+	 *            {@link Properties} that be used for starting Ambeth
+	 * @param batchFile
+	 *            batch file name (.as file)
+	 * @param args
+	 *            all the arguments inputed from the program starting
+	 * @return <code> true</code> if all the variables are correct. <code>false</code> if any variable is not correct
+	 */
+	private static boolean validateBatchFileVariables(Properties properties, String batchFile, String... args)
+	{
+		if (!batchFile.equals(args[0]))
+		{
+			return false;
+		}
+
+		HashMap<String, String> varMap = new HashMap<String, String>();
+
+		for (int i = 1; i < args.length; i++)
+		{
+			String[] varPairs = args[i].split("=");
+			// variable input need to be in the format of "key=value"
+			if (varPairs.length != 2 || "".equals(varPairs[0].trim()) || "".equals(varPairs[1].trim()))
+			{
+				return false;
+			}
+			else
+			{
+				varMap.put(varPairs[0], varPairs[1]);
+			}
+		}
+
+		// save the variables map to properties
+		properties.put(ShellContext.VARS_FOR_BATCH_FILE, varMap);
+
+		return true;
+	}
+
 	@Override
 	public void destroy() throws Throwable
 	{
@@ -98,6 +145,7 @@ public class AmbethShellStarter implements IStartingBean, IDisposableBean
 		}
 	}
 
+	@Override
 	public void afterStarted() throws Throwable
 	{
 		if (AmbethShell.MODE_SERVICE.equals(mode))
