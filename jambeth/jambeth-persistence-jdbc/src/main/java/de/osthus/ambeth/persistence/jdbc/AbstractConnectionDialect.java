@@ -44,8 +44,10 @@ import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.connection.IConnectionKeyHandle;
 import de.osthus.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
+import de.osthus.ambeth.persistence.jdbc.sql.LimitByRownumOperator;
 import de.osthus.ambeth.persistence.jdbc.sql.DefaultSqlRegexpLikeOperand;
 import de.osthus.ambeth.query.IOperand;
+import de.osthus.ambeth.query.IValueOperand;
 import de.osthus.ambeth.sql.ParamsUtil;
 import de.osthus.ambeth.util.IConversionHelper;
 
@@ -167,6 +169,15 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 	{
 		return beanContext.registerBean(DefaultSqlRegexpLikeOperand.class).propertyValue("SourceString", sourceString).propertyValue("Pattern", pattern)
 				.propertyValue("MatchParameter", matchParameter).finish();
+	}
+
+	@Override
+	public IOperand getLimitOperand(IOperand operand, IValueOperand valueOperand)
+	{
+		return beanContext.registerBean(LimitByRownumOperator.class)//
+				.propertyValue("Operand", operand)//
+				.propertyValue("ValueOperand", operand)//
+				.finish();
 	}
 
 	@Override
