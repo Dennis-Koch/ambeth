@@ -5,27 +5,15 @@ package de.osthus.ambeth.shell.core.resulttype;
  */
 public class SingleResult extends CommandResult
 {
-	private String name;
-
 	private StringBuffer value = new StringBuffer();
 
-	public SingleResult(String name)
+	public SingleResult(String value)
 	{
-		this.name = name;
+		this.value.append(value);
 	}
 
 	public SingleResult()
 	{
-	}
-
-	public String getName()
-	{
-		return name;
-	}
-
-	public void setName(String name)
-	{
-		this.name = name;
 	}
 
 	public String getValue()
