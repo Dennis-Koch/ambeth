@@ -18,8 +18,18 @@
 	<dependencies>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-tomcat</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-server-with-persistence</artifactId>
 		</dependency>
+		
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-server-rest</artifactId>
+		</dependency>
+		
 		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
