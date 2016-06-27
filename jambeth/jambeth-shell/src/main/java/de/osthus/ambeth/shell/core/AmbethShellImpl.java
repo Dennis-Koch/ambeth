@@ -31,6 +31,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.shell.AmbethShell;
 import de.osthus.ambeth.shell.core.resulttype.CommandResult;
+import de.osthus.ambeth.shell.util.Utils;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 import de.osthus.ambeth.util.IConversionHelper;
 
@@ -91,7 +92,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	protected String[] mainArgs;
 
 	/**
-	 *
+	 * 
 	 * @return
 	 */
 	private static final DateFormat createIsoDateFormat()
@@ -201,6 +202,56 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	{
 		try
 		{
+			if (context.get(ShellContext.GREETING_ACTIVE, false))
+			{
+
+				println("Welcome to " + context.get(ShellContext.PRODUCT_NAME, "Ambeth Shell") + " " + context.get(ShellContext.PRODUCT_VERSION, ""));
+			}
+
+			String licenseNotice = "";
+			Long licenseExpirationDate = context.get(ShellContext.LICENSE_EXPIRATION_DATE, Long.class);
+			Long now = System.currentTimeMillis();
+			boolean licenseExpired = false;
+			if (licenseExpirationDate != null)
+			{
+				if (licenseExpirationDate > now)
+				{
+					licenseNotice = "License valid until " + new Date(licenseExpirationDate);
+				}
+				else
+				{
+					licenseNotice = "License expired on " + new Date(licenseExpirationDate);
+					licenseExpired = true;
+				}
+			}
+
+			if (context.get(ShellContext.LICENSE_TYPE, License.COMMERCIAL) == License.DEMO)
+			{
+				String licenseText = context.get(ShellContext.LICENSE_TEXT, "Demo Version");
+				println(Utils.stringPadEnd("", Math.max(licenseText.length(), licenseNotice.length()), '='));
+				println(licenseText);
+				if (licenseNotice.trim().length() > 0)
+				{
+					println(licenseNotice);
+				}
+				println(Utils.stringPadEnd("", Math.max(licenseText.length(), licenseNotice.length()), '='));
+			}
+			else
+			{
+
+				if (licenseNotice.trim().length() > 0)
+				{
+					println(Utils.stringPadEnd("", licenseNotice.length(), '='));
+					println(licenseNotice);
+					println(Utils.stringPadEnd("", licenseNotice.length(), '='));
+				}
+			}
+
+			if (licenseExpired)
+			{
+				return;
+			}
+
 			String userInput;
 			while (true)
 			{
@@ -234,7 +285,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 
 	/**
 	 * // TODO find a regex Guru :)
-	 *
+	 * 
 	 * @param userInput
 	 * @return
 	 */
@@ -361,7 +412,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 
 	/**
 	 * parse all the arguments
-	 *
+	 * 
 	 * @param dParamMap
 	 *            map of all -D parameter
 	 * @param argSet
@@ -421,7 +472,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	}
 
 	/**
-	 *
+	 * 
 	 * @param cb
 	 * @param unparsedArgs
 	 * @param e

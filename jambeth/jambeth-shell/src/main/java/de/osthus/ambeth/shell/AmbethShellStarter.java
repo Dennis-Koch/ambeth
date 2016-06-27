@@ -1,6 +1,7 @@
 package de.osthus.ambeth.shell;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -14,6 +15,7 @@ import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.shell.core.AmbethShellIntern;
+import de.osthus.ambeth.shell.core.License;
 import de.osthus.ambeth.shell.core.ShellContext;
 import de.osthus.ambeth.shell.ioc.AmbethShellModule;
 
@@ -37,6 +39,16 @@ public class AmbethShellStarter implements IStartingBean, IDisposableBean
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args)
 	{
+		System.setProperty(ShellContext.GREETING_ACTIVE, "true");
+		System.setProperty(ShellContext.LICENSE_TYPE, License.DEMO.toString());
+		System.setProperty(ShellContext.LICENSE_TEXT, "Evaluation license for non-commercial use only!");
+		System.setProperty(ShellContext.PRODUCT_NAME, "Ambeth Shell");
+		System.setProperty(ShellContext.PRODUCT_VERSION, "1.2.3");
+
+		Calendar c = Calendar.getInstance();
+		c.set(2099, 0, 1);
+		System.setProperty(ShellContext.LICENSE_EXPIRATION_DATE, new Long(c.getTimeInMillis()).toString());
+
 		start(args);
 	}
 
@@ -57,12 +69,12 @@ public class AmbethShellStarter implements IStartingBean, IDisposableBean
 	}
 
 	/**
-	 *
+	 * 
 	 * we cannot just let Ambeth absorb these properties because they have no name or key, e.g. java -jar shell.jar myscript.as or java -jar create test.adf
 	 * 
-	 *
-	 *
-	 *
+	 * 
+	 * 
+	 * 
 	 * @param args
 	 * @return
 	 */
@@ -97,7 +109,7 @@ public class AmbethShellStarter implements IStartingBean, IDisposableBean
 
 	/**
 	 * validate the variable setting inputs for the batch file(.as file) and save them to Properties if all are valid.
-	 *
+	 * 
 	 * @param properties
 	 *            {@link Properties} that be used for starting Ambeth
 	 * @param batchFile
