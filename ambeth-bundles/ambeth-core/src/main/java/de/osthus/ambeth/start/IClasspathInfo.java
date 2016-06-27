@@ -1,13 +1,13 @@
 package de.osthus.ambeth.start;
 
-import java.io.File;
 import java.net.URL;
+import java.nio.file.Path;
 
-import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.IList;
 
 public interface IClasspathInfo
 {
-	ArrayList<URL> getJarURLs();
+	IList<URL> getJarURLs();
 
-	File openAsFile(URL url) throws Throwable;
+	Path openAsFile(URL url) throws Throwable;
 }

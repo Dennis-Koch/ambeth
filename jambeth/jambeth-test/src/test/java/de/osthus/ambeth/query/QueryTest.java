@@ -333,6 +333,40 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
+	public void retrieveWithLimit1() throws Exception
+	{
+		IQuery<QueryEntity> query = qb.limit(qb.value(1)).build();
+		List<QueryEntity> actual = query.retrieve();
+		assertEquals(1, actual.size());
+	}
+
+	@Test
+	public void retrieveSingleWithLimit1() throws Exception
+	{
+		IQuery<QueryEntity> query = qb.limit(qb.value(1)).build();
+		QueryEntity actual = query.retrieveSingle();
+		assertNotNull(actual);
+	}
+
+	@Test
+	public void retrieveWithLimit100() throws Exception
+	{
+		List<Integer> expected = Arrays.asList(1, 2, 3, 4, 5, 6);
+
+		IQuery<QueryEntity> query = qb.limit(qb.value(100)).build();
+		List<QueryEntity> actual = query.retrieve();
+		assertSimilar(expected, actual);
+	}
+
+	@Test
+	public void isEmptyWithLimit0() throws Exception
+	{
+		// This test makes sure that limit 1 is stil used for isEmpty
+		IQuery<QueryEntity> query = qb.limit(qb.value(0)).build();
+		Assert.assertFalse(query.isEmpty());
+	}
+
+	@Test
 	public void retrieveAllAfterUpdate() throws Exception
 	{
 		transaction.processAndCommit(new DatabaseCallback()

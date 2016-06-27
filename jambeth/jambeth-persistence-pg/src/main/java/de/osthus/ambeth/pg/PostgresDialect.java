@@ -56,7 +56,9 @@ import de.osthus.ambeth.persistence.jdbc.ColumnEntry;
 import de.osthus.ambeth.persistence.jdbc.IConnectionExtension;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.connection.IConnectionKeyHandle;
+import de.osthus.ambeth.persistence.jdbc.sql.LimitByLimitOperator;
 import de.osthus.ambeth.query.IOperand;
+import de.osthus.ambeth.query.IValueOperand;
 import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.sql.ParamsUtil;
 
@@ -751,5 +753,15 @@ public class PostgresDialect extends AbstractConnectionDialect
 		// sqlCommand = "CREATE TABLESPACE " + tablespace + " LOCATION '" + file + "'";
 		// }
 		return sqlCommand;
+	}
+
+	@Override
+	public IOperand getLimitOperand(IOperand operand, IValueOperand valueOperand)
+	{
+		return beanContext.registerBean(LimitByLimitOperator.class)//
+				.propertyValue("Operand", operand)//
+				.propertyValue("ValueOperand", operand)//
+				.finish();
+
 	}
 }

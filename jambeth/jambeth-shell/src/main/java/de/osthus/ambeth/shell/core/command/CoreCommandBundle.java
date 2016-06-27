@@ -64,10 +64,7 @@ public class CoreCommandBundle extends AbstractCommandBundle
 	@Command(name = "echo", description = "Prints messages to the console")
 	public CommandResult echo(@CommandArg(name = "", alt = "message", description = "the message to print") Object value)
 	{
-		String filteredValue = shell.getContext().filter(value.toString());
-		SingleResult cmdRst = new SingleResult("echo");
-		cmdRst.addValue(filteredValue);
-		return cmdRst;
+		return new SingleResult(shell.getContext().filter(value.toString()));
 	}
 
 	@Command(name = "wait", description = "pauses execution for the given amount of milli seconds")

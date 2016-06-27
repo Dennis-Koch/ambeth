@@ -4,6 +4,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.net.URLDecoder;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -120,13 +125,57 @@ public final class FileUtil
 		String lookupName = fileName;
 		if (currentTypeScope != null)
 		{
-			// check first to look for the fileName relative to our current typeScope
 			lookupName = currentTypeScope.getPackage().getName().replace('.', '/') + "/" + fileName;
-			inputStream = contextClassLoader.getResourceAsStream(lookupName);
+			// check first to look for the fileName relative to our current typeScope
+			String pathString = currentTypeScope.getProtectionDomain().getCodeSource().getLocation().getPath();
+			try
+			{
+				Path path = Paths.get(URLDecoder.decode(pathString, "UTF-8"), lookupName);
+				if (Files.exists(path))
+				{
+					inputStream = Files.newInputStream(path);
+				}
+				path = Paths.get(URLDecoder.decode(pathString, "UTF-8"), fileName);
+				if (Files.exists(path))
+				{
+					inputStream = Files.newInputStream(path);
+				}
+			}
+			catch (InvalidPathException e)
+			{
+				// Ignore and continue
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+			if (inputStream == null)
+			{
+				inputStream = contextClassLoader.getResourceAsStream(lookupName);
+			}
 		}
 		if (inputStream == null)
 		{
 			lookupName = fileName;
+
+			String pathString = FileUtil.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+			try
+			{
+				File file = new File(URLDecoder.decode(pathString, "UTF-8") + '/' + lookupName);
+				if (file.exists())
+				{
+					inputStream = Files.newInputStream(file.toPath());
+				}
+				file = new File(URLDecoder.decode(pathString, "UTF-8") + '/' + fileName);
+				if (file.exists())
+				{
+					inputStream = Files.newInputStream(file.toPath());
+				}
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
 			inputStream = contextClassLoader.getResourceAsStream(lookupName);
 		}
 		if (inputStream != null && log != null && log.isDebugEnabled())

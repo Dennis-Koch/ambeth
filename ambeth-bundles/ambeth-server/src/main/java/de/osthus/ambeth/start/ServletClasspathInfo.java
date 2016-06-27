@@ -3,6 +3,7 @@ package de.osthus.ambeth.start;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -94,7 +95,7 @@ public class ServletClasspathInfo implements IClasspathInfo
 	}
 
 	@Override
-	public File openAsFile(URL url) throws Throwable
+	public Path openAsFile(URL url) throws Throwable
 	{
 		String tempPath = url.getPath();
 		while (true)
@@ -127,7 +128,7 @@ public class ServletClasspathInfo implements IClasspathInfo
 					// }
 					throw new IllegalStateException("Path '" + realPathFile.getAbsolutePath() + "' does not exist!");
 				}
-				return realPathFile;
+				return realPathFile.toPath();
 			}
 			catch (Throwable e)
 			{

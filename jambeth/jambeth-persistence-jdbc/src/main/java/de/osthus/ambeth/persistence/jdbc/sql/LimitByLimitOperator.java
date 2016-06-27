@@ -1,4 +1,4 @@
-package de.osthus.ambeth.query.sql;
+package de.osthus.ambeth.persistence.jdbc.sql;
 
 import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.IList;
@@ -9,7 +9,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IValueOperand;
 
-public class SqlLimitOperator implements IOperand
+public class LimitByLimitOperator implements IOperand
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -29,7 +29,7 @@ public class SqlLimitOperator implements IOperand
 		{
 			return;
 		}
-		querySB.append("ROWNUM<=");
+		querySB.append("LIMIT ");
 		querySB.append(value.toString());
 	}
 }

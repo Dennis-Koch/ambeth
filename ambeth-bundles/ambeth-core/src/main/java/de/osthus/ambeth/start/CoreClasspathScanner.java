@@ -2,6 +2,8 @@ package de.osthus.ambeth.start;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
@@ -18,6 +20,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.CoreConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -27,7 +30,7 @@ import de.osthus.ambeth.util.IClasspathScanner;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class CoreClasspathScanner implements IClasspathScanner
+public class CoreClasspathScanner implements IClasspathScanner, IInitializingBean
 {
 	@LogInstance
 	private ILogger log;
@@ -42,12 +45,35 @@ public class CoreClasspathScanner implements IClasspathScanner
 	@Autowired
 	protected IClasspathInfo classpathInfo;
 
-	@Property(name = CoreConfigurationConstants.PackageScanPatterns, defaultValue = "de/osthus.*")
+	@Property(name = CoreConfigurationConstants.PackageScanPatterns, defaultValue = "de/osthus.*;com/osthus.*")
 	protected String packageFilterPatterns;
 
 	protected Pattern[] packageScanPatterns;
 
 	protected Pattern[] preceedingPackageScanPatterns;
+
+	protected ClassPool classPool;
+
+	@Override
+	public void afterPropertiesSet() throws Throwable
+	{
+		// intended blank
+	}
+
+	protected void initializeClassPool(ClassPool classPool)
+	{
+		for (URL url : getJarURLs())
+		{
+			try
+			{
+				classPool.appendPathList(convertURLToFile(url).toString());
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
+	}
 
 	// Has to be used by getter since it might be needed before afterPropertiesSet() was called.
 	protected Pattern[] getPackageScanPatterns()
@@ -76,7 +102,7 @@ public class CoreClasspathScanner implements IClasspathScanner
 	@Override
 	public List<Class<?>> scanClassesAnnotatedWith(Class<?>... annotationTypes)
 	{
-		ClassPool pool = ClassPool.getDefault();
+		ClassPool pool = getClassPool();
 		IList<String> targetClassNames = scanForClasses(pool);
 		try
 		{
@@ -120,14 +146,18 @@ public class CoreClasspathScanner implements IClasspathScanner
 	@Override
 	public List<Class<?>> scanClassesImplementing(Class<?>... superTypes)
 	{
-		ClassPool pool = ClassPool.getDefault();
+		ClassPool pool = getClassPool();
 		IList<String> targetClassNames = scanForClasses(pool);
 		try
 		{
 			CtClass[] ctSuperTypes = new CtClass[superTypes.length];
 			for (int a = superTypes.length; a-- > 0;)
 			{
-				ctSuperTypes[a] = pool.getCtClass(superTypes[a].getName());
+				ctSuperTypes[a] = pool.getOrNull(superTypes[a].getName());
+				if (ctSuperTypes[a] == null)
+				{
+					ctSuperTypes[a] = ClassPool.getDefault().get(superTypes[a].getName());
+				}
 			}
 			List<CtClass> classNamesFound = new ArrayList<CtClass>();
 			for (int a = 0, size = targetClassNames.size(); a < size; a++)
@@ -151,6 +181,16 @@ public class CoreClasspathScanner implements IClasspathScanner
 		}
 	}
 
+	protected ClassPool getClassPool()
+	{
+		if (classPool == null)
+		{
+			classPool = new ClassPool();
+			initializeClassPool(classPool);
+		}
+		return classPool;
+	}
+
 	protected List<Class<?>> convertToClasses(List<CtClass> ctClasses)
 	{
 		HashSet<Class<?>> set = new HashSet<Class<?>>();
@@ -159,7 +199,7 @@ public class CoreClasspathScanner implements IClasspathScanner
 			CtClass ctClass = ctClasses.get(a);
 			try
 			{
-				set.add(Thread.currentThread().getContextClassLoader().loadClass(ctClass.getName()));
+				set.add(getClassLoader().loadClass(ctClass.getName()));
 			}
 			catch (Throwable e)
 			{
@@ -171,9 +211,14 @@ public class CoreClasspathScanner implements IClasspathScanner
 		return list;
 	}
 
+	protected ClassLoader getClassLoader()
+	{
+		return Thread.currentThread().getContextClassLoader();
+	}
+
 	protected IList<String> scanForClasses(ClassPool pool)
 	{
-		IList<URL> urls = classpathInfo.getJarURLs();
+		IList<URL> urls = getJarURLs();
 
 		ArrayList<String> namespacePatterns = new ArrayList<String>();
 		ArrayList<String> targetClassNames = new ArrayList<String>();
@@ -185,11 +230,14 @@ public class CoreClasspathScanner implements IClasspathScanner
 				URL url = urls.get(a);
 				try
 				{
-					File realPathFile = classpathInfo.openAsFile(url);
-					pool.appendPathList(realPathFile.getCanonicalPath());
-					if (realPathFile.isFile())
+					Path realPathFile = convertURLToFile(url);
+					if (Files.isDirectory(realPathFile))
 					{
-						JarFile jarFile = new JarFile(realPathFile);
+						scanDirectory(realPathFile, "", targetClassNames, false);
+					}
+					else
+					{
+						JarFile jarFile = new JarFile(realPathFile.toFile());
 						try
 						{
 							scanJarFile(jarFile, namespacePatterns, targetClassNames);
@@ -198,11 +246,6 @@ public class CoreClasspathScanner implements IClasspathScanner
 						{
 							jarFile.close();
 						}
-						continue;
-					}
-					else if (realPathFile.isDirectory())
-					{
-						scanDirectory(realPathFile, "", targetClassNames, false);
 					}
 				}
 				catch (Throwable e)
@@ -216,6 +259,16 @@ public class CoreClasspathScanner implements IClasspathScanner
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		return targetClassNames;
+	}
+
+	protected IList<URL> getJarURLs()
+	{
+		return classpathInfo.getJarURLs();
+	}
+
+	protected Path convertURLToFile(URL url) throws Throwable
+	{
+		return classpathInfo.openAsFile(url);
 	}
 
 	protected void scanJarFile(JarFile jarFile, List<String> namespacePatterns, List<String> targetClassNames)
@@ -278,16 +331,16 @@ public class CoreClasspathScanner implements IClasspathScanner
 		}
 	}
 
-	protected void scanDirectory(File dir, String relativePath, List<String> targetClassNames, boolean addOnly)
+	protected void scanDirectory(Path dir, String relativePath, List<String> targetClassNames, boolean addOnly)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
 		try
 		{
-			File[] files = dir.listFiles();
+			File[] files = dir.toFile().listFiles();
 			if (files == null)
 			{
-				throw new IllegalStateException("Directory '" + dir.getAbsolutePath() + "' not accessible");
+				throw new IllegalStateException("Directory '" + dir.toFile().getAbsolutePath() + "' not accessible");
 			}
 			sb.append(relativePath);
 			if (relativePath.length() > 0)
@@ -305,27 +358,7 @@ public class CoreClasspathScanner implements IClasspathScanner
 				{
 					sb.append(file.getName());
 					String classNamePart = sb.toString();
-					scanDirectory(file, classNamePart, targetClassNames, addOnly);
-					// if (addOnly)
-					// {
-					// scanDirectory(file, classNamePart, null, targetClassNames, addOnly);
-					// continue;
-					// }
-					//
-					// for (int b = classPathItems.length; b-- > 0;)
-					// {
-					// ClassPathItem classPathItem = classPathItems[b];
-					// Matcher matcher = classPathItem.getPattern().matcher(classNamePart);
-					// if (!matcher.matches())
-					// {
-					// continue;
-					// }
-					// if (classPathItem.isIncludeThis())
-					// {
-					// scanDirectory(file, classNamePart, null, targetClassNames, true);
-					// break;
-					// }
-					// }
+					scanDirectory(file.toPath(), classNamePart, targetClassNames, addOnly);
 					continue;
 				}
 				Matcher cutDollarMatcher = cutDollarPattern.matcher(file.getName());
