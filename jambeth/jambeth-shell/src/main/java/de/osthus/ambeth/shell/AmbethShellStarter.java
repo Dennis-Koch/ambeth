@@ -45,6 +45,8 @@ public class AmbethShellStarter implements IStartingBean, IDisposableBean
 		System.setProperty(ShellContext.PRODUCT_NAME, "Ambeth Shell");
 		System.setProperty(ShellContext.PRODUCT_VERSION, "1.2.3");
 
+		// System.setProperty("hide.io", "false");
+
 		Calendar c = Calendar.getInstance();
 		c.set(2099, 0, 1);
 		System.setProperty(ShellContext.LICENSE_EXPIRATION_DATE, new Long(c.getTimeInMillis()).toString());

@@ -9,6 +9,7 @@ import java.util.TreeMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.shell.core.CommandBinding;
+import de.osthus.ambeth.shell.core.ShellContext;
 import de.osthus.ambeth.shell.core.annotation.Command;
 import de.osthus.ambeth.shell.core.annotation.CommandArg;
 import de.osthus.ambeth.shell.core.resulttype.CommandResult;
@@ -25,7 +26,6 @@ public class CoreCommandBundle extends AbstractCommandBundle
 			description = "stores variables in shell context. Use without arguments or without value to print entire context or the value of the variable to the console")//
 			Entry<String, Object> entry)
 	{
-
 		if (entry != null)
 		{
 			if (entry.getValue() != null && entry.getKey() != null && !entry.getKey().isEmpty())
@@ -86,7 +86,7 @@ public class CoreCommandBundle extends AbstractCommandBundle
 	@Command(name = "exit", description = "exit the shell")
 	public CommandResult exit(@CommandArg(optional = true, defaultValue = "0", alt = "exit-code", description = "the exit code") String exitStatus)
 	{
-		shell.exit(Integer.parseInt(exitStatus));
+		shell.getContext().set(ShellContext.SHUTDOWN, true);
 		return null;
 	}
 

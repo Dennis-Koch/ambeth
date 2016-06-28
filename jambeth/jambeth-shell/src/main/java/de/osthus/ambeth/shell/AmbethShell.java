@@ -78,8 +78,11 @@ public interface AmbethShell
 	void println();
 
 	/**
+	 * Deprecated: use context.set(ShellContext.SHUTDOWN, true) instead
+	 * 
 	 * @param object
 	 */
+	@Deprecated
 	void exit(int status);
 
 	/**

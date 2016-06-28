@@ -42,7 +42,6 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	private static final boolean VERBOSE_DEFAULT = false;
 	private static final boolean ECHO_DEFAULT = false;
 
-	private static final String HIDE_IO = "hide.io";
 	private static final String PROMPT_SIGN = ">";
 	private static final String PROMPT_CONNECTOR = "&&";
 	private static final String DEFAULT_PROMPT = "AMBETH";
@@ -90,6 +89,8 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 
 	@Property(name = ShellContext.MAIN_ARGS, mandatory = false)
 	protected String[] mainArgs;
+	private PrintStream originalOut;
+	private PrintStream originalErr;
 
 	/**
 	 * 
@@ -116,61 +117,72 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	public void startShell()
 	{
 		initSystemIO();
-		AmbethShellImpl.this.preventSystemOut();
 
-		if (batchFile != null && !batchFile.isEmpty())
+		if (getContext().get(ShellContext.HIDE_IO, HIDE_IO_DEFAULT))
 		{
-			BufferedReader scriptReader = null;
-			try
-			{
-				scriptReader = new BufferedReader(new FileReader(new File(batchFile)));
-				this.getContext().set(ECHO, true);
+			this.preventSystemIO();
+		}
 
-				// save the variables for the batch file to shellContext
-				if (varsForBatchFile != null && varsForBatchFile.size() > 0)
+		try
+		{
+			if (batchFile != null && !batchFile.isEmpty())
+			{
+				BufferedReader scriptReader = null;
+				try
 				{
-					Set<String> keySet = varsForBatchFile.keySet();
-					for (String variable : keySet)
+					scriptReader = new BufferedReader(new FileReader(new File(batchFile)));
+					this.getContext().set(ECHO, true);
+
+					// save the variables for the batch file to shellContext
+					if (varsForBatchFile != null && varsForBatchFile.size() > 0)
 					{
-						this.getContext().set(variable, varsForBatchFile.get(variable));
+						Set<String> keySet = varsForBatchFile.keySet();
+						for (String variable : keySet)
+						{
+							this.getContext().set(variable, varsForBatchFile.get(variable));
+						}
+					}
+
+					this.startInteractive(scriptReader);
+				}
+				catch (IOException e)
+				{
+					throw RuntimeExceptionUtil.mask(e);
+				}
+				finally
+				{
+					if (scriptReader != null)
+					{
+						try
+						{
+							scriptReader.close();
+						}
+						catch (IOException e)
+						{
+							throw RuntimeExceptionUtil.mask(e);
+						}
 					}
 				}
-
-				this.startInteractive(scriptReader);
 			}
-			catch (IOException e)
+			else if (mainArgs != null && mainArgs.length > 0)
 			{
-				throw RuntimeExceptionUtil.mask(e);
-			}
-			finally
-			{
-				if (scriptReader != null)
+				try
 				{
-					try
-					{
-						scriptReader.close();
-					}
-					catch (IOException e)
-					{
-						throw RuntimeExceptionUtil.mask(e);
-					}
+					this.executeCommand(mainArgs);
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
 				}
 			}
-		}
-		else if (mainArgs != null && mainArgs.length > 0)
-		{
-			try
+			else
 			{
-				this.executeCommand(mainArgs);
-			}
-			catch (Exception e)
-			{
-				e.printStackTrace();
+				this.startInteractive(new BufferedReader(new InputStreamReader(System.in)));
 			}
 		}
-		else
+		finally
 		{
-			this.startInteractive(new BufferedReader(new InputStreamReader(System.in)));
+			restoreSystemIO();
 		}
 	}
 
@@ -179,20 +191,35 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 		shellOut = System.out;
 	}
 
-	private void preventSystemOut()
+	private void restoreSystemIO()
+	{
+		if (originalOut != null)
+		{
+			System.setOut(originalOut);
+		}
+
+		if (originalErr != null)
+		{
+			System.setErr(originalErr);
+		}
+	}
+
+	private void preventSystemIO()
 	{
 		PrintStream noOpSystemOut = new PrintStream(new OutputStream()
 		{
 			@Override
 			public void write(int b) throws IOException
 			{
-				if (!getContext().get(HIDE_IO, HIDE_IO_DEFAULT))
+				if (!getContext().get(ShellContext.HIDE_IO, HIDE_IO_DEFAULT))
 				{
 					shellOut.write(b);
 				}
 			}
 		});
 
+		originalOut = System.out;
+		originalErr = System.err;
 		System.setOut(noOpSystemOut);
 		System.setErr(noOpSystemOut);
 	}
@@ -211,7 +238,6 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 			String licenseNotice = "";
 			Long licenseExpirationDate = context.get(ShellContext.LICENSE_EXPIRATION_DATE, Long.class);
 			Long now = System.currentTimeMillis();
-			boolean licenseExpired = false;
 			if (licenseExpirationDate != null)
 			{
 				if (licenseExpirationDate > now)
@@ -221,7 +247,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 				else
 				{
 					licenseNotice = "License expired on " + new Date(licenseExpirationDate);
-					licenseExpired = true;
+					context.set(ShellContext.SHUTDOWN, true);
 				}
 			}
 
@@ -247,13 +273,8 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 				}
 			}
 
-			if (licenseExpired)
-			{
-				return;
-			}
-
 			String userInput;
-			while (true)
+			while (!context.get(ShellContext.SHUTDOWN, false))
 			{
 				prompt();
 				userInput = br.readLine();
@@ -531,7 +552,8 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	public void exit(int status)
 	{
 		// this is OK because our IoC context is bound to the VM shutdown hook for a graceful shutdown procedure
-		System.exit(status);
+		// System.exit(status);
+		getContext().set(ShellContext.SHUTDOWN, true);
 	}
 
 	@Override
