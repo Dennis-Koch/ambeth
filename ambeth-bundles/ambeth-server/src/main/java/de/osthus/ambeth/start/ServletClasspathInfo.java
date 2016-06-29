@@ -34,15 +34,18 @@ public class ServletClasspathInfo implements IClasspathInfo
 
 		String libs = "/WEB-INF/lib";
 		Set<String> libJars = servletContext.getResourcePaths(libs);
-		for (String jar : libJars)
+		if (libJars != null)
 		{
-			try
+			for (String jar : libJars)
 			{
-				urls.add(servletContext.getResource(jar));
-			}
-			catch (MalformedURLException e)
-			{
-				throw new RuntimeException(e);
+				try
+				{
+					urls.add(servletContext.getResource(jar));
+				}
+				catch (MalformedURLException e)
+				{
+					throw new RuntimeException(e);
+				}
 			}
 		}
 
@@ -58,24 +61,27 @@ public class ServletClasspathInfo implements IClasspathInfo
 				// There may be duplicates, so we have to use a Set for that.
 				// See "Osthus Extensions » Ambeth Services" Ticket #1084
 				URL url = servletContext.getResource(folderElement);
-				if (url.toString().startsWith("file:/"))
+				if (url != null)
 				{
-					File file = new File(url.toURI());
-					if (file.isDirectory())
+					if (url.toString().startsWith("file:/"))
 					{
-						urls.add(file.getParentFile().toURI().toURL());
-					}
-				}
-				else if (url.toString().startsWith("jndi:/"))
-				{
-					Object content = url.getContent(new Class[] { DirContext.class });
-					if (content != null && content instanceof DirContext)
-					{
-						DirContext dirContent = (DirContext) content;
-						File file = new File(dirContent.getNameInNamespace());
+						File file = new File(url.toURI());
 						if (file.isDirectory())
 						{
 							urls.add(file.getParentFile().toURI().toURL());
+						}
+					}
+					else if (url.toString().startsWith("jndi:/"))
+					{
+						Object content = url.getContent(new Class[] { DirContext.class });
+						if (content != null && content instanceof DirContext)
+						{
+							DirContext dirContent = (DirContext) content;
+							File file = new File(dirContent.getNameInNamespace());
+							if (file.isDirectory())
+							{
+								urls.add(file.getParentFile().toURI().toURL());
+							}
 						}
 					}
 				}
