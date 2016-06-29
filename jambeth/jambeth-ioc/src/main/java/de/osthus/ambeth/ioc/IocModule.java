@@ -114,7 +114,8 @@ public class IocModule implements IInitializingModule
 
 		beanContextFactory.registerBean("cgLibUtil", CgLibUtil.class).autowireable(ICgLibUtil.class);
 
-		beanContextFactory.registerBean("guiThreadHelper", GuiThreadHelper.class).autowireable(IGuiThreadHelper.class);
+		beanContextFactory.registerBean("guiThreadHelper", GuiThreadHelper.class).propertyRef("Executor", THREAD_POOL_NAME)
+				.autowireable(IGuiThreadHelper.class);
 
 		beanContextFactory.registerBean(JAXBContextProvider.class).autowireable(IJAXBContextProvider.class);
 
