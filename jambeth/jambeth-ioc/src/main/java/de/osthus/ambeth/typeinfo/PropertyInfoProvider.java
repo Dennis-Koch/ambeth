@@ -11,8 +11,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.annotation.PropertyAccessor;
-import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -146,7 +146,7 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 				return propertyEntry;
 			}
 
-			HashMap<String, HashMap<Class<?>, HashMap<String, Method>>> sortedMethods = new HashMap<String, HashMap<Class<?>, HashMap<String, Method>>>();
+			IMap<String, IMap<Class<?>, IMap<String, Method>>> sortedMethods = new LinkedHashMap<String, IMap<Class<?>, IMap<String, Method>>>();
 			Method[] methods = ReflectUtil.getDeclaredMethodsInHierarchy(type);
 
 			MethodAccess methodAccess = null;
@@ -169,10 +169,10 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 					{
 						continue;
 					}
-					HashMap<Class<?>, HashMap<String, Method>> sortedMethod = sortedMethods.get(propName);
+					IMap<Class<?>, IMap<String, Method>> sortedMethod = sortedMethods.get(propName);
 					if (sortedMethod == null)
 					{
-						sortedMethod = HashMap.create(1);
+						sortedMethod = LinkedHashMap.create(1);
 						sortedMethods.put(propName, sortedMethod);
 					}
 
@@ -194,10 +194,10 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 						throw new IllegalStateException("Method is not an accessor: " + method);
 					}
 
-					HashMap<String, Method> methodPerType = sortedMethod.get(propertyType);
+					IMap<String, Method> methodPerType = sortedMethod.get(propertyType);
 					if (methodPerType == null)
 					{
-						methodPerType = HashMap.create(2);
+						methodPerType = LinkedHashMap.create(2);
 						sortedMethod.put(propertyType, methodPerType);
 					}
 
@@ -209,13 +209,13 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 				}
 			}
 
-			HashMap<String, HashMap<String, Method>> filteredMethods = filterOverriddenMethods(sortedMethods, type);
+			IMap<String, IMap<String, Method>> filteredMethods = filterOverriddenMethods(sortedMethods, type);
 
-			HashMap<String, IPropertyInfo> propertyMap = new HashMap<String, IPropertyInfo>(0.5f);
-			for (Entry<String, HashMap<String, Method>> propertyData : filteredMethods)
+			LinkedHashMap<String, IPropertyInfo> propertyMap = new LinkedHashMap<String, IPropertyInfo>(0.5f);
+			for (Entry<String, IMap<String, Method>> propertyData : filteredMethods)
 			{
 				String propertyName = propertyData.getKey();
-				HashMap<String, Method> propertyMethods = propertyData.getValue();
+				IMap<String, Method> propertyMethods = propertyData.getValue();
 				Method getter = propertyMethods.get("get");
 				Method setter = propertyMethods.get("set");
 
@@ -302,20 +302,19 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 		return !Modifier.isAbstract(method.getModifiers()) && !Modifier.isPrivate(method.getModifiers());
 	}
 
-	protected HashMap<String, HashMap<String, Method>> filterOverriddenMethods(HashMap<String, HashMap<Class<?>, HashMap<String, Method>>> sortedMethods,
-			Class<?> entityType)
+	protected IMap<String, IMap<String, Method>> filterOverriddenMethods(IMap<String, IMap<Class<?>, IMap<String, Method>>> sortedMethods, Class<?> entityType)
 	{
-		HashMap<String, HashMap<String, Method>> filteredMethods = HashMap.create(sortedMethods.size());
+		IMap<String, IMap<String, Method>> filteredMethods = LinkedHashMap.create(sortedMethods.size());
 
-		for (Entry<String, HashMap<Class<?>, HashMap<String, Method>>> entry : sortedMethods)
+		for (Entry<String, IMap<Class<?>, IMap<String, Method>>> entry : sortedMethods)
 		{
 			String propName = entry.getKey();
-			HashMap<Class<?>, HashMap<String, Method>> typedHashMap = entry.getValue();
+			IMap<Class<?>, IMap<String, Method>> typedHashMap = entry.getValue();
 
 			if (typedHashMap.size() == 1)
 			{
-				Iterator<HashMap<String, Method>> iter = typedHashMap.values().iterator();
-				HashMap<String, Method> accessorMap = iter.next();
+				Iterator<IMap<String, Method>> iter = typedHashMap.values().iterator();
+				IMap<String, Method> accessorMap = iter.next();
 				filteredMethods.put(propName, accessorMap);
 				continue;
 			}
@@ -323,10 +322,10 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 			Class<?> mostConcreteType = null;
 			Class<?> mostConcreteGetterType = null;
 			Class<?> mostConcreteSetterType = null;
-			for (Entry<Class<?>, HashMap<String, Method>> typedEntries : typedHashMap)
+			for (Entry<Class<?>, IMap<String, Method>> typedEntries : typedHashMap)
 			{
 				Class<?> currentType = typedEntries.getKey();
-				HashMap<String, Method> accessorMap = typedEntries.getValue();
+				IMap<String, Method> accessorMap = typedEntries.getValue();
 				if (accessorMap.size() != 2)
 				{
 					if (accessorMap.get("get") != null)
@@ -343,17 +342,17 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 			}
 			if (mostConcreteType != null)
 			{
-				HashMap<String, Method> accessorMap = typedHashMap.get(mostConcreteType);
+				IMap<String, Method> accessorMap = typedHashMap.get(mostConcreteType);
 				filteredMethods.put(propName, accessorMap);
 			}
 			else if (mostConcreteGetterType != null)
 			{
-				HashMap<String, Method> accessorMap = typedHashMap.get(mostConcreteGetterType);
+				IMap<String, Method> accessorMap = typedHashMap.get(mostConcreteGetterType);
 				filteredMethods.put(propName, accessorMap);
 			}
 			else if (mostConcreteSetterType != null)
 			{
-				HashMap<String, Method> accessorMap = typedHashMap.get(mostConcreteSetterType);
+				IMap<String, Method> accessorMap = typedHashMap.get(mostConcreteSetterType);
 				filteredMethods.put(propName, accessorMap);
 			}
 		}
