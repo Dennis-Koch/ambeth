@@ -331,25 +331,15 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 				{
 					if (accessorMap.get("get") != null)
 					{
-						if (mostConcreteGetterType == null || mostConcreteGetterType.isAssignableFrom(currentType))
-						{
-							mostConcreteGetterType = currentType;
-						}
+						mostConcreteGetterType = resolveMostConcreteType(mostConcreteGetterType, currentType);
 					}
 					else
 					{
-						if (mostConcreteSetterType == null || mostConcreteSetterType.isAssignableFrom(currentType))
-						{
-							mostConcreteSetterType = currentType;
-						}
+						mostConcreteSetterType = resolveMostConcreteType(mostConcreteSetterType, currentType);
 					}
 					continue;
 				}
-
-				if (mostConcreteType == null || mostConcreteType.isAssignableFrom(currentType))
-				{
-					mostConcreteType = currentType;
-				}
+				mostConcreteType = resolveMostConcreteType(mostConcreteType, currentType);
 			}
 			if (mostConcreteType != null)
 			{
@@ -369,6 +359,15 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 		}
 
 		return filteredMethods;
+	}
+
+	protected Class<?> resolveMostConcreteType(Class<?> mostConcreteType, Class<?> currentType)
+	{
+		if (mostConcreteType == null || mostConcreteType.isAssignableFrom(currentType))
+		{
+			return currentType;
+		}
+		return mostConcreteType;
 	}
 
 	/**
