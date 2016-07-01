@@ -101,4 +101,6 @@ public interface IConnectionDialect
 	 * @return
 	 */
 	String prepareCommand(String sqlCommand);
+
+	SelectPosition getLimitPosition();
 }

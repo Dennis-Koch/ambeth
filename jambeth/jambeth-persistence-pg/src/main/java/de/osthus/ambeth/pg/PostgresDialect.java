@@ -48,6 +48,7 @@ import de.osthus.ambeth.persistence.IColumnEntry;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IFieldMetaData;
 import de.osthus.ambeth.persistence.SQLState;
+import de.osthus.ambeth.persistence.SelectPosition;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.exception.NullConstraintException;
 import de.osthus.ambeth.persistence.exception.UniqueConstraintException;
@@ -763,5 +764,11 @@ public class PostgresDialect extends AbstractConnectionDialect
 				.propertyValue("ValueOperand", operand)//
 				.finish();
 
+	}
+
+	@Override
+	public SelectPosition getLimitPosition()
+	{
+		return SelectPosition.AFTER_WHERE;
 	}
 }

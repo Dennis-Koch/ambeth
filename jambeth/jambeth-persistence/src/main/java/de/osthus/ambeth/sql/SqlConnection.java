@@ -16,6 +16,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.IPersistenceHelper;
+import de.osthus.ambeth.persistence.SelectPosition;
 import de.osthus.ambeth.util.IConversionHelper;
 
 public abstract class SqlConnection implements ISqlConnection, IInitializingBean
@@ -192,7 +193,12 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 		boolean hasWhere = whereSql != null && whereSql.length() > 0;
 		boolean hasOrderBy = orderBySql != null && orderBySql.length() > 0;
 		boolean hasLimit = limitSql != null && limitSql.length() > 0;
-		boolean needsSubselectForLimit = hasOrderBy && hasLimit;
+		boolean needsSubselectForLimit = false;
+		SelectPosition limitPosition = connectionDialect.getLimitPosition();
+		if (SelectPosition.AS_WHERE_CLAUSE.equals(limitPosition))
+		{
+			needsSubselectForLimit = hasOrderBy && hasLimit;
+		}
 		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
 		AppendableStringBuilder sb = objectCollector.create(AppendableStringBuilder.class);
 		try
@@ -231,13 +237,22 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 			}
 			else if (hasLimit)
 			{
-				if (!hasWhere)
+				switch (limitPosition)
 				{
-					sb.append(" WHERE ");
-				}
-				else
-				{
-					sb.append(" AND ");
+					case AS_WHERE_CLAUSE:
+						if (!hasWhere)
+						{
+							sb.append(" WHERE ");
+						}
+						else
+						{
+							sb.append(" AND ");
+						}
+						break;
+					case AFTER_WHERE:
+						break;
+					default:
+						throw new UnsupportedOperationException("'SELECT TOP' not supported yet");
 				}
 				sb.append(limitSql);
 			}
