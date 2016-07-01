@@ -250,6 +250,10 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 						}
 						break;
 					case AFTER_WHERE:
+						if (hasOrderBy)
+						{
+							sb.append(" ");
+						}
 						break;
 					default:
 						throw new UnsupportedOperationException("'SELECT TOP' not supported yet");
