@@ -1,5 +1,8 @@
 package de.osthus.ambeth.shell.core;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import de.osthus.ambeth.shell.core.annotation.CommandArg;
 
 /**
@@ -7,6 +10,8 @@ import de.osthus.ambeth.shell.core.annotation.CommandArg;
  */
 public class ParsedArgument
 {
+
+	protected static final Pattern userInputPattern = Pattern.compile("([^=]+)=(.*)"); // captures the left side of the first "=" character as well as the right
 
 	protected final String userInput;
 	protected final int index;
@@ -25,11 +30,11 @@ public class ParsedArgument
 
 	private void parse()
 	{
-		if (userInput.contains("="))
+		Matcher matcher = userInputPattern.matcher(userInput);
+		if (matcher.matches())
 		{
-			String[] nvPair = userInput.split("=");
-			name = nvPair[0];
-			value = shellContext.resolve(unquoteString(userInput.substring(userInput.indexOf("=") + 1)));
+			name = matcher.group(1);
+			value = shellContext.resolve(unquoteString(matcher.group(2)));
 		}
 		else
 		{
@@ -40,7 +45,7 @@ public class ParsedArgument
 
 	/**
 	 * remove leading and trailing quotes
-	 * 
+	 *
 	 * @param s
 	 * @return
 	 */
