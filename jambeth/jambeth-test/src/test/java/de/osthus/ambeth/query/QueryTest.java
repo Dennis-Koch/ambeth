@@ -333,6 +333,14 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
+	public void retrieveWithLimitAndOrder1() throws Exception
+	{
+		IQuery<QueryEntity> query = qb.limit(qb.value(1)).orderBy(qb.property("UpdatedOn"), OrderByType.DESC).build();
+		List<QueryEntity> actual = query.retrieve();
+		assertEquals(1, actual.size());
+	}
+
+	@Test
 	public void retrieveWithLimit1() throws Exception
 	{
 		IQuery<QueryEntity> query = qb.limit(qb.value(1)).build();

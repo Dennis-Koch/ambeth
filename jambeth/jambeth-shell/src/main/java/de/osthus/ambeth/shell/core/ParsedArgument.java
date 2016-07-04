@@ -3,7 +3,7 @@ package de.osthus.ambeth.shell.core;
 import de.osthus.ambeth.shell.core.annotation.CommandArg;
 
 /**
- * 
+ *
  */
 public class ParsedArgument
 {
@@ -29,7 +29,7 @@ public class ParsedArgument
 		{
 			String[] nvPair = userInput.split("=");
 			name = nvPair[0];
-			value = shellContext.resolve(unquoteString(nvPair[1]));
+			value = shellContext.resolve(unquoteString(userInput.substring(userInput.indexOf("=") + 1)));
 		}
 		else
 		{
