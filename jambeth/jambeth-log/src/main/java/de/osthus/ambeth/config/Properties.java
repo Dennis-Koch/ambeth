@@ -303,6 +303,16 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 		putProperty(key, value);
 	}
 
+	public boolean putIfUndefined(String key, Object value)
+	{
+		if (get(key) != null)
+		{
+			return false;
+		}
+		putProperty(key, value);
+		return true;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
