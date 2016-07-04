@@ -1,7 +1,6 @@
 package de.osthus.ambeth.shell;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -39,18 +38,18 @@ public class AmbethShellStarter implements IStartingBean, IDisposableBean
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args)
 	{
-		System.setProperty(ShellContext.GREETING_ACTIVE, "true");
-		System.setProperty(ShellContext.LICENSE_TYPE, License.DEMO.toString());
-		System.setProperty(ShellContext.LICENSE_TEXT, "Evaluation license for non-commercial use only!");
+		System.setProperty(ShellContext.GREETING_ACTIVE, "false");
+		System.setProperty(ShellContext.LICENSE_TYPE, License.COMMERCIAL.toString());
+		// System.setProperty(ShellContext.LICENSE_TEXT, "Evaluation license for non-commercial use only!");
 		System.setProperty(ShellContext.PRODUCT_NAME, "Ambeth Shell");
 		System.setProperty(ShellContext.PRODUCT_VERSION, "1.2.3");
 
-		// System.setProperty("hide.io", "false");
+		// Calendar c = Calendar.getInstance();
+		// c.set(2099, 0, 1);
+		// System.setProperty(ShellContext.LICENSE_EXPIRATION_DATE, new Long(c.getTimeInMillis()).toString());
+		// start(args, "de/osthus/ambeth/shell/.*");
 
-		Calendar c = Calendar.getInstance();
-		c.set(2099, 0, 1);
-		System.setProperty(ShellContext.LICENSE_EXPIRATION_DATE, new Long(c.getTimeInMillis()).toString());
-
+		System.setProperty(CoreConfigurationConstants.PackageScanPatterns, "de/osthus/ambeth/shell/.*");
 		start(args);
 	}
 
@@ -59,7 +58,6 @@ public class AmbethShellStarter implements IStartingBean, IDisposableBean
 		Properties parsedArgs = parseMainArgs(args);
 
 		Ambeth.createDefault()//
-				.withProperty(CoreConfigurationConstants.PackageScanPatterns, "N/A")//
 				.withProperty("ambeth.log.level.de.osthus.ambeth", "INFO")//
 				.withProperty(IocConfigurationConstants.DebugModeActive, "true")//
 				.withProperty(IocConfigurationConstants.TrackDeclarationTrace, "true")//
