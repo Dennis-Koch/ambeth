@@ -35,6 +35,7 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IColumnEntry;
 import de.osthus.ambeth.persistence.IFieldMetaData;
 import de.osthus.ambeth.persistence.SQLState;
+import de.osthus.ambeth.persistence.SelectPosition;
 import de.osthus.ambeth.persistence.exception.NullConstraintException;
 import de.osthus.ambeth.persistence.exception.UniqueConstraintException;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionDialect;
@@ -512,6 +513,12 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	public String prepareCommand(String sqlCommand)
 	{
 		return sqlCommand;
+	}
+
+	@Override
+	public SelectPosition getLimitPosition()
+	{
+		return SelectPosition.AS_WHERE_CLAUSE;
 	}
 
 }

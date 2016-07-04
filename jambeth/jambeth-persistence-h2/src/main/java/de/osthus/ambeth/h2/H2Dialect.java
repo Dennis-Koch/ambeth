@@ -27,6 +27,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IColumnEntry;
+import de.osthus.ambeth.persistence.SelectPosition;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionDialect;
 import de.osthus.ambeth.persistence.jdbc.ColumnEntry;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
@@ -378,5 +379,11 @@ public class H2Dialect extends AbstractConnectionDialect
 		sqlCommand = prepareCommandIntern(sqlCommand, "DBMS_RANDOM\\.VALUE", "RAND()");
 		sqlCommand = prepareCommandIntern(sqlCommand, "to_timestamp\\(", "TO_TIMESTAMP(");
 		return sqlCommand;
+	}
+
+	@Override
+	public SelectPosition getLimitPosition()
+	{
+		return SelectPosition.AFTER_WHERE;
 	}
 }

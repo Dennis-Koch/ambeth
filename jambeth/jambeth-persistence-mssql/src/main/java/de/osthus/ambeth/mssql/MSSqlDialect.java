@@ -25,6 +25,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IColumnEntry;
+import de.osthus.ambeth.persistence.SelectPosition;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionDialect;
 import de.osthus.ambeth.persistence.jdbc.ColumnEntry;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
@@ -324,5 +325,11 @@ public class MSSqlDialect extends AbstractConnectionDialect
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " PRIMARY KEY (\\([^\\)]+\\)) USING INDEX", " PRIMARY KEY \\2");
 
 		return sqlCommand;
+	}
+
+	@Override
+	public SelectPosition getLimitPosition()
+	{
+		return SelectPosition.PRE_COLUMNS;
 	}
 }

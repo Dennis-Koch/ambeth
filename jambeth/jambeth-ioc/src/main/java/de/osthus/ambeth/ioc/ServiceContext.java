@@ -510,7 +510,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 					{
 						try
 						{
-							((IBackgroundWorkerParamDelegate<ServiceContext>) disposableObject).invoke(this);
+							((IBackgroundWorkerParamDelegate<? super ServiceContext>) disposableObject).invoke(this);
 						}
 						catch (Throwable e)
 						{

@@ -128,6 +128,10 @@ public final class FileUtil
 			lookupName = currentTypeScope.getPackage().getName().replace('.', '/') + "/" + fileName;
 			// check first to look for the fileName relative to our current typeScope
 			String pathString = currentTypeScope.getProtectionDomain().getCodeSource().getLocation().getPath();
+			if (pathString.startsWith("/"))
+			{
+				pathString = pathString.substring(1);
+			}
 			try
 			{
 				Path path = Paths.get(URLDecoder.decode(pathString, "UTF-8"), lookupName);
