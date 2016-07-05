@@ -51,44 +51,47 @@ public class ServletClasspathInfo implements IClasspathInfo
 
 		String classes = "/WEB-INF/classes";
 		Set<String> classesSet = servletContext.getResourcePaths(classes);
-		for (String folderElement : classesSet)
+		if (classesSet != null)
 		{
-			try
+			for (String folderElement : classesSet)
 			{
-				// FIXME 2015-11-24 JH We have to call getResourcePaths() until we get a file and than getResource().
-				// Then we have to determine what part of the path is the folder and what the package part
-				// That way we find classes folders from different projects in Eclipse
-				// There may be duplicates, so we have to use a Set for that.
-				// See "Osthus Extensions » Ambeth Services" Ticket #1084
-				URL url = servletContext.getResource(folderElement);
-				if (url != null)
+				try
 				{
-					if (url.toString().startsWith("file:/"))
+					// FIXME 2015-11-24 JH We have to call getResourcePaths() until we get a file and than getResource().
+					// Then we have to determine what part of the path is the folder and what the package part
+					// That way we find classes folders from different projects in Eclipse
+					// There may be duplicates, so we have to use a Set for that.
+					// See "Osthus Extensions » Ambeth Services" Ticket #1084
+					URL url = servletContext.getResource(folderElement);
+					if (url != null)
 					{
-						File file = new File(url.toURI());
-						if (file.isDirectory())
+						if (url.toString().startsWith("file:/"))
 						{
-							urls.add(file.getParentFile().toURI().toURL());
-						}
-					}
-					else if (url.toString().startsWith("jndi:/"))
-					{
-						Object content = url.getContent(new Class[] { DirContext.class });
-						if (content != null && content instanceof DirContext)
-						{
-							DirContext dirContent = (DirContext) content;
-							File file = new File(dirContent.getNameInNamespace());
+							File file = new File(url.toURI());
 							if (file.isDirectory())
 							{
 								urls.add(file.getParentFile().toURI().toURL());
 							}
 						}
+						else if (url.toString().startsWith("jndi:/"))
+						{
+							Object content = url.getContent(new Class[] { DirContext.class });
+							if (content != null && content instanceof DirContext)
+							{
+								DirContext dirContent = (DirContext) content;
+								File file = new File(dirContent.getNameInNamespace());
+								if (file.isDirectory())
+								{
+									urls.add(file.getParentFile().toURI().toURL());
+								}
+							}
+						}
 					}
 				}
-			}
-			catch (Exception e)
-			{
-				throw RuntimeExceptionUtil.mask(e);
+				catch (Exception e)
+				{
+					throw RuntimeExceptionUtil.mask(e);
+				}
 			}
 		}
 		return urls;
