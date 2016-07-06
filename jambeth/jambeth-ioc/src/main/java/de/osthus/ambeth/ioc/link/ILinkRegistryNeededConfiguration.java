@@ -9,42 +9,10 @@ package de.osthus.ambeth.ioc.link;
 public interface ILinkRegistryNeededConfiguration<D>
 {
 	/**
-	 * Identifies the registry to use by its name.
-	 * 
-	 * @param registryBeanName
-	 *            Name of the registry.
-	 * @param eventDelegate
-	 * @return Optional next configuration step of the fluent interface.
-	 */
-	ILinkConfigWithOptional to(String registryBeanName, IEventDelegate<D> eventDelegate);
-
-	/**
-	 * Identifies the registry to use by its name and specifies the registry class or interface to use.
-	 * 
-	 * @param registryBeanName
-	 *            Name of the registry.
-	 * @param registryClass
-	 *            Class/Interface containing the registry methods.
-	 * @return Optional next configuration step of the fluent interface.
-	 */
-	ILinkConfigWithOptional to(String registryBeanName, Class<?> registryClass);
-
-	/**
-	 * Identifies the registry to use by its name and specifies the registry method to use.
-	 * 
-	 * @param registryBeanName
-	 *            Name of the registry.
-	 * @param propertyName
-	 *            Name of the registry method.
-	 * @return Optional next configuration step of the fluent interface.
-	 */
-	ILinkConfigWithOptional to(String registryBeanName, String propertyName);
-
-	/**
-	 * Identifies the registry to use by its autowire interface.
+	 * Identifies the registry to use by its autowired type.
 	 * 
 	 * @param autowiredRegistryClass
-	 *            Autowire interface of the registry.
+	 *            Autowired type of the registry.
 	 * @return Optional next configuration step of the fluent interface.
 	 */
 	ILinkConfigWithOptional to(Class<?> autowiredRegistryClass);
@@ -53,7 +21,14 @@ public interface ILinkRegistryNeededConfiguration<D>
 	 * Takes a registry instance to use for linking.
 	 * 
 	 * @param registry
-	 *            Registry instance.
+	 *            One of:<br/>
+	 *            <p>
+	 *            <ul>
+	 *            <li>instance of the registry bean
+	 *            <li>a string (referring to the name of the registry bean)
+	 *            <li>a class (referring to the autowired type of the registry bean)
+	 *            </ul>
+	 *            <p>
 	 * @param eventDelegate
 	 * @return Optional next configuration step of the fluent interface.
 	 */
@@ -63,7 +38,14 @@ public interface ILinkRegistryNeededConfiguration<D>
 	 * Takes a registry instance to use for linking and specifies the registry class or interface to use.
 	 * 
 	 * @param registry
-	 *            Registry instance.
+	 *            One of:<br/>
+	 *            <p>
+	 *            <ul>
+	 *            <li>instance of the registry bean
+	 *            <li>a string (referring to the name of the registry bean)
+	 *            <li>a class (referring to the autowired type of the registry bean)
+	 *            </ul>
+	 *            <p>
 	 * @param registryClass
 	 *            Class/Interface containing the registry methods.
 	 * @return Optional next configuration step of the fluent interface.
@@ -74,7 +56,14 @@ public interface ILinkRegistryNeededConfiguration<D>
 	 * Takes a registry instance to use for linking and specifies the registry method to use.
 	 * 
 	 * @param registry
-	 *            Registry instance.
+	 *            One of:<br/>
+	 *            <p>
+	 *            <ul>
+	 *            <li>instance of the registry bean
+	 *            <li>a string (referring to the name of the registry bean)
+	 *            <li>a class (referring to the autowired type of the registry bean)
+	 *            </ul>
+	 *            <p>
 	 * @param propertyName
 	 *            Name of the registry method.
 	 * @return Optional next configuration step of the fluent interface.

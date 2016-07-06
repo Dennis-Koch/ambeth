@@ -21,8 +21,6 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 
 	public static final String PROPERTY_REGISTRY = "Registry";
 
-	public static final String PROPERTY_REGISTRY_NAME = "RegistryBeanName";
-
 	public static final String PROPERTY_REGISTRY_PROPERTY_NAME = "RegistryPropertyName";
 
 	public static final String PROPERTY_LISTENER = "Listener";
@@ -62,9 +60,6 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 	protected Class<?> registryBeanAutowiredType;
 
 	@Property(mandatory = false)
-	protected String registryBeanName;
-
-	@Property(mandatory = false)
 	protected String registryPropertyName;
 
 	@Property(mandatory = false)
@@ -80,7 +75,7 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 	@Override
 	public void afterPropertiesSet()
 	{
-		ParamChecker.assertTrue(registryBeanAutowiredType != null || registryBeanName != null || registry != null,
+		ParamChecker.assertTrue(registryBeanAutowiredType != null || registry != null,
 				"either property 'RegistryBeanAutowiredType', 'RegistryBeanName' or 'Registry' must be valid");
 		ParamChecker.assertTrue(listener != null || listenerBean != null || listenerBeanName != null,
 				"either property 'Listener' or 'ListenerBean' or 'ListenerBeanName' must be valid");
@@ -99,17 +94,15 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 	protected Object resolveRegistry()
 	{
 		Object registry = this.registry;
-		if (registry != null)
+		if (registry instanceof Class)
 		{
-			registry = resolveRegistryIntern(registry);
-			this.registry = registry;
-			return registry;
+			registry = beanContext.getService((Class<?>) registry, !optional);
 		}
-		if (registryBeanName != null)
+		else if (registry instanceof String)
 		{
-			registry = beanContext.getService(registryBeanName, !optional);
+			registry = beanContext.getService((String) registry, !optional);
 		}
-		else
+		else if (registry == null)
 		{
 			registry = beanContext.getService(registryBeanAutowiredType, !optional);
 		}
@@ -202,11 +195,10 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 			if (declarationStackTrace != null)
 			{
 				throw new LinkException("An error occured while trying to link " + (listenerBeanName != null ? "'" + listenerBeanName + "'" : listener)
-						+ " to " + (registryBeanName != null ? "'" + registryBeanName + "'" : registry) + "\n" + Arrays.toString(declarationStackTrace), e,
-						this);
+						+ " to '" + registry + "'\n" + Arrays.toString(declarationStackTrace), e, this);
 			}
-			throw new LinkException("An error occured while trying to link " + (listenerBeanName != null ? "'" + listenerBeanName + "'" : listener) + " to "
-					+ (registryBeanName != null ? "'" + registryBeanName + "'" : registry), e, this);
+			throw new LinkException("An error occured while trying to link " + (listenerBeanName != null ? "'" + listenerBeanName + "'" : listener) + " to '"
+					+ registry + "'", e, this);
 		}
 	}
 
@@ -230,7 +222,7 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 		catch (Exception e)
 		{
 			throw new LinkException("An error occured while trying to unlink " + (listenerBeanName != null ? "'" + listenerBeanName + "'" : listener)
-					+ " from " + (registryBeanName != null ? "'" + registryBeanName + "'" : registry), e, this);
+					+ " from '" + registry + "'", e, this);
 		}
 		finally
 		{

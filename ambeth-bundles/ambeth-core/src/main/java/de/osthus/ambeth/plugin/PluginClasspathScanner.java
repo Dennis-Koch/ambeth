@@ -18,8 +18,9 @@ public class PluginClasspathScanner extends CoreClasspathScanner
 	public void afterPropertiesSet() throws Throwable
 	{
 		super.afterPropertiesSet();
+
 		URL[] urls = jarURLProvider.getJarURLs().toArray(URL.class);
-		urlClassLoader = new URLClassLoader(urls);
+		urlClassLoader = new URLClassLoader(urls, getClass().getClassLoader());
 	}
 
 	@Override

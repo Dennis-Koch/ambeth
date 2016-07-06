@@ -10,7 +10,6 @@ public class PluginModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory bcf) throws Throwable
 	{
-
 		bcf.registerBean(SystemClasspathInfo.class).autowireable(IClasspathInfo.class);
 
 		bcf.registerBean(JarURLProvider.class).autowireable(IJarURLProvider.class);

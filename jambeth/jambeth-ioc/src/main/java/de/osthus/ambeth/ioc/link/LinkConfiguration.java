@@ -25,28 +25,6 @@ public class LinkConfiguration<D> extends BeanConfiguration implements ILinkRegi
 	}
 
 	@Override
-	public ILinkConfigWithOptional to(String registryBeanName, Class<?> registryClass)
-	{
-		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_NAME, registryBeanName);
-		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_TYPE, registryClass);
-		return this;
-	}
-
-	@Override
-	public ILinkConfigWithOptional to(String registryBeanName, String propertyName)
-	{
-		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_NAME, registryBeanName);
-		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_PROPERTY_NAME, propertyName);
-		return this;
-	}
-
-	@Override
-	public ILinkConfigWithOptional to(String registryBeanName, IEventDelegate<D> eventDelegate)
-	{
-		return to(registryBeanName, eventDelegate.getEventName());
-	}
-
-	@Override
 	public ILinkConfigWithOptional to(Class<?> autowiredRegistryClass)
 	{
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_TYPE, autowiredRegistryClass);

@@ -35,10 +35,10 @@ import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.collections.WeakSmartCopyMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
-import de.osthus.ambeth.ioc.extendable.ExtendableContainer;
 import de.osthus.ambeth.ioc.extendable.IExtendableContainer;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -90,8 +90,8 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 
 	protected final Lock writeLock = new ReentrantLock();
 
-	protected final IExtendableContainer<IBytecodeBehavior> bytecodeBehaviorExtensions = new ExtendableContainer<IBytecodeBehavior>(IBytecodeBehavior.class,
-			"bytecodeBehavior");
+	protected final IExtendableContainer<IBytecodeBehavior> bytecodeBehaviorExtensions = new DefaultExtendableContainer<IBytecodeBehavior>(
+			IBytecodeBehavior.class, "bytecodeBehavior");
 
 	protected Map<BytecodeStoreKey, BytecodeStoreItem> enhancedTypes;
 
