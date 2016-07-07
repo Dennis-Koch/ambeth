@@ -66,7 +66,6 @@
 		<module>jambeth-query</module>
 		<module>jambeth-query-inmemory</module>
 		<module>jambeth-query-jdbc</module>
-		<module>jambeth-rdf</module>
 		<module>jambeth-security</module>
 		<module>jambeth-security-bytecode</module>
 		<module>jambeth-security-job</module>
