@@ -220,7 +220,6 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 	{
 		IList<URL> urls = getJarURLs();
 
-		ArrayList<String> namespacePatterns = new ArrayList<String>();
 		ArrayList<String> targetClassNames = new ArrayList<String>();
 
 		try
@@ -237,15 +236,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 					}
 					else
 					{
-						JarFile jarFile = new JarFile(realPathFile.toFile());
-						try
-						{
-							scanJarFile(jarFile, namespacePatterns, targetClassNames);
-						}
-						finally
-						{
-							jarFile.close();
-						}
+						scanFile(realPathFile, targetClassNames);
 					}
 				}
 				catch (Throwable e)
@@ -271,59 +262,71 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 		return classpathInfo.openAsFile(url);
 	}
 
-	protected void scanJarFile(JarFile jarFile, List<String> namespacePatterns, List<String> targetClassNames)
+	protected void scanFile(Path file, List<String> targetClassNames)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 
 		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
 		try
 		{
-			Enumeration<JarEntry> entries = jarFile.entries();
-			while (entries.hasMoreElements())
+			JarFile jarFile = new JarFile(file.toFile());
+			try
 			{
-				JarEntry entry = entries.nextElement();
-				if (entry.isDirectory())
+				Enumeration<JarEntry> entries = jarFile.entries();
+				while (entries.hasMoreElements())
 				{
-					continue;
-				}
-				String entryName = entry.getName();
+					JarEntry entry = entries.nextElement();
+					if (entry.isDirectory())
+					{
+						continue;
+					}
+					String entryName = entry.getName();
 
-				Pattern[] packageScanPatterns = getPackageScanPatterns();
-				for (int a = packageScanPatterns.length; a-- > 0;)
-				{
-					Matcher pathMatcher = packageScanPatterns[a].matcher(entryName);
-					if (!pathMatcher.matches())
+					Pattern[] packageScanPatterns = getPackageScanPatterns();
+					for (int a = packageScanPatterns.length; a-- > 0;)
 					{
-						continue;
+						Matcher pathMatcher = packageScanPatterns[a].matcher(entryName);
+						if (!pathMatcher.matches())
+						{
+							continue;
+						}
+						Matcher matcher = jarPathPrefixPattern.matcher(entryName);
+						String path, name;
+						if (!matcher.matches())
+						{
+							path = "";
+							name = entryName;
+						}
+						else
+						{
+							path = matcher.group(1);
+							name = matcher.group(2);
+						}
+						Matcher cutDollarMatcher = cutDollarPattern.matcher(name);
+						if (!cutDollarMatcher.matches())
+						{
+							continue;
+						}
+						sb.setLength(0);
+						sb.append(path);
+						if (path.length() > 0)
+						{
+							sb.append('/');
+						}
+						sb.append(cutDollarMatcher.group(1));
+						String className = StringBuilderUtil.replace(sb, '/', '.').toString();
+						targetClassNames.add(className);
 					}
-					Matcher matcher = jarPathPrefixPattern.matcher(entryName);
-					String path, name;
-					if (!matcher.matches())
-					{
-						path = "";
-						name = entryName;
-					}
-					else
-					{
-						path = matcher.group(1);
-						name = matcher.group(2);
-					}
-					Matcher cutDollarMatcher = cutDollarPattern.matcher(name);
-					if (!cutDollarMatcher.matches())
-					{
-						continue;
-					}
-					sb.setLength(0);
-					sb.append(path);
-					if (path.length() > 0)
-					{
-						sb.append('/');
-					}
-					sb.append(cutDollarMatcher.group(1));
-					String className = StringBuilderUtil.replace(sb, '/', '.').toString();
-					targetClassNames.add(className);
 				}
 			}
+			finally
+			{
+				jarFile.close();
+			}
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally
 		{
