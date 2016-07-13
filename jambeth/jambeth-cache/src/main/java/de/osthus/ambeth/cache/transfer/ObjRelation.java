@@ -122,16 +122,16 @@ public class ObjRelation implements IObjRelation, IPrintable
 		this.objRefs = objRefs;
 		if (objRefs == null)
 		{
-			this.ids = null;
-			this.idIndices = null;
-			this.version = null;
-			this.realType = null;
+			ids = null;
+			idIndices = null;
+			version = null;
+			realType = null;
 		}
 		else
 		{
 			int length = objRefs.length;
-			this.ids = new Object[length];
-			this.idIndices = new byte[length];
+			ids = new Object[length];
+			idIndices = new byte[length];
 			for (int a = length; a-- > 0;)
 			{
 				IObjRef objRef = objRefs[a];
@@ -163,7 +163,7 @@ public class ObjRelation implements IObjRelation, IPrintable
 	@Override
 	public int hashCode()
 	{
-		return getRealType().hashCode() ^ getMemberName().hashCode();
+		return getRealType().hashCode() ^ getMemberName().hashCode() ^ Arrays.hashCode(getObjRefs());
 	}
 
 	@Override
