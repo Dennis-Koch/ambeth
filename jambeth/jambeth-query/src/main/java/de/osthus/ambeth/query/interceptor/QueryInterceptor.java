@@ -5,7 +5,10 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.annotation.AnnotationCache;
@@ -28,6 +31,11 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.proxy.CascadedInterceptor;
+import de.osthus.ambeth.query.IQueryBuilderFactory;
+import de.osthus.ambeth.query.shuang.GenericTypeUtils;
+import de.osthus.ambeth.query.shuang.ISquery;
+import de.osthus.ambeth.query.shuang.QueryBuilderBean;
+import de.osthus.ambeth.query.shuang.QueryUtils;
 
 public class QueryInterceptor extends CascadedInterceptor
 {
@@ -49,7 +57,8 @@ public class QueryInterceptor extends CascadedInterceptor
 		}
 	};
 
-	@SuppressWarnings("unused")
+	private static final Pattern PATTERN_QUERY_START = Pattern.compile("(find|get|read|retrieve|countBy).*", Pattern.CASE_INSENSITIVE);
+
 	@LogInstance
 	private ILogger log;
 
@@ -64,6 +73,11 @@ public class QueryInterceptor extends CascadedInterceptor
 
 	@Autowired
 	protected IObjRefHelper oriHelper;
+
+	@Autowired
+	protected IQueryBuilderFactory queryBuilderFactory;
+
+	protected final Map<Method, QueryBuilderBean<?>> methodMapQueryBuilderBean = new ConcurrentHashMap<Method, QueryBuilderBean<?>>();
 
 	@Override
 	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
@@ -89,13 +103,25 @@ public class QueryInterceptor extends CascadedInterceptor
 
 	protected Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy, String methodName, Boolean isAsyncBegin) throws Throwable
 	{
-		if (findCache.getAnnotation(method) != null || methodName.startsWith("retrieve") || methodName.startsWith("read") || methodName.startsWith("find")
-				|| methodName.startsWith("get"))
+		if (findCache.getAnnotation(method) != null || PATTERN_QUERY_START.matcher(methodName).matches())
 		{
-			if (args.length == 3 && IPagingResponse.class.isAssignableFrom(method.getReturnType()))
+			if (obj instanceof ISquery && QueryUtils.canBuildQuery(method.getName()))
+			{
+				// method
+				QueryBuilderBean<?> queryBuilderBean = methodMapQueryBuilderBean.get(method);
+				if (queryBuilderBean == null)
+				{
+					Class<?> entityType = (Class<?>) GenericTypeUtils.getGenericParam(obj, ISquery.class)[0];
+					queryBuilderBean = QueryUtils.buildQuery(method.getName(), entityType);
+					methodMapQueryBuilderBean.put(method, queryBuilderBean);
+				}
+				return queryBuilderBean.createQueryBuilder(queryBuilderFactory, args, method.getParameterTypes(), method.getReturnType());
+			}
+			else if (args.length == 3 && IPagingResponse.class.isAssignableFrom(method.getReturnType()))
 			{
 				return interceptQuery(obj, method, args, proxy, isAsyncBegin);
 			}
+
 			// if (args.length == 1)
 			// {
 			// return interceptLoad(obj, method, args, proxy, isAsyncBegin);
@@ -209,4 +235,5 @@ public class QueryInterceptor extends CascadedInterceptor
 			return cache.getObject(entityType, idsRaw);
 		}
 	}
+
 }

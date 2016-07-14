@@ -50,8 +50,8 @@ public class PluginClasspathScannerTest extends AbstractIocTest
 	{
 		List<Class<?>> bootstrapModuleClasses = pluginScanner.scanClassesAnnotatedWith(BootstrapModule.class);
 		List<Class<?>> frameworkModuleClasses = pluginScanner.scanClassesAnnotatedWith(FrameworkModule.class);
-		// inject as bean
-		applicationContext.registerWithLifecycle(bootstrapModuleClasses.get(0).newInstance());
-		applicationContext.registerWithLifecycle(frameworkModuleClasses.get(0).newInstance());
+		// inject as module
+		applicationContext.createService("application", bootstrapModuleClasses.toArray(new Class<?>[bootstrapModuleClasses.size()]));
+		applicationContext.createService("framework", frameworkModuleClasses.toArray(new Class<?>[frameworkModuleClasses.size()]));
 	}
 }
