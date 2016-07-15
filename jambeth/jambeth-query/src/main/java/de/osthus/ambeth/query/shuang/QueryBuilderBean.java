@@ -1,16 +1,15 @@
 package de.osthus.ambeth.query.shuang;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.filter.IPagingQuery;
 import de.osthus.ambeth.filter.model.IPagingRequest;
 import de.osthus.ambeth.filter.model.IPagingResponse;
 import de.osthus.ambeth.filter.model.ISortDescriptor;
 import de.osthus.ambeth.filter.model.SortDirection;
 import de.osthus.ambeth.query.IOperand;
-import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.query.OrderByType;
@@ -21,7 +20,6 @@ public final class QueryBuilderBean<T>
 	protected final Class<T> entityType;
 	protected final List<ISortDescriptor> sorts;
 	protected final String queryStr;
-	protected final List<String> paramNames;
 
 	public QueryBuilderBean(List<OperationBean> queryBeans, Class<T> entityType, List<ISortDescriptor> sorts, String queryStr)
 	{
@@ -29,40 +27,36 @@ public final class QueryBuilderBean<T>
 		this.entityType = entityType;
 		this.sorts = sorts;
 		this.queryStr = queryStr;
-		paramNames = extractParamNames();
 	}
 
-	public Object createQueryBuilder(IQueryBuilderFactory qbf, Object[] params, Class<?>[] paramType, Class<?> returnType)
+	public Object createQueryBuilder(IQueryBuilderFactory qbf, Object[] params, Method method)
 	{
 		IQueryBuilder<T> queryBuilder = qbf.create(entityType);
-		IOperand where = this.buildOperand(queryBuilder);
+		IOperand where = this.buildOperand(queryBuilder, params);
+
 		// do orderBy
-		for (ISortDescriptor sort : sorts)
-		{
-			OrderByType direction = sort.getSortDirection() == SortDirection.DESCENDING ? OrderByType.DESC : OrderByType.ASC;
-			queryBuilder.orderBy(queryBuilder.property(sort.getMember()), direction);
-		}
-		ISortDescriptor[] isorts = this.getSort(params, paramType);
-		for (ISortDescriptor isort : isorts)
+
+		for (ISortDescriptor isort : this.collectSorts(params))
 		{
 			OrderByType direction = isort.getSortDirection() == SortDirection.DESCENDING ? OrderByType.DESC : OrderByType.ASC;
 			queryBuilder.orderBy(queryBuilder.property(isort.getMember()), direction);
 		}
 		// do query
+		Class<?> returnType = method.getReturnType();
 		if (IPagingResponse.class.isAssignableFrom(returnType))
 		{
-			IPagingRequest pagingRequest = this.getPageRequest(params, paramType);
-			return doQueryPage(params, paramType, pagingRequest, queryBuilder, where);
+			IPagingRequest pagingRequest = this.getPageRequest(params);
+			return queryBuilder.buildPaging(where).retrieve(pagingRequest);
 		}
 		else if (List.class.isAssignableFrom(returnType))
 		{
-			IPagingRequest pagingRequest = this.getPageRequest(params, paramType);
+			IPagingRequest pagingRequest = this.getPageRequest(params);
 			if (pagingRequest != null)
 			{
-				return doQueryPage(params, paramType, pagingRequest, queryBuilder, where).getResult();
+				return queryBuilder.buildPaging(where).retrieve(pagingRequest).getResult();
 			}
 
-			IList<T> list = this.prepareQuery(params, paramType, queryBuilder, where).retrieve();
+			IList<T> list = queryBuilder.build(where).retrieve();
 			if (IList.class.isAssignableFrom(returnType))
 			{
 				return list;
@@ -74,17 +68,17 @@ public final class QueryBuilderBean<T>
 		}
 		else if (returnType.isAssignableFrom(this.entityType))
 		{
-			return this.prepareQuery(params, paramType, queryBuilder, where).retrieveSingle();
+			return queryBuilder.build(where).retrieveSingle();
 		}
 		else if (this.queryStr.startsWith("countBy"))
 		{
 			if (returnType == Long.class || returnType == long.class)
 			{
-				return this.prepareQuery(params, paramType, queryBuilder, where).count();
+				return queryBuilder.build(where).count();
 			}
 			else if (returnType == Integer.class || returnType == int.class)
 			{
-				return (int) this.prepareQuery(params, paramType, queryBuilder, where).count();
+				return (int) queryBuilder.build(where).count();
 			}
 			else
 			{
@@ -97,91 +91,61 @@ public final class QueryBuilderBean<T>
 		}
 	}
 
-	private IPagingResponse<T> doQueryPage(Object[] params, Class<?>[] paramType, IPagingRequest pagingRequest, IQueryBuilder<T> queryBuilder, IOperand where)
+	private List<ISortDescriptor> collectSorts(Object[] params)
 	{
-		IPagingQuery<T> pagingQuery = queryBuilder.buildPaging(where);
-		for (int i = 0; i < paramNames.size(); i++)
-		{
-			String name = paramNames.get(i);
-			Object value = params[i];
-			pagingQuery.param(name, value);
-		}
-		return pagingQuery.retrieve(pagingRequest);
-	}
-
-	private IQuery<T> prepareQuery(Object[] params, Class<?>[] paramType, IQueryBuilder<T> queryBuilder, IOperand where)
-	{
-		IQuery<T> query = queryBuilder.build(where);
-		for (int i = 0; i < paramNames.size(); i++)
-		{
-			String name = paramNames.get(i);
-			Object value = params[i];
-			query = query.param(name, value);
-		}
-		return query;
-	}
-
-	private ISortDescriptor[] getSort(Object[] params, Class<?>[] paramType)
-	{
-		Class<ISortDescriptor> sortClazz = ISortDescriptor.class;
-		Class<ISortDescriptor[]> sortArrayClazz = ISortDescriptor[].class;
-		ISortDescriptor[] result = null;
-		for (int i = paramType.length - 2; i < paramType.length; i++)
+		ISortDescriptor[] sortsFromParams = null;
+		for (int i = params.length - 2; i < params.length; i++)
 		{
 			if (i < 0)
 			{
 				continue;
 			}
-			Class<?> clazz = paramType[i];
-			if (sortClazz.isAssignableFrom(clazz))
+			Object param = params[i];
+			if (param instanceof ISortDescriptor)
 			{
-				result = new ISortDescriptor[] { (ISortDescriptor) params[i] };
+				sortsFromParams = new ISortDescriptor[] { (ISortDescriptor) param };
 			}
-			else if (sortArrayClazz.isAssignableFrom(clazz))
+			else if (param instanceof ISortDescriptor[])
 			{
-				result = (ISortDescriptor[]) params[i];
+				sortsFromParams = (ISortDescriptor[]) param;
 			}
 		}
-		if (result == null)
+
+		List<ISortDescriptor> result = null;
+		if (sortsFromParams == null)
 		{
-			result = new ISortDescriptor[0];
+			result = this.sorts;
+		}
+		else
+		{
+			result = new ArrayList<ISortDescriptor>(this.sorts);
+			for (ISortDescriptor iSortDescriptor : sortsFromParams)
+			{
+				result.add(iSortDescriptor);
+			}
 		}
 		return result;
 	}
 
-	private IPagingRequest getPageRequest(Object[] params, Class<?>[] paramType)
+	private IPagingRequest getPageRequest(Object[] params)
 	{
 
-		for (int i = paramType.length - 2; i < paramType.length; i++)
+		for (int i = params.length - 2; i < params.length; i++)
 		{
 			if (i < 0)
 			{
 				continue;
 			}
-			if (IPagingRequest.class.isAssignableFrom(paramType[i]))
+			Object param = params[i];
+			if (param instanceof IPagingRequest)
 			{
-				return (IPagingRequest) params[i];
+				return (IPagingRequest) param;
 			}
 		}
 		return null;
 	}
 
-	@SuppressWarnings("unused")
-	private boolean havaSortParam(Class<?>[] paramTypes)
-	{
-		Class<ISortDescriptor> sortClazz = ISortDescriptor.class;
-		Class<ISortDescriptor[]> sortArrayClazz = ISortDescriptor[].class;
-		for (Class<?> clazz : paramTypes)
-		{
-			if (sortClazz.isAssignableFrom(clazz) || sortArrayClazz.isAssignableFrom(clazz))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private IOperand buildOperand(IQueryBuilder<T> queryBuilder)
+	private IOperand buildOperand(IQueryBuilder<T> queryBuilder, Object[] params)
 	{
 		if (queryBeans == null || queryBeans.isEmpty())
 		{
@@ -190,23 +154,40 @@ public final class QueryBuilderBean<T>
 
 		List<IOperand> andList = new ArrayList<IOperand>();
 		List<IOperand> orList = new ArrayList<IOperand>();
+		int paramIndex = 0;
 		for (OperationBean operationBean : queryBeans)
 		{
-			andList.add(operationBean.getOperand(queryBuilder));
+			IOperand operand = operationBean.getOperand(queryBuilder, params[paramIndex]);
+			paramIndex = nextConsumeParamIndex(paramIndex, operationBean);
+			if (operand != null)
+			{
+				andList.add(operand);
+			}
 			if (operationBean.getRelation() == Relation.OR)
 			{
-				if (andList.size() == 1)
-				{
-					orList.add(andList.get(0));
-				}
-				else
-				{
-					IOperand[] andArray = andList.toArray(new IOperand[andList.size()]);
-					orList.add(queryBuilder.and(andArray));
-				}
-				andList = new ArrayList<IOperand>();
+				collectAndOperand(queryBuilder, andList, orList);
+				andList.clear();
 			}
 		}
+		collectAndOperand(queryBuilder, andList, orList);
+
+		if (orList.size() == 1)
+		{
+			return orList.get(0);
+		}
+		else if (orList.size() > 1)
+		{
+			IOperand[] orArray = orList.toArray(new IOperand[orList.size()]);
+			return queryBuilder.or(orArray);
+		}
+		else
+		{
+			return null;
+		}
+	}
+
+	private void collectAndOperand(IQueryBuilder<T> queryBuilder, List<IOperand> andList, List<IOperand> orList)
+	{
 		if (andList.size() == 1)
 		{
 			orList.add(andList.get(0));
@@ -216,28 +197,11 @@ public final class QueryBuilderBean<T>
 			IOperand[] andArray = andList.toArray(new IOperand[andList.size()]);
 			orList.add(queryBuilder.and(andArray));
 		}
-
-		if (orList.size() == 1)
-		{
-			return orList.get(0);
-		}
-		else
-		{
-			IOperand[] orArray = orList.toArray(new IOperand[orList.size()]);
-			return queryBuilder.or(orArray);
-		}
 	}
 
-	private List<String> extractParamNames()
+	private int nextConsumeParamIndex(int index, OperationBean operationBean)
 	{
-		List<String> result = new ArrayList<String>();
-		for (OperationBean ob : this.queryBeans)
-		{
-			if (ob.getCondition() != Condition.IS_NULL && ob.getCondition() != Condition.IS_NOT_NULL)
-			{
-				result.add(ob.getNestFieldName());
-			}
-		}
-		return result;
+		Condition condition = operationBean.getCondition();
+		return condition == Condition.IS_NULL || condition == Condition.IS_NOT_NULL ? index : ++index;
 	}
 }

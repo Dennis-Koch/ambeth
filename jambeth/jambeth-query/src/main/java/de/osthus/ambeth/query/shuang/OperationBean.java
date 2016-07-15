@@ -31,9 +31,9 @@ public class OperationBean
 		return relation;
 	}
 
-	public IOperand getOperand(IQueryBuilder<?> qb)
+	public IOperand getOperand(IQueryBuilder<?> qb, Object value)
 	{
-		return condition.createOperand(qb, nestFieldName);
+		return condition.createOperand(qb, nestFieldName, value);
 	}
 
 	@Override

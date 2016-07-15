@@ -12,7 +12,7 @@ public enum Condition
 	IS_NULL
 	{
 		@Override
-		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName)
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
 		{
 			return qb.isNull(qb.property(nestFieldName));
 		}
@@ -20,7 +20,7 @@ public enum Condition
 	IS_NOT_NULL
 	{
 		@Override
-		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName)
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
 		{
 			return qb.isNotNull(qb.property(nestFieldName));
 		}
@@ -28,106 +28,106 @@ public enum Condition
 	EQ
 	{
 		@Override
-		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName)
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
 		{
-			return qb.isEqualTo(qb.property(nestFieldName), qb.valueName(nestFieldName));
+			return value == null ? null : qb.isEqualTo(qb.property(nestFieldName), qb.value(value));
 		}
 	},
 	NOT_EQ
 	{
 		@Override
-		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName)
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
 		{
-			return qb.isNotEqualTo(qb.property(nestFieldName), qb.valueName(nestFieldName));
+			return value == null ? null : qb.isNotEqualTo(qb.property(nestFieldName), qb.value(value));
 		}
 	},
 	GT
 	{
 		@Override
-		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName)
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
 		{
-			return qb.isGreaterThan(qb.property(nestFieldName), qb.valueName(nestFieldName));
+			return value == null ? null : qb.isGreaterThan(qb.property(nestFieldName), qb.value(value));
 		}
 	},
 	GE
 	{
 		@Override
-		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName)
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
 		{
-			return qb.isGreaterThanOrEqualTo(qb.property(nestFieldName), qb.valueName(nestFieldName));
+			return value == null ? null : qb.isGreaterThanOrEqualTo(qb.property(nestFieldName), qb.value(value));
 		}
 	},
 	LT
 	{
 		@Override
-		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName)
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
 		{
-			return qb.isLessThan(qb.property(nestFieldName), qb.valueName(nestFieldName));
+			return value == null ? null : qb.isLessThan(qb.property(nestFieldName), qb.value(value));
 		}
 	},
 	LE
 	{
 		@Override
-		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName)
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
 		{
-			return qb.isLessThanOrEqualTo(qb.property(nestFieldName), qb.valueName(nestFieldName));
+			return value == null ? null : qb.isLessThanOrEqualTo(qb.property(nestFieldName), qb.value(value));
 		}
 	},
 	LIKE
 	{
 		@Override
-		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName)
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
 		{
-			return qb.like(qb.property(nestFieldName), qb.valueName(nestFieldName), false);
+			return isBlankString(value) ? null : qb.like(qb.property(nestFieldName), qb.value(value), false);
 		}
 	},
 	NOT_LIKE
 	{
 		@Override
-		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName)
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
 		{
-			return qb.notLike(qb.property(nestFieldName), qb.valueName(nestFieldName), false);
+			return isBlankString(value) ? null : qb.notLike(qb.property(nestFieldName), qb.value(value), false);
 		}
 	},
 	START_WITH
 	{
 		@Override
-		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName)
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
 		{
-			return qb.startsWith(qb.property(nestFieldName), qb.valueName(nestFieldName), false);
+			return isBlankString(value) ? null : qb.startsWith(qb.property(nestFieldName), qb.value(value), false);
 		}
 	},
 	END_WITH
 	{
 		@Override
-		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName)
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
 		{
-			return qb.endsWith(qb.property(nestFieldName), qb.valueName(nestFieldName), false);
+			return isBlankString(value) ? null : qb.endsWith(qb.property(nestFieldName), qb.value(value), false);
 		}
 	},
 	CONTAINS
 	{
 		@Override
-		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName)
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
 		{
-			return qb.contains(qb.property(nestFieldName), qb.valueName(nestFieldName), false);
+			return isBlankString(value) ? null : qb.contains(qb.property(nestFieldName), qb.value(value), false);
 		}
 	},
 	NOT_CONTAINS
 	{
 		@Override
-		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName)
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
 		{
-			return qb.notContains(qb.property(nestFieldName), qb.valueName(nestFieldName), false);
+			return isBlankString(value) ? null : qb.notContains(qb.property(nestFieldName), qb.value(value), false);
 		}
 	},
 	CONTAINED_IN
 	{
 
 		@Override
-		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName)
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
 		{
-			return qb.isContainedIn(qb.property(nestFieldName), qb.valueName(nestFieldName), false);
+			return isBlankString(value) ? null : qb.isContainedIn(qb.property(nestFieldName), qb.value(value), false);
 		}
 
 	},
@@ -135,9 +135,9 @@ public enum Condition
 	{
 
 		@Override
-		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName)
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
 		{
-			return qb.isNotContainedIn(qb.property(nestFieldName), qb.valueName(nestFieldName), false);
+			return isBlankString(value) ? null : qb.isNotContainedIn(qb.property(nestFieldName), qb.value(value), false);
 		}
 
 	},
@@ -145,27 +145,27 @@ public enum Condition
 	{
 
 		@Override
-		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName)
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
 		{
-			return qb.isIn(qb.property(nestFieldName), qb.valueName(nestFieldName), false);
+			return value == null ? null : qb.isIn(qb.property(nestFieldName), qb.value(value), false);
 		}
 	},
 	NOT_IN
 	{
 
 		@Override
-		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName)
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
 		{
-			return qb.isNotIn(qb.property(nestFieldName), qb.valueName(nestFieldName), false);
+			return value == null ? null : qb.isNotIn(qb.property(nestFieldName), qb.value(value), false);
 		}
 	},
 	REGEXP_LIKE
 	{
 
 		@Override
-		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName)
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
 		{
-			return qb.regexpLike(qb.property(nestFieldName), qb.valueName(nestFieldName));
+			return isBlankString(value) ? null : qb.regexpLike(qb.property(nestFieldName), qb.value(value));
 		}
 	};
 
@@ -181,7 +181,7 @@ public enum Condition
 		return Condition.valueOf(toUncapitalize(condition));
 	}
 
-	public abstract IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName);
+	public abstract IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value);
 
 	/**
 	 * @return eg: START_WITH -> StartWith
@@ -210,5 +210,21 @@ public enum Condition
 	{
 		Objects.requireNonNull(condition, "operator can't be null");
 		return PATTERN_FIRST_CHAR.matcher(condition).replaceAll("_").toUpperCase();
+	}
+
+	private static boolean isBlankString(Object obj)
+	{
+		if (obj == null)
+		{
+			return true;
+		}
+		else if (obj instanceof String)
+		{
+			return obj.toString().trim().isEmpty();
+		}
+		else
+		{
+			return false;
+		}
 	}
 }

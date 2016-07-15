@@ -57,7 +57,7 @@ public class QueryInterceptor extends CascadedInterceptor
 		}
 	};
 
-	private static final Pattern PATTERN_QUERY_START = Pattern.compile("(find|get|read|retrieve|countBy).*", Pattern.CASE_INSENSITIVE);
+	private static final Pattern PATTERN_QUERY_START = Pattern.compile("findAll|(find|count)By[A-Z].*");
 
 	@LogInstance
 	private ILogger log;
@@ -101,21 +101,28 @@ public class QueryInterceptor extends CascadedInterceptor
 		return intercept(obj, method, args, proxy, methodName, isAsyncBegin);
 	}
 
-	protected Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy, String methodName, Boolean isAsyncBegin) throws Throwable
+	protected Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy, String lowerCaseMethodName, Boolean isAsyncBegin) throws Throwable
 	{
+		String methodName = method.getName();
 		if (findCache.getAnnotation(method) != null || PATTERN_QUERY_START.matcher(methodName).matches())
 		{
-			if (obj instanceof ISquery && QueryUtils.canBuildQuery(method.getName()))
+			if (obj instanceof ISquery && QueryUtils.canBuildQuery(methodName))
 			{
 				// method
 				QueryBuilderBean<?> queryBuilderBean = methodMapQueryBuilderBean.get(method);
-				if (queryBuilderBean == null)
+				if (queryBuilderBean == null) // double check to make thread safe
 				{
-					Class<?> entityType = (Class<?>) GenericTypeUtils.getGenericParam(obj, ISquery.class)[0];
-					queryBuilderBean = QueryUtils.buildQuery(method.getName(), entityType);
-					methodMapQueryBuilderBean.put(method, queryBuilderBean);
+					synchronized (QueryInterceptor.class)
+					{
+						if (queryBuilderBean == null)
+						{
+							Class<?> entityType = (Class<?>) GenericTypeUtils.getGenericParam(obj, ISquery.class)[0];
+							queryBuilderBean = QueryUtils.buildQuery(methodName, entityType);
+							methodMapQueryBuilderBean.put(method, queryBuilderBean);
+						}
+					}
 				}
-				return queryBuilderBean.createQueryBuilder(queryBuilderFactory, args, method.getParameterTypes(), method.getReturnType());
+				return queryBuilderBean.createQueryBuilder(queryBuilderFactory, args, method);
 			}
 			else if (args.length == 3 && IPagingResponse.class.isAssignableFrom(method.getReturnType()))
 			{
