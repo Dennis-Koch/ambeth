@@ -24,7 +24,7 @@ public class QueryUtils
 		{
 			sb.append('|').append(values[i].toCapitalize());
 		}
-		sb.append(")?((And|Or)(?=[A-Z])|OrderBy(?=[A-Z])|\\b)");
+		sb.append(")?((And|Or)(?=[A-Z])|(Sort|Order)By(?=[A-Z])|\\b)");
 		PATTERN_SPLITER = Pattern.compile(sb.toString());
 	}
 

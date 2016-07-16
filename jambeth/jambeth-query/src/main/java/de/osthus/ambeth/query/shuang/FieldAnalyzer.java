@@ -2,6 +2,7 @@ package de.osthus.ambeth.query.shuang;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -21,8 +22,8 @@ public final class FieldAnalyzer
 {
 	private Class<?> clazz;
 	private Map<Class<?>, SortedSet<String>> classMapField = new ConcurrentHashMap<Class<?>, SortedSet<String>>();
-	private static final Pattern PATTERN_DIRECTION = Pattern.compile("(?<=\\b|Asc|Desc)(\\w+?)(?=(Asc|Desc)[A-Z]|\\b)");
-	private static final Pattern PATTERN_ORDER_BY = Pattern.compile(".*[a-z]OrderBy([A-Z].*)$");
+	private static final Pattern PATTERN_DIRECTION = Pattern.compile("(\\w+?)((Asc|Desc)(?=[A-Z]?)|\\b)");
+	private static final Pattern PATTERN_ORDER_BY = Pattern.compile(".*[a-z](Sort|Order)By([A-Z].*)$");
 
 	public FieldAnalyzer(Class<?> clazz)
 	{
@@ -138,24 +139,24 @@ public final class FieldAnalyzer
 
 	public List<ISortDescriptor> buildSort(String queryStr)
 	{
-		List<ISortDescriptor> result = Collections.emptyList();
 		if (queryStr == null)
 		{
-			return result;
+			return Collections.emptyList();
 		}
 		Matcher matcherOrderBy = PATTERN_ORDER_BY.matcher(queryStr);
 		if (!matcherOrderBy.find())
 		{
-			return result;
+			return Collections.emptyList();
 		}
-		String orderByStr = matcherOrderBy.group(1);
+		List<ISortDescriptor> result = new ArrayList<ISortDescriptor>();
+		String orderByStr = matcherOrderBy.group(2);
 
 		Matcher matcher = PATTERN_DIRECTION.matcher(orderByStr);
 		while (matcher.find())
 		{
 			String fieldName = matcher.group(1);
 			String nestFieldName = this.buildNestField(fieldName);
-			String dirStr = matcher.group(2);
+			String dirStr = matcher.group(3);
 			SortDirection direction = "Desc".equals(dirStr) ? SortDirection.DESCENDING : SortDirection.ASCENDING;
 			SortDescriptor sort = new SortDescriptor();
 			sort.setMember(nestFieldName);
