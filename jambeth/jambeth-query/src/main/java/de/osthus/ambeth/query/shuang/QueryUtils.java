@@ -11,6 +11,8 @@ import de.osthus.ambeth.filter.model.ISortDescriptor;
 public class QueryUtils
 {
 	private static final Pattern PATTERN_START_BY = Pattern.compile("\\b(query|retrieve|count|find)(By|All)");
+	private static final Pattern PATTERN_ORDER_BY = Pattern.compile("(Order|Sort)By[A-Z].*$");
+
 	private static final Pattern PATTERN_SPLITER;
 	static
 	{
@@ -44,6 +46,7 @@ public class QueryUtils
 	private static List<OperationBean> extractQeryBean(String queryStr, FieldAnalyzer fieldExtracter)
 	{
 		queryStr = PATTERN_START_BY.matcher(queryStr).replaceFirst("");
+		queryStr = PATTERN_ORDER_BY.matcher(queryStr).replaceFirst("");
 		if (queryStr.isEmpty())
 		{
 			return Collections.emptyList();

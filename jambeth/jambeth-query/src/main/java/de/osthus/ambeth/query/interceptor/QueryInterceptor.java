@@ -57,7 +57,7 @@ public class QueryInterceptor extends CascadedInterceptor
 		}
 	};
 
-	private static final Pattern PATTERN_QUERY_START = Pattern.compile("findAll|(find|count)By[A-Z].*");
+	private static final Pattern PATTERN_QUERY_START = Pattern.compile("findAll((Order|Sort)By[A-Z].*)?|(find|count)By[A-Z].*");
 
 	@LogInstance
 	private ILogger log;

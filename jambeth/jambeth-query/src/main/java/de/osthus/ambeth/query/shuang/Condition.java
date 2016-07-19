@@ -1,5 +1,7 @@
 package de.osthus.ambeth.query.shuang;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -167,6 +169,58 @@ public enum Condition
 		{
 			return isBlankString(value) ? null : qb.regexpLike(qb.property(nestFieldName), qb.value(value));
 		}
+	},
+	DATE_AT
+	{
+		@Override
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
+		{
+			return qb.and(DATE_GE.createOperand(qb, nestFieldName, value), DATE_LE.createOperand(qb, nestFieldName, value));
+		}
+
+	},
+	DATE_GT
+	{
+		@Override
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
+		{
+			checkDateType(value, "DateGt");
+			Date maxTime = toMaxTime((Date) value);
+			return qb.isGreaterThan(qb.property(nestFieldName), qb.value(maxTime));
+		}
+	},
+	DATE_GE
+	{
+
+		@Override
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
+		{
+			checkDateType(value, "DateGe");
+			Date minTime = toMinTime((Date) value);
+			return qb.isGreaterThanOrEqualTo(qb.property(nestFieldName), qb.value(minTime));
+		}
+	},
+	DATE_LT
+	{
+		@Override
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
+		{
+			checkDateType(value, "DateLt");
+			Date minTime = toMinTime((Date) value);
+			return qb.isLessThan(qb.property(nestFieldName), qb.value(minTime));
+		}
+
+	},
+	DATE_LE
+	{
+
+		@Override
+		public IOperand createOperand(IQueryBuilder<?> qb, String nestFieldName, Object value)
+		{
+			checkDateType(value, "DateLe");
+			Date maxTime = toMaxTime((Date) value);
+			return qb.isLessThanOrEqualTo(qb.property(nestFieldName), qb.value(maxTime));
+		}
 	};
 
 	private static final Pattern PATTERN_FIRST_CHAR = Pattern.compile("(?<=[a-z])(?=[A-Z])");
@@ -226,5 +280,35 @@ public enum Condition
 		{
 			return false;
 		}
+	}
+
+	private static void checkDateType(Object value, String conditionType)
+	{
+		if (!(value instanceof Date))
+		{
+			throw new IllegalArgumentException(conditionType + " query must pass param's type is Date, but this param type is:" + value.getClass());
+		}
+	}
+
+	private static Date toMinTime(Date date)
+	{
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.MILLISECOND, 0);
+		return calendar.getTime();
+	}
+
+	private static Date toMaxTime(Date date)
+	{
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.HOUR_OF_DAY, 23);
+		calendar.set(Calendar.MINUTE, 59);
+		calendar.set(Calendar.SECOND, 59);
+		calendar.set(Calendar.MILLISECOND, 999);
+		return calendar.getTime();
 	}
 }
