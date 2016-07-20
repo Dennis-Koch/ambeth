@@ -1,4 +1,4 @@
-package de.osthus.ambeth.query.shuang;
+package de.osthus.ambeth.query.squery;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -8,6 +8,19 @@ import java.util.List;
 
 public final class GenericTypeUtils
 {
+	private GenericTypeUtils()
+	{
+	}
+
+	/**
+	 * obj instanceof rawType, and rawType is a generic interface or class, this method get the Type parameter asign to rawType
+	 * 
+	 * @param obj
+	 *            need to retrive the Type parameter
+	 * @param rawType
+	 *            the generic interface or class that obj instanceof
+	 * @return Type parameter
+	 */
 	public static Type[] getGenericParam(Object obj, Type rawType)
 	{
 		for (ParameterizedType parameterizedType : getAllParameterizedType(obj))
@@ -20,6 +33,13 @@ public final class GenericTypeUtils
 		return new Class<?>[0];
 	}
 
+	/**
+	 * Retrieve all the Type parameter that obj use, include the super class or interfaces
+	 * 
+	 * @param obj
+	 *            is the target of retrive Type parameter
+	 * @return the Type parameters
+	 */
 	public static List<Type> getAllGnericParam(Object obj)
 	{
 		List<Type> result = new ArrayList<Type>();
@@ -30,6 +50,13 @@ public final class GenericTypeUtils
 		return result;
 	}
 
+	/**
+	 * Retrieve all the generic super class or interfaces
+	 * 
+	 * @param obj
+	 *            target to retrieve
+	 * @return the ParameterizedType that obj instanceof
+	 */
 	public static List<ParameterizedType> getAllParameterizedType(Object obj)
 	{
 		List<ParameterizedType> result = new ArrayList<ParameterizedType>();

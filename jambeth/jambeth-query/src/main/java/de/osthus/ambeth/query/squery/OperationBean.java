@@ -1,4 +1,4 @@
-package de.osthus.ambeth.query.shuang;
+package de.osthus.ambeth.query.squery;
 
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IQueryBuilder;
@@ -31,7 +31,7 @@ public class OperationBean
 		return relation;
 	}
 
-	public IOperand getOperand(IQueryBuilder<?> qb, Object value)
+	public IOperand buildOperand(IQueryBuilder<?> qb, Object value)
 	{
 		return condition.createOperand(qb, nestFieldName, value);
 	}

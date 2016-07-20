@@ -1,4 +1,4 @@
-package de.osthus.ambeth.query.shuang;
+package de.osthus.ambeth.query.squery;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -31,10 +31,12 @@ public final class FieldAnalyzer
 	}
 
 	/**
+	 * analyze the nestField, e.g:
+	 * 
 	 * SomeFieldNestField -> SomeField.NestField
 	 * 
 	 * @param nestFields
-	 * @return
+	 * @return inserted dot in the nestFieldName
 	 */
 	public String buildNestField(String nestFields)
 	{
@@ -139,7 +141,7 @@ public final class FieldAnalyzer
 
 	public List<ISortDescriptor> buildSort(String queryStr)
 	{
-		if (queryStr == null)
+		if (queryStr == null || queryStr.isEmpty())
 		{
 			return Collections.emptyList();
 		}

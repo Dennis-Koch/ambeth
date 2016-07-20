@@ -1,4 +1,4 @@
-package de.osthus.ambeth.query.shuang;
+package de.osthus.ambeth.query.squery;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -32,7 +32,8 @@ public final class QueryBuilderBean<T>
 	public Object createQueryBuilder(IQueryBuilderFactory qbf, Object[] params, Method method)
 	{
 		IQueryBuilder<T> queryBuilder = qbf.create(entityType);
-		IOperand where = this.buildOperand(queryBuilder, params);
+		IOperand where;
+		where = this.buildOperand(queryBuilder, params, method);
 
 		// do orderBy
 
@@ -145,7 +146,15 @@ public final class QueryBuilderBean<T>
 		return null;
 	}
 
-	private IOperand buildOperand(IQueryBuilder<T> queryBuilder, Object[] params)
+	/**
+	 * @param queryBuilder
+	 * @param params
+	 * @param method
+	 * @return
+	 * @throws java.lang.ArrayIndexOutOfBoundsException
+	 *             if params have not enough element, then throw this Exception
+	 */
+	private IOperand buildOperand(IQueryBuilder<T> queryBuilder, Object[] params, Method method)
 	{
 		if (queryBeans == null || queryBeans.isEmpty())
 		{
@@ -157,8 +166,16 @@ public final class QueryBuilderBean<T>
 		int paramIndex = 0;
 		for (OperationBean operationBean : queryBeans)
 		{
-			IOperand operand = operationBean.getOperand(queryBuilder, params[paramIndex]);
-			paramIndex = nextConsumeParamIndex(paramIndex, operationBean);
+			Object value = null;
+			if (needValueBuildOperand(operationBean))
+			{
+				if (paramIndex >= params.length)
+				{
+					throw new IllegalArgumentException("the method [" + method + "] have not enough count of argument");
+				}
+				value = params[paramIndex++];
+			}
+			IOperand operand = operationBean.buildOperand(queryBuilder, value);
 			if (operand != null)
 			{
 				andList.add(operand);
@@ -186,6 +203,11 @@ public final class QueryBuilderBean<T>
 		}
 	}
 
+	private boolean needValueBuildOperand(OperationBean operationBean)
+	{
+		return operationBean.getCondition() != Condition.IS_NULL && operationBean.getCondition() != Condition.IS_NOT_NULL;
+	}
+
 	private void collectAndOperand(IQueryBuilder<T> queryBuilder, List<IOperand> andList, List<IOperand> orList)
 	{
 		if (andList.size() == 1)
@@ -197,11 +219,5 @@ public final class QueryBuilderBean<T>
 			IOperand[] andArray = andList.toArray(new IOperand[andList.size()]);
 			orList.add(queryBuilder.and(andArray));
 		}
-	}
-
-	private int nextConsumeParamIndex(int index, OperationBean operationBean)
-	{
-		Condition condition = operationBean.getCondition();
-		return condition == Condition.IS_NULL || condition == Condition.IS_NOT_NULL ? index : ++index;
 	}
 }

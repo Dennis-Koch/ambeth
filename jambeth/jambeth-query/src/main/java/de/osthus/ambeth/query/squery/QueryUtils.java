@@ -1,4 +1,4 @@
-package de.osthus.ambeth.query.shuang;
+package de.osthus.ambeth.query.squery;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,10 +10,10 @@ import de.osthus.ambeth.filter.model.ISortDescriptor;
 
 public class QueryUtils
 {
-	private static final Pattern PATTERN_START_BY = Pattern.compile("\\b(query|retrieve|count|find)(By|All)");
+	private static final Pattern PATTERN_START_BY = Pattern.compile("^(find|count)(By|All)");
 	private static final Pattern PATTERN_ORDER_BY = Pattern.compile("(Order|Sort)By[A-Z].*$");
 
-	private static final Pattern PATTERN_SPLITER;
+	private static final Pattern PATTERN_EXTRACT_CONDITION;
 	static
 	{
 		StringBuilder sb = new StringBuilder("(?<=(\\b|And|Or))([A-Z]\\w+?)(");
@@ -27,7 +27,7 @@ public class QueryUtils
 			sb.append('|').append(values[i].toCapitalize());
 		}
 		sb.append(")?((And|Or)(?=[A-Z])|(Sort|Order)By(?=[A-Z])|\\b)");
-		PATTERN_SPLITER = Pattern.compile(sb.toString());
+		PATTERN_EXTRACT_CONDITION = Pattern.compile(sb.toString());
 	}
 
 	public static boolean canBuildQuery(String methodName)
@@ -52,7 +52,7 @@ public class QueryUtils
 			return Collections.emptyList();
 		}
 		List<OperationBean> result = new ArrayList<OperationBean>();
-		Matcher matcher = PATTERN_SPLITER.matcher(queryStr);
+		Matcher matcher = PATTERN_EXTRACT_CONDITION.matcher(queryStr);
 		while (matcher.find())
 		{
 			String fieldName = matcher.group(2);

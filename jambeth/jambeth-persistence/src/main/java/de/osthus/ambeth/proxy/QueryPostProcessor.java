@@ -11,7 +11,7 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.query.interceptor.QueryInterceptor;
-import de.osthus.ambeth.query.shuang.ISquery;
+import de.osthus.ambeth.query.squery.ISquery;
 import de.osthus.ambeth.util.EqualsUtil;
  
 public class QueryPostProcessor extends AbstractCascadePostProcessor

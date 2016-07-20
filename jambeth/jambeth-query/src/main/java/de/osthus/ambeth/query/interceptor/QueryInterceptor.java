@@ -32,10 +32,10 @@ import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.proxy.CascadedInterceptor;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
-import de.osthus.ambeth.query.shuang.GenericTypeUtils;
-import de.osthus.ambeth.query.shuang.ISquery;
-import de.osthus.ambeth.query.shuang.QueryBuilderBean;
-import de.osthus.ambeth.query.shuang.QueryUtils;
+import de.osthus.ambeth.query.squery.GenericTypeUtils;
+import de.osthus.ambeth.query.squery.ISquery;
+import de.osthus.ambeth.query.squery.QueryBuilderBean;
+import de.osthus.ambeth.query.squery.QueryUtils;
 
 public class QueryInterceptor extends CascadedInterceptor
 {
@@ -57,7 +57,7 @@ public class QueryInterceptor extends CascadedInterceptor
 		}
 	};
 
-	private static final Pattern PATTERN_QUERY_START = Pattern.compile("findAll((Order|Sort)By[A-Z].*)?|(find|count)By[A-Z].*");
+	private static final Pattern PATTERN_SQUERY = Pattern.compile("findAll((Order|Sort)By[A-Z].*)?|(find|count)By[A-Z].*");
 
 	@LogInstance
 	private ILogger log;
@@ -104,13 +104,14 @@ public class QueryInterceptor extends CascadedInterceptor
 	protected Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy, String lowerCaseMethodName, Boolean isAsyncBegin) throws Throwable
 	{
 		String methodName = method.getName();
-		if (findCache.getAnnotation(method) != null || PATTERN_QUERY_START.matcher(methodName).matches())
+		if (findCache.getAnnotation(method) != null || PATTERN_SQUERY.matcher(methodName).matches())
 		{
 			if (obj instanceof ISquery && QueryUtils.canBuildQuery(methodName))
 			{
 				// method
 				QueryBuilderBean<?> queryBuilderBean = methodMapQueryBuilderBean.get(method);
-				if (queryBuilderBean == null) // double check to make thread safe
+				// double check to make thread safe and not influence the speed, the ConcurrentHashMap get very quick
+				if (queryBuilderBean == null)
 				{
 					synchronized (QueryInterceptor.class)
 					{
