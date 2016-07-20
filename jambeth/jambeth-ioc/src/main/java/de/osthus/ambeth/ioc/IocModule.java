@@ -132,6 +132,7 @@ public class IocModule implements IInitializingModule
 			}
 		};
 		fastThreadPool.setName("MTH");
+		fastThreadPool.refreshThreadCount();
 
 		IBeanConfiguration fastThreadPoolBean = beanContextFactory.registerExternalBean(THREAD_POOL_NAME, fastThreadPool);
 
