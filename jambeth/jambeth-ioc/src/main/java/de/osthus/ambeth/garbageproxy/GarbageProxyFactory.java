@@ -1,6 +1,9 @@
 package de.osthus.ambeth.garbageproxy;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -17,10 +20,12 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.AbstractSimpleInterceptor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassWriter;
+import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.Method;
+import de.osthus.ambeth.repackaged.org.objectweb.asm.util.TraceClassVisitor;
 import de.osthus.ambeth.util.IDisposable;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ReflectUtil;
@@ -149,12 +154,18 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 			interfaceNames.add(interfaceType.getInternalName());
 		}
 
+		StringWriter sw = new StringWriter();
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-		cw.visit(Opcodes.V1_1, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, classNameInternal, null, abstractType.getInternalName(),
+		PrintWriter pw = new PrintWriter(sw);
+
+		ClassVisitor visitor = cw;
+		visitor = new TraceClassVisitor(visitor, pw);
+
+		visitor.visit(Opcodes.V1_1, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, classNameInternal, null, abstractType.getInternalName(),
 				interfaceNames.toArray(String.class));
 		{
 			Method method = Method.getMethod("void <init> (" + Object.class.getName() + "," + IDisposable.class.getName() + ")");
-			GeneratorAdapter mv = createGA(cw, Opcodes.ACC_PUBLIC, method.getName(), method.getDescriptor());
+			GeneratorAdapter mv = createGA(visitor, Opcodes.ACC_PUBLIC, method.getName(), method.getDescriptor());
 			mv.loadThis();
 			mv.loadArgs();
 			mv.invokeConstructor(abstractType, method);
@@ -163,7 +174,7 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 		}
 		{
 			Method method = Method.getMethod("void <init> (" + IDisposable.class.getName() + ")");
-			GeneratorAdapter mv = createGA(cw, Opcodes.ACC_PUBLIC, method.getName(), method.getDescriptor());
+			GeneratorAdapter mv = createGA(visitor, Opcodes.ACC_PUBLIC, method.getName(), method.getDescriptor());
 			mv.loadThis();
 			mv.loadArgs();
 			mv.invokeConstructor(abstractType, method);
@@ -171,6 +182,8 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 			mv.endMethod();
 		}
 		Method targetMethod = Method.getMethod(ReflectUtil.getDeclaredMethod(false, GCProxy.class, Object.class, "resolveTarget"));
+
+		Type objType = Type.getType(Object.class);
 
 		HashSet<Method> alreadyImplementedMethods = new HashSet<Method>();
 		for (Class<?> interfaceClass : interfaceClasses)
@@ -189,18 +202,75 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 				{
 					continue;
 				}
-				GeneratorAdapter mv = createGA(cw, Opcodes.ACC_PUBLIC, asmMethod.getName(), asmMethod.getDescriptor());
+				GeneratorAdapter mv = createGA(visitor, Opcodes.ACC_PUBLIC, asmMethod.getName(), asmMethod.getDescriptor());
+				int l_result = -1, l_target = -1;
+				boolean resultCheckNeeded = isAssignableFrom(method.getReturnType(), interfaceClasses);
+				if (resultCheckNeeded)
+				{
+					l_result = mv.newLocal(asmMethod.getReturnType());
+					l_target = mv.newLocal(targetMethod.getReturnType());
+				}
 				mv.loadThis();
 				mv.invokeVirtual(abstractType, targetMethod);
+				if (resultCheckNeeded)
+				{
+					mv.storeLocal(l_target);
+					mv.loadLocal(l_target);
+				}
 				mv.checkCast(interfaceType);
 				mv.loadArgs();
 				mv.invokeInterface(interfaceType, asmMethod);
+				if (resultCheckNeeded)
+				{
+					// ensure that the GCProxy will be returned whenever we our target as a return value (e.g. happens on fluent-APIs)
+					// Example: ISqlQueryBuilder result = ((ISqlQueryBuilder))this.resolveTarget()).or(..args..);
+					mv.storeLocal(l_result);
+
+					Label label_returnThis = mv.newLabel();
+
+					// if (result == resolveTarget())
+					mv.loadLocal(l_target);
+					mv.loadLocal(l_result);
+					mv.ifCmp(objType, GeneratorAdapter.EQ, label_returnThis);
+
+					// else return result;
+					mv.loadLocal(l_result);
+					mv.returnValue();
+
+					// return this;
+					mv.mark(label_returnThis);
+					mv.loadThis();
+				}
 				mv.returnValue();
 				mv.endMethod();
 			}
 		}
-		cw.visitEnd();
+		visitor.visitEnd();
 		byte[] data = cw.toByteArray();
+
+		// try
+		// {
+		String string = sw.toString();
+
+		System.out.println(string);
+		// }
+		// catch (Throwable e)
+		// {
+		// throw RuntimeExceptionUtil.mask(e, "Error occurred while trying to write to '" + outputFile.getAbsolutePath() + "'");
+		// }
 		return loader.defineClass(className, data);
+	}
+
+	private boolean isAssignableFrom(Class<?> returnType, List<Class<?>> interfaceClasses)
+	{
+		for (int a = interfaceClasses.size(); a-- > 0;)
+		{
+			Class<?> interfaceClass = interfaceClasses.get(a);
+			if (returnType.isAssignableFrom(interfaceClass))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 }

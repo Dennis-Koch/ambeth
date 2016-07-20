@@ -53,6 +53,11 @@ public final class TypeUtil
 				|| Type.SHORT_TYPE.equals(type) || Type.FLOAT_TYPE.equals(type) || Type.INT_TYPE.equals(type) || Type.LONG_TYPE.equals(type);
 	}
 
+	public static boolean isPrimitiveOrVoid(Type type)
+	{
+		return isPrimitive(type) || Type.VOID_TYPE.equals(type);
+	}
+
 	private TypeUtil()
 	{
 		// Intended blank
