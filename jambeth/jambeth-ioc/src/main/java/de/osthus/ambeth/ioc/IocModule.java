@@ -7,6 +7,8 @@ import java.sql.Blob;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.appendable.AppendableStringBuilder;
+import de.osthus.ambeth.config.IocConfigurationConstants;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.converter.FileToPathConverter;
 import de.osthus.ambeth.converter.StringToBlobConverter;
 import de.osthus.ambeth.converter.StringToCharsetConverter;
@@ -51,6 +53,9 @@ public class IocModule implements IInitializingModule
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Property(name = IocConfigurationConstants.JavaUiActive, defaultValue = "true")
+	protected boolean javaUiActive;
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
@@ -115,7 +120,7 @@ public class IocModule implements IInitializingModule
 		beanContextFactory.registerBean("cgLibUtil", CgLibUtil.class).autowireable(ICgLibUtil.class);
 
 		beanContextFactory.registerBean("guiThreadHelper", GuiThreadHelper.class).propertyRef("Executor", THREAD_POOL_NAME)
-				.autowireable(IGuiThreadHelper.class);
+				.propertyValue("javaUiActive", javaUiActive).autowireable(IGuiThreadHelper.class);
 
 		beanContextFactory.registerBean(JAXBContextProvider.class).autowireable(IJAXBContextProvider.class);
 
