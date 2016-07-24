@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://www.osthus.de/ambeth/ambeth_orm_1_2">
+
+	<entity class="de.osthus.ambeth.query.squery.model.HomeAddress" />
+	<entity class="de.osthus.ambeth.query.squery.model.Address" />
+	<entity class="de.osthus.ambeth.query.squery.model.Home" />
+	<entity class="de.osthus.ambeth.query.squery.model.Person" />
+
+</entity-mappings>

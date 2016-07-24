@@ -1,6 +1,7 @@
 package de.osthus.ambeth.query.interceptor;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ public class QueryInterceptor extends CascadedInterceptor
 		}
 	};
 
-	private static final Pattern PATTERN_SQUERY = Pattern.compile("findAll((Order|Sort)By[A-Z].*)?|(find|count)By[A-Z].*");
+	private static final Pattern PATTERN_QUERY_METHOD = Pattern.compile("(retrieve|read|find|get).*");
 
 	@LogInstance
 	private ILogger log;
@@ -104,32 +105,31 @@ public class QueryInterceptor extends CascadedInterceptor
 	protected Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy, String lowerCaseMethodName, Boolean isAsyncBegin) throws Throwable
 	{
 		String methodName = method.getName();
-		if (findCache.getAnnotation(method) != null || PATTERN_SQUERY.matcher(methodName).matches())
+		if (target instanceof ISquery && Modifier.isAbstract(method.getModifiers()) && QueryUtils.canBuildQuery(methodName))
 		{
-			if (obj instanceof ISquery && QueryUtils.canBuildQuery(methodName))
+			QueryBuilderBean<?> queryBuilderBean = methodMapQueryBuilderBean.get(method);
+			// double check to make thread safe and not influence the speed, the ConcurrentHashMap get very quick
+			if (queryBuilderBean == null)
 			{
-				// method
-				QueryBuilderBean<?> queryBuilderBean = methodMapQueryBuilderBean.get(method);
-				// double check to make thread safe and not influence the speed, the ConcurrentHashMap get very quick
-				if (queryBuilderBean == null)
+				synchronized (QueryInterceptor.class)
 				{
-					synchronized (QueryInterceptor.class)
+					if (queryBuilderBean == null)
 					{
-						if (queryBuilderBean == null)
-						{
-							Class<?> entityType = (Class<?>) GenericTypeUtils.getGenericParam(obj, ISquery.class)[0];
-							queryBuilderBean = QueryUtils.buildQuery(methodName, entityType);
-							methodMapQueryBuilderBean.put(method, queryBuilderBean);
-						}
+						Class<?> entityType = (Class<?>) GenericTypeUtils.getGenericParam(obj, ISquery.class)[0];
+						queryBuilderBean = QueryUtils.buildQuery(methodName, entityType);
+						methodMapQueryBuilderBean.put(method, queryBuilderBean);
 					}
 				}
-				return queryBuilderBean.createQueryBuilder(queryBuilderFactory, args, method);
 			}
-			else if (args.length == 3 && IPagingResponse.class.isAssignableFrom(method.getReturnType()))
+			return queryBuilderBean.createQueryBuilder(queryBuilderFactory, args, method);
+
+		}
+		else if (findCache.getAnnotation(method) != null || PATTERN_QUERY_METHOD.matcher(methodName).matches())
+		{
+			if (args.length == 3 && IPagingResponse.class.isAssignableFrom(method.getReturnType()))
 			{
 				return interceptQuery(obj, method, args, proxy, isAsyncBegin);
 			}
-
 			// if (args.length == 1)
 			// {
 			// return interceptLoad(obj, method, args, proxy, isAsyncBegin);
@@ -243,5 +243,4 @@ public class QueryInterceptor extends CascadedInterceptor
 			return cache.getObject(entityType, idsRaw);
 		}
 	}
-
 }

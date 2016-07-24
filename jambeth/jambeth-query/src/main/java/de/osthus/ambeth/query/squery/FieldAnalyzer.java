@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,43 +34,52 @@ public final class FieldAnalyzer
 	 * 
 	 * SomeFieldNestField -> SomeField.NestField
 	 * 
-	 * @param nestFields
-	 * @return inserted dot in the nestFieldName
+	 * @param fieldExpression
+	 * @return separated nest field by dot
 	 */
-	public String buildNestField(String nestFields)
+	public String buildNestField(String fieldExpression)
 	{
-		return this.prepareFieldName(nestFields, clazz);
+		String result = this.prepareFieldName(fieldExpression, clazz);
+		if (result == null)
+		{
+			throw new InvalidateSqueryNameException(fieldExpression, clazz);
+		}
+		return result;
 	}
 
-	private String prepareFieldName(String nestFields, Class<?> clazz)
+	private String prepareFieldName(String partFieldName, Class<?> clazz)
 	{
-		SortedSet<String> methodNames = getMethodNames(clazz);
-		String findName = null;
-		for (String name : methodNames)
+		SortedSet<String> getterNames = getGetterNames(clazz);
+		if (getterNames.contains(partFieldName))
 		{
-			if (nestFields.startsWith(name))
+			return partFieldName;
+		}
+		for (String getterStr : getterNames)
+		{
+			if (partFieldName.startsWith(getterStr))
 			{
-				findName = name;
-				break;
+				Class<?> returnType = this.getReturnType(getterStr, clazz);
+				String subPartFieldName = partFieldName.substring(getterStr.length());
+				String subName = this.prepareFieldName(subPartFieldName, returnType);
+				if (subName != null)
+				{
+					return getterStr + "." + subName;
+				}
 			}
 		}
-		if (findName == null)
-		{
-			NoSuchFieldException e = new NoSuchFieldException(nestFields);
-			throw new RuntimeException(e);
-		}
-		if (Objects.equals(findName, nestFields))
-		{
-			return nestFields;
-		}
-		else
-		{
-			Class<?> returnType = this.getReturnType(findName, clazz);
-			return findName + "." + this.prepareFieldName(nestFields.substring(findName.length()), returnType);
-		}
+		return null;
 	}
 
-	private SortedSet<String> getMethodNames(Class<?> clazz)
+	/**
+	 * retrive all the getter names, and remove the get part
+	 * 
+	 * e.g: Company getCompany(); -> "Company"
+	 * 
+	 * @param clazz
+	 *            be retrived type
+	 * @return all the getter names delete "get"
+	 */
+	private SortedSet<String> getGetterNames(Class<?> clazz)
 	{
 		SortedSet<String> names = classMapField.get(clazz);
 		if (names != null)
