@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.collections.IdentityLinkedMap;
@@ -227,6 +228,10 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventTa
 	protected IList<Object> evaluatePausedEventTargets()
 	{
 		IdentityLinkedMap<Object, PausedEventTargetItem> pausedTargets = this.pausedTargets;
+		if (pausedTargets.size() == 0)
+		{
+			return EmptyList.<Object> getInstance();
+		}
 		ArrayList<Object> pausedEventTargets = new ArrayList<Object>(pausedTargets.size());
 		for (Entry<Object, PausedEventTargetItem> entry : pausedTargets)
 		{

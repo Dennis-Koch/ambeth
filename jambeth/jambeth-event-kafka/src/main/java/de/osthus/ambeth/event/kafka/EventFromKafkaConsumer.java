@@ -90,14 +90,25 @@ public class EventFromKafkaConsumer implements IInitializingBean, IStartingBean,
 					log.debug("Polling for records...");
 				}
 				ConsumerRecords<String, Object> records = consumer.poll(timeout);
-				for (ConsumerRecord<String, Object> record : records)
+				if (records.count() > 0)
 				{
-					Object value = record.value();
-					if (log.isDebugEnabled())
+					eventDispatcher.enableEventQueue();
+					try
 					{
-						log.debug("Received record with key '" + record.key() + "'");
+						for (ConsumerRecord<String, Object> record : records)
+						{
+							Object value = record.value();
+							if (log.isDebugEnabled())
+							{
+								log.debug("Received record with key '" + record.key() + "'");
+							}
+							eventDispatcher.dispatchEvent(value);
+						}
 					}
-					eventDispatcher.dispatchEvent(value);
+					finally
+					{
+						eventDispatcher.flushEventQueue();
+					}
 				}
 			}
 		}
