@@ -11,9 +11,9 @@ import de.osthus.ambeth.query.squery.model.Person;
 
 public interface IPersonService extends ISquery<Person>
 {
-	Person findById(Integer id);
-
 	List<Person> findAll();
+
+	Person findById(Integer id);
 
 	List<Person> findByName(String name);
 

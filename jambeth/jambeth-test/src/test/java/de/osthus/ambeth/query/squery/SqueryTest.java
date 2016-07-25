@@ -38,7 +38,7 @@ import de.osthus.ambeth.testutil.TestPropertiesList;
 @TestModule(SqueryIocModule.class)
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/squery/PersonQuery_orm.xml"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.persistence.jdbc.connection.LogPreparedStatementInterceptor", value = "DEBUG") })
-public class PersonQueryTest extends AbstractInformationBusWithPersistenceTest
+public class SqueryTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Autowired
 	protected IPersonService personService;
