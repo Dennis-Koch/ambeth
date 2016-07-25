@@ -7,8 +7,14 @@ import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Factory;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.reflect.FastMethod;
+import de.osthus.ambeth.accessor.IAccessorTypeProvider;
+import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.bytecode.DelegateEnhancementHint;
+import de.osthus.ambeth.ioc.bytecode.IDelegateConstructor;
 import de.osthus.ambeth.ioc.extendable.IExtendableRegistry;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -21,8 +27,67 @@ import de.osthus.ambeth.util.ReflectUtil;
 
 public class LinkContainer extends AbstractLinkContainer
 {
+	public static IMap<Method, Method> buildDelegateMethodMap(Class<?> listenerType, String listenerMethodName, Class<?> parameterType)
+	{
+		Method[] methodsOnExpectedListenerType = ReflectUtil.getDeclaredMethods(parameterType);
+		HashMap<Method, Method> mappedMethods = new HashMap<Method, Method>();
+		for (Method methodOnExpectedListenerType : methodsOnExpectedListenerType)
+		{
+			Annotation[][] parameterAnnotations = methodOnExpectedListenerType.getParameterAnnotations();
+			Class<?>[] types = methodOnExpectedListenerType.getParameterTypes();
+
+			Method method = null;
+			while (method == null)
+			{
+				method = ReflectUtil.getDeclaredMethod(true, listenerType, methodOnExpectedListenerType.getReturnType(), listenerMethodName, types);
+				if (method == null && types.length > 0)
+				{
+					Class<?> firstType = types[0];
+					types[0] = null;
+					method = ReflectUtil.getDeclaredMethod(true, listenerType, methodOnExpectedListenerType.getReturnType(), listenerMethodName, types);
+					types[0] = firstType;
+				}
+				if (method != null)
+				{
+					break;
+				}
+				if (types.length > 1)
+				{
+					Annotation[] annotationsOfLastType = parameterAnnotations[types.length - 1];
+					LinkOptional linkOptional = null;
+					for (Annotation annotationOfLastType : annotationsOfLastType)
+					{
+						if (annotationOfLastType instanceof LinkOptional)
+						{
+							linkOptional = (LinkOptional) annotationOfLastType;
+							break;
+						}
+					}
+					if (linkOptional != null)
+					{
+						// drop last expected argument and look again
+						Class<?>[] newTypes = new Class<?>[types.length - 1];
+						System.arraycopy(types, 0, newTypes, 0, newTypes.length);
+						types = newTypes;
+						continue;
+					}
+				}
+				throw new IllegalArgumentException("Could not map given method '" + listenerMethodName + "' of listener " + listenerType + " to signature: "
+						+ methodOnExpectedListenerType);
+			}
+			mappedMethods.put(methodOnExpectedListenerType, method);
+		}
+		return mappedMethods;
+	}
+
 	@LogInstance
 	private ILogger log;
+
+	@Autowired(optional = true)
+	protected IAccessorTypeProvider accessorTypeProvider;
+
+	@Autowired(optional = true)
+	protected IBytecodeEnhancer bytecodeEnhancer;
 
 	protected IExtendableRegistry extendableRegistry;
 
@@ -80,88 +145,54 @@ public class LinkContainer extends AbstractLinkContainer
 			return listener;
 		}
 		Class<?> parameterType = addMethod.getParameterTypes()[0];
-		Method[] methodsOnExpectedListenerType = ReflectUtil.getDeclaredMethods(parameterType);
-		HashMap<Method, Method> mappedMethods = new HashMap<Method, Method>();
-		for (Method methodOnExpectedListenerType : methodsOnExpectedListenerType)
+		if (listener instanceof Factory)
 		{
-			Annotation[][] parameterAnnotations = methodOnExpectedListenerType.getParameterAnnotations();
-			Class<?>[] types = methodOnExpectedListenerType.getParameterTypes();
-
-			CascadedInterceptor cascadedInterceptor = null;
-			if (listener instanceof Factory)
+			Callback[] callbacks = ((Factory) listener).getCallbacks();
+			if (callbacks != null && callbacks.length == 1)
 			{
-				Callback[] callbacks = ((Factory) listener).getCallbacks();
-				if (callbacks != null && callbacks.length == 1)
+				Callback callback = callbacks[0];
+				if (callback instanceof CascadedInterceptor)
 				{
-					Callback callback = callbacks[0];
-					if (callback instanceof CascadedInterceptor)
+					CascadedInterceptor cascadedInterceptor = (CascadedInterceptor) callback;
+					Object target = cascadedInterceptor;
+					while (target instanceof CascadedInterceptor)
 					{
-						cascadedInterceptor = (CascadedInterceptor) callback;
-						Object target = cascadedInterceptor;
-						while (target instanceof CascadedInterceptor)
+						Object targetOfTarget = ((CascadedInterceptor) target).getTarget();
+						if (targetOfTarget != null)
 						{
-							Object targetOfTarget = ((CascadedInterceptor) target).getTarget();
-							if (targetOfTarget != null)
-							{
-								target = targetOfTarget;
-							}
-							else
-							{
-								target = null;
-								break;
-							}
+							target = targetOfTarget;
 						}
-						if (target != null)
+						else
 						{
-							listener = target;
-						}
-					}
-				}
-			}
-			Method method = null;
-			while (method == null)
-			{
-				method = ReflectUtil.getDeclaredMethod(true, listener.getClass(), methodOnExpectedListenerType.getReturnType(), listenerMethodName, types);
-				if (method == null && types.length > 0)
-				{
-					Class<?> firstType = types[0];
-					types[0] = null;
-					method = ReflectUtil.getDeclaredMethod(true, listener.getClass(), methodOnExpectedListenerType.getReturnType(), listenerMethodName, types);
-					types[0] = firstType;
-				}
-				if (method != null)
-				{
-					break;
-				}
-				if (types.length > 1)
-				{
-					Annotation[] annotationsOfLastType = parameterAnnotations[types.length - 1];
-					LinkOptional linkOptional = null;
-					for (Annotation annotationOfLastType : annotationsOfLastType)
-					{
-						if (annotationOfLastType instanceof LinkOptional)
-						{
-							linkOptional = (LinkOptional) annotationOfLastType;
+							target = null;
 							break;
 						}
 					}
-					if (linkOptional != null)
+					if (target != null)
 					{
-						// drop last expected argument and look again
-						Class<?>[] newTypes = new Class<?>[types.length - 1];
-						System.arraycopy(types, 0, newTypes, 0, newTypes.length);
-						types = newTypes;
-						continue;
+						listener = target;
 					}
 				}
-				throw new IllegalArgumentException("Could not map given method '" + listenerMethodName + "' of listener " + listener + " to signature: "
-						+ methodOnExpectedListenerType);
 			}
-			mappedMethods.put(methodOnExpectedListenerType, method);
 		}
-		MethodInterceptor interceptor = new DelegateInterceptor(listener, mappedMethods);
-		listener = proxyFactory.createProxy(parameterType, listener.getClass().getInterfaces(), interceptor);
-		return listener;
+		Class<?> listenerType = listener.getClass();
+
+		IMap<Method, Method> mappedMethods = buildDelegateMethodMap(listenerType, listenerMethodName, parameterType);
+
+		Object delegateInstance = null;
+		if (bytecodeEnhancer != null && accessorTypeProvider != null)
+		{
+			Class<?> delegateType = bytecodeEnhancer
+					.getEnhancedType(Object.class, new DelegateEnhancementHint(listenerType, listenerMethodName, parameterType));
+			IDelegateConstructor constructor = accessorTypeProvider.getConstructorType(IDelegateConstructor.class, delegateType);
+			delegateInstance = constructor.createInstance(listener);
+		}
+		if (delegateInstance == null)
+		{
+			MethodInterceptor interceptor = new DelegateInterceptor(listener, mappedMethods);
+			delegateInstance = proxyFactory.createProxy(parameterType, listenerType.getInterfaces(), interceptor);
+		}
+		return delegateInstance;
 	}
 
 	protected void evaluateRegistryMethods(Object registry)
@@ -181,10 +212,11 @@ public class LinkContainer extends AbstractLinkContainer
 		arguments[0] = listener;
 		try
 		{
-			this.addMethod.invoke(registry, arguments);
+			addMethod.invoke(registry, arguments);
 		}
 		catch (Throwable e)
 		{
+			e.printStackTrace();
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -195,7 +227,7 @@ public class LinkContainer extends AbstractLinkContainer
 		arguments[0] = listener;
 		try
 		{
-			this.removeMethod.invoke(registry, arguments);
+			removeMethod.invoke(registry, arguments);
 		}
 		catch (Throwable e)
 		{

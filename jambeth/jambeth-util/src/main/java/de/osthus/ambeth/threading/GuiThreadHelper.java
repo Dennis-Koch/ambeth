@@ -4,6 +4,7 @@ import java.awt.EventQueue;
 import java.awt.Toolkit;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.concurrent.Executor;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -12,21 +13,57 @@ import de.osthus.ambeth.util.ReflectUtil;
 
 public class GuiThreadHelper implements IGuiThreadHelper
 {
-	private static final Field dispatchThread;
+	private static IResultingBackgroundWorkerDelegate<Boolean> dispatchThreadResolver;
 
 	static
 	{
-		Field f_dispatchThread;
+		createDispatchThreadResolver();
+	}
+
+	private static void createDispatchThreadResolver()
+	{
 		try
 		{
-			f_dispatchThread = ReflectUtil.getDeclaredField(Toolkit.class, "toolkit");
-			// f_dispatchThread = ReflectUtil.getDeclaredField(EventQueue.class, "dispatchThread");
+			final Field f_toolkit = ReflectUtil.getDeclaredField(Toolkit.class, "toolkit");
+			final Method m_systemEventQueueImpl = ReflectUtil.getDeclaredMethod(false, Toolkit.class, EventQueue.class, "getSystemEventQueueImpl");
+			final Field f_dispatchThread = ReflectUtil.getDeclaredField(EventQueue.class, "dispatchThread");
+
+			dispatchThreadResolver = new IResultingBackgroundWorkerDelegate<Boolean>()
+			{
+				@Override
+				public Boolean invoke() throws Throwable
+				{
+					Object toolkit = f_toolkit != null ? f_toolkit.get(null) : null;
+					if (toolkit == null)
+					{
+						return Boolean.FALSE;
+					}
+					Object eventQueue = m_systemEventQueueImpl.invoke(toolkit);
+					if (eventQueue == null)
+					{
+						return Boolean.FALSE;
+					}
+					Object dispatchThread = f_dispatchThread != null ? f_dispatchThread.get(eventQueue) : null;
+					return dispatchThread != null && ((Thread) dispatchThread).isAlive();
+				}
+			};
 		}
 		catch (Throwable e)
 		{
-			f_dispatchThread = null;
+			// intended blank
 		}
-		dispatchThread = f_dispatchThread;
+	}
+
+	public static boolean hasUiThread()
+	{
+		try
+		{
+			return dispatchThreadResolver != null && dispatchThreadResolver.invoke().booleanValue();
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
 	}
 
 	protected Executor executor;
@@ -44,11 +81,11 @@ public class GuiThreadHelper implements IGuiThreadHelper
 		{
 			return false;
 		}
-		if (!isGuiInitialized && dispatchThread != null && !skipGuiInitializeCheck)
+		if (!isGuiInitialized && !skipGuiInitializeCheck)
 		{
 			try
 			{
-				isGuiInitialized = dispatchThread.get(null) != null;
+				isGuiInitialized = hasUiThread();
 			}
 			catch (Throwable e)
 			{

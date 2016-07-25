@@ -19,6 +19,7 @@ import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableListContainer;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
@@ -478,15 +479,15 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventTa
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void waitEventToResume(Object eventTargetToResume, long maxWaitTime, IBackgroundWorkerParamDelegate<IProcessResumeItem> resumeDelegate,
-			IBackgroundWorkerParamDelegate<Throwable> errorDelegate)
+	public void waitEventToResume(final Object eventTargetToResume, final long maxWaitTime,
+			final IBackgroundWorkerParamDelegate<IProcessResumeItem> resumeDelegate, final IBackgroundWorkerParamDelegate<Throwable> errorDelegate)
 	{
 		try
 		{
 			IdentityHashSet<Object> pendingSet = new IdentityHashSet<Object>();
 			if (eventTargetToResume instanceof Collection)
 			{
-				pendingSet.addAll((Collection<Object>) eventTargetToResume);
+				pendingSet.addAll((Collection<?>) eventTargetToResume);
 			}
 			else
 			{
@@ -507,12 +508,15 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventTa
 					if (guiThreadHelper.isInGuiThread())
 					{
 						// This is the trick: We "requeue" the current action in the UI pipeline to prohibit blocking
-						// TODO: Currently not implemented because SyncContext or something similar does not exist yet
-						// GuiThreadHelper.invokeInGuiLate(delegate()
-						// {
-						// waitEventToResume(eventTargetToResume, maxWaitTime, resumeDelegate, errorDelegate);
-						// }, null);
-						// return;
+						guiThreadHelper.invokeInGuiLate(new IBackgroundWorkerDelegate()
+						{
+							@Override
+							public void invoke() throws Throwable
+							{
+								waitEventToResume(eventTargetToResume, maxWaitTime, resumeDelegate, errorDelegate);
+							}
+						});
+						return;
 					}
 					pauseItem = new WaitForResumeItem(pendingSet);
 					waitForResumeSet.add(pauseItem);

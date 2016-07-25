@@ -5,6 +5,7 @@ import java.util.Map.Entry;
 
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.MethodAccess;
 
@@ -14,9 +15,9 @@ public class DelegateInterceptor extends AbstractSimpleInterceptor
 
 	protected final MethodAccess methodAccess;
 
-	protected final HashMap<Method, Object> methodMap;
+	protected final IMap<Method, Object> methodMap;
 
-	public DelegateInterceptor(Object target, HashMap<Method, Method> methodMap)
+	public DelegateInterceptor(Object target, IMap<Method, Method> methodMap)
 	{
 		this.target = target;
 		methodAccess = MethodAccess.get(target.getClass());

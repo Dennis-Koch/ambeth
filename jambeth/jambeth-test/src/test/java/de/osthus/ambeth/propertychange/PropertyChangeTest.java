@@ -11,12 +11,12 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.model.INotifyPropertyChanged;
-import de.osthus.ambeth.propertychange.PropertyChangeBridgeTest.PropertyChangeBridgeTestModule;
+import de.osthus.ambeth.propertychange.PropertyChangeTest.PropertyChangeBridgeTestModule;
 import de.osthus.ambeth.testutil.AbstractInformationBusTest;
 import de.osthus.ambeth.testutil.TestModule;
 
 @TestModule(PropertyChangeBridgeTestModule.class)
-public class PropertyChangeBridgeTest extends AbstractInformationBusTest
+public class PropertyChangeTest extends AbstractInformationBusTest
 {
 	public static class PropertyChangeBridgeTestModule implements IInitializingModule
 	{
@@ -31,11 +31,14 @@ public class PropertyChangeBridgeTest extends AbstractInformationBusTest
 
 	public static class Bean1
 	{
-		public boolean call;
+		public int callCount = 0;
 
 		public void myProp(PropertyChangeEvent evt)
 		{
-			call = true;
+			if (evt.getPropertyName().equals("MyProperty"))
+			{
+				callCount++;
+			}
 		}
 	}
 
@@ -57,6 +60,8 @@ public class PropertyChangeBridgeTest extends AbstractInformationBusTest
 	public void test() throws Throwable
 	{
 		bean2.setMyProperty("value");
-		Assert.assertTrue(bean1.call);
+		Assert.assertEquals(1, bean1.callCount);
+		bean2.setMyProperty("value");
+		Assert.assertEquals(1, bean1.callCount);
 	}
 }
