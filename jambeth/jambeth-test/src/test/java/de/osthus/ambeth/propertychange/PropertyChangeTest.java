@@ -15,6 +15,11 @@ import de.osthus.ambeth.propertychange.PropertyChangeTest.PropertyChangeBridgeTe
 import de.osthus.ambeth.testutil.AbstractInformationBusTest;
 import de.osthus.ambeth.testutil.TestModule;
 
+/**
+ * Shows the feature how a specific method of a bean can be bound to a PCE (=PropertyChangeEvent) of another (PCE-capable) bean. In this setup
+ * <code>Bean1</code> is the "observer" and <code>Bean2</code> is the "observable" providing the PCEs
+ * 
+ */
 @TestModule(PropertyChangeBridgeTestModule.class)
 public class PropertyChangeTest extends AbstractInformationBusTest
 {
@@ -25,12 +30,14 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 		{
 			IBeanConfiguration bean1 = beanContextFactory.registerBean(Bean1.class).autowireable(Bean1.class);
 			IBeanConfiguration bean2 = beanContextFactory.registerBean(Bean2.class).autowireable(Bean2.class);
-			beanContextFactory.link(bean1, "myProp").to(bean2, INotifyPropertyChanged.class);
+			beanContextFactory.link(bean1, Bean1.MY_PROP_DELEGATE).to(bean2, INotifyPropertyChanged.class);
 		}
 	}
 
 	public static class Bean1
 	{
+		public static final String MY_PROP_DELEGATE = "myProp";
+
 		public int callCount = 0;
 
 		public void myProp(PropertyChangeEvent evt)

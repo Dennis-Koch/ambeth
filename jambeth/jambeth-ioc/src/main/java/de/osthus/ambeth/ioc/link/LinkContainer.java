@@ -27,6 +27,15 @@ import de.osthus.ambeth.util.ReflectUtil;
 
 public class LinkContainer extends AbstractLinkContainer
 {
+	/**
+	 * Generates a map of methods where the key is a method on the given <code>parameterType</code> and the value is a corresponding method on the given
+	 * <code>listenerType</code> by considering the given <code>listenerMethodName</code>.
+	 * 
+	 * @param listenerType
+	 * @param listenerMethodName
+	 * @param parameterType
+	 * @return
+	 */
 	public static IMap<Method, Method> buildDelegateMethodMap(Class<?> listenerType, String listenerMethodName, Class<?> parameterType)
 	{
 		Method[] methodsOnExpectedListenerType = ReflectUtil.getDeclaredMethods(parameterType);

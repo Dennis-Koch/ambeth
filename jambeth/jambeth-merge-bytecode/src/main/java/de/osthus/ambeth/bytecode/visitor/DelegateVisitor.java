@@ -1,6 +1,7 @@
 package de.osthus.ambeth.bytecode.visitor;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Map.Entry;
 
 import de.osthus.ambeth.bytecode.ClassGenerator;
@@ -35,6 +36,10 @@ public class DelegateVisitor extends ClassGenerator
 		LinkedHashMap<MethodInstance, MethodInstance> methodsAsKey = new LinkedHashMap<MethodInstance, MethodInstance>();
 		for (Method method : ReflectUtil.getDeclaredMethodsInHierarchy(type))
 		{
+			if (Modifier.isStatic(method.getModifiers()))
+			{
+				continue;
+			}
 			MethodInstance mi = new MethodInstance(method);
 			methodsAsKey.put(mi.deriveOwner(), mi);
 		}

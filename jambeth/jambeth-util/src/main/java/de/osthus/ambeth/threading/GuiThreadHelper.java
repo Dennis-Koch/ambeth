@@ -17,10 +17,16 @@ public class GuiThreadHelper implements IGuiThreadHelper
 
 	static
 	{
-		createDispatchThreadResolver();
+		dispatchThreadResolver = createDispatchThreadResolver();
 	}
 
-	private static void createDispatchThreadResolver()
+	/**
+	 * Returns a delegate which evaluates to "true" if and only if a valid instance of an AWT event dispatch thread can be found. There may be a valid
+	 * <code>Toolkit</code> instance or even a valid <code>EventQueue</code> handle. But only with a valid active dispatch thread the method returns "true".
+	 * 
+	 * @return null, if any kind of error occurs
+	 */
+	private static IResultingBackgroundWorkerDelegate<Boolean> createDispatchThreadResolver()
 	{
 		try
 		{
@@ -28,7 +34,7 @@ public class GuiThreadHelper implements IGuiThreadHelper
 			final Method m_systemEventQueueImpl = ReflectUtil.getDeclaredMethod(false, Toolkit.class, EventQueue.class, "getSystemEventQueueImpl");
 			final Field f_dispatchThread = ReflectUtil.getDeclaredField(EventQueue.class, "dispatchThread");
 
-			dispatchThreadResolver = new IResultingBackgroundWorkerDelegate<Boolean>()
+			return new IResultingBackgroundWorkerDelegate<Boolean>()
 			{
 				@Override
 				public Boolean invoke() throws Throwable
@@ -50,10 +56,15 @@ public class GuiThreadHelper implements IGuiThreadHelper
 		}
 		catch (Throwable e)
 		{
-			// intended blank
+			return null;
 		}
 	}
 
+	/**
+	 * Checks whether a valid AWT dispatch thread instance can be found
+	 * 
+	 * @return true if a valid AWT dispatch thread instance can be bound
+	 */
 	public static boolean hasUiThread()
 	{
 		try
