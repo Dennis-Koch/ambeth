@@ -1,4 +1,4 @@
-\SetAPI{J}
+\SetAPI{J-C}
 \section{database.auto.indexonfk}
 \label{configuration:DatabaseAutoIndexonfk}
 \ClearAPI
@@ -7,7 +7,10 @@ Defines whether ambeth should create indexes for foreign key columns automatical
 \begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
 	\endhead
 	\hline
-		\type{de.osthus.ambeth.oracle.Oracle10gDialect} &
+		\type{de.osthus.ambeth.pg.PostgresDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.pg.PostgresDialect} &
 		\prettyref{module:Persistence} \\
 	\hline
 \end{longtable}

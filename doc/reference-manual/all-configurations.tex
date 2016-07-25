@@ -3,18 +3,42 @@
 % Any changes have to be done to the java class de.osthus.ambeth.extscanner.ConfigurationUpdater
 %---------------------------------------------------------------
 \chapter{Ambeth Configuration}
-\label{ambeth:configuration}
+\label{ambeth:annotations}
 \begin{landscape}
 \begin{longtable}{ l l c c c c } \hline \textbf{Property} & \textbf{Default Value} & \textbf{Mandatory} & \textbf{Java} & \textbf{C\#} & \textbf{Javascript} \\
 	\endhead
 	\hline
+		\nameref{configuration:CommandTimeoutInSeconds} & 10 & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:ConnectTimeoutInSeconds} & 5 & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:SHELLMODE} & INTERACTIVE & X &
+		X & X &   \\
+	\hline
 		\nameref{configuration:AmbethBytecodeTracedir} &  &   &
 		X & X &   \\
 	\hline
-		\nameref{configuration:AmbethDatetimeUtc} & true & X &
-		  & X &   \\
+		\nameref{configuration:AmbethClasspathInfoClass} &  &   &
+		X & X &   \\
 	\hline
-		\nameref{configuration:AmbethDebugActive} &  &   &
+		\nameref{configuration:AmbethClasspathPluginPaths} &  & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:AmbethClasspathPluginPathsRecursiveFlag} & true & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:AmbethClasspathScannerClass} &  &   &
+		X & X &   \\
+	\hline
+		\nameref{configuration:AmbethClasspathScannerPattern} & de/osthus.*;com/osthus.* & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:AmbethDebugActive} & false & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:AmbethEventKafkaTopic} &  & X &
 		X & X &   \\
 	\hline
 		\nameref{configuration:AmbethIocDebugActive} & false & X &
@@ -27,7 +51,10 @@
 		X & X &   \\
 	\hline
 		\nameref{configuration:AmbethIocObjectcollectorActive} &  &   &
-		X &   &   \\
+		X & X &   \\
+	\hline
+		\nameref{configuration:AmbethJavaUiActive} & true & X &
+		X & X &   \\
 	\hline
 		\nameref{configuration:AmbethLogFile} &  &   &
 		X & X &   \\
@@ -36,7 +63,10 @@
 		X & X &   \\
 	\hline
 		\nameref{configuration:AmbethMergeDatachangesDeleteAlternateids} & false & X &
-		X &   &   \\
+		X & X &   \\
+	\hline
+		\nameref{configuration:AmbethMergeEdblActive} & true & X &
+		X & X &   \\
 	\hline
 		\nameref{configuration:AmbethMergeEntityfactoryType} &  &   &
 		X & X &   \\
@@ -53,38 +83,74 @@
 		\nameref{configuration:AmbethMthTimeout} & 30000 & X &
 		X & X &   \\
 	\hline
+		\nameref{configuration:AmbethPrefetchLazytransactionActive} & true & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:AmbethRestApplicationModules} &  &   &
+		X & X &   \\
+	\hline
+		\nameref{configuration:AmbethRestClasspathScanning} &  &   &
+		X & X &   \\
+	\hline
+		\nameref{configuration:AmbethRestFrameworkBundle} &  &   &
+		X & X &   \\
+	\hline
+		\nameref{configuration:AmbethRestFrameworkModules} &  &   &
+		X & X &   \\
+	\hline
 		\nameref{configuration:AmbethSecurityActive} & false & X &
 		X & X &   \\
 	\hline
+		\nameref{configuration:AmbethSessionAuthorizationTtl} &  &   &
+		X & X &   \\
+	\hline
 		\nameref{configuration:AmbethTestForkname} &  &   &
+		X & X &   \\
+	\hline
+		\nameref{configuration:AmbethTransparentParallelActive} & true & X &
 		X & X &   \\
 	\hline
 		\nameref{configuration:AmbethXmlTransferPattern} & de/osthus.* & X &
 		X & X &   \\
 	\hline
 		\nameref{configuration:AuditActive} & false & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:AuditEntityDefaultmodeActive} & true & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:AuditEntityPropertyDefaultmodeActive} & true & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:AuditHashalgorithmName} & SHA-256 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:AuditProtocolVersion} & 1 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:AuditReasonRequiredDefault} & false & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:AuditServiceDefaultmodeActive} & true & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:AuditServiceargDefaultmodeActive} & false & X &
-		X &   &   \\
+		X & X &   \\
+	\hline
+		\nameref{configuration:AuditVerifyCrontab} &  &   &
+		X & X &   \\
+	\hline
+		\nameref{configuration:AuditVerifyMaxtransactionTime} & 30000 & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:AuditVerifyOnload} & NONE & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:BatchFile} &  &   &
+		X & X &   \\
+	\hline
+		\nameref{configuration:BatchFileVariables} &  &   &
+		X & X &   \\
 	\hline
 		\nameref{configuration:CacheAsyncpropertychangeActive} & false & X &
 		X & X &   \\
@@ -95,14 +161,8 @@
 		\nameref{configuration:CacheCascadeloadToone} &  &   &
 		X & X &   \\
 	\hline
-		\nameref{configuration:CacheChildDoUpdate} &  &   &
-		  & X &   \\
-	\hline
 		\nameref{configuration:CacheChildOnupdateOverwritetomany} & true & X &
 		X & X &   \\
-	\hline
-		\nameref{configuration:CacheEntityenhancerActive} &  &   &
-		  & X &   \\
 	\hline
 		\nameref{configuration:CacheFirstlevelType} &  &   &
 		X & X &   \\
@@ -117,7 +177,7 @@
 		X & X &   \\
 	\hline
 		\nameref{configuration:CacheQueryActive} & true & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:CacheResultcacheActive} & false & X &
 		X & X &   \\
@@ -128,164 +188,155 @@
 		\nameref{configuration:CacheSecondlevelWeakActive} & true & X &
 		X & X &   \\
 	\hline
-		\nameref{configuration:CacheServiceActive} & true & X &
-		  & X &   \\
-	\hline
-		\nameref{configuration:CacheServiceName} & CacheService & X &
+		\nameref{configuration:CacheServiceName} &  &   &
 		X & X &   \\
 	\hline
 		\nameref{configuration:CacheValueholderOnEmptyToOne} & false & X &
 		X & X &   \\
 	\hline
-		\nameref{configuration:CacheWeakrefCleanupInterval} & 60000 & X &
+		\nameref{configuration:CacheWeakrefCleanupInterval} &  &   &
 		X & X &   \\
 	\hline
-		\nameref{configuration:ClientserviceFactoryType} & De.Osthus.Ambeth.Service.ClientServiceFactory & X &
-		  & X &   \\
-	\hline
 		\nameref{configuration:ConnectionsPrepared} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseArchivetablePostfix} &  & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseArchivetablePrefix} &  & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseAutoArraytypes} & true & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseAutoIndexonfk} & false & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseAutocleanupRecyclebin} & false & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseBehaviourStrict} & false & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
-		\nameref{configuration:DatabaseConnection} &  & X &
-		X &   &   \\
+		\nameref{configuration:DatabaseConnection} &  &   &
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseConnectionFactory} & true & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseConnectionPool} & true & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseDumpRecords} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseDumpRecordsDir} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseDumpSchema} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseDumpSchemaDir} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseFieldPostfix} &  & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseFieldPrefix} &  & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseHost} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseInit} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseLocalFile} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseLocalSchema} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseName} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabasePass} &  & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabasePermissiongrouptablePostfix} & \_PG & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabasePermissiongrouptablePrefix} &  & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabasePoolMaxpending} & 2 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabasePoolMaxtry} & 1 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabasePoolMaxtrytime} & 30000 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabasePoolMaxunused} & 2 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabasePoolMaxused} & 2 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabasePoolMaxwait} & 30000 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabasePoolPassivateActive} & false & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabasePort} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseProtocol} &  & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseRetryconnect} & 1 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseRetrysleep} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseSchemaCacheActive} & false & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseSchemaFile} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseSchemaName} &  & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseSequencePostfix} &  & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseSequencePrefix} &  & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseTableIgnore} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseTablePostfix} &  & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseTablePrefix} &  & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseTransactionExternal} & false & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatabaseUser} &  & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatachangePersistenceKeepeventsMillis} & -1 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:DatasourceName} &  &   &
-		X &   &   \\
-	\hline
-		\nameref{configuration:EncryptionPassword} & 1234abcABC & X &
-		  & X &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:EventManagerName} &  &   &
 		X & X &   \\
@@ -302,31 +353,28 @@
 		\nameref{configuration:EventPollingSleepinterval} & 500 & X &
 		X & X &   \\
 	\hline
-		\nameref{configuration:EventServiceActive} & true & X &
-		  & X &   \\
-	\hline
-		\nameref{configuration:HelloworldServiceActive} & true & X &
-		  & X &   \\
-	\hline
 		\nameref{configuration:IocLogged} & false & X &
 		X & X &   \\
 	\hline
 		\nameref{configuration:JdbcConnectionModules} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:JdbcDcnActive} & false & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:JdbcLogexceptionActive} & false & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:JdbcTraceActive} & true & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:LinkType} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:LogShortnames} & false & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:MainArgs} &  &   &
 		X & X &   \\
 	\hline
 		\nameref{configuration:MappingBusinessobjectResolveRelations} & true & X &
@@ -336,28 +384,16 @@
 		X & X &   \\
 	\hline
 		\nameref{configuration:MappingResource} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:MeasurementFile} & measurements.xml & X &
-		X &   &   \\
-	\hline
-		\nameref{configuration:MergeServiceActive} & true & X &
-		  & X &   \\
-	\hline
-		\nameref{configuration:MergeServiceMockType} &  &   &
-		  & X &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:MetadataIndependent} & false & X &
 		X & X &   \\
 	\hline
-		\nameref{configuration:MinervaCommandsConcurrentActive} & false & X &
-		  & X &   \\
-	\hline
-		\nameref{configuration:MinervaEntityproxyActive} &  &   &
-		  & X &   \\
-	\hline
 		\nameref{configuration:MyFunnyProp} &  & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:NetworkClientmode} & false & X &
 		X & X &   \\
@@ -368,167 +404,164 @@
 		\nameref{configuration:NetworkOfflinemodeSupported} & false & X &
 		X & X &   \\
 	\hline
-		\nameref{configuration:Password} & dummyPass &   &
-		  & X &   \\
-	\hline
 		\nameref{configuration:PersistenceFetchsize} & 100 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:PersistenceIdsBatchsize} & 1000 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:PersistenceIdsPreparedbatchsize} & 1000 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:PersistenceIdsSequencePrefetchsize} & 200 & X &
-		X &   &   \\
-	\hline
-		\nameref{configuration:PrivilegeServiceActive} & true & X &
-		  & X &   \\
-	\hline
-		\nameref{configuration:ProcessServiceActive} & true & X &
-		  & X &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:PropertyFile} &  &   &
 		X & X &   \\
 	\hline
 		\nameref{configuration:QueryBehavior} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:QueryPagingPrefetch} & false & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
-		\nameref{configuration:RestHttpAcceptEncodingZipped} & true & X &
-		  & X &   \\
-	\hline
-		\nameref{configuration:RestHttpClient} & false & X &
-		  & X &   \\
-	\hline
-		\nameref{configuration:RestHttpContentEncodingZipped} & true & X &
-		  & X &   \\
+		\nameref{configuration:SecurityAuthmanagerType} &  &   &
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityCryptoAlgorithmName} & AES/CBC/PKCS5Padding & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityCryptoKeyspecName} & AES & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityCryptoPaddedkeyAlgorithmName} & PBKDF2WithHmacSHA1 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
-		\nameref{configuration:SecurityCryptoPaddedkeyIterationcount} & 128 & X &
-		X &   &   \\
+		\nameref{configuration:SecurityCryptoPaddedkeyIterationcount} & 8192 & X &
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityCryptoPaddedkeySaltsize} & 128 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityCryptoPaddedkeySize} & 128 & X &
-		X &   &   \\
+		X & X &   \\
+	\hline
+		\nameref{configuration:SecurityLdapBase} &  & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:SecurityLdapCtxfactory} & com.sun.jndi.ldap.LdapCtxFactory & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:SecurityLdapDomain} &  & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:SecurityLdapFilter} & (\&(objectClass=user)(sAMAccountName=\$\{userName\})) & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:SecurityLdapHost} &  & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:SecurityLdapUserattribute} & uid & X &
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityLoginPasswordAlgorithmIterationcount} & 8192 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityLoginPasswordAlgorithmKeysize} & 160 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityLoginPasswordAlgorithmName} & PBKDF2WithHmacSHA1 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityLoginPasswordAutorehashActive} & true & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityLoginPasswordGeneratedLength} & 16 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityLoginPasswordHistoryCount} & 10 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityLoginPasswordLifetime} & 30 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
-		\nameref{configuration:SecurityLoginSaltAlgorithmName} & AES/CBC/PKCS5Padding & X &
-		X &   &   \\
+		\nameref{configuration:SecurityLoginSaltAlgorithmName} &  &   &
+		X & X &   \\
 	\hline
-		\nameref{configuration:SecurityLoginSaltKeyspecName} & AES & X &
-		X &   &   \\
+		\nameref{configuration:SecurityLoginSaltKeyspecName} &  &   &
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityLoginSaltLength} & 16 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityLoginSaltPassword} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityPrivilegeDefaultCreateEntity} & true & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityPrivilegeDefaultCreateProperty} & true & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityPrivilegeDefaultDeleteEntity} & true & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityPrivilegeDefaultDeleteProperty} & true & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityPrivilegeDefaultExecute} & true & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityPrivilegeDefaultReadEntity} & true & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityPrivilegeDefaultReadProperty} & true & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityPrivilegeDefaultUpdateEntity} & true & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityPrivilegeDefaultUpdateProperty} & true & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
-		\nameref{configuration:SecurityServiceActive} & true & X &
-		  & X &   \\
+		\nameref{configuration:SecuritySignatureActive} & false & X &
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecuritySignatureAlgorithmName} & SHA1withECDSA & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecuritySignatureEncryptionAlgorithmIterationcount} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecuritySignatureEncryptionAlgorithmName} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecuritySignatureEncryptionKeypaddingLength} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecuritySignatureEncryptionKeyspecName} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecuritySignatureKeyAlgorithmName} & EC & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecuritySignatureLength} & 384 & X &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:SecuritySignaturePaddingAlgorithmName} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:ServiceBaseurl} & http://localhost:8000 & X &
 		X & X &   \\
 	\hline
-		\nameref{configuration:ServiceHost} & localhost & X &
+		\nameref{configuration:ServiceHost} &  &   &
 		X & X &   \\
 	\hline
-		\nameref{configuration:ServicePort} & 8000 & X &
+		\nameref{configuration:ServicePort} &  &   &
 		X & X &   \\
 	\hline
-		\nameref{configuration:ServicePrefix} &  &   &
-		  & X &   \\
-	\hline
-		\nameref{configuration:ServiceProtocol} & http & X &
+		\nameref{configuration:ServiceProtocol} &  &   &
 		X & X &   \\
-	\hline
-		\nameref{configuration:ServiceRemoteinterceptorType} &  &   &
-		  & X &   \\
 	\hline
 		\nameref{configuration:ServiceSlavemode} &  &   &
 		X & X &   \\
@@ -537,51 +570,59 @@
 		X & X &   \\
 	\hline
 		\nameref{configuration:TestutilPersistenceDocleanschema} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:TestutilPersistenceDoexecutestrict} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:TestutilPersistenceParamloggerActive} & false & X &
-		X &   &   \\
-	\hline
-		\nameref{configuration:TranfermappingGeneric} & false & X &
-		  & X &   \\
-	\hline
-		\nameref{configuration:TransferScopePattern} & .*\textbackslash{}.Transfer.* & X &
-		  & X &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:TransfermappingGeneric} & false & X &
-		X &   &   \\
-	\hline
-		\nameref{configuration:Username} & dummyUser &   &
-		  & X &   \\
+		X & X &   \\
 	\hline
 		\nameref{configuration:ValueobjectFile} &  &   &
 		X & X &   \\
 	\hline
 		\nameref{configuration:ValueobjectResource} &  &   &
-		X &   &   \\
+		X & X &   \\
 	\hline
 \end{longtable}
 \end{landscape}
+\input{configuration/CommandTimeoutInSeconds}
+\input{configuration/ConnectTimeoutInSeconds}
+\input{configuration/SHELLMODE}
 \input{configuration/AmbethBytecodeTracedir}
-\input{configuration/AmbethDatetimeUtc}
+\input{configuration/AmbethClasspathInfoClass}
+\input{configuration/AmbethClasspathPluginPaths}
+\input{configuration/AmbethClasspathPluginPathsRecursiveFlag}
+\input{configuration/AmbethClasspathScannerClass}
+\input{configuration/AmbethClasspathScannerPattern}
 \input{configuration/AmbethDebugActive}
+\input{configuration/AmbethEventKafkaTopic}
 \input{configuration/AmbethIocDebugActive}
 \input{configuration/AmbethIocDeclarationTraceActive}
 \input{configuration/AmbethIocMonitoringActive}
 \input{configuration/AmbethIocObjectcollectorActive}
+\input{configuration/AmbethJavaUiActive}
 \input{configuration/AmbethLogFile}
 \input{configuration/AmbethMappingConfigValidateActive}
 \input{configuration/AmbethMergeDatachangesDeleteAlternateids}
+\input{configuration/AmbethMergeEdblActive}
 \input{configuration/AmbethMergeEntityfactoryType}
 \input{configuration/AmbethMergeExactVersionRequired}
 \input{configuration/AmbethMergeFieldbasedActive}
 \input{configuration/AmbethMergeUpdateVersionAlways}
 \input{configuration/AmbethMthTimeout}
+\input{configuration/AmbethPrefetchLazytransactionActive}
+\input{configuration/AmbethRestApplicationModules}
+\input{configuration/AmbethRestClasspathScanning}
+\input{configuration/AmbethRestFrameworkBundle}
+\input{configuration/AmbethRestFrameworkModules}
 \input{configuration/AmbethSecurityActive}
+\input{configuration/AmbethSessionAuthorizationTtl}
 \input{configuration/AmbethTestForkname}
+\input{configuration/AmbethTransparentParallelActive}
 \input{configuration/AmbethXmlTransferPattern}
 \input{configuration/AuditActive}
 \input{configuration/AuditEntityDefaultmodeActive}
@@ -591,12 +632,15 @@
 \input{configuration/AuditReasonRequiredDefault}
 \input{configuration/AuditServiceDefaultmodeActive}
 \input{configuration/AuditServiceargDefaultmodeActive}
+\input{configuration/AuditVerifyCrontab}
+\input{configuration/AuditVerifyMaxtransactionTime}
+\input{configuration/AuditVerifyOnload}
+\input{configuration/BatchFile}
+\input{configuration/BatchFileVariables}
 \input{configuration/CacheAsyncpropertychangeActive}
 \input{configuration/CacheCascadeloadTomany}
 \input{configuration/CacheCascadeloadToone}
-\input{configuration/CacheChildDoUpdate}
 \input{configuration/CacheChildOnupdateOverwritetomany}
-\input{configuration/CacheEntityenhancerActive}
 \input{configuration/CacheFirstlevelType}
 \input{configuration/CacheFirstlevelWeakActive}
 \input{configuration/CacheLruThreshold}
@@ -605,11 +649,9 @@
 \input{configuration/CacheResultcacheActive}
 \input{configuration/CacheSecondlevelActive}
 \input{configuration/CacheSecondlevelWeakActive}
-\input{configuration/CacheServiceActive}
 \input{configuration/CacheServiceName}
 \input{configuration/CacheValueholderOnEmptyToOne}
 \input{configuration/CacheWeakrefCleanupInterval}
-\input{configuration/ClientserviceFactoryType}
 \input{configuration/ConnectionsPrepared}
 \input{configuration/DatabaseArchivetablePostfix}
 \input{configuration/DatabaseArchivetablePrefix}
@@ -657,14 +699,11 @@
 \input{configuration/DatabaseUser}
 \input{configuration/DatachangePersistenceKeepeventsMillis}
 \input{configuration/DatasourceName}
-\input{configuration/EncryptionPassword}
 \input{configuration/EventManagerName}
 \input{configuration/EventPollingActive}
 \input{configuration/EventPollingMaxwaitinterval}
 \input{configuration/EventPollingPausedOnStartActive}
 \input{configuration/EventPollingSleepinterval}
-\input{configuration/EventServiceActive}
-\input{configuration/HelloworldServiceActive}
 \input{configuration/IocLogged}
 \input{configuration/JdbcConnectionModules}
 \input{configuration/JdbcDcnActive}
@@ -672,38 +711,36 @@
 \input{configuration/JdbcTraceActive}
 \input{configuration/LinkType}
 \input{configuration/LogShortnames}
+\input{configuration/MainArgs}
 \input{configuration/MappingBusinessobjectResolveRelations}
 \input{configuration/MappingFile}
 \input{configuration/MappingResource}
 \input{configuration/MeasurementFile}
-\input{configuration/MergeServiceActive}
-\input{configuration/MergeServiceMockType}
 \input{configuration/MetadataIndependent}
-\input{configuration/MinervaCommandsConcurrentActive}
-\input{configuration/MinervaEntityproxyActive}
 \input{configuration/MyFunnyProp}
 \input{configuration/NetworkClientmode}
 \input{configuration/NetworkOfflinemode}
 \input{configuration/NetworkOfflinemodeSupported}
-\input{configuration/Password}
 \input{configuration/PersistenceFetchsize}
 \input{configuration/PersistenceIdsBatchsize}
 \input{configuration/PersistenceIdsPreparedbatchsize}
 \input{configuration/PersistenceIdsSequencePrefetchsize}
-\input{configuration/PrivilegeServiceActive}
-\input{configuration/ProcessServiceActive}
 \input{configuration/PropertyFile}
 \input{configuration/QueryBehavior}
 \input{configuration/QueryPagingPrefetch}
-\input{configuration/RestHttpAcceptEncodingZipped}
-\input{configuration/RestHttpClient}
-\input{configuration/RestHttpContentEncodingZipped}
+\input{configuration/SecurityAuthmanagerType}
 \input{configuration/SecurityCryptoAlgorithmName}
 \input{configuration/SecurityCryptoKeyspecName}
 \input{configuration/SecurityCryptoPaddedkeyAlgorithmName}
 \input{configuration/SecurityCryptoPaddedkeyIterationcount}
 \input{configuration/SecurityCryptoPaddedkeySaltsize}
 \input{configuration/SecurityCryptoPaddedkeySize}
+\input{configuration/SecurityLdapBase}
+\input{configuration/SecurityLdapCtxfactory}
+\input{configuration/SecurityLdapDomain}
+\input{configuration/SecurityLdapFilter}
+\input{configuration/SecurityLdapHost}
+\input{configuration/SecurityLdapUserattribute}
 \input{configuration/SecurityLoginPasswordAlgorithmIterationcount}
 \input{configuration/SecurityLoginPasswordAlgorithmKeysize}
 \input{configuration/SecurityLoginPasswordAlgorithmName}
@@ -724,7 +761,7 @@
 \input{configuration/SecurityPrivilegeDefaultReadProperty}
 \input{configuration/SecurityPrivilegeDefaultUpdateEntity}
 \input{configuration/SecurityPrivilegeDefaultUpdateProperty}
-\input{configuration/SecurityServiceActive}
+\input{configuration/SecuritySignatureActive}
 \input{configuration/SecuritySignatureAlgorithmName}
 \input{configuration/SecuritySignatureEncryptionAlgorithmIterationcount}
 \input{configuration/SecuritySignatureEncryptionAlgorithmName}
@@ -736,18 +773,13 @@
 \input{configuration/ServiceBaseurl}
 \input{configuration/ServiceHost}
 \input{configuration/ServicePort}
-\input{configuration/ServicePrefix}
 \input{configuration/ServiceProtocol}
-\input{configuration/ServiceRemoteinterceptorType}
 \input{configuration/ServiceSlavemode}
 \input{configuration/ServiceTypeinfoproviderType}
 \input{configuration/TestutilPersistenceDocleanschema}
 \input{configuration/TestutilPersistenceDoexecutestrict}
 \input{configuration/TestutilPersistenceParamloggerActive}
-\input{configuration/TranfermappingGeneric}
-\input{configuration/TransferScopePattern}
 \input{configuration/TransfermappingGeneric}
-\input{configuration/Username}
 \input{configuration/ValueobjectFile}
 \input{configuration/ValueobjectResource}
 %--END OF GENERATION----------------------------------------------------------

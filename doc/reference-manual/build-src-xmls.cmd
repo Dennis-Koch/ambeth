@@ -10,13 +10,13 @@ set srcDir=%baseDir%\src
 set srcHome=%PROJECT_HOME%\source
 set javaSrcDir=%srcDir%\java
 set javaLibDir=%javaSrcDir%\libs
-set javaModuleDir=%srcHome%\osthus-ambeth\jambeth
+set javaModuleDir=%srcHome%\osthus-ambeth-check\jambeth
 set javaModuleDir2=%srcHome%\ambeth
 set integrityDir=%srcHome%\integrity
 
 set csSrcDir=%srcDir%\cs
 set csLibDir=%csSrcDir%\libs
-set csModuleDir=%srcHome%\osthus-ambeth\ambeth
+set csModuleDir=%srcHome%\osthus-ambeth-check\ambeth
 set csAmbethProperties=%csSrcDir%\ambeth.properties
 set csSkipModuleScan=false
 

@@ -341,14 +341,18 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 			try
 			{
 				fw.append(targetOpening);
-				fw.append("\n\\section{").append(configurationEntry.propertyName).append("}");
+				fw.append("\n\\section{");
+				escapeValue(configurationEntry.propertyName, fw);
+				fw.append("}");
 				fw.append("\n\\label{").append(labelName).append("}");
 				fw.append("\n\\ClearAPI");
 				fw.append("\n\\TODO");
 				fw.append(LISTING_START).append('\n');
 				fw.append(usageReferenceString(configurationEntry));
 				fw.append(LISTING_END);
-				fw.append("\n\\begin{lstlisting}[style=Props,caption={Usage example for \\textit{").append(configurationEntry.propertyName).append("}}]");
+				fw.append("\n\\begin{lstlisting}[style=Props,caption={Usage example for \\textit{");
+				escapeValue(configurationEntry.propertyName, fw);
+				fw.append("}}]");
 				fw.append("\n").append(configurationEntry.propertyName).append("=");
 				if (configurationEntry.defaultValueSpecified)
 				{

@@ -10,3 +10,7 @@
 *.ps
 *.toc
 *.tps
+*.4ct
+*.4tc
+*.tmp
+*.xref

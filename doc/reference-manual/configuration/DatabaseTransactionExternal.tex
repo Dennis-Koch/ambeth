@@ -1,4 +1,4 @@
-\SetAPI{J}
+\SetAPI{J-C}
 \section{database.transaction.external}
 \label{configuration:DatabaseTransactionExternal}
 \ClearAPI
@@ -10,13 +10,37 @@ Defines whether the transaction is managed external ("true") or Ambeth should ha
 		\type{de.osthus.ambeth.h2.H2Module} &
 		\prettyref{module:Persistence} \\
 	\hline
-		\type{de.osthus.ambeth.oracle.Oracle10gDialect} &
+		\type{de.osthus.ambeth.h2.H2Module} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.mssql.MSSqlModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.mssql.MSSqlModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.oracle.Oracle10gSimpleModule} &
 		\prettyref{module:Persistence} \\
 	\hline
 		\type{de.osthus.ambeth.oracle.Oracle10gSimpleModule} &
 		\prettyref{module:Persistence} \\
 	\hline
 		\type{de.osthus.ambeth.persistence.jdbc.AbstractConnectionDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.persistence.jdbc.AbstractConnectionDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.pg.PostgresDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.pg.PostgresDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.pg.PostgresModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.pg.PostgresModule} &
 		\prettyref{module:Persistence} \\
 	\hline
 \end{longtable}

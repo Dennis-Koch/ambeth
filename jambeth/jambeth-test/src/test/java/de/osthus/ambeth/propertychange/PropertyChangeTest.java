@@ -1,6 +1,7 @@
 package de.osthus.ambeth.propertychange;
 
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -15,7 +16,6 @@ import de.osthus.ambeth.model.INotifyPropertyChangedSource;
 import de.osthus.ambeth.propertychange.PropertyChangeTest.PropertyChangeBridgeTestModule;
 import de.osthus.ambeth.testutil.AbstractInformationBusTest;
 import de.osthus.ambeth.testutil.TestModule;
-import de.osthus.ambeth.testutil.TestProperties;
 
 /**
  * Shows the feature how a specific method of a bean can be bound to a PCE (=PropertyChangeEvent) of another (PCE-capable) bean. In this setup
@@ -23,7 +23,6 @@ import de.osthus.ambeth.testutil.TestProperties;
  * 
  */
 @TestModule(PropertyChangeBridgeTestModule.class)
-@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.bytecode.core.BytecodeEnhancer", value = "DEBUG")
 public class PropertyChangeTest extends AbstractInformationBusTest
 {
 	public static class PropertyChangeBridgeTestModule implements IInitializingModule
@@ -31,11 +30,33 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 		{
+			IBeanConfiguration simplePCEListenerBean = beanContextFactory.registerBean(SimplePCEListenerBean.class).autowireable(SimplePCEListenerBean.class);
 			IBeanConfiguration bean1 = beanContextFactory.registerBean(Bean1.class).autowireable(Bean1.class);
 			IBeanConfiguration bean2 = beanContextFactory.registerBean(Bean2.class).autowireable(Bean2.class);
 			IBeanConfiguration bean3 = beanContextFactory.registerBean(Bean3.class).autowireable(Bean3.class);
 			beanContextFactory.link(bean1, Bean1.MY_PROP_DELEGATE).to(bean2, INotifyPropertyChanged.class);
 			beanContextFactory.link(bean1, Bean1.MY_PROP_DELEGATE).to(bean3, INotifyPropertyChanged.class);
+
+			beanContextFactory.link(simplePCEListenerBean).to(bean2, INotifyPropertyChanged.class);
+			beanContextFactory.link(simplePCEListenerBean).to(bean3, INotifyPropertyChanged.class);
+		}
+	}
+
+	public static class SimplePCEListenerBean implements PropertyChangeListener
+	{
+		public int myPropertyCallCount = 0, valueCallCount = 0;
+
+		@Override
+		public void propertyChange(PropertyChangeEvent evt)
+		{
+			if (evt.getPropertyName().equals(Bean2.MY_PROPERTY_PROP_NAME))
+			{
+				myPropertyCallCount++;
+			}
+			else if (evt.getPropertyName().equals(Bean3.VALUE_PROP_NAME))
+			{
+				valueCallCount++;
+			}
 		}
 	}
 
@@ -82,6 +103,9 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 	}
 
 	@Autowired
+	protected SimplePCEListenerBean simplePCEListenerBean;
+
+	@Autowired
 	protected Bean1 bean1;
 
 	@Autowired
@@ -95,13 +119,17 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 	{
 		bean2.setMyProperty("value");
 		Assert.assertEquals(1, bean1.myPropertyCallCount);
+		Assert.assertEquals(1, simplePCEListenerBean.myPropertyCallCount);
 		bean2.setMyProperty("value");
 		Assert.assertEquals(1, bean1.myPropertyCallCount);
+		Assert.assertEquals(1, simplePCEListenerBean.myPropertyCallCount);
 
 		bean3.setMyProperty("value");
 		Assert.assertEquals(2, bean1.myPropertyCallCount);
+		Assert.assertEquals(2, simplePCEListenerBean.myPropertyCallCount);
 
 		bean3.fireValue();
 		Assert.assertEquals(1, bean1.valueCallCount);
+		Assert.assertEquals(1, simplePCEListenerBean.valueCallCount);
 	}
 }

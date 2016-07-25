@@ -22,8 +22,6 @@ public class MergeBytecodeModule implements IInitializingModule
 
 	}
 
-	protected static final String IBytecodeBehavior = null;
-
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{

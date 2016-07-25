@@ -7,25 +7,25 @@ If security is enabled all security relevant tasks are checked whether they are 
 \begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
 	\endhead
 	\hline
-		\type{De.Osthus.Ambeth.Cache.CacheFactory} &
+		\type{de.osthus.ambeth.cache.CacheFactory} &
 		\prettyref{module:Cache} \\
-	\hline
-		\type{De.Osthus.Ambeth.Cache.CacheProvider} &
-		\prettyref{module:Cache} \\
-	\hline
-		\type{De.Osthus.Ambeth.Cache.Interceptor.TransactionalRootCacheInterceptor} &
-		\prettyref{module:Cache} \\
-	\hline
-		\type{De.Osthus.Ambeth.Cache.RootCache} &
-		\prettyref{module:Cache} \\
-	\hline
-		\type{De.Osthus.Ambeth.Security.SecurityActivation} &
-		\prettyref{module:Merge} \\
 	\hline
 		\type{de.osthus.ambeth.cache.CacheFactory} &
 		\prettyref{module:Cache} \\
 	\hline
 		\type{de.osthus.ambeth.cache.CacheProvider} &
+		\prettyref{module:Cache} \\
+	\hline
+		\type{de.osthus.ambeth.cache.CacheProvider} &
+		\prettyref{module:Cache} \\
+	\hline
+		\type{de.osthus.ambeth.cache.ChildCache} &
+		\prettyref{module:Cache} \\
+	\hline
+		\type{de.osthus.ambeth.cache.ChildCache} &
+		\prettyref{module:Cache} \\
+	\hline
+		\type{de.osthus.ambeth.cache.RootCache} &
 		\prettyref{module:Cache} \\
 	\hline
 		\type{de.osthus.ambeth.cache.RootCache} &
@@ -34,7 +34,16 @@ If security is enabled all security relevant tasks are checked whether they are 
 		\type{de.osthus.ambeth.cache.interceptor.TransactionalRootCacheInterceptor} &
 		\prettyref{module:Cache} \\
 	\hline
+		\type{de.osthus.ambeth.cache.interceptor.TransactionalRootCacheInterceptor} &
+		\prettyref{module:Cache} \\
+	\hline
 		\type{de.osthus.ambeth.ioc.SecurityQueryModule} &
+		\prettyref{module:Security} \\
+	\hline
+		\type{de.osthus.ambeth.ioc.SecurityQueryModule} &
+		\prettyref{module:Security} \\
+	\hline
+		\type{de.osthus.ambeth.ioc.SecurityServerModule} &
 		\prettyref{module:Security} \\
 	\hline
 		\type{de.osthus.ambeth.ioc.SecurityServerModule} &
@@ -43,11 +52,29 @@ If security is enabled all security relevant tasks are checked whether they are 
 		\type{de.osthus.ambeth.query.Query} &
 		\prettyref{module:Query} \\
 	\hline
+		\type{de.osthus.ambeth.query.Query} &
+		\prettyref{module:Query} \\
+	\hline
+		\type{de.osthus.ambeth.security.PasswordUtil} &
+		\prettyref{module:Security} \\
+	\hline
+		\type{de.osthus.ambeth.security.PasswordUtil} &
+		\prettyref{module:Security} \\
+	\hline
+		\type{de.osthus.ambeth.security.PermissionGroupUpdater} &
+		\prettyref{module:Security} \\
+	\hline
 		\type{de.osthus.ambeth.security.PermissionGroupUpdater} &
 		\prettyref{module:Security} \\
 	\hline
 		\type{de.osthus.ambeth.security.SecurityActivation} &
 		\prettyref{module:Merge} \\
+	\hline
+		\type{de.osthus.ambeth.security.SecurityActivation} &
+		\prettyref{module:Merge} \\
+	\hline
+		\type{de.osthus.ambeth.security.SecurityQueryBuilderExtension} &
+		\prettyref{module:Security} \\
 	\hline
 		\type{de.osthus.ambeth.security.SecurityQueryBuilderExtension} &
 		\prettyref{module:Security} \\

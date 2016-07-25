@@ -3,8 +3,41 @@
 \label{annotation:PropertyChangeAspect}
 \ClearAPI
 \javadoc{de.osthus.ambeth.annotation.PropertyChangeAspect}{PropertyChangeAspect}
-\TODO
 %% GENERATED LISTINGS - DO NOT EDIT
 \inputjava{Annotation definition \type{PropertyChangeAspect}}
 {jambeth-util/src/main/java/de/osthus/ambeth/annotation/PropertyChangeAspect.java}
 %% GENERATED LISTINGS END
+Can be used to annotate bean declarations and because of this have them enhanced with PCE (property change event) capabilities at runtime. The annotation is processed by the  \javadoc{de.osthus.ambeth.propertychange.PropertyChangeInstantiationProcessor}{PropertyChangeInstantiationProcessor} - which is a \prettyref{feature:BeanInstantiationProcessor}). This reduces the complexity of the maintained code because here a correct implementation of PCEs is already provided in a generic manner. An example how to use the annotation and how to link a bean to PCEs of other PCE-capable beans can be found in the \javadoc{de.osthus.ambeth.propertychange.PropertyChangeTest}{PropertyChangeTest}.
+
+\begin{lstlisting}[style=Java,caption={Usage example for \textit{PropertyChangeAspect}}]
+...
+public class PCEListenerBean implements PropertyChangeListener
+{
+	@Override
+	public void propertyChange(PropertyChangeEvent evt)
+	{
+		// do stuff with evt handle
+	}
+}
+...
+@PropertyChangeAspect
+public abstract class PCECapableBean
+{
+	public static final String MY_PROPERTY_PROP_NAME = "MyProperty";
+
+	public abstract String getMyProperty();
+
+	public abstract void setMyProperty(String myProperty);
+}
+...
+public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
+{
+	IBeanConfiguration pceListenerBean = beanContextFactory.registerBean(PCEListenerBean.class);
+	IBeanConfiguration pceCapableBean = beanContextFactory.registerBean(PCECapableBean.class);
+	beanContextFactory.link(pceListenerBean).to(pceCapableBean, INotifyPropertyChanged.class);
+}
+\end{lstlisting}
+
+Please note that in the example above the \type{PCECapableBean} is even an abstract class declaration. Of course this is just to show the depth of the implementation: In this case even the getter/setter pair including the correctly typed internal field is created by the bytecode enhancement module. Responsible for that enhancement is the \javadoc{de.osthus.ambeth.bytecode.behavior.NotifyPropertyChangedBehavior}{NotifyPropertyChangedBehavior}.
+
+\tip{Regarding the bytecode enhancement capability \AMBETH{} uses exactly the same implementation to enhance bean declarations here like it does to enhance entities for the \prettyref{module:Merge} and \prettyref{module:Cache} module. So it is also a basic feature for entities and is therefore designed to scale even with many thousands of objects - and many thousands of PCEs per object - very well.}

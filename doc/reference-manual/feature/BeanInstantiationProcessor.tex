@@ -1,0 +1,12 @@
+\SetAPI{J-C}
+\section{BeanInstantiationProcessor}
+\label{feature:BeanInstantiationProcessor}
+\ClearAPI
+Instantiationprocessor beans are defined by implementing the interface \type{de.osthus.ambeth.ioc.IBeanInstantiationProcessor} and are used in order to customize the instantiation process of a bean. In most cases this is helpful if you want to dynamically subclass by bytecode enhancement the bean type to change or extend its behavior.\newline
+The benefit of bytecode enhancement over proxying for AOP relies in the fact that
+\begin{itemize}
+	\item it is very fast at invocation time (no reflection necessary, no CgLib interceptor)
+	\item but much more important: it does not create another instance of a potential abstract class which potentially unwanted behavior. As an outcome of the instantiationprocessor a single instance of a bytecode enhanced subclass of the target bean declaration is created. So it is not possible to circumvent any bytecode whereas an AOP proxy can be circumvented with reflection.
+\end{itemize}
+
+ 
