@@ -4,19 +4,19 @@ import java.util.Set;
 
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IBeanPostProcessor;
-import de.osthus.ambeth.ioc.IOrderedBeanPostProcessor;
+import de.osthus.ambeth.ioc.IOrderedBeanProcessor;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.PostProcessorOrder;
+import de.osthus.ambeth.ioc.ProcessorOrder;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 
-public class OrderedPostProcessor implements IBeanPostProcessor, IOrderedBeanPostProcessor
+public class OrderedPostProcessor implements IBeanPostProcessor, IOrderedBeanProcessor
 {
 	@Property
-	protected PostProcessorOrder order;
+	protected ProcessorOrder order;
 
 	@Override
-	public PostProcessorOrder getOrder()
+	public ProcessorOrder getOrder()
 	{
 		return order;
 	}

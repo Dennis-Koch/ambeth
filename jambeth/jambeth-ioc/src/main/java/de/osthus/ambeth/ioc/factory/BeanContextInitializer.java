@@ -33,6 +33,7 @@ import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.BeanMonitoringSupport;
+import de.osthus.ambeth.ioc.IBeanInstantiationProcessor;
 import de.osthus.ambeth.ioc.IBeanPostProcessor;
 import de.osthus.ambeth.ioc.IBeanPreProcessor;
 import de.osthus.ambeth.ioc.IDisposableBean;
@@ -582,6 +583,10 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 					beanContextInit.toDestroyOnError.add((IDisposableBean) bean);
 				}
 			}
+			if (bean instanceof IBeanInstantiationProcessor)
+			{
+				beanContext.addInstantiationProcessor((IBeanInstantiationProcessor) bean);
+			}
 			if (bean instanceof IBeanPreProcessor)
 			{
 				beanContext.addPreProcessor((IBeanPreProcessor) bean);
@@ -992,7 +997,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		{
 			return 3;
 		}
-		else if (IBeanPreProcessor.class.isAssignableFrom(beanType) || IBeanPostProcessor.class.isAssignableFrom(beanType))
+		else if (IBeanInstantiationProcessor.class.isAssignableFrom(beanType) || IBeanPreProcessor.class.isAssignableFrom(beanType)
+				|| IBeanPostProcessor.class.isAssignableFrom(beanType))
 		{
 			return 2;
 		}
@@ -1111,31 +1117,22 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 				}
 				IBeanConfiguration beanConfiguration = beanConfigState.getBeanConfiguration();
 				Class<?> beanType = beanConfigState.getBeanType();
+
 				Object bean = null;
 				try
 				{
-					if (beanConfiguration instanceof BeanConfiguration)
+					if (fillParentHierarchyIfValid(beanContextInit, beanConfiguration, beanConfHierarchy) != null)
 					{
-						bean = beanConfiguration.getInstance(beanType);
+						throw new IllegalStateException("Bean configuration must be valid at this point");
 					}
-					else if (beanConfiguration instanceof BeanInstanceConfiguration)
-					{
-						bean = beanConfiguration.getInstance();
-					}
-					else
-					{
-						throw maskBeanBasedException("Instance of '" + beanConfiguration.getClass() + "' not supported here", beanConfiguration, null);
-					}
+					bean = instantiateBean(beanContextInit, beanConfiguration, beanType, beanConfHierarchy);
+
 					alreadyHandledConfigsSet.add(beanConfiguration);
 					atLeastOneHandled = true;
 
 					if (!objectToBeanConfigurationMap.putIfNotExists(bean, beanConfiguration))
 					{
 						throw maskBeanBasedException("Bean instance " + bean + " registered twice.", beanConfiguration, null);
-					}
-					if (fillParentHierarchyIfValid(beanContextInit, beanConfiguration, beanConfHierarchy) != null)
-					{
-						throw new IllegalStateException("Bean configuration must be valid at this point");
 					}
 					bean = postProcessBean(beanContextInit, beanConfiguration, beanType, bean, beanConfHierarchy);
 					beanConfHierarchy.clear();
@@ -1168,6 +1165,42 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 				}
 			}
 		}
+	}
+
+	protected Object instantiateBean(BeanContextInit beanContextInit, IBeanConfiguration beanConfiguration, Class<?> beanType,
+			List<IBeanConfiguration> beanConfHierarchy)
+	{
+		BeanContextFactory beanContextFactory = beanContextInit.beanContextFactory;
+		ServiceContext beanContext = beanContextInit.beanContext;
+
+		Object bean = null;
+
+		List<IBeanInstantiationProcessor> beanInstantiationProcessors = beanContext.getInstantiationProcessors();
+		if (beanInstantiationProcessors != null)
+		{
+			for (int a = 0, size = beanInstantiationProcessors.size(); a < size; a++)
+			{
+				IBeanInstantiationProcessor beanInstantiationProcessor = beanInstantiationProcessors.get(a);
+				bean = beanInstantiationProcessor.instantiateBean(beanContextFactory, beanContext, beanConfiguration, beanType, beanConfHierarchy);
+				if (bean != null)
+				{
+					return bean;
+				}
+			}
+		}
+		if (beanConfiguration instanceof BeanConfiguration)
+		{
+			bean = beanConfiguration.getInstance(beanType);
+		}
+		else if (beanConfiguration instanceof BeanInstanceConfiguration)
+		{
+			bean = beanConfiguration.getInstance();
+		}
+		else
+		{
+			throw maskBeanBasedException("Instance of '" + beanConfiguration.getClass() + "' not supported here", beanConfiguration, null);
+		}
+		return bean;
 	}
 
 	protected Object postProcessBean(BeanContextInit beanContextInit, IBeanConfiguration beanConfiguration, Class<?> beanType, Object bean,

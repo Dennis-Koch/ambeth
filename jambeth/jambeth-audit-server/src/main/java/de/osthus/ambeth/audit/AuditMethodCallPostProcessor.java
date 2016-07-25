@@ -9,9 +9,9 @@ import de.osthus.ambeth.annotation.AnnotationCache;
 import de.osthus.ambeth.audit.model.Audited;
 import de.osthus.ambeth.audit.model.AuditedArg;
 import de.osthus.ambeth.ioc.IBeanRuntime;
-import de.osthus.ambeth.ioc.IOrderedBeanPostProcessor;
+import de.osthus.ambeth.ioc.IOrderedBeanProcessor;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.PostProcessorOrder;
+import de.osthus.ambeth.ioc.ProcessorOrder;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
@@ -22,7 +22,7 @@ import de.osthus.ambeth.proxy.ICascadedInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.MethodLevelBehavior;
 
-public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanPostProcessor
+public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanProcessor
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -91,8 +91,8 @@ public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor i
 	}
 
 	@Override
-	public PostProcessorOrder getOrder()
+	public ProcessorOrder getOrder()
 	{
-		return PostProcessorOrder.LOW;
+		return ProcessorOrder.LOW;
 	}
 }

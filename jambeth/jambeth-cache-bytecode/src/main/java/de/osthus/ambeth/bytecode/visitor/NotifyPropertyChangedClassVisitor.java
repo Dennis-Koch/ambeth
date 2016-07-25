@@ -236,7 +236,7 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 		{
 			return;
 		}
-		if (InitializeEmbeddedMemberVisitor.isEmbeddedMember(metaData, propertyInfo.getName()))
+		if (metaData != null && InitializeEmbeddedMemberVisitor.isEmbeddedMember(metaData, propertyInfo.getName()))
 		{
 			return;
 		}

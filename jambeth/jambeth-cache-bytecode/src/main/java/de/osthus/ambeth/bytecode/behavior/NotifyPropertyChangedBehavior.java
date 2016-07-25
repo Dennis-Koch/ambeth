@@ -14,6 +14,7 @@ import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.model.INotifyPropertyChanged;
 import de.osthus.ambeth.model.INotifyPropertyChangedSource;
+import de.osthus.ambeth.propertychange.PropertyChangeEnhancementHint;
 import de.osthus.ambeth.proxy.IPropertyChangeConfigurable;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
@@ -44,13 +45,14 @@ public class NotifyPropertyChangedBehavior extends AbstractBehavior
 	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
 			List<IBytecodeBehavior> cascadePendingBehaviors)
 	{
-		if (state.getContext(EntityEnhancementHint.class) == null && state.getContext(EmbeddedEnhancementHint.class) == null)
+		boolean expectMetaData = state.getContext(EntityEnhancementHint.class) != null || state.getContext(EmbeddedEnhancementHint.class) != null;
+		if (!expectMetaData && state.getContext(PropertyChangeEnhancementHint.class) == null)
 		{
 			// ensure LazyRelationsBehavior was invoked
 			return visitor;
 		}
 		// DefaultPropertiesBehavior executes in this cascade
-		final IEntityMetaData metaData = entityMetaDataProvider.getMetaData(EntityUtil.getEntityType(state.getContext()));
+		final IEntityMetaData metaData = expectMetaData ? entityMetaDataProvider.getMetaData(EntityUtil.getEntityType(state.getContext())) : null;
 		AbstractBehavior cascadeBehavior = new AbstractBehavior()
 		{
 			@Override

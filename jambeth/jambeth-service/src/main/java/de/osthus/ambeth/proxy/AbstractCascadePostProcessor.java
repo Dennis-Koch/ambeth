@@ -9,9 +9,9 @@ import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Factory;
 import de.osthus.ambeth.ioc.IBeanPostProcessor;
 import de.osthus.ambeth.ioc.IInitializingBean;
-import de.osthus.ambeth.ioc.IOrderedBeanPostProcessor;
+import de.osthus.ambeth.ioc.IOrderedBeanProcessor;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.PostProcessorOrder;
+import de.osthus.ambeth.ioc.ProcessorOrder;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
@@ -19,7 +19,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ReflectUtil;
 
-public abstract class AbstractCascadePostProcessor implements IBeanPostProcessor, IInitializingBean, IOrderedBeanPostProcessor
+public abstract class AbstractCascadePostProcessor implements IBeanPostProcessor, IInitializingBean, IOrderedBeanProcessor
 {
 	@LogInstance
 	private ILogger log;
@@ -40,9 +40,9 @@ public abstract class AbstractCascadePostProcessor implements IBeanPostProcessor
 	}
 
 	@Override
-	public PostProcessorOrder getOrder()
+	public ProcessorOrder getOrder()
 	{
-		return PostProcessorOrder.DEFAULT;
+		return ProcessorOrder.DEFAULT;
 	}
 
 	@Override

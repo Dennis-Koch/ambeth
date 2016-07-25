@@ -7,9 +7,9 @@ import java.util.Set;
 
 import de.osthus.ambeth.annotation.AnnotationCache;
 import de.osthus.ambeth.ioc.IBeanRuntime;
-import de.osthus.ambeth.ioc.IOrderedBeanPostProcessor;
+import de.osthus.ambeth.ioc.IOrderedBeanProcessor;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.PostProcessorOrder;
+import de.osthus.ambeth.ioc.ProcessorOrder;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
@@ -30,7 +30,7 @@ import de.osthus.ambeth.security.SecurityFilterInterceptor.SecurityMethodMode;
 import de.osthus.ambeth.security.StringSecurityScope;
 import de.osthus.ambeth.util.EqualsUtil;
 
-public class SecurityPostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanPostProcessor
+public class SecurityPostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanProcessor
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -123,8 +123,8 @@ public class SecurityPostProcessor extends AbstractCascadePostProcessor implemen
 	}
 
 	@Override
-	public PostProcessorOrder getOrder()
+	public ProcessorOrder getOrder()
 	{
-		return PostProcessorOrder.HIGHER;
+		return ProcessorOrder.HIGHER;
 	}
 }

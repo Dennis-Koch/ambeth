@@ -102,6 +102,10 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 		{
 			registry = beanContext.getService((String) registry, !optional);
 		}
+		else if (registry instanceof IBeanConfiguration)
+		{
+			registry = beanContext.getService(((IBeanConfiguration) registry).getName(), !optional);
+		}
 		else if (registry == null)
 		{
 			registry = beanContext.getService(registryBeanAutowiredType, !optional);

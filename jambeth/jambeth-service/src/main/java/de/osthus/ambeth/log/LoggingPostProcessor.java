@@ -5,16 +5,16 @@ import java.util.Set;
 import net.sf.cglib.proxy.Callback;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
-import de.osthus.ambeth.ioc.IOrderedBeanPostProcessor;
+import de.osthus.ambeth.ioc.IOrderedBeanProcessor;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.PostProcessorOrder;
+import de.osthus.ambeth.ioc.ProcessorOrder;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.interceptor.LogInterceptor;
 import de.osthus.ambeth.proxy.AbstractCascadePostProcessor;
 import de.osthus.ambeth.proxy.ICascadedInterceptor;
 
-public class LoggingPostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanPostProcessor
+public class LoggingPostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanProcessor
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -44,8 +44,8 @@ public class LoggingPostProcessor extends AbstractCascadePostProcessor implement
 	}
 
 	@Override
-	public PostProcessorOrder getOrder()
+	public ProcessorOrder getOrder()
 	{
-		return PostProcessorOrder.HIGHEST;
+		return ProcessorOrder.HIGHEST;
 	}
 }
