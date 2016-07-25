@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -22,13 +23,17 @@ import de.osthus.ambeth.testutil.TestProperties;
 public class PluginClasspathScannerTest extends AbstractIocTest
 {
 	@Autowired
-	private PluginClasspathScanner pluginScanner;
+	protected PluginClasspathScanner pluginScanner;
 
 	@Autowired
-	private IServiceContext applicationContext;
+	protected IServiceContext applicationContext;
+
+	protected List<Class<?>> bootstrapModuleClasses;
+
+	protected List<Class<?>> frameworkModuleClasses;
 
 	@BeforeClass
-	public static void before() throws URISyntaxException
+	public static void beforeClass() throws URISyntaxException
 	{
 		// get the scan resource absolute root path
 		String pluginScanResource = new File(PluginClasspathScannerTest.class.getResource("/pluginScanResource").toURI()).getAbsolutePath();
@@ -36,23 +41,33 @@ public class PluginClasspathScannerTest extends AbstractIocTest
 		System.setProperty("pluginScanResource", pluginScanResource);
 	}
 
+	@Before
+	public void before()
+	{
+		// scan plugin jar
+		bootstrapModuleClasses = pluginScanner.scanClassesAnnotatedWith(BootstrapModule.class);
+		frameworkModuleClasses = pluginScanner.scanClassesAnnotatedWith(FrameworkModule.class);
+	}
+
 	@Test
 	public void pluginScanTest() throws Exception
 	{
-		// scan plugin jar
-		List<Class<?>> bootstrapModuleClasses = pluginScanner.scanClassesAnnotatedWith(BootstrapModule.class);
-		List<Class<?>> frameworkModuleClasses = pluginScanner.scanClassesAnnotatedWith(FrameworkModule.class);
-		Assert.assertFalse(bootstrapModuleClasses.isEmpty());
-		Assert.assertFalse(frameworkModuleClasses.isEmpty());
+		Assert.assertEquals(bootstrapModuleClasses.size(), 1);
+		Assert.assertEquals(frameworkModuleClasses.size(), 1);
 	}
 
 	@Test
 	public void pluginClassRegistTest() throws Exception
 	{
-		List<Class<?>> bootstrapModuleClasses = pluginScanner.scanClassesAnnotatedWith(BootstrapModule.class);
-		List<Class<?>> frameworkModuleClasses = pluginScanner.scanClassesAnnotatedWith(FrameworkModule.class);
 		// inject as bean
 		applicationContext.registerWithLifecycle(bootstrapModuleClasses.get(0).newInstance());
 		applicationContext.registerWithLifecycle(frameworkModuleClasses.get(0).newInstance());
+	}
+
+	@Test
+	public void pluginRegistModuleTest() throws Exception
+	{
+		applicationContext.createService("framework", frameworkModuleClasses.get(0));
+		applicationContext.createService("application", bootstrapModuleClasses.get(0));
 	}
 }
