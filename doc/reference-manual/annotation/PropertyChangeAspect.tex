@@ -7,7 +7,7 @@
 \inputjava{Annotation definition \type{PropertyChangeAspect}}
 {jambeth-util/src/main/java/de/osthus/ambeth/annotation/PropertyChangeAspect.java}
 %% GENERATED LISTINGS END
-Can be used to annotate bean declarations and because of this have them enhanced with PCE (property change event) capabilities at runtime. The annotation is processed by the  \javadoc{de.osthus.ambeth.propertychange.PropertyChangeInstantiationProcessor}{PropertyChangeInstantiationProcessor} - which is a \prettyref{feature:BeanInstantiationProcessor}). This reduces the complexity of the maintained code because here a correct implementation of PCEs is already provided in a generic manner. An example how to use the annotation and how to link a bean to PCEs of other PCE-capable beans can be found in the \javadoc{de.osthus.ambeth.propertychange.PropertyChangeTest}{PropertyChangeTest}.
+Can be used to annotate bean declarations and because of this have them enhanced with PCE (property change event) capabilities at runtime. The annotation is processed by the \javadoc{de.osthus.ambeth.propertychange.PropertyChangeInstantiationProcessor}{PropertyChangeInstantiationProcessor} - which is a \prettyref{feature:BeanInstantiationProcessor}). This reduces the complexity of the maintained code because here a correct implementation of PCEs is already provided in a generic manner. An example how to use the annotation and how to link a bean to PCEs of other PCE-capable beans can be found in the \javadoc{de.osthus.ambeth.propertychange.PropertyChangeTest}{PropertyChangeTest}.
 
 \begin{lstlisting}[style=Java,caption={Usage example for \textit{PropertyChangeAspect}}]
 ...
