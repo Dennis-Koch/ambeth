@@ -2,7 +2,6 @@ package de.osthus.ambeth.ioc.config;
 
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.IProperties;
-import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IBeanRuntime;
 import de.osthus.ambeth.ioc.ServiceContext;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
@@ -60,16 +59,8 @@ public class BeanRuntime<V> implements IBeanRuntime<V>
 			{
 				beanType = beanContextInitializer.resolveTypeInHierarchy(beanConfHierarchy);
 			}
-			try
-			{
-				bean = (V) beanType.newInstance();
-			}
-			catch (Throwable e)
-			{
-				throw RuntimeExceptionUtil.mask(e);
-			}
+			bean = (V) beanContextInitializer.instantiateBean(serviceContext, beanContextFactory, beanConfiguration, beanType, beanConfHierarchy);
 		}
-
 		bean = (V) beanContextInitializer.initializeBean(serviceContext, beanContextFactory, beanConfiguration, bean, beanConfHierarchy, joinLifecycle);
 		return bean;
 	}

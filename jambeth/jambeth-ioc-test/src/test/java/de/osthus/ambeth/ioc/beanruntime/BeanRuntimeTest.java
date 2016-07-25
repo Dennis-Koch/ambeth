@@ -2,25 +2,29 @@ package de.osthus.ambeth.ioc.beanruntime;
 
 import org.junit.Test;
 
-import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.testutil.AbstractIocTest;
 
 public class BeanRuntimeTest extends AbstractIocTest
 {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
+	public static abstract class MyBean
 	{
-		super.afterPropertiesSet();
+		public abstract int getValue();
+	}
+
+	protected MyBean create()
+	{
+		return beanContext.registerBean(MyBean.class).finish();
 	}
 
 	@Test
-	public void testBeanRuntimeInjection()
+	public void testAbstractRuntimeInstantiation()
 	{
-		// beanContext.
+		create();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testAbstractRuntimeInstantiationFails()
+	{
+		create().getValue();
 	}
 }

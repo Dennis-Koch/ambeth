@@ -186,8 +186,6 @@ public class LinkContainer extends AbstractLinkContainer
 		}
 		Class<?> listenerType = listener.getClass();
 
-		IMap<Method, Method> mappedMethods = buildDelegateMethodMap(listenerType, listenerMethodName, parameterType);
-
 		Object delegateInstance = null;
 		if (bytecodeEnhancer != null && accessorTypeProvider != null)
 		{
@@ -198,6 +196,7 @@ public class LinkContainer extends AbstractLinkContainer
 		}
 		if (delegateInstance == null)
 		{
+			IMap<Method, Method> mappedMethods = buildDelegateMethodMap(listenerType, listenerMethodName, parameterType);
 			MethodInterceptor interceptor = new DelegateInterceptor(listener, mappedMethods);
 			delegateInstance = proxyFactory.createProxy(parameterType, listenerType.getInterfaces(), interceptor);
 		}

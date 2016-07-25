@@ -1125,7 +1125,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 					{
 						throw new IllegalStateException("Bean configuration must be valid at this point");
 					}
-					bean = instantiateBean(beanContextInit, beanConfiguration, beanType, beanConfHierarchy);
+					bean = instantiateBean(beanContext, beanContextFactory, beanConfiguration, beanType, beanConfHierarchy);
 
 					alreadyHandledConfigsSet.add(beanConfiguration);
 					atLeastOneHandled = true;
@@ -1167,12 +1167,10 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		}
 	}
 
-	protected Object instantiateBean(BeanContextInit beanContextInit, IBeanConfiguration beanConfiguration, Class<?> beanType,
+	@Override
+	public Object instantiateBean(ServiceContext beanContext, BeanContextFactory beanContextFactory, IBeanConfiguration beanConfiguration, Class<?> beanType,
 			List<IBeanConfiguration> beanConfHierarchy)
 	{
-		BeanContextFactory beanContextFactory = beanContextInit.beanContextFactory;
-		ServiceContext beanContext = beanContextInit.beanContext;
-
 		Object bean = null;
 
 		List<IBeanInstantiationProcessor> beanInstantiationProcessors = beanContext.getInstantiationProcessors();
