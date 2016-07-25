@@ -185,7 +185,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 	{
 		if (classPool == null)
 		{
-			classPool = new ClassPool();
+			classPool = ClassPool.getDefault();
 			initializeClassPool(classPool);
 		}
 		return classPool;

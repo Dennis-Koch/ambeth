@@ -662,7 +662,9 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 		Path absolutePath = filePath.toAbsolutePath();
 		// TODO: this can only handle pathes with filenames, if there is no filename not all dirs get created
 		// create all necessary dir's
-		absolutePath.getParent().toFile().mkdirs();
+		if (absolutePath.getParent() != null) {
+			absolutePath.getParent().toFile().mkdirs();
+		}
 		return absolutePath;
 	}
 

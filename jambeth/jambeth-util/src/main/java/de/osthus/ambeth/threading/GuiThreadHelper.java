@@ -31,7 +31,7 @@ public class GuiThreadHelper implements IGuiThreadHelper
 
 	protected Executor executor;
 
-	protected boolean isGuiInitialized, skipGuiInitializeCheck;
+	protected boolean isGuiInitialized, skipGuiInitializeCheck, javaUiActive;
 
 	public void setExecutor(Executor executor)
 	{
@@ -40,6 +40,10 @@ public class GuiThreadHelper implements IGuiThreadHelper
 
 	protected boolean isGuiInitialized()
 	{
+		if (!javaUiActive)
+		{
+			return false;
+		}
 		if (!isGuiInitialized && dispatchThread != null && !skipGuiInitializeCheck)
 		{
 			try

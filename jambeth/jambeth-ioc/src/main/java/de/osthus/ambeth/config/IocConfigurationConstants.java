@@ -1,5 +1,6 @@
 package de.osthus.ambeth.config;
 
+import de.osthus.ambeth.annotation.ConfigurationConstantDescription;
 import de.osthus.ambeth.annotation.ConfigurationConstants;
 import de.osthus.ambeth.objectcollector.ICollectableControllerExtendable;
 
@@ -40,4 +41,7 @@ public final class IocConfigurationConstants
 	 * Entity Prefetch logic. Valid values: "true" or "false". Default is "true". is "false".
 	 */
 	public static final String TransparentParallelizationActive = "ambeth.transparent.parallel.active";
+
+	@ConfigurationConstantDescription(value = "Determines how the GUIThreadHelper works, if set to false, UI thread will never be used", defaultValue = "true")
+	public static final String JavaUiActive = "ambeth.javaUi.active";
 }
