@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
@@ -659,11 +660,19 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 			filePath = Paths.get(fileName);
 		}
 
-		Path absolutePath = filePath.toAbsolutePath();
+		Path absolutePath = filePath.toAbsolutePath().normalize();
 		// TODO: this can only handle pathes with filenames, if there is no filename not all dirs get created
 		// create all necessary dir's
-		if (absolutePath.getParent() != null) {
-			absolutePath.getParent().toFile().mkdirs();
+		if (absolutePath.getParent() != null)
+		{
+			try
+			{
+				Files.createDirectories(absolutePath.getParent());
+			}
+			catch (IOException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
 		}
 		return absolutePath;
 	}
