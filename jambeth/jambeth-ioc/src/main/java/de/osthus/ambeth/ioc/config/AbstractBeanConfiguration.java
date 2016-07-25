@@ -292,4 +292,11 @@ public abstract class AbstractBeanConfiguration implements IBeanConfiguration
 
 	@Override
 	public abstract Class<?> getBeanType();
+
+	@Override
+	public String toString()
+	{
+		String name = getName();
+		return name != null ? name : super.toString();
+	}
 }
