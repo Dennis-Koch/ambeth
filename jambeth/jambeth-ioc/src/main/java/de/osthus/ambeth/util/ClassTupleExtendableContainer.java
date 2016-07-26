@@ -4,10 +4,10 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IListElem;
 import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.collections.InterfaceFastList;
+import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.collections.Tuple2KeyEntry;
 import de.osthus.ambeth.collections.Tuple2KeyHashMap;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
@@ -19,7 +19,7 @@ public class ClassTupleExtendableContainer<V> extends MapExtendableContainer<Con
 	{
 		public final Tuple2KeyHashMap<Class<?>, Class<?>, Object> typeToDefEntryMap = new Tuple2KeyHashMap<Class<?>, Class<?>, Object>(0.5f);
 
-		public final HashMap<Strong2Key<V>, List<Def2Entry<V>>> definitionReverseMap = new HashMap<Strong2Key<V>, List<Def2Entry<V>>>(0.5f);
+		public final LinkedHashMap<Strong2Key<V>, List<Def2Entry<V>>> definitionReverseMap = new LinkedHashMap<Strong2Key<V>, List<Def2Entry<V>>>(0.5f);
 
 		public ClassTupleEntry()
 		{
@@ -92,7 +92,7 @@ public class ClassTupleExtendableContainer<V> extends MapExtendableContainer<Con
 	{
 		ClassTupleEntry<V> newClassEntry = new ClassTupleEntry<V>();
 		Tuple2KeyHashMap<Class<?>, Class<?>, Object> newTypeToDefEntryMap = newClassEntry.typeToDefEntryMap;
-		HashMap<Strong2Key<V>, List<Def2Entry<V>>> newDefinitionReverseMap = newClassEntry.definitionReverseMap;
+		LinkedHashMap<Strong2Key<V>, List<Def2Entry<V>>> newDefinitionReverseMap = newClassEntry.definitionReverseMap;
 		IdentityHashMap<Def2Entry<V>, Def2Entry<V>> originalToCopyMap = new IdentityHashMap<Def2Entry<V>, Def2Entry<V>>();
 		for (Tuple2KeyEntry<Class<?>, Class<?>, Object> entry : classEntry.typeToDefEntryMap)
 		{
@@ -246,7 +246,7 @@ public class ClassTupleExtendableContainer<V> extends MapExtendableContainer<Con
 			super.unregister(extension, key);
 
 			ClassTupleEntry<V> classEntry = copyStructure();
-			HashMap<Strong2Key<V>, List<Def2Entry<V>>> definitionReverseMap = classEntry.definitionReverseMap;
+			LinkedHashMap<Strong2Key<V>, List<Def2Entry<V>>> definitionReverseMap = classEntry.definitionReverseMap;
 			List<Def2Entry<V>> weakEntriesOfStrongType = definitionReverseMap.remove(new Strong2Key<V>(extension, key));
 			if (weakEntriesOfStrongType == null)
 			{
@@ -327,7 +327,7 @@ public class ClassTupleExtendableContainer<V> extends MapExtendableContainer<Con
 		}
 		Def2Entry<V> defEntry = new Def2Entry<V>(extension, sourceType, targetType, sourceDistance, targetDistance);
 
-		HashMap<Strong2Key<V>, List<Def2Entry<V>>> definitionReverseMap = classEntry.definitionReverseMap;
+		LinkedHashMap<Strong2Key<V>, List<Def2Entry<V>>> definitionReverseMap = classEntry.definitionReverseMap;
 		Strong2Key<V> strongKey = new Strong2Key<V>(extension, strongTypeKey);
 		List<Def2Entry<V>> typeEntries = definitionReverseMap.get(strongKey);
 		if (typeEntries == null)
