@@ -65,7 +65,7 @@ public interface IPersonService extends ISquery<Person>
 	 * @param anyValue
 	 * @return
 	 */
-	String someConcreteMethod(String anyValue);
+	String findByConcreteMethod(String anyValue);
 
 	List<Person> findByNameStartWithSortByNameDesc(String persionNameStart);
 

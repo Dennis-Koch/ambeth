@@ -4,12 +4,14 @@ import java.util.Date;
 
 public class Person extends BaseEntity
 {
+	public static final String AGE = "Age";
+
 	protected String name;
 	protected Integer age;
-	protected Home home;
-	protected HomeAddress homeAddress;
-	protected Boolean haveAndriod; // field name have And no problem
-	protected Boolean haveOrange; // field name have Or no problem
+	protected Home home; // have nest field: Home.Address.Name
+	protected HomeAddress homeAddress; // have nest field: HomeAdress.Streat ***** these look like two fields no problem in squery
+	protected Boolean haveAndriod; // field name have "And", this no problem
+	protected Boolean haveOrange; // field name have "Or", this no problem
 	protected Date modifyTime;
 
 	public String getName()

@@ -13,6 +13,6 @@ public class SqueryIocModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerBean(PersonService.class).autowireable(IPersonService.class);
+		beanContextFactory.registerBean(PersonService.class).autowireable(PersonService.class, IPersonService.class);
 	}
 }

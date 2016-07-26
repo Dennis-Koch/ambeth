@@ -3,6 +3,7 @@ package de.osthus.ambeth.query.squery;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Calendar;
@@ -42,6 +43,8 @@ public class SqueryTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Autowired
 	protected IPersonService personService;
+	@Autowired
+	protected PersonService concretePersonService;
 
 	private static final int COUNT_OF_PERSON = 10;
 
@@ -59,7 +62,7 @@ public class SqueryTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testFindByName() throws Exception
+	public void testFindBySingleCondition() throws Exception
 	{
 		Integer firstId = 1;
 		Person findById = personService.findById(firstId);
@@ -231,7 +234,7 @@ public class SqueryTest extends AbstractInformationBusWithPersistenceTest
 	{
 		Integer maxVersion = 7;
 		String[] nameIn = null;
-		List<Person> list = personService.findByVersionLtOrAgeGeAndNameIn(maxVersion, null, nameIn); // only age take part in query
+		List<Person> list = personService.findByVersionLtOrAgeGeAndNameIn(maxVersion, null, nameIn); // only Verson take part in query
 		for (Person person : list)
 		{
 			assertTrue(person.getVersion() < maxVersion);
@@ -278,10 +281,39 @@ public class SqueryTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testNotSqueryMethod() throws Exception
+	public void testConcreteMethodDeclaredByInterface() throws Exception
 	{
-		String value = personService.someConcreteMethod("any value");
-		assertEquals(PersonService.CONCRETE_METHOD_ERROR, value);
+		String param = "any String";
+
+		String value = personService.findByConcreteMethod(param);
+		assertSame(PersonService.CONCRETE_METHOD_RETURN_VALUE, value);
+
+		String anotherValue = concretePersonService.findByConcreteMethod(param);
+		assertSame(PersonService.CONCRETE_METHOD_RETURN_VALUE, anotherValue);
+	}
+
+	@Test
+	public void testConcreteMethodNotDeclaredByInterface() throws Exception
+	{
+		int minAge = 16;
+		List<Person> noSqueryList = concretePersonService.findByNoSquery(minAge);
+		assertFalse(noSqueryList.isEmpty());
+		for (Person person : noSqueryList)
+		{
+			assertTrue(person.getAge() >= minAge);
+		}
+	}
+
+	@Test
+	public void testAbstractMethodNotDeclaredByInterface() throws Exception
+	{
+		int maxAge = 16;
+		List<Person> ageLeList = concretePersonService.findByAgeLe(maxAge);
+		assertFalse(ageLeList.isEmpty());
+		for (Person person : ageLeList)
+		{
+			assertTrue(person.getAge() <= maxAge);
+		}
 	}
 
 	private static Date toMinTime(Date date)
