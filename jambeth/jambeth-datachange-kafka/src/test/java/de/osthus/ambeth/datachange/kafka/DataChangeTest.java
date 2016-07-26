@@ -157,7 +157,7 @@ public class DataChangeTest extends AbstractIocTest
 				@Override
 				public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception
 				{
-					if (eventObject instanceof IDataChange)
+					if (eventObject instanceof IDataChange && !((IDataChange) eventObject).isLocalSource())
 					{
 						latch.countDown();
 					}
