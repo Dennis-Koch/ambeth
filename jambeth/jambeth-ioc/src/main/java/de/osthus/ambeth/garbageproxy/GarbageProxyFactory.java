@@ -1,7 +1,5 @@
 package de.osthus.ambeth.garbageproxy;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -25,7 +23,6 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.Method;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.util.TraceClassVisitor;
 import de.osthus.ambeth.util.IDisposable;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ReflectUtil;
@@ -154,12 +151,13 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 			interfaceNames.add(interfaceType.getInternalName());
 		}
 
-		StringWriter sw = new StringWriter();
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-		PrintWriter pw = new PrintWriter(sw);
 
 		ClassVisitor visitor = cw;
-		visitor = new TraceClassVisitor(visitor, pw);
+
+		// comment this in to add bytecode output for eased debugging (together with commented code at the end)
+		// StringWriter sw = new StringWriter();
+		// visitor = new TraceClassVisitor(visitor, new PrintWriter(sw));
 
 		visitor.visit(Opcodes.V1_1, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, classNameInternal, null, abstractType.getInternalName(),
 				interfaceNames.toArray(String.class));
@@ -248,16 +246,9 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 		visitor.visitEnd();
 		byte[] data = cw.toByteArray();
 
-		// try
-		// {
-		String string = sw.toString();
-
-		System.out.println(string);
-		// }
-		// catch (Throwable e)
-		// {
-		// throw RuntimeExceptionUtil.mask(e, "Error occurred while trying to write to '" + outputFile.getAbsolutePath() + "'");
-		// }
+		// comment this in to add bytecode output for eased debugging
+		// String string = sw.toString();
+		// System.out.println(string);
 		return loader.defineClass(className, data);
 	}
 
