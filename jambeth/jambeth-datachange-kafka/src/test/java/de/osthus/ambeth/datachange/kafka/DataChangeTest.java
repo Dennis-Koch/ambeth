@@ -1,8 +1,8 @@
 package de.osthus.ambeth.datachange.kafka;
 
 import java.util.EnumSet;
-
-import javax.xml.bind.annotation.XmlRootElement;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -17,9 +17,12 @@ import de.osthus.ambeth.cache.IRootCache;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
+import de.osthus.ambeth.datachange.model.IDataChange;
 import de.osthus.ambeth.datachange.transfer.DataChangeEntry;
 import de.osthus.ambeth.datachange.transfer.DataChangeEvent;
 import de.osthus.ambeth.event.IEventDispatcher;
+import de.osthus.ambeth.event.IEventListener;
+import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.event.kafka.EventToKafkaPublisher;
 import de.osthus.ambeth.event.kafka.config.EventKafkaConfigurationConstants;
 import de.osthus.ambeth.ioc.CacheModule;
@@ -46,19 +49,21 @@ import de.osthus.ambeth.util.IClasspathScanner;
 @TestPropertiesList({
 // producer
 		@TestProperties(name = EventKafkaConfigurationConstants.TOPIC_NAME, value = "test"),//
-		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "acks", value = "all"),//
-		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "retries", value = "0"),//
-		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "batch.size", value = "16384"),//
-		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "linger.ms", value = "1"),//
-		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "buffer.memory", value = "33554432"),//
-
+		// @TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "acks", value = "all"),//
+		// @TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "retries", value = "0"),//
+		// @TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "batch.size", value = "16384"),//
+		// @TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "linger.ms", value = "1"),//
+		// @TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "buffer.memory", value = "33554432"),//
+		//
 		// consumer
 		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "group.id", value = "groupId"),//
-		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "enable.auto.commit", value = "true"),//
-		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "auto.commit.interval.ms", value = "1"),//
-		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "session.timeout.ms", value = "30000"),//
-		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "buffer.memory", value = "33554432"),//
-})
+		// @TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "enable.auto.commit", value = "true"),//
+		// @TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "auto.commit.interval.ms", value = "1"),//
+		// @TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "session.timeout.ms", value = "30000"),//
+		// @TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "buffer.memory", value = "33554432"),//
+
+		// Ambeth
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml") })
 public class DataChangeTest extends AbstractIocTest
 {
 	public static class KafkaTestModule implements IInitializingModule
@@ -68,12 +73,6 @@ public class DataChangeTest extends AbstractIocTest
 		{
 			beanContextFactory.registerBean(ClasspathScanner.class).autowireable(IClasspathScanner.class);
 		}
-	}
-
-	@XmlRootElement
-	public static class MyMessage
-	{
-
 	}
 
 	@SuppressWarnings("unused")
@@ -94,19 +93,14 @@ public class DataChangeTest extends AbstractIocTest
 		props.put(EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.connect", kafkaRule.zookeeperConnectionString());
 		// props.put("group.id", "group");
 		props.put(EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "bootstrap.servers", "localhost:" + kafkaRule.kafkaBrokerPort());
-		props.put(EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.session.timeout.ms", "400");
-		props.put(EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.sync.time.ms", "200");
-		props.put(EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "auto.commit.interval.ms", "1000");
-		props.put(ServiceConfigurationConstants.mappingFile, "orm.xml");
+		// props.put(EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.session.timeout.ms", "400");
+		// props.put(EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.sync.time.ms", "200");
+		// props.put(EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "auto.commit.interval.ms", "1000");
 
-		IAmbethApplication app1 = Ambeth.createBundle(InformationBus.class)
-				.withAmbethModules(EventKafkaModule.class, DataChangeKafkaModule.class, KafkaTestModule.class, XmlModule.class).withoutPropertiesFileSearch()
-				.withProperties(props).start();
+		IAmbethApplication app1 = createAmbethKafkaApp(props);
 		try
 		{
-			IAmbethApplication app2 = Ambeth.createBundle(InformationBus.class)
-					.withAmbethModules(EventKafkaModule.class, DataChangeKafkaModule.class, KafkaTestModule.class, XmlModule.class)
-					.withoutPropertiesFileSearch().withProperties(props).start();
+			IAmbethApplication app2 = createAmbethKafkaApp(props);
 			try
 			{
 				testContexts(app1.getApplicationContext(), app2.getApplicationContext());
@@ -122,6 +116,13 @@ public class DataChangeTest extends AbstractIocTest
 		}
 	}
 
+	protected IAmbethApplication createAmbethKafkaApp(IProperties props)
+	{
+		return Ambeth.createBundle(InformationBus.class)
+				.withAmbethModules(EventKafkaModule.class, DataChangeKafkaModule.class, KafkaTestModule.class, XmlModule.class).withoutPropertiesFileSearch()
+				.withProperties(props).start();
+	}
+
 	protected Object lookupCacheEntry(IRootCache rootCache, TestEntity testEntity)
 	{
 		return rootCache.getObject(new ObjRef(TestEntity.class, ObjRef.PRIMARY_KEY_INDEX, testEntity.getId(), null),
@@ -130,6 +131,10 @@ public class DataChangeTest extends AbstractIocTest
 
 	private void testContexts(IServiceContext left, IServiceContext right) throws Throwable
 	{
+		// simple setup: cache a dummy entity and fire from a foreign source an invalidating DCE for that entity
+		// on success the cached entity should not be there any more
+
+		final CountDownLatch latch = new CountDownLatch(1);
 		IRootCache leftRootCache;
 		TestEntity testEntity;
 		{
@@ -146,6 +151,18 @@ public class DataChangeTest extends AbstractIocTest
 			leftRootCache.put(testEntity);
 
 			Assert.assertNotNull(lookupCacheEntry(leftRootCache, testEntity));
+
+			left.getService(IEventListenerExtendable.class).registerEventListener(new IEventListener()
+			{
+				@Override
+				public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception
+				{
+					if (eventObject instanceof IDataChange)
+					{
+						latch.countDown();
+					}
+				}
+			});
 		}
 		{
 			IEventDispatcher eventDispatcher = right.getService(IEventDispatcher.class);
@@ -155,7 +172,7 @@ public class DataChangeTest extends AbstractIocTest
 			dce.getUpdates().add(new DataChangeEntry(TestEntity.class, ObjRef.PRIMARY_KEY_INDEX, testEntity.getId(), testEntity.getVersion() + 1));
 			eventDispatcher.dispatchEvent(dce);
 		}
-		Thread.sleep(2000);
+		latch.await(60000, TimeUnit.MILLISECONDS); // maybe 100ms can be fully sufficient but just to be sure...
 		{
 			// ensure that entry in "left" is removed
 			Assert.assertNull(lookupCacheEntry(leftRootCache, testEntity));
