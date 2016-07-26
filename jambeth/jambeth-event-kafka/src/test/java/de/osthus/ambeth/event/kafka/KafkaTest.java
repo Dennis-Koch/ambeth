@@ -34,7 +34,7 @@ import de.osthus.ambeth.util.IClasspathScanner;
 // @TestProperties(name = KafkaDataChangePublisher.AMBETH_KAFKA_PROP_PREFIX + "bootstrap.servers", value = "localhost:4242"),//
 
 		// producer
-		@TestProperties(name = EventKafkaConfigurationConstants.DCE_TOPIC_NAME, value = "test"),//
+		@TestProperties(name = EventKafkaConfigurationConstants.TOPIC_NAME, value = "test"),//
 		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "acks", value = "all"),//
 		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "retries", value = "0"),//
 		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "batch.size", value = "16384"),//

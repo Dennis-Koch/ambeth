@@ -6,6 +6,6 @@ import de.osthus.ambeth.annotation.ConfigurationConstants;
 @ConfigurationConstants
 public final class EventKafkaConfigurationConstants
 {
-	@ConfigurationConstantDescription("Kafka Topic to listen for Ambeth Events")
-	public static final String DCE_TOPIC_NAME = "ambeth.event.kafka.topic";
+	@ConfigurationConstantDescription("Kafka Topic to publish/subscribe for Ambeth Events")
+	public static final String TOPIC_NAME = "ambeth.event.kafka.topic";
 }

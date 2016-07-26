@@ -1,7 +1,6 @@
 package de.osthus.ambeth.event.kafka;
 
 import java.util.Arrays;
-import java.util.Properties;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -34,7 +33,7 @@ public class EventFromKafkaConsumer implements IInitializingBean, IStartingBean,
 	@Autowired
 	protected XmlKafkaSerializer xmlKafkaSerializer;
 
-	@Property(name = EventKafkaConfigurationConstants.DCE_TOPIC_NAME)
+	@Property(name = EventKafkaConfigurationConstants.TOPIC_NAME)
 	protected String topicName;
 
 	protected long timeout = 5000;
@@ -50,19 +49,9 @@ public class EventFromKafkaConsumer implements IInitializingBean, IStartingBean,
 	{
 		pollingThread = new Thread(this);
 		pollingThread.setDaemon(true);
-		pollingThread.setName(getClass().getSimpleName());
+		pollingThread.setName(getClass().getSimpleName() + "-" + topicName);
 
-		Properties props = new Properties();
-		for (String key : this.props.collectAllPropertyKeys())
-		{
-			if (!key.startsWith(EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX))
-			{
-				continue;
-			}
-			String kafkaKey = key.substring(EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX.length());
-			props.put(kafkaKey, this.props.get(key));
-		}
-		consumer = new KafkaConsumer<String, Object>(props, new StringDeserializer(), xmlKafkaSerializer);
+		consumer = new KafkaConsumer<String, Object>(EventToKafkaPublisher.extractKafkaProperties(props), new StringDeserializer(), xmlKafkaSerializer);
 	}
 
 	@Override
@@ -90,25 +79,26 @@ public class EventFromKafkaConsumer implements IInitializingBean, IStartingBean,
 					log.debug("Polling for records...");
 				}
 				ConsumerRecords<String, Object> records = consumer.poll(timeout);
-				if (records.count() > 0)
+				if (destroyed || records.count() == 0)
 				{
-					eventDispatcher.enableEventQueue();
-					try
+					continue;
+				}
+				eventDispatcher.enableEventQueue();
+				try
+				{
+					for (ConsumerRecord<String, Object> record : records)
 					{
-						for (ConsumerRecord<String, Object> record : records)
+						Object value = record.value();
+						if (log.isDebugEnabled())
 						{
-							Object value = record.value();
-							if (log.isDebugEnabled())
-							{
-								log.debug("Received record with key '" + record.key() + "'");
-							}
-							eventDispatcher.dispatchEvent(value);
+							log.debug("Received record with key '" + record.key() + "'");
 						}
+						eventDispatcher.dispatchEvent(value);
 					}
-					finally
-					{
-						eventDispatcher.flushEventQueue();
-					}
+				}
+				finally
+				{
+					eventDispatcher.flushEventQueue();
 				}
 			}
 		}

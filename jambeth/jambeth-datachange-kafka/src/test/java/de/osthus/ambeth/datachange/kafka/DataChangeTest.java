@@ -45,7 +45,7 @@ import de.osthus.ambeth.util.IClasspathScanner;
 
 @TestPropertiesList({
 // producer
-		@TestProperties(name = EventKafkaConfigurationConstants.DCE_TOPIC_NAME, value = "test"),//
+		@TestProperties(name = EventKafkaConfigurationConstants.TOPIC_NAME, value = "test"),//
 		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "acks", value = "all"),//
 		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "retries", value = "0"),//
 		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "batch.size", value = "16384"),//
@@ -133,22 +133,27 @@ public class DataChangeTest extends AbstractIocTest
 		IRootCache leftRootCache;
 		TestEntity testEntity;
 		{
+			IEntityFactory entityFactory = left.getService(IEntityFactory.class);
+			IEntityMetaDataProvider entityMetaDataProvider = left.getService(IEntityMetaDataProvider.class);
+			leftRootCache = left.getService(CacheModule.COMMITTED_ROOT_CACHE, IRootCache.class);
+
 			// create cache entry in "left"
-			testEntity = left.getService(IEntityFactory.class).createEntity(TestEntity.class);
-			IEntityMetaData metaData = left.getService(IEntityMetaDataProvider.class).getMetaData(TestEntity.class);
+			testEntity = entityFactory.createEntity(TestEntity.class);
+			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(TestEntity.class);
 			metaData.getIdMember().setIntValue(testEntity, 1);
 			metaData.getVersionMember().setIntValue(testEntity, 1);
 
-			leftRootCache = left.getService(CacheModule.COMMITTED_ROOT_CACHE, IRootCache.class);
 			leftRootCache.put(testEntity);
 
 			Assert.assertNotNull(lookupCacheEntry(leftRootCache, testEntity));
 		}
 		{
+			IEventDispatcher eventDispatcher = right.getService(IEventDispatcher.class);
+
 			// fire the DCE in "right"
 			DataChangeEvent dce = DataChangeEvent.create(0, 1, 0);
 			dce.getUpdates().add(new DataChangeEntry(TestEntity.class, ObjRef.PRIMARY_KEY_INDEX, testEntity.getId(), testEntity.getVersion() + 1));
-			right.getService(IEventDispatcher.class).dispatchEvent(dce);
+			eventDispatcher.dispatchEvent(dce);
 		}
 		Thread.sleep(2000);
 		{

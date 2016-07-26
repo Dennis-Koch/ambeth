@@ -62,4 +62,11 @@ public interface IEventQueue
 	 * @param eventTarget
 	 */
 	void resume(Object eventTarget);
+
+	/**
+	 * Evaluates whether the current thread is flagged as dispatching a batch of events
+	 * 
+	 * @return true if and only if the current thread is flagged as dispatching a batch of events
+	 */
+	boolean isDispatchingBatchedEvents();
 }
