@@ -15,12 +15,12 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-datachange-kafka</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-information-bus-test</artifactId>
+			<artifactId>jambeth-event-kafka-test</artifactId>
 		</dependency>
-		
+				
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
