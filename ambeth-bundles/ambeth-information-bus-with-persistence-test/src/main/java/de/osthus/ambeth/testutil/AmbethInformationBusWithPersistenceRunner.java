@@ -135,9 +135,9 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 	@SuppressWarnings("resource")
 	@Override
-	protected void extendProperties(FrameworkMethod frameworkMethod, Properties props)
+	protected void extendPropertiesInstance(FrameworkMethod frameworkMethod, Properties props)
 	{
-		super.extendProperties(frameworkMethod, props);
+		super.extendPropertiesInstance(frameworkMethod, props);
 
 		String testForkSuffix = props.getString(UtilConfigurationConstants.ForkName);
 		if (testForkSuffix != null)
@@ -200,7 +200,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		Properties baseProps = new Properties(Properties.getApplication());
 		// baseProps.putString("ambeth.log.level", "WARN");
 
-		extendProperties(null, baseProps);
+		extendPropertiesInstance(null, baseProps);
 
 		IServiceContext schemaBootstrapContext = null;
 		boolean success = false;

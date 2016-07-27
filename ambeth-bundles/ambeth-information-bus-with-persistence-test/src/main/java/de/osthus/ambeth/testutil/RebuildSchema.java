@@ -31,9 +31,9 @@ public class RebuildSchema
 		AmbethInformationBusWithPersistenceRunner runner = new AmbethInformationBusWithPersistenceRunner(testClass)
 		{
 			@Override
-			protected void extendProperties(FrameworkMethod frameworkMethod, Properties props)
+			protected void extendPropertiesInstance(FrameworkMethod frameworkMethod, Properties props)
 			{
-				super.extendProperties(frameworkMethod, props);
+				super.extendPropertiesInstance(frameworkMethod, props);
 
 				// intentionally refill with args a second time
 				props.fillWithCommandLineArgs(args);

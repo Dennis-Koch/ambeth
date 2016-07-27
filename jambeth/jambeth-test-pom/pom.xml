@@ -21,6 +21,7 @@
 		<module>../jambeth-cache-stream-test</module>
 		<module>../jambeth-chemspider-test</module>
 		<module>../jambeth-datachange-test</module>
+		<module>../jambeth-datachange-kafka-test</module>
 		<module>../jambeth-datachange-persistence-test</module>
 		<module>../jambeth-event-test</module>
 		<module>../jambeth-event-datachange-test</module>

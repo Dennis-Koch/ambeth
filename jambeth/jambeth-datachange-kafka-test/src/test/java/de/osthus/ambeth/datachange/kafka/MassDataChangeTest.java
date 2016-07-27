@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import com.github.charithe.kafka.KafkaJunitRule;
 
@@ -26,7 +27,6 @@ import de.osthus.ambeth.datachange.transfer.DataChangeEvent;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.event.IEventListener;
 import de.osthus.ambeth.event.IEventListenerExtendable;
-import de.osthus.ambeth.event.kafka.EventToKafkaPublisher;
 import de.osthus.ambeth.event.kafka.config.EventKafkaConfigurationConstants;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.CacheModule;
@@ -38,6 +38,7 @@ import de.osthus.ambeth.ioc.XmlModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
+import de.osthus.ambeth.kafka.AmbethKafkaConfiguration;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityFactory;
@@ -48,6 +49,7 @@ import de.osthus.ambeth.start.IAmbethApplication;
 import de.osthus.ambeth.testutil.AbstractIocTest;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
+import de.osthus.ambeth.testutil.category.PerformanceTests;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.ClasspathScanner;
 import de.osthus.ambeth.util.IClasspathScanner;
@@ -55,20 +57,21 @@ import de.osthus.ambeth.util.IClasspathScanner;
 @TestPropertiesList({
 // producer
 		@TestProperties(name = EventKafkaConfigurationConstants.TOPIC_NAME, value = "test"),//
-		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "acks", value = "all"),//
-		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "retries", value = "0"),//
-		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "batch.size", value = "16384"),//
-		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "linger.ms", value = "1"),//
-		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "buffer.memory", value = "33554432"),//
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "acks", value = "all"),//
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "retries", value = "0"),//
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "batch.size", value = "16384"),//
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "linger.ms", value = "1"),//
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "buffer.memory", value = "33554432"),//
 
 		// consumer
-		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "group.id", value = "groupId"),//
-		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "enable.auto.commit", value = "true"),//
-		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "auto.commit.interval.ms", value = "1"),//
-		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "session.timeout.ms", value = "30000"),//
-		@TestProperties(name = EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "buffer.memory", value = "33554432"),//
-// @TestProperties(name = "ambeth.log.level", value = "DEBUG"),//
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "group.id", value = "groupId"),//
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "enable.auto.commit", value = "true"),//
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "auto.commit.interval.ms", value = "1"),//
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "session.timeout.ms", value = "30000"),//
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "buffer.memory", value = "33554432"),//
+		// @TestProperties(name = "ambeth.log.level", value = "DEBUG"),//
 })
+@Category(PerformanceTests.class)
 public class MassDataChangeTest extends AbstractIocTest
 {
 	private static final int NUM_ENTITIES = 1000;
@@ -135,12 +138,12 @@ public class MassDataChangeTest extends AbstractIocTest
 	{
 		Properties props = new Properties(properties);
 
-		props.put(EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.connect", kafkaRule.zookeeperConnectionString());
+		props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.connect", kafkaRule.zookeeperConnectionString());
 		// props.put("group.id", "group");
-		props.put(EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "bootstrap.servers", "localhost:" + kafkaRule.kafkaBrokerPort());
-		props.put(EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.session.timeout.ms", "400");
-		props.put(EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.sync.time.ms", "200");
-		props.put(EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "auto.commit.interval.ms", "1000");
+		props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "bootstrap.servers", "localhost:" + kafkaRule.kafkaBrokerPort());
+		props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.session.timeout.ms", "400");
+		props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.sync.time.ms", "200");
+		props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "auto.commit.interval.ms", "1000");
 		props.put(ServiceConfigurationConstants.mappingFile, "orm.xml");
 
 		IAmbethApplication app1 = Ambeth.createBundle(InformationBus.class)
