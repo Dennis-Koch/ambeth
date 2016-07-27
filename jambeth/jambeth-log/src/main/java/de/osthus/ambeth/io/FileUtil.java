@@ -3,16 +3,21 @@ package de.osthus.ambeth.io;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.log.ILogger;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 
 public final class FileUtil
 {
@@ -277,6 +282,83 @@ public final class FileUtil
 				sb.append(", ").append(strings[i]);
 			}
 			return sb.toString();
+		}
+	}
+
+	/**
+	 * tries to do a specific operation for up to 4 times while the timespan between each (failed) try will be doubled. The starting delay after the first
+	 * (failed) try is 8 ms. So then 16ms, and 32ms. This functionality is helpful for some SSD behaviors where files or folders are not yet available even if
+	 * you know for sure that previously executed (and successful) code created it.
+	 * 
+	 * @param worker
+	 *            The delegate to try to execute. If it fails it is re-executed up to 3 additional times.
+	 */
+	public static void retry(IBackgroundWorkerDelegate worker)
+	{
+		long waitTime = 8;
+		Throwable e = null;
+		for (int a = 4; a-- > 0;)
+		{
+			try
+			{
+				worker.invoke();
+				return;
+			}
+			catch (Throwable ex)
+			{
+				e = ex;
+			}
+			try
+			{
+				Thread.sleep(waitTime);
+			}
+			catch (InterruptedException e1)
+			{
+				// intended blank
+			}
+			waitTime *= 2;
+		}
+		throw RuntimeExceptionUtil.mask(e);
+	}
+
+	public static void deleteRecursive(final Path path, final boolean includeTopLevel)
+	{
+		try
+		{
+			if (path == null || !Files.exists(path))
+			{
+				return;
+			}
+			Files.walkFileTree(path, new SimpleFileVisitor<Path>()
+			{
+				@Override
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
+				{
+					Files.delete(file);
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult postVisitDirectory(final Path dir, IOException exc) throws IOException
+				{
+					if (includeTopLevel || !path.equals(dir))
+					{
+						retry(new IBackgroundWorkerDelegate()
+						{
+							@Override
+							public void invoke() throws Throwable
+							{
+								Files.delete(dir);
+							}
+						});
+					}
+					return FileVisitResult.CONTINUE;
+				}
+			});
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 }
