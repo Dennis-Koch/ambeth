@@ -1,16 +1,12 @@
 package de.osthus.ambeth.merge.mergecontroller;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.List;
 import java.util.Set;
 
-import de.osthus.ambeth.annotation.PropertyChangeAspect;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.model.AbstractEntity;
 
-@PropertyChangeAspect
-public abstract class Parent extends AbstractEntity implements PropertyChangeListener
+public abstract class Parent extends AbstractEntity
 {
 	protected Child child;
 
@@ -18,9 +14,9 @@ public abstract class Parent extends AbstractEntity implements PropertyChangeLis
 
 	protected IEntityFactory abc;
 
-	protected Parent(IEntityFactory entitydFactory)
+	protected Parent(IEntityFactory entityFactory)
 	{
-		this.abc = entitydFactory;
+		abc = entityFactory;
 		// Intended blank
 	}
 
@@ -51,10 +47,4 @@ public abstract class Parent extends AbstractEntity implements PropertyChangeLis
 	public abstract Set<Child> getOtherChildren2();
 
 	public abstract Parent setOtherChildren2(Set<Child> children2);
-
-	@Override
-	public void propertyChange(PropertyChangeEvent evt)
-	{
-		System.out.println("PCE called");
-	}
 }
