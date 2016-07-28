@@ -168,36 +168,34 @@ public final class LoggerFactory
 			}
 			lastDot = previousDot;
 		}
-		if (logLevelValue != null)
+		if (logLevelDebug.equalsIgnoreCase(logLevelValue))
 		{
-			if (logLevelDebug.equalsIgnoreCase(logLevelValue))
-			{
-				logger.setDebugEnabled(true);
-				logger.setInfoEnabled(true);
-				logger.setWarnEnabled(true);
-				logger.setErrorEnabled(true);
-			}
-			else if (logLevelInfo.equalsIgnoreCase(logLevelValue))
-			{
-				logger.setDebugEnabled(false);
-				logger.setInfoEnabled(true);
-				logger.setWarnEnabled(true);
-				logger.setErrorEnabled(true);
-			}
-			else if (logLevelWarn.equalsIgnoreCase(logLevelValue))
-			{
-				logger.setDebugEnabled(false);
-				logger.setInfoEnabled(false);
-				logger.setWarnEnabled(true);
-				logger.setErrorEnabled(true);
-			}
-			else if (logLevelError.equalsIgnoreCase(logLevelValue))
-			{
-				logger.setDebugEnabled(false);
-				logger.setInfoEnabled(false);
-				logger.setWarnEnabled(false);
-				logger.setErrorEnabled(true);
-			}
+			logger.setDebugEnabled(true);
+			logger.setInfoEnabled(true);
+			logger.setWarnEnabled(true);
+			logger.setErrorEnabled(true);
+		}
+		else if (logLevelInfo.equalsIgnoreCase(logLevelValue))
+		{
+			logger.setDebugEnabled(false);
+			logger.setInfoEnabled(true);
+			logger.setWarnEnabled(true);
+			logger.setErrorEnabled(true);
+		}
+		else if (logLevelWarn.equalsIgnoreCase(logLevelValue) || logLevelValue == null)
+		{
+			// if nothing is configured the logger defaults to "warn" level
+			logger.setDebugEnabled(false);
+			logger.setInfoEnabled(false);
+			logger.setWarnEnabled(true);
+			logger.setErrorEnabled(true);
+		}
+		else if (logLevelError.equalsIgnoreCase(logLevelValue))
+		{
+			logger.setDebugEnabled(false);
+			logger.setInfoEnabled(false);
+			logger.setWarnEnabled(false);
+			logger.setErrorEnabled(true);
 		}
 		if (logConsoleValue != null)
 		{

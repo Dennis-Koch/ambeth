@@ -17,5 +17,7 @@ import de.osthus.ambeth.model.INotifyPropertyChanged;
 @Target(ElementType.TYPE)
 public @interface PropertyChangeAspect
 {
-	// Intended blank
+	boolean includeNewValue() default true;
+
+	boolean includeOldValue() default true;
 }

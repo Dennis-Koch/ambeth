@@ -12,6 +12,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.propertychange.PropertyChangeEnhancementHint;
 import de.osthus.ambeth.proxy.IEnhancedType;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
@@ -36,7 +37,8 @@ public class EnhancedTypeBehavior extends AbstractBehavior
 	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
 			List<IBytecodeBehavior> cascadePendingBehaviors)
 	{
-		if ((state.getContext(EntityEnhancementHint.class) == null && state.getContext(EmbeddedEnhancementHint.class) == null))
+		if ((state.getContext(EntityEnhancementHint.class) == null && state.getContext(EmbeddedEnhancementHint.class) == null)
+				&& state.getContext(PropertyChangeEnhancementHint.class) == null)
 		{
 			return visitor;
 		}

@@ -18,6 +18,7 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
+import de.osthus.ambeth.typeinfo.FieldPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.MethodPropertyInfo;
 import de.osthus.ambeth.util.ReflectUtil;
@@ -52,6 +53,11 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator
 		}
 		for (IPropertyInfo propertyInfo : propertyInfos)
 		{
+			if (propertyInfo instanceof FieldPropertyInfo)
+			{
+				// if there is neither a setter nor a getter we let the field untouched
+				continue;
+			}
 			Method getter = ((MethodPropertyInfo) propertyInfo).getGetter();
 			Method setter = ((MethodPropertyInfo) propertyInfo).getSetter();
 			if (getter == null)
@@ -188,7 +194,15 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator
 
 			if (f_backingField == null)
 			{
-				String fieldSignature = FieldInstance.getSignatureFromReturnType(((MethodPropertyInfo) propertyInfo).getGetter());
+				String fieldSignature;
+				if (((MethodPropertyInfo) propertyInfo).getGetter() != null)
+				{
+					fieldSignature = FieldInstance.getSignatureFromReturnType(((MethodPropertyInfo) propertyInfo).getGetter());
+				}
+				else
+				{
+					fieldSignature = FieldInstance.getSignatureFromParameterType(((MethodPropertyInfo) propertyInfo).getSetter(), 0);
+				}
 
 				// add field
 				f_backingField = new FieldInstance(Opcodes.ACC_PROTECTED, StringConversionHelper.lowerCaseFirst(objectCollector, propertyInfo.getName()),

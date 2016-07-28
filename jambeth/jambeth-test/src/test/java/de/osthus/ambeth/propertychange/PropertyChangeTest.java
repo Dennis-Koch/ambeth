@@ -16,6 +16,7 @@ import de.osthus.ambeth.model.INotifyPropertyChangedSource;
 import de.osthus.ambeth.propertychange.PropertyChangeTest.PropertyChangeBridgeTestModule;
 import de.osthus.ambeth.testutil.AbstractInformationBusTest;
 import de.osthus.ambeth.testutil.TestModule;
+import de.osthus.ambeth.testutil.TestRebuildContext;
 
 /**
  * Shows the feature how a specific method of a bean can be bound to a PCE (=PropertyChangeEvent) of another (PCE-capable) bean. In this setup
@@ -23,6 +24,7 @@ import de.osthus.ambeth.testutil.TestModule;
  * 
  */
 @TestModule(PropertyChangeBridgeTestModule.class)
+@TestRebuildContext
 public class PropertyChangeTest extends AbstractInformationBusTest
 {
 	public static class PropertyChangeBridgeTestModule implements IInitializingModule
@@ -60,11 +62,14 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 		}
 	}
 
-	public static class Bean1
+	@PropertyChangeAspect
+	public static abstract class Bean1
 	{
 		public static final String MY_PROP_DELEGATE = "myProp";
 
 		public int myPropertyCallCount = 0, valueCallCount = 0;
+
+		public abstract void setValue(int value);
 
 		public void myProp(PropertyChangeEvent evt)
 		{
@@ -79,25 +84,36 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 		}
 	}
 
-	@PropertyChangeAspect
+	@PropertyChangeAspect(includeOldValue = false)
 	public static abstract class Bean2
 	{
 		public static final String MY_PROPERTY_PROP_NAME = "MyProperty";
+
+		@SuppressWarnings("unused")
+		private String ignorePrivateField;
+
+		protected String ignoreProtectedField;
+
+		public String ignorePublicField;
+
+		String ignorePackageField;
 
 		public abstract String getMyProperty();
 
 		public abstract void setMyProperty(String myProperty);
 	}
 
-	@PropertyChangeAspect
+	@PropertyChangeAspect(includeNewValue = false)
 	public static abstract class Bean3 extends Bean2 implements INotifyPropertyChangedSource
 	{
 		public static final String VALUE_PROP_NAME = "Value";
 
+		public abstract String getValue();
+
 		public int fireValue()
 		{
 			int newValue = 2;
-			getPropertyChangeSupport().firePropertyChange(this, VALUE_PROP_NAME, 1, newValue);
+			onPropertyChanged(VALUE_PROP_NAME, 1, newValue);
 			return newValue;
 		}
 	}
@@ -113,6 +129,80 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 
 	@Autowired
 	protected Bean3 bean3;
+
+	@Test
+	public void testIgnoredFields() throws Throwable
+	{
+		((INotifyPropertyChanged) bean2).addPropertyChangeListener(new PropertyChangeListener()
+		{
+			@Override
+			public void propertyChange(PropertyChangeEvent evt)
+			{
+				Assert.fail("Should never be called");
+			}
+		});
+		bean2.ignorePackageField = "1";
+		bean2.ignorePrivateField = "2";
+		bean2.ignoreProtectedField = "3";
+		bean2.ignorePublicField = "4";
+	}
+
+	@Test
+	public void testFireAutomatedNoListener() throws Throwable
+	{
+		bean1.setValue(5);
+	}
+
+	@Test
+	public void testFireExplicitNoListener() throws Throwable
+	{
+		((INotifyPropertyChangedSource) bean1).onPropertyChanged("Value", 0, 5);
+	}
+
+	@Test
+	public void testFireExplicitWithNewValue() throws Throwable
+	{
+		((INotifyPropertyChanged) bean1).addPropertyChangeListener(new PropertyChangeListener()
+		{
+			@Override
+			public void propertyChange(PropertyChangeEvent evt)
+			{
+				Assert.assertEquals(1, evt.getOldValue());
+				Assert.assertEquals(5, evt.getNewValue());
+			}
+		});
+		((INotifyPropertyChangedSource) bean1).onPropertyChanged("Value", 1, 5);
+	}
+
+	@Test
+	public void testFireExplicitWithoutOldValue() throws Throwable
+	{
+		((INotifyPropertyChanged) bean2).addPropertyChangeListener(new PropertyChangeListener()
+		{
+			@Override
+			public void propertyChange(PropertyChangeEvent evt)
+			{
+				Assert.assertNull(evt.getOldValue());
+				Assert.assertEquals("b", evt.getNewValue());
+			}
+		});
+		((INotifyPropertyChangedSource) bean2).onPropertyChanged("MyProperty", "a", "b");
+	}
+
+	@Test
+	public void testFireExplicitWithoutNewValue() throws Throwable
+	{
+		((INotifyPropertyChanged) bean3).addPropertyChangeListener(new PropertyChangeListener()
+		{
+			@Override
+			public void propertyChange(PropertyChangeEvent evt)
+			{
+				Assert.assertEquals("a", evt.getOldValue());
+				Assert.assertNull(evt.getNewValue());
+			}
+		});
+		((INotifyPropertyChangedSource) bean3).onPropertyChanged("MyProperty", "a", "b");
+	}
 
 	@Test
 	public void test() throws Throwable

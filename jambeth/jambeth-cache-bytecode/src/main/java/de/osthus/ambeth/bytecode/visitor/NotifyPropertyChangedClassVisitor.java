@@ -292,7 +292,7 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 		if (relationProperty)
 		{
 			// check if a setter call to an UNINITIALIZED relation occured with value null
-			// if it the case there would be no PCE because oldValue & newValue are both null
+			// if it is the case there would be no PCE because oldValue & newValue are both null
 			// but we need a PCE in this special case
 			Label l_noSpecialHandling = mg.newLabel();
 			FieldInstance f_state = getState().getAlreadyImplementedField(ValueHolderIEC.getInitializedFieldName(propertyInfo.getName()));
