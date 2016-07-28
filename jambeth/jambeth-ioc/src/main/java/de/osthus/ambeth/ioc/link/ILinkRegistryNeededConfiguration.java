@@ -1,5 +1,7 @@
 package de.osthus.ambeth.ioc.link;
 
+import de.osthus.ambeth.ioc.IServiceContext;
+
 /**
  * Second step of {@link ILinkExtendable} fluent interface for linking beans to registries.
  * 
@@ -8,6 +10,10 @@ package de.osthus.ambeth.ioc.link;
  */
 public interface ILinkRegistryNeededConfiguration<D>
 {
+	ILinkRegistryNeededConfiguration<D> toContext(String nameOfBeanContext);
+
+	ILinkRegistryNeededConfiguration<D> toContext(IServiceContext beanContext);
+
 	/**
 	 * Identifies the registry to use by its autowired type.
 	 * 

@@ -102,7 +102,7 @@ public class LinkContainerOld implements ILinkContainer, IInitializingBean
 	}
 
 	@Override
-	public void link()
+	public boolean link()
 	{
 		if (registry != null)
 		{
@@ -127,16 +127,17 @@ public class LinkContainerOld implements ILinkContainer, IInitializingBean
 		try
 		{
 			arguments[0] = listener;
-			this.addMethod.invoke(registry, arguments);
+			addMethod.invoke(registry, arguments);
 		}
 		catch (Throwable e)
 		{
 			throw RuntimeExceptionUtil.mask(e, "Attempt failed to register '" + listener + "' to '" + registry + "' with method " + addMethod);
 		}
+		return true;
 	}
 
 	@Override
-	public void unlink()
+	public boolean unlink()
 	{
 		if (registry == null)
 		{
@@ -145,7 +146,7 @@ public class LinkContainerOld implements ILinkContainer, IInitializingBean
 			{
 				log.debug("Unlink has been called without prior linking. If no other exception is visible in the logs then this may be a bug");
 			}
-			return;
+			return false;
 		}
 		Object listener = null;
 		try
@@ -164,7 +165,7 @@ public class LinkContainerOld implements ILinkContainer, IInitializingBean
 			}
 			ParamChecker.assertParamNotNull(listener, "listener");
 			arguments[0] = listener;
-			this.removeMethod.invoke(registry, arguments);
+			removeMethod.invoke(registry, arguments);
 		}
 		catch (Throwable e)
 		{
@@ -174,5 +175,6 @@ public class LinkContainerOld implements ILinkContainer, IInitializingBean
 		{
 			registry = null;
 		}
+		return true;
 	}
 }

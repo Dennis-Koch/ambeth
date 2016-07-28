@@ -224,7 +224,6 @@ public class LinkContainer extends AbstractLinkContainer
 		}
 		catch (Throwable e)
 		{
-			e.printStackTrace();
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -232,6 +231,10 @@ public class LinkContainer extends AbstractLinkContainer
 	@Override
 	protected void handleUnlink(Object registry, Object listener)
 	{
+		if (arguments.length == 0)
+		{
+			return;
+		}
 		arguments[0] = listener;
 		try
 		{

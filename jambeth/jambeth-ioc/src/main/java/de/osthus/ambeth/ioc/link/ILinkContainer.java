@@ -2,7 +2,7 @@ package de.osthus.ambeth.ioc.link;
 
 public interface ILinkContainer
 {
-	void link();
+	boolean link();
 
-	void unlink();
+	boolean unlink();
 }

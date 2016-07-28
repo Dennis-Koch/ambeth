@@ -119,9 +119,9 @@ public final class LoggerFactory
 				+ Math.max(Math.max(logLevelPropertyName.length(), logConsolePropertyName.length()), logSourcePropertyName.length()) + 1 + loggerName.length());
 		tempSB.append(loggerPrefix);
 
-		while (lastDot != -1)
+		while (true)
 		{
-			String prefixOfLoggerName = loggerName.substring(0, lastDot);
+			String prefixOfLoggerName = lastDot != -1 ? loggerName.substring(0, lastDot) : "";
 
 			if (logLevelValue == null)
 			{
@@ -165,6 +165,10 @@ public final class LoggerFactory
 					previousDot = a;
 					break;
 				}
+			}
+			if (lastDot == -1)
+			{
+				break;
 			}
 			lastDot = previousDot;
 		}
