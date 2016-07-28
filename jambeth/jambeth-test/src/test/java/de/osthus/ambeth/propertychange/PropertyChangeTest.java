@@ -2,10 +2,13 @@ package de.osthus.ambeth.propertychange;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.concurrent.CountDownLatch;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import de.osthus.ambeth.annotation.FireTargetOnPropertyChange;
+import de.osthus.ambeth.annotation.FireThisOnPropertyChange;
 import de.osthus.ambeth.annotation.PropertyChangeAspect;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -41,6 +44,8 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 
 			beanContextFactory.link(simplePCEListenerBean).to(bean2, INotifyPropertyChanged.class);
 			beanContextFactory.link(simplePCEListenerBean).to(bean3, INotifyPropertyChanged.class);
+
+			beanContextFactory.registerBean(Bean4.class).autowireable(Bean4.class);
 		}
 	}
 
@@ -118,6 +123,26 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 		}
 	}
 
+	@PropertyChangeAspect
+	public static abstract class Bean4
+	{
+		@FireThisOnPropertyChange("Value2")
+		@FireTargetOnPropertyChange("ValueTarget")
+		public String getValue()
+		{
+			return getValue2() + "X";
+		}
+
+		public String getValueTarget()
+		{
+			return getValue2() + "Y";
+		}
+
+		public abstract String getValue2();
+
+		public abstract void setValue2(String value2);
+	}
+
 	@Autowired
 	protected SimplePCEListenerBean simplePCEListenerBean;
 
@@ -129,6 +154,9 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 
 	@Autowired
 	protected Bean3 bean3;
+
+	@Autowired
+	protected Bean4 bean4;
 
 	@Test
 	public void testIgnoredFields() throws Throwable
@@ -202,6 +230,31 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 			}
 		});
 		((INotifyPropertyChangedSource) bean3).onPropertyChanged("MyProperty", "a", "b");
+	}
+
+	@Test
+	public void testFireThisOnPropertyChange() throws Throwable
+	{
+		final CountDownLatch valueLatch = new CountDownLatch(1);
+		final CountDownLatch valueTargetLatch = new CountDownLatch(1);
+		((INotifyPropertyChanged) bean4).addPropertyChangeListener(new PropertyChangeListener()
+		{
+			@Override
+			public void propertyChange(PropertyChangeEvent evt)
+			{
+				if (evt.getPropertyName().equals("Value"))
+				{
+					valueLatch.countDown();
+				}
+				if (evt.getPropertyName().equals("ValueTarget"))
+				{
+					valueTargetLatch.countDown();
+				}
+			}
+		});
+		bean4.setValue2("value2");
+		Assert.assertEquals(0, valueLatch.getCount());
+		Assert.assertEquals(0, valueTargetLatch.getCount());
 	}
 
 	@Test

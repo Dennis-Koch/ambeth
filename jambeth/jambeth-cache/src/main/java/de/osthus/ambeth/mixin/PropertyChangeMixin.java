@@ -98,8 +98,8 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 				includeNewValue = null;
 				includeOldValue = null;
 			}
-			doesModifyToBeUpdated = !prop.isAnnotationPresent(IgnoreToBeUpdated.class);
-			isParentChildSetter = prop.isAnnotationPresent(ParentChild.class);
+			doesModifyToBeUpdated = IDataObject.class.isAssignableFrom(type) && !prop.isAnnotationPresent(IgnoreToBeUpdated.class);
+			isParentChildSetter = IDataObject.class.isAssignableFrom(type) && prop.isAnnotationPresent(ParentChild.class);
 			isAddedRemovedCheckNecessary = !prop.getPropertyType().isPrimitive() && ImmutableTypeSet.getUnwrappedType(prop.getPropertyType()) == null
 					&& !String.class.equals(prop.getPropertyType());
 
@@ -237,11 +237,11 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 
 	public void handleParentChildPropertyChange(INotifyPropertyChangedSource obj, PropertyChangeEvent evnt)
 	{
-		if (cacheModification.isActiveOrFlushingOrInternalUpdate())
+		if (!(obj instanceof IDataObject))
 		{
 			return;
 		}
-		if (!(obj instanceof IDataObject))
+		if (cacheModification.isActiveOrFlushingOrInternalUpdate())
 		{
 			return;
 		}
