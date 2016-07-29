@@ -43,6 +43,12 @@ public class Tuple4KeyHashMap<Key1, Key2, Key3, Key4, V> extends AbstractTuple4K
 		super(initialCapacity, loadFactor);
 	}
 
+	public Tuple4KeyHashMap(AbstractTuple4KeyHashMap<? extends Key1, ? extends Key2, ? extends Key3, ? extends Key4, ? extends V> map)
+	{
+		this((int) (map.size() / DEFAULT_LOAD_FACTOR) + 1, DEFAULT_LOAD_FACTOR);
+		putAll(map);
+	}
+
 	@Override
 	protected Tuple4KeyEntry<Key1, Key2, Key3, Key4, V> createEntry(int hash, Key1 key1, Key2 key2, Key3 key3, Key4 key4, V value,
 			final Tuple4KeyEntry<Key1, Key2, Key3, Key4, V> nextEntry)

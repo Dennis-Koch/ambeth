@@ -43,6 +43,12 @@ public class Tuple5KeyHashMap<Key1, Key2, Key3, Key4, Key5, V> extends AbstractT
 		super(initialCapacity, loadFactor);
 	}
 
+	public Tuple5KeyHashMap(AbstractTuple5KeyHashMap<? extends Key1, ? extends Key2, ? extends Key3, ? extends Key4, ? extends Key5, ? extends V> map)
+	{
+		this((int) (map.size() / DEFAULT_LOAD_FACTOR) + 1, DEFAULT_LOAD_FACTOR);
+		putAll(map);
+	}
+
 	@Override
 	protected Tuple5KeyEntry<Key1, Key2, Key3, Key4, Key5, V> createEntry(int hash, Key1 key1, Key2 key2, Key3 key3, Key4 key4, Key5 key5, V value,
 			final Tuple5KeyEntry<Key1, Key2, Key3, Key4, Key5, V> nextEntry)

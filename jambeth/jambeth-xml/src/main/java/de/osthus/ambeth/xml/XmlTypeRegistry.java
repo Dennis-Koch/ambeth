@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import de.osthus.ambeth.collections.AbstractTuple2KeyHashMap;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.Tuple2KeyHashMap;
@@ -79,6 +80,21 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 		registerXmlType(List.class, "ListG", null);
 		registerXmlType(Set.class, "SetG", null);
 		registerXmlType(Date.class, "Date", null);
+	}
+
+	@Override
+	public AbstractTuple2KeyHashMap<String, String, Class<?>> createSnapshot()
+	{
+		Lock readLock = this.readLock;
+		readLock.lock();
+		try
+		{
+			return new Tuple2KeyHashMap<String, String, Class<?>>(xmlTypeToClassMap);
+		}
+		finally
+		{
+			readLock.unlock();
+		}
 	}
 
 	@Override
