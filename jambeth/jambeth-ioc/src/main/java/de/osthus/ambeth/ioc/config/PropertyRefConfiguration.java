@@ -11,30 +11,16 @@ public class PropertyRefConfiguration extends AbstractPropertyConfiguration
 
 	protected boolean optional;
 
-	public PropertyRefConfiguration(IBeanConfiguration parentBeanConfiguration, String propertyName, String beanName, IProperties props)
-	{
-		this(parentBeanConfiguration, propertyName, beanName, false, props);
-	}
+	private String fromContext;
 
-	public PropertyRefConfiguration(IBeanConfiguration parentBeanConfiguration, String propertyName, String beanName, boolean optional, IProperties props)
+	public PropertyRefConfiguration(IBeanConfiguration parentBeanConfiguration, String propertyName, String fromContext, String beanName, boolean optional,
+			IProperties props)
 	{
 		super(parentBeanConfiguration, props);
 		ParamChecker.assertParamNotNull(propertyName, "propertyName");
 		ParamChecker.assertParamNotNull(beanName, "beanName");
 		this.propertyName = propertyName;
-		this.beanName = beanName;
-		this.optional = optional;
-	}
-
-	public PropertyRefConfiguration(IBeanConfiguration parentBeanConfiguration, String beanName, IProperties props)
-	{
-		this(parentBeanConfiguration, beanName, false, props);
-	}
-
-	public PropertyRefConfiguration(IBeanConfiguration parentBeanConfiguration, String beanName, boolean optional, IProperties props)
-	{
-		super(parentBeanConfiguration, props);
-		ParamChecker.assertParamNotNull(beanName, "beanName");
+		this.fromContext = fromContext;
 		this.beanName = beanName;
 		this.optional = optional;
 	}
@@ -43,6 +29,12 @@ public class PropertyRefConfiguration extends AbstractPropertyConfiguration
 	public String getPropertyName()
 	{
 		return propertyName;
+	}
+
+	@Override
+	public String getFromContext()
+	{
+		return fromContext;
 	}
 
 	@Override

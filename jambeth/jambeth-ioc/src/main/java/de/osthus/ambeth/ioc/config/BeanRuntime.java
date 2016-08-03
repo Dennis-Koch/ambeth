@@ -80,6 +80,13 @@ public class BeanRuntime<V> implements IBeanRuntime<V>
 	}
 
 	@Override
+	public IBeanRuntime<V> propertyRefFromContext(String propertyName, String fromContext, String beanName)
+	{
+		beanConfiguration.propertyRefFromContext(propertyName, fromContext, beanName);
+		return this;
+	}
+
+	@Override
 	public IBeanRuntime<V> propertyRef(String propertyName, IBeanConfiguration bean)
 	{
 		beanConfiguration.propertyRef(propertyName, bean);

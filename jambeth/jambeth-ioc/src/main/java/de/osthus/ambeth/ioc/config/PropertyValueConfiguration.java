@@ -22,6 +22,12 @@ public class PropertyValueConfiguration extends AbstractPropertyConfiguration
 	}
 
 	@Override
+	public String getFromContext()
+	{
+		return null;
+	}
+
+	@Override
 	public String getBeanName()
 	{
 		return null;

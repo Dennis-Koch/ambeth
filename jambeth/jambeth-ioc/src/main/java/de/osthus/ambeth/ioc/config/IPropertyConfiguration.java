@@ -27,6 +27,13 @@ public interface IPropertyConfiguration
 	String getPropertyName();
 
 	/**
+	 * Getter for the name of the IoC context where the bean to inject on the property has to be looked up.
+	 * 
+	 * @return Bean name of the IoC context.
+	 */
+	String getFromContext();
+
+	/**
 	 * Getter for the name of the target been. Even unnamed beans are referred to by the IoC container by a generated name.
 	 * 
 	 * @return Bean name.

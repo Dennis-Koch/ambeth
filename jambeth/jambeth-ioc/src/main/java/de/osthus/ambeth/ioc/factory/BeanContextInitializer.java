@@ -1050,14 +1050,38 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 
 		String refBeanName = propertyConf.getBeanName();
 
-		// Module beans are only allowed to demand beans from the parent
-		// context
-		Object refBean = beanContext.getDirectBean(refBeanName);
-		if (refBean != null && objectToBeanConfigurationMap != null && objectToBeanConfigurationMap.containsKey(refBean))
+		Object refBean;
+		if (propertyConf.getFromContext() != null)
 		{
-			initializeBean(beanContextInit, refBean);
+			Object refBeanContext = beanContext.getDirectBean(propertyConf.getFromContext());
+			if (refBeanContext == null)
+			{
+				throw maskBeanBasedException("IoC context bean '" + propertyConf.getFromContext() + "' not found to look for target bean", beanConfiguration,
+						propertyConf);
+			}
+			beanContext = (ServiceContext) refBeanContext;
+			refBean = beanContext.getServiceIntern(refBeanName, Object.class, SearchType.CASCADE);
 		}
-		refBean = beanContext.getServiceIntern(refBeanName, Object.class, isHighPriorityBean(bean) ? SearchType.PARENT : SearchType.CASCADE);
+		else
+		{
+			// Module beans are only allowed to demand beans from the parent
+			// context
+			refBean = beanContext.getDirectBean(refBeanName);
+			if (refBean != null && objectToBeanConfigurationMap != null && objectToBeanConfigurationMap.containsKey(refBean))
+			{
+				initializeBean(beanContextInit, refBean);
+			}
+			refBean = beanContext.getServiceIntern(refBeanName, Object.class, isHighPriorityBean(bean) ? SearchType.PARENT : SearchType.CASCADE);
+			if (refBean != null)
+			{
+				IBeanConfiguration refBeanConfiguration = beanContextInit.objectToBeanConfigurationMap.get(refBean);
+				if (refBeanConfiguration != null)
+				{
+					// Object is not yet initialized. We try to do this before we use it
+					initializeBean(beanContextInit, refBean);
+				}
+			}
+		}
 		if (refBean == null)
 		{
 			if (propertyConf.isOptional())
@@ -1074,12 +1098,6 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 				message = "Bean '" + refBeanName + "' not found to look for autoresolve property";
 			}
 			throw maskBeanBasedException(message, beanConfiguration, propertyConf);
-		}
-		IBeanConfiguration refBeanConfiguration = beanContextInit.objectToBeanConfigurationMap.get(refBean);
-		if (refBeanConfiguration != null)
-		{
-			// Object is not yet initialized. We try to do this before we use it
-			initializeBean(beanContextInit, refBean);
 		}
 		if (propertyConf.getPropertyName() == null)
 		{
