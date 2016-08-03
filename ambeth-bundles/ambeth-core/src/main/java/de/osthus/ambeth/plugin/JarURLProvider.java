@@ -119,7 +119,7 @@ public class JarURLProvider implements IJarURLProvider, IInitializingBean
 		List<URL> result = new ArrayList<URL>();
 		for (File file : listFiles)
 		{
-			if (checkJar(dir))
+			if (checkJar(file))
 			{
 				result.add(file.toURI().toURL());
 			}
