@@ -1,7 +1,6 @@
 package de.osthus.ambeth.garbageproxy;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -9,6 +8,8 @@ import de.osthus.ambeth.accessor.AccessorClassLoader;
 import de.osthus.ambeth.accessor.IAccessorTypeProvider;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.ISet;
+import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.collections.Tuple2KeyEntry;
 import de.osthus.ambeth.collections.Tuple2KeyHashMap;
 import de.osthus.ambeth.ioc.IInitializingBean;
@@ -136,15 +137,19 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 		String classNameInternal = className.replace('.', '/');
 		Type abstractType = Type.getType(GCProxy.class);
 
-		ArrayList<Class<?>> interfaceClasses = new ArrayList<Class<?>>();
+		LinkedHashSet<Class<?>> interfaceClasses = new LinkedHashSet<Class<?>>();
 		ArrayList<Type> interfaceTypes = new ArrayList<Type>();
 		ArrayList<String> interfaceNames = new ArrayList<String>();
-		interfaceTypes.add(Type.getType(proxyType));
-		interfaceClasses.add(proxyType);
+		if (interfaceClasses.add(proxyType))
+		{
+			interfaceTypes.add(Type.getType(proxyType));
+		}
 		for (Class<?> additionalProxyType : additionalProxyTypes)
 		{
-			interfaceTypes.add(Type.getType(additionalProxyType));
-			interfaceClasses.add(additionalProxyType);
+			if (interfaceClasses.add(additionalProxyType))
+			{
+				interfaceTypes.add(Type.getType(additionalProxyType));
+			}
 		}
 		for (Type interfaceType : interfaceTypes)
 		{
@@ -252,11 +257,10 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 		return loader.defineClass(className, data);
 	}
 
-	private boolean isAssignableFrom(Class<?> returnType, List<Class<?>> interfaceClasses)
+	private boolean isAssignableFrom(Class<?> returnType, ISet<Class<?>> interfaceClasses)
 	{
-		for (int a = interfaceClasses.size(); a-- > 0;)
+		for (Class<?> interfaceClass : interfaceClasses)
 		{
-			Class<?> interfaceClass = interfaceClasses.get(a);
 			if (returnType.isAssignableFrom(interfaceClass))
 			{
 				return true;

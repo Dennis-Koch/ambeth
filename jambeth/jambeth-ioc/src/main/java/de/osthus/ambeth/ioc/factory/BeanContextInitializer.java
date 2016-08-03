@@ -41,6 +41,7 @@ import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IPropertyLoadingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.IServiceContextIntern;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.IStartingModule;
 import de.osthus.ambeth.ioc.ServiceContext;
@@ -522,13 +523,36 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			{
 				beanName = null;
 			}
-			Object refBean = resolveBean(beanName, propertyType, highPriorityBean, beanContextInit);
+			String fromContext = autowired != null ? autowired.fromContext() : null;
+			if (fromContext != null && fromContext.length() == 0)
+			{
+				fromContext = null;
+			}
+			Object refBean = resolveBean(fromContext, beanName, propertyType, highPriorityBean, beanContextInit);
 			if (refBean == null)
 			{
 				if (autowired != null && !autowired.optional())
 				{
-					throw maskBeanBasedException("Could not resolve mandatory autowiring constraint on property '" + prop.getName() + "' of type '"
-							+ propertyType.getName() + "'", beanConfiguration, null);
+					StringBuilder sb = new StringBuilder();
+					sb.append("Could not resolve mandatory autowiring constraint on property '").append(prop.getName()).append("' of type '")
+							.append(propertyType.getName()).append('\'');
+					if (fromContext != null)
+					{
+						sb.append(", lookup-context=CURRENT");
+					}
+					else
+					{
+						sb.append(", lookup-context=").append(fromContext);
+					}
+					if (beanName != null)
+					{
+						sb.append(", lookup-bean-name=").append(beanName);
+					}
+					else
+					{
+						sb.append(", lookup-bean-type=").append(propertyType.getName());
+					}
+					throw maskBeanBasedException(sb.toString(), beanConfiguration, null);
 				}
 				continue;
 			}
@@ -536,13 +560,22 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		}
 	}
 
-	protected Object resolveBean(String beanName, Class<?> propertyType, boolean isHighPriorityBean, BeanContextInit beanContextInit)
+	protected Object resolveBean(String fromContext, String beanName, Class<?> propertyType, boolean isHighPriorityBean, BeanContextInit beanContextInit)
 	{
-		ServiceContext beanContext = beanContextInit.beanContext;
+		IServiceContextIntern beanContext = beanContextInit.beanContext;
 		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = beanContextInit.objectToBeanConfigurationMap;
 		// Module beans are only allowed to demand beans from the parent
 		// context
 
+		if (fromContext != null)
+		{
+			IServiceContextIntern refFromContext = (IServiceContextIntern) beanContext.getDirectBean(fromContext);
+			if (refFromContext == null)
+			{
+				return null;
+			}
+			beanContext = refFromContext;
+		}
 		Object refBean = beanName != null ? beanContext.getDirectBean(beanName) : beanContext.getDirectBean(propertyType);
 		if (refBean != null && objectToBeanConfigurationMap != null && objectToBeanConfigurationMap.containsKey(refBean))
 		{

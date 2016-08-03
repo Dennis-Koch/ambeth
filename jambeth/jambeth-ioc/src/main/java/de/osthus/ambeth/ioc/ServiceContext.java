@@ -838,6 +838,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		}
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T getServiceIntern(Class<T> serviceType, SearchType searchType)
 	{
@@ -870,12 +871,14 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		return (T) service;
 	}
 
+	@Override
 	public Object getDirectBean(Class<?> serviceType)
 	{
 		checkNotDisposed();
 		return typeToServiceDict.get(serviceType);
 	}
 
+	@Override
 	public Object getDirectBean(String beanName)
 	{
 		checkNotDisposed();
@@ -886,6 +889,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		return nameToServiceDict.get(beanName);
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T getServiceIntern(String serviceName, Class<T> serviceType, SearchType searchType)
 	{

@@ -5,13 +5,16 @@ import org.junit.Test;
 
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.IocModule;
 import de.osthus.ambeth.ioc.exception.BeanContextInitException;
+import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.testutil.AbstractIocTest;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestRebuildContext;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 
 @TestRebuildContext
 public class AutowiredTest extends AbstractIocTest
@@ -44,6 +47,17 @@ public class AutowiredTest extends AbstractIocTest
 		@Autowired(bean1Name)
 		protected Bean1 bean1Autowired;
 	}
+
+	public static class Bean5
+	{
+		@Autowired(value = bean1Name, fromContext = fromContextName)
+		protected Bean1 bean1AutowiredForeignContext;
+
+		@Autowired(value = bean1Name)
+		protected Bean1 bean1Autowired;
+	}
+
+	public static final String fromContextName = "otherContext";
 
 	public static final String bean1Name = "bean1", bean2Name = "bean2", bean3Name = "bean3", bean4Name = "bean4";
 
@@ -163,5 +177,37 @@ public class AutowiredTest extends AbstractIocTest
 
 		Assert.assertSame(beanContext, bean.getBeanContextPublic());
 		Assert.assertSame(beanContext, bean.getBeanContextPublicSetter());
+	}
+
+	@Test
+	@TestModule(AutowiredTestModule.class)
+	public void testAutowiredFromContext()
+	{
+		IServiceContext otherContext = BeanContextFactory.createBootstrap(IocModule.class).createService(
+				new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
+				{
+					@Override
+					public void invoke(IBeanContextFactory state) throws Throwable
+					{
+						state.registerExternalBean(fromContextName, beanContext);
+
+						state.registerBean(Bean5.class).autowireable(Bean5.class);
+					}
+				}, AutowiredTestModule.class);
+		try
+		{
+			Bean5 bean5 = otherContext.getService(Bean5.class);
+
+			Bean1 bean1 = beanContext.getService(bean1Name, Bean1.class);
+			Bean1 otherBean1 = otherContext.getService(bean1Name, Bean1.class);
+
+			Assert.assertNotSame(bean1, otherBean1);
+			Assert.assertSame(otherBean1, bean5.bean1Autowired);
+			Assert.assertSame(bean1, bean5.bean1AutowiredForeignContext);
+		}
+		finally
+		{
+			otherContext.getRoot().dispose();
+		}
 	}
 }
