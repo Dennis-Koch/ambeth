@@ -1,7 +1,6 @@
 package de.osthus.ambeth.ioc.config;
 
 import de.osthus.ambeth.config.IProperties;
-import de.osthus.ambeth.util.ParamChecker;
 
 public class PropertyRefConfiguration extends AbstractPropertyConfiguration
 {
@@ -17,8 +16,6 @@ public class PropertyRefConfiguration extends AbstractPropertyConfiguration
 			IProperties props)
 	{
 		super(parentBeanConfiguration, props);
-		ParamChecker.assertParamNotNull(propertyName, "propertyName");
-		ParamChecker.assertParamNotNull(beanName, "beanName");
 		this.propertyName = propertyName;
 		this.fromContext = fromContext;
 		this.beanName = beanName;
