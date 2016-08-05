@@ -140,7 +140,6 @@
 			<artifactId>jambeth-persistence-oracle11-test</artifactId>
 		</dependency>
 		
-		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence-pg</artifactId>
@@ -148,6 +147,15 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence-pg-test</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-persistence-sqlite</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-persistence-sqlite-test</artifactId>
 		</dependency>
 
 		<dependency>
