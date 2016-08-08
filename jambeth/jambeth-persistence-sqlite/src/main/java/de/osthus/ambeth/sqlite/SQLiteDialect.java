@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
+import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -343,30 +344,7 @@ public class SQLiteDialect extends AbstractConnectionDialect
 	@Override
 	public List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames) throws SQLException
 	{
-		// TODO
-		throw new UnsupportedOperationException("Not yet implemented");
-		//
-		// List<String> allTableNames = new ArrayList<String>();
-		//
-		// Statement stmt = null;
-		// ResultSet rs = null;
-		// try
-		// {
-		// stmt = connection.createStatement();
-		// rs = stmt.executeQuery("SELECT t.table_schema || '.' || t.table_name FROM information_schema.tables t WHERE t.table_schema"
-		// + buildSchemaInClause(schemaNames));
-		// while (rs.next())
-		// {
-		// String fqTableName = rs.getString(1);
-		// allTableNames.add(fqTableName);
-		// }
-		// }
-		// finally
-		// {
-		// JdbcUtil.close(stmt, rs);
-		// }
-		//
-		// return allTableNames;
+		return queryDefault(connection, "FULL_NAME", "SELECT tbl_name AS FULL_NAME FROM sqlite_master where type='table'");
 	}
 
 	@Override
@@ -470,55 +448,40 @@ public class SQLiteDialect extends AbstractConnectionDialect
 	@Override
 	public String prepareCommand(String sqlCommand)
 	{
-		Pattern pattern = Pattern.compile(" *create or replace TYPE ([^ ]+) AS VARRAY\\(\\d+\\) OF +(.+)", Pattern.CASE_INSENSITIVE);
-		Matcher matcher = pattern.matcher(sqlCommand);
+		Pattern seqPattern = Pattern.compile("CREATE\\s+SEQUENCE\\s+([\\S]+)\\s+(.+)");
+		Matcher matcher = seqPattern.matcher(sqlCommand);
 		if (matcher.matches())
 		{
-			String arrayTypeName = matcher.group(1);
-			if (arrayTypeName.equalsIgnoreCase("STRING_ARRAY"))
-			{
-				return "";
-			}
+			String seqName = matcher.group(1);
+			return "CREATE TABLE " + seqName + " (integer curr_value)";
 		}
-
-		sqlCommand = prepareCommandIntern(sqlCommand, " BLOB", " LO");
-		sqlCommand = prepareCommandIntern(sqlCommand, " CLOB", " TEXT");
-
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1 *, *0 *\\)", " BOOLEAN");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1 *, *0 *\\)", " INTEGER");
 		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *[0-9] *, *0 *\\)", " INTEGER");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1[0,1,2,3,4,5,6,7,8] *, *0 *\\)", " BIGINT");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\d+ *\\, *\\d+ *\\)", " NUMERIC");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\* *\\, *\\d+ *\\)", " NUMERIC");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\d+ *\\)", " NUMERIC");
-		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " NUMBER([^\"])", " NUMERIC\\2");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1[0,1,2,3,4,5,6,7,8] *, *0 *\\)", " INTEGER");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\d+ *\\, *\\d+ *\\)", " REAL");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\* *\\, *\\d+ *\\)", " REAL");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\d+ *\\)", " REAL");
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " NUMBER([^\"])", " REAL");
 		// sqlCommand = prepareCommandIntern(sqlCommand, "(?: |\")NUMBER *\\(", " NUMERIC\\(");
 
-		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR *\\( *(\\d+) +CHAR *\\)", " VARCHAR(\\2)");
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR *\\( *(\\d+) +CHAR *\\)", " TEXT");
 
-		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR2 *\\( *(\\d+) +BYTE\\)", " VARCHAR(\\2)");
-		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR2 *\\( *(\\d+) +CHAR\\)", " VARCHAR(\\2)");
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR2 *\\( *(\\d+) +BYTE\\)", " TEXT");
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR2 *\\( *(\\d+) +CHAR\\)", " TEXT");
 
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " PRIMARY KEY (\\([^\\)]+\\)) USING INDEX", " PRIMARY KEY \\2");
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " PRIMARY KEY (\\([^\\)]+\\)) USING INDEX", " PRIMARY KEY \\2");
 
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, "([^a-zA-Z0-9])STRING_ARRAY([^a-zA-Z0-9])", "\\2TEXT[]\\3");
-
-		sqlCommand = prepareCommandIntern(sqlCommand, " NOORDER", "");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NOCYCLE", "");
-		sqlCommand = prepareCommandIntern(sqlCommand, " USING +INDEX", "");
-
-		sqlCommand = prepareCommandIntern(sqlCommand, " 999999999999999999999999999 ", " 9223372036854775807 ");
-
-		sqlCommand = prepareCommandIntern(sqlCommand, "\\s+TABLESPACE\\s+[a-zA-Z0-9_]+", " ");
-		// Pattern tablespacePattern = Pattern.compile("CREATE\\s+TABLESPACE\\s+([\\S]+)\\s*.*\\sDATAFILE\\s+'([^']+)'.*", Pattern.CASE_INSENSITIVE);
-		// Matcher tablespaceMatcher = tablespacePattern.matcher(sqlCommand);
-		// if (tablespaceMatcher.matches())
-		// {
-		// String tablespace = tablespaceMatcher.group(1);
-		// String file = tablespaceMatcher.group(2);
-		//
-		// sqlCommand = "CREATE TABLESPACE " + tablespace + " LOCATION '" + file + "'";
-		// }
+		if (sqlCommand.endsWith(" CASCADE"))
+		{
+			sqlCommand = sqlCommand.substring(0, sqlCommand.length() - " CASCADE".length());
+		}
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, "to_timestamp\\('([^']+)','([^']+)'\\)", "strftime('%s','\\2')");
+		if (sqlCommand.startsWith("CREATE OR REPLACE TYPE "))
+		{
+			return "";
+		}
 		return sqlCommand;
 	}
 
@@ -529,6 +492,21 @@ public class SQLiteDialect extends AbstractConnectionDialect
 				.propertyValue("Operand", operand)//
 				.propertyValue("ValueOperand", operand)//
 				.finish();
+	}
+
+	@Override
+	protected ConnectionKeyValue preProcessConnectionIntern(Connection connection, String[] schemaNames, boolean forcePreProcessing) throws SQLException
+	{
+		Statement stm = connection.createStatement();
+		try
+		{
+			stm.execute("PRAGMA foreign_keys = ON");
+		}
+		finally
+		{
+			JdbcUtil.close(stm);
+		}
+		return super.preProcessConnectionIntern(connection, schemaNames, forcePreProcessing);
 	}
 
 	// @Override

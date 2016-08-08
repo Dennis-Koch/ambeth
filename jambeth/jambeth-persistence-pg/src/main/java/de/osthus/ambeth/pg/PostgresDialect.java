@@ -69,6 +69,8 @@ public class PostgresDialect extends AbstractConnectionDialect
 
 	public static final Pattern IDX_TABLE_NAME = Pattern.compile("DR\\$.*?\\$.", Pattern.CASE_INSENSITIVE);
 
+	private static final Pattern pattern = Pattern.compile(" *create or replace TYPE ([^ ]+) AS VARRAY\\(\\d+\\) OF +(.+)", Pattern.CASE_INSENSITIVE);
+
 	protected static final LinkedHashMap<Class<?>, String[]> typeToArrayTypeNameMap = new LinkedHashMap<Class<?>, String[]>(128, 0.5f);
 
 	protected static final LinkedHashMap<String, Class<?>> arrayTypeNameToTypeMap = new LinkedHashMap<String, Class<?>>(128, 0.5f);
@@ -699,7 +701,6 @@ public class PostgresDialect extends AbstractConnectionDialect
 	@Override
 	public String prepareCommand(String sqlCommand)
 	{
-		Pattern pattern = Pattern.compile(" *create or replace TYPE ([^ ]+) AS VARRAY\\(\\d+\\) OF +(.+)", Pattern.CASE_INSENSITIVE);
 		Matcher matcher = pattern.matcher(sqlCommand);
 		if (matcher.matches())
 		{

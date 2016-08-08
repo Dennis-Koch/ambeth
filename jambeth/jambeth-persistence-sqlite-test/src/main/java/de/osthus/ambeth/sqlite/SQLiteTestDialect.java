@@ -5,63 +5,41 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.appendable.AppendableStringBuilder;
+import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IocModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
-import de.osthus.ambeth.orm.IOrmPatternMatcher;
-import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
+import de.osthus.ambeth.persistence.PermissionGroup;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionTestDialect;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.sqlite.RandomUserScript.RandomUserModule;
 
-public class SQLiteTestDialect extends AbstractConnectionTestDialect implements IInitializingBean
+public class SQLiteTestDialect extends AbstractConnectionTestDialect
 {
 	public static final String ROOT_DATABASE_USER = "ambeth.root.database.user";
 
 	public static final String ROOT_DATABASE_PASS = "ambeth.root.database.pass";
 
 	@Autowired
-	protected IOrmPatternMatcher ormPatternMatcher;
-
-	@Autowired
 	protected ISqlBuilder sqlBuilder;
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseTableIgnore, mandatory = false)
-	protected String ignoredTableProperty;
 
 	@Property(name = ROOT_DATABASE_USER, defaultValue = "postgres")
 	protected String rootDatabaseUser;
 
 	@Property(name = ROOT_DATABASE_PASS, defaultValue = "developer")
 	protected String rootDatabasePass;
-
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName)
-	protected String schemaName;
-
-	protected String[] schemaNames;
-
-	protected final HashSet<String> ignoredTables = new HashSet<String>();
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		if (ignoredTableProperty != null)
-		{
-			ignoredTables.addAll(connectionDialect.toDefaultCase(ignoredTableProperty).split("[;:]"));
-		}
-		schemaNames = connectionDialect.toDefaultCase(schemaName).split("[:;]");
-	}
 
 	@Override
 	public boolean createTestUserIfSupported(Throwable reason, String userName, String userPassword, IProperties testProps) throws SQLException
@@ -128,261 +106,128 @@ public class SQLiteTestDialect extends AbstractConnectionTestDialect implements 
 	public boolean isEmptySchema(Connection connection) throws SQLException
 	{
 		DatabaseMetaData metaData = connection.getMetaData();
-		for (String schemaName : schemaNames)
+		ResultSet tables = metaData.getTables(null, null, null, null);
+		try
 		{
-			ResultSet tables = metaData.getTables(null, schemaName, null, null);
-			try
-			{
-				if (tables.next())
-				{
-					return false;
-				}
-			}
-			finally
-			{
-				tables.close();
-			}
+			return !tables.next();
 		}
-		return true;
+		finally
+		{
+			tables.close();
+		}
 	}
 
 	@Override
 	public String[] createOptimisticLockTrigger(Connection connection, String fqTableName) throws SQLException
 	{
-		// TODO
-		throw new UnsupportedOperationException("Not yet implemented");
-		// String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
-		// ArrayList<String> tableColumns = new ArrayList<String>();
-		// ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
-		// try
-		// {
-		// while (tableColumnsRS.next())
-		// {
-		// String columnName = tableColumnsRS.getString("COLUMN_NAME");
-		// if (columnName.equalsIgnoreCase(PermissionGroup.permGroupIdNameOfData))
-		// {
-		// continue;
-		// }
-		// int columnType = tableColumnsRS.getInt("DATA_TYPE");
-		// if (java.sql.Types.CLOB == columnType || java.sql.Types.BLOB == columnType)
-		// {
-		// // ORA-25006: cannot specify this column in UPDATE OF clause
-		// // lobs have a lob locator as a pointer to the internal technical lob storage. the lob locator is never changed when a lob is initialized or
-		// // updated
-		// continue;
-		// }
-		// tableColumns.add(columnName);
-		// }
-		// }
-		// finally
-		// {
-		// JdbcUtil.close(tableColumnsRS);
-		// }
-		// int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
-		// String triggerName = ormPatternMatcher.buildOptimisticLockTriggerFromTableName(fqTableName, maxProcedureNameLength);
-		//
-		// String functionName = "f_" + triggerName;
-		// String[] sql = new String[2];
-		// {
-		// AppendableStringBuilder sb = new AppendableStringBuilder();
-		// sb.append("CREATE OR REPLACE FUNCTION ").append(functionName).append("() RETURNS TRIGGER AS $").append(functionName).append("$\n");
-		// sb.append(" BEGIN\n");
-		// sb.append("  IF NEW.\"").append("VERSION").append("\" <= OLD.\"").append("VERSION").append("\" THEN\n");
-		// sb.append("  RAISE EXCEPTION '").append(Integer.toString(PostgresDialect.getOptimisticLockErrorCode())).append(" Optimistic Lock Exception';\n");
-		// sb.append("  END IF;\n");
-		// sb.append("  RETURN NEW;");
-		// sb.append(" END;\n");
-		// sb.append("$").append(functionName).append("$ LANGUAGE plpgsql COST 1");
-		// sql[0] = sb.toString();
-		// }
-		// {
-		// AppendableStringBuilder sb = new AppendableStringBuilder();
-		//
-		// sb.append("CREATE TRIGGER \"").append(triggerName);
-		// sb.append("\" BEFORE UPDATE");
-		// if (tableColumns.size() > 0)
-		// {
-		// sb.append(" OF ");
-		// for (int a = 0, size = tableColumns.size(); a < size; a++)
-		// {
-		// if (a > 0)
-		// {
-		// sb.append(',');
-		// }
-		// sqlBuilder.escapeName(tableColumns.get(a), sb);
-		// }
-		// }
-		// sb.append(" ON \"").append(names[1]).append("\" FOR EACH ROW EXECUTE PROCEDURE ").append(functionName).append("()");
-		// sql[1] = sb.toString();
-		// }
-		// return sql;
+		String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
+		ArrayList<String> tableColumns = new ArrayList<String>();
+		ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
+		try
+		{
+			while (tableColumnsRS.next())
+			{
+				String columnName = tableColumnsRS.getString("COLUMN_NAME");
+				if (columnName.equalsIgnoreCase(PermissionGroup.permGroupIdNameOfData))
+				{
+					continue;
+				}
+				int columnType = tableColumnsRS.getInt("DATA_TYPE");
+				if (java.sql.Types.CLOB == columnType || java.sql.Types.BLOB == columnType)
+				{
+					// ORA-25006: cannot specify this column in UPDATE OF clause
+					// lobs have a lob locator as a pointer to the internal technical lob storage. the lob locator is never changed when a lob is initialized or
+					// updated
+					continue;
+				}
+				tableColumns.add(columnName);
+			}
+		}
+		finally
+		{
+			JdbcUtil.close(tableColumnsRS);
+		}
+		int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
+		AppendableStringBuilder sb = new AppendableStringBuilder();
+		String triggerName = ormPatternMatcher.buildOptimisticLockTriggerFromTableName(fqTableName, maxProcedureNameLength);
+		sb.append("create TRIGGER if not exists \"").append(triggerName);
+		sb.append("\" BEFORE UPDATE");
+		if (tableColumns.size() > 0)
+		{
+			sb.append(" OF ");
+			for (int a = 0, size = tableColumns.size(); a < size; a++)
+			{
+				if (a > 0)
+				{
+					sb.append(',');
+				}
+				sqlBuilder.escapeName(tableColumns.get(a), sb);
+			}
+		}
+		sb.append(" ON \"").append(names[1]).append("\" FOR EACH ROW");
+		sb.append(" WHEN (new.\"VERSION\" <= old.\"VERSION\") BEGIN");
+		sb.append(" SELECT RAISE(ABORT, 'Optimistic Lock Exception');");
+		sb.append(" END;");
+		return new String[] { sb.toString() };
 	}
 
 	@Override
-	public List<String> getTablesWithoutOptimisticLockTrigger(Connection connection) throws SQLException
+	protected IList<String> queryForAllTables(Connection connection) throws SQLException
 	{
-		// TODO
-		throw new UnsupportedOperationException("Not yet implemented");
-		// Statement stmt = null;
-		// ResultSet rs = null;
-		// try
-		// {
-		// stmt = connection.createStatement();
-		//
-		// HashSet<String> existingOptimisticLockTriggers = new HashSet<String>();
-		//
-		// rs = stmt
-		// .executeQuery("SELECT DISTINCT n.nspname || '.' || c.relname AS FULL_NAME FROM pg_trigger t JOIN pg_class c ON t.tgrelid=c.oid JOIN pg_namespace n ON c.relnamespace=n.oid WHERE n.nspname='"
-		// + schemaNames[0] + "'");
-		// ArrayList<String> tableNamesWhichNeedOptimisticLockTrigger = new ArrayList<String>();
-		// while (rs.next())
-		// {
-		// String tableName = rs.getString("FULL_NAME");
-		// if (PostgresDialect.BIN_TABLE_NAME.matcher(tableName).matches())
-		// {
-		// continue;
-		// }
-		// if (ignoredTables.contains(tableName))
-		// {
-		// continue;
-		// }
-		// if (ormPatternMatcher.matchesArchivePattern(tableName))
-		// {
-		// // archive tables do not need an optimistic lock trigger
-		// continue;
-		// }
-		// tableNamesWhichNeedOptimisticLockTrigger.add(tableName);
-		// }
-		// JdbcUtil.close(rs);
-		// rs = stmt.executeQuery("SELECT t.tgname AS TRIGGER_NAME FROM pg_trigger t");
-		// while (rs.next())
-		// {
-		// String triggerName = rs.getString("TRIGGER_NAME");
-		// if (ormPatternMatcher.matchesOptimisticLockTriggerPattern(triggerName))
-		// {
-		// existingOptimisticLockTriggers.add(triggerName);
-		// }
-		// }
-		// int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
-		// for (int a = tableNamesWhichNeedOptimisticLockTrigger.size(); a-- > 0;)
-		// {
-		// String permissionGroupName = ormPatternMatcher.buildPermissionGroupFromTableName(tableNamesWhichNeedOptimisticLockTrigger.get(a),
-		// maxProcedureNameLength);
-		// if (existingOptimisticLockTriggers.contains(permissionGroupName))
-		// {
-		// tableNamesWhichNeedOptimisticLockTrigger.removeAtIndex(a);
-		// }
-		// }
-		// return tableNamesWhichNeedOptimisticLockTrigger;
-		// // HashSet<String> existingPermissionGroups = new HashSet<String>();
-		// //
-		// // String expTriggerName = "EXPECTED_TRIGGER_NAME";
-		// // String sqlFoundTableNamePrefix = "SELECT T.TNAME as TNAME";
-		// // String sqlFoundTableNamePostfix = " FROM TAB T JOIN COLS C ON T.TNAME = C.TABLE_NAME WHERE T.TABTYPE='TABLE' AND C.COLUMN_NAME='VERSION'";
-		// // String expectedTriggerNameColumn = ", concat('" + triggerNamePrefix + "', concat(T.TNAME, '" + triggerNamePostfix + "')) as " + expTriggerName;
-		// //
-		// // String sqlExpectedTriggerNames = sqlFoundTableNamePrefix + expectedTriggerNameColumn + sqlFoundTableNamePostfix;
-		// // String sqlFoundTableNames = sqlFoundTableNamePrefix + sqlFoundTableNamePostfix;
-		// //
-		// // String foundTriggerNames = "SELECT TR.TRIGGER_NAME FROM ALL_TRIGGERS TR WHERE TR.TABLE_NAME IN (" + sqlFoundTableNames + ")";
-		// //
-		// // String sql = "SELECT TNAME FROM (" + sqlExpectedTriggerNames + ") where " + expTriggerName + " NOT IN (" + foundTriggerNames + ")";
-		// //
-		// // rs = stmt.executeQuery(sql);
-		// // ArrayList<String> tableNames = new ArrayList<String>();
-		// // while (rs.next())
-		// // {
-		// // String tableName = rs.getString("TNAME");
-		// // if (Oracle10gDialect.BIN_TABLE_NAME.matcher(tableName).matches())
-		// // {
-		// // continue;
-		// // }
-		// // if (ignoredTables.contains(tableName))
-		// // {
-		// // continue;
-		// // }
-		// // String tableNameLower = tableName.toLowerCase();
-		// // if (tableNameLower.startsWith("link_") || tableNameLower.startsWith("l_"))
-		// // {
-		// // continue;
-		// // }
-		// // tableNames.add(tableName);
-		// // }
-		// // return tableNames;
-		// }
-		// finally
-		// {
-		// JdbcUtil.close(stmt, rs);
-		// }
+		return connectionDialect.queryDefault(connection, "FULL_NAME", "SELECT tbl_name AS FULL_NAME FROM sqlite_master where type='table'");
 	}
 
 	@Override
-	public List<String> getTablesWithoutPermissionGroup(Connection connection) throws SQLException
+	protected IList<String> queryForAllTriggers(Connection connection) throws SQLException
 	{
-		// TODO
-		throw new UnsupportedOperationException("Not yet implemented");
-		// Statement stmt = null;
-		// ResultSet rs = null;
-		// try
-		// {
-		// stmt = connection.createStatement();
-		//
-		// HashSet<String> existingPermissionGroups = new HashSet<String>();
-		//
-		// rs = stmt.executeQuery("SELECT c.table_name AS TNAME FROM information_schema.columns c WHERE c.column_name='"
-		// + PermissionGroup.permGroupIdNameOfData + "' AND table_schema='" + schemaNames[0] + "'");
-		//
-		// ArrayList<String> tableNamesWhichNeedPermissionGroup = new ArrayList<String>();
-		// while (rs.next())
-		// {
-		// String tableName = rs.getString("TNAME");
-		// if (PostgresDialect.BIN_TABLE_NAME.matcher(tableName).matches())
-		// {
-		// continue;
-		// }
-		// if (ignoredTables.contains(tableName))
-		// {
-		// continue;
-		// }
-		// if (ormPatternMatcher.matchesArchivePattern(tableName))
-		// {
-		// // archive tables do not need a permission group
-		// continue;
-		// }
-		// if (ormPatternMatcher.matchesPermissionGroupPattern(tableName))
-		// {
-		// // permissions groups themselves have no permissiong group
-		// existingPermissionGroups.add(tableName);
-		// continue;
-		// }
-		// tableNamesWhichNeedPermissionGroup.add(tableName);
-		// }
-		// JdbcUtil.close(rs);
-		// rs = stmt.executeQuery("SELECT t.table_name AS TNAME FROM information_schema.tables t");
-		// while (rs.next())
-		// {
-		// String tableName = rs.getString("TNAME");
-		// if (ormPatternMatcher.matchesPermissionGroupPattern(tableName))
-		// {
-		// existingPermissionGroups.add(tableName);
-		// }
-		// }
-		// int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
-		// for (int a = tableNamesWhichNeedPermissionGroup.size(); a-- > 0;)
-		// {
-		// String permissionGroupName = ormPatternMatcher.buildPermissionGroupFromTableName(tableNamesWhichNeedPermissionGroup.get(a),
-		// maxProcedureNameLength);
-		// if (existingPermissionGroups.contains(permissionGroupName))
-		// {
-		// tableNamesWhichNeedPermissionGroup.removeAtIndex(a);
-		// }
-		// }
-		// return tableNamesWhichNeedPermissionGroup;
-		// }
-		// finally
-		// {
-		// JdbcUtil.close(stmt, rs);
-		// }
+		return connectionDialect.queryDefault(connection, "FULL_NAME", "SELECT tbl_name AS FULL_NAME FROM sqlite_master where type='trigger'");
+	}
+
+	@SuppressWarnings("resource")
+	@Override
+	protected IList<String> queryForAllPermissionGroupNeedingTables(Connection connection) throws SQLException
+	{
+		Statement stmt = null;
+		ResultSet rs = null;
+		try
+		{
+			stmt = connection.createStatement();
+			rs = stmt.executeQuery("SELECT name, sql FROM sqlite_master where type='table'");
+			ArrayList<String> result = new ArrayList<String>();
+			while (rs.next())
+			{
+				String tableName = rs.getString("name");
+				String sql = rs.getString("sql");
+				Pattern parseDefinitions = Pattern.compile("[^\\(]+\\((.+)\\)");
+				Matcher matcher = parseDefinitions.matcher(sql);
+				if (!matcher.matches())
+				{
+					throw new IllegalStateException("SQL table create not parseable: '" + sql + "'");
+				}
+				String definitions = matcher.group(1).trim();
+				for (String definition : definitions.split(","))
+				{
+					definition = definition.trim();
+					String firstWord = definition.split(" ")[0];
+					if (firstWord.equals(PermissionGroup.permGroupIdNameOfData) || firstWord.equals("\"" + PermissionGroup.permGroupIdNameOfData + "\""))
+					{
+						result.add(tableName);
+						break;
+					}
+				}
+			}
+			return result;
+		}
+		finally
+		{
+			JdbcUtil.close(stmt, rs);
+		}
+	}
+
+	@Override
+	protected IList<String> queryForAllPotentialPermissionGroups(Connection connection) throws SQLException
+	{
+		return connectionDialect.queryDefault(connection, "FULL_NAME", "SELECT tbl_name AS FULL_NAME FROM sqlite_master where type='table'");
 	}
 
 	@Override
@@ -446,7 +291,27 @@ public class SQLiteTestDialect extends AbstractConnectionTestDialect implements 
 		try
 		{
 			stmt = connection.createStatement();
-			stmt.execute("DROP SCHEMA IF EXISTS \"" + connectionDialect.toDefaultCase(schemaName) + "\" CASCADE");
+
+			stmt.execute("PRAGMA writable_schema = 1");
+			stmt.execute("delete from sqlite_master where type in ('table', 'index', 'trigger')");
+			stmt.execute("PRAGMA writable_schema = 0");
+
+			rs = stmt.executeQuery("SELECT * from sqlite_master");
+			int columnCount = rs.getMetaData().getColumnCount();
+			for (int a = 0, size = columnCount; a < size; a++)
+			{
+				System.out.print("\t" + rs.getMetaData().getColumnName(a + 1));
+			}
+			System.out.println();
+			while (rs.next())
+			{
+				for (int a = 0, size = columnCount; a < size; a++)
+				{
+					System.out.print("\t" + rs.getString(a + 1));
+				}
+				System.out.println();
+			}
+
 		}
 		catch (SQLException e)
 		{

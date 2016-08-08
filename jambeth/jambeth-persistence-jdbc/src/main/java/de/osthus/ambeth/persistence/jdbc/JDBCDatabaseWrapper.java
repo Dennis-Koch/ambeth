@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map.Entry;
 
-import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -20,6 +19,7 @@ import de.osthus.ambeth.persistence.ILinkMetaData;
 import de.osthus.ambeth.persistence.ISavepoint;
 import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.persistence.ITableMetaData;
+import de.osthus.ambeth.state.IStateRollback;
 import de.osthus.ambeth.util.IAlreadyLinkedCache;
 
 public class JDBCDatabaseWrapper extends Database
@@ -256,15 +256,9 @@ public class JDBCDatabaseWrapper extends Database
 	}
 
 	@Override
-	public IList<String> disableConstraints()
+	public IStateRollback disableConstraints()
 	{
 		return connectionDialect.disableConstraints(connection);
-	}
-
-	@Override
-	public void enableConstraints(IList<String> disabled)
-	{
-		connectionDialect.enableConstraints(connection, disabled);
 	}
 
 	@Override

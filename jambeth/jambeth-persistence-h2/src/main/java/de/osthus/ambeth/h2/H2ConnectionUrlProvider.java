@@ -14,6 +14,11 @@ public class H2ConnectionUrlProvider extends AbstractConnectionUrlProvider
 	@Override
 	protected String getConnectionUrlIntern()
 	{
+		String protocol = resolveProperty(PersistenceJdbcConfigurationConstants.DatabaseProtocol);
+		if (protocol.equals("jdbc:h2:mem"))
+		{
+			return protocol + ":" + resolveProperty(PersistenceJdbcConfigurationConstants.DatabaseName);
+		}
 		return resolveProperty(PersistenceJdbcConfigurationConstants.DatabaseProtocol) + ":@"//
 				+ resolveProperty(PersistenceJdbcConfigurationConstants.DatabaseHost) + ":"//
 				+ resolveProperty(PersistenceJdbcConfigurationConstants.DatabasePort) + ":"//

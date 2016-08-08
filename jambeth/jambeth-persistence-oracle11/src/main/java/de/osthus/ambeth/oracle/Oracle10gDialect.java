@@ -248,33 +248,6 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public void enableConstraints(Connection connection, IList<String> disabled)
-	{
-		if (disabled == null || disabled.isEmpty())
-		{
-			return;
-		}
-		Statement stmt = null;
-		try
-		{
-			stmt = connection.createStatement();
-			for (int i = disabled.size(); i-- > 0;)
-			{
-				stmt.addBatch(disabled.get(i));
-			}
-			stmt.executeBatch();
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally
-		{
-			JdbcUtil.close(stmt);
-		}
-	}
-
-	@Override
 	public void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException
 	{
 		// noop: releaseSavepoint(Savepoint savepoint) is not supported by Oracle10g
@@ -521,4 +494,9 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 		return SelectPosition.AS_WHERE_CLAUSE;
 	}
 
+	@Override
+	public int getColumnCountForLinkTable()
+	{
+		return 3;
+	}
 }

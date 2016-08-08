@@ -82,7 +82,16 @@ public class H2Dialect extends AbstractConnectionDialect
 			}
 			rs.close();
 			createAliasIfNecessary("TO_TIMESTAMP", Functions.class.getName() + ".toTimestamp", functionAliases, stm);
-			return super.preProcessConnectionIntern(connection, schemaNames, forcePreProcessing);
+
+			stm = connection.createStatement();
+			ArrayList<String> disableSql = new ArrayList<String>();
+			ArrayList<String> enableSql = new ArrayList<String>();
+			for (String tableName : getAllFullqualifiedTableNames(connection, schemaNames))
+			{
+				disableSql.add("ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY FALSE");
+				enableSql.add("ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY TRUE CHECK");
+			}
+			return new ConnectionKeyValue(disableSql.toArray(String.class), enableSql.toArray(String.class));
 		}
 		catch (Throwable e)
 		{
@@ -100,7 +109,7 @@ public class H2Dialect extends AbstractConnectionDialect
 		{
 			return;
 		}
-		stm.execute("CREATE ALIAS \"" + toDefaultCase(aliasName) + "\" FOR \"" + toDefaultCase(functionName) + "\"");
+		stm.execute("CREATE ALIAS \"" + toDefaultCase(aliasName) + "\" FOR \"" + functionName + "\"");
 	}
 
 	@Override
@@ -150,65 +159,6 @@ public class H2Dialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public IList<String> disableConstraints(Connection connection, String... schemaNames)
-	{
-		Statement stm = null;
-		try
-		{
-			List<String> allTableNames = getAllFullqualifiedTableNames(connection, schemaNames);
-			ArrayList<String> sql = new ArrayList<String>(allTableNames.size());
-
-			stm = connection.createStatement();
-			for (int i = allTableNames.size(); i-- > 0;)
-			{
-				String tableName = allTableNames.get(i);
-				String disableSql = "ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY FALSE";
-				String enableSql = "ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY TRUE CHECK";
-				sql.add(enableSql);
-
-				stm.addBatch(disableSql);
-			}
-			stm.executeBatch();
-			return sql;
-		}
-		catch (SQLException e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally
-		{
-			JdbcUtil.close(stm);
-		}
-	}
-
-	@Override
-	public void enableConstraints(Connection connection, IList<String> enableConstraintsSQL)
-	{
-		if (enableConstraintsSQL == null || enableConstraintsSQL.isEmpty())
-		{
-			return;
-		}
-		Statement stm = null;
-		try
-		{
-			stm = connection.createStatement();
-			for (int i = enableConstraintsSQL.size(); i-- > 0;)
-			{
-				stm.addBatch(enableConstraintsSQL.get(i));
-			}
-			stm.executeBatch();
-		}
-		catch (SQLException e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally
-		{
-			JdbcUtil.close(stm);
-		}
-	}
-
-	@Override
 	public void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException
 	{
 		throw new UnsupportedOperationException();
@@ -255,38 +205,34 @@ public class H2Dialect extends AbstractConnectionDialect
 	@Override
 	public List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames) throws SQLException
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
+		if (schemaNames.length == 0)
+		{
+			schemaNames = this.schemaNames;
+		}
+		return queryDefault(connection, "full_name",
+				"SELECT sequence_schema || '.' || sequence_name AS full_name FROM INFORMATION_SCHEMA.SEQUENCES WHERE sequence_schema IN (?)",
+				(Object) schemaNames);
 	}
 
 	@Override
 	public List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames) throws SQLException
 	{
-		PreparedStatement pstm = null;
-		ResultSet rs = null;
-		try
+		if (schemaNames.length == 0)
 		{
-			pstm = connection
-					.prepareStatement("SELECT table_schema, table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_type='TABLE' AND table_schema IN (?)");
-			pstm.setObject(1, schemaNames);
-			rs = pstm.executeQuery();
-			ArrayList<String> tableNames = new ArrayList<String>();
-			while (rs.next())
-			{
-				String tableSchema = rs.getString("table_schema");
-				String tableName = rs.getString("table_name");
-				tableNames.add(tableSchema + "." + tableName);
-			}
-			return tableNames;
+			schemaNames = this.schemaNames;
 		}
-		finally
-		{
-			JdbcUtil.close(pstm, rs);
-		}
+		return queryDefault(connection, "full_name",
+				"SELECT table_schema || '.' || table_name AS full_name FROM INFORMATION_SCHEMA.TABLES WHERE table_type='TABLE' AND table_schema IN (?)",
+				(Object) schemaNames);
 	}
 
 	@Override
 	public List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames) throws SQLException
 	{
+		if (schemaNames.length == 0)
+		{
+			schemaNames = this.schemaNames;
+		}
 		PreparedStatement pstm = null;
 		ResultSet rs = null;
 		try

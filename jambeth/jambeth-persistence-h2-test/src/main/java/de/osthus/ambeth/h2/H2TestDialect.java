@@ -5,12 +5,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.List;
 import java.util.Set;
 
-import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -96,52 +95,39 @@ public class H2TestDialect extends AbstractConnectionTestDialect
 	}
 
 	@Override
-	public List<String> getTablesWithoutPermissionGroup(Connection conn) throws SQLException
-	{
-		return EmptyList.<String> getInstance();
-	}
-
-	@Override
 	public String[] createPermissionGroup(Connection conn, String tableName) throws SQLException
 	{
 		return new String[0];
 	}
 
 	@Override
-	public List<String> getTablesWithoutOptimisticLockTrigger(Connection connection) throws SQLException
+	protected IList<String> queryForAllTables(Connection connection) throws SQLException
 	{
-		Statement stm = null;
-		ResultSet rs = null;
-		try
-		{
-			stm = connection.createStatement();
-			rs = stm.executeQuery("SELECT tab.table_name AS table_nam FROM INFORMATION_SCHEMA.TABLES AS tab LEFT OUTER JOIN INFORMATION_SCHEMA.TRIGGERS AS tr ON tr.table_name=tab.table_name AND tr.table_schema=tab.table_schema WHERE tab.table_type<>'SYSTEM TABLE' and (tr.java_class IS NULL OR tr.java_class<>'"
-					+ OptimisticLockTrigger.class.getName() + "')");
+		return connectionDialect
+				.queryDefault(
+						connection,
+						"table_nam",
+						"SELECT tab.table_name AS table_nam FROM INFORMATION_SCHEMA.TABLES AS tab LEFT OUTER JOIN INFORMATION_SCHEMA.TRIGGERS AS tr ON tr.table_name=tab.table_name AND tr.table_schema=tab.table_schema WHERE tab.table_type<>'SYSTEM TABLE' and (tr.java_class IS NULL OR tr.java_class<>'"
+								+ OptimisticLockTrigger.class.getName()
+								+ "') AND (NOT LOWER(tab.table_name) LIKE 'link_%') AND (NOT LOWER(tab.table_name) LIKE 'l_%')");
+	}
 
-			ArrayList<String> tableNames = new ArrayList<String>();
-			// ResultSetMetaData metaData = rs.getMetaData();
-			// int columnCount = metaData.getColumnCount();
-			// for (int a = 0, size = columnCount; a < size; a++)
-			// {
-			// System.out.print(metaData.getColumnLabel(a + 1));
-			// System.out.print("\t\t");
-			// }
-			while (rs.next())
-			{
-				String tableName = rs.getString("table_nam");
-				String tableNameLower = tableName.toLowerCase();
-				if (tableNameLower.startsWith("link_") || tableNameLower.startsWith("l_"))
-				{
-					continue;
-				}
-				tableNames.add(tableName);
-			}
-			return tableNames;
-		}
-		finally
-		{
-			JdbcUtil.close(stm, rs);
-		}
+	@Override
+	protected IList<String> queryForAllPermissionGroupNeedingTables(Connection connection) throws SQLException
+	{
+		return EmptyList.<String> getInstance();
+	}
+
+	@Override
+	protected IList<String> queryForAllPotentialPermissionGroups(Connection connection) throws SQLException
+	{
+		return EmptyList.<String> getInstance();
+	}
+
+	@Override
+	protected IList<String> queryForAllTriggers(Connection connection) throws SQLException
+	{
+		return EmptyList.<String> getInstance();
 	}
 
 	@Override
@@ -219,14 +205,14 @@ public class H2TestDialect extends AbstractConnectionTestDialect
 	{
 		super.preStructureRebuild(connection);
 
-		Statement stm = connection.createStatement();
-		try
-		{
-			stm.execute("SHUTDOWN");
-		}
-		finally
-		{
-			JdbcUtil.close(stm);
-		}
+		// Statement stm = connection.createStatement();
+		// try
+		// {
+		// stm.execute("SHUTDOWN");
+		// }
+		// finally
+		// {
+		// JdbcUtil.close(stm);
+		// }
 	}
 }

@@ -64,6 +64,10 @@ public class OrmPatternMatcher implements IInitializingBean, IOrmPatternMatcher
 
 	protected String buildNameWithMaxLength(String tableName, String prefix, String postFix, int maxNameLength)
 	{
+		if (maxNameLength <= 0)
+		{
+			maxNameLength = Integer.MAX_VALUE;
+		}
 		if (tableName.length() >= maxNameLength - prefix.length() - postFix.length())
 		{
 			return prefix + tableName.substring(0, maxNameLength - prefix.length() - postFix.length()) + postFix;

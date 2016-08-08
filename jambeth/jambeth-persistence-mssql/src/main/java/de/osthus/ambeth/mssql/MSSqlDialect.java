@@ -95,67 +95,6 @@ public class MSSqlDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public IList<String> disableConstraints(Connection connection, String... schemaNames)
-	{
-		Statement stm = null;
-		try
-		{
-			// List<String> allTableNames = getAllFullqualifiedTableNames(connection, schemaNames);
-			// ArrayList<String[]> sql = new ArrayList<String[]>(allTableNames.size());
-			// stm = connection.createStatement();
-			// for (int i = allTableNames.size(); i-- > 0;)
-			// {
-			// String tableName = allTableNames.get(i);
-			// String disableSql = "ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY FALSE";
-			// sql.add(new String[] { disableSql, tableName });
-			//
-			// stm.addBatch(disableSql);
-			// }
-			// stm.executeBatch();
-			// return sql;
-			throw new UnsupportedOperationException("not yet implemented");
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally
-		{
-			JdbcUtil.close(stm);
-		}
-	}
-
-	@Override
-	public void enableConstraints(Connection connection, IList<String> disabled)
-	{
-		if (disabled == null || disabled.isEmpty())
-		{
-			return;
-		}
-		Statement stm = null;
-		try
-		{
-			// stm = connection.createStatement();
-			// for (int i = disabled.size(); i-- > 0;)
-			// {
-			// String tableName = disabled.get(i)[1];
-			//
-			// stm.addBatch("ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY TRUE CHECK");
-			// }
-			// stm.executeBatch();
-			throw new UnsupportedOperationException("not yet implemented");
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally
-		{
-			JdbcUtil.close(stm);
-		}
-	}
-
-	@Override
 	public void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException
 	{
 		throw new UnsupportedOperationException();

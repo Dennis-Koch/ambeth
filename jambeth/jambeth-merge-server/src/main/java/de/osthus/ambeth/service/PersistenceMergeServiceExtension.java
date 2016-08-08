@@ -85,6 +85,7 @@ import de.osthus.ambeth.proxy.PersistenceContext;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.SecurityContext;
 import de.osthus.ambeth.security.SecurityContextType;
+import de.osthus.ambeth.state.IStateRollback;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.EqualsUtil;
@@ -1204,7 +1205,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 		try
 		{
 			RuntimeException primaryException = null;
-			IList<String> disabled = database.disableConstraints();
+			IStateRollback rollback = database.disableConstraints();
 			try
 			{
 				executeTableChanges(tableChangeList, changeAggregator);
@@ -1217,7 +1218,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 			{
 				try
 				{
-					database.enableConstraints(disabled);
+					rollback.rollback();
 				}
 				catch (RuntimeException e)
 				{
