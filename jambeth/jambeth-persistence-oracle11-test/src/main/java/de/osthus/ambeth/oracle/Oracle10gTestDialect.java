@@ -472,8 +472,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect
 		{
 			stmt = connection.createStatement();
 			stmt2 = connection.createStatement();
-			stmt.execute("SELECT TNAME, TABTYPE FROM TAB");
-			rs = stmt.getResultSet();
+			rs = stmt.executeQuery("SELECT TNAME, TABTYPE FROM TAB");
 			while (rs.next())
 			{
 				String tableName = rs.getString(1);

@@ -250,11 +250,11 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
 				{
 					handleLinkWithinDataTable(connection, linkName, values, fields);
 				}
-				else if (((fields.size() - hasPermissionGroupField) == 2) && values.size() == 2)
+				else if (((fields.size() - hasPermissionGroupField) == connectionDialect.getColumnCountForLinkTable()) && values.size() == 2)
 				{
 					handleLinkTable(connection, linkName, values);
 				}
-				else if (((fields.size() - hasPermissionGroupField) == 2) && values.size() == 1)
+				else if (((fields.size() - hasPermissionGroupField) == connectionDialect.getColumnCountForLinkTable()) && values.size() == 1)
 				{
 					handleLinkTableToExtern(connection, linkName, values);
 				}
