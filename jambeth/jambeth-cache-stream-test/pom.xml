@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>jambeth-cache-stream-test</artifactId>
@@ -11,6 +10,15 @@
 		<relativePath>../jambeth-test-pom/pom.xml</relativePath>
 	</parent>
 
-	<dependencies><dependency><groupId>de.osthus.ambeth</groupId><artifactId>jambeth-cache-stream</artifactId></dependency></dependencies>
+	<dependencies>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-cache-stream</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-ioc-test</artifactId>
+		</dependency>
 
+	</dependencies>
 </project>

@@ -1,5 +1,11 @@
 package de.osthus.ambeth.ioc;
 
+import de.osthus.ambeth.bytebuffer.FileContentCache;
+import de.osthus.ambeth.bytebuffer.FileHandleCache;
+import de.osthus.ambeth.bytebuffer.IFileContentCache;
+import de.osthus.ambeth.bytebuffer.IFileHandleCache;
+import de.osthus.ambeth.cache.ClearAllCachesEvent;
+import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
@@ -49,6 +55,12 @@ public class CacheStreamModule implements IInitializingModule
 		registerInputSourceConverter(beanContextFactory, IntInputSourceConverter.class, IIntInputSource.class);
 		registerInputSourceConverter(beanContextFactory, LongInputSourceConverter.class, ILongInputSource.class);
 		registerInputSourceConverter(beanContextFactory, StringInputSourceConverter.class, IStringInputSource.class);
+
+		IBeanConfiguration fileContentCache = beanContextFactory.registerBean(FileContentCache.class).autowireable(IFileContentCache.class);
+		beanContextFactory.link(fileContentCache, FileContentCache.HANDLE_CLEAR_ALL_CACHES).to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
+
+		IBeanConfiguration fileHandleCache = beanContextFactory.registerBean(FileHandleCache.class).autowireable(IFileHandleCache.class);
+		beanContextFactory.link(fileHandleCache, FileHandleCache.HANDLE_CLEAR_ALL_CACHES).to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 	}
 
 	public void setChunkProviderName(String chunkProviderName)
