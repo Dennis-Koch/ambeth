@@ -15,7 +15,7 @@ public class PropertyChangeSupport extends ArrayList<PropertyChangeListener> imp
 {
 	private static final PropertyChangeListener[] EMPTY_LISTENERS = new PropertyChangeListener[0];
 
-	private PropertyChangeListener[] listenersCopy = EMPTY_LISTENERS;
+	private volatile PropertyChangeListener[] listenersCopy = EMPTY_LISTENERS;
 
 	public PropertyChangeSupport()
 	{
@@ -26,7 +26,7 @@ public class PropertyChangeSupport extends ArrayList<PropertyChangeListener> imp
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void addPropertyChangeListener(PropertyChangeListener listener)
+	public synchronized void addPropertyChangeListener(PropertyChangeListener listener)
 	{
 		if (listener == null)
 		{
@@ -36,14 +36,14 @@ public class PropertyChangeSupport extends ArrayList<PropertyChangeListener> imp
 		{
 			return;
 		}
-		listenersCopy = toArray(PropertyChangeListener.class);
+		listenersCopy = toArray();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void removePropertyChangeListener(PropertyChangeListener listener)
+	public synchronized void removePropertyChangeListener(PropertyChangeListener listener)
 	{
 		if (listener == null)
 		{
@@ -53,14 +53,7 @@ public class PropertyChangeSupport extends ArrayList<PropertyChangeListener> imp
 		{
 			return;
 		}
-		if (size() == 0)
-		{
-			listenersCopy = EMPTY_LISTENERS;
-		}
-		else
-		{
-			listenersCopy = toArray(PropertyChangeListener.class);
-		}
+		listenersCopy = toArray();
 	}
 
 	/**
@@ -69,11 +62,7 @@ public class PropertyChangeSupport extends ArrayList<PropertyChangeListener> imp
 	@Override
 	public PropertyChangeListener[] getPropertyChangeListeners()
 	{
-		if (size() == 0)
-		{
-			return EMPTY_LISTENERS;
-		}
-		return toArray(PropertyChangeListener.class);
+		return toArray();
 	}
 
 	/**
@@ -96,9 +85,21 @@ public class PropertyChangeSupport extends ArrayList<PropertyChangeListener> imp
 	@Override
 	public void firePropertyChange(PropertyChangeEvent evnt)
 	{
+		PropertyChangeListener[] listenersCopy = this.listenersCopy;
 		for (PropertyChangeListener listener : listenersCopy)
 		{
 			listener.propertyChange(evnt);
 		}
+	}
+
+	@Override
+	public synchronized PropertyChangeListener[] toArray()
+	{
+		if (size() == 0)
+		{
+			return EMPTY_LISTENERS;
+		}
+		// necessary to lock the otherwise not thread-safe toArray() operation
+		return toArray(new PropertyChangeListener[size()]);
 	}
 }
