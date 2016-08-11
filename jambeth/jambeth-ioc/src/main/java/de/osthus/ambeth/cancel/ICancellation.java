@@ -1,0 +1,30 @@
+package de.osthus.ambeth.cancel;
+
+public interface ICancellation
+{
+	/**
+	 * Checks if the current thread is marked to cancel its work. The flag itself will be set if any other thread called {@link #cancel(ICancellationHandle)
+	 * previously passing the handle corresponding to the current thread. If the current thread never called {@link #getEnsureCancellationHandle()} there is no
+	 * way to get this handle and no way to cancel the current thread. In those cases {@link #isCancelled()} will always return false.
+	 * 
+	 * @return true, if the current thread is marked to cancel its work
+	 */
+	boolean isCancelled();
+
+	/**
+	 * Calls internally {@link #isCancelled()} . If that returns true a {@link CancelledException} is thrown. Call this method in regular intervals to make sure
+	 * the process terminates gracefully when the current threads is marked to cancel its work.
+	 * 
+	 * @throws CancelledException
+	 *             if {@link #isCancelled()} returns true
+	 */
+	void ensureNotCancelled() throws CancelledException;
+
+	/**
+	 * Retrieves the {@link ICancellationHandle} currently assigned to this thread or creates a new one if this thread does not yet have a
+	 * {@link ICancellationHandle} assigned.
+	 * 
+	 * @return A valid instance of a {@link ICancellationHandle}. Never returns null
+	 */
+	ICancellationHandle getEnsureCancellationHandle();
+}

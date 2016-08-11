@@ -15,7 +15,7 @@ public class FastThreadPoolThread extends Thread
 
 	private int timeWithoutJob;
 
-	private boolean active = true;
+	private volatile boolean active = true;
 
 	public FastThreadPoolThread(final FastThreadPool asyncQueue)
 	{
@@ -45,6 +45,7 @@ public class FastThreadPoolThread extends Thread
 	{
 		while (active)
 		{
+			Thread.interrupted(); // clear potential interrupted state
 			try
 			{
 				QueueItem queueItem = asyncQueue.getNextMessage(this);

@@ -7,6 +7,9 @@ import java.sql.Blob;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.appendable.AppendableStringBuilder;
+import de.osthus.ambeth.cancel.Cancellation;
+import de.osthus.ambeth.cancel.ICancellation;
+import de.osthus.ambeth.cancel.ICancellationWritable;
 import de.osthus.ambeth.config.IocConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.converter.FileToPathConverter;
@@ -79,6 +82,8 @@ public class IocModule implements IInitializingModule
 			DedicatedConverterUtil.link(beanContextFactory, stringToPathConverter, String.class, Path.class);
 			DedicatedConverterUtil.link(beanContextFactory, stringToPathConverter, String.class, Path[].class);
 		}
+
+		beanContextFactory.registerBean(Cancellation.class).autowireable(ICancellation.class, ICancellationWritable.class);
 
 		IBeanConfiguration stringToBlobConverter = beanContextFactory.registerBean(StringToBlobConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToBlobConverter, String.class, Blob.class);
