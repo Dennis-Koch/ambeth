@@ -36,6 +36,11 @@ public class LargeByteBuffer implements IByteBuffer
 	@Override
 	public byte byteAt(long index)
 	{
+		return byteAtIntern(index, getByteBuffer(index));
+	}
+
+	protected ByteBuffer getByteBuffer(long index)
+	{
 		long virtualChunkSize = this.virtualChunkSize;
 		long chunk = index / virtualChunkSize;
 		if (chunk != lastChunk)
@@ -58,7 +63,7 @@ public class LargeByteBuffer implements IByteBuffer
 			lastByteBufferR = new WeakReference<ByteBuffer>(chunkBuffer);
 			lastChunk = chunk;
 		}
-		return byteAtIntern(index, chunkBuffer);
+		return chunkBuffer;
 	}
 
 	protected byte byteAtIntern(long index, ByteBuffer chunkBuffer)
@@ -79,8 +84,45 @@ public class LargeByteBuffer implements IByteBuffer
 	}
 
 	@Override
-	public void writeToOutputStream(OutputStream ost, long offset, long length) throws IOException
+	public void writeTo(OutputStream ost, long offset, int length) throws IOException
 	{
-		throw new UnsupportedOperationException();
+		ByteBuffer src = getByteBuffer(offset);
+		int oldPosition = src.position();
+		byte[] buffer = new byte[1024];
+		while (length > 0)
+		{
+			if (!src.hasRemaining())
+			{
+				src.position(oldPosition);
+				src = getByteBuffer(offset);
+			}
+			int bytesWritten = Math.min(src.remaining(), buffer.length);
+			src.get(buffer, 0, bytesWritten);
+			ost.write(buffer, 0, bytesWritten);
+			length -= bytesWritten;
+			offset += bytesWritten;
+		}
+		src.position(oldPosition);
+	}
+
+	@Override
+	public void writeTo(ByteBuffer dst, long offset, int length)
+	{
+		ByteBuffer src = getByteBuffer(offset);
+		int oldPosition = src.position();
+		while (length > 0)
+		{
+			if (!src.hasRemaining())
+			{
+				src.position(oldPosition);
+				src = getByteBuffer(offset);
+			}
+			int currPosition = src.position();
+			dst.put(src);
+			int bytesWritten = src.position() - currPosition;
+			length -= bytesWritten;
+			offset += bytesWritten;
+		}
+		src.position(oldPosition);
 	}
 }
