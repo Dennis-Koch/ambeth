@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
+import java.nio.channels.WritableByteChannel;
 
 public class LargeByteBuffer implements IByteBuffer
 {
@@ -39,10 +40,10 @@ public class LargeByteBuffer implements IByteBuffer
 		return byteAtIntern(index, getByteBuffer(index));
 	}
 
-	protected ByteBuffer getByteBuffer(long index)
+	protected ByteBuffer getByteBuffer(long offset)
 	{
 		long virtualChunkSize = this.virtualChunkSize;
-		long chunk = index / virtualChunkSize;
+		long chunk = offset / virtualChunkSize;
 		if (chunk != lastChunk)
 		{
 			ByteBuffer bufferToRelease = getLastChunkBuffer();
@@ -66,13 +67,13 @@ public class LargeByteBuffer implements IByteBuffer
 		return chunkBuffer;
 	}
 
-	protected byte byteAtIntern(long index, ByteBuffer chunkBuffer)
+	protected byte byteAtIntern(long offset, ByteBuffer chunkBuffer)
 	{
-		return chunkBuffer.get((int) (index % virtualChunkSize));
+		return chunkBuffer.get((int) (offset % virtualChunkSize));
 	}
 
 	@Override
-	public byte[] getBytes(int offset, int len)
+	public byte[] getBytes(long offset, int len)
 	{
 		throw new UnsupportedOperationException();
 	}
@@ -119,6 +120,27 @@ public class LargeByteBuffer implements IByteBuffer
 			}
 			int currPosition = src.position();
 			dst.put(src);
+			int bytesWritten = src.position() - currPosition;
+			length -= bytesWritten;
+			offset += bytesWritten;
+		}
+		src.position(oldPosition);
+	}
+
+	@Override
+	public void writeTo(WritableByteChannel dst, long offset, int length) throws IOException
+	{
+		ByteBuffer src = getByteBuffer(offset);
+		int oldPosition = src.position();
+		while (length > 0)
+		{
+			if (!src.hasRemaining())
+			{
+				src.position(oldPosition);
+				src = getByteBuffer(offset);
+			}
+			int currPosition = src.position();
+			dst.write(src);
 			int bytesWritten = src.position() - currPosition;
 			length -= bytesWritten;
 			offset += bytesWritten;
