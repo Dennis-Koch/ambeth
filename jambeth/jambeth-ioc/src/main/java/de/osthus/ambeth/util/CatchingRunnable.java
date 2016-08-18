@@ -1,11 +1,15 @@
 package de.osthus.ambeth.util;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.RunnableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import de.osthus.ambeth.ioc.threadlocal.IForkState;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 
-public class CatchingRunnable implements Runnable
+public class CatchingRunnable implements RunnableFuture<Throwable>
 {
 	protected final IForkState forkState;
 
@@ -25,6 +29,41 @@ public class CatchingRunnable implements Runnable
 		this.latch = latch;
 		this.throwableHolder = throwableHolder;
 		this.threadLocalCleanupController = threadLocalCleanupController;
+	}
+
+	@Override
+	public Throwable get() throws InterruptedException, ExecutionException
+	{
+		latch.await();
+		return throwableHolder.getValue();
+	}
+
+	@Override
+	public Throwable get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException
+	{
+		if (latch.await(timeout, unit))
+		{
+			return throwableHolder.getValue();
+		}
+		throw new TimeoutException("No result after " + timeout + " " + unit.name());
+	}
+
+	@Override
+	public boolean isDone()
+	{
+		return latch.getCount() == 0;
+	}
+
+	@Override
+	public boolean isCancelled()
+	{
+		return false;
+	}
+
+	@Override
+	public boolean cancel(boolean mayInterruptIfRunning)
+	{
+		return false;
 	}
 
 	@Override

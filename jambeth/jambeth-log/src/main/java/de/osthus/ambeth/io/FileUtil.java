@@ -295,9 +295,14 @@ public final class FileUtil
 	 */
 	public static void retry(IBackgroundWorkerDelegate worker)
 	{
+		retry(worker, 4);
+	}
+
+	public static void retry(IBackgroundWorkerDelegate worker, int maximumRetryCount)
+	{
 		long waitTime = 8;
 		Throwable e = null;
-		for (int a = 4; a-- > 0;)
+		for (int a = maximumRetryCount; a-- > 0;)
 		{
 			try
 			{
@@ -314,7 +319,7 @@ public final class FileUtil
 			}
 			catch (InterruptedException e1)
 			{
-				// intended blank
+				Thread.interrupted(); // clean up the interrupted flag
 			}
 			waitTime *= 2;
 		}

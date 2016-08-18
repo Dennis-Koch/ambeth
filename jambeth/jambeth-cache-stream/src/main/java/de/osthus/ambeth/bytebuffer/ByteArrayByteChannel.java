@@ -3,6 +3,7 @@ package de.osthus.ambeth.bytebuffer;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
+import java.nio.channels.NonWritableChannelException;
 import java.nio.channels.SeekableByteChannel;
 
 /**
@@ -103,6 +104,6 @@ public class ByteArrayByteChannel implements SeekableByteChannel
 		{
 			throw new ClosedChannelException();
 		}
-		throw new UnsupportedOperationException();
+		throw new NonWritableChannelException();
 	}
 }
