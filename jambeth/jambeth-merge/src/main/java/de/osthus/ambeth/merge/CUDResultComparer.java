@@ -8,6 +8,7 @@ import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashMap;
+import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -525,7 +526,11 @@ public class CUDResultComparer implements ICUDResultComparer
 				{
 					return false;
 				}
-				throw new IllegalStateException("Not yet implemented");
+				LinkedHashSet<IObjRef> added = new LinkedHashSet<IObjRef>(leftORIs);
+				added.removeAll(rightORIs);
+
+				RelationUpdateItemBuild relationBuild = cudResultDiff.updateRelationBuild();
+				relationBuild.addObjRefs(added);
 			}
 			leftORIs = left.getRemovedORIs();
 			rightORIs = right.getRemovedORIs();
@@ -551,7 +556,11 @@ public class CUDResultComparer implements ICUDResultComparer
 				{
 					return false;
 				}
-				throw new IllegalStateException("Not yet implemented");
+				LinkedHashSet<IObjRef> removed = new LinkedHashSet<IObjRef>(leftORIs);
+				removed.removeAll(rightORIs);
+
+				RelationUpdateItemBuild relationBuild = cudResultDiff.updateRelationBuild();
+				relationBuild.removeObjRefs(removed);
 			}
 			return true;
 		}

@@ -645,6 +645,12 @@ public class PostgresDialect extends AbstractConnectionDialect
 	}
 
 	@Override
+	public int getColumnCountForLinkTable()
+	{
+		return 3;
+	}
+
+	@Override
 	public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) throws SQLException
 	{
 		String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
