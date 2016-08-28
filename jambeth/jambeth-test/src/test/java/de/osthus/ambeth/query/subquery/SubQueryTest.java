@@ -46,8 +46,8 @@ public class SubQueryTest extends AbstractInformationBusWithPersistenceTest
 		assertEquals(4, sqlParts.length);
 		assertNull(sqlParts[0]);
 		assertEquals(null, sqlParts[1]);
-		assertEquals("", sqlParts[2]);
-		assertEquals("", sqlParts[3]);
+		assertEquals(null, sqlParts[2]);
+		assertEquals(null, sqlParts[3]);
 	}
 
 	@Test
