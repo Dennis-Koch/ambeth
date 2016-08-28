@@ -117,6 +117,8 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 
 	protected final Lock readLock, writeLock;
 
+	protected boolean doDirectClobConversion = true;
+
 	public AbstractConnectionDialect()
 	{
 		ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
@@ -204,6 +206,18 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 	{
 		if (value instanceof Clob)
 		{
+			if (doDirectClobConversion)
+			{
+				try
+				{
+					return conversionHelper.convertValueToType(expectedType, value);
+				}
+				catch (IllegalArgumentException e)
+				{
+					// try only once
+					doDirectClobConversion = false;
+				}
+			}
 			String sValue = conversionHelper.convertValueToType(String.class, value);
 			return conversionHelper.convertValueToType(expectedType, sValue);
 		}
