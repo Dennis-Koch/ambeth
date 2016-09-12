@@ -11,6 +11,8 @@ import de.osthus.ambeth.collections.AbstractTuple2KeyHashMap;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.Tuple2KeyHashMap;
+import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.config.XmlConfigurationConstants;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -18,10 +20,13 @@ import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 import de.osthus.ambeth.util.ParamChecker;
 
 public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, IXmlTypeRegistry
 {
+	public static final String DefaultNamespace = "http://schemas.osthus.de/Ambeth";
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -31,6 +36,12 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 
 	@Autowired
 	protected IProxyHelper proxyHelper;
+
+	@Autowired
+	protected ITypeInfoProvider typeInfoProvider;
+
+	@Property(name = XmlConfigurationConstants.TransparentRegistration, defaultValue = "false")
+	protected boolean transparentRegistration;
 
 	protected final HashMap<Class<?>, List<XmlTypeKey>> weakClassToXmlTypeMap = new HashMap<Class<?>, List<XmlTypeKey>>(0.5f);
 
@@ -127,6 +138,26 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 	}
 
 	@Override
+	public String getXmlTypeName(Class<?> type, String name)
+	{
+		if (name == null || name.length() == 0 || "##default".equals(name))
+		{
+			name = typeInfoProvider.getTypeInfo(type).getSimpleName();
+		}
+		return name;
+	}
+
+	@Override
+	public String getXmlTypeNamespace(Class<?> type, String namespace)
+	{
+		if (DefaultNamespace.equals(namespace) || "##default".equals(namespace) || namespace != null && namespace.length() == 0)
+		{
+			namespace = null;
+		}
+		return namespace;
+	}
+
+	@Override
 	public IXmlTypeKey getXmlType(Class<?> type)
 	{
 		return getXmlType(type, true);
@@ -152,6 +183,13 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 						realType = IObjRef.class;
 					}
 					xmlTypeKeys = classToXmlTypeMap.get(realType);
+				}
+				if (xmlTypeKeys == null && transparentRegistration)
+				{
+					xmlTypeKeys = new ArrayList<XmlTypeKey>(1);
+					String xmlName = getXmlTypeName(type, null);
+					String xmlNamespace = getXmlTypeNamespace(type, null);
+					xmlTypeKeys.add(new XmlTypeKey(xmlName, xmlNamespace));
 				}
 				if (xmlTypeKeys != null)
 				{
