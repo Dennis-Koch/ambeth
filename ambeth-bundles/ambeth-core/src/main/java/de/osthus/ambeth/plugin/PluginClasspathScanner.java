@@ -25,7 +25,7 @@ public class PluginClasspathScanner extends CoreClasspathScanner
 	}
 
 	@Override
-	protected ClassLoader getClassLoader()
+	public ClassLoader getClassLoader()
 	{
 		return urlClassLoader;
 	}
