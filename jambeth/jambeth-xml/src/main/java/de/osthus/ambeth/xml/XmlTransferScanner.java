@@ -24,8 +24,6 @@ public class XmlTransferScanner implements IInitializingBean, IStartingBean, IDi
 	@LogInstance
 	private ILogger log;
 
-	public static final String DefaultNamespace = "http://schemas.osthus.de/Ambeth";
-
 	@Autowired(optional = true)
 	protected IClasspathScanner classpathScanner;
 
@@ -37,6 +35,9 @@ public class XmlTransferScanner implements IInitializingBean, IStartingBean, IDi
 
 	@Autowired
 	protected IXmlTypeExtendable xmlTypeExtendable;
+
+	@Autowired
+	protected IXmlTypeRegistry xmlTypeRegistry;
 
 	protected List<Class<?>> rootElementClasses;
 
@@ -103,14 +104,9 @@ public class XmlTransferScanner implements IInitializingBean, IStartingBean, IDi
 					namespace = xmlType.namespace();
 				}
 			}
-			if (DefaultNamespace.equals(namespace) || "##default".equals(namespace) || namespace != null && namespace.length() == 0)
-			{
-				namespace = null;
-			}
-			if (name == null || name.length() == 0 || "##default".equals(name))
-			{
-				name = typeInfoProvider.getTypeInfo(rootElementClass).getSimpleName();
-			}
+			namespace = xmlTypeRegistry.getXmlTypeNamespace(rootElementClass, namespace);
+			name = xmlTypeRegistry.getXmlTypeName(rootElementClass, name);
+
 			xmlTypeExtendable.registerXmlType(rootElementClass, name, namespace);
 			final String fName = name;
 			final String fNamespace = namespace;
