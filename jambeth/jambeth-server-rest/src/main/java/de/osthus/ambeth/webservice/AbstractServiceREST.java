@@ -37,6 +37,7 @@ import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.XmlModule;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
+import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LoggerFactory;
 import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.ObjRef;
@@ -93,6 +94,7 @@ public abstract class AbstractServiceREST
 	}
 
 	@GET
+	@Path("ping")
 	@Produces({ MediaType.TEXT_PLAIN })
 	public String ping()
 	{
@@ -100,7 +102,7 @@ public abstract class AbstractServiceREST
 	}
 
 	@GET
-	@Path("json")
+	@Path("ping2")
 	@Produces({ MediaType.TEXT_XML })
 	public ObjRef ping2()
 	{
@@ -183,7 +185,12 @@ public abstract class AbstractServiceREST
 		}
 		else
 		{
-			getLog().info("No security context holder available. Skip creating security Context!");
+			ILogger log = getLog();
+			if (log.isInfoEnabled())
+			{
+				ILoggerHistory loggerHistory = getService(ILoggerHistory.class);
+				loggerHistory.infoOnce(log, this, "No security context holder available. Skip creating security Context!");
+			}
 		}
 	}
 
@@ -234,7 +241,12 @@ public abstract class AbstractServiceREST
 	{
 		is = decompressContentIfNecessary(is);
 		ICyclicXMLHandler cyclicXmlHandler = getService(XmlModule.CYCLIC_XML_HANDLER, ICyclicXMLHandler.class);
-		return (Object[]) cyclicXmlHandler.readFromStream(is);
+		Object args = cyclicXmlHandler.readFromStream(is);
+		if (args instanceof Object[])
+		{
+			return (Object[]) args;
+		}
+		return new Object[] { args };
 	}
 
 	protected StreamingOutput createExceptionResult(Throwable e)
@@ -255,10 +267,15 @@ public abstract class AbstractServiceREST
 		return createResult(result);
 	}
 
+	protected void writeContent(OutputStream os, Object result)
+	{
+		ICyclicXMLHandler cyclicXmlHandler = getService(XmlModule.CYCLIC_XML_HANDLER, ICyclicXMLHandler.class);
+		cyclicXmlHandler.writeToStream(os, result);
+	}
+
 	protected StreamingOutput createResult(final Object result)
 	{
 		final String contentEncoding = evaluateAcceptedContentEncoding();
-		final ICyclicXMLHandler cyclicXmlHandler = getService(XmlModule.CYCLIC_XML_HANDLER, ICyclicXMLHandler.class);
 		return new StreamingOutput()
 		{
 			@Override
@@ -275,7 +292,7 @@ public abstract class AbstractServiceREST
 				}
 				try
 				{
-					cyclicXmlHandler.writeToStream(output, result);
+					writeContent(output, result);
 					if (output instanceof DeflaterOutputStream)
 					{
 						((DeflaterOutputStream) output).finish();
@@ -290,7 +307,7 @@ public abstract class AbstractServiceREST
 						final StringBuilder sb = new StringBuilder();
 						try
 						{
-							cyclicXmlHandler.writeToStream(new OutputStream()
+							writeContent(new OutputStream()
 							{
 								@Override
 								public void write(int b) throws IOException

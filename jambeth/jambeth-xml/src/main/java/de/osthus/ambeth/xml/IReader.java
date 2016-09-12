@@ -19,9 +19,9 @@ public interface IReader
 
 	String getElementValue();
 
-	void nextTag();
+	boolean nextTag();
 
-	void nextToken();
+	boolean nextToken();
 
 	boolean isStartTag();
 

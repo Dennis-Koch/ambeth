@@ -300,7 +300,10 @@ public class SimpleXmlReader implements ICyclicXmlReader
 			xmlReader.setInput(reader);
 
 			DefaultXmlReader pullParserReader = new DefaultXmlReader(xmlReader, xmlController, objectFutureHandlerRegistry);
-			pullParserReader.nextTag();
+			if (!pullParserReader.nextTag())
+			{
+				return null;
+			}
 			readPrefix(pullParserReader);
 			Object obj = pullParserReader.readObject();
 			obj = postProcess(obj, pullParserReader);

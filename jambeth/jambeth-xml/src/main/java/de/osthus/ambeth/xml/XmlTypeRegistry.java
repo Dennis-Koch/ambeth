@@ -11,8 +11,7 @@ import de.osthus.ambeth.collections.AbstractTuple2KeyHashMap;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.Tuple2KeyHashMap;
-import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.config.XmlConfigurationConstants;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -39,9 +38,6 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 
 	@Autowired
 	protected ITypeInfoProvider typeInfoProvider;
-
-	@Property(name = XmlConfigurationConstants.TransparentRegistration, defaultValue = "false")
-	protected boolean transparentRegistration;
 
 	protected final HashMap<Class<?>, List<XmlTypeKey>> weakClassToXmlTypeMap = new HashMap<Class<?>, List<XmlTypeKey>>(0.5f);
 
@@ -121,6 +117,30 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 		try
 		{
 			Class<?> type = xmlTypeToClassMap.get(name, namespace);
+			if (type == null && namespace.isEmpty())
+			{
+				type = Thread.currentThread().getContextClassLoader().loadClass(name);
+				if (type != null)
+				{
+					readLock.unlock();
+					try
+					{
+						writeLock.lock();
+						try
+						{
+							xmlTypeToClassMap.put(name, namespace, type);
+						}
+						finally
+						{
+							writeLock.unlock();
+						}
+					}
+					finally
+					{
+						readLock.lock();
+					}
+				}
+			}
 			if (type == null)
 			{
 				if (log.isDebugEnabled())
@@ -130,6 +150,10 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 				return null;
 			}
 			return type;
+		}
+		catch (ClassNotFoundException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally
 		{
@@ -184,12 +208,10 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 					}
 					xmlTypeKeys = classToXmlTypeMap.get(realType);
 				}
-				if (xmlTypeKeys == null && transparentRegistration)
+				if (xmlTypeKeys == null)
 				{
 					xmlTypeKeys = new ArrayList<XmlTypeKey>(1);
-					String xmlName = getXmlTypeName(type, null);
-					String xmlNamespace = getXmlTypeNamespace(type, null);
-					xmlTypeKeys.add(new XmlTypeKey(xmlName, xmlNamespace));
+					xmlTypeKeys.add(new XmlTypeKey(type.getName(), null));
 				}
 				if (xmlTypeKeys != null)
 				{
@@ -205,10 +227,6 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 						readLock.lock();
 					}
 				}
-			}
-			if (expectExisting && xmlTypeKeys == null)
-			{
-				throw new IllegalArgumentException("No xml type found: Type=" + type);
 			}
 			return xmlTypeKeys != null ? xmlTypeKeys.get(0) : null;
 		}

@@ -13,7 +13,7 @@ import de.osthus.ambeth.model.IServiceDescription;
 import de.osthus.ambeth.objectcollector.IObjectCollector;
 import de.osthus.ambeth.util.StringConversionHelper;
 
-@XmlRootElement(name = "ServiceDescription", namespace = "http://schemas.osthus.de/Ambeth")
+@XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ServiceDescription implements IServiceDescription
 {

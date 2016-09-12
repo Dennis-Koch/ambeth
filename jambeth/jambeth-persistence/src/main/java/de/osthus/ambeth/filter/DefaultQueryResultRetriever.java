@@ -19,7 +19,7 @@ import de.osthus.ambeth.persistence.IVersionCursor;
 import de.osthus.ambeth.persistence.IVersionItem;
 import de.osthus.ambeth.query.IQueryIntern;
 import de.osthus.ambeth.util.IConversionHelper;
-import de.osthus.ambeth.util.ImmutableTypeSet;
+import de.osthus.ambeth.util.WrapperTypeSet;
 
 public class DefaultQueryResultRetriever implements IQueryResultRetriever
 {
@@ -116,7 +116,7 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever
 	{
 		if (expectedItemType != null)
 		{
-			Class<?> unwrappedType = ImmutableTypeSet.getUnwrappedType(expectedItemType);
+			Class<?> unwrappedType = WrapperTypeSet.getUnwrappedType(expectedItemType);
 			if (unwrappedType != null)
 			{
 				expectedItemType = unwrappedType;

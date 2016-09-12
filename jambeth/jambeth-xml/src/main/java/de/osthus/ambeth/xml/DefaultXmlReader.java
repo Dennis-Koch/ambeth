@@ -1,5 +1,6 @@
 package de.osthus.ambeth.xml;
 
+import java.io.EOFException;
 import java.util.Map.Entry;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -77,11 +78,16 @@ public class DefaultXmlReader implements IReader, IPostProcessReader, ICommandTy
 	}
 
 	@Override
-	public void nextToken()
+	public boolean nextToken()
 	{
 		try
 		{
 			pullParser.nextToken();
+			return true;
+		}
+		catch (EOFException e)
+		{
+			return false;
 		}
 		catch (Exception e)
 		{
@@ -144,11 +150,16 @@ public class DefaultXmlReader implements IReader, IPostProcessReader, ICommandTy
 	}
 
 	@Override
-	public void nextTag()
+	public boolean nextTag()
 	{
 		try
 		{
 			pullParser.nextTag();
+			return true;
+		}
+		catch (EOFException e)
+		{
+			return false;
 		}
 		catch (Throwable e)
 		{

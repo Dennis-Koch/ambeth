@@ -45,7 +45,7 @@ import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.typeinfo.PropertyInfoItem;
-import de.osthus.ambeth.util.ImmutableTypeSet;
+import de.osthus.ambeth.util.WrapperTypeSet;
 
 public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, ICollectionChangeExtensionExtendable
 {
@@ -100,7 +100,7 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 			}
 			doesModifyToBeUpdated = IDataObject.class.isAssignableFrom(type) && !prop.isAnnotationPresent(IgnoreToBeUpdated.class);
 			isParentChildSetter = IDataObject.class.isAssignableFrom(type) && prop.isAnnotationPresent(ParentChild.class);
-			isAddedRemovedCheckNecessary = !prop.getPropertyType().isPrimitive() && ImmutableTypeSet.getUnwrappedType(prop.getPropertyType()) == null
+			isAddedRemovedCheckNecessary = !prop.getPropertyType().isPrimitive() && WrapperTypeSet.getUnwrappedType(prop.getPropertyType()) == null
 					&& !String.class.equals(prop.getPropertyType());
 
 			evaluateDependentProperties(type, prop, propertyNames, propertyInfoProvider);

@@ -314,8 +314,8 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				cacheToOrelsLoadedHistory, alreadyHandledSet, loadItems);
 	}
 
-	protected void processPendingOrelsAndObjRefs(final ILinkedMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchPath, final AlreadyHandledSet alreadyHandledSet,
-			final IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisLoadedHistory,
+	protected void processPendingOrelsAndObjRefs(final ILinkedMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchPath,
+			final AlreadyHandledSet alreadyHandledSet, final IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisLoadedHistory,
 			final IdentityLinkedMap<ICacheIntern, ISet<IObjRelation>> cacheToOrelsLoadedHistory,
 			final IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad,
 			final IdentityLinkedMap<ICacheIntern, IMap<IObjRelation, Boolean>> cacheToOrelsToLoad, final ArrayList<PrefetchCommand> pendingPrefetchCommands,
@@ -390,7 +390,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 							int relationIndex = vhc.get__EntityMetaData().getIndexByRelation(member);
 							IObjRef[] objRefs = vhc.get__ObjRefs(relationIndex);
 							Object obj = valueHolderContainerMixin.getValue(vhc, relationIndex, member, targetCache, objRefs, CacheDirective.failEarly());
-							if (doSetValue && obj != null)
+							if (doSetValue)
 							{
 								member.setValue(vhc, obj);
 							}

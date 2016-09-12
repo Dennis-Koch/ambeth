@@ -9,7 +9,6 @@ import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.regex.Pattern;
 
-import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
 
@@ -17,21 +16,10 @@ public final class ImmutableTypeSet
 {
 	protected static final HashSet<Class<?>> immutableTypeSet = new HashSet<Class<?>>(0.5f);
 
-	private static final HashMap<Class<?>, Class<?>> wrapperTypesMap = new HashMap<Class<?>, Class<?>>(0.5f);
-
 	private static final ClassExtendableContainer<Class<?>> immutableSuperTypes = new ClassExtendableContainer<Class<?>>("", "");
 
 	static
 	{
-		wrapperTypesMap.put(Integer.class, Integer.TYPE);
-		wrapperTypesMap.put(Long.class, Long.TYPE);
-		wrapperTypesMap.put(Double.class, Double.TYPE);
-		wrapperTypesMap.put(Float.class, Float.TYPE);
-		wrapperTypesMap.put(Short.class, Short.TYPE);
-		wrapperTypesMap.put(Character.class, Character.TYPE);
-		wrapperTypesMap.put(Byte.class, Byte.TYPE);
-		wrapperTypesMap.put(Boolean.class, Boolean.TYPE);
-
 		immutableTypeSet.add(Integer.class);
 		immutableTypeSet.add(Integer.TYPE);
 		immutableTypeSet.add(Long.class);
@@ -81,10 +69,5 @@ public final class ImmutableTypeSet
 	private ImmutableTypeSet()
 	{
 		// Intended blank
-	}
-
-	public static Class<?> getUnwrappedType(Class<?> wrapperType)
-	{
-		return wrapperTypesMap.get(wrapperType);
 	}
 }

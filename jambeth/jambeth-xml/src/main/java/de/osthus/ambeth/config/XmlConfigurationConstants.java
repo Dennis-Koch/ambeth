@@ -16,11 +16,6 @@ public final class XmlConfigurationConstants
 	 */
 	public static final String PackageScanPatterns = "ambeth.xml.transfer.pattern";
 
-	/**
-	 * Allows to serialize objects even without a <code>@XmlType</code> annotation.</br> The default value is <code>"false"</code>
-	 */
-	public static final String TransparentRegistration = "ambeth.xml.transfer.transparent";
-
 	private XmlConfigurationConstants()
 	{
 		// Intended blank

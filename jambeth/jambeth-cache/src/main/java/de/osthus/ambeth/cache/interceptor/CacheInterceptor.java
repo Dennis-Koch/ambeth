@@ -13,6 +13,7 @@ import de.osthus.ambeth.annotation.QueryResultType;
 import de.osthus.ambeth.cache.CacheDirective;
 import de.osthus.ambeth.cache.Cached;
 import de.osthus.ambeth.cache.ICache;
+import de.osthus.ambeth.cache.IServiceResultHolder;
 import de.osthus.ambeth.cache.IServiceResultProcessor;
 import de.osthus.ambeth.cache.IServiceResultProcessorRegistry;
 import de.osthus.ambeth.cache.model.IServiceResult;
@@ -50,6 +51,9 @@ public class CacheInterceptor extends MergeInterceptor
 	protected ICache cache;
 
 	@Autowired
+	protected IServiceResultHolder serviceResultHolder;
+
+	@Autowired
 	protected IServiceResultProcessorRegistry serviceResultProcessorRegistry;
 
 	@Override
@@ -59,7 +63,7 @@ public class CacheInterceptor extends MergeInterceptor
 		IServiceResult serviceResult;
 
 		Cached cached = annotation instanceof Cached ? (Cached) annotation : null;
-		if (cached == null && Boolean.TRUE.equals(pauseCache.get()))
+		if (cached == null && (Boolean.TRUE.equals(pauseCache.get()) || !serviceResultHolder.isExpectServiceResult()))
 		{
 			return super.interceptLoad(obj, method, args, proxy, annotation, isAsyncBegin);
 		}

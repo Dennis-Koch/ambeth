@@ -14,7 +14,7 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
-import de.osthus.ambeth.util.ImmutableTypeSet;
+import de.osthus.ambeth.util.WrapperTypeSet;
 public class CacheMapEntryVisitor extends ClassGenerator
 {
 	private static final MethodInstance template_m_getEntityType = new MethodInstance(null, CacheMapEntry.class, Class.class, "getEntityType");
@@ -107,7 +107,7 @@ public class CacheMapEntryVisitor extends ClassGenerator
 			}
 			return null;
 		}
-		if (member instanceof CompositeIdMember || (!member.getRealType().isPrimitive() && ImmutableTypeSet.getUnwrappedType(member.getRealType()) == null))
+		if (member instanceof CompositeIdMember || (!member.getRealType().isPrimitive() && WrapperTypeSet.getUnwrappedType(member.getRealType()) == null))
 		{
 			// no business case for any complex efforts
 			FieldInstance f_id = cv.implementField(new FieldInstance(Opcodes.ACC_PRIVATE, getFieldName(member), null, Object.class));
@@ -119,7 +119,7 @@ public class CacheMapEntryVisitor extends ClassGenerator
 		Class<?> nativeType = member.getRealType();
 		if (!nativeType.isPrimitive())
 		{
-			nativeType = ImmutableTypeSet.getUnwrappedType(nativeType);
+			nativeType = WrapperTypeSet.getUnwrappedType(nativeType);
 		}
 		FieldInstance f_id = cv.implementField(new FieldInstance(Opcodes.ACC_PRIVATE, getFieldName(member), null, nativeType));
 

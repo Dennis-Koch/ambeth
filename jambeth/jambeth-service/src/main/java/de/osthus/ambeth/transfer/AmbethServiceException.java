@@ -5,7 +5,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name = "AmbethServiceException", namespace = "http://schemas.osthus.de/Ambeth")
+@XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class AmbethServiceException
 {

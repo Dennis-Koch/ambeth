@@ -1,30 +1,30 @@
 package de.osthus.ambeth.merge;
 
 import java.util.HashSet;
-import java.util.Set;
 
 import de.osthus.ambeth.collections.HashMap;
-import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
 public class ValueObjectConfig implements IValueObjectConfig
 {
 	@SuppressWarnings("unused")
-	@LogInstance(ValueObjectConfig.class)
+	@LogInstance
 	private ILogger log;
 
 	protected Class<?> entityType;
 
 	protected Class<?> valueType;
 
-	protected Set<String> listTypeMembers = new HashSet<String>();
+	protected final HashSet<String> listTypeMembers = new HashSet<String>();
 
-	protected IMap<String, ValueObjectMemberType> memberTypes = new HashMap<String, ValueObjectMemberType>();
+	protected final HashMap<String, ValueObjectMemberType> memberTypes = new HashMap<String, ValueObjectMemberType>();
 
-	protected IMap<String, Class<?>> collectionMemberTypes = new HashMap<String, Class<?>>();
+	protected final HashMap<String, Class<?>> collectionMemberTypes = new HashMap<String, Class<?>>();
 
-	protected IMap<String, String> boToVoMemberNameMap = new HashMap<String, String>();
+	protected final HashMap<String, String> boToVoMemberNameMap = new HashMap<String, String>();
+
+	protected final HashMap<String, String> voToBoMemberNameMap = new HashMap<String, String>();
 
 	@Override
 	public Class<?> getEntityType()
@@ -62,10 +62,28 @@ public class ValueObjectConfig implements IValueObjectConfig
 		}
 	}
 
+	public String getBusinessObjectMemberName(String valueObjectMemberName)
+	{
+		String boMemberName = voToBoMemberNameMap.get(valueObjectMemberName);
+		if (boMemberName == null)
+		{
+			return valueObjectMemberName;
+		}
+		else
+		{
+			return boMemberName;
+		}
+	}
+
 	public void putValueObjectMemberName(String businessObjectMemberName, String valueObjectMemberName)
 	{
 		if (!boToVoMemberNameMap.putIfNotExists(businessObjectMemberName, valueObjectMemberName))
 		{
+			throw new IllegalStateException("Mapping for member '" + businessObjectMemberName + "' already defined");
+		}
+		if (!voToBoMemberNameMap.putIfNotExists(businessObjectMemberName, valueObjectMemberName))
+		{
+			boToVoMemberNameMap.remove(businessObjectMemberName);
 			throw new IllegalStateException("Mapping for member '" + businessObjectMemberName + "' already defined");
 		}
 	}
