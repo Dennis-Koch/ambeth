@@ -63,30 +63,6 @@ public class GenericEntityREST extends AbstractServiceREST
 		return super.getArguments(is);
 	}
 
-	private final class NavigationResult
-	{
-		public final Object value;
-
-		public final IValueObjectConfig config;
-
-		public final IValueObjectConfig parentConfig;
-
-		public final IEntityMetaData metaData;
-
-		public final IEntityMetaData parentMetaData;
-
-		public NavigationResult(Object value, IEntityMetaData parentMetaData, IEntityMetaData metaData, IValueObjectConfig parentConfig,
-				IValueObjectConfig config)
-		{
-			super();
-			this.value = value;
-			this.parentMetaData = parentMetaData;
-			this.metaData = metaData;
-			this.parentConfig = parentConfig;
-			this.config = config;
-		}
-	}
-
 	private final class NavigationStep
 	{
 		public final Object value;
@@ -288,7 +264,7 @@ public class GenericEntityREST extends AbstractServiceREST
 			NavigationStep[] navigationSteps = navigateTo(path, NavigationMode.DEFAULT);
 			NavigationStep parentStep = navigationSteps.length >= 2 ? navigationSteps[navigationSteps.length - 2] : null;
 			NavigationStep lastStep = navigationSteps[navigationSteps.length - 1];
-			int a = 5;
+
 			Object[] args = getArguments(is);
 			if (args.length != 1 || args[0] == null)
 			{
@@ -449,7 +425,7 @@ public class GenericEntityREST extends AbstractServiceREST
 
 	@DELETE
 	@Path("{subResources:.*}")
-	public StreamingOutput delete(@Context HttpServletRequest request, InputStream is)
+	public StreamingOutput delete(@Context HttpServletRequest request)
 	{
 		try
 		{
@@ -476,8 +452,6 @@ public class GenericEntityREST extends AbstractServiceREST
 			{
 				throw new BadRequestException("Instance to delete must be an entity: '" + Arrays.toString(path) + "'");
 			}
-			Object[] args = getArguments(is);
-
 			IMergeProcess mergeProcess = getService(IMergeProcess.class);
 			mergeProcess.process(null, lastStep.value, null, null);
 
