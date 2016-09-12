@@ -366,9 +366,6 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 			return (T) Collections.emptyList();
 		}
 		ICache cache = this.cache.getCurrentCache();
-		IPrefetchHelper prefetchHelper = this.prefetchHelper;
-		// Ensure all potential value-holders of To-One BOs are initialized in a batch
-		prefetchHelper.prefetch(businessObjectList);
 		// Checking for correct types
 		IEntityMetaData boMetaData = entityMetaDataProvider.getMetaData(businessObjectList.get(0).getClass());
 		Class<?> businessObjectType = boMetaData.getEntityType();

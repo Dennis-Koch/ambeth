@@ -105,9 +105,10 @@ public class GenericEntityREST extends AbstractServiceREST
 
 		Object value = null;
 
+		String entityId = path[3];
+
 		if (path.length > 3)
 		{
-			String entityId = path[3];
 			Object convertedEntityId = conversionHelper.convertValueToType(metaData.getIdMember().getRealType(), entityId);
 			value = cache.getObject(metaData.getEntityType(), convertedEntityId);
 		}
@@ -119,7 +120,7 @@ public class GenericEntityREST extends AbstractServiceREST
 			{
 				return new NavigationStep[] { new NavigationStep(null, metaData, config, null) };
 			}
-			throw new NotFoundException("Entity '" + pathSB + "'  not found");
+			throw new NotFoundException("Entity '" + pathSB + "'  with id '" + entityId + "' not found");
 		}
 
 		ArrayList<NavigationStep> navigationSteps = new ArrayList<NavigationStep>();
