@@ -1,8 +1,13 @@
 package de.osthus.ambeth.helloworld.vo;
 
+import java.util.List;
 
 public class TestEntityVO extends AbstractEntityVO
 {
+	protected TestEntity2VO relation;
+
+	protected List<TestEntity3VO> relations;
+
 	protected int myValue;
 
 	protected int myValueUnique;
@@ -37,5 +42,25 @@ public class TestEntityVO extends AbstractEntityVO
 	public int getMyValueUnique()
 	{
 		return myValueUnique;
+	}
+
+	public TestEntity2VO getRelation()
+	{
+		return relation;
+	}
+
+	public void setRelation(TestEntity2VO relation)
+	{
+		this.relation = relation;
+	}
+
+	public List<TestEntity3VO> getRelations()
+	{
+		return relations;
+	}
+
+	public void setRelations(List<TestEntity3VO> relations)
+	{
+		this.relations = relations;
 	}
 }

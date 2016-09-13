@@ -1,11 +1,11 @@
 package de.osthus.ambeth.xml.typehandler;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IConversionHelper;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.xml.IReader;
 import de.osthus.ambeth.xml.ITypeBasedHandler;
 import de.osthus.ambeth.xml.IWriter;
@@ -20,20 +20,8 @@ public class ObjectTypeHandler extends AbstractHandler implements ITypeBasedHand
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected ICommandBuilder commandBuilder;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(commandBuilder, "commandBuilder");
-	}
-
-	public void setCommandBuilder(ICommandBuilder commandBuilder)
-	{
-		this.commandBuilder = commandBuilder;
-	}
 
 	@Override
 	public void writeObject(Object obj, Class<?> type, IWriter writer)

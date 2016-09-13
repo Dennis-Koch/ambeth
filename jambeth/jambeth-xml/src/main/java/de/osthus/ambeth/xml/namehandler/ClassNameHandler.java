@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IProxyHelper;
@@ -14,7 +15,6 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.typeinfo.ITypeInfo;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.xml.INameBasedHandler;
 import de.osthus.ambeth.xml.IReader;
 import de.osthus.ambeth.xml.IWriter;
@@ -34,10 +34,13 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 
 	protected final Pattern splitPattern = Pattern.compile(" ");
 
+	@Autowired
 	protected IProxyHelper proxyHelper;
 
+	@Autowired
 	protected ITypeInfoProvider typeInfoProvider;
 
+	@Autowired
 	protected IXmlTypeRegistry xmlTypeRegistry;
 
 	@Override
@@ -45,26 +48,8 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 	{
 		super.afterPropertiesSet();
 
-		ParamChecker.assertNotNull(proxyHelper, "ProxyHelper");
-		ParamChecker.assertNotNull(typeInfoProvider, "TypeInfoProvider");
-		ParamChecker.assertNotNull(xmlTypeRegistry, "XmlTypeRegistry");
-
 		noMemberAttribute.add(Date.class);
-	}
-
-	public void setProxyHelper(IProxyHelper proxyHelper)
-	{
-		this.proxyHelper = proxyHelper;
-	}
-
-	public void setTypeInfoProvider(ITypeInfoProvider typeInfoProvider)
-	{
-		this.typeInfoProvider = typeInfoProvider;
-	}
-
-	public void setXmlTypeRegistry(IXmlTypeRegistry xmlTypeRegistry)
-	{
-		this.xmlTypeRegistry = xmlTypeRegistry;
+		noMemberAttribute.add(Object.class);
 	}
 
 	public void writeAsAttribute(Class<?> type, IWriter writer)
