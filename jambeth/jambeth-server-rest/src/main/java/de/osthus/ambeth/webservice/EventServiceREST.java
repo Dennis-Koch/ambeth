@@ -3,7 +3,6 @@ package de.osthus.ambeth.webservice;
 import java.io.InputStream;
 import java.util.List;
 
-import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -18,7 +17,6 @@ import de.osthus.ambeth.service.IEventService;
 @Path("/EventService")
 @Consumes({ MediaType.TEXT_PLAIN })
 @Produces({ MediaType.TEXT_PLAIN })
-@Singleton
 public class EventServiceREST extends AbstractServiceREST
 {
 	protected IEventService getEventService()

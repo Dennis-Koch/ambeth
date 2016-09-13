@@ -4,7 +4,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -24,7 +23,6 @@ import de.osthus.ambeth.util.IConversionHelper;
 @Path("/MergeService")
 @Consumes({ MediaType.TEXT_PLAIN })
 @Produces({ MediaType.TEXT_PLAIN })
-@Singleton
 public class MergeServiceREST extends AbstractServiceREST
 {
 	protected IMergeService getMergeService()

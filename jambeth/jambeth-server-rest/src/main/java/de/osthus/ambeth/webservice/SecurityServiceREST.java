@@ -2,7 +2,6 @@ package de.osthus.ambeth.webservice;
 
 import java.io.InputStream;
 
-import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -17,7 +16,6 @@ import de.osthus.ambeth.service.ISecurityService;
 @Path("/SecurityService")
 @Consumes({ MediaType.TEXT_PLAIN })
 @Produces({ MediaType.TEXT_PLAIN })
-@Singleton
 public class SecurityServiceREST extends AbstractServiceREST
 {
 	protected ISecurityService getSecurityService()
