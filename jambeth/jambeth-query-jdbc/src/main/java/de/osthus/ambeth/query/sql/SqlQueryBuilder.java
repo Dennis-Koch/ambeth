@@ -283,6 +283,15 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	}
 
 	@Override
+	public IOperand timeUnitMultipliedInterval(IOperand timeUnit, IOperand multiplicatedInterval)
+	{
+		ParamChecker.assertParamNotNull(timeUnit, "timeUnit");
+		ParamChecker.assertParamNotNull(multiplicatedInterval, "multiplicatedInterval");
+		return beanContext.registerBean(TimeUnitMultipliedOperand.class).propertyValue("TimeUnit", timeUnit)
+				.propertyValue("MultiplicatedInterval", multiplicatedInterval).finish();
+	}
+
+	@Override
 	public IOperator trueOperator()
 	{
 		return and(value(1), value(1));
@@ -1008,6 +1017,14 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	}
 
 	@Override
+	public IOperand overlaps(IOperand leftOperand, IOperand rightOperand)
+	{
+		ParamChecker.assertParamNotNull(leftOperand, "leftOperand");
+		ParamChecker.assertParamNotNull(rightOperand, "rightOperand");
+		return beanContext.registerBean(OverlapsOperand.class).propertyValue("LeftOperand", leftOperand).propertyValue("RightOperand", rightOperand).finish();
+	}
+
+	@Override
 	public IQueryBuilder<T> groupBy(IOperand... operand)
 	{
 		ParamChecker.assertParamNotNull(operand, "operand");
@@ -1017,6 +1034,15 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		}
 		groupByOperands.addAll(operand);
 		return self;
+	}
+
+	@Override
+	public IOperand interval(IOperand lowerBoundary, IOperand upperBoundary)
+	{
+		ParamChecker.assertParamNotNull(lowerBoundary, "lowerBoundary");
+		ParamChecker.assertParamNotNull(upperBoundary, "upperBoundary");
+		return beanContext.registerBean(IntervalOperand.class).propertyValue("LowerBoundary", lowerBoundary).propertyValue("UpperBoundary", upperBoundary)
+				.finish();
 	}
 
 	@Override
@@ -1174,6 +1200,12 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		subQueries.add(subQueryOperand);
 
 		return subQueryOperand;
+	}
+
+	@Override
+	public IOperand sum(IOperand... summands)
+	{
+		return beanContext.registerBean(SumOperand.class).propertyValue("Operands", summands).finish();
 	}
 
 	@Override

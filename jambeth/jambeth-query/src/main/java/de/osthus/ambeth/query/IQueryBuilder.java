@@ -18,6 +18,8 @@ public interface IQueryBuilder<T> extends IDisposable
 
 	IOperator or(IOperand... operands);
 
+	IOperand timeUnitMultipliedInterval(IOperand timeUnit, IOperand multiplicatedInterval);
+
 	IOperator trueOperator();
 
 	IOperator falseOperator();
@@ -127,7 +129,11 @@ public interface IQueryBuilder<T> extends IDisposable
 
 	IQueryBuilder<T> groupBy(IOperand... operand);
 
+	IOperand interval(IOperand lowerBoundary, IOperand upperBoundary);
+
 	IQueryBuilder<T> orderBy(IOperand operand, OrderByType orderByType);
+
+	IOperand overlaps(IOperand leftOperand, IOperand rightOperand);
 
 	/**
 	 * Please use selectProperty() instead
@@ -154,6 +160,8 @@ public interface IQueryBuilder<T> extends IDisposable
 	ISqlJoin join(Class<?> entityType, IOperator clause);
 
 	<S> IOperand subQuery(ISubQuery<S> subQuery, IOperand... selectedColumns);
+
+	IOperand sum(IOperand... summands);
 
 	IQuery<T> build();
 
