@@ -51,6 +51,12 @@ public class QueryBuilderDummy<T> implements IQueryBuilder<T>
 	}
 
 	@Override
+	public IOperand timeUnitMultipliedInterval(IOperand timeUnit, IOperand multiplicatedInterval)
+	{
+		return null;
+	}
+
+	@Override
 	public IOperator trueOperator()
 	{
 		return null;
@@ -124,6 +130,12 @@ public class QueryBuilderDummy<T> implements IQueryBuilder<T>
 
 	@Override
 	public IOperator fulltext(Class<?> entityType, IOperand queryOperand)
+	{
+		return null;
+	}
+
+	@Override
+	public IOperand interval(IOperand lowerBoundary, IOperand upperBoundary)
 	{
 		return null;
 	}
@@ -339,6 +351,12 @@ public class QueryBuilderDummy<T> implements IQueryBuilder<T>
 	}
 
 	@Override
+	public IOperand overlaps(IOperand leftOperand, IOperand rightOperand)
+	{
+		return null;
+	}
+
+	@Override
 	public int selectColumn(String columnName)
 	{
 		return 0;
@@ -388,6 +406,12 @@ public class QueryBuilderDummy<T> implements IQueryBuilder<T>
 
 	@Override
 	public <S> IOperand subQuery(ISubQuery<S> subQuery, IOperand... selectedColumns)
+	{
+		return null;
+	}
+
+	@Override
+	public IOperand sum(IOperand... summands)
 	{
 		return null;
 	}

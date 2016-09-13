@@ -138,6 +138,18 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>
 	}
 
 	@Override
+	public IOperand overlaps(IOperand leftOperand, IOperand rightOperand)
+	{
+		return null;
+	}
+
+	@Override
+	public IOperand timeUnitMultipliedInterval(IOperand timeUnit, IOperand multiplicatedInterval)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public IOperator trueOperator()
 	{
 		return beanContext.registerBean(TrueOperator.class).finish();
@@ -420,6 +432,12 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>
 	}
 
 	@Override
+	public IOperand interval(IOperand lowerBoundary, IOperand upperBoundary)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public IQueryBuilder<T> orderBy(IOperand column, OrderByType orderByType)
 	{
 		throw new UnsupportedOperationException();
@@ -475,6 +493,12 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>
 
 	@Override
 	public <S> IOperand subQuery(ISubQuery<S> subQuery, IOperand... selectedColumns)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public IOperand sum(IOperand... summands)
 	{
 		throw new UnsupportedOperationException();
 	}
