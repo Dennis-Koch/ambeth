@@ -3,13 +3,13 @@ package de.osthus.ambeth.threading;
 import static org.junit.Assert.fail;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Exchanger;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -18,9 +18,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.testutil.category.PerformanceTests;
 
+@Category(PerformanceTests.class)
 public class FastThreadPoolTest
 {
 	@BeforeClass
@@ -65,9 +68,9 @@ public class FastThreadPoolTest
 	@Test
 	public void throughput()
 	{
-		FastThreadPool newFtp = new FastThreadPool(1, 1, 60000);
+		FastThreadPool newFtp = new FastThreadPool(5, 5, 60000);
 		newFtp.setVariableThreads(false);
-		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		ExecutorService executorService = Executors.newFixedThreadPool(5);
 
 		long warmup = 10000;
 		queue(newFtp, warmup);
@@ -85,35 +88,55 @@ public class FastThreadPoolTest
 		newFtp.shutdown();
 	}
 
+	class QueueRunnable extends ReentrantLock implements Runnable
+	{
+		private final CountDownLatch latch;
+
+		private final long amount;
+
+		public volatile long count;
+
+		public QueueRunnable(CountDownLatch latch, long amount)
+		{
+			this.latch = latch;
+			this.amount = amount;
+		}
+
+		@Override
+		public void run()
+		{
+			lock();
+			try
+			{
+				count++;
+				if (count >= amount)
+				{
+					latch.countDown();
+				}
+			}
+			finally
+			{
+				unlock();
+			}
+		}
+	}
+
 	protected long queue(Executor executor, long time)
 	{
 		try
 		{
-			long till = System.currentTimeMillis() + time;
-			long iterationCount = 0;
-			while (System.currentTimeMillis() < till)
-			{
+			long iterationCount = 5000000;
+			CountDownLatch latch = new CountDownLatch(1);
+			QueueRunnable runnable = new QueueRunnable(latch, iterationCount);
 
-				final Exchanger<Object> ex = new Exchanger<Object>();
-				executor.execute(new Runnable()
-				{
-					@Override
-					public void run()
-					{
-						try
-						{
-							ex.exchange(this);
-						}
-						catch (InterruptedException e)
-						{
-							throw RuntimeExceptionUtil.mask(e);
-						}
-					}
-				});
-				ex.exchange(null);
-				iterationCount++;
+			long start = System.currentTimeMillis();
+			for (long a = iterationCount; a-- > 0;)
+			{
+				executor.execute(runnable);
 			}
-			return iterationCount;
+			latch.await();
+			long duration = System.currentTimeMillis() - start;
+			return (long) ((iterationCount / (double) duration) * 1000);
 		}
 		catch (InterruptedException e)
 		{
