@@ -101,6 +101,7 @@ public class ProcessUtil
 		}
 		catch (Throwable e)
 		{
+			process.destroy();
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally

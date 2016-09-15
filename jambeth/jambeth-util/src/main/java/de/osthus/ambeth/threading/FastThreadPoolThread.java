@@ -56,7 +56,17 @@ public class FastThreadPoolThread extends Thread
 					CountDownLatch latch = queueItem.getLatch();
 					if (handler == null)
 					{
-						((Runnable) queueItem.getObject()).run();
+						Thread currentThread = Thread.currentThread();
+						ClassLoader oldContextClassLoader = currentThread.getContextClassLoader();
+						currentThread.setContextClassLoader(queueItem.getContextClassLoader());
+						try
+						{
+							((Runnable) queueItem.getObject()).run();
+						}
+						finally
+						{
+							currentThread.setContextClassLoader(oldContextClassLoader);
+						}
 						if (latch != null)
 						{
 							latch.countDown();

@@ -14,6 +14,8 @@ public class QueueItem extends ListElem<QueueItem>
 
 	private final CountDownLatch latch;
 
+	private final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+
 	public QueueItem(Object context, Object object, HandlerRunnable<?, ?> handler, CountDownLatch latch)
 	{
 		super.value = this;
@@ -46,5 +48,10 @@ public class QueueItem extends ListElem<QueueItem>
 	public CountDownLatch getLatch()
 	{
 		return latch;
+	}
+
+	public ClassLoader getContextClassLoader()
+	{
+		return contextClassLoader;
 	}
 }
