@@ -1,5 +1,6 @@
 package de.osthus.ambeth.orm.blueprint;
 
+import java.beans.Introspector;
 import java.util.Collection;
 
 import javassist.ClassPool;
@@ -28,7 +29,6 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.orm.IOrmEntityTypeProvider;
 import de.osthus.ambeth.util.IConversionHelper;
-import de.osthus.ambeth.util.StringConversionHelper;
 
 public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, IStartingBean
 {
@@ -108,8 +108,7 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 				{
 					if (entityTypeBlueprint.getIsClass())
 					{
-						CtField ctField = new CtField(pool.get(prop.getType()), StringConversionHelper.lowerCaseFirst(objectCollector, prop.getName()),
-								newClass);
+						CtField ctField = new CtField(pool.get(prop.getType()), Introspector.decapitalize(prop.getName()), newClass);
 						newClass.addField(ctField);
 						newClass.addMethod(CtNewMethod.getter("get" + prop.getName(), ctField));
 						newClass.addMethod(CtNewMethod.setter("set" + prop.getName(), ctField));

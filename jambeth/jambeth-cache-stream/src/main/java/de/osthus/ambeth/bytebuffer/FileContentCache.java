@@ -25,14 +25,13 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.ILoggerCache;
 import de.osthus.ambeth.log.LogInstance;
 
 @SuppressWarnings("restriction")
-public class FileContentCache implements IInitializingBean, IStartingBean, IDisposableBean, IFileContentCache, Runnable
+public class FileContentCache implements IInitializingBean, IDisposableBean, IFileContentCache, Runnable
 {
 	private static class Counter
 	{
@@ -137,15 +136,18 @@ public class FileContentCache implements IInitializingBean, IStartingBean, IDisp
 		};
 	}
 
-	@Override
-	public void afterStarted() throws Throwable
+	protected void ensureThread()
 	{
+		if (started)
+		{
+			return;
+		}
+		started = true;
 		Thread thread = new Thread(this);
 		thread.setContextClassLoader(Thread.currentThread().getContextClassLoader());
 		thread.setName("FileContentCache ID: " + Math.abs(random.nextInt()));
 		thread.setDaemon(true);
 		thread.start();
-		started = true;
 	}
 
 	@Override
@@ -477,6 +479,7 @@ public class FileContentCache implements IInitializingBean, IStartingBean, IDisp
 		writeLock.lock();
 		try
 		{
+			ensureThread();
 			long paddedPosition = key.getPaddedPosition();
 			// First we look whether the preceeding chunk is cached. If it exists we expect a serialized access and prefetch following chunks
 			if (paddedPosition == 0)
