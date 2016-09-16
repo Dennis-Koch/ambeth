@@ -22,7 +22,7 @@ public class LogSQLExceptionTest
 			}
 		};
 
-		String reason = "##myReason##", reason2 = "##myReason2##";
+		String reason = "##myReason###", reason2 = "##myReason2###";
 
 		SQLException sqlEx = new SQLException(reason);
 		sqlEx.setNextException(new SQLException(reason2));
