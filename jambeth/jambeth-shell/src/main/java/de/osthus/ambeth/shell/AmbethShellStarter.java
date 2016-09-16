@@ -32,7 +32,7 @@ public class AmbethShellStarter implements IStartingBean, IDisposableBean
 
 	/**
 	 * start the shell
-	 * 
+	 *
 	 * @param args
 	 */
 	@SuppressWarnings("unchecked")
@@ -68,13 +68,29 @@ public class AmbethShellStarter implements IStartingBean, IDisposableBean
 				.startAndClose();
 	}
 
+	public static void start(String[] args, Properties properties, Class<? extends IInitializingModule>... modules)
+	{
+		Properties parsedArgs = parseMainArgs(args);
+
+		Ambeth.createDefault()//
+				.withProperty("ambeth.log.level.de.osthus.ambeth", "INFO")//
+				.withProperty(IocConfigurationConstants.DebugModeActive, "true")//
+				.withProperty(IocConfigurationConstants.TrackDeclarationTrace, "true")//
+				.withProperties(properties) //
+				.withApplicationModules(AmbethShellModule.class)//
+				.withApplicationModules(modules)//
+				.withProperties(parsedArgs)//
+				.withoutPropertiesFileSearch()//
+				.startAndClose();
+	}
+
 	/**
-	 * 
+	 *
 	 * we cannot just let Ambeth absorb these properties because they have no name or key, e.g. java -jar shell.jar myscript.as or java -jar create test.adf
-	 * 
-	 * 
-	 * 
-	 * 
+	 *
+	 *
+	 *
+	 *
 	 * @param args
 	 * @return
 	 */
@@ -109,7 +125,7 @@ public class AmbethShellStarter implements IStartingBean, IDisposableBean
 
 	/**
 	 * validate the variable setting inputs for the batch file(.as file) and save them to Properties if all are valid.
-	 * 
+	 *
 	 * @param properties
 	 *            {@link Properties} that be used for starting Ambeth
 	 * @param batchFile
