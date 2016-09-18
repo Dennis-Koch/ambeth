@@ -213,6 +213,12 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	}
 
 	@Override
+	public IOperand difference(IOperand... diffOperands)
+	{
+		return beanContext.registerBean(DifferenceOperand.class).propertyValue("Operands", diffOperands).finish();
+	}
+
+	@Override
 	public IOperator and(IOperand leftOperand, IOperand rightOperand)
 	{
 		return createTwoPlaceOperator(SqlAndOperator.class, leftOperand, rightOperand, null);
@@ -1277,6 +1283,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		return (ISubQuery<T>) build(whereClause, joinClauses, QueryType.SUBQUERY);
 	}
 
+	@SuppressWarnings("unchecked")
 	protected Object build(IOperand whereClause, final ISqlJoin[] joinClauses, final QueryType queryType)
 	{
 		if (whereClause instanceof SqlAllOperand)
