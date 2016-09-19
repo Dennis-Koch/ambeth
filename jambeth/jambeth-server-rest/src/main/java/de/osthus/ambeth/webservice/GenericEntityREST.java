@@ -33,7 +33,6 @@ import de.osthus.ambeth.merge.IValueObjectConfig;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
-import de.osthus.ambeth.service.ISecurityService;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 import de.osthus.ambeth.util.IConversionHelper;
@@ -44,11 +43,6 @@ import de.osthus.ambeth.util.ListUtil;
 // @Produces({ MediaType.TEXT_PLAIN })
 public class GenericEntityREST extends AbstractServiceREST
 {
-	protected ISecurityService getSecurityService()
-	{
-		return getService(ISecurityService.class);
-	}
-
 	@Override
 	protected void writeContent(OutputStream os, Object result)
 	{
