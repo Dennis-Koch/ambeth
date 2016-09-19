@@ -62,7 +62,11 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 
 	protected void initializeClassPool(ClassPool classPool)
 	{
-		log.debug("Initializing ClassPool:");
+		if (log.isDebugEnabled())
+		{
+			log.debug("Initializing ClassPool:");
+		}
+
 		for (URL url : getJarURLs())
 		{
 			try
@@ -70,7 +74,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 				String pathList = convertURLToFile(url).toString();
 				if (log.isDebugEnabled())
 				{
-					log.debug("\t>" + pathList);
+					log.debug("Append URL to path: " + url + " (converted file path: " + pathList + ")");
 				}
 				classPool.appendPathList(pathList);
 			}
