@@ -1,6 +1,5 @@
 package de.osthus.ambeth.query.squery;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +12,7 @@ import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.query.OrderByType;
+import de.osthus.ambeth.util.IConversionHelper;
 
 public final class QueryBuilderBean<T>
 {
@@ -29,36 +29,35 @@ public final class QueryBuilderBean<T>
 		this.queryStr = queryStr;
 	}
 
-	public Object createQueryBuilder(IQueryBuilderFactory qbf, Object[] params, Method method)
+	public Object createQueryBuilder(IQueryBuilderFactory qbf, IConversionHelper conversionHelper, Object[] params, Class<?> expectedReturnType)
 	{
 		IQueryBuilder<T> queryBuilder = qbf.create(entityType);
 		IOperand where;
-		where = this.buildOperand(queryBuilder, params, method);
+		where = buildOperand(queryBuilder, params);
 
 		// do orderBy
 
-		for (ISortDescriptor isort : this.collectSorts(params))
+		for (ISortDescriptor isort : collectSorts(params))
 		{
 			OrderByType direction = isort.getSortDirection() == SortDirection.DESCENDING ? OrderByType.DESC : OrderByType.ASC;
 			queryBuilder.orderBy(queryBuilder.property(isort.getMember()), direction);
 		}
 		// do query
-		Class<?> returnType = method.getReturnType();
-		if (IPagingResponse.class.isAssignableFrom(returnType))
+		if (IPagingResponse.class.isAssignableFrom(expectedReturnType))
 		{
-			IPagingRequest pagingRequest = this.getPageRequest(params);
+			IPagingRequest pagingRequest = getPageRequest(params);
 			return queryBuilder.buildPaging(where).retrieve(pagingRequest);
 		}
-		else if (List.class.isAssignableFrom(returnType))
+		else if (List.class.isAssignableFrom(expectedReturnType))
 		{
-			IPagingRequest pagingRequest = this.getPageRequest(params);
+			IPagingRequest pagingRequest = getPageRequest(params);
 			if (pagingRequest != null)
 			{
 				return queryBuilder.buildPaging(where).retrieve(pagingRequest).getResult();
 			}
 
 			IList<T> list = queryBuilder.build(where).retrieve();
-			if (IList.class.isAssignableFrom(returnType))
+			if (IList.class.isAssignableFrom(expectedReturnType))
 			{
 				return list;
 			}
@@ -67,17 +66,21 @@ public final class QueryBuilderBean<T>
 				return new ArrayList<T>(list);
 			}
 		}
-		else if (returnType.isAssignableFrom(this.entityType))
+		else if (expectedReturnType.isAssignableFrom(this.entityType))
 		{
+			if (queryStr.startsWith("findAll"))
+			{
+				return queryBuilder.build(where).retrieve();
+			}
 			return queryBuilder.build(where).retrieveSingle();
 		}
-		else if (this.queryStr.startsWith("countBy"))
+		else if (queryStr.startsWith("countBy"))
 		{
-			if (returnType == Long.class || returnType == long.class)
+			if (Number.class.isAssignableFrom(expectedReturnType) || expectedReturnType.isPrimitive())
 			{
-				return queryBuilder.build(where).count();
+				return conversionHelper.convertValueToType(expectedReturnType, queryBuilder.build(where).count());
 			}
-			else if (returnType == Integer.class || returnType == int.class)
+			else if (expectedReturnType == Integer.class || expectedReturnType == int.class)
 			{
 				return (int) queryBuilder.build(where).count();
 			}
@@ -154,7 +157,7 @@ public final class QueryBuilderBean<T>
 	 * @throws java.lang.ArrayIndexOutOfBoundsException
 	 *             if params have not enough element, then throw this Exception
 	 */
-	private IOperand buildOperand(IQueryBuilder<T> queryBuilder, Object[] params, Method method)
+	private IOperand buildOperand(IQueryBuilder<T> queryBuilder, Object[] params)
 	{
 		if (queryBeans == null || queryBeans.isEmpty())
 		{
@@ -171,7 +174,7 @@ public final class QueryBuilderBean<T>
 			{
 				if (paramIndex >= params.length)
 				{
-					throw new IllegalArgumentException("the method [" + method + "] have not enough count of argument");
+					throw new IllegalArgumentException("not enough arguments");
 				}
 				value = params[paramIndex++];
 			}

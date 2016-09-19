@@ -18,10 +18,8 @@ public abstract class PersonService implements IPersonService
 	@Autowired
 	protected IQueryBuilderFactory qbf;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.osthus.ambeth.query.squery.service.IPersonService#findByConcreteMethod(java.lang.String)
+	/**
+	 * {@inheritDoc}
 	 */
 	@Override
 	public String findByConcreteMethod(String anyValue)

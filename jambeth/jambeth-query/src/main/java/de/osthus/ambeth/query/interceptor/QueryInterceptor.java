@@ -19,6 +19,7 @@ import de.osthus.ambeth.annotation.Find;
 import de.osthus.ambeth.annotation.NoProxy;
 import de.osthus.ambeth.annotation.QueryResultType;
 import de.osthus.ambeth.cache.ICache;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.filter.IFilterToQueryBuilder;
 import de.osthus.ambeth.filter.IPagingQuery;
 import de.osthus.ambeth.filter.model.IFilterDescriptor;
@@ -39,6 +40,7 @@ import de.osthus.ambeth.query.squery.GenericTypeUtils;
 import de.osthus.ambeth.query.squery.ISquery;
 import de.osthus.ambeth.query.squery.QueryBuilderBean;
 import de.osthus.ambeth.query.squery.QueryUtils;
+import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.ParamChecker;
 
 public class QueryInterceptor extends CascadedInterceptor
@@ -76,6 +78,9 @@ public class QueryInterceptor extends CascadedInterceptor
 
 	@Autowired
 	protected ICache cache;
+
+	@Autowired
+	protected IConversionHelper conversionHelper;
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
@@ -128,8 +133,15 @@ public class QueryInterceptor extends CascadedInterceptor
 	{
 		if (target instanceof ISquery && Modifier.isAbstract(method.getModifiers()) && QueryUtils.canBuildQuery(method.getName()))
 		{
-			QueryBuilderBean<?> queryBuilderBean = retriveQueryBuilderBean(obj, method);
-			return queryBuilderBean.createQueryBuilder(queryBuilderFactory, args, method);
+			QueryBuilderBean<?> queryBuilderBean = retrieveQueryBuilderBean(obj, method);
+			try
+			{
+				return queryBuilderBean.createQueryBuilder(queryBuilderFactory, conversionHelper, args, method.getReturnType());
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e, "Error occurred while parsing query from '" + method + "'");
+			}
 
 		}
 		else if (findCache.getAnnotation(method) != null || PATTERN_QUERY_METHOD.matcher(method.getName()).matches())
@@ -261,7 +273,7 @@ public class QueryInterceptor extends CascadedInterceptor
 	 *            intercepted method
 	 * @return QueryBuilderBean instance for Squery
 	 */
-	private QueryBuilderBean<?> retriveQueryBuilderBean(Object obj, Method method)
+	private QueryBuilderBean<?> retrieveQueryBuilderBean(Object obj, Method method)
 	{
 		ParamChecker.assertNotNull(obj, "obj");
 		ParamChecker.assertNotNull(method, "method");

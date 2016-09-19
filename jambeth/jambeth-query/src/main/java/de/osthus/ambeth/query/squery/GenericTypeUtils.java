@@ -40,7 +40,7 @@ public final class GenericTypeUtils
 	 *            is the target of retrive Type parameter
 	 * @return the Type parameters
 	 */
-	public static List<Type> getAllGnericParam(Object obj)
+	public static List<Type> getAllGenericParam(Object obj)
 	{
 		List<Type> result = new ArrayList<Type>();
 		for (ParameterizedType parameterizedType : getAllParameterizedType(obj))
