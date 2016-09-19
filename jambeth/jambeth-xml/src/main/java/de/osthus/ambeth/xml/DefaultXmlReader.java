@@ -17,7 +17,6 @@ import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.extendable.IMapExtendableContainer;
 import de.osthus.ambeth.ioc.extendable.MapExtendableContainer;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.xml.pending.ICommandTypeExtendable;
 import de.osthus.ambeth.xml.pending.ICommandTypeRegistry;
 import de.osthus.ambeth.xml.pending.IObjectCommand;
@@ -31,7 +30,7 @@ public class DefaultXmlReader implements IReader, IPostProcessReader, ICommandTy
 {
 	protected final IntKeyMap<Object> idToObjectMap = new IntKeyMap<Object>();
 
-	protected final HashMap<Class<?>, ITypeInfoItem[]> typeToMemberMap = new HashMap<Class<?>, ITypeInfoItem[]>();
+	protected final HashMap<Class<?>, SpecifiedMember[]> typeToMemberMap = new HashMap<Class<?>, SpecifiedMember[]>();
 
 	protected final IList<IObjectCommand> objectCommands = new ArrayList<IObjectCommand>();
 
@@ -209,7 +208,7 @@ public class DefaultXmlReader implements IReader, IPostProcessReader, ICommandTy
 	}
 
 	@Override
-	public void putMembersOfType(Class<?> type, ITypeInfoItem[] members)
+	public void putMembersOfType(Class<?> type, SpecifiedMember[] members)
 	{
 		if (!typeToMemberMap.putIfNotExists(type, members))
 		{
@@ -218,7 +217,7 @@ public class DefaultXmlReader implements IReader, IPostProcessReader, ICommandTy
 	}
 
 	@Override
-	public ITypeInfoItem[] getMembersOfType(Class<?> type)
+	public SpecifiedMember[] getMembersOfType(Class<?> type)
 	{
 		return typeToMemberMap.get(type);
 	}

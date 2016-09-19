@@ -9,7 +9,6 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.collections.IdentityHashSet;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.ImmutableTypeSet;
 import de.osthus.ambeth.xml.postprocess.IPostProcessWriter;
 
@@ -25,7 +24,7 @@ public class DefaultXmlWriter implements IWriter, IPostProcessWriter
 
 	protected final ISet<Object> substitutedEntities = new IdentityHashSet<Object>();
 
-	protected HashMap<Class<?>, ITypeInfoItem[]> typeToMemberMap = new HashMap<Class<?>, ITypeInfoItem[]>();
+	protected HashMap<Class<?>, SpecifiedMember[]> typeToMemberMap = new HashMap<Class<?>, SpecifiedMember[]>();
 
 	protected boolean isInAttributeState = false;
 
@@ -278,7 +277,7 @@ public class DefaultXmlWriter implements IWriter, IPostProcessWriter
 	}
 
 	@Override
-	public void putMembersOfType(Class<?> type, ITypeInfoItem[] members)
+	public void putMembersOfType(Class<?> type, SpecifiedMember[] members)
 	{
 		if (!typeToMemberMap.putIfNotExists(type, members))
 		{
@@ -287,7 +286,7 @@ public class DefaultXmlWriter implements IWriter, IPostProcessWriter
 	}
 
 	@Override
-	public ITypeInfoItem[] getMembersOfType(Class<?> type)
+	public SpecifiedMember[] getMembersOfType(Class<?> type)
 	{
 		return typeToMemberMap.get(type);
 	}

@@ -9,6 +9,7 @@ import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.xml.IReader;
 import de.osthus.ambeth.xml.ITypeBasedHandler;
 import de.osthus.ambeth.xml.IWriter;
+import de.osthus.ambeth.xml.SpecifiedMember;
 import de.osthus.ambeth.xml.pending.ICommandBuilder;
 import de.osthus.ambeth.xml.pending.ICommandTypeRegistry;
 import de.osthus.ambeth.xml.pending.IObjectCommand;
@@ -27,16 +28,28 @@ public class ObjectTypeHandler extends AbstractHandler implements ITypeBasedHand
 	public void writeObject(Object obj, Class<?> type, IWriter writer)
 	{
 		writer.writeStartElementEnd();
-		ITypeInfoItem[] members = writer.getMembersOfType(type);
+		SpecifiedMember[] members = writer.getMembersOfType(type);
 
+		String unspecifiedElement = xmlDictionary.getUnspecifiedElement();
 		String valueAttribute = xmlDictionary.getValueAttribute();
 		String primitiveElement = xmlDictionary.getPrimitiveElement();
 		for (int a = 0, size = members.length; a < size; a++)
 		{
-			ITypeInfoItem field = members[a];
+			SpecifiedMember specifiedMember = members[a];
+			if (specifiedMember.getSpecifiedMember() != null)
+			{
+				boolean specified = conversionHelper.convertValueToType(boolean.class, specifiedMember.getSpecifiedMember().getValue(obj, true));
+				if (!specified)
+				{
+					writer.writeStartElement(unspecifiedElement);
+					writer.writeEndElement();
+					continue;
+				}
+			}
+			ITypeInfoItem member = specifiedMember.getMember();
 
-			Object fieldValue = field.getValue(obj, false);
-			if (field.getRealType().isPrimitive())
+			Object fieldValue = member.getValue(obj, false);
+			if (member.getRealType().isPrimitive())
 			{
 				writer.writeStartElement(primitiveElement);
 				String convertedValue = conversionHelper.convertValueToType(String.class, fieldValue);
@@ -65,19 +78,36 @@ public class ObjectTypeHandler extends AbstractHandler implements ITypeBasedHand
 			reader.putObjectWithId(obj, id);
 		}
 		reader.nextTag();
-		ITypeInfoItem[] members = reader.getMembersOfType(objType);
+		SpecifiedMember[] members = reader.getMembersOfType(objType);
 
 		int index = 0;
 		String valueAttribute = xmlDictionary.getValueAttribute();
+		String unspecifiedElement = xmlDictionary.getUnspecifiedElement();
 		String primitiveElement = xmlDictionary.getPrimitiveElement();
 		ICommandBuilder commandBuilder = this.commandBuilder;
 		ICommandTypeRegistry commandTypeRegistry = reader.getCommandTypeRegistry();
 		IConversionHelper conversionHelper = this.conversionHelper;
 		while (reader.isStartTag())
 		{
-			ITypeInfoItem member = members[index++];
+			String elementName = reader.getElementName();
+			SpecifiedMember specifiedMember = members[index++];
+			ITypeInfoItem specMember = specifiedMember.getSpecifiedMember();
+			if (unspecifiedElement.equals(elementName))
+			{
+				reader.moveOverElementEnd();
+				if (specMember != null)
+				{
+					specMember.setValue(obj, Boolean.FALSE);
+				}
+				continue;
+			}
+			if (specMember != null)
+			{
+				specMember.setValue(obj, Boolean.TRUE);
+			}
+			ITypeInfoItem member = specifiedMember.getMember();
 			Object memberValue;
-			if (primitiveElement.equals(reader.getElementName()))
+			if (primitiveElement.equals(elementName))
 			{
 				String value = reader.getAttributeValue(valueAttribute);
 				memberValue = conversionHelper.convertValueToType(member.getRealType(), value);
@@ -86,6 +116,10 @@ public class ObjectTypeHandler extends AbstractHandler implements ITypeBasedHand
 			else
 			{
 				memberValue = reader.readObject(member.getRealType());
+			}
+			if (specifiedMember.getSpecifiedMember() != null)
+			{
+				specifiedMember.getSpecifiedMember().setValue(obj, Boolean.TRUE);
 			}
 			if (memberValue instanceof IObjectFuture)
 			{

@@ -63,4 +63,6 @@ public interface ICyclicXmlDictionary
 	String getIdAttribute();
 
 	String getValueAttribute();
+
+	String getUnspecifiedElement();
 }
