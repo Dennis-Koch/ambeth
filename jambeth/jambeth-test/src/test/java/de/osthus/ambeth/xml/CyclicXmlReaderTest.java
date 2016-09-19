@@ -5,7 +5,6 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import de.osthus.ambeth.ioc.BootstrapScannerModule;
 import de.osthus.ambeth.ioc.XmlModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.security.SecurityContext;
@@ -13,7 +12,7 @@ import de.osthus.ambeth.security.SecurityContextType;
 import de.osthus.ambeth.testutil.AbstractInformationBusTest;
 import de.osthus.ambeth.testutil.TestModule;
 
-@TestModule({ BootstrapScannerModule.class, XmlModule.class })
+@TestModule({ XmlModule.class })
 public class CyclicXmlReaderTest extends AbstractInformationBusTest
 {
 	public static class MyEntity
