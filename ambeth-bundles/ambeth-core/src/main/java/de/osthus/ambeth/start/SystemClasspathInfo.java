@@ -44,6 +44,6 @@ public class SystemClasspathInfo implements IClasspathInfo
 	@Override
 	public Path openAsFile(URL url) throws Throwable
 	{
-		return new File(url.toURI().getSchemeSpecificPart()).getAbsoluteFile().toPath();
+		return new File(url.getFile()).getAbsoluteFile().toPath();
 	}
 }
