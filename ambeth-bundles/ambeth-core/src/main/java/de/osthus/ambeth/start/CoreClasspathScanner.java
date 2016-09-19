@@ -11,9 +11,6 @@ import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.NotFoundException;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
@@ -29,6 +26,9 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.IClasspathScanner;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringBuilderUtil;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.NotFoundException;
 
 public class CoreClasspathScanner implements IClasspathScanner, IInitializingBean
 {
@@ -62,11 +62,17 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 
 	protected void initializeClassPool(ClassPool classPool)
 	{
+		log.debug("Initializing ClassPool:");
 		for (URL url : getJarURLs())
 		{
 			try
 			{
-				classPool.appendPathList(convertURLToFile(url).toString());
+				String pathList = convertURLToFile(url).toString();
+				if (log.isDebugEnabled())
+				{
+					log.debug("\t>" + pathList);
+				}
+				classPool.appendPathList(pathList);
 			}
 			catch (Throwable e)
 			{
