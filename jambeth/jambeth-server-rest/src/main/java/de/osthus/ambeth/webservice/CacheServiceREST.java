@@ -3,10 +3,13 @@ package de.osthus.ambeth.webservice;
 import java.io.InputStream;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 
@@ -32,18 +35,18 @@ public class CacheServiceREST extends AbstractServiceREST
 	@SuppressWarnings("unchecked")
 	@POST
 	@Path("GetEntities")
-	public StreamingOutput getEntities(InputStream is)
+	public StreamingOutput getEntities(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response)
 	{
 		try
 		{
 			preServiceCall();
-			Object[] args = getArguments(is);
+			Object[] args = getArguments(is, request);
 			List<ILoadContainer> result = getCacheService().getEntities((List<IObjRef>) args[0]);
-			return createResult(result);
+			return createResult(result, response);
 		}
 		catch (Throwable e)
 		{
-			return createExceptionResult(e);
+			return createExceptionResult(e, response);
 		}
 		finally
 		{
@@ -54,18 +57,18 @@ public class CacheServiceREST extends AbstractServiceREST
 	@SuppressWarnings("unchecked")
 	@POST
 	@Path("GetRelations")
-	public StreamingOutput getRelations(InputStream is)
+	public StreamingOutput getRelations(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response)
 	{
 		try
 		{
 			preServiceCall();
-			Object[] args = getArguments(is);
+			Object[] args = getArguments(is, request);
 			List<IObjRelationResult> result = getCacheService().getRelations((List<IObjRelation>) args[0]);
-			return createResult(result);
+			return createResult(result, response);
 		}
 		catch (Throwable e)
 		{
-			return createExceptionResult(e);
+			return createExceptionResult(e, response);
 		}
 		finally
 		{
@@ -75,18 +78,18 @@ public class CacheServiceREST extends AbstractServiceREST
 
 	@POST
 	@Path("GetORIsForServiceRequest")
-	public StreamingOutput getORIsForServiceRequest(InputStream is)
+	public StreamingOutput getORIsForServiceRequest(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response)
 	{
 		try
 		{
 			preServiceCall();
-			Object[] args = getArguments(is);
+			Object[] args = getArguments(is, request);
 			IServiceResult result = getCacheService().getORIsForServiceRequest((IServiceDescription) args[0]);
-			return createResult(result);
+			return createResult(result, response);
 		}
 		catch (Throwable e)
 		{
-			return createExceptionResult(e);
+			return createExceptionResult(e, response);
 		}
 		finally
 		{

@@ -1,6 +1,5 @@
 package de.osthus.ambeth.webservice;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
@@ -9,18 +8,19 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.NotSupportedException;
+import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NoContentException;
 import javax.ws.rs.core.StreamingOutput;
 
 import de.osthus.ambeth.cache.ICache;
@@ -40,8 +40,8 @@ import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.ListUtil;
 
 @Path("/GenericEntityService")
-@Consumes({ MediaType.TEXT_PLAIN })
-@Produces({ MediaType.TEXT_PLAIN })
+// @Consumes({ MediaType.TEXT_PLAIN })
+// @Produces({ MediaType.TEXT_PLAIN })
 public class GenericEntityREST extends AbstractServiceREST
 {
 	protected ISecurityService getSecurityService()
@@ -57,10 +57,10 @@ public class GenericEntityREST extends AbstractServiceREST
 	}
 
 	@Override
-	protected Object[] getArguments(InputStream is)
+	protected Object[] getArguments(InputStream is, HttpServletRequest request)
 	{
 		// TODO: read JSON
-		return super.getArguments(is);
+		return super.getArguments(is, request);
 	}
 
 	private final class NavigationStep
@@ -207,7 +207,7 @@ public class GenericEntityREST extends AbstractServiceREST
 
 	@GET
 	@Path("{subResources:.*}")
-	public StreamingOutput get(@Context HttpServletRequest request)
+	public StreamingOutput get(@Context HttpServletRequest request, @Context HttpServletResponse response)
 	{
 		try
 		{
@@ -227,7 +227,7 @@ public class GenericEntityREST extends AbstractServiceREST
 				try
 				{
 					Object valueObject = mapperService.mapToValueObject(lastStep.value, lastStep.config.getValueType());
-					return createResult(valueObject);
+					return createResult(valueObject, response);
 				}
 				finally
 				{
@@ -235,7 +235,7 @@ public class GenericEntityREST extends AbstractServiceREST
 				}
 			}
 			// simple value and not an entity
-			return createResult(lastStep.value);
+			return createResult(lastStep.value, response);
 		}
 		catch (WebApplicationException e)
 		{
@@ -243,7 +243,69 @@ public class GenericEntityREST extends AbstractServiceREST
 		}
 		catch (Throwable e)
 		{
-			return createExceptionResult(e);
+			return createExceptionResult(e, response);
+		}
+		finally
+		{
+			postServiceCall();
+		}
+	}
+
+	@PATCH
+	@Path("{subResources:.*}")
+	public StreamingOutput patch(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response)
+	{
+		try
+		{
+			throw new NotSupportedException("Not yet supported");
+
+			// preServiceCall();
+			//
+			// String contextPath = request.getPathInfo();
+			// String[] path = contextPath.split("/");
+			//
+			// NavigationStep[] navigationSteps = navigateTo(path, NavigationMode.DEFAULT);
+			// NavigationStep lastStep = navigationSteps[navigationSteps.length - 1];
+			//
+			// if (lastStep.metaData == null)
+			// {
+			// throw new WebApplicationException("Resource is not an entity", 422); // unprocessable request
+			// }
+			// Object[] args = getArguments(is, request);
+			// if (args.length != 1 || args[0] == null)
+			// {
+			// throw new BadRequestException("No values provided to create entity '" + Arrays.toString(path) + "'");
+			// }
+			// Object valueObject = args[0];
+			//
+			// IConversionHelper conversionHelper = getService(IConversionHelper.class);
+			// IMapperServiceFactory mapperServiceFactory = getService(IMapperServiceFactory.class);
+			// IMergeProcess mergeProcess = getService(IMergeProcess.class);
+			// ITypeInfoProvider typeInfoProvider = getService(ITypeInfoProvider.class);
+			//
+			// IMapperService mapperService = mapperServiceFactory.create();
+			// try
+			// {
+			// Object businessObject = lastStep.value;
+			// typeInfoProvider.getClass<?> valueType = lastStep.config.getValueType();
+			//
+			// mergeProcess.process(businessObject, null, null, null);
+			//
+			// valueObject = mapperService.mapToValueObject(businessObject, lastStep.config.getValueType());
+			// }
+			// finally
+			// {
+			// mapperService.dispose();
+			// }
+			// return createResult(valueObject, response);
+		}
+		catch (WebApplicationException e)
+		{
+			throw e;
+		}
+		catch (Throwable e)
+		{
+			return createExceptionResult(e, response);
 		}
 		finally
 		{
@@ -253,7 +315,7 @@ public class GenericEntityREST extends AbstractServiceREST
 
 	@PUT
 	@Path("{subResources:.*}")
-	public StreamingOutput put(@Context HttpServletRequest request, InputStream is)
+	public StreamingOutput put(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response)
 	{
 		try
 		{
@@ -266,7 +328,7 @@ public class GenericEntityREST extends AbstractServiceREST
 			NavigationStep parentStep = navigationSteps.length >= 2 ? navigationSteps[navigationSteps.length - 2] : null;
 			NavigationStep lastStep = navigationSteps[navigationSteps.length - 1];
 
-			Object[] args = getArguments(is);
+			Object[] args = getArguments(is, request);
 			if (args.length != 1 || args[0] == null)
 			{
 				throw new BadRequestException("No values provided to modify entity '" + Arrays.toString(path) + "'");
@@ -296,7 +358,7 @@ public class GenericEntityREST extends AbstractServiceREST
 					mergeProcess.process(businessObject, null, null, null);
 
 					valueObject = mapperService.mapToValueObject(businessObject, config.getValueType());
-					return createResult(valueObject);
+					return createResult(valueObject, response);
 				}
 				finally
 				{
@@ -312,7 +374,7 @@ public class GenericEntityREST extends AbstractServiceREST
 				try
 				{
 					valueObject = mapperService.mapToValueObject(entity, config.getValueType());
-					return createResult(valueObject);
+					return createResult(valueObject, response);
 				}
 				finally
 				{
@@ -326,7 +388,7 @@ public class GenericEntityREST extends AbstractServiceREST
 		}
 		catch (Throwable e)
 		{
-			return createExceptionResult(e);
+			return createExceptionResult(e, response);
 		}
 		finally
 		{
@@ -336,7 +398,7 @@ public class GenericEntityREST extends AbstractServiceREST
 
 	@POST
 	@Path("{subResources:.*}")
-	public StreamingOutput post(@Context HttpServletRequest request, InputStream is)
+	public StreamingOutput post(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response)
 	{
 		try
 		{
@@ -349,12 +411,18 @@ public class GenericEntityREST extends AbstractServiceREST
 			NavigationStep parentStep = navigationSteps.length >= 2 ? navigationSteps[navigationSteps.length - 2] : null;
 			NavigationStep lastStep = navigationSteps[navigationSteps.length - 1];
 
-			Object[] args = getArguments(is);
+			Object[] args = getArguments(is, request);
 			if (args.length != 1 || args[0] == null)
 			{
 				throw new BadRequestException("No values provided to create entity '" + Arrays.toString(path) + "'");
 			}
 			Object valueObject = args[0];
+
+			if (!lastStep.config.getValueType().isAssignableFrom(valueObject.getClass()))
+			{
+				throw new BadRequestException("Expected value type '" + lastStep.config.getValueType().getName() + "'. Given value type '"
+						+ valueObject.getClass().getName() + "'");
+			}
 
 			IMapperServiceFactory mapperServiceFactory = getService(IMapperServiceFactory.class);
 			IMergeProcess mergeProcess = getService(IMergeProcess.class);
@@ -374,7 +442,7 @@ public class GenericEntityREST extends AbstractServiceREST
 			try
 			{
 				Object businessObject = mapperService.mapToBusinessObject(valueObject);
-				if (lastStep.value != null)
+				if (lastStep.value != null && parentStep != null)
 				{
 					String boMemberName = parentStep.config.getBusinessObjectMemberName(path[path.length - 1]);
 					Member boMember = parentStep.metaData.getMemberByName(boMemberName);
@@ -403,7 +471,7 @@ public class GenericEntityREST extends AbstractServiceREST
 				}
 
 				valueObject = mapperService.mapToValueObject(businessObject, lastStep.config.getValueType());
-				return createResult(valueObject);
+				return createResult(valueObject, response);
 			}
 			finally
 			{
@@ -416,7 +484,7 @@ public class GenericEntityREST extends AbstractServiceREST
 		}
 		catch (Throwable e)
 		{
-			return createExceptionResult(e);
+			return createExceptionResult(e, response);
 		}
 		finally
 		{
@@ -426,7 +494,7 @@ public class GenericEntityREST extends AbstractServiceREST
 
 	@DELETE
 	@Path("{subResources:.*}")
-	public StreamingOutput delete(@Context HttpServletRequest request)
+	public StreamingOutput delete(@Context HttpServletRequest request, @Context HttpServletResponse response)
 	{
 		try
 		{
@@ -440,14 +508,7 @@ public class GenericEntityREST extends AbstractServiceREST
 
 			if (lastStep.value == null)
 			{
-				return new StreamingOutput()
-				{
-					@Override
-					public void write(OutputStream outputstream) throws IOException, WebApplicationException
-					{
-						// intended blank
-					}
-				};
+				throw new NoContentException("Resource not deleted. Reason: resource not found");
 			}
 			if (lastStep.config == null)
 			{
@@ -456,14 +517,7 @@ public class GenericEntityREST extends AbstractServiceREST
 			IMergeProcess mergeProcess = getService(IMergeProcess.class);
 			mergeProcess.process(null, lastStep.value, null, null);
 
-			return new StreamingOutput()
-			{
-				@Override
-				public void write(OutputStream outputstream) throws IOException, WebApplicationException
-				{
-					// intended blank
-				}
-			};
+			throw new NoContentException("Resource deleted");
 		}
 		catch (WebApplicationException e)
 		{
@@ -471,7 +525,7 @@ public class GenericEntityREST extends AbstractServiceREST
 		}
 		catch (Throwable e)
 		{
-			return createExceptionResult(e);
+			return createExceptionResult(e, response);
 		}
 		finally
 		{
