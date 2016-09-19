@@ -5,6 +5,7 @@ import java.lang.reflect.Modifier;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.exception.BeanContextDeclarationException;
+import de.osthus.ambeth.ioc.proxy.AbstractMethodInterceptor;
 import de.osthus.ambeth.ioc.proxy.EmptyInterceptor;
 import de.osthus.ambeth.proxy.IProxyFactory;
 
@@ -54,6 +55,10 @@ public class BeanConfiguration extends AbstractBeanConfiguration
 				if (instanceType.isInterface() || Modifier.isAbstract(instanceType.getModifiers()))
 				{
 					createdInstance = proxyFactory.createProxy(instanceType, EmptyInterceptor.INSTANCE);
+				}
+				else if (Modifier.isAbstract(instanceType.getModifiers()))
+				{
+					createdInstance = proxyFactory.createProxy(instanceType, AbstractMethodInterceptor.INSTANCE);
 				}
 				else
 				{

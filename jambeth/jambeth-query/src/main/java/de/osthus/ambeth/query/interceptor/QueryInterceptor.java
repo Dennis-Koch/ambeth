@@ -1,11 +1,17 @@
 package de.osthus.ambeth.query.interceptor;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.regex.Pattern;
 
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.annotation.AnnotationCache;
@@ -13,6 +19,7 @@ import de.osthus.ambeth.annotation.Find;
 import de.osthus.ambeth.annotation.NoProxy;
 import de.osthus.ambeth.annotation.QueryResultType;
 import de.osthus.ambeth.cache.ICache;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.filter.IFilterToQueryBuilder;
 import de.osthus.ambeth.filter.IPagingQuery;
 import de.osthus.ambeth.filter.model.IFilterDescriptor;
@@ -28,6 +35,13 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.proxy.CascadedInterceptor;
+import de.osthus.ambeth.query.IQueryBuilderFactory;
+import de.osthus.ambeth.query.squery.GenericTypeUtils;
+import de.osthus.ambeth.query.squery.ISquery;
+import de.osthus.ambeth.query.squery.QueryBuilderBean;
+import de.osthus.ambeth.query.squery.QueryUtils;
+import de.osthus.ambeth.util.IConversionHelper;
+import de.osthus.ambeth.util.ParamChecker;
 
 public class QueryInterceptor extends CascadedInterceptor
 {
@@ -49,12 +63,24 @@ public class QueryInterceptor extends CascadedInterceptor
 		}
 	};
 
-	@SuppressWarnings("unused")
+	private static final Pattern PATTERN_QUERY_METHOD = Pattern.compile("(retrieve|read|find|get).*");
+	/**
+	 * ReadLock for {@link QueryInterceptor#methodMapQueryBuilderBean}
+	 */
+	protected final Lock readLock;
+	/**
+	 * ReadLock for {@link QueryInterceptor#methodMapQueryBuilderBean}
+	 */
+	protected final Lock writeLock;
+
 	@LogInstance
 	private ILogger log;
 
 	@Autowired
 	protected ICache cache;
+
+	@Autowired
+	protected IConversionHelper conversionHelper;
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
@@ -64,6 +90,22 @@ public class QueryInterceptor extends CascadedInterceptor
 
 	@Autowired
 	protected IObjRefHelper oriHelper;
+
+	@Autowired
+	protected IQueryBuilderFactory queryBuilderFactory;
+
+	/**
+	 * this map not need ConcurrentHashMap, because {@link QueryInterceptor#retriveQueryBuilderBean} make thread safe and speed not influenced, never access
+	 * from other place where not use {@link QueryInterceptor#readLock} and {@link QueryInterceptor#writeLock}
+	 */
+	protected final Map<Method, QueryBuilderBean<?>> methodMapQueryBuilderBean = new HashMap<Method, QueryBuilderBean<?>>();
+
+	public QueryInterceptor()
+	{
+		ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
+		readLock = rwLock.readLock();
+		writeLock = rwLock.writeLock();
+	}
 
 	@Override
 	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
@@ -87,10 +129,22 @@ public class QueryInterceptor extends CascadedInterceptor
 		return intercept(obj, method, args, proxy, methodName, isAsyncBegin);
 	}
 
-	protected Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy, String methodName, Boolean isAsyncBegin) throws Throwable
+	protected Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy, String lowerCaseMethodName, Boolean isAsyncBegin) throws Throwable
 	{
-		if (findCache.getAnnotation(method) != null || methodName.startsWith("retrieve") || methodName.startsWith("read") || methodName.startsWith("find")
-				|| methodName.startsWith("get"))
+		if (target instanceof ISquery && Modifier.isAbstract(method.getModifiers()) && QueryUtils.canBuildQuery(method.getName()))
+		{
+			QueryBuilderBean<?> queryBuilderBean = retrieveQueryBuilderBean(obj, method);
+			try
+			{
+				return queryBuilderBean.createQueryBuilder(queryBuilderFactory, conversionHelper, args, method.getReturnType());
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e, "Error occurred while parsing query from '" + method + "'");
+			}
+
+		}
+		else if (findCache.getAnnotation(method) != null || PATTERN_QUERY_METHOD.matcher(method.getName()).matches())
 		{
 			if (args.length == 3 && IPagingResponse.class.isAssignableFrom(method.getReturnType()))
 			{
@@ -208,5 +262,52 @@ public class QueryInterceptor extends CascadedInterceptor
 		{
 			return cache.getObject(entityType, idsRaw);
 		}
+	}
+
+	/**
+	 * get QueryBuilderBean, this object may from cache or just build
+	 * 
+	 * @param obj
+	 *            intercepted object
+	 * @param method
+	 *            intercepted method
+	 * @return QueryBuilderBean instance for Squery
+	 */
+	private QueryBuilderBean<?> retrieveQueryBuilderBean(Object obj, Method method)
+	{
+		ParamChecker.assertNotNull(obj, "obj");
+		ParamChecker.assertNotNull(method, "method");
+
+		QueryBuilderBean<?> queryBuilderBean;
+		readLock.lock();
+		try
+		{
+			queryBuilderBean = methodMapQueryBuilderBean.get(method);
+			// double check to make thread safe and not influence the speed
+			if (queryBuilderBean == null)
+			{
+				readLock.unlock();
+				writeLock.lock();
+				try
+				{
+					if (queryBuilderBean == null)
+					{
+						Class<?> entityType = (Class<?>) GenericTypeUtils.getGenericParam(obj, ISquery.class)[0];
+						queryBuilderBean = QueryUtils.buildQuery(method.getName(), entityType);
+						methodMapQueryBuilderBean.put(method, queryBuilderBean);
+					}
+					readLock.lock();
+				}
+				finally
+				{
+					writeLock.unlock();
+				}
+			}
+		}
+		finally
+		{
+			readLock.unlock();
+		}
+		return queryBuilderBean;
 	}
 }

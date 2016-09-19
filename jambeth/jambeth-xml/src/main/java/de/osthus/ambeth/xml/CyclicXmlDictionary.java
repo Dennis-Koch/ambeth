@@ -65,6 +65,12 @@ public class CyclicXmlDictionary implements ICyclicXmlDictionary, IInitializingB
 	}
 
 	@Override
+	public String getUnspecifiedElement()
+	{
+		return "u";
+	}
+
+	@Override
 	public String getNumberElement()
 	{
 		return "nu";

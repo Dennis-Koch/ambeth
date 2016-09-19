@@ -10,6 +10,8 @@ public class OneToManyEntityVO extends AbstractEntity
 
 	protected String name;
 
+	protected boolean nameSpecified;
+
 	protected List<String> nicknames;
 
 	private double needsSpecialMapping;
@@ -42,6 +44,17 @@ public class OneToManyEntityVO extends AbstractEntity
 	public void setName(String name)
 	{
 		this.name = name;
+		setNameSpecified(true);
+	}
+
+	public boolean isNameSpecified()
+	{
+		return nameSpecified;
+	}
+
+	public void setNameSpecified(boolean nameSpecified)
+	{
+		this.nameSpecified = nameSpecified;
 	}
 
 	public List<String> getNicknames()

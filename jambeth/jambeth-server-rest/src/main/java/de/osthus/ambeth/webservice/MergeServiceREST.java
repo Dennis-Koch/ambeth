@@ -4,10 +4,13 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 
@@ -32,18 +35,18 @@ public class MergeServiceREST extends AbstractServiceREST
 
 	@POST
 	@Path("Merge")
-	public StreamingOutput merge(InputStream is)
+	public StreamingOutput merge(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response)
 	{
 		try
 		{
 			preServiceCall();
-			Object[] args = getArguments(is);
+			Object[] args = getArguments(is, request);
 			IOriCollection result = getMergeService().merge((ICUDResult) args[0], (IMethodDescription) args[1]);
-			return createResult(result);
+			return createResult(result, response);
 		}
 		catch (Throwable e)
 		{
-			return createExceptionResult(e);
+			return createExceptionResult(e, response);
 		}
 		finally
 		{
@@ -54,12 +57,12 @@ public class MergeServiceREST extends AbstractServiceREST
 	@SuppressWarnings("unchecked")
 	@POST
 	@Path("GetMetaData")
-	public StreamingOutput getMetaData(InputStream is)
+	public StreamingOutput getMetaData(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response)
 	{
 		try
 		{
 			preServiceCall();
-			Object[] args = getArguments(is);
+			Object[] args = getArguments(is, request);
 			List<IEntityMetaData> result = getService(IEntityMetaDataProvider.class).getMetaData((List<Class<?>>) args[0]);
 
 			ArrayList<EntityMetaDataTransfer> emdTransfer = new ArrayList<EntityMetaDataTransfer>(result.size());
@@ -69,11 +72,11 @@ public class MergeServiceREST extends AbstractServiceREST
 				EntityMetaDataTransfer target = getService(IConversionHelper.class).convertValueToType(EntityMetaDataTransfer.class, source);
 				emdTransfer.add(target);
 			}
-			return createResult(emdTransfer);
+			return createResult(emdTransfer, response);
 		}
 		catch (Throwable e)
 		{
-			return createExceptionResult(e);
+			return createExceptionResult(e, response);
 		}
 		finally
 		{

@@ -290,6 +290,23 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
+	public void testUnspecifiedProperty()
+	{
+		OneToManyEntity expected = entityFactory.createEntity(OneToManyEntity.class);
+		expected.setName("testNewEntity");
+		IOneToManyEntityService service = beanContext.getService(IOneToManyEntityService.class);
+		service.updateOneToManyEntity(expected);
+
+		OneToManyEntityVO actualVO = fixture.mapToValueObject(expected, OneToManyEntityVO.class);
+		actualVO.setName("hugo");
+		actualVO.setNameSpecified(false);
+
+		OneToManyEntity entity = fixture.mapToBusinessObject(actualVO);
+		assertEquals("testNewEntity", entity.getName());
+		assertEquals("hugo", actualVO.getName());
+	}
+
+	@Test
 	public void testTwoNewEntities()
 	{
 		OneToManyEntity expected1 = entityFactory.createEntity(OneToManyEntity.class);

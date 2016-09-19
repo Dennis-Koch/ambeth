@@ -3,22 +3,26 @@ package de.osthus.ambeth.webservice;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
 import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LoggerFactory;
 
 @Provider
-public class ExceptionHandler implements ExceptionMapper<RuntimeException>
+public class ExceptionHandler extends AbstractServiceREST implements ExceptionMapper<RuntimeException>
 {
-	private static final ILogger log = LoggerFactory.getLogger(ExceptionHandler.class);
-
 	@Override
 	public Response toResponse(RuntimeException e)
 	{
+		ILogger log = getLog();
+		if (e instanceof WebApplicationException)
+		{
+			ErrorItem errorItem = new ErrorItem(((WebApplicationException) e).getResponse().getStatus(), e.getClass().getName(), e.getMessage());
+			return Response.fromResponse(((WebApplicationException) e).getResponse()).entity(errorItem).build();
+		}
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
 		e.printStackTrace(pw);

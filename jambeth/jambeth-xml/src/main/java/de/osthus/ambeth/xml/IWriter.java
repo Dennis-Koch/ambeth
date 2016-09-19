@@ -1,6 +1,5 @@
 package de.osthus.ambeth.xml;
 
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 
 public interface IWriter
 {
@@ -34,9 +33,9 @@ public interface IWriter
 
 	int acquireIdForObject(Object obj);
 
-	void putMembersOfType(Class<?> type, ITypeInfoItem[] members);
+	void putMembersOfType(Class<?> type, SpecifiedMember[] members);
 
-	ITypeInfoItem[] getMembersOfType(Class<?> type);
+	SpecifiedMember[] getMembersOfType(Class<?> type);
 
 	void addSubstitutedEntity(Object entity);
 }
