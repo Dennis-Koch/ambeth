@@ -14,6 +14,7 @@ import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.shell.core.AmbethShellIntern;
+import de.osthus.ambeth.shell.core.License;
 import de.osthus.ambeth.shell.core.ShellContext;
 import de.osthus.ambeth.shell.ioc.AmbethShellModule;
 
@@ -31,12 +32,24 @@ public class AmbethShellStarter implements IStartingBean, IDisposableBean
 
 	/**
 	 * start the shell
-	 * 
+	 *
 	 * @param args
 	 */
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args)
 	{
+		System.setProperty(ShellContext.GREETING_ACTIVE, "false");
+		System.setProperty(ShellContext.LICENSE_TYPE, License.COMMERCIAL.toString());
+		// System.setProperty(ShellContext.LICENSE_TEXT, "Evaluation license for non-commercial use only!");
+		System.setProperty(ShellContext.PRODUCT_NAME, "Ambeth Shell");
+		System.setProperty(ShellContext.PRODUCT_VERSION, "1.2.3");
+
+		// Calendar c = Calendar.getInstance();
+		// c.set(2099, 0, 1);
+		// System.setProperty(ShellContext.LICENSE_EXPIRATION_DATE, new Long(c.getTimeInMillis()).toString());
+		// start(args, "de/osthus/ambeth/shell/.*");
+
+		System.setProperty(CoreConfigurationConstants.PackageScanPatterns, "de/osthus/ambeth/shell/.*");
 		start(args);
 	}
 
@@ -45,7 +58,6 @@ public class AmbethShellStarter implements IStartingBean, IDisposableBean
 		Properties parsedArgs = parseMainArgs(args);
 
 		Ambeth.createDefault()//
-				.withProperty(CoreConfigurationConstants.PackageScanPatterns, "N/A")//
 				.withProperty("ambeth.log.level.de.osthus.ambeth", "INFO")//
 				.withProperty(IocConfigurationConstants.DebugModeActive, "true")//
 				.withProperty(IocConfigurationConstants.TrackDeclarationTrace, "true")//
@@ -56,10 +68,26 @@ public class AmbethShellStarter implements IStartingBean, IDisposableBean
 				.startAndClose();
 	}
 
+	public static void start(String[] args, Properties properties, Class<? extends IInitializingModule>... modules)
+	{
+		Properties parsedArgs = parseMainArgs(args);
+
+		Ambeth.createDefault()//
+				.withProperty("ambeth.log.level.de.osthus.ambeth", "INFO")//
+				.withProperty(IocConfigurationConstants.DebugModeActive, "true")//
+				.withProperty(IocConfigurationConstants.TrackDeclarationTrace, "true")//
+				.withProperties(properties) //
+				.withApplicationModules(AmbethShellModule.class)//
+				.withApplicationModules(modules)//
+				.withProperties(parsedArgs)//
+				.withoutPropertiesFileSearch()//
+				.startAndClose();
+	}
+
 	/**
 	 *
 	 * we cannot just let Ambeth absorb these properties because they have no name or key, e.g. java -jar shell.jar myscript.as or java -jar create test.adf
-	 * 
+	 *
 	 *
 	 *
 	 *

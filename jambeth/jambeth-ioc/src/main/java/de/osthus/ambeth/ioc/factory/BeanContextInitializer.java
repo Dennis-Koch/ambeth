@@ -33,6 +33,7 @@ import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.BeanMonitoringSupport;
+import de.osthus.ambeth.ioc.IBeanInstantiationProcessor;
 import de.osthus.ambeth.ioc.IBeanPostProcessor;
 import de.osthus.ambeth.ioc.IBeanPreProcessor;
 import de.osthus.ambeth.ioc.IDisposableBean;
@@ -40,6 +41,7 @@ import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IPropertyLoadingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.IServiceContextIntern;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.IStartingModule;
 import de.osthus.ambeth.ioc.ServiceContext;
@@ -521,13 +523,36 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			{
 				beanName = null;
 			}
-			Object refBean = resolveBean(beanName, propertyType, highPriorityBean, beanContextInit);
+			String fromContext = autowired != null ? autowired.fromContext() : null;
+			if (fromContext != null && fromContext.length() == 0)
+			{
+				fromContext = null;
+			}
+			Object refBean = resolveBean(fromContext, beanName, propertyType, highPriorityBean, beanContextInit);
 			if (refBean == null)
 			{
 				if (autowired != null && !autowired.optional())
 				{
-					throw maskBeanBasedException("Could not resolve mandatory autowiring constraint on property '" + prop.getName() + "' of type '"
-							+ propertyType.getName() + "'", beanConfiguration, null);
+					StringBuilder sb = new StringBuilder();
+					sb.append("Could not resolve mandatory autowiring constraint on property '").append(prop.getName()).append("' of type '")
+							.append(propertyType.getName()).append('\'');
+					if (fromContext != null)
+					{
+						sb.append(", lookup-context=CURRENT");
+					}
+					else
+					{
+						sb.append(", lookup-context=").append(fromContext);
+					}
+					if (beanName != null)
+					{
+						sb.append(", lookup-bean-name=").append(beanName);
+					}
+					else
+					{
+						sb.append(", lookup-bean-type=").append(propertyType.getName());
+					}
+					throw maskBeanBasedException(sb.toString(), beanConfiguration, null);
 				}
 				continue;
 			}
@@ -535,13 +560,22 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		}
 	}
 
-	protected Object resolveBean(String beanName, Class<?> propertyType, boolean isHighPriorityBean, BeanContextInit beanContextInit)
+	protected Object resolveBean(String fromContext, String beanName, Class<?> propertyType, boolean isHighPriorityBean, BeanContextInit beanContextInit)
 	{
-		ServiceContext beanContext = beanContextInit.beanContext;
+		IServiceContextIntern beanContext = beanContextInit.beanContext;
 		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = beanContextInit.objectToBeanConfigurationMap;
 		// Module beans are only allowed to demand beans from the parent
 		// context
 
+		if (fromContext != null)
+		{
+			IServiceContextIntern refFromContext = (IServiceContextIntern) beanContext.getDirectBean(fromContext);
+			if (refFromContext == null)
+			{
+				return null;
+			}
+			beanContext = refFromContext;
+		}
 		Object refBean = beanName != null ? beanContext.getDirectBean(beanName) : beanContext.getDirectBean(propertyType);
 		if (refBean != null && objectToBeanConfigurationMap != null && objectToBeanConfigurationMap.containsKey(refBean))
 		{
@@ -581,6 +615,10 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 					// it is a module (and only a module) so it has not been added yet
 					beanContextInit.toDestroyOnError.add((IDisposableBean) bean);
 				}
+			}
+			if (bean instanceof IBeanInstantiationProcessor)
+			{
+				beanContext.addInstantiationProcessor((IBeanInstantiationProcessor) bean);
 			}
 			if (bean instanceof IBeanPreProcessor)
 			{
@@ -992,7 +1030,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		{
 			return 3;
 		}
-		else if (IBeanPreProcessor.class.isAssignableFrom(beanType) || IBeanPostProcessor.class.isAssignableFrom(beanType))
+		else if (IBeanInstantiationProcessor.class.isAssignableFrom(beanType) || IBeanPreProcessor.class.isAssignableFrom(beanType)
+				|| IBeanPostProcessor.class.isAssignableFrom(beanType))
 		{
 			return 2;
 		}
@@ -1011,14 +1050,38 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 
 		String refBeanName = propertyConf.getBeanName();
 
-		// Module beans are only allowed to demand beans from the parent
-		// context
-		Object refBean = beanContext.getDirectBean(refBeanName);
-		if (refBean != null && objectToBeanConfigurationMap != null && objectToBeanConfigurationMap.containsKey(refBean))
+		Object refBean;
+		if (propertyConf.getFromContext() != null)
 		{
-			initializeBean(beanContextInit, refBean);
+			Object refBeanContext = beanContext.getDirectBean(propertyConf.getFromContext());
+			if (refBeanContext == null)
+			{
+				throw maskBeanBasedException("IoC context bean '" + propertyConf.getFromContext() + "' not found to look for target bean", beanConfiguration,
+						propertyConf);
+			}
+			beanContext = (ServiceContext) refBeanContext;
+			refBean = beanContext.getServiceIntern(refBeanName, Object.class, SearchType.CASCADE);
 		}
-		refBean = beanContext.getServiceIntern(refBeanName, Object.class, isHighPriorityBean(bean) ? SearchType.PARENT : SearchType.CASCADE);
+		else
+		{
+			// Module beans are only allowed to demand beans from the parent
+			// context
+			refBean = beanContext.getDirectBean(refBeanName);
+			if (refBean != null && objectToBeanConfigurationMap != null && objectToBeanConfigurationMap.containsKey(refBean))
+			{
+				initializeBean(beanContextInit, refBean);
+			}
+			refBean = beanContext.getServiceIntern(refBeanName, Object.class, isHighPriorityBean(bean) ? SearchType.PARENT : SearchType.CASCADE);
+			if (refBean != null)
+			{
+				IBeanConfiguration refBeanConfiguration = beanContextInit.objectToBeanConfigurationMap.get(refBean);
+				if (refBeanConfiguration != null)
+				{
+					// Object is not yet initialized. We try to do this before we use it
+					initializeBean(beanContextInit, refBean);
+				}
+			}
+		}
 		if (refBean == null)
 		{
 			if (propertyConf.isOptional())
@@ -1035,12 +1098,6 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 				message = "Bean '" + refBeanName + "' not found to look for autoresolve property";
 			}
 			throw maskBeanBasedException(message, beanConfiguration, propertyConf);
-		}
-		IBeanConfiguration refBeanConfiguration = beanContextInit.objectToBeanConfigurationMap.get(refBean);
-		if (refBeanConfiguration != null)
-		{
-			// Object is not yet initialized. We try to do this before we use it
-			initializeBean(beanContextInit, refBean);
 		}
 		if (propertyConf.getPropertyName() == null)
 		{
@@ -1111,31 +1168,22 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 				}
 				IBeanConfiguration beanConfiguration = beanConfigState.getBeanConfiguration();
 				Class<?> beanType = beanConfigState.getBeanType();
+
 				Object bean = null;
 				try
 				{
-					if (beanConfiguration instanceof BeanConfiguration)
+					if (fillParentHierarchyIfValid(beanContextInit, beanConfiguration, beanConfHierarchy) != null)
 					{
-						bean = beanConfiguration.getInstance(beanType);
+						throw new IllegalStateException("Bean configuration must be valid at this point");
 					}
-					else if (beanConfiguration instanceof BeanInstanceConfiguration)
-					{
-						bean = beanConfiguration.getInstance();
-					}
-					else
-					{
-						throw maskBeanBasedException("Instance of '" + beanConfiguration.getClass() + "' not supported here", beanConfiguration, null);
-					}
+					bean = instantiateBean(beanContext, beanContextFactory, beanConfiguration, beanType, beanConfHierarchy);
+
 					alreadyHandledConfigsSet.add(beanConfiguration);
 					atLeastOneHandled = true;
 
 					if (!objectToBeanConfigurationMap.putIfNotExists(bean, beanConfiguration))
 					{
 						throw maskBeanBasedException("Bean instance " + bean + " registered twice.", beanConfiguration, null);
-					}
-					if (fillParentHierarchyIfValid(beanContextInit, beanConfiguration, beanConfHierarchy) != null)
-					{
-						throw new IllegalStateException("Bean configuration must be valid at this point");
 					}
 					bean = postProcessBean(beanContextInit, beanConfiguration, beanType, bean, beanConfHierarchy);
 					beanConfHierarchy.clear();
@@ -1168,6 +1216,40 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 				}
 			}
 		}
+	}
+
+	@Override
+	public Object instantiateBean(ServiceContext beanContext, BeanContextFactory beanContextFactory, IBeanConfiguration beanConfiguration, Class<?> beanType,
+			List<IBeanConfiguration> beanConfHierarchy)
+	{
+		Object bean = null;
+
+		List<IBeanInstantiationProcessor> beanInstantiationProcessors = beanContext.getInstantiationProcessors();
+		if (beanInstantiationProcessors != null)
+		{
+			for (int a = 0, size = beanInstantiationProcessors.size(); a < size; a++)
+			{
+				IBeanInstantiationProcessor beanInstantiationProcessor = beanInstantiationProcessors.get(a);
+				bean = beanInstantiationProcessor.instantiateBean(beanContextFactory, beanContext, beanConfiguration, beanType, beanConfHierarchy);
+				if (bean != null)
+				{
+					return bean;
+				}
+			}
+		}
+		if (beanConfiguration instanceof BeanConfiguration)
+		{
+			bean = beanConfiguration.getInstance(beanType);
+		}
+		else if (beanConfiguration instanceof BeanInstanceConfiguration)
+		{
+			bean = beanConfiguration.getInstance();
+		}
+		else
+		{
+			throw maskBeanBasedException("Instance of '" + beanConfiguration.getClass() + "' not supported here", beanConfiguration, null);
+		}
+		return bean;
 	}
 
 	protected Object postProcessBean(BeanContextInit beanContextInit, IBeanConfiguration beanConfiguration, Class<?> beanType, Object bean,

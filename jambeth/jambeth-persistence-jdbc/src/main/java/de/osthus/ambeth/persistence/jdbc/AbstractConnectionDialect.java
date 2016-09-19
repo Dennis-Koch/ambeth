@@ -5,6 +5,7 @@ import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -24,7 +25,6 @@ import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
-import de.osthus.ambeth.collections.ReadOnlyList;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -45,8 +45,11 @@ import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationCons
 import de.osthus.ambeth.persistence.jdbc.connection.IConnectionKeyHandle;
 import de.osthus.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
 import de.osthus.ambeth.persistence.jdbc.sql.DefaultSqlRegexpLikeOperand;
+import de.osthus.ambeth.persistence.jdbc.sql.LimitByRownumOperator;
 import de.osthus.ambeth.query.IOperand;
+import de.osthus.ambeth.query.IValueOperand;
 import de.osthus.ambeth.sql.ParamsUtil;
+import de.osthus.ambeth.state.IStateRollback;
 import de.osthus.ambeth.util.IConversionHelper;
 
 public abstract class AbstractConnectionDialect implements IConnectionDialect, IInitializingBean, IDisposableBean
@@ -114,6 +117,8 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 
 	protected final Lock readLock, writeLock;
 
+	protected boolean doDirectClobConversion = true;
+
 	public AbstractConnectionDialect()
 	{
 		ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
@@ -170,6 +175,15 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 	}
 
 	@Override
+	public IOperand getLimitOperand(IOperand operand, IValueOperand valueOperand)
+	{
+		return beanContext.registerBean(LimitByRownumOperator.class)//
+				.propertyValue("Operand", operand)//
+				.propertyValue("ValueOperand", operand)//
+				.finish();
+	}
+
+	@Override
 	public Blob createBlob(Connection connection) throws SQLException
 	{
 		return connection.createBlob();
@@ -192,6 +206,18 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 	{
 		if (value instanceof Clob)
 		{
+			if (doDirectClobConversion)
+			{
+				try
+				{
+					return conversionHelper.convertValueToType(expectedType, value);
+				}
+				catch (IllegalArgumentException e)
+				{
+					// try only once
+					doDirectClobConversion = false;
+				}
+			}
 			String sValue = conversionHelper.convertValueToType(String.class, value);
 			return conversionHelper.convertValueToType(expectedType, sValue);
 		}
@@ -362,15 +388,15 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 
 	protected ConnectionKeyValue preProcessConnectionIntern(Connection connection, String[] schemaNames, boolean forcePreProcessing) throws SQLException
 	{
-		return scanForUndeferredDeferrableConstraints(connection, schemaNames);
+		return new ConnectionKeyValue(new String[0], new String[0]);
 	}
 
 	@Override
-	public IList<String> disableConstraints(Connection connection, String... schemaNames)
+	public IStateRollback disableConstraints(final Connection connection, String... schemaNames)
 	{
 		try
 		{
-			ConnectionKeyValue connectionKeyValue;
+			final ConnectionKeyValue connectionKeyValue;
 			IConnectionKeyHandle connectionKeyHandle = null;
 
 			if (connection.isWrapperFor(IConnectionKeyHandle.class))
@@ -410,38 +436,36 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 					JdbcUtil.close(stm);
 				}
 			}
-			return new ReadOnlyList<String>(connectionKeyValue.getEnableConstraintsSQL());
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
-	@Override
-	public void enableConstraints(Connection connection, IList<String> enableConstraintsSQL)
-	{
-		if (enableConstraintsSQL == null || enableConstraintsSQL.isEmpty())
-		{
-			return;
-		}
-		Statement stmt = null;
-		try
-		{
-			stmt = connection.createStatement();
-			for (int i = enableConstraintsSQL.size(); i-- > 0;)
+			return new IStateRollback()
 			{
-				stmt.addBatch(enableConstraintsSQL.get(i));
-			}
-			stmt.executeBatch();
+				@Override
+				public void rollback()
+				{
+					String[] enableConstraintsSQL = connectionKeyValue.getEnableConstraintsSQL();
+					Statement stmt = null;
+					try
+					{
+						stmt = connection.createStatement();
+						for (int i = enableConstraintsSQL.length; i-- > 0;)
+						{
+							stmt.addBatch(enableConstraintsSQL[i]);
+						}
+						stmt.executeBatch();
+					}
+					catch (Throwable e)
+					{
+						throw RuntimeExceptionUtil.mask(e);
+					}
+					finally
+					{
+						JdbcUtil.close(stmt);
+					}
+				}
+			};
 		}
 		catch (Throwable e)
 		{
 			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally
-		{
-			JdbcUtil.close(stmt);
 		}
 	}
 
@@ -621,5 +645,46 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 			replacement = replacement.replace("\\" + a, matcher.group(a));
 		}
 		return left + replacement + right;
+	}
+
+	@Override
+	public IList<String> queryDefault(Connection connection, String resultColumnName, String sql, Object... args) throws SQLException
+	{
+		Statement stmt = null;
+		ResultSet rs = null;
+		try
+		{
+			if (args.length > 0)
+			{
+				PreparedStatement pstm = connection.prepareStatement(sql);
+				for (int a = args.length; a-- > 0;)
+				{
+					pstm.setObject(a + 1, args[0]);
+				}
+				rs = pstm.executeQuery();
+				stmt = pstm;
+			}
+			else
+			{
+				stmt = connection.createStatement();
+				rs = stmt.executeQuery(sql);
+			}
+			ArrayList<String> result = new ArrayList<String>();
+			while (rs.next())
+			{
+				result.add(rs.getString(resultColumnName));
+			}
+			return result;
+		}
+		finally
+		{
+			JdbcUtil.close(stmt, rs);
+		}
+	}
+
+	@Override
+	public int getColumnCountForLinkTable()
+	{
+		return 2;
 	}
 }

@@ -7,9 +7,9 @@ import java.util.Set;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
 import de.osthus.ambeth.ioc.CacheModule;
 import de.osthus.ambeth.ioc.IBeanRuntime;
-import de.osthus.ambeth.ioc.IOrderedBeanPostProcessor;
+import de.osthus.ambeth.ioc.IOrderedBeanProcessor;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.PostProcessorOrder;
+import de.osthus.ambeth.ioc.ProcessorOrder;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
@@ -25,7 +25,7 @@ import de.osthus.ambeth.security.SecurityFilterInterceptor;
 import de.osthus.ambeth.typeinfo.TypeInfoItemUtil;
 import de.osthus.ambeth.util.ReflectUtil;
 
-public class CommittedRootCachePostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanPostProcessor
+public class CommittedRootCachePostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanProcessor
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -90,10 +90,10 @@ public class CommittedRootCachePostProcessor extends AbstractCascadePostProcesso
 	}
 
 	@Override
-	public PostProcessorOrder getOrder()
+	public ProcessorOrder getOrder()
 	{
 		// A security filter interceptor has to be one of the OUTERMOST proxies of all potential postprocessor-created proxies
 		// The proxy order is the inverse order of their creating postprocessors
-		return PostProcessorOrder.LOW;
+		return ProcessorOrder.LOW;
 	}
 }

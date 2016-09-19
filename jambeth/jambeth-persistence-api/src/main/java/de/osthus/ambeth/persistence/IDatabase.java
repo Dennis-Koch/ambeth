@@ -2,7 +2,7 @@ package de.osthus.ambeth.persistence;
 
 import java.util.List;
 
-import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.state.IStateRollback;
 import de.osthus.ambeth.util.IDisposable;
 
 /**
@@ -213,17 +213,9 @@ public interface IDatabase extends IDisposable, IDatabaseDisposeHookExtendable
 	/**
 	 * Delay foreign key constraint validation for running multiple commands "as one".
 	 * 
-	 * @return List of names of disabled constraint
+	 * @return The delegate to revert the disabling of constraints
 	 */
-	IList<String> disableConstraints();
-
-	/**
-	 * Re-enable the constraints.
-	 * 
-	 * @param enableConstraintsSQL
-	 *            List of names of disabled constraint
-	 */
-	void enableConstraints(IList<String> enableConstraintsSQL);
+	IStateRollback disableConstraints();
 
 	/**
 	 * Register a new table after the context was started

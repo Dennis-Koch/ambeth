@@ -2,7 +2,6 @@ package de.osthus.ambeth.orm20;
 
 import java.util.List;
 
-import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IContextProvider;
@@ -13,6 +12,8 @@ import de.osthus.ambeth.persistence.IDatabasePool;
 import de.osthus.ambeth.persistence.ILink;
 import de.osthus.ambeth.persistence.ISavepoint;
 import de.osthus.ambeth.persistence.ITable;
+import de.osthus.ambeth.state.IStateRollback;
+import de.osthus.ambeth.state.NoOpStateRollback;
 
 public class DatabaseDummy implements IDatabase
 {
@@ -161,14 +162,9 @@ public class DatabaseDummy implements IDatabase
 	}
 
 	@Override
-	public IList<String> disableConstraints()
+	public IStateRollback disableConstraints()
 	{
-		return null;
-	}
-
-	@Override
-	public void enableConstraints(IList<String> disabled)
-	{
+		return NoOpStateRollback.instance;
 	}
 
 	@Override

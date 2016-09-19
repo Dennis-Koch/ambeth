@@ -1,11 +1,13 @@
 package de.osthus.ambeth.start;
 
-import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -16,7 +18,7 @@ public class SystemClasspathInfo implements IClasspathInfo
 	private ILogger log;
 
 	@Override
-	public ArrayList<URL> getJarURLs()
+	public IList<URL> getJarURLs()
 	{
 		ArrayList<URL> urls = new ArrayList<URL>();
 
@@ -40,16 +42,18 @@ public class SystemClasspathInfo implements IClasspathInfo
 	}
 
 	@Override
-	public File openAsFile(URL url) throws Throwable
+	public Path openAsFile(URL url) throws Throwable
 	{
 		String filePath = url.getPath();
 		String authority = url.getAuthority();
-		if (authority != null)
+		if (authority != null && authority.length() > 0)
 		{
 			filePath = authority + filePath;
 		}
-
-		File file = new File(filePath);
-		return file;
+		else if (filePath.startsWith("/"))
+		{
+			filePath = filePath.substring(1);
+		}
+		return Paths.get(filePath).toAbsolutePath().normalize();
 	}
 }

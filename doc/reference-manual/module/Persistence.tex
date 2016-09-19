@@ -1,4 +1,4 @@
-\SetAPI{J}
+\SetAPI{J-C}
 \section{Persistence}
 \label{module:Persistence}
 \ClearAPI
@@ -45,7 +45,19 @@ The persistence module strictly operates in batch mode and is applies different 
 
 <dependency>
 	<groupId>de.osthus.ambeth</groupId>
+	<artifactId>jambeth-persistence-mssql</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>de.osthus.ambeth</groupId>
 	<artifactId>jambeth-persistence-oracle11</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>de.osthus.ambeth</groupId>
+	<artifactId>jambeth-persistence-pg</artifactId>
 	<version>§\version§</version>
 </dependency>
 \end{lstlisting}
@@ -59,6 +71,7 @@ The persistence module strictly operates in batch mode and is applies different 
 	\item \prettyref{annotation:PersistenceContext}
 	%% FEATURES GENERATED START
 	%%\item \prettyref{feature:Link}
+	%%\item \prettyref{feature:PagingQuery}
 	%% FEATURES END
 \end{itemize}
 

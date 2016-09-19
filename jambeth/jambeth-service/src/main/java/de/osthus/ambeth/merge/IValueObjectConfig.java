@@ -8,6 +8,8 @@ public interface IValueObjectConfig
 
 	String getValueObjectMemberName(String businessObjectMemberName);
 
+	String getBusinessObjectMemberName(String valueObjectMemberName);
+
 	ValueObjectMemberType getValueObjectMemberType(String valueObjectMemberName);
 
 	boolean holdsListType(String memberName);

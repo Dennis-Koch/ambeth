@@ -1,4 +1,4 @@
-\SetAPI{J}
+\SetAPI{J-C}
 \section{IFilterExtendable}
 \label{extendable:IFilterExtendable}
 \ClearAPI
@@ -13,5 +13,12 @@
 IBeanContextFactory bcf = ...
 IBeanConfiguration myExtension = bcf.registerAnonymousBean...
 bcf.link(myExtension).to(IFilterExtendable.class).with(...);
+\end{lstlisting}
+\inputcsharp{Extension point for instances of \type{IFilter}}
+{Ambeth.DataChange/ambeth/datachange/filter/IFilterExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<IFilterExtendable>().With(...);
 \end{lstlisting}
 %% GENERATED LISTINGS END

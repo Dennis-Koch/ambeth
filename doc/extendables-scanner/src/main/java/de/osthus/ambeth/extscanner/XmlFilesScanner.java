@@ -36,7 +36,7 @@ public class XmlFilesScanner implements IInitializingBean, IXmlFilesScanner
 		}
 		if (!csharpFile.exists())
 		{
-			throw new IllegalArgumentException("Csharp XML file not found: " + javaFile.getPath());
+			throw new IllegalArgumentException("Csharp XML file not found: " + csharpFile.getPath());
 		}
 		javaTypes = OutputUtil.importFromFile(javaFile.getPath());
 		Iterator<Entry<String, TypeDescription>> iter = javaTypes.entrySet().iterator();

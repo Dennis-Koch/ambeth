@@ -83,6 +83,8 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 
 	protected IList<IBeanPostProcessor> postProcessors;
 
+	protected List<IBeanInstantiationProcessor> instantiationProcessors;
+
 	protected boolean disposed, running, disposing;
 
 	protected boolean failOnError;
@@ -186,6 +188,12 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		return postProcessors;
 	}
 
+	public List<IBeanInstantiationProcessor> getInstantiationProcessors()
+	{
+		checkNotDisposed();
+		return instantiationProcessors;
+	}
+
 	@Override
 	public boolean isDisposed()
 	{
@@ -269,12 +277,11 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 	public void addPreProcessor(IBeanPreProcessor preProcessor)
 	{
 		checkNotDisposed();
-		checkNotRunning();
 		if (preProcessors == null)
 		{
 			preProcessors = new ArrayList<IBeanPreProcessor>();
 		}
-		preProcessors.add(preProcessor);
+		addOrderedProcessor(preProcessor, preProcessors);
 	}
 
 	public void addPostProcessor(IBeanPostProcessor postProcessor)
@@ -284,40 +291,55 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		{
 			postProcessors = new ArrayList<IBeanPostProcessor>();
 		}
-		PostProcessorOrder order = PostProcessorOrder.DEFAULT;
-		if (postProcessor instanceof IOrderedBeanPostProcessor)
+		addOrderedProcessor(postProcessor, postProcessors);
+	}
+
+	public void addInstantiationProcessor(IBeanInstantiationProcessor instantiationProcessor)
+	{
+		checkNotDisposed();
+		if (instantiationProcessors == null)
 		{
-			order = ((IOrderedBeanPostProcessor) postProcessor).getOrder();
+			instantiationProcessors = new ArrayList<IBeanInstantiationProcessor>();
+		}
+		addOrderedProcessor(instantiationProcessor, instantiationProcessors);
+	}
+
+	protected <T> void addOrderedProcessor(T processor, List<T> processors)
+	{
+		ProcessorOrder order = ProcessorOrder.DEFAULT;
+		if (processor instanceof IOrderedBeanProcessor)
+		{
+			order = ((IOrderedBeanProcessor) processor).getOrder();
 			if (order == null)
 			{
-				order = PostProcessorOrder.DEFAULT;
+				order = ProcessorOrder.DEFAULT;
 			}
 		}
 		boolean added = false;
 		// Insert postprocessor at the correct order index
-		for (int a = postProcessors.size(); a-- > 0;)
+		for (int a = processors.size(); a-- > 0;)
 		{
-			IBeanPostProcessor existingPostProcessor = postProcessors.get(a);
-			PostProcessorOrder existingOrder = PostProcessorOrder.DEFAULT;
-			if (existingPostProcessor instanceof IOrderedBeanPostProcessor)
+			T existingPostProcessor = processors.get(a);
+			ProcessorOrder existingOrder = ProcessorOrder.DEFAULT;
+			if (existingPostProcessor instanceof IOrderedBeanProcessor)
 			{
-				existingOrder = ((IOrderedBeanPostProcessor) existingPostProcessor).getOrder();
+				existingOrder = ((IOrderedBeanProcessor) existingPostProcessor).getOrder();
 				if (existingOrder == null)
 				{
-					existingOrder = PostProcessorOrder.DEFAULT;
+					existingOrder = ProcessorOrder.DEFAULT;
 				}
 			}
 			if (existingOrder.getPosition() >= order.getPosition())
 			{
 				// if same order then append directly behind the existing processor of that level
-				postProcessors.add(a + 1, postProcessor);
+				processors.add(a + 1, processor);
 				added = true;
 				break;
 			}
 		}
 		if (!added)
 		{
-			postProcessors.add(0, postProcessor);
+			processors.add(0, processor);
 		}
 	}
 
@@ -510,7 +532,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 					{
 						try
 						{
-							((IBackgroundWorkerParamDelegate<ServiceContext>) disposableObject).invoke(this);
+							((IBackgroundWorkerParamDelegate<? super ServiceContext>) disposableObject).invoke(this);
 						}
 						catch (Throwable e)
 						{
@@ -816,6 +838,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		}
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T getServiceIntern(Class<T> serviceType, SearchType searchType)
 	{
@@ -848,12 +871,14 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		return (T) service;
 	}
 
+	@Override
 	public Object getDirectBean(Class<?> serviceType)
 	{
 		checkNotDisposed();
 		return typeToServiceDict.get(serviceType);
 	}
 
+	@Override
 	public Object getDirectBean(String beanName)
 	{
 		checkNotDisposed();
@@ -864,6 +889,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		return nameToServiceDict.get(beanName);
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T getServiceIntern(String serviceName, Class<T> serviceType, SearchType searchType)
 	{

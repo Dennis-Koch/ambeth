@@ -8,15 +8,16 @@ import java.lang.annotation.Target;
 import de.osthus.ambeth.model.INotifyPropertyChanged;
 
 /**
- * If PropertyChangeAspect is added to a class or interface the bytecode enhancement will add support for PropertyChange implementing
- * {@link INotifyPropertyChanged}.
+ * If PropertyChangeAspect is added to a class or interface the bytecode enhancement - if connected to the IOC container - will add support for PCEs
+ * (PropertyChangeEvents) implementing {@link INotifyPropertyChanged}.
  * 
  * @see NotifyPropertyChangedBehavior
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Deprecated
 public @interface PropertyChangeAspect
 {
-	// Intended blank
+	boolean includeNewValue() default true;
+
+	boolean includeOldValue() default true;
 }

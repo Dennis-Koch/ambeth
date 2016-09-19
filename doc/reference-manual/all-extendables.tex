@@ -12,6 +12,10 @@
 		\javadoc{java.lang.Class<?>}{Class<?>} &
 		X & X &   \\
 	\hline
+		\nameref{extendable:INoEntityTypeExtendable} &
+		\javadoc{java.lang.Class<?>}{Class<?>} &
+		X & X &   \\
+	\hline
 		\nameref{extendable:IXmlTypeExtendable} &
 		\javadoc{java.lang.Class<?>}{Class<?>} &
 		X & X &   \\
@@ -20,13 +24,21 @@
 		\javadoc{java.lang.Class<?>}{Class<?>} &
 		X & X &   \\
 	\hline
+		\nameref{extendable:CommandBindingExtendable} &
+		\javadoc{de.osthus.ambeth.shell.core.CommandBinding}{CommandBinding} &
+		X & X &   \\
+	\hline
+		\nameref{extendable:CommandExtensionExtendable} &
+		\javadoc{de.osthus.ambeth.shell.core.CommandExtension}{CommandExtension} &
+		X & X &   \\
+	\hline
 		\nameref{extendable:IAuditConfigurationExtendable} &
 		\javadoc{de.osthus.ambeth.audit.IAuditConfiguration}{IAuditConfiguration} &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{extendable:IAuditEntryWriterExtendable} &
 		\javadoc{de.osthus.ambeth.audit.IAuditEntryWriter}{IAuditEntryWriter} &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{extendable:IAuthorizationChangeListenerExtendable} &
 		\javadoc{de.osthus.ambeth.security.IAuthorizationChangeListener}{IAuthorizationChangeListener} &
@@ -52,25 +64,21 @@
 		\javadoc{de.osthus.ambeth.service.ICacheService}{ICacheService} &
 		X & X &   \\
 	\hline
+		\nameref{extendable:IChangeControllerExtendable} &
+		\javadoc{de.osthus.ambeth.changecontroller.IChangeControllerExtension<?>}{IChangeControllerExtension<?>} &
+		X & X &   \\
+	\hline
 		\nameref{extendable:ICollectableControllerExtendable} &
 		\javadoc{de.osthus.ambeth.objectcollector.ICollectableController}{ICollectableController} &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{extendable:ICollectionChangeExtensionExtendable} &
 		\javadoc{de.osthus.ambeth.databinding.ICollectionChangeExtension}{ICollectionChangeExtension} &
 		X & X &   \\
 	\hline
-		\nameref{extendable:ICommandExtendable} &
-		\javadoc{System.Windows.Input.ICommand}{ICommand} &
-		  & X &   \\
-	\hline
-		\nameref{extendable:ICommandStringParameterExtendable} &
-		\javadoc{System.Windows.Input.ICommand}{ICommand} &
-		  & X &   \\
-	\hline
 		\nameref{extendable:IConnectionHolderExtendable} &
 		\javadoc{de.osthus.ambeth.persistence.jdbc.IConnectionHolder}{IConnectionHolder} &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{extendable:IDatabaseDisposeHookExtendable} &
 		\javadoc{de.osthus.ambeth.persistence.IDatabaseDisposeHook}{IDatabaseDisposeHook} &
@@ -78,23 +86,23 @@
 	\hline
 		\nameref{extendable:IDatabaseLifecycleCallbackExtendable} &
 		\javadoc{de.osthus.ambeth.IDatabaseLifecycleCallback}{IDatabaseLifecycleCallback} &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{extendable:IDatabaseMappedListenerExtendable} &
 		\javadoc{de.osthus.ambeth.database.IDatabaseMappedListener}{IDatabaseMappedListener} &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{extendable:IDatabaseMapperExtendable} &
 		\javadoc{de.osthus.ambeth.database.IDatabaseMapper}{IDatabaseMapper} &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{extendable:IDatabaseProviderExtendable} &
 		\javadoc{de.osthus.ambeth.database.IDatabaseProvider}{IDatabaseProvider} &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{extendable:IDatasetBuilderExtendable} &
 		\javadoc{de.osthus.ambeth.util.setup.IDatasetBuilder}{IDatasetBuilder} &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{extendable:IDedicatedConverterExtendable} &
 		\javadoc{de.osthus.ambeth.util.IDedicatedConverter}{IDedicatedConverter} &
@@ -118,11 +126,11 @@
 	\hline
 		\nameref{extendable:IEntityPermissionRuleExtendable} &
 		\javadoc{de.osthus.ambeth.privilege.IEntityPermissionRule<? super T>}{IEntityPermissionRule<? super T>} &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{extendable:IEntityTypePermissionRuleExtendable} &
 		\javadoc{de.osthus.ambeth.privilege.IEntityTypePermissionRule}{IEntityTypePermissionRule} &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{extendable:IEventBatcherExtendable} &
 		\javadoc{de.osthus.ambeth.event.IEventBatcher}{IEventBatcher} &
@@ -146,15 +154,11 @@
 	\hline
 		\nameref{extendable:IFilterExtendable} &
 		\javadoc{de.osthus.ambeth.datachange.filter.IFilter}{IFilter} &
-		X &   &   \\
-	\hline
-		\nameref{extendable:IFilterDescriptorProviderExtendable} &
-		\javadoc{De.Osthus.Minerva.FilterProvider.IFilterDescriptorProvider}{IFilterDescriptorProvider} &
-		  & X &   \\
+		X & X &   \\
 	\hline
 		\nameref{extendable:IJobExtendable} &
 		\javadoc{de.osthus.ambeth.job.IJob}{IJob} &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{extendable:IMergeExtendable} &
 		\javadoc{de.osthus.ambeth.merge.IMergeExtension}{IMergeExtension} &
@@ -192,25 +196,33 @@
 		\javadoc{de.osthus.ambeth.orm.IOrmXmlReader}{IOrmXmlReader} &
 		X & X &   \\
 	\hline
+		\nameref{extendable:IPasswordValidationExtendable} &
+		\javadoc{de.osthus.ambeth.security.IPasswordValidationExtension}{IPasswordValidationExtension} &
+		X & X &   \\
+	\hline
+		\nameref{extendable:IPrimitiveRetrieverExtendable} &
+		\javadoc{de.osthus.ambeth.service.IPrimitiveRetriever}{IPrimitiveRetriever} &
+		X & X &   \\
+	\hline
 		\nameref{extendable:IPropertyChangeExtensionExtendable} &
 		\javadoc{de.osthus.ambeth.databinding.IPropertyChangeExtension}{IPropertyChangeExtension} &
 		X & X &   \\
 	\hline
 		\nameref{extendable:IQueryBuilderExtensionExtendable} &
 		\javadoc{de.osthus.ambeth.query.IQueryBuilderExtension}{IQueryBuilderExtension} &
-		X &   &   \\
+		X & X &   \\
+	\hline
+		\nameref{extendable:IRelationRetrieverExtendable} &
+		\javadoc{de.osthus.ambeth.service.IRelationRetriever}{IRelationRetriever} &
+		X & X &   \\
 	\hline
 		\nameref{extendable:ISecurityScopeChangeListenerExtendable} &
 		\javadoc{de.osthus.ambeth.security.ISecurityScopeChangeListener}{ISecurityScopeChangeListener} &
 		X & X &   \\
 	\hline
-		\nameref{extendable:ISecurityScopeChangeExtendable} &
-		\javadoc{De.Osthus.Minerva.Security.ISecurityScopeChangeListener}{ISecurityScopeChangeListener} &
-		  & X &   \\
-	\hline
 		\nameref{extendable:ISensorReceiverExtendable} &
 		\javadoc{de.osthus.ambeth.sensor.ISensorReceiver}{ISensorReceiver} &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{extendable:IServiceFilterExtendable} &
 		\javadoc{de.osthus.ambeth.security.IServiceFilter}{IServiceFilter} &
@@ -220,9 +232,9 @@
 		\javadoc{de.osthus.ambeth.cache.IServiceResultProcessor}{IServiceResultProcessor} &
 		X & X &   \\
 	\hline
-		\nameref{extendable:ISharedDataHandOnExtendable} &
-		\javadoc{De.Osthus.Minerva.Core.ISharedDataHandOn}{ISharedDataHandOn} &
-		  & X &   \\
+		\nameref{extendable:ITestSetterExtendable} &
+		\javadoc{de.osthus.ambeth.testutil.datagenerator.ITestSetter}{ITestSetter} &
+		X & X &   \\
 	\hline
 		\nameref{extendable:IThreadLocalCleanupBeanExtendable} &
 		\javadoc{de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean}{IThreadLocalCleanupBean} &
@@ -230,7 +242,7 @@
 	\hline
 		\nameref{extendable:ITransactionListenerExtendable} &
 		\javadoc{de.osthus.ambeth.database.ITransactionListener}{ITransactionListener} &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{extendable:ITypeBasedHandlerExtendable} &
 		\javadoc{de.osthus.ambeth.xml.ITypeBasedHandler}{ITypeBasedHandler} &
@@ -252,19 +264,18 @@
 		\javadoc{java.lang.Object}{Object} &
 		X & X &   \\
 	\hline
-		\nameref{extendable:IRoutedEventHandlerExtendable} &
-		\javadoc{System.Windows.RoutedEventHandler}{RoutedEventHandler} &
-		  & X &   \\
-	\hline
-		\nameref{extendable:INotPersistedDataContainerExtendable} &
-		\javadoc{object}{object} &
-		  & X &   \\
+		\nameref{extendable:IPropertyExpansionExtendable} &
+		\javadoc{de.osthus.ambeth.mapping.PropertyPath}{PropertyPath} &
+		X & X &   \\
 	\hline
 \end{longtable}
 \end{landscape}
 \input{extendable/IImplementAbstractObjectFactoryExtendable}
+\input{extendable/INoEntityTypeExtendable}
 \input{extendable/IXmlTypeExtendable}
 \input{extendable/ITechnicalEntityTypeExtendable}
+\input{extendable/CommandBindingExtendable}
+\input{extendable/CommandExtensionExtendable}
 \input{extendable/IAuditConfigurationExtendable}
 \input{extendable/IAuditEntryWriterExtendable}
 \input{extendable/IAuthorizationChangeListenerExtendable}
@@ -273,10 +284,9 @@
 \input{extendable/ICacheProviderExtendable}
 \input{extendable/ICacheRetrieverExtendable}
 \input{extendable/ICacheServiceByNameExtendable}
+\input{extendable/IChangeControllerExtendable}
 \input{extendable/ICollectableControllerExtendable}
 \input{extendable/ICollectionChangeExtensionExtendable}
-\input{extendable/ICommandExtendable}
-\input{extendable/ICommandStringParameterExtendable}
 \input{extendable/IConnectionHolderExtendable}
 \input{extendable/IDatabaseDisposeHookExtendable}
 \input{extendable/IDatabaseLifecycleCallbackExtendable}
@@ -297,7 +307,6 @@
 \input{extendable/IEventTargetListenerExtendable}
 \input{extendable/IEventTargetExtractorExtendable}
 \input{extendable/IFilterExtendable}
-\input{extendable/IFilterDescriptorProviderExtendable}
 \input{extendable/IJobExtendable}
 \input{extendable/IMergeExtendable}
 \input{extendable/IMergeListenerExtendable}
@@ -308,14 +317,16 @@
 \input{extendable/IObjectFutureHandlerExtendable}
 \input{extendable/IOfflineListenerExtendable}
 \input{extendable/IOrmXmlReaderExtendable}
+\input{extendable/IPasswordValidationExtendable}
+\input{extendable/IPrimitiveRetrieverExtendable}
 \input{extendable/IPropertyChangeExtensionExtendable}
 \input{extendable/IQueryBuilderExtensionExtendable}
+\input{extendable/IRelationRetrieverExtendable}
 \input{extendable/ISecurityScopeChangeListenerExtendable}
-\input{extendable/ISecurityScopeChangeExtendable}
 \input{extendable/ISensorReceiverExtendable}
 \input{extendable/IServiceFilterExtendable}
 \input{extendable/IServiceResultProcessorExtendable}
-\input{extendable/ISharedDataHandOnExtendable}
+\input{extendable/ITestSetterExtendable}
 \input{extendable/IThreadLocalCleanupBeanExtendable}
 \input{extendable/ITransactionListenerExtendable}
 \input{extendable/ITypeBasedHandlerExtendable}
@@ -323,6 +334,5 @@
 \input{extendable/IFirstLevelCacheExtendable}
 \input{extendable/IXmlPostProcessorExtendable}
 \input{extendable/IServiceExtendable}
-\input{extendable/IRoutedEventHandlerExtendable}
-\input{extendable/INotPersistedDataContainerExtendable}
+\input{extendable/IPropertyExpansionExtendable}
 %--END OF GENERATION----------------------------------------------------------

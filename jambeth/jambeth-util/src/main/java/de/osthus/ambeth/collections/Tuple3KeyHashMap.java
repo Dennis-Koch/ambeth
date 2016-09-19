@@ -1,5 +1,6 @@
 package de.osthus.ambeth.collections;
 
+
 /**
  * 66 percent faster compared to a normal HashMap with a Tuple2 (Composite-)Key as the Map-Key. This is due to the fact that there is no need to instantiate
  * Tuple2 Keys for put() or get() operations. Of course the overall memory footprint is also the half compared to a normal map: There is only the entry object
@@ -41,6 +42,12 @@ public class Tuple3KeyHashMap<Key1, Key2, Key3, V> extends AbstractTuple3KeyHash
 	public Tuple3KeyHashMap(int initialCapacity, float loadFactor)
 	{
 		super(initialCapacity, loadFactor);
+	}
+
+	public Tuple3KeyHashMap(AbstractTuple3KeyHashMap<? extends Key1, ? extends Key2, ? extends Key3, ? extends V> map)
+	{
+		this((int) (map.size() / DEFAULT_LOAD_FACTOR) + 1, DEFAULT_LOAD_FACTOR);
+		putAll(map);
 	}
 
 	@Override

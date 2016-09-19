@@ -1,13 +1,14 @@
 package de.osthus.ambeth.start;
 
-import java.io.File;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.IList;
 
 public class SystemClasspathInfoTest
 {
@@ -22,7 +23,7 @@ public class SystemClasspathInfoTest
 	@Test
 	public void testGetJarURLs()
 	{
-		ArrayList<URL> jarURLs = systemClasspathInfo.getJarURLs();
+		IList<URL> jarURLs = systemClasspathInfo.getJarURLs();
 		Assert.assertNotNull(jarURLs);
 		Assert.assertFalse(jarURLs.isEmpty());
 	}
@@ -30,12 +31,11 @@ public class SystemClasspathInfoTest
 	@Test
 	public void testOpenAsFile() throws Throwable
 	{
-		ArrayList<URL> jarURLs = systemClasspathInfo.getJarURLs();
-		URL url = jarURLs.get(0);
-
-		File file = systemClasspathInfo.openAsFile(url);
+		IList<URL> jarURLs = systemClasspathInfo.getJarURLs();
+		URL url = jarURLs.get(jarURLs.size() - 1);
+		Path file = systemClasspathInfo.openAsFile(url);
 		Assert.assertNotNull(file);
-		Assert.assertTrue(file.canRead());
+		Assert.assertTrue(Files.isReadable(file));
 	}
 
 	@Test
@@ -44,7 +44,7 @@ public class SystemClasspathInfoTest
 		String filePath = "file:/home/user/name with space/lib";
 		URL url = new URL(filePath);
 
-		File file = systemClasspathInfo.openAsFile(url);
+		Path file = systemClasspathInfo.openAsFile(url);
 		Assert.assertNotNull(file);
 	}
 }

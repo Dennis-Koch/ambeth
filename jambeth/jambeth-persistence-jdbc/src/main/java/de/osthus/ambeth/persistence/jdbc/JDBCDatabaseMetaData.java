@@ -169,16 +169,17 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
 				ITableMetaData table = nameToTableDict.get(linkName);
 
 				int hasPermissionGroupField = fieldsContainPermissionGroup(fields);
+				boolean isLinkTable = ((fields.size() - hasPermissionGroupField) == connectionDialect.getColumnCountForLinkTable());
 
 				if (table != null)
 				{
 					handleLinkWithinDataTable(connection, linkName, values, fields);
 				}
-				else if (((fields.size() - hasPermissionGroupField) == 3) && values.size() == 2)
+				else if (isLinkTable && values.size() == 2)
 				{
 					handleLinkTable(connection, linkName, values);
 				}
-				else if (((fields.size() - hasPermissionGroupField) == 3) && values.size() == 1)
+				else if (isLinkTable && values.size() == 1)
 				{
 					handleLinkTableToExtern(connection, linkName, values);
 				}
@@ -249,11 +250,11 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
 				{
 					handleLinkWithinDataTable(connection, linkName, values, fields);
 				}
-				else if (((fields.size() - hasPermissionGroupField) == 3) && values.size() == 2)
+				else if (((fields.size() - hasPermissionGroupField) == connectionDialect.getColumnCountForLinkTable()) && values.size() == 2)
 				{
 					handleLinkTable(connection, linkName, values);
 				}
-				else if (((fields.size() - hasPermissionGroupField) == 3) && values.size() == 1)
+				else if (((fields.size() - hasPermissionGroupField) == connectionDialect.getColumnCountForLinkTable()) && values.size() == 1)
 				{
 					handleLinkTableToExtern(connection, linkName, values);
 				}
@@ -701,7 +702,7 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
 			return false;
 		}
 		int hasPermissionGroupField = fieldsContainPermissionGroup(fields);
-		return ((fields.size() - hasPermissionGroupField) == 3);
+		return ((fields.size() - hasPermissionGroupField) == connectionDialect.getColumnCountForLinkTable());
 	}
 
 	protected boolean isLinkTableToExtern(Connection connection, String tableName, List<FieldMetaData> fields, Map<String, List<String[]>> linkNameToEntryMap)

@@ -7,9 +7,11 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import de.osthus.ambeth.collections.AbstractTuple2KeyHashMap;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.Tuple2KeyHashMap;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -17,10 +19,13 @@ import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 import de.osthus.ambeth.util.ParamChecker;
 
 public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, IXmlTypeRegistry
 {
+	public static final String DefaultNamespace = "http://schemas.osthus.de/Ambeth";
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -30,6 +35,9 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 
 	@Autowired
 	protected IProxyHelper proxyHelper;
+
+	@Autowired
+	protected ITypeInfoProvider typeInfoProvider;
 
 	protected final HashMap<Class<?>, List<XmlTypeKey>> weakClassToXmlTypeMap = new HashMap<Class<?>, List<XmlTypeKey>>(0.5f);
 
@@ -82,6 +90,21 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 	}
 
 	@Override
+	public AbstractTuple2KeyHashMap<String, String, Class<?>> createSnapshot()
+	{
+		Lock readLock = this.readLock;
+		readLock.lock();
+		try
+		{
+			return new Tuple2KeyHashMap<String, String, Class<?>>(xmlTypeToClassMap);
+		}
+		finally
+		{
+			readLock.unlock();
+		}
+	}
+
+	@Override
 	public Class<?> getType(String name, String namespace)
 	{
 		ParamChecker.assertParamNotNull(name, "name");
@@ -94,6 +117,30 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 		try
 		{
 			Class<?> type = xmlTypeToClassMap.get(name, namespace);
+			if (type == null && namespace.isEmpty())
+			{
+				type = Thread.currentThread().getContextClassLoader().loadClass(name);
+				if (type != null)
+				{
+					readLock.unlock();
+					try
+					{
+						writeLock.lock();
+						try
+						{
+							xmlTypeToClassMap.put(name, namespace, type);
+						}
+						finally
+						{
+							writeLock.unlock();
+						}
+					}
+					finally
+					{
+						readLock.lock();
+					}
+				}
+			}
 			if (type == null)
 			{
 				if (log.isDebugEnabled())
@@ -104,10 +151,34 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 			}
 			return type;
 		}
+		catch (ClassNotFoundException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
 		finally
 		{
 			readLock.unlock();
 		}
+	}
+
+	@Override
+	public String getXmlTypeName(Class<?> type, String name)
+	{
+		if (name == null || name.length() == 0 || "##default".equals(name))
+		{
+			name = typeInfoProvider.getTypeInfo(type).getSimpleName();
+		}
+		return name;
+	}
+
+	@Override
+	public String getXmlTypeNamespace(Class<?> type, String namespace)
+	{
+		if (DefaultNamespace.equals(namespace) || "##default".equals(namespace) || namespace != null && namespace.length() == 0)
+		{
+			namespace = null;
+		}
+		return namespace;
 	}
 
 	@Override
@@ -137,6 +208,11 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 					}
 					xmlTypeKeys = classToXmlTypeMap.get(realType);
 				}
+				if (xmlTypeKeys == null)
+				{
+					xmlTypeKeys = new ArrayList<XmlTypeKey>(1);
+					xmlTypeKeys.add(new XmlTypeKey(type.getName(), null));
+				}
 				if (xmlTypeKeys != null)
 				{
 					readLock.unlock();
@@ -151,10 +227,6 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 						readLock.lock();
 					}
 				}
-			}
-			if (expectExisting && xmlTypeKeys == null)
-			{
-				throw new IllegalArgumentException("No xml type found: Type=" + type);
 			}
 			return xmlTypeKeys != null ? xmlTypeKeys.get(0) : null;
 		}

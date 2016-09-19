@@ -1,129 +1,412 @@
 package de.osthus.ambeth.threading;
 
+import java.awt.EventQueue;
+import java.awt.Toolkit;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.concurrent.Executor;
+
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.util.ParamHolder;
+import de.osthus.ambeth.util.ReflectUtil;
 
 public class GuiThreadHelper implements IGuiThreadHelper
 {
+	private static IResultingBackgroundWorkerDelegate<Boolean> dispatchThreadResolver;
+
+	static
+	{
+		dispatchThreadResolver = createDispatchThreadResolver();
+	}
+
+	/**
+	 * Returns a delegate which evaluates to "true" if and only if a valid instance of an AWT event dispatch thread can be found. There may be a valid
+	 * <code>Toolkit</code> instance or even a valid <code>EventQueue</code> handle. But only with a valid active dispatch thread the method returns "true".
+	 * 
+	 * @return null, if any kind of error occurs
+	 */
+	private static IResultingBackgroundWorkerDelegate<Boolean> createDispatchThreadResolver()
+	{
+		try
+		{
+			final Field f_toolkit = ReflectUtil.getDeclaredField(Toolkit.class, "toolkit");
+			final Method m_systemEventQueueImpl = ReflectUtil.getDeclaredMethod(false, Toolkit.class, EventQueue.class, "getSystemEventQueueImpl");
+			final Field f_dispatchThread = ReflectUtil.getDeclaredField(EventQueue.class, "dispatchThread");
+
+			return new IResultingBackgroundWorkerDelegate<Boolean>()
+			{
+				@Override
+				public Boolean invoke() throws Throwable
+				{
+					Object toolkit = f_toolkit != null ? f_toolkit.get(null) : null;
+					if (toolkit == null)
+					{
+						return Boolean.FALSE;
+					}
+					Object eventQueue = m_systemEventQueueImpl.invoke(toolkit);
+					if (eventQueue == null)
+					{
+						return Boolean.FALSE;
+					}
+					Object dispatchThread = f_dispatchThread != null ? f_dispatchThread.get(eventQueue) : null;
+					return dispatchThread != null && ((Thread) dispatchThread).isAlive();
+				}
+			};
+		}
+		catch (Throwable e)
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * Checks whether a valid AWT dispatch thread instance can be found
+	 * 
+	 * @return true if a valid AWT dispatch thread instance can be bound
+	 */
+	public static boolean hasUiThread()
+	{
+		try
+		{
+			return dispatchThreadResolver != null && dispatchThreadResolver.invoke().booleanValue();
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	protected Executor executor;
+
+	protected boolean isGuiInitialized, skipGuiInitializeCheck, javaUiActive;
+
+	public void setExecutor(Executor executor)
+	{
+		this.executor = executor;
+	}
+
+	protected boolean isGuiInitialized()
+	{
+		if (!javaUiActive)
+		{
+			return false;
+		}
+		if (!isGuiInitialized && !skipGuiInitializeCheck)
+		{
+			try
+			{
+				isGuiInitialized = hasUiThread();
+			}
+			catch (Throwable e)
+			{
+				skipGuiInitializeCheck = true;
+			}
+		}
+		return isGuiInitialized;
+	}
+
 	@Override
 	public boolean isInGuiThread()
 	{
-		return false;
+		return isGuiInitialized() ? EventQueue.isDispatchThread() : false;
 	}
 
 	@Override
-	public void invokeInGuiAndWait(IBackgroundWorkerDelegate runnable)
+	public void invokeInGuiAndWait(final IBackgroundWorkerDelegate runnable)
 	{
-		try
+		if (!isGuiInitialized() || EventQueue.isDispatchThread())
 		{
-			runnable.invoke();
+			try
+			{
+				runnable.invoke();
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
 		}
-		catch (Throwable e)
+		else
 		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
-	@Override
-	public <R> R invokeInGuiAndWait(IResultingBackgroundWorkerDelegate<R> runnable)
-	{
-		try
-		{
-			return runnable.invoke();
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
-	@Override
-	public <R, S> R invokeInGuiAndWait(IResultingBackgroundWorkerParamDelegate<R, S> runnable, S state)
-	{
-		try
-		{
-			return runnable.invoke(state);
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
-	@Override
-	public void invokeInGuiAndWait(ISendOrPostCallback runnable, Object state)
-	{
-		try
-		{
-			runnable.invoke(state);
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
+			try
+			{
+				EventQueue.invokeAndWait(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						try
+						{
+							runnable.invoke();
+						}
+						catch (Throwable e)
+						{
+							throw RuntimeExceptionUtil.mask(e);
+						}
+					}
+				});
+			}
+			catch (InvocationTargetException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+			catch (InterruptedException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
 		}
 	}
 
 	@Override
-	public void invokeInGui(IBackgroundWorkerDelegate runnable)
+	public <R> R invokeInGuiAndWait(final IResultingBackgroundWorkerDelegate<R> runnable)
 	{
-		try
+		if (!isGuiInitialized() || EventQueue.isDispatchThread())
 		{
-			runnable.invoke();
+			try
+			{
+				return runnable.invoke();
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
 		}
-		catch (Throwable e)
+		else
 		{
-			throw RuntimeExceptionUtil.mask(e);
+			final ParamHolder<R> ph = new ParamHolder<R>();
+			try
+			{
+				EventQueue.invokeAndWait(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						try
+						{
+							ph.setValue(runnable.invoke());
+						}
+						catch (Throwable e)
+						{
+							throw RuntimeExceptionUtil.mask(e);
+						}
+					}
+				});
+				return ph.getValue();
+			}
+			catch (InvocationTargetException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+			catch (InterruptedException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
 		}
 	}
 
 	@Override
-	public void invokeInGui(ISendOrPostCallback runnable, Object state)
+	public <R, S> R invokeInGuiAndWait(final IResultingBackgroundWorkerParamDelegate<R, S> runnable, final S state)
 	{
-		try
+		if (!isGuiInitialized() || EventQueue.isDispatchThread())
 		{
-			runnable.invoke(state);
+			try
+			{
+				return runnable.invoke(state);
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
 		}
-		catch (Throwable e)
+		else
 		{
-			throw RuntimeExceptionUtil.mask(e);
+			final ParamHolder<R> ph = new ParamHolder<R>();
+			try
+			{
+				EventQueue.invokeAndWait(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						try
+						{
+							ph.setValue(runnable.invoke(state));
+						}
+						catch (Throwable e)
+						{
+							throw RuntimeExceptionUtil.mask(e);
+						}
+					}
+				});
+				return ph.getValue();
+			}
+			catch (InvocationTargetException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+			catch (InterruptedException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
+	}
+
+	@Override
+	public void invokeInGuiAndWait(final ISendOrPostCallback runnable, final Object state)
+	{
+		if (!isGuiInitialized() || EventQueue.isDispatchThread())
+		{
+			try
+			{
+				runnable.invoke(state);
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
+		else
+		{
+			try
+			{
+				EventQueue.invokeAndWait(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						try
+						{
+							runnable.invoke(state);
+						}
+						catch (Throwable e)
+						{
+							throw RuntimeExceptionUtil.mask(e);
+						}
+					}
+				});
+			}
+			catch (InvocationTargetException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+			catch (InterruptedException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
+	}
+
+	@Override
+	public void invokeInGui(final IBackgroundWorkerDelegate runnable)
+	{
+		if (!isGuiInitialized() || EventQueue.isDispatchThread())
+		{
+			try
+			{
+				runnable.invoke();
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
+		else
+		{
+			EventQueue.invokeLater(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					try
+					{
+						runnable.invoke();
+					}
+					catch (Throwable e)
+					{
+						throw RuntimeExceptionUtil.mask(e);
+					}
+				}
+			});
+		}
+	}
+
+	@Override
+	public void invokeInGui(final ISendOrPostCallback runnable, final Object state)
+	{
+		if (!isGuiInitialized() || EventQueue.isDispatchThread())
+		{
+			try
+			{
+				runnable.invoke(state);
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
+		else
+		{
+			EventQueue.invokeLater(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					try
+					{
+						runnable.invoke(state);
+					}
+					catch (Throwable e)
+					{
+						throw RuntimeExceptionUtil.mask(e);
+					}
+				}
+			});
 		}
 	}
 
 	@Override
 	public void invokeInGuiLate(IBackgroundWorkerDelegate runnable)
 	{
-		try
-		{
-			runnable.invoke();
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
+		invokeInGui(runnable);
 	}
 
 	@Override
 	public void invokeInGuiLate(ISendOrPostCallback runnable, Object state)
 	{
-		try
-		{
-			runnable.invoke(state);
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
+		invokeInGui(runnable, state);
 	}
 
 	@Override
-	public void invokeOutOfGui(IBackgroundWorkerDelegate runnable)
+	public void invokeOutOfGui(final IBackgroundWorkerDelegate runnable)
 	{
-		try
+		if (executor == null || !isGuiInitialized() || !EventQueue.isDispatchThread())
 		{
-			runnable.invoke();
+			try
+			{
+				runnable.invoke();
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
 		}
-		catch (Throwable e)
+		else
 		{
-			throw RuntimeExceptionUtil.mask(e);
+			executor.execute(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					try
+					{
+						runnable.invoke();
+					}
+					catch (Throwable e)
+					{
+						throw RuntimeExceptionUtil.mask(e);
+					}
+				}
+			});
 		}
 	}
 }

@@ -316,11 +316,14 @@ public class ParserUtil
 				{
 					fieldInfo.setAccessible(true);
 					Object initialValue = fieldInfo.get(null);
-					fieldDescription.setInitialValue(initialValue.toString());
+					if (initialValue != null)
+					{
+						fieldDescription.setInitialValue(initialValue.toString());
+					}
 				}
-				catch (IllegalArgumentException | IllegalAccessException e)
+				catch (Throwable e)
 				{
-					throw new RuntimeException(e);
+					throw new RuntimeException("Error occurred while processing '" + fieldInfo + "'", e);
 				}
 			}
 		}

@@ -25,6 +25,12 @@ public class EventDispatcherFake implements IEventDispatcher
 	}
 
 	@Override
+	public boolean isDispatchingBatchedEvents()
+	{
+		return false;
+	}
+
+	@Override
 	public void dispatchEvent(Object eventObject)
 	{
 		dispatchEvent(eventObject, System.currentTimeMillis(), -1);
@@ -33,7 +39,7 @@ public class EventDispatcherFake implements IEventDispatcher
 	@Override
 	public void dispatchEvent(Object eventObject, long dispatchTime, long sequenceId)
 	{
-		this.dispatchedEvents.add(new DispatchedEvent(eventObject, dispatchTime, sequenceId));
+		dispatchedEvents.add(new DispatchedEvent(eventObject, dispatchTime, sequenceId));
 	}
 
 	@Override

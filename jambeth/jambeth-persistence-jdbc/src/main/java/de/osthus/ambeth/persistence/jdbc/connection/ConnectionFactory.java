@@ -50,10 +50,6 @@ public class ConnectionFactory extends AbstractConnectionFactory
 					log.debug("[" + System.identityHashCode(connection) + "] created connection");
 				}
 				DatabaseMetaData dbmd = connection.getMetaData();
-				// if (dbmd.supportsTransactionIsolationLevel(Connection.TRANSACTION_SERIALIZABLE))
-				// {
-				// connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-				// }
 				if (dbmd.supportsTransactionIsolationLevel(Connection.TRANSACTION_REPEATABLE_READ))
 				{
 					connection.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
@@ -61,6 +57,10 @@ public class ConnectionFactory extends AbstractConnectionFactory
 				else if (dbmd.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED))
 				{
 					connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+				}
+				else if (dbmd.supportsTransactionIsolationLevel(Connection.TRANSACTION_SERIALIZABLE))
+				{
+					connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 				}
 				else
 				{

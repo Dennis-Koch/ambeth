@@ -7,7 +7,6 @@ import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Factory;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
-import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.database.IDatabaseProvider;
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.IDisposableBean;
@@ -20,6 +19,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.parallel.IModifyingDatabase;
 import de.osthus.ambeth.proxy.ICascadedInterceptor;
+import de.osthus.ambeth.state.IStateRollback;
 import de.osthus.ambeth.util.ParamChecker;
 
 public class Database implements IDatabase, IInitializingBean, IStartingBean, IDisposableBean
@@ -366,13 +366,7 @@ public class Database implements IDatabase, IInitializingBean, IStartingBean, ID
 	}
 
 	@Override
-	public IList<String> disableConstraints()
-	{
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
-	@Override
-	public void enableConstraints(IList<String> disabled)
+	public IStateRollback disableConstraints()
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}

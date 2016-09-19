@@ -4,6 +4,7 @@ import java.util.Map;
 
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.FieldAccess;
+import de.osthus.ambeth.util.WrapperTypeSet;
 
 public class TypeInfo implements ITypeInfo
 {
@@ -24,7 +25,8 @@ public class TypeInfo implements ITypeInfo
 	public TypeInfo(Class<?> realType)
 	{
 		this.realType = realType;
-		fieldAccess = realType.isInterface() || realType.isPrimitive() ? null : FieldAccess.get(realType);
+
+		fieldAccess = realType.isInterface() || realType.isPrimitive() || WrapperTypeSet.getUnwrappedType(realType) != null ? null : FieldAccess.get(realType);
 		simpleName = realType.getSimpleName().intern();
 		toStringValue = realType.toString().intern();
 	}
@@ -81,6 +83,7 @@ public class TypeInfo implements ITypeInfo
 		return nameToXmlMemberDict.get(xmlMemberName);
 	}
 
+	@Override
 	public boolean doesImplement(Class<?> interfaceArgument)
 	{
 		if (interfaceArgument.isAssignableFrom(realType))

@@ -16,7 +16,7 @@ public class ServletAuthorizationChangeListener implements IAuthorizationChangeL
 	private ILogger log;
 
 	@Autowired
-	IServiceContext beanContext;
+	protected IServiceContext beanContext;
 
 	@Override
 	public void authorizationChanged(IAuthorization authorization)

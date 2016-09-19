@@ -60,14 +60,16 @@ public class AmbethServletListener implements ServletContextListener, HttpSessio
 	{
 		servletContext = event.getServletContext();
 		Enumeration<String> initParameterNames = servletContext.getInitParameterNames();
+
+		Properties properties = Properties.getApplication();
 		while (initParameterNames.hasMoreElements())
 		{
 			String initParamName = initParameterNames.nextElement();
 			Object initParamValue = servletContext.getInitParameter(initParamName);
-			de.osthus.ambeth.config.Properties.getApplication().put(initParamName, initParamValue);
+			properties.put(initParamName, initParamValue);
 		}
-		de.osthus.ambeth.config.Properties.loadBootstrapPropertyFile();
-		log = LoggerFactory.getLogger(AmbethServletListener.class, de.osthus.ambeth.config.Properties.getApplication());
+		Properties.loadBootstrapPropertyFile();
+		log = LoggerFactory.getLogger(AmbethServletListener.class, properties);
 
 		IAmbethApplication ambethApp = null;
 		try
@@ -77,10 +79,10 @@ public class AmbethServletListener implements ServletContextListener, HttpSessio
 				log.info("Starting...");
 			}
 
-			String classpathScanning = Properties.getApplication().getString(WebServiceConfigurationConstants.ClasspathScanning);
+			String classpathScanning = properties.getString(WebServiceConfigurationConstants.ClasspathScanning);
 			boolean scanClasspath = (classpathScanning == null ? true : Boolean.parseBoolean(classpathScanning));
 
-			String bundle = Properties.getApplication().getString(WebServiceConfigurationConstants.FrameworkBundle);
+			String bundle = properties.getString(WebServiceConfigurationConstants.FrameworkBundle);
 			if (scanClasspath && bundle != null)
 			{
 				throw new RuntimeException(WebServiceConfigurationConstants.FrameworkBundle + " must not be set if "
@@ -106,8 +108,8 @@ public class AmbethServletListener implements ServletContextListener, HttpSessio
 			}
 			ambethConfiguration.withoutPropertiesFileSearch();
 
-			String frameworkModules = Properties.getApplication().getString(WebServiceConfigurationConstants.FrameworkModules);
-			String applicationModules = Properties.getApplication().getString(WebServiceConfigurationConstants.ApplicationModules);
+			String frameworkModules = properties.getString(WebServiceConfigurationConstants.FrameworkModules);
+			String applicationModules = properties.getString(WebServiceConfigurationConstants.ApplicationModules);
 
 			addModules(ambethConfiguration, frameworkModules, true);
 			addModules(ambethConfiguration, applicationModules, false);

@@ -25,6 +25,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IColumnEntry;
+import de.osthus.ambeth.persistence.SelectPosition;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionDialect;
 import de.osthus.ambeth.persistence.jdbc.ColumnEntry;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
@@ -91,67 +92,6 @@ public class MSSqlDialect extends AbstractConnectionDialect
 	public boolean isSystemTable(String tableName)
 	{
 		return false;
-	}
-
-	@Override
-	public IList<String> disableConstraints(Connection connection, String... schemaNames)
-	{
-		Statement stm = null;
-		try
-		{
-			// List<String> allTableNames = getAllFullqualifiedTableNames(connection, schemaNames);
-			// ArrayList<String[]> sql = new ArrayList<String[]>(allTableNames.size());
-			// stm = connection.createStatement();
-			// for (int i = allTableNames.size(); i-- > 0;)
-			// {
-			// String tableName = allTableNames.get(i);
-			// String disableSql = "ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY FALSE";
-			// sql.add(new String[] { disableSql, tableName });
-			//
-			// stm.addBatch(disableSql);
-			// }
-			// stm.executeBatch();
-			// return sql;
-			throw new UnsupportedOperationException("not yet implemented");
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally
-		{
-			JdbcUtil.close(stm);
-		}
-	}
-
-	@Override
-	public void enableConstraints(Connection connection, IList<String> disabled)
-	{
-		if (disabled == null || disabled.isEmpty())
-		{
-			return;
-		}
-		Statement stm = null;
-		try
-		{
-			// stm = connection.createStatement();
-			// for (int i = disabled.size(); i-- > 0;)
-			// {
-			// String tableName = disabled.get(i)[1];
-			//
-			// stm.addBatch("ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY TRUE CHECK");
-			// }
-			// stm.executeBatch();
-			throw new UnsupportedOperationException("not yet implemented");
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally
-		{
-			JdbcUtil.close(stm);
-		}
 	}
 
 	@Override
@@ -324,5 +264,11 @@ public class MSSqlDialect extends AbstractConnectionDialect
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " PRIMARY KEY (\\([^\\)]+\\)) USING INDEX", " PRIMARY KEY \\2");
 
 		return sqlCommand;
+	}
+
+	@Override
+	public SelectPosition getLimitPosition()
+	{
+		return SelectPosition.PRE_COLUMNS;
 	}
 }

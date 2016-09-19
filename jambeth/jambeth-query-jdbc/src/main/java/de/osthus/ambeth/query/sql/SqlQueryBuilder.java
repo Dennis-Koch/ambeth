@@ -41,6 +41,7 @@ import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.proxy.PersistenceContext;
 import de.osthus.ambeth.proxy.PersistenceContextType;
 import de.osthus.ambeth.query.BasicTwoPlaceOperator;
+import de.osthus.ambeth.query.FindFirstValueOperand;
 import de.osthus.ambeth.query.IMultiValueOperand;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IOperator;
@@ -52,6 +53,7 @@ import de.osthus.ambeth.query.IQueryBuilderIntern;
 import de.osthus.ambeth.query.ISqlJoin;
 import de.osthus.ambeth.query.ISubQuery;
 import de.osthus.ambeth.query.ISubQueryIntern;
+import de.osthus.ambeth.query.IValueOperand;
 import de.osthus.ambeth.query.OrderByType;
 import de.osthus.ambeth.query.Query;
 import de.osthus.ambeth.query.QueryDelegate;
@@ -211,6 +213,12 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	}
 
 	@Override
+	public IOperand difference(IOperand... diffOperands)
+	{
+		return beanContext.registerBean(DifferenceOperand.class).propertyValue("Operands", diffOperands).finish();
+	}
+
+	@Override
 	public IOperator and(IOperand leftOperand, IOperand rightOperand)
 	{
 		return createTwoPlaceOperator(SqlAndOperator.class, leftOperand, rightOperand, null);
@@ -278,6 +286,15 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		}
 
 		return currentOperator;
+	}
+
+	@Override
+	public IOperand timeUnitMultipliedInterval(IOperand timeUnit, IOperand multiplicatedInterval)
+	{
+		ParamChecker.assertParamNotNull(timeUnit, "timeUnit");
+		ParamChecker.assertParamNotNull(multiplicatedInterval, "multiplicatedInterval");
+		return beanContext.registerBean(TimeUnitMultipliedOperand.class).propertyValue("TimeUnit", timeUnit)
+				.propertyValue("MultiplicatedInterval", multiplicatedInterval).finish();
 	}
 
 	@Override
@@ -794,17 +811,14 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	@Override
 	public IQueryBuilder<T> limit(IOperand operand)
 	{
-		limitOperand = limitIntern(operand);
+		limitOperand = operand;
 		return self;
 	}
 
 	protected IOperand limitIntern(IOperand operand)
 	{
 		ParamChecker.assertParamNotNull(operand, "operand");
-		return getBeanContext().registerBean(SqlLimitOperator.class)//
-				.propertyValue("Operand", operand)//
-				.propertyValue("ValueOperand", operand)//
-				.finish();
+		return connectionDialect.getLimitOperand(operand, (IValueOperand) operand);
 	}
 
 	@Override
@@ -1009,6 +1023,14 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	}
 
 	@Override
+	public IOperand overlaps(IOperand leftOperand, IOperand rightOperand)
+	{
+		ParamChecker.assertParamNotNull(leftOperand, "leftOperand");
+		ParamChecker.assertParamNotNull(rightOperand, "rightOperand");
+		return beanContext.registerBean(OverlapsOperand.class).propertyValue("LeftOperand", leftOperand).propertyValue("RightOperand", rightOperand).finish();
+	}
+
+	@Override
 	public IQueryBuilder<T> groupBy(IOperand... operand)
 	{
 		ParamChecker.assertParamNotNull(operand, "operand");
@@ -1018,6 +1040,15 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		}
 		groupByOperands.addAll(operand);
 		return self;
+	}
+
+	@Override
+	public IOperand interval(IOperand lowerBoundary, IOperand upperBoundary)
+	{
+		ParamChecker.assertParamNotNull(lowerBoundary, "lowerBoundary");
+		ParamChecker.assertParamNotNull(upperBoundary, "upperBoundary");
+		return beanContext.registerBean(IntervalOperand.class).propertyValue("LowerBoundary", lowerBoundary).propertyValue("UpperBoundary", upperBoundary)
+				.finish();
 	}
 
 	@Override
@@ -1178,6 +1209,12 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	}
 
 	@Override
+	public IOperand sum(IOperand... summands)
+	{
+		return beanContext.registerBean(SumOperand.class).propertyValue("Operands", summands).finish();
+	}
+
+	@Override
 	public IQuery<T> build()
 	{
 		return build(all());
@@ -1246,6 +1283,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		return (ISubQuery<T>) build(whereClause, joinClauses, QueryType.SUBQUERY);
 	}
 
+	@SuppressWarnings("unchecked")
 	protected Object build(IOperand whereClause, final ISqlJoin[] joinClauses, final QueryType queryType)
 	{
 		if (whereClause instanceof SqlAllOperand)
@@ -1263,8 +1301,11 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 				self.orderBy(self.property(metaData.getIdMember().getName()), OrderByType.ASC);
 			}
-			final IOperand limitOperand = limitIntern(getBeanContext().registerBean(SimpleValueOperand.class)
-					.propertyValue("ParamName", QueryConstants.LIMIT_VALUE).propertyValue("TryOnly", Boolean.TRUE).finish());
+			IValueOperand limitOperandForFramework = getBeanContext().registerBean(SimpleValueOperand.class)
+					.propertyValue("ParamName", QueryConstants.LIMIT_VALUE).propertyValue("TryOnly", Boolean.TRUE).finish();
+			IValueOperand[] limitOperands = { limitOperandForFramework, (IValueOperand) limitOperand };
+			final IOperand findFirstValueLimitOperand = limitIntern(getBeanContext().registerBean(FindFirstValueOperand.class)
+					.propertyValue("operands", limitOperands).finish());
 			final IOperand[] groupByOperandArray = groupByOperands != null ? groupByOperands.toArray(new IOperand[groupByOperands.size()]) : emptyOperands;
 			final IOperand[] orderByOperandArray = orderByOperands != null ? orderByOperands.toArray(new IOperand[orderByOperands.size()]) : emptyOperands;
 			final IOperand[] selectArray = selectOperands != null ? selectOperands.toArray(new IOperand[selectOperands.size()]) : emptyOperands;
@@ -1316,7 +1357,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 									.propertyRef("TransactionalQuery", queryDelegateName)//
 									.propertyValue("GroupByOperands", groupByOperandArray)//
 									.propertyValue("OrderByOperands", orderByOperandArray)//
-									.propertyValue("LimitOperand", limitOperand)//
+									.propertyValue("LimitOperand", findFirstValueLimitOperand)//
 									.propertyValue("QueryBuilderExtensions", queryBuilderExtensions)//
 									.propertyValue("RelatedEntityTypes", relatedEntityTypesList)//
 									.propertyValue("SelectOperands", selectArray)//
@@ -1374,5 +1415,4 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
-
 }

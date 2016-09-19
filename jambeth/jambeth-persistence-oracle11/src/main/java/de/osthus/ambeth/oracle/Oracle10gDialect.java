@@ -35,6 +35,7 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IColumnEntry;
 import de.osthus.ambeth.persistence.IFieldMetaData;
 import de.osthus.ambeth.persistence.SQLState;
+import de.osthus.ambeth.persistence.SelectPosition;
 import de.osthus.ambeth.persistence.exception.NullConstraintException;
 import de.osthus.ambeth.persistence.exception.UniqueConstraintException;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionDialect;
@@ -244,33 +245,6 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	public boolean isSystemTable(String tableName)
 	{
 		return BIN_TABLE_NAME.matcher(tableName).matches() || IDX_TABLE_NAME.matcher(tableName).matches();
-	}
-
-	@Override
-	public void enableConstraints(Connection connection, IList<String> disabled)
-	{
-		if (disabled == null || disabled.isEmpty())
-		{
-			return;
-		}
-		Statement stmt = null;
-		try
-		{
-			stmt = connection.createStatement();
-			for (int i = disabled.size(); i-- > 0;)
-			{
-				stmt.addBatch(disabled.get(i));
-			}
-			stmt.executeBatch();
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally
-		{
-			JdbcUtil.close(stmt);
-		}
 	}
 
 	@Override
@@ -514,4 +488,15 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 		return sqlCommand;
 	}
 
+	@Override
+	public SelectPosition getLimitPosition()
+	{
+		return SelectPosition.AS_WHERE_CLAUSE;
+	}
+
+	@Override
+	public int getColumnCountForLinkTable()
+	{
+		return 3;
+	}
 }

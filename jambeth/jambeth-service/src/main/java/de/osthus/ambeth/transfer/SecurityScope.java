@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import de.osthus.ambeth.model.ISecurityScope;
 
-@XmlRootElement(name = "SecurityScope", namespace = "http://schemas.osthus.de/Ambeth")
+@XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class SecurityScope implements ISecurityScope
 {

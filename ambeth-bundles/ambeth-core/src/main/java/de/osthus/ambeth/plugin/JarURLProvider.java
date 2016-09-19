@@ -12,6 +12,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.CoreConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -25,16 +26,16 @@ public class JarURLProvider implements IJarURLProvider, IInitializingBean
 	@Property(name = CoreConfigurationConstants.PluginPathsRecursiveFlag, defaultValue = "true")
 	protected boolean isRecursive;
 
-	protected ArrayList<URL> jarURLs;
+	protected IList<URL> jarURLs;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		jarURLs = this.extractJarURL(jarPaths);
+		jarURLs = extractJarURL(jarPaths);
 	}
 
 	@Override
-	public ArrayList<URL> getJarURLs()
+	public IList<URL> getJarURLs()
 	{
 		return jarURLs;
 	}
@@ -57,7 +58,7 @@ public class JarURLProvider implements IJarURLProvider, IInitializingBean
 		{
 			if (dir.isFile() && path.toLowerCase().endsWith(".jar"))
 			{
-				urls.add(new URL("file:" + path));
+				urls.add(new URL("file:/" + path));
 			}
 			else if (dir.isDirectory() && !isRecursive)
 			{
@@ -118,7 +119,7 @@ public class JarURLProvider implements IJarURLProvider, IInitializingBean
 		List<URL> result = new ArrayList<URL>();
 		for (File file : listFiles)
 		{
-			if (checkJar(dir))
+			if (checkJar(file))
 			{
 				result.add(file.toURI().toURL());
 			}

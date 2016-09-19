@@ -25,6 +25,10 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 			// Type matched exactly - 'strong' registration
 			return 0;
 		}
+		if (type.equals(Object.class))
+		{
+			return Integer.MAX_VALUE;
+		}
 		if (existingRequestedType.isArray() && type.isArray())
 		{
 			// if both types are an array their distance is measured by the distance of their component type

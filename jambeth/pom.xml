@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>de.osthus</groupId>
 		<artifactId>osthus-pom</artifactId>
-		<version>0.0.35</version>
+		<version>0.0.41</version>
 	</parent>
 
 	<properties>
@@ -62,11 +62,11 @@
 		<module>jambeth-persistence-mssql</module>
 		<module>jambeth-persistence-oracle11</module>
 		<module>jambeth-persistence-pg</module>
+		<module>jambeth-persistence-sqlite</module>
 		<module>jambeth-platform</module>
 		<module>jambeth-query</module>
 		<module>jambeth-query-inmemory</module>
 		<module>jambeth-query-jdbc</module>
-		<module>jambeth-rdf</module>
 		<module>jambeth-security</module>
 		<module>jambeth-security-bytecode</module>
 		<module>jambeth-security-job</module>
@@ -106,7 +106,7 @@
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-lang3</artifactId>
-				<version>3.1</version>
+				<version>3.4</version>
 			</dependency>
 
 			<dependency>
@@ -125,7 +125,7 @@
 			<dependency>
 				<groupId>org.javassist</groupId>
 				<artifactId>javassist</artifactId>
-				<version>3.18.2-GA</version>
+				<version>3.20.0-GA</version>
 			</dependency>
 
 			<dependency>
@@ -272,6 +272,13 @@
 				<artifactId>jambeth-datachange-kafka</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-datachange-kafka-test</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
 
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
@@ -319,6 +326,13 @@
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-event-kafka</artifactId>
 				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-event-kafka-test</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
 			</dependency>
 
 			<dependency>
@@ -569,6 +583,18 @@
 
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-persistence-sqlite</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-persistence-sqlite-test</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-platform</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -735,7 +761,11 @@
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
-
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-tomcat</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-util</artifactId>
@@ -761,6 +791,14 @@
 			</dependency>
 
 			<!-- BUNDLES -->
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-test-pom</artifactId>
+				<version>${project.version}</version>
+				<type>pom</type>
+				<scope>test</scope>
+			</dependency>
+			
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-core</artifactId>

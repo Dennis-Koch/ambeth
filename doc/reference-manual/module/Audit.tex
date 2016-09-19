@@ -1,9 +1,15 @@
-\SetAPI{J}
+\SetAPI{J-C}
 \section{Audit}
 \label{module:Audit}
 \ClearAPI
 %% MAVEN GENERATED START
 \begin{lstlisting}[style=POM,caption={Maven modules to use \emph{Ambeth Audit}}]
+<dependency>
+	<groupId>de.osthus.ambeth</groupId>
+	<artifactId>jambeth-audit</artifactId>
+	<version>§\version§</version>
+</dependency>
+
 <dependency>
 	<groupId>de.osthus.ambeth</groupId>
 	<artifactId>jambeth-audit-server</artifactId>
@@ -42,6 +48,9 @@ To use the audit module, a few steps are necessary.
 	\item \prettyref{configuration:AuditReasonRequiredDefault}
 	\item \prettyref{configuration:AuditServiceDefaultmodeActive}
 	\item \prettyref{configuration:AuditServiceargDefaultmodeActive}
+	\item \prettyref{configuration:AuditVerifyCrontab}
+	\item \prettyref{configuration:AuditVerifyMaxtransactionTime}
+	\item \prettyref{configuration:AuditVerifyOnload}
 \end{itemize}
 %% CONFIGURATION END
 

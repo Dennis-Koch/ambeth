@@ -9,6 +9,7 @@ import de.osthus.ambeth.annotation.FireTargetOnPropertyChange;
 import de.osthus.ambeth.annotation.FireThisOnPropertyChange;
 import de.osthus.ambeth.annotation.IgnoreToBeUpdated;
 import de.osthus.ambeth.annotation.ParentChild;
+import de.osthus.ambeth.annotation.PropertyChangeAspect;
 import de.osthus.ambeth.cache.ICacheModification;
 import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
 import de.osthus.ambeth.collections.ArrayList;
@@ -35,6 +36,7 @@ import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.model.IEmbeddedType;
 import de.osthus.ambeth.model.INotifyPropertyChanged;
 import de.osthus.ambeth.model.INotifyPropertyChangedSource;
+import de.osthus.ambeth.proxy.IEnhancedType;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
@@ -43,7 +45,7 @@ import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.typeinfo.PropertyInfoItem;
-import de.osthus.ambeth.util.ImmutableTypeSet;
+import de.osthus.ambeth.util.WrapperTypeSet;
 
 public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, ICollectionChangeExtensionExtendable
 {
@@ -67,15 +69,38 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 
 		public final boolean isAddedRemovedCheckNecessary;
 
+		public final Boolean includeNewValue, includeOldValue;
+
 		public PropertyEntry(Class<?> type, String propertyName, IPropertyInfoProvider propertyInfoProvider)
 		{
 			this.propertyName = propertyName;
 			LinkedHashSet<String> propertyNames = new LinkedHashSet<String>();
 			propertyNames.add(propertyName);
 			IPropertyInfo prop = propertyInfoProvider.getProperty(type, propertyName);
-			doesModifyToBeUpdated = !prop.isAnnotationPresent(IgnoreToBeUpdated.class);
-			isParentChildSetter = prop.isAnnotationPresent(ParentChild.class);
-			isAddedRemovedCheckNecessary = !prop.getPropertyType().isPrimitive() && ImmutableTypeSet.getUnwrappedType(prop.getPropertyType()) == null
+			PropertyChangeAspect propertyChangeAspect = null;
+			Class<?> currType = type;
+			while (IEnhancedType.class.isAssignableFrom(currType))
+			{
+				propertyChangeAspect = currType.getSuperclass().getAnnotation(PropertyChangeAspect.class);
+				if (propertyChangeAspect != null)
+				{
+					break;
+				}
+				currType = currType.getSuperclass();
+			}
+			if (propertyChangeAspect != null)
+			{
+				includeNewValue = propertyChangeAspect.includeNewValue();
+				includeOldValue = propertyChangeAspect.includeOldValue();
+			}
+			else
+			{
+				includeNewValue = null;
+				includeOldValue = null;
+			}
+			doesModifyToBeUpdated = IDataObject.class.isAssignableFrom(type) && !prop.isAnnotationPresent(IgnoreToBeUpdated.class);
+			isParentChildSetter = IDataObject.class.isAssignableFrom(type) && prop.isAnnotationPresent(ParentChild.class);
+			isAddedRemovedCheckNecessary = !prop.getPropertyType().isPrimitive() && WrapperTypeSet.getUnwrappedType(prop.getPropertyType()) == null
 					&& !String.class.equals(prop.getPropertyType());
 
 			evaluateDependentProperties(type, prop, propertyNames, propertyInfoProvider);
@@ -212,6 +237,10 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 
 	public void handleParentChildPropertyChange(INotifyPropertyChangedSource obj, PropertyChangeEvent evnt)
 	{
+		if (!(obj instanceof IDataObject))
+		{
+			return;
+		}
 		if (cacheModification.isActiveOrFlushingOrInternalUpdate())
 		{
 			return;
@@ -374,7 +403,6 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 	{
 		ICacheModification cacheModification = this.cacheModification;
 		PropertyEntry entry = getPropertyEntry(obj.getClass(), property);
-		currentValue = entry.getDelegate.getValue(obj);
 		try
 		{
 			if (entry.isAddedRemovedCheckNecessary)
@@ -389,18 +417,34 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 				}
 			}
 			String[] propertyNames = entry.propertyNames;
-			Object[] oldValues;
-			Object[] currentValues;
 
-			if (fireOldPropertyValueActive)
+			boolean includeNewValue = entry.includeNewValue != null ? entry.includeNewValue.booleanValue() : fireOldPropertyValueActive;
+			boolean includeOldValue = entry.includeOldValue != null ? entry.includeOldValue.booleanValue() : fireOldPropertyValueActive;
+
+			Object[] oldValues;
+			if (includeOldValue)
 			{
 				oldValues = createArrayOfValues(oldValue, propertyNames.length);
-				currentValues = currentValue == oldValue ? oldValues : createArrayOfValues(currentValue, propertyNames.length);
 			}
 			else
 			{
 				oldValues = entry.unknownValues;
-				currentValues = oldValues;
+			}
+			Object[] currentValues;
+			if (includeNewValue)
+			{
+				if (includeOldValue && currentValue == oldValue)
+				{
+					currentValues = oldValues;
+				}
+				else
+				{
+					currentValues = createArrayOfValues(currentValue, propertyNames.length);
+				}
+			}
+			else
+			{
+				currentValues = entry.unknownValues;
 			}
 			firePropertyChange(obj, propertyNames, oldValues, currentValues);
 			if (entry.firesToBeCreatedPCE)
@@ -445,18 +489,21 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 		{
 			return;
 		}
-		ICacheModification cacheModification = this.cacheModification;
-		if (cacheModification.isActive())
+		if (obj instanceof IDataObject)
 		{
-			cacheModification.queuePropertyChangeEvent(new IBackgroundWorkerDelegate()
+			ICacheModification cacheModification = this.cacheModification;
+			if (cacheModification.isActive())
 			{
-				@Override
-				public void invoke() throws Throwable
+				cacheModification.queuePropertyChangeEvent(new IBackgroundWorkerDelegate()
 				{
-					executeFirePropertyChange(propertyChangeSupport, extensions, obj, propertyNames, oldValues, currentValues);
-				}
-			});
-			return;
+					@Override
+					public void invoke() throws Throwable
+					{
+						executeFirePropertyChange(propertyChangeSupport, extensions, obj, propertyNames, oldValues, currentValues);
+					}
+				});
+				return;
+			}
 		}
 		executeFirePropertyChange(propertyChangeSupport, extensions, obj, propertyNames, oldValues, currentValues);
 	}

@@ -1,12 +1,10 @@
 package de.osthus.ambeth.log;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -14,9 +12,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import de.osthus.ambeth.config.IProperties;
-import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.UtilConfigurationConstants;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.log.LogFileHandleCache.LoggerStream;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.SystemUtil;
@@ -25,62 +23,13 @@ public class Logger implements IConfigurableLogger
 {
 	protected static final DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
-	private static boolean logStreamEnabled;
-
 	private static boolean appendModeActive;
 
-	protected static Writer loggerStream;
+	protected LoggerStream loggerStream;
 
-	protected static final Lock streamWriteLock = new ReentrantLock();
+	protected boolean logToStream;
 
 	protected static final Lock formatWriteLock = new ReentrantLock();
-
-	static
-	{
-		logStreamEnabled = true;
-	}
-
-	protected static Writer getLoggerStream()
-	{
-		if (loggerStream == null && logStreamEnabled)
-		{
-			String logfile = Properties.getApplication().getString(LogConfigurationConstants.LogFile);
-			if (logfile != null)
-			{
-				File logfileHandle = new File(logfile);
-				File parentFile = logfileHandle.getParentFile();
-				if (parentFile != null && !parentFile.exists())
-				{
-					parentFile.mkdirs();
-				}
-				try
-				{
-					loggerStream = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(logfileHandle, appendModeActive), Charset.forName("UTF-8")));
-				}
-				catch (IOException e)
-				{
-					throw RuntimeExceptionUtil.mask(e);
-				}
-			}
-		}
-		return loggerStream;
-	}
-
-	protected static void setLoggerStream(Writer value)
-	{
-		if (loggerStream != null)
-		{
-			try
-			{
-				loggerStream.close();
-			}
-			catch (IOException e)
-			{
-				// Intended blank
-			}
-		}
-		loggerStream = value;
-	}
 
 	public static boolean isAppendModeActive()
 	{
@@ -90,16 +39,6 @@ public class Logger implements IConfigurableLogger
 	public static void setAppendModeActive(boolean appendModeActive)
 	{
 		Logger.appendModeActive = appendModeActive;
-	}
-
-	public static boolean isLogStreamEnabled()
-	{
-		return logStreamEnabled;
-	}
-
-	public static void setLogStreamEnabled(boolean logStreamEnabled)
-	{
-		Logger.logStreamEnabled = logStreamEnabled;
 	}
 
 	protected boolean debugEnabled = true, infoEnabled = true, warnEnabled = true, errorEnabled = true, logToConsole = true;
@@ -136,6 +75,13 @@ public class Logger implements IConfigurableLogger
 	public void postProcess(IProperties properties)
 	{
 		forkName = properties.getString(UtilConfigurationConstants.ForkName);
+
+		Object logfile = properties.get(LogConfigurationConstants.LogFile);
+		if (logfile != null)
+		{
+			loggerStream = LogFileHandleCache.getSharedWriter(logfile instanceof String ? Paths.get((String) logfile) : (Path) logfile);
+			logToStream = true;
+		}
 	}
 
 	protected DateFormat getFormat()
@@ -358,7 +304,7 @@ public class Logger implements IConfigurableLogger
 		}
 	}
 
-	protected void printThrowable(Throwable e, StringBuilder sb, String newLine, boolean printHeader)
+	protected void printThrowable(Throwable e, StringBuilder sb, String newLine, int level, boolean printHeader)
 	{
 		StackTraceElement[] stackTrace = e.getStackTrace();
 
@@ -368,10 +314,28 @@ public class Logger implements IConfigurableLogger
 		}
 		for (int a = 0, size = stackTrace.length; a < size; a++)
 		{
-			sb.append('\t').append(stackTrace[a].toString());
+			for (int b = level; b-- > 0;)
+			{
+				sb.append('\t');
+			}
+			sb.append(stackTrace[a].toString());
 			if (a + 1 < size)
 			{
 				sb.append(newLine);
+			}
+		}
+		if (e instanceof SQLException)
+		{
+			SQLException sql = ((SQLException) e).getNextException();
+			if (sql != null)
+			{
+				sb.append(newLine);
+				for (int b = level; b-- > 0;)
+				{
+					sb.append('\t');
+				}
+				sb.append("Next Exception: ");
+				printThrowable(sql, sb, newLine, level + 1, true);
 			}
 		}
 	}
@@ -387,12 +351,13 @@ public class Logger implements IConfigurableLogger
 			Throwable currentThrowable = throwable;
 			while (currentThrowable != null)
 			{
-				printThrowable(currentThrowable, sb, newLine, printHeader);
+				printThrowable(currentThrowable, sb, newLine, 1, printHeader);
 				printHeader = true;
 				currentThrowable = currentThrowable.getCause();
 				if (currentThrowable != null)
 				{
 					sb.append(newLine);
+					sb.append("Cause: ");
 				}
 			}
 			return sb.toString();
@@ -552,7 +517,7 @@ public class Logger implements IConfigurableLogger
 				System.out.println(output);
 			}
 		}
-		if (logStreamEnabled)
+		if (logToStream)
 		{
 			logStream(logLevel, output, errorLog);
 		}
@@ -561,14 +526,11 @@ public class Logger implements IConfigurableLogger
 	protected void logStream(LogLevel logLevel, String output, boolean autoFlush)
 	{
 		String lineSeparator = SystemUtil.lineSeparator();
-		streamWriteLock.lock();
+		Lock writeLock = loggerStream.writeLock;
+		writeLock.lock();
 		try
 		{
-			Writer writer = getLoggerStream();
-			if (writer == null)
-			{
-				return;
-			}
+			Writer writer = loggerStream.writer;
 			try
 			{
 				writer.write(lineSeparator);
@@ -585,7 +547,17 @@ public class Logger implements IConfigurableLogger
 		}
 		finally
 		{
-			streamWriteLock.unlock();
+			writeLock.unlock();
 		}
+	}
+
+	public void setLoggerStream(LoggerStream loggerStream)
+	{
+		this.loggerStream = loggerStream;
+	}
+
+	public void setLogToStream(boolean logToStream)
+	{
+		this.logToStream = logToStream;
 	}
 }

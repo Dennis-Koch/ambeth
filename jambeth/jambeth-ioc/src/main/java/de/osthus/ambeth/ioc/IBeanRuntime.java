@@ -42,6 +42,24 @@ public interface IBeanRuntime<V>
 	IBeanRuntime<V> propertyRef(String propertyName, String beanName);
 
 	/**
+	 * Specifies a property injection and references the bean to inject by its bean context name and bean name (in the given context).
+	 * <p>
+	 * The <tt>propertyRef()</tt> methods also allow <b>special references</b>.<br>
+	 * - An asterisk/star (*) in front of the bean name ignores the directly resolved IoC context and directs the search to its parent context, even if a bean
+	 * with the name exists in the directly resolved IoC context.<br>
+	 * - An ampersand (&) in front of the bean name requests the FactoryBean with this name. This is only useful if the bean in fact is an FactoryBean.
+	 * 
+	 * @param propertyName
+	 *            Name of the target property.
+	 * @param fromContext
+	 *            Name of the bean context where the beanName should be looked up
+	 * @param beanName
+	 *            Name of the bean to inject.
+	 * @return IBeanRuntime to add things to the bean or finish the registration.
+	 */
+	IBeanRuntime<V> propertyRefFromContext(String propertyName, String fromContext, String beanName);
+
+	/**
 	 * Defines a bean to be injected into a specific property of the new bean.
 	 * 
 	 * @param propertyName

@@ -366,9 +366,6 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 			return (T) Collections.emptyList();
 		}
 		ICache cache = this.cache.getCurrentCache();
-		IPrefetchHelper prefetchHelper = this.prefetchHelper;
-		// Ensure all potential value-holders of To-One BOs are initialized in a batch
-		prefetchHelper.prefetch(businessObjectList);
 		// Checking for correct types
 		IEntityMetaData boMetaData = entityMetaDataProvider.getMetaData(businessObjectList.get(0).getClass());
 		Class<?> businessObjectType = boMetaData.getEntityType();
@@ -1277,11 +1274,11 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 	}
 
 	protected Object[] copyPrimitives(Object businessObject, Object valueObject, IValueObjectConfig config, CopyDirection direction,
-			IEntityMetaData businessObjectMetaData, Map<String, ITypeInfoItem> boNameToVoMember)
+			IEntityMetaData boMetaData, Map<String, ITypeInfoItem> boNameToVoMember)
 	{
 		IThreadLocalObjectCollector objectCollector = this.objectCollector;
-		PrimitiveMember[] primitiveMembers = allPrimitiveMembers(businessObjectMetaData);
-		Object[] primitives = new Object[businessObjectMetaData.getPrimitiveMembers().length];
+		PrimitiveMember[] primitiveMembers = allPrimitiveMembers(boMetaData);
+		Object[] primitives = new Object[boMetaData.getPrimitiveMembers().length];
 		StringBuilder sb = objectCollector.create(StringBuilder.class);
 		try
 		{
@@ -1320,7 +1317,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 						}
 						value = convertPrimitiveValue(value, voMember.getElementType(), boMember.getRealType(), boMember.getElementType());
 						// Do not 'kill' technical members except 'version' (for optimistic locking)
-						if (boMember.isTechnicalMember() && !boMember.equals(businessObjectMetaData.getVersionMember())
+						if (boMember.isTechnicalMember() && !boMember.equals(boMetaData.getVersionMember())
 								&& (value == null || value.equals(boMember.getNullEquivalentValue())))
 						{
 							continue;

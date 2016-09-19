@@ -2,6 +2,8 @@ package de.osthus.ambeth.start;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
@@ -9,9 +11,6 @@ import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.NotFoundException;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
@@ -27,6 +26,9 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.IClasspathScanner;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringBuilderUtil;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.NotFoundException;
 
 public class CoreClasspathScanner implements IClasspathScanner, IInitializingBean
 {
@@ -43,19 +45,39 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 	@Autowired
 	protected IClasspathInfo classpathInfo;
 
-	@Property(name = CoreConfigurationConstants.PackageScanPatterns, defaultValue = "de/osthus.*")
+	@Property(name = CoreConfigurationConstants.PackageScanPatterns, defaultValue = "de/osthus.*;com/osthus.*")
 	protected String packageFilterPatterns;
 
 	protected Pattern[] packageScanPatterns;
 
 	protected Pattern[] preceedingPackageScanPatterns;
 
+	protected ClassPool classPool;
+
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		for (URL url : this.getJarURLs())
+		// intended blank
+	}
+
+	protected void initializeClassPool(ClassPool classPool)
+	{
+		log.debug("Initializing ClassPool:");
+		for (URL url : getJarURLs())
 		{
-			getClassPool().appendPathList(convertURLToFile(url).getCanonicalPath());
+			try
+			{
+				String pathList = convertURLToFile(url).toString();
+				if (log.isDebugEnabled())
+				{
+					log.debug("\t>" + pathList);
+				}
+				classPool.appendPathList(pathList);
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
 		}
 	}
 
@@ -167,7 +189,12 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 
 	protected ClassPool getClassPool()
 	{
-		return ClassPool.getDefault();
+		if (classPool == null)
+		{
+			classPool = ClassPool.getDefault();
+			initializeClassPool(classPool);
+		}
+		return classPool;
 	}
 
 	protected List<Class<?>> convertToClasses(List<CtClass> ctClasses)
@@ -197,9 +224,8 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 
 	protected IList<String> scanForClasses(ClassPool pool)
 	{
-		IList<URL> urls = this.getJarURLs();
+		IList<URL> urls = getJarURLs();
 
-		ArrayList<String> namespacePatterns = new ArrayList<String>();
 		ArrayList<String> targetClassNames = new ArrayList<String>();
 
 		try
@@ -209,23 +235,14 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 				URL url = urls.get(a);
 				try
 				{
-					File realPathFile = convertURLToFile(url);
-					if (realPathFile.isFile())
-					{
-						JarFile jarFile = new JarFile(realPathFile);
-						try
-						{
-							scanJarFile(jarFile, namespacePatterns, targetClassNames);
-						}
-						finally
-						{
-							jarFile.close();
-						}
-						continue;
-					}
-					else if (realPathFile.isDirectory())
+					Path realPathFile = convertURLToFile(url);
+					if (Files.isDirectory(realPathFile))
 					{
 						scanDirectory(realPathFile, "", targetClassNames, false);
+					}
+					else
+					{
+						scanFile(realPathFile, targetClassNames);
 					}
 				}
 				catch (Throwable e)
@@ -241,69 +258,81 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 		return targetClassNames;
 	}
 
-	protected ArrayList<URL> getJarURLs()
+	protected IList<URL> getJarURLs()
 	{
 		return classpathInfo.getJarURLs();
 	}
 
-	protected File convertURLToFile(URL url) throws Throwable
+	protected Path convertURLToFile(URL url) throws Throwable
 	{
 		return classpathInfo.openAsFile(url);
 	}
 
-	protected void scanJarFile(JarFile jarFile, List<String> namespacePatterns, List<String> targetClassNames)
+	protected void scanFile(Path file, List<String> targetClassNames)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 
 		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
 		try
 		{
-			Enumeration<JarEntry> entries = jarFile.entries();
-			while (entries.hasMoreElements())
+			JarFile jarFile = new JarFile(file.toFile());
+			try
 			{
-				JarEntry entry = entries.nextElement();
-				if (entry.isDirectory())
+				Enumeration<JarEntry> entries = jarFile.entries();
+				while (entries.hasMoreElements())
 				{
-					continue;
-				}
-				String entryName = entry.getName();
+					JarEntry entry = entries.nextElement();
+					if (entry.isDirectory())
+					{
+						continue;
+					}
+					String entryName = entry.getName();
 
-				Pattern[] packageScanPatterns = getPackageScanPatterns();
-				for (int a = packageScanPatterns.length; a-- > 0;)
-				{
-					Matcher pathMatcher = packageScanPatterns[a].matcher(entryName);
-					if (!pathMatcher.matches())
+					Pattern[] packageScanPatterns = getPackageScanPatterns();
+					for (int a = packageScanPatterns.length; a-- > 0;)
 					{
-						continue;
+						Matcher pathMatcher = packageScanPatterns[a].matcher(entryName);
+						if (!pathMatcher.matches())
+						{
+							continue;
+						}
+						Matcher matcher = jarPathPrefixPattern.matcher(entryName);
+						String path, name;
+						if (!matcher.matches())
+						{
+							path = "";
+							name = entryName;
+						}
+						else
+						{
+							path = matcher.group(1);
+							name = matcher.group(2);
+						}
+						Matcher cutDollarMatcher = cutDollarPattern.matcher(name);
+						if (!cutDollarMatcher.matches())
+						{
+							continue;
+						}
+						sb.setLength(0);
+						sb.append(path);
+						if (path.length() > 0)
+						{
+							sb.append('/');
+						}
+						sb.append(cutDollarMatcher.group(1));
+						String className = StringBuilderUtil.replace(sb, '/', '.').toString();
+						targetClassNames.add(className);
 					}
-					Matcher matcher = jarPathPrefixPattern.matcher(entryName);
-					String path, name;
-					if (!matcher.matches())
-					{
-						path = "";
-						name = entryName;
-					}
-					else
-					{
-						path = matcher.group(1);
-						name = matcher.group(2);
-					}
-					Matcher cutDollarMatcher = cutDollarPattern.matcher(name);
-					if (!cutDollarMatcher.matches())
-					{
-						continue;
-					}
-					sb.setLength(0);
-					sb.append(path);
-					if (path.length() > 0)
-					{
-						sb.append('/');
-					}
-					sb.append(cutDollarMatcher.group(1));
-					String className = StringBuilderUtil.replace(sb, '/', '.').toString();
-					targetClassNames.add(className);
 				}
 			}
+			finally
+			{
+				jarFile.close();
+			}
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally
 		{
@@ -311,16 +340,16 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 		}
 	}
 
-	protected void scanDirectory(File dir, String relativePath, List<String> targetClassNames, boolean addOnly)
+	protected void scanDirectory(Path dir, String relativePath, List<String> targetClassNames, boolean addOnly)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
 		try
 		{
-			File[] files = dir.listFiles();
+			File[] files = dir.toFile().listFiles();
 			if (files == null)
 			{
-				throw new IllegalStateException("Directory '" + dir.getAbsolutePath() + "' not accessible");
+				throw new IllegalStateException("Directory '" + dir.toFile().getAbsolutePath() + "' not accessible");
 			}
 			sb.append(relativePath);
 			if (relativePath.length() > 0)
@@ -338,27 +367,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 				{
 					sb.append(file.getName());
 					String classNamePart = sb.toString();
-					scanDirectory(file, classNamePart, targetClassNames, addOnly);
-					// if (addOnly)
-					// {
-					// scanDirectory(file, classNamePart, null, targetClassNames, addOnly);
-					// continue;
-					// }
-					//
-					// for (int b = classPathItems.length; b-- > 0;)
-					// {
-					// ClassPathItem classPathItem = classPathItems[b];
-					// Matcher matcher = classPathItem.getPattern().matcher(classNamePart);
-					// if (!matcher.matches())
-					// {
-					// continue;
-					// }
-					// if (classPathItem.isIncludeThis())
-					// {
-					// scanDirectory(file, classNamePart, null, targetClassNames, true);
-					// break;
-					// }
-					// }
+					scanDirectory(file.toPath(), classNamePart, targetClassNames, addOnly);
 					continue;
 				}
 				Matcher cutDollarMatcher = cutDollarPattern.matcher(file.getName());

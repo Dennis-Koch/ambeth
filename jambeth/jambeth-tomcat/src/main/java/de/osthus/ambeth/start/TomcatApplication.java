@@ -1,6 +1,8 @@
 package de.osthus.ambeth.start;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
 import java.util.StringTokenizer;
 
 import javax.servlet.ServletException;
@@ -19,37 +21,52 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
  * This class lets you start an embedded Tomcat server. It is not a bean and does not start Ambeth, but when the {@link AmbethServletListener} is on the
  * classpath, then Ambeth is started by Tomcat.
  */
-public class TomcatApplication
+public class TomcatApplication implements Closeable
 {
 	public static final String WEBSERVER_PORT_DEFAULT = "8080";
 	public static final String WEBSERVER_PORT = "webserver.port";
 
 	public static final String APP_CONTEXT_ROOT_DEFAULT = "";
 	public static final String APP_CONTEXT_ROOT = "app.context.root";
+	private Tomcat tomcat;
 
-	public static TomcatApplication run()
+	public static TomcatApplication run() throws Throwable
 	{
 		TomcatApplication ambethApp = new TomcatApplication();
 		ambethApp.doRun();
 		return ambethApp;
 	}
 
-	public void doRun()
+	@Override
+	public void close() throws IOException
 	{
-		try
+		if (tomcat != null)
 		{
-			startEmeddedTomcat();
+			try
+			{
+				tomcat.stop();
+			}
+			catch (LifecycleException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+			tomcat = null;
 		}
-		catch (Exception e)
+	}
+
+	public void doRun() throws Throwable
+	{
+		if (tomcat != null)
 		{
-			throw RuntimeExceptionUtil.mask(e);
+			throw new IllegalStateException("Tomcat already running");
 		}
+		startEmeddedTomcat();
 	}
 
 	private void startEmeddedTomcat() throws ServletException, LifecycleException
 	{
 		String webappDirLocation = "src/main/webapp/";
-		Tomcat tomcat = new Tomcat();
+		tomcat = new Tomcat();
 		tomcat.setPort(Integer.valueOf(System.getProperty(WEBSERVER_PORT, WEBSERVER_PORT_DEFAULT)));
 
 		Context ctx = tomcat.addWebapp(System.getProperty(APP_CONTEXT_ROOT, APP_CONTEXT_ROOT_DEFAULT), new File(webappDirLocation).getAbsolutePath());

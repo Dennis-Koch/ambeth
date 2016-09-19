@@ -14,7 +14,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.IParamHolder;
-import de.osthus.ambeth.util.ImmutableTypeSet;
+import de.osthus.ambeth.util.WrapperTypeSet;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ReflectUtil;
 import de.osthus.ambeth.util.StringBuilderUtil;
@@ -245,7 +245,7 @@ public class ExtendableRegistry extends SmartCopyMap<KeyItem, FastMethod[]> impl
 
 	protected Class<?> unboxType(Class<?> type)
 	{
-		Class<?> unwrappedType = ImmutableTypeSet.getUnwrappedType(type);
+		Class<?> unwrappedType = WrapperTypeSet.getUnwrappedType(type);
 		if (unwrappedType != null)
 		{
 			return unwrappedType;

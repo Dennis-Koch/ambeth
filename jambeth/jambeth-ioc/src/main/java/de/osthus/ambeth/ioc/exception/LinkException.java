@@ -18,4 +18,9 @@ public class LinkException extends RuntimeException
 		super(message);
 		this.linkContainer = linkContainer;
 	}
+
+	public AbstractLinkContainer getLinkContainer()
+	{
+		return linkContainer;
+	}
 }

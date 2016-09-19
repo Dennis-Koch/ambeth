@@ -19,6 +19,7 @@ import de.osthus.ambeth.garbageproxy.GarbageProxyFactory;
 import de.osthus.ambeth.garbageproxy.IGarbageProxyFactory;
 import de.osthus.ambeth.ioc.DisposableBeanHook;
 import de.osthus.ambeth.ioc.DisposableHook;
+import de.osthus.ambeth.ioc.IBeanInstantiationProcessor;
 import de.osthus.ambeth.ioc.IBeanPostProcessor;
 import de.osthus.ambeth.ioc.IBeanPreProcessor;
 import de.osthus.ambeth.ioc.IDisposableBean;
@@ -270,7 +271,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			preProcessors.add(propertiesPreProcessor);
 			preProcessors.add(loggerInstancePreProcessor);
 			preProcessors.add(threadLocalCleanupPreProcessor);
-			return parentContextFactory.create("bootstrap", null, preProcessors, null);
+			return parentContextFactory.create("bootstrap", null, null, preProcessors, null);
 		}
 		catch (Throwable e)
 		{
@@ -449,13 +450,14 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 	}
 
 	public IServiceContext create(String contextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
-			List<IBeanPreProcessor> preProcessors, List<IBeanPostProcessor> postProcessors)
+			List<IBeanInstantiationProcessor> instantiationProcessors, List<IBeanPreProcessor> preProcessors, List<IBeanPostProcessor> postProcessors)
 	{
-		return create(contextName, registerPhaseDelegate, preProcessors, postProcessors, emptyServiceModules);
+		return create(contextName, registerPhaseDelegate, instantiationProcessors, preProcessors, postProcessors, emptyServiceModules);
 	}
 
 	public IServiceContext create(String contextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
-			List<IBeanPreProcessor> preProcessors, List<IBeanPostProcessor> postProcessors, Class<?>... serviceModuleTypes)
+			List<IBeanInstantiationProcessor> instantiationProcessors, List<IBeanPreProcessor> preProcessors, List<IBeanPostProcessor> postProcessors,
+			Class<?>... serviceModuleTypes)
 	{
 		ServiceContext context = new ServiceContext(generateUniqueContextName(contextName, null), objectCollector);
 
@@ -473,6 +475,13 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 		for (Class<?> serviceModuleType : serviceModuleTypes)
 		{
 			registerBean(serviceModuleType);
+		}
+		if (instantiationProcessors != null)
+		{
+			for (int a = 0, size = instantiationProcessors.size(); a < size; a++)
+			{
+				context.addInstantiationProcessor(instantiationProcessors.get(a));
+			}
 		}
 		if (preProcessors != null)
 		{
@@ -516,6 +525,14 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 		for (Class<?> serviceModuleType : serviceModuleTypes)
 		{
 			registerBean(serviceModuleType);
+		}
+		List<IBeanInstantiationProcessor> instantiationProcessors = parent.getInstantiationProcessors();
+		if (instantiationProcessors != null)
+		{
+			for (int a = 0, size = instantiationProcessors.size(); a < size; a++)
+			{
+				context.addInstantiationProcessor(instantiationProcessors.get(a));
+			}
 		}
 		List<IBeanPreProcessor> preProcessors = parent.getPreProcessors();
 		if (preProcessors != null)

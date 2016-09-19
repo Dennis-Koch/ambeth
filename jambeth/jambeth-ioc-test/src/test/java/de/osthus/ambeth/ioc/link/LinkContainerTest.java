@@ -7,6 +7,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
@@ -18,6 +19,7 @@ import de.osthus.ambeth.testutil.AbstractIocTest;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.testutil.TestRebuildContext;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 
 @TestRebuildContext
 public class LinkContainerTest extends AbstractIocTest
@@ -27,6 +29,8 @@ public class LinkContainerTest extends AbstractIocTest
 	public static final String REGISTRY_PROPERTY_NAME = "TestListener";
 
 	public static final String LISTENER_NAME = "testListenerBeanName";
+
+	public static final String ContextProp = "contextProp";
 
 	public static final String ListenerProp = "listenerProp";
 
@@ -38,6 +42,13 @@ public class LinkContainerTest extends AbstractIocTest
 
 	public static final String ExtendableTypeProp = "extendableTypeProp";
 
+	public static final String FOREIGN_CONTEXT_NAME = "funnyContextName";
+
+	public static enum ContextVariant
+	{
+		NONE, BY_NAME, BY_REFERENCE
+	}
+
 	public static enum ListenerVariant
 	{
 		BY_NAME, BY_NAME_AND_METHOD, BY_CONF, BY_INSTANCE
@@ -45,20 +56,38 @@ public class LinkContainerTest extends AbstractIocTest
 
 	public static enum RegistryVariant
 	{
-		BY_EXTENDABLE, BY_NAME_AND_EXTENDABLE, BY_NAME_AND_PROPERTY, BY_NAME_AND_EVENT, BY_INSTANCE_AND_EXTENDABLE, BY_INSTANCE_AND_PROPERTY, BY_INSTANCE_AND_EVENT
+		BY_EXTENDABLE, BY_NAME_AND_EXTENDABLE, BY_NAME_AND_PROPERTY, BY_NAME_AND_EVENT, BY_INSTANCE_AND_EXTENDABLE, BY_INSTANCE_AND_PROPERTY, BY_INSTANCE_AND_EVENT, BY_AUTOWIRING_AND_EXTENDABLE, BY_AUTOWIRING_AND_PROPERTY, BY_AUTOWIRING_AND_EVENT;
+	}
+
+	public static class ForeignContainerTestModule implements IInitializingModule
+	{
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		@Override
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
+		{
+			beanContextFactory.registerBean(REGISTRY_NAME, TestRegistry.class).autowireable(ITestListenerExtendable.class, ITestRegistry.class);
+		}
 	}
 
 	public static class LinkContainerTestModule implements IInitializingModule
 	{
+		@Property(name = ExtendableTypeProp, mandatory = false)
 		protected Class<?> extendableType;
 
+		@Property(name = ListenerProp)
 		protected ListenerVariant listenerVariant;
 
+		@Property(name = RegistryProp)
 		protected RegistryVariant registryVariant;
 
+		@Property(name = ListenerNameProp, mandatory = false)
 		protected String listenerName;
 
+		@Property(name = OptionalProp, defaultValue = "false")
 		protected boolean optional;
+
+		@Property(name = ContextProp, defaultValue = "NONE")
+		protected ContextVariant toContext;
 
 		@SuppressWarnings({ "unchecked", "rawtypes" })
 		@Override
@@ -88,12 +117,25 @@ public class LinkContainerTest extends AbstractIocTest
 					link1 = beanContextFactory.link(listenerC.getInstance());
 					break;
 				default:
-					throw new IllegalArgumentException("Unsupported enum: " + listenerVariant);
+					throw RuntimeExceptionUtil.createEnumNotSupportedException(listenerVariant);
 			}
 
 			if (extendableType == null)
 			{
 				extendableType = ITestListenerExtendable.class;
+			}
+			switch (toContext)
+			{
+				case NONE:
+					break;
+				case BY_NAME:
+					link1 = link1.toContext(LinkContainerTest.foreignContext);
+					break;
+				case BY_REFERENCE:
+					link1 = link1.toContext(LinkContainerTest.FOREIGN_CONTEXT_NAME);
+					break;
+				default:
+					throw RuntimeExceptionUtil.createEnumNotSupportedException(toContext);
 			}
 			ILinkConfigWithOptional link2;
 			switch (registryVariant)
@@ -133,44 +175,30 @@ public class LinkContainerTest extends AbstractIocTest
 				case BY_INSTANCE_AND_PROPERTY:
 					link2 = link1.to(registryC.getInstance(), REGISTRY_PROPERTY_NAME);
 					break;
+				case BY_AUTOWIRING_AND_EXTENDABLE:
+					link2 = link1.to(ITestRegistry.class, extendableType);
+					break;
+				case BY_AUTOWIRING_AND_EVENT:
+					link2 = link1.to(ITestRegistry.class, new IEventDelegate()
+					{
+						@Override
+						public String getEventName()
+						{
+							return REGISTRY_PROPERTY_NAME;
+						}
+					});
+					break;
+				case BY_AUTOWIRING_AND_PROPERTY:
+					link2 = link1.to(ITestRegistry.class, REGISTRY_PROPERTY_NAME);
+					break;
 				default:
-					throw new IllegalArgumentException("Unsupported enum: " + registryVariant);
+					throw RuntimeExceptionUtil.createEnumNotSupportedException(registryVariant);
 			}
 			if (optional)
 			{
 				link2.optional();
 				link2 = null;
 			}
-		}
-
-		@Property(name = ListenerProp)
-		public void setListenerVariant(ListenerVariant listenerVariant)
-		{
-			this.listenerVariant = listenerVariant;
-		}
-
-		@Property(name = ListenerNameProp, mandatory = false)
-		public void setListenerName(String listenerName)
-		{
-			this.listenerName = listenerName;
-		}
-
-		@Property(name = RegistryProp)
-		public void setRegistryVariant(RegistryVariant registryVariant)
-		{
-			this.registryVariant = registryVariant;
-		}
-
-		@Property(name = OptionalProp, defaultValue = "false")
-		public void setOptional(boolean optional)
-		{
-			this.optional = optional;
-		}
-
-		@Property(name = ExtendableTypeProp, mandatory = false)
-		public void setExtendableType(Class<?> extendableType)
-		{
-			this.extendableType = extendableType;
 		}
 	}
 
@@ -184,12 +212,24 @@ public class LinkContainerTest extends AbstractIocTest
 
 	protected IServiceContext childContext;
 
-	protected ITestRegistry testRegistry;
+	public static IServiceContext foreignContext;
+
+	protected ITestRegistry testRegistry, foreignTestRegistry;
 
 	@Before
 	public void setUp()
 	{
-		childContext = beanContext.createService(LinkContainerTestModule.class);
+		foreignContext = beanContext.createService(ForeignContainerTestModule.class);
+		foreignTestRegistry = foreignContext.getService(ITestRegistry.class);
+
+		childContext = beanContext.createService(new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
+		{
+			@Override
+			public void invoke(IBeanContextFactory beanContextFactory) throws Throwable
+			{
+				beanContextFactory.registerExternalBean(FOREIGN_CONTEXT_NAME, foreignContext);
+			}
+		}, LinkContainerTestModule.class);
 		testRegistry = childContext.getService(ITestRegistry.class);
 	}
 
@@ -202,6 +242,11 @@ public class LinkContainerTest extends AbstractIocTest
 		{
 			childContext.dispose();
 			childContext = null;
+		}
+		if (foreignContext != null)
+		{
+			foreignContext.dispose();
+			foreignContext = null;
 		}
 	}
 
@@ -303,6 +348,27 @@ public class LinkContainerTest extends AbstractIocTest
 	@Test
 	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME"), @TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_PROPERTY") })
 	public void testLByName_RByInstanceAndProperty()
+	{
+		testValidContext(1);
+	}
+
+	@Test
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME"), @TestProperties(name = RegistryProp, value = "BY_AUTOWIRING_AND_EXTENDABLE") })
+	public void testLByName_RByAutowiringAndExtendable()
+	{
+		testValidContext(1);
+	}
+
+	@Test
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME"), @TestProperties(name = RegistryProp, value = "BY_AUTOWIRING_AND_EVENT") })
+	public void testLByName_RByAutowiringAndEvent()
+	{
+		testValidContext(1);
+	}
+
+	@Test
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME"), @TestProperties(name = RegistryProp, value = "BY_AUTOWIRING_AND_PROPERTY") })
+	public void testLByName_RByAutowiringAndProperty()
 	{
 		testValidContext(1);
 	}
@@ -458,5 +524,23 @@ public class LinkContainerTest extends AbstractIocTest
 	public void testLByInstance_RByInstanceAndProperty()
 	{
 		testValidContext(1);
+	}
+
+	@Test
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_INSTANCE"),
+			@TestProperties(name = RegistryProp, value = "BY_AUTOWIRING_AND_EXTENDABLE"), @TestProperties(name = ContextProp, value = "BY_NAME") })
+	public void testLByInstance_RByAutowiringAndExtendable_OnContextName()
+	{
+		testValidContext(0);
+		Assert.assertEquals(1, foreignTestRegistry.getTestListeners().length);
+	}
+
+	@Test
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_INSTANCE"), @TestProperties(name = RegistryProp, value = "BY_NAME_AND_PROPERTY"),
+			@TestProperties(name = ContextProp, value = "BY_REFERENCE") })
+	public void testLByInstance_RByNameAndProperty_OnContextReference()
+	{
+		testValidContext(0);
+		Assert.assertEquals(1, foreignTestRegistry.getTestListeners().length);
 	}
 }

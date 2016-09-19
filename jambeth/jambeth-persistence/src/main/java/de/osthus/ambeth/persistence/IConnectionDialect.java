@@ -15,6 +15,8 @@ import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.query.IOperand;
+import de.osthus.ambeth.query.IValueOperand;
+import de.osthus.ambeth.state.IStateRollback;
 
 public interface IConnectionDialect
 {
@@ -32,9 +34,7 @@ public interface IConnectionDialect
 
 	boolean isSystemTable(String tableName);
 
-	IList<String> disableConstraints(Connection connection, String... schemaNames);
-
-	void enableConstraints(Connection connection, IList<String> disabled);
+	IStateRollback disableConstraints(Connection connection, String... schemaNames);
 
 	void commit(Connection connection) throws SQLException;
 
@@ -43,6 +43,8 @@ public interface IConnectionDialect
 	void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException;
 
 	IOperand getRegexpLikeFunction(IOperand sourceString, IOperand pattern, IOperand matchParameter);
+
+	IOperand getLimitOperand(IOperand operand, IValueOperand valueOperand);
 
 	int getResourceBusyErrorCode();
 
@@ -63,6 +65,8 @@ public interface IConnectionDialect
 	List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames) throws SQLException;
 
 	IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) throws SQLException;
+
+	IList<String> queryDefault(Connection connection, String resultColumnName, String sql, Object... args) throws SQLException;
 
 	int getMaxInClauseBatchThreshold();
 
@@ -98,4 +102,8 @@ public interface IConnectionDialect
 	 * @return
 	 */
 	String prepareCommand(String sqlCommand);
+
+	SelectPosition getLimitPosition();
+
+	int getColumnCountForLinkTable();
 }

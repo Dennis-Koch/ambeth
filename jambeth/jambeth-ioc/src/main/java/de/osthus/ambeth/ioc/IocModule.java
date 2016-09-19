@@ -7,6 +7,11 @@ import java.sql.Blob;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.appendable.AppendableStringBuilder;
+import de.osthus.ambeth.cancel.Cancellation;
+import de.osthus.ambeth.cancel.ICancellation;
+import de.osthus.ambeth.cancel.ICancellationWritable;
+import de.osthus.ambeth.config.IocConfigurationConstants;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.converter.FileToPathConverter;
 import de.osthus.ambeth.converter.StringToBlobConverter;
 import de.osthus.ambeth.converter.StringToCharsetConverter;
@@ -52,6 +57,9 @@ public class IocModule implements IInitializingModule
 	@LogInstance
 	private ILogger log;
 
+	@Property(name = IocConfigurationConstants.JavaUiActive, defaultValue = "true")
+	protected boolean javaUiActive;
+
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
@@ -74,6 +82,8 @@ public class IocModule implements IInitializingModule
 			DedicatedConverterUtil.link(beanContextFactory, stringToPathConverter, String.class, Path.class);
 			DedicatedConverterUtil.link(beanContextFactory, stringToPathConverter, String.class, Path[].class);
 		}
+
+		beanContextFactory.registerBean(Cancellation.class).autowireable(ICancellation.class, ICancellationWritable.class);
 
 		IBeanConfiguration stringToBlobConverter = beanContextFactory.registerBean(StringToBlobConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToBlobConverter, String.class, Blob.class);
@@ -114,7 +124,8 @@ public class IocModule implements IInitializingModule
 
 		beanContextFactory.registerBean("cgLibUtil", CgLibUtil.class).autowireable(ICgLibUtil.class);
 
-		beanContextFactory.registerBean("guiThreadHelper", GuiThreadHelper.class).autowireable(IGuiThreadHelper.class);
+		beanContextFactory.registerBean("guiThreadHelper", GuiThreadHelper.class).propertyRef("Executor", THREAD_POOL_NAME)
+				.propertyValue("javaUiActive", javaUiActive).autowireable(IGuiThreadHelper.class);
 
 		beanContextFactory.registerBean(JAXBContextProvider.class).autowireable(IJAXBContextProvider.class);
 
@@ -131,6 +142,7 @@ public class IocModule implements IInitializingModule
 			}
 		};
 		fastThreadPool.setName("MTH");
+		fastThreadPool.refreshThreadCount();
 
 		IBeanConfiguration fastThreadPoolBean = beanContextFactory.registerExternalBean(THREAD_POOL_NAME, fastThreadPool);
 

@@ -1,4 +1,4 @@
-\SetAPI{J}
+\SetAPI{J-C}
 \section{database.pool.passivate.active}
 \label{configuration:DatabasePoolPassivateActive}
 \ClearAPI
@@ -10,10 +10,31 @@ Ensures that the database connection gets passivated when not used. Passivation 
 		\type{de.osthus.ambeth.h2.H2Module} &
 		\prettyref{module:Persistence} \\
 	\hline
+		\type{de.osthus.ambeth.h2.H2Module} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.mssql.MSSqlModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.mssql.MSSqlModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.oracle.Oracle10gSimpleModule} &
+		\prettyref{module:Persistence} \\
+	\hline
 		\type{de.osthus.ambeth.oracle.Oracle10gSimpleModule} &
 		\prettyref{module:Persistence} \\
 	\hline
 		\type{de.osthus.ambeth.persistence.jdbc.DefaultDatabasePool} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.persistence.jdbc.DefaultDatabasePool} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.pg.PostgresModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.pg.PostgresModule} &
 		\prettyref{module:Persistence} \\
 	\hline
 \end{longtable}

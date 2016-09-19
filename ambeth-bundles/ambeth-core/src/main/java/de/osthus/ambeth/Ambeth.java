@@ -7,7 +7,8 @@ import java.util.Map.Entry;
 import de.osthus.ambeth.bundle.IBundleModule;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
-import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.IdentityLinkedSet;
+import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -21,9 +22,10 @@ import de.osthus.ambeth.start.ConfigurableClasspathScanner;
 import de.osthus.ambeth.start.IAmbethApplication;
 import de.osthus.ambeth.start.IAmbethConfiguration;
 import de.osthus.ambeth.start.IAmbethConfigurationExtension;
+import de.osthus.ambeth.start.IAmbethConfigurationIntern;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 
-public class Ambeth implements IAmbethConfiguration, IAmbethApplication
+public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern, IAmbethApplication
 {
 	/**
 	 * Creates an Ambeth context and scans for Ambeth and application modules.
@@ -91,9 +93,13 @@ public class Ambeth implements IAmbethConfiguration, IAmbethApplication
 
 	protected boolean scanForPropertiesFile = true;
 
-	protected HashSet<Class<?>> ambethModules = new HashSet<Class<?>>();
+	protected IdentityLinkedSet<IBackgroundWorkerParamDelegate<IBeanContextFactory>> ambethModuleDelegates = new IdentityLinkedSet<IBackgroundWorkerParamDelegate<IBeanContextFactory>>();
 
-	protected HashSet<Class<?>> applicationModules = new HashSet<Class<?>>();
+	protected LinkedHashSet<Class<?>> ambethModules = new LinkedHashSet<Class<?>>();
+
+	protected IdentityLinkedSet<IBackgroundWorkerParamDelegate<IBeanContextFactory>> applicationModuleDelegates = new IdentityLinkedSet<IBackgroundWorkerParamDelegate<IBeanContextFactory>>();
+
+	protected LinkedHashSet<Class<?>> applicationModules = new LinkedHashSet<Class<?>>();
 
 	protected HashMap<Class<?>, Object> autowiredInstances = new HashMap<Class<?>, Object>();
 
@@ -191,9 +197,29 @@ public class Ambeth implements IAmbethConfiguration, IAmbethApplication
 	 * {@inheritDoc}
 	 */
 	@Override
+	public IAmbethConfigurationIntern withAmbethModules(IBackgroundWorkerParamDelegate<IBeanContextFactory>... moduleDelegates)
+	{
+		ambethModuleDelegates.addAll(moduleDelegates);
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	public IAmbethConfiguration withApplicationModules(Class<?>... modules)
 	{
 		applicationModules.addAll(modules);
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public IAmbethConfigurationIntern withApplicationModules(IBackgroundWorkerParamDelegate<IBeanContextFactory>... moduleDelegates)
+	{
+		applicationModuleDelegates.addAll(moduleDelegates);
 		return this;
 	}
 
@@ -261,12 +287,15 @@ public class Ambeth implements IAmbethConfiguration, IAmbethApplication
 		final IAmbethApplication ambethApplication = this;
 		IServiceContext frameworkContext = rootContext.createService(new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
 		{
-
 			@Override
 			public void invoke(IBeanContextFactory beanContextFactory) throws Throwable
 			{
 				beanContextFactory.registerExternalBean(ambethApplication).autowireable(IAmbethApplication.class);
 
+				for (IBackgroundWorkerParamDelegate<IBeanContextFactory> moduleDelegate : ambethModuleDelegates)
+				{
+					moduleDelegate.invoke(beanContextFactory);
+				}
 				for (Entry<Class<?>, Object> autowiring : autowiredInstances)
 				{
 					Class<?> typeToPublish = autowiring.getKey();
@@ -276,7 +305,24 @@ public class Ambeth implements IAmbethConfiguration, IAmbethApplication
 			}
 		}, ambethModules.toArray(Class.class));
 
-		serviceContext = frameworkContext.createService(applicationModules.toArray(Class.class));
+		if (applicationModules.size() > 0 || applicationModuleDelegates.size() > 0)
+		{
+			serviceContext = frameworkContext.createService(new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
+			{
+				@Override
+				public void invoke(IBeanContextFactory beanContextFactory) throws Throwable
+				{
+					for (IBackgroundWorkerParamDelegate<IBeanContextFactory> moduleDelegate : applicationModuleDelegates)
+					{
+						moduleDelegate.invoke(beanContextFactory);
+					}
+				}
+			}, applicationModules.toArray(Class.class));
+		}
+		else
+		{
+			serviceContext = frameworkContext;
+		}
 	}
 
 	/**

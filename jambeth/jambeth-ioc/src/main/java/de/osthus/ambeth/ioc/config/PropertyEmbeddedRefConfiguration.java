@@ -32,6 +32,12 @@ public class PropertyEmbeddedRefConfiguration extends AbstractPropertyConfigurat
 	}
 
 	@Override
+	public String getFromContext()
+	{
+		return null;
+	}
+
+	@Override
 	public String getBeanName()
 	{
 		return embeddedBean.getName();

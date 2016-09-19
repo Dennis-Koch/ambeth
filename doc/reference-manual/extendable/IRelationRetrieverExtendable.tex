@@ -1,0 +1,17 @@
+\SetAPI{J-C}
+\section{IRelationRetrieverExtendable}
+\label{extendable:IRelationRetrieverExtendable}
+\ClearAPI
+\javadoc{de.osthus.ambeth.service.IRelationRetrieverExtendable}{IRelationRetrieverExtendable}
+\javadoc{de.osthus.ambeth.service.IRelationRetriever}{IRelationRetriever}
+\TODO
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{IRelationRetriever}}
+{jambeth-cache/src/main/java/de/osthus/ambeth/service/IRelationRetrieverExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+bcf.link(myExtension).to(IRelationRetrieverExtendable.class).with(...);
+\end{lstlisting}
+%% GENERATED LISTINGS END

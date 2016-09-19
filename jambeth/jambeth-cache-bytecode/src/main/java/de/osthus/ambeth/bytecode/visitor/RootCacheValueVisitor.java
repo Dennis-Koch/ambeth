@@ -16,7 +16,7 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
-import de.osthus.ambeth.util.ImmutableTypeSet;
+import de.osthus.ambeth.util.WrapperTypeSet;
 import de.osthus.ambeth.util.ReflectUtil;
 
 public class RootCacheValueVisitor extends ClassGenerator
@@ -81,7 +81,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 		{
 			Member member = primitiveMembers[primitiveIndex];
 			Class<?> realType = member.getRealType();
-			Class<?> nativeType = ImmutableTypeSet.getUnwrappedType(realType);
+			Class<?> nativeType = WrapperTypeSet.getUnwrappedType(realType);
 			boolean isNullable = true;
 			if (nativeType == null)
 			{

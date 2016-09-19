@@ -52,7 +52,7 @@ public class BeanConfiguration extends AbstractBeanConfiguration
 		{
 			try
 			{
-				if (instanceType.isInterface())
+				if (instanceType.isInterface() || Modifier.isAbstract(instanceType.getModifiers()))
 				{
 					createdInstance = proxyFactory.createProxy(instanceType, EmptyInterceptor.INSTANCE);
 				}

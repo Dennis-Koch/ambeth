@@ -12,6 +12,7 @@
 
 	<properties>
 		<kafka.version>0.9.0.0</kafka.version>
+		<metrics.version>2.2.0</metrics.version>
 	</properties>
 
 	<dependencies>
@@ -33,6 +34,12 @@
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.yammer.metrics</groupId>
+			<artifactId>metrics-core</artifactId>
+			<version>${metrics.version}</version>
 		</dependency>
 
 		<dependency>

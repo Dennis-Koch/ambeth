@@ -48,6 +48,7 @@ import de.osthus.ambeth.persistence.IColumnEntry;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IFieldMetaData;
 import de.osthus.ambeth.persistence.SQLState;
+import de.osthus.ambeth.persistence.SelectPosition;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.exception.NullConstraintException;
 import de.osthus.ambeth.persistence.exception.UniqueConstraintException;
@@ -56,7 +57,9 @@ import de.osthus.ambeth.persistence.jdbc.ColumnEntry;
 import de.osthus.ambeth.persistence.jdbc.IConnectionExtension;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.connection.IConnectionKeyHandle;
+import de.osthus.ambeth.persistence.jdbc.sql.LimitByLimitOperator;
 import de.osthus.ambeth.query.IOperand;
+import de.osthus.ambeth.query.IValueOperand;
 import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.sql.ParamsUtil;
 
@@ -65,6 +68,8 @@ public class PostgresDialect extends AbstractConnectionDialect
 	public static final Pattern BIN_TABLE_NAME = Pattern.compile("BIN\\$.{22}==\\$0", Pattern.CASE_INSENSITIVE);
 
 	public static final Pattern IDX_TABLE_NAME = Pattern.compile("DR\\$.*?\\$.", Pattern.CASE_INSENSITIVE);
+
+	private static final Pattern pattern = Pattern.compile(" *create or replace TYPE ([^ ]+) AS VARRAY\\(\\d+\\) OF +(.+)", Pattern.CASE_INSENSITIVE);
 
 	protected static final LinkedHashMap<Class<?>, String[]> typeToArrayTypeNameMap = new LinkedHashMap<Class<?>, String[]>(128, 0.5f);
 
@@ -489,11 +494,6 @@ public class PostgresDialect extends AbstractConnectionDialect
 		}
 		int errorCode = e.getErrorCode();
 
-		if (e.getMessage().contains("" + getOptimisticLockErrorCode()))
-		{
-			System.out.println("efkwoefwef");
-		}
-
 		if (errorCode == getPessimisticLockErrorCode())
 		{
 			PessimisticLockException ex = new PessimisticLockException(relatedSql, e);
@@ -645,6 +645,12 @@ public class PostgresDialect extends AbstractConnectionDialect
 	}
 
 	@Override
+	public int getColumnCountForLinkTable()
+	{
+		return 3;
+	}
+
+	@Override
 	public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) throws SQLException
 	{
 		String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
@@ -701,7 +707,6 @@ public class PostgresDialect extends AbstractConnectionDialect
 	@Override
 	public String prepareCommand(String sqlCommand)
 	{
-		Pattern pattern = Pattern.compile(" *create or replace TYPE ([^ ]+) AS VARRAY\\(\\d+\\) OF +(.+)", Pattern.CASE_INSENSITIVE);
 		Matcher matcher = pattern.matcher(sqlCommand);
 		if (matcher.matches())
 		{
@@ -751,5 +756,21 @@ public class PostgresDialect extends AbstractConnectionDialect
 		// sqlCommand = "CREATE TABLESPACE " + tablespace + " LOCATION '" + file + "'";
 		// }
 		return sqlCommand;
+	}
+
+	@Override
+	public IOperand getLimitOperand(IOperand operand, IValueOperand valueOperand)
+	{
+		return beanContext.registerBean(LimitByLimitOperator.class)//
+				.propertyValue("Operand", operand)//
+				.propertyValue("ValueOperand", operand)//
+				.finish();
+
+	}
+
+	@Override
+	public SelectPosition getLimitPosition()
+	{
+		return SelectPosition.AFTER_WHERE;
 	}
 }

@@ -16,8 +16,10 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.InflaterInputStream;
 
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
@@ -37,6 +39,7 @@ import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.XmlModule;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
+import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LoggerFactory;
 import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.ObjRef;
@@ -52,6 +55,11 @@ import de.osthus.ambeth.xml.ICyclicXMLHandler;
 
 public abstract class AbstractServiceREST
 {
+	/**
+	 * this is needed for MS Silverlight applications because in the C# web sandbox it is not allowed to specify the "Accept-Encoding" header directly.
+	 */
+	public static final String ACCEPT_ENCODING_WORKAROUND = "Accept-Encoding-Workaround";
+
 	public static final String deflateEncoding = "deflate";
 
 	public static final String gzipEncoding = "gzip";
@@ -70,9 +78,6 @@ public abstract class AbstractServiceREST
 
 	@Context
 	protected HttpHeaders headers;
-
-	@Context
-	protected HttpServletResponse response;
 
 	protected final Charset utfCharset = Charset.forName("UTF-8");
 
@@ -93,6 +98,7 @@ public abstract class AbstractServiceREST
 	}
 
 	@GET
+	@Path("ping")
 	@Produces({ MediaType.TEXT_PLAIN })
 	public String ping()
 	{
@@ -100,7 +106,7 @@ public abstract class AbstractServiceREST
 	}
 
 	@GET
-	@Path("json")
+	@Path("ping2")
 	@Produces({ MediaType.TEXT_XML })
 	public ObjRef ping2()
 	{
@@ -183,7 +189,12 @@ public abstract class AbstractServiceREST
 		}
 		else
 		{
-			getLog().info("No security context holder available. Skip creating security Context!");
+			ILogger log = getLog();
+			if (log.isInfoEnabled())
+			{
+				ILoggerHistory loggerHistory = getService(ILoggerHistory.class);
+				loggerHistory.infoOnce(log, this, "No security context holder available. Skip creating security Context!");
+			}
 		}
 	}
 
@@ -230,14 +241,49 @@ public abstract class AbstractServiceREST
 		return values != null && values.size() > 0 ? values : EmptyList.<String> getInstance();
 	}
 
-	protected Object[] getArguments(InputStream is)
+	protected Object[] getArguments(InputStream is, HttpServletRequest request)
 	{
 		is = decompressContentIfNecessary(is);
-		ICyclicXMLHandler cyclicXmlHandler = getService(XmlModule.CYCLIC_XML_HANDLER, ICyclicXMLHandler.class);
-		return (Object[]) cyclicXmlHandler.readFromStream(is);
+
+		String contentType = request.getContentType();
+
+		Object args = null;
+		if (contentType == null || contentType.equals("application/xml") || contentType.equals("application/xml+ambeth"))
+		{
+			ICyclicXMLHandler cyclicXmlHandler = getService(XmlModule.CYCLIC_XML_HANDLER, ICyclicXMLHandler.class);
+			args = cyclicXmlHandler.readFromStream(is);
+		}
+		else if (contentType.equals("application/json"))
+		{
+			throw new NotSupportedException("'" + contentType + "' not yet supported");
+
+			// ObjectMapper mapper = new ObjectMapper();
+			// try
+			// {
+			// JsonNode node = mapper.readValue(is, JsonNode.class);
+			// args = node;
+			// }
+			// catch (JsonParseException e)
+			// {
+			// throw new BadRequestException("JSON invalid", e);
+			// }
+			// catch (JsonMappingException e)
+			// {
+			// throw new NotSupportedException("JSON not mappable", e);
+			// }
+			// catch (IOException e)
+			// {
+			// throw new InternalServerErrorException(e);
+			// }
+		}
+		if (args instanceof Object[])
+		{
+			return (Object[]) args;
+		}
+		return new Object[] { args };
 	}
 
-	protected StreamingOutput createExceptionResult(Throwable e)
+	protected StreamingOutput createExceptionResult(Throwable e, final HttpServletResponse response)
 	{
 		logException(e, null);
 		AmbethServiceException result = new AmbethServiceException();
@@ -252,13 +298,18 @@ public abstract class AbstractServiceREST
 		pw.flush();
 		result.setMessage(e.getMessage());
 		result.setStackTrace(sw.toString());
-		return createResult(result);
+		return createResult(result, response);
 	}
 
-	protected StreamingOutput createResult(final Object result)
+	protected void writeContent(OutputStream os, Object result)
 	{
-		final String contentEncoding = evaluateAcceptedContentEncoding();
-		final ICyclicXMLHandler cyclicXmlHandler = getService(XmlModule.CYCLIC_XML_HANDLER, ICyclicXMLHandler.class);
+		ICyclicXMLHandler cyclicXmlHandler = getService(XmlModule.CYCLIC_XML_HANDLER, ICyclicXMLHandler.class);
+		cyclicXmlHandler.writeToStream(os, result);
+	}
+
+	protected StreamingOutput createResult(final Object result, final HttpServletResponse response)
+	{
+		final String contentEncoding = evaluateAcceptedContentEncoding(response);
 		return new StreamingOutput()
 		{
 			@Override
@@ -275,7 +326,7 @@ public abstract class AbstractServiceREST
 				}
 				try
 				{
-					cyclicXmlHandler.writeToStream(output, result);
+					writeContent(output, result);
 					if (output instanceof DeflaterOutputStream)
 					{
 						((DeflaterOutputStream) output).finish();
@@ -290,7 +341,7 @@ public abstract class AbstractServiceREST
 						final StringBuilder sb = new StringBuilder();
 						try
 						{
-							cyclicXmlHandler.writeToStream(new OutputStream()
+							writeContent(new OutputStream()
 							{
 								@Override
 								public void write(int b) throws IOException
@@ -321,9 +372,9 @@ public abstract class AbstractServiceREST
 		};
 	}
 
-	protected String evaluateAcceptedContentEncoding()
+	protected String evaluateAcceptedContentEncoding(HttpServletResponse response)
 	{
-		List<String> acceptEncoding = readMultiValueFromHeader("Accept-Encoding-Workaround");
+		List<String> acceptEncoding = readMultiValueFromHeader(ACCEPT_ENCODING_WORKAROUND);
 		if (acceptEncoding.size() == 0)
 		{
 			acceptEncoding = readMultiValueFromHeader(HttpHeaders.ACCEPT_ENCODING);

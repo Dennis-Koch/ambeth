@@ -129,7 +129,21 @@ public abstract class AbstractBeanConfiguration implements IBeanConfiguration
 		{
 			propertyConfigurations = new ArrayList<IPropertyConfiguration>();
 		}
-		propertyConfigurations.add(new PropertyRefConfiguration(this, propertyName, beanName, props));
+		propertyConfigurations.add(new PropertyRefConfiguration(this, propertyName, null, beanName, false, props));
+		return this;
+	}
+
+	@Override
+	public IBeanConfiguration propertyRefFromContext(String propertyName, String fromContext, String beanName)
+	{
+		ParamChecker.assertParamNotNull(propertyName, "propertyName");
+		ParamChecker.assertParamNotNull(fromContext, "fromContext");
+		ParamChecker.assertParamNotNull(beanName, "beanName");
+		if (propertyConfigurations == null)
+		{
+			propertyConfigurations = new ArrayList<IPropertyConfiguration>();
+		}
+		propertyConfigurations.add(new PropertyRefConfiguration(this, propertyName, fromContext, beanName, false, props));
 		return this;
 	}
 
@@ -141,7 +155,7 @@ public abstract class AbstractBeanConfiguration implements IBeanConfiguration
 		{
 			propertyConfigurations = new ArrayList<IPropertyConfiguration>();
 		}
-		propertyConfigurations.add(new PropertyRefConfiguration(this, beanName, props));
+		propertyConfigurations.add(new PropertyRefConfiguration(this, null, null, beanName, false, props));
 		return this;
 	}
 
@@ -292,4 +306,11 @@ public abstract class AbstractBeanConfiguration implements IBeanConfiguration
 
 	@Override
 	public abstract Class<?> getBeanType();
+
+	@Override
+	public String toString()
+	{
+		String name = getName();
+		return name != null ? name : super.toString();
+	}
 }

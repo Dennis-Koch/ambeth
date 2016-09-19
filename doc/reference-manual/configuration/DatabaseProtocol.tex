@@ -1,4 +1,4 @@
-\SetAPI{J}
+\SetAPI{J-C}
 \section{database.protocol}
 \label{configuration:DatabaseProtocol}
 \ClearAPI
@@ -10,10 +10,31 @@ The protocol of the database. If \ref{configuration:DatabaseConnection} is not s
 		\type{de.osthus.ambeth.h2.H2Dialect} &
 		\prettyref{module:Persistence} \\
 	\hline
-		\type{de.osthus.ambeth.testutil.DialectSelectorModule} &
+		\type{de.osthus.ambeth.h2.H2Dialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.mssql.MSSqlDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.mssql.MSSqlDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.persistence.jdbc.connector.DialectSelectorModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.persistence.jdbc.connector.DialectSelectorModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{de.osthus.ambeth.persistence.jdbc.testconnector.DialectSelectorSchemaModule} &
 		 \\
 	\hline
-		\type{de.osthus.ambeth.testutil.DialectSelectorSchemaModule} &
+		\type{de.osthus.ambeth.persistence.jdbc.testconnector.DialectSelectorSchemaModule} &
+		 \\
+	\hline
+		\type{de.osthus.ambeth.persistence.jdbc.testconnector.DialectSelectorTestModule} &
+		 \\
+	\hline
+		\type{de.osthus.ambeth.persistence.jdbc.testconnector.DialectSelectorTestModule} &
 		 \\
 	\hline
 \end{longtable}

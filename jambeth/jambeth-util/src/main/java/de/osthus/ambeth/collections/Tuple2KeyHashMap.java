@@ -43,6 +43,12 @@ public class Tuple2KeyHashMap<Key1, Key2, V> extends AbstractTuple2KeyHashMap<Ke
 		super(initialCapacity, loadFactor);
 	}
 
+	public Tuple2KeyHashMap(AbstractTuple2KeyHashMap<? extends Key1, ? extends Key2, ? extends V> map)
+	{
+		this((int) (map.size() / DEFAULT_LOAD_FACTOR) + 1, DEFAULT_LOAD_FACTOR);
+		putAll(map);
+	}
+
 	@Override
 	protected Tuple2KeyEntry<Key1, Key2, V> createEntry(int hash, Key1 key1, Key2 key2, V value, final Tuple2KeyEntry<Key1, Key2, V> nextEntry)
 	{

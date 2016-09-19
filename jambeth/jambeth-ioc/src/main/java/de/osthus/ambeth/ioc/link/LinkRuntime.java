@@ -1,5 +1,6 @@
 package de.osthus.ambeth.ioc.link;
 
+import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.ServiceContext;
 import de.osthus.ambeth.ioc.config.BeanConfiguration;
 import de.osthus.ambeth.ioc.config.BeanRuntime;
@@ -66,28 +67,6 @@ public class LinkRuntime<D> extends BeanRuntime<ILinkContainer> implements ILink
 	}
 
 	@Override
-	public ILinkRuntimeWithOptional to(String registryBeanName, Class<?> registryClass)
-	{
-		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_NAME, registryBeanName);
-		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_TYPE, registryClass);
-		return this;
-	}
-
-	@Override
-	public ILinkRuntimeWithOptional to(String registryBeanName, String propertyName)
-	{
-		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_NAME, registryBeanName);
-		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_PROPERTY_NAME, propertyName);
-		return this;
-	}
-
-	@Override
-	public ILinkRuntimeWithOptional to(String registryBeanName, IEventDelegate<D> eventDelegate)
-	{
-		return to(registryBeanName, eventDelegate.getEventName());
-	}
-
-	@Override
 	public ILinkRuntimeWithOptional to(Class<?> autowiredRegistryClass)
 	{
 		propertyValue(AbstractLinkContainer.PROPERTY_REGISTRY_TYPE, autowiredRegistryClass);
@@ -116,4 +95,17 @@ public class LinkRuntime<D> extends BeanRuntime<ILinkContainer> implements ILink
 		return to(registry, eventDelegate.getEventName());
 	}
 
+	@Override
+	public ILinkRegistryNeededRuntime<D> toContext(IServiceContext beanContext)
+	{
+		propertyValue(AbstractLinkContainer.PROPERTY_FOREIGN_BEAN_CONTEXT, beanContext);
+		return this;
+	}
+
+	@Override
+	public ILinkRegistryNeededRuntime<D> toContext(String nameOfBeanContext)
+	{
+		propertyValue(AbstractLinkContainer.PROPERTY_FOREIGN_BEAN_CONTEXT_NAME, nameOfBeanContext);
+		return this;
+	}
 }

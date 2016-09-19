@@ -92,6 +92,20 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 		}
 	}
 
+	public static String[] deriveArgsFromProperties(IProperties props)
+	{
+		ISet<String> keys = props.collectAllPropertyKeys();
+		String[] derivedArgs = new String[keys.size()];
+		int index = 0;
+		for (String propertyKey : keys)
+		{
+			Object propertyValue = props.get(propertyKey);
+			derivedArgs[index] = propertyKey + '=' + propertyValue;
+			index++;
+		}
+		return derivedArgs;
+	}
+
 	// Intentionally not a SensitiveThreadLocal. It can not contain a memory leak, because the HashSet is cleared after each usage
 	protected final ThreadLocal<HashSet<String>> cyclicKeyCheckTL = new SensitiveThreadLocal<HashSet<String>>();
 	protected final ThreadLocal<HashSet<String>> unknownListTL = new SensitiveThreadLocal<HashSet<String>>();
@@ -301,6 +315,16 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 	public void put(String key, Object value)
 	{
 		putProperty(key, value);
+	}
+
+	public boolean putIfUndefined(String key, Object value)
+	{
+		if (get(key) != null)
+		{
+			return false;
+		}
+		putProperty(key, value);
+		return true;
 	}
 
 	/*

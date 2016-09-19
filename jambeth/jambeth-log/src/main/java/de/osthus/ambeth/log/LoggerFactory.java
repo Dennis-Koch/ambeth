@@ -1,20 +1,24 @@
 package de.osthus.ambeth.log;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 
 public final class LoggerFactory
 {
+	public static final String loggerPrefix = "ambeth.log.";
+
 	public static final String logLevelPropertyName = "level";
 
 	public static final String logConsolePropertyName = "console";
 
 	public static final String logSourcePropertyName = "source";
+
+	public static final String logLevelPropertyPrefix = loggerPrefix + logLevelPropertyName;
+
+	public static final String logConsolePropertyPrefix = loggerPrefix + logConsolePropertyName;
+
+	public static final String logSourcePropertyPrefix = loggerPrefix + logSourcePropertyName;
 
 	public static final String logLevelDebug = "debug";
 
@@ -23,9 +27,6 @@ public final class LoggerFactory
 	public static final String logLevelWarn = "warn";
 
 	public static final String logLevelError = "error";
-
-	protected static final Pattern logRegex = Pattern.compile("ambeth\\.log\\.(" + logLevelPropertyName + "|" + logConsolePropertyName + "|"
-			+ logSourcePropertyName + ")(?:\\.(.+))?");
 
 	protected static Class<? extends ILogger> loggerType;
 
@@ -36,17 +37,17 @@ public final class LoggerFactory
 
 	public static String logConsoleProperty(Class<?> type)
 	{
-		return "ambeth.log." + logConsolePropertyName + "." + type.getName();
+		return logConsolePropertyPrefix + '.' + type.getName();
 	}
 
 	public static String logLevelProperty(Class<?> type)
 	{
-		return "ambeth.log." + logLevelPropertyName + "." + type.getName();
+		return logLevelPropertyPrefix + '.' + type.getName();
 	}
 
 	public static String logSourceProperty(Class<?> type)
 	{
-		return "ambeth.log." + logSourcePropertyName + "." + type.getName();
+		return logSourcePropertyPrefix + '.' + type.getName();
 	}
 
 	public static void setLoggerType(Class<? extends ILogger> loggerType)
@@ -110,90 +111,122 @@ public final class LoggerFactory
 
 	public static void configureLogger(String loggerName, IConfigurableLogger logger, IProperties appProps)
 	{
-		HashSet<String> allPropertiesSet = new HashSet<String>();
-		appProps.collectAllPropertyKeys(allPropertiesSet);
-		// highest precision found
-		int logLevelHPF = 0, logConsoleHPF = 0, logSourceHPF = 0;
-		for (String key : allPropertiesSet)
+		String logLevelValue = null;
+		String logConsoleValue = null;
+		String logSourceValue = null;
+		int lastDot = loggerName.length();
+		StringBuilder tempSB = new StringBuilder(loggerPrefix.length()
+				+ Math.max(Math.max(logLevelPropertyName.length(), logConsolePropertyName.length()), logSourcePropertyName.length()) + 1 + loggerName.length());
+		tempSB.append(loggerPrefix);
+
+		while (true)
 		{
-			Matcher matcher = LoggerFactory.logRegex.matcher(key);
-			if (!matcher.matches())
+			String prefixOfLoggerName = lastDot != -1 ? loggerName.substring(0, lastDot) : "";
+
+			if (logLevelValue == null)
 			{
-				continue;
+				String key = buildKey(logLevelPropertyName, prefixOfLoggerName, tempSB, false);
+				logLevelValue = appProps.getString(key);
 			}
-			String type = matcher.group(1);
-			String target = matcher.group(2);
-			if (target != null && !loggerName.startsWith(target))
+			if (logConsoleValue == null)
 			{
-				continue;
+				String key = buildKey(logConsolePropertyName, prefixOfLoggerName, tempSB, false);
+				logConsoleValue = appProps.getString(key);
 			}
-			if (target == null)
+			if (logSourceValue == null)
 			{
-				target = "";
+				String key = buildKey(logSourcePropertyName, prefixOfLoggerName, tempSB, false);
+				logSourceValue = appProps.getString(key);
 			}
-			if (logLevelPropertyName.equals(type))
+			String key = buildKey(logLevelPropertyName, prefixOfLoggerName, tempSB, true);
+			String overridingValue = appProps.getString(key);
+			if (overridingValue != null)
 			{
-				if (target.length() < logLevelHPF)
+				logLevelValue = overridingValue;
+			}
+			key = buildKey(logConsolePropertyName, prefixOfLoggerName, tempSB, true);
+			overridingValue = appProps.getString(key);
+			if (overridingValue != null)
+			{
+				logConsoleValue = overridingValue;
+			}
+			key = buildKey(logSourcePropertyName, prefixOfLoggerName, tempSB, true);
+			overridingValue = appProps.getString(key);
+			if (overridingValue != null)
+			{
+				logSourceValue = overridingValue;
+			}
+
+			int previousDot = -1;
+			for (int a = lastDot; a-- > 0;)
+			{
+				if (loggerName.charAt(a) == '.')
 				{
-					continue;
-				}
-				logLevelHPF = target.length();
-				String value = appProps.getString(key).toLowerCase();
-				if (logLevelDebug.equals(value))
-				{
-					logger.setDebugEnabled(true);
-					logger.setInfoEnabled(true);
-					logger.setWarnEnabled(true);
-					logger.setErrorEnabled(true);
-				}
-				else if (logLevelInfo.equals(value))
-				{
-					logger.setDebugEnabled(false);
-					logger.setInfoEnabled(true);
-					logger.setWarnEnabled(true);
-					logger.setErrorEnabled(true);
-				}
-				else if (logLevelWarn.equals(value))
-				{
-					logger.setDebugEnabled(false);
-					logger.setInfoEnabled(false);
-					logger.setWarnEnabled(true);
-					logger.setErrorEnabled(true);
-				}
-				else if (logLevelError.equals(value))
-				{
-					logger.setDebugEnabled(false);
-					logger.setInfoEnabled(false);
-					logger.setWarnEnabled(false);
-					logger.setErrorEnabled(true);
+					previousDot = a;
+					break;
 				}
 			}
-			else if (logConsolePropertyName.equals(type))
+			if (lastDot == -1)
 			{
-				if (target.length() < logConsoleHPF)
-				{
-					continue;
-				}
-				logConsoleHPF = target.length();
-				String value = appProps.getString(key).toLowerCase();
-				logger.setLogToConsole(Boolean.parseBoolean(value));
+				break;
 			}
-			else if (logSourcePropertyName.equals(type))
-			{
-				if (target.length() < logSourceHPF)
-				{
-					continue;
-				}
-				logSourceHPF = target.length();
-				String value = appProps.getString(key).toUpperCase();
-				logger.setLogSourceLevel(LogSourceLevel.valueOf(value));
-			}
-			else
-			{
-				throw new IllegalStateException("Property: " + key + " not supported");
-			}
+			lastDot = previousDot;
+		}
+		if (logLevelDebug.equalsIgnoreCase(logLevelValue))
+		{
+			logger.setDebugEnabled(true);
+			logger.setInfoEnabled(true);
+			logger.setWarnEnabled(true);
+			logger.setErrorEnabled(true);
+		}
+		else if (logLevelInfo.equalsIgnoreCase(logLevelValue))
+		{
+			logger.setDebugEnabled(false);
+			logger.setInfoEnabled(true);
+			logger.setWarnEnabled(true);
+			logger.setErrorEnabled(true);
+		}
+		else if (logLevelWarn.equalsIgnoreCase(logLevelValue) || logLevelValue == null)
+		{
+			// if nothing is configured the logger defaults to "warn" level
+			logger.setDebugEnabled(false);
+			logger.setInfoEnabled(false);
+			logger.setWarnEnabled(true);
+			logger.setErrorEnabled(true);
+		}
+		else if (logLevelError.equalsIgnoreCase(logLevelValue))
+		{
+			logger.setDebugEnabled(false);
+			logger.setInfoEnabled(false);
+			logger.setWarnEnabled(false);
+			logger.setErrorEnabled(true);
+		}
+		if (logConsoleValue != null)
+		{
+			logger.setLogToConsole(Boolean.parseBoolean(logConsoleValue));
+		}
+		if (logSourceValue != null)
+		{
+			logger.setLogSourceLevel(LogSourceLevel.valueOf(logSourceValue.toUpperCase()));
 		}
 		logger.postProcess(appProps);
+	}
+
+	private static String buildKey(String loggerKey, String loggerName, StringBuilder tempSB, boolean overridingKey)
+	{
+		tempSB.setLength(loggerPrefix.length());
+		tempSB.append(loggerKey);
+		if (loggerName.length() > 0)
+		{
+			tempSB.append('.');
+			tempSB.append(loggerName);
+		}
+		if (overridingKey)
+		{
+			tempSB.append('.');
+			tempSB.append('*');
+		}
+		return tempSB.toString();
 	}
 
 	private LoggerFactory()

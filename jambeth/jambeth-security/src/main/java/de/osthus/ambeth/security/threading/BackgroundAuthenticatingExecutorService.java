@@ -19,6 +19,62 @@ import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 @SecurityContext(SecurityContextType.NOT_REQUIRED)
 public class BackgroundAuthenticatingExecutorService implements IBackgroundAuthenticatingExecutorService, IBackgroundAuthenticatingExecution
 {
+	private class ExchangeResultRunnable<T> implements Runnable
+	{
+		private final Exchanger<T> exchanger;
+		private final IAuthentication authentication;
+		private final IResultingBackgroundWorkerDelegate<T> runnable;
+
+		private ExchangeResultRunnable(Exchanger<T> exchanger, IAuthentication authentication, IResultingBackgroundWorkerDelegate<T> runnable)
+		{
+			this.exchanger = exchanger;
+			this.authentication = authentication;
+			this.runnable = runnable;
+		}
+
+		@Override
+		public void run()
+		{
+			T result = null;
+			try
+			{
+				result = securityContextHolder.setScopedAuthentication(authentication, new SelfExecuteRunnable<T>(runnable));
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+			finally
+			{
+				threadLocalCleanupController.cleanupThreadLocal();
+				try
+				{
+					exchanger.exchange(result);
+				}
+				catch (InterruptedException e)
+				{
+					// intended blank
+				}
+			}
+		}
+	}
+
+	private class SelfExecuteRunnable<T> implements IResultingBackgroundWorkerDelegate<T>
+	{
+		private final IResultingBackgroundWorkerDelegate<T> runnable;
+
+		private SelfExecuteRunnable(IResultingBackgroundWorkerDelegate<T> runnable)
+		{
+			this.runnable = runnable;
+		}
+
+		@Override
+		public T invoke() throws Throwable
+		{
+			return self.execute(runnable);
+		}
+	}
+
 	@LogInstance
 	private ILogger log;
 
@@ -111,43 +167,9 @@ public class BackgroundAuthenticatingExecutorService implements IBackgroundAuthe
 
 	private <T> Runnable createRunnableWithAuthentication(final IResultingBackgroundWorkerDelegate<T> runnable, final Exchanger<T> exchanger)
 	{
-		final IAuthentication authentication = securityContextHolder.getContext().getAuthentication();
+		IAuthentication authentication = securityContextHolder.getContext().getAuthentication();
 
-		Runnable backgroundWorker = new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				T result = null;
-				try
-				{
-					result = securityContextHolder.setScopedAuthentication(authentication, new IResultingBackgroundWorkerDelegate<T>()
-					{
-						@Override
-						public T invoke() throws Throwable
-						{
-							return self.execute(runnable);
-						}
-					});
-				}
-				catch (Throwable e)
-				{
-					throw RuntimeExceptionUtil.mask(e);
-				}
-				finally
-				{
-					threadLocalCleanupController.cleanupThreadLocal();
-					try
-					{
-						exchanger.exchange(result);
-					}
-					catch (InterruptedException e)
-					{
-						// intended blank
-					}
-				}
-			}
-		};
+		Runnable backgroundWorker = new ExchangeResultRunnable<T>(exchanger, authentication, runnable);
 		return backgroundWorker;
 	}
 }

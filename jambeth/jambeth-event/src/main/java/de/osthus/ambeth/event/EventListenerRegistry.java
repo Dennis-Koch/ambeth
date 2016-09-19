@@ -9,7 +9,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.collections.IdentityLinkedMap;
 import de.osthus.ambeth.collections.IdentityLinkedSet;
@@ -19,6 +21,7 @@ import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableListContainer;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
@@ -28,6 +31,9 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventTa
 {
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IGuiThreadHelper guiThreadHelper;
 
 	protected final ClassExtendableListContainer<IEventListenerMarker> typeToListenersDict = new ClassExtendableListContainer<IEventListenerMarker>(
 			"eventListener", "eventType");
@@ -45,13 +51,18 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventTa
 
 	protected final Lock listenersReadLock, listenersWriteLock;
 
-	@Autowired
-	protected IGuiThreadHelper guiThreadHelper;
+	protected final ThreadLocal<Boolean> isDispatchingBatchedEventsTL = new ThreadLocal<Boolean>();
 
 	public EventListenerRegistry()
 	{
 		listenersReadLock = typeToListenersDict.getWriteLock();
 		listenersWriteLock = typeToListenersDict.getWriteLock();
+	}
+
+	@Override
+	public boolean isDispatchingBatchedEvents()
+	{
+		return Boolean.TRUE.equals(isDispatchingBatchedEventsTL.get());
 	}
 
 	@Override
@@ -94,29 +105,54 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventTa
 			return;
 		}
 		IList<IQueuedEvent> batchedEvents = batchEvents(eventQueue);
-		for (int a = 0, size = batchedEvents.size(); a < size; a++)
+		IdentityLinkedSet<IBatchedEventListener> collectedBatchedEventDispatchAwareSet = new IdentityLinkedSet<IBatchedEventListener>();
+
+		List<IList<IQueuedEvent>> tlEventQueueList = eventQueueTL.get();
+
+		Boolean oldDispatchingBatchedEvents = isDispatchingBatchedEventsTL.get();
+		isDispatchingBatchedEventsTL.set(Boolean.TRUE);
+		try
 		{
-			IQueuedEvent batchedEvent = batchedEvents.get(a);
-			handleEvent(batchedEvent.getEventObject(), batchedEvent.getDispatchTime(), batchedEvent.getSequenceNumber());
+			for (int a = 0, size = batchedEvents.size(); a < size; a++)
+			{
+				IQueuedEvent batchedEvent = batchedEvents.get(a);
+				if (tlEventQueueList != null)
+				{
+					IList<IQueuedEvent> tlEventQueue = tlEventQueueList.get(tlEventQueueList.size() - 1);
+					tlEventQueue.add(new QueuedEvent(batchedEvent.getEventObject(), batchedEvent.getDispatchTime(), batchedEvent.getSequenceNumber()));
+					continue;
+				}
+				handleEventIntern(batchedEvent.getEventObject(), batchedEvent.getDispatchTime(), batchedEvent.getSequenceNumber(),
+						collectedBatchedEventDispatchAwareSet);
+			}
+		}
+		finally
+		{
+			isDispatchingBatchedEventsTL.set(oldDispatchingBatchedEvents);
+		}
+		for (IBatchedEventListener eventListener : collectedBatchedEventDispatchAwareSet)
+		{
+			eventListener.flushBatchedEventDispatching();
 		}
 	}
 
 	@Override
 	public IList<IQueuedEvent> batchEvents(List<IQueuedEvent> eventItems)
 	{
-		ArrayList<IQueuedEvent> outputEvents = new ArrayList<IQueuedEvent>();
 		if (eventItems.size() == 0)
 		{
-			return outputEvents;
+			return EmptyList.<IQueuedEvent> getInstance();
 		}
 		if (eventItems.size() == 1)
 		{
 			IQueuedEvent soleEvent = eventItems.get(0);
+			ArrayList<IQueuedEvent> outputEvents = new ArrayList<IQueuedEvent>(1);
 			outputEvents.add(soleEvent);
 			return outputEvents;
 		}
 		ArrayList<IQueuedEvent> currentBatchableEvents = new ArrayList<IQueuedEvent>();
 
+		ArrayList<IQueuedEvent> outputEvents = new ArrayList<IQueuedEvent>(1);
 		IEventBatcher currentEventBatcher = null;
 		for (int i = 0, size = eventItems.size(); i < size; i++)
 		{
@@ -127,49 +163,31 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventTa
 			{
 				if (currentEventBatcher != null && !eventBatcher.equals(currentEventBatcher))
 				{
-					IList<IQueuedEvent> batchedEvents = batchEventsIntern(currentBatchableEvents, currentEventBatcher);
-					if (batchedEvents != null)
-					{
-						outputEvents.addAll(batchedEvents);
-					}
+					outputEvents.addAll(batchEventsIntern(currentBatchableEvents, currentEventBatcher));
 					currentBatchableEvents.clear();
 				}
 				currentEventBatcher = eventBatcher;
 				currentBatchableEvents.add(queuedEvent);
 				continue;
 			}
-			IList<IQueuedEvent> batchedEvents = batchEventsIntern(currentBatchableEvents, currentEventBatcher);
-			if (batchedEvents != null)
-			{
-				outputEvents.addAll(batchedEvents);
-			}
+			outputEvents.addAll(batchEventsIntern(currentBatchableEvents, currentEventBatcher));
 			currentBatchableEvents.clear();
 			currentEventBatcher = null;
 			outputEvents.add(queuedEvent);
 		}
-		IList<IQueuedEvent> batchedEvents = batchEventsIntern(currentBatchableEvents, currentEventBatcher);
-		if (batchedEvents != null)
-		{
-			outputEvents.addAll(batchedEvents);
-		}
+		outputEvents.addAll(batchEventsIntern(currentBatchableEvents, currentEventBatcher));
 		return outputEvents;
 	}
 
-	protected IList<IQueuedEvent> batchEventsIntern(List<IQueuedEvent> currentBatchableEvents, IEventBatcher currentEventBatcher)
+	protected IList<IQueuedEvent> batchEventsIntern(IList<IQueuedEvent> currentBatchableEvents, IEventBatcher currentEventBatcher)
 	{
 		if (currentBatchableEvents.size() == 0)
 		{
-			return null;
+			return EmptyList.<IQueuedEvent> getInstance();
 		}
 		if (currentBatchableEvents.size() == 1 || currentEventBatcher == null)
 		{
-			ArrayList<IQueuedEvent> batchedEvents = new ArrayList<IQueuedEvent>();
-			for (int a = 0, size = currentBatchableEvents.size(); a < size; a++)
-			{
-				IQueuedEvent eventItem = currentBatchableEvents.get(a);
-				batchedEvents.add(eventItem);
-			}
-			return batchedEvents;
+			return currentBatchableEvents;
 		}
 		else
 		{
@@ -203,6 +221,11 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventTa
 			tlEventQueue.add(new QueuedEvent(eventObject, dispatchTime, sequenceId));
 			return;
 		}
+		handleEventIntern(eventObject, dispatchTime, sequenceId, null);
+	}
+
+	private void handleEventIntern(Object eventObject, long dispatchTime, long sequenceId, ISet<IBatchedEventListener> collectedBatchedEventDispatchAwareSet)
+	{
 		IList<IEventListenerMarker> interestedEventListeners;
 		List<Object> pausedEventTargets;
 		Lock listenersReadLock = this.listenersReadLock;
@@ -219,13 +242,40 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventTa
 		}
 		for (int a = 0, size = interestedEventListeners.size(); a < size; a++)
 		{
-			notifyEventListener(interestedEventListeners.get(a), eventObject, null, pausedEventTargets, dispatchTime, sequenceId);
+			IEventListenerMarker eventListener = interestedEventListeners.get(a);
+			if (collectedBatchedEventDispatchAwareSet != null && eventListener instanceof IBatchedEventListener
+					&& collectedBatchedEventDispatchAwareSet.add((IBatchedEventListener) eventListener))
+			{
+				((IBatchedEventListener) eventListener).enableBatchedEventDispatching();
+			}
+			try
+			{
+				if (eventListener instanceof IEventTargetEventListener)
+				{
+					((IEventTargetEventListener) eventListener).handleEvent(eventObject, null, pausedEventTargets, dispatchTime, sequenceId);
+				}
+				else if (eventListener instanceof IEventListener)
+				{
+					((IEventListener) eventListener).handleEvent(eventObject, dispatchTime, sequenceId);
+				}
+			}
+			catch (Throwable e)
+			{
+				if (log.isErrorEnabled())
+				{
+					log.error(e);
+				}
+			}
 		}
 	}
 
 	protected IList<Object> evaluatePausedEventTargets()
 	{
 		IdentityLinkedMap<Object, PausedEventTargetItem> pausedTargets = this.pausedTargets;
+		if (pausedTargets.size() == 0)
+		{
+			return EmptyList.<Object> getInstance();
+		}
 		ArrayList<Object> pausedEventTargets = new ArrayList<Object>(pausedTargets.size());
 		for (Entry<Object, PausedEventTargetItem> entry : pausedTargets)
 		{
@@ -478,15 +528,15 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventTa
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void waitEventToResume(Object eventTargetToResume, long maxWaitTime, IBackgroundWorkerParamDelegate<IProcessResumeItem> resumeDelegate,
-			IBackgroundWorkerParamDelegate<Throwable> errorDelegate)
+	public void waitEventToResume(final Object eventTargetToResume, final long maxWaitTime,
+			final IBackgroundWorkerParamDelegate<IProcessResumeItem> resumeDelegate, final IBackgroundWorkerParamDelegate<Throwable> errorDelegate)
 	{
 		try
 		{
 			IdentityHashSet<Object> pendingSet = new IdentityHashSet<Object>();
 			if (eventTargetToResume instanceof Collection)
 			{
-				pendingSet.addAll((Collection<Object>) eventTargetToResume);
+				pendingSet.addAll((Collection<?>) eventTargetToResume);
 			}
 			else
 			{
@@ -507,12 +557,15 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventTa
 					if (guiThreadHelper.isInGuiThread())
 					{
 						// This is the trick: We "requeue" the current action in the UI pipeline to prohibit blocking
-						// TODO: Currently not implemented because SyncContext or something similar does not exist yet
-						// GuiThreadHelper.invokeInGuiLate(delegate()
-						// {
-						// waitEventToResume(eventTargetToResume, maxWaitTime, resumeDelegate, errorDelegate);
-						// }, null);
-						// return;
+						guiThreadHelper.invokeInGuiLate(new IBackgroundWorkerDelegate()
+						{
+							@Override
+							public void invoke() throws Throwable
+							{
+								waitEventToResume(eventTargetToResume, maxWaitTime, resumeDelegate, errorDelegate);
+							}
+						});
+						return;
 					}
 					pauseItem = new WaitForResumeItem(pendingSet);
 					waitForResumeSet.add(pauseItem);

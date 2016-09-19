@@ -1,6 +1,5 @@
 package de.osthus.ambeth.xml;
 
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.xml.pending.ICommandTypeExtendable;
 import de.osthus.ambeth.xml.pending.ICommandTypeRegistry;
 import de.osthus.ambeth.xml.pending.IObjectCommand;
@@ -19,9 +18,9 @@ public interface IReader
 
 	String getElementValue();
 
-	void nextTag();
+	boolean nextTag();
 
-	void nextToken();
+	boolean nextToken();
 
 	boolean isStartTag();
 
@@ -33,9 +32,9 @@ public interface IReader
 
 	void putObjectWithId(Object obj, int id);
 
-	void putMembersOfType(Class<?> type, ITypeInfoItem[] members);
+	void putMembersOfType(Class<?> type, SpecifiedMember[] members);
 
-	ITypeInfoItem[] getMembersOfType(Class<?> type);
+	SpecifiedMember[] getMembersOfType(Class<?> type);
 
 	void addObjectCommand(IObjectCommand pendingSetter);
 

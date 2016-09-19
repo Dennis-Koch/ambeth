@@ -134,7 +134,7 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 
 		Properties baseProps = new Properties(Properties.getApplication());
 
-		extendProperties(frameworkMethod, baseProps);
+		extendPropertiesInstance(frameworkMethod, baseProps);
 
 		LinkedHashSet<Class<? extends IInitializingModule>> testClassLevelTestFrameworkModulesList = new LinkedHashSet<Class<? extends IInitializingModule>>();
 		LinkedHashSet<Class<? extends IInitializingModule>> testClassLevelTestModulesList = new LinkedHashSet<Class<? extends IInitializingModule>>();
@@ -185,10 +185,15 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 		}
 	}
 
-	protected List<TestProperties> getAllTestProperties(FrameworkMethod frameworkMethod)
+	protected void extendPropertiesInstance(FrameworkMethod frameworkMethod, Properties props)
 	{
-		List<IAnnotationInfo<?>> testPropertiesList = findAnnotations(getTestClass().getJavaClass(), frameworkMethod != null ? frameworkMethod.getMethod()
-				: null, TestPropertiesList.class, TestProperties.class);
+		extendProperties(getTestClass().getJavaClass(), frameworkMethod, props);
+	}
+
+	protected static List<TestProperties> getAllTestProperties(Class<?> testClass, FrameworkMethod frameworkMethod)
+	{
+		List<IAnnotationInfo<?>> testPropertiesList = findAnnotations(testClass, frameworkMethod != null ? frameworkMethod.getMethod() : null,
+				TestPropertiesList.class, TestProperties.class);
 
 		ArrayList<TestProperties> allTestProperties = new ArrayList<TestProperties>();
 
@@ -212,9 +217,9 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 		return allTestProperties;
 	}
 
-	protected void extendProperties(FrameworkMethod frameworkMethod, Properties props)
+	public static void extendProperties(Class<?> testClass, FrameworkMethod frameworkMethod, Properties props)
 	{
-		List<TestProperties> allTestProperties = getAllTestProperties(frameworkMethod);
+		List<TestProperties> allTestProperties = getAllTestProperties(testClass, frameworkMethod);
 
 		for (int a = 0, size = allTestProperties.size(); a < size; a++)
 		{
@@ -429,7 +434,7 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 	}
 
 	@SuppressWarnings("unchecked")
-	protected List<IAnnotationInfo<?>> findAnnotations(Class<?> type, Method method, Class<?>... annotationTypes)
+	protected static List<IAnnotationInfo<?>> findAnnotations(Class<?> type, Method method, Class<?>... annotationTypes)
 	{
 		ArrayList<IAnnotationInfo<?>> targetList = new ArrayList<IAnnotationInfo<?>>();
 		findAnnotations(type, targetList, true, annotationTypes);
@@ -449,7 +454,7 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 	}
 
 	@SuppressWarnings("unchecked")
-	protected void findAnnotations(Class<?> type, List<IAnnotationInfo<?>> targetList, boolean isFirst, Class<?>... annotationTypes)
+	protected static void findAnnotations(Class<?> type, List<IAnnotationInfo<?>> targetList, boolean isFirst, Class<?>... annotationTypes)
 	{
 		if (type == null || Object.class.equals(type))
 		{

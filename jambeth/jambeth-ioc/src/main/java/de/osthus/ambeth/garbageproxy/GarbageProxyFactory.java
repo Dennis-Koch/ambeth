@@ -8,6 +8,8 @@ import de.osthus.ambeth.accessor.AccessorClassLoader;
 import de.osthus.ambeth.accessor.IAccessorTypeProvider;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.ISet;
+import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.collections.Tuple2KeyEntry;
 import de.osthus.ambeth.collections.Tuple2KeyHashMap;
 import de.osthus.ambeth.ioc.IInitializingBean;
@@ -17,6 +19,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.AbstractSimpleInterceptor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassWriter;
+import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
@@ -134,15 +137,19 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 		String classNameInternal = className.replace('.', '/');
 		Type abstractType = Type.getType(GCProxy.class);
 
-		ArrayList<Class<?>> interfaceClasses = new ArrayList<Class<?>>();
+		LinkedHashSet<Class<?>> interfaceClasses = new LinkedHashSet<Class<?>>();
 		ArrayList<Type> interfaceTypes = new ArrayList<Type>();
 		ArrayList<String> interfaceNames = new ArrayList<String>();
-		interfaceTypes.add(Type.getType(proxyType));
-		interfaceClasses.add(proxyType);
+		if (interfaceClasses.add(proxyType))
+		{
+			interfaceTypes.add(Type.getType(proxyType));
+		}
 		for (Class<?> additionalProxyType : additionalProxyTypes)
 		{
-			interfaceTypes.add(Type.getType(additionalProxyType));
-			interfaceClasses.add(additionalProxyType);
+			if (interfaceClasses.add(additionalProxyType))
+			{
+				interfaceTypes.add(Type.getType(additionalProxyType));
+			}
 		}
 		for (Type interfaceType : interfaceTypes)
 		{
@@ -150,11 +157,18 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 		}
 
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-		cw.visit(Opcodes.V1_1, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, classNameInternal, null, abstractType.getInternalName(),
+
+		ClassVisitor visitor = cw;
+
+		// comment this in to add bytecode output for eased debugging (together with commented code at the end)
+		// StringWriter sw = new StringWriter();
+		// visitor = new TraceClassVisitor(visitor, new PrintWriter(sw));
+
+		visitor.visit(Opcodes.V1_1, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, classNameInternal, null, abstractType.getInternalName(),
 				interfaceNames.toArray(String.class));
 		{
 			Method method = Method.getMethod("void <init> (" + Object.class.getName() + "," + IDisposable.class.getName() + ")");
-			GeneratorAdapter mv = createGA(cw, Opcodes.ACC_PUBLIC, method.getName(), method.getDescriptor());
+			GeneratorAdapter mv = createGA(visitor, Opcodes.ACC_PUBLIC, method.getName(), method.getDescriptor());
 			mv.loadThis();
 			mv.loadArgs();
 			mv.invokeConstructor(abstractType, method);
@@ -163,7 +177,7 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 		}
 		{
 			Method method = Method.getMethod("void <init> (" + IDisposable.class.getName() + ")");
-			GeneratorAdapter mv = createGA(cw, Opcodes.ACC_PUBLIC, method.getName(), method.getDescriptor());
+			GeneratorAdapter mv = createGA(visitor, Opcodes.ACC_PUBLIC, method.getName(), method.getDescriptor());
 			mv.loadThis();
 			mv.loadArgs();
 			mv.invokeConstructor(abstractType, method);
@@ -171,6 +185,8 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 			mv.endMethod();
 		}
 		Method targetMethod = Method.getMethod(ReflectUtil.getDeclaredMethod(false, GCProxy.class, Object.class, "resolveTarget"));
+
+		Type objType = Type.getType(Object.class);
 
 		HashSet<Method> alreadyImplementedMethods = new HashSet<Method>();
 		for (Class<?> interfaceClass : interfaceClasses)
@@ -189,18 +205,67 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 				{
 					continue;
 				}
-				GeneratorAdapter mv = createGA(cw, Opcodes.ACC_PUBLIC, asmMethod.getName(), asmMethod.getDescriptor());
+				GeneratorAdapter mv = createGA(visitor, Opcodes.ACC_PUBLIC, asmMethod.getName(), asmMethod.getDescriptor());
+				int l_result = -1, l_target = -1;
+				boolean resultCheckNeeded = isAssignableFrom(method.getReturnType(), interfaceClasses);
+				if (resultCheckNeeded)
+				{
+					l_result = mv.newLocal(asmMethod.getReturnType());
+					l_target = mv.newLocal(targetMethod.getReturnType());
+				}
 				mv.loadThis();
 				mv.invokeVirtual(abstractType, targetMethod);
+				if (resultCheckNeeded)
+				{
+					mv.storeLocal(l_target);
+					mv.loadLocal(l_target);
+				}
 				mv.checkCast(interfaceType);
 				mv.loadArgs();
 				mv.invokeInterface(interfaceType, asmMethod);
+				if (resultCheckNeeded)
+				{
+					// ensure that the GCProxy will be returned whenever we our target as a return value (e.g. happens on fluent-APIs)
+					// Example: ISqlQueryBuilder result = ((ISqlQueryBuilder))this.resolveTarget()).or(..args..);
+					mv.storeLocal(l_result);
+
+					Label label_returnThis = mv.newLabel();
+
+					// if (result == resolveTarget())
+					mv.loadLocal(l_target);
+					mv.loadLocal(l_result);
+					mv.ifCmp(objType, GeneratorAdapter.EQ, label_returnThis);
+
+					// else return result;
+					mv.loadLocal(l_result);
+					mv.returnValue();
+
+					// return this;
+					mv.mark(label_returnThis);
+					mv.loadThis();
+				}
 				mv.returnValue();
 				mv.endMethod();
 			}
 		}
-		cw.visitEnd();
+		visitor.visitEnd();
 		byte[] data = cw.toByteArray();
+
+		// comment this in to add bytecode output for eased debugging
+		// String string = sw.toString();
+		// System.out.println(string);
 		return loader.defineClass(className, data);
+	}
+
+	private boolean isAssignableFrom(Class<?> returnType, ISet<Class<?>> interfaceClasses)
+	{
+		for (Class<?> interfaceClass : interfaceClasses)
+		{
+			if (returnType.isAssignableFrom(interfaceClass))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 }

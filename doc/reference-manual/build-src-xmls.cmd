@@ -10,13 +10,13 @@ set srcDir=%baseDir%\src
 set srcHome=%PROJECT_HOME%\source
 set javaSrcDir=%srcDir%\java
 set javaLibDir=%javaSrcDir%\libs
-set javaModuleDir=%srcHome%\osthus-ambeth\jambeth
+set javaModuleDir=%srcHome%\osthus-ambeth-check\jambeth
 set javaModuleDir2=%srcHome%\ambeth
 set integrityDir=%srcHome%\integrity
 
 set csSrcDir=%srcDir%\cs
 set csLibDir=%csSrcDir%\libs
-set csModuleDir=%srcHome%\osthus-ambeth\ambeth
+set csModuleDir=%srcHome%\osthus-ambeth-check\ambeth
 set csAmbethProperties=%csSrcDir%\ambeth.properties
 set csSkipModuleScan=false
 
@@ -65,7 +65,7 @@ xcopy "%csModuleDir%\Lib.Telerik\*.dll" "%csLibDir%" /I /Y > nul
 
 rem From Jenkins Job
 set resultType=tcs
-set javaModules=jambeth-audit-server,jambeth-bytecode,jambeth-cache,jambeth-cache-bytecode,jambeth-cache-datachange,jambeth-cache-server,jambeth-cache-stream,jambeth-datachange,jambeth-datachange-persistence,jambeth-event,jambeth-event-datachange,jambeth-event-server,jambeth-filter,jambeth-ioc,jambeth-job,jambeth-job-cron4j,jambeth-log,jambeth-mapping,jambeth-merge,jambeth-merge-bytecode,jambeth-merge-server,jambeth-persistence,jambeth-persistence-api,jambeth-persistence-h2,jambeth-persistence-jdbc,jambeth-persistence-oracle11,jambeth-platform,jambeth-query,jambeth-query-inmemory,jambeth-query-jdbc,jambeth-rdf,jambeth-security,jambeth-security-bytecode,jambeth-security-server,jambeth-sensor,jambeth-server-rest,jambeth-service,jambeth-stream,jambeth-testutil,jambeth-testutil-persistence,jambeth-util,jambeth-xml
+set javaModules=jambeth-audit-server,jambeth-bytecode,jambeth-cache,jambeth-cache-bytecode,jambeth-cache-datachange,jambeth-cache-server,jambeth-cache-stream,jambeth-datachange,jambeth-datachange-kafka,jambeth-datachange-persistence,jambeth-event,jambeth-event-datachange,jambeth-event-kafka,jambeth-event-server,jambeth-filter,jambeth-ioc,jambeth-job,jambeth-job-cron4j,jambeth-log,jambeth-mapping,jambeth-merge,jambeth-merge-bytecode,jambeth-merge-server,jambeth-persistence,jambeth-persistence-api,jambeth-persistence-h2,jambeth-persistence-jdbc,jambeth-persistence-oracle11,jambeth-platform,jambeth-query,jambeth-query-inmemory,jambeth-query-jdbc,jambeth-rdf,jambeth-security,jambeth-security-bytecode,jambeth-security-server,jambeth-sensor,jambeth-server-rest,jambeth-service,jambeth-stream,jambeth-testutil,jambeth-testutil-persistence,jambeth-util,jambeth-xml
 set csModules=Ambeth.Bytecode,Ambeth.Cache,Ambeth.Cache.Bytecode,Ambeth.CacheDataChange,Ambeth.DataChange,Ambeth.Event,Ambeth.Event.DataChange,Ambeth.Filter,Ambeth.IoC,Ambeth.Log,Ambeth.Mapping,Ambeth.Merge,Ambeth.Merge.Bytecode,Ambeth.Privilege,Ambeth.Security,Ambeth.Service,Ambeth.TestUtil,Ambeth.Util,Ambeth.Xml
 
 rem @call mvn exec:java -Dexec.mainClass="de.osthus.classbrowser.java.Program" -DjarFolders="%javaSrcDir%" -DlibraryJarFolders="%javaLibDir%" -DtargetPath="%dataDir%" -DmoduleRootPath="%javaModuleDir%"

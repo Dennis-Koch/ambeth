@@ -12,6 +12,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.propertychange.PropertyChangeEnhancementHint;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
@@ -33,7 +34,7 @@ public class DefaultPropertiesBehavior extends AbstractBehavior
 			List<IBytecodeBehavior> cascadePendingBehaviors)
 	{
 		if (state.getContext(EntityEnhancementHint.class) == null && state.getContext(EmbeddedEnhancementHint.class) == null
-				&& state.getContext(ImplementAbstractObjectEnhancementHint.class) == null)
+				&& state.getContext(ImplementAbstractObjectEnhancementHint.class) == null && state.getContext(PropertyChangeEnhancementHint.class) == null)
 		{
 			return visitor;
 		}

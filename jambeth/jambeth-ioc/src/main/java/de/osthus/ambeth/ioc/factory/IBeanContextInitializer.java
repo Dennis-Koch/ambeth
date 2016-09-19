@@ -16,4 +16,7 @@ public interface IBeanContextInitializer
 	IList<IBeanConfiguration> fillParentHierarchyIfValid(ServiceContext beanContext, BeanContextFactory beanContextFactory, IBeanConfiguration beanConfiguration);
 
 	Class<?> resolveTypeInHierarchy(List<IBeanConfiguration> beanConfigurations);
+
+	Object instantiateBean(ServiceContext beanContext, BeanContextFactory beanContextFactory, IBeanConfiguration beanConfiguration, Class<?> beanType,
+			List<IBeanConfiguration> beanConfHierarchy);
 }

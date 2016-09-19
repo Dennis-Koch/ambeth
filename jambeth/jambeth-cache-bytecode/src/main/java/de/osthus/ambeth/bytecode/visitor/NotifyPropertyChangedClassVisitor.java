@@ -90,8 +90,8 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 	protected static final MethodInstance template_m_usePropertyChangeSupport = new MethodInstance(null, Opcodes.ACC_PUBLIC, PropertyChangeSupport.class,
 			"use$PropertyChangeSupport", null);
 
-	public static final PropertyInstance p_propertyChangeSupport = PropertyInstance.findByTemplate(INotifyPropertyChangedSource.class, "PropertyChangeSupport",
-			PropertyChangeSupport.class, false);
+	public static final PropertyInstance template_p_propertyChangeSupport = PropertyInstance.findByTemplate(INotifyPropertyChangedSource.class,
+			"PropertyChangeSupport", PropertyChangeSupport.class, false);
 
 	public static final PropertyInstance p_parentChildEventHandler = PropertyInstance.findByTemplate(INotifyPropertyChangedSource.class,
 			"ParentChildEventHandler", PropertyChangeListener.class, false);
@@ -136,19 +136,32 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 	@Override
 	public void visitEnd()
 	{
-		FieldInstance f_propertyChangeSupport = getPropertyChangeSupportField();
 		PropertyInstance p_propertyChangeTemplate = getPropertyChangeTemplatePI(this);
 
 		implementPropertyChangeConfigurable();
 
-		MethodInstance m_usePropertyChangeSupport = implementUsePropertyChangeSupport(p_propertyChangeTemplate, f_propertyChangeSupport);
-		f_propertyChangeSupport = getState().getAlreadyImplementedField(f_propertyChangeSupport.getName());
+		PropertyInstance p_propertyChangeSupport = PropertyInstance.findByTemplate(template_p_propertyChangeSupport, true);
+		if (p_propertyChangeSupport == null)
+		{
+			FieldInstance f_propertyChangeSupport = getPropertyChangeSupportField();
+			if (BytecodeBehaviorState.getState().getAlreadyImplementedField(f_propertyChangeSupport.getName()) == null)
+			{
+				f_propertyChangeSupport = implementField(f_propertyChangeSupport);
+			}
+			p_propertyChangeSupport = implementGetter(template_p_propertyChangeSupport, f_propertyChangeSupport);
+
+			if (template_p_propertyChangeSupport.getSetter() == null)
+			{
+				p_propertyChangeSupport = implementSetter(template_p_propertyChangeSupport, f_propertyChangeSupport);
+			}
+		}
+		MethodInstance m_usePropertyChangeSupport = implementUsePropertyChangeSupport(p_propertyChangeTemplate, p_propertyChangeSupport);
 
 		implementNotifyPropertyChanged(p_propertyChangeTemplate, m_usePropertyChangeSupport);
 
 		MethodInstance m_firePropertyChange = implementFirePropertyChange(p_propertyChangeTemplate);
 
-		implementNotifyPropertyChangedSource(p_propertyChangeTemplate, f_propertyChangeSupport);
+		implementNotifyPropertyChangedSource(p_propertyChangeTemplate, p_propertyChangeSupport);
 
 		if (properties == null)
 		{
@@ -170,7 +183,7 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 				{
 					continue;
 				}
-				implementPropertyChangeOnProperty(propInfo, m_firePropertyChange, f_propertyChangeSupport);
+				implementPropertyChangeOnProperty(propInfo, m_firePropertyChange, p_propertyChangeSupport);
 			}
 		}
 		else
@@ -178,7 +191,7 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 			for (String propertyName : properties)
 			{
 				PropertyInstance propInfo = PropertyInstance.findByTemplate(propertyName, (Type) null, false);
-				implementPropertyChangeOnProperty(propInfo, m_firePropertyChange, f_propertyChangeSupport);
+				implementPropertyChangeOnProperty(propInfo, m_firePropertyChange, p_propertyChangeSupport);
 			}
 		}
 		super.visitEnd();
@@ -229,14 +242,14 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 	}
 
 	protected void implementPropertyChangeOnProperty(final PropertyInstance propertyInfo, MethodInstance m_firePropertyChange,
-			FieldInstance f_propertyChangeSupport)
+			PropertyInstance p_propertyChangeSupport)
 	{
 		// add property change detection and notification
 		if (propertyInfo.getGetter() == null || propertyInfo.getSetter() == null)
 		{
 			return;
 		}
-		if (InitializeEmbeddedMemberVisitor.isEmbeddedMember(metaData, propertyInfo.getName()))
+		if (metaData != null && InitializeEmbeddedMemberVisitor.isEmbeddedMember(metaData, propertyInfo.getName()))
 		{
 			return;
 		}
@@ -279,7 +292,7 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 		if (relationProperty)
 		{
 			// check if a setter call to an UNINITIALIZED relation occured with value null
-			// if it the case there would be no PCE because oldValue & newValue are both null
+			// if it is the case there would be no PCE because oldValue & newValue are both null
 			// but we need a PCE in this special case
 			Label l_noSpecialHandling = mg.newLabel();
 			FieldInstance f_state = getState().getAlreadyImplementedField(ValueHolderIEC.getInitializedFieldName(propertyInfo.getName()));
@@ -321,7 +334,7 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 		// call firePropertyChange on this
 		mg.loadThis();
 		// propertyChangeSupport
-		mg.getThisField(f_propertyChangeSupport);
+		mg.callThisGetter(p_propertyChangeSupport);
 		// property
 		mg.callThisGetter(p_setterMethodHandle);
 		// oldValue
@@ -427,22 +440,21 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 		return f_propertyChangeSupport;
 	}
 
-	protected MethodInstance implementUsePropertyChangeSupport(final PropertyInstance p_propertyChangeTemplate, FieldInstance f_propertyChangeSupport)
+	protected MethodInstance implementUsePropertyChangeSupport(final PropertyInstance p_propertyChangeTemplate, PropertyInstance p_propertyChangeSupport)
 	{
 		MethodInstance m_usePropertyChangeSupport = MethodInstance.findByTemplate(template_m_usePropertyChangeSupport, true);
 
 		if (m_usePropertyChangeSupport == null)
 		{
 			// create field that holds propertyChangeSupport
-			f_propertyChangeSupport = implementField(f_propertyChangeSupport);
 			MethodGenerator mg = visitMethod(template_m_usePropertyChangeSupport);
 			Label l_pcsValid = mg.newLabel();
-			mg.getThisField(f_propertyChangeSupport);
+			mg.callThisGetter(p_propertyChangeSupport);
 			mg.dup();
 			mg.ifNonNull(l_pcsValid);
 
 			mg.pop(); // remove 2nd null instance from stack caused by previous dup
-			mg.putThisField(f_propertyChangeSupport, new Script()
+			mg.callThisSetter(p_propertyChangeSupport, new Script()
 			{
 				@Override
 				public void execute(MethodGenerator mg)
@@ -452,7 +464,7 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 					mg.invokeVirtual(m_newPropertyChangeSupport);
 				}
 			});
-			mg.getThisField(f_propertyChangeSupport);
+			mg.callThisGetter(p_propertyChangeSupport);
 
 			mg.mark(l_pcsValid);
 			mg.returnValue(); // return instance already on the stack by both branches
@@ -463,7 +475,7 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 		return m_usePropertyChangeSupport;
 	}
 
-	protected PropertyInstance implementNotifyPropertyChangedSource(PropertyInstance p_propertyChangeTemplate, FieldInstance f_propertyChangeSupport)
+	protected void implementNotifyPropertyChangedSource(PropertyInstance p_propertyChangeTemplate, PropertyInstance p_propertyChangeSupport)
 	{
 		MethodInstance m_onPropertyChanged_Values = MethodInstance.findByTemplate(template_m_onPropertyChanged_Values, true);
 		if (m_onPropertyChanged_Values == null)
@@ -471,7 +483,7 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 			MethodGenerator mv = visitMethod(template_m_onPropertyChanged_Values);
 			mv.callThisGetter(p_propertyChangeTemplate);
 			mv.loadThis();
-			mv.getThisField(f_propertyChangeSupport);
+			mv.callThisGetter(p_propertyChangeSupport);
 
 			// getSetterHandle(sender, propertyName)
 			mv.callThisGetter(p_propertyChangeTemplate);
@@ -501,12 +513,6 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 			mv.returnVoidOrThis();
 			mv.endMethod();
 			m_onPropertyChanged = mv.getMethod();
-		}
-		PropertyInstance p_pceHandlers = PropertyInstance.findByTemplate(p_propertyChangeSupport, true);
-		if (p_pceHandlers == null)
-		{
-			implementGetter(p_propertyChangeSupport.getGetter(), f_propertyChangeSupport);
-			p_pceHandlers = PropertyInstance.findByTemplate(p_propertyChangeSupport, false);
 		}
 		if (EmbeddedEnhancementHint.hasMemberPath(getState().getContext()))
 		{
@@ -555,7 +561,6 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 				}, null);
 			}
 		}
-		return p_pceHandlers;
 	}
 
 	protected void implementNotifyPropertyChanged(PropertyInstance p_propertyChangeTemplate, MethodInstance m_usePropertyChangeSupport)

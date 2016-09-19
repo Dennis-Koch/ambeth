@@ -17,6 +17,12 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import de.osthus.ambeth.config.CoreConfigurationConstants;
+import de.osthus.ambeth.config.Properties;
+import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.testutil.TestProperties;
+import de.osthus.ambeth.testutil.TestPropertiesList;
+
 public class AmbethShellStarterTest
 {
 
@@ -195,6 +201,15 @@ public class AmbethShellStarterTest
 
 		// create batch file(.as file) to include all the commands
 		File asFile = new File(batchFileName);
+
+		if (asFile.exists())
+		{
+			if (!asFile.delete())
+			{
+				throw new IllegalStateException("Unable to cleanup test resources!");
+			}
+		}
+
 		Assert.assertTrue("should use a non-existing file for testing", !asFile.exists());
 		asFile.createNewFile();
 		OutputStream out = null;
@@ -220,8 +235,10 @@ public class AmbethShellStarterTest
 	@SuppressWarnings("unchecked")
 	private void executeAmbethShell(String... cmdArgs)
 	{
+		Properties ambethProperties = new Properties();
+		ambethProperties.put(CoreConfigurationConstants.PackageScanPatterns, "n/a");
 		// execute Ambeth-Shell
-		AmbethShellStarter.start(cmdArgs);
+		AmbethShellStarter.start(cmdArgs, ambethProperties);
 	}
 
 	/**

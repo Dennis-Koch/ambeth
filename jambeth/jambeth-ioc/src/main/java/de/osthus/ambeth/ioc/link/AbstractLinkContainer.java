@@ -1,8 +1,10 @@
 package de.osthus.ambeth.ioc.link;
 
+import java.lang.ref.WeakReference;
 import java.util.Arrays;
 
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -15,13 +17,34 @@ import de.osthus.ambeth.util.ParamChecker;
 
 public abstract class AbstractLinkContainer implements ILinkContainer, IInitializingBean, IDeclarationStackTraceAware
 {
+	public static class LinkDisposable extends WeakReference<AbstractLinkContainer> implements IDisposableBean
+	{
+		private final int linkCounter;
+
+		public LinkDisposable(AbstractLinkContainer target)
+		{
+			super(target);
+			linkCounter = target.linkCounter;
+		}
+
+		@Override
+		public void destroy() throws Throwable
+		{
+			AbstractLinkContainer target = get();
+			if (target == null || linkCounter != target.linkCounter || !target.linked)
+			{
+				// this delegate is already outdated
+				return;
+			}
+			target.unlink();
+		}
+	}
+
 	public static final String PROPERTY_ARGUMENTS = "Arguments";
 
 	public static final String PROPERTY_OPTIONAL = "Optional";
 
 	public static final String PROPERTY_REGISTRY = "Registry";
-
-	public static final String PROPERTY_REGISTRY_NAME = "RegistryBeanName";
 
 	public static final String PROPERTY_REGISTRY_PROPERTY_NAME = "RegistryPropertyName";
 
@@ -34,6 +57,10 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 	public static final String PROPERTY_LISTENER_METHOD_NAME = "ListenerMethodName";
 
 	public static final String PROPERTY_REGISTRY_TYPE = "RegistryBeanAutowiredType";
+
+	public static final String PROPERTY_FOREIGN_BEAN_CONTEXT = "ForeignBeanContext";
+
+	public static final String PROPERTY_FOREIGN_BEAN_CONTEXT_NAME = "ForeignBeanContextName";
 
 	protected static final Object[] emptyArgs = new Object[0];
 
@@ -52,6 +79,12 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 	@Autowired
 	protected IServiceContext beanContext;
 
+	@Property(mandatory = false)
+	protected IServiceContext foreignBeanContext;
+
+	@Property(mandatory = false)
+	protected String foreignBeanContextName;
+
 	@Autowired
 	protected IDelegateFactory delegateFactory;
 
@@ -60,9 +93,6 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 
 	@Property(mandatory = false)
 	protected Class<?> registryBeanAutowiredType;
-
-	@Property(mandatory = false)
-	protected String registryBeanName;
 
 	@Property(mandatory = false)
 	protected String registryPropertyName;
@@ -77,10 +107,14 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 
 	protected StackTraceElement[] declarationStackTrace;
 
+	protected boolean linked;
+
+	protected int linkCounter;
+
 	@Override
 	public void afterPropertiesSet()
 	{
-		ParamChecker.assertTrue(registryBeanAutowiredType != null || registryBeanName != null || registry != null,
+		ParamChecker.assertTrue(registryBeanAutowiredType != null || registry != null,
 				"either property 'RegistryBeanAutowiredType', 'RegistryBeanName' or 'Registry' must be valid");
 		ParamChecker.assertTrue(listener != null || listenerBean != null || listenerBeanName != null,
 				"either property 'Listener' or 'ListenerBean' or 'ListenerBeanName' must be valid");
@@ -98,20 +132,52 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 
 	protected Object resolveRegistry()
 	{
+		IServiceContext beanContext = this.beanContext;
+		boolean hasForeignContextBeenUsed = true;
+		if (foreignBeanContext != null)
+		{
+			beanContext = foreignBeanContext;
+			hasForeignContextBeenUsed = false;
+		}
+		else if (foreignBeanContextName != null)
+		{
+			foreignBeanContext = beanContext.getService(foreignBeanContextName, IServiceContext.class, !optional);
+			beanContext = foreignBeanContext;
+			hasForeignContextBeenUsed = false;
+		}
+		if (beanContext == null)
+		{
+			return null;
+		}
 		Object registry = this.registry;
-		if (registry != null)
+		if (registry instanceof Class)
 		{
-			registry = resolveRegistryIntern(registry);
-			this.registry = registry;
-			return registry;
+			registry = beanContext.getService((Class<?>) registry, !optional);
+			hasForeignContextBeenUsed = true;
 		}
-		if (registryBeanName != null)
+		else if (registry instanceof String)
 		{
-			registry = beanContext.getService(registryBeanName, !optional);
+			registry = beanContext.getService((String) registry, !optional);
+			hasForeignContextBeenUsed = true;
 		}
-		else
+		else if (registry instanceof IBeanConfiguration)
+		{
+			registry = beanContext.getService(((IBeanConfiguration) registry).getName(), !optional);
+			hasForeignContextBeenUsed = true;
+		}
+		else if (registry == null)
 		{
 			registry = beanContext.getService(registryBeanAutowiredType, !optional);
+			hasForeignContextBeenUsed = true;
+		}
+		if (registry == null)
+		{
+			return null;
+		}
+		if (!hasForeignContextBeenUsed)
+		{
+			throw new LinkException(ILinkRegistryNeededConfiguration.class.getSimpleName()
+					+ ".toContext(...) has been called but at the same time the registry has been provided as an instance with the .to(...) overload", this);
 		}
 		registry = resolveRegistryIntern(registry);
 		this.registry = registry;
@@ -180,39 +246,53 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 	}
 
 	@Override
-	public void link()
+	public boolean link()
 	{
+		if (linked)
+		{
+			return false;
+		}
 		Object registry = null, listener = null;
 		try
 		{
 			registry = resolveRegistry();
 			if (registry == null)
 			{
-				return;
+				return false;
 			}
 			listener = resolveListener();
 			if (listener == null)
 			{
-				return;
+				return false;
 			}
 			handleLink(registry, listener);
 		}
-		catch (Exception e)
+		catch (Throwable e)
 		{
 			if (declarationStackTrace != null)
 			{
 				throw new LinkException("An error occured while trying to link " + (listenerBeanName != null ? "'" + listenerBeanName + "'" : listener)
-						+ " to " + (registryBeanName != null ? "'" + registryBeanName + "'" : registry) + "\n" + Arrays.toString(declarationStackTrace), e,
-						this);
+						+ " to '" + registry + "'\n" + Arrays.toString(declarationStackTrace), e, this);
 			}
-			throw new LinkException("An error occured while trying to link " + (listenerBeanName != null ? "'" + listenerBeanName + "'" : listener) + " to "
-					+ (registryBeanName != null ? "'" + registryBeanName + "'" : registry), e, this);
+			throw new LinkException("An error occured while trying to link " + (listenerBeanName != null ? "'" + listenerBeanName + "'" : listener) + " to '"
+					+ registry + "'", e, this);
 		}
+		linked = true;
+		linkCounter++;
+		if (foreignBeanContext != null)
+		{
+			foreignBeanContext.registerDisposable(new LinkDisposable(this));
+		}
+		return true;
 	}
 
 	@Override
-	public void unlink()
+	public boolean unlink()
 	{
+		if (!linked)
+		{
+			return false;
+		}
 		try
 		{
 			if (registry == null || listener == null)
@@ -223,20 +303,17 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 				{
 					log.debug("Unlink has been called without prior linking. If no other exception is visible in the logs then this may be a bug");
 				}
-				return;
+				return false;
 			}
 			handleUnlink(registry, listener);
 		}
 		catch (Exception e)
 		{
 			throw new LinkException("An error occured while trying to unlink " + (listenerBeanName != null ? "'" + listenerBeanName + "'" : listener)
-					+ " from " + (registryBeanName != null ? "'" + registryBeanName + "'" : registry), e, this);
+					+ " from '" + registry + "'", e, this);
 		}
-		finally
-		{
-			registry = null;
-			listener = null;
-		}
+		linked = false;
+		return true;
 	}
 
 	protected abstract ILogger getLog();

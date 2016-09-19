@@ -2,11 +2,15 @@ package de.osthus.ambeth.xml.namehandler;
 
 import java.lang.reflect.Array;
 import java.util.Date;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.IdentityLinkedMap;
+import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IProxyHelper;
@@ -14,17 +18,19 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.typeinfo.ITypeInfo;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.xml.INameBasedHandler;
 import de.osthus.ambeth.xml.IReader;
 import de.osthus.ambeth.xml.IWriter;
 import de.osthus.ambeth.xml.IXmlTypeKey;
 import de.osthus.ambeth.xml.IXmlTypeRegistry;
+import de.osthus.ambeth.xml.SpecifiedMember;
 import de.osthus.ambeth.xml.typehandler.AbstractHandler;
 
 public class ClassNameHandler extends AbstractHandler implements INameBasedHandler
 {
-	private static final ITypeInfoItem[] EMPTY_TII = new ITypeInfoItem[0];
+	private static final String SPECIFIED_SUFFIX = "Specified";
+
+	private static final SpecifiedMember[] EMPTY_TII = new SpecifiedMember[0];
 
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -34,10 +40,13 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 
 	protected final Pattern splitPattern = Pattern.compile(" ");
 
+	@Autowired
 	protected IProxyHelper proxyHelper;
 
+	@Autowired
 	protected ITypeInfoProvider typeInfoProvider;
 
+	@Autowired
 	protected IXmlTypeRegistry xmlTypeRegistry;
 
 	@Override
@@ -45,26 +54,8 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 	{
 		super.afterPropertiesSet();
 
-		ParamChecker.assertNotNull(proxyHelper, "ProxyHelper");
-		ParamChecker.assertNotNull(typeInfoProvider, "TypeInfoProvider");
-		ParamChecker.assertNotNull(xmlTypeRegistry, "XmlTypeRegistry");
-
 		noMemberAttribute.add(Date.class);
-	}
-
-	public void setProxyHelper(IProxyHelper proxyHelper)
-	{
-		this.proxyHelper = proxyHelper;
-	}
-
-	public void setTypeInfoProvider(ITypeInfoProvider typeInfoProvider)
-	{
-		this.typeInfoProvider = typeInfoProvider;
-	}
-
-	public void setXmlTypeRegistry(IXmlTypeRegistry xmlTypeRegistry)
-	{
-		this.xmlTypeRegistry = xmlTypeRegistry;
+		noMemberAttribute.add(Object.class);
 	}
 
 	public void writeAsAttribute(Class<?> type, IWriter writer)
@@ -115,7 +106,21 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 				sb.setLength(0);
 				ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(type);
 				ITypeInfoItem[] members = typeInfo.getMembers();
-				ArrayList<ITypeInfoItem> membersToWrite = new ArrayList<ITypeInfoItem>();
+
+				LinkedHashMap<String, ITypeInfoItem> potentialSpecifiedMemberMap = new LinkedHashMap<String, ITypeInfoItem>();
+
+				for (int a = 0, size = members.length; a < size; a++)
+				{
+					ITypeInfoItem member = members[a];
+					String name = member.getName();
+					if (name.endsWith(SPECIFIED_SUFFIX))
+					{
+						String realName = name.substring(0, name.length() - SPECIFIED_SUFFIX.length());
+						potentialSpecifiedMemberMap.put(realName, member);
+					}
+				}
+
+				IdentityLinkedMap<ITypeInfoItem, ITypeInfoItem> usedMembers = new IdentityLinkedMap<ITypeInfoItem, ITypeInfoItem>();
 
 				for (int a = 0, size = members.length; a < size; a++)
 				{
@@ -128,15 +133,33 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 					{
 						continue;
 					}
+					ITypeInfoItem specifiedMember = potentialSpecifiedMemberMap.get(member.getName());
+
+					usedMembers.put(member, specifiedMember);
+
+				}
+
+				for (ITypeInfoItem specifiedMember : usedMembers.values())
+				{
+					if (specifiedMember != null)
+					{
+						usedMembers.remove(specifiedMember);
+					}
+				}
+				ArrayList<SpecifiedMember> membersToWrite = new ArrayList<SpecifiedMember>();
+				for (Entry<ITypeInfoItem, ITypeInfoItem> entry : usedMembers)
+				{
+					ITypeInfoItem member = entry.getKey();
 					if (sb.length() > 0)
 					{
 						sb.append(' ');
 					}
 					sb.append(member.getXMLName());
-					membersToWrite.add(member);
+
+					membersToWrite.add(new SpecifiedMember(member, entry.getValue()));
 				}
 				writer.writeAttribute(classMemberAttribute, sb.toString());
-				writer.putMembersOfType(type, membersToWrite.toArray(ITypeInfoItem.class));
+				writer.putMembersOfType(type, membersToWrite.toArray(SpecifiedMember.class));
 			}
 		}
 		finally
@@ -195,8 +218,9 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 		{
 			ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(typeObj);
 			String[] memberNames = splitPattern.split(classMemberValue);
-			ITypeInfoItem[] members = memberNames.length > 0 ? new ITypeInfoItem[memberNames.length] : EMPTY_TII;
+			SpecifiedMember[] members = memberNames.length > 0 ? new SpecifiedMember[memberNames.length] : EMPTY_TII;
 
+			StringBuilder sb = new StringBuilder();
 			for (int a = memberNames.length; a-- > 0;)
 			{
 				String memberName = memberNames[a];
@@ -205,7 +229,10 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 				{
 					throw new IllegalStateException("No member found with xml name '" + memberName + "' on entity '" + typeObj.getName() + "'");
 				}
-				members[a] = member;
+				sb.setLength(0);
+				sb.append(memberName).append(SPECIFIED_SUFFIX);
+				ITypeInfoItem specifiedMember = typeInfo.getMemberByXmlName(sb.toString());
+				members[a] = new SpecifiedMember(member, specifiedMember);
 			}
 			reader.putMembersOfType(typeObj, members);
 		}

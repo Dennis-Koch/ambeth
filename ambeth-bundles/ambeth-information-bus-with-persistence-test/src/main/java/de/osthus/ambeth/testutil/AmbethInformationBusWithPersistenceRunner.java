@@ -33,7 +33,6 @@ import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.changecontroller.IChangeController;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
-import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
@@ -70,6 +69,7 @@ import de.osthus.ambeth.security.SecurityFilterInterceptor;
 import de.osthus.ambeth.security.SecurityFilterInterceptor.SecurityMethodMode;
 import de.osthus.ambeth.security.StringSecurityScope;
 import de.osthus.ambeth.security.TestAuthentication;
+import de.osthus.ambeth.state.IStateRollback;
 import de.osthus.ambeth.testutil.datagenerator.TestDataModule;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
@@ -135,9 +135,9 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 	@SuppressWarnings("resource")
 	@Override
-	protected void extendProperties(FrameworkMethod frameworkMethod, Properties props)
+	protected void extendPropertiesInstance(FrameworkMethod frameworkMethod, Properties props)
 	{
-		super.extendProperties(frameworkMethod, props);
+		super.extendPropertiesInstance(frameworkMethod, props);
 
 		String testForkSuffix = props.getString(UtilConfigurationConstants.ForkName);
 		if (testForkSuffix != null)
@@ -200,7 +200,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		Properties baseProps = new Properties(Properties.getApplication());
 		// baseProps.putString("ambeth.log.level", "WARN");
 
-		extendProperties(null, baseProps);
+		extendPropertiesInstance(null, baseProps);
 
 		IServiceContext schemaBootstrapContext = null;
 		boolean success = false;
@@ -376,7 +376,14 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			{
 				if (!oldAutoCommit)
 				{
-					connection.setAutoCommit(false);
+					try
+					{
+						connection.setAutoCommit(false);
+					}
+					catch (SQLException e)
+					{
+						// Intended blank
+					}
 				}
 			}
 			isStructureRebuildAlreadyHandled = true;
@@ -1038,12 +1045,12 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			boolean success = false;
 			try
 			{
-				IList<String> enableConstraintsSQL = getOrCreateSchemaContext().getService(IConnectionDialect.class).disableConstraints(conn, getSchemaNames());
+				IStateRollback rollback = getOrCreateSchemaContext().getService(IConnectionDialect.class).disableConstraints(conn, getSchemaNames());
 				for (ISchemaRunnable schemaRunnable : schemaRunnables)
 				{
 					schemaRunnable.executeSchemaSql(conn);
 				}
-				getOrCreateSchemaContext().getService(IConnectionDialect.class).enableConstraints(conn, enableConstraintsSQL);
+				rollback.rollback();
 				conn.commit();
 				success = true;
 			}
@@ -1534,6 +1541,10 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			}
 		}
 		command = getOrCreateSchemaContext().getService(IConnectionDialect.class).prepareCommand(command);
+		if (command == null || command.length() == 0)
+		{
+			return;
+		}
 		int loopCount = ((Integer) options.get("loop")).intValue();
 		if (loopCount == 1)
 		{

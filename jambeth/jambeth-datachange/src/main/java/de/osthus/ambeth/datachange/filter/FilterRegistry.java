@@ -32,6 +32,12 @@ public class FilterRegistry implements IFilterExtendable, IEventDispatcher
 	}
 
 	@Override
+	public boolean isDispatchingBatchedEvents()
+	{
+		return false;
+	}
+
+	@Override
 	public void enableEventQueue()
 	{
 		throw new UnsupportedOperationException();

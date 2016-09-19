@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.Property;
@@ -298,68 +299,27 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 	}
 
 	@Override
-	public List<String> getTablesWithoutPermissionGroup(Connection connection) throws SQLException
+	protected IList<String> queryForAllPermissionGroupNeedingTables(Connection connection) throws SQLException
 	{
-		Statement stmt = null;
-		ResultSet rs = null;
-		try
-		{
-			stmt = connection.createStatement();
+		throw new UnsupportedOperationException("Not yet implemented");
+	}
 
-			HashSet<String> existingPermissionGroups = new HashSet<String>();
-			rs = stmt.executeQuery("SELECT TNAME FROM TAB T JOIN COLS C ON T.TNAME = C.TABLE_NAME WHERE T.TABTYPE='TABLE' AND C.COLUMN_NAME='"
-					+ PermissionGroup.permGroupIdNameOfData + "'");
-			ArrayList<String> tableNamesWhichNeedPermissionGroup = new ArrayList<String>();
-			while (rs.next())
-			{
-				String tableName = rs.getString("TNAME");
-				if (MSSqlDialect.BIN_TABLE_NAME.matcher(tableName).matches())
-				{
-					continue;
-				}
-				if (ignoredTables.contains(tableName))
-				{
-					continue;
-				}
-				if (ormPatternMatcher.matchesArchivePattern(tableName))
-				{
-					// archive tables do not need a permission group
-					continue;
-				}
-				if (ormPatternMatcher.matchesPermissionGroupPattern(tableName))
-				{
-					// permissions groups themselves have no permissiong group
-					existingPermissionGroups.add(tableName);
-					continue;
-				}
-				tableNamesWhichNeedPermissionGroup.add(tableName);
-			}
-			JdbcUtil.close(rs);
-			rs = stmt.executeQuery("SELECT TNAME FROM TAB T");
-			while (rs.next())
-			{
-				String tableName = rs.getString("TNAME");
-				if (ormPatternMatcher.matchesPermissionGroupPattern(tableName))
-				{
-					existingPermissionGroups.add(tableName);
-				}
-			}
-			int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
-			for (int a = tableNamesWhichNeedPermissionGroup.size(); a-- > 0;)
-			{
-				String permissionGroupName = ormPatternMatcher.buildPermissionGroupFromTableName(tableNamesWhichNeedPermissionGroup.get(a),
-						maxProcedureNameLength);
-				if (existingPermissionGroups.contains(permissionGroupName))
-				{
-					tableNamesWhichNeedPermissionGroup.removeAtIndex(a);
-				}
-			}
-			return tableNamesWhichNeedPermissionGroup;
-		}
-		finally
-		{
-			JdbcUtil.close(stmt, rs);
-		}
+	@Override
+	protected IList<String> queryForAllPotentialPermissionGroups(Connection connection) throws SQLException
+	{
+		throw new UnsupportedOperationException("Not yet implemented");
+	}
+
+	@Override
+	protected IList<String> queryForAllTables(Connection connection) throws SQLException
+	{
+		throw new UnsupportedOperationException("Not yet implemented");
+	}
+
+	@Override
+	protected de.osthus.ambeth.collections.IList<String> queryForAllTriggers(Connection connection) throws SQLException
+	{
+		throw new UnsupportedOperationException("Not yet implemented");
 	}
 
 	@Override

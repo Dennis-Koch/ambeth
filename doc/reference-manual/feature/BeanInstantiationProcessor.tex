@@ -1,0 +1,96 @@
+\SetAPI{J-C}
+\section{BeanInstantiationProcessor}
+\label{feature:BeanInstantiationProcessor}
+\ClearAPI
+Instantiationprocessor beans are defined by implementing the interface \type{de.osthus.ambeth.ioc.IBeanInstantiationProcessor} and are used in order to customize the instantiation process of a bean. In most cases this is helpful if you want to dynamically subclass by bytecode enhancement the bean type to change or extend its behavior.
+\newline
+The benefit of bytecode enhancement over proxying for AOP relies in the fact that it is very fast at invocation time (no reflection necessary, no CgLib interceptor or anything similar. As an outcome of the \textit{InstantiationProcessor} a single instance of a bytecode enhanced subclass of the target bean declaration is created.
+\newline
+A major usecase for such an \textit{InstantiationProcessor} is the \javadoc{de.osthus.ambeth.propertychange.PropertyChangeInstantiationProcessor}{PropertyChangeInstantiationProcessor} - working behind the scenes of the \prettyref{annotation:PropertyChangeAspect} annotation.
+
+
+\subsection{Comparison of proxy based and bytecode based AOP}
+\begin{longtable}{ l c c } \hline & \textbf{proxy based} & \textbf{bytecode based} \
+	\endhead
+	\hline
+	Intercept final methods &
+		- & -  \\
+	\hline
+	Potentially unwanted behavior &
+		 - & + \\
+	\hline
+	Passes identity equals &
+		 - & + \\
+	\hline
+	'this' pointer as method result &
+		 o & + \\
+	\hline
+	Performance &
+		o & + \\
+	\hline
+\end{longtable}
+
+\subsubsection{Intercept final methods}
+Both approaches have issues dealing with non-virtual / final methods. This is because the dynamic subclass generated in both approaches can not override those methods to apply custom behavior on them.
+
+\subsubsection{Potentially unwanted behavior}
+The proxy based AOP approach relies on the instantiation of a proxy class. The proxy class inherits the target base class. If the target base class is not \type{java.lang.Object} then the implict call to the super constructors might imply unwanted behavior - e.g. if those constructors call foreign static methods and may therefore change states of those foreign objects. Or if the constructor creates a specific file handle or server socket then the proxy cannot be instantiated at all (because the resource is already locked by the previously instantiated to-be-proxied target object. The bytecode based approach does not have this issue because the behavior is applied to the target CLASS not to the target OBJECT so there will only be a single object instance at runtime.
+
+\subsubsection{Passes identity equals}
+The proxy based AOP approach has an issue if application code gets - for whatever reason - the proxied target object under control. In that case an identity equality check fails because \textit{proxy object handle != target object handle}. The bytecode based approach does not have this issue because there is at all times only one instance of a given target (sub-)class. Also you can not cast the proxy handle to abstract classes or interfaces that you might know the target object inherits - this can only be done if the proxy handle exactly implements and forwards all of them (which is most often not the case). The bytecase based object IS the target object and can therefore be casted to any type which is valid for to initial target type.
+
+\subsubsection{'this' pointer as method result}
+Also related to the issue above: If
+\begin{itemize}
+	\item the proxy interceptor forwards the proxied method invocation to the target object
+	\item and if the target object returns \textit{itself} as the method invocation result
+\end{itemize}
+then the interceptor has to be smart enough to return \textit{itself} (the proxy in this case) as the result of the proxied method invocation. The target object handle should in most cases never be available to application code.
+
+\subsubsection{Performance}
+Both AOP approaches are in practice very fast - at least the way it is implemented in the \AMBETH{} framework: The design intensively considered potential performance issues. However the proxy based AOP approach relying on a proxy instance, an interceptor orchestrating the proxied invocation and the forwarded invocation of the target object involves an ``above-moderate'' use of the thread-stack. Compared to this the bytecode-based approach on the minimum.
+
+\begin{lstlisting}[style=Java,caption={Example stack trace of a proxy based invocation}]
+Bean1.myProp(PropertyChangeEvent) line: 71	
+Bean1MethodAccess.invoke(Object, int, Object...) line: n/a
+DelegateInterceptor.interceptIntern(Object, Method, Object[], MethodProxy) line: 56	
+DelegateInterceptor(AbstractSimpleInterceptor).intercept(Object, Method, ...) line: 43	
+PropertyChangeListener\$\$EnhancerByCGLIB\$\$12838d82.propertyChange(PropertyChangeEvent) line: n/a
+PropertyChangeSupport.firePropertyChange(PropertyChangeEvent) line: 101	
+PropertyChangeSupport.firePropertyChange(Object, String, Object, Object) line: 90	
+PropertyChangeMixin.executeFirePropertyChangeIntern(PropertyChangeSupport, ...) line: 514	
+PropertyChangeMixin.executeFirePropertyChange(PropertyChangeSupport, ...) line: 480	
+PropertyChangeMixin.firePropertyChange(INotifyPropertyChangedSource, ...) line: 461	
+PropertyChangeMixin.firePropertyChange(INotifyPropertyChangedSource, ...) line: 405	
+Bean2\$A4.firePropertyChange(PropertyChangeSupport, ...) line: n/a
+Bean2\$A4.setMyProperty(String) line: n/a
+PropertyChangeTest.test() line: 120
+\end{lstlisting}
+
+\begin{lstlisting}[style=Java,caption={Example stack trace of a bytecode based invocation}]
+Bean1.myProp(PropertyChangeEvent) line: 71	
+Bean1\$Delegate\$myProp_O3\$A1.propertyChange(PropertyChangeEvent) line: n/a
+PropertyChangeSupport.firePropertyChange(PropertyChangeEvent) line: 101	
+PropertyChangeSupport.firePropertyChange(Object, String, Object, Object) line: 90	
+PropertyChangeMixin.executeFirePropertyChangeIntern(PropertyChangeSupport, ...) line: 514	
+PropertyChangeMixin.executeFirePropertyChange(PropertyChangeSupport, ...) line: 480	
+PropertyChangeMixin.firePropertyChange(INotifyPropertyChangedSource, ...) line: 461	
+PropertyChangeMixin.firePropertyChange(INotifyPropertyChangedSource, ...) line: 405	
+Bean2\$A4.firePropertyChange(PropertyChangeSupport, ...) line: n/a
+Bean2\$A4.setMyProperty(String) line: n/a
+PropertyChangeTest.test() line: 120	
+\end{lstlisting}
+
+11 vs. 14 lines at a glance might not seem as an impressive difference but if you look precisely you have to substract some verbose lines for the comparison: 
+\begin{itemize}
+	\item 4 lines of PropertyChangeMixin (the AOP behavior itself)
+	\item 2 lines of PropertyChangeSupport (the AOP behavior itself)
+	\item 1 line of PropertyChangeTest.test (the initial call for completeness, not part of the AOP stack itself)
+\end{itemize}
+So you really have to compare 4 vs. 7 lines which is effectively nearly half of the thread stack usage in favor to the bytecode based AOP approach.
+
+\tip{Some additional interesting information can be recovered from the stacktrace of the proxy based AOP approach:
+\begin{itemize}
+	\item Line 2: \AMBETH{} uses ReflectASM (=MethodAccess) to invoke proxied methods on the target object (ReflectASM generates bytecode for the method invocation and therefore does not rely on the comparatively slow JDK reflection API
+	\item Line 5: \AMBETH{} uses CgLib instead of the comparatively slow JDK proxy API (in addition it allows to proxy classes, not only interfaces)
+\end{itemize}}

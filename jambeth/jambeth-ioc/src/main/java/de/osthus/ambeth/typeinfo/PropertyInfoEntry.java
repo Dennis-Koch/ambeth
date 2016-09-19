@@ -4,15 +4,15 @@ import java.util.Collections;
 import java.util.Comparator;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.IMap;
 
 public class PropertyInfoEntry
 {
-	protected final HashMap<String, IPropertyInfo> map;
+	protected final IMap<String, IPropertyInfo> map;
 
 	protected final IPropertyInfo[] properties;
 
-	public PropertyInfoEntry(HashMap<String, IPropertyInfo> map)
+	public PropertyInfoEntry(IMap<String, IPropertyInfo> map)
 	{
 		this.map = map;
 		ArrayList<IPropertyInfo> pis = new ArrayList<IPropertyInfo>(map.toArray(IPropertyInfo.class));
@@ -24,6 +24,6 @@ public class PropertyInfoEntry
 				return o1.getName().compareTo(o2.getName());
 			}
 		});
-		this.properties = pis.toArray(IPropertyInfo.class);
+		properties = pis.toArray(IPropertyInfo.class);
 	}
 }
