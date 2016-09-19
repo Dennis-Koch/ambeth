@@ -204,6 +204,12 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>
 	}
 
 	@Override
+	public IOperand difference(IOperand... operands)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public IOperator endsWith(IOperand leftOperand, IOperand rightOperand)
 	{
 		return createBinaryOperator(EndsWithOperator.class, leftOperand, rightOperand, null);

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -303,7 +304,7 @@ public class Logger implements IConfigurableLogger
 		}
 	}
 
-	protected void printThrowable(Throwable e, StringBuilder sb, String newLine, boolean printHeader)
+	protected void printThrowable(Throwable e, StringBuilder sb, String newLine, int level, boolean printHeader)
 	{
 		StackTraceElement[] stackTrace = e.getStackTrace();
 
@@ -313,10 +314,28 @@ public class Logger implements IConfigurableLogger
 		}
 		for (int a = 0, size = stackTrace.length; a < size; a++)
 		{
-			sb.append('\t').append(stackTrace[a].toString());
+			for (int b = level; b-- > 0;)
+			{
+				sb.append('\t');
+			}
+			sb.append(stackTrace[a].toString());
 			if (a + 1 < size)
 			{
 				sb.append(newLine);
+			}
+		}
+		if (e instanceof SQLException)
+		{
+			SQLException sql = ((SQLException) e).getNextException();
+			if (sql != null)
+			{
+				sb.append(newLine);
+				for (int b = level; b-- > 0;)
+				{
+					sb.append('\t');
+				}
+				sb.append("Next Exception: ");
+				printThrowable(sql, sb, newLine, level + 1, true);
 			}
 		}
 	}
@@ -332,12 +351,13 @@ public class Logger implements IConfigurableLogger
 			Throwable currentThrowable = throwable;
 			while (currentThrowable != null)
 			{
-				printThrowable(currentThrowable, sb, newLine, printHeader);
+				printThrowable(currentThrowable, sb, newLine, 1, printHeader);
 				printHeader = true;
 				currentThrowable = currentThrowable.getCause();
 				if (currentThrowable != null)
 				{
 					sb.append(newLine);
+					sb.append("Cause: ");
 				}
 			}
 			return sb.toString();

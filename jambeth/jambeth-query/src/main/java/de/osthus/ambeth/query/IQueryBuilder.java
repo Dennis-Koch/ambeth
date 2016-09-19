@@ -53,6 +53,8 @@ public interface IQueryBuilder<T> extends IDisposable
 
 	IOperator contains(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);
 
+	IOperand difference(IOperand... diffOperands);
+
 	IOperator endsWith(IOperand leftOperand, IOperand rightOperand);
 
 	IOperator endsWith(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);

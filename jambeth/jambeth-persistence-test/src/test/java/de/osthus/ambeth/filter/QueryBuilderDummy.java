@@ -111,6 +111,12 @@ public class QueryBuilderDummy<T> implements IQueryBuilder<T>
 	}
 
 	@Override
+	public IOperand difference(IOperand... operands)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public IOperator endsWith(IOperand leftOperand, IOperand rightOperand)
 	{
 		return new OperandDummy("endsWith", leftOperand, rightOperand);
