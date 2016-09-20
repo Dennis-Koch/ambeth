@@ -47,4 +47,16 @@ public class SystemClasspathInfoTest
 		Path file = systemClasspathInfo.openAsFile(url);
 		Assert.assertNotNull(file);
 	}
+
+	@Test
+	public void testOpenAsFile_TestFirstPartNotStripped() throws Throwable
+	{
+		String expectedResult = "C:\\home\\jenkins\\data\\workspace\\jAmbeth-debug\\osthus-ambeth\\ambeth-bundles\\ambeth-core-test\\target\\test-classes\\pluginScanResource\\modules.jar";
+		URL testUrl = new URL(
+				"file:///home/jenkins/data/workspace/jAmbeth-debug/osthus-ambeth/ambeth-bundles/ambeth-core-test/target/test-classes/pluginScanResource/modules.jar");
+
+		Path result = systemClasspathInfo.openAsFile(testUrl);
+
+		Assert.assertEquals(expectedResult, result.toString());
+	}
 }

@@ -25,11 +25,18 @@ public class SystemClasspathInfo implements IClasspathInfo
 		String cpString = System.getProperty("java.class.path");
 		String separator = System.getProperty("path.separator");
 		String[] cpItems = cpString.split(Pattern.quote(separator));
+
+		if (log != null && log.isDebugEnabled())
+		{
+			log.debug("Classpath: " + cpString);
+		}
+
 		for (int a = 0, size = cpItems.length; a < size; a++)
 		{
 			try
 			{
-				URL url = new URL("file://" + cpItems[a]);
+				URL url = new File(cpItems[a]).toURI().toURL();
+				// URL url = new URL("file://" + cpItems[a]);
 				urls.add(url);
 			}
 			catch (MalformedURLException e)
