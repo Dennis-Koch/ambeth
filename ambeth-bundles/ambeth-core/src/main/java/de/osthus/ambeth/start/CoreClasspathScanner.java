@@ -240,13 +240,16 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 				try
 				{
 					Path realPathFile = convertURLToFile(url);
-					if (Files.isDirectory(realPathFile))
+					if (realPathFile.toFile().exists())
 					{
-						scanDirectory(realPathFile, "", targetClassNames, false);
-					}
-					else
-					{
-						scanFile(realPathFile, targetClassNames);
+						if (Files.isDirectory(realPathFile))
+						{
+							scanDirectory(realPathFile, "", targetClassNames, false);
+						}
+						else
+						{
+							scanFile(realPathFile, targetClassNames);
+						}
 					}
 				}
 				catch (Throwable e)
