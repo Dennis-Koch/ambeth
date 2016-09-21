@@ -58,7 +58,7 @@ public class JarURLProvider implements IJarURLProvider, IInitializingBean
 		{
 			if (dir.isFile() && path.toLowerCase().endsWith(".jar"))
 			{
-				urls.add(new URL("file:/" + path));
+				urls.add(dir.toURI().toURL());
 			}
 			else if (dir.isDirectory() && !isRecursive)
 			{
@@ -82,7 +82,7 @@ public class JarURLProvider implements IJarURLProvider, IInitializingBean
 
 	/**
 	 * find all the jar files in a folder
-	 * 
+	 *
 	 * @param dir
 	 *            to find jars folder
 	 * @return all the jars
