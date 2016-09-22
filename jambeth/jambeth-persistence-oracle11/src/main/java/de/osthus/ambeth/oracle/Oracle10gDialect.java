@@ -27,9 +27,7 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
-import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.ILoggerHistory;
-import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.ITransactionState;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IColumnEntry;
@@ -45,6 +43,7 @@ import de.osthus.ambeth.sql.ISqlBuilder;
 
 public class Oracle10gDialect extends AbstractConnectionDialect
 {
+
 	public static final Pattern BIN_TABLE_NAME = Pattern.compile("BIN\\$.{22}==\\$0", Pattern.CASE_INSENSITIVE);
 
 	public static final Pattern IDX_TABLE_NAME = Pattern.compile("DR\\$.*?\\$.", Pattern.CASE_INSENSITIVE);
@@ -52,6 +51,12 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	protected static final LinkedHashMap<Class<?>, String[]> typeToArrayTypeNameMap = new LinkedHashMap<Class<?>, String[]>(128, 0.5f);
 
 	protected static final LinkedHashMap<String, Class<?>> arrayTypeNameToTypeMap = new LinkedHashMap<String, Class<?>>(128, 0.5f);
+
+	// 54 = RESOURCE BUSY acquiring with NOWAIT (pessimistic lock)
+	public static final int PESSIMISTIC_LOCK_ERROR_CODE = 54;
+	public static final int OPTIMISTIC_LOCK_ERROR_CODE = 20800;
+	private static final int CONSTRAINT_VIOLATION_ERROR_CODE = 2091;
+	private static final int CANNOT_INSERT_NULL_ERROR_CODE = 1400;
 
 	protected static final String[] exportedKeysSql = {
 			"SELECT USR.NAME AS OWNER, CONST.NAME AS CONSTRAINT_NAME, RCONST.NAME AS REF_CONSTRAINT_NAME, OBJ.NAME AS TABLE_NAME, COALESCE(ACOL.NAME, COL.NAME) AS COLUMN_NAME, CCOL.POS# AS POSITION, ROBJ.NAME AS REF_TABLE_NAME, COALESCE(RACOL.NAME, RCOL.NAME) AS REF_COLUMN_NAME, RCCOL.POS# AS REF_POSITION FROM SYS.CON$ CONST INNER JOIN SYS.USER$ USR ON CONST.OWNER# = USR.USER# INNER JOIN SYS.CDEF$ CDEF ON CDEF.CON# = CONST.CON# INNER JOIN SYS.CCOL$ CCOL ON CCOL.CON# = CONST.CON# INNER JOIN SYS.COL$ COL  ON (CCOL.OBJ# = COL.OBJ#) AND (CCOL.INTCOL# = COL.INTCOL#) INNER JOIN SYS.\"_CURRENT_EDITION_OBJ\" OBJ ON CCOL.OBJ# = OBJ.OBJ# LEFT JOIN SYS.ATTRCOL$ ACOL ON (CCOL.OBJ# = ACOL.OBJ#) AND (CCOL.INTCOL# = ACOL.INTCOL#) INNER JOIN SYS.CON$ RCONST ON RCONST.CON# = CDEF.RCON# INNER JOIN SYS.CCOL$ RCCOL ON RCCOL.CON# = RCONST.CON# INNER JOIN SYS.COL$ RCOL  ON (RCCOL.OBJ# = RCOL.OBJ#) AND (RCCOL.INTCOL# = RCOL.INTCOL#) INNER JOIN SYS.\"_CURRENT_EDITION_OBJ\" ROBJ ON RCCOL.OBJ# = ROBJ.OBJ# LEFT JOIN SYS.ATTRCOL$ RACOL  ON (RCCOL.OBJ# = RACOL.OBJ#) AND (RCCOL.INTCOL# = RACOL.INTCOL#) WHERE CDEF.TYPE# = 4 AND USR.NAME ",
@@ -87,20 +92,6 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 			arrayTypeNameToTypeMap.putIfNotExists(entry.getValue()[0], entry.getKey());
 		}
 	}
-
-	public static int getOptimisticLockErrorCode()
-	{
-		return 20800;
-	}
-
-	public static int getPessimisticLockErrorCode()
-	{
-		// 54 = RESOURCE BUSY acquiring with NOWAIT (pessimistic lock)
-		return 54;
-	}
-
-	@LogInstance
-	private ILogger log;
 
 	protected final DateFormat defaultDateFormat = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
 
@@ -262,33 +253,27 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	@Override
 	public PersistenceException createPersistenceException(SQLException e, String relatedSql)
 	{
-		int errorCode = e.getErrorCode();
-
-		if (errorCode == getPessimisticLockErrorCode())
+		PersistenceException ex;
+		switch (e.getErrorCode())
 		{
-			PessimisticLockException ex = new PessimisticLockException(relatedSql, e);
-			ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
-			return ex;
+			case PESSIMISTIC_LOCK_ERROR_CODE:
+				ex = new PessimisticLockException(relatedSql, e);
+				break;
+			case OPTIMISTIC_LOCK_ERROR_CODE:
+				ex = new OptimisticLockException(relatedSql, e);
+				break;
+			case CANNOT_INSERT_NULL_ERROR_CODE:
+				ex = new NullConstraintException(e.getMessage(), relatedSql, e);
+				break;
+			case CONSTRAINT_VIOLATION_ERROR_CODE:
+				ex = new UniqueConstraintException(e.getMessage(), relatedSql, e);
+				break;
+			default:
+				ex = new PersistenceException(e.getMessage(), e);
+				break;
 		}
-		if (errorCode == getOptimisticLockErrorCode())
-		{
-			OptimisticLockException ex = new OptimisticLockException(relatedSql, e);
-			ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
-			return ex;
-		}
-		if (errorCode == 1400)
-		{
-			NullConstraintException ex = new NullConstraintException(e.getMessage(), relatedSql, e);
-			ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
-			return ex;
-		}
-		else if (errorCode == 2091)
-		{
-			UniqueConstraintException ex = new UniqueConstraintException(e.getMessage(), relatedSql, e);
-			ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
-			return ex;
-		}
-		return null;
+		ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
+		return ex;
 	}
 
 	@Override
