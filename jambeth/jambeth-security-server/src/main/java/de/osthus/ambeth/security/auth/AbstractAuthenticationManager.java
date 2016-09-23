@@ -3,18 +3,12 @@ package de.osthus.ambeth.security.auth;
 import de.osthus.ambeth.config.IocConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.security.AuthenticationException;
 import de.osthus.ambeth.security.IAuthentication;
 import de.osthus.ambeth.security.IAuthenticationManager;
 
 public abstract class AbstractAuthenticationManager implements IAuthenticationManager
 {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Property(name = IocConfigurationConstants.DebugModeActive, defaultValue = "false")
 	protected boolean debugModeActive;
 
