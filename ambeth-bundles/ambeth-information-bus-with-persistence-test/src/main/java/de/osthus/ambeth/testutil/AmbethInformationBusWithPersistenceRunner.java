@@ -594,7 +594,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				ChangeControllerState changeControllerState = method.getAnnotation(ChangeControllerState.class);
 
 				boolean changeControllerActiveTest = false;
-				final IChangeController changeController = beanContext.getService(IChangeController.class);
+				final IChangeController changeController = beanContext.getService(IChangeController.class, false);
 				if (changeControllerState != null)
 				{
 					if (changeController != null)

@@ -45,16 +45,9 @@ public class PrefetchTest extends AbstractInformationBusWithPersistenceTest
 	{
 		beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
 
-		IQuery<EntityA> q_allEntityAs;
-		IQuery<EntityD> q_allEntityDs;
-		{
-			IQueryBuilder<EntityA> qb = queryBuilderFactory.create(EntityA.class);
-			q_allEntityAs = qb.build(qb.isEqualTo(qb.property("Id"), qb.valueName("Id")));
-		}
-		{
-			IQueryBuilder<EntityD> qb = queryBuilderFactory.create(EntityD.class);
-			q_allEntityDs = qb.build(qb.isEqualTo(qb.property("Id"), qb.valueName("Id")));
-		}
+		IQuery<EntityA> q_allEntityAs = createQuery(EntityA.class);
+		IQuery<EntityD> q_allEntityDs = createQuery(EntityD.class);
+
 		IList<EntityA> allEntityAs = q_allEntityAs.param("Id", prefetchTestDataSetup.rootEntityA.getId()).retrieve();
 		IList<EntityD> allEntityDs = q_allEntityDs.param("Id", prefetchTestDataSetup.rootEntityD.getId()).retrieve();
 
@@ -62,22 +55,7 @@ public class PrefetchTest extends AbstractInformationBusWithPersistenceTest
 		// .add(EntityA.class, "AsOfA", "BsOfA")//
 		// .build();
 
-		IPrefetchHandle prefetch;
-		{
-			IPrefetchConfig prefetchConfig = prefetchHelper.createPrefetch();
-			EntityA entityA = prefetchConfig.plan(EntityA.class);
-			entityA.getAsOfA().get(0).getCsOfA();
-			entityA.getBsOfA().get(0).getCsOfB();
-			// entityA.getCsOfA();
-			// EntityB entityB = prefetchConfig.plan(EntityB.class);
-			// entityB.getAsOfB();
-			// entityB.getBsOfB();
-			// EntityC entityC = prefetchConfig.plan(EntityC.class);
-			// entityC.getCsOfC();
-			EntityD entityD = prefetchConfig.plan(EntityD.class);
-			entityD.getDsOfD();
-			prefetch = prefetchConfig.build();
-		}
+		IPrefetchHandle prefetch = createPrefetch();
 		prefetch.prefetch(allEntityAs, allEntityDs);
 
 		beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
@@ -112,5 +90,28 @@ public class PrefetchTest extends AbstractInformationBusWithPersistenceTest
 		// Assert.assertEquals(3, reportItems[5].getExecutionCount());
 		// Assert.assertEquals(3, reportItems[6].getExecutionCount());
 
+	}
+
+	protected IPrefetchHandle createPrefetch()
+	{
+		IPrefetchConfig prefetchConfig = prefetchHelper.createPrefetch();
+		EntityA entityA = prefetchConfig.plan(EntityA.class);
+		entityA.getAsOfA().get(0).getCsOfA();
+		entityA.getBsOfA().get(0).getCsOfB();
+		// entityA.getCsOfA();
+		// EntityB entityB = prefetchConfig.plan(EntityB.class);
+		// entityB.getAsOfB();
+		// entityB.getBsOfB();
+		// EntityC entityC = prefetchConfig.plan(EntityC.class);
+		// entityC.getCsOfC();
+		EntityD entityD = prefetchConfig.plan(EntityD.class);
+		entityD.getDsOfD();
+		return prefetchConfig.build();
+	}
+
+	protected <T> IQuery<T> createQuery(Class<T> clazz)
+	{
+		IQueryBuilder<T> qb = queryBuilderFactory.create(clazz);
+		return qb.build(qb.isEqualTo(qb.property("Id"), qb.valueName("Id")));
 	}
 }

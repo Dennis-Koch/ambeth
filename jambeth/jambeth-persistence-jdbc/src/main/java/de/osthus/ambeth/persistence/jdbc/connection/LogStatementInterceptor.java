@@ -180,7 +180,14 @@ public class LogStatementInterceptor extends AbstractSimpleInterceptor implement
 				{
 					sql = recentSql;
 				}
-				sensor.on(sql);
+				if (sql == null)
+				{
+					sensor.on();
+				}
+				else
+				{
+					sensor.on(sql);
+				}
 			}
 			try
 			{
