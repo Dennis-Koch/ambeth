@@ -80,8 +80,17 @@ namespace De.Osthus.Ambeth.Xml
                 return "n";
             }
         }
-
-
+		
+	
+		public String UnspecifiedElement
+        {
+            get
+            {
+                return "u";
+            }
+        }
+	
+	
         public String NumberElement
         {
             get

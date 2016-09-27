@@ -42,8 +42,8 @@ public class AmbethServerTest
 			ServletContext servletContext = serviceContext.getService(ServletContext.class, false);
 			Assert.assertNotNull(servletContext);
 
-			Mockito.verify(mockedServletContext).getResourcePaths("/WEB-INF/lib");
-			Mockito.verify(mockedServletContext).getResourcePaths("/WEB-INF/classes");
+			Mockito.verify(mockedServletContext, Mockito.times(2)).getResourcePaths("/WEB-INF/lib");
+			Mockito.verify(mockedServletContext, Mockito.times(2)).getResourcePaths("/WEB-INF/classes");
 		}
 		finally
 		{

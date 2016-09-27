@@ -25,7 +25,7 @@
 			<xs:documentation>Name of a sql table, column, sequence or constraint</xs:documentation>
 		</xs:annotation>
 		<xs:restriction base="xs:string">
-			<xs:pattern value="([A-Z\d_]+\.)?[A-Z\d_]+" />
+			<xs:pattern value="([A-Za-z\d_]+\.)?[A-Za-z\d_]+" />
 		</xs:restriction>
 	</xs:simpleType>
 

@@ -365,7 +365,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect
 		sb.append(" BEGIN");
 		sb.append(" if( :new.\"VERSION\" <= :old.\"VERSION\" ) then");
 		sb.append(" raise_application_error( -");
-		sb.append(Integer.toString(Oracle10gDialect.getOptimisticLockErrorCode())).append(", 'Optimistic Lock Exception');");
+		sb.append(Integer.toString(Oracle10gDialect.OPTIMISTIC_LOCK_ERROR_CODE)).append(", 'Optimistic Lock Exception');");
 		sb.append(" end if;");
 		sb.append(" END;");
 		return new String[] { sb.toString() };

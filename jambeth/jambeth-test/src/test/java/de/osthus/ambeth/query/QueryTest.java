@@ -463,7 +463,8 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest
 		IOperand maxName1 = qb.function("MAX", qb.property(QueryEntity.Name1));
 		int maxIndex = qb.select(maxName1);
 		int versionIndex = qb.select(versionOp);
-		IQuery<QueryEntity> query = qb.groupBy(versionOp).orderBy(versionOp, OrderByType.DESC).build(qb.isNotEqualTo(maxName1, qb.value(0)));
+
+		IQuery<QueryEntity> query = qb.groupBy(versionOp).orderBy(versionOp, OrderByType.DESC).build(); // .build(qb.isNotEqualTo(maxName1, qb.value(0)));
 
 		Object[][] expected = { { 2, "name2" }, { 1, "name3" } };
 		IDataCursor dataCursor = query.retrieveAsData();

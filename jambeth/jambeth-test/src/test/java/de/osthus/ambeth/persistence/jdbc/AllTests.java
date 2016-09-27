@@ -11,7 +11,8 @@ import de.osthus.ambeth.persistence.event.MultiEventTest;
 import de.osthus.ambeth.persistence.external.compositeid.CompositeIdExternalEntityTest;
 import de.osthus.ambeth.persistence.jdbc.alternateid.AlternateIdTest;
 import de.osthus.ambeth.persistence.jdbc.array.ArrayTest;
-import de.osthus.ambeth.persistence.jdbc.auto.AutoIndexTest;
+import de.osthus.ambeth.persistence.jdbc.auto.AutoIndexTrueTest;
+import de.osthus.ambeth.persistence.jdbc.auto.AutoIndexFalseTest;
 import de.osthus.ambeth.persistence.jdbc.compositeid.CompositeIdTest;
 import de.osthus.ambeth.persistence.jdbc.ignoretable.IgnoreTableTest;
 import de.osthus.ambeth.persistence.jdbc.interf.InterfaceEntityTest;
@@ -28,7 +29,7 @@ import de.osthus.ambeth.persistence.xml.Relations20Test;
 import de.osthus.ambeth.persistence.xml.RelationsTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ AlternateIdTest.class, ArrayTest.class, AutoIndexTest.class, BlobTest.class, CacheTypeTest.class, ClobTest.class, CompositeIdTest.class,
+@SuiteClasses({ AlternateIdTest.class, ArrayTest.class, AutoIndexTrueTest.class, AutoIndexFalseTest.class, BlobTest.class, CacheTypeTest.class, ClobTest.class, CompositeIdTest.class,
 		ConnectionTest.class, ConnectionHandlingTest.class, CompositeIdExternalEntityTest.class, IgnoreTableTest.class, InterfaceEntityTest.class,
 		JDBCDatabaseTest.class, MapperTest.class, MapperPerformanceTest.class, MasterDetailTest.class, MultiEventTest.class, OptimisticLockTest.class,
 		RelationsTest.class, RelationAutomappingTest.class, RelationUpdateTest.class, Relations20Test.class, RootCacheInvalidationTest.class,

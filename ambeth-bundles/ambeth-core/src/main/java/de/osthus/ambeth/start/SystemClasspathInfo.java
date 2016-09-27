@@ -1,9 +1,9 @@
 package de.osthus.ambeth.start;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -25,11 +25,18 @@ public class SystemClasspathInfo implements IClasspathInfo
 		String cpString = System.getProperty("java.class.path");
 		String separator = System.getProperty("path.separator");
 		String[] cpItems = cpString.split(Pattern.quote(separator));
+
+		if (log != null && log.isDebugEnabled())
+		{
+			log.debug("Classpath: " + cpString);
+		}
+
 		for (int a = 0, size = cpItems.length; a < size; a++)
 		{
 			try
 			{
-				URL url = new URL("file://" + cpItems[a]);
+				URL url = new File(cpItems[a]).toURI().toURL();
+				// URL url = new URL("file://" + cpItems[a]);
 				urls.add(url);
 			}
 			catch (MalformedURLException e)
@@ -44,16 +51,6 @@ public class SystemClasspathInfo implements IClasspathInfo
 	@Override
 	public Path openAsFile(URL url) throws Throwable
 	{
-		String filePath = url.getPath();
-		String authority = url.getAuthority();
-		if (authority != null && authority.length() > 0)
-		{
-			filePath = authority + filePath;
-		}
-		else if (filePath.startsWith("/"))
-		{
-			filePath = filePath.substring(1);
-		}
-		return Paths.get(filePath).toAbsolutePath().normalize();
+		return new File(url.getFile()).getAbsoluteFile().toPath();
 	}
 }
