@@ -13,6 +13,8 @@ import de.osthus.ambeth.cache.ICacheContext;
 import de.osthus.ambeth.cache.ICacheFactory;
 import de.osthus.ambeth.cache.IDisposableCache;
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.ISet;
+import de.osthus.ambeth.collections.IdentityLinkedSet;
 import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -136,25 +138,49 @@ public class ChangeController implements IChangeController, IChangeControllerExt
 	 * @param oldEntities
 	 * @return true if any of the extensions have been called
 	 */
+	@SuppressWarnings("rawtypes")
 	protected boolean processChanges(List<Object> newEntities, List<Object> oldEntities)
 	{
-		boolean extensionCalled = false;
 		int size = newEntities.size();
 		ParamChecker.assertTrue(size == oldEntities.size(), "number of old and new objects should be equal");
 		CacheView views = new CacheView(newEntities, oldEntities);
-		for (int index = 0; index < size; index += 1)
+		IdentityLinkedSet<IChangeControllerExtension<?>> calledExtensionsSet = new IdentityLinkedSet<IChangeControllerExtension<?>>();
+
+		try
 		{
-			Object newEntity = newEntities.get(index);
-			boolean toBeDeleted = ((IDataObject) newEntity).isToBeDeleted();
-			boolean toBeCreated = false;
-			Object oldEntity = oldEntities.get(index);
-			if (oldEntity == null)
+			for (int index = 0; index < size; index++)
 			{
-				toBeCreated = true;
+				Object newEntity = newEntities.get(index);
+				boolean toBeDeleted = ((IDataObject) newEntity).isToBeDeleted();
+				boolean toBeCreated = false;
+				Object oldEntity = oldEntities.get(index);
+				if (oldEntity == null)
+				{
+					toBeCreated = true;
+				}
+				processChange(newEntity, oldEntity, toBeDeleted, toBeCreated, views, calledExtensionsSet);
 			}
-			extensionCalled |= processChange(newEntity, oldEntity, toBeDeleted, toBeCreated, views);
+			views.processRunnables();
+			for (IChangeControllerExtension ext : calledExtensionsSet)
+			{
+				if (ext instanceof IBatchAwareChangeControllerExtension)
+				{
+					((IBatchAwareChangeControllerExtension) ext).flush(views);
+				}
+			}
+			return calledExtensionsSet.size() > 0;
 		}
-		return extensionCalled;
+		catch (Throwable e)
+		{
+			for (IChangeControllerExtension ext : calledExtensionsSet)
+			{
+				if (ext instanceof IBatchAwareChangeControllerExtension)
+				{
+					((IBatchAwareChangeControllerExtension) ext).rollback(views);
+				}
+			}
+			throw RuntimeExceptionUtil.mask(e);
+		}
 	}
 
 	/**
@@ -170,11 +196,12 @@ public class ChangeController implements IChangeController, IChangeControllerExt
 	 * @param toBeCreated
 	 *            true, if the new entity is to be created
 	 * @param views
+	 * @param calledExtensionsSet
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected boolean processChange(Object newEntity, Object oldEntity, boolean toBeDeleted, boolean toBeCreated, CacheView views)
+	protected void processChange(Object newEntity, Object oldEntity, boolean toBeDeleted, boolean toBeCreated, ICacheView views,
+			ISet<IChangeControllerExtension<?>> calledExtensionsSet)
 	{
-		boolean extensionCalled = false;
 		// Both objects should be of the same class, so we just need one them. We just have to keep in mind that one of them could be null.
 		Class<?> entityType = newEntity != null ? newEntity.getClass() : oldEntity.getClass();
 		// Search for registered extensions for the implemented classes
@@ -187,10 +214,13 @@ public class ChangeController implements IChangeController, IChangeControllerExt
 		}
 		for (IChangeControllerExtension ext : sortedExtensions)
 		{
+			if (calledExtensionsSet.add(ext) && ext instanceof IBatchAwareChangeControllerExtension)
+			{
+				((IBatchAwareChangeControllerExtension) ext).queue(views);
+			}
 			ext.processChange(newEntity, oldEntity, toBeDeleted, toBeCreated, views);
-			extensionCalled = true;
+
 		}
-		return extensionCalled;
 	}
 
 	/**

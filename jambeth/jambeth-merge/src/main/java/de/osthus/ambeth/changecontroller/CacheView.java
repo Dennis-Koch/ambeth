@@ -5,12 +5,12 @@ import java.util.HashMap;
 import java.util.List;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.ParamChecker;
 
-/**
- * This is a utility class that provides access to all new objects that should be merged with the database.
- */
-public class CacheView
+public class CacheView implements ICacheView
 {
 	// objects contains all new objects
 	protected final List<Object> newObjects, oldObjects;
@@ -19,6 +19,10 @@ public class CacheView
 	protected final HashMap<Class<?>, Collection<?>> newViews = new HashMap<Class<?>, Collection<?>>();
 	// The entries in the oldViews lists correlate to those in the newViews list
 	protected final HashMap<Class<?>, Collection<?>> oldViews = new HashMap<Class<?>, Collection<?>>();
+
+	protected HashMap<Object, Object> customStateMap;
+
+	protected ArrayList<IBackgroundWorkerDelegate> customRunnables;
 
 	public CacheView(List<Object> newObjects, List<Object> oldObjects)
 	{
@@ -33,6 +37,7 @@ public class CacheView
 	 *            The interface that the object should implemented by the objects
 	 * @return a list of new objects that implement the interface, never <code>null</code>
 	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public <T> Collection<T> getNewObjectsOfClass(Class<T> clazz)
 	{
@@ -47,6 +52,7 @@ public class CacheView
 	 *            The interface that the object should implemented by the objects
 	 * @return a list of new objects that implement the interface, never <code>null</code>
 	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public <T> Collection<T> getOldObjectsOfClass(Class<T> clazz)
 	{
@@ -90,5 +96,61 @@ public class CacheView
 		}
 		newViews.put(clazz, newResult);
 		oldViews.put(clazz, oldResult);
+	}
+
+	@Override
+	public Object getCustomState(Object key)
+	{
+		if (customStateMap == null)
+		{
+			return null;
+		}
+		return customStateMap.get(key);
+	}
+
+	@Override
+	public void setCustomState(Object key, Object value)
+	{
+		if (customStateMap == null)
+		{
+			customStateMap = new HashMap<Object, Object>();
+		}
+		customStateMap.put(key, value);
+	}
+
+	@Override
+	public void queueRunnable(IBackgroundWorkerDelegate runnable)
+	{
+		if (customRunnables == null)
+		{
+			customRunnables = new ArrayList<IBackgroundWorkerDelegate>();
+		}
+		customRunnables.add(runnable);
+	}
+
+	@SuppressWarnings("unchecked")
+	public void processRunnables()
+	{
+		if (customRunnables == null)
+		{
+			return;
+		}
+		// while loop because a runnable could queue cascading runnables
+		while (customRunnables.size() > 0)
+		{
+			IBackgroundWorkerParamDelegate<ICacheView>[] runnables = customRunnables.toArray(IBackgroundWorkerParamDelegate.class);
+			customRunnables.clear();
+			try
+			{
+				for (IBackgroundWorkerParamDelegate<ICacheView> runnable : runnables)
+				{
+					runnable.invoke(this);
+				}
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
 	}
 }

@@ -49,7 +49,7 @@ public abstract class AbstractRule<T> implements IChangeControllerExtension<T>
 	}
 
 	@Override
-	public void processChange(T newEntity, T oldEntity, boolean toBeDeleted, boolean toBeCreated, CacheView views)
+	public void processChange(T newEntity, T oldEntity, boolean toBeDeleted, boolean toBeCreated, ICacheView views)
 	{
 		onChange(newEntity, oldEntity, views);
 		if (toBeDeleted)
@@ -80,7 +80,7 @@ public abstract class AbstractRule<T> implements IChangeControllerExtension<T>
 	 * @param views
 	 *            an object that allows access to all modified entities, never <code>null</code>
 	 */
-	protected void onChange(T newEntity, T oldEntity, CacheView views)
+	protected void onChange(T newEntity, T oldEntity, ICacheView views)
 	{
 	}
 
@@ -92,7 +92,7 @@ public abstract class AbstractRule<T> implements IChangeControllerExtension<T>
 	 * @param views
 	 *            an object that allows access to all modified entities, never <code>null</code>
 	 */
-	protected void onDelete(T oldEntity, CacheView views)
+	protected void onDelete(T oldEntity, ICacheView views)
 	{
 	}
 
@@ -104,7 +104,7 @@ public abstract class AbstractRule<T> implements IChangeControllerExtension<T>
 	 * @param views
 	 *            an object that allows access to all modified entities, never <code>null</code>
 	 */
-	protected void onCreate(T newEntity, CacheView views)
+	protected void onCreate(T newEntity, ICacheView views)
 	{
 	}
 
@@ -118,7 +118,7 @@ public abstract class AbstractRule<T> implements IChangeControllerExtension<T>
 	 * @param views
 	 *            an object that allows access to all modified entities, never <code>null</code>
 	 */
-	protected void onUpdate(T newEntity, T oldEntity, CacheView views)
+	protected void onUpdate(T newEntity, T oldEntity, ICacheView views)
 	{
 	}
 
@@ -134,7 +134,7 @@ public abstract class AbstractRule<T> implements IChangeControllerExtension<T>
 	 * @param views
 	 *            an object that allows access to all modified entities, never <code>null</code>
 	 */
-	protected void validateInvariant(T newEntity, T oldEntity, CacheView views)
+	protected void validateInvariant(T newEntity, T oldEntity, ICacheView views)
 	{
 	}
 }

@@ -24,7 +24,7 @@ public interface IChangeControllerExtension<T> extends Comparable<IChangeControl
 	 * @param views
 	 *            The views argument provides methods to access all changed entities.
 	 */
-	void processChange(T newEntity, T oldEntity, boolean toBeDeleted, boolean toBeCreated, CacheView views);
+	void processChange(T newEntity, T oldEntity, boolean toBeDeleted, boolean toBeCreated, ICacheView views);
 
 	/**
 	 * Returns a negative integer if this rule must be evaluated before the other rule or a positive integer if the rule must be evaluated after the other rule.
