@@ -342,13 +342,27 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 			}
 
 			Class<?> idTypeOfTargetingObject = targetingIdMember.getRealType();
-			Member requestedIdMember = targetingRequestLinkMetaData.getToMember();
-			Class<?> idTypeOfRequestedObject = requestedIdMember.getRealType();
-			byte toIdIndex = requestedMetaData.getIdIndexByMemberName(requestedIdMember.getName());
 
 			ILinkCursor cursor = targetingRequestLink.findAllLinked(fromIds);
 			try
 			{
+				byte toIdIndex;
+				Class<?> idTypeOfRequestedObject;
+				if (requestedMetaData.isLocalEntity())
+				{
+					toIdIndex = cursor.getToIdIndex();
+					ITableMetaData requestedTable = database.getTableByType(requestedType).getMetaData();
+					IFieldMetaData idField = toIdIndex == ObjRef.PRIMARY_KEY_INDEX ? requestedTable.getIdField()
+							: requestedTable.getAlternateIdFields()[toIdIndex];
+					idTypeOfRequestedObject = idField.getFieldType();
+				}
+				else
+				{
+					Member requestedIdMember = targetingRequestLinkMetaData.getToMember();
+					idTypeOfRequestedObject = requestedIdMember.getRealType();
+					toIdIndex = requestedMetaData.getIdIndexByMemberName(requestedIdMember.getName());
+				}
+
 				IPreparedObjRefFactory preparedObjRefFactory = objRefFactory.prepareObjRefFactory(requestedType, toIdIndex);
 				while (cursor.moveNext())
 				{
