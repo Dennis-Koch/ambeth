@@ -69,7 +69,7 @@ public class DirectedExternalLinkMetaData extends DirectedLinkMetaData implement
 	{
 		if (fromField != null)
 		{
-			return super.getToIdIndex();
+			return super.getFromIdIndex();
 		}
 		else
 		{

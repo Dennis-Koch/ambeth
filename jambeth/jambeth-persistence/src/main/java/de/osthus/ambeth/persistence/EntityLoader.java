@@ -291,14 +291,10 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		IDatabase database = this.database.getCurrent();
 
 		ILinkedMap<ObjRelationType, IList<OrelLoadItem>> groupedObjRelations = bucketSortObjRelations(database, orelsToLoad);
-
-		Iterator<Entry<ObjRelationType, IList<OrelLoadItem>>> iter = groupedObjRelations.iterator();
-		while (iter.hasNext())
+		for (Entry<ObjRelationType, IList<OrelLoadItem>> entry : groupedObjRelations)
 		{
-			Entry<ObjRelationType, IList<OrelLoadItem>> entry = iter.next();
 			ObjRelationType objRelType = entry.getKey();
 			IList<OrelLoadItem> orelLoadItems = entry.getValue();
-			iter.remove();
 
 			Class<?> targetingRequestType = objRelType.getEntityType();
 			byte idIndex = objRelType.getIdIndex();
@@ -320,11 +316,13 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 				}
 				continue;
 			}
-			RelationMember relationMember = targetingRequestLink.getMetaData().getMember();
+
+			IDirectedLinkMetaData targetingRequestLinkMetaData = targetingRequestLink.getMetaData();
+			RelationMember relationMember = targetingRequestLinkMetaData.getMember();
 			Class<?> requestedType = relationMember.getElementType();
 			IEntityMetaData requestedMetaData = entityMetaDataProvider.getMetaData(requestedType);
 			requestedType = requestedMetaData.getEntityType();
-			ITableMetaData requestedTable = database.getTableByType(requestedType).getMetaData();
+
 			Member targetingIdMember = targetingRequestMetaData.getIdMemberByIdIndex(idIndex);
 
 			ArrayList<Object> fromIds = new ArrayList<Object>();
@@ -342,20 +340,22 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 
 				targetingIdsMap.put(id, new Object[] { objRelResult, null });
 			}
+
 			Class<?> idTypeOfTargetingObject = targetingIdMember.getRealType();
+			Member requestedIdMember = targetingRequestLinkMetaData.getToMember();
+			Class<?> idTypeOfRequestedObject = requestedIdMember.getRealType();
+			byte toIdIndex = requestedMetaData.getIdIndexByMemberName(requestedIdMember.getName());
+
 			ILinkCursor cursor = targetingRequestLink.findAllLinked(fromIds);
 			try
 			{
-				byte toIdIndex = cursor.getToIdIndex();
-				Class<?> idType = toIdIndex == ObjRef.PRIMARY_KEY_INDEX ? requestedTable.getIdField().getFieldType()
-						: requestedTable.getAlternateIdFields()[toIdIndex].getFieldType();
 				IPreparedObjRefFactory preparedObjRefFactory = objRefFactory.prepareObjRefFactory(requestedType, toIdIndex);
 				while (cursor.moveNext())
 				{
 					ILinkCursorItem item = cursor.getCurrent();
 
 					Object fromId = conversionHelper.convertValueToType(idTypeOfTargetingObject, item.getFromId());
-					Object toId = conversionHelper.convertValueToType(idType, item.getToId());
+					Object toId = conversionHelper.convertValueToType(idTypeOfRequestedObject, item.getToId());
 
 					IObjRef targetObjRef = preparedObjRefFactory.createObjRef(toId, null);
 
@@ -404,30 +404,8 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		for (int i = orisToLoad.size(); i-- > 0;)
 		{
 			IObjRelation orelToLoad = orisToLoad.get(i);
-			IObjRef[] objRefItems = orelToLoad.getObjRefs();
 
-			Class<?> targetingRequestType = orelToLoad.getRealType();
-			ITable targetingRequestTable = database.getTableByType(targetingRequestType);
-			IDirectedLink targetingRequestLink = targetingRequestTable.getLinkByMemberName(orelToLoad.getMemberName());
-
-			byte idIndex = targetingRequestLink != null ? targetingRequestLink.getMetaData().getFromIdIndex() : ObjRef.PRIMARY_KEY_INDEX;
-			IObjRef objRef = idIndex + 1 < objRefItems.length ? objRefItems[idIndex + 1] : null;
-			if (objRef == null || objRef.getIdNameIndex() != idIndex)
-			{
-				objRef = null;
-				for (IObjRef objRefItem : objRefItems)
-				{
-					if (objRefItem.getIdNameIndex() == idIndex)
-					{
-						objRef = objRefItem;
-						break;
-					}
-				}
-			}
-			if (objRef == null)
-			{
-				objRef = batchMissingORIs(typeToMissingOris, keyToEmptyOris, objRefItems, targetingRequestType, idIndex);
-			}
+			IObjRef objRef = prepareObjRefForObjRelType(orelToLoad, typeToMissingOris, keyToEmptyOris, database);
 			ObjRelationType objRelType = new ObjRelationType(objRef.getRealType(), objRef.getIdNameIndex(), orelToLoad.getMemberName());
 
 			IList<OrelLoadItem> oreLoadItems = sortedIObjRefs.get(objRelType);
@@ -445,6 +423,36 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		}
 
 		return sortedIObjRefs;
+	}
+
+	private IObjRef prepareObjRefForObjRelType(IObjRelation orelToLoad, ILinkedMap<Class<?>, ILinkedMap<Member, IList<Object>>> typeToMissingOris,
+			IMap<CacheKey, IList<IObjRef>> keyToEmptyOris, IDatabase database)
+	{
+		IObjRef[] objRefItems = orelToLoad.getObjRefs();
+
+		Class<?> targetingRequestType = orelToLoad.getRealType();
+		ITable targetingRequestTable = database.getTableByType(targetingRequestType);
+		IDirectedLink targetingRequestLink = targetingRequestTable.getLinkByMemberName(orelToLoad.getMemberName());
+
+		byte idIndex = targetingRequestLink != null ? targetingRequestLink.getMetaData().getFromIdIndex() : ObjRef.PRIMARY_KEY_INDEX;
+		IObjRef objRef = idIndex + 1 < objRefItems.length ? objRefItems[idIndex + 1] : null;
+		if (objRef == null || objRef.getIdNameIndex() != idIndex)
+		{
+			objRef = null;
+			for (IObjRef objRefItem : objRefItems)
+			{
+				if (objRefItem.getIdNameIndex() == idIndex)
+				{
+					objRef = objRefItem;
+					break;
+				}
+			}
+		}
+		if (objRef == null)
+		{
+			objRef = batchMissingORIs(typeToMissingOris, keyToEmptyOris, objRefItems, targetingRequestType, idIndex);
+		}
+		return objRef;
 	}
 
 	protected IObjRef batchMissingORIs(ILinkedMap<Class<?>, ILinkedMap<Member, IList<Object>>> typeToMissingOris, IMap<CacheKey, IList<IObjRef>> keyToEmptyOri,

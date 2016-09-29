@@ -245,26 +245,22 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 	{
 		ParamChecker.assertParamNotNull(objRelations, "objRelations");
 
-		ILinkedMap<Object, IList<IObjRelation>> assignedObjRelations = bucketSortObjRels(objRelations);
+		ILinkedMap<IRelationRetriever, IList<IObjRelation>> assignedObjRelations = bucketSortObjRels(objRelations);
 
 		final ArrayList<IObjRelationResult> result = new ArrayList<IObjRelationResult>(objRelations.size());
 		multithreadingHelper.invokeAndWait(assignedObjRelations,
-				new IResultingBackgroundWorkerParamDelegate<List<IObjRelationResult>, Entry<Object, IList<IObjRelation>>>()
+				new IResultingBackgroundWorkerParamDelegate<List<IObjRelationResult>, Entry<IRelationRetriever, IList<IObjRelation>>>()
 				{
 					@Override
-					public List<IObjRelationResult> invoke(Entry<Object, IList<IObjRelation>> item) throws Throwable
+					public List<IObjRelationResult> invoke(Entry<IRelationRetriever, IList<IObjRelation>> item) throws Throwable
 					{
-						Object retriever = item.getKey();
-						if (retriever instanceof IRelationRetriever)
-						{
-							return ((IRelationRetriever) retriever).getRelations(item.getValue());
-						}
-						return ((ICacheRetriever) retriever).getRelations(item.getValue());
+						IRelationRetriever retriever = item.getKey();
+						return retriever.getRelations(item.getValue());
 					}
-				}, new IAggregrateResultHandler<List<IObjRelationResult>, Entry<Object, IList<IObjRelation>>>()
+				}, new IAggregrateResultHandler<List<IObjRelationResult>, Entry<IRelationRetriever, IList<IObjRelation>>>()
 				{
 					@Override
-					public void aggregateResult(List<IObjRelationResult> resultOfFork, Entry<Object, IList<IObjRelation>> itemOfFork)
+					public void aggregateResult(List<IObjRelationResult> resultOfFork, Entry<IRelationRetriever, IList<IObjRelation>> itemOfFork)
 					{
 						for (int a = 0, size = resultOfFork.size(); a < size; a++)
 						{
@@ -338,9 +334,9 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 		return serviceToAssignedObjRefsDict;
 	}
 
-	protected ILinkedMap<Object, IList<IObjRelation>> bucketSortObjRels(List<? extends IObjRelation> orisToLoad)
+	protected ILinkedMap<IRelationRetriever, IList<IObjRelation>> bucketSortObjRels(List<? extends IObjRelation> orisToLoad)
 	{
-		IdentityLinkedMap<Object, IList<IObjRelation>> retrieverToAssignedObjRelsDict = new IdentityLinkedMap<Object, IList<IObjRelation>>();
+		IdentityLinkedMap<IRelationRetriever, IList<IObjRelation>> retrieverToAssignedObjRelsDict = new IdentityLinkedMap<IRelationRetriever, IList<IObjRelation>>();
 
 		for (int i = orisToLoad.size(); i-- > 0;)
 		{
@@ -349,11 +345,11 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 			Member relationMember = metaData.getMemberByName(orelToLoad.getMemberName());
 
 			// look first for a specific retriever for the requested property of the owning entity type
-			Object relationRetriever = getPropertyRetrieverForType(typeToRelationRetrieverEC, metaData.getEntityType(), relationMember.getName());
+			IRelationRetriever relationRetriever = getPropertyRetrieverForType(typeToRelationRetrieverEC, metaData.getEntityType(), relationMember.getName());
 			if (relationRetriever == null)
 			{
 				// fallback to retriever registered for the target entity type
-				relationRetriever = getRetrieverForType(relationMember.getElementType());
+				relationRetriever = getRetrieverForType(orelToLoad.getRealType());
 			}
 			IList<IObjRelation> assignedObjRefs = retrieverToAssignedObjRelsDict.get(relationRetriever);
 			if (assignedObjRefs == null)
