@@ -1,6 +1,5 @@
 package de.osthus.ambeth.persistence;
 
-
 public interface ILinkMetaData
 {
 	ITableMetaData getFromTable();

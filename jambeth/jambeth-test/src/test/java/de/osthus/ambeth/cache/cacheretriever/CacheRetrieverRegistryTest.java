@@ -17,6 +17,7 @@ import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.cacheretriever.CacheRetrieverRegistryTest.CacheRetrieverRegistryTestModule;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.IInitializingModule;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.merge.model.IObjRef;
@@ -27,7 +28,6 @@ import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
-import de.osthus.ambeth.util.ParamChecker;
 
 @TestModule(CacheRetrieverRegistryTestModule.class)
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = CacheRetrieverRegistryTest.basePath + "orm.xml;"
@@ -50,20 +50,8 @@ public class CacheRetrieverRegistryTest extends AbstractInformationBusWithPersis
 		}
 	}
 
-	protected ICache cache;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(cache, "cache");
-	}
-
-	public void setCache(ICache cache)
-	{
-		this.cache = cache;
-	}
+	@Autowired
+	private ICache cache;
 
 	@Test
 	public void testGetEntityById() throws Throwable
