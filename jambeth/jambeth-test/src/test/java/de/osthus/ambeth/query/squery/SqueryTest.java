@@ -43,6 +43,7 @@ public class SqueryTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Autowired
 	protected IPersonService personService;
+
 	@Autowired
 	protected PersonService concretePersonService;
 

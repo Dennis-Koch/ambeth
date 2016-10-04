@@ -48,8 +48,8 @@ import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 
-@SQLData("/de/osthus/ambeth/persistence/xml/Relations_data.sql")
-@SQLStructure("/de/osthus/ambeth/persistence/xml/Relations_structure.sql")
+@SQLData("/de/osthus/ambeth/security/Relations_data.sql")
+@SQLStructure("/de/osthus/ambeth/security/Relations_structure.sql")
 @TestProperties(name = MergeConfigurationConstants.SecurityActive, value = "true")
 @TestPropertiesList({
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/orm.xml;de/osthus/ambeth/security/orm.xml"),
@@ -80,7 +80,6 @@ public class SecurityTest extends AbstractInformationBusWithPersistenceTest
 
 	public static final String userName1 = "userName1", userPass1 = "abcd";
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
