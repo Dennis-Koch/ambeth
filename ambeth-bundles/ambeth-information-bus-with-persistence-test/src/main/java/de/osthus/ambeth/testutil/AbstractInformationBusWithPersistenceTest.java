@@ -24,6 +24,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.proxy.IEntityEquals;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
@@ -46,6 +47,7 @@ public abstract class AbstractInformationBusWithPersistenceTest extends Abstract
 			props.put(ServiceConfigurationConstants.NetworkClientMode, "false");
 			props.put(ServiceConfigurationConstants.SlaveMode, "false");
 			props.put(ServiceConfigurationConstants.LogShortNames, "true");
+			props.put(PersistenceConfigurationConstants.AutoIndexForeignKeys, "true");
 
 			// IocModule
 			props.put(IocConfigurationConstants.UseObjectCollector, "false");

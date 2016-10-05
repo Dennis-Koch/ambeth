@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.persistence.xml.model.Employee;
 import de.osthus.ambeth.persistence.xml.model.IBusinessService;
 import de.osthus.ambeth.persistence.xml.model.IEmployeeService;
@@ -17,7 +18,6 @@ import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
-import de.osthus.ambeth.util.ParamChecker;
 
 @SQLData("/de/osthus/ambeth/persistence/xml/Relations_data.sql")
 @SQLStructure("/de/osthus/ambeth/persistence/xml/Relations_structure.sql")
@@ -25,36 +25,14 @@ import de.osthus.ambeth.util.ParamChecker;
 @TestModule(TestServicesModule.class)
 public class RelationAutomappingTest extends AbstractInformationBusWithPersistenceTest
 {
+	@Autowired
 	protected IBusinessService businessService;
 
+	@Autowired
 	protected ICache cache;
 
+	@Autowired
 	protected IEmployeeService employeeService;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(businessService, "BusinessService");
-		ParamChecker.assertNotNull(cache, "Cache");
-		ParamChecker.assertNotNull(employeeService, "EmployeeService");
-	}
-
-	public void setBusinessService(IBusinessService businessService)
-	{
-		this.businessService = businessService;
-	}
-
-	public void setCache(ICache cache)
-	{
-		this.cache = cache;
-	}
-
-	public void setEmployeeService(IEmployeeService employeeService)
-	{
-		this.employeeService = employeeService;
-	}
 
 	@Test
 	public void testNullableToOne() throws Throwable

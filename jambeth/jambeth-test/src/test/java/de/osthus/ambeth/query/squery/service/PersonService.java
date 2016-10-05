@@ -10,17 +10,15 @@ import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.query.squery.model.Person;
 
-@Service(value = IPersonService.class)
+@Service(IPersonService.class)
 @MergeContext
 public abstract class PersonService implements IPersonService
 {
 	public static final String CONCRETE_METHOD_RETURN_VALUE = "this method will not be intercepted";
+
 	@Autowired
 	protected IQueryBuilderFactory qbf;
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public String findByConcreteMethod(String anyValue)
 	{

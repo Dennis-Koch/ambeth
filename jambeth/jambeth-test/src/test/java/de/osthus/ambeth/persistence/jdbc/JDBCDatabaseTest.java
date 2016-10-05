@@ -25,6 +25,7 @@ import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.database.DatabaseCallback;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.model.IChangeContainer;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.model.IOriCollection;
@@ -61,9 +62,11 @@ import de.osthus.ambeth.util.ParamChecker;
 		@TestProperties(name = CacheConfigurationConstants.FirstLevelCacheType, value = "PROTOTYPE") })
 public class JDBCDatabaseTest extends AbstractInformationBusWithPersistenceTest
 {
-	protected ICache cache;
+	@Autowired
+	private ICache cache;
 
-	protected IMaterialService materialService;
+	@Autowired
+	private IMaterialService materialService;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -72,16 +75,6 @@ public class JDBCDatabaseTest extends AbstractInformationBusWithPersistenceTest
 
 		ParamChecker.assertNotNull(cache, "cache");
 		ParamChecker.assertNotNull(materialService, "materialService");
-	}
-
-	public void setCache(ICache cache)
-	{
-		this.cache = cache;
-	}
-
-	public void setMaterialService(IMaterialService materialService)
-	{
-		this.materialService = materialService;
 	}
 
 	@Test

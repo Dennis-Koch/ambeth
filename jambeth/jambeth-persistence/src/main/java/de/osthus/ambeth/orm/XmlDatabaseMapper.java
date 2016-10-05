@@ -407,6 +407,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			}
 		}
 
+		DatabaseMetaData databaseImpl = (DatabaseMetaData) database;
 		for (IEntityConfig entityConfig : ormConfigGroup.getLocalEntityConfigs())
 		{
 			Class<?> entityType = entityConfig.getEntityType();
@@ -421,17 +422,17 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 					RelationConfigLegathy relationConfigLegathy = (RelationConfigLegathy) relationConfig;
 					if (relationConfigLegathy.isToOne())
 					{
-						mapToOne(connection, (DatabaseMetaData) database, table, relationConfigLegathy);
+						mapToOne(connection, databaseImpl, table, relationConfigLegathy);
 					}
 					else
 					{
-						mapToMany(connection, (DatabaseMetaData) database, table, relationConfigLegathy);
+						mapToMany(connection, databaseImpl, table, relationConfigLegathy);
 					}
 				}
 				else if (relationConfig instanceof RelationConfig20)
 				{
 					RelationConfig20 relationConfig20 = (RelationConfig20) relationConfig;
-					mapRelation(relationConfig20, table, database);
+					mapRelation(relationConfig20, table, databaseImpl, connection);
 				}
 				else
 				{
@@ -691,31 +692,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		{
 			// Local entity
 			ITableMetaData table2 = getTableByType(database, linkedEntityType);
-
-			if (joinTableName == null)
-			{
-				linkName = resolveLinkDynamically(database, memberName, relationConfig.getConstraintName(), table, table2);
-			}
-			else
-			{
-				boolean useLinkTable = !table.getName().equalsIgnoreCase(joinTableName) && !table2.getName().equalsIgnoreCase(joinTableName);
-				if (!useLinkTable)
-				{
-					linkName = mapDataTableWithLink(database, table, table2, relationConfig, false);
-					if (database.getLinkByName(linkName) == null)
-					{
-						String linkNameRetry = mapDataTableWithLink(database, table, table2, relationConfig, true);
-						if (database.getLinkByName(linkNameRetry) != null)
-						{
-							linkName = linkNameRetry;
-						}
-					}
-				}
-				else
-				{
-					linkName = joinTableName;
-				}
-			}
+			linkName = findLinkNameLocal(table, memberName, joinTableName, relationConfig, table2, database);
 		}
 		else
 		{
@@ -724,17 +701,17 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			Member toMember = getMemberByTypeAndName(linkedEntityType, toAttributeName);
 
 			boolean useLinkTable = !table.getName().equalsIgnoreCase(joinTableName);
-
-			if (!useLinkTable)
-			{
-				String fromFieldName = relationConfig.getFromFieldName();
-				linkName = database.createForeignKeyLinkName(table.getName(), fromFieldName, linkedEntityType.getSimpleName(), toAttributeName);
-				buildAndMapLink(connection, database, linkName, table, table.getFieldByName(fromFieldName), null, toMember);
-			}
-			else
+			if (useLinkTable)
 			{
 				linkName = joinTableName;
 				addToMemberToPreBuildLink(database, linkName, toMember);
+			}
+			else
+			{
+				String fromFieldName = relationConfig.getFromFieldName();
+				String toFieldName = relationConfig.getToFieldName();
+				linkName = createFkLinkToExternalEntity(connection, database, table, fromFieldName, toFieldName, linkedEntityType, toAttributeName, toMember,
+						false);
 			}
 		}
 
@@ -750,7 +727,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		setCascadeValuesAndMapLink(table, link, memberName, doDelete, mayDelete);
 	}
 
-	protected void mapToMany(Connection connection, DatabaseMetaData databaseMetaData, ITableMetaData table, RelationConfigLegathy relationConfig)
+	protected void mapToMany(Connection connection, DatabaseMetaData database, ITableMetaData table, RelationConfigLegathy relationConfig)
 	{
 		String memberName = relationConfig.getName();
 		Class<?> linkedEntityType = relationConfig.getLinkedEntityType();
@@ -763,34 +740,9 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		if (linkedEntityMetaData == null || linkedEntityMetaData.isLocalEntity())
 		{
 			// Local entity
-			ITableMetaData table2 = getTableByType(databaseMetaData, linkedEntityType);
+			ITableMetaData table2 = getTableByType(database, linkedEntityType);
 
-			if (joinTableName == null)
-			{
-				linkName = resolveLinkDynamically(databaseMetaData, memberName, relationConfig.getConstraintName(), table, table2);
-			}
-			else
-			{
-				boolean useLinkTable = !table.getName().equalsIgnoreCase(joinTableName) && !table2.getName().equalsIgnoreCase(joinTableName);
-
-				if (!useLinkTable)
-				{
-					linkName = mapDataTableWithLink(databaseMetaData, table, table2, relationConfig, false);
-
-					if (databaseMetaData.getLinkByName(linkName) == null)
-					{
-						String linkNameRetry = mapDataTableWithLink(databaseMetaData, table, table2, relationConfig, true);
-						if (databaseMetaData.getLinkByName(linkNameRetry) != null)
-						{
-							linkName = linkNameRetry;
-						}
-					}
-				}
-				else
-				{
-					linkName = joinTableName;
-				}
-			}
+			linkName = findLinkNameLocal(table, memberName, joinTableName, relationConfig, table2, database);
 		}
 		else
 		{
@@ -798,26 +750,21 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			String toAttributeName = relationConfig.getToAttributeName();
 			Member toMember = getMemberByTypeAndName(linkedEntityType, toAttributeName);
 
-			if (joinTableName.equalsIgnoreCase(table.getName()))
+			boolean useLinkTable = !table.getName().equalsIgnoreCase(joinTableName);
+			if (useLinkTable)
 			{
-				String fromFieldName = relationConfig.getFromFieldName();
-				IFieldMetaData fromField = table.getFieldByName(fromFieldName);
-				String toFieldName = relationConfig.getToFieldName();
-				IFieldMetaData toField = null;
-				if (toFieldName != null && !toFieldName.isEmpty())
-				{
-					toField = table.getFieldByName(toFieldName);
-				}
-				linkName = databaseMetaData.createForeignKeyLinkName(table.getName(), fromFieldName, linkedEntityType.getSimpleName(), toAttributeName);
-				buildAndMapLink(connection, databaseMetaData, linkName, table, fromField, toField, toMember);
+				linkName = joinTableName;
+				addToMemberToPreBuildLink(database, linkName, toMember);
 			}
 			else
 			{
-				linkName = joinTableName;
-				addToMemberToPreBuildLink(databaseMetaData, linkName, toMember);
+				String fromFieldName = relationConfig.getFromFieldName();
+				String toFieldName = relationConfig.getToFieldName();
+				linkName = createFkLinkToExternalEntity(connection, database, table, fromFieldName, toFieldName, linkedEntityType, toAttributeName, toMember,
+						true);
 			}
 		}
-		ILinkMetaData link = databaseMetaData.getLinkByName(linkName);
+		ILinkMetaData link = database.getLinkByName(linkName);
 		if (link == null)
 		{
 			throw new IllegalArgumentException("Link with name '" + linkName + "' was not found");
@@ -829,28 +776,43 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		setCascadeValuesAndMapLink(table, link, memberName, doDelete, mayDelete);
 	}
 
-	protected void mapRelation(RelationConfig20 relationConfig20, ITableMetaData table, IDatabaseMetaData database)
+	protected void mapRelation(RelationConfig20 relationConfig20, ITableMetaData table, DatabaseMetaData database, Connection connection)
 	{
 		String propertyName = relationConfig20.getName();
 		ILinkConfig linkConfig = relationConfig20.getLink();
 		String linkSource = linkConfig.getSource();
-		ILinkMetaData link = null;
-		if (!linkSource.isEmpty())
+		String linkName = linkSource;
+
+		Class<?> fromEntityType = table.getEntityType();
+		IEntityMetaData fromEntityMetaData = entityMetaDataProvider.getMetaData(fromEntityType);
+		Member property = fromEntityMetaData.getMemberByName(propertyName);
+		Class<?> toEntityType = property.getElementType();
+
+		IEntityMetaData toEntityMetaData = entityMetaDataProvider.getMetaData(toEntityType, true);
+		boolean toEntityLocal = toEntityMetaData == null || toEntityMetaData.isLocalEntity();
+		if (!toEntityLocal)
 		{
-			link = database.getLinkByDefiningName(linkSource);
-			if (link == null)
+			// External entity
+			String toMemberName = ((ExternalLinkConfig) linkConfig).getTargetMember();
+			Member toMember = toEntityMetaData.getMemberByName(toMemberName);
+
+			String joinTableName = getFqObjectName(table, linkSource);
+			boolean useLinkTable = !table.getName().equalsIgnoreCase(joinTableName);
+			if (useLinkTable)
 			{
-				link = database.getLinkByDefiningName(linkSource.toUpperCase());
-				if (link == null)
-				{
-					throw new IllegalArgumentException("Link defined by '" + linkSource + "' was not found");
-				}
+				linkName = linkSource;
+				addToMemberToPreBuildLink(database, linkName, toMember);
+			}
+			else
+			{
+				String fromFieldName = ((ExternalLinkConfig) linkConfig).getSourceColumn();
+				Class<?> toRealType = property.getRealType();
+				boolean toMany = !toRealType.equals(toEntityType);
+				linkName = createFkLinkToExternalEntity(connection, database, table, fromFieldName, null, toRealType, toMemberName, toMember, toMany);
 			}
 		}
-		else
-		{
-			link = resolveLinkByTables(propertyName, table, database, link);
-		}
+
+		ILinkMetaData link = findLinkForRelation(propertyName, linkName, table, database);
 
 		EntityIdentifier entityIdentifier = relationConfig20.getEntityIdentifier();
 		if (entityIdentifier == null)
@@ -874,42 +836,33 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 	protected void setCascadeValuesAndMapLink(ITableMetaData table, ILinkMetaData link, String propertyName, EntityIdentifier entityIdentifier,
 			boolean doDelete, boolean mayDelete)
 	{
-		if (entityIdentifier == EntityIdentifier.LEFT)
+		boolean localIsLeft = entityIdentifier == EntityIdentifier.LEFT;
+		DirectedLinkMetaData localLinkMetaData = (DirectedLinkMetaData) (localIsLeft ? link.getDirectedLink() : link.getReverseDirectedLink());
+		DirectedLinkMetaData remoteLinkMetaData = (DirectedLinkMetaData) (localIsLeft ? link.getReverseDirectedLink() : link.getDirectedLink());
+
+		localLinkMetaData.setCascadeDelete(doDelete);
+		remoteLinkMetaData.setCascadeDelete(mayDelete);
+		if (localLinkMetaData.getMember() == null)
 		{
-			((DirectedLinkMetaData) link.getDirectedLink()).setCascadeDelete(doDelete);
-			((DirectedLinkMetaData) link.getReverseDirectedLink()).setCascadeDelete(mayDelete);
-			if (link.getDirectedLink().getMember() == null)
-			{
-				table.mapLink(link.getDirectedLink().getName(), propertyName);
-			}
-		}
-		else
-		{
-			((DirectedLinkMetaData) link.getDirectedLink()).setCascadeDelete(mayDelete);
-			((DirectedLinkMetaData) link.getReverseDirectedLink()).setCascadeDelete(doDelete);
-			if (link.getReverseDirectedLink().getMember() == null)
-			{
-				table.mapLink(link.getReverseDirectedLink().getName(), propertyName);
-			}
+			table.mapLink(localLinkMetaData.getName(), propertyName);
 		}
 	}
 
 	protected boolean[] resolveCascadeDeletes(ILinkConfig linkConfig, EntityIdentifier entityIdentifier)
 	{
-		boolean[] cascadeDeletes = new boolean[2];
+		boolean[] cascadeDeletes;
 		CascadeDeleteDirection cascadeDeleteDirection = linkConfig.getCascadeDeleteDirection();
 		if (CascadeDeleteDirection.BOTH == cascadeDeleteDirection)
 		{
-			cascadeDeletes[0] = true;
-			cascadeDeletes[1] = true;
+			cascadeDeletes = new boolean[] { true, true };
 		}
 		else if (CascadeDeleteDirection.NONE == cascadeDeleteDirection)
 		{
-			cascadeDeletes[0] = false;
-			cascadeDeletes[1] = false;
+			cascadeDeletes = new boolean[] { false, false };
 		}
 		else
 		{
+			cascadeDeletes = new boolean[2];
 			cascadeDeletes[0] = !entityIdentifier.name().equals(cascadeDeleteDirection.name());
 			cascadeDeletes[1] = !cascadeDeletes[0];
 		}
@@ -936,6 +889,77 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			throw new IllegalArgumentException("Unconfigured Link for '" + table.getEntityType().getName() + "." + propertyName
 					+ "' not uniquely idenfifiable. Please provide the name in the orm.xml file.");
 		}
+	}
+
+	private String findLinkNameLocal(ITableMetaData table, String memberName, String joinTableName, RelationConfigLegathy relationConfig,
+			ITableMetaData table2, DatabaseMetaData database)
+	{
+		String linkName;
+		if (joinTableName == null)
+		{
+			linkName = resolveLinkDynamically(database, memberName, relationConfig.getConstraintName(), table, table2);
+		}
+		else
+		{
+			boolean useLinkTable = !table.getName().equalsIgnoreCase(joinTableName) && !table2.getName().equalsIgnoreCase(joinTableName);
+			if (!useLinkTable)
+			{
+				linkName = mapDataTableWithLink(database, table, table2, relationConfig, false);
+				if (database.getLinkByName(linkName) == null)
+				{
+					String linkNameRetry = mapDataTableWithLink(database, table, table2, relationConfig, true);
+					if (database.getLinkByName(linkNameRetry) != null)
+					{
+						linkName = linkNameRetry;
+					}
+				}
+			}
+			else
+			{
+				linkName = joinTableName;
+			}
+		}
+		return linkName;
+	}
+
+	private String createFkLinkToExternalEntity(Connection connection, DatabaseMetaData database, ITableMetaData table, String fromFieldName,
+			String toFieldName, Class<?> linkedEntityType, String toAttributeName, Member toMember, boolean toMany)
+	{
+		IFieldMetaData fromField = table.getFieldByName(fromFieldName);
+		IFieldMetaData toField = null;
+		if (toMany && toFieldName != null && !toFieldName.isEmpty())
+		{
+			toField = table.getFieldByName(toFieldName);
+		}
+		String linkName = database.createForeignKeyLinkName(table.getName(), fromFieldName, linkedEntityType.getSimpleName(), toAttributeName);
+		buildAndMapLink(connection, database, linkName, table, fromField, toField, toMember);
+		return linkName;
+	}
+
+	private ILinkMetaData findLinkForRelation(String propertyName, String linkName, ITableMetaData table, IDatabaseMetaData database)
+	{
+		ILinkMetaData link = null;
+		if (!linkName.isEmpty())
+		{
+			link = database.getLinkByDefiningName(linkName);
+			if (link == null)
+			{
+				link = database.getLinkByDefiningName(linkName.toUpperCase());
+				if (link == null)
+				{
+					link = database.getLinkByName(linkName);
+					if (link == null)
+					{
+						throw new IllegalArgumentException("Link defined by '" + linkName + "' was not found");
+					}
+				}
+			}
+		}
+		else
+		{
+			link = resolveLinkByTables(propertyName, table, database, link);
+		}
+		return link;
 	}
 
 	protected String resolveLinkDynamically(IDatabaseMetaData database, String memberName, String constraintName, ITableMetaData table, ITableMetaData table2)
