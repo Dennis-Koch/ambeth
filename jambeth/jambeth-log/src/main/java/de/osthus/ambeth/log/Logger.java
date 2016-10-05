@@ -310,7 +310,7 @@ public class Logger implements IConfigurableLogger
 
 		if (printHeader)
 		{
-			sb.append(e.getClass().getName()).append(": ").append(e.getMessage()).append(newLine);
+			sb.append(e.getClass().getName()).append(": ").append(e.toString()).append(newLine);
 		}
 		for (int a = 0, size = stackTrace.length; a < size; a++)
 		{
