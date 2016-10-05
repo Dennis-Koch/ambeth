@@ -1,6 +1,5 @@
 package de.osthus.ambeth.util;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -35,7 +34,7 @@ public class FileExistsCacheTest extends AbstractIocTest
 	protected IPathMonitorConfiguration fileExistsCacheConfiguration;
 
 	@Test
-	public void testCreate() throws IOException
+	public void testCreate() throws Throwable
 	{
 		Path tempDir = Files.createTempDirectory(getClass().getSimpleName());
 		Files.createDirectories(tempDir);
@@ -53,6 +52,7 @@ public class FileExistsCacheTest extends AbstractIocTest
 			Files.createDirectories(child);
 
 			Files.createDirectories(child2);
+			Thread.sleep(1000);
 
 			Assert.assertTrue(fileExistsCache.exists(child));
 			Assert.assertTrue(fileExistsCache.exists(child2));
@@ -83,6 +83,6 @@ public class FileExistsCacheTest extends AbstractIocTest
 		}
 		long end2 = System.currentTimeMillis();
 
-		Assert.assertTrue((end1 - start) > (end2 - end1) * 10);
+		Assert.assertTrue((end1 - start) > (end2 - end1) * 2);
 	}
 }
