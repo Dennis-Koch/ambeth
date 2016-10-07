@@ -125,10 +125,6 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 
 		Employee actual = cache.getObject(Employee.class, employee.getId());
 
-		if (actual.getPrimaryAddress() == null)
-		{
-			System.out.println("kfeowejmfwef");
-		}
 		assertEquals(address.getId(), actual.getPrimaryAddress().getId());
 
 		Address moved = entityFactory.createEntity(Address.class);

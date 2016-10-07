@@ -52,7 +52,20 @@ public class BiDirectionalRelations20Test extends AbstractInformationBusWithPers
 	}
 
 	@Test
-	public void testSimpleChildSave()
+	public void testSimpleChildSave_oneMerge()
+	{
+		Group g1 = createGroup("g1Name");
+		Group g2 = createGroup("g2Name");
+
+		g1.getChildGroups().add(g2);
+
+		mergeProcess.process(Arrays.asList(g1, g2), null, null, null);
+
+		checkSimpleChildSave(g1, g2);
+	}
+
+	@Test
+	public void testSimpleChildSave_update()
 	{
 		Group g1 = createGroup("g1Name");
 		Group g2 = createGroup("g2Name");
@@ -62,12 +75,11 @@ public class BiDirectionalRelations20Test extends AbstractInformationBusWithPers
 		g1.getChildGroups().add(g2);
 		mergeProcess.process(g1, null, null, null);
 
-		g2 = cache.getObject(Group.class, g2.getId());
-		Assert.assertEquals(1, g2.getParentGroups().size());
+		checkSimpleChildSave(g1, g2);
 	}
 
 	@Test
-	public void testTripleChildSave()
+	public void testTripleChildSave_oneMerge()
 	{
 		Group g1 = createGroup("g1Name");
 		Group g2 = createGroup("g2Name");
@@ -79,11 +91,54 @@ public class BiDirectionalRelations20Test extends AbstractInformationBusWithPers
 
 		mergeProcess.process(Arrays.asList(g1, g2, g3), null, null, null);
 
+		checkTripleChildSave(g1, g2, g3);
+	}
+
+	@Test
+	public void testTripleChildSave_update()
+	{
+		Group g1 = createGroup("g1Name");
+		Group g2 = createGroup("g2Name");
+		Group g3 = createGroup("g3Name");
+
+		mergeProcess.process(Arrays.asList(g1, g2, g3), null, null, null);
+
+		g1.getChildGroups().add(g2);
+		g1.getChildGroups().add(g3);
+		g2.getChildGroups().add(g3);
+		mergeProcess.process(Arrays.asList(g1, g2), null, null, null);
+
+		checkTripleChildSave(g1, g2, g3);
+	}
+
+	private void checkSimpleChildSave(Group g1, Group g2)
+	{
 		g1 = cache.getObject(Group.class, g1.getId());
 		Assert.assertEquals(0, g1.getParentGroups().size());
+		Assert.assertEquals(1, g1.getChildGroups().size());
+		Assert.assertTrue(g1.getChildGroups().contains(g2));
 		g2 = cache.getObject(Group.class, g2.getId());
 		Assert.assertEquals(1, g2.getParentGroups().size());
+		Assert.assertTrue(g2.getParentGroups().contains(g1));
+		Assert.assertEquals(0, g2.getChildGroups().size());
+	}
+
+	private void checkTripleChildSave(Group g1, Group g2, Group g3)
+	{
+		g1 = cache.getObject(Group.class, g1.getId());
+		Assert.assertEquals(0, g1.getParentGroups().size());
+		Assert.assertEquals(2, g1.getChildGroups().size());
+		Assert.assertTrue(g1.getChildGroups().contains(g2));
+		Assert.assertTrue(g1.getChildGroups().contains(g3));
+		g2 = cache.getObject(Group.class, g2.getId());
+		Assert.assertEquals(1, g2.getParentGroups().size());
+		Assert.assertTrue(g2.getParentGroups().contains(g1));
+		Assert.assertEquals(1, g2.getChildGroups().size());
+		Assert.assertTrue(g2.getChildGroups().contains(g3));
 		g3 = cache.getObject(Group.class, g3.getId());
 		Assert.assertEquals(2, g3.getParentGroups().size());
+		Assert.assertTrue(g3.getParentGroups().contains(g1));
+		Assert.assertTrue(g3.getParentGroups().contains(g2));
+		Assert.assertEquals(0, g3.getChildGroups().size());
 	}
 }

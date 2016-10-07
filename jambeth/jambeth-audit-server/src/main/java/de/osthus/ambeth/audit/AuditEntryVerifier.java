@@ -100,10 +100,6 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 			{
 				return;
 			}
-			if (value == null)
-			{
-				System.out.println(",vpeqf");
-			}
 			((ArrayList<IObjRef>) value).addAll((Collection<? extends IObjRef>) forkedValue);
 		}
 	}
