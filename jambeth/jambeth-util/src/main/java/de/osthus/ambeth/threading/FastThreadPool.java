@@ -30,7 +30,7 @@ public class FastThreadPool implements ExecutorService, IFastThreadPool, IDispos
 
 	protected final FastList<FastThreadPoolThread> busyThreadList = new FastList<FastThreadPoolThread>();
 
-	protected FastThreadPoolThread blockingThread = null;
+	protected volatile FastThreadPoolThread blockingThread = null;
 
 	protected final HashSet<Class<?>> blockingSet = new HashSet<Class<?>>();
 
@@ -365,7 +365,7 @@ public class FastThreadPool implements ExecutorService, IFastThreadPool, IDispos
 			lock.lock();
 			try
 			{
-				syncCond.awaitUninterruptibly();
+				syncCond.await();
 			}
 			finally
 			{
@@ -404,9 +404,8 @@ public class FastThreadPool implements ExecutorService, IFastThreadPool, IDispos
 			if (currentThread == blockingThread)
 			{
 				blockingThread = null;
+				syncCond.signalAll();
 			}
-			currentThread.queueOnList(freeThreadList);
-			syncCond.signalAll();
 		}
 		finally
 		{
