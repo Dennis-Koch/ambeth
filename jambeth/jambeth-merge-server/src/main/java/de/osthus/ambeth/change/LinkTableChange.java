@@ -44,6 +44,26 @@ public class LinkTableChange extends AbstractTableChange
 		ILinkChangeCommand existingCommand = rowCommands.get(reference);
 		if (existingCommand != null)
 		{
+			if (existingCommand.getDirectedLink() != command.getDirectedLink())
+			{
+				IDirectedLink uniformDirectedLink = existingCommand.getDirectedLink();
+				// uniform link direction
+				List<IObjRef> refsToLink = command.getRefsToLink();
+				for (int a = refsToLink.size(); a-- > 0;)
+				{
+					LinkChangeCommand lcc = new LinkChangeCommand(refsToLink.get(a), uniformDirectedLink);
+					lcc.addRefToLink(reference);
+					addChangeCommand(lcc);
+				}
+				List<IObjRef> refsToUnLink = command.getRefsToUnlink();
+				for (int a = refsToUnLink.size(); a-- > 0;)
+				{
+					LinkChangeCommand lcc = new LinkChangeCommand(refsToUnLink.get(a), uniformDirectedLink);
+					lcc.addRefToUnlink(reference);
+					addChangeCommand(lcc);
+				}
+				return;
+			}
 			existingCommand.addCommand(command);
 		}
 		else
