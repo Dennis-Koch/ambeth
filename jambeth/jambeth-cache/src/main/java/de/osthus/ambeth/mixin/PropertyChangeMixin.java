@@ -98,7 +98,8 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 				includeNewValue = null;
 				includeOldValue = null;
 			}
-			doesModifyToBeUpdated = IDataObject.class.isAssignableFrom(type) && !prop.isAnnotationPresent(IgnoreToBeUpdated.class);
+			doesModifyToBeUpdated = (IDataObject.class.isAssignableFrom(type) || IEmbeddedType.class.isAssignableFrom(type))
+					&& !prop.isAnnotationPresent(IgnoreToBeUpdated.class);
 			isParentChildSetter = IDataObject.class.isAssignableFrom(type) && prop.isAnnotationPresent(ParentChild.class);
 			isAddedRemovedCheckNecessary = !prop.getPropertyType().isPrimitive() && WrapperTypeSet.getUnwrappedType(prop.getPropertyType()) == null
 					&& !String.class.equals(prop.getPropertyType());

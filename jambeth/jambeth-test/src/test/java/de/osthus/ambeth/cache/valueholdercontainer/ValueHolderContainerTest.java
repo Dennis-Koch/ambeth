@@ -325,7 +325,9 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest
 		Assert.assertFalse(obj.getEmbMat().getEmbMat2() instanceof IDataObject);
 		Assert.assertFalse(obj.getEmbMat3() instanceof IDataObject);
 
+		Assert.assertFalse(((IDataObject) obj).isToBeUpdated());
 		obj.setId(1);
+		Assert.assertTrue(((IDataObject) obj).isToBeUpdated());
 		((IDataObject) obj).setToBeUpdated(false);
 
 		obj.getEmbMat().setName("Name");
@@ -517,9 +519,11 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest
 		obj2.setName("name2");
 		obj2.setVersion(1);
 
+		Assert.assertNotEquals(obj1, obj2);
+
 		Object value1 = obj1.getClass().getMethod(getIdName).invoke(obj1, new Object[0]);
 		Object value2 = obj2.getClass().getMethod(getIdName).invoke(obj2, new Object[0]);
-		Assert.assertNotEquals(obj1, obj2);
+		Assert.assertNotEquals(value1, value2);
 
 		Material mat2 = entityFactory.createEntity(Material.class);
 		mat2.setId(2);

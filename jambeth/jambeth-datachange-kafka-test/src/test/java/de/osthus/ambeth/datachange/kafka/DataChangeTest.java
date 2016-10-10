@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.Ambeth;
 import de.osthus.ambeth.bundle.InformationBus;
@@ -43,10 +44,12 @@ import de.osthus.ambeth.start.IAmbethApplication;
 import de.osthus.ambeth.testutil.AbstractIocTest;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
+import de.osthus.ambeth.testutil.category.SlowTests;
 import de.osthus.ambeth.util.ClasspathScanner;
 import de.osthus.ambeth.util.IClasspathScanner;
 import de.osthus.ambeth.util.ParamHolder;
 
+@Category(SlowTests.class)
 @TestPropertiesList({
 		// producer
 		@TestProperties(name = EventKafkaConfigurationConstants.TOPIC_NAME, value = "test"),//
@@ -77,7 +80,6 @@ public class DataChangeTest extends AbstractIocTest
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
