@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
@@ -18,7 +19,9 @@ import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
+import de.osthus.ambeth.testutil.category.ReminderTests;
 
+@Category(ReminderTests.class)
 @SQLData("/de/osthus/ambeth/persistence/xml/Relations_data.sql")
 @SQLStructure("/de/osthus/ambeth/persistence/xml/Relations_structure.sql")
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/RelationAutomapping_orm.xml") })
