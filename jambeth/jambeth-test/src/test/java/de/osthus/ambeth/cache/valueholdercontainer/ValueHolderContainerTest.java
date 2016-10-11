@@ -780,6 +780,8 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest
 		{
 			cacheModification.setActive(false);
 		}
+		Assert.assertFalse(((IDataObject) mat).hasPendingChanges());
+		Assert.assertFalse(((IDataObject) obj2).hasPendingChanges());
 
 		HashMap<String, Integer> matCounter = new HashMap<String, Integer>();
 		PropertyChangeListener matHandler = getPropertyChangeHandler(matCounter);
@@ -793,11 +795,14 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest
 		mat.getChildMatType().setName(mat.getChildMatType().getName() + "_change");
 		waitForUI();
 
+		Assert.assertTrue(((IDataObject) mat).hasPendingChanges());
+		Assert.assertTrue(((IDataObject) obj2).hasPendingChanges());
+
 		Assert.assertEquals(2, matCounter.size());
 		Assert.assertTrue(matCounter.containsKey("ToBeUpdated"));
 		Assert.assertTrue(matCounter.containsKey("HasPendingChanges"));
-		Assert.assertEquals(5, matCounter.get("ToBeUpdated").intValue());
-		Assert.assertEquals(5, matCounter.get("HasPendingChanges").intValue());
+		Assert.assertEquals(1, matCounter.get("ToBeUpdated").intValue());
+		Assert.assertEquals(1, matCounter.get("HasPendingChanges").intValue());
 
 		Assert.assertEquals(5, matTypeCounter.size());
 		Assert.assertTrue(matTypeCounter.containsKey("Name"));
@@ -839,6 +844,9 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest
 		{
 			cacheModification.setActive(false);
 		}
+		Assert.assertFalse(((IDataObject) mat).hasPendingChanges());
+		Assert.assertFalse(((IDataObject) obj3).hasPendingChanges());
+		Assert.assertFalse(((IDataObject) obj4).hasPendingChanges());
 
 		HashMap<String, Integer> matCounter = new HashMap<String, Integer>();
 		PropertyChangeListener matHandler = getPropertyChangeHandler(matCounter);
@@ -854,8 +862,8 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest
 		Assert.assertEquals(2, matCounter.size());
 		Assert.assertTrue(matCounter.containsKey("ToBeUpdated"));
 		Assert.assertTrue(matCounter.containsKey("HasPendingChanges"));
-		Assert.assertEquals(10, matCounter.get("ToBeUpdated").intValue());
-		Assert.assertEquals(10, matCounter.get("HasPendingChanges").intValue());
+		Assert.assertEquals(1, matCounter.get("ToBeUpdated").intValue());
+		Assert.assertEquals(1, matCounter.get("HasPendingChanges").intValue());
 	}
 
 	@Test

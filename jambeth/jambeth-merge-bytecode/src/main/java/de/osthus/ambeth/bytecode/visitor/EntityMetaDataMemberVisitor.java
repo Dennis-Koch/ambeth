@@ -150,11 +150,19 @@ public class EntityMetaDataMemberVisitor extends ClassGenerator
 
 	protected void implementGetAnnotation(IPropertyInfo[] property)
 	{
-		HashMap<Class<?>, Annotation> typeToAnnotationMap = new HashMap<Class<?>, Annotation>();
 		Annotation[] annotations = property[property.length - 1].getAnnotations();
+		if (annotations.length == 0)
+		{
+			MethodGenerator mv = visitMethod(template_m_getAnnotation);
+			mv.pushNull();
+			mv.returnValue();
+			mv.endMethod();
+			return;
+		}
+		HashMap<Class<?>, Annotation> typeToAnnotationMap = HashMap.create(annotations.length, 0.5f);
 		for (Annotation annotation : annotations)
 		{
-			typeToAnnotationMap.put(annotation.getClass(), annotation);
+			typeToAnnotationMap.put(annotation.annotationType(), annotation);
 		}
 		FieldInstance f_typeToAnnotationMap = implementStaticAssignedField("sf__typeToAnnotationMap", typeToAnnotationMap);
 		MethodGenerator mv = visitMethod(template_m_getAnnotation);

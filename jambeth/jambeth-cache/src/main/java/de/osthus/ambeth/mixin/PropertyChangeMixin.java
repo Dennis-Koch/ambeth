@@ -246,12 +246,7 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 		{
 			return;
 		}
-		boolean oldToBeUpdated = ((IDataObject) obj).isToBeUpdated();
-		if (oldToBeUpdated)
-		{
-			return;
-		}
-		obj.onPropertyChanged("ToBeUpdated", Boolean.FALSE, Boolean.TRUE);
+		((IDataObject) obj).setToBeUpdated(true);
 	}
 
 	public void handleCollectionChange(INotifyPropertyChangedSource obj, NotifyCollectionChangedEvent evnt)
@@ -552,14 +547,23 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 			{
 				currentValue = null;
 			}
+			PropertyChangeEvent evnt = null;
 			if (pcl != null && (oldValue != null || currentValue != null))
 			{
 				// called only in "non-technical" PCEs
-				pcl.propertyChange(new PropertyChangeEvent(obj, propertyName, oldValue, currentValue));
+				evnt = new PropertyChangeEvent(obj, propertyName, oldValue, currentValue);
+				pcl.propertyChange(evnt);
 			}
 			if (propertyChangeSupport != null)
 			{
-				propertyChangeSupport.firePropertyChange(obj, propertyName, oldValue, currentValue);
+				if (evnt != null)
+				{
+					propertyChangeSupport.firePropertyChange(evnt);
+				}
+				else
+				{
+					propertyChangeSupport.firePropertyChange(obj, propertyName, oldValue, currentValue);
+				}
 			}
 			for (int b = 0, sizeB = extensions.size(); b < sizeB; b++)
 			{
