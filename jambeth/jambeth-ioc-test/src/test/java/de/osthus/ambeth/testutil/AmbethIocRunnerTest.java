@@ -8,16 +8,18 @@ import org.junit.Test;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingModule;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.testutil.AmbethIocRunnerTest.MyTestModule;
 import de.osthus.ambeth.util.IPrintable;
 
-@TestPropertiesList({ @TestProperties(name = AmbethIocRunnerTest.TestPropertyName, value = "value1"),
-		@TestProperties(name = AmbethIocRunnerTest.TestPropertyName, value = "value2"), @TestProperties(name = "test.string.empty", value = "") })
+@TestPropertiesList({ @TestProperties(name = AmbethIocRunnerTest.TEST_PROPERTY_NAME, value = "value1"),
+		@TestProperties(name = AmbethIocRunnerTest.TEST_PROPERTY_NAME, value = "value2"), @TestProperties(name = "test.string.empty", value = ""),
+		@TestProperties(name = "test.novalue") })
 @TestModule(MyTestModule.class)
 public class AmbethIocRunnerTest extends AbstractIocTest
 {
-	public static final String TestPropertyName = "test.property";
+	public static final String TEST_PROPERTY_NAME = "test.property";
 
 	public static class MyTestModule implements IInitializingModule
 	{
@@ -48,9 +50,14 @@ public class AmbethIocRunnerTest extends AbstractIocTest
 
 	protected HashMap<Object, Object> nameToValueMap = new HashMap<Object, Object>();
 
+	@Property(name = "abc", defaultValue = "abc0")
 	protected String value;
 
+	@Autowired
 	protected IPrintable printable;
+
+	@Property(name = TEST_PROPERTY_NAME)
+	private String definedMultipleTimes;
 
 	@Property(name = "test.string.empty")
 	private String emptyString;
@@ -58,16 +65,11 @@ public class AmbethIocRunnerTest extends AbstractIocTest
 	@Property(name = "test.string.empty", defaultValue = "empty")
 	private String emptyStringWithDefault;
 
-	public void setPrintable(IPrintable printable)
-	{
-		this.printable = printable;
-	}
+	@Property(name = "test.string.undefined", defaultValue = "myDefault")
+	private String undefinedWithDefault;
 
-	@Property(name = "abc", defaultValue = "abc0")
-	public void setValue(String value)
-	{
-		this.value = value;
-	}
+	@Property(name = "test.novalue")
+	private String novalue;
 
 	@Test
 	public void autowiringIntoTest() throws Exception
@@ -76,9 +78,36 @@ public class AmbethIocRunnerTest extends AbstractIocTest
 	}
 
 	@Test
+	public void testTestProperties_defaultValue()
+	{
+		Assert.assertEquals("abc0", value);
+	}
+
+	@Test
+	public void testTestProperties_definedMultipleTimes()
+	{
+		Assert.assertEquals("value2", definedMultipleTimes);
+	}
+
+	/**
+	 * Test for ticket 2756. Empty Strings were ignored, but should not.
+	 */
+	@Test
 	public void testTestProperties_emptyString()
 	{
 		Assert.assertEquals("", emptyString);
 		Assert.assertEquals("", emptyStringWithDefault);
+	}
+
+	@Test
+	public void testTestProperties_undefinedString()
+	{
+		Assert.assertEquals("myDefault", undefinedWithDefault);
+	}
+
+	@Test
+	public void testTestProperties_noValue()
+	{
+		Assert.assertEquals("", novalue);
 	}
 }
