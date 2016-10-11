@@ -247,7 +247,7 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 			String testPropertyValue = testProperties.value();
 			if (testPropertyName != null && testPropertyName.length() > 0)
 			{
-				if (testPropertyValue != null && testPropertyValue.length() > 0)
+				if (testPropertyValue != null)
 				{
 					// Override intended
 					props.put(testPropertyName, testPropertyValue);
