@@ -21,7 +21,7 @@ public class ShellContextImpl implements ShellContext, IStartingBean
 
 	/**
 	 * load all ambeth properties into shell context
-	 * 
+	 *
 	 */
 	@Override
 	public void afterStarted() throws Throwable
