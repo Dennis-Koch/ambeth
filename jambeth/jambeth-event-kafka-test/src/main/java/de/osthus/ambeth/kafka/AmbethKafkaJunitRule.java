@@ -43,12 +43,9 @@ import org.junit.rules.ExternalResource;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
-import com.github.charithe.kafka.KafkaJunitRule;
 import com.yammer.metrics.Metrics;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LoggerFactory;
 import de.osthus.ambeth.testutil.AmbethIocRunner;
 import de.osthus.ambeth.zookeeper.AmbethZookeeperConfiguration;
 
@@ -59,7 +56,7 @@ import de.osthus.ambeth.zookeeper.AmbethZookeeperConfiguration;
 public class AmbethKafkaJunitRule extends ExternalResource
 {
 	// constant variables
-	private static final ILogger LOGGER = LoggerFactory.getLogger(KafkaJunitRule.class);
+	// private static final ILogger LOGGER = LoggerFactory.getLogger(KafkaJunitRule.class);
 	private static final int ALLOCATE_RANDOM_PORT = -1;
 	private static final String LOCALHOST = "localhost";
 
@@ -258,7 +255,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 		try
 		{
 			Files.walkFileTree(path, new SimpleFileVisitor<Path>()
-			{
+					{
 				@Override
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
 				{
@@ -272,7 +269,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 					Files.deleteIfExists(dir);
 					return FileVisitResult.CONTINUE;
 				}
-			});
+					});
 		}
 		catch (Throwable e)
 		{
@@ -420,7 +417,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 			final KafkaStream<byte[], T> messageSteam = streams.get(topic).get(0);
 
 			Future<List<T>> future = singleThread.submit(new Callable<List<T>>()
-			{
+					{
 				@Override
 				public List<T> call() throws Exception
 				{
@@ -434,7 +431,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 					}
 					return messages;
 				}
-			});
+					});
 
 			return future.get(5, SECONDS);
 		}
