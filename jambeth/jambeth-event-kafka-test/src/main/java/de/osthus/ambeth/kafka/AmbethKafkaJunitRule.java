@@ -42,7 +42,10 @@ import org.apache.kafka.common.errors.TimeoutException;
 import org.junit.rules.ExternalResource;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.github.charithe.kafka.KafkaJunitRule;
 import com.yammer.metrics.Metrics;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -56,7 +59,7 @@ import de.osthus.ambeth.zookeeper.AmbethZookeeperConfiguration;
 public class AmbethKafkaJunitRule extends ExternalResource
 {
 	// constant variables
-	// private static final ILogger LOGGER = LoggerFactory.getLogger(KafkaJunitRule.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(KafkaJunitRule.class);
 	private static final int ALLOCATE_RANDOM_PORT = -1;
 	private static final String LOCALHOST = "localhost";
 
@@ -231,7 +234,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 		}
 		catch (Exception e)
 		{
-			// LOGGER.error("Failed to clean-up Kafka", e);
+			LOGGER.error("Failed to clean-up Kafka", e);
 		}
 	}
 
@@ -251,7 +254,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 		{
 			return;
 		}
-		// LOGGER.info("Deleting the log dir:  {}", path);
+		LOGGER.info("Deleting the log dir:  {}", path);
 		try
 		{
 			Files.walkFileTree(path, new SimpleFileVisitor<Path>()
@@ -284,7 +287,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 	{
 		if (kafkaServer != null)
 		{
-			// LOGGER.info("Starting Kafka Server");
+			LOGGER.info("Starting Kafka Server");
 			kafkaServer.startup();
 		}
 	}
@@ -296,7 +299,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 	{
 		if (kafkaServer != null)
 		{
-			// LOGGER.info("Shutting down Kafka Server");
+			LOGGER.info("Shutting down Kafka Server");
 			kafkaServer.shutdown();
 		}
 	}
@@ -426,7 +429,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 					while (messages.size() != expectedMessages && iterator.hasNext())
 					{
 						T message = iterator.next().message();
-						// LOGGER.debug("Received message: {}", message);
+						LOGGER.debug("Received message: {}", message);
 						messages.add(message);
 					}
 					return messages;
