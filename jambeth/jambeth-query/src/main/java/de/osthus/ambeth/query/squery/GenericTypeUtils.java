@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import de.osthus.ambeth.collections.LinkedHashSet;
+
 public final class GenericTypeUtils
 {
 	private GenericTypeUtils()
@@ -59,10 +61,18 @@ public final class GenericTypeUtils
 	 */
 	public static List<ParameterizedType> getAllParameterizedType(Object obj)
 	{
-		List<ParameterizedType> result = new ArrayList<ParameterizedType>();
 		Class<? extends Object> clazz = obj.getClass();
+		LinkedHashSet<ParameterizedType> result = new LinkedHashSet<ParameterizedType>();
 		while (clazz != Object.class)
 		{
+			List<Type> interfaces = getAllInterfaces(clazz);
+			for (Type interfaceType : interfaces)
+			{
+				if (interfaceType instanceof ParameterizedType)
+				{
+					result.add((ParameterizedType) interfaceType);
+				}
+			}
 			Type type = clazz.getGenericSuperclass();
 			if (type instanceof ParameterizedType)
 			{
@@ -70,15 +80,7 @@ public final class GenericTypeUtils
 			}
 			clazz = clazz.getSuperclass();
 		}
-		List<Type> interfaces = getAllInterfaces(obj.getClass());
-		for (Type type : interfaces)
-		{
-			if (type instanceof ParameterizedType)
-			{
-				result.add((ParameterizedType) type);
-			}
-		}
-		return result;
+		return result.toList();
 	}
 
 	private static List<Type> getAllInterfaces(Type... types)

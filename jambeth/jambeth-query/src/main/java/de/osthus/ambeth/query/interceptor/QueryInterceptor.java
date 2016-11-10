@@ -133,7 +133,7 @@ public class QueryInterceptor extends CascadedInterceptor
 	{
 		if (target instanceof ISquery && Modifier.isAbstract(method.getModifiers()) && QueryUtils.canBuildQuery(method.getName()))
 		{
-			QueryBuilderBean<?> queryBuilderBean = retrieveQueryBuilderBean(obj, method);
+			QueryBuilderBean<?> queryBuilderBean = getOrCreateQueryBuilderBean(method);
 			try
 			{
 				return queryBuilderBean.createQueryBuilder(queryBuilderFactory, conversionHelper, args, method.getReturnType());
@@ -265,7 +265,7 @@ public class QueryInterceptor extends CascadedInterceptor
 	}
 
 	/**
-	 * get QueryBuilderBean, this object may from cache or just build
+	 * get QueryBuilderBean, this object may be from cache or will just be created ad-hoc
 	 * 
 	 * @param obj
 	 *            intercepted object
@@ -273,9 +273,8 @@ public class QueryInterceptor extends CascadedInterceptor
 	 *            intercepted method
 	 * @return QueryBuilderBean instance for Squery
 	 */
-	private QueryBuilderBean<?> retrieveQueryBuilderBean(Object obj, Method method)
+	private QueryBuilderBean<?> getOrCreateQueryBuilderBean(Method method)
 	{
-		ParamChecker.assertNotNull(obj, "obj");
 		ParamChecker.assertNotNull(method, "method");
 
 		QueryBuilderBean<?> queryBuilderBean;
@@ -283,30 +282,31 @@ public class QueryInterceptor extends CascadedInterceptor
 		try
 		{
 			queryBuilderBean = methodMapQueryBuilderBean.get(method);
-			// double check to make thread safe and not influence the speed
-			if (queryBuilderBean == null)
+			if (queryBuilderBean != null)
 			{
-				readLock.unlock();
-				writeLock.lock();
-				try
-				{
-					if (queryBuilderBean == null)
-					{
-						Class<?> entityType = (Class<?>) GenericTypeUtils.getGenericParam(obj, ISquery.class)[0];
-						queryBuilderBean = QueryUtils.buildQuery(method.getName(), entityType);
-						methodMapQueryBuilderBean.put(method, queryBuilderBean);
-					}
-					readLock.lock();
-				}
-				finally
-				{
-					writeLock.unlock();
-				}
+				return queryBuilderBean;
 			}
 		}
 		finally
 		{
 			readLock.unlock();
+		}
+		// double check to make thread safe and not influence the speed
+		writeLock.lock();
+		try
+		{
+			queryBuilderBean = methodMapQueryBuilderBean.get(method);
+			if (queryBuilderBean != null)
+			{
+				return queryBuilderBean;
+			}
+			Class<?> entityType = (Class<?>) GenericTypeUtils.getGenericParam(target, ISquery.class)[0];
+			queryBuilderBean = QueryUtils.buildQuery(method.getName(), entityType);
+			methodMapQueryBuilderBean.put(method, queryBuilderBean);
+		}
+		finally
+		{
+			writeLock.unlock();
 		}
 		return queryBuilderBean;
 	}

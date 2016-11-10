@@ -8,11 +8,12 @@ import de.osthus.ambeth.proxy.Service;
 import de.osthus.ambeth.query.IOperator;
 import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
+import de.osthus.ambeth.query.squery.ISquery;
 import de.osthus.ambeth.query.squery.model.Person;
 
 @Service(IPersonService.class)
 @MergeContext
-public abstract class PersonService implements IPersonService
+public abstract class PersonService implements IPersonService, ISquery<Person>
 {
 	public static final String CONCRETE_METHOD_RETURN_VALUE = "this method will not be intercepted";
 

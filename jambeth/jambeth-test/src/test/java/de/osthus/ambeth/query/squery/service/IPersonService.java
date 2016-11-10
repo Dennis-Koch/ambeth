@@ -6,10 +6,9 @@ import java.util.List;
 import de.osthus.ambeth.filter.model.IPagingRequest;
 import de.osthus.ambeth.filter.model.IPagingResponse;
 import de.osthus.ambeth.filter.model.ISortDescriptor;
-import de.osthus.ambeth.query.squery.ISquery;
 import de.osthus.ambeth.query.squery.model.Person;
 
-public interface IPersonService extends ISquery<Person>
+public interface IPersonService
 {
 	List<Person> findAll();
 
