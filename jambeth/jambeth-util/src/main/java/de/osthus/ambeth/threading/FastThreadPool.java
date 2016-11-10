@@ -580,7 +580,7 @@ public class FastThreadPool implements ExecutorService, IFastThreadPool, IDispos
 			actionQueue.pushLast(queueItem.getThreadingLE());
 			if (blockingThread == null)
 			{
-				if (!isThreadMaximum() && freeThreadList.size() == 0)
+				if (!isThreadMaximum() && actionQueue.size() > freeThreadList.size())
 				{
 					createThread();
 				}
