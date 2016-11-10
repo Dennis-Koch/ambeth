@@ -36,7 +36,7 @@ public class DelegateVisitor extends ClassGenerator
 		LinkedHashMap<MethodInstance, MethodInstance> methodsAsKey = new LinkedHashMap<MethodInstance, MethodInstance>();
 		for (Method method : ReflectUtil.getDeclaredMethodsInHierarchy(type))
 		{
-			if (Modifier.isStatic(method.getModifiers()))
+			if (Modifier.isStatic(method.getModifiers()) || Modifier.isFinal(method.getModifiers()))
 			{
 				continue;
 			}
