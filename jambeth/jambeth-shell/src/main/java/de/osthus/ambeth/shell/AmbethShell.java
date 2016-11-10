@@ -11,9 +11,9 @@ import de.osthus.ambeth.shell.core.ShellContext;
 import de.osthus.ambeth.shell.core.resulttype.CommandResult;
 
 /**
- * 
+ *
  * @author daniel.mueller
- * 
+ *
  */
 public interface AmbethShell
 {
@@ -23,7 +23,7 @@ public interface AmbethShell
 	public static final String SHELL_CONTEXT_BASE_FOLDER = "shell.context.base.folder";
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	ShellContext getContext();
@@ -34,7 +34,7 @@ public interface AmbethShell
 	void startInteractive(BufferedReader br);
 
 	/**
-	 * 
+	 *
 	 * @param args
 	 * @return {@link CommandResult}
 	 */
@@ -42,14 +42,14 @@ public interface AmbethShell
 
 	/**
 	 * executes an unparsed (i.e. not processed command)
-	 * 
+	 *
 	 * @param unparsedCommandLine
 	 * @return {@link CommandResult}
 	 */
 	CommandResult executeRawCommand(String unparsedCommandLine);
 
 	/**
-	 * 
+	 *
 	 * @param name
 	 * @return
 	 */
@@ -61,13 +61,13 @@ public interface AmbethShell
 	Collection<CommandBinding> getCommandBindings();
 
 	/**
-	 * 
+	 *
 	 * @param object
 	 */
 	void print(Object object);
 
 	/**
-	 * 
+	 *
 	 * @param object
 	 */
 	void println(Object object);
@@ -79,7 +79,7 @@ public interface AmbethShell
 
 	/**
 	 * Deprecated: use context.set(ShellContext.SHUTDOWN, true) instead
-	 * 
+	 *
 	 * @param object
 	 */
 	@Deprecated
@@ -87,14 +87,14 @@ public interface AmbethShell
 
 	/**
 	 * all commands should use the same Date format
-	 * 
+	 *
 	 * @return
 	 */
 	DateFormat getDateFormat();
 
 	/**
 	 * set prompt value to prompt information map
-	 * 
+	 *
 	 * @param key
 	 *            key
 	 * @param value
@@ -104,14 +104,14 @@ public interface AmbethShell
 
 	/**
 	 * remove prompt value from prompt information map
-	 * 
+	 *
 	 * @param key
 	 *            key
 	 */
 	void removePrompt(String key);
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	String getPromptString();
@@ -124,7 +124,7 @@ public interface AmbethShell
 	// void registerSystemOut(PrintStream ps);
 	/**
 	 * get the current shell output stream
-	 * 
+	 *
 	 * @param key
 	 *            key
 	 */
@@ -137,7 +137,7 @@ public interface AmbethShell
 
 	/**
 	 * expecting a fileName, a dir can't be handled for now
-	 * 
+	 *
 	 * @param fileName
 	 * @return
 	 */

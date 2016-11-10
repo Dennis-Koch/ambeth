@@ -5,7 +5,7 @@ import de.osthus.ambeth.collections.IMap;
 public interface ShellContext
 {
 	static final String BATCH_FILE = "batch.file";
-	static final String EXIT_ON_ERROR = "exit.on.error";
+	// static final String EXIT_ON_ERROR = "exit.on.error";
 	static final String GREETING_ACTIVE = "greeting.active";
 	static final String LICENSE_EXPIRATION_DATE = "license.expiration.date";
 	static final String LICENSE_TEXT = "license.text";
@@ -19,6 +19,12 @@ public interface ShellContext
 	static final String VARS_FOR_BATCH_FILE = "batch.file.variables";
 	static final String VERBOSE = "verbose";
 	static final String HIDE_IO = "hide.io";
+	static final String ERROR_MODE = "error.mode";
+
+	enum ErrorMode
+	{
+		EXIT_ON_ERROR, THROW_EXCPETION, LOG_ONLY
+	}
 
 	String filter(String input);
 
