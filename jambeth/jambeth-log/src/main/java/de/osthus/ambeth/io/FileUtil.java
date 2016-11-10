@@ -21,6 +21,22 @@ import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 
 public final class FileUtil
 {
+	public static class DeleteDelegate implements IBackgroundWorkerDelegate
+	{
+		private final Path file;
+
+		private DeleteDelegate(Path file)
+		{
+			this.file = file;
+		}
+
+		@Override
+		public void invoke() throws Throwable
+		{
+			Files.delete(file);
+		}
+	}
+
 	private static final ThreadLocal<Class<?>> currentTypeScopeTL = new ThreadLocal<Class<?>>();
 
 	private static final Pattern CONFIG_SEPARATOR = Pattern.compile(";");
@@ -286,16 +302,16 @@ public final class FileUtil
 	}
 
 	/**
-	 * tries to do a specific operation for up to 4 times while the timespan between each (failed) try will be doubled. The starting delay after the first
-	 * (failed) try is 8 ms. So then 16ms, and 32ms. This functionality is helpful for some SSD behaviors where files or folders are not yet available even if
-	 * you know for sure that previously executed (and successful) code created it.
+	 * tries to do a specific operation for up to 6 times while the timespan between each (failed) try will be doubled. The starting delay after the first
+	 * (failed) try is 8 ms. So then 16ms, 32ms, 64ms and 128ms. This functionality is helpful for some SSD behaviors where files or folders are not yet
+	 * available even if you know for sure that previously executed (and successful) code created it.
 	 * 
 	 * @param worker
 	 *            The delegate to try to execute. If it fails it is re-executed up to 3 additional times.
 	 */
 	public static void retry(IBackgroundWorkerDelegate worker)
 	{
-		retry(worker, 4);
+		retry(worker, 6);
 	}
 
 	public static void retry(IBackgroundWorkerDelegate worker, int maximumRetryCount)
@@ -339,23 +355,16 @@ public final class FileUtil
 				@Override
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
 				{
-					Files.delete(file);
+					retry(new DeleteDelegate(file));
 					return FileVisitResult.CONTINUE;
 				}
 
 				@Override
-				public FileVisitResult postVisitDirectory(final Path dir, IOException exc) throws IOException
+				public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException
 				{
 					if (includeTopLevel || !path.equals(dir))
 					{
-						retry(new IBackgroundWorkerDelegate()
-						{
-							@Override
-							public void invoke() throws Throwable
-							{
-								Files.delete(dir);
-							}
-						});
+						retry(new DeleteDelegate(dir));
 					}
 					return FileVisitResult.CONTINUE;
 				}
