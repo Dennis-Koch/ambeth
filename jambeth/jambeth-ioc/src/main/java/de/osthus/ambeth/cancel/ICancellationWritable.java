@@ -6,7 +6,7 @@ public interface ICancellationWritable
 {
 	/**
 	 * Creates a new {@link ICancellationHandle} without assigning it to the current thread. This makes sense together with calling later
-	 * {@link #setCancellationHandle(ICancellationHandle)} for other threads.
+	 * {@link #pushCancellationHandle(ICancellationHandle)} for other threads.
 	 * 
 	 * @return A new {@link ICancellationHandle} not assigned to any thread, yet
 	 */
@@ -19,7 +19,7 @@ public interface ICancellationWritable
 	 *            a valid {@link ICancellationHandle}
 	 * @return The rollback handle to restore the state of the {@link ICancellationWritable} before calling this method.
 	 */
-	IStateRollback setCancellationHandle(ICancellationHandle cancellationHandle);
+	IStateRollback pushCancellationHandle(ICancellationHandle cancellationHandle);
 
 	/**
 	 * Retrieves the {@link ICancellationHandle} currently assigned to this thread or creates a new one if this thread does not yet have a

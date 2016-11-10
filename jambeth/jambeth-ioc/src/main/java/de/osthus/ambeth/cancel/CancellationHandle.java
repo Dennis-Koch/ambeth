@@ -4,6 +4,10 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import de.osthus.ambeth.collections.WeakHashSet;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 
 public class CancellationHandle implements ICancellationHandle
 {
@@ -20,12 +24,25 @@ public class CancellationHandle implements ICancellationHandle
 		this.cancellation = cancellation;
 	}
 
-	public void addOwningThread()
+	public boolean addOwningThread()
 	{
 		writeLock.lock();
 		try
 		{
-			owningThreads.add(Thread.currentThread());
+			return owningThreads.add(Thread.currentThread());
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
+	}
+
+	public void removeOwningThread()
+	{
+		writeLock.lock();
+		try
+		{
+			owningThreads.remove(Thread.currentThread());
 		}
 		finally
 		{
@@ -76,5 +93,68 @@ public class CancellationHandle implements ICancellationHandle
 			throw new IllegalStateException("Only the thread owning this cancellationHandle is allowed to close it");
 		}
 		cancellation.cancelledTL.set(null);
+	}
+
+	@Override
+	public void withCancellationAwareness(IBackgroundWorkerDelegate runnable)
+	{
+		boolean hasBeenAdded = addOwningThread();
+		try
+		{
+			runnable.invoke();
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			if (hasBeenAdded)
+			{
+				removeOwningThread();
+			}
+		}
+	}
+
+	@Override
+	public <R> R withCancellationAwareness(IResultingBackgroundWorkerDelegate<R> runnable)
+	{
+		boolean hasBeenAdded = addOwningThread();
+		try
+		{
+			return runnable.invoke();
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			if (hasBeenAdded)
+			{
+				removeOwningThread();
+			}
+		}
+	}
+
+	@Override
+	public <R, V> R withCancellationAwareness(IResultingBackgroundWorkerParamDelegate<R, V> runnable, V state)
+	{
+		boolean hasBeenAdded = addOwningThread();
+		try
+		{
+			return runnable.invoke(state);
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			if (hasBeenAdded)
+			{
+				removeOwningThread();
+			}
+		}
 	}
 }

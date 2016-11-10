@@ -96,6 +96,7 @@ public abstract class AbstractParallelRunnable<V> implements Runnable
 			{
 				currentThread.setName(oldName);
 			}
+			Thread.interrupted();
 		}
 	}
 

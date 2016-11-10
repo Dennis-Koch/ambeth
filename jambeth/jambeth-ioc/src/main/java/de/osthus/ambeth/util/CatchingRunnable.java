@@ -6,6 +6,7 @@ import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import de.osthus.ambeth.cancel.ICancellation;
 import de.osthus.ambeth.ioc.threadlocal.IForkState;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 
@@ -21,13 +22,16 @@ public class CatchingRunnable implements RunnableFuture<Throwable>
 
 	protected final IThreadLocalCleanupController threadLocalCleanupController;
 
-	public CatchingRunnable(IForkState forkState, Runnable runnable, CountDownLatch latch, IParamHolder<Throwable> throwableHolder,
+	protected final ICancellation cancellation;
+
+	public CatchingRunnable(IForkState forkState, Runnable runnable, CountDownLatch latch, IParamHolder<Throwable> throwableHolder, ICancellation cancellation,
 			IThreadLocalCleanupController threadLocalCleanupController)
 	{
 		this.forkState = forkState;
 		this.runnable = runnable;
 		this.latch = latch;
 		this.throwableHolder = throwableHolder;
+		this.cancellation = cancellation;
 		this.threadLocalCleanupController = threadLocalCleanupController;
 	}
 
@@ -81,10 +85,19 @@ public class CatchingRunnable implements RunnableFuture<Throwable>
 			{
 				if (forkState != null)
 				{
-					forkState.use(runnable);
+					forkState.use(new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							cancellation.ensureNotCancelled();
+							runnable.run();
+						}
+					});
 				}
 				else
 				{
+					cancellation.ensureNotCancelled();
 					runnable.run();
 				}
 			}
