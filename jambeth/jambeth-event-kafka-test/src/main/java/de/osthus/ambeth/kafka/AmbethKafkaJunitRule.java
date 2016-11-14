@@ -217,7 +217,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 
 			if (zookeeper != null)
 			{
-				// LOGGER.info("Shutting down Zookeeper");
+				LOGGER.info("Shutting down Zookeeper");
 				zookeeper.close();
 			}
 			// fixes leaking "metrics-core" threadPool threads
@@ -420,7 +420,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 			final KafkaStream<byte[], T> messageSteam = streams.get(topic).get(0);
 
 			Future<List<T>> future = singleThread.submit(new Callable<List<T>>()
-					{
+			{
 				@Override
 				public List<T> call() throws Exception
 				{
@@ -434,7 +434,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 					}
 					return messages;
 				}
-					});
+			});
 
 			return future.get(5, SECONDS);
 		}
