@@ -258,7 +258,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 		try
 		{
 			Files.walkFileTree(path, new SimpleFileVisitor<Path>()
-					{
+			{
 				@Override
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
 				{
@@ -272,7 +272,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 					Files.deleteIfExists(dir);
 					return FileVisitResult.CONTINUE;
 				}
-					});
+			});
 		}
 		catch (Throwable e)
 		{
@@ -478,13 +478,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 	{
 		if (producer == null)
 		{
-
-			/*
-			 * Properties props = new Properties(); props.put("serializer.class", StringEncoder.class.getName()); props.put("metadata.broker.list", LOCALHOST +
-			 * ":" + kafkaBrokerPort()); ProducerConfig config = new ProducerConfig(props); producer = new Producer<String, String>(config);
-			 */
 			producer = new Producer<String, String>(producerConfig(StringEncoder.class.getName()));
-
 		}
 		producer.send(message);
 		producer.send(Arrays.asList(messages));
