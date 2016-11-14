@@ -55,6 +55,7 @@ import de.osthus.ambeth.zookeeper.AmbethZookeeperConfiguration;
 /**
  * Unit rule class to assist the required operations related to kafka and zookeeper configurations. It is responsible for starting and closing kafka, and
  * zookeper and facilitates the mechanism for connecting with kafka server created at runtime.
+ * 
  */
 public class AmbethKafkaJunitRule extends ExternalResource
 {
@@ -85,6 +86,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 	/**
 	 * In this method perform the following operations before returning a statement: Extract the defined properties, Allocate random ports, start zookeeper and
 	 * kafka server.
+	 * 
 	 */
 	@Override
 	public Statement apply(Statement base, Description description)
@@ -106,6 +108,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 	/**
 	 * This method is responsible for allocating ports to kafka and zookeeper. These ports will later be used to establish the connection with respective
 	 * entities.
+	 * 
 	 */
 	protected void allocatePorts()
 	{
@@ -134,6 +137,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 
 	/**
 	 * Method is responsible for creating the required log files and starting zookeeper and kafka.
+	 * 
 	 */
 	protected void startZookeeperAndKafka()
 	{
@@ -158,6 +162,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 
 	/**
 	 * This method creates temporary directories if required and allocates the log file paths to respective zookeeper and kafka.
+	 * 
 	 */
 	protected void allocateLogFilePaths()
 	{
@@ -184,7 +189,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 
 	/**
 	 * Create a temporary directory
-	 *
+	 * 
 	 * @return directory path
 	 */
 	protected Path ensureTempTestDir()
@@ -239,7 +244,8 @@ public class AmbethKafkaJunitRule extends ExternalResource
 	}
 
 	/**
-	 * Delete the created directories and clean up the required resources
+	 * Delete the created directories and clean up the required resources.
+	 * 
 	 */
 	public void cleanup()
 	{
@@ -248,6 +254,11 @@ public class AmbethKafkaJunitRule extends ExternalResource
 		deleteRecursive(zookeeperLogDir);
 	}
 
+	/**
+	 * Delete recursive path of created log files for kafka and zookeeper.
+	 * 
+	 * @param path
+	 */
 	private void deleteRecursive(Path path)
 	{
 		if (path == null || !Files.exists(path))
@@ -281,7 +292,8 @@ public class AmbethKafkaJunitRule extends ExternalResource
 	}
 
 	/**
-	 * Starts the server
+	 * Start kafka server
+	 * 
 	 */
 	public void startKafka()
 	{
@@ -306,7 +318,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 
 	/**
 	 * Build Kafka configuration object
-	 *
+	 * 
 	 * @param zookeeperQuorum
 	 *            connection string
 	 * @return Kafka Configuraion object
@@ -326,7 +338,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 
 	/**
 	 * Create a producer configuration. Sets the serializer class to "DefaultEncoder" and producer type to "sync"
-	 *
+	 * 
 	 * @return {@link ProducerConfig}
 	 */
 	public ProducerConfig producerConfigWithDefaultEncoder()
@@ -336,7 +348,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 
 	/**
 	 * Create a producer configuration. Sets the serializer class to "StringEncoder" and producer type to "sync"
-	 *
+	 * 
 	 * @return {@link ProducerConfig}
 	 */
 	public ProducerConfig producerConfigWithStringEncoder()
@@ -346,7 +358,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 
 	/**
 	 * Create a producer configuration. Sets the serializer class to specified encoder and producer type to "sync"
-	 *
+	 * 
 	 * @return {@link ProducerConfig}
 	 */
 	public ProducerConfig producerConfig(String serializerClass)
@@ -363,7 +375,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 
 	/**
 	 * Create a consumer configuration Offset is set to "smallest"
-	 *
+	 * 
 	 * @return {@link ConsumerConfig}
 	 */
 	public ConsumerConfig consumerConfig()
@@ -380,7 +392,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 
 	/**
 	 * Read messages from a given kafka topic as {@link String}.
-	 *
+	 * 
 	 * @param topic
 	 *            name of the topic
 	 * @param expectedMessages
@@ -396,7 +408,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 
 	/**
 	 * Read messages from a given kafka topic.
-	 *
+	 * 
 	 * @param topic
 	 *            name of the topic
 	 * @param expectedMessages
@@ -466,7 +478,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 
 	/**
 	 * Send messages to test unit rule functionlaity.
-	 *
+	 * 
 	 * @param producer
 	 *            kafka producer
 	 * @param message
@@ -486,7 +498,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 
 	/**
 	 * Get the Kafka log directory
-	 *
+	 * 
 	 * @return kafka log directory path
 	 */
 	public Path kafkaLogDir()
@@ -496,7 +508,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 
 	/**
 	 * Get the kafka broker port
-	 *
+	 * 
 	 * @return broker port
 	 */
 	public int kafkaBrokerPort()
@@ -506,7 +518,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 
 	/**
 	 * Get the zookeeper port
-	 *
+	 * 
 	 * @return zookeeper port
 	 */
 	public int zookeeperPort()
@@ -516,7 +528,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 
 	/**
 	 * Get the zookeeper connection string
-	 *
+	 * 
 	 * @return zookeeper connection string
 	 */
 	public String zookeeperConnectionString()
