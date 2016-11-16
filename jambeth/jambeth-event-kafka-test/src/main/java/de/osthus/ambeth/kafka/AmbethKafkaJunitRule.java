@@ -149,12 +149,12 @@ public class AmbethKafkaJunitRule extends ExternalResource
 		{
 			zookeeper = new TestingServer(zookeeperPort, zookeeperLogDir.toFile(), true);
 			KafkaConfig kafkaConfig = buildKafkaConfig(zookeeper.getConnectString());
-			System.out.println("Zookeeper started");
+			LOGGER.info("Zookeeper started");
 
 			LOGGER.info("Starting Kafka server with config: {}", kafkaConfig.props());
 			kafkaServer = new KafkaServerStartable(kafkaConfig);
 			startKafka();
-			System.out.println("Kafka Started");
+			LOGGER.info("Kafka Started");
 		}
 		catch (Exception e)
 		{
@@ -221,14 +221,12 @@ public class AmbethKafkaJunitRule extends ExternalResource
 		try
 		{
 			shutdownKafka();
-			System.out.println("Kafka Shut Down");
+			LOGGER.info("Kafka Shutdown, Done");
 
 			if (zookeeper != null)
 			{
-				// System.out.println("Shutting Down Kafka");
-				LOGGER.info("Zookeeper Shutdown");
 				zookeeper.close();
-				System.out.println("Zookeeper Shutdown");
+				LOGGER.info("Zookeeper Shutdown, Done!");
 			}
 			// fixes leaking "metrics-core" threadPool threads
 			Metrics.shutdown();
@@ -261,7 +259,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 
 	/**
 	 * Delete recursive path of created log files for kafka and zookeeper.
-	 * 
+	 *
 	 * @param path
 	 */
 	private void deleteRecursive(Path path)
@@ -380,7 +378,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 
 	/**
 	 * Create a consumer configuration Offset is set to "smallest"
-	 * 
+	 *
 	 * @return {@link ConsumerConfig}
 	 */
 	public ConsumerConfig consumerConfig()
