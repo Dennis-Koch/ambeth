@@ -149,10 +149,12 @@ public class AmbethKafkaJunitRule extends ExternalResource
 		{
 			zookeeper = new TestingServer(zookeeperPort, zookeeperLogDir.toFile(), true);
 			KafkaConfig kafkaConfig = buildKafkaConfig(zookeeper.getConnectString());
+			System.out.println("Zookeeper started");
 
-			// LOGGER.info("Starting Kafka server with config: {}", kafkaConfig.props());
+			LOGGER.info("Starting Kafka server with config: {}", kafkaConfig.props());
 			kafkaServer = new KafkaServerStartable(kafkaConfig);
 			startKafka();
+			System.out.println("Kafka Started");
 		}
 		catch (Exception e)
 		{
@@ -219,11 +221,14 @@ public class AmbethKafkaJunitRule extends ExternalResource
 		try
 		{
 			shutdownKafka();
+			System.out.println("Kafka Shut Down");
 
 			if (zookeeper != null)
 			{
-				LOGGER.info("Shutting down Zookeeper");
+				// System.out.println("Shutting Down Kafka");
+				LOGGER.info("Zookeeper Shutdown");
 				zookeeper.close();
+				System.out.println("Zookeeper Shutdown");
 			}
 			// fixes leaking "metrics-core" threadPool threads
 			Metrics.shutdown();
