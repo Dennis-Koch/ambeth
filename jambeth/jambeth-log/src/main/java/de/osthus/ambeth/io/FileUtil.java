@@ -25,7 +25,7 @@ public final class FileUtil
 	{
 		private final Path file;
 
-		private DeleteDelegate(Path file)
+		public DeleteDelegate(Path file)
 		{
 			this.file = file;
 		}
