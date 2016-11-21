@@ -1,8 +1,8 @@
 package de.osthus.ambeth.cache;
 
-public final class ClearAllCachesEvent
+public enum ClearAllCachesEvent
 {
-	protected static final ClearAllCachesEvent instance = new ClearAllCachesEvent();
+	instance;
 
 	public static ClearAllCachesEvent getInstance()
 	{

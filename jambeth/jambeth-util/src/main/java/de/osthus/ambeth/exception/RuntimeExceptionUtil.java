@@ -25,7 +25,7 @@ public final class RuntimeExceptionUtil
 				}
 			}
 		}
-		if (e instanceof RuntimeException)
+		if (e instanceof RuntimeException || e instanceof Error)
 		{
 			return e;
 		}

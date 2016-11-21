@@ -16,6 +16,7 @@ import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IForkState;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 
@@ -31,10 +32,16 @@ public class MultithreadingHelper implements IMultithreadingHelper
 		}
 
 		@Override
-		public void invoke(V state) throws Throwable
+		public void invoke(final V state) throws Throwable
 		{
-			cancellation.ensureNotCancelled();
-			itemHandler.invoke(state);
+			cancellation.withCancellationAwareness(new IBackgroundWorkerDelegate()
+			{
+				@Override
+				public void invoke() throws Throwable
+				{
+					itemHandler.invoke(state);
+				}
+			});
 		}
 	}
 
@@ -50,8 +57,7 @@ public class MultithreadingHelper implements IMultithreadingHelper
 		@Override
 		public R invoke(V state) throws Throwable
 		{
-			cancellation.ensureNotCancelled();
-			return itemHandler.invoke(state);
+			return cancellation.withCancellationAwareness(itemHandler, state);
 		}
 	}
 
@@ -116,7 +122,7 @@ public class MultithreadingHelper implements IMultithreadingHelper
 		Thread[] threads = new Thread[runnables.length];
 		for (int a = runnables.length; a-- > 0;)
 		{
-			Runnable catchingRunnable = new CatchingRunnable(forkState, runnables[a], latch, throwableHolder, threadLocalCleanupController);
+			Runnable catchingRunnable = new CatchingRunnable(forkState, runnables[a], latch, throwableHolder, cancellation, threadLocalCleanupController);
 
 			Thread thread = new Thread(catchingRunnable);
 			thread.setContextClassLoader(Thread.currentThread().getContextClassLoader());
@@ -180,7 +186,7 @@ public class MultithreadingHelper implements IMultithreadingHelper
 		Runnable parallelRunnable = new ResultingParallelRunnable<R, V>(runnableHandle, true);
 		Runnable mainRunnable = new ResultingParallelRunnable<R, V>(runnableHandle, false);
 
-		QueueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
+		queueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
 	}
 
 	@Override
@@ -221,7 +227,7 @@ public class MultithreadingHelper implements IMultithreadingHelper
 		Runnable parallelRunnable = new ResultingParallelRunnable<R, Entry<K, V>>(runnableHandle, true);
 		Runnable mainRunnable = new ResultingParallelRunnable<R, Entry<K, V>>(runnableHandle, false);
 
-		QueueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
+		queueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
 	}
 
 	@Override
@@ -253,7 +259,7 @@ public class MultithreadingHelper implements IMultithreadingHelper
 		Runnable parallelRunnable = new ParallelRunnable<V>(runnableHandle, true);
 		Runnable mainRunnable = new ParallelRunnable<V>(runnableHandle, false);
 
-		QueueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
+		queueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
 	}
 
 	@Override
@@ -289,10 +295,10 @@ public class MultithreadingHelper implements IMultithreadingHelper
 		Runnable parallelRunnable = new ParallelRunnable<Entry<K, V>>(runnableHandle, true);
 		Runnable mainRunnable = new ParallelRunnable<Entry<K, V>>(runnableHandle, false);
 
-		QueueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
+		queueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
 	}
 
-	protected <V> void QueueAndWait(int forkCount, Runnable parallelRunnable, Runnable mainRunnable, AbstractRunnableHandle<V> runnableHandle)
+	protected <V> void queueAndWait(int forkCount, Runnable parallelRunnable, Runnable mainRunnable, AbstractRunnableHandle<V> runnableHandle)
 	{
 		// for n items fork at most n - 1 threads because our main thread behaves like a worker by itself
 		for (int a = forkCount; a-- > 0;)

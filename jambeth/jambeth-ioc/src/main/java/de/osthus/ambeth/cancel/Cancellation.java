@@ -1,10 +1,14 @@
 package de.osthus.ambeth.cancel;
 
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.state.IStateRollback;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.ParamChecker;
 
 public class Cancellation implements ICancellation, ICancellationWritable, IThreadLocalCleanupBean
@@ -34,6 +38,64 @@ public class Cancellation implements ICancellation, ICancellationWritable, IThre
 	}
 
 	@Override
+	public void withCancellationAwareness(IBackgroundWorkerDelegate runnable)
+	{
+		ensureNotCancelled();
+		ICancellationHandle cancellationHandle = cancelledTL.get();
+		if (cancellationHandle == null)
+		{
+			try
+			{
+				runnable.invoke();
+				return;
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
+		cancellationHandle.withCancellationAwareness(runnable);
+	}
+
+	@Override
+	public <R> R withCancellationAwareness(IResultingBackgroundWorkerDelegate<R> runnable)
+	{
+		ensureNotCancelled();
+		ICancellationHandle cancellationHandle = cancelledTL.get();
+		if (cancellationHandle == null)
+		{
+			try
+			{
+				return runnable.invoke();
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
+		return cancellationHandle.withCancellationAwareness(runnable);
+	}
+
+	@Override
+	public <R, V> R withCancellationAwareness(IResultingBackgroundWorkerParamDelegate<R, V> runnable, V state)
+	{
+		ensureNotCancelled();
+		ICancellationHandle cancellationHandle = cancelledTL.get();
+		if (cancellationHandle == null)
+		{
+			try
+			{
+				return runnable.invoke(state);
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
+		return cancellationHandle.withCancellationAwareness(runnable, state);
+	}
+
+	@Override
 	public void ensureNotCancelled()
 	{
 		if (isCancelled())
@@ -50,7 +112,6 @@ public class Cancellation implements ICancellation, ICancellationWritable, IThre
 		if (cancellationHandle == null)
 		{
 			cancellationHandle = createUnassignedCancellationHandle();
-			((CancellationHandle) cancellationHandle).addOwningThread();
 			cancelledTL.set(cancellationHandle);
 		}
 		return cancellationHandle;
@@ -63,10 +124,10 @@ public class Cancellation implements ICancellation, ICancellationWritable, IThre
 	}
 
 	@Override
-	public IStateRollback setCancellationHandle(ICancellationHandle cancellationHandle)
+	public IStateRollback pushCancellationHandle(final ICancellationHandle cancellationHandle)
 	{
 		ParamChecker.assertParamNotNull(cancellationHandle, "cancellationHandle");
-		((CancellationHandle) cancellationHandle).addOwningThread();
+		final boolean hasBeenAdded = ((CancellationHandle) cancellationHandle).addOwningThread();
 		final ICancellationHandle oldCancellationHandle = cancelledTL.get();
 		cancelledTL.set(cancellationHandle);
 		return new IStateRollback()
@@ -74,6 +135,10 @@ public class Cancellation implements ICancellation, ICancellationWritable, IThre
 			@Override
 			public void rollback()
 			{
+				if (hasBeenAdded)
+				{
+					((CancellationHandle) cancellationHandle).removeOwningThread();
+				}
 				cancelledTL.set(oldCancellationHandle);
 			}
 		};

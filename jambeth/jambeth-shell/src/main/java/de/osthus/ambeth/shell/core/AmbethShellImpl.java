@@ -31,15 +31,17 @@ import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.shell.AmbethShell;
+import de.osthus.ambeth.shell.core.ShellContext.ErrorMode;
 import de.osthus.ambeth.shell.core.resulttype.CommandResult;
 import de.osthus.ambeth.shell.util.Utils;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
+import de.osthus.ambeth.util.Arrays;
 import de.osthus.ambeth.util.IConversionHelper;
 
 public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandBindingExtendable, IThreadLocalCleanupBean
 {
 	private static final boolean HIDE_IO_DEFAULT = true;
-	private static final boolean EXIT_ON_ERROR_DEFAULT = false;
+	// private static final boolean EXIT_ON_ERROR_DEFAULT = false;
 	private static final boolean VERBOSE_DEFAULT = false;
 	private static final boolean ECHO_DEFAULT = false;
 
@@ -94,7 +96,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	private PrintStream originalErr;
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	private static final DateFormat createIsoDateFormat()
@@ -307,7 +309,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 
 	/**
 	 * // TODO find a regex Guru :)
-	 * 
+	 *
 	 * @param userInput
 	 * @return
 	 */
@@ -434,7 +436,7 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 
 	/**
 	 * parse all the arguments
-	 * 
+	 *
 	 * @param dParamMap
 	 *            map of all -D parameter
 	 * @param argSet
@@ -494,34 +496,61 @@ public class AmbethShellImpl implements AmbethShell, AmbethShellIntern, CommandB
 	}
 
 	/**
-	 * 
+	 *
 	 * @param cb
 	 * @param unparsedArgs
 	 * @param e
 	 */
 	private void handleCommandError(Exception e)
 	{
-		if (context.get(ShellContext.VERBOSE, VERBOSE_DEFAULT))
+		String errorModeStr = context.get(ShellContext.ERROR_MODE, ErrorMode.LOG_ONLY.toString());
+		ErrorMode errorMode = ErrorMode.LOG_ONLY;
+
+		try
 		{
-			e.printStackTrace(shellOut);
+			errorMode = ErrorMode.valueOf(errorModeStr);
 		}
-		else
+		catch (IllegalArgumentException iae)
 		{
-			String message = e.getMessage();
-			if (message == null && e instanceof InvocationTargetException)
-			{
-				message = ((InvocationTargetException) e).getTargetException().getMessage();
-			}
-			else if (message == null && e.getCause() != null)
-			{
-				message = e.getCause().getMessage();
-			}
-			println(message);
+			StringBuilder errorModesSB = new StringBuilder();
+			Arrays.toString(errorModesSB, ErrorMode.values());
+			println("Invalid error.mode: " + errorModeStr + "! Possible values are: " + errorModesSB + ". Fallback to '" + errorMode + "'");
+			e.addSuppressed(iae);
 		}
 
-		if (context.get(ShellContext.EXIT_ON_ERROR, EXIT_ON_ERROR_DEFAULT))
+		try
 		{
-			exit(1);
+			if (errorMode == ErrorMode.THROW_EXCPETION)
+			{
+				throw new RuntimeException("Exception during command execution, see stacktrace for details", e);
+			}
+			else
+			{
+				if (context.get(ShellContext.VERBOSE, VERBOSE_DEFAULT))
+				{
+					e.printStackTrace(shellOut);
+				}
+				else
+				{
+					String message = e.getMessage();
+					if (message == null && e instanceof InvocationTargetException)
+					{
+						message = ((InvocationTargetException) e).getTargetException().getMessage();
+					}
+					else if (message == null && e.getCause() != null)
+					{
+						message = e.getCause().getMessage();
+					}
+					println(message);
+				}
+			}
+		}
+		finally
+		{
+			if (errorMode == ErrorMode.EXIT_ON_ERROR)
+			{
+				exit(1);
+			}
 		}
 	}
 
