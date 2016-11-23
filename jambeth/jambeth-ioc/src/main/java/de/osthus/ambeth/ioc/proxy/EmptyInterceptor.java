@@ -1,6 +1,7 @@
 package de.osthus.ambeth.ioc.proxy;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
@@ -21,6 +22,10 @@ public final class EmptyInterceptor extends AbstractSimpleInterceptor
 		if (Object.class.equals(method.getDeclaringClass()))
 		{
 			return proxy.invoke(this, args);
+		}
+		else if (!Modifier.isAbstract(method.getModifiers()))
+		{
+			return proxy.invokeSuper(obj, args);
 		}
 		throw new UnsupportedOperationException("Should never be called");
 	}
