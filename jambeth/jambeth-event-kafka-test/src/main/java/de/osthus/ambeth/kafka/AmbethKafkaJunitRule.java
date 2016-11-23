@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -25,10 +26,13 @@ import kafka.consumer.ConsumerConfig;
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
+import kafka.javaapi.producer.Producer;
+import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 import kafka.serializer.Decoder;
 import kafka.serializer.DefaultDecoder;
 import kafka.serializer.StringDecoder;
+import kafka.serializer.StringEncoder;
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServerStartable;
 
@@ -48,33 +52,68 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.testutil.AmbethIocRunner;
 import de.osthus.ambeth.zookeeper.AmbethZookeeperConfiguration;
 
+/**
+ * Unit rule class to assist the required operations related to kafka and zookeeper configurations. It is responsible for starting and closing kafka, and
+ * zookeper and facilitates the mechanism for connecting with kafka server created at runtime.
+ * 
+ */
 public class AmbethKafkaJunitRule extends ExternalResource
 {
+	// constant variables
 	private static final Logger LOGGER = LoggerFactory.getLogger(KafkaJunitRule.class);
 	private static final int ALLOCATE_RANDOM_PORT = -1;
 	private static final String LOCALHOST = "localhost";
 
-	private TestingServer zookeeper;
-	private KafkaServerStartable kafkaServer;
+	// Object variables for zookeeper and kafka server instances
+	protected TestingServer zookeeper;
+	protected KafkaServerStartable kafkaServer;
 
-	private int zookeeperPort = ALLOCATE_RANDOM_PORT;
-	private String zookeeperConnectionString;
-	private int kafkaPort;
-	private Path kafkaLogDir;
-	private Properties props;
-	private String testName;
-	private Path zookeeperLogDir;
+	// variables for zookeeper and kafka port
+	protected int zookeeperPort = ALLOCATE_RANDOM_PORT;
+	protected int kafkaPort;
+
+	// test name string
+	protected String testName;
+
+	// configuration properties
+	protected Properties props;
+
+	// log file directories
+	protected Path kafkaLogDir;
+	protected Path zookeeperLogDir;
 	private Path tempTestDir;
 
+	/**
+	 * In this method perform the following operations before returning a statement: Extract the defined properties, Allocate random ports, start zookeeper and
+	 * kafka server.
+	 * 
+	 */
 	@Override
 	public Statement apply(Statement base, Description description)
 	{
+		// set test name, fetch and allocate respective properties
 		testName = description.getTestClass().getName() + '.' + description.getMethodName();
 		de.osthus.ambeth.config.Properties props = new de.osthus.ambeth.config.Properties();
 		AmbethIocRunner.extendProperties(description.getTestClass(), null, props);
 		this.props = AmbethZookeeperConfiguration.extractZookeeperProperties(props);
 
-		Object zookeeperPort = this.props.get(AmbethZookeeperConfiguration.CLIENT_PORT);
+		// allocate ports for kafka and zookeeper
+		allocatePorts();
+		// start kafka and zookeeper
+		startZookeeperAndKafka();
+
+		return super.apply(base, description);
+	}
+
+	/**
+	 * This method is responsible for allocating ports to kafka and zookeeper. These ports will later be used to establish the connection with respective
+	 * entities.
+	 * 
+	 */
+	protected void allocatePorts()
+	{
+		// try to get zookeeper port from properties else get a random port
+		Object zookeeperPort = props.get(AmbethZookeeperConfiguration.CLIENT_PORT);
 		if (zookeeperPort == null)
 		{
 			this.zookeeperPort = InstanceSpec.getRandomPort();
@@ -83,7 +122,9 @@ public class AmbethKafkaJunitRule extends ExternalResource
 		{
 			this.zookeeperPort = Integer.parseInt(zookeeperPort.toString());
 		}
-		Object kafkaPort = this.props.get(AmbethKafkaConfiguration.KAFKA_PORT);
+
+		// try to get kafka port from properties else get a random port
+		Object kafkaPort = props.get(AmbethKafkaConfiguration.KAFKA_PORT);
 		if (kafkaPort == null)
 		{
 			this.kafkaPort = InstanceSpec.getRandomPort();
@@ -92,9 +133,67 @@ public class AmbethKafkaJunitRule extends ExternalResource
 		{
 			this.kafkaPort = Integer.parseInt(kafkaPort.toString());
 		}
-		return super.apply(base, description);
 	}
 
+	/**
+	 * Method is responsible for creating the required log files and starting zookeeper and kafka.
+	 * 
+	 */
+	protected void startZookeeperAndKafka()
+	{
+		// create respective log files
+		allocateLogFilePaths();
+
+		// create respective instances and start zookeeper and kafka server
+		try
+		{
+			zookeeper = new TestingServer(zookeeperPort, zookeeperLogDir.toFile(), true);
+			KafkaConfig kafkaConfig = buildKafkaConfig(zookeeper.getConnectString());
+			LOGGER.info("Zookeeper started");
+
+			LOGGER.info("Starting Kafka server with config: {}", kafkaConfig.props());
+			kafkaServer = new KafkaServerStartable(kafkaConfig);
+			startKafka();
+			LOGGER.info("Kafka Started");
+		}
+		catch (Exception e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	/**
+	 * This method creates temporary directories if required and allocates the log file paths to respective zookeeper and kafka.
+	 * 
+	 */
+	protected void allocateLogFilePaths()
+	{
+		Object zookeeperLogDir = props.get(AmbethZookeeperConfiguration.DATA_DIR);
+		if (zookeeperLogDir == null)
+		{
+			this.zookeeperLogDir = ensureTempTestDir().resolve("zookeeper");
+		}
+		else
+		{
+			this.zookeeperLogDir = Paths.get(zookeeperLogDir.toString()).toAbsolutePath().normalize();
+		}
+
+		Object kafkaLogDir = props.get(AmbethKafkaConfiguration.LOG_DIRECTORY);
+		if (kafkaLogDir == null)
+		{
+			this.kafkaLogDir = ensureTempTestDir().resolve("kafka");
+		}
+		else
+		{
+			this.kafkaLogDir = Paths.get(kafkaLogDir.toString()).toAbsolutePath().normalize();
+		}
+	}
+
+	/**
+	 * Create a temporary directory
+	 * 
+	 * @return directory path
+	 */
 	protected Path ensureTempTestDir()
 	{
 		if (tempTestDir != null)
@@ -117,51 +216,17 @@ public class AmbethKafkaJunitRule extends ExternalResource
 	}
 
 	@Override
-	protected void before() throws Throwable
-	{
-		{
-			Object zookeeperLogDir = props.get(AmbethZookeeperConfiguration.DATA_DIR);
-			if (zookeeperLogDir == null)
-			{
-				this.zookeeperLogDir = ensureTempTestDir().resolve("zookeeper");
-			}
-			else
-			{
-				this.zookeeperLogDir = Paths.get(zookeeperLogDir.toString()).toAbsolutePath().normalize();
-			}
-		}
-		{
-			Object kafkaLogDir = props.get(AmbethKafkaConfiguration.LOG_DIRECTORY);
-			if (kafkaLogDir == null)
-			{
-				this.kafkaLogDir = ensureTempTestDir().resolve("kafka");
-			}
-			else
-			{
-				this.kafkaLogDir = Paths.get(kafkaLogDir.toString()).toAbsolutePath().normalize();
-			}
-		}
-		zookeeper = new TestingServer(zookeeperPort, zookeeperLogDir.toFile(), true);
-		zookeeperConnectionString = zookeeper.getConnectString();
-
-		KafkaConfig kafkaConfig = buildKafkaConfig(zookeeperConnectionString);
-
-		LOGGER.info("Starting Kafka server with config: {}", kafkaConfig.props());
-		kafkaServer = new KafkaServerStartable(kafkaConfig);
-		startKafka();
-	}
-
-	@Override
 	protected void after()
 	{
 		try
 		{
 			shutdownKafka();
+			LOGGER.info("Kafka Shutdown, Done");
 
 			if (zookeeper != null)
 			{
-				LOGGER.info("Shutting down Zookeeper");
 				zookeeper.close();
+				LOGGER.info("Zookeeper Shutdown, Done!");
 			}
 			// fixes leaking "metrics-core" threadPool threads
 			Metrics.shutdown();
@@ -181,6 +246,10 @@ public class AmbethKafkaJunitRule extends ExternalResource
 		}
 	}
 
+	/**
+	 * Delete the created directories and clean up the required resources.
+	 * 
+	 */
 	public void cleanup()
 	{
 		deleteRecursive(tempTestDir);
@@ -188,6 +257,11 @@ public class AmbethKafkaJunitRule extends ExternalResource
 		deleteRecursive(zookeeperLogDir);
 	}
 
+	/**
+	 * Delete recursive path of created log files for kafka and zookeeper.
+	 *
+	 * @param path
+	 */
 	private void deleteRecursive(Path path)
 	{
 		if (path == null || !Files.exists(path))
@@ -221,9 +295,20 @@ public class AmbethKafkaJunitRule extends ExternalResource
 	}
 
 	/**
+	 * Start kafka server
 	 * 
+	 */
+	public void startKafka()
+	{
+		if (kafkaServer != null)
+		{
+			LOGGER.info("Starting Kafka Server");
+			kafkaServer.startup();
+		}
+	}
+
+	/**
 	 * Shutdown Kafka Broker before the test termination to test consumer exceptions
-	 * 
 	 */
 	public void shutdownKafka()
 	{
@@ -235,17 +320,13 @@ public class AmbethKafkaJunitRule extends ExternalResource
 	}
 
 	/**
-	 * Starts the server
+	 * Build Kafka configuration object
+	 * 
+	 * @param zookeeperQuorum
+	 *            connection string
+	 * @return Kafka Configuraion object
+	 * @throws IOException
 	 */
-	public void startKafka()
-	{
-		if (kafkaServer != null)
-		{
-			LOGGER.info("Starting Kafka Server");
-			kafkaServer.startup();
-		}
-	}
-
 	private KafkaConfig buildKafkaConfig(String zookeeperQuorum) throws IOException
 	{
 		Properties props = new Properties();
@@ -297,13 +378,13 @@ public class AmbethKafkaJunitRule extends ExternalResource
 
 	/**
 	 * Create a consumer configuration Offset is set to "smallest"
-	 * 
+	 *
 	 * @return {@link ConsumerConfig}
 	 */
 	public ConsumerConfig consumerConfig()
 	{
 		Properties props = new Properties();
-		props.put("zookeeper.connect", zookeeperConnectionString);
+		props.put("zookeeper.connect", zookeeper.getConnectString());
 		props.put("group.id", "kafka-junit-consumer");
 		props.put("zookeeper.session.timeout.ms", "400");
 		props.put("zookeeper.sync.time.ms", "200");
@@ -399,6 +480,26 @@ public class AmbethKafkaJunitRule extends ExternalResource
 	}
 
 	/**
+	 * Send messages to test unit rule functionlaity.
+	 * 
+	 * @param producer
+	 *            kafka producer
+	 * @param message
+	 *            string message
+	 * @param messages
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public final void sendMessages(Producer producer, KeyedMessage message, KeyedMessage... messages)
+	{
+		if (producer == null)
+		{
+			producer = new Producer<String, String>(producerConfig(StringEncoder.class.getName()));
+		}
+		producer.send(message);
+		producer.send(Arrays.asList(messages));
+	}
+
+	/**
 	 * Get the Kafka log directory
 	 * 
 	 * @return kafka log directory path
@@ -435,6 +536,7 @@ public class AmbethKafkaJunitRule extends ExternalResource
 	 */
 	public String zookeeperConnectionString()
 	{
-		return zookeeperConnectionString;
+		return zookeeper.getConnectString();
 	}
+
 }
