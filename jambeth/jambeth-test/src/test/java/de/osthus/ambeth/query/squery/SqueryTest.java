@@ -22,7 +22,6 @@ import de.osthus.ambeth.filter.model.PagingRequest;
 import de.osthus.ambeth.filter.model.SortDescriptor;
 import de.osthus.ambeth.filter.model.SortDirection;
 import de.osthus.ambeth.ioc.annotation.Autowired;
-import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.query.squery.ioc.SqueryIocModule;
 import de.osthus.ambeth.query.squery.model.Person;
 import de.osthus.ambeth.query.squery.service.IPersonService;
@@ -214,7 +213,7 @@ public class SqueryTest extends AbstractInformationBusWithPersistenceTest
 		IPagingResponse<Person> page = personService.findByNameStartWith(PERSION_NAME_START, request, sort);
 		List<Person> allStartList = personService.findByNameStartWithSortByNameDesc(PERSION_NAME_START);
 		assertEquals(page.getNumber(), pageNumber);
-		List<IObjRef> result = page.getRefResult();
+		List<Person> result = page.getResult();
 		for (int i = 0; i < result.size(); i++)
 		{
 			assertEquals(result.get(i).getId(), allStartList.get((pageSize * pageNumber) + i).getId());
