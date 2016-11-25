@@ -89,19 +89,30 @@ public class DelegatingConversionHelper extends IConversionHelper implements IIn
 			}
 			sourceValue = targetValue;
 		}
-		if (expectedType.isArray() && sourceValue != null && sourceValue.getClass().isArray())
+		if (expectedType.isArray() && sourceValue != null)
 		{
-			// try to convert item by item of the array
-			int size = Array.getLength(sourceValue);
 			Class<?> expectedComponentType = expectedType.getComponentType();
-			Object targetValue = Array.newInstance(expectedComponentType, size);
-			for (int a = size; a-- > 0;)
+			if (sourceValue.getClass().isArray())
 			{
-				Object sourceItem = Array.get(sourceValue, a);
-				Object targetItem = convertValueToType(expectedComponentType, sourceItem);
-				Array.set(targetValue, a, targetItem);
+				// try to convert item by item of the array
+				int size = Array.getLength(sourceValue);
+				Object targetValue = Array.newInstance(expectedComponentType, size);
+				for (int a = size; a-- > 0;)
+				{
+					Object sourceItem = Array.get(sourceValue, a);
+					Object targetItem = convertValueToType(expectedComponentType, sourceItem, additionalInformation);
+					Array.set(targetValue, a, targetItem);
+				}
+				return (T) targetValue;
 			}
-			return (T) targetValue;
+			else
+			{
+				// try to create an array of length=1
+				Object array = Array.newInstance(expectedComponentType, 1);
+				Object targetItem = convertValueToType(expectedComponentType, sourceValue, additionalInformation);
+				Array.set(array, 0, targetItem);
+				return (T) array;
+			}
 		}
 		return defaultConversionHelper.convertValueToType(expectedType, sourceValue, additionalInformation);
 	}
