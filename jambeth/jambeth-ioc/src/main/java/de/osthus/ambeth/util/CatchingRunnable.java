@@ -38,16 +38,40 @@ public class CatchingRunnable implements RunnableFuture<Throwable>
 	@Override
 	public Throwable get() throws InterruptedException, ExecutionException
 	{
-		latch.await();
+		try
+		{
+			latch.await();
+		}
+		catch (InterruptedException e)
+		{
+			if (cancellation.isCancelled())
+			{
+				Thread.interrupted(); // clear flag
+				cancellation.ensureNotCancelled();
+			}
+			throw e;
+		}
 		return throwableHolder.getValue();
 	}
 
 	@Override
 	public Throwable get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException
 	{
-		if (latch.await(timeout, unit))
+		try
 		{
-			return throwableHolder.getValue();
+			if (latch.await(timeout, unit))
+			{
+				return throwableHolder.getValue();
+			}
+		}
+		catch (InterruptedException e)
+		{
+			if (cancellation.isCancelled())
+			{
+				Thread.interrupted(); // clear flag
+				cancellation.ensureNotCancelled();
+			}
+			throw e;
 		}
 		throw new TimeoutException("No result after " + timeout + " " + unit.name());
 	}
