@@ -1,5 +1,6 @@
 package de.osthus.ambeth.shell;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,16 +10,19 @@ import de.osthus.ambeth.config.CoreConfigurationConstants;
 import de.osthus.ambeth.config.IocConfigurationConstants;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IInitializingModule;
-import de.osthus.ambeth.ioc.IStartingBean;
+import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.shell.core.AmbethShellIntern;
 import de.osthus.ambeth.shell.core.License;
 import de.osthus.ambeth.shell.core.ShellContext;
 import de.osthus.ambeth.shell.ioc.AmbethShellModule;
+import de.osthus.ambeth.start.IAmbethApplication;
+import de.osthus.ambeth.start.IAmbethConfiguration;
 
-public class AmbethShellStarter implements IStartingBean, IDisposableBean
+public class AmbethShellStarter implements IDisposableBean
 {
 	@Autowired
 	protected AmbethShellIntern ambethShell;
@@ -57,22 +61,22 @@ public class AmbethShellStarter implements IStartingBean, IDisposableBean
 	{
 		Properties parsedArgs = parseMainArgs(args);
 
-		Ambeth.createDefault()//
+		IAmbethConfiguration appConfig = Ambeth.createDefault()//
 				.withProperty("ambeth.log.level.de.osthus.ambeth", "INFO")//
 				.withProperty(IocConfigurationConstants.DebugModeActive, "true")//
 				.withProperty(IocConfigurationConstants.TrackDeclarationTrace, "true")//
 				.withApplicationModules(AmbethShellModule.class)//
 				.withApplicationModules(modules)//
 				.withProperties(parsedArgs)//
-				.withoutPropertiesFileSearch()//
-				.startAndClose();
+				.withoutPropertiesFileSearch();//
+		startRunClose(appConfig);
 	}
 
 	public static void start(String[] args, Properties properties, Class<? extends IInitializingModule>... modules)
 	{
 		Properties parsedArgs = parseMainArgs(args);
 
-		Ambeth.createDefault()//
+		IAmbethConfiguration appConfig = Ambeth.createDefault()//
 				.withProperty("ambeth.log.level.de.osthus.ambeth", "INFO")//
 				.withProperty(IocConfigurationConstants.DebugModeActive, "true")//
 				.withProperty(IocConfigurationConstants.TrackDeclarationTrace, "true")//
@@ -80,8 +84,39 @@ public class AmbethShellStarter implements IStartingBean, IDisposableBean
 				.withApplicationModules(AmbethShellModule.class)//
 				.withApplicationModules(modules)//
 				.withProperties(parsedArgs)//
-				.withoutPropertiesFileSearch()//
-				.startAndClose();
+				.withoutPropertiesFileSearch();//
+
+		startRunClose(appConfig);
+	}
+
+	private static void startRunClose(IAmbethConfiguration appConfig)
+	{
+		IAmbethApplication app = null;
+		try
+		{
+			app = appConfig.start();
+			IServiceContext serviceContext = app.getApplicationContext();
+			AmbethShellStarter starter = serviceContext.getService(AmbethShellStarter.class);
+			starter.run();
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			if (app != null)
+			{
+				try
+				{
+					app.close();
+				}
+				catch (IOException e)
+				{
+					throw RuntimeExceptionUtil.mask(e);
+				}
+			}
+		}
 	}
 
 	/**
@@ -173,15 +208,14 @@ public class AmbethShellStarter implements IStartingBean, IDisposableBean
 		}
 	}
 
-	@Override
-	public void afterStarted() throws Throwable
+	public void run() throws Throwable
 	{
 		if (AmbethShell.MODE_SERVICE.equals(mode))
 		{
 			return;
 		}
-
-		boolean useThread = true;
+		// FIXME: AF deactivated this, because we now have a livespan fo the ambeth context see startRunClose.
+		boolean useThread = false;
 		if (useThread)
 		{
 			shellHandler = new Thread(new Runnable()

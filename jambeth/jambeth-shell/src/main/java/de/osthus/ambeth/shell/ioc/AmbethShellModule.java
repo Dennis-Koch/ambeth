@@ -22,7 +22,7 @@ public class AmbethShellModule implements IInitializingModule
 		bcf.registerBean(CoreCommandModule.class);
 
 		bcf.registerBean(AmbethShellImpl.class).autowireable(AmbethShell.class, AmbethShellIntern.class, CommandBindingExtendable.class);
-		bcf.registerBean(AmbethShellStarter.class).precedence(PrecedenceType.LOWEST);
+		bcf.registerBean(AmbethShellStarter.class).autowireable(AmbethShellStarter.class).precedence(PrecedenceType.LOWEST);
 		bcf.registerBean(CommandScanner.class);
 		bcf.registerBean(ShellContextImpl.class).autowireable(ShellContext.class);
 		bcf.registerBean(CommandExtensionImpl.class).autowireable(CommandExtensionExtendable.class);
