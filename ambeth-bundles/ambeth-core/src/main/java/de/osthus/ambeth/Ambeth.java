@@ -6,8 +6,8 @@ import java.util.Map.Entry;
 
 import de.osthus.ambeth.bundle.IBundleModule;
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IdentityLinkedSet;
+import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
@@ -101,7 +101,7 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
 
 	protected LinkedHashSet<Class<?>> applicationModules = new LinkedHashSet<Class<?>>();
 
-	protected HashMap<Class<?>, Object> autowiredInstances = new HashMap<Class<?>, Object>();
+	protected LinkedHashMap<Class<?>, Object> autowiredInstances = new LinkedHashMap<Class<?>, Object>();
 
 	protected final boolean scanForAmbethModules;
 

@@ -9,12 +9,12 @@ import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.regex.Pattern;
 
-import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
 
 public final class ImmutableTypeSet
 {
-	protected static final HashSet<Class<?>> immutableTypeSet = new HashSet<Class<?>>(0.5f);
+	protected static final LinkedHashSet<Class<?>> immutableTypeSet = new LinkedHashSet<Class<?>>(0.5f);
 
 	private static final ClassExtendableContainer<Class<?>> immutableSuperTypes = new ClassExtendableContainer<Class<?>>("", "");
 

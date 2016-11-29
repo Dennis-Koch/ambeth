@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.collections.LinkedHashMap;
+import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.io.FileUtil;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
@@ -378,7 +379,7 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 	@Override
 	public ISet<String> collectAllPropertyKeys()
 	{
-		HashSet<String> allPropertiesSet = new HashSet<String>();
+		LinkedHashSet<String> allPropertiesSet = new LinkedHashSet<String>();
 		collectAllPropertyKeys(allPropertiesSet);
 		return allPropertiesSet;
 	}

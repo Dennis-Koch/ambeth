@@ -8,7 +8,7 @@ import de.osthus.ambeth.bytecode.IEnhancementHint;
 import de.osthus.ambeth.bytecode.IValueResolveDelegate;
 import de.osthus.ambeth.bytecode.MethodInstance;
 import de.osthus.ambeth.bytecode.PropertyInstance;
-import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
@@ -95,13 +95,13 @@ public class BytecodeBehaviorState implements IBytecodeBehaviorState
 	private final IServiceContext beanContext;
 	private final IEnhancementHint context;
 
-	private final HashMap<MethodKeyOfType, MethodInstance> implementedMethods = new HashMap<MethodKeyOfType, MethodInstance>();
+	private final LinkedHashMap<MethodKeyOfType, MethodInstance> implementedMethods = new LinkedHashMap<MethodKeyOfType, MethodInstance>();
 
-	private final HashMap<PropertyKey, PropertyInstance> implementedProperties = new HashMap<PropertyKey, PropertyInstance>();
+	private final LinkedHashMap<PropertyKey, PropertyInstance> implementedProperties = new LinkedHashMap<PropertyKey, PropertyInstance>();
 
-	private final HashMap<String, FieldInstance> implementedFields = new HashMap<String, FieldInstance>();
+	private final LinkedHashMap<String, FieldInstance> implementedFields = new LinkedHashMap<String, FieldInstance>();
 
-	private final HashMap<String, IValueResolveDelegate> initializeStaticFields = new HashMap<String, IValueResolveDelegate>();
+	private final LinkedHashMap<String, IValueResolveDelegate> initializeStaticFields = new LinkedHashMap<String, IValueResolveDelegate>();
 
 	public BytecodeBehaviorState(Class<?> currentType, Type newType, Class<?> originalType, IServiceContext beanContext, IEnhancementHint context)
 	{

@@ -3,7 +3,6 @@ package de.osthus.ambeth.bytecode.visitor;
 import java.util.Set;
 
 import de.osthus.ambeth.bytecode.behavior.BytecodeBehaviorState;
-import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
@@ -22,13 +21,13 @@ public class InterfaceAdder extends ClassVisitor
 	public InterfaceAdder(ClassVisitor cv, String... newInterfaces)
 	{
 		super(Opcodes.ASM4, cv);
-		this.newInterfaces = new HashSet<String>(newInterfaces);
+		this.newInterfaces = new LinkedHashSet<String>(newInterfaces);
 	}
 
 	public InterfaceAdder(ClassVisitor cv, Class<?>... newInterfaces)
 	{
 		super(Opcodes.ASM4, cv);
-		this.newInterfaces = new HashSet<String>(newInterfaces.length);
+		this.newInterfaces = new LinkedHashSet<String>(newInterfaces.length);
 		for (Class<?> newInterface : newInterfaces)
 		{
 			this.newInterfaces.add(Type.getInternalName(newInterface));

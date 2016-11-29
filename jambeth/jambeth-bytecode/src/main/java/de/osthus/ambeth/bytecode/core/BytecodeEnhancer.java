@@ -30,7 +30,7 @@ import de.osthus.ambeth.bytecode.config.BytecodeConfigurationConstants;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.collections.IdentityHashSet;
+import de.osthus.ambeth.collections.IdentityLinkedSet;
 import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.collections.WeakSmartCopyMap;
 import de.osthus.ambeth.config.Property;
@@ -334,7 +334,7 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 
 	protected void checkEnhancedTypeConsistency(Class<?> type)
 	{
-		IdentityHashSet<Method> allMethods = new IdentityHashSet<Method>();
+		IdentityLinkedSet<Method> allMethods = new IdentityLinkedSet<Method>();
 		for (Class<?> interf : type.getInterfaces())
 		{
 			allMethods.addAll(interf.getMethods());

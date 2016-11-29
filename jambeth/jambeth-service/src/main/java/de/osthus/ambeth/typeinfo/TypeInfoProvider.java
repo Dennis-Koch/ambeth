@@ -8,7 +8,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.ioc.IInitializingBean;
@@ -31,7 +31,7 @@ public class TypeInfoProvider extends SmartCopyMap<Class<?>, TypeInfo> implement
 
 	protected IPropertyInfoProvider propertyInfoProvider;
 
-	protected final ThreadLocal<HashMap<Class<?>, TypeInfo>> tempTypeInfoMapTL = new ThreadLocal<HashMap<Class<?>, TypeInfo>>();
+	protected final ThreadLocal<LinkedHashMap<Class<?>, TypeInfo>> tempTypeInfoMapTL = new ThreadLocal<LinkedHashMap<Class<?>, TypeInfo>>();
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -169,7 +169,7 @@ public class TypeInfoProvider extends SmartCopyMap<Class<?>, TypeInfo> implement
 				// Concurrent thread might have been faster
 				return typeInfo;
 			}
-			HashMap<Class<?>, TypeInfo> tempTypeInfoMap = tempTypeInfoMapTL.get();
+			LinkedHashMap<Class<?>, TypeInfo> tempTypeInfoMap = tempTypeInfoMapTL.get();
 			if (tempTypeInfoMap != null)
 			{
 				typeInfo = tempTypeInfoMap.get(type);
@@ -181,7 +181,7 @@ public class TypeInfoProvider extends SmartCopyMap<Class<?>, TypeInfo> implement
 			}
 			else
 			{
-				tempTypeInfoMap = new HashMap<Class<?>, TypeInfo>();
+				tempTypeInfoMap = new LinkedHashMap<Class<?>, TypeInfo>();
 				tempTypeInfoMapTL.set(tempTypeInfoMap);
 				tempTypeInfoMapCreated = true;
 			}

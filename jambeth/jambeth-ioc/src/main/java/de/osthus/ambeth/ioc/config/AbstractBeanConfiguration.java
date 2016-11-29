@@ -3,7 +3,7 @@ package de.osthus.ambeth.ioc.config;
 import java.util.List;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.ioc.ServiceContext;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
@@ -13,7 +13,7 @@ import de.osthus.ambeth.util.ParamChecker;
 
 public abstract class AbstractBeanConfiguration implements IBeanConfiguration
 {
-	protected static final HashSet<String> ignoreClassNames = new HashSet<String>(0.5f);
+	protected static final LinkedHashSet<String> ignoreClassNames = new LinkedHashSet<String>(0.5f);
 
 	static
 	{

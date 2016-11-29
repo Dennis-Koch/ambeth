@@ -9,8 +9,8 @@ import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.reflect.FastMethod;
 import de.osthus.ambeth.accessor.IAccessorTypeProvider;
 import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
-import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.bytecode.DelegateEnhancementHint;
@@ -39,7 +39,7 @@ public class LinkContainer extends AbstractLinkContainer
 	public static IMap<Method, Method> buildDelegateMethodMap(Class<?> listenerType, String listenerMethodName, Class<?> parameterType)
 	{
 		Method[] methodsOnExpectedListenerType = ReflectUtil.getDeclaredMethods(parameterType);
-		HashMap<Method, Method> mappedMethods = new HashMap<Method, Method>();
+		LinkedHashMap<Method, Method> mappedMethods = new LinkedHashMap<Method, Method>();
 		for (Method methodOnExpectedListenerType : methodsOnExpectedListenerType)
 		{
 			Annotation[][] parameterAnnotations = methodOnExpectedListenerType.getParameterAnnotations();
