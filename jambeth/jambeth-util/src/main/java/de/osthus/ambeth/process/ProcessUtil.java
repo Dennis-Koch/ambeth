@@ -30,13 +30,27 @@ public class ProcessUtil
 				int bytesRead;
 				try
 				{
-					while ((bytesRead = in.read(temp)) != -1)
+					try
 					{
-						if (Boolean.TRUE.equals(disposedPH.getValue()))
+						try
 						{
-							return;
+							while ((bytesRead = in.read(temp)) != -1)
+							{
+								if (Boolean.TRUE.equals(disposedPH.getValue()))
+								{
+									return;
+								}
+								out.write(temp, 0, bytesRead);
+							}
 						}
-						out.write(temp, 0, bytesRead);
+						finally
+						{
+							in.close();
+						}
+					}
+					finally
+					{
+						out.close();
 					}
 				}
 				catch (Throwable e)
