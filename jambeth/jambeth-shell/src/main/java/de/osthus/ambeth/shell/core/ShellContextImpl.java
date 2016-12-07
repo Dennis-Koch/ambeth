@@ -1,5 +1,9 @@
 package de.osthus.ambeth.shell.core;
 
+import java.util.regex.Matcher;
+
+import org.apache.commons.lang3.StringEscapeUtils;
+
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.Properties;
@@ -7,11 +11,6 @@ import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.util.IConversionHelper;
 
-/**
- *
- * @author daniel.mueller
- *
- */
 public class ShellContextImpl implements ShellContext, IStartingBean
 {
 	protected HashMap<String, Object> variables = new HashMap<String, Object>();
@@ -90,8 +89,11 @@ public class ShellContextImpl implements ShellContext, IStartingBean
 	{
 		if (possibleKey.startsWith(VAR_MARKER))
 		{
-			possibleKey = possibleKey.substring(1);
-			return get(possibleKey);
+			Object ret = get(possibleKey.substring(1));
+			if (ret != null)
+			{
+				return ret;
+			}
 		}
 		return possibleKey;
 	}
@@ -102,11 +104,13 @@ public class ShellContextImpl implements ShellContext, IStartingBean
 		for (Object key : variables.keySet())
 		{
 			Object value = variables.get(key);
-			if (value != null)
+			if (value != null && key instanceof String)
 			{
-				input = input.replaceAll("\\" + VAR_MARKER + key, value.toString());
+				String escapeJava = StringEscapeUtils.escapeJava((String) key);
+				input = input.replaceAll("\\" + VAR_MARKER + escapeJava, Matcher.quoteReplacement(value.toString()));
 			}
 		}
 		return input;
 	}
+
 }
