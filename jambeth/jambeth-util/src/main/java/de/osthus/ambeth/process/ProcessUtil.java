@@ -32,7 +32,7 @@ public class ProcessUtil
 				{
 					while ((bytesRead = in.read(temp)) != -1)
 					{
-						if (Boolean.TRUE.equals(disposedPH))
+						if (Boolean.TRUE.equals(disposedPH.getValue()))
 						{
 							return;
 						}
