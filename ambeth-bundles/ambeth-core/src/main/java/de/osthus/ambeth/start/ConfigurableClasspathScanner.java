@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map.Entry;
 
-import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.CoreConfigurationConstants;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Property;
@@ -35,7 +35,7 @@ public class ConfigurableClasspathScanner implements IClasspathScanner, IInitial
 	protected IConversionHelper conversionHelper;
 
 	@Property
-	protected HashMap<Class<?>, Object> autowiredInstances;
+	protected IMap<Class<?>, Object> autowiredInstances;
 
 	protected IServiceContext scannerContext;
 
