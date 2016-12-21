@@ -85,6 +85,12 @@ public class FilterRegistry implements IFilterExtendable, IEventDispatcher
 	}
 
 	@Override
+	public boolean hasListeners(Class<?> eventType)
+	{
+		return eventDispatcher.hasListeners(eventType);
+	}
+
+	@Override
 	public void waitEventToResume(Object eventTargetToResume, long maxWaitTime, IBackgroundWorkerParamDelegate<IProcessResumeItem> resumeDelegate,
 			IBackgroundWorkerParamDelegate<Throwable> errorDelegate)
 	{

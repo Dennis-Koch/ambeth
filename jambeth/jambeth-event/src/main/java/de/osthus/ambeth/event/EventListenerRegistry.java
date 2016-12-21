@@ -208,6 +208,13 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventTa
 	}
 
 	@Override
+	public boolean hasListeners(Class<?> eventType)
+	{
+		IList<IEventListenerMarker> listeners = typeToListenersDict.getExtensions(eventType);
+		return listeners != null && !listeners.isEmpty();
+	}
+
+	@Override
 	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId)
 	{
 		if (eventObject == null)
