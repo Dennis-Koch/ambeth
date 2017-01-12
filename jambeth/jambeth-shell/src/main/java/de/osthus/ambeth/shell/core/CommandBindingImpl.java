@@ -3,6 +3,9 @@ package de.osthus.ambeth.shell.core;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -12,6 +15,7 @@ import java.util.Set;
 
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.MethodAccess;
 import de.osthus.ambeth.shell.AmbethShell;
@@ -19,36 +23,53 @@ import de.osthus.ambeth.shell.core.CommandExtension.Parameter;
 import de.osthus.ambeth.shell.core.CommandExtension.Usage;
 import de.osthus.ambeth.shell.core.annotation.CommandArg;
 import de.osthus.ambeth.shell.util.Utils;
+import de.osthus.ambeth.util.IConversionHelper;
 
 /**
  * {@inheritDoc}
  */
-public class CommandBindingImpl implements CommandBinding
+public class CommandBindingImpl implements CommandBinding, IInitializingBean
 {
+	@Autowired
+	protected IConversionHelper conversionHelper;
 
-	@Property
-	protected String name;
-	@Property
-	protected String description;
-	@Property
-	protected Object commandBean;
-	@Property
-	protected List<CommandArg> args;
-	@Property
-	protected int methodIndex;
-	@Property
-	protected Class<?>[] parameterTypes;
-	@Property
-	protected MethodAccess methodAccess;
+	@Autowired
+	protected CommandExtensionExtendable commandExtensions;
 
 	@Autowired
 	protected AmbethShell shell;
-	@Autowired
-	protected CommandExtensionExtendable commandExtensions;
+
+	@Property
+	protected String name;
+
+	@Property
+	protected String description;
+
+	@Property
+	protected Object commandBean;
+
+	@Property
+	protected CommandArg[] args;
+
+	@Property
+	protected Method method;
+
+	@Property
+	protected MethodAccess methodAccess;
+
+	protected int methodIndex;
+
+	@Override
+	public void afterPropertiesSet() throws Throwable
+	{
+		methodIndex = methodAccess.getIndex(method.getName(), method.getParameterTypes());
+	}
 
 	@Override
 	public Object execute(List<String> arguments)
 	{
+		Class<?>[] parameterTypes = methodAccess.getParameterTypes()[methodIndex];
+		Type[] genericParameterTypes = method.getGenericParameterTypes();
 		Object[] translatedArgs = new Object[parameterTypes.length];
 
 		Set<ParsedArgument> parsedArgs = new HashSet<ParsedArgument>();
@@ -56,22 +77,38 @@ public class CommandBindingImpl implements CommandBinding
 		{
 			parsedArgs.add(new ParsedArgument(arguments.get(n), n, shell.getContext()));
 		}
-
-		int index = 0;
-		for (CommandArg ca : args)
+		for (int index = 0, size = args.length; index < size; index++)
 		{
+			CommandArg ca = args[index];
 			Class<?> paramType = parameterTypes[index];
+			Type genericParamType = genericParameterTypes[index];
 			for (ParsedArgument pa : parsedArgs)
 			{
 				if (pa.matchedBy(ca))
 				{
+					Class<?> targetType = paramType;
 					if (Entry.class.equals(paramType))
 					{
-						translatedArgs[index] = new SimpleEntry<String, Object>(pa.name, pa.value);
+						if (genericParamType instanceof ParameterizedType)
+						{
+							Type type = ((ParameterizedType) genericParamType).getActualTypeArguments()[1];
+							if (type instanceof ParameterizedType)
+							{
+								type = ((ParameterizedType) type).getRawType();
+							}
+							// intentionally no else-if here
+							if (type instanceof Class)
+							{
+								targetType = (Class<?>) type;
+							}
+						}
+						Object targetValue = conversionHelper.convertValueToType(targetType, pa.value);
+						translatedArgs[index] = new SimpleEntry<String, Object>(pa.name, targetValue);
 					}
 					else
 					{
-						translatedArgs[index] = pa.value;
+						Object targetValue = conversionHelper.convertValueToType(targetType, pa.value);
+						translatedArgs[index] = targetValue;
 					}
 				}
 			}
@@ -84,7 +121,6 @@ public class CommandBindingImpl implements CommandBinding
 				shell.println(printUsage());
 				throw new RuntimeException("Mandatory argument is missing!");
 			}
-			index++;
 		}
 
 		try
@@ -156,7 +192,7 @@ public class CommandBindingImpl implements CommandBinding
 				maxArgStringLength = Math.max(maxArgStringLength, Math.max(argName.length(), arg.alt().length() + 2));
 			}
 			pw.println();
-			if (args.size() > 0)
+			if (args.length > 0)
 			{
 				pw.println("options:");
 				for (CommandArg arg : args)
@@ -207,7 +243,7 @@ public class CommandBindingImpl implements CommandBinding
 
 	/**
 	 * print usage of command extensions
-	 *
+	 * 
 	 * @param extensions
 	 */
 	private String printExtensionUsages(List<CommandExtension> extensions)
