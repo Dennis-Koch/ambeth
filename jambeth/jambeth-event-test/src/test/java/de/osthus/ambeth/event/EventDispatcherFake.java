@@ -43,6 +43,12 @@ public class EventDispatcherFake implements IEventDispatcher
 	}
 
 	@Override
+	public boolean hasListeners(Class<?> eventType)
+	{
+		return true;
+	}
+
+	@Override
 	public void waitEventToResume(Object eventTargetToResume, long maxWaitTime, IBackgroundWorkerParamDelegate<IProcessResumeItem> resumeDelegate,
 			IBackgroundWorkerParamDelegate<Throwable> errorDelegate)
 	{
