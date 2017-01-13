@@ -596,6 +596,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 					{
 						exceptionHolder.setValue(e);
 					}
+					Thread.interrupted();
 					barrier1.reset();
 				}
 				finally
@@ -669,6 +670,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 					{
 						exceptionHolder.setValue(e);
 					}
+					Thread.interrupted();
 					barrier1.reset();
 				}
 				finally

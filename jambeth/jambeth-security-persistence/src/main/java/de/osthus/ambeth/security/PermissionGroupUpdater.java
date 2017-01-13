@@ -29,7 +29,6 @@ import de.osthus.ambeth.event.IEntityMetaDataEvent;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
@@ -75,7 +74,7 @@ import de.osthus.ambeth.util.PrefetchPath;
 import de.osthus.ambeth.util.setup.IDataSetup;
 
 @PersistenceContext(PersistenceContextType.NOT_REQUIRED)
-public class PermissionGroupUpdater implements IInitializingBean, IPermissionGroupUpdater, IStartingBean
+public class PermissionGroupUpdater implements IInitializingBean, IPermissionGroupUpdater
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -164,7 +163,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 
 	protected final ThreadLocal<Boolean> dataChangeHandlingActiveTL = new ThreadLocal<Boolean>();
 
-	protected IQuery<IUser> allUsersQuery;
+	protected volatile IQuery<IUser> allUsersQuery;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -175,13 +174,14 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		}
 	}
 
-	@Override
-	public void afterStarted() throws Throwable
+	protected IQuery<IUser> getAllUsersQuery()
 	{
-		if (securityActive)
+		if (allUsersQuery != null)
 		{
-			allUsersQuery = queryBuilderFactory.create(IUser.class).build();
+			return allUsersQuery;
 		}
+		allUsersQuery = queryBuilderFactory.create(IUser.class).build();
+		return allUsersQuery;
 	}
 
 	public void handleEntityMetaDataEvent(IEntityMetaDataEvent entityMetaDataEvent)
@@ -643,7 +643,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 
 	protected String[] getAllSids()
 	{
-		List<? extends IUser> allUsers = allUsersQuery.retrieve();
+		List<? extends IUser> allUsers = getAllUsersQuery().retrieve();
 
 		String[] allSids = new String[allUsers.size()];
 		for (int a = allUsers.size(); a-- > 0;)

@@ -21,6 +21,12 @@
 				<id name="Id"/>
 				<version name="Version"/>
 				<basic name="ChangeAfter"/>
+				<basic name="SaltPBEConfiguration.EncryptionAlgorithm" />
+				<basic name="SaltPBEConfiguration.EncryptionKeySpec" />
+				<basic name="SaltPBEConfiguration.EncryptionKeyIV" />
+				<basic name="SaltPBEConfiguration.PaddedKeyAlgorithm" />
+				<basic name="SaltPBEConfiguration.PaddedKeySize" />
+				<basic name="SaltPBEConfiguration.PaddedKeyIterations" />
 			</attributes>
 		</external-entity>
 	</entity-mappings>

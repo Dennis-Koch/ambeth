@@ -8,7 +8,6 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import de.osthus.ambeth.audit.UserIdentifierProvider;
 import de.osthus.ambeth.cache.HandleContentDelegate;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.IRootCache;
@@ -114,7 +113,7 @@ public class SecurityTest extends AbstractInformationBusWithPersistenceTest
 		IInMemoryConfig password10 = inMemoryCacheRetriever.add(Password.class, 10).primitive(IPassword.Salt, salt)
 				.primitive(IPassword.Algorithm, Passwords.ALGORITHM).primitive(IPassword.IterationCount, Passwords.ITERATION_COUNT)
 				.primitive(IPassword.KeySize, Passwords.KEY_SIZE).primitive(IPassword.Value, value);
-		inMemoryCacheRetriever.add(User.class, 1).primitive(User.SID, userName1.toLowerCase()).addRelation(IUser.Password, password10);
+		inMemoryCacheRetriever.add(User.class, 1).primitive(User.SID, userName1).addRelation(IUser.Password, password10);
 	}
 
 	@Test

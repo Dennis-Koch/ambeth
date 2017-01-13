@@ -7,6 +7,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.collections.HashMap;
@@ -31,11 +32,13 @@ import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
+import de.osthus.ambeth.testutil.category.PerformanceTests;
 import de.osthus.ambeth.transfer.MaterialComplexVO;
 import de.osthus.ambeth.transfer.MaterialGroupVO;
 import de.osthus.ambeth.transfer.UnitVO;
 import de.osthus.ambeth.util.ParamChecker;
 
+@Category(PerformanceTests.class)
 @SQLStructure("Mapper_structure.sql")
 @SQLDataRebuild
 @TestModule(MapperTestModule.class)
