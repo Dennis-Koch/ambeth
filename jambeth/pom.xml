@@ -990,16 +990,16 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-surefire-plugin</artifactId>
-						<!-- 
 						<configuration>
 							<testFailureIgnore>true</testFailureIgnore>
+						<!-- 
 							<forkCount>1C</forkCount>
 							<reuseForks>true</reuseForks>
 							<systemPropertyVariables>
 								<ambeth.test.forkname>f${surefire.forkNumber}</ambeth.test.forkname>
 							</systemPropertyVariables>
-						</configuration>
 						 -->
+						</configuration>
 					</plugin>
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
