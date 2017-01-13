@@ -554,6 +554,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 			@Override
 			public void run()
 			{
+				final boolean configureSecurityContext = authentication != null || authorization != null;
 				try
 				{
 					cacheContext.executeWithCache(cacheProvider, new IResultingBackgroundWorkerDelegate<Object>()
@@ -561,7 +562,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 						@Override
 						public Object invoke() throws Throwable
 						{
-							if (authentication != null || authorization != null)
+							if (configureSecurityContext)
 							{
 								ISecurityContext context = securityContextHolder.getCreateContext();
 								context.setAuthentication(authentication);
@@ -614,6 +615,12 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 					{
 						throw RuntimeExceptionUtil.mask(e);
 					}
+					if (configureSecurityContext)
+					{
+						ISecurityContext context = securityContextHolder.getCreateContext();
+						context.setAuthentication(null);
+						context.setAuthorization(null);
+					}
 					beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
 					beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
 				}
@@ -621,10 +628,10 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 		});
 		Thread deletingThread = new Thread(new Runnable()
 		{
-
 			@Override
 			public void run()
 			{
+				final boolean configureSecurityContext = authentication != null || authorization != null;
 				try
 				{
 					cacheContext.executeWithCache(cacheProvider, new IResultingBackgroundWorkerDelegate<Object>()
@@ -632,7 +639,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 						@Override
 						public Object invoke() throws Throwable
 						{
-							if (authentication != null || authorization != null)
+							if (configureSecurityContext)
 							{
 								ISecurityContext context = securityContextHolder.getCreateContext();
 								context.setAuthentication(authentication);
@@ -687,6 +694,12 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 					catch (Throwable e)
 					{
 						throw RuntimeExceptionUtil.mask(e);
+					}
+					if (configureSecurityContext)
+					{
+						ISecurityContext context = securityContextHolder.getCreateContext();
+						context.setAuthentication(null);
+						context.setAuthorization(null);
 					}
 					beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
 					beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();

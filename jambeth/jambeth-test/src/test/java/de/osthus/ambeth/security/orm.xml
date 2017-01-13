@@ -3,12 +3,12 @@
 
 	<link-mappings>
 		<independent-link alias="User-Password"
-			left="de.osthus.ambeth.security.User" right="de.osthus.ambeth.security.Password"
+			left="de.osthus.ambeth.audit.User" right="de.osthus.ambeth.audit.Password"
 			cascade-delete="right" />
 	</link-mappings>
 
-	<entity-mappings>
-		<external-entity class="de.osthus.ambeth.security.User">
+	<entity-mappings>	
+		<external-entity class="de.osthus.ambeth.audit.User">
 			<attributes>
 				<id name="Id"/>
 				<alternate-id name="SID"/>		
@@ -16,10 +16,11 @@
 				<relation name="Password" link="User-Password" />
 			</attributes>
 		</external-entity>
-		<external-entity class="de.osthus.ambeth.security.Password" >
+		<external-entity class="de.osthus.ambeth.audit.Password" >
 			<attributes>
 				<id name="Id"/>
 				<version name="Version"/>
+				<relation name="User" link="User-Password"/>
 				<basic name="ChangeAfter"/>
 				<basic name="SaltPBEConfiguration.EncryptionAlgorithm" />
 				<basic name="SaltPBEConfiguration.EncryptionKeySpec" />

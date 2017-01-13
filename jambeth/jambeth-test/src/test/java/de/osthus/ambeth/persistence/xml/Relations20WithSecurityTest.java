@@ -8,9 +8,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import de.osthus.ambeth.audit.Password;
 import de.osthus.ambeth.audit.Signature;
-import de.osthus.ambeth.audit.User;
 import de.osthus.ambeth.cache.interceptor.CacheInterceptor;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.ChangeControllerModule;
@@ -29,9 +27,7 @@ import de.osthus.ambeth.security.SecurityTest;
 import de.osthus.ambeth.security.SecurityTest.SecurityTestFrameworkModule;
 import de.osthus.ambeth.security.TestAuthentication;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
-import de.osthus.ambeth.security.model.IPassword;
 import de.osthus.ambeth.security.model.ISignature;
-import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.SQLStructureList;
 import de.osthus.ambeth.testutil.TestFrameworkModule;
@@ -57,8 +53,6 @@ public class Relations20WithSecurityTest extends Relations20Test
 			beanContextFactory.registerBean(SecurityTestFrameworkModule.class);
 
 			beanContextFactory.link(ISignature.class).to(ITechnicalEntityTypeExtendable.class).with(Signature.class);
-			beanContextFactory.link(IUser.class).to(ITechnicalEntityTypeExtendable.class).with(User.class);
-			beanContextFactory.link(IPassword.class).to(ITechnicalEntityTypeExtendable.class).with(Password.class);
 
 			IBeanConfiguration dataSetBuilder = beanContextFactory.registerBean(Relations20WithSecurityTestDataSetBuilder.class);
 			beanContextFactory.link(dataSetBuilder).to(IDatasetBuilderExtendable.class);

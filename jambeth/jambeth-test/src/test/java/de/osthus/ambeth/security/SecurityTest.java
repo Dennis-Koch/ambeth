@@ -8,6 +8,9 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+import de.osthus.ambeth.audit.Password;
+import de.osthus.ambeth.audit.User;
+import de.osthus.ambeth.audit.UserIdentifierProvider;
 import de.osthus.ambeth.cache.HandleContentDelegate;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.IRootCache;
@@ -33,6 +36,7 @@ import de.osthus.ambeth.persistence.xml.model.Employee;
 import de.osthus.ambeth.persistence.xml.model.IBusinessService;
 import de.osthus.ambeth.persistence.xml.model.IEmployeeService;
 import de.osthus.ambeth.security.SecurityTest.SecurityTestFrameworkModule;
+import de.osthus.ambeth.security.SecurityTest.SecurityTestModule;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.model.IPassword;
 import de.osthus.ambeth.security.model.IUser;
@@ -55,7 +59,7 @@ import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false"),
 		@TestProperties(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive, value = "false") })
 @TestModule(TestServicesModule.class)
-@TestFrameworkModule(SecurityTestFrameworkModule.class)
+@TestFrameworkModule({ SecurityTestFrameworkModule.class, SecurityTestModule.class })
 public class SecurityTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static final String IN_MEMORY_CACHE_RETRIEVER = "inMemoryCacheRetriever";
@@ -70,7 +74,15 @@ public class SecurityTest extends AbstractInformationBusWithPersistenceTest
 			beanContextFactory.registerBean(TestUserResolver.class).autowireable(IUserResolver.class);
 
 			beanContextFactory.link(IUser.class).to(ITechnicalEntityTypeExtendable.class).with(User.class);
+			beanContextFactory.link(IPassword.class).to(ITechnicalEntityTypeExtendable.class).with(Password.class);
+		}
+	}
 
+	public static class SecurityTestModule implements IInitializingModule
+	{
+		@Override
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
+		{
 			IBeanConfiguration inMemoryCacheRetriever = beanContextFactory.registerBean(IN_MEMORY_CACHE_RETRIEVER, InMemoryCacheRetriever.class);
 			beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class).with(User.class);
 			beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class).with(Password.class);
