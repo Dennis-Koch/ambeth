@@ -19,7 +19,6 @@ import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IObjRef;
-import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 import de.osthus.ambeth.util.ParamChecker;
 
 public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, IXmlTypeRegistry
@@ -35,9 +34,6 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 
 	@Autowired
 	protected IProxyHelper proxyHelper;
-
-	@Autowired
-	protected ITypeInfoProvider typeInfoProvider;
 
 	protected final HashMap<Class<?>, List<XmlTypeKey>> weakClassToXmlTypeMap = new HashMap<Class<?>, List<XmlTypeKey>>(0.5f);
 
@@ -166,7 +162,7 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 	{
 		if (name == null || name.length() == 0 || "##default".equals(name))
 		{
-			name = typeInfoProvider.getTypeInfo(type).getSimpleName();
+			name = type.getName();
 		}
 		return name;
 	}

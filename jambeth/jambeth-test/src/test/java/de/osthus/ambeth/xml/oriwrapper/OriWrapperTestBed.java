@@ -158,7 +158,7 @@ public class OriWrapperTestBed implements IDisposableBean
 	{
 		String dataName = "CreatedChildEntity";
 		String xml = getJavaTestXml(dataName);
-		String xmlCS = xml.replace("\"Object\"", "\"IChangeContainer\"");
+		String xmlCS = xml.replace("\"Object\"", "\"de.osthus.ambeth.merge.model.IChangeContainer\"");
 
 		MaterialGroup materialGroup = entityFactory.createEntity(MaterialGroup.class);
 		materialGroup.setBuid("new mg");
@@ -174,7 +174,7 @@ public class OriWrapperTestBed implements IDisposableBean
 	{
 		String dataName = "CreatedChildEntity2";
 		String xml = getJavaTestXml(dataName);
-		String xmlCS = xml.replace("\"Object\"", "\"IChangeContainer\"");
+		String xmlCS = xml.replace("\"Object\"", "\"de.osthus.ambeth.merge.model.IChangeContainer\"");
 		TestData testData = getCreatedChildEntityTestData();
 		return new TestData(xml, xmlCS, testData.obj);
 	}
@@ -270,7 +270,7 @@ public class OriWrapperTestBed implements IDisposableBean
 	{
 		String dataName = "CreatedAndExistingChildren";
 		String xml = getJavaTestXml(dataName);
-		String xmlCS = xml.replace("\"Object\"", "\"IChangeContainer\"");
+		String xmlCS = xml.replace("\"Object\"", "\"de.osthus.ambeth.merge.model.IChangeContainer\"");
 
 		EntityA entityA = cache.getObject(EntityA.class, 1);
 		EntityB entityB = entityFactory.createEntity(EntityB.class);
@@ -291,7 +291,7 @@ public class OriWrapperTestBed implements IDisposableBean
 	{
 		String dataName = "UpdatedEntity";
 		String xml = getJavaTestXml(dataName);
-		String xmlCS = xml.replace("\"Object\"", "\"IChangeContainer\"");
+		String xmlCS = xml.replace("\"Object\"", "\"de.osthus.ambeth.merge.model.IChangeContainer\"");
 		Material obj = cache.getObject(Material.class, 1);
 		obj.setName(obj.getName() + ".2");
 		return new TestData(xml, xmlCS, obj);
