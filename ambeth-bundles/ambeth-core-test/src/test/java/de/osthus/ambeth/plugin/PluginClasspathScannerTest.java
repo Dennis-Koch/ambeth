@@ -10,6 +10,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import de.osthus.ambeth.config.CoreConfigurationConstants;
+import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.annotation.BootstrapModule;
@@ -38,7 +39,7 @@ public class PluginClasspathScannerTest extends AbstractIocTest
 		// get the scan resource absolute root path
 		String pluginScanResource = new File(PluginClasspathScannerTest.class.getResource("/pluginScanResource").toURI()).getAbsolutePath();
 		// for build the scan absolute paths
-		System.setProperty("pluginScanResource", pluginScanResource);
+		((Properties) Properties.getSystem()).putString("pluginScanResource", pluginScanResource);
 	}
 
 	@Before
