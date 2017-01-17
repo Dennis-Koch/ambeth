@@ -126,9 +126,6 @@ public class SignatureUtil implements IInitializingBean, ISignatureUtil
 	{
 		try
 		{
-			// // decode the public key from base64
-			// byte[] decodedPublicKey = Base64.decode(signature.getPublicKey());
-
 			// use the public key to create the signature handle
 			X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKey);
 			KeyFactory keyFactory = KeyFactory.getInstance(signAndVerify.getKeyFactoryAlgorithm());

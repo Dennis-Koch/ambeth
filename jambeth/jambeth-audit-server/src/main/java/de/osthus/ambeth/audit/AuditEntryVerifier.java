@@ -1,5 +1,7 @@
 package de.osthus.ambeth.audit;
 
+import java.security.Signature;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
@@ -52,6 +54,7 @@ import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IOperator;
@@ -103,6 +106,8 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 			((ArrayList<IObjRef>) value).addAll((Collection<? extends IObjRef>) forkedValue);
 		}
 	}
+
+	public static final boolean[] EMPTY_VALIDATION_RESULT = new boolean[0];
 
 	public static final String HANDLE_CLEAR_ALL_CACHES_EVENT = "handleClearAllCachesEvent";
 
@@ -306,6 +311,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 		return query;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected boolean isTrailedVersionTooNew(IEntityMetaData metaData, IObjRef tempObjRef, IAuditedEntityRef ref,
 			IMap<IObjRef, IObjRefContainer> objRefToEntityMap)
 	{
@@ -319,6 +325,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 		return (versionOfEntity.compareTo(versionOfAuditedEntityRef) < 0);
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected boolean isTrailedVersionTooOld(IEntityMetaData metaData, IObjRef tempObjRef, Object entity,
 			Tuple2KeyHashMap<Class<?>, Object, Object> objRefToMaxVersionOfAuditTrailMap)
 	{
@@ -550,6 +557,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
 	private void mapMaxEntityVersionOfAuditTrail(IEntityMetaData metaData, ObjRef tempObjRef, IAuditedEntityRef ref,
 			Tuple2KeyHashMap<Class<?>, Object, Object> objRefToMaxVersionOfAuditTrailMap)
 	{
@@ -787,12 +795,12 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 		handleEntitiesWhichNeedReverify(entitiesDataInvalid, entitiesWhichNeedReverify, auditedEntitiesToVerify);
 
 		IList<IAuditedEntity> auditedEntitiesToVerifyList = auditedEntitiesToVerify.toList();
-		boolean[] auditedEntitiesInvalid = verifyAuditedEntities(auditedEntitiesToVerifyList);
+		boolean[] auditedEntitiesValid = verifyAuditedEntities(auditedEntitiesToVerifyList);
 		ArrayList<IObjRef> invalidEntities = new ArrayList<IObjRef>();
 		ArrayList<IAuditedEntity> invalidAuditedEntities = new ArrayList<IAuditedEntity>();
-		for (int a = auditedEntitiesInvalid.length; a-- > 0;)
+		for (int a = auditedEntitiesValid.length; a-- > 0;)
 		{
-			if (!auditedEntitiesInvalid[a])
+			if (auditedEntitiesValid[a])
 			{
 				continue;
 			}
@@ -868,38 +876,58 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 		}
 	}
 
+	protected java.security.Signature getOrCreateVerifyHandle(ISignature signatureOfUser,
+			IMap<ISignature, java.security.Signature> signatureToSignatureHandleMap)
+	{
+		try
+		{
+			java.security.Signature signatureHandle = signatureToSignatureHandleMap.get(signatureOfUser);
+			if (signatureHandle == null)
+			{
+				signatureHandle = signatureUtil.createVerifyHandle(signatureOfUser.getSignAndVerify(), Base64.decode(signatureOfUser.getPublicKey()));
+				signatureToSignatureHandleMap.put(signatureOfUser, signatureHandle);
+			}
+			return signatureHandle;
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	/**
+	 * Cryptographically verifies a given set of <code>IAuditEntry</code> instances. The verification fails if the <code>Signature</code> property does not
+	 * correlate with the user <code>ISignature</code> handle associated with this entry. If this verification fails the entry has been tampered either
+	 * accidentally or intentionally after its creation.<br/>
+	 * <br/>
+	 * 
+	 * - The signature of the entry may have been been changed after the initial creation<br/>
+	 * - At least one property of the AuditEntry or its relevant relationships may have been changed (e.g. signature, associated user handle,
+	 * <code>ISignature</code> of the associated user handle, related <code>IAuditedEntity</code> or <code>IAuditedService</code> objects, timestamps, ...) <br/>
+	 * <br/>
+	 * Very important: In the common case (success scenario) this methods returns an array of TRUE flags where the array size and indices correlate to the given
+	 * list of <code>IAuditEntry</code> instances.
+	 * 
+	 * @return Array of verification result flags. Each FALSE indicates a verification error. TRUE values imply successful verifications.
+	 */
 	@Override
 	public boolean[] verifyAuditEntries(List<? extends IAuditEntry> auditEntries)
 	{
 		if (auditEntries.size() == 0)
 		{
-			return new boolean[0];
+			return EMPTY_VALIDATION_RESULT;
 		}
 		@SuppressWarnings("unused")
 		IPrefetchState prefetch2 = getPref_SignaturesOfUser().prefetch(auditEntries);
 
 		boolean[] result = new boolean[auditEntries.size()];
+		Arrays.fill(result, true);
 		ArrayList<IAuditEntry> auditEntriesToVerify = new ArrayList<IAuditEntry>(auditEntries.size());
 		HashMap<ISignature, java.security.Signature> signatureToSignatureHandleMap = new HashMap<ISignature, java.security.Signature>();
+
 		for (IAuditEntry auditEntry : auditEntries)
 		{
-			ISignature signatureOfUser = auditEntry.getSignatureOfUser();
-			char[] signature = auditEntry.getSignature();
-			if (signature == null && signatureActive)
-			{
-				continue;
-			}
-			if (signatureOfUser == null)
-			{
-				if (signature == null)
-				{
-					auditEntriesToVerify.add(null);
-					// audit entries without a signature can not be verified but are intentionally treated as "valid"
-					continue;
-				}
-				throw new IllegalArgumentException(IAuditEntry.class.getSimpleName() + " has no relation to a user signature: " + auditEntry);
-			}
-			auditEntriesToVerify.add(auditEntry);
+			fillEntriesToVerify(auditEntry, auditEntry.getSignatureOfUser(), auditEntry.getSignature(), auditEntriesToVerify);
 		}
 		@SuppressWarnings("unused")
 		IPrefetchState prefetch = getPref_verifyAuditEntries().prefetch(auditEntriesToVerify);
@@ -909,19 +937,13 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 			IAuditEntry auditEntry = auditEntriesToVerify.get(a);
 			if (auditEntry == null)
 			{
-				result[a] = true;
 				continue;
 			}
 			ISignature signatureOfUser = auditEntry.getSignatureOfUser();
 			char[] signature = auditEntry.getSignature();
 			try
 			{
-				java.security.Signature signatureHandle = signatureToSignatureHandleMap.get(signatureOfUser);
-				if (signatureHandle == null)
-				{
-					signatureHandle = signatureUtil.createVerifyHandle(signatureOfUser.getSignAndVerify(), Base64.decode(signatureOfUser.getPublicKey()));
-					signatureToSignatureHandleMap.put(signatureOfUser, signatureHandle);
-				}
+				Signature signatureHandle = getOrCreateVerifyHandle(signatureOfUser, signatureToSignatureHandleMap);
 				byte[] digest = auditEntryToSignature.createVerifyDigest(auditEntry, signatureHandle);
 				if (digest == null)
 				{
@@ -939,38 +961,40 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 		return result;
 	}
 
+	/**
+	 * Cryptographically verifies a given set of <code>IAuditedEntity</code> instances. The verification fails if the <code>Signature</code> property of the
+	 * related <code>IAuditEntry</code> does not correlate with the user <code>ISignature</code> handle associated with this entry. If this verification fails
+	 * the entry has been tampered either accidentally or intentionally after its creation. This methods exists for performance reasons compared to the
+	 * verification of full AuditEntry instances and it does NOT verify the related full AuditEntries.<br/>
+	 * <br/>
+	 * 
+	 * - The signature of the entry may have been been changed after the initial creation<br/>
+	 * - At least one property of the AuditedEntity or its relevant relationships may have been changed (e.g. AuditEntry, signature, associated user handle,
+	 * <code>ISignature</code> of the associated user handle, ...<br/>
+	 * <br/>
+	 * Very important: In the common case (success scenario) this methods returns an array of TRUE flags where the array size and indices correlate to the given
+	 * list of <code>IAuditEntry</code> instances.
+	 * 
+	 * @return Array of verification result flags. Each FALSE indicates a verification error. TRUE values imply successful verifications.
+	 */
 	@Override
 	public boolean[] verifyAuditedEntities(List<? extends IAuditedEntity> auditedEntities)
 	{
 		if (auditedEntities.size() == 0)
 		{
-			return new boolean[0];
+			return EMPTY_VALIDATION_RESULT;
 		}
 		@SuppressWarnings("unused")
 		IPrefetchState prefetch2 = getPref_SignaturesOfUserFromAuditedEntity().prefetch(auditedEntities);
 
 		boolean[] result = new boolean[auditedEntities.size()];
+		Arrays.fill(result, true);
 		ArrayList<IAuditedEntity> auditedEntitiesToVerify = new ArrayList<IAuditedEntity>(auditedEntities.size());
 		HashMap<ISignature, java.security.Signature> signatureToSignatureHandleMap = new HashMap<ISignature, java.security.Signature>();
+
 		for (IAuditedEntity auditedEntity : auditedEntities)
 		{
-			ISignature signatureOfUser = auditedEntity.getEntry().getSignatureOfUser();
-			char[] signature = auditedEntity.getSignature();
-			if (signature == null && signatureActive)
-			{
-				continue;
-			}
-			if (signatureOfUser == null)
-			{
-				if (signature == null)
-				{
-					auditedEntitiesToVerify.add(null);
-					// audit entries without a signature can not be verified but are intentionally treated as "valid"
-					continue;
-				}
-				throw new IllegalArgumentException(IAuditedEntity.class.getSimpleName() + " has no relation to a user signature: " + auditedEntity);
-			}
-			auditedEntitiesToVerify.add(auditedEntity);
+			fillEntriesToVerify(auditedEntity, auditedEntity.getEntry().getSignatureOfUser(), auditedEntity.getSignature(), auditedEntitiesToVerify);
 		}
 		@SuppressWarnings("unused")
 		IPrefetchState prefetch = getPref_verifyAuditEntriesFromAuditedEntity().prefetch(auditedEntitiesToVerify);
@@ -986,15 +1010,15 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 			char[] signature = auditedEntity.getSignature();
 			try
 			{
-				java.security.Signature signatureHandle = signatureToSignatureHandleMap.get(signatureOfUser);
-				if (signatureHandle == null)
-				{
-					signatureHandle = signatureUtil.createVerifyHandle(signatureOfUser.getSignAndVerify(), Base64.decode(signatureOfUser.getPublicKey()));
-					signatureToSignatureHandleMap.put(signatureOfUser, signatureHandle);
-				}
+				Signature signatureHandle = getOrCreateVerifyHandle(signatureOfUser, signatureToSignatureHandleMap);
 				byte[] digest = auditEntryToSignature.createVerifyDigest(auditedEntity);
+				if (digest == null)
+				{
+					result[a] = false;
+					continue;
+				}
 				signatureHandle.update(digest);
-				result[a] = !signatureHandle.verify(Base64.decode(signature));
+				result[a] = signatureHandle.verify(Base64.decode(signature));
 			}
 			catch (Throwable e)
 			{
@@ -1002,6 +1026,33 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 			}
 		}
 		return result;
+	}
+
+	protected <V> void fillEntriesToVerify(V value, ISignature signatureOfUser, char[] signature, List<? super V> entriesToVerify)
+	{
+		if (signatureOfUser == null)
+		{
+			if (signatureActive)
+			{
+				throw new IllegalArgumentException(((IEntityMetaDataHolder) value).get__EntityMetaData().getEntityType().getSimpleName()
+						+ " has no relation to a user signature: " + value);
+			}
+			// audit entries without a signature instance can not be verified but are intentionally treated as "valid"
+			entriesToVerify.add(null);
+			return;
+		}
+		if (signature == null)
+		{
+			if (signatureActive)
+			{
+				throw new IllegalArgumentException(((IEntityMetaDataHolder) value).get__EntityMetaData().getEntityType().getSimpleName()
+						+ " has no valid signature: " + value);
+			}
+			// audit entries without a signed value can not be verified but are intentionally treated as "valid"
+			entriesToVerify.add(null);
+			return;
+		}
+		entriesToVerify.add(value);
 	}
 
 	protected ILinkedMap<IEntityMetaData, IList<IObjRef>> bucketSortObjRefs(List<? extends IObjRef> orisToLoad, boolean checkConfiguration)

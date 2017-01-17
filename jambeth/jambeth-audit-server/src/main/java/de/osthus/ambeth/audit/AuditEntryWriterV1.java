@@ -175,7 +175,7 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter
 	public byte[] writeAuditEntry(IAuditEntry auditEntry, String hashAlgorithm) throws Throwable
 	{
 		MessageDigest md = MessageDigest.getInstance(hashAlgorithm);
-		DigestOutputStream digestOS = new DigestOutputStream(new NullOutputStream(), md);
+		DigestOutputStream digestOS = new DigestOutputStream(NullOutputStream.INSTANCE, md);
 		DataOutputStream dos = new DataOutputStream(digestOS);
 
 		writeAuditEntryIntern((IEntityMetaDataHolder) auditEntry, dos);
@@ -186,7 +186,7 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter
 	public byte[] writeAuditedEntity(IAuditedEntity auditedEntity, String hashAlgorithm) throws Throwable
 	{
 		MessageDigest md = MessageDigest.getInstance(hashAlgorithm);
-		DigestOutputStream digestOS = new DigestOutputStream(new NullOutputStream(), md);
+		DigestOutputStream digestOS = new DigestOutputStream(NullOutputStream.INSTANCE, md);
 		DataOutputStream dos = new DataOutputStream(digestOS);
 
 		writeAuditedEntityIntern((IEntityMetaDataHolder) auditedEntity, dos);
@@ -197,7 +197,7 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter
 	public void writeAuditEntry(CreateOrUpdateContainerBuild auditEntry, String hashAlgorithm, Signature signature) throws Throwable
 	{
 		MessageDigest md = MessageDigest.getInstance(hashAlgorithm);
-		DigestOutputStream digestOS = new DigestOutputStream(new NullOutputStream(), md);
+		DigestOutputStream digestOS = new DigestOutputStream(NullOutputStream.INSTANCE, md);
 		DataOutputStream dos = new DataOutputStream(digestOS);
 
 		IRelationUpdateItem rui = auditEntry.findRelation(IAuditEntry.Entities);

@@ -335,6 +335,8 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 
 		passwordUtil.assignNewPassword(passwordOfUser, user, null);
 
+		IPassword password = user.getPassword();
+
 		auditController.pushAuditReason("junit test");
 		try
 		{
@@ -363,22 +365,33 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 			List<IAuditedEntity> auditedEntitiesOfUser = auditEntryReader.getAllAuditedEntitiesOfEntity(user);
 
 			Assert.assertEquals(1, auditedEntitiesOfUser.size());
-			boolean[] failedAuditedEntities = auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfUser);
-			Assert.assertEquals(auditedEntitiesOfUser.size(), failedAuditedEntities.length);
-			for (boolean verifyFailed : failedAuditedEntities)
+			boolean[] verifiedAuditedEntities = auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfUser);
+			Assert.assertEquals(auditedEntitiesOfUser.size(), verifiedAuditedEntities.length);
+			for (boolean verifySuccessful : verifiedAuditedEntities)
 			{
-				Assert.assertFalse(verifyFailed);
+				Assert.assertTrue(verifySuccessful);
+			}
+		}
+		{
+			List<IAuditedEntity> auditedEntitiesOfPassword = auditEntryReader.getAllAuditedEntitiesOfEntity(password);
+
+			Assert.assertEquals(1, auditedEntitiesOfPassword.size());
+			boolean[] verifiedAuditedEntities = auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfPassword);
+			Assert.assertEquals(auditedEntitiesOfPassword.size(), verifiedAuditedEntities.length);
+			for (boolean verifySuccessful : verifiedAuditedEntities)
+			{
+				Assert.assertTrue(verifySuccessful);
 			}
 		}
 		{
 			List<IAuditEntry> auditEntriesOfUser = auditEntryReader.getAllAuditEntriesOfEntity(user);
 
 			Assert.assertEquals(1, auditEntriesOfUser.size());
-			boolean[] failedAuditEntries = auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser);
-			Assert.assertEquals(auditEntriesOfUser.size(), failedAuditEntries.length);
-			for (boolean verifyFailed : failedAuditEntries)
+			boolean[] verifiedAuditEntries = auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser);
+			Assert.assertEquals(auditEntriesOfUser.size(), verifiedAuditEntries.length);
+			for (boolean verifySuccessful : verifiedAuditEntries)
 			{
-				Assert.assertFalse(verifyFailed);
+				Assert.assertTrue(verifySuccessful);
 			}
 		}
 		eventDispatcher.dispatchEvent(ClearAllCachesEvent.getInstance());
@@ -398,6 +411,8 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		user.setSID("mySid");
 
 		passwordUtil.assignNewPassword(passwordOfUser, user, null);
+
+		IPassword password = user.getPassword();
 
 		auditController.pushAuditReason("junit test");
 		try
@@ -436,22 +451,33 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 			List<IAuditedEntity> auditedEntitiesOfUser = auditEntryReader.getAllAuditedEntitiesOfEntity(user);
 
 			Assert.assertEquals(2, auditedEntitiesOfUser.size());
-			boolean[] failedAuditedEntities = auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfUser);
-			Assert.assertEquals(auditedEntitiesOfUser.size(), failedAuditedEntities.length);
-			for (boolean verifyFailed : failedAuditedEntities)
+			boolean[] verifiedAuditedEntities = auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfUser);
+			Assert.assertEquals(auditedEntitiesOfUser.size(), verifiedAuditedEntities.length);
+			for (boolean verifySuccessful : verifiedAuditedEntities)
 			{
-				Assert.assertFalse(verifyFailed);
+				Assert.assertTrue(verifySuccessful);
+			}
+		}
+		{
+			List<IAuditedEntity> auditedEntitiesOfPassword = auditEntryReader.getAllAuditedEntitiesOfEntity(password);
+
+			Assert.assertEquals(1, auditedEntitiesOfPassword.size());
+			boolean[] verifiedAuditedEntities = auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfPassword);
+			Assert.assertEquals(auditedEntitiesOfPassword.size(), verifiedAuditedEntities.length);
+			for (boolean verifySuccessful : verifiedAuditedEntities)
+			{
+				Assert.assertTrue(verifySuccessful);
 			}
 		}
 		{
 			List<IAuditEntry> auditEntriesOfUser = auditEntryReader.getAllAuditEntriesOfEntity(user);
 
 			Assert.assertEquals(2, auditEntriesOfUser.size());
-			boolean[] failedAuditEntries = auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser);
-			Assert.assertEquals(auditEntriesOfUser.size(), failedAuditEntries.length);
-			for (boolean verifyFailed : failedAuditEntries)
+			boolean[] verifiedAuditEntries = auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser);
+			Assert.assertEquals(auditEntriesOfUser.size(), verifiedAuditEntries.length);
+			for (boolean verifySuccessful : verifiedAuditEntries)
 			{
-				Assert.assertFalse(verifyFailed);
+				Assert.assertTrue(verifySuccessful);
 			}
 		}
 		eventDispatcher.dispatchEvent(ClearAllCachesEvent.getInstance());
