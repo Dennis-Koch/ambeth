@@ -90,6 +90,7 @@ import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.IConversionHelper;
+import de.osthus.ambeth.util.IMultithreadingHelper;
 import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.IPrefetchState;
 import de.osthus.ambeth.util.IndirectValueHolderRef;
@@ -165,6 +166,9 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	@Autowired
+	protected IMultithreadingHelper multithreadingHelper;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
@@ -1057,19 +1061,23 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 
 	protected void aquireAndAssignIds(ILinkedMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap)
 	{
-		for (Entry<Class<?>, IList<IObjRef>> entry : typeToIdlessReferenceMap)
+		multithreadingHelper.invokeAndWait(typeToIdlessReferenceMap, new IBackgroundWorkerParamDelegate<Entry<Class<?>, IList<IObjRef>>>()
 		{
-			Class<?> entityType = entry.getKey();
-			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-			ITableMetaData table = databaseMetaData.getTableByType(metaData.getEntityType());
-			if (table == null)
+			@Override
+			public void invoke(Entry<Class<?>, IList<IObjRef>> entry) throws Throwable
 			{
-				throw new RuntimeException("No table configured for entity '" + entityType + "'");
-			}
-			IList<IObjRef> idlessReferences = entry.getValue();
+				Class<?> entityType = entry.getKey();
+				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+				ITableMetaData table = databaseMetaData.getTableByType(metaData.getEntityType());
+				if (table == null)
+				{
+					throw new RuntimeException("No table configured for entity '" + entityType + "'");
+				}
+				IList<IObjRef> idlessReferences = entry.getValue();
 
-			primaryKeyProvider.acquireIds(table, idlessReferences);
-		}
+				primaryKeyProvider.acquireIds(table, idlessReferences);
+			}
+		});
 	}
 
 	protected void mockAquireAndAssignIds(ILinkedMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap, IMap<Long, IObjRef> mockIdToObjRefMap)

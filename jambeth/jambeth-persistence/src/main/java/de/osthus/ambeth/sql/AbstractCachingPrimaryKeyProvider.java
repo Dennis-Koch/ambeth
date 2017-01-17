@@ -73,38 +73,53 @@ public abstract class AbstractCachingPrimaryKeyProvider implements IPrimaryKeyPr
 			primaryKeyProvider.acquireIds(table, idlessObjRefs);
 			return;
 		}
-		Class<?> customSequenceType = null;
+		Lock writeLock = this.writeLock;
+		writeLock.lock();
 		try
 		{
-			customSequenceType = Thread.currentThread().getContextClassLoader().loadClass(sequenceName);
-		}
-		catch (Throwable e)
-		{
-			// intended blank
-		}
-		if (customSequenceType == null)
-		{
-			primaryKeyProvider = new IPrimaryKeyProvider()
+			primaryKeyProvider = seqNameToPrimaryKeyProviderMap.get(sequenceName);
+			if (primaryKeyProvider != null)
 			{
-				@Override
-				public void acquireIds(ITableMetaData table, IList<IObjRef> idlessObjRefs)
+				primaryKeyProvider.acquireIds(table, idlessObjRefs);
+				return;
+			}
+			Class<?> customSequenceType = null;
+			try
+			{
+				customSequenceType = Thread.currentThread().getContextClassLoader().loadClass(sequenceName);
+			}
+			catch (Throwable e)
+			{
+				// intended blank
+			}
+			if (customSequenceType == null)
+			{
+				primaryKeyProvider = new IPrimaryKeyProvider()
 				{
-					IList<Object> acquiredIds = acquireIdsIntern(table, idlessObjRefs.size());
-
-					for (int i = idlessObjRefs.size(); i-- > 0;)
+					@Override
+					public void acquireIds(ITableMetaData table, IList<IObjRef> idlessObjRefs)
 					{
-						IObjRef reference = idlessObjRefs.get(i);
-						reference.setId(acquiredIds.get(i));
-						reference.setIdNameIndex(ObjRef.PRIMARY_KEY_INDEX);
+						IList<Object> acquiredIds = acquireIdsIntern(table, idlessObjRefs.size());
+
+						for (int i = idlessObjRefs.size(); i-- > 0;)
+						{
+							IObjRef reference = idlessObjRefs.get(i);
+							reference.setId(acquiredIds.get(i));
+							reference.setIdNameIndex(ObjRef.PRIMARY_KEY_INDEX);
+						}
 					}
-				}
-			};
+				};
+			}
+			else
+			{
+				primaryKeyProvider = (IPrimaryKeyProvider) beanContext.registerBean(customSequenceType).finish();
+			}
+			seqNameToPrimaryKeyProviderMap.put(sequenceName, primaryKeyProvider);
 		}
-		else
+		finally
 		{
-			primaryKeyProvider = (IPrimaryKeyProvider) beanContext.registerBean(customSequenceType).finish();
+			writeLock.unlock();
 		}
-		seqNameToPrimaryKeyProviderMap.put(sequenceName, primaryKeyProvider);
 		primaryKeyProvider.acquireIds(table, idlessObjRefs);
 	}
 
