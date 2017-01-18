@@ -831,6 +831,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 				sb.append("\n\t\t").append(new ObjRef(ref.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, ref.getEntityId(), ref.getEntityVersion()));
 			}
 			log.error(sb);
+			return false;
 		}
 		else if (log.isDebugEnabled())
 		{
@@ -895,21 +896,6 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 		}
 	}
 
-	/**
-	 * Cryptographically verifies a given set of <code>IAuditEntry</code> instances. The verification fails if the <code>Signature</code> property does not
-	 * correlate with the user <code>ISignature</code> handle associated with this entry. If this verification fails the entry has been tampered either
-	 * accidentally or intentionally after its creation.<br/>
-	 * <br/>
-	 * 
-	 * - The signature of the entry may have been been changed after the initial creation<br/>
-	 * - At least one property of the AuditEntry or its relevant relationships may have been changed (e.g. signature, associated user handle,
-	 * <code>ISignature</code> of the associated user handle, related <code>IAuditedEntity</code> or <code>IAuditedService</code> objects, timestamps, ...) <br/>
-	 * <br/>
-	 * Very important: In the common case (success scenario) this methods returns an array of TRUE flags where the array size and indices correlate to the given
-	 * list of <code>IAuditEntry</code> instances.
-	 * 
-	 * @return Array of verification result flags. Each FALSE indicates a verification error. TRUE values imply successful verifications.
-	 */
 	@Override
 	public boolean[] verifyAuditEntries(List<? extends IAuditEntry> auditEntries)
 	{
@@ -961,22 +947,6 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 		return result;
 	}
 
-	/**
-	 * Cryptographically verifies a given set of <code>IAuditedEntity</code> instances. The verification fails if the <code>Signature</code> property of the
-	 * related <code>IAuditEntry</code> does not correlate with the user <code>ISignature</code> handle associated with this entry. If this verification fails
-	 * the entry has been tampered either accidentally or intentionally after its creation. This methods exists for performance reasons compared to the
-	 * verification of full AuditEntry instances and it does NOT verify the related full AuditEntries.<br/>
-	 * <br/>
-	 * 
-	 * - The signature of the entry may have been been changed after the initial creation<br/>
-	 * - At least one property of the AuditedEntity or its relevant relationships may have been changed (e.g. AuditEntry, signature, associated user handle,
-	 * <code>ISignature</code> of the associated user handle, ...<br/>
-	 * <br/>
-	 * Very important: In the common case (success scenario) this methods returns an array of TRUE flags where the array size and indices correlate to the given
-	 * list of <code>IAuditEntry</code> instances.
-	 * 
-	 * @return Array of verification result flags. Each FALSE indicates a verification error. TRUE values imply successful verifications.
-	 */
 	@Override
 	public boolean[] verifyAuditedEntities(List<? extends IAuditedEntity> auditedEntities)
 	{
