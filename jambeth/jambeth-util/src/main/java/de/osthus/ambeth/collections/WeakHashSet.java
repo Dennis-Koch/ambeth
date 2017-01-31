@@ -84,6 +84,12 @@ public class WeakHashSet<K> extends AbstractHashSet<K>
 	}
 
 	@Override
+	protected boolean isEntryValid(ISetEntry<K> entry)
+	{
+		return ((WeakSetEntry<K>) entry).get() != null;
+	}
+
+	@Override
 	protected void setNextEntry(ISetEntry<K> entry, ISetEntry<K> nextEntry)
 	{
 		((WeakSetEntry<K>) entry).setNextEntry((WeakSetEntry<K>) nextEntry);
@@ -129,6 +135,11 @@ public class WeakHashSet<K> extends AbstractHashSet<K>
 		{
 			int i = removedEntry.hash & tableLengthMinusOne;
 			ISetEntry<K> entry = table[i];
+			if (entry == null)
+			{
+				// Nothing to do
+				continue;
+			}
 			if (entry == removedEntry)
 			{
 				table[i] = entry.getNextEntry();

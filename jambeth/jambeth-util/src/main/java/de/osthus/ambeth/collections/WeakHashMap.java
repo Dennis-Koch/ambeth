@@ -88,6 +88,12 @@ public class WeakHashMap<K, V> extends AbstractHashMap<Reference<K>, K, V>
 	}
 
 	@Override
+	protected boolean isEntryValid(IMapEntry<K, V> entry)
+	{
+		return ((WeakMapEntry<K, V>) entry).get() != null;
+	}
+
+	@Override
 	protected void setNextEntry(IMapEntry<K, V> entry, IMapEntry<K, V> nextEntry)
 	{
 		((WeakMapEntry<K, V>) entry).setNextEntry(nextEntry);

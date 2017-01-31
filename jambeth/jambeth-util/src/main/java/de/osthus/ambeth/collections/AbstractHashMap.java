@@ -217,9 +217,16 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 			while (entry != null)
 			{
 				next = entry.getNextEntry();
-				int i = entry.getHash() & newCapacityMinus1;
-				setNextEntry(entry, newTable[i]);
-				newTable[i] = entry;
+				if (isEntryValid(entry))
+				{
+					int i = entry.getHash() & newCapacityMinus1;
+					setNextEntry(entry, newTable[i]);
+					newTable[i] = entry;
+				}
+				else
+				{
+					entryRemoved(entry);
+				}
 				entry = next;
 			}
 		}
@@ -247,6 +254,11 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 			}
 		}
 		return targetArray;
+	}
+
+	protected boolean isEntryValid(IMapEntry<K, V> entry)
+	{
+		return true;
 	}
 
 	/**
