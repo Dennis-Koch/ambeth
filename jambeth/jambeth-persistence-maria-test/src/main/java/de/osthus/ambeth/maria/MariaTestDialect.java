@@ -1,4 +1,4 @@
-package de.osthus.ambeth.pg;
+package de.osthus.ambeth.maria;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -19,15 +19,14 @@ import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IocModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
-import de.osthus.ambeth.persistence.IColumnEntry;
+import de.osthus.ambeth.maria.RandomUserScript.RandomUserModule;
 import de.osthus.ambeth.persistence.PermissionGroup;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionTestDialect;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
-import de.osthus.ambeth.pg.RandomUserScript.RandomUserModule;
 import de.osthus.ambeth.sql.ISqlBuilder;
 
-public class PostgresTestDialect extends AbstractConnectionTestDialect
+public class MariaTestDialect extends AbstractConnectionTestDialect
 {
 	public static final String ROOT_DATABASE_USER = "ambeth.root.database.user";
 
@@ -36,10 +35,10 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect
 	@Autowired
 	protected ISqlBuilder sqlBuilder;
 
-	@Property(name = ROOT_DATABASE_USER, defaultValue = "postgres")
+	@Property(name = ROOT_DATABASE_USER, defaultValue = "root")
 	protected String rootDatabaseUser;
 
-	@Property(name = ROOT_DATABASE_PASS, defaultValue = "developer")
+	@Property(name = ROOT_DATABASE_PASS, defaultValue = "")
 	protected String rootDatabasePass;
 
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName)
@@ -122,11 +121,73 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect
 			stm = connection.createStatement();
 			for (String schemaName : schemaNames)
 			{
-				stm.execute("CREATE SCHEMA IF NOT EXISTS \"" + schemaName + "\"");
-				// stm.execute("CREATE DOMAIN \"" + schemaName + "\".lo AS oid");
-				stm.execute("CREATE EXTENSION IF NOT EXISTS lo SCHEMA \"" + schemaName + "\"");
+				try
+				{
+					stm.execute("CREATE SCHEMA " + connectionDialect.escapeName(schemaName));
+				}
+				catch (Throwable e)
+				{
+					// intended blank
+				}
 			}
-			stm.execute("SET SCHEMA '" + schemaNames[0] + "'");
+			stm.execute("USE " + connectionDialect.escapeName(schemaNames[0]));
+			stm.execute("CREATE TABLE " + connectionDialect.escapeName(MariaDialect.SEQUENCE_TABLE_NAME) + " ("
+					+ connectionDialect.escapeName(MariaDialect.SEQUENCE_COLUMN_NAME) + " varchar(100) NOT NULL,"//
+					+ connectionDialect.escapeName(MariaDialect.SEQUENCE_INCREMENT_NAME) + " int(11) unsigned NOT NULL DEFAULT 1," //
+					+ connectionDialect.escapeName(MariaDialect.SEQUENCE_MIN_NAME) + " int(11) unsigned NOT NULL DEFAULT 1," //
+					+ connectionDialect.escapeName(MariaDialect.SEQUENCE_MAX_NAME) + " bigint(20) unsigned NOT NULL DEFAULT 18446744073709551615," //
+					+ connectionDialect.escapeName(MariaDialect.SEQUENCE_CUR_NAME) + " bigint(20) unsigned DEFAULT 1," //
+					+ connectionDialect.escapeName(MariaDialect.SEQUENCE_CYCLE_NAME) + " boolean NOT NULL DEFAULT FALSE," //
+					+ " PRIMARY KEY (" + connectionDialect.escapeName(MariaDialect.SEQUENCE_COLUMN_NAME) + "))");
+
+			stm.execute("CREATE FUNCTION "
+					+ connectionDialect.escapeName(MariaDialect.NEXT_VAL_FUNCTION_NAME)
+					+ " (`seq_name` varchar(100))\n"//
+					+ "RETURNS bigint(20) NOT DETERMINISTIC\n"//
+					+ "BEGIN\n"//
+					+ " DECLARE cur_val bigint(20);\n"//
+					+ " SELECT\n"//
+					+ "  "
+					+ connectionDialect.escapeName(MariaDialect.SEQUENCE_CUR_NAME)
+					+ " INTO cur_val\n"//
+					+ " FROM\n"//
+					+ "  "
+					+ connectionDialect.escapeName(MariaDialect.SEQUENCE_TABLE_NAME)
+					+ "\n"//
+					+ " WHERE\n"//
+					+ "  "
+					+ connectionDialect.escapeName(MariaDialect.SEQUENCE_COLUMN_NAME)
+					+ " = seq_name\n"//
+					+ " ;\n"//
+					+ " IF cur_val IS NOT NULL THEN\n"//
+					+ "  UPDATE\n"//
+					+ "   "
+					+ connectionDialect.escapeName(MariaDialect.SEQUENCE_TABLE_NAME)
+					+ "\n"//
+					+ "  SET\n"//
+					+ "   "
+					+ connectionDialect.escapeName(MariaDialect.SEQUENCE_CUR_NAME)
+					+ " = IF (\n"//
+					+ "    (" + connectionDialect.escapeName(MariaDialect.SEQUENCE_CUR_NAME) + " + "
+					+ connectionDialect.escapeName(MariaDialect.SEQUENCE_INCREMENT_NAME) + ") > "
+					+ connectionDialect.escapeName(MariaDialect.SEQUENCE_MAX_NAME)
+					+ ",\n"//
+					+ "    IF (\n"//
+					+ "     " + connectionDialect.escapeName(MariaDialect.SEQUENCE_CYCLE_NAME)
+					+ " = TRUE,\n"//
+					+ "     " + connectionDialect.escapeName(MariaDialect.SEQUENCE_MIN_NAME)
+					+ ",\n"//
+					+ "     NULL\n"//
+					+ "    ),\n"//
+					+ "    " + connectionDialect.escapeName(MariaDialect.SEQUENCE_CUR_NAME) + " + "
+					+ connectionDialect.escapeName(MariaDialect.SEQUENCE_INCREMENT_NAME) + "\n"//
+					+ "   )\n"//
+					+ "  WHERE\n"//
+					+ "    " + connectionDialect.escapeName(MariaDialect.SEQUENCE_COLUMN_NAME) + " = seq_name\n"//
+					+ "   ;\n"//
+					+ " END IF;\n"//
+					+ " RETURN cur_val;\n"//
+					+ "END");
 		}
 		finally
 		{
@@ -149,8 +210,19 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect
 		{
 			stmt = connection.createStatement();
 
-			rs = stmt
-					.executeQuery("SELECT count(*) FROM pg_class c INNER JOIN pg_namespace n ON c.relnamespace=n.oid WHERE n.nspname='" + schemaNames[0] + "'");
+			String dbName;
+			try
+			{
+				rs = stmt.executeQuery("SELECT DATABASE()");
+				rs.next();
+				dbName = rs.getString(1);
+			}
+			finally
+			{
+				JdbcUtil.close(rs);
+			}
+
+			rs = stmt.executeQuery("SELECT COUNT(DISTINCT 'table_name') FROM `information_schema`.`columns` WHERE `table_schema` = '" + dbName + "'");
 			rs.next();
 			return rs.getInt(1) == 0;
 		}
@@ -161,48 +233,9 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect
 	}
 
 	@Override
-	public String[] createAdditionalTriggers(Connection connection, String fqTableName) throws SQLException
-	{
-		IList<IColumnEntry> allFieldsOfTable = connectionDialect.getAllFieldsOfTable(connection, fqTableName);
-		ArrayList<String> sql = new ArrayList<String>();
-		String[] schemaAndTableName = sqlBuilder.getSchemaAndTableName(fqTableName);
-		for (IColumnEntry columnEntry : allFieldsOfTable)
-		{
-			if (!PostgresDialect.isBLobColumnName(columnEntry.getTypeName()))
-			{
-				continue;
-			}
-			String triggerName = schemaAndTableName[1] + "_lob_" + columnEntry.getFieldName();
-			{
-				AppendableStringBuilder sb = new AppendableStringBuilder();
-
-				sb.append("CREATE TRIGGER ").append(triggerName);
-				sb.append(" BEFORE UPDATE OF ");
-				connectionDialect.escapeName(columnEntry.getFieldName(), sb);
-				sb.append(" OR DELETE ");
-				sb.append(" ON \"").append(schemaAndTableName[1]).append("\" FOR EACH ROW EXECUTE PROCEDURE lo_manage(");
-				connectionDialect.escapeName(columnEntry.getFieldName(), sb);
-				sb.append(")");
-				sql.add(sb.toString());
-			}
-			{
-				AppendableStringBuilder sb = new AppendableStringBuilder();
-
-				sb.append("CREATE TRIGGER ").append(triggerName).append("_t");
-				sb.append(" BEFORE TRUNCATE");
-				sb.append(" ON \"").append(schemaAndTableName[1]).append("\" EXECUTE PROCEDURE lo_manage(");
-				connectionDialect.escapeName(columnEntry.getFieldName(), sb);
-				sb.append(")");
-				sql.add(sb.toString());
-			}
-		}
-		return sql.toArray(String.class);
-	}
-
-	@Override
 	public String[] createOptimisticLockTrigger(Connection connection, String fqTableName) throws SQLException
 	{
-		if (PostgresDialect.BIN_TABLE_NAME.matcher(fqTableName).matches() || PostgresDialect.IDX_TABLE_NAME.matcher(fqTableName).matches())
+		if (MariaDialect.BIN_TABLE_NAME.matcher(fqTableName).matches() || MariaDialect.IDX_TABLE_NAME.matcher(fqTableName).matches())
 		{
 			return new String[0];
 		}
@@ -243,7 +276,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect
 			sb.append("CREATE OR REPLACE FUNCTION ").append(functionName).append("() RETURNS TRIGGER AS $").append(functionName).append("$\n");
 			sb.append(" BEGIN\n");
 			sb.append("  IF NEW.\"").append("VERSION").append("\" <= OLD.\"").append("VERSION").append("\" THEN\n");
-			sb.append("  RAISE EXCEPTION '").append(Integer.toString(PostgresDialect.getOptimisticLockErrorCode())).append(" Optimistic Lock Exception';\n");
+			sb.append("  RAISE EXCEPTION '").append(Integer.toString(MariaDialect.getOptimisticLockErrorCode())).append(" Optimistic Lock Exception';\n");
 			sb.append("  END IF;\n");
 			sb.append("  RETURN NEW;");
 			sb.append(" END;\n");
@@ -264,7 +297,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect
 					{
 						sb.append(',');
 					}
-					sqlBuilder.escapeName(tableColumns.get(a), sb);
+					connectionDialect.escapeName(tableColumns.get(a), sb);
 				}
 			}
 			sb.append(" ON \"").append(names[1]).append("\" FOR EACH ROW EXECUTE PROCEDURE ").append(functionName).append("()");
@@ -276,7 +309,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect
 	@Override
 	protected boolean isTableNameToIgnore(String tableName)
 	{
-		if (PostgresDialect.BIN_TABLE_NAME.matcher(tableName).matches())
+		if (MariaDialect.BIN_TABLE_NAME.matcher(tableName).matches())
 		{
 			return true;
 		}
@@ -286,18 +319,13 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect
 	@Override
 	protected IList<String> queryForAllTables(Connection connection) throws SQLException
 	{
-		return connectionDialect
-				.queryDefault(
-						connection,
-						"FULL_NAME",
-						"SELECT DISTINCT n.nspname || '.' || c.relname AS FULL_NAME FROM pg_trigger t JOIN pg_class c ON t.tgrelid=c.oid JOIN pg_namespace n ON c.relnamespace=n.oid WHERE n.nspname='"
-								+ schemaNames[0] + "'");
+		return new ArrayList<String>();
 	}
 
 	@Override
 	protected IList<String> queryForAllTriggers(Connection connection) throws SQLException
 	{
-		return connectionDialect.queryDefault(connection, "TRIGGER_NAME", "SELECT t.tgname AS TRIGGER_NAME FROM pg_trigger t");
+		return connectionDialect.queryDefault(connection, "TRIGGER_NAME", "SELECT t.trigger_name AS TRIGGER_NAME FROM information_schema.triggers t");
 	}
 
 	@Override
@@ -372,7 +400,8 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect
 		try
 		{
 			stmt = connection.createStatement();
-			stmt.execute("DROP SCHEMA IF EXISTS \"" + connectionDialect.toDefaultCase(schemaName) + "\" CASCADE");
+			stmt.execute("DROP SCHEMA " + connectionDialect.toDefaultCase(schemaName));
+			stmt.execute("CREATE SCHEMA " + connectionDialect.toDefaultCase(schemaName));
 		}
 		catch (SQLException e)
 		{

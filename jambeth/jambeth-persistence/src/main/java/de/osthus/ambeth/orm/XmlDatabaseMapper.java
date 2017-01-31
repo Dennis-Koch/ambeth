@@ -56,9 +56,9 @@ import de.osthus.ambeth.util.StringConversionHelper;
 
 public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartingBean, IDisposableBean, IOrmDatabaseMapper
 {
-	public static final Pattern fqToSoftTableNamePattern = Pattern.compile("\"?(.+?)\"?\\.\"?(.+?)\"?");
+	public static final Pattern fqToSoftTableNamePattern = Pattern.compile("[\"`]?(.+?)[\"`]?\\.[\"`]?(.+?)[\"`]?");
 
-	public static final Pattern softTableNamePattern = Pattern.compile("\"?(.+?)\"?");
+	public static final Pattern softTableNamePattern = Pattern.compile("[\"`]?(.+?)[\"`]?");
 
 	public static String[] splitSchemaAndName(String fqName)
 	{
@@ -83,21 +83,6 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			}
 		}
 		return new String[] { schemaName, softName };
-	}
-
-	public static String escapeName(String tableName)
-	{
-		String[] schemaAndName = splitSchemaAndName(tableName);
-		return escapeName(schemaAndName[0], schemaAndName[1]);
-	}
-
-	public static String escapeName(String schemaName, String tableName)
-	{
-		if (schemaName == null)
-		{
-			return "\"" + tableName + "\"";
-		}
-		return "\"" + schemaName + "\".\"" + tableName + "\"";
 	}
 
 	@LogInstance

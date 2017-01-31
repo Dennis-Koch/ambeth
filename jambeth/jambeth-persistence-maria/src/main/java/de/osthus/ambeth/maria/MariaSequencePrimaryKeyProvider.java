@@ -1,4 +1,4 @@
-package de.osthus.ambeth.sqlite;
+package de.osthus.ambeth.maria;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,13 +9,14 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.objectcollector.IObjectCollector;
 import de.osthus.ambeth.orm.XmlDatabaseMapper;
-import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.sql.AbstractCachingPrimaryKeyProvider;
+import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class SQLiteSequencePrimaryKeyProvider extends AbstractCachingPrimaryKeyProvider
+public class MariaSequencePrimaryKeyProvider extends AbstractCachingPrimaryKeyProvider
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -25,29 +26,26 @@ public class SQLiteSequencePrimaryKeyProvider extends AbstractCachingPrimaryKeyP
 	protected Connection connection;
 
 	@Autowired
-	protected IConnectionDialect connectionDialect;
+	protected IObjectCollector objectCollector;
 
 	@Override
 	protected void acquireIdsIntern(ITableMetaData table, int count, List<Object> targetIdList)
 	{
-		String[] schemaAndName = XmlDatabaseMapper.splitSchemaAndName(table.getSequenceName());
-		if (schemaAndName[0] == null)
-		{
-			// if no schema is explicitly specified in the sequence we look in the schema of the table
-			schemaAndName[0] = XmlDatabaseMapper.splitSchemaAndName(table.getFullqualifiedEscapedName())[0];
-		}
+		String seqSoftName = XmlDatabaseMapper.splitSchemaAndName(table.getSequenceName())[1];
+		String sql = StringBuilderUtil.concat(objectCollector.getCurrent(), "SELECT ", MariaDialect.NEXT_VAL_FUNCTION_NAME, "('", seqSoftName, "')");
 		PreparedStatement pstm = null;
 		ResultSet rs = null;
 		try
 		{
-			pstm = connection.prepareStatement("SELECT nextval('" + connectionDialect.escapeSchemaAndSymbolName(schemaAndName[0], schemaAndName[1])
-					+ "') FROM generate_series(1,?)");
-			pstm.setInt(1, count);
-			rs = pstm.executeQuery();
-			while (rs.next())
+			pstm = connection.prepareStatement(sql);
+			while (count-- > 0)
 			{
-				Object id = rs.getObject(1); // We have only 1 column in the select so it is ok to retrieve it by the unique id
-				targetIdList.add(id);
+				rs = pstm.executeQuery();
+				while (rs.next())
+				{
+					Object id = rs.getObject(1); // We have only 1 column in the select so it is ok to retrieve it by the unique id
+					targetIdList.add(id);
+				}
 			}
 		}
 		catch (Throwable e)

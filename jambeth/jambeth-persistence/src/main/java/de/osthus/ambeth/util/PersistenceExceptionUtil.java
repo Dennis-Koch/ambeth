@@ -5,30 +5,13 @@ import java.sql.SQLException;
 
 import javax.persistence.PersistenceException;
 
-import de.osthus.ambeth.ioc.IInitializingBean;
-import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.persistence.IConnectionDialect;
 
-public class PersistenceExceptionUtil implements IPersistenceExceptionUtil, IInitializingBean
+public class PersistenceExceptionUtil implements IPersistenceExceptionUtil
 {
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
+	@Autowired
 	protected IConnectionDialect connectionDialect;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(connectionDialect, "ConnectionDialect");
-	}
-
-	public void setConnectionDialect(IConnectionDialect connectionDialect)
-	{
-		this.connectionDialect = connectionDialect;
-	}
 
 	@Override
 	public PersistenceException mask(Throwable e)

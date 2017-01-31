@@ -704,7 +704,7 @@ public class JdbcTable extends SqlTable
 				sqlBuilder.appendName(versionField.getName(), fieldNamesSQL);
 			}
 			persistenceHelper.appendSplittedValues(idField.getName(), idField.getFieldType(), ids, parameters, whereSQL);
-			whereSQL.append(" FOR UPDATE NOWAIT");
+			whereSQL.append(connectionDialect.getSelectForUpdateFragment());
 
 			return sqlConnection.selectFields(metaData.getFullqualifiedEscapedName(), fieldNamesSQL, whereSQL, null, null, parameters);
 		}

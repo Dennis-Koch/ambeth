@@ -10,6 +10,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.orm.XmlDatabaseMapper;
+import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.sql.AbstractCachingPrimaryKeyProvider;
@@ -22,6 +23,9 @@ public class Oracle10gSequencePrimaryKeyProvider extends AbstractCachingPrimaryK
 
 	@Autowired
 	protected Connection connection;
+
+	@Autowired
+	protected IConnectionDialect connectionDialect;
 
 	@Override
 	protected void acquireIdsIntern(ITableMetaData table, int count, List<Object> targetIdList)
@@ -36,7 +40,7 @@ public class Oracle10gSequencePrimaryKeyProvider extends AbstractCachingPrimaryK
 		ResultSet rs = null;
 		try
 		{
-			pstm = connection.prepareStatement("SELECT " + XmlDatabaseMapper.escapeName(schemaAndName[0], schemaAndName[1])
+			pstm = connection.prepareStatement("SELECT " + connectionDialect.escapeSchemaAndSymbolName(schemaAndName[0], schemaAndName[1])
 					+ ".nextval FROM DUAL CONNECT BY level<=?");
 			pstm.setInt(1, count);
 			rs = pstm.executeQuery();

@@ -20,6 +20,16 @@ import de.osthus.ambeth.state.IStateRollback;
 
 public interface IConnectionDialect
 {
+	String escapeName(CharSequence symbolName);
+
+	IAppendable escapeName(CharSequence symbolName, IAppendable sb);
+
+	String escapeSchemaAndSymbolName(CharSequence schemaName, CharSequence symbolName);
+
+	String getEscapeLiteral();
+
+	String getSelectForUpdateFragment();
+
 	Blob createBlob(Connection connection) throws SQLException;
 
 	Clob createClob(Connection connection) throws SQLException;
@@ -106,4 +116,6 @@ public interface IConnectionDialect
 	SelectPosition getLimitPosition();
 
 	int getColumnCountForLinkTable();
+
+	String buildClearTableSQL(String tableName);
 }

@@ -746,6 +746,9 @@ public class PostgresDialect extends AbstractConnectionDialect
 		sqlCommand = prepareCommandIntern(sqlCommand, " 999999999999999999999999999 ", " 9223372036854775807 ");
 
 		sqlCommand = prepareCommandIntern(sqlCommand, "\\s+TABLESPACE\\s+[a-zA-Z0-9_]+", " ");
+
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, "(\"?[A-Za-z0-9_]+\"?)\\.NEXTVAL", "nextval('\\2')");
+
 		// Pattern tablespacePattern = Pattern.compile("CREATE\\s+TABLESPACE\\s+([\\S]+)\\s*.*\\sDATAFILE\\s+'([^']+)'.*", Pattern.CASE_INSENSITIVE);
 		// Matcher tablespaceMatcher = tablespacePattern.matcher(sqlCommand);
 		// if (tablespaceMatcher.matches())

@@ -40,7 +40,7 @@ public class PostgresSequencePrimaryKeyProvider extends AbstractCachingPrimaryKe
 		ResultSet rs = null;
 		try
 		{
-			pstm = connection.prepareStatement("SELECT nextval('" + XmlDatabaseMapper.escapeName(schemaAndName[0], schemaAndName[1])
+			pstm = connection.prepareStatement("SELECT nextval('" + connectionDialect.escapeSchemaAndSymbolName(schemaAndName[0], schemaAndName[1])
 					+ "') FROM generate_series(1,?)");
 			pstm.setInt(1, count);
 			rs = pstm.executeQuery();

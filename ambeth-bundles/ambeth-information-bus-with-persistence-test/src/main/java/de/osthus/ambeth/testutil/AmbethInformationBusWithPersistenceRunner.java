@@ -50,7 +50,6 @@ import de.osthus.ambeth.merge.ChangeControllerState;
 import de.osthus.ambeth.merge.ILightweightTransaction;
 import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.model.ISecurityScope;
-import de.osthus.ambeth.orm.XmlDatabaseMapper;
 import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.IConnectionTestDialect;
@@ -912,7 +911,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 	private boolean checkAdditionalSchemaEmpty(final Connection conn, final String schemaName) throws SQLException
 	{
-		List<String> allTableNames = getOrCreateSchemaContext().getService(IConnectionDialect.class).getAllFullqualifiedTableNames(conn, schemaName);
+		IConnectionDialect connectionDialect = getOrCreateSchemaContext().getService(IConnectionDialect.class);
+		List<String> allTableNames = connectionDialect.getAllFullqualifiedTableNames(conn, schemaName);
 
 		for (int i = allTableNames.size(); i-- > 0;)
 		{
@@ -922,7 +922,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			try
 			{
 				stmt = conn.createStatement();
-				stmt.execute("SELECT * FROM " + XmlDatabaseMapper.escapeName(tableName) + " WHERE ROWNUM = 1");
+				stmt.execute("SELECT * FROM " + connectionDialect.escapeName(tableName) + " WHERE ROWNUM = 1");
 				rs = stmt.getResultSet();
 				if (rs.next())
 				{
@@ -1333,7 +1333,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	 */
 	protected void truncateAllTablesBySchema(final Connection conn, final String... schemaNames) throws SQLException
 	{
-		List<String> allTableNames = getOrCreateSchemaContext().getService(IConnectionDialect.class).getAllFullqualifiedTableNames(conn, schemaNames);
+		IConnectionDialect connectionDialect = getOrCreateSchemaContext().getService(IConnectionDialect.class);
+		List<String> allTableNames = connectionDialect.getAllFullqualifiedTableNames(conn, schemaNames);
 		if (allTableNames.isEmpty())
 		{
 			return;
@@ -1343,7 +1344,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		for (int i = allTableNames.size(); i-- > 0;)
 		{
 			String tableName = allTableNames.get(i);
-			sql.add("DELETE FROM " + XmlDatabaseMapper.escapeName(tableName) + " CASCADE");
+			sql.add(connectionDialect.buildClearTableSQL(tableName));
 		}
 		executeWithDeferredConstraints(new ISchemaRunnable()
 		{
@@ -1372,13 +1373,13 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		{
 			return;
 		}
+		IConnectionDialect connectionDialect = getOrCreateSchemaContext().getService(IConnectionDialect.class);
 		final List<String> sql = new ArrayList<String>();
 		for (int i = explicitTableNames.length; i-- > 0;)
 		{
 			String tableName = explicitTableNames[i];
-			sql.add("DELETE FROM " + XmlDatabaseMapper.escapeName(tableName));
+			sql.add(connectionDialect.buildClearTableSQL(tableName));
 		}
-
 		executeWithDeferredConstraints(new ISchemaRunnable()
 		{
 

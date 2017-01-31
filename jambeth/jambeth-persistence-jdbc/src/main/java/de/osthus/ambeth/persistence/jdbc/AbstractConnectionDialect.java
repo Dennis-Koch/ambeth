@@ -51,6 +51,7 @@ import de.osthus.ambeth.query.IValueOperand;
 import de.osthus.ambeth.sql.ParamsUtil;
 import de.osthus.ambeth.state.IStateRollback;
 import de.osthus.ambeth.util.IConversionHelper;
+import de.osthus.ambeth.util.StringBuilderUtil;
 
 public abstract class AbstractConnectionDialect implements IConnectionDialect, IInitializingBean, IDisposableBean
 {
@@ -77,6 +78,8 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 			return enableConstraintsSQL;
 		}
 	}
+
+	protected Pattern dotPattern = Pattern.compile(".", Pattern.LITERAL);
 
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -627,7 +630,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 
 	protected String prepareCommandInternWithGroup(String sqlCommand, String regex, String replacement)
 	{
-		Pattern pattern = Pattern.compile("(.*)" + regex + "(.*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+		Pattern pattern = Pattern.compile("(.*?)" + regex + "(.*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 		return concat(sqlCommand, replacement, pattern);
 	}
 
@@ -686,5 +689,108 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 	public int getColumnCountForLinkTable()
 	{
 		return 2;
+	}
+
+	@Override
+	public String escapeName(CharSequence symbolName)
+	{
+		String escapeLiteral = getEscapeLiteral();
+		if (symbolName.length() == 0)
+		{
+			// already escaped
+			return symbolName.toString();
+		}
+		if (escapeLiteral.length() <= symbolName.length())
+		{
+			boolean alreadyEscaped = true;
+			for (int a = escapeLiteral.length(); a-- > 0;)
+			{
+				if (symbolName.charAt(a) != escapeLiteral.charAt(a))
+				{
+					alreadyEscaped = false;
+					break;
+				}
+			}
+			if (alreadyEscaped)
+			{
+				return symbolName.toString();
+			}
+		}
+		for (int a = symbolName.length(); a-- > 0;)
+		{
+			if (symbolName.charAt(a) == '.')
+			{
+				String dotReplacedName = dotPattern.matcher(symbolName).replaceAll(escapeLiteral + '.' + escapeLiteral);
+				return StringBuilderUtil.concat(objectCollector.getCurrent(), escapeLiteral, dotReplacedName, escapeLiteral);
+			}
+		}
+		// no dots in the symbolName. this saves us the Regex operation
+		return StringBuilderUtil.concat(objectCollector.getCurrent(), escapeLiteral, symbolName, escapeLiteral);
+	}
+
+	@Override
+	public IAppendable escapeName(CharSequence symbolName, IAppendable sb)
+	{
+		String escapeLiteral = getEscapeLiteral();
+		if (symbolName.length() == 0)
+		{
+			// already escaped
+			return sb.append(symbolName);
+		}
+		if (escapeLiteral.length() <= symbolName.length())
+		{
+			boolean alreadyEscaped = true;
+			for (int a = escapeLiteral.length(); a-- > 0;)
+			{
+				if (symbolName.charAt(a) != escapeLiteral.charAt(a))
+				{
+					alreadyEscaped = false;
+					break;
+				}
+			}
+			if (alreadyEscaped)
+			{
+				return sb.append(symbolName);
+			}
+		}
+		for (int a = symbolName.length(); a-- > 0;)
+		{
+			if (symbolName.charAt(a) == '.')
+			{
+				String dotReplacedName = dotPattern.matcher(symbolName).replaceAll(escapeLiteral + '.' + escapeLiteral);
+				return sb.append(escapeLiteral).append(dotReplacedName).append(escapeLiteral);
+			}
+		}
+		// no dots in the symbolName. this saves us the Regex operation
+		return sb.append(escapeLiteral).append(symbolName).append(escapeLiteral);
+	}
+
+	@Override
+	public String escapeSchemaAndSymbolName(CharSequence schemaName, CharSequence symbolName)
+	{
+		String escapeLiteral = getEscapeLiteral();
+		if (schemaName == null)
+		{
+			return StringBuilderUtil.concat(objectCollector.getCurrent(), escapeLiteral, symbolName, escapeLiteral);
+		}
+		return StringBuilderUtil.concat(objectCollector.getCurrent(), escapeLiteral, schemaName, escapeLiteral, ".", escapeLiteral, symbolName, escapeLiteral);
+	}
+
+	@Override
+	public String getEscapeLiteral()
+	{
+		return "\"";
+	}
+
+	@Override
+	public String buildClearTableSQL(String tableName)
+	{
+		return "DELETE FROM " + escapeName(tableName) + " CASCADE";
+	}
+
+	@Override
+	public String getSelectForUpdateFragment()
+	{
+		return " FOR UPDATE NOWAIT";
 	}
 }

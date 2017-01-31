@@ -358,7 +358,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect
 				{
 					sb.append(',');
 				}
-				sqlBuilder.escapeName(tableColumns.get(a), sb);
+				connectionDialect.escapeName(tableColumns.get(a), sb);
 			}
 		}
 		sb.append(" ON \"").append(names[1]).append("\" FOR EACH ROW");

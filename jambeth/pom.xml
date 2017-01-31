@@ -59,6 +59,7 @@
 		<module>jambeth-persistence-api</module>
 		<module>jambeth-persistence-h2</module>
 		<module>jambeth-persistence-jdbc</module>
+		<module>jambeth-persistence-maria</module>
 		<module>jambeth-persistence-mssql</module>
 		<module>jambeth-persistence-oracle11</module>
 		<module>jambeth-persistence-pg</module>
@@ -541,6 +542,18 @@
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-persistence-jdbc-test</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-persistence-maria</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-persistence-maria-test</artifactId>
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>

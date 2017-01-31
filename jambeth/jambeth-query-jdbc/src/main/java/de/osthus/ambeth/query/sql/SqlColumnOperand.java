@@ -6,41 +6,45 @@ import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.filter.QueryConstants;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IOperatorAwareOperand;
 import de.osthus.ambeth.query.OperandConstants;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class SqlColumnOperand implements IOperand, IOperatorAwareOperand, IInitializingBean
+public class SqlColumnOperand implements IOperand, IOperatorAwareOperand
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Property
 	protected String columnName;
 
+	@Property(mandatory = false)
 	protected Class<?> entityType;
 
+	@Property(mandatory = false)
 	protected String propertyName;
 
+	@Property(mandatory = false)
 	protected Class<?> columnType;
 
+	@Property(mandatory = false)
 	protected Class<?> columnSubType;
 
+	@Property(mandatory = false)
 	protected SqlJoinOperator joinClause;
 
-	protected ITableAliasHolder tableAliasHolder;
+	@Autowired
+	protected IConnectionDialect connectionDialect;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(columnName, "ColumnName");
-		ParamChecker.assertNotNull(tableAliasHolder, "tableAliasHolder");
-	}
+	@Autowired
+	protected ITableAliasHolder tableAliasHolder;
 
 	public Class<?> getColumnType()
 	{
@@ -52,11 +56,6 @@ public class SqlColumnOperand implements IOperand, IOperatorAwareOperand, IIniti
 		return columnSubType;
 	}
 
-	public void setColumnName(String columnName)
-	{
-		this.columnName = columnName;
-	}
-
 	public void setColumnType(Class<?> columnType)
 	{
 		this.columnType = columnType;
@@ -65,11 +64,6 @@ public class SqlColumnOperand implements IOperand, IOperatorAwareOperand, IIniti
 	public void setColumnSubType(Class<?> columnSubType)
 	{
 		this.columnSubType = columnSubType;
-	}
-
-	public void setEntityType(Class<?> entityType)
-	{
-		this.entityType = entityType;
 	}
 
 	public void setJoinClause(SqlJoinOperator joinClause)
@@ -141,7 +135,7 @@ public class SqlColumnOperand implements IOperand, IOperatorAwareOperand, IIniti
 			}
 			querySB.append('.');
 		}
-		querySB.append('"').append(columnName).append('"');
+		connectionDialect.escapeName(columnName, querySB);
 	}
 
 	@Override
@@ -156,6 +150,6 @@ public class SqlColumnOperand implements IOperand, IOperatorAwareOperand, IIniti
 		{
 			return columnName;
 		}
-		return tableAlias + "." + columnName;
+		return tableAlias + '.' + columnName;
 	}
 }

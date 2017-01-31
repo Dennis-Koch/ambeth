@@ -341,7 +341,7 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 				String sequenceName = rs.getString("SEQUENCE_NAME");
 				if (!BIN_TABLE_NAME.matcher(sequenceName).matches() && !IDX_TABLE_NAME.matcher(sequenceName).matches())
 				{
-					allSequenceNames.add(schemaName + "." + sequenceName);
+					allSequenceNames.add(schemaName + '.' + sequenceName);
 				}
 			}
 		}

@@ -4,19 +4,19 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.orm.XmlDatabaseMapper;
+import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.IPersistenceHelper;
-import de.osthus.ambeth.util.ParamChecker;
 
 public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRegistry
 {
@@ -24,24 +24,24 @@ public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRe
 	@LogInstance
 	private ILogger log;
 
-	public static final Pattern dotPattern = Pattern.compile(".", Pattern.LITERAL);
-
 	protected static final Pattern sqlEscapePattern = Pattern.compile("'", Pattern.LITERAL);
 
 	protected final Set<Class<?>> unescapedTypes = new HashSet<Class<?>>();
 
 	protected final Set<String> escapedNames = new HashSet<String>(0.5f);
 
+	@Autowired
+	protected IConnectionDialect connectionDialect;
+
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
+	@Autowired
 	protected IPersistenceHelper persistenceHelper;
 
 	@Override
 	public void afterPropertiesSet()
 	{
-		ParamChecker.assertNotNull(objectCollector, "objectCollector");
-		ParamChecker.assertNotNull(persistenceHelper, "persistenceHelper");
-
 		unescapedTypes.add(Boolean.class);
 		unescapedTypes.add(Boolean.TYPE);
 		unescapedTypes.add(Short.class);
@@ -75,7 +75,25 @@ public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRe
 	}
 
 	@Override
-	public IAppendable appendNameValue(String name, Object value, IAppendable sb)
+	public String escapeName(CharSequence symbolName)
+	{
+		return connectionDialect.escapeName(symbolName);
+	}
+
+	@Override
+	public IAppendable escapeName(CharSequence symbolName, IAppendable sb)
+	{
+		return connectionDialect.escapeName(symbolName, sb);
+	}
+
+	@Override
+	public String escapeSchemaAndSymbolName(CharSequence schemaName, CharSequence symbolName)
+	{
+		return connectionDialect.escapeSchemaAndSymbolName(schemaName, symbolName);
+	}
+
+	@Override
+	public IAppendable appendNameValue(CharSequence name, Object value, IAppendable sb)
 	{
 		appendName(name, sb).append('=');
 		appendValue(value, sb);
@@ -83,7 +101,7 @@ public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRe
 	}
 
 	@Override
-	public IAppendable appendNameValues(String name, List<Object> values, IAppendable sb)
+	public IAppendable appendNameValues(CharSequence name, List<Object> values, IAppendable sb)
 	{
 		IList<String> inClauses = persistenceHelper.buildStringListOfValues(values);
 		boolean first = true;
@@ -112,23 +130,9 @@ public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRe
 	}
 
 	@Override
-	public IAppendable appendName(String name, IAppendable sb)
+	public IAppendable appendName(CharSequence name, IAppendable sb)
 	{
-		// if (escapedNames.contains(name))
-		// {
-		if (name.startsWith("\""))
-		{
-			// already escaped
-			sb.append(name);
-			return sb;
-		}
-		String dotReplacedName = dotPattern.matcher(name).replaceAll("\".\"");
-		sb.append('\"').append(dotReplacedName).append('\"');
-		// }
-		// else
-		// {
-		// sb.append(name);
-		// }
+		sb.append(connectionDialect.escapeName(name));
 		return sb;
 	}
 
@@ -136,43 +140,6 @@ public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRe
 	public String[] getSchemaAndTableName(String tableName)
 	{
 		return XmlDatabaseMapper.splitSchemaAndName(tableName);
-	}
-
-	@Override
-	public String escapeName(CharSequence name)
-	{
-		if (name.length() == 0 || name.charAt(0) == '\"')
-		{
-			// already escaped
-			return name.toString();
-		}
-		String dotReplacedName = dotPattern.matcher(name).replaceAll("\".\"");
-		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
-		try
-		{
-			sb.append('\"').append(dotReplacedName).append('\"');
-			return sb.toString();
-
-		}
-		finally
-		{
-			tlObjectCollector.dispose(sb);
-		}
-	}
-
-	@Override
-	public IAppendable escapeName(CharSequence name, IAppendable sb)
-	{
-		if (name.length() == 0 || name.charAt(0) == '\"')
-		{
-			// already escaped
-			sb.append(name);
-			return sb;
-		}
-		String dotReplacedName = dotPattern.matcher(name).replaceAll(Matcher.quoteReplacement("\".\""));
-		sb.append('\"').append(dotReplacedName).append('\"');
-		return sb;
 	}
 
 	@Override

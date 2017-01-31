@@ -1,4 +1,4 @@
-package de.osthus.ambeth.sqlite;
+package de.osthus.ambeth.maria;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -91,8 +91,8 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 		@Override
 		public void afterPropertiesSet(final IBeanContextFactory beanContextFactory) throws Throwable
 		{
-			beanContextFactory.registerBean(SQLiteConnectionUrlProvider.class).autowireable(IDatabaseConnectionUrlProvider.class);
-			beanContextFactory.registerBean(SQLiteDialect.class).autowireable(IConnectionDialect.class);
+			beanContextFactory.registerBean(MariaConnectionUrlProvider.class).autowireable(IDatabaseConnectionUrlProvider.class);
+			beanContextFactory.registerBean(MariaDialect.class).autowireable(IConnectionDialect.class);
 			beanContextFactory.registerBean(PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
 			beanContextFactory.registerBean(ConnectionFactory.class).autowireable(IConnectionFactory.class);
 			beanContextFactory.registerBean(SqlBuilder.class).autowireable(ISqlBuilder.class);
@@ -252,21 +252,23 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 				String randomName = username != null ? username : "CI_TMP_" + System.nanoTime() + String.format("%02d", (int) (Math.random() * 99));
 				try
 				{
-					stm.execute("CREATE USER \"" + randomName + "\" WITH PASSWORD '" + password + "' SUPERUSER");
-					stm.execute("CREATE DATABASE \"" + randomName + "\" WITH OWNER \"" + randomName + "\"");
+					// stm.execute("CREATE USER \"" + randomName + "\" IDENTIFIED BY '" + password + "'");
+					stm.execute("CREATE DATABASE " + randomName + "");
+					stm.execute("GRANT ALL on " + randomName + ".* to \"" + randomName + "\"@localhost IDENTIFIED BY '" + password + "'");
+					stm.execute("GRANT ALL on " + randomName + ".* to \"" + randomName + "\"@'%' IDENTIFIED BY '" + password + "'");
 
 					Connection userConnection = DriverManager.getConnection(connection.getMetaData().getURL(), randomName, password);
 					try
 					{
-						// Statement userStm = userConnection.createStatement();
-						// try
-						// {
-						// userStm.execute("DROP SCHEMA IF EXISTS public CASCADE");
-						// }
-						// finally
-						// {
-						// JdbcUtil.close(userStm);
-						// }
+						Statement userStm = userConnection.createStatement();
+						try
+						{
+							userStm.execute("DROP SCHEMA IF EXISTS public CASCADE");
+						}
+						finally
+						{
+							JdbcUtil.close(userStm);
+						}
 					}
 					finally
 					{

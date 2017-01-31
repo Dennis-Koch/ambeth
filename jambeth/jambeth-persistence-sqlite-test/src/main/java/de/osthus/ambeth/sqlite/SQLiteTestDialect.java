@@ -19,6 +19,7 @@ import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IocModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
+import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.PermissionGroup;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionTestDialect;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
@@ -32,14 +33,17 @@ public class SQLiteTestDialect extends AbstractConnectionTestDialect
 
 	public static final String ROOT_DATABASE_PASS = "ambeth.root.database.pass";
 
-	@Autowired
-	protected ISqlBuilder sqlBuilder;
-
 	@Property(name = ROOT_DATABASE_USER, defaultValue = "postgres")
 	protected String rootDatabaseUser;
 
 	@Property(name = ROOT_DATABASE_PASS, defaultValue = "developer")
 	protected String rootDatabasePass;
+
+	@Autowired
+	protected IConnectionDialect connectionDialect;
+
+	@Autowired
+	protected ISqlBuilder sqlBuilder;
 
 	@Override
 	public boolean createTestUserIfSupported(Throwable reason, String userName, String userPassword, IProperties testProps) throws SQLException
@@ -161,7 +165,7 @@ public class SQLiteTestDialect extends AbstractConnectionTestDialect
 				{
 					sb.append(',');
 				}
-				sqlBuilder.escapeName(tableColumns.get(a), sb);
+				connectionDialect.escapeName(tableColumns.get(a), sb);
 			}
 		}
 		sb.append(" ON \"").append(names[1]).append("\" FOR EACH ROW");

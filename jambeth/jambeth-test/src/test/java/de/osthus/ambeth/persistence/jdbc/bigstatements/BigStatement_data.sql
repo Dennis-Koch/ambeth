@@ -21,10 +21,10 @@ INSERT INTO "LINK_MATERIAL_UNIT" ("LEFT_ID", "RIGHT_ID") VALUES ('5', '2');
 -- Dynamic part of the setup process 
 
 --: loop = 100000
-INSERT INTO "D_MATERIAL" ("ID", "F_NAME", "VERSION", "F_MATERIAL_GROUP") VALUES (nextval(D_MATERIAL_SEQ), 'loop material', '1', 'me');
+INSERT INTO "D_MATERIAL" ("ID", "F_NAME", "VERSION", "F_MATERIAL_GROUP") VALUES ("D_MATERIAL_SEQ".NEXTVAL, 'loop material', '1', 'me');
 
 --: loop = 4
-INSERT INTO "UNIT" ("ID", "NAME", "VERSION") VALUES (nextval("UNIT_SEQ"), 'loop unit', '1');
+INSERT INTO "UNIT" ("ID", "NAME", "VERSION") VALUES ("UNIT_SEQ".NEXTVAL, 'loop unit', '1');
 
 --: loop = 50
 INSERT INTO "LINK_MATERIAL_UNIT" ("LEFT_ID", "RIGHT_ID") VALUES (

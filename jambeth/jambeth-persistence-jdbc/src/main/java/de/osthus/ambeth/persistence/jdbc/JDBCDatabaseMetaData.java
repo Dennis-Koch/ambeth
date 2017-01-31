@@ -331,7 +331,7 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
 		SqlTableMetaData table = serviceContext.registerAnonymousBean(SqlTableMetaData.class)//
 				.propertyValue("InitialVersion", Integer.valueOf(1))//
 				.propertyValue("Name", fqTableName)//
-				.propertyValue("FullqualifiedEscapedName", XmlDatabaseMapper.escapeName(fqTableName))//
+				.propertyValue("FullqualifiedEscapedName", connectionDialect.escapeName(fqTableName))//
 				.propertyValue("ViewBased", viewNames.contains(fqTableName)).finish();
 
 		if (pkFieldNames == null)
@@ -969,7 +969,7 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
 		}
 
 		SqlLinkMetaData link = buildAndMapLink(linkName, fromTable, fromField, toTable, toField, true);
-		link.setFullqualifiedEscapedTableName(XmlDatabaseMapper.escapeName(linkName));
+		link.setFullqualifiedEscapedTableName(connectionDialect.escapeName(linkName));
 		((DirectedLinkMetaData) link.getDirectedLink()).setConstraintName(fromConstraint);
 		((DirectedLinkMetaData) link.getDirectedLink()).setStandaloneLink(true);
 		((DirectedLinkMetaData) link.getReverseDirectedLink()).setStandaloneLink(true);
@@ -1069,7 +1069,7 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
 
 		SqlLinkMetaData link = new SqlLinkMetaData();
 		link.setName(linkName);
-		link.setFullqualifiedEscapedTableName(XmlDatabaseMapper.escapeName(linkName));
+		link.setFullqualifiedEscapedTableName(connectionDialect.escapeName(linkName));
 		link.setFromTable(fromTable);
 		link.setFromField(fromField);
 		link.setToField(toField);
@@ -1155,7 +1155,7 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
 			link.setConstraintName(constraintName);
 			link.setTableName(linkName);
 			String[] schemaAndName = XmlDatabaseMapper.splitSchemaAndName(linkName);
-			link.setFullqualifiedEscapedTableName(XmlDatabaseMapper.escapeName(schemaAndName[0], schemaAndName[1]));
+			link.setFullqualifiedEscapedTableName(connectionDialect.escapeSchemaAndSymbolName(schemaAndName[0], schemaAndName[1]));
 
 			boolean fromIsStandalone = fromField.isAlternateId() || (fromTable.getIdField() != null && fromTable.getIdField().equals(fromField));
 			boolean toIsStandalone = toField.isAlternateId() || toTable.getIdField().equals(toField);
