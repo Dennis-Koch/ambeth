@@ -58,7 +58,7 @@ public class LogStreamTest extends AbstractIocTest
 		Assert.assertSame(loggerStream2_a, loggerStream2_b);
 		Assert.assertNotSame(loggerStream1_a, loggerStream2_a);
 
-		loggerStream1_a.writer.flush();
-		loggerStream2_a.writer.flush();
+		loggerStream1_a.getWriter().flush();
+		loggerStream2_a.getWriter().flush();
 	}
 }
