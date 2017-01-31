@@ -5,27 +5,27 @@
 	<artifactId>jambeth-merge-server</artifactId>
 
 	<parent>
-		<groupId>de.osthus.ambeth</groupId>
+		<groupId>com.koch.ambeth</groupId>
 		<artifactId>jambeth-pom</artifactId>
-		<version>2.3.X-SNAPSHOT</version>
+		<version>3.0.0-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
  	<dependencies>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-merge</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-datachange</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-event</artifactId>
 		</dependency>
 	</dependencies>

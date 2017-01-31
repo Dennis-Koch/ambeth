@@ -5,9 +5,9 @@
 	<artifactId>jambeth-test</artifactId>
 
 	<parent>
-		<groupId>de.osthus.ambeth</groupId>
+		<groupId>com.koch.ambeth</groupId>
 		<artifactId>jambeth-test-pom</artifactId>
-		<version>2.3.X-SNAPSHOT</version>
+		<version>3.0.0-SNAPSHOT</version>
 		<relativePath>../jambeth-test-pom/pom.xml</relativePath>
 	</parent>
 
@@ -19,170 +19,170 @@
 		</dependency>
 
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-information-bus-test</artifactId>
 		</dependency>
 		
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-information-bus-with-persistence-test</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-server-with-persistence-test</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-audit-server</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-audit-server-test</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-cache-bytecode</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-cache-datachange</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-cache-stream</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-cache-server</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-cache-server-test</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-datachange-persistence</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-datachange-persistence-test</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-event-datachange</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-event-server</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-mapping</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-merge-bytecode</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-merge-bytecode-test</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-merge-server</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-shell</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence-test</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence-h2</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence-h2-test</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence-jdbc</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence-jdbc-test</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence-mssql</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence-mssql-test</artifactId>
 		</dependency>
 		
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence-oracle11</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence-oracle11-test</artifactId>
 		</dependency>
 		
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence-pg</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence-pg-test</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence-sqlite</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence-sqlite-test</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-query-jdbc</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-security-server</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-xml</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-xml-test</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-util-test</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-service-test</artifactId>
 		</dependency>
 	</dependencies>

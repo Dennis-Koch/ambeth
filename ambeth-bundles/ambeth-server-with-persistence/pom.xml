@@ -4,18 +4,18 @@
 	<artifactId>jambeth-server-with-persistence</artifactId>
 
 	<parent>
-		<groupId>de.osthus.ambeth</groupId>
+		<groupId>com.koch.ambeth</groupId>
 		<artifactId>jambeth-bundles</artifactId>
-		<version>2.3.X-SNAPSHOT</version>
+		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 
 	<dependencies>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-information-bus-with-persistence</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-server</artifactId>
 		</dependency>
 	</dependencies>

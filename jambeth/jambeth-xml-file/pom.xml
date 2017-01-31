@@ -5,7 +5,7 @@
 	<artifactId>jambeth-xml-file</artifactId>
 
 	<parent>
-		<groupId>de.osthus.ambeth</groupId>
+		<groupId>com.koch.ambeth</groupId>
 		<artifactId>jambeth-pom</artifactId>
 		<version>2.1.X-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
@@ -13,15 +13,15 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-ioc</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-log</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-util</artifactId>
 		</dependency>
 	</dependencies>

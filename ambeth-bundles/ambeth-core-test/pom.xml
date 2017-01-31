@@ -5,32 +5,32 @@
 	<artifactId>jambeth-core-test</artifactId>
 
 	<parent>
-		<groupId>de.osthus.ambeth</groupId>
+		<groupId>com.koch.ambeth</groupId>
 		<artifactId>jambeth-bundles</artifactId>
-		<version>2.3.X-SNAPSHOT</version>
+		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 
 	<dependencies>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-core</artifactId>
 			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-ioc-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-log-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-util-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
