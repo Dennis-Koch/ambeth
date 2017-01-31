@@ -719,7 +719,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 		deletingThread.start();
 		try
 		{
-			if (!latch.await(30000, TimeUnit.SECONDS))
+			if (!latch.await(30, TimeUnit.SECONDS))
 			{
 				exceptionHolder.setValue(new TimeoutException("No response after 30 seconds"));
 			}
