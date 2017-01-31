@@ -18,13 +18,54 @@ public class LogFileHandleCache
 {
 	public static class LoggerStream
 	{
-		public final Writer writer;
+		private final Path logfile;
+
+		private Writer writer;
 
 		public final Lock writeLock = new ReentrantLock();
 
-		public LoggerStream(Writer writer)
+		public LoggerStream(Path logfile)
 		{
-			this.writer = writer;
+			this.logfile = logfile;
+		}
+
+		public Writer getWriter()
+		{
+			if (writer == null)
+			{
+				reopen();
+			}
+			return writer;
+		}
+
+		public void reopen()
+		{
+			writeLock.lock();
+			try
+			{
+				Writer oldWriter = writer;
+				writer = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(logfile, StandardOpenOption.CREATE, StandardOpenOption.APPEND),
+						Charset.forName("UTF-8")));
+				if (oldWriter != null)
+				{
+					try
+					{
+						oldWriter.close();
+					}
+					catch (IOException e)
+					{
+						// intended blank
+					}
+				}
+			}
+			catch (IOException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+			finally
+			{
+				writeLock.unlock();
+			}
 		}
 	}
 
@@ -51,9 +92,7 @@ public class LogFileHandleCache
 			{
 				Files.createDirectories(logfile.getParent());
 			}
-			Writer writer = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(logfile, StandardOpenOption.CREATE, StandardOpenOption.APPEND),
-					Charset.forName("UTF-8")));
-			entry = new LoggerStream(writer);
+			entry = new LoggerStream(logfile);
 			handleToWriterMap.put(logfile.toString(), entry);
 			return entry;
 		}

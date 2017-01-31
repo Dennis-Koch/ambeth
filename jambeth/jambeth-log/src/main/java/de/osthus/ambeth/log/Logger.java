@@ -2,6 +2,8 @@ package de.osthus.ambeth.log;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.channels.ClosedByInterruptException;
+import java.nio.channels.ClosedChannelException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
@@ -530,7 +532,7 @@ public class Logger implements IConfigurableLogger
 		writeLock.lock();
 		try
 		{
-			Writer writer = loggerStream.writer;
+			Writer writer = loggerStream.getWriter();
 			try
 			{
 				writer.write(lineSeparator);
@@ -539,6 +541,15 @@ public class Logger implements IConfigurableLogger
 				{
 					writer.flush();
 				}
+			}
+			catch (ClosedByInterruptException e)
+			{
+				// intended blank
+			}
+			catch (ClosedChannelException e)
+			{
+				loggerStream.reopen();
+				logStream(logLevel, output, autoFlush);
 			}
 			catch (IOException e)
 			{
