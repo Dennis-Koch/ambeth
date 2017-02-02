@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.koch.ambeth</groupId>
 		<artifactId>jambeth-test-pom</artifactId>
-		<version>3.0.0</version>
+		<version>3.0.1-SNAPSHOT</version>
 		<relativePath>../jambeth-test-pom/pom.xml</relativePath>
 	</parent>
 
