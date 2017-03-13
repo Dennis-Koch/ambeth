@@ -27,7 +27,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.optimizer;
+package org.objectweb.asm.optimizer;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
@@ -37,7 +37,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
+import org.objectweb.asm.Type;
 
 /**
  * A MAPPING from names to names, used to rename classes, fields and methods.

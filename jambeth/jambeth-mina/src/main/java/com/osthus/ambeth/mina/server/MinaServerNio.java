@@ -9,8 +9,8 @@ import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IdleStatus;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 
-import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import com.koch.ambeth.ioc.IInitializingBean;
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 /**
  * “recommended application pattern”
@@ -22,8 +22,7 @@ import de.osthus.ambeth.ioc.IInitializingBean;
  * <li>store state in the IoSession</li>
  * </ul>
  */
-public class MinaServerNio implements IInitializingBean, IMinaServerNio
-{
+public class MinaServerNio implements IInitializingBean, IMinaServerNio {
 
 	// ---- INNER CLASSES ------------------------------------------------------
 
@@ -42,45 +41,30 @@ public class MinaServerNio implements IInitializingBean, IMinaServerNio
 	// ---- METHODS ------------------------------------------------------------
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.osthus.jambeth.mina.server.IMinaServer#run(int, org.apache.mina.core.service.IoHandlerAdapter)
-	 */
 	@Override
-	public void run(int nioPort, IoHandlerAdapter serverHandler, IoFilter ioFilter)
-	{
+	public void run(int nioPort, IoHandlerAdapter serverHandler, IoFilter ioFilter) {
 		startNio(nioPort, serverHandler, ioFilter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.osthus.jambeth.mina.server.IMinaServer#stop()
-	 */
 	@Override
-	public void stop()
-	{
+	public void stop() {
 		acceptor.dispose();
 	}
 
 	/**
 	 * Test this using "telnet 127.0.0.1 9123"
-	 * 
+	 *
 	 * @throws IOException
 	 */
-	private void startNio(int port, IoHandlerAdapter serverHandler, IoFilter ioFilter)
-	{
+	private void startNio(int port, IoHandlerAdapter serverHandler, IoFilter ioFilter) {
 		acceptor = new NioSocketAcceptor();
 		InetSocketAddress portAddress = new InetSocketAddress(port);
 
 		// Set up server
-		try
-		{
+		try {
 			// acceptor.getFilterChain().addLast("logger", new LoggingFilter());
 			acceptor.getFilterChain().addLast("codec", ioFilter);
 
@@ -91,16 +75,12 @@ public class MinaServerNio implements IInitializingBean, IMinaServerNio
 			acceptor.bind(portAddress);
 
 		}
-		catch (Exception e)
-		{
-			if (acceptor != null && portAddress != null)
-			{
-				try
-				{
+		catch (Exception e) {
+			if (acceptor != null && portAddress != null) {
+				try {
 					acceptor.unbind(portAddress);
 				}
-				finally
-				{
+				finally {
 					// Ignore errors on shutdown
 				}
 			}
@@ -108,8 +88,7 @@ public class MinaServerNio implements IInitializingBean, IMinaServerNio
 		}
 	}
 
-	private static void handleException(Exception e)
-	{
+	private static void handleException(Exception e) {
 		throw RuntimeExceptionUtil.mask(e);
 	}
 

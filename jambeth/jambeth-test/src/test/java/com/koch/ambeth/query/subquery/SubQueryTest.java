@@ -1,0 +1,86 @@
+package com.koch.ambeth.query.subquery;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import org.junit.Test;
+
+import com.koch.ambeth.query.IOperand;
+import com.koch.ambeth.query.IQuery;
+import com.koch.ambeth.query.IQueryBuilder;
+import com.koch.ambeth.query.ISubQuery;
+import com.koch.ambeth.service.config.ServiceConfigurationConstants;
+import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
+import com.koch.ambeth.testutil.SQLData;
+import com.koch.ambeth.testutil.SQLStructure;
+import com.koch.ambeth.testutil.TestProperties;
+import com.koch.ambeth.util.collections.ArrayList;
+import com.koch.ambeth.util.collections.EmptyList;
+import com.koch.ambeth.util.collections.HashMap;
+import com.koch.ambeth.util.collections.IList;
+
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/query/subquery/SubQuery_orm.xml")
+@SQLStructure("SubQuery_structure.sql")
+@SQLData("SubQuery_data.sql")
+public class SubQueryTest extends AbstractInformationBusWithPersistenceTest
+{
+	protected IQueryBuilder<EntityA> qb;
+
+	@Override
+	public void afterPropertiesSet() throws Throwable
+	{
+		super.afterPropertiesSet();
+
+		qb = queryBuilderFactory.create(EntityA.class);
+	}
+
+	@Test
+	public void testBuildSubQuery() throws Exception
+	{
+		ISubQuery<EntityA> subQuery = qb.buildSubQuery();
+		assertNotNull(subQuery);
+
+		String[] sqlParts = subQuery.getSqlParts(new HashMap<Object, Object>(), new ArrayList<Object>(0), EmptyList.<String> getInstance());
+		assertNotNull(sqlParts);
+		assertEquals(4, sqlParts.length);
+		assertNull(sqlParts[0]);
+		assertEquals(null, sqlParts[1]);
+		assertEquals(null, sqlParts[2]);
+		assertEquals(null, sqlParts[3]);
+	}
+
+	@Test
+	public void testBuildQueryWithSubQuery() throws Exception
+	{
+		IQueryBuilder<EntityA> qbSub = queryBuilderFactory.create(EntityA.class);
+		IOperand versionMain = qb.property("Version");
+		IOperand buidSub = qbSub.property("Buid");
+		IOperand versionB = qbSub.property("EntityB.Version");
+		ISubQuery<EntityA> subQuery = qbSub.buildSubQuery(qbSub.or(qbSub.isIn(qbSub.property("EntityB.Buid"), qbSub.value("BUID 11")),
+				qbSub.isEqualTo(versionB, versionMain)));
+
+		IQuery<EntityA> query = qb.build(qb.isIn(qb.property("Buid"), qb.subQuery(subQuery, buidSub)));
+		assertNotNull(query);
+
+		IList<EntityA> entityAs = query.retrieve();
+		assertEquals(2, entityAs.size());
+	}
+
+	@Test
+	public void testSubQueryInFunction() throws Exception
+	{
+		IQueryBuilder<EntityA> qbSub = queryBuilderFactory.create(EntityA.class);
+		IOperand versionMain = qb.property("Version");
+		IOperand buidSub = qbSub.property("Buid");
+		IOperand versionB = qbSub.property("EntityB.Version");
+		ISubQuery<EntityA> subQuery = qbSub.buildSubQuery(qbSub.or(qbSub.isIn(qbSub.property("EntityB.Buid"), qbSub.value("BUID 11")),
+				qbSub.isEqualTo(versionB, versionMain)));
+
+		IQuery<EntityA> query = qb.build(qb.function("EXISTS", qb.subQuery(subQuery, buidSub)));
+		assertNotNull(query);
+
+		IList<EntityA> entityAs = query.retrieve();
+		assertEquals(4, entityAs.size());
+	}
+}

@@ -76,8 +76,8 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>de.osthus.junit</groupId>
-			<artifactId>osthus-junit-categories</artifactId>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>junit-categories</artifactId>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>

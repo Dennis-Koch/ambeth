@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ans:or-mappings xmlns:ans="http://osthus.de/ambeth/ambeth_orm_2_0"
-	xmlns:ast="http://osthus.de/ambeth/ambeth_simple_types_2_0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<ans:entity-mappings>
-		<ans:entity class="de.osthus.ambeth.model.Entity" />
-	</ans:entity-mappings>
-</ans:or-mappings>

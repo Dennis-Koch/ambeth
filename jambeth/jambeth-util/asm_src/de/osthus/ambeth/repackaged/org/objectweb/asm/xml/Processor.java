@@ -27,7 +27,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.xml;
+package org.objectweb.asm.xml;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -64,8 +64,8 @@ import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassReader;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
 
 /**
  * Processor is a command line tool that can be used for bytecode waving

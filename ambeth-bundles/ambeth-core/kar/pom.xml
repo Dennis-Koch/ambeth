@@ -1,0 +1,52 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>jambeth-core-kar</artifactId>
+	<packaging>kar</packaging>
+
+	<parent>
+		<groupId>com.koch.ambeth</groupId>
+		<artifactId>jambeth-bundles</artifactId>
+		<version>3.0.1-SNAPSHOT</version>
+		<relativePath>../..</relativePath>
+	</parent>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-ioc</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-log</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-util</artifactId>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.karaf.tooling</groupId>
+				<artifactId>karaf-maven-plugin</artifactId>
+				<version>4.1.0</version>
+				<extensions>true</extensions>
+				<configuration>
+					<startLevel>81</startLevel>
+					<aggregateFeatures>true</aggregateFeatures>
+					<includeTransitiveDependency>false</includeTransitiveDependency>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+	<link-mappings>
+		<independent-link alias="ChildrenNoField" left="com.koch.ambeth.cache.bytecode.TestEntity" right="com.koch.ambeth.cache.bytecode.TestEntity" />	
+		<independent-link alias="ChildrenWithProtectedField" left="com.koch.ambeth.cache.bytecode.TestEntity" right="com.koch.ambeth.cache.bytecode.TestEntity" />	
+		<independent-link alias="ChildrenWithPrivateField" left="com.koch.ambeth.cache.bytecode.TestEntity" right="com.koch.ambeth.cache.bytecode.TestEntity" />	
+		<independent-link alias="ChildrenWithProtectedField2" left="com.koch.ambeth.cache.bytecode.ITestEntity2" right="com.koch.ambeth.cache.bytecode.ITestEntity2" />	
+	</link-mappings>
+
+	<entity-mappings>
+		<external-entity class="com.koch.ambeth.cache.bytecode.TestEntity">
+			<attributes>
+				<id name="Id" />
+				<version name="Version" />
+				<relation name="ChildrenNoField" link="ChildrenNoField" />
+				<relation name="ChildrenWithProtectedField" link="ChildrenWithProtectedField" />
+				<relation name="ChildrenWithPrivateField" link="ChildrenWithPrivateField" />
+			</attributes>
+		</external-entity>
+
+		<external-entity class="com.koch.ambeth.cache.bytecode.ITestEntity2">
+			<attributes>
+				<id name="Id" />
+				<version name="Version" />
+				<relation name="ChildrenWithProtectedField" link="ChildrenWithProtectedField2" />
+			</attributes>
+		</external-entity>
+	</entity-mappings>
+</or-mappings>

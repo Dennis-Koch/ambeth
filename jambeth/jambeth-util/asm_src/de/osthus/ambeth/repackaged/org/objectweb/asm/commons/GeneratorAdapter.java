@@ -27,21 +27,21 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.commons;
+package org.objectweb.asm.commons;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Handle;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.MethodVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 /**
- * A {@link de.osthus.ambeth.repackaged.org.objectweb.asm.MethodVisitor} with convenient methods to generate
+ * A {@link org.objectweb.asm.MethodVisitor} with convenient methods to generate
  * code. For example, using this adapter, the class below
  * 
  * <pre>

@@ -1,0 +1,3 @@
+-exportcontents: \
+    com.koch.ambeth.*
+Import-Package: sun.nio.ch;resolution:=optional

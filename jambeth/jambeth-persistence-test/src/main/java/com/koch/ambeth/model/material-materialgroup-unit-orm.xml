@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+
+	<link-mappings>
+		<independent-link alias="Material-MaterialGroup" />
+		<independent-link alias="Material-Unit" />
+	</link-mappings>
+
+	<entity-mappings>
+
+		<entity class="com.koch.ambeth.model.Material">
+			<attributes>
+				<basic name="Name" />
+				<relation name="MaterialGroup" link="Material-MaterialGroup" />
+				<relation name="Unit" link="Material-Unit" />
+			</attributes>
+		</entity>
+
+		<entity class="com.koch.ambeth.model.MaterialGroup">
+			<attributes>
+				<basic name="Name" />
+			</attributes>
+		</entity>
+
+		<entity class="com.koch.ambeth.model.Unit">
+			<attributes>
+				<basic name="Name" />
+			</attributes>
+		</entity>
+	</entity-mappings>
+</or-mappings>

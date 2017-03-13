@@ -27,26 +27,26 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.xml;
+package org.objectweb.asm.xml;
 
 import org.xml.sax.ContentHandler;
 import org.xml.sax.helpers.AttributesImpl;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.AnnotationVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.FieldVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.MethodVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.TypePath;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.TypePath;
 
 /**
- * A {@link de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor ClassVisitor} that generates SAX 2.0
+ * A {@link org.objectweb.asm.ClassVisitor ClassVisitor} that generates SAX 2.0
  * events from the visited class. It can feed any kind of
  * {@link org.xml.sax.ContentHandler ContentHandler}, e.g. XML serializer, XSLT
  * or XQuery engines.
  * 
- * @see de.osthus.ambeth.repackaged.org.objectweb.asm.xml.Processor
- * @see de.osthus.ambeth.repackaged.org.objectweb.asm.xml.ASMContentHandler
+ * @see org.objectweb.asm.xml.Processor
+ * @see org.objectweb.asm.xml.ASMContentHandler
  * 
  * @author Eugene Kuleshov
  */

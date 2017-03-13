@@ -27,9 +27,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.tree.analysis;
+package org.objectweb.asm.tree.analysis;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.AbstractInsnNode;
 
 /**
  * Thrown if a problem occurs during the analysis of a method.

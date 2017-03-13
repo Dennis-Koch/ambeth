@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+
+	<entity-mappings>
+
+		<entity class="com.koch.ambeth.query.QueryEntity" />
+
+		<entity class="com.koch.ambeth.query.JoinQueryEntity">
+			<attributes>
+				<relation name="Parent" link="LINK_JQE_JQE_FK1" this="left" />
+			</attributes>
+		</entity>
+
+		<entity class="com.koch.ambeth.query.LinkTableEntity" />
+
+	</entity-mappings>
+
+</or-mappings>

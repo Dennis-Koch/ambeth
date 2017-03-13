@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+
+	<entity-mappings>
+
+		<entity class="com.koch.ambeth.persistence.jdbc.compositeid.models.CompositeIdEntity">
+			<sequence-generator name="com.koch.ambeth.persistence.jdbc.compositeid.models.SeqGenId"/>
+			<attributes>
+				<id-composite>
+					<id-fragment name="Id1" />
+					<id-fragment name="Id2" column="BUID" />
+				</id-composite>
+				<alternate-id name="AltId1"/>
+				<alternate-id-composite>
+					<id-fragment name="AltId2" />
+					<id-fragment name="AltId3" />
+					<id-fragment name="AltId4" />
+				</alternate-id-composite>
+				<alternate-id-composite>
+					<id-fragment name="AltId1" />
+					<id-fragment name="AltId4" />
+				</alternate-id-composite>
+				<no-version />
+			</attributes>
+		</entity>
+
+	</entity-mappings>
+
+</or-mappings>

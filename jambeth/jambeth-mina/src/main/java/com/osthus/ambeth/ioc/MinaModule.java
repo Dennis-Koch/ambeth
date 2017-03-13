@@ -2,15 +2,14 @@ package com.osthus.ambeth.ioc;
 
 import org.apache.mina.core.session.IdleStatusChecker;
 
+import com.koch.ambeth.ioc.IInitializingModule;
+import com.koch.ambeth.ioc.annotation.FrameworkModule;
+import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.osthus.ambeth.mina.client.IMinaClient;
 import com.osthus.ambeth.mina.client.IdleStatusCheckerShutdownHook;
 import com.osthus.ambeth.mina.client.MinaClient;
 import com.osthus.ambeth.mina.server.IMinaServerNio;
 import com.osthus.ambeth.mina.server.MinaServerNio;
-
-import de.osthus.ambeth.ioc.IInitializingModule;
-import de.osthus.ambeth.ioc.annotation.FrameworkModule;
-import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 
 @FrameworkModule
 public class MinaModule implements IInitializingModule

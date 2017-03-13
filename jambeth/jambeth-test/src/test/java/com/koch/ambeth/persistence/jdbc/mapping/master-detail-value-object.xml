@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_vom_1_3">
+
+	<entity class="com.koch.ambeth.persistence.jdbc.mapping.models.Master">
+		<value-object class="com.koch.ambeth.persistence.jdbc.mapping.models.MasterVO">
+			<relation name="Details" list-type="true" target-value-object="com.koch.ambeth.persistence.jdbc.mapping.models.DetailVO" />
+		</value-object>
+	</entity>
+
+	<entity class="com.koch.ambeth.persistence.jdbc.mapping.models.Detail">
+		<value-object class="com.koch.ambeth.persistence.jdbc.mapping.models.DetailVO" />
+	</entity>
+
+</entity-mappings>

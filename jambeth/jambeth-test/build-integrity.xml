@@ -1,6 +1,6 @@
 <project name="jambeth-integrity-bundle" default="zip-integrity-bundle" basedir="../../../">
 
-	<property name="jambeth.basedir" value="${basedir}/osthus-ambeth/jambeth" />
+	<property name="jambeth.basedir" value="${basedir}/ambeth/jambeth" />
 
 	<target name="zip-integrity-bundle" description="Zips the jAmbeth sources for Interity">
 		<property name="integrity.zip" value="${basedir}/jAmbeth-integrity.zip" />

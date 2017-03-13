@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_vom_1_3">
+
+	<entity class="com.koch.ambeth.model.Material">
+		<value-object class="com.koch.ambeth.transfer.MaterialVO" />
+		<value-object class="com.koch.ambeth.transfer.MaterialSmallVO" />
+		<value-object class="com.koch.ambeth.transfer.MaterialComplexVO" />
+	</entity>
+
+	<entity class="com.koch.ambeth.model.MaterialGroup">
+		<value-object class="com.koch.ambeth.transfer.MaterialGroupVO" />
+	</entity>
+
+	<entity class="com.koch.ambeth.model.Unit">
+		<value-object class="com.koch.ambeth.transfer.UnitVO" />
+	</entity>
+
+</entity-mappings>

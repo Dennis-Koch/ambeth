@@ -27,9 +27,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.signature;
+package org.objectweb.asm.signature;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Opcodes;
 
 /**
  * A signature visitor that generates signatures in string format.

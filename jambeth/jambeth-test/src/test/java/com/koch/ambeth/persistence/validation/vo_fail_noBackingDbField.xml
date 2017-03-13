@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_vom_1_3">
+
+	<entity class="com.koch.ambeth.persistence.validation.Entity">
+		<value-object class="com.koch.ambeth.persistence.validation.EntityVO">
+			<basic name="NoDb" name-in-entity="NoDb" />
+		</value-object>
+	</entity>
+
+</entity-mappings>

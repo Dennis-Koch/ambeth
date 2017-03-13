@@ -10,14 +10,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.ioc.config.Property;
+import com.koch.ambeth.testutil.AbstractIocTest;
+import com.koch.ambeth.testutil.TestModule;
 import com.osthus.ambeth.ioc.MinaModule;
 import com.osthus.ambeth.mina.client.IMinaClient;
 import com.osthus.ambeth.mina.server.IMinaServerNio;
-
-import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.ioc.annotation.Autowired;
-import de.osthus.ambeth.testutil.AbstractIocTest;
-import de.osthus.ambeth.testutil.TestModule;
 
 /**
  * Very simple tests of MinaClient and MinaServer. This tests also demonstrates the use of this two classes

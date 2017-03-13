@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_1_2">
+
+	<entity class="com.koch.ambeth.persistence.validation.Entity">
+		<attributes>
+			<basic name="Name" />
+		</attributes>
+	</entity>
+
+</entity-mappings>

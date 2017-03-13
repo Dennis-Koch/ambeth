@@ -27,15 +27,15 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.tree;
+package org.objectweb.asm.tree;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.MethodVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 /**
  * A node that represents a stack map frame. These nodes are pseudo instruction

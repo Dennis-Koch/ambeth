@@ -6,13 +6,12 @@ import org.apache.mina.transport.serial.SerialAddress.FlowControl;
 import org.apache.mina.transport.serial.SerialAddress.Parity;
 import org.apache.mina.transport.serial.SerialAddress.StopBits;
 
-import de.osthus.ambeth.util.ParamChecker;
+import com.koch.ambeth.util.ParamChecker;
 
 /**
  * Class that holds the communication parameters to configure the serial address.
  */
-public class MinaCommunicationParameter
-{
+public class MinaCommunicationParameter {
 
 	private int baudRate;
 	private DataBits databits;
@@ -21,13 +20,12 @@ public class MinaCommunicationParameter
 	private FlowControl handShake;
 
 	@SuppressWarnings("unused")
-	private MinaCommunicationParameter()
-	{
+	private MinaCommunicationParameter() {
 		// intended blank
 	}
 
-	public MinaCommunicationParameter(int baudRate, DataBits databits, Parity parity, StopBits stopBits, FlowControl handShake)
-	{
+	public MinaCommunicationParameter(int baudRate, DataBits databits, Parity parity,
+			StopBits stopBits, FlowControl handShake) {
 		this.baudRate = baudRate;
 		this.databits = databits;
 		this.parity = parity;
@@ -35,42 +33,37 @@ public class MinaCommunicationParameter
 		this.handShake = handShake;
 	}
 
-	public int getBaudRate()
-	{
+	public int getBaudRate() {
 		return baudRate;
 	}
 
-	public DataBits getDatabits()
-	{
+	public DataBits getDatabits() {
 		return databits;
 	}
 
-	public Parity getParity()
-	{
+	public Parity getParity() {
 		return parity;
 	}
 
-	public StopBits getStopBits()
-	{
+	public StopBits getStopBits() {
 		return stopBits;
 	}
 
-	public FlowControl getHandShake()
-	{
+	public FlowControl getHandShake() {
 		return handShake;
 	}
 
 	/**
-	 * Get the SerialAddress constructed with the communication parameter values and the given serial port.
-	 * 
-	 * @param name
-	 *            Serial port (e.g. COM1); mandatory
+	 * Get the SerialAddress constructed with the communication parameter values and the given serial
+	 * port.
+	 *
+	 * @param name Serial port (e.g. COM1); mandatory
 	 * @return SerialAddress; never null
 	 */
-	public SerialAddress getSerialAddress(String name)
-	{
+	public SerialAddress getSerialAddress(String name) {
 		ParamChecker.assertNotNull(name, "serial port");
-		return new SerialAddress(name, getBaudRate(), getDatabits(), getStopBits(), getParity(), getHandShake());
+		return new SerialAddress(name, getBaudRate(), getDatabits(), getStopBits(), getParity(),
+				getHandShake());
 	}
 
 }

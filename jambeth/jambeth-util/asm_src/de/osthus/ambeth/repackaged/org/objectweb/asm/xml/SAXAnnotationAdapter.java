@@ -27,14 +27,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.xml;
+package org.objectweb.asm.xml;
 
 import org.xml.sax.helpers.AttributesImpl;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.AnnotationVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.TypePath;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.TypePath;
 
 /**
  * SAXAnnotationAdapter

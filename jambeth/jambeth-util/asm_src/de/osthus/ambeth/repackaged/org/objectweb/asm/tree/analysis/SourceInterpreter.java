@@ -27,19 +27,19 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.tree.analysis;
+package org.objectweb.asm.tree.analysis;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.tree.AbstractInsnNode;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.tree.FieldInsnNode;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.tree.InvokeDynamicInsnNode;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.tree.LdcInsnNode;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.FieldInsnNode;
+import org.objectweb.asm.tree.InvokeDynamicInsnNode;
+import org.objectweb.asm.tree.LdcInsnNode;
+import org.objectweb.asm.tree.MethodInsnNode;
 
 /**
  * An {@link Interpreter} for {@link SourceValue} values.

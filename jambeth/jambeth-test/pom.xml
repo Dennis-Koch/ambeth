@@ -195,7 +195,7 @@
 					<testExcludes>
 						<!-- References tests from other projects. Works in Eclipse, not needed 
 							in Maven. -->
-						<exclude>de/osthus/ambeth/AllAmbethTests.java</exclude>
+						<exclude>com/koch/ambeth/AllAmbethTests.java</exclude>
 					</testExcludes>
 				</configuration>
 			</plugin>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://osthus.de/ambeth/ambeth_simple_types_2_0"
-	xmlns:ast="http://osthus.de/ambeth/ambeth_simple_types_2_0" elementFormDefault="qualified">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://schema.kochdev.com/ambeth/ambeth_simple_types_2_0"
+	xmlns:ast="http://schema.kochdev.com/ambeth/ambeth_simple_types_2_0" elementFormDefault="qualified">
 
 	<xs:simpleType name="className">
 		<xs:annotation>

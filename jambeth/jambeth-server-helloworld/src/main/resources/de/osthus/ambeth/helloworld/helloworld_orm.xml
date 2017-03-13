@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<or-mappings xmlns="http://osthus.de/ambeth/ambeth_orm_2_0">
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
 
 	<link-mappings>
 		<link alias="TestEntity-EmbeddedObject-TestEntity2" source="LINK_TEST_EMB_TEST2_FK1"/>
 	</link-mappings>
 
 	<entity-mappings>
-		<entity class="de.osthus.ambeth.helloworld.transfer.TestEntity">
+		<entity class="com.koch.ambeth.helloworld.transfer.TestEntity">
 			<attributes>
 				<basic name="EmbeddedObject.Name" column="NAME" />
 				<basic name="EmbeddedObject.Value" column="VALUE" />
@@ -14,10 +14,10 @@
 			</attributes>
 		</entity>
 
-		<entity class="de.osthus.ambeth.helloworld.transfer.TestEntity2">
+		<entity class="com.koch.ambeth.helloworld.transfer.TestEntity2">
 		</entity>
 
-		<entity class="de.osthus.ambeth.helloworld.transfer.TestEntity3">
+		<entity class="com.koch.ambeth.helloworld.transfer.TestEntity3">
 		</entity>
 
 	</entity-mappings>

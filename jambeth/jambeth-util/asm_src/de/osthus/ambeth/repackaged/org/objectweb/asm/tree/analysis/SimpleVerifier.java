@@ -27,11 +27,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.tree.analysis;
+package org.objectweb.asm.tree.analysis;
 
 import java.util.List;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
+import org.objectweb.asm.Type;
 
 /**
  * An extended {@link BasicVerifier} that performs more precise verifications.

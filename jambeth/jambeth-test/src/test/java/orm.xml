@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<entity-mappings xmlns="http://www.osthus.de/ambeth/ambeth_orm_1_2">
+<entity-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_1_2">
 
-	<entity class="de.osthus.ambeth.model.MaterialGroup" />
+	<entity class="com.koch.ambeth.model.MaterialGroup" />
 
-	<entity class="de.osthus.ambeth.model.Material">
+	<entity class="com.koch.ambeth.model.Material">
 		<attributes>
 			<basic name="CreatedOn">
 				<column name="CREATED_ON" />
@@ -20,7 +20,7 @@
 		</attributes>
 	</entity>
 
-	<entity class="de.osthus.ambeth.model.Unit">
+	<entity class="com.koch.ambeth.model.Unit">
 		<table name="UNIT" />
 		<attributes>
 			<basic name="Name">

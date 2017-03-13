@@ -1,8 +1,0 @@
-package de.osthus.ambeth.security;
-
-public interface IAuthorizationChangeListenerExtendable
-{
-	void registerAuthorizationChangeListener(IAuthorizationChangeListener authorizationChangeListener);
-
-	void unregisterAuthorizationChangeListener(IAuthorizationChangeListener authorizationChangeListener);
-}

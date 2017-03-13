@@ -28,15 +28,15 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package de.osthus.ambeth.repackaged.org.objectweb.asm.commons;
+package org.objectweb.asm.commons;
 
 import java.util.Collections;
 import java.util.Comparator;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.MethodVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.tree.MethodNode;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.tree.TryCatchBlockNode;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * A {@link MethodVisitor} adapter to sort the exception handlers. The handlers

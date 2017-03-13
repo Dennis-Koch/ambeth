@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_1_2">
+
+	<entity class="com.koch.ambeth.persistence.schema.models.ParentA">
+		<table name="CI_ADMIN.PARENT" />
+	</entity>
+
+	<entity class="com.koch.ambeth.persistence.schema.models.ChildA">
+		<table name="CI_ADMIN.CHILD" />
+	</entity>
+
+	<entity class="com.koch.ambeth.persistence.schema.models.ParentB">
+		<table name="CI_ADMIN_B.PARENT" />
+	</entity>
+
+	<entity class="com.koch.ambeth.persistence.schema.models.ChildB">
+		<table name="CI_ADMIN_B.CHILD" />
+	</entity>
+
+</entity-mappings>

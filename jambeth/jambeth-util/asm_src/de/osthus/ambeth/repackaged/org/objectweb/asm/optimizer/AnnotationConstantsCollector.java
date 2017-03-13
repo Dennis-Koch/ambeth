@@ -27,11 +27,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.optimizer;
+package org.objectweb.asm.optimizer;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.AnnotationVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 /**
  * An {@link AnnotationVisitor} that collects the {@link Constant}s of the

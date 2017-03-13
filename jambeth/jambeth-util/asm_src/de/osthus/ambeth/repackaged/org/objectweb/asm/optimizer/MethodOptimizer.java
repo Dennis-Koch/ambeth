@@ -27,18 +27,18 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.optimizer;
+package org.objectweb.asm.optimizer;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.AnnotationVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Attribute;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.FieldVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.MethodVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.TypePath;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.Remapper;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.RemappingMethodAdapter;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Attribute;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.TypePath;
+import org.objectweb.asm.commons.Remapper;
+import org.objectweb.asm.commons.RemappingMethodAdapter;
 
 /**
  * A {@link MethodVisitor} that renames fields and methods, and removes debug

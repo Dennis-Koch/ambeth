@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+
+	<entity-mappings>
+
+		<entity class="com.koch.ambeth.mapping.EntityA">
+		</entity>
+
+		<entity class="com.koch.ambeth.mapping.EntityB">
+		</entity>
+
+
+	</entity-mappings>
+
+</or-mappings>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<or-mappings xmlns="http://osthus.de/ambeth/ambeth_orm_2_0">
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
 
 	<link-mappings>
 		<link source="FK_DCEN_TO_DCEV_INSERT" cascade-delete="right" />
@@ -9,7 +9,7 @@
 
 	<entity-mappings>
 
-		<entity class="de.osthus.ambeth.model.DataChangeEventBO">
+		<entity class="com.koch.ambeth.datachange.persistence.model.DataChangeEventBO">
 			<table name="DATA_CHANGE_EVENT" />
 			<sequence-generator name="DATA_CHANGE_EVENT_SEQ" />
 			<attributes>
@@ -19,12 +19,12 @@
 			</attributes>
 		</entity>
 
-		<entity class="de.osthus.ambeth.model.DataChangeEntryBO">
+		<entity class="com.koch.ambeth.datachange.persistence.model.DataChangeEntryBO">
 			<table name="DATA_CHANGE_ENTRY" />
 			<sequence-generator name="DATA_CHANGE_ENTRY_SEQ" />
 		</entity>
 
-		<entity class="de.osthus.ambeth.model.EntityType" />
+		<entity class="com.koch.ambeth.datachange.persistence.model.EntityType" />
 
 	</entity-mappings>
 

@@ -72,112 +72,112 @@
 	</Match>
 	
 	<Match>
-		<Package name="de\.osthus\.ambeth\..*" />
+		<Package name="com\.koch\.ambeth\..*" />
 		<Bug pattern="SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE" />
 	</Match>
 
 	<Match>
-		<Package name="de\.osthus\.ambeth\..*" />
+		<Package name="com\.koch\.ambeth\..*" />
 		<Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
 	</Match>
 
 	<Match>
-		<Package name="de\.osthus\.ambeth\..*" />
+		<Package name="com\.koch\.ambeth\..*" />
 		<Bug pattern="UW_UNCOND_WAIT" />
 	</Match>
 	
 	<Match>
-		<Class name="de.osthus.ambeth.bytecode.core.DefaultEntityEnhancer" />
+		<Class name="com.koch.ambeth.bytecode.core.DefaultEntityEnhancer" />
 		<Method name="executePendingBehaviors" />
 		<Bug pattern="DM_DEFAULT_ENCODING" />
 	</Match>
 
 	<Match>
-		<Class name="de.osthus.ambeth.threading.FastThreadPool" />
+		<Class name="com.koch.ambeth.threading.FastThreadPool" />
 		<Method name="waitForMessage" />
 		<Bug pattern="WA_NOT_IN_LOOP" />
 	</Match>
 
 	<Match>
-		<Class name="de.osthus.ambeth.threading.FastThreadPool" />
+		<Class name="com.koch.ambeth.threading.FastThreadPool" />
 		<Bug pattern="RV_ABSOLUTE_VALUE_OF_RANDOM_INT" />
 	</Match>
 	
 	<Match>
-		<Class name="de.osthus.ambeth.threading.ProcessIdHelper" />
+		<Class name="com.koch.ambeth.threading.ProcessIdHelper" />
 		<Method name="getCumulatedCpuUsage" />
 		<Bug pattern="RR_NOT_CHECKED" />
 	</Match>
 
 	<Match>
-		<Class name="de.osthus.ambeth.persistence.JDBCSqlConnection" />
+		<Class name="com.koch.ambeth.persistence.JDBCSqlConnection" />
 		<Method name="sqlSelect" />
 		<Bug pattern="OBL_UNSATISFIED_OBLIGATION" />
 	</Match>
 
 
 	<Match>
-		<Class name="de.osthus.ambeth.persistence.jdbc.JdbcTable" />
+		<Class name="com.koch.ambeth.persistence.jdbc.JdbcTable" />
 		<Bug pattern="SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING" />
 	</Match>
 
 	<Match>
-		<Class name="de.osthus.ambeth.platform.AmbethPlatformContext" />
+		<Class name="com.koch.ambeth.platform.AmbethPlatformContext" />
 		<Method name="dispose" />
 		<Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
 	</Match>
 	
 	<Match>
-		<Class name="de.osthus.ambeth.platform.ConfigurationPropertiesScanner" />
+		<Class name="com.koch.ambeth.platform.ConfigurationPropertiesScanner" />
 		<Method name="main" />
 		<Bug pattern=" DM_DEFAULT_ENCODING" />
 	</Match>
   
 	<Match>
-		<Class name="de.osthus.ambeth.util.ListUtil" />
+		<Class name="com.koch.ambeth.util.ListUtil" />
 		<Method name="toArray" />
 		<Bug pattern="PZLA_PREFER_ZERO_LENGTH_ARRAYS" />
 	</Match>
 	<Match>
-		<Class name="de.osthus.ambeth.config.Properties" />
+		<Class name="com.koch.ambeth.config.Properties" />
 		<Bug pattern="DM_DEFAULT_ENCODING" />
 		<Bug pattern="MS_SHOULD_BE_FINAL" />
 	</Match>
 
 	<Match>
-		<Class name="de.osthus.ambeth.cache.RootCache" />
+		<Class name="com.koch.ambeth.cache.RootCache" />
 		<Method name="waitForConcurrentReadFinish" />
 		<Bug pattern="UW_UNCOND_WAIT" />
 	</Match>
 
 	<Match>
-		<Class name="de.osthus.ambeth.filter.model.CompositeFilterDescriptor" />
+		<Class name="com.koch.ambeth.filter.model.CompositeFilterDescriptor" />
 		<Method name="isCaseSensitive" />
 		<Bug pattern="NP_BOOLEAN_RETURN_NULL" />
 	</Match>
 
 	<Match>
-		<Class name="de.osthus.ambeth.persistence.jdbc.DefaultDatabasePool" />
+		<Class name="com.koch.ambeth.persistence.jdbc.DefaultDatabasePool" />
 		<Method name="createNewDatabase" />
 		<Bug pattern="UL_UNRELEASED_LOCK" />
 		<Bug pattern="UL_UNRELEASED_LOCK_EXCEPTION_PATH" />
 	</Match>
 	
 	<Match>
-		<Class name="de.osthus.ambeth.persistence.jdbc.JdbcLink" />
+		<Class name="com.koch.ambeth.persistence.jdbc.JdbcLink" />
 		<Method name="linkIdsIntern" />
 		<Method name="unlinkIdsIntern" />
 		<Bug pattern="OBL_UNSATISFIED_OBLIGATION" />
 	</Match>
 	
 	<Match>
-		<Class name="de.osthus.ambeth.query.sql.SqlQueryBuilder" />
+		<Class name="com.koch.ambeth.query.sql.SqlQueryBuilder" />
 		<Method name="join" />
 		<Bug pattern="BC_UNCONFIRMED_CAST" />
 	</Match>
 
 	<Match>
-		<Class name="de.osthus.ambeth.oracle.Oracle10gDialect" />
+		<Class name="com.koch.ambeth.oracle.Oracle10gDialect" />
 		<Bug pattern="SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE" />
 	</Match>	
 

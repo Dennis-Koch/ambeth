@@ -59,6 +59,11 @@
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-expr</artifactId>
 		</dependency>
+		
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-filter</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
@@ -113,5 +118,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>

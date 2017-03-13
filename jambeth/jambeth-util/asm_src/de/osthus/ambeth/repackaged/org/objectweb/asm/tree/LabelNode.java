@@ -27,12 +27,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.tree;
+package org.objectweb.asm.tree;
 
 import java.util.Map;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
 /**
  * An {@link AbstractInsnNode} that encapsulates a {@link Label}.

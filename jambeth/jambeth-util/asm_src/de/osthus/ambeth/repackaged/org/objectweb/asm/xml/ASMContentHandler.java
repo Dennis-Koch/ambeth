@@ -27,7 +27,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.xml;
+package org.objectweb.asm.xml;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,23 +38,23 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.AnnotationVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.FieldVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Handle;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.MethodVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.TypePath;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.TypePath;
 
 /**
  * A {@link org.xml.sax.ContentHandler ContentHandler} that transforms XML
  * document into Java class file. This class can be feeded by any kind of SAX
  * 2.0 event producers, e.g. XML parser, XSLT or XPath engines, or custom code.
  * 
- * @see de.osthus.ambeth.repackaged.org.objectweb.asm.xml.SAXClassAdapter
- * @see de.osthus.ambeth.repackaged.org.objectweb.asm.xml.Processor
+ * @see org.objectweb.asm.xml.SAXClassAdapter
+ * @see org.objectweb.asm.xml.Processor
  * 
  * @author Eugene Kuleshov
  */

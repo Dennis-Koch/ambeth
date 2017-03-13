@@ -1,18 +1,18 @@
-package de.osthus.ambeth.training.travelguides.guides;
+package com.koch.ambeth.training.travelguides.guides;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.osthus.ambeth.cache.ICache;
-import de.osthus.ambeth.ioc.annotation.Autowired;
-import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.merge.IEntityFactory;
-import de.osthus.ambeth.testutil.TestModule;
-import de.osthus.ambeth.training.travelguides.ioc.HelloWorldModule;
-import de.osthus.ambeth.training.travelguides.model.City;
-import de.osthus.ambeth.training.travelguides.setup.AbstractGuideBookTest;
+import com.koch.ambeth.cache.ICache;
+import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.log.ILogger;
+import com.koch.ambeth.log.LogInstance;
+import com.koch.ambeth.merge.IEntityFactory;
+import com.koch.ambeth.testutil.TestModule;
+import com.koch.ambeth.training.travelguides.ioc.HelloWorldModule;
+import com.koch.ambeth.training.travelguides.model.City;
+import com.koch.ambeth.training.travelguides.setup.AbstractGuideBookTest;
 
 @TestModule({ HelloWorldModule.class })
 public class GuideBookManagerTest extends AbstractGuideBookTest

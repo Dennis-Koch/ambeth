@@ -27,10 +27,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.util;
+package org.objectweb.asm.util;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.signature.SignatureVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.signature.SignatureVisitor;
 
 /**
  * A {@link SignatureVisitor} that prints a disassembled view of the signature

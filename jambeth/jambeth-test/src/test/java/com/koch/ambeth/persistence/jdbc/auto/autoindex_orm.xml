@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_1_2">
+
+	<entity class="com.koch.ambeth.persistence.jdbc.alternateid.AlternateIdEntity">
+		<table name="TBL_AE" />
+	</entity>
+	
+	<entity class="com.koch.ambeth.persistence.jdbc.alternateid.BaseEntity">
+		<table name="TBL_BASE" />
+	</entity>
+	
+	<entity class="com.koch.ambeth.persistence.jdbc.alternateid.BaseEntity2">
+		<table name="TBL_BASE2" />
+		<sequence-generator name="TBL_BASE_SEQ" />
+	</entity>
+	
+</entity-mappings>

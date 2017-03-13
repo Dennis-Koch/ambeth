@@ -27,12 +27,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.optimizer;
+package org.objectweb.asm.optimizer;
 
 import java.util.Arrays;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassWriter;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Handle;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Handle;
 
 /**
  * A constant pool item.

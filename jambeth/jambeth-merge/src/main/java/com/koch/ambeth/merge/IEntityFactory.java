@@ -1,0 +1,18 @@
+package com.koch.ambeth.merge;
+
+import com.koch.ambeth.service.merge.model.IEntityMetaData;
+
+/**
+ * Creates (enhanced) instances of classes and interfaces.
+ * 
+ */
+public interface IEntityFactory
+{
+	<T> T createEntity(Class<T> entityType);
+
+	Object createEntity(IEntityMetaData metaData);
+
+	Object createEntityNoEmptyInit(IEntityMetaData metaData);
+
+	boolean supportsEnhancement(Class<?> enhancementType);
+}

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+	<entity-mappings>
+
+		<!-- entity based on a class -->
+		<entity class="com.koch.ambeth.bytecode.EntityA">
+			<attributes>
+				<alternate-id name="Name" />
+				<alternate-id name="Value" />
+			</attributes>
+		</entity>
+
+		<!-- entity with default and non default constructor -->
+		<entity class="com.koch.ambeth.bytecode.EntityB">
+			<attributes>
+				<alternate-id name="Name" />
+				<alternate-id name="Value" />
+			</attributes>
+		</entity>
+
+		<!-- entity with a non default constructor -->
+		<entity class="com.koch.ambeth.bytecode.EntityC">
+			<attributes>
+				<alternate-id name="Name" />
+				<alternate-id name="Value" />
+			</attributes>
+		</entity>
+
+		<!-- entity based on an interface -->
+		<entity class="com.koch.ambeth.bytecode.IEntityA">
+			<attributes>
+				<alternate-id name="Name" />
+				<alternate-id name="Value" />
+			</attributes>
+		</entity>
+
+		<!-- entity based on an interface, enhanced by IImplementAbstractObjectFactoryExtendable -->
+		<entity class="com.koch.ambeth.bytecode.IEntityB">
+			<attributes>
+				<alternate-id name="Name" />
+				<alternate-id name="Value" />
+			</attributes>
+		</entity>
+
+		<!-- entity based on an interface, extending AbstractEntity -->
+		<entity class="com.koch.ambeth.bytecode.IEntityC">
+			<attributes>
+				<alternate-id name="Name" />
+				<alternate-id name="Value" />
+			</attributes>
+		</entity>
+	</entity-mappings>
+</or-mappings>

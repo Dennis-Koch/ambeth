@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_vom_1_3">
+
+	<entity class="com.koch.ambeth.persistence.jdbc.mapping.models.OneToManyEntity">
+		<value-object class="com.koch.ambeth.persistence.jdbc.mapping.models.OneToManyEntityVO">
+			<ignore name="NeedsSpecialMapping" />
+			<basic name="MyEmbeddedType.NameString" name-in-entity="MyEmbedded.Name" />
+			<ignore name="MyEmbeddedType.ValueNumber" />
+			<relation name="ByListType" list-type="true"
+				target-value-object="com.koch.ambeth.persistence.jdbc.mapping.models.OneToManyEntityVO" />
+			<relation name="ByREFListType" name-in-entity="ByRefListType" list-type="true" />
+			<relation name="SelfReferencingEntities"
+				target-value-object="com.koch.ambeth.persistence.jdbc.mapping.models.SelfReferencingEntityVO" />
+		</value-object>
+	</entity>
+
+	<entity class="com.koch.ambeth.persistence.jdbc.mapping.models.SelfReferencingEntity">
+		<value-object class="com.koch.ambeth.persistence.jdbc.mapping.models.SelfReferencingEntityVO">
+			<basic name="Values" target-element-type="java.lang.String" />
+			<basic name="Values2List" name-in-entity="Values2" list-type="true" />
+		</value-object>
+	</entity>
+
+</entity-mappings>

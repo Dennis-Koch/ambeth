@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<entity-mappings xmlns="http://www.osthus.de/ambeth/ambeth_vom_1_3">
+<entity-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_vom_1_3">
 
-	<entity class="de.osthus.ambeth.merge.independent.EntityA">
-		<value-object class="de.osthus.ambeth.merge.independent.EntityAType" />
+	<entity class="com.koch.ambeth.merge.independent.EntityA">
+		<value-object class="com.koch.ambeth.merge.independent.EntityAType" />
 	</entity>
 
-	<entity class="de.osthus.ambeth.merge.independent.EntityB">
-		<value-object class="de.osthus.ambeth.merge.independent.EntityBType1" />
-		<value-object class="de.osthus.ambeth.merge.independent.EntityBType2" />
+	<entity class="com.koch.ambeth.merge.independent.EntityB">
+		<value-object class="com.koch.ambeth.merge.independent.EntityBType1" />
+		<value-object class="com.koch.ambeth.merge.independent.EntityBType2" />
 	</entity>
 
 </entity-mappings>

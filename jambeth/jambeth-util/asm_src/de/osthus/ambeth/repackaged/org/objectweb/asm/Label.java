@@ -27,7 +27,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm;
+package org.objectweb.asm;
 
 
 /**
@@ -112,7 +112,7 @@ public class Label {
      * Field used to associate user information to a label. Warning: this field
      * is used by the ASM tree package. In order to use it with the ASM tree
      * package you must override the
-     * {@link de.osthus.ambeth.repackaged.org.objectweb.asm.tree.MethodNode#getLabelNode} method.
+     * {@link org.objectweb.asm.tree.MethodNode#getLabelNode} method.
      */
     public Object info;
 

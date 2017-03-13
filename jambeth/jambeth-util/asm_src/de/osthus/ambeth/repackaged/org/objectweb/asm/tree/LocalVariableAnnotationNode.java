@@ -28,17 +28,17 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package de.osthus.ambeth.repackaged.org.objectweb.asm.tree;
+package org.objectweb.asm.tree;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.MethodVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.TypePath;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.TypeReference;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.TypePath;
+import org.objectweb.asm.TypeReference;
 
 /**
  * A node that represents a type annotation on a local or resource variable.

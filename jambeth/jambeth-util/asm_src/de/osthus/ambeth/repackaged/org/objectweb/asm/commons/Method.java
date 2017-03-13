@@ -27,12 +27,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.commons;
+package org.objectweb.asm.commons;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
+import org.objectweb.asm.Type;
 
 /**
  * A named method descriptor.

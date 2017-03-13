@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_1_2">
+
+	<entity class="com.koch.ambeth.persistence.xml.model.Employee">
+		<sequence-generator name="EMPLOYEE_SEQU" />
+		<attributes>
+			<ignore name="Attributes" />
+			<to-one name="Supervisor" target-entity="com.koch.ambeth.persistence.xml.model.Employee">
+				<join-table name="EMPLOYEE">
+					<join-column name="SUPERVISOR" />
+					<inverse-join-column name="ID" />
+				</join-table>
+			</to-one>
+			<to-one name="PrimaryAddress" target-entity="com.koch.ambeth.persistence.xml.model.Address"
+				do-delete="true">
+				<join-table name="EMPLOYEE">
+					<join-column name="PRIMARY_ADDRESS_ID" />
+					<inverse-join-column name="ID" />
+				</join-table>
+			</to-one>
+			<to-one name="PrimaryProject" target-entity="com.koch.ambeth.persistence.xml.model.Project">
+				<join-table name="EMPLOYEE">
+					<join-column name="PRIMARY_PROJECT" />
+					<inverse-join-column name="ID" />
+				</join-table>
+			</to-one>
+			<to-many name="OtherAddresses" target-entity="com.koch.ambeth.persistence.xml.model.Address"
+				do-delete="true">
+				<join-table name="ADDRESS">
+					<join-column name="RESIDENT" />
+					<inverse-join-column name="ID" />
+				</join-table>
+			</to-many>
+			<to-one name="Boat" target-entity="com.koch.ambeth.persistence.xml.model.Boat"
+				do-delete="true" may-delete="false">
+				<join-table name="EMPLOYEE">
+					<join-column name="BOAT" />
+					<inverse-join-column name="ID" />
+				</join-table>
+			</to-one>
+			<to-many name="AllProjects" target-entity="com.koch.ambeth.persistence.xml.model.Project">
+				<join-table name="LINK_EMPLOYEE_PROJECT">
+					<join-column name="LEFT_ID" />
+					<inverse-join-column name="RIGHT_ID" />
+				</join-table>
+			</to-many>
+		</attributes>
+	</entity>
+
+	<entity class="com.koch.ambeth.persistence.xml.model.Address">
+		<attributes>
+			<to-one name="Resident" target-entity="com.koch.ambeth.persistence.xml.model.Employee"
+				do-delete="false" may-delete="true">
+				<join-table name="EMPLOYEE">
+					<join-column name="PRIMARY_ADDRESS_ID" />
+					<inverse-join-column name="ID" />
+				</join-table>
+			</to-one>
+		</attributes>
+	</entity>
+
+	<entity class="com.koch.ambeth.persistence.xml.model.Project">
+		<attributes>
+			<to-many name="Employees" target-entity="com.koch.ambeth.persistence.xml.model.Employee"
+				do-delete="false" may-delete="false">
+				<join-table name="EMPLOYEE">
+					<join-column name="PRIMARY_PROJECT" />
+					<inverse-join-column name="ID" />
+				</join-table>
+			</to-many>
+		</attributes>
+	</entity>
+
+	<entity class="com.koch.ambeth.persistence.xml.model.Boat" />
+
+</entity-mappings>

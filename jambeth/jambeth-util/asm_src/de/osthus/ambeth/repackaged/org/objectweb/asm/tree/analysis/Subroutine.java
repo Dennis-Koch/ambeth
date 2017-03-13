@@ -27,13 +27,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.tree.analysis;
+package org.objectweb.asm.tree.analysis;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.tree.JumpInsnNode;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.JumpInsnNode;
+import org.objectweb.asm.tree.LabelNode;
 
 /**
  * A method subroutine (corresponds to a JSR instruction).

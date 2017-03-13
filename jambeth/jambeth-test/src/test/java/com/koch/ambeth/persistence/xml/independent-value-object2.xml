@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_vom_1_3">
+
+	<entity class="com.koch.ambeth.persistence.xml.model.Address">
+		<value-object class="com.koch.ambeth.persistence.xml.model.AddressType" />
+	</entity>
+
+	<entity class="com.koch.ambeth.persistence.xml.model.Project">
+		<value-object class="com.koch.ambeth.persistence.xml.model.ProjectType">
+			<ignore name="IgnoreMe" />
+		</value-object>
+	</entity>
+
+</entity-mappings>

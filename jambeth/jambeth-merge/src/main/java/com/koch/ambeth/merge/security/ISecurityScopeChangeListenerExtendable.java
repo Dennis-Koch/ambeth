@@ -1,0 +1,8 @@
+package com.koch.ambeth.merge.security;
+
+public interface ISecurityScopeChangeListenerExtendable
+{
+	void registerSecurityScopeChangeListener(ISecurityScopeChangeListener securityScopeChangeListener);
+	
+	void unregisterSecurityScopeChangeListener(ISecurityScopeChangeListener securityScopeChangeListener);
+}

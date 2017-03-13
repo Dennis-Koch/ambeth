@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+
+	<link-mappings>
+		<independent-link alias="User-Password"
+			left="com.koch.ambeth.audit.User" right="com.koch.ambeth.audit.Password"
+			cascade-delete="right" />
+	</link-mappings>
+
+	<entity-mappings>	
+		<external-entity class="com.koch.ambeth.audit.User">
+			<attributes>
+				<id name="Id"/>
+				<alternate-id name="SID"/>		
+				<version name="Version"/>
+				<relation name="Password" link="User-Password" />
+			</attributes>
+		</external-entity>
+		<external-entity class="com.koch.ambeth.audit.Password" >
+			<attributes>
+				<id name="Id"/>
+				<version name="Version"/>
+				<relation name="User" link="User-Password"/>
+				<basic name="ChangeAfter"/>
+				<basic name="SaltPBEConfiguration.EncryptionAlgorithm" />
+				<basic name="SaltPBEConfiguration.EncryptionKeySpec" />
+				<basic name="SaltPBEConfiguration.EncryptionKeyIV" />
+				<basic name="SaltPBEConfiguration.PaddedKeyAlgorithm" />
+				<basic name="SaltPBEConfiguration.PaddedKeySize" />
+				<basic name="SaltPBEConfiguration.PaddedKeyIterations" />
+			</attributes>
+		</external-entity>
+	</entity-mappings>
+</or-mappings>

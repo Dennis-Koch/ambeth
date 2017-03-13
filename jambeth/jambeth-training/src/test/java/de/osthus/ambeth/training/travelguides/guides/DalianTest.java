@@ -1,13 +1,13 @@
-package de.osthus.ambeth.training.travelguides.guides;
+package com.koch.ambeth.training.travelguides.guides;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import de.osthus.ambeth.ioc.annotation.Autowired;
-import de.osthus.ambeth.testutil.AbstractIocTest;
-import de.osthus.ambeth.testutil.TestModule;
-import de.osthus.ambeth.training.travelguides.ioc.HelloWorldModule;
-import de.osthus.ambeth.training.travelguides.ioc.LogModule;
+import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.testutil.AbstractIocTest;
+import com.koch.ambeth.testutil.TestModule;
+import com.koch.ambeth.training.travelguides.ioc.HelloWorldModule;
+import com.koch.ambeth.training.travelguides.ioc.LogModule;
 
 @TestModule({ LogModule.class, HelloWorldModule.class })
 public class DalianTest extends AbstractIocTest

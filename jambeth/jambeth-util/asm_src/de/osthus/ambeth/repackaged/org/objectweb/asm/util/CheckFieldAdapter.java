@@ -27,14 +27,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.util;
+package org.objectweb.asm.util;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.AnnotationVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Attribute;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.FieldVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.TypePath;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.TypeReference;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Attribute;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.TypePath;
+import org.objectweb.asm.TypeReference;
 
 /**
  * A {@link FieldVisitor} that checks that its methods are properly used.

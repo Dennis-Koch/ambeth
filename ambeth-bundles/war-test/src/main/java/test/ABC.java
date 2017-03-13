@@ -1,7 +1,7 @@
 package test;
 
-import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LogInstance;
+import com.koch.ambeth.log.ILogger;
+import com.koch.ambeth.log.LogInstance;
 
 public class ABC
 {

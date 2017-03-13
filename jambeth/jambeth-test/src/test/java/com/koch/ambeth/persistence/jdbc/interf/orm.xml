@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings>
+	<entity class="com.koch.ambeth.persistence.jdbc.interf.ITestEntity">
+		<attributes>
+			<id name="id" />
+			<basic name="name" alternate-id="true" />
+			<version name="version" />
+		</attributes>
+	</entity>
+</entity-mappings>

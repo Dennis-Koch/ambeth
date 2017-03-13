@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+
+	<entity-mappings>
+
+		<entity class="com.koch.ambeth.relations.one.lazy.fk.forward.none.EntityA" />
+
+		<entity class="com.koch.ambeth.relations.one.lazy.fk.forward.none.EntityB" />
+
+	</entity-mappings>
+
+</or-mappings>

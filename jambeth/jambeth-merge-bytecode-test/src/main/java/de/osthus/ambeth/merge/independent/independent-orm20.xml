@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<or-mappings xmlns="http://osthus.de/ambeth/ambeth_orm_2_0">
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
 	<entity-mappings>
 
-		<entity class="de.osthus.ambeth.merge.independent.EntityA" />
+		<entity class="com.koch.ambeth.merge.independent.EntityA" />
 
-		<entity class="de.osthus.ambeth.merge.independent.EntityB">
+		<entity class="com.koch.ambeth.merge.independent.EntityB">
 			<attributes>
 				<alternate-id name="Name" />
 			</attributes>

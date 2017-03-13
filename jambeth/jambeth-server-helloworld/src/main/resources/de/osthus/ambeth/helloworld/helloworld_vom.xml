@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<value-object-mappings xmlns="http://osthus.de/ambeth/ambeth_vom_2_0">
+<value-object-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_vom_2_0">
 
-	<entity class="de.osthus.ambeth.helloworld.transfer.TestEntity">
-		<value-object class="de.osthus.ambeth.helloworld.vo.TestEntityVO" />			
+	<entity class="com.koch.ambeth.helloworld.transfer.TestEntity">
+		<value-object class="com.koch.ambeth.helloworld.vo.TestEntityVO" />			
 	</entity>
 	
-	<entity class="de.osthus.ambeth.helloworld.transfer.TestEntity2">
-		<value-object class="de.osthus.ambeth.helloworld.vo.TestEntity2VO" />			
+	<entity class="com.koch.ambeth.helloworld.transfer.TestEntity2">
+		<value-object class="com.koch.ambeth.helloworld.vo.TestEntity2VO" />			
 	</entity>
 	
-	<entity class="de.osthus.ambeth.helloworld.transfer.TestEntity3">
-		<value-object class="de.osthus.ambeth.helloworld.vo.TestEntity3VO" />			
+	<entity class="com.koch.ambeth.helloworld.transfer.TestEntity3">
+		<value-object class="com.koch.ambeth.helloworld.vo.TestEntity3VO" />			
 	</entity>
 </value-object-mappings>

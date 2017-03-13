@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ast="http://osthus.de/ambeth/ambeth_simple_types_2_0"
-	targetNamespace="http://osthus.de/ambeth/ambeth_orm_2_0" xmlns:ans="http://osthus.de/ambeth/ambeth_orm_2_0"
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ast="http://schema.kochdev.com/ambeth/ambeth_simple_types_2_0"
+	targetNamespace="http://schema.kochdev.com/ambeth/ambeth_orm_2_0" xmlns:ans="http://schema.kochdev.com/ambeth/ambeth_orm_2_0"
 	elementFormDefault="qualified">
 
-	<xs:import namespace="http://osthus.de/ambeth/ambeth_simple_types_2_0" schemaLocation="./ambeth_simple_types_2_0.xsd" />
+	<xs:import namespace="http://schema.kochdev.com/ambeth/ambeth_simple_types_2_0" schemaLocation="./ambeth_simple_types_2_0.xsd" />
 
 	<xs:element name="or-mappings">
 		<xs:complexType>

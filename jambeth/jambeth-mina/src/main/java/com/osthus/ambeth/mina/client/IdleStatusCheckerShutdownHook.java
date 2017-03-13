@@ -3,11 +3,11 @@ package com.osthus.ambeth.mina.client;
 import org.apache.mina.core.session.IdleStatusChecker;
 import org.apache.mina.core.session.IdleStatusChecker.NotifyingTask;
 
-import de.osthus.ambeth.ioc.IDisposableBean;
-import de.osthus.ambeth.ioc.IInitializingBean;
-import de.osthus.ambeth.ioc.annotation.Autowired;
-import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LogInstance;
+import com.koch.ambeth.ioc.IDisposableBean;
+import com.koch.ambeth.ioc.IInitializingBean;
+import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.log.ILogger;
+import com.koch.ambeth.log.LogInstance;
 
 public class IdleStatusCheckerShutdownHook implements IDisposableBean, IInitializingBean
 {

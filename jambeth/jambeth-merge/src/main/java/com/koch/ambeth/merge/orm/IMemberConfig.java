@@ -1,0 +1,12 @@
+package com.koch.ambeth.merge.orm;
+
+public interface IMemberConfig extends IOrmConfig
+{
+	boolean isAlternateId();
+
+	boolean isIgnore();
+
+	boolean isTransient();
+
+	String getDefinedBy();
+}

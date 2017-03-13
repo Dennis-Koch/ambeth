@@ -1,8 +1,0 @@
-package de.osthus.ambeth.security;
-
-public interface ISecurityScopeChangeListenerExtendable
-{
-	void registerSecurityScopeChangeListener(ISecurityScopeChangeListener securityScopeChangeListener);
-	
-	void unregisterSecurityScopeChangeListener(ISecurityScopeChangeListener securityScopeChangeListener);
-}

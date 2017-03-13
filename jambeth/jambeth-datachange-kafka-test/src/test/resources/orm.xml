@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<or-mappings xmlns="http://osthus.de/ambeth/ambeth_orm_2_0">
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
 
 	<entity-mappings>
-		<external-entity class="de.osthus.ambeth.datachange.kafka.TestEntity">
+		<external-entity class="com.koch.ambeth.datachange.kafka.TestEntity">
 			<attributes>
 				<id name="Id"/>
 				<version name="Version"/>

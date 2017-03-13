@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+
+	<entity-mappings>
+
+		<entity class="com.koch.ambeth.orm20.independent.EntityA">
+			<attributes>
+				<alternate-id name="Name"/>
+			</attributes>
+		</entity>
+
+		<entity class="com.koch.ambeth.orm20.independent.EntityB">
+			<attributes>
+				<id name="IdB"/>
+				<version name="VersionB"/>
+				<created-by name="CreatedByB"/>
+				<created-on name="CreatedOnB"/>
+				<updated-by name="UpdatedByB"/>
+				<updated-on name="UpdatedOnB"/>
+			</attributes>
+		</entity>
+
+		<external-entity class="com.koch.ambeth.orm20.independent.EntityC" />
+
+	</entity-mappings>
+
+</or-mappings>

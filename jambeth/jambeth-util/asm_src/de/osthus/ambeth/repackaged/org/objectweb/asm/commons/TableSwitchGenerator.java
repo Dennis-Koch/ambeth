@@ -27,9 +27,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.commons;
+package org.objectweb.asm.commons;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
+import org.objectweb.asm.Label;
 
 /**
  * A code generator for switch statements.

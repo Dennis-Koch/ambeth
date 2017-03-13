@@ -27,11 +27,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.tree;
+package org.objectweb.asm.tree;
 
 import java.util.Map;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.MethodVisitor;
 
 /**
  * A node that represents a local variable instruction. A local variable

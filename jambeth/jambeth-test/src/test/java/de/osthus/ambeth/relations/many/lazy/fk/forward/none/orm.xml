@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<entity-mappings xmlns="http://www.osthus.de/ambeth/ambeth_orm_1_2">
-
-	<entity class="de.osthus.ambeth.relations.many.lazy.fk.forward.none.EntityA" />
-
-	<entity class="de.osthus.ambeth.relations.many.lazy.fk.forward.none.EntityB" />
-
-</entity-mappings>

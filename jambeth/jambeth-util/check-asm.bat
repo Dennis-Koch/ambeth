@@ -1,3 +1,3 @@
 @ECHO OFF
 cls
-java -classpath "bin" de.osthus.ambeth.repackaged.org.objectweb.asm.util.ASMifier %1
+java -classpath "bin" com.koch.ambeth.repackaged.org.objectweb.asm.util.ASMifier %1

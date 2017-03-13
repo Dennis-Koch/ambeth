@@ -1,0 +1,8 @@
+package com.koch.ambeth.merge.objrefstore;
+
+public abstract class IObjRefStoreEntryProvider
+{
+	public abstract ObjRefStore createObjRefStore(Class<?> entityType, byte idIndex, Object id);
+
+	public abstract ObjRefStore createObjRefStore(Class<?> entityType, byte idIndex, Object id, ObjRefStore nextEntry);
+}

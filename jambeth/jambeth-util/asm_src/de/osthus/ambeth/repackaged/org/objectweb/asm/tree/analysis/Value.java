@@ -27,7 +27,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.tree.analysis;
+package org.objectweb.asm.tree.analysis;
 
 /**
  * An immutable symbolic value for semantic interpretation of bytecode.

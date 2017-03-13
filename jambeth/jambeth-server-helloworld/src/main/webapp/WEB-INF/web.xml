@@ -12,7 +12,7 @@
 	</context-param>
 
 	<listener>
-		<listener-class>de.osthus.ambeth.webservice.AmbethServletListener</listener-class>
+		<listener-class>com.koch.ambeth.webservice.AmbethServletListener</listener-class>
 	</listener>
 
 	<servlet>
@@ -21,7 +21,7 @@
 		<servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
 		<init-param>
 		     <param-name>jersey.config.server.provider.packages</param-name>
-		     <param-value>de.osthus.ambeth.webservice;de.osthus.ambeth.helloworld</param-value>
+		     <param-value>com.koch.ambeth.webservice;com.koch.ambeth.helloworld</param-value>
 		</init-param>
 		<init-param>
 			<param-name>jersey.spi.container.ContainerRequestFilters</param-name>
@@ -29,7 +29,7 @@
 		</init-param>
 		<init-param>
 			<param-name>jersey.spi.container.ContainerResponseFilters</param-name>
-			<param-value>de.osthus.ambeth.filter.SilverlightWorkaroundGZipEncodingFilter</param-value>
+			<param-value>com.koch.ambeth.filter.SilverlightWorkaroundGZipEncodingFilter</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>

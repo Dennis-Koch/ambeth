@@ -13,8 +13,10 @@
 
 	<modules>
 		<module>ambeth-core</module>
+		<module>ambeth-core/kar</module>
 		<module>ambeth-core-test</module>
 		<module>ambeth-information-bus</module>
+		<module>ambeth-information-bus/kar</module>
 		<module>ambeth-information-bus-test</module>
 		<module>ambeth-information-bus-with-persistence</module>
 		<module>ambeth-information-bus-with-persistence-test</module>

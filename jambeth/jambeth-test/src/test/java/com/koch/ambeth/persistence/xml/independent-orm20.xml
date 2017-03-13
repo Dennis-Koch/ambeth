@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+
+	<link-mappings>
+		<independent-link alias="Employee-Boat" cascade-delete="right" right="com.koch.ambeth.persistence.xml.model.Boat" />
+		<independent-link alias="Employee-Address" cascade-delete="right" right="com.koch.ambeth.persistence.xml.model.Address" />
+		<independent-link alias="Employee-Project-1" />
+		<independent-link alias="Address-Employee" cascade-delete="left" left="com.koch.ambeth.persistence.xml.model.Address" />
+		<independent-link alias="Employee-Project-2" />
+		<independent-link alias="ParentA-ChildA" />
+	</link-mappings>
+
+	<entity-mappings>
+
+		<entity class="com.koch.ambeth.persistence.xml.model.Employee">
+			<attributes>
+				<basic name="Car.Make" column="CAR_MAKE" />
+				<basic name="Car.Model" column="CAR_MODEL" />
+				<relation name="Supervisor" link="Employee-Employee" this="left" />
+				<relation name="Boat" link="Employee-Boat" />
+				<relation name="PrimaryAddress" link="Employee-Address" />
+				<relation name="PrimaryProject" link="Employee-Project-1" />
+				<relation name="OtherAddresses" link="Address-Employee" />
+				<relation name="AllProjects" link="Employee-Project-2" />
+			</attributes>
+		</entity>
+
+		<entity class="com.koch.ambeth.persistence.xml.model.Address">
+			<attributes>
+				<relation name="Resident" link="Employee-Address" />
+			</attributes>
+		</entity>
+
+		<entity class="com.koch.ambeth.persistence.xml.model.Boat" />
+
+		<entity class="com.koch.ambeth.persistence.xml.model.Project">
+			<attributes>
+				<ignore name="ArchivedOn" />
+				<relation name="Employees" link="Employee-Project-1" />
+			</attributes>
+		</entity>
+
+		<external-entity class="com.koch.ambeth.persistence.schema.models.ParentA">
+			<attributes>
+				<relation name="Child" link="ParentA-ChildA" />
+			</attributes>
+		</external-entity>
+
+		<external-entity class="com.koch.ambeth.persistence.schema.models.ChildA" />
+
+	</entity-mappings>
+
+</or-mappings>

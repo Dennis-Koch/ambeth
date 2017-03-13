@@ -34,14 +34,14 @@
 	</login-config> -->
 	
 	<listener>
-		<listener-class>de.osthus.ambeth.webservice.AmbethServletListener</listener-class>
+		<listener-class>com.koch.ambeth.webservice.AmbethServletListener</listener-class>
 	</listener>
 	<servlet>
 		<servlet-name>jersey-servlet</servlet-name>
 		<servlet-class>org.glassfish.jersey.servlet.ServletContainer.class</servlet-class>
 		<init-param>
 		     <param-name>com.sun.jersey.config.property.packages</param-name>
-		     <param-value>de.osthus.ambeth.webservice@ADDITIONAL_PACKAGES@</param-value>
+		     <param-value>com.koch.ambeth.webservice@ADDITIONAL_PACKAGES@</param-value>
 		</init-param>
 		<init-param>
 			<param-name>com.sun.jersey.spi.container.ContainerRequestFilters</param-name>
@@ -55,7 +55,7 @@
 		-->
 		<init-param>
 			<param-name>com.sun.jersey.spi.container.ContainerResponseFilters</param-name>
-			<param-value>de.osthus.ambeth.filter.SilverlightWorkaroundGZipEncodingFilter</param-value>
+			<param-value>com.koch.ambeth.filter.SilverlightWorkaroundGZipEncodingFilter</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_1_2">
+
+	<entity class="com.koch.ambeth.persistence.jdbc.mapping.models.SelfReferencingEntity">
+		<attributes>
+			<to-one name="Relation1" target-entity="com.koch.ambeth.persistence.jdbc.mapping.models.SelfReferencingEntity">
+				<join-table name="SELF_REFERENCING_ENTITY">
+					<join-column name="RELATION1" />
+					<inverse-join-column name="NAME" />
+				</join-table>
+			</to-one>
+			<to-one name="Relation2" target-entity="com.koch.ambeth.persistence.jdbc.mapping.models.SelfReferencingEntity">
+				<join-table name="SELF_REFERENCING_ENTITY">
+					<join-column name="RELATION2" />
+					<inverse-join-column name="NAME" />
+				</join-table>
+			</to-one>
+		</attributes>
+	</entity>
+
+	<entity class="com.koch.ambeth.persistence.jdbc.mapping.models.OneToManyEntity">
+		<attributes>
+			<basic name="MyEmbedded.Name">
+				<column name="EMB_NAME" />
+			</basic>
+			<basic name="MyEmbedded.Value">
+				<column name="EMB_VALUE" />
+			</basic>
+			<to-many name="OneToManyEntities" target-entity="com.koch.ambeth.persistence.jdbc.mapping.models.OneToManyEntity"
+				do-delete="true">
+				<join-table name="LINK_ONE_TO_MANY_ENTITY_1">
+					<join-column name="ID" />
+					<inverse-join-column name="ID" />
+				</join-table>
+			</to-many>
+			<to-many name="ByListType" target-entity="com.koch.ambeth.persistence.jdbc.mapping.models.OneToManyEntity"
+				do-delete="true">
+				<join-table name="LINK_ONE_TO_MANY_ENTITY_2">
+					<join-column name="ID" />
+					<inverse-join-column name="ID" />
+				</join-table>
+			</to-many>
+			<to-many name="ByRefListType" target-entity="com.koch.ambeth.persistence.jdbc.mapping.models.OneToManyEntity"
+				do-delete="true">
+				<join-table name="LINK_ONE_TO_MANY_ENTITY_3">
+					<join-column name="ID" />
+					<inverse-join-column name="ID" />
+				</join-table>
+			</to-many>
+			<to-many name="SelfReferencingEntities" target-entity="com.koch.ambeth.persistence.jdbc.mapping.models.SelfReferencingEntity"
+				do-delete="true">
+				<join-table name="LINK_ONE_TO_MANY_ENTITY_4">
+					<join-column name="ID" />
+					<inverse-join-column name="ID" />
+				</join-table>
+			</to-many>
+		</attributes>
+	</entity>
+
+</entity-mappings>

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <wsdl:definitions name="ISecurityService"
-	targetNamespace="http://schemas.osthus.de/Ambeth" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	targetNamespace="http://schema.kochdev.com/Ambeth" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
 	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
 	xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
-	xmlns:tns="http://schemas.osthus.de/Ambeth" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing"
+	xmlns:tns="http://schema.kochdev.com/Ambeth" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing"
 	xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy"
 	xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract"
 	xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex"
@@ -18,9 +18,9 @@
 		</wsp:ExactlyOne>
 	</wsp:Policy>
 	<wsdl:types>
-		<xsd:schema targetNamespace="http://schemas.osthus.de/Ambeth/Imports">
+		<xsd:schema targetNamespace="http://schema.kochdev.com/Ambeth/Imports">
 			<xsd:import schemaLocation="SecurityService.xsd"
-				namespace="http://schemas.osthus.de/Ambeth" />
+				namespace="http://schema.kochdev.com/Ambeth" />
 			<xsd:import schemaLocation="Serialization.xsd"
 				namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
 			<xsd:import schemaLocation="SerializationArrays.xsd"
@@ -38,10 +38,10 @@
 	<wsdl:portType name="ISecurityService">
 		<wsdl:operation name="CallServiceInSecurityScope">
 			<wsdl:input
-				wsaw:Action="http://schemas.osthus.de/Ambeth/ISecurityService/CallServiceInSecurityScope"
+				wsaw:Action="http://schema.kochdev.com/Ambeth/ISecurityService/CallServiceInSecurityScope"
 				message="tns:ISecurityService_CallServiceInSecurityScope_InputMessage" />
 			<wsdl:output
-				wsaw:Action="http://schemas.osthus.de/Ambeth/ISecurityService/CallServiceInSecurityScopeResponse"
+				wsaw:Action="http://schema.kochdev.com/Ambeth/ISecurityService/CallServiceInSecurityScopeResponse"
 				message="tns:ISecurityService_CallServiceInSecurityScope_OutputMessage" />
 		</wsdl:operation>
 	</wsdl:portType>
@@ -51,7 +51,7 @@
 		<soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
 		<wsdl:operation name="CallServiceInSecurityScope">
 			<soap:operation
-				soapAction="http://schemas.osthus.de/Ambeth/ISecurityService/CallServiceInSecurityScope"
+				soapAction="http://schema.kochdev.com/Ambeth/ISecurityService/CallServiceInSecurityScope"
 				style="document" />
 			<wsdl:input>
 				<soap:body use="literal" />

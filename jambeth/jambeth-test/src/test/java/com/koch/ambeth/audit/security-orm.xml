@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+
+	<link-mappings>
+		<link alias="User-Password" source="USER_FK_PASSWORD_ID"/>
+		<link alias="User-PasswordHistory" source="PASSWORD_FK_USER_ID"/>
+	</link-mappings>
+
+	<entity-mappings>		
+		<entity class="com.koch.ambeth.audit.User">
+			<attributes>
+				<relation name="Password" link="User-Password"/>
+				<relation name="PasswordHistory" link="User-PasswordHistory"/>
+			</attributes>
+		</entity>
+		
+		<entity class="com.koch.ambeth.audit.Password">
+			<attributes>
+				<basic name="SaltPBEConfiguration.EncryptionAlgorithm" column="SALT_ENCRYPTION_ALGORITHM"/>
+				<basic name="SaltPBEConfiguration.EncryptionKeySpec" column="SALT_ENCRYPTION_KEY_SPEC"/>
+				<basic name="SaltPBEConfiguration.EncryptionKeyIV" column="SALT_ENCRYPTION_KEY_IV"/>
+				<basic name="SaltPBEConfiguration.PaddedKeyAlgorithm" column="SALT_PADDED_KEY_ALGORITHM"/>
+				<basic name="SaltPBEConfiguration.PaddedKeySize" column="SALT_PADDED_KEY_SIZE"/>
+				<basic name="SaltPBEConfiguration.PaddedKeyIterations" column="SALT_PADDED_KEY_ITERATIONS"/>
+				<relation name="User" link="User-Password"/>
+				<relation name="HistoryUser" link="User-PasswordHistory"/>
+			</attributes>
+		</entity>
+		
+		<entity class="com.koch.ambeth.audit.Signature">
+			<attributes>
+				<basic name="SignAndVerify.SignatureAlgorithm" column="SIGNATURE_ALGORITHM"/>
+				<basic name="SignAndVerify.KeyFactoryAlgorithm" column="KEY_FACTORY_ALGORITHM"/>
+				<basic name="PBEConfiguration.EncryptionAlgorithm" column="ENCRYPTION_ALGORITHM"/>
+				<basic name="PBEConfiguration.EncryptionKeySpec" column="ENCRYPTION_KEY_SPEC"/>
+				<basic name="PBEConfiguration.EncryptionKeyIV" column="ENCRYPTION_KEY_IV"/>
+				<basic name="PBEConfiguration.PaddedKeyAlgorithm" column="PADDED_KEY_ALGORITHM"/>
+				<basic name="PBEConfiguration.PaddedKeySize" column="PADDED_KEY_SIZE"/>
+				<basic name="PBEConfiguration.PaddedKeyIterations" column="PADDED_KEY_ITERATIONS"/>
+				<basic name="PBEConfiguration.PaddedKeySaltSize" column="PADDED_KEY_SALT_SIZE"/>
+				<basic name="PBEConfiguration.PaddedKeySalt" column="PADDED_KEY_SALT"/>				
+			</attributes>
+		</entity>
+	</entity-mappings>	
+</or-mappings>

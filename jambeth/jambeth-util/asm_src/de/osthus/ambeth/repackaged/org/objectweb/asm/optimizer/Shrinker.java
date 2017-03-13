@@ -27,7 +27,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.optimizer;
+package org.objectweb.asm.optimizer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,12 +43,12 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassReader;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassWriter;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Handle;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.Remapper;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.SimpleRemapper;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.Remapper;
+import org.objectweb.asm.commons.SimpleRemapper;
 
 /**
  * A class file shrinker utility.

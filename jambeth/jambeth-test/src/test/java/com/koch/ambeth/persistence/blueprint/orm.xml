@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+
+	<entity-mappings>
+		<entity class="com.koch.ambeth.persistence.blueprint.EntityAnnotationBlueprint">
+			<table name="BL_ENTITY_ANNO" />
+		</entity>
+		<entity class="com.koch.ambeth.persistence.blueprint.EntityAnnotationPropertyBlueprint">
+			<table name="BL_ENTITY_ANNO_PROPERTY" />
+		</entity>
+		<entity class="com.koch.ambeth.persistence.blueprint.EntityPropertyBlueprint">
+			<table name="BL_ENTITY_PROPERTY" />
+		</entity>
+		<entity class="com.koch.ambeth.persistence.blueprint.EntityTypeBlueprint">
+			<table name="BL_ENTITY_TYPE" />
+			<attributes><alternate-id name="Name"/></attributes>
+		</entity>
+	</entity-mappings>
+</or-mappings>

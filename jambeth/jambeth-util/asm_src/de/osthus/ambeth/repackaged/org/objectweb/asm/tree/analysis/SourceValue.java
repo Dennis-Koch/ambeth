@@ -27,11 +27,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.osthus.ambeth.repackaged.org.objectweb.asm.tree.analysis;
+package org.objectweb.asm.tree.analysis;
 
 import java.util.Set;
 
-import de.osthus.ambeth.repackaged.org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.AbstractInsnNode;
 
 /**
  * A {@link Value} that is represented by its type in a two types type system.
