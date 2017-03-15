@@ -6,9 +6,9 @@ import org.objectweb.asm.ClassVisitor;
 
 import com.koch.ambeth.ioc.bytecode.IEnhancementHint;
 
-public interface IBytecodeBehavior
-{
-	ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
+public interface IBytecodeBehavior {
+	ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+			List<IBytecodeBehavior> remainingPendingBehaviors,
 			List<IBytecodeBehavior> cascadePendingBehaviors);
 
 	Class<?>[] getEnhancements();

@@ -16,8 +16,8 @@ import com.koch.ambeth.util.proxy.IProxyFactory;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 
-public class HttpSessionBean implements IFactoryBean, MethodInterceptor, IHttpSessionProvider, IThreadLocalCleanupBean
-{
+public class HttpSessionBean
+		implements IFactoryBean, MethodInterceptor, IHttpSessionProvider, IThreadLocalCleanupBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -31,48 +31,41 @@ public class HttpSessionBean implements IFactoryBean, MethodInterceptor, IHttpSe
 	protected Object obj;
 
 	@Override
-	public void cleanupThreadLocal()
-	{
+	public void cleanupThreadLocal() {
 		// intended blank
 	}
 
 	@Override
-	public Object getObject() throws Throwable
-	{
-		if (obj != null)
-		{
+	public Object getObject() throws Throwable {
+		if (obj != null) {
 			return obj;
 		}
-		obj = proxyFactory.createProxy(HttpSession.class, new Class<?>[] { IHttpSessionProvider.class }, this);
+		obj = proxyFactory.createProxy(getClass().getClassLoader(), HttpSession.class,
+				new Class<?>[] {IHttpSessionProvider.class}, this);
 		return obj;
 	}
 
 	@Override
-	public HttpSession getCurrentHttpSession()
-	{
+	public HttpSession getCurrentHttpSession() {
 		return httpSessionStackTL.get();
 	}
 
 	@Override
-	public void setCurrentHttpSession(HttpSession httpSession)
-	{
+	public void setCurrentHttpSession(HttpSession httpSession) {
 		httpSessionStackTL.set(httpSession);
 	}
 
 	@Override
-	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
-	{
-		if (AbstractSimpleInterceptor.finalizeMethod.equals(method))
-		{
+	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy)
+			throws Throwable {
+		if (AbstractSimpleInterceptor.finalizeMethod.equals(method)) {
 			return null;
 		}
-		if (IHttpSessionProvider.class.isAssignableFrom(method.getDeclaringClass()))
-		{
+		if (IHttpSessionProvider.class.isAssignableFrom(method.getDeclaringClass())) {
 			return proxy.invoke(this, args);
 		}
 		HttpSession httpSession = getCurrentHttpSession();
-		if (httpSession == null)
-		{
+		if (httpSession == null) {
 			throw new IllegalStateException("No http session bound to this thread");
 		}
 		return proxy.invoke(httpSession, args);

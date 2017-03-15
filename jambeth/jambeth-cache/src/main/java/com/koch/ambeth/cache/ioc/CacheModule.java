@@ -78,8 +78,7 @@ import com.koch.ambeth.util.proxy.IProxyFactory;
 import net.sf.cglib.proxy.MethodInterceptor;
 
 @FrameworkModule
-public class CacheModule implements IInitializingModule
-{
+public class CacheModule implements IInitializingModule {
 	public static final String CACHE_DATA_CHANGE_LISTENER = "cache.dcl";
 
 	public static final String COMMITTED_ROOT_CACHE = "committedRootCache";
@@ -114,134 +113,157 @@ public class CacheModule implements IInitializingModule
 	protected boolean secondLevelCacheActive;
 
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		if (defaultCacheType == null)
-		{
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		if (defaultCacheType == null) {
 			defaultCacheType = CacheType.DEFAULT;
 		}
 		ParamChecker.assertNotNull(proxyFactory, "proxyFactory");
 
-		IBeanConfiguration serviceResultcache = beanContextFactory.registerBean(ServiceResultCache.class).autowireable(IServiceResultCache.class);
-		beanContextFactory.link(serviceResultcache, "handleClearAllCaches").to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
+		IBeanConfiguration serviceResultcache = beanContextFactory
+				.registerBean(ServiceResultCache.class).autowireable(IServiceResultCache.class);
+		beanContextFactory.link(serviceResultcache, "handleClearAllCaches")
+				.to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 
-		beanContextFactory.registerBean(ValueHolderIEC.class).autowireable(ValueHolderIEC.class, IProxyHelper.class);
+		beanContextFactory.registerBean(ValueHolderIEC.class).autowireable(ValueHolderIEC.class,
+				IProxyHelper.class);
 
-		beanContextFactory.registerBean(CacheHelper.class).autowireable(ICacheHelper.class, ICachePathHelper.class, IPrefetchHelper.class);
+		beanContextFactory.registerBean(CacheHelper.class).autowireable(ICacheHelper.class,
+				ICachePathHelper.class, IPrefetchHelper.class);
 
-		IBeanConfiguration prioMembersProvider = beanContextFactory.registerBean(PrioMembersProvider.class).autowireable(IPrioMembersProvider.class);
-		beanContextFactory.link(prioMembersProvider, PrioMembersProvider.handleMetaDataAddedEvent).to(IEventListenerExtendable.class)
-				.with(IEntityMetaDataEvent.class);
+		IBeanConfiguration prioMembersProvider = beanContextFactory
+				.registerBean(PrioMembersProvider.class).autowireable(IPrioMembersProvider.class);
+		beanContextFactory.link(prioMembersProvider, PrioMembersProvider.handleMetaDataAddedEvent)
+				.to(IEventListenerExtendable.class).with(IEntityMetaDataEvent.class);
 
 		beanContextFactory.registerBean(CacheWalker.class).autowireable(ICacheWalker.class);
 
-		beanContextFactory.registerAutowireableBean(ICacheMapEntryTypeProvider.class, CacheMapEntryTypeProvider.class);
+		beanContextFactory.registerAutowireableBean(ICacheMapEntryTypeProvider.class,
+				CacheMapEntryTypeProvider.class);
 
-		beanContextFactory.registerAutowireableBean(IRootCacheValueFactory.class, RootCacheValueFactory.class);
+		beanContextFactory.registerAutowireableBean(IRootCacheValueFactory.class,
+				RootCacheValueFactory.class);
 
-		beanContextFactory.registerBean(ROOT_CACHE_RETRIEVER, CacheRetrieverRegistry.class).autowireable(ICacheServiceByNameExtendable.class,
-				ICacheRetrieverExtendable.class, IRelationRetrieverExtendable.class, IPrimitiveRetrieverExtendable.class);
+		beanContextFactory.registerBean(ROOT_CACHE_RETRIEVER, CacheRetrieverRegistry.class)
+				.autowireable(ICacheServiceByNameExtendable.class, ICacheRetrieverExtendable.class,
+						IRelationRetrieverExtendable.class, IPrimitiveRetrieverExtendable.class);
 
-		beanContextFactory.registerBean("firstLevelCacheManager", FirstLevelCacheManager.class).autowireable(IFirstLevelCacheExtendable.class,
-				IFirstLevelCacheManager.class);
+		beanContextFactory.registerBean("firstLevelCacheManager", FirstLevelCacheManager.class)
+				.autowireable(IFirstLevelCacheExtendable.class, IFirstLevelCacheManager.class);
 
 		String rootCacheBridge = "rootCacheBridge";
 
-		beanContextFactory.registerBean(rootCacheBridge, RootCacheBridge.class).propertyRefs(COMMITTED_ROOT_CACHE, ROOT_CACHE_RETRIEVER);
+		beanContextFactory.registerBean(rootCacheBridge, RootCacheBridge.class)
+				.propertyRefs(COMMITTED_ROOT_CACHE, ROOT_CACHE_RETRIEVER);
 
 		TransactionalRootCacheInterceptor txRcInterceptor = new TransactionalRootCacheInterceptor();
 
-		beanContextFactory.registerWithLifecycle("txRootCacheInterceptor", txRcInterceptor).propertyRefs(COMMITTED_ROOT_CACHE, rootCacheBridge)
+		beanContextFactory.registerWithLifecycle("txRootCacheInterceptor", txRcInterceptor)
+				.propertyRefs(COMMITTED_ROOT_CACHE, rootCacheBridge)
 				.autowireable(ITransactionalRootCache.class, ISecondLevelCacheManager.class);
 
-		Object txRcProxy = proxyFactory.createProxy(new Class<?>[] { IRootCache.class, ICacheIntern.class, IOfflineListener.class }, txRcInterceptor);
+		Object txRcProxy = proxyFactory.createProxy(getClass().getClassLoader(),
+				new Class<?>[] {IRootCache.class, ICacheIntern.class, IOfflineListener.class},
+				txRcInterceptor);
 
-		beanContextFactory.registerExternalBean(ROOT_CACHE, txRcProxy).autowireable(IRootCache.class, ICacheIntern.class);
+		beanContextFactory.registerExternalBean(ROOT_CACHE, txRcProxy).autowireable(IRootCache.class,
+				ICacheIntern.class);
 
-		if (secondLevelCacheActive)
-		{
+		if (secondLevelCacheActive) {
 			// One single root cache instance for whole context
-			beanContextFactory.registerBean(COMMITTED_ROOT_CACHE, RootCache.class).propertyRef("CacheRetriever", ROOT_CACHE_RETRIEVER)
+			beanContextFactory.registerBean(COMMITTED_ROOT_CACHE, RootCache.class)
+					.propertyRef("CacheRetriever", ROOT_CACHE_RETRIEVER)
 					.propertyValue("Privileged", Boolean.TRUE);
 			beanContextFactory.link(COMMITTED_ROOT_CACHE).to(IOfflineListenerExtendable.class);
 		}
-		else
-		{
-			// One root cache instance per thread sequence. Most often used in server environment where the "deactivated"
-			// second level cache means that each thread hold his own, isolated root cache (which gets cleared with each service
-			// request. Effectively this means that the root cache itself only lives per-request and does not hold a longer state
-			ThreadLocalRootCacheInterceptor threadLocalRcInterceptor = new ThreadLocalRootCacheInterceptor();
+		else {
+			// One root cache instance per thread sequence. Most often used in server environment where
+			// the "deactivated"
+			// second level cache means that each thread hold his own, isolated root cache (which gets
+			// cleared with each service
+			// request. Effectively this means that the root cache itself only lives per-request and does
+			// not hold a longer state
+			ThreadLocalRootCacheInterceptor threadLocalRcInterceptor =
+					new ThreadLocalRootCacheInterceptor();
 
-			beanContextFactory.registerWithLifecycle("threadLocalRootCacheInterceptor", threadLocalRcInterceptor)
-					.propertyRef("StoredCacheRetriever", CacheModule.ROOT_CACHE_RETRIEVER).propertyValue("Privileged", Boolean.TRUE);
+			beanContextFactory
+					.registerWithLifecycle("threadLocalRootCacheInterceptor", threadLocalRcInterceptor)
+					.propertyRef("StoredCacheRetriever", CacheModule.ROOT_CACHE_RETRIEVER)
+					.propertyValue("Privileged", Boolean.TRUE);
 
-			IRootCache threadLocalRcProxy = proxyFactory.createProxy(IRootCache.class, threadLocalRcInterceptor);
+			IRootCache threadLocalRcProxy = proxyFactory.createProxy(getClass().getClassLoader(),
+					IRootCache.class, threadLocalRcInterceptor);
 
 			beanContextFactory.registerExternalBean(COMMITTED_ROOT_CACHE, threadLocalRcProxy);
 		}
 		beanContextFactory.registerBean("cacheEventTargetExtractor", CacheEventTargetExtractor.class);
-		beanContextFactory.link("cacheEventTargetExtractor").to(IEventTargetExtractorExtendable.class).with(ICache.class).optional();
+		beanContextFactory.link("cacheEventTargetExtractor").to(IEventTargetExtractorExtendable.class)
+				.with(ICache.class).optional();
 
 		beanContextFactory.registerBean(CacheFactory.class).autowireable(ICacheFactory.class);
 
 		MethodInterceptor cacheProviderInterceptor = (MethodInterceptor) beanContextFactory
 				.registerBean("cacheProviderInterceptor", CacheProviderInterceptor.class)
-				.autowireable(ICacheProviderExtendable.class, ICacheProvider.class, ICacheContext.class).getInstance();
+				.autowireable(ICacheProviderExtendable.class, ICacheProvider.class, ICacheContext.class)
+				.getInstance();
 
-		Object cacheProxy = proxyFactory.createProxy(ICache.class, new Class[] { ICacheProvider.class, IWritableCache.class }, cacheProviderInterceptor);
+		Object cacheProxy = proxyFactory.createProxy(getClass().getClassLoader(), ICache.class,
+				new Class[] {ICacheProvider.class, IWritableCache.class}, cacheProviderInterceptor);
 		beanContextFactory.registerExternalBean("cache", cacheProxy).autowireable(ICache.class);
 
 		beanContextFactory.registerBean("pagingQuerySRP", PagingQueryServiceResultProcessor.class);
-		beanContextFactory.link("pagingQuerySRP").to(IServiceResultProcessorExtendable.class).with(IPagingResponse.class);
+		beanContextFactory.link("pagingQuerySRP").to(IServiceResultProcessorExtendable.class)
+				.with(IPagingResponse.class);
 
-		beanContextFactory.registerBean(CacheNamedBeans.CacheProviderSingleton, CacheProvider.class).propertyValue("CacheType", CacheType.SINGLETON);
+		beanContextFactory.registerBean(CacheNamedBeans.CacheProviderSingleton, CacheProvider.class)
+				.propertyValue("CacheType", CacheType.SINGLETON);
 
-		beanContextFactory.registerBean(CacheNamedBeans.CacheProviderThreadLocal, CacheProvider.class).propertyValue("CacheType", CacheType.THREAD_LOCAL);
+		beanContextFactory.registerBean(CacheNamedBeans.CacheProviderThreadLocal, CacheProvider.class)
+				.propertyValue("CacheType", CacheType.THREAD_LOCAL);
 
-		beanContextFactory.registerBean(CacheNamedBeans.CacheProviderPrototype, CacheProvider.class).propertyValue("CacheType", CacheType.PROTOTYPE);
+		beanContextFactory.registerBean(CacheNamedBeans.CacheProviderPrototype, CacheProvider.class)
+				.propertyValue("CacheType", CacheType.PROTOTYPE);
 
 		String defaultCacheProviderBeanName;
-		switch (defaultCacheType)
-		{
-			case PROTOTYPE:
-			{
+		switch (defaultCacheType) {
+			case PROTOTYPE: {
 				defaultCacheProviderBeanName = CacheNamedBeans.CacheProviderPrototype;
 				break;
 			}
-			case SINGLETON:
-			{
+			case SINGLETON: {
 				defaultCacheProviderBeanName = CacheNamedBeans.CacheProviderSingleton;
 				break;
 			}
 			case DEFAULT:
-			case THREAD_LOCAL:
-			{
+			case THREAD_LOCAL: {
 				defaultCacheProviderBeanName = CacheNamedBeans.CacheProviderThreadLocal;
 				break;
 			}
 			default:
-				throw new IllegalStateException("Unsupported " + CacheType.class.getName() + ": " + defaultCacheType);
+				throw new IllegalStateException(
+						"Unsupported " + CacheType.class.getName() + ": " + defaultCacheType);
 		}
 		beanContextFactory.link(defaultCacheProviderBeanName).to(ICacheProviderExtendable.class);
 
 		// CacheContextPostProcessor must be registered AFTER CachePostProcessor...
-		Object cachePostProcessor = beanContextFactory.registerBean(CachePostProcessor.class).getInstance();
-		beanContextFactory.registerBean(CacheContextPostProcessor.class).propertyValue("CachePostProcessor", cachePostProcessor);
+		Object cachePostProcessor =
+				beanContextFactory.registerBean(CachePostProcessor.class).getInstance();
+		beanContextFactory.registerBean(CacheContextPostProcessor.class)
+				.propertyValue("CachePostProcessor", cachePostProcessor);
 
-		if (isNetworkClientMode)
-		{
+		if (isNetworkClientMode) {
 
 		}
-		else
-		{
+		else {
 
 		}
 
 		beanContextFactory.registerBean(DataObjectMixin.class).autowireable(DataObjectMixin.class);
 		beanContextFactory.registerBean(EntityEqualsMixin.class).autowireable(EntityEqualsMixin.class);
 		beanContextFactory.registerBean(EmbeddedTypeMixin.class).autowireable(EmbeddedTypeMixin.class);
-		beanContextFactory.registerBean(PropertyChangeMixin.class).autowireable(PropertyChangeMixin.class, IPropertyChangeExtensionExtendable.class,
+		beanContextFactory.registerBean(PropertyChangeMixin.class).autowireable(
+				PropertyChangeMixin.class, IPropertyChangeExtensionExtendable.class,
 				ICollectionChangeExtensionExtendable.class);
-		beanContextFactory.registerBean(ValueHolderContainerMixin.class).autowireable(ValueHolderContainerMixin.class);
+		beanContextFactory.registerBean(ValueHolderContainerMixin.class)
+				.autowireable(ValueHolderContainerMixin.class);
 	}
 }

@@ -1,2 +1,7 @@
 -exportcontents: \
     com.koch.ambeth.*
+Import-Package: \
+	net.sf.cglib.core, \
+	net.sf.cglib.proxy, \
+	net.sf.cglib.reflect, \
+	*

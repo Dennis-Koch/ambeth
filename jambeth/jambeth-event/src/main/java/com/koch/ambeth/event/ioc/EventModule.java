@@ -21,8 +21,7 @@ import com.koch.ambeth.service.IOfflineListenerExtendable;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 
 @FrameworkModule
-public class EventModule implements IInitializingModule
-{
+public class EventModule implements IInitializingModule {
 	@LogInstance
 	private ILogger log;
 
@@ -33,24 +32,21 @@ public class EventModule implements IInitializingModule
 	protected boolean isPollingActive;
 
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		beanContextFactory.registerBean(EventListenerRegistry.class).autowireable(IEventListenerExtendable.class,
-				IEventTargetListenerExtendable.class, IEventBatcherExtendable.class, IEventTargetExtractorExtendable.class, IEventBatcher.class,
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		beanContextFactory.registerBean(EventListenerRegistry.class).autowireable(
+				IEventListenerExtendable.class, IEventTargetListenerExtendable.class,
+				IEventBatcherExtendable.class, IEventTargetExtractorExtendable.class, IEventBatcher.class,
 				IEventDispatcher.class, IEventListener.class, IEventQueue.class);
 
-		if (isNetworkClientMode)
-		{
-			if (isPollingActive)
-			{
+		if (isNetworkClientMode) {
+			if (isPollingActive) {
 				beanContextFactory.registerBean("eventPoller", EventPoller.class);
 				beanContextFactory.link("eventPoller").to(IOfflineListenerExtendable.class);
 			}
-			else
-			{
-				if (log.isInfoEnabled())
-				{
-					log.info("Event polling disabled. Reason: property '" + EventConfigurationConstants.PollingActive + "' set to '" + isPollingActive + "'");
+			else {
+				if (log.isInfoEnabled()) {
+					log.info("Event polling disabled. Reason: property '"
+							+ EventConfigurationConstants.PollingActive + "' set to '" + isPollingActive + "'");
 				}
 			}
 		}

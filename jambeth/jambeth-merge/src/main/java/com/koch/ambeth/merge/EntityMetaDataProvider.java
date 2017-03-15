@@ -142,7 +142,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {
-		alreadyHandled = proxyFactory.createProxy(IEntityMetaData.class);
+		alreadyHandled = proxyFactory.createProxy(getClass().getClassLoader(), IEntityMetaData.class);
 	}
 
 	protected void addTypeRelatedByTypes(Map<Class<?>, ISet<Class<?>>> typeRelatedByTypes,

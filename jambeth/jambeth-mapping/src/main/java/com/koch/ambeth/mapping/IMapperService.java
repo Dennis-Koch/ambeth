@@ -6,8 +6,7 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.collections.IList;
 
-public interface IMapperService extends IDisposable
-{
+public interface IMapperService extends IDisposable, AutoCloseable {
 	<T> T mapToBusinessObject(Object valueObject);
 
 	Object getMappedBusinessObject(IObjRef objRef);
@@ -18,7 +17,8 @@ public interface IMapperService extends IDisposable
 
 	<T> T mapToValueObject(Object businessObject, Class<T> valueObjectType);
 
-	<L> L mapToValueObjectListType(List<?> businessObjectList, Class<?> valueObjectType, Class<L> listType);
+	<L> L mapToValueObjectListType(List<?> businessObjectList, Class<?> valueObjectType,
+			Class<L> listType);
 
 	<L> L mapToValueObjectRefListType(List<?> businessObjectList, Class<L> valueObjectRefListType);
 

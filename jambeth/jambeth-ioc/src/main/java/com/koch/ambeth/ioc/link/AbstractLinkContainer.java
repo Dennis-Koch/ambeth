@@ -15,24 +15,21 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.util.IDelegateFactory;
 import com.koch.ambeth.util.ParamChecker;
 
-public abstract class AbstractLinkContainer implements ILinkContainer, IInitializingBean, IDeclarationStackTraceAware
-{
-	public static class LinkDisposable extends WeakReference<AbstractLinkContainer> implements IDisposableBean
-	{
+public abstract class AbstractLinkContainer
+		implements ILinkContainer, IInitializingBean, IDeclarationStackTraceAware {
+	public static class LinkDisposable extends WeakReference<AbstractLinkContainer>
+			implements IDisposableBean {
 		private final int linkCounter;
 
-		public LinkDisposable(AbstractLinkContainer target)
-		{
+		public LinkDisposable(AbstractLinkContainer target) {
 			super(target);
 			linkCounter = target.linkCounter;
 		}
 
 		@Override
-		public void destroy() throws Throwable
-		{
+		public void destroy() throws Throwable {
 			AbstractLinkContainer target = get();
-			if (target == null || linkCounter != target.linkCounter || !target.linked)
-			{
+			if (target == null || linkCounter != target.linkCounter || !target.linked) {
 				// this delegate is already outdated
 				return;
 			}
@@ -112,123 +109,103 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 	protected int linkCounter;
 
 	@Override
-	public void afterPropertiesSet()
-	{
+	public void afterPropertiesSet() {
 		ParamChecker.assertTrue(registryBeanAutowiredType != null || registry != null,
 				"either property 'RegistryBeanAutowiredType', 'RegistryBeanName' or 'Registry' must be valid");
 		ParamChecker.assertTrue(listener != null || listenerBean != null || listenerBeanName != null,
 				"either property 'Listener' or 'ListenerBean' or 'ListenerBeanName' must be valid");
-		if (arguments == null)
-		{
+		if (arguments == null) {
 			arguments = emptyArgs;
 		}
 	}
 
 	@Override
-	public void setDeclarationStackTrace(StackTraceElement[] declarationStackTrace)
-	{
+	public void setDeclarationStackTrace(StackTraceElement[] declarationStackTrace) {
 		this.declarationStackTrace = declarationStackTrace;
 	}
 
-	protected Object resolveRegistry()
-	{
+	protected Object resolveRegistry() {
 		IServiceContext beanContext = this.beanContext;
 		boolean hasForeignContextBeenUsed = true;
-		if (foreignBeanContext != null)
-		{
+		if (foreignBeanContext != null) {
 			beanContext = foreignBeanContext;
 			hasForeignContextBeenUsed = false;
 		}
-		else if (foreignBeanContextName != null)
-		{
-			foreignBeanContext = beanContext.getService(foreignBeanContextName, IServiceContext.class, !optional);
+		else if (foreignBeanContextName != null) {
+			foreignBeanContext =
+					beanContext.getService(foreignBeanContextName, IServiceContext.class, !optional);
 			beanContext = foreignBeanContext;
 			hasForeignContextBeenUsed = false;
 		}
-		if (beanContext == null)
-		{
+		if (beanContext == null) {
 			return null;
 		}
 		Object registry = this.registry;
-		if (registry instanceof Class)
-		{
+		if (registry instanceof Class) {
 			registry = beanContext.getService((Class<?>) registry, !optional);
 			hasForeignContextBeenUsed = true;
 		}
-		else if (registry instanceof String)
-		{
+		else if (registry instanceof String) {
 			registry = beanContext.getService((String) registry, !optional);
 			hasForeignContextBeenUsed = true;
 		}
-		else if (registry instanceof IBeanConfiguration)
-		{
+		else if (registry instanceof IBeanConfiguration) {
 			registry = beanContext.getService(((IBeanConfiguration) registry).getName(), !optional);
 			hasForeignContextBeenUsed = true;
 		}
-		else if (registry == null)
-		{
+		else if (registry == null) {
 			registry = beanContext.getService(registryBeanAutowiredType, !optional);
 			hasForeignContextBeenUsed = true;
 		}
-		if (registry == null)
-		{
+		if (registry == null) {
 			return null;
 		}
-		if (!hasForeignContextBeenUsed)
-		{
-			throw new LinkException(ILinkRegistryNeededConfiguration.class.getSimpleName()
-					+ ".toContext(...) has been called but at the same time the registry has been provided as an instance with the .to(...) overload", this);
+		if (!hasForeignContextBeenUsed) {
+			throw new LinkException(
+					ILinkRegistryNeededConfiguration.class.getSimpleName()
+							+ ".toContext(...) has been called but at the same time the registry has been provided as an instance with the .to(...) overload",
+					this);
 		}
 		registry = resolveRegistryIntern(registry);
 		this.registry = registry;
 		return registry;
 	}
 
-	protected Object resolveRegistryIntern(Object registry)
-	{
+	protected Object resolveRegistryIntern(Object registry) {
 		return registry;
 	}
 
-	protected Object resolveListener()
-	{
+	protected Object resolveListener() {
 		Object listener = this.listener;
-		if (listener != null)
-		{
+		if (listener != null) {
 			listener = resolveListenerIntern(listener);
 			this.listener = listener;
 			return listener;
 		}
-		else if (listenerBeanName != null)
-		{
+		else if (listenerBeanName != null) {
 			listener = beanContext.getService(listenerBeanName, !optional);
-			if (listener == null)
-			{
+			if (listener == null) {
 				return null;
 			}
 		}
-		else if (listenerBean != null)
-		{
+		else if (listenerBean != null) {
 			listenerBeanName = listenerBean.getName();
-			if (listenerBeanName == null)
-			{
+			if (listenerBeanName == null) {
 				listener = listenerBean.getInstance();
-				if (listener == null)
-				{
-					throw new LinkException("No listener instance received from " + listenerBean.getClass().getName() + ".getInstance()"
-							+ " to link to registry", this);
+				if (listener == null) {
+					throw new LinkException("No listener instance received from "
+							+ listenerBean.getClass().getName() + ".getInstance()" + " to link to registry",
+							this);
 				}
 			}
-			else
-			{
+			else {
 				listener = beanContext.getService(listenerBeanName, !optional);
-				if (listener == null)
-				{
+				if (listener == null) {
 					return null;
 				}
 			}
 		}
-		else
-		{
+		else {
 			throw new LinkException("Listener not found. Must never happen.", this);
 		}
 		listener = resolveListenerIntern(listener);
@@ -236,81 +213,75 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 		return listener;
 	}
 
-	protected Object resolveListenerIntern(Object listener)
-	{
-		if (listener == null)
-		{
+	protected Object resolveListenerIntern(Object listener) {
+		if (listener == null) {
 			throw new LinkException("Must never happen", this);
 		}
 		return listener;
 	}
 
 	@Override
-	public boolean link()
-	{
-		if (linked)
-		{
+	public boolean link() {
+		if (linked) {
 			return false;
 		}
 		Object registry = null, listener = null;
-		try
-		{
+		try {
 			registry = resolveRegistry();
-			if (registry == null)
-			{
+			if (registry == null) {
 				return false;
 			}
 			listener = resolveListener();
-			if (listener == null)
-			{
+			if (listener == null) {
 				return false;
 			}
 			handleLink(registry, listener);
 		}
-		catch (Throwable e)
-		{
-			if (declarationStackTrace != null)
-			{
-				throw new LinkException("An error occured while trying to link " + (listenerBeanName != null ? "'" + listenerBeanName + "'" : listener)
-						+ " to '" + registry + "'\n" + Arrays.toString(declarationStackTrace), e, this);
+		catch (Throwable e) {
+			if (listener == null) {
+				listener = this.listener;
 			}
-			throw new LinkException("An error occured while trying to link " + (listenerBeanName != null ? "'" + listenerBeanName + "'" : listener) + " to '"
+			if (registry == null) {
+				registry = this.registry;
+			}
+			if (declarationStackTrace != null) {
+				throw new LinkException("An error occured while trying to link "
+						+ (listenerBeanName != null ? "'" + listenerBeanName + "'" : listener) + " to '"
+						+ registry + "'\n" + Arrays.toString(declarationStackTrace), e, this);
+			}
+			throw new LinkException("An error occured while trying to link "
+					+ (listenerBeanName != null ? "'" + listenerBeanName + "'" : listener) + " to '"
 					+ registry + "'", e, this);
 		}
 		linked = true;
 		linkCounter++;
-		if (foreignBeanContext != null)
-		{
+		if (foreignBeanContext != null) {
 			foreignBeanContext.registerDisposable(new LinkDisposable(this));
 		}
 		return true;
 	}
 
 	@Override
-	public boolean unlink()
-	{
-		if (!linked)
-		{
+	public boolean unlink() {
+		if (!linked) {
 			return false;
 		}
-		try
-		{
-			if (registry == null || listener == null)
-			{
+		try {
+			if (registry == null || listener == null) {
 				// Nothing to do because there was no (successful) call to link() before
 				ILogger log = getLog();
-				if (!optional && log.isDebugEnabled())
-				{
-					log.debug("Unlink has been called without prior linking. If no other exception is visible in the logs then this may be a bug");
+				if (!optional && log.isDebugEnabled()) {
+					log.debug(
+							"Unlink has been called without prior linking. If no other exception is visible in the logs then this may be a bug");
 				}
 				return false;
 			}
 			handleUnlink(registry, listener);
 		}
-		catch (Exception e)
-		{
-			throw new LinkException("An error occured while trying to unlink " + (listenerBeanName != null ? "'" + listenerBeanName + "'" : listener)
-					+ " from '" + registry + "'", e, this);
+		catch (Exception e) {
+			throw new LinkException("An error occured while trying to unlink "
+					+ (listenerBeanName != null ? "'" + listenerBeanName + "'" : listener) + " from '"
+					+ registry + "'", e, this);
 		}
 		linked = false;
 		return true;

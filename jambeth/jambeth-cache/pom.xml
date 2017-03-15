@@ -12,11 +12,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>cglib</groupId>
-			<artifactId>cglib</artifactId>
-		</dependency>
-		
-		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-filter</artifactId>
 		</dependency>

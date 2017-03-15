@@ -8,8 +8,7 @@ import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 
-public class BeanConfiguration extends AbstractBeanConfiguration
-{
+public class BeanConfiguration extends AbstractBeanConfiguration {
 	protected final Class<?> beanType;
 
 	protected Object createdInstance;
@@ -18,60 +17,51 @@ public class BeanConfiguration extends AbstractBeanConfiguration
 
 	protected final IProxyFactory proxyFactory;
 
-	public BeanConfiguration(Class<?> beanType, String beanName, IProxyFactory proxyFactory, IProperties props)
-	{
+	public BeanConfiguration(Class<?> beanType, String beanName, IProxyFactory proxyFactory,
+			IProperties props) {
 		super(beanName, props);
 		this.beanType = beanType;
 		this.proxyFactory = proxyFactory;
 	}
 
 	@Override
-	public IBeanConfiguration template()
-	{
+	public IBeanConfiguration template() {
 		isAbstract = true;
 		return this;
 	}
 
 	@Override
-	public Class<?> getBeanType()
-	{
+	public Class<?> getBeanType() {
 		return beanType;
 	}
 
 	@Override
-	public boolean isAbstract()
-	{
+	public boolean isAbstract() {
 		return isAbstract;
 	}
 
 	@Override
-	public Object getInstance(Class<?> instanceType)
-	{
-		if (createdInstance == null)
-		{
-			try
-			{
-				if (instanceType.isInterface() || Modifier.isAbstract(instanceType.getModifiers()))
-				{
-					createdInstance = proxyFactory.createProxy(instanceType, EmptyInterceptor.INSTANCE);
+	public Object getInstance(Class<?> instanceType) {
+		if (createdInstance == null) {
+			try {
+				if (instanceType.isInterface() || Modifier.isAbstract(instanceType.getModifiers())) {
+					createdInstance = proxyFactory.createProxy(getClass().getClassLoader(), instanceType,
+							EmptyInterceptor.INSTANCE);
 				}
-				else
-				{
+				else {
 					createdInstance = instanceType.newInstance();
-					if (declarationStackTrace != null && createdInstance instanceof IDeclarationStackTraceAware)
-					{
-						((IDeclarationStackTraceAware) createdInstance).setDeclarationStackTrace(declarationStackTrace);
+					if (declarationStackTrace != null
+							&& createdInstance instanceof IDeclarationStackTraceAware) {
+						((IDeclarationStackTraceAware) createdInstance)
+								.setDeclarationStackTrace(declarationStackTrace);
 					}
 				}
 			}
-			catch (Throwable e)
-			{
-				if (declarationStackTrace != null)
-				{
+			catch (Throwable e) {
+				if (declarationStackTrace != null) {
 					throw new BeanContextDeclarationException(declarationStackTrace, e);
 				}
-				else
-				{
+				else {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}

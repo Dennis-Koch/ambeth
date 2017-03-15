@@ -22,8 +22,6 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.SQLState;
 import com.koch.ambeth.persistence.api.database.ITransactionInfo;
 import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
-import com.koch.ambeth.persistence.jdbc.connection.IConnectionKeyHandle;
-import com.koch.ambeth.persistence.jdbc.connection.IPreparedConnectionHolder;
 import com.koch.ambeth.persistence.jdbc.event.ConnectionClosedEvent;
 import com.koch.ambeth.service.log.interceptor.LogInterceptor;
 import com.koch.ambeth.util.IPrintable;
@@ -35,18 +33,16 @@ import com.koch.ambeth.util.proxy.IProxyFactory;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 
-public class LogConnectionInterceptor extends AbstractSimpleInterceptor implements IPreparedConnectionHolder
-{
+public class LogConnectionInterceptor extends AbstractSimpleInterceptor
+		implements IPreparedConnectionHolder {
 	public static final Method createStatementMethod;
 
 	public static final Method isClosedMethod, closeMethod, pooledCloseMethod, toStringMethod;
 
 	public static final Method unwrapMethod, isWrapperForMethod;
 
-	static
-	{
-		try
-		{
+	static {
+		try {
 			toStringMethod = Object.class.getMethod("toString");
 			createStatementMethod = Connection.class.getMethod("createStatement");
 			isClosedMethod = Connection.class.getMethod("isClosed");
@@ -55,8 +51,7 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor implemen
 			unwrapMethod = Wrapper.class.getMethod("unwrap", Class.class);
 			isWrapperForMethod = Wrapper.class.getMethod("isWrapperFor", Class.class);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -94,149 +89,131 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor implemen
 
 	protected Class<?>[] stmInterfaces;
 
-	protected final IdentityWeakSmartCopyMap<Object, Reference<Object>> unwrappedObjectToProxyMap = new IdentityWeakSmartCopyMap<Object, Reference<Object>>();
+	protected final IdentityWeakSmartCopyMap<Object, Reference<Object>> unwrappedObjectToProxyMap =
+			new IdentityWeakSmartCopyMap<Object, Reference<Object>>();
 
-	public LogConnectionInterceptor(IConnectionKeyHandle connectionKeyHandle)
-	{
+	public LogConnectionInterceptor(IConnectionKeyHandle connectionKeyHandle) {
 		this.connectionKeyHandle = connectionKeyHandle;
 		unwrappedObjectToProxyMap.setAutoCleanupNullValue(true);
 	}
 
-	public void setConnection(Connection connection)
-	{
+	public void setConnection(Connection connection) {
 		this.connection = connection;
 	}
 
 	@Override
-	public boolean isPreparedConnection()
-	{
+	public boolean isPreparedConnection() {
 		return preparedConnection;
 	}
 
 	@Override
-	public void setPreparedConnection(boolean preparedConnection)
-	{
+	public void setPreparedConnection(boolean preparedConnection) {
 		this.preparedConnection = preparedConnection;
 	}
 
 	@Override
-	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
-	{
-		if (connection == null)
-		{
-			if (isClosedMethod.equals(method))
-			{
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy)
+			throws Throwable {
+		if (connection == null) {
+			if (isClosedMethod.equals(method)) {
 				return Boolean.TRUE;
 			}
-			else if (toStringMethod.equals(method))
-			{
+			else if (toStringMethod.equals(method)) {
 				return toString();
 			}
-			else if (pooledCloseMethod.equals(method) || closeMethod.equals(method))
-			{
+			else if (pooledCloseMethod.equals(method) || closeMethod.equals(method)) {
 				return null;
 			}
-			throw new SQLException(SQLState.CONNECTION_NOT_OPEN.getMessage(), SQLState.CONNECTION_NOT_OPEN.getXopen());
+			throw new SQLException(SQLState.CONNECTION_NOT_OPEN.getMessage(),
+					SQLState.CONNECTION_NOT_OPEN.getXopen());
 		}
-		if (isWrapperForMethod.equals(method))
-		{
-			if (IConnectionKeyHandle.class.equals(args[0]) || IPreparedConnectionHolder.class.equals(args[0]))
-			{
+		if (isWrapperForMethod.equals(method)) {
+			if (IConnectionKeyHandle.class.equals(args[0])
+					|| IPreparedConnectionHolder.class.equals(args[0])) {
 				return Boolean.TRUE;
 			}
 		}
-		else if (unwrapMethod.equals(method))
-		{
-			if (IConnectionKeyHandle.class.equals(args[0]))
-			{
+		else if (unwrapMethod.equals(method)) {
+			if (IConnectionKeyHandle.class.equals(args[0])) {
 				return connectionKeyHandle;
 			}
-			if (IPreparedConnectionHolder.class.equals(args[0]))
-			{
+			if (IPreparedConnectionHolder.class.equals(args[0])) {
 				return this;
 			}
 		}
-		try
-		{
-			if (PreparedStatement.class.isAssignableFrom(method.getReturnType()))
-			{
+		try {
+			if (PreparedStatement.class.isAssignableFrom(method.getReturnType())) {
 				PreparedStatement pstm = (PreparedStatement) proxy.invoke(connection, args);
 
 				pstm.setFetchSize(fetchSize);
-				MethodInterceptor logPstmInterceptor = beanContext.registerBean(LogPreparedStatementInterceptor.class)//
-						.propertyValue("PreparedStatement", pstm)//
-						.propertyValue("Statement", pstm)//
-						.propertyValue("Connection", obj)//
-						.propertyValue("Sql", args[0])//
-						.finish();
-				if (pstmInterfaces == null)
-				{
+				MethodInterceptor logPstmInterceptor =
+						beanContext.registerBean(LogPreparedStatementInterceptor.class)//
+								.propertyValue("PreparedStatement", pstm)//
+								.propertyValue("Statement", pstm)//
+								.propertyValue("Connection", obj)//
+								.propertyValue("Sql", args[0])//
+								.finish();
+				if (pstmInterfaces == null) {
 					pstmInterfaces = cgLibUtil.getAllInterfaces(pstm, IPrintable.class, ISqlValue.class);
 				}
-				return proxyFactory.createProxy(PreparedStatement.class, pstmInterfaces, logPstmInterceptor);
+				return proxyFactory.createProxy(getClass().getClassLoader(), PreparedStatement.class,
+						pstmInterfaces, logPstmInterceptor);
 			}
-			else if (Statement.class.isAssignableFrom(method.getReturnType()))
-			{
+			else if (Statement.class.isAssignableFrom(method.getReturnType())) {
 				Statement stm = (Statement) proxy.invoke(connection, args);
 
 				stm.setFetchSize(fetchSize);
-				MethodInterceptor logStmInterceptor = beanContext.registerBean(LogStatementInterceptor.class)//
-						.propertyValue("Statement", stm)//
-						.propertyValue("Connection", obj)//
-						.finish();
-				if (stmInterfaces == null)
-				{
+				MethodInterceptor logStmInterceptor =
+						beanContext.registerBean(LogStatementInterceptor.class)//
+								.propertyValue("Statement", stm)//
+								.propertyValue("Connection", obj)//
+								.finish();
+				if (stmInterfaces == null) {
 					stmInterfaces = cgLibUtil.getAllInterfaces(stm, IPrintable.class);
 				}
-				return proxyFactory.createProxy(Statement.class, stmInterfaces, logStmInterceptor);
+				return proxyFactory.createProxy(getClass().getClassLoader(), Statement.class, stmInterfaces,
+						logStmInterceptor);
 			}
 			Object result = proxy.invoke(connection, args);
 
-			if (pooledCloseMethod.equals(method) || closeMethod.equals(method))
-			{
-				if (log.isDebugEnabled())
-				{
-					log.debug("[cn:" + System.identityHashCode(connection) + " tx:" + getSessionId() + "] closed connection");
+			if (pooledCloseMethod.equals(method) || closeMethod.equals(method)) {
+				if (log.isDebugEnabled()) {
+					log.debug("[cn:" + System.identityHashCode(connection) + " tx:" + getSessionId()
+							+ "] closed connection");
 				}
-				if (eventDispatcher != null)
-				{
+				if (eventDispatcher != null) {
 					eventDispatcher.dispatchEvent(new ConnectionClosedEvent((Connection) obj));
 				}
 				connection = null;
 			}
-			else if (unwrapMethod.equals(method))
-			{
+			else if (unwrapMethod.equals(method)) {
 				Reference<Object> proxyOfResultR = unwrappedObjectToProxyMap.get(result);
 				Object proxyOfResult = proxyOfResultR != null ? proxyOfResultR.get() : null;
-				if (proxyOfResult == null)
-				{
+				if (proxyOfResult == null) {
 					LogInterceptor logInterceptor = beanContext.registerBean(LogInterceptor.class)//
 							.propertyValue("Target", result)//
 							.finish();
-					proxyOfResult = proxyFactory.createProxy(cgLibUtil.getAllInterfaces(result), logInterceptor);
+					proxyOfResult = proxyFactory.createProxy(getClass().getClassLoader(),
+							cgLibUtil.getAllInterfaces(result), logInterceptor);
 					unwrappedObjectToProxyMap.put(result, new WeakReference<Object>(proxyOfResult));
 				}
 				result = proxyOfResult;
 			}
 			return result;
 		}
-		catch (InvocationTargetException e)
-		{
+		catch (InvocationTargetException e) {
 			throw RuntimeExceptionUtil.mask(e, method.getExceptionTypes());
 		}
 	}
 
-	protected String getSessionId()
-	{
-		if (transactionInfo == null)
-		{
+	protected String getSessionId() {
+		if (transactionInfo == null) {
 			return "-";
 		}
 		return Long.toString(transactionInfo.getSessionId());
 	}
 
-	public Connection getConnection()
-	{
+	public Connection getConnection() {
 		return connection;
 	}
 }

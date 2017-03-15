@@ -1,3 +1,8 @@
 -exportcontents: \
     com.koch.ambeth.*
-Import-Package: sun.nio.ch;resolution:=optional
+Import-Package: \
+	com.koch.ambeth.event, \
+	net.sf.cglib.core, \
+	net.sf.cglib.proxy, \
+	sun.nio.ch;resolution:=optional, \
+	*

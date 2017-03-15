@@ -22,32 +22,36 @@ import com.koch.ambeth.merge.event.EntityMetaDataAddedEvent;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 
 @FrameworkModule
-public class MappingModule implements IInitializingModule
-{
+public class MappingModule implements IInitializingModule {
 	@Property(name = ServiceConfigurationConstants.GenericTransferMapping, defaultValue = "false")
 	protected boolean genericTransferMapping;
 
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		if (genericTransferMapping)
-		{
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		if (genericTransferMapping) {
 			beanContextFactory.registerBean("valueObjectConfigReader", ValueObjectConfigReader.class);
-			beanContextFactory.link("valueObjectConfigReader").to(IEventListenerExtendable.class).with(EntityMetaDataAddedEvent.class);
+			beanContextFactory.link("valueObjectConfigReader").to(IEventListenerExtendable.class)
+					.with(EntityMetaDataAddedEvent.class);
 
-			beanContextFactory.registerBean("listTypeHelper", ListTypeHelper.class).autowireable(IListTypeHelper.class);
-			beanContextFactory.registerBean("mapperServiceFactory", MapperServiceFactory.class).autowireable(IMapperServiceFactory.class);
+			beanContextFactory.registerBean("listTypeHelper", ListTypeHelper.class)
+					.autowireable(IListTypeHelper.class);
+			beanContextFactory.registerBean("mapperServiceFactory", MapperServiceFactory.class)
+					.autowireable(IMapperServiceFactory.class);
 
-			IBeanConfiguration expansionEntityMapper = beanContextFactory.registerBean(ExpansionEntityMapper.class).autowireable(
-					IPropertyExpansionExtendable.class);
-			beanContextFactory.link(expansionEntityMapper).to(IDedicatedMapperExtendable.class).with(Object.class);
+			IBeanConfiguration expansionEntityMapper =
+					beanContextFactory.registerBean(ExpansionEntityMapper.class)
+							.autowireable(IPropertyExpansionExtendable.class);
+			beanContextFactory.link(expansionEntityMapper).to(IDedicatedMapperExtendable.class)
+					.with(Object.class);
 
-			beanContextFactory.registerBean("mapperExtensionRegistry", ExtendableBean.class)
-					.autowireable(IDedicatedMapperExtendable.class, IDedicatedMapperRegistry.class)
-					.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, IDedicatedMapperExtendable.class)
-					.propertyValue(ExtendableBean.P_PROVIDER_TYPE, IDedicatedMapperRegistry.class).propertyValue("AllowMultiValue", true);
+			ExtendableBean
+					.registerExtendableBean(beanContextFactory, "mapperExtensionRegistry",
+							IDedicatedMapperRegistry.class, IDedicatedMapperExtendable.class,
+							IDedicatedMapperRegistry.class.getClassLoader())
+					.propertyValue("AllowMultiValue", true);
 		}
 
-		beanContextFactory.registerBean(PropertyExpansionProvider.class).autowireable(IPropertyExpansionProvider.class);
+		beanContextFactory.registerBean(PropertyExpansionProvider.class)
+				.autowireable(IPropertyExpansionProvider.class);
 	}
 }

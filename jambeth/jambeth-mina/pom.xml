@@ -12,9 +12,9 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>de.osthus</groupId>
+			<groupId>com.koch</groupId>
 			<artifactId>mina-jssc-serial</artifactId>
-			<version>0.0.1</version>
+			<version>1.0.0</version>
 		</dependency>
 
 		<dependency>

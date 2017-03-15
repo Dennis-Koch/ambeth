@@ -2,16 +2,12 @@ package com.koch.ambeth.util;
 
 import org.objectweb.asm.Type;
 
-public final class TypeUtil
-{
-	public static final Type[] getClassesToTypes(Class<?>[] classes)
-	{
+public final class TypeUtil {
+	public static final Type[] getClassesToTypes(Class<?>[] classes) {
 		Type[] types = new Type[classes.length];
-		for (int a = classes.length; a-- > 0;)
-		{
+		for (int a = classes.length; a-- > 0;) {
 			Class<?> clazz = classes[a];
-			if (clazz == null)
-			{
+			if (clazz == null) {
 				continue;
 			}
 			types[a] = Type.getType(clazz);
@@ -19,8 +15,7 @@ public final class TypeUtil
 		return types;
 	}
 
-	private TypeUtil()
-	{
+	private TypeUtil() {
 		// Intended blank
 	}
 }

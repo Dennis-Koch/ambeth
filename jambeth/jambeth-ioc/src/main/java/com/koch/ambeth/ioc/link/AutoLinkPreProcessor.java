@@ -1,5 +1,6 @@
 package com.koch.ambeth.ioc.link;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Set;
 
@@ -15,10 +16,7 @@ import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 
-import net.sf.cglib.reflect.FastMethod;
-
-public class AutoLinkPreProcessor implements IInitializingBean, IBeanPreProcessor
-{
+public class AutoLinkPreProcessor implements IInitializingBean, IBeanPreProcessor {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -32,63 +30,53 @@ public class AutoLinkPreProcessor implements IInitializingBean, IBeanPreProcesso
 	protected Class<?> extendableType;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(extendableType, "extendableType");
-		if (extensionType == null)
-		{
+		if (extensionType == null) {
 			ParamChecker.assertNotNull(extendableRegistry, "extendableRegistry");
-			FastMethod[] addRemoveMethods = extendableRegistry.getAddRemoveMethods(extendableType);
+			Method[] addRemoveMethods = extendableRegistry.getAddRemoveMethods(extendableType);
 			extensionType = addRemoveMethods[0].getParameterTypes()[0];
 		}
 	}
 
-	public void setExtendableName(String extendableName)
-	{
+	public void setExtendableName(String extendableName) {
 		this.extendableName = extendableName;
 	}
 
-	public void setExtendableRegistry(IExtendableRegistry extendableRegistry)
-	{
+	public void setExtendableRegistry(IExtendableRegistry extendableRegistry) {
 		this.extendableRegistry = extendableRegistry;
 	}
 
-	public void setExtendableType(Class<?> extendableType)
-	{
+	public void setExtendableType(Class<?> extendableType) {
 		this.extendableType = extendableType;
 	}
 
-	public void setExtensionType(Class<?> extensionType)
-	{
+	public void setExtensionType(Class<?> extensionType) {
 		this.extensionType = extensionType;
 	}
 
 	@Override
-	public void preProcessProperties(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IProperties props, String beanName, Object service,
-			Class<?> beanType, List<IPropertyConfiguration> propertyConfigs, Set<String> ignoredPropertyNames, IPropertyInfo[] properties)
-	{
-		if (extensionType.isAssignableFrom(service.getClass()))
-		{
-			if (log.isDebugEnabled())
-			{
-				if (extendableName == null)
-				{
-					log.debug("Registering bean '" + beanName + "' to " + extendableType.getSimpleName() + " because it implements "
-							+ extensionType.getSimpleName());
+	public void preProcessProperties(IBeanContextFactory beanContextFactory,
+			IServiceContext beanContext, IProperties props, String beanName, Object service,
+			Class<?> beanType, List<IPropertyConfiguration> propertyConfigs,
+			Set<String> ignoredPropertyNames, IPropertyInfo[] properties) {
+		if (extensionType.isAssignableFrom(service.getClass())) {
+			if (log.isDebugEnabled()) {
+				if (extendableName == null) {
+					log.debug("Registering bean '" + beanName + "' to " + extendableType.getSimpleName()
+							+ " because it implements " + extensionType.getSimpleName());
 				}
-				else
-				{
-					log.debug("Registering bean '" + beanName + "' to " + extendableType.getSimpleName() + " ('" + extendableName + "') because it implements "
-							+ extensionType.getSimpleName());
+				else {
+					log.debug(
+							"Registering bean '" + beanName + "' to " + extendableType.getSimpleName() + " ('"
+									+ extendableName + "') because it implements " + extensionType.getSimpleName());
 				}
 			}
 			ILinkRegistryNeededConfiguration<Object> link = beanContextFactory.link(service);
-			if (extendableName == null)
-			{
+			if (extendableName == null) {
 				link.to(extendableType);
 			}
-			else
-			{
+			else {
 				link.to(extendableName, extendableType);
 			}
 		}
