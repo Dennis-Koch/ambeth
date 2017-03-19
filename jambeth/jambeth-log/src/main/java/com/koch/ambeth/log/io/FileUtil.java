@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -181,13 +182,23 @@ public final class FileUtil {
 				if (file.exists()) {
 					inputStream = Files.newInputStream(file.toPath());
 				}
-				file = new File(URLDecoder.decode(pathString, "UTF-8") + '/' + fileName);
-				if (file.exists()) {
-					inputStream = Files.newInputStream(file.toPath());
-				}
 			}
 			catch (Throwable e) {
 				throw RuntimeExceptionUtil.mask(e);
+			}
+			try {
+				URL url = new URL(pathString + '/' + lookupName);
+				inputStream = url.openStream();
+			}
+			catch (Throwable e) {
+				// intended blank
+			}
+			try {
+				URL url = new URL(lookupName);
+				inputStream = url.openStream();
+			}
+			catch (Throwable e) {
+				// intended blank
 			}
 			if (inputStream == null && currentTypeScope != null) {
 				inputStream = currentTypeScope.getClassLoader().getResourceAsStream(lookupName);

@@ -5,12 +5,13 @@ import java.util.List;
 import com.koch.ambeth.bytecode.behavior.IBytecodeBehavior;
 import com.koch.ambeth.ioc.bytecode.IBytecodeEnhancer;
 import com.koch.ambeth.ioc.bytecode.IEnhancementHint;
-import com.koch.ambeth.util.collections.HashMap;
+import com.koch.ambeth.util.collections.IMap;
 
-public interface IBytecodeStore
-{
-	HashMap<BytecodeStoreKey, BytecodeStoreItem> loadEnhancedTypes(IBytecodeEnhancer bytecodeEnhancer, IBytecodeBehavior[] behaviors);
+public interface IBytecodeStore {
+	IMap<BytecodeStoreKey, BytecodeStoreItem> loadEnhancedTypes(IBytecodeEnhancer bytecodeEnhancer,
+			IBytecodeBehavior[] behaviors);
 
-	void storeEnhancedType(BytecodeEnhancer bytecodeEnhancer, IBytecodeBehavior[] behaviors, Class<?> baseType, IEnhancementHint hint, Class<?> enhancedType,
-			List<Class<?>> enhancedTypesPipeline);
+	void storeEnhancedType(BytecodeEnhancer bytecodeEnhancer, IBytecodeBehavior[] behaviors,
+			Class<?> baseType, IEnhancementHint hint, Class<?> enhancedType,
+			List<Class<?>> enhancedTypesPipeline, ClassLoader classLoader);
 }

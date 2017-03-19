@@ -37,119 +37,123 @@ import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 import com.koch.ambeth.util.collections.WeakSmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
-{
+public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener {
+	public static class ClassLoaderEntry {
+		protected final AmbethClassLoader ambethClassLoader;
+
+		protected final WeakSmartCopyMap<Class<?>, Reference<byte[]>> typeToContentMap =
+				new WeakSmartCopyMap<>();
+
+		public ClassLoaderEntry(AmbethClassLoader ambethClassLoader) {
+			super();
+			this.ambethClassLoader = ambethClassLoader;
+			typeToContentMap.setAutoCleanupNullValue(true);
+		}
+	}
+
 	@LogInstance
 	private ILogger log;
 
 	@Autowired
 	protected IServiceContext beanContext;
 
-	protected final AmbethClassLoader ambethClassLoader;
-
-	protected final WeakSmartCopyMap<Class<?>, Reference<byte[]>> typeToContentMap = new WeakSmartCopyMap<Class<?>, Reference<byte[]>>();
-
-	public BytecodeClassLoader()
-	{
-		ambethClassLoader = new AmbethClassLoader(Thread.currentThread().getContextClassLoader());
-		typeToContentMap.setAutoCleanupNullValue(true);
-	}
+	protected final WeakSmartCopyMap<ClassLoader, ClassLoaderEntry> typeToContentMap =
+			new WeakSmartCopyMap<>();
 
 	@Override
-	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception
-	{
-		if (!(eventObject instanceof ClearAllCachesEvent))
-		{
+	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception {
+		if (!(eventObject instanceof ClearAllCachesEvent)) {
 			return;
 		}
 		typeToContentMap.clear();
 	}
 
-	@Override
-	public Class<?> loadClass(String typeName, byte[] content)
-	{
-		typeName = typeName.replaceAll(Pattern.quote("/"), Matcher.quoteReplacement("."));
-		return ambethClassLoader.defineClass(typeName, content);
+	protected ClassLoaderEntry ensureEntry(ClassLoader classLoader) {
+		// if (classLoader == null) {
+		classLoader = Thread.currentThread().getContextClassLoader();
+		// }
+		ClassLoaderEntry entry = typeToContentMap.get(classLoader);
+		if (entry == null) {
+			entry = new ClassLoaderEntry(new AmbethClassLoader(classLoader));
+			typeToContentMap.put(classLoader, entry);
+		}
+		return entry;
 	}
 
 	@Override
-	public byte[] readTypeAsBinary(Class<?> type)
-	{
-		Reference<byte[]> contentR = typeToContentMap.get(type);
+	public Class<?> loadClass(String typeName, byte[] content, ClassLoader classLoader) {
+		typeName = typeName.replaceAll(Pattern.quote("/"), Matcher.quoteReplacement("."));
+		return ensureEntry(classLoader).ambethClassLoader.defineClass(typeName, content);
+	}
+
+	@Override
+	public byte[] readTypeAsBinary(Class<?> type, ClassLoader classLoader) {
+		ClassLoaderEntry entry = ensureEntry(classLoader);
+		Reference<byte[]> contentR = entry.typeToContentMap.get(type);
 		byte[] content = null;
-		if (contentR != null)
-		{
+		if (contentR != null) {
 			content = contentR.get();
 		}
-		if (content != null)
-		{
+		if (content != null) {
 			return content;
 		}
-		try
-		{
+		AmbethClassLoader ambethClassLoader = entry.ambethClassLoader;
+		try {
 			content = ambethClassLoader.getContent(type);
-			if (content != null)
-			{
-				typeToContentMap.put(type, new WeakReference<byte[]>(content));
+			if (content != null) {
+				entry.typeToContentMap.put(type, new WeakReference<>(content));
 				return content;
 			}
 			String bytecodeTypeName = getBytecodeTypeName(type);
 			InputStream is = ambethClassLoader.getResourceAsStream(bytecodeTypeName + ".class");
-			if (is == null)
-			{
+			if (is == null) {
 				throw new IllegalArgumentException("No class found with name '" + type.getName() + "'");
 			}
-			try
-			{
+			try {
 				ByteArrayOutputStream bos = new ByteArrayOutputStream();
 				int oneByte;
-				while ((oneByte = is.read()) != -1)
-				{
+				while ((oneByte = is.read()) != -1) {
 					bos.write(oneByte);
 				}
 				content = bos.toByteArray();
-				typeToContentMap.put(type, new WeakReference<byte[]>(content));
+				entry.typeToContentMap.put(type, new WeakReference<>(content));
 				return content;
 			}
-			finally
-			{
+			finally {
 				is.close();
 			}
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	public void verify(byte[] content)
-	{
-		CheckClassAdapter.verify(new ClassReader(content), ambethClassLoader, false, new PrintWriter(new LogWriter(log)));
+	public void verify(byte[] content, ClassLoader classLoader) {
+		CheckClassAdapter.verify(new ClassReader(content), ensureEntry(classLoader).ambethClassLoader,
+				false, new PrintWriter(new LogWriter(log)));
 	}
 
 	@Override
-	public byte[] buildTypeFromScratch(String newTypeName, Writer writer, IBuildVisitorDelegate buildVisitorDelegate)
-	{
+	public byte[] buildTypeFromScratch(String newTypeName, Writer writer,
+			IBuildVisitorDelegate buildVisitorDelegate, ClassLoader classLoader) {
 		newTypeName = getBytecodeTypeName(newTypeName);
-		try
-		{
-			byte[] objContent = readTypeAsBinary(Object.class);
+		try {
+			byte[] objContent = readTypeAsBinary(Object.class, classLoader);
 
-			return buildTypeFromParent(newTypeName, objContent, writer, buildVisitorDelegate);
+			return buildTypeFromParent(newTypeName, objContent, writer, buildVisitorDelegate,
+					classLoader);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	public byte[] buildTypeFromParent(String newTypeName, byte[] sourceContent, Writer writer, IBuildVisitorDelegate buildVisitorDelegate)
-	{
+	public byte[] buildTypeFromParent(String newTypeName, byte[] sourceContent, Writer writer,
+			IBuildVisitorDelegate buildVisitorDelegate, ClassLoader classLoader) {
 		newTypeName = getBytecodeTypeName(newTypeName);
-		try
-		{
+		try {
 			ClassReader cr = new ClassReader(new ByteArrayInputStream(sourceContent));
 			ClassNode cn = new ClassNode();
 			cr.accept(cn, ClassReader.SKIP_DEBUG | ClassReader.EXPAND_FRAMES);
@@ -158,24 +162,23 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 			PrintWriter pw = new PrintWriter(writer);
 
 			ClassVisitor visitor = new SuppressLinesClassVisitor(cw);
-			visitor = beanContext.registerWithLifecycle(new LogImplementationsClassVisitor(visitor)).finish();
+			visitor =
+					beanContext.registerWithLifecycle(new LogImplementationsClassVisitor(visitor)).finish();
 			visitor = new TraceClassVisitor(visitor, pw);
 
 			ClassVisitor wrappedVisitor = visitor;
 			int originalModifiers = BytecodeBehaviorState.getState().getOriginalType().getModifiers();
-			if (Modifier.isInterface(originalModifiers) || Modifier.isAbstract(originalModifiers))
-			{
+			if (Modifier.isInterface(originalModifiers) || Modifier.isAbstract(originalModifiers)) {
 				wrappedVisitor = new InterfaceToClassVisitor(wrappedVisitor);
 			}
-			if (!PublicConstructorVisitor.hasValidConstructor())
-			{
+			if (!PublicConstructorVisitor.hasValidConstructor()) {
 				wrappedVisitor = new PublicConstructorVisitor(wrappedVisitor);
 			}
 			wrappedVisitor = buildVisitorDelegate.build(wrappedVisitor);
 
-			if (wrappedVisitor == visitor)
-			{
-				// there seem to be no custom action to be done with the new type. So we skip type enhancement
+			if (wrappedVisitor == visitor) {
+				// there seem to be no custom action to be done with the new type. So we skip type
+				// enhancement
 				return null;
 			}
 			visitor = wrappedVisitor;
@@ -187,50 +190,43 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 			// visitor = new ClassDeriver(visitor, newTypeName);
 			// cr.accept(visitor, ClassReader.EXPAND_FRAMES);
 			byte[] content = cw.toByteArray();
-			verify(content);
+			verify(content, classLoader);
 			return content;
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	public String toPrintableBytecode(Class<?> type)
-	{
-		if (type == null)
-		{
+	public String toPrintableBytecode(Class<?> type) {
+		if (type == null) {
 			return "<null>";
 		}
-		try
-		{
+		try {
 			StringBuilder sb = new StringBuilder();
 
-			toPrintableByteCodeIntern(type, sb);
+			toPrintableByteCodeIntern(type, sb, type.getClassLoader());
 			return sb.toString();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
-	protected void toPrintableByteCodeIntern(Class<?> type, StringBuilder sb)
-	{
-		if (type.getSuperclass() != null && IEnhancedType.class.isAssignableFrom(type.getSuperclass()))
-		{
+	protected void toPrintableByteCodeIntern(Class<?> type, StringBuilder sb,
+			ClassLoader classLoader) {
+		if (type.getSuperclass() != null
+				&& IEnhancedType.class.isAssignableFrom(type.getSuperclass())) {
 			// write parent classes first
-			toPrintableByteCodeIntern(type.getSuperclass(), sb);
+			toPrintableByteCodeIntern(type.getSuperclass(), sb, classLoader);
 			sb.append('\n');
 		}
 		{
-			try
-			{
-				byte[] content = ambethClassLoader.getContent(type);
-				if (content == null)
-				{
-					content = readTypeAsBinary(type);
+			try {
+				byte[] content = ensureEntry(classLoader).ambethClassLoader.getContent(type);
+				if (content == null) {
+					content = readTypeAsBinary(type, classLoader);
 				}
 				ClassReader cr = new ClassReader(new ByteArrayInputStream(content));
 
@@ -240,21 +236,18 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 				cr.accept(visitor, ClassReader.EXPAND_FRAMES);
 				sb.append(writer.toString());
 			}
-			catch (Throwable e)
-			{
+			catch (Throwable e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
 	}
 
 	@Override
-	public String getBytecodeTypeName(Class<?> type)
-	{
+	public String getBytecodeTypeName(Class<?> type) {
 		return getBytecodeTypeName(type.getName());
 	}
 
-	protected String getBytecodeTypeName(String typeName)
-	{
+	protected String getBytecodeTypeName(String typeName) {
 		return typeName.replaceAll(Pattern.quote("."), "/");
 	}
 }

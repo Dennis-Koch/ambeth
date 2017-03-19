@@ -27,15 +27,16 @@ import com.koch.ambeth.util.HexUtil;
 import com.koch.ambeth.util.audit.util.NullOutputStream;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
+import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 /**
- * The problem with this feature is that initialized static fields on the serialized enhanced types can not easily be restored... This may be further evaluated
- * at a later point. Maybe the whole feature can not be implemented efficiently...
+ * The problem with this feature is that initialized static fields on the serialized enhanced types
+ * can not easily be restored... This may be further evaluated at a later point. Maybe the whole
+ * feature can not be implemented efficiently...
  */
 @Deprecated
-public class BytecodeStore implements IBytecodeStore
-{
+public class BytecodeStore implements IBytecodeStore {
 	private static final Pattern pattern = Pattern.compile("(.+)\\.[^\\.]+");
 
 	@Autowired
@@ -44,58 +45,50 @@ public class BytecodeStore implements IBytecodeStore
 	@Property(name = "user.home")
 	protected String userHome;
 
-	protected String buildHashOfBehaviors(IBytecodeEnhancer bytecodeEnhancer, IBytecodeBehavior[] behaviors)
-	{
-		try
-		{
+	protected String buildHashOfBehaviors(IBytecodeEnhancer bytecodeEnhancer,
+			IBytecodeBehavior[] behaviors) {
+		try {
 			MessageDigest digest = MessageDigest.getInstance("SHA-1");
 
-			ObjectOutputStream oos = new ObjectOutputStream(new DigestOutputStream(new NullOutputStream(), digest));
+			ObjectOutputStream oos =
+					new ObjectOutputStream(new DigestOutputStream(new NullOutputStream(), digest));
 
 			oos.writeInt(behaviors.length);
 			oos.writeObject(bytecodeEnhancer.getClass());
-			for (int a = behaviors.length; a-- > 0;)
-			{
+			for (int a = behaviors.length; a-- > 0;) {
 				oos.writeObject(behaviors[a].getClass());
 			}
 			oos.close();
 			return HexUtil.toHexLowerLetters(digest.digest());
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
-	protected File getSessionDir(IBytecodeEnhancer bytecodeEnhancer, IBytecodeBehavior[] behaviors)
-	{
+	protected File getSessionDir(IBytecodeEnhancer bytecodeEnhancer, IBytecodeBehavior[] behaviors) {
 		String hash = buildHashOfBehaviors(bytecodeEnhancer, behaviors);
 		File baseDir = new File(userHome, "jambeth-bytecode");
 		return new File(baseDir, hash);
 	}
 
 	@Override
-	public HashMap<BytecodeStoreKey, BytecodeStoreItem> loadEnhancedTypes(IBytecodeEnhancer bytecodeEnhancer, IBytecodeBehavior[] behaviors)
-	{
+	public IMap<BytecodeStoreKey, BytecodeStoreItem> loadEnhancedTypes(
+			IBytecodeEnhancer bytecodeEnhancer, IBytecodeBehavior[] behaviors) {
 		File sessionDir = getSessionDir(bytecodeEnhancer, behaviors);
 
-		HashMap<BytecodeStoreKey, BytecodeStoreItem> contentMap = new HashMap<BytecodeStoreKey, BytecodeStoreItem>();
-		if (!sessionDir.exists())
-		{
+		HashMap<BytecodeStoreKey, BytecodeStoreItem> contentMap = new HashMap<>();
+		if (!sessionDir.exists()) {
 			return contentMap;
 		}
-		File[] hintDirs = sessionDir.listFiles(new FileFilter()
-		{
+		File[] hintDirs = sessionDir.listFiles(new FileFilter() {
 			@Override
-			public boolean accept(File pathname)
-			{
+			public boolean accept(File pathname) {
 				return pathname.isDirectory();
 			}
 		});
-		if (hintDirs != null)
-		{
-			for (int a = hintDirs.length; a-- > 0;)
-			{
+		if (hintDirs != null) {
+			for (int a = hintDirs.length; a-- > 0;) {
 				scanForHints(hintDirs[a], contentMap);
 			}
 		}
@@ -103,11 +96,10 @@ public class BytecodeStore implements IBytecodeStore
 	}
 
 	@Override
-	public void storeEnhancedType(BytecodeEnhancer bytecodeEnhancer, IBytecodeBehavior[] behaviors, Class<?> baseType, IEnhancementHint hint,
-			Class<?> enhancedType, List<Class<?>> enhancedTypesPipeline)
-	{
-		try
-		{
+	public void storeEnhancedType(BytecodeEnhancer bytecodeEnhancer, IBytecodeBehavior[] behaviors,
+			Class<?> baseType, IEnhancementHint hint, Class<?> enhancedType,
+			List<Class<?>> enhancedTypesPipeline, ClassLoader classLoader) {
+		try {
 			File sessionDir = getSessionDir(bytecodeEnhancer, behaviors);
 
 			BytecodeStoreKey key = new BytecodeStoreKey(baseType, hint);
@@ -122,125 +114,104 @@ public class BytecodeStore implements IBytecodeStore
 
 			File nameFile = new File(hintDir, name + ".properties");
 			Properties props = new Properties();
-			for (Class<?> enhancedTypeInPipeline : enhancedTypesPipeline)
-			{
+			for (Class<?> enhancedTypeInPipeline : enhancedTypesPipeline) {
 				File enhancedTypeFile = new File(hintDir, enhancedTypeInPipeline.getName() + ".class");
 
 				props.putString(enhancedTypeInPipeline.getName(), null);
 
 				FileOutputStream fis = new FileOutputStream(enhancedTypeFile);
-				try
-				{
-					byte[] content = bytecodeClassLoader.readTypeAsBinary(enhancedTypeInPipeline);
+				try {
+					byte[] content =
+							bytecodeClassLoader.readTypeAsBinary(enhancedTypeInPipeline, classLoader);
 					fis.write(content);
 				}
-				finally
-				{
+				finally {
 					fis.close();
 				}
 			}
-			OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(nameFile, false), Charset.forName("UTF-8"));
-			try
-			{
+			OutputStreamWriter fw =
+					new OutputStreamWriter(new FileOutputStream(nameFile, false), Charset.forName("UTF-8"));
+			try {
 				boolean first = true;
-				for (Entry<String, Object> entry : props)
-				{
+				for (Entry<String, Object> entry : props) {
 					Object value = entry.getValue();
-					if (first)
-					{
+					if (first) {
 						first = false;
 					}
-					else
-					{
+					else {
 						fw.append("\r\n");
 					}
 					fw.append(entry.getKey()).append('=');
-					if (value != null)
-					{
+					if (value != null) {
 						fw.append(value.toString());
 					}
 				}
 			}
-			finally
-			{
+			finally {
 				fw.close();
 			}
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
-	protected void scanForHints(File hintDir, Map<BytecodeStoreKey, BytecodeStoreItem> contentMap)
-	{
+	protected void scanForHints(File hintDir, Map<BytecodeStoreKey, BytecodeStoreItem> contentMap) {
 		Class<?> hintType;
-		try
-		{
+		try {
 			hintType = Thread.currentThread().getContextClassLoader().loadClass(hintDir.getName());
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			return;
 		}
-		File[] propertyFiles = hintDir.listFiles(new FileFilter()
-		{
+		File[] propertyFiles = hintDir.listFiles(new FileFilter() {
 
 			@Override
-			public boolean accept(File pathname)
-			{
+			public boolean accept(File pathname) {
 				return pathname.isFile() && pathname.getName().endsWith(".properties");
 			}
 		});
-		if (propertyFiles != null)
-		{
-			for (int a = propertyFiles.length; a-- > 0;)
-			{
+		if (propertyFiles != null) {
+			for (int a = propertyFiles.length; a-- > 0;) {
 				scanForKeys(hintDir, propertyFiles[a], hintType, contentMap);
 			}
 		}
 	}
 
-	protected void scanForKeys(File hintInstanceDir, File propertyFile, Class<?> hintType, Map<BytecodeStoreKey, BytecodeStoreItem> contentMap)
-	{
-		try
-		{
+	protected void scanForKeys(File hintInstanceDir, File propertyFile, Class<?> hintType,
+			Map<BytecodeStoreKey, BytecodeStoreItem> contentMap) {
+		try {
 			Properties props = new Properties();
 
 			FileInputStream fis = new FileInputStream(propertyFile);
-			try
-			{
+			try {
 				props.load(new BufferedInputStream(fis));
 			}
-			finally
-			{
+			finally {
 				fis.close();
 			}
 			Matcher matcher = pattern.matcher(propertyFile.getName());
-			if (!matcher.matches())
-			{
+			if (!matcher.matches()) {
 				throw new IllegalStateException();
 			}
 			byte[] sha1 = HexUtil.toBytes(matcher.group(1).toString());
 			BytecodeStoreKey key = new BytecodeStoreKey(hintType, sha1);
-			ArrayList<String> enhancedTypeNames = new ArrayList<String>();
-			ArrayList<File> contentFiles = new ArrayList<File>();
-			for (Entry<String, Object> entry : props)
-			{
+			ArrayList<String> enhancedTypeNames = new ArrayList<>();
+			ArrayList<File> contentFiles = new ArrayList<>();
+			for (Entry<String, Object> entry : props) {
 				String enhancedTypeName = entry.getKey();
 				File contentFile = new File(hintInstanceDir, enhancedTypeName + ".class");
-				if (!contentFile.exists())
-				{
+				if (!contentFile.exists()) {
 					// the whole persisted enhancement pipeline seems to be corrupt
 					return;
 				}
 				enhancedTypeNames.add(enhancedTypeName);
 				contentFiles.add(contentFile);
 			}
-			contentMap.put(key, new BytecodeStoreItem(contentFiles.toArray(File.class), enhancedTypeNames.toArray(String.class)));
+			contentMap.put(key, new BytecodeStoreItem(contentFiles.toArray(File.class),
+					enhancedTypeNames.toArray(String.class)));
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			return;
 		}
 	}

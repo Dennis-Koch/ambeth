@@ -10,8 +10,7 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 
-public class CacheMapEntryTypeProvider implements ICacheMapEntryTypeProvider
-{
+public class CacheMapEntryTypeProvider implements ICacheMapEntryTypeProvider {
 	protected static final ICacheMapEntryFactory ci = new DefaultCacheMapEntryFactory();
 
 	@SuppressWarnings("unused")
@@ -24,59 +23,57 @@ public class CacheMapEntryTypeProvider implements ICacheMapEntryTypeProvider
 	@Autowired
 	protected IAccessorTypeProvider accessorTypeProvider;
 
-	protected final Tuple2KeyHashMap<Class<?>, Byte, ICacheMapEntryFactory> typeToConstructorMap = new Tuple2KeyHashMap<Class<?>, Byte, ICacheMapEntryFactory>();
+	protected final Tuple2KeyHashMap<Class<?>, Byte, ICacheMapEntryFactory> typeToConstructorMap =
+			new Tuple2KeyHashMap<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
 	@Override
-	public ICacheMapEntryFactory getCacheMapEntryType(Class<?> entityType, byte idIndex)
-	{
-		if (bytecodeEnhancer == null)
-		{
+	public ICacheMapEntryFactory getCacheMapEntryType(Class<?> entityType, byte idIndex) {
+		if (bytecodeEnhancer == null) {
 			return ci;
 		}
 		ICacheMapEntryFactory factory = typeToConstructorMap.get(entityType, Byte.valueOf(idIndex));
-		if (factory != null)
-		{
+		if (factory != null) {
 			return factory;
 		}
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			// concurrent thread might have been faster
 			factory = typeToConstructorMap.get(entityType, Byte.valueOf(idIndex));
-			if (factory != null)
-			{
+			if (factory != null) {
 				return factory;
 			}
-			try
-			{
-				Class<?> enhancedType = bytecodeEnhancer.getEnhancedType(CacheMapEntry.class, new CacheMapEntryEnhancementHint(entityType, idIndex));
-				if (enhancedType == CacheMapEntry.class)
-				{
+			Thread currentThread = Thread.currentThread();
+			ClassLoader oldClassLoader = currentThread.getContextClassLoader();
+			currentThread.setContextClassLoader(entityType.getClassLoader());
+			try {
+				Class<?> enhancedType = bytecodeEnhancer.getEnhancedType(CacheMapEntry.class,
+						new CacheMapEntryEnhancementHint(entityType, idIndex));
+				if (enhancedType == CacheMapEntry.class) {
 					// Nothing has been enhanced
 					factory = ci;
 				}
-				else
-				{
-					factory = accessorTypeProvider.getConstructorType(ICacheMapEntryFactory.class, enhancedType);
+				else {
+					factory =
+							accessorTypeProvider.getConstructorType(ICacheMapEntryFactory.class, enhancedType);
 				}
 			}
-			catch (Throwable e)
-			{
-				if (log.isWarnEnabled())
-				{
+			catch (Throwable e) {
+				if (log.isWarnEnabled()) {
 					log.warn(e);
 				}
 				// something serious happened during enhancement: continue with a fallback
 				factory = ci;
 			}
+			finally {
+				currentThread.setContextClassLoader(oldClassLoader);
+			}
 			typeToConstructorMap.put(entityType, Byte.valueOf(idIndex), factory);
 			return factory;
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}

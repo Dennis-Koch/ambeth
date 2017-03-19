@@ -15,7 +15,6 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.ILoggerHistory;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.api.IDatabaseMetaData;
-import com.koch.ambeth.persistence.api.IDatabasePool;
 import com.koch.ambeth.persistence.api.IDirectedLinkMetaData;
 import com.koch.ambeth.persistence.api.IFieldMetaData;
 import com.koch.ambeth.persistence.api.ILinkMetaData;
@@ -35,8 +34,8 @@ import com.koch.ambeth.util.typeinfo.ITypeInfo;
 import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
 import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
 
-public class DatabaseMetaData implements IDatabaseMetaData, IConfigurableDatabaseMetaData, IInitializingBean, IStartingBean
-{
+public class DatabaseMetaData
+		implements IDatabaseMetaData, IConfigurableDatabaseMetaData, IInitializingBean, IStartingBean {
 	@LogInstance
 	private ILogger log;
 
@@ -50,9 +49,6 @@ public class DatabaseMetaData implements IDatabaseMetaData, IConfigurableDatabas
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Autowired
-	protected IDatabasePool pool;
-
-	@Autowired
 	protected IRelationProvider relationProvider;
 
 	@Autowired
@@ -61,83 +57,74 @@ public class DatabaseMetaData implements IDatabaseMetaData, IConfigurableDatabas
 	@Autowired
 	protected ITypeInfoProvider typeInfoProvider;
 
-	protected final HashMap<String, ITableMetaData> nameToTableDict = new HashMap<String, ITableMetaData>();
+	protected final HashMap<String, ITableMetaData> nameToTableDict = new HashMap<>();
 
-	protected final HashMap<Class<?>, ITableMetaData> typeToTableDict = new HashMap<Class<?>, ITableMetaData>();
+	protected final HashMap<Class<?>, ITableMetaData> typeToTableDict = new HashMap<>();
 
-	protected final HashMap<Class<?>, ITableMetaData> typeToArchiveTableDict = new HashMap<Class<?>, ITableMetaData>();
+	protected final HashMap<Class<?>, ITableMetaData> typeToArchiveTableDict = new HashMap<>();
 
-	protected final HashMap<String, IPermissionGroup> nameToPermissionGroupTableDict = new HashMap<String, IPermissionGroup>();
+	protected final HashMap<String, IPermissionGroup> nameToPermissionGroupTableDict =
+			new HashMap<>();
 
-	protected final HashMap<String, ILinkMetaData> nameToLinkDict = new HashMap<String, ILinkMetaData>();
+	protected final HashMap<String, ILinkMetaData> nameToLinkDict = new HashMap<>();
 
-	protected final HashMap<String, ILinkMetaData> definingNameToLinkDict = new HashMap<String, ILinkMetaData>();
+	protected final HashMap<String, ILinkMetaData> definingNameToLinkDict = new HashMap<>();
 
-	protected final Tuple2KeyHashMap<ITableMetaData, ITableMetaData, ILinkMetaData[]> tablesToLinkDict = new Tuple2KeyHashMap<ITableMetaData, ITableMetaData, ILinkMetaData[]>();
+	protected final Tuple2KeyHashMap<ITableMetaData, ITableMetaData, ILinkMetaData[]> tablesToLinkDict =
+			new Tuple2KeyHashMap<>();
 
-	protected final HashMap<Class<?>, IEntityHandler> typeToEntityHandler = new HashMap<Class<?>, IEntityHandler>();
+	protected final HashMap<Class<?>, IEntityHandler> typeToEntityHandler = new HashMap<>();
 
-	protected final ArrayList<Class<?>> handledEntities = new ArrayList<Class<?>>();
+	protected final ArrayList<Class<?>> handledEntities = new ArrayList<>();
 
 	protected String name;
-	protected final ArrayList<ITableMetaData> tables = new ArrayList<ITableMetaData>();
-	protected final List<ILinkMetaData> links = new ArrayList<ILinkMetaData>();
+	protected final ArrayList<ITableMetaData> tables = new ArrayList<>();
+	protected final List<ILinkMetaData> links = new ArrayList<>();
 
 	private int maxNameLength;
 
-	protected HashMap<String, HashSet<IDirectedLinkMetaData>> incompleteLinks = new HashMap<String, HashSet<IDirectedLinkMetaData>>();
+	protected HashMap<String, HashSet<IDirectedLinkMetaData>> incompleteLinks = new HashMap<>();
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		// Intended blank
 	}
 
 	@Override
-	public void afterStarted()
-	{
+	public void afterStarted() {
 		List<ITableMetaData> tables = getTables();
-		for (int tableIndex = tables.size(); tableIndex-- > 0;)
-		{
+		for (int tableIndex = tables.size(); tableIndex-- > 0;) {
 			ITableMetaData table = tables.get(tableIndex);
 			handleTable(table);
 		}
 	}
 
 	@Override
-	public void handleTable(ITableMetaData table)
-	{
-		if (table.isPermissionGroup())
-		{
+	public void handleTable(ITableMetaData table) {
+		if (table.isPermissionGroup()) {
 			return;
 		}
-		ArrayList<IFieldMetaData> alternateIdMembers = new ArrayList<IFieldMetaData>();
+		ArrayList<IFieldMetaData> alternateIdMembers = new ArrayList<>();
 		Class<?> fromType = table.getEntityType();
-		if (fromType == null)
-		{
-			if (log.isWarnEnabled())
-			{
+		if (fromType == null) {
+			if (log.isWarnEnabled()) {
 				loggerHistory.warnOnce(log, this, "No entity mapped to table '" + table.getName() + "'");
 			}
 			return;
 		}
-		if (table.isArchive())
-		{
+		if (table.isArchive()) {
 			typeToArchiveTableDict.put(fromType, table);
 			return;
 		}
-		else
-		{
+		else {
 			typeToTableDict.put(fromType, table);
 		}
 
 		List<IDirectedLinkMetaData> links = table.getLinks();
 		handleTableLinks(table, links);
 		HashSet<IDirectedLinkMetaData> incompleteLinkSet = incompleteLinks.remove(table.getName());
-		if (incompleteLinkSet != null)
-		{
-			for (IDirectedLinkMetaData oneIncompleteLink : incompleteLinkSet)
-			{
+		if (incompleteLinkSet != null) {
+			for (IDirectedLinkMetaData oneIncompleteLink : incompleteLinkSet) {
 				handleTableLinks(oneIncompleteLink.getFromTable(), Arrays.asList(oneIncompleteLink));
 			}
 		}
@@ -149,114 +136,100 @@ public class DatabaseMetaData implements IDatabaseMetaData, IConfigurableDatabas
 		// continue;
 		// }
 		// String memberName = member.getName();
-		// if (table.getFieldByMemberName(memberName) == null && table.getLinkByMemberName(memberName) == null)
+		// if (table.getFieldByMemberName(memberName) == null && table.getLinkByMemberName(memberName)
+		// == null)
 		// {
 		// throw new IllegalArgumentException("Member '" + fromType.getName() + "." + memberName
-		// + " is neither mapped to a link or a field and it is not annotated with " + Transient.class.getName());
+		// + " is neither mapped to a link or a field and it is not annotated with " +
+		// Transient.class.getName());
 		// }
 		// }
 
 		// Remove not-mapped (and so not usable) alternate id fields
-		for (IFieldMetaData alternateIdMember : table.getAlternateIdFields())
-		{
-			if (alternateIdMember.getMember() != null)
-			{
+		for (IFieldMetaData alternateIdMember : table.getAlternateIdFields()) {
+			if (alternateIdMember.getMember() != null) {
 				alternateIdMembers.add(alternateIdMember);
 			}
 		}
 		((TableMetaData) table).setAlternateIdFields(alternateIdMembers.toArray(IFieldMetaData.class));
 	}
 
-	protected void handleTableLinks(ITableMetaData table, List<IDirectedLinkMetaData> links)
-	{
+	protected void handleTableLinks(ITableMetaData table, List<IDirectedLinkMetaData> links) {
 		Class<?> fromType = table.getEntityType();
 		ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(fromType);
 
-		for (int linkIndex = links.size(); linkIndex-- > 0;)
-		{
+		for (int linkIndex = links.size(); linkIndex-- > 0;) {
 			IDirectedLinkMetaData link = links.get(linkIndex);
 			ITableMetaData toTable = link.getToTable();
 
 			Class<?> toType;
-			if (toTable != null)
-			{
+			if (toTable != null) {
 				toType = toTable.getEntityType();
-				if (toType == null)
-				{
+				if (toType == null) {
 					HashSet<IDirectedLinkMetaData> incompleteLinkSet = incompleteLinks.get(toTable.getName());
-					if (incompleteLinkSet == null)
-					{
-						incompleteLinkSet = new HashSet<IDirectedLinkMetaData>();
+					if (incompleteLinkSet == null) {
+						incompleteLinkSet = new HashSet<>();
 						incompleteLinks.put(toTable.getName(), incompleteLinkSet);
 					}
 					incompleteLinkSet.add(link);
-					if (log.isWarnEnabled())
-					{
-						log.warn("No entity mapped to table '" + toTable.getName() + "'. Error occured while handling link '" + link.getName() + "'");
+					if (log.isWarnEnabled()) {
+						log.warn("No entity mapped to table '" + toTable.getName()
+								+ "'. Error occured while handling link '" + link.getName() + "'");
 					}
 					continue;
 				}
 			}
-			else
-			{
+			else {
 				toType = link.getToEntityType();
 			}
 			String memberName = table.getMemberNameByLinkName(link.getName());
-			if (!(memberName == null || memberName.isEmpty()))
-			{
+			if (!(memberName == null || memberName.isEmpty())) {
 				continue;
 			}
 			ITypeInfoItem matchingMember = null;
 			String typeNamePluralLower = null;
-			for (ITypeInfoItem member : typeInfo.getMembers())
-			{
+			for (ITypeInfoItem member : typeInfo.getMembers()) {
 				Class<?> elementType = member.getElementType();
-				if (table.isIgnoredMember(member.getName()))
-				{
+				if (table.isIgnoredMember(member.getName())) {
 					continue;
 				}
-				if (!relationProvider.isEntityType(member.getElementType()))
-				{
+				if (!relationProvider.isEntityType(member.getElementType())) {
 					continue;
 				}
-				if (!elementType.isAssignableFrom(toType))
-				{
-					if (Collection.class.isAssignableFrom(elementType))
-					{
+				if (!elementType.isAssignableFrom(toType)) {
+					if (Collection.class.isAssignableFrom(elementType)) {
 						// No generic info at runtime, so we guess by name.
-						if (typeNamePluralLower == null)
-						{
+						if (typeNamePluralLower == null) {
 							typeNamePluralLower = StringConversionHelper.entityNameToPlural(objectCollector,
 									typeInfoProvider.getTypeInfo(toType).getSimpleName()).toLowerCase();
 						}
 						String memberNameLower = member.getName().toLowerCase();
-						if (memberNameLower.equals(typeNamePluralLower))
-						{
+						if (memberNameLower.equals(typeNamePluralLower)) {
 							matchingMember = member;
 						}
 					}
 					continue;
 				}
 				// Check if this member is already configured to another link
-				if (table.getLinkByMemberName(member.getName()) != null)
-				{
+				if (table.getLinkByMemberName(member.getName()) != null) {
 					continue;
 				}
-				if (matchingMember != null)
-				{
+				if (matchingMember != null) {
 					// ambiguous property-to-entity relationship so we do nothing automatically here
-					throw new IllegalArgumentException("Ambiguous property-to-entity relationship. Automatic mapping for link '" + link.getName()
-							+ "' not possible! Multiple properties with the same expected relationtype found: " + matchingMember.toString() + " vs. "
-							+ member.toString() + " on entity '" + table.getEntityType().getName() + "'");
+					throw new IllegalArgumentException(
+							"Ambiguous property-to-entity relationship. Automatic mapping for link '"
+									+ link.getName()
+									+ "' not possible! Multiple properties with the same expected relationtype found: "
+									+ matchingMember.toString() + " vs. " + member.toString() + " on entity '"
+									+ table.getEntityType().getName() + "'");
 				}
 				matchingMember = member;
 			}
-			if (matchingMember == null)
-			{
-				if (!(memberName == null || memberName.isEmpty()))
-				{
-					throw new IllegalArgumentException("Property-to-entity relationship which is explicit defined for member '" + fromType.getName() + "."
-							+ memberName + "' not possible. Member not found");
+			if (matchingMember == null) {
+				if (!(memberName == null || memberName.isEmpty())) {
+					throw new IllegalArgumentException(
+							"Property-to-entity relationship which is explicit defined for member '"
+									+ fromType.getName() + "." + memberName + "' not possible. Member not found");
 				}
 				continue;
 			}
@@ -265,78 +238,59 @@ public class DatabaseMetaData implements IDatabaseMetaData, IConfigurableDatabas
 	}
 
 	@Override
-	public List<Class<?>> getHandledEntities()
-	{
+	public List<Class<?>> getHandledEntities() {
 		return handledEntities;
 	}
 
 	@Override
-	public int getMaxNameLength()
-	{
+	public int getMaxNameLength() {
 		return maxNameLength;
 	}
 
-	public void setMaxNameLength(int maxNameLength)
-	{
+	public void setMaxNameLength(int maxNameLength) {
 		this.maxNameLength = maxNameLength;
 	}
 
-	@Override
-	public IDatabasePool getPool()
-	{
-		return pool;
-	}
-
-	public IServiceContext getServiceProvider()
-	{
+	public IServiceContext getServiceProvider() {
 		return serviceContext;
 	}
 
-	public Map<Class<?>, IEntityHandler> getTypeToEntityHandler()
-	{
+	public Map<Class<?>, IEntityHandler> getTypeToEntityHandler() {
 		return typeToEntityHandler;
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
 	@Override
-	public String[] getSchemaNames()
-	{
+	public String[] getSchemaNames() {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override
-	public List<ITableMetaData> getTables()
-	{
+	public List<ITableMetaData> getTables() {
 		return tables;
 	}
 
 	@Override
-	public List<ILinkMetaData> getLinks()
-	{
+	public List<ILinkMetaData> getLinks() {
 		return links;
 	}
 
 	@Override
-	public ITableMetaData mapTable(String tableName, Class<?> entityType)
-	{
+	public ITableMetaData mapTable(String tableName, Class<?> entityType) {
 		ITableMetaData table = getTableByName(tableName);
-		if (table == null)
-		{
+		if (table == null) {
 			throw new IllegalArgumentException("No table with name '" + tableName + "' found");
 		}
 		Class<?> mappedEntityType = table.getEntityType();
-		if (mappedEntityType != null && !mappedEntityType.equals(entityType))
-		{
+		if (mappedEntityType != null && !mappedEntityType.equals(entityType)) {
 			throw new IllegalArgumentException("Table '" + tableName + "' already mapped to entity '"
 					+ typeInfoProvider.getTypeInfo(mappedEntityType).getSimpleName() + "'");
 		}
@@ -345,17 +299,15 @@ public class DatabaseMetaData implements IDatabaseMetaData, IConfigurableDatabas
 	}
 
 	@Override
-	public ITableMetaData mapArchiveTable(String tableName, Class<?> entityType)
-	{
+	public ITableMetaData mapArchiveTable(String tableName, Class<?> entityType) {
 		ITableMetaData table = getTableByName(tableName);
-		if (table == null)
-		{
+		if (table == null) {
 			throw new IllegalArgumentException("No table with name '" + tableName + "' found");
 		}
 		Class<?> mappedEntityType = table.getEntityType();
-		if (mappedEntityType != null && !mappedEntityType.equals(entityType))
-		{
-			throw new IllegalArgumentException("Table '" + tableName + "' already mapped to entity '" + mappedEntityType.getSimpleName() + "'");
+		if (mappedEntityType != null && !mappedEntityType.equals(entityType)) {
+			throw new IllegalArgumentException("Table '" + tableName + "' already mapped to entity '"
+					+ mappedEntityType.getSimpleName() + "'");
 		}
 		TableMetaData tableInst = (TableMetaData) table;
 		tableInst.setEntityType(entityType);
@@ -364,70 +316,68 @@ public class DatabaseMetaData implements IDatabaseMetaData, IConfigurableDatabas
 	}
 
 	@Override
-	public void mapPermissionGroupTable(ITableMetaData permissionGroupTable, ITableMetaData targetTable)
-	{
+	public void mapPermissionGroupTable(ITableMetaData permissionGroupTable,
+			ITableMetaData targetTable) {
 		TableMetaData tableInst = (TableMetaData) permissionGroupTable;
 		tableInst.setPermissionGroup(true);
 
 		IFieldMetaData userField = tableInst.getFieldByName(PermissionGroup.userIdName);
 		IFieldMetaData permissionGroupField = tableInst.getFieldByName(PermissionGroup.permGroupIdName);
-		IFieldMetaData readPermissionField = tableInst.getFieldByName(PermissionGroup.readPermColumName);
-		IFieldMetaData updatePermissionField = tableInst.getFieldByName(PermissionGroup.updatePermColumName);
-		IFieldMetaData deletePermissionField = tableInst.getFieldByName(PermissionGroup.deletePermColumName);
-		IFieldMetaData permissionGroupFieldOnTarget = targetTable.getFieldByName(PermissionGroup.permGroupIdNameOfData);
+		IFieldMetaData readPermissionField =
+				tableInst.getFieldByName(PermissionGroup.readPermColumName);
+		IFieldMetaData updatePermissionField =
+				tableInst.getFieldByName(PermissionGroup.updatePermColumName);
+		IFieldMetaData deletePermissionField =
+				tableInst.getFieldByName(PermissionGroup.deletePermColumName);
+		IFieldMetaData permissionGroupFieldOnTarget =
+				targetTable.getFieldByName(PermissionGroup.permGroupIdNameOfData);
 
-		if (userField == null)
-		{
-			if (log.isWarnEnabled())
-			{
-				loggerHistory.warnOnce(log, this, "No column found " + tableInst.getName() + "." + PermissionGroup.userIdName
-						+ ": SQL based security is deactivated for table " + targetTable.getName());
+		if (userField == null) {
+			if (log.isWarnEnabled()) {
+				loggerHistory.warnOnce(log, this,
+						"No column found " + tableInst.getName() + "." + PermissionGroup.userIdName
+								+ ": SQL based security is deactivated for table " + targetTable.getName());
 			}
 			return;
 		}
-		if (permissionGroupField == null)
-		{
+		if (permissionGroupField == null) {
 
-			if (log.isWarnEnabled())
-			{
-				loggerHistory.warnOnce(log, this, "No column found " + tableInst.getName() + "." + PermissionGroup.permGroupIdName
-						+ ": SQL based security is deactivated for table " + targetTable.getName());
+			if (log.isWarnEnabled()) {
+				loggerHistory.warnOnce(log, this,
+						"No column found " + tableInst.getName() + "." + PermissionGroup.permGroupIdName
+								+ ": SQL based security is deactivated for table " + targetTable.getName());
 			}
 			return;
 		}
-		if (readPermissionField == null)
-		{
-			if (log.isWarnEnabled())
-			{
-				loggerHistory.warnOnce(log, this, "No column found " + tableInst.getName() + "." + PermissionGroup.readPermColumName
-						+ ": SQL based security is deactivated for table " + targetTable.getName());
+		if (readPermissionField == null) {
+			if (log.isWarnEnabled()) {
+				loggerHistory.warnOnce(log, this,
+						"No column found " + tableInst.getName() + "." + PermissionGroup.readPermColumName
+								+ ": SQL based security is deactivated for table " + targetTable.getName());
 			}
 			return;
 		}
-		if (updatePermissionField == null)
-		{
-			if (log.isWarnEnabled())
-			{
-				loggerHistory.warnOnce(log, this, "No column found " + tableInst.getName() + "." + PermissionGroup.updatePermColumName
-						+ ": SQL based security is deactivated for table " + targetTable.getName());
+		if (updatePermissionField == null) {
+			if (log.isWarnEnabled()) {
+				loggerHistory.warnOnce(log, this,
+						"No column found " + tableInst.getName() + "." + PermissionGroup.updatePermColumName
+								+ ": SQL based security is deactivated for table " + targetTable.getName());
 			}
 			return;
 		}
-		if (deletePermissionField == null)
-		{
-			if (log.isWarnEnabled())
-			{
-				loggerHistory.warnOnce(log, this, "No column found " + tableInst.getName() + "." + PermissionGroup.deletePermColumName
-						+ ": SQL based security is deactivated for table " + targetTable.getName());
+		if (deletePermissionField == null) {
+			if (log.isWarnEnabled()) {
+				loggerHistory.warnOnce(log, this,
+						"No column found " + tableInst.getName() + "." + PermissionGroup.deletePermColumName
+								+ ": SQL based security is deactivated for table " + targetTable.getName());
 			}
 			return;
 		}
-		if (permissionGroupFieldOnTarget == null)
-		{
-			if (log.isWarnEnabled())
-			{
-				loggerHistory.warnOnce(log, this, "No column found " + targetTable.getName() + "." + PermissionGroup.permGroupIdNameOfData
-						+ ": SQL based security is deactivated for table " + targetTable.getName());
+		if (permissionGroupFieldOnTarget == null) {
+			if (log.isWarnEnabled()) {
+				loggerHistory.warnOnce(log, this,
+						"No column found " + targetTable.getName() + "." + PermissionGroup.permGroupIdNameOfData
+								+ ": SQL based security is deactivated for table " + targetTable.getName());
 			}
 			return;
 		}
@@ -442,47 +392,40 @@ public class DatabaseMetaData implements IDatabaseMetaData, IConfigurableDatabas
 				.propertyValue("TargetTable", targetTable)//
 				.finish();
 
-		if (!nameToPermissionGroupTableDict.putIfNotExists(targetTable.getName(), permissionGroup))
-		{
-			throw new IllegalStateException("A permission group is already mapped to table '" + targetTable + "'");
+		if (!nameToPermissionGroupTableDict.putIfNotExists(targetTable.getName(), permissionGroup)) {
+			throw new IllegalStateException(
+					"A permission group is already mapped to table '" + targetTable + "'");
 		}
 	}
 
 	@Override
-	public ITableMetaData getTableByName(String tableName)
-	{
+	public ITableMetaData getTableByName(String tableName) {
 		return nameToTableDict.get(tableName);
 	}
 
 	@Override
-	public ILinkMetaData getLinkByName(String linkName)
-	{
+	public ILinkMetaData getLinkByName(String linkName) {
 		return nameToLinkDict.get(linkName);
 	}
 
 	@Override
-	public ILinkMetaData getLinkByDefiningName(String definingName)
-	{
+	public ILinkMetaData getLinkByDefiningName(String definingName) {
 		return definingNameToLinkDict.get(definingName);
 	}
 
 	@Override
-	public void addLinkByTables(ILinkMetaData link)
-	{
+	public void addLinkByTables(ILinkMetaData link) {
 		ITableMetaData fromTable = link.getFromTable();
 		ITableMetaData toTable = link.getToTable();
-		if (fromTable == null || toTable == null)
-		{
+		if (fromTable == null || toTable == null) {
 			return;
 		}
 
 		ILinkMetaData[] links = tablesToLinkDict.get(fromTable, toTable);
-		if (links == null)
-		{
-			links = new ILinkMetaData[] { link };
+		if (links == null) {
+			links = new ILinkMetaData[] {link};
 		}
-		else
-		{
+		else {
 			ILinkMetaData[] newLinks = new ILinkMetaData[links.length + 1];
 			System.arraycopy(links, 0, newLinks, 0, links.length);
 			newLinks[links.length] = link;
@@ -492,41 +435,36 @@ public class DatabaseMetaData implements IDatabaseMetaData, IConfigurableDatabas
 	}
 
 	@Override
-	public ILinkMetaData[] getLinksByTables(ITableMetaData table1, ITableMetaData table2)
-	{
+	public ILinkMetaData[] getLinksByTables(ITableMetaData table1, ITableMetaData table2) {
 		return tablesToLinkDict.get(table1, table2);
 	}
 
 	@Override
-	public ITableMetaData getTableByType(Class<?> entityType)
-	{
+	public ITableMetaData getTableByType(Class<?> entityType) {
 		ParamChecker.assertParamNotNull(entityType, "entityType");
 		ITableMetaData table = typeToTableDict.get(entityType);
-		if (table == null)
-		{
+		if (table == null) {
 			table = typeToTableDict.get(entityMetaDataProvider.getMetaData(entityType).getEntityType());
-			if (table == null)
-			{
-				throw new IllegalStateException("No table found for entity type '" + entityType.getName() + "'");
+			if (table == null) {
+				throw new IllegalStateException(
+						"No table found for entity type '" + entityType.getName() + "'");
 			}
 		}
 		return table;
 	}
 
 	@Override
-	public ITableMetaData getArchiveTableByType(Class<?> entityType)
-	{
+	public ITableMetaData getArchiveTableByType(Class<?> entityType) {
 		return typeToArchiveTableDict.get(entityType);
 	}
 
 	@Override
-	public IPermissionGroup getPermissionGroupOfTable(String tableName)
-	{
+	public IPermissionGroup getPermissionGroupOfTable(String tableName) {
 		return nameToPermissionGroupTableDict.get(tableName);
 	}
 
-	public String createForeignKeyLinkName(String fromTableName, String fromFieldName, String toTableName, String toFieldName)
-	{
+	public String createForeignKeyLinkName(String fromTableName, String fromFieldName,
+			String toTableName, String toFieldName) {
 		fromTableName = buildFqName(XmlDatabaseMapper.splitSchemaAndName(fromTableName));
 		fromFieldName = buildFqName(XmlDatabaseMapper.splitSchemaAndName(fromFieldName));
 		toTableName = buildFqName(XmlDatabaseMapper.splitSchemaAndName(toTableName));
@@ -534,36 +472,30 @@ public class DatabaseMetaData implements IDatabaseMetaData, IConfigurableDatabas
 		return "LINK$" + fromTableName + "$" + fromFieldName + "$" + toTableName + "$" + toFieldName;
 	}
 
-	protected String buildFqName(String[] fqNameSplit)
-	{
-		if (fqNameSplit[0] == null)
-		{
+	protected String buildFqName(String[] fqNameSplit) {
+		if (fqNameSplit[0] == null) {
 			return fqNameSplit[1];
 		}
 		return fqNameSplit[0] + "_" + fqNameSplit[1];
 	}
 
 	@Override
-	public ILinkMetaData mapLink(ILinkMetaData link)
-	{
+	public ILinkMetaData mapLink(ILinkMetaData link) {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override
-	public boolean isFieldNullable(Connection connection, IFieldMetaData field) throws SQLException
-	{
+	public boolean isFieldNullable(Connection connection, IFieldMetaData field) throws SQLException {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override
-	public boolean isLinkArchiveTable(String tableName)
-	{
+	public boolean isLinkArchiveTable(String tableName) {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override
-	public ITableMetaData registerNewTable(Connection connection, String fqTableName)
-	{
+	public ITableMetaData registerNewTable(Connection connection, String fqTableName) {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 }

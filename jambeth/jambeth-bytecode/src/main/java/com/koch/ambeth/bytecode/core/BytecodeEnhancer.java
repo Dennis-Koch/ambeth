@@ -81,17 +81,17 @@ public class BytecodeEnhancer
 	protected String traceDir;
 
 	protected final WeakSmartCopyMap<Class<?>, ValueType> typeToExtendedType =
-			new WeakSmartCopyMap<Class<?>, ValueType>();
+			new WeakSmartCopyMap<>();
 
 	protected final WeakSmartCopyMap<Class<?>, Reference<Class<?>>> extendedTypeToType =
-			new WeakSmartCopyMap<Class<?>, Reference<Class<?>>>();
+			new WeakSmartCopyMap<>();
 
-	protected final HashSet<Class<?>> supportedEnhancements = new HashSet<Class<?>>(0.5f);
+	protected final HashSet<Class<?>> supportedEnhancements = new HashSet<>(0.5f);
 
 	protected final Lock writeLock = new ReentrantLock();
 
 	protected final IExtendableContainer<IBytecodeBehavior> bytecodeBehaviorExtensions =
-			new ExtendableContainer<IBytecodeBehavior>(IBytecodeBehavior.class, "bytecodeBehavior");
+			new ExtendableContainer<>(IBytecodeBehavior.class, "bytecodeBehavior");
 
 	protected Map<BytecodeStoreKey, BytecodeStoreItem> enhancedTypes;
 
@@ -139,7 +139,8 @@ public class BytecodeEnhancer
 		return type;
 	}
 
-	protected Class<?> getEnhancedTypeIntern(Class<?> entityType, IEnhancementHint enhancementHint) {
+	protected Class<?> getEnhancedTypeIntern(Class<?> entityType, IEnhancementHint enhancementHint,
+			ClassLoader classLoader) {
 		Reference<Class<?>> existingBaseTypeR = extendedTypeToType.get(entityType);
 		if (existingBaseTypeR != null) {
 			Class<?> existingBaseType = existingBaseTypeR.get();
@@ -157,23 +158,23 @@ public class BytecodeEnhancer
 		}
 		ValueType valueType = typeToExtendedType.get(entityType);
 		if (valueType == null) {
-			return getEnhancedTypeFromStore(entityType, enhancementHint);
+			return getEnhancedTypeFromStore(entityType, enhancementHint, classLoader);
 		}
 		Reference<Class<?>> extendedTypeR = valueType.get(enhancementHint);
 		if (extendedTypeR == null) {
-			return getEnhancedTypeFromStore(entityType, enhancementHint);
+			return getEnhancedTypeFromStore(entityType, enhancementHint, classLoader);
 		}
 		return extendedTypeR.get();
 	}
 
-	protected Class<?> getEnhancedTypeFromStore(Class<?> entityType,
-			IEnhancementHint enhancementHint) {
+	protected Class<?> getEnhancedTypeFromStore(Class<?> entityType, IEnhancementHint enhancementHint,
+			ClassLoader classLoader) {
 		BytecodeStoreItem bytecodeStoreItem = enhancedTypes != null
 				? enhancedTypes.get(new BytecodeStoreKey(entityType, enhancementHint)) : null;
 		if (bytecodeStoreItem == null) {
 			return null;
 		}
-		Class<?> enhancedType = bytecodeStoreItem.readEnhancedType(bytecodeClassLoader);
+		Class<?> enhancedType = bytecodeStoreItem.readEnhancedType(bytecodeClassLoader, classLoader);
 		ValueType valueType = typeToExtendedType.get(entityType);
 		if (valueType == null) {
 			valueType = new ValueType();
@@ -219,7 +220,8 @@ public class BytecodeEnhancer
 	@Override
 	public Class<?> getEnhancedType(Class<?> typeToEnhance, String newTypeNamePrefix,
 			IEnhancementHint hint) {
-		Class<?> extendedType = getEnhancedTypeIntern(typeToEnhance, hint);
+		ClassLoader classLoader = typeToEnhance.getClassLoader();
+		Class<?> extendedType = getEnhancedTypeIntern(typeToEnhance, hint, classLoader);
 		if (extendedType != null) {
 			return extendedType;
 		}
@@ -227,7 +229,7 @@ public class BytecodeEnhancer
 		writeLock.lock();
 		try {
 			// Concurrent thread may have been faster
-			extendedType = getEnhancedTypeIntern(typeToEnhance, hint);
+			extendedType = getEnhancedTypeIntern(typeToEnhance, hint, classLoader);
 			if (extendedType != null) {
 				return extendedType;
 			}
@@ -243,16 +245,16 @@ public class BytecodeEnhancer
 				valueType.addChangeCount();
 				newTypeNamePrefix += "_O" + valueType.getChangeCount();
 			}
-			ArrayList<IBytecodeBehavior> pendingBehaviors = new ArrayList<IBytecodeBehavior>();
+			ArrayList<IBytecodeBehavior> pendingBehaviors = new ArrayList<>();
 
 			IBytecodeBehavior[] allBehaviors = bytecodeBehaviorExtensions.getExtensions();
 			pendingBehaviors.addAll(allBehaviors);
 
-			ArrayList<Class<?>> enhancedTypesPipeline = new ArrayList<Class<?>>();
+			ArrayList<Class<?>> enhancedTypesPipeline = new ArrayList<>();
 			Class<?> enhancedType;
 			if (pendingBehaviors.size() > 0) {
 				enhancedType = enhanceTypeIntern(typeToEnhance, newTypeNamePrefix, pendingBehaviors, hint,
-						enhancedTypesPipeline);
+						enhancedTypesPipeline, classLoader);
 			}
 			else {
 				enhancedType = typeToEnhance;
@@ -286,7 +288,7 @@ public class BytecodeEnhancer
 
 			if (bytecodeStore != null) {
 				bytecodeStore.storeEnhancedType(this, allBehaviors, typeToEnhance, hint, enhancedType,
-						enhancedTypesPipeline);
+						enhancedTypesPipeline, classLoader);
 			}
 			if (log.isInfoEnabled()) {
 				log.info("Enhancement finished successfully with type: " + enhancedType);
@@ -299,7 +301,7 @@ public class BytecodeEnhancer
 	}
 
 	protected void checkEnhancedTypeConsistency(Class<?> type) {
-		IdentityLinkedSet<Method> allMethods = new IdentityLinkedSet<Method>();
+		IdentityLinkedSet<Method> allMethods = new IdentityLinkedSet<>();
 		for (Class<?> interf : type.getInterfaces()) {
 			allMethods.addAll(interf.getMethods());
 		}
@@ -343,7 +345,7 @@ public class BytecodeEnhancer
 	@SuppressWarnings("resource")
 	protected Class<?> enhanceTypeIntern(Class<?> originalType, String newTypeNamePrefix,
 			final IList<IBytecodeBehavior> pendingBehaviors, final IEnhancementHint hint,
-			List<Class<?>> enhancedTypesPipeline) {
+			List<Class<?>> enhancedTypesPipeline, final ClassLoader classLoader) {
 		if (pendingBehaviors.size() == 0) {
 			return originalType;
 		}
@@ -367,10 +369,8 @@ public class BytecodeEnhancer
 				}
 			}
 			int iterationCount = 0;
-
-			ArrayList<BytecodeBehaviorState> pendingStatesToPostProcess =
-					new ArrayList<BytecodeBehaviorState>();
-			byte[] currentContent = bytecodeClassLoader.readTypeAsBinary(currentType);
+			ArrayList<BytecodeBehaviorState> pendingStatesToPostProcess = new ArrayList<>();
+			byte[] currentContent = bytecodeClassLoader.readTypeAsBinary(currentType, classLoader);
 			while (pendingBehaviors.size() > 0) {
 				iterationCount++;
 
@@ -388,15 +388,14 @@ public class BytecodeEnhancer
 				final BytecodeEnhancer This = this;
 				final byte[] fCurrentContent = currentContent;
 
-				final ParamHolder<BytecodeBehaviorState> acquiredState =
-						new ParamHolder<BytecodeBehaviorState>();
+				final ParamHolder<BytecodeBehaviorState> acquiredState = new ParamHolder<>();
 				byte[] newContent = BytecodeBehaviorState.setState(originalType, currentType, newTypeHandle,
 						beanContext, hint, new IResultingBackgroundWorkerDelegate<byte[]>() {
 							@Override
 							public byte[] invoke() throws Throwable {
 								acquiredState.setValue((BytecodeBehaviorState) BytecodeBehaviorState.getState());
 								return This.executePendingBehaviors(fCurrentContent, sw, currentPendingBehaviors,
-										pendingBehaviors);
+										pendingBehaviors, classLoader);
 							}
 						});
 				if (newContent == null) {
@@ -408,7 +407,7 @@ public class BytecodeEnhancer
 					return currentType;
 				}
 				Class<?> newType =
-						bytecodeClassLoader.loadClass(newTypeHandle.getInternalName(), newContent);
+						bytecodeClassLoader.loadClass(newTypeHandle.getInternalName(), newContent, classLoader);
 				extendedTypeToType.put(newType, entityTypeR);
 				pendingStatesToPostProcess.add(acquiredState.getValue());
 				currentContent = newContent;
@@ -436,7 +435,8 @@ public class BytecodeEnhancer
 
 	public byte[] executePendingBehaviors(byte[] currentContent, Writer sw,
 			final IBytecodeBehavior[] pendingBehaviors,
-			final List<IBytecodeBehavior> cascadePendingBehaviors) throws Throwable {
+			final List<IBytecodeBehavior> cascadePendingBehaviors, ClassLoader classLoader)
+			throws Throwable {
 		final IBytecodeBehaviorState state = BytecodeBehaviorState.getState();
 		byte[] content = bytecodeClassLoader.buildTypeFromParent(state.getNewType().getInternalName(),
 				currentContent, sw, new IBuildVisitorDelegate() {
@@ -444,8 +444,7 @@ public class BytecodeEnhancer
 					public ClassVisitor build(ClassVisitor cv) {
 						IBytecodeBehavior[] currPendingBehaviors = pendingBehaviors;
 						for (int a = 0; a < currPendingBehaviors.length; a++) {
-							ArrayList<IBytecodeBehavior> remainingPendingBehaviors =
-									new ArrayList<IBytecodeBehavior>();
+							ArrayList<IBytecodeBehavior> remainingPendingBehaviors = new ArrayList<>();
 							for (int b = a + 1, sizeB = currPendingBehaviors.length; b < sizeB; b++) {
 								remainingPendingBehaviors.add(currPendingBehaviors[b]);
 							}
@@ -459,7 +458,7 @@ public class BytecodeEnhancer
 						}
 						return cv;
 					}
-				});
+				}, classLoader);
 		return content;
 	}
 

@@ -18,6 +18,13 @@ public final class FileUtilOsgi {
 			ClassLoader classLoader = type.getClassLoader();
 			Bundle bundle = (Bundle) classLoader.getClass().getMethod("getBundle").invoke(classLoader);
 			IdentityHashSet<Bundle> alreadyTriedSet = new IdentityHashSet<>();
+			if (!alreadyTriedSet.add(bundle)) {
+				return null;
+			}
+			URL url = bundle.getResource(resourceName);
+			if (url != null) {
+				return url.openStream();
+			}
 			BundleWiring bundleWiring = bundle.adapt(BundleWiring.class);
 			for (BundleWire requiredWire : bundleWiring.getRequiredWires(null)) {
 				BundleCapability capability = requiredWire.getCapability();
@@ -26,25 +33,11 @@ public final class FileUtilOsgi {
 				if (!alreadyTriedSet.add(wiredBundle)) {
 					continue;
 				}
-				URL url = wiredBundle.getResource(resourceName);
+				url = wiredBundle.getResource(resourceName);
 				if (url != null) {
 					return url.openStream();
 				}
 			}
-			// Object bundleWiring = bundle.getClass().getMethod("adapt", Class.class).invoke(bundle,
-			// bundle.getClass().getClassLoader().loadClass("org.osgi.framework.wiring.BundleWiring"));
-			// for (Object requiredWire : (Iterable<?>) bundleWiring.getClass()
-			// .getMethod("getRequiredWires", String.class).invoke(bundleWiring, new Object[] {null})) {
-			// Object capability =
-			// requiredWire.getClass().getMethod("getCapability").invoke(requiredWire);
-			// Object revision = capability.getClass().getMethod("getRevision").invoke(capability);
-			// Object wiredBundle = revision.getClass().getMethod("getBundle").invoke(revision);
-			// URL url = (URL) wiredBundle.getClass().getMethod("getResource", String.class)
-			// .invoke(wiredBundle, resourceName);
-			// if (url != null) {
-			// return url.openStream();
-			// }
-			// }
 			return null;
 		}
 		catch (Throwable e) {

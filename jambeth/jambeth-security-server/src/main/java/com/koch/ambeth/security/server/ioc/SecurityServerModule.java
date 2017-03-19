@@ -6,7 +6,6 @@ import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.job.JobScheduleConfiguration;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IMergeSecurityManager;
@@ -15,7 +14,6 @@ import com.koch.ambeth.security.IActionPermission;
 import com.koch.ambeth.security.IAuthenticationManager;
 import com.koch.ambeth.security.ISecurityManager;
 import com.koch.ambeth.security.IServiceFilterExtendable;
-import com.koch.ambeth.security.server.CleanupUnusedSignatureJob;
 import com.koch.ambeth.security.server.DefaultServiceFilter;
 import com.koch.ambeth.security.server.IPBEncryptor;
 import com.koch.ambeth.security.server.IPasswordUtil;
@@ -123,18 +121,5 @@ public class SecurityServerModule implements IInitializingModule {
 					"Given bean does not implement any of the permission rule interfaces:"
 							+ entityOrEntityTypePermissionRule.getBeanType());
 		}
-	}
-
-	public static void registerCleanupSignatureJob(IBeanContextFactory beanContextFactory,
-			String userName, char[] userPass, String cronPattern) {
-		IBeanConfiguration cleanupUnusedSignatureJob =
-				beanContextFactory.registerBean(CleanupUnusedSignatureJob.class);
-		beanContextFactory.registerBean(JobScheduleConfiguration.class) //
-				.propertyRef(JobScheduleConfiguration.JOB, cleanupUnusedSignatureJob) //
-				.propertyValue(JobScheduleConfiguration.JOB_NAME,
-						CleanupUnusedSignatureJob.class.getSimpleName()) //
-				.propertyValue(JobScheduleConfiguration.CRON_PATTERN, cronPattern) //
-				.propertyValue(JobScheduleConfiguration.USER_NAME, userName) //
-				.propertyValue(JobScheduleConfiguration.USER_PASS, userPass);
 	}
 }

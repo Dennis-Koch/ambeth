@@ -3,8 +3,11 @@ package com.koch.ambeth.security.server;
 import com.koch.ambeth.audit.model.IAuditEntry;
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.ioc.config.IBeanConfiguration;
+import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.job.IJob;
 import com.koch.ambeth.job.IJobContext;
+import com.koch.ambeth.job.JobScheduleConfiguration;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IMergeProcess;
@@ -17,8 +20,20 @@ import com.koch.ambeth.security.model.ISignature;
 import com.koch.ambeth.util.collections.IList;
 
 @SecurityContext(SecurityContextType.AUTHENTICATED)
-public class CleanupUnusedSignatureJob implements IJob, IStartingBean
-{
+public class CleanupUnusedSignatureJob implements IJob, IStartingBean {
+	public static void registerCleanupSignatureJob(IBeanContextFactory beanContextFactory,
+			String userName, char[] userPass, String cronPattern) {
+		IBeanConfiguration cleanupUnusedSignatureJob =
+				beanContextFactory.registerBean(CleanupUnusedSignatureJob.class);
+		beanContextFactory.registerBean(JobScheduleConfiguration.class) //
+				.propertyRef(JobScheduleConfiguration.JOB, cleanupUnusedSignatureJob) //
+				.propertyValue(JobScheduleConfiguration.JOB_NAME,
+						CleanupUnusedSignatureJob.class.getSimpleName()) //
+				.propertyValue(JobScheduleConfiguration.CRON_PATTERN, cronPattern) //
+				.propertyValue(JobScheduleConfiguration.USER_NAME, userName) //
+				.propertyValue(JobScheduleConfiguration.USER_PASS, userPass);
+	}
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -32,40 +47,35 @@ public class CleanupUnusedSignatureJob implements IJob, IStartingBean
 	private IQuery<ISignature> q_signaturesWithoutUser;
 
 	@Override
-	public void afterStarted() throws Throwable
-	{
+	public void afterStarted() throws Throwable {
 		IQueryBuilder<ISignature> qb = queryBuilderFactory.create(ISignature.class);
-		q_signaturesWithoutUser = qb.build(qb.and(qb.isNull(qb.property(ISignature.User)),
-				qb.isNotIn(qb.property("Id"), qb.property("<" + IAuditEntry.class.getName() + "#" + IAuditEntry.SignatureOfUser))));
+		q_signaturesWithoutUser =
+				qb.build(qb.and(qb.isNull(qb.property(ISignature.User)), qb.isNotIn(qb.property("Id"),
+						qb.property("<" + IAuditEntry.class.getName() + "#" + IAuditEntry.SignatureOfUser))));
 	}
 
 	@Override
-	public boolean canBePaused()
-	{
+	public boolean canBePaused() {
 		return false;
 	}
 
 	@Override
-	public boolean canBeStopped()
-	{
+	public boolean canBeStopped() {
 		return false;
 	}
 
 	@Override
-	public boolean supportsStatusTracking()
-	{
+	public boolean supportsStatusTracking() {
 		return false;
 	}
 
 	@Override
-	public boolean supportsCompletenessTracking()
-	{
+	public boolean supportsCompletenessTracking() {
 		return false;
 	}
 
 	@Override
-	public void execute(IJobContext context) throws Throwable
-	{
+	public void execute(IJobContext context) throws Throwable {
 		IList<ISignature> retrieve = q_signaturesWithoutUser.retrieve();
 		mergeProcess.process(retrieve, null, null, null);
 	}
