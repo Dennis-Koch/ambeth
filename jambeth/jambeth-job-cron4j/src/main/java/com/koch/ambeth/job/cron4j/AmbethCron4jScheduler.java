@@ -19,14 +19,15 @@ import com.koch.ambeth.security.IAuthentication;
 import com.koch.ambeth.security.ISecurityContext;
 import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.security.PasswordType;
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.IMapEntry;
 
 import it.sauronsoftware.cron4j.Scheduler;
 import it.sauronsoftware.cron4j.Task;
 
-public class AmbethCron4jScheduler implements IJobScheduler, IInitializingBean, IDisposableBean, IStartingBean, IJobExtendable
-{
+public class AmbethCron4jScheduler
+		implements IJobScheduler, IInitializingBean, IDisposableBean, IStartingBean, IJobExtendable {
 	@LogInstance
 	private ILogger log;
 
@@ -34,125 +35,108 @@ public class AmbethCron4jScheduler implements IJobScheduler, IInitializingBean, 
 	protected IServiceContext beanContext;
 
 	@Autowired
+	protected IClassLoaderProvider classLoaderProvider;
+
+	@Autowired
 	protected ISecurityContextHolder securityContextHolder;
 
 	protected Scheduler scheduler;
 
-	protected final MapExtendableContainer<IJob, String> jobs = new MapExtendableContainer<IJob, String>("jobId", "job")
-	{
-		@Override
-		protected int extractHash(IJob key)
-		{
-			return System.identityHashCode(key);
-		}
+	protected final MapExtendableContainer<IJob, String> jobs =
+			new MapExtendableContainer<IJob, String>("jobId", "job") {
+				@Override
+				protected int extractHash(IJob key) {
+					return System.identityHashCode(key);
+				}
 
-		@Override
-		protected boolean equalKeys(IJob key, IMapEntry<IJob, Object> entry)
-		{
-			return key == entry.getKey();
-		}
-	};
+				@Override
+				protected boolean equalKeys(IJob key, IMapEntry<IJob, Object> entry) {
+					return key == entry.getKey();
+				}
+			};
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		scheduler = new Scheduler();
 	}
 
 	@Override
-	public void afterStarted() throws Throwable
-	{
+	public void afterStarted() throws Throwable {
 		scheduler.start();
 	}
 
 	@Override
-	public void destroy() throws Throwable
-	{
+	public void destroy() throws Throwable {
 		final Scheduler scheduler = this.scheduler;
-		final Thread stopThread = new Thread(new Runnable()
-		{
+		final Thread stopThread = new Thread(new Runnable() {
 			@Override
-			public void run()
-			{
-				try
-				{
-					if (scheduler.isStarted())
-					{
+			public void run() {
+				try {
+					if (scheduler.isStarted()) {
 						scheduler.stop();
 					}
 				}
-				catch (Throwable e)
-				{
+				catch (Throwable e) {
 					log.error(e);
 				}
 			}
 		});
-		Thread checkOfStopThread = new Thread(new Runnable()
-		{
+		Thread checkOfStopThread = new Thread(new Runnable() {
 			@Override
-			public void run()
-			{
-				try
-				{
-					try
-					{
+			public void run() {
+				try {
+					try {
 						Thread.sleep(5000);
 					}
-					catch (InterruptedException e)
-					{
+					catch (InterruptedException e) {
 						// Intended blank
 					}
 					stopThread.interrupt();
 				}
-				catch (Throwable e)
-				{
+				catch (Throwable e) {
 					log.error(e);
 				}
 			}
 		});
 		stopThread.setName("Scheduler-StopThread");
-		stopThread.setContextClassLoader(Thread.currentThread().getContextClassLoader());
+		stopThread.setContextClassLoader(classLoaderProvider.getClassLoader());
 		stopThread.setDaemon(true);
 		checkOfStopThread.setName("Scheduler-StopThread-Check");
-		checkOfStopThread.setContextClassLoader(Thread.currentThread().getContextClassLoader());
+		checkOfStopThread.setContextClassLoader(classLoaderProvider.getClassLoader());
 		checkOfStopThread.setDaemon(true);
 		stopThread.start();
 		checkOfStopThread.start();
 	}
 
 	@Override
-	public void registerJob(IJob job, String jobName, String cronPattern)
-	{
+	public void registerJob(IJob job, String jobName, String cronPattern) {
 		ParamChecker.assertParamNotNull(job, "job");
 		ParamChecker.assertParamNotNull(jobName, "jobName");
 		ParamChecker.assertParamNotNull(cronPattern, "cronPattern");
 		String username = System.getProperty("user.name");
-		if (log.isInfoEnabled())
-		{
-			log.info("Scheduling job '" + jobName + "' on '" + cronPattern + "' with type '" + job.getClass().getName() + "'");
+		if (log.isInfoEnabled()) {
+			log.info("Scheduling job '" + jobName + "' on '" + cronPattern + "' with type '"
+					+ job.getClass().getName() + "'");
 		}
 		IAuthentication authentication = new DefaultAuthentication(username, null, PasswordType.PLAIN);
 		String jobId = scheduler.schedule(cronPattern, createTask(job, jobName, authentication));
-		try
-		{
+		try {
 			jobs.register(jobId, job);
 		}
-		catch (RuntimeException e)
-		{
+		catch (RuntimeException e) {
 			scheduler.deschedule(jobId);
 			throw e;
 		}
 	}
 
 	@Override
-	public void unregisterJob(IJob job, String jobName, String cronPattern)
-	{
+	public void unregisterJob(IJob job, String jobName, String cronPattern) {
 		ParamChecker.assertParamNotNull(job, "job");
 		ParamChecker.assertParamNotNull(jobName, "jobName");
 		ParamChecker.assertParamNotNull(cronPattern, "cronPattern");
-		if (log.isInfoEnabled())
-		{
-			log.info("Unscheduling job '" + jobName + "' on '" + cronPattern + "' with type '" + job.getClass().getName() + "'");
+		if (log.isInfoEnabled()) {
+			log.info("Unscheduling job '" + jobName + "' on '" + cronPattern + "' with type '"
+					+ job.getClass().getName() + "'");
 		}
 		String jobId = jobs.getExtension(job);
 		scheduler.deschedule(jobId);
@@ -160,81 +144,73 @@ public class AmbethCron4jScheduler implements IJobScheduler, IInitializingBean, 
 	}
 
 	@Override
-	public IJobDescheduleCommand scheduleJob(Class<?> jobType, String cronPattern, Map<Object, Object> properties)
-	{
+	public IJobDescheduleCommand scheduleJob(Class<?> jobType, String cronPattern,
+			Map<Object, Object> properties) {
 		return scheduleJob(jobType.getSimpleName(), jobType, cronPattern, properties);
 	}
 
 	@Override
-	public IJobDescheduleCommand scheduleJob(String jobName, Class<?> jobType, String cronPattern, Map<Object, Object> properties)
-	{
+	public IJobDescheduleCommand scheduleJob(String jobName, Class<?> jobType, String cronPattern,
+			Map<Object, Object> properties) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IJobDescheduleCommand scheduleJob(String jobName, Object jobTask, String cronPattern, Map<Object, Object> properties)
-	{
+	public IJobDescheduleCommand scheduleJob(String jobName, Object jobTask, String cronPattern,
+			Map<Object, Object> properties) {
 		ISecurityContext context = securityContextHolder.getContext();
 		IAuthentication authentication = context != null ? context.getAuthentication() : null;
 		return scheduleJobIntern(jobName, jobTask, cronPattern, authentication, properties);
 	}
 
 	@Override
-	public IJobDescheduleCommand scheduleJob(String jobName, Object jobTask, String cronPattern, String username, char[] userpass,
-			Map<Object, Object> properties)
-	{
+	public IJobDescheduleCommand scheduleJob(String jobName, Object jobTask, String cronPattern,
+			String username, char[] userpass, Map<Object, Object> properties) {
 		ParamChecker.assertParamNotNull(username, "username");
 		ParamChecker.assertParamNotNull(userpass, "userpass");
-		return scheduleJobIntern(jobName, jobTask, cronPattern, new DefaultAuthentication(username, userpass, PasswordType.PLAIN), properties);
+		return scheduleJobIntern(jobName, jobTask, cronPattern,
+				new DefaultAuthentication(username, userpass, PasswordType.PLAIN), properties);
 	}
 
-	protected IJobDescheduleCommand scheduleJobIntern(String jobName, final Object jobTask, String cronPattern, IAuthentication authentication,
-			Map<Object, Object> properties)
-	{
+	protected IJobDescheduleCommand scheduleJobIntern(String jobName, final Object jobTask,
+			String cronPattern, IAuthentication authentication, Map<Object, Object> properties) {
 		ParamChecker.assertParamNotNull(jobName, "jobName");
 		ParamChecker.assertParamNotNull(jobTask, "jobTask");
 		ParamChecker.assertParamNotNull(cronPattern, "cronPattern");
 
-		if (log.isInfoEnabled())
-		{
+		if (log.isInfoEnabled()) {
 			String impersonating = "";
-			if (authentication != null)
-			{
+			if (authentication != null) {
 				impersonating = " impersonating user '" + authentication.getUserName() + "'";
 			}
-			log.info("Scheduling job '" + jobName + "' on '" + cronPattern + "' with type '" + jobTask.getClass().getName() + "'" + impersonating);
+			log.info("Scheduling job '" + jobName + "' on '" + cronPattern + "' with type '"
+					+ jobTask.getClass().getName() + "'" + impersonating);
 		}
 		final String id;
-		if (jobTask instanceof IJob)
-		{
+		if (jobTask instanceof IJob) {
 			id = scheduler.schedule(cronPattern, createTask((IJob) jobTask, jobName, authentication));
 		}
-		else if (jobTask instanceof Task)
-		{
+		else if (jobTask instanceof Task) {
 			Task task = (Task) jobTask;
 			id = scheduler.schedule(cronPattern, createTask(new TaskJob(task), jobName, authentication));
 		}
-		else if (jobTask instanceof Runnable)
-		{
+		else if (jobTask instanceof Runnable) {
 			Runnable runnable = (Runnable) jobTask;
-			id = scheduler.schedule(cronPattern, createTask(new RunnableJob(runnable), jobName, authentication));
+			id = scheduler.schedule(cronPattern,
+					createTask(new RunnableJob(runnable), jobName, authentication));
 		}
-		else
-		{
+		else {
 			throw new IllegalArgumentException("JobTask not recognized: " + jobTask);
 		}
-		return new IJobDescheduleCommand()
-		{
+		return new IJobDescheduleCommand() {
 			@Override
-			public void execute()
-			{
+			public void execute() {
 				scheduler.deschedule(id);
 			}
 		};
 	}
 
-	protected Task createTask(IJob job, String jobName, IAuthentication authentication)
-	{
+	protected Task createTask(IJob job, String jobName, IAuthentication authentication) {
 		return beanContext.registerBean(AmbethCron4jJob.class)//
 				.propertyValue("Job", job)//
 				.propertyValue("JobName", jobName)//

@@ -22,14 +22,17 @@ import com.koch.ambeth.shell.core.CommandExtension.Parameter;
 import com.koch.ambeth.shell.core.CommandExtension.Usage;
 import com.koch.ambeth.shell.core.annotation.CommandArg;
 import com.koch.ambeth.shell.util.Utils;
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 /**
  * {@inheritDoc}
  */
-public class CommandBindingImpl implements CommandBinding, IInitializingBean
-{
+public class CommandBindingImpl implements CommandBinding, IInitializingBean {
+	@Autowired
+	protected IClassLoaderProvider classLoaderProvider;
+
 	@Autowired
 	protected IConversionHelper conversionHelper;
 
@@ -60,88 +63,70 @@ public class CommandBindingImpl implements CommandBinding, IInitializingBean
 	protected int methodIndex;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		methodIndex = methodAccess.getIndex(method.getName(), method.getParameterTypes());
 	}
 
 	@Override
-	public Object execute(List<String> arguments)
-	{
+	public Object execute(List<String> arguments) {
 		Class<?>[] parameterTypes = methodAccess.getParameterTypes()[methodIndex];
 		Type[] genericParameterTypes = method.getGenericParameterTypes();
 		Object[] translatedArgs = new Object[parameterTypes.length];
 
-		Set<ParsedArgument> parsedArgs = new HashSet<ParsedArgument>();
-		for (int n = 0; n < arguments.size(); n++)
-		{
+		Set<ParsedArgument> parsedArgs = new HashSet<>();
+		for (int n = 0; n < arguments.size(); n++) {
 			parsedArgs.add(new ParsedArgument(arguments.get(n), n, shell.getContext()));
 		}
-		for (int index = 0, size = args.length; index < size; index++)
-		{
+		for (int index = 0, size = args.length; index < size; index++) {
 			CommandArg ca = args[index];
 			Class<?> paramType = parameterTypes[index];
 			Type genericParamType = genericParameterTypes[index];
-			for (ParsedArgument pa : parsedArgs)
-			{
-				if (pa.matchedBy(ca))
-				{
+			for (ParsedArgument pa : parsedArgs) {
+				if (pa.matchedBy(ca)) {
 					Class<?> targetType = paramType;
-					if (Entry.class.equals(paramType))
-					{
-						if (genericParamType instanceof ParameterizedType)
-						{
+					if (Entry.class.equals(paramType)) {
+						if (genericParamType instanceof ParameterizedType) {
 							Type type = ((ParameterizedType) genericParamType).getActualTypeArguments()[1];
-							if (type instanceof ParameterizedType)
-							{
+							if (type instanceof ParameterizedType) {
 								type = ((ParameterizedType) type).getRawType();
 							}
 							// intentionally no else-if here
-							if (type instanceof Class)
-							{
+							if (type instanceof Class) {
 								targetType = (Class<?>) type;
 							}
 						}
 						Object targetValue = conversionHelper.convertValueToType(targetType, pa.value);
-						translatedArgs[index] = new SimpleEntry<String, Object>(pa.name, targetValue);
+						translatedArgs[index] = new SimpleEntry<>(pa.name, targetValue);
 					}
-					else
-					{
+					else {
 						Object targetValue = conversionHelper.convertValueToType(targetType, pa.value);
 						translatedArgs[index] = targetValue;
 					}
 				}
 			}
-			if (translatedArgs[index] == null && !ca.defaultValue().isEmpty())
-			{
+			if (translatedArgs[index] == null && !ca.defaultValue().isEmpty()) {
 				translatedArgs[index] = ca.defaultValue();
 			}
-			if (translatedArgs[index] == null && !ca.optional())
-			{
+			if (translatedArgs[index] == null && !ca.optional()) {
 				shell.println(printUsage());
 				throw new RuntimeException("Mandatory argument is missing!");
 			}
 		}
 
-		try
-		{
+		try {
 			return methodAccess.invoke(commandBean, methodIndex, translatedArgs);
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	public String printHelp()
-	{
+	public String printHelp() {
 		StringWriter strWriter = new StringWriter();
 		PrintWriter pw = new PrintWriter(strWriter);
-		try
-		{
-			if (!description.isEmpty())
-			{
+		try {
+			if (!description.isEmpty()) {
 				pw.println(description);
 			}
 
@@ -149,15 +134,12 @@ public class CommandBindingImpl implements CommandBinding, IInitializingBean
 
 			return strWriter.toString();
 		}
-		finally
-		{
+		finally {
 			pw.close();
-			try
-			{
+			try {
 				strWriter.close();
 			}
-			catch (IOException e)
-			{
+			catch (IOException e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -168,19 +150,16 @@ public class CommandBindingImpl implements CommandBinding, IInitializingBean
 	 * http://courses.cms.caltech.edu/cs11/material/general/usage.html
 	 */
 	@Override
-	public String printUsage()
-	{
+	public String printUsage() {
 		StringWriter strWriter = new StringWriter();
 		PrintWriter pw = new PrintWriter(strWriter);
-		try
-		{
+		try {
 			String indent = "  ";
 
 			pw.println("Usage:");
 			pw.print(indent + name + " ");
 			int maxArgStringLength = 0;
-			for (CommandArg arg : args)
-			{
+			for (CommandArg arg : args) {
 				String argName = arg.name().isEmpty() ? "<" + arg.alt() + ">" : arg.name();
 				// String argName = arg.name();
 
@@ -189,33 +168,29 @@ public class CommandBindingImpl implements CommandBinding, IInitializingBean
 				argName = !argName.isEmpty() && arg.optional() ? "[" + argName + "]" : argName;
 
 				pw.print(argName + " ");
-				maxArgStringLength = Math.max(maxArgStringLength, Math.max(argName.length(), arg.alt().length() + 2));
+				maxArgStringLength =
+						Math.max(maxArgStringLength, Math.max(argName.length(), arg.alt().length() + 2));
 			}
 			pw.println();
-			if (args.length > 0)
-			{
+			if (args.length > 0) {
 				pw.println("options:");
-				for (CommandArg arg : args)
-				{
+				for (CommandArg arg : args) {
 					String argName = arg.name().isEmpty() ? "<" + arg.alt() + ">" : arg.name();
 					argName = !argName.isEmpty() && arg.optional() ? "[" + argName + "]" : argName;
 					pw.print(indent + Utils.stringPadEnd(argName, maxArgStringLength + 4, ' '));
 					String description = arg.description();
-					if (!arg.descriptionFile().isEmpty())
-					{
+					if (!arg.descriptionFile().isEmpty()) {
 						// TODO implement read descriptions from files
-						try
-						{
-							description = Utils.readInputStream(Thread.currentThread().getContextClassLoader().getResourceAsStream(arg.descriptionFile()));
+						try {
+							description = Utils.readInputStream(
+									classLoaderProvider.getClassLoader().getResourceAsStream(arg.descriptionFile()));
 						}
-						catch (IOException e)
-						{
+						catch (IOException e) {
 							pw.println("Warning: Failure to load description file: " + arg.descriptionFile());
 						}
 					}
 					pw.print(description);
-					if (!arg.defaultValue().isEmpty())
-					{
+					if (!arg.defaultValue().isEmpty()) {
 						pw.print(" [DEFAULT: " + arg.defaultValue() + "]");
 					}
 					pw.println();
@@ -226,15 +201,12 @@ public class CommandBindingImpl implements CommandBinding, IInitializingBean
 
 			return strWriter.toString();
 		}
-		finally
-		{
+		finally {
 			pw.close();
-			try
-			{
+			try {
 				strWriter.close();
 			}
-			catch (IOException e)
-			{
+			catch (IOException e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -243,36 +215,29 @@ public class CommandBindingImpl implements CommandBinding, IInitializingBean
 
 	/**
 	 * print usage of command extensions
-	 * 
+	 *
 	 * @param extensions
 	 */
-	private String printExtensionUsages(List<CommandExtension> extensions)
-	{
-		if (extensions == null || extensions.size() == 0)
-		{
+	private String printExtensionUsages(List<CommandExtension> extensions) {
+		if (extensions == null || extensions.size() == 0) {
 			return "";
 		}
 		StringWriter strWriter = new StringWriter();
 		PrintWriter pw = new PrintWriter(strWriter);
-		try
-		{
+		try {
 			pw.println();
 
-			List<Usage> usages = new ArrayList<Usage>();
+			List<Usage> usages = new ArrayList<>();
 			int maxParamLength = 0;
-			for (CommandExtension extension : extensions)
-			{
+			for (CommandExtension extension : extensions) {
 				Usage usage = extension.getUsage();
-				if (usage == null)
-				{
+				if (usage == null) {
 					continue;
 				}
 				usages.add(usage);
 
-				if (usage.getParameters() != null)
-				{
-					for (Parameter p : usage.getParameters())
-					{
+				if (usage.getParameters() != null) {
+					for (Parameter p : usage.getParameters()) {
 						maxParamLength = Math.max(p.getName().length(), maxParamLength);
 					}
 				}
@@ -280,20 +245,16 @@ public class CommandBindingImpl implements CommandBinding, IInitializingBean
 			}
 			maxParamLength += 3;
 
-			for (Usage usage : usages)
-			{
+			for (Usage usage : usages) {
 
 				pw.println("Extension:   " + usage.getName());
 				pw.println("Description: " + usage.getDescription());
-				if (usage.getParameters() != null && usage.getParameters().size() > 0)
-				{
+				if (usage.getParameters() != null && usage.getParameters().size() > 0) {
 					pw.println("Parameters:");
-					for (Parameter p : usage.getParameters())
-					{
+					for (Parameter p : usage.getParameters()) {
 						pw.print("  " + Utils.stringPadEnd("[" + p.getName() + "]", maxParamLength, ' '));
 						pw.print(p.getDescription());
-						if (p.getDefaultValue() != null)
-						{
+						if (p.getDefaultValue() != null) {
 							pw.print(" [Default: " + p.getDefaultValue() + "]");
 						}
 						pw.println();
@@ -303,29 +264,24 @@ public class CommandBindingImpl implements CommandBinding, IInitializingBean
 			}
 			return strWriter.toString();
 		}
-		finally
-		{
+		finally {
 			pw.close();
-			try
-			{
+			try {
 				strWriter.close();
 			}
-			catch (IOException e)
-			{
+			catch (IOException e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
 	@Override
-	public String getDescription()
-	{
+	public String getDescription() {
 		return description;
 	}
 

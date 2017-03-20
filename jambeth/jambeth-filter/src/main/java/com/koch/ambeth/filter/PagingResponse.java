@@ -11,8 +11,7 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 
 @XmlType
 @XmlAccessorType(XmlAccessType.FIELD)
-public class PagingResponse<T> implements IPagingResponse<T>
-{
+public class PagingResponse<T> implements IPagingResponse<T> {
 	@XmlElement(name = "Number")
 	protected int number;
 
@@ -20,109 +19,91 @@ public class PagingResponse<T> implements IPagingResponse<T>
 	protected int totalNumber;
 
 	@XmlElement(name = "TotalSize", required = true)
-	protected int totalSize;
+	protected long totalSize;
 
 	protected List<T> result;
 
 	protected List<IObjRef> refResult;
 
 	@Override
-	public int getNumber()
-	{
+	public int getNumber() {
 		return number;
 	}
 
-	public void setNumber(int number)
-	{
+	public void setNumber(int number) {
 		this.number = number;
 	}
 
-	public PagingResponse<T> withNumber(int number)
-	{
+	public PagingResponse<T> withNumber(int number) {
 		setNumber(number);
 		return this;
 	}
 
 	@Override
-	public int getSize()
-	{
-		if (refResult != null)
-		{
+	public int getSize() {
+		if (refResult != null) {
 			return refResult.size();
 		}
-		else if (result != null)
-		{
+		else if (result != null) {
 			return result.size();
 		}
 		return 0;
 	}
 
 	@Override
-	public int getTotalNumber()
-	{
+	public int getTotalNumber() {
 		return totalNumber;
 	}
 
-	public void setTotalNumber(int totalNumber)
-	{
+	public void setTotalNumber(int totalNumber) {
 		this.totalNumber = totalNumber;
 	}
 
-	public PagingResponse<T> withTotalNumber(int totalNumber)
-	{
+	public PagingResponse<T> withTotalNumber(int totalNumber) {
 		setTotalNumber(totalNumber);
 		return this;
 	}
 
 	@Override
-	public int getTotalSize()
-	{
+	public long getTotalSize() {
 		return totalSize;
 	}
 
-	public void setTotalSize(int totalSize)
-	{
+	public void setTotalSize(long totalSize) {
 		this.totalSize = totalSize;
 	}
 
-	public PagingResponse<T> withTotalSize(int totalSize)
-	{
+	public PagingResponse<T> withTotalSize(long totalSize) {
 		setTotalSize(totalSize);
 		return this;
 	}
 
 	@Override
-	public List<T> getResult()
-	{
+	public List<T> getResult() {
 		return result;
 	}
 
 	@Override
-	public void setResult(List<T> result)
-	{
+	public void setResult(List<T> result) {
 		this.result = result;
 	}
 
-	public IPagingResponse<T> withResult(List<T> result)
-	{
+	public IPagingResponse<T> withResult(List<T> result) {
 		setResult(result);
 		return this;
 	}
 
 	@Override
-	public List<IObjRef> getRefResult()
-	{
+	public List<IObjRef> getRefResult() {
 		return refResult;
 	}
 
 	@Override
-	public void setRefResult(List<IObjRef> refResult)
-	{
+	public void setRefResult(List<IObjRef> refResult) {
 		this.refResult = refResult;
 	}
 
-	public IPagingResponse<T> withRefResult(List<IObjRef> refResult)
-	{
+	public IPagingResponse<T> withRefResult(List<IObjRef> refResult) {
 		setRefResult(refResult);
 		return this;
 	}

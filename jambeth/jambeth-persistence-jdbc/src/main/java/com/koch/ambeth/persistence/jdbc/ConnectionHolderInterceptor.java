@@ -9,7 +9,7 @@ import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.ILightweightTransaction;
-import com.koch.ambeth.persistence.jdbc.IConnectionHolder;
+import com.koch.ambeth.persistence.IConnectionHolder;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;

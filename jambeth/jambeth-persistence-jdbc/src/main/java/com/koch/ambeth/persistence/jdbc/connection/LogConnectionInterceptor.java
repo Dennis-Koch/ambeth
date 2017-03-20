@@ -22,6 +22,8 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.SQLState;
 import com.koch.ambeth.persistence.api.database.ITransactionInfo;
 import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
+import com.koch.ambeth.persistence.connection.IConnectionKeyHandle;
+import com.koch.ambeth.persistence.connection.IPreparedConnectionHolder;
 import com.koch.ambeth.persistence.jdbc.event.ConnectionClosedEvent;
 import com.koch.ambeth.service.log.interceptor.LogInterceptor;
 import com.koch.ambeth.util.IPrintable;

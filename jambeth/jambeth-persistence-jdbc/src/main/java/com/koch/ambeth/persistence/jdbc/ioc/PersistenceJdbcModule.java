@@ -24,6 +24,8 @@ import com.koch.ambeth.merge.ITransactionState;
 import com.koch.ambeth.merge.copy.IObjectCopierExtendable;
 import com.koch.ambeth.merge.event.EntityMetaDataAddedEvent;
 import com.koch.ambeth.merge.event.EntityMetaDataRemovedEvent;
+import com.koch.ambeth.persistence.IConnectionHolder;
+import com.koch.ambeth.persistence.NoopDatabasePool;
 import com.koch.ambeth.persistence.api.IDatabaseMetaData;
 import com.koch.ambeth.persistence.api.IDatabasePool;
 import com.koch.ambeth.persistence.api.database.ITransaction;
@@ -37,14 +39,12 @@ import com.koch.ambeth.persistence.jdbc.ConnectionHolderInterceptor;
 import com.koch.ambeth.persistence.jdbc.ConnectionHolderRegistry;
 import com.koch.ambeth.persistence.jdbc.DefaultDatabasePool;
 import com.koch.ambeth.persistence.jdbc.IConnectionFactory;
-import com.koch.ambeth.persistence.jdbc.IConnectionHolder;
 import com.koch.ambeth.persistence.jdbc.IConnectionHolderExtendable;
 import com.koch.ambeth.persistence.jdbc.IConnectionHolderRegistry;
 import com.koch.ambeth.persistence.jdbc.JDBCDatabaseMetaData;
 import com.koch.ambeth.persistence.jdbc.JDBCSqlConnection;
 import com.koch.ambeth.persistence.jdbc.JdbcDatabaseFactory;
 import com.koch.ambeth.persistence.jdbc.JdbcLink;
-import com.koch.ambeth.persistence.jdbc.NoopDatabasePool;
 import com.koch.ambeth.persistence.jdbc.TimestampToCalendarConverter;
 import com.koch.ambeth.persistence.jdbc.array.ArrayConverter;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
@@ -65,6 +65,7 @@ import com.koch.ambeth.persistence.sql.ISqlConnection;
 import com.koch.ambeth.stream.IUnmodifiedInputSource;
 import com.koch.ambeth.stream.binary.IBinaryInputSource;
 import com.koch.ambeth.stream.chars.ICharacterInputSource;
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 import com.koch.ambeth.util.typeinfo.INoEntityTypeExtendable;
@@ -73,6 +74,9 @@ import net.sf.cglib.proxy.MethodInterceptor;
 
 @FrameworkModule
 public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoadingBean {
+	@Autowired
+	protected IClassLoaderProvider classLoaderProvider;
+
 	@Autowired
 	protected IProxyFactory proxyFactory;
 
@@ -120,11 +124,11 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 				.propertyValue("DefaultUpdatedOnFieldName", "Updated_On")//
 				.autowireable(IDatabaseMetaData.class, IDatabaseMappedListenerExtendable.class);
 
-		List<Class<?>> connectionModuleTypes = new ArrayList<Class<?>>();
+		List<Class<?>> connectionModuleTypes = new ArrayList<>();
 		if (additionalConnectionModules != null) {
 			String[] typeNames = additionalConnectionModules.split(";");
 			for (int a = typeNames.length; a-- > 0;) {
-				Class<?> type = Thread.currentThread().getContextClassLoader().loadClass(typeNames[a]);
+				Class<?> type = classLoaderProvider.getClassLoader().loadClass(typeNames[a]);
 				connectionModuleTypes.add(type);
 			}
 		}

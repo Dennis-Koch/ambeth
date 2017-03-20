@@ -4,7 +4,7 @@ import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.extendable.MapExtendableContainer;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
-import com.koch.ambeth.persistence.jdbc.IConnectionHolder;
+import com.koch.ambeth.persistence.IConnectionHolder;
 import com.koch.ambeth.util.collections.ILinkedMap;
 
 public class ConnectionHolderRegistry implements IInitializingBean, IConnectionHolderExtendable, IConnectionHolderRegistry

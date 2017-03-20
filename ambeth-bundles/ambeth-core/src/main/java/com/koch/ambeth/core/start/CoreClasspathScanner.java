@@ -17,6 +17,7 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.IClasspathScanner;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.StringBuilderUtil;
@@ -41,10 +42,13 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 			Pattern.compile("([^\\$\\.]+)(?:\\$[\\.]+)?\\.(?:java|class)");
 
 	@Autowired
-	protected IObjectCollector objectCollector;
+	protected IClasspathInfo classpathInfo;
 
 	@Autowired
-	protected IClasspathInfo classpathInfo;
+	protected IClassLoaderProvider classLoaderProvider;
+
+	@Autowired
+	protected IObjectCollector objectCollector;
 
 	@Property(name = CoreConfigurationConstants.PackageScanPatterns, defaultValue = "com/koch/.*")
 	protected String packageFilterPatterns;
@@ -85,7 +89,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 			ParamChecker.assertNotNull(packageFilterPatterns, "packageFilterPatterns");
 
 			String[] split = packageFilterPatterns.split(";");
-			ArrayList<Pattern> patterns = new ArrayList<Pattern>();
+			ArrayList<Pattern> patterns = new ArrayList<>();
 			for (int a = split.length; a-- > 0;) {
 				String packagePattern = split[a];
 				String packagePattern1 =
@@ -105,7 +109,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 		ClassPool pool = getClassPool();
 		IList<String> targetClassNames = scanForClasses(pool);
 		try {
-			List<CtClass> classNamesFound = new ArrayList<CtClass>();
+			List<CtClass> classNamesFound = new ArrayList<>();
 			for (int a = 0, size = targetClassNames.size(); a < size; a++) {
 				String className = targetClassNames.get(a);
 				CtClass cc;
@@ -147,7 +151,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 					ctSuperTypes[a] = ClassPool.getDefault().get(superTypes[a].getName());
 				}
 			}
-			List<CtClass> classNamesFound = new ArrayList<CtClass>();
+			List<CtClass> classNamesFound = new ArrayList<>();
 			for (int a = 0, size = targetClassNames.size(); a < size; a++) {
 				String className = targetClassNames.get(a);
 				CtClass cc = pool.get(className);
@@ -174,7 +178,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 	}
 
 	protected List<Class<?>> convertToClasses(List<CtClass> ctClasses) {
-		HashSet<Class<?>> set = new HashSet<Class<?>>();
+		HashSet<Class<?>> set = new HashSet<>();
 		for (int a = 0, size = ctClasses.size(); a < size; a++) {
 			CtClass ctClass = ctClasses.get(a);
 			try {
@@ -184,19 +188,19 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
-		ArrayList<Class<?>> list = new ArrayList<Class<?>>(set.size());
+		ArrayList<Class<?>> list = new ArrayList<>(set.size());
 		set.toList(list);
 		return list;
 	}
 
 	protected ClassLoader getClassLoader() {
-		return Thread.currentThread().getContextClassLoader();
+		return classLoaderProvider.getClassLoader();
 	}
 
 	protected IList<String> scanForClasses(ClassPool pool) {
 		IList<URL> urls = getJarURLs();
 
-		ArrayList<String> targetClassNames = new ArrayList<String>();
+		ArrayList<String> targetClassNames = new ArrayList<>();
 
 		try {
 			for (int a = 0, size = urls.size(); a < size; a++) {

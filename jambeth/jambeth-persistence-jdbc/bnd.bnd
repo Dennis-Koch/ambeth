@@ -1,2 +1,8 @@
 -exportcontents: \
     com.koch.ambeth.*
+DynamicImport-Package: \
+	org.apache.commons.pool2
+Import-Package: \
+	net.sf.cglib.core, \
+	net.sf.cglib.reflect, \
+	*

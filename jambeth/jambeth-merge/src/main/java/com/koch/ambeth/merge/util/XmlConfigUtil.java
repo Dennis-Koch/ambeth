@@ -27,6 +27,7 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.log.io.FileUtil;
 import com.koch.ambeth.merge.util.xml.XmlValidator;
 import com.koch.ambeth.util.Arrays;
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.StringConversionHelper;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyList;
@@ -52,9 +53,12 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
 			SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 
 	protected final HashMap<String, Reference<Class<?>>> nameToTypeMap =
-			new HashMap<String, Reference<Class<?>>>();
+			new HashMap<>();
 
 	protected final java.util.concurrent.locks.Lock writeLock = new ReentrantLock();
+
+	@Autowired
+	protected IClassLoaderProvider classLoaderProvider;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
@@ -161,7 +165,7 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
 
 	@Override
 	public IList<Element> nodesToElements(NodeList nodeList) {
-		IList<Element> elements = new ArrayList<Element>();
+		IList<Element> elements = new ArrayList<>();
 
 		// Order is semantically important
 		for (int i = 0, size = nodeList.getLength(); i < size; i++) {
@@ -204,7 +208,7 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
 
 	@Override
 	public IMap<String, IList<Element>> toElementMap(NodeList nodeList) {
-		HashMap<String, IList<Element>> elementMap = new HashMap<String, IList<Element>>();
+		HashMap<String, IList<Element>> elementMap = new HashMap<>();
 
 		// Order is semantically important
 		for (int i = 0, size = nodeList.getLength(); i < size; i++) {
@@ -213,7 +217,7 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
 				String nodeName = node.getNodeName();
 				IList<Element> elements = elementMap.get(nodeName);
 				if (elements == null) {
-					elements = new ArrayList<Element>();
+					elements = new ArrayList<>();
 					elementMap.put(nodeName, elements);
 				}
 				elements.add((Element) node);
@@ -300,7 +304,7 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
 			}
 			Class<?> entityType;
 			try {
-				entityType = Thread.currentThread().getContextClassLoader().loadClass(name);
+				entityType = classLoaderProvider.getClassLoader().loadClass(name);
 			}
 			catch (ClassNotFoundException e) {
 				if (log.isErrorEnabled()) {

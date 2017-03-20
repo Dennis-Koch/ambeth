@@ -41,34 +41,33 @@ import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.util.typeinfo.ITypeInfo;
 import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
 
-public class ServiceContext implements IServiceContext, IServiceContextIntern, IDisposable, IPrintable
-{
-	public static class SimpleClassNameComparator implements Comparator<Class<?>>
-	{
+public class ServiceContext
+		implements IServiceContext, IServiceContextIntern, IDisposable, IPrintable {
+	public static class SimpleClassNameComparator implements Comparator<Class<?>> {
 		private final ITypeInfoProvider typeInfoProvider;
 
-		public SimpleClassNameComparator(ITypeInfoProvider typeInfoProvider)
-		{
+		public SimpleClassNameComparator(ITypeInfoProvider typeInfoProvider) {
 			this.typeInfoProvider = typeInfoProvider;
 		}
 
 		@Override
-		public int compare(Class<?> o1, Class<?> o2)
-		{
+		public int compare(Class<?> o1, Class<?> o2) {
 			ITypeInfo t1 = typeInfoProvider.getTypeInfo(o1);
 			ITypeInfo t2 = typeInfoProvider.getTypeInfo(o2);
 			return t1.getSimpleName().compareTo(t2.getSimpleName());
 		}
 	}
 
-	public static RuntimeException createDuplicateAutowireableException(Class<?> autowireableType, Object bean1, Object bean2)
-	{
-		return new IllegalArgumentException("A bean is already bound to type " + autowireableType.getName() + ".\nBean 1: " + bean1 + "\nBean 2: " + bean2);
+	public static RuntimeException createDuplicateAutowireableException(Class<?> autowireableType,
+			Object bean1, Object bean2) {
+		return new IllegalArgumentException("A bean is already bound to type "
+				+ autowireableType.getName() + ".\nBean 1: " + bean1 + "\nBean 2: " + bean2);
 	}
 
-	public static RuntimeException createDuplicateBeanNameException(String beanName, Object bean1, Object bean2)
-	{
-		return new IllegalArgumentException("A bean is already bound to name " + beanName + ".\nBean 1: " + bean1 + "\nBean 2: " + bean2);
+	public static RuntimeException createDuplicateBeanNameException(String beanName, Object bean1,
+			Object bean2) {
+		return new IllegalArgumentException("A bean is already bound to name " + beanName
+				+ ".\nBean 1: " + bean1 + "\nBean 2: " + bean2);
 	}
 
 	protected LinkedHashMap<String, Object> nameToServiceDict;
@@ -105,8 +104,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 
 	protected String name;
 
-	public ServiceContext(String name, IObjectCollector objectCollector)
-	{
+	public ServiceContext(String name, IObjectCollector objectCollector) {
 		this.name = name;
 		ParamChecker.assertNotNull(objectCollector, "objectCollector");
 
@@ -116,13 +114,12 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		readLock = rwLock.getReadLock();
 		writeLock = rwLock.getWriteLock();
 
-		typeToServiceDict = new LinkedHashMap<Class<?>, Object>();
+		typeToServiceDict = new LinkedHashMap<>();
 		typeToServiceDict.put(IServiceContext.class, this);
 		typeToServiceDict.put(IServiceContextIntern.class, this);
 	}
 
-	public ServiceContext(String name, IServiceContextIntern parent)
-	{
+	public ServiceContext(String name, IServiceContextIntern parent) {
 		this.name = name;
 		ParamChecker.assertNotNull(parent, "parent");
 		this.parent = parent;
@@ -135,275 +132,235 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		readLock = rwLock.getReadLock();
 		writeLock = rwLock.getWriteLock();
 
-		typeToServiceDict = new LinkedHashMap<Class<?>, Object>();
+		typeToServiceDict = new LinkedHashMap<>();
 		typeToServiceDict.put(IServiceContext.class, this);
 		typeToServiceDict.put(IServiceContextIntern.class, this);
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
 	@Override
-	public IServiceContext getParent()
-	{
+	public IServiceContext getParent() {
 		checkNotDisposed();
 		return parent;
 	}
 
 	@Override
-	public IServiceContext getRoot()
-	{
+	public IServiceContext getRoot() {
 		checkNotDisposed();
-		if (parent == null)
-		{
+		if (parent == null) {
 			return this;
 		}
 		return parent.getRoot();
 	}
 
-	public BeanContextFactory getBeanContextFactory()
-	{
+	public BeanContextFactory getBeanContextFactory() {
 		checkNotDisposed();
 		return beanContextFactory;
 	}
 
-	public void setBeanContextFactory(BeanContextFactory beanContextFactory)
-	{
+	public void setBeanContextFactory(BeanContextFactory beanContextFactory) {
 		checkNotDisposed();
 		this.beanContextFactory = beanContextFactory;
 	}
 
-	public List<IBeanPreProcessor> getPreProcessors()
-	{
+	public List<IBeanPreProcessor> getPreProcessors() {
 		checkNotDisposed();
 		return preProcessors;
 	}
 
-	public List<IBeanPostProcessor> getPostProcessors()
-	{
+	public List<IBeanPostProcessor> getPostProcessors() {
 		checkNotDisposed();
 		return postProcessors;
 	}
 
-	public List<IBeanInstantiationProcessor> getInstantiationProcessors()
-	{
+	public List<IBeanInstantiationProcessor> getInstantiationProcessors() {
 		checkNotDisposed();
 		return instantiationProcessors;
 	}
 
 	@Override
-	public boolean isDisposed()
-	{
+	public boolean isDisposed() {
 		return disposed;
 	}
 
 	@Override
-	public boolean isRunning()
-	{
+	public boolean isRunning() {
 		return running;
 	}
 
-	public void addNamedBean(String beanName, Object bean)
-	{
+	public void addNamedBean(String beanName, Object bean) {
 		checkNotDisposed();
 		checkNotRunning();
 		ParamChecker.assertParamNotNull(beanName, "beanName");
 		ParamChecker.assertParamNotNull(bean, "bean");
-		if (nameToServiceDict == null)
-		{
-			nameToServiceDict = new LinkedHashMap<String, Object>();
+		if (nameToServiceDict == null) {
+			nameToServiceDict = new LinkedHashMap<>();
 		}
-		if (nameToServiceDict.containsKey(beanName))
-		{
+		if (nameToServiceDict.containsKey(beanName)) {
 			throw createDuplicateBeanNameException(beanName, bean, nameToServiceDict.get(beanName));
 		}
-		if (beanName.contains("&") || beanName.contains("*") || beanName.contains(" ") || beanName.contains("\t"))
-		{
-			throw new IllegalArgumentException("Bean name '" + beanName + "'  must not contain any of the following characters: '&', '*' or any whitespace");
+		if (beanName.contains("&") || beanName.contains("*") || beanName.contains(" ")
+				|| beanName.contains("\t")) {
+			throw new IllegalArgumentException("Bean name '" + beanName
+					+ "'  must not contain any of the following characters: '&', '*' or any whitespace");
 		}
 		nameToServiceDict.put(beanName, bean);
 	}
 
-	public void addAutowiredBean(Class<?> autowireableType, Object bean)
-	{
+	public void addAutowiredBean(Class<?> autowireableType, Object bean) {
 		checkNotDisposed();
 		checkNotRunning();
 		ParamChecker.assertParamNotNull(autowireableType, "autowireableType");
 		ParamChecker.assertParamNotNull(bean, "bean");
 
-		if (!(bean instanceof IFactoryBean))
-		{
+		if (!(bean instanceof IFactoryBean)) {
 			// A type check makes no sense on factory beans
 
-			if (!autowireableType.isAssignableFrom(bean.getClass()))
-			{
-				throw new ClassCastException("Bean instance of type " + bean.getClass().getName() + " does not match to autowired type "
-						+ autowireableType.getName());
+			if (!autowireableType.isAssignableFrom(bean.getClass())) {
+				throw new ClassCastException("Bean instance of type " + bean.getClass().getName()
+						+ " does not match to autowired type " + autowireableType.getName());
 			}
 		}
-		if (!typeToServiceDict.putIfNotExists(autowireableType, bean))
-		{
-			throw createDuplicateAutowireableException(autowireableType, bean, typeToServiceDict.get(autowireableType));
+		if (!typeToServiceDict.putIfNotExists(autowireableType, bean)) {
+			throw createDuplicateAutowireableException(autowireableType, bean,
+					typeToServiceDict.get(autowireableType));
 		}
 	}
 
-	public List<ILinkContainer> getLinkContainers()
-	{
+	public List<ILinkContainer> getLinkContainers() {
 		checkNotDisposed();
 		return linkContainers;
 	}
 
-	public void addLinkContainer(ILinkContainer linkContainer)
-	{
+	public void addLinkContainer(ILinkContainer linkContainer) {
 		checkNotDisposed();
 		writeLock.lock();
-		try
-		{
-			if (linkContainers == null)
-			{
-				linkContainers = new ArrayList<ILinkContainer>();
+		try {
+			if (linkContainers == null) {
+				linkContainers = new ArrayList<>();
 			}
 			linkContainers.add(linkContainer);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
-	public void addPreProcessor(IBeanPreProcessor preProcessor)
-	{
+	public void addPreProcessor(IBeanPreProcessor preProcessor) {
 		checkNotDisposed();
-		if (preProcessors == null)
-		{
-			preProcessors = new ArrayList<IBeanPreProcessor>();
+		if (preProcessors == null) {
+			preProcessors = new ArrayList<>();
 		}
 		addOrderedProcessor(preProcessor, preProcessors);
 	}
 
-	public void addPostProcessor(IBeanPostProcessor postProcessor)
-	{
+	public void addPostProcessor(IBeanPostProcessor postProcessor) {
 		checkNotDisposed();
-		if (postProcessors == null)
-		{
-			postProcessors = new ArrayList<IBeanPostProcessor>();
+		if (postProcessors == null) {
+			postProcessors = new ArrayList<>();
 		}
 		addOrderedProcessor(postProcessor, postProcessors);
 	}
 
-	public void addInstantiationProcessor(IBeanInstantiationProcessor instantiationProcessor)
-	{
+	public void addInstantiationProcessor(IBeanInstantiationProcessor instantiationProcessor) {
 		checkNotDisposed();
-		if (instantiationProcessors == null)
-		{
-			instantiationProcessors = new ArrayList<IBeanInstantiationProcessor>();
+		if (instantiationProcessors == null) {
+			instantiationProcessors = new ArrayList<>();
 		}
 		addOrderedProcessor(instantiationProcessor, instantiationProcessors);
 	}
 
-	protected <T> void addOrderedProcessor(T processor, List<T> processors)
-	{
+	protected <T> void addOrderedProcessor(T processor, List<T> processors) {
 		ProcessorOrder order = ProcessorOrder.DEFAULT;
-		if (processor instanceof IOrderedBeanProcessor)
-		{
+		if (processor instanceof IOrderedBeanProcessor) {
 			order = ((IOrderedBeanProcessor) processor).getOrder();
-			if (order == null)
-			{
+			if (order == null) {
 				order = ProcessorOrder.DEFAULT;
 			}
 		}
 		boolean added = false;
 		// Insert postprocessor at the correct order index
-		for (int a = processors.size(); a-- > 0;)
-		{
+		for (int a = processors.size(); a-- > 0;) {
 			T existingPostProcessor = processors.get(a);
 			ProcessorOrder existingOrder = ProcessorOrder.DEFAULT;
-			if (existingPostProcessor instanceof IOrderedBeanProcessor)
-			{
+			if (existingPostProcessor instanceof IOrderedBeanProcessor) {
 				existingOrder = ((IOrderedBeanProcessor) existingPostProcessor).getOrder();
-				if (existingOrder == null)
-				{
+				if (existingOrder == null) {
 					existingOrder = ProcessorOrder.DEFAULT;
 				}
 			}
-			if (existingOrder.getPosition() >= order.getPosition())
-			{
+			if (existingOrder.getPosition() >= order.getPosition()) {
 				// if same order then append directly behind the existing processor of that level
 				processors.add(a + 1, processor);
 				added = true;
 				break;
 			}
 		}
-		if (!added)
-		{
+		if (!added) {
 			processors.add(0, processor);
 		}
 	}
 
 	@Override
-	public IBeanConfiguration getBeanConfiguration(String beanName)
-	{
+	public IBeanConfiguration getBeanConfiguration(String beanName) {
 		return getBeanConfiguration(beanContextFactory, beanName);
 	}
 
-	public IBeanConfiguration getBeanConfiguration(BeanContextFactory beanContextFactory, String beanName)
-	{
+	public IBeanConfiguration getBeanConfiguration(BeanContextFactory beanContextFactory,
+			String beanName) {
 		checkNotDisposed();
 		IBeanConfiguration beanConfiguration = beanContextFactory.getBeanConfiguration(beanName);
-		if (beanConfiguration == null && parent != null)
-		{
+		if (beanConfiguration == null && parent != null) {
 			return parent.getBeanConfiguration(beanName);
 		}
 		return beanConfiguration;
 	}
 
-	protected void checkNotDisposed()
-	{
-		if (disposed)
-		{
+	protected void checkNotDisposed() {
+		if (disposed) {
 			throw new IllegalStateException(
 					"This bean context is already disposed. It might be a serious error that you still have running code referencing this instance");
 		}
 	}
 
-	protected void checkNotRunning()
-	{
-		if (running)
-		{
-			throw new IllegalStateException("This bean context is already running. It might be a serious error that you still want to configure this context");
+	protected void checkNotRunning() {
+		if (running) {
+			throw new IllegalStateException(
+					"This bean context is already running. It might be a serious error that you still want to configure this context");
 		}
 	}
 
-	public void setRunning()
-	{
+	public void setRunning() {
 		running = true;
+	}
+
+	@Override
+	public void close() throws Exception {
+		dispose();
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void dispose()
-	{
-		if (disposed || disposing)
-		{
+	public void dispose() {
+		if (disposed || disposing) {
 			return;
 		}
 		ILogger log;
 		IServiceContext[] childrenCopy = null;
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
-			if (disposed || disposing)
-			{
+		try {
+			if (disposed || disposing) {
 				return;
 			}
 			log = getService(ILoggerCache.class).getCachedLogger(this, ServiceContext.class);
-			if (log.isDebugEnabled())
-			{
-				// Safe the toString-method for debugging purpose. Because this is not possible anymore if the context
+			if (log.isDebugEnabled()) {
+				// Safe the toString-method for debugging purpose. Because this is not possible anymore if
+				// the context
 				// has been disposed and all bean-references have been cleared
 				IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 				StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
@@ -412,136 +369,102 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 				tlObjectCollector.dispose(sb);
 				sb = null;
 			}
-			else
-			{
+			else {
 				toStringBackup = "n/a";
 			}
 			disposing = true;
-			if (children != null && children.size() > 0)
-			{
+			if (children != null && children.size() > 0) {
 				childrenCopy = children.toArray(new IServiceContext[children.size()]);
 				children.clear();
 				children = null;
 			}
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
-		if (childrenCopy != null)
-		{
-			for (int a = childrenCopy.length; a-- > 0;)
-			{
+		if (childrenCopy != null) {
+			for (int a = childrenCopy.length; a-- > 0;) {
 				IServiceContext childContext = childrenCopy[a];
-				try
-				{
+				try {
 					childContext.dispose();
 				}
-				catch (Throwable e)
-				{
-					if (log.isErrorEnabled())
-					{
+				catch (Throwable e) {
+					if (log.isErrorEnabled()) {
 						log.error(e);
 					}
 				}
 			}
 		}
 		writeLock.lock();
-		try
-		{
-			if (parent != null)
-			{
+		try {
+			if (parent != null) {
 				parent.childContextDisposed(this);
 			}
-			if (linkContainers != null)
-			{
+			if (linkContainers != null) {
 				IList<ILinkContainer> linkContainers = this.linkContainers;
 				this.linkContainers = null;
-				for (int a = linkContainers.size(); a-- > 0;)
-				{
+				for (int a = linkContainers.size(); a-- > 0;) {
 					ILinkContainer listenerContainer = linkContainers.get(a);
-					try
-					{
+					try {
 						listenerContainer.unlink();
 					}
-					catch (Throwable e)
-					{
-						if (failOnError)
-						{
+					catch (Throwable e) {
+						if (failOnError) {
 							throw RuntimeExceptionUtil.mask(e);
 						}
-						if (log.isErrorEnabled())
-						{
+						if (log.isErrorEnabled()) {
 							log.error(e);
 						}
 					}
 				}
 			}
-			if (disposableObjects != null)
-			{
+			if (disposableObjects != null) {
 				IList<Object> disposableObjects = this.disposableObjects;
 				this.disposableObjects = null;
-				for (int a = disposableObjects.size(); a-- > 0;)
-				{
+				for (int a = disposableObjects.size(); a-- > 0;) {
 					Object disposableObject = disposableObjects.get(a);
-					if (disposableObject instanceof Reference)
-					{
+					if (disposableObject instanceof Reference) {
 						disposableObject = ((Reference<?>) disposableObject).get();
 					}
-					if (disposableObject == null)
-					{
+					if (disposableObject == null) {
 						continue;
 					}
-					if (disposableObject instanceof IDisposableBean)
-					{
-						try
-						{
+					if (disposableObject instanceof IDisposableBean) {
+						try {
 							((IDisposableBean) disposableObject).destroy();
 						}
-						catch (Throwable e)
-						{
-							if (failOnError)
-							{
+						catch (Throwable e) {
+							if (failOnError) {
 								throw RuntimeExceptionUtil.mask(e);
 							}
-							if (log.isErrorEnabled())
-							{
+							if (log.isErrorEnabled()) {
 								log.error(e);
 							}
 						}
 					}
-					else if (disposableObject instanceof IDisposable)
-					{
-						try
-						{
+					else if (disposableObject instanceof IDisposable) {
+						try {
 							((IDisposable) disposableObject).dispose();
 						}
-						catch (Throwable e)
-						{
-							if (failOnError)
-							{
+						catch (Throwable e) {
+							if (failOnError) {
 								throw RuntimeExceptionUtil.mask(e);
 							}
-							if (log.isErrorEnabled())
-							{
+							if (log.isErrorEnabled()) {
 								log.error(e);
 							}
 						}
 					}
-					else if (disposableObject instanceof IBackgroundWorkerParamDelegate)
-					{
-						try
-						{
-							((IBackgroundWorkerParamDelegate<? super ServiceContext>) disposableObject).invoke(this);
+					else if (disposableObject instanceof IBackgroundWorkerParamDelegate) {
+						try {
+							((IBackgroundWorkerParamDelegate<? super ServiceContext>) disposableObject)
+									.invoke(this);
 						}
-						catch (Throwable e)
-						{
-							if (failOnError)
-							{
+						catch (Throwable e) {
+							if (failOnError) {
 								throw RuntimeExceptionUtil.mask(e);
 							}
-							if (log.isErrorEnabled())
-							{
+							if (log.isErrorEnabled()) {
 								log.error(e);
 							}
 						}
@@ -550,8 +473,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 			}
 			beanContextFactory.dispose();
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 			beanContextFactory = null;
 			parent = null;
@@ -566,100 +488,89 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 	}
 
 	@Override
-	public void childContextDisposed(IServiceContext childContext)
-	{
-		if (children == null)
-		{
+	public void childContextDisposed(IServiceContext childContext) {
+		if (children == null) {
 			return;
 		}
 		writeLock.lock();
-		try
-		{
+		try {
 			children.remove(childContext);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public IServiceContext createService(Class<?>... serviceModuleTypes)
-	{
+	public IServiceContext createService(Class<?>... serviceModuleTypes) {
 		return createService(null, IServiceContext.class, null, serviceModuleTypes);
 	}
 
 	@Override
-	public IServiceContext createService(String contextName, Class<?>... serviceModuleTypes)
-	{
+	public IServiceContext createService(String contextName, Class<?>... serviceModuleTypes) {
 		return createService(contextName, IServiceContext.class, null, serviceModuleTypes);
 	}
 
 	@Override
-	public IServiceContext createService(IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, Class<?>... serviceModuleTypes)
-	{
+	public IServiceContext createService(
+			IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
+			Class<?>... serviceModuleTypes) {
 		return createService(null, IServiceContext.class, registerPhaseDelegate, serviceModuleTypes);
 	}
 
 	@Override
-	public IServiceContext createService(String contextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
-			Class<?>... serviceModuleTypes)
-	{
-		return createService(contextName, IServiceContext.class, registerPhaseDelegate, serviceModuleTypes);
+	public IServiceContext createService(String contextName,
+			IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
+			Class<?>... serviceModuleTypes) {
+		return createService(contextName, IServiceContext.class, registerPhaseDelegate,
+				serviceModuleTypes);
 	}
 
-	public <I> I createService(String contextName, Class<I> serviceClass, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
-			Class<?>... serviceModuleTypes)
-	{
+	public <I> I createService(String contextName, Class<I> serviceClass,
+			IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
+			Class<?>... serviceModuleTypes) {
 		checkNotDisposed();
-		IBeanContextInitializer beanContextInitializer = registerBean(BeanContextInitializer.class).finish();
+		IBeanContextInitializer beanContextInitializer =
+				registerBean(BeanContextInitializer.class).finish();
 
-		if (contextName == null && registerPhaseDelegate == null && serviceModuleTypes.length == 1)
-		{
+		if (contextName == null && registerPhaseDelegate == null && serviceModuleTypes.length == 1) {
 			contextName = serviceModuleTypes[0].getSimpleName();
 		}
-		BeanContextFactory childBeanContextFactory = beanContextFactory.createChildContextFactory(beanContextInitializer, this);
-		IServiceContext childContext = childBeanContextFactory.create(contextName, this, registerPhaseDelegate, serviceModuleTypes);
+		BeanContextFactory childBeanContextFactory =
+				beanContextFactory.createChildContextFactory(beanContextInitializer, this);
+		IServiceContext childContext = childBeanContextFactory.create(contextName, this,
+				registerPhaseDelegate, serviceModuleTypes);
 
 		writeLock.lock();
-		try
-		{
-			if (children == null)
-			{
-				children = new IdentityHashSet<IServiceContext>();
+		try {
+			if (children == null) {
+				children = new IdentityHashSet<>();
 			}
 			children.add(childContext);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 		return childContext.getService(serviceClass);
 	}
 
 	@Override
-	public <V> IBeanContextHolder<V> createHolder(final Class<V> autowiredBeanClass)
-	{
+	public <V> IBeanContextHolder<V> createHolder(final Class<V> autowiredBeanClass) {
 		checkNotDisposed();
-		return new IBeanContextHolder<V>()
-		{
+		return new IBeanContextHolder<V>() {
 			protected IServiceContext beanContext = ServiceContext.this;
 
 			@Override
-			public V getValue()
-			{
-				if (beanContext == null)
-				{
+			public V getValue() {
+				if (beanContext == null) {
 					throw new UnsupportedOperationException("This bean context has already been disposed!");
 				}
 				return beanContext.getService(autowiredBeanClass);
 			}
 
 			@Override
-			public void dispose()
-			{
-				if (beanContext != null)
-				{
+			public void dispose() {
+				if (beanContext != null) {
 					IServiceContext beanContext = this.beanContext;
 					this.beanContext = null;
 					beanContext.dispose();
@@ -669,29 +580,23 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 	}
 
 	@Override
-	public <V> IBeanContextHolder<V> createHolder(final String beanName, Class<V> expectedClass)
-	{
+	public <V> IBeanContextHolder<V> createHolder(final String beanName, Class<V> expectedClass) {
 		checkNotDisposed();
-		return new IBeanContextHolder<V>()
-		{
+		return new IBeanContextHolder<V>() {
 			protected IServiceContext beanContext = ServiceContext.this;
 
 			@SuppressWarnings("unchecked")
 			@Override
-			public V getValue()
-			{
-				if (beanContext == null)
-				{
+			public V getValue() {
+				if (beanContext == null) {
 					throw new UnsupportedOperationException("This bean context has already been disposed!");
 				}
 				return (V) beanContext.getService(beanName);
 			}
 
 			@Override
-			public void dispose()
-			{
-				if (beanContext != null)
-				{
+			public void dispose() {
+				if (beanContext != null) {
 					IServiceContext beanContext = this.beanContext;
 					this.beanContext = null;
 					beanContext.dispose();
@@ -700,190 +605,158 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		};
 	}
 
-	protected void handleObjects(final HandleObjectsDelegate handleObjectsDelegate)
-	{
-		final Set<Object> alreadyHandledSet = IdentityHashSet.create(typeToServiceDict.size() + nameToServiceDict.size());
-		for (Entry<Class<?>, Object> entry : typeToServiceDict)
-		{
+	protected void handleObjects(final HandleObjectsDelegate handleObjectsDelegate) {
+		final Set<Object> alreadyHandledSet =
+				IdentityHashSet.create(typeToServiceDict.size() + nameToServiceDict.size());
+		for (Entry<Class<?>, Object> entry : typeToServiceDict) {
 			Object obj = entry.getValue();
-			if (alreadyHandledSet.add(obj))
-			{
+			if (alreadyHandledSet.add(obj)) {
 				handleObjectsDelegate.invoke(obj);
 			}
 		}
-		for (Entry<String, Object> entry : nameToServiceDict)
-		{
+		for (Entry<String, Object> entry : nameToServiceDict) {
 			Object obj = entry.getValue();
-			if (alreadyHandledSet.add(obj))
-			{
+			if (alreadyHandledSet.add(obj)) {
 				handleObjectsDelegate.invoke(obj);
 			}
 		}
 	}
 
 	@Override
-	public ILinkRegistryNeededRuntime<?> link(String listenerBeanName)
-	{
+	public ILinkRegistryNeededRuntime<?> link(String listenerBeanName) {
 		checkNotDisposed();
 		return beanContextFactory.link(this, listenerBeanName);
 	}
 
 	@Override
-	public ILinkRegistryNeededRuntime<?> link(IBeanConfiguration listenerBean)
-	{
+	public ILinkRegistryNeededRuntime<?> link(IBeanConfiguration listenerBean) {
 		checkNotDisposed();
 		return beanContextFactory.link(this, listenerBean);
 	}
 
 	@Override
-	public <D> ILinkRegistryNeededRuntime<D> link(D listener)
-	{
+	public <D> ILinkRegistryNeededRuntime<D> link(D listener) {
 		checkNotDisposed();
 		return beanContextFactory.link(this, listener);
 	}
 
 	@Override
-	public void registerDisposable(IDisposableBean disposableBean)
-	{
+	public void registerDisposable(IDisposableBean disposableBean) {
 		registerDisposableIntern(disposableBean, true);
 	}
 
 	@Override
-	public void registerDisposeHook(IBackgroundWorkerParamDelegate<IServiceContext> waitCallback)
-	{
+	public void registerDisposeHook(IBackgroundWorkerParamDelegate<IServiceContext> waitCallback) {
 		registerDisposableIntern(waitCallback, false);
 	}
 
-	public void addDisposables(List<Object> disposableObjects)
-	{
-		if (this.disposableObjects == null)
-		{
-			this.disposableObjects = new ArrayList<Object>(disposableObjects.size());
+	public void addDisposables(List<Object> disposableObjects) {
+		if (this.disposableObjects == null) {
+			this.disposableObjects = new ArrayList<>(disposableObjects.size());
 		}
 		this.disposableObjects.addAll(disposableObjects);
 	}
 
-	protected void registerDisposableIntern(Object obj, boolean registerWeakOnRunning)
-	{
+	protected void registerDisposableIntern(Object obj, boolean registerWeakOnRunning) {
 		checkNotDisposed();
 		ParamChecker.assertParamNotNull(obj, "obj");
-		if (!isRunning())
-		{
-			if (disposableObjects == null)
-			{
-				disposableObjects = new ArrayList<Object>();
+		if (!isRunning()) {
+			if (disposableObjects == null) {
+				disposableObjects = new ArrayList<>();
 			}
 			disposableObjects.add(obj);
 			return;
 		}
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			ArrayList<Object> disposableObjects = this.disposableObjects;
-			if (disposableObjects == null)
-			{
-				disposableObjects = new ArrayList<Object>();
+			if (disposableObjects == null) {
+				disposableObjects = new ArrayList<>();
 				this.disposableObjects = disposableObjects;
 			}
-			// "monte carlo" approach to check for disposable objects without noticeable impact on the runtime performance
-			while (disposableObjects.size() > 0)
-			{
+			// "monte carlo" approach to check for disposable objects without noticeable impact on the
+			// runtime performance
+			while (disposableObjects.size() > 0) {
 				int randomIndex = (int) (Math.random() * disposableObjects.size());
 				Object disposableObject = disposableObjects.get(randomIndex);
-				if (disposableObject instanceof Reference)
-				{
+				if (disposableObject instanceof Reference) {
 					disposableObject = ((Reference<?>) disposableObject).get();
 				}
-				if (disposableObject != null)
-				{
+				if (disposableObject != null) {
 					// not a collected object. we finish the search for collected disposables
 					break;
 				}
 				disposableObjects.remove(randomIndex);
 			}
-			disposableObjects.add(registerWeakOnRunning ? new WeakReference<Object>(obj) : obj);
+			disposableObjects.add(registerWeakOnRunning ? new WeakReference<>(obj) : obj);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public <T> T getService(Class<T> serviceType)
-	{
+	public <T> T getService(Class<T> serviceType) {
 		return getService(serviceType, true);
 	}
 
 	@Override
-	public <T> T getService(Class<T> type, boolean checkExistence)
-	{
+	public <T> T getService(Class<T> type, boolean checkExistence) {
 		checkNotDisposed();
 		Lock readLock = this.readLock;
 		readLock.lock();
-		try
-		{
+		try {
 			ParamChecker.assertParamNotNull(type, "type");
 			T service = getServiceIntern(type, SearchType.CASCADE);
-			if (service == null && checkExistence)
-			{
+			if (service == null && checkExistence) {
 				throw new IllegalStateException("No bean autowired to type '" + type.getName() + "'");
 			}
 			return service;
 		}
-		finally
-		{
+		finally {
 			readLock.unlock();
 		}
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T getServiceIntern(Class<T> serviceType, SearchType searchType)
-	{
+	public <T> T getServiceIntern(Class<T> serviceType, SearchType searchType) {
 		Object service = null;
-		if (!SearchType.PARENT.equals(searchType))
-		{
+		if (!SearchType.PARENT.equals(searchType)) {
 			service = typeToServiceDict.get(serviceType);
 		}
-		if (service instanceof IFactoryBean)
-		{
-			try
-			{
+		if (service instanceof IFactoryBean) {
+			try {
 				Object factoryResult = ((IFactoryBean) service).getObject();
-				if (factoryResult == null)
-				{
-					throw new IllegalStateException("Anonymous factory bean of type " + service.getClass().getName() + " returned null for service type "
-							+ serviceType.getName() + ". Possibly a cyclic relationship from the factory to its cascaded dependencies and back");
+				if (factoryResult == null) {
+					throw new IllegalStateException("Anonymous factory bean of type "
+							+ service.getClass().getName() + " returned null for service type "
+							+ serviceType.getName()
+							+ ". Possibly a cyclic relationship from the factory to its cascaded dependencies and back");
 				}
 				service = factoryResult;
 			}
-			catch (Throwable e)
-			{
+			catch (Throwable e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
-		else if (service == null && parent != null && !SearchType.CURRENT.equals(searchType))
-		{
+		else if (service == null && parent != null && !SearchType.CURRENT.equals(searchType)) {
 			service = parent.getService(serviceType, false);
 		}
 		return (T) service;
 	}
 
 	@Override
-	public Object getDirectBean(Class<?> serviceType)
-	{
+	public Object getDirectBean(Class<?> serviceType) {
 		checkNotDisposed();
 		return typeToServiceDict.get(serviceType);
 	}
 
 	@Override
-	public Object getDirectBean(String beanName)
-	{
+	public Object getDirectBean(String beanName) {
 		checkNotDisposed();
-		if (nameToServiceDict == null)
-		{
+		if (nameToServiceDict == null) {
 			return null;
 		}
 		return nameToServiceDict.get(beanName);
@@ -891,21 +764,17 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T getServiceIntern(String serviceName, Class<T> serviceType, SearchType searchType)
-	{
+	public <T> T getServiceIntern(String serviceName, Class<T> serviceType, SearchType searchType) {
 		String realServiceName = serviceName;
 		boolean factoryContentRequest = true, parentOnlyRequest = false;
-		while (true)
-		{
+		while (true) {
 			char firstChar = realServiceName.charAt(0);
-			if (firstChar == '&')
-			{
+			if (firstChar == '&') {
 				realServiceName = realServiceName.substring(1);
 				factoryContentRequest = false;
 				continue;
 			}
-			else if (firstChar == '*')
-			{
+			else if (firstChar == '*') {
 				realServiceName = realServiceName.substring(1);
 				parentOnlyRequest = true;
 				continue;
@@ -913,112 +782,95 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 			// No escape character found, realServiceName is now resolved
 			break;
 		}
-		if (realServiceName.length() == 0)
-		{
+		if (realServiceName.length() == 0) {
 			throw new IllegalArgumentException("Bean name '" + serviceName + "' not valid");
 		}
 		Map<String, String> beanNameToAliasesMap = beanContextFactory.getAliasToBeanNameMap();
-		if (beanNameToAliasesMap != null)
-		{
+		if (beanNameToAliasesMap != null) {
 			String realBeanName = beanNameToAliasesMap.get(realServiceName);
-			if (realBeanName != null)
-			{
+			if (realBeanName != null) {
 				realServiceName = realBeanName;
 
-				serviceName = StringBuilderUtil.concat(objectCollector.getCurrent(), factoryContentRequest ? "" : "&", parentOnlyRequest ? "*" : "",
-						realBeanName);
+				serviceName = StringBuilderUtil.concat(objectCollector.getCurrent(),
+						factoryContentRequest ? "" : "&", parentOnlyRequest ? "*" : "", realBeanName);
 			}
 		}
 		Object service = null;
-		if (!parentOnlyRequest && !SearchType.PARENT.equals(searchType) && nameToServiceDict != null)
-		{
+		if (!parentOnlyRequest && !SearchType.PARENT.equals(searchType) && nameToServiceDict != null) {
 			service = nameToServiceDict.get(realServiceName);
 		}
-		if (service instanceof IFactoryBean && factoryContentRequest)
-		{
-			try
-			{
+		if (service instanceof IFactoryBean && factoryContentRequest) {
+			try {
 				Object factoryResult = ((IFactoryBean) service).getObject();
-				if (factoryResult == null)
-				{
-					throw new BeanContextInitException("Factory bean '" + serviceName + "' of type " + service.getClass().getName()
-							+ " returned null for service type " + serviceType.getName()
+				if (factoryResult == null) {
+					throw new BeanContextInitException("Factory bean '" + serviceName + "' of type "
+							+ service.getClass().getName() + " returned null for service type "
+							+ serviceType.getName()
 							+ ". Possibly a cyclic relationship from the factory to its cascaded dependencies and back");
 				}
 				service = factoryResult;
 			}
-			catch (Throwable e)
-			{
+			catch (Throwable e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
-		else if (service == null && parent != null)
-		{
-			if (parentOnlyRequest)
-			{
+		else if (service == null && parent != null) {
+			if (parentOnlyRequest) {
 				// Reconstruct factory bean prefix if necessary
-				return parent.getService(factoryContentRequest ? "&" + realServiceName : realServiceName, serviceType, false);
+				return parent.getService(factoryContentRequest ? "&" + realServiceName : realServiceName,
+						serviceType, false);
 			}
-			else if (!SearchType.CURRENT.equals(searchType))
-			{
+			else if (!SearchType.CURRENT.equals(searchType)) {
 				return parent.getService(serviceName, serviceType, false);
 			}
 		}
-		if (service != null && !serviceType.isAssignableFrom(service.getClass()))
-		{
-			throw new BeanContextInitException("Bean with name '" + serviceName + "' not assignable to type '" + serviceType.getName() + "'");
+		if (service != null && !serviceType.isAssignableFrom(service.getClass())) {
+			throw new BeanContextInitException("Bean with name '" + serviceName
+					+ "' not assignable to type '" + serviceType.getName() + "'");
 		}
 		return (T) service;
 	}
 
 	@Override
-	public Object getService(String serviceName)
-	{
+	public Object getService(String serviceName) {
 		return getService(serviceName, true);
 	}
 
 	@Override
-	public Object getService(String serviceName, boolean checkExistence)
-	{
+	public Object getService(String serviceName, boolean checkExistence) {
 		checkNotDisposed();
 		Lock readLock = this.readLock;
 		readLock.lock();
-		try
-		{
-			if (serviceName == null || serviceName.length() == 0)
-			{
-				throw new BeanContextInitException("Tried to get a bean with empty name. This is not allowed.");
+		try {
+			if (serviceName == null || serviceName.length() == 0) {
+				throw new BeanContextInitException(
+						"Tried to get a bean with empty name. This is not allowed.");
 			}
 			Object service = getServiceIntern(serviceName, Object.class, SearchType.CASCADE);
-			if (service == null && checkExistence)
-			{
+			if (service == null && checkExistence) {
 				throw new BeanContextInitException("No bean found with name '" + serviceName + "'");
 			}
 			return service;
 		}
-		finally
-		{
+		finally {
 			readLock.unlock();
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V> V getService(String serviceName, Class<V> targetType)
-	{
+	public <V> V getService(String serviceName, Class<V> targetType) {
 		return (V) getService(serviceName, true);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V> V getService(String serviceName, Class<V> targetType, boolean checkExistence)
-	{
+	public <V> V getService(String serviceName, Class<V> targetType, boolean checkExistence) {
 		return (V) getService(serviceName, checkExistence);
 	}
 
 	@Override
-	public void printContent(StringBuilder sb)
-	{
+	public void printContent(StringBuilder sb) {
 		sb.append("n/a");
 		// if (disposed)
 		// {
@@ -1030,7 +882,8 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		// readLock.lock();
 		// try
 		// {
-		// sb.append("Named content (").append(nameToServiceDict != null ? nameToServiceDict.size() : 0).append("): [");
+		// sb.append("Named content (").append(nameToServiceDict != null ? nameToServiceDict.size() :
+		// 0).append("): [");
 		// if (nameToServiceDict != null)
 		// {
 		// ArrayList<String> list = new ArrayList<String>();
@@ -1062,7 +915,8 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		// entrySet.dispose();
 		// list.dispose();
 		// }
-		// sb.append("]").append(System.getProperty("line.separator")).append("Autowired content (").append(typeToServiceDict.size()).append("): [");
+		// sb.append("]").append(System.getProperty("line.separator")).append("Autowired content
+		// (").append(typeToServiceDict.size()).append("): [");
 		// ArrayList<Class<?>> list = tlObjectCollector.create(ArrayList.class);
 		//
 		// ISet<Entry<Class<?>, Object>> entrySet = typeToServiceDict.entrySet();
@@ -1120,143 +974,116 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		// }
 	}
 
-	protected ITypeInfoProvider getTypeInfoProvider()
-	{
-		if (typeInfoProvider == null)
-		{
+	protected ITypeInfoProvider getTypeInfoProvider() {
+		if (typeInfoProvider == null) {
 			typeInfoProvider = getService(ITypeInfoProvider.class, false);
 		}
 		return typeInfoProvider;
 	}
 
 	@Override
-	public <T> IList<T> getObjects(final Class<T> type)
-	{
+	public <T> IList<T> getObjects(final Class<T> type) {
 		checkNotDisposed();
 
-		final IdentityHashSet<T> result = new IdentityHashSet<T>();
+		final IdentityHashSet<T> result = new IdentityHashSet<>();
 
 		IList<T> parentResult = parent != null ? parent.getObjects(type) : null;
-		if (parentResult != null)
-		{
+		if (parentResult != null) {
 			result.addAll(parentResult);
 		}
 		Lock readLock = this.readLock;
 		readLock.lock();
-		try
-		{
-			handleObjects(new HandleObjectsDelegate()
-			{
+		try {
+			handleObjects(new HandleObjectsDelegate() {
 				@SuppressWarnings("unchecked")
 				@Override
-				public void invoke(Object obj)
-				{
-					if (type.isAssignableFrom(obj.getClass()))
-					{
+				public void invoke(Object obj) {
+					if (type.isAssignableFrom(obj.getClass())) {
 						result.add((T) obj);
 					}
 				}
 			});
 			return result.toList();
 		}
-		finally
-		{
+		finally {
 			readLock.unlock();
 		}
 	}
 
 	@Override
-	public <T extends Annotation> IList<Object> getAnnotatedObjects(final Class<T> annoType)
-	{
-		final ISet<Object> set = new IdentityHashSet<Object>();
+	public <T extends Annotation> IList<Object> getAnnotatedObjects(final Class<T> annoType) {
+		final ISet<Object> set = new IdentityHashSet<>();
 		Lock readLock = this.readLock;
 		readLock.lock();
-		try
-		{
-			handleObjects(new HandleObjectsDelegate()
-			{
+		try {
+			handleObjects(new HandleObjectsDelegate() {
 				@Override
-				public void invoke(Object obj)
-				{
+				public void invoke(Object obj) {
 					Annotation anno = obj.getClass().getAnnotation(annoType);
-					if (anno != null)
-					{
+					if (anno != null) {
 						set.add(obj);
 					}
 				}
 			});
 			return set.toList();
 		}
-		finally
-		{
+		finally {
 			readLock.unlock();
 		}
 	}
 
 	@Override
-	public <T> IList<T> getImplementingObjects(final Class<T> interfaceType)
-	{
-		final IdentityHashSet<T> set = new IdentityHashSet<T>();
+	public <T> IList<T> getImplementingObjects(final Class<T> interfaceType) {
+		final IdentityHashSet<T> set = new IdentityHashSet<>();
 		Lock readLock = this.readLock;
 		readLock.lock();
-		try
-		{
-			handleObjects(new HandleObjectsDelegate()
-			{
+		try {
+			handleObjects(new HandleObjectsDelegate() {
 				@SuppressWarnings("unchecked")
 				@Override
-				public void invoke(Object obj)
-				{
-					if (interfaceType.isAssignableFrom(obj.getClass()))
-					{
+				public void invoke(Object obj) {
+					if (interfaceType.isAssignableFrom(obj.getClass())) {
 						set.add((T) obj);
 					}
 				}
 			});
 			return ListUtil.anyToList(objectCollector, set);
 		}
-		finally
-		{
+		finally {
 			readLock.unlock();
 		}
 	}
 
 	@Deprecated
 	@Override
-	public <V> IBeanRuntime<V> registerAnonymousBean(Class<V> beanType)
-	{
+	public <V> IBeanRuntime<V> registerAnonymousBean(Class<V> beanType) {
 		return registerBean(beanType);
 	}
 
 	@Override
-	public <V> IBeanRuntime<V> registerBean(Class<V> beanType)
-	{
+	public <V> IBeanRuntime<V> registerBean(Class<V> beanType) {
 		checkNotDisposed();
 		ParamChecker.assertParamNotNull(beanType, "beanType");
-		return new BeanRuntime<V>(this, beanType, true);
+		return new BeanRuntime<>(this, beanType, true);
 	}
 
 	@Override
-	public <V> IBeanRuntime<V> registerExternalBean(V externalBean)
-	{
+	public <V> IBeanRuntime<V> registerExternalBean(V externalBean) {
 		checkNotDisposed();
 		ParamChecker.assertParamNotNull(externalBean, "externalBean");
-		return new BeanRuntime<V>(this, externalBean, false);
+		return new BeanRuntime<>(this, externalBean, false);
 	}
 
 	@Override
-	public <V> IBeanRuntime<V> registerWithLifecycle(V obj)
-	{
+	public <V> IBeanRuntime<V> registerWithLifecycle(V obj) {
 		checkNotDisposed();
 		ParamChecker.assertParamNotNull(obj, "obj");
-		return new BeanRuntime<V>(this, obj, true);
+		return new BeanRuntime<>(this, obj, true);
 	}
 
 	@Override
-	public String toString()
-	{
-		if (disposed)
-		{
+	public String toString() {
+		if (disposed) {
 			return toStringBackup;
 		}
 		StringBuilder sb = new StringBuilder();
@@ -1265,8 +1092,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
+	public void toString(StringBuilder sb) {
 		printContent(sb);
 	}
 }

@@ -9,6 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
+import com.koch.ambeth.persistence.NoopDatabasePool;
 import com.koch.ambeth.persistence.api.IDatabase;
 import com.koch.ambeth.persistence.api.IDatabaseDisposeHook;
 import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
@@ -18,8 +19,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IdentityWeakHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDisposeHook
-{
+public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDisposeHook {
 	@LogInstance
 	private ILogger log;
 
@@ -37,13 +37,13 @@ public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDi
 
 	protected final Condition notEmptyCond = notFullCond;
 
-	protected final IdentityWeakHashMap<IDatabase, Boolean> usedDatabases = new IdentityWeakHashMap<IDatabase, Boolean>();
+	protected final IdentityWeakHashMap<IDatabase, Boolean> usedDatabases =
+			new IdentityWeakHashMap<>();
 
-	protected final ArrayList<IDatabase> unusedDatabases = new ArrayList<IDatabase>();
+	protected final ArrayList<IDatabase> unusedDatabases = new ArrayList<>();
 
 	@Override
-	public void afterPropertiesSet()
-	{
+	public void afterPropertiesSet() {
 		super.afterPropertiesSet();
 
 		ParamChecker.assertTrue(maxUsedCount > 0, "maxUsedCount");
@@ -53,56 +53,46 @@ public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDi
 	}
 
 	@Property(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, defaultValue = "2")
-	public void setMaxUsedCount(int maxUsedCount)
-	{
+	public void setMaxUsedCount(int maxUsedCount) {
 		this.maxUsedCount = maxUsedCount;
 	}
 
 	@Property(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, defaultValue = "2")
-	public void setMaxUnusedCount(int maxUnusedCount)
-	{
+	public void setMaxUnusedCount(int maxUnusedCount) {
 		this.maxUnusedCount = maxUnusedCount;
 	}
 
 	@Property(name = PersistenceConfigurationConstants.DatabasePoolMaxPending, defaultValue = "2")
-	public void setMaxPendingCount(int maxPendingCount)
-	{
+	public void setMaxPendingCount(int maxPendingCount) {
 		this.maxPendingCount = maxPendingCount;
 	}
 
 	@Property(name = PersistenceConfigurationConstants.DatabasePoolTryTime, defaultValue = "30000")
-	public void setMaxPendingTryTime(long maxPendingTryTime)
-	{
+	public void setMaxPendingTryTime(long maxPendingTryTime) {
 		this.maxPendingTryTime = maxPendingTryTime;
 	}
 
 	@Property(name = PersistenceConfigurationConstants.DatabasePoolPassivate, defaultValue = "false")
-	public void setPassivateDatabases(boolean passivateDatabases)
-	{
+	public void setPassivateDatabases(boolean passivateDatabases) {
 		this.passivateDatabases = passivateDatabases;
 	}
 
 	@Override
-	public void shutdown()
-	{
+	public void shutdown() {
 		super.shutdown();
 		ReentrantLock writeLock = this.writeLock;
 		List<IDatabase> unusedDatabases = this.unusedDatabases;
-		while (true)
-		{
+		while (true) {
 			IDatabase database;
 			writeLock.lock();
-			try
-			{
-				if (unusedDatabases.size() == 0)
-				{
+			try {
+				if (unusedDatabases.size() == 0) {
 					notFullCond.signalAll();
 					return;
 				}
 				database = unusedDatabases.remove(unusedDatabases.size() - 1);
 			}
-			finally
-			{
+			finally {
 				writeLock.unlock();
 			}
 			database.dispose();
@@ -110,10 +100,8 @@ public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDi
 	}
 
 	@Override
-	protected IDatabase acquireDatabaseIntern(boolean tryOnly, boolean readOnly)
-	{
-		if (shuttingDown)
-		{
+	protected IDatabase acquireDatabaseIntern(boolean tryOnly, boolean readOnly) {
+		if (shuttingDown) {
 			throw new RuntimeException("DatabasePool is shutting down");
 		}
 		long currentTime = System.currentTimeMillis();
@@ -122,36 +110,30 @@ public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDi
 		ArrayList<IDatabase> unusedDatabases = this.unusedDatabases;
 		IdentityWeakHashMap<IDatabase, Boolean> usedDatabases = this.usedDatabases;
 		Lock writeLock = this.writeLock;
-		while (true)
-		{
-			if (shuttingDown)
-			{
+		while (true) {
+			if (shuttingDown) {
 				throw new RuntimeException("DatabasePool is shutting down");
 			}
 			long now = System.currentTimeMillis();
-			if (now >= waitTill)
-			{
-				throw new IllegalStateException("Waited " + (now - currentTime) + "ms without successfully receiving a database instance");
+			if (now >= waitTill) {
+				throw new IllegalStateException("Waited " + (now - currentTime)
+						+ "ms without successfully receiving a database instance");
 			}
 			writeLock.lock();
-			try
-			{
-				if (unusedDatabases.size() > 0)
-				{
+			try {
+				if (unusedDatabases.size() > 0) {
 					database = unusedDatabases.remove(unusedDatabases.size() - 1);
 					usedDatabases.put(database, Boolean.TRUE);
 					break;
 				}
-				else if (tryOnly)
-				{
+				else if (tryOnly) {
 					return null;
 				}
-				else if (usedDatabases.size() + pendingDatabases < maxUsedCount && pendingDatabases < maxPendingCount)
-				{
+				else if (usedDatabases.size() + pendingDatabases < maxUsedCount
+						&& pendingDatabases < maxPendingCount) {
 					IDatabase newDatabase = createNewDatabase();
 
-					if (newDatabase == null)
-					{
+					if (newDatabase == null) {
 						// Something wrong occured
 						continue;
 					}
@@ -159,140 +141,115 @@ public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDi
 					usedDatabases.put(database, Boolean.TRUE);
 					break;
 				}
-				try
-				{
+				try {
 					// Wait the maximum remaining time
 					notEmptyCond.await(waitTill - now, TimeUnit.MILLISECONDS);
 				}
-				catch (InterruptedException e)
-				{
+				catch (InterruptedException e) {
 					continue;
 				}
 			}
-			finally
-			{
+			finally {
 				writeLock.unlock();
 			}
 		}
-		if (passivateDatabases)
-		{
+		if (passivateDatabases) {
 			databaseFactory.activate(database);
 		}
-		if (!database.test())
-		{
+		if (!database.test()) {
 			writeLock.lock();
-			try
-			{
+			try {
 				usedDatabases.remove(database);
 			}
-			finally
-			{
+			finally {
 				writeLock.unlock();
 			}
 			database.dispose();
 			return acquireDatabaseIntern(tryOnly, readOnly);
 		}
 		database.acquired(readOnly);
-		IModifyingDatabase modifyingDatabase = database.getAutowiredBeanInContext(IModifyingDatabase.class);
+		IModifyingDatabase modifyingDatabase =
+				database.getAutowiredBeanInContext(IModifyingDatabase.class);
 		modifyingDatabase.setModifyingDatabase(false);
 		return database;
 	}
 
 	@Override
-	protected IDatabase createNewDatabase()
-	{
+	protected IDatabase createNewDatabase() {
 		pendingDatabases++;
 		ReentrantLock writeLock = this.writeLock;
 		writeLock.unlock();
-		try
-		{
+		try {
 			IDatabase database = super.createNewDatabase();
-			if (database != null)
-			{
+			if (database != null) {
 				database.registerDisposeHook(this);
 			}
 			return database;
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
+		finally {
 			writeLock.lock();
 			pendingDatabases--;
 		}
 	}
 
 	@Override
-	public void releaseDatabase(IDatabase database, boolean backToPool)
-	{
+	public void releaseDatabase(IDatabase database, boolean backToPool) {
 		ParamChecker.assertParamNotNull(database, "database");
-		if (database.isDisposed())
-		{
+		if (database.isDisposed()) {
 			// Nothing to do
 			return;
 		}
 		ReentrantLock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
-			if (usedDatabases.remove(database) == null)
-			{
-				throw new RuntimeException("Database " + database + " has not been acquired from this pool");
+		try {
+			if (usedDatabases.remove(database) == null) {
+				throw new RuntimeException(
+						"Database " + database + " has not been acquired from this pool");
 			}
-			try
-			{
+			try {
 				database.getAutowiredBeanInContext(IModifyingDatabase.class).setModifyingDatabase(false);
 				database.setSessionId(-1);
-				if (backToPool && !shuttingDown && unusedDatabases.size() < maxUnusedCount)
-				{
-					if (passivateDatabases)
-					{
+				if (backToPool && !shuttingDown && unusedDatabases.size() < maxUnusedCount) {
+					if (passivateDatabases) {
 						databaseFactory.passivate(database);
 					}
 					unusedDatabases.add(database);
 					database = null;
 				}
 			}
-			finally
-			{
+			finally {
 				notEmptyCond.signal();
 			}
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
-		if (database == null)
-		{
+		if (database == null) {
 			return;
 		}
-		try
-		{
+		try {
 			database.dispose();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			// Intended blank
 		}
 		notifyCallbacksClosed(database);
 	}
 
 	@Override
-	public void databaseDisposed(IDatabase disposedDatabase)
-	{
+	public void databaseDisposed(IDatabase disposedDatabase) {
 		disposedDatabase.unregisterDisposeHook(this);
 		ReentrantLock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			usedDatabases.remove(disposedDatabase);
 			unusedDatabases.remove(disposedDatabase);
 			notEmptyCond.signal();
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 		notifyCallbacksClosed(disposedDatabase);

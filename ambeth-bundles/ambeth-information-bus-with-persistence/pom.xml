@@ -44,10 +44,15 @@
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-merge-server</artifactId>
 		</dependency>
-
+		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-persistence-api</artifactId>
 		</dependency>
 
 		<dependency>

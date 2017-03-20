@@ -14,6 +14,7 @@ import com.koch.ambeth.log.ILoggerHistory;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IProxyHelper;
 import com.koch.ambeth.service.merge.model.IObjRef;
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.AbstractTuple2KeyHashMap;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -21,8 +22,7 @@ import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, IXmlTypeRegistry
-{
+public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, IXmlTypeRegistry {
 	public static final String DefaultNamespace = "http://schema.kochdev.com/Ambeth";
 
 	@SuppressWarnings("unused")
@@ -30,29 +30,33 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 	private ILogger log;
 
 	@Autowired
+	protected IClassLoaderProvider classLoaderProvider;
+
+	@Autowired
 	protected ILoggerHistory loggerHistory;
 
 	@Autowired
 	protected IProxyHelper proxyHelper;
 
-	protected final HashMap<Class<?>, List<XmlTypeKey>> weakClassToXmlTypeMap = new HashMap<Class<?>, List<XmlTypeKey>>(0.5f);
+	protected final HashMap<Class<?>, List<XmlTypeKey>> weakClassToXmlTypeMap =
+			new HashMap<>(0.5f);
 
-	protected final Tuple2KeyHashMap<String, String, Class<?>> xmlTypeToClassMap = new Tuple2KeyHashMap<String, String, Class<?>>(0.5f);
+	protected final Tuple2KeyHashMap<String, String, Class<?>> xmlTypeToClassMap =
+			new Tuple2KeyHashMap<>(0.5f);
 
-	protected final HashMap<Class<?>, List<XmlTypeKey>> classToXmlTypeMap = new HashMap<Class<?>, List<XmlTypeKey>>(0.5f);
+	protected final HashMap<Class<?>, List<XmlTypeKey>> classToXmlTypeMap =
+			new HashMap<>(0.5f);
 
 	protected final Lock readLock, writeLock;
 
-	public XmlTypeRegistry()
-	{
+	public XmlTypeRegistry() {
 		ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
 		readLock = rwLock.readLock();
 		writeLock = rwLock.writeLock();
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		registerXmlType(Boolean.class, "BoolN", null);
 		registerXmlType(Boolean.TYPE, "Bool", null);
 		registerXmlType(Character.class, "CharN", null);
@@ -86,139 +90,111 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 	}
 
 	@Override
-	public AbstractTuple2KeyHashMap<String, String, Class<?>> createSnapshot()
-	{
+	public AbstractTuple2KeyHashMap<String, String, Class<?>> createSnapshot() {
 		Lock readLock = this.readLock;
 		readLock.lock();
-		try
-		{
-			return new Tuple2KeyHashMap<String, String, Class<?>>(xmlTypeToClassMap);
+		try {
+			return new Tuple2KeyHashMap<>(xmlTypeToClassMap);
 		}
-		finally
-		{
+		finally {
 			readLock.unlock();
 		}
 	}
 
 	@Override
-	public Class<?> getType(String name, String namespace)
-	{
+	public Class<?> getType(String name, String namespace) {
 		ParamChecker.assertParamNotNull(name, "name");
-		if (namespace == null)
-		{
+		if (namespace == null) {
 			namespace = "";
 		}
 		Lock readLock = this.readLock;
 		readLock.lock();
-		try
-		{
+		try {
 			Class<?> type = xmlTypeToClassMap.get(name, namespace);
-			if (type == null && namespace.isEmpty())
-			{
-				type = Thread.currentThread().getContextClassLoader().loadClass(name);
-				if (type != null)
-				{
+			if (type == null && namespace.isEmpty()) {
+				type = classLoaderProvider.getClassLoader().loadClass(name);
+				if (type != null) {
 					readLock.unlock();
-					try
-					{
+					try {
 						writeLock.lock();
-						try
-						{
+						try {
 							xmlTypeToClassMap.put(name, namespace, type);
 						}
-						finally
-						{
+						finally {
 							writeLock.unlock();
 						}
 					}
-					finally
-					{
+					finally {
 						readLock.lock();
 					}
 				}
 			}
-			if (type == null)
-			{
-				if (log.isDebugEnabled())
-				{
-					loggerHistory.debugOnce(log, this, "XmlTypeNotFound: name=" + name + ", namespace=" + namespace);
+			if (type == null) {
+				if (log.isDebugEnabled()) {
+					loggerHistory.debugOnce(log, this,
+							"XmlTypeNotFound: name=" + name + ", namespace=" + namespace);
 				}
 				return null;
 			}
 			return type;
 		}
-		catch (ClassNotFoundException e)
-		{
+		catch (ClassNotFoundException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
+		finally {
 			readLock.unlock();
 		}
 	}
 
 	@Override
-	public String getXmlTypeName(Class<?> type, String name)
-	{
-		if (name == null || name.length() == 0 || "##default".equals(name))
-		{
+	public String getXmlTypeName(Class<?> type, String name) {
+		if (name == null || name.length() == 0 || "##default".equals(name)) {
 			name = type.getName();
 		}
 		return name;
 	}
 
 	@Override
-	public String getXmlTypeNamespace(Class<?> type, String namespace)
-	{
-		if (DefaultNamespace.equals(namespace) || "##default".equals(namespace) || namespace != null && namespace.length() == 0)
-		{
+	public String getXmlTypeNamespace(Class<?> type, String namespace) {
+		if (DefaultNamespace.equals(namespace) || "##default".equals(namespace)
+				|| namespace != null && namespace.length() == 0) {
 			namespace = null;
 		}
 		return namespace;
 	}
 
 	@Override
-	public IXmlTypeKey getXmlType(Class<?> type)
-	{
+	public IXmlTypeKey getXmlType(Class<?> type) {
 		return getXmlType(type, true);
 	}
 
 	@Override
-	public IXmlTypeKey getXmlType(Class<?> type, boolean expectExisting)
-	{
+	public IXmlTypeKey getXmlType(Class<?> type, boolean expectExisting) {
 		ParamChecker.assertParamNotNull(type, "type");
 
 		readLock.lock();
-		try
-		{
+		try {
 			List<XmlTypeKey> xmlTypeKeys = weakClassToXmlTypeMap.get(type);
-			if (xmlTypeKeys == null)
-			{
+			if (xmlTypeKeys == null) {
 				xmlTypeKeys = classToXmlTypeMap.get(type);
-				if (xmlTypeKeys == null)
-				{
+				if (xmlTypeKeys == null) {
 					Class<?> realType = type;
-					if (IObjRef.class.isAssignableFrom(type))
-					{
+					if (IObjRef.class.isAssignableFrom(type)) {
 						realType = IObjRef.class;
 					}
 					xmlTypeKeys = classToXmlTypeMap.get(realType);
 				}
-				if (xmlTypeKeys == null)
-				{
-					xmlTypeKeys = new ArrayList<XmlTypeKey>(1);
+				if (xmlTypeKeys == null) {
+					xmlTypeKeys = new ArrayList<>(1);
 					xmlTypeKeys.add(new XmlTypeKey(type.getName(), null));
 				}
-				if (xmlTypeKeys != null)
-				{
+				if (xmlTypeKeys != null) {
 					readLock.unlock();
 					writeLock.lock();
-					try
-					{
+					try {
 						weakClassToXmlTypeMap.put(type, xmlTypeKeys);
 					}
-					finally
-					{
+					finally {
 						writeLock.unlock();
 						readLock.lock();
 					}
@@ -226,64 +202,53 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 			}
 			return xmlTypeKeys != null ? xmlTypeKeys.get(0) : null;
 		}
-		finally
-		{
+		finally {
 			readLock.unlock();
 		}
 	}
 
 	@Override
-	public void registerXmlType(Class<?> type, String name, String namespace)
-	{
+	public void registerXmlType(Class<?> type, String name, String namespace) {
 		ParamChecker.assertParamNotNull(type, "type");
 		ParamChecker.assertParamNotNull(name, "name");
-		if (namespace == null)
-		{
+		if (namespace == null) {
 			namespace = "";
 		}
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			Class<?> existingType = xmlTypeToClassMap.put(name, namespace, type);
-			if (existingType != null)
-			{
-				if (type.isAssignableFrom(existingType))
-				{
+			if (existingType != null) {
+				if (type.isAssignableFrom(existingType)) {
 					// Nothing else to to
 				}
-				else if (existingType.isAssignableFrom(type))
-				{
+				else if (existingType.isAssignableFrom(type)) {
 					xmlTypeToClassMap.put(name, namespace, existingType);
 				}
-				else
-				{
-					throw new IllegalStateException("Error while registering '" + type.getName() + "': Unassignable type '" + existingType.getName()
+				else {
+					throw new IllegalStateException("Error while registering '" + type.getName()
+							+ "': Unassignable type '" + existingType.getName()
 							+ "' already registered for: Name='" + name + "' Namespace='" + namespace + "'");
 				}
 			}
 
 			List<XmlTypeKey> xmlTypeKeys = classToXmlTypeMap.get(type);
-			if (xmlTypeKeys == null)
-			{
-				xmlTypeKeys = new ArrayList<XmlTypeKey>();
+			if (xmlTypeKeys == null) {
+				xmlTypeKeys = new ArrayList<>();
 				classToXmlTypeMap.put(type, xmlTypeKeys);
 			}
 			xmlTypeKeys.add(new XmlTypeKey(name, namespace));
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public void unregisterXmlType(Class<?> type, String name, String namespace)
-	{
+	public void unregisterXmlType(Class<?> type, String name, String namespace) {
 		ParamChecker.assertParamNotNull(type, "type");
 		ParamChecker.assertParamNotNull(name, "name");
-		if (namespace == null)
-		{
+		if (namespace == null) {
 			namespace = "";
 		}
 
@@ -291,19 +256,16 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			xmlTypeToClassMap.remove(xmlTypeKey.getName(), xmlTypeKey.getNamespace());
 
 			List<XmlTypeKey> xmlTypeKeys = classToXmlTypeMap.get(type);
 			xmlTypeKeys.remove(xmlTypeKey);
-			if (xmlTypeKeys.size() == 0)
-			{
+			if (xmlTypeKeys.size() == 0) {
 				classToXmlTypeMap.remove(type);
 			}
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}

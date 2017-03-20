@@ -12,6 +12,7 @@ import com.koch.ambeth.ioc.proxy.ICgLibUtil;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.IConnectionDialect;
+import com.koch.ambeth.persistence.connection.IConnectionKeyHandle;
 import com.koch.ambeth.persistence.jdbc.IConnectionFactory;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import com.koch.ambeth.persistence.jdbc.event.ConnectionCreatedEvent;
@@ -89,7 +90,7 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
 			MethodInterceptor logConnectionInterceptor =
 					beanContext.registerExternalBean(new LogConnectionInterceptor(connectionKeyHandle))
 							.propertyValue("Connection", connection).finish();
-			Connection conn = proxyFactory.createProxy(getClass().getClassLoader(), Connection.class,
+			Connection conn = proxyFactory.createProxy(null, Connection.class,
 					cgLibUtil.getAllInterfaces(connection), logConnectionInterceptor);
 
 			connectionDialect.preProcessConnection(conn, schemaNames, false);

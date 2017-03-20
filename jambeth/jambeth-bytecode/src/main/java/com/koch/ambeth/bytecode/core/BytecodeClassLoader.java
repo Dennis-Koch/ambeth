@@ -34,6 +34,7 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.log.LogWriter;
 import com.koch.ambeth.merge.proxy.IEnhancedType;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.collections.WeakSmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
@@ -57,6 +58,9 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 	@Autowired
 	protected IServiceContext beanContext;
 
+	@Autowired
+	protected IClassLoaderProvider classLoaderProvider;
+
 	protected final WeakSmartCopyMap<ClassLoader, ClassLoaderEntry> typeToContentMap =
 			new WeakSmartCopyMap<>();
 
@@ -70,7 +74,7 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 
 	protected ClassLoaderEntry ensureEntry(ClassLoader classLoader) {
 		// if (classLoader == null) {
-		classLoader = Thread.currentThread().getContextClassLoader();
+		classLoader = classLoaderProvider.getClassLoader();
 		// }
 		ClassLoaderEntry entry = typeToContentMap.get(classLoader);
 		if (entry == null) {

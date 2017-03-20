@@ -23,8 +23,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.IMap;
 
-public class DefaultQueryResultRetriever implements IQueryResultRetriever
-{
+public class DefaultQueryResultRetriever implements IQueryResultRetriever {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -45,28 +44,24 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever
 	protected ITransaction transaction;
 
 	@Override
-	public boolean containsPageOnly()
-	{
+	public boolean containsPageOnly() {
 		return currentNameToValueMap.containsKey(QueryConstants.PAGING_SIZE_OBJECT);
 	}
 
 	@Override
-	public List<Class<?>> getRelatedEntityTypes()
-	{
-		ArrayList<Class<?>> relatedEntityTypes = new ArrayList<Class<?>>();
+	public List<Class<?>> getRelatedEntityTypes() {
+		ArrayList<Class<?>> relatedEntityTypes = new ArrayList<>();
 		query.fillRelatedEntityTypes(relatedEntityTypes);
 		return relatedEntityTypes;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public IQueryResultCacheItem getQueryResult()
-	{
-		return transaction.processAndCommit(new ResultingDatabaseCallback<IQueryResultCacheItem>()
-		{
+	public IQueryResultCacheItem getQueryResult() {
+		return transaction.processAndCommit(new ResultingDatabaseCallback<IQueryResultCacheItem>() {
 			@Override
-			public IQueryResultCacheItem callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
-			{
+			public IQueryResultCacheItem callback(
+					ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable {
 				IConversionHelper conversionHelper = DefaultQueryResultRetriever.this.conversionHelper;
 				IQueryIntern<?> query = DefaultQueryResultRetriever.this.query;
 				Class<?> entityType = query.getEntityType();
@@ -75,62 +70,56 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever
 				int length = alternateIdMembers.length + 1;
 
 				ArrayList<Object>[] idLists = new ArrayList[length];
-				Class<?> versionType = metaData.getVersionMember() != null ? metaData.getVersionMember().getRealType() : null;
+				Class<?> versionType =
+						metaData.getVersionMember() != null ? metaData.getVersionMember().getRealType() : null;
 				Class<?>[] idTypes = new Class[length];
-				for (int a = length; a-- > 0;)
-				{
-					idLists[a] = new ArrayList<Object>();
+				for (int a = length; a-- > 0;) {
+					idLists[a] = new ArrayList<>();
 					idTypes[a] = metaData.getIdMemberByIdIndex((byte) (a - 1)).getRealType();
 				}
-				ArrayList<Object> versionList = new ArrayList<Object>();
-
+				ArrayList<Object> versionList = new ArrayList<>();
+				long totalSize = query.count(currentNameToValueMap);
 				IVersionCursor versionCursor = query.retrieveAsVersions(currentNameToValueMap, true);
-				try
-				{
-					while (versionCursor.moveNext())
-					{
+				try {
+					while (versionCursor.moveNext()) {
 						IVersionItem versionItem = versionCursor.getCurrent();
-						for (int idIndex = length; idIndex-- > 0;)
-						{
-							Object id = conversionHelper.convertValueToType(idTypes[idIndex], versionItem.getId((byte) (idIndex - 1)));
+						for (int idIndex = length; idIndex-- > 0;) {
+							Object id = conversionHelper.convertValueToType(idTypes[idIndex],
+									versionItem.getId((byte) (idIndex - 1)));
 							idLists[idIndex].add(id);
 						}
-						Object version = versionType != null ? conversionHelper.convertValueToType(versionType, versionItem.getVersion()) : null;
+						Object version = versionType != null
+								? conversionHelper.convertValueToType(versionType, versionItem.getVersion()) : null;
 						versionList.add(version);
 					}
 					Object[] idArrays = new Object[length];
-					for (int a = length; a-- > 0;)
-					{
+					for (int a = length; a-- > 0;) {
 						idArrays[a] = convertListToArray(idLists[a], idTypes[a]);
 					}
-					Object versionArray = versionType != null ? convertListToArray(versionList, versionType) : null;
-					return new QueryResultCacheItem(entityType, idLists[0].size(), idArrays, versionArray);
+					Object versionArray =
+							versionType != null ? convertListToArray(versionList, versionType) : null;
+					return new QueryResultCacheItem(entityType, totalSize, idLists[0].size(), idArrays,
+							versionArray);
 				}
-				finally
-				{
+				finally {
 					versionCursor.dispose();
 				}
 			}
 		});
 	}
 
-	protected Object convertListToArray(List<Object> list, Class<?> expectedItemType)
-	{
-		if (expectedItemType != null)
-		{
+	protected Object convertListToArray(List<Object> list, Class<?> expectedItemType) {
+		if (expectedItemType != null) {
 			Class<?> unwrappedType = WrapperTypeSet.getUnwrappedType(expectedItemType);
-			if (unwrappedType != null)
-			{
+			if (unwrappedType != null) {
 				expectedItemType = unwrappedType;
 			}
 		}
-		if (expectedItemType == null)
-		{
+		if (expectedItemType == null) {
 			return list.toArray(new Object[list.size()]);
 		}
 		Object array = Array.newInstance(expectedItemType, list.size());
-		for (int a = list.size(); a-- > 0;)
-		{
+		for (int a = list.size(); a-- > 0;) {
 			Array.set(array, a, list.get(a));
 		}
 		return array;

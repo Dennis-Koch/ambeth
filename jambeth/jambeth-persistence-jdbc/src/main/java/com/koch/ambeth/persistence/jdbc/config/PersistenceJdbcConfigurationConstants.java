@@ -4,14 +4,13 @@ import com.koch.ambeth.util.annotation.ConfigurationConstantDescription;
 import com.koch.ambeth.util.annotation.ConfigurationConstants;
 
 @ConfigurationConstants
-public final class PersistenceJdbcConfigurationConstants
-{
+public final class PersistenceJdbcConfigurationConstants {
 	@ConfigurationConstantDescription("TODO")
 	public static final String AdditionalConnectionModules = "jdbc.connection.modules";
 
 	/**
-	 * Whether the recyclebin contents should be removed during startup in databases which support them (e.g. Oracle 10g/11g).Valid values are "true" and
-	 * "false", default is "false".
+	 * Whether the recyclebin contents should be removed during startup in databases which support
+	 * them (e.g. Oracle 10g/11g).Valid values are "true" and "false", default is "false".
 	 */
 	public static final String DatabaseAutoCleanupRecycleBin = "database.autocleanup.recyclebin";
 
@@ -68,7 +67,8 @@ public final class PersistenceJdbcConfigurationConstants
 	public static final String DatabaseName = "database.name";
 
 	/**
-	 * The name of the schema database schema to use. If multiple schemas can be addressed all schema names have to be separated by semicolons.
+	 * The name of the schema database schema to use. If multiple schemas can be addressed all schema
+	 * names have to be separated by semicolons.
 	 */
 	public static final String DatabaseSchemaName = "database.schema.name";
 
@@ -94,8 +94,9 @@ public final class PersistenceJdbcConfigurationConstants
 	public static final String JdbcLogExceptionActive = "jdbc.logexception.active";
 
 	/**
-	 * Whether ambeth should use an integrated connection factory or connections are provided by data sources. If true, Ambeth will create its own database
-	 * connection, otherwise they are managed by the data source. Valid values are "true" and "false", default is "true".
+	 * Whether ambeth should use an integrated connection factory or connections are provided by data
+	 * sources. If true, Ambeth will create its own database connection, otherwise they are managed by
+	 * the data source. Valid values are "true" and "false", default is "true".
 	 */
 	public static final String IntegratedConnectionFactory = "database.connection.factory";
 
@@ -103,7 +104,8 @@ public final class PersistenceJdbcConfigurationConstants
 	public static final String IntegratedConnectionPool = "database.connection.pool";
 
 	/**
-	 * Whether to use strict behavior for database connections. Valid values are "true" and "false", default is "false".
+	 * Whether to use strict behavior for database connections. Valid values are "true" and "false",
+	 * default is "false".
 	 */
 	public static final String DatabaseBehaviourStrict = "database.behaviour.strict";
 
@@ -113,13 +115,14 @@ public final class PersistenceJdbcConfigurationConstants
 	public static final String DataSourceName = "datasource.name";
 
 	/**
-	 * Reference to prepared connections to the persistence store, which can be used instead of creating new ones. TODO: how can they be referenced in a text
-	 * property?
+	 * Reference to prepared connections to the persistence store, which can be used instead of
+	 * creating new ones. TODO: how can they be referenced in a text property?
 	 */
 	public static final String PreparedConnectionInstances = "connections.prepared";
 
-	private PersistenceJdbcConfigurationConstants()
-	{
+	public static final String RegisterDriverEagerly = "database.register.driver.active";
+
+	private PersistenceJdbcConfigurationConstants() {
 		// Intended blank
 	}
 }

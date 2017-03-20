@@ -20,31 +20,28 @@ import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 @FrameworkModule
-public class DialectSelectorModule implements IInitializingModule, IPropertyLoadingBean
-{
-	public static void fillProperties(Properties props)
-	{
-		String databaseProtocol = props.getString(PersistenceJdbcConfigurationConstants.DatabaseProtocol);
-		if (databaseProtocol == null)
-		{
+public class DialectSelectorModule implements IInitializingModule, IPropertyLoadingBean {
+	public static void fillProperties(Properties props) {
+		String databaseProtocol =
+				props.getString(PersistenceJdbcConfigurationConstants.DatabaseProtocol);
+		if (databaseProtocol == null) {
 			return;
 		}
 		IConnector connector = loadConnector(databaseProtocol);
 		connector.handleProperties(props, databaseProtocol);
 	}
 
-	protected static IConnector loadConnector(String databaseProtocol)
-	{
-		String connectorName = databaseProtocol.toUpperCase().replace(':', '_');
+	protected static IConnector loadConnector(String databaseProtocol) {
+		String connectorName = databaseProtocol.toLowerCase().replace(':', '.') + '.'
+				+ databaseProtocol.toUpperCase().replace(':', '_');
 		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-		String fqConnectorName = DialectSelectorModule.class.getPackage().getName() + "." + connectorName;
-		try
-		{
+		String fqConnectorName =
+				DialectSelectorModule.class.getPackage().getName() + "." + connectorName;
+		try {
 			Class<?> connectorType = classLoader.loadClass(fqConnectorName);
 			return (IConnector) connectorType.newInstance();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw new IllegalStateException("Protocol not supported: '" + databaseProtocol + "'", e);
 		}
 	}
@@ -60,10 +57,8 @@ public class DialectSelectorModule implements IInitializingModule, IPropertyLoad
 	protected String dataSourceName;
 
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		if (databaseProtocol == null)
-		{
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		if (databaseProtocol == null) {
 			// At this point databaseProtocol MUST be initialized
 			ParamChecker.assertNotNull(databaseProtocol, "databaseProtocol");
 		}
@@ -72,34 +67,30 @@ public class DialectSelectorModule implements IInitializingModule, IPropertyLoad
 	}
 
 	@Override
-	public void applyProperties(Properties contextProperties)
-	{
-		if (contextProperties.get(PersistenceJdbcConfigurationConstants.DatabaseProtocol) != null)
-		{
+	public void applyProperties(Properties contextProperties) {
+		if (contextProperties.get(PersistenceJdbcConfigurationConstants.DatabaseProtocol) != null) {
 			return;
 		}
 
 		// If we don't use the integrated connection factory,
-		try
-		{
+		try {
 			InitialContext ic = new InitialContext();
 			DataSource datasource = (DataSource) ic.lookup(dataSourceName);
 			Connection connection = datasource.getConnection();
 			String connectionUrl = connection.getMetaData().getURL();
-			if (contextProperties.get(PersistenceJdbcConfigurationConstants.DatabaseConnection) == null)
-			{
-				contextProperties.putString(PersistenceJdbcConfigurationConstants.DatabaseConnection, connectionUrl);
+			if (contextProperties.get(PersistenceJdbcConfigurationConstants.DatabaseConnection) == null) {
+				contextProperties.putString(PersistenceJdbcConfigurationConstants.DatabaseConnection,
+						connectionUrl);
 			}
 			Matcher urlMatcher;
-			if (connectionUrl.contains(":@"))
-			{
+			if (connectionUrl.contains(":@")) {
 				// Oracle
 				// jdbc:oracle:driver:username/password@host:port:database
-				urlMatcher = Pattern.compile("^(jdbc:[^:]+:[^:]+)(?::[^:/]+/[^:]+)?:@.*").matcher(connectionUrl);
+				urlMatcher =
+						Pattern.compile("^(jdbc:[^:]+:[^:]+)(?::[^:/]+/[^:]+)?:@.*").matcher(connectionUrl);
 				// Ignore ([^:]+)(?::(\\d++))?(?::([^:]+))?$ => host:post/database?params
 			}
-			else
-			{
+			else {
 				// Use everything from jdbc to the second :
 				// Postgresql, MySql, SqlServer
 				// jdbc:driver://host:port/database?user=...
@@ -108,16 +99,16 @@ public class DialectSelectorModule implements IInitializingModule, IPropertyLoad
 				// jdbc:driver:...
 				urlMatcher = Pattern.compile("^(jdbc:[^:]+)(:.*)?").matcher(connectionUrl);
 			}
-			if (urlMatcher.matches())
-			{
+			if (urlMatcher.matches()) {
 				String protocol = urlMatcher.group(1);
-				contextProperties.putString(PersistenceJdbcConfigurationConstants.DatabaseProtocol, protocol);
+				contextProperties.putString(PersistenceJdbcConfigurationConstants.DatabaseProtocol,
+						protocol);
 				databaseProtocol = protocol;
 			}
 		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e, "The " + getClass().getSimpleName() + " was not able to get the database protocol from the dataSource");
+		catch (Throwable e) {
+			throw RuntimeExceptionUtil.mask(e, "The " + getClass().getSimpleName()
+					+ " was not able to get the database protocol from the dataSource");
 			// Do nothing and hope that the connection is configured elsewhere
 		}
 	}

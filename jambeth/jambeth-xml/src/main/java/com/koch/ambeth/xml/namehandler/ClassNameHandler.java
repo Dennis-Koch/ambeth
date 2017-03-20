@@ -9,6 +9,7 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IProxyHelper;
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IdentityLinkedMap;
@@ -26,8 +27,7 @@ import com.koch.ambeth.xml.IXmlTypeRegistry;
 import com.koch.ambeth.xml.SpecifiedMember;
 import com.koch.ambeth.xml.typehandler.AbstractHandler;
 
-public class ClassNameHandler extends AbstractHandler implements INameBasedHandler
-{
+public class ClassNameHandler extends AbstractHandler implements INameBasedHandler {
 	private static final String SPECIFIED_SUFFIX = "Specified";
 
 	private static final SpecifiedMember[] EMPTY_TII = new SpecifiedMember[0];
@@ -36,9 +36,12 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 	@LogInstance
 	private ILogger log;
 
-	protected final HashSet<Class<?>> noMemberAttribute = new HashSet<Class<?>>();
+	protected final HashSet<Class<?>> noMemberAttribute = new HashSet<>();
 
 	protected final Pattern splitPattern = Pattern.compile(" ");
+
+	@Autowired
+	protected IClassLoaderProvider classLoaderProvider;
 
 	@Autowired
 	protected IProxyHelper proxyHelper;
@@ -50,27 +53,24 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 	protected IXmlTypeRegistry xmlTypeRegistry;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		noMemberAttribute.add(Date.class);
 		noMemberAttribute.add(Object.class);
 	}
 
-	public void writeAsAttribute(Class<?> type, IWriter writer)
-	{
-		writeAsAttribute(type, xmlDictionary.getClassIdAttribute(), xmlDictionary.getClassNameAttribute(), xmlDictionary.getClassNamespaceAttribute(),
+	public void writeAsAttribute(Class<?> type, IWriter writer) {
+		writeAsAttribute(type, xmlDictionary.getClassIdAttribute(),
+				xmlDictionary.getClassNameAttribute(), xmlDictionary.getClassNamespaceAttribute(),
 				xmlDictionary.getClassMemberAttribute(), writer);
 	}
 
-	public void writeAsAttribute(Class<?> type, String classIdAttribute, String classNameAttribute, String classNamespaceAttribute,
-			String classMemberAttribute, IWriter writer)
-	{
+	public void writeAsAttribute(Class<?> type, String classIdAttribute, String classNameAttribute,
+			String classNamespaceAttribute, String classMemberAttribute, IWriter writer) {
 		Class<?> realType = proxyHelper.getRealType(type);
 		int typeId = writer.getIdOfObject(type);
-		if (typeId > 0)
-		{
+		if (typeId > 0) {
 			writer.writeAttribute(classIdAttribute, Integer.toString(typeId));
 			return;
 		}
@@ -79,10 +79,8 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
-		try
-		{
-			while (type.isArray())
-			{
+		try {
+			while (type.isArray()) {
 				sb.append("[]");
 				type = type.getComponentType();
 			}
@@ -90,47 +88,40 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 			IXmlTypeKey xmlType = xmlTypeRegistry.getXmlType(type);
 			xmlName = xmlType.getName();
 			xmlNamespace = xmlType.getNamespace();
-			if (sb.length() > 0)
-			{
+			if (sb.length() > 0) {
 				sb.insert(0, xmlName);
 				writer.writeAttribute(classNameAttribute, sb.toString());
 			}
-			else
-			{
+			else {
 				writer.writeAttribute(classNameAttribute, xmlName);
 			}
 			writer.writeAttribute(classNamespaceAttribute, xmlNamespace);
 
-			if (!realType.isArray() && !realType.isEnum() && !realType.isInterface() && !noMemberAttribute.contains(realType))
-			{
+			if (!realType.isArray() && !realType.isEnum() && !realType.isInterface()
+					&& !noMemberAttribute.contains(realType)) {
 				sb.setLength(0);
 				ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(type);
 				ITypeInfoItem[] members = typeInfo.getMembers();
 
-				LinkedHashMap<String, ITypeInfoItem> potentialSpecifiedMemberMap = new LinkedHashMap<String, ITypeInfoItem>();
+				LinkedHashMap<String, ITypeInfoItem> potentialSpecifiedMemberMap = new LinkedHashMap<>();
 
-				for (int a = 0, size = members.length; a < size; a++)
-				{
+				for (int a = 0, size = members.length; a < size; a++) {
 					ITypeInfoItem member = members[a];
 					String name = member.getName();
-					if (name.endsWith(SPECIFIED_SUFFIX))
-					{
+					if (name.endsWith(SPECIFIED_SUFFIX)) {
 						String realName = name.substring(0, name.length() - SPECIFIED_SUFFIX.length());
 						potentialSpecifiedMemberMap.put(realName, member);
 					}
 				}
 
-				IdentityLinkedMap<ITypeInfoItem, ITypeInfoItem> usedMembers = new IdentityLinkedMap<ITypeInfoItem, ITypeInfoItem>();
+				IdentityLinkedMap<ITypeInfoItem, ITypeInfoItem> usedMembers = new IdentityLinkedMap<>();
 
-				for (int a = 0, size = members.length; a < size; a++)
-				{
+				for (int a = 0, size = members.length; a < size; a++) {
 					ITypeInfoItem member = members[a];
-					if (member.isXMLIgnore())
-					{
+					if (member.isXMLIgnore()) {
 						continue;
 					}
-					if (!member.canRead() || !member.canWrite())
-					{
+					if (!member.canRead() || !member.canWrite()) {
 						continue;
 					}
 					ITypeInfoItem specifiedMember = potentialSpecifiedMemberMap.get(member.getName());
@@ -139,19 +130,15 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 
 				}
 
-				for (ITypeInfoItem specifiedMember : usedMembers.values())
-				{
-					if (specifiedMember != null)
-					{
+				for (ITypeInfoItem specifiedMember : usedMembers.values()) {
+					if (specifiedMember != null) {
 						usedMembers.remove(specifiedMember);
 					}
 				}
-				ArrayList<SpecifiedMember> membersToWrite = new ArrayList<SpecifiedMember>();
-				for (Entry<ITypeInfoItem, ITypeInfoItem> entry : usedMembers)
-				{
+				ArrayList<SpecifiedMember> membersToWrite = new ArrayList<>();
+				for (Entry<ITypeInfoItem, ITypeInfoItem> entry : usedMembers) {
 					ITypeInfoItem member = entry.getKey();
-					if (sb.length() > 0)
-					{
+					if (sb.length() > 0) {
 						sb.append(' ');
 					}
 					sb.append(member.getXMLName());
@@ -162,30 +149,26 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 				writer.putMembersOfType(type, membersToWrite.toArray(SpecifiedMember.class));
 			}
 		}
-		finally
-		{
+		finally {
 			tlObjectCollector.dispose(sb);
 		}
 	}
 
-	public Class<?> readFromAttribute(IReader reader)
-	{
-		return readFromAttribute(xmlDictionary.getClassIdAttribute(), xmlDictionary.getClassNameAttribute(), xmlDictionary.getClassNamespaceAttribute(),
+	public Class<?> readFromAttribute(IReader reader) {
+		return readFromAttribute(xmlDictionary.getClassIdAttribute(),
+				xmlDictionary.getClassNameAttribute(), xmlDictionary.getClassNamespaceAttribute(),
 				xmlDictionary.getClassMemberAttribute(), reader);
 	}
 
-	public Class<?> readFromAttribute(String classIdAttribute, String classNameAttribute, String classNamespaceAttribute, String classMemberAttribute,
-			IReader reader)
-	{
+	public Class<?> readFromAttribute(String classIdAttribute, String classNameAttribute,
+			String classNamespaceAttribute, String classMemberAttribute, IReader reader) {
 		String classIdValue = reader.getAttributeValue(classIdAttribute);
 		int classId = 0;
-		if (classIdValue != null && classIdValue.length() > 0)
-		{
+		if (classIdValue != null && classIdValue.length() > 0) {
 			classId = Integer.parseInt(classIdValue);
 		}
 		Class<?> typeObj = (Class<?>) reader.getObjectById(classId, false);
-		if (typeObj != null)
-		{
+		if (typeObj != null) {
 			return typeObj;
 		}
 		String name = reader.getAttributeValue(classNameAttribute);
@@ -196,38 +179,34 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 		String arraySuffix;
 		int dimensionCount = 0;
 		StringBuilder arraySuffixSB = tlObjectCollector.create(StringBuilder.class);
-		try
-		{
-			while (name.endsWith("[]"))
-			{
+		try {
+			while (name.endsWith("[]")) {
 				dimensionCount++;
 				name = name.substring(0, name.length() - 2);
 				arraySuffixSB.append("[");
 			}
 			arraySuffix = arraySuffixSB.toString();
 		}
-		finally
-		{
+		finally {
 			tlObjectCollector.dispose(arraySuffixSB);
 			arraySuffixSB = null;
 		}
 		typeObj = xmlTypeRegistry.getType(name, namespace);
 
 		String classMemberValue = reader.getAttributeValue(classMemberAttribute);
-		if (classMemberValue != null)
-		{
+		if (classMemberValue != null) {
 			ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(typeObj);
 			String[] memberNames = splitPattern.split(classMemberValue);
-			SpecifiedMember[] members = memberNames.length > 0 ? new SpecifiedMember[memberNames.length] : EMPTY_TII;
+			SpecifiedMember[] members =
+					memberNames.length > 0 ? new SpecifiedMember[memberNames.length] : EMPTY_TII;
 
 			StringBuilder sb = new StringBuilder();
-			for (int a = memberNames.length; a-- > 0;)
-			{
+			for (int a = memberNames.length; a-- > 0;) {
 				String memberName = memberNames[a];
 				ITypeInfoItem member = typeInfo.getMemberByXmlName(memberName);
-				if (member == null)
-				{
-					throw new IllegalStateException("No member found with xml name '" + memberName + "' on entity '" + typeObj.getName() + "'");
+				if (member == null) {
+					throw new IllegalStateException("No member found with xml name '" + memberName
+							+ "' on entity '" + typeObj.getName() + "'");
 				}
 				sb.setLength(0);
 				sb.append(memberName).append(SPECIFIED_SUFFIX);
@@ -236,23 +215,19 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 			}
 			reader.putMembersOfType(typeObj, members);
 		}
-		if (dimensionCount > 0)
-		{
+		if (dimensionCount > 0) {
 			StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
-			try
-			{
+			try {
 				sb.append(arraySuffix);
 				sb.append('L');
 				sb.append(typeObj.getName());
 				sb.append(';');
-				return Thread.currentThread().getContextClassLoader().loadClass(sb.toString());
+				return classLoaderProvider.getClassLoader().loadClass(sb.toString());
 			}
-			catch (ClassNotFoundException e)
-			{
+			catch (ClassNotFoundException e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
-			finally
-			{
+			finally {
 				tlObjectCollector.dispose(sb);
 			}
 		}
@@ -261,19 +236,15 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 	}
 
 	@Override
-	public boolean writesCustom(Object obj, Class<?> type, IWriter writer)
-	{
-		if (!Class.class.equals(type))
-		{
+	public boolean writesCustom(Object obj, Class<?> type, IWriter writer) {
+		if (!Class.class.equals(type)) {
 			return false;
 		}
 		Class<?> typeObj = (Class<?>) obj;
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
-		try
-		{
-			while (typeObj.isArray())
-			{
+		try {
+			while (typeObj.isArray()) {
 				sb.append("[]");
 				typeObj = typeObj.getComponentType();
 			}
@@ -285,30 +256,25 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 			int id = writer.acquireIdForObject(obj);
 			writer.writeStartElement(xmlDictionary.getClassElement());
 			writer.writeAttribute(xmlDictionary.getIdAttribute(), Integer.toString(id));
-			if (sb.length() > 0)
-			{
+			if (sb.length() > 0) {
 				sb.insert(0, xmlName);
 				writer.writeAttribute(xmlDictionary.getClassNameAttribute(), sb.toString());
 			}
-			else
-			{
+			else {
 				writer.writeAttribute(xmlDictionary.getClassNameAttribute(), xmlName);
 			}
 			writer.writeAttribute(xmlDictionary.getClassNamespaceAttribute(), xmlNamespace);
 			writer.writeEndElement();
 		}
-		finally
-		{
+		finally {
 			tlObjectCollector.dispose(sb);
 		}
 		return true;
 	}
 
 	@Override
-	public Object readObject(Class<?> returnType, String elementName, int id, IReader reader)
-	{
-		if (!xmlDictionary.getClassElement().equals(elementName))
-		{
+	public Object readObject(Class<?> returnType, String elementName, int id, IReader reader) {
+		if (!xmlDictionary.getClassElement().equals(elementName)) {
 			throw new IllegalStateException("Element '" + elementName + "' not supported");
 		}
 		String name = reader.getAttributeValue(xmlDictionary.getClassNameAttribute());
@@ -320,8 +286,7 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 		// StringBuilder arraySuffixSB = tlObjectCollector.create(StringBuilder.class);
 		// try
 		// {
-		while (name.endsWith("[]"))
-		{
+		while (name.endsWith("[]")) {
 			dimensionCount++;
 			name = name.substring(0, name.length() - 2);
 			// arraySuffixSB.append("[");
@@ -334,11 +299,11 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 		// arraySuffixSB = null;
 		// }
 		Class<?> typeObj = xmlTypeRegistry.getType(name, namespace);
-		if (dimensionCount > 0)
-		{
+		if (dimensionCount > 0) {
 			// try
 			// {
-			// return Thread.currentThread().getContextClassLoader().loadClass(arraySuffix + "L" + typeObj.getName() + ";");
+			// return classLoaderProvider.getClassLoader().loadClass(arraySuffix + "L" +
+			// typeObj.getName() + ";");
 			// }
 			// catch (ClassNotFoundException e)
 			// {

@@ -19,11 +19,13 @@
 		<module>ambeth-information-bus/kar</module>
 		<module>ambeth-information-bus-test</module>
 		<module>ambeth-information-bus-with-persistence</module>
+		<module>ambeth-information-bus-with-persistence/kar</module>
 		<module>ambeth-information-bus-with-persistence-test</module>
 		<module>ambeth-server</module>
 		<module>ambeth-server/kar</module>
 		<module>ambeth-server-test</module>
 		<module>ambeth-server-with-persistence</module>
+		<module>ambeth-server-with-persistence/kar</module>
 		<module>ambeth-server-with-persistence-test</module>
 	</modules>
 

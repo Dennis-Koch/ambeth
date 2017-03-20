@@ -22,6 +22,7 @@ import com.koch.ambeth.ioc.log.ILoggerCache;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.IdentityWeakHashMap;
@@ -32,26 +33,21 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import sun.nio.ch.DirectBuffer;
 
 @SuppressWarnings("restriction")
-public class FileContentCache implements IInitializingBean, IDisposableBean, IFileContentCache, Runnable
-{
-	private static class Counter
-	{
+public class FileContentCache
+		implements IInitializingBean, IDisposableBean, IFileContentCache, Runnable {
+	private static class Counter {
 		private int counter;
 
-		public int getCounter()
-		{
+		public int getCounter() {
 			return counter;
 		}
 
-		public void increase()
-		{
+		public void increase() {
 			counter++;
 		}
 
-		public void decrease()
-		{
-			if (counter > 0)
-			{
+		public void decrease() {
+			if (counter > 0) {
 				counter--;
 			}
 		}
@@ -62,17 +58,20 @@ public class FileContentCache implements IInitializingBean, IDisposableBean, IFi
 	@LogInstance
 	private ILogger log;
 
-	protected final HashMap<ChunkKey, Reference<ByteBuffer>> fileToContentMap = new HashMap<ChunkKey, Reference<ByteBuffer>>();
+	protected final HashMap<ChunkKey, Reference<ByteBuffer>> fileToContentMap =
+			new HashMap<>();
 
-	protected final IdentityWeakHashMap<ByteBuffer, Counter> contentToUsageCounterMap = new IdentityWeakHashMap<ByteBuffer, Counter>();
+	protected final IdentityWeakHashMap<ByteBuffer, Counter> contentToUsageCounterMap =
+			new IdentityWeakHashMap<>();
 
-	protected final SmartCopyMap<FileKey, IByteBuffer> fileToVtdNavMap = new SmartCopyMap<FileKey, IByteBuffer>();
+	protected final SmartCopyMap<FileKey, IByteBuffer> fileToVtdNavMap =
+			new SmartCopyMap<>();
 
 	protected int inUseCounter;
 
-	protected final LinkedHashSet<ChunkKey> requestedQueue = new LinkedHashSet<ChunkKey>();
+	protected final LinkedHashSet<ChunkKey> requestedQueue = new LinkedHashSet<>();
 
-	protected final HashMap<FileKey, Long> fileToLengthMap = new HashMap<FileKey, Long>();
+	protected final HashMap<FileKey, Long> fileToLengthMap = new HashMap<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
@@ -88,12 +87,16 @@ public class FileContentCache implements IInitializingBean, IDisposableBean, IFi
 	protected IServiceContext beanContext;
 
 	@Autowired
+	protected IClassLoaderProvider classLoaderProvider;
+
+	@Autowired
 	protected IFileHandleCache fileHandleCache;
 
 	@Autowired
 	protected ILoggerCache loggerCache;
 
-	@Property(name = ByteBufferConfigurationConstants.ChunkSize, defaultValue = "" + (128 * 1024 * 1024))
+	@Property(name = ByteBufferConfigurationConstants.ChunkSize,
+			defaultValue = "" + (128 * 1024 * 1024))
 	protected int virtualChunkSize;
 
 	@Property(name = ByteBufferConfigurationConstants.CleanupCounterThreshold, defaultValue = "10")
@@ -115,21 +118,16 @@ public class FileContentCache implements IInitializingBean, IDisposableBean, IFi
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		prc = new FileContentPRC(log, cleanupCounterThreshold, freePhysicalMemoryRatio)
-		{
+	public void afterPropertiesSet() throws Throwable {
+		prc = new FileContentPRC(log, cleanupCounterThreshold, freePhysicalMemoryRatio) {
 			@Override
-			protected void doCleanup(ChunkPhantomReference phantom)
-			{
+			protected void doCleanup(ChunkPhantomReference phantom) {
 				Lock writeLock = FileContentCache.this.writeLock;
 				writeLock.lock();
-				try
-				{
+				try {
 					fileToContentMap.remove(phantom.getChunkKey());
 				}
-				finally
-				{
+				finally {
 					writeLock.unlock();
 				}
 				super.doCleanup(phantom);
@@ -137,104 +135,86 @@ public class FileContentCache implements IInitializingBean, IDisposableBean, IFi
 		};
 	}
 
-	protected void ensureThread()
-	{
-		if (started)
-		{
+	protected void ensureThread() {
+		if (started) {
 			return;
 		}
 		started = true;
 		Thread thread = new Thread(this);
-		thread.setContextClassLoader(Thread.currentThread().getContextClassLoader());
+		thread.setContextClassLoader(classLoaderProvider.getClassLoader());
 		thread.setName("FileContentCache ID: " + Math.abs(random.nextInt()));
 		thread.setDaemon(true);
 		thread.start();
 	}
 
 	@Override
-	public void destroy() throws Throwable
-	{
+	public void destroy() throws Throwable {
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			terminate = true;
 			newRequestedCondition.signalAll();
 			requestedCondition.signalAll();
 
-			if (started)
-			{
+			if (started) {
 				int seconds = 5;
 				Date waitTill = new Date(System.currentTimeMillis() + seconds * 1000l);
 
-				while (!terminationFinished)
-				{
-					if (!requestedCondition.awaitUntil(waitTill))
-					{
+				while (!terminationFinished) {
+					if (!requestedCondition.awaitUntil(waitTill)) {
 						throw new IllegalStateException("Thread did not finish within " + seconds + " seconds");
 					}
 				}
 			}
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
-	public void handleClearAllCaches(ClearAllCachesEvent evt)
-	{
+	public void handleClearAllCaches(ClearAllCachesEvent evt) {
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			fileToContentMap.clear();
 			contentToUsageCounterMap.clear();
 			fileToVtdNavMap.clear();
 			fileToLengthMap.clear();
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public void run()
-	{
+	public void run() {
 		Lock writeLock = this.writeLock;
-		try
-		{
+		try {
 			Condition newRequestedCondition = this.newRequestedCondition;
 			HashMap<ChunkKey, Reference<ByteBuffer>> fileToContentMap = this.fileToContentMap;
-			IdentityWeakHashMap<ByteBuffer, Counter> contentToUsageCounterMap = this.contentToUsageCounterMap;
+			IdentityWeakHashMap<ByteBuffer, Counter> contentToUsageCounterMap =
+					this.contentToUsageCounterMap;
 			LinkedHashSet<ChunkKey> requestedQueue = this.requestedQueue;
-			while (!terminate)
-			{
+			while (!terminate) {
 				ChunkKey request = null;
 				writeLock.lock();
-				try
-				{
-					if (requestedQueue.size() == 0)
-					{
+				try {
+					if (requestedQueue.size() == 0) {
 						newRequestedCondition.awaitUninterruptibly();
 						continue;
 					}
 					request = requestedQueue.iterator().next();
 				}
-				finally
-				{
+				finally {
 					writeLock.unlock();
 				}
-				if (request == null)
-				{
+				if (request == null) {
 					continue;
 				}
 				prc.checkForCleanup();
 				ByteBuffer buffer = handleRequest(request);
 				writeLock.lock();
-				try
-				{
+				try {
 					prc.queue(new ChunkPhantomReference(buffer, prc.getReferenceQueue(), request));
 					requestedQueue.remove(request);
 					contentToUsageCounterMap.put(buffer, new Counter());
@@ -242,37 +222,29 @@ public class FileContentCache implements IInitializingBean, IDisposableBean, IFi
 					fileToContentMap.put(request, bufferR);
 					requestedCondition.signalAll();
 				}
-				finally
-				{
+				finally {
 					writeLock.unlock();
 				}
 			}
 		}
-		finally
-		{
+		finally {
 			writeLock.lock();
-			try
-			{
+			try {
 				terminationFinished = true;
 				requestedCondition.signalAll();
 			}
-			finally
-			{
+			finally {
 				writeLock.unlock();
 			}
 		}
 	}
 
-	protected long getFileLength(FileKey fileKey)
-	{
+	protected long getFileLength(FileKey fileKey) {
 		Long length = fileToLengthMap.get(fileKey);
-		if (length == null)
-		{
-			length = Long.valueOf(fileHandleCache.readOnFile(fileKey, new IFileReadDelegate<Long>()
-			{
+		if (length == null) {
+			length = Long.valueOf(fileHandleCache.readOnFile(fileKey, new IFileReadDelegate<Long>() {
 				@Override
-				public Long read(RandomAccessFile raFile) throws Throwable
-				{
+				public Long read(RandomAccessFile raFile) throws Throwable {
 					return raFile.length();
 				}
 			}));
@@ -285,62 +257,49 @@ public class FileContentCache implements IInitializingBean, IDisposableBean, IFi
 	 * {@inheritDoc}
 	 */
 	@Override
-	public IByteBuffer getByteBuffer(FileKey fileKey)
-	{
+	public IByteBuffer getByteBuffer(FileKey fileKey) {
 		IByteBuffer nav = fileToVtdNavMap.get(fileKey);
-		if (nav != null)
-		{
+		if (nav != null) {
 			return nav;
 		}
 		long length = getFileLength(fileKey);
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
-			while (fileToVtdNavMap.containsKey(fileKey) && fileToVtdNavMap.get(fileKey) == null)
-			{
+		try {
+			while (fileToVtdNavMap.containsKey(fileKey) && fileToVtdNavMap.get(fileKey) == null) {
 				// Index already in progress
 				indexFinishedCondition.awaitUninterruptibly();
 			}
 			nav = fileToVtdNavMap.get(fileKey);
-			if (nav != null)
-			{
+			if (nav != null) {
 				return nav;
 			}
 			fileToVtdNavMap.put(fileKey, null);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 		boolean success = false;
-		try
-		{
+		try {
 			nav = new LargeByteBuffer(this, fileKey, length, virtualChunkSize);
 			success = true;
 			return nav;
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
+		finally {
 			writeLock.lock();
-			try
-			{
-				if (!success)
-				{
+			try {
+				if (!success) {
 					fileToVtdNavMap.remove(fileKey);
 				}
-				else
-				{
+				else {
 					fileToVtdNavMap.put(fileKey, nav);
 				}
 				indexFinishedCondition.signalAll();
 			}
-			finally
-			{
+			finally {
 				writeLock.unlock();
 			}
 		}
@@ -351,26 +310,22 @@ public class FileContentCache implements IInitializingBean, IDisposableBean, IFi
 	 */
 	@SuppressWarnings("restriction")
 	@Override
-	public void releaseByteBuffer(ByteBuffer byteBuffer)
-	{
-		if (!(byteBuffer instanceof DirectBuffer))
-		{
+	public void releaseByteBuffer(ByteBuffer byteBuffer) {
+		if (!(byteBuffer instanceof DirectBuffer)) {
 			return;
 		}
 		DirectBuffer directBuffer = (DirectBuffer) byteBuffer;
 		ByteBuffer attachment = (ByteBuffer) directBuffer.attachment();
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			decreaseUsage(attachment);
-			if (Math.min(contentToUsageCounterMap.size(), fileToContentMap.size()) - inUseCounter >= cleanupCounterThreshold)
-			{
+			if (Math.min(contentToUsageCounterMap.size(), fileToContentMap.size())
+					- inUseCounter >= cleanupCounterThreshold) {
 				prc.cleanup();
 			}
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
@@ -379,41 +334,34 @@ public class FileContentCache implements IInitializingBean, IDisposableBean, IFi
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ByteBuffer getContent(FileKey fileKey, long position)
-	{
+	public ByteBuffer getContent(FileKey fileKey, long position) {
 		long length = getFileLength(fileKey);
-		ByteBuffer[] content = getContent(fileKey, position, Math.min(length - position, virtualChunkSize));
-		if (content.length == 0)
-		{
+		ByteBuffer[] content =
+				getContent(fileKey, position, Math.min(length - position, virtualChunkSize));
+		if (content.length == 0) {
 			return null;
 		}
-		if (content.length != 1)
-		{
+		if (content.length != 1) {
 			throw new IllegalStateException("Must never happen");
 		}
 		return content[0];
 	}
 
-	protected void decreaseUsage(ByteBuffer buffer)
-	{
+	protected void decreaseUsage(ByteBuffer buffer) {
 		Counter counter = contentToUsageCounterMap.get(buffer);
-		if (counter.getCounter() == 0)
-		{
+		if (counter.getCounter() == 0) {
 			return;
 		}
 		counter.decrease();
-		if (counter.getCounter() == 0)
-		{
+		if (counter.getCounter() == 0) {
 			inUseCounter--;
 		}
 	}
 
-	protected void increaseUsage(ByteBuffer buffer)
-	{
+	protected void increaseUsage(ByteBuffer buffer) {
 		Counter counter = contentToUsageCounterMap.get(buffer);
 		counter.increase();
-		if (counter.getCounter() == 1)
-		{
+		if (counter.getCounter() == 1) {
 			inUseCounter++;
 		}
 	}
@@ -422,17 +370,14 @@ public class FileContentCache implements IInitializingBean, IDisposableBean, IFi
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ByteBuffer[] getContent(FileKey fileKey, long position, long length)
-	{
+	public ByteBuffer[] getContent(FileKey fileKey, long position, long length) {
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
-			ArrayList<ByteBuffer> bufferList = new ArrayList<ByteBuffer>();
+		try {
+			ArrayList<ByteBuffer> bufferList = new ArrayList<>();
 			long currentPosition = position;
 			long currentLength = length;
-			while (currentLength > 0)
-			{
+			while (currentLength > 0) {
 				long paddedPosition = (currentPosition / virtualChunkSize) * virtualChunkSize;
 				int deltaPosition = (int) (currentPosition - paddedPosition);
 
@@ -441,8 +386,7 @@ public class FileContentCache implements IInitializingBean, IDisposableBean, IFi
 
 				int oldPosition = buffer.position();
 				int oldLimit = buffer.limit();
-				try
-				{
+				try {
 					buffer.position(deltaPosition);
 					int limit = (int) Math.min(deltaPosition + currentLength, virtualChunkSize);
 					buffer.limit(limit);
@@ -456,105 +400,87 @@ public class FileContentCache implements IInitializingBean, IDisposableBean, IFi
 					currentPosition += virtualChunkSize;
 					currentLength -= virtualChunkSize;
 				}
-				finally
-				{
+				finally {
 					buffer.limit(oldLimit);
 					buffer.position(oldPosition);
 				}
 			}
 			return bufferList.toArray(ByteBuffer.class);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
-	protected ByteBuffer requestChunk(ChunkKey key, long chunkSize) throws TimeoutException
-	{
+	protected ByteBuffer requestChunk(ChunkKey key, long chunkSize) throws TimeoutException {
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			ensureThread();
 			long paddedPosition = key.getPaddedPosition();
-			// First we look whether the preceeding chunk is cached. If it exists we expect a serialized access and prefetch following chunks
-			if (paddedPosition == 0)
-			{
-				// First chunk has no preceeding chunk so no prefetch intended. We just fetch the requested chunk
+			// First we look whether the preceeding chunk is cached. If it exists we expect a serialized
+			// access and prefetch following chunks
+			if (paddedPosition == 0) {
+				// First chunk has no preceeding chunk so no prefetch intended. We just fetch the requested
+				// chunk
 				return requestChunk(key, true);
 			}
 			ChunkKey previousChunkKey = new ChunkKey(key.getFileKey(), paddedPosition - chunkSize);
-			if (tryGetByteBuffer(previousChunkKey) == null)
-			{
+			if (tryGetByteBuffer(previousChunkKey) == null) {
 				// Previous buffer does not exist. We assume a random access and do not prefetch
 				return requestChunk(key, true);
 			}
 			// Prefetch
 			long length = getFileLength(key.getFileKey());
 			ByteBuffer requestedBuffer = requestChunk(key, false);
-			for (int a = 0, size = chunkPrefetchCount; a < size; a++)
-			{
+			for (int a = 0, size = chunkPrefetchCount; a < size; a++) {
 				long prefetchPosition = paddedPosition + chunkSize * (a + 1);
-				if (length > prefetchPosition)
-				{
-					// File is big enough that the next chunk has a size of at least 1. So it exists and we therefore prefetch it
+				if (length > prefetchPosition) {
+					// File is big enough that the next chunk has a size of at least 1. So it exists and we
+					// therefore prefetch it
 					ChunkKey prefetchChunkKey = new ChunkKey(key.getFileKey(), prefetchPosition);
 					requestChunk(prefetchChunkKey, false);
 				}
 			}
-			if (requestedBuffer != null)
-			{
+			if (requestedBuffer != null) {
 				return requestedBuffer;
 			}
 			return requestChunk(key, true);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
-	protected ByteBuffer tryGetByteBuffer(ChunkKey key)
-	{
+	protected ByteBuffer tryGetByteBuffer(ChunkKey key) {
 		Reference<ByteBuffer> contentR = fileToContentMap.get(key);
-		if (contentR != null)
-		{
+		if (contentR != null) {
 			return contentR.get();
 		}
 		return null;
 	}
 
-	protected ByteBuffer requestChunk(ChunkKey key, boolean waitForResult) throws TimeoutException
-	{
+	protected ByteBuffer requestChunk(ChunkKey key, boolean waitForResult) throws TimeoutException {
 		int seconds = 60;
 		Date waitTill = waitForResult ? new Date(System.currentTimeMillis() + seconds * 1000l) : null;
-		while (true)
-		{
+		while (true) {
 			ByteBuffer buffer = tryGetByteBuffer(key);
-			if (buffer != null)
-			{
+			if (buffer != null) {
 				return buffer;
 			}
-			if (requestedQueue.add(key))
-			{
+			if (requestedQueue.add(key)) {
 				newRequestedCondition.signal();
 			}
-			if (waitForResult)
-			{
-				try
-				{
-					if (requestedCondition.awaitUntil(waitTill))
-					{
+			if (waitForResult) {
+				try {
+					if (requestedCondition.awaitUntil(waitTill)) {
 						continue;
 					}
 				}
-				catch (InterruptedException e)
-				{
+				catch (InterruptedException e) {
 					continue;
 				}
 				throw new TimeoutException("Request could not be served within " + seconds + " seconds");
@@ -563,19 +489,15 @@ public class FileContentCache implements IInitializingBean, IDisposableBean, IFi
 		}
 	}
 
-	protected ByteBuffer handleRequest(final ChunkKey chunkKey)
-	{
+	protected ByteBuffer handleRequest(final ChunkKey chunkKey) {
 		final long length = getFileLength(chunkKey.getFileKey());
-		return fileHandleCache.readOnFile(chunkKey.getFileKey(), new IFileReadDelegate<ByteBuffer>()
-		{
+		return fileHandleCache.readOnFile(chunkKey.getFileKey(), new IFileReadDelegate<ByteBuffer>() {
 			@Override
-			public ByteBuffer read(RandomAccessFile raFile) throws Throwable
-			{
+			public ByteBuffer read(RandomAccessFile raFile) throws Throwable {
 				long paddedPosition = chunkKey.getPaddedPosition();
 				// Do not resize the file unintentionally because of a too large maxMappedSize
 				int maxMappedSize = (int) Math.min(length - paddedPosition, virtualChunkSize);
-				if (maxMappedSize <= 0)
-				{
+				if (maxMappedSize <= 0) {
 					return null;
 				}
 				FileChannel channel = raFile.getChannel();

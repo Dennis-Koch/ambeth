@@ -1,6 +1,5 @@
 package com.koch.ambeth.persistence.database;
 
-import com.koch.ambeth.persistence.IDatabaseLifecycleCallback;
 import com.koch.ambeth.persistence.api.IDatabase;
 
 public abstract class DefaultDatabaseLifecycleCallback implements IDatabaseLifecycleCallback

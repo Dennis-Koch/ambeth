@@ -24,6 +24,7 @@ import com.koch.ambeth.ioc.bytecode.IEnhancementHint;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.util.HexUtil;
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.audit.util.NullOutputStream;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
@@ -41,6 +42,9 @@ public class BytecodeStore implements IBytecodeStore {
 
 	@Autowired
 	protected IBytecodeClassLoader bytecodeClassLoader;
+
+	@Autowired
+	protected IClassLoaderProvider classLoaderProvider;
 
 	@Property(name = "user.home")
 	protected String userHome;
@@ -159,7 +163,7 @@ public class BytecodeStore implements IBytecodeStore {
 	protected void scanForHints(File hintDir, Map<BytecodeStoreKey, BytecodeStoreItem> contentMap) {
 		Class<?> hintType;
 		try {
-			hintType = Thread.currentThread().getContextClassLoader().loadClass(hintDir.getName());
+			hintType = classLoaderProvider.getClassLoader().loadClass(hintDir.getName());
 		}
 		catch (Throwable e) {
 			return;

@@ -10,11 +10,11 @@ import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IOrderedBeanProcessor;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.ProcessorOrder;
+import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
-import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 import com.koch.ambeth.util.proxy.IProxyFactory;
@@ -24,20 +24,17 @@ import net.sf.cglib.proxy.Factory;
 
 public abstract class AbstractCascadePostProcessor
 		implements IBeanPostProcessor, IInitializingBean, IOrderedBeanProcessor {
+	private static final Class<?>[] emptyClasses = new Class<?>[0];
+
 	@LogInstance
 	private ILogger log;
 
-	private static final Class<?>[] emptyClasses = new Class<?>[0];
-
+	@Autowired
 	protected IProxyFactory proxyFactory;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {
-		ParamChecker.assertNotNull(proxyFactory, "ProxyFactory");
-	}
-
-	public void setProxyFactory(IProxyFactory proxyFactory) {
-		this.proxyFactory = proxyFactory;
+		// intended blank
 	}
 
 	@Override
@@ -77,11 +74,10 @@ public abstract class AbstractCascadePostProcessor
 			lastInterceptor.setTarget(proxiedTargetBean);
 			Object proxy;
 			if (requestedTypes.size() == 0) {
-				proxy = proxyFactory.createProxy(getClass().getClassLoader(), beanType, emptyClasses,
-						interceptor);
+				proxy = proxyFactory.createProxy(null, beanType, emptyClasses, interceptor);
 			}
 			else {
-				proxy = proxyFactory.createProxy(getClass().getClassLoader(),
+				proxy = proxyFactory.createProxy(null,
 						requestedTypes.toArray(new Class[requestedTypes.size()]), interceptor);
 			}
 			postHandleServiceIntern(beanContextFactory, beanContext, beanConfiguration, beanType,
@@ -106,7 +102,7 @@ public abstract class AbstractCascadePostProcessor
 	}
 
 	public IMethodLevelBehavior<Annotation> createInterceptorModeBehavior(Class<?> beanType) {
-		MethodLevelHashMap<Annotation> methodToAnnotationMap = new MethodLevelHashMap<Annotation>();
+		MethodLevelHashMap<Annotation> methodToAnnotationMap = new MethodLevelHashMap<>();
 		Method[] methods = ReflectUtil.getMethods(beanType);
 		for (Method method : methods) {
 			Annotation annotation = lookForAnnotation(method);
@@ -128,7 +124,7 @@ public abstract class AbstractCascadePostProcessor
 				break;
 			}
 		}
-		return new MethodLevelBehavior<Annotation>(lookForAnnotation(beanType), methodToAnnotationMap);
+		return new MethodLevelBehavior<>(lookForAnnotation(beanType), methodToAnnotationMap);
 	}
 
 	protected Annotation lookForAnnotation(AnnotatedElement member) {

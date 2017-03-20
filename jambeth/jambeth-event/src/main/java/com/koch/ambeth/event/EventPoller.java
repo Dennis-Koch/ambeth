@@ -11,6 +11,7 @@ import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.IOfflineListener;
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.IParamHolder;
 import com.koch.ambeth.util.ParamHolder;
@@ -18,6 +19,9 @@ import com.koch.ambeth.util.ParamHolder;
 public class EventPoller implements IEventPoller, IOfflineListener, IStartingBean, IDisposable {
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IClassLoaderProvider classLoaderProvider;
 
 	@Autowired
 	protected IEventDispatcher eventDispatcher;
@@ -84,7 +88,7 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 					long currentServerSession = eventService.getCurrentServerSession();
 					long currentEventSequence = eventService.getCurrentEventSequence();
 
-					IParamHolder<Boolean> errorOccured = new ParamHolder<Boolean>();
+					IParamHolder<Boolean> errorOccured = new ParamHolder<>();
 					while (!stopRequested && stackIterationId == iterationId) {
 						synchronized (writeLock) {
 							while (pauseRequested && !stopRequested) {
@@ -110,7 +114,7 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 				}
 			}
 		});
-		thread.setContextClassLoader(Thread.currentThread().getContextClassLoader());
+		thread.setContextClassLoader(classLoaderProvider.getClassLoader());
 		thread.setName("Event Polling");
 		thread.setDaemon(true);
 		thread.start();

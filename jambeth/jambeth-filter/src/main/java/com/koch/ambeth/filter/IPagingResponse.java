@@ -6,11 +6,10 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface IPagingResponse<T>
-{
+public interface IPagingResponse<T> {
 	int getSize();
 
-	int getTotalSize();
+	long getTotalSize();
 
 	int getNumber();
 

@@ -3,15 +3,16 @@ package com.koch.ambeth.testutil;
 import java.io.File;
 import java.io.IOException;
 
-public class BundleTestUtil
-{
-	// On the CI server the 'property.file' value is relative to the normal tests. The bundle tests have a different parent folder.
-	public static void correctPropertyFilePath() throws IOException
-	{
+public class BundleTestUtil {
+	// On the CI server the 'property.file' value is relative to the normal tests. The bundle tests
+	// have a different parent folder.
+	public static void correctPropertyFilePath() throws IOException {
 		String fileLocation = System.getProperty("property.file");
+		if (fileLocation == null) {
+			return;
+		}
 		File file = new File(fileLocation);
-		if (!file.isAbsolute())
-		{
+		if (!file.isAbsolute()) {
 			String workingDir = System.getProperty("user.dir");
 			String absoluteFilename = workingDir + "/../../jambeth/jambeth-test/" + fileLocation;
 			File newFile = new File(absoluteFilename);

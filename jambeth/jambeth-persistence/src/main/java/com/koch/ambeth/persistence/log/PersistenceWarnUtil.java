@@ -5,7 +5,7 @@ import java.sql.SQLException;
 
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.ILoggerHistory;
-import com.koch.ambeth.persistence.jdbc.connection.IConnectionKeyHandle;
+import com.koch.ambeth.persistence.connection.IConnectionKeyHandle;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public final class PersistenceWarnUtil

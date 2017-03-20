@@ -17,9 +17,9 @@
 	</properties>
 
 	<scm>
-		<connection>scm:git:http://88.99.125.109/esmeralda-group/ambeth.git</connection>
-		<developerConnection>scm:git:http://88.99.125.109/esmeralda-group/ambeth.git</developerConnection>
-		<url>http://88.99.125.109/esmeralda-group/ambeth.git</url>
+		<connection>scm:git:http://88.99.125.109:8181/esmeralda-group/ambeth.git</connection>
+		<developerConnection>scm:git:http://88.99.125.109:8181/esmeralda-group/ambeth.git</developerConnection>
+		<url>http://88.99.125.109:8181/esmeralda-group/ambeth.git</url>
 	</scm>
 
 	<distributionManagement>

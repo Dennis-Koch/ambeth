@@ -53,6 +53,7 @@ import com.koch.ambeth.query.jdbc.SubQuery;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.metadata.Member;
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.IParamHolder;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -79,6 +80,9 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 
 	protected static final Pattern PATTERN_ENTITY_NAME_WITH_MARKER =
 			Pattern.compile("([^A-Z]*[A-Z][^\\.]*)#");
+
+	@Autowired
+	protected IClassLoaderProvider classLoaderProvider;
 
 	@Autowired
 	protected IConnectionDialect connectionDialect;
@@ -136,13 +140,13 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 
 	protected IList<IOperand> selectOperands;
 
-	protected final LinkedHashMap<String, ISqlJoin> joinMap = new LinkedHashMap<String, ISqlJoin>();
+	protected final LinkedHashMap<String, ISqlJoin> joinMap = new LinkedHashMap<>();
 
-	protected final IList<SqlSubselectOperand> subQueries = new ArrayList<SqlSubselectOperand>();
+	protected final IList<SqlSubselectOperand> subQueries = new ArrayList<>();
 
 	protected final ITableAliasHolder tableAliasHolder = new TableAliasHolder();
 
-	protected final LinkedHashSet<Class<?>> relatedEntityTypes = new LinkedHashSet<Class<?>>();
+	protected final LinkedHashSet<Class<?>> relatedEntityTypes = new LinkedHashSet<>();
 
 	protected boolean disposed = false;
 
@@ -303,9 +307,9 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		StringBuilder joinName = tlObjectCollector.create(StringBuilder.class);
 		StringBuilder remainingJoinNameSB = tlObjectCollector.create(StringBuilder.class);
-		ArrayList<String> propertyByJoinHierarchyList = new ArrayList<String>();
-		ArrayList<Class<?>> stepViaEntity = new ArrayList<Class<?>>();
-		ArrayList<Boolean> stepReverse = new ArrayList<Boolean>();
+		ArrayList<String> propertyByJoinHierarchyList = new ArrayList<>();
+		ArrayList<Class<?>> stepViaEntity = new ArrayList<>();
+		ArrayList<Boolean> stepReverse = new ArrayList<>();
 		propertyName = PATTERN_ALLOWED_SEPARATORS.matcher(propertyName).replaceAll(".");
 		try {
 			Class<?> entityType = this.entityType;
@@ -359,8 +363,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 							}
 							targetEntityName = matcher.group(1);
 							try {
-								targetEntityType =
-										Thread.currentThread().getContextClassLoader().loadClass(targetEntityName);
+								targetEntityType = classLoaderProvider.getClassLoader().loadClass(targetEntityName);
 							}
 							catch (ClassNotFoundException e) {
 								// intended blank
@@ -908,7 +911,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 				.propertyValue("Column", operand).propertyValue("OrderByType", orderByType).finish();
 
 		if (orderByOperands == null) {
-			orderByOperands = new ArrayList<IOperand>();
+			orderByOperands = new ArrayList<>();
 		}
 		orderByOperands.add(orderByOperand);
 		return self;
@@ -926,7 +929,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	public IQueryBuilder<T> groupBy(IOperand... operand) {
 		ParamChecker.assertParamNotNull(operand, "operand");
 		if (groupByOperands == null) {
-			groupByOperands = new ArrayList<IOperand>();
+			groupByOperands = new ArrayList<>();
 		}
 		groupByOperands.addAll(operand);
 		return self;
@@ -972,7 +975,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 
 	protected int selectColumnIntern(IOperand columnOperand) {
 		if (selectOperands == null) {
-			selectOperands = new ArrayList<IOperand>();
+			selectOperands = new ArrayList<>();
 		}
 		IOperand additionalSelectOperand =
 				getBeanContext().registerBean(SqlAdditionalSelectOperand.class)//
@@ -1195,7 +1198,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 							IOperand currWhereClause = fWhereClause;
 
 							IBeanConfiguration whereClauseConf = null;
-							IList<ISqlJoin> allJoinClauses = new ArrayList<ISqlJoin>(joinClauses);
+							IList<ISqlJoin> allJoinClauses = new ArrayList<>(joinClauses);
 							for (IQueryBuilderExtension queryBuilderExtension : queryBuilderExtensions) {
 								IBeanConfiguration currWhereClauseConf = queryBuilderExtension.applyOnWhereClause(
 										childContextFactory, self, currWhereClause, allJoinClauses, queryType);
@@ -1256,7 +1259,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 				case SUBQUERY: {
 					ISubQuery<T> subQuery = localContext.getService("query", ISubQuery.class);
 					SubQuery<T> realSubQuery =
-							new SubQuery<T>(subQuery, joinClauses, subQueries.toArray(SqlSubselectOperand.class));
+							new SubQuery<>(subQuery, joinClauses, subQueries.toArray(SqlSubselectOperand.class));
 					return garbageProxyFactory.createGarbageProxy(realSubQuery, ISubQuery.class,
 							ISubQueryIntern.class);
 				}

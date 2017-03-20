@@ -1,8 +1,5 @@
 package com.koch.ambeth.util.proxy;
 
-public interface ITargetProvider
-{
-
+public interface ITargetProvider {
 	Object getTarget();
-
 }

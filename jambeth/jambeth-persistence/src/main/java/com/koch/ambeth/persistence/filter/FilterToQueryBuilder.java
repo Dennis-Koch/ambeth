@@ -25,13 +25,15 @@ import com.koch.ambeth.query.IQueryBuilderFactory;
 import com.koch.ambeth.query.OrderByType;
 import com.koch.ambeth.query.filter.IFilterToQueryBuilder;
 import com.koch.ambeth.query.filter.IPagingQuery;
+import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
+import com.koch.ambeth.service.merge.IValueObjectConfig;
+import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 @PersistenceContext(PersistenceContextType.NOT_REQUIRED)
-public class FilterToQueryBuilder implements IFilterToQueryBuilder
-{
+public class FilterToQueryBuilder implements IFilterToQueryBuilder {
 	@LogInstance
 	private ILogger log;
 
@@ -42,31 +44,39 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder
 	protected IConversionHelper conversionHelper;
 
 	@Autowired
+	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	@Autowired
 	protected IQueryBuilderFactory queryBuilderFactory;
 
 	protected final Lock writeLock = new ReentrantLock();
 
 	@Override
 	@PersistenceContext(PersistenceContextType.REQUIRED)
-	public <T> IPagingQuery<T> buildQuery(IFilterDescriptor<T> filterDescriptor, ISortDescriptor[] sortDescriptors)
-	{
-		Class<T> entityType = filterDescriptor.getEntityType();
-		IQueryBuilder<T> queryBuilder = queryBuilderFactory.create(entityType);
+	public <T> IPagingQuery<T> buildQuery(IFilterDescriptor<T> filterDescriptor,
+			ISortDescriptor[] sortDescriptors) {
+		Class<?> entityType = filterDescriptor.getEntityType();
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType, true);
+		IValueObjectConfig valueObjectConfig = null;
+		if (metaData == null) {
+			valueObjectConfig = entityMetaDataProvider.getValueObjectConfig(entityType);
+			if (valueObjectConfig != null) {
+				entityType = valueObjectConfig.getEntityType();
+			}
+		}
+		IQueryBuilder<?> queryBuilder = queryBuilderFactory.create(entityType);
 
-		try
-		{
-			IOperand currentRootOperand = buildOperandFromFilterDescriptor(queryBuilder, filterDescriptor);
+		try {
+			IOperand currentRootOperand =
+					buildOperandFromFilterDescriptor(queryBuilder, filterDescriptor);
 
-			if (sortDescriptors != null)
-			{
-				for (int a = 0, size = sortDescriptors.length; a < size; a++)
-				{
+			if (sortDescriptors != null) {
+				for (int a = 0, size = sortDescriptors.length; a < size; a++) {
 					ISortDescriptor sortDescriptor = sortDescriptors[a];
 					SortDirection sortDirection = sortDescriptor.getSortDirection();
 
 					IOperand sortOperand = queryBuilder.property(sortDescriptor.getMember());
-					switch (sortDirection)
-					{
+					switch (sortDirection) {
 						case ASCENDING:
 							queryBuilder.orderBy(sortOperand, OrderByType.ASC);
 							break;
@@ -74,34 +84,35 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder
 							queryBuilder.orderBy(sortOperand, OrderByType.DESC);
 							break;
 						default:
-							throw new IllegalStateException("Not supported " + SortDirection.class.getSimpleName() + ": " + sortDirection);
+							throw new IllegalStateException(
+									"Not supported " + SortDirection.class.getSimpleName() + ": " + sortDirection);
 					}
 				}
 			}
-			IPagingQuery<T> query = queryBuilder.buildPaging(currentRootOperand);
+			IPagingQuery<?> query = queryBuilder.buildPaging(currentRootOperand);
 			queryBuilder.dispose();
-			return query;
+			return (IPagingQuery<T>) query;
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
-	protected <T> IOperand buildOperandFromFilterDescriptor(IQueryBuilder<?> queryBuilder, IFilterDescriptor<T> filterDescriptor)
-	{
-		List<IFilterDescriptor<T>> childFilterDescriptors = filterDescriptor.getChildFilterDescriptors();
+	protected <T> IOperand buildOperandFromFilterDescriptor(IQueryBuilder<?> queryBuilder,
+			IFilterDescriptor<T> filterDescriptor) {
+		List<IFilterDescriptor<T>> childFilterDescriptors =
+				filterDescriptor.getChildFilterDescriptors();
 
-		if (childFilterDescriptors != null)
-		{
+		if (childFilterDescriptors != null) {
 			return buildOperandFromCompositeDescriptor(queryBuilder, filterDescriptor);
 		}
 		return buildOperandFromSimpleFilterDescriptor(queryBuilder, filterDescriptor);
 	}
 
-	protected <T> IOperand buildOperandFromCompositeDescriptor(IQueryBuilder<?> queryBuilder, IFilterDescriptor<T> filterDescriptor)
-	{
-		List<IFilterDescriptor<T>> childFilterDescriptors = filterDescriptor.getChildFilterDescriptors();
+	protected <T> IOperand buildOperandFromCompositeDescriptor(IQueryBuilder<?> queryBuilder,
+			IFilterDescriptor<T> filterDescriptor) {
+		List<IFilterDescriptor<T>> childFilterDescriptors =
+				filterDescriptor.getChildFilterDescriptors();
 
 		LogicalOperator logicalOperator = filterDescriptor.getLogicalOperator();
 
@@ -110,37 +121,35 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder
 		return operand;
 	}
 
-	protected <T> IOperand buildBalancedTree(List<IFilterDescriptor<T>> childFilterDescriptors, LogicalOperator logicalOperator, IQueryBuilder<?> queryBuilder)
-	{
+	protected <T> IOperand buildBalancedTree(List<IFilterDescriptor<T>> childFilterDescriptors,
+			LogicalOperator logicalOperator, IQueryBuilder<?> queryBuilder) {
 		IOperand operand = null;
 
 		int childCount = childFilterDescriptors.size();
 
-		if (childCount == 0)
-		{
-			throw new IllegalArgumentException("CompositeFilterDescriptor with no ChildFilterDescriptors not allowed");
+		if (childCount == 0) {
+			throw new IllegalArgumentException(
+					"CompositeFilterDescriptor with no ChildFilterDescriptors not allowed");
 		}
-		if (childCount == 1)
-		{
+		if (childCount == 1) {
 			return buildOperandFromFilterDescriptor(queryBuilder, childFilterDescriptors.get(0));
 		}
 
 		IOperand operand1;
 		IOperand operand2;
-		if (childCount == 2)
-		{
+		if (childCount == 2) {
 			operand1 = buildOperandFromFilterDescriptor(queryBuilder, childFilterDescriptors.get(0));
 			operand2 = buildOperandFromFilterDescriptor(queryBuilder, childFilterDescriptors.get(1));
 		}
-		else
-		{
+		else {
 			int splitIndex = childCount / 2;
-			operand1 = buildBalancedTree(childFilterDescriptors.subList(0, splitIndex), logicalOperator, queryBuilder);
-			operand2 = buildBalancedTree(childFilterDescriptors.subList(splitIndex, childCount), logicalOperator, queryBuilder);
+			operand1 = buildBalancedTree(childFilterDescriptors.subList(0, splitIndex), logicalOperator,
+					queryBuilder);
+			operand2 = buildBalancedTree(childFilterDescriptors.subList(splitIndex, childCount),
+					logicalOperator, queryBuilder);
 		}
 
-		switch (logicalOperator)
-		{
+		switch (logicalOperator) {
 			case AND:
 				operand = queryBuilder.and(operand1, operand2);
 				break;
@@ -148,33 +157,32 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder
 				operand = queryBuilder.or(operand1, operand2);
 				break;
 			default:
-				throw new IllegalStateException("Not supported " + LogicalOperator.class.getSimpleName() + ": " + logicalOperator);
+				throw new IllegalStateException(
+						"Not supported " + LogicalOperator.class.getSimpleName() + ": " + logicalOperator);
 		}
 
 		return operand;
 	}
 
-	protected <T> IOperand buildOperandFromSimpleFilterDescriptor(IQueryBuilder<?> queryBuilder, IFilterDescriptor<T> filterDescriptor)
-	{
+	protected <T> IOperand buildOperandFromSimpleFilterDescriptor(IQueryBuilder<?> queryBuilder,
+			IFilterDescriptor<T> filterDescriptor) {
 		IOperand operand = null;
 
 		Boolean isCaseSensitive = filterDescriptor.isCaseSensitive();
 
-		ParamHolder<Class<?>> columnType = new ParamHolder<Class<?>>();
+		ParamHolder<Class<?>> columnType = new ParamHolder<>();
 
 		String memberName = filterDescriptor.getMember();
 		IOperand leftOperand = null;
-		if (memberName != null)
-		{
+		if (memberName != null) {
 			leftOperand = queryBuilder.property(memberName, JoinType.LEFT, columnType);
 		}
 		FilterOperator filterOperator = filterDescriptor.getOperator();
 
-		if (filterOperator == null)
-		{
-			if (memberName != null)
-			{
-				throw new IllegalArgumentException("FilterDescriptor with specific member '" + memberName + "' has no valid " + FilterOperator.class.getName());
+		if (filterOperator == null) {
+			if (memberName != null) {
+				throw new IllegalArgumentException("FilterDescriptor with specific member '" + memberName
+						+ "' has no valid " + FilterOperator.class.getName());
 			}
 			return queryBuilder.all();
 		}
@@ -182,11 +190,9 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder
 		String valueString = values.size() == 1 ? values.get(0) : null;
 
 		Object value;
-		switch (filterOperator)
-		{
+		switch (filterOperator) {
 			case FULL_TEXT:
-				if (valueString == null)
-				{
+				if (valueString == null) {
 					operand = queryBuilder.all();
 				}
 				operand = queryBuilder.fulltext(queryBuilder.value(valueString));
@@ -205,7 +211,8 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder
 				break;
 			case IS_CONTAINED_IN:
 				value = convertWithContext(columnType.getValue(), valueString);
-				operand = queryBuilder.isContainedIn(leftOperand, queryBuilder.value(value), isCaseSensitive);
+				operand =
+						queryBuilder.isContainedIn(leftOperand, queryBuilder.value(value), isCaseSensitive);
 				break;
 			case IS_EQUAL_TO:
 				value = convertWithContext(columnType.getValue(), valueString);
@@ -219,15 +226,14 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder
 				value = convertWithContext(columnType.getValue(), valueString);
 				operand = queryBuilder.isGreaterThanOrEqualTo(leftOperand, queryBuilder.value(value));
 				break;
-			case IS_IN:
-			{
+			case IS_IN: {
 				Object[] convertedValues = new Object[values.size()];
-				for (int i = values.size(); i-- > 0;)
-				{
+				for (int i = values.size(); i-- > 0;) {
 					String item = values.get(i);
 					convertedValues[i] = conversionHelper.convertValueToType(columnType.getValue(), item);
 				}
-				operand = queryBuilder.isIn(leftOperand, queryBuilder.value(convertedValues), isCaseSensitive);
+				operand =
+						queryBuilder.isIn(leftOperand, queryBuilder.value(convertedValues), isCaseSensitive);
 				break;
 			}
 			case IS_LESS_THAN:
@@ -240,21 +246,22 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder
 				break;
 			case IS_NOT_CONTAINED_IN:
 				value = convertWithContext(columnType.getValue(), valueString);
-				operand = queryBuilder.isNotContainedIn(leftOperand, queryBuilder.value(value), isCaseSensitive);
+				operand =
+						queryBuilder.isNotContainedIn(leftOperand, queryBuilder.value(value), isCaseSensitive);
 				break;
 			case IS_NOT_EQUAL_TO:
 				value = convertWithContext(columnType.getValue(), valueString);
-				operand = queryBuilder.isNotEqualTo(leftOperand, queryBuilder.value(value), isCaseSensitive);
+				operand =
+						queryBuilder.isNotEqualTo(leftOperand, queryBuilder.value(value), isCaseSensitive);
 				break;
-			case IS_NOT_IN:
-			{
+			case IS_NOT_IN: {
 				Object[] convertedValues = new Object[values.size()];
-				for (int i = values.size(); i-- > 0;)
-				{
+				for (int i = values.size(); i-- > 0;) {
 					String item = values.get(i);
 					convertedValues[i] = conversionHelper.convertValueToType(columnType.getValue(), item);
 				}
-				operand = queryBuilder.isNotIn(leftOperand, queryBuilder.value(convertedValues), isCaseSensitive);
+				operand =
+						queryBuilder.isNotIn(leftOperand, queryBuilder.value(convertedValues), isCaseSensitive);
 				break;
 			}
 			case LIKE:
@@ -272,29 +279,27 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder
 				operand = queryBuilder.isNull(leftOperand);
 				break;
 			default:
-				throw new IllegalStateException("Not supported " + FilterOperator.class.getSimpleName() + ": " + filterOperator);
+				throw new IllegalStateException(
+						"Not supported " + FilterOperator.class.getSimpleName() + ": " + filterOperator);
 		}
 		return operand;
 	}
 
 	/**
 	 * We know the input comes from a SOAP format, so we know some sub-formats like date-time-strings.
-	 * 
+	 *
 	 * @param columnType
 	 * @param valueString
 	 * @return
 	 */
-	protected Object convertWithContext(Class<?> columnType, String valueString)
-	{
+	protected Object convertWithContext(Class<?> columnType, String valueString) {
 		Object value = null;
 
-		if (Timestamp.class.equals(columnType))
-		{
+		if (Timestamp.class.equals(columnType)) {
 			value = conversionHelper.convertValueToType(XMLGregorianCalendar.class, valueString);
 			value = conversionHelper.convertValueToType(columnType, value);
 		}
-		else
-		{
+		else {
 			value = conversionHelper.convertValueToType(columnType, valueString);
 		}
 

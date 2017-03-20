@@ -12,11 +12,15 @@ import org.objectweb.asm.tree.ClassNode;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.bytecode.IEnhancementHint;
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public abstract class AbstractBehavior implements IBytecodeBehavior {
 	@Autowired
 	protected IServiceContext beanContext;
+
+	@Autowired
+	protected IClassLoaderProvider classLoaderProvider;
 
 	protected Type getDeclaringType(Member member, Type newEntityType) {
 		if (member.getDeclaringClass().isInterface()) {
@@ -26,7 +30,7 @@ public abstract class AbstractBehavior implements IBytecodeBehavior {
 	}
 
 	protected ClassNode readClassNode(Class<?> type) {
-		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+		ClassLoader classLoader = classLoaderProvider.getClassLoader();
 		return readClassNode(classLoader.getResourceAsStream(Type.getInternalName(type) + ".class"));
 	}
 

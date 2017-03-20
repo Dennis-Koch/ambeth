@@ -1,5 +1,6 @@
 package com.koch.ambeth.util.proxy;
 
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.collections.SmartCopyMap;
@@ -16,6 +17,12 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
 	protected static final Class<?>[] emptyInterfaces = new Class[0];
 
 	protected static final Callback[] emptyCallbacks = new Callback[] {NoOp.INSTANCE};
+
+	protected IClassLoaderProvider classLoaderProvider;
+
+	public void setClassLoaderProvider(IClassLoaderProvider classLoaderProvider) {
+		this.classLoaderProvider = classLoaderProvider;
+	}
 
 	protected Object createProxyIntern(Class<? extends Factory> proxyType, Callback[] callbacks) {
 		try {
@@ -41,7 +48,7 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
 			return (T) createProxyIntern(proxyType, interceptors);
 		}
 		Enhancer enhancer = new Enhancer();
-		enhancer.setClassLoader(classLoader);
+		enhancer.setClassLoader(classLoaderProvider.getClassLoader());
 		if (type.isInterface()) {
 			enhancer.setInterfaces(new Class<?>[] {type});
 		}
@@ -75,7 +82,7 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
 
 			return (T) createProxy(classLoader, allInterfaces.toArray(Class.class), interceptors);
 		}
-		ArrayList<Class<?>> tempList = new ArrayList<Class<?>>();
+		ArrayList<Class<?>> tempList = new ArrayList<>();
 		for (int a = interfaces.length; a-- > 0;) {
 			Class<?> potentialNewInterfaces = interfaces[a];
 			if (!potentialNewInterfaces.isInterface()) {
@@ -94,7 +101,7 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
 			}
 		}
 		Enhancer enhancer = new Enhancer();
-		enhancer.setClassLoader(classLoader);
+		enhancer.setClassLoader(classLoaderProvider.getClassLoader());
 		enhancer.setSuperclass(type);
 		enhancer.setInterfaces(
 				tempList != null ? tempList.toArray(new Class<?>[tempList.size()]) : interfaces);
@@ -125,7 +132,7 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
 			}
 		}
 		Enhancer enhancer = new Enhancer();
-		enhancer.setClassLoader(classLoader);
+		enhancer.setClassLoader(classLoaderProvider.getClassLoader());
 		enhancer.setInterfaces(interfaces);
 		enhancer.setCallbacks(interceptors);
 		Object proxy = enhancer.create();
