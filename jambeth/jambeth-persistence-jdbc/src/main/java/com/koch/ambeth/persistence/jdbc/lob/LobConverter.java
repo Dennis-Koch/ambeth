@@ -37,8 +37,7 @@ import com.koch.ambeth.util.IDedicatedConverter;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-public class LobConverter implements IDedicatedConverter
-{
+public class LobConverter implements IDedicatedConverter {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -53,164 +52,131 @@ public class LobConverter implements IDedicatedConverter
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Override
-	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value, Object additionalInformation)
-	{
-		try
-		{
-			if (Blob.class.isAssignableFrom(sourceType))
-			{
+	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+			Object additionalInformation) {
+		try {
+			if (Blob.class.isAssignableFrom(sourceType)) {
 				Blob blob = (Blob) value;
 
 				byte[] array;
 				int length = (int) blob.length();
-				if (length == 0)
-				{
+				if (length == 0) {
 					array = new byte[0];
 				}
-				else
-				{
+				else {
 					InputStream is = blob.getBinaryStream();
-					try
-					{
+					try {
 						array = new byte[length];
 
 						int bytesRead;
 						int index = 0;
-						while ((bytesRead = is.read(array, index, length - index)) != -1)
-						{
+						while ((bytesRead = is.read(array, index, length - index)) != -1) {
 							index += bytesRead;
-							if (index == length)
-							{
+							if (index == length) {
 								break;
 							}
 						}
 					}
-					finally
-					{
+					finally {
 						is.close();
 					}
 				}
-				if (byte[].class.equals(expectedType))
-				{
+				if (byte[].class.equals(expectedType)) {
 					return array;
 				}
-				else if (String.class.equals(expectedType))
-				{
+				else if (String.class.equals(expectedType)) {
 					return new String(array, Properties.CHARSET_UTF_8);
 				}
 			}
-			else if (Clob.class.isAssignableFrom(sourceType))
-			{
+			else if (Clob.class.isAssignableFrom(sourceType)) {
 				Clob clob = (Clob) value;
 
 				int length = (int) clob.length();
 				char[] array;
-				if (length == 0)
-				{
+				if (length == 0) {
 					array = new char[0];
 				}
-				else
-				{
+				else {
 					Reader is = clob.getCharacterStream();
-					try
-					{
+					try {
 						array = new char[length];
 
 						int bytesRead;
 						int index = 0;
-						while ((bytesRead = is.read(array, index, length - index)) != -1)
-						{
+						while ((bytesRead = is.read(array, index, length - index)) != -1) {
 							index += bytesRead;
-							if (index == length)
-							{
+							if (index == length) {
 								break;
 							}
 						}
-						if (array.length > index)
-						{
+						if (array.length > index) {
 							char[] newArray = new char[index];
 							System.arraycopy(array, 0, newArray, 0, newArray.length);
 							array = newArray;
 						}
 					}
-					finally
-					{
+					finally {
 						is.close();
 					}
 				}
-				if (char[].class.equals(expectedType))
-				{
+				if (char[].class.equals(expectedType)) {
 					return array;
 				}
-				else if (String.class.equals(expectedType))
-				{
-					if (array.length == 0)
-					{
+				else if (String.class.equals(expectedType)) {
+					if (array.length == 0) {
 						return "";
 					}
 					return new String(array);
 				}
 			}
-			else if (byte[].class.isAssignableFrom(sourceType))
-			{
-				if (Blob.class.isAssignableFrom(expectedType))
-				{
+			else if (byte[].class.isAssignableFrom(sourceType)) {
+				if (Blob.class.isAssignableFrom(expectedType)) {
 					Blob blob = connectionDialect.createBlob(connection);
 					OutputStream os = blob.setBinaryStream(1);
-					try
-					{
+					try {
 						os.write((byte[]) value);
 					}
-					finally
-					{
+					finally {
 						os.close();
 					}
 					return blob;
 				}
 			}
-			else if (char[].class.isAssignableFrom(sourceType))
-			{
-				if (Clob.class.isAssignableFrom(expectedType))
-				{
+			else if (char[].class.isAssignableFrom(sourceType)) {
+				if (Clob.class.isAssignableFrom(expectedType)) {
 					Clob clob = connectionDialect.createClob(connection);
 					IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 					StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
 					Writer writer = clob.setCharacterStream(1);
-					try
-					{
+					try {
 						sb.append((char[]) value);
 						writer.append(sb);
 						return clob;
 					}
-					finally
-					{
+					finally {
 						writer.close();
 						tlObjectCollector.dispose(sb);
 					}
 				}
 			}
-			else if (CharSequence.class.isAssignableFrom(sourceType))
-			{
-				if (Clob.class.isAssignableFrom(expectedType))
-				{
+			else if (CharSequence.class.isAssignableFrom(sourceType)) {
+				if (Clob.class.isAssignableFrom(expectedType)) {
 					Clob clob = connectionDialect.createClob(connection);
 					Writer writer = clob.setCharacterStream(1);
-					try
-					{
+					try {
 						writer.append((CharSequence) value);
 					}
-					finally
-					{
+					finally {
 						writer.close();
 					}
 					return clob;
 				}
 			}
-			throw new IllegalArgumentException("Cannot convert from '" + sourceType + "' to '" + expectedType
+			throw new IllegalArgumentException("Cannot convert from '" + sourceType + "' to '"
+					+ expectedType
 					+ "'. This is a bug if I get called for types which I do not support and I did not register with!");
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

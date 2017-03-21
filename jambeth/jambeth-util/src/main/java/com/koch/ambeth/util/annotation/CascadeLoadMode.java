@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public enum CascadeLoadMode
-{
+public enum CascadeLoadMode {
 	DEFAULT, LAZY, EAGER_VERSION, EAGER;
 }

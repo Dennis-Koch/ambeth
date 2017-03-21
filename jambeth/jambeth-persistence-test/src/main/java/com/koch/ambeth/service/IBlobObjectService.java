@@ -24,8 +24,7 @@ import java.util.List;
 
 import com.koch.ambeth.model.BlobObject;
 
-public interface IBlobObjectService
-{
+public interface IBlobObjectService {
 	BlobObject getBlobObject(Integer id);
 
 	List<BlobObject> getBlobObjects(Integer... id);

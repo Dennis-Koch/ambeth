@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.IServiceContext;
 
-public interface IServiceContextStoreConf
-{
+public interface IServiceContextStoreConf {
 	IServiceContextStoreConf addContext(String name, IServiceContext context);
 
 	IServiceContextStoreConf withConfig(IInterconnectConfig config);

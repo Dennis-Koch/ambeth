@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IParentAService
-{
+public interface IParentAService {
 	ParentA create(ParentA entity);
 
 	ParentA retrieve(int id);

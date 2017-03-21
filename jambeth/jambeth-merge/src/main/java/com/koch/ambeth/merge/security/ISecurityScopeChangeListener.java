@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.service.model.ISecurityScope;
 
-public interface ISecurityScopeChangeListener
-{
+public interface ISecurityScopeChangeListener {
 	void securityScopeChanged(ISecurityScope[] securityScopes);
 }

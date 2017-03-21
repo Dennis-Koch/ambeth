@@ -27,35 +27,28 @@ import java.io.FileInputStream;
 import com.koch.ambeth.stream.IInputStream;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class FileBinaryInputSource implements IBinaryInputSource
-{
+public class FileBinaryInputSource implements IBinaryInputSource {
 	protected final File file;
 
-	public FileBinaryInputSource(File file)
-	{
+	public FileBinaryInputSource(File file) {
 		this.file = file;
 	}
 
 	@Override
-	public IInputStream deriveInputStream()
-	{
+	public IInputStream deriveInputStream() {
 		return createIInputStream();
 	}
 
 	@Override
-	public InputStreamToBinaryInputStream deriveBinaryInputStream()
-	{
+	public InputStreamToBinaryInputStream deriveBinaryInputStream() {
 		return createIInputStream();
 	}
 
-	private InputStreamToBinaryInputStream createIInputStream()
-	{
-		try
-		{
+	private InputStreamToBinaryInputStream createIInputStream() {
+		try {
 			return new InputStreamToBinaryInputStream(new BufferedInputStream(new FileInputStream(file)));
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

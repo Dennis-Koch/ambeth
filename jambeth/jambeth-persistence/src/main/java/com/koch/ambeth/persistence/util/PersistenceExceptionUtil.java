@@ -28,34 +28,28 @@ import javax.persistence.PersistenceException;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.persistence.IConnectionDialect;
 
-public class PersistenceExceptionUtil implements IPersistenceExceptionUtil
-{
+public class PersistenceExceptionUtil implements IPersistenceExceptionUtil {
 	@Autowired
 	protected IConnectionDialect connectionDialect;
 
 	@Override
-	public PersistenceException mask(Throwable e)
-	{
+	public PersistenceException mask(Throwable e) {
 		return mask(e, null);
 	}
 
 	@Override
-	public PersistenceException mask(Throwable e, String relatedSql)
-	{
-		while (e instanceof InvocationTargetException)
-		{
+	public PersistenceException mask(Throwable e, String relatedSql) {
+		while (e instanceof InvocationTargetException) {
 			e = ((InvocationTargetException) e).getTargetException();
 		}
-		if (e instanceof PersistenceException)
-		{
+		if (e instanceof PersistenceException) {
 			return (PersistenceException) e;
 		}
-		if (e instanceof SQLException)
-		{
-			PersistenceException pException = connectionDialect.createPersistenceException((SQLException) e, relatedSql);
+		if (e instanceof SQLException) {
+			PersistenceException pException =
+					connectionDialect.createPersistenceException((SQLException) e, relatedSql);
 
-			if (pException != null)
-			{
+			if (pException != null) {
 				return pException;
 			}
 		}

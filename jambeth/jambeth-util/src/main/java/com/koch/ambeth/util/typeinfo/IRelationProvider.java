@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IRelationProvider
-{
+public interface IRelationProvider {
 	boolean isEntityType(Class<?> type);
 }

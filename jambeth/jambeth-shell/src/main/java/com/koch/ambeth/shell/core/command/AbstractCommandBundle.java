@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.shell.AmbethShell;
 
-public abstract class AbstractCommandBundle
-{
+public abstract class AbstractCommandBundle {
 	// TODO change back to using shellContext directly
 	// @Autowired
 	// protected ShellContext shellContext;

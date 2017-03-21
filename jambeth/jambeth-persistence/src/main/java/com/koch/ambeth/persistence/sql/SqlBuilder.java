@@ -39,17 +39,16 @@ import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRegistry
-{
+public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRegistry {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	protected static final Pattern sqlEscapePattern = Pattern.compile("'", Pattern.LITERAL);
 
-	protected final Set<Class<?>> unescapedTypes = new HashSet<Class<?>>();
+	protected final Set<Class<?>> unescapedTypes = new HashSet<>();
 
-	protected final Set<String> escapedNames = new HashSet<String>(0.5f);
+	protected final Set<String> escapedNames = new HashSet<>(0.5f);
 
 	@Autowired
 	protected IConnectionDialect connectionDialect;
@@ -61,8 +60,7 @@ public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRe
 	protected IPersistenceHelper persistenceHelper;
 
 	@Override
-	public void afterPropertiesSet()
-	{
+	public void afterPropertiesSet() {
 		unescapedTypes.add(Boolean.class);
 		unescapedTypes.add(Boolean.TYPE);
 		unescapedTypes.add(Short.class);
@@ -79,103 +77,84 @@ public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRe
 		unescapedTypes.add(BigDecimal.class);
 	}
 
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
+	public void setObjectCollector(IThreadLocalObjectCollector objectCollector) {
 		this.objectCollector = objectCollector;
 	}
 
-	public void setPersistenceHelper(IPersistenceHelper persistenceHelper)
-	{
+	public void setPersistenceHelper(IPersistenceHelper persistenceHelper) {
 		this.persistenceHelper = persistenceHelper;
 	}
 
 	@Override
-	public void registerSqlKeyword(String sqlKeyword)
-	{
+	public void registerSqlKeyword(String sqlKeyword) {
 		escapedNames.add(sqlKeyword);
 	}
 
 	@Override
-	public String escapeName(CharSequence symbolName)
-	{
+	public String escapeName(CharSequence symbolName) {
 		return connectionDialect.escapeName(symbolName);
 	}
 
 	@Override
-	public IAppendable escapeName(CharSequence symbolName, IAppendable sb)
-	{
+	public IAppendable escapeName(CharSequence symbolName, IAppendable sb) {
 		return connectionDialect.escapeName(symbolName, sb);
 	}
 
 	@Override
-	public String escapeSchemaAndSymbolName(CharSequence schemaName, CharSequence symbolName)
-	{
+	public String escapeSchemaAndSymbolName(CharSequence schemaName, CharSequence symbolName) {
 		return connectionDialect.escapeSchemaAndSymbolName(schemaName, symbolName);
 	}
 
 	@Override
-	public IAppendable appendNameValue(CharSequence name, Object value, IAppendable sb)
-	{
+	public IAppendable appendNameValue(CharSequence name, Object value, IAppendable sb) {
 		appendName(name, sb).append('=');
 		appendValue(value, sb);
 		return sb;
 	}
 
 	@Override
-	public IAppendable appendNameValues(CharSequence name, List<Object> values, IAppendable sb)
-	{
+	public IAppendable appendNameValues(CharSequence name, List<Object> values, IAppendable sb) {
 		IList<String> inClauses = persistenceHelper.buildStringListOfValues(values);
 		boolean first = true;
 
-		if (inClauses.size() > 1)
-		{
+		if (inClauses.size() > 1) {
 			sb.append("(");
 		}
-		for (int i = inClauses.size(); i-- > 0;)
-		{
-			if (!first)
-			{
+		for (int i = inClauses.size(); i-- > 0;) {
+			if (!first) {
 				sb.append(" OR ");
 			}
-			else
-			{
+			else {
 				first = false;
 			}
 			appendName(name, sb).append(" IN (").append(inClauses.get(i)).append(')');
 		}
-		if (inClauses.size() > 1)
-		{
+		if (inClauses.size() > 1) {
 			sb.append(" )");
 		}
 		return sb;
 	}
 
 	@Override
-	public IAppendable appendName(CharSequence name, IAppendable sb)
-	{
+	public IAppendable appendName(CharSequence name, IAppendable sb) {
 		sb.append(connectionDialect.escapeName(name));
 		return sb;
 	}
 
 	@Override
-	public String[] getSchemaAndTableName(String tableName)
-	{
+	public String[] getSchemaAndTableName(String tableName) {
 		return XmlDatabaseMapper.splitSchemaAndName(tableName);
 	}
 
 	@Override
-	public IAppendable appendValue(Object value, IAppendable sb)
-	{
-		if (value == null)
-		{
+	public IAppendable appendValue(Object value, IAppendable sb) {
+		if (value == null) {
 			sb.append("NULL");
 		}
-		else if (isUnescapedType(value.getClass()))
-		{
+		else if (isUnescapedType(value.getClass())) {
 			sb.append(value.toString());
 		}
-		else
-		{
+		else {
 			sb.append('\'');
 			escapeValue(value.toString(), sb).append('\'');
 		}
@@ -183,22 +162,19 @@ public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRe
 	}
 
 	@Override
-	public String escapeValue(CharSequence value)
-	{
+	public String escapeValue(CharSequence value) {
 		return sqlEscapePattern.matcher(value).replaceAll("''");
 	}
 
 	@Override
-	public IAppendable escapeValue(CharSequence value, IAppendable sb)
-	{
+	public IAppendable escapeValue(CharSequence value, IAppendable sb) {
 		value = escapeValue(value);
 		sb.append(value);
 		return sb;
 	}
 
 	@Override
-	public boolean isUnescapedType(Class<?> type)
-	{
+	public boolean isUnescapedType(Class<?> type) {
 		return unescapedTypes.contains(type);
 	}
 }

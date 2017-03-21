@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IServiceUrlProvider
-{
+public interface IServiceUrlProvider {
 	String getServiceURL(Class<?> serviceInterface, String serviceName);
 
 	boolean isOffline();

@@ -144,14 +144,14 @@ public class OrmBlueprintTest extends AbstractInformationBusWithPersistenceTest 
 
 		Object entity = entityFactory.createEntity(resolveEntityType);
 
-		IPropertyInfo prop = propertyInfoProvider.getProperty(entity,
-				AMBETH_PERSISTENCE_BLUEPRINT_TEST_CLASS_PROP);
+		IPropertyInfo prop =
+				propertyInfoProvider.getProperty(entity, AMBETH_PERSISTENCE_BLUEPRINT_TEST_CLASS_PROP);
 		Assert.assertNotNull(prop);
 		String testValue = "TestValue";
 		prop.setValue(entity, testValue);
 
-		Class<?> valueObjectType = entityTypeProvider
-				.resolveEntityType(AMBETH_PERSISTENCE_BLUEPRINT_TEST_CLASS + "V");
+		Class<?> valueObjectType =
+				entityTypeProvider.resolveEntityType(AMBETH_PERSISTENCE_BLUEPRINT_TEST_CLASS + "V");
 		Assert.assertFalse(valueObjectType.isInterface());
 		IMapperService mapper = mapperServiceFactory.create();
 		try {

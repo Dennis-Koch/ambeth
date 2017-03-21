@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public interface IBytecodePrinter
-{
+public interface IBytecodePrinter {
 	String toPrintableBytecode(Class<?> type);
 }

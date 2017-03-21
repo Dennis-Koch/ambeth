@@ -27,8 +27,7 @@ import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 
-public class JobScheduleConfiguration implements IStartingBean, IDisposableBean
-{
+public class JobScheduleConfiguration implements IStartingBean, IDisposableBean {
 	public static final String CRON_PATTERN = "CronPattern";
 
 	public static final String JOB = "Job";
@@ -64,24 +63,20 @@ public class JobScheduleConfiguration implements IStartingBean, IDisposableBean
 	protected IJobDescheduleCommand jobDescheduleCommand;
 
 	@Override
-	public void afterStarted() throws Throwable
-	{
-		if (jobScheduler == null)
-		{
+	public void afterStarted() throws Throwable {
+		if (jobScheduler == null) {
 			return;
 		}
-		if (jobName == null)
-		{
+		if (jobName == null) {
 			jobName = job.getClass().getSimpleName();
 		}
-		jobDescheduleCommand = jobScheduler.scheduleJob(jobName, job, cronPattern, userName, userPass, null);
+		jobDescheduleCommand =
+				jobScheduler.scheduleJob(jobName, job, cronPattern, userName, userPass, null);
 	}
 
 	@Override
-	public void destroy() throws Throwable
-	{
-		if (jobDescheduleCommand != null)
-		{
+	public void destroy() throws Throwable {
+		if (jobDescheduleCommand != null) {
 			jobDescheduleCommand.execute();
 			jobDescheduleCommand = null;
 		}

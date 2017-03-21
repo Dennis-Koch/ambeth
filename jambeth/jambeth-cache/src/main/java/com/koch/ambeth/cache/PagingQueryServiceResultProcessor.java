@@ -32,27 +32,23 @@ import com.koch.ambeth.util.annotation.Find;
 import com.koch.ambeth.util.annotation.QueryResultType;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class PagingQueryServiceResultProcessor implements IServiceResultProcessor
-{
+public class PagingQueryServiceResultProcessor implements IServiceResultProcessor {
 
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public Object processServiceResult(Object result, List<IObjRef> objRefs, List<Object> entities, Class<?> expectedType, Object[] serviceRequestArgs,
-			Annotation annotation)
-	{
+	public Object processServiceResult(Object result, List<IObjRef> objRefs, List<Object> entities,
+			Class<?> expectedType, Object[] serviceRequestArgs, Annotation annotation) {
 		@SuppressWarnings("unchecked")
 		IPagingResponse<Object> pagingResponse = (IPagingResponse<Object>) result;
 
 		QueryResultType queryResultType = QueryResultType.REFERENCES;
-		if (annotation instanceof Find)
-		{
+		if (annotation instanceof Find) {
 			queryResultType = ((Find) annotation).resultType();
 		}
-		switch (queryResultType)
-		{
+		switch (queryResultType) {
 			case BOTH:
 				pagingResponse.setRefResult(objRefs);
 				pagingResponse.setResult(entities);

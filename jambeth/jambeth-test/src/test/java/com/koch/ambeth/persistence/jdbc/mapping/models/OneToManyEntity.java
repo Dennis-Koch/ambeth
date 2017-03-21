@@ -27,8 +27,7 @@ import java.util.Set;
 import com.koch.ambeth.model.AbstractEntity;
 import com.koch.ambeth.persistence.xml.model.TestEmbeddedType;
 
-public abstract class OneToManyEntity extends AbstractEntity
-{
+public abstract class OneToManyEntity extends AbstractEntity {
 	protected String buid;
 
 	protected String name;
@@ -47,98 +46,79 @@ public abstract class OneToManyEntity extends AbstractEntity
 
 	protected Set<SelfReferencingEntity> selfReferencingEntities;
 
-	protected OneToManyEntity()
-	{
+	protected OneToManyEntity() {
 		// Intended blank
 	}
 
-	public String getBuid()
-	{
+	public String getBuid() {
 		return buid;
 	}
 
-	public void setBuid(String buid)
-	{
+	public void setBuid(String buid) {
 		this.buid = buid;
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public List<String> getNicknames()
-	{
+	public List<String> getNicknames() {
 		return nicknames;
 	}
 
-	public void setNicknames(List<String> nicknames)
-	{
+	public void setNicknames(List<String> nicknames) {
 		this.nicknames = nicknames;
 	}
 
-	public Date getNeedsSpecialMapping()
-	{
+	public Date getNeedsSpecialMapping() {
 		return needsSpecialMapping;
 	}
 
-	public void setNeedsSpecialMapping(Date needsSpecialMapping)
-	{
+	public void setNeedsSpecialMapping(Date needsSpecialMapping) {
 		this.needsSpecialMapping = needsSpecialMapping;
 	}
 
-	public TestEmbeddedType getMyEmbedded()
-	{
+	public TestEmbeddedType getMyEmbedded() {
 		return myEmbedded;
 	}
 
-	public void setMyEmbedded(TestEmbeddedType myEmbedded)
-	{
+	public void setMyEmbedded(TestEmbeddedType myEmbedded) {
 		this.myEmbedded = myEmbedded;
 	}
 
-	public List<OneToManyEntity> getOneToManyEntities()
-	{
+	public List<OneToManyEntity> getOneToManyEntities() {
 		return oneToManyEntities;
 	}
 
-	protected void setOneToManyEntities(List<OneToManyEntity> oneToManyEntities)
-	{
+	protected void setOneToManyEntities(List<OneToManyEntity> oneToManyEntities) {
 		this.oneToManyEntities = oneToManyEntities;
 	}
 
-	public List<OneToManyEntity> getByListType()
-	{
+	public List<OneToManyEntity> getByListType() {
 		return byListType;
 	}
 
-	protected void setByListType(List<OneToManyEntity> byListType)
-	{
+	protected void setByListType(List<OneToManyEntity> byListType) {
 		this.byListType = byListType;
 	}
 
-	public List<OneToManyEntity> getByRefListType()
-	{
+	public List<OneToManyEntity> getByRefListType() {
 		return byRefListType;
 	}
 
-	protected void setByRefListType(List<OneToManyEntity> byRefListType)
-	{
+	protected void setByRefListType(List<OneToManyEntity> byRefListType) {
 		this.byRefListType = byRefListType;
 	}
 
-	public Set<SelfReferencingEntity> getSelfReferencingEntities()
-	{
+	public Set<SelfReferencingEntity> getSelfReferencingEntities() {
 		return selfReferencingEntities;
 	}
 
-	protected void setSelfReferencingEntities(Set<SelfReferencingEntity> newSelfReferencingEntities)
-	{
+	protected void setSelfReferencingEntities(Set<SelfReferencingEntity> newSelfReferencingEntities) {
 		selfReferencingEntities = newSelfReferencingEntities;
 		// Set<SelfReferencingEntity> selfReferencingEntities = getSelfReferencingEntities();
 		// if (selfReferencingEntities == null)

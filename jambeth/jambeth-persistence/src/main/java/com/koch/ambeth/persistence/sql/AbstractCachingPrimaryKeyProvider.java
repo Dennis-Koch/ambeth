@@ -66,8 +66,7 @@ public abstract class AbstractCachingPrimaryKeyProvider
 	protected final SmartCopyMap<String, IPrimaryKeyProvider> seqNameToPrimaryKeyProviderMap =
 			new SmartCopyMap<>(0.5f);
 
-	protected final HashMap<String, ArrayList<Object>> seqToCachedIdsMap =
-			new HashMap<>(0.5f);
+	protected final HashMap<String, ArrayList<Object>> seqToCachedIdsMap = new HashMap<>(0.5f);
 
 	protected final Lock writeLock = new ReentrantLock();
 

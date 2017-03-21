@@ -73,10 +73,9 @@ import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.collections.Tuple3KeyHashMap;
 
-public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializingBean, IDataChangeListener
-{
-	public static class PrivilegeKey
-	{
+public class PrivilegeProvider
+		implements IPrivilegeProviderIntern, IInitializingBean, IDataChangeListener {
+	public static class PrivilegeKey {
 		public Class<?> entityType;
 
 		public Object id;
@@ -87,13 +86,11 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 
 		public String userSID;
 
-		public PrivilegeKey()
-		{
+		public PrivilegeKey() {
 			// Intended blank
 		}
 
-		public PrivilegeKey(Class<?> entityType, byte IdIndex, Object id, String userSID)
-		{
+		public PrivilegeKey(Class<?> entityType, byte IdIndex, Object id, String userSID) {
 			this.entityType = entityType;
 			idIndex = IdIndex;
 			this.id = id;
@@ -101,38 +98,34 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 		}
 
 		@Override
-		public int hashCode()
-		{
-			if (securityScope == null)
-			{
+		public int hashCode() {
+			if (securityScope == null) {
 				return getClass().hashCode() ^ entityType.hashCode() ^ id.hashCode() ^ userSID.hashCode();
 			}
-			else
-			{
-				return getClass().hashCode() ^ entityType.hashCode() ^ id.hashCode() ^ userSID.hashCode() ^ securityScope.hashCode();
+			else {
+				return getClass().hashCode() ^ entityType.hashCode() ^ id.hashCode() ^ userSID.hashCode()
+						^ securityScope.hashCode();
 			}
 		}
 
 		@Override
-		public boolean equals(Object obj)
-		{
-			if (this == obj)
-			{
+		public boolean equals(Object obj) {
+			if (this == obj) {
 				return true;
 			}
-			if (!(obj instanceof PrivilegeKey))
-			{
+			if (!(obj instanceof PrivilegeKey)) {
 				return false;
 			}
 			PrivilegeKey other = (PrivilegeKey) obj;
-			return EqualsUtil.equals(id, other.id) && EqualsUtil.equals(entityType, other.entityType) && idIndex == other.idIndex
-					&& EqualsUtil.equals(userSID, other.userSID) && EqualsUtil.equals(securityScope, other.securityScope);
+			return EqualsUtil.equals(id, other.id) && EqualsUtil.equals(entityType, other.entityType)
+					&& idIndex == other.idIndex && EqualsUtil.equals(userSID, other.userSID)
+					&& EqualsUtil.equals(securityScope, other.securityScope);
 		}
 
 		@Override
-		public String toString()
-		{
-			return "PrivilegeKey: " + entityType.getName() + "(" + idIndex + "," + id + ") SecurityScope: '" + securityScope + "',SID:" + userSID;
+		public String toString() {
+			return "PrivilegeKey: " + entityType.getName() + "(" + idIndex + "," + id
+					+ ") SecurityScope: '" + securityScope + "',SID:" + userSID;
 		}
 	}
 
@@ -168,333 +161,324 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 
 	protected final Lock writeLock = new ReentrantLock();
 
-	protected final LinkedHashMap<PrivilegeKey, IPrivilege> privilegeCache = new LinkedHashMap<PrivilegeKey, IPrivilege>();
+	protected final LinkedHashMap<PrivilegeKey, IPrivilege> privilegeCache =
+			new LinkedHashMap<>();
 
-	protected final Tuple3KeyHashMap<Class<?>, String, String, ITypePrivilege> entityTypePrivilegeCache = new Tuple3KeyHashMap<Class<?>, String, String, ITypePrivilege>();
+	protected final Tuple3KeyHashMap<Class<?>, String, String, ITypePrivilege> entityTypePrivilegeCache =
+			new Tuple3KeyHashMap<>();
 
 	@Override
-	public void afterPropertiesSet()
-	{
-		if (privilegeService == null && log.isDebugEnabled())
-		{
+	public void afterPropertiesSet() {
+		if (privilegeService == null && log.isDebugEnabled()) {
 			log.debug("Privilege Service could not be resolved - Privilege functionality deactivated");
 		}
 	}
 
 	@Override
-	public IPrivilegeCache createPrivilegeCache()
-	{
+	public IPrivilegeCache createPrivilegeCache() {
 		return beanContext.registerBean(PrivilegeCache.class).finish();
 	}
 
 	@Override
-	public IPrivilege getPrivilege(Object entity)
-	{
+	public IPrivilege getPrivilege(Object entity) {
 		return getPrivilege(entity, securityScopeProvider.getSecurityScopes());
 	}
 
 	@Override
-	public IPrivilege getPrivilege(Object entity, ISecurityScope[] securityScopes)
-	{
+	public IPrivilege getPrivilege(Object entity, ISecurityScope[] securityScopes) {
 		IList<IObjRef> objRefs = objRefHelper.extractObjRefList(entity, null);
 		IPrivilegeResult result = getPrivileges(objRefs, securityScopes);
 		return result.getPrivileges()[0];
 	}
 
 	@Override
-	public IPrivilege getPrivilegeByObjRef(IObjRef objRef)
-	{
+	public IPrivilege getPrivilegeByObjRef(IObjRef objRef) {
 		return getPrivilegeByObjRef(objRef, securityScopeProvider.getSecurityScopes());
 	}
 
 	@Override
-	public IPrivilege getPrivilegeByObjRef(ObjRef objRef, IPrivilegeCache privilegeCache)
-	{
+	public IPrivilege getPrivilegeByObjRef(ObjRef objRef, IPrivilegeCache privilegeCache) {
 		return getPrivilegeByObjRef(objRef);
 	}
 
 	@Override
-	public IPrivilege getPrivilegeByObjRef(IObjRef objRef, ISecurityScope[] securityScopes)
-	{
-		IPrivilegeResult result = getPrivilegesByObjRef(new ArrayList<IObjRef>(new IObjRef[] { objRef }), securityScopes);
+	public IPrivilege getPrivilegeByObjRef(IObjRef objRef, ISecurityScope[] securityScopes) {
+		IPrivilegeResult result =
+				getPrivilegesByObjRef(new ArrayList<IObjRef>(new IObjRef[] {objRef}), securityScopes);
 		return result.getPrivileges()[0];
 	}
 
 	@Override
-	public IPrivilegeResult getPrivileges(List<?> entities)
-	{
+	public IPrivilegeResult getPrivileges(List<?> entities) {
 		return getPrivileges(entities, securityScopeProvider.getSecurityScopes());
 	}
 
 	@Override
-	public IPrivilegeResult getPrivileges(List<?> entities, ISecurityScope[] securityScopes)
-	{
+	public IPrivilegeResult getPrivileges(List<?> entities, ISecurityScope[] securityScopes) {
 		IList<IObjRef> objRefs = objRefHelper.extractObjRefList(entities, null);
 		return getPrivilegesByObjRef(objRefs, securityScopes);
 	}
 
 	@Override
-	public IPrivilegeResult getPrivilegesByObjRef(List<? extends IObjRef> objRefs)
-	{
+	public IPrivilegeResult getPrivilegesByObjRef(List<? extends IObjRef> objRefs) {
 		return getPrivilegesByObjRef(objRefs, securityScopeProvider.getSecurityScopes());
 	}
 
 	@Override
-	public IPrivilegeResult getPrivilegesByObjRef(List<? extends IObjRef> objRefs, IPrivilegeCache privilegeCache)
-	{
+	public IPrivilegeResult getPrivilegesByObjRef(List<? extends IObjRef> objRefs,
+			IPrivilegeCache privilegeCache) {
 		return getPrivilegesByObjRef(objRefs);
 	}
 
 	@Override
-	public IPrivilegeResult getPrivilegesByObjRef(List<? extends IObjRef> objRefs, ISecurityScope[] securityScopes)
-	{
+	public IPrivilegeResult getPrivilegesByObjRef(List<? extends IObjRef> objRefs,
+			ISecurityScope[] securityScopes) {
 		ISecurityContext context = securityContextHolder.getContext();
 		IAuthorization authorization = context != null ? context.getAuthorization() : null;
-		if (authorization == null)
-		{
+		if (authorization == null) {
 			throw new SecurityException("User must be authenticated to be able to check for privileges");
 		}
-		if (securityScopes.length == 0)
-		{
-			throw new IllegalArgumentException("No " + ISecurityScope.class.getSimpleName() + " provided to check privileges against");
+		if (securityScopes.length == 0) {
+			throw new IllegalArgumentException(
+					"No " + ISecurityScope.class.getSimpleName() + " provided to check privileges against");
 		}
-		ArrayList<IObjRef> missingObjRefs = new ArrayList<IObjRef>();
+		ArrayList<IObjRef> missingObjRefs = new ArrayList<>();
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
-			IPrivilegeResult result = createResult(objRefs, securityScopes, missingObjRefs, authorization, null);
-			if (missingObjRefs.size() == 0)
-			{
+		try {
+			IPrivilegeResult result =
+					createResult(objRefs, securityScopes, missingObjRefs, authorization, null);
+			if (missingObjRefs.size() == 0) {
 				return result;
 			}
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
-		if (privilegeService == null)
-		{
+		if (privilegeService == null) {
 			throw new SecurityException("No bean of type " + IPrivilegeService.class.getName()
 					+ " could be injected. Privilege functionality is deactivated. The current operation is not supported");
 		}
 		String userSID = authorization.getSID();
-		List<IPrivilegeOfService> privilegeResults = privilegeService.getPrivileges(missingObjRefs.toArray(IObjRef.class), securityScopes);
+		List<IPrivilegeOfService> privilegeResults =
+				privilegeService.getPrivileges(missingObjRefs.toArray(IObjRef.class), securityScopes);
 		writeLock.lock();
-		try
-		{
+		try {
 			HashMap<PrivilegeKey, IPrivilege> privilegeResultOfNewEntities = null;
-			for (int a = 0, size = privilegeResults.size(); a < size; a++)
-			{
+			for (int a = 0, size = privilegeResults.size(); a < size; a++) {
 				IPrivilegeOfService privilegeResult = privilegeResults.get(a);
 				IObjRef reference = privilegeResult.getReference();
 
-				PrivilegeKey privilegeKey = new PrivilegeKey(reference.getRealType(), reference.getIdNameIndex(), reference.getId(), userSID);
+				PrivilegeKey privilegeKey = new PrivilegeKey(reference.getRealType(),
+						reference.getIdNameIndex(), reference.getId(), userSID);
 				boolean useCache = true;
-				if (privilegeKey.id == null)
-				{
+				if (privilegeKey.id == null) {
 					useCache = false;
 					privilegeKey.id = reference;
 				}
-				privilegeKey.securityScope = interningFeature.intern(privilegeResult.getSecurityScope().getName());
+				privilegeKey.securityScope =
+						interningFeature.intern(privilegeResult.getSecurityScope().getName());
 
 				IPrivilege privilege = createPrivilegeFromServiceResult(reference, privilegeResult);
-				if (useCache)
-				{
+				if (useCache) {
 					privilegeCache.put(privilegeKey, privilege);
 				}
-				else
-				{
-					if (privilegeResultOfNewEntities == null)
-					{
-						privilegeResultOfNewEntities = new HashMap<PrivilegeKey, IPrivilege>();
+				else {
+					if (privilegeResultOfNewEntities == null) {
+						privilegeResultOfNewEntities = new HashMap<>();
 					}
 					privilegeResultOfNewEntities.put(privilegeKey, privilege);
 				}
 			}
-			return createResult(objRefs, securityScopes, null, authorization, privilegeResultOfNewEntities);
+			return createResult(objRefs, securityScopes, null, authorization,
+					privilegeResultOfNewEntities);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
-	protected IPrivilege createPrivilegeFromServiceResult(IObjRef objRef, IPrivilegeOfService privilegeOfService)
-	{
-		IPropertyPrivilegeOfService[] propertyPrivilegesOfService = privilegeOfService.getPropertyPrivileges();
+	protected IPrivilege createPrivilegeFromServiceResult(IObjRef objRef,
+			IPrivilegeOfService privilegeOfService) {
+		IPropertyPrivilegeOfService[] propertyPrivilegesOfService =
+				privilegeOfService.getPropertyPrivileges();
 
-		if (propertyPrivilegesOfService == null || propertyPrivilegesOfService.length == 0)
-		{
+		if (propertyPrivilegesOfService == null || propertyPrivilegesOfService.length == 0) {
 			return SimplePrivilegeImpl.createFrom(privilegeOfService);
 		}
 		String[] propertyPrivilegeNames = privilegeOfService.getPropertyPrivilegeNames();
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
-		IPropertyPrivilege[] primitivePropertyPrivileges = new IPropertyPrivilege[metaData.getPrimitiveMembers().length];
-		IPropertyPrivilege[] relationPropertyPrivileges = new IPropertyPrivilege[metaData.getRelationMembers().length];
-		IPropertyPrivilege defaultPropertyPrivilege = PropertyPrivilegeImpl.createFrom(privilegeOfService);
+		IPropertyPrivilege[] primitivePropertyPrivileges =
+				new IPropertyPrivilege[metaData.getPrimitiveMembers().length];
+		IPropertyPrivilege[] relationPropertyPrivileges =
+				new IPropertyPrivilege[metaData.getRelationMembers().length];
+		IPropertyPrivilege defaultPropertyPrivilege =
+				PropertyPrivilegeImpl.createFrom(privilegeOfService);
 		Arrays.fill(primitivePropertyPrivileges, defaultPropertyPrivilege);
 		Arrays.fill(relationPropertyPrivileges, defaultPropertyPrivilege);
-		for (int b = propertyPrivilegesOfService.length; b-- > 0;)
-		{
+		for (int b = propertyPrivilegesOfService.length; b-- > 0;) {
 			IPropertyPrivilegeOfService propertyPrivilegeOfService = propertyPrivilegesOfService[b];
 			String propertyName = interningFeature.intern(propertyPrivilegeNames[b]);
-			IPropertyPrivilege propertyPrivilege = PropertyPrivilegeImpl.create(propertyPrivilegeOfService.isCreateAllowed(),
-					propertyPrivilegeOfService.isReadAllowed(), propertyPrivilegeOfService.isUpdateAllowed(), propertyPrivilegeOfService.isDeleteAllowed());
-			if (metaData.isRelationMember(propertyName))
-			{
-				relationPropertyPrivileges[metaData.getIndexByRelationName(propertyName)] = propertyPrivilege;
+			IPropertyPrivilege propertyPrivilege = PropertyPrivilegeImpl.create(
+					propertyPrivilegeOfService.isCreateAllowed(), propertyPrivilegeOfService.isReadAllowed(),
+					propertyPrivilegeOfService.isUpdateAllowed(),
+					propertyPrivilegeOfService.isDeleteAllowed());
+			if (metaData.isRelationMember(propertyName)) {
+				relationPropertyPrivileges[metaData.getIndexByRelationName(propertyName)] =
+						propertyPrivilege;
 			}
-			if (metaData.isPrimitiveMember(propertyName))
-			{
-				primitivePropertyPrivileges[metaData.getIndexByPrimitiveName(propertyName)] = propertyPrivilege;
+			if (metaData.isPrimitiveMember(propertyName)) {
+				primitivePropertyPrivileges[metaData.getIndexByPrimitiveName(propertyName)] =
+						propertyPrivilege;
 			}
 		}
-		return entityPrivilegeFactoryProvider.getEntityPrivilegeFactory(metaData.getEntityType(), privilegeOfService.isCreateAllowed(),
-				privilegeOfService.isReadAllowed(), privilegeOfService.isUpdateAllowed(), privilegeOfService.isDeleteAllowed(),
-				privilegeOfService.isExecuteAllowed()).createPrivilege(privilegeOfService.isCreateAllowed(), privilegeOfService.isReadAllowed(),
-				privilegeOfService.isUpdateAllowed(), privilegeOfService.isDeleteAllowed(), privilegeOfService.isExecuteAllowed(), primitivePropertyPrivileges,
-				relationPropertyPrivileges);
+		return entityPrivilegeFactoryProvider
+				.getEntityPrivilegeFactory(metaData.getEntityType(), privilegeOfService.isCreateAllowed(),
+						privilegeOfService.isReadAllowed(), privilegeOfService.isUpdateAllowed(),
+						privilegeOfService.isDeleteAllowed(), privilegeOfService.isExecuteAllowed())
+				.createPrivilege(privilegeOfService.isCreateAllowed(), privilegeOfService.isReadAllowed(),
+						privilegeOfService.isUpdateAllowed(), privilegeOfService.isDeleteAllowed(),
+						privilegeOfService.isExecuteAllowed(), primitivePropertyPrivileges,
+						relationPropertyPrivileges);
 	}
 
-	protected ITypePrivilege createTypePrivilegeFromServiceResult(Class<?> entityType, ITypePrivilegeOfService privilegeOfService)
-	{
-		ITypePropertyPrivilegeOfService[] propertyPrivilegesOfService = privilegeOfService.getPropertyPrivileges();
+	protected ITypePrivilege createTypePrivilegeFromServiceResult(Class<?> entityType,
+			ITypePrivilegeOfService privilegeOfService) {
+		ITypePropertyPrivilegeOfService[] propertyPrivilegesOfService =
+				privilegeOfService.getPropertyPrivileges();
 
-		ITypePropertyPrivilege defaultPropertyPrivilege = TypePropertyPrivilegeImpl.createFrom(privilegeOfService);
-		if (propertyPrivilegesOfService == null || propertyPrivilegesOfService.length == 0)
-		{
-			return new SimpleTypePrivilegeImpl(privilegeOfService.isCreateAllowed(), privilegeOfService.isReadAllowed(), privilegeOfService.isUpdateAllowed(),
-					privilegeOfService.isDeleteAllowed(), privilegeOfService.isExecuteAllowed(), defaultPropertyPrivilege);
+		ITypePropertyPrivilege defaultPropertyPrivilege =
+				TypePropertyPrivilegeImpl.createFrom(privilegeOfService);
+		if (propertyPrivilegesOfService == null || propertyPrivilegesOfService.length == 0) {
+			return new SimpleTypePrivilegeImpl(privilegeOfService.isCreateAllowed(),
+					privilegeOfService.isReadAllowed(), privilegeOfService.isUpdateAllowed(),
+					privilegeOfService.isDeleteAllowed(), privilegeOfService.isExecuteAllowed(),
+					defaultPropertyPrivilege);
 		}
 		String[] propertyPrivilegeNames = privilegeOfService.getPropertyPrivilegeNames();
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-		ITypePropertyPrivilege[] primitivePropertyPrivileges = new ITypePropertyPrivilege[metaData.getPrimitiveMembers().length];
-		ITypePropertyPrivilege[] relationPropertyPrivileges = new ITypePropertyPrivilege[metaData.getRelationMembers().length];
+		ITypePropertyPrivilege[] primitivePropertyPrivileges =
+				new ITypePropertyPrivilege[metaData.getPrimitiveMembers().length];
+		ITypePropertyPrivilege[] relationPropertyPrivileges =
+				new ITypePropertyPrivilege[metaData.getRelationMembers().length];
 		Arrays.fill(primitivePropertyPrivileges, defaultPropertyPrivilege);
 		Arrays.fill(relationPropertyPrivileges, defaultPropertyPrivilege);
-		for (int b = propertyPrivilegesOfService.length; b-- > 0;)
-		{
+		for (int b = propertyPrivilegesOfService.length; b-- > 0;) {
 			ITypePropertyPrivilegeOfService propertyPrivilegeOfService = propertyPrivilegesOfService[b];
 			String propertyName = interningFeature.intern(propertyPrivilegeNames[b]);
 			ITypePropertyPrivilege propertyPrivilege;
-			if (propertyPrivilegeOfService != null)
-			{
-				propertyPrivilege = TypePropertyPrivilegeImpl.create(propertyPrivilegeOfService.isCreateAllowed(), propertyPrivilegeOfService.isReadAllowed(),
-						propertyPrivilegeOfService.isUpdateAllowed(), propertyPrivilegeOfService.isDeleteAllowed());
+			if (propertyPrivilegeOfService != null) {
+				propertyPrivilege =
+						TypePropertyPrivilegeImpl.create(propertyPrivilegeOfService.isCreateAllowed(),
+								propertyPrivilegeOfService.isReadAllowed(),
+								propertyPrivilegeOfService.isUpdateAllowed(),
+								propertyPrivilegeOfService.isDeleteAllowed());
 			}
-			else
-			{
+			else {
 				propertyPrivilege = TypePropertyPrivilegeImpl.create(null, null, null, null);
 			}
-			if (metaData.isRelationMember(propertyName))
-			{
-				relationPropertyPrivileges[metaData.getIndexByRelationName(propertyName)] = propertyPrivilege;
+			if (metaData.isRelationMember(propertyName)) {
+				relationPropertyPrivileges[metaData.getIndexByRelationName(propertyName)] =
+						propertyPrivilege;
 			}
-			if (metaData.isPrimitiveMember(propertyName))
-			{
-				primitivePropertyPrivileges[metaData.getIndexByPrimitiveName(propertyName)] = propertyPrivilege;
+			if (metaData.isPrimitiveMember(propertyName)) {
+				primitivePropertyPrivileges[metaData.getIndexByPrimitiveName(propertyName)] =
+						propertyPrivilege;
 			}
 		}
-		return entityTypePrivilegeFactoryProvider.getEntityTypePrivilegeFactory(metaData.getEntityType(), privilegeOfService.isCreateAllowed(),
-				privilegeOfService.isReadAllowed(), privilegeOfService.isUpdateAllowed(), privilegeOfService.isDeleteAllowed(),
-				privilegeOfService.isExecuteAllowed()).createPrivilege(privilegeOfService.isCreateAllowed(), privilegeOfService.isReadAllowed(),
-				privilegeOfService.isUpdateAllowed(), privilegeOfService.isDeleteAllowed(), privilegeOfService.isExecuteAllowed(), primitivePropertyPrivileges,
-				relationPropertyPrivileges);
+		return entityTypePrivilegeFactoryProvider
+				.getEntityTypePrivilegeFactory(metaData.getEntityType(),
+						privilegeOfService.isCreateAllowed(), privilegeOfService.isReadAllowed(),
+						privilegeOfService.isUpdateAllowed(), privilegeOfService.isDeleteAllowed(),
+						privilegeOfService.isExecuteAllowed())
+				.createPrivilege(privilegeOfService.isCreateAllowed(), privilegeOfService.isReadAllowed(),
+						privilegeOfService.isUpdateAllowed(), privilegeOfService.isDeleteAllowed(),
+						privilegeOfService.isExecuteAllowed(), primitivePropertyPrivileges,
+						relationPropertyPrivileges);
 	}
 
 	@Override
-	public ITypePrivilege getPrivilegeByType(Class<?> entityType)
-	{
+	public ITypePrivilege getPrivilegeByType(Class<?> entityType) {
 		return getPrivilegeByType(entityType, securityScopeProvider.getSecurityScopes());
 	}
 
 	@Override
-	public ITypePrivilege getPrivilegeByType(Class<?> entityType, ISecurityScope[] securityScopes)
-	{
-		ITypePrivilegeResult result = getPrivilegesByType(new ArrayList<Class<?>>(new Class<?>[] { entityType }), securityScopes);
+	public ITypePrivilege getPrivilegeByType(Class<?> entityType, ISecurityScope[] securityScopes) {
+		ITypePrivilegeResult result =
+				getPrivilegesByType(new ArrayList<Class<?>>(new Class<?>[] {entityType}), securityScopes);
 		return result.getTypePrivileges()[0];
 	}
 
 	@Override
-	public ITypePrivilegeResult getPrivilegesByType(List<Class<?>> entityTypes)
-	{
+	public ITypePrivilegeResult getPrivilegesByType(List<Class<?>> entityTypes) {
 		return getPrivilegesByType(entityTypes, securityScopeProvider.getSecurityScopes());
 	}
 
 	@Override
-	public ITypePrivilegeResult getPrivilegesByType(List<Class<?>> entityTypes, ISecurityScope[] securityScopes)
-	{
+	public ITypePrivilegeResult getPrivilegesByType(List<Class<?>> entityTypes,
+			ISecurityScope[] securityScopes) {
 		ISecurityContext context = securityContextHolder.getContext();
 		IAuthorization authorization = context != null ? context.getAuthorization() : null;
-		if (authorization == null)
-		{
+		if (authorization == null) {
 			throw new SecurityException("User must be authorized to be able to check for privileges");
 		}
-		if (securityScopes.length == 0)
-		{
-			throw new IllegalArgumentException("No " + ISecurityScope.class.getSimpleName() + " provided to check privileges against");
+		if (securityScopes.length == 0) {
+			throw new IllegalArgumentException(
+					"No " + ISecurityScope.class.getSimpleName() + " provided to check privileges against");
 		}
-		ArrayList<Class<?>> missingEntityTypes = new ArrayList<Class<?>>();
+		ArrayList<Class<?>> missingEntityTypes = new ArrayList<>();
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
-			ITypePrivilegeResult result = createResultByType(entityTypes, securityScopes, missingEntityTypes, authorization);
-			if (missingEntityTypes.size() == 0)
-			{
+		try {
+			ITypePrivilegeResult result =
+					createResultByType(entityTypes, securityScopes, missingEntityTypes, authorization);
+			if (missingEntityTypes.size() == 0) {
 				return result;
 			}
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
-		if (privilegeService == null)
-		{
+		if (privilegeService == null) {
 			throw new SecurityException("No bean of type " + IPrivilegeService.class.getName()
 					+ " could be injected. Privilege functionality is deactivated. The current operation is not supported");
 		}
 		String userSID = authorization.getSID();
-		List<ITypePrivilegeOfService> privilegeResults = privilegeService.getPrivilegesOfTypes(missingEntityTypes.toArray(Class.class), securityScopes);
+		List<ITypePrivilegeOfService> privilegeResults = privilegeService
+				.getPrivilegesOfTypes(missingEntityTypes.toArray(Class.class), securityScopes);
 		writeLock.lock();
-		try
-		{
-			for (int a = 0, size = privilegeResults.size(); a < size; a++)
-			{
+		try {
+			for (int a = 0, size = privilegeResults.size(); a < size; a++) {
 				ITypePrivilegeOfService privilegeResult = privilegeResults.get(a);
 				Class<?> entityType = privilegeResult.getEntityType();
 
-				String securityScope = interningFeature.intern(privilegeResult.getSecurityScope().getName());
+				String securityScope =
+						interningFeature.intern(privilegeResult.getSecurityScope().getName());
 
 				ITypePrivilege pi = createTypePrivilegeFromServiceResult(entityType, privilegeResult);
 				entityTypePrivilegeCache.put(entityType, securityScope, userSID, pi);
 			}
 			return createResultByType(entityTypes, securityScopes, null, authorization);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
-	protected IPrivilegeResult createResult(List<? extends IObjRef> objRefs, ISecurityScope[] securityScopes, List<IObjRef> missingObjRefs,
-			IAuthorization authorization, IMap<PrivilegeKey, IPrivilege> privilegeResultOfNewEntities)
-	{
+	protected IPrivilegeResult createResult(List<? extends IObjRef> objRefs,
+			ISecurityScope[] securityScopes, List<IObjRef> missingObjRefs, IAuthorization authorization,
+			IMap<PrivilegeKey, IPrivilege> privilegeResultOfNewEntities) {
 		PrivilegeKey privilegeKey = null;
 
 		IPrivilege[] result = new IPrivilege[objRefs.size()];
 		String userSID = authorization.getSID();
 
-		for (int index = objRefs.size(); index-- > 0;)
-		{
+		for (int index = objRefs.size(); index-- > 0;) {
 			IObjRef objRef = objRefs.get(index);
-			if (objRef == null)
-			{
+			if (objRef == null) {
 				continue;
 			}
-			if (privilegeKey == null)
-			{
+			if (privilegeKey == null) {
 				privilegeKey = new PrivilegeKey();
 			}
 			boolean useCache = true;
@@ -502,40 +486,34 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 			privilegeKey.idIndex = objRef.getIdNameIndex();
 			privilegeKey.id = objRef.getId();
 			privilegeKey.userSID = userSID;
-			if (privilegeKey.id == null)
-			{
+			if (privilegeKey.id == null) {
 				useCache = false;
 				// use the ObjRef instance as the id
 				privilegeKey.id = objRef;
 			}
 
 			IPrivilege mergedPrivilegeItem = null;
-			for (int a = securityScopes.length; a-- > 0;)
-			{
+			for (int a = securityScopes.length; a-- > 0;) {
 				privilegeKey.securityScope = securityScopes[a].getName();
 
 				IPrivilege existingPrivilegeItem = useCache ? privilegeCache.get(privilegeKey)
-						: privilegeResultOfNewEntities != null ? privilegeResultOfNewEntities.get(privilegeKey) : null;
-				if (existingPrivilegeItem == null)
-				{
+						: privilegeResultOfNewEntities != null ? privilegeResultOfNewEntities.get(privilegeKey)
+								: null;
+				if (existingPrivilegeItem == null) {
 					mergedPrivilegeItem = null;
 					break;
 				}
-				if (mergedPrivilegeItem == null)
-				{
+				if (mergedPrivilegeItem == null) {
 					// Take first existing privilege as a start
 					mergedPrivilegeItem = existingPrivilegeItem;
 				}
-				else
-				{
+				else {
 					// Merge all other existing privileges by boolean OR
 					throw new UnsupportedOperationException("Not yet implemented");
 				}
 			}
-			if (mergedPrivilegeItem == null)
-			{
-				if (missingObjRefs != null)
-				{
+			if (mergedPrivilegeItem == null) {
+				if (missingObjRefs != null) {
 					missingObjRefs.add(objRef);
 					continue;
 				}
@@ -546,43 +524,36 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 		return new PrivilegeResult(authorization.getSID(), result);
 	}
 
-	protected ITypePrivilegeResult createResultByType(List<Class<?>> entityTypes, ISecurityScope[] securityScopes, List<Class<?>> missingEntityTypes,
-			IAuthorization authorization)
-	{
+	protected ITypePrivilegeResult createResultByType(List<Class<?>> entityTypes,
+			ISecurityScope[] securityScopes, List<Class<?>> missingEntityTypes,
+			IAuthorization authorization) {
 		ITypePrivilege[] result = new ITypePrivilege[entityTypes.size()];
 		String userSID = authorization.getSID();
 
-		for (int index = entityTypes.size(); index-- > 0;)
-		{
+		for (int index = entityTypes.size(); index-- > 0;) {
 			Class<?> entityType = entityTypes.get(index);
-			if (entityType == null)
-			{
+			if (entityType == null) {
 				continue;
 			}
 			ITypePrivilege mergedTypePrivilege = null;
-			for (int a = securityScopes.length; a-- > 0;)
-			{
-				ITypePrivilege existingTypePrivilege = entityTypePrivilegeCache.get(entityType, securityScopes[a].getName(), userSID);
-				if (existingTypePrivilege == null)
-				{
+			for (int a = securityScopes.length; a-- > 0;) {
+				ITypePrivilege existingTypePrivilege =
+						entityTypePrivilegeCache.get(entityType, securityScopes[a].getName(), userSID);
+				if (existingTypePrivilege == null) {
 					mergedTypePrivilege = null;
 					break;
 				}
-				if (mergedTypePrivilege == null)
-				{
+				if (mergedTypePrivilege == null) {
 					// Take first existing privilege as a start
 					mergedTypePrivilege = existingTypePrivilege;
 				}
-				else
-				{
+				else {
 					// Merge all other existing privileges by boolean OR
 					throw new UnsupportedOperationException("Not yet implemented");
 				}
 			}
-			if (mergedTypePrivilege == null)
-			{
-				if (missingEntityTypes != null)
-				{
+			if (mergedTypePrivilege == null) {
+				if (missingEntityTypes != null) {
 					missingEntityTypes.add(entityType);
 					continue;
 				}
@@ -593,25 +564,20 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 		return new TypePrivilegeResult(authorization.getSID(), result);
 	}
 
-	public void handleClearAllCaches(ClearAllCachesEvent evnt)
-	{
+	public void handleClearAllCaches(ClearAllCachesEvent evnt) {
 		writeLock.lock();
-		try
-		{
+		try {
 			privilegeCache.clear();
 			entityTypePrivilegeCache.clear();
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public void dataChanged(IDataChange dataChange, long dispatchTime, long sequenceId)
-	{
-		if (dataChange.isEmpty())
-		{
+	public void dataChanged(IDataChange dataChange, long dispatchTime, long sequenceId) {
+		if (dataChange.isEmpty()) {
 			return;
 		}
 		handleClearAllCaches(null);

@@ -23,38 +23,31 @@ limitations under the License.
 import com.koch.ambeth.security.audit.model.Audited;
 import com.koch.ambeth.security.audit.model.AuditedArg;
 
-public class AuditInfo
-{
+public class AuditInfo {
 	protected Audited audited;
 	protected AuditedArg[] auditedArgs;
 
-	public AuditInfo()
-	{
+	public AuditInfo() {
 		this(null);
 	}
 
-	public AuditInfo(Audited audited)
-	{
+	public AuditInfo(Audited audited) {
 		this.audited = audited;
 	}
 
-	public void setAudited(Audited audited)
-	{
+	public void setAudited(Audited audited) {
 		this.audited = audited;
 	}
 
-	public Audited getAudited()
-	{
+	public Audited getAudited() {
 		return audited;
 	}
 
-	public void setAuditedArgs(AuditedArg[] auditedArgs)
-	{
+	public void setAuditedArgs(AuditedArg[] auditedArgs) {
 		this.auditedArgs = auditedArgs;
 	}
 
-	public AuditedArg[] getAuditedArgs()
-	{
+	public AuditedArg[] getAuditedArgs() {
 		return auditedArgs;
 	}
 }

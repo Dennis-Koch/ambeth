@@ -51,19 +51,18 @@ import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.microsoft.sqlserver.jdbc.SQLServerDriver;
 
-public class MSSqlDialect extends AbstractConnectionDialect
-{
-	public static final Pattern BIN_TABLE_NAME = Pattern.compile("BIN\\$.{22}==\\$0", Pattern.CASE_INSENSITIVE);
+public class MSSqlDialect extends AbstractConnectionDialect {
+	public static final Pattern BIN_TABLE_NAME =
+			Pattern.compile("BIN\\$.{22}==\\$0", Pattern.CASE_INSENSITIVE);
 
-	public static final Pattern IDX_TABLE_NAME = Pattern.compile("DR\\$.*?\\$.", Pattern.CASE_INSENSITIVE);
+	public static final Pattern IDX_TABLE_NAME =
+			Pattern.compile("DR\\$.*?\\$.", Pattern.CASE_INSENSITIVE);
 
-	public static int getOptimisticLockErrorCode()
-	{
+	public static int getOptimisticLockErrorCode() {
 		return 20800;
 	}
 
-	public static int getPessimisticLockErrorCode()
-	{
+	public static int getPessimisticLockErrorCode() {
 		// 54 = RESOURCE BUSY acquiring with NOWAIT (pessimistic lock)
 		return 54;
 	}
@@ -79,58 +78,50 @@ public class MSSqlDialect extends AbstractConnectionDialect
 	protected String protocol;
 
 	@Override
-	protected Class<?> getDriverType()
-	{
+	protected Class<?> getDriverType() {
 		return SQLServerDriver.class;
 	}
 
 	@Override
-	public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames) throws SQLException
-	{
+	public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames)
+			throws SQLException {
 		Statement stm = null;
 		ResultSet rs = null;
-		try
-		{
+		try {
 			// ArrayList<IMap<String, String>> allForeignKeys = new ArrayList<IMap<String, String>>();
 			// return allForeignKeys;
 			throw new UnsupportedOperationException("not yet implemented");
 		}
-		finally
-		{
+		finally {
 			JdbcUtil.close(stm, rs);
 		}
 	}
 
 	@Override
-	public ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection, String schemaName) throws SQLException
-	{
+	public ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection,
+			String schemaName) throws SQLException {
 		return EmptyMap.emptyMap();
 	}
 
 	@Override
-	public boolean isSystemTable(String tableName)
-	{
+	public boolean isSystemTable(String tableName) {
 		return false;
 	}
 
 	@Override
-	public void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException
-	{
+	public void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public int getResourceBusyErrorCode()
-	{
+	public int getResourceBusyErrorCode() {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public PersistenceException createPersistenceException(SQLException e, String relatedSql)
-	{
+	public PersistenceException createPersistenceException(SQLException e, String relatedSql) {
 		int errorCode = e.getErrorCode();
-		if (errorCode == getOptimisticLockErrorCode())
-		{
+		if (errorCode == getOptimisticLockErrorCode()) {
 			OptimisticLockException ex = new OptimisticLockException(relatedSql, e);
 			ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
 			return ex;
@@ -139,32 +130,30 @@ public class MSSqlDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public ResultSet getIndexInfo(Connection connection, String schemaName, String tableName, boolean unique) throws SQLException
-	{
+	public ResultSet getIndexInfo(Connection connection, String schemaName, String tableName,
+			boolean unique) throws SQLException {
 		return connection.getMetaData().getIndexInfo(null, schemaName, tableName, unique, true);
 	}
 
 	@Override
-	public Class<?> getComponentTypeByFieldTypeName(String additionalFieldInfo)
-	{
+	public Class<?> getComponentTypeByFieldTypeName(String additionalFieldInfo) {
 		throw new UnsupportedOperationException("not yet implemented");
 	}
 
 	@Override
-	public String getFieldTypeNameByComponentType(Class<?> componentType)
-	{
+	public String getFieldTypeNameByComponentType(Class<?> componentType) {
 		throw new UnsupportedOperationException("not yet implemented");
 	}
 
 	@Override
-	public List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames) throws SQLException
-	{
+	public List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames)
+			throws SQLException {
 		PreparedStatement pstm = null;
 		ResultSet rs = null;
-		try
-		{
+		try {
 			// pstm = connection
-			// .prepareStatement("SELECT table_schema, table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_type='TABLE' AND table_schema IN (?)");
+			// .prepareStatement("SELECT table_schema, table_name FROM INFORMATION_SCHEMA.TABLES WHERE
+			// table_type='TABLE' AND table_schema IN (?)");
 			// pstm.setObject(1, schemaNames);
 			// rs = pstm.executeQuery();
 			// ArrayList<String> tableNames = new ArrayList<String>();
@@ -177,20 +166,19 @@ public class MSSqlDialect extends AbstractConnectionDialect
 			// return tableNames;
 			throw new UnsupportedOperationException("not yet implemented");
 		}
-		finally
-		{
+		finally {
 			JdbcUtil.close(pstm, rs);
 		}
 	}
 
 	@Override
-	public List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames) throws SQLException
-	{
+	public List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames)
+			throws SQLException {
 		PreparedStatement pstm = null;
 		ResultSet rs = null;
-		try
-		{
-			// pstm = connection.prepareStatement("SELECT table_schema, table_name FROM INFORMATION_SCHEMA.VIEWS WHERE table_schema IN (?)");
+		try {
+			// pstm = connection.prepareStatement("SELECT table_schema, table_name FROM
+			// INFORMATION_SCHEMA.VIEWS WHERE table_schema IN (?)");
 			// pstm.setObject(1, schemaNames);
 			// rs = pstm.executeQuery();
 			// ArrayList<String> viewNames = new ArrayList<String>();
@@ -203,22 +191,19 @@ public class MSSqlDialect extends AbstractConnectionDialect
 			// return viewNames;
 			throw new UnsupportedOperationException("not yet implemented");
 		}
-		finally
-		{
+		finally {
 			JdbcUtil.close(pstm, rs);
 		}
 	}
 
 	@Override
-	public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) throws SQLException
-	{
+	public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName)
+			throws SQLException {
 		String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
 		ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
-		try
-		{
-			ArrayList<IColumnEntry> columns = new ArrayList<IColumnEntry>();
-			while (tableColumnsRS.next())
-			{
+		try {
+			ArrayList<IColumnEntry> columns = new ArrayList<>();
+			while (tableColumnsRS.next()) {
 				String fieldName = tableColumnsRS.getString("COLUMN_NAME");
 				int columnIndex = tableColumnsRS.getInt("ORDINAL_POSITION");
 				int typeIndex = tableColumnsRS.getInt("DATA_TYPE");
@@ -234,39 +219,36 @@ public class MSSqlDialect extends AbstractConnectionDialect
 
 				Class<?> javaType = JdbcUtil.getJavaTypeFromJdbcType(typeIndex, scale, digits);
 
-				ColumnEntry entry = new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable, radix, true);
+				ColumnEntry entry =
+						new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable, radix, true);
 				columns.add(entry);
 			}
 			return columns;
 		}
-		finally
-		{
+		finally {
 			JdbcUtil.close(tableColumnsRS);
 		}
 	}
 
 	@Override
-	protected String buildDeferrableForeignKeyConstraintsSelectSQL(String[] schemaNames)
-	{
+	protected String buildDeferrableForeignKeyConstraintsSelectSQL(String[] schemaNames) {
 		return null;
 	}
 
 	@Override
-	public List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames) throws SQLException
-	{
+	public List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames)
+			throws SQLException {
 		throw new UnsupportedOperationException("Not yet implemented");
 	}
 
 	@Override
-	protected void handleRow(String schemaName, String tableName, String constraintName, ArrayList<String> disableConstraintsSQL,
-			ArrayList<String> enableConstraintsSQL)
-	{
+	protected void handleRow(String schemaName, String tableName, String constraintName,
+			ArrayList<String> disableConstraintsSQL, ArrayList<String> enableConstraintsSQL) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public String prepareCommand(String sqlCommand)
-	{
+	public String prepareCommand(String sqlCommand) {
 		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1 *, *0 *\\)", " BOOLEAN");
 		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *3 *, *0 *\\)", " INT");
 		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *5 *, *0 *\\)", " INT");
@@ -278,16 +260,17 @@ public class MSSqlDialect extends AbstractConnectionDialect
 		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER", " REAL");
 		sqlCommand = prepareCommandIntern(sqlCommand, " DEFERRABLE INITIALLY DEFERRED", "");
 
-		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR2 *\\( *(\\d+) +BYTE\\)", " VARCHAR(\\2)");
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR2 *\\( *(\\d+) +BYTE\\)",
+				" VARCHAR(\\2)");
 
-		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " PRIMARY KEY (\\([^\\)]+\\)) USING INDEX", " PRIMARY KEY \\2");
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand,
+				" PRIMARY KEY (\\([^\\)]+\\)) USING INDEX", " PRIMARY KEY \\2");
 
 		return sqlCommand;
 	}
 
 	@Override
-	public SelectPosition getLimitPosition()
-	{
+	public SelectPosition getLimitPosition() {
 		return SelectPosition.PRE_COLUMNS;
 	}
 }

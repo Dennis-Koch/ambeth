@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 
-public class TableAliasHolder implements ITableAliasHolder
-{
+public class TableAliasHolder implements ITableAliasHolder {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -32,14 +31,12 @@ public class TableAliasHolder implements ITableAliasHolder
 	private String tableAlias;
 
 	@Override
-	public String getTableAlias()
-	{
+	public String getTableAlias() {
 		return tableAlias;
 	}
 
 	@Override
-	public void setTableAlias(String tableAlias)
-	{
+	public void setTableAlias(String tableAlias) {
 		this.tableAlias = tableAlias;
 	}
 }

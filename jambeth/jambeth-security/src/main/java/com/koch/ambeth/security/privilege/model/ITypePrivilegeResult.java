@@ -21,8 +21,7 @@ limitations under the License.
  */
 
 
-public interface ITypePrivilegeResult
-{
+public interface ITypePrivilegeResult {
 	String getSID();
 
 	ITypePrivilege[] getTypePrivileges();

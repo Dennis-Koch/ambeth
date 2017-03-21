@@ -20,53 +20,43 @@ limitations under the License.
  * #L%
  */
 
-public class MemberConfig extends AbstractMemberConfig
-{
+public class MemberConfig extends AbstractMemberConfig {
 	private String columnName;
 
-	public MemberConfig(String name)
-	{
+	public MemberConfig(String name) {
 		this(name, null);
 	}
 
-	public MemberConfig(String name, String columnName)
-	{
+	public MemberConfig(String name, String columnName) {
 		super(name);
 		this.columnName = columnName;
 	}
 
-	public String getColumnName()
-	{
+	public String getColumnName() {
 		return columnName;
 	}
 
-	public void setColumnName(String columnName)
-	{
+	public void setColumnName(String columnName) {
 		this.columnName = columnName;
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj instanceof MemberConfig)
-		{
+	public boolean equals(Object obj) {
+		if (obj instanceof MemberConfig) {
 			return equals((AbstractMemberConfig) obj);
 		}
-		else
-		{
+		else {
 			return false;
 		}
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return getClass().hashCode() ^ getName().hashCode();
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return getName();
 	}
 }

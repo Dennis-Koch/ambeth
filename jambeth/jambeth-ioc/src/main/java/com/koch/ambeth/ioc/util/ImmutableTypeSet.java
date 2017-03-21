@@ -33,14 +33,14 @@ import com.koch.ambeth.ioc.extendable.ClassExtendableContainer;
 import com.koch.ambeth.util.IImmutableType;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 
-public final class ImmutableTypeSet
-{
-	protected static final LinkedHashSet<Class<?>> immutableTypeSet = new LinkedHashSet<Class<?>>(0.5f);
+public final class ImmutableTypeSet {
+	protected static final LinkedHashSet<Class<?>> immutableTypeSet =
+			new LinkedHashSet<>(0.5f);
 
-	private static final ClassExtendableContainer<Class<?>> immutableSuperTypes = new ClassExtendableContainer<Class<?>>("", "");
+	private static final ClassExtendableContainer<Class<?>> immutableSuperTypes =
+			new ClassExtendableContainer<>("", "");
 
-	static
-	{
+	static {
 		immutableTypeSet.add(Integer.class);
 		immutableTypeSet.add(Integer.TYPE);
 		immutableTypeSet.add(Long.class);
@@ -71,24 +71,21 @@ public final class ImmutableTypeSet
 		immutableSuperTypes.register(Charset.class, Charset.class);
 	}
 
-	public static void addImmutableTypesTo(Collection<Class<?>> collection)
-	{
+	public static void addImmutableTypesTo(Collection<Class<?>> collection) {
 		collection.addAll(immutableTypeSet);
 	}
 
-	public static boolean isImmutableType(Class<?> type)
-	{
-		return type.isPrimitive() || type.isEnum() || immutableTypeSet.contains(type) || IImmutableType.class.isAssignableFrom(type)
+	public static boolean isImmutableType(Class<?> type) {
+		return type.isPrimitive() || type.isEnum() || immutableTypeSet.contains(type)
+				|| IImmutableType.class.isAssignableFrom(type)
 				|| immutableSuperTypes.getExtension(type) != null;
 	}
 
-	public static void flushState()
-	{
+	public static void flushState() {
 		immutableSuperTypes.clearWeakCache();
 	}
 
-	private ImmutableTypeSet()
-	{
+	private ImmutableTypeSet() {
 		// Intended blank
 	}
 }

@@ -30,8 +30,7 @@ import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-public class ProcessService implements IProcessService
-{
+public class ProcessService implements IProcessService {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -43,27 +42,24 @@ public class ProcessService implements IProcessService
 	protected IServiceByNameProvider serviceByNameProvider;
 
 	@Override
-	public Object invokeService(IServiceDescription serviceDescription)
-	{
+	public Object invokeService(IServiceDescription serviceDescription) {
 		ParamChecker.assertParamNotNull(serviceDescription, "serviceDescription");
 
 		Object service = serviceByNameProvider.getService(serviceDescription.getServiceName());
 
-		if (service == null)
-		{
-			throw new IllegalStateException("No service with name '" + serviceDescription.getServiceName() + "' found");
+		if (service == null) {
+			throw new IllegalStateException(
+					"No service with name '" + serviceDescription.getServiceName() + "' found");
 		}
 		Method method = serviceDescription.getMethod(service.getClass(), objectCollector);
-		if (method == null)
-		{
-			throw new IllegalStateException("Requested method not found on service '" + serviceDescription.getServiceName() + "'");
+		if (method == null) {
+			throw new IllegalStateException(
+					"Requested method not found on service '" + serviceDescription.getServiceName() + "'");
 		}
-		try
-		{
+		try {
 			return method.invoke(service, serviceDescription.getArguments());
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

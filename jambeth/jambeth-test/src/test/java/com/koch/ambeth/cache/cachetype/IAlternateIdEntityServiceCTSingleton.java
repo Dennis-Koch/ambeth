@@ -29,7 +29,6 @@ import com.koch.ambeth.service.proxy.Service;
 @Service(IAlternateIdEntityServiceCTSingleton.class)
 @PersistenceContext
 @CacheContext(CacheType.SINGLETON)
-public interface IAlternateIdEntityServiceCTSingleton extends IAlternateIdEntityService
-{
+public interface IAlternateIdEntityServiceCTSingleton extends IAlternateIdEntityService {
 	// Intended blank
 }

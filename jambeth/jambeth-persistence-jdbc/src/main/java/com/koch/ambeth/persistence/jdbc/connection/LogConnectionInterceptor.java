@@ -112,7 +112,7 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 	protected Class<?>[] stmInterfaces;
 
 	protected final IdentityWeakSmartCopyMap<Object, Reference<Object>> unwrappedObjectToProxyMap =
-			new IdentityWeakSmartCopyMap<Object, Reference<Object>>();
+			new IdentityWeakSmartCopyMap<>();
 
 	public LogConnectionInterceptor(IConnectionKeyHandle connectionKeyHandle) {
 		this.connectionKeyHandle = connectionKeyHandle;
@@ -217,7 +217,7 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 							.finish();
 					proxyOfResult = proxyFactory.createProxy(getClass().getClassLoader(),
 							cgLibUtil.getAllInterfaces(result), logInterceptor);
-					unwrappedObjectToProxyMap.put(result, new WeakReference<Object>(proxyOfResult));
+					unwrappedObjectToProxyMap.put(result, new WeakReference<>(proxyOfResult));
 				}
 				result = proxyOfResult;
 			}

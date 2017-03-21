@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ITestSetterExtendable
-{
+public interface ITestSetterExtendable {
 
 	void registerTestSetter(ITestSetter testSetter);
 

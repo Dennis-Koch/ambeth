@@ -23,8 +23,7 @@ limitations under the License.
 import java.util.Date;
 import java.util.List;
 
-public interface ITestEntity2
-{
+public interface ITestEntity2 {
 	int getId();
 
 	void setId(int id);

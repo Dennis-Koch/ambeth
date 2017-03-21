@@ -26,21 +26,18 @@ import java.util.List;
 import com.koch.ambeth.merge.util.setup.AbstractDatasetBuilder;
 import com.koch.ambeth.merge.util.setup.IDatasetBuilder;
 
-public class PrefetchTestDataSetup extends AbstractDatasetBuilder
-{
+public class PrefetchTestDataSetup extends AbstractDatasetBuilder {
 	public EntityA rootEntityA;
 
 	public EntityD rootEntityD;
 
 	@Override
-	public Collection<Class<? extends IDatasetBuilder>> getDependsOn()
-	{
+	public Collection<Class<? extends IDatasetBuilder>> getDependsOn() {
 		return null;
 	}
 
 	@Override
-	protected void buildDatasetInternal()
-	{
+	protected void buildDatasetInternal() {
 		EntityA entityA1 = createEntity(EntityA.class);
 		EntityA entityA2 = createEntity(EntityA.class);
 		EntityA entityA3 = createEntity(EntityA.class);
@@ -150,22 +147,18 @@ public class PrefetchTestDataSetup extends AbstractDatasetBuilder
 		// }
 	}
 
-	protected <T> T nextOfIndex(List<T> list, int index)
-	{
+	protected <T> T nextOfIndex(List<T> list, int index) {
 		return list.get((index + 1) % list.size());
 	}
 
-	protected <T> void addIfNotExists(List<T> list, T item)
-	{
-		if (list.contains(item))
-		{
+	protected <T> void addIfNotExists(List<T> list, T item) {
+		if (list.contains(item)) {
 			return;
 		}
 		list.add(item);
 	}
 
-	protected <T> T selectRandom(List<T> list)
-	{
+	protected <T> T selectRandom(List<T> list) {
 		return list.get((int) (Math.random() * list.size()));
 	}
 }

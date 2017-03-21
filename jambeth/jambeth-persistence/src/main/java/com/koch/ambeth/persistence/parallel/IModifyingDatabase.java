@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IModifyingDatabase
-{
+public interface IModifyingDatabase {
 	boolean isModifyingAllowed();
 
 	void setModifyingAllowed(boolean modifyingAllowed);

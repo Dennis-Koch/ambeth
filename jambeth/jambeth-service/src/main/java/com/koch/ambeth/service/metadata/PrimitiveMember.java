@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public abstract class PrimitiveMember extends Member
-{
+public abstract class PrimitiveMember extends Member {
 	public abstract boolean isTechnicalMember();
 
 	public abstract boolean isTransient();

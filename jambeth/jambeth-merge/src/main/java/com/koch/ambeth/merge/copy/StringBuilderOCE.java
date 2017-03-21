@@ -23,11 +23,9 @@ limitations under the License.
 /**
  * Allows to copy a StringBuilder instance efficiently
  */
-public class StringBuilderOCE implements IObjectCopierExtension
-{
+public class StringBuilderOCE implements IObjectCopierExtension {
 	@Override
-	public Object deepClone(Object original, IObjectCopierState objectCopierState)
-	{
+	public Object deepClone(Object original, IObjectCopierState objectCopierState) {
 		StringBuilder sb = (StringBuilder) original;
 		return new StringBuilder(sb);
 	}

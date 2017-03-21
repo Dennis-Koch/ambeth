@@ -28,8 +28,7 @@ import com.koch.ambeth.ioc.garbageproxy.IGarbageProxyFactory;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 
-public class MapperServiceFactory implements IMapperServiceFactory, IInitializingBean
-{
+public class MapperServiceFactory implements IMapperServiceFactory, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -43,14 +42,12 @@ public class MapperServiceFactory implements IMapperServiceFactory, IInitializin
 	protected IGarbageProxyConstructor<IMapperService> mapperServiceGPC;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		mapperServiceGPC = garbageProxyFactory.createGarbageProxyConstructor(IMapperService.class);
 	}
 
 	@Override
-	public IMapperService create()
-	{
+	public IMapperService create() {
 		IMapperService mapperService = beanContext.registerBean(ModelTransferMapper.class).finish();
 		return mapperServiceGPC.createInstance(mapperService);
 	}

@@ -21,27 +21,23 @@ limitations under the License.
  */
 
 
-public class WrappingNamedRunnable implements INamedRunnable
-{
+public class WrappingNamedRunnable implements INamedRunnable {
 	protected final Runnable runnable;
 
 	protected final String name;
 
-	public WrappingNamedRunnable(Runnable runnable, String name)
-	{
+	public WrappingNamedRunnable(Runnable runnable, String name) {
 		this.runnable = runnable;
 		this.name = name;
 	}
 
 	@Override
-	public void run()
-	{
+	public void run() {
 		runnable.run();
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 }

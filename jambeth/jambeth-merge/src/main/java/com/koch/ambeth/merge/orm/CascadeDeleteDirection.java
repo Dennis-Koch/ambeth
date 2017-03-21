@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public enum CascadeDeleteDirection
-{
+public enum CascadeDeleteDirection {
 	LEFT, RIGHT, BOTH, NONE;
 }

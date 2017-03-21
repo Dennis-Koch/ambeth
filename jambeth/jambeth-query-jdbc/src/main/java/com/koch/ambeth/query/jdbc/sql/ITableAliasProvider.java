@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ITableAliasProvider
-{
+public interface ITableAliasProvider {
 	String getNextJoinAlias();
 
 	String getNextSubQueryAlias();

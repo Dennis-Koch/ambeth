@@ -41,8 +41,8 @@ import com.koch.ambeth.xml.pending.IObjectCommand;
 import com.koch.ambeth.xml.pending.IObjectFuture;
 import com.koch.ambeth.xml.typehandler.AbstractHandler;
 
-public class CollectionElementHandler extends AbstractHandler implements INameBasedHandler, IInitializingBean
-{
+public class CollectionElementHandler extends AbstractHandler
+		implements INameBasedHandler, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -52,48 +52,39 @@ public class CollectionElementHandler extends AbstractHandler implements INameBa
 	protected IXmlTypeRegistry xmlTypeRegistry;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		ParamChecker.assertNotNull(commandBuilder, "commandBuilder");
 		ParamChecker.assertNotNull(xmlTypeRegistry, "xmlTypeRegistry");
 	}
 
-	public void setCommandBuilder(ICommandBuilder commandBuilder)
-	{
+	public void setCommandBuilder(ICommandBuilder commandBuilder) {
 		this.commandBuilder = commandBuilder;
 	}
 
-	public void setXmlTypeRegistry(IXmlTypeRegistry xmlTypeRegistry)
-	{
+	public void setXmlTypeRegistry(IXmlTypeRegistry xmlTypeRegistry) {
 		this.xmlTypeRegistry = xmlTypeRegistry;
 	}
 
-	protected Class<?> getComponentTypeOfCollection(Object obj)
-	{
+	protected Class<?> getComponentTypeOfCollection(Object obj) {
 		return Object.class;
 	}
 
 	@Override
-	public boolean writesCustom(Object obj, Class<?> type, IWriter writer)
-	{
-		if (!Collection.class.isAssignableFrom(type))
-		{
+	public boolean writesCustom(Object obj, Class<?> type, IWriter writer) {
+		if (!Collection.class.isAssignableFrom(type)) {
 			return false;
 		}
 		Collection<?> coll = (Collection<?>) obj;
 		String collElement;
-		if (Set.class.isAssignableFrom(type))
-		{
+		if (Set.class.isAssignableFrom(type)) {
 			collElement = xmlDictionary.getSetElement();
 		}
-		else if (List.class.isAssignableFrom(type))
-		{
+		else if (List.class.isAssignableFrom(type)) {
 			collElement = xmlDictionary.getListElement();
 		}
-		else
-		{
+		else {
 			throw new IllegalStateException("Collection of type " + type.getName() + " not supported");
 		}
 		writer.writeStartElement(collElement);
@@ -106,8 +97,7 @@ public class CollectionElementHandler extends AbstractHandler implements INameBa
 		classElementHandler.writeAsAttribute(componentType, writer);
 		writer.writeStartElementEnd();
 		Iterator<?> iter = coll.iterator();
-		while (iter.hasNext())
-		{
+		while (iter.hasNext()) {
 			Object item = iter.next();
 			writer.writeObject(item);
 		}
@@ -116,50 +106,45 @@ public class CollectionElementHandler extends AbstractHandler implements INameBa
 	}
 
 	@Override
-	public Object readObject(Class<?> returnType, String elementName, int id, IReader reader)
-	{
-		if (!xmlDictionary.getSetElement().equals(elementName) && !xmlDictionary.getListElement().equals(elementName))
-		{
+	public Object readObject(Class<?> returnType, String elementName, int id, IReader reader) {
+		if (!xmlDictionary.getSetElement().equals(elementName)
+				&& !xmlDictionary.getListElement().equals(elementName)) {
 			throw new IllegalStateException("Element '" + elementName + "' not supported");
 		}
 		String lengthValue = reader.getAttributeValue(xmlDictionary.getSizeAttribute());
-		int length = lengthValue != null && lengthValue.length() > 0 ? Integer.parseInt(lengthValue) : 0;
+		int length =
+				lengthValue != null && lengthValue.length() > 0 ? Integer.parseInt(lengthValue) : 0;
 
 		// Read componentType because of typeId registration. This is intended to remain unused in java
 		@SuppressWarnings("unused")
 		Class<?> componentType = classElementHandler.readFromAttribute(reader);
 
 		Collection<Object> coll;
-		if (xmlDictionary.getSetElement().equals(elementName))
-		{
-			coll = length > 0 ? new HashSet<Object>((int) (length / 0.75f + 1), 0.75f) : new HashSet<Object>();
+		if (xmlDictionary.getSetElement().equals(elementName)) {
+			coll = length > 0 ? new HashSet<>((int) (length / 0.75f + 1), 0.75f)
+					: new HashSet<>();
 		}
-		else
-		{
-			coll = length > 0 ? new ArrayList<Object>(length) : new ArrayList<Object>();
+		else {
+			coll = length > 0 ? new ArrayList<>(length) : new ArrayList<>();
 		}
 		reader.putObjectWithId(coll, id);
 		reader.nextTag();
 		boolean useObjectFuture = false;
 		ICommandBuilder commandBuilder = this.commandBuilder;
 		ICommandTypeRegistry commandTypeRegistry = reader.getCommandTypeRegistry();
-		while (reader.isStartTag())
-		{
+		while (reader.isStartTag()) {
 			Object item = reader.readObject();
-			if (item instanceof IObjectFuture)
-			{
+			if (item instanceof IObjectFuture) {
 				IObjectFuture objectFuture = (IObjectFuture) item;
 				IObjectCommand command = commandBuilder.build(commandTypeRegistry, objectFuture, coll);
 				reader.addObjectCommand(command);
 				useObjectFuture = true;
 			}
-			else if (useObjectFuture)
-			{
+			else if (useObjectFuture) {
 				IObjectCommand command = commandBuilder.build(commandTypeRegistry, null, coll, item);
 				reader.addObjectCommand(command);
 			}
-			else
-			{
+			else {
 				coll.add(item);
 			}
 		}

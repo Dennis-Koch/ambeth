@@ -49,9 +49,10 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.model.IMethodDescription;
 
-public class InMemoryCacheRetriever implements ICacheRetriever, IMergeServiceExtension, ICacheService
-{
-	protected final HashMap<IObjRef, ILoadContainer> databaseMap = new HashMap<IObjRef, ILoadContainer>();
+public class InMemoryCacheRetriever
+		implements ICacheRetriever, IMergeServiceExtension, ICacheService {
+	protected final HashMap<IObjRef, ILoadContainer> databaseMap =
+			new HashMap<>();
 
 	@Autowired
 	protected IConversionHelper conversionHelper;
@@ -64,31 +65,31 @@ public class InMemoryCacheRetriever implements ICacheRetriever, IMergeServiceExt
 
 	protected final Lock writeLock = new ReentrantLock();
 
-	void addWithKey(LoadContainer lc, String alternateIdMember, Object alternateId)
-	{
+	void addWithKey(LoadContainer lc, String alternateIdMember, Object alternateId) {
 		IObjRef reference = lc.getReference();
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(reference.getRealType());
 		byte idIndex = metaData.getIdIndexByMemberName(alternateIdMember);
-		alternateId = conversionHelper.convertValueToType(metaData.getAlternateIdMembers()[idIndex].getRealType(), alternateId);
-		databaseMap.put(new ObjRef(reference.getRealType(), idIndex, alternateId, reference.getVersion()), lc);
+		alternateId = conversionHelper
+				.convertValueToType(metaData.getAlternateIdMembers()[idIndex].getRealType(), alternateId);
+		databaseMap
+				.put(new ObjRef(reference.getRealType(), idIndex, alternateId, reference.getVersion()), lc);
 	}
 
-	public IInMemoryConfig add(Class<?> entityType, Object primaryId)
-	{
+	public IInMemoryConfig add(Class<?> entityType, Object primaryId) {
 		return add(entityType, primaryId, null);
 	}
 
-	public IInMemoryConfig add(Class<?> entityType, Object primaryId, Object version)
-	{
+	public IInMemoryConfig add(Class<?> entityType, Object primaryId, Object version) {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 		LoadContainer lc = new LoadContainer();
 		lc.setPrimitives(new Object[metaData.getPrimitiveMembers().length]);
 		lc.setRelations(new IObjRef[metaData.getRelationMembers().length][]);
 
-		primaryId = conversionHelper.convertValueToType(metaData.getIdMember().getRealType(), primaryId);
-		if (metaData.getVersionMember() != null)
-		{
-			version = conversionHelper.convertValueToType(metaData.getVersionMember().getRealType(), version);
+		primaryId =
+				conversionHelper.convertValueToType(metaData.getIdMember().getRealType(), primaryId);
+		if (metaData.getVersionMember() != null) {
+			version =
+					conversionHelper.convertValueToType(metaData.getVersionMember().getRealType(), version);
 		}
 		lc.setReference(new ObjRef(entityType, ObjRef.PRIMARY_KEY_INDEX, primaryId, version));
 
@@ -98,83 +99,70 @@ public class InMemoryCacheRetriever implements ICacheRetriever, IMergeServiceExt
 	}
 
 	@Override
-	public List<ILoadContainer> getEntities(List<IObjRef> orisToLoad)
-	{
-		List<ILoadContainer> result = new ArrayList<ILoadContainer>(orisToLoad.size());
+	public List<ILoadContainer> getEntities(List<IObjRef> orisToLoad) {
+		List<ILoadContainer> result = new ArrayList<>(orisToLoad.size());
 		writeLock.lock();
-		try
-		{
-			for (IObjRef oriToLoad : orisToLoad)
-			{
+		try {
+			for (IObjRef oriToLoad : orisToLoad) {
 				ILoadContainer lc = databaseMap.get(oriToLoad);
-				if (lc == null)
-				{
+				if (lc == null) {
 					continue;
 				}
 				result.add(lc);
 			}
 			result = objectCopier.clone(result);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 		return result;
 	}
 
 	@Override
-	public List<IObjRelationResult> getRelations(List<IObjRelation> objRelations)
-	{
+	public List<IObjRelationResult> getRelations(List<IObjRelation> objRelations) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public ICUDResult evaluateImplictChanges(ICUDResult cudResult, IIncrementalMergeState incrementalState)
-	{
+	public ICUDResult evaluateImplictChanges(ICUDResult cudResult,
+			IIncrementalMergeState incrementalState) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOriCollection merge(ICUDResult cudResult, IMethodDescription methodDescription)
-	{
+	public IOriCollection merge(ICUDResult cudResult, IMethodDescription methodDescription) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes)
-	{
+	public List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IValueObjectConfig getValueObjectConfig(Class<?> valueType)
-	{
+	public IValueObjectConfig getValueObjectConfig(Class<?> valueType) {
 		throw new UnsupportedOperationException();
 	}
 
-	public Class<?> getTargetProviderType(Class<?> clientInterface)
-	{
+	public Class<?> getTargetProviderType(Class<?> clientInterface) {
 		throw new UnsupportedOperationException();
 	}
 
-	public Class<?> getSyncInterceptorType(Class<?> clientInterface)
-	{
+	public Class<?> getSyncInterceptorType(Class<?> clientInterface) {
 		throw new UnsupportedOperationException();
 	}
 
-	public String getServiceName(Class<?> clientInterface)
-	{
+	public String getServiceName(Class<?> clientInterface) {
 		throw new UnsupportedOperationException();
 	}
 
-	public void postProcessTargetProviderBean(String targetProviderBeanName, IBeanContextFactory beanContextFactory)
-	{
+	public void postProcessTargetProviderBean(String targetProviderBeanName,
+			IBeanContextFactory beanContextFactory) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IServiceResult getORIsForServiceRequest(IServiceDescription serviceDescription)
-	{
+	public IServiceResult getORIsForServiceRequest(IServiceDescription serviceDescription) {
 		throw new UnsupportedOperationException();
 	}
 }

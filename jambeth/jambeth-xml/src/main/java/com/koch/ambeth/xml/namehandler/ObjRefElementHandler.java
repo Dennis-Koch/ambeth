@@ -35,8 +35,7 @@ import com.koch.ambeth.xml.IReader;
 import com.koch.ambeth.xml.IWriter;
 import com.koch.ambeth.xml.typehandler.AbstractHandler;
 
-public class ObjRefElementHandler extends AbstractHandler implements INameBasedHandler
-{
+public class ObjRefElementHandler extends AbstractHandler implements INameBasedHandler {
 	protected static final String idNameIndex = "ix";
 
 	@LogInstance
@@ -49,10 +48,8 @@ public class ObjRefElementHandler extends AbstractHandler implements INameBasedH
 	protected IObjRefFactory objRefFactory;
 
 	@Override
-	public boolean writesCustom(Object obj, Class<?> type, IWriter writer)
-	{
-		if (!IObjRef.class.isAssignableFrom(type) || IDirectObjRef.class.isAssignableFrom(type))
-		{
+	public boolean writesCustom(Object obj, Class<?> type, IWriter writer) {
+		if (!IObjRef.class.isAssignableFrom(type) || IDirectObjRef.class.isAssignableFrom(type)) {
 			return false;
 		}
 		IObjRef ori = (IObjRef) obj;
@@ -65,10 +62,8 @@ public class ObjRefElementHandler extends AbstractHandler implements INameBasedH
 	}
 
 	@Override
-	public Object readObject(Class<?> returnType, String elementName, int id, IReader reader)
-	{
-		if (!xmlDictionary.getEntityRefElement().equals(elementName))
-		{
+	public Object readObject(Class<?> returnType, String elementName, int id, IReader reader) {
+		if (!xmlDictionary.getEntityRefElement().equals(elementName)) {
 			throw new IllegalStateException("Element '" + elementName + "' not supported");
 		}
 
@@ -79,26 +74,19 @@ public class ObjRefElementHandler extends AbstractHandler implements INameBasedH
 		Object objId = reader.readObject();
 		Object version = reader.readObject();
 
-		if (objId != null || version != null)
-		{
+		if (objId != null || version != null) {
 			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(realType, true);
-			if (metaData != null)
-			{
-				if (objId != null)
-				{
+			if (metaData != null) {
+				if (objId != null) {
 					PrimitiveMember idMember = metaData.getIdMemberByIdIndex(idIndex);
-					if (objId.equals(idMember.getNullEquivalentValue()))
-					{
+					if (objId.equals(idMember.getNullEquivalentValue())) {
 						objId = null;
 					}
 				}
-				if (version != null)
-				{
+				if (version != null) {
 					PrimitiveMember versionMember = metaData.getVersionMember();
-					if (versionMember != null)
-					{
-						if (version.equals(versionMember.getNullEquivalentValue()))
-						{
+					if (versionMember != null) {
+						if (version.equals(versionMember.getNullEquivalentValue())) {
 							version = null;
 						}
 					}
@@ -111,14 +99,12 @@ public class ObjRefElementHandler extends AbstractHandler implements INameBasedH
 		return obj;
 	}
 
-	protected void writeOpenElement(IObjRef ori, IWriter writer)
-	{
+	protected void writeOpenElement(IObjRef ori, IWriter writer) {
 		writer.writeStartElement(xmlDictionary.getEntityRefElement());
 		int id = writer.acquireIdForObject(ori);
 		writer.writeAttribute(xmlDictionary.getIdAttribute(), Integer.toString(id));
 		byte idIndex = ori.getIdNameIndex();
-		if (idIndex != ObjRef.PRIMARY_KEY_INDEX)
-		{
+		if (idIndex != ObjRef.PRIMARY_KEY_INDEX) {
 			writer.writeAttribute(idNameIndex, Byte.toString(ori.getIdNameIndex()));
 		}
 		writer.writeStartElementEnd();

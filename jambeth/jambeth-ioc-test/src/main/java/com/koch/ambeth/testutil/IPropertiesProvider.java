@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.log.config.Properties;
 
-public interface IPropertiesProvider
-{
+public interface IPropertiesProvider {
 	void fillProperties(Properties props);
 }

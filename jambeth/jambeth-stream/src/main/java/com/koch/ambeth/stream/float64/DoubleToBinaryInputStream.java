@@ -25,34 +25,29 @@ import java.io.IOException;
 import com.koch.ambeth.stream.binary.IBinaryInputStream;
 
 /**
- * Provides a binary stream of IEEE 754 bit-encoded double values. These explicitly means that every 8 bytes belong to the same double value
+ * Provides a binary stream of IEEE 754 bit-encoded double values. These explicitly means that every
+ * 8 bytes belong to the same double value
  */
-public class DoubleToBinaryInputStream implements IBinaryInputStream
-{
+public class DoubleToBinaryInputStream implements IBinaryInputStream {
 	private int outputIndex = 8;
 
 	private final int[] output = new int[8];
 
 	private final IDoubleInputStream is;
 
-	public DoubleToBinaryInputStream(IDoubleInputStream is)
-	{
+	public DoubleToBinaryInputStream(IDoubleInputStream is) {
 		this.is = is;
 	}
 
 	@Override
-	public void close() throws IOException
-	{
+	public void close() throws IOException {
 		is.close();
 	}
 
 	@Override
-	public int readByte()
-	{
-		if (outputIndex == 8)
-		{
-			if (!is.hasDouble())
-			{
+	public int readByte() {
+		if (outputIndex == 8) {
+			if (!is.hasDouble()) {
 				return -1;
 			}
 			outputIndex = 0;

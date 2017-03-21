@@ -32,59 +32,56 @@ import com.koch.ambeth.cache.mixin.EntityEqualsMixin;
 import com.koch.ambeth.cache.proxy.IEntityEquals;
 import com.koch.ambeth.util.IPrintable;
 
-public class EntityEqualsVisitor extends ClassGenerator
-{
+public class EntityEqualsVisitor extends ClassGenerator {
 	public static final Class<?> templateType = EntityEqualsMixin.class;
 
 	public static final String templatePropertyName = "__" + templateType.getSimpleName();
 
-	private static final MethodInstance entityEquals_Equals = new MethodInstance(null, templateType, boolean.class, "equals", IEntityEquals.class, Object.class);
+	private static final MethodInstance entityEquals_Equals = new MethodInstance(null, templateType,
+			boolean.class, "equals", IEntityEquals.class, Object.class);
 
-	private static final MethodInstance entityEquals_HashCode = new MethodInstance(null, templateType, int.class, "hashCode", IEntityEquals.class);
+	private static final MethodInstance entityEquals_HashCode =
+			new MethodInstance(null, templateType, int.class, "hashCode", IEntityEquals.class);
 
-	private static final MethodInstance entityEquals_toString_Obj = new MethodInstance(null, templateType, String.class, "toString", IEntityEquals.class,
-			IPrintable.class);
+	private static final MethodInstance entityEquals_toString_Obj = new MethodInstance(null,
+			templateType, String.class, "toString", IEntityEquals.class, IPrintable.class);
 
-	private static final MethodInstance entityEquals_toString_Printable = new MethodInstance(null, templateType, void.class, "toString", IEntityEquals.class,
-			StringBuilder.class);
+	private static final MethodInstance entityEquals_toString_Printable = new MethodInstance(null,
+			templateType, void.class, "toString", IEntityEquals.class, StringBuilder.class);
 
-	public static PropertyInstance getEntityEqualsTemplateProperty(ClassGenerator cv)
-	{
+	public static PropertyInstance getEntityEqualsTemplateProperty(ClassGenerator cv) {
 		Object bean = getState().getBeanContext().getService(templateType);
-		PropertyInstance p_embeddedTypeTemplate = PropertyInstance.findByTemplate(templatePropertyName, bean.getClass(), true);
-		if (p_embeddedTypeTemplate != null)
-		{
+		PropertyInstance p_embeddedTypeTemplate =
+				PropertyInstance.findByTemplate(templatePropertyName, bean.getClass(), true);
+		if (p_embeddedTypeTemplate != null) {
 			return p_embeddedTypeTemplate;
 		}
 		return cv.implementAssignedReadonlyProperty(templatePropertyName, bean);
 	}
 
-	public EntityEqualsVisitor(ClassVisitor cv)
-	{
+	public EntityEqualsVisitor(ClassVisitor cv) {
 		super(cv);
 	}
 
 	@Override
-	public void visitEnd()
-	{
+	public void visitEnd() {
 		implementIEntityEqualsCode();
 		super.visitEnd();
 	}
 
-	protected void implementIEntityEqualsCode()
-	{
+	protected void implementIEntityEqualsCode() {
 		PropertyInstance p_entityEqualsTemplate = getEntityEqualsTemplateProperty(this);
 		implementEqualsMethod(p_entityEqualsTemplate);
 		implementHashCodeMethod(p_entityEqualsTemplate);
 		implementToStringMethod(p_entityEqualsTemplate);
 	}
 
-	protected void implementEqualsMethod(PropertyInstance p_entityEqualsTemplate)
-	{
-		MethodInstance methodTemplate = new MethodInstance(null, Object.class, boolean.class, "equals", Object.class);
+	protected void implementEqualsMethod(PropertyInstance p_entityEqualsTemplate) {
+		MethodInstance methodTemplate =
+				new MethodInstance(null, Object.class, boolean.class, "equals", Object.class);
 		MethodInstance method = MethodInstance.findByTemplate(methodTemplate, true);
-		if (Type.getType(Object.class).equals(method.getOwner()) || (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0)
-		{
+		if (Type.getType(Object.class).equals(method.getOwner())
+				|| (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0) {
 			MethodGenerator mg = visitMethod(methodTemplate);
 			mg.callThisGetter(p_entityEqualsTemplate);
 			mg.loadThis();
@@ -95,12 +92,11 @@ public class EntityEqualsVisitor extends ClassGenerator
 		}
 	}
 
-	protected void implementHashCodeMethod(PropertyInstance p_entityEqualsTemplate)
-	{
+	protected void implementHashCodeMethod(PropertyInstance p_entityEqualsTemplate) {
 		MethodInstance methodTemplate = new MethodInstance(null, Object.class, int.class, "hashCode");
 		MethodInstance method = MethodInstance.findByTemplate(methodTemplate, true);
-		if (Type.getType(Object.class).equals(method.getOwner()) || (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0)
-		{
+		if (Type.getType(Object.class).equals(method.getOwner())
+				|| (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0) {
 			MethodGenerator mg = visitMethod(methodTemplate);
 			mg.callThisGetter(p_entityEqualsTemplate);
 			mg.loadThis();
@@ -112,13 +108,13 @@ public class EntityEqualsVisitor extends ClassGenerator
 		}
 	}
 
-	protected void implementToStringMethod(PropertyInstance p_entityEqualsTemplate)
-	{
+	protected void implementToStringMethod(PropertyInstance p_entityEqualsTemplate) {
 		{
-			MethodInstance methodTemplate = new MethodInstance(null, Object.class, String.class, "toString");
+			MethodInstance methodTemplate =
+					new MethodInstance(null, Object.class, String.class, "toString");
 			MethodInstance method = MethodInstance.findByTemplate(methodTemplate, true);
-			if (method == null || Type.getType(Object.class).equals(method.getOwner()) || (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0)
-			{
+			if (method == null || Type.getType(Object.class).equals(method.getOwner())
+					|| (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0) {
 				MethodGenerator mg = visitMethod(methodTemplate);
 				mg.callThisGetter(p_entityEqualsTemplate);
 				mg.loadThis();
@@ -130,10 +126,10 @@ public class EntityEqualsVisitor extends ClassGenerator
 		}
 
 		{
-			MethodInstance methodTemplate = new MethodInstance(null, IPrintable.class, void.class, "toString", StringBuilder.class);
+			MethodInstance methodTemplate =
+					new MethodInstance(null, IPrintable.class, void.class, "toString", StringBuilder.class);
 			MethodInstance method = MethodInstance.findByTemplate(methodTemplate, true);
-			if (method == null || (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0)
-			{
+			if (method == null || (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0) {
 				MethodGenerator mg = visitMethod(methodTemplate);
 				mg.callThisGetter(p_entityEqualsTemplate);
 				mg.loadThis();

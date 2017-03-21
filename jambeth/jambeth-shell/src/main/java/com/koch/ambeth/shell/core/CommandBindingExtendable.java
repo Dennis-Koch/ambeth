@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface CommandBindingExtendable
-{
+public interface CommandBindingExtendable {
 	/**
 	 *
 	 * @param commandBinding

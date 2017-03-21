@@ -30,23 +30,20 @@ import com.koch.ambeth.util.collections.IList;
 /**
  * Support for unit tests that do not include jAmbeth.Cache
  */
-public class PrefetchHelperMock implements IPrefetchHelper
-{
+public class PrefetchHelperMock implements IPrefetchHelper {
 	@Override
-	public IPrefetchConfig createPrefetch()
-	{
+	public IPrefetchConfig createPrefetch() {
 		return null;
 	}
 
 	@Override
-	public IPrefetchState prefetch(Object objects)
-	{
+	public IPrefetchState prefetch(Object objects) {
 		return null;
 	}
 
 	@Override
-	public <T, S> IList<T> extractTargetEntities(List<S> sourceEntities, String sourceToTargetEntityPropertyPath, Class<S> sourceEntityType)
-	{
+	public <T, S> IList<T> extractTargetEntities(List<S> sourceEntities,
+			String sourceToTargetEntityPropertyPath, Class<S> sourceEntityType) {
 		return null;
 	}
 }

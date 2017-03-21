@@ -29,8 +29,7 @@ import com.koch.ambeth.xml.postprocess.IXmlPostProcessor;
 import com.koch.ambeth.xml.postprocess.IXmlPostProcessorRegistry;
 import com.koch.ambeth.xml.simple.SimpleXmlWriter;
 
-public class CyclicXmlWriter extends SimpleXmlWriter
-{
+public class CyclicXmlWriter extends SimpleXmlWriter {
 	@Autowired
 	protected ICyclicXmlDictionary xmlDictionary;
 
@@ -38,44 +37,38 @@ public class CyclicXmlWriter extends SimpleXmlWriter
 	protected IXmlPostProcessorRegistry xmlPostProcessorRegistry;
 
 	@Override
-	protected void writePrefix(IWriter writer)
-	{
+	protected void writePrefix(IWriter writer) {
 		super.writePrefix(writer);
 		writer.writeOpenElement(xmlDictionary.getRootElement());
 	}
 
 	@Override
-	protected void writePostfix(IWriter writer)
-	{
+	protected void writePostfix(IWriter writer) {
 		writer.writeCloseElement(xmlDictionary.getRootElement());
 		super.writePostfix(writer);
 	}
 
 	@Override
-	protected void postProcess(DefaultXmlWriter writer)
-	{
-		ILinkedMap<String, IXmlPostProcessor> xmlPostProcessors = xmlPostProcessorRegistry.getXmlPostProcessors();
+	protected void postProcess(DefaultXmlWriter writer) {
+		ILinkedMap<String, IXmlPostProcessor> xmlPostProcessors =
+				xmlPostProcessorRegistry.getXmlPostProcessors();
 		LinkedHashMap<String, Object> ppResults = LinkedHashMap.create(xmlPostProcessors.size());
-		for (Entry<String, IXmlPostProcessor> entry : xmlPostProcessors)
-		{
+		for (Entry<String, IXmlPostProcessor> entry : xmlPostProcessors) {
 			String tagName = entry.getKey();
 			IXmlPostProcessor xmlPostProcessor = entry.getValue();
 			Object result = xmlPostProcessor.processWrite(writer);
-			if (result != null)
-			{
+			if (result != null) {
 				ppResults.put(tagName, result);
 			}
 		}
 
-		if (ppResults.isEmpty())
-		{
+		if (ppResults.isEmpty()) {
 			return;
 		}
 
 		String postProcessElement = xmlDictionary.getPostProcessElement();
 		writer.writeStartElement(postProcessElement);
-		for (Entry<String, Object> entry : ppResults)
-		{
+		for (Entry<String, Object> entry : ppResults) {
 			String tagName = entry.getKey();
 			Object result = entry.getValue();
 

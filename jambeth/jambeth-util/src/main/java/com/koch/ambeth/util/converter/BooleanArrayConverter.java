@@ -23,52 +23,43 @@ limitations under the License.
 import com.koch.ambeth.util.IDedicatedConverter;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-public class BooleanArrayConverter implements IDedicatedConverter
-{
+public class BooleanArrayConverter implements IDedicatedConverter {
 	protected IThreadLocalObjectCollector objectCollector;
 
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
+	public void setObjectCollector(IThreadLocalObjectCollector objectCollector) {
 		this.objectCollector = objectCollector;
 	}
 
 	@Override
-	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value, Object additionalInformation)
-	{
-		if (boolean[].class.equals(sourceType) && (CharSequence.class.equals(expectedType) || String.class.equals(expectedType)))
-		{
+	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+			Object additionalInformation) {
+		if (boolean[].class.equals(sourceType)
+				&& (CharSequence.class.equals(expectedType) || String.class.equals(expectedType))) {
 			boolean[] source = (boolean[]) value;
 			IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 			StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
-			try
-			{
-				for (int a = 0, size = source.length; a < size; a++)
-				{
-					if (source[a])
-					{
+			try {
+				for (int a = 0, size = source.length; a < size; a++) {
+					if (source[a]) {
 						sb.append('1');
 					}
-					else
-					{
+					else {
 						sb.append('0');
 					}
 				}
 				return sb.toString();
 			}
-			finally
-			{
+			finally {
 				tlObjectCollector.dispose(sb);
 			}
 		}
-		else if (CharSequence.class.isAssignableFrom(sourceType) && boolean[].class.equals(expectedType))
-		{
+		else if (CharSequence.class.isAssignableFrom(sourceType)
+				&& boolean[].class.equals(expectedType)) {
 			CharSequence sValue = (CharSequence) value;
 			boolean[] target = new boolean[sValue.length()];
-			for (int a = 0, size = sValue.length(); a < size; a++)
-			{
+			for (int a = 0, size = sValue.length(); a < size; a++) {
 				char oneChar = sValue.charAt(a);
-				switch (oneChar)
-				{
+				switch (oneChar) {
 					case '1':
 					case 'T':
 					case 't':
@@ -85,6 +76,7 @@ public class BooleanArrayConverter implements IDedicatedConverter
 			}
 			return target;
 		}
-		throw new IllegalStateException("Conversion " + sourceType.getName() + "->" + expectedType.getName() + " not supported");
+		throw new IllegalStateException(
+				"Conversion " + sourceType.getName() + "->" + expectedType.getName() + " not supported");
 	}
 }

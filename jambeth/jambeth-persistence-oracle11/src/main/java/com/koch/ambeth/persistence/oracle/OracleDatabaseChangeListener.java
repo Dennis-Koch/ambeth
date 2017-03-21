@@ -58,8 +58,7 @@ import oracle.jdbc.dcn.RowChangeDescription.RowOperation;
 import oracle.jdbc.dcn.TableChangeDescription;
 import oracle.sql.ROWID;
 
-public class OracleDatabaseChangeListener implements DatabaseChangeListener
-{
+public class OracleDatabaseChangeListener implements DatabaseChangeListener {
 	@LogInstance
 	private ILogger log;
 
@@ -94,33 +93,30 @@ public class OracleDatabaseChangeListener implements DatabaseChangeListener
 	protected ITransaction transaction;
 
 	@Override
-	public void onDatabaseChangeNotification(final DatabaseChangeEvent databaseChangeEvent)
-	{
-		try
-		{
-			DataChangeEvent dataChangeEvent = transaction.processAndCommit(new ResultingDatabaseCallback<DataChangeEvent>()
-			{
-				@Override
-				public DataChangeEvent callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Exception
-				{
-					return executeInTransaction(databaseChangeEvent);
-				}
-			});
+	public void onDatabaseChangeNotification(final DatabaseChangeEvent databaseChangeEvent) {
+		try {
+			DataChangeEvent dataChangeEvent =
+					transaction.processAndCommit(new ResultingDatabaseCallback<DataChangeEvent>() {
+						@Override
+						public DataChangeEvent callback(
+								ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Exception {
+							return executeInTransaction(databaseChangeEvent);
+						}
+					});
 			eventDispatcher.dispatchEvent(dataChangeEvent);
 		}
-		catch (Throwable e)
-		{
-			// This handler will be called by the oracle driver. No need to throw the exception further which might risk a driver bug of any kind
+		catch (Throwable e) {
+			// This handler will be called by the oracle driver. No need to throw the exception further
+			// which might risk a driver bug of any kind
 			log.error(e);
 		}
-		finally
-		{
+		finally {
 			threadLocalCleanupController.cleanupThreadLocal();
 		}
 	}
 
-	protected DataChangeEvent executeInTransaction(DatabaseChangeEvent databaseChangeEvent) throws Exception
-	{
+	protected DataChangeEvent executeInTransaction(DatabaseChangeEvent databaseChangeEvent)
+			throws Exception {
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		IConversionHelper conversionHelper = this.conversionHelper;
 		IDatabase database = this.database.getCurrent();
@@ -131,42 +127,38 @@ public class OracleDatabaseChangeListener implements DatabaseChangeListener
 		Statement stm = connection.createStatement();
 		PreparedStatement rowIdPstm = null;
 		ResultSet rs = null;
-		try
-		{
+		try {
 			DataChangeEvent dcEvent = DataChangeEvent.create(-1, -1, -1);
 			dcEvent.setLocalSource(false);
 
 			TableChangeDescription[] tcDescs = databaseChangeEvent.getTableChangeDescription();
-			for (TableChangeDescription tcDesc : tcDescs)
-			{
+			for (TableChangeDescription tcDesc : tcDescs) {
 				String tableName = tcDesc.getTableName();
 				ITableMetaData table = databaseMetaData.getTableByName(tableName);
-				if (table == null)
-				{
+				if (table == null) {
 					continue;
 				}
 				Class<?> entityType = table.getEntityType();
-				if (entityType == null)
-				{
+				if (entityType == null) {
 					continue;
 				}
 				RowChangeDescription[] rcDescs = tcDesc.getRowChangeDescription();
-				if (rcDescs.length == 0)
-				{
+				if (rcDescs.length == 0) {
 					continue;
 				}
 				String idFieldName = table.getIdField().getName();
-				String versionFieldName = table.getVersionField() != null ? table.getVersionField().getName() : null;
+				String versionFieldName =
+						table.getVersionField() != null ? table.getVersionField().getName() : null;
 				// ArrayList<ROWID> rowIds = new ArrayList<ROWID>();
-				List<RowId> rowIds = new java.util.ArrayList<RowId>();
-				HashMap<RowIdKey, RowOperation> rowIdToRowOperationMap = new HashMap<RowIdKey, RowOperation>();
+				List<RowId> rowIds = new java.util.ArrayList<>();
+				HashMap<RowIdKey, RowOperation> rowIdToRowOperationMap =
+						new HashMap<>();
 				AppendableStringBuilder sb = tlObjectCollector.create(AppendableStringBuilder.class);
 				sb.append("SELECT ");
 				sqlBuilder.appendName("ROWID", sb);
 				sb.append(',');
 				sqlBuilder.appendName(idFieldName, sb);
-				if (versionFieldName != null)
-				{
+				if (versionFieldName != null) {
 					sb.append(',');
 					sqlBuilder.appendName(versionFieldName, sb);
 				}
@@ -176,12 +168,10 @@ public class OracleDatabaseChangeListener implements DatabaseChangeListener
 				sqlBuilder.appendName("ROWID", sb);
 				sb.append(" IN (");
 
-				for (RowChangeDescription rcDesc : rcDescs)
-				{
+				for (RowChangeDescription rcDesc : rcDescs) {
 					RowId rowId = rcDesc.getRowid();
 
-					if (rowIds.size() > 0)
-					{
+					if (rowIds.size() > 0) {
 						sb.append(',');
 					}
 					sb.append('?');
@@ -191,17 +181,16 @@ public class OracleDatabaseChangeListener implements DatabaseChangeListener
 				}
 				sb.append(')');
 				rowIdPstm = connection.prepareStatement(sb.toString());
-				for (int a = rowIds.size(); a-- > 0;)
-				{
+				for (int a = rowIds.size(); a-- > 0;) {
 					rowIdPstm.setRowId(a + 1, rowIds.get(a));
 				}
 				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 				Class<?> idType = metaData.getIdMember().getRealType();
-				Class<?> versionType = metaData.getVersionMember() != null ? metaData.getVersionMember().getRealType() : null;
+				Class<?> versionType =
+						metaData.getVersionMember() != null ? metaData.getVersionMember().getRealType() : null;
 
 				rs = rowIdPstm.executeQuery();
-				while (rs.next())
-				{
+				while (rs.next()) {
 					ROWID rowId = (ROWID) rs.getRowId("ROWID");
 
 					RowOperation rowOperation = rowIdToRowOperationMap.get(new RowIdKey(rowId.getBytes()));
@@ -212,10 +201,10 @@ public class OracleDatabaseChangeListener implements DatabaseChangeListener
 					id = conversionHelper.convertValueToType(idType, id);
 					version = conversionHelper.convertValueToType(versionType, version);
 
-					DataChangeEntry dataChangeEntry = new DataChangeEntry(entityType, ObjRef.PRIMARY_KEY_INDEX, id, version);
+					DataChangeEntry dataChangeEntry =
+							new DataChangeEntry(entityType, ObjRef.PRIMARY_KEY_INDEX, id, version);
 
-					switch (rowOperation)
-					{
+					switch (rowOperation) {
 						case INSERT:
 							dcEvent.getInserts().add(dataChangeEntry);
 							break;
@@ -233,8 +222,7 @@ public class OracleDatabaseChangeListener implements DatabaseChangeListener
 			}
 			return dcEvent;
 		}
-		finally
-		{
+		finally {
 			JdbcUtil.close(rowIdPstm, rs);
 			JdbcUtil.close(stm);
 		}

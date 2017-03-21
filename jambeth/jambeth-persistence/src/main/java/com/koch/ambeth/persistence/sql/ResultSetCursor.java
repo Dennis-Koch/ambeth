@@ -32,11 +32,11 @@ public class ResultSetCursor extends ResultSetVersionCursor
 	public static final String SENSOR_NAME = ResultSetCursor.class.getName();
 
 	protected final HashMap<String, IFieldMetaData> memberNameToFieldDict =
-			new HashMap<String, IFieldMetaData>();
+			new HashMap<>();
 	protected final HashMap<String, Integer> memberNameToFieldIndexDict =
-			new HashMap<String, Integer>();
+			new HashMap<>();
 	protected final HashMap<String, Integer> fieldNameToFieldIndexDict =
-			new HashMap<String, Integer>();
+			new HashMap<>();
 
 	protected Object[] values;
 	protected IFieldMetaData[] fields;

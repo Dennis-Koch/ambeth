@@ -20,18 +20,15 @@ limitations under the License.
  * #L%
  */
 
-public class DatabaseAcquireEvent implements IDatabaseSessionAwareEvent
-{
+public class DatabaseAcquireEvent implements IDatabaseSessionAwareEvent {
 	protected final long sessionId;
 
 	@Override
-	public long getSessionId()
-	{
-		return this.sessionId;
+	public long getSessionId() {
+		return sessionId;
 	}
 
-	public DatabaseAcquireEvent(long sessionId)
-	{
+	public DatabaseAcquireEvent(long sessionId) {
 		this.sessionId = sessionId;
 	}
 }

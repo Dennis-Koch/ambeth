@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IReplacedEvent
-{
+public interface IReplacedEvent {
 	Class<?> getOriginalEventType();
 }

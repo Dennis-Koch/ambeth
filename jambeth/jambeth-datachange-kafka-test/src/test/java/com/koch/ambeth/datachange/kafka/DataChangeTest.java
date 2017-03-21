@@ -167,7 +167,7 @@ public class DataChangeTest extends AbstractIocTest {
 		// on success the cached entity should not be there any more
 
 		int messageCount = 1;
-		final ParamHolder<Integer> chunkCountPH = new ParamHolder<Integer>(0);
+		final ParamHolder<Integer> chunkCountPH = new ParamHolder<>(0);
 		final CountDownLatch latch = new CountDownLatch(1);
 		IRootCache leftRootCache;
 		TestEntity testEntity;

@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface ISqlValue
-{
+public interface ISqlValue {
 	String getSql();
 }

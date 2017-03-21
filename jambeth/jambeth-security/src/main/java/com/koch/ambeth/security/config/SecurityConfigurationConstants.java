@@ -24,37 +24,42 @@ import com.koch.ambeth.util.annotation.ConfigurationConstantDescription;
 import com.koch.ambeth.util.annotation.ConfigurationConstants;
 
 @ConfigurationConstants
-public final class SecurityConfigurationConstants
-{
+public final class SecurityConfigurationConstants {
 	@ConfigurationConstantDescription("TODO")
 	public static final String DefaultReadPrivilegeActive = "security.privilege.default.read-entity";
 
 	@ConfigurationConstantDescription("TODO")
-	public static final String DefaultReadPropertyPrivilegeActive = "security.privilege.default.read-property";
+	public static final String DefaultReadPropertyPrivilegeActive =
+			"security.privilege.default.read-property";
 
 	@ConfigurationConstantDescription("TODO")
-	public static final String DefaultCreatePrivilegeActive = "security.privilege.default.create-entity";
+	public static final String DefaultCreatePrivilegeActive =
+			"security.privilege.default.create-entity";
 
 	@ConfigurationConstantDescription("TODO")
-	public static final String DefaultCreatePropertyPrivilegeActive = "security.privilege.default.create-property";
+	public static final String DefaultCreatePropertyPrivilegeActive =
+			"security.privilege.default.create-property";
 
 	@ConfigurationConstantDescription("TODO")
-	public static final String DefaultUpdatePrivilegeActive = "security.privilege.default.update-entity";
+	public static final String DefaultUpdatePrivilegeActive =
+			"security.privilege.default.update-entity";
 
 	@ConfigurationConstantDescription("TODO")
-	public static final String DefaultUpdatePropertyPrivilegeActive = "security.privilege.default.update-property";
+	public static final String DefaultUpdatePropertyPrivilegeActive =
+			"security.privilege.default.update-property";
 
 	@ConfigurationConstantDescription("TODO")
-	public static final String DefaultDeletePrivilegeActive = "security.privilege.default.delete-entity";
+	public static final String DefaultDeletePrivilegeActive =
+			"security.privilege.default.delete-entity";
 
 	@ConfigurationConstantDescription("TODO")
-	public static final String DefaultDeletePropertyPrivilegeActive = "security.privilege.default.delete-property";
+	public static final String DefaultDeletePropertyPrivilegeActive =
+			"security.privilege.default.delete-property";
 
 	@ConfigurationConstantDescription("TODO")
 	public static final String DefaultExecutePrivilegeActive = "security.privilege.default.execute";
 
-	private SecurityConfigurationConstants()
-	{
+	private SecurityConfigurationConstants() {
 		// Intended blank
 	}
 }

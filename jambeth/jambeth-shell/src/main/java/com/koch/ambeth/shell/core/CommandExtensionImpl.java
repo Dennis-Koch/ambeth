@@ -28,35 +28,30 @@ import java.util.Map;
 /**
  * Implementation for CommandExtensionExtendable
  */
-public class CommandExtensionImpl implements CommandExtensionExtendable
-{
+public class CommandExtensionImpl implements CommandExtensionExtendable {
 
-	protected final Map<String, List<CommandExtension>> commandExtensions = new HashMap<String, List<CommandExtension>>();
+	protected final Map<String, List<CommandExtension>> commandExtensions =
+			new HashMap<>();
 
 	@Override
-	public void register(CommandExtension extension, String commandName)
-	{
+	public void register(CommandExtension extension, String commandName) {
 		List<CommandExtension> list = commandExtensions.get(commandName);
-		if (list == null)
-		{
-			list = new ArrayList<CommandExtension>();
+		if (list == null) {
+			list = new ArrayList<>();
 		}
 		list.add(extension);
-		if (!commandExtensions.containsKey(commandName))
-		{
+		if (!commandExtensions.containsKey(commandName)) {
 			commandExtensions.put(commandName, list);
 		}
 	}
 
 	@Override
-	public void unregister(CommandExtension extension, String commandName)
-	{
+	public void unregister(CommandExtension extension, String commandName) {
 		commandExtensions.get(commandName).remove(extension);
 	}
 
 	@Override
-	public List<CommandExtension> getExtensionsOfCommand(String commandName)
-	{
+	public List<CommandExtension> getExtensionsOfCommand(String commandName) {
 		return commandExtensions.get(commandName);
 	}
 

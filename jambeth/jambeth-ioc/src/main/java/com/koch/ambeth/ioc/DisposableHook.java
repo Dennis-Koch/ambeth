@@ -22,18 +22,15 @@ limitations under the License.
 
 import com.koch.ambeth.util.IDisposable;
 
-public class DisposableHook implements IDisposableBean
-{
+public class DisposableHook implements IDisposableBean {
 	private final IDisposable hook;
 
-	public DisposableHook(IDisposable hook)
-	{
+	public DisposableHook(IDisposable hook) {
 		this.hook = hook;
 	}
 
 	@Override
-	public void destroy() throws Throwable
-	{
+	public void destroy() throws Throwable {
 		hook.dispose();
 	}
 }

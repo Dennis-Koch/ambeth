@@ -22,17 +22,14 @@ limitations under the License.
 
 import java.util.Iterator;
 
-public abstract class AbstractIterator<V> implements Iterator<V>
-{
+public abstract class AbstractIterator<V> implements Iterator<V> {
 	protected final boolean removeAllowed;
 
-	public AbstractIterator()
-	{
+	public AbstractIterator() {
 		this(false);
 	}
 
-	public AbstractIterator(boolean removeAllowed)
-	{
+	public AbstractIterator(boolean removeAllowed) {
 		this.removeAllowed = removeAllowed;
 	}
 }

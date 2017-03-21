@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IStartingModule
-{
+public interface IStartingModule {
 	void afterStarted(IServiceContext serviceContext);
 }

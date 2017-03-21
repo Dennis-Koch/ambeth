@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IOrmConfig
-{
+public interface IOrmConfig {
 	String getName();
 
 	boolean isExplicitlyNotMergeRelevant();

@@ -27,8 +27,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface LogInstance
-{
+public @interface LogInstance {
 	// Intended blank
 	Class<?> value() default void.class;
 }

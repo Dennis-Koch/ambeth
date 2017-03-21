@@ -30,8 +30,8 @@ import com.koch.ambeth.persistence.api.database.IDatabaseProvider;
 import com.koch.ambeth.util.proxy.ITargetProvider;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
-public class DatabaseProvider implements ITargetProvider, IDatabaseProvider, IThreadLocalCleanupBean
-{
+public class DatabaseProvider
+		implements ITargetProvider, IDatabaseProvider, IThreadLocalCleanupBean {
 	@Autowired
 	protected IDatabasePool databasePool;
 
@@ -39,60 +39,55 @@ public class DatabaseProvider implements ITargetProvider, IDatabaseProvider, ITh
 	protected DatabaseType databaseType;
 
 	@Forkable
-	protected final SensitiveThreadLocal<IDatabase> databaseTL = new SensitiveThreadLocal<IDatabase>();
+	protected final SensitiveThreadLocal<IDatabase> databaseTL =
+			new SensitiveThreadLocal<>();
 
 	@Override
-	public void cleanupThreadLocal()
-	{
+	public void cleanupThreadLocal() {
 		databaseTL.remove();
 	}
 
 	@Override
-	public IDatabase tryGetInstance()
-	{
+	public IDatabase tryGetInstance() {
 		return databaseTL.get();
 	}
 
 	@Override
-	public ThreadLocal<IDatabase> getDatabaseLocal()
-	{
+	public ThreadLocal<IDatabase> getDatabaseLocal() {
 		return databaseTL;
 	}
 
 	@Override
-	public IDatabase acquireInstance()
-	{
+	public IDatabase acquireInstance() {
 		return acquireInstance(false);
 	}
 
 	@Override
-	public IDatabase acquireInstance(boolean readonly)
-	{
+	public IDatabase acquireInstance(boolean readonly) {
 		IDatabase database = tryGetInstance();
-		if (database != null)
-		{
-			throw new RuntimeException("Instance already acquired. Maybe you must not acquire instances at your current application scope?");
+		if (database != null) {
+			throw new RuntimeException(
+					"Instance already acquired. Maybe you must not acquire instances at your current application scope?");
 		}
 		database = databasePool.acquireDatabase(readonly);
 		databaseTL.set(database);
 		return database;
 	}
 
-	public IDatabase getInstance()
-	{
+	public IDatabase getInstance() {
 		IDatabase database = tryGetInstance();
-		if (database == null)
-		{
-			throw new RuntimeException("No instance acquired, yet. It should have been done at this point!"
-					+ " If this exception happens within a service request from a client your service implementing method"
-					+ " might not be specified as virtual. A service method must be to allow dynamic proxying" + " for database session operations");
+		if (database == null) {
+			throw new RuntimeException(
+					"No instance acquired, yet. It should have been done at this point!"
+							+ " If this exception happens within a service request from a client your service implementing method"
+							+ " might not be specified as virtual. A service method must be to allow dynamic proxying"
+							+ " for database session operations");
 		}
 		return database;
 	}
 
 	@Override
-	public Object getTarget()
-	{
+	public Object getTarget() {
 		return getInstance();
 	}
 }

@@ -70,7 +70,7 @@ public class BigStatementTest extends AbstractInformationBusWithPersistenceTest 
 		IQueryBuilder<Material> qb = queryBuilderFactory.create(Material.class);
 		IQuery<Material> query = qb.build(qb.isIn(qb.property("Id"), qb.valueName(paramName)));
 
-		ArrayList<Object> bigList = new ArrayList<Object>();
+		ArrayList<Object> bigList = new ArrayList<>();
 		for (int a = 100000; a-- > 0;) {
 			bigList.add(Integer.valueOf(a + 1));
 		}
@@ -96,7 +96,7 @@ public class BigStatementTest extends AbstractInformationBusWithPersistenceTest 
 		IQueryBuilder<Material> qb = queryBuilderFactory.create(Material.class);
 		IQuery<Material> query = qb.build(qb.isIn(qb.property("Id"), qb.valueName(paramName)));
 
-		ArrayList<Object> bigList = new ArrayList<Object>();
+		ArrayList<Object> bigList = new ArrayList<>();
 		for (int a = 20000; a-- > 0;) {
 			bigList.add(Integer.valueOf(a + 1));
 		}
@@ -119,7 +119,7 @@ public class BigStatementTest extends AbstractInformationBusWithPersistenceTest 
 
 	@Test
 	public void testSelectFields100000() throws Exception {
-		final ArrayList<Object> bigList = new ArrayList<Object>();
+		final ArrayList<Object> bigList = new ArrayList<>();
 		for (int a = 100001; a-- > 0;) {
 			bigList.add(Integer.valueOf(a + 1));
 		}

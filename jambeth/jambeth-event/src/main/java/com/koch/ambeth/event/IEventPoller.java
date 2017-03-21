@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IEventPoller
-{
+public interface IEventPoller {
 	void pausePolling();
 
 	void resumePolling();

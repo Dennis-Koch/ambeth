@@ -38,8 +38,7 @@ import com.koch.ambeth.util.annotation.Find;
 import com.koch.ambeth.util.collections.IList;
 
 @MergeContext
-public class EntityTypeBluePrintService implements IInitializingBean
-{
+public class EntityTypeBluePrintService implements IInitializingBean {
 	@LogInstance
 	private ILogger log;
 
@@ -56,28 +55,27 @@ public class EntityTypeBluePrintService implements IInitializingBean
 	protected IPrefetchHandle typeToAllPrefetchHandle;
 
 	@Find
-	public List<EntityTypeBlueprint> getAll()
-	{
+	public List<EntityTypeBlueprint> getAll() {
 		IList<EntityTypeBlueprint> list = qAll.retrieve();
 		typeToAllPrefetchHandle.prefetch(list);
 		return list;
 	}
 
 	@Find
-	public EntityTypeBlueprint findByName(String name)
-	{
-		EntityTypeBlueprint entityTypeBlueprint = qByName.param(IEntityTypeBlueprint.NAME, name).retrieveSingle();
+	public EntityTypeBlueprint findByName(String name) {
+		EntityTypeBlueprint entityTypeBlueprint =
+				qByName.param(IEntityTypeBlueprint.NAME, name).retrieveSingle();
 		typeToAllPrefetchHandle.prefetch(entityTypeBlueprint);
 		return entityTypeBlueprint;
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 
 		IPrefetchConfig prefetchConfig = prefetchHelper.createPrefetch();
 		EntityTypeBlueprint plan = prefetchConfig.plan(EntityTypeBlueprint.class);
-		plan.getProperties().iterator().next().getAnnotations().iterator().next().getProperties().iterator().next();
+		plan.getProperties().iterator().next().getAnnotations().iterator().next().getProperties()
+				.iterator().next();
 		plan.getAnnotations().iterator().next().getProperties().iterator().next();
 		typeToAllPrefetchHandle = prefetchConfig.build();
 
@@ -85,7 +83,8 @@ public class EntityTypeBluePrintService implements IInitializingBean
 		qAll = qb.build();
 
 		qb = qbf.create(EntityTypeBlueprint.class);
-		qByName = qb.build(qb.isEqualTo(qb.property(IEntityTypeBlueprint.NAME), qb.valueName(IEntityTypeBlueprint.NAME)));
+		qByName = qb.build(qb.isEqualTo(qb.property(IEntityTypeBlueprint.NAME),
+				qb.valueName(IEntityTypeBlueprint.NAME)));
 
 	}
 }

@@ -31,14 +31,14 @@ import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.security.SecurityContextHolder;
 
 @FrameworkModule
-public class SecurityModule implements IInitializingModule
-{
+public class SecurityModule implements IInitializingModule {
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		beanContextFactory.registerBean(AuthenticatedUserHolder.class).autowireable(IAuthenticatedUserHolder.class);
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		beanContextFactory.registerBean(AuthenticatedUserHolder.class)
+				.autowireable(IAuthenticatedUserHolder.class);
 
-		beanContextFactory.registerBean(SecurityContextHolder.class).autowireable(ISecurityContextHolder.class, IAuthorizationChangeListenerExtendable.class,
+		beanContextFactory.registerBean(SecurityContextHolder.class).autowireable(
+				ISecurityContextHolder.class, IAuthorizationChangeListenerExtendable.class,
 				ILightweightSecurityContext.class);
 	}
 }

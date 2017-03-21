@@ -32,8 +32,7 @@ import com.koch.ambeth.persistence.api.ITableMetaData;
 import com.koch.ambeth.persistence.database.IDatabaseMapper;
 import com.koch.ambeth.util.ParamChecker;
 
-public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
-{
+public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -46,98 +45,83 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	protected IOrmPatternMatcher ormPatternMatcher;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(idName, "idName");
 		ParamChecker.assertNotNull(versionName, "versionName");
 	}
 
 	/**
 	 * Setter for the name of the ID member. (default = "Id")
-	 * 
-	 * @param idName
-	 *            New name of the ID member.
+	 *
+	 * @param idName New name of the ID member.
 	 */
-	public void setIdName(String idName)
-	{
+	public void setIdName(String idName) {
 		this.idName = idName;
 	}
 
 	/**
 	 * Setter for the name of the version member. (default = "Version")
-	 * 
-	 * @param versionName
-	 *            New name of the version member.
+	 *
+	 * @param versionName New name of the version member.
 	 */
-	public void setVersionName(String versionName)
-	{
+	public void setVersionName(String versionName) {
 		this.versionName = versionName;
 	}
 
 	/**
-	 * Method to implement in child class to setup the mappings between a database table and an entity type and between the database fields and the entity
-	 * members. Including the ID and version fields.
-	 * 
-	 * Method to implement in child class to setup the mappings between a database table and an entity type and between the database fields and the entity
-	 * members. Including the ID and version fields.
-	 * 
-	 * @param database
-	 *            Database to map to.
+	 * Method to implement in child class to setup the mappings between a database table and an entity
+	 * type and between the database fields and the entity members. Including the ID and version
+	 * fields.
+	 *
+	 * Method to implement in child class to setup the mappings between a database table and an entity
+	 * type and between the database fields and the entity members. Including the ID and version
+	 * fields.
+	 *
+	 * @param database Database to map to.
 	 */
 	@Override
-	public void mapFields(Connection connection, String[] schemaNames, IDatabaseMetaData database)
-	{
+	public void mapFields(Connection connection, String[] schemaNames, IDatabaseMetaData database) {
 		// Intended blank
 	}
 
 	/**
 	 * TODO JavaDoc comment.
-	 * 
-	 * @param database
-	 *            Database to map to.
+	 *
+	 * @param database Database to map to.
 	 */
 	@Override
-	public void mapLinks(Connection connection, String[] schemaNames, IDatabaseMetaData database)
-	{
+	public void mapLinks(Connection connection, String[] schemaNames, IDatabaseMetaData database) {
 		// Intended blank
 	}
 
 	/**
 	 * Creates the mapping between ID and version fields and members.
-	 * 
-	 * @param table
-	 *            Table to map to.
+	 *
+	 * @param table Table to map to.
 	 */
-	protected void mapIdAndVersion(ITableMetaData table)
-	{
+	protected void mapIdAndVersion(ITableMetaData table) {
 		mapIdAndVersion(table, idName, versionName);
 	}
 
 	/**
 	 * Creates the mapping between ID and version fields and members.
-	 * 
-	 * @param table
-	 *            Table to map to.
-	 * @param idName
-	 *            Name of the id field.
-	 * @param versionName
-	 *            Name of the version field.
+	 *
+	 * @param table Table to map to.
+	 * @param idName Name of the id field.
+	 * @param versionName Name of the version field.
 	 */
-	protected void mapIdAndVersion(ITableMetaData table, String idName, String versionName)
-	{
+	protected void mapIdAndVersion(ITableMetaData table, String idName, String versionName) {
 		IFieldMetaData[] idFields = table.getIdFields();
 		String[] idNames = idName.split("-");
-		if (idNames.length != idFields.length)
-		{
-			throw new IllegalArgumentException("Member count (" + idNames.length + ") does not match with field count (" + idFields.length + ")");
+		if (idNames.length != idFields.length) {
+			throw new IllegalArgumentException("Member count (" + idNames.length
+					+ ") does not match with field count (" + idFields.length + ")");
 		}
-		for (int a = idFields.length; a-- > 0;)
-		{
+		for (int a = idFields.length; a-- > 0;) {
 			table.mapField(idFields[a].getName(), idNames[a]);
 		}
 		IFieldMetaData versionField = table.getVersionField();
-		if (versionField != null)
-		{
+		if (versionField != null) {
 			table.mapField(versionField.getName(), versionName);
 		}
 	}

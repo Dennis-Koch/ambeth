@@ -22,40 +22,31 @@ limitations under the License.
 
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public abstract class AbstractStateRollback implements IStateRollback
-{
+public abstract class AbstractStateRollback implements IStateRollback {
 	private final IStateRollback[] rollbacks;
 
 	private boolean rollbackCalled;
 
-	public AbstractStateRollback(IStateRollback[] rollbacks)
-	{
+	public AbstractStateRollback(IStateRollback[] rollbacks) {
 		this.rollbacks = rollbacks;
 	}
 
 	@Override
-	public final void rollback()
-	{
-		if (rollbackCalled)
-		{
+	public final void rollback() {
+		if (rollbackCalled) {
 			throw new IllegalStateException("rollback() has already been called");
 		}
 		rollbackCalled = true;
-		try
-		{
+		try {
 			rollbackIntern();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
-			for (int a = rollbacks.length; a-- > 0;)
-			{
+		finally {
+			for (int a = rollbacks.length; a-- > 0;) {
 				IStateRollback rollback = rollbacks[a];
-				if (rollback == null)
-				{
+				if (rollback == null) {
 					continue;
 				}
 				rollback.rollback();

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IAbstractEntity
-{
+public interface IAbstractEntity {
 	int getId();
 
 	void setId(int id);

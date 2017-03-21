@@ -36,8 +36,7 @@ import com.koch.ambeth.merge.model.IChangeContainer;
 
 @XmlRootElement(name = "CUDResult", namespace = "http://schema.kochdev.com/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class CUDResult implements ICUDResult
-{
+public class CUDResult implements ICUDResult {
 	@XmlElement(required = true)
 	protected List<IChangeContainer> allChanges;
 
@@ -47,60 +46,50 @@ public class CUDResult implements ICUDResult
 	@XmlTransient
 	protected List<Object> originalRefs;
 
-	public CUDResult()
-	{
-		this.allChanges = new ArrayList<IChangeContainer>();
+	public CUDResult() {
+		allChanges = new ArrayList<>();
 	}
 
-	public CUDResult(List<IChangeContainer> allChanges, List<Object> originalRefs)
-	{
-		this.allChanges = new ArrayList<IChangeContainer>();
-		for (int a = 0, size = allChanges.size(); a < size; a++)
-		{
+	public CUDResult(List<IChangeContainer> allChanges, List<Object> originalRefs) {
+		this.allChanges = new ArrayList<>();
+		for (int a = 0, size = allChanges.size(); a < size; a++) {
 			this.allChanges.add(allChanges.get(a));
 		}
 		this.originalRefs = originalRefs;
 	}
 
-	public void setAllChanges(List<IChangeContainer> allChanges)
-	{
+	public void setAllChanges(List<IChangeContainer> allChanges) {
 		this.allChanges = allChanges;
 	}
 
 	@Override
-	public List<IChangeContainer> getAllChanges()
-	{
+	public List<IChangeContainer> getAllChanges() {
 		return allChanges;
 	}
 
 	@Override
-	public List<Object> getOriginalRefs()
-	{
-		return this.originalRefs;
+	public List<Object> getOriginalRefs() {
+		return originalRefs;
 	}
 
 	@Override
-	public List<IChangeContainer> getChanges(Class<?> type)
-	{
-		if (typeToModDict != null)
-		{
-			return this.typeToModDict.get(type);
+	public List<IChangeContainer> getChanges(Class<?> type) {
+		if (typeToModDict != null) {
+			return typeToModDict.get(type);
 		}
-		typeToModDict = new HashMap<Class<?>, List<IChangeContainer>>();
+		typeToModDict = new HashMap<>();
 
-		for (int a = this.allChanges.size(); a-- > 0;)
-		{
-			IChangeContainer changeContainer = this.allChanges.get(a);
+		for (int a = allChanges.size(); a-- > 0;) {
+			IChangeContainer changeContainer = allChanges.get(a);
 			Class<?> realType = changeContainer.getReference().getRealType();
-			List<IChangeContainer> modList = this.typeToModDict.get(realType);
-			if (modList == null)
-			{
-				modList = new ArrayList<IChangeContainer>();
+			List<IChangeContainer> modList = typeToModDict.get(realType);
+			if (modList == null) {
+				modList = new ArrayList<>();
 				typeToModDict.put(realType, modList);
 			}
 			modList.add(changeContainer);
 		}
-		return this.typeToModDict.get(type);
+		return typeToModDict.get(type);
 	}
 
 }

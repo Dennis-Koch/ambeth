@@ -49,11 +49,14 @@ import com.koch.ambeth.persistence.xml.Relations20Test;
 import com.koch.ambeth.persistence.xml.RelationsTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ AlternateIdTest.class, ArrayTest.class, AutoIndexTrueTest.class, AutoIndexFalseTest.class, BlobTest.class, CacheTypeTest.class, ClobTest.class, CompositeIdTest.class,
-		ConnectionTest.class, ConnectionHandlingTest.class, CompositeIdExternalEntityTest.class, IgnoreTableTest.class, InterfaceEntityTest.class,
-		JDBCDatabaseTest.class, MapperTest.class, MapperPerformanceTest.class, MasterDetailTest.class, MultiEventTest.class, OptimisticLockTest.class,
-		RelationsTest.class, RelationAutomappingTest.class, RelationUpdateTest.class, Relations20Test.class, RootCacheInvalidationTest.class,
-		SecondLevelCacheTest.class, SplitLoadingTest.class, SqlInjectionTest.class, SynonymTest.class })
-public class AllTests
-{
+@SuiteClasses({AlternateIdTest.class, ArrayTest.class, AutoIndexTrueTest.class,
+		AutoIndexFalseTest.class, BlobTest.class, CacheTypeTest.class, ClobTest.class,
+		CompositeIdTest.class, ConnectionTest.class, ConnectionHandlingTest.class,
+		CompositeIdExternalEntityTest.class, IgnoreTableTest.class, InterfaceEntityTest.class,
+		JDBCDatabaseTest.class, MapperTest.class, MapperPerformanceTest.class, MasterDetailTest.class,
+		MultiEventTest.class, OptimisticLockTest.class, RelationsTest.class,
+		RelationAutomappingTest.class, RelationUpdateTest.class, Relations20Test.class,
+		RootCacheInvalidationTest.class, SecondLevelCacheTest.class, SplitLoadingTest.class,
+		SqlInjectionTest.class, SynonymTest.class})
+public class AllTests {
 }

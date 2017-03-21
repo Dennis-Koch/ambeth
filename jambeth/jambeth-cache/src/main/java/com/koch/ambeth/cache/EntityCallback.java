@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface EntityCallback
-{
+public interface EntityCallback {
 
 	void invoke(Object entity);
 

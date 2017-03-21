@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.Collection;
 
-public interface IUser
-{
+public interface IUser {
 	public static final String Password = "Password";
 
 	public static final String PasswordHistory = "PasswordHistory";

@@ -32,64 +32,55 @@ import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 
-public class PrototypeContextHandle implements IContextHandle
-{
+public class PrototypeContextHandle implements IContextHandle {
 	@LogInstance
 	private ILogger log;
 
-	protected final ISet<IServiceContext> childContexts = new HashSet<IServiceContext>();
+	protected final ISet<IServiceContext> childContexts = new HashSet<>();
 
 	@Autowired
 	protected IContextFactory childContextFactory;
 
 	@Override
-	public IServiceContext start()
-	{
+	public IServiceContext start() {
 		IServiceContext childContext = childContextFactory.createChildContext(null);
 		childContexts.add(childContext);
 		return childContext;
 	}
 
 	@Override
-	public IServiceContext start(final IMap<String, Object> namedBeans)
-	{
-		IServiceContext childContext = childContextFactory.createChildContext(new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
-		{
+	public IServiceContext start(final IMap<String, Object> namedBeans) {
+		IServiceContext childContext = childContextFactory
+				.createChildContext(new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
 
-			@Override
-			public void invoke(IBeanContextFactory childContextFactory)
-			{
-				for (Entry<String, Object> entry : namedBeans)
-				{
-					String beanName = entry.getKey();
-					Object bean = entry.getValue();
-					childContextFactory.registerExternalBean(beanName, bean);
-				}
-			}
-		});
+					@Override
+					public void invoke(IBeanContextFactory childContextFactory) {
+						for (Entry<String, Object> entry : namedBeans) {
+							String beanName = entry.getKey();
+							Object bean = entry.getValue();
+							childContextFactory.registerExternalBean(beanName, bean);
+						}
+					}
+				});
 		childContexts.add(childContext);
 		return childContext;
 	}
 
 	@Override
-	public IServiceContext start(IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate)
-	{
+	public IServiceContext start(
+			IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate) {
 		IServiceContext childContext = childContextFactory.createChildContext(registerPhaseDelegate);
 		childContexts.add(childContext);
 		return childContext;
 	}
 
 	@Override
-	public void stop()
-	{
-		for (IServiceContext childContext : childContexts)
-		{
-			try
-			{
+	public void stop() {
+		for (IServiceContext childContext : childContexts) {
+			try {
 				childContext.dispose();
 			}
-			catch (Throwable e)
-			{
+			catch (Throwable e) {
 				log.error(e);
 			}
 		}

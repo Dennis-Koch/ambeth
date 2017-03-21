@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.merge.orm.IOrmConfigGroup;
 
-public interface IOrmDatabaseMapper
-{
+public interface IOrmDatabaseMapper {
 	void mapFields(IOrmConfigGroup ormConfigGroup);
 }

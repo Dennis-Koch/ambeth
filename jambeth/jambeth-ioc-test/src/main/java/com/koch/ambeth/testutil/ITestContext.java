@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.io.File;
 
-public interface ITestContext
-{
+public interface ITestContext {
 	File getContextFile(String fileName);
 
 	File getContextFile(String fileName, Class<?> testClass);

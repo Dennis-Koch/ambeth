@@ -22,10 +22,8 @@ limitations under the License.
 
 import com.koch.ambeth.model.AbstractEntity;
 
-public class ChildB extends AbstractEntity
-{
-	protected ChildB()
-	{
+public class ChildB extends AbstractEntity {
+	protected ChildB() {
 		// Intended blank
 	}
 }

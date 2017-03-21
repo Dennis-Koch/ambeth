@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IEntityPermissionRuleEvent
-{
+public interface IEntityPermissionRuleEvent {
 	// marker interface
 }

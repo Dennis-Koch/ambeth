@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IInjectNeedTargetProperty
-{
+public interface IInjectNeedTargetProperty {
 	void property(String propertyName);
 }

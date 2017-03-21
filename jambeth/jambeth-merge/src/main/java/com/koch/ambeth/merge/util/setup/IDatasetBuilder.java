@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.Collection;
 
-public interface IDatasetBuilder
-{
+public interface IDatasetBuilder {
 	Collection<Object> buildDataset();
 
 	Collection<Class<? extends IDatasetBuilder>> getDependsOn();

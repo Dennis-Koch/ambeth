@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IOrmXmlReaderRegistry
-{
+public interface IOrmXmlReaderRegistry {
 	IOrmXmlReader getOrmXmlReader(String version);
 }

@@ -34,11 +34,11 @@ import com.koch.ambeth.util.IDedicatedConverterExtendable;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 
-public class ClobToEnumConverter extends ClobToAnythingConverter
-{
+public class ClobToEnumConverter extends ClobToAnythingConverter {
 	public static final String HANDLE_ENTITY_META_DATA_ADDED_EVENT = "handleEntityMetaDataAddedEvent";
 
-	public static final String HANDLE_ENTITY_META_DATA_REMOVED_EVENT = "handleEntityMetaDataRemovedEvent";
+	public static final String HANDLE_ENTITY_META_DATA_REMOVED_EVENT =
+			"handleEntityMetaDataRemovedEvent";
 
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -50,57 +50,48 @@ public class ClobToEnumConverter extends ClobToAnythingConverter
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
-	protected final SmartCopyMap<Class<?>, Integer> propertyTypeToUsageCountMap = new SmartCopyMap<Class<?>, Integer>(0.5f);
+	protected final SmartCopyMap<Class<?>, Integer> propertyTypeToUsageCountMap =
+			new SmartCopyMap<>(0.5f);
 
-	protected HashMap<Class<?>, Runnable> deregisterRunnables = new HashMap<Class<?>, Runnable>();
+	protected HashMap<Class<?>, Runnable> deregisterRunnables = new HashMap<>();
 
-	public void handleEntityMetaDataAddedEvent(EntityMetaDataAddedEvent evnt)
-	{
-		for (Class<?> entityType : evnt.getEntityTypes())
-		{
+	public void handleEntityMetaDataAddedEvent(EntityMetaDataAddedEvent evnt) {
+		for (Class<?> entityType : evnt.getEntityTypes()) {
 			final IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-			for (PrimitiveMember member : metaData.getPrimitiveMembers())
-			{
+			for (PrimitiveMember member : metaData.getPrimitiveMembers()) {
 				Class<?> elementType = member.getElementType();
-				if (!elementType.isEnum())
-				{
+				if (!elementType.isEnum()) {
 					continue;
 				}
 				Integer usageCount = propertyTypeToUsageCountMap.get(elementType);
-				if (usageCount == null)
-				{
+				if (usageCount == null) {
 					usageCount = Integer.valueOf(1);
 					dedicatedConverterExtendable.registerDedicatedConverter(this, Clob.class, elementType);
 					dedicatedConverterExtendable.registerDedicatedConverter(this, elementType, Clob.class);
 				}
-				else
-				{
+				else {
 					usageCount = Integer.valueOf(usageCount.intValue() + 1);
 				}
 				propertyTypeToUsageCountMap.put(elementType, usageCount);
 			}
-			deregisterRunnables.put(entityType, new Runnable()
-			{
+			deregisterRunnables.put(entityType, new Runnable() {
 				@Override
-				public void run()
-				{
-					for (PrimitiveMember member : metaData.getPrimitiveMembers())
-					{
+				public void run() {
+					for (PrimitiveMember member : metaData.getPrimitiveMembers()) {
 						Class<?> elementType = member.getElementType();
-						if (!elementType.isEnum())
-						{
+						if (!elementType.isEnum()) {
 							continue;
 						}
 						Integer usageCount = propertyTypeToUsageCountMap.get(elementType);
-						if (usageCount == null)
-						{
+						if (usageCount == null) {
 							throw new IllegalStateException("Must never happen");
 						}
 						usageCount = Integer.valueOf(usageCount.intValue() - 1);
-						if (usageCount.intValue() > 0)
-						{
-							dedicatedConverterExtendable.unregisterDedicatedConverter(ClobToEnumConverter.this, Clob.class, elementType);
-							dedicatedConverterExtendable.unregisterDedicatedConverter(ClobToEnumConverter.this, elementType, Clob.class);
+						if (usageCount.intValue() > 0) {
+							dedicatedConverterExtendable.unregisterDedicatedConverter(ClobToEnumConverter.this,
+									Clob.class, elementType);
+							dedicatedConverterExtendable.unregisterDedicatedConverter(ClobToEnumConverter.this,
+									elementType, Clob.class);
 						}
 						propertyTypeToUsageCountMap.put(elementType, usageCount);
 					}
@@ -109,13 +100,10 @@ public class ClobToEnumConverter extends ClobToAnythingConverter
 		}
 	}
 
-	public void handleEntityMetaDataRemovedEvent(EntityMetaDataRemovedEvent evnt)
-	{
-		for (Class<?> entityType : evnt.getEntityTypes())
-		{
+	public void handleEntityMetaDataRemovedEvent(EntityMetaDataRemovedEvent evnt) {
+		for (Class<?> entityType : evnt.getEntityTypes()) {
 			Runnable runnable = deregisterRunnables.get(entityType);
-			if (runnable != null)
-			{
+			if (runnable != null) {
 				runnable.run();
 			}
 			deregisterRunnables.remove(entityType);

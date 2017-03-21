@@ -31,36 +31,35 @@ import com.koch.ambeth.merge.bytecode.visitor.EntityMetaDataMemberVisitor;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 
-public class GetIdMethodCreator extends ClassGenerator
-{
+public class GetIdMethodCreator extends ClassGenerator {
 	protected final IEntityMetaData metaData;
 
-	private static final MethodInstance template_m_entityEquals_getId = new MethodInstance(null, IEntityEquals.class, Object.class, "get__Id");
+	private static final MethodInstance template_m_entityEquals_getId =
+			new MethodInstance(null, IEntityEquals.class, Object.class, "get__Id");
 
-	public static MethodInstance getGetId()
-	{
+	public static MethodInstance getGetId() {
 		return MethodInstance.findByTemplate(template_m_entityEquals_getId, false);
 	}
 
-	public GetIdMethodCreator(ClassVisitor cv, IEntityMetaData metaData)
-	{
+	public GetIdMethodCreator(ClassVisitor cv, IEntityMetaData metaData) {
 		super(cv);
 		this.metaData = metaData;
 	}
 
 	@Override
-	public void visitEnd()
-	{
-		MethodInstance m_get__Id = MethodInstance.findByTemplate(GetIdMethodCreator.template_m_entityEquals_getId, true);
-		if (m_get__Id != null)
-		{
+	public void visitEnd() {
+		MethodInstance m_get__Id =
+				MethodInstance.findByTemplate(GetIdMethodCreator.template_m_entityEquals_getId, true);
+		if (m_get__Id != null) {
 			super.visitEnd();
 			return;
 		}
-		MethodInstance m_getEntityMetaData = EntityMetaDataHolderVisitor.getImplementedGetEntityMetaData(this, metaData);
+		MethodInstance m_getEntityMetaData =
+				EntityMetaDataHolderVisitor.getImplementedGetEntityMetaData(this, metaData);
 		MethodGenerator mg = visitMethod(GetIdMethodCreator.template_m_entityEquals_getId);
 		mg.callThisGetter(m_getEntityMetaData);
-		mg.invokeInterface(new MethodInstance(null, IEntityMetaData.class, PrimitiveMember.class, "getIdMember"));
+		mg.invokeInterface(
+				new MethodInstance(null, IEntityMetaData.class, PrimitiveMember.class, "getIdMember"));
 		mg.loadThis();
 		mg.push(false);
 		mg.invokeVirtual(EntityMetaDataMemberVisitor.template_m_getValueWithFlag);
@@ -70,10 +69,8 @@ public class GetIdMethodCreator extends ClassGenerator
 		super.visitEnd();
 	}
 
-	protected Type getDeclaringType(java.lang.reflect.Member member, Type newEntityType)
-	{
-		if (member.getDeclaringClass().isInterface())
-		{
+	protected Type getDeclaringType(java.lang.reflect.Member member, Type newEntityType) {
+		if (member.getDeclaringClass().isInterface()) {
 			return newEntityType;
 		}
 		return Type.getType(member.getDeclaringClass());

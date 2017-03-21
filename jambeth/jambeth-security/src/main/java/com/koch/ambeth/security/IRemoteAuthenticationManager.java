@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IRemoteAuthenticationManager
-{
+public interface IRemoteAuthenticationManager {
 	Object attemptAuthentication(String userName, String userpassword);
 }

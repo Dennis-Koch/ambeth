@@ -270,7 +270,7 @@ public class ChildCache extends AbstractCache<Object>
 		if (oriToGet == null) {
 			return null;
 		}
-		ArrayList<IObjRef> orisToGet = new ArrayList<IObjRef>(1);
+		ArrayList<IObjRef> orisToGet = new ArrayList<>(1);
 		orisToGet.add(oriToGet);
 		List<Object> objects = getObjects(orisToGet, targetCache, cacheDirective);
 		if (objects.isEmpty()) {
@@ -308,7 +308,7 @@ public class ChildCache extends AbstractCache<Object>
 						|| cacheDirective.contains(CacheDirective.CacheValueResult)) {
 					return parent.getObjects(orisToGet, this, cacheDirective);
 				}
-				ParamHolder<Boolean> doAnotherRetry = new ParamHolder<Boolean>();
+				ParamHolder<Boolean> doAnotherRetry = new ParamHolder<>();
 				while (true) {
 					doAnotherRetry.setValue(Boolean.FALSE);
 					IList<Object> result = getObjectsRetry(orisToGet, cacheDirective, doAnotherRetry);
@@ -341,7 +341,7 @@ public class ChildCache extends AbstractCache<Object>
 				readLock.unlock();
 			}
 		}
-		ArrayList<IObjRef> orisToLoad = new ArrayList<IObjRef>();
+		ArrayList<IObjRef> orisToLoad = new ArrayList<>();
 		int cacheVersionBeforeLongTimeAction = waitForConcurrentReadFinish(orisToGet, orisToLoad);
 		if (orisToLoad.size() == 0) {
 			// Everything found in the cache. We STILL hold the readlock so we can immediately create the
@@ -419,7 +419,7 @@ public class ChildCache extends AbstractCache<Object>
 
 	protected IList<Object> createResult(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective,
 			boolean checkVersion) {
-		ArrayList<Object> result = new ArrayList<Object>(orisToGet.size());
+		ArrayList<Object> result = new ArrayList<>(orisToGet.size());
 
 		boolean returnMisses = cacheDirective.contains(CacheDirective.ReturnMisses);
 

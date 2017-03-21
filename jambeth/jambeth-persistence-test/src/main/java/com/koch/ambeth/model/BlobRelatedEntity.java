@@ -20,34 +20,28 @@ limitations under the License.
  * #L%
  */
 
-public class BlobRelatedEntity extends AbstractEntity
-{
+public class BlobRelatedEntity extends AbstractEntity {
 	protected String name;
 
 	protected BlobObject blob;
 
-	protected BlobRelatedEntity()
-	{
+	protected BlobRelatedEntity() {
 		// Intended blank
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public BlobObject getBlob()
-	{
+	public BlobObject getBlob() {
 		return blob;
 	}
 
-	public void setBlob(BlobObject blob)
-	{
+	public void setBlob(BlobObject blob) {
 		this.blob = blob;
 	}
 }

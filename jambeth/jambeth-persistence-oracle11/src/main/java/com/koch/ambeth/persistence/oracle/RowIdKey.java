@@ -23,37 +23,30 @@ limitations under the License.
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
-public class RowIdKey
-{
+public class RowIdKey {
 	private static final Charset utf8 = Charset.forName("UTF-8");
 
 	protected final byte[] value;
 
-	public RowIdKey(byte[] value)
-	{
+	public RowIdKey(byte[] value) {
 		this.value = value;
 	}
 
-	public byte[] getValue()
-	{
+	public byte[] getValue() {
 		return value;
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return Arrays.hashCode(value);
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == this)
-		{
+	public boolean equals(Object obj) {
+		if (obj == this) {
 			return true;
 		}
-		if (!(obj instanceof RowIdKey))
-		{
+		if (!(obj instanceof RowIdKey)) {
 			return false;
 		}
 		RowIdKey other = (RowIdKey) obj;
@@ -61,8 +54,7 @@ public class RowIdKey
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return new String(value, utf8);
 	}
 }

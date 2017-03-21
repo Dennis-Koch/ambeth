@@ -45,23 +45,19 @@ import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
 import net.sf.cglib.proxy.MethodProxy;
 
-public class CacheProviderInterceptor extends AbstractSimpleInterceptor implements ICacheProviderExtendable, ICacheProvider, ICacheContext,
-		IThreadLocalCleanupBean
-{
-	private static final Set<Method> methodsDirectlyToRootCache = new HashSet<Method>();
+public class CacheProviderInterceptor extends AbstractSimpleInterceptor
+		implements ICacheProviderExtendable, ICacheProvider, ICacheContext, IThreadLocalCleanupBean {
+	private static final Set<Method> methodsDirectlyToRootCache = new HashSet<>();
 
 	private static final Method currentCacheMethod;
 
-	static
-	{
-		try
-		{
+	static {
+		try {
 			methodsDirectlyToRootCache.add(ICache.class.getMethod("getReadLock"));
 			methodsDirectlyToRootCache.add(ICache.class.getMethod("getWriteLock"));
 			currentCacheMethod = ICache.class.getMethod("getCurrentCache");
 		}
-		catch (NoSuchMethodException e)
-		{
+		catch (NoSuchMethodException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -70,10 +66,11 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 	@LogInstance
 	private ILogger log;
 
-	protected final Stack<ICacheProvider> cacheProviderStack = new Stack<ICacheProvider>();
+	protected final Stack<ICacheProvider> cacheProviderStack = new Stack<>();
 
 	@Forkable(ForkableType.SHALLOW_COPY)
-	protected final ThreadLocal<Stack<ICacheProvider>> cacheProviderStackTL = new SensitiveThreadLocal<Stack<ICacheProvider>>();
+	protected final ThreadLocal<Stack<ICacheProvider>> cacheProviderStackTL =
+			new SensitiveThreadLocal<>();
 
 	@Autowired
 	protected ICacheProvider threadLocalCacheProvider;
@@ -82,154 +79,133 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 	protected IRootCache rootCache;
 
 	@Override
-	public void cleanupThreadLocal()
-	{
+	public void cleanupThreadLocal() {
 		cacheProviderStackTL.remove();
 	}
 
 	@Override
-	public void registerCacheProvider(ICacheProvider cacheProvider)
-	{
+	public void registerCacheProvider(ICacheProvider cacheProvider) {
 		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
 		cacheProviderStack.push(cacheProvider);
 	}
 
 	@Override
-	public void unregisterCacheProvider(ICacheProvider cacheProvider)
-	{
+	public void unregisterCacheProvider(ICacheProvider cacheProvider) {
 		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
-		if (cacheProviderStack.peek() != cacheProvider)
-		{
-			throw new IllegalStateException("The current cacheProvider is not the one specified to unregister");
+		if (cacheProviderStack.peek() != cacheProvider) {
+			throw new IllegalStateException(
+					"The current cacheProvider is not the one specified to unregister");
 		}
 		cacheProviderStack.pop();
 	}
 
-	public ICacheProvider getCurrentCacheProvider()
-	{
+	public ICacheProvider getCurrentCacheProvider() {
 		Stack<ICacheProvider> stack = cacheProviderStackTL.get();
-		if (stack != null && stack.size() > 0)
-		{
+		if (stack != null && stack.size() > 0) {
 			return stack.peek();
 		}
-		if (cacheProviderStack.size() > 0)
-		{
+		if (cacheProviderStack.size() > 0) {
 			return cacheProviderStack.peek();
 		}
 		return null;
 	}
 
 	@Override
-	public ICache getCurrentCache()
-	{
+	public ICache getCurrentCache() {
 		return getCurrentCacheProvider().getCurrentCache();
 	}
 
 	@Override
-	public boolean isNewInstanceOnCall()
-	{
+	public boolean isNewInstanceOnCall() {
 		return getCurrentCacheProvider().isNewInstanceOnCall();
 	}
 
 	@Override
-	public <R> R executeWithCache(IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable
-	{
+	public <R> R executeWithCache(IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable {
 		return executeWithCache(threadLocalCacheProvider, runnable);
 	}
 
 	@Override
-	public <R, T> R executeWithCache(IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state) throws Throwable
-	{
+	public <R, T> R executeWithCache(IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state)
+			throws Throwable {
 		return executeWithCache(threadLocalCacheProvider, runnable, state);
 	}
 
 	@Override
-	public <R> R executeWithCache(ICacheProvider cacheProvider, IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable
-	{
+	public <R> R executeWithCache(ICacheProvider cacheProvider,
+			IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable {
 		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
 		ParamChecker.assertParamNotNull(runnable, "runnable");
 
 		Stack<ICacheProvider> stack = cacheProviderStackTL.get();
-		if (stack == null)
-		{
-			stack = new Stack<ICacheProvider>();
+		if (stack == null) {
+			stack = new Stack<>();
 			cacheProviderStackTL.set(stack);
 		}
 		stack.push(cacheProvider);
-		try
-		{
+		try {
 			return runnable.invoke();
 		}
-		finally
-		{
-			if (stack.pop() != cacheProvider)
-			{
+		finally {
+			if (stack.pop() != cacheProvider) {
 				throw new IllegalStateException("Must never happen");
 			}
 		}
 	}
 
 	@Override
-	public <R, T> R executeWithCache(ICacheProvider cacheProvider, IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state) throws Throwable
-	{
+	public <R, T> R executeWithCache(ICacheProvider cacheProvider,
+			IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state) throws Throwable {
 		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
 		ParamChecker.assertParamNotNull(runnable, "runnable");
 
 		Stack<ICacheProvider> stack = cacheProviderStackTL.get();
-		if (stack == null)
-		{
-			stack = new Stack<ICacheProvider>();
+		if (stack == null) {
+			stack = new Stack<>();
 			cacheProviderStackTL.set(stack);
 		}
 		stack.push(cacheProvider);
-		try
-		{
+		try {
 			return runnable.invoke(state);
 		}
-		finally
-		{
-			if (stack.pop() != cacheProvider)
-			{
+		finally {
+			if (stack.pop() != cacheProvider) {
 				throw new IllegalStateException("Must never happen");
 			}
 		}
 	}
 
 	@Override
-	public <R> R executeWithCache(ICache cache, IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable
-	{
+	public <R> R executeWithCache(ICache cache, IResultingBackgroundWorkerDelegate<R> runnable)
+			throws Throwable {
 		ParamChecker.assertParamNotNull(cache, "cache");
 		ParamChecker.assertParamNotNull(runnable, "runnable");
 		return executeWithCache(new SingleCacheProvider(cache), runnable);
 	}
 
 	@Override
-	public <R, T> R executeWithCache(ICache cache, IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state) throws Throwable
-	{
+	public <R, T> R executeWithCache(ICache cache,
+			IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state) throws Throwable {
 		ParamChecker.assertParamNotNull(cache, "cache");
 		ParamChecker.assertParamNotNull(runnable, "runnable");
 		return executeWithCache(new SingleCacheProvider(cache), runnable, state);
 	}
 
 	@Override
-	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
-	{
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy)
+			throws Throwable {
 		ICacheProvider cacheProvider = getCurrentCacheProvider();
-		if (cacheProvider == null && currentCacheMethod.equals(method))
-		{
+		if (cacheProvider == null && currentCacheMethod.equals(method)) {
 			return null;
 		}
-		if (method.getDeclaringClass().equals(ICacheProvider.class))
-		{
+		if (method.getDeclaringClass().equals(ICacheProvider.class)) {
 			return proxy.invoke(cacheProvider, args);
 		}
 		Object target;
-		if (!cacheProvider.isNewInstanceOnCall() || !methodsDirectlyToRootCache.contains(method))
-		{
+		if (!cacheProvider.isNewInstanceOnCall() || !methodsDirectlyToRootCache.contains(method)) {
 			target = cacheProvider.getCurrentCache();
 		}
-		else
-		{
+		else {
 			target = rootCache;
 		}
 		return proxy.invoke(target, args);

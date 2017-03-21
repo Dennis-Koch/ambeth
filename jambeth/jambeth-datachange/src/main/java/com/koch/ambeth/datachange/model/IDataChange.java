@@ -25,8 +25,7 @@ import java.util.List;
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface IDataChange
-{
+public interface IDataChange {
 	long getChangeTime();
 
 	List<IDataChangeEntry> getAll();

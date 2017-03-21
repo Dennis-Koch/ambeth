@@ -23,6 +23,6 @@ limitations under the License.
 import com.koch.ambeth.merge.orm.blueprint.IEntityAnnotationPropertyBlueprint;
 import com.koch.ambeth.model.IAbstractEntity;
 
-public interface EntityAnnotationPropertyBlueprint extends IAbstractEntity, IEntityAnnotationPropertyBlueprint
-{
+public interface EntityAnnotationPropertyBlueprint
+		extends IAbstractEntity, IEntityAnnotationPropertyBlueprint {
 }

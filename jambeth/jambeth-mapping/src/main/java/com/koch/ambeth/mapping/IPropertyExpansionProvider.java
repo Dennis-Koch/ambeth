@@ -20,14 +20,13 @@ limitations under the License.
  * #L%
  */
 
-public interface IPropertyExpansionProvider
-{
+public interface IPropertyExpansionProvider {
 	/**
 	 * load the propertyExpansion for a given class and path
-	 * 
+	 *
 	 * @param entityType
-	 * @param propertyPath
-	 *            starting at the entityType, separated with . (dots) (e.g. someRelation.someOtherRelation.someProperty
+	 * @param propertyPath starting at the entityType, separated with . (dots) (e.g.
+	 *        someRelation.someOtherRelation.someProperty
 	 * @return
 	 */
 	PropertyExpansion getPropertyExpansion(Class<?> entityType, String propertyPath);

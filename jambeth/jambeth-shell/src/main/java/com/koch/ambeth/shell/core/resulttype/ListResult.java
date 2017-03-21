@@ -22,22 +22,18 @@ limitations under the License.
 
 import java.util.ArrayList;
 
-public class ListResult<T> extends CommandResult
-{
+public class ListResult<T> extends CommandResult {
 
 	private java.util.List<T> list;
 
 	/**
 	 * add a record to the instance
 	 *
-	 * @param record
-	 *            instance of class that extends {@link CommandResult}
+	 * @param record instance of class that extends {@link CommandResult}
 	 */
-	public void addRecord(T record)
-	{
-		if (list == null)
-		{
-			list = new ArrayList<T>();
+	public void addRecord(T record) {
+		if (list == null) {
+			list = new ArrayList<>();
 		}
 		list.add(record);
 	}
@@ -45,13 +41,10 @@ public class ListResult<T> extends CommandResult
 	/**
 	 * remove a record from the instance
 	 *
-	 * @param record
-	 *            instance of class that extends {@link CommandResult}
+	 * @param record instance of class that extends {@link CommandResult}
 	 */
-	public void removeRecord(T record)
-	{
-		if (list != null)
-		{
+	public void removeRecord(T record) {
+		if (list != null) {
 			list.remove(record);
 		}
 	}
@@ -59,7 +52,8 @@ public class ListResult<T> extends CommandResult
 	/**
 	 * get all the records from the instance
 	 * <p>
-	 * the result is a instance of java.util.List, which contains instances of class that extends {@link CommandResult}.
+	 * the result is a instance of java.util.List, which contains instances of class that extends
+	 * {@link CommandResult}.
 	 * </p>
 	 * <p>
 	 * the {@link CommandResult} instances can be mixture of all its subClass.
@@ -67,21 +61,17 @@ public class ListResult<T> extends CommandResult
 	 *
 	 * @return {@link ListResult}
 	 */
-	public java.util.List<T> getAllRecords()
-	{
+	public java.util.List<T> getAllRecords() {
 		return list;
 	}
 
 	@Override
-	public String toString()
-	{
-		if (list == null)
-		{
+	public String toString() {
+		if (list == null) {
 			return "";
 		}
 		StringBuffer strBuf = new StringBuffer();
-		for (T commandResult : list)
-		{
+		for (T commandResult : list) {
 			strBuf.append(commandResult.toString()).append(System.lineSeparator());
 		}
 		return strBuf.toString();

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public enum EntityCheckerResult
-{
+public enum EntityCheckerResult {
 
 	UNDEFINED, INITIALIZED, NOT_INITIALIZED;
 

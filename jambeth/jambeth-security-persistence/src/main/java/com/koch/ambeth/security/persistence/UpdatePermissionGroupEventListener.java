@@ -26,8 +26,7 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 
-public class UpdatePermissionGroupEventListener
-{
+public class UpdatePermissionGroupEventListener {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -35,11 +34,9 @@ public class UpdatePermissionGroupEventListener
 	@Autowired
 	protected IPermissionGroupUpdater permissionGroupUpdater;
 
-	public void handleDataChangeOfSession(IDataChangeOfSession dataChangeOfSession) throws Throwable
-	{
+	public void handleDataChangeOfSession(IDataChangeOfSession dataChangeOfSession) throws Throwable {
 		IDataChange dataChange = dataChangeOfSession.getDataChange();
-		if (dataChange.isEmpty())
-		{
+		if (dataChange.isEmpty()) {
 			return;
 		}
 		permissionGroupUpdater.updatePermissionGroups(dataChange);

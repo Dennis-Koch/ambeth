@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.io.Closeable;
 
-public interface IDotWriter extends Closeable
-{
+public interface IDotWriter extends Closeable {
 	IDotNode openNode(Object node);
 
 	IDotNode openNode(String nodeName);

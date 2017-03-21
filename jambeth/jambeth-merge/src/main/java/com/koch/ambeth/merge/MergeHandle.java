@@ -35,15 +35,16 @@ import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.collections.IdentityLinkedMap;
 
-public class MergeHandle
-{
-	protected final IdentityHashSet<Object> alreadyProcessedSet = new IdentityHashSet<Object>();
-	protected final IdentityHashMap<Object, IObjRef> objToOriDict = new IdentityHashMap<Object, IObjRef>();
-	protected final HashMap<IObjRef, Object> oriToObjDict = new HashMap<IObjRef, Object>();
-	protected final IdentityLinkedMap<Object, IList<IUpdateItem>> objToModDict = new IdentityLinkedMap<Object, IList<IUpdateItem>>();
+public class MergeHandle {
+	protected final IdentityHashSet<Object> alreadyProcessedSet = new IdentityHashSet<>();
+	protected final IdentityHashMap<Object, IObjRef> objToOriDict =
+			new IdentityHashMap<>();
+	protected final HashMap<IObjRef, Object> oriToObjDict = new HashMap<>();
+	protected final IdentityLinkedMap<Object, IList<IUpdateItem>> objToModDict =
+			new IdentityLinkedMap<>();
 
-	protected final ArrayList<IObjRef> oldOrList = new ArrayList<IObjRef>();
-	protected final ArrayList<IObjRef> newOrList = new ArrayList<IObjRef>();
+	protected final ArrayList<IObjRef> oldOrList = new ArrayList<>();
+	protected final ArrayList<IObjRef> newOrList = new ArrayList<>();
 
 	protected ICache cache;
 
@@ -60,109 +61,89 @@ public class MergeHandle
 
 	protected boolean isDeepMerge = true;
 
-	protected final IdentityHashSet<Object> objToDeleteSet = new IdentityHashSet<Object>();
+	protected final IdentityHashSet<Object> objToDeleteSet = new IdentityHashSet<>();
 
-	protected final ArrayList<Object> pendingValueHolders = new ArrayList<Object>();
+	protected final ArrayList<Object> pendingValueHolders = new ArrayList<>();
 
-	protected final ArrayList<Runnable> pendingRunnables = new ArrayList<Runnable>();
+	protected final ArrayList<Runnable> pendingRunnables = new ArrayList<>();
 
-	public boolean isFieldBasedMergeActive()
-	{
+	public boolean isFieldBasedMergeActive() {
 		return fieldBasedMergeActive;
 	}
 
-	public Map<Object, IObjRef> getObjToOriDict()
-	{
+	public Map<Object, IObjRef> getObjToOriDict() {
 		return objToOriDict;
 	}
 
-	public Map<IObjRef, Object> getOriToObjDict()
-	{
+	public Map<IObjRef, Object> getOriToObjDict() {
 		return oriToObjDict;
 	}
 
-	public ISet<Object> getObjToDeleteSet()
-	{
+	public ISet<Object> getObjToDeleteSet() {
 		return objToDeleteSet;
 	}
 
-	public ICache getCache()
-	{
+	public ICache getCache() {
 		return cache;
 	}
 
-	public void setCache(ICache cache)
-	{
+	public void setCache(ICache cache) {
 		this.cache = cache;
 	}
 
-	public ICache getPrivilegedCache()
-	{
+	public ICache getPrivilegedCache() {
 		return privilegedCache;
 	}
 
-	public void setPrivilegedCache(ICache privilegedCache)
-	{
+	public void setPrivilegedCache(ICache privilegedCache) {
 		this.privilegedCache = privilegedCache;
 	}
 
-	public IList<IObjRef> getOldOrList()
-	{
+	public IList<IObjRef> getOldOrList() {
 		return oldOrList;
 	}
 
-	public IList<IObjRef> getNewOrList()
-	{
+	public IList<IObjRef> getNewOrList() {
 		return newOrList;
 	}
 
-	public IList<Runnable> getPendingRunnables()
-	{
+	public IList<Runnable> getPendingRunnables() {
 		return pendingRunnables;
 	}
 
-	public IList<Object> getPendingValueHolders()
-	{
+	public IList<Object> getPendingValueHolders() {
 		return pendingValueHolders;
 	}
 
-	public boolean isDeepMerge()
-	{
+	public boolean isDeepMerge() {
 		return isDeepMerge;
 	}
 
-	public void setDeepMerge(boolean isDeepMerge)
-	{
+	public void setDeepMerge(boolean isDeepMerge) {
 		this.isDeepMerge = isDeepMerge;
 	}
 
-	public boolean isHandleExistingIdAsNewId()
-	{
+	public boolean isHandleExistingIdAsNewId() {
 		return handleExistingIdAsNewId;
 	}
 
-	public void setHandleExistingIdAsNewId(boolean handleExistingIdAsNewId)
-	{
+	public void setHandleExistingIdAsNewId(boolean handleExistingIdAsNewId) {
 		this.handleExistingIdAsNewId = handleExistingIdAsNewId;
 	}
 
-	public boolean isCacheToDispose()
-	{
+	public boolean isCacheToDispose() {
 		return isCacheToDispose;
 	}
 
-	public void setCacheToDispose(boolean isCacheToDispose)
-	{
+	public void setCacheToDispose(boolean isCacheToDispose) {
 		this.isCacheToDispose = isCacheToDispose;
 	}
 
-	public boolean isPrivilegedCacheToDispose()
-	{
+	public boolean isPrivilegedCacheToDispose() {
 		return isPrivilegedCacheToDispose;
 	}
 
-	public void setPrivilegedCacheToDispose(boolean isPrivilegedCacheToDispose)
-	{
+	public void setPrivilegedCacheToDispose(boolean isPrivilegedCacheToDispose) {
 		this.isPrivilegedCacheToDispose = isPrivilegedCacheToDispose;
 	}
 }

@@ -30,8 +30,7 @@ import com.koch.ambeth.persistence.api.IPermissionGroup;
 import com.koch.ambeth.persistence.api.ITableMetaData;
 import com.koch.ambeth.util.IPrintable;
 
-public class PermissionGroup implements IPermissionGroup, IPrintable
-{
+public class PermissionGroup implements IPermissionGroup, IPrintable {
 	public static final String permGroupPrefix = "";
 
 	public static final String permGroupSuffix = "_PG";
@@ -79,65 +78,56 @@ public class PermissionGroup implements IPermissionGroup, IPrintable
 	protected ITableMetaData table;
 
 	@Override
-	public ITableMetaData getTable()
-	{
+	public ITableMetaData getTable() {
 		return table;
 	}
 
 	@Override
-	public ITableMetaData getTargetTable()
-	{
+	public ITableMetaData getTargetTable() {
 		return targetTable;
 	}
 
 	@Override
-	public IFieldMetaData getPermissionGroupFieldOnTarget()
-	{
+	public IFieldMetaData getPermissionGroupFieldOnTarget() {
 		return permissionGroupFieldOnTarget;
 	}
 
 	@Override
-	public IFieldMetaData getUserField()
-	{
+	public IFieldMetaData getUserField() {
 		return userField;
 	}
 
 	@Override
-	public IFieldMetaData getPermissionGroupField()
-	{
+	public IFieldMetaData getPermissionGroupField() {
 		return permissionGroupField;
 	}
 
 	@Override
-	public IFieldMetaData getReadPermissionField()
-	{
+	public IFieldMetaData getReadPermissionField() {
 		return readPermissionField;
 	}
 
 	@Override
-	public IFieldMetaData getUpdatePermissionField()
-	{
+	public IFieldMetaData getUpdatePermissionField() {
 		return updatePermissionField;
 	}
 
 	@Override
-	public IFieldMetaData getDeletePermissionField()
-	{
+	public IFieldMetaData getDeletePermissionField() {
 		return deletePermissionField;
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		toString(sb);
 		return sb.toString();
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
-		sb.append(getClass().getSimpleName()).append(": ").append(getTable().getName()).append(" applied to ").append(getTargetTable().getName()).append('.')
+	public void toString(StringBuilder sb) {
+		sb.append(getClass().getSimpleName()).append(": ").append(getTable().getName())
+				.append(" applied to ").append(getTargetTable().getName()).append('.')
 				.append(getPermissionGroupFieldOnTarget().getName());
 	}
 }

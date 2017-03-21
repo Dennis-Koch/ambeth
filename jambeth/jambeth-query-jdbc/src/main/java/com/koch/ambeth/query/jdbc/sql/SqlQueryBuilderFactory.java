@@ -39,8 +39,8 @@ import com.koch.ambeth.query.IQueryBuilderFactory;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 
-public class SqlQueryBuilderFactory implements IQueryBuilderFactory, IQueryBuilderExtensionExtendable, IInitializingBean
-{
+public class SqlQueryBuilderFactory
+		implements IQueryBuilderFactory, IQueryBuilderExtensionExtendable, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -57,8 +57,9 @@ public class SqlQueryBuilderFactory implements IQueryBuilderFactory, IQueryBuild
 	@Autowired
 	protected ILightweightTransaction transaction;
 
-	protected final DefaultExtendableContainer<IQueryBuilderExtension> queryBuilderExtensions = new DefaultExtendableContainer<IQueryBuilderExtension>(
-			IQueryBuilderExtension.class, "queryBuilderExtension");
+	protected final DefaultExtendableContainer<IQueryBuilderExtension> queryBuilderExtensions =
+			new DefaultExtendableContainer<>(IQueryBuilderExtension.class,
+					"queryBuilderExtension");
 
 	@SuppressWarnings("rawtypes")
 	protected IGarbageProxyConstructor<IQueryBuilder> queryBuilderGPC;
@@ -68,35 +69,27 @@ public class SqlQueryBuilderFactory implements IQueryBuilderFactory, IQueryBuild
 	protected volatile boolean firstQueryBuilder = true;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		queryBuilderGPC = garbageProxyFactory.createGarbageProxyConstructor(IQueryBuilder.class);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> IQueryBuilder<T> create(Class<T> entityType)
-	{
-		if (firstQueryBuilder)
-		{
+	public <T> IQueryBuilder<T> create(Class<T> entityType) {
+		if (firstQueryBuilder) {
 			writeLock.lock();
-			try
-			{
-				if (firstQueryBuilder)
-				{
-					transaction.runInTransaction(new IBackgroundWorkerDelegate()
-					{
+			try {
+				if (firstQueryBuilder) {
+					transaction.runInTransaction(new IBackgroundWorkerDelegate() {
 						@Override
-						public void invoke() throws Throwable
-						{
+						public void invoke() throws Throwable {
 							// intended blank
 						}
 					});
 					firstQueryBuilder = false;
 				}
 			}
-			finally
-			{
+			finally {
 				writeLock.unlock();
 			}
 		}
@@ -112,14 +105,12 @@ public class SqlQueryBuilderFactory implements IQueryBuilderFactory, IQueryBuild
 	}
 
 	@Override
-	public void registerQueryBuilderExtension(IQueryBuilderExtension queryBuilderExtension)
-	{
+	public void registerQueryBuilderExtension(IQueryBuilderExtension queryBuilderExtension) {
 		queryBuilderExtensions.register(queryBuilderExtension);
 	}
 
 	@Override
-	public void unregisterQueryBuilderExtension(IQueryBuilderExtension queryBuilderExtension)
-	{
+	public void unregisterQueryBuilderExtension(IQueryBuilderExtension queryBuilderExtension) {
 		queryBuilderExtensions.unregister(queryBuilderExtension);
 	}
 }

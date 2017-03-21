@@ -20,17 +20,14 @@ limitations under the License.
  * #L%
  */
 
-public class IntervalInfo
-{
+public class IntervalInfo {
 	protected final long startedTime;
 
-	public IntervalInfo(long startedTime)
-	{
+	public IntervalInfo(long startedTime) {
 		this.startedTime = startedTime;
 	}
 
-	public long getStartedTime()
-	{
+	public long getStartedTime() {
 		return startedTime;
 	}
 }

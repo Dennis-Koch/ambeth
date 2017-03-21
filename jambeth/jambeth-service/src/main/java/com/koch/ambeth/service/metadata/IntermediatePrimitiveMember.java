@@ -25,8 +25,7 @@ import java.util.Collection;
 
 import com.koch.ambeth.util.collections.HashMap;
 
-public class IntermediatePrimitiveMember extends PrimitiveMember implements IPrimitiveMemberWrite
-{
+public class IntermediatePrimitiveMember extends PrimitiveMember implements IPrimitiveMemberWrite {
 	protected final String propertyName;
 
 	protected final Class<?> entityType;
@@ -45,145 +44,122 @@ public class IntermediatePrimitiveMember extends PrimitiveMember implements IPri
 
 	protected PrimitiveMember definedBy;
 
-	public IntermediatePrimitiveMember(Class<?> declaringType, Class<?> entityType, Class<?> realType, Class<?> elementType, String propertyName,
-			Annotation[] annotations)
-	{
+	public IntermediatePrimitiveMember(Class<?> declaringType, Class<?> entityType, Class<?> realType,
+			Class<?> elementType, String propertyName, Annotation[] annotations) {
 		this.declaringType = declaringType;
 		this.entityType = entityType;
 		this.realType = realType;
 		this.elementType = elementType;
 		this.propertyName = propertyName;
-		if (annotations != null)
-		{
-			annotationMap = new HashMap<Class<?>, Annotation>();
-			for (Annotation annotation : annotations)
-			{
+		if (annotations != null) {
+			annotationMap = new HashMap<>();
+			for (Annotation annotation : annotations) {
 				annotationMap.put(annotation.annotationType(), annotation);
 			}
 		}
-		else
-		{
+		else {
 			annotationMap = null;
 		}
 	}
 
 	@Override
-	public boolean canRead()
-	{
+	public boolean canRead() {
 		return true;
 	}
 
 	@Override
-	public boolean canWrite()
-	{
+	public boolean canWrite() {
 		return true;
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return propertyName;
 	}
 
 	@Override
-	public Class<?> getDeclaringType()
-	{
+	public Class<?> getDeclaringType() {
 		return declaringType;
 	}
 
 	@Override
-	public Class<?> getRealType()
-	{
+	public Class<?> getRealType() {
 		return realType;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends Annotation> V getAnnotation(Class<V> annotationType)
-	{
+	public <V extends Annotation> V getAnnotation(Class<V> annotationType) {
 		return (V) annotationMap.get(annotationType);
 	}
 
-	protected RuntimeException createException()
-	{
-		return new UnsupportedOperationException("This in an intermediate member which works only as a stub for a later bytecode-enhanced member");
+	protected RuntimeException createException() {
+		return new UnsupportedOperationException(
+				"This in an intermediate member which works only as a stub for a later bytecode-enhanced member");
 	}
 
 	@Override
-	public boolean isTechnicalMember()
-	{
+	public boolean isTechnicalMember() {
 		return technicalMember;
 	}
 
 	@Override
-	public void setTechnicalMember(boolean technicalMember)
-	{
+	public void setTechnicalMember(boolean technicalMember) {
 		this.technicalMember = technicalMember;
 	}
 
 	@Override
-	public boolean isTransient()
-	{
+	public boolean isTransient() {
 		return isTransient;
 	}
 
 	@Override
-	public void setTransient(boolean isTransient)
-	{
+	public void setTransient(boolean isTransient) {
 		this.isTransient = isTransient;
 	}
 
 	@Override
-	public void setDefinedBy(PrimitiveMember definedBy)
-	{
+	public void setDefinedBy(PrimitiveMember definedBy) {
 		this.definedBy = definedBy;
 	}
 
 	@Override
-	public PrimitiveMember getDefinedBy()
-	{
+	public PrimitiveMember getDefinedBy() {
 		return definedBy;
 	}
 
 	@Override
-	public Object getNullEquivalentValue()
-	{
+	public Object getNullEquivalentValue() {
 		throw createException();
 	}
 
 	@Override
-	public boolean isToMany()
-	{
+	public boolean isToMany() {
 		return Collection.class.isAssignableFrom(getRealType());
 	}
 
 	@Override
-	public Class<?> getElementType()
-	{
+	public Class<?> getElementType() {
 		return elementType;
 	}
 
 	@Override
-	public Class<?> getEntityType()
-	{
+	public Class<?> getEntityType() {
 		return entityType;
 	}
 
 	@Override
-	public Object getValue(Object obj)
-	{
+	public Object getValue(Object obj) {
 		throw createException();
 	}
 
 	@Override
-	public Object getValue(Object obj, boolean allowNullEquivalentValue)
-	{
+	public Object getValue(Object obj, boolean allowNullEquivalentValue) {
 		throw createException();
 	}
 
 	@Override
-	public void setValue(Object obj, Object value)
-	{
+	public void setValue(Object obj, Object value) {
 		throw createException();
 	}
 }

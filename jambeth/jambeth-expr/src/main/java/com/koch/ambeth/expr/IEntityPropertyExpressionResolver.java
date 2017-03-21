@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IEntityPropertyExpressionResolver
-{
+public interface IEntityPropertyExpressionResolver {
 	Object resolveExpressionOnEntity(Object entity, String expression);
 }

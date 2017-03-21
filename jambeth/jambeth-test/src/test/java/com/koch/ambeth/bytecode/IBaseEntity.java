@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IBaseEntity<T>
-{
+public interface IBaseEntity<T> {
 	Long getId();
 
 	String getName();

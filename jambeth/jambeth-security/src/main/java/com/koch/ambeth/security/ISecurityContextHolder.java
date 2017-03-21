@@ -22,13 +22,13 @@ limitations under the License.
 
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
-public interface ISecurityContextHolder
-{
+public interface ISecurityContextHolder {
 	ISecurityContext getContext();
 
 	ISecurityContext getCreateContext();
 
 	void clearContext();
 
-	<R> R setScopedAuthentication(IAuthentication authentication, IResultingBackgroundWorkerDelegate<R> runnableScope) throws Throwable;
+	<R> R setScopedAuthentication(IAuthentication authentication,
+			IResultingBackgroundWorkerDelegate<R> runnableScope) throws Throwable;
 }

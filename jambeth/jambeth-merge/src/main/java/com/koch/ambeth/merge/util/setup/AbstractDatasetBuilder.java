@@ -30,8 +30,7 @@ import com.koch.ambeth.merge.IMergeProcess;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 
-public abstract class AbstractDatasetBuilder implements IDatasetBuilder
-{
+public abstract class AbstractDatasetBuilder implements IDatasetBuilder {
 	@LogInstance
 	private ILogger log;
 
@@ -44,38 +43,33 @@ public abstract class AbstractDatasetBuilder implements IDatasetBuilder
 	@Autowired
 	protected IMergeProcess mergeProcess;
 
-	protected final ThreadLocal<Collection<Object>> initialTestDatasetTL = new ThreadLocal<Collection<Object>>();
+	protected final ThreadLocal<Collection<Object>> initialTestDatasetTL =
+			new ThreadLocal<>();
 
 	@Override
-	public Collection<Object> buildDataset()
-	{
+	public Collection<Object> buildDataset() {
 		beforeBuildDataset();
-		try
-		{
+		try {
 			buildDatasetInternal();
 			return initialTestDatasetTL.get();
 		}
-		finally
-		{
+		finally {
 			afterBuildDataset();
 		}
 	}
 
 	protected abstract void buildDatasetInternal();
 
-	protected void beforeBuildDataset()
-	{
-		IdentityHashSet<Object> initialTestDataset = new IdentityHashSet<Object>();
+	protected void beforeBuildDataset() {
+		IdentityHashSet<Object> initialTestDataset = new IdentityHashSet<>();
 		initialTestDatasetTL.set(initialTestDataset);
 	}
 
-	protected void afterBuildDataset()
-	{
+	protected void afterBuildDataset() {
 		initialTestDatasetTL.remove();
 	}
 
-	protected <V> V createEntity(Class<V> entityType)
-	{
+	protected <V> V createEntity(Class<V> entityType) {
 		V entity = entityFactory.createEntity(entityType);
 		initialTestDatasetTL.get().add(entity);
 		return entity;

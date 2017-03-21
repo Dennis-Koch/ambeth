@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IInterningFeature
-{
+public interface IInterningFeature {
 	<T> T intern(T value);
 }

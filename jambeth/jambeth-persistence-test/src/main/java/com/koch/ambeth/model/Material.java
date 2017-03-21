@@ -27,8 +27,7 @@ import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
 @EntityEqualsAspect
-public class Material
-{
+public class Material {
 	protected int id;
 
 	protected short version;
@@ -49,108 +48,87 @@ public class Material
 
 	protected String updatedBy;
 
-	protected Material()
-	{
+	protected Material() {
 		// Intended blank
 	}
 
-	public int getId()
-	{
+	public int getId() {
 		return id;
 	}
 
-	public void setId(int id)
-	{
+	public void setId(int id) {
 		this.id = id;
 	}
 
-	public void setVersion(short version)
-	{
+	public void setVersion(short version) {
 		this.version = version;
 	}
 
-	public short getVersion()
-	{
+	public short getVersion() {
 		return version;
 	}
 
-	public Date getCreatedOn()
-	{
+	public Date getCreatedOn() {
 		return createdOn;
 	}
 
-	public void setCreatedOn(Date createdOn)
-	{
+	public void setCreatedOn(Date createdOn) {
 		this.createdOn = createdOn;
 	}
 
-	public String getCreatedBy()
-	{
+	public String getCreatedBy() {
 		return createdBy;
 	}
 
-	public void setCreatedBy(String createdBy)
-	{
+	public void setCreatedBy(String createdBy) {
 		this.createdBy = createdBy;
 	}
 
-	public Date getUpdatedOn()
-	{
+	public Date getUpdatedOn() {
 		return updatedOn;
 	}
 
-	public void setUpdatedOn(Date updatedOn)
-	{
+	public void setUpdatedOn(Date updatedOn) {
 		this.updatedOn = updatedOn;
 	}
 
-	public String getUpdatedBy()
-	{
+	public String getUpdatedBy() {
 		return updatedBy;
 	}
 
-	public void setUpdatedBy(String updatedBy)
-	{
+	public void setUpdatedBy(String updatedBy) {
 		this.updatedBy = updatedBy;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setBuid(String buid)
-	{
+	public void setBuid(String buid) {
 		this.buid = buid;
 	}
 
-	public String getBuid()
-	{
+	public String getBuid() {
 		return buid;
 	}
 
-	public void setUnit(Unit unit)
-	{
+	public void setUnit(Unit unit) {
 		this.unit = unit;
 	}
 
-	public Unit getUnit()
-	{
+	public Unit getUnit() {
 		return unit;
 	}
 
-	public void setMaterialGroup(MaterialGroup materialGroup)
-	{
+	public void setMaterialGroup(MaterialGroup materialGroup) {
 		this.materialGroup = materialGroup;
 	}
 
-	public MaterialGroup getMaterialGroup()
-	{
+	public MaterialGroup getMaterialGroup() {
 		return materialGroup;
 	}
 }

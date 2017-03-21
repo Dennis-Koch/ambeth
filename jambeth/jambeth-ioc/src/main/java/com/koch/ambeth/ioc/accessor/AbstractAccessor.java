@@ -21,8 +21,7 @@ limitations under the License.
  */
 
 
-public abstract class AbstractAccessor
-{
+public abstract class AbstractAccessor {
 	public abstract boolean canRead();
 
 	public abstract boolean canWrite();
@@ -33,13 +32,11 @@ public abstract class AbstractAccessor
 
 	public abstract void setValue(Object obj, Object value);
 
-	public int getIntValue(Object obj)
-	{
+	public int getIntValue(Object obj) {
 		return ((Number) getValue(obj, true)).intValue();
 	}
 
-	public void setIntValue(Object obj, int value)
-	{
+	public void setIntValue(Object obj, int value) {
 		setValue(obj, Integer.valueOf(value));
 	}
 }

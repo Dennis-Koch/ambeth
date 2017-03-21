@@ -50,8 +50,7 @@ import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
-public class LazyRelationsBehavior extends AbstractBehavior
-{
+public class LazyRelationsBehavior extends AbstractBehavior {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -66,38 +65,33 @@ public class LazyRelationsBehavior extends AbstractBehavior
 	protected ValueHolderIEC valueHolderContainerHelper;
 
 	@Override
-	public Class<?>[] getEnhancements()
-	{
-		return new Class<?>[] { IObjRefContainer.class, IValueHolderContainer.class };
+	public Class<?>[] getEnhancements() {
+		return new Class<?>[] {IObjRefContainer.class, IValueHolderContainer.class};
 	}
 
 	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors)
-	{
+	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+			List<IBytecodeBehavior> remainingPendingBehaviors,
+			List<IBytecodeBehavior> cascadePendingBehaviors) {
 		Class<?> entityType = EntityUtil.getEntityType(state.getContext());
-		if (entityType == null)
-		{
+		if (entityType == null) {
 			return visitor;
 		}
 		final IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType, true);
-		if (metaData == null)
-		{
+		if (metaData == null) {
 			return visitor;
 		}
 		final boolean addValueHolderContainer;
-		if (EmbeddedEnhancementHint.hasMemberPath(state.getContext()))
-		{
-			for (RelationMember member : metaData.getRelationMembers())
-			{
-				if (!(member instanceof IEmbeddedMember))
-				{
+		if (EmbeddedEnhancementHint.hasMemberPath(state.getContext())) {
+			for (RelationMember member : metaData.getRelationMembers()) {
+				if (!(member instanceof IEmbeddedMember)) {
 					continue;
 				}
 				Member cMember = ((IEmbeddedMember) member).getChildMember();
-				MethodPropertyInfo prop = (MethodPropertyInfo) propertyInfoProvider.getProperty(cMember.getDeclaringType(), cMember.getName());
-				if (state.hasMethod(new MethodInstance(prop.getGetter())) || state.hasMethod(new MethodInstance(prop.getSetter())))
-				{
+				MethodPropertyInfo prop = (MethodPropertyInfo) propertyInfoProvider
+						.getProperty(cMember.getDeclaringType(), cMember.getName());
+				if (state.hasMethod(new MethodInstance(prop.getGetter()))
+						|| state.hasMethod(new MethodInstance(prop.getSetter()))) {
 					// Handle this behavior in the next iteration
 					cascadePendingBehaviors.add(this);
 					return visitor;
@@ -105,18 +99,16 @@ public class LazyRelationsBehavior extends AbstractBehavior
 			}
 			addValueHolderContainer = false;
 		}
-		else
-		{
-			for (RelationMember member : metaData.getRelationMembers())
-			{
-				if (member instanceof IEmbeddedMember)
-				{
+		else {
+			for (RelationMember member : metaData.getRelationMembers()) {
+				if (member instanceof IEmbeddedMember) {
 					continue;
 				}
-				MethodPropertyInfo prop = (MethodPropertyInfo) propertyInfoProvider.getProperty(member.getDeclaringType(), member.getName());
+				MethodPropertyInfo prop = (MethodPropertyInfo) propertyInfoProvider
+						.getProperty(member.getDeclaringType(), member.getName());
 				if ((prop.getGetter() != null && state.hasMethod(new MethodInstance(prop.getGetter())))
-						|| (prop.getSetter() != null && state.hasMethod(new MethodInstance(prop.getSetter()))))
-				{
+						|| (prop.getSetter() != null
+								&& state.hasMethod(new MethodInstance(prop.getSetter())))) {
 					// Handle this behavior in the next iteration
 					cascadePendingBehaviors.add(this);
 					return visitor;
@@ -127,20 +119,20 @@ public class LazyRelationsBehavior extends AbstractBehavior
 			visitor = new EntityMetaDataHolderVisitor(visitor, metaData);
 		}
 		visitor = new SetCacheModificationMethodCreator(visitor);
-		cascadePendingBehaviors.add(WaitForApplyBehavior.create(beanContext, new WaitForApplyBehaviorDelegate()
-		{
-			@Override
-			public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-					List<IBytecodeBehavior> cascadePendingBehaviors)
-			{
-				if (addValueHolderContainer)
-				{
-					visitor = new InterfaceAdder(visitor, IValueHolderContainer.class);
-				}
-				visitor = new RelationsGetterVisitor(visitor, metaData, valueHolderContainerHelper, propertyInfoProvider);
-				return visitor;
-			}
-		}));
+		cascadePendingBehaviors
+				.add(WaitForApplyBehavior.create(beanContext, new WaitForApplyBehaviorDelegate() {
+					@Override
+					public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+							List<IBytecodeBehavior> remainingPendingBehaviors,
+							List<IBytecodeBehavior> cascadePendingBehaviors) {
+						if (addValueHolderContainer) {
+							visitor = new InterfaceAdder(visitor, IValueHolderContainer.class);
+						}
+						visitor = new RelationsGetterVisitor(visitor, metaData, valueHolderContainerHelper,
+								propertyInfoProvider);
+						return visitor;
+					}
+				}));
 		return visitor;
 	}
 }

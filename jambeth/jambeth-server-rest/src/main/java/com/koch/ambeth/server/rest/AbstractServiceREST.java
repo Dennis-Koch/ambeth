@@ -86,7 +86,7 @@ public abstract class AbstractServiceREST {
 
 	public static final String DEFLATE_MIME_TYPE = MediaType.APPLICATION_OCTET_STREAM;
 
-	private static final Set<String> ignoreExceptions = new HashSet<String>();
+	private static final Set<String> ignoreExceptions = new HashSet<>();
 
 	static {
 		ignoreExceptions.add("org.apache.catalina.connector.ClientAbortException");
@@ -135,7 +135,7 @@ public abstract class AbstractServiceREST {
 
 	@SuppressWarnings("unchecked")
 	protected <T> IList<T> createList(Class<T> targetType, List<?> list) {
-		ArrayList<T> targetList = new ArrayList<T>(list.size());
+		ArrayList<T> targetList = new ArrayList<>(list.size());
 		for (int a = 0, size = list.size(); a < size; a++) {
 			targetList.add((T) list.get(a));
 		}

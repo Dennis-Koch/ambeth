@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IForkProcessor
-{
+public interface IForkProcessor {
 	Object resolveOriginalValue(Object bean, String fieldName, ThreadLocal<?> fieldValueTL);
 
 	Object createForkedValue(Object value);

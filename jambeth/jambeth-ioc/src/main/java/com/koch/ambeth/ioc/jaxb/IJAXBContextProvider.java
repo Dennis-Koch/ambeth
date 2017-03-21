@@ -23,7 +23,6 @@ limitations under the License.
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
-public interface IJAXBContextProvider
-{
+public interface IJAXBContextProvider {
 	JAXBContext acquireSharedContext(Class<?>... classesToBeBound) throws JAXBException;
 }

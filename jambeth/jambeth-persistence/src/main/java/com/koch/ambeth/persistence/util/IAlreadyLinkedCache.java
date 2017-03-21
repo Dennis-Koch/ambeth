@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.persistence.api.ILink;
 
-public interface IAlreadyLinkedCache
-{
+public interface IAlreadyLinkedCache {
 	void clear();
 
 	boolean containsKey(ILink link, Object leftId, Object rightId);

@@ -29,150 +29,120 @@ import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
 
-public class CancellationHandle implements ICancellationHandle
-{
+public class CancellationHandle implements ICancellationHandle {
 	protected volatile boolean cancelled;
 
-	protected final WeakHashSet<Thread> owningThreads = new WeakHashSet<Thread>();
+	protected final WeakHashSet<Thread> owningThreads = new WeakHashSet<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
 	protected Cancellation cancellation;
 
-	public CancellationHandle(Cancellation cancellation)
-	{
+	public CancellationHandle(Cancellation cancellation) {
 		this.cancellation = cancellation;
 	}
 
-	public boolean addOwningThread()
-	{
+	public boolean addOwningThread() {
 		writeLock.lock();
-		try
-		{
+		try {
 			return owningThreads.add(Thread.currentThread());
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
-	public void removeOwningThread()
-	{
+	public void removeOwningThread() {
 		writeLock.lock();
-		try
-		{
+		try {
 			owningThreads.remove(Thread.currentThread());
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public boolean isCancelled()
-	{
+	public boolean isCancelled() {
 		return cancelled;
 	}
 
 	@Override
-	public void cancel()
-	{
+	public void cancel() {
 		cancelled = true;
 		writeLock.lock();
-		try
-		{
-			for (Thread owningThread : owningThreads)
-			{
-				if (owningThread != null)
-				{
+		try {
+			for (Thread owningThread : owningThreads) {
+				if (owningThread != null) {
 					owningThread.interrupt();
 				}
 			}
 			owningThreads.clear();
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public void close() throws Exception
-	{
+	public void close() throws Exception {
 		Cancellation cancellation = this.cancellation;
-		if (cancellation == null)
-		{
+		if (cancellation == null) {
 			return;
 		}
 		this.cancellation = null;
 		ICancellationHandle cancellationHandle = cancellation.cancelledTL.get();
-		if (cancellationHandle != this)
-		{
-			throw new IllegalStateException("Only the thread owning this cancellationHandle is allowed to close it");
+		if (cancellationHandle != this) {
+			throw new IllegalStateException(
+					"Only the thread owning this cancellationHandle is allowed to close it");
 		}
 		cancellation.cancelledTL.set(null);
 	}
 
 	@Override
-	public void withCancellationAwareness(IBackgroundWorkerDelegate runnable)
-	{
+	public void withCancellationAwareness(IBackgroundWorkerDelegate runnable) {
 		boolean hasBeenAdded = addOwningThread();
-		try
-		{
+		try {
 			runnable.invoke();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
-			if (hasBeenAdded)
-			{
+		finally {
+			if (hasBeenAdded) {
 				removeOwningThread();
 			}
 		}
 	}
 
 	@Override
-	public <R> R withCancellationAwareness(IResultingBackgroundWorkerDelegate<R> runnable)
-	{
+	public <R> R withCancellationAwareness(IResultingBackgroundWorkerDelegate<R> runnable) {
 		boolean hasBeenAdded = addOwningThread();
-		try
-		{
+		try {
 			return runnable.invoke();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
-			if (hasBeenAdded)
-			{
+		finally {
+			if (hasBeenAdded) {
 				removeOwningThread();
 			}
 		}
 	}
 
 	@Override
-	public <R, V> R withCancellationAwareness(IResultingBackgroundWorkerParamDelegate<R, V> runnable, V state)
-	{
+	public <R, V> R withCancellationAwareness(IResultingBackgroundWorkerParamDelegate<R, V> runnable,
+			V state) {
 		boolean hasBeenAdded = addOwningThread();
-		try
-		{
+		try {
 			return runnable.invoke(state);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
-			if (hasBeenAdded)
-			{
+		finally {
+			if (hasBeenAdded) {
 				removeOwningThread();
 			}
 		}

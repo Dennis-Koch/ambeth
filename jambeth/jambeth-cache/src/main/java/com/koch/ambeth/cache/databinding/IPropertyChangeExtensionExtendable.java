@@ -20,9 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public interface IPropertyChangeExtensionExtendable
-{
-	void registerPropertyChangeExtension(IPropertyChangeExtension propertyChangeExtension, Class<?> entityType);
+public interface IPropertyChangeExtensionExtendable {
+	void registerPropertyChangeExtension(IPropertyChangeExtension propertyChangeExtension,
+			Class<?> entityType);
 
-	void unregisterPropertyChangeExtension(IPropertyChangeExtension propertyChangeExtension, Class<?> entityType);
+	void unregisterPropertyChangeExtension(IPropertyChangeExtension propertyChangeExtension,
+			Class<?> entityType);
 }

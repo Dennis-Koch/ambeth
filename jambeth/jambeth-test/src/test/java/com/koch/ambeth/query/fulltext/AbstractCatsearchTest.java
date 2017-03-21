@@ -66,7 +66,7 @@ public abstract class AbstractCatsearchTest extends AbstractInformationBusWithPe
 
 	protected IQueryBuilder<QueryEntity> qb;
 
-	protected HashMap<Object, Object> nameToValueMap = new HashMap<Object, Object>();
+	protected HashMap<Object, Object> nameToValueMap = new HashMap<>();
 
 	@Property(name = "abc", defaultValue = "abc0")
 	protected String value;
@@ -88,7 +88,7 @@ public abstract class AbstractCatsearchTest extends AbstractInformationBusWithPe
 		qb.orderBy(qb.property("Id"), OrderByType.ASC);
 		IQuery<QueryEntity> query = qb.build(rootOperand);
 
-		HashMap<Object, Object> nameToValueMap = new HashMap<Object, Object>();
+		HashMap<Object, Object> nameToValueMap = new HashMap<>();
 		nameToValueMap.put(paramName1, "me3");
 		List<QueryEntity> result = query.retrieve(nameToValueMap);
 		assertEquals(3, result.size());

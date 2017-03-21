@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IEventStoreHandlerExtendable
-{
+public interface IEventStoreHandlerExtendable {
 	void registerEventStoreHandler(IEventStoreHandler eventStoreHandler, Class<?> eventType);
 
 	void unregisterEventStoreHandler(IEventStoreHandler eventStoreHandler, Class<?> eventType);

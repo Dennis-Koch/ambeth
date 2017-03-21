@@ -22,18 +22,18 @@ limitations under the License.
 
 import com.koch.ambeth.security.privilege.model.ITypePropertyPrivilege;
 
-public class DefaultTypePrivilegeImpl extends AbstractTypePrivilege
-{
+public class DefaultTypePrivilegeImpl extends AbstractTypePrivilege {
 	protected final Boolean read, create, update, delete, execute;
 
 	protected final ITypePropertyPrivilege[] primitivePropertyPrivileges;
 
 	protected final ITypePropertyPrivilege[] relationPropertyPrivileges;
 
-	public DefaultTypePrivilegeImpl(Boolean create, Boolean read, Boolean update, Boolean delete, Boolean execute,
-			ITypePropertyPrivilege[] primitivePropertyPrivileges, ITypePropertyPrivilege[] relationPropertyPrivileges)
-	{
-		super(create, read, update, delete, execute, primitivePropertyPrivileges, relationPropertyPrivileges);
+	public DefaultTypePrivilegeImpl(Boolean create, Boolean read, Boolean update, Boolean delete,
+			Boolean execute, ITypePropertyPrivilege[] primitivePropertyPrivileges,
+			ITypePropertyPrivilege[] relationPropertyPrivileges) {
+		super(create, read, update, delete, execute, primitivePropertyPrivileges,
+				relationPropertyPrivileges);
 		this.create = create;
 		this.read = read;
 		this.update = update;
@@ -44,50 +44,42 @@ public class DefaultTypePrivilegeImpl extends AbstractTypePrivilege
 	}
 
 	@Override
-	public ITypePropertyPrivilege getPrimitivePropertyPrivilege(int primitiveIndex)
-	{
+	public ITypePropertyPrivilege getPrimitivePropertyPrivilege(int primitiveIndex) {
 		return primitivePropertyPrivileges[primitiveIndex];
 	}
 
 	@Override
-	public ITypePropertyPrivilege getRelationPropertyPrivilege(int relationIndex)
-	{
+	public ITypePropertyPrivilege getRelationPropertyPrivilege(int relationIndex) {
 		return relationPropertyPrivileges[relationIndex];
 	}
 
 	@Override
-	public ITypePropertyPrivilege getDefaultPropertyPrivilegeIfValid()
-	{
+	public ITypePropertyPrivilege getDefaultPropertyPrivilegeIfValid() {
 		return null;
 	}
 
 	@Override
-	public Boolean isCreateAllowed()
-	{
+	public Boolean isCreateAllowed() {
 		return create;
 	}
 
 	@Override
-	public Boolean isReadAllowed()
-	{
+	public Boolean isReadAllowed() {
 		return read;
 	}
 
 	@Override
-	public Boolean isUpdateAllowed()
-	{
+	public Boolean isUpdateAllowed() {
 		return update;
 	}
 
 	@Override
-	public Boolean isDeleteAllowed()
-	{
+	public Boolean isDeleteAllowed() {
 		return delete;
 	}
 
 	@Override
-	public Boolean isExecuteAllowed()
-	{
+	public Boolean isExecuteAllowed() {
 		return execute;
 	}
 }

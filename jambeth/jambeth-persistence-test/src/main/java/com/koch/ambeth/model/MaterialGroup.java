@@ -25,8 +25,7 @@ import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
 @EntityEqualsAspect
-public class MaterialGroup
-{
+public class MaterialGroup {
 	protected String id;
 
 	protected short version;
@@ -35,48 +34,39 @@ public class MaterialGroup
 
 	protected String buid;
 
-	protected MaterialGroup()
-	{
+	protected MaterialGroup() {
 		// Intended blank
 	}
 
-	public void setVersion(short version)
-	{
+	public void setVersion(short version) {
 		this.version = version;
 	}
 
-	public short getVersion()
-	{
+	public short getVersion() {
 		return version;
 	}
 
-	public void setId(String id)
-	{
+	public void setId(String id) {
 		this.id = id;
 	}
 
-	public String getId()
-	{
+	public String getId() {
 		return id;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setBuid(String buid)
-	{
+	public void setBuid(String buid) {
 		this.buid = buid;
 	}
 
-	public String getBuid()
-	{
+	public String getBuid() {
 		return buid;
 	}
 }

@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.beans.PropertyChangeListener;
 
-public interface ITestRegistry
-{
+public interface ITestRegistry {
 	PropertyChangeListener[] getPceListeners();
 
 	ITestListener[] getTestListeners();

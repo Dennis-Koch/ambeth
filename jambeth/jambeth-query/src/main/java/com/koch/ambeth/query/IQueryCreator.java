@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IQueryCreator
-{
+public interface IQueryCreator {
 	<T> IQuery<T> createCustomQuery(IQueryBuilder<T> qb);
 }

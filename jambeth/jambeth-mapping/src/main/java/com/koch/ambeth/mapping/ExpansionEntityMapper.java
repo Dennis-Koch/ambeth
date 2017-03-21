@@ -36,8 +36,7 @@ import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
-public class ExpansionEntityMapper implements IDedicatedMapper, IPropertyExpansionExtendable
-{
+public class ExpansionEntityMapper implements IDedicatedMapper, IPropertyExpansionExtendable {
 	@LogInstance
 	private ILogger log;
 
@@ -58,55 +57,55 @@ public class ExpansionEntityMapper implements IDedicatedMapper, IPropertyExpansi
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
-	protected Tuple2KeyHashMap<Class<?>, String, PropertyPath> extensions = new Tuple2KeyHashMap<Class<?>, String, PropertyPath>();
+	protected Tuple2KeyHashMap<Class<?>, String, PropertyPath> extensions =
+			new Tuple2KeyHashMap<>();
 
-	protected Tuple2KeyHashMap<Class<?>, String, String> transparentPropertyPath = new Tuple2KeyHashMap<Class<?>, String, String>();
+	protected Tuple2KeyHashMap<Class<?>, String, String> transparentPropertyPath =
+			new Tuple2KeyHashMap<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
 	@Override
-	public void applySpecialMapping(Object businessObject, Object valueObject, CopyDirection direction)
-	{
+	public void applySpecialMapping(Object businessObject, Object valueObject,
+			CopyDirection direction) {
 		Class<? extends Object> transferClass = valueObject.getClass();
 		// load properties of transferClass
 		IPropertyInfo[] properties = propertyInfoProvider.getProperties(transferClass);
 		StringBuilder sb = null;
 		IEntityMetaData metaData = ((IEntityMetaDataHolder) businessObject).get__EntityMetaData();
-		try
-		{
-			for (IPropertyInfo propertyInfo : properties)
-			{
+		try {
+			for (IPropertyInfo propertyInfo : properties) {
 				// is there a mapping?
 				String nestedPath = resolveNestedPath(transferClass, propertyInfo);
-				if (nestedPath == null)
-				{
+				if (nestedPath == null) {
 					continue;
 				}
 				// get propertyExpansion for the business object
 				Class<?> entityType = metaData.getRealType();
-				PropertyExpansion propertyExpansion = propertyExpansionProvider.getPropertyExpansion(entityType, nestedPath);
+				PropertyExpansion propertyExpansion =
+						propertyExpansionProvider.getPropertyExpansion(entityType, nestedPath);
 				// apply mapping
-				switch (direction)
-				{
+				switch (direction) {
 					case BO_TO_VO:
-						Object convertValueToType = conversionHelper.convertValueToType(propertyInfo.getPropertyType(),
-								propertyExpansion.getValue(businessObject));
+						Object convertValueToType = conversionHelper.convertValueToType(
+								propertyInfo.getPropertyType(), propertyExpansion.getValue(businessObject));
 
 						propertyInfo.setValue(valueObject, convertValueToType);
 						break;
 					case VO_TO_BO:
 						// find out if the value was specified and we need to write it back
 
-						if (sb == null)
-						{
+						if (sb == null) {
 							sb = objectCollector.create(StringBuilder.class);
 						}
 						sb.setLength(0);
-						String voSpecifiedName = sb.append(propertyInfo.getName()).append("Specified").toString();
+						String voSpecifiedName =
+								sb.append(propertyInfo.getName()).append("Specified").toString();
 
-						IPropertyInfo voSpecifiedMember = propertyInfoProvider.getProperty(transferClass, voSpecifiedName);
-						if (voSpecifiedMember != null && !Boolean.TRUE.equals(voSpecifiedMember.getValue(valueObject)))
-						{
+						IPropertyInfo voSpecifiedMember =
+								propertyInfoProvider.getProperty(transferClass, voSpecifiedName);
+						if (voSpecifiedMember != null
+								&& !Boolean.TRUE.equals(voSpecifiedMember.getValue(valueObject))) {
 							continue;
 						}
 
@@ -117,46 +116,38 @@ public class ExpansionEntityMapper implements IDedicatedMapper, IPropertyExpansi
 				}
 			}
 		}
-		finally
-		{
-			if (sb != null)
-			{
+		finally {
+			if (sb != null) {
 				objectCollector.dispose(sb);
 			}
 		}
 	}
 
-	private String resolveNestedPath(Class<? extends Object> transferClass, IPropertyInfo propertyInfo)
-	{
+	private String resolveNestedPath(Class<? extends Object> transferClass,
+			IPropertyInfo propertyInfo) {
 		PropertyPath mapping = extensions.get(transferClass, propertyInfo.getName());
 		String nestedPath = mapping != null ? mapping.getPropertyPath() : null;
-		if (nestedPath != null)
-		{
+		if (nestedPath != null) {
 			return nestedPath;
 		}
 		nestedPath = transparentPropertyPath.get(transferClass, propertyInfo.getName());
-		if (nestedPath != null)
-		{
-			if (nestedPath != NO_PROPERTY_PATH)
-			{
+		if (nestedPath != null) {
+			if (nestedPath != NO_PROPERTY_PATH) {
 				return nestedPath;
 			}
 			return null;
 		}
 		// if there is no explicit mapping done via link-API, find annotation based mappings
-		MapEntityNestProperty mapEntityNestProperty = propertyInfo.getAnnotation(MapEntityNestProperty.class);
-		if (mapEntityNestProperty == null)
-		{
+		MapEntityNestProperty mapEntityNestProperty =
+				propertyInfo.getAnnotation(MapEntityNestProperty.class);
+		if (mapEntityNestProperty == null) {
 			nestedPath = NO_PROPERTY_PATH;
 		}
-		else
-		{
+		else {
 			String[] nestPathes = mapEntityNestProperty.value();
 			StringBuilder nestPathSB = new StringBuilder();
-			for (int a = 0, size = nestPathes.length; a < size; a++)
-			{
-				if (a > 0)
-				{
+			for (int a = 0, size = nestPathes.length; a < size; a++) {
+				if (a > 0) {
 					nestPathSB.append('.');
 				}
 				nestPathSB.append(nestPathes[a]);
@@ -165,68 +156,61 @@ public class ExpansionEntityMapper implements IDedicatedMapper, IPropertyExpansi
 		}
 
 		writeLock.lock();
-		try
-		{
-			transparentPropertyPath = addExtension(nestedPath, transferClass, propertyInfo.getName(), transparentPropertyPath);
+		try {
+			transparentPropertyPath =
+					addExtension(nestedPath, transferClass, propertyInfo.getName(), transparentPropertyPath);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
-		if (nestedPath != NO_PROPERTY_PATH)
-		{
+		if (nestedPath != NO_PROPERTY_PATH) {
 			return nestedPath;
 		}
 		return null;
 	}
 
-	protected <V> Tuple2KeyHashMap<Class<?>, String, V> addExtension(V expansionPath, Class<?> transferClass, String propertyName,
-			Tuple2KeyHashMap<Class<?>, String, V> givenExtensions)
-	{
+	protected <V> Tuple2KeyHashMap<Class<?>, String, V> addExtension(V expansionPath,
+			Class<?> transferClass, String propertyName,
+			Tuple2KeyHashMap<Class<?>, String, V> givenExtensions) {
 		// here: COPY-ON-WRITE pattern to be threadsafe with reads without a lock
-		Tuple2KeyHashMap<Class<?>, String, V> extensions = new Tuple2KeyHashMap<Class<?>, String, V>(
+		Tuple2KeyHashMap<Class<?>, String, V> extensions = new Tuple2KeyHashMap<>(
 				(int) (givenExtensions.size() / AbstractTuple2KeyHashMap.DEFAULT_LOAD_FACTOR) + 2);
 		extensions.putAll(givenExtensions);
-		if (!extensions.putIfNotExists(transferClass, propertyName, expansionPath))
-		{
+		if (!extensions.putIfNotExists(transferClass, propertyName, expansionPath)) {
 			throw new IllegalStateException("Another extension already registered with the same key");
 		}
 		return extensions;
 	}
 
 	@Override
-	public void registerEntityExpansionExtension(PropertyPath expansionPath, Class<?> transferClass, String propertyName)
-	{
+	public void registerEntityExpansionExtension(PropertyPath expansionPath, Class<?> transferClass,
+			String propertyName) {
 		// here: COPY-ON-WRITE pattern to be threadsafe with reads without a lock
 		writeLock.lock();
-		try
-		{
+		try {
 			extensions = addExtension(expansionPath, transferClass, propertyName, extensions);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public void unregisterEntityExpansionExtension(PropertyPath expansionPath, Class<?> transferClass, String propertyName)
-	{
+	public void unregisterEntityExpansionExtension(PropertyPath expansionPath, Class<?> transferClass,
+			String propertyName) {
 		// here: COPY-ON-WRITE pattern to be threadsafe with reads without a lock
 		writeLock.lock();
-		try
-		{
-			Tuple2KeyHashMap<Class<?>, String, PropertyPath> extensions = new Tuple2KeyHashMap<Class<?>, String, PropertyPath>(
-					(int) (this.extensions.size() / AbstractTuple2KeyHashMap.DEFAULT_LOAD_FACTOR) + 2);
+		try {
+			Tuple2KeyHashMap<Class<?>, String, PropertyPath> extensions =
+					new Tuple2KeyHashMap<>(
+							(int) (this.extensions.size() / AbstractTuple2KeyHashMap.DEFAULT_LOAD_FACTOR) + 2);
 			extensions.putAll(this.extensions);
-			if (!extensions.removeIfValue(transferClass, propertyName, expansionPath))
-			{
+			if (!extensions.removeIfValue(transferClass, propertyName, expansionPath)) {
 				throw new IllegalStateException("Extension not registered with given key");
 			}
 			this.extensions = extensions;
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}

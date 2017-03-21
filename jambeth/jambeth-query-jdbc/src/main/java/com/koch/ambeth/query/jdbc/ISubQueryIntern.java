@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.query.jdbc.sql.ITableAliasProvider;
 
-public interface ISubQueryIntern
-{
+public interface ISubQueryIntern {
 	void reAlias(ITableAliasProvider tableAliasProvider);
 }

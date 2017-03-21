@@ -27,8 +27,7 @@ import java.io.ObjectOutput;
 
 import com.koch.ambeth.util.IPrintable;
 
-public class FloatArrayList implements Externalizable, IPrintable
-{
+public class FloatArrayList implements Externalizable, IPrintable {
 	private static final float[] emptyArray = new float[0];
 
 	protected final int incStep;
@@ -37,36 +36,30 @@ public class FloatArrayList implements Externalizable, IPrintable
 
 	protected int size;
 
-	public FloatArrayList()
-	{
+	public FloatArrayList() {
 		this(10);
 	}
 
-	public FloatArrayList(final float[] array)
-	{
+	public FloatArrayList(final float[] array) {
 		incStep = 10;
 		init(array, array.length);
 	}
 
-	public FloatArrayList(final int iincStep)
-	{
+	public FloatArrayList(final int iincStep) {
 		float[] array = new float[iincStep];
 		incStep = Math.max(10, iincStep);
 		init(array, 0);
 	}
 
-	protected void init(final float[] array, final int size)
-	{
+	protected void init(final float[] array, final int size) {
 		this.array = array;
 		this.size = size;
 	}
 
-	public final boolean add(final float value)
-	{
+	public final boolean add(final float value) {
 		int size = this.size;
 		float[] array = this.array;
-		if (size == array.length)
-		{
+		if (size == array.length) {
 			final float[] buff = new float[(array.length << 1) + incStep];
 			System.arraycopy(array, 0, buff, 0, size);
 			array = buff;
@@ -77,28 +70,21 @@ public class FloatArrayList implements Externalizable, IPrintable
 		return true;
 	}
 
-	public final boolean remove(final float value)
-	{
+	public final boolean remove(final float value) {
 		int size = this.size;
 		float[] array = this.array;
-		if (value == 0)
-		{
-			for (int a = 0; a < size; a++)
-			{
-				if (array[a] == 0)
-				{
+		if (value == 0) {
+			for (int a = 0; a < size; a++) {
+				if (array[a] == 0) {
 					removeAtIndex(a);
 					return true;
 				}
 			}
 		}
-		else
-		{
-			for (int a = 0; a < size; a++)
-			{
+		else {
+			for (int a = 0; a < size; a++) {
 				final float item = array[a];
-				if (value == item)
-				{
+				if (value == item) {
 					removeAtIndex(a);
 					return true;
 				}
@@ -107,27 +93,20 @@ public class FloatArrayList implements Externalizable, IPrintable
 		return false;
 	}
 
-	public final boolean hasValue(final float value)
-	{
+	public final boolean hasValue(final float value) {
 		int size = this.size;
 		float[] array = this.array;
-		if (value == 0)
-		{
-			for (int a = 0; a < size; a++)
-			{
-				if (array[a] == 0)
-				{
+		if (value == 0) {
+			for (int a = 0; a < size; a++) {
+				if (array[a] == 0) {
 					return true;
 				}
 			}
 		}
-		else
-		{
-			for (int a = 0; a < size; a++)
-			{
+		else {
+			for (int a = 0; a < size; a++) {
 				final float item = array[a];
-				if (value == item)
-				{
+				if (value == item) {
 					return true;
 				}
 			}
@@ -135,86 +114,70 @@ public class FloatArrayList implements Externalizable, IPrintable
 		return false;
 	}
 
-	public float get(final int index)
-	{
+	public float get(final int index) {
 		return array[index];
 	}
 
-	public final float peek()
-	{
+	public final float peek() {
 		int size = this.size;
-		if (size > 0)
-		{
+		if (size > 0) {
 			return array[size - 1];
 		}
-		else
-		{
+		else {
 			return Float.NaN;
 		}
 	}
 
-	public final float popLastElement()
-	{
+	public final float popLastElement() {
 		int size = this.size;
-		if (size > 0)
-		{
+		if (size > 0) {
 			float[] array = this.array;
 			final float elem = array[--size];
 			array[size] = 0;
 			this.size = size;
 			return elem;
 		}
-		else
-		{
+		else {
 			return Float.NaN;
 		}
 	}
 
-	public final void clearFrom(final int index)
-	{
+	public final void clearFrom(final int index) {
 		int size = this.size;
 		float[] array = this.array;
-		for (int a = index; a < size; a++)
-		{
+		for (int a = index; a < size; a++) {
 			array[a] = 0;
 		}
 		this.size = index;
 	}
 
-	public final int size()
-	{
+	public final int size() {
 		return size;
 	}
 
-	public final void clear()
-	{
+	public final void clear() {
 		clearFrom(0);
 	}
 
-	public final void copyInto(final FloatArrayList otherList)
-	{
+	public final void copyInto(final FloatArrayList otherList) {
 		otherList.size = 0;
 		int size = this.size;
 		float[] array = this.array;
-		for (int a = 0; a < size; a++)
-		{
+		for (int a = 0; a < size; a++) {
 			otherList.add(array[a]);
 		}
 	}
 
-	public float remove(final int index)
-	{
+	public float remove(final int index) {
 		final float object = array[index];
 		removeAtIndex(index);
 		return object;
 	}
 
-	public void removeAtIndex(final int index)
-	{
+	public void removeAtIndex(final int index) {
 		int size = this.size;
 		float[] array = this.array;
-		for (int a = index, sizeA = size - 1; a < sizeA; a++)
-		{
+		for (int a = index, sizeA = size - 1; a < sizeA; a++) {
 			array[a] = array[a + 1];
 		}
 		size--;
@@ -222,19 +185,16 @@ public class FloatArrayList implements Externalizable, IPrintable
 		array[size] = 0;
 	}
 
-	public void add(final int index, final float element)
-	{
+	public void add(final int index, final float element) {
 		int size = this.size;
 		float[] array = this.array;
-		if (size == array.length)
-		{
+		if (size == array.length) {
 			final float[] buff = new float[(array.length << 1) + incStep];
 			System.arraycopy(array, 0, buff, 0, size);
 			array = buff;
 			this.array = array;
 		}
-		for (int a = size + 1, i = index + 1; a-- > i;)
-		{
+		for (int a = size + 1, i = index + 1; a-- > i;) {
 			array[a] = array[a - 1];
 		}
 		array[index] = element;
@@ -242,88 +202,71 @@ public class FloatArrayList implements Externalizable, IPrintable
 		this.size = size;
 	}
 
-	public boolean contains(final float o)
-	{
+	public boolean contains(final float o) {
 		return indexOf(o) >= 0;
 	}
 
-	public int indexOf(final float o)
-	{
+	public int indexOf(final float o) {
 		int size = this.size;
 		float[] array = this.array;
-		for (int a = 0; a < size; a++)
-		{
+		for (int a = 0; a < size; a++) {
 			final float item = array[a];
-			if (o == 0)
-			{
-				if (item == 0)
-				{
+			if (o == 0) {
+				if (item == 0) {
 					return a;
 				}
 			}
-			else if (o == item)
-			{
+			else if (o == item) {
 				return a;
 			}
 		}
 		return -1;
 	}
 
-	public boolean isEmpty()
-	{
+	public boolean isEmpty() {
 		return size == 0;
 	}
 
-	public int lastIndexOf(final float o)
-	{
+	public int lastIndexOf(final float o) {
 		throw new UnsupportedOperationException();
 	}
 
-	public float set(final int index, final float element)
-	{
+	public float set(final int index, final float element) {
 		float[] array = this.array;
 		final float oldElement = array[index];
 		array[index] = element;
 		return oldElement;
 	}
 
-	public FloatArrayList subList(final int fromIndex, final int toIndex)
-	{
+	public FloatArrayList subList(final int fromIndex, final int toIndex) {
 		float[] array = this.array;
 		final FloatArrayList sublist = new FloatArrayList(toIndex - fromIndex);
-		for (int a = fromIndex; a < toIndex; a++)
-		{
+		for (int a = fromIndex; a < toIndex; a++) {
 			sublist.add(array[a]);
 		}
 		return sublist;
 	}
 
-	public float[] toArray()
-	{
+	public float[] toArray() {
 		return toArray(new float[size]);
 	}
 
-	public float[] toArray(final float[] targetArray)
-	{
-		System.arraycopy(this.array, 0, targetArray, 0, this.size);
+	public float[] toArray(final float[] targetArray) {
+		System.arraycopy(array, 0, targetArray, 0, size);
 		return targetArray;
 	}
 
 	@Override
-	public void readExternal(final ObjectInput arg0) throws IOException, ClassNotFoundException
-	{
+	public void readExternal(final ObjectInput arg0) throws IOException, ClassNotFoundException {
 		int size = arg0.readInt();
 		float[] array = null;
-		if (size > 0)
-		{
+		if (size > 0) {
 			array = new float[size];
-			for (int a = 0; a < size; a++)
-			{
+			for (int a = 0; a < size; a++) {
 				array[a] = arg0.readFloat();
 			}
 		}
-		else
-		{
+		else {
 			array = new float[0];
 		}
 		this.array = array;
@@ -331,33 +274,27 @@ public class FloatArrayList implements Externalizable, IPrintable
 	}
 
 	@Override
-	public void writeExternal(final ObjectOutput arg0) throws IOException
-	{
+	public void writeExternal(final ObjectOutput arg0) throws IOException {
 		int size = this.size;
 		float[] array = this.array;
 		arg0.writeInt(size);
-		for (int a = 0; a < size; a++)
-		{
+		for (int a = 0; a < size; a++) {
 			arg0.writeFloat(array[a]);
 		}
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		toString(sb);
 		return sb.toString();
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
+	public void toString(StringBuilder sb) {
 		sb.append(size()).append(" items: [");
-		for (int a = 0, size = size(); a < size; a++)
-		{
-			if (a > 0)
-			{
+		for (int a = 0, size = size(); a < size; a++) {
+			if (a > 0) {
 				sb.append(',');
 			}
 			sb.append(get(a));
@@ -365,8 +302,7 @@ public class FloatArrayList implements Externalizable, IPrintable
 		sb.append(']');
 	}
 
-	public float[] getBackingArray()
-	{
+	public float[] getBackingArray() {
 		return array;
 	}
 }

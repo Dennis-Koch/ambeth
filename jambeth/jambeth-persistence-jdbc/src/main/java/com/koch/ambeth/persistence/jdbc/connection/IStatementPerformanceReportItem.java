@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IStatementPerformanceReportItem
-{
+public interface IStatementPerformanceReportItem {
 	int getExecutionCount();
 
 	double getSpentTimePerExecution();

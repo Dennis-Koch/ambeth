@@ -31,9 +31,8 @@ import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.IMap;
 
-public class ShellContextImpl implements ShellContext, IStartingBean
-{
-	protected HashMap<String, Object> variables = new HashMap<String, Object>();
+public class ShellContextImpl implements ShellContext, IStartingBean {
+	protected HashMap<String, Object> variables = new HashMap<>();
 
 	@Autowired
 	protected IConversionHelper conversionHelper;
@@ -43,11 +42,9 @@ public class ShellContextImpl implements ShellContext, IStartingBean
 	 *
 	 */
 	@Override
-	public void afterStarted() throws Throwable
-	{
+	public void afterStarted() throws Throwable {
 		Properties application = Properties.getApplication();
-		for (String key : application.collectAllPropertyKeys())
-		{
+		for (String key : application.collectAllPropertyKeys()) {
 			variables.put(key, application.get(key));
 		}
 	}
@@ -56,8 +53,7 @@ public class ShellContextImpl implements ShellContext, IStartingBean
 	 *
 	 */
 	@Override
-	public void set(String key, Object value)
-	{
+	public void set(String key, Object value) {
 		variables.put(key, value);
 	}
 
@@ -65,14 +61,12 @@ public class ShellContextImpl implements ShellContext, IStartingBean
 	 *
 	 */
 	@Override
-	public Object get(String key)
-	{
+	public Object get(String key) {
 		return variables.get(key);
 	}
 
 	@Override
-	public <T> T get(String key, Class<T> expectedType)
-	{
+	public <T> T get(String key, Class<T> expectedType) {
 		return conversionHelper.convertValueToType(expectedType, get(key));
 	}
 
@@ -80,12 +74,10 @@ public class ShellContextImpl implements ShellContext, IStartingBean
 	 *
 	 */
 	@Override
-	public <T> T get(String key, T defaultValue)
-	{
+	public <T> T get(String key, T defaultValue) {
 		@SuppressWarnings("unchecked")
 		T value = (T) get(key, defaultValue.getClass());
-		if (value == null)
-		{
+		if (value == null) {
 			value = defaultValue;
 			set(key, defaultValue);
 		}
@@ -93,25 +85,20 @@ public class ShellContextImpl implements ShellContext, IStartingBean
 	}
 
 	@Override
-	public void remove(String key)
-	{
+	public void remove(String key) {
 		variables.remove(key);
 	}
 
 	@Override
-	public IMap<String, Object> getAll()
-	{
+	public IMap<String, Object> getAll() {
 		return variables;
 	}
 
 	@Override
-	public Object resolve(String possibleKey)
-	{
-		if (possibleKey.startsWith(VAR_MARKER))
-		{
+	public Object resolve(String possibleKey) {
+		if (possibleKey.startsWith(VAR_MARKER)) {
 			Object ret = get(possibleKey.substring(1));
-			if (ret != null)
-			{
+			if (ret != null) {
 				return ret;
 			}
 		}
@@ -119,15 +106,13 @@ public class ShellContextImpl implements ShellContext, IStartingBean
 	}
 
 	@Override
-	public String filter(String input)
-	{
-		for (Object key : variables.keySet())
-		{
+	public String filter(String input) {
+		for (Object key : variables.keySet()) {
 			Object value = variables.get(key);
-			if (value != null && key instanceof String)
-			{
+			if (value != null && key instanceof String) {
 				String escapeJava = StringEscapeUtils.escapeJava((String) key);
-				input = input.replaceAll("\\" + VAR_MARKER + escapeJava, Matcher.quoteReplacement(value.toString()));
+				input = input.replaceAll("\\" + VAR_MARKER + escapeJava,
+						Matcher.quoteReplacement(value.toString()));
 			}
 		}
 		return input;

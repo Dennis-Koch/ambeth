@@ -22,8 +22,7 @@ limitations under the License.
 
 import org.w3c.dom.Document;
 
-public interface IOrmConfigGroupProvider
-{
+public interface IOrmConfigGroupProvider {
 	IOrmConfigGroup getOrmConfigGroup(String xmlFileNames);
 
 	IOrmConfigGroup getOrmConfigGroup(Document[] docs, IOrmEntityTypeProvider ormEntityTypeProvider);

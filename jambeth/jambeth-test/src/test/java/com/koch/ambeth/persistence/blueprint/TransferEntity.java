@@ -20,17 +20,14 @@ limitations under the License.
  * #L%
  */
 
-public class TransferEntity
-{
+public class TransferEntity {
 	protected Integer id;
 
-	public Integer getId()
-	{
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(Integer id)
-	{
+	public void setId(Integer id) {
 		this.id = id;
 	}
 }

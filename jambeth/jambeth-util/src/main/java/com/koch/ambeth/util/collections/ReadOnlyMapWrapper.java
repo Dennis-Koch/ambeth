@@ -24,16 +24,13 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
-public class ReadOnlyMapWrapper<K, V> implements IMap<K, V>, ILinkedMap<K, V>
-{
+public class ReadOnlyMapWrapper<K, V> implements IMap<K, V>, ILinkedMap<K, V> {
 	protected IMap<K, V> hashMap;
 
 	protected ILinkedMap<K, V> linkedHashMap;
 
-	public ReadOnlyMapWrapper(IMap<K, V> map)
-	{
-		if (map instanceof ILinkedMap)
-		{
+	public ReadOnlyMapWrapper(IMap<K, V> map) {
+		if (map instanceof ILinkedMap) {
 			linkedHashMap = (ILinkedMap<K, V>) map;
 		}
 
@@ -41,128 +38,107 @@ public class ReadOnlyMapWrapper<K, V> implements IMap<K, V>, ILinkedMap<K, V>
 	}
 
 	@Override
-	public int size()
-	{
+	public int size() {
 		return hashMap.size();
 	}
 
 	@Override
-	public boolean isEmpty()
-	{
+	public boolean isEmpty() {
 		return hashMap.isEmpty();
 	}
 
 	@Override
-	public boolean containsKey(Object key)
-	{
+	public boolean containsKey(Object key) {
 		return hashMap.containsKey(key);
 	}
 
 	@Override
-	public boolean containsValue(Object value)
-	{
+	public boolean containsValue(Object value) {
 		return hashMap.containsValue(value);
 	}
 
 	@Override
-	public V get(Object key)
-	{
+	public V get(Object key) {
 		return hashMap.get(key);
 	}
 
 	@Override
-	public K getKey(K key)
-	{
+	public K getKey(K key) {
 		return hashMap.getKey(key);
 	}
 
 	@Override
-	public V put(K key, V value)
-	{
+	public V put(K key, V value) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public V remove(Object key)
-	{
+	public V remove(Object key) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void putAll(Map<? extends K, ? extends V> m)
-	{
+	public void putAll(Map<? extends K, ? extends V> m) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void clear()
-	{
+	public void clear() {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Iterator<Entry<K, V>> iterator()
-	{
+	public Iterator<Entry<K, V>> iterator() {
 		return linkedHashMap.iterator(false);
 	}
 
 	@Override
-	public Iterator<Entry<K, V>> iterator(boolean removeAllowed)
-	{
+	public Iterator<Entry<K, V>> iterator(boolean removeAllowed) {
 		return iterator();
 	}
 
 	@Override
-	public ISet<Entry<K, V>> entrySet()
-	{
+	public ISet<Entry<K, V>> entrySet() {
 		return hashMap.entrySet();
 	}
 
 	@Override
-	public void entrySet(ISet<Entry<K, V>> targetEntrySet)
-	{
+	public void entrySet(ISet<Entry<K, V>> targetEntrySet) {
 		hashMap.entrySet(targetEntrySet);
 	}
 
 	@Override
-	public ISet<K> keySet()
-	{
+	public ISet<K> keySet() {
 		return hashMap.keySet();
 	}
 
 	@Override
-	public void keySet(Collection<K> targetKeySet)
-	{
+	public void keySet(Collection<K> targetKeySet) {
 		hashMap.keySet(targetKeySet);
 	}
 
 	@Override
-	public IList<K> keyList()
-	{
+	public IList<K> keyList() {
 		return hashMap.keyList();
 	}
 
 	@Override
-	public V[] toArray(Class<V> arrayType)
-	{
+	public V[] toArray(Class<V> arrayType) {
 		return hashMap.toArray(arrayType);
 	}
 
 	@Override
-	public IList<V> values()
-	{
+	public IList<V> values() {
 		return hashMap.values();
 	}
 
 	@Override
-	public boolean putIfNotExists(K key, V value)
-	{
+	public boolean putIfNotExists(K key, V value) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public boolean removeIfValue(K key, V value)
-	{
+	public boolean removeIfValue(K key, V value) {
 		throw new UnsupportedOperationException();
 	}
 }

@@ -25,8 +25,7 @@ import java.util.List;
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface IFilterDescriptor<T>
-{
+public interface IFilterDescriptor<T> {
 	Class<T> getEntityType();
 
 	String getMember();

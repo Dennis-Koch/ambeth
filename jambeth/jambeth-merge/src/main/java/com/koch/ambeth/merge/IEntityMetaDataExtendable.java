@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 
-public interface IEntityMetaDataExtendable
-{
+public interface IEntityMetaDataExtendable {
 	void registerEntityMetaData(IEntityMetaData entityMetaData);
 
 	void unregisterEntityMetaData(IEntityMetaData entityMetaData);

@@ -30,31 +30,25 @@ import com.koch.ambeth.xml.IReader;
 import com.koch.ambeth.xml.IWriter;
 import com.koch.ambeth.xml.typehandler.AbstractHandler;
 
-public class EnumNameHandler extends AbstractHandler implements INameBasedHandler
-{
+public class EnumNameHandler extends AbstractHandler implements INameBasedHandler {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	protected final Method enumValueOf;
 
-	public EnumNameHandler()
-	{
-		try
-		{
+	public EnumNameHandler() {
+		try {
 			enumValueOf = Enum.class.getMethod("valueOf", Class.class, String.class);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	public boolean writesCustom(Object obj, Class<?> type, IWriter writer)
-	{
-		if (!type.isEnum())
-		{
+	public boolean writesCustom(Object obj, Class<?> type, IWriter writer) {
+		if (!type.isEnum()) {
 			return false;
 		}
 		writer.writeStartElement(xmlDictionary.getEnumElement());
@@ -67,25 +61,20 @@ public class EnumNameHandler extends AbstractHandler implements INameBasedHandle
 	}
 
 	@Override
-	public Object readObject(Class<?> returnType, String elementName, int id, IReader reader)
-	{
-		if (!xmlDictionary.getEnumElement().equals(elementName))
-		{
+	public Object readObject(Class<?> returnType, String elementName, int id, IReader reader) {
+		if (!xmlDictionary.getEnumElement().equals(elementName)) {
 			throw new IllegalStateException("Element '" + elementName + "' not supported");
 		}
 		Class<?> enumType = classElementHandler.readFromAttribute(reader);
 
 		String enumValue = reader.getAttributeValue(xmlDictionary.getValueAttribute());
-		if (enumValue == null)
-		{
+		if (enumValue == null) {
 			throw new IllegalStateException("Element '" + elementName + "' invalid");
 		}
-		try
-		{
+		try {
 			return enumValueOf.invoke(null, enumType, enumValue);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

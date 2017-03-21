@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.Collection;
 
-public interface IEntityTypeBlueprint
-{
+public interface IEntityTypeBlueprint {
 	public static final String NAME = "Name";
 
 	String getName();

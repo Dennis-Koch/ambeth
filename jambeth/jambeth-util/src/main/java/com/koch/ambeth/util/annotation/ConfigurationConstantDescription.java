@@ -27,8 +27,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface ConfigurationConstantDescription
-{
+public @interface ConfigurationConstantDescription {
 	String value();
 
 	String defaultValue() default "";

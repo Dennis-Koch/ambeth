@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public interface ICacheMapEntryTypeProvider
-{
+public interface ICacheMapEntryTypeProvider {
 	ICacheMapEntryFactory getCacheMapEntryType(Class<?> entityType, byte idIndex);
 }

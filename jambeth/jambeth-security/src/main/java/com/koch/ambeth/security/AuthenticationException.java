@@ -20,27 +20,22 @@ limitations under the License.
  * #L%
  */
 
-public class AuthenticationException extends RuntimeException
-{
+public class AuthenticationException extends RuntimeException {
 	private static final long serialVersionUID = 2211300283992879898L;
 
-	public AuthenticationException()
-	{
+	public AuthenticationException() {
 		super();
 	}
 
-	public AuthenticationException(String message, Throwable cause)
-	{
+	public AuthenticationException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
-	public AuthenticationException(String message)
-	{
+	public AuthenticationException(String message) {
 		super(message);
 	}
 
-	public AuthenticationException(Throwable cause)
-	{
+	public AuthenticationException(Throwable cause) {
 		super(cause);
 	}
 

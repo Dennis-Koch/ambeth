@@ -33,25 +33,25 @@ import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestRebuildContext;
 import com.koch.ambeth.util.model.IDataObject;
 
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/bytecode/ConstructorBytecodeTest-orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/bytecode/ConstructorBytecodeTest-orm.xml")
 @TestRebuildContext
-public class ConstructorBytecodeTest extends AbstractInformationBusTest
-{
+public class ConstructorBytecodeTest extends AbstractInformationBusTest {
 	@Autowired
 	protected IEntityFactory entityFactory;
 
 	@Test
-	public void testWithNonDefaultConstructor() throws Exception
-	{
-		TestEntityWithNonDefaultConstructor testEntity = entityFactory.createEntity(TestEntityWithNonDefaultConstructor.class);
+	public void testWithNonDefaultConstructor() throws Exception {
+		TestEntityWithNonDefaultConstructor testEntity =
+				entityFactory.createEntity(TestEntityWithNonDefaultConstructor.class);
 
 		assertNotNull(testEntity);
 	}
 
 	@Test
-	public void testIsToBeCreated() throws Exception
-	{
-		TestEntityWithNonDefaultConstructor testEntity = entityFactory.createEntity(TestEntityWithNonDefaultConstructor.class);
+	public void testIsToBeCreated() throws Exception {
+		TestEntityWithNonDefaultConstructor testEntity =
+				entityFactory.createEntity(TestEntityWithNonDefaultConstructor.class);
 
 		assertTrue(testEntity instanceof IDataObject);
 		assertTrue(((IDataObject) testEntity).hasPendingChanges());

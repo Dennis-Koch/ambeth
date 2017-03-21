@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.util.collections.specialized.INotifyCollectionChanged;
 
-public interface IObservableList<V> extends IList<V>, INotifyCollectionChanged
-{
+public interface IObservableList<V> extends IList<V>, INotifyCollectionChanged {
 
 }

@@ -27,53 +27,49 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.koch.ambeth.security.privilege.model.impl.TypePropertyPrivilegeImpl;
 import com.koch.ambeth.util.IPrintable;
 
-@XmlRootElement(name = "TypePropertyPrivilegeOfService", namespace = "http://schema.kochdev.com/Ambeth")
+@XmlRootElement(name = "TypePropertyPrivilegeOfService",
+		namespace = "http://schema.kochdev.com/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
-public final class TypePropertyPrivilegeOfService implements ITypePropertyPrivilegeOfService, IPrintable
-{
-	private static final TypePropertyPrivilegeOfService[] array = new TypePropertyPrivilegeOfService[TypePropertyPrivilegeImpl.arraySizeForIndex()];
+public final class TypePropertyPrivilegeOfService
+		implements ITypePropertyPrivilegeOfService, IPrintable {
+	private static final TypePropertyPrivilegeOfService[] array =
+			new TypePropertyPrivilegeOfService[TypePropertyPrivilegeImpl.arraySizeForIndex()];
 
-	static
-	{
+	static {
 		put1();
 	}
 
-	private static void put1()
-	{
+	private static void put1() {
 		put2(null);
 		put2(Boolean.FALSE);
 		put2(Boolean.TRUE);
 	}
 
-	private static void put2(Boolean create)
-	{
+	private static void put2(Boolean create) {
 		put3(create, null);
 		put3(create, Boolean.FALSE);
 		put3(create, Boolean.TRUE);
 	}
 
-	private static void put3(Boolean create, Boolean read)
-	{
+	private static void put3(Boolean create, Boolean read) {
 		put4(create, read, null);
 		put4(create, read, Boolean.FALSE);
 		put4(create, read, Boolean.TRUE);
 	}
 
-	private static void put4(Boolean create, Boolean read, Boolean update)
-	{
+	private static void put4(Boolean create, Boolean read, Boolean update) {
 		put(create, read, update, null);
 		put(create, read, update, Boolean.FALSE);
 		put(create, read, update, Boolean.TRUE);
 	}
 
-	private static void put(Boolean create, Boolean read, Boolean update, Boolean delete)
-	{
+	private static void put(Boolean create, Boolean read, Boolean update, Boolean delete) {
 		int index = TypePropertyPrivilegeImpl.calcIndex(create, read, update, delete);
 		array[index] = new TypePropertyPrivilegeOfService(create, read, update, delete);
 	}
 
-	public static ITypePropertyPrivilegeOfService create(Boolean create, Boolean read, Boolean update, Boolean delete)
-	{
+	public static ITypePropertyPrivilegeOfService create(Boolean create, Boolean read, Boolean update,
+			Boolean delete) {
 		int index = TypePropertyPrivilegeImpl.calcIndex(create, read, update, delete);
 		return array[index];
 	}
@@ -83,8 +79,8 @@ public final class TypePropertyPrivilegeOfService implements ITypePropertyPrivil
 	private final Boolean update;
 	private final Boolean delete;
 
-	private TypePropertyPrivilegeOfService(Boolean create, Boolean read, Boolean update, Boolean delete)
-	{
+	private TypePropertyPrivilegeOfService(Boolean create, Boolean read, Boolean update,
+			Boolean delete) {
 		this.create = create;
 		this.read = read;
 		this.update = update;
@@ -92,63 +88,54 @@ public final class TypePropertyPrivilegeOfService implements ITypePropertyPrivil
 	}
 
 	@Override
-	public Boolean isCreateAllowed()
-	{
+	public Boolean isCreateAllowed() {
 		return create;
 	}
 
 	@Override
-	public Boolean isReadAllowed()
-	{
+	public Boolean isReadAllowed() {
 		return read;
 	}
 
 	@Override
-	public Boolean isUpdateAllowed()
-	{
+	public Boolean isUpdateAllowed() {
 		return update;
 	}
 
 	@Override
-	public Boolean isDeleteAllowed()
-	{
+	public Boolean isDeleteAllowed() {
 		return delete;
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == this)
-		{
+	public boolean equals(Object obj) {
+		if (obj == this) {
 			return true;
 		}
-		if (!(obj instanceof TypePropertyPrivilegeOfService))
-		{
+		if (!(obj instanceof TypePropertyPrivilegeOfService)) {
 			return false;
 		}
 		TypePropertyPrivilegeOfService other = (TypePropertyPrivilegeOfService) obj;
 		int index = TypePropertyPrivilegeImpl.calcIndex(create, read, update, delete);
-		int otherIndex = TypePropertyPrivilegeImpl.calcIndex(other.create, other.read, other.update, other.delete);
+		int otherIndex =
+				TypePropertyPrivilegeImpl.calcIndex(other.create, other.read, other.update, other.delete);
 		return index == otherIndex;
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return TypePropertyPrivilegeImpl.calcIndex(create, read, update, delete);
 	}
 
 	@Override
-	public final String toString()
-	{
+	public final String toString() {
 		StringBuilder sb = new StringBuilder();
 		toString(sb);
 		return sb.toString();
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
+	public void toString(StringBuilder sb) {
 		sb.append(isReadAllowed() != null ? isReadAllowed() ? "+R" : "-R" : "nR");
 		sb.append(isCreateAllowed() != null ? isCreateAllowed() ? "+C" : "-C" : "nC");
 		sb.append(isUpdateAllowed() != null ? isUpdateAllowed() ? "+U" : "-U" : "nU");

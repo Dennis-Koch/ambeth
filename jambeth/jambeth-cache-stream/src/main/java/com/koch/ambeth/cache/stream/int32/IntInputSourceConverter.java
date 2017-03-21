@@ -23,11 +23,9 @@ limitations under the License.
 import com.koch.ambeth.cache.stream.AbstractInputSourceConverter;
 import com.koch.ambeth.cache.stream.AbstractInputSourceValueHolder;
 
-public class IntInputSourceConverter extends AbstractInputSourceConverter
-{
+public class IntInputSourceConverter extends AbstractInputSourceConverter {
 	@Override
-	protected AbstractInputSourceValueHolder createValueHolderInstance()
-	{
+	protected AbstractInputSourceValueHolder createValueHolderInstance() {
 		return new IntInputSourceValueHolder();
 	}
 }

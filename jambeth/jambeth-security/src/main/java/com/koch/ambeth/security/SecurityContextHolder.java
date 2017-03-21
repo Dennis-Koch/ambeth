@@ -59,12 +59,12 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 	protected IAuthenticatedUserHolder authenticatedUserHolder;
 
 	protected final DefaultExtendableContainer<IAuthorizationChangeListener> authorizationChangeListeners =
-			new DefaultExtendableContainer<IAuthorizationChangeListener>(
+			new DefaultExtendableContainer<>(
 					IAuthorizationChangeListener.class, "authorizationChangeListener");
 
 	@Forkable(processor = SecurityContextForkProcessor.class)
 	protected final ThreadLocal<ISecurityContext> contextTL =
-			new SensitiveThreadLocal<ISecurityContext>();
+			new SensitiveThreadLocal<>();
 
 	protected void notifyAuthorizationChangeListeners(IAuthorization authorization) {
 		authenticatedUserHolder

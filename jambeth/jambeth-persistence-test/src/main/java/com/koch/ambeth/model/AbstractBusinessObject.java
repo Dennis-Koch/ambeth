@@ -23,10 +23,8 @@ limitations under the License.
 import com.koch.ambeth.util.annotation.EntityEqualsAspect;
 
 @EntityEqualsAspect
-public abstract class AbstractBusinessObject
-{
-	protected AbstractBusinessObject()
-	{
+public abstract class AbstractBusinessObject {
+	protected AbstractBusinessObject() {
 		// Intended blank
 	}
 

@@ -20,20 +20,17 @@ limitations under the License.
  * #L%
  */
 
-public final class MeasurementUtil
-{
+public final class MeasurementUtil {
 	public static boolean logMeasurements = true;
 
-	private MeasurementUtil()
-	{
+	private MeasurementUtil() {
 		// Intended blank
 	}
 
-	public static void logMeasurement(String name, Object value)
-	{
-		if (logMeasurements)
-		{
-			System.out.println("<measurement><name>" + name + "</name><value>" + value + "</value></measurement>");
+	public static void logMeasurement(String name, Object value) {
+		if (logMeasurements) {
+			System.out.println(
+					"<measurement><name>" + name + "</name><value>" + value + "</value></measurement>");
 		}
 	}
 }

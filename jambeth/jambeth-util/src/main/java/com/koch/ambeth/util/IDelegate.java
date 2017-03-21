@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IDelegate
-{
+public interface IDelegate {
 	Object invoke(Object... args);
 }

@@ -25,8 +25,7 @@ import com.koch.ambeth.persistence.api.IPermissionGroup;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.IList;
 
-public class PgUpdateEntry
-{
+public class PgUpdateEntry {
 	protected final IPermissionGroup permissionGroup;
 
 	protected final Class<?> entityType;
@@ -41,75 +40,61 @@ public class PgUpdateEntry
 
 	protected int startIndexInAllObjRefs;
 
-	public PgUpdateEntry(Class<?> entityType, IPermissionGroup permissionGroup)
-	{
+	public PgUpdateEntry(Class<?> entityType, IPermissionGroup permissionGroup) {
 		this.entityType = entityType;
 		this.permissionGroup = permissionGroup;
 	}
 
-	public IPermissionGroup getPermissionGroup()
-	{
+	public IPermissionGroup getPermissionGroup() {
 		return permissionGroup;
 	}
 
-	public Class<?> getEntityType()
-	{
+	public Class<?> getEntityType() {
 		return entityType;
 	}
 
-	public PermissionGroupUpdateType getUpdateType()
-	{
+	public PermissionGroupUpdateType getUpdateType() {
 		return updateType;
 	}
 
-	public void setUpdateType(PermissionGroupUpdateType updateType)
-	{
+	public void setUpdateType(PermissionGroupUpdateType updateType) {
 		this.updateType = updateType;
 	}
 
-	public IDataChange getDataChange()
-	{
+	public IDataChange getDataChange() {
 		return dataChange;
 	}
 
-	public void setDataChange(IDataChange dataChange)
-	{
+	public void setDataChange(IDataChange dataChange) {
 		this.dataChange = dataChange;
 	}
 
-	public IList<IObjRef> getObjRefs()
-	{
+	public IList<IObjRef> getObjRefs() {
 		return objRefs;
 	}
 
-	public void setObjRefs(IList<IObjRef> objRefs)
-	{
+	public void setObjRefs(IList<IObjRef> objRefs) {
 		this.objRefs = objRefs;
 	}
 
-	public IList<Object> getPermissionGroupIds()
-	{
+	public IList<Object> getPermissionGroupIds() {
 		return permissionGroupIds;
 	}
 
-	public void setPermissionGroupIds(IList<Object> permissionGroupIds)
-	{
+	public void setPermissionGroupIds(IList<Object> permissionGroupIds) {
 		this.permissionGroupIds = permissionGroupIds;
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return getUpdateType().toString();
 	}
 
-	public int getStartIndexInAllObjRefs()
-	{
+	public int getStartIndexInAllObjRefs() {
 		return startIndexInAllObjRefs;
 	}
 
-	public void setStartIndexInAllObjRefs(int startIndexInAllObjRefs)
-	{
+	public void setStartIndexInAllObjRefs(int startIndexInAllObjRefs) {
 		this.startIndexInAllObjRefs = startIndexInAllObjRefs;
 	}
 }

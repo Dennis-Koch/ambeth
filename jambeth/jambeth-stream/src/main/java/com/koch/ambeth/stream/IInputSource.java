@@ -24,7 +24,6 @@ limitations under the License.
 /**
  * Marker interface
  */
-public interface IInputSource
-{
+public interface IInputSource {
 	IInputStream deriveInputStream();
 }

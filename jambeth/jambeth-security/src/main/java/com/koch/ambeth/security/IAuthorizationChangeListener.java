@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public interface IAuthorizationChangeListener
-{
+public interface IAuthorizationChangeListener {
 	void authorizationChanged(IAuthorization authorization);
 }

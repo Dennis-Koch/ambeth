@@ -23,52 +23,43 @@ limitations under the License.
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
-public class ErrorItem
-{
+public class ErrorItem {
 	private Integer errorCode;
 
 	private String name;
 
 	private String description;
 
-	ErrorItem()
-	{
+	ErrorItem() {
 	}
 
-	public ErrorItem(Integer errorCode, String name, String description)
-	{
+	public ErrorItem(Integer errorCode, String name, String description) {
 		this.errorCode = errorCode;
 		this.name = name;
 		this.description = description;
 	}
 
-	public Integer getErrorCode()
-	{
+	public Integer getErrorCode() {
 		return errorCode;
 	}
 
-	public void setErrorCode(Integer errorCode)
-	{
+	public void setErrorCode(Integer errorCode) {
 		this.errorCode = errorCode;
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public String getDescription()
-	{
+	public String getDescription() {
 		return description;
 	}
 
-	public void setDescription(String description)
-	{
+	public void setDescription(String description) {
 		this.description = description;
 	}
 }

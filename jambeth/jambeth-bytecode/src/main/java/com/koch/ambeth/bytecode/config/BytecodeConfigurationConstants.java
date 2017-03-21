@@ -24,10 +24,8 @@ import com.koch.ambeth.util.annotation.ConfigurationConstantDescription;
 import com.koch.ambeth.util.annotation.ConfigurationConstants;
 
 @ConfigurationConstants
-public final class BytecodeConfigurationConstants
-{
-	private BytecodeConfigurationConstants()
-	{
+public final class BytecodeConfigurationConstants {
+	private BytecodeConfigurationConstants() {
 		// intended blank
 	}
 

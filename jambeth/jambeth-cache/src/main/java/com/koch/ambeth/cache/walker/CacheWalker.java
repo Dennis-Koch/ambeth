@@ -47,8 +47,7 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 
-public class CacheWalker implements ICacheWalker
-{
+public class CacheWalker implements ICacheWalker {
 	private static final IObjRef[] allEntityRefs = new IObjRef[0];
 
 	@LogInstance
@@ -76,20 +75,16 @@ public class CacheWalker implements ICacheWalker
 	protected ITransactionState transactionState;
 
 	@Override
-	public <T> ICacheWalkerResult walkEntities(T... entities)
-	{
-		IList<IObjRef> objRefs = new ArrayList<IObjRef>(entities.length);
+	public <T> ICacheWalkerResult walkEntities(T... entities) {
+		IList<IObjRef> objRefs = new ArrayList<>(entities.length);
 		objRefs = objRefHelper.extractObjRefList(entities, null, objRefs);
 
-		IdentityHashSet<ICache> allCachesSet = new IdentityHashSet<ICache>();
+		IdentityHashSet<ICache> allCachesSet = new IdentityHashSet<>();
 
-		for (Object entity : entities)
-		{
-			if (entity instanceof IValueHolderContainer)
-			{
+		for (Object entity : entities) {
+			if (entity instanceof IValueHolderContainer) {
 				ICache targetCache = ((IValueHolderContainer) entity).get__TargetCache();
-				if (targetCache != null)
-				{
+				if (targetCache != null) {
 					allCachesSet.add(targetCache);
 				}
 			}
@@ -99,44 +94,38 @@ public class CacheWalker implements ICacheWalker
 	}
 
 	@Override
-	public ICacheWalkerResult walkAll()
-	{
+	public ICacheWalkerResult walkAll() {
 		return walk(allEntityRefs);
 	}
 
 	@Override
-	public ICacheWalkerResult walk(IObjRef... objRefs)
-	{
-		IdentityHashSet<ICache> allCachesSet = new IdentityHashSet<ICache>();
+	public ICacheWalkerResult walk(IObjRef... objRefs) {
+		IdentityHashSet<ICache> allCachesSet = new IdentityHashSet<>();
 
 		return walkIntern(objRefs, allCachesSet);
 	}
 
-	protected ICacheWalkerResult walkIntern(IObjRef[] objRefs, IdentityHashSet<ICache> allCachesSet)
-	{
-		IdentityHashMap<ICache, List<ICache>> cacheToChildCaches = new IdentityHashMap<ICache, List<ICache>>();
-		IdentityHashMap<ICache, ICache> cacheToProxyCache = new IdentityHashMap<ICache, ICache>();
+	protected ICacheWalkerResult walkIntern(IObjRef[] objRefs, IdentityHashSet<ICache> allCachesSet) {
+		IdentityHashMap<ICache, List<ICache>> cacheToChildCaches =
+				new IdentityHashMap<>();
+		IdentityHashMap<ICache, ICache> cacheToProxyCache = new IdentityHashMap<>();
 
 		ICache currentCommittedRootCache = committedRootCache.getCurrentCache();
 
-		if (!cacheProvider.isNewInstanceOnCall())
-		{
+		if (!cacheProvider.isNewInstanceOnCall()) {
 			allCachesSet.add(firstLevelCache.getCurrentCache());
 		}
 
 		ICache[] allChildCaches = allCachesSet.toArray(ICache.class);
 
 		allCachesSet.add(currentCommittedRootCache);
-		for (ICache childCache : allChildCaches)
-		{
+		for (ICache childCache : allChildCaches) {
 			ICache child = childCache;
 			ICache parent = ((ChildCache) child).getParent();
-			while (parent != null)
-			{
+			while (parent != null) {
 				ICache currentParent = parent.getCurrentCache();
 
-				if (!allCachesSet.add(currentParent))
-				{
+				if (!allCachesSet.add(currentParent)) {
 					// skip this cache. we handled it already
 					break;
 				}
@@ -144,23 +133,23 @@ public class CacheWalker implements ICacheWalker
 				parent = ((IRootCache) currentParent).getParent();
 				child = currentParent;
 			}
-			checkParentCache(committedRootCache, currentCommittedRootCache, child, cacheToChildCaches, cacheToProxyCache);
+			checkParentCache(committedRootCache, currentCommittedRootCache, child, cacheToChildCaches,
+					cacheToProxyCache);
 		}
-		if (objRefs != allEntityRefs)
-		{
-			objRefs = new HashSet<IObjRef>(objRefs).toArray(IObjRef.class);
+		if (objRefs != allEntityRefs) {
+			objRefs = new HashSet<>(objRefs).toArray(IObjRef.class);
 			Arrays.sort(objRefs, ObjRef.comparator);
 		}
-		CacheWalkerResult rootEntry = buildWalkedEntry(currentCommittedRootCache, objRefs, cacheToChildCaches, cacheToProxyCache);
+		CacheWalkerResult rootEntry =
+				buildWalkedEntry(currentCommittedRootCache, objRefs, cacheToChildCaches, cacheToProxyCache);
 
-		if (objRefs == allEntityRefs)
-		{
-			HashMap<IObjRef, Integer> allObjRefs = new HashMap<IObjRef, Integer>();
+		if (objRefs == allEntityRefs) {
+			HashMap<IObjRef, Integer> allObjRefs = new HashMap<>();
 			collectAllObjRefs(rootEntry, allObjRefs);
-			objRefs = allObjRefs.size() > 0 ? allObjRefs.keyList().toArray(IObjRef.class) : ObjRef.EMPTY_ARRAY;
+			objRefs =
+					allObjRefs.size() > 0 ? allObjRefs.keyList().toArray(IObjRef.class) : ObjRef.EMPTY_ARRAY;
 			Arrays.sort(objRefs, ObjRef.comparator);
-			for (int a = objRefs.length; a-- > 0;)
-			{
+			for (int a = objRefs.length; a-- > 0;) {
 				allObjRefs.put(objRefs[a], Integer.valueOf(a));
 			}
 			reallocateObjRefsAndCacheValues(rootEntry, objRefs, allObjRefs);
@@ -168,13 +157,12 @@ public class CacheWalker implements ICacheWalker
 		return rootEntry;
 	}
 
-	protected void reallocateObjRefsAndCacheValues(CacheWalkerResult entry, IObjRef[] objRefs, HashMap<IObjRef, Integer> allObjRefs)
-	{
+	protected void reallocateObjRefsAndCacheValues(CacheWalkerResult entry, IObjRef[] objRefs,
+			HashMap<IObjRef, Integer> allObjRefs) {
 		IObjRef[] oldObjRefs = entry.objRefs;
 		Object[] oldCacheValues = entry.cacheValues;
 		Object[] newCacheValues = new Object[objRefs.length];
-		for (int oldIndex = oldObjRefs.length; oldIndex-- > 0;)
-		{
+		for (int oldIndex = oldObjRefs.length; oldIndex-- > 0;) {
 			IObjRef oldObjRef = oldObjRefs[oldIndex];
 			int newIndex = allObjRefs.get(oldObjRef).intValue();
 			newCacheValues[newIndex] = oldCacheValues[oldIndex];
@@ -184,137 +172,116 @@ public class CacheWalker implements ICacheWalker
 		entry.updatePendingChanges();
 
 		Object childEntries = entry.childEntries;
-		if (childEntries == null)
-		{
+		if (childEntries == null) {
 			return;
 		}
-		if (childEntries.getClass().isArray())
-		{
-			for (CacheWalkerResult childEntry : (CacheWalkerResult[]) childEntries)
-			{
+		if (childEntries.getClass().isArray()) {
+			for (CacheWalkerResult childEntry : (CacheWalkerResult[]) childEntries) {
 				reallocateObjRefsAndCacheValues(childEntry, objRefs, allObjRefs);
 			}
 		}
-		else
-		{
+		else {
 			reallocateObjRefsAndCacheValues((CacheWalkerResult) childEntries, objRefs, allObjRefs);
 		}
 	}
 
-	protected void collectAllObjRefs(CacheWalkerResult entry, HashMap<IObjRef, Integer> allObjRefs)
-	{
-		for (IObjRef objRef : entry.objRefs)
-		{
+	protected void collectAllObjRefs(CacheWalkerResult entry, HashMap<IObjRef, Integer> allObjRefs) {
+		for (IObjRef objRef : entry.objRefs) {
 			allObjRefs.putIfNotExists(objRef, null);
 		}
 
 		Object childEntries = entry.childEntries;
-		if (childEntries == null)
-		{
+		if (childEntries == null) {
 			return;
 		}
-		if (childEntries.getClass().isArray())
-		{
-			for (CacheWalkerResult childEntry : (CacheWalkerResult[]) childEntries)
-			{
+		if (childEntries.getClass().isArray()) {
+			for (CacheWalkerResult childEntry : (CacheWalkerResult[]) childEntries) {
 				collectAllObjRefs(childEntry, allObjRefs);
 			}
 		}
-		else
-		{
+		else {
 			collectAllObjRefs((CacheWalkerResult) childEntries, allObjRefs);
 		}
 	}
 
-	protected void checkParentCache(ICache parentCache, ICache currentParentCache, ICache childCache, IdentityHashMap<ICache, List<ICache>> cacheToChildCaches,
-			IdentityHashMap<ICache, ICache> cacheToProxyCache)
-	{
-		if (currentParentCache != parentCache)
-		{
+	protected void checkParentCache(ICache parentCache, ICache currentParentCache, ICache childCache,
+			IdentityHashMap<ICache, List<ICache>> cacheToChildCaches,
+			IdentityHashMap<ICache, ICache> cacheToProxyCache) {
+		if (currentParentCache != parentCache) {
 			cacheToProxyCache.put(currentParentCache, parentCache);
 		}
 		List<ICache> childCaches = cacheToChildCaches.get(currentParentCache);
-		if (childCaches == null)
-		{
-			childCaches = new ArrayList<ICache>();
+		if (childCaches == null) {
+			childCaches = new ArrayList<>();
 			cacheToChildCaches.put(currentParentCache, childCaches);
 		}
 		childCaches.add(childCache);
 	}
 
-	protected CacheWalkerResult buildWalkedEntry(ICache cache, IObjRef[] objRefs, IdentityHashMap<ICache, List<ICache>> cacheToChildCaches,
-			IdentityHashMap<ICache, ICache> cacheToProxyCache)
-	{
+	protected CacheWalkerResult buildWalkedEntry(ICache cache, IObjRef[] objRefs,
+			IdentityHashMap<ICache, List<ICache>> cacheToChildCaches,
+			IdentityHashMap<ICache, ICache> cacheToProxyCache) {
 		List<ICache> childCaches = cacheToChildCaches.get(cache);
 		CacheWalkerResult[] childCacheEntries;
 
-		if (childCaches == null)
-		{
+		if (childCaches == null) {
 			childCacheEntries = null;
 		}
-		else
-		{
+		else {
 			childCacheEntries = new CacheWalkerResult[childCaches.size()];
-			for (int a = childCaches.size(); a-- > 0;)
-			{
-				childCacheEntries[a] = buildWalkedEntry(childCaches.get(a), objRefs, cacheToChildCaches, cacheToProxyCache);
+			for (int a = childCaches.size(); a-- > 0;) {
+				childCacheEntries[a] =
+						buildWalkedEntry(childCaches.get(a), objRefs, cacheToChildCaches, cacheToProxyCache);
 			}
 		}
 		ICache proxyCache = cacheToProxyCache.get(cache);
 
 		boolean transactional = false, threadLocal = false;
-		if (proxyCache != null)
-		{
+		if (proxyCache != null) {
 			threadLocal = true;
-			if (transactionState != null && transactionState.isTransactionActive())
-			{
+			if (transactionState != null && transactionState.isTransactionActive()) {
 				transactional = true;
 			}
 		}
 
 		List<Object> cacheValues;
-		if (objRefs != allEntityRefs)
-		{
-			if (cache instanceof ChildCache)
-			{
-				cacheValues = cache.getObjects(objRefs, EnumSet.of(CacheDirective.FailEarly, CacheDirective.ReturnMisses));
+		if (objRefs != allEntityRefs) {
+			if (cache instanceof ChildCache) {
+				cacheValues = cache.getObjects(objRefs,
+						EnumSet.of(CacheDirective.FailEarly, CacheDirective.ReturnMisses));
 			}
-			else
-			{
-				cacheValues = cache.getObjects(objRefs, EnumSet.of(CacheDirective.FailEarly, CacheDirective.CacheValueResult, CacheDirective.ReturnMisses));
+			else {
+				cacheValues = cache.getObjects(objRefs, EnumSet.of(CacheDirective.FailEarly,
+						CacheDirective.CacheValueResult, CacheDirective.ReturnMisses));
 			}
 		}
-		else
-		{
-			final IdentityHashSet<Object> fCacheValues = new IdentityHashSet<Object>();
-			cache.getContent(new HandleContentDelegate()
-			{
+		else {
+			final IdentityHashSet<Object> fCacheValues = new IdentityHashSet<>();
+			cache.getContent(new HandleContentDelegate() {
 				@Override
-				public void invoke(Class<?> entityType, byte idIndex, Object id, Object value)
-				{
+				public void invoke(Class<?> entityType, byte idIndex, Object id, Object value) {
 					fCacheValues.add(value);
 				}
 			});
 			cacheValues = fCacheValues.toList();
 
 			// generate ad-hoc objRefs
-			objRefs = cacheValues.size() > 0 ? objRefHelper.extractObjRefList(cacheValues, null).toArray(IObjRef.class) : ObjRef.EMPTY_ARRAY;
+			objRefs = cacheValues.size() > 0
+					? objRefHelper.extractObjRefList(cacheValues, null).toArray(IObjRef.class)
+					: ObjRef.EMPTY_ARRAY;
 		}
 		Object childEntries = childCacheEntries;
-		if (childCacheEntries != null && childCacheEntries.length == 1)
-		{
+		if (childCacheEntries != null && childCacheEntries.length == 1) {
 			childEntries = childCacheEntries[0];
 		}
-		CacheWalkerResult parentEntry = new CacheWalkerResult(cache, transactional, threadLocal, objRefs, cacheValues.toArray(), childEntries);
-		if (childCacheEntries != null)
-		{
-			for (int a = childCacheEntries.length; a-- > 0;)
-			{
+		CacheWalkerResult parentEntry = new CacheWalkerResult(cache, transactional, threadLocal,
+				objRefs, cacheValues.toArray(), childEntries);
+		if (childCacheEntries != null) {
+			for (int a = childCacheEntries.length; a-- > 0;) {
 				childCacheEntries[a].setParentEntry(parentEntry);
 			}
 		}
-		if (objRefs != allEntityRefs)
-		{
+		if (objRefs != allEntityRefs) {
 			parentEntry.updatePendingChanges();
 		}
 		return parentEntry;

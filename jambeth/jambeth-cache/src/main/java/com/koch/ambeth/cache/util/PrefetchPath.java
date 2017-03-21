@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public class PrefetchPath
-{
+public class PrefetchPath {
 	public final int memberIndex;
 
 	public final String memberName;
@@ -32,8 +31,8 @@ public class PrefetchPath
 
 	public final Class<?>[] memberTypesOnDescendants;
 
-	public PrefetchPath(Class<?> memberType, int memberIndex, String memberName, PrefetchPath[] children, Class<?>[] memberTypesOnDescendants)
-	{
+	public PrefetchPath(Class<?> memberType, int memberIndex, String memberName,
+			PrefetchPath[] children, Class<?>[] memberTypesOnDescendants) {
 		this.memberIndex = memberIndex;
 		this.memberName = memberName;
 		this.memberType = memberType;
@@ -42,8 +41,7 @@ public class PrefetchPath
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return memberName;
 	}
 }

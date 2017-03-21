@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IMapperServiceFactory
-{
+public interface IMapperServiceFactory {
 	IMapperService create();
 }

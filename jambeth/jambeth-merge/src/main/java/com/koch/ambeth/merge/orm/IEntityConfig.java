@@ -21,8 +21,7 @@ limitations under the License.
  */
 
 
-public interface IEntityConfig
-{
+public interface IEntityConfig {
 	Class<?> getEntityType();
 
 	Class<?> getRealType();

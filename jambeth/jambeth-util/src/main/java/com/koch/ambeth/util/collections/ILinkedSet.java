@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface ILinkedSet<K> extends ISet<K>
-{
+public interface ILinkedSet<K> extends ISet<K> {
 	// Intended blank
 }

@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.StringBuilderUtil;
 
-public abstract class AbstractCacheValue implements IPrintable
-{
+public abstract class AbstractCacheValue implements IPrintable {
 	public abstract Object getId();
 
 	public abstract void setId(Object id);
@@ -40,16 +39,14 @@ public abstract class AbstractCacheValue implements IPrintable
 	public abstract Object[] getPrimitives();
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		toString(sb);
 		return sb.toString();
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
+	public void toString(StringBuilder sb) {
 		sb.append("EntityType=").append(getEntityType().getName()).append(" Id='");
 		StringBuilderUtil.appendPrintable(sb, getId());
 		sb.append("' Version='").append(getVersion()).append('\'');

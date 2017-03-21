@@ -28,8 +28,7 @@ import com.koch.ambeth.filter.IPagingResponse;
 import com.koch.ambeth.filter.ISortDescriptor;
 import com.koch.ambeth.query.squery.model.Person;
 
-public interface IPersonService
-{
+public interface IPersonService {
 	List<Person> findAll();
 
 	Person findById(Integer id);
@@ -64,7 +63,8 @@ public interface IPersonService
 
 	List<Person> findAllSortByVersion(ISortDescriptor sort);
 
-	IPagingResponse<Person> findByNameStartWith(String name, IPagingRequest request, ISortDescriptor... sorts);
+	IPagingResponse<Person> findByNameStartWith(String name, IPagingRequest request,
+			ISortDescriptor... sorts);
 
 	List<Person> findByAgeGe(Integer minAge, IPagingRequest request, ISortDescriptor sort);
 
@@ -80,7 +80,7 @@ public interface IPersonService
 
 	/**
 	 * this method is implemented in PersonService, so it will not have Squery feature
-	 * 
+	 *
 	 * @param anyValue
 	 * @return
 	 */

@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public enum CopyDirection
-{
+public enum CopyDirection {
 	VO_TO_BO, BO_TO_VO
 }

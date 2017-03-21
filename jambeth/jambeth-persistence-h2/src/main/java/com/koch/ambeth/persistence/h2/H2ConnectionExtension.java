@@ -29,8 +29,7 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.IConnectionDialect;
 import com.koch.ambeth.persistence.jdbc.IConnectionExtension;
 
-public class H2ConnectionExtension implements IConnectionExtension
-{
+public class H2ConnectionExtension implements IConnectionExtension {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -41,12 +40,12 @@ public class H2ConnectionExtension implements IConnectionExtension
 	@Autowired
 	protected Connection connection;
 
-	// protected final HashSet<Class<?>> numbersToConvert = new HashSet<Class<?>>(Arrays.<Class<?>> asList(byte.class, Byte.class, Short.class, Integer.class,
+	// protected final HashSet<Class<?>> numbersToConvert = new HashSet<Class<?>>(Arrays.<Class<?>>
+	// asList(byte.class, Byte.class, Short.class, Integer.class,
 	// Long.class));
 
 	@Override
-	public Array createJDBCArray(Class<?> expectedComponentType, Object javaArray)
-	{
+	public Array createJDBCArray(Class<?> expectedComponentType, Object javaArray) {
 		throw new UnsupportedOperationException();
 		// h2Connection.createArrayOf(typeName, elements)
 		// if (expectedComponentType == null)
@@ -85,10 +84,12 @@ public class H2ConnectionExtension implements IConnectionExtension
 		// javaArray = characterArray;
 		// }
 		//
-		// String arrayTypeName = connectionDialect.getFieldTypeNameByComponentType(expectedComponentType);
+		// String arrayTypeName =
+		// connectionDialect.getFieldTypeNameByComponentType(expectedComponentType);
 		// if (arrayTypeName == null)
 		// {
-		// throw new IllegalArgumentException("Can not handle arrays of type " + expectedComponentType.getName());
+		// throw new IllegalArgumentException("Can not handle arrays of type " +
+		// expectedComponentType.getName());
 		// }
 		// try
 		// {

@@ -23,15 +23,12 @@ limitations under the License.
 import java.util.ArrayList;
 import java.util.List;
 
-public class DetailListVO
-{
+public class DetailListVO {
 	protected List<DetailVO> details = null;
 
-	public List<DetailVO> getDetails()
-	{
-		if (details == null)
-		{
-			details = new ArrayList<DetailVO>();
+	public List<DetailVO> getDetails() {
+		if (details == null) {
+			details = new ArrayList<>();
 		}
 		return details;
 	}

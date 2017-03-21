@@ -26,8 +26,8 @@ import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.StringBuilderUtil;
 
-public class MapLinkedEntry<K, V> extends AbstractListElem<MapLinkedEntry<K, V>> implements IMapEntry<K, V>, IPrintable
-{
+public class MapLinkedEntry<K, V> extends AbstractListElem<MapLinkedEntry<K, V>>
+		implements IMapEntry<K, V>, IPrintable {
 	protected final int hash;
 
 	protected MapLinkedEntry<K, V> nextEntry;
@@ -36,52 +36,44 @@ public class MapLinkedEntry<K, V> extends AbstractListElem<MapLinkedEntry<K, V>>
 
 	protected V value;
 
-	public MapLinkedEntry()
-	{
+	public MapLinkedEntry() {
 		// For GenericFastList
 		hash = 0;
 		key = null;
 	}
 
-	public MapLinkedEntry(int hash, K key, V value)
-	{
+	public MapLinkedEntry(int hash, K key, V value) {
 		this.hash = hash;
 		this.key = key;
 		this.value = value;
 	}
 
 	@Override
-	public K getKey()
-	{
+	public K getKey() {
 		return key;
 	}
 
 	@Override
-	public V getValue()
-	{
+	public V getValue() {
 		return value;
 	}
 
 	@Override
-	public int getHash()
-	{
+	public int getHash() {
 		return hash;
 	}
 
 	@Override
-	public MapLinkedEntry<K, V> getNextEntry()
-	{
+	public MapLinkedEntry<K, V> getNextEntry() {
 		return nextEntry;
 	}
 
-	public void setNextEntry(final MapLinkedEntry<K, V> nextEntry)
-	{
+	public void setNextEntry(final MapLinkedEntry<K, V> nextEntry) {
 		this.nextEntry = nextEntry;
 	}
 
 	@Override
-	public V setValue(final V value)
-	{
+	public V setValue(final V value) {
 		V oldValue = this.value;
 		this.value = value;
 		return oldValue;
@@ -89,27 +81,23 @@ public class MapLinkedEntry<K, V> extends AbstractListElem<MapLinkedEntry<K, V>>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == this)
-		{
+	public boolean equals(Object obj) {
+		if (obj == this) {
 			return true;
 		}
-		if (!(obj instanceof Entry))
-		{
+		if (!(obj instanceof Entry)) {
 			return false;
 		}
 		Entry<Object, Object> other = (Entry<Object, Object>) obj;
-		return EqualsUtil.equals(getKey(), other.getKey()) && EqualsUtil.equals(getValue(), other.getValue());
+		return EqualsUtil.equals(getKey(), other.getKey())
+				&& EqualsUtil.equals(getValue(), other.getValue());
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		// Key is enough for hashcoding
 		K key = getKey();
-		if (key == null)
-		{
+		if (key == null) {
 			// Any prime number
 			return 97;
 		}
@@ -117,16 +105,14 @@ public class MapLinkedEntry<K, V> extends AbstractListElem<MapLinkedEntry<K, V>>
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		toString(sb);
 		return sb.toString();
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
+	public void toString(StringBuilder sb) {
 		sb.append('(');
 		StringBuilderUtil.appendPrintable(sb, getKey());
 		sb.append(',');

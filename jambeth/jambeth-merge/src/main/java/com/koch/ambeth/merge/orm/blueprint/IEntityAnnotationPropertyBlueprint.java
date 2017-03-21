@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IEntityAnnotationPropertyBlueprint
-{
+public interface IEntityAnnotationPropertyBlueprint {
 	public static final String NAME = "Name";
 	public static final String VALUE = "Value";
 

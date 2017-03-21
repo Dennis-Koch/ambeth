@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.sql.Connection;
 
-public interface IConnectionFactory
-{
+public interface IConnectionFactory {
 	Connection create();
 
 	void create(Connection reusableConnection);

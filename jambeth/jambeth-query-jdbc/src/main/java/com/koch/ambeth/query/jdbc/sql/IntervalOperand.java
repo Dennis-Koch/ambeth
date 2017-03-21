@@ -26,8 +26,7 @@ import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
-public class IntervalOperand implements IOperand
-{
+public class IntervalOperand implements IOperand {
 	@Property
 	protected IOperand lowerBoundary;
 
@@ -35,8 +34,8 @@ public class IntervalOperand implements IOperand
 	protected IOperand upperBoundary;
 
 	@Override
-	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
-	{
+	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			boolean joinQuery, IList<Object> parameters) {
 		querySB.append('(');
 		lowerBoundary.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 		querySB.append(',');

@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IParentCacheValueHardRef
-{
+public interface IParentCacheValueHardRef {
 	void setParentCacheValueHardRef(Object parentCacheValueHardRef);
 }

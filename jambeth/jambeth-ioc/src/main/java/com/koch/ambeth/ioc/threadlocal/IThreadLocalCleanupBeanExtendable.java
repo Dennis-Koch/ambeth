@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IThreadLocalCleanupBeanExtendable
-{
+public interface IThreadLocalCleanupBeanExtendable {
 	void registerThreadLocalCleanupBean(IThreadLocalCleanupBean threadLocalCleanupBean);
 
 	void unregisterThreadLocalCleanupBean(IThreadLocalCleanupBean threadLocalCleanupBean);

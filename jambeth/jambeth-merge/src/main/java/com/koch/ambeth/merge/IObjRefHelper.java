@@ -24,15 +24,17 @@ import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.IList;
 
-public interface IObjRefHelper
-{
+public interface IObjRefHelper {
 	IList<IObjRef> extractObjRefList(Object objValue, MergeHandle mergeHandle);
 
-	IList<IObjRef> extractObjRefList(Object objValue, MergeHandle mergeHandle, IList<IObjRef> targetOriList);
+	IList<IObjRef> extractObjRefList(Object objValue, MergeHandle mergeHandle,
+			IList<IObjRef> targetOriList);
 
-	IList<IObjRef> extractObjRefList(Object objValue, MergeHandle mergeHandle, IList<IObjRef> targetOriList, EntityCallback entityCallback);
+	IList<IObjRef> extractObjRefList(Object objValue, MergeHandle mergeHandle,
+			IList<IObjRef> targetOriList, EntityCallback entityCallback);
 
-	IList<IObjRef> extractObjRefList(Object objValue, IObjRefProvider oriProvider, IList<IObjRef> targetOriList, EntityCallback entityCallback);
+	IList<IObjRef> extractObjRefList(Object objValue, IObjRefProvider oriProvider,
+			IList<IObjRef> targetOriList, EntityCallback entityCallback);
 
 	IObjRef getCreateObjRef(Object obj, IObjRefProvider oriProvider);
 
@@ -52,35 +54,29 @@ public interface IObjRefHelper
 
 	/**
 	 * Returns all valid (key != null) references for the given values.
-	 * 
-	 * @param id
-	 *            Primary ID
-	 * @param version
-	 *            Entity version
-	 * @param primitives
-	 *            Array of all primitive values
-	 * @param metaData
-	 *            Meta data of the described entity
+	 *
+	 * @param id Primary ID
+	 * @param version Entity version
+	 * @param primitives Array of all primitive values
+	 * @param metaData Meta data of the described entity
 	 * @return All valid ORIs
 	 */
-	IList<IObjRef> entityToAllObjRefs(Object id, Object version, Object[] primitives, IEntityMetaData metaData);
+	IList<IObjRef> entityToAllObjRefs(Object id, Object version, Object[] primitives,
+			IEntityMetaData metaData);
 
 	/**
 	 * Returns all valid (key != null) references for the given entity.
-	 * 
-	 * @param entity
-	 *            Entity to build ORIS for
+	 *
+	 * @param entity Entity to build ORIS for
 	 * @return All valid ORIs
 	 */
 	IList<IObjRef> entityToAllObjRefs(Object entity);
 
 	/**
 	 * Returns all valid (key != null) references for the given entity.
-	 * 
-	 * @param entity
-	 *            Entity to build ORIS for
-	 * @param metaData
-	 *            Meta data of the given entity
+	 *
+	 * @param entity Entity to build ORIS for
+	 * @param metaData Meta data of the given entity
 	 * @return All valid ORIs
 	 */
 	IList<IObjRef> entityToAllObjRefs(Object entity, IEntityMetaData metaData);

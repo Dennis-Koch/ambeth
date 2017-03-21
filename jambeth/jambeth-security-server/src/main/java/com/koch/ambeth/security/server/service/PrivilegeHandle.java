@@ -25,8 +25,7 @@ import com.koch.ambeth.security.server.privilege.evaluation.impl.EntityPropertyP
 import com.koch.ambeth.security.server.privilege.evaluation.impl.ScopedEntityPermissionEvaluation;
 import com.koch.ambeth.security.server.privilege.evaluation.impl.ScopedEntityPropertyPermissionEvaluation;
 
-public class PrivilegeHandle
-{
+public class PrivilegeHandle {
 	public Boolean create;
 
 	public Boolean read;
@@ -37,10 +36,8 @@ public class PrivilegeHandle
 
 	public Boolean execute;
 
-	public void applyIfNull(ScopedEntityPermissionEvaluation spe)
-	{
-		if (spe == null)
-		{
+	public void applyIfNull(ScopedEntityPermissionEvaluation spe) {
+		if (spe == null) {
 			return;
 		}
 		create = spe.getCreate();
@@ -50,136 +47,104 @@ public class PrivilegeHandle
 		execute = spe.getExecute();
 	}
 
-	public void applyIfNull(EntityPermissionEvaluation pe)
-	{
-		if (pe == null)
-		{
+	public void applyIfNull(EntityPermissionEvaluation pe) {
+		if (pe == null) {
 			return;
 		}
-		if (create == null)
-		{
+		if (create == null) {
 			create = pe.getCreate();
 		}
-		if (read == null)
-		{
+		if (read == null) {
 			read = pe.getRead();
 		}
-		if (update == null)
-		{
+		if (update == null) {
 			update = pe.getUpdate();
 		}
-		if (delete == null)
-		{
+		if (delete == null) {
 			delete = pe.getDelete();
 		}
-		if (execute == null)
-		{
+		if (execute == null) {
 			execute = pe.getExecute();
 		}
 	}
 
-	public void applyIfNull(boolean create, boolean read, boolean update, boolean delete, boolean execute)
-	{
-		if (this.create == null)
-		{
+	public void applyIfNull(boolean create, boolean read, boolean update, boolean delete,
+			boolean execute) {
+		if (this.create == null) {
 			this.create = Boolean.valueOf(create);
 		}
-		if (this.read == null)
-		{
+		if (this.read == null) {
 			this.read = Boolean.valueOf(read);
 		}
-		if (this.update == null)
-		{
+		if (this.update == null) {
 			this.update = Boolean.valueOf(update);
 		}
-		if (this.delete == null)
-		{
+		if (this.delete == null) {
 			this.delete = Boolean.valueOf(delete);
 		}
-		if (this.execute == null)
-		{
+		if (this.execute == null) {
 			this.execute = Boolean.valueOf(execute);
 		}
 	}
 
-	public void applyPropertySpecifics(ScopedEntityPermissionEvaluation spe, String propertyName)
-	{
-		if (spe == null)
-		{
+	public void applyPropertySpecifics(ScopedEntityPermissionEvaluation spe, String propertyName) {
+		if (spe == null) {
 			return;
 		}
 		ScopedEntityPropertyPermissionEvaluation sppe = spe.getPropertyPermissions().get(propertyName);
-		if (sppe == null)
-		{
+		if (sppe == null) {
 			return;
 		}
-		if (create == null)
-		{
+		if (create == null) {
 			create = sppe.getCreate();
 		}
-		if (read == null)
-		{
+		if (read == null) {
 			read = sppe.getRead();
 		}
-		if (update == null)
-		{
+		if (update == null) {
 			update = sppe.getUpdate();
 		}
-		if (delete == null)
-		{
+		if (delete == null) {
 			delete = sppe.getDelete();
 		}
 	}
 
-	public void applyPropertySpecifics(EntityPermissionEvaluation pe, String propertyName)
-	{
-		if (pe == null)
-		{
+	public void applyPropertySpecifics(EntityPermissionEvaluation pe, String propertyName) {
+		if (pe == null) {
 			return;
 		}
 		EntityPropertyPermissionEvaluation ppe = pe.getPropertyPermissions().get(propertyName);
-		if (ppe == null)
-		{
+		if (ppe == null) {
 			return;
 		}
-		if (create == null)
-		{
+		if (create == null) {
 			create = ppe.getCreate();
 		}
-		if (read == null)
-		{
+		if (read == null) {
 			read = ppe.getRead();
 		}
-		if (update == null)
-		{
+		if (update == null) {
 			update = ppe.getUpdate();
 		}
-		if (delete == null)
-		{
+		if (delete == null) {
 			delete = ppe.getDelete();
 		}
 	}
 
-	public void applyIfNull(PrivilegeHandle ph)
-	{
-		if (create == null)
-		{
+	public void applyIfNull(PrivilegeHandle ph) {
+		if (create == null) {
 			create = ph.create;
 		}
-		if (read == null)
-		{
+		if (read == null) {
 			read = ph.read;
 		}
-		if (update == null)
-		{
+		if (update == null) {
 			update = ph.update;
 		}
-		if (delete == null)
-		{
+		if (delete == null) {
 			delete = ph.delete;
 		}
-		if (execute == null)
-		{
+		if (execute == null) {
 			execute = ph.execute;
 		}
 	}

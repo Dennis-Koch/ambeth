@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.service.metadata.Member;
 
-public interface IParentEntityAware
-{
+public interface IParentEntityAware {
 	void setParentEntity(Object parentEntity, Member member);
 }

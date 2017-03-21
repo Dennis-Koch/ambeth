@@ -34,27 +34,23 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.xml.IXmlValidator;
 
-public class XmlValidator implements IXmlValidator
-{
+public class XmlValidator implements IXmlValidator {
 	@LogInstance
 	private ILogger log;
 
 	protected Validator validator;
 
-	public XmlValidator(Validator validator)
-	{
+	public XmlValidator(Validator validator) {
 		this.validator = validator;
 	}
 
 	@Override
-	public void validate(Document doc) throws SAXException, IOException
-	{
+	public void validate(Document doc) throws SAXException, IOException {
 		validator.validate(new DOMSource(doc));
 	}
 
 	@Override
-	public void validate(File file) throws SAXException, IOException
-	{
+	public void validate(File file) throws SAXException, IOException {
 		validator.validate(new StreamSource(file));
 	}
 }

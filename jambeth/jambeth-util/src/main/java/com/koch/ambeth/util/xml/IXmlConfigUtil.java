@@ -28,8 +28,7 @@ import org.w3c.dom.NodeList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
-public interface IXmlConfigUtil
-{
+public interface IXmlConfigUtil {
 	Document[] readXmlFiles(String xmlFileNames);
 
 	IXmlValidator createValidator(String... xsdFileNames);

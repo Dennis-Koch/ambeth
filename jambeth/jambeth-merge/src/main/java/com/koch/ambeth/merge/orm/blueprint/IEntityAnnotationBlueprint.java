@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.Collection;
 
-public interface IEntityAnnotationBlueprint
-{
+public interface IEntityAnnotationBlueprint {
 	public static final String TYPE = "Type";
 
 	String getType();

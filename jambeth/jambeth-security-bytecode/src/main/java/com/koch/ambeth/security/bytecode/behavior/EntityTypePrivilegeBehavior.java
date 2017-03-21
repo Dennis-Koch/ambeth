@@ -35,8 +35,7 @@ import com.koch.ambeth.security.privilege.factory.EntityTypePrivilegeEnhancement
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 
-public class EntityTypePrivilegeBehavior extends AbstractBehavior
-{
+public class EntityTypePrivilegeBehavior extends AbstractBehavior {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -45,16 +44,17 @@ public class EntityTypePrivilegeBehavior extends AbstractBehavior
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors)
-	{
-		final EntityTypePrivilegeEnhancementHint hint = state.getContext(EntityTypePrivilegeEnhancementHint.class);
-		if (hint == null)
-		{
+	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+			List<IBytecodeBehavior> remainingPendingBehaviors,
+			List<IBytecodeBehavior> cascadePendingBehaviors) {
+		final EntityTypePrivilegeEnhancementHint hint =
+				state.getContext(EntityTypePrivilegeEnhancementHint.class);
+		if (hint == null) {
 			return visitor;
 		}
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(hint.getEntityType());
-		visitor = new EntityTypePrivilegeVisitor(visitor, metaData, hint.isCreate(), hint.isRead(), hint.isUpdate(), hint.isDelete(), hint.isExecute());
+		visitor = new EntityTypePrivilegeVisitor(visitor, metaData, hint.isCreate(), hint.isRead(),
+				hint.isUpdate(), hint.isDelete(), hint.isExecute());
 		return visitor;
 	}
 }

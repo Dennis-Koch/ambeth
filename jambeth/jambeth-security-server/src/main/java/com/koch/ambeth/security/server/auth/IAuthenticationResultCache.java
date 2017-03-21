@@ -23,11 +23,11 @@ limitations under the License.
 import com.koch.ambeth.security.IAuthentication;
 import com.koch.ambeth.security.IAuthenticationResult;
 
-public interface IAuthenticationResultCache
-{
+public interface IAuthenticationResultCache {
 
 	IAuthenticationResult resolveAuthenticationResult(IAuthentication authentication);
 
-	void cacheAuthenticationResult(IAuthentication authentication, IAuthenticationResult authenticationResult);
+	void cacheAuthenticationResult(IAuthentication authentication,
+			IAuthenticationResult authenticationResult);
 
 }

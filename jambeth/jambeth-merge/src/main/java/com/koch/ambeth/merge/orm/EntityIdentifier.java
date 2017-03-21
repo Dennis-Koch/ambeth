@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public enum EntityIdentifier
-{
+public enum EntityIdentifier {
 	LEFT, RIGHT;
 }

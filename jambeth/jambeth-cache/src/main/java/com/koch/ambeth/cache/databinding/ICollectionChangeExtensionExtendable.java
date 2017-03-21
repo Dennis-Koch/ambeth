@@ -20,9 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public interface ICollectionChangeExtensionExtendable
-{
-	void registerCollectionChangeExtension(ICollectionChangeExtension collectionChangeExtension, Class<?> entityType);
+public interface ICollectionChangeExtensionExtendable {
+	void registerCollectionChangeExtension(ICollectionChangeExtension collectionChangeExtension,
+			Class<?> entityType);
 
-	void unregisterCollectionChangeExtension(ICollectionChangeExtension collectionChangeExtension, Class<?> entityType);
+	void unregisterCollectionChangeExtension(ICollectionChangeExtension collectionChangeExtension,
+			Class<?> entityType);
 }

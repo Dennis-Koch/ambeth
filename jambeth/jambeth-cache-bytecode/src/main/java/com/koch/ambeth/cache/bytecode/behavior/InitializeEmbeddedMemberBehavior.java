@@ -37,8 +37,7 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
-public class InitializeEmbeddedMemberBehavior extends AbstractBehavior
-{
+public class InitializeEmbeddedMemberBehavior extends AbstractBehavior {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -50,17 +49,17 @@ public class InitializeEmbeddedMemberBehavior extends AbstractBehavior
 	protected IPropertyInfoProvider propertyInfoProvider;
 
 	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors)
-	{
+	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+			List<IBytecodeBehavior> remainingPendingBehaviors,
+			List<IBytecodeBehavior> cascadePendingBehaviors) {
 		Class<?> entityType = EntityUtil.getEntityType(state.getContext());
-		if (entityType == null)
-		{
+		if (entityType == null) {
 			return visitor;
 		}
 		final IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 		String memberPath = EmbeddedEnhancementHint.getMemberPath(state.getContext());
-		visitor = new InitializeEmbeddedMemberVisitor(visitor, metaData, memberPath, propertyInfoProvider);
+		visitor =
+				new InitializeEmbeddedMemberVisitor(visitor, metaData, memberPath, propertyInfoProvider);
 		return visitor;
 	}
 }

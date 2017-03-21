@@ -20,29 +20,24 @@ limitations under the License.
  * #L%
  */
 
-public class ParamHolder<T> implements IParamHolder<T>
-{
+public class ParamHolder<T> implements IParamHolder<T> {
 	protected T value;
 
-	public ParamHolder()
-	{
+	public ParamHolder() {
 		// Intended blank
 	}
 
-	public ParamHolder(T value)
-	{
+	public ParamHolder(T value) {
 		this.value = value;
 	}
 
 	@Override
-	public T getValue()
-	{
+	public T getValue() {
 		return value;
 	}
 
 	@Override
-	public void setValue(T value)
-	{
+	public void setValue(T value) {
 		this.value = value;
 	}
 }

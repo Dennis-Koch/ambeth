@@ -28,15 +28,13 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.orm.XmlDatabaseMapper;
 
 @FrameworkModule
-public class TestMappingModule implements IInitializingModule
-{
+public class TestMappingModule implements IInitializingModule {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 		beanContextFactory.registerBean(XmlDatabaseMapper.class);
 	}
 }

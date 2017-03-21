@@ -23,7 +23,6 @@ limitations under the License.
 import com.koch.ambeth.merge.model.EntityMetaData;
 import com.koch.ambeth.merge.orm.IEntityConfig;
 
-public interface IEntityMetaDataReader
-{
+public interface IEntityMetaDataReader {
 	void addMembers(EntityMetaData metaData, IEntityConfig entityConfig);
 }

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IBytecodeBehaviorExtendable
-{
+public interface IBytecodeBehaviorExtendable {
 	void registerBytecodeBehavior(IBytecodeBehavior bytecodeBehavior);
 
 	void unregisterBytecodeBehavior(IBytecodeBehavior bytecodeBehavior);

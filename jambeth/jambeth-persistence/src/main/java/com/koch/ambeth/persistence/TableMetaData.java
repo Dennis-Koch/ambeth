@@ -78,27 +78,21 @@ public class TableMetaData implements ITableMetaData, IInitializingBean {
 
 	protected final ArrayList<IDirectedLinkMetaData> links;
 
-	protected final HashMap<String, Integer> fieldNameToFieldIndexDict =
-			new HashMap<>();
+	protected final HashMap<String, Integer> fieldNameToFieldIndexDict = new HashMap<>();
 
-	protected final HashMap<String, IFieldMetaData> fieldNameToFieldDict =
-			new HashMap<>();
+	protected final HashMap<String, IFieldMetaData> fieldNameToFieldDict = new HashMap<>();
 
 	protected final HashSet<String> fieldNameToIgnoreDict = new HashSet<>();
 
-	protected final HashMap<String, IFieldMetaData> memberNameToFieldDict =
-			new HashMap<>();
+	protected final HashMap<String, IFieldMetaData> memberNameToFieldDict = new HashMap<>();
 
 	protected final HashSet<String> memberNameToIgnoreDict = new HashSet<>();
 
-	protected final HashMap<String, IDirectedLinkMetaData> fieldNameToLinkDict =
-			new HashMap<>();
+	protected final HashMap<String, IDirectedLinkMetaData> fieldNameToLinkDict = new HashMap<>();
 
-	protected final HashMap<String, IDirectedLinkMetaData> linkNameToLinkDict =
-			new HashMap<>();
+	protected final HashMap<String, IDirectedLinkMetaData> linkNameToLinkDict = new HashMap<>();
 
-	protected final HashMap<String, IDirectedLinkMetaData> memberNameToLinkDict =
-			new HashMap<>();
+	protected final HashMap<String, IDirectedLinkMetaData> memberNameToLinkDict = new HashMap<>();
 
 	protected final HashMap<String, String> linkNameToMemberNameDict = new HashMap<>();
 

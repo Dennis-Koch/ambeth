@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface TypeHandleDelegate
-{
+public interface TypeHandleDelegate {
 
 	void invoke(Class<?> type);
 

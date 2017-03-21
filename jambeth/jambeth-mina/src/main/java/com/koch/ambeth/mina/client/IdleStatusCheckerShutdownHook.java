@@ -29,8 +29,7 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 
-public class IdleStatusCheckerShutdownHook implements IDisposableBean, IInitializingBean
-{
+public class IdleStatusCheckerShutdownHook implements IDisposableBean, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -41,8 +40,7 @@ public class IdleStatusCheckerShutdownHook implements IDisposableBean, IInitiali
 	private NotifyingTask notifyingTask;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		notifyingTask = idleStatusChecker.getNotifyingTask();
 		Thread thread = new Thread(notifyingTask);
 		thread.setDaemon(true);
@@ -51,8 +49,7 @@ public class IdleStatusCheckerShutdownHook implements IDisposableBean, IInitiali
 	}
 
 	@Override
-	public void destroy() throws Throwable
-	{
+	public void destroy() throws Throwable {
 		// stop the idle checking task
 		notifyingTask.cancel();
 	}

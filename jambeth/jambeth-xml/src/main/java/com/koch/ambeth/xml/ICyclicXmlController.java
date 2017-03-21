@@ -20,11 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public interface ICyclicXmlController
-{
+public interface ICyclicXmlController {
 	Object readObject(IReader reader);
 
 	Object readObject(Class<?> returnType, IReader reader);
-	
+
 	void writeObject(Object obj, IWriter writer);
 }

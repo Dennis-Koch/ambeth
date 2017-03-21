@@ -48,26 +48,20 @@ import com.koch.ambeth.security.server.ioc.SecurityServerModule;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
-import com.koch.ambeth.testutil.AbstractInformationBusTest;
-import com.koch.ambeth.testutil.IMeasurement;
-import com.koch.ambeth.testutil.IPropertiesProvider;
-import com.koch.ambeth.testutil.TestFrameworkModule;
-import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest.PersistencePropertiesProvider;
 import com.koch.ambeth.util.IConversionHelper;
 
-@TestFrameworkModule({ MergeServerModule.class, CacheServerModule.class, EventServerModule.class, EventDataChangeModule.class, ExprModule.class,
-		PersistenceModule.class, PersistenceJdbcModule.class, PrivilegeModule.class, PrivilegeServerModule.class, SecurityServerModule.class,
-		SecurityQueryModule.class, SQLQueryModule.class, FilterPersistenceModule.class, PreparedStatementParamLoggerModule.class })
+@TestFrameworkModule({MergeServerModule.class, CacheServerModule.class, EventServerModule.class,
+		EventDataChangeModule.class, ExprModule.class, PersistenceModule.class,
+		PersistenceJdbcModule.class, PrivilegeModule.class, PrivilegeServerModule.class,
+		SecurityServerModule.class, SecurityQueryModule.class, SQLQueryModule.class,
+		FilterPersistenceModule.class, PreparedStatementParamLoggerModule.class})
 @TestProperties(type = PersistencePropertiesProvider.class)
 @RunWith(AmbethInformationBusWithPersistenceRunner.class)
-public abstract class AbstractInformationBusWithPersistenceTest extends AbstractInformationBusTest
-{
-	public static class PersistencePropertiesProvider implements IPropertiesProvider
-	{
+public abstract class AbstractInformationBusWithPersistenceTest extends AbstractInformationBusTest {
+	public static class PersistencePropertiesProvider implements IPropertiesProvider {
 		@Override
-		public void fillProperties(Properties props)
-		{
+		public void fillProperties(Properties props) {
 			// PersistenceJdbcModule
 			props.put(ServiceConfigurationConstants.NetworkClientMode, "false");
 			props.put(ServiceConfigurationConstants.SlaveMode, "false");
@@ -100,37 +94,28 @@ public abstract class AbstractInformationBusWithPersistenceTest extends Abstract
 	@Autowired
 	protected ITransaction transaction;
 
-	public void assertProxyEquals(Object expected, Object actual)
-	{
+	public void assertProxyEquals(Object expected, Object actual) {
 		assertProxyEquals("", expected, actual);
 	}
 
-	public void assertProxyEquals(String message, Object expected, Object actual)
-	{
-		if (expected == actual)
-		{
+	public void assertProxyEquals(String message, Object expected, Object actual) {
+		if (expected == actual) {
 			// Nothing to do
 			return;
 		}
-		if (expected == null)
-		{
-			if (actual == null)
-			{
+		if (expected == null) {
+			if (actual == null) {
 				return;
 			}
-			else
-			{
+			else {
 				Assert.fail("expected:<" + expected + "> but was:<" + actual + ">");
 			}
 		}
-		else if (actual == null)
-		{
+		else if (actual == null) {
 			Assert.fail("expected:<" + expected + "> but was:<" + actual + ">");
 		}
-		if (expected instanceof IEntityEquals)
-		{
-			if (expected.equals(actual))
-			{
+		if (expected instanceof IEntityEquals) {
+			if (expected.equals(actual)) {
 				return;
 			}
 			IEntityEquals expectedEE = (IEntityEquals) expected;
@@ -140,8 +125,7 @@ public abstract class AbstractInformationBusWithPersistenceTest extends Abstract
 		IEntityMetaData actualMetaData = entityMetaDataProvider.getMetaData(actual.getClass());
 		Class<?> expectedType = expectedMetaData.getEntityType();
 		Class<?> actualType = actualMetaData.getEntityType();
-		if (!expectedType.equals(actualType))
-		{
+		if (!expectedType.equals(actualType)) {
 			Assert.fail("expected:<" + expected + "> but was:<" + actual + ">");
 		}
 		Object expectedId = expectedMetaData.getIdMember().getValue(expected, false);

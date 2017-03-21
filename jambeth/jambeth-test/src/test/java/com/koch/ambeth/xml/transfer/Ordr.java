@@ -26,8 +26,7 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 
 @XmlType(name = "Ordr", namespace = "Comtrack")
-public class Ordr
-{
+public class Ordr {
 	@SuppressWarnings("unused")
 	@LogInstance(Ordr.class)
 	private ILogger log;

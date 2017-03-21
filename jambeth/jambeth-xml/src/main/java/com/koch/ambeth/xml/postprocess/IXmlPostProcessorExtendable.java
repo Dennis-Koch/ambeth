@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IXmlPostProcessorExtendable
-{
+public interface IXmlPostProcessorExtendable {
 	void registerXmlPostProcessor(IXmlPostProcessor xmlPostProcessor, String tagName);
 
 	void unregisterXmlPostProcessor(IXmlPostProcessor xmlPostProcessor, String tagName);

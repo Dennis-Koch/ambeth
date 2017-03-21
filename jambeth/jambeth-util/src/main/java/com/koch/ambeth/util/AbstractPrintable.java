@@ -20,12 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public abstract class AbstractPrintable implements IPrintable
-{
+public abstract class AbstractPrintable implements IPrintable {
 	protected IPrintable p;
 
-	public AbstractPrintable(IPrintable p)
-	{
+	public AbstractPrintable(IPrintable p) {
 		this.p = p;
 	}
 

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ISensor
-{
+public interface ISensor {
 	void touch();
 
 	void touch(Object... additionalData);

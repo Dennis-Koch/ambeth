@@ -437,7 +437,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 				synchronized (propertyNameToHitCountMap) {
 					IMap<Thread, Integer> threadMap = propertyNameToHitCountMap.get(evt.getPropertyName());
 					if (threadMap == null) {
-						threadMap = new HashMap<Thread, Integer>();
+						threadMap = new HashMap<>();
 						propertyNameToHitCountMap.put(evt.getPropertyName(), threadMap);
 					}
 					Integer hitCount = threadMap.get(currentThread);
@@ -460,7 +460,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 		Assert.assertTrue(obj instanceof INotifyPropertyChanged);
 		Assert.assertTrue(obj instanceof INotifyPropertyChangedSource);
 
-		HashMap<String, Integer> propertyNameToHitCountMap = new HashMap<String, Integer>();
+		HashMap<String, Integer> propertyNameToHitCountMap = new HashMap<>();
 		PropertyChangeListener handler = getPropertyChangeHandler(propertyNameToHitCountMap);
 		((INotifyPropertyChanged) obj).addPropertyChangeListener(handler);
 
@@ -542,7 +542,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
 	@Test
 	public void test_PropertyChange_Registration() {
-		HashMap<String, Integer> pceCounter = new HashMap<String, Integer>();
+		HashMap<String, Integer> pceCounter = new HashMap<>();
 		PropertyChangeListener handler = getPropertyChangeHandler(pceCounter);
 
 		{
@@ -589,7 +589,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
 	@Test
 	public void test_PropertyChange_ToBeUpdated() {
-		HashMap<String, Integer> pceCounter = new HashMap<String, Integer>();
+		HashMap<String, Integer> pceCounter = new HashMap<>();
 		PropertyChangeListener handler = getPropertyChangeHandler(pceCounter);
 
 		Material obj = entityFactory.createEntity(Material.class);
@@ -618,7 +618,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
 	@Test
 	public void test_PropertyChange_On_CollectionChange() {
-		HashMap<String, Integer> pceCounter = new HashMap<String, Integer>();
+		HashMap<String, Integer> pceCounter = new HashMap<>();
 		PropertyChangeListener handler = getPropertyChangeHandler(pceCounter);
 
 		Material obj = entityFactory.createEntity(Material.class);
@@ -639,7 +639,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
 	@Test
 	public void test_PropertyChange_On_CollectionChange2() {
-		HashMap<String, Integer> pceCounter = new HashMap<String, Integer>();
+		HashMap<String, Integer> pceCounter = new HashMap<>();
 		PropertyChangeListener handler = getPropertyChangeHandler(pceCounter);
 
 		Material obj = entityFactory.createEntity(Material.class);
@@ -671,14 +671,14 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 		Assert.assertTrue(obj.getEmbMat3() instanceof INotifyPropertyChanged);
 		Assert.assertTrue(obj.getEmbMat3() instanceof INotifyPropertyChangedSource);
 
-		HashMap<String, Integer> embMat_embMat2_counter = new HashMap<String, Integer>();
+		HashMap<String, Integer> embMat_embMat2_counter = new HashMap<>();
 		PropertyChangeListener embMat_embMat2_handler =
 				getPropertyChangeHandler(embMat_embMat2_counter);
 
-		HashMap<String, Integer> embMat_counter = new HashMap<String, Integer>();
+		HashMap<String, Integer> embMat_counter = new HashMap<>();
 		PropertyChangeListener embMat_handler = getPropertyChangeHandler(embMat_counter);
 
-		HashMap<String, Integer> counter = new HashMap<String, Integer>();
+		HashMap<String, Integer> counter = new HashMap<>();
 		PropertyChangeListener handler = getPropertyChangeHandler(counter);
 
 		((INotifyPropertyChanged) obj).addPropertyChangeListener(handler);
@@ -707,7 +707,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 		Assert.assertTrue(obj instanceof INotifyPropertyChanged);
 		Assert.assertTrue(obj instanceof INotifyPropertyChangedSource);
 
-		HashMap<String, Integer> propertyNameToHitCountMap = new HashMap<String, Integer>();
+		HashMap<String, Integer> propertyNameToHitCountMap = new HashMap<>();
 		PropertyChangeListener handler = getPropertyChangeHandler(propertyNameToHitCountMap);
 
 		((INotifyPropertyChanged) obj).addPropertyChangeListener(handler);
@@ -785,10 +785,10 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 		Assert.assertFalse(((IDataObject) mat).hasPendingChanges());
 		Assert.assertFalse(((IDataObject) obj2).hasPendingChanges());
 
-		HashMap<String, Integer> matCounter = new HashMap<String, Integer>();
+		HashMap<String, Integer> matCounter = new HashMap<>();
 		PropertyChangeListener matHandler = getPropertyChangeHandler(matCounter);
 
-		HashMap<String, Integer> matTypeCounter = new HashMap<String, Integer>();
+		HashMap<String, Integer> matTypeCounter = new HashMap<>();
 		PropertyChangeListener matTypeHandler = getPropertyChangeHandler(matTypeCounter);
 
 		((INotifyPropertyChanged) mat).addPropertyChangeListener(matHandler);
@@ -847,7 +847,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 		Assert.assertFalse(((IDataObject) obj3).hasPendingChanges());
 		Assert.assertFalse(((IDataObject) obj4).hasPendingChanges());
 
-		HashMap<String, Integer> matCounter = new HashMap<String, Integer>();
+		HashMap<String, Integer> matCounter = new HashMap<>();
 		PropertyChangeListener matHandler = getPropertyChangeHandler(matCounter);
 
 		((INotifyPropertyChanged) mat).addPropertyChangeListener(matHandler);
@@ -867,7 +867,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 	@Test
 	public void test_PropertyChange_OutOfGuiThread() throws InterruptedException {
 		final HashMap<String, IMap<Thread, Integer>> counter =
-				new HashMap<String, IMap<Thread, Integer>>();
+				new HashMap<>();
 		final PropertyChangeListener handler = getPropertyChangeHandlerForUI(counter);
 
 		final CountDownLatch latch = new CountDownLatch(1);

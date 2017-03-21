@@ -22,7 +22,6 @@ limitations under the License.
 
 import java.io.File;
 
-public interface IDotToImage
-{
+public interface IDotToImage {
 	void writeImageFile(File dotFile);
 }

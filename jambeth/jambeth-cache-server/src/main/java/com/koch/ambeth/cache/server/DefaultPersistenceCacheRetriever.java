@@ -38,8 +38,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 @PersistenceContext
-public class DefaultPersistenceCacheRetriever implements ICacheRetriever
-{
+public class DefaultPersistenceCacheRetriever implements ICacheRetriever {
 	@LogInstance
 	private ILogger log;
 
@@ -55,70 +54,57 @@ public class DefaultPersistenceCacheRetriever implements ICacheRetriever
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Override
-	public List<ILoadContainer> getEntities(List<IObjRef> orisToLoad)
-	{
-		if (log.isDebugEnabled())
-		{
+	public List<ILoadContainer> getEntities(List<IObjRef> orisToLoad) {
+		if (log.isDebugEnabled()) {
 			debugToLoad(orisToLoad);
 		}
-		ArrayList<ILoadContainer> loadedEntities = new ArrayList<ILoadContainer>(orisToLoad.size());
+		ArrayList<ILoadContainer> loadedEntities = new ArrayList<>(orisToLoad.size());
 		loadContainerProvider.assignInstances(orisToLoad, loadedEntities);
 
-		if (verifyOnLoad != null)
-		{
+		if (verifyOnLoad != null) {
 			verifyOnLoad.queueVerifyEntitiesOnLoad(loadedEntities);
 		}
 		return loadedEntities;
 	}
 
 	@Override
-	public List<IObjRelationResult> getRelations(List<IObjRelation> orelsToLoad)
-	{
-		if (log.isDebugEnabled())
-		{
+	public List<IObjRelationResult> getRelations(List<IObjRelation> orelsToLoad) {
+		if (log.isDebugEnabled()) {
 			debugOrelsToLoad(orelsToLoad);
 		}
-		ArrayList<IObjRelationResult> targetRelations = new ArrayList<IObjRelationResult>();
+		ArrayList<IObjRelationResult> targetRelations = new ArrayList<>();
 		loadContainerProvider.assignRelations(orelsToLoad, targetRelations);
 		return targetRelations;
 	}
 
-	protected void debugToLoad(List<IObjRef> orisToLoad)
-	{
+	protected void debugToLoad(List<IObjRef> orisToLoad) {
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 
 		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
-		try
-		{
+		try {
 			int count = orisToLoad.size();
 			sb.append("List<IObjRef> : ").append(count).append(" item");
-			if (count != 1)
-			{
+			if (count != 1) {
 				sb.append('s');
 			}
 			sb.append(" [");
 
 			int printBorder = 3;
-			if (count <= maxDebugItems || count <= printBorder * 2)
-			{
-				for (int a = count; a-- > 0;)
-				{
+			if (count <= maxDebugItems || count <= printBorder * 2) {
+				for (int a = count; a-- > 0;) {
 					sb.append("\r\n\t");
 					IObjRef oriToLoad = orisToLoad.get(a);
 					StringBuilderUtil.appendPrintable(sb, oriToLoad);
 				}
 			}
-			else
-			{
-				for (int a = count, pos = count - printBorder; a-- > pos;)
-				{
+			else {
+				for (int a = count, pos = count - printBorder; a-- > pos;) {
 					sb.append("\r\n\t");
 					IObjRef oriToLoad = orisToLoad.get(a);
 					StringBuilderUtil.appendPrintable(sb, oriToLoad);
 				}
 				sb.append("\r\n\t...skipped ").append(count - printBorder * 2).append(" items...");
-				for (int a = printBorder; a-- > 0;)
-				{
+				for (int a = printBorder; a-- > 0;) {
 					sb.append("\r\n\t");
 					IObjRef oriToLoad = orisToLoad.get(a);
 					StringBuilderUtil.appendPrintable(sb, oriToLoad);
@@ -128,48 +114,39 @@ public class DefaultPersistenceCacheRetriever implements ICacheRetriever
 
 			log.debug(sb.toString());
 		}
-		finally
-		{
+		finally {
 			tlObjectCollector.dispose(sb);
 		}
 	}
 
-	protected void debugOrelsToLoad(List<IObjRelation> orelsToLoad)
-	{
+	protected void debugOrelsToLoad(List<IObjRelation> orelsToLoad) {
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 
 		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
-		try
-		{
+		try {
 			int count = orelsToLoad.size();
 			sb.append("List<IObjRelation> : ").append(count).append(" item");
-			if (count != 1)
-			{
+			if (count != 1) {
 				sb.append('s');
 			}
 			sb.append(" [");
 
 			int printBorder = 3;
-			if (count <= maxDebugItems || count <= printBorder * 2)
-			{
-				for (int a = count; a-- > 0;)
-				{
+			if (count <= maxDebugItems || count <= printBorder * 2) {
+				for (int a = count; a-- > 0;) {
 					sb.append("\r\n\t");
 					IObjRelation orelToLoad = orelsToLoad.get(a);
 					StringBuilderUtil.appendPrintable(sb, orelToLoad);
 				}
 			}
-			else
-			{
-				for (int a = count, pos = count - printBorder; a-- > pos;)
-				{
+			else {
+				for (int a = count, pos = count - printBorder; a-- > pos;) {
 					sb.append("\r\n\t");
 					IObjRelation orelToLoad = orelsToLoad.get(a);
 					StringBuilderUtil.appendPrintable(sb, orelToLoad);
 				}
 				sb.append("\r\n\t...skipped ").append(count - printBorder * 2).append(" items...");
-				for (int a = printBorder; a-- > 0;)
-				{
+				for (int a = printBorder; a-- > 0;) {
 					sb.append("\r\n\t");
 					IObjRelation orelToLoad = orelsToLoad.get(a);
 					StringBuilderUtil.appendPrintable(sb, orelToLoad);
@@ -179,8 +156,7 @@ public class DefaultPersistenceCacheRetriever implements ICacheRetriever
 
 			log.debug(sb.toString());
 		}
-		finally
-		{
+		finally {
 			tlObjectCollector.dispose(sb);
 		}
 	}

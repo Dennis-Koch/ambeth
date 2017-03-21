@@ -20,25 +20,22 @@ limitations under the License.
  * #L%
  */
 
-public class EntityPermissionRuleAddedEvent
-{
+public class EntityPermissionRuleAddedEvent {
 	private final IEntityPermissionRule<?> entityPermissionRule;
 
 	private final Class<?> entityType;
 
-	public EntityPermissionRuleAddedEvent(IEntityPermissionRule<?> entityPermissionRule, Class<?> entityType)
-	{
+	public EntityPermissionRuleAddedEvent(IEntityPermissionRule<?> entityPermissionRule,
+			Class<?> entityType) {
 		this.entityPermissionRule = entityPermissionRule;
 		this.entityType = entityType;
 	}
 
-	public IEntityPermissionRule<?> getEntityPermissionRule()
-	{
+	public IEntityPermissionRule<?> getEntityPermissionRule() {
 		return entityPermissionRule;
 	}
 
-	public Class<?> getEntityType()
-	{
+	public Class<?> getEntityType() {
 		return entityType;
 	}
 }

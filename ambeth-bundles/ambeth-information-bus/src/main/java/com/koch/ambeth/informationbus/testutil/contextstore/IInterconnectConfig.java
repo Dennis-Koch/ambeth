@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IInterconnectConfig
-{
+public interface IInterconnectConfig {
 	void interconnect(IServiceContextStore contextStore);
 }

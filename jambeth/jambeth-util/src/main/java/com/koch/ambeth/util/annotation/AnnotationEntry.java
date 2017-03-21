@@ -23,30 +23,25 @@ limitations under the License.
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 
-public class AnnotationEntry<T extends Annotation>
-{
+public class AnnotationEntry<T extends Annotation> {
 	protected final T annotation;
 
 	protected final AnnotatedElement declaringAnnotatedElement;
 
-	public AnnotationEntry(T annotation, AnnotatedElement declaringAnnotatedElement)
-	{
+	public AnnotationEntry(T annotation, AnnotatedElement declaringAnnotatedElement) {
 		this.annotation = annotation;
 		this.declaringAnnotatedElement = declaringAnnotatedElement;
 	}
 
-	public T getAnnotation()
-	{
+	public T getAnnotation() {
 		return annotation;
 	}
 
-	public AnnotatedElement getDeclaringAnnotatedElement()
-	{
+	public AnnotatedElement getDeclaringAnnotatedElement() {
 		return declaringAnnotatedElement;
 	}
 
-	public Class<?> getDeclaringType()
-	{
+	public Class<?> getDeclaringType() {
 		return (Class<?>) declaringAnnotatedElement;
 	}
 }

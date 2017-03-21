@@ -20,9 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public interface IEntityPermissionRuleExtendable
-{
-	<T> void registerEntityPermissionRule(IEntityPermissionRule<? super T> entityPermissionRule, Class<T> entityType);
+public interface IEntityPermissionRuleExtendable {
+	<T> void registerEntityPermissionRule(IEntityPermissionRule<? super T> entityPermissionRule,
+			Class<T> entityType);
 
-	<T> void unregisterEntityPermissionRule(IEntityPermissionRule<? super T> entityPermissionRule, Class<T> entityType);
+	<T> void unregisterEntityPermissionRule(IEntityPermissionRule<? super T> entityPermissionRule,
+			Class<T> entityType);
 }

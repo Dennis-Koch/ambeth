@@ -28,11 +28,10 @@ import com.koch.ambeth.job.IJobScheduler;
 import com.koch.ambeth.job.cron4j.AmbethCron4jScheduler;
 
 @FrameworkModule
-public class JobCron4jModule implements IInitializingModule
-{
+public class JobCron4jModule implements IInitializingModule {
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		beanContextFactory.registerBean("jobScheduler", AmbethCron4jScheduler.class).autowireable(IJobScheduler.class, IJobExtendable.class);
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		beanContextFactory.registerBean("jobScheduler", AmbethCron4jScheduler.class)
+				.autowireable(IJobScheduler.class, IJobExtendable.class);
 	}
 }

@@ -29,51 +29,46 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
-public class ThreadLocalContextHandle extends AbstractChildContextHandle implements IThreadLocalCleanupBean
-{
+public class ThreadLocalContextHandle extends AbstractChildContextHandle
+		implements IThreadLocalCleanupBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Forkable
-	protected final ThreadLocal<IServiceContext> childContextTL = new SensitiveThreadLocal<IServiceContext>();
+	protected final ThreadLocal<IServiceContext> childContextTL =
+			new SensitiveThreadLocal<>();
 
 	@Autowired
 	protected IThreadLocalCleanupBeanExtendable threadLocalCleanupBeanExtendable;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		threadLocalCleanupBeanExtendable.registerThreadLocalCleanupBean(this);
 	}
 
 	@Override
-	public void destroy() throws Throwable
-	{
+	public void destroy() throws Throwable {
 		threadLocalCleanupBeanExtendable.unregisterThreadLocalCleanupBean(this);
 		super.destroy();
 	}
 
 	@Override
-	protected IServiceContext getChildContext()
-	{
+	protected IServiceContext getChildContext() {
 		return childContextTL.get();
 	}
 
 	@Override
-	protected void setChildContext(IServiceContext childContext)
-	{
+	protected void setChildContext(IServiceContext childContext) {
 		childContextTL.set(childContext);
 	}
 
 	@Override
-	public void cleanupThreadLocal()
-	{
+	public void cleanupThreadLocal() {
 		IServiceContext context = childContextTL.get();
-		if (context == null)
-		{
+		if (context == null) {
 			return;
 		}
 		childContextTL.remove();

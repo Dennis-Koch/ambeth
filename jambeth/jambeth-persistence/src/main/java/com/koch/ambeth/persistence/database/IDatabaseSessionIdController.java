@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IDatabaseSessionIdController
-{
+public interface IDatabaseSessionIdController {
 	long acquireSessionId();
 
 	void releaseSessionId(long sessionId);

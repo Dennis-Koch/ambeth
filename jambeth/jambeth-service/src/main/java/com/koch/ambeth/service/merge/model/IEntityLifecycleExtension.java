@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IEntityLifecycleExtension
-{
+public interface IEntityLifecycleExtension {
 	void postCreate(IEntityMetaData metaData, Object newEntity);
 
 	void postLoad(IEntityMetaData metaData, Object entity);

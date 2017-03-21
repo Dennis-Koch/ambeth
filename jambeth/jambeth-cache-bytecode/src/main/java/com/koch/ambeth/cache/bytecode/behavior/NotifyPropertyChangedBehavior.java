@@ -44,11 +44,11 @@ import com.koch.ambeth.util.model.INotifyPropertyChangedSource;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
 /**
- * NotifyPropertyChangeBehavior invokes {@link PropertyChangeListener#propertyChanged} when a property is changed. The behavior is applied to types that
- * implement {@link INotifyPropertyChanged}
+ * NotifyPropertyChangeBehavior invokes {@link PropertyChangeListener#propertyChanged} when a
+ * property is changed. The behavior is applied to types that implement
+ * {@link INotifyPropertyChanged}
  */
-public class NotifyPropertyChangedBehavior extends AbstractBehavior
-{
+public class NotifyPropertyChangedBehavior extends AbstractBehavior {
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
@@ -56,46 +56,47 @@ public class NotifyPropertyChangedBehavior extends AbstractBehavior
 	protected IPropertyInfoProvider propertyInfoProvider;
 
 	@Override
-	public Class<?>[] getEnhancements()
-	{
-		return new Class<?>[] { INotifyCollectionChangedListener.class, INotifyPropertyChanged.class, INotifyPropertyChangedSource.class,
-				PropertyChangeListener.class, IPropertyChangeConfigurable.class };
+	public Class<?>[] getEnhancements() {
+		return new Class<?>[] {INotifyCollectionChangedListener.class, INotifyPropertyChanged.class,
+				INotifyPropertyChangedSource.class, PropertyChangeListener.class,
+				IPropertyChangeConfigurable.class};
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors)
-	{
-		boolean expectMetaData = state.getContext(EntityEnhancementHint.class) != null || state.getContext(EmbeddedEnhancementHint.class) != null;
-		if (!expectMetaData && state.getContext(PropertyChangeEnhancementHint.class) == null)
-		{
+	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+			List<IBytecodeBehavior> remainingPendingBehaviors,
+			List<IBytecodeBehavior> cascadePendingBehaviors) {
+		boolean expectMetaData = state.getContext(EntityEnhancementHint.class) != null
+				|| state.getContext(EmbeddedEnhancementHint.class) != null;
+		if (!expectMetaData && state.getContext(PropertyChangeEnhancementHint.class) == null) {
 			// ensure LazyRelationsBehavior was invoked
 			return visitor;
 		}
 		// DefaultPropertiesBehavior executes in this cascade
-		final IEntityMetaData metaData = expectMetaData ? entityMetaDataProvider.getMetaData(EntityUtil.getEntityType(state.getContext())) : null;
-		AbstractBehavior cascadeBehavior = new AbstractBehavior()
-		{
+		final IEntityMetaData metaData = expectMetaData
+				? entityMetaDataProvider.getMetaData(EntityUtil.getEntityType(state.getContext())) : null;
+		AbstractBehavior cascadeBehavior = new AbstractBehavior() {
 			@Override
-			public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-					List<IBytecodeBehavior> cascadePendingBehaviors)
-			{
+			public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+					List<IBytecodeBehavior> remainingPendingBehaviors,
+					List<IBytecodeBehavior> cascadePendingBehaviors) {
 				// LazyRelationsBehavior executes in this cascade
-				AbstractBehavior cascadeBehavior = new AbstractBehavior()
-				{
+				AbstractBehavior cascadeBehavior = new AbstractBehavior() {
 					@Override
-					public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-							List<IBytecodeBehavior> cascadePendingBehaviors)
-					{
+					public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+							List<IBytecodeBehavior> remainingPendingBehaviors,
+							List<IBytecodeBehavior> cascadePendingBehaviors) {
 						// NotifyPropertyChangedBehavior executes in this cascade
 						// add IPropertyChanged
 
-						visitor = new InterfaceAdder(visitor, INotifyPropertyChanged.class, INotifyPropertyChangedSource.class, PropertyChangeListener.class,
+						visitor = new InterfaceAdder(visitor, INotifyPropertyChanged.class,
+								INotifyPropertyChangedSource.class, PropertyChangeListener.class,
 								INotifyCollectionChangedListener.class, IPropertyChangeConfigurable.class);
-						visitor = beanContext.registerWithLifecycle(new NotifyPropertyChangedClassVisitor(visitor, metaData, null)).finish();
+						visitor = beanContext.registerWithLifecycle(
+								new NotifyPropertyChangedClassVisitor(visitor, metaData, null)).finish();
 						return visitor;
 					}
 				};
@@ -111,7 +112,8 @@ public class NotifyPropertyChangedBehavior extends AbstractBehavior
 		// Class<?> currentType = state.getCurrentType();
 		// if (!IPropertyChanged.class.isAssignableFrom(currentType))
 		// {
-		// if (!isAnnotationPresent(currentType, PropertyChangeAspect.class) && !isAnnotationPresent(currentType, DataObjectAspect.class))
+		// if (!isAnnotationPresent(currentType, PropertyChangeAspect.class) &&
+		// !isAnnotationPresent(currentType, DataObjectAspect.class))
 		// {
 		// // behavior not applied
 		// return visitor;

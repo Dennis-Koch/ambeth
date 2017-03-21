@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.List;
 
-public interface IProjectService
-{
+public interface IProjectService {
 	List<Project> getAllProjects();
 
 	Project getProjectByName(String name);

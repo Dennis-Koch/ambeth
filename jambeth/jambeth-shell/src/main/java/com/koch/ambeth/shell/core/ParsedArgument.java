@@ -28,10 +28,15 @@ import com.koch.ambeth.shell.core.annotation.CommandArg;
 /**
  *
  */
-public class ParsedArgument
-{
+public class ParsedArgument {
 
-	protected static final Pattern userInputPattern = Pattern.compile("([^=]+)=(.*)"); // captures the left side of the first "=" character as well as the right
+	protected static final Pattern userInputPattern = Pattern.compile("([^=]+)=(.*)"); // captures the
+																																											// left side
+																																											// of the
+																																											// first "="
+																																											// character
+																																											// as well as
+																																											// the right
 
 	protected final String userInput;
 	protected final int index;
@@ -40,24 +45,20 @@ public class ParsedArgument
 	protected Object value;
 	protected ShellContext shellContext;
 
-	public ParsedArgument(String userInput, int index, ShellContext shellContext)
-	{
+	public ParsedArgument(String userInput, int index, ShellContext shellContext) {
 		this.userInput = userInput;
 		this.index = index;
 		this.shellContext = shellContext;
-		this.parse();
+		parse();
 	}
 
-	private void parse()
-	{
+	private void parse() {
 		Matcher matcher = userInputPattern.matcher(userInput);
-		if (matcher.matches())
-		{
+		if (matcher.matches()) {
 			name = matcher.group(1);
 			value = shellContext.resolve(unquoteString(matcher.group(2)));
 		}
-		else
-		{
+		else {
 			name = "";
 			value = shellContext.resolve(unquoteString(userInput));
 		}
@@ -69,23 +70,18 @@ public class ParsedArgument
 	 * @param s
 	 * @return
 	 */
-	private String unquoteString(String s)
-	{
-		if (s.matches("\".*\""))
-		{
+	private String unquoteString(String s) {
+		if (s.matches("\".*\"")) {
 			s = s.substring(1, s.length() - 1);
 		}
 		return s;
 	}
 
-	public boolean matchedBy(CommandArg ca)
-	{
-		if (!ca.name().isEmpty())
-		{
+	public boolean matchedBy(CommandArg ca) {
+		if (!ca.name().isEmpty()) {
 			return name.matches("(?i:" + ca.name() + ")");
 		}
-		else
-		{
+		else {
 			return name.isEmpty();
 		}
 	}

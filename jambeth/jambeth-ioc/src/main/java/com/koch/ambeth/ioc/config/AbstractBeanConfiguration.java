@@ -31,12 +31,10 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.config.IProperties;
 
-public abstract class AbstractBeanConfiguration implements IBeanConfiguration
-{
-	protected static final LinkedHashSet<String> ignoreClassNames = new LinkedHashSet<String>(0.5f);
+public abstract class AbstractBeanConfiguration implements IBeanConfiguration {
+	protected static final LinkedHashSet<String> ignoreClassNames = new LinkedHashSet<>(0.5f);
 
-	static
-	{
+	static {
 		ignoreClassNames.add(Thread.class.getName());
 		ignoreClassNames.add(AbstractBeanConfiguration.class.getName());
 		ignoreClassNames.add(AbstractPropertyConfiguration.class.getName());
@@ -67,73 +65,62 @@ public abstract class AbstractBeanConfiguration implements IBeanConfiguration
 
 	protected StackTraceElement[] declarationStackTrace;
 
-	public AbstractBeanConfiguration(String beanName, IProperties props)
-	{
+	public AbstractBeanConfiguration(String beanName, IProperties props) {
 		this.beanName = beanName;
 		this.props = props;
-		declarationStackTrace = AbstractPropertyConfiguration.getCurrentStackTraceCompact(ignoreClassNames, props);
+		declarationStackTrace =
+				AbstractPropertyConfiguration.getCurrentStackTraceCompact(ignoreClassNames, props);
 	}
 
 	@Override
-	public StackTraceElement[] getDeclarationStackTrace()
-	{
+	public StackTraceElement[] getDeclarationStackTrace() {
 		return declarationStackTrace;
 	}
 
 	@Override
-	public PrecedenceType getPrecedence()
-	{
+	public PrecedenceType getPrecedence() {
 		return precedenceValue;
 	}
 
 	@Override
-	public IBeanConfiguration precedence(PrecedenceType precedenceType)
-	{
+	public IBeanConfiguration precedence(PrecedenceType precedenceType) {
 		precedenceValue = precedenceType;
 		return this;
 	}
 
 	@Override
-	public IBeanConfiguration autowireable(Class<?> typeToPublish)
-	{
+	public IBeanConfiguration autowireable(Class<?> typeToPublish) {
 		ParamChecker.assertParamNotNull(typeToPublish, "typeToPublish");
-		if (autowireableTypes == null)
-		{
-			autowireableTypes = new ArrayList<Class<?>>();
+		if (autowireableTypes == null) {
+			autowireableTypes = new ArrayList<>();
 		}
 		autowireableTypes.add(typeToPublish);
 		return this;
 	}
 
 	@Override
-	public IBeanConfiguration autowireable(Class<?>... typesToPublish)
-	{
+	public IBeanConfiguration autowireable(Class<?>... typesToPublish) {
 		ParamChecker.assertParamNotNull(typesToPublish, "typesToPublish");
-		for (Class<?> typeToPublish : typesToPublish)
-		{
+		for (Class<?> typeToPublish : typesToPublish) {
 			autowireable(typeToPublish);
 		}
 		return this;
 	}
 
 	@Override
-	public IBeanConfiguration overridesExisting()
-	{
+	public IBeanConfiguration overridesExisting() {
 		overridesExistingField = true;
 		return this;
 	}
 
 	@Override
-	public boolean isOverridesExisting()
-	{
+	public boolean isOverridesExisting() {
 		return overridesExistingField;
 	}
 
 	@Override
-	public IBeanConfiguration parent(String parentBeanTemplateName)
-	{
-		if (parentBeanName != null)
-		{
+	public IBeanConfiguration parent(String parentBeanTemplateName) {
+		if (parentBeanName != null) {
 			throw new UnsupportedOperationException("There is already a parent bean defined");
 		}
 		parentBeanName = parentBeanTemplateName;
@@ -141,186 +128,159 @@ public abstract class AbstractBeanConfiguration implements IBeanConfiguration
 	}
 
 	@Override
-	public IBeanConfiguration propertyRef(String propertyName, String beanName)
-	{
+	public IBeanConfiguration propertyRef(String propertyName, String beanName) {
 		ParamChecker.assertParamNotNull(propertyName, "propertyName");
 		ParamChecker.assertParamNotNull(beanName, "beanName");
-		if (propertyConfigurations == null)
-		{
-			propertyConfigurations = new ArrayList<IPropertyConfiguration>();
+		if (propertyConfigurations == null) {
+			propertyConfigurations = new ArrayList<>();
 		}
-		propertyConfigurations.add(new PropertyRefConfiguration(this, propertyName, null, beanName, false, props));
+		propertyConfigurations
+				.add(new PropertyRefConfiguration(this, propertyName, null, beanName, false, props));
 		return this;
 	}
 
 	@Override
-	public IBeanConfiguration propertyRefFromContext(String propertyName, String fromContext, String beanName)
-	{
+	public IBeanConfiguration propertyRefFromContext(String propertyName, String fromContext,
+			String beanName) {
 		ParamChecker.assertParamNotNull(propertyName, "propertyName");
 		ParamChecker.assertParamNotNull(fromContext, "fromContext");
 		ParamChecker.assertParamNotNull(beanName, "beanName");
-		if (propertyConfigurations == null)
-		{
-			propertyConfigurations = new ArrayList<IPropertyConfiguration>();
+		if (propertyConfigurations == null) {
+			propertyConfigurations = new ArrayList<>();
 		}
-		propertyConfigurations.add(new PropertyRefConfiguration(this, propertyName, fromContext, beanName, false, props));
+		propertyConfigurations
+				.add(new PropertyRefConfiguration(this, propertyName, fromContext, beanName, false, props));
 		return this;
 	}
 
 	@Override
-	public IBeanConfiguration propertyRefs(String beanName)
-	{
+	public IBeanConfiguration propertyRefs(String beanName) {
 		ParamChecker.assertParamNotNull(beanName, "beanName");
-		if (propertyConfigurations == null)
-		{
-			propertyConfigurations = new ArrayList<IPropertyConfiguration>();
+		if (propertyConfigurations == null) {
+			propertyConfigurations = new ArrayList<>();
 		}
-		propertyConfigurations.add(new PropertyRefConfiguration(this, null, null, beanName, false, props));
+		propertyConfigurations
+				.add(new PropertyRefConfiguration(this, null, null, beanName, false, props));
 		return this;
 	}
 
 	@Override
-	public IBeanConfiguration propertyRefs(String... beanNames)
-	{
-		if (beanNames == null || beanNames.length == 0)
-		{
+	public IBeanConfiguration propertyRefs(String... beanNames) {
+		if (beanNames == null || beanNames.length == 0) {
 			throw new IllegalArgumentException("Array of beanNames must have a length of at least 1");
 		}
-		for (int a = 0, size = beanNames.length; a < size; a++)
-		{
+		for (int a = 0, size = beanNames.length; a < size; a++) {
 			propertyRefs(beanNames[a]);
 		}
 		return this;
 	}
 
 	@Override
-	public IBeanConfiguration propertyRef(String propertyName, IBeanConfiguration bean)
-	{
+	public IBeanConfiguration propertyRef(String propertyName, IBeanConfiguration bean) {
 		ParamChecker.assertParamNotNull(propertyName, "propertyName");
 		ParamChecker.assertParamNotNull(bean, "bean");
-		if (propertyConfigurations == null)
-		{
-			propertyConfigurations = new ArrayList<IPropertyConfiguration>();
+		if (propertyConfigurations == null) {
+			propertyConfigurations = new ArrayList<>();
 		}
-		propertyConfigurations.add(new PropertyEmbeddedRefConfiguration(this, propertyName, bean, props));
+		propertyConfigurations
+				.add(new PropertyEmbeddedRefConfiguration(this, propertyName, bean, props));
 		return this;
 	}
 
 	@Override
-	public IBeanConfiguration propertyRef(IBeanConfiguration bean)
-	{
+	public IBeanConfiguration propertyRef(IBeanConfiguration bean) {
 		ParamChecker.assertParamNotNull(bean, "bean");
-		if (propertyConfigurations == null)
-		{
-			propertyConfigurations = new ArrayList<IPropertyConfiguration>();
+		if (propertyConfigurations == null) {
+			propertyConfigurations = new ArrayList<>();
 		}
 		propertyConfigurations.add(new PropertyEmbeddedRefConfiguration(this, bean, props));
 		return this;
 	}
 
 	@Override
-	public IBeanConfiguration propertyRefs(IBeanConfiguration... beans)
-	{
-		if (beans == null || beans.length == 0)
-		{
+	public IBeanConfiguration propertyRefs(IBeanConfiguration... beans) {
+		if (beans == null || beans.length == 0) {
 			throw new IllegalArgumentException("Array of beans must have a length of at least 1");
 		}
-		for (int a = 0, size = beans.length; a < size; a++)
-		{
+		for (int a = 0, size = beans.length; a < size; a++) {
 			propertyRef(beans[a]);
 		}
 		return this;
 	}
 
 	@Override
-	public IBeanConfiguration propertyValue(String propertyName, Object value)
-	{
+	public IBeanConfiguration propertyValue(String propertyName, Object value) {
 		ParamChecker.assertParamNotNull(propertyName, "propertyName");
-		if (propertyConfigurations == null)
-		{
-			propertyConfigurations = new ArrayList<IPropertyConfiguration>();
+		if (propertyConfigurations == null) {
+			propertyConfigurations = new ArrayList<>();
 		}
 		propertyConfigurations.add(new PropertyValueConfiguration(this, propertyName, value, props));
 		return this;
 	}
 
 	@Override
-	public IBeanConfiguration ignoreProperties(String propertyName)
-	{
+	public IBeanConfiguration ignoreProperties(String propertyName) {
 		ParamChecker.assertParamNotNull(propertyName, "propertyName");
-		if (ignoredProperties == null)
-		{
-			ignoredProperties = new ArrayList<String>();
+		if (ignoredProperties == null) {
+			ignoredProperties = new ArrayList<>();
 		}
 		ignoredProperties.add(propertyName);
 		return this;
 	}
 
 	@Override
-	public IBeanConfiguration ignoreProperties(String... propertyNames)
-	{
-		if (propertyNames == null || propertyNames.length == 0)
-		{
+	public IBeanConfiguration ignoreProperties(String... propertyNames) {
+		if (propertyNames == null || propertyNames.length == 0) {
 			throw new IllegalArgumentException("Array of propertyNames must have a length of at least 1");
 		}
-		for (int a = 0, size = propertyNames.length; a < size; a++)
-		{
+		for (int a = 0, size = propertyNames.length; a < size; a++) {
 			ignoreProperties(propertyNames[a]);
 		}
 		return this;
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return beanName;
 	}
 
 	@Override
-	public String getParentName()
-	{
+	public String getParentName() {
 		return parentBeanName;
 	}
 
 	@Override
-	public boolean isWithLifecycle()
-	{
+	public boolean isWithLifecycle() {
 		return true;
 	}
 
 	@Override
-	public List<Class<?>> getAutowireableTypes()
-	{
+	public List<Class<?>> getAutowireableTypes() {
 		return autowireableTypes;
 	}
 
 	@Override
-	public List<IPropertyConfiguration> getPropertyConfigurations()
-	{
+	public List<IPropertyConfiguration> getPropertyConfigurations() {
 		return propertyConfigurations;
 	}
 
 	@Override
-	public List<String> getIgnoredPropertyNames()
-	{
+	public List<String> getIgnoredPropertyNames() {
 		return ignoredProperties;
 	}
 
 	@Override
-	public Object getInstance()
-	{
+	public Object getInstance() {
 		return getInstance(getBeanType());
 	}
 
 	@Override
-	public boolean isAbstract()
-	{
+	public boolean isAbstract() {
 		return false;
 	}
 
 	@Override
-	public IBeanConfiguration template()
-	{
+	public IBeanConfiguration template() {
 		throw new UnsupportedOperationException();
 	}
 
@@ -328,8 +288,7 @@ public abstract class AbstractBeanConfiguration implements IBeanConfiguration
 	public abstract Class<?> getBeanType();
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		String name = getName();
 		return name != null ? name : super.toString();
 	}

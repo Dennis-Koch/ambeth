@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IXmlPostProcessor
-{
+public interface IXmlPostProcessor {
 	Object processWrite(IPostProcessWriter writer);
 
 	void processRead(IPostProcessReader reader);

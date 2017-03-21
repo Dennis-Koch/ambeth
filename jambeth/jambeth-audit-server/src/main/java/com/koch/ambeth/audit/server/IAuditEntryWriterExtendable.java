@@ -21,8 +21,7 @@ limitations under the License.
  */
 
 
-public interface IAuditEntryWriterExtendable
-{
+public interface IAuditEntryWriterExtendable {
 	void registerAuditEntryWriter(IAuditEntryWriter auditEntryWriter, int protocolVersion);
 
 	void unregisterAuditEntryWriter(IAuditEntryWriter auditEntryWriter, int protocolVersion);

@@ -20,17 +20,14 @@ limitations under the License.
  * #L%
  */
 
-public class AbstractListElem<V>
-{
+public class AbstractListElem<V> {
 	protected V next, prev;
 
-	public V getNext()
-	{
+	public V getNext() {
 		return next;
 	}
 
-	public V getPrev()
-	{
+	public V getPrev() {
 		return prev;
 	}
 }

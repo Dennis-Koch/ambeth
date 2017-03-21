@@ -26,7 +26,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.koch.ambeth.ioc.IInitializingModule;
-import com.koch.ambeth.ioc.extendable.ExtendableBean;
 import com.koch.ambeth.ioc.extendable.ExtendableBeanTest.ExtendableBeanTestModule;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.testutil.AbstractIocTest;
@@ -34,13 +33,10 @@ import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.util.collections.ArrayList;
 
 @TestModule(ExtendableBeanTestModule.class)
-public class ExtendableBeanTest extends AbstractIocTest
-{
-	public static class ExtendableBeanTestModule implements IInitializingModule
-	{
+public class ExtendableBeanTest extends AbstractIocTest {
+	public static class ExtendableBeanTestModule implements IInitializingModule {
 		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 			beanContextFactory.registerBean("testExtensionPoint", ExtendableBean.class)
 					.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, ITestListenerExtendable.class)
 					.propertyValue(ExtendableBean.P_PROVIDER_TYPE, ITestListenerRegistry.class);
@@ -52,23 +48,24 @@ public class ExtendableBeanTest extends AbstractIocTest
 	}
 
 	@Test
-	public void testToString()
-	{
-		ITestListenerExtendable testListenerExtendable = beanContext.getService("testExtensionPoint", ITestListenerExtendable.class);
-		ITestListenerRegistry testListenerRegistry = beanContext.getService("testExtensionPoint", ITestListenerRegistry.class);
+	public void testToString() {
+		ITestListenerExtendable testListenerExtendable =
+				beanContext.getService("testExtensionPoint", ITestListenerExtendable.class);
+		ITestListenerRegistry testListenerRegistry =
+				beanContext.getService("testExtensionPoint", ITestListenerRegistry.class);
 
 		Assert.assertNotNull(testListenerExtendable.toString());
 		Assert.assertNotNull(testListenerRegistry.toString());
 	}
 
 	@Test
-	public void testExtensionPoint()
-	{
-		ITestListenerExtendable testListenerExtendable = beanContext.getService("testExtensionPoint", ITestListenerExtendable.class);
-		ITestListenerRegistry testListenerRegistry = beanContext.getService("testExtensionPoint", ITestListenerRegistry.class);
+	public void testExtensionPoint() {
+		ITestListenerExtendable testListenerExtendable =
+				beanContext.getService("testExtensionPoint", ITestListenerExtendable.class);
+		ITestListenerRegistry testListenerRegistry =
+				beanContext.getService("testExtensionPoint", ITestListenerRegistry.class);
 
-		testListenerExtendable.addTestListener(new ITestListener()
-		{
+		testListenerExtendable.addTestListener(new ITestListener() {
 		});
 
 		ITestListener[] testListeners = testListenerRegistry.getTestListeners();
@@ -77,13 +74,13 @@ public class ExtendableBeanTest extends AbstractIocTest
 	}
 
 	@Test
-	public void testExtensionPointByType()
-	{
-		ITestListenerExtendable2 testListenerExtendable = beanContext.getService("testExtensionPoint2", ITestListenerExtendable2.class);
-		ITestListenerRegistry2 testListenerRegistry = beanContext.getService("testExtensionPoint2", ITestListenerRegistry2.class);
+	public void testExtensionPointByType() {
+		ITestListenerExtendable2 testListenerExtendable =
+				beanContext.getService("testExtensionPoint2", ITestListenerExtendable2.class);
+		ITestListenerRegistry2 testListenerRegistry =
+				beanContext.getService("testExtensionPoint2", ITestListenerRegistry2.class);
 
-		testListenerExtendable.registerTestListener(new ITestListener()
-		{
+		testListenerExtendable.registerTestListener(new ITestListener() {
 		}, List.class);
 
 		ITestListener testListener = testListenerRegistry.getTestListener(ArrayList.class);

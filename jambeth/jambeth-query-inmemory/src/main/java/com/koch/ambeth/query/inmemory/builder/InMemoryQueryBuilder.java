@@ -54,8 +54,7 @@ import com.koch.ambeth.util.IParamHolder;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>
-{
+public class InMemoryQueryBuilder<T> implements IQueryBuilder<T> {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -67,519 +66,443 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>
 	protected Class<?> entityType;
 
 	@Override
-	public void dispose()
-	{
+	public void dispose() {
 		// Intended blank
 	}
 
 	@Override
-	public Class<?> getEntityType()
-	{
+	public Class<?> getEntityType() {
 		return entityType;
 	}
 
-	protected IOperator createUnaryOperator(Class<? extends IOperator> operatorType, Object operand, Boolean caseSensitive)
-	{
+	protected IOperator createUnaryOperator(Class<? extends IOperator> operatorType, Object operand,
+			Boolean caseSensitive) {
 		ParamChecker.assertParamNotNull(operatorType, "operatorType");
 		ParamChecker.assertParamNotNull(operand, "operand");
-		try
-		{
-			IBeanRuntime<? extends IOperator> operatorBC = beanContext.registerBean(operatorType).propertyValue("Operand", operand);
-			if (caseSensitive != null)
-			{
+		try {
+			IBeanRuntime<? extends IOperator> operatorBC =
+					beanContext.registerBean(operatorType).propertyValue("Operand", operand);
+			if (caseSensitive != null) {
 				operatorBC.propertyValue("CaseSensitive", caseSensitive);
 			}
 			return operatorBC.finish();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
-	protected IOperator createBinaryOperator(Class<? extends IOperator> operatorType, Object leftOperand, Object rightOperand, Boolean caseSensitive)
-	{
+	protected IOperator createBinaryOperator(Class<? extends IOperator> operatorType,
+			Object leftOperand, Object rightOperand, Boolean caseSensitive) {
 		ParamChecker.assertParamNotNull(operatorType, "operatorType");
 		ParamChecker.assertParamNotNull(leftOperand, "leftOperand");
 		ParamChecker.assertParamNotNull(rightOperand, "rightOperand");
-		try
-		{
-			IBeanRuntime<? extends IOperator> operatorBC = beanContext.registerBean(operatorType).propertyValue("LeftOperand", leftOperand)
-					.propertyValue("RightOperand", rightOperand);
-			if (caseSensitive != null)
-			{
+		try {
+			IBeanRuntime<? extends IOperator> operatorBC = beanContext.registerBean(operatorType)
+					.propertyValue("LeftOperand", leftOperand).propertyValue("RightOperand", rightOperand);
+			if (caseSensitive != null) {
 				operatorBC.propertyValue("CaseSensitive", caseSensitive);
 			}
 			return operatorBC.finish();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
-	protected IOperator createManyPlaceOperator(Class<? extends IOperator> operatorType, IOperand... operands)
-	{
+	protected IOperator createManyPlaceOperator(Class<? extends IOperator> operatorType,
+			IOperand... operands) {
 		ParamChecker.assertParamNotNull(operatorType, "operatorType");
 		ParamChecker.assertParamNotNull(operands, "operands");
-		try
-		{
-			IBeanRuntime<? extends IOperator> operatorBC = beanContext.registerBean(operatorType).propertyValue("Operands", operands);
+		try {
+			IBeanRuntime<? extends IOperator> operatorBC =
+					beanContext.registerBean(operatorType).propertyValue("Operands", operands);
 			return operatorBC.finish();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	public IOperator and(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator and(IOperand leftOperand, IOperand rightOperand) {
 		return createManyPlaceOperator(AndOperator.class, leftOperand, rightOperand);
 	}
 
 	@Override
-	public IOperator and(IOperand... operands)
-	{
+	public IOperator and(IOperand... operands) {
 		return createManyPlaceOperator(AndOperator.class, operands);
 	}
 
 	@Override
-	public IOperator or(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator or(IOperand leftOperand, IOperand rightOperand) {
 		return createManyPlaceOperator(OrOperator.class, leftOperand, rightOperand);
 	}
 
 	@Override
-	public IOperator or(IOperand... operands)
-	{
+	public IOperator or(IOperand... operands) {
 		return createManyPlaceOperator(OrOperator.class, operands);
 	}
 
 	@Override
-	public IOperand overlaps(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperand overlaps(IOperand leftOperand, IOperand rightOperand) {
 		return null;
 	}
 
 	@Override
-	public IOperand timeUnitMultipliedInterval(IOperand timeUnit, IOperand multiplicatedInterval)
-	{
+	public IOperand timeUnitMultipliedInterval(IOperand timeUnit, IOperand multiplicatedInterval) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator trueOperator()
-	{
+	public IOperator trueOperator() {
 		return beanContext.registerBean(TrueOperator.class).finish();
 	}
 
 	@Override
-	public IOperator falseOperator()
-	{
+	public IOperator falseOperator() {
 		return beanContext.registerBean(FalseOperator.class).finish();
 	}
 
 	@Override
-	public IOperand property(String propertyName)
-	{
+	public IOperand property(String propertyName) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperand property(String propertyName, JoinType joinType)
-	{
+	public IOperand property(String propertyName, JoinType joinType) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperand property(String propertyName, JoinType joinType, IParamHolder<Class<?>> fieldType)
-	{
+	public IOperand property(String propertyName, JoinType joinType,
+			IParamHolder<Class<?>> fieldType) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperand column(String columnName)
-	{
+	public IOperand column(String columnName) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperand column(String columnName, ISqlJoin joinClause)
-	{
+	public IOperand column(String columnName, ISqlJoin joinClause) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator contains(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator contains(IOperand leftOperand, IOperand rightOperand) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator contains(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator contains(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperand difference(IOperand... operands)
-	{
+	public IOperand difference(IOperand... operands) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator endsWith(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator endsWith(IOperand leftOperand, IOperand rightOperand) {
 		return createBinaryOperator(EndsWithOperator.class, leftOperand, rightOperand, null);
 	}
 
 	@Override
-	public IOperator endsWith(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator endsWith(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
 		return createBinaryOperator(EndsWithOperator.class, leftOperand, rightOperand, caseSensitive);
 	}
 
 	@Override
-	public IOperator fulltext(IOperand queryOperand)
-	{
+	public IOperator fulltext(IOperand queryOperand) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator fulltext(Class<?> entityType, IOperand queryOperand)
-	{
+	public IOperator fulltext(Class<?> entityType, IOperand queryOperand) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator isContainedIn(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator isContainedIn(IOperand leftOperand, IOperand rightOperand) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator isContainedIn(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator isContainedIn(IOperand leftOperand, IOperand rightOperand,
+			Boolean caseSensitive) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator isIn(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator isIn(IOperand leftOperand, IOperand rightOperand) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator isIn(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator isIn(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator isEqualTo(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator isEqualTo(IOperand leftOperand, IOperand rightOperand) {
 		return createBinaryOperator(IsEqualToOperator.class, leftOperand, rightOperand, null);
 	}
 
 	@Override
-	public IOperator isEqualTo(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator isEqualTo(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
 		return createBinaryOperator(IsEqualToOperator.class, leftOperand, rightOperand, caseSensitive);
 	}
 
 	@Override
-	public IOperator isGreaterThan(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator isGreaterThan(IOperand leftOperand, IOperand rightOperand) {
 		return createBinaryOperator(IsGreaterThanOperator.class, leftOperand, rightOperand, null);
 	}
 
 	@Override
-	public IOperator isGreaterThanOrEqualTo(IOperand leftOperand, IOperand rightOperand)
-	{
-		return createBinaryOperator(IsGreaterThanOrEqualToOperator.class, leftOperand, rightOperand, null);
+	public IOperator isGreaterThanOrEqualTo(IOperand leftOperand, IOperand rightOperand) {
+		return createBinaryOperator(IsGreaterThanOrEqualToOperator.class, leftOperand, rightOperand,
+				null);
 	}
 
 	@Override
-	public IOperator isLessThan(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator isLessThan(IOperand leftOperand, IOperand rightOperand) {
 		return createBinaryOperator(IsLessThanOperator.class, leftOperand, rightOperand, null);
 	}
 
 	@Override
-	public IOperator isLessThanOrEqualTo(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator isLessThanOrEqualTo(IOperand leftOperand, IOperand rightOperand) {
 		return createBinaryOperator(IsLessThanOrEqualToOperator.class, leftOperand, rightOperand, null);
 	}
 
 	@Override
-	public IOperator isNotContainedIn(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator isNotContainedIn(IOperand leftOperand, IOperand rightOperand) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator isNotContainedIn(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator isNotContainedIn(IOperand leftOperand, IOperand rightOperand,
+			Boolean caseSensitive) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator isNotIn(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator isNotIn(IOperand leftOperand, IOperand rightOperand) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator isNotIn(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator isNotIn(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator isNotEqualTo(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator isNotEqualTo(IOperand leftOperand, IOperand rightOperand) {
 		return createBinaryOperator(IsNotEqualToOperator.class, leftOperand, rightOperand, null);
 	}
 
 	@Override
-	public IOperator isNotEqualTo(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
-		return createBinaryOperator(IsNotEqualToOperator.class, leftOperand, rightOperand, caseSensitive);
+	public IOperator isNotEqualTo(IOperand leftOperand, IOperand rightOperand,
+			Boolean caseSensitive) {
+		return createBinaryOperator(IsNotEqualToOperator.class, leftOperand, rightOperand,
+				caseSensitive);
 	}
 
 	@Override
-	public IOperator notContains(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator notContains(IOperand leftOperand, IOperand rightOperand) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator notContains(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator notContains(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator notLike(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator notLike(IOperand leftOperand, IOperand rightOperand) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator notLike(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator notLike(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator isNull(IOperand operand)
-	{
+	public IOperator isNull(IOperand operand) {
 		return createUnaryOperator(IsNullOperator.class, operand, null);
 	}
 
 	@Override
-	public IOperator isNotNull(IOperand operand)
-	{
+	public IOperator isNotNull(IOperand operand) {
 		return createUnaryOperator(IsNotNullOperator.class, operand, null);
 	}
 
 	@Override
-	public IOperator like(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator like(IOperand leftOperand, IOperand rightOperand) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator like(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator like(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperand regexpLike(IOperand sourceString, IOperand pattern)
-	{
+	public IOperand regexpLike(IOperand sourceString, IOperand pattern) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperand regexpLike(IOperand sourceString, IOperand pattern, IOperand matchParameter)
-	{
+	public IOperand regexpLike(IOperand sourceString, IOperand pattern, IOperand matchParameter) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IQueryBuilder<T> limit(IOperand operand)
-	{
+	public IQueryBuilder<T> limit(IOperand operand) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator startsWith(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator startsWith(IOperand leftOperand, IOperand rightOperand) {
 		return createBinaryOperator(StartsWithOperator.class, leftOperand, rightOperand, null);
 	}
 
 	@Override
-	public IOperator startsWith(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator startsWith(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
 		return createBinaryOperator(StartsWithOperator.class, leftOperand, rightOperand, caseSensitive);
 	}
 
 	@Override
-	public IOperand value(Object value)
-	{
+	public IOperand value(Object value) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperand valueName(String paramName)
-	{
+	public IOperand valueName(String paramName) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperand all()
-	{
+	public IOperand all() {
 		return trueOperator();
 	}
 
 	@Override
-	public IOperand function(String functionName, IOperand... parameters)
-	{
+	public IOperand function(String functionName, IOperand... parameters) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IQueryBuilder<T> groupBy(IOperand... operand)
-	{
+	public IQueryBuilder<T> groupBy(IOperand... operand) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperand interval(IOperand lowerBoundary, IOperand upperBoundary)
-	{
+	public IOperand interval(IOperand lowerBoundary, IOperand upperBoundary) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IQueryBuilder<T> orderBy(IOperand column, OrderByType orderByType)
-	{
+	public IQueryBuilder<T> orderBy(IOperand column, OrderByType orderByType) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public int selectColumn(String columnName)
-	{
+	public int selectColumn(String columnName) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public int selectColumn(String columnName, ISqlJoin join)
-	{
+	public int selectColumn(String columnName, ISqlJoin join) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public int selectProperty(String propertyName)
-	{
+	public int selectProperty(String propertyName) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public int select(IOperand operand)
-	{
+	public int select(IOperand operand) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public ISqlJoin join(Class<?> entityType, IOperand columnBase, IOperand columnJoined, JoinType joinType)
-	{
+	public ISqlJoin join(Class<?> entityType, IOperand columnBase, IOperand columnJoined,
+			JoinType joinType) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public ISqlJoin join(Class<?> entityType, IOperator clause, JoinType joinType)
-	{
+	public ISqlJoin join(Class<?> entityType, IOperator clause, JoinType joinType) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public ISqlJoin join(Class<?> entityType, IOperand columnBase, IOperand columnJoined)
-	{
+	public ISqlJoin join(Class<?> entityType, IOperand columnBase, IOperand columnJoined) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public ISqlJoin join(Class<?> entityType, IOperator clause)
-	{
+	public ISqlJoin join(Class<?> entityType, IOperator clause) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public <S> IOperand subQuery(ISubQuery<S> subQuery, IOperand... selectedColumns)
-	{
+	public <S> IOperand subQuery(ISubQuery<S> subQuery, IOperand... selectedColumns) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperand sum(IOperand... summands)
-	{
+	public IOperand sum(IOperand... summands) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IQuery<T> build()
-	{
+	public IQuery<T> build() {
 		return build(all());
 	}
 
 	@Override
-	public IQuery<T> build(IOperand whereClause)
-	{
+	public IQuery<T> build(IOperand whereClause) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IQuery<T> build(IOperand whereClause, ISqlJoin... joinClauses)
-	{
+	public IQuery<T> build(IOperand whereClause, ISqlJoin... joinClauses) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IPagingQuery<T> buildPaging()
-	{
+	public IPagingQuery<T> buildPaging() {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IPagingQuery<T> buildPaging(IOperand whereClause)
-	{
+	public IPagingQuery<T> buildPaging(IOperand whereClause) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IPagingQuery<T> buildPaging(IOperand whereClause, ISqlJoin... joinClauses)
-	{
+	public IPagingQuery<T> buildPaging(IOperand whereClause, ISqlJoin... joinClauses) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public ISubQuery<T> buildSubQuery()
-	{
+	public ISubQuery<T> buildSubQuery() {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public ISubQuery<T> buildSubQuery(IOperand whereClause)
-	{
+	public ISubQuery<T> buildSubQuery(IOperand whereClause) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public ISubQuery<T> buildSubQuery(IOperand whereClause, ISqlJoin... joinClauses)
-	{
+	public ISubQuery<T> buildSubQuery(IOperand whereClause, ISqlJoin... joinClauses) {
 		throw new UnsupportedOperationException();
 	}
 

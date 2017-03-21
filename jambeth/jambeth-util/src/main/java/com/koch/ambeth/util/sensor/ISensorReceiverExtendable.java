@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ISensorReceiverExtendable
-{
+public interface ISensorReceiverExtendable {
 	void registerSensorReceiver(ISensorReceiver sensorReceiver, String sensorName);
 
 	void unregisterSensorReceiver(ISensorReceiver sensorReceiver, String sensorName);

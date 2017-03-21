@@ -27,8 +27,7 @@ import com.koch.ambeth.merge.copy.IObjectCopierExtension;
 import com.koch.ambeth.merge.copy.IObjectCopierState;
 import com.koch.ambeth.service.merge.model.IObjRef;
 
-public class ObjRefObjectCopierExtension implements IObjectCopierExtension
-{
+public class ObjRefObjectCopierExtension implements IObjectCopierExtension {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -37,8 +36,7 @@ public class ObjRefObjectCopierExtension implements IObjectCopierExtension
 	protected IObjRefFactory objRefFactory;
 
 	@Override
-	public Object deepClone(Object original, IObjectCopierState objectCopierState)
-	{
+	public Object deepClone(Object original, IObjectCopierState objectCopierState) {
 		IObjRef objRef = (IObjRef) original;
 		return objRefFactory.dup(objRef);
 	}

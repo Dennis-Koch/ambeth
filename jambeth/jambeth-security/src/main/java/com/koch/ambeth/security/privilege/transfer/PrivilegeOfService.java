@@ -31,8 +31,7 @@ import com.koch.ambeth.util.IPrintable;
 
 @XmlRootElement(name = "PrivilegeOfService", namespace = "http://schema.kochdev.com/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class PrivilegeOfService implements IPrivilegeOfService, IPrintable
-{
+public class PrivilegeOfService implements IPrivilegeOfService, IPrintable {
 	@XmlElement(required = true)
 	protected IObjRef reference;
 
@@ -61,115 +60,95 @@ public class PrivilegeOfService implements IPrivilegeOfService, IPrintable
 	protected IPropertyPrivilegeOfService[] propertyPrivileges;
 
 	@Override
-	public IObjRef getReference()
-	{
+	public IObjRef getReference() {
 		return reference;
 	}
 
-	public void setReference(IObjRef reference)
-	{
+	public void setReference(IObjRef reference) {
 		this.reference = reference;
 	}
 
 	@Override
-	public ISecurityScope getSecurityScope()
-	{
+	public ISecurityScope getSecurityScope() {
 		return securityScope;
 	}
 
-	public void setSecurityScope(ISecurityScope securityScope)
-	{
+	public void setSecurityScope(ISecurityScope securityScope) {
 		this.securityScope = securityScope;
 	}
 
 	@Override
-	public boolean isCreateAllowed()
-	{
+	public boolean isCreateAllowed() {
 		return createAllowed;
 	}
 
-	public void setCreateAllowed(boolean createAllowed)
-	{
+	public void setCreateAllowed(boolean createAllowed) {
 		this.createAllowed = createAllowed;
 	}
 
 	@Override
-	public boolean isReadAllowed()
-	{
+	public boolean isReadAllowed() {
 		return readAllowed;
 	}
 
-	public void setReadAllowed(boolean readAllowed)
-	{
+	public void setReadAllowed(boolean readAllowed) {
 		this.readAllowed = readAllowed;
 	}
 
 	@Override
-	public boolean isUpdateAllowed()
-	{
+	public boolean isUpdateAllowed() {
 		return updateAllowed;
 	}
 
-	public void setUpdateAllowed(boolean updateAllowed)
-	{
+	public void setUpdateAllowed(boolean updateAllowed) {
 		this.updateAllowed = updateAllowed;
 	}
 
 	@Override
-	public boolean isDeleteAllowed()
-	{
+	public boolean isDeleteAllowed() {
 		return deleteAllowed;
 	}
 
-	public void setDeleteAllowed(boolean deleteAllowed)
-	{
+	public void setDeleteAllowed(boolean deleteAllowed) {
 		this.deleteAllowed = deleteAllowed;
 	}
 
 	@Override
-	public boolean isExecuteAllowed()
-	{
+	public boolean isExecuteAllowed() {
 		return executeAllowed;
 	}
 
-	public void setExecuteAllowed(boolean executeAllowed)
-	{
+	public void setExecuteAllowed(boolean executeAllowed) {
 		this.executeAllowed = executeAllowed;
 	}
 
 	@Override
-	public String[] getPropertyPrivilegeNames()
-	{
+	public String[] getPropertyPrivilegeNames() {
 		return propertyPrivilegeNames;
 	}
 
-	public void setPropertyPrivilegeNames(String[] propertyPrivilegeNames)
-	{
+	public void setPropertyPrivilegeNames(String[] propertyPrivilegeNames) {
 		this.propertyPrivilegeNames = propertyPrivilegeNames;
 	}
 
 	@Override
-	public IPropertyPrivilegeOfService[] getPropertyPrivileges()
-	{
+	public IPropertyPrivilegeOfService[] getPropertyPrivileges() {
 		return propertyPrivileges;
 	}
 
-	public void setPropertyPrivileges(IPropertyPrivilegeOfService[] propertyPrivileges)
-	{
+	public void setPropertyPrivileges(IPropertyPrivilegeOfService[] propertyPrivileges) {
 		this.propertyPrivileges = propertyPrivileges;
 	}
 
 	@Override
-	public final String toString()
-	{
+	public final String toString() {
 		StringBuilder sb = new StringBuilder();
 		toString(sb);
 		return sb.toString();
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
+	public void toString(StringBuilder sb) {
 		sb.append(isReadAllowed() ? "+R" : "-R");
 		sb.append(isCreateAllowed() ? "+C" : "-C");
 		sb.append(isUpdateAllowed() ? "+U" : "-U");

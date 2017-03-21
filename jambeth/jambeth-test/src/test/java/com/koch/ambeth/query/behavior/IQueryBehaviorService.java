@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.model.Material;
 
-public interface IQueryBehaviorService
-{
+public interface IQueryBehaviorService {
 	Material getMaterialByName(String name);
 
 	Material getMaterialByNameObjRefMode(String name);

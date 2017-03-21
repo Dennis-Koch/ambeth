@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public enum OrderByType
-{
+public enum OrderByType {
 	ASC, DESC;
 }

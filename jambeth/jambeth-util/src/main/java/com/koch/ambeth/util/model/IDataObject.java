@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IDataObject
-{
+public interface IDataObject {
 	boolean isToBeDeleted();
 
 	boolean isToBeUpdated();

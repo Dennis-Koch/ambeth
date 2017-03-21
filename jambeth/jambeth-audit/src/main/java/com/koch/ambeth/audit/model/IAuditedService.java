@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.security.audit.model.Audited;
 
 @Audited(false)
-public interface IAuditedService
-{
+public interface IAuditedService {
 	public static final String Arguments = "Arguments";
 
 	public static final String Entry = "Entry";

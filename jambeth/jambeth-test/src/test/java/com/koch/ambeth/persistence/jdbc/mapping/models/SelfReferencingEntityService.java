@@ -39,8 +39,8 @@ import com.koch.ambeth.util.collections.ArrayList;
 
 @Service(ISelfReferencingEntityService.class)
 @PersistenceContext
-public class SelfReferencingEntityService implements ISelfReferencingEntityService, IInitializingBean
-{
+public class SelfReferencingEntityService
+		implements ISelfReferencingEntityService, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance(SelfReferencingEntityService.class)
 	private ILogger log;
@@ -50,88 +50,75 @@ public class SelfReferencingEntityService implements ISelfReferencingEntityServi
 	protected IServiceUtil serviceUtil;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(database, "database");
 		ParamChecker.assertNotNull(serviceUtil, "serviceUtil");
 	}
 
-	public void setDatabase(IDatabase database)
-	{
+	public void setDatabase(IDatabase database) {
 		this.database = database;
 	}
 
-	public void setServiceUtil(IServiceUtil serviceUtil)
-	{
+	public void setServiceUtil(IServiceUtil serviceUtil) {
 		this.serviceUtil = serviceUtil;
 	}
 
 	@Override
-	public SelfReferencingEntity getSelfReferencingEntityByName(String name)
-	{
+	public SelfReferencingEntity getSelfReferencingEntityByName(String name) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Collection<SelfReferencingEntity> getSelfReferencingEntitiesByNamesReturnCollection(String... names)
-	{
+	public Collection<SelfReferencingEntity> getSelfReferencingEntitiesByNamesReturnCollection(
+			String... names) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public List<SelfReferencingEntity> getSelfReferencingEntitiesByNamesReturnList(String... names)
-	{
+	public List<SelfReferencingEntity> getSelfReferencingEntitiesByNamesReturnList(String... names) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Set<SelfReferencingEntity> getSelfReferencingEntitiesByNamesReturnSet(String... names)
-	{
+	public Set<SelfReferencingEntity> getSelfReferencingEntitiesByNamesReturnSet(String... names) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public SelfReferencingEntity[] getSelfReferencingEntitiesByNamesReturnArray(String... names)
-	{
+	public SelfReferencingEntity[] getSelfReferencingEntitiesByNamesReturnArray(String... names) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public SelfReferencingEntity getSelfReferencingEntityByNames(Collection<String> names)
-	{
+	public SelfReferencingEntity getSelfReferencingEntityByNames(Collection<String> names) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public SelfReferencingEntity getSelfReferencingEntityByNames(List<String> names)
-	{
+	public SelfReferencingEntity getSelfReferencingEntityByNames(List<String> names) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public SelfReferencingEntity getSelfReferencingEntityByNames(String... names)
-	{
+	public SelfReferencingEntity getSelfReferencingEntityByNames(String... names) {
 		throw new UnsupportedOperationException();
 	}
 
-	public void test(String name)
-	{
+	public void test(String name) {
 		ITable aieTable = database.getTableByType(SelfReferencingEntity.class);
-		ArrayList<String> names = new ArrayList<String>();
+		ArrayList<String> names = new ArrayList<>();
 		names.add(name);
 		IVersionCursor selectVersion = aieTable.selectVersion("Name", names);
 		System.out.println(selectVersion);
 	}
 
 	@Override
-	public void updateSelfReferencingEntity(SelfReferencingEntity selfReferencingEntity)
-	{
+	public void updateSelfReferencingEntity(SelfReferencingEntity selfReferencingEntity) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void deleteSelfReferencingEntity(SelfReferencingEntity selfReferencingEntity)
-	{
+	public void deleteSelfReferencingEntity(SelfReferencingEntity selfReferencingEntity) {
 		throw new UnsupportedOperationException();
 	}
 }

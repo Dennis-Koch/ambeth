@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.persistence.IConnectionHolder;
 
-public interface IConnectionHolderExtendable
-{
+public interface IConnectionHolderExtendable {
 	void registerConnectionHolder(IConnectionHolder connectionHolder, Object persistenceUnitId);
 
 	void unregisterConnectionHolder(IConnectionHolder connectionHolder, Object persistenceUnitId);

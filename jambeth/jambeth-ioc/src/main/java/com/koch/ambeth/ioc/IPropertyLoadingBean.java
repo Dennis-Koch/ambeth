@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.log.config.Properties;
 
-public interface IPropertyLoadingBean
-{
+public interface IPropertyLoadingBean {
 	void applyProperties(Properties contextProperties);
 }

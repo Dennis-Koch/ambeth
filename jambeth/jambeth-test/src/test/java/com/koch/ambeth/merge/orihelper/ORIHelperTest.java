@@ -40,37 +40,33 @@ import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 
-@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/merge/orihelper/ORIHelperTest-orm.xml") })
+@TestPropertiesList({@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/merge/orihelper/ORIHelperTest-orm.xml")})
 @SQLStructure("ORIHelperTest_structure.sql")
-@TestModule({ ORIHelperTestModule.class })
-public class ORIHelperTest extends AbstractInformationBusWithPersistenceTest
-{
+@TestModule({ORIHelperTestModule.class})
+public class ORIHelperTest extends AbstractInformationBusWithPersistenceTest {
 	private ORIHelperTestService oriHelperTestService;
 
 	private ICache cache;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		ParamChecker.assertNotNull(cache, "cache");
 	}
 
-	public void setOriHelperTestService(ORIHelperTestService oriHelperTestService)
-	{
+	public void setOriHelperTestService(ORIHelperTestService oriHelperTestService) {
 		this.oriHelperTestService = oriHelperTestService;
 	}
 
-	public void setCache(ICache cache)
-	{
+	public void setCache(ICache cache) {
 		this.cache = cache;
 	}
 
 	@Test
-	public void testGetCreateORI()
-	{
-		List<IObjRef> oris = new ArrayList<IObjRef>();
+	public void testGetCreateORI() {
+		List<IObjRef> oris = new ArrayList<>();
 
 		oris.add(new ObjRef(EntityB.class, 1, 1));
 

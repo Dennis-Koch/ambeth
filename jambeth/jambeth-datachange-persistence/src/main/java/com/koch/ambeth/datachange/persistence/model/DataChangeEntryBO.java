@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public class DataChangeEntryBO
-{
+public class DataChangeEntryBO {
 	protected long id;
 
 	protected byte version;
@@ -34,68 +33,55 @@ public class DataChangeEntryBO
 
 	protected String objectVersion;
 
-	protected DataChangeEntryBO()
-	{
+	protected DataChangeEntryBO() {
 		// Intended blank
 	}
 
-	public long getId()
-	{
+	public long getId() {
 		return id;
 	}
 
-	public void setId(long id)
-	{
+	public void setId(long id) {
 		this.id = id;
 	}
 
-	public byte getVersion()
-	{
+	public byte getVersion() {
 		return version;
 	}
 
-	public void setVersion(byte version)
-	{
+	public void setVersion(byte version) {
 		this.version = version;
 	}
 
-	public EntityType getEntityType()
-	{
+	public EntityType getEntityType() {
 		return entityType;
 	}
 
-	public void setEntityType(EntityType entityType)
-	{
+	public void setEntityType(EntityType entityType) {
 		this.entityType = entityType;
 	}
 
-	public byte getIdIndex()
-	{
+	public byte getIdIndex() {
 		return idIndex;
 	}
 
-	public void setIdIndex(byte idIndex)
-	{
+	public void setIdIndex(byte idIndex) {
 		this.idIndex = idIndex;
 	}
 
-	public String getObjectId()
-	{
+	public String getObjectId() {
 		return objectId;
 	}
 
-	public void setObjectId(String objectId)
-	{
+	public void setObjectId(String objectId) {
 		this.objectId = objectId;
 	}
 
-	public String getObjectVersion()
-	{
+	public String getObjectVersion() {
 		return objectVersion;
 	}
 
-	public void setObjectVersion(String objectVersion)
-	{
+	public void setObjectVersion(String objectVersion) {
 		this.objectVersion = objectVersion;
 	}
 }

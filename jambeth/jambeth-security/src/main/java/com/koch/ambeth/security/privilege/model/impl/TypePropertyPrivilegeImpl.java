@@ -30,85 +30,80 @@ import com.koch.ambeth.security.privilege.transfer.ITypePropertyPrivilegeOfServi
 import com.koch.ambeth.util.IImmutableType;
 import com.koch.ambeth.util.IPrintable;
 
-public final class TypePropertyPrivilegeImpl implements ITypePropertyPrivilege, IPrintable, IImmutableType, Serializable
-{
+public final class TypePropertyPrivilegeImpl
+		implements ITypePropertyPrivilege, IPrintable, IImmutableType, Serializable {
 	private static final long serialVersionUID = -8157005380166070281L;
 
-	public static final ITypePropertyPrivilege[] EMPTY_PROPERTY_PRIVILEGES = new ITypePropertyPrivilege[0];
+	public static final ITypePropertyPrivilege[] EMPTY_PROPERTY_PRIVILEGES =
+			new ITypePropertyPrivilege[0];
 
-	private static final TypePropertyPrivilegeImpl[] array = new TypePropertyPrivilegeImpl[arraySizeForIndex()];
+	private static final TypePropertyPrivilegeImpl[] array =
+			new TypePropertyPrivilegeImpl[arraySizeForIndex()];
 
-	static
-	{
+	static {
 		put1();
 	}
 
-	private static void put1()
-	{
+	private static void put1() {
 		put2(null);
 		put2(Boolean.FALSE);
 		put2(Boolean.TRUE);
 	}
 
-	private static void put2(Boolean create)
-	{
+	private static void put2(Boolean create) {
 		put3(create, null);
 		put3(create, Boolean.FALSE);
 		put3(create, Boolean.TRUE);
 	}
 
-	private static void put3(Boolean create, Boolean read)
-	{
+	private static void put3(Boolean create, Boolean read) {
 		put4(create, read, null);
 		put4(create, read, Boolean.FALSE);
 		put4(create, read, Boolean.TRUE);
 	}
 
-	private static void put4(Boolean create, Boolean read, Boolean update)
-	{
+	private static void put4(Boolean create, Boolean read, Boolean update) {
 		put(create, read, update, null);
 		put(create, read, update, Boolean.FALSE);
 		put(create, read, update, Boolean.TRUE);
 	}
 
-	public static int arraySizeForIndex()
-	{
+	public static int arraySizeForIndex() {
 		return 27 * 3;
 	}
 
-	public static int calcIndex(Boolean create, Boolean read, Boolean update, Boolean delete)
-	{
-		return AbstractTypePrivilege.toBitValue(create, 1, 1 * 2) + AbstractTypePrivilege.toBitValue(read, 3, 3 * 2)
-				+ AbstractTypePrivilege.toBitValue(update, 9, 9 * 2) + AbstractTypePrivilege.toBitValue(delete, 27, 27 * 2);
+	public static int calcIndex(Boolean create, Boolean read, Boolean update, Boolean delete) {
+		return AbstractTypePrivilege.toBitValue(create, 1, 1 * 2)
+				+ AbstractTypePrivilege.toBitValue(read, 3, 3 * 2)
+				+ AbstractTypePrivilege.toBitValue(update, 9, 9 * 2)
+				+ AbstractTypePrivilege.toBitValue(delete, 27, 27 * 2);
 	}
 
-	private static void put(Boolean create, Boolean read, Boolean update, Boolean delete)
-	{
+	private static void put(Boolean create, Boolean read, Boolean update, Boolean delete) {
 		int index = calcIndex(create, read, update, delete);
 		array[index] = new TypePropertyPrivilegeImpl(create, read, update, delete);
 	}
 
-	public static ITypePropertyPrivilege create(Boolean create, Boolean read, Boolean update, Boolean delete)
-	{
+	public static ITypePropertyPrivilege create(Boolean create, Boolean read, Boolean update,
+			Boolean delete) {
 		int index = calcIndex(create, read, update, delete);
 		return array[index];
 	}
 
-	public static ITypePropertyPrivilege createFrom(ITypePrivilege privilegeAsTemplate)
-	{
-		return create(privilegeAsTemplate.isCreateAllowed(), privilegeAsTemplate.isReadAllowed(), privilegeAsTemplate.isUpdateAllowed(),
-				privilegeAsTemplate.isDeleteAllowed());
+	public static ITypePropertyPrivilege createFrom(ITypePrivilege privilegeAsTemplate) {
+		return create(privilegeAsTemplate.isCreateAllowed(), privilegeAsTemplate.isReadAllowed(),
+				privilegeAsTemplate.isUpdateAllowed(), privilegeAsTemplate.isDeleteAllowed());
 	}
 
-	public static ITypePropertyPrivilege createFrom(ITypePrivilegeOfService privilegeOfService)
-	{
-		return create(privilegeOfService.isCreateAllowed(), privilegeOfService.isReadAllowed(), privilegeOfService.isUpdateAllowed(),
-				privilegeOfService.isDeleteAllowed());
+	public static ITypePropertyPrivilege createFrom(ITypePrivilegeOfService privilegeOfService) {
+		return create(privilegeOfService.isCreateAllowed(), privilegeOfService.isReadAllowed(),
+				privilegeOfService.isUpdateAllowed(), privilegeOfService.isDeleteAllowed());
 	}
 
-	public static ITypePropertyPrivilege createFrom(ITypePropertyPrivilegeOfService propertyPrivilegeResult)
-	{
-		return create(propertyPrivilegeResult.isCreateAllowed(), propertyPrivilegeResult.isReadAllowed(), propertyPrivilegeResult.isUpdateAllowed(),
+	public static ITypePropertyPrivilege createFrom(
+			ITypePropertyPrivilegeOfService propertyPrivilegeResult) {
+		return create(propertyPrivilegeResult.isCreateAllowed(),
+				propertyPrivilegeResult.isReadAllowed(), propertyPrivilegeResult.isUpdateAllowed(),
 				propertyPrivilegeResult.isDeleteAllowed());
 	}
 
@@ -117,8 +112,7 @@ public final class TypePropertyPrivilegeImpl implements ITypePropertyPrivilege, 
 	private final Boolean update;
 	private final Boolean delete;
 
-	private TypePropertyPrivilegeImpl(Boolean create, Boolean read, Boolean update, Boolean delete)
-	{
+	private TypePropertyPrivilegeImpl(Boolean create, Boolean read, Boolean update, Boolean delete) {
 		this.create = create;
 		this.read = read;
 		this.update = update;
@@ -126,48 +120,41 @@ public final class TypePropertyPrivilegeImpl implements ITypePropertyPrivilege, 
 	}
 
 	@Override
-	public Boolean isCreateAllowed()
-	{
+	public Boolean isCreateAllowed() {
 		return create;
 	}
 
 	@Override
-	public Boolean isReadAllowed()
-	{
+	public Boolean isReadAllowed() {
 		return read;
 	}
 
 	@Override
-	public Boolean isUpdateAllowed()
-	{
+	public Boolean isUpdateAllowed() {
 		return update;
 	}
 
 	@Override
-	public Boolean isDeleteAllowed()
-	{
+	public Boolean isDeleteAllowed() {
 		return delete;
 	}
 
 	@Override
-	public final String toString()
-	{
+	public final String toString() {
 		StringBuilder sb = new StringBuilder();
 		toString(sb);
 		return sb.toString();
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
+	public void toString(StringBuilder sb) {
 		sb.append(AbstractPrivilege.upperOrLower(isCreateAllowed(), 'c'));
 		sb.append(AbstractPrivilege.upperOrLower(isReadAllowed(), 'r'));
 		sb.append(AbstractPrivilege.upperOrLower(isUpdateAllowed(), 'u'));
 		sb.append(AbstractPrivilege.upperOrLower(isDeleteAllowed(), 'd'));
 	}
 
-	private Object readResolve() throws ObjectStreamException
-	{
+	private Object readResolve() throws ObjectStreamException {
 		return create(create, read, update, delete);
 	}
 }

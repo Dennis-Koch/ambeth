@@ -45,35 +45,31 @@ import com.koch.ambeth.util.ParamChecker;
 
 @SQLStructure("FinderTest_structure.sql")
 @SQLData("FinderTest_data.sql")
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/find/FinderTest_orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/persistence/find/FinderTest_orm.xml")
 @TestModule(FinderTestModule.class)
-public class FinderTest extends AbstractInformationBusWithPersistenceTest
-{
+public class FinderTest extends AbstractInformationBusWithPersistenceTest {
 	private IEntityBService entityBService;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 		ParamChecker.assertNotNull(entityBService, "EntityBService");
 	}
 
-	public void setEntityBService(IEntityBService entityBService)
-	{
+	public void setEntityBService(IEntityBService entityBService) {
 		this.entityBService = entityBService;
 	}
 
 	@Test
-	public void testRetrieve()
-	{
+	public void testRetrieve() {
 		Entity entity = entityBService.retrieve(1);
 		assertNotNull(entity);
 		assertEquals(1, entity.getId());
 	}
 
 	@Test
-	public void testRetrieveList()
-	{
+	public void testRetrieveList() {
 		List<Entity> entities = entityBService.retrieve(Arrays.asList(1, 2));
 		assertNotNull(entities);
 		assertEquals(2, entities.size());
@@ -82,17 +78,17 @@ public class FinderTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testFindReferences()
-	{
+	public void testFindReferences() {
 		IPagingRequest pagingRequest = null;
-		FilterDescriptor<Entity> filterDescriptor = new FilterDescriptor<Entity>(Entity.class);
+		FilterDescriptor<Entity> filterDescriptor = new FilterDescriptor<>(Entity.class);
 		ISortDescriptor[] sortDescriptors = null;
 
 		filterDescriptor.setMember("Id");
 		filterDescriptor.setOperator(FilterOperator.IS_EQUAL_TO);
 		filterDescriptor.setValue(Collections.singletonList("2"));
 
-		IPagingResponse<Entity> pagingResponse = entityBService.findReferences(pagingRequest, filterDescriptor, sortDescriptors);
+		IPagingResponse<Entity> pagingResponse =
+				entityBService.findReferences(pagingRequest, filterDescriptor, sortDescriptors);
 		assertNotNull(pagingResponse);
 		assertNotNull(pagingResponse.getRefResult());
 		assertEquals(1, pagingResponse.getRefResult().size());
@@ -101,17 +97,17 @@ public class FinderTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testFindReferencesAlternateIdName()
-	{
+	public void testFindReferencesAlternateIdName() {
 		IPagingRequest pagingRequest = null;
-		FilterDescriptor<Entity> filterDescriptor = new FilterDescriptor<Entity>(Entity.class);
+		FilterDescriptor<Entity> filterDescriptor = new FilterDescriptor<>(Entity.class);
 		ISortDescriptor[] sortDescriptors = null;
 
 		filterDescriptor.setMember("Id");
 		filterDescriptor.setOperator(FilterOperator.IS_EQUAL_TO);
 		filterDescriptor.setValue(Collections.singletonList("2"));
 
-		IPagingResponse<Entity> pagingResponse = entityBService.findReferencesAlternate(pagingRequest, filterDescriptor, sortDescriptors);
+		IPagingResponse<Entity> pagingResponse =
+				entityBService.findReferencesAlternate(pagingRequest, filterDescriptor, sortDescriptors);
 		assertNotNull(pagingResponse);
 		assertNotNull(pagingResponse.getRefResult());
 		assertEquals(1, pagingResponse.getRefResult().size());
@@ -120,17 +116,17 @@ public class FinderTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testFindEntities()
-	{
+	public void testFindEntities() {
 		IPagingRequest pagingRequest = null;
-		FilterDescriptor<Entity> filterDescriptor = new FilterDescriptor<Entity>(Entity.class);
+		FilterDescriptor<Entity> filterDescriptor = new FilterDescriptor<>(Entity.class);
 		ISortDescriptor[] sortDescriptors = null;
 
 		filterDescriptor.setMember("Id");
 		filterDescriptor.setOperator(FilterOperator.IS_EQUAL_TO);
 		filterDescriptor.setValue(Collections.singletonList("2"));
 
-		IPagingResponse<Entity> pagingResponse = entityBService.findEntities(pagingRequest, filterDescriptor, sortDescriptors);
+		IPagingResponse<Entity> pagingResponse =
+				entityBService.findEntities(pagingRequest, filterDescriptor, sortDescriptors);
 		assertNotNull(pagingResponse);
 		assertNotNull(pagingResponse.getResult());
 		assertEquals(1, pagingResponse.getResult().size());
@@ -139,17 +135,17 @@ public class FinderTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testFindBoth()
-	{
+	public void testFindBoth() {
 		IPagingRequest pagingRequest = null;
-		FilterDescriptor<Entity> filterDescriptor = new FilterDescriptor<Entity>(Entity.class);
+		FilterDescriptor<Entity> filterDescriptor = new FilterDescriptor<>(Entity.class);
 		ISortDescriptor[] sortDescriptors = null;
 
 		filterDescriptor.setMember("Id");
 		filterDescriptor.setOperator(FilterOperator.IS_EQUAL_TO);
 		filterDescriptor.setValue(Collections.singletonList("2"));
 
-		IPagingResponse<Entity> pagingResponse = entityBService.findBoth(pagingRequest, filterDescriptor, sortDescriptors);
+		IPagingResponse<Entity> pagingResponse =
+				entityBService.findBoth(pagingRequest, filterDescriptor, sortDescriptors);
 		assertNotNull(pagingResponse);
 		assertNotNull(pagingResponse.getRefResult());
 		assertEquals(1, pagingResponse.getRefResult().size());

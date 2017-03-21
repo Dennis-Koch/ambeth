@@ -43,33 +43,28 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.model.IServiceDescription;
 
 @Path("/CacheService")
-@Consumes({ MediaType.TEXT_PLAIN })
-@Produces({ MediaType.TEXT_PLAIN })
-public class CacheServiceREST extends AbstractServiceREST
-{
-	protected ICacheService getCacheService()
-	{
+@Consumes({MediaType.TEXT_PLAIN})
+@Produces({MediaType.TEXT_PLAIN})
+public class CacheServiceREST extends AbstractServiceREST {
+	protected ICacheService getCacheService() {
 		return getServiceContext().getService(CacheModule.EXTERNAL_CACHE_SERVICE, ICacheService.class);
 	}
 
 	@SuppressWarnings("unchecked")
 	@POST
 	@Path("GetEntities")
-	public StreamingOutput getEntities(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response)
-	{
-		try
-		{
+	public StreamingOutput getEntities(InputStream is, @Context HttpServletRequest request,
+			@Context HttpServletResponse response) {
+		try {
 			preServiceCall();
 			Object[] args = getArguments(is, request);
 			List<ILoadContainer> result = getCacheService().getEntities((List<IObjRef>) args[0]);
 			return createResult(result, response);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			return createExceptionResult(e, response);
 		}
-		finally
-		{
+		finally {
 			postServiceCall();
 		}
 	}
@@ -77,42 +72,38 @@ public class CacheServiceREST extends AbstractServiceREST
 	@SuppressWarnings("unchecked")
 	@POST
 	@Path("GetRelations")
-	public StreamingOutput getRelations(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response)
-	{
-		try
-		{
+	public StreamingOutput getRelations(InputStream is, @Context HttpServletRequest request,
+			@Context HttpServletResponse response) {
+		try {
 			preServiceCall();
 			Object[] args = getArguments(is, request);
-			List<IObjRelationResult> result = getCacheService().getRelations((List<IObjRelation>) args[0]);
+			List<IObjRelationResult> result =
+					getCacheService().getRelations((List<IObjRelation>) args[0]);
 			return createResult(result, response);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			return createExceptionResult(e, response);
 		}
-		finally
-		{
+		finally {
 			postServiceCall();
 		}
 	}
 
 	@POST
 	@Path("GetORIsForServiceRequest")
-	public StreamingOutput getORIsForServiceRequest(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response)
-	{
-		try
-		{
+	public StreamingOutput getORIsForServiceRequest(InputStream is,
+			@Context HttpServletRequest request, @Context HttpServletResponse response) {
+		try {
 			preServiceCall();
 			Object[] args = getArguments(is, request);
-			IServiceResult result = getCacheService().getORIsForServiceRequest((IServiceDescription) args[0]);
+			IServiceResult result =
+					getCacheService().getORIsForServiceRequest((IServiceDescription) args[0]);
 			return createResult(result, response);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			return createExceptionResult(e, response);
 		}
-		finally
-		{
+		finally {
 			postServiceCall();
 		}
 	}

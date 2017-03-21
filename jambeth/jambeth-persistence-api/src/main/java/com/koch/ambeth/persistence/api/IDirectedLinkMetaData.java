@@ -24,8 +24,7 @@ import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.annotation.CascadeLoadMode;
 
-public interface IDirectedLinkMetaData
-{
+public interface IDirectedLinkMetaData {
 	ITableMetaData getFromTable();
 
 	IFieldMetaData getFromField();
@@ -56,7 +55,7 @@ public interface IDirectedLinkMetaData
 
 	/**
 	 * Link _not_ persisted in this table?
-	 * 
+	 *
 	 * @return Standalone status
 	 */
 	boolean isStandaloneLink();

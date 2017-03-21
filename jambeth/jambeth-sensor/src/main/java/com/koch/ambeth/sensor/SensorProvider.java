@@ -34,40 +34,37 @@ import com.koch.ambeth.util.sensor.ISensorProvider;
 import com.koch.ambeth.util.sensor.ISensorReceiver;
 import com.koch.ambeth.util.sensor.ISensorReceiverExtendable;
 
-public class SensorProvider implements ISensorProvider, IInitializingBean, ISensorReceiverExtendable
-{
+public class SensorProvider
+		implements ISensorProvider, IInitializingBean, ISensorReceiverExtendable {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	protected final LinkedHashMap<String, List<ISensorReceiver>> nameToSensorsMap = new LinkedHashMap<String, List<ISensorReceiver>>();
+	protected final LinkedHashMap<String, List<ISensorReceiver>> nameToSensorsMap =
+			new LinkedHashMap<>();
 
-	protected final LinkedHashMap<String, SensorBridge> nameToSensorBridgeMap = new LinkedHashMap<String, SensorBridge>();
+	protected final LinkedHashMap<String, SensorBridge> nameToSensorBridgeMap =
+			new LinkedHashMap<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		// Intended blank
 	}
 
 	@Override
-	public ISensor lookup(String sensorName)
-	{
+	public ISensor lookup(String sensorName) {
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			SensorBridge sensor = nameToSensorBridgeMap.get(sensorName);
-			if (sensor != null)
-			{
+			if (sensor != null) {
 				return sensor;
 			}
 			List<ISensorReceiver> sensorList = nameToSensorsMap.get(sensorName);
-			if (sensorList == null)
-			{
-				sensorList = new ArrayList<ISensorReceiver>();
+			if (sensorList == null) {
+				sensorList = new ArrayList<>();
 				nameToSensorsMap.put(sensorName, sensorList);
 			}
 			Lock bridgeLock = new ReentrantLock();
@@ -75,85 +72,68 @@ public class SensorProvider implements ISensorProvider, IInitializingBean, ISens
 			nameToSensorBridgeMap.put(sensorName, sensor);
 			return sensor;
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public void registerSensorReceiver(ISensorReceiver sensorReceiver, String sensorName)
-	{
+	public void registerSensorReceiver(ISensorReceiver sensorReceiver, String sensorName) {
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			List<ISensorReceiver> sensorList = nameToSensorsMap.get(sensorName);
-			if (sensorList == null)
-			{
-				sensorList = new ArrayList<ISensorReceiver>();
+			if (sensorList == null) {
+				sensorList = new ArrayList<>();
 				nameToSensorsMap.put(sensorName, sensorList);
 			}
 			SensorBridge sensorBridge = nameToSensorBridgeMap.get(sensorName);
-			if (sensorBridge == null)
-			{
+			if (sensorBridge == null) {
 				sensorList.add(sensorReceiver);
 				return;
 			}
 			Lock bridgeLock = sensorBridge.writeLock;
 			bridgeLock.lock();
-			try
-			{
+			try {
 				sensorList.add(sensorReceiver);
 			}
-			finally
-			{
+			finally {
 				bridgeLock.unlock();
 			}
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public void unregisterSensorReceiver(ISensorReceiver sensorReceiver, String sensorName)
-	{
+	public void unregisterSensorReceiver(ISensorReceiver sensorReceiver, String sensorName) {
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			List<ISensorReceiver> sensorList = nameToSensorsMap.get(sensorName);
-			if (sensorList == null)
-			{
+			if (sensorList == null) {
 				return;
 			}
 			SensorBridge sensorBridge = nameToSensorBridgeMap.get(sensorName);
-			if (sensorBridge == null)
-			{
+			if (sensorBridge == null) {
 				sensorList.remove(sensorReceiver);
 			}
-			else
-			{
+			else {
 				Lock bridgeLock = sensorBridge.writeLock;
 				bridgeLock.lock();
-				try
-				{
+				try {
 					sensorList.remove(sensorReceiver);
 				}
-				finally
-				{
+				finally {
 					bridgeLock.unlock();
 				}
 			}
-			if (sensorList.size() == 0 && !nameToSensorBridgeMap.containsKey(sensorName))
-			{
+			if (sensorList.size() == 0 && !nameToSensorBridgeMap.containsKey(sensorName)) {
 				nameToSensorsMap.remove(sensorName);
 			}
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}

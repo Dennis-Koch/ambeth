@@ -26,10 +26,8 @@ import java.util.List;
 
 import com.koch.ambeth.util.collections.ArrayList;
 
-public class SensitiveThreadLocal<T> extends ThreadLocal<T>
-{
-	public static enum SensitityLevel
-	{
+public class SensitiveThreadLocal<T> extends ThreadLocal<T> {
+	public static enum SensitityLevel {
 		IGNORE, CHECK_CLEANUP, HARD_LINER
 	}
 
@@ -37,17 +35,16 @@ public class SensitiveThreadLocal<T> extends ThreadLocal<T>
 
 	private static volatile int sensitiveThreadLocalID = 0;
 
-	private static final ThreadLocal<Boolean> sensitivityActivatedTL = new ThreadLocal<Boolean>();
+	private static final ThreadLocal<Boolean> sensitivityActivatedTL = new ThreadLocal<>();
 
-	private static final List<Reference<SensitiveThreadLocal<?>>> threadLocalInstances = new ArrayList<Reference<SensitiveThreadLocal<?>>>();
+	private static final List<Reference<SensitiveThreadLocal<?>>> threadLocalInstances =
+			new ArrayList<>();
 
-	public static void activateSensitivity()
-	{
+	public static void activateSensitivity() {
 		sensitivityLevel = SensitityLevel.HARD_LINER;
 	}
 
-	public static void activateCleanupSensitivity()
-	{
+	public static void activateCleanupSensitivity() {
 		sensitivityLevel = SensitityLevel.CHECK_CLEANUP;
 	}
 
@@ -66,7 +63,8 @@ public class SensitiveThreadLocal<T> extends ThreadLocal<T>
 	// return true;
 	// }
 	//
-	// public static void denyThreadLocalUsage(boolean acquiredThreadLocalUsage, boolean allowValidationException)
+	// public static void denyThreadLocalUsage(boolean acquiredThreadLocalUsage, boolean
+	// allowValidationException)
 	// {
 	// if (sensitivityLevel == SensitityLevel.IGNORE || !acquiredThreadLocalUsage)
 	// {
@@ -81,24 +79,22 @@ public class SensitiveThreadLocal<T> extends ThreadLocal<T>
 	// checkThreadLocalStates(allowValidationException);
 	// }
 
-	protected static void checkThreadLocalStates(boolean allowValidationException)
-	{
-		synchronized (threadLocalInstances)
-		{
-			for (int a = threadLocalInstances.size(); a-- > 0;)
-			{
+	protected static void checkThreadLocalStates(boolean allowValidationException) {
+		synchronized (threadLocalInstances) {
+			for (int a = threadLocalInstances.size(); a-- > 0;) {
 				SensitiveThreadLocal<?> sensitiveThreadLocal = threadLocalInstances.get(a).get();
-				if (sensitiveThreadLocal == null)
-				{
+				if (sensitiveThreadLocal == null) {
 					threadLocalInstances.remove(a);
 					continue;
 				}
-				if (allowValidationException && sensitiveThreadLocal.get() != null)
-				{
+				if (allowValidationException && sensitiveThreadLocal.get() != null) {
 					RuntimeException cause = new RuntimeException();
 					cause.setStackTrace(sensitiveThreadLocal.allocationTrace);
-					throw new IllegalStateException("Memory leak occuring: ThreadLocal with id '" + sensitiveThreadLocal.id
-							+ "' contains a value but usage of TLs is forbidden at this point: " + sensitiveThreadLocal, cause);
+					throw new IllegalStateException(
+							"Memory leak occuring: ThreadLocal with id '" + sensitiveThreadLocal.id
+									+ "' contains a value but usage of TLs is forbidden at this point: "
+									+ sensitiveThreadLocal,
+							cause);
 				}
 			}
 		}
@@ -108,32 +104,25 @@ public class SensitiveThreadLocal<T> extends ThreadLocal<T>
 
 	private final StackTraceElement[] allocationTrace;
 
-	public SensitiveThreadLocal()
-	{
+	public SensitiveThreadLocal() {
 		super();
-		if (sensitivityLevel != SensitityLevel.IGNORE)
-		{
+		if (sensitivityLevel != SensitityLevel.IGNORE) {
 			allocationTrace = Thread.currentThread().getStackTrace();
-			synchronized (threadLocalInstances)
-			{
+			synchronized (threadLocalInstances) {
 				id = ++sensitiveThreadLocalID;
 				threadLocalInstances.add(new WeakReference<SensitiveThreadLocal<?>>(this));
 			}
 		}
-		else
-		{
+		else {
 			id = 0;
 			allocationTrace = null;
 		}
 	}
 
 	@Override
-	public void set(T value)
-	{
-		if (value != null && sensitivityLevel == SensitityLevel.HARD_LINER)
-		{
-			if (sensitivityActivatedTL.get() == null)
-			{
+	public void set(T value) {
+		if (value != null && sensitivityLevel == SensitityLevel.HARD_LINER) {
+			if (sensitivityActivatedTL.get() == null) {
 				throw new IllegalStateException(
 						"It is not permitted to write to a ThreadLocal without using mandatory Ambeth ThreadLocal Cleanup for robustness");
 			}

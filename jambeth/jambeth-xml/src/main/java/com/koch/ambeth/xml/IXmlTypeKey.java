@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IXmlTypeKey
-{
+public interface IXmlTypeKey {
 
 	String getName();
 

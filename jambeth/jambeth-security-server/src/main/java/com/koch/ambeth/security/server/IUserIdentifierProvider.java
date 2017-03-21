@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.security.model.IUser;
 
-public interface IUserIdentifierProvider
-{
+public interface IUserIdentifierProvider {
 	String getSID(IUser user);
 
 	boolean isActive(IUser user);

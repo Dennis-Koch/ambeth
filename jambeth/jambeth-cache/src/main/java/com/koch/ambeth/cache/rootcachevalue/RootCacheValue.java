@@ -28,20 +28,18 @@ import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.IListElem;
 
-public abstract class RootCacheValue extends AbstractCacheValue implements IListElem<RootCacheValue>, IObjRefContainer
-{
+public abstract class RootCacheValue extends AbstractCacheValue
+		implements IListElem<RootCacheValue>, IObjRefContainer {
 	protected Object listHandle;
 
 	protected IListElem<RootCacheValue> next, prev;
 
-	public RootCacheValue(IEntityMetaData metaData)
-	{
+	public RootCacheValue(IEntityMetaData metaData) {
 		// Intended blank
 	}
 
 	@Override
-	public ICache get__Cache()
-	{
+	public ICache get__Cache() {
 		return null;
 	}
 
@@ -56,84 +54,70 @@ public abstract class RootCacheValue extends AbstractCacheValue implements IList
 	public abstract void setRelation(int relationIndex, IObjRef[] relationsOfMember);
 
 	@Override
-	public Object getListHandle()
-	{
+	public Object getListHandle() {
 		return listHandle;
 	}
 
 	@Override
-	public void setListHandle(Object listHandle)
-	{
-		if (this.listHandle != null && listHandle != null)
-		{
+	public void setListHandle(Object listHandle) {
+		if (this.listHandle != null && listHandle != null) {
 			throw new UnsupportedOperationException();
 		}
 		this.listHandle = listHandle;
 	}
 
 	@Override
-	public IListElem<RootCacheValue> getNext()
-	{
+	public IListElem<RootCacheValue> getNext() {
 		return next;
 	}
 
 	@Override
-	public void setNext(IListElem<RootCacheValue> next)
-	{
+	public void setNext(IListElem<RootCacheValue> next) {
 		this.next = next;
 	}
 
 	@Override
-	public IListElem<RootCacheValue> getPrev()
-	{
+	public IListElem<RootCacheValue> getPrev() {
 		return prev;
 	}
 
 	@Override
-	public void setPrev(IListElem<RootCacheValue> prev)
-	{
+	public void setPrev(IListElem<RootCacheValue> prev) {
 		this.prev = prev;
 	}
 
 	@Override
-	public RootCacheValue getElemValue()
-	{
+	public RootCacheValue getElemValue() {
 		return this;
 	}
 
 	@Override
-	public void setElemValue(RootCacheValue value)
-	{
+	public void setElemValue(RootCacheValue value) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public ValueHolderState get__State(int relationIndex)
-	{
+	public ValueHolderState get__State(int relationIndex) {
 		return ValueHolderState.LAZY;
 	}
 
 	@Override
-	public boolean is__Initialized(int relationIndex)
-	{
+	public boolean is__Initialized(int relationIndex) {
 		return false;
 	}
 
 	@Override
-	public IObjRef[] get__ObjRefs(int relationIndex)
-	{
+	public IObjRef[] get__ObjRefs(int relationIndex) {
 		return getRelation(relationIndex);
 	}
 
 	@Override
-	public void set__ObjRefs(int relationIndex, IObjRef[] objRefs)
-	{
+	public void set__ObjRefs(int relationIndex, IObjRef[] objRefs) {
 		setRelation(relationIndex, objRefs);
 	}
 
 	@Override
-	public void detach()
-	{
+	public void detach() {
 		// intended blank
 	}
 }

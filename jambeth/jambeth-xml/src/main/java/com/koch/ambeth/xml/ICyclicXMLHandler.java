@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public interface ICyclicXMLHandler extends ICyclicXmlReader, ICyclicXmlWriter
-{
+public interface ICyclicXMLHandler extends ICyclicXmlReader, ICyclicXmlWriter {
 	// intended blank
 }

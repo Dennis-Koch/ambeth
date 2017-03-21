@@ -30,17 +30,15 @@ import com.koch.ambeth.util.ReadWriteLock;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.transfer.MethodDescription;
 
-public final class SyncToAsyncUtil
-{
+public final class SyncToAsyncUtil {
 
-	protected static final Map<Method, Method[]> syncToAsyncDict = new HashMap<Method, Method[]>();
+	protected static final Map<Method, Method[]> syncToAsyncDict = new HashMap<>();
 
-	protected static final Map<Method, Method> asyncToSyncDict = new HashMap<Method, Method>();
+	protected static final Map<Method, Method> asyncToSyncDict = new HashMap<>();
 
 	protected static final Lock readLock, writeLock;
 
-	static
-	{
+	static {
 		ReadWriteLock rwLock = new ReadWriteLock();
 		readLock = rwLock.getReadLock();
 		writeLock = rwLock.getWriteLock();
@@ -151,8 +149,8 @@ public final class SyncToAsyncUtil
 	// return syncArguments;
 	// }
 
-	public static ServiceDescription createServiceDescription(String serviceName, Method syncMethod, Object[] syncArguments, ISecurityScope... securityScopes)
-	{
+	public static ServiceDescription createServiceDescription(String serviceName, Method syncMethod,
+			Object[] syncArguments, ISecurityScope... securityScopes) {
 		ServiceDescription serviceDescription = new ServiceDescription();
 		serviceDescription.setServiceName(serviceName);
 		serviceDescription.setMethodName(syncMethod.getName());
@@ -164,8 +162,7 @@ public final class SyncToAsyncUtil
 		return serviceDescription;
 	}
 
-	public static MethodDescription createMethodDescription(Method syncMethod)
-	{
+	public static MethodDescription createMethodDescription(Method syncMethod) {
 		MethodDescription methodDescription = new MethodDescription();
 		methodDescription.setMethodName(syncMethod.getName());
 		methodDescription.setParamTypes(syncMethod.getParameterTypes());
@@ -173,8 +170,7 @@ public final class SyncToAsyncUtil
 		return methodDescription;
 	}
 
-	private SyncToAsyncUtil()
-	{
+	private SyncToAsyncUtil() {
 		// Intended blank
 	}
 }

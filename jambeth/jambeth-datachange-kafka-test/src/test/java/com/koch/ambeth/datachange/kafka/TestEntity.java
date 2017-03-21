@@ -23,8 +23,7 @@ limitations under the License.
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
-public interface TestEntity
-{
+public interface TestEntity {
 	int getId();
 
 	int getVersion();

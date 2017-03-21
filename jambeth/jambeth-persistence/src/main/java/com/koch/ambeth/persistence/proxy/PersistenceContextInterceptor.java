@@ -40,8 +40,7 @@ import com.koch.ambeth.util.proxy.CascadedInterceptor;
 
 import net.sf.cglib.proxy.MethodProxy;
 
-public class PersistenceContextInterceptor extends CascadedInterceptor
-{
+public class PersistenceContextInterceptor extends CascadedInterceptor {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -59,56 +58,51 @@ public class PersistenceContextInterceptor extends CascadedInterceptor
 	protected IMethodLevelBehavior<PersistenceContextType> methodLevelBehaviour;
 
 	@Override
-	protected Object interceptIntern(final Object obj, final Method method, final Object[] args, final MethodProxy proxy) throws Throwable
-	{
+	protected Object interceptIntern(final Object obj, final Method method, final Object[] args,
+			final MethodProxy proxy) throws Throwable {
 		Class<?> declaringClass = method.getDeclaringClass();
-		if (declaringClass.equals(Object.class) || declaringClass.equals(IDisposable.class))
-		{
+		if (declaringClass.equals(Object.class) || declaringClass.equals(IDisposable.class)) {
 			return invokeTarget(obj, method, args, proxy);
 		}
 		PersistenceContextType behaviourOfMethod = methodLevelBehaviour.getBehaviourOfMethod(method);
 
-		if (PersistenceContextType.FORBIDDEN.equals(behaviourOfMethod))
-		{
-			ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap = databaseProviderRegistry.getPersistenceUnitToDatabaseProviderMap();
-			for (Entry<Object, IDatabaseProvider> entry : persistenceUnitToDatabaseProviderMap)
-			{
+		if (PersistenceContextType.FORBIDDEN.equals(behaviourOfMethod)) {
+			ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap =
+					databaseProviderRegistry.getPersistenceUnitToDatabaseProviderMap();
+			for (Entry<Object, IDatabaseProvider> entry : persistenceUnitToDatabaseProviderMap) {
 				IDatabaseProvider databaseProvider = entry.getValue();
-				if (databaseProvider.tryGetInstance() != null)
-				{
-					throw new UnsupportedOperationException("It is not allowed to call " + method + " while a database context is active");
+				if (databaseProvider.tryGetInstance() != null) {
+					throw new UnsupportedOperationException(
+							"It is not allowed to call " + method + " while a database context is active");
 				}
 			}
 			return invokeTarget(obj, method, args, proxy);
 		}
-		if (PersistenceContextType.EXPECTED.equals(behaviourOfMethod))
-		{
-			ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap = databaseProviderRegistry.getPersistenceUnitToDatabaseProviderMap();
-			for (Entry<Object, IDatabaseProvider> entry : persistenceUnitToDatabaseProviderMap)
-			{
+		if (PersistenceContextType.EXPECTED.equals(behaviourOfMethod)) {
+			ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap =
+					databaseProviderRegistry.getPersistenceUnitToDatabaseProviderMap();
+			for (Entry<Object, IDatabaseProvider> entry : persistenceUnitToDatabaseProviderMap) {
 				IDatabaseProvider databaseProvider = entry.getValue();
-				if (databaseProvider.tryGetInstance() == null)
-				{
-					throw new UnsupportedOperationException("It is not allowed to call " + method + " without an already active database context");
+				if (databaseProvider.tryGetInstance() == null) {
+					throw new UnsupportedOperationException("It is not allowed to call " + method
+							+ " without an already active database context");
 				}
 			}
 			return invokeTarget(obj, method, args, proxy);
 		}
-		if (!PersistenceContextType.REQUIRED.equals(behaviourOfMethod) && !PersistenceContextType.REQUIRED_READ_ONLY.equals(behaviourOfMethod))
-		{
+		if (!PersistenceContextType.REQUIRED.equals(behaviourOfMethod)
+				&& !PersistenceContextType.REQUIRED_READ_ONLY.equals(behaviourOfMethod)) {
 			// Do nothing if there is no transaction explicitly required for this method
 			return invokeTarget(obj, method, args, proxy);
 		}
-		if (transactionState.isTransactionActive())
-		{
+		if (transactionState.isTransactionActive()) {
 			return invokeTarget(obj, method, args, proxy);
 		}
 		boolean readOnly = PersistenceContextType.REQUIRED_READ_ONLY.equals(behaviourOfMethod);
-		return transaction.processAndCommit(new ResultingDatabaseCallback<Object>()
-		{
+		return transaction.processAndCommit(new ResultingDatabaseCallback<Object>() {
 			@Override
-			public Object callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
-			{
+			public Object callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+					throws Throwable {
 				return invokeTarget(obj, method, args, proxy);
 			}
 		}, false, readOnly);

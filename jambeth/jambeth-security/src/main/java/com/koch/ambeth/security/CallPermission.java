@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public enum CallPermission
-{
+public enum CallPermission {
 	UNDEFINED, FORBIDDEN, ALLOWED
 }

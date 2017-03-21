@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.List;
 
-public class EmbeddedMaterial
-{
+public class EmbeddedMaterial {
 	private String name;
 
 	private List<String> names;
@@ -32,43 +31,35 @@ public class EmbeddedMaterial
 
 	private EmbeddedMaterial2 embMat2;
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public List<String> getNames()
-	{
+	public List<String> getNames() {
 		return names;
 	}
 
-	public void setNames(List<String> names)
-	{
+	public void setNames(List<String> names) {
 		this.names = names;
 	}
 
-	public MaterialType getEmbMatType()
-	{
+	public MaterialType getEmbMatType() {
 		return embMatType;
 	}
 
-	public void setEmbMatType(MaterialType embMatType)
-	{
+	public void setEmbMatType(MaterialType embMatType) {
 		this.embMatType = embMatType;
 	}
 
-	public EmbeddedMaterial2 getEmbMat2()
-	{
+	public EmbeddedMaterial2 getEmbMat2() {
 		return embMat2;
 	}
 
-	public void setEmbMat2(EmbeddedMaterial2 embMat2)
-	{
+	public void setEmbMat2(EmbeddedMaterial2 embMat2) {
 		this.embMat2 = embMat2;
 	}
 }

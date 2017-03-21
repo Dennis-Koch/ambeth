@@ -44,32 +44,28 @@ import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.model.IMethodDescription;
 
 @Path("/MergeService")
-@Consumes({ MediaType.TEXT_PLAIN })
-@Produces({ MediaType.TEXT_PLAIN })
-public class MergeServiceREST extends AbstractServiceREST
-{
-	protected IMergeService getMergeService()
-	{
+@Consumes({MediaType.TEXT_PLAIN})
+@Produces({MediaType.TEXT_PLAIN})
+public class MergeServiceREST extends AbstractServiceREST {
+	protected IMergeService getMergeService() {
 		return getService(IMergeService.class);
 	}
 
 	@POST
 	@Path("Merge")
-	public StreamingOutput merge(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response)
-	{
-		try
-		{
+	public StreamingOutput merge(InputStream is, @Context HttpServletRequest request,
+			@Context HttpServletResponse response) {
+		try {
 			preServiceCall();
 			Object[] args = getArguments(is, request);
-			IOriCollection result = getMergeService().merge((ICUDResult) args[0], (IMethodDescription) args[1]);
+			IOriCollection result =
+					getMergeService().merge((ICUDResult) args[0], (IMethodDescription) args[1]);
 			return createResult(result, response);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			return createExceptionResult(e, response);
 		}
-		finally
-		{
+		finally {
 			postServiceCall();
 		}
 	}
@@ -77,29 +73,28 @@ public class MergeServiceREST extends AbstractServiceREST
 	@SuppressWarnings("unchecked")
 	@POST
 	@Path("GetMetaData")
-	public StreamingOutput getMetaData(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response)
-	{
-		try
-		{
+	public StreamingOutput getMetaData(InputStream is, @Context HttpServletRequest request,
+			@Context HttpServletResponse response) {
+		try {
 			preServiceCall();
 			Object[] args = getArguments(is, request);
-			List<IEntityMetaData> result = getService(IEntityMetaDataProvider.class).getMetaData((List<Class<?>>) args[0]);
+			List<IEntityMetaData> result =
+					getService(IEntityMetaDataProvider.class).getMetaData((List<Class<?>>) args[0]);
 
-			ArrayList<EntityMetaDataTransfer> emdTransfer = new ArrayList<EntityMetaDataTransfer>(result.size());
-			for (int a = 0, size = result.size(); a < size; a++)
-			{
+			ArrayList<EntityMetaDataTransfer> emdTransfer =
+					new ArrayList<>(result.size());
+			for (int a = 0, size = result.size(); a < size; a++) {
 				IEntityMetaData source = result.get(a);
-				EntityMetaDataTransfer target = getService(IConversionHelper.class).convertValueToType(EntityMetaDataTransfer.class, source);
+				EntityMetaDataTransfer target = getService(IConversionHelper.class)
+						.convertValueToType(EntityMetaDataTransfer.class, source);
 				emdTransfer.add(target);
 			}
 			return createResult(emdTransfer, response);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			return createExceptionResult(e, response);
 		}
-		finally
-		{
+		finally {
 			postServiceCall();
 		}
 	}

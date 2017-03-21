@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public enum ForkableType
-{
+public enum ForkableType {
 	REFERENCE, SHALLOW_COPY
 }

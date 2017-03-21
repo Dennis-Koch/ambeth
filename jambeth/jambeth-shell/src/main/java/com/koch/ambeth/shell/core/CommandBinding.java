@@ -29,8 +29,7 @@ import java.util.List;
  * @author daniel.mueller
  *
  */
-public interface CommandBinding
-{
+public interface CommandBinding {
 	/**
 	 *
 	 * @param arguments

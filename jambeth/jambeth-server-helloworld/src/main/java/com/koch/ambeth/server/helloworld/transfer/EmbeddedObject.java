@@ -29,8 +29,7 @@ import com.koch.ambeth.util.annotation.ParentChild;
 
 @XmlRootElement(namespace = "HelloWorld")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class EmbeddedObject
-{
+public class EmbeddedObject {
 	@XmlElement
 	protected TestEntity2 relationOfEmbeddedObject;
 
@@ -40,34 +39,28 @@ public class EmbeddedObject
 	@XmlElement
 	protected int value;
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public int getValue()
-	{
+	public int getValue() {
 		return value;
 	}
 
-	public void setValue(int value)
-	{
+	public void setValue(int value) {
 		this.value = value;
 	}
 
 	@ParentChild
-	public TestEntity2 getRelationOfEmbeddedObject()
-	{
+	public TestEntity2 getRelationOfEmbeddedObject() {
 		return relationOfEmbeddedObject;
 	}
 
-	public void setRelationOfEmbeddedObject(TestEntity2 relationOfEmbeddedObject)
-	{
+	public void setRelationOfEmbeddedObject(TestEntity2 relationOfEmbeddedObject) {
 		this.relationOfEmbeddedObject = relationOfEmbeddedObject;
 	}
 }

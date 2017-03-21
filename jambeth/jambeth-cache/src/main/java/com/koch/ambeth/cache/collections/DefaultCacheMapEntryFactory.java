@@ -20,11 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public class DefaultCacheMapEntryFactory implements ICacheMapEntryFactory
-{
+public class DefaultCacheMapEntryFactory implements ICacheMapEntryFactory {
 	@Override
-	public CacheMapEntry createCacheMapEntry(Class<?> entityType, byte idIndex, Object id, Object value, CacheMapEntry nextEntry)
-	{
+	public CacheMapEntry createCacheMapEntry(Class<?> entityType, byte idIndex, Object id,
+			Object value, CacheMapEntry nextEntry) {
 		return new DefaultCacheMapEntry(entityType, idIndex, id, value, nextEntry);
 	}
 }

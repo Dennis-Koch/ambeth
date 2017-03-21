@@ -20,17 +20,14 @@ limitations under the License.
  * #L%
  */
 
-public class Home extends BaseEntity
-{
+public class Home extends BaseEntity {
 	protected Address address;
 
-	public Address getAddress()
-	{
+	public Address getAddress() {
 		return address;
 	}
 
-	public void setAddress(Address address)
-	{
+	public void setAddress(Address address) {
 		this.address = address;
 	}
 }

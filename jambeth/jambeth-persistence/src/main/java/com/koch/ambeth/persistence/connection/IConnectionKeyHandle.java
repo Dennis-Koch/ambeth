@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IConnectionKeyHandle
-{
+public interface IConnectionKeyHandle {
 	// Marker interface
 }

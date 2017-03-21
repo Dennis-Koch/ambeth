@@ -26,30 +26,24 @@ import java.io.Reader;
 import com.koch.ambeth.stream.IInputStream;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class ReaderToCharacterInputStream implements ICharacterInputStream, IInputStream
-{
+public class ReaderToCharacterInputStream implements ICharacterInputStream, IInputStream {
 	protected final Reader is;
 
-	public ReaderToCharacterInputStream(Reader is)
-	{
+	public ReaderToCharacterInputStream(Reader is) {
 		this.is = is;
 	}
 
 	@Override
-	public void close() throws IOException
-	{
+	public void close() throws IOException {
 		is.close();
 	}
 
 	@Override
-	public int readChar()
-	{
-		try
-		{
+	public int readChar() {
+		try {
 			return is.read();
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

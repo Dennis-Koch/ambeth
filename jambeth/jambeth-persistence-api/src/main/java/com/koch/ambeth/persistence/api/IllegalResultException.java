@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public class IllegalResultException extends RuntimeException
-{
+public class IllegalResultException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 }

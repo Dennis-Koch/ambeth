@@ -35,8 +35,7 @@ import com.koch.ambeth.merge.bytecode.EmbeddedEnhancementHint;
 import com.koch.ambeth.merge.bytecode.EntityEnhancementHint;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
-public class PropertyExpressionBehavior extends AbstractBehavior
-{
+public class PropertyExpressionBehavior extends AbstractBehavior {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -45,12 +44,12 @@ public class PropertyExpressionBehavior extends AbstractBehavior
 	protected IPropertyInfoProvider propertyInfoProvider;
 
 	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors)
-	{
-		if (state.getContext(EntityEnhancementHint.class) == null && state.getContext(EmbeddedEnhancementHint.class) == null
-				&& state.getContext(ImplementAbstractObjectEnhancementHint.class) == null)
-		{
+	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+			List<IBytecodeBehavior> remainingPendingBehaviors,
+			List<IBytecodeBehavior> cascadePendingBehaviors) {
+		if (state.getContext(EntityEnhancementHint.class) == null
+				&& state.getContext(EmbeddedEnhancementHint.class) == null
+				&& state.getContext(ImplementAbstractObjectEnhancementHint.class) == null) {
 			return visitor;
 		}
 		cascadePendingBehaviors.addAll(0, remainingPendingBehaviors);

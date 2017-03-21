@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.security.model.IUser;
 
-public interface IUserResolver
-{
+public interface IUserResolver {
 	IUser resolveUserBySID(String sid);
 }

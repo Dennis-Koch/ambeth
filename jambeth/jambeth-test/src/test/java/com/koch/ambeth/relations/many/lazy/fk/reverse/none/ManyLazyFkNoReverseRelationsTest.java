@@ -51,29 +51,28 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 
 @SQLData("Relations_data.sql")
 @SQLStructure("Relations_structure.sql")
-@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.ToManyDefaultCascadeLoadMode, value = "LAZY"),
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/relations/many/lazy/fk/reverse/none/orm.xml") })
-public class ManyLazyFkNoReverseRelationsTest extends AbstractRelationsTest
-{
+@TestPropertiesList({
+		@TestProperties(name = ServiceConfigurationConstants.ToManyDefaultCascadeLoadMode,
+				value = "LAZY"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+				value = "com/koch/ambeth/relations/many/lazy/fk/reverse/none/orm.xml")})
+public class ManyLazyFkNoReverseRelationsTest extends AbstractRelationsTest {
 	@Test
-	public void testRetrieve()
-	{
+	public void testRetrieve() {
 		EntityB entityB = cache.getObject(EntityB.class, 11);
 		assertNotNull(entityB);
 		assertEquals(2, entityB.getEntityAs().size());
 	}
 
 	@Test
-	public void testUpdateParent()
-	{
+	public void testUpdateParent() {
 		EntityB entityB = cache.getObject(EntityB.class, 11);
 		entityB.setName(entityB.getName() + ".2");
 		relationsService.save(entityB);
 	}
 
 	@Test
-	public void testCreateRelated()
-	{
+	public void testCreateRelated() {
 		EntityB entityB = cache.getObject(EntityB.class, 11);
 
 		EntityA entityA = entityFactory.createEntity(EntityA.class);
@@ -88,8 +87,7 @@ public class ManyLazyFkNoReverseRelationsTest extends AbstractRelationsTest
 	}
 
 	@Test
-	public void testAddRelated()
-	{
+	public void testAddRelated() {
 		EntityB entityB = cache.getObject(EntityB.class, 11);
 
 		EntityA entityA = entityFactory.createEntity(EntityA.class);
@@ -106,8 +104,7 @@ public class ManyLazyFkNoReverseRelationsTest extends AbstractRelationsTest
 	}
 
 	@Test
-	public void testRemoveRelated()
-	{
+	public void testRemoveRelated() {
 		EntityB entityB = cache.getObject(EntityB.class, 11);
 
 		entityB.getEntityAs().remove(0);
@@ -118,8 +115,7 @@ public class ManyLazyFkNoReverseRelationsTest extends AbstractRelationsTest
 	}
 
 	@Test
-	public void testDeleteRelated()
-	{
+	public void testDeleteRelated() {
 		EntityB entityB = cache.getObject(EntityB.class, 11);
 
 		EntityA entityA = entityB.getEntityAs().get(0);
@@ -134,8 +130,7 @@ public class ManyLazyFkNoReverseRelationsTest extends AbstractRelationsTest
 	}
 
 	@Test
-	public void testDeleteParent()
-	{
+	public void testDeleteParent() {
 		EntityB entityB = cache.getObject(EntityB.class, 11);
 
 		EntityA entityA = entityB.getEntityAs().get(0);
@@ -150,8 +145,7 @@ public class ManyLazyFkNoReverseRelationsTest extends AbstractRelationsTest
 	}
 
 	@Test
-	public void testMoveChildrenToOtherParent()
-	{
+	public void testMoveChildrenToOtherParent() {
 		EntityB entityB_src = cache.getObject(EntityB.class, 11);
 		EntityB entityB_target = cache.getObject(EntityB.class, 12);
 
@@ -166,13 +160,13 @@ public class ManyLazyFkNoReverseRelationsTest extends AbstractRelationsTest
 	}
 
 	@Test
-	public void testPrefetchLazy()
-	{
+	public void testPrefetchLazy() {
 		EntityB entityB = cache.getObject(EntityB.class, 12);
 
 		String propertyName = "EntityAs";
 		assertBeforePrefetch(entityB, propertyName);
-		IPrefetchHandle prefetch = beanContext.getService(IPrefetchHelper.class).createPrefetch().add(EntityB.class, propertyName).build();
+		IPrefetchHandle prefetch = beanContext.getService(IPrefetchHelper.class).createPrefetch()
+				.add(EntityB.class, propertyName).build();
 		prefetch.prefetch(entityB);
 
 		assertAfterPrefetch(entityB, propertyName);
@@ -180,16 +174,18 @@ public class ManyLazyFkNoReverseRelationsTest extends AbstractRelationsTest
 	}
 
 	@Test
-	public void testGetRelations()
-	{
-		ICacheRetriever cacheRetriever = beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, ICacheRetriever.class);
+	public void testGetRelations() {
+		ICacheRetriever cacheRetriever =
+				beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, ICacheRetriever.class);
 
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(EntityB.class);
 		byte idIndex = metaData.getIdIndexByMemberName("Name");
 
 		EntityB entityB = cache.getObject(EntityB.class, 11);
-		IObjRef[] objRefs = { new ObjRef(EntityB.class, idIndex, entityB.getName(), entityB.getVersion()) };
-		List<IObjRelation> objRelations = Collections.<IObjRelation> singletonList(new ObjRelation(objRefs, "EntityAs"));
+		IObjRef[] objRefs =
+				{new ObjRef(EntityB.class, idIndex, entityB.getName(), entityB.getVersion())};
+		List<IObjRelation> objRelations =
+				Collections.<IObjRelation>singletonList(new ObjRelation(objRefs, "EntityAs"));
 
 		List<IObjRelationResult> actual = cacheRetriever.getRelations(objRelations);
 		assertNotNull(actual);

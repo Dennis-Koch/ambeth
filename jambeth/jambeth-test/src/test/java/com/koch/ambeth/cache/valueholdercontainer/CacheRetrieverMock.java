@@ -46,9 +46,10 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.model.IMethodDescription;
 
-public class CacheRetrieverMock implements ICacheRetriever, IMergeService, ICacheService, IStartingBean
-{
-	protected final HashMap<IObjRef, ILoadContainer> databaseMap = new HashMap<IObjRef, ILoadContainer>();
+public class CacheRetrieverMock
+		implements ICacheRetriever, IMergeService, ICacheService, IStartingBean {
+	protected final HashMap<IObjRef, ILoadContainer> databaseMap =
+			new HashMap<>();
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
@@ -58,14 +59,12 @@ public class CacheRetrieverMock implements ICacheRetriever, IMergeService, ICach
 
 	protected Object reader;
 
-	public void setReader(Object reader)
-	{
+	public void setReader(Object reader) {
 		this.reader = reader;
 	}
 
 	@Override
-	public void afterStarted()
-	{
+	public void afterStarted() {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(Material.class);
 
 		LoadContainer lc = new LoadContainer();
@@ -85,22 +84,19 @@ public class CacheRetrieverMock implements ICacheRetriever, IMergeService, ICach
 
 		lc2.getPrimitives()[metaData2.getIndexByPrimitiveName("Name")] = "Name2";
 
-		lc.getRelations()[metaData.getIndexByRelationName("Types")] = new IObjRef[] { lc2.getReference() };
+		lc.getRelations()[metaData.getIndexByRelationName("Types")] =
+				new IObjRef[] {lc2.getReference()};
 
 		databaseMap.put(lc2.getReference(), lc2);
 	}
 
 	@Override
-	public List<ILoadContainer> getEntities(List<IObjRef> orisToLoad)
-	{
-		List<ILoadContainer> result = new ArrayList<ILoadContainer>(orisToLoad.size());
-		synchronized (databaseMap)
-		{
-			for (IObjRef oriToLoad : orisToLoad)
-			{
+	public List<ILoadContainer> getEntities(List<IObjRef> orisToLoad) {
+		List<ILoadContainer> result = new ArrayList<>(orisToLoad.size());
+		synchronized (databaseMap) {
+			for (IObjRef oriToLoad : orisToLoad) {
 				ILoadContainer lc = databaseMap.get(oriToLoad);
-				if (lc == null)
-				{
+				if (lc == null) {
 					continue;
 				}
 				result.add(lc);
@@ -111,52 +107,44 @@ public class CacheRetrieverMock implements ICacheRetriever, IMergeService, ICach
 	}
 
 	@Override
-	public List<IObjRelationResult> getRelations(List<IObjRelation> objRelations)
-	{
+	public List<IObjRelationResult> getRelations(List<IObjRelation> objRelations) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOriCollection merge(ICUDResult cudResult, IMethodDescription methodDescription)
-	{
+	public IOriCollection merge(ICUDResult cudResult, IMethodDescription methodDescription) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes)
-	{
+	public List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IValueObjectConfig getValueObjectConfig(Class<?> valueType)
-	{
+	public IValueObjectConfig getValueObjectConfig(Class<?> valueType) {
 		throw new UnsupportedOperationException();
 	}
 
-	public Class<?> getTargetProviderType(Class<?> clientInterface)
-	{
+	public Class<?> getTargetProviderType(Class<?> clientInterface) {
 		throw new UnsupportedOperationException();
 	}
 
-	public Class<?> getSyncInterceptorType(Class<?> clientInterface)
-	{
+	public Class<?> getSyncInterceptorType(Class<?> clientInterface) {
 		throw new UnsupportedOperationException();
 	}
 
-	public String getServiceName(Class<?> clientInterface)
-	{
+	public String getServiceName(Class<?> clientInterface) {
 		throw new UnsupportedOperationException();
 	}
 
-	public void postProcessTargetProviderBean(String targetProviderBeanName, IBeanContextFactory beanContextFactory)
-	{
+	public void postProcessTargetProviderBean(String targetProviderBeanName,
+			IBeanContextFactory beanContextFactory) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IServiceResult getORIsForServiceRequest(IServiceDescription serviceDescription)
-	{
+	public IServiceResult getORIsForServiceRequest(IServiceDescription serviceDescription) {
 		throw new UnsupportedOperationException();
 	}
 }

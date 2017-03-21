@@ -34,12 +34,11 @@ import com.koch.ambeth.testutil.TestProperties;
 /**
  * Test for two uni-directional one-to-one relations
  */
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/orm20/independent/a22b/orm20.xml")
-public class Orm20A22BTest extends AbstractIndependentOrm20Test
-{
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/orm20/independent/a22b/orm20.xml")
+public class Orm20A22BTest extends AbstractIndependentOrm20Test {
 	@Test
-	public void testRelationMembersA()
-	{
+	public void testRelationMembersA() {
 		IEntityMetaData metaData = retrieveMetaData(EntityA.class);
 		RelationMember[] relationMembers = metaData.getRelationMembers();
 		assertEquals(2, relationMembers.length);
@@ -56,14 +55,12 @@ public class Orm20A22BTest extends AbstractIndependentOrm20Test
 	}
 
 	@Test
-	public void testRelationMembersB()
-	{
+	public void testRelationMembersB() {
 		testZeroRelationMembers(EntityB.class);
 	}
 
 	@Test
-	public void testRelatedTypes()
-	{
+	public void testRelatedTypes() {
 		IEntityMetaData metaDataA = retrieveMetaData(EntityA.class);
 		Class<?>[] typesRelatingToA = metaDataA.getTypesRelatingToThis();
 		assertNotNull(typesRelatingToA);

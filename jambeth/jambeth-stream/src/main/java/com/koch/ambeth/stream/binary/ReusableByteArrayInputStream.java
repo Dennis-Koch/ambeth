@@ -22,23 +22,19 @@ limitations under the License.
 
 import java.io.ByteArrayInputStream;
 
-public class ReusableByteArrayInputStream extends ByteArrayInputStream
-{
-	public ReusableByteArrayInputStream(byte[] buf)
-	{
+public class ReusableByteArrayInputStream extends ByteArrayInputStream {
+	public ReusableByteArrayInputStream(byte[] buf) {
 		super(buf);
 	}
 
-	public ReusableByteArrayInputStream(byte[] buf, int offset, int length)
-	{
+	public ReusableByteArrayInputStream(byte[] buf, int offset, int length) {
 		super(buf, offset, length);
 	}
 
-	public void reset(byte[] buf)
-	{
-		this.mark = 0;
-		this.pos = 0;
+	public void reset(byte[] buf) {
+		mark = 0;
+		pos = 0;
 		this.buf = buf;
-		this.count = buf.length;
+		count = buf.length;
 	}
 }

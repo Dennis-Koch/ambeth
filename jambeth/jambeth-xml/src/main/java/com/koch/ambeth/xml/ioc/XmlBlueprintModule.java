@@ -33,8 +33,7 @@ import com.koch.ambeth.xml.orm.blueprint.BlueprintValueObjectConfigReader;
 import com.koch.ambeth.xml.orm.blueprint.JavassistOrmEntityTypeProvider;
 
 @BootstrapModule
-public class XmlBlueprintModule implements IInitializingModule
-{
+public class XmlBlueprintModule implements IInitializingModule {
 	@LogInstance
 	private ILogger log;
 	public static final String BLUEPRINT_META_DATA_READER = "blueprintMetaDataReader";
@@ -42,15 +41,16 @@ public class XmlBlueprintModule implements IInitializingModule
 	public static final String JAVASSIST_ORM_ENTITY_TYPE_PROVIDER = "javassistOrmEntityTypeProvider";
 
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 
-		beanContextFactory.registerBean(XmlBlueprintModule.JAVASSIST_ORM_ENTITY_TYPE_PROVIDER, JavassistOrmEntityTypeProvider.class).precedence(
-				PrecedenceType.HIGHEST);
-		beanContextFactory.registerBean(XmlBlueprintModule.BLUEPRINT_META_DATA_READER, BlueprintEntityMetaDataReader.class)
+		beanContextFactory.registerBean(XmlBlueprintModule.JAVASSIST_ORM_ENTITY_TYPE_PROVIDER,
+				JavassistOrmEntityTypeProvider.class).precedence(PrecedenceType.HIGHEST);
+		beanContextFactory
+				.registerBean(XmlBlueprintModule.BLUEPRINT_META_DATA_READER,
+						BlueprintEntityMetaDataReader.class)
 				.autowireable(IRuntimeBlueprintEntityMetadataReader.class).precedence(PrecedenceType.HIGH);
-		beanContextFactory.registerBean(XmlBlueprintModule.BLUEPRINT_VALUE_OBJECT_READER, BlueprintValueObjectConfigReader.class).autowireable(
-				IRuntimeBlueprintVomReader.class);
+		beanContextFactory.registerBean(XmlBlueprintModule.BLUEPRINT_VALUE_OBJECT_READER,
+				BlueprintValueObjectConfigReader.class).autowireable(IRuntimeBlueprintVomReader.class);
 
 	}
 }

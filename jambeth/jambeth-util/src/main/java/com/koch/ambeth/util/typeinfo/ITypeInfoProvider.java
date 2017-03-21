@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.lang.reflect.Field;
 
-public interface ITypeInfoProvider
-{
+public interface ITypeInfoProvider {
 	ITypeInfo getTypeInfo(Class<?> type);
 
 	ITypeInfoItem getHierarchicMember(Class<?> entityType, String hierarchicMemberName);

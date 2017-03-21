@@ -29,33 +29,28 @@ import com.koch.ambeth.query.jdbc.sql.ITableAliasProvider;
 import com.koch.ambeth.query.jdbc.sql.TableAliasProvider;
 import com.koch.ambeth.testutil.AbstractIocTest;
 
-public class TableAliasProviderTest extends AbstractIocTest
-{
+public class TableAliasProviderTest extends AbstractIocTest {
 	private ITableAliasProvider fixture;
 
 	@Before
-	public void setUp() throws Exception
-	{
+	public void setUp() throws Exception {
 		fixture = beanContext.registerBean(TableAliasProvider.class).finish();
 	}
 
 	@Test
-	public void testGetNextJoinAlias()
-	{
+	public void testGetNextJoinAlias() {
 		String joinAlias = fixture.getNextJoinAlias();
 		assertEquals("J_A", joinAlias);
 	}
 
 	@Test
-	public void testGetNextSubQueryAlias()
-	{
+	public void testGetNextSubQueryAlias() {
 		String joinAlias = fixture.getNextSubQueryAlias();
 		assertEquals("S_A", joinAlias);
 	}
 
 	@Test
-	public void testMixedAliases()
-	{
+	public void testMixedAliases() {
 		String joinAlias;
 		joinAlias = fixture.getNextSubQueryAlias();
 		assertEquals("S_A", joinAlias);
@@ -77,11 +72,9 @@ public class TableAliasProviderTest extends AbstractIocTest
 	}
 
 	@Test
-	public void testMultiCharAlias()
-	{
+	public void testMultiCharAlias() {
 		// Iterating to the next interesting cases
-		for (int i = 0; i < 25; i++)
-		{
+		for (int i = 0; i < 25; i++) {
 			fixture.getNextJoinAlias();
 		}
 		String joinAlias = fixture.getNextJoinAlias();
@@ -94,8 +87,7 @@ public class TableAliasProviderTest extends AbstractIocTest
 		assertEquals("J_AB", joinAlias);
 
 		// Iterating to the next interesting cases
-		for (int i = 0; i < 23; i++)
-		{
+		for (int i = 0; i < 23; i++) {
 			fixture.getNextJoinAlias();
 		}
 		joinAlias = fixture.getNextJoinAlias();
@@ -105,8 +97,7 @@ public class TableAliasProviderTest extends AbstractIocTest
 		assertEquals("J_BA", joinAlias);
 
 		// Iterating to the next interesting cases
-		for (int i = 0; i < ((2 * 26 - 1) * 26 - 2); i++)
-		{
+		for (int i = 0; i < ((2 * 26 - 1) * 26 - 2); i++) {
 			fixture.getNextJoinAlias();
 		}
 		joinAlias = fixture.getNextJoinAlias();

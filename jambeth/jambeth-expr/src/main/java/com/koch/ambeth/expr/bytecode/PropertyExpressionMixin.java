@@ -28,8 +28,7 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.util.IConversionHelper;
 
-public class PropertyExpressionMixin
-{
+public class PropertyExpressionMixin {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -42,19 +41,18 @@ public class PropertyExpressionMixin
 
 	protected boolean firstUsage = true;
 
-	public Object evaluate(IEntityMetaDataHolder entity, String expression, Class<?> expectedType)
-	{
-		if (entityPropertyExpressionResolver == null)
-		{
-			if (firstUsage)
-			{
+	public Object evaluate(IEntityMetaDataHolder entity, String expression, Class<?> expectedType) {
+		if (entityPropertyExpressionResolver == null) {
+			if (firstUsage) {
 				firstUsage = false;
-				log.warn("INACTIVE: Annotation feature @" + PropertyExpression.class.getName() + " on entities. Reason: No instance of "
+				log.warn("INACTIVE: Annotation feature @" + PropertyExpression.class.getName()
+						+ " on entities. Reason: No instance of "
 						+ IEntityPropertyExpressionResolver.class.getName() + " resolved");
 			}
 			return conversionHelper.convertValueToType(expectedType, Integer.valueOf(0));
 		}
-		Object expressionResult = entityPropertyExpressionResolver.resolveExpressionOnEntity(entity, expression);
+		Object expressionResult =
+				entityPropertyExpressionResolver.resolveExpressionOnEntity(entity, expression);
 		return conversionHelper.convertValueToType(expectedType, expressionResult);
 	}
 }

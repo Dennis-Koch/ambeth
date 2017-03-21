@@ -22,39 +22,32 @@ limitations under the License.
 
 import java.util.Iterator;
 
-public class BasicEnumerator<E> implements Iterator<E>
-{
+public class BasicEnumerator<E> implements Iterator<E> {
 
-	public E getCurrent()
-	{
+	public E getCurrent() {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
-	public boolean moveNext()
-	{
+	public boolean moveNext() {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
-	public void reset()
-	{
+	public void reset() {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override
-	public void remove()
-	{
+	public void remove() {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override
-	public boolean hasNext()
-	{
+	public boolean hasNext() {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override
-	public E next()
-	{
+	public E next() {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 

@@ -52,7 +52,7 @@ public class DelegateVisitor extends ClassGenerator {
 	@Override
 	public void visitEnd() {
 		LinkedHashMap<MethodInstance, MethodInstance> methodsAsKey =
-				new LinkedHashMap<MethodInstance, MethodInstance>();
+				new LinkedHashMap<>();
 		for (Method method : ReflectUtil.getDeclaredMethodsInHierarchy(type)) {
 			if (Modifier.isStatic(method.getModifiers()) || Modifier.isFinal(method.getModifiers())) {
 				continue;

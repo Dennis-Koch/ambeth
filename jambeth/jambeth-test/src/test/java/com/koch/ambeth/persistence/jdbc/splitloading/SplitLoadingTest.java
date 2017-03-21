@@ -39,22 +39,20 @@ import com.koch.ambeth.testutil.TestProperties;
 @SQLData("SplitLoading_data.sql")
 @SQLStructure("SplitLoading_structure.sql")
 @TestModule(TestServicesModule.class)
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/jdbc/splitloading/orm.xml")
-public class SplitLoadingTest extends AbstractInformationBusWithPersistenceTest
-{
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/persistence/jdbc/splitloading/orm.xml")
+public class SplitLoadingTest extends AbstractInformationBusWithPersistenceTest {
 	@Test
-	public void testDataSetup()
-	{
+	public void testDataSetup() {
 		IRefEntityService service = beanContext.getService(IRefEntityService.class);
 		ICache cache = beanContext.getService(ICache.class);
 
 		int entityCount = 1001;
 
-		List<RefEntity> entities = new ArrayList<RefEntity>(entityCount);
+		List<RefEntity> entities = new ArrayList<>(entityCount);
 		RefEntity toSetLast = entityFactory.createEntity(RefEntity.class);
 		RefEntity last = toSetLast;
-		for (int i = 1; i < entityCount; i++)
-		{
+		for (int i = 1; i < entityCount; i++) {
 			RefEntity entity = entityFactory.createEntity(RefEntity.class);
 			entity.setOther(last);
 			entities.add(entity);
@@ -65,16 +63,14 @@ public class SplitLoadingTest extends AbstractInformationBusWithPersistenceTest
 
 		service.save(entities);
 
-		List<Integer> ids = new ArrayList<Integer>(entityCount);
-		for (RefEntity entity : entities)
-		{
+		List<Integer> ids = new ArrayList<>(entityCount);
+		for (RefEntity entity : entities) {
 			ids.add(entity.getId());
 		}
 
 		List<RefEntity> actuals = cache.getObjects(RefEntity.class, ids);
 		assertEquals(ids.size(), actuals.size());
-		for (RefEntity actual : actuals)
-		{
+		for (RefEntity actual : actuals) {
 			assertNotNull(actual);
 		}
 	}

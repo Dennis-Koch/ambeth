@@ -36,8 +36,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 
 @Service(IBlobObjectService.class)
 @PersistenceContext
-public class BlobObjectService implements IBlobObjectService, IInitializingBean
-{
+public class BlobObjectService implements IBlobObjectService, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance(BlobObjectService.class)
 	private ILogger log;
@@ -47,67 +46,60 @@ public class BlobObjectService implements IBlobObjectService, IInitializingBean
 	protected IServiceUtil serviceUtil;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(database, "database");
 		ParamChecker.assertNotNull(serviceUtil, "serviceUtil");
 	}
 
-	public void setDatabase(IDatabase database)
-	{
+	public void setDatabase(IDatabase database) {
 		this.database = database;
 	}
 
-	public void setServiceUtil(IServiceUtil serviceUtil)
-	{
+	public void setServiceUtil(IServiceUtil serviceUtil) {
 		this.serviceUtil = serviceUtil;
 	}
 
 	@Override
-	public List<BlobObject> getAllBlobObjects()
-	{
+	public List<BlobObject> getAllBlobObjects() {
 		ITable blobObjectTable = database.getTableByType(BlobObject.class);
 
-		ArrayList<BlobObject> list = new ArrayList<BlobObject>();
+		ArrayList<BlobObject> list = new ArrayList<>();
 		serviceUtil.loadObjectsIntoCollection(list, BlobObject.class, blobObjectTable.selectAll());
 		return list;
 	}
 
 	@Override
-	public BlobObject getBlobObject(Integer id)
-	{
+	public BlobObject getBlobObject(Integer id) {
 		ITable blobObjectTable = database.getTableByType(BlobObject.class);
 
-		ArrayList<BlobObject> list = new ArrayList<BlobObject>(1);
-		List<Object> ids = new ArrayList<Object>();
+		ArrayList<BlobObject> list = new ArrayList<>(1);
+		List<Object> ids = new ArrayList<>();
 		ids.add(id);
-		serviceUtil.loadObjectsIntoCollection(list, BlobObject.class, blobObjectTable.selectVersion(ids));
-		if (list.size() > 0)
-		{
+		serviceUtil.loadObjectsIntoCollection(list, BlobObject.class,
+				blobObjectTable.selectVersion(ids));
+		if (list.size() > 0) {
 			return list.get(0);
 		}
 		return null;
 	}
 
 	@Override
-	public List<BlobObject> getBlobObjects(Integer... id)
-	{
+	public List<BlobObject> getBlobObjects(Integer... id) {
 		ITable blobObjectTable = database.getTableByType(BlobObject.class);
 
-		ArrayList<BlobObject> list = new ArrayList<BlobObject>(id.length);
-		serviceUtil.loadObjectsIntoCollection(list, BlobObject.class, blobObjectTable.selectVersion(new ArrayList<Object>(id)));
+		ArrayList<BlobObject> list = new ArrayList<>(id.length);
+		serviceUtil.loadObjectsIntoCollection(list, BlobObject.class,
+				blobObjectTable.selectVersion(new ArrayList<>(id)));
 		return list;
 	}
 
 	@Override
-	public void updateBlobObject(BlobObject blobObject)
-	{
+	public void updateBlobObject(BlobObject blobObject) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void deleteBlobObject(BlobObject blobObject)
-	{
+	public void deleteBlobObject(BlobObject blobObject) {
 		throw new UnsupportedOperationException();
 	}
 }

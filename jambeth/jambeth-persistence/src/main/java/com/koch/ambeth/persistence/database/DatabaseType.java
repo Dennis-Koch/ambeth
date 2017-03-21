@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public enum DatabaseType
-{
+public enum DatabaseType {
 
 	RAM, PERSISTENT
 

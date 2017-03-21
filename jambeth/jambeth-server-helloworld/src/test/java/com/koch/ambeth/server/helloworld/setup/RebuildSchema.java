@@ -26,31 +26,27 @@ import org.junit.Test;
 
 import com.koch.ambeth.server.helloworld.AbstractHelloWorldTest;
 
-public class RebuildSchema
-{
-	public static class DummyTest extends AbstractHelloWorldTest
-	{
+public class RebuildSchema {
+	public static class DummyTest extends AbstractHelloWorldTest {
 		@Test
-		public void dummyTest()
-		{
+		public void dummyTest() {
 			// noop
 		}
 	}
 
-	public static void main(String[] args) throws Exception
-	{
+	public static void main(String[] args) throws Exception {
 		// String propertyFileToUse = args[0];
-		String propertyFileToUse = "../jambeth-server-helloworld/src/main/resources/helloworld.properties";
+		String propertyFileToUse =
+				"../jambeth-server-helloworld/src/main/resources/helloworld.properties";
 
-		if (propertyFileToUse.startsWith("/") || propertyFileToUse.contains(":"))
-		{
+		if (propertyFileToUse.startsWith("/") || propertyFileToUse.contains(":")) {
 			// is absolute
 			System.setProperty("property.file", propertyFileToUse);
 		}
-		else
-		{
+		else {
 			// is relative
-			System.setProperty("property.file", new File("").getAbsolutePath() + File.separator + propertyFileToUse);
+			System.setProperty("property.file",
+					new File("").getAbsolutePath() + File.separator + propertyFileToUse);
 		}
 		com.koch.ambeth.testutil.RebuildSchema.main(args, DummyTest.class, propertyFileToUse);
 	}

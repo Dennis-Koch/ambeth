@@ -23,15 +23,12 @@ limitations under the License.
 import java.util.ArrayList;
 import java.util.List;
 
-public class OneToManyEntityListType
-{
+public class OneToManyEntityListType {
 	protected List<OneToManyEntityVO> oneToManyEntities = null;
 
-	public List<OneToManyEntityVO> getOneToManyEntities()
-	{
-		if (oneToManyEntities == null)
-		{
-			oneToManyEntities = new ArrayList<OneToManyEntityVO>();
+	public List<OneToManyEntityVO> getOneToManyEntities() {
+		if (oneToManyEntities == null) {
+			oneToManyEntities = new ArrayList<>();
 		}
 		return oneToManyEntities;
 	}

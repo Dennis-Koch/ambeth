@@ -22,19 +22,13 @@ limitations under the License.
 
 import org.junit.runners.model.InitializationError;
 
-import com.koch.ambeth.testutil.AmbethIocRunner;
-import com.koch.ambeth.testutil.ICleanupAfter;
-
-public class AmbethInformationBusRunner extends AmbethIocRunner
-{
-	public AmbethInformationBusRunner(Class<?> testClass) throws InitializationError
-	{
+public class AmbethInformationBusRunner extends AmbethIocRunner {
+	public AmbethInformationBusRunner(Class<?> testClass) throws InitializationError {
 		super(testClass);
 	}
 
 	@Override
-	protected Class<? extends ICleanupAfter> getCleanupAfterType()
-	{
+	protected Class<? extends ICleanupAfter> getCleanupAfterType() {
 		return CleanupAfterInformationBus.class;
 	}
 }

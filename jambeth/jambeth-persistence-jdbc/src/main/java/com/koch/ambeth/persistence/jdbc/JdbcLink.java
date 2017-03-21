@@ -36,8 +36,7 @@ import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-public class JdbcLink extends SqlLink
-{
+public class JdbcLink extends SqlLink {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -51,28 +50,22 @@ public class JdbcLink extends SqlLink
 	protected ILinkedMap<String, PreparedStatement> namesToPstmMap;
 
 	@Override
-	public void startBatch()
-	{
-		if (namesToPstmMap != null)
-		{
+	public void startBatch() {
+		if (namesToPstmMap != null) {
 			throw new IllegalStateException("Must never happen");
 		}
-		namesToPstmMap = new LinkedHashMap<String, PreparedStatement>();
+		namesToPstmMap = new LinkedHashMap<>();
 		super.startBatch();
 	}
 
 	@Override
-	public int[] finishBatch()
-	{
-		for (Entry<String, PreparedStatement> entry : namesToPstmMap)
-		{
+	public int[] finishBatch() {
+		for (Entry<String, PreparedStatement> entry : namesToPstmMap) {
 			PreparedStatement pstm = entry.getValue();
-			try
-			{
+			try {
 				pstm.executeBatch();
 			}
-			catch (Throwable e)
-			{
+			catch (Throwable e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -80,17 +73,13 @@ public class JdbcLink extends SqlLink
 	}
 
 	@Override
-	public void clearBatch()
-	{
-		for (Entry<String, PreparedStatement> entry : namesToPstmMap)
-		{
+	public void clearBatch() {
+		for (Entry<String, PreparedStatement> entry : namesToPstmMap) {
 			PreparedStatement pstm = entry.getValue();
-			try
-			{
+			try {
 				pstm.close();
 			}
-			catch (SQLException e)
-			{
+			catch (SQLException e) {
 				// Intended blank
 			}
 		}
@@ -99,54 +88,43 @@ public class JdbcLink extends SqlLink
 	}
 
 	@Override
-	protected void linkIdsIntern(String names, Object fromId, Class<?> toIdType, List<Object> toIds)
-	{
-		try
-		{
+	protected void linkIdsIntern(String names, Object fromId, Class<?> toIdType, List<Object> toIds) {
+		try {
 			PreparedStatement pstm = namesToPstmMap.get(names);
-			if (pstm == null)
-			{
+			if (pstm == null) {
 				IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 				AppendableStringBuilder sb = tlObjectCollector.create(AppendableStringBuilder.class);
-				try
-				{
+				try {
 					sb.append("INSERT INTO ");
 					sqlBuilder.appendName(getMetaData().getName(), sb);
 					sb.append(" (").append(names).append(") VALUES (?,?)");
 					pstm = connection.prepareStatement(sb.toString());
 					namesToPstmMap.put(names, pstm);
 				}
-				finally
-				{
+				finally {
 					tlObjectCollector.dispose(sb);
 				}
 			}
 			pstm.setObject(1, fromId);
-			for (int a = 0, size = toIds.size(); a < size; a++)
-			{
+			for (int a = 0, size = toIds.size(); a < size; a++) {
 				pstm.setObject(2, toIds.get(a));
 				pstm.addBatch();
 			}
 			pstm.clearParameters();
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	protected void unlinkIdsIntern(String whereSQL, Class<?> toIdType, List<Object> parameters)
-	{
+	protected void unlinkIdsIntern(String whereSQL, Class<?> toIdType, List<Object> parameters) {
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		try
-		{
+		try {
 			PreparedStatement pstm = namesToPstmMap.get(whereSQL);
-			if (pstm == null)
-			{
+			if (pstm == null) {
 				AppendableStringBuilder sb = tlObjectCollector.create(AppendableStringBuilder.class);
-				try
-				{
+				try {
 					sb.append("DELETE FROM ");
 					sqlBuilder.appendName(getMetaData().getName(), sb);
 					sb.append(" WHERE ").append(whereSQL);
@@ -154,20 +132,17 @@ public class JdbcLink extends SqlLink
 					pstm = connection.prepareStatement(sb.toString());
 					namesToPstmMap.put(whereSQL, pstm);
 				}
-				finally
-				{
+				finally {
 					tlObjectCollector.dispose(sb);
 				}
 			}
-			for (int index = 0, size = parameters.size(); index < size; index++)
-			{
+			for (int index = 0, size = parameters.size(); index < size; index++) {
 				pstm.setObject(index + 1, parameters.get(index));
 			}
 			pstm.addBatch();
 			pstm.clearParameters();
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

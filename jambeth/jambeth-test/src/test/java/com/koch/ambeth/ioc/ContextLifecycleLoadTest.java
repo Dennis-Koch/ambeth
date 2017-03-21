@@ -28,8 +28,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import com.koch.ambeth.ioc.IInitializingModule;
-import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;

@@ -30,57 +30,46 @@ import com.koch.ambeth.stream.IInputStream;
 import com.koch.ambeth.stream.chars.ICharacterInputStream;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class ClobInputStream implements ICharacterInputStream, IInputStream
-{
+public class ClobInputStream implements ICharacterInputStream, IInputStream {
 	protected final Clob clob;
 
 	protected final Reader reader;
 
 	protected final IDataCursor cursor;
 
-	public ClobInputStream(IDataCursor cursor, Clob clob)
-	{
+	public ClobInputStream(IDataCursor cursor, Clob clob) {
 		this.cursor = cursor;
 		this.clob = clob;
-		try
-		{
+		try {
 			reader = clob.getCharacterStream();
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	protected void finalize() throws Throwable
-	{
+	protected void finalize() throws Throwable {
 		close();
 	}
 
 	@Override
-	public void close() throws IOException
-	{
+	public void close() throws IOException {
 		cursor.dispose();
-		try
-		{
+		try {
 			clob.free();
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	public int readChar()
-	{
-		try
-		{
+	public int readChar() {
+		try {
 			return reader.read();
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

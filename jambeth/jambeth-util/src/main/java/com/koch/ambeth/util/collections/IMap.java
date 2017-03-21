@@ -25,15 +25,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 /**
- * Interface for Ambeth map implementation. Overrides methods from java.util.Map to be comparable with C# interface.
- * 
- * @param <K>
- *            Key type
- * @param <V>
- *            Value type
+ * Interface for Ambeth map implementation. Overrides methods from java.util.Map to be comparable
+ * with C# interface.
+ *
+ * @param <K> Key type
+ * @param <V> Value type
  */
-public interface IMap<K, V> extends Map<K, V>, Iterable<Entry<K, V>>
-{
+public interface IMap<K, V> extends Map<K, V>, Iterable<Entry<K, V>> {
 	@Override
 	void clear();
 

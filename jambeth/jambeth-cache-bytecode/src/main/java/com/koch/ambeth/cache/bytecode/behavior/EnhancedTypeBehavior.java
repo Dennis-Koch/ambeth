@@ -42,8 +42,7 @@ import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 
-public class EnhancedTypeBehavior extends AbstractBehavior
-{
+public class EnhancedTypeBehavior extends AbstractBehavior {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -52,22 +51,20 @@ public class EnhancedTypeBehavior extends AbstractBehavior
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Override
-	public Class<?>[] getEnhancements()
-	{
-		return new Class<?>[] { IEnhancedType.class, IEntityMetaDataHolder.class };
+	public Class<?>[] getEnhancements() {
+		return new Class<?>[] {IEnhancedType.class, IEntityMetaDataHolder.class};
 	}
 
 	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors)
-	{
-		if ((state.getContext(EntityEnhancementHint.class) == null && state.getContext(EmbeddedEnhancementHint.class) == null)
-				&& state.getContext(PropertyChangeEnhancementHint.class) == null)
-		{
+	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+			List<IBytecodeBehavior> remainingPendingBehaviors,
+			List<IBytecodeBehavior> cascadePendingBehaviors) {
+		if ((state.getContext(EntityEnhancementHint.class) == null
+				&& state.getContext(EmbeddedEnhancementHint.class) == null)
+				&& state.getContext(PropertyChangeEnhancementHint.class) == null) {
 			return visitor;
 		}
-		if (state.getContext(EntityEnhancementHint.class) != null)
-		{
+		if (state.getContext(EntityEnhancementHint.class) != null) {
 			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(state.getOriginalType());
 			visitor = new InterfaceAdder(visitor, Type.getInternalName(IEntityMetaDataHolder.class));
 			visitor = new EntityMetaDataHolderVisitor(visitor, metaData);

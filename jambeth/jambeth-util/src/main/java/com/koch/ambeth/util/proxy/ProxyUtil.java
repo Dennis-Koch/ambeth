@@ -23,24 +23,19 @@ limitations under the License.
 import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Factory;
 
-public class ProxyUtil
-{
-	private ProxyUtil()
-	{
+public class ProxyUtil {
+	private ProxyUtil() {
 		// Intended blank
 	}
 
-	public static Object getProxiedBean(Object proxy)
-	{
+	public static Object getProxiedBean(Object proxy) {
 		Object bean = proxy;
 
-		if (bean instanceof Factory)
-		{
+		if (bean instanceof Factory) {
 			Factory factory = (Factory) bean;
 			Callback callback = factory.getCallback(0);
 			bean = callback;
-			while (bean instanceof ICascadedInterceptor)
-			{
+			while (bean instanceof ICascadedInterceptor) {
 				ICascadedInterceptor cascadedInterceptor = (ICascadedInterceptor) bean;
 				bean = cascadedInterceptor.getTarget();
 			}

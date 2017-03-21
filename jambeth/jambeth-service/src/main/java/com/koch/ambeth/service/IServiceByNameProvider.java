@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IServiceByNameProvider
-{
+public interface IServiceByNameProvider {
 	Object getService(String serviceName);
 }

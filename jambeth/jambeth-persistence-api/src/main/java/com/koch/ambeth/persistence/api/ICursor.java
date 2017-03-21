@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.util.IDisposable;
 
-public interface ICursor extends IDisposable
-{
+public interface ICursor extends IDisposable {
 	IFieldMetaData[] getFields();
 
 	IFieldMetaData getFieldByMemberName(String memberName);

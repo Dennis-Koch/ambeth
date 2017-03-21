@@ -25,30 +25,24 @@ import com.koch.ambeth.merge.cache.ICacheProvider;
 import com.koch.ambeth.merge.cache.IDisposableCache;
 import com.koch.ambeth.util.IDisposable;
 
-public abstract class SingleCacheOnDemandProvider implements ICacheProvider, IDisposable
-{
+public abstract class SingleCacheOnDemandProvider implements ICacheProvider, IDisposable {
 	protected ICache cache;
 
 	@Override
-	protected void finalize() throws Throwable
-	{
+	protected void finalize() throws Throwable {
 		dispose();
 	}
 
 	@Override
-	public void dispose()
-	{
-		if (cache instanceof IDisposableCache)
-		{
+	public void dispose() {
+		if (cache instanceof IDisposableCache) {
 			((IDisposableCache) cache).dispose();
 		}
 	}
 
 	@Override
-	public ICache getCurrentCache()
-	{
-		if (cache == null)
-		{
+	public ICache getCurrentCache() {
+		if (cache == null) {
 			cache = resolveCurrentCache();
 		}
 		return cache;
@@ -57,8 +51,7 @@ public abstract class SingleCacheOnDemandProvider implements ICacheProvider, IDi
 	protected abstract ICache resolveCurrentCache();
 
 	@Override
-	public boolean isNewInstanceOnCall()
-	{
+	public boolean isNewInstanceOnCall() {
 		return false;
 	}
 }

@@ -27,8 +27,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface Forkable
-{
+public @interface Forkable {
 	ForkableType value() default ForkableType.REFERENCE;
 
 	@SuppressWarnings("rawtypes")

@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public enum PermissionApplyType
-{
+public enum PermissionApplyType {
 	ALLOW, DENY
 }

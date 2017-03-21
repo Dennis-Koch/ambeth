@@ -20,6 +20,5 @@ limitations under the License.
  * #L%
  */
 
-public class RegisterableServiceFake1 implements IRegisterableServiceFake
-{
+public class RegisterableServiceFake1 implements IRegisterableServiceFake {
 }

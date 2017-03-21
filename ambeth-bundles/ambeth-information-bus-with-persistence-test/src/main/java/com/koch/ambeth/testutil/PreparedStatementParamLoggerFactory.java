@@ -47,7 +47,7 @@ public class PreparedStatementParamLoggerFactory implements IFactoryBean, IIniti
 	protected IServiceContext beanContext;
 
 	public PreparedStatementParamLoggerFactory() {
-		Set<Method> paramSetters = new HashSet<Method>();
+		Set<Method> paramSetters = new HashSet<>();
 
 		Method[] methods = ReflectUtil.getMethods(PreparedStatement.class);
 		for (int i = methods.length; i-- > 0;) {

@@ -35,8 +35,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 
 @Service(IArrayObjectService.class)
 @PersistenceContext
-public class ArrayObjectService implements IArrayObjectService, IInitializingBean
-{
+public class ArrayObjectService implements IArrayObjectService, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance(ArrayObjectService.class)
 	private ILogger log;
@@ -46,67 +45,59 @@ public class ArrayObjectService implements IArrayObjectService, IInitializingBea
 	protected IServiceUtil serviceUtil;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(database, "database");
 		ParamChecker.assertNotNull(serviceUtil, "serviceUtil");
 	}
 
-	public void setDatabase(IDatabase database)
-	{
+	public void setDatabase(IDatabase database) {
 		this.database = database;
 	}
 
-	public void setServiceUtil(IServiceUtil serviceUtil)
-	{
+	public void setServiceUtil(IServiceUtil serviceUtil) {
 		this.serviceUtil = serviceUtil;
 	}
 
 	@Override
-	public List<ArrayObject> getAllArrayObjects()
-	{
+	public List<ArrayObject> getAllArrayObjects() {
 		ITable table = database.getTableByType(ArrayObject.class);
 
-		ArrayList<ArrayObject> list = new ArrayList<ArrayObject>();
+		ArrayList<ArrayObject> list = new ArrayList<>();
 		serviceUtil.loadObjectsIntoCollection(list, ArrayObject.class, table.selectAll());
 		return list;
 	}
 
 	@Override
-	public ArrayObject getArrayObject(Integer id)
-	{
+	public ArrayObject getArrayObject(Integer id) {
 		ITable table = database.getTableByType(ArrayObject.class);
 
-		ArrayList<ArrayObject> list = new ArrayList<ArrayObject>(1);
-		List<Object> ids = new ArrayList<Object>();
+		ArrayList<ArrayObject> list = new ArrayList<>(1);
+		List<Object> ids = new ArrayList<>();
 		ids.add(id);
 		serviceUtil.loadObjectsIntoCollection(list, ArrayObject.class, table.selectVersion(ids));
-		if (list.size() > 0)
-		{
+		if (list.size() > 0) {
 			return list.get(0);
 		}
 		return null;
 	}
 
 	@Override
-	public List<ArrayObject> getArrayObjects(Integer... id)
-	{
+	public List<ArrayObject> getArrayObjects(Integer... id) {
 		ITable table = database.getTableByType(ArrayObject.class);
 
-		ArrayList<ArrayObject> list = new ArrayList<ArrayObject>(id.length);
-		serviceUtil.loadObjectsIntoCollection(list, ArrayObject.class, table.selectVersion(new ArrayList<Object>(id)));
+		ArrayList<ArrayObject> list = new ArrayList<>(id.length);
+		serviceUtil.loadObjectsIntoCollection(list, ArrayObject.class,
+				table.selectVersion(new ArrayList<>(id)));
 		return list;
 	}
 
 	@Override
-	public void updateArrayObject(ArrayObject arrayObject)
-	{
+	public void updateArrayObject(ArrayObject arrayObject) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void deleteArrayObject(ArrayObject arrayObject)
-	{
+	public void deleteArrayObject(ArrayObject arrayObject) {
 		throw new UnsupportedOperationException();
 	}
 }

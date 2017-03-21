@@ -31,8 +31,7 @@ import com.koch.ambeth.security.model.IUser;
 import com.koch.ambeth.util.codec.Base64;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class PersistedPrivateKeyProvider implements IPrivateKeyProvider
-{
+public class PersistedPrivateKeyProvider implements IPrivateKeyProvider {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -47,47 +46,39 @@ public class PersistedPrivateKeyProvider implements IPrivateKeyProvider
 	protected ISignatureUtil signatureUtil;
 
 	@Override
-	public Signature getSigningHandle(IUser user, char[] clearTextPassword)
-	{
-		if (clearTextPassword == null)
-		{
+	public Signature getSigningHandle(IUser user, char[] clearTextPassword) {
+		if (clearTextPassword == null) {
 			return null;
 		}
 		return getSigningHandle(user.getSignature(), clearTextPassword);
 	}
 
 	@Override
-	public Signature getSigningHandle(ISignature signature, char[] clearTextPassword)
-	{
-		if (clearTextPassword == null)
-		{
+	public Signature getSigningHandle(ISignature signature, char[] clearTextPassword) {
+		if (clearTextPassword == null) {
 			return null;
 		}
-		if (signature == null)
-		{
+		if (signature == null) {
 			return null;
 		}
-		try
-		{
-			byte[] decryptedPrivateKey = pbEncryptor.decrypt(signature.getPBEConfiguration(), clearTextPassword, Base64.decode(signature.getPrivateKey()));
+		try {
+			byte[] decryptedPrivateKey = pbEncryptor.decrypt(signature.getPBEConfiguration(),
+					clearTextPassword, Base64.decode(signature.getPrivateKey()));
 			return signatureUtil.createSignatureHandle(signature.getSignAndVerify(), decryptedPrivateKey);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	public Signature getVerifyingHandle(IUser user)
-	{
+	public Signature getVerifyingHandle(IUser user) {
 		ISignature signature = user.getSignature();
-		try
-		{
-			return signatureUtil.createVerifyHandle(signature.getSignAndVerify(), Base64.decode(signature.getPublicKey()));
+		try {
+			return signatureUtil.createVerifyHandle(signature.getSignAndVerify(),
+					Base64.decode(signature.getPublicKey()));
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

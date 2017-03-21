@@ -34,8 +34,7 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 import oracle.jdbc.OracleConnection;
 
-public class OracleConnectionExtension implements IConnectionExtension
-{
+public class OracleConnectionExtension implements IConnectionExtension {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -46,70 +45,58 @@ public class OracleConnectionExtension implements IConnectionExtension
 	@Autowired
 	protected Connection connection;
 
-	protected final HashSet<Class<?>> numbersToConvert = new HashSet<Class<?>>(Arrays.<Class<?>> asList(byte.class, Byte.class, Short.class, Integer.class,
-			Long.class));
+	protected final HashSet<Class<?>> numbersToConvert = new HashSet<>(
+			Arrays.<Class<?>>asList(byte.class, Byte.class, Short.class, Integer.class, Long.class));
 
 	@Override
-	public Array createJDBCArray(Class<?> expectedComponentType, Object javaArray)
-	{
-		if (expectedComponentType == null)
-		{
+	public Array createJDBCArray(Class<?> expectedComponentType, Object javaArray) {
+		if (expectedComponentType == null) {
 			expectedComponentType = javaArray.getClass().getComponentType();
 		}
-		if (Object.class.equals(expectedComponentType))
-		{
+		if (Object.class.equals(expectedComponentType)) {
 			Object firstItem = null;
-			if (java.lang.reflect.Array.getLength(javaArray) > 0)
-			{
+			if (java.lang.reflect.Array.getLength(javaArray) > 0) {
 				firstItem = java.lang.reflect.Array.get(javaArray, 0);
 			}
-			if (firstItem != null)
-			{
+			if (firstItem != null) {
 				expectedComponentType = firstItem.getClass();
 			}
 		}
 
-		if (numbersToConvert.contains(expectedComponentType))
-		{
+		if (numbersToConvert.contains(expectedComponentType)) {
 			long[] longArray = new long[java.lang.reflect.Array.getLength(javaArray)];
-			for (int i = longArray.length; i-- > 0;)
-			{
+			for (int i = longArray.length; i-- > 0;) {
 				longArray[i] = ((Number) java.lang.reflect.Array.get(javaArray, i)).longValue();
 			}
 			javaArray = longArray;
 		}
-		else if (short.class.equals(expectedComponentType) && Short.class.equals(javaArray.getClass().getComponentType()))
-		{
+		else if (short.class.equals(expectedComponentType)
+				&& Short.class.equals(javaArray.getClass().getComponentType())) {
 
 			log.info("Oracle adapter does not support Short Java type, use primitive short");
 			short[] shortArray = new short[java.lang.reflect.Array.getLength(javaArray)];
-			for (int i = shortArray.length; i-- > 0;)
-			{
+			for (int i = shortArray.length; i-- > 0;) {
 				shortArray[i] = ((Number) java.lang.reflect.Array.get(javaArray, i)).shortValue();
 			}
 			javaArray = shortArray;
 		}
-		else if (expectedComponentType == char.class)
-		{
+		else if (expectedComponentType == char.class) {
 			Character[] characterArray = new Character[java.lang.reflect.Array.getLength(javaArray)];
-			for (int i = characterArray.length; i-- > 0;)
-			{
+			for (int i = characterArray.length; i-- > 0;) {
 				characterArray[i] = (Character) java.lang.reflect.Array.get(javaArray, i);
 			}
 			javaArray = characterArray;
 		}
 
 		String arrayTypeName = connectionDialect.getFieldTypeNameByComponentType(expectedComponentType);
-		if (arrayTypeName == null)
-		{
-			throw new IllegalArgumentException("Can not handle arrays of type " + expectedComponentType.getName());
+		if (arrayTypeName == null) {
+			throw new IllegalArgumentException(
+					"Can not handle arrays of type " + expectedComponentType.getName());
 		}
-		try
-		{
+		try {
 			return connection.unwrap(OracleConnection.class).createARRAY(arrayTypeName, javaArray);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

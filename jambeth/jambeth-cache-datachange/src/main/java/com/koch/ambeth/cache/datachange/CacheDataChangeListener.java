@@ -152,7 +152,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 	}
 
 	protected IdentityHashSet<Object> buildCollisionSet(CacheDependencyNode node) {
-		IdentityHashSet<Object> collisionSet = new IdentityHashSet<Object>();
+		IdentityHashSet<Object> collisionSet = new IdentityHashSet<>();
 		buildCollisionSetIntern(node, collisionSet);
 		return collisionSet;
 	}
@@ -169,7 +169,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 
 	protected void cleanupSecondLevelCaches(CacheDependencyNode node, IList<IObjRef> deletesList,
 			List<IDataChangeEntry> updates, HashSet<Class<?>> occuringTypes) {
-		ArrayList<IObjRef> objRefsRemovePriorVersions = new ArrayList<IObjRef>(updates.size());
+		ArrayList<IObjRef> objRefsRemovePriorVersions = new ArrayList<>(updates.size());
 		for (int a = updates.size(); a-- > 0;) {
 			IDataChangeEntry updateEntry = updates.get(a);
 			Class<?> entityType = updateEntry.getEntityType();
@@ -206,9 +206,9 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			List<IDataChangeEntry> updates = dataChange.getUpdates();
 			List<IDataChangeEntry> inserts = dataChange.getInserts();
 
-			final HashSet<Class<?>> occuringTypes = new HashSet<Class<?>>();
-			HashSet<IObjRef> deletesSet = new HashSet<IObjRef>();
-			final HashSet<Class<?>> directRelatingTypes = new HashSet<Class<?>>();
+			final HashSet<Class<?>> occuringTypes = new HashSet<>();
+			HashSet<IObjRef> deletesSet = new HashSet<>();
+			final HashSet<Class<?>> directRelatingTypes = new HashSet<>();
 			boolean acquirementSuccessful = rootNode.rootCache.acquireHardRefTLIfNotAlready();
 			try {
 				for (int a = deletes.size(); a-- > 0;) {
@@ -291,7 +291,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			Set<CacheDirective> cacheDirective) {
 		IRootCache rootCache = node.rootCache;
 		HashMap<IObjRef, CacheValueAndPrivilege> objRefToLoadContainerDict = node.objRefToCacheValueMap;
-		HashSet<IObjRef> objRefsToLoad = new HashSet<IObjRef>(node.objRefsToLoad);
+		HashSet<IObjRef> objRefsToLoad = new HashSet<>(node.objRefsToLoad);
 
 		if (node.cacheChangeItems != null) {
 			for (CacheChangeItem cci : node.cacheChangeItems) {
@@ -351,7 +351,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 				firstLevelCacheManager.selectFirstLevelCaches();
 
 		IdentityHashMap<IRootCache, CacheDependencyNode> secondLevelCacheToNodeMap =
-				new IdentityHashMap<IRootCache, CacheDependencyNode>();
+				new IdentityHashMap<>();
 		if (privilegedSecondLevelCache != null) {
 			CacheDependencyNodeFactory.addRootCache(privilegedSecondLevelCache.getCurrentRootCache(),
 					secondLevelCacheToNodeMap);
@@ -373,14 +373,14 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 	}
 
 	protected void buildCacheChangeItems(CacheDependencyNode rootNode, IDataChange dataChange) {
-		ArrayList<IDataChangeEntry> insertsAndUpdates = new ArrayList<IDataChangeEntry>();
+		ArrayList<IDataChangeEntry> insertsAndUpdates = new ArrayList<>();
 		List<IDataChangeEntry> deletes = dataChange.getDeletes();
 
 		insertsAndUpdates.addAll(dataChange.getUpdates());
 		insertsAndUpdates.addAll(dataChange.getInserts());
-		ArrayList<IObjRef> changesToSearchInCache = new ArrayList<IObjRef>(insertsAndUpdates.size());
-		ArrayList<IObjRef> changesWithVersion = new ArrayList<IObjRef>(insertsAndUpdates.size());
-		ArrayList<IObjRef> deletesToSearchInCache = new ArrayList<IObjRef>(deletes.size());
+		ArrayList<IObjRef> changesToSearchInCache = new ArrayList<>(insertsAndUpdates.size());
+		ArrayList<IObjRef> changesWithVersion = new ArrayList<>(insertsAndUpdates.size());
+		ArrayList<IObjRef> deletesToSearchInCache = new ArrayList<>(deletes.size());
 		for (int a = deletes.size(); a-- > 0;) {
 			IDataChangeEntry deleteEntry = deletes.get(a);
 			Object id = deleteEntry.getId();
@@ -415,9 +415,9 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		for (int flcIndex = directChildCaches.size(); flcIndex-- > 0;) {
 			ChildCache childCache = directChildCaches.get(flcIndex);
 
-			ArrayList<IObjRef> objectRefsToDelete = new ArrayList<IObjRef>();
-			ArrayList<IObjRef> objectRefsToUpdate = new ArrayList<IObjRef>();
-			ArrayList<Object> objectsToUpdate = new ArrayList<Object>();
+			ArrayList<IObjRef> objectRefsToDelete = new ArrayList<>();
+			ArrayList<IObjRef> objectRefsToUpdate = new ArrayList<>();
+			ArrayList<Object> objectsToUpdate = new ArrayList<>();
 
 			Lock readLock = childCache.getReadLock();
 			readLock.lock();
@@ -534,8 +534,8 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 
 	protected void ensureMetaDataIsLoaded(ISet<Class<?>> occuringTypes,
 			ISet<Class<?>> directRelatingTypes) {
-		HashSet<Class<?>> wholeRelatedTypes = new HashSet<Class<?>>(occuringTypes);
-		ArrayList<Class<?>> additionalTypes = new ArrayList<Class<?>>();
+		HashSet<Class<?>> wholeRelatedTypes = new HashSet<>(occuringTypes);
+		ArrayList<Class<?>> additionalTypes = new ArrayList<>();
 		{
 			// Own code scope
 			IList<Class<?>> occuringTypesList = occuringTypes.toList();
@@ -632,7 +632,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 
 	protected void changeFirstLevelCaches(CacheDependencyNode node,
 			ISet<IObjRef> intermediateDeletes) {
-		ArrayList<IDataChangeEntry> deletes = new ArrayList<IDataChangeEntry>();
+		ArrayList<IDataChangeEntry> deletes = new ArrayList<>();
 		ICacheModification cacheModification = this.cacheModification;
 
 		boolean oldCacheModificationValue = cacheModification.isActive();
@@ -727,7 +727,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 							CacheValueAndPrivilege cacheValueP = objRefToCacheValueMap.get(objRefInCache);
 							if (cacheValueP == null) {
 								if (objRefsToForget == null) {
-									objRefsToForget = new ArrayList<IObjRef>();
+									objRefsToForget = new ArrayList<>();
 								}
 								objRefsToForget.add(objRefInCache);
 

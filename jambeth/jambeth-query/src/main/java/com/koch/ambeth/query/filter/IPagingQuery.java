@@ -26,8 +26,7 @@ import com.koch.ambeth.query.IQueryKey;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.collections.IMap;
 
-public interface IPagingQuery<T> extends IDisposable
-{
+public interface IPagingQuery<T> extends IDisposable {
 	IPagingRequest createRequest(int pageNumber, int sizePerPage);
 
 	IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap);

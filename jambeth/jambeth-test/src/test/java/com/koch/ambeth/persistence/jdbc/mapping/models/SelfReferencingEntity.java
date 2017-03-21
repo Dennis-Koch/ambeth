@@ -24,8 +24,7 @@ import java.util.Set;
 
 import com.koch.ambeth.model.AbstractEntity;
 
-public class SelfReferencingEntity extends AbstractEntity
-{
+public class SelfReferencingEntity extends AbstractEntity {
 	protected String name;
 
 	protected String[] values;
@@ -36,58 +35,47 @@ public class SelfReferencingEntity extends AbstractEntity
 
 	protected SelfReferencingEntity relation2;
 
-	protected SelfReferencingEntity()
-	{
+	protected SelfReferencingEntity() {
 		// Intended blank
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public String[] getValues()
-	{
+	public String[] getValues() {
 		return values;
 	}
 
-	public void setValues(String[] values)
-	{
+	public void setValues(String[] values) {
 		this.values = values;
 	}
 
-	public Set<String> getValues2()
-	{
+	public Set<String> getValues2() {
 		return values2;
 	}
 
-	public void setValues2(Set<String> values2)
-	{
+	public void setValues2(Set<String> values2) {
 		this.values2 = values2;
 	}
 
-	public SelfReferencingEntity getRelation1()
-	{
+	public SelfReferencingEntity getRelation1() {
 		return relation1;
 	}
 
-	public void setRelation1(SelfReferencingEntity relation1)
-	{
+	public void setRelation1(SelfReferencingEntity relation1) {
 		this.relation1 = relation1;
 	}
 
-	public SelfReferencingEntity getRelation2()
-	{
+	public SelfReferencingEntity getRelation2() {
 		return relation2;
 	}
 
-	public void setRelation2(SelfReferencingEntity relation2)
-	{
+	public void setRelation2(SelfReferencingEntity relation2) {
 		this.relation2 = relation2;
 	}
 }

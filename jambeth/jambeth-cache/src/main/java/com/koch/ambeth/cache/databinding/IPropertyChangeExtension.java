@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IPropertyChangeExtension
-{
+public interface IPropertyChangeExtension {
 	void propertyChanged(Object obj, String propertyName, Object oldValue, Object currentValue);
 }

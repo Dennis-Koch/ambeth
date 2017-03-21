@@ -25,8 +25,7 @@ import java.util.List;
 import com.koch.ambeth.persistence.api.IDirectedLink;
 import com.koch.ambeth.service.merge.model.IObjRef;
 
-public interface ILinkChangeCommand extends IChangeCommand
-{
+public interface ILinkChangeCommand extends IChangeCommand {
 	IDirectedLink getDirectedLink();
 
 	List<IObjRef> getRefsToLink();

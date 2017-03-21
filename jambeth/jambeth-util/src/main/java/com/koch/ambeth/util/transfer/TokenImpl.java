@@ -21,21 +21,18 @@ limitations under the License.
  */
 
 // TODO [DataContract(IsReference = true)]
-public class TokenImpl implements IToken
-{
+public class TokenImpl implements IToken {
 
 	// TODO [DataMember]
 	protected String value;
 
 	@Override
-	public String getValue()
-	{
+	public String getValue() {
 		return value;
 	}
 
 	@Override
-	public void setValue(String value)
-	{
+	public void setValue(String value) {
 		this.value = value;
 	}
 

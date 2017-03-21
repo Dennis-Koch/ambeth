@@ -24,8 +24,7 @@ import java.util.List;
 
 import com.koch.ambeth.model.Material;
 
-public interface IMaterialService
-{
+public interface IMaterialService {
 	Material getMaterial(int id);
 
 	List<Material> getAllMaterials();

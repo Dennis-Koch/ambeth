@@ -27,11 +27,9 @@ import com.koch.ambeth.persistence.schema.models.IParentBService;
 import com.koch.ambeth.persistence.schema.models.ParentAService;
 import com.koch.ambeth.persistence.schema.models.ParentBService;
 
-public class MultiSchemaTestModule implements IInitializingModule
-{
+public class MultiSchemaTestModule implements IInitializingModule {
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 		beanContextFactory.registerAutowireableBean(IParentAService.class, ParentAService.class);
 		beanContextFactory.registerAutowireableBean(IParentBService.class, ParentBService.class);
 	}

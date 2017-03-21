@@ -23,51 +23,42 @@ limitations under the License.
 import java.util.ArrayList;
 import java.util.List;
 
-public interface CommandExtension
-{
+public interface CommandExtension {
 	Usage getUsage();
 
-	public static class Usage
-	{
+	public static class Usage {
 		private String name;
 		private String description;
 		private List<Parameter> parameters;
 
-		public String getName()
-		{
+		public String getName() {
 			return name;
 		}
 
-		public void setName(String name)
-		{
+		public void setName(String name) {
 			this.name = name;
 		}
 
-		public String getDescription()
-		{
+		public String getDescription() {
 			return description;
 		}
 
-		public void setDescription(String description)
-		{
+		public void setDescription(String description) {
 			this.description = description;
 		}
 
-		public List<Parameter> getParameters()
-		{
+		public List<Parameter> getParameters() {
 			return parameters;
 		}
 
-		public void setParameters(List<Parameter> parameters)
-		{
+		public void setParameters(List<Parameter> parameters) {
 			this.parameters = parameters;
 		}
 
-		public void addParameter(String name, String description, String defaultValue, boolean mandatory)
-		{
-			if (parameters == null)
-			{
-				parameters = new ArrayList<CommandExtension.Parameter>();
+		public void addParameter(String name, String description, String defaultValue,
+				boolean mandatory) {
+			if (parameters == null) {
+				parameters = new ArrayList<>();
 			}
 			Parameter p = new Parameter();
 			p.setName(name);
@@ -78,50 +69,41 @@ public interface CommandExtension
 		}
 	}
 
-	public static class Parameter
-	{
+	public static class Parameter {
 		private String name;
 		private String description;
 		private String defaultValue;
 		private boolean mandatory;
 
-		public String getName()
-		{
+		public String getName() {
 			return name;
 		}
 
-		public void setName(String name)
-		{
+		public void setName(String name) {
 			this.name = name;
 		}
 
-		public String getDescription()
-		{
+		public String getDescription() {
 			return description;
 		}
 
-		public void setDescription(String description)
-		{
+		public void setDescription(String description) {
 			this.description = description;
 		}
 
-		public String getDefaultValue()
-		{
+		public String getDefaultValue() {
 			return defaultValue;
 		}
 
-		public void setDefaultValue(String defaultValue)
-		{
+		public void setDefaultValue(String defaultValue) {
 			this.defaultValue = defaultValue;
 		}
 
-		public boolean isMandatory()
-		{
+		public boolean isMandatory() {
 			return mandatory;
 		}
 
-		public void setMandatory(boolean mandatory)
-		{
+		public void setMandatory(boolean mandatory) {
 			this.mandatory = mandatory;
 		}
 	}

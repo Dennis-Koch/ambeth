@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface INoEntityTypeExtendable
-{
+public interface INoEntityTypeExtendable {
 	void registerNoEntityType(Class<?> noEntityType);
 
 	void unregisterNoEntityType(Class<?> noEntityType);

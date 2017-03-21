@@ -35,16 +35,13 @@ import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 import com.koch.ambeth.util.collections.IMapEntry;
 import com.koch.ambeth.util.collections.WeakHashMap;
 
-public class AuthenticationResultCache implements IInitializingBean, IAuthenticationResultCache
-{
-	public static class CacheValue
-	{
+public class AuthenticationResultCache implements IInitializingBean, IAuthenticationResultCache {
+	public static class CacheValue {
 		public final IAuthenticationResult authentiationResult;
 
 		public final long createdTimestamp = System.currentTimeMillis();
 
-		public CacheValue(IAuthenticationResult authentiationResult)
-		{
+		public CacheValue(IAuthenticationResult authentiationResult) {
 			this.authentiationResult = authentiationResult;
 		}
 	}
@@ -63,86 +60,72 @@ public class AuthenticationResultCache implements IInitializingBean, IAuthentica
 
 	protected long cacheInterval = 60000;
 
-	protected final WeakHashMap<byte[], CacheValue> cachedAuthenticationResultMap = new WeakHashMap<byte[], CacheValue>()
-	{
+	protected final WeakHashMap<byte[], CacheValue> cachedAuthenticationResultMap =
+			new WeakHashMap<byte[], CacheValue>() {
 
-		@Override
-		protected boolean equalKeys(byte[] key, IMapEntry<byte[], CacheValue> entry)
-		{
-			return Arrays.equals(key, entry.getKey());
-		}
+				@Override
+				protected boolean equalKeys(byte[] key, IMapEntry<byte[], CacheValue> entry) {
+					return Arrays.equals(key, entry.getKey());
+				}
 
-		@Override
-		protected int extractHash(byte[] key)
-		{
-			return Arrays.hashCode(key);
-		}
-	};
+				@Override
+				protected int extractHash(byte[] key) {
+					return Arrays.hashCode(key);
+				}
+			};
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		digest = MessageDigest.getInstance("SHA-256");
 	}
 
-	public void handleClearAllCachesEvent(ClearAllCachesEvent evnt)
-	{
+	public void handleClearAllCachesEvent(ClearAllCachesEvent evnt) {
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			cachedAuthenticationResultMap.clear();
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
-	protected byte[] buildAuthenticationHash(IAuthentication authentication)
-	{
+	protected byte[] buildAuthenticationHash(IAuthentication authentication) {
 		digest.reset();
 		digest.update(authentication.getUserName().getBytes(charset));
 		return digest.digest(new String(authentication.getPassword()).getBytes(charset));
 	}
 
 	@Override
-	public IAuthenticationResult resolveAuthenticationResult(IAuthentication authentication)
-	{
+	public IAuthenticationResult resolveAuthenticationResult(IAuthentication authentication) {
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			byte[] hash = buildAuthenticationHash(authentication);
 			CacheValue cacheValue = cachedAuthenticationResultMap.get(hash);
-			if (cacheValue == null)
-			{
+			if (cacheValue == null) {
 				return null;
 			}
-			if (cacheValue.createdTimestamp + cacheInterval < System.currentTimeMillis())
-			{
+			if (cacheValue.createdTimestamp + cacheInterval < System.currentTimeMillis()) {
 				cachedAuthenticationResultMap.remove(hash);
 				return null;
 			}
 			return cacheValue.authentiationResult;
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public void cacheAuthenticationResult(IAuthentication authentication, IAuthenticationResult authenticationResult)
-	{
+	public void cacheAuthenticationResult(IAuthentication authentication,
+			IAuthenticationResult authenticationResult) {
 		writeLock.lock();
-		try
-		{
+		try {
 			byte[] hash = buildAuthenticationHash(authentication);
 			cachedAuthenticationResultMap.put(hash, new CacheValue(authenticationResult));
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 

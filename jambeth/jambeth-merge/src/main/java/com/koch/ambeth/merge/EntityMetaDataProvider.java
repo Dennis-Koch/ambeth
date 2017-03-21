@@ -136,25 +136,25 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	protected ValueObjectMap valueObjectMap;
 
 	protected final ThreadLocal<ClassExtendableContainer<IEntityMetaData>> pendingToRefreshMetaDatasTL =
-			new ThreadLocal<ClassExtendableContainer<IEntityMetaData>>();
+			new ThreadLocal<>();
 
 	protected IEntityMetaData alreadyHandled;
 
 	protected Class<?>[] businessObjectSaveOrder;
 
 	protected final ClassExtendableContainer<IEntityInstantiationExtension> entityInstantiationExtensions =
-			new ClassExtendableContainer<IEntityInstantiationExtension>("entityFactoryExtension",
+			new ClassExtendableContainer<>("entityFactoryExtension",
 					"entityType");
 
 	protected final HashMap<Class<?>, IMap<String, ITypeInfoItem>> typeToPropertyMap =
-			new HashMap<Class<?>, IMap<String, ITypeInfoItem>>();
+			new HashMap<>();
 
 	protected final ClassExtendableListContainer<IEntityLifecycleExtension> entityLifecycleExtensions =
-			new ClassExtendableListContainer<IEntityLifecycleExtension>("entityLifecycleExtension",
+			new ClassExtendableListContainer<>("entityLifecycleExtension",
 					"entityType");
 
 	protected final MapExtendableContainer<Class<?>, Class<?>> technicalEntityTypes =
-			new MapExtendableContainer<Class<?>, Class<?>>("technicalEntityType", "entityType");
+			new MapExtendableContainer<>("technicalEntityType", "entityType");
 
 	public EntityMetaDataProvider() {
 		super("entity meta data", "entity class");
@@ -173,16 +173,16 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		}
 		ISet<Class<?>> relatedByTypes = typeRelatedByTypes.get(relatedTo);
 		if (relatedByTypes == null) {
-			relatedByTypes = new HashSet<Class<?>>();
+			relatedByTypes = new HashSet<>();
 			typeRelatedByTypes.put(relatedTo, relatedByTypes);
 		}
 		relatedByTypes.add(relating);
 	}
 
 	protected void initialize() {
-		HashMap<Class<?>, ISet<Class<?>>> typeRelatedByTypes = new HashMap<Class<?>, ISet<Class<?>>>();
+		HashMap<Class<?>, ISet<Class<?>>> typeRelatedByTypes = new HashMap<>();
 		IdentityHashSet<IEntityMetaData> extensions =
-				new IdentityHashSet<IEntityMetaData>(getExtensions().values());
+				new IdentityHashSet<>(getExtensions().values());
 		for (IEntityMetaData metaData : extensions) {
 			if (metaData == alreadyHandled) {
 				continue;
@@ -199,7 +199,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			Class<?> entityType = metaData.getEntityType();
 			ISet<Class<?>> relatedByTypes = typeRelatedByTypes.get(entityType);
 			if (relatedByTypes == null) {
-				relatedByTypes = new HashSet<Class<?>>();
+				relatedByTypes = new HashSet<>();
 			}
 			((EntityMetaData) metaData).setTypesRelatingToThis(relatedByTypes.toArray(Class.class));
 			refreshMembers(metaData);
@@ -211,7 +211,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
 		final StringBuilder sb = objectCollector.create(StringBuilder.class);
 		try {
-			IEntityMetaData[] extensions = new IdentityHashSet<IEntityMetaData>(getExtensions().values())
+			IEntityMetaData[] extensions = new IdentityHashSet<>(getExtensions().values())
 					.toArray(IEntityMetaData.class);
 
 			IDotWriter writer = new DotWriter(new Writer() {
@@ -360,7 +360,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			primitiveMembers[a] = (PrimitiveMember) refreshMember(metaData, primitiveMembers[a]);
 		}
 
-		HashMap<String, PrimitiveMember> nameToPrimitiveMember = new HashMap<String, PrimitiveMember>();
+		HashMap<String, PrimitiveMember> nameToPrimitiveMember = new HashMap<>();
 		for (int a = primitiveMembers.length; a-- > 0;) {
 			PrimitiveMember member = primitiveMembers[a];
 			nameToPrimitiveMember.put(member.getName(), member);
@@ -459,7 +459,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 					Class<?> relationMemberType = relationMember.getElementType();
 					if (!containsKey(relationMemberType)) {
 						if (cascadeMissingEntityTypes == null) {
-							cascadeMissingEntityTypes = new HashSet<Class<?>>();
+							cascadeMissingEntityTypes = new HashSet<>();
 						}
 						cascadeMissingEntityTypes.add(relationMemberType);
 					}
@@ -540,7 +540,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			}
 			return metaDataItem;
 		}
-		ArrayList<Class<?>> missingEntityTypes = new ArrayList<Class<?>>(1);
+		ArrayList<Class<?>> missingEntityTypes = new ArrayList<>(1);
 		missingEntityTypes.add(entityType);
 		IList<IEntityMetaData> missingMetaDatas = getMetaData(missingEntityTypes);
 		if (missingMetaDatas.size() > 0) {
@@ -563,7 +563,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
 	protected IList<IEntityMetaData> getMetaData(List<Class<?>> entityTypes,
 			boolean askRemoteOnMiss) {
-		ArrayList<IEntityMetaData> result = new ArrayList<IEntityMetaData>(entityTypes.size());
+		ArrayList<IEntityMetaData> result = new ArrayList<>(entityTypes.size());
 		IList<Class<?>> missingEntityTypes = null;
 		for (int a = entityTypes.size(); a-- > 0;) {
 			Class<?> entityType = entityTypes.get(a);
@@ -572,7 +572,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 				metaDataItem = getExtensionHardKey(entityType);
 				if (metaDataItem == null && askRemoteOnMiss) {
 					if (missingEntityTypes == null) {
-						missingEntityTypes = new ArrayList<Class<?>>();
+						missingEntityTypes = new ArrayList<>();
 					}
 					missingEntityTypes.add(entityType);
 				}
@@ -581,7 +581,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			if (metaDataItem == null) {
 				if (askRemoteOnMiss) {
 					if (missingEntityTypes == null) {
-						missingEntityTypes = new ArrayList<Class<?>>();
+						missingEntityTypes = new ArrayList<>();
 					}
 					missingEntityTypes.add(entityType);
 				}
@@ -598,7 +598,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 					pendingToRefreshMetaDatasTL.get();
 			if (pendingToRefreshMetaDatas == null) {
 				pendingToRefreshMetaDatas =
-						new ClassExtendableContainer<IEntityMetaData>("metaData", "entityType");
+						new ClassExtendableContainer<>("metaData", "entityType");
 				pendingToRefreshMetaDatasTL.set(pendingToRefreshMetaDatas);
 				handlePendingMetaData = true;
 			}
@@ -844,11 +844,11 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		IList<IEntityLifecycleExtension> extensionList =
 				entityLifecycleExtensions.getExtensions(entityMetaData.getEnhancedType());
 		ArrayList<IEntityLifecycleExtension> allExtensions =
-				new ArrayList<IEntityLifecycleExtension>(extensionList);
-		ArrayList<Method> prePersistMethods = new ArrayList<Method>();
+				new ArrayList<>(extensionList);
+		ArrayList<Method> prePersistMethods = new ArrayList<>();
 		fillMethodsAnnotatedWith(entityMetaData.getEnhancedType(), prePersistMethods, PrePersist.class);
 
-		ArrayList<Method> postLoadMethods = new ArrayList<Method>();
+		ArrayList<Method> postLoadMethods = new ArrayList<>();
 		fillMethodsAnnotatedWith(entityMetaData.getEnhancedType(), postLoadMethods, PostLoad.class);
 
 		for (Method prePersistMethod : prePersistMethods) {
@@ -904,9 +904,9 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			businessObjectSaveOrder = null;
 
 			HashMap<Class<?>, ISet<Class<?>>> boTypeToBeforeBoTypes =
-					new HashMap<Class<?>, ISet<Class<?>>>();
+					new HashMap<>();
 			HashMap<Class<?>, ISet<Class<?>>> boTypeToAfterBoTypes =
-					new HashMap<Class<?>, ISet<Class<?>>>();
+					new HashMap<>();
 
 			for (Entry<Class<?>, IValueObjectConfig> entry : valueObjectMap.getExtensions()) {
 				IValueObjectConfig voConfig = entry.getValue();
@@ -958,7 +958,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 							boTypeToAfterBoTypes);
 				}
 			}
-			List<Class<?>> businessObjectSaveOrder = new ArrayList<Class<?>>();
+			List<Class<?>> businessObjectSaveOrder = new ArrayList<>();
 
 			for (Class<?> boType : boTypeToBeforeBoTypes.keySet()) {
 				// BeforeBoType are types which have to be saved BEFORE saving the boType
@@ -1031,7 +1031,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			Map<Class<?>, ISet<Class<?>>> boTypeToAfterBoTypes) {
 		ISet<Class<?>> beforeBoTypes = boTypeToBeforeBoTypes.get(boType);
 		if (beforeBoTypes == null) {
-			beforeBoTypes = new HashSet<Class<?>>();
+			beforeBoTypes = new HashSet<>();
 			boTypeToBeforeBoTypes.put(boType, beforeBoTypes);
 		}
 		beforeBoTypes.add(beforeBoType);
@@ -1051,7 +1051,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			Map<Class<?>, ISet<Class<?>>> boTypeToAfterBoTypes) {
 		ISet<Class<?>> afterBoTypes = boTypeToAfterBoTypes.get(afterBoType);
 		if (afterBoTypes == null) {
-			afterBoTypes = new HashSet<Class<?>>();
+			afterBoTypes = new HashSet<>();
 			boTypeToAfterBoTypes.put(afterBoType, afterBoTypes);
 		}
 		afterBoTypes.add(boType);
@@ -1074,7 +1074,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			IValueObjectConfig voConfig = entry.getValue();
 			mappableEntitiesSet.add(voConfig.getEntityType());
 		}
-		return new ArrayList<Class<?>>(mappableEntitiesSet);
+		return new ArrayList<>(mappableEntitiesSet);
 	}
 
 	public IMap<String, ITypeInfoItem> getTypeInfoMapForVo(Class<?> valueType) {
@@ -1084,7 +1084,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		}
 		IMap<String, ITypeInfoItem> typeInfoMap = typeToPropertyMap.get(valueType);
 		if (typeInfoMap == null) {
-			typeInfoMap = new HashMap<String, ITypeInfoItem>();
+			typeInfoMap = new HashMap<>();
 			IEntityMetaData boMetaData = getMetaData(config.getEntityType());
 			StringBuilder sb = new StringBuilder();
 

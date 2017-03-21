@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ICollectableController
-{
+public interface ICollectableController {
 	Object createInstance() throws Throwable;
 
 	void initObject(Object object) throws Throwable;

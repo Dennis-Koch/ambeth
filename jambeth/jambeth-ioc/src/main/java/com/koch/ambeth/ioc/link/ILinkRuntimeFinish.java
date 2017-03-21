@@ -22,11 +22,10 @@ limitations under the License.
 
 /**
  * Last step of the fluent interface for a link configuration at runtime.
- * 
+ *
  * @see ILinkRuntimeExtendable
  */
-public interface ILinkRuntimeFinish
-{
+public interface ILinkRuntimeFinish {
 	/**
 	 * Finishes the link configuration and executes it.
 	 */

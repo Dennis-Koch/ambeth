@@ -44,7 +44,7 @@ public class ClassGenerator extends ClassVisitor {
 	public static final Class<FireTargetOnPropertyChange> c_fireTargetOPC =
 			FireTargetOnPropertyChange.class;
 
-	private static final ThreadLocal<String> propertyNameTL = new ThreadLocal<String>();
+	private static final ThreadLocal<String> propertyNameTL = new ThreadLocal<>();
 
 	private static final ConstructorInstance c_obj;
 

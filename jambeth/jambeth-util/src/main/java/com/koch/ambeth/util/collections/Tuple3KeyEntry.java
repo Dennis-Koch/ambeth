@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public class Tuple3KeyEntry<Key1, Key2, Key3, V>
-{
+public class Tuple3KeyEntry<Key1, Key2, Key3, V> {
 	private final Key1 key1;
 
 	private final Key2 key2;
@@ -34,8 +33,8 @@ public class Tuple3KeyEntry<Key1, Key2, Key3, V>
 
 	private V value;
 
-	public Tuple3KeyEntry(Key1 key1, Key2 key2, Key3 key3, V value, int hash, Tuple3KeyEntry<Key1, Key2, Key3, V> nextEntry)
-	{
+	public Tuple3KeyEntry(Key1 key1, Key2 key2, Key3 key3, V value, int hash,
+			Tuple3KeyEntry<Key1, Key2, Key3, V> nextEntry) {
 		this.key1 = key1;
 		this.key2 = key2;
 		this.key3 = key3;
@@ -44,49 +43,40 @@ public class Tuple3KeyEntry<Key1, Key2, Key3, V>
 		this.nextEntry = nextEntry;
 	}
 
-	public int getHash()
-	{
+	public int getHash() {
 		return hash;
 	}
 
-	public Tuple3KeyEntry<Key1, Key2, Key3, V> getNextEntry()
-	{
+	public Tuple3KeyEntry<Key1, Key2, Key3, V> getNextEntry() {
 		return nextEntry;
 	}
 
-	public void setNextEntry(Tuple3KeyEntry<Key1, Key2, Key3, V> nextEntry)
-	{
+	public void setNextEntry(Tuple3KeyEntry<Key1, Key2, Key3, V> nextEntry) {
 		this.nextEntry = nextEntry;
 	}
 
-	public Key1 getKey1()
-	{
+	public Key1 getKey1() {
 		return key1;
 	}
 
-	public Key2 getKey2()
-	{
+	public Key2 getKey2() {
 		return key2;
 	}
 
-	public Key3 getKey3()
-	{
+	public Key3 getKey3() {
 		return key3;
 	}
 
-	public void setValue(V value)
-	{
+	public void setValue(V value) {
 		this.value = value;
 	}
 
-	public V getValue()
-	{
+	public V getValue() {
 		return value;
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return "(" + getKey1() + ":" + getKey2() + ":" + getKey3() + "," + getValue();
 	}
 }

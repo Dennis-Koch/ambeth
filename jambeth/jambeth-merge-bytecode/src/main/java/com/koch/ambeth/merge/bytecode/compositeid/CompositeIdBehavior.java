@@ -31,18 +31,16 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.bytecode.visitor.CompositeIdCreator;
 
-public class CompositeIdBehavior extends AbstractBehavior
-{
+public class CompositeIdBehavior extends AbstractBehavior {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors)
-	{
-		if (state.getContext(CompositeIdEnhancementHint.class) == null)
-		{
+	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+			List<IBytecodeBehavior> remainingPendingBehaviors,
+			List<IBytecodeBehavior> cascadePendingBehaviors) {
+		if (state.getContext(CompositeIdEnhancementHint.class) == null) {
 			return visitor;
 		}
 		visitor = new CompositeIdCreator(visitor);

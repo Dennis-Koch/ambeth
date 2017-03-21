@@ -41,24 +41,30 @@ import com.koch.ambeth.persistence.IServiceUtil;
 import com.koch.ambeth.service.cache.IServiceResultHolder;
 
 @FrameworkModule
-public class CacheServerModule implements IInitializingModule
-{
+public class CacheServerModule implements IInitializingModule {
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		beanContextFactory.registerBean(CacheModule.EXTERNAL_CACHE_SERVICE, CacheService.class).autowireable(ICacheService.class);
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		beanContextFactory.registerBean(CacheModule.EXTERNAL_CACHE_SERVICE, CacheService.class)
+				.autowireable(ICacheService.class);
 
-		beanContextFactory.registerBean("serviceResultHolder", ServiceResultHolder.class).autowireable(IServiceResultHolder.class);
+		beanContextFactory.registerBean("serviceResultHolder", ServiceResultHolder.class)
+				.autowireable(IServiceResultHolder.class);
 
 		beanContextFactory.registerAutowireableBean(IServiceUtil.class, CacheServiceUtil.class);
 
-		beanContextFactory.registerBean(CacheModule.DEFAULT_CACHE_RETRIEVER, DefaultPersistenceCacheRetriever.class).autowireable(ICacheRetriever.class);
+		beanContextFactory
+				.registerBean(CacheModule.DEFAULT_CACHE_RETRIEVER, DefaultPersistenceCacheRetriever.class)
+				.autowireable(ICacheRetriever.class);
 
-		IBeanConfiguration cacheLocalDataChangeListener = beanContextFactory.registerBean(CacheLocalDataChangeListener.class).propertyRefs(
-				CacheModule.CACHE_DATA_CHANGE_LISTENER);
-		beanContextFactory.link(cacheLocalDataChangeListener).to(IEventTargetListenerExtendable.class).with(IDataChangeOfSession.class);
+		IBeanConfiguration cacheLocalDataChangeListener =
+				beanContextFactory.registerBean(CacheLocalDataChangeListener.class)
+						.propertyRefs(CacheModule.CACHE_DATA_CHANGE_LISTENER);
+		beanContextFactory.link(cacheLocalDataChangeListener).to(IEventTargetListenerExtendable.class)
+				.with(IDataChangeOfSession.class);
 
-		IBeanConfiguration dataChangeEventStoreHandlerBC = beanContextFactory.registerBean(DataChangeEventStoreHandler.class);
-		beanContextFactory.link(dataChangeEventStoreHandlerBC).to(IEventStoreHandlerExtendable.class).with(IDataChange.class).optional();
+		IBeanConfiguration dataChangeEventStoreHandlerBC =
+				beanContextFactory.registerBean(DataChangeEventStoreHandler.class);
+		beanContextFactory.link(dataChangeEventStoreHandlerBC).to(IEventStoreHandlerExtendable.class)
+				.with(IDataChange.class).optional();
 	}
 }

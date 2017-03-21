@@ -28,69 +28,57 @@ import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 
-public class PrefetchHandle implements IPrefetchHandle
-{
+public class PrefetchHandle implements IPrefetchHandle {
 	protected final ILinkedMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchSteps;
 
 	protected final ICachePathHelper cachePathHelper;
 
-	public PrefetchHandle(ILinkedMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchSteps, ICachePathHelper cachePathHelper)
-	{
+	public PrefetchHandle(ILinkedMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchSteps,
+			ICachePathHelper cachePathHelper) {
 		this.entityTypeToPrefetchSteps = entityTypeToPrefetchSteps;
 		this.cachePathHelper = cachePathHelper;
 	}
 
-	public ILinkedMap<Class<?>, PrefetchPath[]> getEntityTypeToPrefetchSteps()
-	{
+	public ILinkedMap<Class<?>, PrefetchPath[]> getEntityTypeToPrefetchSteps() {
 		return entityTypeToPrefetchSteps;
 	}
 
 	@Override
-	public IPrefetchState prefetch(Object objects)
-	{
+	public IPrefetchState prefetch(Object objects) {
 		return cachePathHelper.ensureInitializedRelations(objects, entityTypeToPrefetchSteps);
 	}
 
 	@Override
-	public IPrefetchState prefetch(Object... objects)
-	{
+	public IPrefetchState prefetch(Object... objects) {
 		return cachePathHelper.ensureInitializedRelations(objects, entityTypeToPrefetchSteps);
 	}
 
 	@Override
-	public IPrefetchHandle union(IPrefetchHandle otherPrefetchHandle)
-	{
-		if (otherPrefetchHandle == null)
-		{
+	public IPrefetchHandle union(IPrefetchHandle otherPrefetchHandle) {
+		if (otherPrefetchHandle == null) {
 			return this;
 		}
-		LinkedHashMap<Class<?>, LinkedHashSet<AppendableCachePath>> newMap = LinkedHashMap.create(entityTypeToPrefetchSteps.size());
-		for (Entry<Class<?>, PrefetchPath[]> entry : entityTypeToPrefetchSteps)
-		{
+		LinkedHashMap<Class<?>, LinkedHashSet<AppendableCachePath>> newMap =
+				LinkedHashMap.create(entityTypeToPrefetchSteps.size());
+		for (Entry<Class<?>, PrefetchPath[]> entry : entityTypeToPrefetchSteps) {
 			LinkedHashSet<AppendableCachePath> prefetchPaths = newMap.get(entry.getKey());
-			if (prefetchPaths == null)
-			{
-				prefetchPaths = new LinkedHashSet<AppendableCachePath>();
+			if (prefetchPaths == null) {
+				prefetchPaths = new LinkedHashSet<>();
 				newMap.put(entry.getKey(), prefetchPaths);
 			}
-			for (PrefetchPath cachePath : entry.getValue())
-			{
+			for (PrefetchPath cachePath : entry.getValue()) {
 				prefetchPaths.add(cachePathHelper.copyCachePathToAppendable(cachePath));
 			}
 		}
-		for (Entry<Class<?>, PrefetchPath[]> entry : ((PrefetchHandle) otherPrefetchHandle).entityTypeToPrefetchSteps)
-		{
+		for (Entry<Class<?>, PrefetchPath[]> entry : ((PrefetchHandle) otherPrefetchHandle).entityTypeToPrefetchSteps) {
 			LinkedHashSet<AppendableCachePath> prefetchPaths = newMap.get(entry.getKey());
-			if (prefetchPaths == null)
-			{
-				prefetchPaths = new LinkedHashSet<AppendableCachePath>();
+			if (prefetchPaths == null) {
+				prefetchPaths = new LinkedHashSet<>();
 				newMap.put(entry.getKey(), prefetchPaths);
 			}
-			for (PrefetchPath cachePath : entry.getValue())
-			{
+			for (PrefetchPath cachePath : entry.getValue()) {
 				AppendableCachePath clonedCachePath = cachePathHelper.copyCachePathToAppendable(cachePath);
-				if (prefetchPaths.add(clonedCachePath))
-				{
+				if (prefetchPaths.add(clonedCachePath)) {
 					continue;
 				}
 				AppendableCachePath existingCachePath = prefetchPaths.get(clonedCachePath);
@@ -98,8 +86,7 @@ public class PrefetchHandle implements IPrefetchHandle
 			}
 		}
 		LinkedHashMap<Class<?>, PrefetchPath[]> targetMap = LinkedHashMap.create(newMap.size());
-		for (Entry<Class<?>, LinkedHashSet<AppendableCachePath>> entry : newMap)
-		{
+		for (Entry<Class<?>, LinkedHashSet<AppendableCachePath>> entry : newMap) {
 			PrefetchPath[] cachePaths = cachePathHelper.copyAppendableToCachePath(entry.getValue());
 			targetMap.put(entry.getKey(), cachePaths);
 		}

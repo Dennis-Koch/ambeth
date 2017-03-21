@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IDeclarationStackTraceAware
-{
+public interface IDeclarationStackTraceAware {
 	void setDeclarationStackTrace(StackTraceElement[] declarationStackTrace);
 }

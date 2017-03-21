@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ICUDResultPreprocessor
-{
+public interface ICUDResultPreprocessor {
 	ProceedWithMergeHook getProceedWithMergeHook();
 
 	void cleanUp(ProceedWithMergeHook proceedWithMergeHook);

@@ -22,28 +22,23 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.IServiceContext;
 
-public class BeanByNameGetter implements IBeanGetter
-{
+public class BeanByNameGetter implements IBeanGetter {
 	private String contextName;
 
 	private String beanName;
 
-	public void setContextName(String contextName)
-	{
+	public void setContextName(String contextName) {
 		this.contextName = contextName;
 	}
 
-	public void setBeanName(String beanName)
-	{
+	public void setBeanName(String beanName) {
 		this.beanName = beanName;
 	}
 
 	@Override
-	public Object getBean(IServiceContextStore contextStore)
-	{
+	public Object getBean(IServiceContextStore contextStore) {
 		IServiceContext context = contextStore.getContext(contextName);
-		if (context == null)
-		{
+		if (context == null) {
 			throw new IllegalStateException("Service context '" + contextName + "' not found");
 		}
 		Object bean = context.getService(beanName, true);

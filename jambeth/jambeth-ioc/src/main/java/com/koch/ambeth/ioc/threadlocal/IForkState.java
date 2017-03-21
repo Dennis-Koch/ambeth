@@ -25,8 +25,7 @@ import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
 
-public interface IForkState
-{
+public interface IForkState {
 	void use(Runnable runnable);
 
 	void use(IBackgroundWorkerDelegate runnable);

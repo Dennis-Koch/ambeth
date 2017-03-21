@@ -24,8 +24,7 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface IDirectObjRef extends IObjRef
-{
+public interface IDirectObjRef extends IObjRef {
 	Object getDirect();
 
 	void setDirect(Object direct);

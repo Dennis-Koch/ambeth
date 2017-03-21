@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IPrivilegeResult
-{
+public interface IPrivilegeResult {
 	String getSID();
 
 	IPrivilege[] getPrivileges();

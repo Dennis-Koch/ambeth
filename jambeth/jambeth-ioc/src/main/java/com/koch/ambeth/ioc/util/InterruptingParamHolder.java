@@ -22,22 +22,18 @@ limitations under the License.
 
 import com.koch.ambeth.util.ParamHolder;
 
-public class InterruptingParamHolder extends ParamHolder<Throwable>
-{
+public class InterruptingParamHolder extends ParamHolder<Throwable> {
 	protected final Thread mainThread;
 
-	public InterruptingParamHolder(Thread mainThread)
-	{
+	public InterruptingParamHolder(Thread mainThread) {
 		this.mainThread = mainThread;
 	}
 
 	@Override
-	public void setValue(Throwable value)
-	{
+	public void setValue(Throwable value) {
 		super.setValue(value);
 
-		if (value != null)
-		{
+		if (value != null) {
 			// necessary to inform the main thread that it should not wait any longer for the latch
 			mainThread.interrupt();
 		}

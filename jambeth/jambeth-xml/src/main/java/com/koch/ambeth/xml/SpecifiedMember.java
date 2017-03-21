@@ -22,32 +22,27 @@ limitations under the License.
 
 import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
 
-public class SpecifiedMember
-{
+public class SpecifiedMember {
 	private ITypeInfoItem member;
 
 	private ITypeInfoItem specifiedMember;
 
-	public SpecifiedMember(ITypeInfoItem member, ITypeInfoItem specifiedMember)
-	{
+	public SpecifiedMember(ITypeInfoItem member, ITypeInfoItem specifiedMember) {
 		super();
 		this.member = member;
 		this.specifiedMember = specifiedMember;
 	}
 
-	public ITypeInfoItem getMember()
-	{
+	public ITypeInfoItem getMember() {
 		return member;
 	}
 
-	public ITypeInfoItem getSpecifiedMember()
-	{
+	public ITypeInfoItem getSpecifiedMember() {
 		return specifiedMember;
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return getMember().toString();
 	}
 }

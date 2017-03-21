@@ -40,8 +40,7 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.state.IStateRollback;
 
-public interface IConnectionDialect
-{
+public interface IConnectionDialect {
 	String escapeName(CharSequence symbolName);
 
 	IAppendable escapeName(CharSequence symbolName, IAppendable sb);
@@ -58,11 +57,14 @@ public interface IConnectionDialect
 
 	String toDefaultCase(String unquotedIdentifier);
 
-	void preProcessConnection(Connection connection, String[] schemaNames, boolean forcePreProcessing);
+	void preProcessConnection(Connection connection, String[] schemaNames,
+			boolean forcePreProcessing);
 
-	IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames) throws SQLException;
+	IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames)
+			throws SQLException;
 
-	ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection, String schemaName) throws SQLException;
+	ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection, String schemaName)
+			throws SQLException;
 
 	boolean isSystemTable(String tableName);
 
@@ -84,21 +86,27 @@ public interface IConnectionDialect
 
 	boolean useVersionOnOptimisticUpdate();
 
-	ResultSet getIndexInfo(Connection connection, String schemaName, String tableName, boolean unique) throws SQLException;
+	ResultSet getIndexInfo(Connection connection, String schemaName, String tableName, boolean unique)
+			throws SQLException;
 
 	Class<?> getComponentTypeByFieldTypeName(String additionalFieldInfo);
 
 	String getFieldTypeNameByComponentType(Class<?> componentType);
 
-	List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames) throws SQLException;
+	List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames)
+			throws SQLException;
 
-	List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames) throws SQLException;
+	List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames)
+			throws SQLException;
 
-	List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames) throws SQLException;
+	List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames)
+			throws SQLException;
 
-	IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) throws SQLException;
+	IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName)
+			throws SQLException;
 
-	IList<String> queryDefault(Connection connection, String resultColumnName, String sql, Object... args) throws SQLException;
+	IList<String> queryDefault(Connection connection, String resultColumnName, String sql,
+			Object... args) throws SQLException;
 
 	int getMaxInClauseBatchThreshold();
 
@@ -106,7 +114,8 @@ public interface IConnectionDialect
 
 	Object convertToFieldType(IFieldMetaData field, Object value);
 
-	Object convertFromFieldType(IDatabase database, IFieldMetaData field, Class<?> expectedType, Object value);
+	Object convertFromFieldType(IDatabase database, IFieldMetaData field, Class<?> expectedType,
+			Object value);
 
 	boolean isTransactionNecessaryDuringLobStreaming();
 
@@ -114,22 +123,25 @@ public interface IConnectionDialect
 
 	boolean isCompactMultiValueRecommended(IList<Object> values);
 
-	void handleWithMultiValueLeftField(IAppendable querySB, IMap<Object, Object> nameToValueMap, IList<Object> parameters, IList<IList<Object>> splitValues,
-			boolean caseSensitive, Class<?> leftOperandFieldType);
+	void handleWithMultiValueLeftField(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			IList<Object> parameters, IList<IList<Object>> splitValues, boolean caseSensitive,
+			Class<?> leftOperandFieldType);
 
 	/**
-	 * append the best suited list clause IN( ?,?,?,?,?) (with ids as single parameters) _OR_ = ANY [?] (with an array)
-	 * 
+	 * append the best suited list clause IN( ?,?,?,?,?) (with ids as single parameters) _OR_ = ANY
+	 * [?] (with an array)
+	 *
 	 * @param parameters
 	 * @param sb
 	 * @param fieldType
 	 * @param splittedIds
 	 */
-	void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType, IList<Object> splittedIds);
+	void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType,
+			IList<Object> splittedIds);
 
 	/**
 	 * Replace Oracle SQL with connection dialect specific SQL
-	 * 
+	 *
 	 * @param sqlCommand
 	 * @return
 	 */

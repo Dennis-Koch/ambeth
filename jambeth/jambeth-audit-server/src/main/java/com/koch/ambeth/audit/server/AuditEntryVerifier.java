@@ -185,7 +185,7 @@ public class AuditEntryVerifier
 	protected VerifyOnLoadMode verifyOnLoadMode;
 
 	protected final SmartCopyMap<Integer, IQuery<IAuditedEntity>> entityTypeCountToQuery =
-			new SmartCopyMap<Integer, IQuery<IAuditedEntity>>();
+			new SmartCopyMap<>();
 
 	// this feature is still alpha status: optimize audit entry verification scope (do only set it to
 	// TRUE if you know what you do)
@@ -199,9 +199,9 @@ public class AuditEntryVerifier
 
 	@Forkable(processor = ForkableProcessor.class)
 	protected final ThreadLocal<ArrayList<IObjRef>> objRefsToVerifyTL =
-			new ThreadLocal<ArrayList<IObjRef>>();
+			new ThreadLocal<>();
 
-	protected final ThreadLocal<Boolean> verifyOnStackTL = new ThreadLocal<Boolean>();
+	protected final ThreadLocal<Boolean> verifyOnStackTL = new ThreadLocal<>();
 
 	@Override
 	public void cleanupThreadLocal() {
@@ -363,7 +363,7 @@ public class AuditEntryVerifier
 		HashMap<IObjRef, HashMap<String, Boolean>> objRefToValidPropertyMap =
 				HashMap.<IObjRef, HashMap<String, Boolean>>create(objRefs.size());
 		ArrayList<DirectValueHolderRef> valueHoldersToPrefetch =
-				new ArrayList<DirectValueHolderRef>(objRefs.size());
+				new ArrayList<>(objRefs.size());
 		for (int a = objRefs.size(); a-- > 0;) {
 			IObjRef objRef = objRefs.get(a);
 			IObjRefContainer entity = (IObjRefContainer) entities.get(a);
@@ -388,7 +388,7 @@ public class AuditEntryVerifier
 		tempObjRef.setIdNameIndex(ObjRef.PRIMARY_KEY_INDEX);
 
 		ArrayList<IAuditedEntity> realAuditedEntities =
-				new ArrayList<IAuditedEntity>(auditedEntities.size());
+				new ArrayList<>(auditedEntities.size());
 
 		for (int a = 0, size = auditedEntities.size(); a < size; a++) {
 			IAuditedEntity auditedEntity = auditedEntities.get(a);
@@ -452,7 +452,7 @@ public class AuditEntryVerifier
 			}
 		}
 		Tuple2KeyHashMap<Class<?>, Object, Object> objRefToMaxVersionOfAuditTrailMap =
-				new Tuple2KeyHashMap<Class<?>, Object, Object>();
+				new Tuple2KeyHashMap<>();
 
 		// audit entries are ordered by timestamp DESC. So the newest auditEntries are last
 		// so we do a reverse iteration because we are interested in the LAST/RECENT assigned value to
@@ -613,7 +613,7 @@ public class AuditEntryVerifier
 			for (int a = objRefsOfEntityType.size(); a-- > 0;) {
 				IObjRef objRef = objRefsOfEntityType.get(a);
 				remainingPropertyMap.put(objRef, primitiveMembersSet.size() > 0
-						? new HashSet<String>(primitiveMembersSet) : primitiveMembersSet);
+						? new HashSet<>(primitiveMembersSet) : primitiveMembersSet);
 			}
 		}
 		return remainingPropertyMap;
@@ -651,7 +651,7 @@ public class AuditEntryVerifier
 			}
 		}
 
-		final ArrayList<IObjRef> objRefsToVerify = new ArrayList<IObjRef>();
+		final ArrayList<IObjRef> objRefsToVerify = new ArrayList<>();
 		objRefsToVerifyTL.set(objRefsToVerify);
 		try {
 			R result = runnable.invoke();
@@ -724,7 +724,7 @@ public class AuditEntryVerifier
 		if (bucketSortObjRefs.size() == 0) {
 			return true;
 		}
-		LinkedHashMap<String, Object> nameToValueMap = new LinkedHashMap<String, Object>();
+		LinkedHashMap<String, Object> nameToValueMap = new LinkedHashMap<>();
 		IMap<IObjRef, ISet<String>> remainingPropertyMap =
 				fillNameToValueMap(nameToValueMap, bucketSortObjRefs);
 
@@ -738,7 +738,7 @@ public class AuditEntryVerifier
 			StringBuilder sb = objectCollector.create(StringBuilder.class);
 			sb.append("Verifying audit entries covering the following " + count + " entities: ");
 
-			ArrayList<IObjRef> allObjRefs = new ArrayList<IObjRef>(count);
+			ArrayList<IObjRef> allObjRefs = new ArrayList<>(count);
 			for (Entry<IEntityMetaData, IList<IObjRef>> entry : bucketSortObjRefs) {
 				allObjRefs.addAll(entry.getValue());
 			}
@@ -759,8 +759,8 @@ public class AuditEntryVerifier
 		IList<IObjRef> objRefsToAudit = remainingPropertyMap.keyList();
 		boolean[] entitiesDataInvalid = new boolean[objRefsToAudit.size()];
 
-		HashMap<IObjRef, Integer> entitiesWhichNeedReverify = new HashMap<IObjRef, Integer>();
-		IdentityHashSet<IAuditedEntity> auditedEntitiesToVerify = new IdentityHashSet<IAuditedEntity>();
+		HashMap<IObjRef, Integer> entitiesWhichNeedReverify = new HashMap<>();
+		IdentityHashSet<IAuditedEntity> auditedEntitiesToVerify = new IdentityHashSet<>();
 		{
 			IQuery<IAuditedEntity> query = resolveQuery(bucketSortObjRefs);
 			for (Entry<String, Object> entry : nameToValueMap) {
@@ -777,8 +777,8 @@ public class AuditEntryVerifier
 
 		IList<IAuditedEntity> auditedEntitiesToVerifyList = auditedEntitiesToVerify.toList();
 		boolean[] auditedEntitiesValid = verifyAuditedEntities(auditedEntitiesToVerifyList);
-		ArrayList<IObjRef> invalidEntities = new ArrayList<IObjRef>();
-		ArrayList<IAuditedEntity> invalidAuditedEntities = new ArrayList<IAuditedEntity>();
+		ArrayList<IObjRef> invalidEntities = new ArrayList<>();
+		ArrayList<IAuditedEntity> invalidAuditedEntities = new ArrayList<>();
 		for (int a = auditedEntitiesValid.length; a-- > 0;) {
 			if (auditedEntitiesValid[a]) {
 				continue;
@@ -829,7 +829,7 @@ public class AuditEntryVerifier
 					bucketSortObjRefs(objRefsToAudit, false);
 			IQuery<IAuditedEntity> query = resolveQuery(bucketSortObjRefs);
 
-			LinkedHashMap<String, Object> nameToValueMap = new LinkedHashMap<String, Object>();
+			LinkedHashMap<String, Object> nameToValueMap = new LinkedHashMap<>();
 			IMap<IObjRef, ISet<String>> remainingPropertyMap =
 					fillNameToValueMap(nameToValueMap, bucketSortObjRefs);
 
@@ -838,7 +838,7 @@ public class AuditEntryVerifier
 			}
 			IList<IAuditedEntity> auditedEntities = query.retrieve();
 
-			HashMap<IObjRef, Integer> entitiesWhichNeedReverify2 = new HashMap<IObjRef, Integer>();
+			HashMap<IObjRef, Integer> entitiesWhichNeedReverify2 = new HashMap<>();
 			filterAuditedEntities(auditedEntities, remainingPropertyMap, objRefsToAudit,
 					entitiesDataInvalid2, entitiesWhichNeedReverify2, auditedEntitiesToVerify);
 
@@ -878,9 +878,9 @@ public class AuditEntryVerifier
 
 		boolean[] result = new boolean[auditEntries.size()];
 		Arrays.fill(result, true);
-		ArrayList<IAuditEntry> auditEntriesToVerify = new ArrayList<IAuditEntry>(auditEntries.size());
+		ArrayList<IAuditEntry> auditEntriesToVerify = new ArrayList<>(auditEntries.size());
 		HashMap<ISignature, java.security.Signature> signatureToSignatureHandleMap =
-				new HashMap<ISignature, java.security.Signature>();
+				new HashMap<>();
 
 		for (IAuditEntry auditEntry : auditEntries) {
 			fillEntriesToVerify(auditEntry, auditEntry.getSignatureOfUser(), auditEntry.getSignature(),
@@ -926,9 +926,9 @@ public class AuditEntryVerifier
 		boolean[] result = new boolean[auditedEntities.size()];
 		Arrays.fill(result, true);
 		ArrayList<IAuditedEntity> auditedEntitiesToVerify =
-				new ArrayList<IAuditedEntity>(auditedEntities.size());
+				new ArrayList<>(auditedEntities.size());
 		HashMap<ISignature, java.security.Signature> signatureToSignatureHandleMap =
-				new HashMap<ISignature, java.security.Signature>();
+				new HashMap<>();
 
 		for (IAuditedEntity auditedEntity : auditedEntities) {
 			fillEntriesToVerify(auditedEntity, auditedEntity.getEntry().getSignatureOfUser(),
@@ -993,7 +993,7 @@ public class AuditEntryVerifier
 	protected ILinkedMap<IEntityMetaData, IList<IObjRef>> bucketSortObjRefs(
 			List<? extends IObjRef> orisToLoad, boolean checkConfiguration) {
 		IdentityLinkedMap<IEntityMetaData, IList<IObjRef>> serviceToAssignedObjRefsDict =
-				new IdentityLinkedMap<IEntityMetaData, IList<IObjRef>>();
+				new IdentityLinkedMap<>();
 
 		for (int i = orisToLoad.size(); i-- > 0;) {
 			IObjRef objRef = orisToLoad.get(i);
@@ -1008,7 +1008,7 @@ public class AuditEntryVerifier
 			}
 			IList<IObjRef> assignedObjRefs = serviceToAssignedObjRefsDict.get(metaData);
 			if (assignedObjRefs == null) {
-				assignedObjRefs = new ArrayList<IObjRef>();
+				assignedObjRefs = new ArrayList<>();
 				serviceToAssignedObjRefsDict.put(metaData, assignedObjRefs);
 			}
 			assignedObjRefs.add(objRef);

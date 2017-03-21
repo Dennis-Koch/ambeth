@@ -22,26 +22,22 @@ limitations under the License.
 
 import com.koch.ambeth.merge.transfer.AbstractChangeContainer;
 
-public class LinkContainer extends AbstractChangeContainer
-{
+public class LinkContainer extends AbstractChangeContainer {
 	protected ILinkChangeCommand command;
 
 	protected String tableName;
 
-	public ILinkChangeCommand getCommand()
-	{
+	public ILinkChangeCommand getCommand() {
 		return command;
 	}
 
-	public void setCommand(ILinkChangeCommand command)
-	{
+	public void setCommand(ILinkChangeCommand command) {
 		this.command = command;
 		setReference(command.getReference());
 		tableName = this.command.getDirectedLink().getLink().getMetaData().getTableName();
 	}
 
-	public String getTableName()
-	{
+	public String getTableName() {
 		return tableName;
 	}
 }

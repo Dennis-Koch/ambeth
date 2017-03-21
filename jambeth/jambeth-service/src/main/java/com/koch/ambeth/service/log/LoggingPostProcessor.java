@@ -37,8 +37,8 @@ import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 
 import net.sf.cglib.proxy.Callback;
 
-public class LoggingPostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanProcessor
-{
+public class LoggingPostProcessor extends AbstractCascadePostProcessor
+		implements IOrderedBeanProcessor {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -50,16 +50,15 @@ public class LoggingPostProcessor extends AbstractCascadePostProcessor implement
 	protected boolean printShortStringNames;
 
 	@Override
-	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory, IServiceContext beanContext,
-			IBeanConfiguration beanConfiguration, Class<?> type, Set<Class<?>> requestedTypes)
-	{
-		if (!type.isAnnotationPresent(LogException.class) && (!wrapAllInteractions || Callback.class.isAssignableFrom(type)))
-		{
+	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory,
+			IServiceContext beanContext, IBeanConfiguration beanConfiguration, Class<?> type,
+			Set<Class<?>> requestedTypes) {
+		if (!type.isAnnotationPresent(LogException.class)
+				&& (!wrapAllInteractions || Callback.class.isAssignableFrom(type))) {
 			return null;
 		}
 		LogInterceptor logInterceptor = new LogInterceptor();
-		if (beanContext.isRunning())
-		{
+		if (beanContext.isRunning()) {
 			return beanContext.registerWithLifecycle(logInterceptor).finish();
 		}
 		beanContextFactory.registerWithLifecycle(logInterceptor);
@@ -67,8 +66,7 @@ public class LoggingPostProcessor extends AbstractCascadePostProcessor implement
 	}
 
 	@Override
-	public ProcessorOrder getOrder()
-	{
+	public ProcessorOrder getOrder() {
 		return ProcessorOrder.HIGHEST;
 	}
 }

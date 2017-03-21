@@ -20,9 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public interface IMergeServiceExtensionExtendable
-{
-	void registerMergeServiceExtension(IMergeServiceExtension mergeServiceExtension, Class<?> entityType);
+public interface IMergeServiceExtensionExtendable {
+	void registerMergeServiceExtension(IMergeServiceExtension mergeServiceExtension,
+			Class<?> entityType);
 
-	void unregisterMergeServiceExtension(IMergeServiceExtension mergeServiceExtension, Class<?> entityType);
+	void unregisterMergeServiceExtension(IMergeServiceExtension mergeServiceExtension,
+			Class<?> entityType);
 }

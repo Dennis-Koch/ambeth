@@ -20,9 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public interface IPrimitiveRetrieverExtendable
-{
-	void registerPrimitiveRetriever(IPrimitiveRetriever primitiveRetriever, Class<?> handledType, String propertyName);
+public interface IPrimitiveRetrieverExtendable {
+	void registerPrimitiveRetriever(IPrimitiveRetriever primitiveRetriever, Class<?> handledType,
+			String propertyName);
 
-	void unregisterPrimitiveRetriever(IPrimitiveRetriever primitiveRetriever, Class<?> handledType, String propertyName);
+	void unregisterPrimitiveRetriever(IPrimitiveRetriever primitiveRetriever, Class<?> handledType,
+			String propertyName);
 }

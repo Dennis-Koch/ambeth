@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IInjectNeedTargetContext
-{
+public interface IInjectNeedTargetContext {
 	IInjectNeedTargetBean in(String contextName);
 
 	IInjectNeedTargetProperty intoBean(IBeanGetter beanGetter);

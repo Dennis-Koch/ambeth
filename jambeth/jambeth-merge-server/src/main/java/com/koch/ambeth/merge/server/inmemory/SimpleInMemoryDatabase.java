@@ -122,9 +122,9 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 	protected final java.util.concurrent.locks.Lock sequenceLock = new ReentrantLock();
 
 	protected final ThreadLocal<SimpleInMemorySession> sessionTL =
-			new ThreadLocal<SimpleInMemorySession>();
+			new ThreadLocal<>();
 
-	protected final HashSet<IObjRef> pendingChangesInSessionsMap = new HashSet<IObjRef>();
+	protected final HashSet<IObjRef> pendingChangesInSessionsMap = new HashSet<>();
 
 	protected long sequenceValue = 0;
 
@@ -255,11 +255,11 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 			Lock writeLock = committedData.getWriteLock();
 			writeLock.lock();
 			try {
-				ArrayList<IObjRef> existingObjRefs = new ArrayList<IObjRef>();
+				ArrayList<IObjRef> existingObjRefs = new ArrayList<>();
 				existingObjRefs.addAll(deletedObjRefs);
 				existingObjRefs.addAll(updatedObjRefs);
 
-				ArrayList<Object> changedContent = new ArrayList<Object>();
+				ArrayList<Object> changedContent = new ArrayList<>();
 				changedContent.addAll(createdContent);
 				changedContent.addAll(updatedContent);
 
@@ -330,12 +330,12 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 		List<IChangeContainer> changes = cudResult.getAllChanges();
 		IdentityHashMap<IObjRef, IObjRef> givenObjRefToCopyMap =
-				new IdentityHashMap<IObjRef, IObjRef>();
+				new IdentityHashMap<>();
 		IdentityHashMap<IObjRef, ILoadContainer> alreadyAcquiredLoadContainerMap =
-				new IdentityHashMap<IObjRef, ILoadContainer>();
+				new IdentityHashMap<>();
 
 		SimpleInMemorySession session = getOrCreateSession();
-		ArrayList<IObjRef> objRefList = new ArrayList<IObjRef>(changes.size());
+		ArrayList<IObjRef> objRefList = new ArrayList<>(changes.size());
 		LoadContainer[] newLCs = new LoadContainer[changes.size()];
 		com.koch.ambeth.util.Lock writeLock = session.data.getWriteLock();
 		writeLock.lock();
@@ -584,7 +584,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 			List<IObjRef> objRefList, Map<IObjRef, IObjRef> givenToInternalObjRefMap,
 			SimpleInMemorySession session) {
 		IChangeAggregator changeAggregator = beanContext.registerBean(ChangeAggregator.class).finish();
-		IList<IObjRef> toRemove = new ArrayList<IObjRef>(newLCs.length);
+		IList<IObjRef> toRemove = new ArrayList<>(newLCs.length);
 		for (int a = newLCs.length; a-- > 0;) {
 			IObjRef objRef = givenToInternalObjRefMap.get(changes.get(a).getReference());
 			toRemove.add(objRef);
@@ -724,7 +724,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 
 			IObjRef[] existingObjRefs = relations[relationIndex];
 			ISet<IObjRef> existingObjRefsSet =
-					existingObjRefs != null ? new HashSet<IObjRef>(existingObjRefs) : new HashSet<IObjRef>();
+					existingObjRefs != null ? new HashSet<>(existingObjRefs) : new HashSet<IObjRef>();
 			IObjRef[] addedObjRefs = rui.getAddedORIs();
 			IObjRef[] removedObjRefs = rui.getRemovedORIs();
 			if (removedObjRefs != null) {

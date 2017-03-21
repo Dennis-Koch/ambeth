@@ -31,8 +31,7 @@ import com.koch.ambeth.security.IAuthorization;
 import com.koch.ambeth.security.IAuthorizationChangeListener;
 import com.koch.ambeth.util.IInterningFeature;
 
-public class ContextProvider implements IContextProvider, IAuthorizationChangeListener
-{
+public class ContextProvider implements IContextProvider, IAuthorizationChangeListener {
 	@Autowired
 	protected IAuthenticatedUserHolder authenticatedUserHolder;
 
@@ -49,48 +48,40 @@ public class ContextProvider implements IContextProvider, IAuthorizationChangeLi
 	protected Reference<Thread> boundThread;
 
 	@Override
-	public void acquired()
-	{
-		boundThread = new WeakReference<Thread>(Thread.currentThread());
+	public void acquired() {
+		boundThread = new WeakReference<>(Thread.currentThread());
 		setCurrentUser(authenticatedUserHolder.getAuthenticatedSID());
 	}
 
 	@Override
-	public Long getCurrentTime()
-	{
+	public Long getCurrentTime() {
 		return currentTime;
 	}
 
 	@Override
-	public void setCurrentTime(Long currentTime)
-	{
+	public void setCurrentTime(Long currentTime) {
 		this.currentTime = currentTime;
 	}
 
 	@Override
-	public String getCurrentUser()
-	{
-		if (currentUser == null)
-		{
+	public String getCurrentUser() {
+		if (currentUser == null) {
 			return "anonymous";
 		}
 		return currentUser;
 	}
 
 	@Override
-	public void setCurrentUser(String currentUser)
-	{
+	public void setCurrentUser(String currentUser) {
 		IInterningFeature interningFeature = this.interningFeature;
-		if (interningFeature != null)
-		{
+		if (interningFeature != null) {
 			currentUser = interningFeature.intern(currentUser);
 		}
 		this.currentUser = currentUser;
 	}
 
 	@Override
-	public void clear()
-	{
+	public void clear() {
 		clearAfterMerge();
 		currentTime = null;
 		currentUser = null;
@@ -98,21 +89,17 @@ public class ContextProvider implements IContextProvider, IAuthorizationChangeLi
 	}
 
 	@Override
-	public void clearAfterMerge()
-	{
+	public void clearAfterMerge() {
 		alreadyLinkedCache.clear();
 	}
 
 	@Override
-	public void authorizationChanged(IAuthorization authorization)
-	{
-		if (boundThread == null)
-		{
+	public void authorizationChanged(IAuthorization authorization) {
+		if (boundThread == null) {
 			// currently inactive
 			return;
 		}
-		if (boundThread.get() != Thread.currentThread())
-		{
+		if (boundThread.get() != Thread.currentThread()) {
 			// other thread
 			return;
 		}

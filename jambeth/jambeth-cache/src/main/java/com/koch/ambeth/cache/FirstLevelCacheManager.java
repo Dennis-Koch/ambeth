@@ -41,12 +41,12 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-public class FirstLevelCacheManager implements IInitializingBean, IFirstLevelCacheExtendable, IFirstLevelCacheManager
-{
+public class FirstLevelCacheManager
+		implements IInitializingBean, IFirstLevelCacheExtendable, IFirstLevelCacheManager {
 	@LogInstance
 	private ILogger log;
 
-	protected final LinkedHashMap<Integer, FlcEntry> allFLCs = new LinkedHashMap<Integer, FlcEntry>();
+	protected final LinkedHashMap<Integer, FlcEntry> allFLCs = new LinkedHashMap<>();
 
 	protected int changeCount, lastCacheId;
 
@@ -56,94 +56,80 @@ public class FirstLevelCacheManager implements IInitializingBean, IFirstLevelCac
 
 	protected final Lock unboundReadLock, unboundWriteLock;
 
-	public FirstLevelCacheManager()
-	{
+	public FirstLevelCacheManager() {
 		ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
 		unboundReadLock = rwLock.readLock();
 		unboundWriteLock = rwLock.writeLock();
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(objectCollector, "ObjectCollector");
 	}
 
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
+	public void setObjectCollector(IThreadLocalObjectCollector objectCollector) {
 		this.objectCollector = objectCollector;
 	}
 
-	public void setTransactionState(ITransactionState transactionState)
-	{
+	public void setTransactionState(ITransactionState transactionState) {
 		this.transactionState = transactionState;
 	}
 
-	protected <V> Reference<V> createReferenceEntry(V firstLevelCache)
-	{
-		return new WeakReference<V>(firstLevelCache);
+	protected <V> Reference<V> createReferenceEntry(V firstLevelCache) {
+		return new WeakReference<>(firstLevelCache);
 	}
 
-	protected void cleanupCaches()
-	{
+	protected void cleanupCaches() {
 		Iterator<Entry<Integer, FlcEntry>> iter = allFLCs.iterator();
-		while (iter.hasNext())
-		{
+		while (iter.hasNext()) {
 			Entry<Integer, FlcEntry> entry = iter.next();
 			Integer cacheId = entry.getKey();
 			FlcEntry flcEntry = entry.getValue();
 			IWritableCache writableCache = flcEntry.getFirstLevelCache();
-			if (writableCache != null)
-			{
+			if (writableCache != null) {
 				continue;
 			}
 			iter.remove();
-			if (log.isDebugEnabled())
-			{
-				log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "GCed first level cache with id: ", cacheId));
+			if (log.isDebugEnabled()) {
+				log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(),
+						"GCed first level cache with id: ", cacheId));
 			}
 		}
 	}
 
-	protected void checkCachesForCleanup()
-	{
+	protected void checkCachesForCleanup() {
 		changeCount++;
-		if (changeCount >= 1000)
-		{
+		if (changeCount >= 1000) {
 			cleanupCaches();
 			changeCount = 0;
 		}
 	}
 
 	@Override
-	public void registerFirstLevelCache(IWritableCache firstLevelCache, CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware)
-	{
+	public void registerFirstLevelCache(IWritableCache firstLevelCache,
+			CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware) {
 		registerFirstLevelCache(firstLevelCache, cacheFactoryDirective, foreignThreadAware, null);
 	}
 
 	@Override
-	public void registerFirstLevelCache(IWritableCache firstLevelCache, CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, String name)
-	{
+	public void registerFirstLevelCache(IWritableCache firstLevelCache,
+			CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, String name) {
 		Reference<IWritableCache> firstLevelCacheR = createReferenceEntry(firstLevelCache);
 		Thread thread = Thread.currentThread();
 		Reference<Thread> owningThreadR = !foreignThreadAware ? createReferenceEntry(thread) : null;
 		FlcEntry flcEntry = new FlcEntry(cacheFactoryDirective, firstLevelCacheR, owningThreadR);
 		Lock unboundWriteLock = this.unboundWriteLock;
 		unboundWriteLock.lock();
-		try
-		{
+		try {
 			Integer cacheId;
 			int nextCacheId = lastCacheId;
-			while (true)
-			{
-				if (nextCacheId == Integer.MAX_VALUE)
-				{
+			while (true) {
+				if (nextCacheId == Integer.MAX_VALUE) {
 					nextCacheId = 0;
 				}
 				cacheId = new Integer(++nextCacheId);
 
-				if (allFLCs.putIfNotExists(cacheId, flcEntry))
-				{
+				if (allFLCs.putIfNotExists(cacheId, flcEntry)) {
 					lastCacheId = cacheId;
 					break;
 				}
@@ -152,42 +138,38 @@ public class FirstLevelCacheManager implements IInitializingBean, IFirstLevelCac
 
 			logFLC(firstLevelCache, cacheFactoryDirective, foreignThreadAware, name, flcEntry, true);
 		}
-		finally
-		{
+		finally {
 			unboundWriteLock.unlock();
 		}
 	}
 
 	@Override
-	public void unregisterFirstLevelCache(IWritableCache firstLevelCache, CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware)
-	{
+	public void unregisterFirstLevelCache(IWritableCache firstLevelCache,
+			CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware) {
 		unregisterFirstLevelCache(firstLevelCache, cacheFactoryDirective, foreignThreadAware, null);
 	}
 
 	@Override
-	public void unregisterFirstLevelCache(IWritableCache firstLevelCache, CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, String name)
-	{
+	public void unregisterFirstLevelCache(IWritableCache firstLevelCache,
+			CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, String name) {
 		// cacheFactoryDirective and foreignThreadAware will be intentionally ignored at unregister
 
 		Lock unboundWriteLock = this.unboundWriteLock;
 		unboundWriteLock.lock();
-		try
-		{
+		try {
 			checkCachesForCleanup();
 			int cacheId = firstLevelCache.getCacheId();
 			FlcEntry flcEntry = allFLCs.get(cacheId);
-			if (flcEntry == null)
-			{
+			if (flcEntry == null) {
 				throw new IllegalStateException("CacheId is not mapped to a valid cache instance");
 			}
 			IWritableCache existingChildCache = flcEntry.getFirstLevelCache();
-			if (existingChildCache == null)
-			{
+			if (existingChildCache == null) {
 				throw new IllegalStateException("Fatal error occured. Reference lost to cache");
 			}
-			if (existingChildCache != firstLevelCache)
-			{
-				throw new IllegalStateException("Fatal error occured. CacheId invalid - it is not mapped to the specified cache instance");
+			if (existingChildCache != firstLevelCache) {
+				throw new IllegalStateException(
+						"Fatal error occured. CacheId invalid - it is not mapped to the specified cache instance");
 			}
 			allFLCs.remove(cacheId);
 			foreignThreadAware = flcEntry.isForeignThreadAware();
@@ -196,135 +178,112 @@ public class FirstLevelCacheManager implements IInitializingBean, IFirstLevelCac
 			logFLC(firstLevelCache, cacheFactoryDirective, foreignThreadAware, name, flcEntry, false);
 			firstLevelCache.setCacheId(0);
 		}
-		finally
-		{
+		finally {
 			unboundWriteLock.unlock();
 		}
 	}
 
-	protected void logFLC(IWritableCache firstLevelCache, CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, String name,
-			FlcEntry flcEntry, boolean isRegister)
-	{
-		if (!log.isDebugEnabled())
-		{
+	protected void logFLC(IWritableCache firstLevelCache, CacheFactoryDirective cacheFactoryDirective,
+			boolean foreignThreadAware, String name, FlcEntry flcEntry, boolean isRegister) {
+		if (!log.isDebugEnabled()) {
 			return;
 		}
 		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
 		StringBuilder sb = objectCollector.create(StringBuilder.class);
-		try
-		{
-			if (isRegister)
-			{
+		try {
+			if (isRegister) {
 				sb.append("Registered");
 			}
-			else
-			{
+			else {
 				sb.append("Unregistered");
 			}
 			sb.append(" FLC");
-			if (name != null)
-			{
+			if (name != null) {
 				sb.append(" '").append(name).append("'");
 			}
 			sb.append(" with id: ").append(firstLevelCache.getCacheId());
-			if (firstLevelCache.isPrivileged())
-			{
+			if (firstLevelCache.isPrivileged()) {
 				sb.append(", privileged");
 			}
-			else
-			{
+			else {
 				sb.append(", non-privileged");
 			}
-			if (CacheFactoryDirective.SubscribeTransactionalDCE.equals(flcEntry.getCacheFactoryDirective()))
-			{
+			if (CacheFactoryDirective.SubscribeTransactionalDCE
+					.equals(flcEntry.getCacheFactoryDirective())) {
 				sb.append(", transactional");
-				if (foreignThreadAware)
-				{
+				if (foreignThreadAware) {
 					sb.append(", multithreaded");
 				}
-				else
-				{
+				else {
 					Thread thread = flcEntry.getOwningThread();
 					sb.append(", to thread ").append(thread.getId()).append(':').append(thread.getName());
 				}
 			}
-			else if (CacheFactoryDirective.SubscribeGlobalDCE.equals(flcEntry.getCacheFactoryDirective()))
-			{
+			else if (CacheFactoryDirective.SubscribeGlobalDCE
+					.equals(flcEntry.getCacheFactoryDirective())) {
 				sb.append(", non-transactional");
-				if (foreignThreadAware)
-				{
+				if (foreignThreadAware) {
 					sb.append(", multithreaded");
 				}
-				else
-				{
+				else {
 					Thread thread = flcEntry.getOwningThread();
 					sb.append(", to thread ").append(thread.getId()).append(':').append(thread.getName());
 				}
 			}
-			else
-			{
+			else {
 				sb.append(", traced");
 			}
 			log.debug(sb.toString());
 		}
-		finally
-		{
+		finally {
 			objectCollector.dispose(sb);
 		}
 	}
 
 	@Override
-	public IList<IWritableCache> selectFirstLevelCaches()
-	{
+	public IList<IWritableCache> selectFirstLevelCaches() {
 		boolean isTransactionActive = false;
-		if (transactionState != null)
-		{
+		if (transactionState != null) {
 			isTransactionActive = transactionState.isTransactionActive();
 		}
-		ArrayList<IWritableCache> liveChildCaches = new ArrayList<IWritableCache>();
+		ArrayList<IWritableCache> liveChildCaches = new ArrayList<>();
 
 		Lock unboundReadLock = this.unboundReadLock;
 		unboundReadLock.lock();
-		try
-		{
+		try {
 			addLiveFirstLevelCaches(liveChildCaches, isTransactionActive);
 		}
-		finally
-		{
+		finally {
 			unboundReadLock.unlock();
 		}
 		return liveChildCaches;
 	}
 
-	protected void addLiveFirstLevelCaches(IList<IWritableCache> liveChildCaches, boolean isTransactionActive)
-	{
-		if (allFLCs.size() == 0)
-		{
+	protected void addLiveFirstLevelCaches(IList<IWritableCache> liveChildCaches,
+			boolean isTransactionActive) {
+		if (allFLCs.size() == 0) {
 			return;
 		}
 		Thread currentThread = Thread.currentThread();
-		for (Entry<Integer, FlcEntry> entry : allFLCs)
-		{
+		for (Entry<Integer, FlcEntry> entry : allFLCs) {
 			FlcEntry flcEntry = entry.getValue();
 			CacheFactoryDirective cacheFactoryDirective = flcEntry.getCacheFactoryDirective();
-			if (cacheFactoryDirective == null || CacheFactoryDirective.NoDCE.equals(cacheFactoryDirective))
-			{
+			if (cacheFactoryDirective == null
+					|| CacheFactoryDirective.NoDCE.equals(cacheFactoryDirective)) {
 				// This cache is not interested in DCEs at all
 				continue;
 			}
-			if (isTransactionActive && CacheFactoryDirective.SubscribeGlobalDCE.equals(cacheFactoryDirective))
-			{
+			if (isTransactionActive
+					&& CacheFactoryDirective.SubscribeGlobalDCE.equals(cacheFactoryDirective)) {
 				// This cache is not interested in transactional DCEs
 				continue;
 			}
 			IWritableCache childCache = flcEntry.getFirstLevelCache();
-			if (childCache == null)
-			{
+			if (childCache == null) {
 				// This cache is not valid any more
 				continue;
 			}
-			if (!flcEntry.isInterestedInThread(currentThread))
-			{
+			if (!flcEntry.isInterestedInThread(currentThread)) {
 				// This cache is bound to a different thread than the current one
 				continue;
 			}
@@ -333,8 +292,7 @@ public class FirstLevelCacheManager implements IInitializingBean, IFirstLevelCac
 	}
 
 	@MBeanOperation
-	public int getNumberOfFirstLevelCaches()
-	{
+	public int getNumberOfFirstLevelCaches() {
 		return allFLCs.size();
 	}
 }

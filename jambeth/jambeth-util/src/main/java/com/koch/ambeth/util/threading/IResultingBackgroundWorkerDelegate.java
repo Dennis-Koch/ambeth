@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IResultingBackgroundWorkerDelegate<R>
-{
+public interface IResultingBackgroundWorkerDelegate<R> {
 	R invoke() throws Throwable;
 }

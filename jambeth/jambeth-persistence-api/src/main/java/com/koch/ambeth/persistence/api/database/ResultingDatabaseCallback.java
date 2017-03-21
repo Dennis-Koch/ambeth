@@ -23,7 +23,6 @@ limitations under the License.
 import com.koch.ambeth.persistence.api.IDatabase;
 import com.koch.ambeth.util.collections.ILinkedMap;
 
-public interface ResultingDatabaseCallback<R>
-{
+public interface ResultingDatabaseCallback<R> {
 	R callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable;
 }

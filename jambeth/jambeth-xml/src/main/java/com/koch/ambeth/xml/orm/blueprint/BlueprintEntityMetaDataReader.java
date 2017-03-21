@@ -34,8 +34,8 @@ import com.koch.ambeth.merge.orm.blueprint.IOrmDatabaseMapper;
 import com.koch.ambeth.merge.orm.blueprint.IRuntimeBlueprintEntityMetadataReader;
 import com.koch.ambeth.xml.ioc.XmlBlueprintModule;
 
-public class BlueprintEntityMetaDataReader extends AbstractEntityMetaDataReader implements IStartingBean, IRuntimeBlueprintEntityMetadataReader
-{
+public class BlueprintEntityMetaDataReader extends AbstractEntityMetaDataReader
+		implements IStartingBean, IRuntimeBlueprintEntityMetadataReader {
 	@LogInstance
 	private ILogger log;
 
@@ -49,24 +49,22 @@ public class BlueprintEntityMetaDataReader extends AbstractEntityMetaDataReader 
 	protected IOrmDatabaseMapper blueprintDatabaseMapper;
 
 	@Override
-	public void afterStarted() throws Throwable
-	{
-		if (blueprintOrmProvider != null && blueprintDatabaseMapper != null)
-		{
+	public void afterStarted() throws Throwable {
+		if (blueprintOrmProvider != null && blueprintDatabaseMapper != null) {
 			Document[] ormDocuments = blueprintOrmProvider.getOrmDocuments();
-			IOrmConfigGroup ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(ormDocuments, entityTypeProvider);
+			IOrmConfigGroup ormConfigGroup =
+					ormConfigGroupProvider.getOrmConfigGroup(ormDocuments, entityTypeProvider);
 			readConfig(ormConfigGroup);
 			blueprintDatabaseMapper.mapFields(ormConfigGroup);
 		}
 	}
 
 	@Override
-	public void addEntityBlueprintOrm(IEntityTypeBlueprint entityTypeBlueprint)
-	{
-		if (blueprintOrmProvider != null && blueprintDatabaseMapper != null)
-		{
+	public void addEntityBlueprintOrm(IEntityTypeBlueprint entityTypeBlueprint) {
+		if (blueprintOrmProvider != null && blueprintDatabaseMapper != null) {
 			Document ormDocument = blueprintOrmProvider.getOrmDocument(entityTypeBlueprint);
-			IOrmConfigGroup ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(new Document[] { ormDocument }, entityTypeProvider);
+			IOrmConfigGroup ormConfigGroup = ormConfigGroupProvider
+					.getOrmConfigGroup(new Document[] {ormDocument}, entityTypeProvider);
 			readConfig(ormConfigGroup);
 			blueprintDatabaseMapper.mapFields(ormConfigGroup);
 		}

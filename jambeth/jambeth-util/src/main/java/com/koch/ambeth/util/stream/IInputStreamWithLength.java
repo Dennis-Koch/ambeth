@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.io.InputStream;
 
-public interface IInputStreamWithLength
-{
+public interface IInputStreamWithLength {
 	InputStream getInputStream();
 
 	int getOverallLength();

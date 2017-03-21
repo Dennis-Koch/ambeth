@@ -23,27 +23,23 @@ limitations under the License.
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 
-public class AnnotationInfo<A extends Annotation> implements IAnnotationInfo<A>
-{
+public class AnnotationInfo<A extends Annotation> implements IAnnotationInfo<A> {
 	protected final A annotation;
 
 	protected final AnnotatedElement annotatedElement;
 
-	public AnnotationInfo(A annotation, AnnotatedElement annotatedElement)
-	{
+	public AnnotationInfo(A annotation, AnnotatedElement annotatedElement) {
 		this.annotation = annotation;
 		this.annotatedElement = annotatedElement;
 	}
 
 	@Override
-	public A getAnnotation()
-	{
+	public A getAnnotation() {
 		return annotation;
 	}
 
 	@Override
-	public AnnotatedElement getAnnotatedElement()
-	{
+	public AnnotatedElement getAnnotatedElement() {
 		return annotatedElement;
 	}
 }

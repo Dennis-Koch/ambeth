@@ -22,7 +22,6 @@ limitations under the License.
 
 import org.objectweb.asm.ClassVisitor;
 
-public interface IBuildVisitorDelegate
-{
+public interface IBuildVisitorDelegate {
 	ClassVisitor build(ClassVisitor cv);
 }

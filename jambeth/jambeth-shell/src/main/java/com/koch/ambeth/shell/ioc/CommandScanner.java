@@ -96,7 +96,7 @@ public class CommandScanner implements IBeanPostProcessor {
 	}
 
 	private CommandArg[] getCommandArgsForMethod(Method method) {
-		ArrayList<CommandArg> args = new ArrayList<CommandArg>();
+		ArrayList<CommandArg> args = new ArrayList<>();
 		Annotation[][] parameterAnnotations = method.getParameterAnnotations();
 		for (Annotation[] as : parameterAnnotations) {
 			for (Annotation a : as) {

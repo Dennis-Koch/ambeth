@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IThreadLocalCleanupController
-{
+public interface IThreadLocalCleanupController {
 	void cleanupThreadLocal();
 
 	IForkState createForkState();

@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface ITestListenerRegistry
-{
+public interface ITestListenerRegistry {
 	ITestListener[] getTestListeners();
 }

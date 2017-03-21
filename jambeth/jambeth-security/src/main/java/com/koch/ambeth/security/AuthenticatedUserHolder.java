@@ -27,8 +27,7 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
-public class AuthenticatedUserHolder implements IAuthenticatedUserHolder, IThreadLocalCleanupBean
-{
+public class AuthenticatedUserHolder implements IAuthenticatedUserHolder, IThreadLocalCleanupBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -37,23 +36,20 @@ public class AuthenticatedUserHolder implements IAuthenticatedUserHolder, IThrea
 	protected ISecurityContextHolder securityContextHolder;
 
 	@Forkable
-	protected final ThreadLocal<String> authenticatedUserTL = new SensitiveThreadLocal<String>();
+	protected final ThreadLocal<String> authenticatedUserTL = new SensitiveThreadLocal<>();
 
 	@Override
-	public void cleanupThreadLocal()
-	{
-		if (authenticatedUserTL.get() != null)
-		{
-			throw new IllegalStateException("At this point the thread-local connection has to be already cleaned up gracefully");
+	public void cleanupThreadLocal() {
+		if (authenticatedUserTL.get() != null) {
+			throw new IllegalStateException(
+					"At this point the thread-local connection has to be already cleaned up gracefully");
 		}
 	}
 
 	@Override
-	public String getAuthenticatedSID()
-	{
+	public String getAuthenticatedSID() {
 		String authorizedUser = authenticatedUserTL.get();
-		if (authorizedUser != null)
-		{
+		if (authorizedUser != null) {
 			return authorizedUser;
 		}
 		ISecurityContext context = securityContextHolder.getContext();
@@ -62,8 +58,7 @@ public class AuthenticatedUserHolder implements IAuthenticatedUserHolder, IThrea
 	}
 
 	@Override
-	public void setAuthenticatedSID(String sid)
-	{
+	public void setAuthenticatedSID(String sid) {
 		authenticatedUserTL.set(sid);
 	}
 }

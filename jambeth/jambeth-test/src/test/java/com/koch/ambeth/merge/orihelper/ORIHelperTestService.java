@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.merge.independent.EntityB;
 
-public interface ORIHelperTestService
-{
+public interface ORIHelperTestService {
 	public EntityB[] getAllEntityBs();
 }

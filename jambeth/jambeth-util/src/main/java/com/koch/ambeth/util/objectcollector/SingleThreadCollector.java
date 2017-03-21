@@ -25,10 +25,11 @@ import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.collections.MapLinkedIterator;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class SingleThreadCollector extends LinkedHashMap<Class<?>, SimpleObjectCollectorItem> implements IObjectCollector, IThreadLocalObjectCollector,
-		ICollectableControllerExtendable, IDisposable
-{
-	protected LinkedHashMap<Class<?>, ICollectableController> typeToControllerMap = new LinkedHashMap<Class<?>, ICollectableController>(16, 0.5f);
+public class SingleThreadCollector extends LinkedHashMap<Class<?>, SimpleObjectCollectorItem>
+		implements IObjectCollector, IThreadLocalObjectCollector, ICollectableControllerExtendable,
+		IDisposable {
+	protected LinkedHashMap<Class<?>, ICollectableController> typeToControllerMap =
+			new LinkedHashMap<>(16, 0.5f);
 
 	protected final IThreadLocalObjectCollector objectCollector;
 
@@ -40,78 +41,68 @@ public class SingleThreadCollector extends LinkedHashMap<Class<?>, SimpleObjectC
 
 	protected long cleanupInterval = 60000;
 
-	public SingleThreadCollector(IThreadLocalObjectCollector objectCollector)
-	{
+	public SingleThreadCollector(IThreadLocalObjectCollector objectCollector) {
 		super(100, 0.5f);
 		this.objectCollector = objectCollector;
 	}
 
 	@Override
-	public void dispose()
-	{
+	public void dispose() {
 		clear();
 		typeToControllerMap.clear();
 	}
 
-	public int getMappingVersion()
-	{
+	public int getMappingVersion() {
 		return mappingVersion;
 	}
 
-	public void setMappingVersion(int mappingVersion)
-	{
+	public void setMappingVersion(int mappingVersion) {
 		this.mappingVersion = mappingVersion;
 	}
 
-	public void setCleanupInterval(long cleanupInterval)
-	{
+	public void setCleanupInterval(long cleanupInterval) {
 		this.cleanupInterval = cleanupInterval;
 	}
 
 	@Override
-	public IThreadLocalObjectCollector getCurrent()
-	{
+	public IThreadLocalObjectCollector getCurrent() {
 		return objectCollector;
 	}
 
-	public void clearCollectableControllers()
-	{
+	public void clearCollectableControllers() {
 		typeToControllerMap.clear();
 	}
 
 	@Override
-	public void registerCollectableController(ICollectableController collectableController, Class<?> handledType)
-	{
-		if (typeToControllerMap.containsKey(handledType))
-		{
-			throw new IllegalArgumentException("There is already a CollectableController mapped to type " + handledType);
+	public void registerCollectableController(ICollectableController collectableController,
+			Class<?> handledType) {
+		if (typeToControllerMap.containsKey(handledType)) {
+			throw new IllegalArgumentException(
+					"There is already a CollectableController mapped to type " + handledType);
 		}
 		typeToControllerMap.put(handledType, collectableController);
 	}
 
 	@Override
-	public void unregisterCollectableController(ICollectableController collectableController, Class<?> handledType)
-	{
-		if (typeToControllerMap.get(handledType) != collectableController)
-		{
-			throw new IllegalArgumentException("CollectableController " + handledType + " is not mapped to type " + handledType);
+	public void unregisterCollectableController(ICollectableController collectableController,
+			Class<?> handledType) {
+		if (typeToControllerMap.get(handledType) != collectableController) {
+			throw new IllegalArgumentException(
+					"CollectableController " + handledType + " is not mapped to type " + handledType);
 		}
 		typeToControllerMap.remove(handledType);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T create(final Class<T> myClass)
-	{
+	public <T> T create(final Class<T> myClass) {
 		return (T) getOrAllocateOcItem(myClass).getOneInstance();
 	}
 
 	@Override
-	public void dispose(final Object object)
-	{
+	public void dispose(final Object object) {
 		long now = System.currentTimeMillis();
-		if (now - lastCleanup > cleanupInterval)
-		{
+		if (now - lastCleanup > cleanupInterval) {
 			cleanUp();
 			lastCleanup = now;
 		}
@@ -119,11 +110,9 @@ public class SingleThreadCollector extends LinkedHashMap<Class<?>, SimpleObjectC
 	}
 
 	@Override
-	public <T> void dispose(Class<T> type, T object)
-	{
+	public <T> void dispose(Class<T> type, T object) {
 		long now = System.currentTimeMillis();
-		if (now - lastCleanup > cleanupInterval)
-		{
+		if (now - lastCleanup > cleanupInterval) {
 			cleanUp();
 			lastCleanup = now;
 		}
@@ -131,40 +120,33 @@ public class SingleThreadCollector extends LinkedHashMap<Class<?>, SimpleObjectC
 	}
 
 	@Override
-	public void cleanUp()
-	{
+	public void cleanUp() {
 		MapLinkedIterator<Class<?>, SimpleObjectCollectorItem> iter = iterator();
-		while (iter.hasNext())
-		{
+		while (iter.hasNext()) {
 			iter.next().getValue().cleanUp();
 		}
 	}
 
-	protected IObjectCollectorItem getOrAllocateOcItem(final Class<?> type)
-	{
+	protected IObjectCollectorItem getOrAllocateOcItem(final Class<?> type) {
 		IObjectCollectorItem ocItem = get(type);
-		if (ocItem != null)
-		{
+		if (ocItem != null) {
 			return ocItem;
 		}
-		try
-		{
+		try {
 			return allocateOcItem(type);
 		}
-		catch (NoSuchMethodException e)
-		{
+		catch (NoSuchMethodException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
-	protected IObjectCollectorItem allocateOcItem(final Class<?> type) throws NoSuchMethodException
-	{
+	protected IObjectCollectorItem allocateOcItem(final Class<?> type) throws NoSuchMethodException {
 		ICollectableController collectableController = typeToControllerMap.get(type);
-		if (collectableController == null)
-		{
+		if (collectableController == null) {
 			collectableController = new DefaultCollectableController(type, objectCollector);
 		}
-		SimpleObjectCollectorItem ocItem = new SimpleObjectCollectorItem(objectCollector, collectableController, type);
+		SimpleObjectCollectorItem ocItem =
+				new SimpleObjectCollectorItem(objectCollector, collectableController, type);
 		put(type, ocItem);
 		return ocItem;
 	}

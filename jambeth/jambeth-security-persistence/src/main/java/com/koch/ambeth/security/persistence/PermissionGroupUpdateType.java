@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public enum PermissionGroupUpdateType
-{
+public enum PermissionGroupUpdateType {
 	NOTHING, EACH_ROW, SELECTED_ROW;
 }

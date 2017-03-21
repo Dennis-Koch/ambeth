@@ -33,8 +33,7 @@ import com.koch.ambeth.persistence.jdbc.lob.ILobInputSourceController;
 import com.koch.ambeth.stream.binary.IBinaryInputSource;
 import com.koch.ambeth.stream.chars.ICharacterInputSource;
 
-public class AbstractExtendedConnectionDialect implements IExtendedConnectionDialect
-{
+public class AbstractExtendedConnectionDialect implements IExtendedConnectionDialect {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -43,14 +42,12 @@ public class AbstractExtendedConnectionDialect implements IExtendedConnectionDia
 	protected ILobInputSourceController lobInputSourceController;
 
 	@Override
-	public IBinaryInputSource createBinaryInputSource(Blob blob)
-	{
+	public IBinaryInputSource createBinaryInputSource(Blob blob) {
 		return new BlobInputSource(lobInputSourceController);
 	}
 
 	@Override
-	public ICharacterInputSource createCharacterInputSource(Clob clob)
-	{
+	public ICharacterInputSource createCharacterInputSource(Clob clob) {
 		return new ClobInputSource(lobInputSourceController);
 	}
 }

@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.sql.Connection;
 
-public interface IConnectionHolder
-{
+public interface IConnectionHolder {
 	void setConnection(Connection conn);
 
 	Connection getConnection();

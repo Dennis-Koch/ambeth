@@ -21,8 +21,7 @@ limitations under the License.
  */
 
 
-public interface IMergeListenerExtendable
-{
+public interface IMergeListenerExtendable {
 	void registerMergeListener(IMergeListener mergeListener);
 
 	void unregisterMergeListener(IMergeListener mergeListener);

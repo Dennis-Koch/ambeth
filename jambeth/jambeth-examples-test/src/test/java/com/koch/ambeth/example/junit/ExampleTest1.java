@@ -26,11 +26,9 @@ import org.junit.Test;
 
 import com.koch.ambeth.testutil.AbstractIocTest;
 
-public class ExampleTest1 extends AbstractIocTest
-{
+public class ExampleTest1 extends AbstractIocTest {
 	@Test
-	public void test()
-	{
+	public void test() {
 		assertTrue(true);
 	}
 }

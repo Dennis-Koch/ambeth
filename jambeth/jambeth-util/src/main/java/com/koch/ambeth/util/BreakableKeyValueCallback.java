@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface BreakableKeyValueCallback<TKey, TValue>
-{
+public interface BreakableKeyValueCallback<TKey, TValue> {
 
 	boolean invoke(TKey key, TValue value) throws Throwable;
 

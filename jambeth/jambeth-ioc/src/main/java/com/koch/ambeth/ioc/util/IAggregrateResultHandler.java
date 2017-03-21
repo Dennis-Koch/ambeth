@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IAggregrateResultHandler<R, V>
-{
+public interface IAggregrateResultHandler<R, V> {
 	void aggregateResult(R resultOfFork, V itemOfFork) throws Throwable;
 }

@@ -35,68 +35,57 @@ import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConst
 import com.koch.ambeth.util.exception.MaskingRuntimeException;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class Oracle10gThinDialect extends Oracle10gDialect
-{
+public class Oracle10gThinDialect extends Oracle10gDialect {
 
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseAutoCleanupRecycleBin, defaultValue = "false")
+	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseAutoCleanupRecycleBin,
+			defaultValue = "false")
 	protected boolean autoCleanupRecycleBin;
 
 	@Override
-	public void preProcessConnection(Connection connection, String[] schemaNames, boolean forcePreProcessing)
-	{
+	public void preProcessConnection(Connection connection, String[] schemaNames,
+			boolean forcePreProcessing) {
 		super.preProcessConnection(connection, schemaNames, forcePreProcessing);
 
-		if (autoCleanupRecycleBin)
-		{
-			try
-			{
+		if (autoCleanupRecycleBin) {
+			try {
 				Statement stm = connection.createStatement();
-				try
-				{
+				try {
 					// Deletes those ugly recyclebin tables
 					stm.execute("PURGE RECYCLEBIN");
 				}
-				finally
-				{
+				finally {
 					JdbcUtil.close(stm);
 				}
 			}
-			catch (Throwable e)
-			{
+			catch (Throwable e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
 	}
 
 	@Override
-	public void commit(Connection connection) throws SQLException
-	{
+	public void commit(Connection connection) throws SQLException {
 		connection.commit();
 	}
 
 	@Override
-	public void rollback(Connection connection) throws SQLException
-	{
-		try
-		{
+	public void rollback(Connection connection) throws SQLException {
+		try {
 			connection.rollback();
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			if (SQLState.CONNECTION_NOT_OPEN.getXopen().equals(e.getSQLState())) // Closed connection
 			{
 				return;
 			}
 			throw e;
 		}
-		catch (MaskingRuntimeException e)
-		{
-			if (e.getCause() instanceof SQLRecoverableException)
-			{
+		catch (MaskingRuntimeException e) {
+			if (e.getCause() instanceof SQLRecoverableException) {
 				SQLRecoverableException sqlEx = (SQLRecoverableException) e.getCause();
 				String sqlState = sqlEx.getSQLState();
 				if (SQLState.CONNECTION_NOT_OPEN.getXopen().equals(sqlState)) // Closed connection
@@ -109,8 +98,8 @@ public class Oracle10gThinDialect extends Oracle10gDialect
 	}
 
 	@Override
-	public ResultSet getIndexInfo(Connection connection, String schemaName, String tableName, boolean unique) throws SQLException
-	{
+	public ResultSet getIndexInfo(Connection connection, String schemaName, String tableName,
+			boolean unique) throws SQLException {
 		return connection.getMetaData().getIndexInfo(null, schemaName, tableName, unique, true);
 	}
 }

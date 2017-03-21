@@ -20,27 +20,22 @@ limitations under the License.
  * #L%
  */
 
-public class StrongKey<V>
-{
+public class StrongKey<V> {
 	protected final V extension;
 
 	protected final Class<?> strongType;
 
-	public StrongKey(V extension, Class<?> strongType)
-	{
+	public StrongKey(V extension, Class<?> strongType) {
 		this.extension = extension;
 		this.strongType = strongType;
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == this)
-		{
+	public boolean equals(Object obj) {
+		if (obj == this) {
 			return true;
 		}
-		if (!(obj instanceof StrongKey))
-		{
+		if (!(obj instanceof StrongKey)) {
 			return false;
 		}
 		StrongKey<?> other = (StrongKey<?>) obj;
@@ -48,14 +43,12 @@ public class StrongKey<V>
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return extension.hashCode() ^ strongType.hashCode();
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return "(Key: " + strongType.getName() + " Extension: " + extension.toString() + ")";
 	}
 }

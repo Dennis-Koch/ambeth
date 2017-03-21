@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ITableAliasHolder
-{
+public interface ITableAliasHolder {
 	String getTableAlias();
 
 	void setTableAlias(String tableAlias);

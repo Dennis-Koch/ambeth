@@ -25,7 +25,6 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ AuditMethodCallTest.class })
-public class AllAuditTests
-{
+@SuiteClasses({AuditMethodCallTest.class})
+public class AllAuditTests {
 }

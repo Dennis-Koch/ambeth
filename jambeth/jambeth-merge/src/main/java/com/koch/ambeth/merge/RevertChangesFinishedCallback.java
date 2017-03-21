@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.util.IDelegate;
 
-public interface RevertChangesFinishedCallback extends IDelegate
-{
+public interface RevertChangesFinishedCallback extends IDelegate {
 	void invoke(boolean success);
 }

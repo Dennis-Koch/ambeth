@@ -24,26 +24,20 @@ import java.io.Closeable;
 
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public final class CloseUtil
-{
-	public static void close(Closeable closeable)
-	{
-		if (closeable == null)
-		{
+public final class CloseUtil {
+	public static void close(Closeable closeable) {
+		if (closeable == null) {
 			return;
 		}
-		try
-		{
+		try {
 			closeable.close();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
-	private CloseUtil()
-	{
+	private CloseUtil() {
 		// Intended blank
 	}
 }

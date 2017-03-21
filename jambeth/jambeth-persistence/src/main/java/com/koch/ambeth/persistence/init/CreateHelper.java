@@ -25,37 +25,31 @@ import java.util.Collection;
 
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
-public final class CreateHelper
-{
-	private static final ThreadLocal<Collection<Object>> entityQueueLocal = new SensitiveThreadLocal<Collection<Object>>();
+public final class CreateHelper {
+	private static final ThreadLocal<Collection<Object>> entityQueueLocal =
+			new SensitiveThreadLocal<>();
 
-	public static void queueEntity(Object entity)
-	{
+	public static void queueEntity(Object entity) {
 		Collection<Object> entityQueue = CreateHelper.entityQueueLocal.get();
-		if (entityQueue == null)
-		{
-			entityQueue = new ArrayList<Object>();
+		if (entityQueue == null) {
+			entityQueue = new ArrayList<>();
 			CreateHelper.entityQueueLocal.set(entityQueue);
 		}
 		entityQueue.add(entity);
 	}
 
-	public static Collection<Object> getAndClearEntityQueue()
-	{
+	public static Collection<Object> getAndClearEntityQueue() {
 		Collection<Object> entityQueue = CreateHelper.entityQueueLocal.get();
-		if (entityQueue == null)
-		{
-			entityQueue = new ArrayList<Object>();
+		if (entityQueue == null) {
+			entityQueue = new ArrayList<>();
 		}
-		else
-		{
+		else {
 			CreateHelper.entityQueueLocal.remove();
 		}
 		return entityQueue;
 	}
 
-	private CreateHelper()
-	{
+	private CreateHelper() {
 		// intended blank
 	}
 }

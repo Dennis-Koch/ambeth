@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.util.ParamChecker;
 
-public abstract class AbstractMemberConfig implements IMemberConfig
-{
+public abstract class AbstractMemberConfig implements IMemberConfig {
 	private final String name;
 
 	private String definedBy;
@@ -36,84 +35,70 @@ public abstract class AbstractMemberConfig implements IMemberConfig
 
 	private boolean explicitlyNotMergeRelevant;
 
-	public AbstractMemberConfig(String name)
-	{
+	public AbstractMemberConfig(String name) {
 		ParamChecker.assertParamNotNullOrEmpty(name, "name");
 		this.name = name;
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
 	@Override
-	public boolean isAlternateId()
-	{
+	public boolean isAlternateId() {
 		return alternateId;
 	}
 
-	public void setAlternateId(boolean alternateId)
-	{
+	public void setAlternateId(boolean alternateId) {
 		this.alternateId = alternateId;
 	}
 
 	@Override
-	public boolean isTransient()
-	{
+	public boolean isTransient() {
 		return isTransient;
 	}
 
-	public void setTransient(boolean isTransient)
-	{
+	public void setTransient(boolean isTransient) {
 		this.isTransient = isTransient;
 	}
 
 	@Override
-	public String getDefinedBy()
-	{
+	public String getDefinedBy() {
 		return definedBy;
 	}
 
-	public void setDefinedBy(String definedBy)
-	{
+	public void setDefinedBy(String definedBy) {
 		this.definedBy = definedBy;
 	}
 
 	@Override
-	public boolean isIgnore()
-	{
+	public boolean isIgnore() {
 		return ignore;
 	}
 
-	public void setIgnore(boolean ignore)
-	{
+	public void setIgnore(boolean ignore) {
 		this.ignore = ignore;
 	}
 
 	@Override
-	public boolean isExplicitlyNotMergeRelevant()
-	{
+	public boolean isExplicitlyNotMergeRelevant() {
 		return explicitlyNotMergeRelevant;
 	}
 
-	public void setExplicitlyNotMergeRelevant(boolean explicitlyNotMergeRelevant)
-	{
+	public void setExplicitlyNotMergeRelevant(boolean explicitlyNotMergeRelevant) {
 		this.explicitlyNotMergeRelevant = explicitlyNotMergeRelevant;
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return getName().hashCode();
 	}
 
 	@Override
 	public abstract boolean equals(Object obj);
 
-	public boolean equals(AbstractMemberConfig other)
-	{
+	public boolean equals(AbstractMemberConfig other) {
 		return getName().equals(other.getName());
 	}
 }

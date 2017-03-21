@@ -155,8 +155,7 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 				return propertyEntry;
 			}
 
-			IMap<String, IMap<Class<?>, IMap<String, Method>>> sortedMethods =
-					new LinkedHashMap<>();
+			IMap<String, IMap<Class<?>, IMap<String, Method>>> sortedMethods = new LinkedHashMap<>();
 			Method[] methods = ReflectUtil.getDeclaredMethodsInHierarchy(type);
 
 			MethodAccess methodAccess = null;
@@ -211,8 +210,7 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 			IMap<String, IMap<String, Method>> filteredMethods =
 					filterOverriddenMethods(sortedMethods, type);
 
-			LinkedHashMap<String, IPropertyInfo> propertyMap =
-					new LinkedHashMap<>(0.5f);
+			LinkedHashMap<String, IPropertyInfo> propertyMap = new LinkedHashMap<>(0.5f);
 			for (Entry<String, IMap<String, Method>> propertyData : filteredMethods) {
 				String propertyName = propertyData.getKey();
 				IMap<String, Method> propertyMethods = propertyData.getValue();

@@ -23,7 +23,6 @@ limitations under the License.
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType(name = "IPUI")
-public interface IPrimitiveUpdateItem extends IUpdateItem
-{
+public interface IPrimitiveUpdateItem extends IUpdateItem {
 	Object getNewValue();
 }

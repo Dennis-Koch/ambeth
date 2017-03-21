@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public enum AuditedEntityPropertyItemChangeType
-{
+public enum AuditedEntityPropertyItemChangeType {
 	ADD, REMOVE
 }

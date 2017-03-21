@@ -30,31 +30,27 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 import net.sf.cglib.proxy.MethodProxy;
 
-public class DelegateInterceptor extends AbstractSimpleInterceptor
-{
+public class DelegateInterceptor extends AbstractSimpleInterceptor {
 	protected final Object target;
 
 	protected final MethodAccess methodAccess;
 
 	protected final IMap<Method, Object> methodMap;
 
-	public DelegateInterceptor(Object target, IMap<Method, Method> methodMap)
-	{
+	public DelegateInterceptor(Object target, IMap<Method, Method> methodMap) {
 		this.target = target;
 		methodAccess = MethodAccess.get(target.getClass());
 		this.methodMap = HashMap.create(methodMap.size(), 0.5f);
-		for (Entry<Method, Method> entry : methodMap)
-		{
+		for (Entry<Method, Method> entry : methodMap) {
 			Method method = entry.getKey();
 			Method mappedMethod = entry.getValue();
-			try
-			{
+			try {
 				// first try with "reflect asm"
-				int indexOfMethod = methodAccess.getIndex(mappedMethod.getName(), mappedMethod.getParameterTypes());
+				int indexOfMethod =
+						methodAccess.getIndex(mappedMethod.getName(), mappedMethod.getParameterTypes());
 				this.methodMap.put(method, Integer.valueOf(indexOfMethod));
 			}
-			catch (Throwable e)
-			{
+			catch (Throwable e) {
 				// fallback with "plain old reflection"
 				this.methodMap.put(method, mappedMethod);
 			}
@@ -62,26 +58,21 @@ public class DelegateInterceptor extends AbstractSimpleInterceptor
 	}
 
 	@Override
-	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
-	{
-		try
-		{
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy)
+			throws Throwable {
+		try {
 			Object mapping = methodMap.get(method);
-			if (mapping == null)
-			{
+			if (mapping == null) {
 				return method.invoke(target, args);
 			}
-			if (mapping instanceof Integer)
-			{
+			if (mapping instanceof Integer) {
 				int index = ((Integer) mapping).intValue();
 				return methodAccess.invoke(target, index, args);
 			}
-			else
-			{
+			else {
 				Method mappedMethod = (Method) mapping;
 				int expectedArgsLength = mappedMethod.getParameterTypes().length;
-				if (expectedArgsLength != args.length)
-				{
+				if (expectedArgsLength != args.length) {
 					Object[] newArgs = new Object[expectedArgsLength];
 					System.arraycopy(args, 0, newArgs, 0, expectedArgsLength);
 					args = newArgs;
@@ -89,8 +80,7 @@ public class DelegateInterceptor extends AbstractSimpleInterceptor
 				return mappedMethod.invoke(target, args);
 			}
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e, method.getExceptionTypes());
 		}
 	}

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ICheckPasswordResult
-{
+public interface ICheckPasswordResult {
 	boolean isPasswordCorrect();
 
 	boolean isChangePasswordRecommended();

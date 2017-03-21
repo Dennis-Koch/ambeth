@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public final class QueryConstants
-{
+public final class QueryConstants {
 	public static final Object USE_TABLE_ALIAS = new Object();
 
 	public static final Object PAGING_INDEX_OBJECT = new Object();
@@ -46,8 +45,7 @@ public final class QueryConstants
 
 	public static final String LIMIT_VALUE = "#limitValue";
 
-	private QueryConstants()
-	{
+	private QueryConstants() {
 		// Intended blank
 	}
 }

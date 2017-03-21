@@ -72,8 +72,7 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
 	protected final SchemaFactory schemaFactory =
 			SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 
-	protected final HashMap<String, Reference<Class<?>>> nameToTypeMap =
-			new HashMap<>();
+	protected final HashMap<String, Reference<Class<?>>> nameToTypeMap = new HashMap<>();
 
 	protected final java.util.concurrent.locks.Lock writeLock = new ReentrantLock();
 

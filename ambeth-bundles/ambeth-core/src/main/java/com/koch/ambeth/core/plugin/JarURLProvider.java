@@ -38,8 +38,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class JarURLProvider implements IJarURLProvider, IInitializingBean
-{
+public class JarURLProvider implements IJarURLProvider, IInitializingBean {
 	@Property(name = CoreConfigurationConstants.PluginPaths)
 	protected String[] jarPaths;
 
@@ -49,53 +48,43 @@ public class JarURLProvider implements IJarURLProvider, IInitializingBean
 	protected IList<URL> jarURLs;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		jarURLs = extractJarURL(jarPaths);
 	}
 
 	@Override
-	public IList<URL> getJarURLs()
-	{
+	public IList<URL> getJarURLs() {
 		return jarURLs;
 	}
 
-	private ArrayList<URL> extractJarURL(String... pathArray)
-	{
-		ArrayList<URL> urls = new ArrayList<URL>();
-		for (String path : pathArray)
-		{
+	private ArrayList<URL> extractJarURL(String... pathArray) {
+		ArrayList<URL> urls = new ArrayList<>();
+		for (String path : pathArray) {
 			urls.addAll(buildUrl(path));
 		}
 		return urls;
 	}
 
-	private List<URL> buildUrl(String path)
-	{
-		List<URL> urls = new ArrayList<URL>();
+	private List<URL> buildUrl(String path) {
+		List<URL> urls = new ArrayList<>();
 		File dir = new File(path);
-		try
-		{
-			if (dir.isFile() && path.toLowerCase().endsWith(".jar"))
-			{
+		try {
+			if (dir.isFile() && path.toLowerCase().endsWith(".jar")) {
 				urls.add(dir.toURI().toURL());
 			}
-			else if (dir.isDirectory() && !isRecursive)
-			{
+			else if (dir.isDirectory() && !isRecursive) {
 				urls.addAll(listJars(dir));
 			}
-			else if (dir.isDirectory() && isRecursive)
-			{
+			else if (dir.isDirectory() && isRecursive) {
 				urls.addAll(listAllJars(dir));
 			}
-			else
-			{
-				throw new IllegalArgumentException("path for scan plugin is not jar file or not exists, path:" + path);
+			else {
+				throw new IllegalArgumentException(
+						"path for scan plugin is not jar file or not exists, path:" + path);
 			}
 			return urls;
 		}
-		catch (MalformedURLException e)
-		{
+		catch (MalformedURLException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -103,52 +92,41 @@ public class JarURLProvider implements IJarURLProvider, IInitializingBean
 	/**
 	 * find all the jar files in a folder
 	 *
-	 * @param dir
-	 *            to find jars folder
+	 * @param dir to find jars folder
 	 * @return all the jars
 	 * @throws MalformedURLException
 	 */
-	private List<URL> listAllJars(File dir) throws MalformedURLException
-	{
-		final List<URL> files = new ArrayList<URL>();
-		try
-		{
-			Files.walkFileTree(dir.toPath(), new SimpleFileVisitor<Path>()
-			{
+	private List<URL> listAllJars(File dir) throws MalformedURLException {
+		final List<URL> files = new ArrayList<>();
+		try {
+			Files.walkFileTree(dir.toPath(), new SimpleFileVisitor<Path>() {
 				@Override
-				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
-				{
-					if (checkJar(file.toFile()))
-					{
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+					if (checkJar(file.toFile())) {
 						files.add(file.toUri().toURL());
 					}
 					return super.visitFile(file, attrs);
 				}
 			});
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		return files;
 	}
 
-	private List<URL> listJars(File dir) throws MalformedURLException
-	{
+	private List<URL> listJars(File dir) throws MalformedURLException {
 		File[] listFiles = dir.listFiles();
-		List<URL> result = new ArrayList<URL>();
-		for (File file : listFiles)
-		{
-			if (checkJar(file))
-			{
+		List<URL> result = new ArrayList<>();
+		for (File file : listFiles) {
+			if (checkJar(file)) {
 				result.add(file.toURI().toURL());
 			}
 		}
 		return result;
 	}
 
-	private boolean checkJar(File file)
-	{
+	private boolean checkJar(File file) {
 		return file.isFile() && file.getName().toLowerCase().endsWith(".jar");
 	}
 }

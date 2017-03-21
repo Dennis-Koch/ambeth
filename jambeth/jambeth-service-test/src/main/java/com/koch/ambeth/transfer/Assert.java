@@ -22,17 +22,13 @@ limitations under the License.
 
 import com.koch.ambeth.service.transfer.ServiceDescription;
 
-public class Assert
-{
-	private Assert()
-	{
+public class Assert {
+	private Assert() {
 		// Intended blank
 	}
 
-	public static void assertEquals(ServiceDescription expected, ServiceDescription actual)
-	{
-		if (expected == null)
-		{
+	public static void assertEquals(ServiceDescription expected, ServiceDescription actual) {
+		if (expected == null) {
 			org.junit.Assert.assertNull(actual);
 			return;
 		}

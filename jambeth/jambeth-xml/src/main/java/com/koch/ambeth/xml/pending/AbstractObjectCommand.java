@@ -23,37 +23,31 @@ limitations under the License.
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.util.ParamChecker;
 
-public abstract class AbstractObjectCommand implements IObjectCommand, IInitializingBean
-{
+public abstract class AbstractObjectCommand implements IObjectCommand, IInitializingBean {
 	protected IObjectFuture objectFuture;
 
 	protected Object parent;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(objectFuture, "ObjectFuture");
 		ParamChecker.assertNotNull(parent, "Parent");
 	}
 
 	@Override
-	public IObjectFuture getObjectFuture()
-	{
+	public IObjectFuture getObjectFuture() {
 		return objectFuture;
 	}
 
-	public void setObjectFuture(IObjectFuture objectFuture)
-	{
+	public void setObjectFuture(IObjectFuture objectFuture) {
 		this.objectFuture = objectFuture;
 	}
 
-	public Object getParent()
-	{
+	public Object getParent() {
 		return parent;
 	}
 
-	public void setParent(Object parent)
-	{
+	public void setParent(Object parent) {
 		this.parent = parent;
 	}
 }

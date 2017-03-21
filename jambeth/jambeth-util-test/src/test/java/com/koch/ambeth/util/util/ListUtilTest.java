@@ -41,134 +41,117 @@ import org.junit.Test;
 
 import com.koch.ambeth.util.ListUtil;
 
-public class ListUtilTest
-{
+public class ListUtilTest {
 	protected static List<Object> expectedList;
 
 	protected static Set<Object> expectedSet;
 
-	protected static List<Object> emptyList = Collections.<Object> emptyList();
+	protected static List<Object> emptyList = Collections.<Object>emptyList();
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception
-	{
-		expectedList = new ArrayList<Object>();
+	public static void setUpBeforeClass() throws Exception {
+		expectedList = new ArrayList<>();
 		expectedList.add(2);
 		expectedList.add(ListUtilTest.class);
 		expectedList.add("test");
 		expectedList.add(ListUtilTest.class);
 
-		expectedSet = new HashSet<Object>();
+		expectedSet = new HashSet<>();
 		expectedSet.addAll(expectedList);
 	}
 
 	@Test
-	public void testToArray()
-	{
+	public void testToArray() {
 		Object[] actual = ListUtil.toArray(Object.class, expectedList);
 		assertSimilar(expectedList, Arrays.asList(actual));
 	}
 
 	@Test
 	@Ignore
-	public void testToListEnumerationOfT()
-	{
+	public void testToListEnumerationOfT() {
 		fail("Not yet implemented"); // TODO
 	}
 
 	@Test
 	@Ignore
-	public void testToListIterableOfT()
-	{
+	public void testToListIterableOfT() {
 		fail("Not yet implemented"); // TODO
 	}
 
 	@Test
 	@Ignore
-	public void testToListIObjectCollectorIterableOfT()
-	{
+	public void testToListIObjectCollectorIterableOfT() {
 		fail("Not yet implemented"); // TODO
 	}
 
 	@Test
 	@Ignore
-	public void testCreateCollectionOfType()
-	{
+	public void testCreateCollectionOfType() {
 		fail("Not yet implemented"); // TODO
 	}
 
 	@Test
-	public void testAnyToList_Null()
-	{
+	public void testAnyToList_Null() {
 		List<Object> actual = ListUtil.anyToList(null);
 		assertSame(emptyList, actual);
 	}
 
 	@Test
-	public void testAnyToList_List()
-	{
+	public void testAnyToList_List() {
 		List<Object> actual = ListUtil.anyToList(expectedList);
 		assertSimilar(expectedList, actual);
 		assertSame(expectedList, actual);
 	}
 
 	@Test
-	public void testAnyToList_Set()
-	{
-		List<Object> expected = new ArrayList<Object>(expectedSet);
+	public void testAnyToList_Set() {
+		List<Object> expected = new ArrayList<>(expectedSet);
 		List<Object> actual = ListUtil.anyToList(expectedSet);
 		assertSimilar(expected, actual);
 	}
 
 	@Test
-	public void testAnyToList_Collection()
-	{
-		Vector<Object> input = new Vector<Object>(expectedList);
+	public void testAnyToList_Collection() {
+		Vector<Object> input = new Vector<>(expectedList);
 		List<Object> actual = ListUtil.anyToList(input);
 		assertSimilar(expectedList, actual);
 	}
 
 	@Test
-	public void testAnyToList_Array1()
-	{
+	public void testAnyToList_Array1() {
 		List<Object> actual = ListUtil.anyToList(expectedList.toArray(new Object[expectedList.size()]));
 		assertSimilar(expectedList, actual);
 	}
 
 	@Test
-	public void testAnyToList_Array2()
-	{
-		Integer[] input = { 1, 2, 3, 4, 5 };
+	public void testAnyToList_Array2() {
+		Integer[] input = {1, 2, 3, 4, 5};
 		List<Object> expected = new ArrayList<Object>(Arrays.asList(input));
 		List<Object> actual = ListUtil.anyToList(input);
 		assertSimilar(expected, actual);
 	}
 
 	@Test
-	public void testAnyToList_Array3()
-	{
+	public void testAnyToList_Array3() {
 		Integer[] input = {};
 		List<Object> actual = ListUtil.anyToList(input);
 		assertSame(emptyList, actual);
 	}
 
 	@Test
-	public void testAnyToList_Iterator1()
-	{
+	public void testAnyToList_Iterator1() {
 		List<Object> actual = ListUtil.anyToList(expectedList.iterator());
 		assertSimilar(expectedList, actual);
 	}
 
 	@Test
-	public void testAnyToList_Iterator2()
-	{
+	public void testAnyToList_Iterator2() {
 		List<Object> actual = ListUtil.anyToList(emptyList.iterator());
 		assertSame(emptyList, actual);
 	}
 
 	@Test
-	public void testAnyToList_Object()
-	{
+	public void testAnyToList_Object() {
 		String testItem = "Test Item";
 		List<Object> actual = ListUtil.anyToList(testItem);
 		assertNotNull(actual);
@@ -177,37 +160,32 @@ public class ListUtilTest
 	}
 
 	@Test
-	public void testAnyToSet_List()
-	{
+	public void testAnyToSet_List() {
 		Set<Object> actual = ListUtil.anyToSet(expectedList);
 		assertSimilar(expectedSet, actual);
 	}
 
 	@Test
-	public void testAnyToSet_Set()
-	{
+	public void testAnyToSet_Set() {
 		Set<Object> actual = ListUtil.anyToSet(expectedSet);
 		assertSimilar(expectedSet, actual);
 	}
 
 	@Test
-	public void testAnyToSet_Collection()
-	{
-		Vector<Object> input = new Vector<Object>(expectedList);
+	public void testAnyToSet_Collection() {
+		Vector<Object> input = new Vector<>(expectedList);
 		Set<Object> actual = ListUtil.anyToSet(input);
 		assertSimilar(expectedSet, actual);
 	}
 
 	@Test
-	public void testAnyToSet_Array()
-	{
+	public void testAnyToSet_Array() {
 		Set<Object> actual = ListUtil.anyToSet(expectedList.toArray(new Object[expectedList.size()]));
 		assertSimilar(expectedSet, actual);
 	}
 
 	@Test
-	public void testAnyToSet_Object()
-	{
+	public void testAnyToSet_Object() {
 		String testItem = "Test Item";
 		Set<Object> actual = ListUtil.anyToSet(testItem);
 		assertNotNull(actual);
@@ -215,35 +193,29 @@ public class ListUtilTest
 		assertSame(testItem, actual.iterator().next());
 	}
 
-	protected void assertSimilar(List<Object> expected, List<Object> actual)
-	{
+	protected void assertSimilar(List<Object> expected, List<Object> actual) {
 		assertNotNull(expected);
 		assertNotNull(actual);
 		assertEquals(expected.size(), actual.size());
-		for (int i = actual.size(); i-- > 0;)
-		{
+		for (int i = actual.size(); i-- > 0;) {
 			assertEquals(expected.get(i), actual.get(i));
 		}
 	}
 
-	protected void assertSimilar(List<Object> expected, Set<Object> actual)
-	{
+	protected void assertSimilar(List<Object> expected, Set<Object> actual) {
 		assertNotNull(expected);
 		assertNotNull(actual);
-		for (int i = actual.size(); i-- > 0;)
-		{
+		for (int i = actual.size(); i-- > 0;) {
 			assertTrue(actual.contains(expected.get(i)));
 		}
 	}
 
-	protected void assertSimilar(Set<Object> expected, Set<Object> actual)
-	{
+	protected void assertSimilar(Set<Object> expected, Set<Object> actual) {
 		assertNotNull(expected);
 		assertNotNull(actual);
 		assertEquals(expected.size(), actual.size());
 		Iterator<Object> iter = expected.iterator();
-		while (iter.hasNext())
-		{
+		while (iter.hasNext()) {
 			assertTrue(actual.contains(iter.next()));
 		}
 	}

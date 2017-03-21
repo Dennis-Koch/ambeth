@@ -41,8 +41,7 @@ import com.koch.ambeth.util.config.UtilConfigurationConstants;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-public class Logger implements IConfigurableLogger
-{
+public class Logger implements IConfigurableLogger {
 	protected static final DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
 	private static boolean appendModeActive;
@@ -53,17 +52,16 @@ public class Logger implements IConfigurableLogger
 
 	protected static final Lock formatWriteLock = new ReentrantLock();
 
-	public static boolean isAppendModeActive()
-	{
+	public static boolean isAppendModeActive() {
 		return appendModeActive;
 	}
 
-	public static void setAppendModeActive(boolean appendModeActive)
-	{
+	public static void setAppendModeActive(boolean appendModeActive) {
 		Logger.appendModeActive = appendModeActive;
 	}
 
-	protected boolean debugEnabled = true, infoEnabled = true, warnEnabled = true, errorEnabled = true, logToConsole = true;
+	protected boolean debugEnabled = true, infoEnabled = true, warnEnabled = true,
+			errorEnabled = true, logToConsole = true;
 
 	private final String source, shortSource;
 
@@ -73,287 +71,234 @@ public class Logger implements IConfigurableLogger
 
 	protected IThreadLocalObjectCollector objectCollector;
 
-	public Logger(String source)
-	{
+	public Logger(String source) {
 		this.source = source;
 		int lastIndexOf = source.lastIndexOf('.');
-		if (lastIndexOf >= 0)
-		{
+		if (lastIndexOf >= 0) {
 			shortSource = source.substring(lastIndexOf + 1);
 		}
-		else
-		{
+		else {
 			shortSource = source;
 		}
 	}
 
 	@Override
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
+	public void setObjectCollector(IThreadLocalObjectCollector objectCollector) {
 		this.objectCollector = objectCollector;
 	}
 
 	@Override
-	public void postProcess(IProperties properties)
-	{
+	public void postProcess(IProperties properties) {
 		forkName = properties.getString(UtilConfigurationConstants.ForkName);
 
 		Object logfile = properties.get(LogConfigurationConstants.LogFile);
-		if (logfile != null)
-		{
-			loggerStream = LogFileHandleCache.getSharedWriter(logfile instanceof String ? Paths.get((String) logfile) : (Path) logfile);
+		if (logfile != null) {
+			loggerStream = LogFileHandleCache.getSharedWriter(
+					logfile instanceof String ? Paths.get((String) logfile) : (Path) logfile);
 			logToStream = true;
 		}
 	}
 
-	protected DateFormat getFormat()
-	{
+	protected DateFormat getFormat() {
 		return format;
 	}
 
 	@Override
-	public boolean isDebugEnabled()
-	{
+	public boolean isDebugEnabled() {
 		return debugEnabled;
 	}
 
 	@Override
-	public void setDebugEnabled(boolean value)
-	{
+	public void setDebugEnabled(boolean value) {
 		debugEnabled = value;
 	}
 
 	@Override
-	public LogSourceLevel getLogSourceLevel()
-	{
+	public LogSourceLevel getLogSourceLevel() {
 		return logSourceLevel;
 	}
 
 	@Override
-	public void setLogSourceLevel(LogSourceLevel logSourceLevel)
-	{
+	public void setLogSourceLevel(LogSourceLevel logSourceLevel) {
 		ParamChecker.assertParamNotNull(logSourceLevel, "logSourceLevel");
 		this.logSourceLevel = logSourceLevel;
 	}
 
 	@Override
-	public boolean getLogToConsole()
-	{
+	public boolean getLogToConsole() {
 		return logToConsole;
 	}
 
 	@Override
-	public void setLogToConsole(boolean logToConsole)
-	{
+	public void setLogToConsole(boolean logToConsole) {
 		this.logToConsole = logToConsole;
 	}
 
 	@Override
-	public boolean isInfoEnabled()
-	{
+	public boolean isInfoEnabled() {
 		return infoEnabled;
 	}
 
 	@Override
-	public void setInfoEnabled(boolean value)
-	{
+	public void setInfoEnabled(boolean value) {
 		infoEnabled = value;
 	}
 
 	@Override
-	public boolean isWarnEnabled()
-	{
+	public boolean isWarnEnabled() {
 		return warnEnabled;
 	}
 
 	@Override
-	public void setWarnEnabled(boolean value)
-	{
+	public void setWarnEnabled(boolean value) {
 		warnEnabled = value;
 	}
 
 	@Override
-	public boolean isErrorEnabled()
-	{
+	public boolean isErrorEnabled() {
 		return errorEnabled;
 	}
 
 	@Override
-	public void setErrorEnabled(boolean value)
-	{
+	public void setErrorEnabled(boolean value) {
 		errorEnabled = value;
 	}
 
 	@Override
-	public void info(CharSequence message)
-	{
-		if (!isInfoEnabled())
-		{
+	public void info(CharSequence message) {
+		if (!isInfoEnabled()) {
 			return;
 		}
 		addNotification(LogLevel.INFO, message);
 	}
 
 	@Override
-	public void info(CharSequence message, Throwable e)
-	{
-		if (!isInfoEnabled())
-		{
+	public void info(CharSequence message, Throwable e) {
+		if (!isInfoEnabled()) {
 			return;
 		}
 		addNotification(LogLevel.INFO, message, e);
 	}
 
 	@Override
-	public void info(Throwable e)
-	{
-		if (!isInfoEnabled())
-		{
+	public void info(Throwable e) {
+		if (!isInfoEnabled()) {
 			return;
 		}
 		addNotification(LogLevel.INFO, e);
 	}
 
 	@Override
-	public void debug(CharSequence message)
-	{
-		if (!isDebugEnabled())
-		{
+	public void debug(CharSequence message) {
+		if (!isDebugEnabled()) {
 			return;
 		}
 		addNotification(LogLevel.DEBUG, message);
 	}
 
 	@Override
-	public void debug(CharSequence message, Throwable e)
-	{
-		if (!isDebugEnabled())
-		{
+	public void debug(CharSequence message, Throwable e) {
+		if (!isDebugEnabled()) {
 			return;
 		}
 		addNotification(LogLevel.DEBUG, message, e);
 	}
 
 	@Override
-	public void debug(Throwable e)
-	{
-		if (!isDebugEnabled())
-		{
+	public void debug(Throwable e) {
+		if (!isDebugEnabled()) {
 			return;
 		}
 		addNotification(LogLevel.DEBUG, e);
 	}
 
 	@Override
-	public void warn(CharSequence message)
-	{
-		if (!isWarnEnabled())
-		{
+	public void warn(CharSequence message) {
+		if (!isWarnEnabled()) {
 			return;
 		}
 		addNotification(LogLevel.WARN, message);
 	}
 
 	@Override
-	public void warn(CharSequence message, Throwable e)
-	{
-		if (!isWarnEnabled())
-		{
+	public void warn(CharSequence message, Throwable e) {
+		if (!isWarnEnabled()) {
 			return;
 		}
 		addNotification(LogLevel.WARN, message, e);
 	}
 
 	@Override
-	public void warn(Throwable e)
-	{
-		if (!isWarnEnabled())
-		{
+	public void warn(Throwable e) {
+		if (!isWarnEnabled()) {
 			return;
 		}
 		addNotification(LogLevel.WARN, e);
 	}
 
 	@Override
-	public void error(CharSequence message)
-	{
-		if (!isErrorEnabled())
-		{
+	public void error(CharSequence message) {
+		if (!isErrorEnabled()) {
 			return;
 		}
 		addNotification(LogLevel.ERROR, message);
 	}
 
 	@Override
-	public void error(CharSequence message, Throwable e)
-	{
-		if (!isErrorEnabled())
-		{
+	public void error(CharSequence message, Throwable e) {
+		if (!isErrorEnabled()) {
 			return;
 		}
 		addNotification(LogLevel.ERROR, message, e);
 	}
 
 	@Override
-	public void error(Throwable e)
-	{
-		if (!isErrorEnabled())
-		{
+	public void error(Throwable e) {
+		if (!isErrorEnabled()) {
 			return;
 		}
 		addNotification(LogLevel.ERROR, e);
 	}
 
-	protected void addNotification(LogLevel level, Throwable e)
-	{
+	protected void addNotification(LogLevel level, Throwable e) {
 		addNotification(level, null, e);
 	}
 
-	protected void addNotification(LogLevel level, CharSequence message)
-	{
+	protected void addNotification(LogLevel level, CharSequence message) {
 		addNotification(level, message, (Exception) null);
 	}
 
-	protected void addNotification(LogLevel level, CharSequence message, Throwable e)
-	{
-		if (e != null)
-		{
-			addNotification(level, message, e.getClass().getName() + ": " + e.getMessage(), extractFullStackTrace(e));
+	protected void addNotification(LogLevel level, CharSequence message, Throwable e) {
+		if (e != null) {
+			addNotification(level, message, e.getClass().getName() + ": " + e.getMessage(),
+					extractFullStackTrace(e));
 		}
-		else
-		{
+		else {
 			addNotification(level, message, null, null);
 		}
 	}
 
-	protected void printThrowable(Throwable e, StringBuilder sb, String newLine, int level, boolean printHeader)
-	{
+	protected void printThrowable(Throwable e, StringBuilder sb, String newLine, int level,
+			boolean printHeader) {
 		StackTraceElement[] stackTrace = e.getStackTrace();
 
-		if (printHeader)
-		{
+		if (printHeader) {
 			sb.append(e.getClass().getName()).append(": ").append(e.toString()).append(newLine);
 		}
-		for (int a = 0, size = stackTrace.length; a < size; a++)
-		{
-			for (int b = level; b-- > 0;)
-			{
+		for (int a = 0, size = stackTrace.length; a < size; a++) {
+			for (int b = level; b-- > 0;) {
 				sb.append('\t');
 			}
 			sb.append(stackTrace[a].toString());
-			if (a + 1 < size)
-			{
+			if (a + 1 < size) {
 				sb.append(newLine);
 			}
 		}
-		if (e instanceof SQLException)
-		{
+		if (e instanceof SQLException) {
 			SQLException sql = ((SQLException) e).getNextException();
-			if (sql != null)
-			{
+			if (sql != null) {
 				sb.append(newLine);
-				for (int b = level; b-- > 0;)
-				{
+				for (int b = level; b-- > 0;) {
 					sb.append('\t');
 				}
 				sb.append("Next Exception: ");
@@ -362,77 +307,62 @@ public class Logger implements IConfigurableLogger
 		}
 	}
 
-	protected String extractFullStackTrace(Throwable throwable)
-	{
+	protected String extractFullStackTrace(Throwable throwable) {
 		String newLine = System.getProperty("line.separator");
 
 		StringBuilder sb = acquireStringBuilder();
-		try
-		{
+		try {
 			boolean printHeader = false;
 			Throwable currentThrowable = throwable;
-			while (currentThrowable != null)
-			{
+			while (currentThrowable != null) {
 				printThrowable(currentThrowable, sb, newLine, 1, printHeader);
 				printHeader = true;
 				currentThrowable = currentThrowable.getCause();
-				if (currentThrowable != null)
-				{
+				if (currentThrowable != null) {
 					sb.append(newLine);
 					sb.append("Cause: ");
 				}
 			}
 			return sb.toString();
 		}
-		finally
-		{
+		finally {
 			dispose(sb);
 		}
 	}
 
-	protected void addNotification(LogLevel level, CharSequence message, String errorMessage, String stackTrace)
-	{
+	protected void addNotification(LogLevel level, CharSequence message, String errorMessage,
+			String stackTrace) {
 		String newLine = SystemUtil.lineSeparator();
 		StringBuilder sb = acquireStringBuilder();
-		try
-		{
-			if (errorMessage != null)
-			{
-				if (message != null)
-				{
+		try {
+			if (errorMessage != null) {
+				if (message != null) {
 					sb.append(message).append(": ");
 				}
-				if (stackTrace != null)
-				{
+				if (stackTrace != null) {
 					sb.append(errorMessage).append(newLine).append(stackTrace);
 				}
-				else
-				{
+				else {
 					sb.append(errorMessage);
 				}
 			}
-			else
-			{
-				if (message != null)
-				{
+			else {
+				if (message != null) {
 					sb.append(message);
 				}
 			}
 			createLogEntry(level, sb.toString());
 		}
-		finally
-		{
+		finally {
 			dispose(sb);
 		}
 	}
 
-	protected void createLogEntry(LogLevel logLevel, String notification)
-	{
+	protected void createLogEntry(LogLevel logLevel, String notification) {
 		Thread currentThread = Thread.currentThread();
 
 		String threadName = currentThread.getName();
-		if (threadName == null || threadName.length() == 0)
-		{
+		if (threadName == null || threadName.length() == 0) {
 			threadName = "<No Name>";
 		}
 		long now = System.currentTimeMillis();
@@ -445,19 +375,16 @@ public class Logger implements IConfigurableLogger
 		// currentThread.ManagedThreadId, threadName });
 
 		StringBuilder sb = acquireStringBuilder();
-		try
-		{
+		try {
 			String dateString = formatDate(date);
 			sb.append('[');
-			if (forkName != null)
-			{
+			if (forkName != null) {
 				sb.append(forkName).append('-');
 			}
 			sb.append(currentThread.getId()).append(": ").append(threadName).append("] ");
 
 			String printedSource;
-			switch (logSourceLevel)
-			{
+			switch (logSourceLevel) {
 				case DEFAULT:
 				case FULL:
 					printedSource = source;
@@ -473,122 +400,97 @@ public class Logger implements IConfigurableLogger
 			}
 
 			sb.append('[').append(dateString).append("] ").append(logLevel.name());
-			for (int a = logLevel.name().length(); a < 5; a++)
-			{
+			for (int a = logLevel.name().length(); a < 5; a++) {
 				sb.append(' ');
 			}
-			if (printedSource != null)
-			{
+			if (printedSource != null) {
 				sb.append(' ').append(printedSource);
 			}
 			sb.append(": ").append(notification);
 			log(logLevel, sb.toString());
 		}
-		finally
-		{
+		finally {
 			dispose(sb);
 		}
 	}
 
-	protected String formatDate(Date date)
-	{
+	protected String formatDate(Date date) {
 		// DateFormat is not thread-safe
 		DateFormat format = getFormat();
 		formatWriteLock.lock();
-		try
-		{
+		try {
 			return format.format(date);
 		}
-		finally
-		{
+		finally {
 			formatWriteLock.unlock();
 		}
 	}
 
-	protected StringBuilder acquireStringBuilder()
-	{
+	protected StringBuilder acquireStringBuilder() {
 		IThreadLocalObjectCollector objectCollector = this.objectCollector;
-		if (objectCollector == null)
-		{
+		if (objectCollector == null) {
 			return new StringBuilder();
 		}
 		return objectCollector.create(StringBuilder.class);
 	}
 
-	protected void dispose(StringBuilder sb)
-	{
+	protected void dispose(StringBuilder sb) {
 		IThreadLocalObjectCollector localObjectCollector = objectCollector;
-		if (localObjectCollector == null)
-		{
+		if (localObjectCollector == null) {
 			return;
 		}
 		localObjectCollector.dispose(sb);
 	}
 
-	protected void log(LogLevel logLevel, String output)
-	{
+	protected void log(LogLevel logLevel, String output) {
 		boolean errorLog = LogLevel.WARN.equals(logLevel) || LogLevel.ERROR.equals(logLevel);
-		if (logToConsole)
-		{
-			if (errorLog)
-			{
+		if (logToConsole) {
+			if (errorLog) {
 				System.err.println(output);
 			}
-			else
-			{
+			else {
 				System.out.println(output);
 			}
 		}
-		if (logToStream)
-		{
+		if (logToStream) {
 			logStream(logLevel, output, errorLog);
 		}
 	}
 
-	protected void logStream(LogLevel logLevel, String output, boolean autoFlush)
-	{
+	protected void logStream(LogLevel logLevel, String output, boolean autoFlush) {
 		String lineSeparator = SystemUtil.lineSeparator();
 		Lock writeLock = loggerStream.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			Writer writer = loggerStream.getWriter();
-			try
-			{
+			try {
 				writer.write(lineSeparator);
 				writer.write(output);
-				if (autoFlush)
-				{
+				if (autoFlush) {
 					writer.flush();
 				}
 			}
-			catch (ClosedByInterruptException e)
-			{
+			catch (ClosedByInterruptException e) {
 				// intended blank
 			}
-			catch (ClosedChannelException e)
-			{
+			catch (ClosedChannelException e) {
 				loggerStream.reopen();
 				logStream(logLevel, output, autoFlush);
 			}
-			catch (IOException e)
-			{
+			catch (IOException e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
-	public void setLoggerStream(LoggerStream loggerStream)
-	{
+	public void setLoggerStream(LoggerStream loggerStream) {
 		this.loggerStream = loggerStream;
 	}
 
-	public void setLogToStream(boolean logToStream)
-	{
+	public void setLogToStream(boolean logToStream) {
 		this.logToStream = logToStream;
 	}
 }

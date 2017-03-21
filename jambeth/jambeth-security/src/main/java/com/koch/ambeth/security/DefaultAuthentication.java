@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.io.Serializable;
 
-public class DefaultAuthentication implements IAuthentication, Serializable
-{
+public class DefaultAuthentication implements IAuthentication, Serializable {
 	private static final long serialVersionUID = -5075984200275756231L;
 
 	protected String userName;
@@ -32,48 +31,40 @@ public class DefaultAuthentication implements IAuthentication, Serializable
 
 	protected PasswordType passwordType;
 
-	public DefaultAuthentication()
-	{
+	public DefaultAuthentication() {
 		// Intended blank
 	}
 
-	public DefaultAuthentication(String userName, char[] userPass, PasswordType passwordType)
-	{
+	public DefaultAuthentication(String userName, char[] userPass, PasswordType passwordType) {
 		this.userName = userName;
 		this.userPass = userPass;
 		this.passwordType = passwordType;
 	}
 
 	@Override
-	public String getUserName()
-	{
+	public String getUserName() {
 		return userName;
 	}
 
 	@Override
-	public char[] getPassword()
-	{
+	public char[] getPassword() {
 		return userPass;
 	}
 
-	public void setUserName(String userName)
-	{
+	public void setUserName(String userName) {
 		this.userName = userName;
 	}
 
-	public void setUserPass(char[] userPass)
-	{
+	public void setUserPass(char[] userPass) {
 		this.userPass = userPass;
 	}
 
-	public void setPasswordType(PasswordType passwordType)
-	{
+	public void setPasswordType(PasswordType passwordType) {
 		this.passwordType = passwordType;
 	}
 
 	@Override
-	public PasswordType getType()
-	{
+	public PasswordType getType() {
 		return passwordType;
 	}
 }

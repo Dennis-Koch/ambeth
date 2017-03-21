@@ -47,8 +47,8 @@ import com.koch.ambeth.util.collections.IdentityWeakHashMap;
 import com.koch.ambeth.util.collections.WeakHashMap;
 import com.koch.ambeth.util.config.IProperties;
 
-public class EventFromKafkaConsumer implements IInitializingBean, IStartingBean, IDisposableBean, Runnable
-{
+public class EventFromKafkaConsumer
+		implements IInitializingBean, IStartingBean, IDisposableBean, Runnable {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -65,7 +65,8 @@ public class EventFromKafkaConsumer implements IInitializingBean, IStartingBean,
 	@Property(name = EventKafkaConfigurationConstants.TOPIC_NAME)
 	protected String topicName;
 
-	protected final WeakHashMap<Object, Boolean> receivedFromKafkaMap = new IdentityWeakHashMap<Object, Boolean>();
+	protected final WeakHashMap<Object, Boolean> receivedFromKafkaMap =
+			new IdentityWeakHashMap<>();
 
 	protected final Lock receivedFromKafkaMapLock = new ReentrantLock();
 
@@ -80,128 +81,103 @@ public class EventFromKafkaConsumer implements IInitializingBean, IStartingBean,
 	protected Thread pollingThread;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		pollingThread = new Thread(this);
 		pollingThread.setDaemon(true);
 		pollingThread.setName(getClass().getSimpleName() + " topic=" + topicName);
 	}
 
 	@Override
-	public void afterStarted() throws Throwable
-	{
+	public void afterStarted() throws Throwable {
 		pollingThread.start();
 	}
 
 	@Override
-	public void destroy() throws Throwable
-	{
+	public void destroy() throws Throwable {
 		destroyed = true;
 		pollingThread.interrupt();
 		consumer.wakeup();
-		if (!terminationLatch.await(30000, TimeUnit.MILLISECONDS))
-		{
+		if (!terminationLatch.await(30000, TimeUnit.MILLISECONDS)) {
 			log.error(new TimeoutException("Consumer did not exit correctly"));
 		}
 	}
 
-	public boolean isEventFromKafka(Object evt)
-	{
+	public boolean isEventFromKafka(Object evt) {
 		receivedFromKafkaMapLock.lock();
-		try
-		{
+		try {
 			return receivedFromKafkaMap.containsKey(evt);
 		}
-		finally
-		{
+		finally {
 			receivedFromKafkaMapLock.unlock();
 		}
 	}
 
 	@Override
-	public final void run()
-	{
-		try
-		{
+	public final void run() {
+		try {
 			runIntern();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			log.error(e);
 		}
-		finally
-		{
+		finally {
 			terminationLatch.countDown();
 		}
 	}
 
-	protected void runIntern() throws Throwable
-	{
-		try
-		{
-			consumer = new KafkaConsumer<String, Object>(AmbethKafkaConfiguration.extractKafkaProperties(props), new StringDeserializer(), xmlKafkaSerializer);
+	protected void runIntern() throws Throwable {
+		try {
+			consumer =
+					new KafkaConsumer<>(AmbethKafkaConfiguration.extractKafkaProperties(props),
+							new StringDeserializer(), xmlKafkaSerializer);
 			consumer.subscribe(Arrays.asList(topicName));
 
-			while (!destroyed)
-			{
-				if (log.isDebugEnabled())
-				{
+			while (!destroyed) {
+				if (log.isDebugEnabled()) {
 					log.debug("Polling for records on topic '" + topicName + "'...");
 				}
 				ConsumerRecords<String, Object> records = null;
-				try
-				{
+				try {
 					records = consumer.poll(timeout);
 				}
-				catch (WakeupException e)
-				{
+				catch (WakeupException e) {
 					// Intended blank
 				}
-				if (destroyed)
-				{
+				if (destroyed) {
 					continue;
 				}
-				ArrayList<Object> events = new ArrayList<Object>();
+				ArrayList<Object> events = new ArrayList<>();
 				receivedFromKafkaMapLock.lock();
-				try
-				{
-					if (records == null || records.count() == 0)
-					{
+				try {
+					if (records == null || records.count() == 0) {
 						// remove the entries of any collected events
 						receivedFromKafkaMap.checkForCleanup();
 						continue;
 					}
-					for (ConsumerRecord<String, Object> record : records)
-					{
+					for (ConsumerRecord<String, Object> record : records) {
 						Object evnt = record.value();
 						receivedFromKafkaMap.put(evnt, Boolean.TRUE);
 						events.add(evnt);
 					}
 				}
-				finally
-				{
+				finally {
 					receivedFromKafkaMapLock.unlock();
 				}
 				eventDispatcher.enableEventQueue();
-				try
-				{
-					for (int a = 0, size = events.size(); a < size; a++)
-					{
+				try {
+					for (int a = 0, size = events.size(); a < size; a++) {
 						eventDispatcher.dispatchEvent(events.get(a));
 					}
-					if (log.isInfoEnabled())
-					{
+					if (log.isInfoEnabled()) {
 						log.info("Received " + events.size() + " events from kafka. Flushing queue...");
 					}
 				}
-				finally
-				{
+				finally {
 					eventDispatcher.flushEventQueue();
 				}
 			}
 		}
-		finally
-		{
+		finally {
 			consumer.close();
 		}
 	}

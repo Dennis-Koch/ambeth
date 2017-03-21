@@ -20,14 +20,12 @@ limitations under the License.
  * #L%
  */
 
-public class SetLinkedIterator<K> extends AbstractIterator<K>
-{
+public class SetLinkedIterator<K> extends AbstractIterator<K> {
 	protected SetLinkedEntry<K> currPointer, lastPointer;
 
 	private final AbstractLinkedSet<K> hashSet;
 
-	public SetLinkedIterator(final AbstractLinkedSet<K> hashSet, boolean removeAllowed)
-	{
+	public SetLinkedIterator(final AbstractLinkedSet<K> hashSet, boolean removeAllowed) {
 		super(removeAllowed);
 		this.hashSet = hashSet;
 		currPointer = hashSet.fastIterationList.getFirstElem();
@@ -35,14 +33,12 @@ public class SetLinkedIterator<K> extends AbstractIterator<K>
 	}
 
 	@Override
-	public final boolean hasNext()
-	{
+	public final boolean hasNext() {
 		return currPointer != null;
 	}
 
 	@Override
-	public final K next()
-	{
+	public final K next() {
 		final K elem = currPointer.key;
 		lastPointer = currPointer;
 		currPointer = currPointer.next;
@@ -50,10 +46,8 @@ public class SetLinkedIterator<K> extends AbstractIterator<K>
 	}
 
 	@Override
-	public void remove()
-	{
-		if (!removeAllowed)
-		{
+	public void remove() {
+		if (!removeAllowed) {
 			throw new UnsupportedOperationException();
 		}
 		hashSet.remove(lastPointer.key);

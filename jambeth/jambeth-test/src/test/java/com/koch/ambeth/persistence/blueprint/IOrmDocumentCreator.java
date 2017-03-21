@@ -22,8 +22,7 @@ limitations under the License.
 
 import org.w3c.dom.Document;
 
-public interface IOrmDocumentCreator
-{
+public interface IOrmDocumentCreator {
 
 	Document getOrmDocument(String businessObjectType, String table);
 

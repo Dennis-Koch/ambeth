@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public abstract class AbstractEntity extends AbstractBusinessObject
-{
+public abstract class AbstractEntity extends AbstractBusinessObject {
 	public static final String Version = "Version";
 
 	protected int id;
@@ -32,69 +31,56 @@ public abstract class AbstractEntity extends AbstractBusinessObject
 
 	protected long updatedOn, createdOn;
 
-	protected AbstractEntity()
-	{
+	protected AbstractEntity() {
 		// Intended blank
 	}
 
 	@Override
-	public int getId()
-	{
+	public int getId() {
 		return id;
 	}
 
-	public void setId(int id)
-	{
+	public void setId(int id) {
 		this.id = id;
 	}
 
-	public short getVersion()
-	{
+	public short getVersion() {
 		return version;
 	}
 
-	public void setVersion(short version)
-	{
+	public void setVersion(short version) {
 		this.version = version;
 	}
 
-	public String getUpdatedBy()
-	{
+	public String getUpdatedBy() {
 		return updatedBy;
 	}
 
-	public void setUpdatedBy(String updatedBy)
-	{
+	public void setUpdatedBy(String updatedBy) {
 		this.updatedBy = updatedBy;
 	}
 
-	public String getCreatedBy()
-	{
+	public String getCreatedBy() {
 		return createdBy;
 	}
 
-	public void setCreatedBy(String createdBy)
-	{
+	public void setCreatedBy(String createdBy) {
 		this.createdBy = createdBy;
 	}
 
-	public long getUpdatedOn()
-	{
+	public long getUpdatedOn() {
 		return updatedOn;
 	}
 
-	public void setUpdatedOn(long updatedOn)
-	{
+	public void setUpdatedOn(long updatedOn) {
 		this.updatedOn = updatedOn;
 	}
 
-	public long getCreatedOn()
-	{
+	public long getCreatedOn() {
 		return createdOn;
 	}
 
-	public void setCreatedOn(long createdOn)
-	{
+	public void setCreatedOn(long createdOn) {
 		this.createdOn = createdOn;
 	}
 

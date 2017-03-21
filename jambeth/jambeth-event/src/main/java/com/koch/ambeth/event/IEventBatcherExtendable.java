@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IEventBatcherExtendable
-{
+public interface IEventBatcherExtendable {
 	void registerEventBatcher(IEventBatcher eventBatcher, Class<?> eventType);
 
 	void unregisterEventBatcher(IEventBatcher eventBatcher, Class<?> eventType);

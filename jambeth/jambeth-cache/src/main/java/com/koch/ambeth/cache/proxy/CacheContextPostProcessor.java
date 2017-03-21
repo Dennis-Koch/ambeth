@@ -41,78 +41,68 @@ import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.annotation.AnnotationCache;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 
-public class CacheContextPostProcessor extends AbstractCascadePostProcessor
-{
+public class CacheContextPostProcessor extends AbstractCascadePostProcessor {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	protected AnnotationCache<CacheContext> annotationCache = new AnnotationCache<CacheContext>(CacheContext.class)
-	{
-		@Override
-		protected boolean annotationEquals(CacheContext left, CacheContext right)
-		{
-			return EqualsUtil.equals(left.value(), right.value());
-		}
-	};
+	protected AnnotationCache<CacheContext> annotationCache =
+			new AnnotationCache<CacheContext>(CacheContext.class) {
+				@Override
+				protected boolean annotationEquals(CacheContext left, CacheContext right) {
+					return EqualsUtil.equals(left.value(), right.value());
+				}
+			};
 
 	@Autowired
 	protected CachePostProcessor cachePostProcessor;
 
 	@Override
-	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory, IServiceContext beanContext,
-			IBeanConfiguration beanConfiguration, Class<?> type, Set<Class<?>> requestedTypes)
-	{
+	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory,
+			IServiceContext beanContext, IBeanConfiguration beanConfiguration, Class<?> type,
+			Set<Class<?>> requestedTypes) {
 		CacheContext cacheContext = annotationCache.getAnnotation(type);
-		if (cacheContext == null)
-		{
+		if (cacheContext == null) {
 			return null;
 		}
-		IMethodLevelBehavior<Annotation> cacheBehavior = cachePostProcessor.createInterceptorModeBehavior(type);
+		IMethodLevelBehavior<Annotation> cacheBehavior =
+				cachePostProcessor.createInterceptorModeBehavior(type);
 
 		CacheInterceptor interceptor = new CacheInterceptor();
-		if (beanContext.isRunning())
-		{
+		if (beanContext.isRunning()) {
 			interceptor = beanContext.registerWithLifecycle(interceptor)//
 					.propertyValue("Behavior", cacheBehavior)//
 					.ignoreProperties("ProcessService", "ServiceName")//
 					.finish();
 		}
-		else
-		{
+		else {
 			beanContextFactory.registerWithLifecycle(interceptor)//
 					.propertyValue("Behavior", cacheBehavior)//
 					.ignoreProperties("ProcessService", "ServiceName");
 		}
 		CacheType cacheType = cacheContext.value();
 		String cacheProviderName;
-		switch (cacheType)
-		{
-			case PROTOTYPE:
-			{
+		switch (cacheType) {
+			case PROTOTYPE: {
 				cacheProviderName = CacheNamedBeans.CacheProviderPrototype;
 				break;
 			}
-			case SINGLETON:
-			{
+			case SINGLETON: {
 				cacheProviderName = CacheNamedBeans.CacheProviderSingleton;
 				break;
 			}
-			case THREAD_LOCAL:
-			{
+			case THREAD_LOCAL: {
 				cacheProviderName = CacheNamedBeans.CacheProviderThreadLocal;
 				break;
 			}
-			case DEFAULT:
-			{
+			case DEFAULT: {
 				return interceptor;
 			}
 			default:
 				throw new IllegalStateException("Not supported type: " + cacheType);
 		}
 		CacheContextInterceptor ccInterceptor = new CacheContextInterceptor();
-		if (beanContext.isRunning())
-		{
+		if (beanContext.isRunning()) {
 			return beanContext.registerWithLifecycle(ccInterceptor)//
 					.propertyRef("CacheProvider", cacheProviderName)//
 					.propertyValue("Target", interceptor)//
@@ -125,11 +115,9 @@ public class CacheContextPostProcessor extends AbstractCascadePostProcessor
 	}
 
 	@Override
-	protected Annotation lookForAnnotation(AnnotatedElement member)
-	{
+	protected Annotation lookForAnnotation(AnnotatedElement member) {
 		Annotation annotation = super.lookForAnnotation(member);
-		if (annotation != null)
-		{
+		if (annotation != null) {
 			return annotation;
 		}
 		return member.getAnnotation(CacheContext.class);

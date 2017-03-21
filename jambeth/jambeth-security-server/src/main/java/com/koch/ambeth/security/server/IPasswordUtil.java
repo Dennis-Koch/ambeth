@@ -24,8 +24,7 @@ import com.koch.ambeth.ioc.util.IRevertDelegate;
 import com.koch.ambeth.security.model.IPassword;
 import com.koch.ambeth.security.model.IUser;
 
-public interface IPasswordUtil
-{
+public interface IPasswordUtil {
 	void assignNewPassword(char[] clearTextPassword, IUser user, char[] oldClearTextPassword);
 
 	char[] assignNewRandomPassword(IUser user, char[] oldClearTextPassword);

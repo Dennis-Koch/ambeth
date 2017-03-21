@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.lang.reflect.Method;
 
-public interface IPreparedStatementParamLogger
-{
+public interface IPreparedStatementParamLogger {
 	boolean isCallToBeLogged(Method method);
 
 	void logParams(Method method, Object[] args);

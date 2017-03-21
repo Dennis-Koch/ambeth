@@ -20,7 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ICacheMapEntryFactory
-{
-	CacheMapEntry createCacheMapEntry(Class<?> entityType, byte idIndex, Object id, Object value, CacheMapEntry nextEntry);
+public interface ICacheMapEntryFactory {
+	CacheMapEntry createCacheMapEntry(Class<?> entityType, byte idIndex, Object id, Object value,
+			CacheMapEntry nextEntry);
 }

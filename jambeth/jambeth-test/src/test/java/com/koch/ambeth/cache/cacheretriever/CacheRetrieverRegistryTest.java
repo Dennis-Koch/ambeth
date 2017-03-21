@@ -50,23 +50,23 @@ import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.testutil.TestProperties;
 
 @TestModule(CacheRetrieverRegistryTestModule.class)
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = CacheRetrieverRegistryTest.basePath + "orm.xml;"
-		+ CacheRetrieverRegistryTest.basePath + "external-orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = CacheRetrieverRegistryTest.basePath + "orm.xml;" + CacheRetrieverRegistryTest.basePath
+				+ "external-orm.xml")
 @SQLData("CacheRetrieverRegistry_data.sql")
 @SQLStructure("CacheRetrieverRegistry_structure.sql")
-public class CacheRetrieverRegistryTest extends AbstractInformationBusWithPersistenceTest
-{
+public class CacheRetrieverRegistryTest extends AbstractInformationBusWithPersistenceTest {
 	public static final String basePath = "com/koch/ambeth/cache/cacheretriever/";
 
 	@FrameworkModule
-	public static class CacheRetrieverRegistryTestModule implements IInitializingModule
-	{
+	public static class CacheRetrieverRegistryTestModule implements IInitializingModule {
 		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 			beanContextFactory.registerBean("cacheRetrieverExternal", CacheRetrieverExternalFake.class);
-			beanContextFactory.link("cacheRetrieverExternal").to(ICacheRetrieverExtendable.class).with(ExternalEntity.class);
-			beanContextFactory.link("cacheRetrieverExternal").to(ICacheRetrieverExtendable.class).with(ExternalEntity2.class);
+			beanContextFactory.link("cacheRetrieverExternal").to(ICacheRetrieverExtendable.class)
+					.with(ExternalEntity.class);
+			beanContextFactory.link("cacheRetrieverExternal").to(ICacheRetrieverExtendable.class)
+					.with(ExternalEntity2.class);
 		}
 	}
 
@@ -74,8 +74,7 @@ public class CacheRetrieverRegistryTest extends AbstractInformationBusWithPersis
 	private ICache cache;
 
 	@Test
-	public void testGetEntityById() throws Throwable
-	{
+	public void testGetEntityById() throws Throwable {
 		int id = 1;
 		String name = "one";
 		ExternalEntity actual = cache.getObject(ExternalEntity.class, id);
@@ -96,12 +95,12 @@ public class CacheRetrieverRegistryTest extends AbstractInformationBusWithPersis
 	}
 
 	@Test
-	public void testGetEntityByAlternateId() throws Throwable
-	{
+	public void testGetEntityByAlternateId() throws Throwable {
 		int id = 152;
 		String name = "one five two";
 		IObjRef objRef = new ObjRef(ExternalEntity.class, (byte) 0, name, null);
-		ExternalEntity actual = (ExternalEntity) cache.getObject(objRef, Collections.<CacheDirective> emptySet());
+		ExternalEntity actual =
+				(ExternalEntity) cache.getObject(objRef, Collections.<CacheDirective>emptySet());
 		assertNotNull(actual);
 		assertEquals(id, actual.getId());
 		assertEquals(name, actual.getName());
@@ -111,7 +110,7 @@ public class CacheRetrieverRegistryTest extends AbstractInformationBusWithPersis
 		id = 717;
 		name = "seven one seven";
 		objRef = new ObjRef(ExternalEntity.class, (byte) 0, name, null);
-		actual = (ExternalEntity) cache.getObject(objRef, Collections.<CacheDirective> emptySet());
+		actual = (ExternalEntity) cache.getObject(objRef, Collections.<CacheDirective>emptySet());
 		assertNotNull(actual);
 		assertEquals(id, actual.getId());
 		assertEquals(name, actual.getName());
@@ -120,8 +119,7 @@ public class CacheRetrieverRegistryTest extends AbstractInformationBusWithPersis
 	}
 
 	@Test
-	public void testParent() throws Throwable
-	{
+	public void testParent() throws Throwable {
 		ExternalEntity actual = cache.getObject(ExternalEntity.class, 853);
 		assertNotNull(actual);
 		ExternalEntity parent = actual.getParent();
@@ -136,8 +134,7 @@ public class CacheRetrieverRegistryTest extends AbstractInformationBusWithPersis
 	}
 
 	@Test
-	public void testSecondEntity() throws Throwable
-	{
+	public void testSecondEntity() throws Throwable {
 		int id = 83;
 		String name = "eight three";
 		ExternalEntity2 actual = cache.getObject(ExternalEntity2.class, id);
@@ -157,8 +154,7 @@ public class CacheRetrieverRegistryTest extends AbstractInformationBusWithPersis
 	}
 
 	@Test
-	public void testLocalEntityWithExternalToOneRelationFK() throws Throwable
-	{
+	public void testLocalEntityWithExternalToOneRelationFK() throws Throwable {
 		int id = 893;
 		String name = "LocalEntity " + id;
 		LocalEntity actual = cache.getObject(LocalEntity.class, id);
@@ -178,8 +174,7 @@ public class CacheRetrieverRegistryTest extends AbstractInformationBusWithPersis
 	}
 
 	@Test
-	public void testLocalEntityWithExternalToOneRelationLinkTable() throws Throwable
-	{
+	public void testLocalEntityWithExternalToOneRelationLinkTable() throws Throwable {
 		int id = 893;
 		String name = "LocalEntity " + id;
 		LocalEntity actual = cache.getObject(LocalEntity.class, id);
@@ -199,17 +194,15 @@ public class CacheRetrieverRegistryTest extends AbstractInformationBusWithPersis
 	}
 
 	@Test
-	public void testLocalEntityWithExternalToManyRelationLinkTable() throws Throwable
-	{
+	public void testLocalEntityWithExternalToManyRelationLinkTable() throws Throwable {
 		int id = 893;
 		LocalEntity actual = cache.getObject(LocalEntity.class, id);
 
-		Set<Integer> expectedIds = new HashSet<Integer>(Arrays.asList(new Integer[] { 893, 1234, 9 }));
+		Set<Integer> expectedIds = new HashSet<>(Arrays.asList(new Integer[] {893, 1234, 9}));
 		Set<ExternalEntity> externals = actual.getExternals();
 		assertNotNull(externals);
 		assertEquals(expectedIds.size(), externals.size());
-		for (ExternalEntity external : externals)
-		{
+		for (ExternalEntity external : externals) {
 			assertTrue(expectedIds.contains(external.getId()));
 		}
 	}

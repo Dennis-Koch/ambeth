@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IEventDelegate<T>
-{
+public interface IEventDelegate<T> {
 	String getEventName();
 }

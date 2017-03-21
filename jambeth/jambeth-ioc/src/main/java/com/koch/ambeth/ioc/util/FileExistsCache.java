@@ -48,21 +48,24 @@ import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.io.AbstractFileVisitor;
 
-public class FileExistsCache implements IDisposableBean, Runnable, IFileExistsCache, IPathMonitorConfiguration
-{
+public class FileExistsCache
+		implements IDisposableBean, Runnable, IFileExistsCache, IPathMonitorConfiguration {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@SuppressWarnings("unchecked")
-	private static final WatchEvent.Kind<Path>[] CREATE_AND_DELETE = new WatchEvent.Kind[] { StandardWatchEventKinds.ENTRY_CREATE,
-			StandardWatchEventKinds.ENTRY_DELETE };
+	private static final WatchEvent.Kind<Path>[] CREATE_AND_DELETE = new WatchEvent.Kind[] {
+			StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE};
 
-	protected final IdentityWeakHashMap<FileSystem, WatchService> fileSystemToWatchServiceMap = new IdentityWeakHashMap<FileSystem, WatchService>();
+	protected final IdentityWeakHashMap<FileSystem, WatchService> fileSystemToWatchServiceMap =
+			new IdentityWeakHashMap<>();
 
-	protected final Tuple2KeyHashMap<WatchService, Path, Object> watchServiceMap = new Tuple2KeyHashMap<WatchService, Path, Object>();
+	protected final Tuple2KeyHashMap<WatchService, Path, Object> watchServiceMap =
+			new Tuple2KeyHashMap<>();
 
-	protected final IdentityWeakHashMap<FileSystem, ISet<String>> existingPathsMap = new IdentityWeakHashMap<FileSystem, ISet<String>>();
+	protected final IdentityWeakHashMap<FileSystem, ISet<String>> existingPathsMap =
+			new IdentityWeakHashMap<>();
 
 	protected final java.util.concurrent.locks.Lock readLock;
 
@@ -74,18 +77,16 @@ public class FileExistsCache implements IDisposableBean, Runnable, IFileExistsCa
 
 	protected volatile boolean disposed;
 
-	private IFileSystemEventListener existsDelegate = new IFileSystemEventListener()
-	{
+	private IFileSystemEventListener existsDelegate = new IFileSystemEventListener() {
 		@SuppressWarnings("rawtypes")
 		@Override
-		public void entryChanged(FileSystem fileSystem, WatchService watchService, Path path, Kind kind, Path filename)
-		{
+		public void entryChanged(FileSystem fileSystem, WatchService watchService, Path path, Kind kind,
+				Path filename) {
 			FileExistsCache.this.entryChanged(fileSystem, watchService, path, kind, filename);
 		}
 	};
 
-	public FileExistsCache()
-	{
+	public FileExistsCache() {
 		ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
 		readLock = rwLock.readLock();
 		writeLock = rwLock.writeLock();
@@ -93,21 +94,16 @@ public class FileExistsCache implements IDisposableBean, Runnable, IFileExistsCa
 	}
 
 	@Override
-	public void destroy() throws Throwable
-	{
-		if (thread == null)
-		{
+	public void destroy() throws Throwable {
+		if (thread == null) {
 			return;
 		}
 		disposed = true;
 		writeLock.lock();
-		try
-		{
-			for (Entry<FileSystem, WatchService> entry : fileSystemToWatchServiceMap)
-			{
+		try {
+			for (Entry<FileSystem, WatchService> entry : fileSystemToWatchServiceMap) {
 				FileSystem fileSystem = entry.getKey();
-				if (fileSystem == null)
-				{
+				if (fileSystem == null) {
 					continue;
 				}
 				entry.getValue().close();
@@ -116,176 +112,143 @@ public class FileExistsCache implements IDisposableBean, Runnable, IFileExistsCa
 			watchServiceMap.clear();
 			existingPathsMap.clear();
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 		thread.interrupt();
 	}
 
 	@Override
-	public boolean exists(Path path)
-	{
+	public boolean exists(Path path) {
 		FileSystem fileSystem = path.getFileSystem();
 		readLock.lock();
-		try
-		{
+		try {
 			ISet<String> existingPaths = existingPathsMap.get(fileSystem);
-			if (existingPaths == null)
-			{
+			if (existingPaths == null) {
 				return Files.exists(path);
 			}
 			return existingPaths.contains(path.toAbsolutePath().normalize().toString());
 		}
-		finally
-		{
+		finally {
 			readLock.unlock();
 		}
 	}
 
 	@Override
-	public void registerForExists(Path path)
-	{
+	public void registerForExists(Path path) {
 		registerForFileSystemEvents(path, existsDelegate, CREATE_AND_DELETE);
 	}
 
 	@Override
-	public void registerForFileSystemEvents(Path path, IFileSystemEventListener callback, WatchEvent.Kind<Path>... kinds)
-	{
-		if (disposed)
-		{
+	public void registerForFileSystemEvents(Path path, IFileSystemEventListener callback,
+			WatchEvent.Kind<Path>... kinds) {
+		if (disposed) {
 			throw new IllegalStateException("Bean already disposed");
 		}
 		writeLock.lock();
-		try
-		{
+		try {
 			FileSystem fileSystem = path.getFileSystem();
 			WatchService watchService = fileSystemToWatchServiceMap.get(fileSystem);
-			if (watchService == null)
-			{
+			if (watchService == null) {
 				watchService = fileSystem.newWatchService();
 				fileSystemToWatchServiceMap.put(fileSystem, watchService);
 			}
 			ISet<String> existingPaths = existingPathsMap.get(fileSystem);
-			if (existingPaths == null)
-			{
-				existingPaths = new HashSet<String>();
+			if (existingPaths == null) {
+				existingPaths = new HashSet<>();
 				existingPathsMap.put(fileSystem, existingPaths);
 			}
 			parseDirectory(path, watchService, existingPaths, callback, kinds);
-			if (thread == null)
-			{
+			if (thread == null) {
 				thread = new Thread(this);
 				thread.setDaemon(true);
 				thread.setName(getClass().getSimpleName());
 				thread.start();
 			}
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public void unregisterForFileSystemEvents(Path path, IFileSystemEventListener callback, Kind<Path>... kinds)
-	{
+	public void unregisterForFileSystemEvents(Path path, IFileSystemEventListener callback,
+			Kind<Path>... kinds) {
 		// TODO Not yet implemented
 	}
 
-	private void parseDirectory(Path path, final WatchService watchService, final ISet<String> existingPaths, final IFileSystemEventListener callback,
-			final WatchEvent.Kind<?>[] watchEventKinds)
-	{
-		try
-		{
-			Files.walkFileTree(path.toAbsolutePath().normalize(), new AbstractFileVisitor()
-			{
+	private void parseDirectory(Path path, final WatchService watchService,
+			final ISet<String> existingPaths, final IFileSystemEventListener callback,
+			final WatchEvent.Kind<?>[] watchEventKinds) {
+		try {
+			Files.walkFileTree(path.toAbsolutePath().normalize(), new AbstractFileVisitor() {
 				@Override
-				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException
-				{
+				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+						throws IOException {
 					registerPath(watchService, existingPaths, callback, watchEventKinds, dir);
 					return super.preVisitDirectory(dir, attrs);
 				}
 
 				@Override
-				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
-				{
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 					existingPaths.add(file.toString());
 					return super.visitFile(file, attrs);
 				}
 			});
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void run()
-	{
-		while (!disposed)
-		{
+	public void run() {
+		while (!disposed) {
 			writeLock.lock();
-			try
-			{
-				for (Entry<FileSystem, WatchService> entry : fileSystemToWatchServiceMap)
-				{
+			try {
+				for (Entry<FileSystem, WatchService> entry : fileSystemToWatchServiceMap) {
 					FileSystem fileSystem = entry.getKey();
-					if (fileSystem == null)
-					{
+					if (fileSystem == null) {
 						continue;
 					}
 					WatchService watchService = entry.getValue();
 					WatchKey key;
-					if (fileSystemToWatchServiceMap.size() == 1)
-					{
+					if (fileSystemToWatchServiceMap.size() == 1) {
 						writeLock.unlock();
-						try
-						{
+						try {
 							key = watchService.take();
 						}
-						catch (ClosedWatchServiceException e)
-						{
+						catch (ClosedWatchServiceException e) {
 							continue;
 						}
-						catch (InterruptedException e)
-						{
+						catch (InterruptedException e) {
 							Thread.interrupted();
 							continue;
 						}
-						finally
-						{
+						finally {
 							writeLock.lock();
 						}
 					}
-					else
-					{
-						try
-						{
+					else {
+						try {
 							key = entry.getValue().poll(0, TimeUnit.MILLISECONDS);
 						}
-						catch (ClosedWatchServiceException e)
-						{
+						catch (ClosedWatchServiceException e) {
 							continue;
 						}
-						catch (InterruptedException e)
-						{
+						catch (InterruptedException e) {
 							continue;
 						}
 					}
 					Watchable watchable = key.watchable();
-					for (WatchEvent<?> event : key.pollEvents())
-					{
+					for (WatchEvent<?> event : key.pollEvents()) {
 						WatchEvent.Kind<?> kind = event.kind();
 
-						if (kind == StandardWatchEventKinds.OVERFLOW)
-						{
+						if (kind == StandardWatchEventKinds.OVERFLOW) {
 							continue;
 						}
 
@@ -294,31 +257,24 @@ public class FileExistsCache implements IDisposableBean, Runnable, IFileExistsCa
 						Path filename = ev.context();
 						Path path = (Path) watchable;
 						Object callbacks = watchServiceMap.get(watchService, path);
-						if (callbacks == null)
-						{
+						if (callbacks == null) {
 							continue;
 						}
-						if (callbacks instanceof IFileSystemEventListener)
-						{
-							try
-							{
-								((IFileSystemEventListener) callbacks).entryChanged(fileSystem, watchService, path, kind, filename);
+						if (callbacks instanceof IFileSystemEventListener) {
+							try {
+								((IFileSystemEventListener) callbacks).entryChanged(fileSystem, watchService, path,
+										kind, filename);
 							}
-							catch (Throwable e)
-							{
+							catch (Throwable e) {
 								log.error(e);
 							}
 						}
-						else
-						{
-							for (IFileSystemEventListener existingCallback : (IFileSystemEventListener[]) callbacks)
-							{
-								try
-								{
+						else {
+							for (IFileSystemEventListener existingCallback : (IFileSystemEventListener[]) callbacks) {
+								try {
 									existingCallback.entryChanged(fileSystem, watchService, path, kind, filename);
 								}
-								catch (Throwable e)
-								{
+								catch (Throwable e) {
 									log.error(e);
 								}
 							}
@@ -330,71 +286,57 @@ public class FileExistsCache implements IDisposableBean, Runnable, IFileExistsCa
 					// is inaccessible so exit the loop.
 					key.reset();
 				}
-				if (fileSystemToWatchServiceMap.size() > 1)
-				{
-					try
-					{
+				if (fileSystemToWatchServiceMap.size() > 1) {
+					try {
 						newEntryCond.await(100, TimeUnit.MILLISECONDS);
 					}
-					catch (InterruptedException e)
-					{
+					catch (InterruptedException e) {
 						Thread.interrupted();
 						continue;
 					}
 				}
 			}
-			finally
-			{
+			finally {
 				writeLock.unlock();
 			}
 		}
 	}
 
-	protected boolean registerPath(final WatchService watchService, final ISet<String> existingPaths, final IFileSystemEventListener callback,
-			final WatchEvent.Kind<?>[] watchEventKinds, Path dir) throws IOException
-	{
+	protected boolean registerPath(final WatchService watchService, final ISet<String> existingPaths,
+			final IFileSystemEventListener callback, final WatchEvent.Kind<?>[] watchEventKinds, Path dir)
+			throws IOException {
 		Object callbacks = watchServiceMap.get(watchService, dir);
-		if (callbacks != null)
-		{
-			if (callbacks instanceof IFileSystemEventListener)
-			{
-				if (callbacks == callback)
-				{
+		if (callbacks != null) {
+			if (callbacks instanceof IFileSystemEventListener) {
+				if (callbacks == callback) {
 					return false;
 				}
 			}
-			else
-			{
-				for (IFileSystemEventListener existingCallback : (IFileSystemEventListener[]) callbacks)
-				{
-					if (existingCallback == callback)
-					{
+			else {
+				for (IFileSystemEventListener existingCallback : (IFileSystemEventListener[]) callbacks) {
+					if (existingCallback == callback) {
 						return false;
 					}
 				}
 			}
 		}
-		else
-		{
+		else {
 			dir.register(watchService, watchEventKinds);
 			newEntryCond.signal();
 		}
-		if (callbacks != null)
-		{
-			if (callbacks instanceof IFileSystemEventListener)
-			{
-				watchServiceMap.put(watchService, dir, new IFileSystemEventListener[] { (IFileSystemEventListener) callbacks, callback });
+		if (callbacks != null) {
+			if (callbacks instanceof IFileSystemEventListener) {
+				watchServiceMap.put(watchService, dir,
+						new IFileSystemEventListener[] {(IFileSystemEventListener) callbacks, callback});
 			}
-			else
-			{
+			else {
 				IFileSystemEventListener[] arr = (IFileSystemEventListener[]) callbacks;
 				IFileSystemEventListener[] copy = java.util.Arrays.copyOf(arr, arr.length + 1);
 				copy[copy.length - 1] = callback;
 				watchServiceMap.put(watchService, dir, copy);
 			}
 		}
-		else
-		{
+		else {
 			watchServiceMap.put(watchService, dir, callback);
 		}
 		existingPaths.add(dir.toString());
@@ -402,27 +344,22 @@ public class FileExistsCache implements IDisposableBean, Runnable, IFileExistsCa
 	}
 
 	@SuppressWarnings("rawtypes")
-	protected void entryChanged(FileSystem fileSystem, WatchService watchService, Path parent, WatchEvent.Kind kind, Path filename)
-	{
+	protected void entryChanged(FileSystem fileSystem, WatchService watchService, Path parent,
+			WatchEvent.Kind kind, Path filename) {
 		Path path = parent.resolve(filename);
 		ISet<String> set = existingPathsMap.get(fileSystem);
-		if (kind == StandardWatchEventKinds.ENTRY_DELETE)
-		{
+		if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
 			set.remove(path.toString());
 		}
-		else if (kind == StandardWatchEventKinds.ENTRY_CREATE)
-		{
-			if (Files.isDirectory(path))
-			{
+		else if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
+			if (Files.isDirectory(path)) {
 				parseDirectory(path, watchService, set, existsDelegate, CREATE_AND_DELETE);
 			}
-			else if (Files.exists(path))
-			{
+			else if (Files.exists(path)) {
 				set.add(path.toString());
 			}
 		}
-		else
-		{
+		else {
 			System.out.println("jdkfjsdkfjsf");
 		}
 	}

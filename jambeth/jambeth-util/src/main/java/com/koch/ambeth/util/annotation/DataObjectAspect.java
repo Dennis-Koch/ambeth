@@ -27,7 +27,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface DataObjectAspect
-{
+public @interface DataObjectAspect {
 	// Intended blank
 }

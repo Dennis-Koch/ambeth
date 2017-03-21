@@ -24,21 +24,16 @@ import com.koch.ambeth.cache.proxy.IEntityEquals;
 import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.StringBuilderUtil;
 
-public class EntityEqualsMixin
-{
-	public boolean equals(IEntityEquals left, Object right)
-	{
-		if (right == left)
-		{
+public class EntityEqualsMixin {
+	public boolean equals(IEntityEquals left, Object right) {
+		if (right == left) {
 			return true;
 		}
-		if (!(right instanceof IEntityEquals))
-		{
+		if (!(right instanceof IEntityEquals)) {
 			return false;
 		}
 		Object id = left.get__Id();
-		if (id == null)
-		{
+		if (id == null) {
 			// Null id can never be equal with something other than itself
 			return false;
 		}
@@ -46,25 +41,21 @@ public class EntityEqualsMixin
 		return id.equals(other.get__Id()) && left.get__BaseType().equals(other.get__BaseType());
 	}
 
-	public int hashCode(IEntityEquals left)
-	{
+	public int hashCode(IEntityEquals left) {
 		Object id = left.get__Id();
-		if (id == null)
-		{
+		if (id == null) {
 			return System.identityHashCode(left);
 		}
 		return left.get__BaseType().hashCode() ^ id.hashCode();
 	}
 
-	public String toString(IEntityEquals left, IPrintable printable)
-	{
+	public String toString(IEntityEquals left, IPrintable printable) {
 		StringBuilder sb = new StringBuilder();
 		printable.toString(sb);
 		return sb.toString();
 	}
 
-	public void toString(IEntityEquals left, StringBuilder sb)
-	{
+	public void toString(IEntityEquals left, StringBuilder sb) {
 		sb.append(left.get__BaseType().getName()).append('-');
 		StringBuilderUtil.appendPrintable(sb, left.get__Id());
 	}

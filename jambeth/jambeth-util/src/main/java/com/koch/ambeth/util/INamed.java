@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface INamed
-{
+public interface INamed {
 	String getName();
 }

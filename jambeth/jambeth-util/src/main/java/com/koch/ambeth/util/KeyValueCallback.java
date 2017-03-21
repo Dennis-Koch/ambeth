@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface KeyValueCallback<TKey, TValue>
-{
+public interface KeyValueCallback<TKey, TValue> {
 	void invoke(TKey key, TValue value) throws Throwable;
 }

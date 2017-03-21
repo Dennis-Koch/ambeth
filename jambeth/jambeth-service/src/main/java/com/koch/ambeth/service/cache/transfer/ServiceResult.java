@@ -32,43 +32,36 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 
 @XmlRootElement(name = "ServiceResult", namespace = "http://schema.kochdev.com/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class ServiceResult implements IServiceResult
-{
+public class ServiceResult implements IServiceResult {
 	@XmlElement
 	protected List<IObjRef> objRefs;
 
 	@XmlElement
 	protected Object additionalInformation;
 
-	public ServiceResult()
-	{
+	public ServiceResult() {
 		// Intended blank
 	}
 
-	public ServiceResult(List<IObjRef> objRefs)
-	{
+	public ServiceResult(List<IObjRef> objRefs) {
 		this.objRefs = objRefs;
 	}
 
 	@Override
-	public List<IObjRef> getObjRefs()
-	{
+	public List<IObjRef> getObjRefs() {
 		return objRefs;
 	}
 
-	public void setObjRefs(List<IObjRef> objRefs)
-	{
+	public void setObjRefs(List<IObjRef> objRefs) {
 		this.objRefs = objRefs;
 	}
 
 	@Override
-	public Object getAdditionalInformation()
-	{
+	public Object getAdditionalInformation() {
 		return additionalInformation;
 	}
 
-	public void setAdditionalInformation(Object additionalInformation)
-	{
+	public void setAdditionalInformation(Object additionalInformation) {
 		this.additionalInformation = additionalInformation;
 	}
 }

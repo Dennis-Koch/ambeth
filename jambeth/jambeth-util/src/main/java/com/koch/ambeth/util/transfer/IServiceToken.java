@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IServiceToken<T>
-{
+public interface IServiceToken<T> {
 
 	T getValue();
 

@@ -43,68 +43,63 @@ import com.koch.ambeth.util.model.IDataObject;
 import com.koch.ambeth.util.model.INotifyPropertyChanged;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
-public class DataObjectBehavior extends AbstractBehavior
-{
-	public static class CascadeBehavior extends AbstractBehavior
-	{
+public class DataObjectBehavior extends AbstractBehavior {
+	public static class CascadeBehavior extends AbstractBehavior {
 		protected final IEntityMetaData metaData;
 
 		@Autowired
 		protected IPropertyInfoProvider propertyInfoProvider;
 
-		public CascadeBehavior(IEntityMetaData metaData)
-		{
+		public CascadeBehavior(IEntityMetaData metaData) {
 			this.metaData = metaData;
 		}
 
 		@Override
-		public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-				List<IBytecodeBehavior> cascadePendingBehaviors)
-		{
+		public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+				List<IBytecodeBehavior> remainingPendingBehaviors,
+				List<IBytecodeBehavior> cascadePendingBehaviors) {
 			Class<?> currentType = BytecodeBehaviorState.getState().getCurrentType();
-			HashSet<Class<?>> missingTypes = new HashSet<Class<?>>();
-			if (!IDataObject.class.isAssignableFrom(currentType))
-			{
+			HashSet<Class<?>> missingTypes = new HashSet<>();
+			if (!IDataObject.class.isAssignableFrom(currentType)) {
 				missingTypes.add(IDataObject.class);
 			}
-			if (!INotifyCollectionChangedListener.class.isAssignableFrom(currentType))
-			{
+			if (!INotifyCollectionChangedListener.class.isAssignableFrom(currentType)) {
 				missingTypes.add(INotifyCollectionChangedListener.class);
 			}
-			if (missingTypes.size() > 0)
-			{
+			if (missingTypes.size() > 0) {
 				visitor = new InterfaceAdder(visitor, missingTypes.toArray(Class.class));
 			}
 			visitor = new DataObjectVisitor(visitor, metaData, propertyInfoProvider);
 			visitor = new SetCacheModificationMethodCreator(visitor);
 
 			// ToBeUpdated & ToBeDeleted have to fire PropertyChange-Events by themselves
-			String[] properties = new String[] { DataObjectVisitor.template_p_toBeUpdated.getName(), DataObjectVisitor.template_p_toBeDeleted.getName() };
+			String[] properties = new String[] {DataObjectVisitor.template_p_toBeUpdated.getName(),
+					DataObjectVisitor.template_p_toBeDeleted.getName()};
 
-			CascadeBehavior2 cascadeBehavior2 = beanContext.registerWithLifecycle(new CascadeBehavior2(metaData, properties)).finish();
+			CascadeBehavior2 cascadeBehavior2 =
+					beanContext.registerWithLifecycle(new CascadeBehavior2(metaData, properties)).finish();
 			cascadePendingBehaviors.add(cascadeBehavior2);
 
 			return visitor;
 		}
 	}
 
-	public static class CascadeBehavior2 extends AbstractBehavior
-	{
+	public static class CascadeBehavior2 extends AbstractBehavior {
 		private final IEntityMetaData metaData;
 
 		private final String[] properties;
 
-		public CascadeBehavior2(IEntityMetaData metaData, String[] properties)
-		{
+		public CascadeBehavior2(IEntityMetaData metaData, String[] properties) {
 			this.metaData = metaData;
 			this.properties = properties;
 		}
 
 		@Override
-		public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-				List<IBytecodeBehavior> cascadePendingBehaviors)
-		{
-			visitor = beanContext.registerWithLifecycle(new NotifyPropertyChangedClassVisitor(visitor, metaData, properties)).finish();
+		public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+				List<IBytecodeBehavior> remainingPendingBehaviors,
+				List<IBytecodeBehavior> cascadePendingBehaviors) {
+			visitor = beanContext.registerWithLifecycle(
+					new NotifyPropertyChangedClassVisitor(visitor, metaData, properties)).finish();
 			return visitor;
 		}
 	}
@@ -116,32 +111,27 @@ public class DataObjectBehavior extends AbstractBehavior
 	protected IPropertyInfoProvider propertyInfoProvider;
 
 	@Override
-	public Class<?>[] getEnhancements()
-	{
-		return new Class<?>[] { IDataObject.class };
+	public Class<?>[] getEnhancements() {
+		return new Class<?>[] {IDataObject.class};
 	}
 
 	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors)
-	{
-		if (state.getContext(EntityEnhancementHint.class) == null)
-		{
+	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+			List<IBytecodeBehavior> remainingPendingBehaviors,
+			List<IBytecodeBehavior> cascadePendingBehaviors) {
+		if (state.getContext(EntityEnhancementHint.class) == null) {
 			return visitor;
 		}
 
 		boolean lastBehaviorStanding = remainingPendingBehaviors.remove(this);
 
 		Class<?> currentType = state.getCurrentType();
-		if (!INotifyPropertyChanged.class.isAssignableFrom(currentType))
-		{
-			if (remainingPendingBehaviors.isEmpty() && lastBehaviorStanding)
-			{
+		if (!INotifyPropertyChanged.class.isAssignableFrom(currentType)) {
+			if (remainingPendingBehaviors.isEmpty() && lastBehaviorStanding) {
 				// The type is not being PropertyChange enhanced.
 				return visitor;
 			}
-			if (remainingPendingBehaviors.isEmpty() && cascadePendingBehaviors.isEmpty())
-			{
+			if (remainingPendingBehaviors.isEmpty() && cascadePendingBehaviors.isEmpty()) {
 				// Mark "last behavior standing" to avoid infinite loop
 				cascadePendingBehaviors.add(this);
 			}
@@ -152,7 +142,8 @@ public class DataObjectBehavior extends AbstractBehavior
 
 		visitor = new GetIdMethodCreator(visitor, metaData);
 
-		CascadeBehavior cascadeBehavior = beanContext.registerWithLifecycle(new CascadeBehavior(metaData)).finish();
+		CascadeBehavior cascadeBehavior =
+				beanContext.registerWithLifecycle(new CascadeBehavior(metaData)).finish();
 		cascadePendingBehaviors.add(cascadeBehavior);
 		return visitor;
 	}

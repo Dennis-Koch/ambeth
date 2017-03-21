@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.List;
 
-public interface IXmlTypeHelper
-{
+public interface IXmlTypeHelper {
 	String getXmlName(Class<?> valueObjectType);
 
 	String getXmlNamespace(Class<?> valueObjectType);

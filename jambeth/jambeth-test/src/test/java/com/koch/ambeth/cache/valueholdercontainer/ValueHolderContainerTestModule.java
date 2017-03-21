@@ -27,15 +27,16 @@ import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.merge.ioc.MergeModule;
 
-public class ValueHolderContainerTestModule implements IInitializingModule
-{
+public class ValueHolderContainerTestModule implements IInitializingModule {
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory)
-	{
-		IBeanConfiguration cacheRetrieverMockBC = beanContextFactory.registerBean(CacheModule.EXTERNAL_CACHE_SERVICE, CacheRetrieverMock.class).propertyRef(
-				"reader", MergeModule.INDEPENDENT_META_DATA_READER);
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) {
+		IBeanConfiguration cacheRetrieverMockBC = beanContextFactory
+				.registerBean(CacheModule.EXTERNAL_CACHE_SERVICE, CacheRetrieverMock.class)
+				.propertyRef("reader", MergeModule.INDEPENDENT_META_DATA_READER);
 
-		beanContextFactory.link(cacheRetrieverMockBC).to(ICacheRetrieverExtendable.class).with(Material.class);
-		beanContextFactory.link(cacheRetrieverMockBC).to(ICacheRetrieverExtendable.class).with(MaterialType.class);
+		beanContextFactory.link(cacheRetrieverMockBC).to(ICacheRetrieverExtendable.class)
+				.with(Material.class);
+		beanContextFactory.link(cacheRetrieverMockBC).to(ICacheRetrieverExtendable.class)
+				.with(MaterialType.class);
 	}
 }

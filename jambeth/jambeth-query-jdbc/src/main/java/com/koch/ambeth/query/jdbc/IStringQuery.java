@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
-public interface IStringQuery
-{
+public interface IStringQuery {
 	boolean isJoinQuery();
 
 	String fillQuery(IList<Object> parameters);

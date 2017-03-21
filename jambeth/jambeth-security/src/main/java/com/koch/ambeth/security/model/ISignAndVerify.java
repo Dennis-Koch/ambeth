@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ISignAndVerify
-{
+public interface ISignAndVerify {
 	String getSignatureAlgorithm();
 
 	void setSignatureAlgorithm(String signatureAlgorithm);

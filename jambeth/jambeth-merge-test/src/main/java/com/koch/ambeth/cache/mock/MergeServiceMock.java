@@ -32,23 +32,19 @@ import com.koch.ambeth.util.model.IMethodDescription;
 /**
  * Support for unit tests that do not include jAmbeth.Cache
  */
-public class MergeServiceMock implements IMergeService
-{
+public class MergeServiceMock implements IMergeService {
 	@Override
-	public IOriCollection merge(ICUDResult cudResult, IMethodDescription methodDescription)
-	{
+	public IOriCollection merge(ICUDResult cudResult, IMethodDescription methodDescription) {
 		return null;
 	}
 
 	@Override
-	public List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes)
-	{
+	public List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes) {
 		return null;
 	}
 
 	@Override
-	public IValueObjectConfig getValueObjectConfig(Class<?> valueType)
-	{
+	public IValueObjectConfig getValueObjectConfig(Class<?> valueType) {
 		return null;
 	}
 }

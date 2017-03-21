@@ -22,7 +22,6 @@ limitations under the License.
 
 import java.util.Collection;
 
-public interface HandleChildCachesDelegate
-{
+public interface HandleChildCachesDelegate {
 	void invoke(Collection<IWritableCache> childCaches);
 }

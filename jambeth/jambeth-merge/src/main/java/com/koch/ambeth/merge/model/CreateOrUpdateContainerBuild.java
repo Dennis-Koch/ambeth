@@ -30,8 +30,8 @@ import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.collections.HashMap;
 
-public class CreateOrUpdateContainerBuild extends AbstractChangeContainer implements ICreateOrUpdateContainer, IEntityMetaDataHolder
-{
+public class CreateOrUpdateContainerBuild extends AbstractChangeContainer
+		implements ICreateOrUpdateContainer, IEntityMetaDataHolder {
 	protected IPrimitiveUpdateItem[] fullPUIs;
 
 	protected final HashMap<String, Integer> relationNameToIndexMap;
@@ -48,9 +48,9 @@ public class CreateOrUpdateContainerBuild extends AbstractChangeContainer implem
 
 	protected final ICUDResultHelper cudResultHelper;
 
-	public CreateOrUpdateContainerBuild(IEntityMetaData metaData, boolean isCreate, HashMap<String, Integer> relationNameToIndexMap,
-			HashMap<String, Integer> primitiveNameToIndexMap, ICUDResultHelper cudResultHelper)
-	{
+	public CreateOrUpdateContainerBuild(IEntityMetaData metaData, boolean isCreate,
+			HashMap<String, Integer> relationNameToIndexMap,
+			HashMap<String, Integer> primitiveNameToIndexMap, ICUDResultHelper cudResultHelper) {
 		this.metaData = metaData;
 		this.isCreate = isCreate;
 		this.relationNameToIndexMap = relationNameToIndexMap;
@@ -59,108 +59,91 @@ public class CreateOrUpdateContainerBuild extends AbstractChangeContainer implem
 	}
 
 	@Override
-	public IEntityMetaData get__EntityMetaData()
-	{
+	public IEntityMetaData get__EntityMetaData() {
 		return metaData;
 	}
 
-	public boolean isCreate()
-	{
+	public boolean isCreate() {
 		return isCreate;
 	}
 
-	public boolean isUpdate()
-	{
+	public boolean isUpdate() {
 		return !isCreate();
 	}
 
 	@Override
-	public IPrimitiveUpdateItem[] getFullPUIs()
-	{
+	public IPrimitiveUpdateItem[] getFullPUIs() {
 		return fullPUIs;
 	}
 
 	@Override
-	public IRelationUpdateItem[] getFullRUIs()
-	{
+	public IRelationUpdateItem[] getFullRUIs() {
 		return fullRUIs;
 	}
 
-	public void addPrimitive(IPrimitiveUpdateItem pui)
-	{
+	public void addPrimitive(IPrimitiveUpdateItem pui) {
 		IPrimitiveUpdateItem[] fullPUIs = this.fullPUIs;
-		if (fullPUIs == null)
-		{
+		if (fullPUIs == null) {
 			fullPUIs = new IPrimitiveUpdateItem[primitiveNameToIndexMap.size()];
 			this.fullPUIs = fullPUIs;
 		}
 		Integer indexR = primitiveNameToIndexMap.get(pui.getMemberName());
-		if (indexR == null)
-		{
-			throw new IllegalStateException("No primitive member " + getReference().getRealType().getName() + "." + pui.getMemberName() + " defined");
+		if (indexR == null) {
+			throw new IllegalStateException("No primitive member "
+					+ getReference().getRealType().getName() + "." + pui.getMemberName() + " defined");
 		}
 		int index = indexR.intValue();
-		if (fullPUIs[index] == null)
-		{
+		if (fullPUIs[index] == null) {
 			puiCount++;
 		}
 		fullPUIs[index] = pui;
 	}
 
-	public void addRelation(IRelationUpdateItem rui)
-	{
+	public void addRelation(IRelationUpdateItem rui) {
 		IRelationUpdateItem[] fullRUIs = this.fullRUIs;
-		if (fullRUIs == null)
-		{
+		if (fullRUIs == null) {
 			fullRUIs = new IRelationUpdateItem[relationNameToIndexMap.size()];
 			this.fullRUIs = fullRUIs;
 		}
 		Integer indexR = relationNameToIndexMap.get(rui.getMemberName());
-		if (indexR == null)
-		{
-			throw new IllegalStateException("No relation member " + getReference().getRealType().getName() + "." + rui.getMemberName() + " defined");
+		if (indexR == null) {
+			throw new IllegalStateException("No relation member " + getReference().getRealType().getName()
+					+ "." + rui.getMemberName() + " defined");
 		}
 		int index = indexR.intValue();
-		if (fullRUIs[index] == null)
-		{
+		if (fullRUIs[index] == null) {
 			ruiCount++;
 		}
 		fullRUIs[index] = rui;
 	}
 
-	public PrimitiveUpdateItem findPrimitive(String memberName)
-	{
-		if (fullPUIs == null)
-		{
+	public PrimitiveUpdateItem findPrimitive(String memberName) {
+		if (fullPUIs == null) {
 			return null;
 		}
 		Integer indexR = primitiveNameToIndexMap.get(memberName);
-		if (indexR == null)
-		{
-			throw new IllegalStateException("No primitive member " + getReference().getRealType().getName() + "." + memberName + " defined");
+		if (indexR == null) {
+			throw new IllegalStateException("No primitive member "
+					+ getReference().getRealType().getName() + "." + memberName + " defined");
 		}
 		return (PrimitiveUpdateItem) fullPUIs[indexR.intValue()];
 	}
 
-	public RelationUpdateItemBuild findRelation(String memberName)
-	{
-		if (fullRUIs == null)
-		{
+	public RelationUpdateItemBuild findRelation(String memberName) {
+		if (fullRUIs == null) {
 			return null;
 		}
 		Integer indexR = relationNameToIndexMap.get(memberName);
-		if (indexR == null)
-		{
-			throw new IllegalStateException("No relational member " + getReference().getRealType().getName() + "." + memberName + " defined");
+		if (indexR == null) {
+			throw new IllegalStateException("No relational member "
+					+ getReference().getRealType().getName() + "." + memberName + " defined");
 		}
 		return (RelationUpdateItemBuild) fullRUIs[indexR.intValue()];
 	}
 
-	public PrimitiveUpdateItem ensurePrimitive(String memberName)
-	{
+	public PrimitiveUpdateItem ensurePrimitive(String memberName) {
 		PrimitiveUpdateItem pui = findPrimitive(memberName);
-		if (pui != null)
-		{
+		if (pui != null) {
 			return pui;
 		}
 		pui = new PrimitiveUpdateItem();
@@ -169,11 +152,9 @@ public class CreateOrUpdateContainerBuild extends AbstractChangeContainer implem
 		return pui;
 	}
 
-	public RelationUpdateItemBuild ensureRelation(String memberName)
-	{
+	public RelationUpdateItemBuild ensureRelation(String memberName) {
 		RelationUpdateItemBuild rui = findRelation(memberName);
-		if (rui != null)
-		{
+		if (rui != null) {
 			return rui;
 		}
 		rui = new RelationUpdateItemBuild(memberName);
@@ -181,47 +162,38 @@ public class CreateOrUpdateContainerBuild extends AbstractChangeContainer implem
 		return rui;
 	}
 
-	public int getPuiCount()
-	{
+	public int getPuiCount() {
 		return puiCount;
 	}
 
-	public int getRuiCount()
-	{
+	public int getRuiCount() {
 		return ruiCount;
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
-		if (isCreate())
-		{
+	public void toString(StringBuilder sb) {
+		if (isCreate()) {
 			sb.append(CreateContainer.class.getSimpleName()).append(": ");
 		}
-		else if (isUpdate())
-		{
+		else if (isUpdate()) {
 			sb.append(UpdateContainer.class.getSimpleName()).append(": ");
 		}
-		else
-		{
+		else {
 			super.toString(sb);
 			return;
 		}
 		StringBuilderUtil.appendPrintable(sb, reference);
 	}
 
-	public ICreateOrUpdateContainer build()
-	{
-		if (isCreate())
-		{
+	public ICreateOrUpdateContainer build() {
+		if (isCreate()) {
 			CreateContainer cc = new CreateContainer();
 			cc.setReference(getReference());
 			cc.setPrimitives(cudResultHelper.compactPUIs(getFullPUIs(), getPuiCount()));
 			cc.setRelations(cudResultHelper.compactRUIs(getFullRUIs(), getRuiCount()));
 			return cc;
 		}
-		if (isUpdate())
-		{
+		if (isUpdate()) {
 			UpdateContainer uc = new UpdateContainer();
 			uc.setReference(getReference());
 			uc.setPrimitives(cudResultHelper.compactPUIs(getFullPUIs(), getPuiCount()));

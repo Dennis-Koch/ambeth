@@ -26,57 +26,50 @@ import java.security.Signature;
 import java.security.SignatureException;
 
 /**
- * This class provides an outputstream which writes everything to a Signature as well as to an underlying stream.
+ * This class provides an outputstream which writes everything to a Signature as well as to an
+ * underlying stream.
  */
-public class SignatureOutputStream extends OutputStream
-{
+public class SignatureOutputStream extends OutputStream {
 	protected final OutputStream target;
 	protected final Signature sig;
 
 	/**
-	 * creates a new SignatureOutputStream which writes to a target OutputStream and updates the Signature object.
+	 * creates a new SignatureOutputStream which writes to a target OutputStream and updates the
+	 * Signature object.
 	 */
-	public SignatureOutputStream(OutputStream target, Signature sig)
-	{
+	public SignatureOutputStream(OutputStream target, Signature sig) {
 		this.target = target;
 		this.sig = sig;
 	}
 
 	@Override
-	public void write(int b) throws IOException
-	{
-		write(new byte[] { (byte) b });
+	public void write(int b) throws IOException {
+		write(new byte[] {(byte) b});
 	}
 
 	@Override
-	public void write(byte[] b) throws IOException
-	{
+	public void write(byte[] b) throws IOException {
 		write(b, 0, b.length);
 	}
 
 	@Override
-	public void write(byte[] b, int offset, int len) throws IOException
-	{
+	public void write(byte[] b, int offset, int len) throws IOException {
 		target.write(b, offset, len);
-		try
-		{
+		try {
 			sig.update(b, offset, len);
 		}
-		catch (SignatureException ex)
-		{
+		catch (SignatureException ex) {
 			throw new IOException(ex);
 		}
 	}
 
 	@Override
-	public void flush() throws IOException
-	{
+	public void flush() throws IOException {
 		target.flush();
 	}
 
 	@Override
-	public void close() throws IOException
-	{
+	public void close() throws IOException {
 		target.close();
 	}
 }

@@ -33,8 +33,7 @@ import com.koch.ambeth.util.config.IProperties;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 
-public class EntityPropertyExpressionResolver implements IEntityPropertyExpressionResolver
-{
+public class EntityPropertyExpressionResolver implements IEntityPropertyExpressionResolver {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -43,31 +42,24 @@ public class EntityPropertyExpressionResolver implements IEntityPropertyExpressi
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Override
-	public Object resolveExpressionOnEntity(Object entity, String expression)
-	{
+	public Object resolveExpressionOnEntity(Object entity, String expression) {
 		final IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entity.getClass());
 		final Object fEntity = entity;
-		Properties propertiesForEntity = new Properties()
-		{
+		Properties propertiesForEntity = new Properties() {
 			@Override
-			public Object get(String key, IProperties initiallyCalledProps)
-			{
-				if (initiallyCalledProps == null)
-				{
+			public Object get(String key, IProperties initiallyCalledProps) {
+				if (initiallyCalledProps == null) {
 					initiallyCalledProps = this;
 				}
 				Member member = metaData.getMemberByName(key);
-				if (member != null)
-				{
+				if (member != null) {
 					return member.getValue(fEntity);
 				}
 				Object propertyValue = dictionary.get(key);
-				if (propertyValue == null && parent != null)
-				{
+				if (propertyValue == null && parent != null) {
 					return parent.get(key, initiallyCalledProps);
 				}
-				if (!(propertyValue instanceof String))
-				{
+				if (!(propertyValue instanceof String)) {
 					return propertyValue;
 				}
 				return initiallyCalledProps.resolvePropertyParts((String) propertyValue);

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ICacheRetrieverExtendable
-{
+public interface ICacheRetrieverExtendable {
 	void registerCacheRetriever(ICacheRetriever cacheRetriever, Class<?> handledType);
 
 	void unregisterCacheRetriever(ICacheRetriever cacheRetriever, Class<?> handledType);

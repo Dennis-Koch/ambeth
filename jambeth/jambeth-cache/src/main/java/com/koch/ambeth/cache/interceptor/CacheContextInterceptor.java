@@ -34,8 +34,7 @@ import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 import net.sf.cglib.proxy.MethodProxy;
 
-public class CacheContextInterceptor extends CascadedInterceptor
-{
+public class CacheContextInterceptor extends CascadedInterceptor {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -50,25 +49,21 @@ public class CacheContextInterceptor extends CascadedInterceptor
 	protected ICacheProvider cacheProvider;
 
 	@Override
-	protected Object interceptIntern(final Object obj, final Method method, final Object[] args, final MethodProxy proxy) throws Throwable
-	{
-		if (method.getDeclaringClass().equals(Object.class))
-		{
+	protected Object interceptIntern(final Object obj, final Method method, final Object[] args,
+			final MethodProxy proxy) throws Throwable {
+		if (method.getDeclaringClass().equals(Object.class)) {
 			return invokeTarget(obj, method, args, proxy);
 		}
-		try
-		{
-			return cacheContext.executeWithCache(cacheProvider, new IResultingBackgroundWorkerDelegate<Object>()
-			{
-				@Override
-				public Object invoke() throws Throwable
-				{
-					return invokeTarget(obj, method, args, proxy);
-				}
-			});
+		try {
+			return cacheContext.executeWithCache(cacheProvider,
+					new IResultingBackgroundWorkerDelegate<Object>() {
+						@Override
+						public Object invoke() throws Throwable {
+							return invokeTarget(obj, method, args, proxy);
+						}
+					});
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e, method.getExceptionTypes());
 		}
 	}

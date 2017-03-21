@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.persistence.api.IDatabase;
 import com.koch.ambeth.persistence.api.IDatabasePool;
 
-public interface IDatabaseFactory
-{
+public interface IDatabaseFactory {
 	IDatabase createDatabaseInstance(IDatabasePool pool);
 
 	void activate(IDatabase database);

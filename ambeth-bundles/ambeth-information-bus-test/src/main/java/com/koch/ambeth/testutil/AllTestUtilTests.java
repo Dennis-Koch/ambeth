@@ -27,7 +27,6 @@ import org.junit.runners.Suite.SuiteClasses;
 import com.koch.ambeth.testutil.contextstore.ServiceContextStoreTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ ServiceContextStoreTest.class, TestContextTest.class })
-public class AllTestUtilTests
-{
+@SuiteClasses({ServiceContextStoreTest.class, TestContextTest.class})
+public class AllTestUtilTests {
 }

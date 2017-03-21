@@ -29,45 +29,40 @@ import com.koch.ambeth.log.ILoggerHistory;
 import com.koch.ambeth.util.collections.CleanupInvalidKeysSet;
 import com.koch.ambeth.util.collections.IInvalidKeyChecker;
 
-public class LoggerHistory implements IInitializingBean, ILoggerHistory, IInvalidKeyChecker<LoggerHistoryKey>
-{
-	protected final CleanupInvalidKeysSet<LoggerHistoryKey> logHistory = new CleanupInvalidKeysSet<LoggerHistoryKey>(this, 0.5f);
+public class LoggerHistory
+		implements IInitializingBean, ILoggerHistory, IInvalidKeyChecker<LoggerHistoryKey> {
+	protected final CleanupInvalidKeysSet<LoggerHistoryKey> logHistory =
+			new CleanupInvalidKeysSet<>(this, 0.5f);
 
 	protected final ReentrantLock lock = new ReentrantLock();
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		// Intended blank
 	}
 
 	@Override
-	public boolean isKeyValid(LoggerHistoryKey key)
-	{
+	public boolean isKeyValid(LoggerHistoryKey key) {
 		return key.isValid();
 	}
 
 	@Override
-	public boolean addLogHistory(ILogger logger, Object contextHandle, String logTextForHistory)
-	{
-		LoggerHistoryKey key = new LoggerHistoryKey(logger, new WeakReference<Object>(contextHandle), logTextForHistory);
-		ReentrantLock writeLock = this.lock;
+	public boolean addLogHistory(ILogger logger, Object contextHandle, String logTextForHistory) {
+		LoggerHistoryKey key =
+				new LoggerHistoryKey(logger, new WeakReference<>(contextHandle), logTextForHistory);
+		ReentrantLock writeLock = lock;
 		writeLock.lock();
-		try
-		{
+		try {
 			return logHistory.add(key);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public boolean debugOnce(ILogger log, Object contextHandle, String logTextForHistory)
-	{
-		if (!addLogHistory(log, contextHandle, logTextForHistory))
-		{
+	public boolean debugOnce(ILogger log, Object contextHandle, String logTextForHistory) {
+		if (!addLogHistory(log, contextHandle, logTextForHistory)) {
 			return false;
 		}
 		log.debug(logTextForHistory);
@@ -75,10 +70,8 @@ public class LoggerHistory implements IInitializingBean, ILoggerHistory, IInvali
 	}
 
 	@Override
-	public boolean infoOnce(ILogger log, Object contextHandle, String logTextForHistory)
-	{
-		if (!addLogHistory(log, contextHandle, logTextForHistory))
-		{
+	public boolean infoOnce(ILogger log, Object contextHandle, String logTextForHistory) {
+		if (!addLogHistory(log, contextHandle, logTextForHistory)) {
 			return false;
 		}
 		log.info(logTextForHistory);
@@ -86,10 +79,8 @@ public class LoggerHistory implements IInitializingBean, ILoggerHistory, IInvali
 	}
 
 	@Override
-	public boolean warnOnce(ILogger log, Object contextHandle, String logTextForHistory)
-	{
-		if (!addLogHistory(log, contextHandle, logTextForHistory))
-		{
+	public boolean warnOnce(ILogger log, Object contextHandle, String logTextForHistory) {
+		if (!addLogHistory(log, contextHandle, logTextForHistory)) {
 			return false;
 		}
 		log.warn(logTextForHistory);
@@ -97,10 +88,8 @@ public class LoggerHistory implements IInitializingBean, ILoggerHistory, IInvali
 	}
 
 	@Override
-	public boolean errorOnce(ILogger log, Object contextHandle, String logTextForHistory)
-	{
-		if (!addLogHistory(log, contextHandle, logTextForHistory))
-		{
+	public boolean errorOnce(ILogger log, Object contextHandle, String logTextForHistory) {
+		if (!addLogHistory(log, contextHandle, logTextForHistory)) {
 			return false;
 		}
 		log.error(logTextForHistory);

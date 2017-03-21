@@ -21,8 +21,7 @@ limitations under the License.
  */
 
 
-public interface IDatabasePool
-{
+public interface IDatabasePool {
 	IDatabase acquireDatabase();
 
 	IDatabase acquireDatabase(boolean readonlyMode);

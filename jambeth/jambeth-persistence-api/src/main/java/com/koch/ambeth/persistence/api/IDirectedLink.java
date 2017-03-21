@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.List;
 
-public interface IDirectedLink
-{
+public interface IDirectedLink {
 	IDirectedLinkMetaData getMetaData();
 
 	ITable getFromTable();

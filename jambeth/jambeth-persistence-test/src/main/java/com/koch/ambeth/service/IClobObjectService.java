@@ -24,8 +24,7 @@ import java.util.List;
 
 import com.koch.ambeth.model.ClobObject;
 
-public interface IClobObjectService
-{
+public interface IClobObjectService {
 
 	List<ClobObject> getClobObjects(Integer... id);
 

@@ -36,8 +36,7 @@ import com.koch.ambeth.security.SecurityTest;
 import com.koch.ambeth.security.server.IPasswordUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-public class Relations20WithSecurityTestDataSetBuilder extends AbstractDatasetBuilder
-{
+public class Relations20WithSecurityTestDataSetBuilder extends AbstractDatasetBuilder {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -61,8 +60,7 @@ public class Relations20WithSecurityTestDataSetBuilder extends AbstractDatasetBu
 	protected ISqlBuilder sqlBuilder;
 
 	@Override
-	protected void buildDatasetInternal()
-	{
+	protected void buildDatasetInternal() {
 		User user = createEntity(User.class);
 		user.setSID(SecurityTest.userName1);
 		user.setName(SecurityTest.userName1);
@@ -72,8 +70,7 @@ public class Relations20WithSecurityTestDataSetBuilder extends AbstractDatasetBu
 	}
 
 	@Override
-	public Collection<Class<? extends IDatasetBuilder>> getDependsOn()
-	{
+	public Collection<Class<? extends IDatasetBuilder>> getDependsOn() {
 		return null;
 	}
 }

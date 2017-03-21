@@ -28,39 +28,33 @@ import com.koch.ambeth.ioc.bytecode.IEnhancementHint;
 import com.koch.ambeth.ioc.bytecode.ITargetNameEnhancementHint;
 import com.koch.ambeth.merge.transfer.ObjRef;
 
-public class ObjRefStoreEnhancementHint implements IEnhancementHint, ITargetNameEnhancementHint, Serializable
-{
+public class ObjRefStoreEnhancementHint
+		implements IEnhancementHint, ITargetNameEnhancementHint, Serializable {
 	private static final long serialVersionUID = -5056875341659333243L;
 
 	protected final Class<?> entityType;
 
 	protected final int idIndex;
 
-	public ObjRefStoreEnhancementHint(Class<?> entityType, int idIndex)
-	{
+	public ObjRefStoreEnhancementHint(Class<?> entityType, int idIndex) {
 		this.entityType = entityType;
 		this.idIndex = idIndex;
 	}
 
-	public Class<?> getEntityType()
-	{
+	public Class<?> getEntityType() {
 		return entityType;
 	}
 
-	public int getIdIndex()
-	{
+	public int getIdIndex() {
 		return idIndex;
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == this)
-		{
+	public boolean equals(Object obj) {
+		if (obj == this) {
 			return true;
 		}
-		if (!getClass().equals(obj.getClass()))
-		{
+		if (!getClass().equals(obj.getClass())) {
 			return false;
 		}
 		ObjRefStoreEnhancementHint other = (ObjRefStoreEnhancementHint) obj;
@@ -68,31 +62,28 @@ public class ObjRefStoreEnhancementHint implements IEnhancementHint, ITargetName
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return getClass().hashCode() ^ getEntityType().hashCode() ^ getIdIndex();
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends IEnhancementHint> T unwrap(Class<T> includedHintType)
-	{
-		if (ObjRefStoreEnhancementHint.class.equals(includedHintType))
-		{
+	public <T extends IEnhancementHint> T unwrap(Class<T> includedHintType) {
+		if (ObjRefStoreEnhancementHint.class.equals(includedHintType)) {
 			return (T) this;
 		}
 		return null;
 	}
 
 	@Override
-	public String getTargetName(Class<?> typeToEnhance)
-	{
-		return Type.getInternalName(entityType) + "$" + ObjRefStore.class.getSimpleName() + "$" + (idIndex == ObjRef.PRIMARY_KEY_INDEX ? "PK" : "AK" + idIndex);
+	public String getTargetName(Class<?> typeToEnhance) {
+		return Type.getInternalName(entityType) + "$" + ObjRefStore.class.getSimpleName() + "$"
+				+ (idIndex == ObjRef.PRIMARY_KEY_INDEX ? "PK" : "AK" + idIndex);
 	}
 
 	@Override
-	public String toString()
-	{
-		return getClass().getSimpleName() + ": " + entityType.getSimpleName() + "-" + (idIndex == ObjRef.PRIMARY_KEY_INDEX ? "PK" : "AK" + idIndex);
+	public String toString() {
+		return getClass().getSimpleName() + ": " + entityType.getSimpleName() + "-"
+				+ (idIndex == ObjRef.PRIMARY_KEY_INDEX ? "PK" : "AK" + idIndex);
 	}
 }

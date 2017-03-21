@@ -32,7 +32,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.koch.ambeth.persistence.PersistenceHelper;
-import com.koch.ambeth.persistence.sql.SqlBuilder;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.objectcollector.NoOpObjectCollector;
 

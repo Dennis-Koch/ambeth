@@ -24,10 +24,8 @@ import com.koch.ambeth.model.AbstractEntity;
 import com.koch.ambeth.util.annotation.PropertyChangeAspect;
 
 @PropertyChangeAspect
-public abstract class ExternalChild extends AbstractEntity
-{
-	protected ExternalChild()
-	{
+public abstract class ExternalChild extends AbstractEntity {
+	protected ExternalChild() {
 		// Intended blank
 	}
 

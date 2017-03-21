@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public enum SecurityContextType
-{
+public enum SecurityContextType {
 	AUTHORIZED, AUTHENTICATED, NOT_REQUIRED;
 }

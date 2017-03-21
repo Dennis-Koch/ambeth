@@ -24,8 +24,7 @@ import com.koch.ambeth.util.collections.WeakHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class AmbethClassLoader extends ClassLoader {
-	protected final WeakHashMap<Class<?>, byte[]> classToContentMap =
-			new WeakHashMap<>();
+	protected final WeakHashMap<Class<?>, byte[]> classToContentMap = new WeakHashMap<>();
 
 	public AmbethClassLoader(ClassLoader parent) {
 		super(parent);

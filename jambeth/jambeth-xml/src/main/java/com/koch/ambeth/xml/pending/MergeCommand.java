@@ -50,8 +50,8 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.xml.IReader;
 
-public class MergeCommand extends AbstractObjectCommand implements IObjectCommand, IInitializingBean
-{
+public class MergeCommand extends AbstractObjectCommand
+		implements IObjectCommand, IInitializingBean {
 	@Autowired
 	protected ICommandBuilder commandBuilder;
 
@@ -62,54 +62,48 @@ public class MergeCommand extends AbstractObjectCommand implements IObjectComman
 	protected IObjRefHelper oriHelper;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		ParamChecker.assertParamOfType(parent, "Parent", IChangeContainer.class);
 	}
 
 	@Override
-	public void execute(IReader reader)
-	{
+	public void execute(IReader reader) {
 		IPrimitiveUpdateItem[] puis;
 		IRelationUpdateItem[] ruis;
-		if (parent instanceof CreateContainer)
-		{
+		if (parent instanceof CreateContainer) {
 			CreateContainer createContainer = (CreateContainer) parent;
 			puis = createContainer.getPrimitives();
 			ruis = createContainer.getRelations();
 		}
-		else if (parent instanceof UpdateContainer)
-		{
+		else if (parent instanceof UpdateContainer) {
 			UpdateContainer updateContainer = (UpdateContainer) parent;
 			puis = updateContainer.getPrimitives();
 			ruis = updateContainer.getRelations();
 		}
-		else
-		{
-			throw new IllegalArgumentException("Unsupported " + IChangeContainer.class.getSimpleName() + " of type '" + parent.getClass().getName() + "'");
+		else {
+			throw new IllegalArgumentException("Unsupported " + IChangeContainer.class.getSimpleName()
+					+ " of type '" + parent.getClass().getName() + "'");
 		}
 
 		Object entity = objectFuture.getValue();
 		IEntityMetaData metadata = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
 		applyPrimitiveUpdateItems(entity, puis, metadata);
 
-		if (ruis != null && ruis.length > 0)
-		{
-			applyRelationUpdateItems((IObjRefContainer) entity, ruis, parent instanceof UpdateContainer, metadata, reader);
+		if (ruis != null && ruis.length > 0) {
+			applyRelationUpdateItems((IObjRefContainer) entity, ruis, parent instanceof UpdateContainer,
+					metadata, reader);
 		}
 	}
 
-	protected void applyPrimitiveUpdateItems(Object entity, IPrimitiveUpdateItem[] puis, IEntityMetaData metadata)
-	{
-		if (puis == null)
-		{
+	protected void applyPrimitiveUpdateItems(Object entity, IPrimitiveUpdateItem[] puis,
+			IEntityMetaData metadata) {
+		if (puis == null) {
 			return;
 		}
 
-		for (IPrimitiveUpdateItem pui : puis)
-		{
+		for (IPrimitiveUpdateItem pui : puis) {
 			String memberName = pui.getMemberName();
 			Object newValue = pui.getNewValue();
 			Member member = metadata.getMemberByName(memberName);
@@ -117,17 +111,16 @@ public class MergeCommand extends AbstractObjectCommand implements IObjectComman
 		}
 	}
 
-	protected void applyRelationUpdateItems(IObjRefContainer entity, IRelationUpdateItem[] ruis, boolean isUpdate, IEntityMetaData metadata, IReader reader)
-	{
-		IList<Object> toPrefetch = new ArrayList<Object>();
+	protected void applyRelationUpdateItems(IObjRefContainer entity, IRelationUpdateItem[] ruis,
+			boolean isUpdate, IEntityMetaData metadata, IReader reader) {
+		IList<Object> toPrefetch = new ArrayList<>();
 		RelationMember[] relationMembers = metadata.getRelationMembers();
-		for (IRelationUpdateItem rui : ruis)
-		{
+		for (IRelationUpdateItem rui : ruis) {
 			String memberName = rui.getMemberName();
 			int relationIndex = metadata.getIndexByRelationName(memberName);
-			if (ValueHolderState.INIT == entity.get__State(relationIndex))
-			{
-				throw new IllegalStateException("ValueHolder already initialized for property '" + memberName + "'");
+			if (ValueHolderState.INIT == entity.get__State(relationIndex)) {
+				throw new IllegalStateException(
+						"ValueHolder already initialized for property '" + memberName + "'");
 			}
 
 			IObjRef[] existingORIs = entity.get__ObjRefs(relationIndex);
@@ -135,103 +128,85 @@ public class MergeCommand extends AbstractObjectCommand implements IObjectComman
 			IObjRef[] removedORIs = rui.getRemovedORIs();
 
 			IObjRef[] newORIs;
-			if (existingORIs.length == 0)
-			{
-				if (removedORIs != null && addedORIs.length > 0)
-				{
+			if (existingORIs.length == 0) {
+				if (removedORIs != null && addedORIs.length > 0) {
 					throw new IllegalArgumentException("Removing from empty member");
 				}
 				newORIs = addedORIs != null ? addedORIs : ObjRef.EMPTY_ARRAY;
 			}
-			else
-			{
+			else {
 				// Set to efficiently remove entries
-				ILinkedSet<IObjRef> existingORIsSet = new LinkedHashSet<IObjRef>(existingORIs);
-				if (removedORIs != null && removedORIs.length > 0)
-				{
-					for (IObjRef removedORI : removedORIs)
-					{
-						if (!existingORIsSet.remove(removedORI))
-						{
-							throw OptimisticLockUtil.throwModified(oriHelper.entityToObjRef(entity), null, entity);
+				ILinkedSet<IObjRef> existingORIsSet = new LinkedHashSet<>(existingORIs);
+				if (removedORIs != null && removedORIs.length > 0) {
+					for (IObjRef removedORI : removedORIs) {
+						if (!existingORIsSet.remove(removedORI)) {
+							throw OptimisticLockUtil.throwModified(oriHelper.entityToObjRef(entity), null,
+									entity);
 						}
 					}
 				}
-				if (addedORIs != null && addedORIs.length > 0)
-				{
-					for (IObjRef addedORI : addedORIs)
-					{
-						if (!existingORIsSet.add(addedORI))
-						{
-							throw OptimisticLockUtil.throwModified(oriHelper.entityToObjRef(entity), null, entity);
+				if (addedORIs != null && addedORIs.length > 0) {
+					for (IObjRef addedORI : addedORIs) {
+						if (!existingORIsSet.add(addedORI)) {
+							throw OptimisticLockUtil.throwModified(oriHelper.entityToObjRef(entity), null,
+									entity);
 						}
 					}
 				}
-				if (existingORIsSet.size() == 0)
-				{
+				if (existingORIsSet.size() == 0) {
 					newORIs = ObjRef.EMPTY_ARRAY;
 				}
-				else
-				{
+				else {
 					newORIs = existingORIsSet.toArray(IObjRef.class);
 				}
 			}
 
 			RelationMember member = relationMembers[relationIndex];
-			if (isUpdate)
-			{
+			if (isUpdate) {
 				entity.set__ObjRefs(relationIndex, newORIs);
-				if (!entity.is__Initialized(relationIndex))
-				{
+				if (!entity.is__Initialized(relationIndex)) {
 					DirectValueHolderRef dvhr = new DirectValueHolderRef(entity, member);
 					toPrefetch.add(dvhr);
 				}
 			}
-			else
-			{
+			else {
 				resolveAndSetEntities(entity, newORIs, member, reader);
 			}
 		}
-		if (!toPrefetch.isEmpty())
-		{
+		if (!toPrefetch.isEmpty()) {
 			IObjectFuture objectFuture = new PrefetchFuture(toPrefetch);
-			IObjectCommand command = commandBuilder.build(reader.getCommandTypeRegistry(), objectFuture, null);
+			IObjectCommand command =
+					commandBuilder.build(reader.getCommandTypeRegistry(), objectFuture, null);
 			reader.addObjectCommand(command);
 		}
 	}
 
-	protected void resolveAndSetEntities(Object entity, IObjRef[] newORIs, RelationMember member, IReader reader)
-	{
-		if (!member.isToMany())
-		{
-			if (newORIs.length == 0)
-			{
+	protected void resolveAndSetEntities(Object entity, IObjRef[] newORIs, RelationMember member,
+			IReader reader) {
+		if (!member.isToMany()) {
+			if (newORIs.length == 0) {
 				return;
 			}
-			else if (newORIs.length == 1)
-			{
+			else if (newORIs.length == 1) {
 				IObjectFuture objectFuture = new ObjRefFuture(newORIs[0]);
-				IObjectCommand command = commandBuilder.build(reader.getCommandTypeRegistry(), objectFuture, entity, member);
+				IObjectCommand command =
+						commandBuilder.build(reader.getCommandTypeRegistry(), objectFuture, entity, member);
 				reader.addObjectCommand(command);
 			}
-			else
-			{
+			else {
 				throw new IllegalArgumentException("Multiple values for to-one relation");
 			}
 		}
-		else
-		{
-			Collection<Object> coll = ListUtil.createCollectionOfType(member.getRealType(), newORIs.length);
+		else {
+			Collection<Object> coll =
+					ListUtil.createCollectionOfType(member.getRealType(), newORIs.length);
 
 			boolean useObjectFuture = false;
 			ICommandBuilder commandBuilder = this.commandBuilder;
 			ICommandTypeRegistry commandTypeRegistry = reader.getCommandTypeRegistry();
-			for (IObjRef ori : newORIs)
-			{
-				if (!(ori instanceof IDirectObjRef))
-				{
-					IObjectFuture objectFuture = new ObjRefFuture(ori);
-					;
+			for (IObjRef ori : newORIs) {
+				if (!(ori instanceof IDirectObjRef)) {
+					IObjectFuture objectFuture = new ObjRefFuture(ori);;
 					IObjectCommand command = commandBuilder.build(commandTypeRegistry, objectFuture, coll);
 					reader.addObjectCommand(command);
 					useObjectFuture = true;
@@ -239,13 +214,11 @@ public class MergeCommand extends AbstractObjectCommand implements IObjectComman
 				}
 
 				Object item = ((IDirectObjRef) ori).getDirect();
-				if (useObjectFuture)
-				{
+				if (useObjectFuture) {
 					IObjectCommand command = commandBuilder.build(commandTypeRegistry, null, coll, item);
 					reader.addObjectCommand(command);
 				}
-				else
-				{
+				else {
 					coll.add(item);
 				}
 			}

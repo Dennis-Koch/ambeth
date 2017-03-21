@@ -81,7 +81,7 @@ public class SecurityManager
 	private ILogger log;
 
 	protected final DefaultExtendableContainer<IServiceFilter> serviceFilters =
-			new DefaultExtendableContainer<IServiceFilter>(IServiceFilter.class, "serviceFilter");
+			new DefaultExtendableContainer<>(IServiceFilter.class, "serviceFilter");
 
 	protected final Lock readLock, writeLock;
 
@@ -113,7 +113,7 @@ public class SecurityManager
 	@Override
 	public <T> T filterValue(T value) {
 		IdentityHashMap<Object, ReadPermission> alreadyProcessedMap =
-				new IdentityHashMap<Object, ReadPermission>();
+				new IdentityHashMap<>();
 
 		return (T) filterValue(value, alreadyProcessedMap,
 				securityContextHolder.getCreateContext().getAuthorization(),
@@ -196,7 +196,7 @@ public class SecurityManager
 		}
 		else if (value.getClass().isArray()) {
 			int length = Array.getLength(value);
-			ArrayList<Object> tempList = new ArrayList<Object>(length);
+			ArrayList<Object> tempList = new ArrayList<>(length);
 			for (int a = 0, size = length; a < size; a++) {
 				Object item = Array.get(value, a);
 				Object filteredItem = filterValue(item, alreadyProcessedMap, authorization, securityScopes);
@@ -260,13 +260,13 @@ public class SecurityManager
 		List<?> listToCheck;
 		if (firstItem instanceof IObjRef) {
 			List<IObjRef> list = coll instanceof List ? (List<IObjRef>) coll
-					: new ArrayList<IObjRef>((Collection<? extends IObjRef>) coll);
+					: new ArrayList<>((Collection<? extends IObjRef>) coll);
 			privileges = privilegeProvider.getPrivilegesByObjRef(list, securityScopes).getPrivileges();
 			listToCheck = list;
 		}
 		else if (firstItem != null
 				&& entityMetaDataProvider.getMetaData(firstItem.getClass(), true) != null) {
-			List<?> list = coll instanceof List ? (List<?>) coll : new ArrayList<Object>(coll);
+			List<?> list = coll instanceof List ? (List<?>) coll : new ArrayList<>(coll);
 			privileges = privilegeProvider.getPrivileges(list, securityScopes).getPrivileges();
 			listToCheck = list;
 		}
@@ -376,7 +376,7 @@ public class SecurityManager
 	}
 
 	protected ISet<IObjRef> scanForAllObjRefs(ICUDResult cudResult) {
-		HashSet<IObjRef> relatedObjRefs = new HashSet<IObjRef>();
+		HashSet<IObjRef> relatedObjRefs = new HashSet<>();
 
 		List<Object> originalRefs = cudResult.getOriginalRefs();
 		List<IChangeContainer> allChanges = cudResult.getAllChanges();
@@ -585,14 +585,14 @@ public class SecurityManager
 	protected IMap<Class<?>, List<IChangeContainer>> buildTypeToChanges(
 			List<IChangeContainer> allChanges) {
 		HashMap<Class<?>, List<IChangeContainer>> typeToChanges =
-				new HashMap<Class<?>, List<IChangeContainer>>();
+				new HashMap<>();
 
 		for (int a = allChanges.size(); a-- > 0;) {
 			IChangeContainer changeContainer = allChanges.get(a);
 			IObjRef objRef = changeContainer.getReference();
 			List<IChangeContainer> changes = typeToChanges.get(objRef.getRealType());
 			if (changes == null) {
-				changes = new ArrayList<IChangeContainer>();
+				changes = new ArrayList<>();
 				typeToChanges.put(objRef.getRealType(), changes);
 			}
 			changes.add(changeContainer);

@@ -23,7 +23,6 @@ limitations under the License.
 import com.koch.ambeth.persistence.api.IFieldMetaData;
 import com.koch.ambeth.util.collections.ILinkedMap;
 
-public interface IUpdateCommand extends IChangeCommand
-{
+public interface IUpdateCommand extends IChangeCommand {
 	ILinkedMap<IFieldMetaData, Object> getItems();
 }

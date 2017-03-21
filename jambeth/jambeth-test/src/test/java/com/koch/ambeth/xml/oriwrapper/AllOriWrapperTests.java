@@ -25,7 +25,6 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ OriWrapperWriteTest.class, OriWrapperReadTest.class })
-public class AllOriWrapperTests
-{
+@SuiteClasses({OriWrapperWriteTest.class, OriWrapperReadTest.class})
+public class AllOriWrapperTests {
 }

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ILoggerHistory
-{
+public interface ILoggerHistory {
 	boolean addLogHistory(ILogger logger, Object contextHandle, String logTextForHistory);
 
 	boolean debugOnce(ILogger log, Object contextHandle, String logTextForHistory);

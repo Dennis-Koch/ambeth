@@ -28,15 +28,13 @@ import com.koch.ambeth.service.proxy.Service;
 
 @PersistenceContext
 @Service(IParentService.class)
-public class ParentService implements IParentService
-{
+public class ParentService implements IParentService {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public void save(Parent parent)
-	{
+	public void save(Parent parent) {
 		throw new IllegalArgumentException();
 	}
 }

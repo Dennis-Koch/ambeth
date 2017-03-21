@@ -23,74 +23,64 @@ limitations under the License.
 import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IPrintable;
 
-public class ObjRelationType implements IPrintable
-{
+public class ObjRelationType implements IPrintable {
 	protected final Class<?> entityType;
 
 	protected final byte idIndex;
 
 	protected final String memberName;
 
-	public ObjRelationType(Class<?> entityType, byte idIndex, String memberName)
-	{
+	public ObjRelationType(Class<?> entityType, byte idIndex, String memberName) {
 		this.entityType = entityType;
 		this.idIndex = idIndex;
 		this.memberName = memberName;
 	}
 
-	public Class<?> getEntityType()
-	{
+	public Class<?> getEntityType() {
 		return entityType;
 	}
 
-	public byte getIdIndex()
-	{
+	public byte getIdIndex() {
 		return idIndex;
 	}
 
-	public String getMemberName()
-	{
+	public String getMemberName() {
 		return memberName;
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == this)
-		{
+	public boolean equals(Object obj) {
+		if (obj == this) {
 			return true;
 		}
-		if (!(obj instanceof ObjRelationType))
-		{
+		if (!(obj instanceof ObjRelationType)) {
 			return false;
 		}
 		ObjRelationType other = (ObjRelationType) obj;
-		return EqualsUtil.equals(getEntityType(), other.getEntityType()) && getIdIndex() == other.getIdIndex()
+		return EqualsUtil.equals(getEntityType(), other.getEntityType())
+				&& getIdIndex() == other.getIdIndex()
 				&& EqualsUtil.equals(getMemberName(), other.getMemberName());
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return getEntityType().hashCode() ^ getIdIndex() ^ getMemberName().hashCode();
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		toString(sb);
 		return sb.toString();
 	}
 
-	private String getClassName()
-	{
+	private String getClassName() {
 		return "ObjRel";
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
-		sb.append(getClassName()).append(" idIndex=").append(idIndex).append(" type=").append(entityType.getName()).append(" property=").append(memberName);
+	public void toString(StringBuilder sb) {
+		sb.append(getClassName()).append(" idIndex=").append(idIndex).append(" type=")
+				.append(entityType.getName()).append(" property=").append(memberName);
 	}
 }

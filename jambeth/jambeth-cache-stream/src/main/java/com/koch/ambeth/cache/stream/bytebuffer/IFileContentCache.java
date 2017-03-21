@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.nio.ByteBuffer;
 
-public interface IFileContentCache
-{
+public interface IFileContentCache {
 	IByteBuffer getByteBuffer(FileKey fileKey);
 
 	ByteBuffer[] getContent(FileKey fileKey, long position, long length);

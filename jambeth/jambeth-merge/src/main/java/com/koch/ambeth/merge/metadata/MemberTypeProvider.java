@@ -108,12 +108,12 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
 	private ILogger log;
 
 	protected final TypeAndStringWeakMap<PrimitiveMember> typeToPrimitiveMemberMap =
-			new TypeAndStringWeakMap<PrimitiveMember>();
+			new TypeAndStringWeakMap<>();
 
-	protected final TypeAndStringWeakMap<Member> typeToMemberMap = new TypeAndStringWeakMap<Member>();
+	protected final TypeAndStringWeakMap<Member> typeToMemberMap = new TypeAndStringWeakMap<>();
 
 	protected final TypeAndStringWeakMap<RelationMember> typeToRelationMemberMap =
-			new TypeAndStringWeakMap<RelationMember>();
+			new TypeAndStringWeakMap<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
@@ -180,7 +180,7 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
 				}
 				((IRelationMemberWrite) member).setCascadeLoadMode(cascadeLoadMode);
 			}
-			map.put(type, propertyName, new WeakReference<T>(member));
+			map.put(type, propertyName, new WeakReference<>(member));
 			return member;
 		}
 		catch (Throwable e) {

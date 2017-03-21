@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IProxyHelper
-{
+public interface IProxyHelper {
 	Class<?> getRealType(Class<?> type);
 
 	boolean objectEquals(Object leftObject, Object rightObject);

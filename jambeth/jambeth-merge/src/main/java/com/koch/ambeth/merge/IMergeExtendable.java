@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IMergeExtendable
-{
+public interface IMergeExtendable {
 
 	void registerMergeExtension(IMergeExtension mergeExtension);
 

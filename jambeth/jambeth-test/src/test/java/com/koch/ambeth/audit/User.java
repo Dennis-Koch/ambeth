@@ -27,8 +27,7 @@ import com.koch.ambeth.security.model.IUser;
 
 @Audited
 @AuditReasonRequired
-public interface User extends IAbstractEntity, IUser
-{
+public interface User extends IAbstractEntity, IUser {
 	public static final String Name = "Name";
 
 	public static final String SID = "SID";

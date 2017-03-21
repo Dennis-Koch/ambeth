@@ -22,9 +22,8 @@ limitations under the License.
 
 /**
  * Marker interface for collections which do not force an eager load of relations by themselves
- * 
+ *
  */
-public interface IDefaultCollection
-{
+public interface IDefaultCollection {
 	boolean hasDefaultState();
 }

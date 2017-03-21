@@ -27,8 +27,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Remove
-{
+public @interface Remove {
 	Class<?> entityType() default void.class;
 
 	String idName() default "";

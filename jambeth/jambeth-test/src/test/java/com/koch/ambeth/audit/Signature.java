@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.model.IAbstractEntity;
 import com.koch.ambeth.security.model.ISignature;
 
-public interface Signature extends IAbstractEntity, ISignature
-{
+public interface Signature extends IAbstractEntity, ISignature {
 	@Override
 	User getUser();
 

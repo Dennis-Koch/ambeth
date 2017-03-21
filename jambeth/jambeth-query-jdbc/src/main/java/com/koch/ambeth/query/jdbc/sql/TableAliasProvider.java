@@ -29,11 +29,10 @@ import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 /**
  * Provides TableAliases to a Query and its SubQueries.
- * 
+ *
  * NOT thread-save! Each Query (not SubQuery) needs its own instance.
  */
-public class TableAliasProvider implements ITableAliasProvider, IInitializingBean, IDisposableBean
-{
+public class TableAliasProvider implements ITableAliasProvider, IInitializingBean, IDisposableBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -51,57 +50,47 @@ public class TableAliasProvider implements ITableAliasProvider, IInitializingBea
 	private int nextSubQueryIndex = 0;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(objectCollector, "objectCollector");
 
 		sb = objectCollector.create(StringBuilder.class);
 	}
 
 	@Override
-	public void destroy() throws Throwable
-	{
+	public void destroy() throws Throwable {
 		objectCollector.dispose(sb);
 	}
 
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
+	public void setObjectCollector(IThreadLocalObjectCollector objectCollector) {
 		this.objectCollector = objectCollector;
 	}
 
 	@Override
-	public String getNextJoinAlias()
-	{
+	public String getNextJoinAlias() {
 		return getNextAlias("J_", nextJoinIndex++);
 	}
 
 	@Override
-	public String getNextSubQueryAlias()
-	{
+	public String getNextSubQueryAlias() {
 		return getNextAlias("S_", nextSubQueryIndex++);
 	}
 
-	private String getNextAlias(String prefix, int index)
-	{
-		try
-		{
+	private String getNextAlias(String prefix, int index) {
+		try {
 			sb.append(prefix);
 			appendNextAlias(index);
 			return sb.toString();
 		}
-		finally
-		{
+		finally {
 			sb.setLength(0);
 		}
 	}
 
-	private void appendNextAlias(int index)
-	{
+	private void appendNextAlias(int index) {
 		int mine = index % lettersInTheAlphabet;
 		int others = index / lettersInTheAlphabet;
 
-		if (others > 0)
-		{
+		if (others > 0) {
 			appendNextAlias(others - 1);
 		}
 		sb.append((char) (firstTableAlias + mine));

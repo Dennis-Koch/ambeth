@@ -50,18 +50,20 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 /**
- * Tests the replacement of the JAMBETH user by a temporary user created by the RandomUserScript. Because this is also done by the Jenkins build script this
- * test won't run in the Jenkins environment. Therefore the test methods are disabled.
+ * Tests the replacement of the JAMBETH user by a temporary user created by the RandomUserScript.
+ * Because this is also done by the Jenkins build script this test won't run in the Jenkins
+ * environment. Therefore the test methods are disabled.
  */
-@TestModule({ MultiSchemaTestModule.class })
-@TestPropertiesList({ @TestProperties(file = "single_random_user_test.properties"),
-		@TestProperties(name = PersistenceJdbcConfigurationConstants.DatabaseBehaviourStrict, value = "true"),
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/schema/single_random_user_orm.xml") })
+@TestModule({MultiSchemaTestModule.class})
+@TestPropertiesList({@TestProperties(file = "single_random_user_test.properties"),
+		@TestProperties(name = PersistenceJdbcConfigurationConstants.DatabaseBehaviourStrict,
+				value = "true"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+				value = "com/koch/ambeth/persistence/schema/single_random_user_orm.xml")})
 @SQLStructure("single_random_user_structure.sql")
 @SQLData("single_random_user_data.sql")
 @Ignore("Does not work in JENKINS")
-public class SingleRandomUserTest extends AbstractInformationBusWithPersistenceTest
-{
+public class SingleRandomUserTest extends AbstractInformationBusWithPersistenceTest {
 	private static final String RANDOM_USER_TEST_PROPERTIES = "single_random_user_test.properties";
 
 	@Autowired
@@ -77,36 +79,31 @@ public class SingleRandomUserTest extends AbstractInformationBusWithPersistenceT
 	private IParentBService parentBService;
 
 	@BeforeClass
-	public static void beforeClass()
-	{
-		String[] args = new String[] { RandomUserScript.SCRIPT_IS_CREATE + "=true", RandomUserScript.SCRIPT_USER_PASS + "=pw",
-				RandomUserScript.SCRIPT_USER_PROPERTYFILE + "=" + RANDOM_USER_TEST_PROPERTIES };
+	public static void beforeClass() {
+		String[] args = new String[] {RandomUserScript.SCRIPT_IS_CREATE + "=true",
+				RandomUserScript.SCRIPT_USER_PASS + "=pw",
+				RandomUserScript.SCRIPT_USER_PROPERTYFILE + "=" + RANDOM_USER_TEST_PROPERTIES};
 		runRandomUserScript(args);
 	}
 
 	@AfterClass
-	public static void afterClass()
-	{
-		String[] args = new String[] { RandomUserScript.SCRIPT_IS_CREATE + "=false",
-				RandomUserScript.SCRIPT_USER_PROPERTYFILE + "=" + RANDOM_USER_TEST_PROPERTIES };
+	public static void afterClass() {
+		String[] args = new String[] {RandomUserScript.SCRIPT_IS_CREATE + "=false",
+				RandomUserScript.SCRIPT_USER_PROPERTYFILE + "=" + RANDOM_USER_TEST_PROPERTIES};
 		runRandomUserScript(args);
 	}
 
-	private static void runRandomUserScript(String[] args)
-	{
-		try
-		{
+	private static void runRandomUserScript(String[] args) {
+		try {
 			RandomUserScript.main(args);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Test
-	public void testDelete() throws Exception
-	{
+	public void testDelete() throws Exception {
 		ParentA parent = cache.getObject(ParentA.class, 1);
 		assertNotNull(parent);
 
@@ -117,8 +114,7 @@ public class SingleRandomUserTest extends AbstractInformationBusWithPersistenceT
 	}
 
 	@Test
-	public void testQuery() throws Exception
-	{
+	public void testQuery() throws Exception {
 		IQueryBuilder<ParentA> qb = qbf.create(ParentA.class);
 		IQuery<ParentA> query = qb.build(qb.isEqualTo(qb.property("Child.Id"), qb.value(11)));
 		List<ParentA> result = query.retrieve();

@@ -49,48 +49,39 @@ import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
-public class InitializeEmbeddedMemberVisitor extends ClassGenerator
-{
+public class InitializeEmbeddedMemberVisitor extends ClassGenerator {
 	public static final Class<?> templateType = EmbeddedMemberMixin.class;
 
 	public static final String templatePropertyName = "__" + templateType.getSimpleName();
 
-	protected static final MethodInstance template_m_createEmbeddedObject = new MethodInstance(null, templateType, Object.class, "createEmbeddedObject",
-			Class.class, Class.class, Object.class, String.class);
+	protected static final MethodInstance template_m_createEmbeddedObject =
+			new MethodInstance(null, templateType, Object.class, "createEmbeddedObject", Class.class,
+					Class.class, Object.class, String.class);
 
-	public static PropertyInstance getEmbeddedMemberTemplatePI(ClassGenerator cv)
-	{
+	public static PropertyInstance getEmbeddedMemberTemplatePI(ClassGenerator cv) {
 		Object bean = getState().getBeanContext().getService(templateType);
 		PropertyInstance pi = getState().getProperty(templatePropertyName, bean.getClass());
-		if (pi != null)
-		{
+		if (pi != null) {
 			return pi;
 		}
 		return cv.implementAssignedReadonlyProperty(templatePropertyName, bean);
 	}
 
-	public static boolean isEmbeddedMember(IEntityMetaData metaData, String name)
-	{
+	public static boolean isEmbeddedMember(IEntityMetaData metaData, String name) {
 		String[] nameSplit = EmbeddedMember.split(name);
-		for (Member member : metaData.getPrimitiveMembers())
-		{
-			if (!(member instanceof IEmbeddedMember))
-			{
+		for (Member member : metaData.getPrimitiveMembers()) {
+			if (!(member instanceof IEmbeddedMember)) {
 				continue;
 			}
-			if (((IEmbeddedMember) member).getMemberPathToken()[0].equals(nameSplit[0]))
-			{
+			if (((IEmbeddedMember) member).getMemberPathToken()[0].equals(nameSplit[0])) {
 				return true;
 			}
 		}
-		for (RelationMember member : metaData.getRelationMembers())
-		{
-			if (!(member instanceof IEmbeddedMember))
-			{
+		for (RelationMember member : metaData.getRelationMembers()) {
+			if (!(member instanceof IEmbeddedMember)) {
 				continue;
 			}
-			if (((IEmbeddedMember) member).getMemberPathToken()[0].equals(nameSplit[0]))
-			{
+			if (((IEmbeddedMember) member).getMemberPathToken()[0].equals(nameSplit[0])) {
 				return true;
 			}
 		}
@@ -105,69 +96,59 @@ public class InitializeEmbeddedMemberVisitor extends ClassGenerator
 
 	protected String[] memberPathSplit;
 
-	public InitializeEmbeddedMemberVisitor(ClassVisitor cv, IEntityMetaData metaData, String memberPath, IPropertyInfoProvider propertyInfoProvider)
-	{
+	public InitializeEmbeddedMemberVisitor(ClassVisitor cv, IEntityMetaData metaData,
+			String memberPath, IPropertyInfoProvider propertyInfoProvider) {
 		super(cv);
 		this.metaData = metaData;
 		this.memberPath = memberPath;
-		this.memberPathSplit = memberPath != null ? EmbeddedMember.split(memberPath) : null;
+		memberPathSplit = memberPath != null ? EmbeddedMember.split(memberPath) : null;
 		this.propertyInfoProvider = propertyInfoProvider;
 	}
 
 	@Override
-	public void visitEnd()
-	{
+	public void visitEnd() {
 		PropertyInstance p_embeddedMemberTemplate = getEmbeddedMemberTemplatePI(this);
 		implementConstructor(p_embeddedMemberTemplate);
 
 		super.visitEnd();
 	}
 
-	protected void implementConstructor(PropertyInstance p_embeddedMemberTemplate)
-	{
-		HashSet<Member> alreadyHandledFirstMembers = new HashSet<Member>();
+	protected void implementConstructor(PropertyInstance p_embeddedMemberTemplate) {
+		HashSet<Member> alreadyHandledFirstMembers = new HashSet<>();
 
-		final ArrayList<Script> scripts = new ArrayList<Script>();
+		final ArrayList<Script> scripts = new ArrayList<>();
 
 		{
-			Script script = handleMember(p_embeddedMemberTemplate, metaData.getIdMember(), alreadyHandledFirstMembers);
-			if (script != null)
-			{
+			Script script = handleMember(p_embeddedMemberTemplate, metaData.getIdMember(),
+					alreadyHandledFirstMembers);
+			if (script != null) {
 				scripts.add(script);
 			}
 		}
-		for (Member member : metaData.getPrimitiveMembers())
-		{
+		for (Member member : metaData.getPrimitiveMembers()) {
 			Script script = handleMember(p_embeddedMemberTemplate, member, alreadyHandledFirstMembers);
-			if (script != null)
-			{
+			if (script != null) {
 				scripts.add(script);
 			}
 		}
-		for (RelationMember member : metaData.getRelationMembers())
-		{
+		for (RelationMember member : metaData.getRelationMembers()) {
 			Script script = handleMember(p_embeddedMemberTemplate, member, alreadyHandledFirstMembers);
-			if (script != null)
-			{
+			if (script != null) {
 				scripts.add(script);
 			}
 		}
-		if (scripts.size() == 0)
-		{
+		if (scripts.size() == 0) {
 			return;
 		}
-		overrideConstructors(new IOverrideConstructorDelegate()
-		{
+		overrideConstructors(new IOverrideConstructorDelegate() {
 			@Override
-			public void invoke(ClassGenerator cv, ConstructorInstance superConstructor)
-			{
+			public void invoke(ClassGenerator cv, ConstructorInstance superConstructor) {
 				MethodGenerator mv = cv.visitMethod(superConstructor);
 				mv.loadThis();
 				mv.loadArgs();
 				mv.invokeSuperOfCurrentMethod();
 
-				for (Script script : scripts)
-				{
+				for (Script script : scripts) {
 					script.execute(mv);
 				}
 				mv.returnValue();
@@ -176,30 +157,25 @@ public class InitializeEmbeddedMemberVisitor extends ClassGenerator
 		});
 	}
 
-	protected Script handleMember(PropertyInstance p_embeddedMemberTemplate, Member member, Set<Member> alreadyHandledFirstMembers)
-	{
-		if (member instanceof CompositeIdMember)
-		{
+	protected Script handleMember(PropertyInstance p_embeddedMemberTemplate, Member member,
+			Set<Member> alreadyHandledFirstMembers) {
+		if (member instanceof CompositeIdMember) {
 			PrimitiveMember[] members = ((CompositeIdMember) member).getMembers();
 			Script aggregatedScript = null;
-			for (int a = 0, size = members.length; a < size; a++)
-			{
-				final Script script = handleMember(p_embeddedMemberTemplate, members[a], alreadyHandledFirstMembers);
-				if (script == null)
-				{
+			for (int a = 0, size = members.length; a < size; a++) {
+				final Script script =
+						handleMember(p_embeddedMemberTemplate, members[a], alreadyHandledFirstMembers);
+				if (script == null) {
 					continue;
 				}
-				if (aggregatedScript == null)
-				{
+				if (aggregatedScript == null) {
 					aggregatedScript = script;
 					continue;
 				}
 				final Script oldAggregatedScript = aggregatedScript;
-				aggregatedScript = new Script()
-				{
+				aggregatedScript = new Script() {
 					@Override
-					public void execute(MethodGenerator mg)
-					{
+					public void execute(MethodGenerator mg) {
 						oldAggregatedScript.execute(mg);
 						script.execute(mg);
 					}
@@ -207,81 +183,71 @@ public class InitializeEmbeddedMemberVisitor extends ClassGenerator
 			}
 			return aggregatedScript;
 		}
-		if (!(member instanceof IEmbeddedMember))
-		{
+		if (!(member instanceof IEmbeddedMember)) {
 			return null;
 		}
 		Member[] memberPath = ((IEmbeddedMember) member).getMemberPath();
 		Member firstMember;
-		if (memberPathSplit != null)
-		{
-			if (memberPath.length < memberPathSplit.length)
-			{
+		if (memberPathSplit != null) {
+			if (memberPath.length < memberPathSplit.length) {
 				// nothing to do in this case. This member has nothing to do with our current scope
 				return null;
 			}
-			for (int a = 0, size = memberPathSplit.length; a < size; a++)
-			{
-				if (!memberPathSplit[a].equals(memberPath[a].getName()))
-				{
+			for (int a = 0, size = memberPathSplit.length; a < size; a++) {
+				if (!memberPathSplit[a].equals(memberPath[a].getName())) {
 					// nothing to do in this case. This member has nothing to do with our current scope
 					return null;
 				}
 			}
-			if (memberPath.length > memberPathSplit.length)
-			{
+			if (memberPath.length > memberPathSplit.length) {
 				firstMember = memberPath[memberPathSplit.length];
 			}
-			else
-			{
+			else {
 				// nothing to do in this case. This is a leaf member
 				return null;
 			}
 		}
-		else
-		{
+		else {
 			firstMember = memberPath[0];
 		}
-		if (!alreadyHandledFirstMembers.add(firstMember))
-		{
+		if (!alreadyHandledFirstMembers.add(firstMember)) {
 			return null;
 		}
-		return createEmbeddedObjectInstance(p_embeddedMemberTemplate, firstMember, this.memberPath != null ? this.memberPath + "." + firstMember.getName()
-				: firstMember.getName());
+		return createEmbeddedObjectInstance(p_embeddedMemberTemplate, firstMember,
+				this.memberPath != null ? this.memberPath + "." + firstMember.getName()
+						: firstMember.getName());
 	}
 
-	protected Script createEmbeddedObjectInstance(final PropertyInstance p_embeddedMemberTemplate, final Member firstMember, final String memberPath)
-	{
-		final PropertyInstance property = PropertyInstance.findByTemplate(firstMember.getName(), firstMember.getRealType(), false);
-		final PropertyInstance p_rootEntity = memberPathSplit == null ? null : EmbeddedTypeVisitor.getRootEntityProperty(this);
+	protected Script createEmbeddedObjectInstance(final PropertyInstance p_embeddedMemberTemplate,
+			final Member firstMember, final String memberPath) {
+		final PropertyInstance property =
+				PropertyInstance.findByTemplate(firstMember.getName(), firstMember.getRealType(), false);
+		final PropertyInstance p_rootEntity =
+				memberPathSplit == null ? null : EmbeddedTypeVisitor.getRootEntityProperty(this);
 
-		return new Script()
-		{
+		return new Script() {
 			@Override
-			public void execute(MethodGenerator mg2)
-			{
-				mg2.callThisSetter(property, new Script()
-				{
+			public void execute(MethodGenerator mg2) {
+				mg2.callThisSetter(property, new Script() {
 					@Override
-					public void execute(MethodGenerator mg)
-					{
-						// Object p_embeddedMemberTemplate.createEmbeddedObject(Class<?> embeddedType, Class<?> entityType, Object parentObject, String
+					public void execute(MethodGenerator mg) {
+						// Object p_embeddedMemberTemplate.createEmbeddedObject(Class<?> embeddedType, Class<?>
+						// entityType, Object parentObject, String
 						// memberPath)
 						mg.callThisGetter(p_embeddedMemberTemplate);
 
 						mg.push(firstMember.getRealType()); // embeddedType
 
-						if (p_rootEntity != null)
-						{
+						if (p_rootEntity != null) {
 							mg.callThisGetter(p_rootEntity);
 							mg.checkCast(EntityMetaDataHolderVisitor.m_template_getEntityMetaData.getOwner());
 							mg.invokeInterface(EntityMetaDataHolderVisitor.m_template_getEntityMetaData);
 						}
-						else
-						{
+						else {
 							mg.callThisGetter(EntityMetaDataHolderVisitor.m_template_getEntityMetaData);
 						}
-						mg.invokeInterface(new MethodInstance(null, IEntityMetaData.class, Class.class, "getEnhancedType"));
+						mg.invokeInterface(
+								new MethodInstance(null, IEntityMetaData.class, Class.class, "getEnhancedType"));
 						mg.loadThis(); // parentObject
 						mg.push(memberPath);
 
@@ -293,29 +259,23 @@ public class InitializeEmbeddedMemberVisitor extends ClassGenerator
 		};
 	}
 
-	protected void invokeGetProperty(MethodGenerator mv, IPropertyInfo property)
-	{
-		if (property instanceof MethodPropertyInfo)
-		{
+	protected void invokeGetProperty(MethodGenerator mv, IPropertyInfo property) {
+		if (property instanceof MethodPropertyInfo) {
 			Method method = ((MethodPropertyInfo) property).getGetter();
 			mv.invokeVirtual(new MethodInstance(method));
 		}
-		else
-		{
+		else {
 			Field field = ((FieldPropertyInfo) property).getBackingField();
 			mv.getField(new FieldInstance(field));
 		}
 	}
 
-	protected void invokeSetProperty(MethodGenerator mv, IPropertyInfo property)
-	{
-		if (property instanceof MethodPropertyInfo)
-		{
+	protected void invokeSetProperty(MethodGenerator mv, IPropertyInfo property) {
+		if (property instanceof MethodPropertyInfo) {
 			Method method = ((MethodPropertyInfo) property).getSetter();
 			mv.invokeVirtual(new MethodInstance(method));
 		}
-		else
-		{
+		else {
 			Field field = ((FieldPropertyInfo) property).getBackingField();
 			mv.putField(new FieldInstance(field));
 		}

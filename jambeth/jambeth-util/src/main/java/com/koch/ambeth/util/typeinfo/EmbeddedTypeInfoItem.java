@@ -25,35 +25,29 @@ import java.util.Collection;
 
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class EmbeddedTypeInfoItem implements ITypeInfoItem, IEmbeddedTypeInfoItem
-{
+public class EmbeddedTypeInfoItem implements ITypeInfoItem, IEmbeddedTypeInfoItem {
 	protected ITypeInfoItem childMember;
 
 	protected ITypeInfoItem[] memberPath;
 
 	protected String name;
 
-	public EmbeddedTypeInfoItem(String name, ITypeInfoItem childMember, ITypeInfoItem... memberPath)
-	{
+	public EmbeddedTypeInfoItem(String name, ITypeInfoItem childMember, ITypeInfoItem... memberPath) {
 		this.name = name;
 		this.childMember = childMember;
 		this.memberPath = memberPath;
 	}
 
 	@Override
-	public ITypeInfoItem[] getMemberPath()
-	{
+	public ITypeInfoItem[] getMemberPath() {
 		return memberPath;
 	}
 
 	@Override
-	public String getMemberPathString()
-	{
+	public String getMemberPathString() {
 		StringBuilder sb = new StringBuilder();
-		for (ITypeInfoItem member : getMemberPath())
-		{
-			if (sb.length() > 0)
-			{
+		for (ITypeInfoItem member : getMemberPath()) {
+			if (sb.length() > 0) {
 				sb.append('.');
 			}
 			sb.append(member.getName());
@@ -62,12 +56,10 @@ public class EmbeddedTypeInfoItem implements ITypeInfoItem, IEmbeddedTypeInfoIte
 	}
 
 	@Override
-	public String[] getMemberPathToken()
-	{
+	public String[] getMemberPathToken() {
 		ITypeInfoItem[] memberPath = getMemberPath();
 		String[] token = new String[memberPath.length];
-		for (int a = memberPath.length; a-- > 0;)
-		{
+		for (int a = memberPath.length; a-- > 0;) {
 			ITypeInfoItem member = memberPath[a];
 			token[a] = member.getName();
 		}
@@ -75,77 +67,63 @@ public class EmbeddedTypeInfoItem implements ITypeInfoItem, IEmbeddedTypeInfoIte
 	}
 
 	@Override
-	public ITypeInfoItem getChildMember()
-	{
+	public ITypeInfoItem getChildMember() {
 		return childMember;
 	}
 
 	@Override
-	public Class<?> getDeclaringType()
-	{
+	public Class<?> getDeclaringType() {
 		return childMember.getDeclaringType();
 	}
 
 	@Override
-	public Object getDefaultValue()
-	{
+	public Object getDefaultValue() {
 		return childMember.getDefaultValue();
 	}
 
 	@Override
-	public Collection<?> createInstanceOfCollection()
-	{
+	public Collection<?> createInstanceOfCollection() {
 		return childMember.createInstanceOfCollection();
 	}
 
 	@Override
-	public void setDefaultValue(Object defaultValue)
-	{
+	public void setDefaultValue(Object defaultValue) {
 		childMember.setDefaultValue(defaultValue);
 	}
 
 	@Override
-	public Object getNullEquivalentValue()
-	{
+	public Object getNullEquivalentValue() {
 		return childMember.getNullEquivalentValue();
 	}
 
 	@Override
-	public void setNullEquivalentValue(Object nullEquivalentValue)
-	{
+	public void setNullEquivalentValue(Object nullEquivalentValue) {
 		childMember.setNullEquivalentValue(nullEquivalentValue);
 	}
 
 	@Override
-	public Class<?> getRealType()
-	{
+	public Class<?> getRealType() {
 		return childMember.getRealType();
 	}
 
 	@Override
-	public Class<?> getElementType()
-	{
+	public Class<?> getElementType() {
 		return childMember.getElementType();
 	}
 
 	@Override
-	public Object getValue(Object obj)
-	{
+	public Object getValue(Object obj) {
 		return getValue(obj, false);
 	}
 
 	@Override
-	public Object getValue(Object obj, boolean allowNullEquivalentValue)
-	{
+	public Object getValue(Object obj, boolean allowNullEquivalentValue) {
 		Object currentObj = obj;
-		for (int a = 0, size = memberPath.length; a < size; a++)
-		{
+		for (int a = 0, size = memberPath.length; a < size; a++) {
 			ITypeInfoItem memberPathItem = memberPath[a];
 			currentObj = memberPathItem.getValue(currentObj, allowNullEquivalentValue);
-			if (currentObj == null)
-			{
-				if (allowNullEquivalentValue)
-				{
+			if (currentObj == null) {
+				if (allowNullEquivalentValue) {
 					return childMember.getNullEquivalentValue();
 				}
 				return null;
@@ -155,25 +133,19 @@ public class EmbeddedTypeInfoItem implements ITypeInfoItem, IEmbeddedTypeInfoIte
 	}
 
 	@Override
-	public void setValue(Object obj, Object value)
-	{
+	public void setValue(Object obj, Object value) {
 		Object currentObj = obj;
-		for (int a = 0, size = memberPath.length; a < size; a++)
-		{
+		for (int a = 0, size = memberPath.length; a < size; a++) {
 			ITypeInfoItem memberPathItem = memberPath[a];
 			Object childObj = memberPathItem.getValue(currentObj, false);
-			if (childObj == null)
-			{
-				try
-				{
+			if (childObj == null) {
+				try {
 					childObj = memberPathItem.getRealType().newInstance();
 				}
-				catch (InstantiationException e)
-				{
+				catch (InstantiationException e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
-				catch (IllegalAccessException e)
-				{
+				catch (IllegalAccessException e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 				memberPathItem.setValue(currentObj, childObj);
@@ -184,56 +156,47 @@ public class EmbeddedTypeInfoItem implements ITypeInfoItem, IEmbeddedTypeInfoIte
 	}
 
 	@Override
-	public <V extends Annotation> V getAnnotation(Class<V> annotationType)
-	{
+	public <V extends Annotation> V getAnnotation(Class<V> annotationType) {
 		return childMember.getAnnotation(annotationType);
 	}
 
 	@Override
-	public boolean canRead()
-	{
+	public boolean canRead() {
 		return childMember.canRead();
 	}
 
 	@Override
-	public boolean canWrite()
-	{
+	public boolean canWrite() {
 		return childMember.canWrite();
 	}
 
 	@Override
-	public boolean isTechnicalMember()
-	{
+	public boolean isTechnicalMember() {
 		return childMember.isTechnicalMember();
 	}
 
 	@Override
-	public void setTechnicalMember(boolean technicalMember)
-	{
+	public void setTechnicalMember(boolean technicalMember) {
 		childMember.setTechnicalMember(technicalMember);
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
 	@Override
-	public String getXMLName()
-	{
+	public String getXMLName() {
 		return childMember.getXMLName();
 	}
 
 	@Override
-	public boolean isXMLIgnore()
-	{
+	public boolean isXMLIgnore() {
 		return childMember.isXMLIgnore();
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return "Embedded: " + getName() + "/" + getXMLName() + " " + childMember;
 	}
 }

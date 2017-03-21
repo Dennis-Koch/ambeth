@@ -78,7 +78,7 @@ public class CyclicXmlDictionaryTest {
 	protected List<Method> getFixtureGetters() {
 		Class<?> fixtureType = fixture.getClass();
 
-		List<Method> getters = new ArrayList<Method>();
+		List<Method> getters = new ArrayList<>();
 		Method[] allMethods = ReflectUtil.getMethods(fixtureType);
 		for (Method method : allMethods) {
 			if (method.getReturnType().equals(String.class) && method.getParameterTypes().length == 0
@@ -108,7 +108,7 @@ public class CyclicXmlDictionaryTest {
 		Pattern valuePattern = Pattern.compile("public String (.+?) \\{ get \\{ return \"(.+?)\"; } }");
 		Matcher matcher = valuePattern.matcher(cSharpCode);
 
-		Map<String, String> values = new HashMap<String, String>();
+		Map<String, String> values = new HashMap<>();
 		while (matcher.find()) {
 			String name = matcher.group(1);
 			String value = matcher.group(2);
@@ -119,8 +119,8 @@ public class CyclicXmlDictionaryTest {
 	}
 
 	protected void checkCompleteness(List<Method> getters, Map<String, String> cSharpValues) {
-		Set<String> javaNames = new HashSet<String>(getters.size());
-		Set<String> cSharpNames = new HashSet<String>(cSharpValues.size());
+		Set<String> javaNames = new HashSet<>(getters.size());
+		Set<String> cSharpNames = new HashSet<>(cSharpValues.size());
 
 		for (Method getter : getters) {
 			String fullName = getter.getName();

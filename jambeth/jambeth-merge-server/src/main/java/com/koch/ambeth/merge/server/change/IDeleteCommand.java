@@ -20,6 +20,5 @@ limitations under the License.
  * #L%
  */
 
-public interface IDeleteCommand extends IChangeCommand
-{
+public interface IDeleteCommand extends IChangeCommand {
 }

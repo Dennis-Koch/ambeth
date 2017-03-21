@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public enum License
-{
+public enum License {
 	DEMO, COMMERCIAL
 }

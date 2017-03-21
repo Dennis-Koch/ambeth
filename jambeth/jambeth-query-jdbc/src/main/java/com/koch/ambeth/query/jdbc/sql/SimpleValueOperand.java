@@ -41,8 +41,7 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueOperand
-{
+public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueOperand {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -66,107 +65,88 @@ public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueO
 	protected boolean tryOnly;
 
 	@Override
-	public boolean isNull(Map<Object, Object> nameToValueMap)
-	{
+	public boolean isNull(Map<Object, Object> nameToValueMap) {
 		return getValue(nameToValueMap) == null;
 	}
 
 	@Override
-	public boolean isNullOrEmpty(Map<Object, Object> nameToValueMap)
-	{
+	public boolean isNullOrEmpty(Map<Object, Object> nameToValueMap) {
 		Object value = getValue(nameToValueMap);
-		if (value == null)
-		{
+		if (value == null) {
 			return true;
 		}
-		else if (value instanceof Collection)
-		{
+		else if (value instanceof Collection) {
 			return ((Collection<?>) value).isEmpty();
 		}
-		else if (value.getClass().isArray())
-		{
+		else if (value.getClass().isArray()) {
 			return Array.getLength(value) == 0;
 		}
 		return "".equals(value);
 	}
 
-	protected Object getValueIntern(Map<Object, Object> nameToValueMap)
-	{
+	protected Object getValueIntern(Map<Object, Object> nameToValueMap) {
 		Object value = nameToValueMap.get(paramName);
-		if (value == null)
-		{
-			if (!tryOnly && !nameToValueMap.containsKey(paramName))
-			{
-				throw new IllegalArgumentException("No entry for paramName '" + paramName + "' found to expand query");
+		if (value == null) {
+			if (!tryOnly && !nameToValueMap.containsKey(paramName)) {
+				throw new IllegalArgumentException(
+						"No entry for paramName '" + paramName + "' found to expand query");
 			}
 		}
 		return value;
 	}
 
 	@Override
-	public Object getValue(Map<Object, Object> nameToValueMap)
-	{
+	public Object getValue(Map<Object, Object> nameToValueMap) {
 		Object value = getValueIntern(nameToValueMap);
 		return listToSqlUtil.extractValue(value, nameToValueMap);
 	}
 
 	@Override
-	public IList<Object> getMultiValue(Map<Object, Object> nameToValueMap)
-	{
+	public IList<Object> getMultiValue(Map<Object, Object> nameToValueMap) {
 		Object value = getValueIntern(nameToValueMap);
-		ArrayList<Object> items = new ArrayList<Object>();
+		ArrayList<Object> items = new ArrayList<>();
 		listToSqlUtil.extractValueList(value, items, nameToValueMap);
 		return items;
 	}
 
 	@Override
-	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
-	{
+	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			boolean joinQuery, IList<Object> parameters) {
 		Object value = getValue(nameToValueMap);
 		Class<?> expectedTypeHint = (Class<?>) nameToValueMap.get(QueryConstants.EXPECTED_TYPE_HINT);
-		if (expectedTypeHint != null)
-		{
+		if (expectedTypeHint != null) {
 			value = conversionHelper.convertValueToType(expectedTypeHint, value);
 		}
-		if (parameters != null)
-		{
+		if (parameters != null) {
 			String preValue = (String) nameToValueMap.get(QueryConstants.PRE_VALUE_KEY);
 			String postValue = (String) nameToValueMap.get(QueryConstants.POST_VALUE_KEY);
-			if (preValue != null || postValue != null)
-			{
+			if (preValue != null || postValue != null) {
 				IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 				StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
-				if (preValue != null)
-				{
+				if (preValue != null) {
 					sb.append(preValue);
 				}
-				if (value == null)
-				{
+				if (value == null) {
 					sb.append("NULL");
 				}
-				else
-				{
+				else {
 					sb.append(value);
 				}
-				if (postValue != null)
-				{
+				if (postValue != null) {
 					sb.append(postValue);
 				}
 				value = sb.toString();
 				tlObjectCollector.dispose(sb);
 			}
-			if (value != null)
-			{
+			if (value != null) {
 				ParamsUtil.addParam(parameters, value);
 				querySB.append('?');
 			}
-			else
-			{
+			else {
 				querySB.append("NULL");
 			}
 		}
-		else
-		{
+		else {
 			listToSqlUtil.expandValue(querySB, value, this, nameToValueMap);
 		}
 	}

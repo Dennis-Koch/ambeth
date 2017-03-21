@@ -29,8 +29,7 @@ import com.koch.ambeth.xml.IReader;
 import com.koch.ambeth.xml.IWriter;
 import com.koch.ambeth.xml.typehandler.AbstractHandler;
 
-public class StringNameHandler extends AbstractHandler implements INameBasedHandler
-{
+public class StringNameHandler extends AbstractHandler implements INameBasedHandler {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -44,10 +43,8 @@ public class StringNameHandler extends AbstractHandler implements INameBasedHand
 	protected static final Pattern cdataPattern = Pattern.compile(Pattern.quote(cdataEndSeq));
 
 	@Override
-	public boolean writesCustom(Object obj, Class<?> type, IWriter writer)
-	{
-		if (!String.class.equals(type))
-		{
+	public boolean writesCustom(Object obj, Class<?> type, IWriter writer) {
+		if (!String.class.equals(type)) {
 			return false;
 		}
 		String value = (String) obj;
@@ -57,22 +54,19 @@ public class StringNameHandler extends AbstractHandler implements INameBasedHand
 		int id = writer.acquireIdForObject(obj);
 		writer.writeAttribute(xmlDictionary.getIdAttribute(), Integer.toString(id));
 
-		if (value.isEmpty())
-		{
+		if (value.isEmpty()) {
 			writer.writeEndElement();
 			return true;
 		}
 		writer.writeStartElementEnd();
 
 		String[] parts = cdataPattern.split(value);
-		if (parts.length == 1)
-		{
+		if (parts.length == 1) {
 			writer.write(cdataStartSeq);
 			writer.write(value);
 			writer.write(cdataEndSeq);
 		}
-		else
-		{
+		else {
 			// First part
 			writer.writeOpenElement(stringElement);
 			writer.write(cdataStartSeq);
@@ -83,8 +77,7 @@ public class StringNameHandler extends AbstractHandler implements INameBasedHand
 
 			// All parts in between
 			int lastIndex = parts.length - 1;
-			for (int i = 1; i < lastIndex; i++)
-			{
+			for (int i = 1; i < lastIndex; i++) {
 				writer.writeOpenElement(stringElement);
 				writer.write(cdataStartSeq);
 				writer.write('>');
@@ -109,38 +102,29 @@ public class StringNameHandler extends AbstractHandler implements INameBasedHand
 	}
 
 	@Override
-	public Object readObject(Class<?> returnType, String elementName, int id, IReader reader)
-	{
-		if (!xmlDictionary.getStringElement().equals(elementName))
-		{
+	public Object readObject(Class<?> returnType, String elementName, int id, IReader reader) {
+		if (!xmlDictionary.getStringElement().equals(elementName)) {
 			throw new IllegalStateException("Element '" + elementName + "' not supported");
 		}
-		if (reader.isEmptyElement())
-		{
+		if (reader.isEmptyElement()) {
 			return emptyString;
 		}
 		reader.nextToken();
 		StringBuilder sb = null;
-		try
-		{
-			if (!reader.isStartTag())
-			{
+		try {
+			if (!reader.isStartTag()) {
 				String value = reader.getElementValue();
 				reader.nextTag();
-				if (value == null)
-				{
+				if (value == null) {
 					value = emptyString;
 				}
 				return value;
 			}
-			while (reader.isStartTag())
-			{
-				if (!"s".equals(reader.getElementName()))
-				{
+			while (reader.isStartTag()) {
+				if (!"s".equals(reader.getElementName())) {
 					throw new IllegalStateException("Element '" + elementName + "' not supported");
 				}
-				if (sb == null)
-				{
+				if (sb == null) {
 					sb = objectCollector.create(StringBuilder.class);
 				}
 				reader.nextToken();
@@ -151,10 +135,8 @@ public class StringNameHandler extends AbstractHandler implements INameBasedHand
 			}
 			return sb.toString();
 		}
-		finally
-		{
-			if (sb != null)
-			{
+		finally {
+			if (sb != null) {
 				objectCollector.dispose(sb);
 			}
 		}

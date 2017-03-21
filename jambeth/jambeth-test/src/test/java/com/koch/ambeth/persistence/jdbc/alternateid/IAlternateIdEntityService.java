@@ -26,8 +26,7 @@ import java.util.Set;
 
 import com.koch.ambeth.cache.Cached;
 
-public interface IAlternateIdEntityService
-{
+public interface IAlternateIdEntityService {
 	@Cached(alternateIdName = "Name")
 	AlternateIdEntity getAlternateIdEntityByName(String name);
 

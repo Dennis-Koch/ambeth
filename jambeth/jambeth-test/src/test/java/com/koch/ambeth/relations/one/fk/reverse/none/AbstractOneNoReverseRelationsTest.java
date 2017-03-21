@@ -38,28 +38,25 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 
 @SQLData("OneNoReverseRelations_data.sql")
 @SQLStructure("OneNoReverseRelations_structure.sql")
-@TestPropertiesList(@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/relations/one/fk/reverse/none/orm.xml"))
-public abstract class AbstractOneNoReverseRelationsTest extends AbstractRelationsTest
-{
+@TestPropertiesList(@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/relations/one/fk/reverse/none/orm.xml"))
+public abstract class AbstractOneNoReverseRelationsTest extends AbstractRelationsTest {
 	@Test
-	public void testRetrieve()
-	{
+	public void testRetrieve() {
 		EntityB entityB = cache.getObject(EntityB.class, 11);
 		assertNotNull(entityB);
 		assertNotNull(entityB.getEntityA());
 	}
 
 	@Test
-	public void testUpdateParent()
-	{
+	public void testUpdateParent() {
 		EntityB entityB = cache.getObject(EntityB.class, 11);
 		entityB.setName(entityB.getName() + ".2");
 		relationsService.save(entityB);
 	}
 
 	@Test
-	public void testCreateRelated()
-	{
+	public void testCreateRelated() {
 		EntityB entityB = cache.getObject(EntityB.class, 11);
 
 		EntityA entityA = entityFactory.createEntity(EntityA.class);
@@ -74,8 +71,7 @@ public abstract class AbstractOneNoReverseRelationsTest extends AbstractRelation
 	}
 
 	@Test
-	public void testAddRelated()
-	{
+	public void testAddRelated() {
 		EntityB entityB = cache.getObject(EntityB.class, 11);
 
 		EntityA entityA = entityFactory.createEntity(EntityA.class);
@@ -92,8 +88,7 @@ public abstract class AbstractOneNoReverseRelationsTest extends AbstractRelation
 	}
 
 	@Test
-	public void testRemoveRelated()
-	{
+	public void testRemoveRelated() {
 		EntityB entityB = cache.getObject(EntityB.class, 11);
 
 		entityB.setEntityA(null);
@@ -104,8 +99,7 @@ public abstract class AbstractOneNoReverseRelationsTest extends AbstractRelation
 	}
 
 	@Test
-	public void testDeleteRelated()
-	{
+	public void testDeleteRelated() {
 		EntityB entityB = cache.getObject(EntityB.class, 11);
 
 		EntityA entityA = entityB.getEntityA();
@@ -120,8 +114,7 @@ public abstract class AbstractOneNoReverseRelationsTest extends AbstractRelation
 	}
 
 	@Test
-	public void testDeleteParent()
-	{
+	public void testDeleteParent() {
 		EntityB entityB = cache.getObject(EntityB.class, 11);
 
 		EntityA entityA = entityB.getEntityA();
@@ -136,28 +129,28 @@ public abstract class AbstractOneNoReverseRelationsTest extends AbstractRelation
 	}
 
 	@Test
-	public void testPrefetch()
-	{
+	public void testPrefetch() {
 		String propertyName = "EntityA";
 		EntityB entityB = cache.getObject(EntityB.class, 11);
 
 		assertBeforePrefetch(entityB, propertyName);
-		IPrefetchHandle prefetch = beanContext.getService(IPrefetchHelper.class).createPrefetch().add(EntityB.class, propertyName).build();
+		IPrefetchHandle prefetch = beanContext.getService(IPrefetchHelper.class).createPrefetch()
+				.add(EntityB.class, propertyName).build();
 		prefetch.prefetch(entityB);
 
 		assertAfterPrefetch(entityB, propertyName);
 		assertNotNull(entityB.getEntityA().getName());
 	}
 
-	protected void assertBeforePrefetch(EntityB entityB, String propertyName)
-	{
-		int relationIndex = ((IObjRefContainer) entityB).get__EntityMetaData().getIndexByRelationName(propertyName);
+	protected void assertBeforePrefetch(EntityB entityB, String propertyName) {
+		int relationIndex =
+				((IObjRefContainer) entityB).get__EntityMetaData().getIndexByRelationName(propertyName);
 		assertTrue(!((IObjRefContainer) entityB).is__Initialized(relationIndex));
 	}
 
-	protected void assertAfterPrefetch(EntityB entityB, String propertyName)
-	{
-		int relationIndex = ((IObjRefContainer) entityB).get__EntityMetaData().getIndexByRelationName(propertyName);
+	protected void assertAfterPrefetch(EntityB entityB, String propertyName) {
+		int relationIndex =
+				((IObjRefContainer) entityB).get__EntityMetaData().getIndexByRelationName(propertyName);
 		assertTrue(((IObjRefContainer) entityB).is__Initialized(relationIndex));
 		assertNull(((IObjRefContainer) entityB).get__ObjRefs(relationIndex));
 	}

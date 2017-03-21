@@ -26,7 +26,6 @@ import org.junit.Test;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.shell.AmbethShell;
 import com.koch.ambeth.shell.ErrorModeTest.ErrorModeTestModule;
 import com.koch.ambeth.shell.core.ShellContext.ErrorMode;
 import com.koch.ambeth.shell.core.resulttype.SingleResult;
@@ -35,16 +34,13 @@ import com.koch.ambeth.testutil.AbstractIocTest;
 import com.koch.ambeth.testutil.TestModule;
 
 @TestModule(ErrorModeTestModule.class)
-public class ErrorModeTest extends AbstractIocTest
-{
+public class ErrorModeTest extends AbstractIocTest {
 	@Autowired
 	protected AmbethShell shell;
 
-	public static class ErrorModeTestModule implements IInitializingModule
-	{
+	public static class ErrorModeTestModule implements IInitializingModule {
 		@Override
-		public void afterPropertiesSet(IBeanContextFactory bcf) throws Throwable
-		{
+		public void afterPropertiesSet(IBeanContextFactory bcf) throws Throwable {
 			bcf.registerBean(AmbethShellModule.class);
 			bcf.registerBean(ErrorModeTest.class).autowireable(ErrorModeTest.class);
 			bcf.registerBean(ExampleCustomCommand.class);
@@ -52,23 +48,19 @@ public class ErrorModeTest extends AbstractIocTest
 	}
 
 	@Test(expected = java.lang.Exception.class)
-	public void testErrorMode_THROW_EXCEPTION()
-	{
+	public void testErrorMode_THROW_EXCEPTION() {
 		shell.executeCommand("set", "error.mode=" + ErrorMode.THROW_EXCPETION);
 		shell.executeCommand("echo", "error mode is '$error.mode'");
 		shell.executeCommand("throw", "message=ohhhh look, an exception!");
 	}
 
 	@Test
-	public void testErrorMode_THROW_EXCEPTION_AND_CONTINUE()
-	{
-		try
-		{
+	public void testErrorMode_THROW_EXCEPTION_AND_CONTINUE() {
+		try {
 			shell.executeCommand("set", "error.mode=" + ErrorMode.THROW_EXCPETION);
 			shell.executeCommand("throw", "message=ohhhh look, another exception!");
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 
 		}
 
@@ -79,8 +71,7 @@ public class ErrorModeTest extends AbstractIocTest
 	}
 
 	@Test
-	public void testErrorMode_LOG_ONLY()
-	{
+	public void testErrorMode_LOG_ONLY() {
 		shell.executeCommand("set", "error.mode=" + ErrorMode.LOG_ONLY);
 		shell.executeCommand("echo", "error mode is '$error.mode'");
 		shell.executeCommand("throw", "message=ohhhh look, an exception!");

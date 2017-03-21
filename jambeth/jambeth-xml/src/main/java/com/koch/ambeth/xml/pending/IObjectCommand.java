@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.xml.IReader;
 
-public interface IObjectCommand
-{
+public interface IObjectCommand {
 	IObjectFuture getObjectFuture();
 
 	void execute(IReader reader);

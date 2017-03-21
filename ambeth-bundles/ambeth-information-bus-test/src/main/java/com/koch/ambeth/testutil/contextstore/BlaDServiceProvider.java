@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface BlaDServiceProvider
-{
+public interface BlaDServiceProvider {
 	BlaDServicePortType getService();
 }

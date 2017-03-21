@@ -35,8 +35,7 @@ import com.koch.ambeth.shell.core.resulttype.CommandResult;
  * @author daniel.mueller
  *
  */
-public interface AmbethShell
-{
+public interface AmbethShell {
 	public static final String PROPERTY_SHELL_MODE = "SHELL_MODE";
 	public static final String MODE_INTERACTIVE = "INTERACTIVE";
 	public static final String MODE_SERVICE = "SERVICE";
@@ -115,18 +114,15 @@ public interface AmbethShell
 	/**
 	 * set prompt value to prompt information map
 	 *
-	 * @param key
-	 *            key
-	 * @param value
-	 *            value
+	 * @param key key
+	 * @param value value
 	 */
 	void setPrompt(String key, String value);
 
 	/**
 	 * remove prompt value from prompt information map
 	 *
-	 * @param key
-	 *            key
+	 * @param key key
 	 */
 	void removePrompt(String key);
 
@@ -145,8 +141,7 @@ public interface AmbethShell
 	/**
 	 * get the current shell output stream
 	 *
-	 * @param key
-	 *            key
+	 * @param key key
 	 */
 	PrintStream getShellOut();
 

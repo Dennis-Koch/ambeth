@@ -53,10 +53,9 @@ import com.koch.ambeth.util.proxy.AbstractInterceptor;
 
 import net.sf.cglib.proxy.MethodProxy;
 
-public class MergeInterceptor extends AbstractInterceptor
-{
+public class MergeInterceptor extends AbstractInterceptor {
 	// Intentionally no SensitiveThreadLocal
-	protected static final ThreadLocal<Boolean> processServiceActive = new ThreadLocal<Boolean>();
+	protected static final ThreadLocal<Boolean> processServiceActive = new ThreadLocal<>();
 
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -86,16 +85,14 @@ public class MergeInterceptor extends AbstractInterceptor
 	protected String serviceName;
 
 	@Override
-	protected Annotation getMethodLevelBehavior(Method method)
-	{
+	protected Annotation getMethodLevelBehavior(Method method) {
 		return behavior.getBehaviourOfMethod(method);
 	}
 
 	@Override
-	protected Object interceptMergeIntern(Method method, Object[] arguments, Annotation annotation, Boolean isAsyncBegin) throws Throwable
-	{
-		if (arguments == null || arguments.length != 1 && arguments.length != 3)
-		{
+	protected Object interceptMergeIntern(Method method, Object[] arguments, Annotation annotation,
+			Boolean isAsyncBegin) throws Throwable {
+		if (arguments == null || arguments.length != 1 && arguments.length != 3) {
 			throw new Exception("Arguments currently must be only 1 or 3: " + method.toString());
 		}
 
@@ -104,32 +101,28 @@ public class MergeInterceptor extends AbstractInterceptor
 		ProceedWithMergeHook proceedHook = getProceedHook(arguments);
 		MergeFinishedCallback finishedCallback = getFinishedCallback(arguments);
 		mergeProcess.process(argumentToMerge, argumentToDelete, proceedHook, finishedCallback);
-		if (!void.class.equals(method.getReturnType()))
-		{
+		if (!void.class.equals(method.getReturnType())) {
 			return argumentToMerge;
 		}
 		return null;
 	}
 
 	@Override
-	protected Object interceptDeleteIntern(Method method, Object[] arguments, Annotation annotation, Boolean isAsyncBegin) throws Throwable
-	{
-		if (arguments == null || arguments.length != 1 && arguments.length != 3)
-		{
+	protected Object interceptDeleteIntern(Method method, Object[] arguments, Annotation annotation,
+			Boolean isAsyncBegin) throws Throwable {
+		if (arguments == null || arguments.length != 1 && arguments.length != 3) {
 			throw new Exception("Arguments currently must be only 1 or 3: " + method.toString());
 		}
 		ProceedWithMergeHook proceedHook = getProceedHook(arguments);
 		MergeFinishedCallback finishedCallback = getFinishedCallback(arguments);
 		Remove remove = (Remove) annotation;
-		if (remove != null)
-		{
+		if (remove != null) {
 			String idName = remove.idName();
 			Class<?> entityType = remove.entityType();
-			if (idName != null && idName.length() > 0)
-			{
-				if (void.class.equals(entityType))
-				{
-					throw new IllegalStateException("Annotation invalid: " + remove + " on method " + method.toString());
+			if (idName != null && idName.length() > 0) {
+				if (void.class.equals(entityType)) {
+					throw new IllegalStateException(
+							"Annotation invalid: " + remove + " on method " + method.toString());
 				}
 				deleteById(method, entityType, idName, arguments[0], proceedHook, finishedCallback);
 				return null;
@@ -137,86 +130,73 @@ public class MergeInterceptor extends AbstractInterceptor
 		}
 		Object argumentToDelete = arguments[0];
 		mergeProcess.process(null, argumentToDelete, proceedHook, finishedCallback);
-		if (!void.class.equals(method.getReturnType()))
-		{
+		if (!void.class.equals(method.getReturnType())) {
 			return argumentToDelete;
 		}
 		return null;
 	}
 
 	@Override
-	protected Object interceptApplication(Object obj, Method method, Object[] args, MethodProxy proxy, Annotation annotation, Boolean isAsyncBegin)
-			throws Throwable
-	{
+	protected Object interceptApplication(Object obj, Method method, Object[] args, MethodProxy proxy,
+			Annotation annotation, Boolean isAsyncBegin) throws Throwable {
 		Boolean oldProcessServiceActive = processServiceActive.get();
-		if (Boolean.TRUE.equals(oldProcessServiceActive) || processService == null || !method.getDeclaringClass().isAnnotationPresent(ServiceClient.class))
-		{
+		if (Boolean.TRUE.equals(oldProcessServiceActive) || processService == null
+				|| !method.getDeclaringClass().isAnnotationPresent(ServiceClient.class)) {
 			return super.interceptApplication(obj, method, args, proxy, annotation, isAsyncBegin);
 		}
 		ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
-		IServiceDescription serviceDescription = SyncToAsyncUtil.createServiceDescription(serviceName, method, args, securityScopes);
+		IServiceDescription serviceDescription =
+				SyncToAsyncUtil.createServiceDescription(serviceName, method, args, securityScopes);
 		processServiceActive.set(Boolean.TRUE);
-		try
-		{
+		try {
 			return processService.invokeService(serviceDescription);
 		}
-		finally
-		{
-			if (oldProcessServiceActive == null)
-			{
+		finally {
+			if (oldProcessServiceActive == null) {
 				processServiceActive.remove();
 			}
-			else
-			{
+			else {
 				processServiceActive.set(oldProcessServiceActive);
 			}
 		}
 	}
 
-	protected void deleteById(Method method, Class<?> entityType, String idName, Object ids, ProceedWithMergeHook proceedHook,
-			MergeFinishedCallback finishedCallback)
-	{
+	protected void deleteById(Method method, Class<?> entityType, String idName, Object ids,
+			ProceedWithMergeHook proceedHook, MergeFinishedCallback finishedCallback) {
 		IEntityMetaData metaData = getSpecifiedMetaData(method, Remove.class, entityType);
 		Member idMember = getSpecifiedMember(method, Remove.class, metaData, idName);
 		byte idIndex = metaData.getIdIndexByMemberName(idName);
 
 		Class<?> idType = idMember.getRealType();
-		ArrayList<IObjRef> objRefs = new ArrayList<IObjRef>();
+		ArrayList<IObjRef> objRefs = new ArrayList<>();
 		buildObjRefs(entityType, idIndex, idType, ids, objRefs);
 		mergeProcess.process(null, objRefs, proceedHook, finishedCallback);
 	}
 
-	protected void buildObjRefs(Class<?> entityType, byte idIndex, Class<?> idType, Object ids, List<IObjRef> objRefs)
-	{
-		if (ids == null)
-		{
+	protected void buildObjRefs(Class<?> entityType, byte idIndex, Class<?> idType, Object ids,
+			List<IObjRef> objRefs) {
+		if (ids == null) {
 			return;
 		}
-		if (ids instanceof List)
-		{
+		if (ids instanceof List) {
 			List<?> list = (List<?>) ids;
-			for (int a = 0, size = list.size(); a < size; a++)
-			{
+			for (int a = 0, size = list.size(); a < size; a++) {
 				Object id = list.get(a);
 				buildObjRefs(entityType, idIndex, idType, id, objRefs);
 			}
 			return;
 		}
-		else if (ids instanceof Collection)
-		{
+		else if (ids instanceof Collection) {
 			Iterator<?> iter = ((Collection<?>) ids).iterator();
-			while (iter.hasNext())
-			{
+			while (iter.hasNext()) {
 				Object id = iter.next();
 				buildObjRefs(entityType, idIndex, idType, id, objRefs);
 			}
 			return;
 		}
-		else if (ids.getClass().isArray())
-		{
+		else if (ids.getClass().isArray()) {
 			int size = Array.getLength(ids);
-			for (int a = 0; a < size; a++)
-			{
+			for (int a = 0; a < size; a++) {
 				Object id = Array.get(ids, a);
 				buildObjRefs(entityType, idIndex, idType, id, objRefs);
 			}
@@ -227,28 +207,27 @@ public class MergeInterceptor extends AbstractInterceptor
 		objRefs.add(objRef);
 	}
 
-	protected IEntityMetaData getSpecifiedMetaData(Method method, Class<? extends Annotation> annotation, Class<?> entityType)
-	{
+	protected IEntityMetaData getSpecifiedMetaData(Method method,
+			Class<? extends Annotation> annotation, Class<?> entityType) {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-		if (metaData == null)
-		{
-			throw new IllegalArgumentException("Please specify a valid returnType for the " + annotation.getSimpleName() + " annotation on method "
-					+ method.toString() + ". The current value " + entityType.getName() + " is not a valid entity");
+		if (metaData == null) {
+			throw new IllegalArgumentException("Please specify a valid returnType for the "
+					+ annotation.getSimpleName() + " annotation on method " + method.toString()
+					+ ". The current value " + entityType.getName() + " is not a valid entity");
 		}
 		return metaData;
 	}
 
-	protected Member getSpecifiedMember(Method method, Class<? extends Annotation> annotation, IEntityMetaData metaData, String memberName)
-	{
-		if (memberName == null || memberName.isEmpty())
-		{
+	protected Member getSpecifiedMember(Method method, Class<? extends Annotation> annotation,
+			IEntityMetaData metaData, String memberName) {
+		if (memberName == null || memberName.isEmpty()) {
 			return metaData.getIdMember();
 		}
 		Member member = metaData.getMemberByName(memberName);
-		if (member == null)
-		{
-			throw new IllegalArgumentException("No member " + metaData.getEntityType().getName() + "." + memberName + " found. Please check your "
-					+ annotation.getSimpleName() + " annotation on method " + method.toString());
+		if (member == null) {
+			throw new IllegalArgumentException("No member " + metaData.getEntityType().getName() + "."
+					+ memberName + " found. Please check your " + annotation.getSimpleName()
+					+ " annotation on method " + method.toString());
 		}
 		return member;
 	}
@@ -268,51 +247,39 @@ public class MergeInterceptor extends AbstractInterceptor
 	// methodDescription.ParamTypes = paramTypes.ToArray();
 	// }
 
-	protected Object getArgumentToDelete(Object[] args, Class<?>[] parameters)
-	{
-		if (parameters == null || parameters.length < 2)
-		{
+	protected Object getArgumentToDelete(Object[] args, Class<?>[] parameters) {
+		if (parameters == null || parameters.length < 2) {
 			return null;
 		}
 		Class<?> parameterToLook = parameters[parameters.length - 1];
-		if (ProceedWithMergeHook.class.isAssignableFrom(parameterToLook))
-		{
-			if (parameters.length == 3)
-			{
+		if (ProceedWithMergeHook.class.isAssignableFrom(parameterToLook)) {
+			if (parameters.length == 3) {
 				return args[1];
 			}
 		}
-		else if (parameters.length == 2)
-		{
+		else if (parameters.length == 2) {
 			return args[1];
 		}
 		return null;
 	}
 
-	protected ProceedWithMergeHook getProceedHook(Object[] args)
-	{
-		if (args == null || args.length == 0)
-		{
+	protected ProceedWithMergeHook getProceedHook(Object[] args) {
+		if (args == null || args.length == 0) {
 			return null;
 		}
-		if (args[args.length - 1] instanceof ProceedWithMergeHook)
-		{
+		if (args[args.length - 1] instanceof ProceedWithMergeHook) {
 			return (ProceedWithMergeHook) args[args.length - 1];
 		}
 		return null;
 	}
 
-	protected MergeFinishedCallback getFinishedCallback(Object[] args)
-	{
-		if (args == null)
-		{
+	protected MergeFinishedCallback getFinishedCallback(Object[] args) {
+		if (args == null) {
 			return null;
 		}
-		for (int a = args.length; a-- > 0;)
-		{
+		for (int a = args.length; a-- > 0;) {
 			Object arg = args[a];
-			if (arg instanceof MergeFinishedCallback)
-			{
+			if (arg instanceof MergeFinishedCallback) {
 				return (MergeFinishedCallback) arg;
 			}
 		}

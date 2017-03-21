@@ -46,21 +46,23 @@ import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 
 /**
- * Tests the replacement of the JAMBETH user by a temporary user created by the RandomUserScript. The Jenkins build script has to be adapted so that the
- * database connection is done with this temporary user instead of the JAMBETH one. Because of that fact we don't have to do anything special (if Jenkins is
- * properly configured).
+ * Tests the replacement of the JAMBETH user by a temporary user created by the RandomUserScript.
+ * The Jenkins build script has to be adapted so that the database connection is done with this
+ * temporary user instead of the JAMBETH one. Because of that fact we don't have to do anything
+ * special (if Jenkins is properly configured).
  * <p>
  * This test won't run in a local test environment.
  */
-@TestModule({ MultiSchemaTestModule.class })
-@TestPropertiesList({ @TestProperties(file = "citemp.properties"),
-		@TestProperties(name = PersistenceJdbcConfigurationConstants.DatabaseBehaviourStrict, value = "true"),
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/schema/single_random_user_orm.xml") })
+@TestModule({MultiSchemaTestModule.class})
+@TestPropertiesList({@TestProperties(file = "citemp.properties"),
+		@TestProperties(name = PersistenceJdbcConfigurationConstants.DatabaseBehaviourStrict,
+				value = "true"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+				value = "com/koch/ambeth/persistence/schema/single_random_user_orm.xml")})
 @SQLStructure("single_random_user_structure.sql")
 @SQLData("single_random_user_data.sql")
 @Ignore("No need to test in JENKINS - all other tests using a connection will do the same")
-public class JenkinsSingleRandomUserTest extends AbstractInformationBusWithPersistenceTest
-{
+public class JenkinsSingleRandomUserTest extends AbstractInformationBusWithPersistenceTest {
 	@Autowired
 	private ICache cache;
 
@@ -74,8 +76,7 @@ public class JenkinsSingleRandomUserTest extends AbstractInformationBusWithPersi
 	private IParentBService parentBService;
 
 	@Test
-	public void testDelete() throws Exception
-	{
+	public void testDelete() throws Exception {
 		ParentA parent = cache.getObject(ParentA.class, 1);
 		assertNotNull(parent);
 
@@ -86,8 +87,7 @@ public class JenkinsSingleRandomUserTest extends AbstractInformationBusWithPersi
 	}
 
 	@Test
-	public void testQuery() throws Exception
-	{
+	public void testQuery() throws Exception {
 		IQueryBuilder<ParentA> qb = qbf.create(ParentA.class);
 		IQuery<ParentA> query = qb.build(qb.isEqualTo(qb.property("Child.Id"), qb.value(11)));
 		List<ParentA> result = query.retrieve();

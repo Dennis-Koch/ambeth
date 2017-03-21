@@ -20,22 +20,18 @@ limitations under the License.
  * #L%
  */
 
-public class BlobObject extends AbstractEntity
-{
+public class BlobObject extends AbstractEntity {
 	protected byte[] content;
 
-	protected BlobObject()
-	{
+	protected BlobObject() {
 		// Intended blank
 	}
 
-	public void setContent(byte[] content)
-	{
+	public void setContent(byte[] content) {
 		this.content = content;
 	}
 
-	public byte[] getContent()
-	{
+	public byte[] getContent() {
 		return content;
 	}
 }

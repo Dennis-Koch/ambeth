@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public class ChunkedResponse implements IChunkedResponse
-{
+public class ChunkedResponse implements IChunkedResponse {
 	protected IChunkedRequest reference;
 	protected byte[] payload;
 	protected boolean deflated;
@@ -30,13 +29,12 @@ public class ChunkedResponse implements IChunkedResponse
 	/**
 	 * Needed for serialization
 	 */
-	public ChunkedResponse()
-	{
+	public ChunkedResponse() {
 		super();
 	}
 
-	public ChunkedResponse(IChunkedRequest reference, byte[] payload, boolean deflated, int payloadSize)
-	{
+	public ChunkedResponse(IChunkedRequest reference, byte[] payload, boolean deflated,
+			int payloadSize) {
 		super();
 		this.reference = reference;
 		this.payload = payload;
@@ -45,46 +43,38 @@ public class ChunkedResponse implements IChunkedResponse
 	}
 
 	@Override
-	public IChunkedRequest getReference()
-	{
+	public IChunkedRequest getReference() {
 		return reference;
 	}
 
-	public void setReference(IChunkedRequest reference)
-	{
+	public void setReference(IChunkedRequest reference) {
 		this.reference = reference;
 	}
 
 	@Override
-	public byte[] getPayload()
-	{
+	public byte[] getPayload() {
 		return payload;
 	}
 
-	public void setPayload(byte[] payload)
-	{
+	public void setPayload(byte[] payload) {
 		this.payload = payload;
 	}
 
 	@Override
-	public int getPayloadSize()
-	{
+	public int getPayloadSize() {
 		return payloadSize;
 	}
 
-	public void setPayloadSize(int payloadSize)
-	{
+	public void setPayloadSize(int payloadSize) {
 		this.payloadSize = payloadSize;
 	}
 
 	@Override
-	public boolean isDeflated()
-	{
+	public boolean isDeflated() {
 		return deflated;
 	}
 
-	public void setDeflated(boolean deflated)
-	{
+	public void setDeflated(boolean deflated) {
 		this.deflated = deflated;
 	}
 }

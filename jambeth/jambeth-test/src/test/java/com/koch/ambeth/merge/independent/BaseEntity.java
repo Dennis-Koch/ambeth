@@ -20,34 +20,28 @@ limitations under the License.
  * #L%
  */
 
-public abstract class BaseEntity
-{
+public abstract class BaseEntity {
 	protected int id;
 
 	protected int version;
 
-	protected BaseEntity()
-	{
+	protected BaseEntity() {
 		// Intended blank
 	}
 
-	public int getId()
-	{
+	public int getId() {
 		return id;
 	}
 
-	public void setId(int id)
-	{
+	public void setId(int id) {
 		this.id = id;
 	}
 
-	public int getVersion()
-	{
+	public int getVersion() {
 		return version;
 	}
 
-	public void setVersion(int version)
-	{
+	public void setVersion(int version) {
 		this.version = version;
 	}
 }

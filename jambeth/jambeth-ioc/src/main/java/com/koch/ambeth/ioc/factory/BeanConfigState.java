@@ -22,25 +22,21 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 
-public class BeanConfigState
-{
+public class BeanConfigState {
 	private final IBeanConfiguration beanConfiguration;
 
 	private final Class<?> beanType;
 
-	public BeanConfigState(IBeanConfiguration beanConfiguration, Class<?> beanType)
-	{
+	public BeanConfigState(IBeanConfiguration beanConfiguration, Class<?> beanType) {
 		this.beanConfiguration = beanConfiguration;
 		this.beanType = beanType;
 	}
 
-	public IBeanConfiguration getBeanConfiguration()
-	{
+	public IBeanConfiguration getBeanConfiguration() {
 		return beanConfiguration;
 	}
 
-	public Class<?> getBeanType()
-	{
+	public Class<?> getBeanType() {
 		return beanType;
 	}
 }

@@ -40,8 +40,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-public class SqlLink extends Link
-{
+public class SqlLink extends Link {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -62,27 +61,26 @@ public class SqlLink extends Link
 	protected IConversionHelper conversionHelper;
 
 	@Override
-	public void afterPropertiesSet()
-	{
+	public void afterPropertiesSet() {
 		super.afterPropertiesSet();
 
-		ParamChecker.assertTrue(getMetaData().getFromField() != null || getMetaData().getToField() != null, "FromField or ToField");
+		ParamChecker.assertTrue(
+				getMetaData().getFromField() != null || getMetaData().getToField() != null,
+				"FromField or ToField");
 	}
 
 	@Override
-	public ILinkCursor findAllLinked(IDirectedLink fromLink, List<?> fromIds)
-	{
+	public ILinkCursor findAllLinked(IDirectedLink fromLink, List<?> fromIds) {
 		return findAllLinkedIntern(fromLink, fromIds, false);
 	}
 
 	@Override
-	public ILinkCursor findAllLinkedTo(IDirectedLink fromLink, List<?> toIds)
-	{
+	public ILinkCursor findAllLinkedTo(IDirectedLink fromLink, List<?> toIds) {
 		return findAllLinkedIntern(fromLink, toIds, true);
 	}
 
-	protected ILinkCursor findAllLinkedIntern(IDirectedLink fromLink, List<?> fromOrToIds, boolean isToId)
-	{
+	protected ILinkCursor findAllLinkedIntern(IDirectedLink fromLink, List<?> fromOrToIds,
+			boolean isToId) {
 		// Link
 		// DirLink
 		// 1) F,T WHERE F IN (?) findAllLinked
@@ -92,23 +90,20 @@ public class SqlLink extends Link
 		// 2) T,F WHERE F IN (?) findAllLinkedTo isToId=true
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();
 		AppendableStringBuilder fieldNamesSB = current.create(AppendableStringBuilder.class);
-		try
-		{
+		try {
 			IDirectedLinkMetaData fromLinkMetaData = fromLink.getMetaData();
 			IFieldMetaData fromField = fromLinkMetaData.getFromField();
 			IFieldMetaData toField = fromLinkMetaData.getToField();
 
-			if (!getMetaData().hasLinkTable())
-			{
-				if (fromLink.getFromTable().equals(fromLink.getLink().getFromTable()))
-				{
+			if (!getMetaData().hasLinkTable()) {
+				if (fromLink.getFromTable().equals(fromLink.getLink().getFromTable())) {
 					toField = fromField.getTable().getIdField();
 				}
-				else
-				{
+				else {
 					fromField = toField.getTable().getIdField();
 				}
-				// All fields themselves are correct now. But for "some" reason we have to switch the fields :(
+				// All fields themselves are correct now. But for "some" reason we have to switch the fields
+				// :(
 				IFieldMetaData tempField = fromField;
 				fromField = toField;
 				toField = tempField;
@@ -126,8 +121,9 @@ public class SqlLink extends Link
 			fieldNamesSB.append(" IS NOT NULL");
 			String whereSQL = fieldNamesSB.toString();
 
-			IResultSet resultSet = sqlConnection.createResultSet(getMetaData().getFullqualifiedEscapedTableName(), whereField.getName(),
-					whereField.getFieldType(), fieldNames, whereSQL, fromOrToIds);
+			IResultSet resultSet =
+					sqlConnection.createResultSet(getMetaData().getFullqualifiedEscapedTableName(),
+							whereField.getName(), whereField.getFieldType(), fieldNames, whereSQL, fromOrToIds);
 
 			ResultSetLinkCursor linkCursor = new ResultSetLinkCursor();
 			linkCursor.setFromIdIndex(fromField.getIdIndex());
@@ -137,36 +133,30 @@ public class SqlLink extends Link
 
 			return linkCursor;
 		}
-		finally
-		{
+		finally {
 			current.dispose(fieldNamesSB);
 		}
 	}
 
 	@Override
-	public void linkIds(IDirectedLink fromLink, Object fromId, List<?> toIds)
-	{
+	public void linkIds(IDirectedLink fromLink, Object fromId, List<?> toIds) {
 		ILinkMetaData metaData = getMetaData();
-		if (!metaData.getName().equals(metaData.getTableName()))
-		{
+		if (!metaData.getName().equals(metaData.getTableName())) {
 			updateLinks(fromLink, fromId, toIds);
 			return;
 		}
 		IConversionHelper conversionHelper = this.conversionHelper;
-		ArrayList<Object> convertedToIds = new ArrayList<Object>();
+		ArrayList<Object> convertedToIds = new ArrayList<>();
 		IFieldMetaData fromField, toField;
-		if (getDirectedLink() == fromLink)
-		{
+		if (getDirectedLink() == fromLink) {
 			fromField = metaData.getFromField();
 			toField = metaData.getToField();
 		}
-		else if (getReverseDirectedLink() == fromLink)
-		{
+		else if (getReverseDirectedLink() == fromLink) {
 			fromField = metaData.getToField();
 			toField = metaData.getFromField();
 		}
-		else
-		{
+		else {
 			throw new IllegalArgumentException("Invalid link " + fromLink);
 		}
 		Class<?> fromFieldType = fromField.getFieldType();
@@ -174,57 +164,46 @@ public class SqlLink extends Link
 
 		fromId = conversionHelper.convertValueToType(fromFieldType, fromId);
 
-		for (int a = toIds.size(); a-- > 0;)
-		{
+		for (int a = toIds.size(); a-- > 0;) {
 			Object toId = toIds.get(a);
 
 			toId = conversionHelper.convertValueToType(toFieldType, toId);
-			if (!addLinkModToCache(fromLink, fromId, toId))
-			{
+			if (!addLinkModToCache(fromLink, fromId, toId)) {
 				continue;
 			}
 			convertedToIds.add(toId);
 		}
-		if (convertedToIds.size() == 0)
-		{
+		if (convertedToIds.size() == 0) {
 			return;
 		}
 		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
 		AppendableStringBuilder namesSB = objectCollector.create(AppendableStringBuilder.class);
-		try
-		{
+		try {
 			sqlBuilder.appendName(fromField.getName(), namesSB);
 			namesSB.append(',');
 			sqlBuilder.appendName(toField.getName(), namesSB);
 			linkIdsIntern(namesSB.toString(), fromId, toFieldType, convertedToIds);
 		}
-		finally
-		{
+		finally {
 			objectCollector.dispose(namesSB);
 		}
 	}
 
-	protected void linkIdsIntern(String names, Object fromId, Class<?> toIdType, List<Object> toIds)
-	{
+	protected void linkIdsIntern(String names, Object fromId, Class<?> toIdType, List<Object> toIds) {
 		throw new UnsupportedOperationException();
 	}
 
-	protected void unlinkIdsIntern(String whereSQL, Class<?> toIdType, List<Object> parameters)
-	{
+	protected void unlinkIdsIntern(String whereSQL, Class<?> toIdType, List<Object> parameters) {
 		throw new UnsupportedOperationException();
 	}
 
-	public void updateLinks(IDirectedLink fromLink, Object fromId, List<?> toIds)
-	{
-		if (toIds.size() == 1)
-		{
+	public void updateLinks(IDirectedLink fromLink, Object fromId, List<?> toIds) {
+		if (toIds.size() == 1) {
 			updateLink(fromLink, fromId, toIds.get(0));
 		}
-		else
-		{
+		else {
 			// TODO!!!
-			for (int i = toIds.size(); i-- > 0;)
-			{
+			for (int i = toIds.size(); i-- > 0;) {
 				updateLink(fromLink, fromId, toIds.get(i));
 			}
 			// throw new UnsupportedOperationException("Not yet implemented!");
@@ -232,24 +211,19 @@ public class SqlLink extends Link
 	}
 
 	@Override
-	public void updateLink(IDirectedLink fromLink, Object fromId, Object toId)
-	{
+	public void updateLink(IDirectedLink fromLink, Object fromId, Object toId) {
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();
 		AppendableStringBuilder namesAndvaluesSB = current.create(AppendableStringBuilder.class);
 		AppendableStringBuilder whereSB = current.create(AppendableStringBuilder.class);
-		try
-		{
-			if (getDirectedLink() == fromLink)
-			{
+		try {
+			if (getDirectedLink() == fromLink) {
 			}
-			else if (getReverseDirectedLink() == fromLink)
-			{
+			else if (getReverseDirectedLink() == fromLink) {
 				Object tempId = toId;
 				toId = fromId;
 				fromId = tempId;
 			}
-			else
-			{
+			else {
 				throw new IllegalArgumentException("Invalid link " + fromLink);
 			}
 			IFieldMetaData toField = getMetaData().getToField();
@@ -261,56 +235,48 @@ public class SqlLink extends Link
 			fromId = conversionHelper.convertValueToType(fromField.getFieldType(), fromId);
 			sqlBuilder.appendNameValue(fromField.getName(), fromId, whereSB);
 
-			sqlConnection.queueUpdate(getMetaData().getFullqualifiedEscapedTableName(), namesAndvaluesSB.toString(), whereSB.toString());
+			sqlConnection.queueUpdate(getMetaData().getFullqualifiedEscapedTableName(),
+					namesAndvaluesSB.toString(), whereSB.toString());
 		}
-		finally
-		{
+		finally {
 			current.dispose(namesAndvaluesSB);
 			current.dispose(whereSB);
 		}
 	}
 
 	@Override
-	public void unlinkIds(IDirectedLink fromLink, Object fromId, List<?> toIds)
-	{
+	public void unlinkIds(IDirectedLink fromLink, Object fromId, List<?> toIds) {
 		ILinkMetaData metaData = getMetaData();
-		if (!metaData.getName().equals(metaData.getTableName()))
-		{
+		if (!metaData.getName().equals(metaData.getTableName())) {
 			unlinkByUpdate(fromLink, fromId, toIds);
 			return;
 		}
 		IConversionHelper conversionHelper = this.conversionHelper;
-		ArrayList<Object> convertedToIds = new ArrayList<Object>();
+		ArrayList<Object> convertedToIds = new ArrayList<>();
 		IFieldMetaData fromField, toField;
-		if (getDirectedLink() == fromLink)
-		{
+		if (getDirectedLink() == fromLink) {
 			fromField = metaData.getFromField();
 			toField = metaData.getToField();
 		}
-		else if (getReverseDirectedLink() == fromLink)
-		{
+		else if (getReverseDirectedLink() == fromLink) {
 			fromField = metaData.getToField();
 			toField = metaData.getFromField();
 		}
-		else
-		{
+		else {
 			throw new IllegalArgumentException("Invalid link " + fromLink);
 		}
 		Class<?> toFieldType = toField.getFieldType();
 
-		for (int a = toIds.size(); a-- > 0;)
-		{
+		for (int a = toIds.size(); a-- > 0;) {
 			Object toId = toIds.get(a);
 
 			toId = conversionHelper.convertValueToType(toFieldType, toId);
-			if (!addLinkModToCache(fromLink, fromId, toId))
-			{
+			if (!addLinkModToCache(fromLink, fromId, toId)) {
 				continue;
 			}
 			convertedToIds.add(toId);
 		}
-		if (convertedToIds.size() == 0)
-		{
+		if (convertedToIds.size() == 0) {
 			return;
 		}
 		Class<?> fromFieldType = fromField.getFieldType();
@@ -318,91 +284,77 @@ public class SqlLink extends Link
 
 		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
 		AppendableStringBuilder whereSB = objectCollector.create(AppendableStringBuilder.class);
-		try
-		{
-			ArrayList<Object> parameters = new ArrayList<Object>();
+		try {
+			ArrayList<Object> parameters = new ArrayList<>();
 			sqlBuilder.appendName(fromField.getName(), whereSB);
 			ParamsUtil.addParam(parameters, fromId);
 			whereSB.append("=? AND ");
 
-			persistenceHelper.appendSplittedValues(toField.getName(), toField.getFieldType(), convertedToIds, parameters, whereSB);
+			persistenceHelper.appendSplittedValues(toField.getName(), toField.getFieldType(),
+					convertedToIds, parameters, whereSB);
 
 			unlinkIdsIntern(whereSB.toString(), toFieldType, parameters);
 		}
-		finally
-		{
+		finally {
 			objectCollector.dispose(whereSB);
 		}
 	}
 
 	@Override
-	public void unlinkAllIds(IDirectedLink fromLink, Object fromId)
-	{
+	public void unlinkAllIds(IDirectedLink fromLink, Object fromId) {
 		ILinkMetaData metaData = getMetaData();
-		if (!metaData.getName().equals(metaData.getTableName()))
-		{
+		if (!metaData.getName().equals(metaData.getTableName())) {
 			unlinkByUpdate(fromLink, fromId, null);
 			return;
 		}
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		AppendableStringBuilder sb = tlObjectCollector.create(AppendableStringBuilder.class);
-		try
-		{
-			if (getDirectedLink() == fromLink)
-			{
+		try {
+			if (getDirectedLink() == fromLink) {
 				IFieldMetaData fromField = metaData.getFromField();
 				fromId = conversionHelper.convertValueToType(fromField.getFieldType(), fromId);
 				sqlBuilder.appendNameValue(fromField.getName(), fromId, sb);
 			}
-			else if (getReverseDirectedLink() == fromLink)
-			{
+			else if (getReverseDirectedLink() == fromLink) {
 				IFieldMetaData toField = metaData.getToField();
 				fromId = conversionHelper.convertValueToType(toField.getFieldType(), fromId);
 				sqlBuilder.appendNameValue(toField.getName(), fromId, sb);
 			}
-			else
-			{
+			else {
 				throw new IllegalArgumentException("Invalid table " + fromLink);
 			}
 
-			sqlConnection.queueDelete(getMetaData().getFullqualifiedEscapedTableName(), sb.toString(), null);
+			sqlConnection.queueDelete(getMetaData().getFullqualifiedEscapedTableName(), sb.toString(),
+					null);
 		}
-		finally
-		{
+		finally {
 			tlObjectCollector.dispose(sb);
 		}
 	}
 
 	@Override
-	public void unlinkAllIds()
-	{
-		if (getMetaData().getName().equals(getMetaData().getTableName()))
-		{
+	public void unlinkAllIds() {
+		if (getMetaData().getName().equals(getMetaData().getTableName())) {
 			sqlConnection.queueDeleteAll(getMetaData().getFullqualifiedEscapedTableName());
 		}
-		else
-		{
+		else {
 			unlinkByUpdate(null, null, null);
 		}
 	}
 
 	/**
-	 * 
+	 *
 	 * @param fromTable
 	 * @param fromId
-	 * @param toIds
-	 *            For 1:n version
+	 * @param toIds For 1:n version
 	 */
-	private void unlinkByUpdate(IDirectedLink fromLink, Object fromId, List<?> toIds)
-	{
+	private void unlinkByUpdate(IDirectedLink fromLink, Object fromId, List<?> toIds) {
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();
 		AppendableStringBuilder nameAndValueSB = current.create(AppendableStringBuilder.class);
 		AppendableStringBuilder whereSB = current.create(AppendableStringBuilder.class);
 		IList<Object> values = null;
-		try
-		{
-			if (getDirectedLink() != fromLink && getReverseDirectedLink() != fromLink)
-			{
+		try {
+			if (getDirectedLink() != fromLink && getReverseDirectedLink() != fromLink) {
 				throw new IllegalArgumentException("Invalid link " + fromLink);
 			}
 			IFieldMetaData fromField = getMetaData().getFromField();
@@ -412,36 +364,30 @@ public class SqlLink extends Link
 
 			sqlBuilder.appendNameValue(toField.getName(), "", nameAndValueSB);
 
-			if (fromId != null)
-			{
+			if (fromId != null) {
 				fromId = conversionHelper.convertValueToType(fromFieldType, fromId);
 				sqlBuilder.appendNameValue(fromField.getName(), fromId, whereSB);
 			}
-			if (toIds != null && !toIds.isEmpty())
-			{
-				values = new ArrayList<Object>();
-				for (int a = toIds.size(); a-- > 0;)
-				{
+			if (toIds != null && !toIds.isEmpty()) {
+				values = new ArrayList<>();
+				for (int a = toIds.size(); a-- > 0;) {
 					Object toId = toIds.get(a);
-					if (addLinkModToCache(fromLink, fromId, toId))
-					{
+					if (addLinkModToCache(fromLink, fromId, toId)) {
 						values.add(conversionHelper.convertValueToType(toFieldType, toId));
 					}
 				}
-				if (!values.isEmpty())
-				{
-					if (fromId != null)
-					{
+				if (!values.isEmpty()) {
+					if (fromId != null) {
 						whereSB.append(" AND ");
 					}
 					sqlBuilder.appendNameValues(toField.getName(), values, whereSB);
 				}
 			}
 
-			sqlConnection.queueUpdate(getMetaData().getFullqualifiedEscapedTableName(), nameAndValueSB.toString(), whereSB.toString());
+			sqlConnection.queueUpdate(getMetaData().getFullqualifiedEscapedTableName(),
+					nameAndValueSB.toString(), whereSB.toString());
 		}
-		finally
-		{
+		finally {
 			current.dispose(nameAndValueSB);
 			current.dispose(whereSB);
 		}

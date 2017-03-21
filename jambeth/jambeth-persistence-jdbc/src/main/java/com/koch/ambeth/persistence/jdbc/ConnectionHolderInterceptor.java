@@ -36,64 +36,57 @@ import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
 import net.sf.cglib.proxy.MethodProxy;
 
-public class ConnectionHolderInterceptor extends AbstractSimpleInterceptor implements IConnectionHolder, IThreadLocalCleanupBean
-{
+public class ConnectionHolderInterceptor extends AbstractSimpleInterceptor
+		implements IConnectionHolder, IThreadLocalCleanupBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Forkable
-	protected final ThreadLocal<Connection> connectionTL = new SensitiveThreadLocal<Connection>();
+	protected final ThreadLocal<Connection> connectionTL = new SensitiveThreadLocal<>();
 
 	@Override
-	public void cleanupThreadLocal()
-	{
-		if (connectionTL.get() != null)
-		{
-			throw new IllegalStateException("At this point the thread-local connection has to be already cleaned up gracefully");
+	public void cleanupThreadLocal() {
+		if (connectionTL.get() != null) {
+			throw new IllegalStateException(
+					"At this point the thread-local connection has to be already cleaned up gracefully");
 		}
 	}
 
 	@Override
-	public void setConnection(Connection connection)
-	{
+	public void setConnection(Connection connection) {
 		Connection oldConnection = connectionTL.get();
-		if (oldConnection != null && connection != null && oldConnection != connection)
-		{
-			throw new IllegalStateException("Thread-local connection instance already applied!. This is a fatal state");
+		if (oldConnection != null && connection != null && oldConnection != connection) {
+			throw new IllegalStateException(
+					"Thread-local connection instance already applied!. This is a fatal state");
 		}
-		if (connection == null)
-		{
+		if (connection == null) {
 			connectionTL.remove();
 		}
-		else
-		{
+		else {
 			connectionTL.set(connection);
 		}
 	}
 
 	@Override
-	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
-	{
-		try
-		{
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy)
+			throws Throwable {
+		try {
 			Connection connection = getConnection();
-			if (connection == null)
-			{
-				throw new IllegalStateException("No connection currently applied. This often occurs if a " + Connection.class.getName()
-						+ "-bean is used without scoping the call through the " + ILightweightTransaction.class.getName() + "-bean");
+			if (connection == null) {
+				throw new IllegalStateException("No connection currently applied. This often occurs if a "
+						+ Connection.class.getName() + "-bean is used without scoping the call through the "
+						+ ILightweightTransaction.class.getName() + "-bean");
 			}
 			return proxy.invoke(connection, args);
 		}
-		catch (InvocationTargetException e)
-		{
+		catch (InvocationTargetException e) {
 			throw RuntimeExceptionUtil.mask(e, method.getExceptionTypes());
 		}
 	}
 
 	@Override
-	public Connection getConnection()
-	{
+	public Connection getConnection() {
 		return connectionTL.get();
 	}
 }

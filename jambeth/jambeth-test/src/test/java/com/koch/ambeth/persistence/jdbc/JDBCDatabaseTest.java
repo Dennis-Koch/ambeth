@@ -187,8 +187,8 @@ public class JDBCDatabaseTest extends AbstractInformationBusWithPersistenceTest 
 
 		CreateContainer insert1 = new CreateContainer();
 		insert1.setReference(new DirectObjRef(Material.class, insert1));
-		List<IPrimitiveUpdateItem> items1 = new ArrayList<IPrimitiveUpdateItem>();
-		List<IRelationUpdateItem> childItems1 = new ArrayList<IRelationUpdateItem>();
+		List<IPrimitiveUpdateItem> items1 = new ArrayList<>();
+		List<IRelationUpdateItem> childItems1 = new ArrayList<>();
 		PrimitiveUpdateItem pui = new PrimitiveUpdateItem();
 		pui.setMemberName("Name");
 		pui.setNewValue("Hallo");
@@ -198,7 +198,7 @@ public class JDBCDatabaseTest extends AbstractInformationBusWithPersistenceTest 
 
 		CreateContainer insert2 = new CreateContainer();
 		insert2.setReference(new DirectObjRef(Unit.class, insert2));
-		List<IPrimitiveUpdateItem> items2 = new ArrayList<IPrimitiveUpdateItem>();
+		List<IPrimitiveUpdateItem> items2 = new ArrayList<>();
 		// List<IRelationUpdateItem> childItems2 = new
 		// ArrayList<IRelationUpdateItem>();
 		PrimitiveUpdateItem pui2 = new PrimitiveUpdateItem();
@@ -218,8 +218,8 @@ public class JDBCDatabaseTest extends AbstractInformationBusWithPersistenceTest 
 		// rui2.setAddedORIs(new IObjRef[] { insert1.getReference() });
 		// childItems2.add(rui2);
 
-		List<IChangeContainer> allChanges = new ArrayList<IChangeContainer>();
-		List<Object> originalRefs = new ArrayList<Object>();
+		List<IChangeContainer> allChanges = new ArrayList<>();
+		List<Object> originalRefs = new ArrayList<>();
 		originalRefs.add(null);
 		originalRefs.add(null);
 

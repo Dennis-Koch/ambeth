@@ -25,7 +25,6 @@ import com.koch.ambeth.service.model.IServiceDescription;
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface ICacheService extends ICacheRetriever
-{
+public interface ICacheService extends ICacheRetriever {
 	IServiceResult getORIsForServiceRequest(IServiceDescription serviceDescription);
 }

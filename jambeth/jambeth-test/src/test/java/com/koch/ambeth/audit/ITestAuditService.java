@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ITestAuditService
-{
+public interface ITestAuditService {
 	String auditedServiceCall(Integer myArg);
 
 	String notAuditedServiceCall(Integer myArg);

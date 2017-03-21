@@ -25,25 +25,23 @@ import java.util.Collection;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 
 /**
- * This is a utility class that provides access to all new objects that should be merged with the database.
+ * This is a utility class that provides access to all new objects that should be merged with the
+ * database.
  */
-public interface ICacheView
-{
+public interface ICacheView {
 
 	/**
 	 * Returns a list of new objects that have the given interface as type.
-	 * 
-	 * @param clazz
-	 *            The interface that the object should implemented by the objects
+	 *
+	 * @param clazz The interface that the object should implemented by the objects
 	 * @return a list of new objects that implement the interface, never <code>null</code>
 	 */
 	<T> Collection<T> getNewObjectsOfClass(Class<T> clazz);
 
 	/**
 	 * Returns a list of new objects that have the given interface as type.
-	 * 
-	 * @param clazz
-	 *            The interface that the object should implemented by the objects
+	 *
+	 * @param clazz The interface that the object should implemented by the objects
 	 * @return a list of new objects that implement the interface, never <code>null</code>
 	 */
 	<T> Collection<T> getOldObjectsOfClass(Class<T> clazz);

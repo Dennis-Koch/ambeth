@@ -32,7 +32,7 @@ import com.koch.ambeth.orm20.independent.a3b.Orm20A3BTest;
 import com.koch.ambeth.orm20.independent.a3b2a.Orm20A3B2ATest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ Orm20IndependentMetaDataTest.class, Orm20A22BTest.class, Orm20A2BTest.class, Orm20A2B2ATest.class, Orm20A3BTest.class, Orm20A3B2ATest.class })
-public class AllOrm20Tests
-{
+@SuiteClasses({Orm20IndependentMetaDataTest.class, Orm20A22BTest.class, Orm20A2BTest.class,
+		Orm20A2B2ATest.class, Orm20A3BTest.class, Orm20A3B2ATest.class})
+public class AllOrm20Tests {
 }

@@ -66,7 +66,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 	protected ILightweightSecurityContext securityContext;
 
 	protected final IExtendableContainer<IDatasetBuilder> datasetBuilderContainer =
-			new DefaultExtendableContainer<IDatasetBuilder>(IDatasetBuilder.class, "TestBedBuilders");
+			new DefaultExtendableContainer<>(IDatasetBuilder.class, "TestBedBuilders");
 
 	@Override
 	public void registerDatasetBuilder(IDatasetBuilder testBedBuilder) {
@@ -91,7 +91,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 
 	@Override
 	public Collection<Object> executeDatasetBuilders() {
-		IdentityHashSet<Object> initialDataset = new IdentityHashSet<Object>();
+		IdentityHashSet<Object> initialDataset = new IdentityHashSet<>();
 		List<IDatasetBuilder> sortedBuilders = determineExecutionOrder(datasetBuilderContainer);
 		for (IDatasetBuilder datasetBuilder : sortedBuilders) {
 			Collection<Object> dataset = datasetBuilder.buildDataset();
@@ -104,9 +104,9 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 
 	private List<IDatasetBuilder> determineExecutionOrder(
 			IExtendableContainer<IDatasetBuilder> datasetBuilderContainer) {
-		List<IDatasetBuilder> sortedBuilders = new ArrayList<IDatasetBuilder>();
+		List<IDatasetBuilder> sortedBuilders = new ArrayList<>();
 		Collection<Class<? extends IDatasetBuilder>> processedBuilders =
-				new HashSet<Class<? extends IDatasetBuilder>>();
+				new HashSet<>();
 
 		IDatasetBuilder[] datasetBuilders = datasetBuilderContainer.getExtensions();
 		outer: while (processedBuilders.size() < datasetBuilders.length) {
@@ -182,11 +182,11 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 	@Override
 	public void refreshEntityReferences() {
 		IDatasetBuilder[] extensions = datasetBuilderContainer.getExtensions();
-		ArrayList<IObjRef> objRefs = new ArrayList<IObjRef>();
-		ArrayList<IBackgroundWorkerDelegate> runnables = new ArrayList<IBackgroundWorkerDelegate>();
-		IdentityHashMap<IObjRef, Object> objRefToEntityMap = new IdentityHashMap<IObjRef, Object>();
+		ArrayList<IObjRef> objRefs = new ArrayList<>();
+		ArrayList<IBackgroundWorkerDelegate> runnables = new ArrayList<>();
+		IdentityHashMap<IObjRef, Object> objRefToEntityMap = new IdentityHashMap<>();
 		boolean isAuthenticated = securityContext.isAuthenticated();
-		IdentityHashSet<ICache> cachesToClear = new IdentityHashSet<ICache>();
+		IdentityHashSet<ICache> cachesToClear = new IdentityHashSet<>();
 		for (IDatasetBuilder extension : extensions) {
 			refreshEntityReference(extension, objRefs, runnables, objRefToEntityMap, isAuthenticated,
 					cachesToClear);

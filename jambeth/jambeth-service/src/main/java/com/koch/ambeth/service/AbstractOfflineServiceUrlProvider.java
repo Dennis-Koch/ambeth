@@ -26,22 +26,19 @@ import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.extendable.IExtendableContainer;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 
-public abstract class AbstractOfflineServiceUrlProvider implements IServiceUrlProvider, IOfflineListenerExtendable, IInitializingBean
-{
+public abstract class AbstractOfflineServiceUrlProvider
+		implements IServiceUrlProvider, IOfflineListenerExtendable, IInitializingBean {
 	protected boolean isOffline;
 
 	@Override
-	public boolean isOffline()
-	{
+	public boolean isOffline() {
 		return isOffline;
 	}
 
 	@Override
 	@Property(name = ServiceConfigurationConstants.OfflineMode, defaultValue = "false")
-	public void setOffline(boolean isOffline)
-	{
-		if (this.isOffline == isOffline)
-		{
+	public void setOffline(boolean isOffline) {
+		if (this.isOffline == isOffline) {
 			return;
 		}
 		this.isOffline = isOffline;
@@ -49,78 +46,60 @@ public abstract class AbstractOfflineServiceUrlProvider implements IServiceUrlPr
 		isOfflineChanged();
 	}
 
-	protected final IExtendableContainer<IOfflineListener> offlineListeners = new DefaultExtendableContainer<IOfflineListener>(IOfflineListener.class,
-			"offlineListener");
+	protected final IExtendableContainer<IOfflineListener> offlineListeners =
+			new DefaultExtendableContainer<>(IOfflineListener.class, "offlineListener");
 
 	@Override
-	public void afterPropertiesSet()
-	{
+	public void afterPropertiesSet() {
 		// Intended blank
 	}
 
 	@Override
-	public void lockForRestart(boolean offlineAfterRestart)
-	{
+	public void lockForRestart(boolean offlineAfterRestart) {
 		IOfflineListener[] listeners = offlineListeners.getExtensions();
 
-		for (IOfflineListener offlineListener : listeners)
-		{
-			if (offlineAfterRestart)
-			{
+		for (IOfflineListener offlineListener : listeners) {
+			if (offlineAfterRestart) {
 				offlineListener.beginOffline();
 			}
-			else
-			{
+			else {
 				offlineListener.beginOnline();
 			}
 		}
-		for (IOfflineListener offlineListener : listeners)
-		{
-			if (offlineAfterRestart)
-			{
+		for (IOfflineListener offlineListener : listeners) {
+			if (offlineAfterRestart) {
 				offlineListener.handleOffline();
 			}
-			else
-			{
+			else {
 				offlineListener.handleOnline();
 			}
 		}
 	}
 
-	protected void isOfflineChanged()
-	{
+	protected void isOfflineChanged() {
 		IOfflineListener[] listeners = offlineListeners.getExtensions();
 
-		for (IOfflineListener offlineListener : listeners)
-		{
-			if (isOffline)
-			{
+		for (IOfflineListener offlineListener : listeners) {
+			if (isOffline) {
 				offlineListener.beginOffline();
 			}
-			else
-			{
+			else {
 				offlineListener.beginOnline();
 			}
 		}
-		for (IOfflineListener offlineListener : listeners)
-		{
-			if (isOffline)
-			{
+		for (IOfflineListener offlineListener : listeners) {
+			if (isOffline) {
 				offlineListener.handleOffline();
 			}
-			else
-			{
+			else {
 				offlineListener.handleOnline();
 			}
 		}
-		for (IOfflineListener offlineListener : listeners)
-		{
-			if (isOffline)
-			{
+		for (IOfflineListener offlineListener : listeners) {
+			if (isOffline) {
 				offlineListener.endOffline();
 			}
-			else
-			{
+			else {
 				offlineListener.endOnline();
 			}
 		}
@@ -130,14 +109,12 @@ public abstract class AbstractOfflineServiceUrlProvider implements IServiceUrlPr
 	public abstract String getServiceURL(Class<?> serviceInterface, String serviceName);
 
 	@Override
-	public void addOfflineListener(IOfflineListener offlineListener)
-	{
+	public void addOfflineListener(IOfflineListener offlineListener) {
 		offlineListeners.register(offlineListener);
 	}
 
 	@Override
-	public void removeOfflineListener(IOfflineListener offlineListener)
-	{
+	public void removeOfflineListener(IOfflineListener offlineListener) {
 		offlineListeners.unregister(offlineListener);
 	}
 }

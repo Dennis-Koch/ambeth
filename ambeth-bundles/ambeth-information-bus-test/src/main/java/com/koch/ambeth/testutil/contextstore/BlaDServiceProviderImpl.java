@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 
-public class BlaDServiceProviderImpl implements BlaDServiceProvider
-{
+public class BlaDServiceProviderImpl implements BlaDServiceProvider {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -32,13 +31,11 @@ public class BlaDServiceProviderImpl implements BlaDServiceProvider
 	private BlaDServicePortType service;
 
 	@Override
-	public BlaDServicePortType getService()
-	{
+	public BlaDServicePortType getService() {
 		return service;
 	}
 
-	public void setService(BlaDServicePortType service)
-	{
+	public void setService(BlaDServicePortType service) {
 		this.service = service;
 	}
 }

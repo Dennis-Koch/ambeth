@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.List;
 
-public interface EntityC
-{
+public interface EntityC {
 	Integer getId();
 
 	Integer getVersion();

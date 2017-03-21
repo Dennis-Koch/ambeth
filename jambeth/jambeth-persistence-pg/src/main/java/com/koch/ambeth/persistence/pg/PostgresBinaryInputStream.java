@@ -29,39 +29,31 @@ import com.koch.ambeth.stream.IInputStream;
 import com.koch.ambeth.stream.binary.IBinaryInputStream;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class PostgresBinaryInputStream implements IBinaryInputStream, IInputStream
-{
+public class PostgresBinaryInputStream implements IBinaryInputStream, IInputStream {
 	private Blob blob;
 	private InputStream is;
 
-	public PostgresBinaryInputStream(Blob blob) throws SQLException
-	{
+	public PostgresBinaryInputStream(Blob blob) throws SQLException {
 		this.blob = blob;
 		is = blob.getBinaryStream();
 	}
 
 	@Override
-	public void close() throws IOException
-	{
-		try
-		{
+	public void close() throws IOException {
+		try {
 			blob.free();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	public int readByte()
-	{
-		try
-		{
+	public int readByte() {
+		try {
 			return is.read();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

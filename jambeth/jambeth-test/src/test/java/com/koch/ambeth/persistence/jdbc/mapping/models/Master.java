@@ -24,22 +24,18 @@ import java.util.List;
 
 import com.koch.ambeth.model.AbstractEntity;
 
-public class Master extends AbstractEntity
-{
+public class Master extends AbstractEntity {
 	protected List<Detail> details;
 
-	protected Master()
-	{
+	protected Master() {
 		// Intended blank
 	}
 
-	public List<Detail> getDetails()
-	{
+	public List<Detail> getDetails() {
 		return details;
 	}
 
-	public void setDetails(List<Detail> details)
-	{
+	public void setDetails(List<Detail> details) {
 		this.details = details;
 	}
 }

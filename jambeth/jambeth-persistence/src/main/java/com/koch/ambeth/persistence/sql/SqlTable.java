@@ -131,7 +131,7 @@ public class SqlTable extends Table {
 				sqlBuilder.appendName(versionField.getName(), selectSB);
 			}
 
-			ArrayList<IFieldMetaData> cursorFields = new ArrayList<IFieldMetaData>();
+			ArrayList<IFieldMetaData> cursorFields = new ArrayList<>();
 
 			for (int a = fields.size(); a-- > 0;) {
 				IFieldMetaData field = fields.get(a);
@@ -174,7 +174,7 @@ public class SqlTable extends Table {
 				selectSB.append(',');
 				sqlBuilder.appendName(versionField.getName(), selectSB);
 			}
-			ArrayList<IFieldMetaData> cursorFields = new ArrayList<IFieldMetaData>();
+			ArrayList<IFieldMetaData> cursorFields = new ArrayList<>();
 
 			List<IFieldMetaData> fields = metaData.getAllFields();
 			for (int a = fields.size(); a-- > 0;) {
@@ -327,7 +327,7 @@ public class SqlTable extends Table {
 			String primaryIdFieldName = metaData.getIdField().getName();
 
 			if (additionalSelectColumnList != null) {
-				additionalSelectColumnSet = new HashSet<String>();
+				additionalSelectColumnSet = new HashSet<>();
 				for (int a = additionalSelectColumnList.size(); a-- > 0;) {
 					String additionalSelectColumn = additionalSelectColumnList.get(a);
 					// additional columns are already escaped
@@ -515,7 +515,7 @@ public class SqlTable extends Table {
 			CharSequence whereSql, CharSequence orderBySql, CharSequence limitBySql,
 			List<Object> parameters, String tableAlias) {
 		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
-		HashMap<String, Integer> propertyToColIndexMap = new HashMap<String, Integer>();
+		HashMap<String, Integer> propertyToColIndexMap = new HashMap<>();
 		StringBuilder selectSB = objectCollector.create(StringBuilder.class);
 		try {
 			for (int a = 0, size = selectColumnList.size(); a < size; a++) {

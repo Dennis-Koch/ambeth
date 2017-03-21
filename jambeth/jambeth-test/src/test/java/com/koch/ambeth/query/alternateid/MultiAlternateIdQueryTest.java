@@ -42,33 +42,33 @@ import com.koch.ambeth.testutil.SQLStructure;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.util.ParamChecker;
 
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/query/alternateid/MultiAlternateIdQuery_orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/query/alternateid/MultiAlternateIdQuery_orm.xml")
 @SQLStructure("MultiAlternateIdQuery_structure.sql")
 @SQLData("MultiAlternateIdQuery_data.sql")
-public class MultiAlternateIdQueryTest extends AbstractInformationBusWithPersistenceTest
-{
+public class MultiAlternateIdQueryTest extends AbstractInformationBusWithPersistenceTest {
 	protected IFilterToQueryBuilder filterToQueryBuilder;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 		ParamChecker.assertNotNull(filterToQueryBuilder, "filterToQueryBuilder");
 	}
 
-	public void setFilterToQueryBuilder(IFilterToQueryBuilder filterToQueryBuilder)
-	{
+	public void setFilterToQueryBuilder(IFilterToQueryBuilder filterToQueryBuilder) {
 		this.filterToQueryBuilder = filterToQueryBuilder;
 	}
 
 	@Test
-	public void testRetrieveRefsFD() throws Exception
-	{
+	public void testRetrieveRefsFD() throws Exception {
 		IPagingRequest pagingRequest = null;
-		FilterDescriptor<MultiAlternateIdEntity> filterDescriptor = new FilterDescriptor<MultiAlternateIdEntity>(MultiAlternateIdEntity.class);
+		FilterDescriptor<MultiAlternateIdEntity> filterDescriptor =
+				new FilterDescriptor<>(MultiAlternateIdEntity.class);
 		ISortDescriptor[] sortDescriptors = null;
-		IPagingQuery<MultiAlternateIdEntity> query = filterToQueryBuilder.buildQuery(filterDescriptor, sortDescriptors);
-		IPagingResponse<MultiAlternateIdEntity> actual = query.retrieveRefs(pagingRequest, "AlternateId1");
+		IPagingQuery<MultiAlternateIdEntity> query =
+				filterToQueryBuilder.buildQuery(filterDescriptor, sortDescriptors);
+		IPagingResponse<MultiAlternateIdEntity> actual =
+				query.retrieveRefs(pagingRequest, "AlternateId1");
 		assertNotNull(actual);
 		List<IObjRef> actualList = actual.getRefResult();
 		assertEquals(3, actualList.size());
@@ -78,11 +78,12 @@ public class MultiAlternateIdQueryTest extends AbstractInformationBusWithPersist
 	}
 
 	@Test
-	public void testRetrieveRefsQBF() throws Exception
-	{
+	public void testRetrieveRefsQBF() throws Exception {
 		IPagingRequest pagingRequest = null;
-		IPagingQuery<MultiAlternateIdEntity> query = queryBuilderFactory.create(MultiAlternateIdEntity.class).buildPaging();
-		IPagingResponse<MultiAlternateIdEntity> actual = query.retrieveRefs(pagingRequest, "AlternateId1");
+		IPagingQuery<MultiAlternateIdEntity> query =
+				queryBuilderFactory.create(MultiAlternateIdEntity.class).buildPaging();
+		IPagingResponse<MultiAlternateIdEntity> actual =
+				query.retrieveRefs(pagingRequest, "AlternateId1");
 		assertNotNull(actual);
 		List<IObjRef> actualList = actual.getRefResult();
 		assertEquals(3, actualList.size());
@@ -90,7 +91,8 @@ public class MultiAlternateIdQueryTest extends AbstractInformationBusWithPersist
 		String aid = (String) actualList.get(0).getId();
 		assertTrue(aid.endsWith(".1"));
 
-		IPagingResponse<MultiAlternateIdEntity> actual2 = query.param("abc", "abcValue").retrieveRefs(pagingRequest, "AlternateId1");
+		IPagingResponse<MultiAlternateIdEntity> actual2 =
+				query.param("abc", "abcValue").retrieveRefs(pagingRequest, "AlternateId1");
 		assertNotNull(actual2);
 		List<IObjRef> actualList2 = actual2.getRefResult();
 		assertEquals(3, actualList2.size());

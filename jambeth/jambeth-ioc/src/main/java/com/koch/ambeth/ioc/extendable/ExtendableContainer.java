@@ -28,8 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.IdentityLinkedSet;
 
-public class ExtendableContainer<V> implements IExtendableContainer<V>
-{
+public class ExtendableContainer<V> implements IExtendableContainer<V> {
 	protected final String message;
 
 	protected final IdentityLinkedSet<V> set;
@@ -41,86 +40,71 @@ public class ExtendableContainer<V> implements IExtendableContainer<V>
 	protected final Lock lock = new ReentrantLock();
 
 	@SuppressWarnings("unchecked")
-	public ExtendableContainer(Class<V> type, String message)
-	{
+	public ExtendableContainer(Class<V> type, String message) {
 		ParamChecker.assertParamNotNull(type, "type");
 		ParamChecker.assertParamNotNull(message, "message");
 		this.type = type;
 		this.message = message;
 
-		set = new IdentityLinkedSet<V>();
+		set = new IdentityLinkedSet<>();
 		emptyArray = (V[]) Array.newInstance(type, 0);
 	}
 
 	@Override
-	public void register(V listener)
-	{
+	public void register(V listener) {
 		ParamChecker.assertParamNotNull(listener, message);
 		Lock lock = this.lock;
 		lock.lock();
-		try
-		{
+		try {
 			ParamChecker.assertTrue(set.add(listener), message);
 		}
-		finally
-		{
+		finally {
 			lock.unlock();
 		}
 	}
 
 	@Override
-	public void unregister(V listener)
-	{
+	public void unregister(V listener) {
 		ParamChecker.assertParamNotNull(listener, message);
 		Lock lock = this.lock;
 		lock.lock();
-		try
-		{
+		try {
 			ParamChecker.assertTrue(set.remove(listener), message);
 		}
-		finally
-		{
+		finally {
 			lock.unlock();
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public V[] getExtensions()
-	{
+	public V[] getExtensions() {
 		Lock lock = this.lock;
 		lock.lock();
-		try
-		{
+		try {
 			int size = set.size();
-			if (size == 0)
-			{
+			if (size == 0) {
 				return emptyArray;
 			}
 			V[] array = (V[]) Array.newInstance(type, size);
 			set.toArray(array);
 			return array;
 		}
-		finally
-		{
+		finally {
 			lock.unlock();
 		}
 	}
 
 	@Override
-	public void getExtensions(Collection<V> targetListenerList)
-	{
+	public void getExtensions(Collection<V> targetListenerList) {
 		Lock lock = this.lock;
 		lock.lock();
-		try
-		{
-			for (V listener : set)
-			{
+		try {
+			for (V listener : set) {
 				targetListenerList.add(listener);
 			}
 		}
-		finally
-		{
+		finally {
 			lock.unlock();
 		}
 	}

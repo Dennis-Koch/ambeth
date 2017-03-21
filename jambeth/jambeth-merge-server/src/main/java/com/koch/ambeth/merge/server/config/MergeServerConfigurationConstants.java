@@ -23,15 +23,15 @@ limitations under the License.
 import com.koch.ambeth.util.annotation.ConfigurationConstants;
 
 @ConfigurationConstants
-public final class MergeServerConfigurationConstants
-{
+public final class MergeServerConfigurationConstants {
 	/**
-	 * If true datachanges for deletes are generated for every ID (PK & AKs). Valid values are "true" and "false", default is "false".
+	 * If true datachanges for deletes are generated for every ID (PK & AKs). Valid values are "true"
+	 * and "false", default is "false".
 	 */
-	public static final String DeleteDataChangesByAlternateIds = "ambeth.merge.datachanges.delete.alternateids";
+	public static final String DeleteDataChangesByAlternateIds =
+			"ambeth.merge.datachanges.delete.alternateids";
 
-	private MergeServerConfigurationConstants()
-	{
+	private MergeServerConfigurationConstants() {
 		// Intended blank
 	}
 }

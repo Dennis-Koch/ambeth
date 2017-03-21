@@ -27,8 +27,7 @@ import com.koch.ambeth.merge.IRevertChangesHelper;
 import com.koch.ambeth.merge.cache.ICacheModification;
 import com.koch.ambeth.util.model.IDataObject;
 
-public class DataObjectMixin
-{
+public class DataObjectMixin {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -39,10 +38,9 @@ public class DataObjectMixin
 	@Autowired
 	protected IRevertChangesHelper revertChangesHelper;
 
-	public final void toBeUpdatedChanged(IDataObject obj, boolean previousValue, boolean currentValue)
-	{
-		if (previousValue && !currentValue && !cacheModification.isActiveOrFlushing())
-		{
+	public final void toBeUpdatedChanged(IDataObject obj, boolean previousValue,
+			boolean currentValue) {
+		if (previousValue && !currentValue && !cacheModification.isActiveOrFlushing()) {
 			revertChangesHelper.revertChanges(obj);
 		}
 	}

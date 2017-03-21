@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IEnhancedType
-{
+public interface IEnhancedType {
 	Class<?> get__BaseType();
 }

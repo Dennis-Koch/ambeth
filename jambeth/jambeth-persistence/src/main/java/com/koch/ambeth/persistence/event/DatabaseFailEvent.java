@@ -20,18 +20,15 @@ limitations under the License.
  * #L%
  */
 
-public class DatabaseFailEvent implements IDatabaseReleaseEvent
-{
+public class DatabaseFailEvent implements IDatabaseReleaseEvent {
 	protected final long sessionId;
 
 	@Override
-	public long getSessionId()
-	{
-		return this.sessionId;
+	public long getSessionId() {
+		return sessionId;
 	}
 
-	public DatabaseFailEvent(long sessionId)
-	{
+	public DatabaseFailEvent(long sessionId) {
 		this.sessionId = sessionId;
 	}
 }

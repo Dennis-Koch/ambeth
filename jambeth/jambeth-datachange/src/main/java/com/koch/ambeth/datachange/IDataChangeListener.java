@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.datachange.model.IDataChange;
 
-public interface IDataChangeListener
-{
+public interface IDataChangeListener {
 	void dataChanged(IDataChange dataChange, long dispatchTime, long sequenceId);
 }

@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.model.IAbstractBusinessObject;
 
-public interface IAbstractAuditEntity extends IAbstractBusinessObject
-{
+public interface IAbstractAuditEntity extends IAbstractBusinessObject {
 	Short getVersion();
 }

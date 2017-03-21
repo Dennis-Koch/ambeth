@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IInputSourceTemplate extends Cloneable
-{
+public interface IInputSourceTemplate extends Cloneable {
 	// Intended blank
 }

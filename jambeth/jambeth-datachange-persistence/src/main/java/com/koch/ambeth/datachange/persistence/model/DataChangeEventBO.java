@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.List;
 
-public class DataChangeEventBO
-{
+public class DataChangeEventBO {
 	protected long id;
 
 	protected byte version;
@@ -36,68 +35,55 @@ public class DataChangeEventBO
 
 	protected List<DataChangeEntryBO> deletes;
 
-	protected DataChangeEventBO()
-	{
+	protected DataChangeEventBO() {
 		// Intended blank
 	}
 
-	public long getId()
-	{
+	public long getId() {
 		return id;
 	}
 
-	public void setId(long id)
-	{
+	public void setId(long id) {
 		this.id = id;
 	}
 
-	public byte getVersion()
-	{
+	public byte getVersion() {
 		return version;
 	}
 
-	public void setVersion(byte version)
-	{
+	public void setVersion(byte version) {
 		this.version = version;
 	}
 
-	public long getChangeTime()
-	{
+	public long getChangeTime() {
 		return changeTime;
 	}
 
-	public void setChangeTime(long changeTime)
-	{
+	public void setChangeTime(long changeTime) {
 		this.changeTime = changeTime;
 	}
 
-	public List<DataChangeEntryBO> getInserts()
-	{
+	public List<DataChangeEntryBO> getInserts() {
 		return inserts;
 	}
 
-	public void setInserts(List<DataChangeEntryBO> inserts)
-	{
+	public void setInserts(List<DataChangeEntryBO> inserts) {
 		this.inserts = inserts;
 	}
 
-	public List<DataChangeEntryBO> getUpdates()
-	{
+	public List<DataChangeEntryBO> getUpdates() {
 		return updates;
 	}
 
-	public void setUpdates(List<DataChangeEntryBO> updates)
-	{
+	public void setUpdates(List<DataChangeEntryBO> updates) {
 		this.updates = updates;
 	}
 
-	public List<DataChangeEntryBO> getDeletes()
-	{
+	public List<DataChangeEntryBO> getDeletes() {
 		return deletes;
 	}
 
-	public void setDeletes(List<DataChangeEntryBO> deletes)
-	{
+	public void setDeletes(List<DataChangeEntryBO> deletes) {
 		this.deletes = deletes;
 	}
 }

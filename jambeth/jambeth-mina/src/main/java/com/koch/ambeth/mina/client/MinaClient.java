@@ -73,7 +73,7 @@ public class MinaClient implements IInitializingBean, IMinaClient {
 
 	protected final Condition readAnswerMonitor = lockForReadAnswer.newCondition();
 
-	protected List<String> lastAnswers = new ArrayList<String>();
+	protected List<String> lastAnswers = new ArrayList<>();
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {

@@ -22,13 +22,12 @@ limitations under the License.
 
 import com.koch.ambeth.util.collections.AbstractTuple2KeyHashMap;
 
-public interface IXmlTypeRegistry
-{
+public interface IXmlTypeRegistry {
 	Class<?> getType(String name, String namespace);
 
 	/**
 	 * Provides a valid name if the given one is null, empty or "##default"
-	 * 
+	 *
 	 * @param type
 	 * @param providedName
 	 * @return
@@ -37,7 +36,7 @@ public interface IXmlTypeRegistry
 
 	/**
 	 * Provides a valid namespace if the given one is empty or "##default"
-	 * 
+	 *
 	 * @param type
 	 * @param providedNamespace
 	 * @return

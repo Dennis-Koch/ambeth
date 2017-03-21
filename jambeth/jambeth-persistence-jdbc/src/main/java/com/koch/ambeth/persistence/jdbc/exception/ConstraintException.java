@@ -20,12 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public abstract class ConstraintException extends AbstractAmbethPersistenceException
-{
+public abstract class ConstraintException extends AbstractAmbethPersistenceException {
 	private static final long serialVersionUID = 7448945580470173927L;
 
-	protected ConstraintException(String message, String relatedSql, Throwable e)
-	{
+	protected ConstraintException(String message, String relatedSql, Throwable e) {
 		super(message, relatedSql, e);
 	}
 }

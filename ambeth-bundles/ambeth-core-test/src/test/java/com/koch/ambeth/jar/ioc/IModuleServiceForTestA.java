@@ -21,5 +21,5 @@ limitations under the License.
  */
 
 public interface IModuleServiceForTestA {
-	
+
 }

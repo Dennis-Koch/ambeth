@@ -25,8 +25,7 @@ import com.koch.ambeth.merge.proxy.IObjRefContainer;
 import com.koch.ambeth.service.cache.model.IObjRelation;
 import com.koch.ambeth.service.merge.model.IObjRef;
 
-public interface IValueHolderContainer extends IObjRefContainer
-{
+public interface IValueHolderContainer extends IObjRefContainer {
 	IObjRelation get__Self(int relationIndex);
 
 	ICacheIntern get__TargetCache();

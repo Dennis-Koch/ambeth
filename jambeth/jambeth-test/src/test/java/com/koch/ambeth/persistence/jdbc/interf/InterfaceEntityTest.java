@@ -35,9 +35,9 @@ import com.koch.ambeth.util.ParamChecker;
 
 @TestModule({})
 @SQLStructure("structure.sql")
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/jdbc/interf/orm.xml")
-public class InterfaceEntityTest extends AbstractInformationBusWithPersistenceTest
-{
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/persistence/jdbc/interf/orm.xml")
+public class InterfaceEntityTest extends AbstractInformationBusWithPersistenceTest {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -45,20 +45,17 @@ public class InterfaceEntityTest extends AbstractInformationBusWithPersistenceTe
 	protected IMergeProcess mergeProcess;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		ParamChecker.assertNotNull(mergeProcess, "MergeProcess");
 	}
 
-	public void setMergeProcess(IMergeProcess mergeProcess)
-	{
+	public void setMergeProcess(IMergeProcess mergeProcess) {
 		this.mergeProcess = mergeProcess;
 	}
 
-	protected ITestEntity createEntity(String name)
-	{
+	protected ITestEntity createEntity(String name) {
 		ITestEntity entity = entityFactory.createEntity(ITestEntity.class);
 		entity.setName(name);
 
@@ -67,8 +64,7 @@ public class InterfaceEntityTest extends AbstractInformationBusWithPersistenceTe
 	}
 
 	@Test
-	public void createEntity()
-	{
+	public void createEntity() {
 		String myName = "name55";
 		ITestEntity entity = createEntity(myName);
 
@@ -77,8 +73,7 @@ public class InterfaceEntityTest extends AbstractInformationBusWithPersistenceTe
 	}
 
 	@Test
-	public void editEntity()
-	{
+	public void editEntity() {
 		String myName = "name55";
 		ITestEntity entity = createEntity(myName);
 

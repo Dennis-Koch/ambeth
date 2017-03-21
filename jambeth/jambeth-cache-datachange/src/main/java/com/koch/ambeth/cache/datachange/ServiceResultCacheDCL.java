@@ -27,8 +27,7 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 
-public class ServiceResultCacheDCL implements IDataChangeListener
-{
+public class ServiceResultCacheDCL implements IDataChangeListener {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -37,10 +36,8 @@ public class ServiceResultCacheDCL implements IDataChangeListener
 	protected IServiceResultCache serviceResultCache;
 
 	@Override
-	public void dataChanged(IDataChange dataChange, long dispatchTime, long sequenceId)
-	{
-		if (dataChange.isEmpty())
-		{
+	public void dataChanged(IDataChange dataChange, long dispatchTime, long sequenceId) {
+		if (dataChange.isEmpty()) {
 			return;
 		}
 		serviceResultCache.invalidateAll();

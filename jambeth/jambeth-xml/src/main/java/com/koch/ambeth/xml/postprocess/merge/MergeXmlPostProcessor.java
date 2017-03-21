@@ -60,8 +60,7 @@ import com.koch.ambeth.xml.postprocess.IPostProcessReader;
 import com.koch.ambeth.xml.postprocess.IPostProcessWriter;
 import com.koch.ambeth.xml.postprocess.IXmlPostProcessor;
 
-public class MergeXmlPostProcessor implements IXmlPostProcessor, IStartingBean
-{
+public class MergeXmlPostProcessor implements IXmlPostProcessor, IStartingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -90,37 +89,33 @@ public class MergeXmlPostProcessor implements IXmlPostProcessor, IStartingBean
 	protected Member directObjRefDirectMember;
 
 	@Override
-	public void afterStarted() throws Throwable
-	{
+	public void afterStarted() throws Throwable {
 		directObjRefDirectMember = memberTypeProvider.getMember(DirectObjRef.class, "Direct");
 	}
 
 	@Override
-	public Object processWrite(IPostProcessWriter writer)
-	{
+	public Object processWrite(IPostProcessWriter writer) {
 		ISet<Object> substitutedEntities = writer.getSubstitutedEntities();
-		if (substitutedEntities.isEmpty())
-		{
+		if (substitutedEntities.isEmpty()) {
 			return null;
 		}
 
-		final IDisposableCache childCache = cacheFactory.create(CacheFactoryDirective.NoDCE, "XmlMerge");
-		IServiceContext mergeContext = beanContext.createService("mergeXml", new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
-		{
-			@Override
-			public void invoke(IBeanContextFactory childContextFactory)
-			{
-				childContextFactory.registerAutowireableBean(MergeHandle.class, MergeHandle.class).propertyValue("Cache", childCache);
-			}
-		});
-		try
-		{
+		final IDisposableCache childCache =
+				cacheFactory.create(CacheFactoryDirective.NoDCE, "XmlMerge");
+		IServiceContext mergeContext = beanContext.createService("mergeXml",
+				new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
+					@Override
+					public void invoke(IBeanContextFactory childContextFactory) {
+						childContextFactory.registerAutowireableBean(MergeHandle.class, MergeHandle.class)
+								.propertyValue("Cache", childCache);
+					}
+				});
+		try {
 			IMap<Object, Integer> mutableToIdMap = writer.getMutableToIdMap();
 			IObjRefHelper objRefHelper = this.objRefHelper;
 			MergeHandle mergeHandle = mergeContext.getService(MergeHandle.class);
-			IList<Object> toMerge = new ArrayList<Object>(substitutedEntities.size());
-			for (Object entity : substitutedEntities)
-			{
+			IList<Object> toMerge = new ArrayList<>(substitutedEntities.size());
+			for (Object entity : substitutedEntities) {
 				toMerge.add(entity);
 				IObjRef ori = objRefHelper.entityToObjRef(entity);
 				mergeHandle.getObjToOriDict().put(entity, ori);
@@ -128,64 +123,59 @@ public class MergeXmlPostProcessor implements IXmlPostProcessor, IStartingBean
 				mutableToIdMap.put(ori, id);
 			}
 			ICUDResult cudResult = mergeController.mergeDeep(toMerge, mergeHandle);
-			if (!cudResult.getAllChanges().isEmpty())
-			{
+			if (!cudResult.getAllChanges().isEmpty()) {
 				return cudResult;
 			}
-			else
-			{
+			else {
 				return null;
 			}
 		}
-		finally
-		{
+		finally {
 			mergeContext.dispose();
 		}
 	}
 
 	@Override
-	public void processRead(IPostProcessReader reader)
-	{
+	public void processRead(IPostProcessReader reader) {
 		reader.nextTag();
 
 		ICommandTypeRegistry commandTypeRegistry = reader.getCommandTypeRegistry();
 		ICommandTypeExtendable commandTypeExtendable = reader.getCommandTypeExtendable();
-		commandTypeExtendable.registerOverridingCommandType(MergeArraySetterCommand.class, ArraySetterCommand.class);
+		commandTypeExtendable.registerOverridingCommandType(MergeArraySetterCommand.class,
+				ArraySetterCommand.class);
 		Object result = reader.readObject();
-		commandTypeExtendable.unregisterOverridingCommandType(MergeArraySetterCommand.class, ArraySetterCommand.class);
+		commandTypeExtendable.unregisterOverridingCommandType(MergeArraySetterCommand.class,
+				ArraySetterCommand.class);
 
-		if (!(result instanceof CUDResult))
-		{
-			throw new IllegalArgumentException("Can only handle results of type '" + CUDResult.class.getName() + "'. Result of type '"
-					+ result.getClass().getName() + "' given.");
+		if (!(result instanceof CUDResult)) {
+			throw new IllegalArgumentException(
+					"Can only handle results of type '" + CUDResult.class.getName() + "'. Result of type '"
+							+ result.getClass().getName() + "' given.");
 		}
 
 		ICommandBuilder commandBuilder = this.commandBuilder;
 		CUDResult cudResult = (CUDResult) result;
 		List<IChangeContainer> changes = cudResult.getAllChanges();
-		for (int i = 0, size = changes.size(); i < size; i++)
-		{
+		for (int i = 0, size = changes.size(); i < size; i++) {
 			IChangeContainer changeContainer = changes.get(i);
-			if (!(changeContainer instanceof CreateContainer))
-			{
+			if (!(changeContainer instanceof CreateContainer)) {
 				continue;
 			}
 
 			IObjRef ori = changeContainer.getReference();
-			if (ori == null)
-			{
+			if (ori == null) {
 				continue;
 			}
-			else if (ori instanceof IDirectObjRef)
-			{
+			else if (ori instanceof IDirectObjRef) {
 				IObjectFuture objectFuture = new ObjRefFuture(ori);
-				IObjectCommand setterCommand = commandBuilder.build(commandTypeRegistry, objectFuture, ori, directObjRefDirectMember);
+				IObjectCommand setterCommand =
+						commandBuilder.build(commandTypeRegistry, objectFuture, ori, directObjRefDirectMember);
 				reader.addObjectCommand(setterCommand);
-				IObjectCommand mergeCommand = commandBuilder.build(commandTypeRegistry, objectFuture, changeContainer);
+				IObjectCommand mergeCommand =
+						commandBuilder.build(commandTypeRegistry, objectFuture, changeContainer);
 				reader.addObjectCommand(mergeCommand);
 			}
-			else
-			{
+			else {
 				throw new IllegalStateException("Not implemented yet");
 			}
 		}

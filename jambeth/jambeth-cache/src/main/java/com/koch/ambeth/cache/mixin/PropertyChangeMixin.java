@@ -67,12 +67,11 @@ import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
 
-public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, ICollectionChangeExtensionExtendable
-{
+public class PropertyChangeMixin
+		implements IPropertyChangeExtensionExtendable, ICollectionChangeExtensionExtendable {
 	public static final Object UNKNOWN_VALUE = new Object();
 
-	public class PropertyEntry
-	{
+	public class PropertyEntry {
 		public final String propertyName;
 
 		public final ITypeInfoItem getDelegate;
@@ -91,116 +90,101 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 
 		public final Boolean includeNewValue, includeOldValue;
 
-		public PropertyEntry(Class<?> type, String propertyName, IPropertyInfoProvider propertyInfoProvider)
-		{
+		public PropertyEntry(Class<?> type, String propertyName,
+				IPropertyInfoProvider propertyInfoProvider) {
 			this.propertyName = propertyName;
-			LinkedHashSet<String> propertyNames = new LinkedHashSet<String>();
+			LinkedHashSet<String> propertyNames = new LinkedHashSet<>();
 			propertyNames.add(propertyName);
 			IPropertyInfo prop = propertyInfoProvider.getProperty(type, propertyName);
 			PropertyChangeAspect propertyChangeAspect = null;
 			Class<?> currType = type;
-			while (IEnhancedType.class.isAssignableFrom(currType))
-			{
+			while (IEnhancedType.class.isAssignableFrom(currType)) {
 				propertyChangeAspect = currType.getSuperclass().getAnnotation(PropertyChangeAspect.class);
-				if (propertyChangeAspect != null)
-				{
+				if (propertyChangeAspect != null) {
 					break;
 				}
 				currType = currType.getSuperclass();
 			}
-			if (propertyChangeAspect != null)
-			{
+			if (propertyChangeAspect != null) {
 				includeNewValue = propertyChangeAspect.includeNewValue();
 				includeOldValue = propertyChangeAspect.includeOldValue();
 			}
-			else
-			{
+			else {
 				includeNewValue = null;
 				includeOldValue = null;
 			}
-			doesModifyToBeUpdated = (IDataObject.class.isAssignableFrom(type) || IEmbeddedType.class.isAssignableFrom(type))
-					&& !prop.isAnnotationPresent(IgnoreToBeUpdated.class);
-			isParentChildSetter = IDataObject.class.isAssignableFrom(type) && prop.isAnnotationPresent(ParentChild.class);
-			isAddedRemovedCheckNecessary = !prop.getPropertyType().isPrimitive() && WrapperTypeSet.getUnwrappedType(prop.getPropertyType()) == null
+			doesModifyToBeUpdated =
+					(IDataObject.class.isAssignableFrom(type) || IEmbeddedType.class.isAssignableFrom(type))
+							&& !prop.isAnnotationPresent(IgnoreToBeUpdated.class);
+			isParentChildSetter =
+					IDataObject.class.isAssignableFrom(type) && prop.isAnnotationPresent(ParentChild.class);
+			isAddedRemovedCheckNecessary = !prop.getPropertyType().isPrimitive()
+					&& WrapperTypeSet.getUnwrappedType(prop.getPropertyType()) == null
 					&& !String.class.equals(prop.getPropertyType());
 
 			evaluateDependentProperties(type, prop, propertyNames, propertyInfoProvider);
 
-			while (true)
-			{
+			while (true) {
 				int startCount = propertyNames.size();
 
-				for (String currPropertyName : new ArrayList<String>(propertyNames))
-				{
+				for (String currPropertyName : new ArrayList<>(propertyNames)) {
 					IPropertyInfo currProp = propertyInfoProvider.getProperty(type, currPropertyName);
-					if (currProp.isWritable())
-					{
+					if (currProp.isWritable()) {
 						continue;
 					}
-					// Is is just an evaluating property which has to be re-evaluated because of the change on the current property
+					// Is is just an evaluating property which has to be re-evaluated because of the change on
+					// the current property
 					evaluateDependentProperties(type, currProp, propertyNames, propertyInfoProvider);
 				}
-				if (startCount == propertyNames.size())
-				{
+				if (startCount == propertyNames.size()) {
 					break;
 				}
 			}
 			this.propertyNames = propertyNames.toArray(String.class);
 			boolean firesToBeCreatedPCE = false;
 			unknownValues = createArrayOfValues(UNKNOWN_VALUE, this.propertyNames.length);
-			for (String invokedPropertyName : this.propertyNames)
-			{
+			for (String invokedPropertyName : this.propertyNames) {
 				firesToBeCreatedPCE |= "ToBeCreated".equals(invokedPropertyName);
 			}
 			this.firesToBeCreatedPCE = firesToBeCreatedPCE;
-			if (prop.isReadable())
-			{
+			if (prop.isReadable()) {
 				getDelegate = new PropertyInfoItem(prop);
 			}
-			else
-			{
+			else {
 				getDelegate = null;
 			}
 		}
 	}
 
-	public static Object[] createArrayOfValues(Object value, int length)
-	{
+	public static Object[] createArrayOfValues(Object value, int length) {
 		Object[] values = new Object[length];
 		Arrays.fill(values, UNKNOWN_VALUE);
 		values[0] = value;
 		return values;
 	}
 
-	protected static void evaluateDependentProperties(Class<?> type, IPropertyInfo pi, Collection<String> propertyNames,
-			IPropertyInfoProvider propertyInfoProvider)
-	{
-		FireTargetOnPropertyChange fireTargetOnPropertyChange = pi.getAnnotation(FireTargetOnPropertyChange.class);
-		if (fireTargetOnPropertyChange != null)
-		{
-			for (String attrPropName : fireTargetOnPropertyChange.value())
-			{
-				if (!propertyNames.contains(attrPropName))
-				{
+	protected static void evaluateDependentProperties(Class<?> type, IPropertyInfo pi,
+			Collection<String> propertyNames, IPropertyInfoProvider propertyInfoProvider) {
+		FireTargetOnPropertyChange fireTargetOnPropertyChange =
+				pi.getAnnotation(FireTargetOnPropertyChange.class);
+		if (fireTargetOnPropertyChange != null) {
+			for (String attrPropName : fireTargetOnPropertyChange.value()) {
+				if (!propertyNames.contains(attrPropName)) {
 					propertyNames.add(attrPropName);
 				}
 			}
 		}
 		String propertyName = pi.getName();
-		for (IPropertyInfo currProp : propertyInfoProvider.getProperties(type))
-		{
-			FireThisOnPropertyChange fireThisOnPropertyChange = currProp.getAnnotation(FireThisOnPropertyChange.class);
-			if (fireThisOnPropertyChange == null)
-			{
+		for (IPropertyInfo currProp : propertyInfoProvider.getProperties(type)) {
+			FireThisOnPropertyChange fireThisOnPropertyChange =
+					currProp.getAnnotation(FireThisOnPropertyChange.class);
+			if (fireThisOnPropertyChange == null) {
 				continue;
 			}
 			String attrPropName = currProp.getName();
-			for (String ftopc_propertyName : fireThisOnPropertyChange.value())
-			{
-				if (propertyName.equals(ftopc_propertyName))
-				{
-					if (!propertyNames.contains(attrPropName))
-					{
+			for (String ftopc_propertyName : fireThisOnPropertyChange.value()) {
+				if (propertyName.equals(ftopc_propertyName)) {
+					if (!propertyNames.contains(attrPropName)) {
 						propertyNames.add(attrPropName);
 					}
 				}
@@ -208,13 +192,16 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 		}
 	}
 
-	protected final SmartCopyMap<IPropertyInfo, PropertyEntry> propertyToEntryMap = new SmartCopyMap<IPropertyInfo, PropertyEntry>();
+	protected final SmartCopyMap<IPropertyInfo, PropertyEntry> propertyToEntryMap =
+			new SmartCopyMap<>();
 
-	protected final ClassExtendableListContainer<IPropertyChangeExtension> propertyChangeExtensions = new ClassExtendableListContainer<IPropertyChangeExtension>(
-			"propertyChangeExtension", "entityType");
+	protected final ClassExtendableListContainer<IPropertyChangeExtension> propertyChangeExtensions =
+			new ClassExtendableListContainer<>("propertyChangeExtension",
+					"entityType");
 
-	protected final ClassExtendableListContainer<ICollectionChangeExtension> collectionChangeExtensions = new ClassExtendableListContainer<ICollectionChangeExtension>(
-			"collectionChangeExtension", "entityType");
+	protected final ClassExtendableListContainer<ICollectionChangeExtension> collectionChangeExtensions =
+			new ClassExtendableListContainer<>("collectionChangeExtension",
+					"entityType");
 
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -235,42 +222,38 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 	@Property(name = CacheConfigurationConstants.FireOldPropertyValueActive, defaultValue = "false")
 	protected boolean fireOldPropertyValueActive;
 
-	protected PropertyEntry getPropertyEntry(Class<?> type, IPropertyInfo property)
-	{
+	protected PropertyEntry getPropertyEntry(Class<?> type, IPropertyInfo property) {
 		PropertyEntry entry = propertyToEntryMap.get(property);
-		if (entry == null)
-		{
+		if (entry == null) {
 			entry = new PropertyEntry(type, property.getName(), propertyInfoProvider);
 			propertyToEntryMap.put(property, entry);
 		}
 		return entry;
 	}
 
-	public void addPropertyChangeListener(PropertyChangeSupport propertyChangeSupport, PropertyChangeListener listener)
-	{
+	public void addPropertyChangeListener(PropertyChangeSupport propertyChangeSupport,
+			PropertyChangeListener listener) {
 		propertyChangeSupport.addPropertyChangeListener(listener);
 	}
 
-	public void removePropertyChangeListener(PropertyChangeSupport propertyChangeSupport, PropertyChangeListener listener)
-	{
+	public void removePropertyChangeListener(PropertyChangeSupport propertyChangeSupport,
+			PropertyChangeListener listener) {
 		propertyChangeSupport.removePropertyChangeListener(listener);
 	}
 
-	public void handleParentChildPropertyChange(INotifyPropertyChangedSource obj, PropertyChangeEvent evnt)
-	{
-		if (!(obj instanceof IDataObject))
-		{
+	public void handleParentChildPropertyChange(INotifyPropertyChangedSource obj,
+			PropertyChangeEvent evnt) {
+		if (!(obj instanceof IDataObject)) {
 			return;
 		}
-		if (cacheModification.isActiveOrFlushingOrInternalUpdate())
-		{
+		if (cacheModification.isActiveOrFlushingOrInternalUpdate()) {
 			return;
 		}
 		((IDataObject) obj).setToBeUpdated(true);
 	}
 
-	public void handleCollectionChange(INotifyPropertyChangedSource obj, NotifyCollectionChangedEvent evnt)
-	{
+	public void handleCollectionChange(INotifyPropertyChangedSource obj,
+			NotifyCollectionChangedEvent evnt) {
 		IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
 
 		Object source = evnt.getSource();
@@ -278,31 +261,24 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 		boolean parentChildProperty = false;
 
 		RelationMember[] relationMembers = metaData.getRelationMembers();
-		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
-		{
+		for (int relationIndex = relationMembers.length; relationIndex-- > 0;) {
 			Object valueDirect = ((IValueHolderContainer) obj).get__ValueDirect(relationIndex);
-			if (valueDirect != source)
-			{
+			if (valueDirect != source) {
 				continue;
 			}
-			if (relationMembers[relationIndex].getAnnotation(ParentChild.class) != null)
-			{
+			if (relationMembers[relationIndex].getAnnotation(ParentChild.class) != null) {
 				base = obj;
 				parentChildProperty = true;
 			}
-			else
-			{
+			else {
 				base = source;
 			}
 			break;
 		}
-		if (base == null)
-		{
-			for (PrimitiveMember primitiveMember : metaData.getPrimitiveMembers())
-			{
+		if (base == null) {
+			for (PrimitiveMember primitiveMember : metaData.getPrimitiveMembers()) {
 				Object valueDirect = primitiveMember.getValue(obj);
-				if (valueDirect != source)
-				{
+				if (valueDirect != source) {
 					continue;
 				}
 				base = obj;
@@ -310,31 +286,24 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 				break;
 			}
 		}
-		if (base == null)
-		{
+		if (base == null) {
 			throw new IllegalStateException("Must never happen");
 		}
 		ICacheModification cacheModification = this.cacheModification;
 		boolean oldCacheModification = cacheModification.isActive();
 		boolean cacheModificationUsed = false;
-		try
-		{
-			switch (evnt.getAction())
-			{
+		try {
+			switch (evnt.getAction()) {
 				case Add:
 				case Remove:
 				case Replace:
-					if (evnt.getOldItems() != null)
-					{
-						for (Object oldItem : evnt.getOldItems())
-						{
+					if (evnt.getOldItems() != null) {
+						for (Object oldItem : evnt.getOldItems()) {
 							handleRemovedItem(obj, oldItem, parentChildProperty);
 						}
 					}
-					if (evnt.getNewItems() != null)
-					{
-						for (Object newItem : evnt.getNewItems())
-						{
+					if (evnt.getNewItems() != null) {
+						for (Object newItem : evnt.getNewItems()) {
 							handleAddedItem(obj, newItem, parentChildProperty);
 						}
 					}
@@ -347,64 +316,58 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 				default:
 					throw RuntimeExceptionUtil.createEnumNotSupportedException(evnt.getAction());
 			}
-			IList<ICollectionChangeExtension> extensions = collectionChangeExtensions.getExtensions(obj.getClass());
-			if (extensions != null)
-			{
-				for (int a = 0, size = extensions.size(); a < size; a++)
-				{
+			IList<ICollectionChangeExtension> extensions =
+					collectionChangeExtensions.getExtensions(obj.getClass());
+			if (extensions != null) {
+				for (int a = 0, size = extensions.size(); a < size; a++) {
 					extensions.get(a).collectionChanged(obj, evnt);
 				}
 			}
 		}
-		finally
-		{
-			if (!oldCacheModification)
-			{
+		finally {
+			if (!oldCacheModification) {
 				setToBeUpdated(obj, true);
 			}
-			if (cacheModificationUsed)
-			{
+			if (cacheModificationUsed) {
 				cacheModification.setActive(oldCacheModification);
 			}
 		}
 	}
 
-	public PropertyChangeSupport newPropertyChangeSupport(Object entity)
-	{
+	public PropertyChangeSupport newPropertyChangeSupport(Object entity) {
 		return new PropertyChangeSupport();
 	}
 
-	public IPropertyInfo getMethodHandle(INotifyPropertyChangedSource obj, String propertyName)
-	{
+	public IPropertyInfo getMethodHandle(INotifyPropertyChangedSource obj, String propertyName) {
 		IPropertyInfo property = propertyInfoProvider.getProperty(obj.getClass(), propertyName);
-		if (property != null)
-		{
+		if (property != null) {
 			return property;
 		}
-		throw new IllegalStateException("Property not found: " + obj.getClass().getName() + "." + propertyName);
+		throw new IllegalStateException(
+				"Property not found: " + obj.getClass().getName() + "." + propertyName);
 	}
 
-	protected void handleRemovedItem(INotifyPropertyChangedSource obj, Object removedItem, boolean isParentChildProperty)
-	{
-		if (removedItem instanceof INotifyCollectionChanged)
-		{
-			((INotifyCollectionChanged) removedItem).removeNotifyCollectionChangedListener(obj.getCollectionEventHandler());
+	protected void handleRemovedItem(INotifyPropertyChangedSource obj, Object removedItem,
+			boolean isParentChildProperty) {
+		if (removedItem instanceof INotifyCollectionChanged) {
+			((INotifyCollectionChanged) removedItem)
+					.removeNotifyCollectionChangedListener(obj.getCollectionEventHandler());
 		}
-		if (isParentChildProperty && removedItem instanceof INotifyPropertyChanged)
-		{
-			((INotifyPropertyChanged) removedItem).removePropertyChangeListener(obj.getParentChildEventHandler());
+		if (isParentChildProperty && removedItem instanceof INotifyPropertyChanged) {
+			((INotifyPropertyChanged) removedItem)
+					.removePropertyChangeListener(obj.getParentChildEventHandler());
 		}
 	}
 
-	protected void handleAddedItem(INotifyPropertyChangedSource obj, Object addedItem, boolean isParentChildProperty)
-	{
-		if (isParentChildProperty && addedItem instanceof INotifyPropertyChanged)
-		{
-			((INotifyPropertyChanged) addedItem).addPropertyChangeListener(obj.getParentChildEventHandler());
+	protected void handleAddedItem(INotifyPropertyChangedSource obj, Object addedItem,
+			boolean isParentChildProperty) {
+		if (isParentChildProperty && addedItem instanceof INotifyPropertyChanged) {
+			((INotifyPropertyChanged) addedItem)
+					.addPropertyChangeListener(obj.getParentChildEventHandler());
 		}
-		if (addedItem instanceof INotifyCollectionChanged)
-		{
-			((INotifyCollectionChanged) addedItem).addNotifyCollectionChangedListener(obj.getCollectionEventHandler());
+		if (addedItem instanceof INotifyCollectionChanged) {
+			((INotifyCollectionChanged) addedItem)
+					.addNotifyCollectionChangedListener(obj.getCollectionEventHandler());
 		}
 	}
 
@@ -414,205 +377,178 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 	// / </summary>
 	// / <param name="invocation">IInvocation of the Setter</param>
 	// / <param name="getterItem">The getter fitting to the setter in invocation</param>
-	public void firePropertyChange(INotifyPropertyChangedSource obj, PropertyChangeSupport propertyChangeSupport, IPropertyInfo property, Object oldValue,
-			Object currentValue)
-	{
+	public void firePropertyChange(INotifyPropertyChangedSource obj,
+			PropertyChangeSupport propertyChangeSupport, IPropertyInfo property, Object oldValue,
+			Object currentValue) {
 		ICacheModification cacheModification = this.cacheModification;
 		PropertyEntry entry = getPropertyEntry(obj.getClass(), property);
-		try
-		{
-			if (entry.isAddedRemovedCheckNecessary)
-			{
-				if (oldValue != null)
-				{
+		try {
+			if (entry.isAddedRemovedCheckNecessary) {
+				if (oldValue != null) {
 					handleRemovedItem(obj, oldValue, entry.isParentChildSetter);
 				}
-				if (currentValue != null)
-				{
+				if (currentValue != null) {
 					handleAddedItem(obj, currentValue, entry.isParentChildSetter);
 				}
 			}
 			String[] propertyNames = entry.propertyNames;
 
-			boolean includeNewValue = entry.includeNewValue != null ? entry.includeNewValue.booleanValue() : fireOldPropertyValueActive;
-			boolean includeOldValue = entry.includeOldValue != null ? entry.includeOldValue.booleanValue() : fireOldPropertyValueActive;
+			boolean includeNewValue = entry.includeNewValue != null ? entry.includeNewValue.booleanValue()
+					: fireOldPropertyValueActive;
+			boolean includeOldValue = entry.includeOldValue != null ? entry.includeOldValue.booleanValue()
+					: fireOldPropertyValueActive;
 
 			Object[] oldValues;
-			if (includeOldValue)
-			{
+			if (includeOldValue) {
 				oldValues = createArrayOfValues(oldValue, propertyNames.length);
 			}
-			else
-			{
+			else {
 				oldValues = entry.unknownValues;
 			}
 			Object[] currentValues;
-			if (includeNewValue)
-			{
-				if (includeOldValue && currentValue == oldValue)
-				{
+			if (includeNewValue) {
+				if (includeOldValue && currentValue == oldValue) {
 					currentValues = oldValues;
 				}
-				else
-				{
+				else {
 					currentValues = createArrayOfValues(currentValue, propertyNames.length);
 				}
 			}
-			else
-			{
+			else {
 				currentValues = entry.unknownValues;
 			}
 			firePropertyChange(obj, propertyNames, oldValues, currentValues);
-			if (entry.firesToBeCreatedPCE)
-			{
+			if (entry.firesToBeCreatedPCE) {
 				IDataObject dObj = (IDataObject) obj;
-				if (dObj.isToBeCreated() && dObj.isToBeUpdated())
-				{
+				if (dObj.isToBeCreated() && dObj.isToBeUpdated()) {
 					dObj.setToBeUpdated(false);
 				}
 			}
 		}
-		finally
-		{
-			if (entry.doesModifyToBeUpdated && !cacheModification.isActiveOrFlushingOrInternalUpdate())
-			{
+		finally {
+			if (entry.doesModifyToBeUpdated && !cacheModification.isActiveOrFlushingOrInternalUpdate()) {
 				setToBeUpdated(obj, true);
 			}
 		}
 	}
 
-	protected void setToBeUpdated(Object obj, boolean value)
-	{
-		if (obj instanceof IEmbeddedType)
-		{
+	protected void setToBeUpdated(Object obj, boolean value) {
+		if (obj instanceof IEmbeddedType) {
 			obj = ((IEmbeddedType) obj).getRoot();
 		}
-		if (obj instanceof IDataObject)
-		{
+		if (obj instanceof IDataObject) {
 			IDataObject dp = (IDataObject) obj;
-			if (!dp.isToBeCreated())
-			{
+			if (!dp.isToBeCreated()) {
 				dp.setToBeUpdated(value);
 			}
 		}
 	}
 
-	public void firePropertyChange(final INotifyPropertyChangedSource obj, final String[] propertyNames, final Object[] oldValues, final Object[] currentValues)
-	{
+	public void firePropertyChange(final INotifyPropertyChangedSource obj,
+			final String[] propertyNames, final Object[] oldValues, final Object[] currentValues) {
 		final PropertyChangeSupport propertyChangeSupport = obj.getPropertyChangeSupport();
-		final IList<IPropertyChangeExtension> extensions = propertyChangeExtensions.getExtensions(obj.getClass());
-		if (propertyChangeSupport == null && extensions == null && !(obj instanceof PropertyChangeListener))
-		{
+		final IList<IPropertyChangeExtension> extensions =
+				propertyChangeExtensions.getExtensions(obj.getClass());
+		if (propertyChangeSupport == null && extensions == null
+				&& !(obj instanceof PropertyChangeListener)) {
 			return;
 		}
-		if (obj instanceof IDataObject)
-		{
+		if (obj instanceof IDataObject) {
 			ICacheModification cacheModification = this.cacheModification;
-			if (cacheModification.isActive())
-			{
-				cacheModification.queuePropertyChangeEvent(new IBackgroundWorkerDelegate()
-				{
+			if (cacheModification.isActive()) {
+				cacheModification.queuePropertyChangeEvent(new IBackgroundWorkerDelegate() {
 					@Override
-					public void invoke() throws Throwable
-					{
-						executeFirePropertyChange(propertyChangeSupport, extensions, obj, propertyNames, oldValues, currentValues);
+					public void invoke() throws Throwable {
+						executeFirePropertyChange(propertyChangeSupport, extensions, obj, propertyNames,
+								oldValues, currentValues);
 					}
 				});
 				return;
 			}
 		}
-		executeFirePropertyChange(propertyChangeSupport, extensions, obj, propertyNames, oldValues, currentValues);
+		executeFirePropertyChange(propertyChangeSupport, extensions, obj, propertyNames, oldValues,
+				currentValues);
 	}
 
-	protected void executeFirePropertyChange(final PropertyChangeSupport propertyChangeSupport, final IList<IPropertyChangeExtension> extensions,
-			final Object obj, final String[] propertyNames, final Object[] oldValues, final Object[] currentValues)
-	{
-		if (asyncPropertyChangeActive)
-		{
-			guiThreadHelper.invokeInGui(new IBackgroundWorkerDelegate()
-			{
+	protected void executeFirePropertyChange(final PropertyChangeSupport propertyChangeSupport,
+			final IList<IPropertyChangeExtension> extensions, final Object obj,
+			final String[] propertyNames, final Object[] oldValues, final Object[] currentValues) {
+		if (asyncPropertyChangeActive) {
+			guiThreadHelper.invokeInGui(new IBackgroundWorkerDelegate() {
 				@Override
-				public void invoke() throws Throwable
-				{
-					executeFirePropertyChangeIntern(propertyChangeSupport, extensions, obj, propertyNames, oldValues, currentValues);
+				public void invoke() throws Throwable {
+					executeFirePropertyChangeIntern(propertyChangeSupport, extensions, obj, propertyNames,
+							oldValues, currentValues);
 				}
 			});
 		}
-		else
-		{
-			executeFirePropertyChangeIntern(propertyChangeSupport, extensions, obj, propertyNames, oldValues, currentValues);
+		else {
+			executeFirePropertyChangeIntern(propertyChangeSupport, extensions, obj, propertyNames,
+					oldValues, currentValues);
 		}
 	}
 
-	protected void executeFirePropertyChangeIntern(PropertyChangeSupport propertyChangeSupport, IList<IPropertyChangeExtension> extensions, Object obj,
-			String[] propertyNames, Object[] oldValues, Object[] currentValues)
-	{
+	protected void executeFirePropertyChangeIntern(PropertyChangeSupport propertyChangeSupport,
+			IList<IPropertyChangeExtension> extensions, Object obj, String[] propertyNames,
+			Object[] oldValues, Object[] currentValues) {
 		boolean debugEnabled = log.isDebugEnabled();
-		PropertyChangeListener pcl = (PropertyChangeListener) (obj instanceof PropertyChangeListener ? obj : null);
+		PropertyChangeListener pcl =
+				(PropertyChangeListener) (obj instanceof PropertyChangeListener ? obj : null);
 
-		for (int a = 0, size = propertyNames.length; a < size; a++)
-		{
+		for (int a = 0, size = propertyNames.length; a < size; a++) {
 			String propertyName = propertyNames[a];
-			if (debugEnabled)
-			{
+			if (debugEnabled) {
 				log.debug("Process PCE '" + propertyName + "' on " + obj);
 			}
 			Object oldValue = oldValues[a];
 			Object currentValue = currentValues[a];
-			if (oldValue == UNKNOWN_VALUE)
-			{
+			if (oldValue == UNKNOWN_VALUE) {
 				oldValue = null;
 			}
-			if (currentValue == UNKNOWN_VALUE)
-			{
+			if (currentValue == UNKNOWN_VALUE) {
 				currentValue = null;
 			}
 			PropertyChangeEvent evnt = null;
-			if (pcl != null && (oldValue != null || currentValue != null))
-			{
+			if (pcl != null && (oldValue != null || currentValue != null)) {
 				// called only in "non-technical" PCEs
 				evnt = new PropertyChangeEvent(obj, propertyName, oldValue, currentValue);
 				pcl.propertyChange(evnt);
 			}
-			if (propertyChangeSupport != null)
-			{
-				if (evnt != null)
-				{
+			if (propertyChangeSupport != null) {
+				if (evnt != null) {
 					propertyChangeSupport.firePropertyChange(evnt);
 				}
-				else
-				{
+				else {
 					propertyChangeSupport.firePropertyChange(obj, propertyName, oldValue, currentValue);
 				}
 			}
-			for (int b = 0, sizeB = extensions.size(); b < sizeB; b++)
-			{
+			for (int b = 0, sizeB = extensions.size(); b < sizeB; b++) {
 				extensions.get(b).propertyChanged(obj, propertyName, oldValue, currentValue);
 			}
 		}
 	}
 
 	@Override
-	public void registerPropertyChangeExtension(IPropertyChangeExtension propertyChangeExtension, Class<?> entityType)
-	{
+	public void registerPropertyChangeExtension(IPropertyChangeExtension propertyChangeExtension,
+			Class<?> entityType) {
 		propertyChangeExtensions.register(propertyChangeExtension, entityType);
 	}
 
 	@Override
-	public void unregisterPropertyChangeExtension(IPropertyChangeExtension propertyChangeExtension, Class<?> entityType)
-	{
+	public void unregisterPropertyChangeExtension(IPropertyChangeExtension propertyChangeExtension,
+			Class<?> entityType) {
 		propertyChangeExtensions.unregister(propertyChangeExtension, entityType);
 	}
 
 	@Override
-	public void registerCollectionChangeExtension(ICollectionChangeExtension collectionChangeExtension, Class<?> entityType)
-	{
+	public void registerCollectionChangeExtension(
+			ICollectionChangeExtension collectionChangeExtension, Class<?> entityType) {
 		collectionChangeExtensions.register(collectionChangeExtension, entityType);
 	}
 
 	@Override
-	public void unregisterCollectionChangeExtension(ICollectionChangeExtension collectionChangeExtension, Class<?> entityType)
-	{
+	public void unregisterCollectionChangeExtension(
+			ICollectionChangeExtension collectionChangeExtension, Class<?> entityType) {
 		collectionChangeExtensions.unregister(collectionChangeExtension, entityType);
 	}
 }

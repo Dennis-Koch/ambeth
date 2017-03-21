@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface INamedRunnable extends Runnable
-{
+public interface INamedRunnable extends Runnable {
 	String getName();
 }

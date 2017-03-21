@@ -29,22 +29,19 @@ import com.koch.ambeth.bytecode.MethodInstance;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.util.ListUtil;
 
-public class EntityFactoryVisitor extends ClassGenerator
-{
-	public static final MethodInstance m_createObservableCollection = new MethodInstance(null, ListUtil.class, List.class, "createObservableCollectionOfType",
-			Class.class);
+public class EntityFactoryVisitor extends ClassGenerator {
+	public static final MethodInstance m_createObservableCollection = new MethodInstance(null,
+			ListUtil.class, List.class, "createObservableCollectionOfType", Class.class);
 
 	protected final IEntityMetaData metaData;
 
-	public EntityFactoryVisitor(ClassVisitor cv, IEntityMetaData metaData)
-	{
+	public EntityFactoryVisitor(ClassVisitor cv, IEntityMetaData metaData) {
 		super(cv);
 		this.metaData = metaData;
 	}
 
 	@Override
-	public void visitEnd()
-	{
+	public void visitEnd() {
 		// ITypeInfoItem[] primitiveMembers = metaData.getPrimitiveMembers();
 		// ArrayList<ITypeInfoItem> listMembers = new ArrayList<ITypeInfoItem>();
 		// for (ITypeInfoItem primitiveMember : primitiveMembers)
@@ -69,7 +66,8 @@ public class EntityFactoryVisitor extends ClassGenerator
 		//
 		// if (constructors.length == 0)
 		// {
-		// // must never happen because the originalType which is the base of the current type enhancement must already be a valid enhanced entity type
+		// // must never happen because the originalType which is the base of the current type
+		// enhancement must already be a valid enhanced entity type
 		// // this implies at least 1 generated constructor
 		// throw new IllegalStateException("Must never happen");
 		// }

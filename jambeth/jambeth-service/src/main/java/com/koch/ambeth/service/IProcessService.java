@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.service.model.IServiceDescription;
 
-public interface IProcessService
-{
+public interface IProcessService {
 	Object invokeService(IServiceDescription serviceDescription);
 }

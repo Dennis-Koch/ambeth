@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.persistence.jdbc.AbstractExtendedConnectionDialect;
 
-public class MariaExtendedDialect extends AbstractExtendedConnectionDialect
-{
+public class MariaExtendedDialect extends AbstractExtendedConnectionDialect {
 
 }

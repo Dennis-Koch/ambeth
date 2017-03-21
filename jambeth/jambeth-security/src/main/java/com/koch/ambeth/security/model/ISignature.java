@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.security.audit.model.Audited;
 
 @Audited(false)
-public interface ISignature
-{
+public interface ISignature {
 	public static final String Algorithm = "Algorithm";
 
 	public static final String ChangeAfter = "ChangeAfter";

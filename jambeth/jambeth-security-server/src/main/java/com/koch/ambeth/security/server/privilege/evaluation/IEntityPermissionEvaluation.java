@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.service.model.ISecurityScope;
 
-public interface IEntityPermissionEvaluation
-{
+public interface IEntityPermissionEvaluation {
 	IScopedEntityPermissionEvaluation scope(ISecurityScope scope);
 
 	ICreateEntityStep allowRead();

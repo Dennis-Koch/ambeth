@@ -27,16 +27,16 @@ import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.merge.ioc.ChangeControllerModule;
 import com.koch.ambeth.util.IDedicatedConverterExtendable;
 
-public class HelloWorldModule implements IInitializingModule
-{
+public class HelloWorldModule implements IInitializingModule {
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 		beanContextFactory.registerBean("helloWorldService", HelloWorldService.class);
 
 		beanContextFactory.registerBean("helloWorldConverter", HelloWorldConverter.class);
-		beanContextFactory.link("helloWorldConverter").to(IDedicatedConverterExtendable.class).with(HelloWorldToken.class, String.class);
+		beanContextFactory.link("helloWorldConverter").to(IDedicatedConverterExtendable.class)
+				.with(HelloWorldToken.class, String.class);
 
-		ChangeControllerModule.registerRule(beanContextFactory, ExampleValidation.class, ExampleEntity.class);
+		ChangeControllerModule.registerRule(beanContextFactory, ExampleValidation.class,
+				ExampleEntity.class);
 	}
 }

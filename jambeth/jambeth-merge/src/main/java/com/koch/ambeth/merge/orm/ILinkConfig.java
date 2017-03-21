@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ILinkConfig
-{
+public interface ILinkConfig {
 	String getSource();
 
 	String getAlias();

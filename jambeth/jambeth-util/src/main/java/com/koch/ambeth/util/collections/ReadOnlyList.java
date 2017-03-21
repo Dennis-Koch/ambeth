@@ -27,72 +27,60 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-public class ReadOnlyList<V> implements IList<V>, Serializable
-{
+public class ReadOnlyList<V> implements IList<V>, Serializable {
 	private static final long serialVersionUID = -9172592637280733333L;
 
-	public static class ReadOnlyIter<V> implements ListIterator<V>
-	{
+	public static class ReadOnlyIter<V> implements ListIterator<V> {
 		private final ReadOnlyList<V> list;
 
 		private int currIndex;
 
-		public ReadOnlyIter(ReadOnlyList<V> list)
-		{
+		public ReadOnlyIter(ReadOnlyList<V> list) {
 			this.list = list;
 		}
 
 		@Override
-		public boolean hasNext()
-		{
+		public boolean hasNext() {
 			return list.size > currIndex;
 		}
 
 		@Override
-		public V next()
-		{
+		public V next() {
 			return list.get(currIndex++);
 		}
 
 		@Override
-		public boolean hasPrevious()
-		{
+		public boolean hasPrevious() {
 			return currIndex > 0;
 		}
 
 		@Override
-		public int nextIndex()
-		{
+		public int nextIndex() {
 			return currIndex + 1;
 		}
 
 		@Override
-		public V previous()
-		{
+		public V previous() {
 			return list.get(--currIndex);
 		}
 
 		@Override
-		public int previousIndex()
-		{
+		public int previousIndex() {
 			return currIndex - 1;
 		}
 
 		@Override
-		public void remove()
-		{
+		public void remove() {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public void add(V arg0)
-		{
+		public void add(V arg0) {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public void set(V arg0)
-		{
+		public void set(V arg0) {
 			throw new UnsupportedOperationException();
 		}
 	}
@@ -103,25 +91,20 @@ public class ReadOnlyList<V> implements IList<V>, Serializable
 
 	protected int size;
 
-	public ReadOnlyList()
-	{
+	public ReadOnlyList() {
 		// Intended blank
 	}
 
-	public ReadOnlyList(Collection<V> objects)
-	{
-		if (objects == null || objects.size() == 0)
-		{
+	public ReadOnlyList(Collection<V> objects) {
+		if (objects == null || objects.size() == 0) {
 			array = emptyArray;
 			size = 0;
 		}
-		else
-		{
+		else {
 			array = new Object[objects.size()];
 			Iterator<V> iter = objects.iterator();
 			int tempSize = 0;
-			while (iter.hasNext())
-			{
+			while (iter.hasNext()) {
 				V item = iter.next();
 				array[tempSize++] = item;
 			}
@@ -129,49 +112,39 @@ public class ReadOnlyList<V> implements IList<V>, Serializable
 		}
 	}
 
-	public ReadOnlyList(V object)
-	{
+	public ReadOnlyList(V object) {
 		array = new Object[1];
 		array[0] = object;
 		size = 1;
 	}
 
-	public ReadOnlyList(V[] objects)
-	{
+	public ReadOnlyList(V[] objects) {
 		array = objects;
 		size = objects.length;
 	}
 
-	public ReadOnlyList(List<V> objects, int startIndex, int endIndex)
-	{
-		if (objects == null || objects.size() == 0)
-		{
+	public ReadOnlyList(List<V> objects, int startIndex, int endIndex) {
+		if (objects == null || objects.size() == 0) {
 			array = emptyArray;
 			size = 0;
 		}
-		else
-		{
-			if (endIndex < startIndex)
-			{
+		else {
+			if (endIndex < startIndex) {
 				throw new IllegalArgumentException("endIndex must be >= startIndex");
 			}
 			int length = endIndex - startIndex;
 			array = new Object[length];
 			int tempSize = 0;
-			for (int a = startIndex; a <= endIndex; a++)
-			{
+			for (int a = startIndex; a <= endIndex; a++) {
 				array[tempSize++] = objects.get(a);
 			}
 			size = tempSize;
 		}
 	}
 
-	public boolean hasValue(final V value)
-	{
-		for (int a = 0; a < size; a++)
-		{
-			if (array[a] == value)
-			{
+	public boolean hasValue(final V value) {
+		for (int a = 0; a < size; a++) {
+			if (array[a] == value) {
 				return true;
 			}
 		}
@@ -180,52 +153,43 @@ public class ReadOnlyList<V> implements IList<V>, Serializable
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public V get(final int index)
-	{
+	public V get(final int index) {
 		return (V) array[index];
 	}
 
 	@Override
-	public int size()
-	{
+	public int size() {
 		return size;
 	}
 
 	@SuppressWarnings("unchecked")
-	public void copyInto(final ArrayList<V> otherList)
-	{
+	public void copyInto(final ArrayList<V> otherList) {
 		otherList.size = 0;
-		for (int a = 0; a < size; a++)
-		{
+		for (int a = 0; a < size; a++) {
 			otherList.add((V) array[a]);
 		}
 	}
 
 	@Override
-	public boolean contains(Object o)
-	{
+	public boolean contains(Object o) {
 		return indexOf(o) != -1;
 	}
 
 	@Override
-	public boolean isEmpty()
-	{
+	public boolean isEmpty() {
 		return size() == 0;
 	}
 
 	@Override
-	public Object[] toArray()
-	{
+	public Object[] toArray() {
 		Object[] targetArray = new Object[size()];
 		return toArray(targetArray);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T[] toArray(T[] array)
-	{
-		for (int a = size(); a-- > 0;)
-		{
+	public <T> T[] toArray(T[] array) {
+		for (int a = size(); a-- > 0;) {
 			array[a] = (T) this.array[a];
 		}
 		return array;
@@ -233,32 +197,24 @@ public class ReadOnlyList<V> implements IList<V>, Serializable
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T[] toArray(Class<T> componentType)
-	{
+	public <T> T[] toArray(Class<T> componentType) {
 		return toArray((T[]) Array.newInstance(componentType, size()));
 	}
 
 	@Override
-	public int indexOf(Object o)
-	{
-		if (o == null)
-		{
-			for (int a = 0, size = size(); a < size; a++)
-			{
+	public int indexOf(Object o) {
+		if (o == null) {
+			for (int a = 0, size = size(); a < size; a++) {
 				Object item = array[a];
-				if (item == null)
-				{
+				if (item == null) {
 					return a;
 				}
 			}
 		}
-		else
-		{
-			for (int a = 0, size = size(); a < size; a++)
-			{
+		else {
+			for (int a = 0, size = size(); a < size; a++) {
 				Object item = array[a];
-				if (item != null && item.equals(o))
-				{
+				if (item != null && item.equals(o)) {
 					return a;
 				}
 			}
@@ -267,26 +223,19 @@ public class ReadOnlyList<V> implements IList<V>, Serializable
 	}
 
 	@Override
-	public int lastIndexOf(Object o)
-	{
-		if (o == null)
-		{
-			for (int a = size(); a-- > 0;)
-			{
+	public int lastIndexOf(Object o) {
+		if (o == null) {
+			for (int a = size(); a-- > 0;) {
 				Object item = array[a];
-				if (item == null)
-				{
+				if (item == null) {
 					return a;
 				}
 			}
 		}
-		else
-		{
-			for (int a = size(); a-- > 0;)
-			{
+		else {
+			for (int a = size(); a-- > 0;) {
 				Object item = array[a];
-				if (item != null && item.equals(o))
-				{
+				if (item != null && item.equals(o)) {
 					return a;
 				}
 			}
@@ -295,120 +244,100 @@ public class ReadOnlyList<V> implements IList<V>, Serializable
 	}
 
 	@Override
-	public Iterator<V> iterator()
-	{
+	public Iterator<V> iterator() {
 		return listIterator();
 	}
 
 	@Override
-	public ListIterator<V> listIterator()
-	{
-		return new ReadOnlyIter<V>(this);
+	public ListIterator<V> listIterator() {
+		return new ReadOnlyIter<>(this);
 	}
 
 	@Override
-	public IList<V> subList(int startIndex, int endIndex)
-	{
-		return new ReadOnlyList<V>(this, startIndex, endIndex);
+	public IList<V> subList(int startIndex, int endIndex) {
+		return new ReadOnlyList<>(this, startIndex, endIndex);
 	}
 
 	@Override
-	public ListIterator<V> listIterator(int arg0)
-	{
+	public ListIterator<V> listIterator(int arg0) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public boolean add(V arg0)
-	{
+	public boolean add(V arg0) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void add(int arg0, V arg1)
-	{
+	public void add(int arg0, V arg1) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public boolean addAll(Collection<? extends V> arg0)
-	{
+	public boolean addAll(Collection<? extends V> arg0) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public boolean addAll(int arg0, Collection<? extends V> arg1)
-	{
+	public boolean addAll(int arg0, Collection<? extends V> arg1) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public <T extends V> boolean addAll(T[] array)
-	{
+	public <T extends V> boolean addAll(T[] array) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void clear()
-	{
+	public void clear() {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public boolean containsAll(Collection<?> arg0)
-	{
+	public boolean containsAll(Collection<?> arg0) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public V peek()
-	{
-		if (size() > 0)
-		{
+	public V peek() {
+		if (size() > 0) {
 			return get(size() - 1);
 		}
 		return null;
 	}
 
 	@Override
-	public V popLastElement()
-	{
+	public V popLastElement() {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public boolean remove(Object arg0)
-	{
+	public boolean remove(Object arg0) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public V remove(int arg0)
-	{
+	public V remove(int arg0) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public boolean removeAll(Collection<?> arg0)
-	{
+	public boolean removeAll(Collection<?> arg0) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public <T extends V> boolean removeAll(T[] array)
-	{
+	public <T extends V> boolean removeAll(T[] array) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public boolean retainAll(Collection<?> arg0)
-	{
+	public boolean retainAll(Collection<?> arg0) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public V set(int arg0, V arg1)
-	{
+	public V set(int arg0, V arg1) {
 		throw new UnsupportedOperationException();
 	}
 }

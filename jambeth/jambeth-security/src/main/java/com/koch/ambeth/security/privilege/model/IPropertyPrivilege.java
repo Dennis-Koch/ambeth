@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IPropertyPrivilege
-{
+public interface IPropertyPrivilege {
 	boolean isCreateAllowed();
 
 	boolean isReadAllowed();

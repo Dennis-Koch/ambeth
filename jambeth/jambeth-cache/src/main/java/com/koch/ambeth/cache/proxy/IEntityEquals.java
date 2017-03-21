@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IEntityEquals
-{
+public interface IEntityEquals {
 	Object get__Id();
 
 	Class<?> get__BaseType();

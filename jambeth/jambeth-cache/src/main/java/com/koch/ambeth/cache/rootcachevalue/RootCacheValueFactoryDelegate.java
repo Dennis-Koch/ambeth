@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 
-public abstract class RootCacheValueFactoryDelegate
-{
+public abstract class RootCacheValueFactoryDelegate {
 	public abstract RootCacheValue createRootCacheValue(IEntityMetaData metaData);
 }

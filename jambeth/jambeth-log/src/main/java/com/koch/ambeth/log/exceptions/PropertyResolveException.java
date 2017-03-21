@@ -20,32 +20,27 @@ limitations under the License.
  * #L%
  */
 
-public class PropertyResolveException extends RuntimeException
-{
+public class PropertyResolveException extends RuntimeException {
 	private static final long serialVersionUID = -7149333583589679782L;
 
-	public PropertyResolveException()
-	{
+	public PropertyResolveException() {
 		super();
 	}
 
-	protected PropertyResolveException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace)
-	{
+	protected PropertyResolveException(String message, Throwable cause, boolean enableSuppression,
+			boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 	}
 
-	public PropertyResolveException(String message, Throwable cause)
-	{
+	public PropertyResolveException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
-	public PropertyResolveException(String message)
-	{
+	public PropertyResolveException(String message) {
 		super(message);
 	}
 
-	public PropertyResolveException(Throwable cause)
-	{
+	public PropertyResolveException(Throwable cause) {
 		super(cause);
 	}
 

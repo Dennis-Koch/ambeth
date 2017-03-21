@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.merge.server.service.IChangeAggregator;
 import com.koch.ambeth.persistence.api.ITable;
 
-public interface ITableChange extends Comparable<ITableChange>
-{
+public interface ITableChange extends Comparable<ITableChange> {
 	String getEntityHandlerName();
 
 	ITable getTable();

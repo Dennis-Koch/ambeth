@@ -23,7 +23,6 @@ limitations under the License.
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public enum TestEnum
-{
+public enum TestEnum {
 	NONE, VALUE_1, VALUE_2;
 }

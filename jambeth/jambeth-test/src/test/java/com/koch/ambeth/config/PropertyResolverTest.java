@@ -29,16 +29,14 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.testutil.AbstractIocTest;
 
-public class PropertyResolverTest extends AbstractIocTest
-{
+public class PropertyResolverTest extends AbstractIocTest {
 
 	@LogInstance
 	private ILogger log;
 	private Properties props;
 
 	@Before
-	public void setupProperties()
-	{
+	public void setupProperties() {
 		props = new Properties();
 		props.putString("knownVar", "123");
 		props.putString("partOfVar", "Var");
@@ -49,8 +47,7 @@ public class PropertyResolverTest extends AbstractIocTest
 	}
 
 	@Test
-	public void testCorrectResolve()
-	{
+	public void testCorrectResolve() {
 		Assert.assertEquals("abc123abc123", props.resolvePropertyParts("abc${knownVar}abc${knownVar}"));
 		Assert.assertEquals("abcVar", props.resolvePropertyParts("abc${partOfVar}"));
 		Assert.assertEquals("abcknownVar", props.resolvePropertyParts("abc${hugoVar}"));
@@ -60,33 +57,32 @@ public class PropertyResolverTest extends AbstractIocTest
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testCycleException()
-	{
+	public void testCycleException() {
 		props.resolvePropertyParts("${cycle}");
 
 	}
 
 	@Test
-	public void testUnknownProperty()
-	{
+	public void testUnknownProperty() {
 		// Assert.assertEquals("abc${unknownVar}", props.resolvePropertyParts("abc${unknownVar}"));
 		// Assert.assertEquals("test${unknownVar}testabc123test${unknownVar}qwer",
 		// props.resolvePropertyParts("test${unknownVar}testabc${${hugoVar}}test${unknownVar}qwer"));
 
 		Assert.assertEquals("test${unknownVar}testabc123test${unknownVar}qwerA${unknownVar}qwerB",
-				props.resolvePropertyParts("test${unknownVar}testabc${${hugoVar}}test${unknownVar}qwerA${unknownVar}qwerB"));
+				props.resolvePropertyParts(
+						"test${unknownVar}testabc${${hugoVar}}test${unknownVar}qwerA${unknownVar}qwerB"));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testUnknownPropertyWithCycleException()
-	{
-		props.resolvePropertyParts("test${unknownVar}testabc${cycle}${${hugoVar}}test${unknownVar}qwer${unknownVar}qwer");
+	public void testUnknownPropertyWithCycleException() {
+		props.resolvePropertyParts(
+				"test${unknownVar}testabc${cycle}${${hugoVar}}test${unknownVar}qwer${unknownVar}qwer");
 	}
 
 	@Test
-	public void testUnknownPropertySecondResolve()
-	{
-		// here nextUnknown is "known" but the next step "unknown" variable is not known, that means that nextUnknown can't be resolved completely and
+	public void testUnknownPropertySecondResolve() {
+		// here nextUnknown is "known" but the next step "unknown" variable is not known, that means
+		// that nextUnknown can't be resolved completely and
 		// nextUnknown goes back into the string
 		Assert.assertEquals("abc${unknownVar}", props.resolvePropertyParts("abc${nextUnknown}"));
 		Assert.assertEquals("${unknownVar}", props.get("nextUnknown"));
@@ -94,8 +90,10 @@ public class PropertyResolverTest extends AbstractIocTest
 		Assert.assertNull(props.get("unknownVar"));
 		Assert.assertNotNull(props.get("nextUnknown"));
 
-		Assert.assertEquals("abc${unknownVar}asdfasdfsadf", props.resolvePropertyParts("abc${nextUnknown}asdfasdfsadf"));
-		Assert.assertEquals("abc${unknownVar}asdfasdfVar", props.resolvePropertyParts("abc${nextUnknown}asdfasdf${partOfVar}"));
+		Assert.assertEquals("abc${unknownVar}asdfasdfsadf",
+				props.resolvePropertyParts("abc${nextUnknown}asdfasdfsadf"));
+		Assert.assertEquals("abc${unknownVar}asdfasdfVar",
+				props.resolvePropertyParts("abc${nextUnknown}asdfasdf${partOfVar}"));
 	}
 
 }

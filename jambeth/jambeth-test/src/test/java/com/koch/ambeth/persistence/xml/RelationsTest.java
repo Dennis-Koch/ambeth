@@ -82,12 +82,13 @@ import com.koch.ambeth.xml.ioc.XmlModule;
 
 @SQLData("/com/koch/ambeth/persistence/xml/Relations_data.sql")
 @SQLStructure("/com/koch/ambeth/persistence/xml/Relations_structure.sql")
-@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/xml/orm.xml"),
-		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false") })
+@TestPropertiesList({
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+				value = "com/koch/ambeth/persistence/xml/orm.xml"),
+		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false")})
 @TestFrameworkModule(XmlModule.class)
 @TestModule(TestServicesModule.class)
-public class RelationsTest extends AbstractInformationBusWithPersistenceTest
-{
+public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 	@Autowired
 	protected IBusinessService businessService;
 
@@ -107,8 +108,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 	protected IThreadLocalCleanupController threadLocalCleanupController;
 
 	@Test
-	public void testNullableToOne() throws Throwable
-	{
+	public void testNullableToOne() throws Throwable {
 		Employee employee1 = employeeService.getByName("Oscar Meyer");
 		Employee employee2 = employeeService.getByName("Steve Smith");
 
@@ -130,8 +130,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testNotNullableToOne() throws Throwable
-	{
+	public void testNotNullableToOne() throws Throwable {
 		Employee employee = employeeService.getByName("Oscar Meyer");
 
 		assertNotNull(employee.getPrimaryAddress());
@@ -156,8 +155,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test(expected = PersistenceException.class)
-	public void testNotNullableToOne_setToNull() throws Throwable
-	{
+	public void testNotNullableToOne_setToNull() throws Throwable {
 		Employee employee = employeeService.getByName("Oscar Meyer");
 
 		employee.setPrimaryAddress(null);
@@ -166,8 +164,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testToMany() throws Throwable
-	{
+	public void testToMany() throws Throwable {
 		Employee employee = employeeService.getByName("Oscar Meyer");
 
 		assertNotNull(employee.getOtherAddresses());
@@ -185,8 +182,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testNewToMany() throws Throwable
-	{
+	public void testNewToMany() throws Throwable {
 		Employee employee = entityFactory.createEntity(Employee.class);
 		employee.setName("Jane Doe");
 		employee.setPrimaryProject(cache.getObject(Project.class, 21));
@@ -215,27 +211,22 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testCascadDelete() throws Throwable
-	{
+	public void testCascadDelete() throws Throwable {
 		final Employee employee = cache.getObject(Employee.class, 1);
 		assertFalse(employee.getOtherAddresses().isEmpty());
 		Address actual = employee.getOtherAddresses().iterator().next();
 		assertNotNull(cache.getObject(Address.class, actual.getId()));
 
-		try
-		{
-			transaction.runInTransaction(new IBackgroundWorkerDelegate()
-			{
+		try {
+			transaction.runInTransaction(new IBackgroundWorkerDelegate() {
 				@Override
-				public void invoke() throws Throwable
-				{
+				public void invoke() throws Throwable {
 					employeeService.delete(employee);
 					throw new RuntimeException();
 				}
 			});
 		}
-		catch (RuntimeException e)
-		{
+		catch (RuntimeException e) {
 			// intended blank
 		}
 		ChildCache childCache = (ChildCache) cache.getCurrentCache();
@@ -248,8 +239,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testCascadDeleteAfterUnlink() throws Throwable
-	{
+	public void testCascadDeleteAfterUnlink() throws Throwable {
 		Employee employee = cache.getObject(Employee.class, 1);
 		int addressCount = employee.getOtherAddresses().size();
 		assertTrue(0 < addressCount);
@@ -263,8 +253,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testListDelete() throws Throwable
-	{
+	public void testListDelete() throws Throwable {
 		// List<Employee> employees = cache.getObjects(Employee.class, 1, 2, 3);
 		// employeeService.delete(employees);
 		//
@@ -277,8 +266,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testAlternateIdDelete() throws Throwable
-	{
+	public void testAlternateIdDelete() throws Throwable {
 		Employee employee = cache.getObject(Employee.class, 1);
 		employeeService.delete(employee.getName());
 
@@ -286,18 +274,16 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testSetDelete() throws Throwable
-	{
+	public void testSetDelete() throws Throwable {
 		List<Employee> employees = cache.getObjects(Employee.class, 1, 2, 3);
-		Set<Employee> employeeSet = new HashSet<Employee>(employees);
+		Set<Employee> employeeSet = new HashSet<>(employees);
 		employeeService.delete(employeeSet);
 
 		assertTrue(cache.getObjects(Employee.class, 1, 2, 3).isEmpty());
 	}
 
 	@Test
-	public void testArrayDelete() throws Throwable
-	{
+	public void testArrayDelete() throws Throwable {
 		List<Employee> employees = cache.getObjects(Employee.class, 1, 2, 3);
 		employeeService.delete(employees.toArray(new Employee[employees.size()]));
 
@@ -305,26 +291,22 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testCascadedRetrieve() throws Throwable
-	{
-		List<String> names = Arrays.asList(new String[] { "Steve Smith", "Oscar Meyer" });
+	public void testCascadedRetrieve() throws Throwable {
+		List<String> names = Arrays.asList(new String[] {"Steve Smith", "Oscar Meyer"});
 
 		CacheInterceptor.pauseCache.set(Boolean.TRUE);
-		try
-		{
+		try {
 			List<Employee> actual = businessService.retrieve(names);
 
 			assertEquals(2, actual.size());
 		}
-		finally
-		{
+		finally {
 			CacheInterceptor.pauseCache.remove();
 		}
 	}
 
 	@Test
-	public void testMultipleChanges() throws Throwable
-	{
+	public void testMultipleChanges() throws Throwable {
 		Employee employee1 = cache.getObject(Employee.class, 1);
 		employee1.setName(employee1.getName() + " jun.");
 
@@ -343,20 +325,18 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 		Employee employee4 = cache.getObject(Employee.class, 3);
 		employee4.setName(employee4.getName() + " jun.");
 
-		List<Employee> employees = Arrays.asList(new Employee[] { employee1, employee2, employee3, employee4 });
+		List<Employee> employees =
+				Arrays.asList(new Employee[] {employee1, employee2, employee3, employee4});
 
 		employeeService.save(employees);
 	}
 
 	@Test
-	public void testRelationUnlinkSameTable()
-	{
+	public void testRelationUnlinkSameTable() {
 		List<Employee> allEmployees = employeeService.getAll();
 		Employee withSupervisor = null;
-		for (Employee employee : allEmployees)
-		{
-			if (employee.getSupervisor() != null)
-			{
+		for (Employee employee : allEmployees) {
+			if (employee.getSupervisor() != null) {
 				withSupervisor = employee;
 				break;
 			}
@@ -371,14 +351,11 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testRelationUnlinkOtherTable()
-	{
+	public void testRelationUnlinkOtherTable() {
 		List<Employee> allEmployees = employeeService.getAll();
 		Employee withOtherAddress = null;
-		for (Employee employee : allEmployees)
-		{
-			if (!employee.getOtherAddresses().isEmpty())
-			{
+		for (Employee employee : allEmployees) {
+			if (!employee.getOtherAddresses().isEmpty()) {
 				withOtherAddress = employee;
 				break;
 			}
@@ -393,8 +370,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testBidirectionalToOneRelation()
-	{
+	public void testBidirectionalToOneRelation() {
 		Employee employee = cache.getObject(Employee.class, 1);
 		assertNotNull("An employee with a primary address is needed", employee.getPrimaryAddress());
 		Address primaryAddress = cache.getObject(Address.class, employee.getPrimaryAddress().getId());
@@ -404,8 +380,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testBidirectionalToManyRelation()
-	{
+	public void testBidirectionalToManyRelation() {
 		Employee employee = cache.getObject(Employee.class, 1);
 		Project primaryProject = cache.getObject(Project.class, employee.getPrimaryProject().getId());
 		assertNotNull("An employee with a primary project is needed", primaryProject);
@@ -414,8 +389,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testVersionUpdateOnFKRelation()
-	{
+	public void testVersionUpdateOnFKRelation() {
 		int employeeId = 1;
 		int oldProjectId = 21;
 		int nextProjectId = 22;
@@ -444,8 +418,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testVersionUpdateOnLTRelation()
-	{
+	public void testVersionUpdateOnLTRelation() {
 		int employeeId = 1;
 		int oldProjectId = 21;
 		int nextProjectId = 23;
@@ -477,8 +450,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testVersionUpdateWithoutBackRelation()
-	{
+	public void testVersionUpdateWithoutBackRelation() {
 		int employeeId = 1;
 
 		Employee employee = cache.getObject(Employee.class, employeeId);
@@ -499,13 +471,11 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testOptimisticLockWithDelete()
-	{
+	public void testOptimisticLockWithDelete() {
 		List<Employee> employees = employeeService.getAll();
 		employeeService.delete(employees);
 
-		for (Employee employee : employees)
-		{
+		for (Employee employee : employees) {
 			assertEquals(0, employee.getId());
 			assertEquals(0, employee.getVersion());
 		}
@@ -513,35 +483,34 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 
 	// TODO Test ist durch die Threads "unstabil". Manchmal schlaegt er ohne Aenderung fehl.
 	@Test(expected = OptimisticLockException.class)
-	public void testOptimisticLockWithDelete_ThreadLocalFLC()
-	{
-		ICacheProvider cacheProvider = beanContext.getService(CacheNamedBeans.CacheProviderThreadLocal, ICacheProvider.class);
+	public void testOptimisticLockWithDelete_ThreadLocalFLC() {
+		ICacheProvider cacheProvider =
+				beanContext.getService(CacheNamedBeans.CacheProviderThreadLocal, ICacheProvider.class);
 		testOptimisticLockWithDelete_lock_Intern(cacheProvider);
 	}
 
 	@Test
-	public void testOptimisticLockWithDelete_SingletonFLC_Save_First()
-	{
-		ICacheProvider cacheProvider = beanContext.getService(CacheNamedBeans.CacheProviderSingleton, ICacheProvider.class);
+	public void testOptimisticLockWithDelete_SingletonFLC_Save_First() {
+		ICacheProvider cacheProvider =
+				beanContext.getService(CacheNamedBeans.CacheProviderSingleton, ICacheProvider.class);
 		testOptimisticLockWithDelete_lock_Intern(Boolean.TRUE, cacheProvider);
 	}
 
 	@Test(expected = NullConstraintException.class)
-	public void testOptimisticLockWithDelete_SingletonFLC_Save_Last()
-	{
-		ICacheProvider cacheProvider = beanContext.getService(CacheNamedBeans.CacheProviderSingleton, ICacheProvider.class);
+	public void testOptimisticLockWithDelete_SingletonFLC_Save_Last() {
+		ICacheProvider cacheProvider =
+				beanContext.getService(CacheNamedBeans.CacheProviderSingleton, ICacheProvider.class);
 		testOptimisticLockWithDelete_lock_Intern(Boolean.FALSE, cacheProvider);
 	}
 
 	@Test(expected = OptimisticLockException.class)
-	public void testOptimisticLockWithDelete_PrototypeFLC()
-	{
-		ICacheProvider cacheProvider = beanContext.getService(CacheNamedBeans.CacheProviderPrototype, ICacheProvider.class);
+	public void testOptimisticLockWithDelete_PrototypeFLC() {
+		ICacheProvider cacheProvider =
+				beanContext.getService(CacheNamedBeans.CacheProviderPrototype, ICacheProvider.class);
 		testOptimisticLockWithDelete_lock_Intern(cacheProvider);
 	}
 
-	protected void testOptimisticLockWithDelete_lock_Intern(ICacheProvider cacheProvider)
-	{
+	protected void testOptimisticLockWithDelete_lock_Intern(ICacheProvider cacheProvider) {
 		testOptimisticLockWithDelete_lock_Intern(Boolean.TRUE, cacheProvider);
 		testOptimisticLockWithDelete_lock_Intern(Boolean.FALSE, cacheProvider);
 		testOptimisticLockWithDelete_lock_Intern(null, cacheProvider);
@@ -549,18 +518,18 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 		System.gc();
 	}
 
-	protected void testOptimisticLockWithDelete_lock_Intern(final Boolean saveFirst, final ICacheProvider cacheProvider)
-	{
+	protected void testOptimisticLockWithDelete_lock_Intern(final Boolean saveFirst,
+			final ICacheProvider cacheProvider) {
 		final CyclicBarrier barrier1 = new CyclicBarrier(2);
 
 		final CyclicBarrier preCleanupBarrier = new CyclicBarrier(2);
 
 		final CountDownLatch firstLatch = new CountDownLatch(1);
 
-		final IParamHolder<Throwable> exceptionHolder = new ParamHolder<Throwable>();
+		final IParamHolder<Throwable> exceptionHolder = new ParamHolder<>();
 		final CountDownLatch latch = new CountDownLatch(2);
-		final IParamHolder<Thread> savingThreadHolder = new ParamHolder<Thread>();
-		final IParamHolder<Thread> deletingThreadHolder = new ParamHolder<Thread>();
+		final IParamHolder<Thread> savingThreadHolder = new ParamHolder<>();
+		final IParamHolder<Thread> deletingThreadHolder = new ParamHolder<>();
 
 		final ICacheContext cacheContext = beanContext.getService(ICacheContext.class);
 
@@ -569,159 +538,132 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 		final IAuthentication authentication = context != null ? context.getAuthentication() : null;
 		final IAuthorization authorization = context != null ? context.getAuthorization() : null;
 
-		Thread savingThread = new Thread(new Runnable()
-		{
+		Thread savingThread = new Thread(new Runnable() {
 			@Override
-			public void run()
-			{
+			public void run() {
 				final boolean configureSecurityContext = authentication != null || authorization != null;
-				try
-				{
-					cacheContext.executeWithCache(cacheProvider, new IResultingBackgroundWorkerDelegate<Object>()
-					{
-						@Override
-						public Object invoke() throws Throwable
-						{
-							if (configureSecurityContext)
-							{
-								ISecurityContext context = securityContextHolder.getCreateContext();
-								context.setAuthentication(authentication);
-								context.setAuthorization(authorization);
-							}
-							securityScopeProvider.setSecurityScopes(securityScopes);
+				try {
+					cacheContext.executeWithCache(cacheProvider,
+							new IResultingBackgroundWorkerDelegate<Object>() {
+								@Override
+								public Object invoke() throws Throwable {
+									if (configureSecurityContext) {
+										ISecurityContext context = securityContextHolder.getCreateContext();
+										context.setAuthentication(authentication);
+										context.setAuthorization(authorization);
+									}
+									securityScopeProvider.setSecurityScopes(securityScopes);
 
-							List<Employee> employees = employeeService.getAll();
+									List<Employee> employees = employeeService.getAll();
 
-							barrier1.await();
+									barrier1.await();
 
-							if (Boolean.FALSE.equals(saveFirst))
-							{
-								firstLatch.await();
-							}
-							Employee firstEmployee = employees.get(0);
-							firstEmployee.setName(firstEmployee.getName() + " jun.");
-							employeeService.save(firstEmployee);
-							for (Employee employee : employees)
-							{
-								assertTrue(0 < employee.getId());
-								assertTrue(0 < employee.getVersion());
-								assertTrue(0 < employee.getPrimaryAddress().getId());
-							}
-							return null;
-						}
-					});
+									if (Boolean.FALSE.equals(saveFirst)) {
+										firstLatch.await();
+									}
+									Employee firstEmployee = employees.get(0);
+									firstEmployee.setName(firstEmployee.getName() + " jun.");
+									employeeService.save(firstEmployee);
+									for (Employee employee : employees) {
+										assertTrue(0 < employee.getId());
+										assertTrue(0 < employee.getVersion());
+										assertTrue(0 < employee.getPrimaryAddress().getId());
+									}
+									return null;
+								}
+							});
 				}
-				catch (Throwable e)
-				{
-					if (exceptionHolder.getValue() == null)
-					{
+				catch (Throwable e) {
+					if (exceptionHolder.getValue() == null) {
 						exceptionHolder.setValue(e);
 					}
 					Thread.interrupted();
 					barrier1.reset();
 				}
-				finally
-				{
-					if (Boolean.TRUE.equals(saveFirst))
-					{
+				finally {
+					if (Boolean.TRUE.equals(saveFirst)) {
 						firstLatch.countDown();
 					}
 					latch.countDown();
-					try
-					{
+					try {
 						preCleanupBarrier.await();
 					}
-					catch (Throwable e)
-					{
+					catch (Throwable e) {
 						throw RuntimeExceptionUtil.mask(e);
 					}
-					if (configureSecurityContext)
-					{
+					if (configureSecurityContext) {
 						ISecurityContext context = securityContextHolder.getCreateContext();
 						context.setAuthentication(null);
 						context.setAuthorization(null);
 					}
-					beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
+					beanContext.getService(IEventDispatcher.class)
+							.dispatchEvent(ClearAllCachesEvent.getInstance());
 					beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
 				}
 			}
 		});
-		Thread deletingThread = new Thread(new Runnable()
-		{
+		Thread deletingThread = new Thread(new Runnable() {
 			@Override
-			public void run()
-			{
+			public void run() {
 				final boolean configureSecurityContext = authentication != null || authorization != null;
-				try
-				{
-					cacheContext.executeWithCache(cacheProvider, new IResultingBackgroundWorkerDelegate<Object>()
-					{
-						@Override
-						public Object invoke() throws Throwable
-						{
-							if (configureSecurityContext)
-							{
-								ISecurityContext context = securityContextHolder.getCreateContext();
-								context.setAuthentication(authentication);
-								context.setAuthorization(authorization);
-							}
-							securityScopeProvider.setSecurityScopes(securityScopes);
+				try {
+					cacheContext.executeWithCache(cacheProvider,
+							new IResultingBackgroundWorkerDelegate<Object>() {
+								@Override
+								public Object invoke() throws Throwable {
+									if (configureSecurityContext) {
+										ISecurityContext context = securityContextHolder.getCreateContext();
+										context.setAuthentication(authentication);
+										context.setAuthorization(authorization);
+									}
+									securityScopeProvider.setSecurityScopes(securityScopes);
 
-							List<Employee> employees = employeeService.getAll();
+									List<Employee> employees = employeeService.getAll();
 
-							barrier1.await();
+									barrier1.await();
 
-							if (Boolean.TRUE.equals(saveFirst))
-							{
-								firstLatch.await();
-							}
-							employeeService.delete(employees);
+									if (Boolean.TRUE.equals(saveFirst)) {
+										firstLatch.await();
+									}
+									employeeService.delete(employees);
 
-							for (Employee employee : employees)
-							{
-								assertTrue(0 == employee.getId());
-								assertTrue(0 == employee.getVersion());
-								Address primaryAddress = employee.getPrimaryAddress();
-								if (primaryAddress != null)
-								{
-									assertTrue(0 == primaryAddress.getId());
+									for (Employee employee : employees) {
+										assertTrue(0 == employee.getId());
+										assertTrue(0 == employee.getVersion());
+										Address primaryAddress = employee.getPrimaryAddress();
+										if (primaryAddress != null) {
+											assertTrue(0 == primaryAddress.getId());
+										}
+									}
+									return null;
 								}
-							}
-							return null;
-						}
-					});
+							});
 				}
-				catch (Throwable e)
-				{
-					if (exceptionHolder.getValue() == null)
-					{
+				catch (Throwable e) {
+					if (exceptionHolder.getValue() == null) {
 						exceptionHolder.setValue(e);
 					}
 					Thread.interrupted();
 					barrier1.reset();
 				}
-				finally
-				{
-					if (Boolean.FALSE.equals(saveFirst))
-					{
+				finally {
+					if (Boolean.FALSE.equals(saveFirst)) {
 						firstLatch.countDown();
 					}
 					latch.countDown();
-					try
-					{
+					try {
 						preCleanupBarrier.await();
 					}
-					catch (Throwable e)
-					{
+					catch (Throwable e) {
 						throw RuntimeExceptionUtil.mask(e);
 					}
-					if (configureSecurityContext)
-					{
+					if (configureSecurityContext) {
 						ISecurityContext context = securityContextHolder.getCreateContext();
 						context.setAuthentication(null);
 						context.setAuthorization(null);
 					}
-					beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
+					beanContext.getService(IEventDispatcher.class)
+							.dispatchEvent(ClearAllCachesEvent.getInstance());
 					beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
 
 				}
@@ -737,29 +679,24 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 		deletingThreadHolder.setValue(deletingThread);
 		savingThread.start();
 		deletingThread.start();
-		try
-		{
-			if (!latch.await(30, TimeUnit.SECONDS))
-			{
+		try {
+			if (!latch.await(30, TimeUnit.SECONDS)) {
 				exceptionHolder.setValue(new TimeoutException("No response after 30 seconds"));
 			}
 			latch.await();
 			savingThreadHolder.getValue().interrupt();
 			deletingThreadHolder.getValue().interrupt();
-			if (exceptionHolder.getValue() != null)
-			{
+			if (exceptionHolder.getValue() != null) {
 				throw exceptionHolder.getValue();
 			}
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Test
-	public void testOptimisticLockWithUpdatedCascadeDelete()
-	{
+	public void testOptimisticLockWithUpdatedCascadeDelete() {
 		Employee employee = cache.getObject(Employee.class, 1);
 		Boat boat = employee.getBoat();
 
@@ -771,8 +708,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testListOfStrings()
-	{
+	public void testListOfStrings() {
 		Employee employee = cache.getObject(Employee.class, 1);
 		employee.getNicknames().add("nick1");
 		employee.getNicknames().add("nick2");

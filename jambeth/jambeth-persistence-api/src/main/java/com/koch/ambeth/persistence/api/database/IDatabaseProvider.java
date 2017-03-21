@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.persistence.api.IDatabase;
 
-public interface IDatabaseProvider
-{
+public interface IDatabaseProvider {
 	ThreadLocal<IDatabase> getDatabaseLocal();
 
 	IDatabase tryGetInstance();

@@ -55,8 +55,7 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 
-public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExtendable
-{
+public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExtendable {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -79,10 +78,11 @@ public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExt
 	@Autowired
 	protected IServiceContext serviceContext;
 
-	protected final DefaultExtendableContainer<IDatabaseMapper> databaseMappers = new DefaultExtendableContainer<IDatabaseMapper>(IDatabaseMapper.class,
-			"databaseMapper");
+	protected final DefaultExtendableContainer<IDatabaseMapper> databaseMappers =
+			new DefaultExtendableContainer<>(IDatabaseMapper.class, "databaseMapper");
 
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaCacheActive, defaultValue = "false")
+	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaCacheActive,
+			defaultValue = "false")
 	protected boolean schemaCacheActive;
 
 	protected Class<?>[] additionalModules;
@@ -91,80 +91,65 @@ public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExt
 
 	protected transient boolean firstInstance = true;
 
-	public void setAdditionalModules(Class<?>[] additionalModules)
-	{
+	public void setAdditionalModules(Class<?>[] additionalModules) {
 		this.additionalModules = additionalModules;
 	}
 
 	@Override
-	public void registerDatabaseMapper(IDatabaseMapper databaseMapper)
-	{
+	public void registerDatabaseMapper(IDatabaseMapper databaseMapper) {
 		databaseMappers.register(databaseMapper);
 	}
 
 	@Override
-	public void unregisterDatabaseMapper(IDatabaseMapper databaseMapper)
-	{
+	public void unregisterDatabaseMapper(IDatabaseMapper databaseMapper) {
 		databaseMappers.unregister(databaseMapper);
 	}
 
 	@Override
-	public void activate(IDatabase database)
-	{
+	public void activate(IDatabase database) {
 		Connection connection = database.getAutowiredBeanInContext(Connection.class);
 
 		connectionFactory.create(connection);
 	}
 
 	@Override
-	public void passivate(IDatabase database)
-	{
+	public void passivate(IDatabase database) {
 		Connection connection = database.getAutowiredBeanInContext(Connection.class);
-		try
-		{
+		try {
 			connection.close();
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	public IDatabase createDatabaseInstance(final IDatabasePool pool)
-	{
+	public IDatabase createDatabaseInstance(final IDatabasePool pool) {
 		Connection conn = null;
 		boolean success = false;
-		try
-		{
+		try {
 			conn = connectionFactory.create();
 
 			writeLock.lock();
-			try
-			{
-				if (firstInstance)
-				{
+			try {
+				if (firstInstance) {
 					firstInstance = false;
 
 					IConnectionHolder connectionHolder = this.connectionHolder;
 					Connection oldConnection = connectionHolder.getConnection();
-					if (oldConnection != null)
-					{
+					if (oldConnection != null) {
 						connectionHolder.setConnection(null);
 					}
-					try
-					{
+					try {
 						connectionHolder.setConnection(conn);
 						((JDBCDatabaseMetaData) databaseMetaData).init(conn);
 					}
-					finally
-					{
+					finally {
 						connectionHolder.setConnection(oldConnection);
 					}
 				}
 			}
-			finally
-			{
+			finally {
 				writeLock.unlock();
 			}
 			final Connection fConn = conn;
@@ -172,53 +157,49 @@ public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExt
 			IServiceContext childService;
 			IConnectionHolder connectionHolder = this.connectionHolder;
 			Connection oldConnection = connectionHolder.getConnection();
-			if (oldConnection != null)
-			{
+			if (oldConnection != null) {
 				connectionHolder.setConnection(null);
 			}
-			try
-			{
+			try {
 				connectionHolder.setConnection(conn);
-				childService = serviceContext.createService("jdbc-session", new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
-				{
-					@Override
-					public void invoke(IBeanContextFactory confSP) throws Throwable
-					{
-						confSP.registerExternalBean(pool).autowireable(IDatabasePool.class);
-						confSP.registerExternalBean(fConn).autowireable(Connection.class);
-						confSP.registerAutowireableBean(IModifyingDatabase.class, ModifyingDatabase.class);
-						confSP.registerAutowireableBean(IAlreadyLinkedCache.class, AlreadyLinkedCache.class);
+				childService = serviceContext.createService("jdbc-session",
+						new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
+							@Override
+							public void invoke(IBeanContextFactory confSP) throws Throwable {
+								confSP.registerExternalBean(pool).autowireable(IDatabasePool.class);
+								confSP.registerExternalBean(fConn).autowireable(Connection.class);
+								confSP.registerAutowireableBean(IModifyingDatabase.class, ModifyingDatabase.class);
+								confSP.registerAutowireableBean(IAlreadyLinkedCache.class,
+										AlreadyLinkedCache.class);
 
-						IBeanConfiguration contextProviderBC = confSP.registerAutowireableBean(IContextProvider.class, ContextProvider.class);
-						confSP.link(contextProviderBC).to(IAuthorizationChangeListenerExtendable.class);
+								IBeanConfiguration contextProviderBC =
+										confSP.registerAutowireableBean(IContextProvider.class, ContextProvider.class);
+								confSP.link(contextProviderBC).to(IAuthorizationChangeListenerExtendable.class);
 
-						if (!fConn.isWrapperFor(IPreparedConnectionHolder.class) || !fConn.unwrap(IPreparedConnectionHolder.class).isPreparedConnection())
-						{
-							confSP.registerBean(ConnectionShutdownBean.class);
-						}
-						confSP.registerExternalBean(databaseProvider).autowireable(IDatabaseProvider.class);
+								if (!fConn.isWrapperFor(IPreparedConnectionHolder.class)
+										|| !fConn.unwrap(IPreparedConnectionHolder.class).isPreparedConnection()) {
+									confSP.registerBean(ConnectionShutdownBean.class);
+								}
+								confSP.registerExternalBean(databaseProvider).autowireable(IDatabaseProvider.class);
 
-						confSP.registerBean("database", JDBCDatabaseWrapper.class)//
-								.autowireable(IDatabase.class);
+								confSP.registerBean("database", JDBCDatabaseWrapper.class)//
+										.autowireable(IDatabase.class);
 
-						if (additionalModules != null)
-						{
-							for (int a = additionalModules.length; a-- > 0;)
-							{
-								confSP.registerBean(additionalModules[a]);
+								if (additionalModules != null) {
+									for (int a = additionalModules.length; a-- > 0;) {
+										confSP.registerBean(additionalModules[a]);
+									}
+								}
 							}
-						}
-					}
-				});
+						});
 				success = true;
 			}
-			finally
-			{
+			finally {
 				connectionHolder.setConnection(oldConnection);
 			}
-			// Re-bind the LCI to the child context. This is to allow bean injection to subsequently created LogStatements from the child context
-			if (conn.isWrapperFor(IBeanContextAware.class))
-			{
+			// Re-bind the LCI to the child context. This is to allow bean injection to subsequently
+			// created LogStatements from the child context
+			if (conn.isWrapperFor(IBeanContextAware.class)) {
 				conn.unwrap(IBeanContextAware.class).setBeanContext(childService);
 			}
 			IDatabase database = childService.getService(IDatabase.class);
@@ -233,14 +214,11 @@ public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExt
 			success = true;
 			return database;
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
-			if (!success && conn != null)
-			{
+		finally {
+			if (!success && conn != null) {
 				JdbcUtil.close(conn);
 			}
 		}

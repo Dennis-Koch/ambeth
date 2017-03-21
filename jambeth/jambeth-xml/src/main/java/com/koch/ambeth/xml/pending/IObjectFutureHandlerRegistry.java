@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IObjectFutureHandlerRegistry
-{
+public interface IObjectFutureHandlerRegistry {
 	IObjectFutureHandler getObjectFutureHandler(Class<?> type);
 }

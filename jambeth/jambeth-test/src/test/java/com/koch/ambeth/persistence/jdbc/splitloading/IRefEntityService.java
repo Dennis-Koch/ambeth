@@ -22,7 +22,6 @@ limitations under the License.
 
 import java.util.List;
 
-public interface IRefEntityService
-{
+public interface IRefEntityService {
 	void save(List<RefEntity> entities);
 }

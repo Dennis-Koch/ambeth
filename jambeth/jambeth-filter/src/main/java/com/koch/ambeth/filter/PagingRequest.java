@@ -27,8 +27,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlType
 @XmlAccessorType(XmlAccessType.FIELD)
-public class PagingRequest implements IPagingRequest
-{
+public class PagingRequest implements IPagingRequest {
 	@XmlElement(name = "Number", required = true)
 	protected int number;
 
@@ -36,53 +35,45 @@ public class PagingRequest implements IPagingRequest
 	protected int size;
 
 	@Override
-	public int getNumber()
-	{
+	public int getNumber() {
 		return number;
 	}
 
 	/**
 	 * 0 based paging index.
-	 * 
+	 *
 	 * @param number
 	 */
-	public void setNumber(int number)
-	{
+	public void setNumber(int number) {
 		this.number = number;
 	}
 
 	/**
 	 * 0 based paging index.
-	 * 
+	 *
 	 * @param number
 	 */
-	public PagingRequest withNumber(int number)
-	{
+	public PagingRequest withNumber(int number) {
 		setNumber(number);
 		return this;
 	}
 
 	@Override
-	public int getSize()
-	{
+	public int getSize() {
 		return size;
 	}
 
 	/**
-	 * @param size
-	 *            Max. item count per page
+	 * @param size Max. item count per page
 	 */
-	public void setSize(int size)
-	{
+	public void setSize(int size) {
 		this.size = size;
 	}
 
 	/**
-	 * @param size
-	 *            Max. item count per page
+	 * @param size Max. item count per page
 	 */
-	public PagingRequest withSize(int size)
-	{
+	public PagingRequest withSize(int size) {
 		setSize(size);
 		return this;
 	}

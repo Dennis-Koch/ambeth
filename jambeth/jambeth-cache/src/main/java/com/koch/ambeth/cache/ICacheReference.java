@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ICacheReference
-{
+public interface ICacheReference {
 	Class<?> getEntityType();
 
 	Object getId();

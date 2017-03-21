@@ -21,9 +21,10 @@ limitations under the License.
  */
 
 
-public interface IPasswordValidationExtendable
-{
-	void registerPasswordValidationExtension(IPasswordValidationExtension passwordValidationExtension);
+public interface IPasswordValidationExtendable {
+	void registerPasswordValidationExtension(
+			IPasswordValidationExtension passwordValidationExtension);
 
-	void unregisterPasswordValidationExtension(IPasswordValidationExtension passwordValidationExtension);
+	void unregisterPasswordValidationExtension(
+			IPasswordValidationExtension passwordValidationExtension);
 }

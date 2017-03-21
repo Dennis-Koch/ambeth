@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IXmlTypeExtendable
-{
+public interface IXmlTypeExtendable {
 	void registerXmlType(Class<?> type, String name, String namespace);
 
 	void unregisterXmlType(Class<?> type, String name, String namespace);

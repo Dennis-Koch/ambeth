@@ -25,34 +25,28 @@ import javax.persistence.Embeddable;
 import com.koch.ambeth.model.AbstractEntity;
 
 @Embeddable
-public class TestEmbeddedType extends AbstractEntity
-{
+public class TestEmbeddedType extends AbstractEntity {
 	protected String name;
 
 	protected int value;
 
-	protected TestEmbeddedType()
-	{
+	protected TestEmbeddedType() {
 		// Intended blank
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public int getValue()
-	{
+	public int getValue() {
 		return value;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public void setValue(int value)
-	{
+	public void setValue(int value) {
 		this.value = value;
 	}
 }

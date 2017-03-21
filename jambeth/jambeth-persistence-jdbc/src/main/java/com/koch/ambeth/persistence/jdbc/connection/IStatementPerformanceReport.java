@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IStatementPerformanceReport
-{
+public interface IStatementPerformanceReport {
 	void reset();
 
 	long getOverallDuration(boolean reset);

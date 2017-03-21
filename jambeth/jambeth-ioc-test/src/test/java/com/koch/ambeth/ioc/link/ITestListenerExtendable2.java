@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ITestListenerExtendable2
-{
+public interface ITestListenerExtendable2 {
 	void registerTestListener(ITestListener testListener);
 
 	void unregisterTestListener(ITestListener testListener);

@@ -31,17 +31,14 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class DotToImage implements IDotToImage
-{
+public class DotToImage implements IDotToImage {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public void writeImageFile(File dotFile)
-	{
-		try
-		{
+	public void writeImageFile(File dotFile) {
+		try {
 			String targetType = "png";
 
 			Pattern fileNamePattern = Pattern.compile("(.*)\\.dot");
@@ -49,12 +46,10 @@ public class DotToImage implements IDotToImage
 			Matcher fileNameMatcher = fileNamePattern.matcher(dotFile.getName());
 
 			File targetFile;
-			if (fileNameMatcher.matches())
-			{
+			if (fileNameMatcher.matches()) {
 				targetFile = new File(dotFile.getParentFile(), fileNameMatcher.group(1) + "." + targetType);
 			}
-			else
-			{
+			else {
 				targetFile = new File(dotFile.getParentFile(), dotFile.getName() + "." + targetType);
 			}
 			File exeDir = new File("C:/dev/graphviz-2.38/bin");
@@ -65,30 +60,26 @@ public class DotToImage implements IDotToImage
 
 			String esc = "\"\"";
 			ProcessBuilder pb = new ProcessBuilder("cmd", "/c", //
-					exeFile.getPath() + " -T" + targetType + " " + esc + dotFile.getPath() + esc + " > " + esc + targetFile.getPath() + esc);
+					exeFile.getPath() + " -T" + targetType + " " + esc + dotFile.getPath() + esc + " > " + esc
+							+ targetFile.getPath() + esc);
 			pb.directory(targetFile.getParentFile());
 			Process mvn = pb.start();
 			StringBuilder sb = new StringBuilder();
 			BufferedReader is = new BufferedReader(new InputStreamReader(mvn.getInputStream()));
 			{
 				String line;
-				while ((line = is.readLine()) != null)
-				{
-					if (!line.startsWith("[ERROR"))
-					{
+				while ((line = is.readLine()) != null) {
+					if (!line.startsWith("[ERROR")) {
 						continue;
 					}
-					if (sb.length() > 0)
-					{
+					if (sb.length() > 0) {
 						sb.append('\n');
 					}
 					sb.append(line);
 				}
 				is = new BufferedReader(new InputStreamReader(mvn.getErrorStream()));
-				while ((line = is.readLine()) != null)
-				{
-					if (sb.length() > 0)
-					{
+				while ((line = is.readLine()) != null) {
+					if (sb.length() > 0) {
 						sb.append('\n');
 					}
 					sb.append(line);
@@ -96,18 +87,14 @@ public class DotToImage implements IDotToImage
 			}
 			mvn.waitFor();
 
-			if (sb.length() > 0)
-			{
+			if (sb.length() > 0) {
 				BufferedReader reader = new BufferedReader(new FileReader(dotFile));
-				try
-				{
+				try {
 					StringBuilder fileOutputSb = new StringBuilder();
 					int lineIndex = 1;
 					String line;
-					while ((line = reader.readLine()) != null)
-					{
-						if (lineIndex > 1)
-						{
+					while ((line = reader.readLine()) != null) {
+						if (lineIndex > 1) {
 							fileOutputSb.append('\n');
 						}
 						fileOutputSb.append(lineIndex + "\t ").append(line);
@@ -116,14 +103,12 @@ public class DotToImage implements IDotToImage
 
 					log.info(sb + "\n" + fileOutputSb);
 				}
-				finally
-				{
+				finally {
 					reader.close();
 				}
 			}
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 

@@ -24,20 +24,17 @@ import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 
-public class CleanupAfterIoc implements ICleanupAfter, IDisposableBean
-{
+public class CleanupAfterIoc implements ICleanupAfter, IDisposableBean {
 	@Autowired
 	protected IThreadLocalCleanupController threadLocalCleanupController;
 
 	@Override
-	public void destroy() throws Throwable
-	{
+	public void destroy() throws Throwable {
 		cleanup();
 	}
 
 	@Override
-	public void cleanup()
-	{
+	public void cleanup() {
 		threadLocalCleanupController.cleanupThreadLocal();
 	}
 }

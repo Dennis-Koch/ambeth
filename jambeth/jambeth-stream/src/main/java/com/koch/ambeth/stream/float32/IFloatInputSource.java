@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.stream.IInputSource;
 
-public interface IFloatInputSource extends IInputSource
-{
+public interface IFloatInputSource extends IInputSource {
 	IFloatInputStream deriveFloatInputStream();
 }

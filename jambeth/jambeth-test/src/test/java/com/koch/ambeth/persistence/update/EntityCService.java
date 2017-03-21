@@ -28,20 +28,17 @@ import com.koch.ambeth.service.proxy.Service;
 
 @Service(EntityCService.class)
 @PersistenceContext
-public class EntityCService implements IEntityCService, IInitializingBean
-{
+public class EntityCService implements IEntityCService, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance(EntityCService.class)
 	private ILogger log;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 	}
 
 	@Override
-	public void save(EntityC entity)
-	{
+	public void save(EntityC entity) {
 		throw new UnsupportedOperationException();
 	}
 }

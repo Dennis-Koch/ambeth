@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IOrmPatternMatcher
-{
+public interface IOrmPatternMatcher {
 	boolean matchesSequencePattern(String potentialSequenceName);
 
 	boolean matchesFieldPattern(String potentialFieldName);

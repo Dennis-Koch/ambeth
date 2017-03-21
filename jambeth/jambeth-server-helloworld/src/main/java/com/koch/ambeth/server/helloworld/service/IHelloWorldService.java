@@ -36,10 +36,10 @@ import com.koch.ambeth.util.annotation.Remove;
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface IHelloWorldService
-{
+public interface IHelloWorldService {
 	@Find(entityType = TestEntity.class)
-	IPagingResponse<TestEntity> findTestEntities(IFilterDescriptor<TestEntity> filterDescriptor, ISortDescriptor[] sortDescriptors, IPagingRequest pagingRequest);
+	IPagingResponse<TestEntity> findTestEntities(IFilterDescriptor<TestEntity> filterDescriptor,
+			ISortDescriptor[] sortDescriptors, IPagingRequest pagingRequest);
 
 	@Process
 	void forbiddenMethod();

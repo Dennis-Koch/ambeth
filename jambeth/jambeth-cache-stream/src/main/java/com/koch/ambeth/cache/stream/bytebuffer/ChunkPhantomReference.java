@@ -24,18 +24,16 @@ import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
 import java.nio.ByteBuffer;
 
-public class ChunkPhantomReference extends PhantomReference<ByteBuffer>
-{
+public class ChunkPhantomReference extends PhantomReference<ByteBuffer> {
 	private final ChunkKey chunkKey;
 
-	public ChunkPhantomReference(ByteBuffer referent, ReferenceQueue<? super ByteBuffer> q, ChunkKey chunkKey)
-	{
+	public ChunkPhantomReference(ByteBuffer referent, ReferenceQueue<? super ByteBuffer> q,
+			ChunkKey chunkKey) {
 		super(referent, q);
 		this.chunkKey = chunkKey;
 	}
 
-	public ChunkKey getChunkKey()
-	{
+	public ChunkKey getChunkKey() {
 		return chunkKey;
 	}
 }

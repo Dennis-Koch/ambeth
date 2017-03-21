@@ -96,14 +96,14 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 	@LogInstance
 	private ILogger log;
 
-	protected static final HashSet<Class<?>> primitiveSet = new HashSet<Class<?>>(0.5f);
+	protected static final HashSet<Class<?>> primitiveSet = new HashSet<>(0.5f);
 
 	protected static final IdentityHashMap<PrecedenceType, Integer> precedenceOrder =
-			new IdentityHashMap<PrecedenceType, Integer>(0.5f);
+			new IdentityHashMap<>(0.5f);
 
 	// Intentionally no SensitiveThreadLocal. Usage will alLways be cleaned up immediately
 	protected static final ThreadLocal<BeanContextInit> currentBeanContextInitTL =
-			new ThreadLocal<BeanContextInit>();
+			new ThreadLocal<>();
 
 	static {
 		ImmutableTypeSet.addImmutableTypesTo(primitiveSet);
@@ -186,15 +186,15 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			return;
 		}
 		IdentityLinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap =
-				new IdentityLinkedMap<Object, IBeanConfiguration>();
+				new IdentityLinkedMap<>();
 		IdentityHashMap<Object, IBeanConfiguration> objectToHandledBeanConfigurationMap =
-				new IdentityHashMap<Object, IBeanConfiguration>();
+				new IdentityHashMap<>();
 		LinkedHashMap<String, IBeanConfiguration> nameToBeanConfigurationMap =
-				new LinkedHashMap<String, IBeanConfiguration>();
-		IdentityLinkedSet<Object> allLifeCycledBeansSet = new IdentityLinkedSet<Object>();
+				new LinkedHashMap<>();
+		IdentityLinkedSet<Object> allLifeCycledBeansSet = new IdentityLinkedSet<>();
 		IdentityHashSet<IBeanConfiguration> alreadyHandledConfigsSet =
-				new IdentityHashSet<IBeanConfiguration>();
-		ArrayList<Object> initializedOrdering = new ArrayList<Object>();
+				new IdentityHashSet<>();
+		ArrayList<Object> initializedOrdering = new ArrayList<>();
 		BeanContextInit beanContextInit = new BeanContextInit();
 		BeanContextInit oldBeanContextInit = currentBeanContextInitTL.get();
 		try {
@@ -363,7 +363,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			// JMX not activated
 			return;
 		}
-		final List<ObjectName> mBeans = new ArrayList<ObjectName>();
+		final List<ObjectName> mBeans = new ArrayList<>();
 		boolean success = false;
 		try {
 			StringBuilder beanContextName = convertBeanContextName(beanContext.getName());
@@ -445,7 +445,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 				if (alreadyHandledConfigsSet.contains(beanConfiguration)) {
 					continue;
 				}
-				List<IBeanConfiguration> hierarchy = new ArrayList<IBeanConfiguration>();
+				List<IBeanConfiguration> hierarchy = new ArrayList<>();
 				String missingBeanName =
 						fillParentHierarchyIfValid(beanContextInit, beanConfiguration, hierarchy);
 
@@ -611,9 +611,9 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			currentBeanContextInit.beanContextFactory = beanContextFactory;
 			currentBeanContextInit.properties = beanContext.getService(Properties.class);
 			currentBeanContextInit.objectToBeanConfigurationMap =
-					new IdentityLinkedMap<Object, IBeanConfiguration>();
+					new IdentityLinkedMap<>();
 			currentBeanContextInit.objectToHandledBeanConfigurationMap =
-					new IdentityHashMap<Object, IBeanConfiguration>();
+					new IdentityHashMap<>();
 		}
 		initializeBean(currentBeanContextInit, beanConfiguration, bean, beanConfHierarchy,
 				joinLifecycle);
@@ -635,7 +635,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		beanContextInit.objectToHandledBeanConfigurationMap.put(bean, beanConfiguration);
 		ILinkedSet<Object> allLifeCycledBeansSet = beanContextInit.allLifeCycledBeansSet;
 
-		ArrayList<IBeanConfiguration> beanConfHierarchy = new ArrayList<IBeanConfiguration>(3);
+		ArrayList<IBeanConfiguration> beanConfHierarchy = new ArrayList<>(3);
 		if (fillParentHierarchyIfValid(beanContextInit, beanConfiguration, beanConfHierarchy) != null) {
 			throw maskBeanBasedException("Must never happen at this point", beanConfiguration, null);
 		}
@@ -657,8 +657,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		List<IBeanPreProcessor> preProcessors = beanContext.getPreProcessors();
 
 		ArrayList<IPropertyConfiguration> propertyConfigurations =
-				new ArrayList<IPropertyConfiguration>();
-		HashSet<String> alreadySpecifiedPropertyNamesSet = new HashSet<String>();
+				new ArrayList<>();
+		HashSet<String> alreadySpecifiedPropertyNamesSet = new HashSet<>();
 
 		try {
 			Class<?> beanType = resolveTypeInHierarchy(beanConfHierarchy);
@@ -727,7 +727,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 				beanType = bean.getClass();
 			}
 			else {
-				ArrayList<IBeanConfiguration> beanConfHierarchy = new ArrayList<IBeanConfiguration>();
+				ArrayList<IBeanConfiguration> beanConfHierarchy = new ArrayList<>();
 				fillParentHierarchyIfValid(beanContextInit, beanConfiguration, beanConfHierarchy);
 				beanType = resolveTypeInHierarchy(beanConfHierarchy);
 			}
@@ -1061,13 +1061,13 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap =
 				beanContextInit.objectToBeanConfigurationMap;
 
-		HashMap<Integer, OrderState> orderToHighBeanConfigurations = new HashMap<Integer, OrderState>();
-		HashMap<Integer, OrderState> orderToLowBeanConfigurations = new HashMap<Integer, OrderState>();
+		HashMap<Integer, OrderState> orderToHighBeanConfigurations = new HashMap<>();
+		HashMap<Integer, OrderState> orderToLowBeanConfigurations = new HashMap<>();
 
 		sortBeanConfigurations(beanContextInit, beanConfigurations, alreadyHandledConfigsSet,
 				orderToHighBeanConfigurations, orderToLowBeanConfigurations, highPriorityOnly);
 
-		ArrayList<IBeanConfiguration> beanConfHierarchy = new ArrayList<IBeanConfiguration>();
+		ArrayList<IBeanConfiguration> beanConfHierarchy = new ArrayList<>();
 
 		boolean atLeastOneHandled = true;
 		while (atLeastOneHandled) {
@@ -1172,7 +1172,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		if (postProcessors == null) {
 			return bean;
 		}
-		HashSet<Class<?>> allAutowireableTypes = new HashSet<Class<?>>();
+		HashSet<Class<?>> allAutowireableTypes = new HashSet<>();
 		resolveAllAutowireableInterfacesInHierarchy(beanConfHierarchy, allAutowireableTypes);
 
 		Class<?>[] allInterfaces = bean.getClass().getInterfaces();
@@ -1209,7 +1209,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			List<IBeanConfiguration> beanConfigurations, Set<IBeanConfiguration> alreadyHandledConfigsSet,
 			Map<Integer, OrderState> orderToHighBeanConfigurations,
 			Map<Integer, OrderState> orderToLowBeanConfigurations, boolean highPriorityOnly) {
-		ArrayList<IBeanConfiguration> beanConfHierarchy = new ArrayList<IBeanConfiguration>();
+		ArrayList<IBeanConfiguration> beanConfHierarchy = new ArrayList<>();
 		for (int a = 0, size = beanConfigurations.size(); a < size; a++) {
 			IBeanConfiguration beanConfiguration = beanConfigurations.get(a);
 			if (alreadyHandledConfigsSet.contains(beanConfiguration)) {
@@ -1253,7 +1253,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 	protected BeanConfigState resolveNextPrecedenceBean(BeanContextInit beanContextInit,
 			Map<Integer, OrderState> orderToHighBeanConfigurations,
 			Map<Integer, OrderState> orderToLowBeanConfigurations, boolean highPriorityOnly) {
-		ArrayList<Integer> orders = new ArrayList<Integer>(orderToHighBeanConfigurations.keySet());
+		ArrayList<Integer> orders = new ArrayList<>(orderToHighBeanConfigurations.keySet());
 		Collections.sort(orders);
 		for (int a = 0, size = orders.size(); a < size; a++) {
 			OrderState list = orderToHighBeanConfigurations.get(orders.get(a));
@@ -1262,7 +1262,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 				return beanConfigState;
 			}
 		}
-		orders = new ArrayList<Integer>(orderToLowBeanConfigurations.keySet());
+		orders = new ArrayList<>(orderToLowBeanConfigurations.keySet());
 		Collections.sort(orders);
 		for (int a = 0, size = orders.size(); a < size; a++) {
 			OrderState list = orderToLowBeanConfigurations.get(orders.get(a));
@@ -1282,7 +1282,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		beanContextInit.beanContextFactory = beanContextFactory;
 		beanContextInit.properties = beanContext.getService(Properties.class);
 
-		ArrayList<IBeanConfiguration> beanConfHierarchy = new ArrayList<IBeanConfiguration>();
+		ArrayList<IBeanConfiguration> beanConfHierarchy = new ArrayList<>();
 		String missingBeanName =
 				fillParentHierarchyIfValid(beanContextInit, beanConfiguration, beanConfHierarchy);
 		if (missingBeanName == null) {
@@ -1378,7 +1378,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 					ignoredPropertyName = uppercaseFirst;
 				}
 				if (ignoredProperties == null) {
-					ignoredProperties = new HashSet<String>();
+					ignoredProperties = new HashSet<>();
 				}
 				ignoredProperties.add(ignoredPropertyName);
 			}

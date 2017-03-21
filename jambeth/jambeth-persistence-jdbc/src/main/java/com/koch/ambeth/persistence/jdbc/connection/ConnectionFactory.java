@@ -34,8 +34,7 @@ import com.koch.ambeth.persistence.jdbc.JdbcUtil;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class ConnectionFactory extends AbstractConnectionFactory
-{
+public class ConnectionFactory extends AbstractConnectionFactory {
 	@LogInstance
 	private ILogger log;
 
@@ -52,55 +51,45 @@ public class ConnectionFactory extends AbstractConnectionFactory
 	protected int tryCount;
 
 	@Override
-	protected Connection createIntern() throws Exception
-	{
+	protected Connection createIntern() throws Exception {
 		String connectionUrl = databaseConnectionUrlProvider.getConnectionUrl();
-		try
-		{
-			if (log.isInfoEnabled())
-			{
-				log.info("Creating jdbc connection to '" + connectionUrl + "' with user='" + userName + "'");
+		try {
+			if (log.isInfoEnabled()) {
+				log.info(
+						"Creating jdbc connection to '" + connectionUrl + "' with user='" + userName + "'");
 			}
 			boolean success = false;
 			Connection connection = DriverManager.getConnection(connectionUrl, userName, userPass);
-			try
-			{
-				if (log.isDebugEnabled())
-				{
+			try {
+				if (log.isDebugEnabled()) {
 					log.debug("[" + System.identityHashCode(connection) + "] created connection");
 				}
 				DatabaseMetaData dbmd = connection.getMetaData();
-				if (dbmd.supportsTransactionIsolationLevel(Connection.TRANSACTION_REPEATABLE_READ))
-				{
+				if (dbmd.supportsTransactionIsolationLevel(Connection.TRANSACTION_REPEATABLE_READ)) {
 					connection.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
 				}
-				else if (dbmd.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED))
-				{
+				else if (dbmd.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED)) {
 					connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
 				}
-				else if (dbmd.supportsTransactionIsolationLevel(Connection.TRANSACTION_SERIALIZABLE))
-				{
+				else if (dbmd.supportsTransactionIsolationLevel(Connection.TRANSACTION_SERIALIZABLE)) {
 					connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 				}
-				else
-				{
+				else {
 					throw new PersistenceException(
 							"At least READ_COMMITTED it required from a JDBC database provider as a supported transaction isolation level");
 				}
 				success = true;
 				return connection;
 			}
-			finally
-			{
-				if (!success)
-				{
+			finally {
+				if (!success) {
 					JdbcUtil.close(connection);
 				}
 			}
 		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e, "Error occured while connecting to '" + connectionUrl + "' with user='" + userName + "'");
+		catch (Throwable e) {
+			throw RuntimeExceptionUtil.mask(e,
+					"Error occured while connecting to '" + connectionUrl + "' with user='" + userName + "'");
 		}
 	}
 }

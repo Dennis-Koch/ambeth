@@ -22,13 +22,14 @@ limitations under the License.
 
 import com.koch.ambeth.security.model.IPBEConfiguration;
 
-public interface IPBEncryptor
-{
+public interface IPBEncryptor {
 	byte[] doPaddingForPassword(IPBEConfiguration pbeConfiguration, char[] clearTextPassword);
 
-	byte[] decrypt(IPBEConfiguration pbeConfiguration, char[] clearTextPassword, byte[] dataToDecrypt);
+	byte[] decrypt(IPBEConfiguration pbeConfiguration, char[] clearTextPassword,
+			byte[] dataToDecrypt);
 
-	byte[] encrypt(IPBEConfiguration pbeConfiguration, boolean forceUseSalt, char[] clearTextPassword, byte[] dataToEncrypt);
+	byte[] encrypt(IPBEConfiguration pbeConfiguration, boolean forceUseSalt, char[] clearTextPassword,
+			byte[] dataToEncrypt);
 
 	boolean isReencryptionRecommended(IPBEConfiguration pbeConfiguration);
 }

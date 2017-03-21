@@ -31,9 +31,6 @@ import java.util.List;
 import org.junit.Test;
 
 import com.koch.ambeth.merge.cache.ICache;
-import com.koch.ambeth.query.IOperand;
-import com.koch.ambeth.query.IQuery;
-import com.koch.ambeth.query.IQueryBuilder;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import com.koch.ambeth.testutil.SQLData;
@@ -43,10 +40,13 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 
 @SQLData("PropertyQuery_data.sql")
 @SQLStructure("PropertyQuery_structure.sql")
-@TestPropertiesList({ @TestProperties(name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc.connection.LogPreparedStatementInterceptor", value = "DEBUG"),
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/query/Query_orm.xml") })
-public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest
-{
+@TestPropertiesList({
+		@TestProperties(
+				name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc.connection.LogPreparedStatementInterceptor",
+				value = "DEBUG"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+				value = "com/koch/ambeth/query/Query_orm.xml")})
+public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest {
 	protected static final String paramName1 = "param.1";
 	protected static final String paramName2 = "param.2";
 	protected static final String paramName3 = "param.3";
@@ -60,51 +60,49 @@ public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest
 	protected static final String propertyName6 = "LinkTableEntity.Id";
 	protected static final String propertyName7 = "Fk";
 
-	protected HashMap<Object, Object> nameToValueMap = new HashMap<Object, Object>();
+	protected HashMap<Object, Object> nameToValueMap = new HashMap<>();
 
 	protected IQueryBuilder<QueryEntity> qb;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 		qb = queryBuilderFactory.create(QueryEntity.class);
 		nameToValueMap.clear();
 	}
 
 	@Test
-	public void testSimpleQuery() throws Exception
-	{
+	public void testSimpleQuery() throws Exception {
 		List<Integer> expectedIds = Arrays.asList(2);
 
 		// Query used:
 		// SELECT "ID","VERSION" FROM "QUERY_ENTITY"
 		// WHERE ("ID"=2)
 
-		IQuery<QueryEntity> query = qb.build(qb.isEqualTo(qb.property(propertyName1), qb.value(expectedIds.get(0))));
+		IQuery<QueryEntity> query =
+				qb.build(qb.isEqualTo(qb.property(propertyName1), qb.value(expectedIds.get(0))));
 
 		List<QueryEntity> actual = query.retrieve();
 		assertSimilar(expectedIds, actual);
 	}
 
 	@Test
-	public void testSimpleQuery_Context() throws Exception
-	{
+	public void testSimpleQuery_Context() throws Exception {
 		List<Integer> expectedIds = Arrays.asList(2);
 
 		// Query used:
 		// SELECT "ID","VERSION" FROM "QUERY_ENTITY"
 		// WHERE ("ID"=2)
 
-		IQuery<QueryEntity> query = qb.build(qb.isEqualTo(qb.property(propertyName1), qb.value(expectedIds.get(0))));
+		IQuery<QueryEntity> query =
+				qb.build(qb.isEqualTo(qb.property(propertyName1), qb.value(expectedIds.get(0))));
 
 		List<QueryEntity> actual = query.retrieve();
 		assertSimilar(expectedIds, actual);
 	}
 
 	@Test
-	public void testPropertyOverLinkTable() throws Exception
-	{
+	public void testPropertyOverLinkTable() throws Exception {
 		// Query used:
 		// SELECT "ID","VERSION" FROM "QUERY_ENTITY"
 		// WHERE ("ID"=2)
@@ -120,8 +118,7 @@ public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testMidRangeQuery() throws Exception
-	{
+	public void testMidRangeQuery() throws Exception {
 		List<Integer> expectedIds = Arrays.asList(3, 4);
 
 		// Query used:
@@ -129,37 +126,35 @@ public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest
 		// WHERE ((("VERSION"=2) AND (("ID"<>1) AND ("ID"<>5))) OR ("ID"=4))
 
 		IOperand idProp = qb.property(propertyName1);
-		IQuery<QueryEntity> query = qb
-				.build(qb.or(
-						qb.and(qb.isEqualTo(qb.property(propertyName2), qb.value(2)),
-								qb.and(qb.isNotEqualTo(idProp, qb.value(1)), qb.isNotEqualTo(idProp, qb.value(5)))),
-						qb.isEqualTo(idProp, qb.value(expectedIds.get(1)))));
+		IQuery<QueryEntity> query =
+				qb.build(
+						qb.or(
+								qb.and(qb.isEqualTo(qb.property(propertyName2), qb.value(2)),
+										qb.and(qb.isNotEqualTo(idProp, qb.value(1)),
+												qb.isNotEqualTo(idProp, qb.value(5)))),
+								qb.isEqualTo(idProp, qb.value(expectedIds.get(1)))));
 
 		List<QueryEntity> actual = query.retrieve();
 		assertSimilar(expectedIds, actual);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testJoinQuery_notExistingProperty() throws Exception
-	{
+	public void testJoinQuery_notExistingProperty() throws Exception {
 		qb.property("Property");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testJoinQuery_notExistingProperty2() throws Exception
-	{
+	public void testJoinQuery_notExistingProperty2() throws Exception {
 		qb.property("OtherEntity.Property");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testJoinQuery_notExistingProperty3() throws Exception
-	{
+	public void testJoinQuery_notExistingProperty3() throws Exception {
 		qb.property("Fk.Property");
 	}
 
 	@Test
-	public void testJoinQuery() throws Exception
-	{
+	public void testJoinQuery() throws Exception {
 		List<Integer> expectedIds = Arrays.asList(1, 4);
 
 		// Query used:
@@ -167,7 +162,8 @@ public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest
 		// LEFT OUTER JOIN "JAMBETH"."JOIN_QUERY_ENTITY" J_A ON (S_A."FK"=J_A."ID")
 		// WHERE (J_A."CONTENT"=?)
 
-		IQuery<QueryEntity> query = qb.build(qb.isEqualTo(qb.property(propertyName3), qb.valueName(paramName1)));
+		IQuery<QueryEntity> query =
+				qb.build(qb.isEqualTo(qb.property(propertyName3), qb.valueName(paramName1)));
 
 		List<QueryEntity> actual = query.param(paramName1, 3).retrieve();
 		assertSimilar(expectedIds, actual);
@@ -179,8 +175,7 @@ public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testJoinQuery2() throws Exception
-	{
+	public void testJoinQuery2() throws Exception {
 		List<Integer> expectedIds = Arrays.asList(2);
 
 		// Query used:
@@ -189,7 +184,8 @@ public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest
 		// WHERE (((B."VERSION"=3) AND (B."ID"<>2)) OR (A."ID"=2))
 
 		IQuery<QueryEntity> query = qb.build(qb.or(
-				qb.and(qb.isEqualTo(qb.property(propertyName3), qb.value(3)), qb.isNotEqualTo(qb.property(propertyName4), qb.value(2))),
+				qb.and(qb.isEqualTo(qb.property(propertyName3), qb.value(3)),
+						qb.isNotEqualTo(qb.property(propertyName4), qb.value(2))),
 				qb.isEqualTo(qb.property(propertyName1), qb.value(2))));
 
 		List<QueryEntity> actual = query.retrieve();
@@ -197,8 +193,7 @@ public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testTwoJoinsQuery() throws Exception
-	{
+	public void testTwoJoinsQuery() throws Exception {
 		List<Integer> expectedIds = Arrays.asList(3);
 
 		// Query used:
@@ -214,8 +209,7 @@ public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testRelationByValue() throws Exception
-	{
+	public void testRelationByValue() throws Exception {
 		List<Integer> expectedIds = Arrays.asList(1, 4);
 
 		// Query used:
@@ -228,8 +222,7 @@ public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testRelationByEntity() throws Exception
-	{
+	public void testRelationByEntity() throws Exception {
 		List<Integer> expectedIds = Arrays.asList(1, 4);
 
 		// Query used:
@@ -243,23 +236,21 @@ public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testAndList()
-	{
+	public void testAndList() {
 		List<Integer> expectedIds = Arrays.asList(3);
 
-		IQuery<QueryEntity> query = qb.build(qb.and(qb.isEqualTo(qb.property("Version"), qb.value(2)), qb.isEqualTo(qb.property("Id"), qb.value(3)),
+		IQuery<QueryEntity> query = qb.build(qb.and(qb.isEqualTo(qb.property("Version"), qb.value(2)),
+				qb.isEqualTo(qb.property("Id"), qb.value(3)),
 				qb.isEqualTo(qb.property("Version"), qb.value(2))));
 
 		List<QueryEntity> actual = query.retrieve();
 		assertSimilar(expectedIds, actual);
 	}
 
-	protected void assertSimilar(List<Integer> expectedIds, List<QueryEntity> actual)
-	{
+	protected void assertSimilar(List<Integer> expectedIds, List<QueryEntity> actual) {
 		assertNotNull(actual);
 		assertEquals(expectedIds.size(), actual.size());
-		for (int i = actual.size(); i-- > 0;)
-		{
+		for (int i = actual.size(); i-- > 0;) {
 			assertTrue(expectedIds.contains(actual.get(i).getId()));
 		}
 	}

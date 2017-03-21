@@ -24,23 +24,19 @@ import javax.persistence.Embedded;
 
 import com.koch.ambeth.model.AbstractEntity;
 
-public class ParentOfEmbeddedType extends AbstractEntity
-{
+public class ParentOfEmbeddedType extends AbstractEntity {
 	@Embedded
 	protected TestEmbeddedType myEmbeddedType;
 
-	protected ParentOfEmbeddedType()
-	{
+	protected ParentOfEmbeddedType() {
 		// Intended blank
 	}
 
-	public TestEmbeddedType getMyEmbeddedType()
-	{
+	public TestEmbeddedType getMyEmbeddedType() {
 		return myEmbeddedType;
 	}
 
-	public void setMyEmbeddedType(TestEmbeddedType myEmbeddedType)
-	{
+	public void setMyEmbeddedType(TestEmbeddedType myEmbeddedType) {
 		this.myEmbeddedType = myEmbeddedType;
 	}
 }

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public enum CacheFactoryDirective
-{
+public enum CacheFactoryDirective {
 	NoDCE,
 
 	SubscribeGlobalDCE,

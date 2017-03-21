@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public enum XmlHint
-{
+public enum XmlHint {
 	READ_ATTRIBUTE, READ_ELEMENT, WRITE_ATTRIBUTE, WRITE_ELEMENT
 }

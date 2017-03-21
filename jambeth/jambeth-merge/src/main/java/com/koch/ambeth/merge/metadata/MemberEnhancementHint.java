@@ -29,71 +29,63 @@ import com.koch.ambeth.ioc.bytecode.IEnhancementHint;
 import com.koch.ambeth.ioc.bytecode.ITargetNameEnhancementHint;
 import com.koch.ambeth.service.metadata.Member;
 
-public class MemberEnhancementHint implements IEnhancementHint, ITargetNameEnhancementHint, Serializable
-{
+public class MemberEnhancementHint
+		implements IEnhancementHint, ITargetNameEnhancementHint, Serializable {
 	private static final long serialVersionUID = -4297854443506118537L;
 
 	protected final Class<?> declaringType;
 
 	protected final String memberName;
 
-	public MemberEnhancementHint(Class<?> declaringType, String memberName)
-	{
+	public MemberEnhancementHint(Class<?> declaringType, String memberName) {
 		this.declaringType = declaringType;
 		this.memberName = memberName;
 	}
 
-	public Class<?> getDeclaringType()
-	{
+	public Class<?> getDeclaringType() {
 		return declaringType;
 	}
 
-	public String getMemberName()
-	{
+	public String getMemberName() {
 		return memberName;
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == this)
-		{
+	public boolean equals(Object obj) {
+		if (obj == this) {
 			return true;
 		}
-		if (!getClass().equals(obj.getClass()))
-		{
+		if (!getClass().equals(obj.getClass())) {
 			return false;
 		}
 		MemberEnhancementHint other = (MemberEnhancementHint) obj;
-		return getDeclaringType().equals(other.getDeclaringType()) && getMemberName().equals(other.getMemberName());
+		return getDeclaringType().equals(other.getDeclaringType())
+				&& getMemberName().equals(other.getMemberName());
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return getClass().hashCode() ^ getDeclaringType().hashCode() ^ getMemberName().hashCode();
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends IEnhancementHint> T unwrap(Class<T> includedHintType)
-	{
-		if (MemberEnhancementHint.class.equals(includedHintType))
-		{
+	public <T extends IEnhancementHint> T unwrap(Class<T> includedHintType) {
+		if (MemberEnhancementHint.class.equals(includedHintType)) {
 			return (T) this;
 		}
 		return null;
 	}
 
 	@Override
-	public String getTargetName(Class<?> typeToEnhance)
-	{
-		return Type.getInternalName(declaringType) + "$" + Member.class.getSimpleName() + "$" + memberName.replaceAll(Pattern.quote("."), "_");
+	public String getTargetName(Class<?> typeToEnhance) {
+		return Type.getInternalName(declaringType) + "$" + Member.class.getSimpleName() + "$"
+				+ memberName.replaceAll(Pattern.quote("."), "_");
 	}
 
 	@Override
-	public String toString()
-	{
-		return getClass().getSimpleName() + ": Path=" + declaringType.getSimpleName() + "." + memberName;
+	public String toString() {
+		return getClass().getSimpleName() + ": Path=" + declaringType.getSimpleName() + "."
+				+ memberName;
 	}
 }

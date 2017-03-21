@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public interface IEntityInstantiationExtension
-{
+public interface IEntityInstantiationExtension {
 	<T> Class<? extends T> getMappedEntityType(Class<T> type);
 }

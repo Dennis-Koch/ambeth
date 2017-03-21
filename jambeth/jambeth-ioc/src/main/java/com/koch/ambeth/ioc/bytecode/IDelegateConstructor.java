@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public interface IDelegateConstructor
-{
+public interface IDelegateConstructor {
 	Object createInstance(Object target);
 }

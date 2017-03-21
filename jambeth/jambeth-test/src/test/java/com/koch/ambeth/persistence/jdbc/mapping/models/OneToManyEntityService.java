@@ -39,8 +39,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 
 @Service(IOneToManyEntityService.class)
 @PersistenceContext
-public class OneToManyEntityService implements IOneToManyEntityService, IInitializingBean
-{
+public class OneToManyEntityService implements IOneToManyEntityService, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance(OneToManyEntityService.class)
 	private ILogger log;
@@ -50,88 +49,74 @@ public class OneToManyEntityService implements IOneToManyEntityService, IInitial
 	protected IServiceUtil serviceUtil;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(database, "database");
 		ParamChecker.assertNotNull(serviceUtil, "serviceUtil");
 	}
 
-	public void setDatabase(IDatabase database)
-	{
+	public void setDatabase(IDatabase database) {
 		this.database = database;
 	}
 
-	public void setServiceUtil(IServiceUtil serviceUtil)
-	{
+	public void setServiceUtil(IServiceUtil serviceUtil) {
 		this.serviceUtil = serviceUtil;
 	}
 
 	@Override
-	public OneToManyEntity getOneToManyEntityByName(String name)
-	{
+	public OneToManyEntity getOneToManyEntityByName(String name) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Collection<OneToManyEntity> getOneToManyEntitiesByNamesReturnCollection(String... names)
-	{
+	public Collection<OneToManyEntity> getOneToManyEntitiesByNamesReturnCollection(String... names) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public List<OneToManyEntity> getOneToManyEntitiesByNamesReturnList(String... names)
-	{
+	public List<OneToManyEntity> getOneToManyEntitiesByNamesReturnList(String... names) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Set<OneToManyEntity> getOneToManyEntitiesByNamesReturnSet(String... names)
-	{
+	public Set<OneToManyEntity> getOneToManyEntitiesByNamesReturnSet(String... names) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public OneToManyEntity[] getOneToManyEntitiesByNamesReturnArray(String... names)
-	{
+	public OneToManyEntity[] getOneToManyEntitiesByNamesReturnArray(String... names) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public OneToManyEntity getOneToManyEntityByNames(Collection<String> names)
-	{
+	public OneToManyEntity getOneToManyEntityByNames(Collection<String> names) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public OneToManyEntity getOneToManyEntityByNames(List<String> names)
-	{
+	public OneToManyEntity getOneToManyEntityByNames(List<String> names) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public OneToManyEntity getOneToManyEntityByNames(String... names)
-	{
+	public OneToManyEntity getOneToManyEntityByNames(String... names) {
 		throw new UnsupportedOperationException();
 	}
 
-	public void test(String name)
-	{
+	public void test(String name) {
 		ITable aieTable = database.getTableByType(OneToManyEntity.class);
-		ArrayList<String> names = new ArrayList<String>();
+		ArrayList<String> names = new ArrayList<>();
 		names.add(name);
 		IVersionCursor selectVersion = aieTable.selectVersion("Name", names);
 		System.out.println(selectVersion);
 	}
 
 	@Override
-	public void updateOneToManyEntity(OneToManyEntity oneToManyEntity)
-	{
+	public void updateOneToManyEntity(OneToManyEntity oneToManyEntity) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void deleteOneToManyEntity(OneToManyEntity oneToManyEntity)
-	{
+	public void deleteOneToManyEntity(OneToManyEntity oneToManyEntity) {
 		throw new UnsupportedOperationException();
 	}
 }

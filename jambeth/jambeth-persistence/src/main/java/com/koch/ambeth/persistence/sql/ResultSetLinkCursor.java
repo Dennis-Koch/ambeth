@@ -25,91 +25,76 @@ import com.koch.ambeth.persistence.api.ILinkCursorItem;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.ParamChecker;
 
-public class ResultSetLinkCursor implements ILinkCursor, ILinkCursorItem, IDisposable
-{
+public class ResultSetLinkCursor implements ILinkCursor, ILinkCursorItem, IDisposable {
 	protected IResultSet resultSet;
 
 	protected Object fromId, toId;
 
 	protected byte fromIdIndex, toIdIndex;
 
-	public void afterPropertiesSet()
-	{
-		ParamChecker.assertNotNull(this.resultSet, "ResultSet");
+	public void afterPropertiesSet() {
+		ParamChecker.assertNotNull(resultSet, "ResultSet");
 	}
 
 	@Override
-	public byte getFromIdIndex()
-	{
+	public byte getFromIdIndex() {
 		return fromIdIndex;
 	}
 
-	public void setFromIdIndex(byte fromIdIndex)
-	{
+	public void setFromIdIndex(byte fromIdIndex) {
 		this.fromIdIndex = fromIdIndex;
 	}
 
 	@Override
-	public byte getToIdIndex()
-	{
+	public byte getToIdIndex() {
 		return toIdIndex;
 	}
 
-	public void setToIdIndex(byte toIdIndex)
-	{
+	public void setToIdIndex(byte toIdIndex) {
 		this.toIdIndex = toIdIndex;
 	}
 
-	public IResultSet getResultSet()
-	{
+	public IResultSet getResultSet() {
 		return resultSet;
 	}
 
-	public void setResultSet(IResultSet resultSet)
-	{
+	public void setResultSet(IResultSet resultSet) {
 		this.resultSet = resultSet;
 	}
 
 	@Override
-	public Object getFromId()
-	{
-		return this.fromId;
+	public Object getFromId() {
+		return fromId;
 	}
 
 	@Override
-	public Object getToId()
-	{
-		return this.toId;
+	public Object getToId() {
+		return toId;
 	}
 
 	@Override
-	public boolean moveNext()
-	{
-		if (this.resultSet.moveNext())
-		{
-			this.fromId = this.resultSet.getCurrent()[0];
-			this.toId = this.resultSet.getCurrent()[1];
+	public boolean moveNext() {
+		if (resultSet.moveNext()) {
+			fromId = resultSet.getCurrent()[0];
+			toId = resultSet.getCurrent()[1];
 			return true;
 		}
 		return false;
 	}
 
 	@Override
-	public ILinkCursorItem getCurrent()
-	{
+	public ILinkCursorItem getCurrent() {
 		return this;
 	}
 
 	@Override
-	public void dispose()
-	{
-		if (this.resultSet != null)
-		{
-			this.resultSet.dispose();
-			this.resultSet = null;
+	public void dispose() {
+		if (resultSet != null) {
+			resultSet.dispose();
+			resultSet = null;
 		}
-		this.fromId = null;
-		this.toId = null;
+		fromId = null;
+		toId = null;
 	}
 
 }

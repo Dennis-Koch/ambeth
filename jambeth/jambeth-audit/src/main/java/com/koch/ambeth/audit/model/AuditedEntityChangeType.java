@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public enum AuditedEntityChangeType
-{
+public enum AuditedEntityChangeType {
 	INSERT, UPDATE, DELETE
 }

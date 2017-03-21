@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.Collection;
 
-public interface IEntityPropertyBlueprint
-{
+public interface IEntityPropertyBlueprint {
 	public static final String NAME = "Name";
 	public static final String TYPE = "Type";
 	public static final String ORDER = "Order";

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IPBEConfiguration
-{
+public interface IPBEConfiguration {
 	String getEncryptionAlgorithm();
 
 	void setEncryptionAlgorithm(String encryptionAlgorithm);

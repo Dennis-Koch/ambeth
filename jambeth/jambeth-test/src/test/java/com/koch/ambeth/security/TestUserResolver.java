@@ -27,8 +27,7 @@ import com.koch.ambeth.security.model.IUser;
 import com.koch.ambeth.security.server.IUserIdentifierProvider;
 import com.koch.ambeth.security.server.IUserResolver;
 
-public class TestUserResolver implements IUserResolver, IInitializingBean
-{
+public class TestUserResolver implements IUserResolver, IInitializingBean {
 	@Autowired
 	protected ICache cache;
 
@@ -38,14 +37,12 @@ public class TestUserResolver implements IUserResolver, IInitializingBean
 	protected String propertyNameOfSID;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		propertyNameOfSID = userIdentifierProvider.getPropertyNameOfSID();
 	}
 
 	@Override
-	public IUser resolveUserBySID(String sid)
-	{
+	public IUser resolveUserBySID(String sid) {
 		return cache.getObject(IUser.class, propertyNameOfSID, sid);
 	}
 }

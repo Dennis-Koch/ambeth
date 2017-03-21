@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.util.collections.IList;
 
-public interface IObjectFutureHandler
-{
+public interface IObjectFutureHandler {
 	void handle(IList<IObjectFuture> objectFutures);
 }

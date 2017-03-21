@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IEmbeddedMember
-{
+public interface IEmbeddedMember {
 	Member[] getMemberPath();
 
 	String getMemberPathString();

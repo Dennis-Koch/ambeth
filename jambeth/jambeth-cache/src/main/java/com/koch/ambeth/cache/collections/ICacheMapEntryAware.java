@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public interface ICacheMapEntryAware
-{
+public interface ICacheMapEntryAware {
 	void setCacheMapEntry(CacheMapEntry cacheMapEntry);
 }

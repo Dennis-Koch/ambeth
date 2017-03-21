@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public enum VerifyOnLoadMode
-{
+public enum VerifyOnLoadMode {
 	NONE, VERIFY_SYNC, VERIFY_ASYNC;
 }

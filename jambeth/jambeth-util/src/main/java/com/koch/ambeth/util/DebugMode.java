@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public enum DebugMode
-{
+public enum DebugMode {
 	TRUE, FALSE;
 }

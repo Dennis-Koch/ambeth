@@ -34,89 +34,94 @@ import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
-public class PropertyInfoProviderTest extends AbstractIocTest
-{
+public class PropertyInfoProviderTest extends AbstractIocTest {
 	private IPropertyInfoProvider propertyInfoProvider;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		ParamChecker.assertNotNull(propertyInfoProvider, "propertyInfoProvider");
 	}
 
-	public void setPropertyInfoProvider(IPropertyInfoProvider propertyInfoProvider)
-	{
+	public void setPropertyInfoProvider(IPropertyInfoProvider propertyInfoProvider) {
 		this.propertyInfoProvider = propertyInfoProvider;
 	}
 
 	/**
-	 * Test method for {@link com.koch.ambeth.ioc.typeinfo.MethodPropertyInfo#getProperties(java.lang.Class, java.lang.String)} .
+	 * Test method for
+	 * {@link com.koch.ambeth.ioc.typeinfo.MethodPropertyInfo#getProperties(java.lang.Class, java.lang.String)}
+	 * .
 	 */
 	@Test
-	public final void testGetPropertyClassString()
-	{
-		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.propNames, propertyInfoProvider.getProperties(MethodPropertyInfo.class));
+	public final void testGetPropertyClassString() {
+		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.propNames,
+				propertyInfoProvider.getProperties(MethodPropertyInfo.class));
 	}
 
 	/**
-	 * Test method for {@link com.koch.ambeth.ioc.typeinfo.MethodPropertyInfo#getProperties(java.lang.Object, java.lang.String)} .
+	 * Test method for
+	 * {@link com.koch.ambeth.ioc.typeinfo.MethodPropertyInfo#getProperties(java.lang.Object, java.lang.String)}
+	 * .
 	 */
 	@Test
-	public final void testGetPropertiesObjectString()
-	{
+	public final void testGetPropertiesObjectString() {
 		IPropertyInfo subject = propertyInfoProvider.getProperty(MethodPropertyInfo.class, "Name");
 		assertNotNull(propertyInfoProvider.getProperty(subject, "Annotations"));
 	}
 
 	/**
-	 * Test method for {@link com.koch.ambeth.ioc.typeinfo.MethodPropertyInfo#getProperties(java.lang.Class)} .
+	 * Test method for
+	 * {@link com.koch.ambeth.ioc.typeinfo.MethodPropertyInfo#getProperties(java.lang.Class)} .
 	 */
 	@Test
-	public final void testGetPropertiesClass()
-	{
-		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.propNames, propertyInfoProvider.getProperties(MethodPropertyInfo.class));
+	public final void testGetPropertiesClass() {
+		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.propNames,
+				propertyInfoProvider.getProperties(MethodPropertyInfo.class));
 	}
 
 	/**
-	 * Test method for {@link com.koch.ambeth.ioc.typeinfo.MethodPropertyInfo#getProperties(java.lang.Object)} .
+	 * Test method for
+	 * {@link com.koch.ambeth.ioc.typeinfo.MethodPropertyInfo#getProperties(java.lang.Object)} .
 	 */
 	@Test
-	public final void testGetPropertiesObject()
-	{
+	public final void testGetPropertiesObject() {
 		IPropertyInfo subject = propertyInfoProvider.getProperty(MethodPropertyInfo.class, "Name");
-		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.propNames, propertyInfoProvider.getProperties(subject));
+		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.propNames,
+				propertyInfoProvider.getProperties(subject));
 	}
 
 	/**
-	 * Test method for {@link com.koch.ambeth.ioc.typeinfo.MethodPropertyInfo#getPropertyMap(java.lang.Class)} .
+	 * Test method for
+	 * {@link com.koch.ambeth.ioc.typeinfo.MethodPropertyInfo#getPropertyMap(java.lang.Class)} .
 	 */
 	@Test
-	public final void testGetPropertyMapClass()
-	{
-		PropertyInfoTest.isPropertyMapOK(PropertyInfoTest.propNames, propertyInfoProvider.getPropertyMap(MethodPropertyInfo.class));
+	public final void testGetPropertyMapClass() {
+		PropertyInfoTest.isPropertyMapOK(PropertyInfoTest.propNames,
+				propertyInfoProvider.getPropertyMap(MethodPropertyInfo.class));
 	}
 
 	/**
-	 * Test method for {@link com.koch.ambeth.ioc.typeinfo.MethodPropertyInfo#getPropertyMap(java.lang.Object)} .
+	 * Test method for
+	 * {@link com.koch.ambeth.ioc.typeinfo.MethodPropertyInfo#getPropertyMap(java.lang.Object)} .
 	 */
 	@Test
-	public final void testGetPropertyMapObject()
-	{
+	public final void testGetPropertyMapObject() {
 		IPropertyInfo subject = propertyInfoProvider.getProperty(MethodPropertyInfo.class, "Name");
-		PropertyInfoTest.isPropertyMapOK(PropertyInfoTest.propNames, propertyInfoProvider.getPropertyMap(subject));
+		PropertyInfoTest.isPropertyMapOK(PropertyInfoTest.propNames,
+				propertyInfoProvider.getPropertyMap(subject));
 	}
 
 	/**
-	 * Test method for {@link com.koch.ambeth.ioc.typeinfo.MethodPropertyInfo#getPropertyNameFor(java.lang.reflect.Method)} .
-	 * 
+	 * Test method for
+	 * {@link com.koch.ambeth.ioc.typeinfo.MethodPropertyInfo#getPropertyNameFor(java.lang.reflect.Method)}
+	 * .
+	 *
 	 * @throws NoSuchMethodException
 	 * @throws SecurityException
 	 */
 	@Test
-	public final void testGetPropertyNameFor() throws SecurityException, NoSuchMethodException
-	{
+	public final void testGetPropertyNameFor() throws SecurityException, NoSuchMethodException {
 		Method method = MethodPropertyInfo.class.getMethod("getName");
 		assertEquals("Wrong name!", "Name", propertyInfoProvider.getPropertyNameFor(method));
 
@@ -134,11 +139,11 @@ public class PropertyInfoProviderTest extends AbstractIocTest
 	}
 
 	/**
-	 * Test method for {@link com.koch.ambeth.ioc.typeinfo.MethodPropertyInfo#getIocProperties(java.lang.Object)} .
+	 * Test method for
+	 * {@link com.koch.ambeth.ioc.typeinfo.MethodPropertyInfo#getIocProperties(java.lang.Object)} .
 	 */
 	@Test
-	public final void testGetIocProperties()
-	{
+	public final void testGetIocProperties() {
 		IPropertyInfo[] iocProperties = propertyInfoProvider.getIocProperties(MethodPropertyInfo.class);
 		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.iocPropNames, iocProperties);
 	}
@@ -147,8 +152,7 @@ public class PropertyInfoProviderTest extends AbstractIocTest
 	 * Test method for caching
 	 */
 	@Test
-	public final void testGetIocPropertiesCached()
-	{
+	public final void testGetIocPropertiesCached() {
 		IPropertyInfo[] iocProperties = propertyInfoProvider.getIocProperties(MethodPropertyInfo.class);
 		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.iocPropNames, iocProperties);
 
@@ -163,8 +167,7 @@ public class PropertyInfoProviderTest extends AbstractIocTest
 	 * Test method for caching
 	 */
 	@Test
-	public final void testGetPropertiesCached()
-	{
+	public final void testGetPropertiesCached() {
 		IPropertyInfo[] iocProperties = propertyInfoProvider.getProperties(MethodPropertyInfo.class);
 		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.propNames, iocProperties);
 

@@ -49,26 +49,22 @@ import com.koch.ambeth.util.ParamChecker;
 @SQLData("DataChangeEvent_data.sql")
 @TestModule(DataChangePersistenceModule.class)
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "datachange-orm.xml")
-public class DataChangeEventDAOTest extends AbstractInformationBusWithPersistenceTest
-{
+public class DataChangeEventDAOTest extends AbstractInformationBusWithPersistenceTest {
 	private IDataChangeEventDAO fixture;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		ParamChecker.assertNotNull(fixture, "fixture");
 	}
 
-	public void setFixture(IDataChangeEventDAO fixture)
-	{
+	public void setFixture(IDataChangeEventDAO fixture) {
 		this.fixture = fixture;
 	}
 
 	@Test
-	public void testSave()
-	{
+	public void testSave() {
 		EntityType etDCE = entityFactory.createEntity(EntityType.class);
 		etDCE.setType(DataChangeEvent.class);
 
@@ -88,8 +84,7 @@ public class DataChangeEventDAOTest extends AbstractInformationBusWithPersistenc
 	}
 
 	@Test
-	public void testRetrieveAll1()
-	{
+	public void testRetrieveAll1() {
 		List<DataChangeEventBO> all = fixture.retrieveAll();
 		assertNotNull(all);
 		assertEquals(1, all.size());
@@ -114,8 +109,7 @@ public class DataChangeEventDAOTest extends AbstractInformationBusWithPersistenc
 	}
 
 	@Test
-	public void testRetrieveAll2()
-	{
+	public void testRetrieveAll2() {
 		List<DataChangeEventBO> all = fixture.retrieveAll();
 		assertNotNull(all);
 		assertEquals(1, all.size());
@@ -145,8 +139,7 @@ public class DataChangeEventDAOTest extends AbstractInformationBusWithPersistenc
 	}
 
 	@Test
-	public void testRemoveBefore()
-	{
+	public void testRemoveBefore() {
 		List<DataChangeEventBO> all = fixture.retrieveAll();
 		assertNotNull(all);
 		assertEquals(1, all.size());

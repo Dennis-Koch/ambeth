@@ -30,16 +30,13 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.typeinfo.FastConstructorAccess;
 import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
 
-public abstract class TypeInfoItem implements ITypeInfoItem
-{
-	public static void setEntityType(Class<?> entityType, ITypeInfoItem member, IProperties properties)
-	{
-		if (member instanceof TypeInfoItem)
-		{
+public abstract class TypeInfoItem implements ITypeInfoItem {
+	public static void setEntityType(Class<?> entityType, ITypeInfoItem member,
+			IProperties properties) {
+		if (member instanceof TypeInfoItem) {
 			((TypeInfoItem) member).setElementType(entityType);
 		}
-		else
-		{
+		else {
 			throw new IllegalStateException("TypeInfoItem not supported: " + member);
 		}
 	}
@@ -51,43 +48,36 @@ public abstract class TypeInfoItem implements ITypeInfoItem
 	protected boolean technicalMember;
 
 	@Override
-	public Class<?> getElementType()
-	{
+	public Class<?> getElementType() {
 		return elementType;
 	}
 
-	public void setElementType(Class<?> elementType)
-	{
+	public void setElementType(Class<?> elementType) {
 		this.elementType = elementType;
 	}
 
 	@Override
-	public Class<?> getDeclaringType()
-	{
+	public Class<?> getDeclaringType() {
 		return declaringType;
 	}
 
 	@Override
-	public boolean canRead()
-	{
+	public boolean canRead() {
 		return true;
 	}
 
 	@Override
-	public boolean canWrite()
-	{
+	public boolean canWrite() {
 		return true;
 	}
 
 	@Override
-	public boolean isTechnicalMember()
-	{
+	public boolean isTechnicalMember() {
 		return technicalMember;
 	}
 
 	@Override
-	public void setTechnicalMember(boolean technicalMember)
-	{
+	public void setTechnicalMember(boolean technicalMember) {
 		this.technicalMember = technicalMember;
 	}
 
@@ -97,26 +87,20 @@ public abstract class TypeInfoItem implements ITypeInfoItem
 	protected abstract FastConstructorAccess<?> getConstructorOfRealType();
 
 	@Override
-	public Collection<?> createInstanceOfCollection()
-	{
+	public Collection<?> createInstanceOfCollection() {
 		// OneToMany or ManyToMany Relationship
 		Class<?> realType = getRealType();
-		if (Iterable.class.isAssignableFrom(realType))
-		{
-			if (realType.isInterface())
-			{
-				if (Set.class.isAssignableFrom(realType))
-				{
-					return new ObservableHashSet<Object>();
+		if (Iterable.class.isAssignableFrom(realType)) {
+			if (realType.isInterface()) {
+				if (Set.class.isAssignableFrom(realType)) {
+					return new ObservableHashSet<>();
 				}
-				return new ObservableArrayList<Object>();
+				return new ObservableArrayList<>();
 			}
-			try
-			{
+			try {
 				return (Collection<?>) getConstructorOfRealType().newInstance();
 			}
-			catch (Throwable e)
-			{
+			catch (Throwable e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}

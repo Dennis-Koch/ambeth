@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public enum PersistenceContextType
-{
+public enum PersistenceContextType {
 	NOT_REQUIRED, REQUIRED, REQUIRED_READ_ONLY, EXPECTED, FORBIDDEN;
 }

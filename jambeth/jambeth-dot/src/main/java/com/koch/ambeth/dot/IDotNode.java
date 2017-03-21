@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IDotNode
-{
+public interface IDotNode {
 	IDotNode attribute(String key, String value);
 
 	IDotWriter endNode();

@@ -24,17 +24,14 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.model.IEmbeddedType;
 
-public class EmbeddedTypeMixin
-{
+public class EmbeddedTypeMixin {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	public final Object getRoot(IEmbeddedType embeddedObject)
-	{
+	public final Object getRoot(IEmbeddedType embeddedObject) {
 		Object parent = embeddedObject.getParent();
-		while (parent instanceof IEmbeddedType)
-		{
+		while (parent instanceof IEmbeddedType) {
 			parent = ((IEmbeddedType) parent).getParent();
 		}
 		return parent;

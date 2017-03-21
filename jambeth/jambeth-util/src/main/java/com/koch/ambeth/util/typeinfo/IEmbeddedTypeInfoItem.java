@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IEmbeddedTypeInfoItem extends ITypeInfoItem
-{
+public interface IEmbeddedTypeInfoItem extends ITypeInfoItem {
 	ITypeInfoItem[] getMemberPath();
 
 	String getMemberPathString();

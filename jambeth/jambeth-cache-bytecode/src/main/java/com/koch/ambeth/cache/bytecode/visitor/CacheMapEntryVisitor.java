@@ -36,29 +36,31 @@ import com.koch.ambeth.merge.compositeid.CompositeIdMember;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.WrapperTypeSet;
-public class CacheMapEntryVisitor extends ClassGenerator
-{
-	private static final MethodInstance template_m_getEntityType = new MethodInstance(null, CacheMapEntry.class, Class.class, "getEntityType");
-	private static final MethodInstance template_m_getIdIndex = new MethodInstance(null, CacheMapEntry.class, byte.class, "getIdIndex");
-	private static final MethodInstance template_m_getId = new MethodInstance(null, CacheMapEntry.class, Object.class, "getId");
-	private static final MethodInstance template_m_setId = new MethodInstance(null, CacheMapEntry.class, void.class, "setId", Object.class);
-	private static final MethodInstance template_m_isEqualTo = new MethodInstance(null, CacheMapEntry.class, boolean.class, "isEqualTo", Class.class,
-			byte.class, Object.class);
+
+public class CacheMapEntryVisitor extends ClassGenerator {
+	private static final MethodInstance template_m_getEntityType =
+			new MethodInstance(null, CacheMapEntry.class, Class.class, "getEntityType");
+	private static final MethodInstance template_m_getIdIndex =
+			new MethodInstance(null, CacheMapEntry.class, byte.class, "getIdIndex");
+	private static final MethodInstance template_m_getId =
+			new MethodInstance(null, CacheMapEntry.class, Object.class, "getId");
+	private static final MethodInstance template_m_setId =
+			new MethodInstance(null, CacheMapEntry.class, void.class, "setId", Object.class);
+	private static final MethodInstance template_m_isEqualTo = new MethodInstance(null,
+			CacheMapEntry.class, boolean.class, "isEqualTo", Class.class, byte.class, Object.class);
 
 	protected final IEntityMetaData metaData;
 
 	protected final byte idIndex;
 
-	public CacheMapEntryVisitor(ClassVisitor cv, IEntityMetaData metaData, byte idIndex)
-	{
+	public CacheMapEntryVisitor(ClassVisitor cv, IEntityMetaData metaData, byte idIndex) {
 		super(cv);
 		this.metaData = metaData;
 		this.idIndex = idIndex;
 	}
 
 	@Override
-	public void visitEnd()
-	{
+	public void visitEnd() {
 		Type entityType = Type.getType(metaData.getEntityType());
 		{
 			MethodGenerator mv = visitMethod(template_m_getEntityType);
@@ -74,11 +76,12 @@ public class CacheMapEntryVisitor extends ClassGenerator
 			mv.endMethod();
 		}
 
-		FieldInstance f_id = implementNativeField(this, metaData.getIdMemberByIdIndex(idIndex), template_m_getId, template_m_setId);
+		FieldInstance f_id = implementNativeField(this, metaData.getIdMemberByIdIndex(idIndex),
+				template_m_getId, template_m_setId);
 
-		if (f_id.getType().getOpcode(Opcodes.IRETURN) != Opcodes.ARETURN)
-		{
-			// id is a primitive type. So we use an improved version of the 3-tuple equals without boxing the id
+		if (f_id.getType().getOpcode(Opcodes.IRETURN) != Opcodes.ARETURN) {
+			// id is a primitive type. So we use an improved version of the 3-tuple equals without boxing
+			// the id
 			MethodGenerator mv = visitMethod(template_m_isEqualTo);
 			Label l_notEqual = mv.newLabel();
 
@@ -105,15 +108,13 @@ public class CacheMapEntryVisitor extends ClassGenerator
 		super.visitEnd();
 	}
 
-	public static String getFieldName(Member member)
-	{
+	public static String getFieldName(Member member) {
 		return "$" + member.getName().replaceAll("\\.", "_");
 	}
 
-	public static FieldInstance implementNativeField(ClassGenerator cv, Member member, MethodInstance m_get, MethodInstance m_set)
-	{
-		if (member == null)
-		{
+	public static FieldInstance implementNativeField(ClassGenerator cv, Member member,
+			MethodInstance m_get, MethodInstance m_set) {
+		if (member == null) {
 			// NoOp implementation
 			{
 				MethodGenerator mv = cv.visitMethod(m_get);
@@ -128,21 +129,22 @@ public class CacheMapEntryVisitor extends ClassGenerator
 			}
 			return null;
 		}
-		if (member instanceof CompositeIdMember || (!member.getRealType().isPrimitive() && WrapperTypeSet.getUnwrappedType(member.getRealType()) == null))
-		{
+		if (member instanceof CompositeIdMember || (!member.getRealType().isPrimitive()
+				&& WrapperTypeSet.getUnwrappedType(member.getRealType()) == null)) {
 			// no business case for any complex efforts
-			FieldInstance f_id = cv.implementField(new FieldInstance(Opcodes.ACC_PRIVATE, getFieldName(member), null, Object.class));
+			FieldInstance f_id = cv.implementField(
+					new FieldInstance(Opcodes.ACC_PRIVATE, getFieldName(member), null, Object.class));
 			m_get = cv.implementGetter(m_get, f_id);
 			m_set = cv.implementSetter(m_set, f_id);
 			return f_id;
 		}
 
 		Class<?> nativeType = member.getRealType();
-		if (!nativeType.isPrimitive())
-		{
+		if (!nativeType.isPrimitive()) {
 			nativeType = WrapperTypeSet.getUnwrappedType(nativeType);
 		}
-		FieldInstance f_id = cv.implementField(new FieldInstance(Opcodes.ACC_PRIVATE, getFieldName(member), null, nativeType));
+		FieldInstance f_id = cv.implementField(
+				new FieldInstance(Opcodes.ACC_PRIVATE, getFieldName(member), null, nativeType));
 
 		final Type nativeTypeHandle = Type.getType(nativeType);
 		{
@@ -154,11 +156,9 @@ public class CacheMapEntryVisitor extends ClassGenerator
 		}
 		{
 			MethodGenerator mv = cv.visitMethod(m_set);
-			mv.putThisField(f_id, new Script()
-			{
+			mv.putThisField(f_id, new Script() {
 				@Override
-				public void execute(MethodGenerator mg)
-				{
+				public void execute(MethodGenerator mg) {
 					Label l_isNotNull = mg.newLabel();
 					Label l_finish = mg.newLabel();
 

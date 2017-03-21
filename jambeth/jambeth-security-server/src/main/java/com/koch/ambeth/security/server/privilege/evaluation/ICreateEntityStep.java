@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ICreateEntityStep
-{
+public interface ICreateEntityStep {
 	IUpdateEntityStep allowCreate();
 
 	IExecuteEntityStep allowCUD();

@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public interface IDatabaseConnectionUrlProvider
-{
+public interface IDatabaseConnectionUrlProvider {
 	String getConnectionUrl();
 }

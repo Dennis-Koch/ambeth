@@ -25,8 +25,7 @@ import java.beans.PropertyChangeListener;
 import com.koch.ambeth.util.collections.specialized.INotifyCollectionChangedListener;
 import com.koch.ambeth.util.collections.specialized.PropertyChangeSupport;
 
-public interface INotifyPropertyChangedSource
-{
+public interface INotifyPropertyChangedSource {
 	PropertyChangeSupport getPropertyChangeSupport();
 
 	PropertyChangeListener getParentChildEventHandler();

@@ -29,7 +29,6 @@ import com.koch.ambeth.service.proxy.Service;
 @Service(IAlternateIdEntityServiceCTThreadLocal.class)
 @PersistenceContext
 @CacheContext(CacheType.THREAD_LOCAL)
-public interface IAlternateIdEntityServiceCTThreadLocal extends IAlternateIdEntityService
-{
+public interface IAlternateIdEntityServiceCTThreadLocal extends IAlternateIdEntityService {
 	// Intended blank
 }

@@ -37,21 +37,25 @@ import com.koch.ambeth.query.filter.IQueryResultCache;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 
 @FrameworkModule
-public class FilterPersistenceModule implements IInitializingModule
-{
+public class FilterPersistenceModule implements IInitializingModule {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		beanContextFactory.registerBean(FilterToQueryBuilder.class).autowireable(IFilterToQueryBuilder.class);
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		beanContextFactory.registerBean(FilterToQueryBuilder.class)
+				.autowireable(IFilterToQueryBuilder.class);
 
-		IBeanConfiguration queryResultCache = beanContextFactory.registerBean(QueryResultCache.class).autowireable(IQueryResultCache.class);
-		beanContextFactory.link(queryResultCache, "handleClearAllCaches").to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
-		beanContextFactory.link(queryResultCache, "handleDatabaseRelease").to(IEventListenerExtendable.class).with(IDatabaseReleaseEvent.class);
-		beanContextFactory.link(queryResultCache, "handleDataChange").to(IEventListenerExtendable.class).with(IDataChange.class);
-		beanContextFactory.link(queryResultCache, "handleDataChangeOfSession").to(IEventListenerExtendable.class).with(IDataChangeOfSession.class);
+		IBeanConfiguration queryResultCache = beanContextFactory.registerBean(QueryResultCache.class)
+				.autowireable(IQueryResultCache.class);
+		beanContextFactory.link(queryResultCache, "handleClearAllCaches")
+				.to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
+		beanContextFactory.link(queryResultCache, "handleDatabaseRelease")
+				.to(IEventListenerExtendable.class).with(IDatabaseReleaseEvent.class);
+		beanContextFactory.link(queryResultCache, "handleDataChange").to(IEventListenerExtendable.class)
+				.with(IDataChange.class);
+		beanContextFactory.link(queryResultCache, "handleDataChangeOfSession")
+				.to(IEventListenerExtendable.class).with(IDataChangeOfSession.class);
 	}
 }

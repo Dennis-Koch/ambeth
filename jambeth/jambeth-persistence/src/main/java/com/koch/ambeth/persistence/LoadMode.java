@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public enum LoadMode
-{
+public enum LoadMode {
 
 	DEFAULT, REFERENCE_ONLY, VERSION_ONLY
 

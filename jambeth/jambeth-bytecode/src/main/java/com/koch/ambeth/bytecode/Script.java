@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public interface Script
-{
+public interface Script {
 	void execute(MethodGenerator mg);
 }

@@ -20,9 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public interface INameBasedHandlerExtendable
-{
-	void registerNameBasedElementHandler(INameBasedHandler nameBasedElementHandler, String elementName);
+public interface INameBasedHandlerExtendable {
+	void registerNameBasedElementHandler(INameBasedHandler nameBasedElementHandler,
+			String elementName);
 
-	void unregisterNameBasedElementHandler(INameBasedHandler nameBasedElementHandler, String elementName);
+	void unregisterNameBasedElementHandler(INameBasedHandler nameBasedElementHandler,
+			String elementName);
 }

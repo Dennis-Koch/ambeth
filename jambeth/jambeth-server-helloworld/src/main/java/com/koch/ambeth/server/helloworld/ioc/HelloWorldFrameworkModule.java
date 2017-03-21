@@ -29,12 +29,11 @@ import com.koch.ambeth.server.helloworld.security.HelloWorldAuthorizationManager
 import com.koch.ambeth.server.helloworld.security.HelloworldUserResolver;
 
 @FrameworkModule
-public class HelloWorldFrameworkModule implements IInitializingModule
-{
+public class HelloWorldFrameworkModule implements IInitializingModule {
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		beanContextFactory.registerBean("userHandleFactory", HelloWorldAuthorizationManager.class).autowireable(IAuthorizationManager.class);
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		beanContextFactory.registerBean("userHandleFactory", HelloWorldAuthorizationManager.class)
+				.autowireable(IAuthorizationManager.class);
 		beanContextFactory.registerBean(HelloworldUserResolver.class).autowireable(IUserResolver.class);
 	}
 }

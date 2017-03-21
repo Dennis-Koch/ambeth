@@ -20,27 +20,22 @@ limitations under the License.
  * #L%
  */
 
-public class CheckForPreviousParentKey
-{
+public class CheckForPreviousParentKey {
 	protected final Class<?> entityType;
 
 	protected final String memberName;
 
-	public CheckForPreviousParentKey(Class<?> entityType, String memberName)
-	{
+	public CheckForPreviousParentKey(Class<?> entityType, String memberName) {
 		this.entityType = entityType;
 		this.memberName = memberName;
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == this)
-		{
+	public boolean equals(Object obj) {
+		if (obj == this) {
 			return true;
 		}
-		if (!(obj instanceof CheckForPreviousParentKey))
-		{
+		if (!(obj instanceof CheckForPreviousParentKey)) {
 			return false;
 		}
 		CheckForPreviousParentKey other = (CheckForPreviousParentKey) obj;
@@ -48,14 +43,12 @@ public class CheckForPreviousParentKey
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return entityType.hashCode() ^ memberName.hashCode();
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return entityType.getSimpleName() + "." + memberName;
 	}
 }

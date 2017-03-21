@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ICacheProvider
-{
+public interface ICacheProvider {
 	ICache getCurrentCache();
 
 	boolean isNewInstanceOnCall();

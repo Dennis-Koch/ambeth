@@ -22,34 +22,28 @@ limitations under the License.
 
 import com.koch.ambeth.model.AbstractEntity;
 
-public class BaseEntity extends AbstractEntity
-{
+public class BaseEntity extends AbstractEntity {
 	protected String name;
 
 	protected AlternateIdEntity alternateIdEntity;
 
-	protected BaseEntity()
-	{
+	protected BaseEntity() {
 		// Intended blank
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public AlternateIdEntity getAlternateIdEntity()
-	{
+	public AlternateIdEntity getAlternateIdEntity() {
 		return alternateIdEntity;
 	}
 
-	public void setAlternateIdEntity(AlternateIdEntity alternateIdEntity)
-	{
+	public void setAlternateIdEntity(AlternateIdEntity alternateIdEntity) {
 		this.alternateIdEntity = alternateIdEntity;
 	}
 }

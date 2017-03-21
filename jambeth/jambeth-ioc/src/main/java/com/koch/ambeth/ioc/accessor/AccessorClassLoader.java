@@ -33,7 +33,7 @@ import com.koch.ambeth.repackaged.com.esotericsoftware.reflectasm.MethodAccess;
 
 public class AccessorClassLoader extends ClassLoader {
 	private static final ArrayList<Reference<AccessorClassLoader>> accessClassLoaders =
-			new ArrayList<Reference<AccessorClassLoader>>();
+			new ArrayList<>();
 
 	private static final Lock writeLock = new ReentrantLock();
 
@@ -56,7 +56,7 @@ public class AccessorClassLoader extends ClassLoader {
 				}
 			}
 			AccessorClassLoader accessClassLoader = new AccessorClassLoader(parent);
-			accessClassLoaders.add(new WeakReference<AccessorClassLoader>(accessClassLoader));
+			accessClassLoaders.add(new WeakReference<>(accessClassLoader));
 			return accessClassLoader;
 		}
 		finally {

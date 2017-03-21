@@ -25,11 +25,11 @@ import java.security.Signature;
 import com.koch.ambeth.security.model.ISignAndVerify;
 import com.koch.ambeth.security.model.ISignature;
 
-public interface ISignatureUtil
-{
+public interface ISignatureUtil {
 	void generateNewSignature(ISignature newEmptySignature, char[] clearTextPassword);
 
-	void reencryptSignature(ISignature signature, char[] oldClearTextPassword, char[] newClearTextPassword);
+	void reencryptSignature(ISignature signature, char[] oldClearTextPassword,
+			char[] newClearTextPassword);
 
 	Signature createSignatureHandle(ISignAndVerify signAndVerify, byte[] privateKey);
 

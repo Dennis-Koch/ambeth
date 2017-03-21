@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ILinkContainer
-{
+public interface ILinkContainer {
 	boolean link();
 
 	boolean unlink();

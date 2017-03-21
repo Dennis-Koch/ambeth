@@ -23,7 +23,6 @@ limitations under the License.
 /**
  * Marker interface for all concrete permission rules
  */
-public interface IPermissionRule
-{
+public interface IPermissionRule {
 	// intended blank
 }

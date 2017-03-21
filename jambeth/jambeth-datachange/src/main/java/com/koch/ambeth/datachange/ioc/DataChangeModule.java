@@ -23,11 +23,9 @@ limitations under the License.
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 
-public class DataChangeModule implements IInitializingModule
-{
+public class DataChangeModule implements IInitializingModule {
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 		// Intended blank
 	}
 }

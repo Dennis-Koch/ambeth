@@ -24,7 +24,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class ObjectCollectorItem implements IObjectCollectorItem {
-	protected final ArrayList<ICollectable> unusedList = new ArrayList<ICollectable>();
+	protected final ArrayList<ICollectable> unusedList = new ArrayList<>();
 
 	protected int lowestSizeSinceLastCheck = 0;
 

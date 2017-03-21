@@ -22,12 +22,11 @@ limitations under the License.
 
 import com.koch.ambeth.util.collections.HashMap;
 
-public final class NullEquivalentValueUtil
-{
-	private static final HashMap<Class<?>, Object> nullEquivalentValues = new HashMap<Class<?>, Object>(0.5f);
+public final class NullEquivalentValueUtil {
+	private static final HashMap<Class<?>, Object> nullEquivalentValues =
+			new HashMap<>(0.5f);
 
-	static
-	{
+	static {
 		nullEquivalentValues.put(Boolean.TYPE, Boolean.valueOf(false));
 		nullEquivalentValues.put(Double.TYPE, Double.valueOf(0));
 		nullEquivalentValues.put(Long.TYPE, Long.valueOf(0));
@@ -46,13 +45,11 @@ public final class NullEquivalentValueUtil
 		nullEquivalentValues.put(Character.class, Character.valueOf('\0'));
 	}
 
-	public static Object getNullEquivalentValue(Class<?> type)
-	{
+	public static Object getNullEquivalentValue(Class<?> type) {
 		return nullEquivalentValues.get(type);
 	}
 
-	private NullEquivalentValueUtil()
-	{
+	private NullEquivalentValueUtil() {
 		// intended blank
 	}
 }

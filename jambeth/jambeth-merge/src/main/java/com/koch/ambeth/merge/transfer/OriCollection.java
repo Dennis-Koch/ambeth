@@ -32,8 +32,7 @@ import com.koch.ambeth.merge.model.IOriCollection;
 import com.koch.ambeth.service.merge.model.IObjRef;
 
 @XmlRootElement
-public class OriCollection implements IOriCollection
-{
+public class OriCollection implements IOriCollection {
 	protected transient Map<Class<?>, List<IObjRef>> typeToOriDict;
 
 	@XmlElement(required = true)
@@ -51,41 +50,33 @@ public class OriCollection implements IOriCollection
 	@XmlElement(required = false)
 	protected Long[] allChangedOn;
 
-	public OriCollection()
-	{
+	public OriCollection() {
 	}
 
-	public OriCollection(List<IObjRef> oriList)
-	{
+	public OriCollection(List<IObjRef> oriList) {
 		allChangeORIs = oriList;
 	}
 
 	@Override
-	public List<IObjRef> getAllChangeORIs()
-	{
+	public List<IObjRef> getAllChangeORIs() {
 		return allChangeORIs;
 	}
 
-	public void setAllChangeORIs(List<IObjRef> allChangeORIs)
-	{
+	public void setAllChangeORIs(List<IObjRef> allChangeORIs) {
 		this.allChangeORIs = allChangeORIs;
 	}
 
 	@Override
-	public List<IObjRef> getChangeRefs(Class<?> type)
-	{
-		if (typeToOriDict == null)
-		{
-			typeToOriDict = new HashMap<Class<?>, List<IObjRef>>();
+	public List<IObjRef> getChangeRefs(Class<?> type) {
+		if (typeToOriDict == null) {
+			typeToOriDict = new HashMap<>();
 
-			for (int a = allChangeORIs.size(); a-- > 0;)
-			{
+			for (int a = allChangeORIs.size(); a-- > 0;) {
 				IObjRef ori = allChangeORIs.get(a);
 				Class<?> realType = ori.getRealType();
 				List<IObjRef> modList = typeToOriDict.get(realType);
-				if (modList == null)
-				{
-					modList = new ArrayList<IObjRef>();
+				if (modList == null) {
+					modList = new ArrayList<>();
 					typeToOriDict.put(realType, modList);
 				}
 				modList.add(ori);
@@ -96,46 +87,38 @@ public class OriCollection implements IOriCollection
 	}
 
 	@Override
-	public Long getChangedOn()
-	{
+	public Long getChangedOn() {
 		return changedOn;
 	}
 
-	public void setChangedOn(Long changedOn)
-	{
+	public void setChangedOn(Long changedOn) {
 		this.changedOn = changedOn;
 	}
 
 	@Override
-	public String getChangedBy()
-	{
+	public String getChangedBy() {
 		return changedBy;
 	}
 
-	public void setChangedBy(String changedBy)
-	{
+	public void setChangedBy(String changedBy) {
 		this.changedBy = changedBy;
 	}
 
 	@Override
-	public String[] getAllChangedBy()
-	{
+	public String[] getAllChangedBy() {
 		return allChangedBy;
 	}
 
-	public void setAllChangedBy(String[] allChangedBy)
-	{
+	public void setAllChangedBy(String[] allChangedBy) {
 		this.allChangedBy = allChangedBy;
 	}
 
 	@Override
-	public Long[] getAllChangedOn()
-	{
+	public Long[] getAllChangedOn() {
 		return allChangedOn;
 	}
 
-	public void setAllChangedOn(Long[] allChangedOn)
-	{
+	public void setAllChangedOn(Long[] allChangedOn) {
 		this.allChangedOn = allChangedOn;
 	}
 }

@@ -33,10 +33,8 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.annotation.PropertyChangeAspect;
 
-public class PropertyChangeInstantiationProcessor implements IBeanInstantiationProcessor
-{
-	public static interface CreateDelegate
-	{
+public class PropertyChangeInstantiationProcessor implements IBeanInstantiationProcessor {
+	public static interface CreateDelegate {
 		Object create();
 	}
 
@@ -47,15 +45,15 @@ public class PropertyChangeInstantiationProcessor implements IBeanInstantiationP
 	protected IAccessorTypeProvider accessorTypeProvider;
 
 	@Override
-	public Object instantiateBean(BeanContextFactory beanContextFactory, ServiceContext beanContext, IBeanConfiguration beanConfiguration, Class<?> beanType,
-			List<IBeanConfiguration> beanConfHierarchy)
-	{
-		if (!beanType.isAnnotationPresent(PropertyChangeAspect.class))
-		{
+	public Object instantiateBean(BeanContextFactory beanContextFactory, ServiceContext beanContext,
+			IBeanConfiguration beanConfiguration, Class<?> beanType,
+			List<IBeanConfiguration> beanConfHierarchy) {
+		if (!beanType.isAnnotationPresent(PropertyChangeAspect.class)) {
 			return null;
 		}
 		IBytecodeEnhancer bytecodeEnhancer = beanContext.getService(IBytecodeEnhancer.class);
-		beanType = bytecodeEnhancer.getEnhancedType(beanType, PropertyChangeEnhancementHint.PropertyChangeEnhancementHint);
+		beanType = bytecodeEnhancer.getEnhancedType(beanType,
+				PropertyChangeEnhancementHint.PropertyChangeEnhancementHint);
 		return accessorTypeProvider.getConstructorType(CreateDelegate.class, beanType).create();
 	}
 }

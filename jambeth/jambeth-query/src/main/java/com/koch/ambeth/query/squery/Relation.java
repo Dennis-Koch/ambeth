@@ -20,18 +20,14 @@ limitations under the License.
  * #L%
  */
 
-public enum Relation
-{
+public enum Relation {
 	AND, OR;
 
-	public static Relation build(String relation)
-	{
-		if (relation == null)
-		{
+	public static Relation build(String relation) {
+		if (relation == null) {
 			return AND;
 		}
-		else
-		{
+		else {
 			return Relation.valueOf(relation.toUpperCase());
 		}
 	}

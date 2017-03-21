@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.List;
 
-public interface IQueryResultRetriever
-{
+public interface IQueryResultRetriever {
 	IQueryResultCacheItem getQueryResult();
 
 	List<Class<?>> getRelatedEntityTypes();

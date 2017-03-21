@@ -26,15 +26,14 @@ import com.koch.ambeth.query.jdbc.TwoPlaceOperator;
 import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.IMap;
 
-public class SqlOrOperator extends TwoPlaceOperator
-{
+public class SqlOrOperator extends TwoPlaceOperator {
 	@SuppressWarnings("unused")
 	@LogInstance(SqlOrOperator.class)
 	private ILogger log;
 
 	@Override
-	protected void expandOperatorQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean rightValueIsNull)
-	{
+	protected void expandOperatorQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			boolean rightValueIsNull) {
 		querySB.append(" OR ");
 	}
 }

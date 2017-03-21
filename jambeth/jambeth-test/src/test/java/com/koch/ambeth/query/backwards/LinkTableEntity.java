@@ -22,34 +22,28 @@ limitations under the License.
 
 import com.koch.ambeth.model.AbstractEntity;
 
-public class LinkTableEntity extends AbstractEntity
-{
+public class LinkTableEntity extends AbstractEntity {
 	protected String name;
 
 	protected JoinQueryEntity joinQueryEntity;
 
-	protected LinkTableEntity()
-	{
+	protected LinkTableEntity() {
 		// Intended blank
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public JoinQueryEntity getJoinQueryEntity()
-	{
+	public JoinQueryEntity getJoinQueryEntity() {
 		return joinQueryEntity;
 	}
 
-	public void setJoinQueryEntity(JoinQueryEntity joinQueryEntity)
-	{
+	public void setJoinQueryEntity(JoinQueryEntity joinQueryEntity) {
 		this.joinQueryEntity = joinQueryEntity;
 	}
 }

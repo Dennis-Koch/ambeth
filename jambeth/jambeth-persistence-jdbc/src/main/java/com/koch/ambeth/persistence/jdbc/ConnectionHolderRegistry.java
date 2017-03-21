@@ -27,36 +27,35 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.IConnectionHolder;
 import com.koch.ambeth.util.collections.ILinkedMap;
 
-public class ConnectionHolderRegistry implements IInitializingBean, IConnectionHolderExtendable, IConnectionHolderRegistry
-{
+public class ConnectionHolderRegistry
+		implements IInitializingBean, IConnectionHolderExtendable, IConnectionHolderRegistry {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	protected MapExtendableContainer<Object, IConnectionHolder> extensions = new MapExtendableContainer<Object, IConnectionHolder>("connectionHolder",
-			"persistenceUnitId");
+	protected MapExtendableContainer<Object, IConnectionHolder> extensions =
+			new MapExtendableContainer<>("connectionHolder",
+					"persistenceUnitId");
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		// Intended blank
 	}
 
 	@Override
-	public ILinkedMap<Object, IConnectionHolder> getPersistenceUnitToConnectionHolderMap()
-	{
+	public ILinkedMap<Object, IConnectionHolder> getPersistenceUnitToConnectionHolderMap() {
 		return extensions.getExtensions();
 	}
 
 	@Override
-	public void registerConnectionHolder(IConnectionHolder connectionHolder, Object persistenceUnitId)
-	{
+	public void registerConnectionHolder(IConnectionHolder connectionHolder,
+			Object persistenceUnitId) {
 		extensions.register(connectionHolder, persistenceUnitId);
 	}
 
 	@Override
-	public void unregisterConnectionHolder(IConnectionHolder connectionHolder, Object persistenceUnitId)
-	{
+	public void unregisterConnectionHolder(IConnectionHolder connectionHolder,
+			Object persistenceUnitId) {
 		extensions.unregister(connectionHolder, persistenceUnitId);
 	}
 }

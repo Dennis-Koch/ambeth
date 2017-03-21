@@ -58,7 +58,7 @@ public class EntityMetaDataClient implements IEntityMetaDataProvider {
 
 	@Override
 	public IEntityMetaData getMetaData(Class<?> entityType, boolean tryOnly) {
-		ArrayList<Class<?>> entityTypes = new ArrayList<Class<?>>(1);
+		ArrayList<Class<?>> entityTypes = new ArrayList<>(1);
 		entityTypes.add(entityType);
 		IList<IEntityMetaData> metaData = getMetaData(entityTypes);
 		if (metaData.size() > 0) {
@@ -73,7 +73,7 @@ public class EntityMetaDataClient implements IEntityMetaDataProvider {
 
 	@Override
 	public IList<IEntityMetaData> getMetaData(List<Class<?>> entityTypes) {
-		ArrayList<Class<?>> realEntityTypes = new ArrayList<Class<?>>(entityTypes.size());
+		ArrayList<Class<?>> realEntityTypes = new ArrayList<>(entityTypes.size());
 		for (Class<?> entityType : entityTypes) {
 			realEntityTypes.add(proxyHelper.getRealType(entityType));
 		}
@@ -82,7 +82,7 @@ public class EntityMetaDataClient implements IEntityMetaDataProvider {
 		LockState lockState = readLock != null ? readLock.releaseAllLocks() : null;
 		try {
 			List<IEntityMetaData> serviceResult = mergeService.getMetaData(realEntityTypes);
-			ArrayList<IEntityMetaData> result = new ArrayList<IEntityMetaData>();
+			ArrayList<IEntityMetaData> result = new ArrayList<>();
 			result.addAll(serviceResult);
 			return result;
 		}

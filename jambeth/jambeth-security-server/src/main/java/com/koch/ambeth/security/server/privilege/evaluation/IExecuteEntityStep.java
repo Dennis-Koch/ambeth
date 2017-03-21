@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IExecuteEntityStep
-{
+public interface IExecuteEntityStep {
 	void allowExecute();
 
 	void skipExecute();

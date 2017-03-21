@@ -31,94 +31,81 @@ import com.koch.ambeth.util.collections.EmptyList;
 
 @XmlType
 @XmlAccessorType(XmlAccessType.FIELD)
-public class CompositeFilterDescriptor<T> implements IFilterDescriptor<T>
-{
+public class CompositeFilterDescriptor<T> implements IFilterDescriptor<T> {
 	@XmlElement
 	protected Class<T> entityType;
 
 	@XmlElement
 	protected LogicalOperator logicalOperator;
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@XmlElement
-	protected List<IFilterDescriptor<T>> childFilterDescriptors = (List) EmptyList.createTypedEmptyList(IFilterDescriptor.class);
+	protected List<IFilterDescriptor<T>> childFilterDescriptors =
+			(List) EmptyList.createTypedEmptyList(IFilterDescriptor.class);
 
-	public CompositeFilterDescriptor()
-	{
+	public CompositeFilterDescriptor() {
 		// Intended blank. For XML serialization usage only
 	}
 
-	public CompositeFilterDescriptor(Class<T> entityType)
-	{
+	public CompositeFilterDescriptor(Class<T> entityType) {
 		setEntityType(entityType);
 	}
 
 	@Override
-	public Class<T> getEntityType()
-	{
+	public Class<T> getEntityType() {
 		return entityType;
 	}
 
-	public void setEntityType(Class<T> entityType)
-	{
+	public void setEntityType(Class<T> entityType) {
 		this.entityType = entityType;
 	}
 
 	@Override
-	public LogicalOperator getLogicalOperator()
-	{
+	public LogicalOperator getLogicalOperator() {
 		return logicalOperator;
 	}
 
-	public void setLogicalOperator(LogicalOperator logicalOperator)
-	{
+	public void setLogicalOperator(LogicalOperator logicalOperator) {
 		this.logicalOperator = logicalOperator;
 	}
 
-	public CompositeFilterDescriptor<T> withLogicalOperator(LogicalOperator logicalOperator)
-	{
+	public CompositeFilterDescriptor<T> withLogicalOperator(LogicalOperator logicalOperator) {
 		setLogicalOperator(logicalOperator);
 		return this;
 	}
 
 	@Override
-	public List<IFilterDescriptor<T>> getChildFilterDescriptors()
-	{
+	public List<IFilterDescriptor<T>> getChildFilterDescriptors() {
 		return childFilterDescriptors;
 	}
 
-	public void setChildFilterDescriptors(List<IFilterDescriptor<T>> childFilterDescriptors)
-	{
+	public void setChildFilterDescriptors(List<IFilterDescriptor<T>> childFilterDescriptors) {
 		this.childFilterDescriptors = childFilterDescriptors;
 	}
 
-	public CompositeFilterDescriptor<T> withChildFilterDescriptors(List<IFilterDescriptor<T>> childFilterDescriptors)
-	{
+	public CompositeFilterDescriptor<T> withChildFilterDescriptors(
+			List<IFilterDescriptor<T>> childFilterDescriptors) {
 		setChildFilterDescriptors(childFilterDescriptors);
 		return this;
 	}
 
 	@Override
-	public String getMember()
-	{
+	public String getMember() {
 		return null;
 	}
 
 	@Override
-	public FilterOperator getOperator()
-	{
+	public FilterOperator getOperator() {
 		return null;
 	}
 
 	@Override
-	public List<String> getValue()
-	{
+	public List<String> getValue() {
 		return null;
 	}
 
 	@Override
-	public Boolean isCaseSensitive()
-	{
+	public Boolean isCaseSensitive() {
 		return null;
 	}
 }

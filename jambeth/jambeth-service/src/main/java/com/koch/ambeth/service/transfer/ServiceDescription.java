@@ -35,8 +35,7 @@ import com.koch.ambeth.util.objectcollector.IObjectCollector;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class ServiceDescription implements IServiceDescription
-{
+public class ServiceDescription implements IServiceDescription {
 	@XmlElement(required = true)
 	protected String serviceName;
 
@@ -55,79 +54,65 @@ public class ServiceDescription implements IServiceDescription
 	protected transient Method method;
 
 	@Override
-	public String getServiceName()
-	{
+	public String getServiceName() {
 		return serviceName;
 	}
 
-	public void setServiceName(String serviceName)
-	{
+	public void setServiceName(String serviceName) {
 		this.serviceName = serviceName;
 	}
 
 	@Override
-	public Method getMethod(Class<?> serviceType, IObjectCollector objectCollector)
-	{
-		if (method == null)
-		{
-			try
-			{
-				try
-				{
-					method = serviceType.getMethod(StringConversionHelper.upperCaseFirst(objectCollector, methodName), paramTypes);
+	public Method getMethod(Class<?> serviceType, IObjectCollector objectCollector) {
+		if (method == null) {
+			try {
+				try {
+					method = serviceType.getMethod(
+							StringConversionHelper.upperCaseFirst(objectCollector, methodName), paramTypes);
 				}
-				catch (NoSuchMethodException e)
-				{
-					method = serviceType.getMethod(StringConversionHelper.lowerCaseFirst(objectCollector, methodName), paramTypes);
+				catch (NoSuchMethodException e) {
+					method = serviceType.getMethod(
+							StringConversionHelper.lowerCaseFirst(objectCollector, methodName), paramTypes);
 				}
 			}
-			catch (Throwable e)
-			{
+			catch (Throwable e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
 		return method;
 	}
 
-	public void setMethodName(String methodName)
-	{
+	public void setMethodName(String methodName) {
 		this.methodName = methodName;
 	}
 
-	public String getMethodName()
-	{
+	public String getMethodName() {
 		return methodName;
 	}
 
 	@Override
-	public Object[] getArguments()
-	{
+	public Object[] getArguments() {
 		return arguments;
 	}
 
-	public Class<?>[] getParamTypes()
-	{
+	public Class<?>[] getParamTypes() {
 		return paramTypes;
 	}
 
-	public void setParamTypes(Class<?>[] paramTypes)
-	{
+	public void setParamTypes(Class<?>[] paramTypes) {
 		this.paramTypes = paramTypes;
 	}
 
-	public void setArguments(Object[] arguments)
-	{
+	public void setArguments(Object[] arguments) {
 		this.arguments = arguments;
 	}
 
 	@Override
-	public ISecurityScope[] getSecurityScopes()
-	{
+	public ISecurityScope[] getSecurityScopes() {
 		return securityScopes;
 	}
 
-	public void setSecurityScopes(ISecurityScope[] securityScopes)
-	{
+	public void setSecurityScopes(ISecurityScope[] securityScopes) {
 		this.securityScopes = securityScopes;
 	}
 }

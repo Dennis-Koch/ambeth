@@ -20,9 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public interface IAuthorizationChangeListenerExtendable
-{
-	void registerAuthorizationChangeListener(IAuthorizationChangeListener authorizationChangeListener);
+public interface IAuthorizationChangeListenerExtendable {
+	void registerAuthorizationChangeListener(
+			IAuthorizationChangeListener authorizationChangeListener);
 
-	void unregisterAuthorizationChangeListener(IAuthorizationChangeListener authorizationChangeListener);
+	void unregisterAuthorizationChangeListener(
+			IAuthorizationChangeListener authorizationChangeListener);
 }

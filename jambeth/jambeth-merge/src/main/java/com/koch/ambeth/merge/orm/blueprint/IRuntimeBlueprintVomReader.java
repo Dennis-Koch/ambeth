@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IRuntimeBlueprintVomReader
-{
+public interface IRuntimeBlueprintVomReader {
 
 	void addEntityBlueprintVom(String businessObjectType, String valueObjectType);
 

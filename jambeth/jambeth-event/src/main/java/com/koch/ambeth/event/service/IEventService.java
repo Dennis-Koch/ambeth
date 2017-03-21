@@ -26,9 +26,9 @@ import com.koch.ambeth.event.model.IEventItem;
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface IEventService
-{
-	List<IEventItem> pollEvents(long serverSession, long eventSequenceSince, long requestedMaximumWaitTime);
+public interface IEventService {
+	List<IEventItem> pollEvents(long serverSession, long eventSequenceSince,
+			long requestedMaximumWaitTime);
 
 	long getCurrentEventSequence();
 

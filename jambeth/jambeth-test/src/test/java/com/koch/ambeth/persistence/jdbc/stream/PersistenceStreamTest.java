@@ -54,12 +54,12 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 @SQLStructure("PersistenceStream_structure.sql")
-@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/jdbc/stream/orm.xml") })
-public class PersistenceStreamTest extends AbstractInformationBusWithPersistenceTest
-{
+@TestPropertiesList({@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/persistence/jdbc/stream/orm.xml")})
+public class PersistenceStreamTest extends AbstractInformationBusWithPersistenceTest {
 	public static final String clobValue = "hallo";
 
-	public static final byte[] blobValue = new byte[] { 1, 2, 3, 4, 5 };
+	public static final byte[] blobValue = new byte[] {1, 2, 3, 4, 5};
 
 	@Autowired
 	protected ICache cache;
@@ -71,33 +71,28 @@ public class PersistenceStreamTest extends AbstractInformationBusWithPersistence
 	protected IMergeProcess mergeProcess;
 
 	@Before
-	public void before() throws Throwable
-	{
+	public void before() throws Throwable {
 		Connection connection = connectionFactory.create();
-		try
-		{
-			PreparedStatement pstm = connection.prepareStatement("INSERT INTO \"ENTITY_WITH_LOB\" (\"ID\", \"BLOB\", \"CLOB\", \"VERSION\") VALUES (?,?,?,?)");
+		try {
+			PreparedStatement pstm = connection.prepareStatement(
+					"INSERT INTO \"ENTITY_WITH_LOB\" (\"ID\", \"BLOB\", \"CLOB\", \"VERSION\") VALUES (?,?,?,?)");
 			Blob blob = connectionDialect.createBlob(connection);
 			{
 				OutputStream os = blob.setBinaryStream(1);
-				try
-				{
+				try {
 					os.write(blobValue);
 				}
-				finally
-				{
+				finally {
 					os.close();
 				}
 			}
 			Clob clob = connectionDialect.createClob(connection);
 			{
 				Writer os = clob.setCharacterStream(1);
-				try
-				{
+				try {
 					os.write(clobValue);
 				}
-				finally
-				{
+				finally {
 					os.close();
 				}
 			}
@@ -108,56 +103,45 @@ public class PersistenceStreamTest extends AbstractInformationBusWithPersistence
 			pstm.execute();
 			connection.commit();
 		}
-		finally
-		{
+		finally {
 			connection.close();
 		}
 	}
 
 	@Test
-	public void blobRead()
-	{
+	public void blobRead() {
 		EntityWithLob entity = cache.getObject(EntityWithLob.class, 1);
 		IBinaryInputStream is = entity.getBlob().deriveBinaryInputStream();
-		try
-		{
+		try {
 			ByteArrayOutputStream os = new ByteArrayOutputStream();
 			int oneByte;
-			while ((oneByte = is.readByte()) != -1)
-			{
+			while ((oneByte = is.readByte()) != -1) {
 				os.write(oneByte);
 			}
 			byte[] byteArray = os.toByteArray();
 			Assert.assertArrayEquals(blobValue, byteArray);
 		}
-		finally
-		{
-			try
-			{
+		finally {
+			try {
 				is.close();
 			}
-			catch (IOException e)
-			{
+			catch (IOException e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
 	}
 
 	@Test
-	public void blobAndClobWrite()
-	{
+	public void blobAndClobWrite() {
 		EntityWithLob entity = entityFactory.createEntity(EntityWithLob.class);
-		entity.setBlob(new IBinaryInputSource()
-		{
+		entity.setBlob(new IBinaryInputSource() {
 			@Override
-			public IInputStream deriveInputStream()
-			{
+			public IInputStream deriveInputStream() {
 				return new InputStreamToBinaryInputStream(new ByteArrayInputStream(blobValue));
 			}
 
 			@Override
-			public IBinaryInputStream deriveBinaryInputStream()
-			{
+			public IBinaryInputStream deriveBinaryInputStream() {
 				return new InputStreamToBinaryInputStream(new ByteArrayInputStream(blobValue));
 			}
 		});
@@ -166,29 +150,23 @@ public class PersistenceStreamTest extends AbstractInformationBusWithPersistence
 	}
 
 	@Test
-	public void clobRead()
-	{
+	public void clobRead() {
 		EntityWithLob entity = cache.getObject(EntityWithLob.class, 1);
 		ICharacterInputStream is = entity.getClob().deriveCharacterInputStream();
-		try
-		{
+		try {
 			StringWriter sw = new StringWriter();
 			int oneChar;
-			while ((oneChar = is.readChar()) != -1)
-			{
+			while ((oneChar = is.readChar()) != -1) {
 				sw.write(oneChar);
 			}
 			String value = sw.toString();
 			Assert.assertEquals(clobValue, value);
 		}
-		finally
-		{
-			try
-			{
+		finally {
+			try {
 				is.close();
 			}
-			catch (IOException e)
-			{
+			catch (IOException e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}

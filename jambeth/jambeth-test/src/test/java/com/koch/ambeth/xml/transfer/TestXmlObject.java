@@ -25,8 +25,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public class TestXmlObject
-{
+public class TestXmlObject {
 	protected String valueString;
 
 	protected long valueLong;
@@ -62,312 +61,242 @@ public class TestXmlObject
 	@XmlTransient
 	protected Object transientField2;
 
-	public String getValueString()
-	{
+	public String getValueString() {
 		return valueString;
 	}
 
-	public void setValueString(String valueString)
-	{
+	public void setValueString(String valueString) {
 		this.valueString = valueString;
 	}
 
-	public long getValueLong()
-	{
+	public long getValueLong() {
 		return valueLong;
 	}
 
-	public void setValueLong(long valueLong)
-	{
+	public void setValueLong(long valueLong) {
 		this.valueLong = valueLong;
 	}
 
-	public int getValueInteger()
-	{
+	public int getValueInteger() {
 		return valueInteger;
 	}
 
-	public void setValueInteger(int valueInteger)
-	{
+	public void setValueInteger(int valueInteger) {
 		this.valueInteger = valueInteger;
 	}
 
-	public double getValueDouble()
-	{
+	public double getValueDouble() {
 		return valueDouble;
 	}
 
-	public void setValueDouble(double valueDouble)
-	{
+	public void setValueDouble(double valueDouble) {
 		this.valueDouble = valueDouble;
 	}
 
-	public float getValueFloat()
-	{
+	public float getValueFloat() {
 		return valueFloat;
 	}
 
-	public void setValueFloat(float valueFloat)
-	{
+	public void setValueFloat(float valueFloat) {
 		this.valueFloat = valueFloat;
 	}
 
-	public byte getValueByte()
-	{
+	public byte getValueByte() {
 		return valueByte;
 	}
 
-	public void setValueByte(byte valueByte)
-	{
+	public void setValueByte(byte valueByte) {
 		this.valueByte = valueByte;
 	}
 
-	public char getValueCharacter()
-	{
+	public char getValueCharacter() {
 		return valueCharacter;
 	}
 
-	public void setValueCharacter(char valueCharacter)
-	{
+	public void setValueCharacter(char valueCharacter) {
 		this.valueCharacter = valueCharacter;
 	}
 
-	public boolean getValueBoolean()
-	{
+	public boolean getValueBoolean() {
 		return valueBoolean;
 	}
 
-	public void setValueBoolean(boolean valueBoolean)
-	{
+	public void setValueBoolean(boolean valueBoolean) {
 		this.valueBoolean = valueBoolean;
 	}
 
-	public Long getValueLongN()
-	{
+	public Long getValueLongN() {
 		return valueLongN;
 	}
 
-	public void setValueLongN(Long valueLongN)
-	{
+	public void setValueLongN(Long valueLongN) {
 		this.valueLongN = valueLongN;
 	}
 
-	public Integer getValueIntegerN()
-	{
+	public Integer getValueIntegerN() {
 		return valueIntegerN;
 	}
 
-	public void setValueIntegerN(Integer valueIntegerN)
-	{
+	public void setValueIntegerN(Integer valueIntegerN) {
 		this.valueIntegerN = valueIntegerN;
 	}
 
-	public Double getValueDoubleN()
-	{
+	public Double getValueDoubleN() {
 		return valueDoubleN;
 	}
 
-	public void setValueDoubleN(Double valueDoubleN)
-	{
+	public void setValueDoubleN(Double valueDoubleN) {
 		this.valueDoubleN = valueDoubleN;
 	}
 
-	public Float getValueFloatN()
-	{
+	public Float getValueFloatN() {
 		return valueFloatN;
 	}
 
-	public void setValueFloatN(Float valueFloatN)
-	{
+	public void setValueFloatN(Float valueFloatN) {
 		this.valueFloatN = valueFloatN;
 	}
 
-	public Byte getValueByteN()
-	{
+	public Byte getValueByteN() {
 		return valueByteN;
 	}
 
-	public void setValueByteN(Byte valueByteN)
-	{
+	public void setValueByteN(Byte valueByteN) {
 		this.valueByteN = valueByteN;
 	}
 
-	public Character getValueCharacterN()
-	{
+	public Character getValueCharacterN() {
 		return valueCharacterN;
 	}
 
-	public void setValueCharacterN(Character valueCharacterN)
-	{
+	public void setValueCharacterN(Character valueCharacterN) {
 		this.valueCharacterN = valueCharacterN;
 	}
 
-	public Boolean getValueBooleanN()
-	{
+	public Boolean getValueBooleanN() {
 		return valueBooleanN;
 	}
 
-	public void setValueBooleanN(Boolean valueBooleanN)
-	{
+	public void setValueBooleanN(Boolean valueBooleanN) {
 		this.valueBooleanN = valueBooleanN;
 	}
 
-	public Object getTransientField1()
-	{
+	public Object getTransientField1() {
 		return transientField1;
 	}
 
-	public void setTransientField1(Object transientField1)
-	{
+	public void setTransientField1(Object transientField1) {
 		this.transientField1 = transientField1;
 	}
 
-	public Object getTransientField2()
-	{
+	public Object getTransientField2() {
 		return transientField2;
 	}
 
-	public void setTransientField2(Object transientField2)
-	{
+	public void setTransientField2(Object transientField2) {
 		this.transientField2 = transientField2;
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return 42; // The answer to the sense of life, the universe and everything else
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (this == obj)
-		{
+	public boolean equals(Object obj) {
+		if (this == obj) {
 			return true;
 		}
-		if (obj == null)
-		{
+		if (obj == null) {
 			return false;
 		}
-		if (getClass() != obj.getClass())
-		{
+		if (getClass() != obj.getClass()) {
 			return false;
 		}
 		TestXmlObject other = (TestXmlObject) obj;
-		if (valueBoolean != other.valueBoolean)
-		{
+		if (valueBoolean != other.valueBoolean) {
 			return false;
 		}
-		if (valueBooleanN == null)
-		{
-			if (other.valueBooleanN != null)
-			{
+		if (valueBooleanN == null) {
+			if (other.valueBooleanN != null) {
 				return false;
 			}
 		}
-		else if (!valueBooleanN.equals(other.valueBooleanN))
-		{
+		else if (!valueBooleanN.equals(other.valueBooleanN)) {
 			return false;
 		}
-		if (valueByte != other.valueByte)
-		{
+		if (valueByte != other.valueByte) {
 			return false;
 		}
-		if (valueByteN == null)
-		{
-			if (other.valueByteN != null)
-			{
+		if (valueByteN == null) {
+			if (other.valueByteN != null) {
 				return false;
 			}
 		}
-		else if (!valueByteN.equals(other.valueByteN))
-		{
+		else if (!valueByteN.equals(other.valueByteN)) {
 			return false;
 		}
-		if (valueCharacter != other.valueCharacter)
-		{
+		if (valueCharacter != other.valueCharacter) {
 			return false;
 		}
-		if (valueCharacterN == null)
-		{
-			if (other.valueCharacterN != null)
-			{
+		if (valueCharacterN == null) {
+			if (other.valueCharacterN != null) {
 				return false;
 			}
 		}
-		else if (!valueCharacterN.equals(other.valueCharacterN))
-		{
+		else if (!valueCharacterN.equals(other.valueCharacterN)) {
 			return false;
 		}
-		if (Double.doubleToLongBits(valueDouble) != Double.doubleToLongBits(other.valueDouble))
-		{
+		if (Double.doubleToLongBits(valueDouble) != Double.doubleToLongBits(other.valueDouble)) {
 			return false;
 		}
-		if (valueDoubleN == null)
-		{
-			if (other.valueDoubleN != null)
-			{
+		if (valueDoubleN == null) {
+			if (other.valueDoubleN != null) {
 				return false;
 			}
 		}
-		else if (!valueDoubleN.equals(other.valueDoubleN))
-		{
+		else if (!valueDoubleN.equals(other.valueDoubleN)) {
 			return false;
 		}
-		if (Float.floatToIntBits(valueFloat) != Float.floatToIntBits(other.valueFloat))
-		{
+		if (Float.floatToIntBits(valueFloat) != Float.floatToIntBits(other.valueFloat)) {
 			return false;
 		}
-		if (valueFloatN == null)
-		{
-			if (other.valueFloatN != null)
-			{
+		if (valueFloatN == null) {
+			if (other.valueFloatN != null) {
 				return false;
 			}
 		}
-		else if (!valueFloatN.equals(other.valueFloatN))
-		{
+		else if (!valueFloatN.equals(other.valueFloatN)) {
 			return false;
 		}
-		if (valueInteger != other.valueInteger)
-		{
+		if (valueInteger != other.valueInteger) {
 			return false;
 		}
-		if (valueIntegerN == null)
-		{
-			if (other.valueIntegerN != null)
-			{
+		if (valueIntegerN == null) {
+			if (other.valueIntegerN != null) {
 				return false;
 			}
 		}
-		else if (!valueIntegerN.equals(other.valueIntegerN))
-		{
+		else if (!valueIntegerN.equals(other.valueIntegerN)) {
 			return false;
 		}
-		if (valueLong != other.valueLong)
-		{
+		if (valueLong != other.valueLong) {
 			return false;
 		}
-		if (valueLongN == null)
-		{
-			if (other.valueLongN != null)
-			{
+		if (valueLongN == null) {
+			if (other.valueLongN != null) {
 				return false;
 			}
 		}
-		else if (!valueLongN.equals(other.valueLongN))
-		{
+		else if (!valueLongN.equals(other.valueLongN)) {
 			return false;
 		}
-		if (valueString == null)
-		{
-			if (other.valueString != null)
-			{
+		if (valueString == null) {
+			if (other.valueString != null) {
 				return false;
 			}
 		}
-		else if (!valueString.equals(other.valueString))
-		{
+		else if (!valueString.equals(other.valueString)) {
 			return false;
 		}
 		return true;

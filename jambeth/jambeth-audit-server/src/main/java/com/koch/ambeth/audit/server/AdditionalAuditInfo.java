@@ -23,11 +23,10 @@ limitations under the License.
 import com.koch.ambeth.security.model.IUser;
 import com.koch.ambeth.util.collections.ArrayList;
 
-public class AdditionalAuditInfo
-{
-	public final ArrayList<String> auditReasonContainer = new ArrayList<String>();
+public class AdditionalAuditInfo {
+	public final ArrayList<String> auditReasonContainer = new ArrayList<>();
 
-	public final ArrayList<String> auditContextContainer = new ArrayList<String>();
+	public final ArrayList<String> auditContextContainer = new ArrayList<>();
 
 	public Boolean ownAuditMergeActive;
 

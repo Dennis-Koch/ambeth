@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.service.metadata.Member;
 
-public interface IAuditConfiguration
-{
+public interface IAuditConfiguration {
 	boolean isAuditActive();
 
 	boolean isReasonRequired();

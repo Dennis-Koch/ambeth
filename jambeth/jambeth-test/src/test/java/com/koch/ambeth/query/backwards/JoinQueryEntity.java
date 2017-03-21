@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.model.AbstractEntity;
 
-public class JoinQueryEntity extends AbstractEntity
-{
+public class JoinQueryEntity extends AbstractEntity {
 	protected int value;
 
 	protected QueryEntity queryEntity;
@@ -32,48 +31,39 @@ public class JoinQueryEntity extends AbstractEntity
 
 	protected LinkTableEntity linkTableEntity;
 
-	protected JoinQueryEntity()
-	{
+	protected JoinQueryEntity() {
 		// Intended blank
 	}
 
-	public int getValue()
-	{
+	public int getValue() {
 		return value;
 	}
 
-	public void setValue(int value)
-	{
+	public void setValue(int value) {
 		this.value = value;
 	}
 
-	public QueryEntity getQueryEntity()
-	{
+	public QueryEntity getQueryEntity() {
 		return queryEntity;
 	}
 
-	public void setQueryEntity(QueryEntity queryEntity)
-	{
+	public void setQueryEntity(QueryEntity queryEntity) {
 		this.queryEntity = queryEntity;
 	}
 
-	public JoinQueryEntity getParent()
-	{
+	public JoinQueryEntity getParent() {
 		return parent;
 	}
 
-	public void setParent(JoinQueryEntity parent)
-	{
+	public void setParent(JoinQueryEntity parent) {
 		this.parent = parent;
 	}
 
-	public LinkTableEntity getLinkTableEntity()
-	{
+	public LinkTableEntity getLinkTableEntity() {
 		return linkTableEntity;
 	}
 
-	public void setLinkTableEntity(LinkTableEntity linkTableEntity)
-	{
+	public void setLinkTableEntity(LinkTableEntity linkTableEntity) {
 		this.linkTableEntity = linkTableEntity;
 	}
 }

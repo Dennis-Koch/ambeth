@@ -25,8 +25,7 @@ import java.nio.file.Path;
 
 import com.koch.ambeth.util.collections.IList;
 
-public interface IClasspathInfo
-{
+public interface IClasspathInfo {
 	IList<URL> getJarURLs();
 
 	Path openAsFile(URL url) throws Throwable;

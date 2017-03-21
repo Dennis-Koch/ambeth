@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public class LongIdEntity
-{
+public class LongIdEntity {
 	protected Long id;
 
 	protected short version;
@@ -34,73 +33,59 @@ public class LongIdEntity
 
 	protected String name;
 
-	public Long getId()
-	{
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(Long id)
-	{
+	public void setId(Long id) {
 		this.id = id;
 	}
 
-	public short getVersion()
-	{
+	public short getVersion() {
 		return version;
 	}
 
-	public void setVersion(short version)
-	{
+	public void setVersion(short version) {
 		this.version = version;
 	}
 
-	public String getCreatedBy()
-	{
+	public String getCreatedBy() {
 		return createdBy;
 	}
 
-	public void setCreatedBy(String createdBy)
-	{
+	public void setCreatedBy(String createdBy) {
 		this.createdBy = createdBy;
 	}
 
-	public java.util.Date getCreatedOn()
-	{
+	public java.util.Date getCreatedOn() {
 		return createdOn;
 	}
 
-	public void setCreatedOn(java.util.Date createdOn)
-	{
+	public void setCreatedOn(java.util.Date createdOn) {
 		this.createdOn = createdOn;
 	}
 
-	public String getUpdatedBy()
-	{
+	public String getUpdatedBy() {
 		return updatedBy;
 	}
 
-	public void setUpdatedBy(String updatedBy)
-	{
+	public void setUpdatedBy(String updatedBy) {
 		this.updatedBy = updatedBy;
 	}
 
-	public java.sql.Date getUpdatedOn()
-	{
+	public java.sql.Date getUpdatedOn() {
 		return updatedOn;
 	}
 
-	public void setUpdatedOn(java.sql.Date updatedOn)
-	{
+	public void setUpdatedOn(java.sql.Date updatedOn) {
 		this.updatedOn = updatedOn;
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 

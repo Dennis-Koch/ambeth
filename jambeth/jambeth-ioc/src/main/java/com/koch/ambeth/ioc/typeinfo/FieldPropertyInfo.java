@@ -25,15 +25,13 @@ import java.lang.reflect.Field;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-public class FieldPropertyInfo extends AbstractPropertyInfo
-{
-	public FieldPropertyInfo(Class<?> entityType, String propertyName, Field field)
-	{
+public class FieldPropertyInfo extends AbstractPropertyInfo {
+	public FieldPropertyInfo(Class<?> entityType, String propertyName, Field field) {
 		this(entityType, propertyName, field, null);
 	}
 
-	public FieldPropertyInfo(Class<?> entityType, String propertyName, Field field, IThreadLocalObjectCollector objectCollector)
-	{
+	public FieldPropertyInfo(Class<?> entityType, String propertyName, Field field,
+			IThreadLocalObjectCollector objectCollector) {
 		super(entityType, objectCollector);
 		field.setAccessible(true);
 		backingField = field;
@@ -41,51 +39,43 @@ public class FieldPropertyInfo extends AbstractPropertyInfo
 		name = propertyName;
 		declaringType = field.getDeclaringClass();
 		propertyType = field.getType();
-		elementType = TypeInfoItemUtil.getElementTypeUsingReflection(propertyType, field.getGenericType());
+		elementType =
+				TypeInfoItemUtil.getElementTypeUsingReflection(propertyType, field.getGenericType());
 		init(objectCollector);
 	}
 
 	@Override
-	protected void init(IThreadLocalObjectCollector objectCollector)
-	{
+	protected void init(IThreadLocalObjectCollector objectCollector) {
 		putAnnotations(backingField);
 		super.init(objectCollector);
 	}
 
 	@Override
-	public boolean isReadable()
-	{
+	public boolean isReadable() {
 		return true;
 	}
 
 	@Override
-	public boolean isWritable()
-	{
+	public boolean isWritable() {
 		return true;
 	}
 
 	@Override
-	public Object getValue(Object obj)
-	{
-		try
-		{
+	public Object getValue(Object obj) {
+		try {
 			return backingField.get(obj);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	public void setValue(Object obj, Object value)
-	{
-		try
-		{
+	public void setValue(Object obj, Object value) {
+		try {
 			backingField.set(obj, value);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

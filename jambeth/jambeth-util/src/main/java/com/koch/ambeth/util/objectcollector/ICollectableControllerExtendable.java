@@ -20,9 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public interface ICollectableControllerExtendable
-{
-	void registerCollectableController(ICollectableController collectableController, Class<?> handledType);
+public interface ICollectableControllerExtendable {
+	void registerCollectableController(ICollectableController collectableController,
+			Class<?> handledType);
 
-	void unregisterCollectableController(ICollectableController collectableController, Class<?> handledType);
+	void unregisterCollectableController(ICollectableController collectableController,
+			Class<?> handledType);
 }

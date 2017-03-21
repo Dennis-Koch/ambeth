@@ -20,14 +20,13 @@ limitations under the License.
  * #L%
  */
 
-public abstract class CacheMapEntry
-{
+public abstract class CacheMapEntry {
 	private CacheMapEntry nextEntry;
 
 	private Object value;
 
-	public CacheMapEntry(Class<?> entityType, byte idIndex, Object id, Object value, CacheMapEntry nextEntry)
-	{
+	public CacheMapEntry(Class<?> entityType, byte idIndex, Object id, Object value,
+			CacheMapEntry nextEntry) {
 		setId(id);
 		this.value = value;
 		this.nextEntry = nextEntry;
@@ -41,28 +40,23 @@ public abstract class CacheMapEntry
 
 	public abstract byte getIdIndex();
 
-	public boolean isEqualTo(Class<?> entityType, byte idIndex, Object id)
-	{
+	public boolean isEqualTo(Class<?> entityType, byte idIndex, Object id) {
 		return getId().equals(id) && getEntityType().equals(entityType) && getIdIndex() == idIndex;
 	}
 
-	public CacheMapEntry getNextEntry()
-	{
+	public CacheMapEntry getNextEntry() {
 		return nextEntry;
 	}
 
-	public void setNextEntry(CacheMapEntry nextEntry)
-	{
+	public void setNextEntry(CacheMapEntry nextEntry) {
 		this.nextEntry = nextEntry;
 	}
 
-	public void setValue(Object value)
-	{
+	public void setValue(Object value) {
 		this.value = value;
 	}
 
-	public Object getValue()
-	{
+	public Object getValue() {
 		return value;
 	}
 }

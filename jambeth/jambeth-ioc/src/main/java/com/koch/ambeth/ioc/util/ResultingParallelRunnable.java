@@ -26,48 +26,39 @@ import com.koch.ambeth.ioc.threadlocal.IForkState;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
 
-public class ResultingParallelRunnable<R, V> extends AbstractParallelRunnable<V>
-{
-	public static class Invocation<R, V> implements IBackgroundWorkerParamDelegate<V>
-	{
+public class ResultingParallelRunnable<R, V> extends AbstractParallelRunnable<V> {
+	public static class Invocation<R, V> implements IBackgroundWorkerParamDelegate<V> {
 		protected final IResultingBackgroundWorkerParamDelegate<R, V> run;
 
-		public Invocation(ResultingRunnableHandle<R, V> runnableHandle)
-		{
+		public Invocation(ResultingRunnableHandle<R, V> runnableHandle) {
 			run = runnableHandle.run;
 		}
 
 		@Override
-		public void invoke(V item) throws Throwable
-		{
+		public void invoke(V item) throws Throwable {
 			run.invoke(item);
 		}
 	}
 
-	public static class InvocationWithAggregate<R, V> extends Invocation<R, V>
-	{
+	public static class InvocationWithAggregate<R, V> extends Invocation<R, V> {
 		private final IAggregrateResultHandler<R, V> aggregrateResultHandler;
 		private final Lock parallelLock;
 
-		public InvocationWithAggregate(ResultingRunnableHandle<R, V> runnableHandle)
-		{
+		public InvocationWithAggregate(ResultingRunnableHandle<R, V> runnableHandle) {
 			super(runnableHandle);
 			aggregrateResultHandler = runnableHandle.aggregrateResultHandler;
 			parallelLock = runnableHandle.parallelLock;
 		}
 
 		@Override
-		public void invoke(V item) throws Throwable
-		{
+		public void invoke(V item) throws Throwable {
 			R result = run.invoke(item);
 			Lock parallelLock = this.parallelLock;
 			parallelLock.lock();
-			try
-			{
+			try {
 				aggregrateResultHandler.aggregateResult(result, item);
 			}
-			finally
-			{
+			finally {
 				parallelLock.unlock();
 			}
 		}
@@ -77,29 +68,24 @@ public class ResultingParallelRunnable<R, V> extends AbstractParallelRunnable<V>
 
 	private final IForkState forkState;
 
-	public ResultingParallelRunnable(ResultingRunnableHandle<R, V> runnableHandle, boolean buildThreadLocals)
-	{
+	public ResultingParallelRunnable(ResultingRunnableHandle<R, V> runnableHandle,
+			boolean buildThreadLocals) {
 		super(runnableHandle, buildThreadLocals);
 		forkState = runnableHandle.forkState;
-		if (runnableHandle.aggregrateResultHandler != null)
-		{
-			run = new InvocationWithAggregate<R, V>(runnableHandle);
+		if (runnableHandle.aggregrateResultHandler != null) {
+			run = new InvocationWithAggregate<>(runnableHandle);
 		}
-		else
-		{
-			run = new Invocation<R, V>(runnableHandle);
+		else {
+			run = new Invocation<>(runnableHandle);
 		}
 	}
 
 	@Override
-	protected void runIntern(V item) throws Throwable
-	{
-		if (buildThreadLocals)
-		{
+	protected void runIntern(V item) throws Throwable {
+		if (buildThreadLocals) {
 			forkState.use(run, item);
 		}
-		else
-		{
+		else {
 			run.invoke(item);
 		}
 	}

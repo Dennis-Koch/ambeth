@@ -22,27 +22,22 @@ limitations under the License.
 
 import java.util.Arrays;
 
-public class ProxyTypeKey
-{
+public class ProxyTypeKey {
 	private final Class<?>[] interfaces;
 
 	private final Class<?> baseType;
 
-	public ProxyTypeKey(Class<?> baseType, Class<?>[] interfaces)
-	{
+	public ProxyTypeKey(Class<?> baseType, Class<?>[] interfaces) {
 		this.interfaces = interfaces;
 		this.baseType = baseType;
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == null)
-		{
+	public boolean equals(Object obj) {
+		if (obj == null) {
 			return false;
 		}
-		if (!(obj instanceof ProxyTypeKey))
-		{
+		if (!(obj instanceof ProxyTypeKey)) {
 			return false;
 		}
 		ProxyTypeKey other = (ProxyTypeKey) obj;
@@ -50,8 +45,7 @@ public class ProxyTypeKey
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return baseType.hashCode() ^ Arrays.hashCode(interfaces);
 	}
 }

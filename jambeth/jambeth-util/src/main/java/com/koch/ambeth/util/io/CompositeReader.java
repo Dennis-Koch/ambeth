@@ -24,32 +24,26 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Collection;
 
-public class CompositeReader extends Reader
-{
+public class CompositeReader extends Reader {
 	private final Reader[] readers;
 
 	private int readerIndex = 0;
 
-	public CompositeReader(Reader... readers)
-	{
+	public CompositeReader(Reader... readers) {
 		this.readers = readers;
 	}
 
-	public CompositeReader(Collection<? extends Reader> readers)
-	{
+	public CompositeReader(Collection<? extends Reader> readers) {
 		this.readers = readers.toArray(new Reader[readers.size()]);
 	}
 
 	@Override
-	public int read(char[] cbuf, int off, int len) throws IOException
-	{
-		if (readerIndex >= readers.length)
-		{
+	public int read(char[] cbuf, int off, int len) throws IOException {
+		if (readerIndex >= readers.length) {
 			return -1;
 		}
 		int bytesRead = readers[readerIndex].read(cbuf, off, len);
-		if (bytesRead == -1)
-		{
+		if (bytesRead == -1) {
 			readerIndex++;
 			return 0;
 		}
@@ -57,10 +51,8 @@ public class CompositeReader extends Reader
 	}
 
 	@Override
-	public void close() throws IOException
-	{
-		for (Reader reader : readers)
-		{
+	public void close() throws IOException {
+		for (Reader reader : readers) {
 			reader.close();
 		}
 	}

@@ -36,26 +36,23 @@ import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.server.start.ServletConfiguratonExtension;
 import com.koch.ambeth.testutil.BundleTestUtil;
 
-public class AmbethServerTest
-{
-	// On the CI server the 'property.file' value is relative to the normal tests. The bundle tests have a different parent folder.
+public class AmbethServerTest {
+	// On the CI server the 'property.file' value is relative to the normal tests. The bundle tests
+	// have a different parent folder.
 	@BeforeClass
-	public static void beforeClass() throws IOException
-	{
+	public static void beforeClass() throws IOException {
 		BundleTestUtil.correctPropertyFilePath();
 	}
 
 	@Test
-	public void testWithServletConfig() throws IOException
-	{
+	public void testWithServletConfig() throws IOException {
 		ServletContext mockedServletContext = Mockito.mock(ServletContext.class);
 
 		IAmbethApplication ambethApplication = Ambeth.createBundle(Core.class) //
 				.withExtension(ServletConfiguratonExtension.class).withServletContext(mockedServletContext) //
 				.start();
 		Assert.assertNotNull(ambethApplication);
-		try
-		{
+		try {
 			IServiceContext serviceContext = ambethApplication.getApplicationContext();
 			Assert.assertNotNull(serviceContext);
 
@@ -66,8 +63,7 @@ public class AmbethServerTest
 			Mockito.verify(mockedServletContext, Mockito.times(2)).getResourcePaths("/WEB-INF/lib");
 			Mockito.verify(mockedServletContext, Mockito.times(2)).getResourcePaths("/WEB-INF/classes");
 		}
-		finally
-		{
+		finally {
 			ambethApplication.close();
 		}
 	}

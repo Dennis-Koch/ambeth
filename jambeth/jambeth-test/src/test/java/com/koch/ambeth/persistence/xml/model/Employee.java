@@ -26,8 +26,7 @@ import java.util.Set;
 
 import com.koch.ambeth.model.AbstractEntity;
 
-public abstract class Employee extends AbstractEntity
-{
+public abstract class Employee extends AbstractEntity {
 	public static final String Name = "Name";
 
 	protected String name;
@@ -46,84 +45,69 @@ public abstract class Employee extends AbstractEntity
 
 	protected Map<Object, Object> attributes;
 
-	protected Employee()
-	{
+	protected Employee() {
 		// Intended blank
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
 	public abstract List<String> getNicknames();
 
-	public Address getPrimaryAddress()
-	{
+	public Address getPrimaryAddress() {
 		return primaryAddress;
 	}
 
-	public void setPrimaryAddress(Address primaryAddress)
-	{
+	public void setPrimaryAddress(Address primaryAddress) {
 		this.primaryAddress = primaryAddress;
 	}
 
 	public abstract Set<Address> getOtherAddresses();
 
-	public Employee getSupervisor()
-	{
+	public Employee getSupervisor() {
 		return supervisor;
 	}
 
-	public void setSupervisor(Employee supervisor)
-	{
+	public void setSupervisor(Employee supervisor) {
 		this.supervisor = supervisor;
 	}
 
-	public Project getPrimaryProject()
-	{
+	public Project getPrimaryProject() {
 		return primaryProject;
 	}
 
-	public void setPrimaryProject(Project primaryProject)
-	{
+	public void setPrimaryProject(Project primaryProject) {
 		this.primaryProject = primaryProject;
 	}
 
-	public Project getSecondaryProject()
-	{
+	public Project getSecondaryProject() {
 		return secondaryProject;
 	}
 
-	public void setSecondaryProject(Project secondaryProject)
-	{
+	public void setSecondaryProject(Project secondaryProject) {
 		this.secondaryProject = secondaryProject;
 	}
 
 	public abstract Set<Project> getAllProjects();
 
-	public Car getCar()
-	{
+	public Car getCar() {
 		return car;
 	}
 
-	public void setCar(Car car)
-	{
+	public void setCar(Car car) {
 		this.car = car;
 	}
 
-	public Boat getBoat()
-	{
+	public Boat getBoat() {
 		return boat;
 	}
 
-	public void setBoat(Boat boat)
-	{
+	public void setBoat(Boat boat) {
 		this.boat = boat;
 	}
 

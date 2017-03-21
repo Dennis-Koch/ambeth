@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.util.IDisposable;
 
-public interface IEntityCursor<T> extends IDisposable
-{
+public interface IEntityCursor<T> extends IDisposable {
 	boolean moveNext();
 
 	T getCurrent();

@@ -27,16 +27,15 @@ import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.StringBuilderUtil;
 
-public class WeakValueMapEntry<K, V> extends WeakReference<V> implements IMapEntry<K, V>, IPrintable
-{
+public class WeakValueMapEntry<K, V> extends WeakReference<V>
+		implements IMapEntry<K, V>, IPrintable {
 	protected final int hash;
 
 	protected IMapEntry<K, V> nextEntry;
 
 	protected final K key;
 
-	public WeakValueMapEntry(int hash, IMapEntry<K, V> nextEntry, K key, V value)
-	{
+	public WeakValueMapEntry(int hash, IMapEntry<K, V> nextEntry, K key, V value) {
 		super(value);
 		this.hash = hash;
 		this.nextEntry = nextEntry;
@@ -44,40 +43,34 @@ public class WeakValueMapEntry<K, V> extends WeakReference<V> implements IMapEnt
 	}
 
 	@Override
-	public K getKey()
-	{
+	public K getKey() {
 		return key;
 	}
 
 	@Override
-	public V getValue()
-	{
+	public V getValue() {
 		return get();
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == this)
-		{
+	public boolean equals(Object obj) {
+		if (obj == this) {
 			return true;
 		}
-		if (!(obj instanceof Entry))
-		{
+		if (!(obj instanceof Entry)) {
 			return false;
 		}
 		Entry<Object, Object> other = (Entry<Object, Object>) obj;
-		return EqualsUtil.equals(getKey(), other.getKey()) && EqualsUtil.equals(getValue(), other.getValue());
+		return EqualsUtil.equals(getKey(), other.getKey())
+				&& EqualsUtil.equals(getValue(), other.getValue());
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		// Key is enough for hashcoding
 		K key = getKey();
-		if (key == null)
-		{
+		if (key == null) {
 			// Any prime number
 			return 97;
 		}
@@ -85,39 +78,33 @@ public class WeakValueMapEntry<K, V> extends WeakReference<V> implements IMapEnt
 	}
 
 	@Override
-	public int getHash()
-	{
+	public int getHash() {
 		return hash;
 	}
 
 	@Override
-	public IMapEntry<K, V> getNextEntry()
-	{
+	public IMapEntry<K, V> getNextEntry() {
 		return nextEntry;
 	}
 
-	public void setNextEntry(IMapEntry<K, V> nextEntry)
-	{
+	public void setNextEntry(IMapEntry<K, V> nextEntry) {
 		this.nextEntry = nextEntry;
 	}
 
 	@Override
-	public V setValue(V value)
-	{
+	public V setValue(V value) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		toString(sb);
 		return sb.toString();
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
+	public void toString(StringBuilder sb) {
 		sb.append('(');
 		StringBuilderUtil.appendPrintable(sb, getKey());
 		sb.append(',');

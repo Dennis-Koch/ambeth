@@ -20,17 +20,14 @@ limitations under the License.
  * #L%
  */
 
-public class BeanContextDeclarationException extends RuntimeException
-{
+public class BeanContextDeclarationException extends RuntimeException {
 	private static final long serialVersionUID = -7902605225571344449L;
 
-	public BeanContextDeclarationException(StackTraceElement[] stackTrace)
-	{
+	public BeanContextDeclarationException(StackTraceElement[] stackTrace) {
 		this(stackTrace, null);
 	}
 
-	public BeanContextDeclarationException(StackTraceElement[] stackTrace, Throwable cause)
-	{
+	public BeanContextDeclarationException(StackTraceElement[] stackTrace, Throwable cause) {
 		super("Declaration at", cause);
 		setStackTrace(stackTrace);
 	}

@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.util.collections.AbstractIterator;
 
-public class CacheMapIterator extends AbstractIterator<CacheMapEntry>
-{
+public class CacheMapIterator extends AbstractIterator<CacheMapEntry> {
 	protected CacheMapEntry currEntry, nextEntry;
 
 	protected int index;
@@ -32,22 +31,18 @@ public class CacheMapIterator extends AbstractIterator<CacheMapEntry>
 
 	protected final CacheHashMap hashMap;
 
-	public CacheMapIterator(CacheHashMap hashMap, CacheMapEntry[] table, boolean removeAllowed)
-	{
+	public CacheMapIterator(CacheHashMap hashMap, CacheMapEntry[] table, boolean removeAllowed) {
 		super(removeAllowed);
 		this.hashMap = hashMap;
 		this.table = table;
 		nextEntry = getNextBucketFromIndex(table.length);
 	}
 
-	protected CacheMapEntry getNextBucketFromIndex(int index)
-	{
+	protected CacheMapEntry getNextBucketFromIndex(int index) {
 		CacheMapEntry[] table = this.table;
-		while (index-- > 0)
-		{
+		while (index-- > 0) {
 			CacheMapEntry entry = table[index];
-			if (entry != null)
-			{
+			if (entry != null) {
 				this.index = index;
 				return entry;
 			}
@@ -56,32 +51,26 @@ public class CacheMapIterator extends AbstractIterator<CacheMapEntry>
 	}
 
 	@Override
-	public boolean hasNext()
-	{
+	public boolean hasNext() {
 		return nextEntry != null;
 	}
 
 	@Override
-	public CacheMapEntry next()
-	{
+	public CacheMapEntry next() {
 		CacheMapEntry currEntry = nextEntry;
 		CacheMapEntry nextEntry = currEntry != null ? currEntry.getNextEntry() : null;
-		if (nextEntry != null)
-		{
+		if (nextEntry != null) {
 			this.nextEntry = nextEntry;
 		}
-		else
-		{
+		else {
 			this.nextEntry = getNextBucketFromIndex(index);
 		}
 		return currEntry;
 	}
 
 	@Override
-	public void remove()
-	{
-		if (!removeAllowed)
-		{
+	public void remove() {
+		if (!removeAllowed) {
 			throw new UnsupportedOperationException();
 		}
 		hashMap.remove(currEntry.getEntityType(), currEntry.getIdIndex(), currEntry.getId());

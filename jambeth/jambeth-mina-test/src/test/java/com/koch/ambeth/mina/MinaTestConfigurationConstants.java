@@ -23,8 +23,7 @@ limitations under the License.
 /**
  * MINA test configuration constants.
  */
-public final class MinaTestConfigurationConstants
-{
+public final class MinaTestConfigurationConstants {
 
 	// ---- INNER CLASSES ------------------------------------------------------
 
@@ -32,8 +31,7 @@ public final class MinaTestConfigurationConstants
 
 	public static final String PROPERTY_NAME_TEST_NIO_PORT = "Test.Nio.Port";
 
-	private MinaTestConfigurationConstants()
-	{
+	private MinaTestConfigurationConstants() {
 		// No instance allowed
 	}
 

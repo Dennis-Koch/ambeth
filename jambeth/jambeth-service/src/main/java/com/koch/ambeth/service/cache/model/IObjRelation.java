@@ -25,8 +25,7 @@ import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface IObjRelation extends IPrintable
-{
+public interface IObjRelation extends IPrintable {
 	String getMemberName();
 
 	IObjRef[] getObjRefs();

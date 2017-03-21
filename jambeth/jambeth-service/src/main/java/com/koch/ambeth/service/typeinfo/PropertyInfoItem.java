@@ -34,8 +34,7 @@ import com.koch.ambeth.util.typeinfo.IPropertyInfoIntern;
 import com.koch.ambeth.util.typeinfo.NullEquivalentValueUtil;
 import com.koch.ambeth.util.typeinfo.Transient;
 
-public class PropertyInfoItem extends TypeInfoItem
-{
+public class PropertyInfoItem extends TypeInfoItem {
 	protected IPropertyInfoIntern property;
 
 	protected String xmlName;
@@ -51,165 +50,136 @@ public class PropertyInfoItem extends TypeInfoItem
 
 	protected FastConstructorAccess<?> constructorOfRealType;
 
-	public PropertyInfoItem()
-	{
+	public PropertyInfoItem() {
 		// intended blank
 	}
 
-	public PropertyInfoItem(IPropertyInfo property)
-	{
+	public PropertyInfoItem(IPropertyInfo property) {
 		this(property, true);
 	}
 
-	public PropertyInfoItem(IPropertyInfo property, boolean allowNullEquivalentValue)
-	{
+	public PropertyInfoItem(IPropertyInfo property, boolean allowNullEquivalentValue) {
 		this.property = (IPropertyInfoIntern) property;
 		this.allowNullEquivalentValue = allowNullEquivalentValue;
 		declaringType = property.getDeclaringType();
 		elementType = property.getElementType();
 		Class<?> propertyType = property.getPropertyType();
-		if (propertyType.isPrimitive())
-		{
+		if (propertyType.isPrimitive()) {
 			nullEquivalentValue = NullEquivalentValueUtil.getNullEquivalentValue(propertyType);
 		}
-		else if (Collection.class.isAssignableFrom(propertyType) && !propertyType.isInterface())
-		{
+		else if (Collection.class.isAssignableFrom(propertyType) && !propertyType.isInterface()) {
 			constructorOfRealType = FastConstructorAccess.get(propertyType);
 		}
 		XmlElement annotation = property.getAnnotation(XmlElement.class);
-		if (annotation != null)
-		{
+		if (annotation != null) {
 			xmlName = annotation.name();
 		}
-		if (xmlName == null || xmlName.isEmpty() || "##default".equals(xmlName))
-		{
+		if (xmlName == null || xmlName.isEmpty() || "##default".equals(xmlName)) {
 			xmlName = getName();
 		}
 		xmlIgnore = false;
 
-		if (property.getAnnotation(Transient.class) != null || property.getAnnotation(XmlTransient.class) != null
-				|| Modifier.isTransient(property.getModifiers()) || Modifier.isFinal(property.getModifiers()) || Modifier.isStatic(property.getModifiers())
-				|| !canRead() || !canWrite())
-		{
+		if (property.getAnnotation(Transient.class) != null
+				|| property.getAnnotation(XmlTransient.class) != null
+				|| Modifier.isTransient(property.getModifiers())
+				|| Modifier.isFinal(property.getModifiers()) || Modifier.isStatic(property.getModifiers())
+				|| !canRead() || !canWrite()) {
 			xmlIgnore = true;
 		}
 	}
 
-	public boolean isAllowNullEquivalentValue()
-	{
+	public boolean isAllowNullEquivalentValue() {
 		return allowNullEquivalentValue;
 	}
 
-	public void setAllowNullEquivalentValue(boolean allowNullEquivalentValue)
-	{
+	public void setAllowNullEquivalentValue(boolean allowNullEquivalentValue) {
 		this.allowNullEquivalentValue = allowNullEquivalentValue;
 	}
 
 	@Override
-	protected FastConstructorAccess<?> getConstructorOfRealType()
-	{
+	protected FastConstructorAccess<?> getConstructorOfRealType() {
 		return constructorOfRealType;
 	}
 
-	public IPropertyInfo getProperty()
-	{
+	public IPropertyInfo getProperty() {
 		return property;
 	}
 
-	public void setProperty(IPropertyInfoIntern property)
-	{
+	public void setProperty(IPropertyInfoIntern property) {
 		this.property = property;
 	}
 
 	@Override
-	public void setElementType(Class<?> elementType)
-	{
+	public void setElementType(Class<?> elementType) {
 		super.setElementType(elementType);
 		property.setElementType(elementType);
 	}
 
 	@Override
-	public Class<?> getRealType()
-	{
+	public Class<?> getRealType() {
 		return property.getPropertyType();
 	}
 
 	@Override
-	public boolean canRead()
-	{
+	public boolean canRead() {
 		return property.isReadable();
 	}
 
 	@Override
-	public boolean canWrite()
-	{
+	public boolean canWrite() {
 		return property.isWritable();
 	}
 
 	@Override
-	public Object getDefaultValue()
-	{
+	public Object getDefaultValue() {
 		return defaultValue;
 	}
 
 	@Override
-	public void setDefaultValue(Object defaultValue)
-	{
+	public void setDefaultValue(Object defaultValue) {
 		this.defaultValue = defaultValue;
 	}
 
 	@Override
-	public Object getNullEquivalentValue()
-	{
+	public Object getNullEquivalentValue() {
 		return nullEquivalentValue;
 	}
 
 	@Override
-	public void setNullEquivalentValue(Object nullEquivalentValue)
-	{
+	public void setNullEquivalentValue(Object nullEquivalentValue) {
 		this.nullEquivalentValue = nullEquivalentValue;
 	}
 
 	@Override
-	public Object getValue(Object obj)
-	{
+	public Object getValue(Object obj) {
 		return getValue(obj, allowNullEquivalentValue);
 	}
 
 	@Override
-	public void setValue(Object obj, Object value)
-	{
-		try
-		{
-			if (value == null && allowNullEquivalentValue)
-			{
+	public void setValue(Object obj, Object value) {
+		try {
+			if (value == null && allowNullEquivalentValue) {
 				value = nullEquivalentValue;
 			}
 			property.setValue(obj, value);
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	public Object getValue(Object obj, boolean allowNullEquivalentValue)
-	{
+	public Object getValue(Object obj, boolean allowNullEquivalentValue) {
 		Object value;
-		try
-		{
+		try {
 			value = property.getValue(obj);
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		Object nullEquivalentValue = this.nullEquivalentValue;
-		if (nullEquivalentValue != null && nullEquivalentValue.equals(value))
-		{
-			if (allowNullEquivalentValue)
-			{
+		if (nullEquivalentValue != null && nullEquivalentValue.equals(value)) {
+			if (allowNullEquivalentValue) {
 				return nullEquivalentValue;
 			}
 			return null;
@@ -218,38 +188,32 @@ public class PropertyInfoItem extends TypeInfoItem
 	}
 
 	@Override
-	public <V extends Annotation> V getAnnotation(Class<V> annotationType)
-	{
+	public <V extends Annotation> V getAnnotation(Class<V> annotationType) {
 		return property.getAnnotation(annotationType);
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return property.getName();
 	}
 
 	@Override
-	public String getXMLName()
-	{
+	public String getXMLName() {
 		return xmlName;
 	}
 
 	@Override
-	public Class<?> getElementType()
-	{
+	public Class<?> getElementType() {
 		return property.getElementType();
 	}
 
 	@Override
-	public boolean isXMLIgnore()
-	{
+	public boolean isXMLIgnore() {
 		return xmlIgnore;
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return "Property " + getName() + "/" + getXMLName();
 	}
 }

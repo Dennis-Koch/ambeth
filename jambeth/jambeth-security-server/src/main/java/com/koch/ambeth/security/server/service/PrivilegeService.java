@@ -124,11 +124,11 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	private ILogger log;
 
 	protected final ClassExtendableListContainer<IEntityPermissionRule<?>> entityPermissionRules =
-			new ClassExtendableListContainer<IEntityPermissionRule<?>>("entityPermissionRule",
+			new ClassExtendableListContainer<>("entityPermissionRule",
 					"entityType");
 
 	protected final ClassExtendableListContainer<IEntityTypePermissionRule> entityTypePermissionRules =
-			new ClassExtendableListContainer<IEntityTypePermissionRule>("entityTypePermissionRule",
+			new ClassExtendableListContainer<>("entityTypePermissionRule",
 					"entityType");
 
 	@Autowired
@@ -204,7 +204,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 
 	@Forkable(processor = PrivilegeServiceForkProcessor.class)
 	protected final ThreadLocal<IDisposableCache> privilegeCacheTL =
-			new ThreadLocal<IDisposableCache>();
+			new ThreadLocal<>();
 
 	@Override
 	public void cleanupThreadLocal() {
@@ -378,7 +378,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	List<IPrivilegeOfService> getPrivilegesIntern2(IObjRef[] objRefs,
 			ISecurityScope[] securityScopes) {
 		IPrefetchHelper prefetchHelper = this.prefetchHelper;
-		HashSet<Class<?>> requestedTypes = new HashSet<Class<?>>();
+		HashSet<Class<?>> requestedTypes = new HashSet<>();
 		for (int a = 0, size = objRefs.length; a < size; a++) {
 			IObjRef objRef = objRefs[a];
 			if (objRef == null) {
@@ -441,7 +441,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 			IPrefetchHandle prefetchHandle = prefetchConfig.build();
 			prefetchState = prefetchHandle.prefetch(entitiesToCheck);
 		}
-		ArrayList<IPrivilegeOfService> privilegeResults = new ArrayList<IPrivilegeOfService>();
+		ArrayList<IPrivilegeOfService> privilegeResults = new ArrayList<>();
 
 		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
 		EntityPermissionEvaluation pe = new EntityPermissionEvaluation(securityScopes,
@@ -496,7 +496,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	List<ITypePrivilegeOfService> getPrivilegesOfTypesIntern2(Class<?>[] entityTypes,
 			ISecurityScope[] securityScopes) {
-		ArrayList<ITypePrivilegeOfService> privilegeResults = new ArrayList<ITypePrivilegeOfService>();
+		ArrayList<ITypePrivilegeOfService> privilegeResults = new ArrayList<>();
 
 		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
 		EntityPermissionEvaluation pe = new EntityPermissionEvaluation(securityScopes,
@@ -615,7 +615,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		PrivilegeOfService privilegeResult = new PrivilegeOfService();
 
 		if (hasPropertyPrivileges) {
-			HashSet<String> propertyNamesSet = new HashSet<String>(pe.getPropertyPermissions().keySet());
+			HashSet<String> propertyNamesSet = new HashSet<>(pe.getPropertyPermissions().keySet());
 			if (spe != null) {
 				propertyNamesSet.addAll(spe.getPropertyPermissions().keySet());
 			}
@@ -656,7 +656,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		TypePrivilegeOfService privilegeResult = new TypePrivilegeOfService();
 
 		if (hasPropertyPrivileges) {
-			HashSet<String> propertyNamesSet = new HashSet<String>(pe.getPropertyPermissions().keySet());
+			HashSet<String> propertyNamesSet = new HashSet<>(pe.getPropertyPermissions().keySet());
 			if (spe != null) {
 				propertyNamesSet.addAll(spe.getPropertyPermissions().keySet());
 			}
@@ -712,7 +712,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	@Override
 	public ILinkedMap<Class<?>, IList<IEntityPermissionRule<?>>> getAllEntityPermissionRules() {
 		LinkedHashMap<Class<?>, IList<IEntityPermissionRule<?>>> allEntityPermissionRules =
-				new LinkedHashMap<Class<?>, IList<IEntityPermissionRule<?>>>();
+				new LinkedHashMap<>();
 		for (Entry<Class<?>, Object> entry : entityPermissionRules) {
 			Class<?> entityType = entry.getKey();
 			Object value = entry.getValue();

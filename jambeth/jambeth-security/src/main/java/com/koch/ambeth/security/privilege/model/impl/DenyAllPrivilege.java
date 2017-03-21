@@ -23,62 +23,53 @@ limitations under the License.
 import com.koch.ambeth.security.privilege.model.IPrivilege;
 import com.koch.ambeth.security.privilege.model.IPropertyPrivilege;
 
-public final class DenyAllPrivilege extends AbstractPrivilege
-{
+public final class DenyAllPrivilege extends AbstractPrivilege {
 	public static final IPrivilege INSTANCE = new DenyAllPrivilege();
 
-	private static final IPropertyPrivilege denyAllPropertyPrivilege = PropertyPrivilegeImpl.create(false, false, false, false);
+	private static final IPropertyPrivilege denyAllPropertyPrivilege =
+			PropertyPrivilegeImpl.create(false, false, false, false);
 
-	private DenyAllPrivilege()
-	{
+	private DenyAllPrivilege() {
 		super(false, false, false, false, false, null, null);
 	}
 
 	@Override
-	public IPropertyPrivilege getDefaultPropertyPrivilegeIfValid()
-	{
+	public IPropertyPrivilege getDefaultPropertyPrivilegeIfValid() {
 		return denyAllPropertyPrivilege;
 	}
 
 	@Override
-	public IPropertyPrivilege getPrimitivePropertyPrivilege(int primitiveIndex)
-	{
+	public IPropertyPrivilege getPrimitivePropertyPrivilege(int primitiveIndex) {
 		return denyAllPropertyPrivilege;
 	}
 
 	@Override
-	public IPropertyPrivilege getRelationPropertyPrivilege(int relationIndex)
-	{
+	public IPropertyPrivilege getRelationPropertyPrivilege(int relationIndex) {
 		return denyAllPropertyPrivilege;
 	}
 
 	@Override
-	public boolean isCreateAllowed()
-	{
+	public boolean isCreateAllowed() {
 		return false;
 	}
 
 	@Override
-	public boolean isReadAllowed()
-	{
+	public boolean isReadAllowed() {
 		return false;
 	}
 
 	@Override
-	public boolean isUpdateAllowed()
-	{
+	public boolean isUpdateAllowed() {
 		return false;
 	}
 
 	@Override
-	public boolean isDeleteAllowed()
-	{
+	public boolean isDeleteAllowed() {
 		return false;
 	}
 
 	@Override
-	public boolean isExecuteAllowed()
-	{
+	public boolean isExecuteAllowed() {
 		return false;
 	}
 }

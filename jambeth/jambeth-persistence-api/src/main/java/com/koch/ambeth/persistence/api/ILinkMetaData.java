@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ILinkMetaData
-{
+public interface ILinkMetaData {
 	ITableMetaData getFromTable();
 
 	ITableMetaData getToTable();
@@ -43,8 +42,9 @@ public interface ILinkMetaData
 	String getTableName();
 
 	/**
-	 * Getter for the table name which is in quotes to allow to include the value directly in a query string
-	 * 
+	 * Getter for the table name which is in quotes to allow to include the value directly in a query
+	 * string
+	 *
 	 * @return
 	 */
 	String getFullqualifiedEscapedTableName();

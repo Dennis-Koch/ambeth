@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ISensorReceiver
-{
+public interface ISensorReceiver {
 	void touch(String sensorName, Object... additionalData);
 
 	void touch(String sensorName);

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public class ForkStateEntry
-{
+public class ForkStateEntry {
 	public final IThreadLocalCleanupBean tlBean;
 
 	public final String fieldName;
@@ -32,8 +31,8 @@ public class ForkStateEntry
 
 	public final IForkProcessor forkProcessor;
 
-	public ForkStateEntry(IThreadLocalCleanupBean tlBean, String fieldName, ThreadLocal<?> valueTL, ForkableType forkableType, IForkProcessor forkProcessor)
-	{
+	public ForkStateEntry(IThreadLocalCleanupBean tlBean, String fieldName, ThreadLocal<?> valueTL,
+			ForkableType forkableType, IForkProcessor forkProcessor) {
 		this.tlBean = tlBean;
 		this.fieldName = fieldName;
 		this.valueTL = valueTL;

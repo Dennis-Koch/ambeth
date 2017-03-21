@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IDatabaseDisposeHook
-{
+public interface IDatabaseDisposeHook {
 	void databaseDisposed(IDatabase disposedDatabase);
 }

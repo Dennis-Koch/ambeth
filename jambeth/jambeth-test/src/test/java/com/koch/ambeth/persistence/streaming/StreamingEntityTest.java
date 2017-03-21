@@ -56,22 +56,24 @@ import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestRebuildContext;
 import com.koch.ambeth.util.IDedicatedConverterExtendable;
 
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/streaming/streaming_orm.xml")
-@TestFrameworkModule({ StreamingEntityTestModule.class, EventServerModule.class })
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/persistence/streaming/streaming_orm.xml")
+@TestFrameworkModule({StreamingEntityTestModule.class, EventServerModule.class})
 @TestRebuildContext
-public class StreamingEntityTest extends AbstractInformationBusTest
-{
+public class StreamingEntityTest extends AbstractInformationBusTest {
 	@FrameworkModule
-	public static class StreamingEntityTestModule implements IInitializingModule
-	{
+	public static class StreamingEntityTestModule implements IInitializingModule {
 		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			beanContextFactory.registerBean(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class).autowireable(ICacheRetriever.class);
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+			beanContextFactory.registerBean(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class)
+					.autowireable(ICacheRetriever.class);
 
-			beanContextFactory.registerAlias(CacheStreamModule.CHUNK_PROVIDER_NAME, CacheModule.DEFAULT_CACHE_RETRIEVER);
-			IBeanConfiguration istfConverter = beanContextFactory.registerBean(InputSourceTemplateFakeConverter.class);
-			beanContextFactory.link(istfConverter).to(IDedicatedConverterExtendable.class).with(InputSourceTemplateFake.class, IBinaryInputStream.class);
+			beanContextFactory.registerAlias(CacheStreamModule.CHUNK_PROVIDER_NAME,
+					CacheModule.DEFAULT_CACHE_RETRIEVER);
+			IBeanConfiguration istfConverter =
+					beanContextFactory.registerBean(InputSourceTemplateFakeConverter.class);
+			beanContextFactory.link(istfConverter).to(IDedicatedConverterExtendable.class)
+					.with(InputSourceTemplateFake.class, IBinaryInputStream.class);
 		}
 	}
 
@@ -85,217 +87,206 @@ public class StreamingEntityTest extends AbstractInformationBusTest
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Test
-	public void streamedBoolean() throws Exception
-	{
+	public void streamedBoolean() throws Exception {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(StreamingEntity.class);
 
-		CacheRetrieverFake cacheRetrieverFake = beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
+		CacheRetrieverFake cacheRetrieverFake =
+				beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
 		LoadContainer lc = new LoadContainer();
 		ObjRef objRef = new ObjRef(StreamingEntity.class, new Integer(1), null);
 		lc.setReference(objRef);
 
-		boolean[] expected = { true, false, true, true, false };
+		boolean[] expected = {true, false, true, true, false};
 
 		lc.setPrimitives(new Object[metaData.getPrimitiveMembers().length]);
 		lc.setRelations(new IObjRef[metaData.getRelationMembers().length][]);
-		lc.getPrimitives()[metaData.getIndexByPrimitiveName("BooleanStreamed")] = new InputSourceTemplateFake(expected);
+		lc.getPrimitives()[metaData.getIndexByPrimitiveName("BooleanStreamed")] =
+				new InputSourceTemplateFake(expected);
 
 		cacheRetrieverFake.entities.put(lc.getReference(), lc);
 
 		StreamingEntity streamingEntity = cache.getObject(StreamingEntity.class, 1);
 		IBooleanInputStream is = streamingEntity.getBooleanStreamed().deriveBooleanInputStream();
-		try
-		{
+		try {
 			int index = 0;
-			while (is.hasBoolean())
-			{
+			while (is.hasBoolean()) {
 				boolean value = is.readBoolean();
 				Assert.assertEquals(expected[index++], value);
 			}
 		}
-		finally
-		{
+		finally {
 			is.close();
 		}
 		Assert.assertNotNull(streamingEntity);
 	}
 
 	@Test
-	public void streamedDouble() throws Exception
-	{
+	public void streamedDouble() throws Exception {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(StreamingEntity.class);
 
-		CacheRetrieverFake cacheRetrieverFake = beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
+		CacheRetrieverFake cacheRetrieverFake =
+				beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
 		LoadContainer lc = new LoadContainer();
 		ObjRef objRef = new ObjRef(StreamingEntity.class, new Integer(1), null);
 		lc.setReference(objRef);
 
-		double[] expected = { 5, 4, Double.MAX_VALUE, Double.MIN_VALUE, 0, -1, 5.4321 };
+		double[] expected = {5, 4, Double.MAX_VALUE, Double.MIN_VALUE, 0, -1, 5.4321};
 
 		lc.setPrimitives(new Object[metaData.getPrimitiveMembers().length]);
 		lc.setRelations(new IObjRef[metaData.getRelationMembers().length][]);
-		lc.getPrimitives()[metaData.getIndexByPrimitiveName("DoubleStreamed")] = new InputSourceTemplateFake(expected);
+		lc.getPrimitives()[metaData.getIndexByPrimitiveName("DoubleStreamed")] =
+				new InputSourceTemplateFake(expected);
 
 		cacheRetrieverFake.entities.put(lc.getReference(), lc);
 
 		StreamingEntity streamingEntity = cache.getObject(StreamingEntity.class, 1);
 		IDoubleInputStream is = streamingEntity.getDoubleStreamed().deriveDoubleInputStream();
-		try
-		{
+		try {
 			int index = 0;
-			while (is.hasDouble())
-			{
+			while (is.hasDouble()) {
 				double value = is.readDouble();
 				Assert.assertEquals(expected[index++], value, Double.MIN_VALUE);
 			}
 		}
-		finally
-		{
+		finally {
 			is.close();
 		}
 		Assert.assertNotNull(streamingEntity);
 	}
 
 	@Test
-	public void streamedFloat() throws Exception
-	{
+	public void streamedFloat() throws Exception {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(StreamingEntity.class);
 
-		CacheRetrieverFake cacheRetrieverFake = beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
+		CacheRetrieverFake cacheRetrieverFake =
+				beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
 		LoadContainer lc = new LoadContainer();
 		ObjRef objRef = new ObjRef(StreamingEntity.class, new Integer(1), null);
 		lc.setReference(objRef);
 
-		float[] expected = { 5, 4, Float.MAX_VALUE, Float.MIN_VALUE, 0, -1, 5.4321f };
+		float[] expected = {5, 4, Float.MAX_VALUE, Float.MIN_VALUE, 0, -1, 5.4321f};
 
 		lc.setPrimitives(new Object[metaData.getPrimitiveMembers().length]);
 		lc.setRelations(new IObjRef[metaData.getRelationMembers().length][]);
-		lc.getPrimitives()[metaData.getIndexByPrimitiveName("FloatStreamed")] = new InputSourceTemplateFake(expected);
+		lc.getPrimitives()[metaData.getIndexByPrimitiveName("FloatStreamed")] =
+				new InputSourceTemplateFake(expected);
 
 		cacheRetrieverFake.entities.put(lc.getReference(), lc);
 
 		StreamingEntity streamingEntity = cache.getObject(StreamingEntity.class, 1);
 		IFloatInputStream is = streamingEntity.getFloatStreamed().deriveFloatInputStream();
-		try
-		{
+		try {
 			int index = 0;
-			while (is.hasFloat())
-			{
+			while (is.hasFloat()) {
 				float value = is.readFloat();
 				Assert.assertEquals(expected[index++], value, Float.MIN_VALUE);
 			}
 		}
-		finally
-		{
+		finally {
 			is.close();
 		}
 		Assert.assertNotNull(streamingEntity);
 	}
 
 	@Test
-	public void streamedInt() throws Exception
-	{
+	public void streamedInt() throws Exception {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(StreamingEntity.class);
 
-		CacheRetrieverFake cacheRetrieverFake = beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
+		CacheRetrieverFake cacheRetrieverFake =
+				beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
 		LoadContainer lc = new LoadContainer();
 		ObjRef objRef = new ObjRef(StreamingEntity.class, new Integer(1), null);
 		lc.setReference(objRef);
 
-		int[] expected = { 5, 4, Integer.MAX_VALUE, Integer.MIN_VALUE, 0, -1 };
+		int[] expected = {5, 4, Integer.MAX_VALUE, Integer.MIN_VALUE, 0, -1};
 
 		lc.setPrimitives(new Object[metaData.getPrimitiveMembers().length]);
 		lc.setRelations(new IObjRef[metaData.getRelationMembers().length][]);
-		lc.getPrimitives()[metaData.getIndexByPrimitiveName("IntStreamed")] = new InputSourceTemplateFake(expected);
+		lc.getPrimitives()[metaData.getIndexByPrimitiveName("IntStreamed")] =
+				new InputSourceTemplateFake(expected);
 
 		cacheRetrieverFake.entities.put(lc.getReference(), lc);
 
 		StreamingEntity streamingEntity = cache.getObject(StreamingEntity.class, 1);
 		IIntInputStream is = streamingEntity.getIntStreamed().deriveIntInputStream();
-		try
-		{
+		try {
 			int index = 0;
-			while (is.hasInt())
-			{
+			while (is.hasInt()) {
 				int value = is.readInt();
 				Assert.assertEquals(expected[index++], value);
 			}
 		}
-		finally
-		{
+		finally {
 			is.close();
 		}
 		Assert.assertNotNull(streamingEntity);
 	}
 
 	@Test
-	public void streamedLong() throws Exception
-	{
+	public void streamedLong() throws Exception {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(StreamingEntity.class);
 
-		CacheRetrieverFake cacheRetrieverFake = beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
+		CacheRetrieverFake cacheRetrieverFake =
+				beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
 		LoadContainer lc = new LoadContainer();
 		ObjRef objRef = new ObjRef(StreamingEntity.class, new Integer(1), null);
 		lc.setReference(objRef);
 
-		long[] expected = { 5, 4, Long.MAX_VALUE, Long.MIN_VALUE, 0, -1 };
+		long[] expected = {5, 4, Long.MAX_VALUE, Long.MIN_VALUE, 0, -1};
 
 		lc.setPrimitives(new Object[metaData.getPrimitiveMembers().length]);
 		lc.setRelations(new IObjRef[metaData.getRelationMembers().length][]);
-		lc.getPrimitives()[metaData.getIndexByPrimitiveName("LongStreamed")] = new InputSourceTemplateFake(expected);
+		lc.getPrimitives()[metaData.getIndexByPrimitiveName("LongStreamed")] =
+				new InputSourceTemplateFake(expected);
 
 		cacheRetrieverFake.entities.put(lc.getReference(), lc);
 
 		StreamingEntity streamingEntity = cache.getObject(StreamingEntity.class, 1);
 		ILongInputStream is = streamingEntity.getLongStreamed().deriveLongInputStream();
-		try
-		{
+		try {
 			int index = 0;
-			while (is.hasLong())
-			{
+			while (is.hasLong()) {
 				long value = is.readLong();
 				Assert.assertEquals(expected[index++], value);
 			}
 		}
-		finally
-		{
+		finally {
 			is.close();
 		}
 		Assert.assertNotNull(streamingEntity);
 	}
 
 	@Test
-	public void streamedString() throws Exception
-	{
+	public void streamedString() throws Exception {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(StreamingEntity.class);
 
-		CacheRetrieverFake cacheRetrieverFake = beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
+		CacheRetrieverFake cacheRetrieverFake =
+				beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
 		LoadContainer lc = new LoadContainer();
 		ObjRef objRef = new ObjRef(StreamingEntity.class, new Integer(1), null);
 		lc.setReference(objRef);
 
-		String[] expected = { Integer.toString(5), Integer.toString(4), Integer.toString(Integer.MAX_VALUE), null, Integer.toString(Integer.MAX_VALUE),
-				Integer.toString(0), Integer.toString(-1) };
+		String[] expected =
+				{Integer.toString(5), Integer.toString(4), Integer.toString(Integer.MAX_VALUE), null,
+						Integer.toString(Integer.MAX_VALUE), Integer.toString(0), Integer.toString(-1)};
 
 		lc.setPrimitives(new Object[metaData.getPrimitiveMembers().length]);
 		lc.setRelations(new IObjRef[metaData.getRelationMembers().length][]);
-		lc.getPrimitives()[metaData.getIndexByPrimitiveName("StringStreamed")] = new InputSourceTemplateFake(expected);
+		lc.getPrimitives()[metaData.getIndexByPrimitiveName("StringStreamed")] =
+				new InputSourceTemplateFake(expected);
 
 		cacheRetrieverFake.entities.put(lc.getReference(), lc);
 
 		StreamingEntity streamingEntity = cache.getObject(StreamingEntity.class, 1);
 		IStringInputStream is = streamingEntity.getStringStreamed().deriveStringInputStream();
-		try
-		{
+		try {
 			int index = 0;
-			while (is.hasString())
-			{
+			while (is.hasString()) {
 				String value = is.readString();
 				Assert.assertEquals(expected[index++], value);
 			}
 		}
-		finally
-		{
+		finally {
 			is.close();
 		}
 		Assert.assertNotNull(streamingEntity);

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public enum EntityTypeResult
-{
+public enum EntityTypeResult {
 
 	UNDEFINED, ENTITY_TRUE, ENTITY_FALSE;
 

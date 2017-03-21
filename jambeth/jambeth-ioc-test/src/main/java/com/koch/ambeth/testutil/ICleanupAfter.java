@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface ICleanupAfter
-{
+public interface ICleanupAfter {
 	void cleanup();
 }

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IRuntimeBlueprintEntityMetadataReader
-{
+public interface IRuntimeBlueprintEntityMetadataReader {
 
 	void addEntityBlueprintOrm(IEntityTypeBlueprint entityTypeBlueprint);
 

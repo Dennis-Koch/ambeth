@@ -22,7 +22,6 @@ limitations under the License.
 
 import java.util.Collection;
 
-public interface IInMemoryDatabase
-{
+public interface IInMemoryDatabase {
 	void initialSetup(Collection<?> entities);
 }

@@ -36,8 +36,7 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 
-public class RootCacheValueBehavior extends AbstractBehavior
-{
+public class RootCacheValueBehavior extends AbstractBehavior {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -46,12 +45,12 @@ public class RootCacheValueBehavior extends AbstractBehavior
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors)
-	{
-		final RootCacheValueEnhancementHint hint = state.getContext(RootCacheValueEnhancementHint.class);
-		if (hint == null)
-		{
+	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+			List<IBytecodeBehavior> remainingPendingBehaviors,
+			List<IBytecodeBehavior> cascadePendingBehaviors) {
+		final RootCacheValueEnhancementHint hint =
+				state.getContext(RootCacheValueEnhancementHint.class);
+		if (hint == null) {
 			return visitor;
 		}
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(hint.getEntityType());

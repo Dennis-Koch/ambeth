@@ -44,15 +44,17 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 @SQLData("Relations_data.sql")
 @SQLStructure("Relations_structure.sql")
 @TestModule(TestServicesModule.class)
-@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/xml/orm.xml"),
-		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile, value = "com/koch/ambeth/persistence/xml/value-object.xml"),
-		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true") })
-public class ValueObjectTest extends AbstractInformationBusWithPersistenceTest
-{
+@TestPropertiesList({
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+				value = "com/koch/ambeth/persistence/xml/orm.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile,
+				value = "com/koch/ambeth/persistence/xml/value-object.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true")})
+public class ValueObjectTest extends AbstractInformationBusWithPersistenceTest {
 	@Test
-	public void testGetValueObjectConfig() throws Throwable
-	{
-		IEntityMetaDataProvider entityMetaDataProvider = beanContext.getService(IEntityMetaDataProvider.class);
+	public void testGetValueObjectConfig() throws Throwable {
+		IEntityMetaDataProvider entityMetaDataProvider =
+				beanContext.getService(IEntityMetaDataProvider.class);
 		IValueObjectConfig actual = entityMetaDataProvider.getValueObjectConfig(EmployeeType.class);
 		assertEquals(EmployeeType.class, actual.getValueType());
 		assertEquals(Employee.class, actual.getEntityType());
@@ -69,9 +71,9 @@ public class ValueObjectTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testIgnoredMembers() throws Throwable
-	{
-		IEntityMetaDataProvider entityMetaDataProvider = beanContext.getService(IEntityMetaDataProvider.class);
+	public void testIgnoredMembers() throws Throwable {
+		IEntityMetaDataProvider entityMetaDataProvider =
+				beanContext.getService(IEntityMetaDataProvider.class);
 		IValueObjectConfig actual = entityMetaDataProvider.getValueObjectConfig(ProjectType.class);
 		assertTrue(actual.isIgnoredMember("IgnoreMe"));
 	}

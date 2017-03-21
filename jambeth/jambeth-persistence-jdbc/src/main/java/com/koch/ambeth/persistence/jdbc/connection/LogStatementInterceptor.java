@@ -55,7 +55,7 @@ public class LogStatementInterceptor extends AbstractSimpleInterceptor
 	public static final String SENSOR_NAME =
 			"com.koch.ambeth.persistence.jdbc.connection.LogStatementInterceptor";
 
-	public static final Set<Method> notLoggedMethods = new HashSet<Method>(0.5f);
+	public static final Set<Method> notLoggedMethods = new HashSet<>(0.5f);
 
 	public static final Method addBatchMethod;
 

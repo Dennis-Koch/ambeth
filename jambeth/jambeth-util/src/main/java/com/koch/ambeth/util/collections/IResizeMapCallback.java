@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IResizeMapCallback
-{
+public interface IResizeMapCallback {
 	void resizeMapRequested(Object map);
 }

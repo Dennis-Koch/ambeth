@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IDatabaseMapperExtendable
-{
+public interface IDatabaseMapperExtendable {
 
 	void registerDatabaseMapper(IDatabaseMapper databaseMapper);
 

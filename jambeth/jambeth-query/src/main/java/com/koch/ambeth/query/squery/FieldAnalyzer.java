@@ -37,52 +37,46 @@ import com.koch.ambeth.filter.ISortDescriptor;
 import com.koch.ambeth.filter.SortDescriptor;
 import com.koch.ambeth.filter.SortDirection;
 
-public final class FieldAnalyzer
-{
+public final class FieldAnalyzer {
 	private Class<?> clazz;
-	private Map<Class<?>, SortedSet<String>> classMapField = new ConcurrentHashMap<Class<?>, SortedSet<String>>();
-	private static final Pattern PATTERN_DIRECTION = Pattern.compile("(\\w+?)((Asc|Desc)(?=[A-Z]?)|\\b)");
-	private static final Pattern PATTERN_ORDER_BY = Pattern.compile(".*[a-z](Sort|Order)By([A-Z].*)$");
+	private Map<Class<?>, SortedSet<String>> classMapField =
+			new ConcurrentHashMap<>();
+	private static final Pattern PATTERN_DIRECTION =
+			Pattern.compile("(\\w+?)((Asc|Desc)(?=[A-Z]?)|\\b)");
+	private static final Pattern PATTERN_ORDER_BY =
+			Pattern.compile(".*[a-z](Sort|Order)By([A-Z].*)$");
 
-	public FieldAnalyzer(Class<?> clazz)
-	{
+	public FieldAnalyzer(Class<?> clazz) {
 		this.clazz = clazz;
 	}
 
 	/**
 	 * analyze the nestField, e.g:
-	 * 
+	 *
 	 * SomeFieldNestField -> SomeField.NestField
-	 * 
+	 *
 	 * @param fieldExpression
 	 * @return separated nest field by dot
 	 */
-	public String buildNestField(String fieldExpression)
-	{
-		String result = this.prepareFieldName(fieldExpression, clazz);
-		if (result == null)
-		{
+	public String buildNestField(String fieldExpression) {
+		String result = prepareFieldName(fieldExpression, clazz);
+		if (result == null) {
 			throw new InvalidateSqueryNameException(fieldExpression, clazz);
 		}
 		return result;
 	}
 
-	private String prepareFieldName(String partFieldName, Class<?> clazz)
-	{
+	private String prepareFieldName(String partFieldName, Class<?> clazz) {
 		SortedSet<String> getterNames = getGetterNames(clazz);
-		if (getterNames.contains(partFieldName))
-		{
+		if (getterNames.contains(partFieldName)) {
 			return partFieldName;
 		}
-		for (String getterStr : getterNames)
-		{
-			if (partFieldName.startsWith(getterStr))
-			{
-				Class<?> returnType = this.getReturnType(getterStr, clazz);
+		for (String getterStr : getterNames) {
+			if (partFieldName.startsWith(getterStr)) {
+				Class<?> returnType = getReturnType(getterStr, clazz);
 				String subPartFieldName = partFieldName.substring(getterStr.length());
-				String subName = this.prepareFieldName(subPartFieldName, returnType);
-				if (subName != null)
-				{
+				String subName = prepareFieldName(subPartFieldName, returnType);
+				if (subName != null) {
 					return getterStr + "." + subName;
 				}
 			}
@@ -92,41 +86,33 @@ public final class FieldAnalyzer
 
 	/**
 	 * retrive all the getter names, and remove the get part
-	 * 
+	 *
 	 * e.g: Company getCompany(); -> "Company"
-	 * 
-	 * @param clazz
-	 *            be retrived type
+	 *
+	 * @param clazz be retrived type
 	 * @return all the getter names delete "get"
 	 */
-	private SortedSet<String> getGetterNames(Class<?> clazz)
-	{
+	private SortedSet<String> getGetterNames(Class<?> clazz) {
 		SortedSet<String> names = classMapField.get(clazz);
-		if (names != null)
-		{
+		if (names != null) {
 			return names;
 		}
 		Method[] methods = clazz.getMethods();
-		Comparator<String> comparator = new Comparator<String>()
-		{
+		Comparator<String> comparator = new Comparator<String>() {
 			@Override
-			public int compare(String o1, String o2)
-			{
+			public int compare(String o1, String o2) {
 				int compareValue = o2.length() - o1.length();
-				if (compareValue == 0)
-				{
+				if (compareValue == 0) {
 					compareValue = o1.compareTo(o2);
 				}
 				return compareValue;
 			}
 		};
-		names = new TreeSet<String>(comparator);
+		names = new TreeSet<>(comparator);
 		String prefix = "get";
-		for (Method method : methods)
-		{
+		for (Method method : methods) {
 			String name = method.getName();
-			if (name.startsWith(prefix))
-			{
+			if (name.startsWith(prefix)) {
 				names.add(name.substring(prefix.length()));
 			}
 		}
@@ -134,60 +120,51 @@ public final class FieldAnalyzer
 		return names;
 	}
 
-	private Class<?> getReturnType(String fieldName, Class<?> clazz)
-	{
+	private Class<?> getReturnType(String fieldName, Class<?> clazz) {
 		char firstChar = fieldName.charAt(0);
-		if (Character.isUpperCase(firstChar))
-		{
+		if (Character.isUpperCase(firstChar)) {
 			fieldName = Character.toLowerCase(firstChar) + fieldName.substring(1);
 		}
 		String gettterName = "get" + Character.toUpperCase(firstChar) + fieldName.substring(1);
 		Class<?> result = null;
-		try
-		{
+		try {
 			Class<?> type = clazz.getMethod(gettterName).getReturnType();
-			if (type.isArray())
-			{
+			if (type.isArray()) {
 				result = type.getComponentType();
 			}
-			else if (Iterable.class.isAssignableFrom(type))
-			{
-				ParameterizedType genericType = (ParameterizedType) clazz.getDeclaredField(fieldName).getGenericType();
+			else if (Iterable.class.isAssignableFrom(type)) {
+				ParameterizedType genericType =
+						(ParameterizedType) clazz.getDeclaredField(fieldName).getGenericType();
 				result = (Class<?>) genericType.getActualTypeArguments()[0];
 			}
-			else
-			{
+			else {
 				result = type;
 			}
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			throw new AssertionError("impossible error", e);
 		}
 		return result;
 	}
 
-	public List<ISortDescriptor> buildSort(String queryStr)
-	{
-		if (queryStr == null || queryStr.isEmpty())
-		{
+	public List<ISortDescriptor> buildSort(String queryStr) {
+		if (queryStr == null || queryStr.isEmpty()) {
 			return Collections.emptyList();
 		}
 		Matcher matcherOrderBy = PATTERN_ORDER_BY.matcher(queryStr);
-		if (!matcherOrderBy.find())
-		{
+		if (!matcherOrderBy.find()) {
 			return Collections.emptyList();
 		}
-		List<ISortDescriptor> result = new ArrayList<ISortDescriptor>();
+		List<ISortDescriptor> result = new ArrayList<>();
 		String orderByStr = matcherOrderBy.group(2);
 
 		Matcher matcher = PATTERN_DIRECTION.matcher(orderByStr);
-		while (matcher.find())
-		{
+		while (matcher.find()) {
 			String fieldName = matcher.group(1);
-			String nestFieldName = this.buildNestField(fieldName);
+			String nestFieldName = buildNestField(fieldName);
 			String dirStr = matcher.group(3);
-			SortDirection direction = "Desc".equals(dirStr) ? SortDirection.DESCENDING : SortDirection.ASCENDING;
+			SortDirection direction =
+					"Desc".equals(dirStr) ? SortDirection.DESCENDING : SortDirection.ASCENDING;
 			SortDescriptor sort = new SortDescriptor();
 			sort.setMember(nestFieldName);
 			sort.setSortDirection(direction);

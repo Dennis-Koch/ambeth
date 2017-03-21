@@ -32,19 +32,20 @@ import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.xml.postprocess.IPostProcessWriter;
 
-public class DefaultXmlWriter implements IWriter, IPostProcessWriter
-{
+public class DefaultXmlWriter implements IWriter, IPostProcessWriter {
 	protected final IAppendable appendable;
 
 	protected final ICyclicXmlController xmlController;
 
-	protected final IdentityHashMap<Object, Integer> mutableToIdMap = new IdentityHashMap<Object, Integer>();
-	protected final HashMap<Object, Integer> immutableToIdMap = new HashMap<Object, Integer>();
+	protected final IdentityHashMap<Object, Integer> mutableToIdMap =
+			new IdentityHashMap<>();
+	protected final HashMap<Object, Integer> immutableToIdMap = new HashMap<>();
 	protected int nextIdMapIndex = 1;
 
-	protected final ISet<Object> substitutedEntities = new IdentityHashSet<Object>();
+	protected final ISet<Object> substitutedEntities = new IdentityHashSet<>();
 
-	protected HashMap<Class<?>, SpecifiedMember[]> typeToMemberMap = new HashMap<Class<?>, SpecifiedMember[]>();
+	protected HashMap<Class<?>, SpecifiedMember[]> typeToMemberMap =
+			new HashMap<>();
 
 	protected boolean isInAttributeState = false;
 
@@ -58,61 +59,48 @@ public class DefaultXmlWriter implements IWriter, IPostProcessWriter
 
 	protected boolean beautifierActive;
 
-	public DefaultXmlWriter(final Writer osw, ICyclicXmlController xmlController)
-	{
+	public DefaultXmlWriter(final Writer osw, ICyclicXmlController xmlController) {
 		this(new WriterAppendable(osw), xmlController);
 	}
 
-	public DefaultXmlWriter(IAppendable appendable, ICyclicXmlController xmlController)
-	{
+	public DefaultXmlWriter(IAppendable appendable, ICyclicXmlController xmlController) {
 		this.appendable = appendable;
 		this.xmlController = xmlController;
 	}
 
-	public void setBeautifierActive(boolean beautifierActive)
-	{
+	public void setBeautifierActive(boolean beautifierActive) {
 		this.beautifierActive = beautifierActive;
 	}
 
-	public boolean isBeautifierActive()
-	{
+	public boolean isBeautifierActive() {
 		return beautifierActive;
 	}
 
-	public String getBeautifierLinebreak()
-	{
+	public String getBeautifierLinebreak() {
 		return beautifierLinebreak;
 	}
 
-	public void setBeautifierLinebreak(String beautifierLinebreak)
-	{
+	public void setBeautifierLinebreak(String beautifierLinebreak) {
 		this.beautifierLinebreak = beautifierLinebreak;
 	}
 
-	protected void writeBeautifierTabs(int amount)
-	{
-		if (beautifierIgnoreLineBreak)
-		{
+	protected void writeBeautifierTabs(int amount) {
+		if (beautifierIgnoreLineBreak) {
 			beautifierIgnoreLineBreak = false;
 		}
-		else
-		{
+		else {
 			write(beautifierLinebreak);
 		}
-		while (amount-- > 0)
-		{
+		while (amount-- > 0) {
 			write('\t');
 		}
 	}
 
 	@Override
-	public void writeEscapedXml(CharSequence unescapedString)
-	{
-		for (int a = 0, size = unescapedString.length(); a < size; a++)
-		{
+	public void writeEscapedXml(CharSequence unescapedString) {
+		for (int a = 0, size = unescapedString.length(); a < size; a++) {
 			char oneChar = unescapedString.charAt(a);
-			switch (oneChar)
-			{
+			switch (oneChar) {
 				case '&':
 					appendable.append("&amp;");
 					break;
@@ -136,20 +124,16 @@ public class DefaultXmlWriter implements IWriter, IPostProcessWriter
 	}
 
 	@Override
-	public void writeAttribute(CharSequence attributeName, Object attributeValue)
-	{
-		if (attributeValue == null)
-		{
+	public void writeAttribute(CharSequence attributeName, Object attributeValue) {
+		if (attributeValue == null) {
 			return;
 		}
 		writeAttribute(attributeName, attributeValue.toString());
 	}
 
 	@Override
-	public void writeAttribute(CharSequence attributeName, CharSequence attributeValue)
-	{
-		if (attributeValue == null || attributeValue.length() == 0)
-		{
+	public void writeAttribute(CharSequence attributeName, CharSequence attributeValue) {
+		if (attributeValue == null || attributeValue.length() == 0) {
 			return;
 		}
 		checkIfInAttributeState();
@@ -159,31 +143,24 @@ public class DefaultXmlWriter implements IWriter, IPostProcessWriter
 	}
 
 	@Override
-	public void writeEndElement()
-	{
+	public void writeEndElement() {
 		checkIfInAttributeState();
 		appendable.append("/>");
 		isInAttributeState = false;
-		if (beautifierActive)
-		{
+		if (beautifierActive) {
 			beautifierLevel--;
 		}
 	}
 
 	@Override
-	public void writeCloseElement(CharSequence elementName)
-	{
-		if (isInAttributeState)
-		{
+	public void writeCloseElement(CharSequence elementName) {
+		if (isInAttributeState) {
 			writeEndElement();
 			isInAttributeState = false;
 		}
-		else
-		{
-			if (beautifierActive)
-			{
-				if (elementContentLevel == beautifierLevel)
-				{
+		else {
+			if (beautifierActive) {
+				if (elementContentLevel == beautifierLevel) {
 					writeBeautifierTabs(beautifierLevel - 1);
 				}
 				beautifierLevel--;
@@ -194,51 +171,42 @@ public class DefaultXmlWriter implements IWriter, IPostProcessWriter
 	}
 
 	@Override
-	public void write(CharSequence s)
-	{
+	public void write(CharSequence s) {
 		appendable.append(s);
 	}
 
 	@Override
-	public void writeOpenElement(CharSequence elementName)
-	{
+	public void writeOpenElement(CharSequence elementName) {
 		endTagIfInAttributeState();
-		if (beautifierActive)
-		{
+		if (beautifierActive) {
 			writeBeautifierTabs(beautifierLevel);
 			appendable.append('<').append(elementName).append('>');
 			elementContentLevel = beautifierLevel;
 			beautifierLevel++;
 		}
-		else
-		{
+		else {
 			appendable.append('<').append(elementName).append('>');
 		}
 	}
 
 	@Override
-	public void writeStartElement(CharSequence elementName)
-	{
+	public void writeStartElement(CharSequence elementName) {
 		endTagIfInAttributeState();
-		if (beautifierActive)
-		{
+		if (beautifierActive) {
 			writeBeautifierTabs(beautifierLevel);
 			appendable.append('<').append(elementName);
 			elementContentLevel = beautifierLevel;
 			beautifierLevel++;
 		}
-		else
-		{
+		else {
 			appendable.append('<').append(elementName);
 		}
 		isInAttributeState = true;
 	}
 
 	@Override
-	public void writeStartElementEnd()
-	{
-		if (!isInAttributeState)
-		{
+	public void writeStartElementEnd() {
+		if (!isInAttributeState) {
 			return;
 		}
 		checkIfInAttributeState();
@@ -247,17 +215,14 @@ public class DefaultXmlWriter implements IWriter, IPostProcessWriter
 	}
 
 	@Override
-	public void writeObject(Object obj)
-	{
+	public void writeObject(Object obj) {
 		xmlController.writeObject(obj, this);
 	}
 
 	@Override
-	public void writeEmptyElement(CharSequence elementName)
-	{
+	public void writeEmptyElement(CharSequence elementName) {
 		endTagIfInAttributeState();
-		if (beautifierActive)
-		{
+		if (beautifierActive) {
 			elementContentLevel = beautifierLevel - 1;
 			writeBeautifierTabs(beautifierLevel);
 		}
@@ -265,20 +230,17 @@ public class DefaultXmlWriter implements IWriter, IPostProcessWriter
 	}
 
 	@Override
-	public void write(char s)
-	{
+	public void write(char s) {
 		appendable.append(s);
 	}
 
 	@Override
-	public int acquireIdForObject(Object obj)
-	{
+	public int acquireIdForObject(Object obj) {
 		boolean isImmutableType = ImmutableTypeSet.isImmutableType(obj.getClass());
 		IMap<Object, Integer> objectToIdMap = isImmutableType ? immutableToIdMap : mutableToIdMap;
 
 		Integer id = Integer.valueOf(nextIdMapIndex++);
-		if (!objectToIdMap.putIfNotExists(obj, id))
-		{
+		if (!objectToIdMap.putIfNotExists(obj, id)) {
 			throw new IllegalStateException("There is already a id mapped given object (" + obj + ")");
 		}
 
@@ -286,8 +248,7 @@ public class DefaultXmlWriter implements IWriter, IPostProcessWriter
 	}
 
 	@Override
-	public int getIdOfObject(Object obj)
-	{
+	public int getIdOfObject(Object obj) {
 		boolean isImmutableType = ImmutableTypeSet.isImmutableType(obj.getClass());
 		IMap<Object, Integer> objectToIdMap = isImmutableType ? immutableToIdMap : mutableToIdMap;
 
@@ -297,62 +258,50 @@ public class DefaultXmlWriter implements IWriter, IPostProcessWriter
 	}
 
 	@Override
-	public void putMembersOfType(Class<?> type, SpecifiedMember[] members)
-	{
-		if (!typeToMemberMap.putIfNotExists(type, members))
-		{
+	public void putMembersOfType(Class<?> type, SpecifiedMember[] members) {
+		if (!typeToMemberMap.putIfNotExists(type, members)) {
 			throw new IllegalStateException("Already mapped type '" + type + "'");
 		}
 	}
 
 	@Override
-	public SpecifiedMember[] getMembersOfType(Class<?> type)
-	{
+	public SpecifiedMember[] getMembersOfType(Class<?> type) {
 		return typeToMemberMap.get(type);
 	}
 
 	@Override
-	public ISet<Object> getSubstitutedEntities()
-	{
+	public ISet<Object> getSubstitutedEntities() {
 		return substitutedEntities;
 	}
 
 	@Override
-	public void addSubstitutedEntity(Object entity)
-	{
+	public void addSubstitutedEntity(Object entity) {
 		substitutedEntities.add(entity);
 	}
 
 	@Override
-	public IMap<Object, Integer> getMutableToIdMap()
-	{
+	public IMap<Object, Integer> getMutableToIdMap() {
 		return mutableToIdMap;
 	}
 
 	@Override
-	public IMap<Object, Integer> getImmutableToIdMap()
-	{
+	public IMap<Object, Integer> getImmutableToIdMap() {
 		return immutableToIdMap;
 	}
 
 	@Override
-	public boolean isInAttributeState()
-	{
+	public boolean isInAttributeState() {
 		return isInAttributeState;
 	}
 
-	protected void checkIfInAttributeState()
-	{
-		if (!isInAttributeState())
-		{
+	protected void checkIfInAttributeState() {
+		if (!isInAttributeState()) {
 			throw new IllegalStateException("There is currently no pending open tag to attribute");
 		}
 	}
 
-	protected void endTagIfInAttributeState()
-	{
-		if (isInAttributeState())
-		{
+	protected void endTagIfInAttributeState() {
+		if (isInAttributeState()) {
 			writeStartElementEnd();
 		}
 	}

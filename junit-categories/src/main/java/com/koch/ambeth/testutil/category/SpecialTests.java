@@ -1,5 +1,4 @@
 package com.koch.ambeth.testutil.category;
 
-public interface SpecialTests
-{
+public interface SpecialTests {
 }

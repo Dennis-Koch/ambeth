@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IQueryKey
-{
+public interface IQueryKey {
 	@Override
 	boolean equals(Object obj);
 

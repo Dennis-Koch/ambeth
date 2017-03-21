@@ -21,6 +21,5 @@ limitations under the License.
  */
 
 
-public class JDBC_H2_MEM extends JDBC_H2
-{
+public class JDBC_H2_MEM extends JDBC_H2 {
 }

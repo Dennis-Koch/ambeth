@@ -37,116 +37,94 @@ import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class FileHandleCache implements IFileHandleCache, IDisposableBean
-{
+public class FileHandleCache implements IFileHandleCache, IDisposableBean {
 	public static final String HANDLE_CLEAR_ALL_CACHES = "handleClearAllCaches";
 
-	protected final SmartCopyMap<FileKey, Reference<RandomAccessFile>> fileToAccessMap = new SmartCopyMap<FileKey, Reference<RandomAccessFile>>();
+	protected final SmartCopyMap<FileKey, Reference<RandomAccessFile>> fileToAccessMap =
+			new SmartCopyMap<>();
 
-	protected final HashSet<FileKey> busySet = new HashSet<FileKey>();
+	protected final HashSet<FileKey> busySet = new HashSet<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
 	protected final Condition busyCondition = writeLock.newCondition();
 
 	@Override
-	public void destroy() throws Throwable
-	{
+	public void destroy() throws Throwable {
 		closeAllFileHandles();
 	}
 
-	public void handleClearAllCaches(ClearAllCachesEvent evt)
-	{
+	public void handleClearAllCaches(ClearAllCachesEvent evt) {
 		closeAllFileHandles();
 	}
 
-	protected void closeAllFileHandles()
-	{
+	protected void closeAllFileHandles() {
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
-			for (Entry<FileKey, Reference<RandomAccessFile>> entry : fileToAccessMap)
-			{
+		try {
+			for (Entry<FileKey, Reference<RandomAccessFile>> entry : fileToAccessMap) {
 				RandomAccessFile raFile = entry.getValue().get();
-				if (raFile == null)
-				{
+				if (raFile == null) {
 					continue;
 				}
-				try
-				{
+				try {
 					raFile.close();
 				}
-				catch (IOException e)
-				{
+				catch (IOException e) {
 					// intended blank
 				}
 			}
 			fileToAccessMap.clear();
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public <T> T readOnFile(FileKey fileKey, IFileReadDelegate<T> fileReadDelegate)
-	{
+	public <T> T readOnFile(FileKey fileKey, IFileReadDelegate<T> fileReadDelegate) {
 		Lock writeLock = this.writeLock;
 		HashSet<FileKey> busySet = this.busySet;
 		Condition busyCondition = this.busyCondition;
 		RandomAccessFile raFile = null;
 		writeLock.lock();
-		try
-		{
+		try {
 			Reference<RandomAccessFile> vtdNavR = fileToAccessMap.get(fileKey);
-			if (vtdNavR != null)
-			{
+			if (vtdNavR != null) {
 				raFile = vtdNavR.get();
 			}
-			if (raFile == null)
-			{
+			if (raFile == null) {
 				File file = ((FileKeyImpl) fileKey).getFilePath().toFile();
-				if (!file.exists())
-				{
+				if (!file.exists()) {
 					throw new FileNotFoundException("File '" + file.getAbsolutePath() + "' not found");
 				}
 				raFile = new RandomAccessFile(file, "rw");
 
-				fileToAccessMap.put(fileKey, new SoftReference<RandomAccessFile>(raFile));
+				fileToAccessMap.put(fileKey, new SoftReference<>(raFile));
 			}
-			while (!busySet.add(fileKey))
-			{
+			while (!busySet.add(fileKey)) {
 				busyCondition.awaitUninterruptibly();
 			}
 		}
-		catch (FileNotFoundException e)
-		{
+		catch (FileNotFoundException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
-		try
-		{
+		try {
 			return fileReadDelegate.read(raFile);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
+		finally {
 			writeLock.lock();
-			try
-			{
+			try {
 				busySet.remove(fileKey);
 				busyCondition.signalAll();
 			}
-			finally
-			{
+			finally {
 				writeLock.unlock();
 			}
 		}

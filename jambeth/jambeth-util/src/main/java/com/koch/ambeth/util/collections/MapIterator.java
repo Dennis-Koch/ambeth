@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.Map.Entry;
 
-public class MapIterator<WrappedK, K, V> extends AbstractIterator<Entry<K, V>>
-{
+public class MapIterator<WrappedK, K, V> extends AbstractIterator<Entry<K, V>> {
 	protected IMapEntry<K, V> currEntry, nextEntry;
 
 	protected int index;
@@ -32,22 +31,19 @@ public class MapIterator<WrappedK, K, V> extends AbstractIterator<Entry<K, V>>
 
 	private final AbstractHashMap<WrappedK, K, V> hashMap;
 
-	public MapIterator(AbstractHashMap<WrappedK, K, V> hashMap, IMapEntry<K, V>[] table, boolean removeAllowed)
-	{
+	public MapIterator(AbstractHashMap<WrappedK, K, V> hashMap, IMapEntry<K, V>[] table,
+			boolean removeAllowed) {
 		super(removeAllowed);
 		this.hashMap = hashMap;
 		this.table = table;
 		nextEntry = getNextBucketFromIndex(table.length);
 	}
 
-	protected IMapEntry<K, V> getNextBucketFromIndex(int index)
-	{
+	protected IMapEntry<K, V> getNextBucketFromIndex(int index) {
 		IMapEntry<K, V>[] table = this.table;
-		while (index-- > 0)
-		{
+		while (index-- > 0) {
 			IMapEntry<K, V> entry = table[index];
-			if (entry != null)
-			{
+			if (entry != null) {
 				this.index = index;
 				return entry;
 			}
@@ -56,32 +52,26 @@ public class MapIterator<WrappedK, K, V> extends AbstractIterator<Entry<K, V>>
 	}
 
 	@Override
-	public boolean hasNext()
-	{
+	public boolean hasNext() {
 		return nextEntry != null;
 	}
 
 	@Override
-	public Entry<K, V> next()
-	{
+	public Entry<K, V> next() {
 		currEntry = nextEntry;
 		IMapEntry<K, V> nextEntry = currEntry != null ? currEntry.getNextEntry() : null;
-		if (nextEntry != null)
-		{
+		if (nextEntry != null) {
 			this.nextEntry = nextEntry;
 		}
-		else
-		{
+		else {
 			this.nextEntry = getNextBucketFromIndex(index);
 		}
 		return currEntry;
 	}
 
 	@Override
-	public void remove()
-	{
-		if (!removeAllowed)
-		{
+	public void remove() {
+		if (!removeAllowed) {
 			throw new UnsupportedOperationException();
 		}
 		hashMap.remove(currEntry.getKey());

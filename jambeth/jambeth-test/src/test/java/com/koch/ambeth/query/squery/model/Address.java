@@ -20,17 +20,14 @@ limitations under the License.
  * #L%
  */
 
-public class Address extends BaseEntity
-{
+public class Address extends BaseEntity {
 	protected String name;
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 

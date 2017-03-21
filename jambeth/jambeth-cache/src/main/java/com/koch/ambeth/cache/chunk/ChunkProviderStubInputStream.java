@@ -30,8 +30,7 @@ import com.koch.ambeth.service.cache.model.IObjRelation;
 import com.koch.ambeth.stream.binary.ReusableByteArrayInputStream;
 import com.koch.ambeth.util.collections.ArrayList;
 
-public class ChunkProviderStubInputStream extends InputStream
-{
+public class ChunkProviderStubInputStream extends InputStream {
 	private static final byte[] EMPTY_BYTES = new byte[0];
 
 	private long position = 0;
@@ -48,26 +47,23 @@ public class ChunkProviderStubInputStream extends InputStream
 
 	protected final IChunkProvider chunkProvider;
 
-	public ChunkProviderStubInputStream(IObjRelation self, IChunkProvider chunkProvider)
-	{
+	public ChunkProviderStubInputStream(IObjRelation self, IChunkProvider chunkProvider) {
 		this.self = self;
 		this.chunkProvider = chunkProvider;
 	}
 
 	@Override
-	public int read(byte[] b, int off, int len) throws IOException
-	{
+	public int read(byte[] b, int off, int len) throws IOException {
 		int length = deflated ? is.read(b, off, len) : bis.read(b, off, len);
-		if (length != -1)
-		{
+		if (length != -1) {
 			return length;
 		}
-		if (lastChunkReceived)
-		{
+		if (lastChunkReceived) {
 			return -1;
 		}
-		// length is zero so we have not enough bytes to read at least one byte. So we read the next chunk
-		ArrayList<IChunkedRequest> chunkedRequests = new ArrayList<IChunkedRequest>();
+		// length is zero so we have not enough bytes to read at least one byte. So we read the next
+		// chunk
+		ArrayList<IChunkedRequest> chunkedRequests = new ArrayList<>();
 		chunkedRequests.add(new ChunkedRequest(self, position, len));
 		position += len;
 		List<IChunkedResponse> chunkedResponses = chunkProvider.getChunkedContents(chunkedRequests);
@@ -76,8 +72,7 @@ public class ChunkProviderStubInputStream extends InputStream
 		deflated = chunkedResponse.isDeflated();
 		lastChunkReceived = chunkedResponse.getPayloadSize() < len;
 		bis.reset(payload);
-		if (deflated)
-		{
+		if (deflated) {
 			is = new InflaterInputStream(bis, inflater);
 			return is.read(b, off, len);
 		}
@@ -86,8 +81,7 @@ public class ChunkProviderStubInputStream extends InputStream
 	}
 
 	@Override
-	public int read() throws IOException
-	{
+	public int read() throws IOException {
 		throw new UnsupportedOperationException("Should never be called");
 	}
 }

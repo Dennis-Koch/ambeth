@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IValueResolveDelegate
-{
+public interface IValueResolveDelegate {
 	Class<?> getValueType();
 
 	Object invoke(String fieldName, Class<?> enhancedType);

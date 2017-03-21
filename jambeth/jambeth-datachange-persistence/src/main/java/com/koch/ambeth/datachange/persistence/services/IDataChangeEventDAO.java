@@ -25,8 +25,7 @@ import java.util.List;
 import com.koch.ambeth.datachange.persistence.model.DataChangeEventBO;
 import com.koch.ambeth.util.annotation.NoProxy;
 
-public interface IDataChangeEventDAO
-{
+public interface IDataChangeEventDAO {
 	void save(DataChangeEventBO dataChangeEvent);
 
 	List<DataChangeEventBO> retrieveAll();

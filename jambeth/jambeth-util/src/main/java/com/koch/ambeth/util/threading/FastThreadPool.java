@@ -43,17 +43,17 @@ import com.koch.ambeth.util.collections.FastList;
 public class FastThreadPool implements ExecutorService, IFastThreadPool, IDisposable {
 	protected static final Random random = new Random();
 
-	protected final FastList<QueueItem> actionQueue = new FastList<QueueItem>();
+	protected final FastList<QueueItem> actionQueue = new FastList<>();
 
 	protected final FastList<FastThreadPoolThread> freeThreadList =
-			new FastList<FastThreadPoolThread>();
+			new FastList<>();
 
 	protected final FastList<FastThreadPoolThread> busyThreadList =
-			new FastList<FastThreadPoolThread>();
+			new FastList<>();
 
 	protected volatile FastThreadPoolThread blockingThread = null;
 
-	protected final HashSet<Class<?>> blockingSet = new HashSet<Class<?>>();
+	protected final HashSet<Class<?>> blockingSet = new HashSet<>();
 
 	protected boolean shutdown = false, variableThreads = true;
 
@@ -443,7 +443,7 @@ public class FastThreadPool implements ExecutorService, IFastThreadPool, IDispos
 
 	@Override
 	public <T> Future<T> submit(final Callable<T> task) {
-		final FutureTask<T> futureTask = new FutureTask<T>(task);
+		final FutureTask<T> futureTask = new FutureTask<>(task);
 		execute(futureTask);
 		return futureTask;
 	}
@@ -455,7 +455,7 @@ public class FastThreadPool implements ExecutorService, IFastThreadPool, IDispos
 
 	@Override
 	public <T> Future<T> submit(Runnable task, T result) {
-		final FutureTask<T> futureTask = new FutureTask<T>(task, result);
+		final FutureTask<T> futureTask = new FutureTask<>(task, result);
 		execute(futureTask);
 		return futureTask;
 	}

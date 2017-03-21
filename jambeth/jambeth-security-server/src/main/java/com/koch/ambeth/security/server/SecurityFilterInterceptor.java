@@ -87,7 +87,7 @@ public class SecurityFilterInterceptor extends CascadedInterceptor {
 
 	public static final String PROP_CHECK_METHOD_ACCESS = "CheckMethodAccess";
 
-	private static final ThreadLocal<Boolean> ignoreInvalidUserTL = new ThreadLocal<Boolean>();
+	private static final ThreadLocal<Boolean> ignoreInvalidUserTL = new ThreadLocal<>();
 
 	public static boolean setIgnoreInvalidUser(boolean value) {
 		Boolean oldValue = ignoreInvalidUserTL.get();

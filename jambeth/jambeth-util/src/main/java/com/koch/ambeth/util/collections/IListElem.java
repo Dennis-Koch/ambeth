@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IListElem<V>
-{
+public interface IListElem<V> {
 	Object getListHandle();
 
 	void setListHandle(Object listHandle);

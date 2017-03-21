@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.security.audit.model.Audited;
 
 @Audited(false)
-public interface IAuditedEntityRelationPropertyItem
-{
+public interface IAuditedEntityRelationPropertyItem {
 	public static final String ChangeType = "ChangeType";
 
 	public static final String Order = "Order";

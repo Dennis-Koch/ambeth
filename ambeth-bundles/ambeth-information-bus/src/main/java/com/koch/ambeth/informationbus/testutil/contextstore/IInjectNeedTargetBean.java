@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 
-public interface IInjectNeedTargetBean
-{
+public interface IInjectNeedTargetBean {
 	IInjectNeedTargetProperty intoBean(String beanName);
 
 	IInjectNeedTargetProperty intoBean(Class<?> beanInterface);

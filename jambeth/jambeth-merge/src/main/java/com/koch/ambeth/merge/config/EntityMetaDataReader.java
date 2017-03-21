@@ -61,8 +61,7 @@ import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 import com.koch.ambeth.util.typeinfo.IRelationProvider;
 
-public class EntityMetaDataReader implements IEntityMetaDataReader
-{
+public class EntityMetaDataReader implements IEntityMetaDataReader {
 	@LogInstance
 	private ILogger log;
 
@@ -81,44 +80,44 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 	protected IRelationProvider relationProvider;
 
 	@Override
-	public void addMembers(EntityMetaData metaData, IEntityConfig entityConfig)
-	{
+	public void addMembers(EntityMetaData metaData, IEntityConfig entityConfig) {
 		Class<?> realType = entityConfig.getRealType();
 
-		HashSet<String> memberNamesToIgnore = new HashSet<String>();
-		HashSet<String> explicitBasicMemberNames = new HashSet<String>();
-		ArrayList<IMemberConfig> embeddedMembers = new ArrayList<IMemberConfig>();
-		HashMap<String, IMemberConfig> nameToMemberConfig = new HashMap<String, IMemberConfig>();
-		HashMap<String, IRelationConfig> nameToRelationConfig = new HashMap<String, IRelationConfig>();
-		LinkedHashMap<String, Member> nameToMemberMap = new LinkedHashMap<String, Member>();
+		HashSet<String> memberNamesToIgnore = new HashSet<>();
+		HashSet<String> explicitBasicMemberNames = new HashSet<>();
+		ArrayList<IMemberConfig> embeddedMembers = new ArrayList<>();
+		HashMap<String, IMemberConfig> nameToMemberConfig = new HashMap<>();
+		HashMap<String, IRelationConfig> nameToRelationConfig = new HashMap<>();
+		LinkedHashMap<String, Member> nameToMemberMap = new LinkedHashMap<>();
 
-		fillNameCollections(entityConfig, memberNamesToIgnore, explicitBasicMemberNames, embeddedMembers, nameToMemberConfig, nameToRelationConfig);
+		fillNameCollections(entityConfig, memberNamesToIgnore, explicitBasicMemberNames,
+				embeddedMembers, nameToMemberConfig, nameToRelationConfig);
 
-		LinkedHashSet<PrimitiveMember> alternateIdMembers = new LinkedHashSet<PrimitiveMember>();
-		LinkedHashSet<PrimitiveMember> primitiveMembers = new LinkedHashSet<PrimitiveMember>();
-		LinkedHashSet<RelationMember> relationMembers = new LinkedHashSet<RelationMember>();
-		LinkedHashSet<Member> notMergeRelevant = new IdentityLinkedSet<Member>();
+		LinkedHashSet<PrimitiveMember> alternateIdMembers = new LinkedHashSet<>();
+		LinkedHashSet<PrimitiveMember> primitiveMembers = new LinkedHashSet<>();
+		LinkedHashSet<RelationMember> relationMembers = new LinkedHashSet<>();
+		LinkedHashSet<Member> notMergeRelevant = new IdentityLinkedSet<>();
 
-		LinkedHashSet<Member> containedInAlternateIdMember = new IdentityLinkedSet<Member>();
+		LinkedHashSet<Member> containedInAlternateIdMember = new IdentityLinkedSet<>();
 
 		IPropertyInfo[] properties = propertyInfoProvider.getProperties(realType);
 
-		LinkedHashMap<String, Member> explicitlyConfiguredMemberNameToMember = new LinkedHashMap<String, Member>();
+		LinkedHashMap<String, Member> explicitlyConfiguredMemberNameToMember =
+				new LinkedHashMap<>();
 
-		HashMap<String, IOrmConfig> nameToConfigMap = new HashMap<String, IOrmConfig>();
-		// Resolve members for all explicit configurations - both simple and composite ones, each with embedded
+		HashMap<String, IOrmConfig> nameToConfigMap = new HashMap<>();
+		// Resolve members for all explicit configurations - both simple and composite ones, each with
+		// embedded
 		// functionality (dot-member-path)
-		for (IMemberConfig memberConfig : entityConfig.getMemberConfigIterable())
-		{
+		for (IMemberConfig memberConfig : entityConfig.getMemberConfigIterable()) {
 			putNameToConfigMap(memberConfig, nameToConfigMap);
-			if (memberConfig.isIgnore())
-			{
+			if (memberConfig.isIgnore()) {
 				continue;
 			}
-			handleMemberConfig(metaData, realType, memberConfig, explicitlyConfiguredMemberNameToMember, nameToMemberMap);
+			handleMemberConfig(metaData, realType, memberConfig, explicitlyConfiguredMemberNameToMember,
+					nameToMemberMap);
 		}
-		for (IRelationConfig relationConfig : entityConfig.getRelationConfigIterable())
-		{
+		for (IRelationConfig relationConfig : entityConfig.getRelationConfigIterable()) {
 			putNameToConfigMap(relationConfig, nameToConfigMap);
 			handleRelationConfig(realType, relationConfig, explicitlyConfiguredMemberNameToMember);
 		}
@@ -129,171 +128,164 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		putNameToConfigMap(entityConfig.getUpdatedByMemberConfig(), nameToConfigMap);
 		putNameToConfigMap(entityConfig.getUpdatedOnMemberConfig(), nameToConfigMap);
 
-		metaData.setIdMember(handleMemberConfig(metaData, realType, entityConfig.getIdMemberConfig(), explicitlyConfiguredMemberNameToMember, nameToMemberMap));
-		metaData.setVersionMember(handleMemberConfig(metaData, realType, entityConfig.getVersionMemberConfig(), explicitlyConfiguredMemberNameToMember,
-				nameToMemberMap));
-		metaData.setCreatedByMember(handleMemberConfig(metaData, realType, entityConfig.getCreatedByMemberConfig(), explicitlyConfiguredMemberNameToMember,
-				nameToMemberMap));
-		metaData.setCreatedOnMember(handleMemberConfig(metaData, realType, entityConfig.getCreatedOnMemberConfig(), explicitlyConfiguredMemberNameToMember,
-				nameToMemberMap));
-		metaData.setUpdatedByMember(handleMemberConfig(metaData, realType, entityConfig.getUpdatedByMemberConfig(), explicitlyConfiguredMemberNameToMember,
-				nameToMemberMap));
-		metaData.setUpdatedOnMember(handleMemberConfig(metaData, realType, entityConfig.getUpdatedOnMemberConfig(), explicitlyConfiguredMemberNameToMember,
-				nameToMemberMap));
+		metaData.setIdMember(handleMemberConfig(metaData, realType, entityConfig.getIdMemberConfig(),
+				explicitlyConfiguredMemberNameToMember, nameToMemberMap));
+		metaData.setVersionMember(
+				handleMemberConfig(metaData, realType, entityConfig.getVersionMemberConfig(),
+						explicitlyConfiguredMemberNameToMember, nameToMemberMap));
+		metaData.setCreatedByMember(
+				handleMemberConfig(metaData, realType, entityConfig.getCreatedByMemberConfig(),
+						explicitlyConfiguredMemberNameToMember, nameToMemberMap));
+		metaData.setCreatedOnMember(
+				handleMemberConfig(metaData, realType, entityConfig.getCreatedOnMemberConfig(),
+						explicitlyConfiguredMemberNameToMember, nameToMemberMap));
+		metaData.setUpdatedByMember(
+				handleMemberConfig(metaData, realType, entityConfig.getUpdatedByMemberConfig(),
+						explicitlyConfiguredMemberNameToMember, nameToMemberMap));
+		metaData.setUpdatedOnMember(
+				handleMemberConfig(metaData, realType, entityConfig.getUpdatedOnMemberConfig(),
+						explicitlyConfiguredMemberNameToMember, nameToMemberMap));
 
-		IdentityHashSet<Member> idMembers = new IdentityHashSet<Member>();
+		IdentityHashSet<Member> idMembers = new IdentityHashSet<>();
 		Member idMember = metaData.getIdMember();
-		if (idMember instanceof CompositeIdMember)
-		{
+		if (idMember instanceof CompositeIdMember) {
 			idMembers.addAll(((CompositeIdMember) idMember).getMembers());
 		}
-		else if (idMember != null)
-		{
+		else if (idMember != null) {
 			idMembers.add(idMember);
 		}
 
 		// Handle all explicitly configured members
-		for (Entry<String, Member> entry : explicitlyConfiguredMemberNameToMember)
-		{
+		for (Entry<String, Member> entry : explicitlyConfiguredMemberNameToMember) {
 			String memberName = entry.getKey();
 			IOrmConfig ormConfig = nameToConfigMap.get(memberName);
 
 			Member member = entry.getValue();
 
-			if (idMembers.contains(member))
-			{
+			if (idMembers.contains(member)) {
 				continue;
 			}
-			if (ormConfig.isExplicitlyNotMergeRelevant())
-			{
+			if (ormConfig.isExplicitlyNotMergeRelevant()) {
 				notMergeRelevant.add(member);
 			}
-			if (ormConfig instanceof IRelationConfig)
-			{
-				if (!relationMembers.add((RelationMember) member))
-				{
-					throw new IllegalStateException("Member has been registered as relation multiple times: " + member.getName());
+			if (ormConfig instanceof IRelationConfig) {
+				if (!relationMembers.add((RelationMember) member)) {
+					throw new IllegalStateException(
+							"Member has been registered as relation multiple times: " + member.getName());
 				}
 				continue;
 			}
-			if (!(ormConfig instanceof IMemberConfig))
-			{
+			if (!(ormConfig instanceof IMemberConfig)) {
 				continue;
 			}
-			if (((IMemberConfig) ormConfig).isAlternateId())
-			{
-				if (!alternateIdMembers.add((PrimitiveMember) member))
-				{
-					throw new IllegalStateException("Member has been registered as alternate id multiple times: " + member.getName());
+			if (((IMemberConfig) ormConfig).isAlternateId()) {
+				if (!alternateIdMembers.add((PrimitiveMember) member)) {
+					throw new IllegalStateException(
+							"Member has been registered as alternate id multiple times: " + member.getName());
 				}
-				if (member instanceof CompositeIdMember)
-				{
+				if (member instanceof CompositeIdMember) {
 					Member[] containedMembers = ((CompositeIdMember) member).getMembers();
 					containedInAlternateIdMember.addAll(containedMembers);
 				}
 			}
-			if (!(member instanceof CompositeIdMember) && metaData.getVersionMember() != member)
-			{
-				// Alternate Ids are normally primitives, too. But Composite Alternate Ids not - only their composite
+			if (!(member instanceof CompositeIdMember) && metaData.getVersionMember() != member) {
+				// Alternate Ids are normally primitives, too. But Composite Alternate Ids not - only their
+				// composite
 				// items are primitives
 				primitiveMembers.add((PrimitiveMember) member);
 			}
 		}
-		IdentityHashSet<String> explicitTypeInfoItems = IdentityHashSet.<String> create(explicitlyConfiguredMemberNameToMember.size());
-		for (Entry<String, Member> entry : explicitlyConfiguredMemberNameToMember)
-		{
+		IdentityHashSet<String> explicitTypeInfoItems =
+				IdentityHashSet.<String>create(explicitlyConfiguredMemberNameToMember.size());
+		for (Entry<String, Member> entry : explicitlyConfiguredMemberNameToMember) {
 			Member member = entry.getValue();
 			explicitTypeInfoItems.add(member.getName());
-			if (member instanceof IEmbeddedMember)
-			{
+			if (member instanceof IEmbeddedMember) {
 				explicitTypeInfoItems.add(((IEmbeddedMember) member).getMemberPath()[0].getName());
 			}
 		}
 		// Go through the available members to look for potential auto-mapping (simple, no embedded)
-		for (int i = 0; i < properties.length; i++)
-		{
+		for (int i = 0; i < properties.length; i++) {
 			IPropertyInfo property = properties[i];
 			String memberName = property.getName();
-			if (memberNamesToIgnore.contains(memberName))
-			{
+			if (memberNamesToIgnore.contains(memberName)) {
 				continue;
 			}
-			if (explicitTypeInfoItems.contains(memberName))
-			{
+			if (explicitTypeInfoItems.contains(memberName)) {
 				// already configured, no auto mapping needed for this member
 				continue;
 			}
 
 			MethodPropertyInfo mProperty = (MethodPropertyInfo) property;
-			Class<?> elementType = TypeInfoItemUtil.getElementTypeUsingReflection(mProperty.getGetter().getReturnType(), mProperty.getGetter()
-					.getGenericReturnType());
-			if (nameToMemberMap.get(property.getName()) instanceof RelationMember || relationProvider.isEntityType(elementType))
-			{
-				RelationMember member = getRelationMember(metaData.getEntityType(), property, nameToMemberMap);
+			Class<?> elementType = TypeInfoItemUtil.getElementTypeUsingReflection(
+					mProperty.getGetter().getReturnType(), mProperty.getGetter().getGenericReturnType());
+			if (nameToMemberMap.get(property.getName()) instanceof RelationMember
+					|| relationProvider.isEntityType(elementType)) {
+				RelationMember member =
+						getRelationMember(metaData.getEntityType(), property, nameToMemberMap);
 				relationMembers.add(member);
 				continue;
 			}
-			PrimitiveMember member = getPrimitiveMember(metaData.getEntityType(), property, nameToMemberMap);
-			if (metaData.getIdMember() == null && memberName.equals(EntityMetaData.DEFAULT_NAME_ID))
-			{
+			PrimitiveMember member =
+					getPrimitiveMember(metaData.getEntityType(), property, nameToMemberMap);
+			if (metaData.getIdMember() == null && memberName.equals(EntityMetaData.DEFAULT_NAME_ID)) {
 				metaData.setIdMember(member);
 				continue;
 			}
-			if (idMembers.contains(member) && !alternateIdMembers.contains(member) && !containedInAlternateIdMember.contains(member))
-			{
+			if (idMembers.contains(member) && !alternateIdMembers.contains(member)
+					&& !containedInAlternateIdMember.contains(member)) {
 				continue;
 			}
-			if (member.equals(metaData.getIdMember()) || member.equals(metaData.getVersionMember()) || member.equals(metaData.getCreatedByMember())
-					|| member.equals(metaData.getCreatedOnMember()) || member.equals(metaData.getUpdatedByMember())
-					|| member.equals(metaData.getUpdatedOnMember()))
-			{
+			if (member.equals(metaData.getIdMember()) || member.equals(metaData.getVersionMember())
+					|| member.equals(metaData.getCreatedByMember())
+					|| member.equals(metaData.getCreatedOnMember())
+					|| member.equals(metaData.getUpdatedByMember())
+					|| member.equals(metaData.getUpdatedOnMember())) {
 				continue;
 			}
-			if (metaData.getVersionMember() == null && memberName.equals(EntityMetaData.DEFAULT_NAME_VERSION))
-			{
+			if (metaData.getVersionMember() == null
+					&& memberName.equals(EntityMetaData.DEFAULT_NAME_VERSION)) {
 				metaData.setVersionMember(member);
 				continue;
 			}
-			if (metaData.getCreatedByMember() == null && memberName.equals(EntityMetaData.DEFAULT_NAME_CREATED_BY))
-			{
+			if (metaData.getCreatedByMember() == null
+					&& memberName.equals(EntityMetaData.DEFAULT_NAME_CREATED_BY)) {
 				metaData.setCreatedByMember(member);
 			}
-			else if (metaData.getCreatedOnMember() == null && memberName.equals(EntityMetaData.DEFAULT_NAME_CREATED_ON))
-			{
+			else if (metaData.getCreatedOnMember() == null
+					&& memberName.equals(EntityMetaData.DEFAULT_NAME_CREATED_ON)) {
 				metaData.setCreatedOnMember(member);
 			}
-			else if (metaData.getUpdatedByMember() == null && memberName.equals(EntityMetaData.DEFAULT_NAME_UPDATED_BY))
-			{
+			else if (metaData.getUpdatedByMember() == null
+					&& memberName.equals(EntityMetaData.DEFAULT_NAME_UPDATED_BY)) {
 				metaData.setUpdatedByMember(member);
 			}
-			else if (metaData.getUpdatedOnMember() == null && memberName.equals(EntityMetaData.DEFAULT_NAME_UPDATED_ON))
-			{
+			else if (metaData.getUpdatedOnMember() == null
+					&& memberName.equals(EntityMetaData.DEFAULT_NAME_UPDATED_ON)) {
 				metaData.setUpdatedOnMember(member);
 			}
 			primitiveMembers.add(member);
 		}
-		for (PrimitiveMember member : primitiveMembers)
-		{
+		for (PrimitiveMember member : primitiveMembers) {
 			String memberName = member.getName();
-			if (explicitBasicMemberNames.contains(memberName))
-			{
+			if (explicitBasicMemberNames.contains(memberName)) {
 				// Even if the name would match, this member was explicitly configured as "basic"
 				continue;
 			}
-			if (metaData.getCreatedByMember() == null && memberName.equals(EntityMetaData.DEFAULT_NAME_CREATED_BY))
-			{
+			if (metaData.getCreatedByMember() == null
+					&& memberName.equals(EntityMetaData.DEFAULT_NAME_CREATED_BY)) {
 				metaData.setCreatedByMember(member);
 			}
-			else if (metaData.getCreatedOnMember() == null && memberName.equals(EntityMetaData.DEFAULT_NAME_CREATED_ON))
-			{
+			else if (metaData.getCreatedOnMember() == null
+					&& memberName.equals(EntityMetaData.DEFAULT_NAME_CREATED_ON)) {
 				metaData.setCreatedOnMember(member);
 			}
-			else if (metaData.getUpdatedByMember() == null && memberName.equals(EntityMetaData.DEFAULT_NAME_UPDATED_BY))
-			{
+			else if (metaData.getUpdatedByMember() == null
+					&& memberName.equals(EntityMetaData.DEFAULT_NAME_UPDATED_BY)) {
 				metaData.setUpdatedByMember(member);
 			}
-			else if (metaData.getUpdatedOnMember() == null && memberName.equals(EntityMetaData.DEFAULT_NAME_UPDATED_ON))
-			{
+			else if (metaData.getUpdatedOnMember() == null
+					&& memberName.equals(EntityMetaData.DEFAULT_NAME_UPDATED_ON)) {
 				metaData.setUpdatedOnMember(member);
 			}
 		}
@@ -309,66 +301,53 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		metaData.setAlternateIdMembers(alternateIds);
 		metaData.setRelationMembers(relations);
 
-		for (Member member : notMergeRelevant)
-		{
+		for (Member member : notMergeRelevant) {
 			metaData.setMergeRelevant(member, false);
 		}
-		if (metaData.getIdMember() == null)
-		{
-			throw new IllegalStateException("No ID member could be resolved for entity of type " + metaData.getRealType());
+		if (metaData.getIdMember() == null) {
+			throw new IllegalStateException(
+					"No ID member could be resolved for entity of type " + metaData.getRealType());
 		}
 	}
 
-	protected void putNameToConfigMap(IOrmConfig config, Map<String, IOrmConfig> nameToConfigMap)
-	{
-		if (config == null)
-		{
+	protected void putNameToConfigMap(IOrmConfig config, Map<String, IOrmConfig> nameToConfigMap) {
+		if (config == null) {
 			return;
 		}
 		nameToConfigMap.put(config.getName(), config);
-		if (config instanceof CompositeMemberConfig)
-		{
-			for (MemberConfig member : ((CompositeMemberConfig) config).getMembers())
-			{
+		if (config instanceof CompositeMemberConfig) {
+			for (MemberConfig member : ((CompositeMemberConfig) config).getMembers()) {
 				putNameToConfigMap(member, nameToConfigMap);
 			}
 		}
 	}
 
-	protected void filterWrongRelationMappings(ISet<RelationMember> relationMembers)
-	{
-		// filter all relations which can not be a relation because of explicit embedded property mapping
-		IdentityHashSet<RelationMember> toRemove = new IdentityHashSet<RelationMember>();
-		for (RelationMember relationMember : relationMembers)
-		{
+	protected void filterWrongRelationMappings(ISet<RelationMember> relationMembers) {
+		// filter all relations which can not be a relation because of explicit embedded property
+		// mapping
+		IdentityHashSet<RelationMember> toRemove = new IdentityHashSet<>();
+		for (RelationMember relationMember : relationMembers) {
 			String[] memberPath = EmbeddedMember.split(relationMember.getName());
-			for (RelationMember otherRelationMember : relationMembers)
-			{
-				if (relationMember == otherRelationMember || toRemove.contains(otherRelationMember))
-				{
+			for (RelationMember otherRelationMember : relationMembers) {
+				if (relationMember == otherRelationMember || toRemove.contains(otherRelationMember)) {
 					continue;
 				}
-				if (!(otherRelationMember instanceof IEmbeddedMember))
-				{
+				if (!(otherRelationMember instanceof IEmbeddedMember)) {
 					// only embedded members can help identifying other wrong relation members
 					continue;
 				}
 				String[] otherMemberPath = ((IEmbeddedMember) otherRelationMember).getMemberPathToken();
-				if (memberPath.length > otherMemberPath.length)
-				{
+				if (memberPath.length > otherMemberPath.length) {
 					continue;
 				}
 				boolean match = true;
-				for (int a = 0, size = memberPath.length; a < size; a++)
-				{
-					if (!memberPath[a].equals(otherMemberPath[a]))
-					{
+				for (int a = 0, size = memberPath.length; a < size; a++) {
+					if (!memberPath[a].equals(otherMemberPath[a])) {
 						match = false;
 						break;
 					}
 				}
-				if (match)
-				{
+				if (match) {
 					toRemove.add(relationMember);
 					break;
 				}
@@ -377,117 +356,117 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		relationMembers.removeAll(toRemove);
 	}
 
-	protected PrimitiveMember getPrimitiveMember(Class<?> entityType, IPropertyInfo property, Map<String, Member> nameToMemberMap)
-	{
+	protected PrimitiveMember getPrimitiveMember(Class<?> entityType, IPropertyInfo property,
+			Map<String, Member> nameToMemberMap) {
 		PrimitiveMember member = (PrimitiveMember) nameToMemberMap.get(property.getName());
-		if (member != null)
-		{
+		if (member != null) {
 			return member;
 		}
-		member = intermediateMemberTypeProvider.getIntermediatePrimitiveMember(entityType, property.getName());
+		member = intermediateMemberTypeProvider.getIntermediatePrimitiveMember(entityType,
+				property.getName());
 		nameToMemberMap.put(property.getName(), member);
 		return member;
 	}
 
-	protected RelationMember getRelationMember(Class<?> entityType, IPropertyInfo property, Map<String, Member> nameToMemberMap)
-	{
+	protected RelationMember getRelationMember(Class<?> entityType, IPropertyInfo property,
+			Map<String, Member> nameToMemberMap) {
 		RelationMember member = (RelationMember) nameToMemberMap.get(property.getName());
-		if (member != null)
-		{
+		if (member != null) {
 			return member;
 		}
-		member = intermediateMemberTypeProvider.getIntermediateRelationMember(entityType, property.getName());
+		member = intermediateMemberTypeProvider.getIntermediateRelationMember(entityType,
+				property.getName());
 		nameToMemberMap.put(property.getName(), member);
 		return member;
 	}
 
-	protected PrimitiveMember handleMemberConfigIfNew(Class<?> entityType, String memberName, Map<String, Member> memberConfigToInfoItem)
-	{
+	protected PrimitiveMember handleMemberConfigIfNew(Class<?> entityType, String memberName,
+			Map<String, Member> memberConfigToInfoItem) {
 		PrimitiveMember member = (PrimitiveMember) memberConfigToInfoItem.get(memberName);
-		if (member != null)
-		{
+		if (member != null) {
 			return member;
 		}
 		member = intermediateMemberTypeProvider.getIntermediatePrimitiveMember(entityType, memberName);
-		if (member == null)
-		{
-			throw new RuntimeException("No member with name '" + memberName + "' found on entity type '" + entityType.getName() + "'");
+		if (member == null) {
+			throw new RuntimeException("No member with name '" + memberName + "' found on entity type '"
+					+ entityType.getName() + "'");
 		}
 		memberConfigToInfoItem.put(memberName, member);
 		return member;
 	}
 
-	protected PrimitiveMember handleMemberConfig(IEntityMetaData metaData, Class<?> realType, IMemberConfig memberConfig,
-			Map<String, Member> explicitMemberNameToMember, Map<String, Member> allMemberNameToMember)
-	{
-		if (memberConfig == null)
-		{
+	protected PrimitiveMember handleMemberConfig(IEntityMetaData metaData, Class<?> realType,
+			IMemberConfig memberConfig, Map<String, Member> explicitMemberNameToMember,
+			Map<String, Member> allMemberNameToMember) {
+		if (memberConfig == null) {
 			return null;
 		}
-		if (!(memberConfig instanceof CompositeMemberConfig))
-		{
-			PrimitiveMember member = handleMemberConfigIfNew(realType, memberConfig.getName(), allMemberNameToMember);
+		if (!(memberConfig instanceof CompositeMemberConfig)) {
+			PrimitiveMember member =
+					handleMemberConfigIfNew(realType, memberConfig.getName(), allMemberNameToMember);
 			explicitMemberNameToMember.put(memberConfig.getName(), member);
 			((IPrimitiveMemberWrite) member).setTransient(memberConfig.isTransient());
 
-			PrimitiveMember definedBy = memberConfig.getDefinedBy() != null ? handleMemberConfigIfNew(realType, memberConfig.getDefinedBy(),
-					allMemberNameToMember) : null;
+			PrimitiveMember definedBy = memberConfig.getDefinedBy() != null
+					? handleMemberConfigIfNew(realType, memberConfig.getDefinedBy(), allMemberNameToMember)
+					: null;
 			((IPrimitiveMemberWrite) member).setDefinedBy(definedBy);
 			return member;
 		}
 		MemberConfig[] memberConfigs = ((CompositeMemberConfig) memberConfig).getMembers();
 		PrimitiveMember[] members = new PrimitiveMember[memberConfigs.length];
-		for (int a = memberConfigs.length; a-- > 0;)
-		{
+		for (int a = memberConfigs.length; a-- > 0;) {
 			MemberConfig memberPart = memberConfigs[a];
-			PrimitiveMember member = handleMemberConfigIfNew(realType, memberPart.getName(), explicitMemberNameToMember);
+			PrimitiveMember member =
+					handleMemberConfigIfNew(realType, memberPart.getName(), explicitMemberNameToMember);
 			members[a] = member;
 		}
-		PrimitiveMember compositeIdMember = compositeIdFactory.createCompositeIdMember(metaData, members);
+		PrimitiveMember compositeIdMember =
+				compositeIdFactory.createCompositeIdMember(metaData, members);
 		explicitMemberNameToMember.put(memberConfig.getName(), compositeIdMember);
 		allMemberNameToMember.put(memberConfig.getName(), compositeIdMember);
 		((IPrimitiveMemberWrite) compositeIdMember).setTransient(memberConfig.isTransient());
 
-		PrimitiveMember definedBy = memberConfig.getDefinedBy() != null ? handleMemberConfigIfNew(realType, memberConfig.getDefinedBy(), allMemberNameToMember)
+		PrimitiveMember definedBy = memberConfig.getDefinedBy() != null
+				? handleMemberConfigIfNew(realType, memberConfig.getDefinedBy(), allMemberNameToMember)
 				: null;
 		((IPrimitiveMemberWrite) compositeIdMember).setDefinedBy(definedBy);
 		return compositeIdMember;
 	}
 
-	protected Member handleRelationConfig(Class<?> realType, IRelationConfig relationConfig, Map<String, Member> relationConfigToInfoItem)
-	{
-		if (relationConfig == null)
-		{
+	protected Member handleRelationConfig(Class<?> realType, IRelationConfig relationConfig,
+			Map<String, Member> relationConfigToInfoItem) {
+		if (relationConfig == null) {
 			return null;
 		}
 		Member member = relationConfigToInfoItem.get(relationConfig.getName());
-		if (member != null)
-		{
+		if (member != null) {
 			return member;
 		}
-		member = intermediateMemberTypeProvider.getIntermediateRelationMember(realType, relationConfig.getName());
-		if (member == null)
-		{
-			throw new RuntimeException("No member with name '" + relationConfig.getName() + "' found on entity type '" + realType.getName() + "'");
+		member = intermediateMemberTypeProvider.getIntermediateRelationMember(realType,
+				relationConfig.getName());
+		if (member == null) {
+			throw new RuntimeException("No member with name '" + relationConfig.getName()
+					+ "' found on entity type '" + realType.getName() + "'");
 		}
 		relationConfigToInfoItem.put(relationConfig.getName(), member);
 		return member;
 	}
 
-	protected void fillNameCollections(IEntityConfig entityConfig, ISet<String> memberNamesToIgnore, HashSet<String> explicitBasicMemberNames,
-			IList<IMemberConfig> embeddedMembers, IMap<String, IMemberConfig> nameToMemberConfig, IMap<String, IRelationConfig> nameToRelationConfig)
-	{
-		for (IMemberConfig memberConfig : entityConfig.getMemberConfigIterable())
-		{
-			if (!(memberConfig instanceof MemberConfig) && !(memberConfig instanceof CompositeMemberConfig))
-			{
-				throw new IllegalStateException("Member configurations of type '" + memberConfig.getClass().getName() + "' not yet supported");
+	protected void fillNameCollections(IEntityConfig entityConfig, ISet<String> memberNamesToIgnore,
+			HashSet<String> explicitBasicMemberNames, IList<IMemberConfig> embeddedMembers,
+			IMap<String, IMemberConfig> nameToMemberConfig,
+			IMap<String, IRelationConfig> nameToRelationConfig) {
+		for (IMemberConfig memberConfig : entityConfig.getMemberConfigIterable()) {
+			if (!(memberConfig instanceof MemberConfig)
+					&& !(memberConfig instanceof CompositeMemberConfig)) {
+				throw new IllegalStateException("Member configurations of type '"
+						+ memberConfig.getClass().getName() + "' not yet supported");
 			}
 
 			String memberName = memberConfig.getName();
 
-			if (memberConfig.isIgnore())
-			{
+			if (memberConfig.isIgnore()) {
 				memberNamesToIgnore.add(memberName);
 				memberNamesToIgnore.add(memberName + "Specified");
 				continue;
@@ -498,8 +477,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 			String[] parts = containsDot.split(memberName, 2);
 			boolean isEmbeddedMember = parts.length > 1;
 
-			if (isEmbeddedMember)
-			{
+			if (isEmbeddedMember) {
 				embeddedMembers.add(memberConfig);
 				memberNamesToIgnore.add(parts[0]);
 				memberNamesToIgnore.add(parts[0] + "Specified");
@@ -508,8 +486,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 			nameToMemberConfig.put(memberName, memberConfig);
 		}
 
-		for (IRelationConfig relationConfig : entityConfig.getRelationConfigIterable())
-		{
+		for (IRelationConfig relationConfig : entityConfig.getRelationConfigIterable()) {
 			String relationName = relationConfig.getName();
 
 			nameToRelationConfig.put(relationName, relationConfig);

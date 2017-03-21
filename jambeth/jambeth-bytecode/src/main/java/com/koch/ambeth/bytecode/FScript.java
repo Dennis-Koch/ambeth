@@ -22,7 +22,6 @@ limitations under the License.
 
 import org.objectweb.asm.FieldVisitor;
 
-public interface FScript
-{
+public interface FScript {
 	void execute(FieldVisitor fv);
 }

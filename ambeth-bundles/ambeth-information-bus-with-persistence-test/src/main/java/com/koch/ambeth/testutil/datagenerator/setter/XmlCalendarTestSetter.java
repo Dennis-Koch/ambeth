@@ -34,11 +34,11 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 
 /**
- * Sets or tests a Date property. If a <code>String</code> argument with key <code>StringTestSetter.class</code> is
- * given, the String is added to the propertyName.
- * 
+ * Sets or tests a Date property. If a <code>String</code> argument with key
+ * <code>StringTestSetter.class</code> is given, the String is added to the propertyName.
+ *
  * @author stefan.may
- * 
+ *
  */
 public class XmlCalendarTestSetter extends AbstractTestSetter implements IInitializingBean {
 
@@ -47,12 +47,12 @@ public class XmlCalendarTestSetter extends AbstractTestSetter implements IInitia
 	public XmlCalendarTestSetter() {
 		super(XMLGregorianCalendar.class);
 	}
-	
+
 	@Override
 	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(dateTestSetter, "dateTestSetter");
 	}
-	
+
 	public void setDateTestSetter(DateTestSetter dateTestSetter) {
 		this.dateTestSetter = dateTestSetter;
 	}
@@ -62,14 +62,12 @@ public class XmlCalendarTestSetter extends AbstractTestSetter implements IInitia
 		Date dateGenerated = (Date) dateTestSetter.createParameter(propertyName, arguments);
 
 		GregorianCalendar c = new GregorianCalendar();
-		c.setTime((Date) dateGenerated);
-		try
-		{
+		c.setTime(dateGenerated);
+		try {
 			XMLGregorianCalendar xmlcal = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
 			return xmlcal;
 		}
-		catch (DatatypeConfigurationException e)
-		{
+		catch (DatatypeConfigurationException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

@@ -20,18 +20,15 @@ limitations under the License.
  * #L%
  */
 
-public class DatabasePreCommitEvent implements IDatabaseSessionAwareEvent
-{
+public class DatabasePreCommitEvent implements IDatabaseSessionAwareEvent {
 	protected final long sessionId;
 
 	@Override
-	public long getSessionId()
-	{
-		return this.sessionId;
+	public long getSessionId() {
+		return sessionId;
 	}
 
-	public DatabasePreCommitEvent(long sessionId)
-	{
+	public DatabasePreCommitEvent(long sessionId) {
 		this.sessionId = sessionId;
 	}
 }

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface Lock
-{
+public interface Lock {
 	LockState releaseAllLocks();
 
 	void reacquireLocks(LockState lockState);

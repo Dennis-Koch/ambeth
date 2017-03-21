@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface ITypeInfoProviderFactory
-{
+public interface ITypeInfoProviderFactory {
 	ITypeInfoProvider createTypeInfoProvider();
 }

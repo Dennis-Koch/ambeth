@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IParamHolder<T>
-{
+public interface IParamHolder<T> {
 	T getValue();
 
 	void setValue(T value);

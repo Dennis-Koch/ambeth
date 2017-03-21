@@ -37,26 +37,31 @@ import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 
-public class EntityPermissionEvaluation implements IEntityPermissionEvaluation, ICreateEntityStep, IUpdateEntityStep, IDeleteEntityStep, IExecuteEntityStep
-{
+public class EntityPermissionEvaluation implements IEntityPermissionEvaluation, ICreateEntityStep,
+		IUpdateEntityStep, IDeleteEntityStep, IExecuteEntityStep {
 	protected final ISecurityScope[] scopes;
 
 	protected final ScopedEntityPermissionEvaluation[] spes;
 
-	protected final boolean createTrueDefault, readTrueDefault, updateTrueDefault, deleteTrueDefault, executeTrueDefault;
+	protected final boolean createTrueDefault, readTrueDefault, updateTrueDefault, deleteTrueDefault,
+			executeTrueDefault;
 
-	protected final boolean createPropertyTrueDefault, readPropertyTrueDefault, updatePropertyTrueDefault, deletePropertyTrueDefault;
+	protected final boolean createPropertyTrueDefault, readPropertyTrueDefault,
+			updatePropertyTrueDefault, deletePropertyTrueDefault;
 
-	protected final ArrayList<EntityPropertyPermissionEvaluation> unusedPropertyPermissions = new ArrayList<EntityPropertyPermissionEvaluation>();
+	protected final ArrayList<EntityPropertyPermissionEvaluation> unusedPropertyPermissions =
+			new ArrayList<>();
 
-	protected final HashMap<String, EntityPropertyPermissionEvaluation> propertyPermissions = new HashMap<String, EntityPropertyPermissionEvaluation>();
+	protected final HashMap<String, EntityPropertyPermissionEvaluation> propertyPermissions =
+			new HashMap<>();
 
 	protected Boolean create, read, update, delete, execute;
 
-	public EntityPermissionEvaluation(ISecurityScope[] scopes, boolean createTrueDefault, boolean readTrueDefault, boolean updateTrueDefault,
-			boolean deleteTrueDefault, boolean executeTrueDefault, boolean createPropertyTrueDefault, boolean readPropertyTrueDefault,
-			boolean updatePropertyTrueDefault, boolean deletePropertyTrueDefault)
-	{
+	public EntityPermissionEvaluation(ISecurityScope[] scopes, boolean createTrueDefault,
+			boolean readTrueDefault, boolean updateTrueDefault, boolean deleteTrueDefault,
+			boolean executeTrueDefault, boolean createPropertyTrueDefault,
+			boolean readPropertyTrueDefault, boolean updatePropertyTrueDefault,
+			boolean deletePropertyTrueDefault) {
 		this.scopes = scopes;
 		this.createTrueDefault = createTrueDefault;
 		this.readTrueDefault = readTrueDefault;
@@ -70,47 +75,37 @@ public class EntityPermissionEvaluation implements IEntityPermissionEvaluation, 
 		spes = new ScopedEntityPermissionEvaluation[scopes.length];
 	}
 
-	public HashMap<String, EntityPropertyPermissionEvaluation> getPropertyPermissions()
-	{
+	public HashMap<String, EntityPropertyPermissionEvaluation> getPropertyPermissions() {
 		return propertyPermissions;
 	}
 
-	public ScopedEntityPermissionEvaluation[] getSpes()
-	{
+	public ScopedEntityPermissionEvaluation[] getSpes() {
 		return spes;
 	}
 
-	public Boolean getCreate()
-	{
+	public Boolean getCreate() {
 		return create;
 	}
 
-	public Boolean getRead()
-	{
+	public Boolean getRead() {
 		return read;
 	}
 
-	public Boolean getUpdate()
-	{
+	public Boolean getUpdate() {
 		return update;
 	}
 
-	public Boolean getDelete()
-	{
+	public Boolean getDelete() {
 		return delete;
 	}
 
-	public Boolean getExecute()
-	{
+	public Boolean getExecute() {
 		return execute;
 	}
 
-	public void reset()
-	{
-		for (ScopedEntityPermissionEvaluation spe : spes)
-		{
-			if (spe != null)
-			{
+	public void reset() {
+		for (ScopedEntityPermissionEvaluation spe : spes) {
+			if (spe != null) {
 				spe.reset();
 			}
 		}
@@ -119,8 +114,7 @@ public class EntityPermissionEvaluation implements IEntityPermissionEvaluation, 
 		update = null;
 		delete = null;
 		execute = null;
-		for (Entry<String, EntityPropertyPermissionEvaluation> entry : propertyPermissions)
-		{
+		for (Entry<String, EntityPropertyPermissionEvaluation> entry : propertyPermissions) {
 			EntityPropertyPermissionEvaluation propertyPermission = entry.getValue();
 			propertyPermission.reset();
 			unusedPropertyPermissions.add(propertyPermission);
@@ -129,83 +123,68 @@ public class EntityPermissionEvaluation implements IEntityPermissionEvaluation, 
 	}
 
 	@Override
-	public IScopedEntityPermissionEvaluation scope(ISecurityScope scope)
-	{
-		for (int a = scopes.length; a-- > 0;)
-		{
-			if (scopes[a] == scope)
-			{
+	public IScopedEntityPermissionEvaluation scope(ISecurityScope scope) {
+		for (int a = scopes.length; a-- > 0;) {
+			if (scopes[a] == scope) {
 				ScopedEntityPermissionEvaluation spe = spes[a];
-				if (spe == null)
-				{
+				if (spe == null) {
 					spe = new ScopedEntityPermissionEvaluation(this);
 					spes[a] = spe;
 				}
 				return spe;
 			}
 		}
-		throw new IllegalArgumentException(ISecurityScope.class.getSimpleName() + " not known: " + scope + ". Known are: " + Arrays.toString(scopes));
+		throw new IllegalArgumentException(ISecurityScope.class.getSimpleName() + " not known: " + scope
+				+ ". Known are: " + Arrays.toString(scopes));
 	}
 
 	@Override
-	public IExecuteEntityStep allowCUD()
-	{
+	public IExecuteEntityStep allowCUD() {
 		return allowCreate().allowUpdate().allowDelete();
 	}
 
 	@Override
-	public IExecuteEntityStep skipCUD()
-	{
+	public IExecuteEntityStep skipCUD() {
 		return skipCreate().skipUpdate().skipDelete();
 	}
 
 	@Override
-	public IExecuteEntityStep denyCUD()
-	{
+	public IExecuteEntityStep denyCUD() {
 		return denyCreate().denyUpdate().denyDelete();
 	}
 
 	@Override
-	public IUpdateEntityStep allowCreate()
-	{
-		if (create == null || !createTrueDefault)
-		{
+	public IUpdateEntityStep allowCreate() {
+		if (create == null || !createTrueDefault) {
 			create = Boolean.TRUE;
 		}
 		return this;
 	}
 
 	@Override
-	public IUpdateEntityStep skipCreate()
-	{
+	public IUpdateEntityStep skipCreate() {
 		return this;
 	}
 
 	@Override
-	public IUpdateEntityStep denyCreate()
-	{
-		if (create == null || createTrueDefault)
-		{
+	public IUpdateEntityStep denyCreate() {
+		if (create == null || createTrueDefault) {
 			create = Boolean.FALSE;
 		}
 		return this;
 	}
 
 	@Override
-	public ICreateEntityStep allowRead()
-	{
-		if (read == null || !readTrueDefault)
-		{
+	public ICreateEntityStep allowRead() {
+		if (read == null || !readTrueDefault) {
 			read = Boolean.TRUE;
 		}
 		return this;
 	}
 
 	@Override
-	public void denyRead()
-	{
-		if (read == null || readTrueDefault)
-		{
+	public void denyRead() {
+		if (read == null || readTrueDefault) {
 			read = Boolean.FALSE;
 		}
 		denyCreate();
@@ -215,102 +194,83 @@ public class EntityPermissionEvaluation implements IEntityPermissionEvaluation, 
 	}
 
 	@Override
-	public IDeleteEntityStep allowUpdate()
-	{
-		if (update == null || !updateTrueDefault)
-		{
+	public IDeleteEntityStep allowUpdate() {
+		if (update == null || !updateTrueDefault) {
 			update = Boolean.TRUE;
 		}
 		return this;
 	}
 
 	@Override
-	public IDeleteEntityStep skipUpdate()
-	{
+	public IDeleteEntityStep skipUpdate() {
 		return this;
 	}
 
 	@Override
-	public IDeleteEntityStep denyUpdate()
-	{
-		if (update == null || updateTrueDefault)
-		{
+	public IDeleteEntityStep denyUpdate() {
+		if (update == null || updateTrueDefault) {
 			update = Boolean.FALSE;
 		}
 		return this;
 	}
 
 	@Override
-	public IExecuteEntityStep allowDelete()
-	{
-		if (delete == null || !deleteTrueDefault)
-		{
+	public IExecuteEntityStep allowDelete() {
+		if (delete == null || !deleteTrueDefault) {
 			delete = Boolean.TRUE;
 		}
 		return this;
 	}
 
 	@Override
-	public IExecuteEntityStep skipDelete()
-	{
+	public IExecuteEntityStep skipDelete() {
 		return this;
 	}
 
 	@Override
-	public IExecuteEntityStep denyDelete()
-	{
-		if (delete == null || deleteTrueDefault)
-		{
+	public IExecuteEntityStep denyDelete() {
+		if (delete == null || deleteTrueDefault) {
 			delete = Boolean.FALSE;
 		}
 		return this;
 	}
 
 	@Override
-	public void allowExecute()
-	{
-		if (execute == null || !executeTrueDefault)
-		{
+	public void allowExecute() {
+		if (execute == null || !executeTrueDefault) {
 			execute = Boolean.TRUE;
 		}
 	}
 
 	@Override
-	public void skipExecute()
-	{
+	public void skipExecute() {
 		// intended blank
 	}
 
 	@Override
-	public void denyExecute()
-	{
-		if (execute == null || executeTrueDefault)
-		{
+	public void denyExecute() {
+		if (execute == null || executeTrueDefault) {
 			execute = Boolean.FALSE;
 		}
 	}
 
 	@Override
-	public void allowEach()
-	{
+	public void allowEach() {
 		allowRead().allowCreate().allowUpdate().allowDelete().allowExecute();
 	}
 
 	@Override
-	public void skipEach()
-	{
+	public void skipEach() {
 		// intended blank
 	}
 
 	@Override
-	public void denyEach()
-	{
+	public void denyEach() {
 		denyRead();
 	}
 
 	@Override
-	public ICreateEntityPropertyStep allowReadProperty(String propertyName)
-	{
+	public ICreateEntityPropertyStep allowReadProperty(String propertyName) {
 		// to read a single property it implies general read permission
 		allowRead();
 		EntityPropertyPermissionEvaluation propertyPermission = getPropertyPermission(propertyName);
@@ -319,33 +279,29 @@ public class EntityPermissionEvaluation implements IEntityPermissionEvaluation, 
 	}
 
 	@Override
-	public IEntityPermissionEvaluation denyReadProperty(String propertyName)
-	{
+	public IEntityPermissionEvaluation denyReadProperty(String propertyName) {
 		EntityPropertyPermissionEvaluation propertyPermission = getPropertyPermission(propertyName);
 		propertyPermission.denyReadProperty();
 		return this;
 	}
 
-	protected EntityPropertyPermissionEvaluation getPropertyPermission(String propertyName)
-	{
+	protected EntityPropertyPermissionEvaluation getPropertyPermission(String propertyName) {
 		EntityPropertyPermissionEvaluation propertyPermission = propertyPermissions.get(propertyName);
-		if (propertyPermission != null)
-		{
+		if (propertyPermission != null) {
 			return propertyPermission;
 		}
 		propertyPermission = unusedPropertyPermissions.popLastElement();
-		if (propertyPermission == null)
-		{
-			propertyPermission = new EntityPropertyPermissionEvaluation(createTrueDefault, readTrueDefault, updateTrueDefault, deleteTrueDefault);
+		if (propertyPermission == null) {
+			propertyPermission = new EntityPropertyPermissionEvaluation(createTrueDefault,
+					readTrueDefault, updateTrueDefault, deleteTrueDefault);
 		}
 		propertyPermissions.put(propertyName, propertyPermission);
 		return propertyPermission;
 	}
 
-	public void applyTypePropertyPrivilege(String propertyName, ITypePropertyPrivilege propertyPrivilege)
-	{
-		if (Boolean.FALSE.equals(propertyPrivilege.isReadAllowed()))
-		{
+	public void applyTypePropertyPrivilege(String propertyName,
+			ITypePropertyPrivilege propertyPrivilege) {
+		if (Boolean.FALSE.equals(propertyPrivilege.isReadAllowed())) {
 			denyReadProperty(propertyName);
 			return;
 		}
@@ -354,20 +310,19 @@ public class EntityPermissionEvaluation implements IEntityPermissionEvaluation, 
 		Boolean updateAllowed = propertyPrivilege.isUpdateAllowed();
 		Boolean deleteAllowed = propertyPrivilege.isDeleteAllowed();
 
-		IUpdateEntityPropertyStep updateStep = createAllowed != null ? (createAllowed.booleanValue() ? createStep.allowCreateProperty() : createStep
-				.denyCreateProperty()) : createStep.skipCreateProperty();
-		IDeleteEntityPropertyStep deleteStep = updateAllowed != null ? (updateAllowed.booleanValue() ? updateStep.allowUpdateProperty() : updateStep
-				.denyUpdateProperty()) : updateStep.skipUpdateProperty();
-		if (deleteAllowed == null)
-		{
+		IUpdateEntityPropertyStep updateStep =
+				createAllowed != null ? (createAllowed.booleanValue() ? createStep.allowCreateProperty()
+						: createStep.denyCreateProperty()) : createStep.skipCreateProperty();
+		IDeleteEntityPropertyStep deleteStep =
+				updateAllowed != null ? (updateAllowed.booleanValue() ? updateStep.allowUpdateProperty()
+						: updateStep.denyUpdateProperty()) : updateStep.skipUpdateProperty();
+		if (deleteAllowed == null) {
 			deleteStep.skipDeleteProperty();
 		}
-		else if (deleteAllowed.booleanValue())
-		{
+		else if (deleteAllowed.booleanValue()) {
 			deleteStep.allowDeleteProperty();
 		}
-		else
-		{
+		else {
 			deleteStep.denyDeleteProperty();
 		}
 

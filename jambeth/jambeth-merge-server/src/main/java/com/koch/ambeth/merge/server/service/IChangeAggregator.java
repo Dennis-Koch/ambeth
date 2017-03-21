@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.service.merge.model.IObjRef;
 
-public interface IChangeAggregator
-{
+public interface IChangeAggregator {
 	void dataChangeInsert(IObjRef reference);
 
 	void dataChangeUpdate(IObjRef reference);

@@ -20,12 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public class UniqueConstraintException extends ConstraintException
-{
+public class UniqueConstraintException extends ConstraintException {
 	private static final long serialVersionUID = 7448945580470173927L;
 
-	public UniqueConstraintException(String message, String relatedSql, Throwable e)
-	{
+	public UniqueConstraintException(String message, String relatedSql, Throwable e) {
 		super(message, relatedSql, e);
 	}
 }

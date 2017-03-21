@@ -24,10 +24,8 @@ import com.koch.ambeth.util.annotation.ConfigurationConstantDescription;
 import com.koch.ambeth.util.annotation.ConfigurationConstants;
 
 @ConfigurationConstants
-public final class EventConfigurationConstants
-{
-	private EventConfigurationConstants()
-	{
+public final class EventConfigurationConstants {
+	private EventConfigurationConstants() {
 	}
 
 	@ConfigurationConstantDescription("TODO")

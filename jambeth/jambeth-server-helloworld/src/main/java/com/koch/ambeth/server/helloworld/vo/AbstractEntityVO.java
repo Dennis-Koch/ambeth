@@ -21,8 +21,7 @@ limitations under the License.
  */
 
 
-public abstract class AbstractEntityVO
-{
+public abstract class AbstractEntityVO {
 	protected long id;
 
 	protected int version;
@@ -31,63 +30,51 @@ public abstract class AbstractEntityVO
 
 	protected long updatedOn, createdOn;
 
-	public void setId(long id)
-	{
+	public void setId(long id) {
 		this.id = id;
 	}
 
-	public long getId()
-	{
+	public long getId() {
 		return id;
 	}
 
-	public void setVersion(int version)
-	{
+	public void setVersion(int version) {
 		this.version = version;
 	}
 
-	public int getVersion()
-	{
+	public int getVersion() {
 		return version;
 	}
 
-	public String getUpdatedBy()
-	{
+	public String getUpdatedBy() {
 		return updatedBy;
 	}
 
-	public void setUpdatedBy(String updatedBy)
-	{
+	public void setUpdatedBy(String updatedBy) {
 		this.updatedBy = updatedBy;
 	}
 
-	public String getCreatedBy()
-	{
+	public String getCreatedBy() {
 		return createdBy;
 	}
 
-	public void setCreatedBy(String createdBy)
-	{
+	public void setCreatedBy(String createdBy) {
 		this.createdBy = createdBy;
 	}
 
-	public long getUpdatedOn()
-	{
+	public long getUpdatedOn() {
 		return updatedOn;
 	}
 
-	public void setUpdatedOn(long updatedOn)
-	{
+	public void setUpdatedOn(long updatedOn) {
 		this.updatedOn = updatedOn;
 	}
 
-	public long getCreatedOn()
-	{
+	public long getCreatedOn() {
 		return createdOn;
 	}
 
-	public void setCreatedOn(long createdOn)
-	{
+	public void setCreatedOn(long createdOn) {
 		this.createdOn = createdOn;
 	}
 

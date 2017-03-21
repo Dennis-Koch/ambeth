@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.util.annotation.NoProxy;
 
-public interface IEntityAService
-{
+public interface IEntityAService {
 	void save(EntityA entity);
 
 	@NoProxy

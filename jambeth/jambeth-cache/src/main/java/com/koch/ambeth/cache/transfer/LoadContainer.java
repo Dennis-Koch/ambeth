@@ -32,8 +32,7 @@ import com.koch.ambeth.util.collections.IList;
 
 @XmlRootElement(name = "LoadContainer", namespace = "http://schema.kochdev.com/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class LoadContainer implements ILoadContainer
-{
+public class LoadContainer implements ILoadContainer {
 	@XmlElement(required = true)
 	protected IObjRef reference;
 
@@ -47,46 +46,38 @@ public class LoadContainer implements ILoadContainer
 	protected IList<IObjRef>[] relationBuilds;
 
 	@Override
-	public IObjRef getReference()
-	{
+	public IObjRef getReference() {
 		return reference;
 	}
 
-	public void setReference(IObjRef reference)
-	{
+	public void setReference(IObjRef reference) {
 		this.reference = reference;
 	}
 
 	@Override
-	public Object[] getPrimitives()
-	{
+	public Object[] getPrimitives() {
 		return primitives;
 	}
 
 	@Override
-	public void setPrimitives(Object[] primitives)
-	{
+	public void setPrimitives(Object[] primitives) {
 		this.primitives = primitives;
 	}
 
 	@Override
-	public IObjRef[][] getRelations()
-	{
-		return this.relations;
+	public IObjRef[][] getRelations() {
+		return relations;
 	}
 
-	public void setRelations(IObjRef[][] relations)
-	{
+	public void setRelations(IObjRef[][] relations) {
 		this.relations = relations;
 	}
 
-	public IList<IObjRef>[] getRelationBuilds()
-	{
+	public IList<IObjRef>[] getRelationBuilds() {
 		return relationBuilds;
 	}
 
-	public void setRelationBuilds(IList<IObjRef>[] relationBuilds)
-	{
+	public void setRelationBuilds(IList<IObjRef>[] relationBuilds) {
 		this.relationBuilds = relationBuilds;
 	}
 }

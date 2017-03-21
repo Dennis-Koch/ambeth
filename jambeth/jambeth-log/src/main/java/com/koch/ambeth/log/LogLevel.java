@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public enum LogLevel
-{
+public enum LogLevel {
 	DEBUG, INFO, WARN, ERROR;
 }

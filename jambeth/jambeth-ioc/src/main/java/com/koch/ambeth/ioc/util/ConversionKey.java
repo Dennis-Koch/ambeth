@@ -22,38 +22,31 @@ limitations under the License.
 
 import com.koch.ambeth.util.IPrintable;
 
-public class ConversionKey implements IPrintable
-{
+public class ConversionKey implements IPrintable {
 	public Class<?> sourceType;
 
 	public Class<?> targetType;
 
-	public ConversionKey()
-	{
+	public ConversionKey() {
 		// Intended blank
 	}
 
-	public ConversionKey(Class<?> sourceType, Class<?> targetType)
-	{
+	public ConversionKey(Class<?> sourceType, Class<?> targetType) {
 		this.sourceType = sourceType;
 		this.targetType = targetType;
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return (sourceType.hashCode() << 1) ^ targetType.hashCode();
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == this)
-		{
+	public boolean equals(Object obj) {
+		if (obj == this) {
 			return true;
 		}
-		if (obj == null || !getClass().equals(obj.getClass()))
-		{
+		if (obj == null || !getClass().equals(obj.getClass())) {
 			return false;
 		}
 		ConversionKey other = (ConversionKey) obj;
@@ -61,16 +54,15 @@ public class ConversionKey implements IPrintable
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		toString(sb);
 		return sb.toString();
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
-		sb.append(getClass().getSimpleName()).append(": ").append(sourceType.getSimpleName()).append("->").append(targetType.getSimpleName());
+	public void toString(StringBuilder sb) {
+		sb.append(getClass().getSimpleName()).append(": ").append(sourceType.getSimpleName())
+				.append("->").append(targetType.getSimpleName());
 	}
 }

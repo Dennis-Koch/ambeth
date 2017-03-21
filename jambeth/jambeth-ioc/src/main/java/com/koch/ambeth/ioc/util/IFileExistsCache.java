@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.nio.file.Path;
 
-public interface IFileExistsCache
-{
+public interface IFileExistsCache {
 
 	boolean exists(Path path);
 

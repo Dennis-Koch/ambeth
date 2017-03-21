@@ -42,8 +42,7 @@ import com.koch.ambeth.util.ListUtil;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 
-public class EntityMetaDataConverter implements IDedicatedConverter
-{
+public class EntityMetaDataConverter implements IDedicatedConverter {
 	private static final String[] EMPTY_STRINGS = new String[0];
 
 	protected static final Pattern memberPathSplitPattern = Pattern.compile("\\.");
@@ -65,10 +64,9 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 	protected IProxyHelper proxyHelper;
 
 	@Override
-	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value, Object additionalInformation)
-	{
-		if (sourceType.isAssignableFrom(EntityMetaData.class))
-		{
+	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+			Object additionalInformation) {
+		if (sourceType.isAssignableFrom(EntityMetaData.class)) {
 			EntityMetaData source = (EntityMetaData) value;
 
 			EntityMetaDataTransfer target = new EntityMetaDataTransfer();
@@ -83,61 +81,63 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 			target.setPrimitiveMemberNames(getNamesOfMembers(source.getPrimitiveMembers()));
 			target.setRelationMemberNames(getNamesOfMembers(source.getRelationMembers()));
 			target.setTypesRelatingToThis(source.getTypesRelatingToThis());
-			target.setTypesToCascadeDelete(source.getCascadeDeleteTypes().toArray(new Class<?>[source.getCascadeDeleteTypes().size()]));
+			target.setTypesToCascadeDelete(source.getCascadeDeleteTypes()
+					.toArray(new Class<?>[source.getCascadeDeleteTypes().size()]));
 
 			Member[] primitiveMembers = source.getPrimitiveMembers();
 			RelationMember[] relationMembers = source.getRelationMembers();
-			List<String> mergeRelevantNames = new ArrayList<String>();
-			for (int a = primitiveMembers.length; a-- > 0;)
-			{
+			List<String> mergeRelevantNames = new ArrayList<>();
+			for (int a = primitiveMembers.length; a-- > 0;) {
 				Member member = primitiveMembers[a];
-				if (source.isMergeRelevant(member))
-				{
+				if (source.isMergeRelevant(member)) {
 					mergeRelevantNames.add(getNameOfMember(member));
 				}
 			}
-			for (int a = relationMembers.length; a-- > 0;)
-			{
+			for (int a = relationMembers.length; a-- > 0;) {
 				RelationMember member = relationMembers[a];
-				if (source.isMergeRelevant(member))
-				{
+				if (source.isMergeRelevant(member)) {
 					mergeRelevantNames.add(getNameOfMember(member));
 				}
 			}
 			target.setMergeRelevantNames(ListUtil.toArray(String.class, mergeRelevantNames));
 			return target;
 		}
-		else if (sourceType.isAssignableFrom(EntityMetaDataTransfer.class))
-		{
+		else if (sourceType.isAssignableFrom(EntityMetaDataTransfer.class)) {
 			EntityMetaDataTransfer source = (EntityMetaDataTransfer) value;
 
-			HashMap<String, Member> nameToMemberDict = new HashMap<String, Member>();
+			HashMap<String, Member> nameToMemberDict = new HashMap<>();
 
 			EntityMetaData target = new EntityMetaData();
 			Class<?> entityType = source.getEntityType();
 			Class<?> realType = proxyHelper.getRealType(entityType);
 			target.setEntityType(entityType);
 			target.setRealType(realType);
-			target.setIdMember(getPrimitiveMember(entityType, source.getIdMemberName(), nameToMemberDict));
-			target.setVersionMember(getPrimitiveMember(entityType, source.getVersionMemberName(), nameToMemberDict));
-			target.setCreatedByMember(getPrimitiveMember(entityType, source.getCreatedByMemberName(), nameToMemberDict));
-			target.setCreatedOnMember(getPrimitiveMember(entityType, source.getCreatedOnMemberName(), nameToMemberDict));
-			target.setUpdatedByMember(getPrimitiveMember(entityType, source.getUpdatedByMemberName(), nameToMemberDict));
-			target.setUpdatedOnMember(getPrimitiveMember(entityType, source.getUpdatedOnMemberName(), nameToMemberDict));
-			target.setPrimitiveMembers(getPrimitiveMembers(entityType, source.getPrimitiveMemberNames(), nameToMemberDict));
-			target.setAlternateIdMembers(getPrimitiveMembers(entityType, source.getAlternateIdMemberNames(), nameToMemberDict));
-			target.setRelationMembers(getRelationMembers(entityType, source.getRelationMemberNames(), nameToMemberDict));
+			target
+					.setIdMember(getPrimitiveMember(entityType, source.getIdMemberName(), nameToMemberDict));
+			target.setVersionMember(
+					getPrimitiveMember(entityType, source.getVersionMemberName(), nameToMemberDict));
+			target.setCreatedByMember(
+					getPrimitiveMember(entityType, source.getCreatedByMemberName(), nameToMemberDict));
+			target.setCreatedOnMember(
+					getPrimitiveMember(entityType, source.getCreatedOnMemberName(), nameToMemberDict));
+			target.setUpdatedByMember(
+					getPrimitiveMember(entityType, source.getUpdatedByMemberName(), nameToMemberDict));
+			target.setUpdatedOnMember(
+					getPrimitiveMember(entityType, source.getUpdatedOnMemberName(), nameToMemberDict));
+			target.setPrimitiveMembers(
+					getPrimitiveMembers(entityType, source.getPrimitiveMemberNames(), nameToMemberDict));
+			target.setAlternateIdMembers(
+					getPrimitiveMembers(entityType, source.getAlternateIdMemberNames(), nameToMemberDict));
+			target.setRelationMembers(
+					getRelationMembers(entityType, source.getRelationMemberNames(), nameToMemberDict));
 			target.setTypesRelatingToThis(source.getTypesRelatingToThis());
 			Class<?>[] typesToCascadeDelete = source.getTypesToCascadeDelete();
-			for (int a = 0, size = typesToCascadeDelete.length; a < size; a++)
-			{
+			for (int a = 0, size = typesToCascadeDelete.length; a < size; a++) {
 				target.getCascadeDeleteTypes().add(typesToCascadeDelete[a]);
 			}
 			String[] mergeRelevantNames = source.getMergeRelevantNames();
-			if (mergeRelevantNames != null)
-			{
-				for (int a = mergeRelevantNames.length; a-- > 0;)
-				{
+			if (mergeRelevantNames != null) {
+				for (int a = mergeRelevantNames.length; a-- > 0;) {
 					Member resolvedMember = nameToMemberDict.get(mergeRelevantNames[a]);
 					target.setMergeRelevant(resolvedMember, true);
 				}
@@ -153,96 +153,83 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 		throw new IllegalStateException("Source of type " + sourceType.getName() + " not supported");
 	}
 
-	protected void setMergeRelevant(EntityMetaData metaData, Member member, boolean value)
-	{
-		if (member != null)
-		{
+	protected void setMergeRelevant(EntityMetaData metaData, Member member, boolean value) {
+		if (member != null) {
 			metaData.setMergeRelevant(member, value);
 		}
 	}
 
-	protected IntermediatePrimitiveMember getPrimitiveMember(Class<?> entityType, String memberName, Map<String, Member> nameToMemberDict)
-	{
-		if (memberName == null)
-		{
+	protected IntermediatePrimitiveMember getPrimitiveMember(Class<?> entityType, String memberName,
+			Map<String, Member> nameToMemberDict) {
+		if (memberName == null) {
 			return null;
 		}
-		IntermediatePrimitiveMember member = (IntermediatePrimitiveMember) nameToMemberDict.get(memberName);
-		if (member != null)
-		{
+		IntermediatePrimitiveMember member =
+				(IntermediatePrimitiveMember) nameToMemberDict.get(memberName);
+		if (member != null) {
 			return member;
 		}
 		member = intermediateMemberTypeProvider.getIntermediatePrimitiveMember(entityType, memberName);
-		if (member == null)
-		{
-			throw new RuntimeException("No member with name '" + memberName + "' found on entity type '" + entityType.getName() + "'");
+		if (member == null) {
+			throw new RuntimeException("No member with name '" + memberName + "' found on entity type '"
+					+ entityType.getName() + "'");
 		}
 		nameToMemberDict.put(memberName, member);
 		return member;
 	}
 
-	protected RelationMember getRelationMember(Class<?> entityType, String memberName, Map<String, Member> nameToMemberDict)
-	{
+	protected RelationMember getRelationMember(Class<?> entityType, String memberName,
+			Map<String, Member> nameToMemberDict) {
 		RelationMember member = (RelationMember) nameToMemberDict.get(memberName);
-		if (member != null)
-		{
+		if (member != null) {
 			return member;
 		}
 		member = intermediateMemberTypeProvider.getIntermediateRelationMember(entityType, memberName);
-		if (member == null)
-		{
-			throw new RuntimeException("No member with name '" + memberName + "' found on entity type '" + entityType.getName() + "'");
+		if (member == null) {
+			throw new RuntimeException("No member with name '" + memberName + "' found on entity type '"
+					+ entityType.getName() + "'");
 		}
 		nameToMemberDict.put(memberName, member);
 		return member;
 	}
 
-	protected PrimitiveMember[] getPrimitiveMembers(Class<?> entityType, String[] memberNames, Map<String, Member> nameToMemberDict)
-	{
-		if (memberNames == null)
-		{
+	protected PrimitiveMember[] getPrimitiveMembers(Class<?> entityType, String[] memberNames,
+			Map<String, Member> nameToMemberDict) {
+		if (memberNames == null) {
 			return EntityMetaData.emptyPrimitiveMembers;
 		}
 		PrimitiveMember[] members = new PrimitiveMember[memberNames.length];
-		for (int a = memberNames.length; a-- > 0;)
-		{
+		for (int a = memberNames.length; a-- > 0;) {
 			members[a] = getPrimitiveMember(entityType, memberNames[a], nameToMemberDict);
 		}
 		return members;
 	}
 
-	protected RelationMember[] getRelationMembers(Class<?> entityType, String[] memberNames, Map<String, Member> nameToMemberDict)
-	{
-		if (memberNames == null)
-		{
+	protected RelationMember[] getRelationMembers(Class<?> entityType, String[] memberNames,
+			Map<String, Member> nameToMemberDict) {
+		if (memberNames == null) {
 			return EntityMetaData.emptyRelationMembers;
 		}
 		RelationMember[] members = new RelationMember[memberNames.length];
-		for (int a = memberNames.length; a-- > 0;)
-		{
+		for (int a = memberNames.length; a-- > 0;) {
 			members[a] = getRelationMember(entityType, memberNames[a], nameToMemberDict);
 		}
 		return members;
 	}
 
-	protected String getNameOfMember(Member member)
-	{
-		if (member == null)
-		{
+	protected String getNameOfMember(Member member) {
+		if (member == null) {
 			return null;
 		}
 		return member.getName();
 	}
 
-	protected String[] getNamesOfMembers(Member[] members)
-	{
-		if (members == null)
-		{
+	protected String[] getNamesOfMembers(Member[] members) {
+		if (members == null) {
 			return EMPTY_STRINGS;
 		}
 		String[] names = new String[members.length];
-		for (int a = members.length; a-- > 0;)
-		{
+		for (int a = members.length; a-- > 0;) {
 			names[a] = getNameOfMember(members[a]);
 		}
 		return names;

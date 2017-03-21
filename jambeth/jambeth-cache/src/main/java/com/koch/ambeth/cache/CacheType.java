@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public enum CacheType
-{
+public enum CacheType {
 	DEFAULT, PROTOTYPE, SINGLETON, THREAD_LOCAL
 }

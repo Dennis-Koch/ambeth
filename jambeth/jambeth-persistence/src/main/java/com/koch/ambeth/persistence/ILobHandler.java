@@ -26,8 +26,7 @@ import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
 
-public interface ILobHandler
-{
+public interface ILobHandler {
 	Blob insertBlob(Connection connection, InputStream is) throws Throwable;
 
 	Blob insertBlob(Connection connection, byte[] content) throws Throwable;

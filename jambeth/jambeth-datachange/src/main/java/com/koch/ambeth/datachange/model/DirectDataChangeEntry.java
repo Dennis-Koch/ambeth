@@ -20,52 +20,43 @@ limitations under the License.
  * #L%
  */
 
-public class DirectDataChangeEntry implements IDataChangeEntry
-{
+public class DirectDataChangeEntry implements IDataChangeEntry {
 	protected Object entry;
 
-	public DirectDataChangeEntry(Object entry)
-	{
+	public DirectDataChangeEntry(Object entry) {
 		this.entry = entry;
 	}
 
-	public Object getEntry()
-	{
+	public Object getEntry() {
 		return entry;
 	}
 
 	@Override
-	public Class<?> getEntityType()
-	{
-		return this.entry.getClass();
+	public Class<?> getEntityType() {
+		return entry.getClass();
 	}
 
 	@Override
-	public Object getId()
-	{
+	public Object getId() {
 		return null;
 	}
 
 	@Override
-	public byte getIdNameIndex()
-	{
+	public byte getIdNameIndex() {
 		return -1;
 	}
 
 	@Override
-	public Object getVersion()
-	{
+	public Object getVersion() {
 		return null;
 	}
 
 	@Override
-	public String[] getTopics()
-	{
+	public String[] getTopics() {
 		return null;
 	}
 
 	@Override
-	public void setTopics(String[] topics)
-	{
+	public void setTopics(String[] topics) {
 	}
 }

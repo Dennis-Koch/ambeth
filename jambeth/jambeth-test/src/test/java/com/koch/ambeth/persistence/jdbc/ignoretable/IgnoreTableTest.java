@@ -29,17 +29,14 @@ import com.koch.ambeth.testutil.SQLStructure;
 import com.koch.ambeth.util.collections.ILinkedMap;
 
 @SQLStructure("IgnoreTable_structure.sql")
-public class IgnoreTableTest extends AbstractInformationBusWithPersistenceTest
-{
+public class IgnoreTableTest extends AbstractInformationBusWithPersistenceTest {
 	@Test
-	public void testAutoIndexFalse()
-	{
-		transaction.processAndCommit(new DatabaseCallback()
-		{
+	public void testAutoIndexFalse() {
+		transaction.processAndCommit(new DatabaseCallback() {
 
 			@Override
-			public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Exception
-			{
+			public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+					throws Exception {
 
 			}
 		});

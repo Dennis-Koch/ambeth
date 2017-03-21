@@ -39,13 +39,14 @@ import com.koch.ambeth.testutil.AbstractIocTest;
 import com.koch.ambeth.testutil.TestModule;
 
 /**
- * Very simple tests of MinaClient and MinaServer. This tests also demonstrates the use of this two classes
+ * Very simple tests of MinaClient and MinaServer. This tests also demonstrates the use of this two
+ * classes
  */
-@TestModule({ MinaModule.class })
-public class MinaTest extends AbstractIocTest
-{
+@TestModule({MinaModule.class})
+public class MinaTest extends AbstractIocTest {
 
-	@Property(name = MinaTestConfigurationConstants.PROPERTY_NAME_TEST_NIO_PORT, defaultValue = "9123")
+	@Property(name = MinaTestConfigurationConstants.PROPERTY_NAME_TEST_NIO_PORT,
+			defaultValue = "9123")
 	protected int nioPort;
 
 	@Autowired
@@ -55,25 +56,24 @@ public class MinaTest extends AbstractIocTest
 	protected IMinaClient minaClient;
 
 	@Before
-	public void beforeTest()
-	{
+	public void beforeTest() {
 		Charset charset = Charset.defaultCharset(); // the charset must be the same in client and server
 
-		minaServer.run(nioPort, new MinaServerHandler(), new ProtocolCodecFilter(new TextLineCodecFactory(charset, "\r\n", "\r")));
+		minaServer.run(nioPort, new MinaServerHandler(),
+				new ProtocolCodecFilter(new TextLineCodecFactory(charset, "\r\n", "\r")));
 
-		minaClient.connect(nioPort, null, null, new MinaClientHandler(minaClient), new ProtocolCodecFilter(new TextLineCodecFactory(charset, "\r", "\r\n")));
+		minaClient.connect(nioPort, null, null, new MinaClientHandler(minaClient),
+				new ProtocolCodecFilter(new TextLineCodecFactory(charset, "\r", "\r\n")));
 	}
 
 	@After
-	public void afterTest()
-	{
+	public void afterTest() {
 		minaClient.close();
 		minaServer.stop();
 	}
 
 	@Test
-	public void testCommunication()
-	{
+	public void testCommunication() {
 		String answer = minaClient.executeCommand("test");
 		assertEquals(MinaServerHandler.ANSWER, answer);
 	}

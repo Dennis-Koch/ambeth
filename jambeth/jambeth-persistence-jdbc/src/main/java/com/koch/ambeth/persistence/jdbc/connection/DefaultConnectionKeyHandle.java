@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.persistence.connection.IConnectionKeyHandle;
 
-public final class DefaultConnectionKeyHandle implements IConnectionKeyHandle
-{
+public final class DefaultConnectionKeyHandle implements IConnectionKeyHandle {
 	// Intended blank
 }

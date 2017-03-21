@@ -26,7 +26,6 @@ import com.koch.ambeth.util.annotation.XmlType;
 import com.koch.ambeth.util.objectcollector.IObjectCollector;
 
 @XmlType
-public interface IMethodDescription
-{
+public interface IMethodDescription {
 	Method getMethod(IObjectCollector objectCollector);
 }

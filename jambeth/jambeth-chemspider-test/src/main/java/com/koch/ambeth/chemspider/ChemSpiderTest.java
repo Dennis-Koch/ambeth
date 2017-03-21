@@ -33,15 +33,13 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.testutil.AbstractIocTest;
 
-public class ChemSpiderTest extends AbstractIocTest
-{
+public class ChemSpiderTest extends AbstractIocTest {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Test
-	public void test() throws Throwable
-	{
+	public void test() throws Throwable {
 		String token = "ab980b4a-bc7b-464e-97d0-48627bcee3bb";
 		MassSpecAPIStub ab = new MassSpecAPIStub();
 
@@ -59,7 +57,8 @@ public class ChemSpiderTest extends AbstractIocTest
 		GetExtendedCompoundInfo getExtendedCompoundInfo = new GetExtendedCompoundInfo();
 		getExtendedCompoundInfo.setCSID(Integer.parseInt(response[0]));
 		getExtendedCompoundInfo.setToken(token);
-		GetExtendedCompoundInfoResponse extendedCompoundInfo = ab.getExtendedCompoundInfo(getExtendedCompoundInfo);
+		GetExtendedCompoundInfoResponse extendedCompoundInfo =
+				ab.getExtendedCompoundInfo(getExtendedCompoundInfo);
 		System.out.println();
 	}
 }

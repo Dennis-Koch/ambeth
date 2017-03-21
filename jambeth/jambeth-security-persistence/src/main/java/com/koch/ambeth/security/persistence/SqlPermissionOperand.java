@@ -33,8 +33,7 @@ import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
-public class SqlPermissionOperand implements IOperator
-{
+public class SqlPermissionOperand implements IOperator {
 	public static final Object USER_ID_UNSPECIFIED = new Object();
 
 	public static final String USER_ID_CRITERIA_NAME = "sec#userId";
@@ -65,27 +64,23 @@ public class SqlPermissionOperand implements IOperator
 	protected ISqlJoin[] permissionGroupJoins;
 
 	@Override
-	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
-	{
+	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			boolean joinQuery, IList<Object> parameters) {
 		operate(querySB, nameToValueMap, joinQuery, parameters);
 	}
 
 	@Override
-	public void operate(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
-	{
-		if (operand != null)
-		{
+	public void operate(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery,
+			IList<Object> parameters) {
+		if (operand != null) {
 			operand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 		}
-		if (nameToValueMap.get(USER_ID_CRITERIA_NAME) == USER_ID_UNSPECIFIED)
-		{
+		if (nameToValueMap.get(USER_ID_CRITERIA_NAME) == USER_ID_UNSPECIFIED) {
 			return;
 		}
 		AppendableStringBuilder joinSB = (AppendableStringBuilder) nameToValueMap.get("#JoinSB");
-		for (int i = 0; i < permissionGroupJoins.length; i++)
-		{
-			if (joinSB.length() > 0)
-			{
+		for (int i = 0; i < permissionGroupJoins.length; i++) {
+			if (joinSB.length() > 0) {
 				joinSB.append(' ');
 			}
 			permissionGroupJoins[i].expandQuery(joinSB, nameToValueMap, true, parameters);
@@ -93,8 +88,7 @@ public class SqlPermissionOperand implements IOperator
 		IOperand firstUserIdOperand = userIdOperands[0];
 		IOperand firstValueOperand = readPermissionOperands[0];
 
-		if (operand != null)
-		{
+		if (operand != null) {
 			querySB.append(" AND ");
 		}
 		firstUserIdOperand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
@@ -106,15 +100,13 @@ public class SqlPermissionOperand implements IOperator
 		querySB.append('=');
 		valueCriteriaOperand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 
-		for (int a = 1, size = userIdOperands.length; a < size; a++)
-		{
+		for (int a = 1, size = userIdOperands.length; a < size; a++) {
 			querySB.append(" AND ");
 			userIdOperands[a].expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 			querySB.append('=');
 			firstUserIdOperand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 		}
-		for (int a = 1, size = readPermissionOperands.length; a < size; a++)
-		{
+		for (int a = 1, size = readPermissionOperands.length; a < size; a++) {
 			querySB.append(" AND ");
 			readPermissionOperands[a].expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 			querySB.append('=');

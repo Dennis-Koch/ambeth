@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IQueryBuilderFactory
-{
+public interface IQueryBuilderFactory {
 	<T> IQueryBuilder<T> create(Class<T> entityType);
 }

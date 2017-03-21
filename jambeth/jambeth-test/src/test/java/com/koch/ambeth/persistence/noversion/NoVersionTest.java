@@ -50,14 +50,17 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.util.ParamChecker;
 
 @TestModule(NoVersionTestModule.class)
-@TestPropertiesList({ @TestProperties(name = PersistenceJdbcConfigurationConstants.DatabaseBehaviourStrict, value = "true"),
-		@TestProperties(name = PersistenceConfigurationConstants.DatabaseTableIgnore, value = "NO_VERSION_BACKING"),
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/noversion/orm.xml"),
-		@TestProperties(name = CacheConfigurationConstants.FirstLevelCacheType, value = "PROTOTYPE") })
+@TestPropertiesList({
+		@TestProperties(name = PersistenceJdbcConfigurationConstants.DatabaseBehaviourStrict,
+				value = "true"),
+		@TestProperties(name = PersistenceConfigurationConstants.DatabaseTableIgnore,
+				value = "NO_VERSION_BACKING"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+				value = "com/koch/ambeth/persistence/noversion/orm.xml"),
+		@TestProperties(name = CacheConfigurationConstants.FirstLevelCacheType, value = "PROTOTYPE")})
 @SQLStructure("NoVersion_structure.sql")
 @SQLData("NoVersion_data.sql")
-public class NoVersionTest extends AbstractInformationBusWithPersistenceTest
-{
+public class NoVersionTest extends AbstractInformationBusWithPersistenceTest {
 	protected ICache cache;
 
 	protected ICacheFactory cacheFactory;
@@ -65,8 +68,7 @@ public class NoVersionTest extends AbstractInformationBusWithPersistenceTest
 	protected INoVersionService noVersionService;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		ParamChecker.assertNotNull(cache, "cache");
@@ -74,32 +76,27 @@ public class NoVersionTest extends AbstractInformationBusWithPersistenceTest
 		ParamChecker.assertNotNull(noVersionService, "noVersionService");
 	}
 
-	public void setCache(ICache cache)
-	{
+	public void setCache(ICache cache) {
 		this.cache = cache;
 	}
 
-	public void setCacheFactory(ICacheFactory cacheFactory)
-	{
+	public void setCacheFactory(ICacheFactory cacheFactory) {
 		this.cacheFactory = cacheFactory;
 	}
 
-	public void setNoVersionService(INoVersionService noVersionService)
-	{
+	public void setNoVersionService(INoVersionService noVersionService) {
 		this.noVersionService = noVersionService;
 	}
 
 	@Test
-	public void testCreate() throws Exception
-	{
+	public void testCreate() throws Exception {
 		NoVersion entity = entityFactory.createEntity(NoVersion.class);
 		entity.setName("zehn tausend");
 		noVersionService.create(entity);
 	}
 
 	@Test
-	public void testUpdate() throws Exception
-	{
+	public void testUpdate() throws Exception {
 		String newName = "eins punkt zwei";
 		NoVersion entity = cache.getObject(NoVersion.class, 1);
 		assertFalse(newName.equals(entity.getName()));
@@ -111,8 +108,7 @@ public class NoVersionTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testDelete() throws Exception
-	{
+	public void testDelete() throws Exception {
 		NoVersion entity = cache.getObject(NoVersion.class, 1);
 		assertNotNull(entity);
 
@@ -123,8 +119,7 @@ public class NoVersionTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testQuery() throws Exception
-	{
+	public void testQuery() throws Exception {
 		IQueryBuilder<NoVersion> qb = queryBuilderFactory.create(NoVersion.class);
 		IQuery<NoVersion> query = qb.build(qb.isEqualTo(qb.property("Name"), qb.value("zwei")));
 		List<NoVersion> result = query.retrieve();
@@ -135,12 +130,12 @@ public class NoVersionTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testUpdateWithoutOptimisticLocking() throws Exception
-	{
+	public void testUpdateWithoutOptimisticLocking() throws Exception {
 		String newName1 = "eins punkt zwei";
 		String newName2 = "eins punkt drei";
 		NoVersion entityInst1 = cache.getObject(NoVersion.class, 1);
-		NoVersion entityInst2 = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test").getObject(NoVersion.class, 1);
+		NoVersion entityInst2 = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test")
+				.getObject(NoVersion.class, 1);
 		assertNotSame(entityInst1, entityInst2);
 		assertFalse(newName1.equals(entityInst1.getName()));
 		assertFalse(newName2.equals(entityInst1.getName()));
@@ -148,13 +143,15 @@ public class NoVersionTest extends AbstractInformationBusWithPersistenceTest
 		entityInst1.setName(newName1);
 		noVersionService.update(entityInst1);
 
-		NoVersion actual1 = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test").getObject(NoVersion.class, 1);
+		NoVersion actual1 = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test")
+				.getObject(NoVersion.class, 1);
 		assertEquals(newName1, actual1.getName());
 
 		entityInst2.setName(newName2);
 		noVersionService.update(entityInst2);
 
-		NoVersion actual2 = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test").getObject(NoVersion.class, 1);
+		NoVersion actual2 = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test")
+				.getObject(NoVersion.class, 1);
 		assertEquals(newName2, actual2.getName());
 	}
 }

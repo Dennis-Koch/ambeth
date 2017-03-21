@@ -20,18 +20,15 @@ limitations under the License.
  * #L%
  */
 
-public class PropertyPath
-{
+public class PropertyPath {
 	protected final String propertyPath;
 
-	public PropertyPath(String propertyPath)
-	{
+	public PropertyPath(String propertyPath) {
 		super();
 		this.propertyPath = propertyPath;
 	}
 
-	public String getPropertyPath()
-	{
+	public String getPropertyPath() {
 		return propertyPath;
 	}
 }

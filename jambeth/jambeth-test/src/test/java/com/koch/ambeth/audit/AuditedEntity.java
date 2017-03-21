@@ -24,8 +24,7 @@ import java.util.List;
 
 import com.koch.ambeth.audit.model.IAuditedEntity;
 
-public interface AuditedEntity extends IAbstractAuditEntity, IAuditedEntity
-{
+public interface AuditedEntity extends IAbstractAuditEntity, IAuditedEntity {
 	@Override
 	List<AuditedEntityPrimitiveProperty> getPrimitives();
 

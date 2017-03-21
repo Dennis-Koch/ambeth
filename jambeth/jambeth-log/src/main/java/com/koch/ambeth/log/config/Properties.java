@@ -53,7 +53,7 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 	protected static final Properties system = new Properties();
 	protected static Properties application;
 
-	protected final LinkedHashMap<String, Object> dictionary = new LinkedHashMap<String, Object>();
+	protected final LinkedHashMap<String, Object> dictionary = new LinkedHashMap<>();
 
 	protected IProperties parent;
 
@@ -126,9 +126,9 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 	// Intentionally not a SensitiveThreadLocal. It can not contain a memory leak, because the HashSet
 	// is cleared after each usage
 	protected final ThreadLocal<HashSet<String>> cyclicKeyCheckTL =
-			new SensitiveThreadLocal<HashSet<String>>();
+			new SensitiveThreadLocal<>();
 	protected final ThreadLocal<HashSet<String>> unknownListTL =
-			new SensitiveThreadLocal<HashSet<String>>();
+			new SensitiveThreadLocal<>();
 
 	public Properties() {
 		this((IProperties) null);
@@ -228,7 +228,7 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 				HashSet<String> cyclicKeyCheck = cyclicKeyCheckTL.get();
 				boolean created = false, added = false;
 				if (cyclicKeyCheck == null) {
-					cyclicKeyCheck = new HashSet<String>();
+					cyclicKeyCheck = new HashSet<>();
 					cyclicKeyCheckTL.set(cyclicKeyCheck);
 					created = true;
 				}
@@ -247,7 +247,7 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 						}
 						// add to unknown list
 						if (unknownList == null) {
-							unknownList = new HashSet<String>();
+							unknownList = new HashSet<>();
 							unknownListTL.set(unknownList);
 							createdUnkownList = true;
 						}
@@ -329,7 +329,7 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 
 	@Override
 	public ISet<String> collectAllPropertyKeys() {
-		LinkedHashSet<String> allPropertiesSet = new LinkedHashSet<String>();
+		LinkedHashSet<String> allPropertiesSet = new LinkedHashSet<>();
 		collectAllPropertyKeys(allPropertiesSet);
 		return allPropertiesSet;
 	}

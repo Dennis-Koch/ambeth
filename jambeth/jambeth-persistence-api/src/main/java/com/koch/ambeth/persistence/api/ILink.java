@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.List;
 
-public interface ILink
-{
+public interface ILink {
 	ILinkMetaData getMetaData();
 
 	ITable getFromTable();

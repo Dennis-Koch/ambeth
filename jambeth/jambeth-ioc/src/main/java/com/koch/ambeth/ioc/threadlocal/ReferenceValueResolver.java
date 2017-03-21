@@ -20,27 +20,23 @@ limitations under the License.
  * #L%
  */
 
-public class ReferenceValueResolver implements IForkedValueResolver
-{
+public class ReferenceValueResolver implements IForkedValueResolver {
 	private final Object forkedValue;
 
 	private final Object originalValue;
 
-	public ReferenceValueResolver(Object originalValue, Object forkedValue)
-	{
+	public ReferenceValueResolver(Object originalValue, Object forkedValue) {
 		this.originalValue = originalValue;
 		this.forkedValue = forkedValue;
 	}
 
 	@Override
-	public Object getOriginalValue()
-	{
+	public Object getOriginalValue() {
 		return originalValue;
 	}
 
 	@Override
-	public Object createForkedValue()
-	{
+	public Object createForkedValue() {
 		return forkedValue;
 	}
 }

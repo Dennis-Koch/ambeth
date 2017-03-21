@@ -26,53 +26,46 @@ import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
-public class SqlLikeOperator extends CaseSensitiveTwoPlaceOperator
-{
+public class SqlLikeOperator extends CaseSensitiveTwoPlaceOperator {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	protected void preProcessRightOperand(IAppendable querySB, IMap<Object, Object> nameToValueMap, IList<Object> parameters)
-	{
-		if (parameters != null)
-		{
+	protected void preProcessRightOperand(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			IList<Object> parameters) {
+		if (parameters != null) {
 			// Intended blank
 		}
-		else
-		{
-			if (SqlEscapeHelper.escapeIfNecessary(this, nameToValueMap))
-			{
+		else {
+			if (SqlEscapeHelper.escapeIfNecessary(this, nameToValueMap)) {
 				querySB.append('\'');
 			}
 		}
 	}
 
 	@Override
-	protected void postProcessRightOperand(IAppendable querySB, IMap<Object, Object> nameToValueMap, IList<Object> parameters)
-	{
-		if (parameters != null)
-		{
+	protected void postProcessRightOperand(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			IList<Object> parameters) {
+		if (parameters != null) {
 			// Intended blank
 		}
-		else
-		{
-			if (SqlEscapeHelper.unescapeIfNecessary(this, nameToValueMap))
-			{
+		else {
+			if (SqlEscapeHelper.unescapeIfNecessary(this, nameToValueMap)) {
 				querySB.append('\'');
 			}
 		}
 	}
 
 	@Override
-	protected void expandOperatorQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean rightValueIsNull)
-	{
+	protected void expandOperatorQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			boolean rightValueIsNull) {
 		querySB.append(" LIKE ");
 	}
 
 	@Override
-	protected void postProcessOperate(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
-	{
+	protected void postProcessOperate(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			boolean joinQuery, IList<Object> parameters) {
 		querySB.append(" ESCAPE '\\'");
 		super.postProcessOperate(querySB, nameToValueMap, joinQuery, parameters);
 	}

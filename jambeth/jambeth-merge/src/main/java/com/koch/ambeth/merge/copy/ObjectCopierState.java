@@ -25,14 +25,13 @@ import com.koch.ambeth.util.collections.IdentityHashMap;
 /**
  * Encapsulates the internal state of an ObjectCopier operation
  */
-public class ObjectCopierState implements IObjectCopierState
-{
-	protected final IdentityHashMap<Object, Object> objectToCloneDict = new IdentityHashMap<Object, Object>();
+public class ObjectCopierState implements IObjectCopierState {
+	protected final IdentityHashMap<Object, Object> objectToCloneDict =
+			new IdentityHashMap<>();
 
 	protected final ObjectCopier objectCopier;
 
-	public ObjectCopierState(ObjectCopier objectCopier)
-	{
+	public ObjectCopierState(ObjectCopier objectCopier) {
 		this.objectCopier = objectCopier;
 	}
 
@@ -40,11 +39,10 @@ public class ObjectCopierState implements IObjectCopierState
 	 * @inheritDoc
 	 */
 	@Override
-	public <T> void addClone(T source, T clone)
-	{
-		if (!objectToCloneDict.putIfNotExists(source, clone))
-		{
-			throw new IllegalStateException("Object '" + source + "' has already been copied before in this recursive operation");
+	public <T> void addClone(T source, T clone) {
+		if (!objectToCloneDict.putIfNotExists(source, clone)) {
+			throw new IllegalStateException(
+					"Object '" + source + "' has already been copied before in this recursive operation");
 		}
 	}
 
@@ -52,8 +50,7 @@ public class ObjectCopierState implements IObjectCopierState
 	 * @inheritDoc
 	 */
 	@Override
-	public <T> void deepCloneProperties(T source, T clone)
-	{
+	public <T> void deepCloneProperties(T source, T clone) {
 		objectCopier.deepCloneProperties(source, clone, this);
 	}
 
@@ -61,16 +58,14 @@ public class ObjectCopierState implements IObjectCopierState
 	 * @inheritDoc
 	 */
 	@Override
-	public <T> T clone(T source)
-	{
+	public <T> T clone(T source) {
 		return objectCopier.cloneRecursive(source, this);
 	}
 
 	/**
 	 * Called to prepare this instance for clean reusage
 	 */
-	public void clear()
-	{
+	public void clear() {
 		objectToCloneDict.clear();
 	}
 }

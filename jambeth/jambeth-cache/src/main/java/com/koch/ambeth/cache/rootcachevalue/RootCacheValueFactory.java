@@ -32,9 +32,9 @@ import com.koch.ambeth.merge.bytecode.IBytecodePrinter;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.util.collections.HashMap;
 
-public class RootCacheValueFactory implements IRootCacheValueFactory
-{
-	protected static final RootCacheValueFactoryDelegate rcvFactory = new DefaultRootCacheValueFactoryDelegate();
+public class RootCacheValueFactory implements IRootCacheValueFactory {
+	protected static final RootCacheValueFactoryDelegate rcvFactory =
+			new DefaultRootCacheValueFactoryDelegate();
 
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -49,61 +49,52 @@ public class RootCacheValueFactory implements IRootCacheValueFactory
 	@Autowired(optional = true)
 	protected IBytecodePrinter bytecodePrinter;
 
-	protected final HashMap<IEntityMetaData, RootCacheValueFactoryDelegate> typeToConstructorMap = new HashMap<IEntityMetaData, RootCacheValueFactoryDelegate>();
+	protected final HashMap<IEntityMetaData, RootCacheValueFactoryDelegate> typeToConstructorMap =
+			new HashMap<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
 	@Override
-	public RootCacheValue createRootCacheValue(IEntityMetaData metaData)
-	{
+	public RootCacheValue createRootCacheValue(IEntityMetaData metaData) {
 		RootCacheValueFactoryDelegate rootCacheValueFactory = typeToConstructorMap.get(metaData);
-		if (rootCacheValueFactory != null)
-		{
+		if (rootCacheValueFactory != null) {
 			return rootCacheValueFactory.createRootCacheValue(metaData);
 		}
-		if (bytecodeEnhancer == null)
-		{
+		if (bytecodeEnhancer == null) {
 			return rcvFactory.createRootCacheValue(metaData);
 		}
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			// concurrent thread might have been faster
 			rootCacheValueFactory = typeToConstructorMap.get(metaData);
-			if (rootCacheValueFactory == null)
-			{
+			if (rootCacheValueFactory == null) {
 				rootCacheValueFactory = createDelegate(metaData);
 			}
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 		return rootCacheValueFactory.createRootCacheValue(metaData);
 	}
 
-	protected RootCacheValueFactoryDelegate createDelegate(IEntityMetaData metaData)
-	{
+	protected RootCacheValueFactoryDelegate createDelegate(IEntityMetaData metaData) {
 		RootCacheValueFactoryDelegate rootCacheValueFactory;
 		Class<?> enhancedType = null;
-		try
-		{
-			enhancedType = bytecodeEnhancer.getEnhancedType(RootCacheValue.class, new RootCacheValueEnhancementHint(metaData.getEntityType()));
-			if (enhancedType == RootCacheValue.class)
-			{
+		try {
+			enhancedType = bytecodeEnhancer.getEnhancedType(RootCacheValue.class,
+					new RootCacheValueEnhancementHint(metaData.getEntityType()));
+			if (enhancedType == RootCacheValue.class) {
 				// Nothing has been enhanced
 				rootCacheValueFactory = rcvFactory;
 			}
-			else
-			{
-				rootCacheValueFactory = accessorTypeProvider.getConstructorType(RootCacheValueFactoryDelegate.class, enhancedType);
+			else {
+				rootCacheValueFactory = accessorTypeProvider
+						.getConstructorType(RootCacheValueFactoryDelegate.class, enhancedType);
 			}
 		}
-		catch (Throwable e)
-		{
-			if (log.isWarnEnabled())
-			{
+		catch (Throwable e) {
+			if (log.isWarnEnabled()) {
 				log.warn(bytecodePrinter.toPrintableBytecode(enhancedType), e);
 			}
 			// something serious happened during enhancement: continue with a fallback

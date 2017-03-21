@@ -20,55 +20,45 @@ limitations under the License.
  * #L%
  */
 
-public class MaterialSmallVO
-{
+public class MaterialSmallVO {
 	protected int id;
 
 	protected short version;
 
 	protected String buid;
 
-	public int getId()
-	{
+	public int getId() {
 		return id;
 	}
 
-	public void setId(int id)
-	{
+	public void setId(int id) {
 		this.id = id;
 	}
 
-	public void setVersion(short version)
-	{
+	public void setVersion(short version) {
 		this.version = version;
 	}
 
-	public short getVersion()
-	{
+	public short getVersion() {
 		return version;
 	}
 
-	public void setBuid(String buid)
-	{
+	public void setBuid(String buid) {
 		this.buid = buid;
 	}
 
-	public String getBuid()
-	{
+	public String getBuid() {
 		return buid;
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return id ^ MaterialSmallVO.class.hashCode();
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (!(obj instanceof MaterialSmallVO))
-		{
+	public boolean equals(Object obj) {
+		if (!(obj instanceof MaterialSmallVO)) {
 			return false;
 		}
 		MaterialSmallVO other = (MaterialSmallVO) obj;

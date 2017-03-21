@@ -39,7 +39,7 @@ public class ServerWithPersistence implements IBundleModule {
 	static {
 		try {
 			ArrayList<Class<? extends IInitializingModule>> allModules =
-					new ArrayList<Class<? extends IInitializingModule>>();
+					new ArrayList<>();
 			allModules.addAll((Class<? extends IInitializingModule>[]) bundleModules);
 
 			for (Class<?> parentBundleClass : parentBundles) {

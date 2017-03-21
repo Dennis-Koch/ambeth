@@ -24,8 +24,7 @@ import java.util.List;
 
 import com.koch.ambeth.util.annotation.ParentChild;
 
-public class Material extends AbstractMaterial
-{
+public class Material extends AbstractMaterial {
 	// private List<PropertyChangedEventHandler> propertyChangedEventHandlers;
 	private long id;
 
@@ -46,24 +45,20 @@ public class Material extends AbstractMaterial
 	private EmbeddedMaterial embMat3;
 
 	@ParentChild
-	public MaterialType getChildMatType()
-	{
+	public MaterialType getChildMatType() {
 		return childMatType;
 	}
 
-	public void setChildMatType(MaterialType childMatType)
-	{
+	public void setChildMatType(MaterialType childMatType) {
 		this.childMatType = childMatType;
 	}
 
 	@ParentChild
-	public List<MaterialType> getChildMatTypes()
-	{
+	public List<MaterialType> getChildMatTypes() {
 		return childMatTypes;
 	}
 
-	public void setChildMatTypes(List<MaterialType> childMatTypes)
-	{
+	public void setChildMatTypes(List<MaterialType> childMatTypes) {
 		this.childMatTypes = childMatTypes;
 	}
 
@@ -195,73 +190,59 @@ public class Material extends AbstractMaterial
 	// }
 	// }
 
-	public long getId()
-	{
+	public long getId() {
 		return id;
 	}
 
-	public void setId(long id)
-	{
+	public void setId(long id) {
 		this.id = id;
 	}
 
-	public Object getId2()
-	{
+	public Object getId2() {
 		return id2;
 	}
 
-	public void setId2(Object id2)
-	{
+	public void setId2(Object id2) {
 		this.id2 = id2;
 	}
 
-	public int getVersion()
-	{
+	public int getVersion() {
 		return version;
 	}
 
-	public void setVersion(int version)
-	{
+	public void setVersion(int version) {
 		this.version = version;
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public List<String> getNames()
-	{
+	public List<String> getNames() {
 		return names;
 	}
 
-	public void setNames(List<String> names)
-	{
+	public void setNames(List<String> names) {
 		this.names = names;
 	}
 
-	public EmbeddedMaterial getEmbMat()
-	{
+	public EmbeddedMaterial getEmbMat() {
 		return embMat;
 	}
 
-	public void setEmbMat(EmbeddedMaterial embMat)
-	{
+	public void setEmbMat(EmbeddedMaterial embMat) {
 		this.embMat = embMat;
 	}
 
-	public EmbeddedMaterial getEmbMat3()
-	{
+	public EmbeddedMaterial getEmbMat3() {
 		return embMat3;
 	}
 
-	public void setEmbMat3(EmbeddedMaterial embMat3)
-	{
+	public void setEmbMat3(EmbeddedMaterial embMat3) {
 		this.embMat3 = embMat3;
 	}
 

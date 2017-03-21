@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IToken
-{
+public interface IToken {
 
 	String getValue();
 

@@ -22,13 +22,11 @@ limitations under the License.
 
 import java.util.ArrayList;
 
-public class DefaultList<T> extends ArrayList<T> implements IDefaultCollection
-{
+public class DefaultList<T> extends ArrayList<T> implements IDefaultCollection {
 	private static final long serialVersionUID = -2835256244356556171L;
 
 	@Override
-	public boolean hasDefaultState()
-	{
-		return this.modCount == 0 && size() == 0;
+	public boolean hasDefaultState() {
+		return modCount == 0 && size() == 0;
 	}
 }

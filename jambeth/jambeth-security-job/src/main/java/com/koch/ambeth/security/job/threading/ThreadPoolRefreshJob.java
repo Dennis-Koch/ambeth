@@ -27,8 +27,7 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.threading.FastThreadPool;
 
-public class ThreadPoolRefreshJob implements IJob
-{
+public class ThreadPoolRefreshJob implements IJob {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -37,32 +36,27 @@ public class ThreadPoolRefreshJob implements IJob
 	protected FastThreadPool threadPool;
 
 	@Override
-	public boolean canBePaused()
-	{
+	public boolean canBePaused() {
 		return false;
 	}
 
 	@Override
-	public boolean canBeStopped()
-	{
+	public boolean canBeStopped() {
 		return false;
 	}
 
 	@Override
-	public boolean supportsStatusTracking()
-	{
+	public boolean supportsStatusTracking() {
 		return false;
 	}
 
 	@Override
-	public boolean supportsCompletenessTracking()
-	{
+	public boolean supportsCompletenessTracking() {
 		return false;
 	}
 
 	@Override
-	public void execute(IJobContext context) throws Throwable
-	{
+	public void execute(IJobContext context) throws Throwable {
 		threadPool.refreshThreadCount();
 	}
 }

@@ -42,12 +42,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.koch.ambeth.ObjectMother;
-import com.koch.ambeth.cache.CacheKey;
-import com.koch.ambeth.cache.CacheRetrieverFake;
-import com.koch.ambeth.cache.ChildCache;
-import com.koch.ambeth.cache.ICacheIntern;
-import com.koch.ambeth.cache.IFirstLevelCacheManager;
-import com.koch.ambeth.cache.RootCache;
 import com.koch.ambeth.cache.AbstractCacheTest.AbstractCacheTestModule;
 import com.koch.ambeth.cache.config.CacheConfigurationConstants;
 import com.koch.ambeth.cache.ioc.CacheModule;
@@ -134,7 +128,7 @@ public class RootCacheTest extends AbstractInformationBusTest {
 		final AtomicBoolean locked = new AtomicBoolean(false);
 		final AtomicInteger size = new AtomicInteger(0);
 		final AtomicReference<List<Object>> content =
-				new AtomicReference<List<Object>>(new ArrayList<Object>());
+				new AtomicReference<List<Object>>(new ArrayList<>());
 
 		HandleContentDelegate delegate = new HandleContentDelegate() {
 			@Override
@@ -257,7 +251,7 @@ public class RootCacheTest extends AbstractInformationBusTest {
 		material1.setUnit(unit);
 
 		IObjRef material1ObjRef = oriHelper.entityToObjRef(material1);
-		List<IObjRef> orisToGet = new ArrayList<IObjRef>(new IObjRef[] {material1ObjRef,
+		List<IObjRef> orisToGet = new ArrayList<>(new IObjRef[] {material1ObjRef,
 				oriHelper.entityToObjRef(material2), new ObjRef(Material.class, 2, 1)});
 
 		CacheRetrieverFake cacheRetriever = new CacheRetrieverFake();
@@ -289,7 +283,7 @@ public class RootCacheTest extends AbstractInformationBusTest {
 		Material material1 = ObjectMother.getNewMaterial(entityFactory, 3, 2, "Material 3");
 		Material material2 = ObjectMother.getNewMaterial(entityFactory, 6, 1, "Material 6");
 		List<IObjRef> orisToGet =
-				new ArrayList<IObjRef>(new IObjRef[] {oriHelper.entityToObjRef(material1),
+				new ArrayList<>(new IObjRef[] {oriHelper.entityToObjRef(material1),
 						oriHelper.entityToObjRef(material2), new ObjRef(Material.class, 2, 1)});
 
 		assertEquals(0,
@@ -355,7 +349,7 @@ public class RootCacheTest extends AbstractInformationBusTest {
 		rcv.setPrimitives(primitives);
 		rcv.setRelations(relations);
 
-		ArrayList<IObjRef> tempObjRefList = new ArrayList<IObjRef>(1);
+		ArrayList<IObjRef> tempObjRefList = new ArrayList<>(1);
 		tempObjRefList.add(new ObjRef());
 
 		Object actual =
@@ -451,16 +445,16 @@ public class RootCacheTest extends AbstractInformationBusTest {
 
 		assertEquals(0, fixture.keyToCacheValueDict.size());
 
-		IdentityHashSet<Object> alreadyHandledSet = new IdentityHashSet<Object>();
-		fixture.putIntern(null, new ArrayList<Object>(), alreadyHandledSet, null);
+		IdentityHashSet<Object> alreadyHandledSet = new IdentityHashSet<>();
+		fixture.putIntern(null, new ArrayList<>(), alreadyHandledSet, null);
 		assertEquals(0, fixture.keyToCacheValueDict.size());
 
 		alreadyHandledSet.add(material);
-		fixture.putIntern(material, new ArrayList<Object>(), alreadyHandledSet, null);
+		fixture.putIntern(material, new ArrayList<>(), alreadyHandledSet, null);
 		assertEquals(0, fixture.keyToCacheValueDict.size());
 
 		alreadyHandledSet.clear();
-		fixture.putIntern(material, new ArrayList<Object>(), alreadyHandledSet, null);
+		fixture.putIntern(material, new ArrayList<>(), alreadyHandledSet, null);
 		assertEquals(1, fixture.keyToCacheValueDict.size());
 	}
 
@@ -515,7 +509,7 @@ public class RootCacheTest extends AbstractInformationBusTest {
 		IObjRef unitRef = new ObjRef(Unit.class, 9, 2);
 		IObjRef[][] relations = ObjRef.EMPTY_ARRAY_ARRAY;
 		LinkedHashSet<IObjRef> cascadeNeededORIs = null;
-		ArrayList<DirectValueHolderRef> pendingValueHolders = new ArrayList<DirectValueHolderRef>();
+		ArrayList<DirectValueHolderRef> pendingValueHolders = new ArrayList<>();
 
 		RootCacheValue cacheValue = new DefaultRootCacheValue(metaData);
 		cacheValue.setId(1);
@@ -530,7 +524,7 @@ public class RootCacheTest extends AbstractInformationBusTest {
 		fixture.ensureRelationsExist(cacheValue, metaData, cascadeNeededORIs, pendingValueHolders);
 
 		cacheValue.setRelations(new IObjRef[][] {new IObjRef[] {unitRef}});
-		cascadeNeededORIs = new LinkedHashSet<IObjRef>();
+		cascadeNeededORIs = new LinkedHashSet<>();
 		fixture.ensureRelationsExist(cacheValue, metaData, cascadeNeededORIs, pendingValueHolders);
 		assertEquals(3, pendingValueHolders.size());
 		DirectValueHolderRef vhr = pendingValueHolders.get(2);
@@ -592,7 +586,7 @@ public class RootCacheTest extends AbstractInformationBusTest {
 		IObjRef ori1 = oriHelper.entityToObjRef(material1);
 		IObjRef ori2 = oriHelper.entityToObjRef(material2);
 		IObjRef ori4 = new ObjRef(Unit.class, 57, 3);
-		oris = new ArrayList<IObjRef>(Arrays.asList(ori1, ori2, ori4));
+		oris = new ArrayList<>(Arrays.asList(ori1, ori2, ori4));
 
 		fixture.put(material1);
 		fixture.put(material2);

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IRelationsService
-{
+public interface IRelationsService {
 	void save(Object obj);
 
 	void delete(Object obj);

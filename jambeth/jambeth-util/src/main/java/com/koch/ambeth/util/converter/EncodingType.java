@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public enum EncodingType
-{
+public enum EncodingType {
 	PLAIN, HEX, BASE64
 }

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IMemberConfig extends IOrmConfig
-{
+public interface IMemberConfig extends IOrmConfig {
 	boolean isAlternateId();
 
 	boolean isIgnore();

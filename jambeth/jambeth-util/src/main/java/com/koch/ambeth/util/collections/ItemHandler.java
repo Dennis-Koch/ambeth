@@ -20,10 +20,8 @@ limitations under the License.
  * #L%
  */
 
-public abstract class ItemHandler<V>
-{
-	public ItemHandler()
-	{
+public abstract class ItemHandler<V> {
+	public ItemHandler() {
 
 	}
 

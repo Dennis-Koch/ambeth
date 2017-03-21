@@ -24,201 +24,168 @@ import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 
-public class CyclicXmlDictionary implements ICyclicXmlDictionary, IInitializingBean
-{
+public class CyclicXmlDictionary implements ICyclicXmlDictionary, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		// Intended blank
 	}
 
 	@Override
-	public String getArrayElement()
-	{
+	public String getArrayElement() {
 		return "a";
 	}
 
 	@Override
-	public String getBlobElement()
-	{
+	public String getBlobElement() {
 		return "b";
 	}
 
 	@Override
-	public String getClassElement()
-	{
+	public String getClassElement() {
 		return "c";
 	}
 
 	@Override
-	public String getEnumElement()
-	{
+	public String getEnumElement() {
 		return "e";
 	}
 
 	@Override
-	public String getEntityRefElement()
-	{
+	public String getEntityRefElement() {
 		return "or";
 	}
 
 	@Override
-	public String getExceptionElement()
-	{
+	public String getExceptionElement() {
 		return "ex";
 	}
 
 	@Override
-	public String getListElement()
-	{
+	public String getListElement() {
 		return "l";
 	}
 
 	@Override
-	public String getNullElement()
-	{
+	public String getNullElement() {
 		return "n";
 	}
 
 	@Override
-	public String getUnspecifiedElement()
-	{
+	public String getUnspecifiedElement() {
 		return "u";
 	}
 
 	@Override
-	public String getNumberElement()
-	{
+	public String getNumberElement() {
 		return "nu";
 	}
 
 	@Override
-	public String getObjectElement()
-	{
+	public String getObjectElement() {
 		return "o";
 	}
 
 	@Override
-	public String getOriWrapperElement()
-	{
+	public String getOriWrapperElement() {
 		return "ow";
 	}
 
 	@Override
-	public String getPostProcessElement()
-	{
+	public String getPostProcessElement() {
 		return "pp";
 	}
 
 	@Override
-	public String getPrimitiveElement()
-	{
+	public String getPrimitiveElement() {
 		return "p";
 	}
 
 	@Override
-	public String getRefElement()
-	{
+	public String getRefElement() {
 		return "r";
 	}
 
 	@Override
-	public String getRootElement()
-	{
+	public String getRootElement() {
 		return "root";
 	}
 
 	@Override
-	public String getSetElement()
-	{
+	public String getSetElement() {
 		return "set";
 	}
 
 	@Override
-	public String getSimpleObjectElement()
-	{
+	public String getSimpleObjectElement() {
 		return "v";
 	}
 
 	@Override
-	public String getStringElement()
-	{
+	public String getStringElement() {
 		return "s";
 	}
 
 	@Override
-	public String getTypeElement()
-	{
+	public String getTypeElement() {
 		return "type";
 	}
 
 	@Override
-	public String getArrayDimensionAttribute()
-	{
+	public String getArrayDimensionAttribute() {
 		return "dim";
 	}
 
 	@Override
-	public String getClassNameAttribute()
-	{
+	public String getClassNameAttribute() {
 		return "n";
 	}
 
 	@Override
-	public String getClassNamespaceAttribute()
-	{
+	public String getClassNamespaceAttribute() {
 		return "ns";
 	}
 
 	@Override
-	public String getClassMemberAttribute()
-	{
+	public String getClassMemberAttribute() {
 		return "m";
 	}
 
 	@Override
-	public String getEntityRefKeyAttribute()
-	{
+	public String getEntityRefKeyAttribute() {
 		return "key";
 	}
 
 	@Override
-	public String getEntityRefKeyIndexAttribute()
-	{
+	public String getEntityRefKeyIndexAttribute() {
 		return "index";
 	}
 
 	@Override
-	public String getEntityRefVersionAttribute()
-	{
+	public String getEntityRefVersionAttribute() {
 		return "version";
 	}
 
 	@Override
-	public String getClassIdAttribute()
-	{
+	public String getClassIdAttribute() {
 		return "ti";
 	}
 
 	@Override
-	public String getIdAttribute()
-	{
+	public String getIdAttribute() {
 		return "i";
 	}
 
 	@Override
-	public String getSizeAttribute()
-	{
+	public String getSizeAttribute() {
 		return "s";
 	}
 
 	@Override
-	public String getValueAttribute()
-	{
+	public String getValueAttribute() {
 		return "v";
 	}
 }

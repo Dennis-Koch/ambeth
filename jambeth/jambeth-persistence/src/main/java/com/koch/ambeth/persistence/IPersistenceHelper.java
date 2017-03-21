@@ -26,8 +26,7 @@ import java.util.List;
 import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.IList;
 
-public interface IPersistenceHelper
-{
+public interface IPersistenceHelper {
 	IList<String> buildStringListOfValues(List<?> ids);
 
 	String buildStringOfValues(List<?> ids);
@@ -40,5 +39,6 @@ public interface IPersistenceHelper
 
 	IList<IList<Object>> splitValues(Collection<?> ids);
 
-	IAppendable appendSplittedValues(String idColumnName, Class<?> fieldType, List<?> ids, List<Object> parameters, IAppendable sb);
+	IAppendable appendSplittedValues(String idColumnName, Class<?> fieldType, List<?> ids,
+			List<Object> parameters, IAppendable sb);
 }

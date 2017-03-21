@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IQueuedEvent
-{
+public interface IQueuedEvent {
 	Object getEventObject();
 
 	long getDispatchTime();

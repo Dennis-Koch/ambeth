@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public interface IInvalidKeyChecker<K>
-{
+public interface IInvalidKeyChecker<K> {
 	boolean isKeyValid(K key);
 }

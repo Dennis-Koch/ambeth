@@ -36,70 +36,58 @@ import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Cloneable
-{
-	public static class FastIterator<V> implements ListIterator<V>
-	{
+public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Cloneable {
+	public static class FastIterator<V> implements ListIterator<V> {
 		protected int index = -1;
 
 		protected final ArrayList<V> list;
 
-		public FastIterator(ArrayList<V> list)
-		{
+		public FastIterator(ArrayList<V> list) {
 			this.list = list;
 		}
 
 		@Override
-		public boolean hasNext()
-		{
+		public boolean hasNext() {
 			return list.size() > index + 1;
 		}
 
 		@Override
-		public V next()
-		{
+		public V next() {
 			return list.get(++index);
 		}
 
 		@Override
-		public void remove()
-		{
+		public void remove() {
 			list.remove(index--);
 		}
 
 		@Override
-		public void add(final V o)
-		{
+		public void add(final V o) {
 			list.add(index++, o);
 		}
 
 		@Override
-		public boolean hasPrevious()
-		{
+		public boolean hasPrevious() {
 			return index > 0;
 		}
 
 		@Override
-		public int nextIndex()
-		{
+		public int nextIndex() {
 			return index + 1;
 		}
 
 		@Override
-		public V previous()
-		{
+		public V previous() {
 			return list.get(--index);
 		}
 
 		@Override
-		public int previousIndex()
-		{
+		public int previousIndex() {
 			return index - 1;
 		}
 
 		@Override
-		public void set(final V o)
-		{
+		public void set(final V o) {
 			list.set(index, o);
 		}
 	}
@@ -110,48 +98,39 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 
 	protected int size;
 
-	public ArrayList()
-	{
+	public ArrayList() {
 		this(10);
 	}
 
-	public ArrayList(final Collection<? extends V> coll)
-	{
+	public ArrayList(final Collection<? extends V> coll) {
 		init(coll.toArray(), coll.size());
 	}
 
-	public ArrayList(final Iterable<? extends V> coll)
-	{
+	public ArrayList(final Iterable<? extends V> coll) {
 		this(10);
-		for (V item : coll)
-		{
+		for (V item : coll) {
 			add(item);
 		}
 	}
 
-	public ArrayList(final Object[] array)
-	{
+	public ArrayList(final Object[] array) {
 		init(array, array.length);
 	}
 
-	public ArrayList(final int iincStep)
-	{
+	public ArrayList(final int iincStep) {
 		init(new Object[iincStep], 0);
 	}
 
-	protected void init(final Object[] array, final int size)
-	{
+	protected void init(final Object[] array, final int size) {
 		this.array = array;
 		this.size = size;
 	}
 
 	@Override
-	public final boolean add(final V value)
-	{
+	public final boolean add(final V value) {
 		int size = this.size;
 		Object[] array = this.array;
-		if (size == array.length)
-		{
+		if (size == array.length) {
 			final Object[] buff = new Object[(array.length << 1) + 7];
 			System.arraycopy(array, 0, buff, 0, size);
 			array = buff;
@@ -163,28 +142,21 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 	}
 
 	@Override
-	public final boolean remove(final Object value)
-	{
+	public final boolean remove(final Object value) {
 		int size = this.size;
 		Object[] array = this.array;
-		if (value == null)
-		{
-			for (int a = 0; a < size; a++)
-			{
-				if (array[a] == null)
-				{
+		if (value == null) {
+			for (int a = 0; a < size; a++) {
+				if (array[a] == null) {
 					removeAtIndex(a);
 					return true;
 				}
 			}
 		}
-		else
-		{
-			for (int a = 0; a < size; a++)
-			{
+		else {
+			for (int a = 0; a < size; a++) {
 				final Object item = array[a];
-				if (value.equals(item))
-				{
+				if (value.equals(item)) {
 					removeAtIndex(a);
 					return true;
 				}
@@ -193,27 +165,20 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 		return false;
 	}
 
-	public final boolean hasValue(final V value)
-	{
+	public final boolean hasValue(final V value) {
 		int size = this.size;
 		Object[] array = this.array;
-		if (value == null)
-		{
-			for (int a = 0; a < size; a++)
-			{
-				if (array[a] == null)
-				{
+		if (value == null) {
+			for (int a = 0; a < size; a++) {
+				if (array[a] == null) {
 					return true;
 				}
 			}
 		}
-		else
-		{
-			for (int a = 0; a < size; a++)
-			{
+		else {
+			for (int a = 0; a < size; a++) {
 				final Object item = array[a];
-				if (value.equals(item))
-				{
+				if (value.equals(item)) {
 					return true;
 				}
 			}
@@ -223,117 +188,99 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public V get(final int index)
-	{
+	public V get(final int index) {
 		return (V) array[index];
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public final V peek()
-	{
+	public final V peek() {
 		int size = this.size;
-		if (size > 0)
-		{
+		if (size > 0) {
 			return (V) array[size - 1];
 		}
-		else
-		{
+		else {
 			return null;
 		}
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public final V popLastElement()
-	{
+	public final V popLastElement() {
 		int size = this.size;
-		if (size > 0)
-		{
+		if (size > 0) {
 			Object[] array = this.array;
 			final V elem = (V) array[--size];
 			array[size] = null;
 			this.size = size;
 			return elem;
 		}
-		else
-		{
+		else {
 			return null;
 		}
 	}
 
-	public final void clearFrom(final int index)
-	{
+	public final void clearFrom(final int index) {
 		int size = this.size;
 		Object[] array = this.array;
-		for (int a = index; a < size; a++)
-		{
+		for (int a = index; a < size; a++) {
 			array[a] = null;
 		}
 		this.size = index;
 	}
 
 	/**
-	 * Returns a shallow copy of this <tt>ArrayList</tt> instance. (The elements themselves are not copied.)
-	 * 
+	 * Returns a shallow copy of this <tt>ArrayList</tt> instance. (The elements themselves are not
+	 * copied.)
+	 *
 	 * @return a clone of this <tt>ArrayList</tt> instance
 	 */
 	@Override
-	public Object clone()
-	{
-		try
-		{
+	public Object clone() {
+		try {
 			@SuppressWarnings("unchecked")
 			ArrayList<V> v = (ArrayList<V>) super.clone();
 			v.array = Arrays.copyOf(array, size);
 			v.size = size;
 			return v;
 		}
-		catch (CloneNotSupportedException e)
-		{
+		catch (CloneNotSupportedException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	public final int size()
-	{
+	public final int size() {
 		return size;
 	}
 
 	@Override
-	public final void clear()
-	{
+	public final void clear() {
 		clearFrom(0);
 	}
 
 	@SuppressWarnings("unchecked")
-	public final void copyInto(final ArrayList<V> otherList)
-	{
+	public final void copyInto(final ArrayList<V> otherList) {
 		otherList.size = 0;
 		int size = this.size;
 		Object[] array = this.array;
-		for (int a = 0; a < size; a++)
-		{
+		for (int a = 0; a < size; a++) {
 			otherList.add((V) array[a]);
 		}
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public V remove(final int index)
-	{
+	public V remove(final int index) {
 		final V object = (V) array[index];
 		removeAtIndex(index);
 		return object;
 	}
 
-	public void removeAtIndex(final int index)
-	{
+	public void removeAtIndex(final int index) {
 		int size = this.size;
 		Object[] array = this.array;
-		for (int a = index, sizeA = size - 1; a < sizeA; a++)
-		{
+		for (int a = index, sizeA = size - 1; a < sizeA; a++) {
 			array[a] = array[a + 1];
 		}
 		size--;
@@ -342,19 +289,16 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 	}
 
 	@Override
-	public void add(final int index, final V element)
-	{
+	public void add(final int index, final V element) {
 		int size = this.size;
 		Object[] array = this.array;
-		if (size == array.length)
-		{
+		if (size == array.length) {
 			final Object[] buff = new Object[(array.length << 1) + 7];
 			System.arraycopy(array, 0, buff, 0, size);
 			array = buff;
 			this.array = array;
 		}
-		for (int a = size + 1, i = index + 1; a-- > i;)
-		{
+		for (int a = size + 1, i = index + 1; a-- > i;) {
 			array[a] = array[a - 1];
 		}
 		array[index] = element;
@@ -363,25 +307,20 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 	}
 
 	@Override
-	public boolean addAll(final Collection<? extends V> c)
-	{
-		if (c instanceof List)
-		{
+	public boolean addAll(final Collection<? extends V> c) {
+		if (c instanceof List) {
 			final List<? extends V> list = (List<? extends V>) c;
 
 			final int listSize = list.size();
 			int size = this.size;
 			Object[] array = this.array;
-			if (size + listSize > array.length)
-			{
+			if (size + listSize > array.length) {
 				final int sizeNeeded = size + listSize;
 				int newSize = array.length << 1;
-				if (newSize == 0)
-				{
+				if (newSize == 0) {
 					newSize = 1;
 				}
-				while (newSize < sizeNeeded)
-				{
+				while (newSize < sizeNeeded) {
 					newSize = newSize << 1;
 				}
 				final Object[] buff = new Object[newSize + 7];
@@ -390,17 +329,14 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 				this.array = array;
 			}
 
-			for (int a = 0, sizeA = list.size(); a < sizeA; a++)
-			{
+			for (int a = 0, sizeA = list.size(); a < sizeA; a++) {
 				array[size++] = list.get(a);
 			}
 			this.size = size;
 		}
-		else
-		{
+		else {
 			final Iterator<? extends V> iter = c.iterator();
-			while (iter.hasNext())
-			{
+			while (iter.hasNext()) {
 				add(iter.next());
 			}
 		}
@@ -408,22 +344,18 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 	}
 
 	@Override
-	public <T extends V> boolean addAll(final T[] externArray)
-	{
-		if (externArray == null)
-		{
+	public <T extends V> boolean addAll(final T[] externArray) {
+		if (externArray == null) {
 			return false;
 		}
 		int size = this.size;
 		Object[] array = this.array;
 
 		final int listSize = externArray.length;
-		if (size + listSize > array.length)
-		{
+		if (size + listSize > array.length) {
 			final int sizeNeeded = size + listSize;
 			int newSize = array.length << 1;
-			while (newSize < sizeNeeded)
-			{
+			while (newSize < sizeNeeded) {
 				newSize = newSize << 1;
 			}
 			final Object[] buff = new Object[newSize + 7];
@@ -432,8 +364,7 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 			this.array = array;
 		}
 
-		for (T item : externArray)
-		{
+		for (T item : externArray) {
 			array[size++] = item;
 		}
 		this.size = size;
@@ -441,11 +372,9 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 	}
 
 	@Override
-	public boolean addAll(final int index, final Collection<? extends V> c)
-	{
+	public boolean addAll(final int index, final Collection<? extends V> c) {
 		int currIndex = index;
-		for (V item : c)
-		{
+		for (V item : c) {
 			add(currIndex, item);
 			currIndex++;
 		}
@@ -453,20 +382,16 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 	}
 
 	@Override
-	public boolean contains(final Object o)
-	{
+	public boolean contains(final Object o) {
 		return indexOf(o) >= 0;
 	}
 
 	@Override
-	public boolean containsAll(final Collection<?> c)
-	{
+	public boolean containsAll(final Collection<?> c) {
 		Iterator<?> iter = c.iterator();
-		while (iter.hasNext())
-		{
+		while (iter.hasNext()) {
 			Object item = iter.next();
-			if (!contains(item))
-			{
+			if (!contains(item)) {
 				return false;
 			}
 		}
@@ -474,22 +399,17 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 	}
 
 	@Override
-	public int indexOf(final Object o)
-	{
+	public int indexOf(final Object o) {
 		int size = this.size;
 		Object[] array = this.array;
-		for (int a = 0; a < size; a++)
-		{
+		for (int a = 0; a < size; a++) {
 			final Object item = array[a];
-			if (o == null)
-			{
-				if (item == null)
-				{
+			if (o == null) {
+				if (item == null) {
 					return a;
 				}
 			}
-			else if (o.equals(item))
-			{
+			else if (o.equals(item)) {
 				return a;
 			}
 		}
@@ -497,24 +417,19 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 	}
 
 	@Override
-	public boolean isEmpty()
-	{
+	public boolean isEmpty() {
 		return size == 0;
 	}
 
 	@Override
-	public Iterator<V> iterator()
-	{
-		return new FastIterator<V>(this);
+	public Iterator<V> iterator() {
+		return new FastIterator<>(this);
 	}
 
 	@Override
-	public int lastIndexOf(final Object o)
-	{
-		for (int a = size(); a-- > 0;)
-		{
-			if (EqualsUtil.equals(get(a), o))
-			{
+	public int lastIndexOf(final Object o) {
+		for (int a = size(); a-- > 0;) {
+			if (EqualsUtil.equals(get(a), o)) {
 				return a;
 			}
 		}
@@ -522,39 +437,31 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 	}
 
 	@Override
-	public ListIterator<V> listIterator()
-	{
-		return new FastIterator<V>(this);
+	public ListIterator<V> listIterator() {
+		return new FastIterator<>(this);
 	}
 
 	@Override
-	public ListIterator<V> listIterator(final int index)
-	{
+	public ListIterator<V> listIterator(final int index) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	@SuppressWarnings("rawtypes")
-	public boolean removeAll(final Collection<?> c)
-	{
+	public boolean removeAll(final Collection<?> c) {
 		boolean oneRemoved = false;
-		if (c instanceof List)
-		{
+		if (c instanceof List) {
 			final List list = (List) c;
-			for (int a = list.size(); a-- > 0;)
-			{
-				if (remove(list.get(a)))
-				{
+			for (int a = list.size(); a-- > 0;) {
+				if (remove(list.get(a))) {
 					oneRemoved = true;
 				}
 			}
 			return oneRemoved;
 		}
 		final Iterator<?> iter = c.iterator();
-		while (iter.hasNext())
-		{
-			if (remove(iter.next()))
-			{
+		while (iter.hasNext()) {
+			if (remove(iter.next())) {
 				oneRemoved = true;
 			}
 		}
@@ -562,30 +469,25 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 	}
 
 	@Override
-	public <T extends V> boolean removeAll(final T[] externArray)
-	{
-		if (externArray == null)
-		{
+	public <T extends V> boolean removeAll(final T[] externArray) {
+		if (externArray == null) {
 			return false;
 		}
 		boolean oneRemoved = false;
-		for (T item : externArray)
-		{
+		for (T item : externArray) {
 			oneRemoved |= remove(item);
 		}
 		return oneRemoved;
 	}
 
 	@Override
-	public boolean retainAll(final Collection<?> c)
-	{
+	public boolean retainAll(final Collection<?> c) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public V set(final int index, final V element)
-	{
+	public V set(final int index, final V element) {
 		Object[] array = this.array;
 		final V oldElement = (V) array[index];
 		array[index] = element;
@@ -594,31 +496,26 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public IList<V> subList(final int fromIndex, final int toIndex)
-	{
+	public IList<V> subList(final int fromIndex, final int toIndex) {
 		Object[] array = this.array;
-		final ArrayList<V> sublist = new ArrayList<V>(toIndex - fromIndex);
-		for (int a = fromIndex; a < toIndex; a++)
-		{
+		final ArrayList<V> sublist = new ArrayList<>(toIndex - fromIndex);
+		for (int a = fromIndex; a < toIndex; a++) {
 			sublist.add((V) array[a]);
 		}
 		return sublist;
 	}
 
 	@Override
-	public Object[] toArray()
-	{
+	public Object[] toArray() {
 		return toArray(new Object[size]);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T[] toArray(final T[] targetArray)
-	{
+	public <T> T[] toArray(final T[] targetArray) {
 		int size = this.size;
 		Object[] array = this.array;
-		for (int a = size; a-- > 0;)
-		{
+		for (int a = size; a-- > 0;) {
 			targetArray[a] = (T) array[a];
 		}
 		return targetArray;
@@ -626,27 +523,22 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T[] toArray(final Class<T> componentType)
-	{
+	public <T> T[] toArray(final Class<T> componentType) {
 		T[] array = (T[]) Array.newInstance(componentType, size());
 		return toArray(array);
 	}
 
 	@Override
-	public void readExternal(final ObjectInput arg0) throws IOException, ClassNotFoundException
-	{
+	public void readExternal(final ObjectInput arg0) throws IOException, ClassNotFoundException {
 		int size = arg0.readInt();
 		Object[] array = null;
-		if (size > 0)
-		{
+		if (size > 0) {
 			array = new Object[size];
-			for (int a = 0; a < size; a++)
-			{
+			for (int a = 0; a < size; a++) {
 				array[a] = arg0.readObject();
 			}
 		}
-		else
-		{
+		else {
 			array = new Object[0];
 		}
 		this.array = array;
@@ -654,34 +546,28 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 	}
 
 	@Override
-	public void writeExternal(final ObjectOutput arg0) throws IOException
-	{
+	public void writeExternal(final ObjectOutput arg0) throws IOException {
 		int size = this.size;
 		Object[] array = this.array;
 		arg0.writeInt(size);
-		for (int a = 0; a < size; a++)
-		{
+		for (int a = 0; a < size; a++) {
 			arg0.writeObject(array[a]);
 		}
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		toString(sb);
 		return sb.toString();
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
+	public void toString(StringBuilder sb) {
 		int size = size();
 		sb.append(size).append(" items: [");
-		for (int a = 0; a < size; a++)
-		{
-			if (a > 0)
-			{
+		for (int a = 0; a < size; a++) {
+			if (a > 0) {
 				sb.append(',');
 			}
 			StringBuilderUtil.appendPrintable(sb, get(a));
@@ -690,8 +576,7 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> T[] getBackingArray()
-	{
+	public <T> T[] getBackingArray() {
 		return (T[]) array;
 	}
 }

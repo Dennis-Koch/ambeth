@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IGuiThreadHelper
-{
+public interface IGuiThreadHelper {
 	boolean isInGuiThread();
 
 	void invokeInGuiAndWait(IBackgroundWorkerDelegate runnable);

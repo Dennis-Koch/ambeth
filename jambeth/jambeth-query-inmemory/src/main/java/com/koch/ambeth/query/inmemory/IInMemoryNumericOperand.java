@@ -24,7 +24,6 @@ import java.util.Map;
 
 import com.koch.ambeth.query.IOperand;
 
-public interface IInMemoryNumericOperand extends IOperand
-{
+public interface IInMemoryNumericOperand extends IOperand {
 	Double evaluateNumber(Map<Object, Object> nameToValueMap);
 }

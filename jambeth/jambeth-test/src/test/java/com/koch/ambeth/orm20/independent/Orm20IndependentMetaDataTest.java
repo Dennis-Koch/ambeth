@@ -36,51 +36,44 @@ import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.testutil.TestProperties;
 
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/orm20/independent/orm20.xml")
-public class Orm20IndependentMetaDataTest extends AbstractIndependentOrm20Test
-{
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/orm20/independent/orm20.xml")
+public class Orm20IndependentMetaDataTest extends AbstractIndependentOrm20Test {
 	@Test
-	public void testExistsAndPlainValuesA()
-	{
+	public void testExistsAndPlainValuesA() {
 		// Local entity, one alternateId configured, one primitive List member, no relation members
 		testExistsAndPlainValues(EntityA.class, true);
 	}
 
 	@Test
-	public void testExistsAndPlainValuesB()
-	{
+	public void testExistsAndPlainValuesB() {
 		// Local entity, all technical members with non-default names, no non-technical members
 		testExistsAndPlainValues(EntityB.class, true);
 	}
 
 	@Test
-	public void testExistsAndPlainValuesC()
-	{
+	public void testExistsAndPlainValuesC() {
 		// External entity, fully auto-configured, no non-technical members
 		testExistsAndPlainValues(EntityC.class, false);
 	}
 
 	@Test
-	public void testTechnicalMembersA()
-	{
+	public void testTechnicalMembersA() {
 		testTechnicalMembers(EntityA.class, "");
 	}
 
 	@Test
-	public void testTechnicalMembersB()
-	{
+	public void testTechnicalMembersB() {
 		testTechnicalMembers(EntityB.class, "B");
 	}
 
 	@Test
-	public void testTechnicalMembersC()
-	{
+	public void testTechnicalMembersC() {
 		testTechnicalMembers(EntityC.class, "");
 	}
 
 	@Test
-	public void testAlteranteIdsA()
-	{
+	public void testAlteranteIdsA() {
 		int alternateIdCount = 1;
 
 		// AlternateIdCount
@@ -100,7 +93,8 @@ public class Orm20IndependentMetaDataTest extends AbstractIndependentOrm20Test
 		assertEquals(alternateIdMember, metaDataA.getIdMemberByIdIndex((byte) 0));
 
 		// Indices in Primitives
-		int[][] alternateIdMemberIndicesInPrimitives = metaDataA.getAlternateIdMemberIndicesInPrimitives();
+		int[][] alternateIdMemberIndicesInPrimitives =
+				metaDataA.getAlternateIdMemberIndicesInPrimitives();
 		assertEquals(alternateIdCount, alternateIdMemberIndicesInPrimitives.length);
 		int indexInPrimitives = alternateIdMemberIndicesInPrimitives[0][0];
 		PrimitiveMember[] primitiveMembers = metaDataA.getPrimitiveMembers();
@@ -110,8 +104,7 @@ public class Orm20IndependentMetaDataTest extends AbstractIndependentOrm20Test
 	}
 
 	@Test
-	public void testAlteranteIdsB()
-	{
+	public void testAlteranteIdsB() {
 		// AlternateIdCount
 		IEntityMetaData metaDataB = retrieveMetaData(EntityB.class);
 		assertEquals(0, metaDataB.getAlternateIdCount());
@@ -121,13 +114,13 @@ public class Orm20IndependentMetaDataTest extends AbstractIndependentOrm20Test
 		assertEquals(0, alternateIdMembers.length);
 
 		// Indices in Primitives
-		int[][] alternateIdMemberIndicesInPrimitives = metaDataB.getAlternateIdMemberIndicesInPrimitives();
+		int[][] alternateIdMemberIndicesInPrimitives =
+				metaDataB.getAlternateIdMemberIndicesInPrimitives();
 		assertEquals(0, alternateIdMemberIndicesInPrimitives.length);
 	}
 
 	@Test
-	public void testAlteranteIdsC()
-	{
+	public void testAlteranteIdsC() {
 		// AlternateIdCount
 		IEntityMetaData metaDataC = retrieveMetaData(EntityC.class);
 		assertEquals(0, metaDataC.getAlternateIdCount());
@@ -137,13 +130,13 @@ public class Orm20IndependentMetaDataTest extends AbstractIndependentOrm20Test
 		assertEquals(0, alternateIdMembers.length);
 
 		// Indices in Primitives
-		int[][] alternateIdMemberIndicesInPrimitives = metaDataC.getAlternateIdMemberIndicesInPrimitives();
+		int[][] alternateIdMemberIndicesInPrimitives =
+				metaDataC.getAlternateIdMemberIndicesInPrimitives();
 		assertEquals(0, alternateIdMemberIndicesInPrimitives.length);
 	}
 
 	@Test
-	public void testPrimitiveMembersA()
-	{
+	public void testPrimitiveMembersA() {
 		IEntityMetaData metaDataA = retrieveMetaData(EntityA.class);
 
 		PrimitiveMember[] primitiveMembers = metaDataA.getPrimitiveMembers();
@@ -171,77 +164,76 @@ public class Orm20IndependentMetaDataTest extends AbstractIndependentOrm20Test
 	}
 
 	@Test
-	public void testPrimitiveMembersB()
-	{
+	public void testPrimitiveMembersB() {
 		testZeroPrimitiveMembers(EntityB.class);
 	}
 
 	@Test
-	public void testPrimitiveMembersC()
-	{
+	public void testPrimitiveMembersC() {
 		testZeroPrimitiveMembers(EntityC.class);
 	}
 
 	@Test
-	public void testRelationMembersA()
-	{
+	public void testRelationMembersA() {
 		testZeroRelationMembers(EntityA.class);
 	}
 
 	@Test
-	public void testRelationMembersB()
-	{
+	public void testRelationMembersB() {
 		testZeroRelationMembers(EntityB.class);
 	}
 
 	@Test
-	public void testRelationMembersC()
-	{
+	public void testRelationMembersC() {
 		testZeroRelationMembers(EntityC.class);
 	}
 
-	protected void testExistsAndPlainValues(Class<?> entityType, boolean local)
-	{
+	protected void testExistsAndPlainValues(Class<?> entityType, boolean local) {
 		IEntityMetaData metaData = retrieveMetaData(entityType);
 		assertNotNull(metaData);
 		assertEquals(entityType, metaData.getEntityType());
 		assertEquals(local, metaData.isLocalEntity());
 	}
 
-	protected void testTechnicalMembers(Class<?> entityType, String memberNamePostfix)
-	{
+	protected void testTechnicalMembers(Class<?> entityType, String memberNamePostfix) {
 		IEntityMetaData metaData = retrieveMetaData(entityType);
 
 		PrimitiveMember idMember = metaData.getIdMember();
 		testTechnicalMember(idMember, EntityMetaData.DEFAULT_NAME_ID + memberNamePostfix, metaData);
 
 		PrimitiveMember versionMember = metaData.getVersionMember();
-		testTechnicalMember(versionMember, EntityMetaData.DEFAULT_NAME_VERSION + memberNamePostfix, metaData);
+		testTechnicalMember(versionMember, EntityMetaData.DEFAULT_NAME_VERSION + memberNamePostfix,
+				metaData);
 
 		PrimitiveMember createdByMember = metaData.getCreatedByMember();
-		testTechnicalMember(createdByMember, EntityMetaData.DEFAULT_NAME_CREATED_BY + memberNamePostfix, metaData);
+		testTechnicalMember(createdByMember, EntityMetaData.DEFAULT_NAME_CREATED_BY + memberNamePostfix,
+				metaData);
 
 		PrimitiveMember createdOnMember = metaData.getCreatedOnMember();
-		testTechnicalMember(createdOnMember, EntityMetaData.DEFAULT_NAME_CREATED_ON + memberNamePostfix, metaData);
+		testTechnicalMember(createdOnMember, EntityMetaData.DEFAULT_NAME_CREATED_ON + memberNamePostfix,
+				metaData);
 
 		PrimitiveMember updatedByMember = metaData.getUpdatedByMember();
-		testTechnicalMember(updatedByMember, EntityMetaData.DEFAULT_NAME_UPDATED_BY + memberNamePostfix, metaData);
+		testTechnicalMember(updatedByMember, EntityMetaData.DEFAULT_NAME_UPDATED_BY + memberNamePostfix,
+				metaData);
 
 		PrimitiveMember updatedOnMember = metaData.getUpdatedOnMember();
-		testTechnicalMember(updatedOnMember, EntityMetaData.DEFAULT_NAME_UPDATED_ON + memberNamePostfix, metaData);
+		testTechnicalMember(updatedOnMember, EntityMetaData.DEFAULT_NAME_UPDATED_ON + memberNamePostfix,
+				metaData);
 	}
 
-	protected void testTechnicalMember(PrimitiveMember member, String memberName, IEntityMetaData metaData)
-	{
-		assertNotNull("Property '" + metaData.getEntityType().getSimpleName() + "." + memberName + "' not found", member);
+	protected void testTechnicalMember(PrimitiveMember member, String memberName,
+			IEntityMetaData metaData) {
+		assertNotNull(
+				"Property '" + metaData.getEntityType().getSimpleName() + "." + memberName + "' not found",
+				member);
 		assertTrue(member.isTechnicalMember());
 		assertEquals(memberName, member.getName());
 		assertNotNull(member.getDeclaringType());
 		assertFalse(metaData.isAlternateId(member));
 	}
 
-	protected void testZeroPrimitiveMembers(Class<?> entityType)
-	{
+	protected void testZeroPrimitiveMembers(Class<?> entityType) {
 		IEntityMetaData metaData = retrieveMetaData(entityType);
 
 		PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();

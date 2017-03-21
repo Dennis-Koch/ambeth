@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IFilterExtendable
-{
+public interface IFilterExtendable {
 	void registerFilter(IFilter filter, String topic);
 
 	void unregisterFilter(IFilter filter, String topic);

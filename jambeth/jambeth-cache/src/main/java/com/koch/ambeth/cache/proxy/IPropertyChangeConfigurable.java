@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IPropertyChangeConfigurable
-{
+public interface IPropertyChangeConfigurable {
 	boolean is__PropertyChangeActive();
 
 	void set__PropertyChangeActive(boolean active);

@@ -26,8 +26,7 @@ import com.koch.ambeth.security.model.IPBEConfiguration;
 import com.koch.ambeth.security.model.IPassword;
 import com.koch.ambeth.security.model.IUser;
 
-public class PojoPassword implements IPassword
-{
+public class PojoPassword implements IPassword {
 	private char[] value;
 	private Calendar changeAfter;
 	private String algorithm;
@@ -39,109 +38,91 @@ public class PojoPassword implements IPassword
 	private IUser user;
 
 	@Override
-	public IUser getHistoryUser()
-	{
+	public IUser getHistoryUser() {
 		return null;
 	}
 
 	@Override
-	public IUser getUser()
-	{
+	public IUser getUser() {
 		return user;
 	}
 
-	public void setUser(IUser user)
-	{
+	public void setUser(IUser user) {
 		this.user = user;
 	}
 
 	@Override
-	public char[] getValue()
-	{
+	public char[] getValue() {
 		return value;
 	}
 
 	@Override
-	public void setValue(char[] value)
-	{
+	public void setValue(char[] value) {
 		this.value = value;
 	}
 
 	@Override
-	public Calendar getChangeAfter()
-	{
+	public Calendar getChangeAfter() {
 		return changeAfter;
 	}
 
 	@Override
-	public void setChangeAfter(Calendar changeAfter)
-	{
+	public void setChangeAfter(Calendar changeAfter) {
 		this.changeAfter = changeAfter;
 	}
 
 	@Override
-	public String getAlgorithm()
-	{
+	public String getAlgorithm() {
 		return algorithm;
 	}
 
 	@Override
-	public void setAlgorithm(String algorithm)
-	{
+	public void setAlgorithm(String algorithm) {
 		this.algorithm = algorithm;
 	}
 
 	@Override
-	public int getIterationCount()
-	{
+	public int getIterationCount() {
 		return iterationCount;
 	}
 
 	@Override
-	public void setIterationCount(int iterationCount)
-	{
+	public void setIterationCount(int iterationCount) {
 		this.iterationCount = iterationCount;
 	}
 
 	@Override
-	public int getKeySize()
-	{
+	public int getKeySize() {
 		return keySize;
 	}
 
 	@Override
-	public void setKeySize(int keySize)
-	{
+	public void setKeySize(int keySize) {
 		this.keySize = keySize;
 	}
 
 	@Override
-	public char[] getSalt()
-	{
+	public char[] getSalt() {
 		return salt;
 	}
 
 	@Override
-	public void setSalt(char[] salt)
-	{
+	public void setSalt(char[] salt) {
 		this.salt = salt;
 	}
 
 	@Override
-	public Integer getSaltLength()
-	{
+	public Integer getSaltLength() {
 		return saltLength;
 	}
 
 	@Override
-	public void setSaltLength(Integer saltLength)
-	{
+	public void setSaltLength(Integer saltLength) {
 		this.saltLength = saltLength;
 	}
 
 	@Override
-	public IPBEConfiguration getSaltPBEConfiguration()
-	{
+	public IPBEConfiguration getSaltPBEConfiguration() {
 		return null;
 	}
 }

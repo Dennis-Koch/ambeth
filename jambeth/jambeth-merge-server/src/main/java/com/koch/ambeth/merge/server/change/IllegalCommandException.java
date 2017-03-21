@@ -20,17 +20,14 @@ limitations under the License.
  * #L%
  */
 
-public class IllegalCommandException extends RuntimeException
-{
+public class IllegalCommandException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 
-	public IllegalCommandException()
-	{
+	public IllegalCommandException() {
 		super();
 	}
 
-	public IllegalCommandException(String message)
-	{
+	public IllegalCommandException(String message) {
 		super(message);
 	}
 }

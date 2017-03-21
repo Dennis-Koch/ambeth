@@ -20,17 +20,14 @@ limitations under the License.
  * #L%
  */
 
-public enum ClearAllCachesEvent
-{
+public enum ClearAllCachesEvent {
 	instance;
 
-	public static ClearAllCachesEvent getInstance()
-	{
+	public static ClearAllCachesEvent getInstance() {
 		return instance;
 	}
 
-	private ClearAllCachesEvent()
-	{
+	private ClearAllCachesEvent() {
 		// intended blank
 	}
 }

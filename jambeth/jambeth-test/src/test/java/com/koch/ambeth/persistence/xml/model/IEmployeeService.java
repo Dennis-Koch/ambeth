@@ -26,8 +26,7 @@ import java.util.Set;
 import com.koch.ambeth.cache.Cached;
 import com.koch.ambeth.util.annotation.Remove;
 
-public interface IEmployeeService
-{
+public interface IEmployeeService {
 	List<Employee> getAll();
 
 	Employee getByName(String name);

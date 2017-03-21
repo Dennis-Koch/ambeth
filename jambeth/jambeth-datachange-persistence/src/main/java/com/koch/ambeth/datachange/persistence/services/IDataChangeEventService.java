@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.datachange.model.IDataChange;
 
-public interface IDataChangeEventService
-{
+public interface IDataChangeEventService {
 	void save(IDataChange dataChange);
 }

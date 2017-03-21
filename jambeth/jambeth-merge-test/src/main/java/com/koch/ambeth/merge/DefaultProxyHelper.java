@@ -26,10 +26,8 @@ import com.koch.ambeth.ioc.bytecode.IBytecodeEnhancer;
 import com.koch.ambeth.ioc.proxy.ICgLibUtil;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
-import com.koch.ambeth.merge.IProxyHelper;
 
-public class DefaultProxyHelper implements IProxyHelper, IInitializingBean
-{
+public class DefaultProxyHelper implements IProxyHelper, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -41,20 +39,16 @@ public class DefaultProxyHelper implements IProxyHelper, IInitializingBean
 	protected IBytecodeEnhancer entityEnhancer;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		// Intended blank
 	}
 
 	@Override
-	public Class<?> getRealType(Class<?> type)
-	{
+	public Class<?> getRealType(Class<?> type) {
 		IBytecodeEnhancer entityEnhancer = this.entityEnhancer;
-		if (entityEnhancer != null)
-		{
+		if (entityEnhancer != null) {
 			Class<?> baseType = entityEnhancer.getBaseType(type);
-			if (baseType != null)
-			{
+			if (baseType != null) {
 				return baseType;
 			}
 		}
@@ -62,18 +56,14 @@ public class DefaultProxyHelper implements IProxyHelper, IInitializingBean
 	}
 
 	@Override
-	public boolean objectEquals(Object leftObject, Object rightObject)
-	{
-		if (leftObject == null)
-		{
+	public boolean objectEquals(Object leftObject, Object rightObject) {
+		if (leftObject == null) {
 			return rightObject == null;
 		}
-		if (rightObject == null)
-		{
+		if (rightObject == null) {
 			return false;
 		}
-		if (leftObject == rightObject)
-		{
+		if (leftObject == rightObject) {
 			return true;
 		}
 		return leftObject.equals(rightObject);

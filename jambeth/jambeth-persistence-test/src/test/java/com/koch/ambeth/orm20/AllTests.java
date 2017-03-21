@@ -25,7 +25,6 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ OrmXmlReader20Test.class })
-public class AllTests
-{
+@SuiteClasses({OrmXmlReader20Test.class})
+public class AllTests {
 }

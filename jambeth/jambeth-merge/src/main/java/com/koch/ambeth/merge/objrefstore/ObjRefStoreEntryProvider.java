@@ -31,8 +31,7 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 
-public class ObjRefStoreEntryProvider extends IObjRefStoreEntryProvider
-{
+public class ObjRefStoreEntryProvider extends IObjRefStoreEntryProvider {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -46,16 +45,16 @@ public class ObjRefStoreEntryProvider extends IObjRefStoreEntryProvider
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
-	protected final Tuple2KeyHashMap<Class<?>, Integer, IObjRefStoreFactory> constructorDelegateMap = new Tuple2KeyHashMap<Class<?>, Integer, IObjRefStoreFactory>();
+	protected final Tuple2KeyHashMap<Class<?>, Integer, IObjRefStoreFactory> constructorDelegateMap =
+			new Tuple2KeyHashMap<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
 	@Override
-	public ObjRefStore createObjRefStore(Class<?> entityType, byte idIndex, Object id)
-	{
-		IObjRefStoreFactory objRefConstructorDelegate = constructorDelegateMap.get(entityType, Integer.valueOf(idIndex));
-		if (objRefConstructorDelegate == null)
-		{
+	public ObjRefStore createObjRefStore(Class<?> entityType, byte idIndex, Object id) {
+		IObjRefStoreFactory objRefConstructorDelegate =
+				constructorDelegateMap.get(entityType, Integer.valueOf(idIndex));
+		if (objRefConstructorDelegate == null) {
 			objRefConstructorDelegate = buildDelegate(entityType, idIndex);
 		}
 		ObjRefStore objRefStore = objRefConstructorDelegate.createObjRef();
@@ -64,11 +63,11 @@ public class ObjRefStoreEntryProvider extends IObjRefStoreEntryProvider
 	}
 
 	@Override
-	public ObjRefStore createObjRefStore(Class<?> entityType, byte idIndex, Object id, ObjRefStore nextEntry)
-	{
-		IObjRefStoreFactory objRefConstructorDelegate = constructorDelegateMap.get(entityType, Integer.valueOf(idIndex));
-		if (objRefConstructorDelegate == null)
-		{
+	public ObjRefStore createObjRefStore(Class<?> entityType, byte idIndex, Object id,
+			ObjRefStore nextEntry) {
+		IObjRefStoreFactory objRefConstructorDelegate =
+				constructorDelegateMap.get(entityType, Integer.valueOf(idIndex));
+		if (objRefConstructorDelegate == null) {
 			objRefConstructorDelegate = buildDelegate(entityType, idIndex);
 		}
 		ObjRefStore objRefStore = objRefConstructorDelegate.createObjRef();
@@ -77,23 +76,22 @@ public class ObjRefStoreEntryProvider extends IObjRefStoreEntryProvider
 		return objRefStore;
 	}
 
-	protected IObjRefStoreFactory buildDelegate(Class<?> entityType, int idIndex)
-	{
+	protected IObjRefStoreFactory buildDelegate(Class<?> entityType, int idIndex) {
 		writeLock.lock();
-		try
-		{
-			IObjRefStoreFactory objRefConstructorDelegate = constructorDelegateMap.get(entityType, Integer.valueOf(idIndex));
-			if (objRefConstructorDelegate != null)
-			{
+		try {
+			IObjRefStoreFactory objRefConstructorDelegate =
+					constructorDelegateMap.get(entityType, Integer.valueOf(idIndex));
+			if (objRefConstructorDelegate != null) {
 				return objRefConstructorDelegate;
 			}
-			Class<?> enhancedType = bytecodeEnhancer.getEnhancedType(ObjRefStore.class, new ObjRefStoreEnhancementHint(entityType, idIndex));
-			objRefConstructorDelegate = accessorTypeProvider.getConstructorType(IObjRefStoreFactory.class, enhancedType);
+			Class<?> enhancedType = bytecodeEnhancer.getEnhancedType(ObjRefStore.class,
+					new ObjRefStoreEnhancementHint(entityType, idIndex));
+			objRefConstructorDelegate =
+					accessorTypeProvider.getConstructorType(IObjRefStoreFactory.class, enhancedType);
 			constructorDelegateMap.put(entityType, Integer.valueOf(idIndex), objRefConstructorDelegate);
 			return objRefConstructorDelegate;
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}

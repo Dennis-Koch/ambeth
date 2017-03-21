@@ -39,19 +39,19 @@ import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.transfer.MaterialVO;
 
-@TestModule({ TestServicesModule.class })
-@TestPropertiesList({ @TestProperties(name = PersistenceConfigurationConstants.DatabaseTablePrefix, value = "D_"),
+@TestModule({TestServicesModule.class})
+@TestPropertiesList({
+		@TestProperties(name = PersistenceConfigurationConstants.DatabaseTablePrefix, value = "D_"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabaseFieldPrefix, value = "F_"),
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml"),
-		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile, value = "com/koch/ambeth/persistence/jdbc/mapping/value-object.xml"),
-		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true") })
+		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile,
+				value = "com/koch/ambeth/persistence/jdbc/mapping/value-object.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true")})
 @SQLStructure("JDBCDatabase_structure.sql")
 @SQLData("Example_data.sql")
-public class OptimisticLockTest extends AbstractInformationBusWithPersistenceTest
-{
+public class OptimisticLockTest extends AbstractInformationBusWithPersistenceTest {
 	@Test(expected = OptimisticLockException.class)
-	public void doesOptimisticLockException()
-	{
+	public void doesOptimisticLockException() {
 		IMaterialService materialService = beanContext.getService(IMaterialService.class);
 		Material material = materialService.getMaterialByName("test 1");
 		material.setName(material.getName() + "_X");
@@ -60,8 +60,7 @@ public class OptimisticLockTest extends AbstractInformationBusWithPersistenceTes
 	}
 
 	@Test
-	public void doesNoOptimisticLockExceptionWithoutChange()
-	{
+	public void doesNoOptimisticLockExceptionWithoutChange() {
 		IMaterialService materialService = beanContext.getService(IMaterialService.class);
 		Material material = materialService.getMaterialByName("test 1");
 		material.setVersion((short) (material.getVersion() - 1)); // Force OptLock exception
@@ -71,13 +70,12 @@ public class OptimisticLockTest extends AbstractInformationBusWithPersistenceTes
 	}
 
 	@Test(expected = OptimisticLockException.class)
-	public void mapToVOToBO() throws Exception
-	{
-		IMapperServiceFactory mapperServiceFactory = beanContext.getService(IMapperServiceFactory.class);
+	public void mapToVOToBO() throws Exception {
+		IMapperServiceFactory mapperServiceFactory =
+				beanContext.getService(IMapperServiceFactory.class);
 
 		IMapperService mapperService = mapperServiceFactory.create();
-		try
-		{
+		try {
 			MaterialVO materialVO = new MaterialVO();
 			materialVO.setName("test 3");
 			materialVO.setId(3);
@@ -88,15 +86,13 @@ public class OptimisticLockTest extends AbstractInformationBusWithPersistenceTes
 
 			materialService.updateMaterial(material);
 		}
-		finally
-		{
+		finally {
 			mapperService.dispose();
 		}
 	}
 
 	@Test
-	public void doesNotOptimisticLockException1()
-	{
+	public void doesNotOptimisticLockException1() {
 		IMaterialService materialService = beanContext.getService(IMaterialService.class);
 		Material material = materialService.getMaterialByName("test 1");
 		material.setName(material.getName() + "_X");
@@ -104,8 +100,7 @@ public class OptimisticLockTest extends AbstractInformationBusWithPersistenceTes
 	}
 
 	@Test
-	public void doesNotOptimisticLockException2()
-	{
+	public void doesNotOptimisticLockException2() {
 		IMaterialService materialService = beanContext.getService(IMaterialService.class);
 		Material material = materialService.getMaterialByName("test 1");
 		material.setName(material.getName() + "_X");

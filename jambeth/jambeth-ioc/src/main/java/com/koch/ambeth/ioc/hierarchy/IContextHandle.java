@@ -25,8 +25,7 @@ import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 
-public interface IContextHandle
-{
+public interface IContextHandle {
 	IServiceContext start();
 
 	IServiceContext start(IMap<String, Object> namedBeans);

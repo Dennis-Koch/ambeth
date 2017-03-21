@@ -23,7 +23,6 @@ limitations under the License.
 /**
  * Entity based on an interface
  */
-public interface IEntityB extends IBaseEntity<IEntityB>
-{
+public interface IEntityB extends IBaseEntity<IEntityB> {
 	// intended blank
 }

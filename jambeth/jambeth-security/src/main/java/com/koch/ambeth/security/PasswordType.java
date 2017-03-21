@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public enum PasswordType
-{
+public enum PasswordType {
 	PLAIN, MD5, SHA1;
 }

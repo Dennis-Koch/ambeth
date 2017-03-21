@@ -36,8 +36,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
-public class SqlColumnOperand implements IOperand, IOperatorAwareOperand
-{
+public class SqlColumnOperand implements IOperand, IOperatorAwareOperand {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -66,57 +65,49 @@ public class SqlColumnOperand implements IOperand, IOperatorAwareOperand
 	@Autowired
 	protected ITableAliasHolder tableAliasHolder;
 
-	public Class<?> getColumnType()
-	{
+	public Class<?> getColumnType() {
 		return columnType;
 	}
 
-	public Class<?> getColumnSubType()
-	{
+	public Class<?> getColumnSubType() {
 		return columnSubType;
 	}
 
-	public void setColumnType(Class<?> columnType)
-	{
+	public void setColumnType(Class<?> columnType) {
 		this.columnType = columnType;
 	}
 
-	public void setColumnSubType(Class<?> columnSubType)
-	{
+	public void setColumnSubType(Class<?> columnSubType) {
 		this.columnSubType = columnSubType;
 	}
 
-	public void setJoinClause(SqlJoinOperator joinClause)
-	{
+	public void setJoinClause(SqlJoinOperator joinClause) {
 		this.joinClause = joinClause;
 	}
 
-	public void setTableAliasHolder(ITableAliasHolder tableAliasHolder)
-	{
+	public void setTableAliasHolder(ITableAliasHolder tableAliasHolder) {
 		this.tableAliasHolder = tableAliasHolder;
 	}
 
-	public void setPropertyName(String propertyName)
-	{
+	public void setPropertyName(String propertyName) {
 		this.propertyName = propertyName;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void operatorStart(Map<Object, Object> nameToValueMap)
-	{
-		IList<Class<?>> entityTypeStack = (IList<Class<?>>) nameToValueMap.get(OperandConstants.EntityType);
-		if (entityTypeStack == null)
-		{
-			entityTypeStack = new ArrayList<Class<?>>();
+	public void operatorStart(Map<Object, Object> nameToValueMap) {
+		IList<Class<?>> entityTypeStack =
+				(IList<Class<?>>) nameToValueMap.get(OperandConstants.EntityType);
+		if (entityTypeStack == null) {
+			entityTypeStack = new ArrayList<>();
 			nameToValueMap.put(OperandConstants.EntityType, entityTypeStack);
 		}
 		entityTypeStack.add(entityType);
 
-		IList<String> propertyNameStack = (IList<String>) nameToValueMap.get(OperandConstants.PropertyName);
-		if (propertyNameStack == null)
-		{
-			propertyNameStack = new ArrayList<String>();
+		IList<String> propertyNameStack =
+				(IList<String>) nameToValueMap.get(OperandConstants.PropertyName);
+		if (propertyNameStack == null) {
+			propertyNameStack = new ArrayList<>();
 			nameToValueMap.put(OperandConstants.PropertyName, propertyNameStack);
 		}
 		propertyNameStack.add(propertyName);
@@ -124,33 +115,29 @@ public class SqlColumnOperand implements IOperand, IOperatorAwareOperand
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void operatorEnd(Map<Object, Object> nameToValueMap)
-	{
-		IList<Class<?>> entityTypeStack = (IList<Class<?>>) nameToValueMap.get(OperandConstants.EntityType);
+	public void operatorEnd(Map<Object, Object> nameToValueMap) {
+		IList<Class<?>> entityTypeStack =
+				(IList<Class<?>>) nameToValueMap.get(OperandConstants.EntityType);
 		entityTypeStack.remove(entityTypeStack.size() - 1);
-		if (entityTypeStack.size() == 0)
-		{
+		if (entityTypeStack.size() == 0) {
 			nameToValueMap.remove(OperandConstants.EntityType);
 		}
-		IList<String> propertyNameStack = (IList<String>) nameToValueMap.get(OperandConstants.PropertyName);
+		IList<String> propertyNameStack =
+				(IList<String>) nameToValueMap.get(OperandConstants.PropertyName);
 		propertyNameStack.remove(propertyNameStack.size() - 1);
-		if (propertyNameStack.size() == 0)
-		{
+		if (propertyNameStack.size() == 0) {
 			nameToValueMap.remove(OperandConstants.PropertyName);
 		}
 	}
 
 	@Override
-	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
-	{
-		if (joinQuery || Boolean.TRUE.equals(nameToValueMap.get(QueryConstants.USE_TABLE_ALIAS)))
-		{
-			if (joinClause != null)
-			{
+	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			boolean joinQuery, IList<Object> parameters) {
+		if (joinQuery || Boolean.TRUE.equals(nameToValueMap.get(QueryConstants.USE_TABLE_ALIAS))) {
+			if (joinClause != null) {
 				querySB.append(joinClause.getTableAlias());
 			}
-			else
-			{
+			else {
 				querySB.append(tableAliasHolder.getTableAlias());
 			}
 			querySB.append('.');
@@ -159,15 +146,12 @@ public class SqlColumnOperand implements IOperand, IOperatorAwareOperand
 	}
 
 	@Override
-	public String toString()
-	{
-		if (tableAliasHolder == null)
-		{
+	public String toString() {
+		if (tableAliasHolder == null) {
 			return columnName;
 		}
 		String tableAlias = tableAliasHolder.getTableAlias();
-		if (tableAlias == null)
-		{
+		if (tableAlias == null) {
 			return columnName;
 		}
 		return tableAlias + '.' + columnName;

@@ -25,8 +25,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ ConstructorBytecodeTest.class })
-public class AllBytecodeTests
-{
+@SuiteClasses({ConstructorBytecodeTest.class})
+public class AllBytecodeTests {
 
 }

@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.stream.IInputSource;
 
-public interface ICharacterInputSource extends IInputSource
-{
+public interface ICharacterInputSource extends IInputSource {
 	ICharacterInputStream deriveCharacterInputStream();
 }

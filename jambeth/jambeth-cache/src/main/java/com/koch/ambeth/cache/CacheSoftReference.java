@@ -23,8 +23,8 @@ limitations under the License.
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 
-public class CacheSoftReference<V> extends SoftReference<V> implements ICacheReference, IParentCacheValueHardRef
-{
+public class CacheSoftReference<V> extends SoftReference<V>
+		implements ICacheReference, IParentCacheValueHardRef {
 	@SuppressWarnings("unused")
 	private Object parentCacheValueHardRef;
 
@@ -34,8 +34,8 @@ public class CacheSoftReference<V> extends SoftReference<V> implements ICacheRef
 
 	private final Object id;
 
-	public CacheSoftReference(V referent, ReferenceQueue<V> queue, Class<?> entityType, byte idIndex, Object id)
-	{
+	public CacheSoftReference(V referent, ReferenceQueue<V> queue, Class<?> entityType, byte idIndex,
+			Object id) {
 		super(referent, queue);
 		this.entityType = entityType;
 		this.idIndex = idIndex;
@@ -43,26 +43,22 @@ public class CacheSoftReference<V> extends SoftReference<V> implements ICacheRef
 	}
 
 	@Override
-	public Class<?> getEntityType()
-	{
+	public Class<?> getEntityType() {
 		return entityType;
 	}
 
 	@Override
-	public byte getIdIndex()
-	{
+	public byte getIdIndex() {
 		return idIndex;
 	}
 
 	@Override
-	public Object getId()
-	{
+	public Object getId() {
 		return id;
 	}
 
 	@Override
-	public void setParentCacheValueHardRef(Object parentCacheValueHardRef)
-	{
+	public void setParentCacheValueHardRef(Object parentCacheValueHardRef) {
 		this.parentCacheValueHardRef = parentCacheValueHardRef;
 	}
 }

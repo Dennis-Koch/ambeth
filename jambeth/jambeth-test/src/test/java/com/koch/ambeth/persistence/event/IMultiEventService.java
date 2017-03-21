@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.List;
 
-public interface IMultiEventService
-{
+public interface IMultiEventService {
 	void save(List<MultiEventEntity> multiEventEntities);
 
 	void save(MultiEventEntity2 multiEventEntity2);

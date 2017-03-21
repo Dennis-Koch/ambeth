@@ -23,7 +23,6 @@ limitations under the License.
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.util.collections.IMap;
 
-public interface IInMemoryBooleanOperand extends IOperand
-{
+public interface IInMemoryBooleanOperand extends IOperand {
 	Boolean evaluate(IMap<Object, Object> nameToValueMap);
 }

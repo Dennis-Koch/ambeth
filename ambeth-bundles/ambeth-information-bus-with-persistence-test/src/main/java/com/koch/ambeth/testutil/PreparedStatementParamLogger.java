@@ -35,49 +35,44 @@ import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 
-public class PreparedStatementParamLogger implements IPreparedStatementParamLogger, IInitializingBean
-{
+public class PreparedStatementParamLogger
+		implements IPreparedStatementParamLogger, IInitializingBean {
 	private static final String NL = System.getProperty("line.separator");
 
 	@LogInstance
 	private ILogger log;
 
-	protected final IList<ILinkedMap<Integer, Object>> params = new ArrayList<ILinkedMap<Integer, Object>>();
+	protected final IList<ILinkedMap<Integer, Object>> params =
+			new ArrayList<>();
 
-	protected ILinkedMap<Integer, Object> currentBatch = new LinkedHashMap<Integer, Object>();
+	protected ILinkedMap<Integer, Object> currentBatch = new LinkedHashMap<>();
 
 	protected IConversionHelper conversionHelper;
 
 	protected Set<Method> paramSetters;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(conversionHelper, "conversionHelper");
 		ParamChecker.assertNotNull(paramSetters, "paramSetters");
 	}
 
-	public void setConversionHelper(IConversionHelper conversionHelper)
-	{
+	public void setConversionHelper(IConversionHelper conversionHelper) {
 		this.conversionHelper = conversionHelper;
 	}
 
-	public void setParamSetters(Set<Method> paramSetters)
-	{
+	public void setParamSetters(Set<Method> paramSetters) {
 		this.paramSetters = paramSetters;
 	}
 
 	@Override
-	public boolean isCallToBeLogged(Method method)
-	{
+	public boolean isCallToBeLogged(Method method) {
 		return paramSetters.contains(method);
 	}
 
 	@Override
-	public void logParams(Method method, Object[] args)
-	{
-		if (!isCallToBeLogged(method))
-		{
+	public void logParams(Method method, Object[] args) {
+		if (!isCallToBeLogged(method)) {
 			return;
 		}
 
@@ -85,17 +80,14 @@ public class PreparedStatementParamLogger implements IPreparedStatementParamLogg
 	}
 
 	@Override
-	public void addBatch()
-	{
+	public void addBatch() {
 		params.add(currentBatch);
-		currentBatch = new LinkedHashMap<Integer, Object>();
+		currentBatch = new LinkedHashMap<>();
 	}
 
 	@Override
-	public void doLog()
-	{
-		if (!log.isDebugEnabled() || currentBatch.isEmpty())
-		{
+	public void doLog() {
+		if (!log.isDebugEnabled() || currentBatch.isEmpty()) {
 			return;
 		}
 
@@ -110,20 +102,16 @@ public class PreparedStatementParamLogger implements IPreparedStatementParamLogg
 	}
 
 	@Override
-	public void doLogBatch()
-	{
-		if (!log.isDebugEnabled() || params.isEmpty())
-		{
+	public void doLogBatch() {
+		if (!log.isDebugEnabled() || params.isEmpty()) {
 			return;
 		}
 
 		StringBuilder sb = new StringBuilder();
 
-		for (int i = 0, size = params.size(); i < size; i++)
-		{
+		for (int i = 0, size = params.size(); i < size; i++) {
 			appendDataSet(sb, params.get(i));
-			if (i < size - 1)
-			{
+			if (i < size - 1) {
 				sb.append(NL).append("\t");
 			}
 		}
@@ -134,12 +122,10 @@ public class PreparedStatementParamLogger implements IPreparedStatementParamLogg
 		log.debug(sb.toString());
 	}
 
-	private void appendDataSet(StringBuilder sb, ILinkedMap<Integer, Object> dataSet)
-	{
+	private void appendDataSet(StringBuilder sb, ILinkedMap<Integer, Object> dataSet) {
 		sb.append("[ ");
 		String separator = "";
-		for (Entry<Integer, Object> entry : dataSet)
-		{
+		for (Entry<Integer, Object> entry : dataSet) {
 			Integer index = entry.getKey();
 			Object param = entry.getValue();
 

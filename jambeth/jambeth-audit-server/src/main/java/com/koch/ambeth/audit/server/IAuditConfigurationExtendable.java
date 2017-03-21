@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IAuditConfigurationExtendable
-{
+public interface IAuditConfigurationExtendable {
 	void registerAuditConfiguration(IAuditConfiguration auditConfiguration, Class<?> entityType);
 
 	void unregisterAuditConfiguration(IAuditConfiguration auditConfiguration, Class<?> entityType);

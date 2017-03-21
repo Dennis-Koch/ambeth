@@ -27,8 +27,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.koch.ambeth.query.IQuery;
-import com.koch.ambeth.query.IQueryBuilder;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import com.koch.ambeth.testutil.SQLData;
@@ -37,9 +35,9 @@ import com.koch.ambeth.testutil.TestProperties;
 
 @SQLData("StoredFunction_data.sql")
 @SQLStructure("StoredFunction_structure.sql")
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/query/Query_orm.xml")
-public class StoredFunctionTest extends AbstractInformationBusWithPersistenceTest
-{
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/query/Query_orm.xml")
+public class StoredFunctionTest extends AbstractInformationBusWithPersistenceTest {
 	protected static final String paramName1 = "param.1";
 	protected static final String paramName2 = "param.2";
 	protected static final String paramName3 = "param.3";
@@ -48,28 +46,26 @@ public class StoredFunctionTest extends AbstractInformationBusWithPersistenceTes
 
 	protected IQueryBuilder<QueryEntity> qb;
 
-	protected HashMap<Object, Object> nameToValueMap = new HashMap<Object, Object>();
+	protected HashMap<Object, Object> nameToValueMap = new HashMap<>();
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 		qb = queryBuilderFactory.create(QueryEntity.class);
 	}
 
 	@Override
-	public void destroy() throws Throwable
-	{
+	public void destroy() throws Throwable {
 		super.destroy();
 		nameToValueMap.clear();
 	}
 
 	@Test
-	public void testFinalize() throws Exception
-	{
+	public void testFinalize() throws Exception {
 		int value = 2;
 
-		IQuery<QueryEntity> query = qb.build(qb.isEqualTo(qb.property(propertyName1), qb.function("getDoubled", qb.value(value))));
+		IQuery<QueryEntity> query = qb.build(
+				qb.isEqualTo(qb.property(propertyName1), qb.function("getDoubled", qb.value(value))));
 
 		List<QueryEntity> actual = query.retrieve();
 
@@ -78,13 +74,12 @@ public class StoredFunctionTest extends AbstractInformationBusWithPersistenceTes
 	}
 
 	@Test
-	public void testMultipleParameters() throws Exception
-	{
+	public void testMultipleParameters() throws Exception {
 		int value = 2;
 
-		IQuery<QueryEntity> query = qb.build(qb.isEqualTo(
-				qb.property(propertyName1),
-				qb.function("multiParams", qb.property(propertyName2), qb.value("BwQKSwe1RfgnSdDldsfnskQakDl0Q3CbHr2qwXSQin63x81MBm5ryiaE54ohMFSBTr"),
+		IQuery<QueryEntity> query = qb.build(qb.isEqualTo(qb.property(propertyName1),
+				qb.function("multiParams", qb.property(propertyName2),
+						qb.value("BwQKSwe1RfgnSdDldsfnskQakDl0Q3CbHr2qwXSQin63x81MBm5ryiaE54ohMFSBTr"),
 						qb.value(value))));
 
 		List<QueryEntity> actual = query.retrieve();
@@ -94,12 +89,12 @@ public class StoredFunctionTest extends AbstractInformationBusWithPersistenceTes
 	}
 
 	@Test
-	public void testFunctionFirst() throws Exception
-	{
+	public void testFunctionFirst() throws Exception {
 		int value = 2;
 
-		IQuery<QueryEntity> query = qb.build(qb.isEqualTo(
-				qb.function("multiParams", qb.property(propertyName2), qb.value("BwQKSwe1RfgnSdDldsfnskQakDl0Q3CbHr2qwXSQin63x81MBm5ryiaE54ohMFSBTr"),
+		IQuery<QueryEntity> query =
+				qb.build(qb.isEqualTo(qb.function("multiParams", qb.property(propertyName2),
+						qb.value("BwQKSwe1RfgnSdDldsfnskQakDl0Q3CbHr2qwXSQin63x81MBm5ryiaE54ohMFSBTr"),
 						qb.value(value)), qb.value(4)));
 
 		List<QueryEntity> actual = query.retrieve();

@@ -26,8 +26,7 @@ import com.koch.ambeth.security.privilege.model.ITypePrivilege;
 import com.koch.ambeth.security.privilege.model.impl.SkipAllTypePrivilege;
 import com.koch.ambeth.service.model.ISecurityScope;
 
-public class DefaultAuthorization implements IAuthorization
-{
+public class DefaultAuthorization implements IAuthorization {
 	private final ISecurityScope[] securityScopes;
 
 	private final String sid;
@@ -38,9 +37,9 @@ public class DefaultAuthorization implements IAuthorization
 
 	private final IAuthenticationResult authenticationResult;
 
-	public DefaultAuthorization(String sid, ISecurityScope[] securityScopes, CallPermission callPermission, long authorizationTime,
-			IAuthenticationResult authenticationResult)
-	{
+	public DefaultAuthorization(String sid, ISecurityScope[] securityScopes,
+			CallPermission callPermission, long authorizationTime,
+			IAuthenticationResult authenticationResult) {
 		this.sid = sid;
 		this.securityScopes = securityScopes;
 		this.callPermission = callPermission;
@@ -49,50 +48,44 @@ public class DefaultAuthorization implements IAuthorization
 	}
 
 	@Override
-	public long getAuthorizationTime()
-	{
+	public long getAuthorizationTime() {
 		return authorizationTime;
 	}
 
 	@Override
-	public IAuthenticationResult getAuthenticationResult()
-	{
+	public IAuthenticationResult getAuthenticationResult() {
 		return authenticationResult;
 	}
 
 	@Override
-	public boolean isValid()
-	{
+	public boolean isValid() {
 		return true;
 	}
 
 	@Override
-	public boolean hasActionPermission(String actionPermissionName, ISecurityScope[] securityScopes)
-	{
+	public boolean hasActionPermission(String actionPermissionName, ISecurityScope[] securityScopes) {
 		return true;
 	}
 
 	@Override
-	public ISecurityScope[] getSecurityScopes()
-	{
+	public ISecurityScope[] getSecurityScopes() {
 		return securityScopes;
 	}
 
 	@Override
-	public String getSID()
-	{
+	public String getSID() {
 		return sid;
 	}
 
 	@Override
-	public ITypePrivilege getEntityTypePrivilege(Class<?> entityType, ISecurityScope[] securityScopes)
-	{
+	public ITypePrivilege getEntityTypePrivilege(Class<?> entityType,
+			ISecurityScope[] securityScopes) {
 		return SkipAllTypePrivilege.INSTANCE;
 	}
 
 	@Override
-	public CallPermission getCallPermission(Method serviceOperation, ISecurityScope[] securityScopes)
-	{
+	public CallPermission getCallPermission(Method serviceOperation,
+			ISecurityScope[] securityScopes) {
 		return callPermission;
 	}
 }

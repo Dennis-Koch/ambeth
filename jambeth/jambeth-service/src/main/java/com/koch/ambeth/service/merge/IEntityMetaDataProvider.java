@@ -25,8 +25,7 @@ import java.util.List;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.util.collections.IList;
 
-public interface IEntityMetaDataProvider
-{
+public interface IEntityMetaDataProvider {
 	IEntityMetaData getMetaData(Class<?> entityType);
 
 	IEntityMetaData getMetaData(Class<?> entityType, boolean tryOnly);

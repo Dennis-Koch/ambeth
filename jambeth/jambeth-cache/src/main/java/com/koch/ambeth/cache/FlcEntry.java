@@ -25,46 +25,39 @@ import java.lang.ref.Reference;
 import com.koch.ambeth.merge.cache.CacheFactoryDirective;
 import com.koch.ambeth.merge.cache.IWritableCache;
 
-public class FlcEntry
-{
+public class FlcEntry {
 	protected final Reference<IWritableCache> firstLevelCacheR;
 
 	protected final Reference<Thread> owningThreadR;
 
 	protected final CacheFactoryDirective cacheFactoryDirective;
 
-	public FlcEntry(CacheFactoryDirective cacheFactoryDirective, Reference<IWritableCache> firstLevelCacheR, Reference<Thread> owningThreadR)
-	{
+	public FlcEntry(CacheFactoryDirective cacheFactoryDirective,
+			Reference<IWritableCache> firstLevelCacheR, Reference<Thread> owningThreadR) {
 		this.cacheFactoryDirective = cacheFactoryDirective;
 		this.firstLevelCacheR = firstLevelCacheR;
 		this.owningThreadR = owningThreadR;
 	}
 
-	public CacheFactoryDirective getCacheFactoryDirective()
-	{
+	public CacheFactoryDirective getCacheFactoryDirective() {
 		return cacheFactoryDirective;
 	}
 
-	public IWritableCache getFirstLevelCache()
-	{
+	public IWritableCache getFirstLevelCache() {
 		return firstLevelCacheR != null ? firstLevelCacheR.get() : null;
 	}
 
-	public Thread getOwningThread()
-	{
+	public Thread getOwningThread() {
 		return owningThreadR != null ? owningThreadR.get() : null;
 	}
 
-	public boolean isForeignThreadAware()
-	{
+	public boolean isForeignThreadAware() {
 		return owningThreadR == null;
 	}
 
-	public boolean isInterestedInThread(Thread thread)
-	{
+	public boolean isInterestedInThread(Thread thread) {
 		Reference<Thread> owningThreadR = this.owningThreadR;
-		if (owningThreadR == null)
-		{
+		if (owningThreadR == null) {
 			return true;
 		}
 		Thread owningThread = owningThreadR.get();

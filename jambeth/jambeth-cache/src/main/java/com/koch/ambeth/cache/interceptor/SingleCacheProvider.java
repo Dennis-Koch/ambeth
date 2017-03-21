@@ -23,24 +23,20 @@ limitations under the License.
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.cache.ICacheProvider;
 
-public class SingleCacheProvider implements ICacheProvider
-{
+public class SingleCacheProvider implements ICacheProvider {
 	protected final ICache cache;
 
-	public SingleCacheProvider(ICache cache)
-	{
+	public SingleCacheProvider(ICache cache) {
 		this.cache = cache;
 	}
 
 	@Override
-	public ICache getCurrentCache()
-	{
+	public ICache getCurrentCache() {
 		return cache;
 	}
 
 	@Override
-	public boolean isNewInstanceOnCall()
-	{
+	public boolean isNewInstanceOnCall() {
 		return false;
 	}
 }

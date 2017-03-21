@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IScopedCreateEntityStep
-{
+public interface IScopedCreateEntityStep {
 	IScopedUpdateEntityStep allowCreate();
 
 	IScopedUpdateEntityStep skipCreate();

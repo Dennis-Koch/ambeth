@@ -30,8 +30,7 @@ import com.koch.ambeth.security.privilege.model.ITypePrivilegeResult;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.model.ISecurityScope;
 
-public interface IPrivilegeProviderIntern extends IPrivilegeProvider
-{
+public interface IPrivilegeProviderIntern extends IPrivilegeProvider {
 	IPrivilegeCache createPrivilegeCache();
 
 	IPrivilege getPrivilege(Object entity, ISecurityScope[] securityScopes);
@@ -40,7 +39,7 @@ public interface IPrivilegeProviderIntern extends IPrivilegeProvider
 
 	/**
 	 * Result correlates by-index with the given objRefs
-	 * 
+	 *
 	 * @param objRefs
 	 * @param securityScopes
 	 * @return
@@ -49,18 +48,21 @@ public interface IPrivilegeProviderIntern extends IPrivilegeProvider
 
 	/**
 	 * Result correlates by-index with the given objRefs
-	 * 
+	 *
 	 * @param objRefs
 	 * @param securityScopes
 	 * @return
 	 */
-	IPrivilegeResult getPrivilegesByObjRef(List<? extends IObjRef> objRefs, ISecurityScope[] securityScopes);
+	IPrivilegeResult getPrivilegesByObjRef(List<? extends IObjRef> objRefs,
+			ISecurityScope[] securityScopes);
 
 	ITypePrivilege getPrivilegeByType(Class<?> entityType, ISecurityScope[] securityScopes);
 
-	ITypePrivilegeResult getPrivilegesByType(List<Class<?>> entityTypes, ISecurityScope[] securityScopes);
+	ITypePrivilegeResult getPrivilegesByType(List<Class<?>> entityTypes,
+			ISecurityScope[] securityScopes);
 
 	IPrivilege getPrivilegeByObjRef(ObjRef objRef, IPrivilegeCache privilegeCache);
 
-	IPrivilegeResult getPrivilegesByObjRef(List<? extends IObjRef> objRefs, IPrivilegeCache privilegeCache);
+	IPrivilegeResult getPrivilegesByObjRef(List<? extends IObjRef> objRefs,
+			IPrivilegeCache privilegeCache);
 }

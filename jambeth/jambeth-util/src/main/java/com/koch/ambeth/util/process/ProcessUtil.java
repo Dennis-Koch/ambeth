@@ -30,51 +30,39 @@ import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.io.SplitOutputStream;
 
-public class ProcessUtil
-{
+public class ProcessUtil {
 	/**
 	 * Creates a daemon thread to reads actively from the given src and writes the content
-	 * 
+	 *
 	 * @param src
 	 * @param dest
 	 */
-	public static IDisposable redirectIO(final InputStream in, final OutputStream out)
-	{
-		final ParamHolder<Boolean> disposedPH = new ParamHolder<Boolean>();
-		final Thread ioPipe = new Thread(new Runnable()
-		{
+	public static IDisposable redirectIO(final InputStream in, final OutputStream out) {
+		final ParamHolder<Boolean> disposedPH = new ParamHolder<>();
+		final Thread ioPipe = new Thread(new Runnable() {
 			@Override
-			public void run()
-			{
+			public void run() {
 				byte[] temp = new byte[1024];
 				int bytesRead;
-				try
-				{
-					try
-					{
-						try
-						{
-							while ((bytesRead = in.read(temp)) != -1)
-							{
-								if (Boolean.TRUE.equals(disposedPH.getValue()))
-								{
+				try {
+					try {
+						try {
+							while ((bytesRead = in.read(temp)) != -1) {
+								if (Boolean.TRUE.equals(disposedPH.getValue())) {
 									return;
 								}
 								out.write(temp, 0, bytesRead);
 							}
 						}
-						finally
-						{
+						finally {
 							in.close();
 						}
 					}
-					finally
-					{
+					finally {
 						out.close();
 					}
 				}
-				catch (Throwable e)
-				{
+				catch (Throwable e) {
 					// intended blank
 					return;
 				}
@@ -83,11 +71,9 @@ public class ProcessUtil
 		ioPipe.setName(Thread.currentThread().getName() + "-IOPipe");
 		ioPipe.setDaemon(true);
 		ioPipe.start();
-		return new IDisposable()
-		{
+		return new IDisposable() {
 			@Override
-			public void dispose()
-			{
+			public void dispose() {
 				disposedPH.setValue(Boolean.TRUE);
 				ioPipe.interrupt();
 			}
@@ -95,106 +81,98 @@ public class ProcessUtil
 	}
 
 	/**
-	 * Runs the specified command on the command line. Both standard out and standard error streams are returned via the {@link ProcessResult} object. This
-	 * method blocks until the command has been finished.
-	 * 
-	 * @param command
-	 *            the command line to run
+	 * Runs the specified command on the command line. Both standard out and standard error streams
+	 * are returned via the {@link ProcessResult} object. This method blocks until the command has
+	 * been finished.
+	 *
+	 * @param command the command line to run
 	 * @return the result code, std out and std err streams
 	 */
-	public static ProcessResult runCli(String... command)
-	{
+	public static ProcessResult runCli(String... command) {
 		ProcessBuilder pb = new ProcessBuilder(command);
-		try
-		{
+		try {
 			return ProcessUtil.waitForTermination(pb.start());
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	/**
-	 * Waits for the given process to terminate. Standard out and standard error streams are returned via the {@link ProcessResult} object. This method works
-	 * synchronously, i.e. it waits for the command to finish before it returns. Errors during the processing of out/err streams are appended to the returned
-	 * representations of those streams.
-	 * 
+	 * Waits for the given process to terminate. Standard out and standard error streams are returned
+	 * via the {@link ProcessResult} object. This method works synchronously, i.e. it waits for the
+	 * command to finish before it returns. Errors during the processing of out/err streams are
+	 * appended to the returned representations of those streams.
+	 *
 	 * @param process
 	 * @return
 	 */
-	public static ProcessResult waitForTermination(Process process)
-	{
+	public static ProcessResult waitForTermination(Process process) {
 		IDisposable disposeOut = null, disposeErr = null;
-		try
-		{
+		try {
 			return waitForTermination(process, null, null);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			process.destroy();
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
-			if (disposeOut != null)
-			{
+		finally {
+			if (disposeOut != null) {
 				disposeOut.dispose();
 			}
-			if (disposeErr != null)
-			{
+			if (disposeErr != null) {
 				disposeErr.dispose();
 			}
 		}
 	}
 
 	/**
-	 * Waits for the given process to terminate. Standard out and standard error streams are returned via the {@link ProcessResult} object. This method works
-	 * synchronously, i.e. it waits for the command to finish before it returns. Errors during the processing of out/err streams are appended to the returned
-	 * representations of those streams. In addition to { @link {@link #waitForTermination(Process)} this method allows to provide a custom {@link OutputStream}
-	 * which receives all console events in real-time. In any case at the end of the process execution the ProcessResult contains the full console output as if
-	 * no real-time stream had been provided.
-	 * 
+	 * Waits for the given process to terminate. Standard out and standard error streams are returned
+	 * via the {@link ProcessResult} object. This method works synchronously, i.e. it waits for the
+	 * command to finish before it returns. Errors during the processing of out/err streams are
+	 * appended to the returned representations of those streams. In addition to { @link
+	 * {@link #waitForTermination(Process)} this method allows to provide a custom
+	 * {@link OutputStream} which receives all console events in real-time. In any case at the end of
+	 * the process execution the ProcessResult contains the full console output as if no real-time
+	 * stream had been provided.
+	 *
 	 * @param process
-	 * @param outAndErr
-	 *            Custom {@link OutputStream} to receive out and err events in real-time and concurrently - so be aware of potential threading issues in your
-	 *            application.
+	 * @param outAndErr Custom {@link OutputStream} to receive out and err events in real-time and
+	 *        concurrently - so be aware of potential threading issues in your application.
 	 * @return
 	 */
-	public static ProcessResult waitForTermination(Process process, OutputStream outAndErr)
-	{
+	public static ProcessResult waitForTermination(Process process, OutputStream outAndErr) {
 		return waitForTermination(process, outAndErr, outAndErr);
 	}
 
 	/**
-	 * Waits for the given process to terminate. Standard out and standard error streams are returned via the {@link ProcessResult} object. This method works
-	 * synchronously, i.e. it waits for the command to finish before it returns. Errors during the processing of out/err streams are appended to the returned
-	 * representations of those streams. In addition to { @link {@link #waitForTermination(Process)} this method allows to provide a custom {@link OutputStream}
-	 * which receives all console events in real-time. In any case at the end of the process execution the ProcessResult contains the full console output as if
-	 * no real-time stream had been provided.
-	 * 
+	 * Waits for the given process to terminate. Standard out and standard error streams are returned
+	 * via the {@link ProcessResult} object. This method works synchronously, i.e. it waits for the
+	 * command to finish before it returns. Errors during the processing of out/err streams are
+	 * appended to the returned representations of those streams. In addition to { @link
+	 * {@link #waitForTermination(Process)} this method allows to provide a custom
+	 * {@link OutputStream} which receives all console events in real-time. In any case at the end of
+	 * the process execution the ProcessResult contains the full console output as if no real-time
+	 * stream had been provided.
+	 *
 	 * @param process
-	 * @param out
-	 *            Custom {@link OutputStream} to receive out events in real-time and concurrently - so be aware of potential threading issues in your
-	 *            application.
-	 * @param err
-	 *            Custom {@link OutputStream} to receive err events in real-time and concurrently - so be aware of potential threading issues in your
-	 *            application.
+	 * @param out Custom {@link OutputStream} to receive out events in real-time and concurrently - so
+	 *        be aware of potential threading issues in your application.
+	 * @param err Custom {@link OutputStream} to receive err events in real-time and concurrently - so
+	 *        be aware of potential threading issues in your application.
 	 * @return
 	 */
 	@SuppressWarnings("resource")
-	public static ProcessResult waitForTermination(Process process, OutputStream out, OutputStream err)
-	{
+	public static ProcessResult waitForTermination(Process process, OutputStream out,
+			OutputStream err) {
 		IDisposable disposeOut = null, disposeErr = null;
-		try
-		{
+		try {
 			ByteArrayOutputStream bout = new ByteArrayOutputStream();
 			ByteArrayOutputStream berr = new ByteArrayOutputStream();
 
 			OutputStream mout = (out == null ? bout : new SplitOutputStream(bout, out));
 			OutputStream merr = (err == null ? berr : new SplitOutputStream(berr, err));
-			try
-			{
+			try {
 				disposeOut = redirectIO(process.getInputStream(), mout);
 				disposeErr = redirectIO(process.getErrorStream(), merr);
 
@@ -205,25 +183,20 @@ public class ProcessUtil
 				String errString = berr.toString(charset.name());
 				return new ProcessResult(outString, errString, result);
 			}
-			finally
-			{
+			finally {
 				mout.close();
 				merr.close();
 			}
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			process.destroy();
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
-			if (disposeOut != null)
-			{
+		finally {
+			if (disposeOut != null) {
 				disposeOut.dispose();
 			}
-			if (disposeErr != null)
-			{
+			if (disposeErr != null) {
 				disposeErr.dispose();
 			}
 		}

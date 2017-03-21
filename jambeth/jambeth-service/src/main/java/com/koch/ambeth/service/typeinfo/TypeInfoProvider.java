@@ -46,8 +46,8 @@ import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
 import com.koch.ambeth.util.typeinfo.Transient;
 import com.koch.ambeth.util.typeinfo.TypeInfo;
 
-public class TypeInfoProvider extends SmartCopyMap<Class<?>, TypeInfo> implements ITypeInfoProvider, IInitializingBean
-{
+public class TypeInfoProvider extends SmartCopyMap<Class<?>, TypeInfo>
+		implements ITypeInfoProvider, IInitializingBean {
 	private static final NamedItemComparator typeInfoItemComparator = new NamedItemComparator();
 
 	private static final Pattern memberPathSplitPattern = Pattern.compile("\\.");
@@ -59,185 +59,154 @@ public class TypeInfoProvider extends SmartCopyMap<Class<?>, TypeInfo> implement
 
 	protected IPropertyInfoProvider propertyInfoProvider;
 
-	protected final ThreadLocal<LinkedHashMap<Class<?>, TypeInfo>> tempTypeInfoMapTL = new ThreadLocal<LinkedHashMap<Class<?>, TypeInfo>>();
+	protected final ThreadLocal<LinkedHashMap<Class<?>, TypeInfo>> tempTypeInfoMapTL =
+			new ThreadLocal<>();
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(properties, "Properties");
 		ParamChecker.assertNotNull(propertyInfoProvider, "propertyInfoProvider");
 	}
 
-	public void setProperties(IProperties properties)
-	{
+	public void setProperties(IProperties properties) {
 		this.properties = properties;
 	}
 
-	public void setPropertyInfoProvider(IPropertyInfoProvider propertyInfoProvider)
-	{
+	public void setPropertyInfoProvider(IPropertyInfoProvider propertyInfoProvider) {
 		this.propertyInfoProvider = propertyInfoProvider;
 	}
 
 	@Override
-	public ITypeInfoProvider getInstance()
-	{
+	public ITypeInfoProvider getInstance() {
 		return this;
 	}
 
 	@Override
-	public ITypeInfoItem getHierarchicMember(Class<?> entityType, String hierarchicMemberName)
-	{
+	public ITypeInfoItem getHierarchicMember(Class<?> entityType, String hierarchicMemberName) {
 		String[] memberPath = memberPathSplitPattern.split(hierarchicMemberName);
 		ITypeInfoItem[] members = new ITypeInfoItem[memberPath.length];
 		Class<?> currentType = entityType;
-		for (int a = 0, size = memberPath.length; a < size; a++)
-		{
+		for (int a = 0, size = memberPath.length; a < size; a++) {
 			String memberName = memberPath[a];
 			ITypeInfo typeInfo = getTypeInfo(currentType);
 			ITypeInfoItem member = typeInfo.getMemberByName(memberName);
-			if (member == null)
-			{
+			if (member == null) {
 				String memberNameLower = memberName.toLowerCase();
 				ITypeInfoItem[] allMembers = typeInfo.getMembers();
-				for (int b = allMembers.length; b-- > 0;)
-				{
-					if (allMembers[b].getName().toLowerCase().equals(memberNameLower))
-					{
+				for (int b = allMembers.length; b-- > 0;) {
+					if (allMembers[b].getName().toLowerCase().equals(memberNameLower)) {
 						member = allMembers[b];
 						break;
 					}
 				}
-				if (member == null)
-				{
+				if (member == null) {
 					return null;
 				}
 			}
 			currentType = member.getRealType();
 			members[a] = member;
 		}
-		if (members.length == 1)
-		{
+		if (members.length == 1) {
 			return members[0];
 		}
-		else if (members.length > 1)
-		{
+		else if (members.length > 1) {
 			ITypeInfoItem[] memberForParentPath = new ITypeInfoItem[members.length - 1];
 			System.arraycopy(members, 0, memberForParentPath, 0, memberForParentPath.length);
 			ITypeInfoItem lastMember = members[members.length - 1];
 			return new EmbeddedTypeInfoItem(hierarchicMemberName, lastMember, memberForParentPath);
 		}
-		else
-		{
+		else {
 			throw new IllegalArgumentException("Must never happen");
 		}
 	}
 
 	@Override
-	public ITypeInfoItem getMember(Class<?> entityType, IPropertyInfo propertyInfo)
-	{
+	public ITypeInfoItem getMember(Class<?> entityType, IPropertyInfo propertyInfo) {
 		return new PropertyInfoItem(propertyInfo);
 	}
 
 	@Override
-	public ITypeInfoItem getMember(Field field)
-	{
+	public ITypeInfoItem getMember(Field field) {
 		ITypeInfoItem rii = null;
-		if (!Modifier.isPrivate(field.getModifiers()))
-		{
+		if (!Modifier.isPrivate(field.getModifiers())) {
 			ITypeInfo typeInfo = getTypeInfo(field.getDeclaringClass());
 			FieldAccess fieldAccess = ((TypeInfo) typeInfo).getFieldAccess();
-			if (fieldAccess != null)
-			{
+			if (fieldAccess != null) {
 				rii = new FieldInfoItemASM(field, fieldAccess);
 			}
 		}
-		if (rii == null)
-		{
+		if (rii == null) {
 			rii = new FieldInfoItem(field);
 		}
 		return rii;
 	}
 
 	@Override
-	public ITypeInfoItem getMember(String propertyName, Field field)
-	{
+	public ITypeInfoItem getMember(String propertyName, Field field) {
 		ITypeInfoItem rii = null;
-		if (!Modifier.isPrivate(field.getModifiers()))
-		{
+		if (!Modifier.isPrivate(field.getModifiers())) {
 			ITypeInfo typeInfo = getTypeInfo(field.getDeclaringClass());
 			FieldAccess fieldAccess = ((TypeInfo) typeInfo).getFieldAccess();
-			if (fieldAccess != null)
-			{
+			if (fieldAccess != null) {
 				rii = new FieldInfoItemASM(field, propertyName, fieldAccess);
 			}
 		}
-		if (rii == null)
-		{
+		if (rii == null) {
 			rii = new FieldInfoItem(field, propertyName);
 		}
 		return rii;
 	}
 
 	@Override
-	public ITypeInfo getTypeInfo(Class<?> type)
-	{
+	public ITypeInfo getTypeInfo(Class<?> type) {
 		TypeInfo typeInfo = get(type);
-		if (typeInfo != null)
-		{
+		if (typeInfo != null) {
 			return typeInfo;
 		}
 		boolean tempTypeInfoMapCreated = false;
 		Lock writeLock = getWriteLock();
 		writeLock.lock();
-		try
-		{
+		try {
 			typeInfo = get(type);
-			if (typeInfo != null)
-			{
+			if (typeInfo != null) {
 				// Concurrent thread might have been faster
 				return typeInfo;
 			}
 			LinkedHashMap<Class<?>, TypeInfo> tempTypeInfoMap = tempTypeInfoMapTL.get();
-			if (tempTypeInfoMap != null)
-			{
+			if (tempTypeInfoMap != null) {
 				typeInfo = tempTypeInfoMap.get(type);
-				if (typeInfo != null)
-				{
+				if (typeInfo != null) {
 					// Current thread is currently created cascaded TypeInfo instances
 					return typeInfo;
 				}
 			}
-			else
-			{
-				tempTypeInfoMap = new LinkedHashMap<Class<?>, TypeInfo>();
+			else {
+				tempTypeInfoMap = new LinkedHashMap<>();
 				tempTypeInfoMapTL.set(tempTypeInfoMap);
 				tempTypeInfoMapCreated = true;
 			}
-			ArrayList<Field> allFields = new ArrayList<Field>(0);
-			ArrayList<IPropertyInfo> allProperties = new ArrayList<IPropertyInfo>();
+			ArrayList<Field> allFields = new ArrayList<>(0);
+			ArrayList<IPropertyInfo> allProperties = new ArrayList<>();
 
 			allFields.addAll(Arrays.asList(type.getFields()));
-			for (int a = allFields.size(); a-- > 0;)
-			{
+			for (int a = allFields.size(); a-- > 0;) {
 				Field field = allFields.get(a);
-				if ((Modifier.STATIC & field.getModifiers()) != 0)
-				{
+				if ((Modifier.STATIC & field.getModifiers()) != 0) {
 					allFields.remove(a);
 				}
 			}
 			allProperties.addAll(Arrays.asList(propertyInfoProvider.getProperties(type)));
 
-			ArrayList<ITypeInfoItem> memberList = new ArrayList<ITypeInfoItem>(allProperties.size() + allFields.size());
+			ArrayList<ITypeInfoItem> memberList =
+					new ArrayList<>(allProperties.size() + allFields.size());
 
-			for (int a = allFields.size(); a-- > 0;)
-			{
+			for (int a = allFields.size(); a-- > 0;) {
 				Field field = allFields.get(a);
 
 				String fieldNameLower = field.getName().toLowerCase();
-				for (IPropertyInfo property : allProperties)
-				{
-					if (property.getPropertyType().equals(field.getType()) && fieldNameLower.equals(property.getName().toLowerCase()))
-					{
+				for (IPropertyInfo property : allProperties) {
+					if (property.getPropertyType().equals(field.getType())
+							&& fieldNameLower.equals(property.getName().toLowerCase())) {
 						allFields.remove(a);
 						break;
 					}
@@ -246,27 +215,21 @@ public class TypeInfoProvider extends SmartCopyMap<Class<?>, TypeInfo> implement
 			typeInfo = new TypeInfo(type);
 			tempTypeInfoMap.put(type, typeInfo);
 
-			for (IPropertyInfo property : allProperties)
-			{
+			for (IPropertyInfo property : allProperties) {
 				int modifiers = property.getModifiers();
-				if (Modifier.isTransient(modifiers) || property.getAnnotation(Transient.class) != null)
-				{
+				if (Modifier.isTransient(modifiers) || property.getAnnotation(Transient.class) != null) {
 					continue; // Can not handle non datamember properties
 				}
-				if (Modifier.isFinal(modifiers) || Modifier.isNative(modifiers))
-				{
+				if (Modifier.isFinal(modifiers) || Modifier.isNative(modifiers)) {
 					continue;
 				}
-				if (!Modifier.isPublic(modifiers))
-				{
+				if (!Modifier.isPublic(modifiers)) {
 					continue;
 				}
 				memberList.add(getMember(type, property));
 			}
-			for (Field field : allFields)
-			{
-				if (field.getAnnotation(Transient.class) != null)
-				{
+			for (Field field : allFields) {
+				if (field.getAnnotation(Transient.class) != null) {
 					continue; // Can not handle non datamember fields
 				}
 				memberList.add(getMember(field));
@@ -280,11 +243,9 @@ public class TypeInfoProvider extends SmartCopyMap<Class<?>, TypeInfo> implement
 			putAll(tempTypeInfoMap);
 			return typeInfo;
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
-			if (tempTypeInfoMapCreated)
-			{
+			if (tempTypeInfoMapCreated) {
 				tempTypeInfoMapTL.remove();
 			}
 		}

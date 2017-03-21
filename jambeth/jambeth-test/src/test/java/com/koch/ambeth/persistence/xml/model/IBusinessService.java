@@ -22,7 +22,6 @@ limitations under the License.
 
 import java.util.List;
 
-public interface IBusinessService
-{
+public interface IBusinessService {
 	List<Employee> retrieve(List<String> names);
 }

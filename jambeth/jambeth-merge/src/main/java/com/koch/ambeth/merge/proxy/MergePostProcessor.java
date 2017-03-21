@@ -41,41 +41,37 @@ import com.koch.ambeth.util.annotation.NoProxy;
 import com.koch.ambeth.util.annotation.Remove;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 
-public class MergePostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanProcessor
-{
+public class MergePostProcessor extends AbstractCascadePostProcessor
+		implements IOrderedBeanProcessor {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	protected final AnnotationCache<MergeContext> mergeContextCache = new AnnotationCache<MergeContext>(MergeContext.class)
-	{
-		@Override
-		protected boolean annotationEquals(MergeContext left, MergeContext right)
-		{
-			return true;
-		}
-	};
+	protected final AnnotationCache<MergeContext> mergeContextCache =
+			new AnnotationCache<MergeContext>(MergeContext.class) {
+				@Override
+				protected boolean annotationEquals(MergeContext left, MergeContext right) {
+					return true;
+				}
+			};
 
 	@Override
-	public ProcessorOrder getOrder()
-	{
+	public ProcessorOrder getOrder() {
 		return ProcessorOrder.HIGH;
 	}
 
 	@Override
-	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory, IServiceContext beanContext,
-			IBeanConfiguration beanConfiguration, Class<?> type, Set<Class<?>> requestedTypes)
-	{
+	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory,
+			IServiceContext beanContext, IBeanConfiguration beanConfiguration, Class<?> type,
+			Set<Class<?>> requestedTypes) {
 		MergeContext mergeContext = mergeContextCache.getAnnotation(type);
-		if (mergeContext == null)
-		{
+		if (mergeContext == null) {
 			return null;
 		}
 		IMethodLevelBehavior<Annotation> behavior = createInterceptorModeBehavior(type);
 
 		MergeInterceptor mergeInterceptor = new MergeInterceptor();
-		if (beanContext.isRunning())
-		{
+		if (beanContext.isRunning()) {
 			return beanContext.registerWithLifecycle(mergeInterceptor)//
 					.propertyValue("Behavior", behavior)//
 					.ignoreProperties("ServiceName")//
@@ -88,31 +84,26 @@ public class MergePostProcessor extends AbstractCascadePostProcessor implements 
 	}
 
 	@Override
-	protected Annotation lookForAnnotation(AnnotatedElement member)
-	{
+	protected Annotation lookForAnnotation(AnnotatedElement member) {
 		Annotation annotation = super.lookForAnnotation(member);
-		if (annotation != null)
-		{
+		if (annotation != null) {
 			return annotation;
 		}
 		NoProxy noProxy = member.getAnnotation(NoProxy.class);
-		if (noProxy != null)
-		{
+		if (noProxy != null) {
 			return noProxy;
 		}
-		com.koch.ambeth.util.annotation.Process process = member.getAnnotation(com.koch.ambeth.util.annotation.Process.class);
-		if (process != null)
-		{
+		com.koch.ambeth.util.annotation.Process process =
+				member.getAnnotation(com.koch.ambeth.util.annotation.Process.class);
+		if (process != null) {
 			return process;
 		}
 		Find find = member.getAnnotation(Find.class);
-		if (find != null)
-		{
+		if (find != null) {
 			return find;
 		}
 		Merge merge = member.getAnnotation(Merge.class);
-		if (merge != null)
-		{
+		if (merge != null) {
 			return merge;
 		}
 		return member.getAnnotation(Remove.class);

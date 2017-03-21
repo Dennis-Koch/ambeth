@@ -20,22 +20,18 @@ limitations under the License.
  * #L%
  */
 
-public class EntityB extends BaseEntity
-{
+public class EntityB extends BaseEntity {
 	protected String name;
 
-	protected EntityB()
-	{
+	protected EntityB() {
 		// Intended blank
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 }

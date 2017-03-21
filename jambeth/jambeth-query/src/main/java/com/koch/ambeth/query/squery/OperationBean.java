@@ -23,43 +23,37 @@ limitations under the License.
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IQueryBuilder;
 
-public class OperationBean
-{
+public class OperationBean {
 	private String nestFieldName;
 	private Condition condition;
 	private Relation relation;
 
-	public OperationBean(String nestFieldName, Condition condition, String relation)
-	{
+	public OperationBean(String nestFieldName, Condition condition, String relation) {
 		this.nestFieldName = nestFieldName;
 		this.condition = condition;
 		this.relation = Relation.build(relation);
 	}
 
-	public String getNestFieldName()
-	{
+	public String getNestFieldName() {
 		return nestFieldName;
 	}
 
-	public Condition getCondition()
-	{
+	public Condition getCondition() {
 		return condition;
 	}
 
-	public Relation getRelation()
-	{
+	public Relation getRelation() {
 		return relation;
 	}
 
-	public IOperand buildOperand(IQueryBuilder<?> qb, Object value)
-	{
+	public IOperand buildOperand(IQueryBuilder<?> qb, Object value) {
 		return condition.createOperand(qb, nestFieldName, value);
 	}
 
 	@Override
-	public String toString()
-	{
-		return "OperationBean [fieldName=" + nestFieldName + ", condition=" + condition + ", relation=" + relation + "]";
+	public String toString() {
+		return "OperationBean [fieldName=" + nestFieldName + ", condition=" + condition + ", relation="
+				+ relation + "]";
 	}
 
 }

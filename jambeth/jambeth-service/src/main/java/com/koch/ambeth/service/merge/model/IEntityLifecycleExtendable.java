@@ -20,9 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public interface IEntityLifecycleExtendable
-{
-	void registerEntityLifecycleExtension(IEntityLifecycleExtension entityLifecycleExtension, Class<?> entityType);
+public interface IEntityLifecycleExtendable {
+	void registerEntityLifecycleExtension(IEntityLifecycleExtension entityLifecycleExtension,
+			Class<?> entityType);
 
-	void unregisterEntityLifecycleExtension(IEntityLifecycleExtension entityLifecycleExtension, Class<?> entityType);
+	void unregisterEntityLifecycleExtension(IEntityLifecycleExtension entityLifecycleExtension,
+			Class<?> entityType);
 }

@@ -22,17 +22,14 @@ limitations under the License.
 
 import java.util.List;
 
-public class StringListType
-{
+public class StringListType {
 	private List<String> strings;
 
-	public List<String> getStrings()
-	{
+	public List<String> getStrings() {
 		return strings;
 	}
 
-	public void setStrings(List<String> strings)
-	{
+	public void setStrings(List<String> strings) {
 		this.strings = strings;
 	}
 }

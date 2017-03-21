@@ -23,17 +23,14 @@ limitations under the License.
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public class EventPollException extends RuntimeException
-{
+public class EventPollException extends RuntimeException {
 	private static final long serialVersionUID = -8293188742825456112L;
 
-	public EventPollException(String message, Throwable cause)
-	{
+	public EventPollException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
-	public EventPollException(String message)
-	{
+	public EventPollException(String message) {
 		super(message);
 	}
 }

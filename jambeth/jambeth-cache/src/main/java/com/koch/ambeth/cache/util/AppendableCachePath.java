@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.util.collections.ISet;
 
-public class AppendableCachePath
-{
+public class AppendableCachePath {
 	public final int memberIndex;
 
 	public final String memberName;
@@ -32,36 +31,30 @@ public class AppendableCachePath
 
 	public ISet<AppendableCachePath> children;
 
-	public AppendableCachePath(Class<?> memberType, int memberIndex, String memberName)
-	{
+	public AppendableCachePath(Class<?> memberType, int memberIndex, String memberName) {
 		this.memberIndex = memberIndex;
 		this.memberName = memberName;
 		this.memberType = memberType;
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == this)
-		{
+	public boolean equals(Object obj) {
+		if (obj == this) {
 			return true;
 		}
-		if (!(obj instanceof AppendableCachePath))
-		{
+		if (!(obj instanceof AppendableCachePath)) {
 			return false;
 		}
 		return memberIndex == ((AppendableCachePath) obj).memberIndex;
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return getClass().hashCode() ^ memberIndex;
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return memberName;
 	}
 }

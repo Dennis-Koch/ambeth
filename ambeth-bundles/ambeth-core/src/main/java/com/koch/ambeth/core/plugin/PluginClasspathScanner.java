@@ -29,16 +29,14 @@ import com.koch.ambeth.util.collections.IList;
 
 import javassist.ClassPool;
 
-public class PluginClasspathScanner extends CoreClasspathScanner
-{
+public class PluginClasspathScanner extends CoreClasspathScanner {
 	@Autowired
 	protected IJarURLProvider jarURLProvider;
 
 	protected URLClassLoader urlClassLoader;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		URL[] urls = jarURLProvider.getJarURLs().toArray(URL.class);
@@ -46,22 +44,18 @@ public class PluginClasspathScanner extends CoreClasspathScanner
 	}
 
 	@Override
-	public ClassLoader getClassLoader()
-	{
+	public ClassLoader getClassLoader() {
 		return urlClassLoader;
 	}
 
 	@Override
-	protected IList<URL> getJarURLs()
-	{
+	protected IList<URL> getJarURLs() {
 		return jarURLProvider.getJarURLs();
 	}
 
 	@Override
-	protected ClassPool getClassPool()
-	{
-		if (classPool == null)
-		{
+	protected ClassPool getClassPool() {
+		if (classPool == null) {
 			classPool = new ClassPool();
 			initializeClassPool(classPool);
 		}

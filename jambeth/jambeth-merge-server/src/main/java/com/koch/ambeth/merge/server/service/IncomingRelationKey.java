@@ -23,30 +23,25 @@ limitations under the License.
 import com.koch.ambeth.persistence.api.IDirectedLink;
 import com.koch.ambeth.persistence.api.ITable;
 
-public class IncomingRelationKey
-{
+public class IncomingRelationKey {
 	protected final byte idIndex;
 
 	protected final ITable table;
 
 	protected final IDirectedLink link;
 
-	public IncomingRelationKey(byte idIndex, ITable table, IDirectedLink link)
-	{
+	public IncomingRelationKey(byte idIndex, ITable table, IDirectedLink link) {
 		this.idIndex = idIndex;
 		this.table = table;
 		this.link = link;
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == this)
-		{
+	public boolean equals(Object obj) {
+		if (obj == this) {
 			return true;
 		}
-		if (!(obj instanceof IncomingRelationKey))
-		{
+		if (!(obj instanceof IncomingRelationKey)) {
 			return false;
 		}
 		IncomingRelationKey other = (IncomingRelationKey) obj;
@@ -54,14 +49,12 @@ public class IncomingRelationKey
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return idIndex ^ table.hashCode() ^ link.hashCode();
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return idIndex + " " + table.getMetaData().getName() + " - " + link.getMetaData().getName();
 	}
 }

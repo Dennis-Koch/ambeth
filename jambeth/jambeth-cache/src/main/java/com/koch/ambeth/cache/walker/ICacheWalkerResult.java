@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.util.IPrintable;
 
-public interface ICacheWalkerResult extends IPrintable
-{
+public interface ICacheWalkerResult extends IPrintable {
 	void toString(StringBuilder sb, int tabCount);
 }

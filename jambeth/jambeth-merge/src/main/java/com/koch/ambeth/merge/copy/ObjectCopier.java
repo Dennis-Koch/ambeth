@@ -33,44 +33,44 @@ import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
 /**
- * Reference implementation for the <code>IObjectCopier</code> interface. Provides an extension point to customize to copy behavior on specific object types.
- * 
+ * Reference implementation for the <code>IObjectCopier</code> interface. Provides an extension
+ * point to customize to copy behavior on specific object types.
+ *
  */
-public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, IThreadLocalCleanupBean
-{
+public class ObjectCopier
+		implements IObjectCopier, IObjectCopierExtendable, IThreadLocalCleanupBean {
 	@Autowired
 	protected IPropertyInfoProvider propertyInfoProvider;
 
 	/**
 	 * Save an instance of ObjectCopierState per-thread for performance reasons
 	 */
-	protected final ThreadLocal<ObjectCopierState> ocStateTL = new ThreadLocal<ObjectCopierState>();
+	protected final ThreadLocal<ObjectCopierState> ocStateTL = new ThreadLocal<>();
 
 	// / <summary>
 	// / Saves the current instance of ocStateTL to recognize recursive calls to the same ObjectCopier
 	// / </summary>
-	protected final ThreadLocal<ObjectCopierState> usedOcStateTL = new ThreadLocal<ObjectCopierState>();
+	protected final ThreadLocal<ObjectCopierState> usedOcStateTL =
+			new ThreadLocal<>();
 
-	protected final ClassExtendableContainer<IObjectCopierExtension> extensions = new ClassExtendableContainer<IObjectCopierExtension>("objectCopierExtension",
-			"type");
+	protected final ClassExtendableContainer<IObjectCopierExtension> extensions =
+			new ClassExtendableContainer<>("objectCopierExtension", "type");
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void cleanupThreadLocal()
-	{
-		// Cleanup the TL variables. This is to be safe against memory leaks in thread pooling architectures
+	public void cleanupThreadLocal() {
+		// Cleanup the TL variables. This is to be safe against memory leaks in thread pooling
+		// architectures
 		ocStateTL.remove();
 		usedOcStateTL.remove();
 	}
 
-	protected ObjectCopierState acquireObjectCopierState()
-	{
+	protected ObjectCopierState acquireObjectCopierState() {
 		// Creates automatically a valid instance if this thread does not already have one
 		ObjectCopierState ocState = ocStateTL.get();
-		if (ocState == null)
-		{
+		if (ocState == null) {
 			ocState = new ObjectCopierState(this);
 			ocStateTL.set(ocState);
 		}
@@ -81,17 +81,14 @@ public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, ITh
 	 * {@inheritDoc}
 	 */
 	@Override
-	public <T> T clone(T source)
-	{
+	public <T> T clone(T source) {
 		// Don't clone a null object or immutable objects. Return the identical reference in these cases
-		if (source == null || ImmutableTypeSet.isImmutableType(source.getClass()))
-		{
+		if (source == null || ImmutableTypeSet.isImmutableType(source.getClass())) {
 			return source;
 		}
 		// Try to access current "in-use" ObjectCopierState first
 		ObjectCopierState ocState = usedOcStateTL.get();
-		if (ocState != null)
-		{
+		if (ocState != null) {
 			// Reuse TL instance. And do not bother with cleanup
 			return cloneRecursive(source, ocState);
 		}
@@ -99,12 +96,10 @@ public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, ITh
 		// because we are responsible for this in this case
 		ocState = acquireObjectCopierState();
 		usedOcStateTL.set(ocState);
-		try
-		{
+		try {
 			return cloneRecursive(source, ocState);
 		}
-		finally
-		{
+		finally {
 			// Clear "in-use" instance
 			usedOcStateTL.remove();
 			// Cleanup ObjectCopierState to allow reusage in the same thread later
@@ -116,34 +111,28 @@ public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, ITh
 	 * Gets called by the ObjectCopierState on custom / default behavior switches
 	 */
 	@SuppressWarnings("unchecked")
-	protected <T> T cloneRecursive(T source, ObjectCopierState ocState)
-	{
+	protected <T> T cloneRecursive(T source, ObjectCopierState ocState) {
 		// Don't clone a null object or immutable objects. Return the identical reference in these cases
-		if (source == null || ImmutableTypeSet.isImmutableType(source.getClass()))
-		{
+		if (source == null || ImmutableTypeSet.isImmutableType(source.getClass())) {
 			return source;
 		}
 		Class<?> objType = source.getClass();
 		IdentityHashMap<Object, Object> objectToCloneDict = ocState.objectToCloneDict;
 		Object clone = objectToCloneDict.get(source);
 
-		if (clone != null)
-		{
+		if (clone != null) {
 			// Object has already been cloned. Cycle detected - we are finished here
 			return (T) clone;
 		}
-		if (objType.isArray())
-		{
+		if (objType.isArray()) {
 			return (T) cloneArray(source, ocState);
 		}
-		if (source instanceof Collection)
-		{
+		if (source instanceof Collection) {
 			return (T) cloneCollection(source, ocState);
 		}
 		// Check whether the object will be copied by custom behavior
 		IObjectCopierExtension extension = extensions.getExtension(objType);
-		if (extension != null)
-		{
+		if (extension != null) {
 			clone = extension.deepClone(source, ocState);
 			objectToCloneDict.put(source, clone);
 			return (T) clone;
@@ -152,22 +141,18 @@ public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, ITh
 		return (T) cloneDefault(source, ocState);
 	}
 
-	protected Object cloneArray(Object source, ObjectCopierState ocState)
-	{
+	protected Object cloneArray(Object source, ObjectCopierState ocState) {
 		Class<?> objType = source.getClass();
 		Class<?> elementType = objType.getComponentType();
 		int length = Array.getLength(source);
 		Object cloneArray = Array.newInstance(elementType, length);
 		ocState.objectToCloneDict.put(source, cloneArray);
-		if (ImmutableTypeSet.isImmutableType(elementType))
-		{
+		if (ImmutableTypeSet.isImmutableType(elementType)) {
 			// Clone native array with native functionality for performance reasons
 			System.arraycopy(source, 0, cloneArray, 0, length);
 		}
-		else
-		{
-			for (int a = length; a-- > 0;)
-			{
+		else {
+			for (int a = length; a-- > 0;) {
 				// Clone each item of the array
 				Array.set(cloneArray, a, cloneRecursive(Array.get(source, a), ocState));
 			}
@@ -175,23 +160,19 @@ public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, ITh
 		return cloneArray;
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected Object cloneCollection(Object source, ObjectCopierState ocState)
-	{
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	protected Object cloneCollection(Object source, ObjectCopierState ocState) {
 		Class<?> objType = source.getClass();
 		Collection cloneColl;
-		try
-		{
+		try {
 			cloneColl = (Collection) objType.newInstance();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		ocState.objectToCloneDict.put(source, cloneColl);
 
-		for (Object item : (Collection) source)
-		{
+		for (Object item : (Collection) source) {
 			// Clone each item of the Collection
 			Object cloneItem = cloneRecursive(item, ocState);
 			cloneColl.add(cloneItem);
@@ -199,16 +180,13 @@ public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, ITh
 		return cloneColl;
 	}
 
-	protected Object cloneDefault(Object source, ObjectCopierState ocState)
-	{
+	protected Object cloneDefault(Object source, ObjectCopierState ocState) {
 		Class<?> objType = source.getClass();
 		Object clone;
-		try
-		{
+		try {
 			clone = objType.newInstance();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		ocState.objectToCloneDict.put(source, clone);
@@ -216,13 +194,10 @@ public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, ITh
 		return clone;
 	}
 
-	protected void deepCloneProperties(Object source, Object clone, ObjectCopierState ocState)
-	{
+	protected void deepCloneProperties(Object source, Object clone, ObjectCopierState ocState) {
 		IPropertyInfo[] properties = propertyInfoProvider.getPrivateProperties(source.getClass());
-		for (IPropertyInfo property : properties)
-		{
-			if (!property.isWritable())
-			{
+		for (IPropertyInfo property : properties) {
+			if (!property.isWritable()) {
 				continue;
 			}
 			Object objValue = property.getValue(source);
@@ -235,8 +210,8 @@ public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, ITh
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void registerObjectCopierExtension(IObjectCopierExtension objectCopierExtension, Class<?> type)
-	{
+	public void registerObjectCopierExtension(IObjectCopierExtension objectCopierExtension,
+			Class<?> type) {
 		// Delegate pattern to register the extension in the internal extension manager
 		extensions.register(objectCopierExtension, type);
 	}
@@ -245,8 +220,8 @@ public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, ITh
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void unregisterObjectCopierExtension(IObjectCopierExtension objectCopierExtension, Class<?> type)
-	{
+	public void unregisterObjectCopierExtension(IObjectCopierExtension objectCopierExtension,
+			Class<?> type) {
 		// Delegate pattern to unregister the extension from the internal extension manager
 		extensions.unregister(objectCopierExtension, type);
 	}

@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IEventTargetExtractor
-{
+public interface IEventTargetExtractor {
 	Object extractEventTarget(Object eventTarget);
 }

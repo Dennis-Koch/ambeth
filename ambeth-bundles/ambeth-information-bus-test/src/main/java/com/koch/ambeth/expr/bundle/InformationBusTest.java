@@ -32,15 +32,12 @@ import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.merge.util.ICacheHelper;
 import com.koch.ambeth.util.IConversionHelper;
 
-public class InformationBusTest
-{
+public class InformationBusTest {
 	@Test
-	public void testCreateBundle() throws IOException
-	{
+	public void testCreateBundle() throws IOException {
 		IAmbethApplication ambethApplication = Ambeth.createBundle(InformationBus.class).start();
 		Assert.assertNotNull(ambethApplication);
-		try
-		{
+		try {
 			IServiceContext serviceContext = ambethApplication.getApplicationContext();
 			Assert.assertNotNull(serviceContext);
 
@@ -52,8 +49,7 @@ public class InformationBusTest
 			service = serviceContext.getService(ICacheHelper.class, false);
 			Assert.assertNotNull(service);
 		}
-		finally
-		{
+		finally {
 			ambethApplication.close();
 		}
 	}

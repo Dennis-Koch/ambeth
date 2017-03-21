@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
-public interface IChangeController
-{
+public interface IChangeController {
 
 	<T> T runWithoutEDBL(IResultingBackgroundWorkerDelegate<T> runnable) throws Throwable;
 

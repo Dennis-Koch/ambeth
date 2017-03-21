@@ -23,12 +23,11 @@ limitations under the License.
 
 /**
  * Interface to allow registering a hook which gets called after a IDatabase instance is disposed
- * 
+ *
  * @author dennis.koch
  *
  */
-public interface IDatabaseDisposeHookExtendable
-{
+public interface IDatabaseDisposeHookExtendable {
 	void registerDisposeHook(IDatabaseDisposeHook disposeHook);
 
 	void unregisterDisposeHook(IDatabaseDisposeHook disposeHook);

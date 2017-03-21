@@ -78,12 +78,12 @@ public class AmbethShellImpl
 	@LogInstance
 	private ILogger log;
 
-	protected final ThreadLocal<DateFormat> isoDateFormatTL = new SensitiveThreadLocal<DateFormat>();
+	protected final ThreadLocal<DateFormat> isoDateFormatTL = new SensitiveThreadLocal<>();
 
 	protected final Map<String, CommandBinding> commandBindings =
-			new HashMap<String, CommandBinding>();
+			new HashMap<>();
 
-	protected Map<String, String> promptMap = new HashMap<String, String>();
+	protected Map<String, String> promptMap = new HashMap<>();
 
 	@Autowired
 	protected ShellContext context;
@@ -292,7 +292,7 @@ public class AmbethShellImpl
 	 * @return
 	 */
 	private List<String> parseCommandLine(String userInput) {
-		List<String> parts = new ArrayList<String>();
+		List<String> parts = new ArrayList<>();
 		String sequence = "";
 		boolean insideQuotes = false;
 		boolean whitespaceRegion = false;
@@ -356,9 +356,9 @@ public class AmbethShellImpl
 			if (commandName.length() == 0) {
 				return null;
 			}
-			Map<String, Object> dFlags = new HashMap<String, Object>();
+			Map<String, Object> dFlags = new HashMap<>();
 			try {
-				List<String> argSet = new ArrayList<String>();
+				List<String> argSet = new ArrayList<>();
 				String resultVariableName = parseArguments(dFlags, argSet, args);
 
 				CommandBinding command = commandBindings.get(commandName.toLowerCase());

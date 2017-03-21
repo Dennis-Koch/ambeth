@@ -27,23 +27,20 @@ import com.koch.ambeth.event.server.IEventStore;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 
-public class EventStoreDummy implements IEventStore
-{
+public class EventStoreDummy implements IEventStore {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	private List<Object> eventObjects = new ArrayList<Object>();
+	private List<Object> eventObjects = new ArrayList<>();
 
 	@Override
-	public void addEvents(List<Object> eventObjects)
-	{
+	public void addEvents(List<Object> eventObjects) {
 		this.eventObjects.clear();
 		this.eventObjects.addAll(eventObjects);
 	}
 
-	public List<Object> getEventObjects()
-	{
+	public List<Object> getEventObjects() {
 		return eventObjects;
 	}
 }

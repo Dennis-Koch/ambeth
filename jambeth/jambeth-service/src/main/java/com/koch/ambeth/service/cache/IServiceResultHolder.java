@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.service.cache.model.IServiceResult;
 
-public interface IServiceResultHolder
-{
+public interface IServiceResultHolder {
 	boolean isExpectServiceResult();
 
 	void setExpectServiceResult(boolean expectServiceResult);

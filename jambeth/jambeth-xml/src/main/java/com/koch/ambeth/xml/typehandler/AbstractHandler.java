@@ -29,8 +29,7 @@ import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.xml.ICyclicXmlDictionary;
 import com.koch.ambeth.xml.namehandler.ClassNameHandler;
 
-public abstract class AbstractHandler implements IInitializingBean
-{
+public abstract class AbstractHandler implements IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -48,8 +47,7 @@ public abstract class AbstractHandler implements IInitializingBean
 	protected ClassNameHandler classElementHandler;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		// Intended blank
 	}
 }

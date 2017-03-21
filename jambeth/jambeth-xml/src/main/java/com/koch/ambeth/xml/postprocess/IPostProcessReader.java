@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.xml.IReader;
 
-public interface IPostProcessReader extends IReader
-{
+public interface IPostProcessReader extends IReader {
 	void executeObjectCommands();
 }

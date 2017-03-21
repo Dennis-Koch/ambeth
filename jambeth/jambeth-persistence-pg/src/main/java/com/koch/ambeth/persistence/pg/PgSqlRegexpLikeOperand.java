@@ -30,8 +30,7 @@ import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
-public class PgSqlRegexpLikeOperand implements IOperand
-{
+public class PgSqlRegexpLikeOperand implements IOperand {
 	@LogInstance
 	private ILogger log;
 
@@ -48,13 +47,12 @@ public class PgSqlRegexpLikeOperand implements IOperand
 	protected IOperand matchParameter;
 
 	@Override
-	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
-	{
+	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			boolean joinQuery, IList<Object> parameters) {
 		querySB.append('(');
 		sourceString.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 		querySB.append(" ~");
-		if (matchParameter != null)
-		{
+		if (matchParameter != null) {
 			matchParameter.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 		}
 		querySB.append(' ');

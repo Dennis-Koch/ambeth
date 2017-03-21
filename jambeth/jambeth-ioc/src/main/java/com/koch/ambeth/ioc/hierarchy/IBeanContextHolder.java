@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.util.IDisposable;
 
-public interface IBeanContextHolder<V> extends IDisposable
-{
+public interface IBeanContextHolder<V> extends IDisposable {
 	V getValue();
 }

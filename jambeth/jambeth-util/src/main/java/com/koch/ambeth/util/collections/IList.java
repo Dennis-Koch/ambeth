@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.List;
 
-public interface IList<V> extends List<V>
-{
+public interface IList<V> extends List<V> {
 	<T extends V> boolean addAll(T[] array);
 
 	<T extends V> boolean removeAll(T[] array);

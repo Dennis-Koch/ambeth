@@ -30,9 +30,9 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ParamChecker;
 
-public class DataChangePersistenceListener implements IEventListener, IInitializingBean
-{
-	private static final Class<?>[] uninterestingTypes = { DataChangeEventBO.class, DataChangeEntryBO.class, EntityType.class };
+public class DataChangePersistenceListener implements IEventListener, IInitializingBean {
+	private static final Class<?>[] uninterestingTypes =
+			{DataChangeEventBO.class, DataChangeEntryBO.class, EntityType.class};
 
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -41,28 +41,23 @@ public class DataChangePersistenceListener implements IEventListener, IInitializ
 	protected IDataChangeEventService dataChangeEventService;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(dataChangeEventService, "dataChangeEventService");
 	}
 
-	public void setDataChangeEventService(IDataChangeEventService dataChangeEventService)
-	{
+	public void setDataChangeEventService(IDataChangeEventService dataChangeEventService) {
 		this.dataChangeEventService = dataChangeEventService;
 	}
 
 	@Override
-	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId)
-	{
-		if (!(eventObject instanceof IDataChange))
-		{
+	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) {
+		if (!(eventObject instanceof IDataChange)) {
 			return;
 		}
 
 		IDataChange dataChange = (IDataChange) eventObject;
 		dataChange = dataChange.deriveNot(uninterestingTypes);
-		if (dataChange.getAll().isEmpty())
-		{
+		if (dataChange.getAll().isEmpty()) {
 			return;
 		}
 

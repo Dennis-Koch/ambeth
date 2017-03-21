@@ -23,14 +23,12 @@ limitations under the License.
 import com.koch.ambeth.query.IQueryKey;
 import com.koch.ambeth.util.ParamChecker;
 
-public class StringQueryKey implements IQueryKey
-{
+public class StringQueryKey implements IQueryKey {
 	protected final Class<?> entityType;
 
 	protected final String value;
 
-	public StringQueryKey(Class<?> entityType, String value)
-	{
+	public StringQueryKey(Class<?> entityType, String value) {
 		ParamChecker.assertParamNotNull(entityType, "entityType");
 		ParamChecker.assertParamNotNull(value, "value");
 		this.entityType = entityType;
@@ -38,14 +36,11 @@ public class StringQueryKey implements IQueryKey
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == this)
-		{
+	public boolean equals(Object obj) {
+		if (obj == this) {
 			return true;
 		}
-		if (!(obj instanceof StringQueryKey))
-		{
+		if (!(obj instanceof StringQueryKey)) {
 			return false;
 		}
 		StringQueryKey other = (StringQueryKey) obj;
@@ -54,14 +49,12 @@ public class StringQueryKey implements IQueryKey
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return entityType.hashCode() ^ value.hashCode();
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return entityType.getName() + value;
 	}
 }

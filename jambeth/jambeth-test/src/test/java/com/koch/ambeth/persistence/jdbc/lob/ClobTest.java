@@ -44,20 +44,18 @@ import com.koch.ambeth.testutil.TestProperties;
 @SQLData("clob_data.sql")
 @SQLStructure("clob_structure.sql")
 @TestModule(ClobTestModule.class)
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/jdbc/lob/clob_orm.xml")
-public class ClobTest extends AbstractInformationBusWithPersistenceTest
-{
-	public static class ClobTestModule implements IInitializingModule
-	{
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/persistence/jdbc/lob/clob_orm.xml")
+public class ClobTest extends AbstractInformationBusWithPersistenceTest {
+	public static class ClobTestModule implements IInitializingModule {
 		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			beanContextFactory.registerAutowireableBean(IClobObjectService.class, ClobObjectService.class);
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+			beanContextFactory.registerAutowireableBean(IClobObjectService.class,
+					ClobObjectService.class);
 		}
 	}
 
-	protected ClobObject createAndSaveClob(int size)
-	{
+	protected ClobObject createAndSaveClob(int size) {
 		IClobObjectService clobObjectService = beanContext.getService(IClobObjectService.class);
 
 		ClobObject clob = entityFactory.createEntity(ClobObject.class);
@@ -67,8 +65,7 @@ public class ClobTest extends AbstractInformationBusWithPersistenceTest
 		return clob;
 	}
 
-	protected ClobObject createAndSaveClob(char[] content)
-	{
+	protected ClobObject createAndSaveClob(char[] content) {
 		IClobObjectService clobObjectService = beanContext.getService(IClobObjectService.class);
 
 		ClobObject clob = entityFactory.createEntity(ClobObject.class);
@@ -79,8 +76,7 @@ public class ClobTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createClob()
-	{
+	public void createClob() {
 		int clobSize = 1234;
 		ClobObject clob = createAndSaveClob(clobSize);
 
@@ -91,8 +87,7 @@ public class ClobTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void updateClob()
-	{
+	public void updateClob() {
 		IRootCache rootCache = beanContext.getService(IRootCache.class);
 
 		IClobObjectService clobObjectService = beanContext.getService(IClobObjectService.class);
@@ -120,12 +115,12 @@ public class ClobTest extends AbstractInformationBusWithPersistenceTest
 		Assert.assertNotNull("Reloaded clob must be valid", reloadedBlob);
 
 		Assert.assertNotNull("Blob must have been valid", reloadedBlob.getContent());
-		Assert.assertEquals("Blob length must have been correct", newBlobSize, reloadedBlob.getContent().length);
+		Assert.assertEquals("Blob length must have been correct", newBlobSize,
+				reloadedBlob.getContent().length);
 	}
 
 	@Test
-	public void updateClobWithContent()
-	{
+	public void updateClobWithContent() {
 		IRootCache rootCache = beanContext.getService(IRootCache.class);
 
 		IClobObjectService clobObjectService = beanContext.getService(IClobObjectService.class);
@@ -149,12 +144,12 @@ public class ClobTest extends AbstractInformationBusWithPersistenceTest
 		Assert.assertNotNull("Reloaded clob must be valid", reloadedBlob);
 
 		Assert.assertNotNull("Blob must have been valid", reloadedBlob.getContent());
-		Assert.assertArrayEquals("Blob content must have been correct", newContent, reloadedBlob.getContent());
+		Assert.assertArrayEquals("Blob content must have been correct", newContent,
+				reloadedBlob.getContent());
 	}
 
 	@Test
-	public void deleteClob()
-	{
+	public void deleteClob() {
 		IClobObjectService clobObjectService = beanContext.getService(IClobObjectService.class);
 
 		ClobObject clob = createAndSaveClob(1234);

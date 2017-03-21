@@ -56,15 +56,14 @@ import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 @SQLData("alternateid_data.sql")
 @SQLStructure("alternateid_structure.sql")
 @TestModule(AlternateIdModule.class)
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/jdbc/alternateid/alternateid_orm.xml")
-public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest
-{
-	public static class AlternateIdModule implements IInitializingModule
-	{
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/persistence/jdbc/alternateid/alternateid_orm.xml")
+public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest {
+	public static class AlternateIdModule implements IInitializingModule {
 		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			beanContextFactory.registerAutowireableBean(IAlternateIdEntityService.class, AlternateIdEntityService.class);
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+			beanContextFactory.registerAutowireableBean(IAlternateIdEntityService.class,
+					AlternateIdEntityService.class);
 		}
 	}
 
@@ -76,8 +75,7 @@ public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest
 	@Autowired(CacheNamedBeans.CacheProviderSingleton)
 	protected ICacheProvider cacheProvider;
 
-	protected AlternateIdEntity createEntity()
-	{
+	protected AlternateIdEntity createEntity() {
 		AlternateIdEntity aie = entityFactory.createEntity(AlternateIdEntity.class);
 		aie.setName(name);
 
@@ -86,8 +84,7 @@ public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createAlternateIdEntity()
-	{
+	public void createAlternateIdEntity() {
 		AlternateIdEntity aie = createEntity();
 
 		Assert.assertFalse("Wrong id", aie.getId() == 0);
@@ -95,8 +92,7 @@ public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createAlternateIdEntity_emptyAlternateId()
-	{
+	public void createAlternateIdEntity_emptyAlternateId() {
 		AlternateIdEntity aie = entityFactory.createEntity(AlternateIdEntity.class);
 
 		service.updateAlternateIdEntity(aie);
@@ -106,31 +102,30 @@ public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void selectByPrimitive()
-	{
+	public void selectByPrimitive() {
 		String name = createEntity().getName();
 		AlternateIdEntity aieReloaded = service.getAlternateIdEntityByName(name);
 		Assert.assertNotNull("Entity must be valid", aieReloaded);
 	}
 
 	@Test
-	public void alternateIdSimpleRead()
-	{
+	public void alternateIdSimpleRead() {
 		AlternateIdEntity entity = createEntity();
 
 		ICache cache = cacheProvider.getCurrentCache();
 
 		AlternateIdEntity entityFromCacheById = cache.getObject(entity.getClass(), entity.getId());
-		AlternateIdEntity entityFromCacheById2 = cache.getObject(entity.getClass(), "Id", entity.getId());
-		AlternateIdEntity entityFromCacheByName = cache.getObject(entity.getClass(), "Name", entity.getName());
+		AlternateIdEntity entityFromCacheById2 =
+				cache.getObject(entity.getClass(), "Id", entity.getId());
+		AlternateIdEntity entityFromCacheByName =
+				cache.getObject(entity.getClass(), "Name", entity.getName());
 
 		Assert.assertSame(entityFromCacheById, entityFromCacheById2);
 		Assert.assertSame(entityFromCacheById, entityFromCacheByName);
 	}
 
 	@Test
-	public void alternateIdChange()
-	{
+	public void alternateIdChange() {
 		AlternateIdEntity entity = createEntity();
 
 		ICache cache = cacheProvider.getCurrentCache();
@@ -141,42 +136,39 @@ public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest
 
 		service.updateAlternateIdEntity(entity);
 
-		AlternateIdEntity entityFromCacheByIdAfterChange = cache.getObject(entity.getClass(), entity.getId());
+		AlternateIdEntity entityFromCacheByIdAfterChange =
+				cache.getObject(entity.getClass(), entity.getId());
 
 		Assert.assertSame(entityFromCacheById, entityFromCacheByIdAfterChange);
 	}
 
 	@Test
-	public void selectByArray()
-	{
+	public void selectByArray() {
 		String name = createEntity().getName();
 		AlternateIdEntity aieReloaded2 = service.getAlternateIdEntityByNames(name);
 		Assert.assertNotNull("Entity must be valid", aieReloaded2);
 	}
 
 	@Test
-	public void selectByList()
-	{
+	public void selectByList() {
 		String name = createEntity().getName();
-		ArrayList<String> namesList = new ArrayList<String>();
+		ArrayList<String> namesList = new ArrayList<>();
 		namesList.add(name);
 		AlternateIdEntity aieReloaded3 = service.getAlternateIdEntityByNames(namesList);
 		Assert.assertNotNull("Entity must be valid", aieReloaded3);
 	}
 
 	@Test
-	public void selectBySet()
-	{
+	public void selectBySet() {
 		String name = createEntity().getName();
-		HashSet<String> namesSet = new HashSet<String>();
+		HashSet<String> namesSet = new HashSet<>();
 		namesSet.add(name);
 		AlternateIdEntity aieReloaded4 = service.getAlternateIdEntityByNames(namesSet);
 		Assert.assertNotNull("Entity must be valid", aieReloaded4);
 	}
 
 	@Test
-	public void selectListByArray()
-	{
+	public void selectListByArray() {
 		String name = createEntity().getName();
 		List<AlternateIdEntity> list = service.getAlternateIdEntitiesByNamesReturnList(name);
 		Assert.assertNotNull("List must be valid", list);
@@ -185,8 +177,7 @@ public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void selectSetByArray()
-	{
+	public void selectSetByArray() {
 		String name = createEntity().getName();
 		Set<AlternateIdEntity> set = service.getAlternateIdEntitiesByNamesReturnSet(name);
 		Assert.assertNotNull("List must be valid", set);
@@ -195,8 +186,7 @@ public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void selectArrayByArray()
-	{
+	public void selectArrayByArray() {
 		String name = createEntity().getName();
 		AlternateIdEntity[] array = service.getAlternateIdEntitiesByNamesReturnArray(name);
 		Assert.assertNotNull("Array must be valid", array);
@@ -205,19 +195,19 @@ public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	/**
-	 * BaseEntity2 has two unique fields (aka alternate id fields). One of them is a foreign key field and so should not be used as an alternate id field.
+	 * BaseEntity2 has two unique fields (aka alternate id fields). One of them is a foreign key field
+	 * and so should not be used as an alternate id field.
 	 */
 	@Test
-	public void testBaseEntity2()
-	{
-		IEntityMetaData metaData = beanContext.getService(IEntityMetaDataProvider.class).getMetaData(BaseEntity2.class);
+	public void testBaseEntity2() {
+		IEntityMetaData metaData =
+				beanContext.getService(IEntityMetaDataProvider.class).getMetaData(BaseEntity2.class);
 
 		Assert.assertEquals(1, metaData.getAlternateIdMembers().length);
 	}
 
 	@Test
-	public void testLazyValueHolderReferringToAlternateId() throws Throwable
-	{
+	public void testLazyValueHolderReferringToAlternateId() throws Throwable {
 		ICacheFactory cacheFactory = beanContext.getService(ICacheFactory.class);
 		ICacheContext cacheContext = beanContext.getService(ICacheContext.class);
 
@@ -227,35 +217,35 @@ public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest
 
 		aeEntity.setName("AE_1");
 		be2.setName("BE_2");
-		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE, "test"), new IResultingBackgroundWorkerDelegate<Object>()
-		{
-			@Override
-			public Object invoke() throws Throwable
-			{
-				IMergeProcess mergeProcess = beanContext.getService(IMergeProcess.class);
+		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE, "test"),
+				new IResultingBackgroundWorkerDelegate<Object>() {
+					@Override
+					public Object invoke() throws Throwable {
+						IMergeProcess mergeProcess = beanContext.getService(IMergeProcess.class);
 
-				mergeProcess.process(aeEntity, null, null, null);
-				return null;
-			}
-		});
-		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE, "test"), new IResultingBackgroundWorkerDelegate<Object>()
-		{
-			@Override
-			public Object invoke() throws Throwable
-			{
-				IQueryBuilder<AlternateIdEntity> qb = queryBuilderFactory.create(AlternateIdEntity.class);
-				IQuery<AlternateIdEntity> query = qb.build(qb.isEqualTo(qb.property("Id"), qb.value(aeEntity.getId())));
-				IList<AlternateIdEntity> result = query.retrieve();
-				Assert.assertEquals(1, result.size());
-				AlternateIdEntity item = result.get(0);
-				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(AlternateIdEntity.class);
-				int relationIndex = metaData.getIndexByRelationName("BaseEntities2");
-				Assert.assertTrue(!((IObjRefContainer) item).is__Initialized(relationIndex));
-				List<BaseEntity2> baseEntities2 = item.getBaseEntities2();
-				BaseEntity2 baseEntity2 = baseEntities2.get(0);
-				Assert.assertNotNull(baseEntity2);
-				return null;
-			}
-		});
+						mergeProcess.process(aeEntity, null, null, null);
+						return null;
+					}
+				});
+		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE, "test"),
+				new IResultingBackgroundWorkerDelegate<Object>() {
+					@Override
+					public Object invoke() throws Throwable {
+						IQueryBuilder<AlternateIdEntity> qb =
+								queryBuilderFactory.create(AlternateIdEntity.class);
+						IQuery<AlternateIdEntity> query =
+								qb.build(qb.isEqualTo(qb.property("Id"), qb.value(aeEntity.getId())));
+						IList<AlternateIdEntity> result = query.retrieve();
+						Assert.assertEquals(1, result.size());
+						AlternateIdEntity item = result.get(0);
+						IEntityMetaData metaData = entityMetaDataProvider.getMetaData(AlternateIdEntity.class);
+						int relationIndex = metaData.getIndexByRelationName("BaseEntities2");
+						Assert.assertTrue(!((IObjRefContainer) item).is__Initialized(relationIndex));
+						List<BaseEntity2> baseEntities2 = item.getBaseEntities2();
+						BaseEntity2 baseEntity2 = baseEntities2.get(0);
+						Assert.assertNotNull(baseEntity2);
+						return null;
+					}
+				});
 	}
 }

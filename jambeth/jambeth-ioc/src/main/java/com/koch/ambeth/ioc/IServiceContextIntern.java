@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.hierarchy.SearchType;
 
-public interface IServiceContextIntern extends IServiceContext
-{
+public interface IServiceContextIntern extends IServiceContext {
 	void childContextDisposed(IServiceContext childContext);
 
 	Object getDirectBean(String beanName);

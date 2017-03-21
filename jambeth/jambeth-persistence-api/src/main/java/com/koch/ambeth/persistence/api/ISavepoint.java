@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface ISavepoint
-{
+public interface ISavepoint {
 	// handle for a savepoint
 }

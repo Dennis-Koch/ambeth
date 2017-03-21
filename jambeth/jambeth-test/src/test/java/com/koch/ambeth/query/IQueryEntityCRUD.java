@@ -28,8 +28,7 @@ import com.koch.ambeth.util.annotation.Find;
 import com.koch.ambeth.util.annotation.Merge;
 
 @Service(IQueryEntityCRUD.class)
-public interface IQueryEntityCRUD
-{
+public interface IQueryEntityCRUD {
 	@Find(entityType = QueryEntity.class, queryName = "myQuery1")
 	List<QueryEntity> getAllQueryEntities();
 

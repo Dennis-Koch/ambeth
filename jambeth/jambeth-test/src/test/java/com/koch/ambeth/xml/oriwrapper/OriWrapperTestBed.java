@@ -42,29 +42,25 @@ import com.koch.ambeth.transfer.ITestService;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.config.IProperties;
 
-public class OriWrapperTestBed implements IDisposableBean
-{
+public class OriWrapperTestBed implements IDisposableBean {
 	private static final long UTC_2001_01_01_00_00_00 = 978307200000L;
 
 	private static final String TEST_DATA_JAVA = "test.data.OriWrapperTest.%s.java";
 
 	private static final String TEST_DATA_CS = "test.data.OriWrapperTest.%s.cs";
 
-	public static final class TestData
-	{
+	public static final class TestData {
 		public final String xml;
 
 		public final String xmlCS;
 
 		public final Object obj;
 
-		public TestData(String xml, Object obj)
-		{
+		public TestData(String xml, Object obj) {
 			this(xml, xml, obj);
 		}
 
-		public TestData(String xml, String xmlCS, Object obj)
-		{
+		public TestData(String xml, String xmlCS, Object obj) {
 			this.xml = xml;
 			this.xmlCS = xmlCS.replace("Int16N", "Int16").replace("Int32N", "Int32");
 			this.obj = obj;
@@ -86,81 +82,72 @@ public class OriWrapperTestBed implements IDisposableBean
 	protected IProperties properties;
 
 	@Override
-	public void destroy() throws Throwable
-	{
-		if (cache != null)
-		{
+	public void destroy() throws Throwable {
+		if (cache != null) {
 			cache.dispose();
 			cache = null;
 		}
 	}
 
-	public void init()
-	{
+	public void init() {
 		// Test entities have to come from an independent cache
-		if (cache != null)
-		{
+		if (cache != null) {
 			cache.dispose();
 			cache = null;
 		}
 		cache = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
 	}
 
-	public TestData getSimpleEntityTestData()
-	{
+	public TestData getSimpleEntityTestData() {
 		String dataName = "SimpleEntity";
 		String xml = getJavaTestXml(dataName);
 		Object obj = cache.getObject(MaterialGroup.class, "1");
 		return new TestData(xml, obj);
 	}
 
-	public TestData getEntityWithRelationTestData()
-	{
+	public TestData getEntityWithRelationTestData() {
 		String dataName = "EntityWithRelation";
 		String xml = getJavaTestXml(dataName);
 		Object obj = cache.getObject(Material.class, 1);
 		return new TestData(xml, obj);
 	}
 
-	public TestData getMixedArrayTestData()
-	{
+	public TestData getMixedArrayTestData() {
 		String dataName = "MixedArray";
 		String xml = getJavaTestXml(dataName);
 		Object obj = getColletionData();
 		return new TestData(xml, obj);
 	}
 
-	public TestData getMixedListTestData()
-	{
+	public TestData getMixedListTestData() {
 		String dataName = "MixedList";
 		String xml = getJavaTestXml(dataName);
 		Object obj = Arrays.asList(getColletionData());
 		return new TestData(xml, obj);
 	}
 
-	public TestData getMixedLinkedSetTestData()
-	{
+	public TestData getMixedLinkedSetTestData() {
 		// Sets loose the duplicate elements
 		String dataName = "MixedLinkedSet";
 		String xml = getJavaTestXml(dataName);
-		Object obj = new LinkedHashSet<Object>(Arrays.asList(getColletionData()));
+		Object obj = new LinkedHashSet<>(Arrays.asList(getColletionData()));
 		return new TestData(xml, obj);
 	}
 
-	public TestData getServiceDescriptionTestData() throws SecurityException, NoSuchMethodException
-	{
+	public TestData getServiceDescriptionTestData() throws SecurityException, NoSuchMethodException {
 		String dataName = "ServiceDescription";
 		String xml = getJavaTestXml(dataName);
 		String xmlCS = getCsTestXml(dataName);
 
-		Class<?>[] argTypes = { int.class, Material.class, String.class, MaterialGroup.class, Material.class, Date.class };
+		Class<?>[] argTypes =
+				{int.class, Material.class, String.class, MaterialGroup.class, Material.class, Date.class};
 		Method serviceMethod = ITestService.class.getMethod("mixedParamsNoReturn", argTypes);
-		Object obj = SyncToAsyncUtil.createServiceDescription("TestService", serviceMethod, getColletionData());
+		Object obj =
+				SyncToAsyncUtil.createServiceDescription("TestService", serviceMethod, getColletionData());
 		return new TestData(xml, xmlCS, obj);
 	}
 
-	public TestData getCreatedEntityTestData()
-	{
+	public TestData getCreatedEntityTestData() {
 		String dataName = "CreatedEntity";
 		String xml = getJavaTestXml(dataName);
 		String xmlCS = getCsTestXml(dataName);
@@ -174,8 +161,7 @@ public class OriWrapperTestBed implements IDisposableBean
 		return new TestData(xml, xmlCS, obj);
 	}
 
-	public TestData getCreatedChildEntityTestData()
-	{
+	public TestData getCreatedChildEntityTestData() {
 		String dataName = "CreatedChildEntity";
 		String xml = getJavaTestXml(dataName);
 		String xmlCS = xml.replace("\"Object\"", "\"com.koch.ambeth.merge.model.IChangeContainer\"");
@@ -190,8 +176,7 @@ public class OriWrapperTestBed implements IDisposableBean
 		return new TestData(xml, xmlCS, obj);
 	}
 
-	public TestData getCreatedChildEntityTestData2()
-	{
+	public TestData getCreatedChildEntityTestData2() {
 		String dataName = "CreatedChildEntity2";
 		String xml = getJavaTestXml(dataName);
 		String xmlCS = xml.replace("\"Object\"", "\"com.koch.ambeth.merge.model.IChangeContainer\"");
@@ -199,8 +184,7 @@ public class OriWrapperTestBed implements IDisposableBean
 		return new TestData(xml, xmlCS, testData.obj);
 	}
 
-	public TestData getCreatedParentAndChildEntitiesTestData()
-	{
+	public TestData getCreatedParentAndChildEntitiesTestData() {
 		String dataName = "CreatedParentAndChildEntities";
 		String xml = getJavaTestXml(dataName);
 		String xmlCS = getCsTestXml(dataName);
@@ -216,8 +200,7 @@ public class OriWrapperTestBed implements IDisposableBean
 		return new TestData(xml, xmlCS, obj);
 	}
 
-	public TestData getCreatedParentAndChildEntitiesTestData2()
-	{
+	public TestData getCreatedParentAndChildEntitiesTestData2() {
 		String dataName = "CreatedParentAndChildEntities2";
 		String xml = getJavaTestXml(dataName);
 		String xmlCS = getCsTestXml(dataName);
@@ -225,8 +208,7 @@ public class OriWrapperTestBed implements IDisposableBean
 		return new TestData(xml, xmlCS, testData.obj);
 	}
 
-	public TestData getCreatedParentAndChildEntitiesInListTestData()
-	{
+	public TestData getCreatedParentAndChildEntitiesInListTestData() {
 		String dataName = "CreatedParentAndChildEntitiesInList";
 		String xml = getJavaTestXml(dataName);
 		String xmlCS = getCsTestXml(dataName);
@@ -245,8 +227,7 @@ public class OriWrapperTestBed implements IDisposableBean
 		return new TestData(xml, xmlCS, obj);
 	}
 
-	public TestData getCreatedParentAndChildEntitiesInListTestData2()
-	{
+	public TestData getCreatedParentAndChildEntitiesInListTestData2() {
 		String dataName = "CreatedParentAndChildEntitiesInList2";
 		String xml = getJavaTestXml(dataName);
 		String xmlCS = getCsTestXml(dataName);
@@ -254,8 +235,7 @@ public class OriWrapperTestBed implements IDisposableBean
 		return new TestData(xml, xmlCS, testData.obj);
 	}
 
-	public TestData getMultipleCreatedEntitiesTestData()
-	{
+	public TestData getMultipleCreatedEntitiesTestData() {
 		String dataName = "MultipleCreatedEntities";
 		String xml = getJavaTestXml(dataName);
 		String xmlCS = getCsTestXml(dataName);
@@ -277,8 +257,7 @@ public class OriWrapperTestBed implements IDisposableBean
 		return new TestData(xml, xmlCS, obj);
 	}
 
-	public TestData getMultipleCreatedEntitiesTestData2()
-	{
+	public TestData getMultipleCreatedEntitiesTestData2() {
 		String dataName = "MultipleCreatedEntities2";
 		String xml = getJavaTestXml(dataName);
 		String xmlCS = getCsTestXml(dataName);
@@ -286,8 +265,7 @@ public class OriWrapperTestBed implements IDisposableBean
 		return new TestData(xml, xmlCS, testData.obj);
 	}
 
-	public TestData getCreatedAndExistingChildrenTestData()
-	{
+	public TestData getCreatedAndExistingChildrenTestData() {
 		String dataName = "CreatedAndExistingChildren";
 		String xml = getJavaTestXml(dataName);
 		String xmlCS = xml.replace("\"Object\"", "\"com.koch.ambeth.merge.model.IChangeContainer\"");
@@ -299,16 +277,14 @@ public class OriWrapperTestBed implements IDisposableBean
 		return new TestData(xml, xmlCS, entityA);
 	}
 
-	public TestData getCreatedAndExistingChildrenTestData2()
-	{
+	public TestData getCreatedAndExistingChildrenTestData2() {
 		String dataName = "CreatedAndExistingChildren2";
 		String xml = getJavaTestXml(dataName);
 		TestData testData = getCreatedAndExistingChildrenTestData();
 		return new TestData(xml, testData.obj);
 	}
 
-	public TestData getUpdatedEntityTestData()
-	{
+	public TestData getUpdatedEntityTestData() {
 		String dataName = "UpdatedEntity";
 		String xml = getJavaTestXml(dataName);
 		String xmlCS = xml.replace("\"Object\"", "\"com.koch.ambeth.merge.model.IChangeContainer\"");
@@ -317,8 +293,7 @@ public class OriWrapperTestBed implements IDisposableBean
 		return new TestData(xml, xmlCS, obj);
 	}
 
-	public TestData getBuidUpdatedEntityTestData()
-	{
+	public TestData getBuidUpdatedEntityTestData() {
 		String dataName = "BuidUpdatedEntity";
 		String xml = getJavaTestXml(dataName);
 		Material obj = cache.getObject(Material.class, 1);
@@ -326,8 +301,7 @@ public class OriWrapperTestBed implements IDisposableBean
 		return new TestData(xml, obj);
 	}
 
-	public TestData getCreatedAndUpdatedEntitiesTestData()
-	{
+	public TestData getCreatedAndUpdatedEntitiesTestData() {
 		String dataName = "CreatedAndUpdatedEntities";
 		String xml = getJavaTestXml(dataName);
 		String xmlCS = getCsTestXml(dataName);
@@ -345,8 +319,7 @@ public class OriWrapperTestBed implements IDisposableBean
 		return new TestData(xml, xmlCS, obj);
 	}
 
-	public TestData getCreatedAndUpdatedEntitiesTestData2()
-	{
+	public TestData getCreatedAndUpdatedEntitiesTestData2() {
 		String dataName = "CreatedAndUpdatedEntities2";
 		String xml = getJavaTestXml(dataName);
 		String xmlCS = getCsTestXml(dataName);
@@ -354,22 +327,19 @@ public class OriWrapperTestBed implements IDisposableBean
 		return new TestData(xml, xmlCS, testData.obj);
 	}
 
-	protected Object[] getColletionData()
-	{
+	protected Object[] getColletionData() {
 		Material material = cache.getObject(Material.class, 1);
 		MaterialGroup materialGroup = cache.getObject(MaterialGroup.class, "1");
 		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 		cal.setTimeInMillis(UTC_2001_01_01_00_00_00);
-		return new Object[] { 3, material, "test", materialGroup, material, cal.getTime() };
+		return new Object[] {3, material, "test", materialGroup, material, cal.getTime()};
 	}
 
-	protected String getJavaTestXml(String dataName)
-	{
+	protected String getJavaTestXml(String dataName) {
 		return properties.getString(String.format(TEST_DATA_JAVA, dataName)).trim();
 	}
 
-	protected String getCsTestXml(String dataName)
-	{
+	protected String getCsTestXml(String dataName) {
 		return properties.getString(String.format(TEST_DATA_CS, dataName)).trim();
 	}
 }

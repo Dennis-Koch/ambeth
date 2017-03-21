@@ -33,17 +33,17 @@ import com.koch.ambeth.query.jdbc.sql.SqlQueryBuilderFactory;
 import com.koch.ambeth.query.jdbc.sql.TableAliasProviderFactory;
 
 @FrameworkModule
-public class SQLQueryModule implements IInitializingModule
-{
+public class SQLQueryModule implements IInitializingModule {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		beanContextFactory.registerBean(SqlQueryBuilderFactory.class).autowireable(IQueryBuilderFactory.class, IQueryBuilderExtensionExtendable.class);
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		beanContextFactory.registerBean(SqlQueryBuilderFactory.class)
+				.autowireable(IQueryBuilderFactory.class, IQueryBuilderExtensionExtendable.class);
 		beanContextFactory.registerBean(ListToSqlUtil.class).autowireable(ListToSqlUtil.class);
-		beanContextFactory.registerBean(TableAliasProviderFactory.class).autowireable(ITableAliasProvider.class);
+		beanContextFactory.registerBean(TableAliasProviderFactory.class)
+				.autowireable(ITableAliasProvider.class);
 	}
 }

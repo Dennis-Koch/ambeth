@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IExceptionHandler
-{
+public interface IExceptionHandler {
 	void handleException(Exception e);
 }

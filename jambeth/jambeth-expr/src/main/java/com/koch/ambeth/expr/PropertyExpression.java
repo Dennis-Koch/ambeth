@@ -27,7 +27,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface PropertyExpression
-{
+public @interface PropertyExpression {
 	String value();
 }

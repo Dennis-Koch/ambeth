@@ -162,7 +162,7 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 			}
 		}
 		else {
-			final ParamHolder<R> ph = new ParamHolder<R>();
+			final ParamHolder<R> ph = new ParamHolder<>();
 			try {
 				EventQueue.invokeAndWait(new Runnable() {
 					@Override
@@ -198,7 +198,7 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 			}
 		}
 		else {
-			final ParamHolder<R> ph = new ParamHolder<R>();
+			final ParamHolder<R> ph = new ParamHolder<>();
 			try {
 				EventQueue.invokeAndWait(new Runnable() {
 					@Override

@@ -33,93 +33,78 @@ import com.koch.ambeth.util.collections.ISet;
 
 import net.sf.cglib.proxy.Enhancer;
 
-public class CgLibUtil implements ICgLibUtil, IDisposableBean
-{
-	public static class ClassReference extends WeakReference<Class<?>>
-	{
+public class CgLibUtil implements ICgLibUtil, IDisposableBean {
+	public static class ClassReference extends WeakReference<Class<?>> {
 		private final String name;
 
-		public ClassReference(Class<?> referent, ReferenceQueue<Class<?>> q, String name)
-		{
+		public ClassReference(Class<?> referent, ReferenceQueue<Class<?>> q, String name) {
 			super(referent, q);
 			this.name = name;
 		}
 
-		public String getName()
-		{
+		public String getName() {
 			return name;
 		}
 	}
 
-	protected final HashMap<String, Boolean> typeToEnhancedMap = new HashMap<String, Boolean>();
+	protected final HashMap<String, Boolean> typeToEnhancedMap = new HashMap<>();
 
-	protected final HashMap<String, ClassReference> typeToOriginalMap = new HashMap<String, ClassReference>();
+	protected final HashMap<String, ClassReference> typeToOriginalMap =
+			new HashMap<>();
 
-	protected final ReferenceQueue<Class<?>> classQueue = new ReferenceQueue<Class<?>>();
+	protected final ReferenceQueue<Class<?>> classQueue = new ReferenceQueue<>();
 
 	protected final Lock tteLock = new ReentrantLock();
 
 	@Override
-	public void destroy() throws Throwable
-	{
+	public void destroy() throws Throwable {
 		tteLock.lock();
-		try
-		{
+		try {
 			typeToEnhancedMap.clear();
 			typeToOriginalMap.clear();
 			checkForCleanup();
 		}
-		finally
-		{
+		finally {
 			tteLock.unlock();
 		}
 	}
 
 	@Override
-	public boolean isEnhanced(Class<?> enhancedClass)
-	{
+	public boolean isEnhanced(Class<?> enhancedClass) {
 		tteLock.lock();
-		try
-		{
+		try {
 			String className = enhancedClass.getName();
 			Boolean enhanced = typeToEnhancedMap.get(className);
-			if (enhanced == null)
-			{
+			if (enhanced == null) {
 
-				enhanced = Boolean.valueOf(Enhancer.isEnhanced(enhancedClass) || Proxy.isProxyClass(enhancedClass)
-				// || ProxyObject.class.isAssignableFrom(enhancedClass)
+				enhanced =
+						Boolean.valueOf(Enhancer.isEnhanced(enhancedClass) || Proxy.isProxyClass(enhancedClass)
+						// || ProxyObject.class.isAssignableFrom(enhancedClass)
 						);
 				typeToEnhancedMap.put(className, enhanced);
 			}
 			return enhanced.booleanValue();
 		}
-		finally
-		{
+		finally {
 			tteLock.unlock();
 		}
 	}
 
 	@Override
-	public Class<?> getOriginalClass(Class<?> enhancedClass)
-	{
+	public Class<?> getOriginalClass(Class<?> enhancedClass) {
 		tteLock.lock();
-		try
-		{
+		try {
 			String className = enhancedClass.getName();
 			ClassReference originalR = typeToOriginalMap.get(className);
 			Class<?> original = null;
-			if (originalR != null)
-			{
+			if (originalR != null) {
 				original = originalR.get();
 			}
-			if (original == null)
-			{
+			if (original == null) {
 				original = enhancedClass;
-				while (isEnhanced(original))
-				{
+				while (isEnhanced(original)) {
 					Class<?> superClass = original.getSuperclass();
-					if (Object.class.equals(superClass))
-					{
+					if (Object.class.equals(superClass)) {
 						original = original.getInterfaces()[0];
 						break;
 					}
@@ -130,38 +115,31 @@ public class CgLibUtil implements ICgLibUtil, IDisposableBean
 			checkForCleanup();
 			return original;
 		}
-		finally
-		{
+		finally {
 			tteLock.unlock();
 		}
 	}
 
 	@Override
-	public Class<?>[] getAllInterfaces(Object obj, Class<?>... additional)
-	{
-		ISet<Class<?>> interfaceSet = new HashSet<Class<?>>();
+	public Class<?>[] getAllInterfaces(Object obj, Class<?>... additional) {
+		ISet<Class<?>> interfaceSet = new HashSet<>();
 		Class<?> currType = obj.getClass();
-		while (currType != null)
-		{
+		while (currType != null) {
 			Class<?>[] interfaces = currType.getInterfaces();
-			for (int a = interfaces.length; a-- > 0;)
-			{
+			for (int a = interfaces.length; a-- > 0;) {
 				interfaceSet.add(interfaces[a]);
 			}
 			currType = currType.getSuperclass();
 		}
-		for (int a = additional.length; a-- > 0;)
-		{
+		for (int a = additional.length; a-- > 0;) {
 			interfaceSet.add(additional[a]);
 		}
 		return interfaceSet.toArray(new Class<?>[interfaceSet.size()]);
 	}
 
-	protected void checkForCleanup()
-	{
+	protected void checkForCleanup() {
 		ClassReference classR;
-		while ((classR = (ClassReference) classQueue.poll()) != null)
-		{
+		while ((classR = (ClassReference) classQueue.poll()) != null) {
 			String name = classR.getName();
 			typeToEnhancedMap.remove(name);
 			typeToOriginalMap.remove(name);

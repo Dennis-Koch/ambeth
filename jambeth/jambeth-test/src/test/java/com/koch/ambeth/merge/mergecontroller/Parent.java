@@ -26,37 +26,31 @@ import java.util.Set;
 import com.koch.ambeth.merge.IEntityFactory;
 import com.koch.ambeth.model.AbstractEntity;
 
-public abstract class Parent extends AbstractEntity
-{
+public abstract class Parent extends AbstractEntity {
 	protected Child child;
 
 	protected String name;
 
 	protected IEntityFactory abc;
 
-	protected Parent(IEntityFactory entityFactory)
-	{
+	protected Parent(IEntityFactory entityFactory) {
 		abc = entityFactory;
 		// Intended blank
 	}
 
-	public Child getChild()
-	{
+	public Child getChild() {
 		return child;
 	}
 
-	public void setChild(Child child)
-	{
+	public void setChild(Child child) {
 		this.child = child;
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 

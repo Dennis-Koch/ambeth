@@ -28,8 +28,7 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ParamChecker;
 
-public class ConnectionShutdownBean implements IInitializingBean, IDisposableBean
-{
+public class ConnectionShutdownBean implements IInitializingBean, IDisposableBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -37,23 +36,19 @@ public class ConnectionShutdownBean implements IInitializingBean, IDisposableBea
 	protected Connection connection;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(connection, "connection");
 	}
 
 	@Override
-	public void destroy() throws Throwable
-	{
-		if (connection != null)
-		{
+	public void destroy() throws Throwable {
+		if (connection != null) {
 			JdbcUtil.close(connection);
 			connection = null;
 		}
 	}
 
-	public void setConnection(Connection connection)
-	{
+	public void setConnection(Connection connection) {
 		this.connection = connection;
 	}
 }

@@ -22,145 +22,116 @@ limitations under the License.
 
 import java.util.List;
 
-public class InterfaceFastList<V>
-{
-	public static class InterfaceFastListAnchor<V> implements IListElem<V>
-	{
+public class InterfaceFastList<V> {
+	public static class InterfaceFastListAnchor<V> implements IListElem<V> {
 		protected IListElem<V> next;
 
 		@Override
-		public Object getListHandle()
-		{
+		public Object getListHandle() {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public void setListHandle(Object listHandle)
-		{
+		public void setListHandle(Object listHandle) {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public IListElem<V> getPrev()
-		{
+		public IListElem<V> getPrev() {
 			return null;
 		}
 
 		@Override
-		public void setPrev(IListElem<V> prev)
-		{
+		public void setPrev(IListElem<V> prev) {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public IListElem<V> getNext()
-		{
+		public IListElem<V> getNext() {
 			return next;
 		}
 
 		@Override
-		public void setNext(IListElem<V> next)
-		{
+		public void setNext(IListElem<V> next) {
 			this.next = next;
 		}
 
 		@Override
-		public V getElemValue()
-		{
+		public V getElemValue() {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public void setElemValue(V value)
-		{
+		public void setElemValue(V value) {
 			throw new UnsupportedOperationException();
 		}
 	}
 
-	private final IListElem<V> anchor = new InterfaceFastListAnchor<V>();
+	private final IListElem<V> anchor = new InterfaceFastListAnchor<>();
 
 	private IListElem<V> last;
 
 	private int size = 0;
 
-	public final boolean isEmpty()
-	{
+	public final boolean isEmpty() {
 		return size == 0;
 	}
 
-	public final void pushAllFrom(InterfaceFastList<V> list)
-	{
-		while (true)
-		{
+	public final void pushAllFrom(InterfaceFastList<V> list) {
+		while (true) {
 			IListElem<V> firstElem = list.popFirst();
-			if (firstElem == null)
-			{
+			if (firstElem == null) {
 				return;
 			}
 			pushLast(firstElem);
 		}
 	}
 
-	public final void pushAllFrom(FastList<V> list)
-	{
-		while (true)
-		{
+	public final void pushAllFrom(FastList<V> list) {
+		while (true) {
 			ListElem<V> firstElem = list.popFirst();
-			if (firstElem == null)
-			{
+			if (firstElem == null) {
 				return;
 			}
 			pushLast(firstElem);
 		}
 	}
 
-	public final void pushAllFrom(List<V> list)
-	{
-		for (int a = 0, size = list.size(); a < size; a++)
-		{
-			pushLast(new InterfaceListElem<V>(list.get(a)));
+	public final void pushAllFrom(List<V> list) {
+		for (int a = 0, size = list.size(); a < size; a++) {
+			pushLast(new InterfaceListElem<>(list.get(a)));
 		}
 	}
 
-	public final void pushAllFrom(IList<IListElem<V>> list)
-	{
-		for (int a = 0, size = list.size(); a < size; a++)
-		{
+	public final void pushAllFrom(IList<IListElem<V>> list) {
+		for (int a = 0, size = list.size(); a < size; a++) {
 			pushLast(list.get(a));
 		}
 	}
 
-	public final void pushLast(final IListElem<V> elem)
-	{
-		if (validateListHandle(elem))
-		{
+	public final void pushLast(final IListElem<V> elem) {
+		if (validateListHandle(elem)) {
 			IListElem<V> elemPrev = elem.getPrev();
 			IListElem<V> elemNext = elem.getNext();
 
-			if (elemPrev != null)
-			{
+			if (elemPrev != null) {
 				elemPrev.setNext(elemNext);
 			}
-			else
-			{
+			else {
 				anchor.setNext(elemNext);
 			}
-			if (elemNext != null)
-			{
+			if (elemNext != null) {
 				elemNext.setPrev(elemPrev);
 			}
-			else
-			{
+			else {
 				last = elemPrev;
 			}
 			elem.setNext(null);
-			if (size > 0)
-			{
+			if (size > 0) {
 				elem.setPrev(last);
 				last.setNext(elem);
 			}
-			else
-			{
+			else {
 				elem.setPrev(null);
 				anchor.setNext(elem);
 			}
@@ -169,13 +140,11 @@ public class InterfaceFastList<V>
 		}
 		elem.setListHandle(this);
 		elem.setNext(null);
-		if (size > 0)
-		{
+		if (size > 0) {
 			elem.setPrev(last);
 			last.setNext(elem);
 		}
-		else
-		{
+		else {
 			elem.setPrev(null);
 			anchor.setNext(elem);
 		}
@@ -183,31 +152,24 @@ public class InterfaceFastList<V>
 		size++;
 	}
 
-	public final void pushFirst(final IListElem<V> elem)
-	{
-		if (validateListHandle(elem))
-		{
-			if (size == 1)
-			{
+	public final void pushFirst(final IListElem<V> elem) {
+		if (validateListHandle(elem)) {
+			if (size == 1) {
 				return;
 			}
 			IListElem<V> elemPrev = elem.getPrev();
 			IListElem<V> elemNext = elem.getNext();
 
-			if (elemPrev != null)
-			{
+			if (elemPrev != null) {
 				elemPrev.setNext(elemNext);
 			}
-			else
-			{
+			else {
 				anchor.setNext(elemNext);
 			}
-			if (elemNext != null)
-			{
+			if (elemNext != null) {
 				elemNext.setPrev(elemPrev);
 			}
-			else
-			{
+			else {
 				last = elemPrev;
 			}
 			IListElem<V> anchorNext = anchor.getNext();
@@ -217,12 +179,10 @@ public class InterfaceFastList<V>
 			anchor.setNext(elem);
 			return;
 		}
-		if (size == 0)
-		{
+		if (size == 0) {
 			pushLast(elem);
 		}
-		else
-		{
+		else {
 			elem.setListHandle(this);
 			IListElem<V> anchorNext = anchor.getNext();
 			elem.setNext(anchorNext);
@@ -233,71 +193,57 @@ public class InterfaceFastList<V>
 		}
 	}
 
-	public final void insertAfter(final IListElem<V> insertElem, final IListElem<V> afterElem)
-	{
-		if (!validateListHandle(afterElem))
-		{
+	public final void insertAfter(final IListElem<V> insertElem, final IListElem<V> afterElem) {
+		if (!validateListHandle(afterElem)) {
 			throw new IllegalArgumentException("'afterElem' is not a member of this list");
 		}
-		if (validateListHandle(insertElem))
-		{
+		if (validateListHandle(insertElem)) {
 			remove(insertElem);
 		}
 		insertElem.setListHandle(this);
 		insertElem.setPrev(afterElem);
 		IListElem<V> afterElemNext = afterElem.getNext();
 		insertElem.setNext(afterElemNext);
-		if (afterElemNext != null)
-		{
+		if (afterElemNext != null) {
 			afterElemNext.setPrev(insertElem);
 		}
-		else
-		{
+		else {
 			last = insertElem;
 		}
 		afterElem.setNext(insertElem);
 		size++;
 	}
 
-	public final void insertBefore(final IListElem<V> insertElem, final IListElem<V> beforeElem)
-	{
-		if (!validateListHandle(beforeElem))
-		{
+	public final void insertBefore(final IListElem<V> insertElem, final IListElem<V> beforeElem) {
+		if (!validateListHandle(beforeElem)) {
 			throw new IllegalArgumentException("'beforeElem' is not a member of this list");
 		}
-		if (validateListHandle(insertElem))
-		{
+		if (validateListHandle(insertElem)) {
 			remove(insertElem);
 		}
 		insertElem.setListHandle(this);
 		insertElem.setNext(beforeElem);
 		IListElem<V> beforeElemPrev = beforeElem.getPrev();
 		insertElem.setPrev(beforeElemPrev);
-		if (beforeElemPrev != null)
-		{
+		if (beforeElemPrev != null) {
 			beforeElemPrev.setNext(insertElem);
 		}
-		else
-		{
+		else {
 			anchor.setNext(insertElem);
 		}
 		beforeElem.setPrev(insertElem);
 		size++;
 	}
 
-	public final IListElem<V> popFirst()
-	{
+	public final IListElem<V> popFirst() {
 		IListElem<V> anchorNext = anchor.getNext();
-		if (anchorNext != null)
-		{
+		if (anchorNext != null) {
 			IListElem<V> anchorNextNext = anchorNext.getNext();
 			anchor.setNext(anchorNextNext);
-			if (anchorNextNext != null)
-			{
+			if (anchorNextNext != null) {
 				anchorNextNext.setPrev(anchor);
 			}
-			else
-			{
+			else {
 				last = null;
 			}
 			size--;
@@ -307,19 +253,15 @@ public class InterfaceFastList<V>
 		return null;
 	}
 
-	public final IListElem<V> popLast()
-	{
-		if (size > 0)
-		{
+	public final IListElem<V> popLast() {
+		if (size > 0) {
 			IListElem<V> elem = last;
 			IListElem<V> lastPrev = elem.getPrev();
-			if (lastPrev != null)
-			{
+			if (lastPrev != null) {
 				lastPrev.setNext(null);
 				last = lastPrev;
 			}
-			else
-			{
+			else {
 				anchor.setNext(null);
 			}
 			size--;
@@ -329,27 +271,22 @@ public class InterfaceFastList<V>
 		return null;
 	}
 
-	public final IListElem<V> first()
-	{
+	public final IListElem<V> first() {
 		return anchor.getNext();
 	}
 
-	public final IListElem<V> last()
-	{
+	public final IListElem<V> last() {
 		return last;
 	}
 
-	public final int size()
-	{
+	public final int size() {
 		return size;
 	}
 
-	public final void clear()
-	{
+	public final void clear() {
 		IListElem<V> pointer = anchor.getNext();
 		anchor.setNext(null);
-		while (pointer != null)
-		{
+		while (pointer != null) {
 			IListElem<V> nextPointer = pointer.getNext();
 			cleanRelationToList(pointer);
 			pointer = nextPointer;
@@ -358,22 +295,19 @@ public class InterfaceFastList<V>
 		last = null;
 	}
 
-	public static final <V> void switchElems(final IListElem<V> elem1, final IListElem<V> elem2)
-	{
+	public static final <V> void switchElems(final IListElem<V> elem1, final IListElem<V> elem2) {
 		V o = elem1.getElemValue();
 		elem1.setElemValue(elem2.getElemValue());
 		elem2.setElemValue(o);
 	}
 
-	public static final <V extends Comparable<V>> void insertOrdered(InterfaceFastList<V> list, IListElem<V> elemToInsert)
-	{
+	public static final <V extends Comparable<V>> void insertOrdered(InterfaceFastList<V> list,
+			IListElem<V> elemToInsert) {
 		V value = elemToInsert.getElemValue();
 		IListElem<V> pointer = list.first();
-		while (pointer != null)
-		{
+		while (pointer != null) {
 			V existingDefEntry = pointer.getElemValue();
-			if (existingDefEntry.compareTo(value) < 0)
-			{
+			if (existingDefEntry.compareTo(value) < 0) {
 				// DefEntry is of higher priority
 				list.insertBefore(elemToInsert, pointer);
 				return;
@@ -384,56 +318,45 @@ public class InterfaceFastList<V>
 		list.pushLast(elemToInsert);
 	}
 
-	protected final boolean validateListHandle(final IListElem<V> elem)
-	{
+	protected final boolean validateListHandle(final IListElem<V> elem) {
 		Object listHandle = elem.getListHandle();
-		if (listHandle == null)
-		{
+		if (listHandle == null) {
 			return false;
 		}
-		if (listHandle != this)
-		{
+		if (listHandle != this) {
 			throw new IllegalArgumentException("'elem' is not a member of this list");
 		}
 		return true;
 	}
 
-	public final void remove(final IListElem<V> elem)
-	{
-		if (!validateListHandle(elem))
-		{
+	public final void remove(final IListElem<V> elem) {
+		if (!validateListHandle(elem)) {
 			return;
 		}
 		IListElem<V> elemPrev = elem.getPrev();
 		IListElem<V> elemNext = elem.getNext();
 
-		if (elemPrev != null)
-		{
+		if (elemPrev != null) {
 			elemPrev.setNext(elemNext);
 		}
-		else
-		{
+		else {
 			anchor.setNext(elemNext);
 		}
-		if (elemNext != null)
-		{
+		if (elemNext != null) {
 			elemNext.setPrev(elemPrev);
 		}
-		else
-		{
+		else {
 			last = elemPrev;
 		}
 		size--;
 		cleanRelationToList(elem);
 	}
 
-	public final boolean hasListElem(final IListElem<V> listElem)
-	{
+	public final boolean hasListElem(final IListElem<V> listElem) {
 		return listElem.getListHandle() == this;
 	}
 
-	protected void cleanRelationToList(final IListElem<V> listElem)
-	{
+	protected void cleanRelationToList(final IListElem<V> listElem) {
 		listElem.setListHandle(null);
 		listElem.setPrev(null);
 		listElem.setNext(null);

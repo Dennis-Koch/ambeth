@@ -24,8 +24,7 @@ import com.koch.ambeth.util.transfer.IServiceToken;
 import com.koch.ambeth.util.transfer.IToken;
 
 // TODO [DataContract(IsReference = true)]
-public class ServiceToken<T> implements IServiceToken<T>
-{
+public class ServiceToken<T> implements IServiceToken<T> {
 
 	// TODO [DataMember]
 	protected IToken token;
@@ -34,25 +33,21 @@ public class ServiceToken<T> implements IServiceToken<T>
 	protected T value;
 
 	@Override
-	public IToken getToken()
-	{
+	public IToken getToken() {
 		return token;
 	}
 
 	@Override
-	public void setToken(IToken token)
-	{
+	public void setToken(IToken token) {
 		this.token = token;
 	}
 
 	@Override
-	public T getValue()
-	{
+	public T getValue() {
 		return value;
 	}
 
-	public void setValue(T value)
-	{
+	public void setValue(T value) {
 		this.value = value;
 	}
 

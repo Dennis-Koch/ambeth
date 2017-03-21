@@ -47,15 +47,14 @@ import com.koch.ambeth.util.collections.IList;
 @SQLData("array_data.sql")
 @SQLStructure("array_structure.sql")
 @TestModule(ArrayTestModule.class)
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/jdbc/array/array_orm.xml")
-public class ArrayTest extends AbstractInformationBusWithPersistenceTest
-{
-	public static class ArrayTestModule implements IInitializingModule
-	{
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/persistence/jdbc/array/array_orm.xml")
+public class ArrayTest extends AbstractInformationBusWithPersistenceTest {
+	public static class ArrayTestModule implements IInitializingModule {
 		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			beanContextFactory.registerAutowireableBean(IArrayObjectService.class, ArrayObjectService.class);
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+			beanContextFactory.registerAutowireableBean(IArrayObjectService.class,
+					ArrayObjectService.class);
 		}
 	}
 
@@ -64,27 +63,23 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	protected ArrayObject arrayObject;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		ParamChecker.assertNotNull(arrayObjectService, "arrayObjectService");
 	}
 
-	public void setArrayObjectService(IArrayObjectService arrayObjectService)
-	{
+	public void setArrayObjectService(IArrayObjectService arrayObjectService) {
 		this.arrayObjectService = arrayObjectService;
 	}
 
 	@Before
-	public void setUp() throws Exception
-	{
+	public void setUp() throws Exception {
 		arrayObject = entityFactory.createEntity(ArrayObject.class);
 	}
 
 	@Test
-	public void createNullArray()
-	{
+	public void createNullArray() {
 		arrayObjectService.updateArrayObject(arrayObject);
 
 		Assert.assertFalse("Wrong id", arrayObject.getId() == 0);
@@ -92,9 +87,8 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createLongArray()
-	{
-		long[] array = new long[] { 10, 8, Long.MIN_VALUE, Long.MAX_VALUE, 0 };
+	public void createLongArray() {
+		long[] array = new long[] {10, 8, Long.MIN_VALUE, Long.MAX_VALUE, 0};
 		arrayObject.setArrayContentLong(array);
 		arrayObjectService.updateArrayObject(arrayObject);
 
@@ -104,9 +98,9 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createLongArray2()
-	{
-		Long[] array = new Long[] { new Long(10), new Long(8), Long.MIN_VALUE, Long.MAX_VALUE, new Long(0) };
+	public void createLongArray2() {
+		Long[] array =
+				new Long[] {new Long(10), new Long(8), Long.MIN_VALUE, Long.MAX_VALUE, new Long(0)};
 		arrayObject.setArrayContentLong2(array);
 		arrayObjectService.updateArrayObject(arrayObject);
 
@@ -116,10 +110,10 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createLongArraySet()
-	{
-		Long[] array = new Long[] { new Long(10), new Long(8), Long.MIN_VALUE, Long.MAX_VALUE, new Long(0) };
-		Set<Long> set = new HashSet<Long>(Arrays.asList(array));
+	public void createLongArraySet() {
+		Long[] array =
+				new Long[] {new Long(10), new Long(8), Long.MIN_VALUE, Long.MAX_VALUE, new Long(0)};
+		Set<Long> set = new HashSet<>(Arrays.asList(array));
 		arrayObject.setSetContentLong(set);
 		arrayObjectService.updateArrayObject(arrayObject);
 
@@ -131,10 +125,10 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createLongArrayList()
-	{
-		Long[] array = new Long[] { new Long(10), new Long(8), Long.MIN_VALUE, Long.MAX_VALUE, new Long(0) };
-		ArrayList<Long> list = new ArrayList<Long>(array);
+	public void createLongArrayList() {
+		Long[] array =
+				new Long[] {new Long(10), new Long(8), Long.MIN_VALUE, Long.MAX_VALUE, new Long(0)};
+		ArrayList<Long> list = new ArrayList<>(array);
 		arrayObject.setListContentLong(list);
 		arrayObjectService.updateArrayObject(arrayObject);
 
@@ -146,10 +140,10 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createLongArrayColl()
-	{
-		Long[] array = new Long[] { new Long(10), new Long(8), Long.MIN_VALUE, Long.MAX_VALUE, new Long(0) };
-		ArrayList<Long> list = new ArrayList<Long>(array);
+	public void createLongArrayColl() {
+		Long[] array =
+				new Long[] {new Long(10), new Long(8), Long.MIN_VALUE, Long.MAX_VALUE, new Long(0)};
+		ArrayList<Long> list = new ArrayList<>(array);
 		arrayObject.setCollContentLong(list);
 		arrayObjectService.updateArrayObject(arrayObject);
 
@@ -160,9 +154,8 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createIntArray()
-	{
-		int[] array = new int[] { 10, 8, Integer.MIN_VALUE, Integer.MAX_VALUE, 0 };
+	public void createIntArray() {
+		int[] array = new int[] {10, 8, Integer.MIN_VALUE, Integer.MAX_VALUE, 0};
 		arrayObject.setArrayContentInt(array);
 		arrayObjectService.updateArrayObject(arrayObject);
 
@@ -172,9 +165,8 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createIntArray2()
-	{
-		Integer[] array = new Integer[] { 10, 8, Integer.MIN_VALUE, Integer.MAX_VALUE, 0 };
+	public void createIntArray2() {
+		Integer[] array = new Integer[] {10, 8, Integer.MIN_VALUE, Integer.MAX_VALUE, 0};
 		arrayObject.setArrayContentInt2(array);
 		arrayObjectService.updateArrayObject(arrayObject);
 
@@ -184,9 +176,8 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createShortArray()
-	{
-		short[] array = new short[] { 10, 8, Short.MIN_VALUE, Short.MAX_VALUE, 0 };
+	public void createShortArray() {
+		short[] array = new short[] {10, 8, Short.MIN_VALUE, Short.MAX_VALUE, 0};
 		arrayObject.setArrayContentShort(array);
 		arrayObjectService.updateArrayObject(arrayObject);
 
@@ -196,9 +187,9 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createShortArray2()
-	{
-		Short[] array = new Short[] { Short.valueOf((short) 10), Short.valueOf((short) 8), Short.MIN_VALUE, Short.MAX_VALUE, Short.valueOf((short) 0) };
+	public void createShortArray2() {
+		Short[] array = new Short[] {Short.valueOf((short) 10), Short.valueOf((short) 8),
+				Short.MIN_VALUE, Short.MAX_VALUE, Short.valueOf((short) 0)};
 		arrayObject.setArrayContentShort2(array);
 		arrayObjectService.updateArrayObject(arrayObject);
 
@@ -208,9 +199,8 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createByteArray()
-	{
-		byte[] array = new byte[] { (byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 100 };
+	public void createByteArray() {
+		byte[] array = new byte[] {(byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 100};
 		arrayObject.setArrayContentByte(array);
 		arrayObjectService.updateArrayObject(arrayObject);
 
@@ -220,9 +210,8 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createByteArray2()
-	{
-		Byte[] array = new Byte[] { (byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 100 };
+	public void createByteArray2() {
+		Byte[] array = new Byte[] {(byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 100};
 		arrayObject.setArrayContentByte2(array);
 		arrayObjectService.updateArrayObject(arrayObject);
 
@@ -232,9 +221,8 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createCharArray()
-	{
-		char[] array = new char[] { 10, 0, Character.MIN_VALUE, Character.MAX_VALUE, 13 };
+	public void createCharArray() {
+		char[] array = new char[] {10, 0, Character.MIN_VALUE, Character.MAX_VALUE, 13};
 		arrayObject.setArrayContentChar(array);
 		arrayObjectService.updateArrayObject(arrayObject);
 
@@ -245,9 +233,8 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 
 	// TODO Character.MAX_VALUE is to big for DB type CHAR (NCHAR works)
 	@Test
-	public void createCharArray2()
-	{
-		Character[] array = new Character[] { 10, 0, Character.MIN_VALUE, Character.MAX_VALUE, 13 };
+	public void createCharArray2() {
+		Character[] array = new Character[] {10, 0, Character.MIN_VALUE, Character.MAX_VALUE, 13};
 		arrayObject.setArrayContentChar2(array);
 		arrayObjectService.updateArrayObject(arrayObject);
 
@@ -257,9 +244,8 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createBooleanArray()
-	{
-		boolean[] array = new boolean[] { true, false, true, true };
+	public void createBooleanArray() {
+		boolean[] array = new boolean[] {true, false, true, true};
 		arrayObject.setArrayContentBool(array);
 		arrayObjectService.updateArrayObject(arrayObject);
 
@@ -269,9 +255,8 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createBooleanArray2()
-	{
-		Boolean[] array = new Boolean[] { true, false, true, true };
+	public void createBooleanArray2() {
+		Boolean[] array = new Boolean[] {true, false, true, true};
 		arrayObject.setArrayContentBool2(array);
 		arrayObjectService.updateArrayObject(arrayObject);
 
@@ -281,17 +266,15 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createDoubleArray()
-	{
-		double[] array = new double[] { 0, 17, 1234567890.0123456789, 0.0000000001 };
+	public void createDoubleArray() {
+		double[] array = new double[] {0, 17, 1234567890.0123456789, 0.0000000001};
 		arrayObject.setArrayContentDouble(array);
 		arrayObjectService.updateArrayObject(arrayObject);
 
 		arrayObject = arrayObjectService.getArrayObject(arrayObject.getId());
 
 		double[] actuals = arrayObject.getArrayContentDouble();
-		for (int i = 0; i < array.length; i++)
-		{
+		for (int i = 0; i < array.length; i++) {
 			double expected = array[i];
 			double actual = actuals[i];
 			double delta = expected * 10e-15;
@@ -300,17 +283,16 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createDoubleArray2()
-	{
-		Double[] array = new Double[] { new Double(0), new Double(17), 1234567890.0123456789, 0.0000000001 };
+	public void createDoubleArray2() {
+		Double[] array =
+				new Double[] {new Double(0), new Double(17), 1234567890.0123456789, 0.0000000001};
 		arrayObject.setArrayContentDouble2(array);
 		arrayObjectService.updateArrayObject(arrayObject);
 
 		arrayObject = arrayObjectService.getArrayObject(arrayObject.getId());
 
 		Double[] actuals = arrayObject.getArrayContentDouble2();
-		for (int i = 0; i < array.length; i++)
-		{
+		for (int i = 0; i < array.length; i++) {
 			Double expected = array[i];
 			Double actual = actuals[i];
 			Double delta = expected * 10e-15;
@@ -319,9 +301,8 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createFloatArray()
-	{
-		float[] array = new float[] { 0, 17, Float.MAX_VALUE, Float.MIN_VALUE };
+	public void createFloatArray() {
+		float[] array = new float[] {0, 17, Float.MAX_VALUE, Float.MIN_VALUE};
 		arrayObject.setArrayContentFloat(array);
 		arrayObjectService.updateArrayObject(arrayObject);
 
@@ -331,9 +312,8 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createFloatArray2()
-	{
-		Float[] array = new Float[] { new Float(0), new Float(17), Float.MAX_VALUE, Float.MIN_VALUE };
+	public void createFloatArray2() {
+		Float[] array = new Float[] {new Float(0), new Float(17), Float.MAX_VALUE, Float.MIN_VALUE};
 		arrayObject.setArrayContentFloat2(array);
 		arrayObjectService.updateArrayObject(arrayObject);
 
@@ -343,9 +323,8 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createStringArray()
-	{
-		String[] array = new String[] { "Hallo", "was\ngeht.", "\t\n\rhello?" };
+	public void createStringArray() {
+		String[] array = new String[] {"Hallo", "was\ngeht.", "\t\n\rhello?"};
 		arrayObject.setArrayContentString(array);
 		arrayObjectService.updateArrayObject(arrayObject);
 
@@ -355,29 +334,28 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void selectStringArray()
-	{
+	public void selectStringArray() {
 		createStringArray();
 		arrayObject = entityFactory.createEntity(ArrayObject.class);
 		createStringArray();
 
 		IQueryBuilder<ArrayObject> queryBuilder = queryBuilderFactory.create(ArrayObject.class);
-		IQuery<ArrayObject> query = queryBuilder.build(queryBuilder.isIn(queryBuilder.property("ArrayContentString"),
-				queryBuilder.value(Arrays.<String> asList("bla", "hallo")), false));
+		IQuery<ArrayObject> query =
+				queryBuilder.build(queryBuilder.isIn(queryBuilder.property("ArrayContentString"),
+						queryBuilder.value(Arrays.<String>asList("bla", "hallo")), false));
 
 		IList<ArrayObject> result = query.retrieve();
 		Assert.assertEquals(2, result.size());
 	}
 
 	@Test
-	public void updateStringArray()
-	{
-		String[] array = new String[] { "Hallo", "was\ngeht.", "\t\n\rhello?" };
+	public void updateStringArray() {
+		String[] array = new String[] {"Hallo", "was\ngeht.", "\t\n\rhello?"};
 		arrayObject.setArrayContentString(array);
 		arrayObjectService.updateArrayObject(arrayObject);
 		arrayObject = arrayObjectService.getArrayObject(arrayObject.getId());
 
-		array = new String[] { "Hallo2", "was\ngeht.2", "2\t\n\rhello?" };
+		array = new String[] {"Hallo2", "was\ngeht.2", "2\t\n\rhello?"};
 		arrayObject.setArrayContentString(array);
 		arrayObjectService.updateArrayObject(arrayObject);
 		arrayObject = arrayObjectService.getArrayObject(arrayObject.getId());
@@ -386,10 +364,9 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createStringArrayList()
-	{
-		String[] array = new String[] { "Hallo", "was\ngeht.", "\t\n\rhello?" };
-		ArrayList<String> list = new ArrayList<String>(array);
+	public void createStringArrayList() {
+		String[] array = new String[] {"Hallo", "was\ngeht.", "\t\n\rhello?"};
+		ArrayList<String> list = new ArrayList<>(array);
 		arrayObject.setListContentString(list);
 		arrayObjectService.updateArrayObject(arrayObject);
 

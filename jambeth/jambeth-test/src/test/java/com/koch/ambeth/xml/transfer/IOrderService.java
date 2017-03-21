@@ -23,6 +23,5 @@ limitations under the License.
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType(name = "IOrderService")
-public interface IOrderService
-{
+public interface IOrderService {
 }

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ISetEntry<K>
-{
+public interface ISetEntry<K> {
 	int getHash();
 
 	K getKey();

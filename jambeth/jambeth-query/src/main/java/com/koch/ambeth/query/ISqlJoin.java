@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ISqlJoin extends IOperator
-{
+public interface ISqlJoin extends IOperator {
 	IOperand getJoinedColumn();
 
 	String getTableName();

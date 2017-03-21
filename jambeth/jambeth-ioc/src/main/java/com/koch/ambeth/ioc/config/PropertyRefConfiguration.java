@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.util.config.IProperties;
 
-public class PropertyRefConfiguration extends AbstractPropertyConfiguration
-{
+public class PropertyRefConfiguration extends AbstractPropertyConfiguration {
 	protected String propertyName;
 
 	protected String beanName;
@@ -32,9 +31,8 @@ public class PropertyRefConfiguration extends AbstractPropertyConfiguration
 
 	private String fromContext;
 
-	public PropertyRefConfiguration(IBeanConfiguration parentBeanConfiguration, String propertyName, String fromContext, String beanName, boolean optional,
-			IProperties props)
-	{
+	public PropertyRefConfiguration(IBeanConfiguration parentBeanConfiguration, String propertyName,
+			String fromContext, String beanName, boolean optional, IProperties props) {
 		super(parentBeanConfiguration, props);
 		this.propertyName = propertyName;
 		this.fromContext = fromContext;
@@ -43,32 +41,27 @@ public class PropertyRefConfiguration extends AbstractPropertyConfiguration
 	}
 
 	@Override
-	public String getPropertyName()
-	{
+	public String getPropertyName() {
 		return propertyName;
 	}
 
 	@Override
-	public String getFromContext()
-	{
+	public String getFromContext() {
 		return fromContext;
 	}
 
 	@Override
-	public String getBeanName()
-	{
+	public String getBeanName() {
 		return beanName;
 	}
 
 	@Override
-	public boolean isOptional()
-	{
+	public boolean isOptional() {
 		return optional;
 	}
 
 	@Override
-	public Object getValue()
-	{
+	public Object getValue() {
 		return null;
 	}
 }

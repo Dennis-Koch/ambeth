@@ -35,8 +35,7 @@ import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoIntern;
 
-public abstract class AbstractPropertyInfo implements IPropertyInfoIntern, IPrintable
-{
+public abstract class AbstractPropertyInfo implements IPropertyInfoIntern, IPrintable {
 	protected static final Annotation[] EMPTY_ANNOTATIONS = new Annotation[0];
 
 	protected ILinkedMap<Class<? extends Annotation>, Annotation> annotations;
@@ -48,18 +47,15 @@ public abstract class AbstractPropertyInfo implements IPropertyInfoIntern, IPrin
 	protected Class<?> declaringType;
 	protected int modifiers;
 
-	public AbstractPropertyInfo(Class<?> entityType)
-	{
+	public AbstractPropertyInfo(Class<?> entityType) {
 		this(entityType, null);
 	}
 
-	public AbstractPropertyInfo(Class<?> entityType, IThreadLocalObjectCollector objectCollector)
-	{
+	public AbstractPropertyInfo(Class<?> entityType, IThreadLocalObjectCollector objectCollector) {
 		this.entityType = entityType;
 	}
 
-	protected void init(IThreadLocalObjectCollector objectCollector)
-	{
+	protected void init(IThreadLocalObjectCollector objectCollector) {
 		ParamChecker.assertNotNull(entityType, "entityType");
 		ParamChecker.assertNotNull(name, "name");
 		ParamChecker.assertNotNull(declaringType, "declaringType");
@@ -67,71 +63,60 @@ public abstract class AbstractPropertyInfo implements IPropertyInfoIntern, IPrin
 		ParamChecker.assertNotNull(propertyType, "propertyType");
 	}
 
-	protected void putAnnotations(AccessibleObject obj)
-	{
-		if (obj instanceof Method)
-		{
+	protected void putAnnotations(AccessibleObject obj) {
+		if (obj instanceof Method) {
 			Class<?> baseType = ((Method) obj).getDeclaringClass().getSuperclass();
-			Method overriddenMethod = baseType != null ? ReflectUtil.getDeclaredMethod(true, baseType, ((Method) obj).getReturnType(),
-					((Method) obj).getName(), ((Method) obj).getParameterTypes()) : null;
-			if (overriddenMethod != null)
-			{
+			Method overriddenMethod = baseType != null
+					? ReflectUtil.getDeclaredMethod(true, baseType, ((Method) obj).getReturnType(),
+							((Method) obj).getName(), ((Method) obj).getParameterTypes())
+					: null;
+			if (overriddenMethod != null) {
 				putAnnotations(overriddenMethod);
 			}
 		}
 		Annotation[] annotations = obj.getAnnotations();
-		for (Annotation annotation : annotations)
-		{
+		for (Annotation annotation : annotations) {
 			Class<? extends Annotation> type = annotation.annotationType();
-			if (this.annotations == null)
-			{
-				this.annotations = new LinkedHashMap<Class<? extends Annotation>, Annotation>();
+			if (this.annotations == null) {
+				this.annotations = new LinkedHashMap<>();
 			}
 			this.annotations.putIfNotExists(type, annotation);
 		}
 	}
 
 	@Override
-	public Class<?> getEntityType()
-	{
+	public Class<?> getEntityType() {
 		return entityType;
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
 	@Override
-	public int getModifiers()
-	{
+	public int getModifiers() {
 		return modifiers;
 	}
 
 	@Override
-	public Class<?> getPropertyType()
-	{
+	public Class<?> getPropertyType() {
 		return propertyType;
 	}
 
 	@Override
-	public Field getBackingField()
-	{
+	public Field getBackingField() {
 		return backingField;
 	}
 
-	public void refreshAccessors(Class<?> realType)
-	{
+	public void refreshAccessors(Class<?> realType) {
 		// intended blank
 	}
 
 	@Override
-	public Annotation[] getAnnotations()
-	{
+	public Annotation[] getAnnotations() {
 		ILinkedMap<Class<? extends Annotation>, Annotation> annotations = this.annotations;
-		if (annotations == null)
-		{
+		if (annotations == null) {
 			return EMPTY_ANNOTATIONS;
 		}
 		IList<Annotation> values = annotations.values();
@@ -140,56 +125,47 @@ public abstract class AbstractPropertyInfo implements IPropertyInfoIntern, IPrin
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends Annotation> V getAnnotation(Class<V> annotationType)
-	{
+	public <V extends Annotation> V getAnnotation(Class<V> annotationType) {
 		IMap<Class<? extends Annotation>, Annotation> annotations = this.annotations;
-		if (annotations == null)
-		{
+		if (annotations == null) {
 			return null;
 		}
 		return (V) annotations.get(annotationType);
 	}
 
 	@Override
-	public <V extends Annotation> boolean isAnnotationPresent(Class<V> annotationType)
-	{
+	public <V extends Annotation> boolean isAnnotationPresent(Class<V> annotationType) {
 		IMap<Class<? extends Annotation>, Annotation> annotations = this.annotations;
-		if (annotations == null)
-		{
+		if (annotations == null) {
 			return false;
 		}
 		return annotations.containsKey(annotationType);
 	}
 
 	@Override
-	public Class<?> getDeclaringType()
-	{
+	public Class<?> getDeclaringType() {
 		return declaringType;
 	}
 
 	@Override
-	public Class<?> getElementType()
-	{
+	public Class<?> getElementType() {
 		return elementType;
 	}
 
 	@Override
-	public void setElementType(Class<?> elementType)
-	{
+	public void setElementType(Class<?> elementType) {
 		this.elementType = elementType;
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		toString(sb);
 		return sb.toString();
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
+	public void toString(StringBuilder sb) {
 		sb.append(declaringType.getName()).append('.').append(getName());
 	}
 }

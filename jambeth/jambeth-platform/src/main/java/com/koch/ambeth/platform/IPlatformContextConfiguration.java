@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.util.config.IProperties;
 
-public interface IPlatformContextConfiguration
-{
+public interface IPlatformContextConfiguration {
 	IPlatformContextConfiguration addProperties(IProperties... properties);
 
 	IPlatformContextConfiguration addProperties(java.util.Properties... properties);

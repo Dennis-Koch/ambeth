@@ -22,14 +22,11 @@ limitations under the License.
 
 import com.koch.ambeth.util.collections.ArrayList;
 
-public class OrderState extends ArrayList<BeanConfigState>
-{
+public class OrderState extends ArrayList<BeanConfigState> {
 	private int processedIndex = -1;
 
-	public BeanConfigState consumeBeanConfigState()
-	{
-		if (processedIndex + 1 < size())
-		{
+	public BeanConfigState consumeBeanConfigState() {
+		if (processedIndex + 1 < size()) {
 			return get(++processedIndex);
 		}
 		return null;

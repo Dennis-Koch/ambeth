@@ -28,8 +28,7 @@ import com.koch.ambeth.model.MaterialGroup;
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface ITestService
-{
+public interface ITestService {
 	void noParamNoReturn();
 
 	void primitiveParamNoReturn(int param);
@@ -44,7 +43,8 @@ public interface ITestService
 
 	void entityWithRelationParamNoReturn(Material param);
 
-	void mixedParamsNoReturn(int number, Material material1, String text, MaterialGroup materialGroup, Material material2, Date date);
+	void mixedParamsNoReturn(int number, Material material1, String text, MaterialGroup materialGroup,
+			Material material2, Date date);
 
 	int noParamPrimitiveReturn();
 

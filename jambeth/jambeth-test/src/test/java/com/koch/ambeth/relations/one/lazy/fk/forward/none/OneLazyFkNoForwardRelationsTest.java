@@ -36,32 +36,29 @@ import com.koch.ambeth.testutil.TestProperties;
 
 @SQLData("Relations_data.sql")
 @SQLStructure("Relations_structure.sql")
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/relations/one/lazy/fk/forward/none/orm.xml")
-public class OneLazyFkNoForwardRelationsTest extends AbstractRelationsTest
-{
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/relations/one/lazy/fk/forward/none/orm.xml")
+public class OneLazyFkNoForwardRelationsTest extends AbstractRelationsTest {
 	protected static final int ENTITY_A_ID = 11;
 
 	protected static final int ENTITY_B_ID = 1;
 
 	@Test
-	public void testRetrieve()
-	{
+	public void testRetrieve() {
 		EntityB entityB = cache.getObject(EntityB.class, ENTITY_B_ID);
 		assertNotNull(entityB);
 		assertNotNull(entityB.getEntityA());
 	}
 
 	@Test
-	public void testUpdateParent()
-	{
+	public void testUpdateParent() {
 		EntityB entityB = cache.getObject(EntityB.class, ENTITY_B_ID);
 		entityB.setName(entityB.getName() + ".2");
 		relationsService.save(entityB);
 	}
 
 	@Test
-	public void testCreateRelated()
-	{
+	public void testCreateRelated() {
 		EntityB entityB = cache.getObject(EntityB.class, ENTITY_B_ID);
 
 		EntityA entityA = entityFactory.createEntity(EntityA.class);
@@ -76,8 +73,7 @@ public class OneLazyFkNoForwardRelationsTest extends AbstractRelationsTest
 	}
 
 	@Test
-	public void testAddRelated()
-	{
+	public void testAddRelated() {
 		EntityB entityB = cache.getObject(EntityB.class, ENTITY_B_ID);
 
 		EntityA entityA = entityFactory.createEntity(EntityA.class);
@@ -94,8 +90,7 @@ public class OneLazyFkNoForwardRelationsTest extends AbstractRelationsTest
 	}
 
 	@Test
-	public void testRemoveRelated()
-	{
+	public void testRemoveRelated() {
 		EntityB entityB = cache.getObject(EntityB.class, ENTITY_B_ID);
 
 		entityB.setEntityA(null);
@@ -106,8 +101,7 @@ public class OneLazyFkNoForwardRelationsTest extends AbstractRelationsTest
 	}
 
 	@Test
-	public void testDeleteRelated()
-	{
+	public void testDeleteRelated() {
 		EntityB entityB = cache.getObject(EntityB.class, ENTITY_B_ID);
 
 		EntityA entityA = entityB.getEntityA();
@@ -122,8 +116,7 @@ public class OneLazyFkNoForwardRelationsTest extends AbstractRelationsTest
 	}
 
 	@Test
-	public void testDeleteParent()
-	{
+	public void testDeleteParent() {
 		EntityB entityB = cache.getObject(EntityB.class, ENTITY_B_ID);
 
 		EntityA entityA = entityB.getEntityA();
@@ -138,13 +131,13 @@ public class OneLazyFkNoForwardRelationsTest extends AbstractRelationsTest
 	}
 
 	@Test
-	public void testPrefetchLazy()
-	{
+	public void testPrefetchLazy() {
 		EntityB entityB = cache.getObject(EntityB.class, ENTITY_B_ID);
 
 		String propertyName = "EntityA";
 		assertBeforePrefetch(entityB, propertyName);
-		IPrefetchHandle prefetch = beanContext.getService(IPrefetchHelper.class).createPrefetch().add(EntityB.class, propertyName).build();
+		IPrefetchHandle prefetch = beanContext.getService(IPrefetchHelper.class).createPrefetch()
+				.add(EntityB.class, propertyName).build();
 		prefetch.prefetch(entityB);
 
 		assertAfterPrefetch(entityB, propertyName);

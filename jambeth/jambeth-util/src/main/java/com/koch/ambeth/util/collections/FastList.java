@@ -22,43 +22,35 @@ limitations under the License.
 
 import java.util.List;
 
-public class FastList<V>
-{
-	private final ListElem<V> anchor = new ListElem<V>();
+public class FastList<V> {
+	private final ListElem<V> anchor = new ListElem<>();
 
 	private ListElem<V> last;
 
 	private int size = 0;
 
-	public final void pushAllFrom(FastList<V> list)
-	{
+	public final void pushAllFrom(FastList<V> list) {
 		ListElem<V> firstElem = list.popFirst();
 		pushLast(firstElem);
 	}
 
-	public final void pushAllFrom(List<V> list)
-	{
-		for (int a = 0, size = list.size(); a < size; a++)
-		{
-			pushLast(new ListElem<V>(list.get(a)));
+	public final void pushAllFrom(List<V> list) {
+		for (int a = 0, size = list.size(); a < size; a++) {
+			pushLast(new ListElem<>(list.get(a)));
 		}
 	}
 
-	public final void pushLast(final ListElem<V> pointer)
-	{
-		if (validateListHandle(pointer))
-		{
+	public final void pushLast(final ListElem<V> pointer) {
+		if (validateListHandle(pointer)) {
 			remove(pointer);
 		}
 		pointer.setListHandle(this);
 		pointer.setNext(null);
-		if (size > 0)
-		{
+		if (size > 0) {
 			pointer.setPrev(last);
 			last.setNext(pointer);
 		}
-		else
-		{
+		else {
 			pointer.setPrev(null);
 			anchor.setNext(pointer);
 		}
@@ -66,18 +58,14 @@ public class FastList<V>
 		size++;
 	}
 
-	public final void pushFirst(final ListElem<V> pointer)
-	{
-		if (validateListHandle(pointer))
-		{
+	public final void pushFirst(final ListElem<V> pointer) {
+		if (validateListHandle(pointer)) {
 			remove(pointer);
 		}
-		if (size == 0)
-		{
+		if (size == 0) {
 			pushLast(pointer);
 		}
-		else
-		{
+		else {
 			pointer.setListHandle(this);
 			IListElem<V> anchorNext = anchor.getNext();
 			pointer.setNext(anchorNext);
@@ -88,71 +76,57 @@ public class FastList<V>
 		}
 	}
 
-	public final void insertAfter(final ListElem<V> insertElem, final ListElem<V> afterElem)
-	{
-		if (!validateListHandle(afterElem))
-		{
+	public final void insertAfter(final ListElem<V> insertElem, final ListElem<V> afterElem) {
+		if (!validateListHandle(afterElem)) {
 			throw new IllegalArgumentException("'afterElem' is not a member of this list");
 		}
-		if (validateListHandle(insertElem))
-		{
+		if (validateListHandle(insertElem)) {
 			remove(insertElem);
 		}
 		insertElem.setListHandle(this);
 		insertElem.setPrev(afterElem);
 		IListElem<V> afterElemNext = afterElem.getNext();
 		insertElem.setNext(afterElemNext);
-		if (afterElemNext != null)
-		{
+		if (afterElemNext != null) {
 			afterElemNext.setPrev(insertElem);
 		}
-		else
-		{
+		else {
 			last = insertElem;
 		}
 		afterElem.setNext(insertElem);
 		size++;
 	}
 
-	public final void insertBefore(final ListElem<V> insertElem, final ListElem<V> beforeElem)
-	{
-		if (!validateListHandle(beforeElem))
-		{
+	public final void insertBefore(final ListElem<V> insertElem, final ListElem<V> beforeElem) {
+		if (!validateListHandle(beforeElem)) {
 			throw new IllegalArgumentException("'beforeElem' is not a member of this list");
 		}
-		if (validateListHandle(insertElem))
-		{
+		if (validateListHandle(insertElem)) {
 			remove(insertElem);
 		}
 		insertElem.listHandle = this;
 		insertElem.next = beforeElem;
 		ListElem<V> beforeElemPrev = beforeElem.prev;
 		insertElem.prev = beforeElem.prev;
-		if (beforeElemPrev != null)
-		{
+		if (beforeElemPrev != null) {
 			beforeElemPrev.next = insertElem;
 		}
-		else
-		{
+		else {
 			anchor.next = insertElem;
 		}
 		beforeElem.prev = insertElem;
 		size++;
 	}
 
-	public final ListElem<V> popFirst()
-	{
+	public final ListElem<V> popFirst() {
 		ListElem<V> anchorNext = anchor.next;
-		if (anchorNext != null)
-		{
+		if (anchorNext != null) {
 			ListElem<V> anchorNextNext = anchorNext.next;
 			anchor.next = anchorNextNext;
-			if (anchorNextNext != null)
-			{
+			if (anchorNextNext != null) {
 				anchorNextNext.prev = anchor;
 			}
-			else
-			{
+			else {
 				last = null;
 			}
 			size--;
@@ -162,41 +136,33 @@ public class FastList<V>
 		return null;
 	}
 
-	public final V popFirstItem()
-	{
+	public final V popFirstItem() {
 		ListElem<V> elem = popFirst();
-		if (elem == null)
-		{
+		if (elem == null) {
 			return null;
 		}
 		V value = elem.getElemValue();
 		return value;
 	}
 
-	public final V popLastItem()
-	{
+	public final V popLastItem() {
 		ListElem<V> elem = popLast();
-		if (elem == null)
-		{
+		if (elem == null) {
 			return null;
 		}
 		V value = elem.getElemValue();
 		return value;
 	}
 
-	public final ListElem<V> popLast()
-	{
-		if (size > 0)
-		{
+	public final ListElem<V> popLast() {
+		if (size > 0) {
 			ListElem<V> elem = last;
 			ListElem<V> lastPrev = elem.prev;
-			if (lastPrev != null)
-			{
+			if (lastPrev != null) {
 				lastPrev.next = null;
 				last = lastPrev;
 			}
-			else
-			{
+			else {
 				anchor.next = null;
 			}
 			size--;
@@ -206,13 +172,10 @@ public class FastList<V>
 		return null;
 	}
 
-	public final boolean hasValue(V obj)
-	{
+	public final boolean hasValue(V obj) {
 		ListElem<V> pointer = first();
-		while (pointer != null)
-		{
-			if (pointer.getElemValue() == obj)
-			{
+		while (pointer != null) {
+			if (pointer.getElemValue() == obj) {
 				return true;
 			}
 			pointer = pointer.next;
@@ -220,32 +183,26 @@ public class FastList<V>
 		return false;
 	}
 
-	public final ListElem<V> first()
-	{
+	public final ListElem<V> first() {
 		return anchor.next;
 	}
 
-	public final ListElem<V> last()
-	{
+	public final ListElem<V> last() {
 		return last;
 	}
 
-	public final int size()
-	{
+	public final int size() {
 		return size;
 	}
 
-	public final boolean isEmpty()
-	{
+	public final boolean isEmpty() {
 		return size == 0;
 	}
 
-	public final void clear()
-	{
+	public final void clear() {
 		ListElem<V> pointer = anchor.next;
 		anchor.next = null;
-		while (pointer != null)
-		{
+		while (pointer != null) {
 			ListElem<V> nextPointer = pointer.next;
 			cleanRelationToList(pointer);
 			pointer = nextPointer;
@@ -254,35 +211,28 @@ public class FastList<V>
 		last = null;
 	}
 
-	public static final <V> void switchElems(final IListElem<V> elem1, final IListElem<V> elem2)
-	{
+	public static final <V> void switchElems(final IListElem<V> elem1, final IListElem<V> elem2) {
 		V o = elem1.getElemValue();
 		elem1.setElemValue(elem2.getElemValue());
 		elem2.setElemValue(o);
 	}
 
-	protected final boolean validateListHandle(final IListElem<V> elem)
-	{
+	protected final boolean validateListHandle(final IListElem<V> elem) {
 		Object listHandle = elem.getListHandle();
-		if (listHandle == null)
-		{
+		if (listHandle == null) {
 			return false;
 		}
-		if (listHandle != this)
-		{
+		if (listHandle != this) {
 			throw new IllegalArgumentException("'elem' is not a member of this list");
 		}
 		return true;
 	}
 
-	public final void remove(final V obj)
-	{
+	public final void remove(final V obj) {
 		ListElem<V> pointer = first();
-		while (pointer != null)
-		{
+		while (pointer != null) {
 			ListElem<V> nextPointer = pointer.next;
-			if (pointer.getElemValue() == obj)
-			{
+			if (pointer.getElemValue() == obj) {
 				remove(pointer);
 				return;
 			}
@@ -290,42 +240,34 @@ public class FastList<V>
 		}
 	}
 
-	public final void remove(final ListElem<V> elem)
-	{
-		if (!validateListHandle(elem))
-		{
+	public final void remove(final ListElem<V> elem) {
+		if (!validateListHandle(elem)) {
 			return;
 		}
 		ListElem<V> elemPrev = elem.prev;
 		ListElem<V> elemNext = elem.next;
 
-		if (elemPrev != null)
-		{
+		if (elemPrev != null) {
 			elemPrev.next = elemNext;
 		}
-		else
-		{
+		else {
 			anchor.next = elemNext;
 		}
-		if (elemNext != null)
-		{
+		if (elemNext != null) {
 			elemNext.prev = elemPrev;
 		}
-		else
-		{
+		else {
 			last = elemPrev;
 		}
 		size--;
 		cleanRelationToList(elem);
 	}
 
-	public final boolean hasListElem(final ListElem<V> listElem)
-	{
+	public final boolean hasListElem(final ListElem<V> listElem) {
 		return listElem.getListHandle() == this;
 	}
 
-	protected void cleanRelationToList(final ListElem<V> listElem)
-	{
+	protected void cleanRelationToList(final ListElem<V> listElem) {
 		listElem.listHandle = null;
 		listElem.prev = null;
 		listElem.next = null;

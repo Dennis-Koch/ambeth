@@ -36,17 +36,17 @@ import com.koch.ambeth.util.collections.IList;
 
 @SQLData("/com/koch/ambeth/persistence/xml/Relations_data.sql")
 @SQLStructure("/com/koch/ambeth/persistence/xml/Relations_structure.sql")
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/xml/orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/persistence/xml/orm.xml")
 @TestModule(TestServicesModule.class)
-public class QueryBuilderTest extends AbstractInformationBusWithPersistenceTest
-{
+public class QueryBuilderTest extends AbstractInformationBusWithPersistenceTest {
 	@Test
-	public void testComplexQuery()
-	{
+	public void testComplexQuery() {
 		IQueryBuilder<Employee> queryBuilder = queryBuilderFactory.create(Employee.class);
 		String paramName = "myParam";
 
-		IQuery<Employee> query = queryBuilder.build(queryBuilder.isEqualTo(queryBuilder.property("PrimaryProject.Employees.OtherAddresses.Street"),
+		IQuery<Employee> query = queryBuilder.build(queryBuilder.isEqualTo(
+				queryBuilder.property("PrimaryProject.Employees.OtherAddresses.Street"),
 				queryBuilder.valueName(paramName), Boolean.FALSE));
 		IList<Employee> employees = query.param(paramName, "TestStreet").retrieve();
 		Assert.assertNotNull(employees);

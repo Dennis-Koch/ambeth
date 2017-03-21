@@ -25,8 +25,8 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ EmbeddedTypeTest.class, IndependentMetaDataComparisonTest.class, QueryBuilderTest.class, SelectWhereTest.class, ValueObjectTest.class })
-public class AllPersistenceXmlTests
-{
+@SuiteClasses({EmbeddedTypeTest.class, IndependentMetaDataComparisonTest.class,
+		QueryBuilderTest.class, SelectWhereTest.class, ValueObjectTest.class})
+public class AllPersistenceXmlTests {
 
 }

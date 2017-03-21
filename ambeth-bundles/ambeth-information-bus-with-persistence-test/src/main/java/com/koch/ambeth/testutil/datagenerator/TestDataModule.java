@@ -28,8 +28,7 @@ import com.koch.ambeth.testutil.datagenerator.setter.IntegerTestSetter;
 import com.koch.ambeth.testutil.datagenerator.setter.StringTestSetter;
 import com.koch.ambeth.testutil.datagenerator.setter.XmlCalendarTestSetter;
 
-public class TestDataModule implements IInitializingModule
-{
+public class TestDataModule implements IInitializingModule {
 
 	public static final String TEST_DATA_SETTER_STRING = "TestDataSetterString";
 	public static final String TEST_DATA_SETTER_BOOLEAN = "TestDataSetterBoolean";
@@ -38,9 +37,9 @@ public class TestDataModule implements IInitializingModule
 	public static final String TEST_DATA_SETTER_CALENDAR = "TestDataSetterCalendar";
 
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		beanContextFactory.registerAnonymousBean(TestDataGenerator.class).autowireable(ITestDataGenerator.class, ITestSetterExtendable.class);
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		beanContextFactory.registerAnonymousBean(TestDataGenerator.class)
+				.autowireable(ITestDataGenerator.class, ITestSetterExtendable.class);
 
 		beanContextFactory.registerBean(TEST_DATA_SETTER_STRING, StringTestSetter.class);
 		beanContextFactory.link(TEST_DATA_SETTER_STRING).to(ITestSetterExtendable.class);
@@ -54,7 +53,8 @@ public class TestDataModule implements IInitializingModule
 		beanContextFactory.registerBean(TEST_DATA_SETTER_INT, IntegerTestSetter.class);
 		beanContextFactory.link(TEST_DATA_SETTER_INT).to(ITestSetterExtendable.class);
 
-		beanContextFactory.registerBean(TEST_DATA_SETTER_CALENDAR, XmlCalendarTestSetter.class).propertyRefs(TEST_DATA_SETTER_DATE);
+		beanContextFactory.registerBean(TEST_DATA_SETTER_CALENDAR, XmlCalendarTestSetter.class)
+				.propertyRefs(TEST_DATA_SETTER_DATE);
 		beanContextFactory.link(TEST_DATA_SETTER_CALENDAR).to(ITestSetterExtendable.class);
 
 	}

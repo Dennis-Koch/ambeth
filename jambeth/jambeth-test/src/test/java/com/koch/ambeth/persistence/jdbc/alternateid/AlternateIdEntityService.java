@@ -37,8 +37,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 
 @Service(IAlternateIdEntityService.class)
 @PersistenceContext
-public class AlternateIdEntityService implements IAlternateIdEntityService
-{
+public class AlternateIdEntityService implements IAlternateIdEntityService {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -50,71 +49,61 @@ public class AlternateIdEntityService implements IAlternateIdEntityService
 	protected IServiceUtil serviceUtil;
 
 	@Override
-	public AlternateIdEntity getAlternateIdEntityByName(String name)
-	{
+	public AlternateIdEntity getAlternateIdEntityByName(String name) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Collection<AlternateIdEntity> getAlternateIdEntitiesByNamesReturnCollection(String... names)
-	{
+	public Collection<AlternateIdEntity> getAlternateIdEntitiesByNamesReturnCollection(
+			String... names) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public List<AlternateIdEntity> getAlternateIdEntitiesByNamesReturnList(String... names)
-	{
+	public List<AlternateIdEntity> getAlternateIdEntitiesByNamesReturnList(String... names) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Set<AlternateIdEntity> getAlternateIdEntitiesByNamesReturnSet(String... names)
-	{
+	public Set<AlternateIdEntity> getAlternateIdEntitiesByNamesReturnSet(String... names) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public AlternateIdEntity[] getAlternateIdEntitiesByNamesReturnArray(String... names)
-	{
+	public AlternateIdEntity[] getAlternateIdEntitiesByNamesReturnArray(String... names) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public AlternateIdEntity getAlternateIdEntityByNames(Collection<String> names)
-	{
+	public AlternateIdEntity getAlternateIdEntityByNames(Collection<String> names) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public AlternateIdEntity getAlternateIdEntityByNames(List<String> names)
-	{
+	public AlternateIdEntity getAlternateIdEntityByNames(List<String> names) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public AlternateIdEntity getAlternateIdEntityByNames(String... names)
-	{
+	public AlternateIdEntity getAlternateIdEntityByNames(String... names) {
 		throw new UnsupportedOperationException();
 	}
 
-	public void test(String name)
-	{
+	public void test(String name) {
 		ITable aieTable = database.getTableByType(AlternateIdEntity.class);
-		ArrayList<String> names = new ArrayList<String>();
+		ArrayList<String> names = new ArrayList<>();
 		names.add(name);
 		IVersionCursor selectVersion = aieTable.selectVersion("Name", names);
 		System.out.println(selectVersion);
 	}
 
 	@Override
-	public void updateAlternateIdEntity(AlternateIdEntity alternateIdEntity)
-	{
+	public void updateAlternateIdEntity(AlternateIdEntity alternateIdEntity) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void deleteAlternateIdEntity(AlternateIdEntity alternateIdEntity)
-	{
+	public void deleteAlternateIdEntity(AlternateIdEntity alternateIdEntity) {
 		throw new UnsupportedOperationException();
 	}
 }

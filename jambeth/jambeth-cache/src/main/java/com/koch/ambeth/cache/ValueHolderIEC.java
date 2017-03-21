@@ -42,88 +42,74 @@ import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
-public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements IProxyHelper, IInitializingBean
-{
-	public static class ValueHolderContainerEntry
-	{
+public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>>
+		implements IProxyHelper, IInitializingBean {
+	public static class ValueHolderContainerEntry {
 		protected final ValueHolderEntry[] entries;
 
-		public ValueHolderContainerEntry(Class<?> targetType, RelationMember[] members, IBytecodeEnhancer bytecodeEnhancer,
-				IPropertyInfoProvider propertyInfoProvider, IMemberTypeProvider memberTypeProvider)
-		{
+		public ValueHolderContainerEntry(Class<?> targetType, RelationMember[] members,
+				IBytecodeEnhancer bytecodeEnhancer, IPropertyInfoProvider propertyInfoProvider,
+				IMemberTypeProvider memberTypeProvider) {
 			entries = new ValueHolderEntry[members.length];
-			try
-			{
+			try {
 				FieldAccess targetFieldAccess = FieldAccess.get(targetType);
 				MethodAccess targetMethodAccess = MethodAccess.get(targetType);
 
-				for (int relationIndex = members.length; relationIndex-- > 0;)
-				{
+				for (int relationIndex = members.length; relationIndex-- > 0;) {
 					RelationMember member = members[relationIndex];
-					ValueHolderEntry vhEntry = new ValueHolderEntry(targetType, member, targetMethodAccess, targetFieldAccess, bytecodeEnhancer,
-							propertyInfoProvider, memberTypeProvider);
+					ValueHolderEntry vhEntry = new ValueHolderEntry(targetType, member, targetMethodAccess,
+							targetFieldAccess, bytecodeEnhancer, propertyInfoProvider, memberTypeProvider);
 					entries[relationIndex] = vhEntry;
 				}
 			}
-			catch (Throwable e)
-			{
-				throw RuntimeExceptionUtil.mask(e, "Error occured while processing type '" + targetType.getName() + "'");
+			catch (Throwable e) {
+				throw RuntimeExceptionUtil.mask(e,
+						"Error occured while processing type '" + targetType.getName() + "'");
 			}
 		}
 
-		public void setUninitialized(Object obj, int relationIndex, IObjRef[] objRefs)
-		{
+		public void setUninitialized(Object obj, int relationIndex, IObjRef[] objRefs) {
 			entries[relationIndex].setUninitialized(obj, objRefs);
 		}
 
-		public void setInitialized(Object obj, int relationIndex, Object value)
-		{
+		public void setInitialized(Object obj, int relationIndex, Object value) {
 			entries[relationIndex].setInitialized(obj, value);
 		}
 
-		public void setInitPending(Object obj, int relationIndex)
-		{
+		public void setInitPending(Object obj, int relationIndex) {
 			entries[relationIndex].setInitPending(obj);
 		}
 
-		public IObjRef[] getObjRefs(Object obj, int relationIndex)
-		{
+		public IObjRef[] getObjRefs(Object obj, int relationIndex) {
 			return entries[relationIndex].getObjRefs(obj);
 		}
 
-		public void setObjRefs(Object obj, int relationIndex, IObjRef[] objRefs)
-		{
+		public void setObjRefs(Object obj, int relationIndex, IObjRef[] objRefs) {
 			entries[relationIndex].setObjRefs(obj, objRefs);
 		}
 
-		public Object getValueDirect(Object obj, int relationIndex)
-		{
+		public Object getValueDirect(Object obj, int relationIndex) {
 			return entries[relationIndex].getValueDirect(obj);
 		}
 
-		public void setValueDirect(Object obj, int relationIndex, Object value)
-		{
+		public void setValueDirect(Object obj, int relationIndex, Object value) {
 			entries[relationIndex].setInitialized(obj, value);
 		}
 
-		public boolean isInitialized(Object obj, int relationIndex)
-		{
+		public boolean isInitialized(Object obj, int relationIndex) {
 			return ValueHolderState.INIT == getState(obj, relationIndex);
 		}
 
-		public ValueHolderState getState(Object obj, int relationIndex)
-		{
+		public ValueHolderState getState(Object obj, int relationIndex) {
 			return entries[relationIndex].getState(obj);
 		}
 
-		public void setState(Object obj, int relationIndex, ValueHolderState state)
-		{
+		public void setState(Object obj, int relationIndex, ValueHolderState state) {
 			entries[relationIndex].setState(obj, state);
 		}
 	}
 
-	public static abstract class AbstractValueHolderEntry
-	{
+	public static abstract class AbstractValueHolderEntry {
 		public abstract void setObjRefs(Object obj, IObjRef[] objRefs);
 
 		public abstract void setUninitialized(Object obj, IObjRef[] objRefs);
@@ -141,8 +127,7 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 		public abstract void setState(Object obj, ValueHolderState state);
 	}
 
-	public static class ValueHolderEntry extends AbstractValueHolderEntry
-	{
+	public static class ValueHolderEntry extends AbstractValueHolderEntry {
 		protected static final Object[] EMPTY_ARGS = new Object[0];
 
 		protected static final Object[] NULL_ARG = new Object[1];
@@ -157,77 +142,70 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 
 		protected final RelationMember member;
 
-		public ValueHolderEntry(Class<?> targetType, RelationMember member, MethodAccess methodAccess, FieldAccess fieldAccess,
-				IBytecodeEnhancer bytecodeEnhancer, IPropertyInfoProvider propertyInfoProvider, IMemberTypeProvider memberTypeProvider)
-		{
+		public ValueHolderEntry(Class<?> targetType, RelationMember member, MethodAccess methodAccess,
+				FieldAccess fieldAccess, IBytecodeEnhancer bytecodeEnhancer,
+				IPropertyInfoProvider propertyInfoProvider, IMemberTypeProvider memberTypeProvider) {
 			this.member = member;
 			memberName = member.getName();
 			String lastPropertyName = memberName;
 			String prefix = "";
 
-			if (member instanceof IEmbeddedMember)
-			{
+			if (member instanceof IEmbeddedMember) {
 				IEmbeddedMember embeddedMember = (IEmbeddedMember) member;
 				lastPropertyName = embeddedMember.getChildMember().getName();
 
 				prefix = embeddedMember.getMemberPathString() + ".";
 			}
-			state = memberTypeProvider.getMember(targetType, prefix + ValueHolderIEC.getInitializedFieldName(lastPropertyName));
-			objRefs = memberTypeProvider.getMember(targetType, prefix + ValueHolderIEC.getObjRefsFieldName(lastPropertyName));
-			directValue = memberTypeProvider.getMember(targetType, prefix + lastPropertyName + ValueHolderIEC.getNoInitSuffix());
+			state = memberTypeProvider.getMember(targetType,
+					prefix + ValueHolderIEC.getInitializedFieldName(lastPropertyName));
+			objRefs = memberTypeProvider.getMember(targetType,
+					prefix + ValueHolderIEC.getObjRefsFieldName(lastPropertyName));
+			directValue = memberTypeProvider.getMember(targetType,
+					prefix + lastPropertyName + ValueHolderIEC.getNoInitSuffix());
 		}
 
 		@Override
-		public void setObjRefs(Object obj, IObjRef[] objRefs)
-		{
-			if (objRefs != null && objRefs.length == 0)
-			{
+		public void setObjRefs(Object obj, IObjRef[] objRefs) {
+			if (objRefs != null && objRefs.length == 0) {
 				objRefs = ObjRef.EMPTY_ARRAY;
 			}
 			this.objRefs.setValue(obj, objRefs);
 		}
 
 		@Override
-		public void setUninitialized(Object obj, IObjRef[] objRefs)
-		{
+		public void setUninitialized(Object obj, IObjRef[] objRefs) {
 			state.setValue(obj, ValueHolderState.LAZY);
 			this.objRefs.setValue(obj, objRefs);
 			directValue.setValue(obj, null);
 		}
 
 		@Override
-		public void setInitialized(Object obj, Object value)
-		{
+		public void setInitialized(Object obj, Object value) {
 			member.setValue(obj, value);
 		}
 
 		@Override
-		public void setInitPending(Object obj)
-		{
+		public void setInitPending(Object obj) {
 			state.setValue(obj, ValueHolderState.PENDING);
 		}
 
 		@Override
-		public IObjRef[] getObjRefs(Object obj)
-		{
+		public IObjRef[] getObjRefs(Object obj) {
 			return (IObjRef[]) objRefs.getValue(obj, false);
 		}
 
 		@Override
-		public Object getValueDirect(Object obj)
-		{
+		public Object getValueDirect(Object obj) {
 			return directValue.getValue(obj, false);
 		}
 
 		@Override
-		public ValueHolderState getState(Object obj)
-		{
+		public ValueHolderState getState(Object obj) {
 			return (ValueHolderState) state.getValue(obj, false);
 		}
 
 		@Override
-		public void setState(Object obj, ValueHolderState state)
-		{
+		public void setState(Object obj, ValueHolderState state) {
 			this.state.setValue(obj, state);
 		}
 	}
@@ -238,8 +216,10 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 	//
 	// protected final int fieldIndex;
 	//
-	// public ValueHolderFieldAccessEntry(IRelationInfoItem member, FieldAccess fieldAccess, FieldAccess entityFieldAccess,
-	// Map<String, Integer> fieldNameToFieldAccess, Map<String, Integer> fieldNameToEntityFieldAccess, IBytecodeEnhancer bytecodeEnhancer)
+	// public ValueHolderFieldAccessEntry(IRelationInfoItem member, FieldAccess fieldAccess,
+	// FieldAccess entityFieldAccess,
+	// Map<String, Integer> fieldNameToFieldAccess, Map<String, Integer> fieldNameToEntityFieldAccess,
+	// IBytecodeEnhancer bytecodeEnhancer)
 	// {
 	// super(member, fieldAccess, fieldNameToFieldAccess, bytecodeEnhancer);
 	// this.entityFieldAccess = entityFieldAccess;
@@ -283,28 +263,23 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 	// }
 	// }
 
-	public static final String getObjRefsFieldName(String propertyName)
-	{
+	public static final String getObjRefsFieldName(String propertyName) {
 		return propertyName + "$ObjRefs";
 	}
 
-	public static final String getInitializedFieldName(String propertyName)
-	{
+	public static final String getInitializedFieldName(String propertyName) {
 		return propertyName + "$State";
 	}
 
-	public static final String getSetterNameOfRelationPropertyWithNoInit(String propertyName)
-	{
+	public static final String getSetterNameOfRelationPropertyWithNoInit(String propertyName) {
 		return "set" + propertyName + getNoInitSuffix();
 	}
 
-	public static final String getGetterNameOfRelationPropertyWithNoInit(String propertyName)
-	{
+	public static final String getGetterNameOfRelationPropertyWithNoInit(String propertyName) {
 		return "get" + propertyName + getNoInitSuffix();
 	}
 
-	public static final String getNoInitSuffix()
-	{
+	public static final String getNoInitSuffix() {
 		return "$NoInit";
 	}
 
@@ -323,54 +298,46 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 	@Autowired
 	protected IPropertyInfoProvider propertyInfoProvider;
 
-	protected final SmartCopyMap<Class<?>, ValueHolderContainerEntry> typeToVhcEntryMap = new SmartCopyMap<Class<?>, ValueHolderContainerEntry>(0.5f);
+	protected final SmartCopyMap<Class<?>, ValueHolderContainerEntry> typeToVhcEntryMap =
+			new SmartCopyMap<>(0.5f);
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		// Intended blank
 	}
 
-	protected ValueHolderContainerEntry getVhcEntry(Object parentObj)
-	{
-		if (!(parentObj instanceof IObjRefContainer))
-		{
+	protected ValueHolderContainerEntry getVhcEntry(Object parentObj) {
+		if (!(parentObj instanceof IObjRefContainer)) {
 			return null;
 		}
 		return getVhcEntry(parentObj.getClass());
 	}
 
-	public ValueHolderContainerEntry getVhcEntry(Class<?> targetType)
-	{
+	public ValueHolderContainerEntry getVhcEntry(Class<?> targetType) {
 		ValueHolderContainerEntry vhcEntry = typeToVhcEntryMap.get(targetType);
-		if (vhcEntry == null)
-		{
+		if (vhcEntry == null) {
 			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(targetType);
-			vhcEntry = new ValueHolderContainerEntry(targetType, metaData.getRelationMembers(), bytecodeEnhancer, propertyInfoProvider, memberTypeProvider);
+			vhcEntry = new ValueHolderContainerEntry(targetType, metaData.getRelationMembers(),
+					bytecodeEnhancer, propertyInfoProvider, memberTypeProvider);
 			typeToVhcEntryMap.put(targetType, vhcEntry);
 		}
 		return vhcEntry;
 	}
 
 	@Override
-	public Class<?> getRealType(Class<?> type)
-	{
+	public Class<?> getRealType(Class<?> type) {
 		Class<?> realType = get(type);
-		if (realType != null)
-		{
+		if (realType != null) {
 			return realType;
 		}
 		IBytecodeEnhancer bytecodeEnhancer = this.bytecodeEnhancer;
-		if (bytecodeEnhancer != null)
-		{
+		if (bytecodeEnhancer != null) {
 			realType = bytecodeEnhancer.getBaseType(type);
 		}
-		if (realType == null)
-		{
+		if (realType == null) {
 			realType = cgLibUtil.getOriginalClass(type);
 		}
-		if (realType == null)
-		{
+		if (realType == null) {
 			realType = type;
 		}
 		put(type, realType);
@@ -378,32 +345,27 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 	}
 
 	@Override
-	public boolean objectEquals(Object leftObject, Object rightObject)
-	{
-		if (leftObject == null)
-		{
+	public boolean objectEquals(Object leftObject, Object rightObject) {
+		if (leftObject == null) {
 			return rightObject == null;
 		}
-		if (rightObject == null)
-		{
+		if (rightObject == null) {
 			return false;
 		}
-		if (leftObject == rightObject)
-		{
+		if (leftObject == rightObject) {
 			return true;
 		}
 		Class<?> leftType = leftObject.getClass(), rightType = rightObject.getClass();
-		if (!leftType.equals(rightType))
-		{
+		if (!leftType.equals(rightType)) {
 			// Real entity types are not equal
 			return false;
 		}
 		IEntityMetaData leftMetaData = ((IEntityMetaDataHolder) leftObject).get__EntityMetaData();
 		Object leftId = leftMetaData.getIdMember().getValue(leftObject, false);
 		Object rightId = leftMetaData.getIdMember().getValue(rightObject, false);
-		if (leftId == null || rightId == null)
-		{
-			// Entities are never equal with anything beside themselves if they do not have a persistent id
+		if (leftId == null || rightId == null) {
+			// Entities are never equal with anything beside themselves if they do not have a persistent
+			// id
 			return false;
 		}
 		return leftId.equals(rightId);

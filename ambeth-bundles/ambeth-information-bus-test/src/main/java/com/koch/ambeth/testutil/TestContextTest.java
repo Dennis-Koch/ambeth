@@ -27,13 +27,9 @@ import java.io.File;
 
 import org.junit.Test;
 
-import com.koch.ambeth.testutil.AbstractIocTest;
-
-public class TestContextTest extends AbstractIocTest
-{
+public class TestContextTest extends AbstractIocTest {
 	@Test
-	public void testGetContextFileString()
-	{
+	public void testGetContextFileString() {
 		String fileName = "TestContextTest.properties";
 		File contextFile = testContext.getContextFile(fileName);
 		assertNotNull(contextFile);
@@ -41,8 +37,7 @@ public class TestContextTest extends AbstractIocTest
 	}
 
 	@Test
-	public void testGetContextFileStringClass()
-	{
+	public void testGetContextFileStringClass() {
 		String fileName = "TestContextTest.properties";
 		File contextFile = testContext.getContextFile(fileName, TestContextTest.class);
 		assertNotNull(contextFile);

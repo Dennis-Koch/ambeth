@@ -33,11 +33,9 @@ import com.koch.ambeth.testutil.SQLStructure;
  */
 @SQLData("TestSetup_data.sql")
 @SQLStructure("TestSetup_structure.sql")
-public class TestSetupTest extends AbstractInformationBusWithPersistenceTest
-{
+public class TestSetupTest extends AbstractInformationBusWithPersistenceTest {
 	@Test
-	public void testDataSetup()
-	{
+	public void testDataSetup() {
 		assertTrue(true);
 	}
 }

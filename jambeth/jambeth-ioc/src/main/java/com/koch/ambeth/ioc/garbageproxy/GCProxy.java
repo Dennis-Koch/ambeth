@@ -26,18 +26,14 @@ import com.koch.ambeth.ioc.exception.BeanAlreadyDisposedException;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public abstract class GCProxy implements IDisposable
-{
+public abstract class GCProxy implements IDisposable {
 	public static final Method disposeMethod;
 
-	static
-	{
-		try
-		{
+	static {
+		try {
 			disposeMethod = IDisposable.class.getDeclaredMethod("dispose");
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -46,40 +42,33 @@ public abstract class GCProxy implements IDisposable
 
 	protected IDisposable disposable;
 
-	public GCProxy(IDisposable target)
-	{
+	public GCProxy(IDisposable target) {
 		this(target, target);
 	}
 
-	public GCProxy(Object target, IDisposable disposable)
-	{
+	public GCProxy(Object target, IDisposable disposable) {
 		this.target = target;
 		this.disposable = disposable;
 	}
 
 	@Override
-	protected final void finalize() throws Throwable
-	{
+	protected final void finalize() throws Throwable {
 		dispose();
 	}
 
 	@Override
-	public final void dispose()
-	{
+	public final void dispose() {
 		IDisposable disposable = this.disposable;
-		if (disposable != null)
-		{
+		if (disposable != null) {
 			disposable.dispose();
 			this.disposable = null;
 		}
 		target = null;
 	}
 
-	protected final Object resolveTarget()
-	{
+	protected final Object resolveTarget() {
 		Object target = this.target;
-		if (target != null)
-		{
+		if (target != null) {
 			return target;
 		}
 		throw new BeanAlreadyDisposedException(
@@ -87,11 +76,9 @@ public abstract class GCProxy implements IDisposable
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		Object target = this.target;
-		if (target != null)
-		{
+		if (target != null) {
 			return target.toString();
 		}
 		return super.toString();

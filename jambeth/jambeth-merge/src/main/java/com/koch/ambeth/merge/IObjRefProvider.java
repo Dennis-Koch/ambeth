@@ -23,7 +23,6 @@ limitations under the License.
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 
-public interface IObjRefProvider
-{
+public interface IObjRefProvider {
 	IObjRef getORI(Object obj, IEntityMetaData metaData);
 }

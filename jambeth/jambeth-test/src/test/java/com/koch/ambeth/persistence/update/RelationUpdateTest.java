@@ -55,17 +55,17 @@ import com.koch.ambeth.util.collections.IList;
 @SQLData("RelationUpdate_data.sql")
 @SQLStructure("RelationUpdate_structure.sql")
 @TestModule(RelationUpdateTestModule.class)
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/update/orm.xml")
-public class RelationUpdateTest extends AbstractInformationBusWithPersistenceTest
-{
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/persistence/update/orm.xml")
+public class RelationUpdateTest extends AbstractInformationBusWithPersistenceTest {
 
-	public static class RelationUpdateTestModule implements IInitializingModule
-	{
+	public static class RelationUpdateTestModule implements IInitializingModule {
 		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			beanContextFactory.registerBean("entityAService", EntityAService.class).autowireable(IEntityAService.class);
-			beanContextFactory.registerBean("entityCService", EntityCService.class).autowireable(IEntityCService.class);
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+			beanContextFactory.registerBean("entityAService", EntityAService.class)
+					.autowireable(IEntityAService.class);
+			beanContextFactory.registerBean("entityCService", EntityCService.class)
+					.autowireable(IEntityCService.class);
 		}
 	};
 
@@ -76,8 +76,7 @@ public class RelationUpdateTest extends AbstractInformationBusWithPersistenceTes
 	protected IEntityCService entityCService;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		ParamChecker.assertNotNull(cache, "cache");
@@ -85,24 +84,20 @@ public class RelationUpdateTest extends AbstractInformationBusWithPersistenceTes
 		ParamChecker.assertNotNull(entityCService, "entityCService");
 	}
 
-	public void setCache(ICache cache)
-	{
+	public void setCache(ICache cache) {
 		this.cache = cache;
 	}
 
-	public void setEntityAService(IEntityAService entityAService)
-	{
+	public void setEntityAService(IEntityAService entityAService) {
 		this.entityAService = entityAService;
 	}
 
-	public void setEntityCService(IEntityCService entityCService)
-	{
+	public void setEntityCService(IEntityCService entityCService) {
 		this.entityCService = entityCService;
 	}
 
 	@Test
-	public void testSetup() throws Exception
-	{
+	public void testSetup() throws Exception {
 		EntityA entityA = cache.getObject(EntityA.class, 1);
 		assertNotNull(entityA);
 		assertNotNull(entityA.getOther());
@@ -126,8 +121,7 @@ public class RelationUpdateTest extends AbstractInformationBusWithPersistenceTes
 	}
 
 	@Test
-	public void testOneToOneUpdate() throws Exception
-	{
+	public void testOneToOneUpdate() throws Exception {
 		EntityA entityA = cache.getObject(EntityA.class, 1);
 		EntityB entityB3 = cache.getObject(EntityB.class, 13);
 
@@ -147,8 +141,7 @@ public class RelationUpdateTest extends AbstractInformationBusWithPersistenceTes
 	}
 
 	@Test
-	public void testOneToManyUpdate1() throws Exception
-	{
+	public void testOneToManyUpdate1() throws Exception {
 		EntityA entityA = cache.getObject(EntityA.class, 1);
 		EntityC entityC1 = cache.getObject(EntityC.class, 21);
 
@@ -165,8 +158,7 @@ public class RelationUpdateTest extends AbstractInformationBusWithPersistenceTes
 	}
 
 	@Test
-	public void testOneToManyUpdate2() throws Exception
-	{
+	public void testOneToManyUpdate2() throws Exception {
 		EntityA entityA = cache.getObject(EntityA.class, 1);
 
 		assertEquals(3, entityA.getEntityCs().size());
@@ -182,8 +174,7 @@ public class RelationUpdateTest extends AbstractInformationBusWithPersistenceTes
 	}
 
 	@Test
-	public void testManyToOneUpdate() throws Exception
-	{
+	public void testManyToOneUpdate() throws Exception {
 		EntityC entityC = cache.getObject(EntityC.class, 21);
 
 		EntityA entityA = entityC.getOther();
@@ -200,8 +191,7 @@ public class RelationUpdateTest extends AbstractInformationBusWithPersistenceTes
 	}
 
 	@Test
-	public void testRelationsWithNewObjects() throws Exception
-	{
+	public void testRelationsWithNewObjects() throws Exception {
 		EntityA entityA = entityFactory.createEntity(EntityA.class);
 		entityA.setOther(entityFactory.createEntity(EntityB.class));
 		// entityA.setEntityCs(new ArrayList<EntityC>());
@@ -217,23 +207,21 @@ public class RelationUpdateTest extends AbstractInformationBusWithPersistenceTes
 		assertProxyEquals(actualA, actualA.getOther().getOther());
 		List<EntityC> entityCs = actualA.getEntityCs();
 		assertEquals(4, entityCs.size());
-		for (int i = entityCs.size(); i-- > 0;)
-		{
+		for (int i = entityCs.size(); i-- > 0;) {
 			assertProxyEquals(actualA, entityCs.get(i).getOther());
 		}
 	}
 
 	@Test
-	public void testRemoveAndReSetEntityD() throws Exception
-	{
+	public void testRemoveAndReSetEntityD() throws Exception {
 		EntityA entity = cache.getObject(EntityA.class, 1);
 		entityAService.removeAndReSetEntityD(entity);
 	}
 
 	@Test
-	public void testObjRelFromRootCache() throws Exception
-	{
-		int entityCsIndex = entityMetaDataProvider.getMetaData(EntityA.class).getIndexByRelationName("EntityCs");
+	public void testObjRelFromRootCache() throws Exception {
+		int entityCsIndex =
+				entityMetaDataProvider.getMetaData(EntityA.class).getIndexByRelationName("EntityCs");
 		ICacheProvider cacheProvider = beanContext.getService(ICacheProvider.class);
 		ChildCache cache = (ChildCache) cacheProvider.getCurrentCache();
 		EntityA entity = cache.getObject(EntityA.class, 1);
@@ -249,13 +237,13 @@ public class RelationUpdateTest extends AbstractInformationBusWithPersistenceTes
 	}
 
 	@Test
-	public void testObjRelBatchLoad() throws Exception
-	{
+	public void testObjRelBatchLoad() throws Exception {
 		IQueryBuilder<EntityA> qb = queryBuilderFactory.create(EntityA.class);
 		IQuery<EntityA> query = qb.build();
 		IList<EntityA> resultA = query.retrieve();
 		IPrefetchHelper prefetchHelper = beanContext.getService(IPrefetchHelper.class);
-		IPrefetchHandle prefetch = prefetchHelper.createPrefetch().add(EntityA.class, "EntityCs").build();
+		IPrefetchHandle prefetch =
+				prefetchHelper.createPrefetch().add(EntityA.class, "EntityCs").build();
 		prefetch.prefetch(resultA);
 
 	}

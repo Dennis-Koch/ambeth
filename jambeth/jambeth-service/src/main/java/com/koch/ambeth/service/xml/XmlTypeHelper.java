@@ -35,12 +35,11 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-public class XmlTypeHelper implements IXmlTypeHelper
-{
+public class XmlTypeHelper implements IXmlTypeHelper {
 	@LogInstance
 	private ILogger log;
 
-	protected final HashMap<String, Class<?>> xmlNameToType = new HashMap<String, Class<?>>(0.5f);
+	protected final HashMap<String, Class<?>> xmlNameToType = new HashMap<>(0.5f);
 
 	protected final ReentrantLock writeLock = new ReentrantLock();
 
@@ -51,55 +50,44 @@ public class XmlTypeHelper implements IXmlTypeHelper
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Override
-	public String getXmlName(Class<?> valueObjectType)
-	{
+	public String getXmlName(Class<?> valueObjectType) {
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
-		try
-		{
+		try {
 			sb.append(getXmlNamespace(valueObjectType));
-			if (sb.length() > 0)
-			{
+			if (sb.length() > 0) {
 				sb.append('/');
 			}
 			sb.append(getXmlTypeName(valueObjectType));
 
 			return sb.toString();
 		}
-		finally
-		{
+		finally {
 			tlObjectCollector.dispose(sb);
 		}
 	}
 
 	@Override
-	public String getXmlNamespace(Class<?> valueObjectType)
-	{
+	public String getXmlNamespace(Class<?> valueObjectType) {
 		Package voPackage = valueObjectType.getPackage();
 		XmlSchema packageAnnotation = voPackage.getAnnotation(XmlSchema.class);
-		if (packageAnnotation != null)
-		{
+		if (packageAnnotation != null) {
 			return packageAnnotation.namespace();
 		}
-		else if (log.isWarnEnabled())
-		{
+		else if (log.isWarnEnabled()) {
 			log.warn("No 'XmlSchema' annotation found on package '" + voPackage.getName() + "'");
 		}
 		return "";
 	}
 
 	@Override
-	public String getXmlTypeName(Class<?> valueObjectType)
-	{
+	public String getXmlTypeName(Class<?> valueObjectType) {
 		XmlType typeAnnotation = valueObjectType.getAnnotation(XmlType.class);
-		if (typeAnnotation != null)
-		{
+		if (typeAnnotation != null) {
 			return typeAnnotation.name();
 		}
-		else
-		{
-			if (log.isWarnEnabled())
-			{
+		else {
+			if (log.isWarnEnabled()) {
 				log.warn("No 'XmlType' annotation found on class '" + valueObjectType.getName() + "'");
 			}
 			return valueObjectType.getSimpleName();
@@ -107,74 +95,64 @@ public class XmlTypeHelper implements IXmlTypeHelper
 	}
 
 	@Override
-	public Class<?> getType(String xmlName)
-	{
+	public Class<?> getType(String xmlName) {
 		ReentrantLock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			Class<?> type = xmlNameToType.get(xmlName);
-			if (type != null)
-			{
+			if (type != null) {
 				return type;
 			}
 			buildXmlNamesToTypeMap();
 
 			type = xmlNameToType.get(xmlName);
 
-			if (type != null)
-			{
+			if (type != null) {
 				return type;
 			}
-			throw new IllegalArgumentException("One or more of this xml type names are not mappable to an entity type: " + xmlName);
+			throw new IllegalArgumentException(
+					"One or more of this xml type names are not mappable to an entity type: " + xmlName);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public Class<?>[] getTypes(List<String> xmlNames)
-	{
+	public Class<?>[] getTypes(List<String> xmlNames) {
 		Class<?>[] types;
 		ReentrantLock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			types = getTypesIntern(xmlNames);
-			if (types != null)
-			{
+			if (types != null) {
 				return types;
 			}
 			buildXmlNamesToTypeMap();
 
 			types = getTypesIntern(xmlNames);
 
-			if (types == null)
-			{
+			if (types == null) {
 				String unmappables = findUnmappables(xmlNames);
-				throw new IllegalArgumentException("One or more of this xml type names are not mappable to an entity type: " + unmappables);
+				throw new IllegalArgumentException(
+						"One or more of this xml type names are not mappable to an entity type: "
+								+ unmappables);
 			}
 
 			return types;
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
-	protected Class<?>[] getTypesIntern(List<String> xmlNames)
-	{
+	protected Class<?>[] getTypesIntern(List<String> xmlNames) {
 		Class<?>[] types = new Class<?>[xmlNames.size()];
 
-		for (int i = xmlNames.size(); i-- > 0;)
-		{
+		for (int i = xmlNames.size(); i-- > 0;) {
 			String xmlName = xmlNames.get(i);
 			Class<?> type = xmlNameToType.get(xmlName);
-			if (type == null)
-			{
+			if (type == null) {
 				return null;
 			}
 			types[i] = type;
@@ -185,23 +163,19 @@ public class XmlTypeHelper implements IXmlTypeHelper
 
 	/**
 	 * Just for giving a helpful exception message.
-	 * 
-	 * @param xmlNames
-	 *            All xml type names given.
+	 *
+	 * @param xmlNames All xml type names given.
 	 * @return Listing of unresolvable names.
 	 */
-	protected String findUnmappables(List<String> xmlNames)
-	{
+	protected String findUnmappables(List<String> xmlNames) {
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
 		String separator = "";
 
-		for (int i = xmlNames.size(); i-- > 0;)
-		{
+		for (int i = xmlNames.size(); i-- > 0;) {
 			String xmlName = xmlNames.get(i);
 			Class<?> type = xmlNameToType.get(xmlName);
-			if (type != null)
-			{
+			if (type != null) {
 				continue;
 			}
 			sb.append(separator).append(xmlName);
@@ -211,13 +185,11 @@ public class XmlTypeHelper implements IXmlTypeHelper
 		return sb.toString();
 	}
 
-	protected void buildXmlNamesToTypeMap()
-	{
+	protected void buildXmlNamesToTypeMap() {
 		IMap<String, Class<?>> xmlNameToType = this.xmlNameToType;
 		xmlNameToType.clear();
 		IList<Class<?>> mappableEntityTypes = entityMetaDataProvider.findMappableEntityTypes();
-		for (int i = mappableEntityTypes.size(); i-- > 0;)
-		{
+		for (int i = mappableEntityTypes.size(); i-- > 0;) {
 			Class<?> entityType = mappableEntityTypes.get(i);
 			Class<?> valueObjectType = getUniqueValueObjectType(entityType);
 			String xmlName = getXmlName(valueObjectType);
@@ -225,11 +197,10 @@ public class XmlTypeHelper implements IXmlTypeHelper
 		}
 	}
 
-	protected Class<?> getUniqueValueObjectType(Class<?> entityType)
-	{
-		List<Class<?>> targetValueObjectTypes = entityMetaDataProvider.getValueObjectTypesByEntityType(entityType);
-		if (targetValueObjectTypes.size() > 1)
-		{
+	protected Class<?> getUniqueValueObjectType(Class<?> entityType) {
+		List<Class<?>> targetValueObjectTypes =
+				entityMetaDataProvider.getValueObjectTypesByEntityType(entityType);
+		if (targetValueObjectTypes.size() > 1) {
 			throw new IllegalStateException("Entity type '" + entityType.getName()
 					+ "' has more than 1 mapped value type. Autoresolving value type is not possible. Currently this feature is not supported");
 		}

@@ -29,8 +29,7 @@ import com.koch.ambeth.persistence.api.ILink;
 import com.koch.ambeth.persistence.api.ILinkCursor;
 import com.koch.ambeth.persistence.api.ITable;
 
-public class DirectedLink implements IDirectedLink
-{
+public class DirectedLink implements IDirectedLink {
 	@Property
 	protected IDirectedLinkMetaData metaData;
 
@@ -47,80 +46,67 @@ public class DirectedLink implements IDirectedLink
 	protected IDirectedLink reverse;
 
 	@Override
-	public IDirectedLinkMetaData getMetaData()
-	{
+	public IDirectedLinkMetaData getMetaData() {
 		return metaData;
 	}
 
 	@Override
-	public ITable getFromTable()
-	{
+	public ITable getFromTable() {
 		return fromTable;
 	}
 
 	@Override
-	public ITable getToTable()
-	{
+	public ITable getToTable() {
 		return toTable;
 	}
 
 	@Override
-	public ILink getLink()
-	{
+	public ILink getLink() {
 		return link;
 	}
 
 	@Override
-	public IDirectedLink getReverseLink()
-	{
+	public IDirectedLink getReverseLink() {
 		return reverse;
 	}
 
 	@Override
-	public ILinkCursor findLinked(Object fromId)
-	{
+	public ILinkCursor findLinked(Object fromId) {
 		return link.findLinked(this, fromId);
 	}
 
 	@Override
-	public ILinkCursor findLinkedTo(Object toId)
-	{
+	public ILinkCursor findLinkedTo(Object toId) {
 		return link.findLinkedTo(getReverseLink(), toId);
 	}
 
 	@Override
-	public ILinkCursor findAllLinked(List<?> fromIds)
-	{
+	public ILinkCursor findAllLinked(List<?> fromIds) {
 		return link.findAllLinked(this, fromIds);
 	}
 
 	@Override
-	public void linkIds(Object fromId, List<?> toIds)
-	{
+	public void linkIds(Object fromId, List<?> toIds) {
 		link.linkIds(this, fromId, toIds);
 	}
 
 	@Override
-	public void updateLink(Object fromId, Object toId)
-	{
+	public void updateLink(Object fromId, Object toId) {
 		link.updateLink(this, fromId, toId);
 	}
 
 	@Override
-	public void unlinkIds(Object fromId, List<?> toIds)
-	{
+	public void unlinkIds(Object fromId, List<?> toIds) {
 		link.unlinkIds(this, fromId, toIds);
 	}
 
 	@Override
-	public void unlinkAllIds(Object fromId)
-	{
+	public void unlinkAllIds(Object fromId) {
 		link.unlinkAllIds(this, fromId);
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return "DirectedLink: " + getMetaData().getName();
 	}
 }

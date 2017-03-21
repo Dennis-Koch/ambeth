@@ -27,8 +27,7 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ParamChecker;
 
-public class BusinessService implements IBusinessService, IInitializingBean
-{
+public class BusinessService implements IBusinessService, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -36,19 +35,16 @@ public class BusinessService implements IBusinessService, IInitializingBean
 	protected IEmployeeService employeeService;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(employeeService, "employeeService");
 	}
 
-	public void setEmployeeService(IEmployeeService employeeService)
-	{
+	public void setEmployeeService(IEmployeeService employeeService) {
 		this.employeeService = employeeService;
 	}
 
 	@Override
-	public List<Employee> retrieve(List<String> names)
-	{
+	public List<Employee> retrieve(List<String> names) {
 		return employeeService.retrieve(names);
 	}
 }

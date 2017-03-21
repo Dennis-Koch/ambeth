@@ -25,8 +25,7 @@ import java.io.InputStream;
 
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class BinaryToStringInputStream implements IStringInputStream
-{
+public class BinaryToStringInputStream implements IStringInputStream {
 	private final byte[] buffer = new byte[64];
 
 	private int bufferCurrIndex = -2;
@@ -43,70 +42,58 @@ public class BinaryToStringInputStream implements IStringInputStream
 
 	private boolean sbActive;
 
-	public BinaryToStringInputStream(InputStream is)
-	{
+	public BinaryToStringInputStream(InputStream is) {
 		this.is = is;
 	}
 
 	@Override
-	public void close() throws IOException
-	{
+	public void close() throws IOException {
 		is.close();
 	}
 
 	@Override
-	public boolean hasString()
-	{
-		while (!hasValue)
-		{
-			if (bufferEndIndex == -1)
-			{
+	public boolean hasString() {
+		while (!hasValue) {
+			if (bufferEndIndex == -1) {
 				return false;
 			}
-			if (bufferCurrIndex == bufferEndIndex)
-			{
+			if (bufferCurrIndex == bufferEndIndex) {
 				int length;
-				try
-				{
+				try {
 					length = is.read(buffer, 0, buffer.length);
 				}
-				catch (IOException e)
-				{
+				catch (IOException e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 				bufferCurrIndex = 0;
 				bufferEndIndex = length;
 			}
-			while (bufferCurrIndex < bufferEndIndex)
-			{
+			while (bufferCurrIndex < bufferEndIndex) {
 				byte oneByte = buffer[bufferCurrIndex];
-				if (!sbActive)
-				{
-					if (oneByte == StringToBinaryInputStream.NULL_STRING_BYTE)
-					{
+				if (!sbActive) {
+					if (oneByte == StringToBinaryInputStream.NULL_STRING_BYTE) {
 						value = null;
 						hasValue = true;
 						bufferCurrIndex++;
 						break;
 					}
-					else if (oneByte == StringToBinaryInputStream.VALID_STRING_BYTE)
-					{
+					else if (oneByte == StringToBinaryInputStream.VALID_STRING_BYTE) {
 						sbActive = true;
 						bufferCurrIndex++;
 						continue;
 					}
-					else
-					{
+					else {
 						throw new IllegalStateException("Illegal byte");
 					}
 				}
-				if (oneByte == StringToBinaryInputStream.NULL_STRING_BYTE || oneByte == StringToBinaryInputStream.VALID_STRING_BYTE)
-				{
+				if (oneByte == StringToBinaryInputStream.NULL_STRING_BYTE
+						|| oneByte == StringToBinaryInputStream.VALID_STRING_BYTE) {
 					value = sb.length() > 0 ? sb.toString() : "";
 					hasValue = true;
 					sb.setLength(0);
 					sbActive = false;
-					// Do NOT move the buffer index, because we did not yet consume the current header but instead finished the previously read valid
+					// Do NOT move the buffer index, because we did not yet consume the current header but
+					// instead finished the previously read valid
 					// string
 					break;
 				}
@@ -118,10 +105,8 @@ public class BinaryToStringInputStream implements IStringInputStream
 	}
 
 	@Override
-	public String readString()
-	{
-		if (!hasValue)
-		{
+	public String readString() {
+		if (!hasValue) {
 			throw new IllegalStateException("Not allowed");
 		}
 		hasValue = false;

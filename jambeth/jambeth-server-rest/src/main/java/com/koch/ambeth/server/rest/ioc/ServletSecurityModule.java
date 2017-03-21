@@ -28,16 +28,15 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.security.IAuthorizationChangeListenerExtendable;
 import com.koch.ambeth.server.rest.ServletAuthorizationChangeListener;
 
-public class ServletSecurityModule implements IInitializingModule
-{
+public class ServletSecurityModule implements IInitializingModule {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		IBeanConfiguration bean = beanContextFactory.registerBean(ServletAuthorizationChangeListener.class);
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		IBeanConfiguration bean =
+				beanContextFactory.registerBean(ServletAuthorizationChangeListener.class);
 		beanContextFactory.link(bean).to(IAuthorizationChangeListenerExtendable.class).optional();
 	}
 }

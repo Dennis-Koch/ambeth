@@ -27,8 +27,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
-import com.koch.ambeth.query.IQuery;
-import com.koch.ambeth.query.IQueryBuilder;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import com.koch.ambeth.testutil.SQLData;
@@ -70,7 +68,7 @@ public class Query10000Test extends AbstractInformationBusWithPersistenceTest {
 		IQuery<QueryEntity> query = qb.build();
 		IList<QueryEntity> result = query.retrieve();
 		Assert.assertEquals(10004, result.size());
-		List<String> names = new ArrayList<String>(result.size());
+		List<String> names = new ArrayList<>(result.size());
 		for (int a = result.size(); a-- > 0;) {
 			names.add(result.get(a).getName1());
 		}

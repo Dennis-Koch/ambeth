@@ -36,8 +36,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
-{
+public class PersistenceHelper implements IPersistenceHelper, IInitializingBean {
 	@Property(name = PersistenceConfigurationConstants.BatchSize, defaultValue = "1000")
 	protected int batchSize;
 
@@ -56,33 +55,29 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 	protected ISqlBuilder sqlBuilder;
 
 	@Override
-	public void afterPropertiesSet()
-	{
-		if (batchSize < 1)
-		{
-			throw new IllegalArgumentException("BatchSize must be >= 1: '" + PersistenceConfigurationConstants.BatchSize + "'");
+	public void afterPropertiesSet() {
+		if (batchSize < 1) {
+			throw new IllegalArgumentException(
+					"BatchSize must be >= 1: '" + PersistenceConfigurationConstants.BatchSize + "'");
 		}
-		if (preparedBatchSize < 1)
-		{
-			throw new IllegalArgumentException("PreparedBatchSize must be >= 1: '" + PersistenceConfigurationConstants.PreparedBatchSize + "'");
+		if (preparedBatchSize < 1) {
+			throw new IllegalArgumentException("PreparedBatchSize must be >= 1: '"
+					+ PersistenceConfigurationConstants.PreparedBatchSize + "'");
 		}
 		maxInClauseBatchThreshold = connectionDialect.getMaxInClauseBatchThreshold();
 	}
 
 	@Override
-	public IList<IList<Object>> splitValues(Collection<?> ids)
-	{
+	public IList<IList<Object>> splitValues(Collection<?> ids) {
 		int currentBatchSize = 0, batchSize = preparedBatchSize;
 
-		IList<IList<Object>> splittedLists = new ArrayList<IList<Object>>(ids.size() / batchSize + 1);
+		IList<IList<Object>> splittedLists = new ArrayList<>(ids.size() / batchSize + 1);
 
 		IList<Object> splitList = null;
 
-		for (Object value : ids)
-		{
-			if (splitList == null || currentBatchSize >= batchSize)
-			{
-				splitList = new ArrayList<Object>(batchSize);
+		for (Object value : ids) {
+			if (splitList == null || currentBatchSize >= batchSize) {
+				splitList = new ArrayList<>(batchSize);
 				splittedLists.add(splitList);
 				currentBatchSize = 0;
 			}
@@ -93,26 +88,23 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 	}
 
 	@Override
-	public IList<IList<Object>> splitValues(List<?> values)
-	{
+	public IList<IList<Object>> splitValues(List<?> values) {
 		return splitValues(values, preparedBatchSize);
 	}
 
 	@Override
-	public IList<IList<Object>> splitValues(List<?> values, int batchSize)
-	{
-		IList<IList<Object>> splittedLists = new ArrayList<IList<Object>>(values.size() / batchSize + 1);
+	public IList<IList<Object>> splitValues(List<?> values, int batchSize) {
+		IList<IList<Object>> splittedLists =
+				new ArrayList<>(values.size() / batchSize + 1);
 
 		int currentBatchSize = 0;
 
 		IList<Object> splitList = null;
 
-		for (int a = 0, size = values.size(); a < size; a++)
-		{
+		for (int a = 0, size = values.size(); a < size; a++) {
 			Object value = values.get(a);
-			if (splitList == null || currentBatchSize >= batchSize)
-			{
-				splitList = new ArrayList<Object>(Math.min(size - a, batchSize));
+			if (splitList == null || currentBatchSize >= batchSize) {
+				splitList = new ArrayList<>(Math.min(size - a, batchSize));
 				splittedLists.add(splitList);
 				currentBatchSize = 0;
 			}
@@ -123,33 +115,26 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 	}
 
 	@Override
-	public IList<String> buildStringListOfValues(List<?> values)
-	{
+	public IList<String> buildStringListOfValues(List<?> values) {
 		AppendableStringBuilder sb = objectCollector.create(AppendableStringBuilder.class);
-		try
-		{
+		try {
 			int currentBatchSize = 0;
-			ArrayList<String> sqlStrings = new ArrayList<String>();
+			ArrayList<String> sqlStrings = new ArrayList<>();
 
 			boolean first = true;
 			Iterator<?> iter = null;
-			try
-			{
+			try {
 				iter = values.iterator();
-				while (iter.hasNext())
-				{
+				while (iter.hasNext()) {
 					Object value = iter.next();
-					if (!first)
-					{
+					if (!first) {
 						sb.append(',');
 					}
-					else
-					{
+					else {
 						first = false;
 					}
 					sqlBuilder.appendValue(value, sb);
-					if (++currentBatchSize >= batchSize)
-					{
+					if (++currentBatchSize >= batchSize) {
 						sqlStrings.add(sb.toString());
 						currentBatchSize = 0;
 						sb.reset();
@@ -157,55 +142,44 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 					}
 				}
 			}
-			finally
-			{
-				if (iter != null)
-				{
+			finally {
+				if (iter != null) {
 					iter = null;
 				}
 			}
-			if (sb.length() > 0)
-			{
+			if (sb.length() > 0) {
 				sqlStrings.add(sb.toString());
 				sb.reset();
 			}
 
 			return sqlStrings;
 		}
-		finally
-		{
+		finally {
 			objectCollector.dispose(sb);
 		}
 	}
 
 	@Override
-	public String buildStringOfValues(List<?> values)
-	{
+	public String buildStringOfValues(List<?> values) {
 		AppendableStringBuilder sb = objectCollector.create(AppendableStringBuilder.class);
-		try
-		{
+		try {
 			return appendStringOfValues(values, sb).toString();
 		}
-		finally
-		{
+		finally {
 			objectCollector.dispose(sb);
 		}
 	}
 
 	@Override
-	public IAppendable appendStringOfValues(List<?> values, IAppendable sb)
-	{
+	public IAppendable appendStringOfValues(List<?> values, IAppendable sb) {
 		boolean first = true;
 
-		for (int a = 0, size = values.size(); a < size; a++)
-		{
+		for (int a = 0, size = values.size(); a < size; a++) {
 			Object value = values.get(a);
-			if (!first)
-			{
+			if (!first) {
 				sb.append(',');
 			}
-			else
-			{
+			else {
 				first = false;
 			}
 			sqlBuilder.appendValue(value, sb);
@@ -214,37 +188,33 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 	}
 
 	@Override
-	public IAppendable appendSplittedValues(String idColumnName, Class<?> fieldType, List<?> ids, List<Object> parameters, IAppendable sb)
-	{
-		if (ids.size() > maxInClauseBatchThreshold)
-		{
-			// TODO: Assumption that array types are always with a length of 4000 here. Should be evaluated by existing data types and their length
+	public IAppendable appendSplittedValues(String idColumnName, Class<?> fieldType, List<?> ids,
+			List<Object> parameters, IAppendable sb) {
+		if (ids.size() > maxInClauseBatchThreshold) {
+			// TODO: Assumption that array types are always with a length of 4000 here. Should be
+			// evaluated by existing data types and their length
 			IList<IList<Object>> splitValues = splitValues(ids, 4000);
 			sqlBuilder.appendName(idColumnName, sb);
 			sb.append(" IN (SELECT COLUMN_VALUE FROM (");
-			for (int a = 0, size = splitValues.size(); a < size; a++)
-			{
+			for (int a = 0, size = splitValues.size(); a < size; a++) {
 				IList<Object> values = splitValues.get(a);
-				if (a > 0)
-				{
-					// A union allows us to suppress the "ROWNUM" column because table(?) will already get materialized without it
+				if (a > 0) {
+					// A union allows us to suppress the "ROWNUM" column because table(?) will already get
+					// materialized without it
 					sb.append(" UNION ");
 				}
-				if (size > 1)
-				{
+				if (size > 1) {
 					sb.append('(');
 				}
 				ArrayQueryItem aqi = new ArrayQueryItem(values.toArray(), fieldType);
 				ParamsUtil.addParam(parameters, aqi);
 				sb.append("SELECT COLUMN_VALUE");
-				if (size < 2)
-				{
+				if (size < 2) {
 					// No union active
 					sb.append(",ROWNUM");
 				}
 				sb.append(" FROM TABLE(?)");
-				if (size > 1)
-				{
+				if (size > 1) {
 					sb.append(')');
 				}
 			}
@@ -252,16 +222,13 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 			return sb;
 		}
 		IList<IList<Object>> splittedIdsList = splitValues(ids);
-		if (splittedIdsList.size() > 1)
-		{
+		if (splittedIdsList.size() > 1) {
 			sb.append('(');
 		}
-		for (int a = 0, size = splittedIdsList.size(); a < size; a++)
-		{
+		for (int a = 0, size = splittedIdsList.size(); a < size; a++) {
 			IList<Object> splittedIds = splittedIdsList.get(a);
 
-			if (a > 0)
-			{
+			if (a > 0) {
 				sb.append(" OR ");
 			}
 			sqlBuilder.appendName(idColumnName, sb);
@@ -269,8 +236,7 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 			connectionDialect.appendListClause(parameters, sb, fieldType, splittedIds);
 
 		}
-		if (splittedIdsList.size() > 1)
-		{
+		if (splittedIdsList.size() > 1) {
 			sb.append(')');
 		}
 		return sb;

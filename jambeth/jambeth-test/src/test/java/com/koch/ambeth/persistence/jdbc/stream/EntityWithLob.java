@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.stream.binary.IBinaryInputSource;
 import com.koch.ambeth.stream.chars.ICharacterInputSource;
 
-public interface EntityWithLob
-{
+public interface EntityWithLob {
 	int getId();
 
 	int getVersion();

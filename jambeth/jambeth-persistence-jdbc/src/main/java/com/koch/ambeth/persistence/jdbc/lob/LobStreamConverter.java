@@ -38,8 +38,7 @@ import com.koch.ambeth.stream.chars.ICharacterInputStream;
 import com.koch.ambeth.util.IDedicatedConverter;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class LobStreamConverter implements IDedicatedConverter
-{
+public class LobStreamConverter implements IDedicatedConverter {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -54,74 +53,58 @@ public class LobStreamConverter implements IDedicatedConverter
 	protected IExtendedConnectionDialect extendedConnectionDialect;
 
 	@Override
-	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value, Object additionalInformation)
-	{
-		try
-		{
-			if (Blob.class.isAssignableFrom(sourceType))
-			{
+	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+			Object additionalInformation) {
+		try {
+			if (Blob.class.isAssignableFrom(sourceType)) {
 				return extendedConnectionDialect.createBinaryInputSource((Blob) value);
 			}
-			else if (Clob.class.isAssignableFrom(sourceType))
-			{
+			else if (Clob.class.isAssignableFrom(sourceType)) {
 				return extendedConnectionDialect.createCharacterInputSource((Clob) value);
 			}
-			else if (IBinaryInputSource.class.isAssignableFrom(sourceType))
-			{
+			else if (IBinaryInputSource.class.isAssignableFrom(sourceType)) {
 				Blob blob = connectionDialect.createBlob(connection);
 				OutputStream os = blob.setBinaryStream(1);
-				try
-				{
+				try {
 					IBinaryInputStream is = ((IBinaryInputSource) value).deriveBinaryInputStream();
-					try
-					{
+					try {
 						int oneByte;
-						while ((oneByte = is.readByte()) != -1)
-						{
+						while ((oneByte = is.readByte()) != -1) {
 							os.write(oneByte);
 						}
 					}
-					finally
-					{
+					finally {
 						is.close();
 					}
 				}
-				finally
-				{
+				finally {
 					os.close();
 				}
 				return blob;
 			}
-			else if (ICharacterInputSource.class.isAssignableFrom(sourceType))
-			{
+			else if (ICharacterInputSource.class.isAssignableFrom(sourceType)) {
 				Clob clob = connectionDialect.createClob(connection);
 				Writer os = clob.setCharacterStream(1);
-				try
-				{
+				try {
 					ICharacterInputStream is = ((ICharacterInputSource) value).deriveCharacterInputStream();
-					try
-					{
+					try {
 						int oneChar;
-						while ((oneChar = is.readChar()) != -1)
-						{
+						while ((oneChar = is.readChar()) != -1) {
 							os.write(oneChar);
 						}
 					}
-					finally
-					{
+					finally {
 						is.close();
 					}
 				}
-				finally
-				{
+				finally {
 					os.close();
 				}
 				return clob;
 			}
 			throw new IllegalStateException("Must never happen");
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

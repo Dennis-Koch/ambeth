@@ -27,7 +27,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface CacheContext
-{
+public @interface CacheContext {
 	CacheType value() default CacheType.DEFAULT;
 }

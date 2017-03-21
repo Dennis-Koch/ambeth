@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.util.collections.ILinkedMap;
 
-public interface IXmlPostProcessorRegistry
-{
+public interface IXmlPostProcessorRegistry {
 	IXmlPostProcessor getXmlPostProcessor(String tagName);
 
 	ILinkedMap<String, IXmlPostProcessor> getXmlPostProcessors();

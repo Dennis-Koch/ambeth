@@ -48,8 +48,7 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
-public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, IDisposableBean
-{
+public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, IDisposableBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -78,47 +77,41 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 	@Autowired(value = IocModule.THREAD_POOL_NAME)
 	protected Executor executor;
 
-	@Property(name = AuditConfigurationConstants.VerifyEntitiesMaxTransactionTime, defaultValue = "30000")
+	@Property(name = AuditConfigurationConstants.VerifyEntitiesMaxTransactionTime,
+			defaultValue = "30000")
 	protected long verifyEntitiesMaxTransactionTime;
 
-	protected final ArrayList<IObjRef> queuedObjRefs = new ArrayList<IObjRef>();
+	protected final ArrayList<IObjRef> queuedObjRefs = new ArrayList<>();
 
 	protected boolean isActive, isDestroyed;
 
 	protected final Lock writeLock = new ReentrantLock();
 
 	@Override
-	public void destroy() throws Throwable
-	{
+	public void destroy() throws Throwable {
 		isDestroyed = true;
 	}
 
 	@Override
-	public void verifyEntitiesAsync(IList<IObjRef> objRefs)
-	{
+	public void verifyEntitiesAsync(IList<IObjRef> objRefs) {
 		writeLock.lock();
-		try
-		{
+		try {
 			queuedObjRefs.addAll(objRefs);
-			if (isActive)
-			{
+			if (isActive) {
 				return;
 			}
 			isActive = true;
 			executor.execute(this);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public void run()
-	{
+	public void run() {
 		final ArrayList<IObjRef> objRefsToVerify = pullObjRefsToVerify();
-		if (objRefsToVerify == null)
-		{
+		if (objRefsToVerify == null) {
 			return;
 		}
 		final long openTransactionUntil = System.currentTimeMillis() + verifyEntitiesMaxTransactionTime;
@@ -126,29 +119,21 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 		Thread currentThread = Thread.currentThread();
 		String oldName = currentThread.getName();
 		currentThread.setName(getClass().getSimpleName());
-		try
-		{
-			reQueue = transaction.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<Boolean>()
-			{
+		try {
+			reQueue = transaction.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<Boolean>() {
 				@Override
-				public Boolean invoke() throws Throwable
-				{
+				public Boolean invoke() throws Throwable {
 					ArrayList<IObjRef> currObjRefsToVerify = objRefsToVerify;
-					while (true)
-					{
-						try
-						{
+					while (true) {
+						try {
 							verifyEntitiesSync(currObjRefsToVerify);
-							if (System.currentTimeMillis() > openTransactionUntil)
-							{
+							if (System.currentTimeMillis() > openTransactionUntil) {
 								return Boolean.TRUE;
 							}
 						}
-						finally
-						{
+						finally {
 							currObjRefsToVerify = pullObjRefsToVerify();
-							if (currObjRefsToVerify == null)
-							{
+							if (currObjRefsToVerify == null) {
 								return Boolean.FALSE;
 							}
 						}
@@ -156,108 +141,85 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 				}
 			});
 		}
-		finally
-		{
-			try
-			{
+		finally {
+			try {
 				threadLocalCleanupController.cleanupThreadLocal();
 			}
-			finally
-			{
+			finally {
 				currentThread.setName(oldName);
 			}
 		}
-		if (Boolean.TRUE.equals(reQueue))
-		{
+		if (Boolean.TRUE.equals(reQueue)) {
 			writeLock.lock();
-			try
-			{
+			try {
 				isActive = true;
 				executor.execute(this);
 			}
-			finally
-			{
+			finally {
 				writeLock.unlock();
 			}
 		}
 	}
 
-	private ArrayList<IObjRef> pullObjRefsToVerify()
-	{
+	private ArrayList<IObjRef> pullObjRefsToVerify() {
 		writeLock.lock();
-		try
-		{
-			if (queuedObjRefs.size() == 0 || isDestroyed)
-			{
+		try {
+			if (queuedObjRefs.size() == 0 || isDestroyed) {
 				isActive = false;
 				return null;
 			}
-			ArrayList<IObjRef> objRefsToVerify = new ArrayList<IObjRef>(queuedObjRefs);
+			ArrayList<IObjRef> objRefsToVerify = new ArrayList<>(queuedObjRefs);
 			queuedObjRefs.clear();
 			return objRefsToVerify;
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public void verifyEntitiesSync(final IList<IObjRef> objRefsToVerify)
-	{
-		try
-		{
-			transaction.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<Object>()
-			{
+	public void verifyEntitiesSync(final IList<IObjRef> objRefsToVerify) {
+		try {
+			transaction.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<Object>() {
 				@Override
-				public Object invoke() throws Throwable
-				{
+				public Object invoke() throws Throwable {
 					runInLazyTransaction(objRefsToVerify);
 					return null;
 				}
 			});
 		}
-		catch (Throwable e)
-		{
-			if (!isDestroyed)
-			{
+		catch (Throwable e) {
+			if (!isDestroyed) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
 
 	}
 
-	protected void runInLazyTransaction(final IList<IObjRef> objRefsToVerify) throws Throwable
-	{
-		IDisposableCache cache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.FALSE, "AuditEntryVerifier");
-		try
-		{
-			cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>()
-			{
+	protected void runInLazyTransaction(final IList<IObjRef> objRefsToVerify) throws Throwable {
+		IDisposableCache cache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false,
+				Boolean.FALSE, "AuditEntryVerifier");
+		try {
+			cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>() {
 				@Override
-				public Object invoke() throws Throwable
-				{
+				public Object invoke() throws Throwable {
 					executeWithCache(objRefsToVerify);
 					return null;
 				}
 			});
 		}
-		finally
-		{
+		finally {
 			cache.dispose();
 		}
 	}
 
-	protected void executeWithCache(final IList<IObjRef> objRefsToVerify) throws Throwable
-	{
-		securityActivation.executeWithoutSecurity(new IBackgroundWorkerDelegate()
-		{
+	protected void executeWithCache(final IList<IObjRef> objRefsToVerify) throws Throwable {
+		securityActivation.executeWithoutSecurity(new IBackgroundWorkerDelegate() {
 			@Override
-			public void invoke() throws Throwable
-			{
-				if (!auditEntryVerifier.verifyEntities(objRefsToVerify))
-				{
-					log.error("Audit entry verification failed: " + Arrays.toString(objRefsToVerify.toArray()));
+			public void invoke() throws Throwable {
+				if (!auditEntryVerifier.verifyEntities(objRefsToVerify)) {
+					log.error(
+							"Audit entry verification failed: " + Arrays.toString(objRefsToVerify.toArray()));
 				}
 			}
 		});

@@ -37,8 +37,8 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.config.IProperties;
 
-public class EventToKafkaPublisher implements IEventListener, IBatchedEventListener, IInitializingBean, IDisposableBean
-{
+public class EventToKafkaPublisher
+		implements IEventListener, IBatchedEventListener, IInitializingBean, IDisposableBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -61,34 +61,30 @@ public class EventToKafkaPublisher implements IEventListener, IBatchedEventListe
 	private Producer<String, Object> producer;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		producer = new KafkaProducer<String, Object>(AmbethKafkaConfiguration.extractKafkaProperties(props), new StringSerializer(), xmlKafkaSerializer);
+	public void afterPropertiesSet() throws Throwable {
+		producer =
+				new KafkaProducer<>(AmbethKafkaConfiguration.extractKafkaProperties(props),
+						new StringSerializer(), xmlKafkaSerializer);
 	}
 
 	@Override
-	public void destroy() throws Throwable
-	{
+	public void destroy() throws Throwable {
 		producer.close();
 	}
 
 	@Override
-	public void enableBatchedEventDispatching()
-	{
+	public void enableBatchedEventDispatching() {
 		// intended blank
 	}
 
 	@Override
-	public void flushBatchedEventDispatching()
-	{
+	public void flushBatchedEventDispatching() {
 		producer.flush();
 	}
 
 	@Override
-	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception
-	{
-		if (eventFromKafkaConsumer.isEventFromKafka(eventObject))
-		{
+	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception {
+		if (eventFromKafkaConsumer.isEventFromKafka(eventObject)) {
 			return;
 		}
 		// if (log.isDebugEnabled())
@@ -96,8 +92,7 @@ public class EventToKafkaPublisher implements IEventListener, IBatchedEventListe
 		// log.debug("Publish event of type '" + eventObject.getClass() + "' to kafka...");
 		// }
 		producer.send(new ProducerRecord<String, Object>(topicName, null, eventObject));
-		if (!eventQueue.isDispatchingBatchedEvents())
-		{
+		if (!eventQueue.isDispatchingBatchedEvents()) {
 			producer.flush();
 		}
 	}

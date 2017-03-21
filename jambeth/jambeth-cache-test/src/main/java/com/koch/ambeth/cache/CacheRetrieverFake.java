@@ -47,9 +47,8 @@ import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class CacheRetrieverFake implements ICacheService, IChunkProvider
-{
-	public Map<IObjRef, ILoadContainer> entities = new HashMap<IObjRef, ILoadContainer>();
+public class CacheRetrieverFake implements ICacheService, IChunkProvider {
+	public Map<IObjRef, ILoadContainer> entities = new HashMap<>();
 
 	@Autowired
 	protected IConversionHelper conversionHelper;
@@ -58,15 +57,12 @@ public class CacheRetrieverFake implements ICacheService, IChunkProvider
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Override
-	public List<ILoadContainer> getEntities(List<IObjRef> orisToLoad)
-	{
-		List<ILoadContainer> entities = new ArrayList<ILoadContainer>(orisToLoad.size());
+	public List<ILoadContainer> getEntities(List<IObjRef> orisToLoad) {
+		List<ILoadContainer> entities = new ArrayList<>(orisToLoad.size());
 
-		for (int i = orisToLoad.size(); i-- > 0;)
-		{
+		for (int i = orisToLoad.size(); i-- > 0;) {
 			ILoadContainer lc = this.entities.get(orisToLoad.get(i));
-			if (lc != null)
-			{
+			if (lc != null) {
 				entities.add(lc);
 			}
 		}
@@ -75,21 +71,19 @@ public class CacheRetrieverFake implements ICacheService, IChunkProvider
 	}
 
 	@Override
-	public List<IObjRelationResult> getRelations(List<IObjRelation> objRelations)
-	{
+	public List<IObjRelationResult> getRelations(List<IObjRelation> objRelations) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IServiceResult getORIsForServiceRequest(IServiceDescription rootServiceContext)
-	{
+	public IServiceResult getORIsForServiceRequest(IServiceDescription rootServiceContext) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public List<IChunkedResponse> getChunkedContents(List<IChunkedRequest> chunkedRequests)
-	{
-		ArrayList<IChunkedResponse> chunkedResponses = new ArrayList<IChunkedResponse>(chunkedRequests.size());
+	public List<IChunkedResponse> getChunkedContents(List<IChunkedRequest> chunkedRequests) {
+		ArrayList<IChunkedResponse> chunkedResponses =
+				new ArrayList<>(chunkedRequests.size());
 
 		Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -98,27 +92,24 @@ public class CacheRetrieverFake implements ICacheService, IChunkProvider
 
 		IConversionHelper conversionHelper = this.conversionHelper;
 		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
-		for (int i = chunkedRequests.size(); i-- > 0;)
-		{
+		for (int i = chunkedRequests.size(); i-- > 0;) {
 			IChunkedRequest chunkedRequest = chunkedRequests.get(i);
 			IObjRelation objRelation = chunkedRequest.getObjRelation();
-			ILoadContainer lc = this.entities.get(objRelation.getObjRefs()[0]);
-			if (lc == null)
-			{
+			ILoadContainer lc = entities.get(objRelation.getObjRefs()[0]);
+			if (lc == null) {
 				continue;
 			}
 			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRelation.getRealType());
 			int index = metaData.getIndexByPrimitiveName(objRelation.getMemberName());
 			Object requestedValue = lc.getPrimitives()[index];
 
-			IBinaryInputStream payloadIS = conversionHelper.convertValueToType(IBinaryInputStream.class, requestedValue);
+			IBinaryInputStream payloadIS =
+					conversionHelper.convertValueToType(IBinaryInputStream.class, requestedValue);
 			byte[] payload;
 			int payloadSize = 0;
-			try
-			{
+			try {
 				int oneByte;
-				while ((oneByte = payloadIS.readByte()) != -1)
-				{
+				while ((oneByte = payloadIS.readByte()) != -1) {
 					payloadSize++;
 					buffer[0] = (byte) oneByte;
 					dos.write(buffer);
@@ -126,18 +117,14 @@ public class CacheRetrieverFake implements ICacheService, IChunkProvider
 				dos.finish();
 				payload = bos.toByteArray();
 			}
-			catch (Throwable e)
-			{
+			catch (Throwable e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
-			finally
-			{
-				try
-				{
+			finally {
+				try {
 					payloadIS.close();
 				}
-				catch (IOException e)
-				{
+				catch (IOException e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 				bos.reset();

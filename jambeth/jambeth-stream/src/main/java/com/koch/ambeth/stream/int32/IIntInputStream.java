@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.stream.IInputStream;
 
-public interface IIntInputStream extends IInputStream
-{
+public interface IIntInputStream extends IInputStream {
 	boolean hasInt();
 
 	int readInt();

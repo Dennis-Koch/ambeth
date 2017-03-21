@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface INoVersionService
-{
+public interface INoVersionService {
 	NoVersion create(NoVersion entity);
 
 	NoVersion update(NoVersion entity);

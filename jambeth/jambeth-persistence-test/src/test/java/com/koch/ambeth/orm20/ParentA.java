@@ -22,22 +22,18 @@ limitations under the License.
 
 import com.koch.ambeth.model.AbstractEntity;
 
-public class ParentA extends AbstractEntity
-{
+public class ParentA extends AbstractEntity {
 	protected ChildA child;
 
-	protected ParentA()
-	{
+	protected ParentA() {
 		// Intended blank
 	}
 
-	public ChildA getChild()
-	{
+	public ChildA getChild() {
 		return child;
 	}
 
-	public void setChild(ChildA child)
-	{
+	public void setChild(ChildA child) {
 		this.child = child;
 	}
 }

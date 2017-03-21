@@ -22,25 +22,20 @@ limitations under the License.
 
 import com.koch.ambeth.util.objectcollector.ICollectableController;
 
-public class StringBuilderCollectableController implements ICollectableController
-{
+public class StringBuilderCollectableController implements ICollectableController {
 	@Override
-	public Object createInstance()
-	{
+	public Object createInstance() {
 		return new StringBuilder();
 	}
 
 	@Override
-	public void initObject(Object object)
-	{
+	public void initObject(Object object) {
 		// Intended blank
 	}
 
 	@Override
-	public void disposeObject(Object object)
-	{
-		if (object != null)
-		{
+	public void disposeObject(Object object) {
+		if (object != null) {
 			((StringBuilder) object).setLength(0);
 		}
 	}

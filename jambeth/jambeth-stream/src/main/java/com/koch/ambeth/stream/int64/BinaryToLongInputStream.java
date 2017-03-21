@@ -25,39 +25,32 @@ import java.io.InputStream;
 
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class BinaryToLongInputStream implements ILongInputStream
-{
+public class BinaryToLongInputStream implements ILongInputStream {
 	private final InputStream is;
 
 	private final byte[] input = new byte[8];
 
 	private int inputOffset;
 
-	public BinaryToLongInputStream(InputStream is)
-	{
+	public BinaryToLongInputStream(InputStream is) {
 		this.is = is;
 	}
 
 	@Override
-	public void close() throws IOException
-	{
+	public void close() throws IOException {
 		is.close();
 	}
 
 	@Override
-	public boolean hasLong()
-	{
-		if (inputOffset == 8)
-		{
+	public boolean hasLong() {
+		if (inputOffset == 8) {
 			return true;
 		}
 		int length;
-		try
-		{
+		try {
 			length = is.read(input, inputOffset, 8 - inputOffset);
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		inputOffset += length;
@@ -65,10 +58,8 @@ public class BinaryToLongInputStream implements ILongInputStream
 	}
 
 	@Override
-	public long readLong()
-	{
-		if (inputOffset != 8)
-		{
+	public long readLong() {
+		if (inputOffset != 8) {
 			throw new IllegalStateException("Not allowed");
 		}
 		inputOffset = 0;

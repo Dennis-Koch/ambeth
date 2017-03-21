@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-public interface IConfigurableLogger extends ILogger
-{
+public interface IConfigurableLogger extends ILogger {
 	LogSourceLevel getLogSourceLevel();
 
 	void setLogSourceLevel(LogSourceLevel logSourceLevel);

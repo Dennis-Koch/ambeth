@@ -36,8 +36,7 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 
-public class ObjRefBehavior extends AbstractBehavior
-{
+public class ObjRefBehavior extends AbstractBehavior {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -46,18 +45,16 @@ public class ObjRefBehavior extends AbstractBehavior
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Override
-	public Class<?>[] getEnhancements()
-	{
-		return new Class<?>[] { IObjRef.class };
+	public Class<?>[] getEnhancements() {
+		return new Class<?>[] {IObjRef.class};
 	}
 
 	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors)
-	{
+	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+			List<IBytecodeBehavior> remainingPendingBehaviors,
+			List<IBytecodeBehavior> cascadePendingBehaviors) {
 		ObjRefEnhancementHint memberHint = state.getContext(ObjRefEnhancementHint.class);
-		if (memberHint == null)
-		{
+		if (memberHint == null) {
 			return visitor;
 		}
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(memberHint.getEntityType());

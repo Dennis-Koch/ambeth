@@ -38,11 +38,10 @@ import org.apache.catalina.webresources.StandardRoot;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 /**
- * This class lets you start an embedded Tomcat server. It is not a bean and does not start Ambeth, but when the {@link AmbethServletListener} is on the
- * classpath, then Ambeth is started by Tomcat.
+ * This class lets you start an embedded Tomcat server. It is not a bean and does not start Ambeth,
+ * but when the {@link AmbethServletListener} is on the classpath, then Ambeth is started by Tomcat.
  */
-public class TomcatApplication implements Closeable
-{
+public class TomcatApplication implements Closeable {
 	public static final String WEBSERVER_PORT_DEFAULT = "8080";
 	public static final String WEBSERVER_PORT = "webserver.port";
 
@@ -50,46 +49,39 @@ public class TomcatApplication implements Closeable
 	public static final String APP_CONTEXT_ROOT = "app.context.root";
 	private Tomcat tomcat;
 
-	public static TomcatApplication run() throws Throwable
-	{
+	public static TomcatApplication run() throws Throwable {
 		TomcatApplication ambethApp = new TomcatApplication();
 		ambethApp.doRun();
 		return ambethApp;
 	}
 
 	@Override
-	public void close() throws IOException
-	{
-		if (tomcat != null)
-		{
-			try
-			{
+	public void close() throws IOException {
+		if (tomcat != null) {
+			try {
 				tomcat.stop();
 			}
-			catch (LifecycleException e)
-			{
+			catch (LifecycleException e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 			tomcat = null;
 		}
 	}
 
-	public void doRun() throws Throwable
-	{
-		if (tomcat != null)
-		{
+	public void doRun() throws Throwable {
+		if (tomcat != null) {
 			throw new IllegalStateException("Tomcat already running");
 		}
 		startEmeddedTomcat();
 	}
 
-	private void startEmeddedTomcat() throws ServletException, LifecycleException
-	{
+	private void startEmeddedTomcat() throws ServletException, LifecycleException {
 		String webappDirLocation = "src/main/webapp/";
 		tomcat = new Tomcat();
 		tomcat.setPort(Integer.valueOf(System.getProperty(WEBSERVER_PORT, WEBSERVER_PORT_DEFAULT)));
 
-		Context ctx = tomcat.addWebapp(System.getProperty(APP_CONTEXT_ROOT, APP_CONTEXT_ROOT_DEFAULT), new File(webappDirLocation).getAbsolutePath());
+		Context ctx = tomcat.addWebapp(System.getProperty(APP_CONTEXT_ROOT, APP_CONTEXT_ROOT_DEFAULT),
+				new File(webappDirLocation).getAbsolutePath());
 		WebResourceRoot resources = prepareTomcatResources(ctx);
 
 		ctx.setResources(resources);
@@ -98,23 +90,21 @@ public class TomcatApplication implements Closeable
 		tomcat.getServer().await();
 	}
 
-	private WebResourceRoot prepareTomcatResources(Context context)
-	{
+	private WebResourceRoot prepareTomcatResources(Context context) {
 		WebResourceRoot resources = new StandardRoot(context);
 
 		String cp = System.getProperty("java.class.path");
 		StringTokenizer st = new StringTokenizer(cp, ";");
-		while (st.hasMoreElements())
-		{
+		while (st.hasMoreElements()) {
 			String pathElement = st.nextToken();
 			File pe = new File(pathElement);
-			if (pe.isFile())
-			{
-				resources.addPreResources(new FileResourceSet(resources, "/WEB-INF/lib/" + pe.getName(), pe.getAbsolutePath(), "/"));
+			if (pe.isFile()) {
+				resources.addPreResources(new FileResourceSet(resources, "/WEB-INF/lib/" + pe.getName(),
+						pe.getAbsolutePath(), "/"));
 			}
-			else
-			{
-				resources.addPreResources(new DirResourceSet(resources, "/WEB-INF/classes", pe.getAbsolutePath(), "/"));
+			else {
+				resources.addPreResources(
+						new DirResourceSet(resources, "/WEB-INF/classes", pe.getAbsolutePath(), "/"));
 			}
 		}
 		return resources;

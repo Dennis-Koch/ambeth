@@ -36,8 +36,7 @@ import com.koch.ambeth.util.typeinfo.FastConstructorAccess;
 import com.koch.ambeth.util.typeinfo.NullEquivalentValueUtil;
 import com.koch.ambeth.util.typeinfo.Transient;
 
-public class FieldInfoItem extends TypeInfoItem
-{
+public class FieldInfoItem extends TypeInfoItem {
 	protected Field field;
 
 	protected String propertyName;
@@ -55,141 +54,117 @@ public class FieldInfoItem extends TypeInfoItem
 
 	protected FastConstructorAccess<?> constructorOfRealType;
 
-	public FieldInfoItem(Field field)
-	{
+	public FieldInfoItem(Field field) {
 		this(field, true);
 	}
 
-	public FieldInfoItem(Field field, boolean allowNullEquivalentValue)
-	{
+	public FieldInfoItem(Field field, boolean allowNullEquivalentValue) {
 		this(field, allowNullEquivalentValue, field.getName());
 	}
 
-	public FieldInfoItem(Field field, String propertyName)
-	{
+	public FieldInfoItem(Field field, String propertyName) {
 		this(field, true, propertyName);
 	}
 
-	public FieldInfoItem(Field field, boolean allowNullEquivalentValue, String propertyName)
-	{
+	public FieldInfoItem(Field field, boolean allowNullEquivalentValue, String propertyName) {
 		ParamChecker.assertParamNotNull(field, "field");
 		ParamChecker.assertParamNotNull(propertyName, "propertyName");
 		this.allowNullEquivalentValue = allowNullEquivalentValue;
 		this.field = field;
 		this.field.setAccessible(true);
-		this.declaringType = field.getDeclaringClass();
+		declaringType = field.getDeclaringClass();
 		this.propertyName = propertyName;
 
 		Class<?> fieldType = field.getType();
 		Type genericFieldType = field.getGenericType();
 		elementType = TypeInfoItemUtil.getElementTypeUsingReflection(fieldType, genericFieldType);
-		if (fieldType.isPrimitive())
-		{
+		if (fieldType.isPrimitive()) {
 			nullEquivalentValue = NullEquivalentValueUtil.getNullEquivalentValue(fieldType);
 		}
-		else if (Collection.class.isAssignableFrom(fieldType) && !fieldType.isInterface())
-		{
+		else if (Collection.class.isAssignableFrom(fieldType) && !fieldType.isInterface()) {
 			constructorOfRealType = FastConstructorAccess.get(fieldType);
 		}
 		Annotation annotation = field.getAnnotation(XmlElement.class);
-		if (annotation != null)
-		{
+		if (annotation != null) {
 			xmlName = ((XmlElement) annotation).name();
 		}
-		if (xmlName == null || xmlName.isEmpty() || "##default".equals(xmlName))
-		{
+		if (xmlName == null || xmlName.isEmpty() || "##default".equals(xmlName)) {
 			xmlName = getName();
 		}
 		xmlIgnore = false;
 
-		if (field.getAnnotation(Transient.class) != null || field.getAnnotation(XmlTransient.class) != null || Modifier.isTransient(field.getModifiers())
-				|| Modifier.isFinal(field.getModifiers()) || Modifier.isStatic(field.getModifiers()))
-		{
+		if (field.getAnnotation(Transient.class) != null
+				|| field.getAnnotation(XmlTransient.class) != null
+				|| Modifier.isTransient(field.getModifiers()) || Modifier.isFinal(field.getModifiers())
+				|| Modifier.isStatic(field.getModifiers())) {
 			xmlIgnore = true;
 		}
 	}
 
 	@Override
-	public Object getDefaultValue()
-	{
+	public Object getDefaultValue() {
 		return defaultValue;
 	}
 
 	@Override
-	public void setDefaultValue(Object defaultValue)
-	{
+	public void setDefaultValue(Object defaultValue) {
 		this.defaultValue = defaultValue;
 	}
 
 	@Override
-	protected FastConstructorAccess<?> getConstructorOfRealType()
-	{
+	protected FastConstructorAccess<?> getConstructorOfRealType() {
 		return constructorOfRealType;
 	}
 
 	@Override
-	public Object getNullEquivalentValue()
-	{
+	public Object getNullEquivalentValue() {
 		return nullEquivalentValue;
 	}
 
 	@Override
-	public void setNullEquivalentValue(Object nullEquivalentValue)
-	{
+	public void setNullEquivalentValue(Object nullEquivalentValue) {
 		this.nullEquivalentValue = nullEquivalentValue;
 	}
 
-	public Field getField()
-	{
+	public Field getField() {
 		return field;
 	}
 
 	@Override
-	public Class<?> getRealType()
-	{
+	public Class<?> getRealType() {
 		return field.getType();
 	}
 
 	@Override
-	public void setValue(Object obj, Object value)
-	{
-		try
-		{
-			if (value == null && allowNullEquivalentValue)
-			{
+	public void setValue(Object obj, Object value) {
+		try {
+			if (value == null && allowNullEquivalentValue) {
 				value = nullEquivalentValue;
 			}
 			field.set(obj, value);
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	public Object getValue(Object obj)
-	{
+	public Object getValue(Object obj) {
 		return this.getValue(obj, allowNullEquivalentValue);
 	}
 
 	@Override
-	public Object getValue(Object obj, boolean allowNullEquivalentValue)
-	{
+	public Object getValue(Object obj, boolean allowNullEquivalentValue) {
 		Object value = null;
-		try
-		{
+		try {
 			value = field.get(obj);
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		Object nullEquivalentValue = this.nullEquivalentValue;
-		if (nullEquivalentValue != null && nullEquivalentValue.equals(value))
-		{
-			if (allowNullEquivalentValue)
-			{
+		if (nullEquivalentValue != null && nullEquivalentValue.equals(value)) {
+			if (allowNullEquivalentValue) {
 				return nullEquivalentValue;
 			}
 			return null;
@@ -198,32 +173,27 @@ public class FieldInfoItem extends TypeInfoItem
 	}
 
 	@Override
-	public <V extends Annotation> V getAnnotation(Class<V> annotationType)
-	{
+	public <V extends Annotation> V getAnnotation(Class<V> annotationType) {
 		return field.getAnnotation(annotationType);
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return propertyName;
 	}
 
 	@Override
-	public String getXMLName()
-	{
+	public String getXMLName() {
 		return xmlName;
 	}
 
 	@Override
-	public boolean isXMLIgnore()
-	{
+	public boolean isXMLIgnore() {
 		return xmlIgnore;
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return "Field " + getName() + "/" + getXMLName();
 	}
 

@@ -33,28 +33,23 @@ import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 
 import net.sf.cglib.proxy.MethodProxy;
 
-public class QueryBuilderInterceptor extends AbstractSimpleInterceptor
-{
+public class QueryBuilderInterceptor extends AbstractSimpleInterceptor {
 	protected static final Method disposeMethod;
 
-	protected static final HashSet<Method> cleanupMethods = new HashSet<Method>();
+	protected static final HashSet<Method> cleanupMethods = new HashSet<>();
 
-	static
-	{
-		try
-		{
+	static {
+		try {
 			disposeMethod = IQueryBuilder.class.getMethod("dispose");
 			cleanupMethods.add(IQueryBuilder.class.getMethod("build"));
 			cleanupMethods.add(IQueryBuilder.class.getMethod("build", IOperand.class));
 			cleanupMethods.add(IQueryBuilder.class.getMethod("build", IOperand.class, ISqlJoin[].class));
 			cleanupMethods.add(disposeMethod);
 		}
-		catch (SecurityException e)
-		{
+		catch (SecurityException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		catch (NoSuchMethodException e)
-		{
+		catch (NoSuchMethodException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -67,48 +62,38 @@ public class QueryBuilderInterceptor extends AbstractSimpleInterceptor
 
 	protected boolean finalized = false;
 
-	public QueryBuilderInterceptor(IQueryBuilder<?> queryBuilder)
-	{
+	public QueryBuilderInterceptor(IQueryBuilder<?> queryBuilder) {
 		this.queryBuilder = queryBuilder;
 	}
 
 	@Override
-	protected void finalize() throws Throwable
-	{
-		if (queryBuilder != null)
-		{
+	protected void finalize() throws Throwable {
+		if (queryBuilder != null) {
 			queryBuilder.dispose();
 		}
 	}
 
 	@Override
-	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
-	{
-		if (this.finalized)
-		{
-			if (disposeMethod.equals(method))
-			{
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy)
+			throws Throwable {
+		if (finalized) {
+			if (disposeMethod.equals(method)) {
 				return null;
 			}
 			throw new IllegalStateException("This query builder already is finalized!");
 		}
-		try
-		{
-			Object result = proxy.invoke(this.queryBuilder, args);
-			if (result == this.queryBuilder)
-			{
+		try {
+			Object result = proxy.invoke(queryBuilder, args);
+			if (result == queryBuilder) {
 				return proxy;
 			}
 			return result;
 		}
-		finally
-		{
-			if (cleanupMethods.contains(method))
-			{
-				this.finalized = true;
+		finally {
+			if (cleanupMethods.contains(method)) {
+				finalized = true;
 				IQueryBuilder<?> queryBuilder = this.queryBuilder;
-				if (queryBuilder != null)
-				{
+				if (queryBuilder != null) {
 					this.queryBuilder = null;
 					queryBuilder.dispose();
 				}

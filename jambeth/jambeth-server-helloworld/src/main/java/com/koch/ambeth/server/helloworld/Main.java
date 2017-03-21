@@ -22,10 +22,8 @@ limitations under the License.
 
 import com.koch.ambeth.tomcat.TomcatApplication;
 
-public class Main
-{
-	public static void main(String[] args) throws Throwable
-	{
+public class Main {
+	public static void main(String[] args) throws Throwable {
 		TomcatApplication.run();
 	}
 }

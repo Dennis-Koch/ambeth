@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
-public interface ILightweightTransaction
-{
+public interface ILightweightTransaction {
 	boolean isActive();
 
 	void runInTransaction(IBackgroundWorkerDelegate runnable);

@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IDatabaseReleaseEvent extends IDatabaseSessionAwareEvent
-{
+public interface IDatabaseReleaseEvent extends IDatabaseSessionAwareEvent {
 	// Intended blank
 }

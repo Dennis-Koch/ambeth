@@ -39,30 +39,34 @@ import com.koch.ambeth.security.privilege.factory.IEntityTypePrivilegeFactoryPro
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 
 @FrameworkModule
-public class PrivilegeModule implements IInitializingModule
-{
+public class PrivilegeModule implements IInitializingModule {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		IBeanConfiguration privilegeProvider = beanContextFactory.registerBean(PrivilegeProvider.class).autowireable(IPrivilegeProvider.class,
-				IPrivilegeProviderIntern.class);
-		IBeanConfiguration ppEventListener = beanContextFactory.registerBean(UnfilteredDataChangeListener.class).propertyRefs(privilegeProvider);
-		beanContextFactory.link(ppEventListener).to(IEventListenerExtendable.class).with(IDataChange.class);
-		beanContextFactory.link(privilegeProvider, "handleClearAllCaches").to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		IBeanConfiguration privilegeProvider = beanContextFactory.registerBean(PrivilegeProvider.class)
+				.autowireable(IPrivilegeProvider.class, IPrivilegeProviderIntern.class);
+		IBeanConfiguration ppEventListener = beanContextFactory
+				.registerBean(UnfilteredDataChangeListener.class).propertyRefs(privilegeProvider);
+		beanContextFactory.link(ppEventListener).to(IEventListenerExtendable.class)
+				.with(IDataChange.class);
+		beanContextFactory.link(privilegeProvider, "handleClearAllCaches")
+				.to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 
-		beanContextFactory.registerBean(EntityPrivilegeFactoryProvider.class).autowireable(IEntityPrivilegeFactoryProvider.class);
-		beanContextFactory.registerBean(EntityTypePrivilegeFactoryProvider.class).autowireable(IEntityTypePrivilegeFactoryProvider.class);
+		beanContextFactory.registerBean(EntityPrivilegeFactoryProvider.class)
+				.autowireable(IEntityPrivilegeFactoryProvider.class);
+		beanContextFactory.registerBean(EntityTypePrivilegeFactoryProvider.class)
+				.autowireable(IEntityTypePrivilegeFactoryProvider.class);
 
 		// if (IsNetworkClientMode && IsPrivilegeServiceBeanActive)
 		// {
 		// beanContextFactory.registerBean<ClientServiceBean>("privilegeServiceWCF")
 		// .propertyValue("Interface", typeof(IPrivilegeService))
 		// .propertyValue("SyncRemoteInterface", typeof(IPrivilegeServiceWCF))
-		// .propertyValue("AsyncRemoteInterface", typeof(IPrivilegeClient)).autowireable<IPrivilegeService>();
+		// .propertyValue("AsyncRemoteInterface",
+		// typeof(IPrivilegeClient)).autowireable<IPrivilegeService>();
 		// }
 	}
 }

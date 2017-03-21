@@ -23,7 +23,6 @@ limitations under the License.
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType(name = "ITestService 2")
-public interface ITestService
-{
+public interface ITestService {
 	void testCallOnNamedService();
 }

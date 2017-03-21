@@ -27,8 +27,7 @@ import com.koch.ambeth.stream.int32.IIntInputSource;
 import com.koch.ambeth.stream.int64.ILongInputSource;
 import com.koch.ambeth.stream.strings.IStringInputSource;
 
-public abstract class StreamingEntity
-{
+public abstract class StreamingEntity {
 	protected int id;
 
 	protected IBooleanInputSource booleanStreamed;
@@ -43,78 +42,63 @@ public abstract class StreamingEntity
 
 	protected IStringInputSource stringStreamed;
 
-	protected StreamingEntity()
-	{
+	protected StreamingEntity() {
 		// Intended blank
 	}
 
-	public int getId()
-	{
+	public int getId() {
 		return id;
 	}
 
-	public void setId(int id)
-	{
+	public void setId(int id) {
 		this.id = id;
 	}
 
-	public IBooleanInputSource getBooleanStreamed()
-	{
+	public IBooleanInputSource getBooleanStreamed() {
 		return booleanStreamed;
 	}
 
-	public void setBooleanStreamed(IBooleanInputSource booleanStreamed)
-	{
+	public void setBooleanStreamed(IBooleanInputSource booleanStreamed) {
 		this.booleanStreamed = booleanStreamed;
 	}
 
-	public IDoubleInputSource getDoubleStreamed()
-	{
+	public IDoubleInputSource getDoubleStreamed() {
 		return doubleStreamed;
 	}
 
-	public void setDoubleStreamed(IDoubleInputSource doubleStreamed)
-	{
+	public void setDoubleStreamed(IDoubleInputSource doubleStreamed) {
 		this.doubleStreamed = doubleStreamed;
 	}
 
-	public IFloatInputSource getFloatStreamed()
-	{
+	public IFloatInputSource getFloatStreamed() {
 		return floatStreamed;
 	}
 
-	public void setFloatStreamed(IFloatInputSource floatStreamed)
-	{
+	public void setFloatStreamed(IFloatInputSource floatStreamed) {
 		this.floatStreamed = floatStreamed;
 	}
 
-	public IIntInputSource getIntStreamed()
-	{
+	public IIntInputSource getIntStreamed() {
 		return intStreamed;
 	}
 
-	public void setIntStreamed(IIntInputSource intStreamed)
-	{
+	public void setIntStreamed(IIntInputSource intStreamed) {
 		this.intStreamed = intStreamed;
 	}
 
-	public ILongInputSource getLongStreamed()
-	{
+	public ILongInputSource getLongStreamed() {
 		return longStreamed;
 	}
 
-	public void setLongStreamed(ILongInputSource longStreamed)
-	{
+	public void setLongStreamed(ILongInputSource longStreamed) {
 		this.longStreamed = longStreamed;
 	}
 
-	public IStringInputSource getStringStreamed()
-	{
+	public IStringInputSource getStringStreamed() {
 		return stringStreamed;
 	}
 
-	public void setStringStreamed(IStringInputSource stringStreamed)
-	{
+	public void setStringStreamed(IStringInputSource stringStreamed) {
 		this.stringStreamed = stringStreamed;
 	}
 }

@@ -25,8 +25,7 @@ import java.lang.reflect.Method;
 
 import com.koch.ambeth.util.collections.IMap;
 
-public interface IPropertyInfoProvider
-{
+public interface IPropertyInfoProvider {
 	IPropertyInfo getProperty(Object obj, String propertyName);
 
 	IPropertyInfo getProperty(Class<?> type, String propertyName);
@@ -35,7 +34,7 @@ public interface IPropertyInfoProvider
 
 	/**
 	 * Returns a PropertyInfo array with all public declared properties of this class.
-	 * 
+	 *
 	 * @param type
 	 * @return
 	 */
@@ -49,7 +48,7 @@ public interface IPropertyInfoProvider
 
 	/**
 	 * Returns a property name to PropertyInfo Map with all public declared properties of this class.
-	 * 
+	 *
 	 * @param type
 	 * @return
 	 */

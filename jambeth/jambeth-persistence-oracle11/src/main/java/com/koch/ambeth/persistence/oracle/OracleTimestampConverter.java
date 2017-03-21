@@ -31,57 +31,50 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 import oracle.sql.TIMESTAMP;
 
-public class OracleTimestampConverter implements IDedicatedConverter, IThreadLocalCleanupBean
-{
+public class OracleTimestampConverter implements IDedicatedConverter, IThreadLocalCleanupBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	protected final ThreadLocal<Calendar> vmCalendarTL = new ThreadLocal<Calendar>();
+	protected final ThreadLocal<Calendar> vmCalendarTL = new ThreadLocal<>();
 
 	@Override
-	public void cleanupThreadLocal()
-	{
+	public void cleanupThreadLocal() {
 		vmCalendarTL.remove();
 	}
 
 	@Override
-	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value, Object additionalInformation)
-	{
-		if (sourceType.equals(TIMESTAMP.class))
-		{
+	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+			Object additionalInformation) {
+		if (sourceType.equals(TIMESTAMP.class)) {
 			long longValue;
-			try
-			{
+			try {
 				Calendar calendar = vmCalendarTL.get();
-				if (calendar == null)
-				{
+				if (calendar == null) {
 					calendar = Calendar.getInstance();
 					vmCalendarTL.set(calendar);
 				}
 				longValue = ((TIMESTAMP) value).timestampValue(calendar).getTime();
 			}
-			catch (Throwable e)
-			{
+			catch (Throwable e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
-			if (Long.class.equals(expectedType) || Long.TYPE.equals(expectedType))
-			{
+			if (Long.class.equals(expectedType) || Long.TYPE.equals(expectedType)) {
 				return Long.valueOf(longValue);
 			}
-			else if (Date.class.equals(expectedType))
-			{
+			else if (Date.class.equals(expectedType)) {
 				return new Date(longValue);
 			}
-			else if (Calendar.class.equals(expectedType))
-			{
+			else if (Calendar.class.equals(expectedType)) {
 				Calendar calendar = Calendar.getInstance();
 				calendar.setTimeInMillis(longValue);
 				// skip cloning the TimeZone with e.g.: calendar.setTimeZone(vmCalendar.getTimeZone());
-				// the timezone is already correct because both calendar instances contain the "default" timezone of the vm
+				// the timezone is already correct because both calendar instances contain the "default"
+				// timezone of the vm
 				return calendar;
 			}
 		}
-		throw new IllegalStateException("Conversion " + sourceType.getName() + "->" + expectedType.getName() + " not supported");
+		throw new IllegalStateException(
+				"Conversion " + sourceType.getName() + "->" + expectedType.getName() + " not supported");
 	}
 }

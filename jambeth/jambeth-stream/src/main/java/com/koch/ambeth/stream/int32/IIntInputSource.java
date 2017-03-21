@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.stream.IInputSource;
 
-public interface IIntInputSource extends IInputSource
-{
+public interface IIntInputSource extends IInputSource {
 	IIntInputStream deriveIntInputStream();
 }

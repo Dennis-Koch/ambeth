@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IPreparedConnectionHolder
-{
+public interface IPreparedConnectionHolder {
 	boolean isPreparedConnection();
 
 	void setPreparedConnection(boolean preparedConnection);

@@ -23,27 +23,23 @@ limitations under the License.
 import java.io.IOException;
 
 /**
- * Provides a binary stream IEEE 754 bit-encoded float values. These explicitly means that every 4 bytes belong to the same float value
+ * Provides a binary stream IEEE 754 bit-encoded float values. These explicitly means that every 4
+ * bytes belong to the same float value
  */
-public class IntInMemoryInputStream implements IIntInputStream
-{
-	public static final IIntInputStream EMPTY_INPUT_STREAM = new IIntInputStream()
-	{
+public class IntInMemoryInputStream implements IIntInputStream {
+	public static final IIntInputStream EMPTY_INPUT_STREAM = new IIntInputStream() {
 		@Override
-		public void close() throws IOException
-		{
+		public void close() throws IOException {
 			// Intended blank
 		}
 
 		@Override
-		public int readInt()
-		{
+		public int readInt() {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public boolean hasInt()
-		{
+		public boolean hasInt() {
 			return false;
 		}
 	};
@@ -52,26 +48,22 @@ public class IntInMemoryInputStream implements IIntInputStream
 
 	private final int[] array;
 
-	public IntInMemoryInputStream(int[] array)
-	{
+	public IntInMemoryInputStream(int[] array) {
 		this.array = array;
 	}
 
 	@Override
-	public void close() throws IOException
-	{
+	public void close() throws IOException {
 		// Intended blank
 	}
 
 	@Override
-	public boolean hasInt()
-	{
+	public boolean hasInt() {
 		return (array.length > index + 1);
 	}
 
 	@Override
-	public int readInt()
-	{
+	public int readInt() {
 		return array[++index];
 	}
 }

@@ -36,10 +36,8 @@ import com.koch.ambeth.util.collections.HashSet;
 
 @XmlRootElement(name = "DataChangeEvent", namespace = "http://schema.kochdev.com/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class DataChangeEvent implements IDataChange
-{
-	public static DataChangeEvent create(int insertCount, int updateCount, int deleteCount)
-	{
+public class DataChangeEvent implements IDataChange {
+	public static DataChangeEvent create(int insertCount, int updateCount, int deleteCount) {
 		DataChangeEvent dce = new DataChangeEvent();
 		dce.setLocalSource(true);
 		dce.setChangeTime(System.currentTimeMillis());
@@ -49,17 +47,14 @@ public class DataChangeEvent implements IDataChange
 		return dce;
 	}
 
-	protected static List<IDataChangeEntry> createList(int size)
-	{
-		if (size == -1)
-		{
-			return new ArrayList<IDataChangeEntry>();
+	protected static List<IDataChangeEntry> createList(int size) {
+		if (size == -1) {
+			return new ArrayList<>();
 		}
-		else if (size == 0)
-		{
+		else if (size == 0) {
 			return Collections.emptyList();
 		}
-		return new ArrayList<IDataChangeEntry>(size);
+		return new ArrayList<>(size);
 	}
 
 	@XmlElement(required = true)
@@ -78,14 +73,12 @@ public class DataChangeEvent implements IDataChange
 
 	protected transient boolean isLocalSource;
 
-	public DataChangeEvent()
-	{
+	public DataChangeEvent() {
 		// Intended blank
 	}
 
-	public DataChangeEvent(List<IDataChangeEntry> inserts, List<IDataChangeEntry> updates, List<IDataChangeEntry> deletes, long changeTime,
-			boolean isLocalSource)
-	{
+	public DataChangeEvent(List<IDataChangeEntry> inserts, List<IDataChangeEntry> updates,
+			List<IDataChangeEntry> deletes, long changeTime, boolean isLocalSource) {
 		this.inserts = inserts;
 		this.updates = updates;
 		this.deletes = deletes;
@@ -94,65 +87,53 @@ public class DataChangeEvent implements IDataChange
 	}
 
 	@Override
-	public long getChangeTime()
-	{
+	public long getChangeTime() {
 		return changeTime;
 	}
 
-	public void setChangeTime(long changeTime)
-	{
+	public void setChangeTime(long changeTime) {
 		this.changeTime = changeTime;
 	}
 
 	@Override
-	public List<IDataChangeEntry> getDeletes()
-	{
+	public List<IDataChangeEntry> getDeletes() {
 		return deletes;
 	}
 
-	public void setDeletes(List<IDataChangeEntry> deletes)
-	{
+	public void setDeletes(List<IDataChangeEntry> deletes) {
 		this.deletes = deletes;
 	}
 
 	@Override
-	public List<IDataChangeEntry> getUpdates()
-	{
+	public List<IDataChangeEntry> getUpdates() {
 		return updates;
 	}
 
-	public void setUpdates(List<IDataChangeEntry> updates)
-	{
+	public void setUpdates(List<IDataChangeEntry> updates) {
 		this.updates = updates;
 	}
 
 	@Override
-	public List<IDataChangeEntry> getInserts()
-	{
+	public List<IDataChangeEntry> getInserts() {
 		return inserts;
 	}
 
-	public void setInserts(List<IDataChangeEntry> inserts)
-	{
+	public void setInserts(List<IDataChangeEntry> inserts) {
 		this.inserts = inserts;
 	}
 
 	@Override
-	public List<IDataChangeEntry> getAll()
-	{
-		if (all == null)
-		{
+	public List<IDataChangeEntry> getAll() {
+		if (all == null) {
 			int size = inserts.size() + updates.size() + deletes.size();
 			List<IDataChangeEntry> allList;
-			if (size > 0)
-			{
-				allList = new ArrayList<IDataChangeEntry>(size);
+			if (size > 0) {
+				allList = new ArrayList<>(size);
 				allList.addAll(inserts);
 				allList.addAll(updates);
 				allList.addAll(deletes);
 			}
-			else
-			{
+			else {
 				allList = Collections.emptyList();
 			}
 			all = allList;
@@ -161,35 +142,27 @@ public class DataChangeEvent implements IDataChange
 	}
 
 	@Override
-	public boolean isEmpty()
-	{
+	public boolean isEmpty() {
 		return deletes.size() == 0 && updates.size() == 0 && inserts.size() == 0;
 	}
 
 	@Override
-	public boolean isEmptyByType(Class<?> entityType)
-	{
+	public boolean isEmptyByType(Class<?> entityType) {
 		List<IDataChangeEntry> entries = inserts;
-		for (int a = entries.size(); a-- > 0;)
-		{
-			if (entries.get(a).getEntityType().isAssignableFrom(entityType))
-			{
+		for (int a = entries.size(); a-- > 0;) {
+			if (entries.get(a).getEntityType().isAssignableFrom(entityType)) {
 				return false;
 			}
 		}
 		entries = updates;
-		for (int a = entries.size(); a-- > 0;)
-		{
-			if (entries.get(a).getEntityType().isAssignableFrom(entityType))
-			{
+		for (int a = entries.size(); a-- > 0;) {
+			if (entries.get(a).getEntityType().isAssignableFrom(entityType)) {
 				return false;
 			}
 		}
 		entries = deletes;
-		for (int a = entries.size(); a-- > 0;)
-		{
-			if (entries.get(a).getEntityType().isAssignableFrom(entityType))
-			{
+		for (int a = entries.size(); a-- > 0;) {
+			if (entries.get(a).getEntityType().isAssignableFrom(entityType)) {
 				return false;
 			}
 		}
@@ -197,101 +170,89 @@ public class DataChangeEvent implements IDataChange
 	}
 
 	@Override
-	public boolean isLocalSource()
-	{
+	public boolean isLocalSource() {
 		return isLocalSource;
 	}
 
-	public void setLocalSource(boolean isLocalSource)
-	{
+	public void setLocalSource(boolean isLocalSource) {
 		this.isLocalSource = isLocalSource;
 	}
 
 	@Override
-	public IDataChange derive(Class<?>... interestedEntityTypes)
-	{
+	public IDataChange derive(Class<?>... interestedEntityTypes) {
 		return deriveIntern(interestedEntityTypes, false);
 	}
 
 	@Override
-	public IDataChange deriveNot(Class<?>... uninterestingEntityTypes)
-	{
+	public IDataChange deriveNot(Class<?>... uninterestingEntityTypes) {
 		return deriveIntern(uninterestingEntityTypes, true);
 	}
 
 	@Override
-	public IDataChange derive(Object... interestedEntityIds)
-	{
-		Set<Object> interestedEntityIdsSet = interestedEntityIds.length == 0 ? Collections.<Object> emptySet() : new HashSet<Object>(interestedEntityIds);
+	public IDataChange derive(Object... interestedEntityIds) {
+		Set<Object> interestedEntityIdsSet = interestedEntityIds.length == 0
+				? Collections.<Object>emptySet() : new HashSet<>(interestedEntityIds);
 
 		List<IDataChangeEntry> derivedInserts = buildDerivedIds(inserts, interestedEntityIdsSet);
 		List<IDataChangeEntry> derivedUpdates = buildDerivedIds(updates, interestedEntityIdsSet);
 		List<IDataChangeEntry> derivedDeletes = buildDerivedIds(deletes, interestedEntityIdsSet);
 
-		return new DataChangeEvent(derivedInserts, derivedUpdates, derivedDeletes, changeTime, isLocalSource);
+		return new DataChangeEvent(derivedInserts, derivedUpdates, derivedDeletes, changeTime,
+				isLocalSource);
 	}
 
-	protected IDataChange deriveIntern(Class<?>[] entityTypes, boolean reverse)
-	{
-		Set<Class<?>> entityTypesSet = entityTypes.length == 0 ? Collections.<Class<?>> emptySet() : new HashSet<Class<?>>(entityTypes);
+	protected IDataChange deriveIntern(Class<?>[] entityTypes, boolean reverse) {
+		Set<Class<?>> entityTypesSet = entityTypes.length == 0 ? Collections.<Class<?>>emptySet()
+				: new HashSet<>(entityTypes);
 
 		List<IDataChangeEntry> derivedInserts = buildDerivedTypes(inserts, entityTypesSet, reverse);
 		List<IDataChangeEntry> derivedUpdates = buildDerivedTypes(updates, entityTypesSet, reverse);
 		List<IDataChangeEntry> derivedDeletes = buildDerivedTypes(deletes, entityTypesSet, reverse);
 
-		return new DataChangeEvent(derivedInserts, derivedUpdates, derivedDeletes, changeTime, isLocalSource);
+		return new DataChangeEvent(derivedInserts, derivedUpdates, derivedDeletes, changeTime,
+				isLocalSource);
 	}
 
-	protected List<IDataChangeEntry> buildDerivedTypes(List<IDataChangeEntry> sourceEntries, Set<Class<?>> entityTypes, boolean reverse)
-	{
+	protected List<IDataChangeEntry> buildDerivedTypes(List<IDataChangeEntry> sourceEntries,
+			Set<Class<?>> entityTypes, boolean reverse) {
 		List<IDataChangeEntry> targetEntries = null;
-		for (int a = 0, size = sourceEntries.size(); a < size; a++)
-		{
+		for (int a = 0, size = sourceEntries.size(); a < size; a++) {
 			IDataChangeEntry entry = sourceEntries.get(a);
 			Class<?> currentType = entry.getEntityType();
-			while (currentType != null)
-			{
+			while (currentType != null) {
 				boolean include = entityTypes.contains(currentType) ^ reverse;
-				if (include)
-				{
-					if (targetEntries == null)
-					{
-						targetEntries = new ArrayList<IDataChangeEntry>(size - a); // Max potential match-count
+				if (include) {
+					if (targetEntries == null) {
+						targetEntries = new ArrayList<>(size - a); // Max potential match-count
 					}
 					targetEntries.add(entry);
 					break;
 				}
 				currentType = currentType.getSuperclass();
-				if (reverse && currentType == Object.class)
-				{
+				if (reverse && currentType == Object.class) {
 					break;
 				}
 			}
 		}
-		if (targetEntries == null)
-		{
+		if (targetEntries == null) {
 			targetEntries = Collections.emptyList();
 		}
 		return targetEntries;
 	}
 
-	protected List<IDataChangeEntry> buildDerivedIds(List<IDataChangeEntry> sourceEntries, Set<Object> interestedEntityIds)
-	{
+	protected List<IDataChangeEntry> buildDerivedIds(List<IDataChangeEntry> sourceEntries,
+			Set<Object> interestedEntityIds) {
 		List<IDataChangeEntry> targetEntries = null;
-		for (int a = 0, size = sourceEntries.size(); a < size; a++)
-		{
+		for (int a = 0, size = sourceEntries.size(); a < size; a++) {
 			IDataChangeEntry entry = sourceEntries.get(a);
-			if (interestedEntityIds.contains(entry.getId()))
-			{
-				if (targetEntries == null)
-				{
-					targetEntries = new ArrayList<IDataChangeEntry>(size - a); // Max potential match-count
+			if (interestedEntityIds.contains(entry.getId())) {
+				if (targetEntries == null) {
+					targetEntries = new ArrayList<>(size - a); // Max potential match-count
 				}
 				targetEntries.add(entry);
 			}
 		}
-		if (targetEntries == null)
-		{
+		if (targetEntries == null) {
 			targetEntries = Collections.emptyList();
 		}
 		return targetEntries;

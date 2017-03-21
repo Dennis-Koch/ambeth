@@ -29,47 +29,41 @@ import com.koch.ambeth.util.IPrintable;
 
 @XmlRootElement(name = "PropertyPrivilegeOfService", namespace = "http://schema.kochdev.com/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
-public final class PropertyPrivilegeOfService implements IPropertyPrivilegeOfService, IPrintable
-{
-	private static final PropertyPrivilegeOfService[] array = new PropertyPrivilegeOfService[PropertyPrivilegeImpl.arraySizeForIndex()];
+public final class PropertyPrivilegeOfService implements IPropertyPrivilegeOfService, IPrintable {
+	private static final PropertyPrivilegeOfService[] array =
+			new PropertyPrivilegeOfService[PropertyPrivilegeImpl.arraySizeForIndex()];
 
-	static
-	{
+	static {
 		put1();
 	}
 
-	private static void put1()
-	{
+	private static void put1() {
 		put2(true);
 		put2(false);
 	}
 
-	private static void put2(boolean create)
-	{
+	private static void put2(boolean create) {
 		put3(create, true);
 		put3(create, false);
 	}
 
-	private static void put3(boolean create, boolean read)
-	{
+	private static void put3(boolean create, boolean read) {
 		put4(create, read, true);
 		put4(create, read, false);
 	}
 
-	private static void put4(boolean create, boolean read, boolean update)
-	{
+	private static void put4(boolean create, boolean read, boolean update) {
 		put(create, read, update, true);
 		put(create, read, update, false);
 	}
 
-	private static void put(boolean create, boolean read, boolean update, boolean delete)
-	{
+	private static void put(boolean create, boolean read, boolean update, boolean delete) {
 		int index = PropertyPrivilegeImpl.calcIndex(create, read, update, delete);
 		array[index] = new PropertyPrivilegeOfService(create, read, update, delete);
 	}
 
-	public static IPropertyPrivilegeOfService create(boolean create, boolean read, boolean update, boolean delete)
-	{
+	public static IPropertyPrivilegeOfService create(boolean create, boolean read, boolean update,
+			boolean delete) {
 		int index = PropertyPrivilegeImpl.calcIndex(create, read, update, delete);
 		return array[index];
 	}
@@ -79,8 +73,7 @@ public final class PropertyPrivilegeOfService implements IPropertyPrivilegeOfSer
 	private final boolean update;
 	private final boolean delete;
 
-	private PropertyPrivilegeOfService(boolean create, boolean read, boolean update, boolean delete)
-	{
+	private PropertyPrivilegeOfService(boolean create, boolean read, boolean update, boolean delete) {
 		this.create = create;
 		this.read = read;
 		this.update = update;
@@ -88,61 +81,52 @@ public final class PropertyPrivilegeOfService implements IPropertyPrivilegeOfSer
 	}
 
 	@Override
-	public boolean isCreateAllowed()
-	{
+	public boolean isCreateAllowed() {
 		return create;
 	}
 
 	@Override
-	public boolean isReadAllowed()
-	{
+	public boolean isReadAllowed() {
 		return read;
 	}
 
 	@Override
-	public boolean isUpdateAllowed()
-	{
+	public boolean isUpdateAllowed() {
 		return update;
 	}
 
 	@Override
-	public boolean isDeleteAllowed()
-	{
+	public boolean isDeleteAllowed() {
 		return delete;
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == this)
-		{
+	public boolean equals(Object obj) {
+		if (obj == this) {
 			return true;
 		}
-		if (!(obj instanceof PropertyPrivilegeOfService))
-		{
+		if (!(obj instanceof PropertyPrivilegeOfService)) {
 			return false;
 		}
 		PropertyPrivilegeOfService other = (PropertyPrivilegeOfService) obj;
-		return create == other.create && read == other.read && update == other.update && delete == other.delete;
+		return create == other.create && read == other.read && update == other.update
+				&& delete == other.delete;
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return PropertyPrivilegeImpl.calcIndex(create, read, update, delete);
 	}
 
 	@Override
-	public final String toString()
-	{
+	public final String toString() {
 		StringBuilder sb = new StringBuilder();
 		toString(sb);
 		return sb.toString();
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
+	public void toString(StringBuilder sb) {
 		sb.append(isReadAllowed() ? "+R" : "-R");
 		sb.append(isCreateAllowed() ? "+C" : "-C");
 		sb.append(isUpdateAllowed() ? "+U" : "-U");

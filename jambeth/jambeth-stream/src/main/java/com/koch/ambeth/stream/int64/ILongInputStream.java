@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.stream.IInputStream;
 
-public interface ILongInputStream extends IInputStream
-{
+public interface ILongInputStream extends IInputStream {
 	boolean hasLong();
 
 	long readLong();

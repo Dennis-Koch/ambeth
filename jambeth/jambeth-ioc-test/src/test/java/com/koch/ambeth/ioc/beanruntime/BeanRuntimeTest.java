@@ -24,27 +24,22 @@ import org.junit.Test;
 
 import com.koch.ambeth.testutil.AbstractIocTest;
 
-public class BeanRuntimeTest extends AbstractIocTest
-{
-	public static abstract class MyBean
-	{
+public class BeanRuntimeTest extends AbstractIocTest {
+	public static abstract class MyBean {
 		public abstract int getValue();
 	}
 
-	protected MyBean create()
-	{
+	protected MyBean create() {
 		return beanContext.registerBean(MyBean.class).finish();
 	}
 
 	@Test
-	public void testAbstractRuntimeInstantiation()
-	{
+	public void testAbstractRuntimeInstantiation() {
 		create();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	public void testAbstractRuntimeInstantiationFails()
-	{
+	public void testAbstractRuntimeInstantiationFails() {
 		create().getValue();
 	}
 }

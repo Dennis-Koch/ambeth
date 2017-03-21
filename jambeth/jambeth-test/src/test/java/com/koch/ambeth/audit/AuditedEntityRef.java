@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.audit.model.IAuditedEntityRef;
 
-public interface AuditedEntityRef extends IAbstractAuditEntity, IAuditedEntityRef
-{
+public interface AuditedEntityRef extends IAbstractAuditEntity, IAuditedEntityRef {
 	// intended blank
 }

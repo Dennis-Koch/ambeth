@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.util.IDisposable;
 
-public interface IRevertChangesSavepoint extends IDisposable
-{
+public interface IRevertChangesSavepoint extends IDisposable {
 	void revertChanges();
 
 	Object[] getSavedBusinessObjects();

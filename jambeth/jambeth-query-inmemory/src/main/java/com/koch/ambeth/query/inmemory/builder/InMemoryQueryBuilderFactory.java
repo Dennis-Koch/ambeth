@@ -29,8 +29,7 @@ import com.koch.ambeth.query.IQueryBuilderFactory;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 
-public class InMemoryQueryBuilderFactory implements IQueryBuilderFactory, IInitializingBean
-{
+public class InMemoryQueryBuilderFactory implements IQueryBuilderFactory, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -40,26 +39,23 @@ public class InMemoryQueryBuilderFactory implements IQueryBuilderFactory, IIniti
 	protected IProxyFactory proxyFactory;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(beanContext, "beanContext");
 		ParamChecker.assertNotNull(proxyFactory, "proxyFactory");
 	}
 
-	public void setBeanContext(IServiceContext beanContext)
-	{
+	public void setBeanContext(IServiceContext beanContext) {
 		this.beanContext = beanContext;
 	}
 
-	public void setProxyFactory(IProxyFactory proxyFactory)
-	{
+	public void setProxyFactory(IProxyFactory proxyFactory) {
 		this.proxyFactory = proxyFactory;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> IQueryBuilder<T> create(Class<T> entityType)
-	{
-		return beanContext.registerBean(InMemoryQueryBuilder.class).propertyValue("EntityType", entityType).finish();
+	public <T> IQueryBuilder<T> create(Class<T> entityType) {
+		return beanContext.registerBean(InMemoryQueryBuilder.class)
+				.propertyValue("EntityType", entityType).finish();
 	}
 }

@@ -22,8 +22,7 @@ limitations under the License.
 
 import org.w3c.dom.Document;
 
-public interface IVomDocumentCreator
-{
+public interface IVomDocumentCreator {
 
 	Document getVomDocument(String businessObjectType, String valueObjectType);
 

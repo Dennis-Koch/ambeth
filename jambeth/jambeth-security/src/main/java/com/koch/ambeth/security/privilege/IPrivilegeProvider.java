@@ -28,15 +28,14 @@ import com.koch.ambeth.security.privilege.model.ITypePrivilege;
 import com.koch.ambeth.security.privilege.model.ITypePrivilegeResult;
 import com.koch.ambeth.service.merge.model.IObjRef;
 
-public interface IPrivilegeProvider
-{
+public interface IPrivilegeProvider {
 	IPrivilege getPrivilege(Object entity);
 
 	IPrivilege getPrivilegeByObjRef(IObjRef objRef);
 
 	/**
 	 * Result correlates by-index with the given objRefs
-	 * 
+	 *
 	 * @param objRefs
 	 * @param securityScopes
 	 * @return
@@ -45,7 +44,7 @@ public interface IPrivilegeProvider
 
 	/**
 	 * Result correlates by-index with the given objRefs
-	 * 
+	 *
 	 * @param objRefs
 	 * @param securityScopes
 	 * @return

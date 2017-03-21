@@ -26,8 +26,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.PARAMETER })
-public @interface SecurityContextUserName
-{
+@Target({ElementType.PARAMETER})
+public @interface SecurityContextUserName {
 	// intended blank
 }

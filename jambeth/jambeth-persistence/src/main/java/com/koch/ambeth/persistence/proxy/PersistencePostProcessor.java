@@ -39,44 +39,42 @@ import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.annotation.AnnotationCache;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 
-public class PersistencePostProcessor extends AbstractCascadePostProcessor
-{
+public class PersistencePostProcessor extends AbstractCascadePostProcessor {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	protected final AnnotationCache<PersistenceContext> annotationCache = new AnnotationCache<PersistenceContext>(PersistenceContext.class)
-	{
-		@Override
-		protected boolean annotationEquals(PersistenceContext left, PersistenceContext right)
-		{
-			return EqualsUtil.equals(left.value(), right.value());
-		}
-	};
+	protected final AnnotationCache<PersistenceContext> annotationCache =
+			new AnnotationCache<PersistenceContext>(PersistenceContext.class) {
+				@Override
+				protected boolean annotationEquals(PersistenceContext left, PersistenceContext right) {
+					return EqualsUtil.equals(left.value(), right.value());
+				}
+			};
 
-	protected final IBehaviorTypeExtractor<PersistenceContext, PersistenceContextType> btExtractor = new IBehaviorTypeExtractor<PersistenceContext, PersistenceContextType>()
-	{
-		@Override
-		public PersistenceContextType extractBehaviorType(PersistenceContext annotation, AnnotatedElement annotatedElement)
-		{
-			return annotation.value();
-		}
-	};
+	protected final IBehaviorTypeExtractor<PersistenceContext, PersistenceContextType> btExtractor =
+			new IBehaviorTypeExtractor<PersistenceContext, PersistenceContextType>() {
+				@Override
+				public PersistenceContextType extractBehaviorType(PersistenceContext annotation,
+						AnnotatedElement annotatedElement) {
+					return annotation.value();
+				}
+			};
 
 	@Override
-	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory, IServiceContext beanContext,
-			IBeanConfiguration beanConfiguration, Class<?> type, Set<Class<?>> requestedTypes)
-	{
-		IMethodLevelBehavior<PersistenceContextType> behaviour = MethodLevelBehavior.create(type, annotationCache, PersistenceContextType.class, btExtractor,
-				beanContextFactory, beanContext);
-		if (behaviour == null)
-		{
+	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory,
+			IServiceContext beanContext, IBeanConfiguration beanConfiguration, Class<?> type,
+			Set<Class<?>> requestedTypes) {
+		IMethodLevelBehavior<PersistenceContextType> behaviour =
+				MethodLevelBehavior.create(type, annotationCache, PersistenceContextType.class, btExtractor,
+						beanContextFactory, beanContext);
+		if (behaviour == null) {
 			return null;
 		}
 		PersistenceContextInterceptor interceptor = new PersistenceContextInterceptor();
-		if (beanContext.isRunning())
-		{
-			IBeanRuntime<PersistenceContextInterceptor> interceptorBC = beanContext.registerWithLifecycle(interceptor);
+		if (beanContext.isRunning()) {
+			IBeanRuntime<PersistenceContextInterceptor> interceptorBC =
+					beanContext.registerWithLifecycle(interceptor);
 			interceptorBC.propertyValue("MethodLevelBehaviour", behaviour);
 			return interceptorBC.finish();
 		}

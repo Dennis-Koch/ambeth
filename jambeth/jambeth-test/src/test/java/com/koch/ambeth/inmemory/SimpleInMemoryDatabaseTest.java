@@ -52,10 +52,10 @@ import com.koch.ambeth.persistence.event.DatabaseAcquireEvent;
 import com.koch.ambeth.persistence.event.DatabaseFailEvent;
 import com.koch.ambeth.persistence.event.DatabasePreCommitEvent;
 import com.koch.ambeth.persistence.jdbc.alternateid.AlternateIdEntity;
+import com.koch.ambeth.persistence.jdbc.alternateid.AlternateIdTest.AlternateIdModule;
 import com.koch.ambeth.persistence.jdbc.alternateid.BaseEntity;
 import com.koch.ambeth.persistence.jdbc.alternateid.BaseEntity2;
 import com.koch.ambeth.persistence.jdbc.alternateid.IAlternateIdEntityService;
-import com.koch.ambeth.persistence.jdbc.alternateid.AlternateIdTest.AlternateIdModule;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
@@ -66,31 +66,39 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-@TestModule({ AlternateIdModule.class, SimpleInMemoryDatabaseTestModule.class })
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/inmemory/simpleinmemory_orm.xml")
-public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersistenceTest
-{
-	public static class SimpleInMemoryDatabaseTestModule implements IInitializingModule
-	{
+@TestModule({AlternateIdModule.class, SimpleInMemoryDatabaseTestModule.class})
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/inmemory/simpleinmemory_orm.xml")
+public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersistenceTest {
+	public static class SimpleInMemoryDatabaseTestModule implements IInitializingModule {
 		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			IBeanConfiguration inMemoryDatabase = beanContextFactory.registerBean(SimpleInMemoryDatabase.class);
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+			IBeanConfiguration inMemoryDatabase =
+					beanContextFactory.registerBean(SimpleInMemoryDatabase.class);
 
 			// beanContextFactory.link(inMemoryDatabase).to(ITransactionListenerExtendable.class);
-			beanContextFactory.link(inMemoryDatabase, "handleDatabaseAcquire").to(IEventListenerExtendable.class).with(DatabaseAcquireEvent.class);
+			beanContextFactory.link(inMemoryDatabase, "handleDatabaseAcquire")
+					.to(IEventListenerExtendable.class).with(DatabaseAcquireEvent.class);
 			// beanContextFactory.link(inMemoryDatabase).to(IEventListenerExtendable.class).with(DatabaseCommitEvent.class);
-			beanContextFactory.link(inMemoryDatabase, "handleDatabasePreCommit").to(IEventListenerExtendable.class).with(DatabasePreCommitEvent.class);
-			beanContextFactory.link(inMemoryDatabase, "handleDatabaseFail").to(IEventListenerExtendable.class).with(DatabaseFailEvent.class);
+			beanContextFactory.link(inMemoryDatabase, "handleDatabasePreCommit")
+					.to(IEventListenerExtendable.class).with(DatabasePreCommitEvent.class);
+			beanContextFactory.link(inMemoryDatabase, "handleDatabaseFail")
+					.to(IEventListenerExtendable.class).with(DatabaseFailEvent.class);
 
-			beanContextFactory.link(inMemoryDatabase).to(ICacheRetrieverExtendable.class).with(AlternateIdEntity.class);
-			beanContextFactory.link(inMemoryDatabase).to(IMergeServiceExtensionExtendable.class).with(AlternateIdEntity.class);
+			beanContextFactory.link(inMemoryDatabase).to(ICacheRetrieverExtendable.class)
+					.with(AlternateIdEntity.class);
+			beanContextFactory.link(inMemoryDatabase).to(IMergeServiceExtensionExtendable.class)
+					.with(AlternateIdEntity.class);
 
-			beanContextFactory.link(inMemoryDatabase).to(ICacheRetrieverExtendable.class).with(BaseEntity.class);
-			beanContextFactory.link(inMemoryDatabase).to(IMergeServiceExtensionExtendable.class).with(BaseEntity.class);
+			beanContextFactory.link(inMemoryDatabase).to(ICacheRetrieverExtendable.class)
+					.with(BaseEntity.class);
+			beanContextFactory.link(inMemoryDatabase).to(IMergeServiceExtensionExtendable.class)
+					.with(BaseEntity.class);
 
-			beanContextFactory.link(inMemoryDatabase).to(ICacheRetrieverExtendable.class).with(BaseEntity2.class);
-			beanContextFactory.link(inMemoryDatabase).to(IMergeServiceExtensionExtendable.class).with(BaseEntity2.class);
+			beanContextFactory.link(inMemoryDatabase).to(ICacheRetrieverExtendable.class)
+					.with(BaseEntity2.class);
+			beanContextFactory.link(inMemoryDatabase).to(IMergeServiceExtensionExtendable.class)
+					.with(BaseEntity2.class);
 		}
 	}
 
@@ -105,8 +113,7 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 	@Autowired(CacheNamedBeans.CacheProviderSingleton)
 	protected ICacheProvider cacheProvider;
 
-	protected AlternateIdEntity createEntity()
-	{
+	protected AlternateIdEntity createEntity() {
 		AlternateIdEntity aie = entityFactory.createEntity(AlternateIdEntity.class);
 		aie.setName(name);
 
@@ -115,8 +122,7 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 	}
 
 	@Test
-	public void createAlternateIdEntity()
-	{
+	public void createAlternateIdEntity() {
 		AlternateIdEntity aie = createEntity();
 
 		Assert.assertFalse("Wrong id", aie.getId() == 0);
@@ -124,8 +130,7 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 	}
 
 	@Test
-	public void createAlternateIdEntity_emptyAlternateId()
-	{
+	public void createAlternateIdEntity_emptyAlternateId() {
 		AlternateIdEntity aie = entityFactory.createEntity(AlternateIdEntity.class);
 
 		service.updateAlternateIdEntity(aie);
@@ -135,31 +140,30 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 	}
 
 	@Test
-	public void selectByPrimitive()
-	{
+	public void selectByPrimitive() {
 		String name = createEntity().getName();
 		AlternateIdEntity aieReloaded = service.getAlternateIdEntityByName(name);
 		Assert.assertNotNull("Entity must be valid", aieReloaded);
 	}
 
 	@Test
-	public void alternateIdSimpleRead()
-	{
+	public void alternateIdSimpleRead() {
 		AlternateIdEntity entity = createEntity();
 
 		ICache cache = cacheProvider.getCurrentCache();
 
 		AlternateIdEntity entityFromCacheById = cache.getObject(entity.getClass(), entity.getId());
-		AlternateIdEntity entityFromCacheById2 = cache.getObject(entity.getClass(), "Id", entity.getId());
-		AlternateIdEntity entityFromCacheByName = cache.getObject(entity.getClass(), "Name", entity.getName());
+		AlternateIdEntity entityFromCacheById2 =
+				cache.getObject(entity.getClass(), "Id", entity.getId());
+		AlternateIdEntity entityFromCacheByName =
+				cache.getObject(entity.getClass(), "Name", entity.getName());
 
 		Assert.assertSame(entityFromCacheById, entityFromCacheById2);
 		Assert.assertSame(entityFromCacheById, entityFromCacheByName);
 	}
 
 	@Test
-	public void alternateIdChange()
-	{
+	public void alternateIdChange() {
 		AlternateIdEntity entity = createEntity();
 
 		ICache cache = cacheProvider.getCurrentCache();
@@ -170,16 +174,17 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 
 		service.updateAlternateIdEntity(entity);
 
-		AlternateIdEntity entityFromCacheByIdAfterChange = cache.getObject(entity.getClass(), entity.getId());
+		AlternateIdEntity entityFromCacheByIdAfterChange =
+				cache.getObject(entity.getClass(), entity.getId());
 
 		Assert.assertSame(entityFromCacheById, entityFromCacheByIdAfterChange);
 	}
 
 	@Test
-	@TestPropertiesList({ @TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "5"),
-			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "5") })
-	public void isolationLevel()
-	{
+	@TestPropertiesList({
+			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "5"),
+			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "5")})
+	public void isolationLevel() {
 		final ICache cache = beanContext.getService(ICache.class);
 		final String name1;
 		final int id;
@@ -190,24 +195,19 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 			beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
 		}
 		final CyclicBarrier[] barrier = new CyclicBarrier[6];
-		for (int a = barrier.length; a-- > 0;)
-		{
+		for (int a = barrier.length; a-- > 0;) {
 			barrier[a] = new CyclicBarrier(3);
 		}
-		Runnable run1 = new Runnable()
-		{
+		Runnable run1 = new Runnable() {
 			@Override
-			public void run()
-			{
-				try
-				{
+			public void run() {
+				try {
 					final AlternateIdEntity entity = cache.getObject(AlternateIdEntity.class, id);
 					barrier[0].await();
-					transaction.processAndCommit(new DatabaseCallback()
-					{
+					transaction.processAndCommit(new DatabaseCallback() {
 						@Override
-						public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
-						{
+						public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+								throws Throwable {
 							entity.setName(name1 + "1");
 							service.updateAlternateIdEntity(entity);
 							entity.setName(name1 + "11");
@@ -220,66 +220,55 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 					barrier[4].await();
 					barrier[5].await();
 				}
-				catch (Throwable e)
-				{
+				catch (Throwable e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
 		};
-		Runnable run2 = new Runnable()
-		{
+		Runnable run2 = new Runnable() {
 			@Override
-			public void run()
-			{
-				try
-				{
+			public void run() {
+				try {
 					final AlternateIdEntity entity = cache.getObject(AlternateIdEntity.class, id);
 					barrier[0].await();
 					barrier[1].await();
-					try
-					{
-						transaction.processAndCommit(new DatabaseCallback()
-						{
+					try {
+						transaction.processAndCommit(new DatabaseCallback() {
 							@Override
-							public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
-							{
+							public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+									throws Throwable {
 								entity.setName(name1 + "2");
 								service.updateAlternateIdEntity(entity);
 							}
 						});
-						throw new IllegalStateException(OptimisticLockException.class.getSimpleName() + " expected");
+						throw new IllegalStateException(
+								OptimisticLockException.class.getSimpleName() + " expected");
 					}
-					catch (OptimisticLockException e)
-					{
+					catch (OptimisticLockException e) {
 						// intended blank
 					}
 					barrier[2].await();
 					barrier[3].await();
 					barrier[4].await();
-					try
-					{
+					try {
 						service.updateAlternateIdEntity(entity);
-						throw new IllegalStateException(OptimisticLockException.class.getSimpleName() + " expected");
+						throw new IllegalStateException(
+								OptimisticLockException.class.getSimpleName() + " expected");
 					}
-					catch (OptimisticLockException e)
-					{
+					catch (OptimisticLockException e) {
 						// intended blank
 					}
 					barrier[5].await();
 				}
-				catch (Throwable e)
-				{
+				catch (Throwable e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
 		};
-		Runnable run3 = new Runnable()
-		{
+		Runnable run3 = new Runnable() {
 			@Override
-			public void run()
-			{
-				try
-				{
+			public void run() {
+				try {
 					barrier[0].await();
 					barrier[1].await();
 					barrier[2].await();
@@ -290,8 +279,7 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 					entity.setName(name1 + "3");
 					service.updateAlternateIdEntity(entity);
 				}
-				catch (Throwable e)
-				{
+				catch (Throwable e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
@@ -300,36 +288,32 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 	}
 
 	@Test
-	public void selectByArray()
-	{
+	public void selectByArray() {
 		String name = createEntity().getName();
 		AlternateIdEntity aieReloaded2 = service.getAlternateIdEntityByNames(name);
 		Assert.assertNotNull("Entity must be valid", aieReloaded2);
 	}
 
 	@Test
-	public void selectByList()
-	{
+	public void selectByList() {
 		String name = createEntity().getName();
-		ArrayList<String> namesList = new ArrayList<String>();
+		ArrayList<String> namesList = new ArrayList<>();
 		namesList.add(name);
 		AlternateIdEntity aieReloaded3 = service.getAlternateIdEntityByNames(namesList);
 		Assert.assertNotNull("Entity must be valid", aieReloaded3);
 	}
 
 	@Test
-	public void selectBySet()
-	{
+	public void selectBySet() {
 		String name = createEntity().getName();
-		HashSet<String> namesSet = new HashSet<String>();
+		HashSet<String> namesSet = new HashSet<>();
 		namesSet.add(name);
 		AlternateIdEntity aieReloaded4 = service.getAlternateIdEntityByNames(namesSet);
 		Assert.assertNotNull("Entity must be valid", aieReloaded4);
 	}
 
 	@Test
-	public void selectListByArray()
-	{
+	public void selectListByArray() {
 		String name = createEntity().getName();
 		List<AlternateIdEntity> list = service.getAlternateIdEntitiesByNamesReturnList(name);
 		Assert.assertNotNull("List must be valid", list);
@@ -338,8 +322,7 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 	}
 
 	@Test
-	public void selectSetByArray()
-	{
+	public void selectSetByArray() {
 		String name = createEntity().getName();
 		Set<AlternateIdEntity> set = service.getAlternateIdEntitiesByNamesReturnSet(name);
 		Assert.assertNotNull("List must be valid", set);
@@ -348,8 +331,7 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 	}
 
 	@Test
-	public void selectArrayByArray()
-	{
+	public void selectArrayByArray() {
 		String name = createEntity().getName();
 		AlternateIdEntity[] array = service.getAlternateIdEntitiesByNamesReturnArray(name);
 		Assert.assertNotNull("Array must be valid", array);
@@ -358,12 +340,13 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 	}
 
 	/**
-	 * BaseEntity2 has two unique fields (aka alternate id fields). One of them is a foreign key field and so should not be used as an alternate id field.
+	 * BaseEntity2 has two unique fields (aka alternate id fields). One of them is a foreign key field
+	 * and so should not be used as an alternate id field.
 	 */
 	@Test
-	public void testBaseEntity2()
-	{
-		IEntityMetaData metaData = beanContext.getService(IEntityMetaDataProvider.class).getMetaData(BaseEntity2.class);
+	public void testBaseEntity2() {
+		IEntityMetaData metaData =
+				beanContext.getService(IEntityMetaDataProvider.class).getMetaData(BaseEntity2.class);
 
 		Assert.assertEquals(1, metaData.getAlternateIdMembers().length);
 	}

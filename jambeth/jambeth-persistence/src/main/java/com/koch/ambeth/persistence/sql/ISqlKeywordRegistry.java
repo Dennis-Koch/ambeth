@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface ISqlKeywordRegistry
-{
+public interface ISqlKeywordRegistry {
 	void registerSqlKeyword(String sqlKeyword);
 }

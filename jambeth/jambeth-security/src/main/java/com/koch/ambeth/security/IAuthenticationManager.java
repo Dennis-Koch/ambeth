@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IAuthenticationManager
-{
+public interface IAuthenticationManager {
 	IAuthenticationResult authenticate(IAuthentication authentication) throws AuthenticationException;
 }

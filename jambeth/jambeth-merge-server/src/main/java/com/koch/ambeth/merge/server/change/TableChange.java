@@ -49,9 +49,8 @@ import com.koch.ambeth.util.collections.IMap;
 /**
  * Change collector for entity tables
  */
-public class TableChange extends AbstractTableChange
-{
-	protected final HashMap<IObjRef, IRowCommand> rowCommands = new HashMap<IObjRef, IRowCommand>();
+public class TableChange extends AbstractTableChange {
+	protected final HashMap<IObjRef, IRowCommand> rowCommands = new HashMap<>();
 
 	@Autowired
 	protected ICache cache;
@@ -65,144 +64,120 @@ public class TableChange extends AbstractTableChange
 	@Autowired
 	protected IObjRefHelper objRefHelper;
 
-	@Property(name = MergeServerConfigurationConstants.DeleteDataChangesByAlternateIds, defaultValue = "false")
+	@Property(name = MergeServerConfigurationConstants.DeleteDataChangesByAlternateIds,
+			defaultValue = "false")
 	protected boolean deleteDataChangesByAlternateIds;
 
-	public IMap<IObjRef, IRowCommand> getRowCommands()
-	{
+	public IMap<IObjRef, IRowCommand> getRowCommands() {
 		return rowCommands;
 	}
 
 	@Override
-	public void addChangeCommand(IChangeCommand command)
-	{
-		if (!(command instanceof ILinkChangeCommand))
-		{
+	public void addChangeCommand(IChangeCommand command) {
+		if (!(command instanceof ILinkChangeCommand)) {
 			IObjRef key = command.getReference();
 
 			IRowCommand row = rowCommands.get(key);
-			if (row == null)
-			{
+			if (row == null) {
 				row = new RowCommand();
 				rowCommands.put(key, row);
 			}
 
 			row.addCommand(command);
 		}
-		else
-		{
+		else {
 			addChangeCommand((ILinkChangeCommand) command);
 		}
 	}
 
 	@Override
-	public void addChangeCommand(ILinkChangeCommand command)
-	{
+	public void addChangeCommand(ILinkChangeCommand command) {
 		IDirectedLinkMetaData link = command.getDirectedLink().getMetaData();
 		IFieldMetaData localField;
-		ArrayList<IObjRef> refs = new ArrayList<IObjRef>();
+		ArrayList<IObjRef> refs = new ArrayList<>();
 		Object foreignKey = null;
 		IObjRef reference = command.getReference();
-		if (table.getMetaData().getEntityType() == reference.getRealType())
-		{
+		if (table.getMetaData().getEntityType() == reference.getRealType()) {
 			refs.add(reference);
 			localField = link.getFromField();
-			if (!command.getRefsToLink().isEmpty())
-			{
+			if (!command.getRefsToLink().isEmpty()) {
 				// Foreign key link has to have exactly one id or has to be null
 				IFieldMetaData foreignField = link.getToField();
 				IObjRef ref = command.getRefsToLink().get(0);
-				if (!foreignField.isAlternateId() || foreignField.getIdIndex() == ref.getIdNameIndex())
-				{
-					if (ref instanceof IDirectObjRef)
-					{
+				if (!foreignField.isAlternateId() || foreignField.getIdIndex() == ref.getIdNameIndex()) {
+					if (ref instanceof IDirectObjRef) {
 						IDirectObjRef directRef = (IDirectObjRef) ref;
 						Object container = directRef.getDirect();
 						foreignKey = getPrimaryIdValue(container);
 					}
-					if (foreignKey == null)
-					{
+					if (foreignKey == null) {
 						foreignKey = ref.getId();
 					}
 				}
-				else if (ref instanceof IDirectObjRef)
-				{
+				else if (ref instanceof IDirectObjRef) {
 					IDirectObjRef directRef = (IDirectObjRef) ref;
 					Object container = directRef.getDirect();
 					String keyMemberName = foreignField.getMember().getName();
 					foreignKey = getAlternateIdValue(container, keyMemberName);
 				}
-				if (foreignKey == null)
-				{
-					throw new IllegalArgumentException("Missing the required ID value (is: idIndex " + ref.getIdNameIndex() + ", req: idIndex "
-							+ foreignField.getIdIndex() + ")");
+				if (foreignKey == null) {
+					throw new IllegalArgumentException("Missing the required ID value (is: idIndex "
+							+ ref.getIdNameIndex() + ", req: idIndex " + foreignField.getIdIndex() + ")");
 				}
 			}
-			else
-			{
+			else {
 				foreignKey = null;
 			}
 		}
-		else
-		{
+		else {
 			localField = link.getToField();
 			IFieldMetaData foreignField = link.getFromField();
 			byte neededIdIndex = foreignField.getIdIndex();
-			if (reference instanceof IDirectObjRef)
-			{
-				// IdIndex of ObjRef does not help here. We have to extract the necessary IdIndex by ourselves
+			if (reference instanceof IDirectObjRef) {
+				// IdIndex of ObjRef does not help here. We have to extract the necessary IdIndex by
+				// ourselves
 				IDirectObjRef directRef = (IDirectObjRef) reference;
-				if (foreignField.getIdIndex() != ObjRef.PRIMARY_KEY_INDEX)
-				{
+				if (foreignField.getIdIndex() != ObjRef.PRIMARY_KEY_INDEX) {
 					Object container = directRef.getDirect();
 					String keyMemberName = foreignField.getMember().getName();
 					foreignKey = getAlternateIdValue(container, keyMemberName);
 				}
-				else
-				{
+				else {
 					Object container = directRef.getDirect();
 					foreignKey = getPrimaryIdValue(container);
-					if (foreignKey == null)
-					{
+					if (foreignKey == null) {
 						foreignKey = directRef.getId();
 					}
 				}
 			}
-			else if (neededIdIndex == reference.getIdNameIndex())
-			{
+			else if (neededIdIndex == reference.getIdNameIndex()) {
 				foreignKey = reference.getId();
 			}
-			else
-			{
-				throw new IllegalStateException("Attempt to update a foreign key column without knowing the needed key value");
+			else {
+				throw new IllegalStateException(
+						"Attempt to update a foreign key column without knowing the needed key value");
 			}
-			if (foreignKey == null)
-			{
-				throw new IllegalArgumentException("Missing the required ID value (req: idIndex " + foreignField.getIdIndex() + ")");
+			if (foreignKey == null) {
+				throw new IllegalArgumentException(
+						"Missing the required ID value (req: idIndex " + foreignField.getIdIndex() + ")");
 			}
 			List<IObjRef> toProcess = command.getRefsToLink();
-			if (!toProcess.isEmpty())
-			{
-				for (int i = toProcess.size(); i-- > 0;)
-				{
+			if (!toProcess.isEmpty()) {
+				for (int i = toProcess.size(); i-- > 0;) {
 					refs.add(toProcess.get(i));
 				}
 			}
-			else
-			{
+			else {
 				toProcess = command.getRefsToUnlink();
-				if (!toProcess.isEmpty())
-				{
+				if (!toProcess.isEmpty()) {
 					foreignKey = null;
-					for (int i = toProcess.size(); i-- > 0;)
-					{
+					for (int i = toProcess.size(); i-- > 0;) {
 						refs.add(toProcess.get(i));
 					}
 				}
 			}
 		}
-		for (int i = refs.size(); i-- > 0;)
-		{
+		for (int i = refs.size(); i-- > 0;) {
 			IObjRef objRef = refs.get(i);
 			UpdateCommand updateCommand = new UpdateCommand(objRef);
 			updateCommand.put(localField, foreignKey);
@@ -211,79 +186,66 @@ public class TableChange extends AbstractTableChange
 	}
 
 	@Override
-	public void execute(IChangeAggregator changeAggregator)
-	{
+	public void execute(IChangeAggregator changeAggregator) {
 		IConversionHelper conversionHelper = this.conversionHelper;
 		ITable table = this.table;
 		IFieldMetaData versionField = table.getMetaData().getVersionField();
-		Class<?> versionTypeOfObject = versionField != null ? versionField.getMember().getElementType() : null;
-		ArrayList<IObjRef> toDelete = new ArrayList<IObjRef>();
+		Class<?> versionTypeOfObject =
+				versionField != null ? versionField.getMember().getElementType() : null;
+		ArrayList<IObjRef> toDelete = new ArrayList<>();
 		IList<IRowCommand> commands = rowCommands.values();
 		table.startBatch();
-		try
-		{
-			for (int i = commands.size(); i-- > 0;)
-			{
+		try {
+			for (int i = commands.size(); i-- > 0;) {
 				IRowCommand rowCommand = commands.get(i);
 				IChangeCommand changeCommand = rowCommand.getCommand();
 				IObjRef reference = changeCommand.getReference();
-				if (changeCommand instanceof ICreateCommand)
-				{
+				if (changeCommand instanceof ICreateCommand) {
 					ICreateCommand command = (ICreateCommand) changeCommand;
 
 					Object version = table.insert(reference.getId(), command.getItems());
-					if (reference instanceof IDirectObjRef)
-					{
+					if (reference instanceof IDirectObjRef) {
 						((IDirectObjRef) reference).setDirect(null);
 					}
-					if (versionTypeOfObject != null)
-					{
+					if (versionTypeOfObject != null) {
 						version = conversionHelper.convertValueToType(versionTypeOfObject, version);
 						reference.setVersion(version);
 					}
-					else
-					{
+					else {
 						reference.setVersion(null);
 					}
 					changeAggregator.dataChangeInsert(reference);
 				}
-				else if (changeCommand instanceof IUpdateCommand)
-				{
+				else if (changeCommand instanceof IUpdateCommand) {
 					IUpdateCommand command = (IUpdateCommand) changeCommand;
 
-					Object version = table.update(reference.getId(), reference.getVersion(), command.getItems());
-					if (versionTypeOfObject != null)
-					{
+					Object version =
+							table.update(reference.getId(), reference.getVersion(), command.getItems());
+					if (versionTypeOfObject != null) {
 						version = conversionHelper.convertValueToType(versionTypeOfObject, version);
 						reference.setVersion(version);
 					}
-					else
-					{
+					else {
 						reference.setVersion(null);
 					}
 					changeAggregator.dataChangeUpdate(reference);
 				}
-				else if (changeCommand instanceof IDeleteCommand)
-				{
+				else if (changeCommand instanceof IDeleteCommand) {
 					toDelete.add(reference);
 					changeAggregator.dataChangeDelete(reference);
 				}
-				else
-				{
-					throw new IllegalCommandException("Unknown command object: " + changeCommand.getClass().getSimpleName());
+				else {
+					throw new IllegalCommandException(
+							"Unknown command object: " + changeCommand.getClass().getSimpleName());
 				}
 			}
-			if (!toDelete.isEmpty())
-			{
-				if (deleteDataChangesByAlternateIds)
-				{
+			if (!toDelete.isEmpty()) {
+				if (deleteDataChangesByAlternateIds) {
 					IList<Object> objects = cache.getObjects(toDelete, CacheDirective.none());
 					IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objects.get(0).getClass());
-					for (int i = objects.size(); i-- > 0;)
-					{
+					for (int i = objects.size(); i-- > 0;) {
 						IList<IObjRef> allOris = objRefHelper.entityToAllObjRefs(objects.get(i), metaData);
-						for (int j = allOris.size(); j-- > 0;)
-						{
+						for (int j = allOris.size(); j-- > 0;) {
 							changeAggregator.dataChangeDelete(allOris.get(j));
 						}
 					}
@@ -292,37 +254,29 @@ public class TableChange extends AbstractTableChange
 			}
 			table.finishBatch();
 		}
-		finally
-		{
+		finally {
 			table.clearBatch();
 		}
 	}
 
-	protected Object getAlternateIdValue(Object container, String memberName)
-	{
+	protected Object getAlternateIdValue(Object container, String memberName) {
 		Object value = null;
-		if (container instanceof ICreateOrUpdateContainer)
-		{
+		if (container instanceof ICreateOrUpdateContainer) {
 			IPrimitiveUpdateItem[] puis = ((ICreateOrUpdateContainer) container).getFullPUIs();
-			if (puis != null)
-			{
-				for (int i = puis.length; i-- > 0;)
-				{
+			if (puis != null) {
+				for (int i = puis.length; i-- > 0;) {
 					IPrimitiveUpdateItem pui = puis[i];
-					if (pui == null)
-					{
+					if (pui == null) {
 						continue;
 					}
-					if (pui.getMemberName().equals(memberName))
-					{
+					if (pui.getMemberName().equals(memberName)) {
 						value = pui.getNewValue();
 						break;
 					}
 				}
 			}
 		}
-		else
-		{
+		else {
 			IEntityMetaData metaData = ((IEntityMetaDataHolder) container).get__EntityMetaData();
 			byte idIndex = metaData.getIdIndexByMemberName(memberName);
 			value = metaData.getAlternateIdMembers()[idIndex].getValue(container);
@@ -330,10 +284,8 @@ public class TableChange extends AbstractTableChange
 		return value;
 	}
 
-	protected Object getPrimaryIdValue(Object container)
-	{
-		if (container instanceof ICreateOrUpdateContainer)
-		{
+	protected Object getPrimaryIdValue(Object container) {
+		if (container instanceof ICreateOrUpdateContainer) {
 			return ((ICreateOrUpdateContainer) container).getReference().getId();
 		}
 		IEntityMetaData metaData = ((IEntityMetaDataHolder) container).get__EntityMetaData();

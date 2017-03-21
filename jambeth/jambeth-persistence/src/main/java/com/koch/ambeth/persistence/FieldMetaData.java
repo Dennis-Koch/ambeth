@@ -28,8 +28,7 @@ import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.config.IProperties;
 
-public class FieldMetaData implements IFieldMetaData, IInitializingBean
-{
+public class FieldMetaData implements IFieldMetaData, IInitializingBean {
 	protected IProperties properties;
 
 	protected ITableMetaData table;
@@ -53,150 +52,124 @@ public class FieldMetaData implements IFieldMetaData, IInitializingBean
 	protected String originalTypeName;
 
 	@Override
-	public void afterPropertiesSet()
-	{
+	public void afterPropertiesSet() {
 		ParamChecker.assertNotNull(properties, "properties");
 		ParamChecker.assertNotNull(table, "table");
 		ParamChecker.assertNotNull(name, "name");
 		ParamChecker.assertNotNull(fieldType, "fieldType");
 	}
 
-	public void setProperties(IProperties properties)
-	{
+	public void setProperties(IProperties properties) {
 		this.properties = properties;
 	}
 
 	@Override
-	public ITableMetaData getTable()
-	{
+	public ITableMetaData getTable() {
 		return table;
 	}
 
-	public void setTable(ITableMetaData table)
-	{
+	public void setTable(ITableMetaData table) {
 		this.table = table;
 	}
 
 	@Override
-	public boolean expectsMapping()
-	{
+	public boolean expectsMapping() {
 		return expectsMapping;
 	}
 
-	public void setExpectsMapping(boolean expectsMapping)
-	{
+	public void setExpectsMapping(boolean expectsMapping) {
 		this.expectsMapping = expectsMapping;
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
 	@Override
-	public boolean isAlternateId()
-	{
+	public boolean isAlternateId() {
 		return isAlternateId;
 	}
 
-	public void setAlternateId()
-	{
+	public void setAlternateId() {
 		isAlternateId = true;
 	}
 
 	@Override
-	public byte getIdIndex()
-	{
+	public byte getIdIndex() {
 		return idIndex;
 	}
 
-	public void setIdIndex(byte idIndex)
-	{
+	public void setIdIndex(byte idIndex) {
 		this.idIndex = idIndex;
 	}
 
 	@Override
-	public Member getMember()
-	{
+	public Member getMember() {
 		return member;
 	}
 
-	public void setMember(Member member)
-	{
-		if (this.member == member)
-		{
+	public void setMember(Member member) {
+		if (this.member == member) {
 			return;
 		}
-		if (this.member != null && !this.member.getName().equals(member.getName()))
-		{
-			throw new IllegalStateException("Member already configured and can not be changed later. A call to this method here is a bug");
+		if (this.member != null && !this.member.getName().equals(member.getName())) {
+			throw new IllegalStateException(
+					"Member already configured and can not be changed later. A call to this method here is a bug");
 		}
 		this.member = member;
 	}
 
 	@Override
-	public Class<?> getFieldType()
-	{
+	public Class<?> getFieldType() {
 		return fieldType;
 	}
 
-	public void setFieldType(Class<?> fieldType)
-	{
+	public void setFieldType(Class<?> fieldType) {
 		this.fieldType = fieldType;
 	}
 
-	public void setFieldSubType(Class<?> fieldSubType)
-	{
+	public void setFieldSubType(Class<?> fieldSubType) {
 		this.fieldSubType = fieldSubType;
 	}
 
 	@Override
-	public Class<?> getFieldSubType()
-	{
+	public Class<?> getFieldSubType() {
 		return fieldSubType;
 	}
 
 	@Override
-	public Class<?> getEntityType()
-	{
-		if (table == null)
-		{
+	public Class<?> getEntityType() {
+		if (table == null) {
 			return null;
 		}
 		return table.getEntityType();
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return "Field: " + getName();
 	}
 
 	@Override
-	public int getIndexOnTable()
-	{
+	public int getIndexOnTable() {
 		return indexOnTable;
 	}
 
-	public void setIndexOnTable(int indexOnTable)
-	{
+	public void setIndexOnTable(int indexOnTable) {
 		this.indexOnTable = indexOnTable;
 	}
 
 	@Override
-	public String getOriginalTypeName()
-	{
+	public String getOriginalTypeName() {
 		return originalTypeName;
 	}
 
-	public void setOriginalTypeName(String originalTypeName)
-	{
+	public void setOriginalTypeName(String originalTypeName) {
 		this.originalTypeName = originalTypeName;
 	}
 }

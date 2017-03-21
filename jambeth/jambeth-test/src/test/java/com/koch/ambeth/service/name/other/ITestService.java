@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface ITestService
-{
+public interface ITestService {
 	void testCallOnNamedService();
 }

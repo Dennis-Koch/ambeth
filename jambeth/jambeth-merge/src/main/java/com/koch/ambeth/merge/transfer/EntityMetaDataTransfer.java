@@ -29,8 +29,7 @@ import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
 
 @XmlRootElement(name = "EntityMetaDataTransfer", namespace = "http://schema.kochdev.com/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class EntityMetaDataTransfer
-{
+public class EntityMetaDataTransfer {
 	@XmlElement
 	protected Class<?> entityType;
 
@@ -73,213 +72,172 @@ public class EntityMetaDataTransfer
 	@XmlElement
 	protected String[] mergeRelevantNames;
 
-	public Class<?> getEntityType()
-	{
+	public Class<?> getEntityType() {
 		return entityType;
 	}
 
-	public void setEntityType(Class<?> entityType)
-	{
+	public void setEntityType(Class<?> entityType) {
 		this.entityType = entityType;
 	}
 
-	public Class<?>[] getTypesRelatingToThis()
-	{
+	public Class<?>[] getTypesRelatingToThis() {
 		return typesRelatingToThis;
 	}
 
-	public void setTypesRelatingToThis(Class<?>[] typesRelatingToThis)
-	{
+	public void setTypesRelatingToThis(Class<?>[] typesRelatingToThis) {
 		this.typesRelatingToThis = typesRelatingToThis;
 	}
 
-	public Class<?>[] getTypesToCascadeDelete()
-	{
+	public Class<?>[] getTypesToCascadeDelete() {
 		return typesToCascadeDelete;
 	}
 
-	public void setTypesToCascadeDelete(Class<?>[] typesToCascadeDelete)
-	{
+	public void setTypesToCascadeDelete(Class<?>[] typesToCascadeDelete) {
 		this.typesToCascadeDelete = typesToCascadeDelete;
 	}
 
-	public String[] getMergeRelevantNames()
-	{
+	public String[] getMergeRelevantNames() {
 		return mergeRelevantNames;
 	}
 
-	public void setMergeRelevantNames(String[] mergeRelevantNames)
-	{
+	public void setMergeRelevantNames(String[] mergeRelevantNames) {
 		this.mergeRelevantNames = mergeRelevantNames;
 	}
 
-	public String[] getRelationMemberNames()
-	{
+	public String[] getRelationMemberNames() {
 		return relationMemberNames;
 	}
 
-	public void setRelationMemberNames(String[] relationMemberNames)
-	{
+	public void setRelationMemberNames(String[] relationMemberNames) {
 		this.relationMemberNames = relationMemberNames;
 	}
 
-	public String[] getPrimitiveMemberNames()
-	{
+	public String[] getPrimitiveMemberNames() {
 		return primitiveMemberNames;
 	}
 
-	public void setPrimitiveMemberNames(String[] primitiveMemberNames)
-	{
+	public void setPrimitiveMemberNames(String[] primitiveMemberNames) {
 		this.primitiveMemberNames = primitiveMemberNames;
 	}
 
-	public String[] getAlternateIdMemberNames()
-	{
+	public String[] getAlternateIdMemberNames() {
 		return alternateIdMemberNames;
 	}
 
-	public void setAlternateIdMemberNames(String[] alternateIdMemberNames)
-	{
+	public void setAlternateIdMemberNames(String[] alternateIdMemberNames) {
 		this.alternateIdMemberNames = alternateIdMemberNames;
 	}
 
-	public String getVersionMemberName()
-	{
+	public String getVersionMemberName() {
 		return versionMemberName;
 	}
 
-	public void setVersionMemberName(String versionMemberName)
-	{
+	public void setVersionMemberName(String versionMemberName) {
 		this.versionMemberName = versionMemberName;
 	}
 
-	public String getIdMemberName()
-	{
+	public String getIdMemberName() {
 		return idMemberName;
 	}
 
-	public void setIdMemberName(String idMemberName)
-	{
+	public void setIdMemberName(String idMemberName) {
 		this.idMemberName = idMemberName;
 	}
 
-	public ITypeInfoItem getIdMemberByIdIndex(byte idIndex)
-	{
+	public ITypeInfoItem getIdMemberByIdIndex(byte idIndex) {
 		throw new UnsupportedOperationException();
 	}
 
-	public int[][] getAlternateIdMemberIndicesInPrimitives()
-	{
+	public int[][] getAlternateIdMemberIndicesInPrimitives() {
 		return alternateIdMemberIndicesInPrimitives;
 	}
 
-	public void setAlternateIdMemberIndicesInPrimitives(int[][] alternateIdMemberIndicesInPrimitives)
-	{
+	public void setAlternateIdMemberIndicesInPrimitives(
+			int[][] alternateIdMemberIndicesInPrimitives) {
 		this.alternateIdMemberIndicesInPrimitives = alternateIdMemberIndicesInPrimitives;
 	}
 
-	public ITypeInfoItem getIdMember()
-	{
+	public ITypeInfoItem getIdMember() {
 		throw new UnsupportedOperationException();
 	}
 
-	public ITypeInfoItem getVersionMember()
-	{
+	public ITypeInfoItem getVersionMember() {
 		throw new UnsupportedOperationException();
 	}
 
-	public ITypeInfoItem[] getAlternateIdMembers()
-	{
+	public ITypeInfoItem[] getAlternateIdMembers() {
 		throw new UnsupportedOperationException();
 	}
 
-	public ITypeInfoItem getCreatedOnMember()
-	{
+	public ITypeInfoItem getCreatedOnMember() {
 		throw new UnsupportedOperationException();
 	}
 
-	public ITypeInfoItem getCreatedByMember()
-	{
+	public ITypeInfoItem getCreatedByMember() {
 		throw new UnsupportedOperationException();
 	}
 
-	public ITypeInfoItem getUpdatedOnMember()
-	{
+	public ITypeInfoItem getUpdatedOnMember() {
 		throw new UnsupportedOperationException();
 	}
 
-	public ITypeInfoItem getUpdatedByMember()
-	{
+	public ITypeInfoItem getUpdatedByMember() {
 		throw new UnsupportedOperationException();
 	}
 
-	public ITypeInfoItem[] getPrimitiveMembers()
-	{
+	public ITypeInfoItem[] getPrimitiveMembers() {
 		throw new UnsupportedOperationException();
 	}
 
-	public ITypeInfoItem[] getRelationMembers()
-	{
+	public ITypeInfoItem[] getRelationMembers() {
 		throw new UnsupportedOperationException();
 	}
 
-	public boolean isMergeRelevant(ITypeInfoItem primitiveMember)
-	{
+	public boolean isMergeRelevant(ITypeInfoItem primitiveMember) {
 		throw new UnsupportedOperationException();
 	}
 
-	public ITypeInfoItem getMemberByName(String memberName)
-	{
+	public ITypeInfoItem getMemberByName(String memberName) {
 		throw new UnsupportedOperationException();
 	}
 
-	public int getIndexByName(String memberName)
-	{
+	public int getIndexByName(String memberName) {
 		throw new UnsupportedOperationException();
 	}
 
-	public boolean isCascadeDelete(Class<?> other)
-	{
+	public boolean isCascadeDelete(Class<?> other) {
 		throw new UnsupportedOperationException();
 	}
 
-	public String getCreatedOnMemberName()
-	{
+	public String getCreatedOnMemberName() {
 		return createdOnMemberName;
 	}
 
-	public void setCreatedOnMemberName(String createdOnMemberName)
-	{
+	public void setCreatedOnMemberName(String createdOnMemberName) {
 		this.createdOnMemberName = createdOnMemberName;
 	}
 
-	public String getCreatedByMemberName()
-	{
+	public String getCreatedByMemberName() {
 		return createdByMemberName;
 	}
 
-	public void setCreatedByMemberName(String createdByMemberName)
-	{
+	public void setCreatedByMemberName(String createdByMemberName) {
 		this.createdByMemberName = createdByMemberName;
 	}
 
-	public String getUpdatedOnMemberName()
-	{
+	public String getUpdatedOnMemberName() {
 		return updatedOnMemberName;
 	}
 
-	public void setUpdatedOnMemberName(String updatedOnMemberName)
-	{
+	public void setUpdatedOnMemberName(String updatedOnMemberName) {
 		this.updatedOnMemberName = updatedOnMemberName;
 	}
 
-	public String getUpdatedByMemberName()
-	{
+	public String getUpdatedByMemberName() {
 		return updatedByMemberName;
 	}
 
-	public void setUpdatedByMemberName(String updatedByMemberName)
-	{
+	public void setUpdatedByMemberName(String updatedByMemberName) {
 		this.updatedByMemberName = updatedByMemberName;
 	}
 

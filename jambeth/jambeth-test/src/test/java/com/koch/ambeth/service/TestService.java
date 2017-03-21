@@ -35,8 +35,7 @@ import com.koch.ambeth.transfer.ITestService;
 import com.koch.ambeth.util.ParamChecker;
 
 @Service(ITestService.class)
-public class TestService implements ITestService, IInitializingBean
-{
+public class TestService implements ITestService, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -44,89 +43,74 @@ public class TestService implements ITestService, IInitializingBean
 	protected ICache cache;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(cache, "Cache");
 	}
 
-	public void setCache(ICache cache)
-	{
+	public void setCache(ICache cache) {
 		this.cache = cache;
 	}
 
 	@Override
-	public void noParamNoReturn()
-	{
+	public void noParamNoReturn() {
 	}
 
 	@Override
-	public void primitiveParamNoReturn(int param)
-	{
+	public void primitiveParamNoReturn(int param) {
 	}
 
 	@Override
-	public void dateParamNoReturn(Date param)
-	{
+	public void dateParamNoReturn(Date param) {
 	}
 
 	@Override
-	public void primitiveArrayParamNoReturn(int[] param)
-	{
+	public void primitiveArrayParamNoReturn(int[] param) {
 	}
 
 	@Override
-	public void primitiveListParamNoReturn(List<Integer> param)
-	{
+	public void primitiveListParamNoReturn(List<Integer> param) {
 	}
 
 	@Override
-	public void entityParamNoReturn(MaterialGroup param)
-	{
+	public void entityParamNoReturn(MaterialGroup param) {
 	}
 
 	@Override
-	public void entityWithRelationParamNoReturn(Material param)
-	{
+	public void entityWithRelationParamNoReturn(Material param) {
 	}
 
 	@Override
-	public void mixedParamsNoReturn(int number, Material material1, String text, MaterialGroup materialGroup, Material material2, Date date)
-	{
+	public void mixedParamsNoReturn(int number, Material material1, String text,
+			MaterialGroup materialGroup, Material material2, Date date) {
 	}
 
 	@Override
-	public int noParamPrimitiveReturn()
-	{
+	public int noParamPrimitiveReturn() {
 		return 1;
 	}
 
 	@Override
-	public Date noParamDateReturn()
-	{
+	public Date noParamDateReturn() {
 		return new Date();
 	}
 
 	@Override
-	public int[] noParamPrimitiveArrayReturn()
-	{
-		return new int[] { 1, 2, 34 };
+	public int[] noParamPrimitiveArrayReturn() {
+		return new int[] {1, 2, 34};
 	}
 
 	@Override
-	public List<Integer> noParamPrimitiveListReturn()
-	{
+	public List<Integer> noParamPrimitiveListReturn() {
 		return Arrays.asList(12, 3, 4);
 	}
 
 	@Override
-	public MaterialGroup noParamEntityReturn()
-	{
+	public MaterialGroup noParamEntityReturn() {
 		return cache.getObject(MaterialGroup.class, "1");
 	}
 
 	@Override
-	public Material noParamEntityWithRelationReturn()
-	{
+	public Material noParamEntityWithRelationReturn() {
 		return cache.getObject(Material.class, 1);
 	}
 }

@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IDatabaseSessionAwareEvent
-{
+public interface IDatabaseSessionAwareEvent {
 	long getSessionId();
 }

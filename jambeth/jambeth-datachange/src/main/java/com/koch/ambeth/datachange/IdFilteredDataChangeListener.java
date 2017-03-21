@@ -23,18 +23,17 @@ limitations under the License.
 import com.koch.ambeth.datachange.model.IDataChange;
 import com.koch.ambeth.event.IEventListener;
 
-public class IdFilteredDataChangeListener extends UnfilteredDataChangeListener
-{
-	public static IDataChangeListener create(IDataChangeListener dataChangeListener, Object[] interestedIds)
-	{
+public class IdFilteredDataChangeListener extends UnfilteredDataChangeListener {
+	public static IDataChangeListener create(IDataChangeListener dataChangeListener,
+			Object[] interestedIds) {
 		IdFilteredDataChangeListener dcListener = new IdFilteredDataChangeListener();
 		dcListener.dataChangeListener = dataChangeListener;
 		dcListener.interestedIds = interestedIds;
 		return dcListener;
 	}
 
-	public static IEventListener createEventListener(IDataChangeListener dataChangeListener, Object[] interestedIds)
-	{
+	public static IEventListener createEventListener(IDataChangeListener dataChangeListener,
+			Object[] interestedIds) {
 		IdFilteredDataChangeListener dcListener = new IdFilteredDataChangeListener();
 		dcListener.dataChangeListener = dataChangeListener;
 		dcListener.interestedIds = interestedIds;
@@ -43,26 +42,21 @@ public class IdFilteredDataChangeListener extends UnfilteredDataChangeListener
 
 	protected Object[] interestedIds;
 
-	public Object[] getInterestedIds()
-	{
+	public Object[] getInterestedIds() {
 		return interestedIds;
 	}
 
-	public void setInterestedIds(Object[] interestedIds)
-	{
+	public void setInterestedIds(Object[] interestedIds) {
 		this.interestedIds = interestedIds;
 	}
 
 	@Override
-	public void dataChanged(IDataChange dataChange, long dispatchTime, long sequenceId)
-	{
-		if (dataChange.isEmpty())
-		{
+	public void dataChanged(IDataChange dataChange, long dispatchTime, long sequenceId) {
+		if (dataChange.isEmpty()) {
 			return;
 		}
 		dataChange = dataChange.derive(interestedIds);
-		if (dataChange.isEmpty())
-		{
+		if (dataChange.isEmpty()) {
 			return;
 		}
 		dataChangeListener.dataChanged(dataChange, dispatchTime, sequenceId);

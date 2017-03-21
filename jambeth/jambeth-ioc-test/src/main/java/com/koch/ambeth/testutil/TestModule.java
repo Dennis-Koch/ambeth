@@ -28,8 +28,7 @@ import java.lang.annotation.Target;
 import com.koch.ambeth.ioc.IInitializingModule;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.METHOD, ElementType.TYPE })
-public @interface TestModule
-{
+@Target({ElementType.METHOD, ElementType.TYPE})
+public @interface TestModule {
 	Class<? extends IInitializingModule>[] value();
 }

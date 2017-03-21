@@ -35,23 +35,23 @@ import com.koch.ambeth.testutil.AmbethIocRunner;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 
-@TestPropertiesList({ @TestProperties(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionPool, value = "true"),
-		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolPassivate, value = "true") })
+@TestPropertiesList({
+		@TestProperties(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionPool,
+				value = "true"),
+		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolPassivate,
+				value = "true")})
 @RunWith(AmbethIocRunner.class)
-public class ConnectionTest extends AbstractInformationBusWithPersistenceTest
-{
+public class ConnectionTest extends AbstractInformationBusWithPersistenceTest {
 	@LogInstance
 	private ILogger log;
 
 	@Ignore
 	@Test
-	public void test()
-	{
+	public void test() {
 		// IDatabaseFactory databaseFactory = beanContext.getService(IDatabaseFactory.class);
 		IDatabasePool databasePool = beanContext.getService(IDatabasePool.class);
 
-		while (true)
-		{
+		while (true) {
 			long start = System.currentTimeMillis();
 			IDatabase database = databasePool.acquireDatabase();
 

@@ -51,20 +51,23 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 /**
- * Tests the replacement of the JAMBETH user by a temporary user created by the RandomUserScript. Because this is also done by the Jenkins build script this
- * test won't run in the Jenkins environment. Therefore the test methods are disabled.
+ * Tests the replacement of the JAMBETH user by a temporary user created by the RandomUserScript.
+ * Because this is also done by the Jenkins build script this test won't run in the Jenkins
+ * environment. Therefore the test methods are disabled.
  * <p>
- * This test will test the replacement of multiple schema place holders in ORM, query builder and test data insert scripts .
+ * This test will test the replacement of multiple schema place holders in ORM, query builder and
+ * test data insert scripts .
  */
-@TestModule({ MultiSchemaTestModule.class })
-@TestPropertiesList({ @TestProperties(file = "random_user_test.properties"),
-		@TestProperties(name = PersistenceJdbcConfigurationConstants.DatabaseBehaviourStrict, value = "true"),
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/schema/random_user_orm.xml") })
+@TestModule({MultiSchemaTestModule.class})
+@TestPropertiesList({@TestProperties(file = "random_user_test.properties"),
+		@TestProperties(name = PersistenceJdbcConfigurationConstants.DatabaseBehaviourStrict,
+				value = "true"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+				value = "com/koch/ambeth/persistence/schema/random_user_orm.xml")})
 @SQLStructure("random_user_structure.sql")
 @SQLData("random_user_data.sql")
 @Ignore("Does not work in JENKINS")
-public class RandomUserTest extends AbstractInformationBusWithPersistenceTest
-{
+public class RandomUserTest extends AbstractInformationBusWithPersistenceTest {
 	private static final String RANDOM_USER_TEST_PROPERTIES = "random_user_test.properties";
 
 	@Autowired
@@ -80,36 +83,31 @@ public class RandomUserTest extends AbstractInformationBusWithPersistenceTest
 	private IParentBService parentBService;
 
 	@BeforeClass
-	public static void beforeClass()
-	{
-		String[] args = new String[] { RandomUserScript.SCRIPT_IS_CREATE + "=true", RandomUserScript.SCRIPT_USER_PASS + "=pw1,pw2",
-				RandomUserScript.SCRIPT_USER_PROPERTYFILE + "=" + RANDOM_USER_TEST_PROPERTIES };
+	public static void beforeClass() {
+		String[] args = new String[] {RandomUserScript.SCRIPT_IS_CREATE + "=true",
+				RandomUserScript.SCRIPT_USER_PASS + "=pw1,pw2",
+				RandomUserScript.SCRIPT_USER_PROPERTYFILE + "=" + RANDOM_USER_TEST_PROPERTIES};
 		runRandomUserScript(args);
 	}
 
 	@AfterClass
-	public static void afterClass()
-	{
-		String[] args = new String[] { RandomUserScript.SCRIPT_IS_CREATE + "=false",
-				RandomUserScript.SCRIPT_USER_PROPERTYFILE + "=" + RANDOM_USER_TEST_PROPERTIES };
+	public static void afterClass() {
+		String[] args = new String[] {RandomUserScript.SCRIPT_IS_CREATE + "=false",
+				RandomUserScript.SCRIPT_USER_PROPERTYFILE + "=" + RANDOM_USER_TEST_PROPERTIES};
 		runRandomUserScript(args);
 	}
 
-	private static void runRandomUserScript(String[] args)
-	{
-		try
-		{
+	private static void runRandomUserScript(String[] args) {
+		try {
 			RandomUserScript.main(args);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Test
-	public void testDeleteA() throws Exception
-	{
+	public void testDeleteA() throws Exception {
 		ParentA parent = cache.getObject(ParentA.class, 1);
 		assertNotNull(parent);
 
@@ -120,8 +118,7 @@ public class RandomUserTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testDeleteB() throws Exception
-	{
+	public void testDeleteB() throws Exception {
 		ParentB parent = cache.getObject(ParentB.class, 101);
 		assertNotNull(parent);
 
@@ -132,8 +129,7 @@ public class RandomUserTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testQueryA() throws Exception
-	{
+	public void testQueryA() throws Exception {
 		IQueryBuilder<ParentA> qb = qbf.create(ParentA.class);
 		IQuery<ParentA> query = qb.build(qb.isEqualTo(qb.property("Child.Id"), qb.value(11)));
 		List<ParentA> result = query.retrieve();
@@ -144,8 +140,7 @@ public class RandomUserTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testQueryB() throws Exception
-	{
+	public void testQueryB() throws Exception {
 		IQueryBuilder<ParentB> qb = qbf.create(ParentB.class);
 		IQuery<ParentB> query = qb.build(qb.isEqualTo(qb.property("Child.Id"), qb.value(111)));
 		List<ParentB> result = query.retrieve();

@@ -22,33 +22,27 @@ limitations under the License.
 
 import com.koch.ambeth.merge.util.DirectValueHolderRef;
 
-public class PrefetchCommand
-{
+public class PrefetchCommand {
 	public final DirectValueHolderRef valueHolder;
 
 	public final PrefetchPath[] prefetchPaths;
 
-	public PrefetchCommand(DirectValueHolderRef valueHolder, PrefetchPath[] cachePaths)
-	{
+	public PrefetchCommand(DirectValueHolderRef valueHolder, PrefetchPath[] cachePaths) {
 		this.valueHolder = valueHolder;
-		this.prefetchPaths = cachePaths;
+		prefetchPaths = cachePaths;
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return valueHolder.hashCode() ^ prefetchPaths.hashCode();
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (this == obj)
-		{
+	public boolean equals(Object obj) {
+		if (this == obj) {
 			return true;
 		}
-		if (!(obj instanceof PrefetchCommand))
-		{
+		if (!(obj instanceof PrefetchCommand)) {
 			return false;
 		}
 		PrefetchCommand other = (PrefetchCommand) obj;

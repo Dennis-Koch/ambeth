@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.Date;
 
-public interface IEntity
-{
+public interface IEntity {
 
 	int getRecId();
 

@@ -20,9 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public interface ICommandTypeExtendable
-{
-	void registerOverridingCommandType(Class<? extends IObjectCommand> overridingCommandType, Class<? extends IObjectCommand> commandType);
+public interface ICommandTypeExtendable {
+	void registerOverridingCommandType(Class<? extends IObjectCommand> overridingCommandType,
+			Class<? extends IObjectCommand> commandType);
 
-	void unregisterOverridingCommandType(Class<? extends IObjectCommand> overridingCommandType, Class<? extends IObjectCommand> commandType);
+	void unregisterOverridingCommandType(Class<? extends IObjectCommand> overridingCommandType,
+			Class<? extends IObjectCommand> commandType);
 }

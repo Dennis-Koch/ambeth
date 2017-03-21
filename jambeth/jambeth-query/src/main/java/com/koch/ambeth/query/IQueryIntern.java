@@ -29,13 +29,13 @@ import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
-public interface IQueryIntern<T> extends IDisposable
-{
+public interface IQueryIntern<T> extends IDisposable {
 	IVersionCursor retrieveAsVersions();
 
 	IDataCursor retrieveAsData(IMap<Object, Object> paramNameToValueMap);
 
-	IVersionCursor retrieveAsVersions(IMap<Object, Object> paramNameToValueMap, boolean retrieveAlternateIds);
+	IVersionCursor retrieveAsVersions(IMap<Object, Object> paramNameToValueMap,
+			boolean retrieveAlternateIds);
 
 	IEntityCursor<T> retrieveAsCursor();
 

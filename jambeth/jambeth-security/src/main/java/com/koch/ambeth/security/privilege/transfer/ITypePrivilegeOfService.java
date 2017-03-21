@@ -24,8 +24,7 @@ import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface ITypePrivilegeOfService
-{
+public interface ITypePrivilegeOfService {
 	Class<?> getEntityType();
 
 	ISecurityScope getSecurityScope();

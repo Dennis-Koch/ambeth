@@ -32,9 +32,9 @@ import com.koch.ambeth.ioc.injection.InjectionTest;
 import com.koch.ambeth.util.ClassTupleExtendableContainerTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ AutowiredTest.class, ServiceContextTest.class, ClassExtendableContainerTest.class, ExtendableBeanTest.class,
-		ClassTupleExtendableContainerTest.class, BeanRuntimeTest.class, InjectionTest.class })
-public class AllTests
-{
+@SuiteClasses({AutowiredTest.class, ServiceContextTest.class, ClassExtendableContainerTest.class,
+		ExtendableBeanTest.class, ClassTupleExtendableContainerTest.class, BeanRuntimeTest.class,
+		InjectionTest.class})
+public class AllTests {
 
 }

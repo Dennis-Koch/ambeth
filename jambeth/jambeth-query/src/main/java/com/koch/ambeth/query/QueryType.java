@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public enum QueryType
-{
+public enum QueryType {
 	DEFAULT, PAGING, SUBQUERY;
 }

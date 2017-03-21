@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IObjectCollectorItem
-{
+public interface IObjectCollectorItem {
 	Object getOneInstance();
 
 	void dispose(Object object);

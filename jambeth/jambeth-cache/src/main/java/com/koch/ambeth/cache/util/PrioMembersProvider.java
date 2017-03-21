@@ -91,7 +91,7 @@ public class PrioMembersProvider implements IPrioMembersProvider {
 			ILinkedMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchPath,
 			ArrayList<PrefetchCommand> pendingPrefetchCommands,
 			MergePrefetchPathsCache mergePrefetchPathsCache) {
-		IdentityLinkedSet<Member> key1 = new IdentityLinkedSet<Member>();
+		IdentityLinkedSet<Member> key1 = new IdentityLinkedSet<>();
 		PrioMembersKey key = new PrioMembersKey(entityTypeToPrefetchPath, key1);
 		for (int a = 0, size = pendingPrefetchCommands.size(); a < size; a++) {
 			PrefetchCommand prefetchCommand = pendingPrefetchCommands.get(a);
@@ -101,7 +101,7 @@ public class PrioMembersProvider implements IPrioMembersProvider {
 		if (prioMembersMap != null) {
 			return prioMembersMap;
 		}
-		prioMembersMap = new IdentityLinkedSet<Member>(0.5f);
+		prioMembersMap = new IdentityLinkedSet<>(0.5f);
 		Tuple2KeyHashMap<Class<?>, PrefetchPath[], Boolean> alreadyVisited = null;
 		IdentityHashSet<Class<?>> touchedTypesInPriority = null;
 
@@ -133,7 +133,7 @@ public class PrioMembersProvider implements IPrioMembersProvider {
 				}
 				prioMembersMap.add(member);
 				if (touchedTypesInPriority == null) {
-					touchedTypesInPriority = new IdentityHashSet<Class<?>>();
+					touchedTypesInPriority = new IdentityHashSet<>();
 				}
 				touchedTypesInPriority.add(member.getEntityType());
 				touchedTypesInPriority.add(targetEntityType);
@@ -143,13 +143,13 @@ public class PrioMembersProvider implements IPrioMembersProvider {
 				continue;
 			}
 			if (alreadyVisited == null) {
-				alreadyVisited = new Tuple2KeyHashMap<Class<?>, PrefetchPath[], Boolean>();
+				alreadyVisited = new Tuple2KeyHashMap<>();
 			}
 			if (isPrio2Member(metaData, entityMetaDataProvider.getMetaData(targetEntityType),
 					prefetchPaths, entityTypeToPrefetchPath, alreadyVisited, mergePrefetchPathsCache)) {
 				prioMembersMap.add(member);
 				if (touchedTypesInPriority == null) {
-					touchedTypesInPriority = new IdentityHashSet<Class<?>>();
+					touchedTypesInPriority = new IdentityHashSet<>();
 				}
 				touchedTypesInPriority.add(member.getEntityType());
 				touchedTypesInPriority.add(targetEntityType);

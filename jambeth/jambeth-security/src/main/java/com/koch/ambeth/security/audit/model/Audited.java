@@ -26,8 +26,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.METHOD })
-public @interface Audited
-{
+@Target({ElementType.TYPE, ElementType.METHOD})
+public @interface Audited {
 	boolean value() default true;
 }

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public final class XmlConstants
-{
+public final class XmlConstants {
 	public static final String ENTITY = "entity";
 	public static final String NAME = "name";
 	public static final String CLASS = "class";
@@ -85,7 +84,6 @@ public final class XmlConstants
 	public static final String THIS = "this";
 	public static final String DEFINED_BY = "defined-by";
 
-	private XmlConstants()
-	{
+	private XmlConstants() {
 	}
 }

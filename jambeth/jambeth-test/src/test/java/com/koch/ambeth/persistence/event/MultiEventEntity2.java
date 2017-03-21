@@ -25,22 +25,18 @@ import com.koch.ambeth.model.AbstractEntity;
 /**
  * Test for multiple save actions in one persistence context
  */
-public class MultiEventEntity2 extends AbstractEntity
-{
+public class MultiEventEntity2 extends AbstractEntity {
 	private String name;
 
-	protected MultiEventEntity2()
-	{
+	protected MultiEventEntity2() {
 		// Intended blank
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 }

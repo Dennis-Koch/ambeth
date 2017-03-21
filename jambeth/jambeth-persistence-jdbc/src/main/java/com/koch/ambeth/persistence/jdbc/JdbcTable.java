@@ -63,8 +63,7 @@ import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-public class JdbcTable extends SqlTable
-{
+public class JdbcTable extends SqlTable {
 	@LogInstance
 	private ILogger log;
 
@@ -79,32 +78,34 @@ public class JdbcTable extends SqlTable
 
 	protected boolean batching = false;
 
-	protected LinkedHashMap<Object, Object> persistedIdToVersionMap = new LinkedHashMap<Object, Object>();
+	protected LinkedHashMap<Object, Object> persistedIdToVersionMap =
+			new LinkedHashMap<>();
 
-	protected LinkedHashMap<Integer, ILinkedMap<String, PreparedStatement>> fieldsToInsertStmtMap = new LinkedHashMap<Integer, ILinkedMap<String, PreparedStatement>>();
+	protected LinkedHashMap<Integer, ILinkedMap<String, PreparedStatement>> fieldsToInsertStmtMap =
+			new LinkedHashMap<>();
 
-	protected LinkedHashMap<Integer, ILinkedMap<String, PreparedStatement>> fieldsToUpdateStmtMap = new LinkedHashMap<Integer, ILinkedMap<String, PreparedStatement>>();
+	protected LinkedHashMap<Integer, ILinkedMap<String, PreparedStatement>> fieldsToUpdateStmtMap =
+			new LinkedHashMap<>();
 
 	protected PreparedStatement deleteStmt;
 
-	@Property(name = MergeConfigurationConstants.ExactVersionForOptimisticLockingRequired, defaultValue = "false")
+	@Property(name = MergeConfigurationConstants.ExactVersionForOptimisticLockingRequired,
+			defaultValue = "false")
 	protected boolean exactVersionForOptimisticLockingRequired;
 
 	protected int maxInClauseBatchThreshold;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		maxInClauseBatchThreshold = connectionDialect.getMaxInClauseBatchThreshold();
 	}
 
-	public void init(ITableMetaData metaData, IdentityHashMap<IDirectedLinkMetaData, IDirectedLink> alreadyCreatedLinkMap)
-	{
+	public void init(ITableMetaData metaData,
+			IdentityHashMap<IDirectedLinkMetaData, IDirectedLink> alreadyCreatedLinkMap) {
 		this.metaData = metaData;
-		for (IDirectedLinkMetaData directedLinkMD : metaData.getLinks())
-		{
+		for (IDirectedLinkMetaData directedLinkMD : metaData.getLinks()) {
 			IDirectedLink directedLink = alreadyCreatedLinkMap.get(directedLinkMD);
 			links.add(directedLink);
 
@@ -112,8 +113,7 @@ public class JdbcTable extends SqlTable
 			fieldNameToLinkDict.put(directedLinkMD.getFromField().getName(), directedLink);
 
 			RelationMember member = directedLinkMD.getMember();
-			if (member == null)
-			{
+			if (member == null) {
 				continue;
 			}
 			memberNameToLinkDict.put(member.getName(), directedLink);
@@ -121,10 +121,8 @@ public class JdbcTable extends SqlTable
 	}
 
 	@Override
-	public void startBatch()
-	{
-		if (batching)
-		{
+	public void startBatch() {
+		if (batching) {
 			throw new IllegalStateException("Batch queuing already started");
 		}
 		batching = true;
@@ -132,18 +130,14 @@ public class JdbcTable extends SqlTable
 
 	// TODO Finding an useful return value
 	@Override
-	public int[] finishBatch()
-	{
-		if (!batching)
-		{
+	public int[] finishBatch() {
+		if (!batching) {
 			throw new IllegalStateException("No batch queue open");
 		}
-		try
-		{
+		try {
 			checkRowLocks(persistedIdToVersionMap);
 
-			if (deleteStmt != null)
-			{
+			if (deleteStmt != null) {
 				deleteStmt.executeBatch();
 				deleteStmt.close();
 				deleteStmt = null;
@@ -152,75 +146,62 @@ public class JdbcTable extends SqlTable
 			executeBatchedStatements(fieldsToInsertStmtMap);
 			return new int[0];
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			throw connectionDialect.createPersistenceException(e, null);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
+		finally {
 			clearBatch();
 		}
 	}
 
 	@Override
-	public void clearBatch()
-	{
-		try
-		{
+	public void clearBatch() {
+		try {
 			fieldsToInsertStmtMap.clear();
 			fieldsToUpdateStmtMap.clear();
 			persistedIdToVersionMap.clear();
-			if (deleteStmt != null)
-			{
+			if (deleteStmt != null) {
 				deleteStmt.close();
 				deleteStmt = null;
 			}
 			batching = false;
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			// Intended blank
 		}
 	}
 
-	protected void executeBatchedStatements(ILinkedMap<Integer, ILinkedMap<String, PreparedStatement>> fieldsToStmtMap) throws SQLException
-	{
-		if (fieldsToStmtMap.size() == 0)
-		{
+	protected void executeBatchedStatements(
+			ILinkedMap<Integer, ILinkedMap<String, PreparedStatement>> fieldsToStmtMap)
+			throws SQLException {
+		if (fieldsToStmtMap.size() == 0) {
 			return;
 		}
-		try
-		{
-			Iterator<Entry<Integer, ILinkedMap<String, PreparedStatement>>> iter = fieldsToStmtMap.iterator();
-			while (iter.hasNext())
-			{
+		try {
+			Iterator<Entry<Integer, ILinkedMap<String, PreparedStatement>>> iter =
+					fieldsToStmtMap.iterator();
+			while (iter.hasNext()) {
 				Entry<Integer, ILinkedMap<String, PreparedStatement>> entry = iter.next();
-				for (Entry<String, PreparedStatement> perNamesEntry : entry.getValue())
-				{
+				for (Entry<String, PreparedStatement> perNamesEntry : entry.getValue()) {
 					PreparedStatement prep = perNamesEntry.getValue();
 					prep.executeBatch();
 				}
 			}
 		}
-		finally
-		{
-			Iterator<Entry<Integer, ILinkedMap<String, PreparedStatement>>> iter = fieldsToStmtMap.iterator();
-			while (iter.hasNext())
-			{
+		finally {
+			Iterator<Entry<Integer, ILinkedMap<String, PreparedStatement>>> iter =
+					fieldsToStmtMap.iterator();
+			while (iter.hasNext()) {
 				Entry<Integer, ILinkedMap<String, PreparedStatement>> entry = iter.next();
-				for (Entry<String, PreparedStatement> perNamesEntry : entry.getValue())
-				{
+				for (Entry<String, PreparedStatement> perNamesEntry : entry.getValue()) {
 					PreparedStatement prep = perNamesEntry.getValue();
-					try
-					{
+					try {
 						prep.close();
 					}
-					catch (SQLException e)
-					{
+					catch (SQLException e) {
 						// Intended blank
 					}
 				}
@@ -230,31 +211,26 @@ public class JdbcTable extends SqlTable
 	}
 
 	@Override
-	public void delete(List<IObjRef> oris)
-	{
-		if (oris == null || oris.size() == 0)
-		{
+	public void delete(List<IObjRef> oris) {
+		if (oris == null || oris.size() == 0) {
 			return;
 		}
 		IConversionHelper conversionHelper = this.conversionHelper;
 		ITableMetaData metaData = getMetaData();
 		Class<?> entityType = metaData.getEntityType();
 		Class<?> idFieldType = metaData.getIdField().getFieldType();
-		Class<?> versionFieldType = metaData.getVersionField() != null ? metaData.getVersionField().getFieldType() : null;
+		Class<?> versionFieldType =
+				metaData.getVersionField() != null ? metaData.getVersionField().getFieldType() : null;
 		PreparedStatement prep = createDeleteStatementWithIn();
-		try
-		{
-			for (int a = 0, size = oris.size(); a < size; a++)
-			{
+		try {
+			for (int a = 0, size = oris.size(); a < size; a++) {
 				IObjRef ori = oris.get(a);
-				if (!entityType.equals(ori.getRealType()))
-				{
+				if (!entityType.equals(ori.getRealType())) {
 					throw new IllegalArgumentException("ORI invalid");
 				}
 				Object persistenceId = conversionHelper.convertValueToType(idFieldType, ori.getId());
 				Object persistenceVersion = null;
-				if (versionFieldType != null)
-				{
+				if (versionFieldType != null) {
 					Object version = ori.getVersion();
 					ParamChecker.assertParamNotNull(version, "version");
 					persistenceVersion = conversionHelper.convertValueToType(versionFieldType, version);
@@ -264,38 +240,32 @@ public class JdbcTable extends SqlTable
 				prep.addBatch();
 			}
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
-			try
-			{
+		finally {
+			try {
 				prep.clearParameters();
 			}
-			catch (Throwable e)
-			{
+			catch (Throwable e) {
 				// Intended blank
 			}
 		}
 	}
 
-	protected ILinkedMap<String, PreparedStatement> getEnsureMap(int id, LinkedHashMap<Integer, ILinkedMap<String, PreparedStatement>> map)
-	{
+	protected ILinkedMap<String, PreparedStatement> getEnsureMap(int id,
+			LinkedHashMap<Integer, ILinkedMap<String, PreparedStatement>> map) {
 		Integer value = Integer.valueOf(id);
 		ILinkedMap<String, PreparedStatement> perCount = map.get(value);
-		if (perCount == null)
-		{
-			perCount = new LinkedHashMap<String, PreparedStatement>();
+		if (perCount == null) {
+			perCount = new LinkedHashMap<>();
 			map.put(value, perCount);
 		}
 		return perCount;
 	}
 
 	@Override
-	public Object insert(Object id, ILinkedMap<IFieldMetaData, Object> puis)
-	{
+	public Object insert(Object id, ILinkedMap<IFieldMetaData, Object> puis) {
 		ParamChecker.assertParamNotNull(id, "id");
 		ParamChecker.assertTrue(batching, "batching");
 
@@ -306,44 +276,42 @@ public class JdbcTable extends SqlTable
 		Object[] values = new Object[fieldNames.length];
 		String namesKey = generateNamesKey(puis, fieldNames, values);
 
-		ILinkedMap<String, PreparedStatement> perCount = getEnsureMap(puis.size(), fieldsToInsertStmtMap);
+		ILinkedMap<String, PreparedStatement> perCount =
+				getEnsureMap(puis.size(), fieldsToInsertStmtMap);
 		PreparedStatement prep = perCount.get(namesKey);
-		if (prep == null)
-		{
+		if (prep == null) {
 			prep = createInsertStatement(fieldNames);
 			perCount.put(namesKey, prep);
 		}
 		IFieldMetaData[] idFields = metaData.getIdFields();
-		IFieldMetaData versionField = metaData.getVersionField() != null ? metaData.getVersionField() : null;
+		IFieldMetaData versionField =
+				metaData.getVersionField() != null ? metaData.getVersionField() : null;
 		Object initialVersion = getMetaData().getInitialVersion();
-		Object newVersion = versionField != null ? conversionHelper.convertValueToType(versionField.getMember().getRealType(), initialVersion) : null;
+		Object newVersion = versionField != null ? conversionHelper
+				.convertValueToType(versionField.getMember().getRealType(), initialVersion) : null;
 
-		try
-		{
+		try {
 			int index = 1;
-			if (idFields.length == 1)
-			{
-				prep.setObject(index++, conversionHelper.convertValueToType(idFields[0].getFieldType(), id));
+			if (idFields.length == 1) {
+				prep.setObject(index++,
+						conversionHelper.convertValueToType(idFields[0].getFieldType(), id));
 			}
-			else
-			{
+			else {
 				IEntityMetaData metaData2 = entitydMetaDataProvider.getMetaData(metaData.getEntityType());
 				CompositeIdMember idMember = (CompositeIdMember) metaData2.getIdMember();
-				for (int a = 0, size = idFields.length; a < size; a++)
-				{
+				for (int a = 0, size = idFields.length; a < size; a++) {
 					IFieldMetaData idField = idFields[a];
-					prep.setObject(index++, conversionHelper.convertValueToType(idField.getFieldType(), idMember.getDecompositedValue(id, a)));
+					prep.setObject(index++, conversionHelper.convertValueToType(idField.getFieldType(),
+							idMember.getDecompositedValue(id, a)));
 				}
 			}
-			if (versionField != null)
-			{
-				prep.setObject(index++, conversionHelper.convertValueToType(versionField.getFieldType(), initialVersion));
+			if (versionField != null) {
+				prep.setObject(index++,
+						conversionHelper.convertValueToType(versionField.getFieldType(), initialVersion));
 			}
-			for (int a = 0, size = fieldNames.length; a < size; a++)
-			{
+			for (int a = 0, size = fieldNames.length; a < size; a++) {
 				String fieldName = fieldNames[a];
-				if (fieldName == null)
-				{
+				if (fieldName == null) {
 					// Value not specified
 					continue;
 				}
@@ -351,32 +319,28 @@ public class JdbcTable extends SqlTable
 				prep.setObject(index++, convertedValue);
 			}
 			IFieldMetaData createdOnField = metaData.getCreatedOnField();
-			if (createdOnField != null)
-			{
-				Object convertedValue = conversionHelper.convertValueToType(createdOnField.getFieldType(), contextProvider.getCurrentTime());
+			if (createdOnField != null) {
+				Object convertedValue = conversionHelper.convertValueToType(createdOnField.getFieldType(),
+						contextProvider.getCurrentTime());
 				prep.setObject(index++, convertedValue);
 			}
 			IFieldMetaData createdByField = metaData.getCreatedByField();
-			if (createdByField != null)
-			{
-				Object convertedValue = conversionHelper.convertValueToType(createdByField.getFieldType(), contextProvider.getCurrentUser());
+			if (createdByField != null) {
+				Object convertedValue = conversionHelper.convertValueToType(createdByField.getFieldType(),
+						contextProvider.getCurrentUser());
 				prep.setObject(index++, convertedValue);
 			}
 
 			prep.addBatch();
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
-			try
-			{
+		finally {
+			try {
 				prep.clearParameters();
 			}
-			catch (Throwable e)
-			{
+			catch (Throwable e) {
 				// Intended blank
 			}
 		}
@@ -385,13 +349,11 @@ public class JdbcTable extends SqlTable
 	}
 
 	@Override
-	public Object update(Object id, Object version, ILinkedMap<IFieldMetaData, Object> puis)
-	{
+	public Object update(Object id, Object version, ILinkedMap<IFieldMetaData, Object> puis) {
 		ParamChecker.assertParamNotNull(id, "id");
 		ITableMetaData metaData = getMetaData();
 		IFieldMetaData versionField = metaData.getVersionField();
-		if (versionField != null)
-		{
+		if (versionField != null) {
 			ParamChecker.assertParamNotNull(version, "version");
 		}
 		ParamChecker.assertTrue(batching, "batching");
@@ -401,66 +363,54 @@ public class JdbcTable extends SqlTable
 		Object[] values = new Object[fieldNames.length];
 		String namesKey = generateNamesKey(puis, fieldNames, values);
 
-		ILinkedMap<String, PreparedStatement> perCount = getEnsureMap(puis.size(), fieldsToUpdateStmtMap);
+		ILinkedMap<String, PreparedStatement> perCount =
+				getEnsureMap(puis.size(), fieldsToUpdateStmtMap);
 		PreparedStatement prep = perCount.get(namesKey);
-		if (prep == null)
-		{
+		if (prep == null) {
 			prep = createUpdateStatement(fieldNames);
 			perCount.put(namesKey, prep);
 		}
 
 		Object newVersion = null;
-		if (versionField != null)
-		{
+		if (versionField != null) {
 			Class<?> versionFieldType = versionField.getFieldType();
 			version = conversionHelper.convertValueToType(versionFieldType, version);
 
-			if (versionFieldType.equals(Long.class))
-			{
+			if (versionFieldType.equals(Long.class)) {
 				newVersion = Long.valueOf((Long) version + 1);
 			}
-			else if (versionFieldType.equals(Integer.class))
-			{
+			else if (versionFieldType.equals(Integer.class)) {
 				newVersion = Integer.valueOf((Integer) version + 1);
 			}
-			else if (versionFieldType.equals(Short.class))
-			{
+			else if (versionFieldType.equals(Short.class)) {
 				newVersion = Short.valueOf((short) ((Short) version + 1));
 			}
-			else if (versionFieldType.equals(Byte.class))
-			{
+			else if (versionFieldType.equals(Byte.class)) {
 				newVersion = Byte.valueOf((byte) ((Byte) version + 1));
 			}
-			else if (versionFieldType.equals(Date.class))
-			{
+			else if (versionFieldType.equals(Date.class)) {
 				newVersion = new Date(contextProvider.getCurrentTime());
 			}
-			else if (versionFieldType.equals(BigInteger.class))
-			{
+			else if (versionFieldType.equals(BigInteger.class)) {
 				newVersion = ((BigInteger) version).add(BigInteger.ONE);
 			}
-			else if (versionFieldType.equals(BigDecimal.class))
-			{
+			else if (versionFieldType.equals(BigDecimal.class)) {
 				newVersion = ((BigDecimal) version).add(BigDecimal.ONE);
 			}
-			else
-			{
+			else {
 				throw new IllegalArgumentException("Version type not supported: " + version.getClass());
 			}
 		}
 
-		try
-		{
+		try {
 			int index = 1;
-			if (versionField != null)
-			{
-				prep.setObject(index++, conversionHelper.convertValueToType(versionField.getFieldType(), newVersion));
+			if (versionField != null) {
+				prep.setObject(index++,
+						conversionHelper.convertValueToType(versionField.getFieldType(), newVersion));
 			}
-			for (int a = 0, size = fieldNames.length; a < size; a++)
-			{
+			for (int a = 0, size = fieldNames.length; a < size; a++) {
 				String fieldName = fieldNames[a];
-				if (fieldName == null)
-				{
+				if (fieldName == null) {
 					// Value not specified
 					continue;
 				}
@@ -468,45 +418,41 @@ public class JdbcTable extends SqlTable
 				prep.setObject(index++, convertedValue);
 			}
 			IFieldMetaData updatedOnField = metaData.getUpdatedOnField();
-			if (updatedOnField != null)
-			{
-				Object convertedValue = conversionHelper.convertValueToType(updatedOnField.getFieldType(), contextProvider.getCurrentTime());
+			if (updatedOnField != null) {
+				Object convertedValue = conversionHelper.convertValueToType(updatedOnField.getFieldType(),
+						contextProvider.getCurrentTime());
 				prep.setObject(index++, convertedValue);
 			}
 			IFieldMetaData updatedByField = metaData.getUpdatedByField();
-			if (updatedByField != null)
-			{
-				Object convertedValue = conversionHelper.convertValueToType(updatedByField.getFieldType(), contextProvider.getCurrentUser());
+			if (updatedByField != null) {
+				Object convertedValue = conversionHelper.convertValueToType(updatedByField.getFieldType(),
+						contextProvider.getCurrentUser());
 				prep.setObject(index++, convertedValue);
 			}
 
-			Object persistenceId = conversionHelper.convertValueToType(metaData.getIdField().getFieldType(), id);
+			Object persistenceId =
+					conversionHelper.convertValueToType(metaData.getIdField().getFieldType(), id);
 			Object persistenceVersion = null;
 			prep.setObject(index++, persistenceId);
-			if (versionField != null)
-			{
-				persistenceVersion = conversionHelper.convertValueToType(versionField.getFieldType(), version);
+			if (versionField != null) {
+				persistenceVersion =
+						conversionHelper.convertValueToType(versionField.getFieldType(), version);
 			}
-			if (connectionDialect.useVersionOnOptimisticUpdate())
-			{
+			if (connectionDialect.useVersionOnOptimisticUpdate()) {
 				prep.setObject(index++, persistenceVersion);
 			}
 			prep.addBatch();
 
 			persistedIdToVersionMap.put(persistenceId, persistenceVersion);
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
-			try
-			{
+		finally {
+			try {
 				prep.clearParameters();
 			}
-			catch (Throwable e)
-			{
+			catch (Throwable e) {
 				// Intended blank
 			}
 		}
@@ -514,77 +460,73 @@ public class JdbcTable extends SqlTable
 	}
 
 	@SuppressWarnings("unchecked")
-	protected void checkRowLocks(ILinkedMap<Object, Object> persistedIdToVersionMap) throws SQLException
-	{
-		if (persistedIdToVersionMap.size() == 0)
-		{
+	protected void checkRowLocks(ILinkedMap<Object, Object> persistedIdToVersionMap)
+			throws SQLException {
+		if (persistedIdToVersionMap.size() == 0) {
 			return;
 		}
 		IConversionHelper conversionHelper = this.conversionHelper;
 		ITableMetaData metaData = getMetaData();
-		boolean exactVersionForOptimisticLockingRequired = this.exactVersionForOptimisticLockingRequired;
+		boolean exactVersionForOptimisticLockingRequired =
+				this.exactVersionForOptimisticLockingRequired;
 		Class<?> idFieldType = metaData.getIdField().getFieldType();
 
 		List<Object> persistedIdsForArray = persistedIdToVersionMap.keyList();
 
-		Class<?> versionFieldType = metaData.getVersionField() != null ? metaData.getVersionField().getFieldType() : null;
+		Class<?> versionFieldType =
+				metaData.getVersionField() != null ? metaData.getVersionField().getFieldType() : null;
 		IResultSet selectForUpdateRS = createSelectForUpdateStatementWithIn(persistedIdsForArray);
-		try
-		{
-			while (selectForUpdateRS.moveNext())
-			{
+		try {
+			while (selectForUpdateRS.moveNext()) {
 				Object[] current = selectForUpdateRS.getCurrent();
 				Object persistedId = conversionHelper.convertValueToType(idFieldType, current[0]);
 				Object givenPersistedVersion = persistedIdToVersionMap.remove(persistedId);
-				if (versionFieldType == null)
-				{
+				if (versionFieldType == null) {
 					continue;
 				}
 				Object persistedVersion = conversionHelper.convertValueToType(versionFieldType, current[1]);
-				if (log.isDebugEnabled())
-				{
-					log.debug("Given: " + metaData.getName() + " - " + persistedId + ", Version: " + givenPersistedVersion + ", VersionInDb: "
-							+ persistedVersion);
+				if (log.isDebugEnabled()) {
+					log.debug("Given: " + metaData.getName() + " - " + persistedId + ", Version: "
+							+ givenPersistedVersion + ", VersionInDb: " + persistedVersion);
 				}
 
-				if (persistedVersion == null)
-				{
+				if (persistedVersion == null) {
 					continue;
 				}
-				if (exactVersionForOptimisticLockingRequired)
-				{
-					if (!persistedVersion.equals(givenPersistedVersion))
-					{
-						Object objId = conversionHelper.convertValueToType(metaData.getIdField().getMember().getRealType(), persistedId);
-						Object objVersion = conversionHelper.convertValueToType(metaData.getVersionField().getMember().getRealType(), persistedVersion);
-						throw OptimisticLockUtil.throwModified(new ObjRef(metaData.getEntityType(), objId, objVersion), givenPersistedVersion);
+				if (exactVersionForOptimisticLockingRequired) {
+					if (!persistedVersion.equals(givenPersistedVersion)) {
+						Object objId = conversionHelper
+								.convertValueToType(metaData.getIdField().getMember().getRealType(), persistedId);
+						Object objVersion = conversionHelper.convertValueToType(
+								metaData.getVersionField().getMember().getRealType(), persistedVersion);
+						throw OptimisticLockUtil.throwModified(
+								new ObjRef(metaData.getEntityType(), objId, objVersion), givenPersistedVersion);
 					}
 				}
-				else
-				{
-					if (((Comparable<Object>) persistedVersion).compareTo(givenPersistedVersion) > 0)
-					{
-						Object objId = conversionHelper.convertValueToType(metaData.getIdField().getMember().getRealType(), persistedId);
-						Object objVersion = conversionHelper.convertValueToType(metaData.getVersionField().getMember().getRealType(), persistedVersion);
-						throw OptimisticLockUtil.throwModified(new ObjRef(metaData.getEntityType(), objId, objVersion), givenPersistedVersion);
+				else {
+					if (((Comparable<Object>) persistedVersion).compareTo(givenPersistedVersion) > 0) {
+						Object objId = conversionHelper
+								.convertValueToType(metaData.getIdField().getMember().getRealType(), persistedId);
+						Object objVersion = conversionHelper.convertValueToType(
+								metaData.getVersionField().getMember().getRealType(), persistedVersion);
+						throw OptimisticLockUtil.throwModified(
+								new ObjRef(metaData.getEntityType(), objId, objVersion), givenPersistedVersion);
 					}
 				}
 			}
-			if (persistedIdToVersionMap.size() > 0)
-			{
-				Object objId = conversionHelper.convertValueToType(metaData.getIdField().getMember().getRealType(), persistedIdToVersionMap.iterator().next()
-						.getKey());
+			if (persistedIdToVersionMap.size() > 0) {
+				Object objId =
+						conversionHelper.convertValueToType(metaData.getIdField().getMember().getRealType(),
+								persistedIdToVersionMap.iterator().next().getKey());
 				throw OptimisticLockUtil.throwDeleted(new ObjRef(metaData.getEntityType(), objId, null));
 			}
 		}
-		finally
-		{
+		finally {
 			selectForUpdateRS.dispose();
 		}
 	}
 
-	protected PreparedStatement createInsertStatement(String[] fieldNames)
-	{
+	protected PreparedStatement createInsertStatement(String[] fieldNames) {
 		ITableMetaData metaData = getMetaData();
 		IFieldMetaData[] idFields = metaData.getIdFields();
 		IFieldMetaData versionField = metaData.getVersionField();
@@ -592,31 +534,25 @@ public class JdbcTable extends SqlTable
 		int variableCount = 0;
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		AppendableStringBuilder sqlSB = tlObjectCollector.create(AppendableStringBuilder.class);
-		try
-		{
+		try {
 			sqlSB.append("INSERT INTO ");
 			sqlBuilder.appendName(metaData.getFullqualifiedEscapedName(), sqlSB).append(" (");
-			for (IFieldMetaData idField : idFields)
-			{
-				if (variableCount > 0)
-				{
+			for (IFieldMetaData idField : idFields) {
+				if (variableCount > 0) {
 					sqlSB.append(',');
 				}
 				sqlBuilder.appendName(idField.getName(), sqlSB);
 				variableCount++;
 			}
-			if (versionField != null)
-			{
+			if (versionField != null) {
 				sqlSB.append(',');
 				sqlBuilder.appendName(versionField.getName(), sqlSB);
 				variableCount++;
 			}
 
-			for (int a = 0, size = fieldNames.length; a < size; a++)
-			{
+			for (int a = 0, size = fieldNames.length; a < size; a++) {
 				String fieldName = fieldNames[a];
-				if (fieldName == null)
-				{
+				if (fieldName == null) {
 					// Value not specified
 					continue;
 				}
@@ -625,77 +561,66 @@ public class JdbcTable extends SqlTable
 				variableCount++;
 			}
 			IFieldMetaData createdOnField = metaData.getCreatedOnField();
-			if (createdOnField != null)
-			{
+			if (createdOnField != null) {
 				sqlSB.append(',');
 				sqlBuilder.appendName(createdOnField.getName(), sqlSB);
 				variableCount++;
 			}
 			IFieldMetaData createdByField = metaData.getCreatedByField();
-			if (createdByField != null)
-			{
+			if (createdByField != null) {
 				sqlSB.append(',');
 				sqlBuilder.appendName(createdByField.getName(), sqlSB);
 				variableCount++;
 			}
 			sqlSB.append(") VALUES (");
 			boolean first = true;
-			for (int a = variableCount; a-- > 0;)
-			{
-				if (first)
-				{
+			for (int a = variableCount; a-- > 0;) {
+				if (first) {
 					first = false;
 					sqlSB.append("?");
 				}
-				else
-				{
+				else {
 					sqlSB.append(",?");
 				}
 			}
 			sqlSB.append(')');
 
 			String sql = sqlSB.toString();
-			if (log.isDebugEnabled())
-			{
+			if (log.isDebugEnabled()) {
 				log.debug("prepare: " + sql);
 			}
 
 			return connection.prepareStatement(sql);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e, sqlSB.toString());
 		}
-		finally
-		{
+		finally {
 			tlObjectCollector.dispose(sqlSB);
 		}
 	}
 
-	protected IResultSet createSelectForUpdateStatementWithIn(List<Object> ids)
-	{
-		if (ids.size() <= maxInClauseBatchThreshold)
-		{
+	protected IResultSet createSelectForUpdateStatementWithIn(List<Object> ids) {
+		if (ids.size() <= maxInClauseBatchThreshold) {
 			return createSelectForUpdateStatementWithInIntern(ids);
 		}
-		IList<IList<Object>> splitValues = persistenceHelper.splitValues(ids, maxInClauseBatchThreshold);
+		IList<IList<Object>> splitValues =
+				persistenceHelper.splitValues(ids, maxInClauseBatchThreshold);
 
-		ArrayList<IResultSetProvider> resultSetProviderStack = new ArrayList<IResultSetProvider>(splitValues.size());
-		// Stack gets evaluated last->first so back iteration is correct to execute the sql in order later
-		for (int a = splitValues.size(); a-- > 0;)
-		{
+		ArrayList<IResultSetProvider> resultSetProviderStack =
+				new ArrayList<>(splitValues.size());
+		// Stack gets evaluated last->first so back iteration is correct to execute the sql in order
+		// later
+		for (int a = splitValues.size(); a-- > 0;) {
 			final IList<Object> values = splitValues.get(a);
-			resultSetProviderStack.add(new IResultSetProvider()
-			{
+			resultSetProviderStack.add(new IResultSetProvider() {
 				@Override
-				public void skipResultSet()
-				{
+				public void skipResultSet() {
 					// Intended blank
 				}
 
 				@Override
-				public IResultSet getResultSet()
-				{
+				public IResultSet getResultSet() {
 					return createSelectForUpdateStatementWithInIntern(values);
 				}
 			});
@@ -706,86 +631,74 @@ public class JdbcTable extends SqlTable
 		return compositeResultSet;
 	}
 
-	protected IResultSet createSelectForUpdateStatementWithInIntern(List<?> ids)
-	{
+	protected IResultSet createSelectForUpdateStatementWithInIntern(List<?> ids) {
 		ITableMetaData metaData = getMetaData();
 		IFieldMetaData idField = metaData.getIdField();
 		IFieldMetaData versionField = metaData.getVersionField();
-		ArrayList<Object> parameters = new ArrayList<Object>();
+		ArrayList<Object> parameters = new ArrayList<>();
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		AppendableStringBuilder fieldNamesSQL = tlObjectCollector.create(AppendableStringBuilder.class);
 		AppendableStringBuilder whereSQL = tlObjectCollector.create(AppendableStringBuilder.class);
-		try
-		{
+		try {
 			sqlBuilder.appendName(idField.getName(), fieldNamesSQL);
-			if (versionField != null)
-			{
+			if (versionField != null) {
 				fieldNamesSQL.append(',');
 				sqlBuilder.appendName(versionField.getName(), fieldNamesSQL);
 			}
-			persistenceHelper.appendSplittedValues(idField.getName(), idField.getFieldType(), ids, parameters, whereSQL);
+			persistenceHelper.appendSplittedValues(idField.getName(), idField.getFieldType(), ids,
+					parameters, whereSQL);
 			whereSQL.append(connectionDialect.getSelectForUpdateFragment());
 
-			return sqlConnection.selectFields(metaData.getFullqualifiedEscapedName(), fieldNamesSQL, whereSQL, null, null, parameters);
+			return sqlConnection.selectFields(metaData.getFullqualifiedEscapedName(), fieldNamesSQL,
+					whereSQL, null, null, parameters);
 		}
-		finally
-		{
+		finally {
 			tlObjectCollector.dispose(whereSQL);
 			tlObjectCollector.dispose(fieldNamesSQL);
 		}
 	}
 
-	protected PreparedStatement createUpdateStatement(String[] fieldNames)
-	{
+	protected PreparedStatement createUpdateStatement(String[] fieldNames) {
 		ITableMetaData metaData = getMetaData();
 		IFieldMetaData idField = metaData.getIdField();
 		IFieldMetaData versionField = metaData.getVersionField();
 
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		AppendableStringBuilder sqlSB = tlObjectCollector.create(AppendableStringBuilder.class);
-		try
-		{
+		try {
 			sqlSB.append("UPDATE ");
 			sqlBuilder.appendName(metaData.getFullqualifiedEscapedName(), sqlSB);
 			sqlSB.append(" SET ");
 
 			boolean firstField = true;
-			if (versionField != null)
-			{
+			if (versionField != null) {
 				firstField = false;
 				sqlBuilder.appendName(versionField.getName(), sqlSB).append("=?");
 			}
 
-			for (int a = 0, size = fieldNames.length; a < size; a++)
-			{
+			for (int a = 0, size = fieldNames.length; a < size; a++) {
 				String fieldName = fieldNames[a];
-				if (fieldName == null)
-				{
+				if (fieldName == null) {
 					// Value not specified
 					continue;
 				}
-				if (!firstField)
-				{
+				if (!firstField) {
 					sqlSB.append(',');
 				}
 				firstField = false;
 				sqlBuilder.appendName(fieldName, sqlSB).append("=?");
 			}
 			IFieldMetaData updatedOnField = metaData.getUpdatedOnField();
-			if (updatedOnField != null)
-			{
-				if (!firstField)
-				{
+			if (updatedOnField != null) {
+				if (!firstField) {
 					sqlSB.append(',');
 				}
 				firstField = false;
 				sqlBuilder.appendName(updatedOnField.getName(), sqlSB).append("=?");
 			}
 			IFieldMetaData updatedByField = metaData.getUpdatedByField();
-			if (updatedByField != null)
-			{
-				if (!firstField)
-				{
+			if (updatedByField != null) {
+				if (!firstField) {
 					sqlSB.append(',');
 				}
 				firstField = false;
@@ -793,32 +706,26 @@ public class JdbcTable extends SqlTable
 			}
 			sqlSB.append(" WHERE ");
 			sqlBuilder.appendName(idField.getName(), sqlSB).append("=?");
-			if (connectionDialect.useVersionOnOptimisticUpdate() && versionField != null)
-			{
+			if (connectionDialect.useVersionOnOptimisticUpdate() && versionField != null) {
 				sqlSB.append(" AND ");
 				sqlBuilder.appendName(versionField.getName(), sqlSB).append("=?");
 			}
-			if (log.isDebugEnabled())
-			{
+			if (log.isDebugEnabled()) {
 				log.debug("prepare: " + sqlSB.toString());
 			}
 
 			return connection.prepareStatement(sqlSB.toString());
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e, sqlSB.toString());
 		}
-		finally
-		{
+		finally {
 			tlObjectCollector.dispose(sqlSB);
 		}
 	}
 
-	protected PreparedStatement createDeleteStatementWithIn()
-	{
-		if (deleteStmt != null)
-		{
+	protected PreparedStatement createDeleteStatementWithIn() {
+		if (deleteStmt != null) {
 			return deleteStmt;
 		}
 		ITableMetaData metaData = getMetaData();
@@ -826,8 +733,7 @@ public class JdbcTable extends SqlTable
 
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		AppendableStringBuilder sqlSB = tlObjectCollector.create(AppendableStringBuilder.class);
-		try
-		{
+		try {
 			sqlSB.append("DELETE FROM ");
 			sqlBuilder.appendName(metaData.getFullqualifiedEscapedName(), sqlSB).append(" WHERE ");
 			sqlBuilder.appendName(idField.getName(), sqlSB);
@@ -835,28 +741,23 @@ public class JdbcTable extends SqlTable
 			deleteStmt = connection.prepareStatement(sqlSB.toString());
 			return deleteStmt;
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e, sqlSB.toString());
 		}
-		finally
-		{
+		finally {
 			tlObjectCollector.dispose(sqlSB);
 		}
 	}
 
-	protected String generateNamesKey(ILinkedMap<IFieldMetaData, Object> puis, String[] fieldNames, Object[] values)
-	{
+	protected String generateNamesKey(ILinkedMap<IFieldMetaData, Object> puis, String[] fieldNames,
+			Object[] values) {
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		StringBuilder namesKeySB = tlObjectCollector.create(StringBuilder.class);
-		try
-		{
-			for (Entry<IFieldMetaData, Object> entry : puis)
-			{
+		try {
+			for (Entry<IFieldMetaData, Object> entry : puis) {
 				IFieldMetaData field = entry.getKey();
 				Object newValue = entry.getValue();
-				if (newValue == null && java.sql.Array.class.isAssignableFrom(field.getFieldType()))
-				{
+				if (newValue == null && java.sql.Array.class.isAssignableFrom(field.getFieldType())) {
 					newValue = Array.newInstance(field.getFieldSubType(), 0);
 				}
 				Object convertedValue = connectionDialect.convertToFieldType(field, newValue);
@@ -864,23 +765,19 @@ public class JdbcTable extends SqlTable
 				values[fieldIndex] = convertedValue;
 				fieldNames[fieldIndex] = field.getName();
 			}
-			for (int a = 0, size = fieldNames.length; a < size; a++)
-			{
+			for (int a = 0, size = fieldNames.length; a < size; a++) {
 				String fieldName = fieldNames[a];
-				if (fieldName == null)
-				{
+				if (fieldName == null) {
 					continue;
 				}
-				if (namesKeySB.length() > 0)
-				{
+				if (namesKeySB.length() > 0) {
 					namesKeySB.append('#');
 				}
 				namesKeySB.append(fieldName);
 			}
 			return namesKeySB.toString();
 		}
-		finally
-		{
+		finally {
 			tlObjectCollector.dispose(namesKeySB);
 		}
 	}

@@ -20,11 +20,9 @@ limitations under the License.
  * #L%
  */
 
-public class EndsWithOperator extends AbstractBinaryTextOperator
-{
+public class EndsWithOperator extends AbstractBinaryTextOperator {
 	@Override
-	protected Boolean evaluateIntern(String leftValue, String rightValue)
-	{
+	protected Boolean evaluateIntern(String leftValue, String rightValue) {
 		return Boolean.valueOf(leftValue.endsWith(rightValue));
 	}
 }

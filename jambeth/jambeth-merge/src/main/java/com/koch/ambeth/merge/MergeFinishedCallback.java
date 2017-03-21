@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public interface MergeFinishedCallback
-{
+public interface MergeFinishedCallback {
 	void invoke(boolean success);
 }

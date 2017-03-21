@@ -20,20 +20,17 @@ limitations under the License.
  * #L%
  */
 
-public enum AuditMemberConfiguration implements IAuditMemberConfiguration
-{
+public enum AuditMemberConfiguration implements IAuditMemberConfiguration {
 	ACTIVE(true), INACTIVE(false);
 
 	private final boolean auditActive;
 
-	private AuditMemberConfiguration(boolean auditActive)
-	{
+	private AuditMemberConfiguration(boolean auditActive) {
 		this.auditActive = auditActive;
 	}
 
 	@Override
-	public boolean isAuditActive()
-	{
+	public boolean isAuditActive() {
 		return auditActive;
 	}
 }

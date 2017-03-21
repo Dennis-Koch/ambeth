@@ -29,15 +29,14 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 
 @FrameworkModule
-public class Exp4jModule implements IInitializingModule
-{
+public class Exp4jModule implements IInitializingModule {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		beanContextFactory.registerBean(EntityPropertyExpressionResolver.class).autowireable(IEntityPropertyExpressionResolver.class);
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		beanContextFactory.registerBean(EntityPropertyExpressionResolver.class)
+				.autowireable(IEntityPropertyExpressionResolver.class);
 	}
 }

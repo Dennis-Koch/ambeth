@@ -23,23 +23,19 @@ limitations under the License.
 import com.koch.ambeth.service.merge.model.AbstractMethodLifecycleExtension;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 
-public class PrePersistMethodLifecycleExtension extends AbstractMethodLifecycleExtension
-{
+public class PrePersistMethodLifecycleExtension extends AbstractMethodLifecycleExtension {
 	@Override
-	public void postCreate(IEntityMetaData metaData, Object newEntity)
-	{
+	public void postCreate(IEntityMetaData metaData, Object newEntity) {
 		// intended blank
 	}
 
 	@Override
-	public void postLoad(IEntityMetaData metaData, Object entity)
-	{
+	public void postLoad(IEntityMetaData metaData, Object entity) {
 		// intended blank
 	}
 
 	@Override
-	public void prePersist(IEntityMetaData metaData, Object entity)
-	{
+	public void prePersist(IEntityMetaData metaData, Object entity) {
 		callMethod(entity, "PrePersist");
 	}
 }

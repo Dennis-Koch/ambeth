@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public interface IUnmodifiedInputSource
-{
+public interface IUnmodifiedInputSource {
 	// marker interface
 }

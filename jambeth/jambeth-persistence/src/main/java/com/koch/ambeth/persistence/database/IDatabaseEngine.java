@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.persistence.api.IDatabase;
 
-public interface IDatabaseEngine
-{
+public interface IDatabaseEngine {
 
 	void init(String host, int port, String databaseName);
 
@@ -35,7 +34,8 @@ public interface IDatabaseEngine
 
 	void init(String host, int port, String databaseName, boolean localMode);
 
-	void init(IDatabaseFactory databaseFactory, String host, int port, String databaseName, boolean localMode);
+	void init(IDatabaseFactory databaseFactory, String host, int port, String databaseName,
+			boolean localMode);
 
 	IDatabase acquireDatabase(DatabaseType databaseType);
 

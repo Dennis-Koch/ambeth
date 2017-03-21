@@ -20,9 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public interface IRelationRetrieverExtendable
-{
-	void registerRelationRetriever(IRelationRetriever relationRetriever, Class<?> handledType, String propertyName);
+public interface IRelationRetrieverExtendable {
+	void registerRelationRetriever(IRelationRetriever relationRetriever, Class<?> handledType,
+			String propertyName);
 
-	void unregisterRelationRetriever(IRelationRetriever relationRetriever, Class<?> handledType, String propertyName);
+	void unregisterRelationRetriever(IRelationRetriever relationRetriever, Class<?> handledType,
+			String propertyName);
 }

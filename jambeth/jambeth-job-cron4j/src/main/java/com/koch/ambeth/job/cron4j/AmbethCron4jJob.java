@@ -37,8 +37,7 @@ import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 import it.sauronsoftware.cron4j.Task;
 import it.sauronsoftware.cron4j.TaskExecutionContext;
 
-public class AmbethCron4jJob extends Task
-{
+public class AmbethCron4jJob extends Task {
 	@LogInstance
 	private ILogger log;
 
@@ -62,80 +61,66 @@ public class AmbethCron4jJob extends Task
 	protected Lock waitingLock = new ReentrantLock();
 
 	@Override
-	public void execute(TaskExecutionContext context) throws RuntimeException
-	{
+	public void execute(TaskExecutionContext context) throws RuntimeException {
 		Lock waitingLock = this.waitingLock;
-		if (!waitingLock.tryLock())
-		{
+		if (!waitingLock.tryLock()) {
 			return;
 		}
 		Lock writeLock = this.writeLock;
-		try
-		{
+		try {
 			writeLock.lock();
 		}
-		finally
-		{
+		finally {
 			waitingLock.unlock();
 		}
-		try
-		{
+		try {
 			Thread thread = Thread.currentThread();
 
-			IThreadLocalCleanupController tlCleanupController = beanContext.getService(IThreadLocalCleanupController.class);
+			IThreadLocalCleanupController tlCleanupController =
+					beanContext.getService(IThreadLocalCleanupController.class);
 			String oldName = thread.getName();
-			try
-			{
+			try {
 				thread.setName("Job " + jobName);
-				final AmbethCron4jJobContext jobContext = beanContext.registerBean(AmbethCron4jJobContext.class)//
-					.propertyValue("TaskExecutionContext", context)//
-					.finish();
+				final AmbethCron4jJobContext jobContext =
+						beanContext.registerBean(AmbethCron4jJobContext.class)//
+								.propertyValue("TaskExecutionContext", context)//
+								.finish();
 
 				long start = System.currentTimeMillis();
-				if (log.isDebugEnabled())
-				{
+				if (log.isDebugEnabled()) {
 					log.debug("Executing job '" + jobName + "'");
 				}
-				try
-				{
-					if (authentication == null)
-					{
+				try {
+					if (authentication == null) {
 						job.execute(jobContext);
 					}
-					else
-					{
-						securityContextHolder.setScopedAuthentication(authentication, new IResultingBackgroundWorkerDelegate<Object>()
-						{
-							@Override
-							public Object invoke() throws Throwable
-							{
-								job.execute(jobContext);
-								return null;
-							}
-						});
+					else {
+						securityContextHolder.setScopedAuthentication(authentication,
+								new IResultingBackgroundWorkerDelegate<Object>() {
+									@Override
+									public Object invoke() throws Throwable {
+										job.execute(jobContext);
+										return null;
+									}
+								});
 					}
-					if (log.isDebugEnabled())
-					{
+					if (log.isDebugEnabled()) {
 						long end = System.currentTimeMillis();
 						log.debug("Execution of job '" + jobName + "' finished (" + (end - start) + " ms)");
 					}
 				}
-				catch (Throwable e)
-				{
-					if (log.isErrorEnabled())
-					{
+				catch (Throwable e) {
+					if (log.isErrorEnabled()) {
 						log.error("Error occured while executing job '" + jobName + "'", e);
 					}
 				}
 			}
-			finally
-			{
+			finally {
 				thread.setName(oldName);
 				tlCleanupController.cleanupThreadLocal();
 			}
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}

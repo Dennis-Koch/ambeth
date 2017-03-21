@@ -20,41 +20,34 @@ limitations under the License.
  * #L%
  */
 
-public class InjectionTestBean
-{
+public class InjectionTestBean {
 	private String name;
 
 	private InjectionTestBean previous;
 
 	private InjectionTestBean counterpart;
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public InjectionTestBean getPrevious()
-	{
+	public InjectionTestBean getPrevious() {
 		return previous;
 	}
 
-	public void setPrevious(InjectionTestBean previous)
-	{
+	public void setPrevious(InjectionTestBean previous) {
 		this.previous = previous;
 	}
 
-	public InjectionTestBean getCounterpart()
-	{
+	public InjectionTestBean getCounterpart() {
 		return counterpart;
 	}
 
-	public void setCounterpart(InjectionTestBean counterpart)
-	{
+	public void setCounterpart(InjectionTestBean counterpart) {
 		this.counterpart = counterpart;
 	}
 }

@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.List;
 
-public interface IIdExtractor
-{
+public interface IIdExtractor {
 
 	List<Object> extractIds(Object idProviderHandle);
 

@@ -23,14 +23,12 @@ limitations under the License.
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.persistence.jdbc.IConnectionTestDialect;
-import com.koch.ambeth.persistence.pg.PostgresModule;
 
-public class PostgresTestModule implements IInitializingModule
-{
+public class PostgresTestModule implements IInitializingModule {
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 		beanContextFactory.registerBean(PostgresModule.class);
-		beanContextFactory.registerBean(PostgresTestDialect.class).autowireable(IConnectionTestDialect.class);
+		beanContextFactory.registerBean(PostgresTestDialect.class)
+				.autowireable(IConnectionTestDialect.class);
 	}
 }

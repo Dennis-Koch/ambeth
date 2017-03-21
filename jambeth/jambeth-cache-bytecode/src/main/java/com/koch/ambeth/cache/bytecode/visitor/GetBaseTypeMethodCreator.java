@@ -30,32 +30,27 @@ import com.koch.ambeth.bytecode.behavior.BytecodeBehaviorState;
 import com.koch.ambeth.bytecode.behavior.IBytecodeBehaviorState;
 import com.koch.ambeth.merge.proxy.IEnhancedType;
 
-public class GetBaseTypeMethodCreator extends ClassGenerator
-{
-	private static final MethodInstance template_m_getBaseType = new MethodInstance(null, IEnhancedType.class, Class.class, "get__BaseType");
+public class GetBaseTypeMethodCreator extends ClassGenerator {
+	private static final MethodInstance template_m_getBaseType =
+			new MethodInstance(null, IEnhancedType.class, Class.class, "get__BaseType");
 
-	public static MethodInstance getGetBaseType()
-	{
+	public static MethodInstance getGetBaseType() {
 		return MethodInstance.findByTemplate(template_m_getBaseType, false);
 	}
 
-	public GetBaseTypeMethodCreator(ClassVisitor cv)
-	{
+	public GetBaseTypeMethodCreator(ClassVisitor cv) {
 		super(cv);
 	}
 
 	@Override
-	public void visitEnd()
-	{
+	public void visitEnd() {
 		implementGetBaseType();
 		super.visitEnd();
 	}
 
-	protected void implementGetBaseType()
-	{
+	protected void implementGetBaseType() {
 		MethodInstance getBaseType = MethodInstance.findByTemplate(template_m_getBaseType, true);
-		if (getBaseType != null)
-		{
+		if (getBaseType != null) {
 			return;
 		}
 		IBytecodeBehaviorState state = BytecodeBehaviorState.getState();

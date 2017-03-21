@@ -29,8 +29,7 @@ import com.koch.ambeth.event.model.IEventItem;
 
 @XmlRootElement(name = "EventItem", namespace = "http://schema.kochdev.com/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class EventItem implements IEventItem
-{
+public class EventItem implements IEventItem {
 	@XmlElement(required = true)
 	protected Object eventObject;
 
@@ -40,48 +39,40 @@ public class EventItem implements IEventItem
 	@XmlElement(required = true)
 	protected long dispatchTime;
 
-	public EventItem()
-	{
+	public EventItem() {
 		// Intended blank
 	}
 
-	public EventItem(Object eventObject, long dispatchTime, long sequenceNumber)
-	{
+	public EventItem(Object eventObject, long dispatchTime, long sequenceNumber) {
 		this.eventObject = eventObject;
 		this.dispatchTime = dispatchTime;
 		this.sequenceNumber = sequenceNumber;
 	}
 
 	@Override
-	public Object getEventObject()
-	{
-		return this.eventObject;
+	public Object getEventObject() {
+		return eventObject;
 	}
 
-	public void setEventObject(Object EO)
-	{
-		this.eventObject = EO;
+	public void setEventObject(Object EO) {
+		eventObject = EO;
 	}
 
 	@Override
-	public long getSequenceNumber()
-	{
-		return this.sequenceNumber;
+	public long getSequenceNumber() {
+		return sequenceNumber;
 	}
 
-	public void setSequenceNumber(long sequenceNumber)
-	{
+	public void setSequenceNumber(long sequenceNumber) {
 		this.sequenceNumber = sequenceNumber;
 	}
 
 	@Override
-	public long getDispatchTime()
-	{
-		return this.dispatchTime;
+	public long getDispatchTime() {
+		return dispatchTime;
 	}
 
-	public void setDispatchTime(long dispatchTime)
-	{
+	public void setDispatchTime(long dispatchTime) {
 		this.dispatchTime = dispatchTime;
 	}
 }

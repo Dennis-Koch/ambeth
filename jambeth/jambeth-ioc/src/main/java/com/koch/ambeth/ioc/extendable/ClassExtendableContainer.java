@@ -30,62 +30,50 @@ import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.InterfaceFastList;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 
-public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>, V>
-{
-	public static int getDistanceForType(Class<?> existingRequestedType, Class<?> type)
-	{
+public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>, V> {
+	public static int getDistanceForType(Class<?> existingRequestedType, Class<?> type) {
 		// If a converter handles A (strong registration)
 		// It implicitily handles X extends A (weak registration)
-		if (existingRequestedType == null || !type.isAssignableFrom(existingRequestedType))
-		{
+		if (existingRequestedType == null || !type.isAssignableFrom(existingRequestedType)) {
 			return NO_VALID_DISTANCE;
 		}
-		if (existingRequestedType.equals(type))
-		{
+		if (existingRequestedType.equals(type)) {
 			// Type matched exactly - 'strong' registration
 			return 0;
 		}
-		if (type.equals(Object.class))
-		{
+		if (type.equals(Object.class)) {
 			return Integer.MAX_VALUE;
 		}
-		if (existingRequestedType.isArray() && type.isArray())
-		{
-			// if both types are an array their distance is measured by the distance of their component type
+		if (existingRequestedType.isArray() && type.isArray()) {
+			// if both types are an array their distance is measured by the distance of their component
+			// type
 			return getDistanceForType(existingRequestedType.getComponentType(), type.getComponentType());
 		}
 		int bestDistance = Integer.MAX_VALUE;
 		Class<?>[] currInterfaces = existingRequestedType.getInterfaces();
 
-		for (Class<?> currInterface : currInterfaces)
-		{
+		for (Class<?> currInterface : currInterfaces) {
 			int distance = getDistanceForType(currInterface, type);
-			if (distance < 0)
-			{
+			if (distance < 0) {
 				continue;
 			}
 			distance += 10000;
-			if (distance < bestDistance)
-			{
+			if (distance < bestDistance) {
 				bestDistance = distance;
 			}
 		}
 		Class<?> baseType = existingRequestedType.getSuperclass();
-		if (baseType == null)
-		{
+		if (baseType == null) {
 			baseType = Object.class;
 		}
 		int distance = getDistanceForType(baseType, type);
-		if (distance >= 0)
-		{
+		if (distance >= 0) {
 			distance++;
-			if (distance < bestDistance)
-			{
+			if (distance < bestDistance) {
 				bestDistance = distance;
 			}
 		}
-		if (bestDistance == Integer.MAX_VALUE)
-		{
+		if (bestDistance == Integer.MAX_VALUE) {
 			throw new IllegalStateException("Must never happen");
 		}
 		return bestDistance;
@@ -95,61 +83,49 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 
 	protected static final Object alreadyHandled = new Object();
 
-	protected volatile ClassEntry<V> classEntry = new ClassEntry<V>();
+	protected volatile ClassEntry<V> classEntry = new ClassEntry<>();
 
-	public ClassExtendableContainer(String message, String keyMessage)
-	{
+	public ClassExtendableContainer(String message, String keyMessage) {
 		this(message, keyMessage, false);
 	}
 
-	public ClassExtendableContainer(String message, String keyMessage, boolean multiValue)
-	{
+	public ClassExtendableContainer(String message, String keyMessage, boolean multiValue) {
 		super(message, keyMessage, multiValue);
 	}
 
 	@SuppressWarnings("unchecked")
-	public void clearWeakCache()
-	{
+	public void clearWeakCache() {
 		Lock writeLock = getWriteLock();
 		writeLock.lock();
-		try
-		{
-			ClassExtendableContainer<V> tempCC = new ClassExtendableContainer<V>("", "");
-			for (Entry<Class<?>, Object> entry : this)
-			{
+		try {
+			ClassExtendableContainer<V> tempCC = new ClassExtendableContainer<>("", "");
+			for (Entry<Class<?>, Object> entry : this) {
 				tempCC.register((V) entry.getValue(), entry.getKey());
 			}
 			this.classEntry = tempCC.classEntry;
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
-	public V getExtensionHardKey(Class<?> key)
-	{
+	public V getExtensionHardKey(Class<?> key) {
 		return super.getExtension(key);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public V getExtension(Class<?> key)
-	{
-		if (key == null)
-		{
+	public V getExtension(Class<?> key) {
+		if (key == null) {
 			return null;
 		}
 		Object extension = classEntry.get(key);
-		if (extension == null)
-		{
+		if (extension == null) {
 			Lock writeLock = getWriteLock();
 			writeLock.lock();
-			try
-			{
+			try {
 				extension = classEntry.get(key);
-				if (extension == null)
-				{
+				if (extension == null) {
 					ClassEntry<V> classEntry = copyStructure();
 
 					classEntry.put(key, alreadyHandled);
@@ -158,19 +134,16 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 					this.classEntry = classEntry;
 
 					extension = classEntry.get(key);
-					if (extension == null)
-					{
+					if (extension == null) {
 						return null;
 					}
 				}
 			}
-			finally
-			{
+			finally {
 				writeLock.unlock();
 			}
 		}
-		if (extension == alreadyHandled)
-		{
+		if (extension == alreadyHandled) {
 			// Already tried
 			return null;
 		}
@@ -178,33 +151,31 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 	}
 
 	@SuppressWarnings("unchecked")
-	protected ClassEntry<V> copyStructure()
-	{
-		ClassEntry<V> newClassEntry = new ClassEntry<V>();
+	protected ClassEntry<V> copyStructure() {
+		ClassEntry<V> newClassEntry = new ClassEntry<>();
 		LinkedHashMap<Class<?>, Object> newTypeToDefEntryMap = newClassEntry.typeToDefEntryMap;
-		LinkedHashMap<StrongKey<V>, List<DefEntry<V>>> newDefinitionReverseMap = newClassEntry.definitionReverseMap;
-		IdentityHashMap<DefEntry<V>, DefEntry<V>> originalToCopyMap = new IdentityHashMap<DefEntry<V>, DefEntry<V>>();
+		LinkedHashMap<StrongKey<V>, List<DefEntry<V>>> newDefinitionReverseMap =
+				newClassEntry.definitionReverseMap;
+		IdentityHashMap<DefEntry<V>, DefEntry<V>> originalToCopyMap =
+				new IdentityHashMap<>();
 		{
-			for (Entry<Class<?>, Object> entry : classEntry.typeToDefEntryMap)
-			{
+			for (Entry<Class<?>, Object> entry : classEntry.typeToDefEntryMap) {
 				Class<?> key = entry.getKey();
 				Object value = entry.getValue();
 
-				if (value == alreadyHandled)
-				{
+				if (value == alreadyHandled) {
 					newTypeToDefEntryMap.put(key, alreadyHandled);
 				}
-				else
-				{
+				else {
 					InterfaceFastList<DefEntry<V>> list = (InterfaceFastList<DefEntry<V>>) value;
 
-					InterfaceFastList<DefEntry<V>> newList = new InterfaceFastList<DefEntry<V>>();
+					InterfaceFastList<DefEntry<V>> newList = new InterfaceFastList<>();
 
 					IListElem<DefEntry<V>> pointer = list.first();
-					while (pointer != null)
-					{
+					while (pointer != null) {
 						DefEntry<V> defEntry = pointer.getElemValue();
-						DefEntry<V> newDefEntry = new DefEntry<V>(defEntry.extension, defEntry.type, defEntry.distance);
+						DefEntry<V> newDefEntry =
+								new DefEntry<>(defEntry.extension, defEntry.type, defEntry.distance);
 						originalToCopyMap.put(defEntry, newDefEntry);
 
 						newList.pushLast(newDefEntry);
@@ -215,16 +186,13 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 				typeToDefEntryMapChanged(newClassEntry, key);
 			}
 		}
-		for (Entry<StrongKey<V>, List<DefEntry<V>>> entry : classEntry.definitionReverseMap)
-		{
+		for (Entry<StrongKey<V>, List<DefEntry<V>>> entry : classEntry.definitionReverseMap) {
 			List<DefEntry<V>> defEntries = entry.getValue();
-			ArrayList<DefEntry<V>> newDefEntries = new ArrayList<DefEntry<V>>(defEntries.size());
+			ArrayList<DefEntry<V>> newDefEntries = new ArrayList<>(defEntries.size());
 
-			for (int a = 0, size = defEntries.size(); a < size; a++)
-			{
+			for (int a = 0, size = defEntries.size(); a < size; a++) {
 				DefEntry<V> newDefEntry = originalToCopyMap.get(defEntries.get(a));
-				if (newDefEntry == null)
-				{
+				if (newDefEntry == null) {
 					throw new IllegalStateException("Must never happen");
 				}
 				newDefEntries.add(newDefEntry);
@@ -234,51 +202,45 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 		return newClassEntry;
 	}
 
-	protected boolean checkToWeakRegisterExistingExtensions(Class<?> type, ClassEntry<V> classEntry)
-	{
+	protected boolean checkToWeakRegisterExistingExtensions(Class<?> type, ClassEntry<V> classEntry) {
 		boolean changesHappened = false;
-		for (Entry<StrongKey<V>, List<DefEntry<V>>> entry : classEntry.definitionReverseMap)
-		{
+		for (Entry<StrongKey<V>, List<DefEntry<V>>> entry : classEntry.definitionReverseMap) {
 			StrongKey<V> strongKey = entry.getKey();
 			Class<?> registeredStrongType = strongKey.strongType;
 			int distance = getDistanceForType(type, registeredStrongType);
-			if (distance == NO_VALID_DISTANCE)
-			{
+			if (distance == NO_VALID_DISTANCE) {
 				continue;
 			}
 			List<DefEntry<V>> defEntries = entry.getValue();
-			for (int a = 0, size = defEntries.size(); a < size; a++)
-			{
+			for (int a = 0, size = defEntries.size(); a < size; a++) {
 				DefEntry<V> defEntry = defEntries.get(a);
-				changesHappened |= appendRegistration(registeredStrongType, type, defEntry.extension, distance, classEntry);
+				changesHappened |= appendRegistration(registeredStrongType, type, defEntry.extension,
+						distance, classEntry);
 			}
 		}
 		return changesHappened;
 	}
 
-	protected boolean checkToWeakRegisterExistingTypes(Class<?> type, V extension, ClassEntry<V> classEntry)
-	{
+	protected boolean checkToWeakRegisterExistingTypes(Class<?> type, V extension,
+			ClassEntry<V> classEntry) {
 		boolean changesHappened = false;
-		for (Entry<Class<?>, Object> entry : classEntry.typeToDefEntryMap)
-		{
+		for (Entry<Class<?>, Object> entry : classEntry.typeToDefEntryMap) {
 			Class<?> existingRequestedType = entry.getKey();
 			int priorityForExistingRequestedType = getDistanceForType(existingRequestedType, type);
-			if (priorityForExistingRequestedType == NO_VALID_DISTANCE)
-			{
+			if (priorityForExistingRequestedType == NO_VALID_DISTANCE) {
 				continue;
 			}
-			changesHappened |= appendRegistration(type, existingRequestedType, extension, priorityForExistingRequestedType, classEntry);
+			changesHappened |= appendRegistration(type, existingRequestedType, extension,
+					priorityForExistingRequestedType, classEntry);
 		}
 		return changesHappened;
 	}
 
 	@Override
-	public void register(V extension, Class<?> key)
-	{
+	public void register(V extension, Class<?> key) {
 		Lock writeLock = getWriteLock();
 		writeLock.lock();
-		try
-		{
+		try {
 			super.register(extension, key);
 
 			ClassEntry<V> classEntry = copyStructure();
@@ -287,71 +249,62 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 			checkToWeakRegisterExistingExtensions(key, classEntry);
 			this.classEntry = classEntry;
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void unregister(V extension, Class<?> key)
-	{
+	public void unregister(V extension, Class<?> key) {
 		ParamChecker.assertParamNotNull(extension, "extension");
 		ParamChecker.assertParamNotNull(key, "key");
 
 		Lock writeLock = getWriteLock();
 		writeLock.lock();
-		try
-		{
+		try {
 			super.unregister(extension, key);
 
 			ClassEntry<V> classEntry = copyStructure();
-			LinkedHashMap<StrongKey<V>, List<DefEntry<V>>> definitionReverseMap = classEntry.definitionReverseMap;
-			List<DefEntry<V>> weakEntriesOfStrongType = definitionReverseMap.remove(new StrongKey<V>(extension, key));
-			if (weakEntriesOfStrongType == null)
-			{
+			LinkedHashMap<StrongKey<V>, List<DefEntry<V>>> definitionReverseMap =
+					classEntry.definitionReverseMap;
+			List<DefEntry<V>> weakEntriesOfStrongType =
+					definitionReverseMap.remove(new StrongKey<>(extension, key));
+			if (weakEntriesOfStrongType == null) {
 				return;
 			}
 			LinkedHashMap<Class<?>, Object> typeToDefEntryMap = classEntry.typeToDefEntryMap;
-			for (int a = weakEntriesOfStrongType.size(); a-- > 0;)
-			{
+			for (int a = weakEntriesOfStrongType.size(); a-- > 0;) {
 				DefEntry<V> defEntry = weakEntriesOfStrongType.get(a);
 				Class<?> registeredType = defEntry.type;
 
 				Object value = typeToDefEntryMap.get(registeredType);
 				InterfaceFastList<DefEntry<V>> list = (InterfaceFastList<DefEntry<V>>) value;
 				list.remove(defEntry);
-				if (list.size() == 0)
-				{
+				if (list.size() == 0) {
 					typeToDefEntryMap.remove(registeredType);
 				}
 				typeToDefEntryMapChanged(classEntry, registeredType);
 			}
 			this.classEntry = classEntry;
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	protected void typeToDefEntryMapChanged(ClassEntry<V> classEntry, Class<?> key)
-	{
+	protected void typeToDefEntryMapChanged(ClassEntry<V> classEntry, Class<?> key) {
 		Object obj = classEntry.typeToDefEntryMap.get(key);
-		if (obj == null)
-		{
+		if (obj == null) {
 			classEntry.remove(key);
 			return;
 		}
-		if (obj == alreadyHandled)
-		{
+		if (obj == alreadyHandled) {
 			classEntry.put(key, alreadyHandled);
 			return;
 		}
-		if (obj instanceof DefEntry)
-		{
+		if (obj instanceof DefEntry) {
 			classEntry.put(key, ((DefEntry<V>) obj).extension);
 			return;
 		}
@@ -360,37 +313,33 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 	}
 
 	@SuppressWarnings("unchecked")
-	protected boolean appendRegistration(Class<?> strongTypeKey, Class<?> key, V extension, int distance, ClassEntry<V> classEntry)
-	{
+	protected boolean appendRegistration(Class<?> strongTypeKey, Class<?> key, V extension,
+			int distance, ClassEntry<V> classEntry) {
 		LinkedHashMap<Class<?>, Object> typeToDefEntryMap = classEntry.typeToDefEntryMap;
 		Object fastList = typeToDefEntryMap.get(key);
-		if (fastList != null && fastList != alreadyHandled)
-		{
+		if (fastList != null && fastList != alreadyHandled) {
 			IListElem<DefEntry<V>> pointer = ((InterfaceFastList<DefEntry<V>>) fastList).first();
-			while (pointer != null)
-			{
+			while (pointer != null) {
 				DefEntry<V> existingDefEntry = pointer.getElemValue();
-				if (existingDefEntry.extension == extension && existingDefEntry.distance == distance)
-				{
+				if (existingDefEntry.extension == extension && existingDefEntry.distance == distance) {
 					// DefEntry already exists with same distance
 					return false;
 				}
 				pointer = pointer.getNext();
 			}
 		}
-		if (fastList == null || fastList == alreadyHandled)
-		{
+		if (fastList == null || fastList == alreadyHandled) {
 			fastList = new InterfaceFastList<DefEntry<V>>();
 			typeToDefEntryMap.put(key, fastList);
 		}
-		DefEntry<V> defEntry = new DefEntry<V>(extension, key, distance);
+		DefEntry<V> defEntry = new DefEntry<>(extension, key, distance);
 
-		LinkedHashMap<StrongKey<V>, List<DefEntry<V>>> definitionReverseMap = classEntry.definitionReverseMap;
-		StrongKey<V> strongKey = new StrongKey<V>(extension, strongTypeKey);
+		LinkedHashMap<StrongKey<V>, List<DefEntry<V>>> definitionReverseMap =
+				classEntry.definitionReverseMap;
+		StrongKey<V> strongKey = new StrongKey<>(extension, strongTypeKey);
 		List<DefEntry<V>> typeEntries = definitionReverseMap.get(strongKey);
-		if (typeEntries == null)
-		{
-			typeEntries = new ArrayList<DefEntry<V>>();
+		if (typeEntries == null) {
+			typeEntries = new ArrayList<>();
 			definitionReverseMap.put(strongKey, typeEntries);
 		}
 		typeEntries.add(defEntry);

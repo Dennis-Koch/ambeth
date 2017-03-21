@@ -82,7 +82,7 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager {
 
 	protected LdapContext createContext(String userName, String password) {
 		try {
-			Hashtable<String, String> env = new Hashtable<String, String>();
+			Hashtable<String, String> env = new Hashtable<>();
 			env.put(Context.INITIAL_CONTEXT_FACTORY, ldapContextFactory);
 			env.put(Context.PROVIDER_URL, ldapHost);
 			env.put(Context.SECURITY_AUTHENTICATION, "simple");
@@ -148,7 +148,7 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager {
 			LdapContext ctxGC =
 					createContext(authentication.getUserName(), new String(authentication.getPassword()));
 			try {
-				ArrayList<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+				ArrayList<Map<String, Object>> result = new ArrayList<>();
 				// Now try a simple search and get some attributes as defined in returnedAtts
 				NamingEnumeration<SearchResult> answer = query(authentication.getUserName(), ctxGC);
 				try {
@@ -160,14 +160,14 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager {
 						}
 						NamingEnumeration<? extends Attribute> ne = attrs.getAll();
 						try {
-							Map<String, Object> entryMap = new HashMap<String, Object>();
+							Map<String, Object> entryMap = new HashMap<>();
 							while (ne.hasMore()) {
 								Attribute attr = ne.next();
 								if (attr.size() == 1) {
 									entryMap.put(attr.getID(), attr.get());
 								}
 								else {
-									HashSet<String> s = new HashSet<String>();
+									HashSet<String> s = new HashSet<>();
 									NamingEnumeration<?> n = attr.getAll();
 									while (n.hasMoreElements()) {
 										s.add((String) n.nextElement());

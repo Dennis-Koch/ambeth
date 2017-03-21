@@ -68,9 +68,12 @@ public class AccessorTypeProviderExample implements IInitializingBean {
 	@Override
 	public void afterPropertiesSet() throws Throwable {
 		Class<?> objectType = ExampleObjectType.class;
-		constructorDelegate = accessorTypeProvider.getConstructorType(ExampleConstructorDelegate.class, objectType);
-		exampleIntAccessor = accessorTypeProvider.getAccessorType(objectType, propertyInfoProvider.getProperty(objectType, "ExampleIntValue"));
-		exampleLongAccessor = accessorTypeProvider.getAccessorType(objectType, propertyInfoProvider.getProperty(objectType, "ExampleLongValue"));
+		constructorDelegate =
+				accessorTypeProvider.getConstructorType(ExampleConstructorDelegate.class, objectType);
+		exampleIntAccessor = accessorTypeProvider.getAccessorType(objectType,
+				propertyInfoProvider.getProperty(objectType, "ExampleIntValue"));
+		exampleLongAccessor = accessorTypeProvider.getAccessorType(objectType,
+				propertyInfoProvider.getProperty(objectType, "ExampleLongValue"));
 	}
 
 	public void exampleInstantiation() {

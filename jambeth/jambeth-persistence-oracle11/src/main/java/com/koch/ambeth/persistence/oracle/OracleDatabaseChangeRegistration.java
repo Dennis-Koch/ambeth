@@ -46,8 +46,7 @@ import oracle.jdbc.OracleStatement;
 import oracle.jdbc.dcn.DatabaseChangeListener;
 import oracle.jdbc.dcn.DatabaseChangeRegistration;
 
-public class OracleDatabaseChangeRegistration implements IDisposableBean, IEventListener
-{
+public class OracleDatabaseChangeRegistration implements IDisposableBean, IEventListener {
 	@LogInstance
 	private ILogger log;
 
@@ -72,52 +71,44 @@ public class OracleDatabaseChangeRegistration implements IDisposableBean, IEvent
 	protected boolean firstMapping;
 
 	@Override
-	public void destroy() throws Throwable
-	{
-		if (databaseChangeRegistration == null)
-		{
+	public void destroy() throws Throwable {
+		if (databaseChangeRegistration == null) {
 			return;
 		}
 		Connection connection = connectionFactory.create();
-		try
-		{
-			connection.unwrap(OracleConnection.class).unregisterDatabaseChangeNotification(databaseChangeRegistration);
+		try {
+			connection.unwrap(OracleConnection.class)
+					.unregisterDatabaseChangeNotification(databaseChangeRegistration);
 		}
-		finally
-		{
+		finally {
 			JdbcUtil.close(connection);
 		}
 	}
 
 	@Override
-	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId)
-	{
-		if (!(eventObject instanceof IEntityMetaDataEvent))
-		{
+	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) {
+		if (!(eventObject instanceof IEntityMetaDataEvent)) {
 			return;
 		}
-		transaction.processAndCommit(new DatabaseCallback()
-		{
+		transaction.processAndCommit(new DatabaseCallback() {
 			@Override
-			public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Exception
-			{
-				if (persistenceUnitToDatabaseMap == null)
-				{
+			public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+					throws Exception {
+				if (persistenceUnitToDatabaseMap == null) {
 					final Thread currentThread = Thread.currentThread();
 					// This may happen if the event is handled while building up the very first transaction
 					// So we register for the TransactionBeginEvent and execute then
-					eventListenerExtendable.registerEventListener(new IEventListener()
-					{
+					eventListenerExtendable.registerEventListener(new IEventListener() {
 						@Override
-						public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception
-						{
-							if (Thread.currentThread() != currentThread)
-							{
+						public void handleEvent(Object eventObject, long dispatchTime, long sequenceId)
+								throws Exception {
+							if (Thread.currentThread() != currentThread) {
 								// A concurrent thread has been faster than our own transaction event
 								return;
 							}
 							eventListenerExtendable.unregisterEventListener(this, TransactionBeginEvent.class);
-							handleEventIntern(((TransactionBeginEvent) eventObject).getPersistenceUnitToDatabaseMap());
+							handleEventIntern(
+									((TransactionBeginEvent) eventObject).getPersistenceUnitToDatabaseMap());
 						}
 					}, TransactionBeginEvent.class);
 					return;
@@ -127,40 +118,35 @@ public class OracleDatabaseChangeRegistration implements IDisposableBean, IEvent
 		});
 	}
 
-	protected void handleEventIntern(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Exception
-	{
+	protected void handleEventIntern(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+			throws Exception {
 		java.util.Properties prop = new java.util.Properties();
 		prop.setProperty(OracleConnection.DCN_NOTIFY_ROWIDS, "true");
 		// prop.setProperty(OracleConnection.DCN_QUERY_CHANGE_NOTIFICATION, "true");
 
-		for (Entry<Object, IDatabase> entry : persistenceUnitToDatabaseMap)
-		{
-			OracleConnection connection = entry.getValue().getAutowiredBeanInContext(Connection.class).unwrap(OracleConnection.class);
+		for (Entry<Object, IDatabase> entry : persistenceUnitToDatabaseMap) {
+			OracleConnection connection = entry.getValue().getAutowiredBeanInContext(Connection.class)
+					.unwrap(OracleConnection.class);
 			databaseChangeRegistration = connection.registerDatabaseChangeNotification(prop);
 			databaseChangeRegistration.addListener(databaseChangeListener);
 
 			Statement stm = connection.createStatement();
-			try
-			{
+			try {
 				((OracleStatement) stm).setDatabaseChangeRegistration(databaseChangeRegistration);
 
-				for (ITableMetaData table : databaseMetaData.getTables())
-				{
+				for (ITableMetaData table : databaseMetaData.getTables()) {
 					String tableName = table.getFullqualifiedEscapedName();
 
 					stm.execute("SELECT \"" + table.getIdField().getName() + "\" FROM " + tableName + "");
 				}
-				if (log.isDebugEnabled())
-				{
+				if (log.isDebugEnabled()) {
 					String[] tableNames = databaseChangeRegistration.getTables();
-					for (int i = 0; i < tableNames.length; i++)
-					{
+					for (int i = 0; i < tableNames.length; i++) {
 						log.debug(tableNames[i] + " is part of the registration.");
 					}
 				}
 			}
-			finally
-			{
+			finally {
 				JdbcUtil.close(stm);
 			}
 		}

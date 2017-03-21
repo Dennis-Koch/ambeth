@@ -26,8 +26,7 @@ import com.koch.ambeth.query.filter.IPagingQuery;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.IParamHolder;
 
-public interface IQueryBuilder<T> extends IDisposable
-{
+public interface IQueryBuilder<T> extends IDisposable {
 	Class<?> getEntityType();
 
 	IOperator and(IOperand leftOperand, IOperand rightOperand);
@@ -45,10 +44,10 @@ public interface IQueryBuilder<T> extends IDisposable
 	IOperator falseOperator();
 
 	/**
-	 * The property name may be a simple name (e.g. "Name") or imply a join by using a dot (e.g. "User.Name").
-	 * 
-	 * @param propertyName
-	 *            Name of the (cascaded) property.
+	 * The property name may be a simple name (e.g. "Name") or imply a join by using a dot (e.g.
+	 * "User.Name").
+	 *
+	 * @param propertyName Name of the (cascaded) property.
 	 * @return Operand to use in Statement
 	 */
 	IOperand property(String propertyName);

@@ -58,14 +58,12 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 	@Autowired
 	protected IProxyHelper proxyHelper;
 
-	protected final HashMap<Class<?>, List<XmlTypeKey>> weakClassToXmlTypeMap =
-			new HashMap<>(0.5f);
+	protected final HashMap<Class<?>, List<XmlTypeKey>> weakClassToXmlTypeMap = new HashMap<>(0.5f);
 
 	protected final Tuple2KeyHashMap<String, String, Class<?>> xmlTypeToClassMap =
 			new Tuple2KeyHashMap<>(0.5f);
 
-	protected final HashMap<Class<?>, List<XmlTypeKey>> classToXmlTypeMap =
-			new HashMap<>(0.5f);
+	protected final HashMap<Class<?>, List<XmlTypeKey>> classToXmlTypeMap = new HashMap<>(0.5f);
 
 	protected final Lock readLock, writeLock;
 

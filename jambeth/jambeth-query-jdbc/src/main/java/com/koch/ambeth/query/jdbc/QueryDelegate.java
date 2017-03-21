@@ -40,8 +40,7 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
-public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T>
-{
+public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -62,186 +61,152 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T>
 	protected IQuery<T> transactionalQuery;
 
 	@Override
-	public void dispose()
-	{
+	public void dispose() {
 		beanContext.dispose();
 	}
 
 	@Override
-	public Class<T> getEntityType()
-	{
+	public Class<T> getEntityType() {
 		return query.getEntityType();
 	}
 
 	@Override
-	public void fillRelatedEntityTypes(List<Class<?>> relatedEntityTypes)
-	{
+	public void fillRelatedEntityTypes(List<Class<?>> relatedEntityTypes) {
 		query.fillRelatedEntityTypes(relatedEntityTypes);
 	}
 
 	@Override
-	public IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap)
-	{
+	public IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap) {
 		return query.getQueryKey(nameToValueMap);
 	}
 
 	@Override
-	public IVersionCursor retrieveAsVersions()
-	{
+	public IVersionCursor retrieveAsVersions() {
 		return query.retrieveAsVersions();
 	}
 
 	@Override
-	public IDataCursor retrieveAsData()
-	{
+	public IDataCursor retrieveAsData() {
 		return query.retrieveAsData();
 	}
 
 	@Override
-	public IDataCursor retrieveAsData(IMap<Object, Object> nameToValueMap)
-	{
+	public IDataCursor retrieveAsData(IMap<Object, Object> nameToValueMap) {
 		return queryIntern.retrieveAsData(nameToValueMap);
 	}
 
 	@Override
-	public IVersionCursor retrieveAsVersions(IMap<Object, Object> nameToValueMap)
-	{
+	public IVersionCursor retrieveAsVersions(IMap<Object, Object> nameToValueMap) {
 		return queryIntern.retrieveAsVersions(nameToValueMap, true);
 	}
 
 	@Override
-	public IVersionCursor retrieveAsVersions(boolean retrieveAlternateIds)
-	{
+	public IVersionCursor retrieveAsVersions(boolean retrieveAlternateIds) {
 		return query.retrieveAsVersions(retrieveAlternateIds);
 	}
 
 	@Override
-	public IVersionCursor retrieveAsVersions(IMap<Object, Object> paramNameToValueMap, boolean retrieveAlternateIds)
-	{
+	public IVersionCursor retrieveAsVersions(IMap<Object, Object> paramNameToValueMap,
+			boolean retrieveAlternateIds) {
 		return queryIntern.retrieveAsVersions(paramNameToValueMap, retrieveAlternateIds);
 	}
 
 	@Override
-	public IEntityCursor<T> retrieveAsCursor()
-	{
+	public IEntityCursor<T> retrieveAsCursor() {
 		return query.retrieveAsCursor();
 	}
 
 	@Override
-	public IEntityCursor<T> retrieveAsCursor(IMap<Object, Object> nameToValueMap)
-	{
+	public IEntityCursor<T> retrieveAsCursor(IMap<Object, Object> nameToValueMap) {
 		return queryIntern.retrieveAsCursor(nameToValueMap);
 	}
 
 	@Override
-	public IList<T> retrieve()
-	{
-		if (transaction.isActive())
-		{
+	public IList<T> retrieve() {
+		if (transaction.isActive()) {
 			return query.retrieve();
 		}
-		return transaction.processAndCommit(new ResultingDatabaseCallback<IList<T>>()
-		{
+		return transaction.processAndCommit(new ResultingDatabaseCallback<IList<T>>() {
 			@Override
-			public IList<T> callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-			{
+			public IList<T> callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) {
 				return query.retrieve();
 			}
 		}, true, true);
 	}
 
 	@Override
-	public IList<T> retrieve(final IMap<Object, Object> nameToValueMap)
-	{
-		if (transaction.isActive())
-		{
+	public IList<T> retrieve(final IMap<Object, Object> nameToValueMap) {
+		if (transaction.isActive()) {
 			return queryIntern.retrieve(nameToValueMap);
 		}
-		return transaction.processAndCommit(new ResultingDatabaseCallback<IList<T>>()
-		{
+		return transaction.processAndCommit(new ResultingDatabaseCallback<IList<T>>() {
 			@Override
-			public IList<T> callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-			{
+			public IList<T> callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) {
 				return queryIntern.retrieve(nameToValueMap);
 			}
 		}, true, true);
 	}
 
 	@Override
-	public T retrieveSingle()
-	{
+	public T retrieveSingle() {
 		return transactionalQuery.retrieveSingle();
 	}
 
 	@Override
-	public IQuery<T> param(Object paramKey, Object param)
-	{
+	public IQuery<T> param(Object paramKey, Object param) {
 		return query.param(paramKey, param);
 	}
 
 	@Override
-	public long count()
-	{
-		if (transaction.isActive())
-		{
+	public long count() {
+		if (transaction.isActive()) {
 			return query.count();
 		}
-		return transaction.processAndCommit(new ResultingDatabaseCallback<Long>()
-		{
+		return transaction.processAndCommit(new ResultingDatabaseCallback<Long>() {
 			@Override
-			public Long callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
-			{
+			public Long callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+					throws Throwable {
 				return Long.valueOf(query.count());
 			}
 		}).longValue();
 	}
 
 	@Override
-	public long count(final IMap<Object, Object> paramNameToValueMap)
-	{
-		if (transaction.isActive())
-		{
+	public long count(final IMap<Object, Object> paramNameToValueMap) {
+		if (transaction.isActive()) {
 			return queryIntern.count(paramNameToValueMap);
 		}
-		return transaction.processAndCommit(new ResultingDatabaseCallback<Long>()
-		{
+		return transaction.processAndCommit(new ResultingDatabaseCallback<Long>() {
 			@Override
-			public Long callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
-			{
+			public Long callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+					throws Throwable {
 				return Long.valueOf(queryIntern.count(paramNameToValueMap));
 			}
 		}).intValue();
 	}
 
 	@Override
-	public boolean isEmpty()
-	{
-		if (transaction.isActive())
-		{
+	public boolean isEmpty() {
+		if (transaction.isActive()) {
 			return query.isEmpty();
 		}
-		return transaction.runInTransaction(new IResultingBackgroundWorkerDelegate<Boolean>()
-		{
+		return transaction.runInTransaction(new IResultingBackgroundWorkerDelegate<Boolean>() {
 			@Override
-			public Boolean invoke() throws Throwable
-			{
+			public Boolean invoke() throws Throwable {
 				return Boolean.valueOf(query.isEmpty());
 			}
 		}).booleanValue();
 	}
 
 	@Override
-	public boolean isEmpty(final IMap<Object, Object> paramNameToValueMap)
-	{
-		if (transaction.isActive())
-		{
+	public boolean isEmpty(final IMap<Object, Object> paramNameToValueMap) {
+		if (transaction.isActive()) {
 			return queryIntern.isEmpty(paramNameToValueMap);
 		}
-		return transaction.processAndCommit(new ResultingDatabaseCallback<Boolean>()
-		{
+		return transaction.processAndCommit(new ResultingDatabaseCallback<Boolean>() {
 			@Override
-			public Boolean callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
-			{
+			public Boolean callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+					throws Throwable {
 				return Boolean.valueOf(queryIntern.isEmpty(paramNameToValueMap));
 			}
 		}).booleanValue();

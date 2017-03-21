@@ -21,38 +21,30 @@ limitations under the License.
  */
 
 
-public final class NoOpStateRollback implements IStateRollback
-{
+public final class NoOpStateRollback implements IStateRollback {
 	public static final IStateRollback instance = new NoOpStateRollback();
 
-	public static IStateRollback createNoOpRollback(IStateRollback[] rollbacks)
-	{
-		if (rollbacks == null || rollbacks.length == 0)
-		{
+	public static IStateRollback createNoOpRollback(IStateRollback[] rollbacks) {
+		if (rollbacks == null || rollbacks.length == 0) {
 			return instance;
 		}
-		if (rollbacks.length == 1)
-		{
+		if (rollbacks.length == 1) {
 			return rollbacks[0];
 		}
-		return new AbstractStateRollback(rollbacks)
-		{
+		return new AbstractStateRollback(rollbacks) {
 			@Override
-			protected void rollbackIntern() throws Throwable
-			{
+			protected void rollbackIntern() throws Throwable {
 				// intended blank
 			}
 		};
 	}
 
-	private NoOpStateRollback()
-	{
+	private NoOpStateRollback() {
 		// Intended blank
 	}
 
 	@Override
-	public void rollback()
-	{
+	public void rollback() {
 		// intended blank
 	}
 }

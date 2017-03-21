@@ -33,39 +33,44 @@ import com.koch.ambeth.persistence.jdbc.IConnectionExtension;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import com.koch.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
 
-public class SQLiteModule implements IInitializingModule
-{
-	public static boolean handlesDatabaseProtocol(String databaseProtocol)
-	{
+public class SQLiteModule implements IInitializingModule {
+	public static boolean handlesDatabaseProtocol(String databaseProtocol) {
 		return databaseProtocol.toLowerCase().startsWith("jdbc:sqlite");
 	}
 
 	@LogInstance
 	private ILogger log;
 
-	@Property(name = PersistenceConfigurationConstants.ExternalTransactionManager, defaultValue = "false")
+	@Property(name = PersistenceConfigurationConstants.ExternalTransactionManager,
+			defaultValue = "false")
 	protected boolean externalTransactionManager;
 
-	@Property(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionPool, defaultValue = "true")
+	@Property(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionPool,
+			defaultValue = "true")
 	protected boolean integratedConnectionPool;
 
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseBehaviourStrict, defaultValue = "false")
+	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseBehaviourStrict,
+			defaultValue = "false")
 	protected boolean databaseBehaviourStrict;
 
 	@Property(name = PersistenceConfigurationConstants.DatabasePoolPassivate, defaultValue = "false")
 	protected boolean databasePassivate;
 
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		beanContextFactory.registerBean(SQLiteConnectionUrlProvider.class).autowireable(IDatabaseConnectionUrlProvider.class);
-		beanContextFactory.registerBean(SQLiteConnectionExtension.class).autowireable(IConnectionExtension.class);
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		beanContextFactory.registerBean(SQLiteConnectionUrlProvider.class)
+				.autowireable(IDatabaseConnectionUrlProvider.class);
+		beanContextFactory.registerBean(SQLiteConnectionExtension.class)
+				.autowireable(IConnectionExtension.class);
 		beanContextFactory.registerBean(SQLiteDialect.class).autowireable(IConnectionDialect.class);
-		beanContextFactory.registerBean(SQLiteExtendedDialect.class).autowireable(IExtendedConnectionDialect.class);
-		beanContextFactory.registerBean(SQLiteSequencePrimaryKeyProvider.class).autowireable(IPrimaryKeyProvider.class);
+		beanContextFactory.registerBean(SQLiteExtendedDialect.class)
+				.autowireable(IExtendedConnectionDialect.class);
+		beanContextFactory.registerBean(SQLiteSequencePrimaryKeyProvider.class)
+				.autowireable(IPrimaryKeyProvider.class);
 
 		// TODO
-		// IBeanConfiguration stringToCharacterInputSourceConverter = beanContextFactory.registerBean(StringToCharacterInputSourceConverter.class);
+		// IBeanConfiguration stringToCharacterInputSourceConverter =
+		// beanContextFactory.registerBean(StringToCharacterInputSourceConverter.class);
 		// beanContextFactory.link(stringToCharacterInputSourceConverter).to(IDedicatedConverterExtendable.class).with(String.class,
 		// ICharacterInputSource.class);
 	}

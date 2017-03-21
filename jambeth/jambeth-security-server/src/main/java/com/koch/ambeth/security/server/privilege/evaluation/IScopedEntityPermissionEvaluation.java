@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IScopedEntityPermissionEvaluation
-{
+public interface IScopedEntityPermissionEvaluation {
 	IScopedCreateEntityStep allowRead();
 
 	IScopedCreateEntityPropertyStep allowReadProperty(String propertyName);

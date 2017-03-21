@@ -21,8 +21,7 @@ limitations under the License.
  */
 
 
-public interface IRowCommand
-{
+public interface IRowCommand {
 	void addCommand(IChangeCommand command);
 
 	IChangeCommand getCommand();

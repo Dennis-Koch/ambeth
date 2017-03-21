@@ -22,22 +22,18 @@ limitations under the License.
 
 import com.koch.ambeth.model.AbstractEntity;
 
-public class Detail extends AbstractEntity
-{
+public class Detail extends AbstractEntity {
 	protected Master master;
 
-	protected Detail()
-	{
+	protected Detail() {
 		// Intended blank
 	}
 
-	public Master getMaster()
-	{
+	public Master getMaster() {
 		return master;
 	}
 
-	public void setMaster(Master master)
-	{
+	public void setMaster(Master master) {
 		this.master = master;
 	}
 }

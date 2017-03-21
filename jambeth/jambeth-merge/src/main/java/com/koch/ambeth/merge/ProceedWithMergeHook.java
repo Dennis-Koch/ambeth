@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.merge.model.ICUDResult;
 
-public interface ProceedWithMergeHook
-{
+public interface ProceedWithMergeHook {
 	boolean checkToProceed(ICUDResult result);
 }

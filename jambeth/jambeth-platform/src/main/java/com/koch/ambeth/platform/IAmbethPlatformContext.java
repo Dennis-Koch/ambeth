@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.util.IDisposable;
 
-public interface IAmbethPlatformContext extends IDisposable
-{
+public interface IAmbethPlatformContext extends IDisposable {
 	IServiceContext getBeanContext();
 
 	void clearThreadLocal();

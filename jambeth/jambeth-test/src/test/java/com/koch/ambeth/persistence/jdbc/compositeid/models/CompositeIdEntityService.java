@@ -25,27 +25,23 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.proxy.Service;
 
 @Service(ICompositeIdEntityService.class)
-public class CompositeIdEntityService implements ICompositeIdEntityService
-{
+public class CompositeIdEntityService implements ICompositeIdEntityService {
 	@SuppressWarnings("unused")
 	@LogInstance(CompositeIdEntityService.class)
 	private ILogger log;
 
 	@Override
-	public CompositeIdEntity create(CompositeIdEntity entity)
-	{
+	public CompositeIdEntity create(CompositeIdEntity entity) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public CompositeIdEntity update(CompositeIdEntity entity)
-	{
+	public CompositeIdEntity update(CompositeIdEntity entity) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void delete(CompositeIdEntity entity)
-	{
+	public void delete(CompositeIdEntity entity) {
 		throw new UnsupportedOperationException();
 	}
 }

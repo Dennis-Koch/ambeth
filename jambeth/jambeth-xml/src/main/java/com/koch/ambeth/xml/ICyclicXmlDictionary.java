@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ICyclicXmlDictionary
-{
+public interface ICyclicXmlDictionary {
 	// Elements
 	String getArrayElement();
 

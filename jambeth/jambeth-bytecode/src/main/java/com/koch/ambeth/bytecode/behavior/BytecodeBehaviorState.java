@@ -71,7 +71,7 @@ public class BytecodeBehaviorState implements IBytecodeBehaviorState {
 	}
 
 	private static final ThreadLocal<IBytecodeBehaviorState> stateTL =
-			new ThreadLocal<IBytecodeBehaviorState>();
+			new ThreadLocal<>();
 
 	public static IBytecodeBehaviorState getState() {
 		return stateTL.get();
@@ -106,16 +106,16 @@ public class BytecodeBehaviorState implements IBytecodeBehaviorState {
 	private final IEnhancementHint context;
 
 	private final LinkedHashMap<MethodKeyOfType, MethodInstance> implementedMethods =
-			new LinkedHashMap<MethodKeyOfType, MethodInstance>();
+			new LinkedHashMap<>();
 
 	private final LinkedHashMap<PropertyKey, PropertyInstance> implementedProperties =
-			new LinkedHashMap<PropertyKey, PropertyInstance>();
+			new LinkedHashMap<>();
 
 	private final LinkedHashMap<String, FieldInstance> implementedFields =
-			new LinkedHashMap<String, FieldInstance>();
+			new LinkedHashMap<>();
 
 	private final LinkedHashMap<String, IValueResolveDelegate> initializeStaticFields =
-			new LinkedHashMap<String, IValueResolveDelegate>();
+			new LinkedHashMap<>();
 
 	public BytecodeBehaviorState(Class<?> currentType, Type newType, Class<?> originalType,
 			IServiceContext beanContext, IEnhancementHint context) {

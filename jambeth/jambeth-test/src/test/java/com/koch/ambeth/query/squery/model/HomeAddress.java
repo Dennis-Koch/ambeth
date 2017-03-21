@@ -20,17 +20,14 @@ limitations under the License.
  * #L%
  */
 
-public class HomeAddress extends BaseEntity
-{
+public class HomeAddress extends BaseEntity {
 	protected String streat;
 
-	public String getStreat()
-	{
+	public String getStreat() {
 		return streat;
 	}
 
-	public void setStreat(String streat)
-	{
+	public void setStreat(String streat) {
 		this.streat = streat;
 	}
 

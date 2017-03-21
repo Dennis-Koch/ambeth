@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.model.AbstractEntity;
 
-public class ExternalEntity2 extends AbstractEntity
-{
+public class ExternalEntity2 extends AbstractEntity {
 	protected String name;
 
 	protected int value;
@@ -32,48 +31,39 @@ public class ExternalEntity2 extends AbstractEntity
 
 	protected LocalEntity local;
 
-	protected ExternalEntity2()
-	{
+	protected ExternalEntity2() {
 		// Intended blank
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public int getValue()
-	{
+	public int getValue() {
 		return value;
 	}
 
-	public void setValue(int value)
-	{
+	public void setValue(int value) {
 		this.value = value;
 	}
 
-	public ExternalEntity getParent()
-	{
+	public ExternalEntity getParent() {
 		return parent;
 	}
 
-	public void setParent(ExternalEntity parent)
-	{
+	public void setParent(ExternalEntity parent) {
 		this.parent = parent;
 	}
 
-	public LocalEntity getLocal()
-	{
+	public LocalEntity getLocal() {
 		return local;
 	}
 
-	public void setLocal(LocalEntity local)
-	{
+	public void setLocal(LocalEntity local) {
 		this.local = local;
 	}
 }

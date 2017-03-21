@@ -45,30 +45,27 @@ import com.koch.ambeth.util.collections.IList;
 @SQLData("Example_data.sql")
 @SQLStructure("JDBCDatabase_structure.sql")
 @TestModule(TestServicesModule.class)
-@TestPropertiesList({ @TestProperties(name = PersistenceConfigurationConstants.DatabaseTablePrefix, value = "D_"),
+@TestPropertiesList({
+		@TestProperties(name = PersistenceConfigurationConstants.DatabaseTablePrefix, value = "D_"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabaseFieldPrefix, value = "F_"),
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml"),
-		@TestProperties(name = CacheConfigurationConstants.FirstLevelCacheType, value = "PROTOTYPE") })
-public class SqlInjectionTest extends AbstractInformationBusWithPersistenceTest
-{
+		@TestProperties(name = CacheConfigurationConstants.FirstLevelCacheType, value = "PROTOTYPE")})
+public class SqlInjectionTest extends AbstractInformationBusWithPersistenceTest {
 	protected IMaterialService materialService;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		ParamChecker.assertNotNull(materialService, "materialService");
 	}
 
-	public void setMaterialService(IMaterialService materialService)
-	{
+	public void setMaterialService(IMaterialService materialService) {
 		this.materialService = materialService;
 	}
 
 	@Test
-	public void testInjectByMerge()
-	{
+	public void testInjectByMerge() {
 		Material material = entityFactory.createEntity(Material.class);
 		material.setName("Inject'; DROP TABLE MATERIAL;");
 		materialService.updateMaterial(material);
@@ -78,8 +75,7 @@ public class SqlInjectionTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testInjectByQuery2()
-	{
+	public void testInjectByQuery2() {
 		String name = "hallo";
 		Material material = entityFactory.createEntity(Material.class);
 		material.setName(name);
@@ -91,8 +87,7 @@ public class SqlInjectionTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testInjectByQuery()
-	{
+	public void testInjectByQuery() {
 		String name = "Inject'; DROP TABLE MATERIAL;";
 		Material material = entityFactory.createEntity(Material.class);
 		material.setName(name);

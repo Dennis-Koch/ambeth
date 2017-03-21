@@ -28,7 +28,7 @@ import com.koch.ambeth.merge.independent.IndependentEntityMetaDataClient20Test;
 import com.koch.ambeth.merge.independent.IndependentEntityMetaDataClientTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ IndependentEntityMetaDataClientTest.class, IndependentEntityMetaDataClient20Test.class })
-public class AllMergeBytecodeTests
-{
+@SuiteClasses({IndependentEntityMetaDataClientTest.class,
+		IndependentEntityMetaDataClient20Test.class})
+public class AllMergeBytecodeTests {
 }

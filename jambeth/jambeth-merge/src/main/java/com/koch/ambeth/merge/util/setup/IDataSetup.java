@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.Collection;
 
-public interface IDataSetup
-{
+public interface IDataSetup {
 	void eraseEntityReferences();
 
 	void refreshEntityReferences();

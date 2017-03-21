@@ -28,37 +28,29 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IListElem;
 import com.koch.ambeth.util.collections.InterfaceFastList;
 
-public class ClassExtendableListContainer<V> extends ClassExtendableContainer<V>
-{
-	public ClassExtendableListContainer(String message, String keyMessage)
-	{
+public class ClassExtendableListContainer<V> extends ClassExtendableContainer<V> {
+	public ClassExtendableListContainer(String message, String keyMessage) {
 		super(message, keyMessage, true);
 	}
 
 	@Override
-	public V getExtension(Class<?> key)
-	{
+	public V getExtension(Class<?> key) {
 		return getExtensions(key).get(0);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public IList<V> getExtensions(Class<?> key)
-	{
-		if (key == null)
-		{
-			return EmptyList.<V> getInstance();
+	public IList<V> getExtensions(Class<?> key) {
+		if (key == null) {
+			return EmptyList.<V>getInstance();
 		}
 		Object extension = classEntry.get(key);
-		if (extension == null)
-		{
+		if (extension == null) {
 			Lock writeLock = getWriteLock();
 			writeLock.lock();
-			try
-			{
+			try {
 				extension = classEntry.get(key);
-				if (extension == null)
-				{
+				if (extension == null) {
 					ClassEntry<V> classEntry = copyStructure();
 
 					classEntry.put(key, alreadyHandled);
@@ -67,62 +59,51 @@ public class ClassExtendableListContainer<V> extends ClassExtendableContainer<V>
 					this.classEntry = classEntry;
 
 					extension = classEntry.get(key);
-					if (extension == null)
-					{
-						return EmptyList.<V> getInstance();
+					if (extension == null) {
+						return EmptyList.<V>getInstance();
 					}
 				}
 			}
-			finally
-			{
+			finally {
 				writeLock.unlock();
 			}
 		}
-		if (extension == alreadyHandled)
-		{
+		if (extension == alreadyHandled) {
 			// Already tried
-			return EmptyList.<V> getInstance();
+			return EmptyList.<V>getInstance();
 		}
 		return (IList<V>) extension;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	protected void typeToDefEntryMapChanged(ClassEntry<V> classEntry, Class<?> key)
-	{
+	protected void typeToDefEntryMapChanged(ClassEntry<V> classEntry, Class<?> key) {
 		Object obj = classEntry.typeToDefEntryMap.get(key);
-		if (obj == null)
-		{
+		if (obj == null) {
 			classEntry.remove(key);
 			return;
 		}
-		if (obj == alreadyHandled)
-		{
+		if (obj == alreadyHandled) {
 			classEntry.put(key, alreadyHandled);
 			return;
 		}
 		Object existingItem = classEntry.get(key);
 		ArrayList<V> list = (ArrayList<V>) (existingItem == alreadyHandled ? null : existingItem);
-		if (list == null)
-		{
-			list = new ArrayList<V>();
+		if (list == null) {
+			list = new ArrayList<>();
 			classEntry.put(key, list);
 		}
-		if (obj instanceof DefEntry)
-		{
+		if (obj instanceof DefEntry) {
 			V extension = ((DefEntry<V>) obj).extension;
-			if (!list.contains(extension))
-			{
+			if (!list.contains(extension)) {
 				list.add(extension);
 			}
 			return;
 		}
 		IListElem<DefEntry<V>> pointer = ((InterfaceFastList<DefEntry<V>>) obj).first();
-		while (pointer != null)
-		{
+		while (pointer != null) {
 			V extension = pointer.getElemValue().extension;
-			if (!list.contains(extension))
-			{
+			if (!list.contains(extension)) {
 				list.add(extension);
 			}
 			pointer = pointer.getNext();

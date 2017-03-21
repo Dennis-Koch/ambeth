@@ -39,35 +39,31 @@ import com.koch.ambeth.util.ParamChecker;
 
 @SQLData("Relations_data.sql")
 @SQLStructure("Relations_structure.sql")
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/xml/orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/persistence/xml/orm.xml")
 @TestModule(TestServicesModule.class)
-public class SelectWhereTest extends AbstractInformationBusWithPersistenceTest
-{
+public class SelectWhereTest extends AbstractInformationBusWithPersistenceTest {
 	protected IEmployeeService employeeService;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		ParamChecker.assertNotNull(employeeService, "employeeService");
 	}
 
-	public void setEmployeeService(IEmployeeService employeeService)
-	{
+	public void setEmployeeService(IEmployeeService employeeService) {
 		this.employeeService = employeeService;
 	}
 
 	@Test
-	public void testSelectWhere() throws Throwable
-	{
+	public void testSelectWhere() throws Throwable {
 		List<Employee> sList = employeeService.retrieveOrderedByName(false);
 		List<Employee> rList = employeeService.retrieveOrderedByName(true);
 
 		assertFalse(sList.isEmpty());
 
-		for (int i = sList.size(); i-- > 0;)
-		{
+		for (int i = sList.size(); i-- > 0;) {
 			assertEquals(sList.get(i), rList.get(rList.size() - 1 - i));
 		}
 	}

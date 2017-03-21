@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IEventListenerMarker
-{
+public interface IEventListenerMarker {
 	// Intended blank
 }

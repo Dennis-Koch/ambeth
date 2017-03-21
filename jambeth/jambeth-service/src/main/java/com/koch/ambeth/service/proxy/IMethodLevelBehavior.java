@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.lang.reflect.Method;
 
-public interface IMethodLevelBehavior<T>
-{
+public interface IMethodLevelBehavior<T> {
 	T getDefaultBehaviour();
 
 	T getBehaviourOfMethod(Method method);

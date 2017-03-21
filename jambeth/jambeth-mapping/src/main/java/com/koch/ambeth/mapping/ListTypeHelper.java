@@ -69,10 +69,10 @@ public class ListTypeHelper implements IListTypeHelper, IInitializingBean {
 				Collection<Object> targetCollection;
 				Class<?> propertyType = accessor.getPropertyType();
 				if (List.class.isAssignableFrom(propertyType)) {
-					targetCollection = new java.util.ArrayList<Object>(referencedVOs);
+					targetCollection = new java.util.ArrayList<>(referencedVOs);
 				}
 				else if (Set.class.isAssignableFrom(propertyType)) {
-					targetCollection = new java.util.HashSet<Object>(referencedVOs);
+					targetCollection = new java.util.HashSet<>(referencedVOs);
 				}
 				else {
 					throw new IllegalArgumentException(

@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.util.collections.specialized.NotifyCollectionChangedEvent;
 
-public interface ICollectionChangeExtension
-{
+public interface ICollectionChangeExtension {
 	void collectionChanged(Object obj, NotifyCollectionChangedEvent evnt);
 }

@@ -26,8 +26,7 @@ import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
-public class OverlapsOperand implements IOperand
-{
+public class OverlapsOperand implements IOperand {
 	@Property
 	protected IOperand leftOperand;
 
@@ -35,8 +34,8 @@ public class OverlapsOperand implements IOperand
 	protected IOperand rightOperand;
 
 	@Override
-	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
-	{
+	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			boolean joinQuery, IList<Object> parameters) {
 		querySB.append('(');
 		leftOperand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 		querySB.append(" OVERLAPS ");

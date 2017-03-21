@@ -23,42 +23,35 @@ limitations under the License.
 import com.koch.ambeth.job.IJob;
 import com.koch.ambeth.job.IJobContext;
 
-public class RunnableJob implements IJob
-{
+public class RunnableJob implements IJob {
 	private final Runnable runnable;
 
-	public RunnableJob(Runnable runnable)
-	{
+	public RunnableJob(Runnable runnable) {
 		this.runnable = runnable;
 	}
 
 	@Override
-	public boolean canBePaused()
-	{
+	public boolean canBePaused() {
 		return false;
 	}
 
 	@Override
-	public boolean canBeStopped()
-	{
+	public boolean canBeStopped() {
 		return false;
 	}
 
 	@Override
-	public boolean supportsStatusTracking()
-	{
+	public boolean supportsStatusTracking() {
 		return false;
 	}
 
 	@Override
-	public boolean supportsCompletenessTracking()
-	{
+	public boolean supportsCompletenessTracking() {
 		return false;
 	}
 
 	@Override
-	public void execute(IJobContext context) throws Throwable
-	{
+	public void execute(IJobContext context) throws Throwable {
 		runnable.run();
 	}
 }

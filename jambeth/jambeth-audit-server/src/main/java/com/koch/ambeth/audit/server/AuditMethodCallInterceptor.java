@@ -36,8 +36,7 @@ import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 import net.sf.cglib.proxy.MethodProxy;
 
-public class AuditMethodCallInterceptor extends CascadedInterceptor
-{
+public class AuditMethodCallInterceptor extends CascadedInterceptor {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -54,60 +53,55 @@ public class AuditMethodCallInterceptor extends CascadedInterceptor
 	@Autowired
 	protected ITransactionState transactionState;
 
-	@Property(name = AuditConfigurationConstants.AuditedServiceDefaultModeActive, defaultValue = "true")
+	@Property(name = AuditConfigurationConstants.AuditedServiceDefaultModeActive,
+			defaultValue = "true")
 	protected boolean auditedServiceDefaultModeActive;
 
-	@Property(name = AuditConfigurationConstants.AuditedServiceArgDefaultModeActive, defaultValue = "false")
+	@Property(name = AuditConfigurationConstants.AuditedServiceArgDefaultModeActive,
+			defaultValue = "false")
 	protected boolean auditedServiceArgDefaultModeActive;
 
 	@Override
-	protected Object interceptIntern(final Object obj, final Method method, final Object[] args, final MethodProxy proxy) throws Throwable
-	{
+	protected Object interceptIntern(final Object obj, final Method method, final Object[] args,
+			final MethodProxy proxy) throws Throwable {
 		final AuditInfo auditInfo = methodLevelBehaviour.getBehaviourOfMethod(method);
-		if ((auditInfo == null && !auditedServiceDefaultModeActive) || (auditInfo != null && !auditInfo.getAudited().value()))
-		{
+		if ((auditInfo == null && !auditedServiceDefaultModeActive)
+				|| (auditInfo != null && !auditInfo.getAudited().value())) {
 			return invokeTarget(obj, method, args, proxy);
 		}
 
 		// filter the args by audit configuration
 		AuditedArg[] auditedArgs = auditInfo.getAuditedArgs();
 		final Object[] filteredArgs = new Object[args.length];
-		for (int i = 0; i < filteredArgs.length; i++)
-		{
+		for (int i = 0; i < filteredArgs.length; i++) {
 			AuditedArg auditedArg = auditedArgs != null ? auditedArgs[i] : null;
-			if ((auditedArg == null && auditedServiceArgDefaultModeActive) || (auditedArg != null && auditedArg.value()))
-			{
+			if ((auditedArg == null && auditedServiceArgDefaultModeActive)
+					|| (auditedArg != null && auditedArg.value())) {
 				filteredArgs[i] = args[i];
 			}
-			else
-			{
+			else {
 				filteredArgs[i] = "n/a";
 			}
 		}
-		if (transactionState.isTransactionActive())
-		{
-			IMethodCallHandle methodCallHandle = methodCallLogger.logMethodCallStart(method, filteredArgs);
-			try
-			{
+		if (transactionState.isTransactionActive()) {
+			IMethodCallHandle methodCallHandle =
+					methodCallLogger.logMethodCallStart(method, filteredArgs);
+			try {
 				return invokeTarget(obj, method, args, proxy);
 			}
-			finally
-			{
+			finally {
 				methodCallLogger.logMethodCallFinish(methodCallHandle);
 			}
 		}
-		return transaction.runInTransaction(new IResultingBackgroundWorkerDelegate<Object>()
-		{
+		return transaction.runInTransaction(new IResultingBackgroundWorkerDelegate<Object>() {
 			@Override
-			public Object invoke() throws Throwable
-			{
-				IMethodCallHandle methodCallHandle = methodCallLogger.logMethodCallStart(method, filteredArgs);
-				try
-				{
+			public Object invoke() throws Throwable {
+				IMethodCallHandle methodCallHandle =
+						methodCallLogger.logMethodCallStart(method, filteredArgs);
+				try {
 					return invokeTarget(obj, method, args, proxy);
 				}
-				finally
-				{
+				finally {
 					methodCallLogger.logMethodCallFinish(methodCallHandle);
 				}
 			}

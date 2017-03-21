@@ -65,10 +65,10 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 	protected static final CacheKey[] emptyCacheKeyArray = new CacheKey[0];
 
 	protected static final ThreadLocal<Boolean> failInCacheHierarchyModeActiveTL =
-			new SensitiveThreadLocal<Boolean>();
+			new SensitiveThreadLocal<>();
 
 	private static final ThreadLocal<IdentityHashSet<Object>> hardRefTL =
-			new SensitiveThreadLocal<IdentityHashSet<Object>>();
+			new SensitiveThreadLocal<>();
 
 	public static boolean isFailInCacheHierarchyModeActive() {
 		return Boolean.TRUE.equals(failInCacheHierarchyModeActiveTL.get());
@@ -108,7 +108,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 
 	protected volatile int changeVersion = 1;
 
-	protected final ReferenceQueue<V> referenceQueue = new ReferenceQueue<V>();
+	protected final ReferenceQueue<V> referenceQueue = new ReferenceQueue<>();
 
 	@Property(mandatory = false)
 	protected Lock readLock;
@@ -181,7 +181,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 		if (hardRefSet != null) {
 			return false;
 		}
-		hardRefSet = sizeHint > 0 ? IdentityHashSet.create(sizeHint) : new IdentityHashSet<Object>();
+		hardRefSet = sizeHint > 0 ? IdentityHashSet.create(sizeHint) : new IdentityHashSet<>();
 		hardRefTL.set(hardRefSet);
 		return true;
 	}
@@ -371,7 +371,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 		Lock writeLock = getWriteLock();
 		writeLock.lock();
 		try {
-			ArrayList<IObjRef> reallyToRemove = new ArrayList<IObjRef>(oris.size());
+			ArrayList<IObjRef> reallyToRemove = new ArrayList<>(oris.size());
 			for (int a = oris.size(); a-- > 0;) {
 				IObjRef ori = oris.get(a);
 				if (ori.getVersion() != null && existsValue(ori) != null) {
@@ -478,15 +478,15 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 
 	protected Object createReference(V obj, Class<?> entityType, byte idIndex, Object id) {
 		if (weakEntries) {
-			return new CacheWeakReference<V>(obj, referenceQueue);
+			return new CacheWeakReference<>(obj, referenceQueue);
 		}
 		return obj;
 	}
 
 	public List<Object> put(Object objectToCache) {
-		HashSet<IObjRef> cascadeNeededORIs = new HashSet<IObjRef>();
-		IdentityHashSet<Object> alreadyHandledSet = new IdentityHashSet<Object>();
-		ArrayList<Object> hardRefsToCacheValue = new ArrayList<Object>();
+		HashSet<IObjRef> cascadeNeededORIs = new HashSet<>();
+		IdentityHashSet<Object> alreadyHandledSet = new IdentityHashSet<>();
+		ArrayList<Object> hardRefsToCacheValue = new ArrayList<>();
 		boolean success = acquireHardRefTLIfNotAlready();
 		Lock writeLock = getWriteLock();
 		writeLock.lock();
@@ -574,7 +574,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 				entityMetaDataProvider.getMetaData(getEntityTypeOfObject(objectToCache));
 		Object key = getIdOfObject(metaData, objectToCache);
 
-		ArrayList<Object> relationValues = new ArrayList<Object>();
+		ArrayList<Object> relationValues = new ArrayList<>();
 		IObjRef[][] relations = extractRelations(metaData, objectToCache, relationValues);
 
 		if (key != null) {
@@ -773,7 +773,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 		if (oriToGet == null) {
 			return null;
 		}
-		ArrayList<IObjRef> orisToGet = new ArrayList<IObjRef>(1);
+		ArrayList<IObjRef> orisToGet = new ArrayList<>(1);
 		orisToGet.add(oriToGet);
 		List<Object> objects = getObjects(orisToGet, cacheDirective);
 		if (objects.isEmpty()) {
@@ -785,7 +785,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 	@SuppressWarnings("unchecked")
 	@Override
 	public <E> IList<E> getObjects(Class<E> type, Object... ids) {
-		ArrayList<IObjRef> orisToGet = new ArrayList<IObjRef>(ids.length);
+		ArrayList<IObjRef> orisToGet = new ArrayList<>(ids.length);
 		for (int a = 0, size = ids.length; a < size; a++) {
 			Object id = ids[a];
 			ObjRef objRef = new ObjRef(type, ObjRef.PRIMARY_KEY_INDEX, id, null);
@@ -797,7 +797,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 	@SuppressWarnings("unchecked")
 	@Override
 	public <E> IList<E> getObjects(Class<E> type, List<?> ids) {
-		ArrayList<IObjRef> orisToGet = new ArrayList<IObjRef>(ids.size());
+		ArrayList<IObjRef> orisToGet = new ArrayList<>(ids.size());
 		for (int a = 0, size = ids.size(); a < size; a++) {
 			orisToGet.add(new ObjRef(type, ObjRef.PRIMARY_KEY_INDEX, ids.get(a), null));
 		}
@@ -806,7 +806,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 
 	@Override
 	public IList<Object> getObjects(IObjRef[] orisToGetArray, Set<CacheDirective> cacheDirective) {
-		ArrayList<IObjRef> orisToGet = new ArrayList<IObjRef>(orisToGetArray);
+		ArrayList<IObjRef> orisToGet = new ArrayList<>(orisToGetArray);
 		return getObjects(orisToGet, cacheDirective);
 	}
 

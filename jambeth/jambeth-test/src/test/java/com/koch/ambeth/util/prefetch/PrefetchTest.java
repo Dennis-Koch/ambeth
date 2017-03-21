@@ -45,12 +45,14 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.util.collections.IList;
 
 @TestFrameworkModule(PrefetchTestModule.class)
-@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "PrefetchTest_orm.xml"),
-		@TestProperties(name = MergeConfigurationConstants.PrefetchInLazyTransactionActive, value = "false"),
-		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc", value = "DEBUG") })
+@TestPropertiesList({
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+				value = "PrefetchTest_orm.xml"),
+		@TestProperties(name = MergeConfigurationConstants.PrefetchInLazyTransactionActive,
+				value = "false"),
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc", value = "DEBUG")})
 @SQLStructure("PrefetchTest_structure.sql")
-public class PrefetchTest extends AbstractInformationBusWithPersistenceTest
-{
+public class PrefetchTest extends AbstractInformationBusWithPersistenceTest {
 	@Autowired
 	protected IPrefetchHelper prefetchHelper;
 
@@ -61,15 +63,16 @@ public class PrefetchTest extends AbstractInformationBusWithPersistenceTest
 	protected IStatementPerformanceReport statementPerformanceReport;
 
 	@Test
-	public void optimizingPrefetch() throws Throwable
-	{
+	public void optimizingPrefetch() throws Throwable {
 		beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
 
 		IQuery<EntityA> q_allEntityAs = createQuery(EntityA.class);
 		IQuery<EntityD> q_allEntityDs = createQuery(EntityD.class);
 
-		IList<EntityA> allEntityAs = q_allEntityAs.param("Id", prefetchTestDataSetup.rootEntityA.getId()).retrieve();
-		IList<EntityD> allEntityDs = q_allEntityDs.param("Id", prefetchTestDataSetup.rootEntityD.getId()).retrieve();
+		IList<EntityA> allEntityAs =
+				q_allEntityAs.param("Id", prefetchTestDataSetup.rootEntityA.getId()).retrieve();
+		IList<EntityD> allEntityDs =
+				q_allEntityDs.param("Id", prefetchTestDataSetup.rootEntityD.getId()).retrieve();
 
 		// IPrefetchHandle prefetch = prefetchHelper.createPrefetch()//
 		// .add(EntityA.class, "AsOfA", "BsOfA")//
@@ -84,23 +87,27 @@ public class PrefetchTest extends AbstractInformationBusWithPersistenceTest
 		allEntityDs = q_allEntityDs.param("Id", prefetchTestDataSetup.rootEntityD.getId()).retrieve();
 		prefetch.prefetch(allEntityAs, allEntityDs);
 
-		IStatementPerformanceReportItem[] reportItems = statementPerformanceReport.createReport(false, false);
-		Arrays.sort(reportItems, new Comparator<IStatementPerformanceReportItem>()
-		{
+		IStatementPerformanceReportItem[] reportItems =
+				statementPerformanceReport.createReport(false, false);
+		Arrays.sort(reportItems, new Comparator<IStatementPerformanceReportItem>() {
 			@Override
-			public int compare(IStatementPerformanceReportItem o1, IStatementPerformanceReportItem o2)
-			{
+			public int compare(IStatementPerformanceReportItem o1, IStatementPerformanceReportItem o2) {
 				return o1.getStatement().compareTo(o2.getStatement());
 			}
 		});
 		System.out.println();
-		// 3 1,66 0,00 SELECT "ENTITYA_ID","ENTITYB_ID" FROM "JAMBETH"."L_ENTITYA_ENTITYBS" WHERE "ENTITYA_ID" IN (?) AND "ENTITYB_ID" IS NOT NULL
-		// 3 1,00 7,33 SELECT "ENTITYA_ID","ENTITYC_ID" FROM "JAMBETH"."L_ENTITYA_ENTITYCS" WHERE "ENTITYA_ID" IN (?) AND "ENTITYC_ID" IS NOT NULL
-		// 3 0,66 0,33 SELECT "ENTITYB_ID","ENTITYC_ID" FROM "JAMBETH"."L_ENTITYB_ENTITYCS" WHERE "ENTITYB_ID" IN (?) AND "ENTITYC_ID" IS NOT NULL
+		// 3 1,66 0,00 SELECT "ENTITYA_ID","ENTITYB_ID" FROM "JAMBETH"."L_ENTITYA_ENTITYBS" WHERE
+		// "ENTITYA_ID" IN (?) AND "ENTITYB_ID" IS NOT NULL
+		// 3 1,00 7,33 SELECT "ENTITYA_ID","ENTITYC_ID" FROM "JAMBETH"."L_ENTITYA_ENTITYCS" WHERE
+		// "ENTITYA_ID" IN (?) AND "ENTITYC_ID" IS NOT NULL
+		// 3 0,66 0,33 SELECT "ENTITYB_ID","ENTITYC_ID" FROM "JAMBETH"."L_ENTITYB_ENTITYCS" WHERE
+		// "ENTITYB_ID" IN (?) AND "ENTITYC_ID" IS NOT NULL
 		// 2 1,50 0,50 SELECT "ID","VERSION" FROM "JAMBETH"."ENTITYA" WHERE "ID" IN (?)
 		// 3 1,00 0,33 SELECT "ID","VERSION" FROM "JAMBETH"."ENTITYB" WHERE "ID" IN (?)
-		// 3 2,00 0,00 SELECT "LEFT_ID","RIGHT_ID" FROM "JAMBETH"."L_ENTITYA_ENTITYAS" WHERE "LEFT_ID" IN (?) AND "RIGHT_ID" IS NOT NULL
-		// 3 1,33 0,00 SELECT "LEFT_ID","RIGHT_ID" FROM "JAMBETH"."L_ENTITYB_ENTITYBS" WHERE "LEFT_ID" IN (?) AND "RIGHT_ID" IS NOT NULL
+		// 3 2,00 0,00 SELECT "LEFT_ID","RIGHT_ID" FROM "JAMBETH"."L_ENTITYA_ENTITYAS" WHERE "LEFT_ID"
+		// IN (?) AND "RIGHT_ID" IS NOT NULL
+		// 3 1,33 0,00 SELECT "LEFT_ID","RIGHT_ID" FROM "JAMBETH"."L_ENTITYB_ENTITYBS" WHERE "LEFT_ID"
+		// IN (?) AND "RIGHT_ID" IS NOT NULL
 		// Assert.assertEquals(7, reportItems.length);
 		// Assert.assertEquals(3, reportItems[0].getExecutionCount());
 		// Assert.assertEquals(3, reportItems[1].getExecutionCount());
@@ -112,8 +119,7 @@ public class PrefetchTest extends AbstractInformationBusWithPersistenceTest
 
 	}
 
-	protected IPrefetchHandle createPrefetch()
-	{
+	protected IPrefetchHandle createPrefetch() {
 		IPrefetchConfig prefetchConfig = prefetchHelper.createPrefetch();
 		EntityA entityA = prefetchConfig.plan(EntityA.class);
 		entityA.getAsOfA().get(0).getCsOfA();
@@ -129,8 +135,7 @@ public class PrefetchTest extends AbstractInformationBusWithPersistenceTest
 		return prefetchConfig.build();
 	}
 
-	protected <T> IQuery<T> createQuery(Class<T> clazz)
-	{
+	protected <T> IQuery<T> createQuery(Class<T> clazz) {
 		IQueryBuilder<T> qb = queryBuilderFactory.create(clazz);
 		return qb.build(qb.isEqualTo(qb.property("Id"), qb.valueName("Id")));
 	}

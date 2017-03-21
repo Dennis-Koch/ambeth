@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IAuthentication
-{
+public interface IAuthentication {
 	String getUserName();
 
 	char[] getPassword();

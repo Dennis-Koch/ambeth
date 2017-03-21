@@ -26,8 +26,7 @@ import com.koch.ambeth.repackaged.com.esotericsoftware.reflectasm.FieldAccess;
 import com.koch.ambeth.util.WrapperTypeSet;
 import com.koch.ambeth.util.collections.HashMap;
 
-public class TypeInfo implements ITypeInfo
-{
+public class TypeInfo implements ITypeInfo {
 	protected final String simpleName;
 
 	protected final String toStringValue;
@@ -36,78 +35,69 @@ public class TypeInfo implements ITypeInfo
 
 	protected final Class<?> realType;
 
-	protected final Map<String, ITypeInfoItem> nameToMemberDict = new HashMap<String, ITypeInfoItem>(0.5f);
+	protected final Map<String, ITypeInfoItem> nameToMemberDict =
+			new HashMap<>(0.5f);
 
-	protected final Map<String, ITypeInfoItem> nameToXmlMemberDict = new HashMap<String, ITypeInfoItem>(0.5f);
+	protected final Map<String, ITypeInfoItem> nameToXmlMemberDict =
+			new HashMap<>(0.5f);
 
 	protected final FieldAccess fieldAccess;
 
-	public TypeInfo(Class<?> realType)
-	{
+	public TypeInfo(Class<?> realType) {
 		this.realType = realType;
 
-		fieldAccess = realType.isInterface() || realType.isPrimitive() || WrapperTypeSet.getUnwrappedType(realType) != null ? null : FieldAccess.get(realType);
+		fieldAccess = realType.isInterface() || realType.isPrimitive()
+				|| WrapperTypeSet.getUnwrappedType(realType) != null ? null : FieldAccess.get(realType);
 		simpleName = realType.getSimpleName().intern();
 		toStringValue = realType.toString().intern();
 	}
 
 	@Override
-	public String getSimpleName()
-	{
+	public String getSimpleName() {
 		return simpleName;
 	}
 
 	@Override
-	public ITypeInfoItem[] getMembers()
-	{
+	public ITypeInfoItem[] getMembers() {
 		return members;
 	}
 
 	@Override
-	public Class<?> getRealType()
-	{
+	public Class<?> getRealType() {
 		return realType;
 	}
 
-	public FieldAccess getFieldAccess()
-	{
+	public FieldAccess getFieldAccess() {
 		return fieldAccess;
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return toStringValue;
 	}
 
-	public void postInit(ITypeInfoItem[] members)
-	{
+	public void postInit(ITypeInfoItem[] members) {
 		this.members = members;
 
-		for (ITypeInfoItem member : this.members)
-		{
+		for (ITypeInfoItem member : this.members) {
 			nameToMemberDict.put(member.getName(), member);
 			nameToXmlMemberDict.put(member.getXMLName(), member);
 		}
 	}
 
 	@Override
-	public ITypeInfoItem getMemberByName(String memberName)
-	{
+	public ITypeInfoItem getMemberByName(String memberName) {
 		return nameToMemberDict.get(memberName);
 	}
 
 	@Override
-	public ITypeInfoItem getMemberByXmlName(String xmlMemberName)
-	{
+	public ITypeInfoItem getMemberByXmlName(String xmlMemberName) {
 		return nameToXmlMemberDict.get(xmlMemberName);
 	}
 
 	@Override
-	public boolean doesImplement(Class<?> interfaceArgument)
-	{
-		if (interfaceArgument.isAssignableFrom(realType))
-		{
+	public boolean doesImplement(Class<?> interfaceArgument) {
+		if (interfaceArgument.isAssignableFrom(realType)) {
 			return true;
 		}
 		return false;

@@ -20,6 +20,5 @@ limitations under the License.
  * #L%
  */
 
-public abstract class CommandResult
-{
+public abstract class CommandResult {
 }

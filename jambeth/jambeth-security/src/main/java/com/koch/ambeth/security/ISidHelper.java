@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface ISidHelper
-{
+public interface ISidHelper {
 	String convertWindowsSidToDatabaseSid(String windowsSid);
 }

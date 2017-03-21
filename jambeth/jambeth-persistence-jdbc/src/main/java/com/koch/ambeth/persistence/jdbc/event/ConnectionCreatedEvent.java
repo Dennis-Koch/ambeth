@@ -22,17 +22,14 @@ limitations under the License.
 
 import java.sql.Connection;
 
-public class ConnectionCreatedEvent
-{
+public class ConnectionCreatedEvent {
 	protected final Connection connection;
 
-	public ConnectionCreatedEvent(Connection connection)
-	{
+	public ConnectionCreatedEvent(Connection connection) {
 		this.connection = connection;
 	}
 
-	public Connection getConnection()
-	{
+	public Connection getConnection() {
 		return connection;
 	}
 }

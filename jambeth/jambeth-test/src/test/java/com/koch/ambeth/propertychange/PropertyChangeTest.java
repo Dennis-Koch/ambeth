@@ -42,25 +42,29 @@ import com.koch.ambeth.util.model.INotifyPropertyChanged;
 import com.koch.ambeth.util.model.INotifyPropertyChangedSource;
 
 /**
- * Shows the feature how a specific method of a bean can be bound to a PCE (=PropertyChangeEvent) of another (PCE-capable) bean. In this setup
- * <code>Bean1</code> is the "observer" and <code>Bean2</code> is the "observable" providing the PCEs
- * 
+ * Shows the feature how a specific method of a bean can be bound to a PCE (=PropertyChangeEvent) of
+ * another (PCE-capable) bean. In this setup <code>Bean1</code> is the "observer" and
+ * <code>Bean2</code> is the "observable" providing the PCEs
+ *
  */
 @TestModule(PropertyChangeBridgeTestModule.class)
 @TestRebuildContext
-public class PropertyChangeTest extends AbstractInformationBusTest
-{
-	public static class PropertyChangeBridgeTestModule implements IInitializingModule
-	{
+public class PropertyChangeTest extends AbstractInformationBusTest {
+	public static class PropertyChangeBridgeTestModule implements IInitializingModule {
 		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			IBeanConfiguration simplePCEListenerBean = beanContextFactory.registerBean(SimplePCEListenerBean.class).autowireable(SimplePCEListenerBean.class);
-			IBeanConfiguration bean1 = beanContextFactory.registerBean(Bean1.class).autowireable(Bean1.class);
-			IBeanConfiguration bean2 = beanContextFactory.registerBean(Bean2.class).autowireable(Bean2.class);
-			IBeanConfiguration bean3 = beanContextFactory.registerBean(Bean3.class).autowireable(Bean3.class);
-			beanContextFactory.link(bean1, Bean1.MY_PROP_DELEGATE).to(bean2, INotifyPropertyChanged.class);
-			beanContextFactory.link(bean1, Bean1.MY_PROP_DELEGATE).to(bean3, INotifyPropertyChanged.class);
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+			IBeanConfiguration simplePCEListenerBean = beanContextFactory
+					.registerBean(SimplePCEListenerBean.class).autowireable(SimplePCEListenerBean.class);
+			IBeanConfiguration bean1 =
+					beanContextFactory.registerBean(Bean1.class).autowireable(Bean1.class);
+			IBeanConfiguration bean2 =
+					beanContextFactory.registerBean(Bean2.class).autowireable(Bean2.class);
+			IBeanConfiguration bean3 =
+					beanContextFactory.registerBean(Bean3.class).autowireable(Bean3.class);
+			beanContextFactory.link(bean1, Bean1.MY_PROP_DELEGATE).to(bean2,
+					INotifyPropertyChanged.class);
+			beanContextFactory.link(bean1, Bean1.MY_PROP_DELEGATE).to(bean3,
+					INotifyPropertyChanged.class);
 
 			beanContextFactory.link(simplePCEListenerBean).to(bean2, INotifyPropertyChanged.class);
 			beanContextFactory.link(simplePCEListenerBean).to(bean3, INotifyPropertyChanged.class);
@@ -69,49 +73,40 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 		}
 	}
 
-	public static class SimplePCEListenerBean implements PropertyChangeListener
-	{
+	public static class SimplePCEListenerBean implements PropertyChangeListener {
 		public int myPropertyCallCount = 0, valueCallCount = 0;
 
 		@Override
-		public void propertyChange(PropertyChangeEvent evt)
-		{
-			if (evt.getPropertyName().equals(Bean2.MY_PROPERTY_PROP_NAME))
-			{
+		public void propertyChange(PropertyChangeEvent evt) {
+			if (evt.getPropertyName().equals(Bean2.MY_PROPERTY_PROP_NAME)) {
 				myPropertyCallCount++;
 			}
-			else if (evt.getPropertyName().equals(Bean3.VALUE_PROP_NAME))
-			{
+			else if (evt.getPropertyName().equals(Bean3.VALUE_PROP_NAME)) {
 				valueCallCount++;
 			}
 		}
 	}
 
 	@PropertyChangeAspect
-	public static abstract class Bean1
-	{
+	public static abstract class Bean1 {
 		public static final String MY_PROP_DELEGATE = "myProp";
 
 		public int myPropertyCallCount = 0, valueCallCount = 0;
 
 		public abstract void setValue(int value);
 
-		public void myProp(PropertyChangeEvent evt)
-		{
-			if (evt.getPropertyName().equals(Bean2.MY_PROPERTY_PROP_NAME))
-			{
+		public void myProp(PropertyChangeEvent evt) {
+			if (evt.getPropertyName().equals(Bean2.MY_PROPERTY_PROP_NAME)) {
 				myPropertyCallCount++;
 			}
-			else if (evt.getPropertyName().equals(Bean3.VALUE_PROP_NAME))
-			{
+			else if (evt.getPropertyName().equals(Bean3.VALUE_PROP_NAME)) {
 				valueCallCount++;
 			}
 		}
 	}
 
 	@PropertyChangeAspect(includeOldValue = false)
-	public static abstract class Bean2
-	{
+	public static abstract class Bean2 {
 		public static final String MY_PROPERTY_PROP_NAME = "MyProperty";
 
 		@SuppressWarnings("unused")
@@ -129,14 +124,12 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 	}
 
 	@PropertyChangeAspect(includeNewValue = false)
-	public static abstract class Bean3 extends Bean2 implements INotifyPropertyChangedSource
-	{
+	public static abstract class Bean3 extends Bean2 implements INotifyPropertyChangedSource {
 		public static final String VALUE_PROP_NAME = "Value";
 
 		public abstract String getValue();
 
-		public int fireValue()
-		{
+		public int fireValue() {
 			int newValue = 2;
 			onPropertyChanged(VALUE_PROP_NAME, 1, newValue);
 			return newValue;
@@ -144,17 +137,14 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 	}
 
 	@PropertyChangeAspect
-	public static abstract class Bean4
-	{
+	public static abstract class Bean4 {
 		@FireThisOnPropertyChange("Value2")
 		@FireTargetOnPropertyChange("ValueTarget")
-		public String getValue()
-		{
+		public String getValue() {
 			return getValue2() + "X";
 		}
 
-		public String getValueTarget()
-		{
+		public String getValueTarget() {
 			return getValue2() + "Y";
 		}
 
@@ -179,13 +169,10 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 	protected Bean4 bean4;
 
 	@Test
-	public void testIgnoredFields() throws Throwable
-	{
-		((INotifyPropertyChanged) bean2).addPropertyChangeListener(new PropertyChangeListener()
-		{
+	public void testIgnoredFields() throws Throwable {
+		((INotifyPropertyChanged) bean2).addPropertyChangeListener(new PropertyChangeListener() {
 			@Override
-			public void propertyChange(PropertyChangeEvent evt)
-			{
+			public void propertyChange(PropertyChangeEvent evt) {
 				Assert.fail("Should never be called");
 			}
 		});
@@ -196,25 +183,20 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 	}
 
 	@Test
-	public void testFireAutomatedNoListener() throws Throwable
-	{
+	public void testFireAutomatedNoListener() throws Throwable {
 		bean1.setValue(5);
 	}
 
 	@Test
-	public void testFireExplicitNoListener() throws Throwable
-	{
+	public void testFireExplicitNoListener() throws Throwable {
 		((INotifyPropertyChangedSource) bean1).onPropertyChanged("Value", 0, 5);
 	}
 
 	@Test
-	public void testFireExplicitWithNewValue() throws Throwable
-	{
-		((INotifyPropertyChanged) bean1).addPropertyChangeListener(new PropertyChangeListener()
-		{
+	public void testFireExplicitWithNewValue() throws Throwable {
+		((INotifyPropertyChanged) bean1).addPropertyChangeListener(new PropertyChangeListener() {
 			@Override
-			public void propertyChange(PropertyChangeEvent evt)
-			{
+			public void propertyChange(PropertyChangeEvent evt) {
 				Assert.assertEquals(1, evt.getOldValue());
 				Assert.assertEquals(5, evt.getNewValue());
 			}
@@ -223,13 +205,10 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 	}
 
 	@Test
-	public void testFireExplicitWithoutOldValue() throws Throwable
-	{
-		((INotifyPropertyChanged) bean2).addPropertyChangeListener(new PropertyChangeListener()
-		{
+	public void testFireExplicitWithoutOldValue() throws Throwable {
+		((INotifyPropertyChanged) bean2).addPropertyChangeListener(new PropertyChangeListener() {
 			@Override
-			public void propertyChange(PropertyChangeEvent evt)
-			{
+			public void propertyChange(PropertyChangeEvent evt) {
 				Assert.assertNull(evt.getOldValue());
 				Assert.assertEquals("b", evt.getNewValue());
 			}
@@ -238,13 +217,10 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 	}
 
 	@Test
-	public void testFireExplicitWithoutNewValue() throws Throwable
-	{
-		((INotifyPropertyChanged) bean3).addPropertyChangeListener(new PropertyChangeListener()
-		{
+	public void testFireExplicitWithoutNewValue() throws Throwable {
+		((INotifyPropertyChanged) bean3).addPropertyChangeListener(new PropertyChangeListener() {
 			@Override
-			public void propertyChange(PropertyChangeEvent evt)
-			{
+			public void propertyChange(PropertyChangeEvent evt) {
 				Assert.assertEquals("a", evt.getOldValue());
 				Assert.assertNull(evt.getNewValue());
 			}
@@ -253,21 +229,16 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 	}
 
 	@Test
-	public void testFireThisOnPropertyChange() throws Throwable
-	{
+	public void testFireThisOnPropertyChange() throws Throwable {
 		final CountDownLatch valueLatch = new CountDownLatch(1);
 		final CountDownLatch valueTargetLatch = new CountDownLatch(1);
-		((INotifyPropertyChanged) bean4).addPropertyChangeListener(new PropertyChangeListener()
-		{
+		((INotifyPropertyChanged) bean4).addPropertyChangeListener(new PropertyChangeListener() {
 			@Override
-			public void propertyChange(PropertyChangeEvent evt)
-			{
-				if (evt.getPropertyName().equals("Value"))
-				{
+			public void propertyChange(PropertyChangeEvent evt) {
+				if (evt.getPropertyName().equals("Value")) {
 					valueLatch.countDown();
 				}
-				if (evt.getPropertyName().equals("ValueTarget"))
-				{
+				if (evt.getPropertyName().equals("ValueTarget")) {
 					valueTargetLatch.countDown();
 				}
 			}
@@ -278,8 +249,7 @@ public class PropertyChangeTest extends AbstractInformationBusTest
 	}
 
 	@Test
-	public void test() throws Throwable
-	{
+	public void test() throws Throwable {
 		bean2.setMyProperty("value");
 		Assert.assertEquals(1, bean1.myPropertyCallCount);
 		Assert.assertEquals(1, simplePCEListenerBean.myPropertyCallCount);

@@ -22,34 +22,28 @@ limitations under the License.
 
 import com.koch.ambeth.model.AbstractEntity;
 
-public class EntityVO extends AbstractEntity
-{
+public class EntityVO extends AbstractEntity {
 	String name;
 
 	String noDb;
 
-	protected EntityVO()
-	{
+	protected EntityVO() {
 		// Intended blank
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public String getNoDb()
-	{
+	public String getNoDb() {
 		return noDb;
 	}
 
-	public void setNoDb(String noDb)
-	{
+	public void setNoDb(String noDb) {
 		this.noDb = noDb;
 	}
 }

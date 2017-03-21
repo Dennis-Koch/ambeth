@@ -25,8 +25,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ ContextLifecycleLoadTest.class })
-public class AllIocTests
-{
+@SuiteClasses({ContextLifecycleLoadTest.class})
+public class AllIocTests {
 
 }

@@ -22,12 +22,11 @@ limitations under the License.
 
 import com.koch.ambeth.util.collections.HashMap;
 
-public final class WrapperTypeSet
-{
-	private static final HashMap<Class<?>, Class<?>> wrapperTypesMap = new HashMap<Class<?>, Class<?>>(0.5f);
+public final class WrapperTypeSet {
+	private static final HashMap<Class<?>, Class<?>> wrapperTypesMap =
+			new HashMap<>(0.5f);
 
-	static
-	{
+	static {
 		wrapperTypesMap.put(Integer.class, Integer.TYPE);
 		wrapperTypesMap.put(Long.class, Long.TYPE);
 		wrapperTypesMap.put(Double.class, Double.TYPE);
@@ -38,13 +37,11 @@ public final class WrapperTypeSet
 		wrapperTypesMap.put(Boolean.class, Boolean.TYPE);
 	}
 
-	private WrapperTypeSet()
-	{
+	private WrapperTypeSet() {
 		// Intended blank
 	}
 
-	public static Class<?> getUnwrappedType(Class<?> wrapperType)
-	{
+	public static Class<?> getUnwrappedType(Class<?> wrapperType) {
 		return wrapperTypesMap.get(wrapperType);
 	}
 }

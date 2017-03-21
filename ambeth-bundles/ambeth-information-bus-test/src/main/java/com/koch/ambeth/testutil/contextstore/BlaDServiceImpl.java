@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 
-public class BlaDServiceImpl implements BlaDServicePortType, BlaDService
-{
+public class BlaDServiceImpl implements BlaDServicePortType, BlaDService {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;

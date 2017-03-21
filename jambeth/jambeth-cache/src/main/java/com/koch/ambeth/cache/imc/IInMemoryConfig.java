@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.service.merge.model.IObjRef;
 
-public interface IInMemoryConfig
-{
+public interface IInMemoryConfig {
 	IInMemoryConfig primitive(String memberName, Object value);
 
 	IInMemoryConfig relation(String memberName, IObjRef... objRefs);

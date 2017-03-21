@@ -32,8 +32,8 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public abstract class AbstractMethodLifecycleExtension implements IEntityLifecycleExtension, IInitializingBean
-{
+public abstract class AbstractMethodLifecycleExtension
+		implements IEntityLifecycleExtension, IInitializingBean {
 	protected static final Object[] EMPTY_ARGS = new Object[0];
 
 	@SuppressWarnings("unused")
@@ -50,38 +50,31 @@ public abstract class AbstractMethodLifecycleExtension implements IEntityLifecyc
 	protected int methodIndex;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(method, "method");
-		if ((method.getModifiers() & Modifier.PRIVATE) == 0)
-		{
+		if ((method.getModifiers() & Modifier.PRIVATE) == 0) {
 			methodAccess = MethodAccess.get(method.getDeclaringClass());
 			methodIndex = methodAccess.getIndex(method.getName(), method.getParameterTypes());
 		}
 	}
 
-	public void setMethod(Method method)
-	{
+	public void setMethod(Method method) {
 		this.method = method;
 	}
 
-	protected void callMethod(Object entity, String message)
-	{
-		try
-		{
-			if (methodAccess != null)
-			{
+	protected void callMethod(Object entity, String message) {
+		try {
+			if (methodAccess != null) {
 				methodAccess.invoke(entity, methodIndex, EMPTY_ARGS);
 			}
-			else
-			{
+			else {
 				method.invoke(entity, EMPTY_ARGS);
 			}
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			Class<?> entityType = entityMetaDataProvider.getMetaData(entity.getClass()).getEntityType();
-			throw RuntimeExceptionUtil.mask(e, "Error occured while handling " + message + " method of entity type " + entityType.getName());
+			throw RuntimeExceptionUtil.mask(e, "Error occured while handling " + message
+					+ " method of entity type " + entityType.getName());
 		}
 	}
 }

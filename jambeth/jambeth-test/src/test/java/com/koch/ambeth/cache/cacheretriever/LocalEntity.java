@@ -24,8 +24,7 @@ import java.util.Set;
 
 import com.koch.ambeth.model.AbstractEntity;
 
-public class LocalEntity extends AbstractEntity
-{
+public class LocalEntity extends AbstractEntity {
 	protected String name;
 
 	protected int value;
@@ -38,58 +37,47 @@ public class LocalEntity extends AbstractEntity
 
 	// protected Set<ExternalEntity2> externals2;
 
-	protected LocalEntity()
-	{
+	protected LocalEntity() {
 		// Intended blank
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public int getValue()
-	{
+	public int getValue() {
 		return value;
 	}
 
-	public void setValue(int value)
-	{
+	public void setValue(int value) {
 		this.value = value;
 	}
 
-	public ExternalEntity2 getParent()
-	{
+	public ExternalEntity2 getParent() {
 		return parent;
 	}
 
-	public void setParent(ExternalEntity2 parent)
-	{
+	public void setParent(ExternalEntity2 parent) {
 		this.parent = parent;
 	}
 
-	public Set<ExternalEntity> getExternals()
-	{
+	public Set<ExternalEntity> getExternals() {
 		return externals;
 	}
 
-	public void setExternals(Set<ExternalEntity> externals)
-	{
+	public void setExternals(Set<ExternalEntity> externals) {
 		this.externals = externals;
 	}
 
-	public ExternalEntity getSibling()
-	{
+	public ExternalEntity getSibling() {
 		return sibling;
 	}
 
-	public void setSibling(ExternalEntity sibling)
-	{
+	public void setSibling(ExternalEntity sibling) {
 		this.sibling = sibling;
 	}
 

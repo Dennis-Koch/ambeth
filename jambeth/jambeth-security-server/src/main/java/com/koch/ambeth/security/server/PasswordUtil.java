@@ -150,15 +150,15 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 	protected boolean signatureActive;
 
 	protected final SmartCopyMap<String, Reference<SecretKeyFactory>> algorithmToSecretKeyFactoryMap =
-			new SmartCopyMap<String, Reference<SecretKeyFactory>>(0.5f);
+			new SmartCopyMap<>(0.5f);
 
 	protected final DefaultExtendableContainer<IPasswordValidationExtension> extensions =
-			new DefaultExtendableContainer<IPasswordValidationExtension>(
+			new DefaultExtendableContainer<>(
 					IPasswordValidationExtension.class, "passwordValidadtionExtension");
 
 	protected final Lock saltReencryptionLock = new ReentrantLock();
 
-	protected final ThreadLocal<Boolean> suppressPasswordValidationTL = new ThreadLocal<Boolean>();
+	protected final ThreadLocal<Boolean> suppressPasswordValidationTL = new ThreadLocal<>();
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {
@@ -202,7 +202,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 				throw RuntimeExceptionUtil.mask(e);
 			}
 			algorithmToSecretKeyFactoryMap.put(algorithm,
-					new WeakReference<SecretKeyFactory>(secretKeyFactory));
+					new WeakReference<>(secretKeyFactory));
 		}
 		return secretKeyFactory;
 	}
@@ -282,7 +282,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 			}
 			IList<IPassword> allPasswords =
 					queryBuilderFactory.create(IPassword.class).build().retrieve();
-			ArrayList<IPassword> changedPasswords = new ArrayList<IPassword>(allPasswords.size());
+			ArrayList<IPassword> changedPasswords = new ArrayList<>(allPasswords.size());
 			for (IPassword password : allPasswords) {
 				byte[] decryptedSalt = decryptSalt(password);
 				encryptSalt(password, decryptedSalt, newLoginSaltPassword);
@@ -442,7 +442,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		while (passwordHistory.size() > passwordHistoryCount - 1) // the users current password is part
 																															// of the history
 		{
-			ArrayList<IPassword> passwordHistoryList = new ArrayList<IPassword>(passwordHistory);
+			ArrayList<IPassword> passwordHistoryList = new ArrayList<>(passwordHistory);
 			Collections.sort(passwordHistoryList, new Comparator<IPassword>() {
 				@Override
 				public int compare(IPassword o1, IPassword o2) {
@@ -462,7 +462,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		if (passwordHistory == null) {
 			return EmptyList.getInstance();
 		}
-		ArrayList<IPassword> passwordHistoryList = new ArrayList<IPassword>(passwordHistory);
+		ArrayList<IPassword> passwordHistoryList = new ArrayList<>(passwordHistory);
 		if (user.getPassword() != null) {
 			passwordHistoryList.add(user.getPassword());
 		}

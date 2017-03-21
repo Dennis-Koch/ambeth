@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IInjectionConfig
-{
+public interface IInjectionConfig {
 	void validate();
 
 	IBeanGetter getSourceBeanGetter();

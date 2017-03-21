@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.stream.IInputStream;
 
-public interface IDoubleInputStream extends IInputStream
-{
+public interface IDoubleInputStream extends IInputStream {
 	boolean hasDouble();
 
 	double readDouble();

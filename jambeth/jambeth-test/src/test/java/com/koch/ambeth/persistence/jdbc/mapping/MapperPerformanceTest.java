@@ -86,7 +86,7 @@ public class MapperPerformanceTest extends AbstractInformationBusWithPersistence
 
 	private IMapperService fixture;
 
-	private HashMap<String, Object> buidToIdMap = new HashMap<String, Object>();
+	private HashMap<String, Object> buidToIdMap = new HashMap<>();
 
 	int count = 500, innerCount = 10;
 
@@ -105,7 +105,7 @@ public class MapperPerformanceTest extends AbstractInformationBusWithPersistence
 	public void setUp() throws Exception {
 		fixture = mapperServiceFactory.create();
 
-		List<Material> objects = new ArrayList<Material>();
+		List<Material> objects = new ArrayList<>();
 		for (int a = count; a-- > 0;) {
 			MaterialGroup materialGroup = entityFactory.createEntity(MaterialGroup.class);
 			materialGroup.setBuid("MaterialGroup" + a);
@@ -156,7 +156,7 @@ public class MapperPerformanceTest extends AbstractInformationBusWithPersistence
 
 	@Test
 	public void testMultipleMapperInstances() {
-		List<MaterialComplexVO> materialVOs = new ArrayList<MaterialComplexVO>();
+		List<MaterialComplexVO> materialVOs = new ArrayList<>();
 		String change = "_2";
 		for (int a = count; a-- > 0;) {
 			MaterialGroupVO materialGroup = new MaterialGroupVO();

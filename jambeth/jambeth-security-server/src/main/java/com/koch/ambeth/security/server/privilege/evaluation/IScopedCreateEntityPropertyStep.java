@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IScopedCreateEntityPropertyStep
-{
+public interface IScopedCreateEntityPropertyStep {
 	IScopedUpdateEntityPropertyStep allowCreateProperty();
 
 	void allowCUDProperty();

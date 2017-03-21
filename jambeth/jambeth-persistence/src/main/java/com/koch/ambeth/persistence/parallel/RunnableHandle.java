@@ -29,8 +29,7 @@ import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 
-public class RunnableHandle<V>
-{
+public class RunnableHandle<V> {
 	public final IBackgroundWorkerParamDelegate<V> run;
 
 	public final Lock parallelLock;
@@ -45,9 +44,9 @@ public class RunnableHandle<V>
 
 	public final IThreadLocalCleanupController threadLocalCleanupController;
 
-	public RunnableHandle(IBackgroundWorkerParamDelegate<V> run, Lock parallelLock, CountDownLatch latch, IForkState forkState,
-			ParamHolder<Throwable> exHolder, IList<V> items, IThreadLocalCleanupController threadLocalCleanupController)
-	{
+	public RunnableHandle(IBackgroundWorkerParamDelegate<V> run, Lock parallelLock,
+			CountDownLatch latch, IForkState forkState, ParamHolder<Throwable> exHolder, IList<V> items,
+			IThreadLocalCleanupController threadLocalCleanupController) {
 		this.run = run;
 		this.parallelLock = parallelLock;
 		this.latch = latch;

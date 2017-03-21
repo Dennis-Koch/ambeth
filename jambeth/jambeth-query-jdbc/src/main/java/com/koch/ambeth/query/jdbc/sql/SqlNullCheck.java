@@ -30,8 +30,7 @@ import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
-public class SqlNullCheck implements IOperator
-{
+public class SqlNullCheck implements IOperator {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -43,21 +42,19 @@ public class SqlNullCheck implements IOperator
 	protected Boolean isNull;
 
 	@Override
-	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
-	{
+	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			boolean joinQuery, IList<Object> parameters) {
 		operate(querySB, nameToValueMap, joinQuery, parameters);
 	}
 
 	@Override
-	public void operate(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
-	{
+	public void operate(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery,
+			IList<Object> parameters) {
 		operand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
-		if (isNull)
-		{
+		if (isNull) {
 			querySB.append(" IS NULL");
 		}
-		else
-		{
+		else {
 			querySB.append(" IS NOT NULL");
 		}
 	}

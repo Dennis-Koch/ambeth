@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public class Unit
-{
+public class Unit {
 	protected Object id;
 
 	protected String name;
@@ -30,48 +29,39 @@ public class Unit
 
 	protected String buid;
 
-	protected Unit()
-	{
+	protected Unit() {
 		// Intended blank
 	}
 
-	public void setId(Object id)
-	{
+	public void setId(Object id) {
 		this.id = id;
 	}
 
-	public Object getId()
-	{
+	public Object getId() {
 		return id;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setVersion(long version)
-	{
+	public void setVersion(long version) {
 		this.version = version;
 	}
 
-	public long getVersion()
-	{
+	public long getVersion() {
 		return version;
 	}
 
-	public void setBuid(String buid)
-	{
+	public void setBuid(String buid) {
 		this.buid = buid;
 	}
 
-	public String getBuid()
-	{
+	public String getBuid() {
 		return buid;
 	}
 }

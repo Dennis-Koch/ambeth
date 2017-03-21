@@ -34,8 +34,7 @@ import com.koch.ambeth.query.IQueryBuilderFactory;
 import com.koch.ambeth.util.ParamChecker;
 
 @MergeContext
-public class ClobObjectService implements IClobObjectService, IInitializingBean, IStartingBean
-{
+public class ClobObjectService implements IClobObjectService, IInitializingBean, IStartingBean {
 	protected static final String param = "ids";
 
 	@SuppressWarnings("unused")
@@ -47,38 +46,32 @@ public class ClobObjectService implements IClobObjectService, IInitializingBean,
 	protected IQuery<ClobObject> getClobObjectsQuery;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(queryBuilderFactory, "queryBuilderFactory");
 	}
 
 	@Override
-	public void afterStarted() throws Throwable
-	{
+	public void afterStarted() throws Throwable {
 		IQueryBuilder<ClobObject> qb = queryBuilderFactory.create(ClobObject.class);
 		getClobObjectsQuery = qb.build(qb.isIn(qb.property("Id"), qb.valueName(param)));
 	}
 
-	public void setQueryBuilderFactory(IQueryBuilderFactory queryBuilderFactory)
-	{
+	public void setQueryBuilderFactory(IQueryBuilderFactory queryBuilderFactory) {
 		this.queryBuilderFactory = queryBuilderFactory;
 	}
 
 	@Override
-	public List<ClobObject> getClobObjects(Integer... id)
-	{
+	public List<ClobObject> getClobObjects(Integer... id) {
 		return getClobObjectsQuery.param(param, id).retrieve();
 	}
 
 	@Override
-	public void updateClobObject(ClobObject clobObject)
-	{
+	public void updateClobObject(ClobObject clobObject) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void deleteClobObject(ClobObject clobObject)
-	{
+	public void deleteClobObject(ClobObject clobObject) {
 		throw new UnsupportedOperationException();
 	}
 }

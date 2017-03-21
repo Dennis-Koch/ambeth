@@ -22,19 +22,15 @@ limitations under the License.
 
 import java.lang.reflect.Method;
 
-public class LogTypesUtil
-{
-	public static String printMethod(Method method, boolean printShortStringNames)
-	{
+public class LogTypesUtil {
+	public static String printMethod(Method method, boolean printShortStringNames) {
 		StringBuilder sb = new StringBuilder();
 		printMethod(method, printShortStringNames, sb);
 		return sb.toString();
 	}
 
-	public static void printMethod(Method method, boolean printShortStringNames, StringBuilder sb)
-	{
-		if (printShortStringNames)
-		{
+	public static void printMethod(Method method, boolean printShortStringNames, StringBuilder sb) {
+		if (printShortStringNames) {
 			printType(method.getReturnType(), printShortStringNames, sb);
 			sb.append(' ').append(method.getName());
 			sb.append('(');
@@ -45,17 +41,16 @@ public class LogTypesUtil
 		sb.append(method.toString());
 	}
 
-	public static String printMethod(String methodName, Class<?>[] parameters, Class<?> returnType, boolean printShortStringNames)
-	{
+	public static String printMethod(String methodName, Class<?>[] parameters, Class<?> returnType,
+			boolean printShortStringNames) {
 		StringBuilder sb = new StringBuilder();
 		printMethod(methodName, parameters, returnType, printShortStringNames, sb);
 		return sb.toString();
 	}
 
-	public static void printMethod(String methodName, Class<?>[] parameters, Class<?> returnType, boolean printShortStringNames, StringBuilder sb)
-	{
-		if (returnType != null)
-		{
+	public static void printMethod(String methodName, Class<?>[] parameters, Class<?> returnType,
+			boolean printShortStringNames, StringBuilder sb) {
+		if (returnType != null) {
 			printType(returnType, printShortStringNames, sb);
 			sb.append(' ');
 		}
@@ -65,14 +60,11 @@ public class LogTypesUtil
 		sb.append(')');
 	}
 
-	public static void printParameters(Class<?>[] parameters, boolean printShortStringNames, StringBuilder sb)
-	{
-		if (parameters != null)
-		{
-			for (int a = 0, size = parameters.length; a < size; a++)
-			{
-				if (a > 0)
-				{
+	public static void printParameters(Class<?>[] parameters, boolean printShortStringNames,
+			StringBuilder sb) {
+		if (parameters != null) {
+			for (int a = 0, size = parameters.length; a < size; a++) {
+				if (a > 0) {
 					sb.append(',');
 				}
 				printType(parameters[a], printShortStringNames, sb);
@@ -80,17 +72,14 @@ public class LogTypesUtil
 		}
 	}
 
-	public static String printType(Class<?> type, boolean printShortStringNames)
-	{
+	public static String printType(Class<?> type, boolean printShortStringNames) {
 		StringBuilder sb = new StringBuilder();
 		printType(type, printShortStringNames, sb);
 		return sb.toString();
 	}
 
-	public static void printType(Class<?> type, boolean printShortStringNames, StringBuilder sb)
-	{
-		if (!printShortStringNames)
-		{
+	public static void printType(Class<?> type, boolean printShortStringNames, StringBuilder sb) {
+		if (!printShortStringNames) {
 			sb.append(type.getName());
 			return;
 		}

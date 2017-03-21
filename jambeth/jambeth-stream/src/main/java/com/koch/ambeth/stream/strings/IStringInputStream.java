@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.stream.IInputStream;
 
-public interface IStringInputStream extends IInputStream
-{
+public interface IStringInputStream extends IInputStream {
 	boolean hasString();
 
 	String readString();

@@ -23,40 +23,32 @@ limitations under the License.
 /**
  * A class for a kind of command return type which contains only simple information
  */
-public class SingleResult extends CommandResult
-{
+public class SingleResult extends CommandResult {
 	private StringBuffer value = new StringBuffer();
 
-	public SingleResult(String value)
-	{
+	public SingleResult(String value) {
 		this.value.append(value);
 	}
 
-	public SingleResult()
-	{
+	public SingleResult() {
 	}
 
-	public String getValue()
-	{
+	public String getValue() {
 		return value.toString();
 	}
 
-	public void setValue(String value)
-	{
+	public void setValue(String value) {
 		this.value.append(value);
 	}
 
-	public void addValue(String string)
-	{
+	public void addValue(String string) {
 		value.append(string);
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		String value = getValue();
-		if (!value.endsWith(System.lineSeparator()))
-		{
+		if (!value.endsWith(System.lineSeparator())) {
 			value = value + System.lineSeparator();
 		}
 		return value;

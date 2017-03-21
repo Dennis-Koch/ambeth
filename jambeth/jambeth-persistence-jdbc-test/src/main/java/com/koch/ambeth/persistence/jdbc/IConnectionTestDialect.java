@@ -26,8 +26,7 @@ import java.util.List;
 
 import com.koch.ambeth.util.config.IProperties;
 
-public interface IConnectionTestDialect
-{
+public interface IConnectionTestDialect {
 	void resetStatementCache(Connection connection);
 
 	void dropAllSchemaContent(Connection conn, String schemaName);
@@ -42,13 +41,16 @@ public interface IConnectionTestDialect
 
 	String[] createPermissionGroup(Connection conn, String tableName) throws SQLException;
 
-	boolean createTestUserIfSupported(Throwable reason, String userName, String userPassword, IProperties testProps) throws SQLException;
+	boolean createTestUserIfSupported(Throwable reason, String userName, String userPassword,
+			IProperties testProps) throws SQLException;
 
-	void dropCreatedTestUser(String userName, String userPassword, IProperties testProps) throws SQLException;
+	void dropCreatedTestUser(String userName, String userPassword, IProperties testProps)
+			throws SQLException;
 
 	boolean isEmptySchema(Connection connection) throws SQLException;
 
-	void preProcessConnectionForTest(Connection connection, String[] schemaNames, boolean forcePreProcessing);
+	void preProcessConnectionForTest(Connection connection, String[] schemaNames,
+			boolean forcePreProcessing);
 
 	void preStructureRebuild(Connection connection) throws SQLException;
 }

@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.stream.IInputStream;
 
-public interface IFloatInputStream extends IInputStream
-{
+public interface IFloatInputStream extends IInputStream {
 	boolean hasFloat();
 
 	float readFloat();

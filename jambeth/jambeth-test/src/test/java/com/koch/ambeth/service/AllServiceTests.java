@@ -30,8 +30,7 @@ import com.koch.ambeth.transfer.ServiceDescriptionSerializationTest;
 import com.koch.ambeth.transfer.ServiceResultDeSerializationTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ MergeServiceTest.class, ProcessServiceTest.class, ProcessServiceNamedTest.class, ServiceDescriptionSerializationTest.class,
-		ServiceResultDeSerializationTest.class })
-public class AllServiceTests
-{
+@SuiteClasses({MergeServiceTest.class, ProcessServiceTest.class, ProcessServiceNamedTest.class,
+		ServiceDescriptionSerializationTest.class, ServiceResultDeSerializationTest.class})
+public class AllServiceTests {
 }

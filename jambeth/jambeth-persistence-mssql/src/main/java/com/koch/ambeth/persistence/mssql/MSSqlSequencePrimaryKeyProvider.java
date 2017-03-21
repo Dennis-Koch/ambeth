@@ -35,8 +35,7 @@ import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IObjectCollector;
 
-public class MSSqlSequencePrimaryKeyProvider extends AbstractCachingPrimaryKeyProvider
-{
+public class MSSqlSequencePrimaryKeyProvider extends AbstractCachingPrimaryKeyProvider {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -48,30 +47,26 @@ public class MSSqlSequencePrimaryKeyProvider extends AbstractCachingPrimaryKeyPr
 	protected IObjectCollector objectCollector;
 
 	@Override
-	protected void acquireIdsIntern(ITableMetaData table, int count, List<Object> targetIdList)
-	{
-		String sql = StringBuilderUtil.concat(objectCollector.getCurrent(), "SELECT ", table.getSequenceName(), ".nextval FROM DUAL");
+	protected void acquireIdsIntern(ITableMetaData table, int count, List<Object> targetIdList) {
+		String sql = StringBuilderUtil.concat(objectCollector.getCurrent(), "SELECT ",
+				table.getSequenceName(), ".nextval FROM DUAL");
 		PreparedStatement pstm = null;
 		ResultSet rs = null;
-		try
-		{
+		try {
 			pstm = connection.prepareStatement(sql);
-			while (count-- > 0)
-			{
+			while (count-- > 0) {
 				rs = pstm.executeQuery();
-				while (rs.next())
-				{
-					Object id = rs.getObject(1); // We have only 1 column in the select so it is ok to retrieve it by the unique id
+				while (rs.next()) {
+					Object id = rs.getObject(1); // We have only 1 column in the select so it is ok to
+																				// retrieve it by the unique id
 					targetIdList.add(id);
 				}
 			}
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
+		finally {
 			JdbcUtil.close(pstm, rs);
 		}
 	}

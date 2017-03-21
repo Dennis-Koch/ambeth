@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IServiceResultProcessorRegistry
-{
+public interface IServiceResultProcessorRegistry {
 	IServiceResultProcessor getServiceResultProcessor(Class<?> returnType);
 }

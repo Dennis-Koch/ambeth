@@ -31,8 +31,7 @@ import com.koch.ambeth.ioc.threadlocal.IForkState;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import com.koch.ambeth.util.IParamHolder;
 
-public class CatchingRunnable implements RunnableFuture<Throwable>
-{
+public class CatchingRunnable implements RunnableFuture<Throwable> {
 	protected final IForkState forkState;
 
 	protected final Runnable runnable;
@@ -45,9 +44,9 @@ public class CatchingRunnable implements RunnableFuture<Throwable>
 
 	protected final ICancellation cancellation;
 
-	public CatchingRunnable(IForkState forkState, Runnable runnable, CountDownLatch latch, IParamHolder<Throwable> throwableHolder, ICancellation cancellation,
-			IThreadLocalCleanupController threadLocalCleanupController)
-	{
+	public CatchingRunnable(IForkState forkState, Runnable runnable, CountDownLatch latch,
+			IParamHolder<Throwable> throwableHolder, ICancellation cancellation,
+			IThreadLocalCleanupController threadLocalCleanupController) {
 		this.forkState = forkState;
 		this.runnable = runnable;
 		this.latch = latch;
@@ -57,16 +56,12 @@ public class CatchingRunnable implements RunnableFuture<Throwable>
 	}
 
 	@Override
-	public Throwable get() throws InterruptedException, ExecutionException
-	{
-		try
-		{
+	public Throwable get() throws InterruptedException, ExecutionException {
+		try {
 			latch.await();
 		}
-		catch (InterruptedException e)
-		{
-			if (cancellation.isCancelled())
-			{
+		catch (InterruptedException e) {
+			if (cancellation.isCancelled()) {
 				Thread.interrupted(); // clear flag
 				cancellation.ensureNotCancelled();
 			}
@@ -76,19 +71,15 @@ public class CatchingRunnable implements RunnableFuture<Throwable>
 	}
 
 	@Override
-	public Throwable get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException
-	{
-		try
-		{
-			if (latch.await(timeout, unit))
-			{
+	public Throwable get(long timeout, TimeUnit unit)
+			throws InterruptedException, ExecutionException, TimeoutException {
+		try {
+			if (latch.await(timeout, unit)) {
 				return throwableHolder.getValue();
 			}
 		}
-		catch (InterruptedException e)
-		{
-			if (cancellation.isCancelled())
-			{
+		catch (InterruptedException e) {
+			if (cancellation.isCancelled()) {
 				Thread.interrupted(); // clear flag
 				cancellation.ensureNotCancelled();
 			}
@@ -98,68 +89,53 @@ public class CatchingRunnable implements RunnableFuture<Throwable>
 	}
 
 	@Override
-	public boolean isDone()
-	{
+	public boolean isDone() {
 		return latch.getCount() == 0;
 	}
 
 	@Override
-	public boolean isCancelled()
-	{
+	public boolean isCancelled() {
 		return false;
 	}
 
 	@Override
-	public boolean cancel(boolean mayInterruptIfRunning)
-	{
+	public boolean cancel(boolean mayInterruptIfRunning) {
 		return false;
 	}
 
 	@Override
-	public void run()
-	{
+	public void run() {
 		Thread currentThread = Thread.currentThread();
 		String oldName = currentThread.getName();
-		if (runnable instanceof INamedRunnable)
-		{
+		if (runnable instanceof INamedRunnable) {
 			currentThread.setName(((INamedRunnable) runnable).getName());
 		}
-		try
-		{
-			try
-			{
-				if (forkState != null)
-				{
-					forkState.use(new Runnable()
-					{
+		try {
+			try {
+				if (forkState != null) {
+					forkState.use(new Runnable() {
 						@Override
-						public void run()
-						{
+						public void run() {
 							cancellation.ensureNotCancelled();
 							runnable.run();
 						}
 					});
 				}
-				else
-				{
+				else {
 					cancellation.ensureNotCancelled();
 					runnable.run();
 				}
 			}
-			catch (Throwable e)
-			{
+			catch (Throwable e) {
 				throwableHolder.setValue(e);
 			}
-			finally
-			{
+			finally {
 				threadLocalCleanupController.cleanupThreadLocal();
 				latch.countDown();
 			}
 		}
-		finally
-		{
-			if (runnable instanceof INamedRunnable)
-			{
+		finally {
+			if (runnable instanceof INamedRunnable) {
 				currentThread.setName(oldName);
 			}
 		}

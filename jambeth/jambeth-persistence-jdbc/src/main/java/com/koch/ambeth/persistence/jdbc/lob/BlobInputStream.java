@@ -30,61 +30,49 @@ import com.koch.ambeth.stream.IInputStream;
 import com.koch.ambeth.stream.binary.IBinaryInputStream;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class BlobInputStream implements IBinaryInputStream, IInputStream
-{
+public class BlobInputStream implements IBinaryInputStream, IInputStream {
 	protected final Blob blob;
 
 	protected final InputStream is;
 
 	protected final IDataCursor cursor;
 
-	public BlobInputStream(IDataCursor cursor, Blob blob)
-	{
+	public BlobInputStream(IDataCursor cursor, Blob blob) {
 		this.cursor = cursor;
 		this.blob = blob;
-		try
-		{
+		try {
 			is = blob.getBinaryStream();
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	protected void finalize() throws Throwable
-	{
+	protected void finalize() throws Throwable {
 		close();
 	}
 
 	@Override
-	public void close() throws IOException
-	{
-		try
-		{
+	public void close() throws IOException {
+		try {
 			is.close();
 			blob.free();
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
+		finally {
 			cursor.dispose();
 		}
 	}
 
 	@Override
-	public int readByte()
-	{
-		try
-		{
+	public int readByte() {
+		try {
 			return is.read();
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

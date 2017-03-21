@@ -121,7 +121,7 @@ public abstract class MethodAccess {
 	}
 
 	static public MethodAccess get(Class type) {
-		ArrayList<Method> methods = new ArrayList<Method>();
+		ArrayList<Method> methods = new ArrayList<>();
 		boolean isInterface = type.isInterface();
 		if (!isInterface) {
 			Class nextClass = type;

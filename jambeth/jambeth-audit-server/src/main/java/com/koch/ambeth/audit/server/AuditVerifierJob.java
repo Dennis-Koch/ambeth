@@ -62,8 +62,7 @@ import com.koch.ambeth.util.proxy.IProxyFactory;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
-public class AuditVerifierJob implements IJob, IStartingBean
-{
+public class AuditVerifierJob implements IJob, IStartingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -107,57 +106,46 @@ public class AuditVerifierJob implements IJob, IStartingBean
 	private IQuery<IAuditEntry> q_allAuditEntries;
 
 	@Override
-	public void afterStarted() throws Throwable
-	{
+	public void afterStarted() throws Throwable {
 		IQueryBuilder<IAuditEntry> qb = queryBuilderFactory.create(IAuditEntry.class);
 		q_allAuditEntries = qb.build();
 	}
 
 	@Override
-	public boolean canBePaused()
-	{
+	public boolean canBePaused() {
 		return false;
 	}
 
 	@Override
-	public boolean canBeStopped()
-	{
+	public boolean canBeStopped() {
 		return false;
 	}
 
 	@Override
-	public boolean supportsStatusTracking()
-	{
+	public boolean supportsStatusTracking() {
 		return false;
 	}
 
 	@Override
-	public boolean supportsCompletenessTracking()
-	{
+	public boolean supportsCompletenessTracking() {
 		return false;
 	}
 
 	@Override
-	public void execute(final IJobContext context) throws Throwable
-	{
-		IDisposableCache cache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.TRUE, AuditVerifierJob.class.getName());
-		try
-		{
-			cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>()
-			{
+	public void execute(final IJobContext context) throws Throwable {
+		IDisposableCache cache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false,
+				Boolean.TRUE, AuditVerifierJob.class.getName());
+		try {
+			cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>() {
 				@Override
-				public Object invoke() throws Throwable
-				{
-					securityActivation.executeWithoutSecurity(new IBackgroundWorkerDelegate()
-					{
+				public Object invoke() throws Throwable {
+					securityActivation.executeWithoutSecurity(new IBackgroundWorkerDelegate() {
 						@Override
-						public void invoke() throws Throwable
-						{
-							transaction.processAndCommit(new DatabaseCallback()
-							{
+						public void invoke() throws Throwable {
+							transaction.processAndCommit(new DatabaseCallback() {
 								@Override
-								public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
-								{
+								public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+										throws Throwable {
 									verifyAllAuditEntries(context);
 								}
 							}, false, true);
@@ -167,82 +155,68 @@ public class AuditVerifierJob implements IJob, IStartingBean
 				}
 			});
 		}
-		finally
-		{
+		finally {
 			cache.dispose();
 		}
 	}
 
-	protected void verifyAllAuditEntries(IJobContext context) throws Throwable
-	{
-		ArrayList<IObjRef> batchEntries = new ArrayList<IObjRef>(batchCount);
+	protected void verifyAllAuditEntries(IJobContext context) throws Throwable {
+		ArrayList<IObjRef> batchEntries = new ArrayList<>(batchCount);
 
-		IPreparedObjRefFactory preparedObjRefFactory = objRefFactory.prepareObjRefFactory(q_allAuditEntries.getEntityType(), ObjRef.PRIMARY_KEY_INDEX);
+		IPreparedObjRefFactory preparedObjRefFactory = objRefFactory
+				.prepareObjRefFactory(q_allAuditEntries.getEntityType(), ObjRef.PRIMARY_KEY_INDEX);
 		IVersionCursor cursor = q_allAuditEntries.retrieveAsVersions(false);
-		try
-		{
+		try {
 			int count = 0;
 			boolean verificationSuccess = true;
-			while (cursor.moveNext())
-			{
+			while (cursor.moveNext()) {
 				IVersionItem versionItem = cursor.getCurrent();
 
 				count++;
 
-				// objRef WITHOUT version intentional: We do not want to get cache hits in the committed RootCache but load all data
+				// objRef WITHOUT version intentional: We do not want to get cache hits in the committed
+				// RootCache but load all data
 				// directly to the transactional RootCache instead
 				IObjRef objRef = preparedObjRefFactory.createObjRef(versionItem.getId(), null);
 				batchEntries.add(objRef);
-				if (batchEntries.size() < batchCount)
-				{
+				if (batchEntries.size() < batchCount) {
 					continue;
 				}
 				verificationSuccess &= verify(batchEntries);
 				batchEntries.clear();
 			}
 			verificationSuccess &= verify(batchEntries);
-			if (verificationSuccess && log.isInfoEnabled())
-			{
+			if (verificationSuccess && log.isInfoEnabled()) {
 				log.info("Verification of " + count + " audit entries finished. AUDIT TRAIL IS VALID");
 			}
 		}
-		finally
-		{
+		finally {
 			cursor.dispose();
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected boolean verify(IList<IObjRef> objRefs)
-	{
-		if (objRefs.size() == 0)
-		{
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	protected boolean verify(IList<IObjRef> objRefs) {
+		if (objRefs.size() == 0) {
 			return true;
 		}
 		beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
 		IList<IAuditEntry> auditEntries = (IList) cache.getObjects(objRefs, CacheDirective.none());
 		boolean[] verificationResult = auditEntryVerifier.verifyAuditEntries(auditEntries);
-		ArrayList<IAuditEntry> invalidAuditEntries = new ArrayList<IAuditEntry>();
-		for (int a = 0, size = verificationResult.length; a < size; a++)
-		{
-			if (!verificationResult[a])
-			{
+		ArrayList<IAuditEntry> invalidAuditEntries = new ArrayList<>();
+		for (int a = 0, size = verificationResult.length; a < size; a++) {
+			if (!verificationResult[a]) {
 				invalidAuditEntries.add(auditEntries.get(a));
 			}
 		}
-		if (invalidAuditEntries.size() > 0)
-		{
-			Collections.sort(auditEntries, new Comparator<IAuditEntry>()
-			{
+		if (invalidAuditEntries.size() > 0) {
+			Collections.sort(auditEntries, new Comparator<IAuditEntry>() {
 				@Override
-				public int compare(IAuditEntry o1, IAuditEntry o2)
-				{
-					if (o1.getTimestamp() > o2.getTimestamp())
-					{
+				public int compare(IAuditEntry o1, IAuditEntry o2) {
+					if (o1.getTimestamp() > o2.getTimestamp()) {
 						return 1;
 					}
-					if (o1.getTimestamp() < o2.getTimestamp())
-					{
+					if (o1.getTimestamp() < o2.getTimestamp()) {
 						return -1;
 					}
 					return 0;
@@ -251,8 +225,7 @@ public class AuditVerifierJob implements IJob, IStartingBean
 
 			StringBuilder sb = new StringBuilder();
 			sb.append(invalidAuditEntries.size()).append(" audit entries invalid:\n");
-			for (int a = 0, size = invalidAuditEntries.size(); a < size; a++)
-			{
+			for (int a = 0, size = invalidAuditEntries.size(); a < size; a++) {
 				IAuditEntry auditEntry = invalidAuditEntries.get(a);
 				sb.append("\t").append(auditEntry);
 			}

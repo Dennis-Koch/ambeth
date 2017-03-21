@@ -22,34 +22,29 @@ limitations under the License.
 
 import java.io.InputStream;
 
-public class InputStreamWithLength implements IInputStreamWithLength
-{
+public class InputStreamWithLength implements IInputStreamWithLength {
 	private final InputStream inputStream;
 
 	private final int overallLength;
 
-	public InputStreamWithLength(InputStream inputStream, int overallLength)
-	{
+	public InputStreamWithLength(InputStream inputStream, int overallLength) {
 		super();
 		this.inputStream = inputStream;
 		this.overallLength = overallLength;
 	}
 
 	@Override
-	public InputStream getInputStream()
-	{
+	public InputStream getInputStream() {
 		return inputStream;
 	}
 
 	@Override
-	public int getOverallLength()
-	{
+	public int getOverallLength() {
 		return overallLength;
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return super.toString() + ", Length: " + overallLength;
 	}
 }

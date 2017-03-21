@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IPrimitiveMemberWrite
-{
+public interface IPrimitiveMemberWrite {
 	void setTechnicalMember(boolean technicalMember);
 
 	void setTransient(boolean isTransient);

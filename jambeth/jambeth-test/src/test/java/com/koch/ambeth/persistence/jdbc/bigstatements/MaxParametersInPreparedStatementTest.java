@@ -88,7 +88,7 @@ public class MaxParametersInPreparedStatementTest
 		IQueryBuilder<Material> qb = queryBuilderFactory.create(Material.class);
 		IQuery<Material> query = qb.build(qb.isIn(qb.property("Id"), qb.valueName(paramName)));
 
-		ArrayList<Object> bigList = new ArrayList<Object>();
+		ArrayList<Object> bigList = new ArrayList<>();
 		for (int a = 40000; a-- > 0;) {
 			bigList.add(Integer.valueOf(a + 1));
 		}
@@ -101,7 +101,7 @@ public class MaxParametersInPreparedStatementTest
 	@Test
 	public void testInsertAndRetrive4500() throws Exception {
 
-		ArrayList<Material> materials = new ArrayList<Material>();
+		ArrayList<Material> materials = new ArrayList<>();
 
 		for (int a = 4500; a-- > 0;) {
 			Material material = entityFactory.createEntity(Material.class);
@@ -126,7 +126,7 @@ public class MaxParametersInPreparedStatementTest
 		qb = queryBuilderFactory.create(Material.class);
 		query = qb.build(qb.isIn(qb.property("Name"), qb.valueName(paramName)));
 
-		ArrayList<Object> bigList = new ArrayList<Object>();
+		ArrayList<Object> bigList = new ArrayList<>();
 		for (int a = 4500; a-- > 0;) {
 			bigList.add(Integer.valueOf(a + 1));
 		}

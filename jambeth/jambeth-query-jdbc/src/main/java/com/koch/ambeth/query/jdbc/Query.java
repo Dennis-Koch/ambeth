@@ -147,7 +147,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
 
 			IMap<Object, Object> tempNameToValueMap = null;
 			if (nameToValueMap == null) {
-				tempNameToValueMap = new HashMap<Object, Object>();
+				tempNameToValueMap = new HashMap<>();
 				nameToValueMap = tempNameToValueMap;
 			}
 
@@ -178,7 +178,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
 					+ PersistenceContext.class.getSimpleName()
 					+ ". This is because the IVersionCursor may hold active resources of underlying databases");
 		}
-		HashMap<Object, Object> nameToValueMap = new HashMap<Object, Object>();
+		HashMap<Object, Object> nameToValueMap = new HashMap<>();
 		if (nameToValueMapSrc == null) {
 			nameToValueMapSrc = EmptyMap.emptyMap();
 		}
@@ -195,8 +195,8 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
 			nameToValueMap.put(QueryConstants.LIMIT_VALUE, null);
 		}
 
-		ArrayList<String> additionalSelectColumnList = new ArrayList<String>();
-		ArrayList<Object> parameters = new ArrayList<Object>();
+		ArrayList<String> additionalSelectColumnList = new ArrayList<>();
+		ArrayList<Object> parameters = new ArrayList<>();
 		Object pagingSizeObject = nameToValueMap.get(QueryConstants.PAGING_SIZE_OBJECT);
 
 		String[] sqlParts = getSqlParts(nameToValueMap, parameters, additionalSelectColumnList);
@@ -373,7 +373,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
 	@Override
 	public IEntityCursor<T> retrieveAsCursor(IMap<Object, Object> nameToValueMap) {
 		IVersionCursor cursor = retrieveAsVersions(nameToValueMap);
-		return new EntityCursor<T>(cursor, this.entityType, this.serviceUtil);
+		return new EntityCursor<>(cursor, this.entityType, this.serviceUtil);
 	}
 
 	@Override
@@ -388,7 +388,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
 		if (cursor == null) {
 			return (IList<T>) EmptyList.instance;
 		}
-		ArrayList<T> resultList = new ArrayList<T>();
+		ArrayList<T> resultList = new ArrayList<>();
 		serviceUtil.loadObjectsIntoCollection(resultList, entityType, cursor);
 		return resultList;
 	}
@@ -434,7 +434,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
 
 	@Override
 	public IQuery<T> param(Object paramKey, Object param) {
-		StatefulQuery<T> statefulQuery = new StatefulQuery<T>(transactionalQuery);
+		StatefulQuery<T> statefulQuery = new StatefulQuery<>(transactionalQuery);
 		return statefulQuery.param(paramKey, param);
 	}
 

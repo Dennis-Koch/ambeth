@@ -26,15 +26,14 @@ import com.koch.ambeth.query.jdbc.TwoPlaceOperator;
 import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.IMap;
 
-public class SqlIsGreaterThanOperator extends TwoPlaceOperator
-{
+public class SqlIsGreaterThanOperator extends TwoPlaceOperator {
 	@SuppressWarnings("unused")
 	@LogInstance(SqlIsGreaterThanOperator.class)
 	private ILogger log;
 
 	@Override
-	protected void expandOperatorQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean rightValueIsNull)
-	{
+	protected void expandOperatorQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			boolean rightValueIsNull) {
 		querySB.append(">");
 	}
 }

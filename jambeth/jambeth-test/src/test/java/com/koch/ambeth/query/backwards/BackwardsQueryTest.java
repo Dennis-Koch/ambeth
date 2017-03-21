@@ -35,24 +35,22 @@ import com.koch.ambeth.testutil.SQLData;
 import com.koch.ambeth.testutil.SQLStructure;
 import com.koch.ambeth.testutil.TestProperties;
 
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/query/backwards/BackwardsQuery_orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/query/backwards/BackwardsQuery_orm.xml")
 @SQLStructure("BackwardsQuery_structure.sql")
 @SQLData("BackwardsQuery_data.sql")
-public class BackwardsQueryTest extends AbstractInformationBusWithPersistenceTest
-{
+public class BackwardsQueryTest extends AbstractInformationBusWithPersistenceTest {
 	protected IQueryBuilder<QueryEntity> qb;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		qb = queryBuilderFactory.create(QueryEntity.class);
 	}
 
 	@Test
-	public void testSimpleBackwardsPropertyQuery() throws Exception
-	{
+	public void testSimpleBackwardsPropertyQuery() throws Exception {
 		// SELECT DISTINCT S_A."ID",S_A."VERSION",S_A."NAME" FROM "QUERY_ENTITY" S_A
 		// LEFT OUTER JOIN "QUERY_ENTITY" J_A ON (S_A."ID"=J_A."NEXT")
 		// WHERE (J_A."ID"=?)
@@ -65,8 +63,7 @@ public class BackwardsQueryTest extends AbstractInformationBusWithPersistenceTes
 	}
 
 	@Test
-	public void testLongerBackwardsPropertyQuery() throws Exception
-	{
+	public void testLongerBackwardsPropertyQuery() throws Exception {
 		// SELECT DISTINCT S_A."ID",S_A."VERSION",S_A."NAME" FROM "QUERY_ENTITY" S_A
 		// LEFT OUTER JOIN "QUERY_ENTITY" J_A ON (S_A."NEXT"=J_A."ID")
 		// LEFT OUTER JOIN "JOIN_QUERY_ENTITY" J_B ON (J_A."JOIN_QUERY_ENTITY"=J_B."ID")
@@ -80,14 +77,14 @@ public class BackwardsQueryTest extends AbstractInformationBusWithPersistenceTes
 	}
 
 	@Test
-	public void testLinkTableBackwardsPropertyQuery() throws Exception
-	{
+	public void testLinkTableBackwardsPropertyQuery() throws Exception {
 		// SELECT DISTINCT S_A."ID",S_A."VERSION",S_A."NAME" FROM "QUERY_ENTITY" S_A
 		// LEFT OUTER JOIN "JOIN_QUERY_ENTITY" J_A ON (S_A."JOIN_QUERY_ENTITY"=J_A."ID")
 		// LEFT OUTER JOIN "LINK_JQE_LTE" J_B ON (J_A."ID"=J_B."LEFT_ID")
 		// LEFT OUTER JOIN "LINK_TABLE_ENTITY" J_C ON (J_B."RIGHT_ID"=J_C."ID")
 		// WHERE (J_C."NAME"=?)
-		IOperand rootOperand = qb.isEqualTo(qb.property("<QueryEntity <JoinQueryEntity Name"), qb.value("name21"));
+		IOperand rootOperand =
+				qb.isEqualTo(qb.property("<QueryEntity <JoinQueryEntity Name"), qb.value("name21"));
 		IQuery<QueryEntity> query = qb.build(rootOperand);
 		assertNotNull(query);
 		QueryEntity entity = query.retrieveSingle();
@@ -96,8 +93,7 @@ public class BackwardsQueryTest extends AbstractInformationBusWithPersistenceTes
 	}
 
 	@Test
-	public void testNotUniqueBackwardsPropertyQuery() throws Exception
-	{
+	public void testNotUniqueBackwardsPropertyQuery() throws Exception {
 		// SELECT DISTINCT S_A."ID",S_A."VERSION" FROM "LINK_TABLE_ENTITY" S_A
 		// LEFT OUTER JOIN "LINK_JQE_LTE" J_A ON (S_A."ID"=J_A."RIGHT_ID")
 		// LEFT OUTER JOIN "JOIN_QUERY_ENTITY" J_B ON (J_A."LEFT_ID"=J_B."ID")
@@ -105,7 +101,8 @@ public class BackwardsQueryTest extends AbstractInformationBusWithPersistenceTes
 
 		IQueryBuilder<LinkTableEntity> qb = queryBuilderFactory.create(LinkTableEntity.class);
 
-		IOperand rootOperand = qb.isEqualTo(qb.property("<JoinQueryEntity#LinkTableEntity Version"), qb.value(3));
+		IOperand rootOperand =
+				qb.isEqualTo(qb.property("<JoinQueryEntity#LinkTableEntity Version"), qb.value(3));
 		IQuery<LinkTableEntity> query = qb.build(rootOperand);
 		assertNotNull(query);
 
@@ -115,8 +112,7 @@ public class BackwardsQueryTest extends AbstractInformationBusWithPersistenceTes
 	}
 
 	@Test
-	public void testNotUniqueBackwardsPropertyQuery_Fullname() throws Exception
-	{
+	public void testNotUniqueBackwardsPropertyQuery_Fullname() throws Exception {
 		// SELECT DISTINCT S_A."ID",S_A."VERSION" FROM "LINK_TABLE_ENTITY" S_A
 		// LEFT OUTER JOIN "LINK_JQE_LTE" J_A ON (S_A."ID"=J_A."RIGHT_ID")
 		// LEFT OUTER JOIN "JOIN_QUERY_ENTITY" J_B ON (J_A."LEFT_ID"=J_B."ID")
@@ -124,7 +120,9 @@ public class BackwardsQueryTest extends AbstractInformationBusWithPersistenceTes
 
 		IQueryBuilder<LinkTableEntity> qb = queryBuilderFactory.create(LinkTableEntity.class);
 
-		IOperand rootOperand = qb.isEqualTo(qb.property("<com.koch.ambeth.query.backwards.JoinQueryEntity#LinkTableEntity.Version"), qb.value(3));
+		IOperand rootOperand = qb.isEqualTo(
+				qb.property("<com.koch.ambeth.query.backwards.JoinQueryEntity#LinkTableEntity.Version"),
+				qb.value(3));
 		IQuery<LinkTableEntity> query = qb.build(rootOperand);
 		assertNotNull(query);
 
@@ -134,8 +132,7 @@ public class BackwardsQueryTest extends AbstractInformationBusWithPersistenceTes
 	}
 
 	@Test(expected = IllegalStateException.class)
-	public void testNotUniqueBackwardsPropertyQuery_missingEntity() throws Exception
-	{
+	public void testNotUniqueBackwardsPropertyQuery_missingEntity() throws Exception {
 		IQueryBuilder<LinkTableEntity> qb = queryBuilderFactory.create(LinkTableEntity.class);
 
 		IOperand rootOperand = qb.isEqualTo(qb.property("<LinkTableEntity.Version"), qb.value(1));
@@ -144,8 +141,7 @@ public class BackwardsQueryTest extends AbstractInformationBusWithPersistenceTes
 	}
 
 	@Test
-	public void testTwoBackwardsPropertiesQuery() throws Exception
-	{
+	public void testTwoBackwardsPropertiesQuery() throws Exception {
 		// SELECT DISTINCT S_A."ID",S_A."VERSION" FROM "LINK_TABLE_ENTITY" S_A
 		// LEFT OUTER JOIN "LINK_JQE_LTE" J_A ON (S_A."ID"=J_A."RIGHT_ID")
 		// LEFT OUTER JOIN "JOIN_QUERY_ENTITY" J_B ON (J_A."LEFT_ID"=J_B."ID")
@@ -154,8 +150,10 @@ public class BackwardsQueryTest extends AbstractInformationBusWithPersistenceTes
 
 		IQueryBuilder<LinkTableEntity> qb = queryBuilderFactory.create(LinkTableEntity.class);
 
-		IOperator operator1 = qb.isEqualTo(qb.property("<JoinQueryEntity#LinkTableEntity Version"), qb.value(3));
-		IOperator operator2 = qb.isEqualTo(qb.property("<QueryEntity#LinkTableEntity Name"), qb.value("name1"));
+		IOperator operator1 =
+				qb.isEqualTo(qb.property("<JoinQueryEntity#LinkTableEntity Version"), qb.value(3));
+		IOperator operator2 =
+				qb.isEqualTo(qb.property("<QueryEntity#LinkTableEntity Name"), qb.value("name1"));
 		IOperand rootOperand = qb.and(operator1, operator2);
 		IQuery<LinkTableEntity> query = qb.build(rootOperand);
 		assertNotNull(query);

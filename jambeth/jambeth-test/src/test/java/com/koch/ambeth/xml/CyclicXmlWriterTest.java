@@ -125,8 +125,8 @@ public class CyclicXmlWriterTest extends AbstractInformationBusTest {
 	public void readWriteSet() {
 		Set<?>[] array = new Set[3];
 
-		array[0] = new HashSet<Object>();
-		array[1] = new HashSet<Object>();
+		array[0] = new HashSet<>();
+		array[1] = new HashSet<>();
 		array[2] = array[1];
 
 		String xml = cyclicXmlHandler.write(array);
@@ -146,8 +146,8 @@ public class CyclicXmlWriterTest extends AbstractInformationBusTest {
 	public void readWriteList() {
 		List<?>[] array = new List[3];
 
-		array[0] = new ArrayList<Object>();
-		array[1] = new ArrayList<Object>();
+		array[0] = new ArrayList<>();
+		array[1] = new ArrayList<>();
 		array[2] = array[1];
 
 		String xml = cyclicXmlHandler.write(array);

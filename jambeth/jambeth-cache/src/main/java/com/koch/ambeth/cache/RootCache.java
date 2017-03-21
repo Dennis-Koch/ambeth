@@ -136,13 +136,13 @@ public class RootCache extends AbstractCache<RootCacheValue>
 	}
 
 	protected static final Map<Class<?>, Object> typeToEmptyArray =
-			new HashMap<Class<?>, Object>(128, 0.5f);
+			new HashMap<>(128, 0.5f);
 
 	public static final Set<CacheDirective> failEarlyCacheValueResultSet =
 			EnumSet.of(CacheDirective.FailEarly, CacheDirective.CacheValueResult);
 
 	static {
-		List<Class<?>> types = new ArrayList<Class<?>>();
+		List<Class<?>> types = new ArrayList<>();
 		ImmutableTypeSet.addImmutableTypesTo(types);
 		types.add(Object.class);
 		for (Class<?> type : types) {
@@ -160,12 +160,12 @@ public class RootCache extends AbstractCache<RootCacheValue>
 	@LogInstance
 	private ILogger log;
 
-	protected final HashMap<IObjRef, Integer> relationOris = new HashMap<IObjRef, Integer>();
+	protected final HashMap<IObjRef, Integer> relationOris = new HashMap<>();
 
-	protected final HashSet<IObjRef> currentPendingKeys = new HashSet<IObjRef>();
+	protected final HashSet<IObjRef> currentPendingKeys = new HashSet<>();
 
 	protected final InterfaceFastList<RootCacheValue> lruList =
-			new InterfaceFastList<RootCacheValue>();
+			new InterfaceFastList<>();
 
 	protected final ReentrantLock lruLock = new ReentrantLock();
 
@@ -368,7 +368,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 		if (oriToGet == null) {
 			return null;
 		}
-		ArrayList<IObjRef> orisToGet = new ArrayList<IObjRef>(1);
+		ArrayList<IObjRef> orisToGet = new ArrayList<>(1);
 		orisToGet.add(oriToGet);
 		List<Object> objects = getObjects(orisToGet, targetCache, cacheDirective);
 		if (objects.isEmpty()) {
@@ -435,13 +435,13 @@ public class RootCache extends AbstractCache<RootCacheValue>
 				}
 
 				LockState lockState = writeLock.releaseAllLocks();
-				ParamHolder<Boolean> doAnotherRetry = new ParamHolder<Boolean>();
+				ParamHolder<Boolean> doAnotherRetry = new ParamHolder<>();
 				try {
 					while (true) {
 						doAnotherRetry.setValue(Boolean.FALSE);
-						LinkedHashSet<IObjRef> neededObjRefs = new LinkedHashSet<IObjRef>();
+						LinkedHashSet<IObjRef> neededObjRefs = new LinkedHashSet<>();
 						ArrayList<DirectValueHolderRef> pendingValueHolders =
-								new ArrayList<DirectValueHolderRef>();
+								new ArrayList<>();
 						IList<Object> result = getObjectsRetry(orisToGet, targetCache, cacheDirective,
 								doAnotherRetry, neededObjRefs, pendingValueHolders);
 						while (neededObjRefs.size() > 0) {
@@ -481,7 +481,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 	protected IList<Object> getObjectsRetry(List<IObjRef> orisToGet, ICacheIntern targetCache,
 			Set<CacheDirective> cacheDirective, ParamHolder<Boolean> doAnotherRetry,
 			LinkedHashSet<IObjRef> neededObjRefs, ArrayList<DirectValueHolderRef> pendingValueHolders) {
-		final ArrayList<IObjRef> orisToLoad = new ArrayList<IObjRef>();
+		final ArrayList<IObjRef> orisToLoad = new ArrayList<>();
 		Lock readLock = getReadLock();
 		Lock writeLock = getWriteLock();
 
@@ -633,11 +633,11 @@ public class RootCache extends AbstractCache<RootCacheValue>
 		}
 		try {
 			Lock readLock = getReadLock();
-			final ArrayList<IObjRelation> objRelMisses = new ArrayList<IObjRelation>();
+			final ArrayList<IObjRelation> objRelMisses = new ArrayList<>();
 			HashMap<IObjRelation, IObjRelationResult> objRelToResultMap =
-					new HashMap<IObjRelation, IObjRelationResult>();
+					new HashMap<>();
 			IdentityHashMap<IObjRef, IObjRef> alreadyClonedObjRefs =
-					new IdentityHashMap<IObjRef, IObjRef>();
+					new IdentityHashMap<>();
 
 			ICacheModification cacheModification = this.cacheModification;
 			boolean oldCacheModificationValue = cacheModification.isActive();
@@ -760,7 +760,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 			ICacheIntern targetCache, HashMap<IObjRelation, IObjRelationResult> objRelToResultMap,
 			IdentityHashMap<IObjRef, IObjRef> alreadyClonedObjRefs, boolean returnMisses) {
 		IObjRefHelper oriHelper = this.oriHelper;
-		ArrayList<IObjRelationResult> objRelResults = new ArrayList<IObjRelationResult>(objRels.size());
+		ArrayList<IObjRelationResult> objRelResults = new ArrayList<>(objRels.size());
 
 		for (int a = 0, size = objRels.size(); a < size; a++) {
 			IObjRelation objRel = objRels.get(a);
@@ -825,7 +825,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 		if (objRelResults.size() == 0 || !isFilteringNecessary(targetCache)) {
 			return objRelResults;
 		}
-		ArrayList<IObjRef> permittedObjRefs = new ArrayList<IObjRef>(objRelResults.size());
+		ArrayList<IObjRef> permittedObjRefs = new ArrayList<>(objRelResults.size());
 		for (int a = 0, size = objRelResults.size(); a < size; a++) {
 			IObjRelationResult objRelResult = objRelResults.get(a);
 			if (objRelResult == null) {
@@ -843,7 +843,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 			permittedObjRefs.add(primaryObjRef);
 		}
 		IPrivilege[] privileges = getPrivilegesByObjRefWithoutReadLock(permittedObjRefs);
-		HashMap<IObjRef, IntArrayList> relatedObjRefs = new HashMap<IObjRef, IntArrayList>();
+		HashMap<IObjRef, IntArrayList> relatedObjRefs = new HashMap<>();
 		for (int index = permittedObjRefs.size(); index-- > 0;) {
 			IPrivilege privilege = privileges[index];
 			if (privilege == null || !privilege.isReadAllowed()) {
@@ -1134,7 +1134,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 		IPrivilege[] privilegesOfObjRefsToGet = null;
 		if (filteringNecessary) {
 			IPrivilege[] privileges = getPrivilegesByObjRefWithoutReadLock(objRefsToGet);
-			ArrayList<IObjRef> filteredObjRefsToGet = new ArrayList<IObjRef>(objRefsToGet.size());
+			ArrayList<IObjRef> filteredObjRefsToGet = new ArrayList<>(objRefsToGet.size());
 			privilegesOfObjRefsToGet = new IPrivilege[objRefsToGet.size()];
 			RootCacheValue[] filteredRootCacheValuesToGet =
 					rootCacheValuesToGet != null ? new RootCacheValue[objRefsToGet.size()] : null;
@@ -1157,14 +1157,14 @@ public class RootCache extends AbstractCache<RootCacheValue>
 			objRefsToGet = filteredObjRefsToGet;
 		}
 		if (getCount == 0) {
-			return new ArrayList<Object>(0);
+			return new ArrayList<>(0);
 		}
 		IEventQueue eventQueue = this.eventQueue;
 		if (targetCacheAccess && eventQueue != null) {
 			eventQueue.pause(targetCache);
 		}
 		try {
-			ArrayList<Object> result = new ArrayList<Object>(objRefsToGet.size());
+			ArrayList<Object> result = new ArrayList<>(objRefsToGet.size());
 			ArrayList<IBackgroundWorkerParamDelegate<IdentityHashSet<IObjRef>>> runnables = null;
 			ArrayList<IObjRef> tempObjRefList = null;
 			IdentityHashMap<IObjRef, IObjRef> alreadyClonedObjRefs = null;
@@ -1213,10 +1213,10 @@ public class RootCache extends AbstractCache<RootCacheValue>
 					}
 					if (runnables == null) {
 						runnables =
-								new ArrayList<IBackgroundWorkerParamDelegate<IdentityHashSet<IObjRef>>>(size);
-						greyListObjRefs = new IdentityHashSet<IObjRef>();
-						alreadyClonedObjRefs = new IdentityHashMap<IObjRef, IObjRef>();
-						tempObjRefList = new ArrayList<IObjRef>();
+								new ArrayList<>(size);
+						greyListObjRefs = new IdentityHashSet<>();
+						alreadyClonedObjRefs = new IdentityHashMap<>();
+						tempObjRefList = new ArrayList<>();
 					}
 					scanForAllKnownRelations(relations, greyListObjRefs);
 
@@ -1241,7 +1241,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 				}
 				else {
 					if (tempObjRefList == null) {
-						tempObjRefList = new ArrayList<IObjRef>(1);
+						tempObjRefList = new ArrayList<>(1);
 						tempObjRefList.add(new ObjRef());
 					}
 					Object cacheHitObject = createObjectFromScratch(metaData, cacheValue, targetCache,
@@ -1499,7 +1499,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 		if (relations.length == 0 || !filteringNecessary) {
 			return relations;
 		}
-		IdentityHashSet<IObjRef> allKnownRelations = new IdentityHashSet<IObjRef>();
+		IdentityHashSet<IObjRef> allKnownRelations = new IdentityHashSet<>();
 		scanForAllKnownRelations(relations, allKnownRelations);
 		if (allKnownRelations.size() == 0) {
 			// nothing to filter
@@ -1514,7 +1514,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 		IObjRef[][] filteredRelations = new IObjRef[relations.length][];
 
 		if (tempList == null) {
-			tempList = new ArrayList<IObjRef>();
+			tempList = new ArrayList<>();
 		}
 		// reuse list instance for performance reasons
 		for (int a = relations.length; a-- > 0;) {
@@ -1658,11 +1658,11 @@ public class RootCache extends AbstractCache<RootCacheValue>
 
 	protected Collection<Object> createCollectionIfRequested(Class<?> expectedType, int size) {
 		if (Set.class.isAssignableFrom(expectedType)) {
-			return new HashSet<Object>((int) (size / AbstractHashSet.DEFAULT_LOAD_FACTOR) + 1,
+			return new HashSet<>((int) (size / AbstractHashSet.DEFAULT_LOAD_FACTOR) + 1,
 					AbstractHashSet.DEFAULT_LOAD_FACTOR);
 		}
 		else if (Collection.class.isAssignableFrom(expectedType)) {
-			return new ArrayList<Object>(size);
+			return new ArrayList<>(size);
 		}
 		return null;
 	}

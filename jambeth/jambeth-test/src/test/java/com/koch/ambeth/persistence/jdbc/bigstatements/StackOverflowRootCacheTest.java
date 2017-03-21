@@ -79,7 +79,7 @@ public class StackOverflowRootCacheTest extends AbstractInformationBusWithPersis
 		Material material;
 		MaterialGroup materialGroup;
 		Unit unit;
-		ArrayList<Object> bigList = new ArrayList<Object>();
+		ArrayList<Object> bigList = new ArrayList<>();
 		for (int a = 400000; a-- > 0;) {
 			material = entityFactory.createEntity(Material.class);
 			material.setName("hugo");

@@ -41,10 +41,10 @@ import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.testutil.TestRebuildContext;
 
-@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/cache/bytecode/EntityBytecodeTest-orm.xml") })
+@TestPropertiesList({@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/cache/bytecode/EntityBytecodeTest-orm.xml")})
 @TestRebuildContext
-public class EntityBytecodeTest extends AbstractInformationBusTest
-{
+public class EntityBytecodeTest extends AbstractInformationBusTest {
 	@LogInstance
 	protected ILogger log;
 
@@ -64,40 +64,39 @@ public class EntityBytecodeTest extends AbstractInformationBusTest
 	protected IProxyHelper proxyHelper;
 
 	@Test
-	public void testValueHolderWithoutField() throws Exception
-	{
+	public void testValueHolderWithoutField() throws Exception {
 		IObjRefContainer testEntity = (IObjRefContainer) entityFactory.createEntity(TestEntity.class);
 		int relationIndex = testEntity.get__EntityMetaData().getIndexByRelationName("ChildrenNoField");
 		Assert.assertFalse(ValueHolderState.INIT == testEntity.get__State(relationIndex));
 	}
 
 	@Test
-	public void testValueHolderWithProtectedField() throws Exception
-	{
+	public void testValueHolderWithProtectedField() throws Exception {
 		IObjRefContainer testEntity = (IObjRefContainer) entityFactory.createEntity(TestEntity.class);
-		int relationIndex = testEntity.get__EntityMetaData().getIndexByRelationName("ChildrenWithProtectedField");
+		int relationIndex =
+				testEntity.get__EntityMetaData().getIndexByRelationName("ChildrenWithProtectedField");
 		Assert.assertFalse(ValueHolderState.INIT == testEntity.get__State(relationIndex));
 	}
 
 	@Test
-	public void testValueHolderWithPrivateField() throws Exception
-	{
+	public void testValueHolderWithPrivateField() throws Exception {
 		IObjRefContainer testEntity = (IObjRefContainer) entityFactory.createEntity(TestEntity.class);
-		int relationIndex = testEntity.get__EntityMetaData().getIndexByRelationName("ChildrenWithPrivateField");
+		int relationIndex =
+				testEntity.get__EntityMetaData().getIndexByRelationName("ChildrenWithPrivateField");
 		Assert.assertFalse(ValueHolderState.INIT == testEntity.get__State(relationIndex));
 	}
 
 	@Test
-	public void testInterfaceEntity() throws Exception
-	{
-		IObjRefContainer testEntity2 = (IObjRefContainer) entityFactory.createEntity(ITestEntity2.class);
-		int relationIndex = testEntity2.get__EntityMetaData().getIndexByRelationName("ChildrenWithProtectedField");
+	public void testInterfaceEntity() throws Exception {
+		IObjRefContainer testEntity2 =
+				(IObjRefContainer) entityFactory.createEntity(ITestEntity2.class);
+		int relationIndex =
+				testEntity2.get__EntityMetaData().getIndexByRelationName("ChildrenWithProtectedField");
 		Assert.assertFalse(ValueHolderState.INIT == testEntity2.get__State(relationIndex));
 	}
 
 	@Test
-	public void testInterfaceEntityReadDate() throws Exception
-	{
+	public void testInterfaceEntityReadDate() throws Exception {
 		ITestEntity2 testEntity = entityFactory.createEntity(ITestEntity2.class);
 
 		testEntity.setMyDate(new Date(System.currentTimeMillis()));
@@ -108,7 +107,8 @@ public class EntityBytecodeTest extends AbstractInformationBusTest
 		rootCache.put(testEntity);
 
 		IObjRefContainer testEntity2 = (IObjRefContainer) testEntity;
-		int relationIndex = testEntity2.get__EntityMetaData().getIndexByRelationName("ChildrenWithProtectedField");
+		int relationIndex =
+				testEntity2.get__EntityMetaData().getIndexByRelationName("ChildrenWithProtectedField");
 
 		Assert.assertFalse(ValueHolderState.INIT == testEntity2.get__State(relationIndex));
 	}

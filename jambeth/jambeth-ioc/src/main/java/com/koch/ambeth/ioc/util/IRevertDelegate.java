@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IRevertDelegate
-{
+public interface IRevertDelegate {
 	void revert();
 }

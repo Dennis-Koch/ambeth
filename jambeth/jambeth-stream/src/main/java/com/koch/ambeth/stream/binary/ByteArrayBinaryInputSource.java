@@ -24,29 +24,24 @@ import java.io.ByteArrayInputStream;
 
 import com.koch.ambeth.stream.IInputStream;
 
-public class ByteArrayBinaryInputSource implements IBinaryInputSource
-{
+public class ByteArrayBinaryInputSource implements IBinaryInputSource {
 	protected final byte[] array;
 
-	public ByteArrayBinaryInputSource(byte[] array)
-	{
+	public ByteArrayBinaryInputSource(byte[] array) {
 		this.array = array;
 	}
 
 	@Override
-	public IInputStream deriveInputStream()
-	{
+	public IInputStream deriveInputStream() {
 		return createIInputStream();
 	}
 
 	@Override
-	public InputStreamToBinaryInputStream deriveBinaryInputStream()
-	{
+	public InputStreamToBinaryInputStream deriveBinaryInputStream() {
 		return createIInputStream();
 	}
 
-	private InputStreamToBinaryInputStream createIInputStream()
-	{
+	private InputStreamToBinaryInputStream createIInputStream() {
 		return new InputStreamToBinaryInputStream(new ByteArrayInputStream(array));
 	}
 }

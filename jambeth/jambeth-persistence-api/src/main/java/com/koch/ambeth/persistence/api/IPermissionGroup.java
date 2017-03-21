@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IPermissionGroup
-{
+public interface IPermissionGroup {
 	ITableMetaData getTable();
 
 	ITableMetaData getTargetTable();

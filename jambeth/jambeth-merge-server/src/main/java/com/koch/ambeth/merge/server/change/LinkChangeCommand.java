@@ -29,52 +29,45 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.IList;
 
-public class LinkChangeCommand extends AbstractChangeCommand implements ILinkChangeCommand
-{
+public class LinkChangeCommand extends AbstractChangeCommand implements ILinkChangeCommand {
 	protected final IDirectedLink link;
 
-	protected IList<IObjRef> refsToLink = EmptyList.<IObjRef> getInstance();
+	protected IList<IObjRef> refsToLink = EmptyList.<IObjRef>getInstance();
 
-	protected IList<IObjRef> refsToUnlink = EmptyList.<IObjRef> getInstance();
+	protected IList<IObjRef> refsToUnlink = EmptyList.<IObjRef>getInstance();
 
 	protected final byte toIdIndex;
 
-	public LinkChangeCommand(IObjRef reference, IDirectedLink link)
-	{
+	public LinkChangeCommand(IObjRef reference, IDirectedLink link) {
 		super(reference);
 		this.link = link;
 		byte fromIdIndex = getDirectedLink().getMetaData().getFromIdIndex();
-		if (!(reference instanceof IDirectObjRef) && fromIdIndex != reference.getIdNameIndex())
-		{
+		if (!(reference instanceof IDirectObjRef) && fromIdIndex != reference.getIdNameIndex()) {
 			throw new IllegalStateException();
 		}
 		toIdIndex = getDirectedLink().getMetaData().getToIdIndex();
 	}
 
 	@Override
-	public IDirectedLink getDirectedLink()
-	{
+	public IDirectedLink getDirectedLink() {
 		return link;
 	}
 
 	@Override
-	public List<IObjRef> getRefsToLink()
-	{
+	public List<IObjRef> getRefsToLink() {
 		return refsToLink;
 	}
 
 	@Override
-	public List<IObjRef> getRefsToUnlink()
-	{
+	public List<IObjRef> getRefsToUnlink() {
 		return refsToUnlink;
 	}
 
 	@Override
-	public IChangeCommand addCommand(IChangeCommand other)
-	{
-		if (!(other instanceof ILinkChangeCommand))
-		{
-			throw new IllegalCommandException("Cannot add create/update/change command to a link command!");
+	public IChangeCommand addCommand(IChangeCommand other) {
+		if (!(other instanceof ILinkChangeCommand)) {
+			throw new IllegalCommandException(
+					"Cannot add create/update/change command to a link command!");
 		}
 		ILinkChangeCommand linkChangeCommand = (ILinkChangeCommand) other;
 		addRefsToLink(linkChangeCommand.getRefsToLink());
@@ -83,47 +76,38 @@ public class LinkChangeCommand extends AbstractChangeCommand implements ILinkCha
 	}
 
 	@Override
-	protected IChangeCommand addCommand(ICreateCommand other)
-	{
+	protected IChangeCommand addCommand(ICreateCommand other) {
 		throw new IllegalCommandException("Cannot add create command to a link command!");
 	}
 
 	@Override
-	protected IChangeCommand addCommand(IUpdateCommand other)
-	{
+	protected IChangeCommand addCommand(IUpdateCommand other) {
 		throw new IllegalCommandException("Cannot add update command to a link command!");
 	}
 
 	@Override
-	protected IChangeCommand addCommand(IDeleteCommand other)
-	{
+	protected IChangeCommand addCommand(IDeleteCommand other) {
 		throw new IllegalCommandException("Cannot add delete command to a link command!");
 	}
 
 	@Override
-	public boolean isReadyToExecute()
-	{
+	public boolean isReadyToExecute() {
 		IList<IObjRef> refs = refsToLink;
-		for (int i = refs.size(); i-- > 0;)
-		{
-			if (refs.get(i).getId() == null)
-			{
+		for (int i = refs.size(); i-- > 0;) {
+			if (refs.get(i).getId() == null) {
 				return false;
 			}
 		}
 		refs = refsToUnlink;
-		for (int i = refs.size(); i-- > 0;)
-		{
-			if (refs.get(i).getId() == null)
-			{
+		for (int i = refs.size(); i-- > 0;) {
+			if (refs.get(i).getId() == null) {
 				return false;
 			}
 		}
 		return true;
 	}
 
-	protected void checkCorrectIdIndex(IObjRef objRef)
-	{
+	protected void checkCorrectIdIndex(IObjRef objRef) {
 		// if (objRef instanceof IDirectObjRef && ((IDirectObjRef) objRef).getDirect() != null)
 		// {
 		// return;
@@ -135,40 +119,32 @@ public class LinkChangeCommand extends AbstractChangeCommand implements ILinkCha
 		// }
 	}
 
-	public void addRefsToLink(IObjRef[] addedORIs)
-	{
-		if (addedORIs.length == 0)
-		{
+	public void addRefsToLink(IObjRef[] addedORIs) {
+		if (addedORIs.length == 0) {
 			return;
 		}
 		IList<IObjRef> refsToLink = this.refsToLink;
-		if (refsToLink.size() == 0)
-		{
-			refsToLink = new ArrayList<IObjRef>();
+		if (refsToLink.size() == 0) {
+			refsToLink = new ArrayList<>();
 			this.refsToLink = refsToLink;
 		}
-		for (IObjRef addedORI : addedORIs)
-		{
+		for (IObjRef addedORI : addedORIs) {
 			checkCorrectIdIndex(addedORI);
 			refsToLink.add(addedORI);
 		}
 		// refsToLink.addAll(addedORIs);
 	}
 
-	public void addRefsToLink(List<IObjRef> addedORIs)
-	{
-		if (addedORIs.size() == 0)
-		{
+	public void addRefsToLink(List<IObjRef> addedORIs) {
+		if (addedORIs.size() == 0) {
 			return;
 		}
 		IList<IObjRef> refsToLink = this.refsToLink;
-		if (refsToLink.size() == 0)
-		{
-			refsToLink = new ArrayList<IObjRef>();
+		if (refsToLink.size() == 0) {
+			refsToLink = new ArrayList<>();
 			this.refsToLink = refsToLink;
 		}
-		for (int a = 0, size = addedORIs.size(); a < size; a++)
-		{
+		for (int a = 0, size = addedORIs.size(); a < size; a++) {
 			IObjRef addedObjRef = addedORIs.get(a);
 			checkCorrectIdIndex(addedObjRef);
 			refsToLink.add(addedObjRef);
@@ -176,52 +152,42 @@ public class LinkChangeCommand extends AbstractChangeCommand implements ILinkCha
 		// refsToLink.addAll(addedORIs);
 	}
 
-	public void addRefToLink(IObjRef addedObjRef)
-	{
+	public void addRefToLink(IObjRef addedObjRef) {
 		IList<IObjRef> refsToLink = this.refsToLink;
-		if (refsToLink.size() == 0)
-		{
-			refsToLink = new ArrayList<IObjRef>();
+		if (refsToLink.size() == 0) {
+			refsToLink = new ArrayList<>();
 			this.refsToLink = refsToLink;
 		}
 		checkCorrectIdIndex(addedObjRef);
 		refsToLink.add(addedObjRef);
 	}
 
-	public void addRefsToUnlink(IObjRef[] removedORIs)
-	{
-		if (removedORIs.length == 0)
-		{
+	public void addRefsToUnlink(IObjRef[] removedORIs) {
+		if (removedORIs.length == 0) {
 			return;
 		}
 		IList<IObjRef> refsToUnlink = this.refsToUnlink;
-		if (refsToUnlink.size() == 0)
-		{
-			refsToUnlink = new ArrayList<IObjRef>();
+		if (refsToUnlink.size() == 0) {
+			refsToUnlink = new ArrayList<>();
 			this.refsToUnlink = refsToUnlink;
 		}
-		for (IObjRef removedORI : removedORIs)
-		{
+		for (IObjRef removedORI : removedORIs) {
 			checkCorrectIdIndex(removedORI);
 			refsToUnlink.add(removedORI);
 		}
 		// refsToUnlink.addAll(removedORIs);
 	}
 
-	public void addRefsToUnlink(List<IObjRef> removedORIs)
-	{
-		if (removedORIs.size() == 0)
-		{
+	public void addRefsToUnlink(List<IObjRef> removedORIs) {
+		if (removedORIs.size() == 0) {
 			return;
 		}
 		IList<IObjRef> refsToUnlink = this.refsToUnlink;
-		if (refsToUnlink.size() == 0)
-		{
-			refsToUnlink = new ArrayList<IObjRef>();
+		if (refsToUnlink.size() == 0) {
+			refsToUnlink = new ArrayList<>();
 			this.refsToUnlink = refsToUnlink;
 		}
-		for (int a = 0, size = removedORIs.size(); a < size; a++)
-		{
+		for (int a = 0, size = removedORIs.size(); a < size; a++) {
 			IObjRef removedORI = removedORIs.get(a);
 			checkCorrectIdIndex(removedORI);
 			refsToUnlink.add(removedORI);
@@ -229,12 +195,10 @@ public class LinkChangeCommand extends AbstractChangeCommand implements ILinkCha
 		// refsToUnlink.addAll(removedORIs);
 	}
 
-	public void addRefToUnlink(IObjRef removedObjRef)
-	{
+	public void addRefToUnlink(IObjRef removedObjRef) {
 		IList<IObjRef> refsToUnlink = this.refsToUnlink;
-		if (refsToUnlink.size() == 0)
-		{
-			refsToUnlink = new ArrayList<IObjRef>();
+		if (refsToUnlink.size() == 0) {
+			refsToUnlink = new ArrayList<>();
 			this.refsToUnlink = refsToUnlink;
 		}
 		checkCorrectIdIndex(removedObjRef);

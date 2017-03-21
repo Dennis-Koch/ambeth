@@ -22,7 +22,6 @@ limitations under the License.
 
 import java.util.List;
 
-public interface IEventStore
-{
+public interface IEventStore {
 	void addEvents(List<Object> eventObjects);
 }

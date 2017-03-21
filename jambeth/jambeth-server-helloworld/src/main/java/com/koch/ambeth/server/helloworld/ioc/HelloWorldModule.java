@@ -32,17 +32,18 @@ import com.koch.ambeth.server.helloworld.service.IHelloWorldService;
 import com.koch.ambeth.server.helloworld.transfer.TestEntity;
 
 @BootstrapModule
-public class HelloWorldModule implements IInitializingModule
-{
+public class HelloWorldModule implements IInitializingModule {
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		beanContextFactory.registerBean("testEntityService", HelloWorldService.class).autowireable(IHelloWorldService.class);
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		beanContextFactory.registerBean("testEntityService", HelloWorldService.class)
+				.autowireable(IHelloWorldService.class);
 
 		beanContextFactory.registerBean("randomDataGenerator", RandomDataGenerator.class);
-		beanContextFactory.link("randomDataGenerator").to(IJobExtendable.class).with("randomDataGenerator", "* * * * *");
+		beanContextFactory.link("randomDataGenerator").to(IJobExtendable.class)
+				.with("randomDataGenerator", "* * * * *");
 
 		beanContextFactory.registerBean("testEntityPPE", TestEntityPrivilegeProvider.class);
-		beanContextFactory.link("testEntityPPE").to(IEntityPermissionRuleExtendable.class).with(TestEntity.class);
+		beanContextFactory.link("testEntityPPE").to(IEntityPermissionRuleExtendable.class)
+				.with(TestEntity.class);
 	}
 }

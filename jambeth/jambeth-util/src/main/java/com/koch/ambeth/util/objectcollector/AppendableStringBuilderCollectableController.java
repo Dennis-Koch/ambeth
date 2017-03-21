@@ -22,25 +22,20 @@ limitations under the License.
 
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 
-public class AppendableStringBuilderCollectableController implements ICollectableController
-{
+public class AppendableStringBuilderCollectableController implements ICollectableController {
 	@Override
-	public Object createInstance()
-	{
+	public Object createInstance() {
 		return new AppendableStringBuilder(new StringBuilder());
 	}
 
 	@Override
-	public void initObject(Object object)
-	{
+	public void initObject(Object object) {
 		// Intended blank
 	}
 
 	@Override
-	public void disposeObject(Object object)
-	{
-		if (object != null)
-		{
+	public void disposeObject(Object object) {
+		if (object != null) {
 			((AppendableStringBuilder) object).reset();
 		}
 	}

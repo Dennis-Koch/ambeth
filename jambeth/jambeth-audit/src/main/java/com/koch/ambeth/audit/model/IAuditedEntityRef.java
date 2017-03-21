@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.security.audit.model.Audited;
 
 @Audited(false)
-public interface IAuditedEntityRef
-{
+public interface IAuditedEntityRef {
 	public static final String EntityId = "EntityId";
 
 	public static final String EntityType = "EntityType";

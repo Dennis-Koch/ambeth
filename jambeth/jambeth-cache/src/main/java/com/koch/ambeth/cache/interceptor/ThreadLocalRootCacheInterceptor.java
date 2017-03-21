@@ -32,8 +32,7 @@ import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
 import net.sf.cglib.proxy.MethodProxy;
 
-public class ThreadLocalRootCacheInterceptor extends AbstractRootCacheAwareInterceptor
-{
+public class ThreadLocalRootCacheInterceptor extends AbstractRootCacheAwareInterceptor {
 	protected static final Method clearMethod = AbstractRootCacheAwareInterceptor.clearMethod;
 
 	@SuppressWarnings("unused")
@@ -44,31 +43,26 @@ public class ThreadLocalRootCacheInterceptor extends AbstractRootCacheAwareInter
 	protected boolean privileged;
 
 	@Forkable
-	protected final ThreadLocal<RootCache> rootCacheTL = new SensitiveThreadLocal<RootCache>();
+	protected final ThreadLocal<RootCache> rootCacheTL = new SensitiveThreadLocal<>();
 
-	protected IRootCache getCurrentRootCache()
-	{
+	protected IRootCache getCurrentRootCache() {
 		IRootCache rootCache = getCurrentRootCacheIfValid();
-		if (rootCache == null)
-		{
+		if (rootCache == null) {
 			rootCache = acquireRootCache(privileged, rootCacheTL);
 		}
 		return rootCache;
 	}
 
-	protected IRootCache getCurrentRootCacheIfValid()
-	{
+	protected IRootCache getCurrentRootCacheIfValid() {
 		return rootCacheTL.get();
 	}
 
 	@Override
-	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
-	{
-		if (clearMethod.equals(method))
-		{
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy)
+			throws Throwable {
+		if (clearMethod.equals(method)) {
 			IRootCache rootCache = getCurrentRootCacheIfValid();
-			if (rootCache == null)
-			{
+			if (rootCache == null) {
 				// Nothing to do
 				return null;
 			}
@@ -78,8 +72,7 @@ public class ThreadLocalRootCacheInterceptor extends AbstractRootCacheAwareInter
 	}
 
 	@Override
-	public void cleanupThreadLocal()
-	{
+	public void cleanupThreadLocal() {
 		disposeCurrentRootCache(rootCacheTL);
 	}
 }

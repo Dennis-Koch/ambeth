@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IBeanContextHolderFactory<V>
-{
+public interface IBeanContextHolderFactory<V> {
 	IBeanContextHolder<V> create();
 
 	IBeanContextHolder<V> create(Object... autowireableSourceBeans);

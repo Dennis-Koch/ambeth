@@ -23,8 +23,7 @@ limitations under the License.
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 
-public interface IAnnotationInfo<A extends Annotation>
-{
+public interface IAnnotationInfo<A extends Annotation> {
 	A getAnnotation();
 
 	AnnotatedElement getAnnotatedElement();

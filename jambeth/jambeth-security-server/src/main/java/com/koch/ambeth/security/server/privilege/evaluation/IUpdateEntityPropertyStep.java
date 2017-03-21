@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IUpdateEntityPropertyStep
-{
+public interface IUpdateEntityPropertyStep {
 	IDeleteEntityPropertyStep allowUpdateProperty();
 
 	IDeleteEntityPropertyStep skipUpdateProperty();

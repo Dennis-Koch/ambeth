@@ -41,8 +41,7 @@ import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.SmartCopySet;
 
-public class EntityMetaData implements IEntityMetaData
-{
+public class EntityMetaData implements IEntityMetaData {
 	public static final String DEFAULT_NAME_ID = "Id";
 
 	public static final String DEFAULT_NAME_VERSION = "Version";
@@ -63,7 +62,8 @@ public class EntityMetaData implements IEntityMetaData
 
 	public static final RelationMember[] emptyRelationMembers = new RelationMember[0];
 
-	public static final IEntityLifecycleExtension[] emptyEntityLifecycleExtensions = new IEntityLifecycleExtension[0];
+	public static final IEntityLifecycleExtension[] emptyEntityLifecycleExtensions =
+			new IEntityLifecycleExtension[0];
 
 	protected Class<?> entityType;
 
@@ -75,9 +75,9 @@ public class EntityMetaData implements IEntityMetaData
 
 	protected Class<?>[] typesRelatingToThis = emptyTypes;
 
-	protected final HashSet<Class<?>> typesRelatingToThisSet = new HashSet<Class<?>>(0.5f);
+	protected final HashSet<Class<?>> typesRelatingToThisSet = new HashSet<>(0.5f);
 
-	protected final HashSet<Class<?>> cascadeDeleteTypes = new HashSet<Class<?>>(0.5f);
+	protected final HashSet<Class<?>> cascadeDeleteTypes = new HashSet<>(0.5f);
 
 	protected IEntityLifecycleExtension[] entityLifecycleExtensions = emptyEntityLifecycleExtensions;
 
@@ -105,472 +105,395 @@ public class EntityMetaData implements IEntityMetaData
 
 	protected int[][] alternateIdMemberIndicesInPrimitives = emptyShortArray;
 
-	protected final HashSet<Member> fulltextMemberSet = new HashSet<Member>(0.5f);
+	protected final HashSet<Member> fulltextMemberSet = new HashSet<>(0.5f);
 
-	protected final HashSet<Member> alternateIdMemberSet = new HashSet<Member>(0.5f);
+	protected final HashSet<Member> alternateIdMemberSet = new HashSet<>(0.5f);
 
-	protected final SmartCopySet<Member> interningMemberSet = new SmartCopySet<Member>(0.5f);
+	protected final SmartCopySet<Member> interningMemberSet = new SmartCopySet<>(0.5f);
 
-	protected final HashMap<String, Member> nameToMemberDict = new HashMap<String, Member>(0.5f);
+	protected final HashMap<String, Member> nameToMemberDict = new HashMap<>(0.5f);
 
-	protected final HashMap<Member, Boolean> memberToMergeRelevanceDict = new HashMap<Member, Boolean>(0.5f);
+	protected final HashMap<Member, Boolean> memberToMergeRelevanceDict =
+			new HashMap<>(0.5f);
 
-	protected final HashMap<String, Byte> memberNameToIdIndexDict = new HashMap<String, Byte>(0.5f);
+	protected final HashMap<String, Byte> memberNameToIdIndexDict = new HashMap<>(0.5f);
 
-	protected final HashMap<String, Integer> relMemberNameToIndexDict = new HashMap<String, Integer>(0.5f);
+	protected final HashMap<String, Integer> relMemberNameToIndexDict =
+			new HashMap<>(0.5f);
 
-	protected final HashMap<String, Integer> primMemberNameToIndexDict = new HashMap<String, Integer>(0.5f);
+	protected final HashMap<String, Integer> primMemberNameToIndexDict =
+			new HashMap<>(0.5f);
 
-	protected final IdentityHashMap<RelationMember, Integer> relMemberToIndexDict = new IdentityHashMap<RelationMember, Integer>(0.5f);
+	protected final IdentityHashMap<RelationMember, Integer> relMemberToIndexDict =
+			new IdentityHashMap<>(0.5f);
 
-	protected final IdentityHashMap<Member, Integer> primMemberToIndexDict = new IdentityHashMap<Member, Integer>(0.5f);
+	protected final IdentityHashMap<Member, Integer> primMemberToIndexDict =
+			new IdentityHashMap<>(0.5f);
 
 	protected ICacheModification cacheModification;
 
 	protected IEntityFactory entityFactory;
 
-	public void setEntityType(Class<?> entityType)
-	{
+	public void setEntityType(Class<?> entityType) {
 		this.entityType = entityType;
 	}
 
 	@Override
-	public Class<?> getEntityType()
-	{
+	public Class<?> getEntityType() {
 		return entityType;
 	}
 
-	public void setRealType(Class<?> realType)
-	{
+	public void setRealType(Class<?> realType) {
 		this.realType = realType;
 	}
 
 	@Override
-	public Class<?> getRealType()
-	{
+	public Class<?> getRealType() {
 		return realType;
 	}
 
-	public void setEnhancedType(Class<?> enhancedType)
-	{
+	public void setEnhancedType(Class<?> enhancedType) {
 		this.enhancedType = enhancedType;
 	}
 
 	@Override
-	public Class<?> getEnhancedType()
-	{
+	public Class<?> getEnhancedType() {
 		return enhancedType;
 	}
 
 	@Override
-	public boolean isLocalEntity()
-	{
+	public boolean isLocalEntity() {
 		return localEntity;
 	}
 
-	public void setLocalEntity(boolean localEntity)
-	{
+	public void setLocalEntity(boolean localEntity) {
 		this.localEntity = localEntity;
 	}
 
 	@Override
-	public PrimitiveMember getIdMember()
-	{
+	public PrimitiveMember getIdMember() {
 		return idMember;
 	}
 
-	public void setIdMember(PrimitiveMember idMember)
-	{
+	public void setIdMember(PrimitiveMember idMember) {
 		this.idMember = idMember;
 	}
 
 	@Override
-	public PrimitiveMember getIdMemberByIdIndex(int idIndex)
-	{
-		if (idIndex == ObjRef.PRIMARY_KEY_INDEX)
-		{
+	public PrimitiveMember getIdMemberByIdIndex(int idIndex) {
+		if (idIndex == ObjRef.PRIMARY_KEY_INDEX) {
 			return idMember;
 		}
 		return getAlternateIdMembers()[idIndex];
 	}
 
 	@Override
-	public PrimitiveMember getVersionMember()
-	{
+	public PrimitiveMember getVersionMember() {
 		return versionMember;
 	}
 
-	public void setVersionMember(PrimitiveMember versionMember)
-	{
+	public void setVersionMember(PrimitiveMember versionMember) {
 		this.versionMember = versionMember;
 	}
 
 	@Override
-	public PrimitiveMember[] getAlternateIdMembers()
-	{
+	public PrimitiveMember[] getAlternateIdMembers() {
 		return alternateIdMembers;
 	}
 
-	public void setAlternateIdMembers(PrimitiveMember[] alternateIdMembers)
-	{
+	public void setAlternateIdMembers(PrimitiveMember[] alternateIdMembers) {
 		this.alternateIdMembers = alternateIdMembers;
 		alternateIdMemberSet.clear();
-		if (alternateIdMembers != null)
-		{
+		if (alternateIdMembers != null) {
 			alternateIdMemberSet.addAll(alternateIdMembers);
 		}
 	}
 
 	@Override
-	public int[][] getAlternateIdMemberIndicesInPrimitives()
-	{
+	public int[][] getAlternateIdMemberIndicesInPrimitives() {
 		return alternateIdMemberIndicesInPrimitives;
 	}
 
 	@Override
-	public int getAlternateIdCount()
-	{
+	public int getAlternateIdCount() {
 		return alternateIdMembers.length;
 	}
 
 	@Override
-	public boolean isAlternateId(Member primitiveMember)
-	{
+	public boolean isAlternateId(Member primitiveMember) {
 		return alternateIdMemberSet.contains(primitiveMember);
 	}
 
 	@Override
-	public byte getIdIndexByMemberName(String memberName)
-	{
+	public byte getIdIndexByMemberName(String memberName) {
 		Byte value = memberNameToIdIndexDict.get(memberName);
-		if (value == null)
-		{
-			throw new IllegalArgumentException("No alternate id index found for member name '" + memberName + "'");
+		if (value == null) {
+			throw new IllegalArgumentException(
+					"No alternate id index found for member name '" + memberName + "'");
 		}
 		return value.byteValue();
 	}
 
 	@Override
-	public boolean hasInterningBehavior(Member primitiveMember)
-	{
+	public boolean hasInterningBehavior(Member primitiveMember) {
 		return interningMemberSet.contains(primitiveMember);
 	}
 
 	@Override
-	public void changeInterningBehavior(Member primitiveMember, boolean state)
-	{
-		if (state)
-		{
+	public void changeInterningBehavior(Member primitiveMember, boolean state) {
+		if (state) {
 			interningMemberSet.add(primitiveMember);
 		}
-		else
-		{
+		else {
 			interningMemberSet.remove(primitiveMember);
 		}
 	}
 
 	@Override
-	public PrimitiveMember getCreatedOnMember()
-	{
+	public PrimitiveMember getCreatedOnMember() {
 		return createdOn;
 	}
 
-	public void setCreatedOnMember(PrimitiveMember createdOn)
-	{
+	public void setCreatedOnMember(PrimitiveMember createdOn) {
 		this.createdOn = createdOn;
 	}
 
 	@Override
-	public PrimitiveMember getCreatedByMember()
-	{
+	public PrimitiveMember getCreatedByMember() {
 		return createdBy;
 	}
 
-	public void setCreatedByMember(PrimitiveMember createdBy)
-	{
+	public void setCreatedByMember(PrimitiveMember createdBy) {
 		this.createdBy = createdBy;
 	}
 
 	@Override
-	public PrimitiveMember getUpdatedOnMember()
-	{
+	public PrimitiveMember getUpdatedOnMember() {
 		return updatedOn;
 	}
 
-	public void setUpdatedOnMember(PrimitiveMember updatedOn)
-	{
+	public void setUpdatedOnMember(PrimitiveMember updatedOn) {
 		this.updatedOn = updatedOn;
 	}
 
 	@Override
-	public PrimitiveMember getUpdatedByMember()
-	{
+	public PrimitiveMember getUpdatedByMember() {
 		return updatedBy;
 	}
 
-	public void setUpdatedByMember(PrimitiveMember updatedBy)
-	{
+	public void setUpdatedByMember(PrimitiveMember updatedBy) {
 		this.updatedBy = updatedBy;
 	}
 
 	@Override
-	public PrimitiveMember[] getFulltextMembers()
-	{
+	public PrimitiveMember[] getFulltextMembers() {
 		return fulltextMembers;
 	}
 
-	public void setFulltextMembers(PrimitiveMember[] fulltextMembers)
-	{
+	public void setFulltextMembers(PrimitiveMember[] fulltextMembers) {
 		this.fulltextMembers = fulltextMembers;
 	}
 
 	@Override
-	public PrimitiveMember[] getPrimitiveMembers()
-	{
+	public PrimitiveMember[] getPrimitiveMembers() {
 		return primitiveMembers;
 	}
 
-	public void setPrimitiveMembers(PrimitiveMember[] primitiveMembers)
-	{
+	public void setPrimitiveMembers(PrimitiveMember[] primitiveMembers) {
 		this.primitiveMembers = primitiveMembers;
 	}
 
 	@Override
-	public RelationMember[] getRelationMembers()
-	{
+	public RelationMember[] getRelationMembers() {
 		return relationMembers;
 	}
 
-	public void setRelationMembers(RelationMember[] relationMembers)
-	{
+	public void setRelationMembers(RelationMember[] relationMembers) {
 		this.relationMembers = relationMembers;
 	}
 
-	public Set<Class<?>> getCascadeDeleteTypes()
-	{
+	public Set<Class<?>> getCascadeDeleteTypes() {
 		return cascadeDeleteTypes;
 	}
 
 	@Override
-	public boolean isFulltextRelevant(Member member)
-	{
+	public boolean isFulltextRelevant(Member member) {
 		return fulltextMemberSet.contains(member);
 	}
 
 	@Override
-	public boolean isMergeRelevant(Member member)
-	{
+	public boolean isMergeRelevant(Member member) {
 		Boolean relevance = memberToMergeRelevanceDict.get(member);
 		return relevance == null || relevance.booleanValue();
 	}
 
-	public void setMergeRelevant(Member member, boolean relevant)
-	{
+	public void setMergeRelevant(Member member, boolean relevant) {
 		memberToMergeRelevanceDict.put(member, Boolean.valueOf(relevant));
 	}
 
 	@Override
-	public Member getMemberByName(String memberName)
-	{
+	public Member getMemberByName(String memberName) {
 		return nameToMemberDict.get(memberName);
 	}
 
 	@Override
-	public int getIndexByRelationName(String relationMemberName)
-	{
+	public int getIndexByRelationName(String relationMemberName) {
 		Integer index = relMemberNameToIndexDict.get(relationMemberName);
-		if (index == null)
-		{
-			throw new IllegalArgumentException("No index found for relation member: " + relationMemberName);
+		if (index == null) {
+			throw new IllegalArgumentException(
+					"No index found for relation member: " + relationMemberName);
 		}
 		return index.intValue();
 	}
 
 	@Override
-	public boolean isPrimitiveMember(String primitiveMemberName)
-	{
+	public boolean isPrimitiveMember(String primitiveMemberName) {
 		return primMemberNameToIndexDict.containsKey(primitiveMemberName);
 	}
 
 	@Override
-	public boolean isRelationMember(String relationMemberName)
-	{
+	public boolean isRelationMember(String relationMemberName) {
 		return relMemberNameToIndexDict.containsKey(relationMemberName);
 	}
 
 	@Override
-	public int getIndexByRelation(Member relationMember)
-	{
+	public int getIndexByRelation(Member relationMember) {
 		Integer index = relMemberToIndexDict.get(relationMember);
-		if (index == null)
-		{
+		if (index == null) {
 			throw new IllegalArgumentException("No index found for relation member: " + relationMember);
 		}
 		return index.intValue();
 	}
 
 	@Override
-	public int getIndexByPrimitiveName(String primitiveMemberName)
-	{
+	public int getIndexByPrimitiveName(String primitiveMemberName) {
 		Integer index = primMemberNameToIndexDict.get(primitiveMemberName);
-		if (index == null)
-		{
-			throw new IllegalArgumentException("No index found for primitive member: " + primitiveMemberName);
+		if (index == null) {
+			throw new IllegalArgumentException(
+					"No index found for primitive member: " + primitiveMemberName);
 		}
 		return index.intValue();
 	}
 
 	@Override
-	public int getIndexByPrimitive(Member primitiveMember)
-	{
+	public int getIndexByPrimitive(Member primitiveMember) {
 		Integer index = primMemberToIndexDict.get(primitiveMember);
-		if (index == null)
-		{
+		if (index == null) {
 			throw new IllegalArgumentException("No index found for primitive member: " + primitiveMember);
 		}
 		return index.intValue();
 	}
 
 	@Override
-	public Class<?>[] getTypesRelatingToThis()
-	{
+	public Class<?>[] getTypesRelatingToThis() {
 		return typesRelatingToThis;
 	}
 
 	@Override
-	public boolean isRelatingToThis(Class<?> childType)
-	{
+	public boolean isRelatingToThis(Class<?> childType) {
 		return typesRelatingToThisSet.contains(childType);
 	}
 
-	public void setTypesRelatingToThis(Class<?>[] typesRelatingToThis)
-	{
+	public void setTypesRelatingToThis(Class<?>[] typesRelatingToThis) {
 		this.typesRelatingToThis = typesRelatingToThis;
 	}
 
 	@Override
-	public boolean isCascadeDelete(Class<?> other)
-	{
+	public boolean isCascadeDelete(Class<?> other) {
 		return cascadeDeleteTypes.contains(other);
 	}
 
-	public void addCascadeDeleteType(Class<?> type)
-	{
+	public void addCascadeDeleteType(Class<?> type) {
 		cascadeDeleteTypes.add(type);
 	}
 
 	@Override
-	public void postProcessNewEntity(Object newEntity)
-	{
+	public void postProcessNewEntity(Object newEntity) {
 		PrimitiveMember[] primitiveToManyMembers = this.primitiveToManyMembers;
-		if (primitiveToManyMembers.length > 0)
-		{
+		if (primitiveToManyMembers.length > 0) {
 			boolean oldInternalUpdate = cacheModification.isInternalUpdate();
-			if (!oldInternalUpdate)
-			{
+			if (!oldInternalUpdate) {
 				cacheModification.setInternalUpdate(true);
 			}
-			try
-			{
-				for (PrimitiveMember primitiveMember : primitiveToManyMembers)
-				{
-					primitiveMember.setValue(newEntity, ListUtil.createObservableCollectionOfType(primitiveMember.getRealType()));
+			try {
+				for (PrimitiveMember primitiveMember : primitiveToManyMembers) {
+					primitiveMember.setValue(newEntity,
+							ListUtil.createObservableCollectionOfType(primitiveMember.getRealType()));
 				}
 			}
-			finally
-			{
-				if (!oldInternalUpdate)
-				{
+			finally {
+				if (!oldInternalUpdate) {
 					cacheModification.setInternalUpdate(false);
 				}
 			}
 		}
-		for (IEntityLifecycleExtension entityLifecycleExtension : entityLifecycleExtensions)
-		{
+		for (IEntityLifecycleExtension entityLifecycleExtension : entityLifecycleExtensions) {
 			entityLifecycleExtension.postCreate(this, newEntity);
 		}
 	}
 
 	@Override
-	public void postLoad(Object entity)
-	{
-		for (IEntityLifecycleExtension entityLifecycleExtension : entityLifecycleExtensions)
-		{
+	public void postLoad(Object entity) {
+		for (IEntityLifecycleExtension entityLifecycleExtension : entityLifecycleExtensions) {
 			entityLifecycleExtension.postLoad(this, entity);
 		}
 	}
 
 	@Override
-	public void prePersist(Object entity)
-	{
-		for (IEntityLifecycleExtension entityLifecycleExtension : entityLifecycleExtensions)
-		{
+	public void prePersist(Object entity) {
+		for (IEntityLifecycleExtension entityLifecycleExtension : entityLifecycleExtensions) {
 			entityLifecycleExtension.prePersist(this, entity);
 		}
 	}
 
-	public IEntityLifecycleExtension[] getEntityLifecycleExtensions()
-	{
+	public IEntityLifecycleExtension[] getEntityLifecycleExtensions() {
 		return entityLifecycleExtensions;
 	}
 
-	public void setEntityLifecycleExtensions(IEntityLifecycleExtension[] entityLifecycleExtensions)
-	{
-		if (entityLifecycleExtensions == null || entityLifecycleExtensions.length == 0)
-		{
+	public void setEntityLifecycleExtensions(IEntityLifecycleExtension[] entityLifecycleExtensions) {
+		if (entityLifecycleExtensions == null || entityLifecycleExtensions.length == 0) {
 			entityLifecycleExtensions = emptyEntityLifecycleExtensions;
 		}
 		this.entityLifecycleExtensions = entityLifecycleExtensions;
 	}
 
-	public void initialize(ICacheModification cacheModification, IEntityFactory entityFactory)
-	{
+	public void initialize(ICacheModification cacheModification, IEntityFactory entityFactory) {
 		this.cacheModification = cacheModification;
 		this.entityFactory = entityFactory;
-		if (primitiveMembers == null)
-		{
+		if (primitiveMembers == null) {
 			primitiveMembers = emptyPrimitiveMembers;
 		}
-		else
-		{
+		else {
 			// Arrays.sort(primitiveMembers, typeInfoItemComparator);
 		}
-		ArrayList<PrimitiveMember> primitiveToManyMembers = new ArrayList<PrimitiveMember>();
-		for (PrimitiveMember primitiveMember : getPrimitiveMembers())
-		{
-			if (primitiveMember.isToMany())
-			{
+		ArrayList<PrimitiveMember> primitiveToManyMembers = new ArrayList<>();
+		for (PrimitiveMember primitiveMember : getPrimitiveMembers()) {
+			if (primitiveMember.isToMany()) {
 				primitiveToManyMembers.add(primitiveMember);
 			}
 		}
 		this.primitiveToManyMembers = primitiveToManyMembers.toArray(PrimitiveMember.class);
 
-		if (relationMembers == null)
-		{
+		if (relationMembers == null) {
 			relationMembers = emptyRelationMembers;
 		}
-		else
-		{
+		else {
 			// Arrays.sort(relationMembers, typeInfoItemComparator);
 		}
 
-		if (alternateIdMembers == null)
-		{
+		if (alternateIdMembers == null) {
 			alternateIdMembers = emptyPrimitiveMembers;
 		}
-		else
-		{
+		else {
 			// Arrays.sort(alternateIdMembers, typeInfoItemComparator);
 		}
 
-		if (fulltextMembers == null)
-		{
+		if (fulltextMembers == null) {
 			fulltextMembers = emptyPrimitiveMembers;
 		}
 
 		fulltextMemberSet.clear();
-		for (int a = fulltextMembers.length; a-- > 0;)
-		{
+		for (int a = fulltextMembers.length; a-- > 0;) {
 			fulltextMemberSet.add(fulltextMembers[a]);
 		}
 		nameToMemberDict.clear();
@@ -578,101 +501,84 @@ public class EntityMetaData implements IEntityMetaData
 		relMemberNameToIndexDict.clear();
 		primMemberToIndexDict.clear();
 		primMemberNameToIndexDict.clear();
-		if (getIdMember() != null)
-		{
+		if (getIdMember() != null) {
 			PrimitiveMember idMember = getIdMember();
 			nameToMemberDict.put(idMember.getName(), idMember);
-			if (idMember instanceof CompositeIdMember)
-			{
-				for (PrimitiveMember member : ((CompositeIdMember) idMember).getMembers())
-				{
+			if (idMember instanceof CompositeIdMember) {
+				for (PrimitiveMember member : ((CompositeIdMember) idMember).getMembers()) {
 					nameToMemberDict.put(member.getName(), member);
 				}
 			}
 		}
-		if (getVersionMember() != null)
-		{
+		if (getVersionMember() != null) {
 			nameToMemberDict.put(getVersionMember().getName(), getVersionMember());
 		}
-		for (int a = primitiveMembers.length; a-- > 0;)
-		{
+		for (int a = primitiveMembers.length; a-- > 0;) {
 			Member member = primitiveMembers[a];
-			if (nameToMemberDict.put(member.getName(), member) != null)
-			{
-				throw new IllegalArgumentException("Duplicate property: " + entityType.getName() + "." + member.getName());
+			if (nameToMemberDict.put(member.getName(), member) != null) {
+				throw new IllegalArgumentException(
+						"Duplicate property: " + entityType.getName() + "." + member.getName());
 			}
 			primMemberNameToIndexDict.put(member.getName(), Integer.valueOf(a));
 			primMemberToIndexDict.put(member, Integer.valueOf(a));
 
-			if (member == getIdMember() || member == getVersionMember() || member == getUpdatedByMember() || member == getUpdatedOnMember()
-					|| member == getCreatedByMember() || member == getCreatedOnMember())
-			{
+			if (member == getIdMember() || member == getVersionMember() || member == getUpdatedByMember()
+					|| member == getUpdatedOnMember() || member == getCreatedByMember()
+					|| member == getCreatedOnMember()) {
 				// technical members must never be merge relevant
 				setMergeRelevant(member, false);
 			}
 		}
-		for (int a = relationMembers.length; a-- > 0;)
-		{
+		for (int a = relationMembers.length; a-- > 0;) {
 			RelationMember member = relationMembers[a];
-			if (nameToMemberDict.put(member.getName(), member) != null)
-			{
-				throw new IllegalArgumentException("Duplicate relation property: " + entityType.getName() + "." + member.getName());
+			if (nameToMemberDict.put(member.getName(), member) != null) {
+				throw new IllegalArgumentException(
+						"Duplicate relation property: " + entityType.getName() + "." + member.getName());
 			}
 			relMemberNameToIndexDict.put(member.getName(), Integer.valueOf(a));
 			relMemberToIndexDict.put(member, Integer.valueOf(a));
 		}
 		memberNameToIdIndexDict.clear();
-		if (getIdMember() != null)
-		{
+		if (getIdMember() != null) {
 			memberNameToIdIndexDict.put(getIdMember().getName(), Byte.valueOf(ObjRef.PRIMARY_KEY_INDEX));
 		}
 		alternateIdMemberIndicesInPrimitives = new int[alternateIdMembers.length][];
 
-		for (int idIndex = alternateIdMembers.length; idIndex-- > 0;)
-		{
+		for (int idIndex = alternateIdMembers.length; idIndex-- > 0;) {
 			int[] compositeIndex = null;
 			Member alternateIdMember = alternateIdMembers[idIndex];
 			Member[] memberItems;
-			if (alternateIdMember instanceof CompositeIdMember)
-			{
+			if (alternateIdMember instanceof CompositeIdMember) {
 				memberItems = ((CompositeIdMember) alternateIdMember).getMembers();
 			}
-			else
-			{
-				memberItems = new Member[] { alternateIdMember };
+			else {
+				memberItems = new Member[] {alternateIdMember};
 			}
 			compositeIndex = new int[memberItems.length];
 
-			for (int compositePosition = compositeIndex.length; compositePosition-- > 0;)
-			{
+			for (int compositePosition = compositeIndex.length; compositePosition-- > 0;) {
 				compositeIndex[compositePosition] = -1;
 				Member memberItem = memberItems[compositePosition];
-				for (int primitiveIndex = primitiveMembers.length; primitiveIndex-- > 0;)
-				{
-					if (memberItem.equals(primitiveMembers[primitiveIndex]))
-					{
+				for (int primitiveIndex = primitiveMembers.length; primitiveIndex-- > 0;) {
+					if (memberItem.equals(primitiveMembers[primitiveIndex])) {
 						compositeIndex[compositePosition] = primitiveIndex;
 						break;
 					}
 				}
-				if (compositeIndex[compositePosition] == -1)
-				{
+				if (compositeIndex[compositePosition] == -1) {
 					throw new IllegalStateException("AlternateId is not a primitive: " + memberItem);
 				}
 			}
 			alternateIdMemberIndicesInPrimitives[idIndex] = compositeIndex;
 			memberNameToIdIndexDict.put(alternateIdMember.getName(), Byte.valueOf((byte) idIndex));
 		}
-		if (typesRelatingToThis != null && typesRelatingToThis.length > 0)
-		{
+		if (typesRelatingToThis != null && typesRelatingToThis.length > 0) {
 			typesRelatingToThisSet.addAll(Arrays.asList(typesRelatingToThis));
 		}
-		if (getCreatedByMember() != null)
-		{
+		if (getCreatedByMember() != null) {
 			changeInterningBehavior(getCreatedByMember(), true);
 		}
-		if (getUpdatedByMember() != null)
-		{
+		if (getUpdatedByMember() != null) {
 			changeInterningBehavior(getUpdatedByMember(), true);
 		}
 		setTechnicalMember(getIdMember());
@@ -683,42 +589,36 @@ public class EntityMetaData implements IEntityMetaData
 		setTechnicalMember(getUpdatedOnMember());
 	}
 
-	protected void setTechnicalMember(PrimitiveMember member)
-	{
-		if (member == null)
-		{
+	protected void setTechnicalMember(PrimitiveMember member) {
+		if (member == null) {
 			return;
 		}
 		((IPrimitiveMemberWrite) member).setTechnicalMember(true);
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return getClass().getSimpleName() + ": " + getEntityType().getName();
 	}
 
 	@Override
-	public Object newInstance()
-	{
+	public Object newInstance() {
 		return entityFactory.createEntity(this);
 	}
 
 	@Override
-	public Member getWidenedMatchingMember(String memberPath)
-	{
+	public Member getWidenedMatchingMember(String memberPath) {
 		Member member = getMemberByName(memberPath);
-		if (member != null)
-		{
+		if (member != null) {
 			// fast case
 			return member;
 		}
 		String[] memberPathSplit = EmbeddedMember.split(memberPath);
-		int length = memberPathSplit.length - 1; // the full length has already been tested in the fast case
+		int length = memberPathSplit.length - 1; // the full length has already been tested in the fast
+																							// case
 		StringBuilder sb = new StringBuilder();
 		member = getMemberByName(buildMemberName(memberPathSplit, length, sb));
-		while (member == null && length > 0)
-		{
+		while (member == null && length > 0) {
 			length--;
 			member = getMemberByName(buildMemberName(memberPathSplit, length, sb));
 		}
@@ -726,27 +626,22 @@ public class EntityMetaData implements IEntityMetaData
 	}
 
 	@Override
-	public Member getWidenedMatchingMember(String[] memberPath)
-	{
+	public Member getWidenedMatchingMember(String[] memberPath) {
 		int length = memberPath.length;
 		StringBuilder sb = new StringBuilder();
 		Member member = getMemberByName(buildMemberName(memberPath, length, sb));
-		while (member == null && length > 0)
-		{
+		while (member == null && length > 0) {
 			length--;
 			member = getMemberByName(buildMemberName(memberPath, length, sb));
 		}
 		return member;
 	}
 
-	protected String buildMemberName(String[] memberNameTokens, int length, StringBuilder sb)
-	{
+	protected String buildMemberName(String[] memberNameTokens, int length, StringBuilder sb) {
 		sb.setLength(0);
-		for (int a = 0; a < length; a++)
-		{
+		for (int a = 0; a < length; a++) {
 			String memberNameToken = memberNameTokens[a];
-			if (a > 0)
-			{
+			if (a > 0) {
 				sb.append('.');
 			}
 			sb.append(memberNameToken);

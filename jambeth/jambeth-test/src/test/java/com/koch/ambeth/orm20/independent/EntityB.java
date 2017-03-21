@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public class EntityB
-{
+public class EntityB {
 	protected int idB;
 
 	protected short versionB;
@@ -30,63 +29,51 @@ public class EntityB
 
 	protected long updatedOnB, createdOnB;
 
-	public int getIdB()
-	{
+	public int getIdB() {
 		return idB;
 	}
 
-	public void setIdB(int idB)
-	{
+	public void setIdB(int idB) {
 		this.idB = idB;
 	}
 
-	public short getVersionB()
-	{
+	public short getVersionB() {
 		return versionB;
 	}
 
-	public void setVersionB(short versionB)
-	{
+	public void setVersionB(short versionB) {
 		this.versionB = versionB;
 	}
 
-	public String getUpdatedByB()
-	{
+	public String getUpdatedByB() {
 		return updatedByB;
 	}
 
-	public void setUpdatedByB(String updatedByB)
-	{
+	public void setUpdatedByB(String updatedByB) {
 		this.updatedByB = updatedByB;
 	}
 
-	public String getCreatedByB()
-	{
+	public String getCreatedByB() {
 		return createdByB;
 	}
 
-	public void setCreatedByB(String createdByB)
-	{
+	public void setCreatedByB(String createdByB) {
 		this.createdByB = createdByB;
 	}
 
-	public long getUpdatedOnB()
-	{
+	public long getUpdatedOnB() {
 		return updatedOnB;
 	}
 
-	public void setUpdatedOnB(long updatedOnB)
-	{
+	public void setUpdatedOnB(long updatedOnB) {
 		this.updatedOnB = updatedOnB;
 	}
 
-	public long getCreatedOnB()
-	{
+	public long getCreatedOnB() {
 		return createdOnB;
 	}
 
-	public void setCreatedOnB(long createdOnB)
-	{
+	public void setCreatedOnB(long createdOnB) {
 		this.createdOnB = createdOnB;
 	}
 }

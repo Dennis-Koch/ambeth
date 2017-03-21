@@ -27,8 +27,7 @@ import org.junit.runners.Suite.SuiteClasses;
 import com.koch.ambeth.persistence.filter.FilterToQueryBuilderTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ FilterToQueryBuilderTest.class })
-public class AllTests
-{
+@SuiteClasses({FilterToQueryBuilderTest.class})
+public class AllTests {
 
 }

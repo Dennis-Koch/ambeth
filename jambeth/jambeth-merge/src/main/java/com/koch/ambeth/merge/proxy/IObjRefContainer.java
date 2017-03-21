@@ -24,8 +24,7 @@ import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.cache.ValueHolderState;
 import com.koch.ambeth.service.merge.model.IObjRef;
 
-public interface IObjRefContainer extends IEntityMetaDataHolder
-{
+public interface IObjRefContainer extends IEntityMetaDataHolder {
 	ICache get__Cache();
 
 	void detach();

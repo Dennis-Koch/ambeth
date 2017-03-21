@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IContextProvider
-{
+public interface IContextProvider {
 	Long getCurrentTime();
 
 	void setCurrentTime(Long currentTime);

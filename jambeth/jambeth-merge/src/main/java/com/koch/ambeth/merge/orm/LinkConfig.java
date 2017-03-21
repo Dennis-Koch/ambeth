@@ -22,49 +22,41 @@ limitations under the License.
 
 import com.koch.ambeth.util.ParamChecker;
 
-public class LinkConfig implements ILinkConfig
-{
+public class LinkConfig implements ILinkConfig {
 	protected String source;
 
 	protected String alias;
 
 	protected CascadeDeleteDirection cascadeDeleteDirection = CascadeDeleteDirection.NONE;
 
-	public LinkConfig(String source)
-	{
+	public LinkConfig(String source) {
 		ParamChecker.assertParamNotNull(source, "source");
 		this.source = source;
 	}
 
-	protected LinkConfig()
-	{
+	protected LinkConfig() {
 	}
 
 	@Override
-	public String getSource()
-	{
+	public String getSource() {
 		return source;
 	}
 
 	@Override
-	public String getAlias()
-	{
+	public String getAlias() {
 		return alias;
 	}
 
-	public void setAlias(String alias)
-	{
+	public void setAlias(String alias) {
 		this.alias = alias;
 	}
 
 	@Override
-	public CascadeDeleteDirection getCascadeDeleteDirection()
-	{
+	public CascadeDeleteDirection getCascadeDeleteDirection() {
 		return cascadeDeleteDirection;
 	}
 
-	public void setCascadeDeleteDirection(CascadeDeleteDirection cascadeDeleteDirection)
-	{
+	public void setCascadeDeleteDirection(CascadeDeleteDirection cascadeDeleteDirection) {
 		this.cascadeDeleteDirection = cascadeDeleteDirection;
 	}
 }

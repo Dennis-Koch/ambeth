@@ -68,7 +68,7 @@ public class ChangeController
 	@Autowired
 	protected ICacheFactory cacheFactory;
 
-	protected ThreadLocal<Boolean> edblActiveTL = new ThreadLocal<Boolean>();
+	protected ThreadLocal<Boolean> edblActiveTL = new ThreadLocal<>();
 
 	@Autowired
 	protected IServiceContext beanContext;
@@ -80,11 +80,11 @@ public class ChangeController
 	protected boolean edblActive;
 
 	protected final ClassExtendableListContainer<IChangeControllerExtension<?>> extensions =
-			new ClassExtendableListContainer<IChangeControllerExtension<?>>("change controller extension",
+			new ClassExtendableListContainer<>("change controller extension",
 					"entity");
 
 	protected final SmartCopyMap<Class<?>, IChangeControllerExtension<?>[]> typeToSortedExtensions =
-			new SmartCopyMap<Class<?>, IChangeControllerExtension<?>[]>();
+			new SmartCopyMap<>();
 
 	@Override
 	public ICUDResult preMerge(ICUDResult cudResult, ICache cache) {
@@ -135,7 +135,7 @@ public class ChangeController
 	protected Collection<Object> retrieveChangedObjects(Collection<Object> objectsBefore,
 			ICache cache) {
 		// We have at least as many objects as before
-		final Set<Object> newObjects = new HashSet<Object>(objectsBefore);
+		final Set<Object> newObjects = new HashSet<>(objectsBefore);
 		HandleContentDelegate delegate = new HandleContentDelegate() {
 			@Override
 			public void invoke(Class<?> entityType, byte idIndex, Object id, Object value) {
@@ -160,7 +160,7 @@ public class ChangeController
 				"number of old and new objects should be equal");
 		CacheView views = new CacheView(newEntities, oldEntities);
 		IdentityLinkedSet<IChangeControllerExtension<?>> calledExtensionsSet =
-				new IdentityLinkedSet<IChangeControllerExtension<?>>();
+				new IdentityLinkedSet<>();
 
 		try {
 			for (int index = 0; index < size; index++) {

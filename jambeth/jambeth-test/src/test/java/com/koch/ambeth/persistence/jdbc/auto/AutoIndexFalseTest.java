@@ -36,19 +36,18 @@ import com.koch.ambeth.util.collections.ILinkedMap;
 
 @SQLData("autoindex_data.sql")
 @SQLStructure("autoindex_structure.sql")
-@TestPropertiesList({ @TestProperties(name = PersistenceConfigurationConstants.AutoIndexForeignKeys, value = "false"),
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/jdbc/auto/autoindex_orm.xml") })
-public class AutoIndexFalseTest extends AbstractInformationBusWithPersistenceTest
-{
+@TestPropertiesList({
+		@TestProperties(name = PersistenceConfigurationConstants.AutoIndexForeignKeys, value = "false"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+				value = "com/koch/ambeth/persistence/jdbc/auto/autoindex_orm.xml")})
+public class AutoIndexFalseTest extends AbstractInformationBusWithPersistenceTest {
 	@Test
-	public void testAutoIndexFalse()
-	{
-		transaction.processAndCommit(new DatabaseCallback()
-		{
+	public void testAutoIndexFalse() {
+		transaction.processAndCommit(new DatabaseCallback() {
 
 			@Override
-			public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Exception
-			{
+			public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+					throws Exception {
 				int countOfUnindexedFKs = AutoIndexTrueTest.getCountOfUnindexedFKs(beanContext);
 				Assert.assertEquals(1, countOfUnindexedFKs);
 			}

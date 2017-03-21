@@ -26,17 +26,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 
+ *
  * @author daniel.mueller
- * 
+ *
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface CommandExtension
-{
+public @interface CommandExtension {
 	/**
 	 * the name of the command
-	 * 
+	 *
 	 * @return
 	 */
 	String command();

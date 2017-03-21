@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface IDataChangeEntry
-{
+public interface IDataChangeEntry {
 	Class<?> getEntityType();
 
 	Object getId();

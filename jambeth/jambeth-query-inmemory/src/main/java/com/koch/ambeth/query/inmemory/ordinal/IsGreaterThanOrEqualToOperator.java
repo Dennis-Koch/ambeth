@@ -20,11 +20,9 @@ limitations under the License.
  * #L%
  */
 
-public class IsGreaterThanOrEqualToOperator extends AbstractBinaryOrdinalOperator
-{
+public class IsGreaterThanOrEqualToOperator extends AbstractBinaryOrdinalOperator {
 	@Override
-	protected Boolean evaluateIntern(double leftValue, double rightValue)
-	{
+	protected Boolean evaluateIntern(double leftValue, double rightValue) {
 		return Boolean.valueOf(leftValue >= rightValue);
 	}
 }

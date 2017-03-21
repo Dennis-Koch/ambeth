@@ -28,8 +28,7 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.testutil.TestFrameworkModule;
 
-public class ExpressionTest extends BaseExpressionTest
-{
+public class ExpressionTest extends BaseExpressionTest {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -37,32 +36,28 @@ public class ExpressionTest extends BaseExpressionTest
 	@Override
 	@TestFrameworkModule(Exp4jModule.class)
 	@Test
-	public void resolvePredefinedExpressionManually()
-	{
+	public void resolvePredefinedExpressionManually() {
 		super.resolvePredefinedExpressionManually();
 	}
 
 	@Override
 	@TestFrameworkModule(Exp4jModule.class)
 	@Test
-	public void resolvePredefinedExpressionOnEntity()
-	{
+	public void resolvePredefinedExpressionOnEntity() {
 		super.resolvePredefinedExpressionOnEntity();
 	}
 
 	@Override
 	@TestFrameworkModule({})
 	@Test
-	public void resolvePredefinedExpressionNoOp()
-	{
+	public void resolvePredefinedExpressionNoOp() {
 		super.resolvePredefinedExpressionNoOp();
 	}
 
 	@Override
 	@TestFrameworkModule(Exp4jModule.class)
 	@Test
-	public void resolveDynamicExpression()
-	{
+	public void resolveDynamicExpression() {
 		super.resolveDynamicExpression();
 	}
 }

@@ -29,8 +29,7 @@ import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
-public class LimitByRownumOperator implements IOperand
-{
+public class LimitByRownumOperator implements IOperand {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -42,11 +41,10 @@ public class LimitByRownumOperator implements IOperand
 	protected IValueOperand valueOperand;
 
 	@Override
-	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
-	{
+	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			boolean joinQuery, IList<Object> parameters) {
 		Object value = valueOperand.getValue(nameToValueMap);
-		if (value == null || ((Number) value).intValue() == 0)
-		{
+		if (value == null || ((Number) value).intValue() == 0) {
 			return;
 		}
 		querySB.append("ROWNUM<=");

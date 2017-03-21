@@ -22,8 +22,7 @@ limitations under the License.
 
 import javax.persistence.PersistenceException;
 
-public interface IPersistenceExceptionUtil
-{
+public interface IPersistenceExceptionUtil {
 	PersistenceException mask(Throwable e);
 
 	PersistenceException mask(Throwable e, String relatedSql);

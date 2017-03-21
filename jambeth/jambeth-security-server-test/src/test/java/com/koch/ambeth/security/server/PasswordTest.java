@@ -26,8 +26,6 @@ import org.junit.Test;
 
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
-import com.koch.ambeth.security.server.PasswordSalts;
-import com.koch.ambeth.security.server.Passwords;
 
 public class PasswordTest // extends AbstractIocTest
 {
@@ -36,8 +34,7 @@ public class PasswordTest // extends AbstractIocTest
 	private ILogger log;
 
 	@Test
-	public void testEffort() throws GeneralSecurityException
-	{
+	public void testEffort() throws GeneralSecurityException {
 		char[] password = "12345678".toCharArray();
 		long startMillis = System.currentTimeMillis();
 		byte[] saltBytes = PasswordSalts.nextSalt();

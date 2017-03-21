@@ -34,8 +34,7 @@ import com.koch.ambeth.merge.event.DataChangeOfSession;
 import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-public class CacheLocalDataChangeListener implements IEventListener, IEventTargetEventListener
-{
+public class CacheLocalDataChangeListener implements IEventListener, IEventTargetEventListener {
 	@LogInstance
 	private ILogger log;
 
@@ -51,51 +50,45 @@ public class CacheLocalDataChangeListener implements IEventListener, IEventTarge
 	@Autowired
 	protected ITransactionState transactionState;
 
-	protected boolean isInTransaction()
-	{
-		if (transactionState != null)
-		{
+	protected boolean isInTransaction() {
+		if (transactionState != null) {
 			return transactionState.isTransactionActive();
 		}
 		return false;
 	}
 
 	@Override
-	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception
-	{
-		if (!(eventObject instanceof IDataChangeOfSession))
-		{
+	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception {
+		if (!(eventObject instanceof IDataChangeOfSession)) {
 			return;
 		}
-		if (!isInTransaction())
-		{
+		if (!isInTransaction()) {
 			return;
 		}
 		IDataChangeOfSession localDCE = (IDataChangeOfSession) eventObject;
-		if (log.isDebugEnabled())
-		{
-			log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "handleEvent() Transactional DCE: ", localDCE.getDataChange()));
+		if (log.isDebugEnabled()) {
+			log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(),
+					"handleEvent() Transactional DCE: ", localDCE.getDataChange()));
 		}
 		cacheDataChangeListener.handleEvent(localDCE.getDataChange(), dispatchTime, sequenceId);
 	}
 
 	@Override
-	public void handleEvent(Object eventObject, Object eventTarget, List<Object> pausedEventTargets, long dispatchTime, long sequenceId) throws Exception
-	{
-		if (!(eventObject instanceof IDataChangeOfSession))
-		{
+	public void handleEvent(Object eventObject, Object eventTarget, List<Object> pausedEventTargets,
+			long dispatchTime, long sequenceId) throws Exception {
+		if (!(eventObject instanceof IDataChangeOfSession)) {
 			return;
 		}
-		if (!isInTransaction())
-		{
+		if (!isInTransaction()) {
 			return;
 		}
 		DataChangeOfSession localDCE = (DataChangeOfSession) eventObject;
-		if (log.isDebugEnabled())
-		{
-			log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "handleEvent() Transactional DCE: ", localDCE.getDataChange(), ", ET:",
-					eventTarget, ", Paused ETs:", Arrays.toString(pausedEventTargets.toArray())));
+		if (log.isDebugEnabled()) {
+			log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(),
+					"handleEvent() Transactional DCE: ", localDCE.getDataChange(), ", ET:", eventTarget,
+					", Paused ETs:", Arrays.toString(pausedEventTargets.toArray())));
 		}
-		etCacheDataChangeListener.handleEvent(localDCE.getDataChange(), eventTarget, pausedEventTargets, dispatchTime, sequenceId);
+		etCacheDataChangeListener.handleEvent(localDCE.getDataChange(), eventTarget, pausedEventTargets,
+				dispatchTime, sequenceId);
 	}
 }

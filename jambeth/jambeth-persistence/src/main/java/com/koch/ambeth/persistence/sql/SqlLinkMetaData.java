@@ -31,8 +31,7 @@ import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-public class SqlLinkMetaData extends LinkMetaData
-{
+public class SqlLinkMetaData extends LinkMetaData {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -61,53 +60,44 @@ public class SqlLinkMetaData extends LinkMetaData
 	protected String fullqualifiedEscapedTableName;
 
 	@Override
-	public void afterPropertiesSet()
-	{
+	public void afterPropertiesSet() {
 		super.afterPropertiesSet();
 
 		ParamChecker.assertTrue(fromField != null || toField != null, "FromField or ToField");
 	}
 
-	public void setConstraintName(String constraintName)
-	{
+	public void setConstraintName(String constraintName) {
 		this.constraintName = constraintName;
 	}
 
 	@Override
-	public String getFullqualifiedEscapedTableName()
-	{
+	public String getFullqualifiedEscapedTableName() {
 		return fullqualifiedEscapedTableName;
 	}
 
-	public void setFullqualifiedEscapedTableName(String fullqualifiedEscapedTableName)
-	{
+	public void setFullqualifiedEscapedTableName(String fullqualifiedEscapedTableName) {
 		this.fullqualifiedEscapedTableName = fullqualifiedEscapedTableName;
 	}
 
-	public String getConstraintName()
-	{
+	public String getConstraintName() {
 		return constraintName;
 	}
 
 	@Override
-	public IFieldMetaData getFromField()
-	{
+	public IFieldMetaData getFromField() {
 		return fromField;
 	}
 
-	public void setFromField(IFieldMetaData fromField)
-	{
+	public void setFromField(IFieldMetaData fromField) {
 		this.fromField = fromField;
 	}
 
 	@Override
-	public IFieldMetaData getToField()
-	{
+	public IFieldMetaData getToField() {
 		return toField;
 	}
 
-	public void setToField(IFieldMetaData toField)
-	{
+	public void setToField(IFieldMetaData toField) {
 		this.toField = toField;
 	}
 }

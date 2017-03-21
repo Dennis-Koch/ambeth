@@ -34,466 +34,396 @@ import com.koch.ambeth.query.OrderByType;
 import com.koch.ambeth.query.filter.IPagingQuery;
 import com.koch.ambeth.util.IParamHolder;
 
-public class QueryBuilderDummy<T> implements IQueryBuilder<T>
-{
+public class QueryBuilderDummy<T> implements IQueryBuilder<T> {
 	@Override
-	public void dispose()
-	{
+	public void dispose() {
 	}
 
 	@Override
-	public Class<?> getEntityType()
-	{
+	public Class<?> getEntityType() {
 		return null;
 	}
 
 	@Override
-	public IOperator and(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator and(IOperand leftOperand, IOperand rightOperand) {
 		return new OperandDummy("and", leftOperand, rightOperand);
 	}
 
 	@Override
-	public IOperator and(IOperand... operands)
-	{
+	public IOperator and(IOperand... operands) {
 		return new OperandDummy("and", operands);
 	}
 
 	@Override
-	public IOperator or(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator or(IOperand leftOperand, IOperand rightOperand) {
 		return new OperandDummy("or", leftOperand, rightOperand);
 	}
 
 	@Override
-	public IOperator or(IOperand... operands)
-	{
+	public IOperator or(IOperand... operands) {
 		return new OperandDummy("or", operands);
 	}
 
 	@Override
-	public IOperand timeUnitMultipliedInterval(IOperand timeUnit, IOperand multiplicatedInterval)
-	{
+	public IOperand timeUnitMultipliedInterval(IOperand timeUnit, IOperand multiplicatedInterval) {
 		return null;
 	}
 
 	@Override
-	public IOperator trueOperator()
-	{
+	public IOperator trueOperator() {
 		return null;
 	}
 
 	@Override
-	public IOperator falseOperator()
-	{
+	public IOperator falseOperator() {
 		return null;
 	}
 
 	@Override
-	public IOperand property(String propertyName)
-	{
+	public IOperand property(String propertyName) {
 		return null;
 	}
 
 	@Override
-	public IOperand property(String propertyName, JoinType joinType)
-	{
+	public IOperand property(String propertyName, JoinType joinType) {
 		return null;
 	}
 
 	@Override
-	public IOperand property(String propertyName, JoinType joinType, IParamHolder<Class<?>> fieldType)
-	{
+	public IOperand property(String propertyName, JoinType joinType,
+			IParamHolder<Class<?>> fieldType) {
 		return null;
 	}
 
 	@Override
-	public IOperand column(String columnName)
-	{
+	public IOperand column(String columnName) {
 		return null;
 	}
 
 	@Override
-	public IOperand column(String columnName, ISqlJoin joinClause)
-	{
+	public IOperand column(String columnName, ISqlJoin joinClause) {
 		return null;
 	}
 
 	@Override
-	public IOperator contains(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator contains(IOperand leftOperand, IOperand rightOperand) {
 		return new OperandDummy("contains", leftOperand, rightOperand);
 	}
 
 	@Override
-	public IOperator contains(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
-		return new OperandDummy("contains", Collections.singletonMap("caseSensitive", caseSensitive), leftOperand, rightOperand);
+	public IOperator contains(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
+		return new OperandDummy("contains", Collections.singletonMap("caseSensitive", caseSensitive),
+				leftOperand, rightOperand);
 	}
 
 	@Override
-	public IOperand difference(IOperand... operands)
-	{
+	public IOperand difference(IOperand... operands) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public IOperator endsWith(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator endsWith(IOperand leftOperand, IOperand rightOperand) {
 		return new OperandDummy("endsWith", leftOperand, rightOperand);
 	}
 
 	@Override
-	public IOperator endsWith(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
-		return new OperandDummy("endsWith", Collections.singletonMap("caseSensitive", caseSensitive), leftOperand, rightOperand);
+	public IOperator endsWith(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
+		return new OperandDummy("endsWith", Collections.singletonMap("caseSensitive", caseSensitive),
+				leftOperand, rightOperand);
 	}
 
 	@Override
-	public IOperator fulltext(IOperand queryOperand)
-	{
+	public IOperator fulltext(IOperand queryOperand) {
 		return null;
 	}
 
 	@Override
-	public IOperator fulltext(Class<?> entityType, IOperand queryOperand)
-	{
+	public IOperator fulltext(Class<?> entityType, IOperand queryOperand) {
 		return null;
 	}
 
 	@Override
-	public IOperand interval(IOperand lowerBoundary, IOperand upperBoundary)
-	{
+	public IOperand interval(IOperand lowerBoundary, IOperand upperBoundary) {
 		return null;
 	}
 
 	@Override
-	public IOperator isContainedIn(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator isContainedIn(IOperand leftOperand, IOperand rightOperand) {
 		return null;
 	}
 
 	@Override
-	public IOperator isContainedIn(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator isContainedIn(IOperand leftOperand, IOperand rightOperand,
+			Boolean caseSensitive) {
 		return null;
 	}
 
 	@Override
-	public IOperator isIn(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator isIn(IOperand leftOperand, IOperand rightOperand) {
 		return null;
 	}
 
 	@Override
-	public IOperator isIn(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator isIn(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
 		return null;
 	}
 
 	@Override
-	public IOperator isEqualTo(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator isEqualTo(IOperand leftOperand, IOperand rightOperand) {
 		return null;
 	}
 
 	@Override
-	public IOperator isEqualTo(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
-		return new OperandDummy("isEqualTo", Collections.singletonMap("caseSensitive", caseSensitive), rightOperand, leftOperand);
+	public IOperator isEqualTo(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
+		return new OperandDummy("isEqualTo", Collections.singletonMap("caseSensitive", caseSensitive),
+				rightOperand, leftOperand);
 	}
 
 	@Override
-	public IOperator isGreaterThan(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator isGreaterThan(IOperand leftOperand, IOperand rightOperand) {
 		return null;
 	}
 
 	@Override
-	public IOperator isGreaterThanOrEqualTo(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator isGreaterThanOrEqualTo(IOperand leftOperand, IOperand rightOperand) {
 		return null;
 	}
 
 	@Override
-	public IOperator isLessThan(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator isLessThan(IOperand leftOperand, IOperand rightOperand) {
 		return null;
 	}
 
 	@Override
-	public IOperator isLessThanOrEqualTo(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator isLessThanOrEqualTo(IOperand leftOperand, IOperand rightOperand) {
 		return null;
 	}
 
 	@Override
-	public IOperator isNotContainedIn(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator isNotContainedIn(IOperand leftOperand, IOperand rightOperand) {
 		return null;
 	}
 
 	@Override
-	public IOperator isNotContainedIn(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator isNotContainedIn(IOperand leftOperand, IOperand rightOperand,
+			Boolean caseSensitive) {
 		return null;
 	}
 
 	@Override
-	public IOperator isNotIn(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator isNotIn(IOperand leftOperand, IOperand rightOperand) {
 		return null;
 	}
 
 	@Override
-	public IOperator isNotIn(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator isNotIn(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
 		return null;
 	}
 
 	@Override
-	public IOperator isNotEqualTo(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator isNotEqualTo(IOperand leftOperand, IOperand rightOperand) {
 		return null;
 	}
 
 	@Override
-	public IOperator isNotEqualTo(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator isNotEqualTo(IOperand leftOperand, IOperand rightOperand,
+			Boolean caseSensitive) {
 		return null;
 	}
 
 	@Override
-	public IOperator notContains(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator notContains(IOperand leftOperand, IOperand rightOperand) {
 		return null;
 	}
 
 	@Override
-	public IOperator notContains(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator notContains(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
 		return null;
 	}
 
 	@Override
-	public IOperator notLike(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator notLike(IOperand leftOperand, IOperand rightOperand) {
 		return null;
 	}
 
 	@Override
-	public IOperator notLike(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator notLike(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
 		return null;
 	}
 
 	@Override
-	public IOperator isNull(IOperand operand)
-	{
+	public IOperator isNull(IOperand operand) {
 		return null;
 	}
 
 	@Override
-	public IOperator isNotNull(IOperand operand)
-	{
+	public IOperator isNotNull(IOperand operand) {
 		return null;
 	}
 
 	@Override
-	public IOperator like(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator like(IOperand leftOperand, IOperand rightOperand) {
 		return null;
 	}
 
 	@Override
-	public IOperator like(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator like(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
 		return null;
 	}
 
 	@Override
-	public IOperand regexpLike(IOperand sourceString, IOperand pattern)
-	{
+	public IOperand regexpLike(IOperand sourceString, IOperand pattern) {
 		return null;
 	}
 
 	@Override
-	public IOperand regexpLike(IOperand sourceString, IOperand pattern, IOperand matchParameter)
-	{
+	public IOperand regexpLike(IOperand sourceString, IOperand pattern, IOperand matchParameter) {
 		return null;
 	}
 
 	@Override
-	public IQueryBuilder<T> limit(IOperand operand)
-	{
+	public IQueryBuilder<T> limit(IOperand operand) {
 		return null;
 	}
 
 	@Override
-	public IOperator startsWith(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperator startsWith(IOperand leftOperand, IOperand rightOperand) {
 		return null;
 	}
 
 	@Override
-	public IOperator startsWith(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive)
-	{
+	public IOperator startsWith(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
 		return null;
 	}
 
 	@Override
-	public IOperand value(Object value)
-	{
+	public IOperand value(Object value) {
 		return new OperandDummy("value", Collections.singletonMap("value", value));
 	}
 
 	@Override
-	public IOperand valueName(String paramName)
-	{
+	public IOperand valueName(String paramName) {
 		return null;
 	}
 
 	@Override
-	public IOperand all()
-	{
+	public IOperand all() {
 		return null;
 	}
 
 	@Override
-	public IOperand function(String functionName, IOperand... operands)
-	{
+	public IOperand function(String functionName, IOperand... operands) {
 		return null;
 	}
 
 	@Override
-	public IQueryBuilder<T> groupBy(IOperand... operand)
-	{
+	public IQueryBuilder<T> groupBy(IOperand... operand) {
 		return null;
 	}
 
 	@Override
-	public IQueryBuilder<T> orderBy(IOperand operand, OrderByType orderByType)
-	{
+	public IQueryBuilder<T> orderBy(IOperand operand, OrderByType orderByType) {
 		return null;
 	}
 
 	@Override
-	public IOperand overlaps(IOperand leftOperand, IOperand rightOperand)
-	{
+	public IOperand overlaps(IOperand leftOperand, IOperand rightOperand) {
 		return null;
 	}
 
 	@Override
-	public int selectColumn(String columnName)
-	{
+	public int selectColumn(String columnName) {
 		return 0;
 	}
 
 	@Override
-	public int selectColumn(String columnName, ISqlJoin join)
-	{
+	public int selectColumn(String columnName, ISqlJoin join) {
 		return 0;
 	}
 
 	@Override
-	public int selectProperty(String propertyName)
-	{
+	public int selectProperty(String propertyName) {
 		return 0;
 	}
 
 	@Override
-	public int select(IOperand operand)
-	{
+	public int select(IOperand operand) {
 		return 0;
 	}
 
 	@Override
-	public ISqlJoin join(Class<?> entityType, IOperand columnBase, IOperand columnJoined, JoinType joinType)
-	{
+	public ISqlJoin join(Class<?> entityType, IOperand columnBase, IOperand columnJoined,
+			JoinType joinType) {
 		return null;
 	}
 
 	@Override
-	public ISqlJoin join(Class<?> entityType, IOperator clause, JoinType joinType)
-	{
+	public ISqlJoin join(Class<?> entityType, IOperator clause, JoinType joinType) {
 		return null;
 	}
 
 	@Override
-	public ISqlJoin join(Class<?> entityType, IOperand columnBase, IOperand columnJoined)
-	{
+	public ISqlJoin join(Class<?> entityType, IOperand columnBase, IOperand columnJoined) {
 		return null;
 	}
 
 	@Override
-	public ISqlJoin join(Class<?> entityType, IOperator clause)
-	{
+	public ISqlJoin join(Class<?> entityType, IOperator clause) {
 		return null;
 	}
 
 	@Override
-	public <S> IOperand subQuery(ISubQuery<S> subQuery, IOperand... selectedColumns)
-	{
+	public <S> IOperand subQuery(ISubQuery<S> subQuery, IOperand... selectedColumns) {
 		return null;
 	}
 
 	@Override
-	public IOperand sum(IOperand... summands)
-	{
+	public IOperand sum(IOperand... summands) {
 		return null;
 	}
 
 	@Override
-	public IQuery<T> build()
-	{
+	public IQuery<T> build() {
 		return null;
 	}
 
 	@Override
-	public IQuery<T> build(IOperand whereClause)
-	{
+	public IQuery<T> build(IOperand whereClause) {
 		return null;
 	}
 
 	@Override
-	public IQuery<T> build(IOperand whereClause, ISqlJoin... joinClauses)
-	{
+	public IQuery<T> build(IOperand whereClause, ISqlJoin... joinClauses) {
 		return null;
 	}
 
 	@Override
-	public IPagingQuery<T> buildPaging()
-	{
+	public IPagingQuery<T> buildPaging() {
 		return null;
 	}
 
 	@Override
-	public IPagingQuery<T> buildPaging(IOperand whereClause)
-	{
+	public IPagingQuery<T> buildPaging(IOperand whereClause) {
 		return null;
 	}
 
 	@Override
-	public IPagingQuery<T> buildPaging(IOperand whereClause, ISqlJoin... joinClauses)
-	{
+	public IPagingQuery<T> buildPaging(IOperand whereClause, ISqlJoin... joinClauses) {
 		return null;
 	}
 
 	@Override
-	public ISubQuery<T> buildSubQuery()
-	{
+	public ISubQuery<T> buildSubQuery() {
 		return null;
 	}
 
 	@Override
-	public ISubQuery<T> buildSubQuery(IOperand whereClause)
-	{
+	public ISubQuery<T> buildSubQuery(IOperand whereClause) {
 		return null;
 	}
 
 	@Override
-	public ISubQuery<T> buildSubQuery(IOperand whereClause, ISqlJoin... joinClauses)
-	{
+	public ISubQuery<T> buildSubQuery(IOperand whereClause, ISqlJoin... joinClauses) {
 		return null;
 	}
 }

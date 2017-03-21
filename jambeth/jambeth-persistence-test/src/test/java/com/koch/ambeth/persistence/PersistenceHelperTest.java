@@ -30,14 +30,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.koch.ambeth.persistence.PersistenceHelper;
 import com.koch.ambeth.persistence.sql.SqlBuilder;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.objectcollector.NoOpObjectCollector;
 
-public class PersistenceHelperTest
-{
+public class PersistenceHelperTest {
 	private static final int batchSize = 3;
 
 	private static final int preparedBatchSize = 3;
@@ -45,78 +43,67 @@ public class PersistenceHelperTest
 	private PersistenceHelper fixture;
 
 	@Before
-	public void setUp() throws Exception
-	{
-		this.fixture = new PersistenceHelper();
-		this.fixture.batchSize = batchSize;
-		this.fixture.preparedBatchSize = preparedBatchSize;
+	public void setUp() throws Exception {
+		fixture = new PersistenceHelper();
+		fixture.batchSize = batchSize;
+		fixture.preparedBatchSize = preparedBatchSize;
 
 		NoOpObjectCollector oc = new NoOpObjectCollector();
-		this.fixture.objectCollector = oc;
+		fixture.objectCollector = oc;
 
 		SqlBuilder sqlBuilder = new SqlBuilder();
 		sqlBuilder.setObjectCollector(oc);
-		sqlBuilder.setPersistenceHelper(this.fixture);
+		sqlBuilder.setPersistenceHelper(fixture);
 		sqlBuilder.afterPropertiesSet();
-		this.fixture.sqlBuilder = sqlBuilder;
+		fixture.sqlBuilder = sqlBuilder;
 	}
 
 	@After
-	public void tearDown() throws Exception
-	{
+	public void tearDown() throws Exception {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testAfterPropertiesSet_wrongBatchSize()
-	{
-		this.fixture.batchSize = 0;
-		this.fixture.afterPropertiesSet();
+	public void testAfterPropertiesSet_wrongBatchSize() {
+		fixture.batchSize = 0;
+		fixture.afterPropertiesSet();
 	}
 
 	@Test
-	public void testSetBatchSize()
-	{
+	public void testSetBatchSize() {
 		int newBatchSize = 0;
-		this.fixture.batchSize = newBatchSize;
-		assertEquals(newBatchSize, this.fixture.batchSize);
+		fixture.batchSize = newBatchSize;
+		assertEquals(newBatchSize, fixture.batchSize);
 	}
 
 	@Test
-	public void testSetObjectCollector()
-	{
-		assertNotNull(this.fixture.objectCollector);
-		this.fixture.objectCollector = null;
-		assertNull(this.fixture.objectCollector);
+	public void testSetObjectCollector() {
+		assertNotNull(fixture.objectCollector);
+		fixture.objectCollector = null;
+		assertNull(fixture.objectCollector);
 	}
 
 	@Test
-	public void testSetSqlBuilder()
-	{
-		assertNotNull(this.fixture.sqlBuilder);
-		this.fixture.sqlBuilder = null;
-		assertNull(this.fixture.sqlBuilder);
+	public void testSetSqlBuilder() {
+		assertNotNull(fixture.sqlBuilder);
+		fixture.sqlBuilder = null;
+		assertNull(fixture.sqlBuilder);
 	}
 
 	@Test
-	public void testSplitValues()
-	{
+	public void testSplitValues() {
 		int batchRows = 3;
-		List<Object> values = new ArrayList<Object>();
-		for (int i = (batchRows - 1) * preparedBatchSize + 1; i-- > 0;)
-		{
+		List<Object> values = new ArrayList<>();
+		for (int i = (batchRows - 1) * preparedBatchSize + 1; i-- > 0;) {
 			values.add(new Object());
 		}
-		IList<IList<Object>> actual = this.fixture.splitValues(values);
+		IList<IList<Object>> actual = fixture.splitValues(values);
 		assertEquals(batchRows, actual.size());
 		boolean last = true;
-		for (int i = actual.size(); i-- > 0;)
-		{
-			if (!last)
-			{
+		for (int i = actual.size(); i-- > 0;) {
+			if (!last) {
 				assertEquals(batchSize, actual.get(i).size());
 			}
-			else
-			{
+			else {
 				assertEquals(1, actual.get(i).size());
 				last = false;
 			}
@@ -124,41 +111,35 @@ public class PersistenceHelperTest
 	}
 
 	@Test
-	public void testBuildStringListOfValues()
-	{
+	public void testBuildStringListOfValues() {
 		int batchRows = 4;
-		List<Object> values = new ArrayList<Object>();
-		for (int i = (batchRows - 1) * batchSize + 1; i-- > 0;)
-		{
+		List<Object> values = new ArrayList<>();
+		for (int i = (batchRows - 1) * batchSize + 1; i-- > 0;) {
 			values.add(i);
 		}
-		IList<String> actual = this.fixture.buildStringListOfValues(values);
+		IList<String> actual = fixture.buildStringListOfValues(values);
 		assertEquals(batchRows, actual.size());
 	}
 
 	@Test
-	public void testBuildStringOfValues()
-	{
+	public void testBuildStringOfValues() {
 		int count = 4; // should have only one digit
-		List<Object> values = new ArrayList<Object>();
-		for (int i = count; i-- > 0;)
-		{
+		List<Object> values = new ArrayList<>();
+		for (int i = count; i-- > 0;) {
 			values.add(i);
 		}
-		String actual = this.fixture.buildStringOfValues(values);
+		String actual = fixture.buildStringOfValues(values);
 		assertEquals(count * 2 - 1, actual.length());
 	}
 
 	@Test
-	public void testAppendStringOfValues()
-	{
+	public void testAppendStringOfValues() {
 		int count = 3; // should have only one digit
-		List<Object> values = new ArrayList<Object>();
-		for (int i = count; i-- > 0;)
-		{
+		List<Object> values = new ArrayList<>();
+		for (int i = count; i-- > 0;) {
 			values.add(new Integer(i).toString());
 		}
-		String actual = this.fixture.buildStringOfValues(values);
+		String actual = fixture.buildStringOfValues(values);
 		assertEquals(count * 4 - 1, actual.length());
 	}
 }

@@ -27,14 +27,12 @@ import org.objectweb.asm.ClassVisitor;
 import com.koch.ambeth.bytecode.visitor.PublicConstructorVisitor;
 import com.koch.ambeth.merge.bytecode.EntityEnhancementHint;
 
-public class PublicConstructorBehavior extends AbstractBehavior
-{
+public class PublicConstructorBehavior extends AbstractBehavior {
 	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors)
-	{
-		if (state.getContext(EntityEnhancementHint.class) == null)
-		{
+	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+			List<IBytecodeBehavior> remainingPendingBehaviors,
+			List<IBytecodeBehavior> cascadePendingBehaviors) {
+		if (state.getContext(EntityEnhancementHint.class) == null) {
 			return visitor;
 		}
 		visitor = new PublicConstructorVisitor(visitor);

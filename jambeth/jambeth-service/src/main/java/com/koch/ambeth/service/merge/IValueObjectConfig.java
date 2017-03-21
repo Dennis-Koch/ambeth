@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IValueObjectConfig
-{
+public interface IValueObjectConfig {
 	Class<?> getEntityType();
 
 	Class<?> getValueType();

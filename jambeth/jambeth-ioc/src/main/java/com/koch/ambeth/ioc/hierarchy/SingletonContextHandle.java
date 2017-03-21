@@ -24,8 +24,7 @@ import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 
-public class SingletonContextHandle extends AbstractChildContextHandle
-{
+public class SingletonContextHandle extends AbstractChildContextHandle {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -33,14 +32,12 @@ public class SingletonContextHandle extends AbstractChildContextHandle
 	protected IServiceContext childContext;
 
 	@Override
-	protected IServiceContext getChildContext()
-	{
+	protected IServiceContext getChildContext() {
 		return childContext;
 	}
 
 	@Override
-	protected void setChildContext(IServiceContext childContext)
-	{
+	protected void setChildContext(IServiceContext childContext) {
 		this.childContext = childContext;
 	}
 }

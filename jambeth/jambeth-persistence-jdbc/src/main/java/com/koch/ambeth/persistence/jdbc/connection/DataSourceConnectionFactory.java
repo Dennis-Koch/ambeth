@@ -33,8 +33,7 @@ import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConst
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class DataSourceConnectionFactory extends AbstractConnectionFactory
-{
+public class DataSourceConnectionFactory extends AbstractConnectionFactory {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -44,42 +43,35 @@ public class DataSourceConnectionFactory extends AbstractConnectionFactory
 	protected DataSource datasource;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
-		if (this.datasource == null)
-		{
-			ParamChecker.assertNotNull(this.dataSourceName, "dataSourceName");
+		if (datasource == null) {
+			ParamChecker.assertNotNull(dataSourceName, "dataSourceName");
 			lookupDataSource();
 		}
 
-		ParamChecker.assertNotNull(this.datasource, "datasource");
+		ParamChecker.assertNotNull(datasource, "datasource");
 	}
 
 	@Property(name = PersistenceJdbcConfigurationConstants.DataSourceName, mandatory = false)
-	public void setDatasource(String dataSourceName)
-	{
+	public void setDatasource(String dataSourceName) {
 		this.dataSourceName = dataSourceName;
 	}
 
-	protected void lookupDataSource()
-	{
+	protected void lookupDataSource() {
 		InitialContext ic;
-		try
-		{
+		try {
 			ic = new InitialContext();
-			this.datasource = (DataSource) ic.lookup(this.dataSourceName);
+			datasource = (DataSource) ic.lookup(dataSourceName);
 		}
-		catch (NamingException e)
-		{
+		catch (NamingException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	protected Connection createIntern() throws Exception
-	{
+	protected Connection createIntern() throws Exception {
 		return datasource.getConnection();
 	}
 }

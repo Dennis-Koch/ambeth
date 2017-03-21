@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IPrintable
-{
+public interface IPrintable {
 	void toString(StringBuilder sb);
 }

@@ -52,8 +52,7 @@ import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.xml.DefaultXmlWriter;
 import com.koch.ambeth.xml.IWriter;
 
-public class CUDResultPrinter implements ICUDResultPrinter
-{
+public class CUDResultPrinter implements ICUDResultPrinter {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -67,22 +66,20 @@ public class CUDResultPrinter implements ICUDResultPrinter
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
-	protected final Comparator<IChangeContainer> changeContainerComparator = new Comparator<IChangeContainer>()
-	{
-		@Override
-		public int compare(IChangeContainer o1, IChangeContainer o2)
-		{
-			return o1.getReference().getRealType().getName().compareTo(o2.getReference().getRealType().getName());
-		}
-	};
+	protected final Comparator<IChangeContainer> changeContainerComparator =
+			new Comparator<IChangeContainer>() {
+				@Override
+				public int compare(IChangeContainer o1, IChangeContainer o2) {
+					return o1.getReference().getRealType().getName()
+							.compareTo(o2.getReference().getRealType().getName());
+				}
+			};
 
 	@Override
-	public CharSequence printCUDResult(ICUDResult cudResult, IIncrementalMergeState state)
-	{
+	public CharSequence printCUDResult(ICUDResult cudResult, IIncrementalMergeState state) {
 		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
 		StringBuilder sb = objectCollector.create(StringBuilder.class);
-		try
-		{
+		try {
 			DefaultXmlWriter writer = new DefaultXmlWriter(new AppendableStringBuilder(sb), null);
 			writer.setBeautifierActive(true);
 			writer.setBeautifierLinebreak("\n");
@@ -90,33 +87,27 @@ public class CUDResultPrinter implements ICUDResultPrinter
 			writeCUDResult(cudResult, writer, (IncrementalMergeState) state);
 			return sb.toString();
 		}
-		finally
-		{
+		finally {
 			objectCollector.dispose(sb);
 		}
 	}
 
-	protected void writeCUDResult(ICUDResult cudResult, IWriter writer, IncrementalMergeState state)
-	{
+	protected void writeCUDResult(ICUDResult cudResult, IWriter writer, IncrementalMergeState state) {
 		List<IChangeContainer> allChanges = cudResult.getAllChanges();
 
-		ArrayList<CreateContainer> creates = new ArrayList<CreateContainer>();
-		ArrayList<UpdateContainer> updates = new ArrayList<UpdateContainer>();
-		ArrayList<DeleteContainer> deletes = new ArrayList<DeleteContainer>();
+		ArrayList<CreateContainer> creates = new ArrayList<>();
+		ArrayList<UpdateContainer> updates = new ArrayList<>();
+		ArrayList<DeleteContainer> deletes = new ArrayList<>();
 
-		for (int a = allChanges.size(); a-- > 0;)
-		{
+		for (int a = allChanges.size(); a-- > 0;) {
 			IChangeContainer changeContainer = allChanges.get(a);
-			if (changeContainer instanceof CreateContainer)
-			{
+			if (changeContainer instanceof CreateContainer) {
 				creates.add((CreateContainer) changeContainer);
 			}
-			else if (changeContainer instanceof UpdateContainer)
-			{
+			else if (changeContainer instanceof UpdateContainer) {
 				updates.add((UpdateContainer) changeContainer);
 			}
-			else
-			{
+			else {
 				deletes.add((DeleteContainer) changeContainer);
 			}
 		}
@@ -138,40 +129,37 @@ public class CUDResultPrinter implements ICUDResultPrinter
 		writer.writeCloseElement("CUDResult");
 	}
 
-	protected void writeChangeContainers(IList<? extends IChangeContainer> changes, IWriter writer, String elementName, IncrementalMergeState state)
-	{
-		if (changes.size() == 0)
-		{
+	protected void writeChangeContainers(IList<? extends IChangeContainer> changes, IWriter writer,
+			String elementName, IncrementalMergeState state) {
+		if (changes.size() == 0) {
 			return;
 		}
 		writer.writeStartElement(elementName);
 		writer.writeStartElementEnd();
-		for (int a = 0, size = changes.size(); a < size; a++)
-		{
+		for (int a = 0, size = changes.size(); a < size; a++) {
 			writeChangeContainer(changes.get(a), writer, state);
 		}
 		writer.writeCloseElement(elementName);
 	}
 
-	protected void writeChangeContainer(IChangeContainer changeContainer, IWriter writer, IncrementalMergeState incrementalState)
-	{
+	protected void writeChangeContainer(IChangeContainer changeContainer, IWriter writer,
+			IncrementalMergeState incrementalState) {
 		IObjRef objRef = changeContainer.getReference();
 
 		writer.writeStartElement("Entity");
 		writer.writeAttribute("type", objRef.getRealType().getName());
-		writer.writeAttribute("id", conversionHelper.convertValueToType(CharSequence.class, objRef.getId()));
-		if (objRef.getVersion() != null)
-		{
-			writer.writeAttribute("version", conversionHelper.convertValueToType(CharSequence.class, objRef.getVersion()));
+		writer.writeAttribute("id",
+				conversionHelper.convertValueToType(CharSequence.class, objRef.getId()));
+		if (objRef.getVersion() != null) {
+			writer.writeAttribute("version",
+					conversionHelper.convertValueToType(CharSequence.class, objRef.getVersion()));
 		}
 		StateEntry stateEntry = incrementalState.objRefToStateMap.get(objRef);
-		if (stateEntry == null)
-		{
+		if (stateEntry == null) {
 			throw new IllegalStateException();
 		}
 		writer.writeAttribute("idx", stateEntry.index);
-		if (changeContainer instanceof DeleteContainer)
-		{
+		if (changeContainer instanceof DeleteContainer) {
 			writer.writeEndElement();
 			return;
 		}
@@ -181,37 +169,31 @@ public class CUDResultPrinter implements ICUDResultPrinter
 		writer.writeCloseElement("Entity");
 	}
 
-	protected void writeRUIs(IRelationUpdateItem[] fullRUIs, IWriter writer, IncrementalMergeState state)
-	{
-		if (fullRUIs == null)
-		{
+	protected void writeRUIs(IRelationUpdateItem[] fullRUIs, IWriter writer,
+			IncrementalMergeState state) {
+		if (fullRUIs == null) {
 			return;
 		}
-		for (IRelationUpdateItem rui : fullRUIs)
-		{
+		for (IRelationUpdateItem rui : fullRUIs) {
 			writeRUI(rui, writer, state);
 		}
 	}
 
-	protected void writeRUI(IRelationUpdateItem rui, IWriter writer, IncrementalMergeState state)
-	{
-		if (rui == null)
-		{
+	protected void writeRUI(IRelationUpdateItem rui, IWriter writer, IncrementalMergeState state) {
+		if (rui == null) {
 			return;
 		}
 		IObjRef[] addedORIs = rui.getAddedORIs();
 		IObjRef[] removedORIs = rui.getRemovedORIs();
 
-		if (addedORIs != null)
-		{
+		if (addedORIs != null) {
 			writer.writeStartElement(rui.getMemberName());
 			writer.writeAttribute("add", addedORIs.length);
 			writer.writeStartElementEnd();
 			writeObjRefs(addedORIs, writer, state);
 			writer.writeCloseElement(rui.getMemberName());
 		}
-		if (removedORIs != null)
-		{
+		if (removedORIs != null) {
 			writer.writeStartElement(rui.getMemberName());
 			writer.writeAttribute("remove", removedORIs.length);
 			writer.writeStartElementEnd();
@@ -220,17 +202,15 @@ public class CUDResultPrinter implements ICUDResultPrinter
 		}
 	}
 
-	protected void writeObjRefs(IObjRef[] objRefs, IWriter writer, IncrementalMergeState incrementalState)
-	{
+	protected void writeObjRefs(IObjRef[] objRefs, IWriter writer,
+			IncrementalMergeState incrementalState) {
 		IConversionHelper conversionHelper = this.conversionHelper;
 		IObjRef[] clone = Arrays.copyOf(objRefs, objRefs.length);
 		Arrays.sort(clone, incrementalState.objRefComparator);
-		for (IObjRef item : clone)
-		{
+		for (IObjRef item : clone) {
 			writer.writeStartElement("Entity");
 			StateEntry stateEntry = incrementalState.objRefToStateMap.get(item);
-			if (stateEntry != null)
-			{
+			if (stateEntry != null) {
 				writer.writeAttribute("idx", stateEntry.index);
 				writer.writeEndElement();
 				continue;
@@ -238,31 +218,27 @@ public class CUDResultPrinter implements ICUDResultPrinter
 			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(item.getRealType());
 			writer.writeAttribute("type", metaData.getEntityType().getName());
 			PrimitiveMember idMember = metaData.getIdMemberByIdIndex(item.getIdNameIndex());
-			writer.writeAttribute(idMember.getName(), conversionHelper.convertValueToType(CharSequence.class, item.getId()));
-			if (item.getVersion() != null)
-			{
-				writer.writeAttribute("version", conversionHelper.convertValueToType(CharSequence.class, item.getVersion()));
+			writer.writeAttribute(idMember.getName(),
+					conversionHelper.convertValueToType(CharSequence.class, item.getId()));
+			if (item.getVersion() != null) {
+				writer.writeAttribute("version",
+						conversionHelper.convertValueToType(CharSequence.class, item.getVersion()));
 			}
 			writer.writeEndElement();
 		}
 	}
 
-	protected void writePUIs(IPrimitiveUpdateItem[] fullPUIs, IWriter writer)
-	{
-		if (fullPUIs == null)
-		{
+	protected void writePUIs(IPrimitiveUpdateItem[] fullPUIs, IWriter writer) {
+		if (fullPUIs == null) {
 			return;
 		}
-		for (IPrimitiveUpdateItem pui : fullPUIs)
-		{
+		for (IPrimitiveUpdateItem pui : fullPUIs) {
 			writePUI(pui, writer);
 		}
 	}
 
-	protected void writePUI(IPrimitiveUpdateItem pui, IWriter writer)
-	{
-		if (pui == null)
-		{
+	protected void writePUI(IPrimitiveUpdateItem pui, IWriter writer) {
+		if (pui == null) {
 			return;
 		}
 		Object newValue = pui.getNewValue();
@@ -270,7 +246,8 @@ public class CUDResultPrinter implements ICUDResultPrinter
 
 		CharSequence sValue = conversionHelper.convertValueToType(CharSequence.class, newValue);
 
-		writer.writeAttribute("value", sValue == null ? "null" : sValue.length() > 256 ? "[[skipped " + sValue.length() + " chars]]" : sValue);
+		writer.writeAttribute("value", sValue == null ? "null"
+				: sValue.length() > 256 ? "[[skipped " + sValue.length() + " chars]]" : sValue);
 		writer.writeEndElement();
 	}
 }

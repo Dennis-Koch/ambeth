@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ISecurityContext
-{
+public interface ISecurityContext {
 	IAuthentication getAuthentication();
 
 	void setAuthentication(IAuthentication authentication);

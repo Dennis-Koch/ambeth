@@ -121,7 +121,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 	protected boolean lazyTransactionActive;
 
 	protected final ThreadLocal<AlreadyHandledSet> alreadyHandledSetTL =
-			new ThreadLocal<AlreadyHandledSet>();
+			new ThreadLocal<>();
 
 	@Override
 	public void buildCachePath(Class<?> entityType, String memberToInitialize,
@@ -150,7 +150,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			}
 			AppendableCachePath childCachePath = null;
 			if (currentCachePaths == null) {
-				currentCachePaths = new LinkedHashSet<AppendableCachePath>();
+				currentCachePaths = new LinkedHashSet<>();
 				currentCachePath.children = currentCachePaths;
 			}
 			for (AppendableCachePath cachePath : currentCachePaths) {
@@ -237,15 +237,15 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			}
 
 			IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisLoadedHistory =
-					new IdentityLinkedMap<ICacheIntern, ISet<IObjRef>>();
+					new IdentityLinkedMap<>();
 			IdentityLinkedMap<ICacheIntern, ISet<IObjRelation>> cacheToOrelsLoadedHistory =
-					new IdentityLinkedMap<ICacheIntern, ISet<IObjRelation>>();
+					new IdentityLinkedMap<>();
 			IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad =
-					new IdentityLinkedMap<ICacheIntern, ISet<IObjRef>>();
+					new IdentityLinkedMap<>();
 			IdentityLinkedMap<ICacheIntern, IMap<IObjRelation, Boolean>> cacheToOrelsToLoad =
-					new IdentityLinkedMap<ICacheIntern, IMap<IObjRelation, Boolean>>();
+					new IdentityLinkedMap<>();
 
-			ArrayList<PrefetchCommand> loadItems = new ArrayList<PrefetchCommand>();
+			ArrayList<PrefetchCommand> loadItems = new ArrayList<>();
 
 			handleObjects(objects, entityTypeToPrefetchPath, alreadyHandledSet, cacheToOrisLoadedHistory,
 					cacheToOrelsLoadedHistory, cacheToOrisToLoad, cacheToOrelsToLoad, loadItems);
@@ -258,7 +258,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				return null;
 			}
 
-			ArrayList<Object> hardRefList = new ArrayList<Object>();
+			ArrayList<Object> hardRefList = new ArrayList<>();
 			// Store hard-ref-list to global hard ref
 			alreadyHandledSet.put(hardRefList, null, Boolean.TRUE);
 
@@ -441,7 +441,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		hardRefList.add(result);
 		ISet<IObjRef> orisLoadedHistory = cacheToOrisLoadedHistory.get(cache);
 		if (orisLoadedHistory == null) {
-			orisLoadedHistory = new HashSet<IObjRef>();
+			orisLoadedHistory = new HashSet<>();
 			cacheToOrisLoadedHistory.put(cache, orisLoadedHistory);
 		}
 		orisLoadedHistory.addAll(orisToLoad);
@@ -472,7 +472,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			IdentityLinkedSet<Member> prioMembers) {
 		IList<IObjRelation> objRelList;
 		if (prioMembers.size() > 0) {
-			objRelList = new ArrayList<IObjRelation>(orelsToLoad.size());
+			objRelList = new ArrayList<>(orelsToLoad.size());
 			IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 			for (Entry<IObjRelation, Boolean> entry : orelsToLoad) {
 				IObjRelation objRel = entry.getKey();
@@ -508,7 +508,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			if (orisToLoad == null) {
 				orisToLoad = cacheToOrisToLoad.get(cache);
 				if (orisToLoad == null) {
-					orisToLoad = new HashSet<IObjRef>();
+					orisToLoad = new HashSet<>();
 					cacheToOrisToLoad.put(cache, orisToLoad);
 				}
 			}
@@ -516,7 +516,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		}
 		ISet<IObjRelation> orelsLoadedHistory = cacheToOrelsLoadedHistory.get(cache);
 		if (orelsLoadedHistory == null) {
-			orelsLoadedHistory = new HashSet<IObjRelation>();
+			orelsLoadedHistory = new HashSet<>();
 			cacheToOrelsLoadedHistory.put(cache, orelsLoadedHistory);
 		}
 		orelsLoadedHistory.addAll(objRelList);
@@ -631,7 +631,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				if (orelsLoadedHistory == null || !orelsLoadedHistory.contains(self)) {
 					IMap<IObjRelation, Boolean> orelsToLoad = cacheToOrelsToLoad.get(rootCache);
 					if (orelsToLoad == null) {
-						orelsToLoad = new HashMap<IObjRelation, Boolean>();
+						orelsToLoad = new HashMap<>();
 						cacheToOrelsToLoad.put(rootCache, orelsToLoad);
 					}
 					orelsToLoad.put(self, Boolean.valueOf(vhr.isObjRefsOnly()));
@@ -654,7 +654,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 					}
 					ISet<IObjRef> orisToLoad = cacheToOrisToLoad.get(rootCache);
 					if (orisToLoad == null) {
-						orisToLoad = new HashSet<IObjRef>();
+						orisToLoad = new HashSet<>();
 						cacheToOrisToLoad.put(rootCache, orisToLoad);
 					}
 					orisToLoad.add(ori);
@@ -676,7 +676,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		IObjRef[] objRefs = vhc.get__ObjRefs(relationIndex);
 		if (objRefs == null) {
 			IObjRelation self = vhc.get__Self(relationIndex);
-			ArrayList<IObjRelation> orels = new ArrayList<IObjRelation>();
+			ArrayList<IObjRelation> orels = new ArrayList<>();
 			orels.add(self);
 			IList<IObjRelationResult> orelResults =
 					cache.getObjRelations(orels, cache, failEarlyReturnMisses);
@@ -686,7 +686,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				if (orelsLoadedHistory == null || !orelsLoadedHistory.contains(self)) {
 					IMap<IObjRelation, Boolean> orelsToLoad = cacheToOrelsToLoad.get(cache);
 					if (orelsToLoad == null) {
-						orelsToLoad = new HashMap<IObjRelation, Boolean>();
+						orelsToLoad = new HashMap<>();
 						cacheToOrelsToLoad.put(cache, orelsToLoad);
 					}
 					orelsToLoad.put(self, vhr.isObjRefsOnly());
@@ -721,7 +721,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 					}
 					ISet<IObjRef> orisToLoad = cacheToOrisToLoad.get(cache);
 					if (orisToLoad == null) {
-						orisToLoad = new HashSet<IObjRef>();
+						orisToLoad = new HashSet<>();
 						cacheToOrisToLoad.put(cache, orisToLoad);
 					}
 					orisToLoad.add(ori);
@@ -884,7 +884,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		// Entity-Referenzen zu verhindern
 		IPrefetchState state = prefetch.prefetch(sourceEntities);
 
-		LinkedHashMap<Object, T> targetDistinctMap = new LinkedHashMap<Object, T>();
+		LinkedHashMap<Object, T> targetDistinctMap = new LinkedHashMap<>();
 		// Danach traversieren, wobei wir jetzt wissen, dass uns das keine Roundtrips kostet
 		for (int a = 0, size = sourceEntities.size(); a < size; a++) {
 			S sourceEntity = sourceEntities.get(a);
@@ -959,7 +959,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			return new PrefetchPath(cachePath.memberType, cachePath.memberIndex, cachePath.memberName,
 					clonedChildren, new Class[0]);
 		}
-		HashSet<Class<?>> memberTypesOnDescendants = new HashSet<Class<?>>();
+		HashSet<Class<?>> memberTypesOnDescendants = new HashSet<>();
 		for (PrefetchPath clonedChild : clonedChildren) {
 			memberTypesOnDescendants.add(clonedChild.memberType);
 			memberTypesOnDescendants.addAll(clonedChild.memberTypesOnDescendants);

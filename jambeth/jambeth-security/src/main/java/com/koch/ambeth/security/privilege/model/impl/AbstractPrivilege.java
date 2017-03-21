@@ -27,50 +27,44 @@ import com.koch.ambeth.security.privilege.model.IPropertyPrivilege;
 import com.koch.ambeth.util.IImmutableType;
 import com.koch.ambeth.util.IPrintable;
 
-public abstract class AbstractPrivilege implements IPrivilege, IPrintable, IImmutableType, Serializable
-{
+public abstract class AbstractPrivilege
+		implements IPrivilege, IPrintable, IImmutableType, Serializable {
 	private static final long serialVersionUID = 1549203069449950797L;
 
-	public static int arraySizeForIndex()
-	{
+	public static int arraySizeForIndex() {
 		return 1 << 8;
 	}
 
-	public static int calcIndex(boolean create, boolean read, boolean update, boolean delete, boolean execute)
-	{
-		return toBitValue(create, 0) + toBitValue(read, 1) + toBitValue(update, 2) + toBitValue(delete, 3) + toBitValue(execute, 4);
+	public static int calcIndex(boolean create, boolean read, boolean update, boolean delete,
+			boolean execute) {
+		return toBitValue(create, 0) + toBitValue(read, 1) + toBitValue(update, 2)
+				+ toBitValue(delete, 3) + toBitValue(execute, 4);
 	}
 
-	public static int toBitValue(boolean value, int startingBit)
-	{
+	public static int toBitValue(boolean value, int startingBit) {
 		return value ? 1 << startingBit : 0;
 	}
 
-	public static char upperOrLower(boolean flag, char oneChar)
-	{
-		if (flag)
-		{
+	public static char upperOrLower(boolean flag, char oneChar) {
+		if (flag) {
 			return Character.toUpperCase(oneChar);
 		}
 		return Character.toLowerCase(oneChar);
 	}
 
-	public static char upperOrLower(Boolean flag, char oneChar)
-	{
-		if (flag == null)
-		{
+	public static char upperOrLower(Boolean flag, char oneChar) {
+		if (flag == null) {
 			return '_';
 		}
-		if (flag.booleanValue())
-		{
+		if (flag.booleanValue()) {
 			return Character.toUpperCase(oneChar);
 		}
 		return Character.toLowerCase(oneChar);
 	}
 
-	public AbstractPrivilege(boolean create, boolean read, boolean update, boolean delete, boolean execute, IPropertyPrivilege[] primitivePropertyPrivileges,
-			IPropertyPrivilege[] relationPropertyPrivileges)
-	{
+	public AbstractPrivilege(boolean create, boolean read, boolean update, boolean delete,
+			boolean execute, IPropertyPrivilege[] primitivePropertyPrivileges,
+			IPropertyPrivilege[] relationPropertyPrivileges) {
 		// intended blank
 	}
 
@@ -81,16 +75,14 @@ public abstract class AbstractPrivilege implements IPrivilege, IPrintable, IImmu
 	public abstract IPropertyPrivilege getRelationPropertyPrivilege(int relationIndex);
 
 	@Override
-	public final String toString()
-	{
+	public final String toString() {
 		StringBuilder sb = new StringBuilder();
 		toString(sb);
 		return sb.toString();
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
+	public void toString(StringBuilder sb) {
 		sb.append(upperOrLower(isCreateAllowed(), 'c'));
 		sb.append(upperOrLower(isReadAllowed(), 'r'));
 		sb.append(upperOrLower(isUpdateAllowed(), 'u'));

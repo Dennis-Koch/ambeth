@@ -27,8 +27,7 @@ import com.koch.ambeth.security.model.ISignature;
 import com.koch.ambeth.security.model.IUser;
 
 @Audited(false)
-public interface IAuditEntry
-{
+public interface IAuditEntry {
 	public static final String Protocol = "Protocol";
 
 	public static final String Timestamp = "Timestamp";

@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public interface IBeanContextAware
-{
+public interface IBeanContextAware {
 	void setBeanContext(IServiceContext beanContext);
 }

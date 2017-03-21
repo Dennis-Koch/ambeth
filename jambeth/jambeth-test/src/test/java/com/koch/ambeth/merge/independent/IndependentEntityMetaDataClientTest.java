@@ -41,57 +41,53 @@ import com.koch.ambeth.testutil.AbstractInformationBusTest;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 
-@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/merge/independent/independent-orm.xml"),
-		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile, value = "com/koch/ambeth/merge/independent/independent-vo-config.xml"),
-		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true") })
-public class IndependentEntityMetaDataClientTest extends AbstractInformationBusTest
-{
+@TestPropertiesList({
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+				value = "com/koch/ambeth/merge/independent/independent-orm.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile,
+				value = "com/koch/ambeth/merge/independent/independent-vo-config.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true")})
+public class IndependentEntityMetaDataClientTest extends AbstractInformationBusTest {
 	private EntityMetaDataProvider fixture;
 
-	public void setFixture(EntityMetaDataProvider fixture)
-	{
+	public void setFixture(EntityMetaDataProvider fixture) {
 		this.fixture = fixture;
 	}
 
 	@Test
-	public void testGetMetaDataClassOfQ()
-	{
+	public void testGetMetaDataClassOfQ() {
 		assertNotNull(fixture.getMetaData(EntityA.class));
 		assertNotNull(fixture.getMetaData(EntityB.class));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testGetMetaDataClassOfQ_Exception()
-	{
+	public void testGetMetaDataClassOfQ_Exception() {
 		fixture.getMetaData(String.class);
 	}
 
 	@Test
-	public void testGetMetaDataClassOfQBoolean()
-	{
+	public void testGetMetaDataClassOfQBoolean() {
 		assertNotNull(fixture.getMetaData(EntityA.class, true));
 		assertNotNull(fixture.getMetaData(EntityA.class, false));
 		assertNull(fixture.getMetaData(String.class, true));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testGetMetaDataClassOfQBoolean_Exception()
-	{
+	public void testGetMetaDataClassOfQBoolean_Exception() {
 		assertNull(fixture.getMetaData(String.class, false));
 	}
 
 	@Test
-	public void testGetMetaDataListOfClassOfQ()
-	{
-		List<IEntityMetaData> actual = fixture.getMetaData(Collections.<Class<?>> emptyList());
+	public void testGetMetaDataListOfClassOfQ() {
+		List<IEntityMetaData> actual = fixture.getMetaData(Collections.<Class<?>>emptyList());
 		assertTrue(actual.isEmpty());
-		actual = fixture.getMetaData(Arrays.<Class<?>> asList(EntityA.class, String.class, EntityB.class));
+		actual =
+				fixture.getMetaData(Arrays.<Class<?>>asList(EntityA.class, String.class, EntityB.class));
 		assertEquals(2, actual.size());
 	}
 
 	@Test
-	public void testMetaDataContent_EntityA()
-	{
+	public void testMetaDataContent_EntityA() {
 		IEntityMetaData actual = fixture.getMetaData(EntityA.class);
 
 		assertEquals(EntityA.class, actual.getEntityType());
@@ -108,15 +104,14 @@ public class IndependentEntityMetaDataClientTest extends AbstractInformationBusT
 	}
 
 	@Test
-	public void testMetaDataContent_EntityB()
-	{
+	public void testMetaDataContent_EntityB() {
 		IEntityMetaData actual = fixture.getMetaData(EntityB.class);
 
 		assertEquals(EntityB.class, actual.getEntityType());
 		checkTechnicalProperties(actual);
 
 		assertEquals(1, actual.getAlternateIdCount());
-		assertArrayEquals(new int[][] { { 0 } }, actual.getAlternateIdMemberIndicesInPrimitives());
+		assertArrayEquals(new int[][] {{0}}, actual.getAlternateIdMemberIndicesInPrimitives());
 		assertEquals(1, actual.getAlternateIdMembers().length);
 		assertEquals("Name", actual.getAlternateIdMembers()[0].getName());
 		assertEquals(0, actual.getIdIndexByMemberName("Name"));
@@ -128,8 +123,7 @@ public class IndependentEntityMetaDataClientTest extends AbstractInformationBusT
 		assertEquals(1, actual.getTypesRelatingToThis().length);
 	}
 
-	protected void checkTechnicalProperties(IEntityMetaData actual)
-	{
+	protected void checkTechnicalProperties(IEntityMetaData actual) {
 		assertNotNull(actual.getIdMember());
 		assertEquals("Id", actual.getIdMember().getName());
 		assertNotNull(actual.getVersionMember());
@@ -142,8 +136,7 @@ public class IndependentEntityMetaDataClientTest extends AbstractInformationBusT
 	}
 
 	@Test
-	public void testUnregisterValueObjectMapping()
-	{
+	public void testUnregisterValueObjectMapping() {
 		IValueObjectConfig actual = fixture.getValueObjectConfig(EntityAType.class);
 		assertNotNull(actual);
 
@@ -155,8 +148,7 @@ public class IndependentEntityMetaDataClientTest extends AbstractInformationBusT
 	}
 
 	@Test
-	public void testGetValueObjectConfig()
-	{
+	public void testGetValueObjectConfig() {
 		IValueObjectConfig actual;
 
 		actual = fixture.getValueObjectConfig(EntityAType.class);

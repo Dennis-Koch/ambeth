@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IFactory<T>
-{
+public interface IFactory<T> {
 
 	public static final Object[] emptyArgs = new Object[0];
 

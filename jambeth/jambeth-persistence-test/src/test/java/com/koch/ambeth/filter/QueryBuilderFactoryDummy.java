@@ -24,16 +24,13 @@ import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.query.IQueryBuilder;
 import com.koch.ambeth.query.IQueryBuilderFactory;
 
-public class QueryBuilderFactoryDummy implements IInitializingBean, IQueryBuilderFactory
-{
+public class QueryBuilderFactoryDummy implements IInitializingBean, IQueryBuilderFactory {
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 	}
 
 	@Override
-	public <T> IQueryBuilder<T> create(Class<T> entityType)
-	{
-		return new QueryBuilderDummy<T>();
+	public <T> IQueryBuilder<T> create(Class<T> entityType) {
+		return new QueryBuilderDummy<>();
 	}
 }

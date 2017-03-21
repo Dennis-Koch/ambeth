@@ -20,6 +20,5 @@ limitations under the License.
  * #L%
  */
 
-public class EntityBType2
-{
+public class EntityBType2 {
 }

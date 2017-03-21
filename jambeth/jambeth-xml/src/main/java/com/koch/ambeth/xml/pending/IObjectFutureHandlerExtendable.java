@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IObjectFutureHandlerExtendable
-{
+public interface IObjectFutureHandlerExtendable {
 	void registerObjectFutureHandler(IObjectFutureHandler objectFutureHandler, Class<?> type);
 
 	void unregisterObjectFutureHandler(IObjectFutureHandler objectFutureHandler, Class<?> type);

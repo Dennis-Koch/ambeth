@@ -22,6 +22,5 @@ limitations under the License.
 
 import com.koch.ambeth.model.AbstractEntity;
 
-public class EntityC extends AbstractEntity
-{
+public class EntityC extends AbstractEntity {
 }

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IPrivilege
-{
+public interface IPrivilege {
 	boolean isCreateAllowed();
 
 	boolean isReadAllowed();

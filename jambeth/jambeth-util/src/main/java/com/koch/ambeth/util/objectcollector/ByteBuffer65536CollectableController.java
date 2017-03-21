@@ -22,25 +22,20 @@ limitations under the License.
 
 import java.nio.ByteBuffer;
 
-public class ByteBuffer65536CollectableController implements ICollectableController
-{
+public class ByteBuffer65536CollectableController implements ICollectableController {
 	@Override
-	public Object createInstance()
-	{
+	public Object createInstance() {
 		return ByteBuffer.allocate(65536);
 	}
 
 	@Override
-	public void initObject(Object object)
-	{
+	public void initObject(Object object) {
 		// Intended blank
 	}
 
 	@Override
-	public void disposeObject(Object object)
-	{
-		if (object != null)
-		{
+	public void disposeObject(Object object) {
+		if (object != null) {
 			((ByteBuffer) object).clear();
 		}
 	}

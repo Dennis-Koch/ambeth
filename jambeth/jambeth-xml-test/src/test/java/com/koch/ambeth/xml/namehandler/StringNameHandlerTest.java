@@ -37,9 +37,8 @@ import com.koch.ambeth.xml.ICyclicXMLHandler;
 import com.koch.ambeth.xml.ioc.BootstrapScannerModule;
 import com.koch.ambeth.xml.ioc.XmlModule;
 
-@TestModule({ BootstrapScannerModule.class, XmlModule.class })
-public class StringNameHandlerTest extends AbstractInformationBusTest
-{
+@TestModule({BootstrapScannerModule.class, XmlModule.class})
+public class StringNameHandlerTest extends AbstractInformationBusTest {
 	private static final Charset UTF_8 = Charset.forName("UTF-8");
 
 	private static final String PREFIX = "<root><s i=\"1\"><![CDATA[";
@@ -50,8 +49,7 @@ public class StringNameHandlerTest extends AbstractInformationBusTest
 	protected ICyclicXMLHandler cyclicXmlHandler;
 
 	@Test
-	public void testWritesCustom() throws IOException
-	{
+	public void testWritesCustom() throws IOException {
 		String input = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, ...";
 		String expected = PREFIX + input + POSTFIX;
 		String written = cyclicXmlHandler.write(input);
@@ -66,8 +64,7 @@ public class StringNameHandlerTest extends AbstractInformationBusTest
 	}
 
 	@Test
-	public void testReadObject() throws IOException
-	{
+	public void testReadObject() throws IOException {
 		String input = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, ...";
 		String written = cyclicXmlHandler.write(input);
 		Object read = cyclicXmlHandler.read(written);
@@ -84,19 +81,20 @@ public class StringNameHandlerTest extends AbstractInformationBusTest
 	}
 
 	@Test
-	public void testWritesCustom_cdataEnd() throws IOException
-	{
-		String input = "Lorem ipsum dolor sit <![CDATA[amet,]]> consetetur <![CDATA[sadipscing]]> elitr, ...";
-		String expected = "<root><s i=\"1\"><s><![CDATA[Lorem ipsum dolor sit <![CDATA[amet,]]]]></s><s><![CDATA[> consetetur <![CDATA[sadipscing]]]]></s><s><![CDATA[> elitr, ...]]></s></s></root>";
+	public void testWritesCustom_cdataEnd() throws IOException {
+		String input =
+				"Lorem ipsum dolor sit <![CDATA[amet,]]> consetetur <![CDATA[sadipscing]]> elitr, ...";
+		String expected =
+				"<root><s i=\"1\"><s><![CDATA[Lorem ipsum dolor sit <![CDATA[amet,]]]]></s><s><![CDATA[> consetetur <![CDATA[sadipscing]]]]></s><s><![CDATA[> elitr, ...]]></s></s></root>";
 		String written = cyclicXmlHandler.write(input);
 		Assert.assertNotNull(written);
 		Assert.assertEquals(expected, written);
 	}
 
 	@Test
-	public void testReadObject_cdataEnd() throws IOException
-	{
-		String input = "Lorem ipsum dolor sit <![CDATA[amet,]]> consetetur <![CDATA[sadipscing]]> elitr, ...";
+	public void testReadObject_cdataEnd() throws IOException {
+		String input =
+				"Lorem ipsum dolor sit <![CDATA[amet,]]> consetetur <![CDATA[sadipscing]]> elitr, ...";
 		String written = cyclicXmlHandler.write(input);
 		Object read = cyclicXmlHandler.read(written);
 		Assert.assertNotNull(read);
@@ -105,8 +103,7 @@ public class StringNameHandlerTest extends AbstractInformationBusTest
 	}
 
 	@Test
-	public void testWritesCustom_longXml() throws IOException
-	{
+	public void testWritesCustom_longXml() throws IOException {
 		String longXml = loadLongXml();
 
 		String written = cyclicXmlHandler.write(longXml);
@@ -114,8 +111,7 @@ public class StringNameHandlerTest extends AbstractInformationBusTest
 	}
 
 	@Test
-	public void testReadObject_longXml() throws IOException
-	{
+	public void testReadObject_longXml() throws IOException {
 		String longXml = loadLongXml();
 
 		String written = cyclicXmlHandler.write(longXml);
@@ -126,8 +122,7 @@ public class StringNameHandlerTest extends AbstractInformationBusTest
 		Assert.assertEquals(longXml, read);
 	}
 
-	protected String loadLongXml() throws IOException
-	{
+	protected String loadLongXml() throws IOException {
 		Path path = Paths.get("src/test/resources/veryLongXml.xml");
 		List<String> allLines = Files.readAllLines(path, UTF_8);
 		String longXml = allLines.get(0);

@@ -26,19 +26,17 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.transfer.IServiceToken;
 
 // TODO [DataContract(IsReference = true)]
-public class ORIServiceToken extends ServiceToken<List<IObjRef>> implements IServiceToken<List<IObjRef>>
-{
+public class ORIServiceToken extends ServiceToken<List<IObjRef>>
+		implements IServiceToken<List<IObjRef>> {
 
 	// TODO [DataMember]
 	@Override
-	public List<IObjRef> getValue()
-	{
+	public List<IObjRef> getValue() {
 		return super.value;
 	}
 
 	@Override
-	public void setValue(List<IObjRef> value)
-	{
+	public void setValue(List<IObjRef> value) {
 		super.value = value;
 	}
 

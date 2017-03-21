@@ -28,8 +28,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 
-public class CacheModification implements ICacheModification, IThreadLocalCleanupBean
-{
+public class CacheModification implements ICacheModification, IThreadLocalCleanupBean {
 	private static final Integer ACTIVE = Integer.valueOf(1), FLUSHING = Integer.valueOf(2);
 
 	@LogInstance
@@ -37,119 +36,98 @@ public class CacheModification implements ICacheModification, IThreadLocalCleanu
 
 	// Intentionally no SensitiveThreadLocal
 	@Forkable
-	protected final ThreadLocal<Integer> activeTL = new ThreadLocal<Integer>();
+	protected final ThreadLocal<Integer> activeTL = new ThreadLocal<>();
 
 	@Forkable
-	protected final ThreadLocal<Boolean> internalUpdateTL = new ThreadLocal<Boolean>();
+	protected final ThreadLocal<Boolean> internalUpdateTL = new ThreadLocal<>();
 
-	protected final ThreadLocal<ArrayList<IBackgroundWorkerDelegate>> queuedEventsTL = new ThreadLocal<ArrayList<IBackgroundWorkerDelegate>>();
+	protected final ThreadLocal<ArrayList<IBackgroundWorkerDelegate>> queuedEventsTL =
+			new ThreadLocal<>();
 
 	@Override
-	public void cleanupThreadLocal()
-	{
+	public void cleanupThreadLocal() {
 		activeTL.remove();
 		internalUpdateTL.remove();
 		queuedEventsTL.remove();
 	}
 
 	@Override
-	public boolean isActiveOrFlushing()
-	{
+	public boolean isActiveOrFlushing() {
 		return activeTL.get() != null;
 	}
 
 	@Override
-	public boolean isActive()
-	{
+	public boolean isActive() {
 		return ACTIVE.equals(activeTL.get());
 	}
 
 	@Override
-	public boolean isInternalUpdate()
-	{
+	public boolean isInternalUpdate() {
 		Boolean internalUpdate = internalUpdateTL.get();
 		return internalUpdate != null ? internalUpdate.booleanValue() : false;
 	}
 
 	@Override
-	public boolean isActiveOrFlushingOrInternalUpdate()
-	{
+	public boolean isActiveOrFlushingOrInternalUpdate() {
 		return isActiveOrFlushing() || isInternalUpdate();
 	}
 
 	@Override
-	public void setInternalUpdate(boolean internalUpdate)
-	{
-		if (internalUpdate)
-		{
+	public void setInternalUpdate(boolean internalUpdate) {
+		if (internalUpdate) {
 			internalUpdateTL.set(Boolean.TRUE);
 		}
-		else
-		{
+		else {
 			internalUpdateTL.remove();
 		}
 	}
 
 	@Override
-	public void setActive(boolean active)
-	{
+	public void setActive(boolean active) {
 		boolean existingIsActive = isActive();
-		if (existingIsActive == active)
-		{
+		if (existingIsActive == active) {
 			return;
 		}
-		if (existingIsActive)
-		{
+		if (existingIsActive) {
 			activeTL.set(FLUSHING);
-			try
-			{
+			try {
 				fireQueuedPropertyChangeEvents();
 			}
-			finally
-			{
+			finally {
 				activeTL.remove();
 			}
 		}
-		else
-		{
+		else {
 			activeTL.set(ACTIVE);
 		}
 	}
 
 	@Override
-	public void queuePropertyChangeEvent(IBackgroundWorkerDelegate task)
-	{
-		if (!isActive())
-		{
+	public void queuePropertyChangeEvent(IBackgroundWorkerDelegate task) {
+		if (!isActive()) {
 			throw new IllegalStateException("Not supported if isActive() is 'false'");
 		}
 		ArrayList<IBackgroundWorkerDelegate> queuedEvents = queuedEventsTL.get();
-		if (queuedEvents == null)
-		{
-			queuedEvents = new ArrayList<IBackgroundWorkerDelegate>();
+		if (queuedEvents == null) {
+			queuedEvents = new ArrayList<>();
 			queuedEventsTL.set(queuedEvents);
 		}
 		queuedEvents.add(task);
 	}
 
-	protected void fireQueuedPropertyChangeEvents()
-	{
+	protected void fireQueuedPropertyChangeEvents() {
 		ArrayList<IBackgroundWorkerDelegate> queuedEvents = queuedEventsTL.get();
-		if (queuedEvents == null)
-		{
+		if (queuedEvents == null) {
 			return;
 		}
 		queuedEventsTL.remove();
-		try
-		{
-			for (int a = 0, size = queuedEvents.size(); a < size; a++)
-			{
+		try {
+			for (int a = 0, size = queuedEvents.size(); a < size; a++) {
 				IBackgroundWorkerDelegate queuedEvent = queuedEvents.get(a);
 				queuedEvent.invoke();
 			}
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			log.error(e);
 			throw RuntimeExceptionUtil.mask(e);
 		}

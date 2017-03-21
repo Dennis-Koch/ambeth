@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public enum ValueObjectMemberType
-{
+public enum ValueObjectMemberType {
 	BASIC, RELATION, IGNORE, UNDEFINED;
 }

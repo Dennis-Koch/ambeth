@@ -24,7 +24,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class TestObjectCollector extends NoOpObjectCollector {
-	protected Set<Object> collectables = new HashSet<Object>();
+	protected Set<Object> collectables = new HashSet<>();
 
 	@Override
 	public <T> T create(final Class<T> myClass) {

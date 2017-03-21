@@ -28,105 +28,83 @@ import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 
-public class ParallelRunnable<V> implements Runnable
-{
+public class ParallelRunnable<V> implements Runnable {
 	protected final RunnableHandle<V> runnableHandle;
 
 	protected final boolean buildThreadLocals;
 
-	public ParallelRunnable(RunnableHandle<V> runnableHandle, boolean buildThreadLocals)
-	{
+	public ParallelRunnable(RunnableHandle<V> runnableHandle, boolean buildThreadLocals) {
 		this.runnableHandle = runnableHandle;
 		this.buildThreadLocals = buildThreadLocals;
 	}
 
 	@Override
-	public void run()
-	{
-		try
-		{
+	public void run() {
+		try {
 			final Lock parallelLock = runnableHandle.parallelLock;
 			IList<V> items = runnableHandle.items;
 			IForkState forkState = runnableHandle.forkState;
 			ParamHolder<Throwable> exHolder = runnableHandle.exHolder;
 			CountDownLatch latch = runnableHandle.latch;
 
-			IBackgroundWorkerParamDelegate<V> run = new IBackgroundWorkerParamDelegate<V>()
-			{
+			IBackgroundWorkerParamDelegate<V> run = new IBackgroundWorkerParamDelegate<V>() {
 				@Override
-				public void invoke(V state) throws Throwable
-				{
+				public void invoke(V state) throws Throwable {
 					runnableHandle.run.invoke(state);
 					writeParallelResult(parallelLock, state);
 				}
 			};
 
-			while (true)
-			{
+			while (true) {
 				V item;
 				parallelLock.lock();
-				try
-				{
-					if (exHolder.getValue() != null)
-					{
+				try {
+					if (exHolder.getValue() != null) {
 						// an uncatched error occurred somewhere
 						return;
 					}
 					// pop the last item of the queue
 					item = items.popLastElement();
 				}
-				finally
-				{
+				finally {
 					parallelLock.unlock();
 				}
-				if (item == null)
-				{
+				if (item == null) {
 					// queue finished
 					return;
 				}
-				try
-				{
-					if (buildThreadLocals)
-					{
+				try {
+					if (buildThreadLocals) {
 						forkState.use(run, item);
 					}
-					else
-					{
+					else {
 						run.invoke(item);
 					}
 				}
-				catch (Throwable e)
-				{
+				catch (Throwable e) {
 					parallelLock.lock();
-					try
-					{
-						if (exHolder.getValue() == null)
-						{
+					try {
+						if (exHolder.getValue() == null) {
 							exHolder.setValue(e);
 						}
 					}
-					finally
-					{
+					finally {
 						parallelLock.unlock();
 					}
 				}
-				finally
-				{
+				finally {
 					latch.countDown();
 				}
 			}
 		}
-		finally
-		{
-			if (buildThreadLocals)
-			{
+		finally {
+			if (buildThreadLocals) {
 				runnableHandle.threadLocalCleanupController.cleanupThreadLocal();
 			}
 		}
 	}
 
-	protected void writeParallelResult(Lock parallelLock, V item)
-	{
+	protected void writeParallelResult(Lock parallelLock, V item) {
 		// intended blank
 	}
 }

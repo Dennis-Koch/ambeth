@@ -20,10 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public interface IMergeProcess
-{
-	void process(Object objectToMerge, Object objectToDelete, ProceedWithMergeHook proceedHook, MergeFinishedCallback mergeFinishedCallback);
+public interface IMergeProcess {
+	void process(Object objectToMerge, Object objectToDelete, ProceedWithMergeHook proceedHook,
+			MergeFinishedCallback mergeFinishedCallback);
 
-	void process(Object objectToMerge, Object objectToDelete, ProceedWithMergeHook proceedHook, MergeFinishedCallback mergeFinishedCallback,
-			boolean addNewEntitiesToCache);
+	void process(Object objectToMerge, Object objectToDelete, ProceedWithMergeHook proceedHook,
+			MergeFinishedCallback mergeFinishedCallback, boolean addNewEntitiesToCache);
 }

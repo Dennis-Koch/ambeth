@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.service.model.ISecurityScope;
 
-public interface IServiceFactory
-{
+public interface IServiceFactory {
 	<I> I getService(Class<I> type, ISecurityScope... securityScopes);
 }

@@ -20,18 +20,18 @@ limitations under the License.
  * #L%
  */
 
-public final class HexUtil
-{
+public final class HexUtil {
 	private static final char[] hexArray;
 
 	private static final char[] hexArrayLowerLetters;
 
 	private static final byte[] byteArray;
 
-	static
-	{
-		hexArray = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-		hexArrayLowerLetters = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+	static {
+		hexArray =
+				new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+		hexArrayLowerLetters =
+				new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 		byteArray = new byte[256];
 		byteArray['0'] = 0;
 		byteArray['1'] = 1;
@@ -57,11 +57,9 @@ public final class HexUtil
 		byteArray['f'] = 15;
 	}
 
-	public static String toHex(byte[] bytes)
-	{
+	public static String toHex(byte[] bytes) {
 		char[] hexChars = new char[bytes.length * 2];
-		for (int j = 0; j < bytes.length; j++)
-		{
+		for (int j = 0; j < bytes.length; j++) {
 			int v = bytes[j] & 0xFF;
 			hexChars[j * 2] = hexArray[v >>> 4];
 			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
@@ -69,11 +67,9 @@ public final class HexUtil
 		return new String(hexChars);
 	}
 
-	public static String toHexLowerLetters(byte[] bytes)
-	{
+	public static String toHexLowerLetters(byte[] bytes) {
 		char[] hexChars = new char[bytes.length * 2];
-		for (int j = 0, size = bytes.length; j < size; j++)
-		{
+		for (int j = 0, size = bytes.length; j < size; j++) {
 			int v = bytes[j] & 0xFF;
 			hexChars[j * 2] = hexArrayLowerLetters[v >>> 4];
 			hexChars[j * 2 + 1] = hexArrayLowerLetters[v & 0x0F];
@@ -81,20 +77,16 @@ public final class HexUtil
 		return new String(hexChars);
 	}
 
-	public static byte[] toBytes(String hex)
-	{
-		if (hex.length() == 0)
-		{
+	public static byte[] toBytes(String hex) {
+		if (hex.length() == 0) {
 			return new byte[0];
 		}
-		if (hex.length() == 1)
-		{
-			return new byte[] { byteArray[hex.charAt(0)] };
+		if (hex.length() == 1) {
+			return new byte[] {byteArray[hex.charAt(0)]};
 		}
 		byte[] bytes = new byte[hex.length() / 2];
 		int byteIndex = 0;
-		for (int j = 0, size = hex.length(); j < size; j += 2)
-		{
+		for (int j = 0, size = hex.length(); j < size; j += 2) {
 			char upperChar = hex.charAt(j);
 			char lowerChar = hex.charAt(j + 1);
 			bytes[byteIndex++] = (byte) ((byteArray[upperChar] << 4) + byteArray[lowerChar]);
@@ -102,8 +94,7 @@ public final class HexUtil
 		return bytes;
 	}
 
-	private HexUtil()
-	{
+	private HexUtil() {
 		// intended blank
 	}
 }

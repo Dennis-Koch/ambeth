@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IOrmConfigGroup
-{
+public interface IOrmConfigGroup {
 	Iterable<IEntityConfig> getLocalEntityConfigs();
 
 	Iterable<IEntityConfig> getExternalEntityConfigs();

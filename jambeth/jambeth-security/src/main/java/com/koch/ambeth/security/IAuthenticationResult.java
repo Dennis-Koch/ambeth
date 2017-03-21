@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IAuthenticationResult
-{
+public interface IAuthenticationResult {
 	String getSID();
 
 	boolean isChangePasswordRecommended();

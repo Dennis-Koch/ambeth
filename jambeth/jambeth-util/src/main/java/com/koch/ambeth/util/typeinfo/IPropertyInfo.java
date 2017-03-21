@@ -23,8 +23,7 @@ limitations under the License.
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
-public interface IPropertyInfo
-{
+public interface IPropertyInfo {
 	Class<?> getEntityType();
 
 	String getName();

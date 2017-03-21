@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.security.audit.model.Audited;
 
 @Audited(false)
-public interface IAuditedEntityPrimitiveProperty
-{
+public interface IAuditedEntityPrimitiveProperty {
 	public static final String Entity = "Entity";
 
 	public static final String Order = "Order";

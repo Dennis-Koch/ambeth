@@ -23,11 +23,10 @@ limitations under the License.
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 
-public class RelationsTestModule implements IInitializingModule
-{
+public class RelationsTestModule implements IInitializingModule {
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		beanContextFactory.registerBean("relationsService", RelationsService.class).autowireable(IRelationsService.class);
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		beanContextFactory.registerBean("relationsService", RelationsService.class)
+				.autowireable(IRelationsService.class);
 	}
 }

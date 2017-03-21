@@ -78,14 +78,12 @@ public class FileContentCache
 	@LogInstance
 	private ILogger log;
 
-	protected final HashMap<ChunkKey, Reference<ByteBuffer>> fileToContentMap =
-			new HashMap<>();
+	protected final HashMap<ChunkKey, Reference<ByteBuffer>> fileToContentMap = new HashMap<>();
 
 	protected final IdentityWeakHashMap<ByteBuffer, Counter> contentToUsageCounterMap =
 			new IdentityWeakHashMap<>();
 
-	protected final SmartCopyMap<FileKey, IByteBuffer> fileToVtdNavMap =
-			new SmartCopyMap<>();
+	protected final SmartCopyMap<FileKey, IByteBuffer> fileToVtdNavMap = new SmartCopyMap<>();
 
 	protected int inUseCounter;
 

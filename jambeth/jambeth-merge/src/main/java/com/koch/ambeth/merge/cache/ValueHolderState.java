@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public enum ValueHolderState
-{
+public enum ValueHolderState {
 	LAZY, PENDING, INIT
 }

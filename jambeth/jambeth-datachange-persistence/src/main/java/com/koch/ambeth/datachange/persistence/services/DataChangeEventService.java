@@ -54,8 +54,7 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 
-public class DataChangeEventService implements IDataChangeEventService, IStartingBean
-{
+public class DataChangeEventService implements IDataChangeEventService, IStartingBean {
 	private static final long KEEP_EVENTS_FOREVER = -1;
 
 	@SuppressWarnings("unused")
@@ -83,12 +82,12 @@ public class DataChangeEventService implements IDataChangeEventService, IStartin
 	@Autowired
 	protected IPrefetchHelper prefetchHelper;
 
-	@Property(name = DataChangePersistenceConfigurationConstants.KeepEventsForMillis, defaultValue = KEEP_EVENTS_FOREVER + "")
+	@Property(name = DataChangePersistenceConfigurationConstants.KeepEventsForMillis,
+			defaultValue = KEEP_EVENTS_FOREVER + "")
 	protected long keepEventsForMillis = KEEP_EVENTS_FOREVER;
 
 	@Override
-	public void afterStarted() throws Throwable
-	{
+	public void afterStarted() throws Throwable {
 		removeExpired();
 		IList<IDataChange> eventObjects = retrieveAll();
 		@SuppressWarnings("unchecked")
@@ -97,9 +96,8 @@ public class DataChangeEventService implements IDataChangeEventService, IStartin
 	}
 
 	@Override
-	public void save(IDataChange dataChange)
-	{
-		HashSet<Class<?>> entityTypes = new HashSet<Class<?>>();
+	public void save(IDataChange dataChange) {
+		HashSet<Class<?>> entityTypes = new HashSet<>();
 		addAllEntityTypes(entityTypes, dataChange.getInserts());
 		addAllEntityTypes(entityTypes, dataChange.getUpdates());
 		addAllEntityTypes(entityTypes, dataChange.getDeletes());
@@ -115,16 +113,16 @@ public class DataChangeEventService implements IDataChangeEventService, IStartin
 		dataChangeEventDAO.save(bo);
 	}
 
-	protected IList<IDataChange> retrieveAll()
-	{
+	protected IList<IDataChange> retrieveAll() {
 		List<DataChangeEventBO> bos = dataChangeEventDAO.retrieveAll();
-		ArrayList<IDataChange> retrieved = new ArrayList<IDataChange>();
+		ArrayList<IDataChange> retrieved = new ArrayList<>();
 
-		IPrefetchHandle prefetchHandle = prefetchHelper.createPrefetch().add(DataChangeEventBO.class, "Inserts.EntityType")
-				.add(DataChangeEventBO.class, "Updates.EntityType").add(DataChangeEventBO.class, "Deletes.EntityType").build();
+		IPrefetchHandle prefetchHandle =
+				prefetchHelper.createPrefetch().add(DataChangeEventBO.class, "Inserts.EntityType")
+						.add(DataChangeEventBO.class, "Updates.EntityType")
+						.add(DataChangeEventBO.class, "Deletes.EntityType").build();
 		prefetchHandle.prefetch(bos);
-		for (int i = 0, size = bos.size(); i < size; i++)
-		{
+		for (int i = 0, size = bos.size(); i < size; i++) {
 			DataChangeEventBO bo = bos.get(i);
 			DataChangeEvent entity = toEntity(bo);
 			retrieved.add(entity);
@@ -133,45 +131,38 @@ public class DataChangeEventService implements IDataChangeEventService, IStartin
 		return retrieved;
 	}
 
-	protected void removeExpired()
-	{
-		if (keepEventsForMillis == KEEP_EVENTS_FOREVER)
-		{
+	protected void removeExpired() {
+		if (keepEventsForMillis == KEEP_EVENTS_FOREVER) {
 			return;
 		}
 		long time = System.currentTimeMillis() - keepEventsForMillis;
 		dataChangeEventDAO.removeBefore(time);
 	}
 
-	protected void addAllEntityTypes(ISet<Class<?>> entityTypes, List<IDataChangeEntry> dataChangeEntries)
-	{
-		if (dataChangeEntries == null)
-		{
+	protected void addAllEntityTypes(ISet<Class<?>> entityTypes,
+			List<IDataChangeEntry> dataChangeEntries) {
+		if (dataChangeEntries == null) {
 			return;
 		}
-		for (int i = dataChangeEntries.size(); i-- > 0;)
-		{
+		for (int i = dataChangeEntries.size(); i-- > 0;) {
 			IDataChangeEntry dataChangeEntry = dataChangeEntries.get(i);
 			entityTypes.add(dataChangeEntry.getEntityType());
 		}
 	}
 
-	protected IMap<Class<?>, EntityType> loadEntityTypes(ISet<Class<?>> entityTypes)
-	{
-		HashMap<Class<?>, EntityType> classToEntityType = new HashMap<Class<?>, EntityType>();
+	protected IMap<Class<?>, EntityType> loadEntityTypes(ISet<Class<?>> entityTypes) {
+		HashMap<Class<?>, EntityType> classToEntityType = new HashMap<>();
 
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(EntityType.class);
 		byte idIndex = metaData.getIdIndexByMemberName("Type");
 		IObjRef[] orisToGet = new IObjRef[entityTypes.size()];
 		int index = 0;
-		for (Class<?> entry : entityTypes)
-		{
+		for (Class<?> entry : entityTypes) {
 			IObjRef objRef = new ObjRef(EntityType.class, idIndex, entry, null);
 			orisToGet[index++] = objRef;
 		}
 		IList<Object> retrieved = cache.getObjects(orisToGet, CacheDirective.none());
-		for (int i = retrieved.size(); i-- > 0;)
-		{
+		for (int i = retrieved.size(); i-- > 0;) {
 			EntityType entityType = (EntityType) retrieved.get(i);
 			classToEntityType.put(entityType.getType(), entityType);
 		}
@@ -179,23 +170,21 @@ public class DataChangeEventService implements IDataChangeEventService, IStartin
 		return classToEntityType;
 	}
 
-	private List<DataChangeEntryBO> toDataChangeEntryList(List<IDataChangeEntry> dataChangeEntries, IMap<Class<?>, EntityType> classToEntityType)
-	{
-		if (dataChangeEntries == null)
-		{
+	private List<DataChangeEntryBO> toDataChangeEntryList(List<IDataChangeEntry> dataChangeEntries,
+			IMap<Class<?>, EntityType> classToEntityType) {
+		if (dataChangeEntries == null) {
 			return null;
 		}
 		IEntityFactory entityFactory = this.entityFactory;
-		List<DataChangeEntryBO> dataChangeEntryList = new ArrayList<DataChangeEntryBO>(dataChangeEntries.size());
-		for (int i = 0, size = dataChangeEntries.size(); i < size; i++)
-		{
+		List<DataChangeEntryBO> dataChangeEntryList =
+				new ArrayList<>(dataChangeEntries.size());
+		for (int i = 0, size = dataChangeEntries.size(); i < size; i++) {
 			IDataChangeEntry dataChangeEntry = dataChangeEntries.get(i);
 
 			DataChangeEntryBO bo = entityFactory.createEntity(DataChangeEntryBO.class);
 			Class<?> entityClass = dataChangeEntry.getEntityType();
 			EntityType entityType = classToEntityType.get(entityClass);
-			if (entityType == null)
-			{
+			if (entityType == null) {
 				entityType = entityFactory.createEntity(EntityType.class);
 				entityType.setType(entityClass);
 				classToEntityType.put(entityClass, entityType);
@@ -211,8 +200,7 @@ public class DataChangeEventService implements IDataChangeEventService, IStartin
 		return dataChangeEntryList;
 	}
 
-	private DataChangeEvent toEntity(DataChangeEventBO bo)
-	{
+	private DataChangeEvent toEntity(DataChangeEventBO bo) {
 		DataChangeEvent dce = new DataChangeEvent();
 		dce.setChangeTime(bo.getChangeTime());
 		dce.setInserts(toDataChangeEntries(bo.getInserts()));
@@ -222,12 +210,10 @@ public class DataChangeEventService implements IDataChangeEventService, IStartin
 		return dce;
 	}
 
-	private List<IDataChangeEntry> toDataChangeEntries(List<DataChangeEntryBO> bos)
-	{
-		List<IDataChangeEntry> dataChangeEntries = new ArrayList<IDataChangeEntry>(bos.size());
+	private List<IDataChangeEntry> toDataChangeEntries(List<DataChangeEntryBO> bos) {
+		List<IDataChangeEntry> dataChangeEntries = new ArrayList<>(bos.size());
 
-		for (int i = 0, size = bos.size(); i < size; i++)
-		{
+		for (int i = 0, size = bos.size(); i < size; i++) {
 			DataChangeEntryBO bo = bos.get(i);
 			DataChangeEntry entry = new DataChangeEntry();
 			Class<?> entityType = bo.getEntityType().getType();

@@ -24,8 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
-public class ByteBufferInputStream extends InputStream
-{
+public class ByteBufferInputStream extends InputStream {
 	protected final ByteBuffer[] byteBuffers;
 
 	protected ByteBuffer currentByteBuffer;
@@ -34,16 +33,13 @@ public class ByteBufferInputStream extends InputStream
 
 	protected long available;
 
-	public ByteBufferInputStream(ByteBuffer... byteBuffers)
-	{
+	public ByteBufferInputStream(ByteBuffer... byteBuffers) {
 		this.byteBuffers = byteBuffers;
 		incCurrentIndex();
 	}
 
-	protected void incCurrentIndex()
-	{
-		if (byteBuffers.length <= currentIndex + 1)
-		{
+	protected void incCurrentIndex() {
+		if (byteBuffers.length <= currentIndex + 1) {
 			currentByteBuffer = null;
 			return;
 		}
@@ -52,28 +48,23 @@ public class ByteBufferInputStream extends InputStream
 	}
 
 	@Override
-	public boolean markSupported()
-	{
+	public boolean markSupported() {
 		return false;
 	}
 
 	@Override
-	public synchronized void mark(int readlimit)
-	{
+	public synchronized void mark(int readlimit) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public int available() throws IOException
-	{
+	public int available() throws IOException {
 		return (int) Math.min(Integer.MAX_VALUE, available);
 	}
 
 	@Override
-	public int read() throws IOException
-	{
-		if (!moveToNextAvailableByte())
-		{
+	public int read() throws IOException {
+		if (!moveToNextAvailableByte()) {
 			return -1;
 		}
 		int result = currentByteBuffer.get();
@@ -82,28 +73,22 @@ public class ByteBufferInputStream extends InputStream
 	}
 
 	@Override
-	public synchronized void reset() throws IOException
-	{
+	public synchronized void reset() throws IOException {
 		throw new UnsupportedOperationException();
 	}
 
-	protected boolean moveToNextAvailableByte()
-	{
-		while (currentByteBuffer != null && !currentByteBuffer.hasRemaining())
-		{
+	protected boolean moveToNextAvailableByte() {
+		while (currentByteBuffer != null && !currentByteBuffer.hasRemaining()) {
 			incCurrentIndex();
 		}
 		return currentByteBuffer != null && currentByteBuffer.hasRemaining();
 	}
 
 	@Override
-	public long skip(long n) throws IOException
-	{
+	public long skip(long n) throws IOException {
 		long skippedBytes = 0;
-		do
-		{
-			if (!moveToNextAvailableByte())
-			{
+		do {
+			if (!moveToNextAvailableByte()) {
 				break;
 			}
 			int currentSkip = (int) Math.min(currentByteBuffer.remaining(), n);

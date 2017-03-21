@@ -45,7 +45,7 @@ public class LogPreparedStatementInterceptor extends LogStatementInterceptor imp
 
 	public static final Method addBatchMethod;
 
-	public static final HashSet<Method> setIndexMethods = new HashSet<Method>(0.5f);
+	public static final HashSet<Method> setIndexMethods = new HashSet<>(0.5f);
 
 	static {
 		try {

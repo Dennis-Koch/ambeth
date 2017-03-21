@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.service.merge.model.IObjRef;
 
-public interface ILoadContainer
-{
+public interface ILoadContainer {
 	IObjRef getReference();
 
 	Object[] getPrimitives();

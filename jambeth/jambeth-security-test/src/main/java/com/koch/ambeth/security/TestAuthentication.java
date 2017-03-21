@@ -25,12 +25,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.koch.ambeth.security.StringSecurityScope;
-
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.METHOD })
-public @interface TestAuthentication
-{
+@Target({ElementType.TYPE, ElementType.METHOD})
+public @interface TestAuthentication {
 	String name();
 
 	String password();

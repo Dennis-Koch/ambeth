@@ -29,19 +29,16 @@ import com.koch.ambeth.service.model.ISecurityScope;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class SecurityScope implements ISecurityScope
-{
+public class SecurityScope implements ISecurityScope {
 	@XmlElement(required = true)
 	protected String name;
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 }

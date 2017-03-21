@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.Map;
 
-public interface ITestSetter
-{
+public interface ITestSetter {
 
 	boolean isApplicable(Class<?> parameter);
 

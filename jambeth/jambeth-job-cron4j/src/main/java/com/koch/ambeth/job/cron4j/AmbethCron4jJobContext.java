@@ -27,8 +27,7 @@ import com.koch.ambeth.log.LogInstance;
 
 import it.sauronsoftware.cron4j.TaskExecutionContext;
 
-public class AmbethCron4jJobContext implements IJobContext
-{
+public class AmbethCron4jJobContext implements IJobContext {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -36,32 +35,27 @@ public class AmbethCron4jJobContext implements IJobContext
 	@Autowired
 	protected TaskExecutionContext taskExecutionContext;
 
-	public TaskExecutionContext getTaskExecutionContext()
-	{
+	public TaskExecutionContext getTaskExecutionContext() {
 		return taskExecutionContext;
 	}
 
 	@Override
-	public void setStatusMessage(String message)
-	{
+	public void setStatusMessage(String message) {
 		taskExecutionContext.setStatusMessage(message);
 	}
 
 	@Override
-	public void setCompleteness(double completeness)
-	{
+	public void setCompleteness(double completeness) {
 		taskExecutionContext.setCompleteness(completeness);
 	}
 
 	@Override
-	public void pauseIfRequested()
-	{
+	public void pauseIfRequested() {
 		taskExecutionContext.pauseIfRequested();
 	}
 
 	@Override
-	public boolean isStopped()
-	{
+	public boolean isStopped() {
 		return taskExecutionContext.isStopped();
 	}
 

@@ -20,9 +20,9 @@ limitations under the License.
  * #L%
  */
 
-public interface IEventTargetExtractorExtendable
-{
+public interface IEventTargetExtractorExtendable {
 	void registerEventTargetExtractor(IEventTargetExtractor eventTargetExtractor, Class<?> eventType);
 
-	void unregisterEventTargetExtractor(IEventTargetExtractor eventTargetExtractor, Class<?> eventType);
+	void unregisterEventTargetExtractor(IEventTargetExtractor eventTargetExtractor,
+			Class<?> eventType);
 }

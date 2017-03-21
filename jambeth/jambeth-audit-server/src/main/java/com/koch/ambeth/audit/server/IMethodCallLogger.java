@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.lang.reflect.Method;
 
-public interface IMethodCallLogger
-{
+public interface IMethodCallLogger {
 	IMethodCallHandle logMethodCallStart(Method method, Object[] args);
 
 	void logMethodCallFinish(IMethodCallHandle methodCallHandle);

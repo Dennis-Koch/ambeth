@@ -28,63 +28,52 @@ import java.io.ObjectOutputStream;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.koch.ambeth.util.collections.IntArrayList;
-import com.koch.ambeth.util.collections.IntHashMap;
 import com.koch.ambeth.util.collections.IntHashMap.IntHashMapEntry;
 import com.koch.ambeth.util.collections.IntHashMap.IntIterator;
 
-public class IntHashMapTest
-{
-	protected int[] existingKeys = { 5, 6, 7, 8, 9 };
+public class IntHashMapTest {
+	protected int[] existingKeys = {5, 6, 7, 8, 9};
 
-	protected int[] existingValues = { 15, 16, 17, 18, 19 };
+	protected int[] existingValues = {15, 16, 17, 18, 19};
 
-	protected int[] nonExistingKeys = { 1, 2, 3, 4 };
+	protected int[] nonExistingKeys = {1, 2, 3, 4};
 
 	protected int expectedTestCount = 80 + existingKeys.length;
 
-	protected IntHashMap fillForTest()
-	{
+	protected IntHashMap fillForTest() {
 		IntHashMap map = new IntHashMap();
-		for (int a = 100; a-- > 20;)
-		{
+		for (int a = 100; a-- > 20;) {
 			map.put(a, a + 15);
 		}
-		for (int a = existingKeys.length; a-- > 0;)
-		{
+		for (int a = existingKeys.length; a-- > 0;) {
 			map.put(existingKeys[a], existingValues[a]);
 		}
 		return map;
 	}
 
 	@Test
-	public void ctorDefault()
-	{
+	public void ctorDefault() {
 		new IntHashMap();
 	}
 
 	@Test
-	public void ctorCapacity()
-	{
+	public void ctorCapacity() {
 		new IntHashMap(100);
 	}
 
 	@Test
-	public void ctorCapacityAndFactor()
-	{
+	public void ctorCapacityAndFactor() {
 		new IntHashMap(100, 0.75f);
 	}
 
 	@Test
-	public void init()
-	{
+	public void init() {
 		IntHashMap map = new IntHashMap(100, 0.75f);
 		map.init();
 	}
 
 	@Test
-	public void containsKey()
-	{
+	public void containsKey() {
 		IntHashMap map = fillForTest();
 
 		Assert.assertTrue(map.containsKey(existingKeys[0]));
@@ -92,8 +81,7 @@ public class IntHashMapTest
 	}
 
 	@Test
-	public void clear()
-	{
+	public void clear() {
 		IntHashMap map = fillForTest();
 
 		Assert.assertEquals(expectedTestCount, map.size());
@@ -102,8 +90,7 @@ public class IntHashMapTest
 	}
 
 	@Test
-	public void containsValue()
-	{
+	public void containsValue() {
 		IntHashMap map = fillForTest();
 
 		Assert.assertTrue(map.containsValue(existingValues[0]));
@@ -111,16 +98,14 @@ public class IntHashMapTest
 	}
 
 	@Test
-	public void size()
-	{
+	public void size() {
 		IntHashMap map = fillForTest();
 
 		Assert.assertEquals(expectedTestCount, map.size());
 	}
 
 	@Test
-	public void isEmpty()
-	{
+	public void isEmpty() {
 		IntHashMap map = fillForTest();
 
 		map.clear();
@@ -130,34 +115,28 @@ public class IntHashMapTest
 	}
 
 	@Test
-	public void get()
-	{
+	public void get() {
 		IntHashMap map = fillForTest();
 
-		for (int a = existingKeys.length; a-- > 0;)
-		{
+		for (int a = existingKeys.length; a-- > 0;) {
 			Assert.assertEquals(existingValues[a], map.get(existingKeys[a]));
 		}
 	}
 
 	@Test
-	public void put()
-	{
+	public void put() {
 		IntHashMap map = fillForTest();
 
-		for (int a = existingKeys.length; a-- > 0;)
-		{
+		for (int a = existingKeys.length; a-- > 0;) {
 			Assert.assertTrue(map.containsKey(existingKeys[a]));
 		}
 	}
 
 	@Test
-	public void putIfNotExists()
-	{
+	public void putIfNotExists() {
 		IntHashMap map = fillForTest();
 
-		for (int a = nonExistingKeys.length; a-- > 0;)
-		{
+		for (int a = nonExistingKeys.length; a-- > 0;) {
 			Assert.assertTrue(map.putIfNotExists(nonExistingKeys[a], 1));
 		}
 		Assert.assertFalse(map.putIfNotExists(nonExistingKeys[0], 2));
@@ -166,12 +145,10 @@ public class IntHashMapTest
 	}
 
 	@Test
-	public void remove()
-	{
+	public void remove() {
 		IntHashMap map = fillForTest();
 
-		for (int a = existingKeys.length; a-- > 0;)
-		{
+		for (int a = existingKeys.length; a-- > 0;) {
 			Assert.assertEquals(existingValues[a], map.remove(existingKeys[a]));
 		}
 		Assert.assertEquals(0, map.remove(nonExistingKeys[0]));
@@ -179,28 +156,23 @@ public class IntHashMapTest
 	}
 
 	@Test
-	public void removeIfObject()
-	{
+	public void removeIfObject() {
 		IntHashMap map = fillForTest();
 
-		for (int a = existingKeys.length; a-- > 0;)
-		{
+		for (int a = existingKeys.length; a-- > 0;) {
 			Assert.assertFalse(map.removeIfObject(existingKeys[a], -1));
 		}
-		for (int a = nonExistingKeys.length; a-- > 0;)
-		{
+		for (int a = nonExistingKeys.length; a-- > 0;) {
 			Assert.assertFalse(map.removeIfObject(nonExistingKeys[a], -1));
 		}
-		for (int a = existingKeys.length; a-- > 0;)
-		{
+		for (int a = existingKeys.length; a-- > 0;) {
 			Assert.assertTrue(map.removeIfObject(existingKeys[a], existingValues[a]));
 		}
 		Assert.assertEquals(expectedTestCount - existingKeys.length, map.size());
 	}
 
 	@Test
-	public void values()
-	{
+	public void values() {
 		IntHashMap map = fillForTest();
 
 		IntArrayList valuesList = map.values();
@@ -208,8 +180,7 @@ public class IntHashMapTest
 	}
 
 	@Test
-	public void serialize() throws Throwable
-	{
+	public void serialize() throws Throwable {
 		IntHashMap map = fillForTest();
 
 		byte[] content;
@@ -227,8 +198,7 @@ public class IntHashMapTest
 			Assert.assertEquals(map.size(), cloneMap.size());
 
 			IntIterator iter = map.iterator();
-			while (iter.hasNext())
-			{
+			while (iter.hasNext()) {
 				IntHashMapEntry entry = iter.nextEntry();
 				int cloneValue = cloneMap.remove(entry.getKey());
 				Assert.assertEquals(entry.getValue(), cloneValue);

@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.merge.cache.AbstractCacheValue;
 import com.koch.ambeth.service.merge.model.IObjRef;
 
-public abstract class IObjRefFactory
-{
+public abstract class IObjRefFactory {
 	public abstract IPreparedObjRefFactory prepareObjRefFactory(Class<?> entityType, int idIndex);
 
 	public abstract IObjRef createObjRef(Class<?> entityType, int idIndex, Object id, Object version);

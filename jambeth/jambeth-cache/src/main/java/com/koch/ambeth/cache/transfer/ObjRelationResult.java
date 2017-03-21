@@ -31,8 +31,7 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 
 @XmlRootElement(name = "ObjRelationResult", namespace = "http://schema.kochdev.com/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class ObjRelationResult implements IObjRelationResult
-{
+public class ObjRelationResult implements IObjRelationResult {
 	@XmlElement(required = true)
 	protected IObjRelation reference;
 
@@ -40,24 +39,20 @@ public class ObjRelationResult implements IObjRelationResult
 	protected IObjRef[] relations;
 
 	@Override
-	public IObjRelation getReference()
-	{
+	public IObjRelation getReference() {
 		return reference;
 	}
 
-	public void setReference(IObjRelation reference)
-	{
+	public void setReference(IObjRelation reference) {
 		this.reference = reference;
 	}
 
 	@Override
-	public IObjRef[] getRelations()
-	{
+	public IObjRef[] getRelations() {
 		return relations;
 	}
 
-	public void setRelations(IObjRef[] relations)
-	{
+	public void setRelations(IObjRef[] relations) {
 		this.relations = relations;
 	}
 }

@@ -74,7 +74,7 @@ public class ObjRefHelper implements IObjRefHelper {
 		if (objValue.getClass().isArray()) {
 			Object[] array = (Object[]) objValue;
 			if (targetOriList == null) {
-				targetOriList = new ArrayList<IObjRef>(array.length);
+				targetOriList = new ArrayList<>(array.length);
 			}
 			for (int a = 0, size = array.length; a < size; a++) {
 				extractObjRefList(array[a], mergeHandle, targetOriList, entityCallback);
@@ -83,7 +83,7 @@ public class ObjRefHelper implements IObjRefHelper {
 		else if (objValue instanceof List<?>) {
 			List<?> list = (List<?>) objValue;
 			if (targetOriList == null) {
-				targetOriList = new ArrayList<IObjRef>(list.size());
+				targetOriList = new ArrayList<>(list.size());
 			}
 			for (int a = 0, size = list.size(); a < size; a++) {
 				extractObjRefList(list.get(a), mergeHandle, targetOriList, entityCallback);
@@ -92,7 +92,7 @@ public class ObjRefHelper implements IObjRefHelper {
 		else if (objValue instanceof Iterable<?>) {
 			Iterator<?> objEnumerator = ((Iterable<?>) objValue).iterator();
 			if (targetOriList == null) {
-				targetOriList = new ArrayList<IObjRef>();
+				targetOriList = new ArrayList<>();
 			}
 			while (objEnumerator.hasNext()) {
 				extractObjRefList(objEnumerator.next(), mergeHandle, targetOriList, entityCallback);
@@ -100,7 +100,7 @@ public class ObjRefHelper implements IObjRefHelper {
 		}
 		else {
 			if (targetOriList == null) {
-				targetOriList = new ArrayList<IObjRef>(1);
+				targetOriList = new ArrayList<>(1);
 			}
 			getCreateORIs(objValue, mergeHandle, targetOriList, entityCallback);
 		}
@@ -117,7 +117,7 @@ public class ObjRefHelper implements IObjRefHelper {
 			return targetOriList;
 		}
 		if (targetOriList == null) {
-			targetOriList = new ArrayList<IObjRef>();
+			targetOriList = new ArrayList<>();
 		}
 		if (objValue.getClass().isArray()) {
 			Object[] array = (Object[]) objValue;
@@ -317,7 +317,7 @@ public class ObjRefHelper implements IObjRefHelper {
 			IEntityMetaData metaData) {
 		int alternateIdCount = metaData.getAlternateIdCount();
 
-		ArrayList<IObjRef> allOris = new ArrayList<IObjRef>();
+		ArrayList<IObjRef> allOris = new ArrayList<>();
 
 		Class<?> entityType = metaData.getEntityType();
 		// Convert id and version to the correct metadata type
@@ -362,7 +362,7 @@ public class ObjRefHelper implements IObjRefHelper {
 	@Override
 	public IList<IObjRef> entityToAllObjRefs(Object entity, IEntityMetaData metaData) {
 		int alternateIdCount = metaData.getAlternateIdCount();
-		ArrayList<IObjRef> allOris = new ArrayList<IObjRef>();
+		ArrayList<IObjRef> allOris = new ArrayList<>();
 
 		IObjRef ref = entityToObjRef(entity, ObjRef.PRIMARY_KEY_INDEX, metaData);
 		if (ref.getId() != null) {

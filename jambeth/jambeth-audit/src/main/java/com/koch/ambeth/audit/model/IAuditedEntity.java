@@ -25,8 +25,7 @@ import java.util.List;
 import com.koch.ambeth.security.audit.model.Audited;
 
 @Audited(false)
-public interface IAuditedEntity
-{
+public interface IAuditedEntity {
 	public static final String ChangeType = "ChangeType";
 
 	public static final String Entry = "Entry";

@@ -20,25 +20,21 @@ limitations under the License.
  * #L%
  */
 
-public class ArrayQueryItem
-{
+public class ArrayQueryItem {
 	private final Object values;
 
 	private final Class<?> fieldType;
 
-	public ArrayQueryItem(Object values, Class<?> fieldType)
-	{
+	public ArrayQueryItem(Object values, Class<?> fieldType) {
 		this.values = values;
 		this.fieldType = fieldType;
 	}
 
-	public Object getValues()
-	{
+	public Object getValues() {
 		return values;
 	}
 
-	public Class<?> getFieldType()
-	{
+	public Class<?> getFieldType() {
 		return fieldType;
 	}
 }

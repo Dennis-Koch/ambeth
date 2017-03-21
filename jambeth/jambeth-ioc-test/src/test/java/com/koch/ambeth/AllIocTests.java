@@ -33,8 +33,9 @@ import com.koch.ambeth.util.ClassTupleExtendableContainerPerformanceTest;
 import com.koch.ambeth.util.DelegatingConversionHelperTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ com.koch.ambeth.ioc.AllTests.class, AmbethIocRunnerTest.class, ClassTupleExtendableContainerPerformanceTest.class, LinkContainerTest.class,
-		IocPerformanceTest.class, DelegatingConversionHelperTest.class, PropertyInfoProviderTest.class, PropertyInfoTest.class })
-public class AllIocTests
-{
+@SuiteClasses({com.koch.ambeth.ioc.AllTests.class, AmbethIocRunnerTest.class,
+		ClassTupleExtendableContainerPerformanceTest.class, LinkContainerTest.class,
+		IocPerformanceTest.class, DelegatingConversionHelperTest.class, PropertyInfoProviderTest.class,
+		PropertyInfoTest.class})
+public class AllIocTests {
 }

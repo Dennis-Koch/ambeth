@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IMeasurement
-{
+public interface IMeasurement {
 	void log(String name, Object value);
 }

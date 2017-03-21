@@ -38,8 +38,7 @@ import com.koch.ambeth.service.proxy.Service;
 
 @Service(IEmployeeService.class)
 @PersistenceContext
-public class EmployeeService implements IInitializingBean, IEmployeeService, IStartingBean
-{
+public class EmployeeService implements IInitializingBean, IEmployeeService, IStartingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -56,17 +55,16 @@ public class EmployeeService implements IInitializingBean, IEmployeeService, ISt
 	protected IQuery<Employee> queryEmployeeByNameOrderedDesc;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 
 	}
 
 	@Override
-	public void afterStarted() throws Throwable
-	{
+	public void afterStarted() throws Throwable {
 		{
 			IQueryBuilder<Employee> qb = queryBuilderFactory.create(Employee.class);
-			queryEmployeeByName = qb.build(qb.isEqualTo(qb.property(Employee.Name), qb.valueName(Employee.Name)));
+			queryEmployeeByName =
+					qb.build(qb.isEqualTo(qb.property(Employee.Name), qb.valueName(Employee.Name)));
 		}
 		{
 			queryEmployeeAll = queryBuilderFactory.create(Employee.class).build();
@@ -86,78 +84,65 @@ public class EmployeeService implements IInitializingBean, IEmployeeService, ISt
 	}
 
 	@Override
-	public List<Employee> getAll()
-	{
+	public List<Employee> getAll() {
 		return queryEmployeeAll.retrieve();
 	}
 
 	@Override
-	public Employee getByName(String name)
-	{
+	public Employee getByName(String name) {
 		return queryEmployeeByName.param(Employee.Name, name).retrieveSingle();
 	}
 
 	@Override
-	public List<Employee> retrieve(List<String> names)
-	{
+	public List<Employee> retrieve(List<String> names) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void save(Employee employee)
-	{
+	public void save(Employee employee) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void save(List<Employee> employees)
-	{
+	public void save(List<Employee> employees) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void delete(Employee employee)
-	{
+	public void delete(Employee employee) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void delete(List<Employee> employees)
-	{
+	public void delete(List<Employee> employees) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void delete(Set<Employee> employees)
-	{
+	public void delete(Set<Employee> employees) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void delete(Employee[] employees)
-	{
+	public void delete(Employee[] employees) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void delete(String name)
-	{
+	public void delete(String name) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public List<Employee> retrieveOrderedByName(boolean reverse)
-	{
-		if (reverse)
-		{
+	public List<Employee> retrieveOrderedByName(boolean reverse) {
+		if (reverse) {
 			return queryEmployeeByNameOrderedDesc.retrieve();
 		}
 		return queryEmployeeByNameOrderedAsc.retrieve();
 	}
 
 	@Override
-	public Boat saveBoat(Boat boat)
-	{
+	public Boat saveBoat(Boat boat) {
 		throw new UnsupportedOperationException();
 	}
 }

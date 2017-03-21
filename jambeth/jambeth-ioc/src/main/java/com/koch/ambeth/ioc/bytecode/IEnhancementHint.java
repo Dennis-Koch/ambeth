@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IEnhancementHint
-{
+public interface IEnhancementHint {
 	<T extends IEnhancementHint> T unwrap(Class<T> includedHintType);
 }

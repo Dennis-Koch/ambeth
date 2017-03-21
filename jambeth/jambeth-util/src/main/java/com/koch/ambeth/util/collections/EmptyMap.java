@@ -27,39 +27,32 @@ import java.util.Map;
 
 import com.koch.ambeth.util.IImmutableType;
 
-public final class EmptyMap<K, V> implements ILinkedMap<K, V>, IImmutableType
-{
-	public static final class EmptyMapIterator<K, V> implements Iterator<Entry<K, V>>
-	{
+public final class EmptyMap<K, V> implements ILinkedMap<K, V>, IImmutableType {
+	public static final class EmptyMapIterator<K, V> implements Iterator<Entry<K, V>> {
 		@SuppressWarnings("rawtypes")
 		private static final EmptyMapIterator iteratorInstance = new EmptyMapIterator();
 
 		@SuppressWarnings("unchecked")
-		static <K, V> EmptyMapIterator<K, V> emptyIterator()
-		{
+		static <K, V> EmptyMapIterator<K, V> emptyIterator() {
 			return iteratorInstance;
 		}
 
-		private EmptyMapIterator()
-		{
+		private EmptyMapIterator() {
 			// intended blank
 		}
 
 		@Override
-		public boolean hasNext()
-		{
+		public boolean hasNext() {
 			return false;
 		}
 
 		@Override
-		public Entry<K, V> next()
-		{
+		public Entry<K, V> next() {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public void remove()
-		{
+		public void remove() {
 			throw new UnsupportedOperationException();
 		}
 
@@ -69,140 +62,117 @@ public final class EmptyMap<K, V> implements ILinkedMap<K, V>, IImmutableType
 	private static final EmptyMap instance = new EmptyMap();
 
 	@SuppressWarnings("unchecked")
-	public static <K, V> EmptyMap<K, V> emptyMap()
-	{
+	public static <K, V> EmptyMap<K, V> emptyMap() {
 		return instance;
 	}
 
-	private EmptyMap()
-	{
+	private EmptyMap() {
 		// intended blank
 	}
 
 	@Override
-	public int size()
-	{
+	public int size() {
 		return 0;
 	}
 
 	@Override
-	public boolean containsValue(Object value)
-	{
+	public boolean containsValue(Object value) {
 		return false;
 	}
 
 	@Override
-	public void putAll(Map<? extends K, ? extends V> m)
-	{
+	public void putAll(Map<? extends K, ? extends V> m) {
 		throw new UnsupportedOperationException("Map is read-only");
 	}
 
 	@Override
-	public Iterator<Entry<K, V>> iterator()
-	{
+	public Iterator<Entry<K, V>> iterator() {
 		return EmptyMapIterator.emptyIterator();
 	}
 
 	@Override
-	public Iterator<Entry<K, V>> iterator(boolean removeAllowed)
-	{
+	public Iterator<Entry<K, V>> iterator(boolean removeAllowed) {
 		return EmptyMapIterator.emptyIterator();
 	}
 
 	@Override
-	public void clear()
-	{
+	public void clear() {
 		throw new UnsupportedOperationException("Map is read-only");
 	}
 
 	@Override
-	public boolean containsKey(Object key)
-	{
+	public boolean containsKey(Object key) {
 		return false;
 	}
 
 	@Override
-	public ISet<Entry<K, V>> entrySet()
-	{
+	public ISet<Entry<K, V>> entrySet() {
 		return null;
 	}
 
 	@Override
-	public void entrySet(ISet<Entry<K, V>> targetEntrySet)
-	{
+	public void entrySet(ISet<Entry<K, V>> targetEntrySet) {
 		// intended blank
 	}
 
 	@Override
-	public V get(Object key)
-	{
+	public V get(Object key) {
 		return null;
 	}
 
 	@Override
-	public boolean isEmpty()
-	{
+	public boolean isEmpty() {
 		return true;
 	}
 
 	@Override
-	public ISet<K> keySet()
-	{
+	public ISet<K> keySet() {
 		return EmptySet.emptySet();
 	}
 
 	@Override
-	public void keySet(Collection<K> targetKeySet)
-	{
+	public void keySet(Collection<K> targetKeySet) {
 		// intended blank
 	}
 
 	@Override
-	public IList<K> keyList()
-	{
-		return EmptyList.<K> getInstance();
+	public IList<K> keyList() {
+		return EmptyList.<K>getInstance();
 	}
 
 	@Override
-	public V put(K key, V value)
-	{
+	public V put(K key, V value) {
 		throw new UnsupportedOperationException("Map is read-only");
 	}
 
 	@Override
-	public V remove(Object key)
-	{
+	public V remove(Object key) {
 		throw new UnsupportedOperationException("Map is read-only");
 	}
 
 	@Override
-	public IList<V> values()
-	{
-		return EmptyList.<V> getInstance();
+	public IList<V> values() {
+		return EmptyList.<V>getInstance();
 	}
 
 	@Override
-	public K getKey(K key)
-	{
+	public K getKey(K key) {
 		return null;
 	}
 
 	@Override
-	public boolean putIfNotExists(K key, V value)
-	{
+	public boolean putIfNotExists(K key, V value) {
 		throw new UnsupportedOperationException("Map is read-only");
 	}
 
 	@Override
-	public boolean removeIfValue(K key, V value)
-	{
+	public boolean removeIfValue(K key, V value) {
 		throw new UnsupportedOperationException("Map is read-only");
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public V[] toArray(Class<V> arrayType)
-	{
+	public V[] toArray(Class<V> arrayType) {
 		return (V[]) Array.newInstance(arrayType, 0);
 	}
 }

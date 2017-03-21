@@ -33,24 +33,19 @@ import javax.ws.rs.core.HttpHeaders;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.io.ConfigurableGZIPOutputStream;
 
-public class SilverlightWorkaroundGZipEncodingFilter implements ContainerRequestFilter, ContainerResponseFilter
-{
+public class SilverlightWorkaroundGZipEncodingFilter
+		implements ContainerRequestFilter, ContainerResponseFilter {
 	public static final String SILVERLIGHT_ACCEPT_ENCODING_HEADER = "Accept-Encoding-Workaround";
 
 	@Override
-	public void filter(ContainerRequestContext request)
-	{
-		if (request.getHeaders().containsKey(HttpHeaders.CONTENT_ENCODING))
-		{
-			if (request.getHeaders().getFirst(HttpHeaders.CONTENT_ENCODING).trim().equals("gzip"))
-			{
+	public void filter(ContainerRequestContext request) {
+		if (request.getHeaders().containsKey(HttpHeaders.CONTENT_ENCODING)) {
+			if (request.getHeaders().getFirst(HttpHeaders.CONTENT_ENCODING).trim().equals("gzip")) {
 				request.getHeaders().remove(HttpHeaders.CONTENT_ENCODING);
-				try
-				{
+				try {
 					request.setEntityStream(new GZIPInputStream(request.getEntityStream()));
 				}
-				catch (Throwable e)
-				{
+				catch (Throwable e) {
 					RuntimeExceptionUtil.mask(e);
 				}
 			}
@@ -58,16 +53,16 @@ public class SilverlightWorkaroundGZipEncodingFilter implements ContainerRequest
 	}
 
 	@Override
-	public void filter(ContainerRequestContext request, ContainerResponseContext response) throws IOException
-	{
-		if (response.getEntity() != null && request.getHeaders().containsKey(SILVERLIGHT_ACCEPT_ENCODING_HEADER)
-				&& !response.getHeaders().containsKey(HttpHeaders.CONTENT_ENCODING))
-		{
-			if (request.getHeaders().getFirst(SILVERLIGHT_ACCEPT_ENCODING_HEADER).contains("gzip"))
-			{
+	public void filter(ContainerRequestContext request, ContainerResponseContext response)
+			throws IOException {
+		if (response.getEntity() != null
+				&& request.getHeaders().containsKey(SILVERLIGHT_ACCEPT_ENCODING_HEADER)
+				&& !response.getHeaders().containsKey(HttpHeaders.CONTENT_ENCODING)) {
+			if (request.getHeaders().getFirst(SILVERLIGHT_ACCEPT_ENCODING_HEADER).contains("gzip")) {
 				response.getStringHeaders().add(HttpHeaders.CONTENT_ENCODING, "gzip");
-				
-				response.setEntityStream(new ConfigurableGZIPOutputStream(response.getEntityStream(), Deflater.BEST_SPEED));
+
+				response.setEntityStream(
+						new ConfigurableGZIPOutputStream(response.getEntityStream(), Deflater.BEST_SPEED));
 			}
 		}
 	}

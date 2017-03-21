@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IAbstractEntity extends IAbstractBusinessObject
-{
+public interface IAbstractEntity extends IAbstractBusinessObject {
 	Short getVersion();
 
 	String getUpdatedBy();

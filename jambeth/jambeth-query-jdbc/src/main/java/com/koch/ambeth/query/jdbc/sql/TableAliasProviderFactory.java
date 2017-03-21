@@ -27,8 +27,7 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ParamChecker;
 
-public class TableAliasProviderFactory implements IFactoryBean, IInitializingBean
-{
+public class TableAliasProviderFactory implements IFactoryBean, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -36,19 +35,16 @@ public class TableAliasProviderFactory implements IFactoryBean, IInitializingBea
 	private IServiceContext beanContext;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(beanContext, "beanContext");
 	}
 
-	public void setBeanContext(IServiceContext beanContext)
-	{
+	public void setBeanContext(IServiceContext beanContext) {
 		this.beanContext = beanContext;
 	}
 
 	@Override
-	public Object getObject() throws Throwable
-	{
+	public Object getObject() throws Throwable {
 		return beanContext.registerBean(TableAliasProvider.class).finish();
 	}
 }

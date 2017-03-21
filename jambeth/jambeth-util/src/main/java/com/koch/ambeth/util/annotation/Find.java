@@ -27,8 +27,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Find
-{
+public @interface Find {
 	Class<?> entityType() default Object.class;
 
 	String queryName() default "";

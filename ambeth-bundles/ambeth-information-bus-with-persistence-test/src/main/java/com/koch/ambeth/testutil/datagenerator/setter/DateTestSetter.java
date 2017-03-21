@@ -25,14 +25,14 @@ import java.util.Map;
 
 
 /**
- * Sets or tests a Date property. If a <code>String</code> argument with key <code>StringTestSetter.class</code> is
- * given, the String is added to the propertyName.
- * 
+ * Sets or tests a Date property. If a <code>String</code> argument with key
+ * <code>StringTestSetter.class</code> is given, the String is added to the propertyName.
+ *
  * @author stefan.may
- * 
+ *
  */
 public class DateTestSetter extends AbstractTestSetter {
-	
+
 	private static Date compareDate = new Date();
 
 	public DateTestSetter() {
@@ -41,14 +41,14 @@ public class DateTestSetter extends AbstractTestSetter {
 
 	@Override
 	public Object createParameter(String propertyName, Map<Object, Object> arguments) {
-		if(arguments != null && arguments.containsKey(DateTestSetter.class)) {
+		if (arguments != null && arguments.containsKey(DateTestSetter.class)) {
 			propertyName += (String) arguments.get(DateTestSetter.class);
 		}
-		
-		//Some random, but reproducable Date
+
+		// Some random, but reproducable Date
 		long hashLong = hashLong(propertyName);
 		Date date = new Date(compareDate.getTime());
-		date.setTime(date.getTime() + Math.abs(hashLong % (365*24*60*60*1000L)));
+		date.setTime(date.getTime() + Math.abs(hashLong % (365 * 24 * 60 * 60 * 1000L)));
 		return date;
 	}
 

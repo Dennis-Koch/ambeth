@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IForkedValueResolver
-{
+public interface IForkedValueResolver {
 	Object createForkedValue();
 
 	Object getOriginalValue();

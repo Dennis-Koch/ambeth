@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IEventStoreHandler
-{
+public interface IEventStoreHandler {
 	Object postLoadFromStore(Object eventObject);
 
 	Object preSaveInStore(Object eventObject);

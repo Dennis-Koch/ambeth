@@ -27,12 +27,11 @@ import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.testutil.TestProperties;
 
 @TestProperties(name = ServiceConfigurationConstants.ToOneDefaultCascadeLoadMode, value = "EAGER")
-public class OneEagerNoReverseRelationsTest extends AbstractOneNoReverseRelationsTest
-{
+public class OneEagerNoReverseRelationsTest extends AbstractOneNoReverseRelationsTest {
 	@Override
-	protected void assertBeforePrefetch(EntityB entityB, String propertyName)
-	{
-		int relationIndex = ((IObjRefContainer) entityB).get__EntityMetaData().getIndexByRelationName(propertyName);
+	protected void assertBeforePrefetch(EntityB entityB, String propertyName) {
+		int relationIndex =
+				((IObjRefContainer) entityB).get__EntityMetaData().getIndexByRelationName(propertyName);
 		Assert.assertTrue(((IObjRefContainer) entityB).is__Initialized(relationIndex));
 		Assert.assertNull(((IObjRefContainer) entityB).get__ObjRefs(relationIndex));
 	}

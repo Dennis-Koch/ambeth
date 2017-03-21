@@ -28,7 +28,6 @@ import com.koch.ambeth.copy.ObjectCopierTest;
 import com.koch.ambeth.util.XmlConfigUtilTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ ObjectCopierTest.class, XmlConfigUtilTest.class })
-public class AllMergeTests
-{
+@SuiteClasses({ObjectCopierTest.class, XmlConfigUtilTest.class})
+public class AllMergeTests {
 }

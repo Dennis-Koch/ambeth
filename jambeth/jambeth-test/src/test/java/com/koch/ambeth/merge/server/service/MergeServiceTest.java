@@ -53,7 +53,6 @@ import com.koch.ambeth.merge.model.IRelationUpdateItem;
 import com.koch.ambeth.merge.server.change.ILinkChangeCommand;
 import com.koch.ambeth.merge.server.change.ITableChange;
 import com.koch.ambeth.merge.server.ioc.MergeServerModule;
-import com.koch.ambeth.merge.server.service.PersistenceMergeServiceExtension;
 import com.koch.ambeth.merge.transfer.CUDResult;
 import com.koch.ambeth.merge.transfer.CreateContainer;
 import com.koch.ambeth.merge.transfer.DeleteContainer;
@@ -89,12 +88,14 @@ import net.sf.cglib.proxy.Factory;
 
 @SQLData("../persistence/xml/Relations_data.sql")
 @SQLStructure("../persistence/xml/Relations_structure.sql")
-@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/xml/orm.xml"),
-		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile, value = "com/koch/ambeth/persistence/xml/value-object.xml"),
-		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true") })
+@TestPropertiesList({
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+				value = "com/koch/ambeth/persistence/xml/orm.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile,
+				value = "com/koch/ambeth/persistence/xml/value-object.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true")})
 @TestModule(TestServicesModule.class)
-public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest
-{
+public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest {
 	@Autowired
 	protected ICacheFactory cacheFactory;
 
@@ -113,11 +114,11 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest
 	protected IRootCache rootCache;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
-		fixtureProxy = beanContext.getService(MergeServerModule.MERGE_SERVICE_SERVER, IMergeServiceExtension.class);
+		fixtureProxy = beanContext.getService(MergeServerModule.MERGE_SERVICE_SERVER,
+				IMergeServiceExtension.class);
 		Factory proxy = (Factory) fixtureProxy;
 		ICascadedInterceptor inter = (ICascadedInterceptor) proxy.getCallbacks()[0];
 		fixture = (PersistenceMergeServiceExtension) inter.getTarget();
@@ -127,26 +128,26 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testMergeService()
-	{
+	public void testMergeService() {
 		Assert.assertNotNull(fixtureProxy);
 	}
 
 	@Test
-	public void testGetMetaData()
-	{
-		IEntityMetaDataProvider entityMetaDataProvider = beanContext.getService(IEntityMetaDataProvider.class);
+	public void testGetMetaData() {
+		IEntityMetaDataProvider entityMetaDataProvider =
+				beanContext.getService(IEntityMetaDataProvider.class);
 		IEntityMetaData expected = entityMetaDataProvider.getMetaData(Employee.class);
 		assertNotNull(expected);
-		List<IEntityMetaData> actuals = fixtureProxy.getMetaData(Arrays.asList(new Class<?>[] { Employee.class }));
+		List<IEntityMetaData> actuals =
+				fixtureProxy.getMetaData(Arrays.asList(new Class<?>[] {Employee.class}));
 		assertEquals(1, actuals.size());
 		assertSame(expected, actuals.get(0));
 	}
 
 	@Test
-	public void testGetValueObjectConfig()
-	{
-		IEntityMetaDataProvider entityMetaDataProvider = beanContext.getService(IEntityMetaDataProvider.class);
+	public void testGetValueObjectConfig() {
+		IEntityMetaDataProvider entityMetaDataProvider =
+				beanContext.getService(IEntityMetaDataProvider.class);
 		IValueObjectConfig expected = entityMetaDataProvider.getValueObjectConfig(EmployeeType.class);
 		assertNotNull(expected);
 		IValueObjectConfig actual = fixtureProxy.getValueObjectConfig(EmployeeType.class);
@@ -155,10 +156,9 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testMerge_empty()
-	{
-		List<IChangeContainer> allChanges = new ArrayList<IChangeContainer>();
-		List<Object> originalRefs = new ArrayList<Object>();
+	public void testMerge_empty() {
+		List<IChangeContainer> allChanges = new ArrayList<>();
+		List<Object> originalRefs = new ArrayList<>();
 		ICUDResult cudResult = new CUDResult(allChanges, originalRefs);
 		IOriCollection actual = fixtureProxy.merge(cudResult, null);
 		assertTrue(actual.getAllChangeORIs().isEmpty());
@@ -167,12 +167,11 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testMerge_create()
-	{
+	public void testMerge_create() {
 		Employee toCreate = entityFactory.createEntity(Employee.class);
 		toCreate.setName("testMerge_create");
 
-		List<IChangeContainer> allChanges = new ArrayList<IChangeContainer>();
+		List<IChangeContainer> allChanges = new ArrayList<>();
 		IObjRef expected = new DirectObjRef(Employee.class, toCreate);
 		CreateContainer container = generateCreateContainer(expected, toCreate.getName());
 		allChanges.add(container);
@@ -191,23 +190,22 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testMerge_createCombined()
-	{
+	public void testMerge_createCombined() {
 		Employee toCreate = entityFactory.createEntity(Employee.class);
 		toCreate.setName("testMerge_create");
 
-		List<IChangeContainer> allChanges = new ArrayList<IChangeContainer>();
+		List<IChangeContainer> allChanges = new ArrayList<>();
 		IObjRef expected = new DirectObjRef(Employee.class, toCreate);
 		CreateContainer container = new CreateContainer();
 		container.setReference(expected);
 		PrimitiveUpdateItem pui = new PrimitiveUpdateItem();
 		pui.setMemberName("Name");
 		pui.setNewValue(toCreate.getName());
-		container.setPrimitives(new IPrimitiveUpdateItem[] { pui });
+		container.setPrimitives(new IPrimitiveUpdateItem[] {pui});
 		RelationUpdateItem rui1 = new RelationUpdateItem();
 		rui1.setMemberName("PrimaryAddress");
-		rui1.setAddedORIs(new IObjRef[] { new ObjRef(Address.class, 15, 1) });
-		container.setRelations(new IRelationUpdateItem[] { rui1 });
+		rui1.setAddedORIs(new IObjRef[] {new ObjRef(Address.class, 15, 1)});
+		container.setRelations(new IRelationUpdateItem[] {rui1});
 		allChanges.add(container);
 
 		UpdateContainer container2 = new UpdateContainer();
@@ -215,11 +213,11 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest
 		PrimitiveUpdateItem pui2 = new PrimitiveUpdateItem();
 		pui2.setMemberName("Name");
 		pui2.setNewValue("testMerge_createCombined");
-		container2.setPrimitives(new IPrimitiveUpdateItem[] { pui2 });
+		container2.setPrimitives(new IPrimitiveUpdateItem[] {pui2});
 		RelationUpdateItem rui2 = new RelationUpdateItem();
 		rui2.setMemberName("PrimaryProject");
-		rui2.setAddedORIs(new IObjRef[] { new ObjRef(Project.class, 22, 1) });
-		container2.setRelations(new IRelationUpdateItem[] { rui2 });
+		rui2.setAddedORIs(new IObjRef[] {new ObjRef(Project.class, 22, 1)});
+		container2.setRelations(new IRelationUpdateItem[] {rui2});
 		allChanges.add(container2);
 
 		ICUDResult cudResult = new CUDResult(allChanges, null);
@@ -240,17 +238,16 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testFillOriList()
-	{
-		List<IObjRef> oriList = new ArrayList<IObjRef>();
-		List<IChangeContainer> allChanges = new ArrayList<IChangeContainer>();
-		IList<IObjRef> toLoadForDeletion = new com.koch.ambeth.util.collections.ArrayList<IObjRef>();
+	public void testFillOriList() {
+		List<IObjRef> oriList = new ArrayList<>();
+		List<IChangeContainer> allChanges = new ArrayList<>();
+		IList<IObjRef> toLoadForDeletion = new com.koch.ambeth.util.collections.ArrayList<>();
 		fixture.fillOriList(oriList, allChanges, toLoadForDeletion);
 
 		assertTrue(oriList.isEmpty());
 		assertTrue(toLoadForDeletion.isEmpty());
 
-		IObjRef[] expected = { new DirectObjRef(), null, new ObjRef(Employee.class, 42, 2) };
+		IObjRef[] expected = {new DirectObjRef(), null, new ObjRef(Employee.class, 42, 2)};
 		IObjRef toDelete = new ObjRef(Project.class, 23, 1);
 		IChangeContainer change = new CreateContainer();
 		change.setReference(expected[0]);
@@ -269,16 +266,14 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test(expected = RuntimeException.class)
-	public void testGetEnsureTable_exception()
-	{
+	public void testGetEnsureTable_exception() {
 		fixture.getEnsureTable(fixture.database, String.class);
 	}
 
 	@Test
-	public void testLoadEntitiesForDeletion()
-	{
-		IList<IObjRef> toLoadForDeletion = new com.koch.ambeth.util.collections.ArrayList<IObjRef>();
-		IMap<IObjRef, RootCacheValue> toDeleteMap = new HashMap<IObjRef, RootCacheValue>();
+	public void testLoadEntitiesForDeletion() {
+		IList<IObjRef> toLoadForDeletion = new com.koch.ambeth.util.collections.ArrayList<>();
+		IMap<IObjRef, RootCacheValue> toDeleteMap = new HashMap<>();
 		fixture.loadEntitiesForDeletion(toLoadForDeletion, toDeleteMap, rootCache);
 		assertTrue(toLoadForDeletion.isEmpty());
 		assertTrue(toDeleteMap.isEmpty());
@@ -291,8 +286,7 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest
 		assertEquals(4, toDeleteMap.size()); // 3 + 1 alternate ID entry for the Employee
 		assertEquals(3, new HashSet<Object>(toDeleteMap.values()).size()); // proving 3 + 1 theory
 
-		for (IObjRef ori : toLoadForDeletion)
-		{
+		for (IObjRef ori : toLoadForDeletion) {
 			RootCacheValue actual = toDeleteMap.get(ori);
 			assertEquals(ori.getRealType(), actual.getEntityType());
 		}
@@ -300,43 +294,46 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest
 
 	@Test
 	@Ignore
-	public void testConvertChangeContainersToCommands_oneCreateContainer()
-	{
+	public void testConvertChangeContainersToCommands_oneCreateContainer() {
 		Employee toCreate = entityFactory.createEntity(Employee.class);
 		toCreate.setName("testMerge_create");
 
-		List<IChangeContainer> allChanges = new ArrayList<IChangeContainer>();
+		List<IChangeContainer> allChanges = new ArrayList<>();
 		IObjRef expected = new DirectObjRef(Employee.class, toCreate);
 		CreateContainer container = generateCreateContainer(expected, toCreate.getName());
 		allChanges.add(container);
 
-		IMap<String, ITableChange> tableChangeMap = new HashMap<String, ITableChange>();
-		ILinkedMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap = new LinkedHashMap<Class<?>, IList<IObjRef>>();
-		ILinkedMap<ITableChange, IList<ILinkChangeCommand>> linkChangeCommands = new LinkedHashMap<ITableChange, IList<ILinkChangeCommand>>();
-		IMap<IObjRef, RootCacheValue> toDeleteMap = new HashMap<IObjRef, RootCacheValue>();
-		IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap = new HashMap<IObjRef, IChangeContainer>();
+		IMap<String, ITableChange> tableChangeMap = new HashMap<>();
+		ILinkedMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap =
+				new LinkedHashMap<>();
+		ILinkedMap<ITableChange, IList<ILinkChangeCommand>> linkChangeCommands =
+				new LinkedHashMap<>();
+		IMap<IObjRef, RootCacheValue> toDeleteMap = new HashMap<>();
+		IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap =
+				new HashMap<>();
 
-		fixture.convertChangeContainersToCommands(fixture.database.getCurrent(), allChanges, tableChangeMap, typeToIdlessReferenceMap, linkChangeCommands,
-				toDeleteMap, objRefToChangeContainerMap, (IRootCache) ((ChildCache) cache.getCurrentCache()).getParent().getCurrentCache(), null);
+		fixture.convertChangeContainersToCommands(fixture.database.getCurrent(), allChanges,
+				tableChangeMap, typeToIdlessReferenceMap, linkChangeCommands, toDeleteMap,
+				objRefToChangeContainerMap,
+				(IRootCache) ((ChildCache) cache.getCurrentCache()).getParent().getCurrentCache(), null);
 
 		fail("Not yet implemented"); // TODO
 	}
 
-	public CreateContainer generateCreateContainer(IObjRef ori, String name)
-	{
+	public CreateContainer generateCreateContainer(IObjRef ori, String name) {
 		CreateContainer container = new CreateContainer();
 		container.setReference(ori);
 		PrimitiveUpdateItem pui = new PrimitiveUpdateItem();
 		pui.setMemberName("Name");
 		pui.setNewValue(name);
-		container.setPrimitives(new IPrimitiveUpdateItem[] { pui });
+		container.setPrimitives(new IPrimitiveUpdateItem[] {pui});
 		RelationUpdateItem rui1 = new RelationUpdateItem();
 		rui1.setMemberName("PrimaryAddress");
-		rui1.setAddedORIs(new IObjRef[] { new ObjRef(Address.class, 14, 1) });
+		rui1.setAddedORIs(new IObjRef[] {new ObjRef(Address.class, 14, 1)});
 		RelationUpdateItem rui2 = new RelationUpdateItem();
 		rui2.setMemberName("PrimaryProject");
-		rui2.setAddedORIs(new IObjRef[] { new ObjRef(Project.class, 22, 1) });
-		container.setRelations(new IRelationUpdateItem[] { rui1, rui2 });
+		rui2.setAddedORIs(new IObjRef[] {new ObjRef(Project.class, 22, 1)});
+		container.setRelations(new IRelationUpdateItem[] {rui1, rui2});
 
 		return container;
 	}

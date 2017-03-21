@@ -33,19 +33,17 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 
-public class MapExtendableContainer<K, V> extends SmartCopyMap<K, Object> implements IMapExtendableContainer<K, V>
-{
+public class MapExtendableContainer<K, V> extends SmartCopyMap<K, Object>
+		implements IMapExtendableContainer<K, V> {
 	protected final boolean multiValue;
 
 	protected final String message, keyMessage;
 
-	public MapExtendableContainer(String message, String keyMessage)
-	{
+	public MapExtendableContainer(String message, String keyMessage) {
 		this(message, keyMessage, false);
 	}
 
-	public MapExtendableContainer(String message, String keyMessage, boolean multiValue)
-	{
+	public MapExtendableContainer(String message, String keyMessage, boolean multiValue) {
 		ParamChecker.assertParamNotNull(message, "message");
 		ParamChecker.assertParamNotNull(keyMessage, "keyMessage");
 		this.multiValue = multiValue;
@@ -54,122 +52,99 @@ public class MapExtendableContainer<K, V> extends SmartCopyMap<K, Object> implem
 	}
 
 	@Override
-	public void register(V extension, K key)
-	{
+	public void register(V extension, K key) {
 		ParamChecker.assertParamNotNull(extension, message);
 		ParamChecker.assertParamNotNull(key, keyMessage);
 		Lock writeLock = getWriteLock();
 		writeLock.lock();
-		try
-		{
+		try {
 			boolean putted = false;
-			if (!multiValue)
-			{
+			if (!multiValue) {
 				putted = putIfNotExists(key, extension);
 			}
-			else
-			{
+			else {
 				@SuppressWarnings("unchecked")
 				ArrayList<V> values = (ArrayList<V>) get(key);
-				if (values == null)
-				{
-					values = new ArrayList<V>(1);
+				if (values == null) {
+					values = new ArrayList<>(1);
 				}
-				else
-				{
-					values = new ArrayList<V>(values);
+				else {
+					values = new ArrayList<>(values);
 				}
-				if (!values.contains(extension))
-				{
+				if (!values.contains(extension)) {
 					values.add(extension);
 					putted = true;
 					put(key, values);
 				}
 			}
-			if (!putted)
-			{
+			if (!putted) {
 				throw new ExtendableException("Key '" + keyMessage + "' already added: " + key);
 			}
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public void unregister(V extension, K key)
-	{
+	public void unregister(V extension, K key) {
 		ParamChecker.assertParamNotNull(extension, message);
 		ParamChecker.assertParamNotNull(key, keyMessage);
 
-		try
-		{
+		try {
 			Lock writeLock = getWriteLock();
 			writeLock.lock();
-			try
-			{
-				if (!multiValue)
-				{
+			try {
+				if (!multiValue) {
 					ParamChecker.assertTrue(removeIfValue(key, extension), message);
 				}
-				else
-				{
+				else {
 					@SuppressWarnings("unchecked")
 					ArrayList<V> values = (ArrayList<V>) get(key);
-					values = new ArrayList<V>(values);
+					values = new ArrayList<>(values);
 					ParamChecker.assertNotNull(values, message);
 					ParamChecker.assertTrue(values.remove(extension), message);
-					if (values.isEmpty())
-					{
+					if (values.isEmpty()) {
 						remove(key);
 					}
-					else
-					{
+					else {
 						put(key, values);
 					}
 				}
 			}
-			finally
-			{
+			finally {
 				writeLock.unlock();
 			}
 		}
-		catch (RuntimeException e)
-		{
-			throw new ExtendableException("Provided extension is not registered at key '" + key + "'. Extension: " + extension);
+		catch (RuntimeException e) {
+			throw new ExtendableException(
+					"Provided extension is not registered at key '" + key + "'. Extension: " + extension);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public IList<V> getExtensions(K key)
-	{
+	public IList<V> getExtensions(K key) {
 		ParamChecker.assertParamNotNull(key, "key");
 		Object item = get(key);
-		if (item == null)
-		{
+		if (item == null) {
 			return EmptyList.getInstance();
 		}
-		if (!multiValue)
-		{
-			return new ArrayList<V>(new Object[] { item });
+		if (!multiValue) {
+			return new ArrayList<>(new Object[] {item});
 		}
-		return new ArrayList<V>((ArrayList<V>) item);
+		return new ArrayList<>((ArrayList<V>) item);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public V getExtension(K key)
-	{
+	public V getExtension(K key) {
 		ParamChecker.assertParamNotNull(key, "key");
 		Object item = get(key);
-		if (item == null)
-		{
+		if (item == null) {
 			return null;
 		}
-		if (!multiValue)
-		{
+		if (!multiValue) {
 			return (V) item;
 		}
 		ArrayList<V> values = (ArrayList<V>) item;
@@ -178,8 +153,7 @@ public class MapExtendableContainer<K, V> extends SmartCopyMap<K, Object> implem
 	}
 
 	@Override
-	public ILinkedMap<K, V> getExtensions()
-	{
+	public ILinkedMap<K, V> getExtensions() {
 		LinkedHashMap<K, V> targetMap = LinkedHashMap.create(size());
 		getExtensions(targetMap);
 		return targetMap;
@@ -187,19 +161,14 @@ public class MapExtendableContainer<K, V> extends SmartCopyMap<K, Object> implem
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void getExtensions(Map<K, V> targetMap)
-	{
-		if (!multiValue)
-		{
-			for (Entry<K, Object> entry : this)
-			{
+	public void getExtensions(Map<K, V> targetMap) {
+		if (!multiValue) {
+			for (Entry<K, Object> entry : this) {
 				targetMap.put(entry.getKey(), (V) entry.getValue());
 			}
 		}
-		else
-		{
-			for (Entry<K, Object> entry : this)
-			{
+		else {
+			for (Entry<K, Object> entry : this) {
 				// unregister removes empty value lists -> at least one entry
 				targetMap.put(entry.getKey(), ((List<V>) entry.getValue()).get(0));
 			}

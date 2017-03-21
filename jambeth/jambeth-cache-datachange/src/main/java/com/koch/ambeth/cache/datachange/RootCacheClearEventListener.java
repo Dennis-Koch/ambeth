@@ -32,8 +32,7 @@ import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.IList;
 
-public class RootCacheClearEventListener implements IEventListener, IInitializingBean
-{
+public class RootCacheClearEventListener implements IEventListener, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -45,50 +44,43 @@ public class RootCacheClearEventListener implements IEventListener, IInitializin
 	protected IRootCache committedRootCache;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(firstLevelCacheManager, "FirstLevelCacheManager");
 		ParamChecker.assertNotNull(secondLevelCacheManager, "SecondLevelCacheManager");
 		ParamChecker.assertNotNull(committedRootCache, "CommittedRootCache");
 	}
 
-	public void setFirstLevelCacheManager(IFirstLevelCacheManager firstLevelCacheManager)
-	{
+	public void setFirstLevelCacheManager(IFirstLevelCacheManager firstLevelCacheManager) {
 		this.firstLevelCacheManager = firstLevelCacheManager;
 	}
 
-	public void setSecondLevelCacheManager(ISecondLevelCacheManager secondLevelCacheManager)
-	{
+	public void setSecondLevelCacheManager(ISecondLevelCacheManager secondLevelCacheManager) {
 		this.secondLevelCacheManager = secondLevelCacheManager;
 	}
 
-	public void setCommittedRootCache(IRootCache committedRootCache)
-	{
+	public void setCommittedRootCache(IRootCache committedRootCache) {
 		this.committedRootCache = committedRootCache;
 	}
 
 	@Override
-	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId)
-	{
-		if (!(eventObject instanceof ClearAllCachesEvent))
-		{
+	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) {
+		if (!(eventObject instanceof ClearAllCachesEvent)) {
 			return;
 		}
 		committedRootCache.clear();
-		IRootCache privilegedSecondLevelCache = secondLevelCacheManager.selectPrivilegedSecondLevelCache(false);
-		if (privilegedSecondLevelCache != null && privilegedSecondLevelCache != committedRootCache)
-		{
+		IRootCache privilegedSecondLevelCache =
+				secondLevelCacheManager.selectPrivilegedSecondLevelCache(false);
+		if (privilegedSecondLevelCache != null && privilegedSecondLevelCache != committedRootCache) {
 			privilegedSecondLevelCache.clear();
 		}
-		IRootCache nonPrivilegedSecondLevelCache = secondLevelCacheManager.selectNonPrivilegedSecondLevelCache(false);
+		IRootCache nonPrivilegedSecondLevelCache =
+				secondLevelCacheManager.selectNonPrivilegedSecondLevelCache(false);
 		if (nonPrivilegedSecondLevelCache != null && nonPrivilegedSecondLevelCache != committedRootCache
-				&& nonPrivilegedSecondLevelCache != privilegedSecondLevelCache)
-		{
+				&& nonPrivilegedSecondLevelCache != privilegedSecondLevelCache) {
 			nonPrivilegedSecondLevelCache.clear();
 		}
 		IList<IWritableCache> firstLevelCaches = firstLevelCacheManager.selectFirstLevelCaches();
-		for (int a = firstLevelCaches.size(); a-- > 0;)
-		{
+		for (int a = firstLevelCaches.size(); a-- > 0;) {
 			IWritableCache firstLevelCache = firstLevelCaches.get(a);
 			firstLevelCache.clear();
 		}

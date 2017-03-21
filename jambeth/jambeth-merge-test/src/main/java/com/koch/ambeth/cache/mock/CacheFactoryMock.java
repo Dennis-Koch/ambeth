@@ -29,35 +29,33 @@ import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 /**
  * Support for unit tests that do not include jAmbeth.Cache
  */
-public class CacheFactoryMock implements ICacheFactory
-{
+public class CacheFactoryMock implements ICacheFactory {
 	@Override
-	public IDisposableCache withParent(ICache parent, IResultingBackgroundWorkerDelegate<IDisposableCache> runnable)
-	{
+	public IDisposableCache withParent(ICache parent,
+			IResultingBackgroundWorkerDelegate<IDisposableCache> runnable) {
 		return null;
 	}
 
 	@Override
-	public IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective, String name)
-	{
+	public IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective,
+			String name) {
 		return null;
 	}
 
 	@Override
-	public IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, Boolean useWeakEntries, String name)
-	{
+	public IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective,
+			boolean foreignThreadAware, Boolean useWeakEntries, String name) {
 		return null;
 	}
 
 	@Override
-	public IDisposableCache create(CacheFactoryDirective cacheFactoryDirective, String name)
-	{
+	public IDisposableCache create(CacheFactoryDirective cacheFactoryDirective, String name) {
 		return null;
 	}
 
 	@Override
-	public IDisposableCache create(CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, Boolean useWeakEntries, String name)
-	{
+	public IDisposableCache create(CacheFactoryDirective cacheFactoryDirective,
+			boolean foreignThreadAware, Boolean useWeakEntries, String name) {
 		return null;
 	}
 }

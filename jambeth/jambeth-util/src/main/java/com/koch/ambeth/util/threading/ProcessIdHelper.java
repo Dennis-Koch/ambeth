@@ -28,26 +28,22 @@ import java.nio.charset.Charset;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class ProcessIdHelper
-{
+public final class ProcessIdHelper {
 	private static final Pattern cpuUsagePattern = Pattern.compile(" ");
 
-	private static final Pattern hzPattern = Pattern.compile(".*#define *HZ *(\\d+).*", Pattern.DOTALL);
+	private static final Pattern hzPattern =
+			Pattern.compile(".*#define *HZ *(\\d+).*", Pattern.DOTALL);
 
-	private ProcessIdHelper()
-	{
+	private ProcessIdHelper() {
 		// Intended blank
 	}
 
-	public static void main(String[] args)
-	{
+	public static void main(String[] args) {
 		long startCpuUsage = getCumulatedCpuUsage();
 		int a = 1;
 		long start = System.currentTimeMillis();
-		while (System.currentTimeMillis() - start < 10000)
-		{
-			for (int b = 100000; b-- > 0;)
-			{
+		while (System.currentTimeMillis() - start < 10000) {
+			for (int b = 100000; b-- > 0;) {
 				a = a + 1;
 			}
 		}
@@ -55,8 +51,7 @@ public final class ProcessIdHelper
 		System.out.println((endCpuUsage - startCpuUsage));
 	}
 
-	public static String getProcessId()
-	{
+	public static String getProcessId() {
 		// Note: may fail in some JVM implementations
 		// therefore fallback has to be provided
 
@@ -64,59 +59,48 @@ public final class ProcessIdHelper
 		final String jvmName = ManagementFactory.getRuntimeMXBean().getName();
 		final int index = jvmName.indexOf('@');
 
-		if (index < 1)
-		{
+		if (index < 1) {
 			// part before '@' empty (index = 0) / '@' not found (index = -1)
 			return "0";
 		}
 
-		try
-		{
+		try {
 			return jvmName.substring(0, index);
 		}
-		catch (NumberFormatException e)
-		{
+		catch (NumberFormatException e) {
 			return "0";
 		}
 	}
 
-	public static long getCumulatedCpuUsage()
-	{
+	public static long getCumulatedCpuUsage() {
 		byte[] statBytes;
 		byte[] hzBytes;
-		try
-		{
+		try {
 			InputStream is = new FileInputStream("/proc/self/stat");
-			try
-			{
+			try {
 				statBytes = new byte[256];
 				is.read(statBytes);
 			}
-			finally
-			{
+			finally {
 				is.close();
 			}
 			is = new FileInputStream("/usr/include/asm-generic/param.h");
-			try
-			{
+			try {
 				hzBytes = new byte[256];
 				is.read(hzBytes);
 			}
-			finally
-			{
+			finally {
 				is.close();
 			}
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			return -1;
 		}
 		String stat = new String(statBytes, Charset.forName("UTF-8"));
 		String hzFileContent = new String(hzBytes, Charset.forName("UTF-8"));
 
 		Matcher hzMatcher = hzPattern.matcher(hzFileContent);
-		if (!hzMatcher.matches())
-		{
+		if (!hzMatcher.matches()) {
 			return -1;
 		}
 		double hzValue = Double.parseDouble(hzMatcher.group(1));

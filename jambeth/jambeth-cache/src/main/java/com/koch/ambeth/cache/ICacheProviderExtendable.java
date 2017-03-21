@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.merge.cache.ICacheProvider;
 
-public interface ICacheProviderExtendable
-{
+public interface ICacheProviderExtendable {
 	void registerCacheProvider(ICacheProvider cacheProvider);
 
 	void unregisterCacheProvider(ICacheProvider cacheProvider);

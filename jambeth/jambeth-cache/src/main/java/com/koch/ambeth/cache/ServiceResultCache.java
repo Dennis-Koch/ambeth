@@ -43,8 +43,7 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
-public class ServiceResultCache implements IServiceResultCache
-{
+public class ServiceResultCache implements IServiceResultCache {
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
@@ -60,123 +59,105 @@ public class ServiceResultCache implements IServiceResultCache
 	@Property(name = CacheConfigurationConstants.ServiceResultCacheActive, defaultValue = "false")
 	protected boolean useResultCache;
 
-	protected final HashMap<ServiceResultCacheKey, IServiceResult> serviceCallToResult = new HashMap<ServiceResultCacheKey, IServiceResult>();
+	protected final HashMap<ServiceResultCacheKey, IServiceResult> serviceCallToResult =
+			new HashMap<>();
 
-	protected final HashSet<ServiceResultCacheKey> serviceCallToPendingResult = new HashSet<ServiceResultCacheKey>();
+	protected final HashSet<ServiceResultCacheKey> serviceCallToPendingResult =
+			new HashSet<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
 	protected final Condition serviceCallPending = writeLock.newCondition();
 
-	protected ServiceResultCacheKey buildKey(IServiceDescription serviceDescription)
-	{
+	protected ServiceResultCacheKey buildKey(IServiceDescription serviceDescription) {
 		Object service = serviceByNameProvider.getService(serviceDescription.getServiceName());
 		ServiceResultCacheKey key = new ServiceResultCacheKey();
 		key.arguments = serviceDescription.getArguments();
 		key.method = serviceDescription.getMethod(service.getClass(), objectCollector);
 		key.serviceName = serviceDescription.getServiceName();
-		if (key.method == null || key.serviceName == null)
-		{
+		if (key.method == null || key.serviceName == null) {
 			throw new IllegalArgumentException("ServiceDescription not legal " + serviceDescription);
 		}
 		return key;
 	}
 
 	@Override
-	public IServiceResult getORIsOfService(final IServiceDescription serviceDescription, final ExecuteServiceDelegate executeServiceDelegate)
-	{
-		if (!useResultCache)
-		{
+	public IServiceResult getORIsOfService(final IServiceDescription serviceDescription,
+			final ExecuteServiceDelegate executeServiceDelegate) {
+		if (!useResultCache) {
 			return executeServiceDelegate.invoke(serviceDescription);
 		}
 		ServiceResultCacheKey key = buildKey(serviceDescription);
 		Lock writeLock = this.writeLock;
 		IServiceResult serviceResult;
 		writeLock.lock();
-		try
-		{
+		try {
 			serviceResult = serviceCallToResult.get(key);
-			if (serviceResult != null)
-			{
+			if (serviceResult != null) {
 				// Important to clone the ori list, because potential
 				// (user-dependent) security logic may truncate this list
 				return createServiceResult(serviceResult);
 			}
-			while (serviceCallToPendingResult.contains(key))
-			{
+			while (serviceCallToPendingResult.contains(key)) {
 				serviceCallPending.awaitUninterruptibly();
 			}
 			serviceResult = serviceCallToResult.get(key);
-			if (serviceResult != null)
-			{
+			if (serviceResult != null) {
 				return createServiceResult(serviceResult);
 			}
 			serviceCallToPendingResult.add(key);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 		boolean success = false;
-		try
-		{
-			if (securityActivation != null)
-			{
-				serviceResult = securityActivation.executeWithoutFiltering(new IResultingBackgroundWorkerDelegate<IServiceResult>()
-				{
-					@Override
-					public IServiceResult invoke() throws Throwable
-					{
-						return executeServiceDelegate.invoke(serviceDescription);
-					}
-				});
+		try {
+			if (securityActivation != null) {
+				serviceResult = securityActivation
+						.executeWithoutFiltering(new IResultingBackgroundWorkerDelegate<IServiceResult>() {
+							@Override
+							public IServiceResult invoke() throws Throwable {
+								return executeServiceDelegate.invoke(serviceDescription);
+							}
+						});
 			}
-			else
-			{
+			else {
 				serviceResult = executeServiceDelegate.invoke(serviceDescription);
 			}
 			success = true;
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
+		finally {
 			writeLock.lock();
-			try
-			{
+			try {
 				serviceCallToPendingResult.remove(key);
 
-				if (success)
-				{
+				if (success) {
 					serviceCallToResult.put(key, serviceResult);
 				}
 				serviceCallPending.signalAll();
 			}
-			finally
-			{
+			finally {
 				writeLock.unlock();
 			}
 		}
 		return createServiceResult(serviceResult);
 	}
 
-	protected IServiceResult createServiceResult(IServiceResult cachedServiceResult)
-	{
+	protected IServiceResult createServiceResult(IServiceResult cachedServiceResult) {
 		// Important to clone the ori list, because potential (user-dependent)
 		// security logic may truncate this list (original must remain unmodified)
 		List<IObjRef> objRefs = cachedServiceResult.getObjRefs();
-		ArrayList<IObjRef> list = new ArrayList<IObjRef>(objRefs.size());
+		ArrayList<IObjRef> list = new ArrayList<>(objRefs.size());
 		list.addAll(objRefs);
 
 		List<IObjRef> filteredList;
-		if (securityManager != null)
-		{
+		if (securityManager != null) {
 			filteredList = securityManager.filterValue(list);
 		}
-		else
-		{
+		else {
 			filteredList = list;
 		}
 		ServiceResult serviceResult = new ServiceResult();
@@ -185,21 +166,17 @@ public class ServiceResultCache implements IServiceResultCache
 		return serviceResult;
 	}
 
-	public void handleClearAllCaches(ClearAllCachesEvent evnt)
-	{
+	public void handleClearAllCaches(ClearAllCachesEvent evnt) {
 		invalidateAll();
 	}
 
 	@Override
-	public void invalidateAll()
-	{
+	public void invalidateAll() {
 		writeLock.lock();
-		try
-		{
+		try {
 			serviceCallToResult.clear();
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}

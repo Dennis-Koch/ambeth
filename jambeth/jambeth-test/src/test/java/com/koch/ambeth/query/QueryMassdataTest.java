@@ -65,8 +65,6 @@ import com.koch.ambeth.persistence.jdbc.IConnectionExtension;
 import com.koch.ambeth.persistence.jdbc.JdbcUtil;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import com.koch.ambeth.persistence.xml.TestServicesModule;
-import com.koch.ambeth.query.IQuery;
-import com.koch.ambeth.query.IQueryBuilder;
 import com.koch.ambeth.query.config.QueryConfigurationConstants;
 import com.koch.ambeth.query.filter.IFilterToQueryBuilder;
 import com.koch.ambeth.query.filter.IPagingQuery;
@@ -175,7 +173,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 	@Property(name = QueryMassDataModule.ROW_COUNT)
 	protected int dataCount;
 
-	protected HashMap<Object, Object> nameToValueMap = new HashMap<Object, Object>();
+	protected HashMap<Object, Object> nameToValueMap = new HashMap<>();
 
 	@Test
 	public void massDataReadFalseFalseFalse() throws Exception {
@@ -279,7 +277,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 		final ICacheProvider cacheProvider =
 				beanContext.getService(CacheNamedBeans.CacheProviderThreadLocal, ICacheProvider.class);
 
-		final FilterDescriptor<QueryEntity> fd = new FilterDescriptor<QueryEntity>(QueryEntity.class);
+		final FilterDescriptor<QueryEntity> fd = new FilterDescriptor<>(QueryEntity.class);
 
 		final SortDescriptor sd1 = new SortDescriptor();
 		sd1.setMember("Id");
@@ -292,7 +290,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 		final int lastPageNumber = dataCount / size,
 				lastPageNumberSize = dataCount - lastPageNumber * size;
 
-		final ParamHolder<Integer> overallQueryCountIndex = new ParamHolder<Integer>();
+		final ParamHolder<Integer> overallQueryCountIndex = new ParamHolder<>();
 		overallQueryCountIndex.setValue(new Integer(0));
 
 		final ReentrantLock oqciLock = new ReentrantLock();
@@ -305,7 +303,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 
 		final CountDownLatch latch = new CountDownLatch(threads);
 
-		final ParamHolder<Throwable> throwableHolder = new ParamHolder<Throwable>();
+		final ParamHolder<Throwable> throwableHolder = new ParamHolder<>();
 
 		Runnable runnable = new Runnable() {
 			@Override
@@ -440,10 +438,10 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 
 	private static class ValueWithTimeUnit {
 		private static final HashMap<TimeUnit, String> timeUnitToStringMap =
-				new HashMap<TimeUnit, String>();
+				new HashMap<>();
 
 		private static final HashMap<TimeUnit, Double> timeUnitToNanoFactorMap =
-				new HashMap<TimeUnit, Double>();
+				new HashMap<>();
 
 		static {
 			timeUnitToStringMap.put(TimeUnit.SECONDS, "s");
@@ -669,7 +667,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 		final ICacheProvider cacheProvider =
 				beanContext.getService(CacheNamedBeans.CacheProviderThreadLocal, ICacheProvider.class);
 
-		final FilterDescriptor<QueryEntity> fd = new FilterDescriptor<QueryEntity>(QueryEntity.class);
+		final FilterDescriptor<QueryEntity> fd = new FilterDescriptor<>(QueryEntity.class);
 
 		final SortDescriptor sd1 = new SortDescriptor();
 		sd1.setMember("Id");
@@ -682,7 +680,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 		final int lastPageNumber = dataCount / size,
 				lastPageNumberSize = dataCount - lastPageNumber * size;
 
-		final ParamHolder<Integer> overallQueryCountIndex = new ParamHolder<Integer>();
+		final ParamHolder<Integer> overallQueryCountIndex = new ParamHolder<>();
 		overallQueryCountIndex.setValue(new Integer(0));
 
 		final ReentrantLock oqciLock = new ReentrantLock();
@@ -694,7 +692,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 
 		final CountDownLatch latch = new CountDownLatch(threads);
 
-		final ParamHolder<Throwable> throwableHolder = new ParamHolder<Throwable>();
+		final ParamHolder<Throwable> throwableHolder = new ParamHolder<>();
 
 		final boolean[] usedPages = new boolean[dataCount / size];
 		Runnable runnable = new Runnable() {

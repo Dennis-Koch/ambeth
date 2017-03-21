@@ -25,39 +25,31 @@ import java.nio.file.Path;
 import com.koch.ambeth.util.IImmutableType;
 import com.koch.ambeth.util.IPrintable;
 
-public class FileKeyImpl implements FileKey, IImmutableType, IPrintable
-{
+public class FileKeyImpl implements FileKey, IImmutableType, IPrintable {
 	private final Path filePath;
 
-	public FileKeyImpl(Path filePath)
-	{
+	public FileKeyImpl(Path filePath) {
 		this.filePath = filePath;
 	}
 
-	public Path getFilePath()
-	{
+	public Path getFilePath() {
 		return filePath;
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return getClass().hashCode() ^ filePath.hashCode();
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (this == obj)
-		{
+	public boolean equals(Object obj) {
+		if (this == obj) {
 			return true;
 		}
-		if (obj == null)
-		{
+		if (obj == null) {
 			return false;
 		}
-		if (getClass() != obj.getClass())
-		{
+		if (getClass() != obj.getClass()) {
 			return false;
 		}
 		FileKeyImpl other = (FileKeyImpl) obj;
@@ -65,14 +57,12 @@ public class FileKeyImpl implements FileKey, IImmutableType, IPrintable
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return filePath.toString();
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
+	public void toString(StringBuilder sb) {
 		sb.append(filePath);
 	}
 }

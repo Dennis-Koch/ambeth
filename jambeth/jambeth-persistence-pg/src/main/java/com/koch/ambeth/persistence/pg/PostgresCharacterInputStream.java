@@ -29,40 +29,32 @@ import com.koch.ambeth.stream.IInputStream;
 import com.koch.ambeth.stream.chars.ICharacterInputStream;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class PostgresCharacterInputStream implements ICharacterInputStream, IInputStream
-{
+public class PostgresCharacterInputStream implements ICharacterInputStream, IInputStream {
 	private Clob clob;
 
 	private Reader reader;
 
-	public PostgresCharacterInputStream(Clob clob) throws SQLException
-	{
+	public PostgresCharacterInputStream(Clob clob) throws SQLException {
 		this.clob = clob;
 		reader = clob.getCharacterStream();
 	}
 
 	@Override
-	public void close() throws IOException
-	{
-		try
-		{
+	public void close() throws IOException {
+		try {
 			clob.free();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	public int readChar()
-	{
-		try
-		{
+	public int readChar() {
+		try {
 			return reader.read();
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

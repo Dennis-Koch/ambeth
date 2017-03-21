@@ -27,17 +27,15 @@ import com.koch.ambeth.persistence.jdbc.connector.IConnector;
 import com.koch.ambeth.persistence.maria.MariaConnectionModule;
 import com.koch.ambeth.persistence.maria.MariaModule;
 
-public class JDBC_MARIADB implements IConnector
-{
+public class JDBC_MARIADB implements IConnector {
 	@Override
-	public void handleProperties(Properties props, String databaseProtocol)
-	{
-		props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionModules, MariaConnectionModule.class.getName());
+	public void handleProperties(Properties props, String databaseProtocol) {
+		props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionModules,
+				MariaConnectionModule.class.getName());
 	}
 
 	@Override
-	public void handleProd(IBeanContextFactory beanContextFactory, String databaseProtocol)
-	{
+	public void handleProd(IBeanContextFactory beanContextFactory, String databaseProtocol) {
 		beanContextFactory.registerBean(MariaModule.class);
 	}
 }

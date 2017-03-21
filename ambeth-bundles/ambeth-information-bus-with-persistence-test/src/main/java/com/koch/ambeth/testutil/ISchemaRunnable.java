@@ -22,7 +22,6 @@ limitations under the License.
 
 import java.sql.Connection;
 
-public interface ISchemaRunnable
-{
+public interface ISchemaRunnable {
 	void executeSchemaSql(Connection connection) throws Exception;
 }

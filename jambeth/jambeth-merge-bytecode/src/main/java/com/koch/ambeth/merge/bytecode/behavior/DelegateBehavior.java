@@ -38,8 +38,7 @@ import com.koch.ambeth.merge.bytecode.visitor.DelegateVisitor;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.util.collections.IMap;
 
-public class DelegateBehavior extends AbstractBehavior
-{
+public class DelegateBehavior extends AbstractBehavior {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -48,22 +47,21 @@ public class DelegateBehavior extends AbstractBehavior
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors)
-	{
+	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+			List<IBytecodeBehavior> remainingPendingBehaviors,
+			List<IBytecodeBehavior> cascadePendingBehaviors) {
 		DelegateEnhancementHint hint = state.getContext(DelegateEnhancementHint.class);
-		if (hint == null)
-		{
+		if (hint == null) {
 			return visitor;
 		}
 		Class<?> targetType = hint.getType();
 		String methodName = hint.getMethodName();
 		Class<?> parameterType = hint.getParameterType();
 
-		IMap<Method, Method> delegateMethodMap = LinkContainer.buildDelegateMethodMap(targetType, methodName, parameterType);
+		IMap<Method, Method> delegateMethodMap =
+				LinkContainer.buildDelegateMethodMap(targetType, methodName, parameterType);
 
-		if (parameterType.isInterface())
-		{
+		if (parameterType.isInterface()) {
 			visitor = new InterfaceAdder(visitor, parameterType);
 		}
 		visitor = new DelegateVisitor(visitor, targetType, delegateMethodMap);

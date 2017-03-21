@@ -34,24 +34,21 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.bytecode.EmbeddedEnhancementHint;
 import com.koch.ambeth.util.model.IEmbeddedType;
 
-public class EmbeddedTypeBehavior extends AbstractBehavior
-{
+public class EmbeddedTypeBehavior extends AbstractBehavior {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public Class<?>[] getEnhancements()
-	{
-		return new Class<?>[] { IEmbeddedType.class };
+	public Class<?>[] getEnhancements() {
+		return new Class<?>[] {IEmbeddedType.class};
 	}
 
 	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors)
-	{
-		if (state.getContext(EmbeddedEnhancementHint.class) == null)
-		{
+	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+			List<IBytecodeBehavior> remainingPendingBehaviors,
+			List<IBytecodeBehavior> cascadePendingBehaviors) {
+		if (state.getContext(EmbeddedEnhancementHint.class) == null) {
 			return visitor;
 		}
 		visitor = new InterfaceAdder(visitor, IEmbeddedType.class);

@@ -46,32 +46,28 @@ import com.koch.ambeth.testutil.TestProperties;
 @SQLData("blob_data.sql")
 @SQLStructure("blob_structure.sql")
 @TestModule(BlobTestModule.class)
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/jdbc/lob/blob_orm.xml")
-public class BlobTest extends AbstractInformationBusWithPersistenceTest
-{
-	public static class BlobTestModule implements IInitializingModule
-	{
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/persistence/jdbc/lob/blob_orm.xml")
+public class BlobTest extends AbstractInformationBusWithPersistenceTest {
+	public static class BlobTestModule implements IInitializingModule {
 		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			beanContextFactory.registerAutowireableBean(IBlobObjectService.class, BlobObjectService.class);
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+			beanContextFactory.registerAutowireableBean(IBlobObjectService.class,
+					BlobObjectService.class);
 		}
 	}
 
 	@Autowired
 	protected IEventDispatcher eventDispatcher;
 
-	protected BlobObject createAndSaveBlob(int size)
-	{
+	protected BlobObject createAndSaveBlob(int size) {
 		IBlobObjectService blobObjectService = beanContext.getService(IBlobObjectService.class);
 
 		BlobObject blob = entityFactory.createEntity(BlobObject.class);
-		if (size < 0)
-		{
+		if (size < 0) {
 			blob.setContent(null);
 		}
-		else
-		{
+		else {
 			blob.setContent(new byte[size]);
 		}
 
@@ -79,8 +75,7 @@ public class BlobTest extends AbstractInformationBusWithPersistenceTest
 		return blob;
 	}
 
-	protected BlobObject createAndSaveBlob(byte[] content)
-	{
+	protected BlobObject createAndSaveBlob(byte[] content) {
 		IBlobObjectService blobObjectService = beanContext.getService(IBlobObjectService.class);
 
 		BlobObject blob = entityFactory.createEntity(BlobObject.class);
@@ -91,8 +86,7 @@ public class BlobTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createNullBlob()
-	{
+	public void createNullBlob() {
 		BlobObject blob = createAndSaveBlob(-1);
 
 		Assert.assertFalse("Wrong id", blob.getId() == 0);
@@ -101,8 +95,7 @@ public class BlobTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void readNullBlob()
-	{
+	public void readNullBlob() {
 		BlobObject blob = createAndSaveBlob(-1);
 
 		eventDispatcher.dispatchEvent(ClearAllCachesEvent.getInstance());
@@ -115,8 +108,7 @@ public class BlobTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void createBlob()
-	{
+	public void createBlob() {
 		int blobSize = 1234;
 		BlobObject blob = createAndSaveBlob(blobSize);
 
@@ -127,16 +119,14 @@ public class BlobTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void updateBlob()
-	{
+	public void updateBlob() {
 		IBlobObjectService blobObjectService = beanContext.getService(IBlobObjectService.class);
 
 		BlobObject blob = createAndSaveBlob(1234);
 
 		short v1 = blob.getVersion();
 		byte[] content = new byte[23450];
-		for (int a = content.length; a-- > 0;)
-		{
+		for (int a = content.length; a-- > 0;) {
 			content[a] = (byte) (Math.random() * Short.MAX_VALUE);
 		}
 		blob.setContent(content);
@@ -158,19 +148,19 @@ public class BlobTest extends AbstractInformationBusWithPersistenceTest
 		Assert.assertNotNull("Reloaded blob must be valid", reloadedBlob);
 
 		Assert.assertNotNull("Blob must have been valid", reloadedBlob.getContent());
-		Assert.assertEquals("Blob length must have been correct", content.length, reloadedBlob.getContent().length);
+		Assert.assertEquals("Blob length must have been correct", content.length,
+				reloadedBlob.getContent().length);
 		Assert.assertArrayEquals("Blob content must be equal", content, reloadedBlob.getContent());
 	}
 
 	@Test
-	public void updateBlobWithContent()
-	{
+	public void updateBlobWithContent() {
 		IBlobObjectService blobObjectService = beanContext.getService(IBlobObjectService.class);
 
-		byte[] content = { 1, 2, 3, 4, 5 };
+		byte[] content = {1, 2, 3, 4, 5};
 		BlobObject blob = createAndSaveBlob(content);
 
-		byte[] newContent = { 1, 1, 2, 3, 5, 8 };
+		byte[] newContent = {1, 1, 2, 3, 5, 8};
 
 		blob.setContent(newContent);
 		blobObjectService.updateBlobObject(blob);
@@ -186,12 +176,12 @@ public class BlobTest extends AbstractInformationBusWithPersistenceTest
 		Assert.assertNotNull("Reloaded clob must be valid", reloadedBlob);
 
 		Assert.assertNotNull("Blob must have been valid", reloadedBlob.getContent());
-		Assert.assertArrayEquals("Blob content must have been correct", newContent, reloadedBlob.getContent());
+		Assert.assertArrayEquals("Blob content must have been correct", newContent,
+				reloadedBlob.getContent());
 	}
 
 	@Test
-	public void deleteBlob()
-	{
+	public void deleteBlob() {
 		IBlobObjectService blobObjectService = beanContext.getService(IBlobObjectService.class);
 
 		BlobObject blob = createAndSaveBlob(1234);

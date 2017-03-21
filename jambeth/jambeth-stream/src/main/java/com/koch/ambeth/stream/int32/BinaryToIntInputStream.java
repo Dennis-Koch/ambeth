@@ -25,39 +25,32 @@ import java.io.InputStream;
 
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class BinaryToIntInputStream implements IIntInputStream
-{
+public class BinaryToIntInputStream implements IIntInputStream {
 	private final InputStream is;
 
 	private final byte[] input = new byte[4];
 
 	private int inputOffset;
 
-	public BinaryToIntInputStream(InputStream is)
-	{
+	public BinaryToIntInputStream(InputStream is) {
 		this.is = is;
 	}
 
 	@Override
-	public void close() throws IOException
-	{
+	public void close() throws IOException {
 		is.close();
 	}
 
 	@Override
-	public boolean hasInt()
-	{
-		if (inputOffset == 4)
-		{
+	public boolean hasInt() {
+		if (inputOffset == 4) {
 			return true;
 		}
 		int length;
-		try
-		{
+		try {
 			length = is.read(input, inputOffset, 4 - inputOffset);
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		inputOffset += length;
@@ -65,10 +58,8 @@ public class BinaryToIntInputStream implements IIntInputStream
 	}
 
 	@Override
-	public int readInt()
-	{
-		if (inputOffset != 4)
-		{
+	public int readInt() {
+		if (inputOffset != 4) {
 			throw new IllegalStateException("Not allowed");
 		}
 		inputOffset = 0;

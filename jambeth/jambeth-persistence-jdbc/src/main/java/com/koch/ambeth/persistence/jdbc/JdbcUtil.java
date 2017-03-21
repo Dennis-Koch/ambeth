@@ -32,114 +32,86 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 
-public final class JdbcUtil
-{
-	private JdbcUtil()
-	{
+public final class JdbcUtil {
+	private JdbcUtil() {
 		// Intended blank
 	}
 
-	public static void close(Statement stm, ResultSet rs)
-	{
+	public static void close(Statement stm, ResultSet rs) {
 		close(rs);
 		close(stm);
 	}
 
-	public static void close(ResultSet resultSet)
-	{
-		if (resultSet == null)
-		{
+	public static void close(ResultSet resultSet) {
+		if (resultSet == null) {
 			return;
 		}
-		try
-		{
+		try {
 			resultSet.close();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			// Intended blank
 		}
 	}
 
-	public static void close(Statement stm)
-	{
-		if (stm == null)
-		{
+	public static void close(Statement stm) {
+		if (stm == null) {
 			return;
 		}
-		try
-		{
+		try {
 			stm.close();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			// Intended blank
 		}
 	}
 
-	public static void close(Connection connection)
-	{
-		if (connection == null)
-		{
+	public static void close(Connection connection) {
+		if (connection == null) {
 			return;
 		}
-		try
-		{
-			if (!connection.isClosed())
-			{
+		try {
+			if (!connection.isClosed()) {
 				connection.close();
 			}
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			// Intended blank
 		}
 	}
 
-	public static void close(Array array)
-	{
-		if (array == null)
-		{
+	public static void close(Array array) {
+		if (array == null) {
 			return;
 		}
-		try
-		{
+		try {
 			array.free();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			// Intended blank
 		}
 	}
 
-	public static Class<?> getJavaTypeFromJdbcType(int jdbcTypeIndex, int scaleHint, int digitsHint)
-	{
-		switch (jdbcTypeIndex)
-		{
+	public static Class<?> getJavaTypeFromJdbcType(int jdbcTypeIndex, int scaleHint, int digitsHint) {
+		switch (jdbcTypeIndex) {
 			case Types.BOOLEAN:
-			case Types.BIT:
-			{
+			case Types.BIT: {
 				return Boolean.class;
 			}
-			case Types.DISTINCT:
-			{
+			case Types.DISTINCT: {
 				return Object.class;
 			}
 			case Types.CHAR:
-			case Types.VARCHAR:
-			{
+			case Types.VARCHAR: {
 				return String.class;
 			}
-			case Types.DATE:
-			{
+			case Types.DATE: {
 				return java.sql.Date.class;
 			}
-			case Types.TIME:
-			{
+			case Types.TIME: {
 				return Time.class;
 			}
-			case Types.TIMESTAMP:
-			{
+			case Types.TIMESTAMP: {
 				return Timestamp.class;
 			}
 			case Types.DOUBLE:
@@ -147,88 +119,72 @@ public final class JdbcUtil
 			{
 				return Double.class;
 			}
-			case Types.BIGINT:
-			{
+			case Types.BIGINT: {
 				return Long.class;
 			}
-			case Types.INTEGER:
-			{
+			case Types.INTEGER: {
 				return Integer.class;
 			}
 			case Types.NUMERIC:
-			case Types.DECIMAL:
-			{
-				if (digitsHint <= 0)
-				{
-					if (scaleHint > 0)
-					{
-						if (scaleHint <= 2)
-						{
+			case Types.DECIMAL: {
+				if (digitsHint <= 0) {
+					if (scaleHint > 0) {
+						if (scaleHint <= 2) {
 							// MaxValue = 127, 2 full digits
 							return Byte.class;
 						}
-						else if (scaleHint <= 4)
-						{
+						else if (scaleHint <= 4) {
 							// MaxValue = 32767, 4 full digits
 							return Short.class;
 						}
-						else if (scaleHint <= 9)
-						{
+						else if (scaleHint <= 9) {
 							// MaxValue = 2147483647, 9 full digits
 							return Integer.class;
 						}
-						else if (scaleHint <= 18)
-						{
+						else if (scaleHint <= 18) {
 							// MaxValue = 9223372036854775807, 18 full digits
 							return Long.class;
 						}
 					}
-					// Anything else without fractional precision. But some databases do not support BigInteger
+					// Anything else without fractional precision. But some databases do not support
+					// BigInteger
 					// return BigInteger.class;
 					return BigDecimal.class;
 				}
-				else if (scaleHint <= 4 && digitsHint <= 4)
-				{
+				else if (scaleHint <= 4 && digitsHint <= 4) {
 					return Float.class;
 				}
-				else if (scaleHint <= 9 && digitsHint <= 9)
-				{
+				else if (scaleHint <= 9 && digitsHint <= 9) {
 					return Double.class;
 				}
 				return BigDecimal.class;
 			}
-			case Types.SMALLINT:
-			{
+			case Types.SMALLINT: {
 				return Short.class;
 			}
-			case Types.TINYINT:
-			{
+			case Types.TINYINT: {
 				return Byte.class;
 			}
-			case Types.REAL:
-			{
+			case Types.REAL: {
 				return Float.class;
 			}
 			case Types.BLOB:
-			case Types.BINARY:
-			{
+			case Types.BINARY: {
 				return Blob.class;
 			}
-			case Types.CLOB:
-			{
+			case Types.CLOB: {
 				return Clob.class;
 			}
-			case Types.ROWID:
-			{
+			case Types.ROWID: {
 				return RowId.class;
 			}
 			case Types.ARRAY:
-			case Types.OTHER:
-			{
+			case Types.OTHER: {
 				return Array.class;
 			}
 			default:
-				throw new UnsupportedOperationException("Type index " + jdbcTypeIndex + " from " + Types.class.getName() + " not supported");
+				throw new UnsupportedOperationException(
+						"Type index " + jdbcTypeIndex + " from " + Types.class.getName() + " not supported");
 		}
 	}
 }

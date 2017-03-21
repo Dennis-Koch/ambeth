@@ -27,8 +27,7 @@ import java.util.Set;
 import com.koch.ambeth.cache.Cached;
 import com.koch.ambeth.persistence.jdbc.mapping.models.OneToManyEntity;
 
-public interface IOneToManyEntityService
-{
+public interface IOneToManyEntityService {
 	@Cached(alternateIdName = "Name")
 	OneToManyEntity getOneToManyEntityByName(String name);
 

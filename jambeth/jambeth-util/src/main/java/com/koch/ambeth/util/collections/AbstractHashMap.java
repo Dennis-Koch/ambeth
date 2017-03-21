@@ -35,17 +35,13 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 /**
  * Abstrakte HashMap als Basisklasse f�r verschiedene spezialisierte Anwendungsf�lle
- * 
+ *
  * @author kochd
- * @param <E>
- *            Typ der Entrys der Map
- * @param <K>
- *            Typ der Keys
- * @param <V>
- *            Typ der Values
+ * @param <E> Typ der Entrys der Map
+ * @param <K> Typ der Keys
+ * @param <V> Typ der Values
  */
-public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPrintable, Cloneable
-{
+public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPrintable, Cloneable {
 	public static final int DEFAULT_INITIAL_CAPACITY = 16;
 
 	public static final int MAXIMUM_CAPACITY = 1 << 30;
@@ -60,27 +56,22 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 
 	protected IResizeMapCallback resizeMapCallback;
 
-	public AbstractHashMap(int initialCapacity, final float loadFactor, final Class<?> entryClass)
-	{
+	public AbstractHashMap(int initialCapacity, final float loadFactor, final Class<?> entryClass) {
 		this.loadFactor = loadFactor;
 
-		if (initialCapacity < 0)
-		{
+		if (initialCapacity < 0) {
 			throw new IllegalArgumentException("Illegal initial capacity: " + initialCapacity);
 		}
-		if (initialCapacity > MAXIMUM_CAPACITY)
-		{
+		if (initialCapacity > MAXIMUM_CAPACITY) {
 			initialCapacity = MAXIMUM_CAPACITY;
 		}
-		if (loadFactor <= 0 || Float.isNaN(loadFactor))
-		{
+		if (loadFactor <= 0 || Float.isNaN(loadFactor)) {
 			throw new IllegalArgumentException("Illegal load factor: " + loadFactor);
 		}
 
 		// Find a power of 2 >= initialCapacity
 		int capacity = 1;
-		while (capacity < initialCapacity)
-		{
+		while (capacity < initialCapacity) {
 			capacity <<= 1;
 		}
 
@@ -91,29 +82,24 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	}
 
 	@SuppressWarnings("unchecked")
-	protected IMapEntry<K, V>[] createTable(final int capacity)
-	{
+	protected IMapEntry<K, V>[] createTable(final int capacity) {
 		return (IMapEntry<K, V>[]) Array.newInstance(table.getClass().getComponentType(), capacity);
 	}
 
 	@SuppressWarnings("unchecked")
-	protected IMapEntry<K, V>[] createTable(final Class<?> entryClass, final int capacity)
-	{
+	protected IMapEntry<K, V>[] createTable(final Class<?> entryClass, final int capacity) {
 		return (IMapEntry<K, V>[]) Array.newInstance(entryClass, capacity);
 	}
 
-	protected void init()
-	{
+	protected void init() {
 
 	}
 
-	protected int extractHash(final K key)
-	{
+	protected int extractHash(final K key) {
 		return key.hashCode();
 	}
 
-	protected static int hash(int hash)
-	{
+	protected static int hash(int hash) {
 		hash += ~(hash << 9);
 		hash ^= hash >>> 14;
 		hash += hash << 4;
@@ -121,38 +107,31 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 		return hash;
 	}
 
-	protected void addEntry(final int hash, final K key, final V value, final int bucketIndex)
-	{
+	protected void addEntry(final int hash, final K key, final V value, final int bucketIndex) {
 		IMapEntry<K, V>[] table = this.table;
 		IMapEntry<K, V> e = table[bucketIndex];
 		e = createEntry(hash, key, value, e);
 		table[bucketIndex] = e;
 		entryAdded(e);
-		if (isResizeNeeded())
-		{
+		if (isResizeNeeded()) {
 			resize(2 * table.length);
 		}
 	}
 
-	public IResizeMapCallback getResizeMapCallback()
-	{
+	public IResizeMapCallback getResizeMapCallback() {
 		return resizeMapCallback;
 	}
 
-	public void setResizeMapCallback(IResizeMapCallback resizeMapCallback)
-	{
+	public void setResizeMapCallback(IResizeMapCallback resizeMapCallback) {
 		this.resizeMapCallback = resizeMapCallback;
 	}
 
-	protected boolean isResizeNeeded()
-	{
+	protected boolean isResizeNeeded() {
 		int threshold = this.threshold;
-		if (resizeMapCallback == null)
-		{
+		if (resizeMapCallback == null) {
 			return size() >= threshold;
 		}
-		if (size() < threshold)
-		{
+		if (size() < threshold) {
 			return false;
 		}
 		// try to throw away invalid entries to solve the need for a resize
@@ -161,39 +140,32 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 		return size() >= threshold * 0.9;
 	}
 
-	protected void entryAdded(final IMapEntry<K, V> entry)
-	{
+	protected void entryAdded(final IMapEntry<K, V> entry) {
 		// Intended blank
 	}
 
-	protected void entryRemoved(final IMapEntry<K, V> entry)
-	{
+	protected void entryRemoved(final IMapEntry<K, V> entry) {
 		// Intended blank
 	}
 
 	@SuppressWarnings("unchecked")
-	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
-	{
+	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
 		final int size = in.readInt();
-		for (int a = 0; a < size; a++)
-		{
+		for (int a = 0; a < size; a++) {
 			final Object key = in.readObject();
 			final Object value = in.readObject();
 			put((K) key, (V) value);
 		}
 	}
 
-	public void writeExternal(final ObjectOutput out) throws IOException
-	{
+	public void writeExternal(final ObjectOutput out) throws IOException {
 		out.writeInt(size());
 
 		final IMapEntry<K, V>[] table = this.table;
 
-		for (int a = table.length; a-- > 0;)
-		{
+		for (int a = table.length; a-- > 0;) {
 			IMapEntry<K, V> entry = table[a];
-			while (entry != null)
-			{
+			while (entry != null) {
 				out.writeObject(entry.getKey());
 				out.writeObject(entry.getValue());
 				entry = entry.getNextEntry();
@@ -202,20 +174,19 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	}
 
 	/**
-	 * Rehashes the contents of this map into a new array with a larger capacity. This method is called automatically when the number of keys in this map
-	 * reaches its threshold. If current capacity is MAXIMUM_CAPACITY, this method does not resize the map, but sets threshold to Integer.MAX_VALUE. This has
-	 * the effect of preventing future calls.
-	 * 
-	 * @param newCapacity
-	 *            the new capacity, MUST be a power of two; must be greater than current capacity unless current capacity is MAXIMUM_CAPACITY (in which case
-	 *            value is irrelevant).
+	 * Rehashes the contents of this map into a new array with a larger capacity. This method is
+	 * called automatically when the number of keys in this map reaches its threshold. If current
+	 * capacity is MAXIMUM_CAPACITY, this method does not resize the map, but sets threshold to
+	 * Integer.MAX_VALUE. This has the effect of preventing future calls.
+	 *
+	 * @param newCapacity the new capacity, MUST be a power of two; must be greater than current
+	 *        capacity unless current capacity is MAXIMUM_CAPACITY (in which case value is
+	 *        irrelevant).
 	 */
-	protected void resize(final int newCapacity)
-	{
+	protected void resize(final int newCapacity) {
 		final IMapEntry<K, V>[] oldTable = table;
 		final int oldCapacity = oldTable.length;
-		if (oldCapacity == MAXIMUM_CAPACITY)
-		{
+		if (oldCapacity == MAXIMUM_CAPACITY) {
 			threshold = Integer.MAX_VALUE;
 			return;
 		}
@@ -226,25 +197,20 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 		threshold = (int) (newCapacity * loadFactor);
 	}
 
-	protected void transfer(final IMapEntry<K, V>[] newTable)
-	{
+	protected void transfer(final IMapEntry<K, V>[] newTable) {
 		final int newCapacityMinus1 = newTable.length - 1;
 		final IMapEntry<K, V>[] table = this.table;
 
-		for (int a = table.length; a-- > 0;)
-		{
+		for (int a = table.length; a-- > 0;) {
 			IMapEntry<K, V> entry = table[a], next;
-			while (entry != null)
-			{
+			while (entry != null) {
 				next = entry.getNextEntry();
-				if (isEntryValid(entry))
-				{
+				if (isEntryValid(entry)) {
 					int i = entry.getHash() & newCapacityMinus1;
 					setNextEntry(entry, newTable[i]);
 					newTable[i] = entry;
 				}
-				else
-				{
+				else {
 					entryRemoved(entry);
 				}
 				entry = next;
@@ -253,22 +219,18 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	}
 
 	@Override
-	public V[] toArray(Class<V> arrayType)
-	{
+	public V[] toArray(Class<V> arrayType) {
 		@SuppressWarnings("unchecked")
 		V[] array = (V[]) Array.newInstance(arrayType, size());
 		return toArray(array);
 	}
 
-	public V[] toArray(final V[] targetArray)
-	{
+	public V[] toArray(final V[] targetArray) {
 		int index = 0;
 		IMapEntry<K, V>[] table = this.table;
-		for (int a = table.length; a-- > 0;)
-		{
+		for (int a = table.length; a-- > 0;) {
 			IMapEntry<K, V> entry = table[a];
-			while (entry != null)
-			{
+			while (entry != null) {
 				targetArray[index++] = entry.getValue();
 				entry = entry.getNextEntry();
 			}
@@ -276,8 +238,7 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 		return targetArray;
 	}
 
-	protected boolean isEntryValid(IMapEntry<K, V> entry)
-	{
+	protected boolean isEntryValid(IMapEntry<K, V> entry) {
 		return true;
 	}
 
@@ -285,22 +246,17 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	 * @see java.util.Map#clear()
 	 */
 	@Override
-	public void clear()
-	{
-		if (isEmpty())
-		{
+	public void clear() {
+		if (isEmpty()) {
 			return;
 		}
 		final IMapEntry<K, V>[] table = this.table;
 
-		for (int a = table.length; a-- > 0;)
-		{
+		for (int a = table.length; a-- > 0;) {
 			IMapEntry<K, V> entry = table[a];
-			if (entry != null)
-			{
+			if (entry != null) {
 				table[a] = null;
-				while (entry != null)
-				{
+				while (entry != null) {
 					final IMapEntry<K, V> nextEntry = entry.getNextEntry();
 					entryRemoved(entry);
 					entry = nextEntry;
@@ -310,25 +266,22 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	}
 
 	/**
-	 * Returns a shallow copy of this <tt>HashMap</tt> instance: the keys and values themselves are not cloned.
-	 * 
+	 * Returns a shallow copy of this <tt>HashMap</tt> instance: the keys and values themselves are
+	 * not cloned.
+	 *
 	 * @return a shallow copy of this map
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Object clone()
-	{
+	public Object clone() {
 		AbstractHashMap<WrappedK, K, V> result = null;
-		try
-		{
+		try {
 			result = (AbstractHashMap<WrappedK, K, V>) super.clone();
 		}
-		catch (CloneNotSupportedException e)
-		{
+		catch (CloneNotSupportedException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		for (Entry<K, V> entry : this)
-		{
+		for (Entry<K, V> entry : this) {
 			result.put(entry.getKey(), entry.getValue());
 		}
 		return result;
@@ -339,18 +292,15 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public boolean containsKey(final Object key)
-	{
+	public boolean containsKey(final Object key) {
 		final K realKey = (K) key;
 		final int hash = hash(extractHash(realKey));
 		IMapEntry<K, V>[] table = this.table;
 		final int i = hash & (table.length - 1);
 		IMapEntry<K, V> entry = table[i];
 
-		while (entry != null)
-		{
-			if (equalKeys(realKey, entry))
-			{
+		while (entry != null) {
+			if (equalKeys(realKey, entry)) {
 				return true;
 			}
 			entry = entry.getNextEntry();
@@ -362,35 +312,26 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	 * @see java.util.Map#containsValue(java.lang.Object)
 	 */
 	@Override
-	public boolean containsValue(final Object value)
-	{
+	public boolean containsValue(final Object value) {
 		IMapEntry<K, V>[] table = this.table;
-		if (value == null)
-		{
-			for (int a = table.length; a-- > 0;)
-			{
+		if (value == null) {
+			for (int a = table.length; a-- > 0;) {
 				IMapEntry<K, V> entry = table[a];
-				while (entry != null)
-				{
+				while (entry != null) {
 					final Object entryValue = entry.getValue();
-					if (entryValue == null)
-					{
+					if (entryValue == null) {
 						return true;
 					}
 					entry = entry.getNextEntry();
 				}
 			}
 		}
-		else
-		{
-			for (int a = table.length; a-- > 0;)
-			{
+		else {
+			for (int a = table.length; a-- > 0;) {
 				IMapEntry<K, V> entry = table[a];
-				while (entry != null)
-				{
+				while (entry != null) {
 					final Object entryValue = entry.getValue();
-					if (value.equals(entryValue))
-					{
+					if (value.equals(entryValue)) {
 						return true;
 					}
 					entry = entry.getNextEntry();
@@ -400,8 +341,7 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 		return false;
 	}
 
-	protected boolean equalKeys(final K key, final IMapEntry<K, V> entry)
-	{
+	protected boolean equalKeys(final K key, final IMapEntry<K, V> entry) {
 		return key.equals(entry.getKey());
 	}
 
@@ -409,19 +349,15 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	 * @see java.util.Map#put(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public V put(final K key, final V value)
-	{
+	public V put(final K key, final V value) {
 		final int hash = hash(extractHash(key));
 		IMapEntry<K, V>[] table = this.table;
 		final int i = hash & (table.length - 1);
 
 		IMapEntry<K, V> entry = table[i];
-		while (entry != null)
-		{
-			if (equalKeys(key, entry))
-			{
-				if (isSetValueForEntryAllowed())
-				{
+		while (entry != null) {
+			if (equalKeys(key, entry)) {
+				if (isSetValueForEntryAllowed()) {
 					return setValueForEntry(entry, value);
 				}
 				V oldValue = entry.getValue();
@@ -436,17 +372,14 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	}
 
 	@Override
-	public boolean putIfNotExists(final K key, final V value)
-	{
+	public boolean putIfNotExists(final K key, final V value) {
 		final int hash = hash(extractHash(key));
 		IMapEntry<K, V>[] table = this.table;
 		final int i = hash & (table.length - 1);
 
 		IMapEntry<K, V> entry = table[i];
-		while (entry != null)
-		{
-			if (equalKeys(key, entry))
-			{
+		while (entry != null) {
+			if (equalKeys(key, entry)) {
 				return false;
 			}
 			entry = entry.getNextEntry();
@@ -456,16 +389,13 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	}
 
 	@Override
-	public boolean removeIfValue(final K key, final V value)
-	{
+	public boolean removeIfValue(final K key, final V value) {
 		final int hash = hash(extractHash(key));
 		IMapEntry<K, V>[] table = this.table;
 		final int i = hash & (table.length - 1);
 		IMapEntry<K, V> entry = table[i];
-		if (entry != null)
-		{
-			if (equalKeys(key, entry))
-			{
+		if (entry != null) {
+			if (equalKeys(key, entry)) {
 				table[i] = entry.getNextEntry();
 				final V existingValue = entry.getValue();
 				if (existingValue != value) // Test if reference identical
@@ -477,10 +407,8 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 			}
 			IMapEntry<K, V> prevEntry = entry;
 			entry = entry.getNextEntry();
-			while (entry != null)
-			{
-				if (equalKeys(key, entry))
-				{
+			while (entry != null) {
+				if (equalKeys(key, entry)) {
 					setNextEntry(prevEntry, entry.getNextEntry());
 					final V existingValue = entry.getValue();
 					if (existingValue != value) // Test if reference identical
@@ -502,21 +430,17 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public V remove(final Object key)
-	{
+	public V remove(final Object key) {
 		return removeEntryForKey((K) key);
 	}
 
-	protected final V removeEntryForKey(final K key)
-	{
+	protected final V removeEntryForKey(final K key) {
 		final int hash = hash(extractHash(key));
 		IMapEntry<K, V>[] table = this.table;
 		final int i = hash & (table.length - 1);
 		IMapEntry<K, V> entry = table[i];
-		if (entry != null)
-		{
-			if (equalKeys(key, entry))
-			{
+		if (entry != null) {
+			if (equalKeys(key, entry)) {
 				table[i] = entry.getNextEntry();
 				final V value = entry.getValue();
 				entryRemoved(entry);
@@ -524,10 +448,8 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 			}
 			IMapEntry<K, V> prevEntry = entry;
 			entry = entry.getNextEntry();
-			while (entry != null)
-			{
-				if (equalKeys(key, entry))
-				{
+			while (entry != null) {
+				if (equalKeys(key, entry)) {
 					setNextEntry(prevEntry, entry.getNextEntry());
 					final V value = entry.getValue();
 					entryRemoved(entry);
@@ -545,17 +467,14 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public V get(final Object key)
-	{
+	public V get(final Object key) {
 		final K realKey = (K) key;
 		final int hash = hash(extractHash(realKey));
 		IMapEntry<K, V>[] table = this.table;
 		final int i = hash & (table.length - 1);
 		IMapEntry<K, V> entry = table[i];
-		while (entry != null)
-		{
-			if (equalKeys(realKey, entry))
-			{
+		while (entry != null) {
+			if (equalKeys(realKey, entry)) {
 				return entry.getValue();
 			}
 			entry = entry.getNextEntry();
@@ -564,16 +483,13 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	}
 
 	@Override
-	public K getKey(K key)
-	{
+	public K getKey(K key) {
 		final int hash = hash(extractHash(key));
 		IMapEntry<K, V>[] table = this.table;
 		final int i = hash & (table.length - 1);
 		IMapEntry<K, V> entry = table[i];
-		while (entry != null)
-		{
-			if (equalKeys(key, entry))
-			{
+		while (entry != null) {
+			if (equalKeys(key, entry)) {
 				return entry.getKey();
 			}
 			entry = entry.getNextEntry();
@@ -581,21 +497,21 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 		return null;
 	}
 
-	protected boolean isSetValueForEntryAllowed()
-	{
+	protected boolean isSetValueForEntryAllowed() {
 		return true;
 	}
 
-	protected V setValueForEntry(final IMapEntry<K, V> entry, final V value)
-	{
+	protected V setValueForEntry(final IMapEntry<K, V> entry, final V value) {
 		V oldValue = entry.getValue();
 		entry.setValue(value);
 		return oldValue;
 	}
 
-	protected abstract void setNextEntry(final IMapEntry<K, V> entry, final IMapEntry<K, V> nextEntry);
+	protected abstract void setNextEntry(final IMapEntry<K, V> entry,
+			final IMapEntry<K, V> nextEntry);
 
-	protected abstract IMapEntry<K, V> createEntry(final int hash, final K key, final V value, final IMapEntry<K, V> nextEntry);
+	protected abstract IMapEntry<K, V> createEntry(final int hash, final K key, final V value,
+			final IMapEntry<K, V> nextEntry);
 
 	/**
 	 * @see java.util.Map#size()
@@ -607,34 +523,28 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	 * @see java.util.Map#isEmpty()
 	 */
 	@Override
-	public boolean isEmpty()
-	{
+	public boolean isEmpty() {
 		return size() == 0;
 	}
 
 	@Override
-	public Iterator<Entry<K, V>> iterator()
-	{
-		return new MapIterator<WrappedK, K, V>(this, table, true);
+	public Iterator<Entry<K, V>> iterator() {
+		return new MapIterator<>(this, table, true);
 	}
 
 	@Override
-	public ISet<Entry<K, V>> entrySet()
-	{
+	public ISet<Entry<K, V>> entrySet() {
 		final LinkedHashSet<Entry<K, V>> entrySet = LinkedHashSet.create(size());
 		entrySet(entrySet);
 		return entrySet;
 	}
 
 	@Override
-	public void entrySet(ISet<Entry<K, V>> targetEntrySet)
-	{
+	public void entrySet(ISet<Entry<K, V>> targetEntrySet) {
 		IMapEntry<K, V>[] table = this.table;
-		for (int a = table.length; a-- > 0;)
-		{
+		for (int a = table.length; a-- > 0;) {
 			IMapEntry<K, V> entry = table[a];
-			while (entry != null)
-			{
+			while (entry != null) {
 				targetEntrySet.add(entry);
 				entry = entry.getNextEntry();
 			}
@@ -643,23 +553,19 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void putAll(final Map<? extends K, ? extends V> map)
-	{
-		if (map instanceof IMap)
-		{
+	public void putAll(final Map<? extends K, ? extends V> map) {
+		if (map instanceof IMap) {
 			IMap<? extends K, ? extends V> lMap = (IMap<? extends K, ? extends V>) map;
 
-			for (Entry<?, ?> entry : lMap)
-			{
+			for (Entry<?, ?> entry : lMap) {
 				put((K) entry.getKey(), (V) entry.getValue());
 			}
 		}
-		else
-		{
+		else {
 			Set<?> set = map.entrySet();
-			Iterator<Entry<? extends K, ? extends V>> iter = (Iterator<java.util.Map.Entry<? extends K, ? extends V>>) set.iterator();
-			while (iter.hasNext())
-			{
+			Iterator<Entry<? extends K, ? extends V>> iter =
+					(Iterator<java.util.Map.Entry<? extends K, ? extends V>>) set.iterator();
+			while (iter.hasNext()) {
 				Entry<? extends K, ? extends V> entry = iter.next();
 				put(entry.getKey(), entry.getValue());
 			}
@@ -667,22 +573,18 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	}
 
 	@Override
-	public ISet<K> keySet()
-	{
+	public ISet<K> keySet() {
 		LinkedHashSet<K> keySet = LinkedHashSet.create(size());
 		keySet(keySet);
 		return keySet;
 	}
 
 	@Override
-	public void keySet(Collection<K> targetKeySet)
-	{
+	public void keySet(Collection<K> targetKeySet) {
 		IMapEntry<K, V>[] table = this.table;
-		for (int a = table.length; a-- > 0;)
-		{
+		for (int a = table.length; a-- > 0;) {
 			IMapEntry<K, V> entry = table[a];
-			while (entry != null)
-			{
+			while (entry != null) {
 				targetKeySet.add(entry.getKey());
 				entry = entry.getNextEntry();
 			}
@@ -690,23 +592,19 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	}
 
 	@Override
-	public IList<K> keyList()
-	{
-		ArrayList<K> keySet = new ArrayList<K>(size());
+	public IList<K> keyList() {
+		ArrayList<K> keySet = new ArrayList<>(size());
 		keySet(keySet);
 		return keySet;
 	}
 
 	@Override
-	public IList<V> values()
-	{
+	public IList<V> values() {
 		IMapEntry<K, V>[] table = this.table;
-		final ArrayList<V> valueList = new ArrayList<V>(size());
-		for (int a = table.length; a-- > 0;)
-		{
+		final ArrayList<V> valueList = new ArrayList<>(size());
+		for (int a = table.length; a-- > 0;) {
 			IMapEntry<K, V> entry = table[a];
-			while (entry != null)
-			{
+			while (entry != null) {
 				valueList.add(entry.getValue());
 				entry = entry.getNextEntry();
 			}
@@ -715,31 +613,25 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		toString(sb);
 		return sb.toString();
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
+	public void toString(StringBuilder sb) {
 		sb.append(size()).append(" items: [");
 		boolean first = true;
 
 		IMapEntry<K, V>[] table = this.table;
-		for (int a = table.length; a-- > 0;)
-		{
+		for (int a = table.length; a-- > 0;) {
 			IMapEntry<K, V> entry = table[a];
-			while (entry != null)
-			{
-				if (first)
-				{
+			while (entry != null) {
+				if (first) {
 					first = false;
 				}
-				else
-				{
+				else {
 					sb.append(',');
 				}
 				StringBuilderUtil.appendPrintable(sb, entry);

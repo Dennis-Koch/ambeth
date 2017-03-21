@@ -20,41 +20,35 @@ limitations under the License.
  * #L%
  */
 
-public class SecurityContextImpl implements ISecurityContext
-{
+public class SecurityContextImpl implements ISecurityContext {
 	protected IAuthentication authentication;
 
 	protected IAuthorization authorization;
 
 	protected final SecurityContextHolder securityContextHolder;
 
-	public SecurityContextImpl(SecurityContextHolder securityContextHolder)
-	{
+	public SecurityContextImpl(SecurityContextHolder securityContextHolder) {
 		this.securityContextHolder = securityContextHolder;
 	}
 
 	@Override
-	public void setAuthentication(IAuthentication authentication)
-	{
+	public void setAuthentication(IAuthentication authentication) {
 		this.authentication = authentication;
 	}
 
 	@Override
-	public IAuthentication getAuthentication()
-	{
+	public IAuthentication getAuthentication() {
 		return authentication;
 	}
 
 	@Override
-	public void setAuthorization(IAuthorization authorization)
-	{
+	public void setAuthorization(IAuthorization authorization) {
 		this.authorization = authorization;
 		securityContextHolder.notifyAuthorizationChangeListeners(authorization);
 	}
 
 	@Override
-	public IAuthorization getAuthorization()
-	{
+	public IAuthorization getAuthorization() {
 		return authorization;
 	}
 

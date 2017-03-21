@@ -37,8 +37,7 @@ import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class ArrayConverter implements IDedicatedConverter
-{
+public class ArrayConverter implements IDedicatedConverter {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -50,83 +49,68 @@ public class ArrayConverter implements IDedicatedConverter
 	protected IConversionHelper conversionHelper;
 
 	@Override
-	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value, Object additionalInformation)
-	{
-		try
-		{
-			if (Array.class.isAssignableFrom(sourceType))
-			{
+	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+			Object additionalInformation) {
+		try {
+			if (Array.class.isAssignableFrom(sourceType)) {
 				Array array = (Array) value;
 
-				ArrayList<Object> list = new ArrayList<Object>();
+				ArrayList<Object> list = new ArrayList<>();
 				ResultSet rs = array.getResultSet();
-				try
-				{
+				try {
 					Class<?> componentType = null;
-					if (expectedType.isArray())
-					{
+					if (expectedType.isArray()) {
 						componentType = expectedType.getComponentType();
 					}
-					else if (Collection.class.isAssignableFrom(expectedType) && additionalInformation != null)
-					{
+					else if (Collection.class.isAssignableFrom(expectedType)
+							&& additionalInformation != null) {
 						componentType = (Class<?>) additionalInformation;
 					}
-					while (rs.next())
-					{
+					while (rs.next()) {
 						int index = ((Number) rs.getObject(1)).intValue();
 						Object item = rs.getObject(2);
-						while (list.size() < index)
-						{
+						while (list.size() < index) {
 							list.add(null);
 						}
 						item = conversionHelper.convertValueToType(componentType, item);
 						list.set(index - 1, item);
 					}
-					if (expectedType.isArray())
-					{
+					if (expectedType.isArray()) {
 						Object targetArray = java.lang.reflect.Array.newInstance(componentType, list.size());
-						for (int a = 0, size = list.size(); a < size; a++)
-						{
+						for (int a = 0, size = list.size(); a < size; a++) {
 							java.lang.reflect.Array.set(targetArray, a, list.get(a));
 						}
 						return targetArray;
 					}
-					else if (Set.class.isAssignableFrom(expectedType))
-					{
-						Set<Object> result = new java.util.HashSet<Object>((int) ((list.size() + 1) / 0.75f), 0.75f);
+					else if (Set.class.isAssignableFrom(expectedType)) {
+						Set<Object> result =
+								new java.util.HashSet<>((int) ((list.size() + 1) / 0.75f), 0.75f);
 						result.addAll(list);
 						return result;
 					}
-					else if (Collection.class.isAssignableFrom(expectedType))
-					{
-						java.util.ArrayList<Object> result = new java.util.ArrayList<Object>(list.size());
+					else if (Collection.class.isAssignableFrom(expectedType)) {
+						java.util.ArrayList<Object> result = new java.util.ArrayList<>(list.size());
 						result.addAll(list);
 						return result;
 					}
 				}
-				finally
-				{
+				finally {
 					JdbcUtil.close(rs);
 				}
 			}
-			else if (sourceType.isArray())
-			{
-				if (Array.class.isAssignableFrom(expectedType))
-				{
+			else if (sourceType.isArray()) {
+				if (Array.class.isAssignableFrom(expectedType)) {
 					ParamChecker.assertParamNotNull(additionalInformation, "additionalInformation");
 					Class<?> componentType = (Class<?>) additionalInformation;
 					return connectionExtension.createJDBCArray(componentType, value);
 				}
-				else if (Set.class.isAssignableFrom(expectedType))
-				{
-					Set<?> result = new java.util.HashSet<Object>(Arrays.asList(value));
+				else if (Set.class.isAssignableFrom(expectedType)) {
+					Set<?> result = new java.util.HashSet<>(Arrays.asList(value));
 					return result;
 				}
 			}
-			else if (Collection.class.isAssignableFrom(sourceType))
-			{
-				if (Array.class.isAssignableFrom(expectedType))
-				{
+			else if (Collection.class.isAssignableFrom(sourceType)) {
+				if (Array.class.isAssignableFrom(expectedType)) {
 					ParamChecker.assertParamNotNull(additionalInformation, "additionalInformation");
 
 					Object[] valueArray = ((Collection<?>) value).toArray();
@@ -134,11 +118,11 @@ public class ArrayConverter implements IDedicatedConverter
 					return connectionExtension.createJDBCArray(componentType, valueArray);
 				}
 			}
-			throw new IllegalArgumentException("Cannot convert from '" + sourceType + "' to '" + expectedType
+			throw new IllegalArgumentException("Cannot convert from '" + sourceType + "' to '"
+					+ expectedType
 					+ "'. This is a bug if I get called for types which I do not support and I did not register with!");
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

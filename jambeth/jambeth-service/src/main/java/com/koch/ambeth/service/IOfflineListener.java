@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IOfflineListener
-{
+public interface IOfflineListener {
 	void beginOnline();
 
 	void handleOnline();

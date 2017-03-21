@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public enum QueryResultType
-{
+public enum QueryResultType {
 	ENTITIES, REFERENCES, BOTH
 }

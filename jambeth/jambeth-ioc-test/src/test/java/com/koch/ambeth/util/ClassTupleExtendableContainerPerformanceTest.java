@@ -56,10 +56,10 @@ public class ClassTupleExtendableContainerPerformanceTest extends AbstractIocTes
 			extends MapExtendableContainer<ConversionKey, V> {
 		public static class ClassTupleEntry<V> extends HashMap<ConversionKey, Object> {
 			public final HashMap<ConversionKey, Object> typeToDefEntryMap =
-					new HashMap<ConversionKey, Object>(0.5f);
+					new HashMap<>(0.5f);
 
 			public final HashMap<Strong2Key<V>, List<Def2Entry<V>>> definitionReverseMap =
-					new HashMap<Strong2Key<V>, List<Def2Entry<V>>>(0.5f);
+					new HashMap<>(0.5f);
 
 			public ClassTupleEntry() {
 				super(0.5f);
@@ -68,7 +68,7 @@ public class ClassTupleExtendableContainerPerformanceTest extends AbstractIocTes
 
 		private static final Object alreadyHandled = new Object();
 
-		protected volatile ClassTupleEntry<V> classEntry = new ClassTupleEntry<V>();
+		protected volatile ClassTupleEntry<V> classEntry = new ClassTupleEntry<>();
 
 		public ClassTupleExtendableContainerOld(String message, String keyMessage) {
 			super(message, keyMessage);
@@ -118,12 +118,12 @@ public class ClassTupleExtendableContainerPerformanceTest extends AbstractIocTes
 
 		@SuppressWarnings("unchecked")
 		protected ClassTupleEntry<V> copyStructure() {
-			ClassTupleEntry<V> newClassEntry = new ClassTupleEntry<V>();
+			ClassTupleEntry<V> newClassEntry = new ClassTupleEntry<>();
 			HashMap<ConversionKey, Object> newTypeToDefEntryMap = newClassEntry.typeToDefEntryMap;
 			HashMap<Strong2Key<V>, List<Def2Entry<V>>> newDefinitionReverseMap =
 					newClassEntry.definitionReverseMap;
 			IdentityHashMap<Def2Entry<V>, Def2Entry<V>> originalToCopyMap =
-					new IdentityHashMap<Def2Entry<V>, Def2Entry<V>>();
+					new IdentityHashMap<>();
 			{
 				for (Entry<ConversionKey, Object> entry : classEntry.typeToDefEntryMap) {
 					ConversionKey key = entry.getKey();
@@ -135,12 +135,12 @@ public class ClassTupleExtendableContainerPerformanceTest extends AbstractIocTes
 					else {
 						InterfaceFastList<Def2Entry<V>> list = (InterfaceFastList<Def2Entry<V>>) value;
 
-						InterfaceFastList<Def2Entry<V>> newList = new InterfaceFastList<Def2Entry<V>>();
+						InterfaceFastList<Def2Entry<V>> newList = new InterfaceFastList<>();
 
 						IListElem<Def2Entry<V>> pointer = list.first();
 						while (pointer != null) {
 							Def2Entry<V> defEntry = pointer.getElemValue();
-							Def2Entry<V> newDefEntry = new Def2Entry<V>(defEntry.extension, defEntry.sourceType,
+							Def2Entry<V> newDefEntry = new Def2Entry<>(defEntry.extension, defEntry.sourceType,
 									defEntry.targetType, defEntry.sourceDistance, defEntry.targetDistance);
 							originalToCopyMap.put(defEntry, newDefEntry);
 
@@ -154,7 +154,7 @@ public class ClassTupleExtendableContainerPerformanceTest extends AbstractIocTes
 			}
 			for (Entry<Strong2Key<V>, List<Def2Entry<V>>> entry : classEntry.definitionReverseMap) {
 				List<Def2Entry<V>> defEntries = entry.getValue();
-				ArrayList<Def2Entry<V>> newDefEntries = new ArrayList<Def2Entry<V>>(defEntries.size());
+				ArrayList<Def2Entry<V>> newDefEntries = new ArrayList<>(defEntries.size());
 
 				for (int a = 0, size = defEntries.size(); a < size; a++) {
 					Def2Entry<V> newDefEntry = originalToCopyMap.get(defEntries.get(a));
@@ -262,7 +262,7 @@ public class ClassTupleExtendableContainerPerformanceTest extends AbstractIocTes
 				HashMap<Strong2Key<V>, List<Def2Entry<V>>> definitionReverseMap =
 						classEntry.definitionReverseMap;
 				List<Def2Entry<V>> weakEntriesOfStrongType =
-						definitionReverseMap.remove(new Strong2Key<V>(extension, key));
+						definitionReverseMap.remove(new Strong2Key<>(extension, key));
 				if (weakEntriesOfStrongType == null) {
 					return;
 				}
@@ -327,15 +327,15 @@ public class ClassTupleExtendableContainerPerformanceTest extends AbstractIocTes
 				fastList = new InterfaceFastList<Def2Entry<V>>();
 				typeToDefEntryMap.put(key, fastList);
 			}
-			Def2Entry<V> defEntry = new Def2Entry<V>(extension, key.sourceType, key.targetType,
+			Def2Entry<V> defEntry = new Def2Entry<>(extension, key.sourceType, key.targetType,
 					sourceDistance, targetDistance);
 
 			HashMap<Strong2Key<V>, List<Def2Entry<V>>> definitionReverseMap =
 					classEntry.definitionReverseMap;
-			Strong2Key<V> strongKey = new Strong2Key<V>(extension, strongTypeKey);
+			Strong2Key<V> strongKey = new Strong2Key<>(extension, strongTypeKey);
 			List<Def2Entry<V>> typeEntries = definitionReverseMap.get(strongKey);
 			if (typeEntries == null) {
-				typeEntries = new ArrayList<Def2Entry<V>>();
+				typeEntries = new ArrayList<>();
 				definitionReverseMap.put(strongKey, typeEntries);
 			}
 			typeEntries.add(defEntry);
@@ -352,9 +352,9 @@ public class ClassTupleExtendableContainerPerformanceTest extends AbstractIocTes
 	@Test
 	public void performance() {
 		ClassTupleExtendableContainer<String> newC =
-				new ClassTupleExtendableContainer<String>("message", "keyMessage");
+				new ClassTupleExtendableContainer<>("message", "keyMessage");
 		ClassTupleExtendableContainerOld<String> oldC =
-				new ClassTupleExtendableContainerOld<String>("message", "keyMessage");
+				new ClassTupleExtendableContainerOld<>("message", "keyMessage");
 
 		register(newC, oldC, "e", LinkedList.class, String.class);
 		register(newC, oldC, "a", ArrayList.class, CharSequence.class);

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IDedicatedMapperExtendable
-{
+public interface IDedicatedMapperExtendable {
 	void registerDedicatedMapper(IDedicatedMapper dedicatedMapper, Class<?> entityType);
 
 	void unregisterDedicatedMapper(IDedicatedMapper dedicatedMapper, Class<?> entityType);

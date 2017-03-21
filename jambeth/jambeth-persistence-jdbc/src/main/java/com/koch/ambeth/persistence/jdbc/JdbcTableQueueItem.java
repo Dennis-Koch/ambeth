@@ -26,8 +26,7 @@ import java.sql.PreparedStatement;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.ILinkedMap;
 
-public class JdbcTableQueueItem
-{
+public class JdbcTableQueueItem {
 	private final PreparedStatement pstm;
 
 	private final java.sql.Array array;
@@ -36,32 +35,28 @@ public class JdbcTableQueueItem
 
 	private final ILinkedMap<Object, Object> persistenceIdToPersistenceVersionMap;
 
-	public JdbcTableQueueItem(PreparedStatement pstm, Array array, ILinkedMap<Object, IObjRef> persistenceIdToOriMap,
-			ILinkedMap<Object, Object> persistenceIdToPersistenceVersionMap)
-	{
+	public JdbcTableQueueItem(PreparedStatement pstm, Array array,
+			ILinkedMap<Object, IObjRef> persistenceIdToOriMap,
+			ILinkedMap<Object, Object> persistenceIdToPersistenceVersionMap) {
 		this.pstm = pstm;
 		this.array = array;
 		this.persistenceIdToOriMap = persistenceIdToOriMap;
 		this.persistenceIdToPersistenceVersionMap = persistenceIdToPersistenceVersionMap;
 	}
 
-	public java.sql.Array getArray()
-	{
+	public java.sql.Array getArray() {
 		return array;
 	}
 
-	public ILinkedMap<Object, IObjRef> getPersistenceIdToOriMap()
-	{
+	public ILinkedMap<Object, IObjRef> getPersistenceIdToOriMap() {
 		return persistenceIdToOriMap;
 	}
 
-	public ILinkedMap<Object, Object> getPersistenceIdToPersistenceVersionMap()
-	{
+	public ILinkedMap<Object, Object> getPersistenceIdToPersistenceVersionMap() {
 		return persistenceIdToPersistenceVersionMap;
 	}
 
-	public PreparedStatement getPstm()
-	{
+	public PreparedStatement getPstm() {
 		return pstm;
 	}
 }

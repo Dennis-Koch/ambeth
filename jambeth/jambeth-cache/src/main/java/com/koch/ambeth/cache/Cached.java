@@ -27,8 +27,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Cached
-{
+public @interface Cached {
 	Class<?> type() default void.class;
 
 	String alternateIdName() default "";

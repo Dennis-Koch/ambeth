@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IEventListenerRegistry
-{
+public interface IEventListenerRegistry {
 	void registerEventListener(IEventListener eventListener, Class<?>... eventTypes);
 
 	void unregisterEventListener(IEventListener eventListener, Class<?>... eventTypes);

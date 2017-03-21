@@ -39,7 +39,7 @@ class AccessClassLoader extends ClassLoader {
 	// The key is the parent class loader and the value is the AccessClassLoader, both are
 	// weak-referenced in the hash table.
 	static private final IdentityWeakHashMap<ClassLoader, WeakReference<AccessClassLoader>> accessClassLoaders =
-			new IdentityWeakHashMap<ClassLoader, WeakReference<AccessClassLoader>>();
+			new IdentityWeakHashMap<>();
 
 	// Fast-path for classes loaded in the same ClassLoader as this class.
 	static private final ClassLoader selfContextParentClassLoader =
@@ -76,7 +76,7 @@ class AccessClassLoader extends ClassLoader {
 				}
 			}
 			AccessClassLoader accessClassLoader = new AccessClassLoader(parent);
-			accessClassLoaders.put(parent, new WeakReference<AccessClassLoader>(accessClassLoader));
+			accessClassLoaders.put(parent, new WeakReference<>(accessClassLoader));
 			return accessClassLoader;
 		}
 	}

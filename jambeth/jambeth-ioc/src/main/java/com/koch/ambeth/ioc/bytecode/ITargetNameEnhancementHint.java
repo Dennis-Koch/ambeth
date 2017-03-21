@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface ITargetNameEnhancementHint extends IEnhancementHint
-{
+public interface ITargetNameEnhancementHint extends IEnhancementHint {
 	String getTargetName(Class<?> typeToEnhance);
 }

@@ -43,8 +43,7 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.util.collections.IList;
 
-public class AuditEntryReader implements IAuditEntryReader, IStartingBean
-{
+public class AuditEntryReader implements IAuditEntryReader, IStartingBean {
 	private static final String VALUE_NAME_START = "auditEntryStart";
 	private static final String VALUE_NAME_END = "auditEntryEnd";
 
@@ -63,25 +62,26 @@ public class AuditEntryReader implements IAuditEntryReader, IStartingBean
 
 	private IQuery<IAuditedEntity> q_auditedEntity_withVersion, q_auditedEntity_noVersion;
 
-	private IQuery<IAuditEntry> q_auditEntry_withVersion, q_auditEntry_noVersion, q_auditEntry_entityType, q_auditEntry_entityType_InTimeSlot;
+	private IQuery<IAuditEntry> q_auditEntry_withVersion, q_auditEntry_noVersion,
+			q_auditEntry_entityType, q_auditEntry_entityType_InTimeSlot;
 
 	private IQuery<IAuditEntry> q_allUserActions;
 
 	@Override
-	public void afterStarted() throws Throwable
-	{
+	public void afterStarted() throws Throwable {
 		{
 			IQueryBuilder<IAuditedEntity> qb = queryBuilderFactory.create(IAuditedEntity.class);
 
 			IOperand entityType = qb.property(IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityType);
 			IOperand entityId = qb.property(IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityId);
-			IOperand entityVersion = qb.property(IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityVersion);
+			IOperand entityVersion =
+					qb.property(IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityVersion);
 
 			qb.orderBy(qb.property(IAuditedEntity.Entry + "." + IAuditEntry.Timestamp), OrderByType.ASC);
 
 			q_auditedEntity_withVersion = qb.build(qb.and(
 					//
-					qb.isEqualTo(entityType, qb.valueName(IAuditedEntityRef.EntityType)),//
+					qb.isEqualTo(entityType, qb.valueName(IAuditedEntityRef.EntityType)), //
 					qb.isEqualTo(entityId, qb.valueName(IAuditedEntityRef.EntityId)),
 					qb.isLessThanOrEqualTo(entityVersion, qb.valueName(IAuditedEntityRef.EntityVersion))));
 		}
@@ -93,33 +93,38 @@ public class AuditEntryReader implements IAuditEntryReader, IStartingBean
 			qb.orderBy(qb.property(IAuditedEntity.Entry + "." + IAuditEntry.Timestamp), OrderByType.ASC);
 
 			q_auditedEntity_noVersion = qb.build(qb.and(//
-					qb.isEqualTo(entityType, qb.valueName(IAuditedEntityRef.EntityType)),//
+					qb.isEqualTo(entityType, qb.valueName(IAuditedEntityRef.EntityType)), //
 					qb.isEqualTo(entityId, qb.valueName(IAuditedEntityRef.EntityId))));
 		}
 		{
 			IQueryBuilder<IAuditEntry> qb = queryBuilderFactory.create(IAuditEntry.class);
 
-			IOperand entityType = qb.property(IAuditEntry.Entities + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityType);
-			IOperand entityId = qb.property(IAuditEntry.Entities + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityId);
-			IOperand entityVersion = qb.property(IAuditEntry.Entities + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityVersion);
+			IOperand entityType = qb.property(
+					IAuditEntry.Entities + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityType);
+			IOperand entityId = qb.property(
+					IAuditEntry.Entities + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityId);
+			IOperand entityVersion = qb.property(
+					IAuditEntry.Entities + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityVersion);
 
 			qb.orderBy(qb.property(IAuditEntry.Timestamp), OrderByType.ASC);
 
 			q_auditEntry_withVersion = qb.build(qb.and(
 					//
-					qb.isEqualTo(entityType, qb.valueName(IAuditedEntityRef.EntityType)),//
+					qb.isEqualTo(entityType, qb.valueName(IAuditedEntityRef.EntityType)), //
 					qb.isEqualTo(entityId, qb.valueName(IAuditedEntityRef.EntityId)),
 					qb.isLessThanOrEqualTo(entityVersion, qb.valueName(IAuditedEntityRef.EntityVersion))));
 		}
 		{
 			IQueryBuilder<IAuditEntry> qb = queryBuilderFactory.create(IAuditEntry.class);
-			IOperand entityType = qb.property(IAuditEntry.Entities + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityType);
-			IOperand entityId = qb.property(IAuditEntry.Entities + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityId);
+			IOperand entityType = qb.property(
+					IAuditEntry.Entities + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityType);
+			IOperand entityId = qb.property(
+					IAuditEntry.Entities + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityId);
 
 			qb.orderBy(qb.property(IAuditEntry.Timestamp), OrderByType.ASC);
 
 			q_auditEntry_noVersion = qb.build(qb.and(//
-					qb.isEqualTo(entityType, qb.valueName(IAuditedEntityRef.EntityType)),//
+					qb.isEqualTo(entityType, qb.valueName(IAuditedEntityRef.EntityType)), //
 					qb.isEqualTo(entityId, qb.valueName(IAuditedEntityRef.EntityId))));
 		}
 		{
@@ -133,7 +138,8 @@ public class AuditEntryReader implements IAuditEntryReader, IStartingBean
 		}
 		{
 			IQueryBuilder<IAuditEntry> qb = queryBuilderFactory.create(IAuditEntry.class);
-			IOperand entityType = qb.property(IAuditEntry.Entities + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityType);
+			IOperand entityType = qb.property(
+					IAuditEntry.Entities + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityType);
 
 			qb.orderBy(qb.property(IAuditEntry.Timestamp), OrderByType.ASC);
 
@@ -142,7 +148,8 @@ public class AuditEntryReader implements IAuditEntryReader, IStartingBean
 		}
 		{
 			IQueryBuilder<IAuditEntry> qb = queryBuilderFactory.create(IAuditEntry.class);
-			IOperand entityType = qb.property(IAuditEntry.Entities + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityType);
+			IOperand entityType = qb.property(
+					IAuditEntry.Entities + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityType);
 			IOperand auditEntryStart = qb.property(IAuditEntry.Timestamp);
 			IOperand auditEntryEnd = qb.property(IAuditEntry.Timestamp);
 
@@ -156,12 +163,11 @@ public class AuditEntryReader implements IAuditEntryReader, IStartingBean
 		}
 	}
 
-	protected <V> IList<V> getByObjRef(IQuery<V> q_NoVersion, IQuery<V> q_WithVersion, IObjRef objRef)
-	{
+	protected <V> IList<V> getByObjRef(IQuery<V> q_NoVersion, IQuery<V> q_WithVersion,
+			IObjRef objRef) {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
 
-		if (objRef.getVersion() == null)
-		{
+		if (objRef.getVersion() == null) {
 			return q_NoVersion.param(IAuditedEntityRef.EntityType, metaData.getEntityType())//
 					.param(IAuditedEntityRef.EntityId, objRef.getId())//
 					.retrieve();
@@ -172,31 +178,26 @@ public class AuditEntryReader implements IAuditEntryReader, IStartingBean
 				.retrieve();
 	}
 
-	protected <V> IList<V> getByEntityType(IQuery<V> q_entityType, Class<?> entityType)
-	{
+	protected <V> IList<V> getByEntityType(IQuery<V> q_entityType, Class<?> entityType) {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 
 		return q_entityType.param(IAuditedEntityRef.EntityType, metaData.getEntityType())//
 				.retrieve();
 	}
 
-	protected <V> List<V> getByEntity(IQuery<V> q_NoVersion, IQuery<V> q_WithVersion, Object entity)
-	{
-		if (entity instanceof IObjRef)
-		{
+	protected <V> List<V> getByEntity(IQuery<V> q_NoVersion, IQuery<V> q_WithVersion, Object entity) {
+		if (entity instanceof IObjRef) {
 			return getByObjRef(q_NoVersion, q_WithVersion, (IObjRef) entity);
 		}
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entity.getClass());
 
 		PrimitiveMember versionMember = metaData.getVersionMember();
 		Object version = null;
-		if (versionMember != null)
-		{
+		if (versionMember != null) {
 			version = versionMember.getValue(entity);
 		}
 		Object id = metaData.getIdMember().getValue(entity);
-		if (version == null)
-		{
+		if (version == null) {
 			return q_NoVersion.param(IAuditedEntityRef.EntityType, metaData.getEntityType())//
 					.param(IAuditedEntityRef.EntityId, id)//
 					.retrieve();
@@ -208,44 +209,39 @@ public class AuditEntryReader implements IAuditEntryReader, IStartingBean
 	}
 
 	@Override
-	public List<IAuditedEntity> getAllAuditedEntitiesOfEntity(IObjRef objRef)
-	{
+	public List<IAuditedEntity> getAllAuditedEntitiesOfEntity(IObjRef objRef) {
 		return getByObjRef(q_auditedEntity_noVersion, q_auditedEntity_withVersion, objRef);
 	}
 
 	@Override
-	public List<IAuditedEntity> getAllAuditedEntitiesOfEntity(Object entity)
-	{
+	public List<IAuditedEntity> getAllAuditedEntitiesOfEntity(Object entity) {
 		return getByEntity(q_auditedEntity_noVersion, q_auditedEntity_withVersion, entity);
 	}
 
 	@Override
-	public List<IAuditEntry> getAllAuditEntriesOfEntity(IObjRef objRef)
-	{
+	public List<IAuditEntry> getAllAuditEntriesOfEntity(IObjRef objRef) {
 		return getByObjRef(q_auditEntry_noVersion, q_auditEntry_withVersion, objRef);
 	}
 
 	@Override
-	public List<IAuditEntry> getAllAuditEntriesOfEntity(Object entity)
-	{
+	public List<IAuditEntry> getAllAuditEntriesOfEntity(Object entity) {
 		return getByEntity(q_auditEntry_noVersion, q_auditEntry_withVersion, entity);
 	}
 
 	@Override
-	public List<IAuditEntry> getAllAuditEntriesOfUser(IUser user)
-	{
-		return q_allUserActions.param(IAuditEntry.UserIdentifier, userIdentifierProvider.getSID(user)).retrieve();
+	public List<IAuditEntry> getAllAuditEntriesOfUser(IUser user) {
+		return q_allUserActions.param(IAuditEntry.UserIdentifier, userIdentifierProvider.getSID(user))
+				.retrieve();
 	}
 
 	@Override
-	public List<IAuditEntry> getAllAuditEntriesOfEntityType(Class<?> entityType)
-	{
+	public List<IAuditEntry> getAllAuditEntriesOfEntityType(Class<?> entityType) {
 		return getByEntityType(q_auditEntry_entityType, entityType);
 	}
 
 	@Override
-	public List<IAuditEntry> getAllAuditEntriesOfEntityTypeInTimeSlot(Class<?> entityType, Date start, Date end)
-	{
+	public List<IAuditEntry> getAllAuditEntriesOfEntityTypeInTimeSlot(Class<?> entityType, Date start,
+			Date end) {
 		return q_auditEntry_entityType_InTimeSlot.param(VALUE_NAME_START, start)//
 				.param(VALUE_NAME_END, end).param(IAuditedEntityRef.EntityType, entityType)//
 				.retrieve();

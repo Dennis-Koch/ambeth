@@ -33,12 +33,12 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class ServiceContextStore implements IServiceContextStore, IServiceContextStoreConf {
 	private final IMap<String, IServiceContext> nameToServiceContext =
-			new HashMap<String, IServiceContext>();
+			new HashMap<>();
 
 	private final IList<IInterconnectConfig> interconnectConfigs =
-			new ArrayList<IInterconnectConfig>();
+			new ArrayList<>();
 
-	private final IList<IInjectionConfig> injectionConfigs = new ArrayList<IInjectionConfig>();
+	private final IList<IInjectionConfig> injectionConfigs = new ArrayList<>();
 
 	@Override
 	public IServiceContextStoreConf addContext(String name, IServiceContext context) {

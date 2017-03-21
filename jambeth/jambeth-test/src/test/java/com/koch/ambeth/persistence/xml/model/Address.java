@@ -22,46 +22,38 @@ limitations under the License.
 
 import com.koch.ambeth.model.AbstractEntity;
 
-public class Address extends AbstractEntity
-{
+public class Address extends AbstractEntity {
 	protected String street;
 
 	protected String city;
 
 	protected Employee resident;
 
-	protected Address()
-	{
+	protected Address() {
 		// Intended blank
 	}
 
-	public String getStreet()
-	{
+	public String getStreet() {
 		return street;
 	}
 
-	public void setStreet(String street)
-	{
+	public void setStreet(String street) {
 		this.street = street;
 	}
 
-	public String getCity()
-	{
+	public String getCity() {
 		return city;
 	}
 
-	public void setCity(String city)
-	{
+	public void setCity(String city) {
 		this.city = city;
 	}
 
-	public Employee getResident()
-	{
+	public Employee getResident() {
 		return resident;
 	}
 
-	public void setResident(Employee resident)
-	{
+	public void setResident(Employee resident) {
 		this.resident = resident;
 	}
 }

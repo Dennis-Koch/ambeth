@@ -54,8 +54,6 @@ import com.koch.ambeth.persistence.xml.TestServicesModule;
 import com.koch.ambeth.persistence.xml.model.Employee;
 import com.koch.ambeth.persistence.xml.model.IBusinessService;
 import com.koch.ambeth.persistence.xml.model.IEmployeeService;
-import com.koch.ambeth.security.IAuthorizationManager;
-import com.koch.ambeth.security.TestAuthentication;
 import com.koch.ambeth.security.SecurityTest.SecurityTestFrameworkModule;
 import com.koch.ambeth.security.SecurityTest.SecurityTestModule;
 import com.koch.ambeth.security.model.IPassword;
@@ -81,37 +79,41 @@ import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 @SQLStructure("/com/koch/ambeth/security/Relations_structure.sql")
 @TestProperties(name = MergeConfigurationConstants.SecurityActive, value = "true")
 @TestPropertiesList({
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/xml/orm.xml;com/koch/ambeth/security/orm.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+				value = "com/koch/ambeth/persistence/xml/orm.xml;com/koch/ambeth/security/orm.xml"),
 		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false"),
-		@TestProperties(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive, value = "false") })
+		@TestProperties(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive,
+				value = "false")})
 @TestModule(TestServicesModule.class)
-@TestFrameworkModule({ SecurityTestFrameworkModule.class, SecurityTestModule.class })
-public class SecurityTest extends AbstractInformationBusWithPersistenceTest
-{
+@TestFrameworkModule({SecurityTestFrameworkModule.class, SecurityTestModule.class})
+public class SecurityTest extends AbstractInformationBusWithPersistenceTest {
 	public static final String IN_MEMORY_CACHE_RETRIEVER = "inMemoryCacheRetriever";
 
-	public static class SecurityTestFrameworkModule implements IInitializingModule
-	{
+	public static class SecurityTestFrameworkModule implements IInitializingModule {
 		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			beanContextFactory.registerBean(TestAuthorizationManager.class).autowireable(IAuthorizationManager.class);
-			beanContextFactory.registerBean(UserIdentifierProvider.class).autowireable(IUserIdentifierProvider.class);
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+			beanContextFactory.registerBean(TestAuthorizationManager.class)
+					.autowireable(IAuthorizationManager.class);
+			beanContextFactory.registerBean(UserIdentifierProvider.class)
+					.autowireable(IUserIdentifierProvider.class);
 			beanContextFactory.registerBean(TestUserResolver.class).autowireable(IUserResolver.class);
 
-			beanContextFactory.link(IUser.class).to(ITechnicalEntityTypeExtendable.class).with(User.class);
-			beanContextFactory.link(IPassword.class).to(ITechnicalEntityTypeExtendable.class).with(Password.class);
+			beanContextFactory.link(IUser.class).to(ITechnicalEntityTypeExtendable.class)
+					.with(User.class);
+			beanContextFactory.link(IPassword.class).to(ITechnicalEntityTypeExtendable.class)
+					.with(Password.class);
 		}
 	}
 
-	public static class SecurityTestModule implements IInitializingModule
-	{
+	public static class SecurityTestModule implements IInitializingModule {
 		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			IBeanConfiguration inMemoryCacheRetriever = beanContextFactory.registerBean(IN_MEMORY_CACHE_RETRIEVER, InMemoryCacheRetriever.class);
-			beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class).with(User.class);
-			beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class).with(Password.class);
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+			IBeanConfiguration inMemoryCacheRetriever =
+					beanContextFactory.registerBean(IN_MEMORY_CACHE_RETRIEVER, InMemoryCacheRetriever.class);
+			beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class)
+					.with(User.class);
+			beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class)
+					.with(Password.class);
 		}
 	}
 
@@ -139,68 +141,61 @@ public class SecurityTest extends AbstractInformationBusWithPersistenceTest
 	protected InMemoryCacheRetriever inMemoryCacheRetriever;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		char[] salt = "abcdef=".toCharArray();
-		char[] value = Base64.encodeBytes(
-				Passwords.hashPassword(userPass1.toCharArray(), Base64.decode(salt), Passwords.ALGORITHM, Passwords.ITERATION_COUNT, Passwords.KEY_SIZE))
-				.toCharArray();
+		char[] value =
+				Base64.encodeBytes(Passwords.hashPassword(userPass1.toCharArray(), Base64.decode(salt),
+						Passwords.ALGORITHM, Passwords.ITERATION_COUNT, Passwords.KEY_SIZE)).toCharArray();
 
-		IInMemoryConfig password10 = inMemoryCacheRetriever.add(Password.class, 10).primitive(IPassword.Salt, salt)
-				.primitive(IPassword.Algorithm, Passwords.ALGORITHM).primitive(IPassword.IterationCount, Passwords.ITERATION_COUNT)
+		IInMemoryConfig password10 = inMemoryCacheRetriever.add(Password.class, 10)
+				.primitive(IPassword.Salt, salt).primitive(IPassword.Algorithm, Passwords.ALGORITHM)
+				.primitive(IPassword.IterationCount, Passwords.ITERATION_COUNT)
 				.primitive(IPassword.KeySize, Passwords.KEY_SIZE).primitive(IPassword.Value, value);
-		inMemoryCacheRetriever.add(User.class, 1).primitive(User.SID, userName1).addRelation(IUser.Password, password10);
+		inMemoryCacheRetriever.add(User.class, 1).primitive(User.SID, userName1)
+				.addRelation(IUser.Password, password10);
 	}
 
 	@Test
 	@TestAuthentication(name = userName1, password = userPass1)
-	public void testListDelete() throws Throwable
-	{
-		final IBackgroundWorkerDelegate checkRootCache = new IBackgroundWorkerDelegate()
-		{
+	public void testListDelete() throws Throwable {
+		final IBackgroundWorkerDelegate checkRootCache = new IBackgroundWorkerDelegate() {
 
 			@Override
-			public void invoke() throws Throwable
-			{
+			public void invoke() throws Throwable {
 				assertTrue(cache.getObjects(Employee.class, 1, 2, 3).isEmpty());
 
 				// test privileged transactional root cache
 				IRootCache rootCache = secondLevelCacheManager.selectSecondLevelCache();
-				rootCache.getContent(new HandleContentDelegate()
-				{
+				rootCache.getContent(new HandleContentDelegate() {
 					@Override
-					public void invoke(Class<?> entityType, byte idIndex, Object id, Object value)
-					{
-						if (Employee.class.isAssignableFrom(entityType))
-						{
+					public void invoke(Class<?> entityType, byte idIndex, Object id, Object value) {
+						if (Employee.class.isAssignableFrom(entityType)) {
 							Assert.fail("RootCache must not contain an entry for a " + Employee.class.getName());
 						}
 					}
 				});
 			}
 		};
-		transaction.processAndCommit(new ResultingDatabaseCallback<Object>()
-		{
+		transaction.processAndCommit(new ResultingDatabaseCallback<Object>() {
 			@Override
-			public Object callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
-			{
-				Object result = securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>()
-				{
-					@Override
-					public Object invoke() throws Throwable
-					{
-						List<Employee> employees = cache.getObjects(Employee.class, 1, 2, 3);
-						assertFalse(employees.isEmpty());
+			public Object callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+					throws Throwable {
+				Object result = securityActivation
+						.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>() {
+							@Override
+							public Object invoke() throws Throwable {
+								List<Employee> employees = cache.getObjects(Employee.class, 1, 2, 3);
+								assertFalse(employees.isEmpty());
 
-						employeeService.delete(employees);
+								employeeService.delete(employees);
 
-						// test privileged transactional root cache
-						checkRootCache.invoke();
-						return null;
-					}
-				});
+								// test privileged transactional root cache
+								checkRootCache.invoke();
+								return null;
+							}
+						});
 				// test non-privileged transactional root cache
 				checkRootCache.invoke();
 				return result;

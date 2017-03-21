@@ -20,22 +20,18 @@ limitations under the License.
  * #L%
  */
 
-public class Embedded
-{
+public class Embedded {
 	protected String sid;
 
-	protected Embedded()
-	{
+	protected Embedded() {
 		// Intended blank
 	}
 
-	public void setSid(String sid)
-	{
+	public void setSid(String sid) {
 		this.sid = sid;
 	}
 
-	public String getSid()
-	{
+	public String getSid() {
 		return sid;
 	}
 }

@@ -24,8 +24,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
-public interface ISet<K> extends Set<K>
-{
+public interface ISet<K> extends Set<K> {
 	Iterator<K> iterator(boolean removeAllowed);
 
 	K get(K key);

@@ -33,8 +33,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class ObjRefFutureHandler implements IObjectFutureHandler, IInitializingBean
-{
+public class ObjRefFutureHandler implements IObjectFutureHandler, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -44,59 +43,49 @@ public class ObjRefFutureHandler implements IObjectFutureHandler, IInitializingB
 	protected IEntityFactory entityFactory;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(cache, "Cache");
 		ParamChecker.assertNotNull(entityFactory, "EntityFactory");
 	}
 
-	public void setCache(ICache cache)
-	{
+	public void setCache(ICache cache) {
 		this.cache = cache;
 	}
 
-	public void setEntityFactory(IEntityFactory entityFactory)
-	{
+	public void setEntityFactory(IEntityFactory entityFactory) {
 		this.entityFactory = entityFactory;
 	}
 
 	@Override
-	public void handle(IList<IObjectFuture> objectFutures)
-	{
+	public void handle(IList<IObjectFuture> objectFutures) {
 		IEntityFactory entityFactory = this.entityFactory;
-		IList<IObjRef> oris = new ArrayList<IObjRef>(objectFutures.size());
+		IList<IObjRef> oris = new ArrayList<>(objectFutures.size());
 		// ObjectFutures have to be handled in order
-		for (int i = 0, size = objectFutures.size(); i < size; i++)
-		{
+		for (int i = 0, size = objectFutures.size(); i < size; i++) {
 			IObjectFuture objectFuture = objectFutures.get(i);
-			if (!(objectFuture instanceof ObjRefFuture))
-			{
-				throw new IllegalArgumentException("'" + getClass().getName() + "' cannot handle " + IObjectFuture.class.getSimpleName()
-						+ " implementations of type '" + objectFuture.getClass().getName() + "'");
+			if (!(objectFuture instanceof ObjRefFuture)) {
+				throw new IllegalArgumentException(
+						"'" + getClass().getName() + "' cannot handle " + IObjectFuture.class.getSimpleName()
+								+ " implementations of type '" + objectFuture.getClass().getName() + "'");
 			}
 
 			ObjRefFuture objRefFuture = (ObjRefFuture) objectFuture;
 			IObjRef ori = objRefFuture.getOri();
-			if (ori.getId() != null)
-			{
+			if (ori.getId() != null) {
 				oris.add(ori);
 			}
-			else if (ori instanceof IDirectObjRef && ((IDirectObjRef) ori).getDirect() != null)
-			{
+			else if (ori instanceof IDirectObjRef && ((IDirectObjRef) ori).getDirect() != null) {
 				Object entity = ((IDirectObjRef) ori).getDirect();
 				objRefFuture.setValue(entity);
 				oris.add(null);
 			}
-			else
-			{
-				try
-				{
+			else {
+				try {
 					Object newEntity = entityFactory.createEntity(ori.getRealType());
 					objRefFuture.setValue(newEntity);
 					oris.add(null);
 				}
-				catch (Exception e)
-				{
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
@@ -105,10 +94,8 @@ public class ObjRefFutureHandler implements IObjectFutureHandler, IInitializingB
 		IList<Object> objects = cache.getObjects(oris, CacheDirective.returnMisses());
 
 		// ObjectFutures have to be handled in order
-		for (int i = 0, size = objectFutures.size(); i < size; i++)
-		{
-			if (oris.get(i) == null)
-			{
+		for (int i = 0, size = objectFutures.size(); i < size; i++) {
+			if (oris.get(i) == null) {
 				continue;
 			}
 

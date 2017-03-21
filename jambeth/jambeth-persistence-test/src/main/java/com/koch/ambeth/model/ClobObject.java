@@ -20,22 +20,18 @@ limitations under the License.
  * #L%
  */
 
-public class ClobObject extends AbstractEntity
-{
+public class ClobObject extends AbstractEntity {
 	protected char[] content;
 
-	protected ClobObject()
-	{
+	protected ClobObject() {
 		// Intended blank
 	}
 
-	public void setContent(char[] content)
-	{
+	public void setContent(char[] content) {
 		this.content = content;
 	}
 
-	public char[] getContent()
-	{
+	public char[] getContent() {
 		return content;
 	}
 }

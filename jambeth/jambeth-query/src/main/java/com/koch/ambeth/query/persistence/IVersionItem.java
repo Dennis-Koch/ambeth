@@ -21,8 +21,7 @@ limitations under the License.
  */
 
 
-public interface IVersionItem
-{
+public interface IVersionItem {
 	Object getId();
 
 	Object getId(int idIndex);

@@ -20,7 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ICommandBuilder
-{
-	IObjectCommand build(ICommandTypeRegistry commandTypeRegistry, IObjectFuture objectFuture, Object parent, Object... optionals);
+public interface ICommandBuilder {
+	IObjectCommand build(ICommandTypeRegistry commandTypeRegistry, IObjectFuture objectFuture,
+			Object parent, Object... optionals);
 }

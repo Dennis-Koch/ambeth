@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.stream.IInputStream;
 
-public interface IBooleanInputStream extends IInputStream
-{
+public interface IBooleanInputStream extends IInputStream {
 	boolean hasBoolean();
 
 	boolean readBoolean();

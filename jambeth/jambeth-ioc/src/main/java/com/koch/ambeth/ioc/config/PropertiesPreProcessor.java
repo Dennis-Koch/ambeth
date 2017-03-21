@@ -36,8 +36,7 @@ import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
-public class PropertiesPreProcessor implements IBeanPreProcessor, IInitializingBean
-{
+public class PropertiesPreProcessor implements IBeanPreProcessor, IInitializingBean {
 	@LogInstance
 	private ILogger log;
 
@@ -46,87 +45,73 @@ public class PropertiesPreProcessor implements IBeanPreProcessor, IInitializingB
 	protected IConversionHelper conversionHelper;
 
 	@Override
-	public void afterPropertiesSet()
-	{
+	public void afterPropertiesSet() {
 		ParamChecker.assertNotNull(propertyInfoProvider, "propertyInfoProvider");
 		ParamChecker.assertNotNull(conversionHelper, "conversionHelper");
 	}
 
-	public void setPropertyInfoProvider(IPropertyInfoProvider propertyInfoProvider)
-	{
+	public void setPropertyInfoProvider(IPropertyInfoProvider propertyInfoProvider) {
 		this.propertyInfoProvider = propertyInfoProvider;
 	}
 
-	public void setConversionHelper(IConversionHelper conversionHelper)
-	{
+	public void setConversionHelper(IConversionHelper conversionHelper) {
 		this.conversionHelper = conversionHelper;
 	}
 
 	@Override
-	public void preProcessProperties(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IProperties props, String beanName, Object service,
-			Class<?> beanType, List<IPropertyConfiguration> propertyConfigs, Set<String> ignoredPropertyNames, IPropertyInfo[] properties)
-	{
-		if (properties == null)
-		{
+	public void preProcessProperties(IBeanContextFactory beanContextFactory,
+			IServiceContext beanContext, IProperties props, String beanName, Object service,
+			Class<?> beanType, List<IPropertyConfiguration> propertyConfigs,
+			Set<String> ignoredPropertyNames, IPropertyInfo[] properties) {
+		if (properties == null) {
 			properties = propertyInfoProvider.getProperties(service.getClass());
 		}
-		for (IPropertyInfo prop : properties)
-		{
-			if (!prop.isWritable())
-			{
+		for (IPropertyInfo prop : properties) {
+			if (!prop.isWritable()) {
 				continue;
 			}
 			Property propertyAttribute = prop.getAnnotation(Property.class);
-			if (propertyAttribute == null)
-			{
+			if (propertyAttribute == null) {
 				continue;
 			}
-			if (ignoredPropertyNames.contains(prop.getName()))
-			{
+			if (ignoredPropertyNames.contains(prop.getName())) {
 				// do not handle this property
 				continue;
 			}
-			if (Property.DEFAULT_VALUE.equals(propertyAttribute.name()) && Property.DEFAULT_VALUE.equals(propertyAttribute.defaultValue()))
-			{
-				if (propertyAttribute.mandatory())
-				{
+			if (Property.DEFAULT_VALUE.equals(propertyAttribute.name())
+					&& Property.DEFAULT_VALUE.equals(propertyAttribute.defaultValue())) {
+				if (propertyAttribute.mandatory()) {
 					String propName = prop.getName();
 					boolean propertyInitialized = false;
 					// check if the mandatory property field has been initialized with a value
-					for (int a = propertyConfigs.size(); a-- > 0;)
-					{
+					for (int a = propertyConfigs.size(); a-- > 0;) {
 						IPropertyConfiguration propertyConfig = propertyConfigs.get(a);
-						if (propName.equals(propertyConfig.getPropertyName()))
-						{
+						if (propName.equals(propertyConfig.getPropertyName())) {
 							propertyInitialized = true;
 							break;
 						}
 					}
-					if (!propertyInitialized)
-					{
-						throw new IllegalStateException("Mandatory property '" + propName + "' not initialized");
+					if (!propertyInitialized) {
+						throw new IllegalStateException(
+								"Mandatory property '" + propName + "' not initialized");
 					}
 				}
 				continue;
 			}
 			Object value = props.get(propertyAttribute.name());
 
-			if (value == null)
-			{
+			if (value == null) {
 				String stringValue = propertyAttribute.defaultValue();
-				if (Property.DEFAULT_VALUE.equals(stringValue))
-				{
-					if (propertyAttribute.mandatory())
-					{
-						throw new BeanContextInitException("Could not resolve mandatory environment property '" + propertyAttribute.name() + "'");
+				if (Property.DEFAULT_VALUE.equals(stringValue)) {
+					if (propertyAttribute.mandatory()) {
+						throw new BeanContextInitException("Could not resolve mandatory environment property '"
+								+ propertyAttribute.name() + "'");
 					}
-					else
-					{
+					else {
 						continue;
 					}
 				}
-				else
-				{
+				else {
 					value = props.resolvePropertyParts(stringValue);
 				}
 			}

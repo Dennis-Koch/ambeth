@@ -40,41 +40,39 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 @SuppressWarnings("unchecked")
-public class InformationBusWithPersistence implements IBundleModule
-{
-	private static final Class<?>[] bundleModules = { AuditModule.class, CacheServerModule.class, DialectSelectorModule.class, EventServerModule.class,
-			FilterPersistenceModule.class, JobCron4jModule.class, MergeServerModule.class, PersistenceJdbcModule.class, PersistenceModule.class,
-			PrivilegeServerModule.class, SQLQueryModule.class, SecurityQueryModule.class, SecurityServerModule.class };
+public class InformationBusWithPersistence implements IBundleModule {
+	private static final Class<?>[] bundleModules = {AuditModule.class, CacheServerModule.class,
+			DialectSelectorModule.class, EventServerModule.class, FilterPersistenceModule.class,
+			JobCron4jModule.class, MergeServerModule.class, PersistenceJdbcModule.class,
+			PersistenceModule.class, PrivilegeServerModule.class, SQLQueryModule.class,
+			SecurityQueryModule.class, SecurityServerModule.class};
 
-	private static final Class<?>[] parentBundles = { InformationBus.class };
+	private static final Class<?>[] parentBundles = {InformationBus.class};
 
 	private static final Class<?>[] resultingBundleModules;
 
-	static
-	{
-		try
-		{
-			ArrayList<Class<? extends IInitializingModule>> allModules = new ArrayList<Class<? extends IInitializingModule>>();
+	static {
+		try {
+			ArrayList<Class<? extends IInitializingModule>> allModules =
+					new ArrayList<>();
 			allModules.addAll((Class<? extends IInitializingModule>[]) bundleModules);
 
-			for (Class<?> parentBundleClass : parentBundles)
-			{
+			for (Class<?> parentBundleClass : parentBundles) {
 				IBundleModule parentBundle = (IBundleModule) parentBundleClass.newInstance();
-				Class<? extends IInitializingModule>[] parentBundleModules = parentBundle.getBundleModules();
+				Class<? extends IInitializingModule>[] parentBundleModules =
+						parentBundle.getBundleModules();
 				allModules.addAll(parentBundleModules);
 			}
 
 			resultingBundleModules = allModules.toArray(Class.class);
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	public Class<? extends IInitializingModule>[] getBundleModules()
-	{
+	public Class<? extends IInitializingModule>[] getBundleModules() {
 		return (Class<? extends IInitializingModule>[]) resultingBundleModules;
 	}
 }

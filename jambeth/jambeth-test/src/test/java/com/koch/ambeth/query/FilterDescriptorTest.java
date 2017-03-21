@@ -40,7 +40,6 @@ import com.koch.ambeth.filter.ISortDescriptor;
 import com.koch.ambeth.filter.PagingRequest;
 import com.koch.ambeth.filter.SortDescriptor;
 import com.koch.ambeth.filter.SortDirection;
-import com.koch.ambeth.query.IQueryBuilder;
 import com.koch.ambeth.query.filter.IFilterToQueryBuilder;
 import com.koch.ambeth.query.filter.IPagingQuery;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
@@ -53,9 +52,9 @@ import com.koch.ambeth.util.collections.ArrayList;
 
 @SQLData("FilterDescriptor_data.sql")
 @SQLStructure("FilterDescriptor_structure.sql")
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/query/FilterDescriptor_orm.xml")
-public class FilterDescriptorTest extends AbstractInformationBusWithPersistenceTest
-{
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/query/FilterDescriptor_orm.xml")
+public class FilterDescriptorTest extends AbstractInformationBusWithPersistenceTest {
 	protected static final String paramName1 = "param.1";
 	protected static final String paramName2 = "param.2";
 	protected static final String columnName1 = "ID";
@@ -70,33 +69,29 @@ public class FilterDescriptorTest extends AbstractInformationBusWithPersistenceT
 
 	protected IQueryBuilder<QueryEntity> qb;
 
-	protected HashMap<Object, Object> nameToValueMap = new HashMap<Object, Object>();
+	protected HashMap<Object, Object> nameToValueMap = new HashMap<>();
 
 	@Before
-	public void setUp() throws Exception
-	{
+	public void setUp() throws Exception {
 		qb = queryBuilderFactory.create(QueryEntity.class);
 		nameToValueMap.clear();
 	}
 
 	@After
-	public void tearDown() throws Exception
-	{
-		if (qb != null)
-		{
+	public void tearDown() throws Exception {
+		if (qb != null) {
 			qb.dispose();
 			qb = null;
 		}
 	}
 
 	@Test
-	public void retrievePagingSimpleWithDescriptor() throws Exception
-	{
+	public void retrievePagingSimpleWithDescriptor() throws Exception {
 		IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
 
-		List<Integer> expected = Arrays.asList(new Integer[] { 4, 3 });
+		List<Integer> expected = Arrays.asList(new Integer[] {4, 3});
 
-		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<QueryEntity>(QueryEntity.class);
+		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<>(QueryEntity.class);
 
 		SortDescriptor sd1 = new SortDescriptor();
 		sd1.setMember("Id");
@@ -113,12 +108,13 @@ public class FilterDescriptorTest extends AbstractInformationBusWithPersistenceT
 		PagingRequest randomPReq = new PagingRequest();
 		randomPReq.setNumber(1);
 		randomPReq.setSize(2);
-		IPagingQuery<QueryEntity> pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] { sd1, sd2 });
+		IPagingQuery<QueryEntity> pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] {sd1, sd2});
 
 		IPagingResponse<QueryEntity> response = pagingQuery.retrieve(randomPReq);
 		// IPagingResponse<QueryEntity> response1_2 = pagingQuery.retrieve(randomPReq);
 
-		// IPagingQuery<QueryEntity> pagingQuery2 = ftqb.buildQuery(fd, new ISortDescriptor[] { sd2, sd1 });
+		// IPagingQuery<QueryEntity> pagingQuery2 = ftqb.buildQuery(fd, new ISortDescriptor[] { sd2, sd1
+		// });
 
 		// IPagingResponse<QueryEntity> response2 = pagingQuery2.retrieve(randomPReq);
 
@@ -126,9 +122,8 @@ public class FilterDescriptorTest extends AbstractInformationBusWithPersistenceT
 
 		// List<QueryEntity> result2 = response2.getResult();
 
-		ArrayList<QueryEntity> qeResult = new ArrayList<QueryEntity>(result.size());
-		for (int a = 0, size = result.size(); a < size; a++)
-		{
+		ArrayList<QueryEntity> qeResult = new ArrayList<>(result.size());
+		for (int a = 0, size = result.size(); a < size; a++) {
 			qeResult.add(result.get(a));
 		}
 		Assert.assertEquals(randomPReq.getSize(), qeResult.size());
@@ -137,11 +132,10 @@ public class FilterDescriptorTest extends AbstractInformationBusWithPersistenceT
 	}
 
 	@Test
-	public void retrievePagingWithEmptyResult() throws Exception
-	{
+	public void retrievePagingWithEmptyResult() throws Exception {
 		IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
 
-		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<QueryEntity>(QueryEntity.class);
+		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<>(QueryEntity.class);
 		fd.setOperator(FilterOperator.IS_IN);
 		fd.setMember("Id");
 		fd.withValue("-1");
@@ -159,11 +153,10 @@ public class FilterDescriptorTest extends AbstractInformationBusWithPersistenceT
 	}
 
 	@Test
-	public void retrievePagingRefOrderedByRef() throws Exception
-	{
+	public void retrievePagingRefOrderedByRef() throws Exception {
 		IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
 
-		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<QueryEntity>(QueryEntity.class);
+		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<>(QueryEntity.class);
 
 		SortDescriptor sd = new SortDescriptor();
 		sd.setMember("Fk.Id");
@@ -172,7 +165,7 @@ public class FilterDescriptorTest extends AbstractInformationBusWithPersistenceT
 		pReq.setNumber(0);
 		pReq.setSize(5);
 
-		IPagingQuery<QueryEntity> pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] { sd });
+		IPagingQuery<QueryEntity> pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] {sd});
 
 		IPagingResponse<QueryEntity> pagingResponse = pagingQuery.retrieveRefs(pReq, QueryEntity.Name1);
 		List<IObjRef> refResult = pagingResponse.getRefResult();
@@ -181,13 +174,12 @@ public class FilterDescriptorTest extends AbstractInformationBusWithPersistenceT
 	}
 
 	@Test
-	public void retrieveIsIn() throws Exception
-	{
+	public void retrieveIsIn() throws Exception {
 		IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
 
 		List<Integer> expected = Arrays.asList(3);
 
-		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<QueryEntity>(QueryEntity.class);
+		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<>(QueryEntity.class);
 		fd.setOperator(FilterOperator.IS_IN);
 		fd.setMember("Id");
 		fd.withValue("4").withValue("3");
@@ -207,15 +199,14 @@ public class FilterDescriptorTest extends AbstractInformationBusWithPersistenceT
 		PagingRequest randomPReq = new PagingRequest();
 		randomPReq.setNumber(1);
 		randomPReq.setSize(1);
-		IPagingQuery<QueryEntity> pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] { sd1, sd2 });
+		IPagingQuery<QueryEntity> pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] {sd1, sd2});
 
 		IPagingResponse<QueryEntity> response = pagingQuery.retrieve(randomPReq);
 
 		List<QueryEntity> result = response.getResult();
 
-		ArrayList<QueryEntity> qeResult = new ArrayList<QueryEntity>(result.size());
-		for (int a = 0, size = result.size(); a < size; a++)
-		{
+		ArrayList<QueryEntity> qeResult = new ArrayList<>(result.size());
+		for (int a = 0, size = result.size(); a < size; a++) {
 			qeResult.add(result.get(a));
 		}
 		Assert.assertEquals(randomPReq.getSize(), qeResult.size());
@@ -224,13 +215,12 @@ public class FilterDescriptorTest extends AbstractInformationBusWithPersistenceT
 	}
 
 	@Test
-	public void retrieveEmptyIsIn() throws Exception
-	{
+	public void retrieveEmptyIsIn() throws Exception {
 		IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
 
-		List<Integer> expected = Arrays.asList(new Integer[] { 3 });
+		List<Integer> expected = Arrays.asList(new Integer[] {3});
 
-		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<QueryEntity>(QueryEntity.class);
+		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<>(QueryEntity.class);
 		fd.setOperator(FilterOperator.IS_IN);
 		fd.setMember("Id");
 
@@ -249,7 +239,7 @@ public class FilterDescriptorTest extends AbstractInformationBusWithPersistenceT
 		PagingRequest randomPReq = new PagingRequest();
 		randomPReq.setNumber(1);
 		randomPReq.setSize(1);
-		IPagingQuery<QueryEntity> pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] { sd1, sd2 });
+		IPagingQuery<QueryEntity> pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] {sd1, sd2});
 
 		IPagingResponse<QueryEntity> response = pagingQuery.retrieve(randomPReq);
 
@@ -259,15 +249,15 @@ public class FilterDescriptorTest extends AbstractInformationBusWithPersistenceT
 	}
 
 	/**
-	 * JIRA Ticket AMBETH-321 describes a NullPointerException in NullValueOperand.expandQuery() when accessing the typeStack. JIRA Ticket AMBETH-322 describes
-	 * a problem with field names with paging subselects that contain joins.
+	 * JIRA Ticket AMBETH-321 describes a NullPointerException in NullValueOperand.expandQuery() when
+	 * accessing the typeStack. JIRA Ticket AMBETH-322 describes a problem with field names with
+	 * paging subselects that contain joins.
 	 */
 	@Test
-	public void testForAMBETH321AndAMBETH322()
-	{
+	public void testForAMBETH321AndAMBETH322() {
 		IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
 
-		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<QueryEntity>(QueryEntity.class);
+		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<>(QueryEntity.class);
 		fd.setOperator(FilterOperator.IS_EQUAL_TO);
 		fd.setMember("Fk.Version");
 
@@ -282,19 +272,18 @@ public class FilterDescriptorTest extends AbstractInformationBusWithPersistenceT
 		PagingRequest randomPReq = new PagingRequest();
 		randomPReq.setNumber(1);
 		randomPReq.setSize(1);
-		IPagingQuery<QueryEntity> pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] { sd1 });
+		IPagingQuery<QueryEntity> pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] {sd1});
 
 		// If this does not throws an exception it is ok
 		pagingQuery.retrieve(randomPReq);
 	}
 
-	protected static void assertSimilar(List<Integer> expectedIds, List<QueryEntity> actual)
-	{
+	protected static void assertSimilar(List<Integer> expectedIds, List<QueryEntity> actual) {
 		assertNotNull(actual);
 		assertEquals(expectedIds.size(), actual.size());
-		for (int i = actual.size(); i-- > 0;)
-		{
-			assertTrue(actual.get(i).getId() + " not expected", expectedIds.contains(actual.get(i).getId()));
+		for (int i = actual.size(); i-- > 0;) {
+			assertTrue(actual.get(i).getId() + " not expected",
+					expectedIds.contains(actual.get(i).getId()));
 		}
 	}
 }

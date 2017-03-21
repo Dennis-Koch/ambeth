@@ -23,8 +23,7 @@ limitations under the License.
 import java.io.OutputStream;
 import java.nio.channels.WritableByteChannel;
 
-public interface ICyclicXmlWriter
-{
+public interface ICyclicXmlWriter {
 	String write(Object object);
 
 	void writeToStream(OutputStream outputStream, Object object);

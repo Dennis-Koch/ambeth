@@ -22,7 +22,6 @@ limitations under the License.
 
 import java.sql.Array;
 
-public interface IConnectionExtension
-{
+public interface IConnectionExtension {
 	Array createJDBCArray(Class<?> expectedComponentType, Object javaArray);
 }

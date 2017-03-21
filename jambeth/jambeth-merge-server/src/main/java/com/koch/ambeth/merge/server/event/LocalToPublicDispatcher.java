@@ -40,7 +40,7 @@ public class LocalToPublicDispatcher implements IEventListener {
 	protected IEventDispatcher publicEventDispatcher;
 
 	protected final HashMap<Long, ArrayList<IDataChange>> databaseToChangeDict =
-			new HashMap<Long, ArrayList<IDataChange>>();
+			new HashMap<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
@@ -104,7 +104,7 @@ public class LocalToPublicDispatcher implements IEventListener {
 			try {
 				ArrayList<IDataChange> dataChanges = databaseToChangeDict.get(localEvent.getSessionId());
 				if (dataChanges == null) {
-					dataChanges = new ArrayList<IDataChange>();
+					dataChanges = new ArrayList<>();
 					databaseToChangeDict.put(localEvent.getSessionId(), dataChanges);
 				}
 				dataChanges.add(localEvent.getDataChange());

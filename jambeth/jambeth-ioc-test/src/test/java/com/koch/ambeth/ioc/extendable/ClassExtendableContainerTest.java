@@ -34,13 +34,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.koch.ambeth.ioc.exception.ExtendableException;
-import com.koch.ambeth.ioc.extendable.ClassExtendableContainer;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ParamHolder;
 
-public class ClassExtendableContainerTest
-{
+public class ClassExtendableContainerTest {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -48,42 +46,41 @@ public class ClassExtendableContainerTest
 	protected ClassExtendableContainer<Object> fixture;
 
 	@Before
-	public void setUp() throws Exception
-	{
-		fixture = new ClassExtendableContainer<Object>("object", "type", false);
+	public void setUp() throws Exception {
+		fixture = new ClassExtendableContainer<>("object", "type", false);
 	}
 
 	@After
-	public void tearDown() throws Exception
-	{
+	public void tearDown() throws Exception {
 		fixture = null;
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void extensionNull()
-	{
+	public void extensionNull() {
 		fixture.register(null, ArrayList.class);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void typeNull()
-	{
+	public void typeNull() {
 		fixture.register(new Object(), null);
 	}
 
 	@Test
-	public void distanceAsExpected()
-	{
-		Assert.assertEquals(0, ClassExtendableContainer.getDistanceForType(ArrayList.class, ArrayList.class));
-		Assert.assertEquals(ClassExtendableContainer.NO_VALID_DISTANCE, ClassExtendableContainer.getDistanceForType(ArrayList.class, LinkedList.class));
-		Assert.assertEquals(10000, ClassExtendableContainer.getDistanceForType(ArrayList.class, List.class));
-		Assert.assertEquals(10000, ClassExtendableContainer.getDistanceForType(LinkedList.class, List.class));
-		Assert.assertEquals(10000, ClassExtendableContainer.getDistanceForType(LinkedList.class, List.class));
+	public void distanceAsExpected() {
+		Assert.assertEquals(0,
+				ClassExtendableContainer.getDistanceForType(ArrayList.class, ArrayList.class));
+		Assert.assertEquals(ClassExtendableContainer.NO_VALID_DISTANCE,
+				ClassExtendableContainer.getDistanceForType(ArrayList.class, LinkedList.class));
+		Assert.assertEquals(10000,
+				ClassExtendableContainer.getDistanceForType(ArrayList.class, List.class));
+		Assert.assertEquals(10000,
+				ClassExtendableContainer.getDistanceForType(LinkedList.class, List.class));
+		Assert.assertEquals(10000,
+				ClassExtendableContainer.getDistanceForType(LinkedList.class, List.class));
 	}
 
 	@Test
-	public void registerSimple()
-	{
+	public void registerSimple() {
 		Object obj1 = new Object();
 		fixture.register(obj1, ArrayList.class);
 		Assert.assertSame("Registration failed", obj1, fixture.getExtension(ArrayList.class));
@@ -92,27 +89,27 @@ public class ClassExtendableContainerTest
 	}
 
 	@Test(expected = ExtendableException.class)
-	public void duplicateStrong()
-	{
+	public void duplicateStrong() {
 		fixture.register(new Object(), ArrayList.class);
 		fixture.register(new Object(), ArrayList.class);
 	}
 
 	@Test
-	public void strongAndWeakSimple()
-	{
+	public void strongAndWeakSimple() {
 		Object obj1 = new Object();
 		fixture.register(obj1, Collection.class);
 
 		Assert.assertSame("String registration failed", obj1, fixture.getExtension(ArrayList.class));
-		Assert.assertSame("Weak registration to parent class failed", obj1, fixture.getExtension(AbstractList.class));
-		Assert.assertSame("Weak registration to interface failed", obj1, fixture.getExtension(List.class));
-		Assert.assertSame("Weak registration to parent interface failed", obj1, fixture.getExtension(Collection.class));
+		Assert.assertSame("Weak registration to parent class failed", obj1,
+				fixture.getExtension(AbstractList.class));
+		Assert.assertSame("Weak registration to interface failed", obj1,
+				fixture.getExtension(List.class));
+		Assert.assertSame("Weak registration to parent interface failed", obj1,
+				fixture.getExtension(Collection.class));
 	}
 
 	@Test
-	public void strongAndWeak()
-	{
+	public void strongAndWeak() {
 		Object obj1 = new Object();
 		Object obj2 = new Object();
 		fixture.register(obj1, ArrayList.class);
@@ -124,12 +121,12 @@ public class ClassExtendableContainerTest
 	}
 
 	/**
-	 * Checks that unregistering an extension from a specific type does interfere neither ith other specific types of same extension nor with other extensions
+	 * Checks that unregistering an extension from a specific type does interfere neither ith other
+	 * specific types of same extension nor with other extensions
 	 */
 	@Test
-	public void strongIsolated()
-	{
-		fixture = new ClassExtendableContainer<Object>("object", "type", true);
+	public void strongIsolated() {
+		fixture = new ClassExtendableContainer<>("object", "type", true);
 
 		Object obj1 = new Object();
 		Object obj2 = new Object();
@@ -164,8 +161,7 @@ public class ClassExtendableContainerTest
 	}
 
 	@Test
-	public void multiThreaded() throws Throwable
-	{
+	public void multiThreaded() throws Throwable {
 		final Object obj1 = new Object();
 		final Object obj2 = new Object();
 
@@ -177,15 +173,12 @@ public class ClassExtendableContainerTest
 
 		final CountDownLatch finishLatch = new CountDownLatch(2);
 
-		final ParamHolder<Throwable> ex = new ParamHolder<Throwable>();
+		final ParamHolder<Throwable> ex = new ParamHolder<>();
 
-		Runnable run1 = new Runnable()
-		{
+		Runnable run1 = new Runnable() {
 			@Override
-			public void run()
-			{
-				try
-				{
+			public void run() {
+				try {
 					barrier1.await();
 
 					fixture.register(obj1, ArrayList.class);
@@ -200,54 +193,51 @@ public class ClassExtendableContainerTest
 					barrier4.await();
 					barrier5.await();
 				}
-				catch (Throwable e)
-				{
+				catch (Throwable e) {
 					ex.setValue(e);
-					while (finishLatch.getCount() > 0)
-					{
+					while (finishLatch.getCount() > 0) {
 						finishLatch.countDown();
 					}
 				}
-				finally
-				{
+				finally {
 					finishLatch.countDown();
 				}
 			}
 		};
 
-		Runnable run2 = new Runnable()
-		{
+		Runnable run2 = new Runnable() {
 			@Override
-			public void run()
-			{
-				try
-				{
+			public void run() {
+				try {
 					barrier1.await();
 					barrier2.await();
 
-					Assert.assertSame("Registration failed somehow", obj2, fixture.getExtension(LinkedList.class));
-					Assert.assertSame("Registration failed somehow", obj1, fixture.getExtension(ArrayList.class));
+					Assert.assertSame("Registration failed somehow", obj2,
+							fixture.getExtension(LinkedList.class));
+					Assert.assertSame("Registration failed somehow", obj1,
+							fixture.getExtension(ArrayList.class));
 					Assert.assertSame("Registration failed somehow", obj2, fixture.getExtension(List.class));
-					Assert.assertSame("Registration failed somehow", obj1, fixture.getExtension(Collection.class));
+					Assert.assertSame("Registration failed somehow", obj1,
+							fixture.getExtension(Collection.class));
 
 					barrier3.await();
 					barrier4.await();
-					Assert.assertSame("Registration failed somehow", obj1, fixture.getExtension(LinkedList.class));
-					Assert.assertSame("Registration failed somehow", obj1, fixture.getExtension(ArrayList.class));
+					Assert.assertSame("Registration failed somehow", obj1,
+							fixture.getExtension(LinkedList.class));
+					Assert.assertSame("Registration failed somehow", obj1,
+							fixture.getExtension(ArrayList.class));
 					Assert.assertSame("Registration failed somehow", obj1, fixture.getExtension(List.class));
-					Assert.assertSame("Registration failed somehow", obj1, fixture.getExtension(Collection.class));
+					Assert.assertSame("Registration failed somehow", obj1,
+							fixture.getExtension(Collection.class));
 					barrier5.await();
 				}
-				catch (Throwable e)
-				{
+				catch (Throwable e) {
 					ex.setValue(e);
-					while (finishLatch.getCount() > 0)
-					{
+					while (finishLatch.getCount() > 0) {
 						finishLatch.countDown();
 					}
 				}
-				finally
-				{
+				finally {
 					finishLatch.countDown();
 				}
 			}
@@ -265,8 +255,7 @@ public class ClassExtendableContainerTest
 
 		finishLatch.await();
 
-		if (ex.getValue() != null)
-		{
+		if (ex.getValue() != null) {
 			throw ex.getValue();
 		}
 	}

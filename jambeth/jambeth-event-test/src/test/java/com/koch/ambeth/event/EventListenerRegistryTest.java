@@ -24,39 +24,31 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.koch.ambeth.event.EventListenerRegistry;
-import com.koch.ambeth.event.IEventListener;
-
-public class EventListenerRegistryTest
-{
-	private static final IEventListener DUMMY_LISTENER = new IEventListener()
-	{
+public class EventListenerRegistryTest {
+	private static final IEventListener DUMMY_LISTENER = new IEventListener() {
 
 		@Override
-		public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception
-		{
+		public void handleEvent(Object eventObject, long dispatchTime, long sequenceId)
+				throws Exception {
 		}
 	};
 
 	private EventListenerRegistry eventListenerRegistry;
 
 	@Before
-	public void setUp() throws Exception
-	{
+	public void setUp() throws Exception {
 		eventListenerRegistry = new EventListenerRegistry();
 	}
 
 	@Test
-	public void testHasListeners_noListeners()
-	{
+	public void testHasListeners_noListeners() {
 		Assert.assertFalse(eventListenerRegistry.hasListeners(Object.class));
 		Assert.assertFalse(eventListenerRegistry.hasListeners(String.class));
 		Assert.assertFalse(eventListenerRegistry.hasListeners(EventListenerRegistryTest.class));
 	}
 
 	@Test
-	public void testHasListeners_someListeners()
-	{
+	public void testHasListeners_someListeners() {
 		eventListenerRegistry.registerEventListener(DUMMY_LISTENER, String.class);
 		eventListenerRegistry.registerEventListener(DUMMY_LISTENER, EventListenerRegistryTest.class);
 
@@ -68,8 +60,7 @@ public class EventListenerRegistryTest
 	}
 
 	@Test
-	public void testHasListeners_globalListener()
-	{
+	public void testHasListeners_globalListener() {
 		eventListenerRegistry.registerEventListener(DUMMY_LISTENER);
 
 		Assert.assertTrue(eventListenerRegistry.hasListeners(Object.class));

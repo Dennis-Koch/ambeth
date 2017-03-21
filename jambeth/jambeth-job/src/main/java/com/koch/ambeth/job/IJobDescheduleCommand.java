@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public interface IJobDescheduleCommand
-{
+public interface IJobDescheduleCommand {
 	void execute();
 }

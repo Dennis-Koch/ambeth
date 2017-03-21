@@ -26,38 +26,30 @@ import java.nio.ByteBuffer;
 
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public final class ByteBufferUtil
-{
-	public static void clean(ByteBuffer bb)
-	{
-		if (bb == null)
-		{
+public final class ByteBufferUtil {
+	public static void clean(ByteBuffer bb) {
+		if (bb == null) {
 			return;
 		}
-		try
-		{
+		try {
 			Field cleanerField = bb.getClass().getDeclaredField("cleaner");
 			cleanerField.setAccessible(true);
 			Object cleaner = cleanerField.get(bb);
-			if (cleaner == null)
-			{
+			if (cleaner == null) {
 				return;
 			}
 			Method cleanMethod = cleaner.getClass().getMethod("clean");
 			cleanMethod.invoke(cleaner);
 		}
-		catch (NoSuchFieldException e)
-		{
+		catch (NoSuchFieldException e) {
 			return;
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
-	private ByteBufferUtil()
-	{
+	private ByteBufferUtil() {
 		// Intended blank
 	}
 }

@@ -23,37 +23,30 @@ limitations under the License.
 import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.StringBuilderUtil;
 
-public class ChunkKey implements IPrintable
-{
+public class ChunkKey implements IPrintable {
 	private final FileKey fileKey;
 
 	private final long paddedPosition;
 
-	public ChunkKey(FileKey fileKey, long paddedPosition)
-	{
+	public ChunkKey(FileKey fileKey, long paddedPosition) {
 		this.fileKey = fileKey;
 		this.paddedPosition = paddedPosition;
 	}
 
-	public FileKey getFileKey()
-	{
+	public FileKey getFileKey() {
 		return fileKey;
 	}
 
-	public long getPaddedPosition()
-	{
+	public long getPaddedPosition() {
 		return paddedPosition;
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == this)
-		{
+	public boolean equals(Object obj) {
+		if (obj == this) {
 			return true;
 		}
-		if (!(obj instanceof ChunkKey))
-		{
+		if (!(obj instanceof ChunkKey)) {
 			return false;
 		}
 		ChunkKey other = (ChunkKey) obj;
@@ -61,22 +54,20 @@ public class ChunkKey implements IPrintable
 	}
 
 	@Override
-	public int hashCode()
-	{
-		return getClass().hashCode() ^ (int) (paddedPosition ^ (paddedPosition >> 32)) ^ fileKey.hashCode();
+	public int hashCode() {
+		return getClass().hashCode() ^ (int) (paddedPosition ^ (paddedPosition >> 32))
+				^ fileKey.hashCode();
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		toString(sb);
 		return sb.toString();
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
+	public void toString(StringBuilder sb) {
 		StringBuilderUtil.appendPrintable(sb, fileKey);
 		sb.append('#').append(paddedPosition);
 	}

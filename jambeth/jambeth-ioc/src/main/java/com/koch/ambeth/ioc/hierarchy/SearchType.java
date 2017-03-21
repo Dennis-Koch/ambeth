@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public enum SearchType
-{
+public enum SearchType {
 	CURRENT, CASCADE, PARENT
 }

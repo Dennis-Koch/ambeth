@@ -28,13 +28,12 @@ import com.koch.ambeth.security.bytecode.behavior.EntityPrivilegeBehavior;
 import com.koch.ambeth.security.bytecode.behavior.EntityTypePrivilegeBehavior;
 
 @FrameworkModule
-public class SecurityBytecodeModule implements IInitializingModule
-{
+public class SecurityBytecodeModule implements IInitializingModule {
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, EntityPrivilegeBehavior.class);
-		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, EntityTypePrivilegeBehavior.class);
+		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory,
+				EntityTypePrivilegeBehavior.class);
 
 		// beanContextFactory.registerAnonymousBean(ValueHolderContainerTemplate.class).autowireable(ValueHolderContainerTemplate.class);
 	}

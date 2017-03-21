@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ITransactionalRootCache
-{
+public interface ITransactionalRootCache {
 	void acquireTransactionalRootCache();
 
 	void disposeTransactionalRootCache(boolean success);

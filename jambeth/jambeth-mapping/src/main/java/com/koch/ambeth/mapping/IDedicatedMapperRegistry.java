@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IDedicatedMapperRegistry
-{
+public interface IDedicatedMapperRegistry {
 	IDedicatedMapper getDedicatedMapper(Class<?> entityType);
 }

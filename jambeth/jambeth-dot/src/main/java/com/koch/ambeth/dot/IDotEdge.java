@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IDotEdge
-{
+public interface IDotEdge {
 	IDotEdge attribute(String key, String value);
 
 	IDotWriter endEdge();

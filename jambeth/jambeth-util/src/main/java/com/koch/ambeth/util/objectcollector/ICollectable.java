@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ICollectable
-{
+public interface ICollectable {
 	void initInternDoNotCall();
 
 	void disposeInternDoNotCall();

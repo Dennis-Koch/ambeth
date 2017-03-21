@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IParentService
-{
+public interface IParentService {
 	void save(Parent parent);
 }

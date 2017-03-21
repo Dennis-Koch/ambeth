@@ -26,8 +26,7 @@ import java.sql.SQLException;
 import com.koch.ambeth.persistence.api.IFieldMetaData;
 import com.koch.ambeth.persistence.api.ILinkMetaData;
 
-public interface IConfigurableDatabaseMetaData
-{
+public interface IConfigurableDatabaseMetaData {
 	boolean isLinkArchiveTable(String tableName);
 
 	ILinkMetaData mapLink(ILinkMetaData link);

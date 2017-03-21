@@ -21,19 +21,14 @@ limitations under the License.
  */
 
 
-public final class ClassLoaderUtil
-{
-	public static boolean isParentOf(ClassLoader potentialParentCL, ClassLoader potentialChildCL)
-	{
-		if (potentialParentCL == null || potentialChildCL == null)
-		{
+public final class ClassLoaderUtil {
+	public static boolean isParentOf(ClassLoader potentialParentCL, ClassLoader potentialChildCL) {
+		if (potentialParentCL == null || potentialChildCL == null) {
 			return false;
 		}
 		ClassLoader childCL = potentialChildCL;
-		while (childCL != null)
-		{
-			if (childCL.equals(potentialParentCL))
-			{
+		while (childCL != null) {
+			if (childCL.equals(potentialParentCL)) {
 				return true;
 			}
 			childCL = childCL.getParent();
@@ -41,8 +36,7 @@ public final class ClassLoaderUtil
 		return false;
 	}
 
-	private ClassLoaderUtil()
-	{
+	private ClassLoaderUtil() {
 		// Intended blank
 	}
 }

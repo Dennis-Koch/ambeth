@@ -36,32 +36,27 @@ import com.koch.ambeth.service.IProcessService;
 import com.koch.ambeth.service.model.IServiceDescription;
 
 @Path("/ProcessService")
-@Consumes({ MediaType.TEXT_PLAIN })
-@Produces({ MediaType.TEXT_PLAIN })
-public class ProcessServiceREST extends AbstractServiceREST
-{
-	protected IProcessService getProcessService()
-	{
+@Consumes({MediaType.TEXT_PLAIN})
+@Produces({MediaType.TEXT_PLAIN})
+public class ProcessServiceREST extends AbstractServiceREST {
+	protected IProcessService getProcessService() {
 		return getServiceContext().getService(IProcessService.class);
 	}
 
 	@POST
 	@Path("InvokeService")
-	public StreamingOutput invokeService(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response)
-	{
-		try
-		{
+	public StreamingOutput invokeService(InputStream is, @Context HttpServletRequest request,
+			@Context HttpServletResponse response) {
+		try {
 			preServiceCall();
 			Object[] args = getArguments(is, request);
 			Object result = getProcessService().invokeService((IServiceDescription) args[0]);
 			return createResult(result, response);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			return createExceptionResult(e, response);
 		}
-		finally
-		{
+		finally {
 			postServiceCall();
 		}
 	}

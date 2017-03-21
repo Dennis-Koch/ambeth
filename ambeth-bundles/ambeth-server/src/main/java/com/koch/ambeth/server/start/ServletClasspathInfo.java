@@ -49,7 +49,7 @@ public class ServletClasspathInfo implements IClasspathInfo {
 
 	@Override
 	public ArrayList<URL> getJarURLs() {
-		ArrayList<URL> urls = new ArrayList<URL>();
+		ArrayList<URL> urls = new ArrayList<>();
 
 		String libs = "/WEB-INF/lib";
 		Set<String> libJars = servletContext.getResourcePaths(libs);

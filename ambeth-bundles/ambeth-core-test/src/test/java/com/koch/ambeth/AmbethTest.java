@@ -35,24 +35,21 @@ import com.koch.ambeth.testutil.BundleTestUtil;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.config.IProperties;
 
-public class AmbethTest
-{
-	// On the CI server the 'property.file' value is relative to the normal tests. The bundle tests have a different parent folder.
+public class AmbethTest {
+	// On the CI server the 'property.file' value is relative to the normal tests. The bundle tests
+	// have a different parent folder.
 	@BeforeClass
-	public static void beforeClass() throws IOException
-	{
+	public static void beforeClass() throws IOException {
 		BundleTestUtil.correctPropertyFilePath();
 	}
 
 	// Basic create tests
 
 	@Test
-	public void testCreateDefault() throws IOException
-	{
+	public void testCreateDefault() throws IOException {
 		IAmbethApplication ambethApplication = Ambeth.createDefault().start();
 		Assert.assertNotNull(ambethApplication);
-		try
-		{
+		try {
 			IServiceContext serviceContext = ambethApplication.getApplicationContext();
 			Assert.assertNotNull(serviceContext);
 
@@ -64,19 +61,16 @@ public class AmbethTest
 			service = serviceContext.getService("booleanArrayConverter", false);
 			Assert.assertNotNull(service);
 		}
-		finally
-		{
+		finally {
 			ambethApplication.close();
 		}
 	}
 
 	@Test
-	public void testCreateBundle() throws IOException
-	{
+	public void testCreateBundle() throws IOException {
 		IAmbethApplication ambethApplication = Ambeth.createBundle(Core.class).start();
 		Assert.assertNotNull(ambethApplication);
-		try
-		{
+		try {
 			IServiceContext serviceContext = ambethApplication.getApplicationContext();
 			Assert.assertNotNull(serviceContext);
 
@@ -88,19 +82,16 @@ public class AmbethTest
 			service = serviceContext.getService("booleanArrayConverter", false);
 			Assert.assertNotNull(service);
 		}
-		finally
-		{
+		finally {
 			ambethApplication.close();
 		}
 	}
 
 	@Test
-	public void testCreateEmpty() throws IOException
-	{
+	public void testCreateEmpty() throws IOException {
 		IAmbethApplication ambethApplication = Ambeth.createEmpty().start();
 		Assert.assertNotNull(ambethApplication);
-		try
-		{
+		try {
 			IServiceContext serviceContext = ambethApplication.getApplicationContext();
 			Assert.assertNotNull(serviceContext);
 
@@ -112,8 +103,7 @@ public class AmbethTest
 			service = serviceContext.getService("booleanArrayConverter", false);
 			Assert.assertNull(service);
 		}
-		finally
-		{
+		finally {
 			ambethApplication.close();
 		}
 	}
@@ -121,40 +111,35 @@ public class AmbethTest
 	// Simple feature tests
 
 	@Test
-	public void testCreateWithProperty() throws IOException
-	{
+	public void testCreateWithProperty() throws IOException {
 		String name = "testProp";
 		String value = "test prop value";
 		IAmbethApplication ambethApplication = Ambeth.createDefault().withProperty(name, value).start();
 		Assert.assertNotNull(ambethApplication);
-		try
-		{
+		try {
 			IServiceContext serviceContext = ambethApplication.getApplicationContext();
 
 			IProperties properties = serviceContext.getService(IProperties.class);
 			Assert.assertNotNull(properties);
 			Assert.assertEquals(value, properties.getString(name));
 		}
-		finally
-		{
+		finally {
 			ambethApplication.close();
 		}
 	}
 
 	@Test
-	public void testCreateWithAmbethModule() throws IOException
-	{
-		IAmbethApplication ambethApplication = Ambeth.createEmpty().withAmbethModules(IocModule.class).start();
-		try
-		{
+	public void testCreateWithAmbethModule() throws IOException {
+		IAmbethApplication ambethApplication =
+				Ambeth.createEmpty().withAmbethModules(IocModule.class).start();
+		try {
 			IServiceContext serviceContext = ambethApplication.getApplicationContext();
 
 			// Should be registered in IoCModule
 			Object service = serviceContext.getService("booleanArrayConverter", false);
 			Assert.assertNotNull(service);
 		}
-		finally
-		{
+		finally {
 			ambethApplication.close();
 		}
 	}

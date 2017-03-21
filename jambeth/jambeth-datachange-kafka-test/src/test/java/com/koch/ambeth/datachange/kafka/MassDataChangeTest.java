@@ -105,7 +105,7 @@ import com.koch.ambeth.xml.util.ClasspathScanner;
 public class MassDataChangeTest extends AbstractIocTest {
 	private static final int NUM_ENTITIES = 1000;
 
-	public static FutureTask<String> future = new FutureTask<String>(new Callable<String>()
+	public static FutureTask<String> future = new FutureTask<>(new Callable<String>()
 
 	{
 		@Override
@@ -240,7 +240,7 @@ public class MassDataChangeTest extends AbstractIocTest {
 	private long testDataChangeEventsWithKafka(IServiceContext left, final IServiceContext right,
 			int countEntities) throws Throwable {
 		IRootCache leftRootCache;
-		final IList<TestEntity> testEntityList = new ArrayList<TestEntity>();
+		final IList<TestEntity> testEntityList = new ArrayList<>();
 		right.createService(CounterModule.class);
 		fillCache(left, countEntities, testEntityList);
 		long mills = System.currentTimeMillis();
@@ -305,7 +305,7 @@ public class MassDataChangeTest extends AbstractIocTest {
 	private long testContextsWithout(IServiceContext left, final IServiceContext right1,
 			int countEntities) throws Throwable {
 		IRootCache leftRootCache;
-		final IList<TestEntity> testEntityList = new ArrayList<TestEntity>();
+		final IList<TestEntity> testEntityList = new ArrayList<>();
 		fillCache(left, countEntities, testEntityList);
 		long mills = System.currentTimeMillis();
 		log.info("start waiting...");

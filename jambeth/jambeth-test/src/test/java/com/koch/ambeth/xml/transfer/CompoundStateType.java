@@ -23,7 +23,6 @@ limitations under the License.
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType(name = "CompoundStateType", namespace = "Comtrack")
-public enum CompoundStateType
-{
+public enum CompoundStateType {
 	INITIALIZED
 }

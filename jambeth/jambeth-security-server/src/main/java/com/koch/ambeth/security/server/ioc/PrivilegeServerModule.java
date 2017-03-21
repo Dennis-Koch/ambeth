@@ -33,18 +33,16 @@ import com.koch.ambeth.security.server.service.PrivilegeService;
 import com.koch.ambeth.security.service.IPrivilegeService;
 
 @FrameworkModule
-public class PrivilegeServerModule implements IInitializingModule
-{
+public class PrivilegeServerModule implements IInitializingModule {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 		beanContextFactory.registerBean("privilegeService", PrivilegeService.class).autowireable(//
-				IPrivilegeService.class,//
-				IEntityPermissionRuleExtendable.class, IEntityTypePermissionRuleExtendable.class,//
+				IPrivilegeService.class, //
+				IEntityPermissionRuleExtendable.class, IEntityTypePermissionRuleExtendable.class, //
 				IEntityPermissionRuleProvider.class, IEntityTypePermissionRuleProvider.class);
 
 	}

@@ -22,7 +22,6 @@ limitations under the License.
 
 import java.beans.PropertyChangeEvent;
 
-public interface ITestListener
-{
+public interface ITestListener {
 	void myMethod(PropertyChangeEvent e);
 }

@@ -34,69 +34,62 @@ import com.koch.ambeth.server.helloworld.service.IHelloWorldService;
 import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.util.collections.HashMap;
 
-public class HelloWorldAuthorizationManager implements IAuthorizationManager
-{
+public class HelloWorldAuthorizationManager implements IAuthorizationManager {
 	@LogInstance
 	private ILogger log;
 
 	protected final Pattern allowAllPattern = Pattern.compile(".*");
 
-	protected final Pattern denyForbiddenMethodPattern = Pattern.compile(IHelloWorldService.class.getName().replaceAll("\\.", "\\\\.") + "\\.forbiddenMethod");
+	protected final Pattern denyForbiddenMethodPattern = Pattern.compile(
+			IHelloWorldService.class.getName().replaceAll("\\.", "\\\\.") + "\\.forbiddenMethod");
 
 	@Override
-	public IAuthorization authorize(String sid, ISecurityScope[] securityScopes, IAuthenticationResult authenticationResult)
-	{
+	public IAuthorization authorize(String sid, ISecurityScope[] securityScopes,
+			IAuthenticationResult authenticationResult) {
 		// Allow all service methods
-		final Pattern[] allowPatterns = new Pattern[] { allowAllPattern };
+		final Pattern[] allowPatterns = new Pattern[] {allowAllPattern};
 
-		final Pattern[] denyPatterns = new Pattern[] { denyForbiddenMethodPattern };
+		final Pattern[] denyPatterns = new Pattern[] {denyForbiddenMethodPattern};
 
-		final IServicePermission[] servicePermissions = new IServicePermission[] { new IServicePermission()
-		{
-			@Override
-			public Pattern[] getPatterns()
-			{
-				return allowPatterns;
-			}
+		final IServicePermission[] servicePermissions =
+				new IServicePermission[] {new IServicePermission() {
+					@Override
+					public Pattern[] getPatterns() {
+						return allowPatterns;
+					}
 
-			@Override
-			public PermissionApplyType getApplyType()
-			{
-				return PermissionApplyType.ALLOW;
-			}
+					@Override
+					public PermissionApplyType getApplyType() {
+						return PermissionApplyType.ALLOW;
+					}
 
-		}, new IServicePermission()
-		{
-			@Override
-			public Pattern[] getPatterns()
-			{
-				return denyPatterns;
-			}
+				}, new IServicePermission() {
+					@Override
+					public Pattern[] getPatterns() {
+						return denyPatterns;
+					}
 
-			@Override
-			public PermissionApplyType getApplyType()
-			{
-				return PermissionApplyType.DENY;
-			}
+					@Override
+					public PermissionApplyType getApplyType() {
+						return PermissionApplyType.DENY;
+					}
 
-		} };
+				}};
 
-		HashMap<ISecurityScope, IServicePermission[]> servicePermissionMap = new HashMap<ISecurityScope, IServicePermission[]>();
-		for (ISecurityScope securityScope : securityScopes)
-		{
+		HashMap<ISecurityScope, IServicePermission[]> servicePermissionMap =
+				new HashMap<>();
+		for (ISecurityScope securityScope : securityScopes) {
 			servicePermissionMap.put(securityScope, servicePermissions);
 		}
-		return new AbstractAuthorization(servicePermissionMap, securityScopes, null, null, null, null, System.currentTimeMillis(), authenticationResult)
-		{
+		return new AbstractAuthorization(servicePermissionMap, securityScopes, null, null, null, null,
+				System.currentTimeMillis(), authenticationResult) {
 			@Override
-			public boolean isValid()
-			{
+			public boolean isValid() {
 				return false;
 			}
 
 			@Override
-			public String getSID()
-			{
+			public String getSID() {
 				return null;
 			}
 		};

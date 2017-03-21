@@ -20,6 +20,5 @@ limitations under the License.
  * #L%
  */
 
-public class MyBean2
-{
+public class MyBean2 {
 }

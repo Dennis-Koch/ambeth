@@ -24,11 +24,12 @@ import com.koch.ambeth.merge.util.IPrefetchState;
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.ISet;
 
-public interface ICachePathHelper
-{
-	void buildCachePath(Class<?> entityType, String memberToInitialize, ISet<AppendableCachePath> cachePaths);
+public interface ICachePathHelper {
+	void buildCachePath(Class<?> entityType, String memberToInitialize,
+			ISet<AppendableCachePath> cachePaths);
 
-	IPrefetchState ensureInitializedRelations(Object objects, ILinkedMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchSteps);
+	IPrefetchState ensureInitializedRelations(Object objects,
+			ILinkedMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchSteps);
 
 	AppendableCachePath copyCachePathToAppendable(PrefetchPath cachePath);
 

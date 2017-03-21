@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.persistence.api.IDatabase;
 
-public interface IDatabaseLifecycleCallback
-{
+public interface IDatabaseLifecycleCallback {
 
 	void databaseNotFound(Object databaseHandle, String dbName);
 

@@ -20,22 +20,18 @@ limitations under the License.
  * #L%
  */
 
-public abstract class ListCompare
-{
+public abstract class ListCompare {
 	protected int id = -1;
 
-	public void setFindID(final int iid)
-	{
+	public void setFindID(final int iid) {
 		id = iid;
 	}
 
-	public boolean isObject(final Object value)
-	{
+	public boolean isObject(final Object value) {
 		return false;
 	}
 
-	public void handleObject(final Object value)
-	{
+	public void handleObject(final Object value) {
 
 	}
 }

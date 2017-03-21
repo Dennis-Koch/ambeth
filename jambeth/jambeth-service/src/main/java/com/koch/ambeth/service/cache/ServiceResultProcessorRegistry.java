@@ -26,8 +26,8 @@ import com.koch.ambeth.ioc.extendable.IMapExtendableContainer;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 
-public class ServiceResultProcessorRegistry implements IInitializingBean, IServiceResultProcessorExtendable, IServiceResultProcessorRegistry
-{
+public class ServiceResultProcessorRegistry implements IInitializingBean,
+		IServiceResultProcessorExtendable, IServiceResultProcessorRegistry {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -35,26 +35,25 @@ public class ServiceResultProcessorRegistry implements IInitializingBean, IServi
 	protected IMapExtendableContainer<Class<?>, IServiceResultProcessor> extensions;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		extensions = new ClassExtendableContainer<IServiceResultProcessor>("serviceResultProcessor", "returnType");
+	public void afterPropertiesSet() throws Throwable {
+		extensions = new ClassExtendableContainer<>("serviceResultProcessor",
+				"returnType");
 	}
 
 	@Override
-	public IServiceResultProcessor getServiceResultProcessor(Class<?> returnType)
-	{
+	public IServiceResultProcessor getServiceResultProcessor(Class<?> returnType) {
 		return extensions.getExtension(returnType);
 	}
 
 	@Override
-	public void registerServiceResultProcessor(IServiceResultProcessor serviceResultProcessor, Class<?> returnType)
-	{
+	public void registerServiceResultProcessor(IServiceResultProcessor serviceResultProcessor,
+			Class<?> returnType) {
 		extensions.register(serviceResultProcessor, returnType);
 	}
 
 	@Override
-	public void unregisterServiceResultProcessor(IServiceResultProcessor serviceResultProcessor, Class<?> returnType)
-	{
+	public void unregisterServiceResultProcessor(IServiceResultProcessor serviceResultProcessor,
+			Class<?> returnType) {
 		extensions.unregister(serviceResultProcessor, returnType);
 	}
 }

@@ -29,8 +29,7 @@ import com.koch.ambeth.security.server.IPasswordUtil;
 import com.koch.ambeth.security.server.ISignatureUtil;
 import com.koch.ambeth.security.server.IUserResolver;
 
-public class HelloworldUserResolver implements IUserResolver
-{
+public class HelloworldUserResolver implements IUserResolver {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -42,15 +41,13 @@ public class HelloworldUserResolver implements IUserResolver
 	protected ISignatureUtil signatureUtil;
 
 	@Override
-	public IUser resolveUserBySID(String sid)
-	{
+	public IUser resolveUserBySID(String sid) {
 		PojoUser user = new PojoUser(sid);
 		user.setPassword(createInMemoryPasswordBySID(user, sid));
 		return user;
 	}
 
-	protected IPassword createInMemoryPasswordBySID(IUser user, String sid)
-	{
+	protected IPassword createInMemoryPasswordBySID(IUser user, String sid) {
 		char[] clearTextPassword = sid.toCharArray();
 		passwordUtil.assignNewPassword(clearTextPassword, user, null);
 		signatureUtil.generateNewSignature(user.getSignature(), clearTextPassword);

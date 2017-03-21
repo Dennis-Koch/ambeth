@@ -24,8 +24,7 @@ import com.koch.ambeth.xml.pending.ICommandTypeExtendable;
 import com.koch.ambeth.xml.pending.ICommandTypeRegistry;
 import com.koch.ambeth.xml.pending.IObjectCommand;
 
-public interface IReader
-{
+public interface IReader {
 	boolean isEmptyElement();
 
 	String getAttributeValue(String attributeName);

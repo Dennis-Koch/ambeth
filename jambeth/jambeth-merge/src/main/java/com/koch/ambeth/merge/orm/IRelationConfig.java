@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IRelationConfig extends IOrmConfig
-{
+public interface IRelationConfig extends IOrmConfig {
 	// Intended blank
 }

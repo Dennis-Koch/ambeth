@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 
-public interface IEntityMetaDataHolder
-{
+public interface IEntityMetaDataHolder {
 	IEntityMetaData get__EntityMetaData();
 }

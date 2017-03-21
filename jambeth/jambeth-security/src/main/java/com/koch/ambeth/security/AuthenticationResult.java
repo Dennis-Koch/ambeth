@@ -21,36 +21,32 @@ limitations under the License.
  */
 
 
-public class AuthenticationResult implements IAuthenticationResult
-{
+public class AuthenticationResult implements IAuthenticationResult {
 	private final String sid;
 
 	private final boolean changePasswordRecommended;
 
 	private final boolean rehashPasswordRecommended;
 
-	public AuthenticationResult(String sid, boolean changePasswordRecommended, boolean rehashPasswordRecommended)
-	{
+	public AuthenticationResult(String sid, boolean changePasswordRecommended,
+			boolean rehashPasswordRecommended) {
 		this.sid = sid;
 		this.changePasswordRecommended = changePasswordRecommended;
 		this.rehashPasswordRecommended = rehashPasswordRecommended;
 	}
 
 	@Override
-	public String getSID()
-	{
+	public String getSID() {
 		return sid;
 	}
 
 	@Override
-	public boolean isChangePasswordRecommended()
-	{
+	public boolean isChangePasswordRecommended() {
 		return changePasswordRecommended;
 	}
 
 	@Override
-	public boolean isRehashPasswordRecommended()
-	{
+	public boolean isRehashPasswordRecommended() {
 		return rehashPasswordRecommended;
 	}
 }

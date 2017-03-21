@@ -30,8 +30,7 @@ import com.koch.ambeth.util.annotation.XmlType;
 import com.koch.ambeth.util.model.IMethodDescription;
 
 @XmlType
-public interface IMergeService
-{
+public interface IMergeService {
 	IOriCollection merge(ICUDResult cudResult, IMethodDescription methodDescription);
 
 	List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes);

@@ -20,9 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public interface ISecurityScopeChangeListenerExtendable
-{
-	void registerSecurityScopeChangeListener(ISecurityScopeChangeListener securityScopeChangeListener);
-	
-	void unregisterSecurityScopeChangeListener(ISecurityScopeChangeListener securityScopeChangeListener);
+public interface ISecurityScopeChangeListenerExtendable {
+	void registerSecurityScopeChangeListener(
+			ISecurityScopeChangeListener securityScopeChangeListener);
+
+	void unregisterSecurityScopeChangeListener(
+			ISecurityScopeChangeListener securityScopeChangeListener);
 }

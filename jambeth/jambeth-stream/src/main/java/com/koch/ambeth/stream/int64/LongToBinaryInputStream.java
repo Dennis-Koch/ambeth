@@ -25,34 +25,29 @@ import java.io.IOException;
 import com.koch.ambeth.stream.binary.IBinaryInputStream;
 
 /**
- * Provides a binary stream bit-encoded long values. These explicitly means that every 8 bytes belong to the same long value
+ * Provides a binary stream bit-encoded long values. These explicitly means that every 8 bytes
+ * belong to the same long value
  */
-public class LongToBinaryInputStream implements IBinaryInputStream
-{
+public class LongToBinaryInputStream implements IBinaryInputStream {
 	private int outputIndex = 8;
 
 	private final int[] output = new int[8];
 
 	private final ILongInputStream is;
 
-	public LongToBinaryInputStream(ILongInputStream is)
-	{
+	public LongToBinaryInputStream(ILongInputStream is) {
 		this.is = is;
 	}
 
 	@Override
-	public void close() throws IOException
-	{
+	public void close() throws IOException {
 		is.close();
 	}
 
 	@Override
-	public int readByte()
-	{
-		if (outputIndex == 8)
-		{
-			if (!is.hasLong())
-			{
+	public int readByte() {
+		if (outputIndex == 8) {
+			if (!is.hasLong()) {
 				return -1;
 			}
 			outputIndex = 0;

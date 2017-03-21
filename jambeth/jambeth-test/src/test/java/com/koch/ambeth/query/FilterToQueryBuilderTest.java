@@ -67,24 +67,24 @@ public class FilterToQueryBuilderTest extends AbstractInformationBusWithPersiste
 	@Test
 	public void testBuildQuery_ManyChildFilters() {
 		CompositeFilterDescriptor<QueryEntity> filterDescriptor =
-				new CompositeFilterDescriptor<QueryEntity>(QueryEntity.class);
+				new CompositeFilterDescriptor<>(QueryEntity.class);
 		filterDescriptor.setLogicalOperator(LogicalOperator.OR);
 		List<IFilterDescriptor<QueryEntity>> childFilterDescriptors =
-				new ArrayList<IFilterDescriptor<QueryEntity>>();
+				new ArrayList<>();
 
 		for (int i = 0; i < 5000; i++) {
-			FilterDescriptor<QueryEntity> filter1 = new FilterDescriptor<QueryEntity>(QueryEntity.class);
+			FilterDescriptor<QueryEntity> filter1 = new FilterDescriptor<>(QueryEntity.class);
 			filter1.setMember("Id");
 			filter1.setOperator(FilterOperator.IS_EQUAL_TO);
 			filter1.setValue(Arrays.asList(Integer.toString(i)));
 
-			FilterDescriptor<QueryEntity> filter2 = new FilterDescriptor<QueryEntity>(QueryEntity.class);
+			FilterDescriptor<QueryEntity> filter2 = new FilterDescriptor<>(QueryEntity.class);
 			filter2.setMember("Version");
 			filter2.setOperator(FilterOperator.IS_EQUAL_TO);
 			filter2.setValue(Arrays.asList(Integer.toString(2)));
 
 			CompositeFilterDescriptor<QueryEntity> childFilter =
-					new CompositeFilterDescriptor<QueryEntity>(QueryEntity.class);
+					new CompositeFilterDescriptor<>(QueryEntity.class);
 			childFilter.setLogicalOperator(LogicalOperator.AND);
 			@SuppressWarnings("unchecked")
 			List<IFilterDescriptor<QueryEntity>> subFilters =

@@ -24,8 +24,7 @@ import java.util.List;
 
 import com.koch.ambeth.service.merge.model.IObjRef;
 
-public interface IWritableCache extends ICache
-{
+public interface IWritableCache extends ICache {
 	int getCacheId();
 
 	void clear();

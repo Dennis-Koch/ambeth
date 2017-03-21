@@ -38,8 +38,7 @@ import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.xml.IXmlConfigUtil;
 
 @TestModule(OrmXmlReader20TestModule.class)
-public class OrmXmlReader20Test extends AbstractIocTest
-{
+public class OrmXmlReader20Test extends AbstractIocTest {
 	protected static final IDatabase database = new DatabaseDummy();
 
 	@Autowired
@@ -52,14 +51,13 @@ public class OrmXmlReader20Test extends AbstractIocTest
 	protected IXmlConfigUtil xmlConfigUtil;
 
 	@Test
-	public void testLoadFromDocument()
-	{
+	public void testLoadFromDocument() {
 		String xmlFileNames = "com/koch/ambeth/orm20/orm20.xml";
 		Document[] docs = xmlConfigUtil.readXmlFiles(xmlFileNames);
 		assertEquals(1, docs.length);
 
-		Set<EntityConfig> localEntities = new HashSet<EntityConfig>();
-		Set<EntityConfig> externalEntities = new HashSet<EntityConfig>();
+		Set<EntityConfig> localEntities = new HashSet<>();
+		Set<EntityConfig> externalEntities = new HashSet<>();
 		reader.loadFromDocument(docs[0], localEntities, externalEntities, defaultOrmEntityTypeProvider);
 
 		assertEquals(4, localEntities.size());
@@ -67,14 +65,13 @@ public class OrmXmlReader20Test extends AbstractIocTest
 	}
 
 	@Test
-	public void testLoadFromDocumentIndependent()
-	{
+	public void testLoadFromDocumentIndependent() {
 		String xmlFileNames = "com/koch/ambeth/orm20/independent-orm20.xml";
 		Document[] docs = xmlConfigUtil.readXmlFiles(xmlFileNames);
 		assertEquals(1, docs.length);
 
-		Set<EntityConfig> localEntities = new HashSet<EntityConfig>();
-		Set<EntityConfig> externalEntities = new HashSet<EntityConfig>();
+		Set<EntityConfig> localEntities = new HashSet<>();
+		Set<EntityConfig> externalEntities = new HashSet<>();
 		reader.loadFromDocument(docs[0], localEntities, externalEntities, defaultOrmEntityTypeProvider);
 
 		assertEquals(4, localEntities.size());

@@ -23,7 +23,6 @@ limitations under the License.
 import com.koch.ambeth.service.cache.model.IServiceResult;
 import com.koch.ambeth.service.model.IServiceDescription;
 
-public interface ExecuteServiceDelegate
-{
+public interface ExecuteServiceDelegate {
 	IServiceResult invoke(IServiceDescription serviceDescription);
 }

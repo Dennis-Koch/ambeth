@@ -20,23 +20,19 @@ limitations under the License.
  * #L%
  */
 
-public class PrefetchFuture implements IObjectFuture
-{
+public class PrefetchFuture implements IObjectFuture {
 	private Iterable<Object> toPrefetch;
 
-	public PrefetchFuture(Iterable<Object> toPrefetch)
-	{
+	public PrefetchFuture(Iterable<Object> toPrefetch) {
 		this.toPrefetch = toPrefetch;
 	}
 
 	@Override
-	public Object getValue()
-	{
+	public Object getValue() {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
-	public Iterable<Object> getToPrefetch()
-	{
+	public Iterable<Object> getToPrefetch() {
 		return toPrefetch;
 	}
 }

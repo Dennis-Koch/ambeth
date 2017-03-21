@@ -31,266 +31,225 @@ import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
-public class SecurityActivation implements ISecurityActivation, IThreadLocalCleanupBean
-{
+public class SecurityActivation implements ISecurityActivation, IThreadLocalCleanupBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Forkable
-	protected final ThreadLocal<Boolean> serviceActiveTL = new ThreadLocal<Boolean>();
+	protected final ThreadLocal<Boolean> serviceActiveTL = new ThreadLocal<>();
 
 	@Forkable
-	protected final ThreadLocal<Boolean> securityActiveTL = new ThreadLocal<Boolean>();
+	protected final ThreadLocal<Boolean> securityActiveTL = new ThreadLocal<>();
 
 	@Forkable
-	protected final ThreadLocal<Boolean> entityActiveTL = new ThreadLocal<Boolean>();
+	protected final ThreadLocal<Boolean> entityActiveTL = new ThreadLocal<>();
 
 	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
 
 	@Override
-	public void cleanupThreadLocal()
-	{
-		if (securityActiveTL.get() != null || entityActiveTL.get() != null || serviceActiveTL.get() != null)
-		{
+	public void cleanupThreadLocal() {
+		if (securityActiveTL.get() != null || entityActiveTL.get() != null
+				|| serviceActiveTL.get() != null) {
 			throw new IllegalStateException("Must be null at this point");
 		}
 	}
 
 	@Override
-	public boolean isSecured()
-	{
+	public boolean isSecured() {
 		Boolean value = securityActiveTL.get();
-		if (value == null)
-		{
+		if (value == null) {
 			return securityActive;
 		}
 		return value.booleanValue();
 	}
 
 	@Override
-	public boolean isFilterActivated()
-	{
+	public boolean isFilterActivated() {
 		return isEntitySecurityEnabled();
 	}
 
-	public boolean isEntitySecurityEnabled()
-	{
-		if (!securityActive)
-		{
+	public boolean isEntitySecurityEnabled() {
+		if (!securityActive) {
 			return false;
 		}
 		Boolean value = securityActiveTL.get();
-		if (Boolean.FALSE.equals(value))
-		{
+		if (Boolean.FALSE.equals(value)) {
 			return false;
 		}
 		value = entityActiveTL.get();
-		if (value != null)
-		{
+		if (value != null) {
 			return value.booleanValue();
 		}
 		return true;
 	}
 
 	@Override
-	public boolean isServiceSecurityEnabled()
-	{
-		if (!securityActive)
-		{
+	public boolean isServiceSecurityEnabled() {
+		if (!securityActive) {
 			return false;
 		}
 		Boolean value = securityActiveTL.get();
-		if (Boolean.FALSE.equals(value))
-		{
+		if (Boolean.FALSE.equals(value)) {
 			return false;
 		}
 		value = serviceActiveTL.get();
-		if (value != null)
-		{
+		if (value != null) {
 			return value.booleanValue();
 		}
 		return true;
 	}
 
-	public boolean isServiceOrEntitySecurityEnabled()
-	{
+	public boolean isServiceOrEntitySecurityEnabled() {
 		return isEntitySecurityEnabled() || isServiceSecurityEnabled();
 	}
 
 	@Override
-	public void executeWithoutSecurity(IBackgroundWorkerDelegate pausedSecurityRunnable) throws Throwable
-	{
+	public void executeWithoutSecurity(IBackgroundWorkerDelegate pausedSecurityRunnable)
+			throws Throwable {
 		Boolean oldSecurityActive = securityActiveTL.get();
 		securityActiveTL.set(Boolean.FALSE);
-		try
-		{
+		try {
 			pausedSecurityRunnable.invoke();
 		}
-		finally
-		{
+		finally {
 			securityActiveTL.set(oldSecurityActive);
 		}
 	}
 
 	@Override
-	public <R> R executeWithoutSecurity(IResultingBackgroundWorkerDelegate<R> pausedSecurityRunnable) throws Throwable
-	{
+	public <R> R executeWithoutSecurity(IResultingBackgroundWorkerDelegate<R> pausedSecurityRunnable)
+			throws Throwable {
 		Boolean oldSecurityActive = securityActiveTL.get();
 		securityActiveTL.set(Boolean.FALSE);
-		try
-		{
+		try {
 			return pausedSecurityRunnable.invoke();
 		}
-		finally
-		{
+		finally {
 			securityActiveTL.set(oldSecurityActive);
 		}
 	}
 
 	@Override
-	public void executeWithoutFiltering(IBackgroundWorkerDelegate noFilterRunnable) throws Throwable
-	{
+	public void executeWithoutFiltering(IBackgroundWorkerDelegate noFilterRunnable) throws Throwable {
 		Boolean oldFilterActive = entityActiveTL.get();
 		entityActiveTL.set(Boolean.FALSE);
-		try
-		{
+		try {
 			noFilterRunnable.invoke();
 		}
-		finally
-		{
+		finally {
 			entityActiveTL.set(oldFilterActive);
 		}
 	}
 
 	@Override
-	public <R> R executeWithoutFiltering(IResultingBackgroundWorkerDelegate<R> noFilterRunnable) throws Throwable
-	{
+	public <R> R executeWithoutFiltering(IResultingBackgroundWorkerDelegate<R> noFilterRunnable)
+			throws Throwable {
 		Boolean oldFilterActive = entityActiveTL.get();
 		entityActiveTL.set(Boolean.FALSE);
-		try
-		{
+		try {
 			return noFilterRunnable.invoke();
 		}
-		finally
-		{
+		finally {
 			entityActiveTL.set(oldFilterActive);
 		}
 	}
 
 	@Override
-	public void executeWithSecurityDirective(Set<SecurityDirective> securityDirective, IBackgroundWorkerDelegate runnable) throws Throwable
-	{
-		Boolean securityActive = securityDirective.contains(SecurityDirective.DISABLE_SECURITY) ? Boolean.FALSE : securityDirective
-				.contains(SecurityDirective.ENABLE_SECURITY) ? Boolean.TRUE : null;
-		Boolean entityActive = securityDirective.contains(SecurityDirective.DISABLE_ENTITY_CHECK) ? Boolean.FALSE : securityDirective
-				.contains(SecurityDirective.ENABLE_ENTITY_CHECK) ? Boolean.TRUE : null;
-		Boolean serviceActive = securityDirective.contains(SecurityDirective.DISABLE_SERVICE_CHECK) ? Boolean.FALSE : securityDirective
-				.contains(SecurityDirective.ENABLE_SERVICE_CHECK) ? Boolean.TRUE : null;
+	public void executeWithSecurityDirective(Set<SecurityDirective> securityDirective,
+			IBackgroundWorkerDelegate runnable) throws Throwable {
+		Boolean securityActive =
+				securityDirective.contains(SecurityDirective.DISABLE_SECURITY) ? Boolean.FALSE
+						: securityDirective.contains(SecurityDirective.ENABLE_SECURITY) ? Boolean.TRUE : null;
+		Boolean entityActive = securityDirective.contains(SecurityDirective.DISABLE_ENTITY_CHECK)
+				? Boolean.FALSE
+				: securityDirective.contains(SecurityDirective.ENABLE_ENTITY_CHECK) ? Boolean.TRUE : null;
+		Boolean serviceActive = securityDirective.contains(SecurityDirective.DISABLE_SERVICE_CHECK)
+				? Boolean.FALSE
+				: securityDirective.contains(SecurityDirective.ENABLE_SERVICE_CHECK) ? Boolean.TRUE : null;
 		Boolean oldSecurityActive = null, oldEntityActive = null, oldServiceActive = null;
-		if (securityActive != null)
-		{
+		if (securityActive != null) {
 			oldSecurityActive = securityActiveTL.get();
 			securityActiveTL.set(securityActive);
 		}
-		try
-		{
-			if (entityActive != null)
-			{
+		try {
+			if (entityActive != null) {
 				oldEntityActive = entityActiveTL.get();
 				entityActiveTL.set(entityActive);
 			}
-			try
-			{
-				if (serviceActive != null)
-				{
+			try {
+				if (serviceActive != null) {
 					oldServiceActive = serviceActiveTL.get();
 					serviceActiveTL.set(serviceActive);
 				}
-				try
-				{
+				try {
 					runnable.invoke();
 					return;
 				}
-				finally
-				{
-					if (serviceActive != null)
-					{
+				finally {
+					if (serviceActive != null) {
 						serviceActiveTL.set(oldServiceActive);
 					}
 				}
 			}
-			finally
-			{
-				if (entityActive != null)
-				{
+			finally {
+				if (entityActive != null) {
 					entityActiveTL.set(oldEntityActive);
 				}
 			}
 		}
-		finally
-		{
-			if (securityActive != null)
-			{
+		finally {
+			if (securityActive != null) {
 				securityActiveTL.set(oldSecurityActive);
 			}
 		}
 	}
 
 	@Override
-	public <R> R executeWithSecurityDirective(Set<SecurityDirective> securityDirective, IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable
-	{
-		Boolean securityActive = securityDirective.contains(SecurityDirective.DISABLE_SECURITY) ? Boolean.FALSE : securityDirective
-				.contains(SecurityDirective.ENABLE_SECURITY) ? Boolean.TRUE : null;
-		Boolean entityActive = securityDirective.contains(SecurityDirective.DISABLE_ENTITY_CHECK) ? Boolean.FALSE : securityDirective
-				.contains(SecurityDirective.ENABLE_ENTITY_CHECK) ? Boolean.TRUE : null;
-		Boolean serviceActive = securityDirective.contains(SecurityDirective.DISABLE_SERVICE_CHECK) ? Boolean.FALSE : securityDirective
-				.contains(SecurityDirective.ENABLE_SERVICE_CHECK) ? Boolean.TRUE : null;
+	public <R> R executeWithSecurityDirective(Set<SecurityDirective> securityDirective,
+			IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable {
+		Boolean securityActive =
+				securityDirective.contains(SecurityDirective.DISABLE_SECURITY) ? Boolean.FALSE
+						: securityDirective.contains(SecurityDirective.ENABLE_SECURITY) ? Boolean.TRUE : null;
+		Boolean entityActive = securityDirective.contains(SecurityDirective.DISABLE_ENTITY_CHECK)
+				? Boolean.FALSE
+				: securityDirective.contains(SecurityDirective.ENABLE_ENTITY_CHECK) ? Boolean.TRUE : null;
+		Boolean serviceActive = securityDirective.contains(SecurityDirective.DISABLE_SERVICE_CHECK)
+				? Boolean.FALSE
+				: securityDirective.contains(SecurityDirective.ENABLE_SERVICE_CHECK) ? Boolean.TRUE : null;
 		Boolean oldSecurityActive = null, oldEntityActive = null, oldServiceActive = null;
-		if (securityActive != null)
-		{
+		if (securityActive != null) {
 			oldSecurityActive = securityActiveTL.get();
 			securityActiveTL.set(securityActive);
 		}
-		try
-		{
-			if (entityActive != null)
-			{
+		try {
+			if (entityActive != null) {
 				oldEntityActive = entityActiveTL.get();
 				entityActiveTL.set(entityActive);
 			}
-			try
-			{
-				if (serviceActive != null)
-				{
+			try {
+				if (serviceActive != null) {
 					oldServiceActive = serviceActiveTL.get();
 					serviceActiveTL.set(serviceActive);
 				}
-				try
-				{
+				try {
 					return runnable.invoke();
 				}
-				finally
-				{
-					if (serviceActive != null)
-					{
+				finally {
+					if (serviceActive != null) {
 						serviceActiveTL.set(oldServiceActive);
 					}
 				}
 			}
-			finally
-			{
-				if (entityActive != null)
-				{
+			finally {
+				if (entityActive != null) {
 					entityActiveTL.set(oldEntityActive);
 				}
 			}
 		}
-		finally
-		{
-			if (securityActive != null)
-			{
+		finally {
+			if (securityActive != null) {
 				securityActiveTL.set(oldSecurityActive);
 			}
 		}

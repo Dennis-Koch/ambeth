@@ -27,8 +27,8 @@ import com.koch.ambeth.merge.objrefstore.ObjRefStore;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IListElem;
 
-public class DataChangeStoreItem extends ArrayList<ObjRefStore> implements IQueuedEvent, IListElem<IQueuedEvent>, IReplacedEvent
-{
+public class DataChangeStoreItem extends ArrayList<ObjRefStore>
+		implements IQueuedEvent, IListElem<IQueuedEvent>, IReplacedEvent {
 	protected final int insertCount, updateCount;
 
 	protected final long changeTime;
@@ -39,8 +39,8 @@ public class DataChangeStoreItem extends ArrayList<ObjRefStore> implements IQueu
 
 	protected IListElem<IQueuedEvent> prev, next;
 
-	public DataChangeStoreItem(ObjRefStore[] allArray, int insertCount, int updateCount, long changeTime)
-	{
+	public DataChangeStoreItem(ObjRefStore[] allArray, int insertCount, int updateCount,
+			long changeTime) {
 		super(allArray);
 		this.insertCount = insertCount;
 		this.updateCount = updateCount;
@@ -48,86 +48,72 @@ public class DataChangeStoreItem extends ArrayList<ObjRefStore> implements IQueu
 	}
 
 	@Override
-	public Class<?> getOriginalEventType()
-	{
+	public Class<?> getOriginalEventType() {
 		return IDataChange.class;
 	}
 
 	@Override
-	public Object getListHandle()
-	{
+	public Object getListHandle() {
 		return listHandle;
 	}
 
 	@Override
-	public void setListHandle(Object listHandle)
-	{
+	public void setListHandle(Object listHandle) {
 		this.listHandle = listHandle;
 	}
 
 	@Override
-	public IListElem<IQueuedEvent> getPrev()
-	{
+	public IListElem<IQueuedEvent> getPrev() {
 		return prev;
 	}
 
 	@Override
-	public void setPrev(IListElem<IQueuedEvent> prev)
-	{
+	public void setPrev(IListElem<IQueuedEvent> prev) {
 		this.prev = prev;
 	}
 
 	@Override
-	public IListElem<IQueuedEvent> getNext()
-	{
+	public IListElem<IQueuedEvent> getNext() {
 		return next;
 	}
 
 	@Override
-	public void setNext(IListElem<IQueuedEvent> next)
-	{
+	public void setNext(IListElem<IQueuedEvent> next) {
 		this.next = next;
 	}
 
 	@Override
-	public IQueuedEvent getElemValue()
-	{
+	public IQueuedEvent getElemValue() {
 		return this;
 	}
 
 	@Override
-	public void setElemValue(IQueuedEvent value)
-	{
+	public void setElemValue(IQueuedEvent value) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Object getEventObject()
-	{
+	public Object getEventObject() {
 		return this;
 	}
 
 	@Override
-	public long getDispatchTime()
-	{
+	public long getDispatchTime() {
 		return dispatchTime;
 	}
 
 	@Override
-	public long getSequenceNumber()
-	{
+	public long getSequenceNumber() {
 		return sequenceNumber;
 	}
 
 	@Override
-	public void setDispatchTime(long dispatchTime)
-	{
+	public void setDispatchTime(long dispatchTime) {
 		this.dispatchTime = dispatchTime;
 	}
 
 	@Override
-	public void setSequenceNumber(long sequenceNumber)
-	{
+	public void setSequenceNumber(long sequenceNumber) {
 		this.sequenceNumber = sequenceNumber;
 	}
 }

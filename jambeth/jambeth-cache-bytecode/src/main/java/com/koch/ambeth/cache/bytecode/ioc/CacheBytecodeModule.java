@@ -37,11 +37,9 @@ import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 
 @FrameworkModule
-public class CacheBytecodeModule implements IInitializingModule
-{
+public class CacheBytecodeModule implements IInitializingModule {
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 		// cascade $1
 		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, EmbeddedTypeBehavior.class);
 		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, EnhancedTypeBehavior.class);
@@ -49,12 +47,15 @@ public class CacheBytecodeModule implements IInitializingModule
 		// cascade $2
 		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, LazyRelationsBehavior.class);
 
-		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, InitializeEmbeddedMemberBehavior.class);
+		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory,
+				InitializeEmbeddedMemberBehavior.class);
 		// cascade $3
-		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, NotifyPropertyChangedBehavior.class);
+		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory,
+				NotifyPropertyChangedBehavior.class);
 		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, ParentCacheHardRefBehavior.class);
 		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, EntityEqualsBehavior.class);
-		// BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, PublicEmbeddedConstructorBehavior.class);
+		// BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory,
+		// PublicEmbeddedConstructorBehavior.class);
 		// cascade $4
 		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, DataObjectBehavior.class);
 

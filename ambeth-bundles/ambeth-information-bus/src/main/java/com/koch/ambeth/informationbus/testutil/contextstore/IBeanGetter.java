@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IBeanGetter
-{
+public interface IBeanGetter {
 	Object getBean(IServiceContextStore contextStore);
 }

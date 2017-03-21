@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ICacheServiceByNameExtendable
-{
+public interface ICacheServiceByNameExtendable {
 	void registerCacheService(ICacheService cacheService, String serviceName);
 
 	void unregisterCacheService(ICacheService cacheService, String serviceName);

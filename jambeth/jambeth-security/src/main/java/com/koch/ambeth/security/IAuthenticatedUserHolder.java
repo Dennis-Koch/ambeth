@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IAuthenticatedUserHolder
-{
+public interface IAuthenticatedUserHolder {
 	String getAuthenticatedSID();
 
 	void setAuthenticatedSID(String authenticatedSID);

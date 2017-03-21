@@ -24,8 +24,7 @@ import java.util.Date;
 
 import com.koch.ambeth.stream.IInputStream;
 
-public interface IDateInputStream extends IInputStream
-{
+public interface IDateInputStream extends IInputStream {
 	boolean hasDate();
 
 	Date readDate();

@@ -20,18 +20,15 @@ limitations under the License.
  * #L%
  */
 
-public class EntityMetaDataAddedEvent implements IEntityMetaDataEvent
-{
+public class EntityMetaDataAddedEvent implements IEntityMetaDataEvent {
 	protected Class<?>[] entityTypes;
 
-	public EntityMetaDataAddedEvent(Class<?>... entityTypes)
-	{
+	public EntityMetaDataAddedEvent(Class<?>... entityTypes) {
 		this.entityTypes = entityTypes;
 	}
 
 	@Override
-	public Class<?>[] getEntityTypes()
-	{
+	public Class<?>[] getEntityTypes() {
 		return entityTypes;
 	}
 }

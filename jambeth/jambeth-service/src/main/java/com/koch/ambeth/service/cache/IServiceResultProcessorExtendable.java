@@ -20,9 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public interface IServiceResultProcessorExtendable
-{
-	void registerServiceResultProcessor(IServiceResultProcessor serviceResultProcessor, Class<?> returnType);
+public interface IServiceResultProcessorExtendable {
+	void registerServiceResultProcessor(IServiceResultProcessor serviceResultProcessor,
+			Class<?> returnType);
 
-	void unregisterServiceResultProcessor(IServiceResultProcessor serviceResultProcessor, Class<?> returnType);
+	void unregisterServiceResultProcessor(IServiceResultProcessor serviceResultProcessor,
+			Class<?> returnType);
 }

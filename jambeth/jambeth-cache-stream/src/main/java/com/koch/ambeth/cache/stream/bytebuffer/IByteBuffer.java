@@ -25,8 +25,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
-public interface IByteBuffer
-{
+public interface IByteBuffer {
 	byte byteAt(long offset);
 
 	byte[] getBytes(long offset, int len);

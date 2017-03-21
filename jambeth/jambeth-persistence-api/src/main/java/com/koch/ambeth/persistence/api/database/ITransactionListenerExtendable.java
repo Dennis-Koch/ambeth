@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ITransactionListenerExtendable
-{
+public interface ITransactionListenerExtendable {
 	void registerTransactionListener(ITransactionListener transactionListener);
 
 	void unregisterTransactionListener(ITransactionListener transactionListener);

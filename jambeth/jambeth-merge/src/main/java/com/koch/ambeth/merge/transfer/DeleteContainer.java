@@ -26,7 +26,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "DeleteContainer", namespace = "http://schema.kochdev.com/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class DeleteContainer extends AbstractChangeContainer
-{
+public class DeleteContainer extends AbstractChangeContainer {
 	// Intended blank
 }

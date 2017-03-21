@@ -23,14 +23,13 @@ limitations under the License.
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.config.IProperties;
 
-public class PropertyEmbeddedRefConfiguration extends AbstractPropertyConfiguration
-{
+public class PropertyEmbeddedRefConfiguration extends AbstractPropertyConfiguration {
 	protected String propertyName;
 
 	protected IBeanConfiguration embeddedBean;
 
-	public PropertyEmbeddedRefConfiguration(IBeanConfiguration parentBeanConfiguration, String propertyName, IBeanConfiguration embeddedBean, IProperties props)
-	{
+	public PropertyEmbeddedRefConfiguration(IBeanConfiguration parentBeanConfiguration,
+			String propertyName, IBeanConfiguration embeddedBean, IProperties props) {
 		super(parentBeanConfiguration, props);
 		ParamChecker.assertParamNotNull(propertyName, "propertyName");
 		ParamChecker.assertParamNotNull(embeddedBean, "embeddedBean");
@@ -38,40 +37,35 @@ public class PropertyEmbeddedRefConfiguration extends AbstractPropertyConfigurat
 		this.embeddedBean = embeddedBean;
 	}
 
-	public PropertyEmbeddedRefConfiguration(IBeanConfiguration parentBeanConfiguration, IBeanConfiguration embeddedBean, IProperties props)
-	{
+	public PropertyEmbeddedRefConfiguration(IBeanConfiguration parentBeanConfiguration,
+			IBeanConfiguration embeddedBean, IProperties props) {
 		super(parentBeanConfiguration, props);
 		ParamChecker.assertParamNotNull(embeddedBean, "embeddedBean");
 		this.embeddedBean = embeddedBean;
 	}
 
 	@Override
-	public String getPropertyName()
-	{
+	public String getPropertyName() {
 		return propertyName;
 	}
 
 	@Override
-	public String getFromContext()
-	{
+	public String getFromContext() {
 		return null;
 	}
 
 	@Override
-	public String getBeanName()
-	{
+	public String getBeanName() {
 		return embeddedBean.getName();
 	}
 
 	@Override
-	public boolean isOptional()
-	{
+	public boolean isOptional() {
 		return false;
 	}
 
 	@Override
-	public Object getValue()
-	{
+	public Object getValue() {
 		return embeddedBean;
 	}
 }

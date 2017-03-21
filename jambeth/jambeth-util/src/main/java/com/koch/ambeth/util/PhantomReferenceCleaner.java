@@ -29,23 +29,24 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 
 /**
- * This is best used to allow calling cleanup code similar to the possibility to implement Object.finalize(). In contrast to Object.finalize() the
- * PhantomReference behavior does less overhead to the GC algorithms at Runtime. Because of this Object.finalize() is considered a deprecated and discouraged
- * design pattern.
- * 
+ * This is best used to allow calling cleanup code similar to the possibility to implement
+ * Object.finalize(). In contrast to Object.finalize() the PhantomReference behavior does less
+ * overhead to the GC algorithms at Runtime. Because of this Object.finalize() is considered a
+ * deprecated and discouraged design pattern.
+ *
  * Usage:
- * 
+ *
  * <code>
  * PhantomReferenceCleaner&gt;Connection, ConnectionPhantomRef&lt; phantomReferenceCleaner = new PhantomReferenceCleaner&gt;Connection, ConnectionPhantomRef&lt;()
  * 	{
- * 
+ *
  * @Override protected void doCleanup(ConnectionPhantomRef phantom) { phantom.closeConnection(); } }; </code>
- * 
+ *
  *           <code>
  * public class ConnectionPhantomRef extends PhantomReference&gt;Connection&lt;
  * {
  * 	private Connection targetConnection;
- * 
+ *
  * 	public ConnectionPhantomRef(Connection referent, ReferenceQueue&gt;Connection&lt; q, Connection targetConnection)
  * 	{
  * 		super(referent, q);
@@ -55,7 +56,7 @@ import com.koch.ambeth.util.collections.IdentityHashSet;
  * 		}
  * 		this.targetConnection = targetConnection;
  * 	}
- * 
+ *
  * 	public void closeConnection()
  * 	{
  * 		JdbcUtil.close(targetConnection);
@@ -63,50 +64,42 @@ import com.koch.ambeth.util.collections.IdentityHashSet;
  * 	}
  * }
  * </code>
- * 
+ *
  *           <code>
  * phantomReferenceCleaner.queue(new ConnectionPhantomRef(proxiedConnection, phantomReferenceCleaner.getReferenceQueue(), connection));
  * </code>
  */
-public abstract class PhantomReferenceCleaner<DelegateType, PhantomType extends PhantomReference<DelegateType>>
-{
-	protected final ReferenceQueue<DelegateType> referenceQueue = new ReferenceQueue<DelegateType>();
+public abstract class PhantomReferenceCleaner<DelegateType, PhantomType extends PhantomReference<DelegateType>> {
+	protected final ReferenceQueue<DelegateType> referenceQueue = new ReferenceQueue<>();
 
-	protected final IdentityHashSet<PhantomType> phantomRefInUseSet = new IdentityHashSet<PhantomType>();
+	protected final IdentityHashSet<PhantomType> phantomRefInUseSet =
+			new IdentityHashSet<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
-	public ReferenceQueue<DelegateType> getReferenceQueue()
-	{
+	public ReferenceQueue<DelegateType> getReferenceQueue() {
 		return referenceQueue;
 	}
 
-	public void queue(PhantomType pr)
-	{
+	public void queue(PhantomType pr) {
 		writeLock.lock();
-		try
-		{
+		try {
 			phantomRefInUseSet.add(pr);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	public void checkForCleanup()
-	{
+	public void checkForCleanup() {
 		Reference<? extends DelegateType> phantomReferenceToCleanup;
-		while ((phantomReferenceToCleanup = referenceQueue.poll()) != null)
-		{
+		while ((phantomReferenceToCleanup = referenceQueue.poll()) != null) {
 			writeLock.lock();
-			try
-			{
+			try {
 				phantomRefInUseSet.remove(phantomReferenceToCleanup);
 			}
-			finally
-			{
+			finally {
 				writeLock.unlock();
 			}
 			doCleanup((PhantomType) phantomReferenceToCleanup);

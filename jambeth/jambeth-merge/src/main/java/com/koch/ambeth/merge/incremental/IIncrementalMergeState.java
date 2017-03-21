@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.model.CreateOrUpdateContainerBuild;
 
-public interface IIncrementalMergeState
-{
+public interface IIncrementalMergeState {
 	ICache getStateCache();
 
 	CreateOrUpdateContainerBuild newCreateContainer(Class<?> entityType);

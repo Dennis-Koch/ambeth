@@ -44,18 +44,17 @@ import com.koch.ambeth.util.ParamChecker;
 @SQLData("/com/koch/ambeth/persistence/jdbc/Example_data.sql")
 @SQLStructure("/com/koch/ambeth/persistence/jdbc/JDBCDatabase_structure.sql")
 @TestModule(QueryBehaviorTestModule.class)
-@TestPropertiesList({ @TestProperties(name = PersistenceConfigurationConstants.DatabaseTablePrefix, value = "D_"),
+@TestPropertiesList({
+		@TestProperties(name = PersistenceConfigurationConstants.DatabaseTablePrefix, value = "D_"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabaseFieldPrefix, value = "F_"),
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml") })
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml")})
 @Ignore
-public class QueryBehaviorTest extends AbstractInformationBusWithPersistenceTest
-{
-	public static class QueryBehaviorTestModule implements IInitializingModule
-	{
+public class QueryBehaviorTest extends AbstractInformationBusWithPersistenceTest {
+	public static class QueryBehaviorTestModule implements IInitializingModule {
 		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			beanContextFactory.registerBean("queryBehaviorService", QueryBehaviorService.class).autowireable(IQueryBehaviorService.class);
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+			beanContextFactory.registerBean("queryBehaviorService", QueryBehaviorService.class)
+					.autowireable(IQueryBehaviorService.class);
 		}
 	}
 
@@ -64,34 +63,30 @@ public class QueryBehaviorTest extends AbstractInformationBusWithPersistenceTest
 	protected IQueryBehaviorService queryBehaviorService;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		ParamChecker.assertNotNull(cacheService, "cacheService");
 		ParamChecker.assertNotNull(queryBehaviorService, "queryBehaviorService");
 	}
 
-	public void setCacheService(ICacheService cacheService)
-	{
+	public void setCacheService(ICacheService cacheService) {
 		this.cacheService = cacheService;
 	}
 
-	public void setQueryBehaviorService(IQueryBehaviorService queryBehaviorService)
-	{
+	public void setQueryBehaviorService(IQueryBehaviorService queryBehaviorService) {
 		this.queryBehaviorService = queryBehaviorService;
 	}
 
-	protected IServiceResult callThroughCacheService(String methodName) throws Exception
-	{
-		ServiceDescription serviceDescription = SyncToAsyncUtil.createServiceDescription("QueryBehaviorService",
-				IQueryBehaviorService.class.getMethod(methodName, String.class), new Object[] { "test 3" });
+	protected IServiceResult callThroughCacheService(String methodName) throws Exception {
+		ServiceDescription serviceDescription = SyncToAsyncUtil.createServiceDescription(
+				"QueryBehaviorService", IQueryBehaviorService.class.getMethod(methodName, String.class),
+				new Object[] {"test 3"});
 		return cacheService.getORIsForServiceRequest(serviceDescription);
 	}
 
 	@Test
-	public void getORIsForServiceRequestNormal() throws Exception
-	{
+	public void getORIsForServiceRequestNormal() throws Exception {
 		IServiceResult serviceResult = callThroughCacheService("getMaterialByName");
 		Assert.assertNull(serviceResult.getAdditionalInformation());
 		Assert.assertNotNull(serviceResult.getObjRefs());
@@ -100,8 +95,7 @@ public class QueryBehaviorTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void getORIsForServiceRequestDefaultMode() throws Exception
-	{
+	public void getORIsForServiceRequestDefaultMode() throws Exception {
 		IServiceResult serviceResult = callThroughCacheService("getMaterialByNameDefaultMode");
 		Assert.assertNull(serviceResult.getAdditionalInformation());
 		Assert.assertNotNull(serviceResult.getObjRefs());
@@ -110,8 +104,7 @@ public class QueryBehaviorTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void getORIsForServiceRequestObjRefMode() throws Exception
-	{
+	public void getORIsForServiceRequestObjRefMode() throws Exception {
 		IServiceResult serviceResult = callThroughCacheService("getMaterialByNameObjRefMode");
 		Assert.assertNull(serviceResult.getAdditionalInformation());
 		Assert.assertNotNull(serviceResult.getObjRefs());

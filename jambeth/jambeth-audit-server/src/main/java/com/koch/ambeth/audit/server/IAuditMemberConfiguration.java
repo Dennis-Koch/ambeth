@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IAuditMemberConfiguration
-{
+public interface IAuditMemberConfiguration {
 	boolean isAuditActive();
 }

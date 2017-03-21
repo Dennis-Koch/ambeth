@@ -25,37 +25,31 @@ import com.koch.ambeth.persistence.api.ILinkCursor;
 import com.koch.ambeth.persistence.api.ILinkCursorItem;
 import com.koch.ambeth.util.IDisposable;
 
-public class EmptyLinkCursor implements IDisposable, ILinkCursor
-{
+public class EmptyLinkCursor implements IDisposable, ILinkCursor {
 	public static final ILinkCursor instance = new EmptyLinkCursor();
 
 	@Override
-	public void dispose()
-	{
+	public void dispose() {
 		// Intended blank
 	}
 
 	@Override
-	public boolean moveNext()
-	{
+	public boolean moveNext() {
 		return false;
 	}
 
 	@Override
-	public byte getFromIdIndex()
-	{
+	public byte getFromIdIndex() {
 		return ObjRef.UNDEFINED_KEY_INDEX;
 	}
 
 	@Override
-	public byte getToIdIndex()
-	{
+	public byte getToIdIndex() {
 		return ObjRef.UNDEFINED_KEY_INDEX;
 	}
 
 	@Override
-	public ILinkCursorItem getCurrent()
-	{
+	public ILinkCursorItem getCurrent() {
 		return null;
 	}
 

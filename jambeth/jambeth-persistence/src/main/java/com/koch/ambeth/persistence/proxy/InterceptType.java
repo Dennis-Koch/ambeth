@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public enum InterceptType
-{
+public enum InterceptType {
 	NONE, logGING, SECURITY, MERGE, CACHE, PERSISTENCE;
 
 }

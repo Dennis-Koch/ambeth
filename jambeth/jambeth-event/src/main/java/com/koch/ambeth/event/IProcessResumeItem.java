@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IProcessResumeItem
-{
+public interface IProcessResumeItem {
 	void resumeProcessingFinished();
 }

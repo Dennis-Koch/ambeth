@@ -26,17 +26,15 @@ import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
-public class SqlIsInOperator extends CaseSensitiveTwoPlaceOperator
-{
+public class SqlIsInOperator extends CaseSensitiveTwoPlaceOperator {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public void operate(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
-	{
-		if (isRightValueNullOrEmpty(nameToValueMap))
-		{
+	public void operate(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery,
+			IList<Object> parameters) {
+		if (isRightValueNullOrEmpty(nameToValueMap)) {
 			// No-op
 			querySB.append("0=1");
 			return;
@@ -45,17 +43,15 @@ public class SqlIsInOperator extends CaseSensitiveTwoPlaceOperator
 	}
 
 	@Override
-	protected boolean supportsMultiValueOperand()
-	{
+	protected boolean supportsMultiValueOperand() {
 		return true;
 	}
 
 	@Override
-	protected void expandOperatorQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean rightValueIsNull)
-	{
+	protected void expandOperatorQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			boolean rightValueIsNull) {
 		Class<?> leftOperandFieldType = getLeftOperandFieldType();
-		if (!java.sql.Array.class.isAssignableFrom(leftOperandFieldType))
-		{
+		if (!java.sql.Array.class.isAssignableFrom(leftOperandFieldType)) {
 			connectionDialect.appendIsInOperatorClause(querySB);
 			return;
 		}
@@ -63,25 +59,24 @@ public class SqlIsInOperator extends CaseSensitiveTwoPlaceOperator
 	}
 
 	@Override
-	protected void preProcessOperate(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
-	{
+	protected void preProcessOperate(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			boolean joinQuery, IList<Object> parameters) {
 		Class<?> leftOperandFieldType = getLeftOperandFieldType();
-		if (java.sql.Array.class.isAssignableFrom(leftOperandFieldType))
-		{
+		if (java.sql.Array.class.isAssignableFrom(leftOperandFieldType)) {
 			querySB.append("EXISTS");
 		}
 		super.preProcessOperate(querySB, nameToValueMap, joinQuery, parameters);
 	}
 
 	@Override
-	protected void preProcessRightOperand(IAppendable querySB, IMap<Object, Object> nameToValueMap, IList<Object> parameters)
-	{
+	protected void preProcessRightOperand(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			IList<Object> parameters) {
 		querySB.append('(');
 	}
 
 	@Override
-	protected void postProcessRightOperand(IAppendable querySB, IMap<Object, Object> nameToValueMap, IList<Object> parameters)
-	{
+	protected void postProcessRightOperand(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			IList<Object> parameters) {
 		querySB.append(')');
 	}
 }

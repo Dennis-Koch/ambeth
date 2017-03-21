@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 
-public interface ICacheModification
-{
+public interface ICacheModification {
 	boolean isInternalUpdate();
 
 	void setInternalUpdate(boolean internalUpdate);

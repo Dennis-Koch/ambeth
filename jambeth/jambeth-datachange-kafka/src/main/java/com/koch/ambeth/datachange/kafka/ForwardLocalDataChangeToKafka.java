@@ -26,8 +26,7 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 
-public class ForwardLocalDataChangeToKafka implements IEventListener
-{
+public class ForwardLocalDataChangeToKafka implements IEventListener {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -36,15 +35,12 @@ public class ForwardLocalDataChangeToKafka implements IEventListener
 	protected IEventListener eventListener;
 
 	@Override
-	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception
-	{
-		if (!(eventObject instanceof IDataChange))
-		{
+	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception {
+		if (!(eventObject instanceof IDataChange)) {
 			return;
 		}
 		IDataChange dataChange = (IDataChange) eventObject;
-		if (dataChange.isEmpty() || !dataChange.isLocalSource())
-		{
+		if (dataChange.isEmpty() || !dataChange.isLocalSource()) {
 			return;
 		}
 		// ONLY forward events where localSource=true so the condition above is important

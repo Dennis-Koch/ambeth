@@ -40,8 +40,7 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 
-public class ChangeAggregator implements IChangeAggregator
-{
+public class ChangeAggregator implements IChangeAggregator {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -52,7 +51,8 @@ public class ChangeAggregator implements IChangeAggregator
 	@Autowired
 	protected IEventDispatcher eventDispatcher;
 
-	@Property(name = MergeServerConfigurationConstants.DeleteDataChangesByAlternateIds, defaultValue = "false")
+	@Property(name = MergeServerConfigurationConstants.DeleteDataChangesByAlternateIds,
+			defaultValue = "false")
 	protected boolean deleteDataChangesByAlternateIds;
 
 	protected IList<IDataChangeEntry> inserts;
@@ -60,94 +60,80 @@ public class ChangeAggregator implements IChangeAggregator
 	protected IList<IDataChangeEntry> deletes;
 
 	@Override
-	public void dataChangeInsert(IObjRef reference)
-	{
-		if (inserts == null)
-		{
-			inserts = new ArrayList<IDataChangeEntry>();
+	public void dataChangeInsert(IObjRef reference) {
+		if (inserts == null) {
+			inserts = new ArrayList<>();
 		}
 		fillDataChange(inserts, reference);
 	}
 
 	@Override
-	public void dataChangeUpdate(IObjRef reference)
-	{
-		if (updates == null)
-		{
-			updates = new ArrayList<IDataChangeEntry>();
+	public void dataChangeUpdate(IObjRef reference) {
+		if (updates == null) {
+			updates = new ArrayList<>();
 		}
 		fillDataChange(updates, reference);
 	}
 
 	@Override
-	public void dataChangeDelete(IObjRef reference)
-	{
-		if (deletes == null)
-		{
-			deletes = new ArrayList<IDataChangeEntry>();
+	public void dataChangeDelete(IObjRef reference) {
+		if (deletes == null) {
+			deletes = new ArrayList<>();
 		}
 		fillDataChange(deletes, reference);
 	}
 
 	@Override
-	public void createDataChange()
-	{
+	public void createDataChange() {
 		List<IDataChangeEntry> inserts = this.inserts;
 		List<IDataChangeEntry> updates = this.updates;
 		List<IDataChangeEntry> deletes = this.deletes;
-		if (eventDispatcher == null || (inserts == null && updates == null && deletes == null))
-		{
+		if (eventDispatcher == null || (inserts == null && updates == null && deletes == null)) {
 			clear();
 			return;
 		}
-		if (inserts == null)
-		{
+		if (inserts == null) {
 			inserts = Collections.emptyList();
 		}
-		else
-		{
-			inserts = new ArrayList<IDataChangeEntry>(inserts);
+		else {
+			inserts = new ArrayList<>(inserts);
 		}
-		if (updates == null)
-		{
+		if (updates == null) {
 			updates = Collections.emptyList();
 		}
-		else
-		{
-			updates = new ArrayList<IDataChangeEntry>(updates);
+		else {
+			updates = new ArrayList<>(updates);
 		}
-		if (deletes == null)
-		{
+		if (deletes == null) {
 			deletes = Collections.emptyList();
 		}
-		else
-		{
-			deletes = new ArrayList<IDataChangeEntry>(deletes);
+		else {
+			deletes = new ArrayList<>(deletes);
 		}
 		// Dispose all current lists in the aggregator
 		clear();
 
 		Long currentTime = database.getContextProvider().getCurrentTime();
-		DataChangeEvent dataChange = new DataChangeEvent(inserts, updates, deletes, currentTime.longValue(), false);
-		IDataChangeOfSession localDataChange = new DataChangeOfSession(database.getSessionId(), dataChange);
+		DataChangeEvent dataChange =
+				new DataChangeEvent(inserts, updates, deletes, currentTime.longValue(), false);
+		IDataChangeOfSession localDataChange =
+				new DataChangeOfSession(database.getSessionId(), dataChange);
 		eventDispatcher.dispatchEvent(localDataChange);
 	}
 
 	@Override
-	public void clear()
-	{
+	public void clear() {
 		inserts = null;
 		updates = null;
 		deletes = null;
 	}
 
-	protected void fillDataChange(List<IDataChangeEntry> dataChangeEntries, IObjRef ori)
-	{
-		if (ori.getIdNameIndex() != ObjRef.PRIMARY_KEY_INDEX && !deleteDataChangesByAlternateIds)
-		{
+	protected void fillDataChange(List<IDataChangeEntry> dataChangeEntries, IObjRef ori) {
+		if (ori.getIdNameIndex() != ObjRef.PRIMARY_KEY_INDEX && !deleteDataChangesByAlternateIds) {
 			throw new RuntimeException("Implementation error: Only PK references are allowed in events");
 		}
-		DataChangeEntry dataChange = new DataChangeEntry(ori.getRealType(), ori.getIdNameIndex(), ori.getId(), ori.getVersion());
+		DataChangeEntry dataChange =
+				new DataChangeEntry(ori.getRealType(), ori.getIdNameIndex(), ori.getId(), ori.getVersion());
 		dataChangeEntries.add(dataChange);
 	}
 }

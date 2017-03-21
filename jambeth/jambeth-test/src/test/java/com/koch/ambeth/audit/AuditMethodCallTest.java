@@ -26,7 +26,6 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.koch.ambeth.audit.IAuditEntryVerifier;
 import com.koch.ambeth.audit.AuditMethodCallTest.AuditMethodCallTestFrameworkModule;
 import com.koch.ambeth.audit.AuditMethodCallTest.AuditMethodCallTestModule;
 import com.koch.ambeth.audit.model.AuditedEntityChangeType;
@@ -90,39 +89,39 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 
-@TestFrameworkModule({ AuditModule.class, AuditMethodCallTestFrameworkModule.class })
+@TestFrameworkModule({AuditModule.class, AuditMethodCallTestFrameworkModule.class})
 @TestModule(AuditMethodCallTestModule.class)
-@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "AuditMethodCall_orm.xml;security-orm.xml"),
-		@TestProperties(name = AuditConfigurationConstants.AuditActive, value = "true"), @TestProperties(name = "ambeth.log.level", value = "DEBUG"),
+@TestPropertiesList({
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+				value = "AuditMethodCall_orm.xml;security-orm.xml"),
+		@TestProperties(name = AuditConfigurationConstants.AuditActive, value = "true"),
+		@TestProperties(name = "ambeth.log.level", value = "DEBUG"),
 		@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "true"),
-		@TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad, value = "VERIFY_SYNC") })
-@SQLStructureList({ @SQLStructure("security-structure.sql"),//
-		@SQLStructure("audit-structure.sql") })
-public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTest
-{
-	public static class ABC implements IEntityPermissionRule<User>
-	{
+		@TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad,
+				value = "VERIFY_SYNC")})
+@SQLStructureList({@SQLStructure("security-structure.sql"), //
+		@SQLStructure("audit-structure.sql")})
+public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTest {
+	public static class ABC implements IEntityPermissionRule<User> {
 		@Autowired
 		protected ITestAuditService service;
 
 		@Override
-		public void buildPrefetchConfig(Class<? extends User> entityType, IPrefetchConfig prefetchConfig)
-		{
+		public void buildPrefetchConfig(Class<? extends User> entityType,
+				IPrefetchConfig prefetchConfig) {
 		}
 
 		@Override
-		public void evaluatePermissionOnInstance(IObjRef objRef, User entity, IAuthorization currentUser, ISecurityScope[] securityScopes,
-				IEntityPermissionEvaluation pe)
-		{
+		public void evaluatePermissionOnInstance(IObjRef objRef, User entity,
+				IAuthorization currentUser, ISecurityScope[] securityScopes,
+				IEntityPermissionEvaluation pe) {
 			service.auditedServiceCall(new Integer(6));
 		}
 	}
 
-	public static class AuditMethodCallTestModule implements IInitializingModule
-	{
+	public static class AuditMethodCallTestModule implements IInitializingModule {
 		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 			beanContextFactory.registerBean(TestAuditService.class).autowireable(ITestAuditService.class);
 
 			IBeanConfiguration bc = beanContextFactory.registerBean(ABC.class);
@@ -130,25 +129,33 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		}
 	}
 
-	public static class AuditMethodCallTestFrameworkModule implements IInitializingModule
-	{
+	public static class AuditMethodCallTestFrameworkModule implements IInitializingModule {
 		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			beanContextFactory.registerBean(UserIdentifierProvider.class).autowireable(IUserIdentifierProvider.class);
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+			beanContextFactory.registerBean(UserIdentifierProvider.class)
+					.autowireable(IUserIdentifierProvider.class);
 			beanContextFactory.registerBean(TestUserResolver.class).autowireable(IUserResolver.class);
 
-			beanContextFactory.link(IUser.class).to(ITechnicalEntityTypeExtendable.class).with(User.class);
-			beanContextFactory.link(IPassword.class).to(ITechnicalEntityTypeExtendable.class).with(Password.class);
-			beanContextFactory.link(ISignature.class).to(ITechnicalEntityTypeExtendable.class).with(Signature.class);
-			beanContextFactory.link(IAuditEntry.class).to(ITechnicalEntityTypeExtendable.class).with(AuditEntry.class);
-			beanContextFactory.link(IAuditedEntity.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedEntity.class);
-			beanContextFactory.link(IAuditedService.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedService.class);
-			beanContextFactory.link(IAuditedEntityRef.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityRef.class);
-			beanContextFactory.link(IAuditedEntityPrimitiveProperty.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityPrimitiveProperty.class);
-			beanContextFactory.link(IAuditedEntityRelationProperty.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityRelationProperty.class);
-			beanContextFactory.link(IAuditedEntityRelationPropertyItem.class).to(ITechnicalEntityTypeExtendable.class)
-					.with(AuditedEntityRelationPropertyItem.class);
+			beanContextFactory.link(IUser.class).to(ITechnicalEntityTypeExtendable.class)
+					.with(User.class);
+			beanContextFactory.link(IPassword.class).to(ITechnicalEntityTypeExtendable.class)
+					.with(Password.class);
+			beanContextFactory.link(ISignature.class).to(ITechnicalEntityTypeExtendable.class)
+					.with(Signature.class);
+			beanContextFactory.link(IAuditEntry.class).to(ITechnicalEntityTypeExtendable.class)
+					.with(AuditEntry.class);
+			beanContextFactory.link(IAuditedEntity.class).to(ITechnicalEntityTypeExtendable.class)
+					.with(AuditedEntity.class);
+			beanContextFactory.link(IAuditedService.class).to(ITechnicalEntityTypeExtendable.class)
+					.with(AuditedService.class);
+			beanContextFactory.link(IAuditedEntityRef.class).to(ITechnicalEntityTypeExtendable.class)
+					.with(AuditedEntityRef.class);
+			beanContextFactory.link(IAuditedEntityPrimitiveProperty.class)
+					.to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityPrimitiveProperty.class);
+			beanContextFactory.link(IAuditedEntityRelationProperty.class)
+					.to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityRelationProperty.class);
+			beanContextFactory.link(IAuditedEntityRelationPropertyItem.class)
+					.to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityRelationPropertyItem.class);
 		}
 	}
 
@@ -184,22 +191,18 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 
 	@Test
 	@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "false")
-	public void myTest()
-	{
+	public void myTest() {
 		Assert.assertEquals("5", testAuditService.auditedServiceCall(new Integer(5)));
 	}
 
 	@Test
 	@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "false")
-	public void myTest2()
-	{
+	public void myTest2() {
 		auditController.pushAuditReason("junit test");
-		try
-		{
+		try {
 			char[] passwordOfUser = "abc".toCharArray();
 			User[] users = new User[2];
-			for (int a = users.length; a-- > 0;)
-			{
+			for (int a = users.length; a-- > 0;) {
 				User user = entityFactory.createEntity(User.class);
 				user.setName("MyName" + a);
 				user.setSID("mySid" + a);
@@ -207,101 +210,97 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 				passwordUtil.assignNewPassword(passwordOfUser, user, null);
 
 				IRevertDelegate revert = auditController.setAuthorizedUser(user, passwordOfUser, true);
-				try
-				{
+				try {
 					mergeProcess.process(user, null, null, null);
 				}
-				finally
-				{
+				finally {
 					revert.revert();
 				}
 				users[a] = user;
 			}
 			IRevertDelegate revert = auditController.setAuthorizedUser(users[0], passwordOfUser, true);
-			try
-			{
-				for (int a = users.length; a-- > 0;)
-				{
+			try {
+				for (int a = users.length; a-- > 0;) {
 					users[a].setName(users[a].getName() + "x");
 				}
 				mergeProcess.process(users, null, null, null);
 			}
-			finally
-			{
+			finally {
 				revert.revert();
 			}
 			revert = auditController.setAuthorizedUser(users[1], passwordOfUser, true);
-			try
-			{
-				for (int a = users.length; a-- > 0;)
-				{
+			try {
+				for (int a = users.length; a-- > 0;) {
 					users[a].setName(users[a].getName() + "x");
 				}
 				mergeProcess.process(users, null, null, null);
 			}
-			finally
-			{
+			finally {
 				revert.revert();
 			}
 		}
-		finally
-		{
+		finally {
 			auditController.popAuditReason();
 		}
 		final String startTime = "startTime", endTime = "endTime";
 		final int fieldValueIndex, entityTypeIndex, entityIdIndex;
 		final IQuery<IAuditedEntityPrimitiveProperty> query;
 		{
-			IQueryBuilder<IAuditedEntityPrimitiveProperty> qb = queryBuilderFactory.create(IAuditedEntityPrimitiveProperty.class);
+			IQueryBuilder<IAuditedEntityPrimitiveProperty> qb =
+					queryBuilderFactory.create(IAuditedEntityPrimitiveProperty.class);
 			IOperand name = qb.property(IAuditedEntityPrimitiveProperty.Name);
 
-			IOperand entityType = qb.property(IAuditedEntityPrimitiveProperty.Entity + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityType);
-			IOperand entityId = qb.property(IAuditedEntityPrimitiveProperty.Entity + "." + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityId);
-			IOperand changeType = qb.property(IAuditedEntityPrimitiveProperty.Entity + "." + IAuditedEntity.ChangeType);
-			IOperand timestamp = qb.property(IAuditedEntityPrimitiveProperty.Entity + "." + IAuditedEntity.Entry + "." + IAuditEntry.Timestamp);
+			IOperand entityType = qb.property(IAuditedEntityPrimitiveProperty.Entity + "."
+					+ IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityType);
+			IOperand entityId = qb.property(IAuditedEntityPrimitiveProperty.Entity + "."
+					+ IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityId);
+			IOperand changeType =
+					qb.property(IAuditedEntityPrimitiveProperty.Entity + "." + IAuditedEntity.ChangeType);
+			IOperand timestamp = qb.property(IAuditedEntityPrimitiveProperty.Entity + "."
+					+ IAuditedEntity.Entry + "." + IAuditEntry.Timestamp);
 
-			fieldValueIndex = qb.select(qb.function("to_char", qb.property(IAuditedEntityPrimitiveProperty.NewValue)));
+			fieldValueIndex =
+					qb.select(qb.function("to_char", qb.property(IAuditedEntityPrimitiveProperty.NewValue)));
 			entityTypeIndex = qb.select(entityType);
 			entityIdIndex = qb.select(entityId);
 
 			qb.orderBy(timestamp, OrderByType.DESC);
 
 			query = qb.build(qb.and(//
-					qb.isEqualTo(changeType, qb.valueName(IAuditedEntity.ChangeType)),//
-					qb.isIn(entityType, qb.valueName(IAuditedEntityRef.EntityType)),//
-					qb.isGreaterThan(timestamp, qb.valueName(startTime)),//
-					qb.isLessThanOrEqualTo(timestamp, qb.valueName(endTime)),//
+					qb.isEqualTo(changeType, qb.valueName(IAuditedEntity.ChangeType)), //
+					qb.isIn(entityType, qb.valueName(IAuditedEntityRef.EntityType)), //
+					qb.isGreaterThan(timestamp, qb.valueName(startTime)), //
+					qb.isLessThanOrEqualTo(timestamp, qb.valueName(endTime)), //
 					qb.isEqualTo(name, qb.valueName(IAuditedEntityPrimitiveProperty.Name))//
-					));
+			));
 		}
-		transaction.runInTransaction(new IBackgroundWorkerDelegate()
-		{
+		transaction.runInTransaction(new IBackgroundWorkerDelegate() {
 			@Override
-			public void invoke() throws Throwable
-			{
+			public void invoke() throws Throwable {
 				long start = System.currentTimeMillis() - 10000;
 				long end = System.currentTimeMillis();
-				Tuple2KeyHashMap<String, String, String> map = new Tuple2KeyHashMap<String, String, String>();
+				Tuple2KeyHashMap<String, String, String> map =
+						new Tuple2KeyHashMap<>();
 				IDataCursor cursor = query.param(IAuditedEntityPrimitiveProperty.Name, "Name")//
 						.param(IAuditedEntity.ChangeType, AuditedEntityChangeType.UPDATE)//
 						.param(IAuditedEntityRef.EntityType, Arrays.asList(User.class.getName()))//
 						.param(startTime, start)//
 						.param(endTime, end)//
 						.retrieveAsData();
-				try
-				{
-					while (cursor.moveNext())
-					{
+				try {
+					while (cursor.moveNext()) {
 						IDataItem item = cursor.getCurrent();
-						String lastValue = conversionHelper.convertValueToType(String.class, item.getValue(fieldValueIndex));
-						String entityTypeName = conversionHelper.convertValueToType(String.class, item.getValue(entityTypeIndex));
-						String entityId = conversionHelper.convertValueToType(String.class, item.getValue(entityIdIndex));
+						String lastValue =
+								conversionHelper.convertValueToType(String.class, item.getValue(fieldValueIndex));
+						String entityTypeName =
+								conversionHelper.convertValueToType(String.class, item.getValue(entityTypeIndex));
+						String entityId =
+								conversionHelper.convertValueToType(String.class, item.getValue(entityIdIndex));
 
 						map.putIfNotExists(entityTypeName, entityId, lastValue);
 					}
 				}
-				finally
-				{
+				finally {
 					cursor.dispose();
 				}
 			}
@@ -309,8 +308,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 	}
 
 	@Test
-	public void auditedEntity()
-	{
+	public void auditedEntity() {
 		char[] passwordOfUser = "abc".toCharArray();
 		User user = entityFactory.createEntity(User.class);
 		user.setName("MyName");
@@ -321,12 +319,10 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		passwordUtil.assignNewPassword(passwordOfUser, user, null);
 
 		IRevertDelegate revert = auditController.setAuthorizedUser(user, passwordOfUser, true);
-		try
-		{
+		try {
 			mergeProcess.process(user, null, null, null);
 		}
-		finally
-		{
+		finally {
 			revert.revert();
 		}
 		auditController.popAuditReason();
@@ -336,8 +332,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 
 	@Test(expected = AuditReasonMissingException.class)
 	@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "false")
-	public void auditedEntity_NoReasonThrowsException()
-	{
+	public void auditedEntity_NoReasonThrowsException() {
 		char[] passwordOfUser = "abc".toCharArray();
 		User user = entityFactory.createEntity(User.class);
 		user.setName("MyName");
@@ -349,8 +344,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 	}
 
 	@Test
-	public void verify()
-	{
+	public void verify() {
 		final char[] passwordOfUser = "abc".toCharArray();
 		final User user = entityFactory.createEntity(User.class);
 		user.setName("MyName");
@@ -361,48 +355,44 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		IPassword password = user.getPassword();
 
 		auditController.pushAuditReason("junit test");
-		try
-		{
+		try {
 			IRevertDelegate revert = auditController.setAuthorizedUser(user, passwordOfUser, true);
-			try
-			{
-				transaction.runInTransaction(new IBackgroundWorkerDelegate()
-				{
+			try {
+				transaction.runInTransaction(new IBackgroundWorkerDelegate() {
 					@Override
-					public void invoke() throws Throwable
-					{
+					public void invoke() throws Throwable {
 						mergeProcess.process(user, null, null, null);
 					}
 				});
 			}
-			finally
-			{
+			finally {
 				revert.revert();
 			}
 		}
-		finally
-		{
+		finally {
 			auditController.popAuditReason();
 		}
 		{
-			List<IAuditedEntity> auditedEntitiesOfUser = auditEntryReader.getAllAuditedEntitiesOfEntity(user);
+			List<IAuditedEntity> auditedEntitiesOfUser =
+					auditEntryReader.getAllAuditedEntitiesOfEntity(user);
 
 			Assert.assertEquals(1, auditedEntitiesOfUser.size());
-			boolean[] verifiedAuditedEntities = auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfUser);
+			boolean[] verifiedAuditedEntities =
+					auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfUser);
 			Assert.assertEquals(auditedEntitiesOfUser.size(), verifiedAuditedEntities.length);
-			for (boolean verifySuccessful : verifiedAuditedEntities)
-			{
+			for (boolean verifySuccessful : verifiedAuditedEntities) {
 				Assert.assertTrue(verifySuccessful);
 			}
 		}
 		{
-			List<IAuditedEntity> auditedEntitiesOfPassword = auditEntryReader.getAllAuditedEntitiesOfEntity(password);
+			List<IAuditedEntity> auditedEntitiesOfPassword =
+					auditEntryReader.getAllAuditedEntitiesOfEntity(password);
 
 			Assert.assertEquals(1, auditedEntitiesOfPassword.size());
-			boolean[] verifiedAuditedEntities = auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfPassword);
+			boolean[] verifiedAuditedEntities =
+					auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfPassword);
 			Assert.assertEquals(auditedEntitiesOfPassword.size(), verifiedAuditedEntities.length);
-			for (boolean verifySuccessful : verifiedAuditedEntities)
-			{
+			for (boolean verifySuccessful : verifiedAuditedEntities) {
 				Assert.assertTrue(verifySuccessful);
 			}
 		}
@@ -412,8 +402,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 			Assert.assertEquals(1, auditEntriesOfUser.size());
 			boolean[] verifiedAuditEntries = auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser);
 			Assert.assertEquals(auditEntriesOfUser.size(), verifiedAuditEntries.length);
-			for (boolean verifySuccessful : verifiedAuditEntries)
-			{
+			for (boolean verifySuccessful : verifiedAuditEntries) {
 				Assert.assertTrue(verifySuccessful);
 			}
 		}
@@ -423,11 +412,12 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 	}
 
 	@Test
-	@TestPropertiesList({ @TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad, value = "VERIFY_ASYNC"),
+	@TestPropertiesList({
+			@TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad,
+					value = "VERIFY_ASYNC"),
 			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "2"),
-			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "2") })
-	public void verifyWithConcurrentUpdate()
-	{
+			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "2")})
+	public void verifyWithConcurrentUpdate() {
 		final char[] passwordOfUser = "abc".toCharArray();
 		final User user = entityFactory.createEntity(User.class);
 		user.setName("MyName");
@@ -438,57 +428,51 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		IPassword password = user.getPassword();
 
 		auditController.pushAuditReason("junit test");
-		try
-		{
+		try {
 			IRevertDelegate revert = auditController.setAuthorizedUser(user, passwordOfUser, true);
-			try
-			{
-				transaction.runInTransaction(new IBackgroundWorkerDelegate()
-				{
+			try {
+				transaction.runInTransaction(new IBackgroundWorkerDelegate() {
 					@Override
-					public void invoke() throws Throwable
-					{
+					public void invoke() throws Throwable {
 						mergeProcess.process(user, null, null, null);
 					}
 				});
-				transaction.runInTransaction(new IBackgroundWorkerDelegate()
-				{
+				transaction.runInTransaction(new IBackgroundWorkerDelegate() {
 					@Override
-					public void invoke() throws Throwable
-					{
+					public void invoke() throws Throwable {
 						user.setName(user.getName() + 1);
 						mergeProcess.process(user, null, null, null);
 					}
 				});
 			}
-			finally
-			{
+			finally {
 				revert.revert();
 			}
 		}
-		finally
-		{
+		finally {
 			auditController.popAuditReason();
 		}
 		{
-			List<IAuditedEntity> auditedEntitiesOfUser = auditEntryReader.getAllAuditedEntitiesOfEntity(user);
+			List<IAuditedEntity> auditedEntitiesOfUser =
+					auditEntryReader.getAllAuditedEntitiesOfEntity(user);
 
 			Assert.assertEquals(2, auditedEntitiesOfUser.size());
-			boolean[] verifiedAuditedEntities = auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfUser);
+			boolean[] verifiedAuditedEntities =
+					auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfUser);
 			Assert.assertEquals(auditedEntitiesOfUser.size(), verifiedAuditedEntities.length);
-			for (boolean verifySuccessful : verifiedAuditedEntities)
-			{
+			for (boolean verifySuccessful : verifiedAuditedEntities) {
 				Assert.assertTrue(verifySuccessful);
 			}
 		}
 		{
-			List<IAuditedEntity> auditedEntitiesOfPassword = auditEntryReader.getAllAuditedEntitiesOfEntity(password);
+			List<IAuditedEntity> auditedEntitiesOfPassword =
+					auditEntryReader.getAllAuditedEntitiesOfEntity(password);
 
 			Assert.assertEquals(1, auditedEntitiesOfPassword.size());
-			boolean[] verifiedAuditedEntities = auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfPassword);
+			boolean[] verifiedAuditedEntities =
+					auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfPassword);
 			Assert.assertEquals(auditedEntitiesOfPassword.size(), verifiedAuditedEntities.length);
-			for (boolean verifySuccessful : verifiedAuditedEntities)
-			{
+			for (boolean verifySuccessful : verifiedAuditedEntities) {
 				Assert.assertTrue(verifySuccessful);
 			}
 		}
@@ -498,8 +482,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 			Assert.assertEquals(2, auditEntriesOfUser.size());
 			boolean[] verifiedAuditEntries = auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser);
 			Assert.assertEquals(auditEntriesOfUser.size(), verifiedAuditEntries.length);
-			for (boolean verifySuccessful : verifiedAuditEntries)
-			{
+			for (boolean verifySuccessful : verifiedAuditEntries) {
 				Assert.assertTrue(verifySuccessful);
 			}
 		}
@@ -509,21 +492,19 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 	}
 
 	@Test
-	public void testNotAuditedServiceCall()
-	{
+	public void testNotAuditedServiceCall() {
 		Assert.assertEquals("5", testAuditService.notAuditedServiceCall(new Integer(5)));
 	}
 
 	@Test
-	public void testAuditedAnnotatedServiceCall_NoAudit()
-	{
+	public void testAuditedAnnotatedServiceCall_NoAudit() {
 		Assert.assertEquals("5", testAuditService.auditedAnnotatedServiceCall_NoAudit(new Integer(5)));
 	}
 
 	@Test
 	@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "false")
-	public void testAuditedServiceCallWithAuditedArgument()
-	{
-		Assert.assertEquals("5", testAuditService.auditedServiceCallWithAuditedArgument(new Integer(5), "secret_not_audited"));
+	public void testAuditedServiceCallWithAuditedArgument() {
+		Assert.assertEquals("5", testAuditService.auditedServiceCallWithAuditedArgument(new Integer(5),
+				"secret_not_audited"));
 	}
 }

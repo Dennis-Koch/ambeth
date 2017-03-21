@@ -37,8 +37,8 @@ import com.koch.ambeth.stream.IInputSource;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.IList;
 
-public abstract class AbstractInputSourceValueHolder implements IInputSource, IParentEntityAware, IInitializingBean
-{
+public abstract class AbstractInputSourceValueHolder
+		implements IInputSource, IParentEntityAware, IInitializingBean {
 	protected int chunkSize = 65536;
 
 	protected IServiceContext beanContext;
@@ -50,49 +50,42 @@ public abstract class AbstractInputSourceValueHolder implements IInputSource, IP
 	protected Object parentEntity;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(beanContext, "beanContext");
 		ParamChecker.assertNotNull(chunkProviderName, "chunkProviderName");
 	}
 
-	public void setBeanContext(IServiceContext beanContext)
-	{
+	public void setBeanContext(IServiceContext beanContext) {
 		this.beanContext = beanContext;
 	}
 
-	public void setChunkProviderName(String chunkProviderName)
-	{
+	public void setChunkProviderName(String chunkProviderName) {
 		this.chunkProviderName = chunkProviderName;
 	}
 
-	public void setChunkSize(int chunkSize)
-	{
+	public void setChunkSize(int chunkSize) {
 		this.chunkSize = chunkSize;
 	}
 
 	@Override
-	public void setParentEntity(Object parentEntity, Member member)
-	{
+	public void setParentEntity(Object parentEntity, Member member) {
 		this.parentEntity = parentEntity;
 		this.member = member;
 	}
 
-	public IObjRelation getSelf()
-	{
+	public IObjRelation getSelf() {
 		IObjRefHelper oriHelper = beanContext.getService(IObjRefHelper.class);
 		IList<IObjRef> allObjRefs = oriHelper.entityToAllObjRefs(parentEntity);
 		return new ObjRelation(allObjRefs.toArray(IObjRef.class), member.getName());
 	}
 
-	protected IChunkProvider getChunkProvider()
-	{
+	protected IChunkProvider getChunkProvider() {
 		return beanContext.getService(chunkProviderName, IChunkProvider.class);
 	}
 
-	protected InputStream createBinaryInputStream()
-	{
+	protected InputStream createBinaryInputStream() {
 		IChunkProvider chunkProvider = getChunkProvider();
-		return new BufferedInputStream(new ChunkProviderStubInputStream(getSelf(), chunkProvider), chunkSize);
+		return new BufferedInputStream(new ChunkProviderStubInputStream(getSelf(), chunkProvider),
+				chunkSize);
 	}
 }

@@ -20,35 +20,29 @@ limitations under the License.
  * #L%
  */
 
-public abstract class AbstractSensorReceiver implements ISensorReceiver
-{
+public abstract class AbstractSensorReceiver implements ISensorReceiver {
 	@Override
-	public void off(String sensorName)
-	{
+	public void off(String sensorName) {
 		// Intended blank
 	}
 
 	@Override
-	public void on(String sensorName)
-	{
+	public void on(String sensorName) {
 		// Intended blank
 	}
 
 	@Override
-	public void on(String sensorName, Object... additionalData)
-	{
+	public void on(String sensorName, Object... additionalData) {
 		// Intended blank
 	}
 
 	@Override
-	public void touch(String sensorName)
-	{
+	public void touch(String sensorName) {
 		// Intended blank
 	}
 
 	@Override
-	public void touch(String sensorName, Object... additionalData)
-	{
+	public void touch(String sensorName, Object... additionalData) {
 		// Intended blank
 	}
 }

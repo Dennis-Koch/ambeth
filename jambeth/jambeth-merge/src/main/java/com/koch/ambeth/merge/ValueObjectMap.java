@@ -37,45 +37,40 @@ import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 
-public class ValueObjectMap extends SmartCopyMap<Class<?>, List<Class<?>>> implements IMapExtendableContainer<Class<?>, IValueObjectConfig>
-{
+public class ValueObjectMap extends SmartCopyMap<Class<?>, List<Class<?>>>
+		implements IMapExtendableContainer<Class<?>, IValueObjectConfig> {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	protected final MapExtendableContainer<Class<?>, IValueObjectConfig> typeToValueObjectConfig = new MapExtendableContainer<Class<?>, IValueObjectConfig>(
-			"configuration", "value object class");
+	protected final MapExtendableContainer<Class<?>, IValueObjectConfig> typeToValueObjectConfig =
+			new MapExtendableContainer<>("configuration",
+					"value object class");
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Override
-	public IList<IValueObjectConfig> getExtensions(Class<?> key)
-	{
+	public IList<IValueObjectConfig> getExtensions(Class<?> key) {
 		return typeToValueObjectConfig.getExtensions(key);
 	}
 
 	@Override
-	public ILinkedMap<Class<?>, IValueObjectConfig> getExtensions()
-	{
+	public ILinkedMap<Class<?>, IValueObjectConfig> getExtensions() {
 		return typeToValueObjectConfig.getExtensions();
 	}
 
-	public IList<Class<?>> getValueObjectTypesByEntityType(Class<?> entityType)
-	{
+	public IList<Class<?>> getValueObjectTypesByEntityType(Class<?> entityType) {
 		List<Class<?>> valueObjectTypes = get(entityType);
-		if (valueObjectTypes == null)
-		{
+		if (valueObjectTypes == null) {
 			// Check if the entityType is really an entity type
-			if (entityMetaDataProvider.getMetaData(entityType, true) == null)
-			{
+			if (entityMetaDataProvider.getMetaData(entityType, true) == null) {
 				throw new IllegalStateException("'" + entityType + "' is no valid entity type");
 			}
 			return EmptyList.getInstance();
 		}
-		ArrayList<Class<?>> resultList = new ArrayList<Class<?>>(valueObjectTypes.size());
-		for (int a = 0, size = valueObjectTypes.size(); a < size; a++)
-		{
+		ArrayList<Class<?>> resultList = new ArrayList<>(valueObjectTypes.size());
+		for (int a = 0, size = valueObjectTypes.size(); a < size; a++) {
 			Class<?> valueObjectType = valueObjectTypes.get(a);
 			resultList.add(valueObjectType);
 		}
@@ -83,68 +78,57 @@ public class ValueObjectMap extends SmartCopyMap<Class<?>, List<Class<?>>> imple
 	}
 
 	@Override
-	public IValueObjectConfig getExtension(Class<?> key)
-	{
+	public IValueObjectConfig getExtension(Class<?> key) {
 		return typeToValueObjectConfig.getExtension(key);
 	}
 
 	@Override
-	public void getExtensions(Map<Class<?>, IValueObjectConfig> targetExtensionMap)
-	{
+	public void getExtensions(Map<Class<?>, IValueObjectConfig> targetExtensionMap) {
 		typeToValueObjectConfig.getExtensions(targetExtensionMap);
 	}
 
 	@Override
-	public void register(IValueObjectConfig config, Class<?> key)
-	{
+	public void register(IValueObjectConfig config, Class<?> key) {
 		Class<?> entityType = config.getEntityType();
 		Class<?> valueType = config.getValueType();
 
 		Lock writeLock = getWriteLock();
 		writeLock.lock();
-		try
-		{
+		try {
 			typeToValueObjectConfig.register(config, valueType);
 
 			// Clone list because of SmartCopy behavior
 			List<Class<?>> valueObjectTypes = get(entityType);
-			if (valueObjectTypes == null)
-			{
-				valueObjectTypes = new ArrayList<Class<?>>(1);
+			if (valueObjectTypes == null) {
+				valueObjectTypes = new ArrayList<>(1);
 			}
-			else
-			{
-				valueObjectTypes = new ArrayList<Class<?>>(valueObjectTypes);
+			else {
+				valueObjectTypes = new ArrayList<>(valueObjectTypes);
 			}
 			valueObjectTypes.add(valueType);
 			put(entityType, valueObjectTypes);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public void unregister(IValueObjectConfig config, Class<?> key)
-	{
+	public void unregister(IValueObjectConfig config, Class<?> key) {
 		Class<?> entityType = config.getEntityType();
 		Class<?> valueType = config.getValueType();
 
 		Lock writeLock = getWriteLock();
 		writeLock.lock();
-		try
-		{
+		try {
 			typeToValueObjectConfig.unregister(config, valueType);
 			List<Class<?>> valueObjectTypes = get(entityType);
 			valueObjectTypes.remove(valueType);
-			if (valueObjectTypes.size() == 0)
-			{
+			if (valueObjectTypes.size() == 0) {
 				remove(entityType);
 			}
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}

@@ -26,8 +26,8 @@ import com.koch.ambeth.query.inmemory.IInMemoryBooleanOperand;
 import com.koch.ambeth.query.inmemory.IInMemoryTextOperand;
 import com.koch.ambeth.util.collections.IMap;
 
-public abstract class AbstractBinaryTextOperator extends AbstractOperator implements IInMemoryBooleanOperand
-{
+public abstract class AbstractBinaryTextOperator extends AbstractOperator
+		implements IInMemoryBooleanOperand {
 	@Property
 	protected IInMemoryTextOperand leftOperand;
 
@@ -35,16 +35,13 @@ public abstract class AbstractBinaryTextOperator extends AbstractOperator implem
 	protected IInMemoryTextOperand rightOperand;
 
 	@Override
-	public final Boolean evaluate(IMap<Object, Object> nameToValueMap)
-	{
+	public final Boolean evaluate(IMap<Object, Object> nameToValueMap) {
 		String leftValue = leftOperand.evaluateText(nameToValueMap);
-		if (leftValue == null)
-		{
+		if (leftValue == null) {
 			return null;
 		}
 		String rightValue = rightOperand.evaluateText(nameToValueMap);
-		if (rightValue == null)
-		{
+		if (rightValue == null) {
 			return null;
 		}
 		return evaluateIntern(leftValue, rightValue);

@@ -22,17 +22,14 @@ limitations under the License.
 
 import com.koch.ambeth.model.AbstractEntity;
 
-public class MasterVO extends AbstractEntity
-{
+public class MasterVO extends AbstractEntity {
 	private DetailListVO details;
 
-	public DetailListVO getDetails()
-	{
+	public DetailListVO getDetails() {
 		return details;
 	}
 
-	public void setDetails(DetailListVO details)
-	{
+	public void setDetails(DetailListVO details) {
 		this.details = details;
 	}
 }

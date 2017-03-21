@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.List;
 
-public interface Group
-{
+public interface Group {
 	Integer getId();
 
 	Integer getVersion();

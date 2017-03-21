@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IEntityCService
-{
+public interface IEntityCService {
 	void save(EntityC entity);
 }

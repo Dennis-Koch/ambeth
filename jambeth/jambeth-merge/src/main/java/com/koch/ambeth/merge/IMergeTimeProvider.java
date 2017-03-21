@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IMergeTimeProvider
-{
+public interface IMergeTimeProvider {
 	long getStartTime();
 }

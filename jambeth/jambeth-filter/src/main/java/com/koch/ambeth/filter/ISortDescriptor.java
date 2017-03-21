@@ -23,8 +23,7 @@ limitations under the License.
 import javax.xml.bind.annotation.XmlType;
 
 @XmlType
-public interface ISortDescriptor
-{
+public interface ISortDescriptor {
 	String getMember();
 
 	SortDirection getSortDirection();

@@ -23,7 +23,6 @@ limitations under the License.
 import com.koch.ambeth.util.annotation.EntityEqualsAspect;
 
 @EntityEqualsAspect
-public interface IAbstractBusinessObject
-{
+public interface IAbstractBusinessObject {
 	Integer getId();
 }

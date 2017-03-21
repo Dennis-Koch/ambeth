@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ICreateOrUpdateContainer extends IChangeContainer
-{
+public interface ICreateOrUpdateContainer extends IChangeContainer {
 	IPrimitiveUpdateItem[] getFullPUIs();
 
 	IRelationUpdateItem[] getFullRUIs();

@@ -26,8 +26,7 @@ import com.koch.ambeth.persistence.api.IDirectedLink;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 
-public class ParallelLoadCascadeItem extends AbstractParallelItem
-{
+public class ParallelLoadCascadeItem extends AbstractParallelItem {
 	public final Class<?> entityType;
 
 	public final IDirectedLink link;
@@ -36,9 +35,9 @@ public class ParallelLoadCascadeItem extends AbstractParallelItem
 
 	public final int relationIndex;
 
-	public ParallelLoadCascadeItem(Class<?> entityType, IDirectedLink link, ArrayList<Object> splittedIds, int relationIndex,
-			LinkedHashMap<Class<?>, Collection<Object>[]> sharedCascadeTypeToPendingInit)
-	{
+	public ParallelLoadCascadeItem(Class<?> entityType, IDirectedLink link,
+			ArrayList<Object> splittedIds, int relationIndex,
+			LinkedHashMap<Class<?>, Collection<Object>[]> sharedCascadeTypeToPendingInit) {
 		super(sharedCascadeTypeToPendingInit);
 		this.entityType = entityType;
 		this.link = link;

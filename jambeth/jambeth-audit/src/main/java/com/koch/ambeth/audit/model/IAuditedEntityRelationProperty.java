@@ -25,8 +25,7 @@ import java.util.List;
 import com.koch.ambeth.security.audit.model.Audited;
 
 @Audited(false)
-public interface IAuditedEntityRelationProperty
-{
+public interface IAuditedEntityRelationProperty {
 	public static final String Entity = "Entity";
 
 	public static final String Items = "Items";

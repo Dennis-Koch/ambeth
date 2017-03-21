@@ -21,8 +21,7 @@ limitations under the License.
  */
 
 
-public interface IWriter
-{
+public interface IWriter {
 	boolean isInAttributeState();
 
 	void writeEscapedXml(CharSequence unescapedString);

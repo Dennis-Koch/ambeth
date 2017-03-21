@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.util.annotation.NoProxy;
 
-public interface IChildService
-{
+public interface IChildService {
 	@NoProxy
 	void searchForParentWithEquals(int parentId);
 

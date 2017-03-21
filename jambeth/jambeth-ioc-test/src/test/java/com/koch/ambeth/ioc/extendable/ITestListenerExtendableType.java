@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ITestListenerExtendableType
-{
+public interface ITestListenerExtendableType {
 	void addTestListener(ITestListener testListener, Class<?> type);
 
 	void removeTestListener(ITestListener testListener, Class<?> type);

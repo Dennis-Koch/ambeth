@@ -24,46 +24,38 @@ import java.util.List;
 
 import com.koch.ambeth.model.AbstractEntity;
 
-public class EntityA extends AbstractEntity
-{
+public class EntityA extends AbstractEntity {
 	protected EntityB other;
 
 	protected List<EntityC> entityCs;
 
 	protected EntityD entityD;
 
-	protected EntityA()
-	{
+	protected EntityA() {
 		// Intended blank
 	}
 
-	public EntityB getOther()
-	{
+	public EntityB getOther() {
 		return other;
 	}
 
-	public void setOther(EntityB other)
-	{
+	public void setOther(EntityB other) {
 		this.other = other;
 	}
 
-	public List<EntityC> getEntityCs()
-	{
+	public List<EntityC> getEntityCs() {
 		return entityCs;
 	}
 
-	public void setEntityCs(List<EntityC> entityCs)
-	{
+	public void setEntityCs(List<EntityC> entityCs) {
 		this.entityCs = entityCs;
 	}
 
-	public EntityD getEntityD()
-	{
+	public EntityD getEntityD() {
 		return entityD;
 	}
 
-	public void setEntityD(EntityD entityD)
-	{
+	public void setEntityD(EntityD entityD) {
 		this.entityD = entityD;
 	}
 }

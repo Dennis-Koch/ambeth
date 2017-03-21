@@ -82,16 +82,16 @@ public class CommittedRootCachePostProcessor extends AbstractCascadePostProcesso
 				continue;
 			}
 			if (methodLevelBehaviour == null) {
-				methodLevelBehaviour = new MethodLevelHashMap<SecurityContextType>();
+				methodLevelBehaviour = new MethodLevelHashMap<>();
 			}
 			methodLevelBehaviour.put(method.getName(), method.getParameterTypes(),
 					SecurityContextType.AUTHENTICATED);
 		}
 		if (methodLevelBehaviour == null) {
-			methodLevelBehaviour = new MethodLevelHashMap<SecurityContextType>(0);
+			methodLevelBehaviour = new MethodLevelHashMap<>(0);
 		}
 		IMethodLevelBehavior<SecurityContextType> behaviour =
-				new MethodLevelBehavior<SecurityContextType>(SecurityContextType.NOT_REQUIRED,
+				new MethodLevelBehavior<>(SecurityContextType.NOT_REQUIRED,
 						methodLevelBehaviour);
 
 		SecurityFilterInterceptor interceptor = new SecurityFilterInterceptor();

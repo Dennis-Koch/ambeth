@@ -21,18 +21,15 @@ limitations under the License.
  */
 
 
-public class DisposableBeanHook implements IDisposableBean
-{
+public class DisposableBeanHook implements IDisposableBean {
 	private final IDisposableBean hook;
 
-	public DisposableBeanHook(IDisposableBean hook)
-	{
+	public DisposableBeanHook(IDisposableBean hook) {
 		this.hook = hook;
 	}
 
 	@Override
-	public void destroy() throws Throwable
-	{
+	public void destroy() throws Throwable {
 		hook.destroy();
 	}
 }

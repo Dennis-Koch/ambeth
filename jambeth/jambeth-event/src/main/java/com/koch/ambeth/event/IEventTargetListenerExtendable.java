@@ -20,11 +20,12 @@ limitations under the License.
  * #L%
  */
 
-public interface IEventTargetListenerExtendable
-{
-	void registerEventTargetListener(IEventTargetEventListener eventTargetListener, Class<?> eventType);
+public interface IEventTargetListenerExtendable {
+	void registerEventTargetListener(IEventTargetEventListener eventTargetListener,
+			Class<?> eventType);
 
-	void unregisterEventTargetListener(IEventTargetEventListener eventTargetListener, Class<?> eventType);
+	void unregisterEventTargetListener(IEventTargetEventListener eventTargetListener,
+			Class<?> eventType);
 
 	void registerEventTargetListener(IEventTargetEventListener eventTargetListener);
 

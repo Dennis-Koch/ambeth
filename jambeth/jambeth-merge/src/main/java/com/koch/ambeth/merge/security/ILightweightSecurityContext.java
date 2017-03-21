@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public interface ILightweightSecurityContext
-{
+public interface ILightweightSecurityContext {
 	boolean isAuthenticated();
 }

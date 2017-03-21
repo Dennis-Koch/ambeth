@@ -23,7 +23,7 @@ limitations under the License.
 import com.koch.ambeth.security.IAuthentication;
 import com.koch.ambeth.security.IAuthorization;
 
-public interface IAuthorizationExceptionFactory
-{
-	Throwable createAuthorizationException(IAuthentication authentication, IAuthorization authorization);
+public interface IAuthorizationExceptionFactory {
+	Throwable createAuthorizationException(IAuthentication authentication,
+			IAuthorization authorization);
 }

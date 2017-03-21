@@ -73,7 +73,7 @@ public class RelationUpdateItemBuild implements IRelationUpdateItem, IPrintable 
 
 	public void addObjRef(IObjRef objRef) {
 		if (addedORIs.size() == 0) {
-			addedORIs = new HashSet<IObjRef>();
+			addedORIs = new HashSet<>();
 		}
 		addedORIs.add(objRef);
 	}
@@ -98,7 +98,7 @@ public class RelationUpdateItemBuild implements IRelationUpdateItem, IPrintable 
 
 	public void removeObjRef(IObjRef objRef) {
 		if (removedORIs.size() == 0) {
-			removedORIs = new HashSet<IObjRef>();
+			removedORIs = new HashSet<>();
 		}
 		removedORIs.add(objRef);
 	}

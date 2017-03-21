@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public enum LogSourceLevel
-{
+public enum LogSourceLevel {
 	DEFAULT, FULL, SHORT, NONE;
 }

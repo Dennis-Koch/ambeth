@@ -22,30 +22,25 @@ limitations under the License.
 
 import com.koch.ambeth.persistence.api.IDatabase;
 
-public abstract class DefaultDatabaseLifecycleCallback implements IDatabaseLifecycleCallback
-{
+public abstract class DefaultDatabaseLifecycleCallback implements IDatabaseLifecycleCallback {
 
 	@Override
-	public void databaseNotFound(Object databaseHandle, String dbName)
-	{
+	public void databaseNotFound(Object databaseHandle, String dbName) {
 		// Intended blank
 	}
 
 	@Override
-	public void databaseEmpty(Object databaseHandle)
-	{
+	public void databaseEmpty(Object databaseHandle) {
 		// Intended blank
 	}
 
 	@Override
-	public void databaseConnected(IDatabase database)
-	{
+	public void databaseConnected(IDatabase database) {
 		// Intended blank
 	}
 
 	@Override
-	public void databaseClosed(IDatabase database)
-	{
+	public void databaseClosed(IDatabase database) {
 		// Intended blank
 	}
 

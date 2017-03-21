@@ -145,7 +145,7 @@ public class AmbethShellStarter implements IDisposableBean {
 	 */
 	private static Properties parseMainArgs(String[] args) {
 		Properties mainProperties = new Properties();
-		List<String> cleanedMainArgs = new ArrayList<String>();
+		List<String> cleanedMainArgs = new ArrayList<>();
 
 		for (String arg : args) {
 			if (arg.toLowerCase().endsWith(".as")) {
@@ -184,7 +184,7 @@ public class AmbethShellStarter implements IDisposableBean {
 			return false;
 		}
 
-		HashMap<String, String> varMap = new HashMap<String, String>();
+		HashMap<String, String> varMap = new HashMap<>();
 
 		for (int i = 1; i < args.length; i++) {
 			String[] varPairs = args[i].split("=");

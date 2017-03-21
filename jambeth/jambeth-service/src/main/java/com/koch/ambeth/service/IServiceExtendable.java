@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IServiceExtendable
-{
+public interface IServiceExtendable {
 	void registerService(Object service, String serviceName);
 
 	void unregisterService(Object service, String serviceName);

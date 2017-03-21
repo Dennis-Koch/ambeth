@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ITransactionState
-{
+public interface ITransactionState {
 	boolean isTransactionActive();
 
 	Boolean isExternalTransactionManagerActive();

@@ -24,8 +24,7 @@ import java.util.concurrent.CountDownLatch;
 
 import com.koch.ambeth.util.collections.ListElem;
 
-public class QueueItem extends ListElem<QueueItem>
-{
+public class QueueItem extends ListElem<QueueItem> {
 	private final Object context;
 
 	private final Object object;
@@ -36,8 +35,8 @@ public class QueueItem extends ListElem<QueueItem>
 
 	private final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
 
-	public QueueItem(Object context, Object object, HandlerRunnable<?, ?> handler, CountDownLatch latch)
-	{
+	public QueueItem(Object context, Object object, HandlerRunnable<?, ?> handler,
+			CountDownLatch latch) {
 		super.value = this;
 		this.context = context;
 		this.object = object;
@@ -45,33 +44,27 @@ public class QueueItem extends ListElem<QueueItem>
 		this.latch = latch;
 	}
 
-	public Object getContext()
-	{
+	public Object getContext() {
 		return context;
 	}
 
-	public Object getObject()
-	{
+	public Object getObject() {
 		return object;
 	}
 
-	public ListElem<QueueItem> getThreadingLE()
-	{
+	public ListElem<QueueItem> getThreadingLE() {
 		return this;
 	}
 
-	public HandlerRunnable<?, ?> getHandler()
-	{
+	public HandlerRunnable<?, ?> getHandler() {
 		return handler;
 	}
 
-	public CountDownLatch getLatch()
-	{
+	public CountDownLatch getLatch() {
 		return latch;
 	}
 
-	public ClassLoader getContextClassLoader()
-	{
+	public ClassLoader getContextClassLoader() {
 		return contextClassLoader;
 	}
 }

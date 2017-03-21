@@ -30,8 +30,7 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.util.PhantomReferenceCleaner;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class FileContentPRC extends PhantomReferenceCleaner<ByteBuffer, ChunkPhantomReference>
-{
+public class FileContentPRC extends PhantomReferenceCleaner<ByteBuffer, ChunkPhantomReference> {
 	private final ILogger log;
 
 	private int cleanupCounter;
@@ -43,91 +42,79 @@ public class FileContentPRC extends PhantomReferenceCleaner<ByteBuffer, ChunkPha
 
 	private long lastCleanup = System.currentTimeMillis();
 
-	public FileContentPRC(ILogger log, int cleanupCounterThreshold, double freePhysicalMemoryRatio)
-	{
+	public FileContentPRC(ILogger log, int cleanupCounterThreshold, double freePhysicalMemoryRatio) {
 		this.log = log;
 		this.cleanupCounterThreshold = cleanupCounterThreshold;
 		this.freePhysicalMemoryRatio = freePhysicalMemoryRatio;
 	}
 
 	@Override
-	protected void doCleanup(ChunkPhantomReference phantom)
-	{
+	protected void doCleanup(ChunkPhantomReference phantom) {
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
-			if (++cleanupCounter < cleanupCounterThreshold)
-			{
+		try {
+			if (++cleanupCounter < cleanupCounterThreshold) {
 				return;
 			}
 			cleanup();
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
-	protected void cleanup()
-	{
-		if (System.currentTimeMillis() - lastCleanup < 1000)
-		{
+	protected void cleanup() {
+		if (System.currentTimeMillis() - lastCleanup < 1000) {
 			return;
 		}
 		cleanupCounter = 0;
 		// OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
-		// long committedVirtualMemorySize = (long) getValue(operatingSystemMXBean, "getCommittedVirtualMemorySize");
+		// long committedVirtualMemorySize = (long) getValue(operatingSystemMXBean,
+		// "getCommittedVirtualMemorySize");
 		// long totalSwapSpaceSize = (long) getValue(operatingSystemMXBean, "getTotalSwapSpaceSize");
 		// long freeSwapSpaceSize = (long) getValue(operatingSystemMXBean, "getFreeSwapSpaceSize");
-		// long freePhysicalMemorySize = (long) getValue(operatingSystemMXBean, "getFreePhysicalMemorySize");
-		// long totalPhysicalMemorySize = (long) getValue(operatingSystemMXBean, "getTotalPhysicalMemorySize");
+		// long freePhysicalMemorySize = (long) getValue(operatingSystemMXBean,
+		// "getFreePhysicalMemorySize");
+		// long totalPhysicalMemorySize = (long) getValue(operatingSystemMXBean,
+		// "getTotalPhysicalMemorySize");
 
-		// Workaround to do at least "something" against a "out of virtual address space" error because of uncleaned but already unused MappedByteBuffer
+		// Workaround to do at least "something" against a "out of virtual address space" error because
+		// of uncleaned but already unused MappedByteBuffer
 		// instances
 		// if (freePhysicalMemorySize / (double) totalPhysicalMemorySize < freePhysicalMemoryRatio)
 		// {
 		System.gc();
-		if (log.isInfoEnabled())
-		{
+		if (log.isInfoEnabled()) {
 			log.info("Requested System.gc()");
 		}
 		// }
 		lastCleanup = System.currentTimeMillis();
 	}
 
-	protected Object getValue(Object obj, String getMethodName)
-	{
-		try
-		{
+	protected Object getValue(Object obj, String getMethodName) {
+		try {
 			final Method method = obj.getClass().getMethod(getMethodName);
-			AccessController.doPrivileged(new PrivilegedAction<Void>()
-			{
+			AccessController.doPrivileged(new PrivilegedAction<Void>() {
 				@Override
-				public Void run()
-				{
+				public Void run() {
 					method.setAccessible(true);
 					return null;
 				}
 			});
 			return method.invoke(obj);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
-	public void increaseCleanupCounter()
-	{
+	public void increaseCleanupCounter() {
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			cleanupCounter++;
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}

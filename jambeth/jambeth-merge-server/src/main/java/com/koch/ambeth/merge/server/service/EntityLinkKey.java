@@ -23,27 +23,22 @@ limitations under the License.
 import com.koch.ambeth.cache.rootcachevalue.RootCacheValue;
 import com.koch.ambeth.persistence.api.IDirectedLink;
 
-public class EntityLinkKey
-{
+public class EntityLinkKey {
 	protected final RootCacheValue entity;
 
 	protected final IDirectedLink link;
 
-	public EntityLinkKey(RootCacheValue entity, IDirectedLink link)
-	{
+	public EntityLinkKey(RootCacheValue entity, IDirectedLink link) {
 		this.entity = entity;
 		this.link = link;
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == this)
-		{
+	public boolean equals(Object obj) {
+		if (obj == this) {
 			return true;
 		}
-		if (!(obj instanceof EntityLinkKey))
-		{
+		if (!(obj instanceof EntityLinkKey)) {
 			return false;
 		}
 		EntityLinkKey other = (EntityLinkKey) obj;
@@ -51,14 +46,12 @@ public class EntityLinkKey
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return entity.hashCode() ^ link.hashCode();
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return entity + " - " + link.getMetaData().getName();
 	}
 }

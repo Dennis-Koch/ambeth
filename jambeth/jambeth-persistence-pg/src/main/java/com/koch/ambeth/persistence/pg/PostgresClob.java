@@ -36,182 +36,148 @@ import org.postgresql.largeobject.LargeObjectManager;
 
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class PostgresClob implements Clob
-{
+public class PostgresClob implements Clob {
 	private long oid;
 
 	private LargeObjectManager largeObjectManager;
 
-	public PostgresClob(PGConnection connection, long oid) throws SQLException
-	{
+	public PostgresClob(PGConnection connection, long oid) throws SQLException {
 		this.oid = oid;
 		largeObjectManager = connection.getLargeObjectAPI();
 	}
 
 	@Override
-	public void free() throws SQLException
-	{
+	public void free() throws SQLException {
 		largeObjectManager = null;
 	}
 
 	@Override
-	public long length() throws SQLException
-	{
+	public long length() throws SQLException {
 		LargeObject lo = largeObjectManager.open(oid, LargeObjectManager.READ);
-		try
-		{
+		try {
 			return lo.size64();
 		}
-		finally
-		{
+		finally {
 			lo.close();
 		}
 	}
 
 	@Override
-	public InputStream getAsciiStream() throws SQLException
-	{
+	public InputStream getAsciiStream() throws SQLException {
 		LargeObject lo = largeObjectManager.open(oid, LargeObjectManager.READ);
 		return lo.getInputStream();
 	}
 
 	@Override
-	public long position(Clob searchstr, long start) throws SQLException
-	{
+	public long position(Clob searchstr, long start) throws SQLException {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public long position(String searchstr, long start) throws SQLException
-	{
+	public long position(String searchstr, long start) throws SQLException {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Reader getCharacterStream() throws SQLException
-	{
+	public Reader getCharacterStream() throws SQLException {
 		InputStream is = getAsciiStream();
 		return new InputStreamReader(is);
 	}
 
 	@Override
-	public Reader getCharacterStream(long pos, final long length) throws SQLException
-	{
+	public Reader getCharacterStream(long pos, final long length) throws SQLException {
 		LargeObject lo = largeObjectManager.open(oid, LargeObjectManager.READ);
 		lo.seek64(pos, LargeObject.SEEK_SET);
 
 		final InputStream is = lo.getInputStream();
 
-		return new InputStreamReader(new InputStream()
-		{
+		return new InputStreamReader(new InputStream() {
 			long remaining = length;
 
 			@Override
-			public int read() throws IOException
-			{
-				if (remaining > 0)
-				{
+			public int read() throws IOException {
+				if (remaining > 0) {
 					remaining--;
 				}
-				else
-				{
+				else {
 					return -1;
 				}
 				return is.read();
 			}
 
 			@Override
-			public void close() throws IOException
-			{
+			public void close() throws IOException {
 				is.close();
 			}
 		});
 	}
 
 	@Override
-	public String getSubString(long pos, int length) throws SQLException
-	{
+	public String getSubString(long pos, int length) throws SQLException {
 		Reader reader = getCharacterStream(pos, length);
-		try
-		{
+		try {
 			StringBuilder sb = new StringBuilder(length);
 			int oneByte;
-			while ((oneByte = reader.read()) != -1)
-			{
+			while ((oneByte = reader.read()) != -1) {
 				sb.append((char) oneByte);
 			}
 			return sb.toString();
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
-			try
-			{
+		finally {
+			try {
 				reader.close();
 			}
-			catch (Throwable e)
-			{
+			catch (Throwable e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
 	}
 
 	@Override
-	public OutputStream setAsciiStream(long pos) throws SQLException
-	{
+	public OutputStream setAsciiStream(long pos) throws SQLException {
 		LargeObject lo = largeObjectManager.open(oid, LargeObjectManager.WRITE);
 		lo.seek64(pos - 1, LargeObject.SEEK_SET);
 		return lo.getOutputStream();
 	}
 
 	@Override
-	public Writer setCharacterStream(long pos) throws SQLException
-	{
+	public Writer setCharacterStream(long pos) throws SQLException {
 		OutputStream os = setAsciiStream(pos);
 		return new OutputStreamWriter(os);
 	}
 
 	@Override
-	public int setString(long pos, String str) throws SQLException
-	{
+	public int setString(long pos, String str) throws SQLException {
 		return setString(pos, str, 0, str.length());
 	}
 
 	@Override
-	public int setString(long pos, String str, int offset, int len) throws SQLException
-	{
-		try
-		{
+	public int setString(long pos, String str, int offset, int len) throws SQLException {
+		try {
 			Writer writer = setCharacterStream(pos);
-			try
-			{
+			try {
 				writer.write(str, offset, len);
 				return len;
 			}
-			finally
-			{
+			finally {
 				writer.close();
 			}
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	public void truncate(long len) throws SQLException
-	{
+	public void truncate(long len) throws SQLException {
 		LargeObject lo = largeObjectManager.open(oid, LargeObjectManager.WRITE);
-		try
-		{
+		try {
 			lo.truncate64(len);
 		}
-		finally
-		{
+		finally {
 			lo.close();
 		}
 	}

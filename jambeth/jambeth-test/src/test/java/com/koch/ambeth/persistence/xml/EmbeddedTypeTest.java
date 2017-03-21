@@ -41,23 +41,24 @@ import com.koch.ambeth.util.collections.ILinkedMap;
 
 @SQLData("embeddedtype_data.sql")
 @SQLStructure("embeddedtype_structure.sql")
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/xml/embedded_type_orm.xml")
-public class EmbeddedTypeTest extends AbstractInformationBusWithPersistenceTest
-{
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/persistence/xml/embedded_type_orm.xml")
+public class EmbeddedTypeTest extends AbstractInformationBusWithPersistenceTest {
 	@Test
-	public void simple() throws Throwable
-	{
-		// This is rather evil but for Testing ok: Do not extract database-objects out of a transaction scope in
+	public void simple() throws Throwable {
+		// This is rather evil but for Testing ok: Do not extract database-objects out of a transaction
+		// scope in
 		// production code!
-		ITableMetaData table = transaction.processAndCommit(new ResultingDatabaseCallback<ITableMetaData>()
-		{
+		ITableMetaData table =
+				transaction.processAndCommit(new ResultingDatabaseCallback<ITableMetaData>() {
 
-			@Override
-			public ITableMetaData callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-			{
-				return persistenceUnitToDatabaseMap.iterator().next().getValue().getTableByType(ParentOfEmbeddedType.class).getMetaData();
-			}
-		});
+					@Override
+					public ITableMetaData callback(
+							ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) {
+						return persistenceUnitToDatabaseMap.iterator().next().getValue()
+								.getTableByType(ParentOfEmbeddedType.class).getMetaData();
+					}
+				});
 		List<IFieldMetaData> primitiveFields = table.getPrimitiveFields();
 
 		IFieldMetaData nameField = table.getFieldByMemberName("MyEmbeddedType.Name");
@@ -70,12 +71,12 @@ public class EmbeddedTypeTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void selectWithQueryBuilder() throws Throwable
-	{
+	public void selectWithQueryBuilder() throws Throwable {
 		String param1 = "param1";
 
 		IQueryBuilder<ParentOfEmbeddedType> qb = queryBuilderFactory.create(ParentOfEmbeddedType.class);
-		IQuery<ParentOfEmbeddedType> query = qb.build(qb.isEqualTo(qb.property("MyEmbeddedType.Name"), qb.valueName(param1)));
+		IQuery<ParentOfEmbeddedType> query =
+				qb.build(qb.isEqualTo(qb.property("MyEmbeddedType.Name"), qb.valueName(param1)));
 
 		List<ParentOfEmbeddedType> parents = query.param(param1, "My Name Is").retrieve();
 		Assert.assertEquals(1, parents.size());

@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public class LockState
-{
+public class LockState {
 	public int readLockCount, writeLockCount;
 }

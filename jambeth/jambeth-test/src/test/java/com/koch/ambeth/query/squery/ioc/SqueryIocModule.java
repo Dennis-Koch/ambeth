@@ -27,12 +27,11 @@ import com.koch.ambeth.query.squery.service.IPersonService;
 import com.koch.ambeth.query.squery.service.PersonService;
 
 @BootstrapModule
-public class SqueryIocModule implements IInitializingModule
-{
+public class SqueryIocModule implements IInitializingModule {
 
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		beanContextFactory.registerBean(PersonService.class).autowireable(PersonService.class, IPersonService.class);
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		beanContextFactory.registerBean(PersonService.class).autowireable(PersonService.class,
+				IPersonService.class);
 	}
 }

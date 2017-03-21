@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IBackgroundWorkerDelegate
-{
+public interface IBackgroundWorkerDelegate {
 	void invoke() throws Throwable;
 }

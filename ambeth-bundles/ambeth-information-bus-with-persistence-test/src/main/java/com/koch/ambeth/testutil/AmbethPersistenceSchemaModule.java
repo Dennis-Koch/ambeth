@@ -36,15 +36,15 @@ import com.koch.ambeth.persistence.sql.SqlBuilder;
 import com.koch.ambeth.persistence.util.IPersistenceExceptionUtil;
 import com.koch.ambeth.persistence.util.PersistenceExceptionUtil;
 
-public class AmbethPersistenceSchemaModule implements IInitializingModule
-{
+public class AmbethPersistenceSchemaModule implements IInitializingModule {
 	@Override
-	public void afterPropertiesSet(final IBeanContextFactory beanContextFactory) throws Throwable
-	{
+	public void afterPropertiesSet(final IBeanContextFactory beanContextFactory) throws Throwable {
 		beanContextFactory.registerBean(ConnectionFactory.class).autowireable(IConnectionFactory.class);
-		beanContextFactory.registerBean(PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
+		beanContextFactory.registerBean(PersistenceExceptionUtil.class)
+				.autowireable(IPersistenceExceptionUtil.class);
 		beanContextFactory.registerBean(OrmPatternMatcher.class).autowireable(IOrmPatternMatcher.class);
-		beanContextFactory.registerBean(SqlBuilder.class).autowireable(ISqlBuilder.class, ISqlKeywordRegistry.class);
+		beanContextFactory.registerBean(SqlBuilder.class).autowireable(ISqlBuilder.class,
+				ISqlKeywordRegistry.class);
 		beanContextFactory.registerBean(PersistenceHelper.class).autowireable(IPersistenceHelper.class);
 
 		beanContextFactory.registerBean(IocModule.class);

@@ -29,50 +29,41 @@ import java.util.regex.Pattern;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
-public class AssemblyHelper
-{
+public class AssemblyHelper {
 	public static final Pattern assemblyNameRegEx = Pattern.compile("([^\\,]+)\\,.+");
 
-	protected AssemblyHelper()
-	{
+	protected AssemblyHelper() {
 	}
 
-	protected static final ThreadLocal<Map<String, Reference<Class<?>>>> nameToTypeDictTL = new SensitiveThreadLocal<Map<String, Reference<Class<?>>>>()
-	{
-		@Override
-		protected Map<String, Reference<Class<?>>> initialValue()
-		{
-			// Intentionally use java.util.HashMap to prevent ClassLoader memory leaking due to EE redeployments
-			return new java.util.HashMap<String, Reference<Class<?>>>();
-		}
-	};
+	protected static final ThreadLocal<Map<String, Reference<Class<?>>>> nameToTypeDictTL =
+			new SensitiveThreadLocal<Map<String, Reference<Class<?>>>>() {
+				@Override
+				protected Map<String, Reference<Class<?>>> initialValue() {
+					// Intentionally use java.util.HashMap to prevent ClassLoader memory leaking due to EE
+					// redeployments
+					return new java.util.HashMap<>();
+				}
+			};
 
-	protected static final Map<String, Class<?>> nameToTypeDict = new HashMap<String, Class<?>>();
+	protected static final Map<String, Class<?>> nameToTypeDict = new HashMap<>();
 
-	public static Class<?> getTypeFromCurrentDomain(String typeName)
-	{
+	public static Class<?> getTypeFromCurrentDomain(String typeName) {
 		Map<String, Reference<Class<?>>> nameToTypeLocal = nameToTypeDictTL.get();
 		Reference<Class<?>> typeR = nameToTypeLocal.get(typeName);
 		Class<?> type = null;
-		if (typeR != null)
-		{
+		if (typeR != null) {
 			type = typeR.get();
 		}
-		if (type != null)
-		{
+		if (type != null) {
 			return type;
 		}
-		synchronized (nameToTypeDict)
-		{
+		synchronized (nameToTypeDict) {
 			type = nameToTypeDict.get(typeName);
-			if (type == null)
-			{
-				try
-				{
+			if (type == null) {
+				try {
 					type = Thread.currentThread().getContextClassLoader().loadClass(typeName);
 				}
-				catch (ClassNotFoundException e)
-				{
+				catch (ClassNotFoundException e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 				nameToTypeDict.put(typeName, type);

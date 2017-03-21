@@ -25,7 +25,6 @@ import java.util.EnumSet;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.koch.ambeth.cache.IRootCache;
 import com.koch.ambeth.cache.config.CacheConfigurationConstants;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.util.IMultithreadingHelper;
@@ -38,10 +37,10 @@ import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 
-@TestPropertiesList({ @TestProperties(name = CacheConfigurationConstants.SecondLevelCacheActive, value = "false"),
-		@TestProperties(name = CacheConfigurationConstants.FirstLevelCacheType, value = "PROTOTYPE") })
-public class SecondLevelCacheTest extends RelationsTest
-{
+@TestPropertiesList({
+		@TestProperties(name = CacheConfigurationConstants.SecondLevelCacheActive, value = "false"),
+		@TestProperties(name = CacheConfigurationConstants.FirstLevelCacheType, value = "PROTOTYPE")})
+public class SecondLevelCacheTest extends RelationsTest {
 	@Autowired
 	protected IMultithreadingHelper multithreadingHelper;
 
@@ -49,21 +48,17 @@ public class SecondLevelCacheTest extends RelationsTest
 	protected IRootCache rootCache;
 
 	@Test
-	public void testInactiveSecondLevelCache() throws Throwable
-	{
+	public void testInactiveSecondLevelCache() throws Throwable {
 		int workerCount = 2;
 		final Object[] objects = new Object[workerCount];
 		final Object[] cacheValues = new Object[workerCount];
 
 		Runnable[] runnables = new Runnable[workerCount];
-		for (int a = runnables.length; a-- > 0;)
-		{
+		for (int a = runnables.length; a-- > 0;) {
 			final int workerId = a;
-			Runnable runnable = new Runnable()
-			{
+			Runnable runnable = new Runnable() {
 				@Override
-				public void run()
-				{
+				public void run() {
 					Employee steveSmith = employeeService.getByName("Steve Smith");
 					Employee steveSmith2 = employeeService.getByName("Steve Smith");
 
@@ -76,7 +71,8 @@ public class SecondLevelCacheTest extends RelationsTest
 					objects[workerId] = steveSmith;
 
 					IObjRef objRef = new ObjRef(Employee.class, steveSmith.getId(), steveSmith.getVersion());
-					Object cacheValue = rootCache.getObject(objRef, EnumSet.<CacheDirective> of(CacheDirective.CacheValueResult));
+					Object cacheValue = rootCache.getObject(objRef,
+							EnumSet.<CacheDirective>of(CacheDirective.CacheValueResult));
 
 					cacheValues[workerId] = cacheValue;
 				}
@@ -86,16 +82,16 @@ public class SecondLevelCacheTest extends RelationsTest
 		}
 		multithreadingHelper.invokeInParallel(beanContext, runnables);
 
-		IdentityHashSet<Object> alreadyReferencedObjects = new IdentityHashSet<Object>();
+		IdentityHashSet<Object> alreadyReferencedObjects = new IdentityHashSet<>();
 
-		for (int workerId = cacheValues.length; workerId-- > 0;)
-		{
+		for (int workerId = cacheValues.length; workerId-- > 0;) {
 			Object cacheValue = cacheValues[workerId];
 			Object obj = objects[workerId];
 			Assert.assertNotNull(cacheValue);
 			Assert.assertNotNull(obj);
 
-			// Check that each object is non-identical to all others to prove isolation fact of 2nd level cache
+			// Check that each object is non-identical to all others to prove isolation fact of 2nd level
+			// cache
 			Assert.assertTrue(alreadyReferencedObjects.add(cacheValue));
 			Assert.assertTrue(alreadyReferencedObjects.add(obj));
 		}

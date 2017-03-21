@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ICompositeIdEntityService
-{
+public interface ICompositeIdEntityService {
 	CompositeIdEntity create(CompositeIdEntity entity);
 
 	CompositeIdEntity update(CompositeIdEntity entity);

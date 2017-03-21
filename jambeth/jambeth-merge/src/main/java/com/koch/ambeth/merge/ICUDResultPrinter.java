@@ -23,7 +23,6 @@ limitations under the License.
 import com.koch.ambeth.merge.incremental.IIncrementalMergeState;
 import com.koch.ambeth.merge.model.ICUDResult;
 
-public interface ICUDResultPrinter
-{
+public interface ICUDResultPrinter {
 	CharSequence printCUDResult(ICUDResult cudResult, IIncrementalMergeState state);
 }

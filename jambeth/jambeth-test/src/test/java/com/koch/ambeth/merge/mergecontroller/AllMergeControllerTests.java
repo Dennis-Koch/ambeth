@@ -25,7 +25,6 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ MergeControllerClientTest.class })
-public class AllMergeControllerTests
-{
+@SuiteClasses({MergeControllerClientTest.class})
+public class AllMergeControllerTests {
 }

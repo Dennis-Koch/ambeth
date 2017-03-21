@@ -31,8 +31,7 @@ import com.koch.ambeth.service.proxy.Service;
 
 @Service(IChildService.class)
 @PersistenceContext
-public class ChildService implements IChildService
-{
+public class ChildService implements IChildService {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -41,8 +40,7 @@ public class ChildService implements IChildService
 	protected IQueryBuilderFactory queryBuilderFactory;
 
 	@Override
-	public void searchForParentWithEquals(int parentId)
-	{
+	public void searchForParentWithEquals(int parentId) {
 		IQueryBuilder<Child> qb = queryBuilderFactory.create(Child.class);
 		qb.selectProperty("Parent.Id");
 		qb.selectProperty("Id");
@@ -52,8 +50,7 @@ public class ChildService implements IChildService
 	}
 
 	@Override
-	public void getForParentWithIsIn(int... parentIds)
-	{
+	public void getForParentWithIsIn(int... parentIds) {
 		IQueryBuilder<Child> qb = queryBuilderFactory.create(Child.class);
 		qb.selectProperty("Parent.Id");
 		qb.selectProperty("Id");

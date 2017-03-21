@@ -26,22 +26,18 @@ import com.koch.ambeth.model.AbstractEntity;
 import com.koch.ambeth.util.annotation.PropertyChangeAspect;
 
 @PropertyChangeAspect
-public abstract class ExternalParent extends AbstractEntity
-{
+public abstract class ExternalParent extends AbstractEntity {
 	protected String name;
 
-	protected ExternalParent()
-	{
+	protected ExternalParent() {
 		// Intended blank
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 

@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface ISensorProvider
-{
+public interface ISensorProvider {
 	ISensor lookup(String sensorName);
 }

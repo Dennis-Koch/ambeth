@@ -42,7 +42,6 @@ import org.junit.experimental.categories.Category;
 
 import com.koch.ambeth.testutil.category.PerformanceTests;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.threading.FastThreadPool;
 
 @Category(PerformanceTests.class)
 public class FastThreadPoolTest {

@@ -25,27 +25,23 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.security.model.IUser;
 import com.koch.ambeth.security.server.IUserIdentifierProvider;
 
-public class UserIdentifierProvider implements IUserIdentifierProvider
-{
+public class UserIdentifierProvider implements IUserIdentifierProvider {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public boolean isActive(IUser user)
-	{
+	public boolean isActive(IUser user) {
 		return true;
 	}
 
 	@Override
-	public String getSID(IUser user)
-	{
+	public String getSID(IUser user) {
 		return ((User) user).getSID();
 	}
 
 	@Override
-	public String getPropertyNameOfSID()
-	{
+	public String getPropertyNameOfSID() {
 		return User.SID;
 	}
 }

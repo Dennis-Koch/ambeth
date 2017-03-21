@@ -26,8 +26,7 @@ import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
-public class TimeUnitMultipliedOperand implements IOperand
-{
+public class TimeUnitMultipliedOperand implements IOperand {
 	@Property
 	protected IOperand timeUnit;
 
@@ -35,8 +34,8 @@ public class TimeUnitMultipliedOperand implements IOperand
 	protected IOperand multiplicatedInterval;
 
 	@Override
-	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
-	{
+	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			boolean joinQuery, IList<Object> parameters) {
 		querySB.append('(');
 		timeUnit.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 		querySB.append(")::interval * (");

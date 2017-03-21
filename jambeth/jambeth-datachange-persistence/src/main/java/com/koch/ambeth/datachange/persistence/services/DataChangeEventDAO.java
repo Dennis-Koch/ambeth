@@ -40,8 +40,7 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 @PersistenceContext
 @MergeContext
-public class DataChangeEventDAO implements IDataChangeEventDAO, IStartingBean
-{
+public class DataChangeEventDAO implements IDataChangeEventDAO, IStartingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -55,42 +54,39 @@ public class DataChangeEventDAO implements IDataChangeEventDAO, IStartingBean
 	protected IQuery<DataChangeEventBO> retrieveAll;
 
 	@Override
-	public void afterStarted() throws Throwable
-	{
+	public void afterStarted() throws Throwable {
 		retrieveAll = qbf.create(DataChangeEventBO.class).build();
 	}
 
 	@Override
-	public void save(DataChangeEventBO dataChangeEvent)
-	{
+	public void save(DataChangeEventBO dataChangeEvent) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public List<DataChangeEventBO> retrieveAll()
-	{
+	public List<DataChangeEventBO> retrieveAll() {
 		return retrieveAll.retrieve();
 	}
 
 	@Override
 	@NoProxy
-	public void removeBefore(long time)
-	{
+	public void removeBefore(long time) {
 		Statement stmt = null;
-		try
-		{
+		try {
 			stmt = connection.createStatement();
-			stmt.execute("DELETE FROM DATA_CHANGE_ENTRY WHERE INSERT_PARENT IN (SELECT ID FROM DATA_CHANGE_EVENT WHERE CHANGE_TIME < " + time
-					+ ") OR UPDATE_PARENT IN (SELECT ID FROM DATA_CHANGE_EVENT WHERE CHANGE_TIME < " + time
-					+ ") OR DELETE_PARENT IN (SELECT ID FROM DATA_CHANGE_EVENT WHERE CHANGE_TIME < " + time + ")");
+			stmt.execute(
+					"DELETE FROM DATA_CHANGE_ENTRY WHERE INSERT_PARENT IN (SELECT ID FROM DATA_CHANGE_EVENT WHERE CHANGE_TIME < "
+							+ time
+							+ ") OR UPDATE_PARENT IN (SELECT ID FROM DATA_CHANGE_EVENT WHERE CHANGE_TIME < "
+							+ time
+							+ ") OR DELETE_PARENT IN (SELECT ID FROM DATA_CHANGE_EVENT WHERE CHANGE_TIME < "
+							+ time + ")");
 			stmt.execute("DELETE FROM DATA_CHANGE_EVENT WHERE CHANGE_TIME < " + time);
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
+		finally {
 			JdbcUtil.close(stmt);
 		}
 	}

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IServiceFilterExtendable
-{
+public interface IServiceFilterExtendable {
 	void registerServiceFilter(IServiceFilter serviceFilter);
 
 	void unregisterServiceFilter(IServiceFilter serviceFilter);

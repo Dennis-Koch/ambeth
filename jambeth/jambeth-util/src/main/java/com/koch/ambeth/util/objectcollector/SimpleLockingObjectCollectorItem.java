@@ -23,53 +23,43 @@ limitations under the License.
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class SimpleLockingObjectCollectorItem extends SimpleObjectCollectorItem
-{
+public class SimpleLockingObjectCollectorItem extends SimpleObjectCollectorItem {
 	protected final Lock lock = new ReentrantLock();
 
-	public SimpleLockingObjectCollectorItem(IObjectCollector objectCollector, ICollectableController collectableController, Class<?> constructorClass)
-	{
+	public SimpleLockingObjectCollectorItem(IObjectCollector objectCollector,
+			ICollectableController collectableController, Class<?> constructorClass) {
 		super(objectCollector, collectableController, constructorClass);
 	}
 
 	@Override
-	protected Object popLastElement()
-	{
+	protected Object popLastElement() {
 		lock.lock();
-		try
-		{
+		try {
 			return super.popLastElement();
 		}
-		finally
-		{
+		finally {
 			lock.unlock();
 		}
 	}
 
 	@Override
-	public void dispose(final Object object)
-	{
+	public void dispose(final Object object) {
 		lock.lock();
-		try
-		{
+		try {
 			super.dispose(object);
 		}
-		finally
-		{
+		finally {
 			lock.unlock();
 		}
 	}
 
 	@Override
-	public void cleanUp()
-	{
+	public void cleanUp() {
 		lock.lock();
-		try
-		{
+		try {
 			super.cleanUp();
 		}
-		finally
-		{
+		finally {
 			lock.unlock();
 		}
 	}

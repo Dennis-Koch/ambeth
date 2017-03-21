@@ -20,6 +20,5 @@ limitations under the License.
  * #L%
  */
 
-public interface ITestService extends com.koch.ambeth.transfer.ITestService
-{
+public interface ITestService extends com.koch.ambeth.transfer.ITestService {
 }

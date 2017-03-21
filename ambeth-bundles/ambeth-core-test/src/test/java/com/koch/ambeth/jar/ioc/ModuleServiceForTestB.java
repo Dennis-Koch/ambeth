@@ -20,6 +20,5 @@ limitations under the License.
  * #L%
  */
 
-public class ModuleServiceForTestB implements IModuleServiceForTestB
-{
+public class ModuleServiceForTestB implements IModuleServiceForTestB {
 }

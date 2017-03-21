@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ILinkCursorItem
-{
+public interface ILinkCursorItem {
 	Object getFromId();
 
 	Object getToId();

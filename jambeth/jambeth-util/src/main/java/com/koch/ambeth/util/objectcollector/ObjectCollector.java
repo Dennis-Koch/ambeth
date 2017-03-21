@@ -45,10 +45,10 @@ public class ObjectCollector
 	// }
 
 	protected final HashMap<Class<?>, IObjectCollectorItem> unusedListMap =
-			new HashMap<Class<?>, IObjectCollectorItem>(100, 0.5f);
+			new HashMap<>(100, 0.5f);
 
 	protected final HashMap<Class<?>, ICollectableController> typeToControllerMap =
-			new HashMap<Class<?>, ICollectableController>(16, 0.5f);
+			new HashMap<>(16, 0.5f);
 
 	protected final Lock typeToControllerMapLock = new ReentrantLock();
 

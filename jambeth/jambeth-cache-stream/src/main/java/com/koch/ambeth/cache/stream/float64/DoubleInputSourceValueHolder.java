@@ -26,17 +26,15 @@ import com.koch.ambeth.stream.float64.BinaryToDoubleInputStream;
 import com.koch.ambeth.stream.float64.IDoubleInputSource;
 import com.koch.ambeth.stream.float64.IDoubleInputStream;
 
-public class DoubleInputSourceValueHolder extends AbstractInputSourceValueHolder implements IDoubleInputSource
-{
+public class DoubleInputSourceValueHolder extends AbstractInputSourceValueHolder
+		implements IDoubleInputSource {
 	@Override
-	public IInputStream deriveInputStream()
-	{
+	public IInputStream deriveInputStream() {
 		return deriveDoubleInputStream();
 	}
 
 	@Override
-	public IDoubleInputStream deriveDoubleInputStream()
-	{
+	public IDoubleInputStream deriveDoubleInputStream() {
 		return new BinaryToDoubleInputStream(createBinaryInputStream());
 	}
 }

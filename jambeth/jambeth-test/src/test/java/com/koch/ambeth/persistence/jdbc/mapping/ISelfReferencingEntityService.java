@@ -27,8 +27,7 @@ import java.util.Set;
 import com.koch.ambeth.cache.Cached;
 import com.koch.ambeth.persistence.jdbc.mapping.models.SelfReferencingEntity;
 
-public interface ISelfReferencingEntityService
-{
+public interface ISelfReferencingEntityService {
 	@Cached(alternateIdName = "Name")
 	SelfReferencingEntity getSelfReferencingEntityByName(String name);
 
@@ -51,7 +50,8 @@ public interface ISelfReferencingEntityService
 	Set<SelfReferencingEntity> getSelfReferencingEntitiesByNamesReturnSet(String... names);
 
 	@Cached(type = SelfReferencingEntity.class, alternateIdName = "Name")
-	Collection<SelfReferencingEntity> getSelfReferencingEntitiesByNamesReturnCollection(String... names);
+	Collection<SelfReferencingEntity> getSelfReferencingEntitiesByNamesReturnCollection(
+			String... names);
 
 	void updateSelfReferencingEntity(SelfReferencingEntity selfReferencingEntity);
 

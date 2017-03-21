@@ -41,8 +41,8 @@ import com.koch.ambeth.util.collections.ArrayList;
 
 import net.sf.cglib.proxy.MethodProxy;
 
-public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInterceptor implements ITransactionalRootCache, ISecondLevelCacheManager
-{
+public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInterceptor
+		implements ITransactionalRootCache, ISecondLevelCacheManager {
 	protected static final Method clearMethod = AbstractRootCacheAwareInterceptor.clearMethod;
 
 	@SuppressWarnings("unused")
@@ -59,180 +59,153 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
 	protected boolean securityActive;
 
 	@Forkable
-	protected final ThreadLocal<RootCache> privilegedRootCacheTL = new ThreadLocal<RootCache>();
+	protected final ThreadLocal<RootCache> privilegedRootCacheTL = new ThreadLocal<>();
 
 	@Forkable
-	protected final ThreadLocal<RootCache> rootCacheTL = new ThreadLocal<RootCache>();
+	protected final ThreadLocal<RootCache> rootCacheTL = new ThreadLocal<>();
 
 	@Forkable
-	protected final ThreadLocal<Boolean> transactionalRootCacheActiveTL = new ThreadLocal<Boolean>();
+	protected final ThreadLocal<Boolean> transactionalRootCacheActiveTL = new ThreadLocal<>();
 
 	@Override
-	public void cleanupThreadLocal()
-	{
+	public void cleanupThreadLocal() {
 		transactionalRootCacheActiveTL.remove();
 		disposeCurrentRootCache(privilegedRootCacheTL);
 		disposeCurrentRootCache(rootCacheTL);
 	}
 
-	protected IRootCache getCurrentRootCache(boolean privileged)
-	{
+	protected IRootCache getCurrentRootCache(boolean privileged) {
 		return getCurrentRootCache(privileged, true);
 	}
 
-	protected IRootCache getCurrentRootCache(boolean privileged, boolean forceInstantiation)
-	{
+	protected IRootCache getCurrentRootCache(boolean privileged, boolean forceInstantiation) {
 		IRootCache rootCache = privileged ? privilegedRootCacheTL.get() : rootCacheTL.get();
-		if (rootCache != null)
-		{
+		if (rootCache != null) {
 			return rootCache;
 		}
-		if (!Boolean.TRUE.equals(transactionalRootCacheActiveTL.get()))
-		{
-			// If no thread-bound root cache is active (which implies that no transaction is currently active
+		if (!Boolean.TRUE.equals(transactionalRootCacheActiveTL.get())) {
+			// If no thread-bound root cache is active (which implies that no transaction is currently
+			// active
 			// return the unbound root cache (which reads committed data)
 			return committedRootCache;
 		}
-		// if we need a cache and security is active the privileged cache is a prerequisite in both cases
+		// if we need a cache and security is active the privileged cache is a prerequisite in both
+		// cases
 		IRootCache privilegedRootCache = privilegedRootCacheTL.get();
-		if (privilegedRootCache == null)
-		{
-			if (!forceInstantiation)
-			{
+		if (privilegedRootCache == null) {
+			if (!forceInstantiation) {
 				// do not create an instance of anything in this case
 				return null;
 			}
-			// here we know that the non-privileged one could not have existed before, so we simply create the privileged one
+			// here we know that the non-privileged one could not have existed before, so we simply create
+			// the privileged one
 			privilegedRootCache = acquireRootCache(true, privilegedRootCacheTL);
 		}
-		if (privileged)
-		{
+		if (privileged) {
 			// we need only the privilegedRootCache so we are finished
 			return privilegedRootCache;
 		}
 		IRootCache nonPrivilegedRootCache = rootCacheTL.get();
-		if (nonPrivilegedRootCache == null)
-		{
-			if (!forceInstantiation)
-			{
+		if (nonPrivilegedRootCache == null) {
+			if (!forceInstantiation) {
 				// do not create an instance of anything in this case
 				return null;
 			}
 			// share the locks from the privileged rootCache
-			nonPrivilegedRootCache = acquireRootCache(privileged, rootCacheTL, (ICacheRetriever) privilegedRootCache, privilegedRootCache.getReadLock(),
-					privilegedRootCache.getWriteLock());
+			nonPrivilegedRootCache =
+					acquireRootCache(privileged, rootCacheTL, (ICacheRetriever) privilegedRootCache,
+							privilegedRootCache.getReadLock(), privilegedRootCache.getWriteLock());
 		}
 		return nonPrivilegedRootCache;
 	}
 
 	@Override
-	public IRootCache selectSecondLevelCache()
-	{
+	public IRootCache selectSecondLevelCache() {
 		return getCurrentRootCache(isCurrentPrivileged());
 	}
 
 	@Override
-	public IRootCache selectPrivilegedSecondLevelCache(boolean forceInstantiation)
-	{
+	public IRootCache selectPrivilegedSecondLevelCache(boolean forceInstantiation) {
 		return getCurrentRootCache(!securityActive || true, forceInstantiation);
 	}
 
 	@Override
-	public IRootCache selectNonPrivilegedSecondLevelCache(boolean forceInstantiation)
-	{
+	public IRootCache selectNonPrivilegedSecondLevelCache(boolean forceInstantiation) {
 		return getCurrentRootCache(!securityActive || false, forceInstantiation);
 	}
 
-	protected boolean isCurrentPrivileged()
-	{
+	protected boolean isCurrentPrivileged() {
 		return !securityActive || !securityActivation.isFilterActivated();
 	}
 
 	@Override
-	public void acquireTransactionalRootCache()
-	{
-		if (privilegedRootCacheTL.get() != null || privilegedRootCacheTL.get() != null)
-		{
+	public void acquireTransactionalRootCache() {
+		if (privilegedRootCacheTL.get() != null || privilegedRootCacheTL.get() != null) {
 			throw new IllegalStateException("Transactional root cache already acquired");
 		}
 		transactionalRootCacheActiveTL.set(Boolean.TRUE);
 	}
 
 	@Override
-	public void disposeTransactionalRootCache(boolean success)
-	{
+	public void disposeTransactionalRootCache(boolean success) {
 		transactionalRootCacheActiveTL.remove();
 
 		disposeCurrentRootCache(rootCacheTL);
 
 		IRootCache rootCache = privilegedRootCacheTL.get();
-		if (rootCache == null)
-		{
+		if (rootCache == null) {
 			disposeCurrentRootCache(privilegedRootCacheTL);
 			// This may happen if an exception occurs while committing and therefore calling a rollback
 			return;
 		}
-		try
-		{
-			if (success)
-			{
-				final ArrayList<RootCacheValue> content = new ArrayList<RootCacheValue>();
+		try {
+			if (success) {
+				final ArrayList<RootCacheValue> content = new ArrayList<>();
 
 				// Save information into second level cache for committed data
-				rootCache.getContent(new HandleContentDelegate()
-				{
+				rootCache.getContent(new HandleContentDelegate() {
 					@Override
-					public void invoke(Class<?> entityType, byte idIndex, Object id, Object value)
-					{
+					public void invoke(Class<?> entityType, byte idIndex, Object id, Object value) {
 						content.add((RootCacheValue) value);
 					}
 				});
-				if (content.size() > 0)
-				{
+				if (content.size() > 0) {
 					rootCache.clear();
 					committedRootCache.put(content);
 				}
 			}
 		}
-		finally
-		{
+		finally {
 			disposeCurrentRootCache(privilegedRootCacheTL);
 		}
 	}
 
 	@Override
-	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
-	{
-		if (clearMethod.equals(method))
-		{
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy)
+			throws Throwable {
+		if (clearMethod.equals(method)) {
 			IRootCache rootCache = privilegedRootCacheTL.get();
-			if (rootCache != null)
-			{
+			if (rootCache != null) {
 				rootCache.clear();
 			}
 			rootCache = rootCacheTL.get();
-			if (rootCache != null)
-			{
+			if (rootCache != null) {
 				rootCache.clear();
 			}
 			return null;
 		}
 		ICacheIntern requestingCache = null;
-		for (Object arg : args)
-		{
-			if (arg instanceof ICacheIntern)
-			{
+		for (Object arg : args) {
+			if (arg instanceof ICacheIntern) {
 				requestingCache = (ICacheIntern) arg;
 				break;
 			}
 		}
 		boolean privileged;
-		if (requestingCache != null)
-		{
+		if (requestingCache != null) {
 			privileged = requestingCache.isPrivileged();
 		}
-		else
-		{
+		else {
 			privileged = isCurrentPrivileged();
 		}
 		IRootCache rootCache = getCurrentRootCache(privileged);

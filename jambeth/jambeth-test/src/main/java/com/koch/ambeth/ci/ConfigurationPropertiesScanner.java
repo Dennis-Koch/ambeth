@@ -60,7 +60,7 @@ public final class ConfigurationPropertiesScanner {
 			}
 		});
 
-		List<Field> fields = new ArrayList<Field>();
+		List<Field> fields = new ArrayList<>();
 		for (Class<?> type : types) {
 			Field[] fieldsOfType = type.getFields();
 			for (Field fieldOfType : fieldsOfType) {

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ITypeInfo
-{
+public interface ITypeInfo {
 	String getSimpleName();
 
 	Class<?> getRealType();

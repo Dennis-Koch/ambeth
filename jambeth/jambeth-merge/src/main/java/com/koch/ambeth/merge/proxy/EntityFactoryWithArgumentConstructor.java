@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.merge.IEntityFactory;
 
-public abstract class EntityFactoryWithArgumentConstructor
-{
+public abstract class EntityFactoryWithArgumentConstructor {
 	public abstract Object createEntity(IEntityFactory entityFactory);
 }

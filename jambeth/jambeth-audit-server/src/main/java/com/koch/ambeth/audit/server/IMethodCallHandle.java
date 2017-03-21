@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 
-public interface IMethodCallHandle
-{
+public interface IMethodCallHandle {
 	// intended blank
 }

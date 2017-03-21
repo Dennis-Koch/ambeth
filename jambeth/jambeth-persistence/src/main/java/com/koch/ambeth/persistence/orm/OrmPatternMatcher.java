@@ -29,8 +29,7 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.PermissionGroup;
 import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
 
-public class OrmPatternMatcher implements IInitializingBean, IOrmPatternMatcher
-{
+public class OrmPatternMatcher implements IInitializingBean, IOrmPatternMatcher {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -47,10 +46,12 @@ public class OrmPatternMatcher implements IInitializingBean, IOrmPatternMatcher
 	@Property(name = PersistenceConfigurationConstants.DatabaseArchiveTablePostfix, defaultValue = "")
 	protected String archiveTablePostfix;
 
-	@Property(name = PersistenceConfigurationConstants.DatabasePermissionGroupPrefix, defaultValue = PermissionGroup.permGroupPrefix)
+	@Property(name = PersistenceConfigurationConstants.DatabasePermissionGroupPrefix,
+			defaultValue = PermissionGroup.permGroupPrefix)
 	protected String permissionGroupPrefix;
 
-	@Property(name = PersistenceConfigurationConstants.DatabasePermissionGroupPostfix, defaultValue = PermissionGroup.permGroupSuffix)
+	@Property(name = PersistenceConfigurationConstants.DatabasePermissionGroupPostfix,
+			defaultValue = PermissionGroup.permGroupSuffix)
 	protected String permissionGroupPostfix;
 
 	@Property(name = PersistenceConfigurationConstants.DatabaseFieldPrefix, defaultValue = "")
@@ -70,120 +71,106 @@ public class OrmPatternMatcher implements IInitializingBean, IOrmPatternMatcher
 	protected String triggerNamePostfix = "_OL";
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		if (archiveTablePrefix.isEmpty() && archiveTablePostfix.isEmpty())
-		{
+	public void afterPropertiesSet() throws Throwable {
+		if (archiveTablePrefix.isEmpty() && archiveTablePostfix.isEmpty()) {
 			archiveTablePostfix = "_ARC";
 		}
-		if (sequencePrefix.isEmpty() && sequencePostfix.isEmpty())
-		{
+		if (sequencePrefix.isEmpty() && sequencePostfix.isEmpty()) {
 			sequencePostfix = "_SEQ";
 		}
 	}
 
-	protected String buildNameWithMaxLength(String tableName, String prefix, String postFix, int maxNameLength)
-	{
-		if (maxNameLength <= 0)
-		{
+	protected String buildNameWithMaxLength(String tableName, String prefix, String postFix,
+			int maxNameLength) {
+		if (maxNameLength <= 0) {
 			maxNameLength = Integer.MAX_VALUE;
 		}
-		if (tableName.length() >= maxNameLength - prefix.length() - postFix.length())
-		{
-			return prefix + tableName.substring(0, maxNameLength - prefix.length() - postFix.length()) + postFix;
+		if (tableName.length() >= maxNameLength - prefix.length() - postFix.length()) {
+			return prefix + tableName.substring(0, maxNameLength - prefix.length() - postFix.length())
+					+ postFix;
 		}
 		return prefix + tableName + postFix;
 	}
 
 	@Override
-	public boolean matchesSequencePattern(String potentialSequenceName)
-	{
-		return potentialSequenceName.startsWith(sequencePrefix) && potentialSequenceName.endsWith(sequencePostfix);
+	public boolean matchesSequencePattern(String potentialSequenceName) {
+		return potentialSequenceName.startsWith(sequencePrefix)
+				&& potentialSequenceName.endsWith(sequencePostfix);
 	}
 
 	@Override
-	public String buildSequenceFromTableName(String tableName, int maxNameLength)
-	{
+	public String buildSequenceFromTableName(String tableName, int maxNameLength) {
 		Matcher matcher = XmlDatabaseMapper.fqToSoftTableNamePattern.matcher(tableName);
-		if (matcher.matches())
-		{
+		if (matcher.matches()) {
 			tableName = matcher.group(2);
 		}
 		return buildNameWithMaxLength(tableName, sequencePrefix, sequencePostfix, maxNameLength);
 	}
 
 	@Override
-	public boolean matchesFieldPattern(String potentialFieldName)
-	{
+	public boolean matchesFieldPattern(String potentialFieldName) {
 		return potentialFieldName.startsWith(fieldPrefix) && potentialFieldName.endsWith(fieldPostfix);
 	}
 
 	@Override
-	public boolean matchesPermissionGroupPattern(String potentialPermissionGroupName)
-	{
-		return potentialPermissionGroupName.startsWith(permissionGroupPrefix) && potentialPermissionGroupName.endsWith(permissionGroupPostfix);
+	public boolean matchesPermissionGroupPattern(String potentialPermissionGroupName) {
+		return potentialPermissionGroupName.startsWith(permissionGroupPrefix)
+				&& potentialPermissionGroupName.endsWith(permissionGroupPostfix);
 	}
 
 	@Override
-	public boolean matchesOptimisticLockTriggerPattern(String potentialOptimisticLockTriggerName)
-	{
-		return potentialOptimisticLockTriggerName.startsWith(triggerNamePrefix) && potentialOptimisticLockTriggerName.endsWith(triggerNamePostfix);
+	public boolean matchesOptimisticLockTriggerPattern(String potentialOptimisticLockTriggerName) {
+		return potentialOptimisticLockTriggerName.startsWith(triggerNamePrefix)
+				&& potentialOptimisticLockTriggerName.endsWith(triggerNamePostfix);
 	}
 
 	@Override
-	public String buildPermissionGroupFromTableName(String tableName, int maxNameLength)
-	{
+	public String buildPermissionGroupFromTableName(String tableName, int maxNameLength) {
 		Matcher matcher = XmlDatabaseMapper.fqToSoftTableNamePattern.matcher(tableName);
-		if (matcher.matches())
-		{
+		if (matcher.matches()) {
 			tableName = matcher.group(2);
 		}
-		return buildNameWithMaxLength(tableName, permissionGroupPrefix, permissionGroupPostfix, maxNameLength);
+		return buildNameWithMaxLength(tableName, permissionGroupPrefix, permissionGroupPostfix,
+				maxNameLength);
 	}
 
 	@Override
-	public boolean matchesArchivePattern(String potentialArchiveName)
-	{
-		return potentialArchiveName.startsWith(archiveTablePrefix) && potentialArchiveName.endsWith(archiveTablePostfix);
+	public boolean matchesArchivePattern(String potentialArchiveName) {
+		return potentialArchiveName.startsWith(archiveTablePrefix)
+				&& potentialArchiveName.endsWith(archiveTablePostfix);
 	}
 
 	@Override
-	public String buildTableNameFromSoftName(String softName, int maxNameLength)
-	{
+	public String buildTableNameFromSoftName(String softName, int maxNameLength) {
 		return buildNameWithMaxLength(softName, tablePrefix, tablePostfix, maxNameLength);
 	}
 
 	@Override
-	public String buildFieldNameFromSoftName(String softName, int maxNameLength)
-	{
+	public String buildFieldNameFromSoftName(String softName, int maxNameLength) {
 		return buildNameWithMaxLength(softName, fieldPrefix, fieldPostfix, maxNameLength);
 	}
 
 	@Override
-	public String buildArchiveFromTableName(String tableName, int maxNameLength)
-	{
+	public String buildArchiveFromTableName(String tableName, int maxNameLength) {
 		Matcher matcher = XmlDatabaseMapper.fqToSoftTableNamePattern.matcher(tableName);
-		if (matcher.matches())
-		{
+		if (matcher.matches()) {
 			tableName = matcher.group(2);
 		}
-		return buildNameWithMaxLength(tableName, archiveTablePrefix, archiveTablePostfix, maxNameLength);
+		return buildNameWithMaxLength(tableName, archiveTablePrefix, archiveTablePostfix,
+				maxNameLength);
 	}
 
 	@Override
-	public String buildOptimisticLockTriggerFromTableName(String tableName, int maxNameLength)
-	{
+	public String buildOptimisticLockTriggerFromTableName(String tableName, int maxNameLength) {
 		Matcher matcher = XmlDatabaseMapper.fqToSoftTableNamePattern.matcher(tableName);
-		if (matcher.matches())
-		{
+		if (matcher.matches()) {
 			tableName = matcher.group(2);
 		}
 		return buildNameWithMaxLength(tableName, triggerNamePrefix, triggerNamePostfix, maxNameLength);
 	}
 
 	@Override
-	public boolean matchesTablePattern(String potentialTableName)
-	{
+	public boolean matchesTablePattern(String potentialTableName) {
 		return potentialTableName.startsWith(tablePrefix) && potentialTableName.endsWith(tablePostfix);
 	}
 }

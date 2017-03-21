@@ -29,29 +29,29 @@ import com.koch.ambeth.bytecode.PropertyInstance;
 import com.koch.ambeth.bytecode.Script;
 import com.koch.ambeth.merge.cache.ICacheModification;
 
-public class SetCacheModificationMethodCreator extends ClassGenerator
-{
-	private static final MethodInstance m_callCacheModificationActive = new MethodInstance(null, SetCacheModificationMethodCreator.class, void.class,
-			"callCacheModificationActive", ICacheModification.class, boolean.class, boolean.class);
+public class SetCacheModificationMethodCreator extends ClassGenerator {
+	private static final MethodInstance m_callCacheModificationActive =
+			new MethodInstance(null, SetCacheModificationMethodCreator.class, void.class,
+					"callCacheModificationActive", ICacheModification.class, boolean.class, boolean.class);
 
-	private static final MethodInstance m_callCacheModificationInternalUpdate = new MethodInstance(null, SetCacheModificationMethodCreator.class, void.class,
-			"callCacheModificationInternalUpdate", ICacheModification.class, boolean.class, boolean.class);
+	private static final MethodInstance m_callCacheModificationInternalUpdate =
+			new MethodInstance(null, SetCacheModificationMethodCreator.class, void.class,
+					"callCacheModificationInternalUpdate", ICacheModification.class, boolean.class,
+					boolean.class);
 
 	private static final String cacheModificationName = "__CacheModification";
 
-	public static PropertyInstance getCacheModificationPI(ClassGenerator cv)
-	{
+	public static PropertyInstance getCacheModificationPI(ClassGenerator cv) {
 		Object bean = getState().getBeanContext().getService(ICacheModification.class);
 		PropertyInstance pi = getState().getProperty(cacheModificationName, bean.getClass());
-		if (pi != null)
-		{
+		if (pi != null) {
 			return pi;
 		}
 		return cv.implementAssignedReadonlyProperty(cacheModificationName, bean);
 	}
 
-	public static void cacheModificationActive(PropertyInstance p_cacheModification, MethodGenerator mg, Script script)
-	{
+	public static void cacheModificationActive(PropertyInstance p_cacheModification,
+			MethodGenerator mg, Script script) {
 		final int loc_cacheModification = mg.newLocal(ICacheModification.class);
 		final int loc_oldActive = mg.newLocal(boolean.class);
 
@@ -61,7 +61,8 @@ public class SetCacheModificationMethodCreator extends ClassGenerator
 
 		// boolean oldActive = cacheModification.isActive();
 		mg.loadLocal(loc_cacheModification);
-		mg.invokeInterface(new MethodInstance(null, ICacheModification.class, boolean.class, "isActive"));
+		mg.invokeInterface(
+				new MethodInstance(null, ICacheModification.class, boolean.class, "isActive"));
 		mg.storeLocal(loc_oldActive);
 
 		// callModificationActive(cacheModification, oldActive, true)
@@ -70,11 +71,9 @@ public class SetCacheModificationMethodCreator extends ClassGenerator
 		mg.push(true);
 		mg.invokeStatic(m_callCacheModificationActive);
 
-		mg.tryFinally(script, new Script()
-		{
+		mg.tryFinally(script, new Script() {
 			@Override
-			public void execute(MethodGenerator mg)
-			{
+			public void execute(MethodGenerator mg) {
 				// callModificationActive(cacheModification, oldActive, false)
 				mg.loadLocal(loc_cacheModification);
 				mg.loadLocal(loc_oldActive);
@@ -84,8 +83,8 @@ public class SetCacheModificationMethodCreator extends ClassGenerator
 		});
 	}
 
-	public static void cacheModificationInternalUpdate(PropertyInstance p_cacheModification, MethodGenerator mg, Script script)
-	{
+	public static void cacheModificationInternalUpdate(PropertyInstance p_cacheModification,
+			MethodGenerator mg, Script script) {
 		final int loc_cacheModification = mg.newLocal(ICacheModification.class);
 		final int loc_oldInternalUpdate = mg.newLocal(boolean.class);
 
@@ -95,7 +94,8 @@ public class SetCacheModificationMethodCreator extends ClassGenerator
 
 		// boolean oldInternalUpdate = cacheModification.isInternalUpdate();
 		mg.loadLocal(loc_cacheModification);
-		mg.invokeInterface(new MethodInstance(null, ICacheModification.class, boolean.class, "isInternalUpdate"));
+		mg.invokeInterface(
+				new MethodInstance(null, ICacheModification.class, boolean.class, "isInternalUpdate"));
 		mg.storeLocal(loc_oldInternalUpdate);
 
 		// callModificationInternalUpdate(cacheModification, oldInternalUpdate, true)
@@ -104,11 +104,9 @@ public class SetCacheModificationMethodCreator extends ClassGenerator
 		mg.push(true);
 		mg.invokeStatic(m_callCacheModificationInternalUpdate);
 
-		mg.tryFinally(script, new Script()
-		{
+		mg.tryFinally(script, new Script() {
 			@Override
-			public void execute(MethodGenerator mg)
-			{
+			public void execute(MethodGenerator mg) {
 				// callModificationInternalUpdate(cacheModification, oldInternalUpdate, false)
 				mg.loadLocal(loc_cacheModification);
 				mg.loadLocal(loc_oldInternalUpdate);
@@ -118,32 +116,28 @@ public class SetCacheModificationMethodCreator extends ClassGenerator
 		});
 	}
 
-	public SetCacheModificationMethodCreator(ClassVisitor cv)
-	{
+	public SetCacheModificationMethodCreator(ClassVisitor cv) {
 		super(cv);
 	}
 
 	@Override
-	public void visitEnd()
-	{
+	public void visitEnd() {
 		// force implementation
 		getCacheModificationPI(this);
 
 		super.visitEnd();
 	}
 
-	public static void callCacheModificationActive(ICacheModification cacheModification, boolean oldValue, boolean newValue)
-	{
-		if (!oldValue)
-		{
+	public static void callCacheModificationActive(ICacheModification cacheModification,
+			boolean oldValue, boolean newValue) {
+		if (!oldValue) {
 			cacheModification.setActive(newValue);
 		}
 	}
 
-	public static void callCacheModificationInternalUpdate(ICacheModification cacheModification, boolean oldValue, boolean newValue)
-	{
-		if (!oldValue)
-		{
+	public static void callCacheModificationInternalUpdate(ICacheModification cacheModification,
+			boolean oldValue, boolean newValue) {
+		if (!oldValue) {
 			cacheModification.setInternalUpdate(newValue);
 		}
 	}

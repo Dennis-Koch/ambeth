@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IAuthenticationManagerStub
-{
+public interface IAuthenticationManagerStub {
 	IAuthentication authenticate() throws AuthenticationException;
 }

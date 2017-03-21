@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.persistence.api.IDatabase;
 
-public interface IDatabaseInit<D extends IDatabase>
-{
+public interface IDatabaseInit<D extends IDatabase> {
 
 	void init(D database);
 

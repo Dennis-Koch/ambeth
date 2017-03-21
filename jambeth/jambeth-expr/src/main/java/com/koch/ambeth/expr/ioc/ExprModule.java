@@ -30,17 +30,16 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 
 @FrameworkModule
-public class ExprModule implements IInitializingModule
-{
+public class ExprModule implements IInitializingModule {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, PropertyExpressionBehavior.class);
 
-		beanContextFactory.registerBean(PropertyExpressionMixin.class).autowireable(PropertyExpressionMixin.class);
+		beanContextFactory.registerBean(PropertyExpressionMixin.class)
+				.autowireable(PropertyExpressionMixin.class);
 	}
 }

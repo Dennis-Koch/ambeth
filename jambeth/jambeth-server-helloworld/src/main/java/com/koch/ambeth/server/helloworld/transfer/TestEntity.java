@@ -31,8 +31,7 @@ import com.koch.ambeth.util.annotation.ParentChild;
 
 @XmlRootElement(namespace = "HelloWorld")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class TestEntity extends AbstractEntity
-{
+public class TestEntity extends AbstractEntity {
 	@XmlElement
 	protected TestEntity2 relation;
 
@@ -48,58 +47,47 @@ public class TestEntity extends AbstractEntity
 	@XmlElement
 	protected EmbeddedObject embeddedObject;
 
-	public EmbeddedObject getEmbeddedObject()
-	{
-		if (embeddedObject == null)
-		{
+	public EmbeddedObject getEmbeddedObject() {
+		if (embeddedObject == null) {
 			embeddedObject = new EmbeddedObject();
 		}
 		return embeddedObject;
 	}
 
-	public void setEmbeddedObject(EmbeddedObject embeddedObject)
-	{
+	public void setEmbeddedObject(EmbeddedObject embeddedObject) {
 		this.embeddedObject = embeddedObject;
 	}
 
-	public void setMyValue(int myValue)
-	{
+	public void setMyValue(int myValue) {
 		this.myValue = myValue;
 	}
 
-	public int getMyValue()
-	{
+	public int getMyValue() {
 		return myValue;
 	}
 
-	public void setMyValueUnique(int myValueUnique)
-	{
+	public void setMyValueUnique(int myValueUnique) {
 		this.myValueUnique = myValueUnique;
 	}
 
-	public int getMyValueUnique()
-	{
+	public int getMyValueUnique() {
 		return myValueUnique;
 	}
 
-	public void setRelations(List<TestEntity3> relations)
-	{
+	public void setRelations(List<TestEntity3> relations) {
 		this.relations = relations;
 	}
 
-	public List<TestEntity3> getRelations()
-	{
+	public List<TestEntity3> getRelations() {
 		return relations;
 	}
 
-	public void setRelation(TestEntity2 relation)
-	{
+	public void setRelation(TestEntity2 relation) {
 		this.relation = relation;
 	}
 
 	@ParentChild
-	public TestEntity2 getRelation()
-	{
+	public TestEntity2 getRelation() {
 		return relation;
 	}
 }

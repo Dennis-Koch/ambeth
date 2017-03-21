@@ -21,8 +21,7 @@ limitations under the License.
  */
 
 
-public interface ITransactionInfo
-{
+public interface ITransactionInfo {
 	long getSessionId();
 
 	boolean isReadOnly();

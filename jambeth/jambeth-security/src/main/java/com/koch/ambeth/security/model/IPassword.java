@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.Calendar;
 
-public interface IPassword
-{
+public interface IPassword {
 	public static final String Algorithm = "Algorithm";
 
 	public static final String ChangeAfter = "ChangeAfter";

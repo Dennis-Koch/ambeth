@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.Collection;
 
-public interface IListTypeHelper
-{
+public interface IListTypeHelper {
 	<L> L packInListType(Collection<?> referencedVOs, Class<L> listType);
 
 	Object unpackListType(Object item);

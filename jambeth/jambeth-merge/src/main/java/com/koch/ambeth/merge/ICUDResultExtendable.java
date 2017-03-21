@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ICUDResultExtendable
-{
+public interface ICUDResultExtendable {
 	void registerCUDResultExtension(ICUDResultExtension cudResultExtension, Class<?> entityType);
 
 	void unregisterCUDResultExtension(ICUDResultExtension cudResultExtension, Class<?> entityType);

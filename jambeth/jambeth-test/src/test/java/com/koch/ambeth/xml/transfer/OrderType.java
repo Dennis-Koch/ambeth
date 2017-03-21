@@ -23,7 +23,6 @@ limitations under the License.
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType(name = "OrderType", namespace = "Comtrack")
-public enum OrderType
-{
+public enum OrderType {
 	FTE
 }

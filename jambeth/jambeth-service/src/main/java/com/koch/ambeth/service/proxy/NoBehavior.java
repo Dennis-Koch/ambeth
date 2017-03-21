@@ -22,17 +22,14 @@ limitations under the License.
 
 import java.lang.reflect.Method;
 
-public class NoBehavior implements IMethodLevelBehavior<Object>
-{
+public class NoBehavior implements IMethodLevelBehavior<Object> {
 	@Override
-	public Object getBehaviourOfMethod(Method method)
-	{
+	public Object getBehaviourOfMethod(Method method) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Object getDefaultBehaviour()
-	{
+	public Object getDefaultBehaviour() {
 		throw new UnsupportedOperationException();
 	}
 }

@@ -22,8 +22,7 @@ limitations under the License.
 
 import java.util.List;
 
-public interface IArrayObjectService
-{
+public interface IArrayObjectService {
 	ArrayObject getArrayObject(Integer id);
 
 	List<ArrayObject> getArrayObjects(Integer... id);

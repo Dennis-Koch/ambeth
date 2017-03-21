@@ -46,28 +46,24 @@ import com.koch.ambeth.util.IConversionHelper;
 @Path("/GenericQueryService")
 // @Consumes({ MediaType.TEXT_PLAIN })
 // @Produces({ MediaType.TEXT_PLAIN })
-public class GenericQueryREST extends AbstractServiceREST
-{
+public class GenericQueryREST extends AbstractServiceREST {
 	@Override
-	protected void writeContent(OutputStream os, Object result)
-	{
+	protected void writeContent(OutputStream os, Object result) {
 		// TODO: write JSON
 		super.writeContent(os, result);
 	}
 
 	@Override
-	protected Object[] getArguments(InputStream is, HttpServletRequest request)
-	{
+	protected Object[] getArguments(InputStream is, HttpServletRequest request) {
 		// TODO: read JSON
 		return super.getArguments(is, request);
 	}
 
 	@GET
 	@Path("{subResources:.*}")
-	public StreamingOutput get(@Context HttpServletRequest request, @Context HttpServletResponse response)
-	{
-		try
-		{
+	public StreamingOutput get(@Context HttpServletRequest request,
+			@Context HttpServletResponse response) {
+		try {
 			preServiceCall();
 
 			String contextPath = request.getPathInfo();
@@ -80,8 +76,7 @@ public class GenericQueryREST extends AbstractServiceREST
 			String query = path[3];
 
 			IValueObjectConfig config = entityMetaDataProvider.getValueObjectConfig(valueObjectTypeName);
-			if (config == null)
-			{
+			if (config == null) {
 				throw new BadRequestException("Entity type '" + valueObjectTypeName + "' not known");
 			}
 			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(config.getEntityType());
@@ -93,33 +88,30 @@ public class GenericQueryREST extends AbstractServiceREST
 
 			QueryBuilderBean<?> queryBuilderBean = QueryUtils.buildQuery(query, entityType);
 
-			Object result = queryBuilderBean.createQueryBuilder(queryBuilderFactory, conversionHelper, new Object[0], Object.class);
+			Object result = queryBuilderBean.createQueryBuilder(queryBuilderFactory, conversionHelper,
+					new Object[0], Object.class);
 
 			IMapperServiceFactory mapperServiceFactory = getService(IMapperServiceFactory.class);
 
 			IMapperService mapperService = mapperServiceFactory.create();
-			try
-			{
+			try {
 
-				Object valueObject = result instanceof List ? mapperService.mapToValueObjectList((List<?>) result, config.getValueType()) : mapperService
-						.mapToValueObject(result, config.getValueType());
+				Object valueObject = result instanceof List
+						? mapperService.mapToValueObjectList((List<?>) result, config.getValueType())
+						: mapperService.mapToValueObject(result, config.getValueType());
 				return createResult(valueObject, response);
 			}
-			finally
-			{
+			finally {
 				mapperService.dispose();
 			}
 		}
-		catch (WebApplicationException e)
-		{
+		catch (WebApplicationException e) {
 			throw e;
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			return createExceptionResult(e, response);
 		}
-		finally
-		{
+		finally {
 			postServiceCall();
 		}
 	}

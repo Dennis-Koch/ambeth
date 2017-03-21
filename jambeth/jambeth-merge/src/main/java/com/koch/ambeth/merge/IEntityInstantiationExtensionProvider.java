@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IEntityInstantiationExtensionProvider
-{
+public interface IEntityInstantiationExtensionProvider {
 	IEntityInstantiationExtension getEntityInstantiationExtension(Class<?> entityType);
 }

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IOfflineListenerExtendable
-{
+public interface IOfflineListenerExtendable {
 	void addOfflineListener(IOfflineListener offlineListener);
 
 	void removeOfflineListener(IOfflineListener offlineListener);

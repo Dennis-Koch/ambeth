@@ -22,7 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.audit.model.IAuditedEntityRelationPropertyItem;
 
-public interface AuditedEntityRelationPropertyItem extends IAbstractAuditEntity, IAuditedEntityRelationPropertyItem
-{
+public interface AuditedEntityRelationPropertyItem
+		extends IAbstractAuditEntity, IAuditedEntityRelationPropertyItem {
 	// Intended blank
 }

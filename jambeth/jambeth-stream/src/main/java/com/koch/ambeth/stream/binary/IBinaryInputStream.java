@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.stream.IInputStream;
 
-public interface IBinaryInputStream extends IInputStream
-{
+public interface IBinaryInputStream extends IInputStream {
 	int readByte();
 }

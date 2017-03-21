@@ -97,7 +97,7 @@ public class PrefetchConfig implements IPrefetchConfig {
 	protected IProxyFactory proxyFactory;
 
 	protected final HashMap<Class<?>, ArrayList<String>> entityTypeToPrefetchPaths =
-			new HashMap<Class<?>, ArrayList<String>>();
+			new HashMap<>();
 
 	@Override
 	public <T> T plan(Class<T> entityType) {
@@ -119,7 +119,7 @@ public class PrefetchConfig implements IPrefetchConfig {
 		entityType = entityMetaDataProvider.getMetaData(entityType).getEntityType();
 		ArrayList<String> membersToInitialize = entityTypeToPrefetchPaths.get(entityType);
 		if (membersToInitialize == null) {
-			membersToInitialize = new ArrayList<String>();
+			membersToInitialize = new ArrayList<>();
 			entityTypeToPrefetchPaths.put(entityType, membersToInitialize);
 		}
 		membersToInitialize.add(propertyPath);
@@ -131,7 +131,7 @@ public class PrefetchConfig implements IPrefetchConfig {
 		entityType = entityMetaDataProvider.getMetaData(entityType).getEntityType();
 		ArrayList<String> membersToInitialize = entityTypeToPrefetchPaths.get(entityType);
 		if (membersToInitialize == null) {
-			membersToInitialize = new ArrayList<String>();
+			membersToInitialize = new ArrayList<>();
 			entityTypeToPrefetchPaths.put(entityType, membersToInitialize);
 		}
 		membersToInitialize.addAll(propertyPaths);
@@ -151,7 +151,7 @@ public class PrefetchConfig implements IPrefetchConfig {
 	}
 
 	protected PrefetchPath[] buildCachePath(Class<?> entityType, List<String> membersToInitialize) {
-		LinkedHashSet<AppendableCachePath> cachePaths = new LinkedHashSet<AppendableCachePath>();
+		LinkedHashSet<AppendableCachePath> cachePaths = new LinkedHashSet<>();
 		for (int a = membersToInitialize.size(); a-- > 0;) {
 			String memberName = membersToInitialize.get(a);
 			cachePathHelper.buildCachePath(entityType, memberName, cachePaths);

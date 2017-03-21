@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IOverrideConstructorDelegate
-{
+public interface IOverrideConstructorDelegate {
 	void invoke(ClassGenerator cv, ConstructorInstance superConstructor);
 }

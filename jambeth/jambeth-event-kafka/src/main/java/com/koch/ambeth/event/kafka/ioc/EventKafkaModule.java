@@ -27,17 +27,18 @@ import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 
-public class EventKafkaModule implements IInitializingModule
-{
+public class EventKafkaModule implements IInitializingModule {
 	public static final String EVENT_KAFKA_PUBLISHER = "eventKafkaPublisher";
 
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		IBeanConfiguration eventFromKafkaConsumer = beanContextFactory.registerBean(EventFromKafkaConsumer.class);
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		IBeanConfiguration eventFromKafkaConsumer =
+				beanContextFactory.registerBean(EventFromKafkaConsumer.class);
 
-		beanContextFactory.registerBean(EVENT_KAFKA_PUBLISHER, EventToKafkaPublisher.class).propertyRef(eventFromKafkaConsumer);
+		beanContextFactory.registerBean(EVENT_KAFKA_PUBLISHER, EventToKafkaPublisher.class)
+				.propertyRef(eventFromKafkaConsumer);
 
-		beanContextFactory.registerBean(XmlKafkaSerializer.class).autowireable(XmlKafkaSerializer.class);
+		beanContextFactory.registerBean(XmlKafkaSerializer.class)
+				.autowireable(XmlKafkaSerializer.class);
 	}
 }

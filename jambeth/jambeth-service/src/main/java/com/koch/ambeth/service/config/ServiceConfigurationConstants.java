@@ -24,8 +24,7 @@ import com.koch.ambeth.util.annotation.ConfigurationConstantDescription;
 import com.koch.ambeth.util.annotation.ConfigurationConstants;
 
 @ConfigurationConstants
-public final class ServiceConfigurationConstants
-{
+public final class ServiceConfigurationConstants {
 	@ConfigurationConstantDescription("TODO")
 	public static final String ServiceBaseUrl = "service.baseurl";
 
@@ -85,8 +84,7 @@ public final class ServiceConfigurationConstants
 	@ConfigurationConstantDescription("TODO")
 	public static final String valueObjectResource = "valueobject.resource";
 
-	private ServiceConfigurationConstants()
-	{
+	private ServiceConfigurationConstants() {
 		// Intended blank
 	}
 }

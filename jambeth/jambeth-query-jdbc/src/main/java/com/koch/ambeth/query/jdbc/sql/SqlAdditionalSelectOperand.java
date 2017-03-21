@@ -35,8 +35,7 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-public class SqlAdditionalSelectOperand implements IOperator, IInitializingBean
-{
+public class SqlAdditionalSelectOperand implements IOperator, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -46,50 +45,44 @@ public class SqlAdditionalSelectOperand implements IOperator, IInitializingBean
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(column, "column");
 		ParamChecker.assertNotNull(objectCollector, "objectCollector");
 	}
 
-	public void setColumn(IOperand column)
-	{
+	public void setColumn(IOperand column) {
 		this.column = column;
 	}
 
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
+	public void setObjectCollector(IThreadLocalObjectCollector objectCollector) {
 		this.objectCollector = objectCollector;
 	}
 
 	@Override
-	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
-	{
+	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			boolean joinQuery, IList<Object> parameters) {
 		operate(querySB, nameToValueMap, joinQuery, parameters);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public void operate(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
-	{
-		List<String> additionalSelectColumnList = (List<String>) nameToValueMap.get(QueryConstants.ADDITIONAL_SELECT_SQL_SB);
-		if (additionalSelectColumnList == null)
-		{
+	public void operate(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery,
+			IList<Object> parameters) {
+		List<String> additionalSelectColumnList =
+				(List<String>) nameToValueMap.get(QueryConstants.ADDITIONAL_SELECT_SQL_SB);
+		if (additionalSelectColumnList == null) {
 			return;
 		}
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		AppendableStringBuilder sb = tlObjectCollector.create(AppendableStringBuilder.class);
-		try
-		{
+		try {
 			column.expandQuery(sb, nameToValueMap, joinQuery, parameters);
 			additionalSelectColumnList.add(sb.toString());
-			if (querySB != null)
-			{
+			if (querySB != null) {
 				column.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 			}
 		}
-		finally
-		{
+		finally {
 			tlObjectCollector.dispose(sb);
 		}
 	}

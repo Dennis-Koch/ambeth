@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.security.model.ISignature;
 import com.koch.ambeth.security.model.IUser;
 
-public interface IPrivateKeyProvider
-{
+public interface IPrivateKeyProvider {
 	java.security.Signature getSigningHandle(ISignature signature, char[] clearTextPassword);
 
 	java.security.Signature getSigningHandle(IUser user, char[] clearTextPassword);

@@ -22,17 +22,14 @@ limitations under the License.
 
 import com.koch.ambeth.model.AbstractEntity;
 
-public class EntityA extends AbstractEntity
-{
+public class EntityA extends AbstractEntity {
 	private EntityB b;
 
-	public EntityB getB()
-	{
+	public EntityB getB() {
 		return b;
 	}
 
-	public void setB(EntityB b)
-	{
+	public void setB(EntityB b) {
 		this.b = b;
 	}
 }

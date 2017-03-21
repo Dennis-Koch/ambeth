@@ -25,8 +25,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ com.koch.ambeth.query.sql.TableAliasProviderTest.class })
-public class AllQueryTests
-{
+@SuiteClasses({com.koch.ambeth.query.sql.TableAliasProviderTest.class})
+public class AllQueryTests {
 	// Intended blank
 }

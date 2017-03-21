@@ -26,8 +26,7 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.IDedicatedConverter;
 
-public class ClobToAnythingConverter implements IDedicatedConverter
-{
+public class ClobToAnythingConverter implements IDedicatedConverter {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -36,8 +35,8 @@ public class ClobToAnythingConverter implements IDedicatedConverter
 	protected IConversionHelper conversionHelper;
 
 	@Override
-	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value, Object additionalInformation) throws Throwable
-	{
+	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+			Object additionalInformation) throws Throwable {
 		String stringValue = conversionHelper.convertValueToType(String.class, value);
 		return conversionHelper.convertValueToType(expectedType, stringValue);
 	}

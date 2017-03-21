@@ -25,111 +25,93 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.koch.ambeth.util.collections.ArrayList;
 
-public abstract class ReentrantIntervalSensor<I extends IntervalInfo> implements ISensorReceiver
-{
-	protected final ThreadLocal<ArrayList<I>> stackTL = new ThreadLocal<ArrayList<I>>()
-	{
+public abstract class ReentrantIntervalSensor<I extends IntervalInfo> implements ISensorReceiver {
+	protected final ThreadLocal<ArrayList<I>> stackTL = new ThreadLocal<ArrayList<I>>() {
 		@Override
-		protected ArrayList<I> initialValue()
-		{
-			return new ArrayList<I>(1);
+		protected ArrayList<I> initialValue() {
+			return new ArrayList<>(1);
 		}
 	};
 
-	protected final ArrayList<I> sharedInfos = new ArrayList<I>();
+	protected final ArrayList<I> sharedInfos = new ArrayList<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
 	@SuppressWarnings("unchecked")
-	protected I createIntervalInfo(String sensorName)
-	{
+	protected I createIntervalInfo(String sensorName) {
 		return (I) new IntervalInfo(System.currentTimeMillis());
 	}
 
 	@SuppressWarnings("unchecked")
-	protected I createIntervalInfo(String sensorName, Object[] additionalData)
-	{
+	protected I createIntervalInfo(String sensorName, Object[] additionalData) {
 		return (I) new IntervalInfo(System.currentTimeMillis());
 	}
 
 	@Override
-	public void touch(String sensorName)
-	{
+	public void touch(String sensorName) {
 		// Intended blank. An interval sensor does not handle information without interval-context
 	}
 
 	@Override
-	public void touch(String sensorName, Object... additionalData)
-	{
+	public void touch(String sensorName, Object... additionalData) {
 		// Intended blank. An interval sensor does not handle information without interval-context
 	}
 
 	@Override
-	public void on(String sensorName, Object... additionalData)
-	{
+	public void on(String sensorName, Object... additionalData) {
 		ArrayList<I> stack = stackTL.get();
 		I intervalInfo = createIntervalInfo(sensorName, additionalData);
 		stack.add(intervalInfo);
-		if (intervalInfo == null)
-		{
+		if (intervalInfo == null) {
 			return;
 		}
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			sharedInfos.add(intervalInfo);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public void on(String sensorName)
-	{
+	public void on(String sensorName) {
 		ArrayList<I> stack = stackTL.get();
 		I intervalInfo = createIntervalInfo(sensorName);
 		stack.add(intervalInfo);
-		if (intervalInfo == null)
-		{
+		if (intervalInfo == null) {
 			return;
 		}
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			sharedInfos.add(intervalInfo);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public void off(String sensorName)
-	{
+	public void off(String sensorName) {
 		long endTime = System.currentTimeMillis();
 		ArrayList<I> stack = stackTL.get();
 		I intervalInfo = stack.remove(stack.size() - 1);
-		if (intervalInfo == null)
-		{
+		if (intervalInfo == null) {
 			return;
 		}
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
-		try
-		{
+		try {
 			sharedInfos.remove(intervalInfo);
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 		handleFinishedIntervalInfo(sensorName, intervalInfo, endTime);
 	}
 
-	protected abstract void handleFinishedIntervalInfo(String sensorName, I intervalInfo, long endTime);
+	protected abstract void handleFinishedIntervalInfo(String sensorName, I intervalInfo,
+			long endTime);
 }

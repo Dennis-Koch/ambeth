@@ -46,8 +46,7 @@ import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
 import com.koch.ambeth.util.typeinfo.ITypeInfoProviderFactory;
 
 @FrameworkModule
-public class ServiceModule implements IInitializingModule
-{
+public class ServiceModule implements IInitializingModule {
 	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
 	protected boolean networkClientMode;
 
@@ -58,45 +57,48 @@ public class ServiceModule implements IInitializingModule
 	protected Class<?> typeInfoProviderType;
 
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		if (typeInfoProviderType == null)
-		{
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		if (typeInfoProviderType == null) {
 			typeInfoProviderType = TypeInfoProvider.class;
 		}
-		if (networkClientMode)
-		{
+		if (networkClientMode) {
 			// beanContextFactory.registerBean("serviceFactory", ServiceFactory.class);
 
 			// beanContextFactory.registerBean<AsyncClientServiceInterceptorBuilder>("clientServiceInterceptorBuilder").autowireable<IClientServiceInterceptorBuilder>();
 			// beanContextFactory.registerBean<SyncClientServiceInterceptorBuilder>"clientServiceInterceptorBuilder".autowireable<IClientServiceInterceptorBuilder>();
 
-			if (!offlineModeSupported)
-			{
+			if (!offlineModeSupported) {
 				// Register default service url provider
-				beanContextFactory.registerBean("serviceUrlProvider", DefaultServiceUrlProvider.class).autowireable(IServiceUrlProvider.class,
-						IOfflineListenerExtendable.class);
+				beanContextFactory.registerBean("serviceUrlProvider", DefaultServiceUrlProvider.class)
+						.autowireable(IServiceUrlProvider.class, IOfflineListenerExtendable.class);
 			}
 		}
-		else if (!offlineModeSupported)
-		{
-			beanContextFactory.registerBean(NoOpOfflineExtendable.class).autowireable(IOfflineListenerExtendable.class);
+		else if (!offlineModeSupported) {
+			beanContextFactory.registerBean(NoOpOfflineExtendable.class)
+					.autowireable(IOfflineListenerExtendable.class);
 		}
-		beanContextFactory.registerBean("serviceByNameProvider", ServiceByNameProvider.class).propertyValue("ParentServiceByNameProvider", null)
+		beanContextFactory.registerBean("serviceByNameProvider", ServiceByNameProvider.class)
+				.propertyValue("ParentServiceByNameProvider", null)
 				.autowireable(IServiceByNameProvider.class, IServiceExtendable.class);
 
-		beanContextFactory.registerBean("serviceResultProcessorRegistry", ServiceResultProcessorRegistry.class).autowireable(
-				IServiceResultProcessorRegistry.class, IServiceResultProcessorExtendable.class);
+		beanContextFactory
+				.registerBean("serviceResultProcessorRegistry", ServiceResultProcessorRegistry.class)
+				.autowireable(IServiceResultProcessorRegistry.class,
+						IServiceResultProcessorExtendable.class);
 
-		beanContextFactory.registerBean("typeInfoProvider", typeInfoProviderType).autowireable(ITypeInfoProvider.class);
+		beanContextFactory.registerBean("typeInfoProvider", typeInfoProviderType)
+				.autowireable(ITypeInfoProvider.class);
 
-		beanContextFactory.registerBean("typeInfoProviderFactory", TypeInfoProviderFactory.class).propertyValue("TypeInfoProviderType", typeInfoProviderType)
+		beanContextFactory.registerBean("typeInfoProviderFactory", TypeInfoProviderFactory.class)
+				.propertyValue("TypeInfoProviderType", typeInfoProviderType)
 				.autowireable(ITypeInfoProviderFactory.class);
 
 		beanContextFactory.registerBean("loggingPostProcessor", LoggingPostProcessor.class);
 
-		beanContextFactory.registerBean("processService", ProcessService.class).autowireable(IProcessService.class);
+		beanContextFactory.registerBean("processService", ProcessService.class)
+				.autowireable(IProcessService.class);
 
-		beanContextFactory.registerBean("xmlTypeHelper", XmlTypeHelper.class).autowireable(IXmlTypeHelper.class);
+		beanContextFactory.registerBean("xmlTypeHelper", XmlTypeHelper.class)
+				.autowireable(IXmlTypeHelper.class);
 	}
 }

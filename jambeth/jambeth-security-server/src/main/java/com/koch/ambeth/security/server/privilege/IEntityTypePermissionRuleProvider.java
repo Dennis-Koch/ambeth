@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.util.collections.IList;
 
-public interface IEntityTypePermissionRuleProvider
-{
+public interface IEntityTypePermissionRuleProvider {
 	IList<IEntityTypePermissionRule> getEntityTypePermissionRules(Class<?> entityType);
 }

@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.datachange.model.IDataChangeEntry;
 
-public interface IFilter
-{
+public interface IFilter {
 	boolean doesFilterMatch(IDataChangeEntry dataChangeEntry);
 }

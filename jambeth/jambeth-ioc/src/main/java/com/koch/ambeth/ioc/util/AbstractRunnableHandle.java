@@ -28,8 +28,7 @@ import com.koch.ambeth.ioc.threadlocal.IForkState;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import com.koch.ambeth.util.collections.ArrayList;
 
-public abstract class AbstractRunnableHandle<V> extends InterruptingParamHolder
-{
+public abstract class AbstractRunnableHandle<V> extends InterruptingParamHolder {
 	public final Lock parallelLock = new ReentrantLock();
 
 	public final CountDownLatch latch;
@@ -42,8 +41,8 @@ public abstract class AbstractRunnableHandle<V> extends InterruptingParamHolder
 
 	public final Thread createdThread = Thread.currentThread();
 
-	public AbstractRunnableHandle(ArrayList<V> items, IThreadLocalCleanupController threadLocalCleanupController)
-	{
+	public AbstractRunnableHandle(ArrayList<V> items,
+			IThreadLocalCleanupController threadLocalCleanupController) {
 		super(Thread.currentThread());
 		this.latch = new CountDownLatch(items.size());
 		this.items = items;

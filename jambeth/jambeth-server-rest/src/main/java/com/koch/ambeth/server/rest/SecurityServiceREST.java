@@ -37,32 +37,28 @@ import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.service.model.IServiceDescription;
 
 @Path("/SecurityService")
-@Consumes({ MediaType.TEXT_PLAIN })
-@Produces({ MediaType.TEXT_PLAIN })
-public class SecurityServiceREST extends AbstractServiceREST
-{
-	protected ISecurityService getSecurityService()
-	{
+@Consumes({MediaType.TEXT_PLAIN})
+@Produces({MediaType.TEXT_PLAIN})
+public class SecurityServiceREST extends AbstractServiceREST {
+	protected ISecurityService getSecurityService() {
 		return getService(ISecurityService.class);
 	}
 
 	@POST
 	@Path("CallServiceInSecurityScope")
-	public StreamingOutput callServiceInSecurityScope(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response)
-	{
-		try
-		{
+	public StreamingOutput callServiceInSecurityScope(InputStream is,
+			@Context HttpServletRequest request, @Context HttpServletResponse response) {
+		try {
 			preServiceCall();
 			Object[] args = getArguments(is, request);
-			Object result = getSecurityService().callServiceInSecurityScope((ISecurityScope[]) args[0], (IServiceDescription) args[1]);
+			Object result = getSecurityService().callServiceInSecurityScope((ISecurityScope[]) args[0],
+					(IServiceDescription) args[1]);
 			return createResult(result, response);
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			return createExceptionResult(e, response);
 		}
-		finally
-		{
+		finally {
 			postServiceCall();
 		}
 	}

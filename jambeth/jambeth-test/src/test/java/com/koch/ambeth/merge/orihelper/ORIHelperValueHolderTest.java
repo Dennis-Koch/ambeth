@@ -46,9 +46,9 @@ import com.koch.ambeth.util.collections.IList;
 
 @SQLData("/com/koch/ambeth/persistence/xml/Relations_data.sql")
 @SQLStructure("/com/koch/ambeth/persistence/xml/Relations_structure.sql")
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/xml/orm.xml")
-public class ORIHelperValueHolderTest extends AbstractInformationBusWithPersistenceTest
-{
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/persistence/xml/orm.xml")
+public class ORIHelperValueHolderTest extends AbstractInformationBusWithPersistenceTest {
 	protected ICache cache;
 
 	protected IObjRefHelper oriHelper;
@@ -56,8 +56,7 @@ public class ORIHelperValueHolderTest extends AbstractInformationBusWithPersiste
 	protected IProxyHelper proxyHelper;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		ParamChecker.assertNotNull(cache, "cache");
@@ -65,24 +64,20 @@ public class ORIHelperValueHolderTest extends AbstractInformationBusWithPersiste
 		ParamChecker.assertNotNull(proxyHelper, "proxyHelper");
 	}
 
-	public void setCache(ICache cache)
-	{
+	public void setCache(ICache cache) {
 		this.cache = cache;
 	}
 
-	public void setOriHelper(IObjRefHelper oriHelper)
-	{
+	public void setOriHelper(IObjRefHelper oriHelper) {
 		this.oriHelper = oriHelper;
 	}
 
-	public void setProxyHelper(IProxyHelper proxyHelper)
-	{
+	public void setProxyHelper(IProxyHelper proxyHelper) {
 		this.proxyHelper = proxyHelper;
 	}
 
 	@Test
-	public void testExtractOrisFromListOfValueHolders() throws Throwable
-	{
+	public void testExtractOrisFromListOfValueHolders() throws Throwable {
 		Employee employee1 = cache.getObject(Employee.class, 1);
 		Employee employee2 = cache.getObject(Employee.class, 2);
 
@@ -94,7 +89,7 @@ public class ORIHelperValueHolderTest extends AbstractInformationBusWithPersiste
 		assertTrue(!((IObjRefContainer) employee1).is__Initialized(relationIndex));
 		assertTrue(!((IObjRefContainer) employee2).is__Initialized(relationIndex));
 
-		IList<IObjRef> extractedORIList = new ArrayList<IObjRef>();
+		IList<IObjRef> extractedORIList = new ArrayList<>();
 		extractedORIList.addAll(((IObjRefContainer) employee1).get__ObjRefs(relationIndex));
 		extractedORIList.addAll(((IObjRefContainer) employee2).get__ObjRefs(relationIndex));
 

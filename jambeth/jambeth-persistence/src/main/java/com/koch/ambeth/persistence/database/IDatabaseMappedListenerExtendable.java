@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IDatabaseMappedListenerExtendable
-{
+public interface IDatabaseMappedListenerExtendable {
 	void registerDatabaseMappedListener(IDatabaseMappedListener databaseMappedListener);
 
 	void unregisterDatabaseMappedListener(IDatabaseMappedListener databaseMappedListener);

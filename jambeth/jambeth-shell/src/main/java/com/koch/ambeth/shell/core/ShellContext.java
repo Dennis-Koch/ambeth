@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.util.collections.IMap;
 
-public interface ShellContext
-{
+public interface ShellContext {
 	static final String BATCH_FILE = "batch.file";
 	// static final String EXIT_ON_ERROR = "exit.on.error";
 	static final String GREETING_ACTIVE = "greeting.active";
@@ -41,8 +40,7 @@ public interface ShellContext
 	static final String HIDE_IO = "hide.io";
 	static final String ERROR_MODE = "error.mode";
 
-	enum ErrorMode
-	{
+	enum ErrorMode {
 		EXIT_ON_ERROR, THROW_EXCPETION, LOG_ONLY
 	}
 

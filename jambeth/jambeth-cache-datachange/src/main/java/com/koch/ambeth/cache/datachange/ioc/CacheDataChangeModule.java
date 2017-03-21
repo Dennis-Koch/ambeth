@@ -39,27 +39,33 @@ import com.koch.ambeth.merge.IRevertChangesHelper;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 
 @FrameworkModule
-public class CacheDataChangeModule implements IInitializingModule
-{
+public class CacheDataChangeModule implements IInitializingModule {
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
-		beanContextFactory.registerBean("revertChangesHelper", RevertChangesHelper.class).autowireable(IRevertChangesHelper.class);
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		beanContextFactory.registerBean("revertChangesHelper", RevertChangesHelper.class)
+				.autowireable(IRevertChangesHelper.class);
 
-		IBeanConfiguration rootCacheClearEventListenerBC = beanContextFactory.registerBean(RootCacheClearEventListener.class).propertyRefs(
-				CacheModule.COMMITTED_ROOT_CACHE);
+		IBeanConfiguration rootCacheClearEventListenerBC =
+				beanContextFactory.registerBean(RootCacheClearEventListener.class)
+						.propertyRefs(CacheModule.COMMITTED_ROOT_CACHE);
 
-		beanContextFactory.link(rootCacheClearEventListenerBC).to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
+		beanContextFactory.link(rootCacheClearEventListenerBC).to(IEventListenerExtendable.class)
+				.with(ClearAllCachesEvent.class);
 
-		IBeanConfiguration serviceResultCacheDCL = beanContextFactory.registerBean(UnfilteredDataChangeListener.class).propertyRef(
-				beanContextFactory.registerBean(ServiceResultCacheDCL.class));
-		beanContextFactory.link(serviceResultCacheDCL).to(IEventListenerExtendable.class).with(IDataChange.class);
+		IBeanConfiguration serviceResultCacheDCL =
+				beanContextFactory.registerBean(UnfilteredDataChangeListener.class)
+						.propertyRef(beanContextFactory.registerBean(ServiceResultCacheDCL.class));
+		beanContextFactory.link(serviceResultCacheDCL).to(IEventListenerExtendable.class)
+				.with(IDataChange.class);
 
-		beanContextFactory.registerBean(CacheModule.CACHE_DATA_CHANGE_LISTENER, CacheDataChangeListener.class);
+		beanContextFactory.registerBean(CacheModule.CACHE_DATA_CHANGE_LISTENER,
+				CacheDataChangeListener.class);
 
-		beanContextFactory.link(CacheModule.CACHE_DATA_CHANGE_LISTENER).to(IEventTargetListenerExtendable.class).with(IDataChange.class);
+		beanContextFactory.link(CacheModule.CACHE_DATA_CHANGE_LISTENER)
+				.to(IEventTargetListenerExtendable.class).with(IDataChange.class);
 
 		beanContextFactory.registerBean("dataChangeEventBatcher", DataChangeEventBatcher.class);
-		beanContextFactory.link("dataChangeEventBatcher").to(IEventBatcherExtendable.class).with(IDataChange.class);
+		beanContextFactory.link("dataChangeEventBatcher").to(IEventBatcherExtendable.class)
+				.with(IDataChange.class);
 	}
 }

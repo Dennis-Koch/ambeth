@@ -20,13 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public class CompositeMemberConfig extends AbstractMemberConfig
-{
-	private static String constructName(MemberConfig[] members)
-	{
+public class CompositeMemberConfig extends AbstractMemberConfig {
+	private static String constructName(MemberConfig[] members) {
 		StringBuilder sb = new StringBuilder(members[0].getName());
-		for (int i = 1; i < members.length; i++)
-		{
+		for (int i = 1; i < members.length; i++) {
 			MemberConfig member = members[i];
 			sb.append('-').append(member.getName());
 		}
@@ -35,33 +32,27 @@ public class CompositeMemberConfig extends AbstractMemberConfig
 
 	private final MemberConfig[] members;
 
-	public CompositeMemberConfig(MemberConfig[] members)
-	{
+	public CompositeMemberConfig(MemberConfig[] members) {
 		super(constructName(members));
 		this.members = members;
 	}
 
-	public MemberConfig[] getMembers()
-	{
+	public MemberConfig[] getMembers() {
 		return members;
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj instanceof CompositeMemberConfig)
-		{
+	public boolean equals(Object obj) {
+		if (obj instanceof CompositeMemberConfig) {
 			return equals((AbstractMemberConfig) obj);
 		}
-		else
-		{
+		else {
 			return false;
 		}
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return getClass().hashCode() ^ getName().hashCode();
 	}
 }

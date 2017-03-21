@@ -62,16 +62,19 @@ import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 import oracle.jdbc.driver.OracleDriver;
 
-public class Oracle10gDialect extends AbstractConnectionDialect
-{
+public class Oracle10gDialect extends AbstractConnectionDialect {
 
-	public static final Pattern BIN_TABLE_NAME = Pattern.compile("BIN\\$.{22}==\\$0", Pattern.CASE_INSENSITIVE);
+	public static final Pattern BIN_TABLE_NAME =
+			Pattern.compile("BIN\\$.{22}==\\$0", Pattern.CASE_INSENSITIVE);
 
-	public static final Pattern IDX_TABLE_NAME = Pattern.compile("DR\\$.*?\\$.", Pattern.CASE_INSENSITIVE);
+	public static final Pattern IDX_TABLE_NAME =
+			Pattern.compile("DR\\$.*?\\$.", Pattern.CASE_INSENSITIVE);
 
-	protected static final LinkedHashMap<Class<?>, String[]> typeToArrayTypeNameMap = new LinkedHashMap<Class<?>, String[]>(128, 0.5f);
+	protected static final LinkedHashMap<Class<?>, String[]> typeToArrayTypeNameMap =
+			new LinkedHashMap<>(128, 0.5f);
 
-	protected static final LinkedHashMap<String, Class<?>> arrayTypeNameToTypeMap = new LinkedHashMap<String, Class<?>>(128, 0.5f);
+	protected static final LinkedHashMap<String, Class<?>> arrayTypeNameToTypeMap =
+			new LinkedHashMap<>(128, 0.5f);
 
 	// 54 = RESOURCE BUSY acquiring with NOWAIT (pessimistic lock)
 	public static final int PESSIMISTIC_LOCK_ERROR_CODE = 54;
@@ -81,35 +84,33 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 
 	protected static final String[] exportedKeysSql = {
 			"SELECT USR.NAME AS OWNER, CONST.NAME AS CONSTRAINT_NAME, RCONST.NAME AS REF_CONSTRAINT_NAME, OBJ.NAME AS TABLE_NAME, COALESCE(ACOL.NAME, COL.NAME) AS COLUMN_NAME, CCOL.POS# AS POSITION, ROBJ.NAME AS REF_TABLE_NAME, COALESCE(RACOL.NAME, RCOL.NAME) AS REF_COLUMN_NAME, RCCOL.POS# AS REF_POSITION FROM SYS.CON$ CONST INNER JOIN SYS.USER$ USR ON CONST.OWNER# = USR.USER# INNER JOIN SYS.CDEF$ CDEF ON CDEF.CON# = CONST.CON# INNER JOIN SYS.CCOL$ CCOL ON CCOL.CON# = CONST.CON# INNER JOIN SYS.COL$ COL  ON (CCOL.OBJ# = COL.OBJ#) AND (CCOL.INTCOL# = COL.INTCOL#) INNER JOIN SYS.\"_CURRENT_EDITION_OBJ\" OBJ ON CCOL.OBJ# = OBJ.OBJ# LEFT JOIN SYS.ATTRCOL$ ACOL ON (CCOL.OBJ# = ACOL.OBJ#) AND (CCOL.INTCOL# = ACOL.INTCOL#) INNER JOIN SYS.CON$ RCONST ON RCONST.CON# = CDEF.RCON# INNER JOIN SYS.CCOL$ RCCOL ON RCCOL.CON# = RCONST.CON# INNER JOIN SYS.COL$ RCOL  ON (RCCOL.OBJ# = RCOL.OBJ#) AND (RCCOL.INTCOL# = RCOL.INTCOL#) INNER JOIN SYS.\"_CURRENT_EDITION_OBJ\" ROBJ ON RCCOL.OBJ# = ROBJ.OBJ# LEFT JOIN SYS.ATTRCOL$ RACOL  ON (RCCOL.OBJ# = RACOL.OBJ#) AND (RCCOL.INTCOL# = RACOL.INTCOL#) WHERE CDEF.TYPE# = 4 AND USR.NAME ",
-			"SELECT C1.OWNER AS OWNER, C1.CONSTRAINT_NAME, C1.TABLE_NAME AS TABLE_NAME, A1.COLUMN_NAME AS COLUMN_NAME, C2.TABLE_NAME AS REF_TABLE_NAME, A2.COLUMN_NAME AS REF_COLUMN_NAME FROM ALL_CONSTRAINTS C1 JOIN ALL_CONSTRAINTS C2 ON C1.R_CONSTRAINT_NAME = C2.CONSTRAINT_NAME JOIN ALL_CONS_COLUMNS A1 ON C1.CONSTRAINT_NAME = A1.CONSTRAINT_NAME JOIN ALL_CONS_COLUMNS A2 ON C2.CONSTRAINT_NAME = A2.CONSTRAINT_NAME WHERE C1.CONSTRAINT_TYPE = 'R' AND C2.OWNER = C1.OWNER AND C1.OWNER " };
+			"SELECT C1.OWNER AS OWNER, C1.CONSTRAINT_NAME, C1.TABLE_NAME AS TABLE_NAME, A1.COLUMN_NAME AS COLUMN_NAME, C2.TABLE_NAME AS REF_TABLE_NAME, A2.COLUMN_NAME AS REF_COLUMN_NAME FROM ALL_CONSTRAINTS C1 JOIN ALL_CONSTRAINTS C2 ON C1.R_CONSTRAINT_NAME = C2.CONSTRAINT_NAME JOIN ALL_CONS_COLUMNS A1 ON C1.CONSTRAINT_NAME = A1.CONSTRAINT_NAME JOIN ALL_CONS_COLUMNS A2 ON C2.CONSTRAINT_NAME = A2.CONSTRAINT_NAME WHERE C1.CONSTRAINT_TYPE = 'R' AND C2.OWNER = C1.OWNER AND C1.OWNER "};
 
-	static
-	{
-		typeToArrayTypeNameMap.put(Long.TYPE, new String[] { "LONG_ARRAY", "NUMBER(19,0)" });
-		typeToArrayTypeNameMap.put(Long.class, new String[] { "LONG_ARRAY", "NUMBER(19,0)" });
-		typeToArrayTypeNameMap.put(Integer.TYPE, new String[] { "INT_ARRAY", "NUMBER(10,0)" });
-		typeToArrayTypeNameMap.put(Integer.class, new String[] { "INT_ARRAY", "NUMBER(10,0)" });
-		typeToArrayTypeNameMap.put(Short.TYPE, new String[] { "SHORT_ARRAY", "NUMBER(5,0)" });
-		typeToArrayTypeNameMap.put(Short.class, new String[] { "SHORT_ARRAY", "NUMBER(5,0)" });
-		typeToArrayTypeNameMap.put(Byte.TYPE, new String[] { "BYTE_ARRAY", "NUMBER(3,0)" });
-		typeToArrayTypeNameMap.put(Byte.class, new String[] { "BYTE_ARRAY", "NUMBER(3,0)" });
-		typeToArrayTypeNameMap.put(Character.TYPE, new String[] { "CHAR_ARRAY", "CHAR" });
-		typeToArrayTypeNameMap.put(Character.class, new String[] { "CHAR_ARRAY", "CHAR" });
-		typeToArrayTypeNameMap.put(Boolean.TYPE, new String[] { "BOOL_ARRAY", "NUMBER(1,0)" });
-		typeToArrayTypeNameMap.put(Boolean.class, new String[] { "BOOL_ARRAY", "NUMBER(1,0)" });
-		typeToArrayTypeNameMap.put(Double.TYPE, new String[] { "DOUBLE_ARRAY", "NUMBER(9,9)" });
-		typeToArrayTypeNameMap.put(Double.class, new String[] { "DOUBLE_ARRAY", "NUMBER(9,9)" });
-		typeToArrayTypeNameMap.put(Float.TYPE, new String[] { "FLOAT_ARRAY", "NUMBER(4,4)" });
-		typeToArrayTypeNameMap.put(Float.class, new String[] { "FLOAT_ARRAY", "NUMBER(4,4)" });
-		typeToArrayTypeNameMap.put(String.class, new String[] { "STRING_ARRAY", "VARCHAR2(4000 CHAR)" });
-		typeToArrayTypeNameMap.put(BigDecimal.class, new String[] { "BIG_DEC_ARRAY", "NUMBER" });
-		typeToArrayTypeNameMap.put(BigInteger.class, new String[] { "BIG_INT_ARRAY", "NUMBER(38,0)" });
+	static {
+		typeToArrayTypeNameMap.put(Long.TYPE, new String[] {"LONG_ARRAY", "NUMBER(19,0)"});
+		typeToArrayTypeNameMap.put(Long.class, new String[] {"LONG_ARRAY", "NUMBER(19,0)"});
+		typeToArrayTypeNameMap.put(Integer.TYPE, new String[] {"INT_ARRAY", "NUMBER(10,0)"});
+		typeToArrayTypeNameMap.put(Integer.class, new String[] {"INT_ARRAY", "NUMBER(10,0)"});
+		typeToArrayTypeNameMap.put(Short.TYPE, new String[] {"SHORT_ARRAY", "NUMBER(5,0)"});
+		typeToArrayTypeNameMap.put(Short.class, new String[] {"SHORT_ARRAY", "NUMBER(5,0)"});
+		typeToArrayTypeNameMap.put(Byte.TYPE, new String[] {"BYTE_ARRAY", "NUMBER(3,0)"});
+		typeToArrayTypeNameMap.put(Byte.class, new String[] {"BYTE_ARRAY", "NUMBER(3,0)"});
+		typeToArrayTypeNameMap.put(Character.TYPE, new String[] {"CHAR_ARRAY", "CHAR"});
+		typeToArrayTypeNameMap.put(Character.class, new String[] {"CHAR_ARRAY", "CHAR"});
+		typeToArrayTypeNameMap.put(Boolean.TYPE, new String[] {"BOOL_ARRAY", "NUMBER(1,0)"});
+		typeToArrayTypeNameMap.put(Boolean.class, new String[] {"BOOL_ARRAY", "NUMBER(1,0)"});
+		typeToArrayTypeNameMap.put(Double.TYPE, new String[] {"DOUBLE_ARRAY", "NUMBER(9,9)"});
+		typeToArrayTypeNameMap.put(Double.class, new String[] {"DOUBLE_ARRAY", "NUMBER(9,9)"});
+		typeToArrayTypeNameMap.put(Float.TYPE, new String[] {"FLOAT_ARRAY", "NUMBER(4,4)"});
+		typeToArrayTypeNameMap.put(Float.class, new String[] {"FLOAT_ARRAY", "NUMBER(4,4)"});
+		typeToArrayTypeNameMap.put(String.class, new String[] {"STRING_ARRAY", "VARCHAR2(4000 CHAR)"});
+		typeToArrayTypeNameMap.put(BigDecimal.class, new String[] {"BIG_DEC_ARRAY", "NUMBER"});
+		typeToArrayTypeNameMap.put(BigInteger.class, new String[] {"BIG_INT_ARRAY", "NUMBER(38,0)"});
 
 		// Default behavior. This is an intended "hack" for backwards compatibility.
-		typeToArrayTypeNameMap.put(Object.class, new String[] { "BIG_DEC_ARRAY", "NUMBER" });
+		typeToArrayTypeNameMap.put(Object.class, new String[] {"BIG_DEC_ARRAY", "NUMBER"});
 
-		for (Entry<Class<?>, String[]> entry : typeToArrayTypeNameMap)
-		{
+		for (Entry<Class<?>, String[]> entry : typeToArrayTypeNameMap) {
 			arrayTypeNameToTypeMap.putIfNotExists(entry.getValue()[0], entry.getKey());
 		}
 	}
@@ -126,20 +127,17 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	protected ITransactionState transactionState;
 
 	@Override
-	protected Class<?> getDriverType()
-	{
+	protected Class<?> getDriverType() {
 		return OracleDriver.class;
 	}
 
 	@Override
-	public int getMaxInClauseBatchThreshold()
-	{
+	public int getMaxInClauseBatchThreshold() {
 		return 4000;
 	}
 
 	@Override
-	protected String buildDeferrableForeignKeyConstraintsSelectSQL(String[] schemaNames)
-	{
+	protected String buildDeferrableForeignKeyConstraintsSelectSQL(String[] schemaNames) {
 		StringBuilder sb = new StringBuilder(
 				"SELECT OWNER, TABLE_NAME, CONSTRAINT_NAME FROM ALL_CONSTRAINTS WHERE STATUS='ENABLED' AND DEFERRABLE='DEFERRABLE' AND DEFERRED='IMMEDIATE' AND CONSTRAINT_TYPE='R' AND OWNER");
 		buildSchemaInClause(sb, schemaNames);
@@ -147,11 +145,9 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	protected void handleRow(String schemaName, String tableName, String constraintName, ArrayList<String> disableConstraintsSQL,
-			ArrayList<String> enableConstraintsSQL)
-	{
-		if (BIN_TABLE_NAME.matcher(tableName).matches())
-		{
+	protected void handleRow(String schemaName, String tableName, String constraintName,
+			ArrayList<String> disableConstraintsSQL, ArrayList<String> enableConstraintsSQL) {
+		if (BIN_TABLE_NAME.matcher(tableName).matches()) {
 			return;
 		}
 		String fullName = "\"" + schemaName + "\".\"" + constraintName + "\"";
@@ -160,47 +156,39 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames) throws SQLException
-	{
-		ArrayList<IMap<String, String>> allForeignKeys = new ArrayList<IMap<String, String>>();
+	public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames)
+			throws SQLException {
+		ArrayList<IMap<String, String>> allForeignKeys = new ArrayList<>();
 		Statement stm = null;
 		ResultSet allForeignKeysRS = null;
-		try
-		{
+		try {
 			stm = connection.createStatement();
-			for (int a = 0, size = exportedKeysSql.length; a < size; a++)
-			{
+			for (int a = 0, size = exportedKeysSql.length; a < size; a++) {
 				String sql = exportedKeysSql[a];
-				try
-				{
+				try {
 					allForeignKeysRS = stm.executeQuery(sql + buildSchemaInClause(schemaNames));
 					break;
 				}
-				catch (PersistenceException e)
-				{
-					if (e.getCause() instanceof SQLException)
-					{
-						if (SQLState.ACCESS_VIOLATION.getXopen().equals(((SQLException) e.getCause()).getSQLState()))
-						{
+				catch (PersistenceException e) {
+					if (e.getCause() instanceof SQLException) {
+						if (SQLState.ACCESS_VIOLATION.getXopen()
+								.equals(((SQLException) e.getCause()).getSQLState())) {
 							continue;
 						}
 					}
 					throw e;
 				}
-				catch (SQLException e)
-				{
-					if (SQLState.ACCESS_VIOLATION.getXopen().equals(((SQLException) e.getCause()).getSQLState()))
-					{
+				catch (SQLException e) {
+					if (SQLState.ACCESS_VIOLATION.getXopen()
+							.equals(((SQLException) e.getCause()).getSQLState())) {
 						continue;
 					}
 					throw e;
 				}
 			}
-			if (allForeignKeysRS != null)
-			{
-				while (allForeignKeysRS.next())
-				{
-					HashMap<String, String> foreignKey = new HashMap<String, String>();
+			if (allForeignKeysRS != null) {
+				while (allForeignKeysRS.next()) {
+					HashMap<String, String> foreignKey = new HashMap<>();
 
 					foreignKey.put("OWNER", allForeignKeysRS.getString("OWNER"));
 					foreignKey.put("CONSTRAINT_NAME", allForeignKeysRS.getString("CONSTRAINT_NAME"));
@@ -213,40 +201,37 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 				}
 			}
 		}
-		finally
-		{
+		finally {
 			JdbcUtil.close(stm, allForeignKeysRS);
 		}
 		return allForeignKeys;
 	}
 
 	@Override
-	public ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection, String schemaName) throws SQLException
-	{
-		LinkedHashMap<String, IList<String>> fulltextIndexes = new LinkedHashMap<String, IList<String>>();
+	public ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection,
+			String schemaName) throws SQLException {
+		LinkedHashMap<String, IList<String>> fulltextIndexes =
+				new LinkedHashMap<>();
 		Statement stmt = connection.createStatement();
 		ResultSet fulltextIndexesRS = null;
-		try
-		{
-			fulltextIndexesRS = stmt
-					.executeQuery("SELECT A.TABLE_NAME, A.COLUMN_NAME FROM ALL_IND_COLUMNS A JOIN ALL_INDEXES B ON A.INDEX_NAME = B.INDEX_NAME AND A.TABLE_NAME = B.TABLE_NAME WHERE A.INDEX_OWNER = '"
-							+ schemaName + "' AND B.INDEX_TYPE = 'DOMAIN' AND B.ITYP_OWNER = 'CTXSYS' AND B.ITYP_NAME = 'CONTEXT'");
-			while (fulltextIndexesRS.next())
-			{
+		try {
+			fulltextIndexesRS = stmt.executeQuery(
+					"SELECT A.TABLE_NAME, A.COLUMN_NAME FROM ALL_IND_COLUMNS A JOIN ALL_INDEXES B ON A.INDEX_NAME = B.INDEX_NAME AND A.TABLE_NAME = B.TABLE_NAME WHERE A.INDEX_OWNER = '"
+							+ schemaName
+							+ "' AND B.INDEX_TYPE = 'DOMAIN' AND B.ITYP_OWNER = 'CTXSYS' AND B.ITYP_NAME = 'CONTEXT'");
+			while (fulltextIndexesRS.next()) {
 				String tableName = fulltextIndexesRS.getString("TABLE_NAME");
 				String columnName = fulltextIndexesRS.getString("COLUMN_NAME");
 
 				IList<String> fulltextColumns = fulltextIndexes.get(tableName);
-				if (fulltextColumns == null)
-				{
-					fulltextColumns = new ArrayList<String>();
+				if (fulltextColumns == null) {
+					fulltextColumns = new ArrayList<>();
 					fulltextIndexes.put(tableName, fulltextColumns);
 				}
 				fulltextColumns.add(columnName);
 			}
 		}
-		finally
-		{
+		finally {
 			JdbcUtil.close(stmt, fulltextIndexesRS);
 		}
 
@@ -254,29 +239,25 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public boolean isSystemTable(String tableName)
-	{
-		return BIN_TABLE_NAME.matcher(tableName).matches() || IDX_TABLE_NAME.matcher(tableName).matches();
+	public boolean isSystemTable(String tableName) {
+		return BIN_TABLE_NAME.matcher(tableName).matches()
+				|| IDX_TABLE_NAME.matcher(tableName).matches();
 	}
 
 	@Override
-	public void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException
-	{
+	public void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException {
 		// noop: releaseSavepoint(Savepoint savepoint) is not supported by Oracle10g
 	}
 
 	@Override
-	public int getResourceBusyErrorCode()
-	{
+	public int getResourceBusyErrorCode() {
 		return 54;
 	}
 
 	@Override
-	public PersistenceException createPersistenceException(SQLException e, String relatedSql)
-	{
+	public PersistenceException createPersistenceException(SQLException e, String relatedSql) {
 		PersistenceException ex;
-		switch (e.getErrorCode())
-		{
+		switch (e.getErrorCode()) {
 			case PESSIMISTIC_LOCK_ERROR_CODE:
 				ex = new PessimisticLockException(relatedSql, e);
 				break;
@@ -298,15 +279,14 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public ResultSet getIndexInfo(Connection connection, String schemaName, String tableName, boolean unique) throws SQLException
-	{
+	public ResultSet getIndexInfo(Connection connection, String schemaName, String tableName,
+			boolean unique) throws SQLException {
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		StringBuilder sql = tlObjectCollector.create(StringBuilder.class);
-		try
-		{
-			sql.append("SELECT AI.TABLE_NAME, AI.INDEX_NAME, INDEX_TYPE AS TYPE, COLUMN_POSITION AS ORDINAL_POSITION, COLUMN_NAME FROM ALL_INDEXES AI JOIN ALL_IND_COLUMNS AIC ON AI.INDEX_NAME = AIC.INDEX_NAME WHERE AI.OWNER = ? AND AI.TABLE_NAME = ?");
-			if (unique)
-			{
+		try {
+			sql.append(
+					"SELECT AI.TABLE_NAME, AI.INDEX_NAME, INDEX_TYPE AS TYPE, COLUMN_POSITION AS ORDINAL_POSITION, COLUMN_NAME FROM ALL_INDEXES AI JOIN ALL_IND_COLUMNS AIC ON AI.INDEX_NAME = AIC.INDEX_NAME WHERE AI.OWNER = ? AND AI.TABLE_NAME = ?");
+			if (unique) {
 				sql.append(" AND AI.UNIQUENESS = 'UNIQUE'");
 			}
 			PreparedStatement prep = connection.prepareStatement(sql.toString());
@@ -314,64 +294,56 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 			prep.setString(2, tableName);
 			return prep.executeQuery();
 		}
-		finally
-		{
+		finally {
 			tlObjectCollector.dispose(sql);
 		}
 	}
 
 	@Override
-	public Class<?> getComponentTypeByFieldTypeName(String fieldTypeName)
-	{
-		if (fieldTypeName == null)
-		{
+	public Class<?> getComponentTypeByFieldTypeName(String fieldTypeName) {
+		if (fieldTypeName == null) {
 			return null;
 		}
 		return arrayTypeNameToTypeMap.get(fieldTypeName);
 	}
 
 	@Override
-	public String getFieldTypeNameByComponentType(Class<?> componentType)
-	{
-		if (componentType == null)
-		{
+	public String getFieldTypeNameByComponentType(Class<?> componentType) {
+		if (componentType == null) {
 			return null;
 		}
 		String[] fieldTypeName = typeToArrayTypeNameMap.get(componentType);
-		if (fieldTypeName == null)
-		{
+		if (fieldTypeName == null) {
 			throw new IllegalArgumentException("Can not handle component type '" + componentType + "'");
 		}
 		return fieldTypeName[0];
 	}
 
 	@Override
-	public List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames) throws SQLException
-	{
-		List<String> allSequenceNames = new ArrayList<String>();
+	public List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames)
+			throws SQLException {
+		List<String> allSequenceNames = new ArrayList<>();
 
 		Statement stmt = null;
 		ResultSet rs = null;
-		try
-		{
+		try {
 			stmt = connection.createStatement();
-			rs = stmt.executeQuery("SELECT SEQUENCE_OWNER, SEQUENCE_NAME FROM ALL_SEQUENCES WHERE SEQUENCE_OWNER" + buildSchemaInClause(schemaNames));
-			while (rs.next())
-			{
+			rs = stmt.executeQuery(
+					"SELECT SEQUENCE_OWNER, SEQUENCE_NAME FROM ALL_SEQUENCES WHERE SEQUENCE_OWNER"
+							+ buildSchemaInClause(schemaNames));
+			while (rs.next()) {
 				String schemaName = rs.getString("SEQUENCE_OWNER");
 				String sequenceName = rs.getString("SEQUENCE_NAME");
-				if (!BIN_TABLE_NAME.matcher(sequenceName).matches() && !IDX_TABLE_NAME.matcher(sequenceName).matches())
-				{
+				if (!BIN_TABLE_NAME.matcher(sequenceName).matches()
+						&& !IDX_TABLE_NAME.matcher(sequenceName).matches()) {
 					allSequenceNames.add(schemaName + '.' + sequenceName);
 				}
 			}
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
+		finally {
 			JdbcUtil.close(stmt, rs);
 		}
 
@@ -379,28 +351,26 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames) throws SQLException
-	{
-		List<String> allTableNames = new ArrayList<String>();
+	public List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames)
+			throws SQLException {
+		List<String> allTableNames = new ArrayList<>();
 
 		Statement stmt = null;
 		ResultSet rs = null;
-		try
-		{
+		try {
 			stmt = connection.createStatement();
-			rs = stmt.executeQuery("SELECT OWNER, TABLE_NAME FROM ALL_ALL_TABLES WHERE OWNER" + buildSchemaInClause(schemaNames));
-			while (rs.next())
-			{
+			rs = stmt.executeQuery("SELECT OWNER, TABLE_NAME FROM ALL_ALL_TABLES WHERE OWNER"
+					+ buildSchemaInClause(schemaNames));
+			while (rs.next()) {
 				String schemaName = rs.getString("OWNER");
 				String tableName = rs.getString("TABLE_NAME");
-				if (!BIN_TABLE_NAME.matcher(tableName).matches() && !IDX_TABLE_NAME.matcher(tableName).matches())
-				{
+				if (!BIN_TABLE_NAME.matcher(tableName).matches()
+						&& !IDX_TABLE_NAME.matcher(tableName).matches()) {
 					allTableNames.add(schemaName + "." + tableName);
 				}
 			}
 		}
-		finally
-		{
+		finally {
 			JdbcUtil.close(stmt, rs);
 		}
 
@@ -408,31 +378,27 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames) throws SQLException
-	{
-		List<String> allViewNames = new ArrayList<String>();
+	public List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames)
+			throws SQLException {
+		List<String> allViewNames = new ArrayList<>();
 
 		Statement stmt = null;
 		ResultSet rs = null;
-		try
-		{
-			for (String schemaName : schemaNames)
-			{
-				rs = connection.getMetaData().getTables(null, schemaName, null, new String[] { "VIEW" });
+		try {
+			for (String schemaName : schemaNames) {
+				rs = connection.getMetaData().getTables(null, schemaName, null, new String[] {"VIEW"});
 
-				while (rs.next())
-				{
+				while (rs.next()) {
 					// String schemaName = rs.getString("TABLE_SCHEM");
 					String viewName = rs.getString("TABLE_NAME");
-					if (!BIN_TABLE_NAME.matcher(viewName).matches() && !IDX_TABLE_NAME.matcher(viewName).matches())
-					{
+					if (!BIN_TABLE_NAME.matcher(viewName).matches()
+							&& !IDX_TABLE_NAME.matcher(viewName).matches()) {
 						allViewNames.add(schemaName + "." + viewName);
 					}
 				}
 			}
 		}
-		finally
-		{
+		finally {
 			JdbcUtil.close(stmt, rs);
 		}
 
@@ -440,17 +406,15 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) throws SQLException
-	{
+	public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName)
+			throws SQLException {
 		String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
 		ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
-		try
-		{
-			ArrayList<IColumnEntry> columns = new ArrayList<IColumnEntry>();
+		try {
+			ArrayList<IColumnEntry> columns = new ArrayList<>();
 			columns.add(new ColumnEntry("ROWID", -1, Object.class, null, false, 0, false));
 
-			while (tableColumnsRS.next())
-			{
+			while (tableColumnsRS.next()) {
 				String fieldName = tableColumnsRS.getString("COLUMN_NAME");
 				int columnIndex = tableColumnsRS.getInt("ORDINAL_POSITION");
 				int typeIndex = tableColumnsRS.getInt("DATA_TYPE");
@@ -466,43 +430,38 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 
 				Class<?> javaType = JdbcUtil.getJavaTypeFromJdbcType(typeIndex, scale, digits);
 
-				ColumnEntry entry = new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable, radix, true);
+				ColumnEntry entry =
+						new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable, radix, true);
 				columns.add(entry);
 			}
 			return columns;
 		}
-		finally
-		{
+		finally {
 			JdbcUtil.close(tableColumnsRS);
 		}
 	}
 
 	@Override
-	public boolean isEmptyStringAsNullStored(IFieldMetaData field)
-	{
+	public boolean isEmptyStringAsNullStored(IFieldMetaData field) {
 		String originalTypeName = field.getOriginalTypeName();
-		if ("VARCHAR2".equals(originalTypeName) || "VARCHAR".equals(originalTypeName))
-		{
+		if ("VARCHAR2".equals(originalTypeName) || "VARCHAR".equals(originalTypeName)) {
 			return true;
 		}
 		return false;
 	}
 
 	@Override
-	public String prepareCommand(String sqlCommand)
-	{
+	public String prepareCommand(String sqlCommand) {
 		return sqlCommand;
 	}
 
 	@Override
-	public SelectPosition getLimitPosition()
-	{
+	public SelectPosition getLimitPosition() {
 		return SelectPosition.AS_WHERE_CLAUSE;
 	}
 
 	@Override
-	public int getColumnCountForLinkTable()
-	{
+	public int getColumnCountForLinkTable() {
 		return 3;
 	}
 }

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ICgLibUtil
-{
+public interface ICgLibUtil {
 	boolean isEnhanced(Class<?> enhancedClass);
 
 	Class<?> getOriginalClass(Class<?> enhancedClass);

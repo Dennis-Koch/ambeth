@@ -35,194 +35,161 @@ import com.koch.ambeth.persistence.api.ITable;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.NoOpStateRollback;
 
-public class DatabaseDummy implements IDatabase
-{
+public class DatabaseDummy implements IDatabase {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public void dispose()
-	{
+	public void dispose() {
 	}
 
 	@Override
-	public <T> T getAutowiredBeanInContext(Class<T> autowiredType)
-	{
+	public <T> T getAutowiredBeanInContext(Class<T> autowiredType) {
 		return null;
 	}
 
 	@Override
-	public <T> T getNamedBeanInContext(String beanName, Class<T> expectedType)
-	{
+	public <T> T getNamedBeanInContext(String beanName, Class<T> expectedType) {
 		return null;
 	}
 
 	@Override
-	public long getSessionId()
-	{
+	public long getSessionId() {
 		return 0;
 	}
 
 	@Override
-	public void setSessionId(long sessionId)
-	{
+	public void setSessionId(long sessionId) {
 	}
 
 	@Override
-	public IContextProvider getContextProvider()
-	{
+	public IContextProvider getContextProvider() {
 		return null;
 	}
 
 	@Override
-	public IDatabasePool getPool()
-	{
+	public IDatabasePool getPool() {
 		return null;
 	}
 
 	@Override
-	public void flushAndRelease()
-	{
+	public void flushAndRelease() {
 	}
 
 	@Override
-	public void release(boolean errorOccured)
-	{
+	public void release(boolean errorOccured) {
 	}
 
 	@Override
-	public void acquired(boolean readOnly)
-	{
+	public void acquired(boolean readOnly) {
 	}
 
 	@Override
-	public IDatabase getCurrent()
-	{
+	public IDatabase getCurrent() {
 		return null;
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return null;
 	}
 
 	@Override
-	public String[] getSchemaNames()
-	{
+	public String[] getSchemaNames() {
 		return null;
 	}
 
 	@Override
-	public List<ITable> getTables()
-	{
+	public List<ITable> getTables() {
 		return null;
 	}
 
 	@Override
-	public List<ILink> getLinks()
-	{
+	public List<ILink> getLinks() {
 		return null;
 	}
 
 	@Override
-	public ITable getTableByType(Class<?> entityType)
-	{
+	public ITable getTableByType(Class<?> entityType) {
 		return null;
 	}
 
 	@Override
-	public ITable getArchiveTableByType(Class<?> entityType)
-	{
+	public ITable getArchiveTableByType(Class<?> entityType) {
 		return null;
 	}
 
 	@Override
-	public ITable getTableByName(String tableName)
-	{
+	public ITable getTableByName(String tableName) {
 		return null;
 	}
 
 	@Override
-	public boolean test()
-	{
+	public boolean test() {
 		return false;
 	}
 
 	@Override
-	public void flush()
-	{
+	public void flush() {
 	}
 
 	@Override
-	public void revert()
-	{
+	public void revert() {
 	}
 
 	@Override
-	public void revert(ISavepoint savepoint)
-	{
+	public void revert(ISavepoint savepoint) {
 	}
 
 	@Override
-	public ISavepoint setSavepoint()
-	{
+	public ISavepoint setSavepoint() {
 		return null;
 	}
 
 	@Override
-	public void releaseSavepoint(ISavepoint savepoint)
-	{
+	public void releaseSavepoint(ISavepoint savepoint) {
 	}
 
 	@Override
-	public void rollback(ISavepoint savepoint)
-	{
+	public void rollback(ISavepoint savepoint) {
 	}
 
 	@Override
-	public IStateRollback disableConstraints()
-	{
+	public IStateRollback disableConstraints() {
 		return NoOpStateRollback.instance;
 	}
 
 	@Override
-	public List<ILink> getLinksByTables(ITable table1, ITable table2)
-	{
+	public List<ILink> getLinksByTables(ITable table1, ITable table2) {
 		return null;
 	}
 
 	@Override
-	public void registerDisposeHook(IDatabaseDisposeHook disposeHook)
-	{
+	public void registerDisposeHook(IDatabaseDisposeHook disposeHook) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void unregisterDisposeHook(IDatabaseDisposeHook disposeHook)
-	{
+	public void unregisterDisposeHook(IDatabaseDisposeHook disposeHook) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public boolean isDisposed()
-	{
+	public boolean isDisposed() {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public IDatabaseMetaData getMetaData()
-	{
+	public IDatabaseMetaData getMetaData() {
 		return null;
 	}
 
 	@Override
-	public void registerNewTable(String tableName)
-	{
+	public void registerNewTable(String tableName) {
 
 	}
 }

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IScopedUpdateEntityPropertyStep
-{
+public interface IScopedUpdateEntityPropertyStep {
 	IScopedDeleteEntityPropertyStep allowUpdateProperty();
 
 	IScopedDeleteEntityPropertyStep skipUpdateProperty();

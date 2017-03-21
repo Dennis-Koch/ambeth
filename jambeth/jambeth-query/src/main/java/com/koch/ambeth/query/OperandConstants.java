@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public enum OperandConstants
-{
+public enum OperandConstants {
 	EntityType, PropertyName
 }

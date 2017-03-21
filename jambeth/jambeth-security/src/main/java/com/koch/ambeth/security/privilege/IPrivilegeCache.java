@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.util.IDisposable;
 
-public interface IPrivilegeCache extends IDisposable
-{
+public interface IPrivilegeCache extends IDisposable {
 
 }

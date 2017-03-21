@@ -35,25 +35,24 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 /**
  * PublicConstructorVisitor declares constructors derived from {@link #superClass}.
- * 
- * {@link #superClass} is defined either by {@link BytecodeBehaviorState#getCurrentType()} or by the parameter extendedType of the
- * {@link PublicConstructorVisitor#PublicConstructorVisitor(ClassVisitor, Class)} constructor. In the latter case extendedType can be an abstract type used as
- * template to implement the interface defined by {@link BytecodeBehaviorState#getOriginalType()}.
- * 
- * If {@link #superClass} does not declare constructors or {@link #superClass} is an interface a default constructor is created.
+ *
+ * {@link #superClass} is defined either by {@link BytecodeBehaviorState#getCurrentType()} or by the
+ * parameter extendedType of the
+ * {@link PublicConstructorVisitor#PublicConstructorVisitor(ClassVisitor, Class)} constructor. In
+ * the latter case extendedType can be an abstract type used as template to implement the interface
+ * defined by {@link BytecodeBehaviorState#getOriginalType()}.
+ *
+ * If {@link #superClass} does not declare constructors or {@link #superClass} is an interface a
+ * default constructor is created.
  */
-public class PublicConstructorVisitor extends ClassGenerator
-{
-	public static boolean hasValidConstructor()
-	{
+public class PublicConstructorVisitor extends ClassGenerator {
+	public static boolean hasValidConstructor() {
 		IBytecodeBehaviorState state = BytecodeBehaviorState.getState();
 
 		Constructor<?>[] constructors = state.getCurrentType().getDeclaredConstructors();
 
-		for (Constructor<?> constructor : constructors)
-		{
-			if (state.isMethodAlreadyImplementedOnNewType(new ConstructorInstance(constructor)))
-			{
+		for (Constructor<?> constructor : constructors) {
+			if (state.isMethodAlreadyImplementedOnNewType(new ConstructorInstance(constructor))) {
 				return true;
 			}
 		}
@@ -62,12 +61,10 @@ public class PublicConstructorVisitor extends ClassGenerator
 
 	/**
 	 * Derives constructors from {@link BytecodeBehaviorState#getState()#getCurrentType()}
-	 * 
-	 * @param cv
-	 *            ClassVisitor
+	 *
+	 * @param cv ClassVisitor
 	 */
-	public PublicConstructorVisitor(ClassVisitor cv)
-	{
+	public PublicConstructorVisitor(ClassVisitor cv) {
 		super(cv);
 	}
 
@@ -75,21 +72,18 @@ public class PublicConstructorVisitor extends ClassGenerator
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void visitEnd()
-	{
-		if (!hasValidConstructor())
-		{
+	public void visitEnd() {
+		if (!hasValidConstructor()) {
 			IBytecodeBehaviorState state = BytecodeBehaviorState.getState();
 			Constructor<?>[] constructors = state.getCurrentType().getDeclaredConstructors();
 
-			for (Constructor<?> constructor : constructors)
-			{
+			for (Constructor<?> constructor : constructors) {
 				int access = TypeUtil.getModifiersToAccess(constructor.getModifiers());
 				access &= ~Opcodes.ACC_PROTECTED;
 				access &= ~Opcodes.ACC_PRIVATE;
 				access |= Opcodes.ACC_PUBLIC;
-				ConstructorInstance c_method = new ConstructorInstance(constructor.getDeclaringClass(), access, ConstructorInstance.getSignature(constructor),
-						constructor.getParameterTypes());
+				ConstructorInstance c_method = new ConstructorInstance(constructor.getDeclaringClass(),
+						access, ConstructorInstance.getSignature(constructor), constructor.getParameterTypes());
 
 				MethodGenerator mg = visitMethod(c_method);
 				mg.loadThis();
@@ -99,16 +93,13 @@ public class PublicConstructorVisitor extends ClassGenerator
 				mg.returnValue();
 				mg.endMethod();
 			}
-			if (constructors.length == 0)
-			{
+			if (constructors.length == 0) {
 				// Implement "first" default constructor
 				ConstructorInstance c_method;
-				try
-				{
+				try {
 					c_method = new ConstructorInstance(Object.class.getConstructor());
 				}
-				catch (Throwable e)
-				{
+				catch (Throwable e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 				MethodGenerator ga = visitMethod(c_method);

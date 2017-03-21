@@ -25,8 +25,7 @@ import java.util.Collection;
 
 import com.koch.ambeth.util.INamed;
 
-public interface ITypeInfoItem extends INamed
-{
+public interface ITypeInfoItem extends INamed {
 	Object getDefaultValue();
 
 	void setDefaultValue(Object defaultValue);

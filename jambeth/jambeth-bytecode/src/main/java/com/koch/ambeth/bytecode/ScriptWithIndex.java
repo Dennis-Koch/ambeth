@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface ScriptWithIndex
-{
+public interface ScriptWithIndex {
 	void execute(MethodGenerator mg, int fieldIndex);
 }

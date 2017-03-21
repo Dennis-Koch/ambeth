@@ -28,8 +28,7 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class ModifyingDatabase implements IModifyingDatabase
-{
+public class ModifyingDatabase implements IModifyingDatabase {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -42,40 +41,32 @@ public class ModifyingDatabase implements IModifyingDatabase
 	protected boolean modifyingAllowed = true;
 
 	@Override
-	public boolean isModifyingAllowed()
-	{
+	public boolean isModifyingAllowed() {
 		return modifyingAllowed;
 	}
 
 	@Override
-	public void setModifyingAllowed(boolean modifyingAllowed)
-	{
+	public void setModifyingAllowed(boolean modifyingAllowed) {
 		this.modifyingAllowed = modifyingAllowed;
-		if (connection != null)
-		{
-			try
-			{
-				if (!(connection.isReadOnly() ^ modifyingAllowed))
-				{
+		if (connection != null) {
+			try {
+				if (!(connection.isReadOnly() ^ modifyingAllowed)) {
 					connection.setReadOnly(!modifyingAllowed);
 				}
 			}
-			catch (SQLException e)
-			{
+			catch (SQLException e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
 	}
 
 	@Override
-	public boolean isModifyingDatabase()
-	{
+	public boolean isModifyingDatabase() {
 		return modifyingDatabase;
 	}
 
 	@Override
-	public void setModifyingDatabase(boolean modifyingDatabase)
-	{
+	public void setModifyingDatabase(boolean modifyingDatabase) {
 		this.modifyingDatabase = modifyingDatabase;
 	}
 }

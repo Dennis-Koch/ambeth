@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.IServiceContext;
 
-public interface IServiceContextStore
-{
+public interface IServiceContextStore {
 	IServiceContext getContext(String contextName);
 
 	IInjectNeedBean injectFrom(String contextName);

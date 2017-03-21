@@ -22,7 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.util.annotation.CascadeLoadMode;
 
-public interface IRelationMemberWrite
-{
+public interface IRelationMemberWrite {
 	void setCascadeLoadMode(CascadeLoadMode cascadeLoadMode);
 }

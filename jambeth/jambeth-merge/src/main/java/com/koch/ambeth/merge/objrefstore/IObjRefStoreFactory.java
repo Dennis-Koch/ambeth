@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public abstract class IObjRefStoreFactory
-{
+public abstract class IObjRefStoreFactory {
 	public abstract ObjRefStore createObjRef();
 
 	public abstract ObjRefStore createObjRef(Object id, Object version);

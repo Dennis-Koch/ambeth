@@ -26,39 +26,32 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.koch.ambeth.util.ParamHolder;
-import com.koch.ambeth.util.collections.IntKeyMap;
 
-public class IntKeyMapTest
-{
+public class IntKeyMapTest {
 	@Test
-	public void ctorDefault()
-	{
-		new IntKeyMap<Object>();
+	public void ctorDefault() {
+		new IntKeyMap<>();
 	}
 
 	@Test
-	public void ctorCapacity()
-	{
-		new IntKeyMap<Object>(100);
+	public void ctorCapacity() {
+		new IntKeyMap<>(100);
 	}
 
 	@Test
-	public void ctorCapacityAndFactor()
-	{
-		new IntKeyMap<Object>(100, 0.75f);
+	public void ctorCapacityAndFactor() {
+		new IntKeyMap<>(100, 0.75f);
 	}
 
 	@Test
-	public void init()
-	{
-		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
+	public void init() {
+		IntKeyMap<Object> map = new IntKeyMap<>(100, 0.75f);
 		map.init();
 	}
 
 	@Test
-	public void containsKey()
-	{
-		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
+	public void containsKey() {
+		IntKeyMap<Object> map = new IntKeyMap<>(100, 0.75f);
 
 		map.put(5, new Object());
 		map.put(6, new Object());
@@ -69,9 +62,8 @@ public class IntKeyMapTest
 	}
 
 	@Test
-	public void clear()
-	{
-		IntKeyMap<Object> map = new IntKeyMap<Object>();
+	public void clear() {
+		IntKeyMap<Object> map = new IntKeyMap<>();
 
 		map.putIfNotExists(new Object());
 		map.putIfNotExists(new Object());
@@ -84,9 +76,8 @@ public class IntKeyMapTest
 	}
 
 	@Test
-	public void containsValue()
-	{
-		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
+	public void containsValue() {
+		IntKeyMap<Object> map = new IntKeyMap<>(100, 0.75f);
 
 		Object value = new Object();
 		map.put(5, value);
@@ -96,9 +87,8 @@ public class IntKeyMapTest
 	}
 
 	@Test
-	public void size()
-	{
-		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
+	public void size() {
+		IntKeyMap<Object> map = new IntKeyMap<>(100, 0.75f);
 
 		map.put(5, new Object());
 		map.put(6, new Object());
@@ -108,9 +98,8 @@ public class IntKeyMapTest
 	}
 
 	@Test
-	public void isEmpty()
-	{
-		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
+	public void isEmpty() {
+		IntKeyMap<Object> map = new IntKeyMap<>(100, 0.75f);
 
 		map.put(5, new Object());
 		map.put(6, new Object());
@@ -122,9 +111,8 @@ public class IntKeyMapTest
 	}
 
 	@Test
-	public void get()
-	{
-		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
+	public void get() {
+		IntKeyMap<Object> map = new IntKeyMap<>(100, 0.75f);
 
 		Object obj1 = new Object();
 		Object obj2 = new Object();
@@ -139,9 +127,8 @@ public class IntKeyMapTest
 	}
 
 	@Test
-	public void put()
-	{
-		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
+	public void put() {
+		IntKeyMap<Object> map = new IntKeyMap<>(100, 0.75f);
 
 		map.put(5, new Object());
 		map.put(6, new Object());
@@ -153,9 +140,8 @@ public class IntKeyMapTest
 	}
 
 	@Test
-	public void putIfNotExistsIntV()
-	{
-		IntKeyMap<Object> map = new IntKeyMap<Object>();
+	public void putIfNotExistsIntV() {
+		IntKeyMap<Object> map = new IntKeyMap<>();
 
 		map.putIfNotExists(5, new Object());
 		map.putIfNotExists(6, new Object());
@@ -169,9 +155,8 @@ public class IntKeyMapTest
 	}
 
 	@Test
-	public void putIfNotExistsV()
-	{
-		IntKeyMap<Object> map = new IntKeyMap<Object>();
+	public void putIfNotExistsV() {
+		IntKeyMap<Object> map = new IntKeyMap<>();
 
 		int randomId1 = map.putIfNotExists(new Object());
 		int randomId2 = map.putIfNotExists(new Object());
@@ -188,9 +173,8 @@ public class IntKeyMapTest
 	}
 
 	@Test
-	public void remove()
-	{
-		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
+	public void remove() {
+		IntKeyMap<Object> map = new IntKeyMap<>(100, 0.75f);
 
 		Object value = new Object();
 		map.put(5, value);
@@ -200,9 +184,8 @@ public class IntKeyMapTest
 	}
 
 	@Test
-	public void removeIfObject()
-	{
-		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
+	public void removeIfObject() {
+		IntKeyMap<Object> map = new IntKeyMap<>(100, 0.75f);
 
 		Object value = new Object();
 		map.put(5, value);
@@ -214,14 +197,11 @@ public class IntKeyMapTest
 	}
 
 	@Test
-	public void removeAndNotify()
-	{
-		final ParamHolder<Boolean> notified = new ParamHolder<Boolean>(Boolean.FALSE);
-		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f)
-		{
+	public void removeAndNotify() {
+		final ParamHolder<Boolean> notified = new ParamHolder<>(Boolean.FALSE);
+		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f) {
 			@Override
-			protected void disposeEntry(IntKeyMapEntry<Object> entry)
-			{
+			protected void disposeEntry(IntKeyMapEntry<Object> entry) {
 				notified.setValue(Boolean.TRUE);
 			};
 		};
@@ -233,19 +213,16 @@ public class IntKeyMapTest
 	}
 
 	@Test
-	public void values()
-	{
-		IntKeyMap<Object> map = new IntKeyMap<Object>();
+	public void values() {
+		IntKeyMap<Object> map = new IntKeyMap<>();
 		Object[] values = new Object[5];
-		for (int a = values.length; a-- > 0;)
-		{
+		for (int a = values.length; a-- > 0;) {
 			values[a] = new Object();
 			map.putIfNotExists(values[a]);
 		}
 		List<Object> valuesList = map.values();
 		Assert.assertEquals(values.length, valuesList.size());
-		for (Object value : values)
-		{
+		for (Object value : values) {
 			valuesList.remove(value);
 		}
 		Assert.assertEquals(0, valuesList.size());

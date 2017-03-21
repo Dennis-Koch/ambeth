@@ -23,16 +23,17 @@ limitations under the License.
 import com.koch.ambeth.util.StringBuilderUtil;
 
 /**
- * 66 percent faster compared to a normal HashMap with a Tuple2 (Composite-)Key as the Map-Key. This is due to the fact that there is no need to instantiate
- * Tuple2 Keys for put() or get() operations. Of course the overall memory footprint is also the half compared to a normal map: There is only the entry object
- * with 2 key-fields compared to the entry object compared to 1 key-field which contains a Tuple2 Key instance
- * 
+ * 66 percent faster compared to a normal HashMap with a Tuple2 (Composite-)Key as the Map-Key. This
+ * is due to the fact that there is no need to instantiate Tuple2 Keys for put() or get()
+ * operations. Of course the overall memory footprint is also the half compared to a normal map:
+ * There is only the entry object with 2 key-fields compared to the entry object compared to 1
+ * key-field which contains a Tuple2 Key instance
+ *
  * @param <Key1>
  * @param <Key2>
  * @param
  */
-public class ObjRefStoreSet
-{
+public class ObjRefStoreSet {
 	public static final int DEFAULT_INITIAL_CAPACITY = 16;
 
 	public static final int MAXIMUM_CAPACITY = 1 << 30;
@@ -49,33 +50,28 @@ public class ObjRefStoreSet
 
 	protected final IObjRefStoreEntryProvider objRefStoreEntryProvider;
 
-	public ObjRefStoreSet(IObjRefStoreEntryProvider objRefStoreEntryProvider)
-	{
+	public ObjRefStoreSet(IObjRefStoreEntryProvider objRefStoreEntryProvider) {
 		this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR, objRefStoreEntryProvider);
 	}
 
-	public ObjRefStoreSet(int initialCapacity, float loadFactor, IObjRefStoreEntryProvider objRefStoreEntryProvider)
-	{
+	public ObjRefStoreSet(int initialCapacity, float loadFactor,
+			IObjRefStoreEntryProvider objRefStoreEntryProvider) {
 		this.loadFactor = loadFactor;
 		this.objRefStoreEntryProvider = objRefStoreEntryProvider;
 
-		if (initialCapacity < 0)
-		{
+		if (initialCapacity < 0) {
 			throw new IllegalArgumentException("Illegal initial capacity: " + initialCapacity);
 		}
-		if (initialCapacity > MAXIMUM_CAPACITY)
-		{
+		if (initialCapacity > MAXIMUM_CAPACITY) {
 			initialCapacity = MAXIMUM_CAPACITY;
 		}
-		if (loadFactor <= 0 || Float.isNaN(loadFactor))
-		{
+		if (loadFactor <= 0 || Float.isNaN(loadFactor)) {
 			throw new IllegalArgumentException("Illegal load factor: " + loadFactor);
 		}
 
 		// Find a power of 2 >= initialCapacity
 		int capacity = 1;
-		while (capacity < initialCapacity)
-		{
+		while (capacity < initialCapacity) {
 			capacity <<= 1;
 		}
 
@@ -83,18 +79,15 @@ public class ObjRefStoreSet
 		table = createTable(capacity);
 	}
 
-	protected ObjRefStore[] createTable(final int capacity)
-	{
+	protected ObjRefStore[] createTable(final int capacity) {
 		return new ObjRefStore[capacity];
 	}
 
-	protected int extractHash(final Class<?> entityType, final Object id, final byte idIndex)
-	{
+	protected int extractHash(final Class<?> entityType, final Object id, final byte idIndex) {
 		return entityType.hashCode() ^ id.hashCode() ^ idIndex;
 	}
 
-	protected static int hash(int hash)
-	{
+	protected static int hash(int hash) {
 		hash += ~(hash << 9);
 		hash ^= hash >>> 14;
 		hash += hash << 4;
@@ -102,26 +95,23 @@ public class ObjRefStoreSet
 		return hash;
 	}
 
-	protected ObjRefStore addEntry(final Class<?> entityType, final Object id, final byte idIndex, final int bucketIndex)
-	{
+	protected ObjRefStore addEntry(final Class<?> entityType, final Object id, final byte idIndex,
+			final int bucketIndex) {
 		ObjRefStore[] table = this.table;
 		ObjRefStore e = table[bucketIndex];
 		e = createEntry(entityType, id, idIndex, e);
 		table[bucketIndex] = e;
 		entryAdded(e);
-		if (size() >= threshold)
-		{
+		if (size() >= threshold) {
 			resize(2 * table.length);
 		}
 		return e;
 	}
 
-	protected void resize(final int newCapacity)
-	{
+	protected void resize(final int newCapacity) {
 		final ObjRefStore[] oldTable = table;
 		final int oldCapacity = oldTable.length;
-		if (oldCapacity == MAXIMUM_CAPACITY)
-		{
+		if (oldCapacity == MAXIMUM_CAPACITY) {
 			threshold = Integer.MAX_VALUE;
 			return;
 		}
@@ -132,17 +122,14 @@ public class ObjRefStoreSet
 		threshold = (int) (newCapacity * loadFactor);
 	}
 
-	public boolean containsKey(final Class<?> entityType, final byte idIndex, final Object id)
-	{
+	public boolean containsKey(final Class<?> entityType, final byte idIndex, final Object id) {
 		final int hash = hash(extractHash(entityType, id, idIndex));
 		ObjRefStore[] table = this.table;
 		final int i = hash & (table.length - 1);
 		ObjRefStore entry = table[i];
 
-		while (entry != null)
-		{
-			if (equalKeys(entityType, id, idIndex, entry))
-			{
+		while (entry != null) {
+			if (equalKeys(entityType, id, idIndex, entry)) {
 				return true;
 			}
 			entry = entry.getNextEntry();
@@ -150,22 +137,19 @@ public class ObjRefStoreSet
 		return false;
 	}
 
-	protected boolean equalKeys(final Class<?> entityType, final Object id, final byte idIndex, final ObjRefStore entry)
-	{
+	protected boolean equalKeys(final Class<?> entityType, final Object id, final byte idIndex,
+			final ObjRefStore entry) {
 		return entry.isEqualTo(entityType, idIndex, id);
 	}
 
-	public ObjRefStore put(final Class<?> entityType, final byte idIndex, final Object id)
-	{
+	public ObjRefStore put(final Class<?> entityType, final byte idIndex, final Object id) {
 		final int hash = hash(extractHash(entityType, id, idIndex));
 		ObjRefStore[] table = this.table;
 		final int i = hash & (table.length - 1);
 
 		ObjRefStore entry = table[i];
-		while (entry != null)
-		{
-			if (equalKeys(entityType, id, idIndex, entry))
-			{
+		while (entry != null) {
+			if (equalKeys(entityType, id, idIndex, entry)) {
 				return entry;
 			}
 			entry = entry.getNextEntry();
@@ -173,36 +157,31 @@ public class ObjRefStoreSet
 		return addEntry(entityType, id, idIndex, i);
 	}
 
-	public ObjRefStore remove(final ObjRefStore objRefStore)
-	{
-		return removeEntryForKey(objRefStore.getRealType(), objRefStore.getIdNameIndex(), objRefStore.getId());
+	public ObjRefStore remove(final ObjRefStore objRefStore) {
+		return removeEntryForKey(objRefStore.getRealType(), objRefStore.getIdNameIndex(),
+				objRefStore.getId());
 	}
 
-	public ObjRefStore remove(final Class<?> entityType, final byte idIndex, final Object id)
-	{
+	public ObjRefStore remove(final Class<?> entityType, final byte idIndex, final Object id) {
 		return removeEntryForKey(entityType, idIndex, id);
 	}
 
-	protected final ObjRefStore removeEntryForKey(final Class<?> entityType, final byte idIndex, final Object id)
-	{
+	protected final ObjRefStore removeEntryForKey(final Class<?> entityType, final byte idIndex,
+			final Object id) {
 		final int hash = hash(extractHash(entityType, id, idIndex));
 		ObjRefStore[] table = this.table;
 		final int i = hash & (table.length - 1);
 		ObjRefStore entry = table[i];
-		if (entry != null)
-		{
-			if (equalKeys(entityType, id, idIndex, entry))
-			{
+		if (entry != null) {
+			if (equalKeys(entityType, id, idIndex, entry)) {
 				table[i] = entry.getNextEntry();
 				entryRemoved(entry);
 				return entry;
 			}
 			ObjRefStore prevEntry = entry;
 			entry = entry.getNextEntry();
-			while (entry != null)
-			{
-				if (equalKeys(entityType, id, idIndex, entry))
-				{
+			while (entry != null) {
+				if (equalKeys(entityType, id, idIndex, entry)) {
 					prevEntry.setNextEntry(entry.getNextEntry());
 					entryRemoved(entry);
 					return entry;
@@ -214,16 +193,13 @@ public class ObjRefStoreSet
 		return null;
 	}
 
-	public ObjRefStore get(final Class<?> entityType, final byte idIndex, final Object id)
-	{
+	public ObjRefStore get(final Class<?> entityType, final byte idIndex, final Object id) {
 		final int hash = hash(extractHash(entityType, id, idIndex));
 		ObjRefStore[] table = this.table;
 		final int i = hash & (table.length - 1);
 		ObjRefStore entry = table[i];
-		while (entry != null)
-		{
-			if (equalKeys(entityType, id, idIndex, entry))
-			{
+		while (entry != null) {
+			if (equalKeys(entityType, id, idIndex, entry)) {
 				return entry;
 			}
 			entry = entry.getNextEntry();
@@ -231,49 +207,41 @@ public class ObjRefStoreSet
 		return null;
 	}
 
-	protected ObjRefStore createEntry(final Class<?> entityType, final Object id, final byte idIndex, final ObjRefStore nextEntry)
-	{
+	protected ObjRefStore createEntry(final Class<?> entityType, final Object id, final byte idIndex,
+			final ObjRefStore nextEntry) {
 		return objRefStoreEntryProvider.createObjRefStore(entityType, idIndex, id, nextEntry);
 	}
 
-	public boolean isEmpty()
-	{
+	public boolean isEmpty() {
 		return size() == 0;
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		toString(sb);
 		return sb.toString();
 	}
 
-	public final int size()
-	{
+	public final int size() {
 		return size;
 	}
 
-	protected void entryAdded(final ObjRefStore e)
-	{
+	protected void entryAdded(final ObjRefStore e) {
 		size++;
 	}
 
-	protected void entryRemoved(final ObjRefStore e)
-	{
+	protected void entryRemoved(final ObjRefStore e) {
 		size--;
 	}
 
-	protected void transfer(final ObjRefStore[] newTable)
-	{
+	protected void transfer(final ObjRefStore[] newTable) {
 		final int newCapacityMinus1 = newTable.length - 1;
 		final ObjRefStore[] table = this.table;
 
-		for (int a = table.length; a-- > 0;)
-		{
+		for (int a = table.length; a-- > 0;) {
 			ObjRefStore entry = table[a], next;
-			while (entry != null)
-			{
+			while (entry != null) {
 				next = entry.getNextEntry();
 				int hash = hash(extractHash(entry.getRealType(), entry.getId(), entry.getIdNameIndex()));
 				int i = hash & newCapacityMinus1;
@@ -284,16 +252,13 @@ public class ObjRefStoreSet
 		}
 	}
 
-	public Object[] toArray()
-	{
+	public Object[] toArray() {
 		int index = 0;
 		Object[] targetArray = new Object[size()];
 		ObjRefStore[] table = this.table;
-		for (int a = table.length; a-- > 0;)
-		{
+		for (int a = table.length; a-- > 0;) {
 			ObjRefStore entry = table[a];
-			while (entry != null)
-			{
+			while (entry != null) {
 				targetArray[index++] = entry;
 				entry = entry.getNextEntry();
 			}
@@ -301,22 +266,17 @@ public class ObjRefStoreSet
 		return targetArray;
 	}
 
-	public void clear()
-	{
-		if (isEmpty())
-		{
+	public void clear() {
+		if (isEmpty()) {
 			return;
 		}
 		final ObjRefStore[] table = this.table;
 
-		for (int a = table.length; a-- > 0;)
-		{
+		for (int a = table.length; a-- > 0;) {
 			ObjRefStore entry = table[a];
-			if (entry != null)
-			{
+			if (entry != null) {
 				table[a] = null;
-				while (entry != null)
-				{
+				while (entry != null) {
 					final ObjRefStore nextEntry = entry.getNextEntry();
 					entryRemoved(entry);
 					entry = nextEntry;
@@ -325,23 +285,18 @@ public class ObjRefStoreSet
 		}
 	}
 
-	public void toString(StringBuilder sb)
-	{
+	public void toString(StringBuilder sb) {
 		sb.append(size()).append(" items: [");
 		boolean first = true;
 
 		ObjRefStore[] table = this.table;
-		for (int a = table.length; a-- > 0;)
-		{
+		for (int a = table.length; a-- > 0;) {
 			ObjRefStore entry = table[a];
-			while (entry != null)
-			{
-				if (first)
-				{
+			while (entry != null) {
+				if (first) {
 					first = false;
 				}
-				else
-				{
+				else {
 					sb.append(',');
 				}
 				StringBuilderUtil.appendPrintable(sb, entry);

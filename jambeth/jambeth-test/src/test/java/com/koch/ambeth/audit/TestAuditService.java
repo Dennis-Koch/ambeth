@@ -28,36 +28,32 @@ import com.koch.ambeth.security.audit.model.AuditedArg;
 
 @Audited(false)
 @PersistenceContext
-public class TestAuditService implements ITestAuditService
-{
+public class TestAuditService implements ITestAuditService {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Audited
 	@Override
-	public String auditedServiceCall(Integer myArg)
-	{
+	public String auditedServiceCall(Integer myArg) {
 		return myArg.toString();
 	}
 
 	@Audited(false)
 	@Override
-	public String auditedAnnotatedServiceCall_NoAudit(Integer myArg)
-	{
+	public String auditedAnnotatedServiceCall_NoAudit(Integer myArg) {
 		return myArg.toString();
 	}
 
 	@Override
-	public String notAuditedServiceCall(Integer myArg)
-	{
+	public String notAuditedServiceCall(Integer myArg) {
 		return myArg.toString();
 	}
 
 	@Audited
 	@Override
-	public String auditedServiceCallWithAuditedArgument(@AuditedArg Integer myAuditedArg, @AuditedArg(false) String myNotAuditedPassword)
-	{
+	public String auditedServiceCallWithAuditedArgument(@AuditedArg Integer myAuditedArg,
+			@AuditedArg(false) String myNotAuditedPassword) {
 		return myAuditedArg.toString();
 	}
 }

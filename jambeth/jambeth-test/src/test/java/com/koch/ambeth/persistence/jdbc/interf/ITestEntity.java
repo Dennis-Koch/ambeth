@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ITestEntity extends IAbstractEntity
-{
+public interface ITestEntity extends IAbstractEntity {
 	String getName();
 
 	void setName(String name);

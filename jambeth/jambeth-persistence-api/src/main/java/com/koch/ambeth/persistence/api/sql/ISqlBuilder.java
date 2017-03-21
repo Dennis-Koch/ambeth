@@ -24,8 +24,7 @@ import java.util.List;
 
 import com.koch.ambeth.util.appendable.IAppendable;
 
-public interface ISqlBuilder
-{
+public interface ISqlBuilder {
 	String escapeName(CharSequence symbolName);
 
 	IAppendable escapeName(CharSequence symbolName, IAppendable sb);

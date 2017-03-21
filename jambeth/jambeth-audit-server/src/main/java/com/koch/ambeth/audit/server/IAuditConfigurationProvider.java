@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IAuditConfigurationProvider
-{
+public interface IAuditConfigurationProvider {
 	IAuditConfiguration getAuditConfiguration(Class<?> entityType);
 }

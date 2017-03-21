@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.query.persistence.IVersionItem;
 
-public interface ICursorItem extends IVersionItem
-{
+public interface ICursorItem extends IVersionItem {
 
 	Object[] getValues();
 

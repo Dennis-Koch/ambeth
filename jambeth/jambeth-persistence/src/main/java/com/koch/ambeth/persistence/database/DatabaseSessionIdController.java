@@ -29,30 +29,27 @@ import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 
-public class DatabaseSessionIdController implements IInitializingBean, IDatabaseSessionIdController
-{
+public class DatabaseSessionIdController
+		implements IInitializingBean, IDatabaseSessionIdController {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	protected final Set<Long> sessionIdsInUse = new HashSet<Long>();
+	protected final Set<Long> sessionIdsInUse = new HashSet<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		// Intended blank
 	}
 
 	private static long id2;
 
 	@Override
-	public long acquireSessionId()
-	{
+	public long acquireSessionId() {
 		writeLock.lock();
-		try
-		{
+		try {
 			return ++id2;
 			// Random random = new Random();
 			//
@@ -65,25 +62,22 @@ public class DatabaseSessionIdController implements IInitializingBean, IDatabase
 			// }
 			// }
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
 	@Override
-	public void releaseSessionId(long sessionId)
-	{
+	public void releaseSessionId(long sessionId) {
 		writeLock.lock();
-		try
-		{
+		try {
 			// if (!sessionIdsInUse.remove(sessionId))
 			// {
-			// throw new IllegalArgumentException("No session with id '" + sessionId + "' currently acquired to release");
+			// throw new IllegalArgumentException("No session with id '" + sessionId + "' currently
+			// acquired to release");
 			// }
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}

@@ -45,8 +45,8 @@ import com.koch.ambeth.persistence.xml.model.Employee;
 import com.koch.ambeth.query.IQuery;
 import com.koch.ambeth.query.IQueryBuilder;
 import com.koch.ambeth.security.SecurityTest;
-import com.koch.ambeth.security.TestAuthentication;
 import com.koch.ambeth.security.SecurityTest.SecurityTestFrameworkModule;
+import com.koch.ambeth.security.TestAuthentication;
 import com.koch.ambeth.security.model.ISignature;
 import com.koch.ambeth.security.server.config.SecurityServerConfigurationConstants;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
@@ -56,25 +56,27 @@ import com.koch.ambeth.testutil.TestFrameworkModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 
-@SQLStructureList({ @SQLStructure("Relations_structure_with_security.sql"), @SQLStructure("com/koch/ambeth/audit/security-structure.sql") })
-@TestFrameworkModule({ Relations20WithSecurityTestModule.class, ChangeControllerModule.class })
+@SQLStructureList({@SQLStructure("Relations_structure_with_security.sql"),
+		@SQLStructure("com/koch/ambeth/audit/security-structure.sql")})
+@TestFrameworkModule({Relations20WithSecurityTestModule.class, ChangeControllerModule.class})
 @TestPropertiesList({
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/xml/orm20.xml;com/koch/ambeth/audit/security-orm.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+				value = "com/koch/ambeth/persistence/xml/orm20.xml;com/koch/ambeth/audit/security-orm.xml"),
 		@TestProperties(name = MergeConfigurationConstants.SecurityActive, value = "true"),
-		@TestProperties(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive, value = "false") })
+		@TestProperties(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive,
+				value = "false")})
 @TestAuthentication(name = SecurityTest.userName1, password = SecurityTest.userPass1)
-public class Relations20WithSecurityTest extends Relations20Test
-{
-	public static class Relations20WithSecurityTestModule implements IInitializingModule
-	{
+public class Relations20WithSecurityTest extends Relations20Test {
+	public static class Relations20WithSecurityTestModule implements IInitializingModule {
 		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 			beanContextFactory.registerBean(SecurityTestFrameworkModule.class);
 
-			beanContextFactory.link(ISignature.class).to(ITechnicalEntityTypeExtendable.class).with(Signature.class);
+			beanContextFactory.link(ISignature.class).to(ITechnicalEntityTypeExtendable.class)
+					.with(Signature.class);
 
-			IBeanConfiguration dataSetBuilder = beanContextFactory.registerBean(Relations20WithSecurityTestDataSetBuilder.class);
+			IBeanConfiguration dataSetBuilder =
+					beanContextFactory.registerBean(Relations20WithSecurityTestDataSetBuilder.class);
 			beanContextFactory.link(dataSetBuilder).to(IDatasetBuilderExtendable.class);
 		}
 	}
@@ -87,15 +89,14 @@ public class Relations20WithSecurityTest extends Relations20Test
 
 	@Override
 	@Test
-	public void testCascadedRetrieve() throws Throwable
-	{
-		List<String> names = Arrays.asList(new String[] { "Steve Smith", "Oscar Meyer" });
+	public void testCascadedRetrieve() throws Throwable {
+		List<String> names = Arrays.asList(new String[] {"Steve Smith", "Oscar Meyer"});
 
 		CacheInterceptor.pauseCache.set(Boolean.TRUE);
-		try
-		{
+		try {
 			IQueryBuilder<Employee> qb = queryBuilderFactory.create(Employee.class);
-			IQuery<Employee> query = qb.build(qb.isIn(qb.property("AllProjects.Employees.Name"), qb.value(names)));
+			IQuery<Employee> query =
+					qb.build(qb.isIn(qb.property("AllProjects.Employees.Name"), qb.value(names)));
 			List<Employee> actual = query.retrieve();
 			assertEquals(1, actual.size());
 
@@ -109,8 +110,7 @@ public class Relations20WithSecurityTest extends Relations20Test
 
 					.build().prefetch(actual);
 		}
-		finally
-		{
+		finally {
 			CacheInterceptor.pauseCache.remove();
 		}
 	}

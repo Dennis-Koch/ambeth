@@ -25,21 +25,15 @@ import java.sql.SQLException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.koch.ambeth.log.LogLevel;
-import com.koch.ambeth.log.Logger;
 import com.koch.ambeth.util.exception.MaskingRuntimeException;
 
-public class LogSQLExceptionTest
-{
+public class LogSQLExceptionTest {
 	@Test
-	public void test()
-	{
+	public void test() {
 		final StringBuilder sb = new StringBuilder();
-		Logger logger = new Logger(LogSQLExceptionTest.class.getName())
-		{
+		Logger logger = new Logger(LogSQLExceptionTest.class.getName()) {
 			@Override
-			protected void log(LogLevel logLevel, String output)
-			{
+			protected void log(LogLevel logLevel, String output) {
 				sb.append(output);
 			}
 		};

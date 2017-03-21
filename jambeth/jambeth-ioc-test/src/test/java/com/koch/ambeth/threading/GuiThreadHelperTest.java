@@ -38,8 +38,7 @@ import com.koch.ambeth.util.threading.GuiThreadHelper;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
 
 @TestRebuildContext
-public class GuiThreadHelperTest extends AbstractIocTest
-{
+public class GuiThreadHelperTest extends AbstractIocTest {
 	@LogInstance
 	private ILogger log;
 
@@ -47,43 +46,36 @@ public class GuiThreadHelperTest extends AbstractIocTest
 	protected IGuiThreadHelper guiThreadHelper;
 
 	@After
-	public void after() throws Throwable
-	{
+	public void after() throws Throwable {
 		long maxWait = System.currentTimeMillis() + 30000;
-		while (GuiThreadHelper.hasUiThread())
-		{
-			if (maxWait <= System.currentTimeMillis())
-			{
-				throw new IllegalStateException("Timeout while waiting for the shutdown sequence of the UI thread");
+		while (GuiThreadHelper.hasUiThread()) {
+			if (maxWait <= System.currentTimeMillis()) {
+				throw new IllegalStateException(
+						"Timeout while waiting for the shutdown sequence of the UI thread");
 			}
 			Thread.sleep(250);
 		}
 	}
 
 	@Test
-	public void toolkitAllowed()
-	{
+	public void toolkitAllowed() {
 		Toolkit toolkit = Toolkit.getDefaultToolkit();
 		Assert.assertNotNull(toolkit);
 		Assert.assertFalse(((GuiThreadHelper) guiThreadHelper).isGuiInitialized());
 	}
 
 	@Test
-	public void eventQueueAllowed()
-	{
+	public void eventQueueAllowed() {
 		EventQueue eventQueue = Toolkit.getDefaultToolkit().getSystemEventQueue();
 		Assert.assertNotNull(eventQueue);
 		Assert.assertFalse(((GuiThreadHelper) guiThreadHelper).isGuiInitialized());
 	}
 
 	@Test
-	public void dispatchThreadRecognized() throws Throwable
-	{
-		EventQueue.invokeAndWait(new Runnable()
-		{
+	public void dispatchThreadRecognized() throws Throwable {
+		EventQueue.invokeAndWait(new Runnable() {
 			@Override
-			public void run()
-			{
+			public void run() {
 				Assert.assertTrue(((GuiThreadHelper) guiThreadHelper).isGuiInitialized());
 			}
 		});
@@ -92,13 +84,10 @@ public class GuiThreadHelperTest extends AbstractIocTest
 
 	@Test
 	@TestProperties(name = IocConfigurationConstants.JavaUiActive, value = "false")
-	public void hasNoUiBecauseOfProperty() throws Throwable
-	{
-		EventQueue.invokeAndWait(new Runnable()
-		{
+	public void hasNoUiBecauseOfProperty() throws Throwable {
+		EventQueue.invokeAndWait(new Runnable() {
 			@Override
-			public void run()
-			{
+			public void run() {
 				Assert.assertFalse(((GuiThreadHelper) guiThreadHelper).isGuiInitialized());
 			}
 		});

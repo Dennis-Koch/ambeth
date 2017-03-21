@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ILogger
-{
+public interface ILogger {
 	boolean isDebugEnabled();
 
 	boolean isInfoEnabled();

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public class GenericFastList<V extends AbstractListElem<V>>
-{
+public class GenericFastList<V extends AbstractListElem<V>> {
 
 	private final V anchor;
 
@@ -29,37 +28,29 @@ public class GenericFastList<V extends AbstractListElem<V>>
 
 	private int size = 0;
 
-	public GenericFastList(final V anchor)
-	{
+	public GenericFastList(final V anchor) {
 		this.anchor = anchor;
 	}
 
-	public GenericFastList(final Class<V> anchorClass)
-	{
-		try
-		{
+	public GenericFastList(final Class<V> anchorClass) {
+		try {
 			anchor = anchorClass.newInstance();
 		}
-		catch (InstantiationException e)
-		{
+		catch (InstantiationException e) {
 			throw new RuntimeException(e);
 		}
-		catch (IllegalAccessException e)
-		{
+		catch (IllegalAccessException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	public final void pushLast(final V pointer)
-	{
+	public final void pushLast(final V pointer) {
 		pointer.next = null;
-		if (size > 0)
-		{
+		if (size > 0) {
 			pointer.prev = last;
 			last.next = pointer;
 		}
-		else
-		{
+		else {
 			pointer.prev = null;
 			anchor.next = pointer;
 		}
@@ -67,14 +58,11 @@ public class GenericFastList<V extends AbstractListElem<V>>
 		size++;
 	}
 
-	public final void pushFirst(final V pointer)
-	{
-		if (size == 0)
-		{
+	public final void pushFirst(final V pointer) {
+		if (size == 0) {
 			pushLast(pointer);
 		}
-		else
-		{
+		else {
 			pointer.next = anchor.next;
 			pointer.prev = null;
 			anchor.next.prev = pointer;
@@ -83,46 +71,37 @@ public class GenericFastList<V extends AbstractListElem<V>>
 		}
 	}
 
-	public final void insertAfter(final V insertElem, final V afterElem)
-	{
+	public final void insertAfter(final V insertElem, final V afterElem) {
 		insertElem.prev = afterElem;
 		insertElem.next = afterElem.next;
-		if (afterElem.next != null)
-		{
+		if (afterElem.next != null) {
 			afterElem.next.prev = insertElem;
 		}
-		else
-		{
+		else {
 			last = insertElem;
 		}
 		afterElem.next = insertElem;
 		size++;
 	}
 
-	public final void insertBefore(final V insertElem, final V beforeElem)
-	{
+	public final void insertBefore(final V insertElem, final V beforeElem) {
 		insertElem.next = beforeElem;
 		insertElem.prev = beforeElem.prev;
-		if (beforeElem.prev != null)
-		{
+		if (beforeElem.prev != null) {
 			beforeElem.prev.next = insertElem;
 		}
-		else
-		{
+		else {
 			anchor.next = insertElem;
 		}
 		beforeElem.prev = insertElem;
 		size++;
 	}
 
-	public final V popFirst()
-	{
-		if (anchor.next != null)
-		{
+	public final V popFirst() {
+		if (anchor.next != null) {
 			V elem = anchor.next;
 			anchor.next = anchor.next.next;
-			if (anchor.next != null)
-			{
+			if (anchor.next != null) {
 				anchor.next.prev = anchor;
 			}
 			size--;
@@ -131,18 +110,14 @@ public class GenericFastList<V extends AbstractListElem<V>>
 		return null;
 	}
 
-	public final V popLast()
-	{
-		if (size > 0)
-		{
+	public final V popLast() {
+		if (size > 0) {
 			V elem = last;
-			if (last.prev != null)
-			{
+			if (last.prev != null) {
 				last.prev.next = null;
 				last = last.prev;
 			}
-			else
-			{
+			else {
 				anchor.next = null;
 				last = anchor;
 			}
@@ -152,51 +127,41 @@ public class GenericFastList<V extends AbstractListElem<V>>
 		return null;
 	}
 
-	public final V getFirstElem()
-	{
+	public final V getFirstElem() {
 		return anchor.next;
 	}
 
-	public final V getLastElem()
-	{
+	public final V getLastElem() {
 		return last != anchor ? last : null;
 	}
 
-	public final int size()
-	{
+	public final int size() {
 		return size;
 	}
 
-	public final void clear()
-	{
+	public final void clear() {
 		anchor.next = null;
 		size = 0;
 		last = anchor;
 	}
 
-	public static final <V> void switchElems(final ListElem<V> elem1, final ListElem<V> elem2)
-	{
+	public static final <V> void switchElems(final ListElem<V> elem1, final ListElem<V> elem2) {
 		V o = elem1.value;
 		elem1.value = elem2.value;
 		elem2.value = o;
 	}
 
-	public final void remove(final V elem)
-	{
-		if (elem.prev != null)
-		{
+	public final void remove(final V elem) {
+		if (elem.prev != null) {
 			elem.prev.next = elem.next;
 		}
-		else
-		{
+		else {
 			anchor.next = elem.next;
 		}
-		if (elem.next != null)
-		{
+		if (elem.next != null) {
 			elem.next.prev = elem.prev;
 		}
-		else
-		{
+		else {
 			last = elem.prev;
 		}
 		elem.prev = null;
@@ -204,13 +169,10 @@ public class GenericFastList<V extends AbstractListElem<V>>
 		size--;
 	}
 
-	public final boolean hasListElem(final V listElem)
-	{
+	public final boolean hasListElem(final V listElem) {
 		V pointer = getFirstElem();
-		while (pointer != null)
-		{
-			if (pointer == listElem)
-			{
+		while (pointer != null) {
+			if (pointer == listElem) {
 				return true;
 			}
 			pointer = pointer.next;

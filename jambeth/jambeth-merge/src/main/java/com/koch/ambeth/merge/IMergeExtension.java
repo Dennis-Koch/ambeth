@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IMergeExtension
-{
+public interface IMergeExtension {
 	boolean handlesType(Class<?> type);
 
 	boolean equalsObjects(Object left, Object right);

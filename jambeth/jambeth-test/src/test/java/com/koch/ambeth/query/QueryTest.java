@@ -100,7 +100,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 
 	protected IQueryBuilder<QueryEntity> qb;
 
-	protected HashMap<Object, Object> nameToValueMap = new HashMap<Object, Object>();
+	protected HashMap<Object, Object> nameToValueMap = new HashMap<>();
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {
@@ -524,7 +524,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 		qb.orderBy(qb.property("Id"), OrderByType.ASC);
 		IQuery<QueryEntity> query = qb.build(rootOperand);
 
-		HashMap<Object, Object> nameToValueMap = new HashMap<Object, Object>();
+		HashMap<Object, Object> nameToValueMap = new HashMap<>();
 		nameToValueMap.put(paramName1, "me3");
 		List<QueryEntity> result = query.retrieve(nameToValueMap);
 		assertEquals(3, result.size());
@@ -566,7 +566,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 		qb.orderBy(qb.property("Version"), OrderByType.ASC);
 		IQuery<QueryEntity> query = qb.build(qb.all());
 
-		HashMap<Object, Object> currentNameToValueMap = new HashMap<Object, Object>(nameToValueMap);
+		HashMap<Object, Object> currentNameToValueMap = new HashMap<>(nameToValueMap);
 		currentNameToValueMap.put(QueryConstants.PAGING_INDEX_OBJECT, 2);
 		currentNameToValueMap.put(QueryConstants.PAGING_SIZE_OBJECT, expected.size());
 
@@ -736,7 +736,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 	@Test
 	public void testIsInMoreThan1000() throws Exception {
 		int count = 2013;
-		IList<QueryEntity> entities = new ArrayList<QueryEntity>(count);
+		IList<QueryEntity> entities = new ArrayList<>(count);
 		for (int a = count; a-- > 0;) {
 			QueryEntity queryEntity = entityFactory.createEntity(QueryEntity.class);
 			queryEntity.setName1("Name11_" + a);
@@ -744,7 +744,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 			entities.add(queryEntity);
 		}
 		beanContext.getService(IMergeProcess.class).process(entities, null, null, null);
-		List<Object> values = new ArrayList<Object>(count);
+		List<Object> values = new ArrayList<>(count);
 		for (int a = entities.size(); a-- > 0;) {
 			values.add(entities.get(a).getId());
 		}

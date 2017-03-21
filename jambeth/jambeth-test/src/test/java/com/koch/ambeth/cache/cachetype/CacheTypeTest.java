@@ -43,23 +43,22 @@ import com.koch.ambeth.util.proxy.IProxyFactory;
 @SQLData("cachetype_data.sql")
 @SQLStructure("cachetype_structure.sql")
 @TestModule(CacheTypeTestModule.class)
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/cache/cachetype/cachetype_orm.xml")
-public class CacheTypeTest extends AbstractInformationBusWithPersistenceTest
-{
-	public static class CacheTypeTestModule implements IInitializingModule
-	{
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/cache/cachetype/cachetype_orm.xml")
+public class CacheTypeTest extends AbstractInformationBusWithPersistenceTest {
+	public static class CacheTypeTestModule implements IInitializingModule {
 		@Autowired
 		protected IProxyFactory proxyFactory;
 
 		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			beanContextFactory.registerBean("prototypeProxy", IAlternateIdEntityServiceCTPrototype.class).autowireable(
-					IAlternateIdEntityServiceCTPrototype.class);
-			beanContextFactory.registerBean("singletonProxy", IAlternateIdEntityServiceCTSingleton.class).autowireable(
-					IAlternateIdEntityServiceCTSingleton.class);
-			beanContextFactory.registerBean("threadLocalProxy", IAlternateIdEntityServiceCTThreadLocal.class).autowireable(
-					IAlternateIdEntityServiceCTThreadLocal.class);
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+			beanContextFactory.registerBean("prototypeProxy", IAlternateIdEntityServiceCTPrototype.class)
+					.autowireable(IAlternateIdEntityServiceCTPrototype.class);
+			beanContextFactory.registerBean("singletonProxy", IAlternateIdEntityServiceCTSingleton.class)
+					.autowireable(IAlternateIdEntityServiceCTSingleton.class);
+			beanContextFactory
+					.registerBean("threadLocalProxy", IAlternateIdEntityServiceCTThreadLocal.class)
+					.autowireable(IAlternateIdEntityServiceCTThreadLocal.class);
 		}
 	}
 
@@ -82,13 +81,14 @@ public class CacheTypeTest extends AbstractInformationBusWithPersistenceTest
 	// Assert.assertEquals("Id must be equal", entity.getId(), loadedEntity.getId());
 	//
 	// AlternateIdEntity loadedEntity2 = service.getAlternateIdEntityByName(entity.getName());
-	// Assert.assertNotSame("Loaded entity instances must not be identical", loadedEntity, loadedEntity2);
+	// Assert.assertNotSame("Loaded entity instances must not be identical", loadedEntity,
+	// loadedEntity2);
 	// }
 
 	@Test
-	public void singletonBehavior()
-	{
-		IAlternateIdEntityServiceCTSingleton service = beanContext.getService(IAlternateIdEntityServiceCTSingleton.class);
+	public void singletonBehavior() {
+		IAlternateIdEntityServiceCTSingleton service =
+				beanContext.getService(IAlternateIdEntityServiceCTSingleton.class);
 
 		AlternateIdEntity entity = entityFactory.createEntity(AlternateIdEntity.class);
 		entity.setName("MyEntityNameSingle");
@@ -104,22 +104,20 @@ public class CacheTypeTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void threadLocalBehavior() throws Exception
-	{
-		final IAlternateIdEntityServiceCTThreadLocal service = beanContext.getService(IAlternateIdEntityServiceCTThreadLocal.class);
+	public void threadLocalBehavior() throws Exception {
+		final IAlternateIdEntityServiceCTThreadLocal service =
+				beanContext.getService(IAlternateIdEntityServiceCTThreadLocal.class);
 
 		final AlternateIdEntity entity = entityFactory.createEntity(AlternateIdEntity.class);
 		entity.setName("MyEntityThreadLocal");
 		service.updateAlternateIdEntity(entity);
 
-		final Exchanger<AlternateIdEntity> entity1Ex = new Exchanger<AlternateIdEntity>();
-		final Exchanger<AlternateIdEntity> entity2Ex = new Exchanger<AlternateIdEntity>();
+		final Exchanger<AlternateIdEntity> entity1Ex = new Exchanger<>();
+		final Exchanger<AlternateIdEntity> entity2Ex = new Exchanger<>();
 
-		Thread thread1 = new Thread(new Runnable()
-		{
+		Thread thread1 = new Thread(new Runnable() {
 			@Override
-			public void run()
-			{
+			public void run() {
 				AlternateIdEntity loadedEntity = service.getAlternateIdEntityByName(entity.getName());
 
 				Assert.assertNotNull("Loaded entity must be valid", loadedEntity);
@@ -128,21 +126,17 @@ public class CacheTypeTest extends AbstractInformationBusWithPersistenceTest
 				AlternateIdEntity loadedEntity2 = service.getAlternateIdEntityByName(entity.getName());
 				Assert.assertSame("Loaded entity instances must be identical", loadedEntity, loadedEntity2);
 
-				try
-				{
+				try {
 					entity1Ex.exchange(loadedEntity2);
 				}
-				catch (InterruptedException e)
-				{
+				catch (InterruptedException e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
 		});
-		Thread thread2 = new Thread(new Runnable()
-		{
+		Thread thread2 = new Thread(new Runnable() {
 			@Override
-			public void run()
-			{
+			public void run() {
 				AlternateIdEntity loadedEntity = service.getAlternateIdEntityByName(entity.getName());
 
 				Assert.assertNotNull("Loaded entity must be valid", loadedEntity);
@@ -151,12 +145,10 @@ public class CacheTypeTest extends AbstractInformationBusWithPersistenceTest
 				AlternateIdEntity loadedEntity2 = service.getAlternateIdEntityByName(entity.getName());
 				Assert.assertSame("Loaded entity instances must be identical", loadedEntity, loadedEntity2);
 
-				try
-				{
+				try {
 					entity2Ex.exchange(loadedEntity2);
 				}
-				catch (InterruptedException e)
-				{
+				catch (InterruptedException e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}

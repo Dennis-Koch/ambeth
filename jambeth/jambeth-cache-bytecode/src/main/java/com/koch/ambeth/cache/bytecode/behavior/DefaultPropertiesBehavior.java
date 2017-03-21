@@ -41,8 +41,7 @@ import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
-public class DefaultPropertiesBehavior extends AbstractBehavior
-{
+public class DefaultPropertiesBehavior extends AbstractBehavior {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -54,32 +53,31 @@ public class DefaultPropertiesBehavior extends AbstractBehavior
 	protected IPropertyInfoProvider propertyInfoProvider;
 
 	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors)
-	{
-		if (state.getContext(EntityEnhancementHint.class) == null && state.getContext(EmbeddedEnhancementHint.class) == null
-				&& state.getContext(ImplementAbstractObjectEnhancementHint.class) == null && state.getContext(PropertyChangeEnhancementHint.class) == null)
-		{
+	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+			List<IBytecodeBehavior> remainingPendingBehaviors,
+			List<IBytecodeBehavior> cascadePendingBehaviors) {
+		if (state.getContext(EntityEnhancementHint.class) == null
+				&& state.getContext(EmbeddedEnhancementHint.class) == null
+				&& state.getContext(ImplementAbstractObjectEnhancementHint.class) == null
+				&& state.getContext(PropertyChangeEnhancementHint.class) == null) {
 			return visitor;
 		}
 		cascadePendingBehaviors.addAll(0, remainingPendingBehaviors);
 		remainingPendingBehaviors.clear();
 
-		HashMap<String, IPropertyInfo> allProperties = new HashMap<String, IPropertyInfo>();
+		HashMap<String, IPropertyInfo> allProperties = new HashMap<>();
 		IPropertyInfo[] properties = propertyInfoProvider.getProperties(state.getCurrentType());
-		for (IPropertyInfo pi : properties)
-		{
+		for (IPropertyInfo pi : properties) {
 			allProperties.put(pi.getName(), pi);
 		}
 		properties = propertyInfoProvider.getProperties(state.getOriginalType());
-		for (IPropertyInfo pi : properties)
-		{
+		for (IPropertyInfo pi : properties) {
 			// Only add property if it is not already declared by the current type
 			allProperties.putIfNotExists(pi.getName(), pi);
 		}
-		visitor = new DefaultPropertiesMethodVisitor(visitor, allProperties.toArray(IPropertyInfo.class), objectCollector);
-		if (state.getOriginalType().isInterface())
-		{
+		visitor = new DefaultPropertiesMethodVisitor(visitor,
+				allProperties.toArray(IPropertyInfo.class), objectCollector);
+		if (state.getOriginalType().isInterface()) {
 			visitor = new InterfaceAdder(visitor, state.getOriginalType());
 		}
 		return visitor;

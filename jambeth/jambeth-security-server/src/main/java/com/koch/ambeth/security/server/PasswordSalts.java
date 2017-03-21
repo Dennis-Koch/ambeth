@@ -25,25 +25,20 @@ import java.security.SecureRandom;
 
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class PasswordSalts
-{
+public class PasswordSalts {
 	public static final int SALT_LENGTH = 16;
 
-	public static byte[] nextSalt()
-	{
+	public static byte[] nextSalt() {
 		return nextSalt(SALT_LENGTH);
 	}
 
-	public static byte[] nextSalt(int saltLength)
-	{
+	public static byte[] nextSalt(int saltLength) {
 		byte[] salt = new byte[saltLength];
 		SecureRandom sr;
-		try
-		{
+		try {
 			sr = SecureRandom.getInstance("SHA1PRNG");
 		}
-		catch (NoSuchAlgorithmException e)
-		{
+		catch (NoSuchAlgorithmException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		sr.nextBytes(salt);

@@ -25,8 +25,7 @@ import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface IPrivilegeOfService
-{
+public interface IPrivilegeOfService {
 	IObjRef getReference();
 
 	ISecurityScope getSecurityScope();

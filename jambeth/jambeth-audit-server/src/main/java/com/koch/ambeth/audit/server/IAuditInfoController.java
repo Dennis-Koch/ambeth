@@ -23,8 +23,7 @@ limitations under the License.
 import com.koch.ambeth.ioc.util.IRevertDelegate;
 import com.koch.ambeth.security.model.IUser;
 
-public interface IAuditInfoController
-{
+public interface IAuditInfoController {
 	void pushAuditReason(String auditReason);
 
 	String popAuditReason();
@@ -43,5 +42,6 @@ public interface IAuditInfoController
 
 	String createAuditedValueOfEntityPrimitive(Object primitiveValueOfEntity);
 
-	IRevertDelegate setAuthorizedUser(IUser user, char[] clearTextPassword, boolean forceGivenAuthorization);
+	IRevertDelegate setAuthorizedUser(IUser user, char[] clearTextPassword,
+			boolean forceGivenAuthorization);
 }

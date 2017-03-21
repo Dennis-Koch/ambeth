@@ -24,10 +24,9 @@ import com.koch.ambeth.service.merge.model.IEntityMetaData;
 
 /**
  * Creates (enhanced) instances of classes and interfaces.
- * 
+ *
  */
-public interface IEntityFactory
-{
+public interface IEntityFactory {
 	<T> T createEntity(Class<T> entityType);
 
 	Object createEntity(IEntityMetaData metaData);

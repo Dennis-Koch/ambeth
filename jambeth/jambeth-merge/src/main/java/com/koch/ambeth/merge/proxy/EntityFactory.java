@@ -39,8 +39,7 @@ import com.koch.ambeth.util.ListUtil;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class EntityFactory extends AbstractEntityFactory
-{
+public class EntityFactory extends AbstractEntityFactory {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -63,35 +62,30 @@ public class EntityFactory extends AbstractEntityFactory
 	@Self
 	protected IEntityFactory self;
 
-	protected final SmartCopyMap<Class<?>, EntityFactoryConstructor> typeToConstructorMap = new SmartCopyMap<Class<?>, EntityFactoryConstructor>(0.5f);
+	protected final SmartCopyMap<Class<?>, EntityFactoryConstructor> typeToConstructorMap =
+			new SmartCopyMap<>(0.5f);
 
 	@Override
-	public boolean supportsEnhancement(Class<?> enhancementType)
-	{
+	public boolean supportsEnhancement(Class<?> enhancementType) {
 		return bytecodeEnhancer.supportsEnhancement(enhancementType);
 	}
 
-	protected EntityFactoryConstructor getConstructorEntry(Class<?> entityType)
-	{
+	protected EntityFactoryConstructor getConstructorEntry(Class<?> entityType) {
 		EntityFactoryConstructor constructor = typeToConstructorMap.get(entityType);
-		if (constructor == null)
-		{
-			try
-			{
-				final EntityFactoryWithArgumentConstructor argumentConstructor = accessorTypeProvider.getConstructorType(
-						EntityFactoryWithArgumentConstructor.class, entityType);
-				constructor = new EntityFactoryConstructor()
-				{
+		if (constructor == null) {
+			try {
+				final EntityFactoryWithArgumentConstructor argumentConstructor = accessorTypeProvider
+						.getConstructorType(EntityFactoryWithArgumentConstructor.class, entityType);
+				constructor = new EntityFactoryConstructor() {
 					@Override
-					public Object createEntity()
-					{
+					public Object createEntity() {
 						return argumentConstructor.createEntity(self);
 					}
 				};
 			}
-			catch (Throwable e)
-			{
-				constructor = accessorTypeProvider.getConstructorType(EntityFactoryConstructor.class, entityType);
+			catch (Throwable e) {
+				constructor =
+						accessorTypeProvider.getConstructorType(EntityFactoryConstructor.class, entityType);
 			}
 			typeToConstructorMap.put(entityType, constructor);
 		}
@@ -100,30 +94,24 @@ public class EntityFactory extends AbstractEntityFactory
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T createEntity(Class<T> entityType)
-	{
+	public <T> T createEntity(Class<T> entityType) {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 		return (T) createEntityIntern(metaData, true);
 	}
 
 	@Override
-	public Object createEntity(IEntityMetaData metaData)
-	{
+	public Object createEntity(IEntityMetaData metaData) {
 		return createEntityIntern(metaData, true);
 	}
 
 	@Override
-	public Object createEntityNoEmptyInit(IEntityMetaData metaData)
-	{
+	public Object createEntityNoEmptyInit(IEntityMetaData metaData) {
 		return createEntityIntern(metaData, false);
 	}
 
-	protected Object createEntityIntern(IEntityMetaData metaData, boolean doEmptyInit)
-	{
-		try
-		{
-			if (metaData.getEnhancedType() == null)
-			{
+	protected Object createEntityIntern(IEntityMetaData metaData, boolean doEmptyInit) {
+		try {
+			if (metaData.getEnhancedType() == null) {
 				entityMetaDataRefresher.refreshMembers(metaData);
 			}
 			EntityFactoryConstructor constructor = getConstructorEntry(metaData.getEnhancedType());
@@ -131,33 +119,27 @@ public class EntityFactory extends AbstractEntityFactory
 			postProcessEntity(entity, metaData, doEmptyInit);
 			return entity;
 		}
-		catch (Throwable e)
-		{
-			if (bytecodePrinter != null)
-			{
-				throw RuntimeExceptionUtil.mask(e, bytecodePrinter.toPrintableBytecode(metaData.getEnhancedType()));
+		catch (Throwable e) {
+			if (bytecodePrinter != null) {
+				throw RuntimeExceptionUtil.mask(e,
+						bytecodePrinter.toPrintableBytecode(metaData.getEnhancedType()));
 			}
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
-	protected void postProcessEntity(Object entity, IEntityMetaData metaData, boolean doEmptyInit)
-	{
-		if (entity instanceof IBeanContextAware)
-		{
+	protected void postProcessEntity(Object entity, IEntityMetaData metaData, boolean doEmptyInit) {
+		if (entity instanceof IBeanContextAware) {
 			((IBeanContextAware) entity).setBeanContext(beanContext);
 		}
 		metaData.postProcessNewEntity(entity);
 	}
 
-	protected void handlePrimitiveMember(Member primitiveMember, Object entity)
-	{
+	protected void handlePrimitiveMember(Member primitiveMember, Object entity) {
 		Class<?> realType = primitiveMember.getRealType();
-		if (Collection.class.isAssignableFrom(realType))
-		{
+		if (Collection.class.isAssignableFrom(realType)) {
 			Object primitive = primitiveMember.getValue(entity);
-			if (primitive == null)
-			{
+			if (primitive == null) {
 				primitive = ListUtil.createObservableCollectionOfType(realType);
 				primitiveMember.setValue(entity, primitive);
 			}

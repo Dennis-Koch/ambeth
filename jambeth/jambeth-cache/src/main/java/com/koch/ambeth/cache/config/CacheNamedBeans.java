@@ -20,10 +20,8 @@ limitations under the License.
  * #L%
  */
 
-public final class CacheNamedBeans
-{
-	protected CacheNamedBeans()
-	{
+public final class CacheNamedBeans {
+	protected CacheNamedBeans() {
 	}
 
 	public static final String CacheProviderThreadLocal = "CacheProvider_TL";

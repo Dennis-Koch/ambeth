@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IJobExtendable
-{
+public interface IJobExtendable {
 	void registerJob(IJob job, String jobName, String cronPattern);
 
 	void unregisterJob(IJob job, String jobName, String cronPattern);

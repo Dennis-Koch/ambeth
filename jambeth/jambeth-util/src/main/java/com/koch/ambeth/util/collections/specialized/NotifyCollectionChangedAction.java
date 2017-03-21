@@ -23,8 +23,7 @@ limitations under the License.
 /**
  * Describes the action that caused a INotifyCollectionChanged.CollectionChanged event.
  */
-public enum NotifyCollectionChangedAction
-{
+public enum NotifyCollectionChangedAction {
 	/** One or more items were added to the collection. */
 	Add(0),
 
@@ -42,13 +41,11 @@ public enum NotifyCollectionChangedAction
 
 	private final int value;
 
-	NotifyCollectionChangedAction(int value)
-	{
+	NotifyCollectionChangedAction(int value) {
 		this.value = value;
 	}
 
-	public int value()
-	{
+	public int value() {
 		return value;
 	}
 }

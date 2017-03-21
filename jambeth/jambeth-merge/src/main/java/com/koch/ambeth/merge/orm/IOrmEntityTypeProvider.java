@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IOrmEntityTypeProvider
-{
+public interface IOrmEntityTypeProvider {
 	Class<?> resolveEntityType(String entityTypeName);
 }

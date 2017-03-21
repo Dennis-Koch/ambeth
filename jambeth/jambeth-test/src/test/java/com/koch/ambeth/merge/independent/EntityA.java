@@ -22,34 +22,28 @@ limitations under the License.
 
 import java.util.List;
 
-public class EntityA extends BaseEntity
-{
+public class EntityA extends BaseEntity {
 	protected EntityA other;
 
 	protected List<EntityB> bs;
 
-	protected EntityA()
-	{
+	protected EntityA() {
 		// Intended blank
 	}
 
-	public EntityA getOther()
-	{
+	public EntityA getOther() {
 		return other;
 	}
 
-	public void setOther(EntityA other)
-	{
+	public void setOther(EntityA other) {
 		this.other = other;
 	}
 
-	public List<EntityB> getBs()
-	{
+	public List<EntityB> getBs() {
 		return bs;
 	}
 
-	public void setBs(List<EntityB> bs)
-	{
+	public void setBs(List<EntityB> bs) {
 		this.bs = bs;
 	}
 }

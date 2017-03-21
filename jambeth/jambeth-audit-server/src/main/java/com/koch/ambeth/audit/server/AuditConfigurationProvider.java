@@ -37,8 +37,8 @@ import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.annotation.AnnotationUtil;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 
-public class AuditConfigurationProvider implements IAuditConfigurationProvider, IAuditConfigurationExtendable
-{
+public class AuditConfigurationProvider
+		implements IAuditConfigurationProvider, IAuditConfigurationExtendable {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -46,33 +46,32 @@ public class AuditConfigurationProvider implements IAuditConfigurationProvider, 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
-	@Property(name = AuditConfigurationConstants.AuditedEntityDefaultModeActive, defaultValue = "true")
+	@Property(name = AuditConfigurationConstants.AuditedEntityDefaultModeActive,
+			defaultValue = "true")
 	protected boolean auditedEntityDefaultModeActive;
 
 	@Property(name = AuditConfigurationConstants.AuditReasonRequiredDefault, defaultValue = "false")
 	protected boolean auditReasonRequiredDefault;
 
-	@Property(name = AuditConfigurationConstants.AuditedEntityPropertyDefaultModeActive, defaultValue = "true")
+	@Property(name = AuditConfigurationConstants.AuditedEntityPropertyDefaultModeActive,
+			defaultValue = "true")
 	protected boolean auditedEntityPropertyDefaultModeActive;
 
-	protected final MapExtendableContainer<Class<?>, IAuditConfiguration> entityTypeToAuditConfigurationMap = new MapExtendableContainer<Class<?>, IAuditConfiguration>(
-			"auditConfiguration", "entityType");
+	protected final MapExtendableContainer<Class<?>, IAuditConfiguration> entityTypeToAuditConfigurationMap =
+			new MapExtendableContainer<>("auditConfiguration", "entityType");
 
 	@Override
-	public IAuditConfiguration getAuditConfiguration(Class<?> entityType)
-	{
-		IAuditConfiguration auditConfiguration = entityTypeToAuditConfigurationMap.getExtension(entityType);
-		if (auditConfiguration != null)
-		{
+	public IAuditConfiguration getAuditConfiguration(Class<?> entityType) {
+		IAuditConfiguration auditConfiguration =
+				entityTypeToAuditConfigurationMap.getExtension(entityType);
+		if (auditConfiguration != null) {
 			return auditConfiguration;
 		}
 		Lock writeLock = entityTypeToAuditConfigurationMap.getWriteLock();
 		writeLock.lock();
-		try
-		{
+		try {
 			auditConfiguration = entityTypeToAuditConfigurationMap.getExtension(entityType);
-			if (auditConfiguration != null)
-			{
+			if (auditConfiguration != null) {
 				// concurrent thread might have been faster
 				return auditConfiguration;
 			}
@@ -80,55 +79,55 @@ public class AuditConfigurationProvider implements IAuditConfigurationProvider, 
 			entityTypeToAuditConfigurationMap.register(auditConfiguration, entityType);
 			return auditConfiguration;
 		}
-		finally
-		{
+		finally {
 			writeLock.unlock();
 		}
 	}
 
-	protected IAuditConfiguration buildAuditConfiguration(Class<?> entityType)
-	{
+	protected IAuditConfiguration buildAuditConfiguration(Class<?> entityType) {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 
 		Audited audited = AnnotationUtil.getAnnotation(Audited.class, metaData.getEnhancedType(), true);
-		AuditReasonRequired auditReasonRequired = AnnotationUtil.getAnnotation(AuditReasonRequired.class, metaData.getEnhancedType(), true);
+		AuditReasonRequired auditReasonRequired =
+				AnnotationUtil.getAnnotation(AuditReasonRequired.class, metaData.getEnhancedType(), true);
 
 		boolean auditActive = audited != null ? audited.value() : auditedEntityDefaultModeActive;
 
-		boolean reasonRequired = auditReasonRequired != null ? auditReasonRequired.value() : auditReasonRequiredDefault;
+		boolean reasonRequired =
+				auditReasonRequired != null ? auditReasonRequired.value() : auditReasonRequiredDefault;
 
-		IdentityHashMap<Member, IAuditMemberConfiguration> memberToConfigurationMap = new IdentityHashMap<Member, IAuditMemberConfiguration>(0.5f);
-		for (PrimitiveMember member : metaData.getPrimitiveMembers())
-		{
+		IdentityHashMap<Member, IAuditMemberConfiguration> memberToConfigurationMap =
+				new IdentityHashMap<>(0.5f);
+		for (PrimitiveMember member : metaData.getPrimitiveMembers()) {
 			memberToConfigurationMap.put(member, resolveMemberConfiguration(metaData, member));
 		}
-		for (RelationMember member : metaData.getRelationMembers())
-		{
+		for (RelationMember member : metaData.getRelationMembers()) {
 			memberToConfigurationMap.put(member, resolveMemberConfiguration(metaData, member));
 		}
-		if (metaData.getVersionMember() != null)
-		{
-			memberToConfigurationMap.put(metaData.getVersionMember(), resolveMemberConfiguration(metaData, metaData.getVersionMember()));
+		if (metaData.getVersionMember() != null) {
+			memberToConfigurationMap.put(metaData.getVersionMember(),
+					resolveMemberConfiguration(metaData, metaData.getVersionMember()));
 		}
 		return new AuditConfiguration(auditActive, reasonRequired, memberToConfigurationMap);
 	}
 
-	protected IAuditMemberConfiguration resolveMemberConfiguration(IEntityMetaData metaData, Member member)
-	{
+	protected IAuditMemberConfiguration resolveMemberConfiguration(IEntityMetaData metaData,
+			Member member) {
 		Audited audited = member.getAnnotation(Audited.class);
-		boolean auditActive = audited != null ? audited.value() : auditedEntityPropertyDefaultModeActive;
+		boolean auditActive =
+				audited != null ? audited.value() : auditedEntityPropertyDefaultModeActive;
 		return auditActive ? AuditMemberConfiguration.ACTIVE : AuditMemberConfiguration.INACTIVE;
 	}
 
 	@Override
-	public void registerAuditConfiguration(IAuditConfiguration auditConfiguration, Class<?> entityType)
-	{
+	public void registerAuditConfiguration(IAuditConfiguration auditConfiguration,
+			Class<?> entityType) {
 		entityTypeToAuditConfigurationMap.register(auditConfiguration, entityType);
 	}
 
 	@Override
-	public void unregisterAuditConfiguration(IAuditConfiguration auditConfiguration, Class<?> entityType)
-	{
+	public void unregisterAuditConfiguration(IAuditConfiguration auditConfiguration,
+			Class<?> entityType) {
 		entityTypeToAuditConfigurationMap.unregister(auditConfiguration, entityType);
 	}
 }

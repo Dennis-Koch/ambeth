@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IEmbeddedType
-{
+public interface IEmbeddedType {
 	Object getParent();
 
 	Object getRoot();

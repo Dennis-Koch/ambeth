@@ -27,46 +27,39 @@ import com.koch.ambeth.service.cache.IServiceResultHolder;
 import com.koch.ambeth.service.cache.model.IServiceResult;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
-public class ServiceResultHolder implements IServiceResultHolder, IThreadLocalCleanupBean
-{
+public class ServiceResultHolder implements IServiceResultHolder, IThreadLocalCleanupBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	public static class ServiceResultHolderItem
-	{
+	public static class ServiceResultHolderItem {
 		public boolean expectORIResult;
 
 		public IServiceResult serviceResult;
 	}
 
-	protected final ThreadLocal<ServiceResultHolderItem> valueTL = new SensitiveThreadLocal<ServiceResultHolderItem>();
+	protected final ThreadLocal<ServiceResultHolderItem> valueTL =
+			new SensitiveThreadLocal<>();
 
 	@Override
-	public void cleanupThreadLocal()
-	{
+	public void cleanupThreadLocal() {
 		valueTL.remove();
 	}
 
 	@Override
-	public boolean isExpectServiceResult()
-	{
+	public boolean isExpectServiceResult() {
 		ServiceResultHolderItem item = valueTL.get();
-		if (item == null)
-		{
+		if (item == null) {
 			return false;
 		}
 		return item.expectORIResult;
 	}
 
 	@Override
-	public void setExpectServiceResult(boolean expectServiceResult)
-	{
+	public void setExpectServiceResult(boolean expectServiceResult) {
 		ServiceResultHolderItem item = valueTL.get();
-		if (item == null)
-		{
-			if (!expectServiceResult)
-			{
+		if (item == null) {
+			if (!expectServiceResult) {
 				return;
 			}
 			item = new ServiceResultHolderItem();
@@ -77,22 +70,18 @@ public class ServiceResultHolder implements IServiceResultHolder, IThreadLocalCl
 	}
 
 	@Override
-	public IServiceResult getServiceResult()
-	{
+	public IServiceResult getServiceResult() {
 		ServiceResultHolderItem item = valueTL.get();
-		if (item == null)
-		{
+		if (item == null) {
 			return null;
 		}
 		return item.serviceResult;
 	}
 
 	@Override
-	public void setServiceResult(IServiceResult serviceResult)
-	{
+	public void setServiceResult(IServiceResult serviceResult) {
 		ServiceResultHolderItem item = valueTL.get();
-		if (item == null)
-		{
+		if (item == null) {
 			item = new ServiceResultHolderItem();
 			valueTL.set(item);
 		}
@@ -100,11 +89,9 @@ public class ServiceResultHolder implements IServiceResultHolder, IThreadLocalCl
 	}
 
 	@Override
-	public void clearResult()
-	{
+	public void clearResult() {
 		ServiceResultHolderItem item = valueTL.get();
-		if (item == null)
-		{
+		if (item == null) {
 			return;
 		}
 		item.expectORIResult = false;

@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ICyclicObjectHandler
-{
+public interface ICyclicObjectHandler {
 	Object readObject(IReader reader);
 
 	Object readObject(Class<?> type, int id, IReader reader);

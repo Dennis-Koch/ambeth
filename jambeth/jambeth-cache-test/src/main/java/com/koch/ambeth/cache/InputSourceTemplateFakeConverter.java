@@ -26,8 +26,7 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.IDedicatedConverter;
 
-public class InputSourceTemplateFakeConverter implements IDedicatedConverter
-{
+public class InputSourceTemplateFakeConverter implements IDedicatedConverter {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -36,8 +35,8 @@ public class InputSourceTemplateFakeConverter implements IDedicatedConverter
 	protected IConversionHelper conversionHelper;
 
 	@Override
-	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value, Object additionalInformation)
-	{
+	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+			Object additionalInformation) {
 		Object values = ((InputSourceTemplateFake) value).getValues();
 		return conversionHelper.convertValueToType(expectedType, values, additionalInformation);
 	}

@@ -22,8 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.util.IDisposable;
 
-public interface IDataItem extends IDisposable
-{
+public interface IDataItem extends IDisposable {
 	Object getValue(String propertyName);
 
 	Object getValue(int index);

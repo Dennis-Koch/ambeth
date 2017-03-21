@@ -59,11 +59,11 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator {
 
 	@Override
 	public void visitEnd() {
-		HashMap<String, List<Method>> nameToMethodsMap = new HashMap<String, List<Method>>();
+		HashMap<String, List<Method>> nameToMethodsMap = new HashMap<>();
 		for (Method method : ReflectUtil.getMethods(getState().getOriginalType())) {
 			List<Method> methodList = nameToMethodsMap.get(method.getName());
 			if (methodList == null) {
-				methodList = new ArrayList<Method>();
+				methodList = new ArrayList<>();
 				nameToMethodsMap.put(method.getName(), methodList);
 			}
 			methodList.add(method);

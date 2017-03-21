@@ -34,8 +34,7 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 
-public abstract class AbstractEntityMetaDataReader implements IDisposableBean
-{
+public abstract class AbstractEntityMetaDataReader implements IDisposableBean {
 	@LogInstance
 	private ILogger log;
 	@Autowired
@@ -48,28 +47,24 @@ public abstract class AbstractEntityMetaDataReader implements IDisposableBean
 	protected IEntityMetaDataReader entityMetaDataReader;
 	@Autowired
 	protected IOrmConfigGroupProvider ormConfigGroupProvider;
-	protected final LinkedHashSet<IEntityMetaData> managedEntityMetaData = new LinkedHashSet<IEntityMetaData>();
+	protected final LinkedHashSet<IEntityMetaData> managedEntityMetaData =
+			new LinkedHashSet<>();
 
 	@Override
-	public void destroy()
-	{
-		for (IEntityMetaData entityMetaData : managedEntityMetaData)
-		{
+	public void destroy() {
+		for (IEntityMetaData entityMetaData : managedEntityMetaData) {
 			entityMetaDataExtendable.unregisterEntityMetaData(entityMetaData);
 		}
 	}
 
-	protected void readConfig(IOrmConfigGroup ormConfigGroup)
-	{
-		LinkedHashSet<IEntityConfig> entities = new LinkedHashSet<IEntityConfig>();
+	protected void readConfig(IOrmConfigGroup ormConfigGroup) {
+		LinkedHashSet<IEntityConfig> entities = new LinkedHashSet<>();
 		entities.addAll(ormConfigGroup.getLocalEntityConfigs());
 		entities.addAll(ormConfigGroup.getExternalEntityConfigs());
 
-		for (IEntityConfig entityConfig : entities)
-		{
+		for (IEntityConfig entityConfig : entities) {
 			Class<?> entityType = entityConfig.getEntityType();
-			if (entityMetaDataProvider.getMetaData(entityType, true) != null)
-			{
+			if (entityMetaDataProvider.getMetaData(entityType, true) != null) {
 				continue;
 			}
 			Class<?> realType = entityConfig.getRealType();
@@ -82,8 +77,7 @@ public abstract class AbstractEntityMetaDataReader implements IDisposableBean
 			entityMetaDataReader.addMembers(metaData, entityConfig);
 
 			managedEntityMetaData.add(metaData);
-			synchronized (entityMetaDataExtendable)
-			{
+			synchronized (entityMetaDataExtendable) {
 				entityMetaDataExtendable.registerEntityMetaData(metaData);
 			}
 		}

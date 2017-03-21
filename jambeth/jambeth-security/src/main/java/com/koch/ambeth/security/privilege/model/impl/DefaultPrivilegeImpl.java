@@ -22,18 +22,18 @@ limitations under the License.
 
 import com.koch.ambeth.security.privilege.model.IPropertyPrivilege;
 
-public class DefaultPrivilegeImpl extends AbstractPrivilege
-{
+public class DefaultPrivilegeImpl extends AbstractPrivilege {
 	protected final boolean read, create, update, delete, execute;
 
 	protected final IPropertyPrivilege[] primitivePropertyPrivileges;
 
 	protected final IPropertyPrivilege[] relationPropertyPrivileges;
 
-	public DefaultPrivilegeImpl(boolean create, boolean read, boolean update, boolean delete, boolean execute,
-			IPropertyPrivilege[] primitivePropertyPrivileges, IPropertyPrivilege[] relationPropertyPrivileges)
-	{
-		super(create, read, update, delete, execute, primitivePropertyPrivileges, relationPropertyPrivileges);
+	public DefaultPrivilegeImpl(boolean create, boolean read, boolean update, boolean delete,
+			boolean execute, IPropertyPrivilege[] primitivePropertyPrivileges,
+			IPropertyPrivilege[] relationPropertyPrivileges) {
+		super(create, read, update, delete, execute, primitivePropertyPrivileges,
+				relationPropertyPrivileges);
 		this.create = create;
 		this.read = read;
 		this.update = update;
@@ -44,50 +44,42 @@ public class DefaultPrivilegeImpl extends AbstractPrivilege
 	}
 
 	@Override
-	public IPropertyPrivilege getPrimitivePropertyPrivilege(int primitiveIndex)
-	{
+	public IPropertyPrivilege getPrimitivePropertyPrivilege(int primitiveIndex) {
 		return primitivePropertyPrivileges[primitiveIndex];
 	}
 
 	@Override
-	public IPropertyPrivilege getRelationPropertyPrivilege(int relationIndex)
-	{
+	public IPropertyPrivilege getRelationPropertyPrivilege(int relationIndex) {
 		return relationPropertyPrivileges[relationIndex];
 	}
 
 	@Override
-	public IPropertyPrivilege getDefaultPropertyPrivilegeIfValid()
-	{
+	public IPropertyPrivilege getDefaultPropertyPrivilegeIfValid() {
 		return null;
 	}
 
 	@Override
-	public boolean isCreateAllowed()
-	{
+	public boolean isCreateAllowed() {
 		return create;
 	}
 
 	@Override
-	public boolean isReadAllowed()
-	{
+	public boolean isReadAllowed() {
 		return read;
 	}
 
 	@Override
-	public boolean isUpdateAllowed()
-	{
+	public boolean isUpdateAllowed() {
 		return update;
 	}
 
 	@Override
-	public boolean isDeleteAllowed()
-	{
+	public boolean isDeleteAllowed() {
 		return delete;
 	}
 
 	@Override
-	public boolean isExecuteAllowed()
-	{
+	public boolean isExecuteAllowed() {
 		return execute;
 	}
 }

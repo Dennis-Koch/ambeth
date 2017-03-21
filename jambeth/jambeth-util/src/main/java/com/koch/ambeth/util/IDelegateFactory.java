@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IDelegateFactory
-{
+public interface IDelegateFactory {
 	IDelegate createDelegate(Class<?> delegateType, Object target, String methodName);
 }

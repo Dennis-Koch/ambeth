@@ -31,27 +31,23 @@ import org.junit.Test;
 import com.koch.ambeth.core.start.SystemClasspathInfo;
 import com.koch.ambeth.util.collections.IList;
 
-public class SystemClasspathInfoTest
-{
+public class SystemClasspathInfoTest {
 	private SystemClasspathInfo systemClasspathInfo;
 
 	@Before
-	public void setUp() throws Exception
-	{
+	public void setUp() throws Exception {
 		systemClasspathInfo = new SystemClasspathInfo();
 	}
 
 	@Test
-	public void testGetJarURLs()
-	{
+	public void testGetJarURLs() {
 		IList<URL> jarURLs = systemClasspathInfo.getJarURLs();
 		Assert.assertNotNull(jarURLs);
 		Assert.assertFalse(jarURLs.isEmpty());
 	}
 
 	@Test
-	public void testOpenAsFile() throws Throwable
-	{
+	public void testOpenAsFile() throws Throwable {
 		IList<URL> jarURLs = systemClasspathInfo.getJarURLs();
 		URL url = jarURLs.get(jarURLs.size() - 1);
 		Path file = systemClasspathInfo.openAsFile(url);
@@ -60,8 +56,7 @@ public class SystemClasspathInfoTest
 	}
 
 	@Test
-	public void testOpenAsFile_pathWithSpace() throws Throwable
-	{
+	public void testOpenAsFile_pathWithSpace() throws Throwable {
 		String filePath = "file:/home/user/name with space/lib";
 		URL url = new URL(filePath);
 

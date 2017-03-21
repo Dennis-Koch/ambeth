@@ -31,8 +31,7 @@ import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.model.IDataObject;
 
-public class CacheWalkerResult implements IPrintable, ICacheWalkerResult
-{
+public class CacheWalkerResult implements IPrintable, ICacheWalkerResult {
 	protected static final char pipe = "\u2514".toCharArray()[0];
 
 	protected final ICache cache;
@@ -53,8 +52,8 @@ public class CacheWalkerResult implements IPrintable, ICacheWalkerResult
 
 	public final Object childEntries;
 
-	public CacheWalkerResult(ICache cache, boolean transactional, boolean threadLocal, IObjRef[] objRefs, Object[] cacheValues, Object childEntries)
-	{
+	public CacheWalkerResult(ICache cache, boolean transactional, boolean threadLocal,
+			IObjRef[] objRefs, Object[] cacheValues, Object childEntries) {
 		this.cache = cache;
 		this.transactional = transactional;
 		this.threadLocal = threadLocal;
@@ -64,18 +63,14 @@ public class CacheWalkerResult implements IPrintable, ICacheWalkerResult
 		privileged = cache.isPrivileged();
 	}
 
-	public void updatePendingChanges()
-	{
+	public void updatePendingChanges() {
 		boolean[] pendingChanges = null;
-		for (int a = cacheValues.length; a-- > 0;)
-		{
+		for (int a = cacheValues.length; a-- > 0;) {
 			Object cacheValue = cacheValues[a];
-			if (cacheValue == null || cacheValue instanceof AbstractCacheValue)
-			{
+			if (cacheValue == null || cacheValue instanceof AbstractCacheValue) {
 				continue;
 			}
-			if (pendingChanges == null)
-			{
+			if (pendingChanges == null) {
 				pendingChanges = new boolean[cacheValues.length];
 			}
 			pendingChanges[a] = ((IDataObject) cacheValue).hasPendingChanges();
@@ -83,94 +78,77 @@ public class CacheWalkerResult implements IPrintable, ICacheWalkerResult
 		this.pendingChanges = pendingChanges;
 	}
 
-	public ICacheWalkerResult getParentEntry()
-	{
+	public ICacheWalkerResult getParentEntry() {
 		return parentEntry;
 	}
 
-	public void setParentEntry(ICacheWalkerResult parentEntry)
-	{
+	public void setParentEntry(ICacheWalkerResult parentEntry) {
 		this.parentEntry = parentEntry;
 	}
 
-	public ICache getCache()
-	{
+	public ICache getCache() {
 		return cache;
 	}
 
-	public boolean isPrivileged()
-	{
+	public boolean isPrivileged() {
 		return privileged;
 	}
 
-	public boolean isTransactional()
-	{
+	public boolean isTransactional() {
 		return transactional;
 	}
 
-	public boolean isThreadLocal()
-	{
+	public boolean isThreadLocal() {
 		return threadLocal;
 	}
 
-	public Object[] getCacheValues()
-	{
+	public Object[] getCacheValues() {
 		return cacheValues;
 	}
 
-	public Object getChildEntries()
-	{
+	public Object getChildEntries() {
 		return childEntries;
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		toString(sb);
 		return sb.toString();
 	}
 
 	@Override
-	public void toString(StringBuilder sb)
-	{
+	public void toString(StringBuilder sb) {
 		toString(sb, 0);
 	}
 
 	@Override
-	public void toString(StringBuilder sb, final int tabCount)
-	{
-		toStringIntern(sb, new IPrintable()
-		{
+	public void toString(StringBuilder sb, final int tabCount) {
+		toStringIntern(sb, new IPrintable() {
 
 			@Override
-			public void toString(StringBuilder sb)
-			{
+			public void toString(StringBuilder sb) {
 				sb.append(System.getProperty("line.separator"));
 				StringBuilderUtil.appendTabs(sb, tabCount);
 			}
 		}, null);
 	}
 
-	protected void toStringIntern(StringBuilder sb, IPrintable preSpace, Boolean entityDescriptionAtRoot)
-	{
+	protected void toStringIntern(StringBuilder sb, IPrintable preSpace,
+			Boolean entityDescriptionAtRoot) {
 		Object[] cacheValues = this.cacheValues;
 
-		if (entityDescriptionAtRoot == null)
-		{
+		if (entityDescriptionAtRoot == null) {
 			IObjRef[] objRefs = this.objRefs;
-			for (int a = 0, size = objRefs.length; a < size; a++)
-			{
+			for (int a = 0, size = objRefs.length; a < size; a++) {
 				IObjRef objRef = objRefs[a];
 				sb.append(pipe).append(' ').append(a + 1);
 				sb.append(". Type=").append(objRef.getRealType().getSimpleName());
 				sb.append(" Id(");
-				if (objRef.getIdNameIndex() == ObjRef.PRIMARY_KEY_INDEX)
-				{
+				if (objRef.getIdNameIndex() == ObjRef.PRIMARY_KEY_INDEX) {
 					sb.append("PK");
 				}
-				else
-				{
+				else {
 					sb.append("AK-").append(objRef.getIdNameIndex());
 				}
 				sb.append(")=").append(objRef.getId());
@@ -180,65 +158,51 @@ public class CacheWalkerResult implements IPrintable, ICacheWalkerResult
 		}
 		sb.append(pipe).append(" Cache");
 		boolean firstSuffix = true;
-		if (!privileged)
-		{
+		if (!privileged) {
 			firstSuffix = appendSuffix("SEC", firstSuffix, sb);
 		}
-		if (transactional)
-		{
+		if (transactional) {
 			firstSuffix = appendSuffix("TX", firstSuffix, sb);
 		}
-		if (threadLocal)
-		{
+		if (threadLocal) {
 			firstSuffix = appendSuffix("L", firstSuffix, sb);
 		}
-		if (parentEntry == null)
-		{
+		if (parentEntry == null) {
 			firstSuffix = appendSuffix("G", firstSuffix, sb);
 		}
 		sb.append("--#0x").append(toHexString(cache));
 
-		preSpace = new AbstractPrintable(preSpace)
-		{
+		preSpace = new AbstractPrintable(preSpace) {
 			@Override
-			public void toString(StringBuilder sb)
-			{
+			public void toString(StringBuilder sb) {
 				p.toString(sb);
 				sb.append('\t');
 			}
 		};
 		IPrintable preSpaceForCacheValue;
-		if (childEntries == null)
-		{
-			preSpaceForCacheValue = new AbstractPrintable(preSpace)
-			{
+		if (childEntries == null) {
+			preSpaceForCacheValue = new AbstractPrintable(preSpace) {
 				@Override
-				public void toString(StringBuilder sb)
-				{
+				public void toString(StringBuilder sb) {
 					p.toString(sb);
 					sb.append("   ");
 				}
 			};
 		}
-		else
-		{
-			preSpaceForCacheValue = new AbstractPrintable(preSpace)
-			{
+		else {
+			preSpaceForCacheValue = new AbstractPrintable(preSpace) {
 				@Override
-				public void toString(StringBuilder sb)
-				{
+				public void toString(StringBuilder sb) {
 					p.toString(sb);
 					sb.append("|  ");
 				}
 			};
 		}
-		for (int a = 0, size = cacheValues.length; a < size; a++)
-		{
+		for (int a = 0, size = cacheValues.length; a < size; a++) {
 			preSpaceForCacheValue.toString(sb);
 			sb.append(a + 1).append('.');
 			Object cacheValue = cacheValues[a];
-			if (cacheValue == null)
-			{
+			if (cacheValue == null) {
 				sb.append(" n/a");
 				continue;
 			}
@@ -246,55 +210,43 @@ public class CacheWalkerResult implements IPrintable, ICacheWalkerResult
 			Object id, version = null;
 			boolean hasVersion = metaData.getVersionMember() != null;
 			boolean hasPendingChanges = false;
-			if (cacheValue instanceof AbstractCacheValue)
-			{
+			if (cacheValue instanceof AbstractCacheValue) {
 				AbstractCacheValue cacheValueCasted = (AbstractCacheValue) cacheValue;
 				id = cacheValueCasted.getId();
-				if (hasVersion)
-				{
+				if (hasVersion) {
 					version = cacheValueCasted.getVersion();
 				}
 			}
-			else
-			{
+			else {
 				id = metaData.getIdMember().getValue(cacheValue);
-				if (hasVersion)
-				{
+				if (hasVersion) {
 					version = metaData.getVersionMember().getValue(cacheValue);
 				}
 				hasPendingChanges = pendingChanges != null && pendingChanges[a];
 			}
-			if (!Boolean.TRUE.equals(entityDescriptionAtRoot))
-			{
+			if (!Boolean.TRUE.equals(entityDescriptionAtRoot)) {
 				sb.append(" Type=").append(metaData.getEntityType().getSimpleName());
 				sb.append(" Id=").append(id);
 			}
-			if (hasVersion)
-			{
+			if (hasVersion) {
 				sb.append(" Version=").append(version);
 			}
-			if (hasPendingChanges)
-			{
+			if (hasPendingChanges) {
 				sb.append(" (m)");
 			}
 		}
-		if (childEntries instanceof ICacheWalkerResult[])
-		{
+		if (childEntries instanceof ICacheWalkerResult[]) {
 			CacheWalkerResult[] childEntries = (CacheWalkerResult[]) this.childEntries;
-			for (int a = 0, size = childEntries.length; a < size; a++)
-			{
+			for (int a = 0, size = childEntries.length; a < size; a++) {
 				final boolean hasSuccessor = a < size - 1;
 				CacheWalkerResult entry = childEntries[a];
 
-				IPrintable preSpaceForChildEntry = new AbstractPrintable(preSpace)
-				{
+				IPrintable preSpaceForChildEntry = new AbstractPrintable(preSpace) {
 
 					@Override
-					public void toString(StringBuilder sb)
-					{
+					public void toString(StringBuilder sb) {
 						p.toString(sb);
-						if (hasSuccessor)
-						{
+						if (hasSuccessor) {
 							sb.append("|");
 						}
 					}
@@ -303,25 +255,21 @@ public class CacheWalkerResult implements IPrintable, ICacheWalkerResult
 				entry.toStringIntern(sb, preSpaceForChildEntry, entityDescriptionAtRoot);
 			}
 		}
-		else if (childEntries != null)
-		{
+		else if (childEntries != null) {
 			CacheWalkerResult entry = (CacheWalkerResult) childEntries;
 			preSpace.toString(sb);
 			entry.toStringIntern(sb, preSpace, entityDescriptionAtRoot);
 		}
 	}
 
-	protected boolean appendSuffix(String suffix, boolean isFirstSuffix, StringBuilder sb)
-	{
+	protected boolean appendSuffix(String suffix, boolean isFirstSuffix, StringBuilder sb) {
 		sb.append('-');
 		sb.append(suffix);
 		return false;
 	}
 
-	protected String toHexString(Object obj)
-	{
-		if (obj == null)
-		{
+	protected String toHexString(Object obj) {
+		if (obj == null) {
 			return null;
 		}
 		return Integer.toHexString(System.identityHashCode(obj));

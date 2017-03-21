@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface INameBasedHandler
-{
+public interface INameBasedHandler {
 	Object readObject(Class<?> returnType, String elementName, int id, IReader reader);
 
 	boolean writesCustom(Object obj, Class<?> type, IWriter writer);

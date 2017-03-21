@@ -29,8 +29,7 @@ import com.koch.ambeth.util.ParamChecker;
 
 @Service(IEntityAService.class)
 @PersistenceContext
-public class EntityAService implements IEntityAService, IInitializingBean
-{
+public class EntityAService implements IEntityAService, IInitializingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -39,25 +38,21 @@ public class EntityAService implements IEntityAService, IInitializingBean
 	private IEntityAService entityAService;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(entityAService, "entityAService");
 	}
 
-	public void setEntityAService(IEntityAService entityAService)
-	{
+	public void setEntityAService(IEntityAService entityAService) {
 		this.entityAService = entityAService;
 	}
 
 	@Override
-	public void save(EntityA entity)
-	{
+	public void save(EntityA entity) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void removeAndReSetEntityD(EntityA entity)
-	{
+	public void removeAndReSetEntityD(EntityA entity) {
 		EntityD entityD = entity.getEntityD();
 		entityD.getId();
 		entity.setEntityD(null);

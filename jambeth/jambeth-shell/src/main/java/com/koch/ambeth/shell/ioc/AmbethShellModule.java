@@ -34,15 +34,15 @@ import com.koch.ambeth.shell.core.ShellContext;
 import com.koch.ambeth.shell.core.ShellContextImpl;
 import com.koch.ambeth.shell.core.command.CoreCommandModule;
 
-public class AmbethShellModule implements IInitializingModule
-{
+public class AmbethShellModule implements IInitializingModule {
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory bcf) throws Throwable
-	{
+	public void afterPropertiesSet(IBeanContextFactory bcf) throws Throwable {
 		bcf.registerBean(CoreCommandModule.class);
 
-		bcf.registerBean(AmbethShellImpl.class).autowireable(AmbethShell.class, AmbethShellIntern.class, CommandBindingExtendable.class);
-		bcf.registerBean(AmbethShellStarter.class).autowireable(AmbethShellStarter.class).precedence(PrecedenceType.LOWEST);
+		bcf.registerBean(AmbethShellImpl.class).autowireable(AmbethShell.class, AmbethShellIntern.class,
+				CommandBindingExtendable.class);
+		bcf.registerBean(AmbethShellStarter.class).autowireable(AmbethShellStarter.class)
+				.precedence(PrecedenceType.LOWEST);
 		bcf.registerBean(CommandScanner.class);
 		bcf.registerBean(ShellContextImpl.class).autowireable(ShellContext.class);
 		bcf.registerBean(CommandExtensionImpl.class).autowireable(CommandExtensionExtendable.class);

@@ -34,8 +34,7 @@ import com.koch.ambeth.service.proxy.Service;
 
 @Service(IProjectService.class)
 @PersistenceContext
-public class ProjectService implements IProjectService, IStartingBean
-{
+public class ProjectService implements IProjectService, IStartingBean {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -48,38 +47,34 @@ public class ProjectService implements IProjectService, IStartingBean
 	protected IQuery<Project> queryProjectByName;
 
 	@Override
-	public void afterStarted() throws Throwable
-	{
+	public void afterStarted() throws Throwable {
 		{
 			queryProjectAll = queryBuilderFactory.create(Project.class).build();
 		}
 		{
 			IQueryBuilder<Project> qb = queryBuilderFactory.create(Project.class);
-			queryProjectByName = qb.build(qb.isEqualTo(qb.property(Project.Name), qb.valueName(Project.Name)));
+			queryProjectByName =
+					qb.build(qb.isEqualTo(qb.property(Project.Name), qb.valueName(Project.Name)));
 		}
 	}
 
 	@Override
-	public List<Project> getAllProjects()
-	{
+	public List<Project> getAllProjects() {
 		return queryProjectAll.retrieve();
 	}
 
 	@Override
-	public Project getProjectByName(String name)
-	{
+	public Project getProjectByName(String name) {
 		return queryProjectByName.param(Project.Name, name).retrieveSingle();
 	}
 
 	@Override
-	public void saveProject(Project project)
-	{
+	public void saveProject(Project project) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void deleteProject(Project project)
-	{
+	public void deleteProject(Project project) {
 		throw new UnsupportedOperationException();
 	}
 }

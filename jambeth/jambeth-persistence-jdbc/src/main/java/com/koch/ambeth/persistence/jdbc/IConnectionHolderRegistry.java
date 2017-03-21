@@ -23,7 +23,6 @@ limitations under the License.
 import com.koch.ambeth.persistence.IConnectionHolder;
 import com.koch.ambeth.util.collections.ILinkedMap;
 
-public interface IConnectionHolderRegistry
-{
+public interface IConnectionHolderRegistry {
 	ILinkedMap<Object, IConnectionHolder> getPersistenceUnitToConnectionHolderMap();
 }

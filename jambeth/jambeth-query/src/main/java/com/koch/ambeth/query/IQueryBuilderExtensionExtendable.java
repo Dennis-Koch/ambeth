@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface IQueryBuilderExtensionExtendable
-{
+public interface IQueryBuilderExtensionExtendable {
 	void registerQueryBuilderExtension(IQueryBuilderExtension queryBuilderExtension);
 
 	void unregisterQueryBuilderExtension(IQueryBuilderExtension queryBuilderExtension);

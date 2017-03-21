@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-public interface IPropertyInfoIntern extends IPropertyInfo
-{
+public interface IPropertyInfoIntern extends IPropertyInfo {
 	void setElementType(Class<?> elementType);
 }

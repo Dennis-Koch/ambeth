@@ -40,8 +40,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.koch.ambeth.ObjectMother;
-import com.koch.ambeth.cache.ChildCache;
-import com.koch.ambeth.cache.IRootCache;
 import com.koch.ambeth.cache.AbstractCacheTest.AbstractCacheTestModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.IEntityFactory;
@@ -67,11 +65,11 @@ import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/model/material-materialgroup-unit-orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/model/material-materialgroup-unit-orm.xml")
 @TestFrameworkModule(AbstractCacheTestModule.class)
 @TestRebuildContext
-public class ChildCacheTest extends AbstractInformationBusTest
-{
+public class ChildCacheTest extends AbstractInformationBusTest {
 	protected ChildCache childCache;
 
 	@Autowired
@@ -93,8 +91,7 @@ public class ChildCacheTest extends AbstractInformationBusTest
 	protected IProxyHelper proxyHelper;
 
 	@Before
-	public void setUp() throws Exception
-	{
+	public void setUp() throws Exception {
 		childCache = beanContext.registerBean(ChildCache.class)//
 				.propertyValue("Parent", parent)//
 				.propertyValue("Privileged", Boolean.FALSE)//
@@ -102,36 +99,32 @@ public class ChildCacheTest extends AbstractInformationBusTest
 	}
 
 	@After
-	public void tearDown() throws Exception
-	{
+	public void tearDown() throws Exception {
 		childCache = null;
 	}
 
 	@Test
-	public void testAfterPropertiesSet()
-	{
+	public void testAfterPropertiesSet() {
 		childCache.afterPropertiesSet();
 	}
 
 	@Test
-	public void testSize()
-	{
+	public void testSize() {
 		assertEquals(0, childCache.size());
 
 		parent.put(ObjectMother.getNewMaterial(entityFactory, 1, 1, "Manual material"));
 
 		assertEquals(0, childCache.size());
 
-		childCache.getObject(new ObjRef(Material.class, 1, 1), Collections.<CacheDirective> emptySet());
+		childCache.getObject(new ObjRef(Material.class, 1, 1), Collections.<CacheDirective>emptySet());
 		assertEquals(1, childCache.size());
 	}
 
 	@Test
-	public void testClear()
-	{
+	public void testClear() {
 		parent.put(ObjectMother.getNewMaterial(entityFactory, 1, 1, "Manual material"));
 
-		childCache.getObject(new ObjRef(Material.class, 1, 1), Collections.<CacheDirective> emptySet());
+		childCache.getObject(new ObjRef(Material.class, 1, 1), Collections.<CacheDirective>emptySet());
 		assertEquals(1, childCache.size());
 
 		childCache.clear();
@@ -139,18 +132,16 @@ public class ChildCacheTest extends AbstractInformationBusTest
 	}
 
 	@Test
-	public void testGetContent()
-	{
+	public void testGetContent() {
 		Material material = ObjectMother.getNewMaterial(entityFactory, 1, 1, "Manual material");
 		parent.put(material);
 		final AtomicInteger size = new AtomicInteger(0);
-		final AtomicReference<List<Object>> content = new AtomicReference<List<Object>>(new ArrayList<Object>());
+		final AtomicReference<List<Object>> content =
+				new AtomicReference<List<Object>>(new ArrayList<>());
 
-		HandleContentDelegate delegate = new HandleContentDelegate()
-		{
+		HandleContentDelegate delegate = new HandleContentDelegate() {
 			@Override
-			public void invoke(Class<?> entityType, byte idIndex, Object id, Object value)
-			{
+			public void invoke(Class<?> entityType, byte idIndex, Object id, Object value) {
 				size.getAndIncrement();
 				content.get().add(value);
 			}
@@ -160,7 +151,7 @@ public class ChildCacheTest extends AbstractInformationBusTest
 		assertEquals(0, size.get());
 		assertEquals(0, content.get().size());
 
-		childCache.getObject(new ObjRef(Material.class, 1, 1), Collections.<CacheDirective> emptySet());
+		childCache.getObject(new ObjRef(Material.class, 1, 1), Collections.<CacheDirective>emptySet());
 		childCache.getContent(delegate);
 		assertEquals(1, size.get());
 		assertEquals(1, content.get().size());
@@ -169,24 +160,22 @@ public class ChildCacheTest extends AbstractInformationBusTest
 
 	@Test
 	@Ignore
-	public void testGetCurrent()
-	{
+	public void testGetCurrent() {
 		fail("Not yet implemented"); // TODO
 	}
 
 	@Test
-	public void testGetObjectsListOfIObjRefSetOfCacheDirective()
-	{
+	public void testGetObjectsListOfIObjRefSetOfCacheDirective() {
 		assertNotNull(childCache.getObjects((List<IObjRef>) null, null));
 		assertNotNull(childCache.getObjects((List<IObjRef>) null, CacheDirective.none()));
 
-		List<IObjRef> orisToGet = new ArrayList<IObjRef>();
-		assertTrue(childCache.getObjects(orisToGet, Collections.<CacheDirective> emptySet()).isEmpty());
+		List<IObjRef> orisToGet = new ArrayList<>();
+		assertTrue(childCache.getObjects(orisToGet, Collections.<CacheDirective>emptySet()).isEmpty());
 
 		orisToGet.add(new ObjRef(Material.class, 1, 1));
 
 		assertTrue(childCache.getObjects(orisToGet, CacheDirective.failEarly()).isEmpty());
-		assertTrue(childCache.getObjects(orisToGet, Collections.<CacheDirective> emptySet()).isEmpty());
+		assertTrue(childCache.getObjects(orisToGet, Collections.<CacheDirective>emptySet()).isEmpty());
 
 		IList<Object> actual = childCache.getObjects(orisToGet, CacheDirective.returnMisses());
 		assertEquals(1, actual.size());
@@ -203,19 +192,18 @@ public class ChildCacheTest extends AbstractInformationBusTest
 	}
 
 	@Test
-	public void testGetObjectsListOfIObjRefICacheInternSetOfCacheDirective()
-	{
+	public void testGetObjectsListOfIObjRefICacheInternSetOfCacheDirective() {
 		List<IObjRef> orisToGet;
 
 		assertNotNull(childCache.getObjects((List<IObjRef>) null, null));
 		assertNotNull(childCache.getObjects((List<IObjRef>) null, CacheDirective.none()));
 
-		orisToGet = new ArrayList<IObjRef>();
-		assertTrue(childCache.getObjects(orisToGet, Collections.<CacheDirective> emptySet()).isEmpty());
+		orisToGet = new ArrayList<>();
+		assertTrue(childCache.getObjects(orisToGet, Collections.<CacheDirective>emptySet()).isEmpty());
 
 		orisToGet.add(new ObjRef(Material.class, 1, 1));
 		assertTrue(childCache.getObjects(orisToGet, CacheDirective.failEarly()).isEmpty());
-		assertTrue(childCache.getObjects(orisToGet, Collections.<CacheDirective> emptySet()).isEmpty());
+		assertTrue(childCache.getObjects(orisToGet, Collections.<CacheDirective>emptySet()).isEmpty());
 		IList<Object> actual = childCache.getObjects(orisToGet, CacheDirective.returnMisses());
 		assertEquals(1, actual.size());
 		assertNull(actual.get(0));
@@ -231,8 +219,7 @@ public class ChildCacheTest extends AbstractInformationBusTest
 	}
 
 	@Test
-	public void testGetCacheValue()
-	{
+	public void testGetCacheValue() {
 		Material material1 = ObjectMother.getNewMaterial(entityFactory, 1, 1, "Material 1");
 		Material material2 = ObjectMother.getNewMaterial(entityFactory, 2, 1, "Material 2");
 
@@ -256,14 +243,13 @@ public class ChildCacheTest extends AbstractInformationBusTest
 	}
 
 	@Test
-	public void testAddDirect()
-	{
+	public void testAddDirect() {
 		IEntityMetaData metaData = childCache.entityMetaDataProvider.getMetaData(Material.class);
 
 		Object id = 2;
 		Object version = 1;
 		IObjRefContainer vhc = (IObjRefContainer) entityFactory.createEntity(Material.class);
-		IObjRef[][] relations = new IObjRef[][] { {}, {} };
+		IObjRef[][] relations = new IObjRef[][] {{}, {}};
 
 		Object[] primitives = cacheHelper.extractPrimitives(metaData, vhc);
 		assertNull(childCache.getCacheValue(metaData, ObjRef.PRIMARY_KEY_INDEX, id));
@@ -276,7 +262,7 @@ public class ChildCacheTest extends AbstractInformationBusTest
 		assertTrue(!vhc.is__Initialized(unitIndex));
 		assertTrue(vhc.get__ObjRefs(unitIndex).length == 0);
 
-		relations[unitIndex] = new IObjRef[] { new ObjRef(Unit.class, 4, 2) };
+		relations[unitIndex] = new IObjRef[] {new ObjRef(Unit.class, 4, 2)};
 		childCache.addDirect(metaData, id, version, vhc, primitives, relations);
 		actual = childCache.getCacheValue(metaData, ObjRef.PRIMARY_KEY_INDEX, id);
 		assertNotNull(actual);
@@ -286,36 +272,32 @@ public class ChildCacheTest extends AbstractInformationBusTest
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testAddDirect_noId()
-	{
+	public void testAddDirect_noId() {
 		IEntityMetaData metaData = childCache.entityMetaDataProvider.getMetaData(Material.class);
 
 		Object id = null;
 		Object version = 1;
 		Material primitiveFilledObject = entityFactory.createEntity(Material.class);
-		IObjRef[][] relations = new IObjRef[][] { {}, {} };
+		IObjRef[][] relations = new IObjRef[][] {{}, {}};
 		Object[] primitives = cacheHelper.extractPrimitives(metaData, primitiveFilledObject);
 
 		childCache.addDirect(metaData, id, version, primitiveFilledObject, primitives, relations);
 	}
 
 	@Test(expected = RuntimeException.class)
-	public void testAddDirect_noWrongInstance()
-	{
+	public void testAddDirect_noWrongInstance() {
 		IEntityMetaData metaData = childCache.entityMetaDataProvider.getMetaData(Material.class);
 
 		Object id = 2;
 		Object version = 1;
 		Object primitiveFilledObject = entityFactory.createEntity(Material.class);
-		IObjRef[][] relations = new IObjRef[][] { {}, {} };
+		IObjRef[][] relations = new IObjRef[][] {{}, {}};
 		Object[] primitives = cacheHelper.extractPrimitives(metaData, primitiveFilledObject);
 
-		try
-		{
+		try {
 			childCache.addDirect(metaData, id, version, primitiveFilledObject, primitives, relations);
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			fail("Thrown to soon!");
 		}
 		Material otherMaterial = entityFactory.createEntity(Material.class);
@@ -325,12 +307,12 @@ public class ChildCacheTest extends AbstractInformationBusTest
 
 	@Ignore(value = "Method is never actually used!")
 	@Test
-	public void testPutIntern()
-	{
+	public void testPutIntern() {
 		Object objectToCache = null;
-		IdentityHashSet<Object> alreadyHandledSet = new IdentityHashSet<Object>();
+		IdentityHashSet<Object> alreadyHandledSet = new IdentityHashSet<>();
 
-		childCache.putIntern(objectToCache, new ArrayList<Object>(), alreadyHandledSet, new HashSet<IObjRef>());
+		childCache.putIntern(objectToCache, new ArrayList<>(), alreadyHandledSet,
+				new HashSet<IObjRef>());
 		assertEquals(0, alreadyHandledSet.size());
 
 		objectToCache = ObjectMother.getNewMaterial(entityFactory, 5, 2, "testPutIntern");
@@ -342,30 +324,26 @@ public class ChildCacheTest extends AbstractInformationBusTest
 
 	@Ignore(value = "Method is never actually used!")
 	@Test(expected = IllegalArgumentException.class)
-	public void testPutIntern_noId()
-	{
+	public void testPutIntern_noId() {
 		Object objectToCache = ObjectMother.getNewMaterial(entityFactory, null, 2, "testPutIntern");
-		IdentityHashSet<Object> alreadyHandledSet = new IdentityHashSet<Object>();
+		IdentityHashSet<Object> alreadyHandledSet = new IdentityHashSet<>();
 
-		try
-		{
-			childCache.putIntern(objectToCache, new ArrayList<Object>(), alreadyHandledSet, new HashSet<IObjRef>());
+		try {
+			childCache.putIntern(objectToCache, new ArrayList<>(), alreadyHandledSet,
+					new HashSet<IObjRef>());
 		}
-		catch (IllegalArgumentException e)
-		{
+		catch (IllegalArgumentException e) {
 			assertEquals(1, alreadyHandledSet.size());
 			throw e;
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			e.printStackTrace();
 			fail("Wrong exception thrown!");
 		}
 	}
 
 	@Test
-	public void testRemoveIObjRef()
-	{
+	public void testRemoveIObjRef() {
 		Material material1 = ObjectMother.getNewMaterial(entityFactory, 5, 3, "testRemoveIObjRef 1");
 		Material material2 = ObjectMother.getNewMaterial(entityFactory, 54, 1, "testRemoveIObjRef 2");
 		IObjRef ori1 = oriHelper.entityToObjRef(material1);
@@ -373,13 +351,13 @@ public class ChildCacheTest extends AbstractInformationBusTest
 
 		parent.put(material1);
 		parent.put(material2);
-		assertNotNull(childCache.getObject(ori1, Collections.<CacheDirective> emptySet()));
-		assertNotNull(childCache.getObject(ori2, Collections.<CacheDirective> emptySet()));
+		assertNotNull(childCache.getObject(ori1, Collections.<CacheDirective>emptySet()));
+		assertNotNull(childCache.getObject(ori2, Collections.<CacheDirective>emptySet()));
 		assertEquals(2, childCache.keyToCacheValueDict.size());
 
 		childCache.remove(ori1);
 		assertEquals(1, childCache.keyToCacheValueDict.size());
-		assertNotNull(childCache.getObject(ori1, Collections.<CacheDirective> emptySet()));
+		assertNotNull(childCache.getObject(ori1, Collections.<CacheDirective>emptySet()));
 		assertEquals(2, childCache.keyToCacheValueDict.size());
 
 		childCache.remove(ori1);
@@ -393,8 +371,7 @@ public class ChildCacheTest extends AbstractInformationBusTest
 	}
 
 	@Test
-	public void testRemoveClassOfQObject()
-	{
+	public void testRemoveClassOfQObject() {
 		Material material1 = ObjectMother.getNewMaterial(entityFactory, 5, 3, "testRemoveIObjRef 1");
 		Material material2 = ObjectMother.getNewMaterial(entityFactory, 54, 1, "testRemoveIObjRef 2");
 		IObjRef ori1 = oriHelper.entityToObjRef(material1);
@@ -402,13 +379,13 @@ public class ChildCacheTest extends AbstractInformationBusTest
 
 		parent.put(material1);
 		parent.put(material2);
-		assertNotNull(childCache.getObject(ori1, Collections.<CacheDirective> emptySet()));
-		assertNotNull(childCache.getObject(ori2, Collections.<CacheDirective> emptySet()));
+		assertNotNull(childCache.getObject(ori1, Collections.<CacheDirective>emptySet()));
+		assertNotNull(childCache.getObject(ori2, Collections.<CacheDirective>emptySet()));
 		assertEquals(2, childCache.keyToCacheValueDict.size());
 
 		childCache.remove(material1.getClass(), material1.getId());
 		assertEquals(1, childCache.keyToCacheValueDict.size());
-		assertNotNull(childCache.getObject(ori1, Collections.<CacheDirective> emptySet()));
+		assertNotNull(childCache.getObject(ori1, Collections.<CacheDirective>emptySet()));
 		assertEquals(2, childCache.keyToCacheValueDict.size());
 
 		childCache.remove(material1.getClass(), material1.getId());
@@ -422,9 +399,8 @@ public class ChildCacheTest extends AbstractInformationBusTest
 	}
 
 	@Test
-	public void testRemoveListOfIObjRef()
-	{
-		List<IObjRef> oris = Collections.<IObjRef> emptyList();
+	public void testRemoveListOfIObjRef() {
+		List<IObjRef> oris = Collections.<IObjRef>emptyList();
 		childCache.remove(oris);
 		assertEquals(0, childCache.keyToCacheValueDict.size());
 
@@ -435,15 +411,15 @@ public class ChildCacheTest extends AbstractInformationBusTest
 		IObjRef ori2 = oriHelper.entityToObjRef(material2);
 		IObjRef ori3 = oriHelper.entityToObjRef(material3);
 		IObjRef ori4 = new ObjRef(Unit.class, 57, 3);
-		oris = new ArrayList<IObjRef>(Arrays.asList(ori1, ori2, ori4));
+		oris = new ArrayList<>(Arrays.asList(ori1, ori2, ori4));
 
 		parent.put(material1);
 		parent.put(material2);
 		parent.put(material3);
-		assertNotNull(childCache.getObject(ori1, Collections.<CacheDirective> emptySet()));
-		assertNotNull(childCache.getObject(ori2, Collections.<CacheDirective> emptySet()));
-		assertNotNull(childCache.getObject(ori3, Collections.<CacheDirective> emptySet()));
-		assertNull(childCache.getObject(ori4, Collections.<CacheDirective> emptySet()));
+		assertNotNull(childCache.getObject(ori1, Collections.<CacheDirective>emptySet()));
+		assertNotNull(childCache.getObject(ori2, Collections.<CacheDirective>emptySet()));
+		assertNotNull(childCache.getObject(ori3, Collections.<CacheDirective>emptySet()));
+		assertNull(childCache.getObject(ori4, Collections.<CacheDirective>emptySet()));
 		assertEquals(3, childCache.keyToCacheValueDict.size());
 
 		childCache.remove(oris);
@@ -451,14 +427,12 @@ public class ChildCacheTest extends AbstractInformationBusTest
 	}
 
 	@Test
-	public void testGetReadLock()
-	{
+	public void testGetReadLock() {
 		assertTrue(parent.getReadLock() != childCache.getReadLock());
 	}
 
 	@Test
-	public void testGetWriteLock()
-	{
+	public void testGetWriteLock() {
 		assertTrue(parent.getWriteLock() != childCache.getWriteLock());
 	}
 }

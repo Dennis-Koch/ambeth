@@ -46,11 +46,13 @@ import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 
 @SQLStructure("Master_Detail_structure.sql")
-@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true"),
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = MasterDetailTest.basePath + "master-detail-orm.xml"),
-		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile, value = MasterDetailTest.basePath + "master-detail-value-object.xml") })
-public class MasterDetailTest extends AbstractInformationBusWithPersistenceTest
-{
+@TestPropertiesList({
+		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+				value = MasterDetailTest.basePath + "master-detail-orm.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile,
+				value = MasterDetailTest.basePath + "master-detail-value-object.xml")})
+public class MasterDetailTest extends AbstractInformationBusWithPersistenceTest {
 	public static final String basePath = "com/koch/ambeth/persistence/jdbc/mapping/";
 
 	@Autowired
@@ -62,25 +64,22 @@ public class MasterDetailTest extends AbstractInformationBusWithPersistenceTest
 	private IMapperService mapperService;
 
 	@Before
-	public void setUp() throws Exception
-	{
+	public void setUp() throws Exception {
 		mapperService = mapperServiceFactory.create();
 	}
 
 	@After
-	public void tearDown() throws Exception
-	{
+	public void tearDown() throws Exception {
 		mapperService.dispose();
 		mapperService = null;
 	}
 
 	@Test
-	public void testNewVOs()
-	{
+	public void testNewVOs() {
 		MasterVO masterVO = new MasterVO();
 		masterVO.setDetails(new DetailListVO());
-		masterVO.getDetails().getDetails()
-				.addAll(Arrays.asList(new DetailVO(), new DetailVO(), new DetailVO(), new DetailVO(), new DetailVO(), new DetailVO()));
+		masterVO.getDetails().getDetails().addAll(Arrays.asList(new DetailVO(), new DetailVO(),
+				new DetailVO(), new DetailVO(), new DetailVO(), new DetailVO()));
 
 		Master masterBO = mapperService.mapToBusinessObject(masterVO);
 		assertNotNull(masterBO);
@@ -90,11 +89,11 @@ public class MasterDetailTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test
-	public void testNewBOs()
-	{
+	public void testNewBOs() {
 		Master masterBO = entityFactory.createEntity(Master.class);
-		masterBO.setDetails(Arrays.asList(entityFactory.createEntity(Detail.class), entityFactory.createEntity(Detail.class),
-				entityFactory.createEntity(Detail.class), entityFactory.createEntity(Detail.class), entityFactory.createEntity(Detail.class),
+		masterBO.setDetails(Arrays.asList(entityFactory.createEntity(Detail.class),
+				entityFactory.createEntity(Detail.class), entityFactory.createEntity(Detail.class),
+				entityFactory.createEntity(Detail.class), entityFactory.createEntity(Detail.class),
 				entityFactory.createEntity(Detail.class)));
 
 		MasterVO masterVO = mapperService.mapToValueObject(masterBO, MasterVO.class);
@@ -103,10 +102,10 @@ public class MasterDetailTest extends AbstractInformationBusWithPersistenceTest
 	}
 
 	@Test()
-	public void testExistingVOs()
-	{
-		List<Detail> detailBOs = Arrays.asList(entityFactory.createEntity(Detail.class), entityFactory.createEntity(Detail.class),
-				entityFactory.createEntity(Detail.class), entityFactory.createEntity(Detail.class), entityFactory.createEntity(Detail.class),
+	public void testExistingVOs() {
+		List<Detail> detailBOs = Arrays.asList(entityFactory.createEntity(Detail.class),
+				entityFactory.createEntity(Detail.class), entityFactory.createEntity(Detail.class),
+				entityFactory.createEntity(Detail.class), entityFactory.createEntity(Detail.class),
 				entityFactory.createEntity(Detail.class));
 		Master masterBO_orig = entityFactory.createEntity(Master.class);
 		masterBO_orig.setDetails(detailBOs);
@@ -123,8 +122,7 @@ public class MasterDetailTest extends AbstractInformationBusWithPersistenceTest
 
 		List<MasterVO> masterVOs = Arrays.asList(masterVO1, masterVO2);
 
-		for (int i = 0, size = detailBOs.size(); i < size; i++)
-		{
+		for (int i = 0, size = detailBOs.size(); i < size; i++) {
 			Detail detailBO = detailBOs.get(i);
 			DetailVO detailVO = new DetailVO();
 

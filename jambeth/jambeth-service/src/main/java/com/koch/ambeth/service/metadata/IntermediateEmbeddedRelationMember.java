@@ -22,8 +22,8 @@ limitations under the License.
 
 import java.lang.annotation.Annotation;
 
-public class IntermediateEmbeddedRelationMember extends IntermediateRelationMember implements IEmbeddedMember
-{
+public class IntermediateEmbeddedRelationMember extends IntermediateRelationMember
+		implements IEmbeddedMember {
 	protected final Member[] memberPath;
 
 	protected final Member childMember;
@@ -32,49 +32,42 @@ public class IntermediateEmbeddedRelationMember extends IntermediateRelationMemb
 
 	protected final String memberPathString;
 
-	public IntermediateEmbeddedRelationMember(Class<?> entityType, Class<?> realType, Class<?> elementType, String propertyName, Member[] memberPath,
-			Member childMember)
-	{
+	public IntermediateEmbeddedRelationMember(Class<?> entityType, Class<?> realType,
+			Class<?> elementType, String propertyName, Member[] memberPath, Member childMember) {
 		super(entityType, entityType, realType, elementType, propertyName, null);
 		this.memberPath = memberPath;
 		this.childMember = childMember;
-		this.memberPathToken = EmbeddedMember.buildMemberPathToken(memberPath);
-		this.memberPathString = EmbeddedMember.buildMemberPathString(memberPath);
+		memberPathToken = EmbeddedMember.buildMemberPathToken(memberPath);
+		memberPathString = EmbeddedMember.buildMemberPathString(memberPath);
 	}
 
 	@Override
-	public boolean isToMany()
-	{
+	public boolean isToMany() {
 		return childMember.isToMany();
 	}
 
 	@Override
-	public <V extends Annotation> V getAnnotation(Class<V> annotationType)
-	{
+	public <V extends Annotation> V getAnnotation(Class<V> annotationType) {
 		return childMember.getAnnotation(annotationType);
 	}
 
 	@Override
-	public Member[] getMemberPath()
-	{
+	public Member[] getMemberPath() {
 		return memberPath;
 	}
 
 	@Override
-	public String getMemberPathString()
-	{
+	public String getMemberPathString() {
 		return memberPathString;
 	}
 
 	@Override
-	public String[] getMemberPathToken()
-	{
+	public String[] getMemberPathToken() {
 		return memberPathToken;
 	}
 
 	@Override
-	public Member getChildMember()
-	{
+	public Member getChildMember() {
 		return childMember;
 	}
 }

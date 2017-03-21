@@ -46,7 +46,7 @@ public class HttpSessionBean
 	protected IProxyFactory proxyFactory;
 
 	@Forkable
-	protected final ThreadLocal<HttpSession> httpSessionStackTL = new ThreadLocal<HttpSession>();
+	protected final ThreadLocal<HttpSession> httpSessionStackTL = new ThreadLocal<>();
 
 	protected Object obj;
 

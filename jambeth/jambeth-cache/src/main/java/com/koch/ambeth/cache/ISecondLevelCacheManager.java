@@ -20,8 +20,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ISecondLevelCacheManager
-{
+public interface ISecondLevelCacheManager {
 	IRootCache selectSecondLevelCache();
 
 	IRootCache selectPrivilegedSecondLevelCache(boolean forceInstantiation);

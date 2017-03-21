@@ -29,12 +29,10 @@ import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.config.IProperties;
 
-public abstract class AbstractPropertyConfiguration implements IPropertyConfiguration
-{
-	protected static final LinkedHashSet<String> ignoreClassNames = new LinkedHashSet<String>(0.5f);
+public abstract class AbstractPropertyConfiguration implements IPropertyConfiguration {
+	protected static final LinkedHashSet<String> ignoreClassNames = new LinkedHashSet<>(0.5f);
 
-	static
-	{
+	static {
 		ignoreClassNames.add(Thread.class.getName());
 		ignoreClassNames.add(AbstractPropertyConfiguration.class.getName());
 		ignoreClassNames.add(BeanContextFactory.class.getName());
@@ -46,68 +44,55 @@ public abstract class AbstractPropertyConfiguration implements IPropertyConfigur
 		ignoreClassNames.addAll(AbstractBeanConfiguration.ignoreClassNames);
 	}
 
-	public static StackTraceElement[] getCurrentStackTraceCompact()
-	{
+	public static StackTraceElement[] getCurrentStackTraceCompact() {
 		return getCurrentStackTraceCompact(null);
 	}
 
-	public static StackTraceElement[] getCurrentStackTraceCompact(Set<String> ignoreClassNames, IProperties props)
-	{
-		if (props == null || !Boolean.parseBoolean(props.getString(IocConfigurationConstants.TrackDeclarationTrace, "false")))
-		{
+	public static StackTraceElement[] getCurrentStackTraceCompact(Set<String> ignoreClassNames,
+			IProperties props) {
+		if (props == null || !Boolean
+				.parseBoolean(props.getString(IocConfigurationConstants.TrackDeclarationTrace, "false"))) {
 			return null;
 		}
 		return getCurrentStackTraceCompact(ignoreClassNames);
 	}
 
-	public static StackTraceElement[] getCurrentStackTraceCompact(Set<String> ignoreClassNames)
-	{
+	public static StackTraceElement[] getCurrentStackTraceCompact(Set<String> ignoreClassNames) {
 		StackTraceElement[] stes = Thread.currentThread().getStackTrace();
 		int start = 0, end = stes.length;
-		if (ignoreClassNames != null && ignoreClassNames.size() > 0)
-		{
-			for (int a = 0, size = stes.length; a < size; a++)
-			{
+		if (ignoreClassNames != null && ignoreClassNames.size() > 0) {
+			for (int a = 0, size = stes.length; a < size; a++) {
 				StackTraceElement ste = stes[a];
-				if (!ignoreClassNames.contains(ste.getClassName()))
-				{
+				if (!ignoreClassNames.contains(ste.getClassName())) {
 					start = a;
 					break;
 				}
 			}
 		}
 		StringBuilder sb = new StringBuilder();
-		for (int a = start, size = stes.length; a < size; a++)
-		{
+		for (int a = start, size = stes.length; a < size; a++) {
 			StackTraceElement ste = stes[a];
-			if (ste.getClassName().startsWith("org.eclipse.jdt"))
-			{
+			if (ste.getClassName().startsWith("org.eclipse.jdt")) {
 				end = a;
 				break;
 			}
-			if (a != start)
-			{
+			if (a != start) {
 				sb.append('\n');
 			}
 			sb.append(ste.getClassName()).append('.').append(ste.getMethodName());
-			if (ste.isNativeMethod())
-			{
+			if (ste.isNativeMethod()) {
 				sb.append("(Native Method)");
 			}
-			else if (ste.getFileName() != null)
-			{
+			else if (ste.getFileName() != null) {
 				sb.append('(').append(ste.getFileName());
-				if (ste.getLineNumber() >= 0)
-				{
+				if (ste.getLineNumber() >= 0) {
 					sb.append(':').append(ste.getLineNumber()).append(')');
 				}
-				else
-				{
+				else {
 					sb.append(')');
 				}
 			}
-			else
-			{
+			else {
 				sb.append("(Unknown Source)");
 			}
 			sb.append(ste);
@@ -119,22 +104,19 @@ public abstract class AbstractPropertyConfiguration implements IPropertyConfigur
 
 	protected IBeanConfiguration beanConfiguration;
 
-	public AbstractPropertyConfiguration(IBeanConfiguration beanConfiguration, IProperties props)
-	{
+	public AbstractPropertyConfiguration(IBeanConfiguration beanConfiguration, IProperties props) {
 		this.beanConfiguration = beanConfiguration;
 		ParamChecker.assertParamNotNull(beanConfiguration, "beanConfiguration");
 		declarationStackTrace = getCurrentStackTraceCompact(ignoreClassNames, props);
 	}
 
 	@Override
-	public IBeanConfiguration getBeanConfiguration()
-	{
+	public IBeanConfiguration getBeanConfiguration() {
 		return beanConfiguration;
 	}
 
 	@Override
-	public StackTraceElement[] getDeclarationStackTrace()
-	{
+	public StackTraceElement[] getDeclarationStackTrace() {
 		return declarationStackTrace;
 	}
 }

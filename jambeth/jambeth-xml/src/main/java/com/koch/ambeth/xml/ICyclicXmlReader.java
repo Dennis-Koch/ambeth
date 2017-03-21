@@ -24,8 +24,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.nio.channels.ReadableByteChannel;
 
-public interface ICyclicXmlReader
-{
+public interface ICyclicXmlReader {
 	Object read(String cyclicXmlContent);
 
 	Object readFromStream(InputStream is);

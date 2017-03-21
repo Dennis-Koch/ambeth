@@ -35,8 +35,7 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 
-public class CacheMapEntryBehavior extends AbstractBehavior
-{
+public class CacheMapEntryBehavior extends AbstractBehavior {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -45,12 +44,11 @@ public class CacheMapEntryBehavior extends AbstractBehavior
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors)
-	{
+	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+			List<IBytecodeBehavior> remainingPendingBehaviors,
+			List<IBytecodeBehavior> cascadePendingBehaviors) {
 		final CacheMapEntryEnhancementHint hint = state.getContext(CacheMapEntryEnhancementHint.class);
-		if (hint == null)
-		{
+		if (hint == null) {
 			return visitor;
 		}
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(hint.getEntityType());

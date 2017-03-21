@@ -22,6 +22,5 @@ limitations under the License.
 
 import com.koch.ambeth.model.AbstractEntity;
 
-public class DetailVO extends AbstractEntity
-{
+public class DetailVO extends AbstractEntity {
 }

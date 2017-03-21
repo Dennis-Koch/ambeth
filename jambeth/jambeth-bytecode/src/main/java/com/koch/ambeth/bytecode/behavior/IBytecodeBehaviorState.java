@@ -28,8 +28,7 @@ import com.koch.ambeth.bytecode.PropertyInstance;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.bytecode.IEnhancementHint;
 
-public interface IBytecodeBehaviorState
-{
+public interface IBytecodeBehaviorState {
 	Class<?> getOriginalType();
 
 	Class<?> getCurrentType();

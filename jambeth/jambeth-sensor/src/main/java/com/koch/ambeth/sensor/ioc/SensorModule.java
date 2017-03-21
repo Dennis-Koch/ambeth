@@ -32,17 +32,17 @@ import com.koch.ambeth.util.sensor.ISensorProvider;
 import com.koch.ambeth.util.sensor.ISensorReceiverExtendable;
 
 @FrameworkModule
-public class SensorModule implements IInitializingModule
-{
+public class SensorModule implements IInitializingModule {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-	{
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 		Object sensorProvider = beanContextFactory.registerBean("sensorProvider", SensorProvider.class)
-				.autowireable(ISensorProvider.class, ISensorReceiverExtendable.class).precedence(PrecedenceType.HIGHEST).getInstance();
-		beanContextFactory.registerBean(SensorPreProcessor.class).propertyValue("SensorProvider", sensorProvider);
+				.autowireable(ISensorProvider.class, ISensorReceiverExtendable.class)
+				.precedence(PrecedenceType.HIGHEST).getInstance();
+		beanContextFactory.registerBean(SensorPreProcessor.class).propertyValue("SensorProvider",
+				sensorProvider);
 	}
 }

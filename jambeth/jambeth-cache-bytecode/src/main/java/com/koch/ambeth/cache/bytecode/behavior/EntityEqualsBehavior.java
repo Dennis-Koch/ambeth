@@ -42,8 +42,7 @@ import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.annotation.EntityEqualsAspect;
 
-public class EntityEqualsBehavior extends AbstractBehavior
-{
+public class EntityEqualsBehavior extends AbstractBehavior {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -52,29 +51,26 @@ public class EntityEqualsBehavior extends AbstractBehavior
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Override
-	public Class<?>[] getEnhancements()
-	{
-		return new Class<?>[] { IEntityEquals.class };
+	public Class<?>[] getEnhancements() {
+		return new Class<?>[] {IEntityEquals.class};
 	}
 
 	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors)
-	{
-		if (state.getContext(EntityEnhancementHint.class) == null)
-		{
+	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
+			List<IBytecodeBehavior> remainingPendingBehaviors,
+			List<IBytecodeBehavior> cascadePendingBehaviors) {
+		if (state.getContext(EntityEnhancementHint.class) == null) {
 			return visitor;
 		}
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(state.getOriginalType(), true);
-		if (metaData == null)
-		{
+		if (metaData == null) {
 			return visitor;
 		}
-		if (!isAnnotationPresent(state.getCurrentType(), EntityEqualsAspect.class))
-		{
+		if (!isAnnotationPresent(state.getCurrentType(), EntityEqualsAspect.class)) {
 			return visitor;
 		}
-		visitor = new InterfaceAdder(visitor, Type.getInternalName(IEntityEquals.class), Type.getInternalName(IPrintable.class));
+		visitor = new InterfaceAdder(visitor, Type.getInternalName(IEntityEquals.class),
+				Type.getInternalName(IPrintable.class));
 		visitor = new GetIdMethodCreator(visitor, metaData);
 		visitor = new GetBaseTypeMethodCreator(visitor);
 		visitor = new EntityEqualsVisitor(visitor);
