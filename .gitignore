@@ -11,6 +11,7 @@
 *.testsettings
 *.vsmdi
 ambeth-log.txt
+LICENSE.txt
 
 /*/target
 

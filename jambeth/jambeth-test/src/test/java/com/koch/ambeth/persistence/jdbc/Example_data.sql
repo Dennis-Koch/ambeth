@@ -1,3 +1,22 @@
+---
+-- #%L
+-- jambeth-test
+-- %%
+-- Copyright (C) 2017 Koch Softwaredevelopment
+-- %%
+-- Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-- #L%
+---
 INSERT INTO "D_MATERIAL_GROUP" ("ID", "F_NAME", "VERSION") VALUES ('me', 'Metal', '1');
 INSERT INTO "D_MATERIAL_GROUP" ("ID", "F_NAME", "VERSION") VALUES ('pl', 'Kunststof', '1');
 UPDATE "D_MATERIAL_GROUP" SET "F_NAME" = 'Kunststoff', "VERSION" = '2' WHERE "ID" = 'pl' AND "VERSION" = '1';

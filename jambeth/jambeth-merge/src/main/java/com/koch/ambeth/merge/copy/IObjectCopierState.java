@@ -1,5 +1,25 @@
 package com.koch.ambeth.merge.copy;
 
+/*-
+ * #%L
+ * jambeth-merge
+ * %%
+ * Copyright (C) 2017 Koch Softwaredevelopment
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+ * #L%
+ */
+
 /**
  * Perform a deep copy of the object. This method is similar to the IObjectCopier.Clone(Object) method but will only be used from within IObjectCopierExtension
  * implementations. It will be necessary if a custom copy logic is intended but only for a specific part of an object graph - remaining paths should be handled

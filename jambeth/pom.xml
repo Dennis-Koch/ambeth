@@ -22,6 +22,21 @@
 		<url>http://88.99.125.109:8181/esmeralda-group/ambeth.git</url>
 	</scm>
 
+	<developers>
+		<developer>
+			<id>denniskoch</id>
+			<name>Dennis Koch</name>
+			<email>dennis.koch@gmx.de</email>
+			<organization>Bruker BioSpin GmbH</organization>
+			<organizationUrl>https://www.bruker.com</organizationUrl>
+			<roles>
+				<role>architect</role>
+				<role>developer</role>
+			</roles>
+			<timezone>Europe/Berlin</timezone>
+		</developer>
+	</developers>
+
 	<distributionManagement>
 		<repository>
 			<id>ambeth-releases</id>
@@ -950,6 +965,11 @@
 			<plugins>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-project-info-reports-plugin</artifactId>
+					<version>2.9</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-jar-plugin</artifactId>
 					<configuration>
 						<archive>
@@ -1098,6 +1118,58 @@
 				<!-- <configuration> <argLine>-XX:MaxPermSize=128m @{argLine}</argLine> 
 					</configuration> -->
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>3.6</version>
+				<executions>
+					<execution>
+						<id>attach-descriptor</id>
+						<goals>
+							<goal>attach-descriptor</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<reportPlugins>
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-project-info-reports-plugin</artifactId>
+							<version>2.4</version>
+							<reportSets>
+								<reportSet>
+									<reports>
+										<report>dependencies</report>
+										<report>project-team</report>
+										<report>license</report>
+										<report>issue-tracking</report>
+									</reports>
+								</reportSet>
+							</reportSets>
+						</plugin>
+					</reportPlugins>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>1.12</version>
+				<configuration>
+					<organizationName>Koch Softwaredevelopment</organizationName>
+					<inceptionYear>2017</inceptionYear>
+					<licenseName>apache_v2</licenseName>
+				</configuration>
+				<executions>
+					<execution>
+						<id>first</id>
+						<goals>
+							<goal>update-file-header</goal>
+							<goal>update-project-license</goal>
+						</goals>
+						<phase>process-sources</phase>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
@@ -1106,7 +1178,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
-				<version>2.9</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

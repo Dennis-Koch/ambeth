@@ -1,5 +1,25 @@
 package com.koch.ambeth.merge.cache;
 
+/*-
+ * #%L
+ * jambeth-merge
+ * %%
+ * Copyright (C) 2017 Koch Softwaredevelopment
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+ * #L%
+ */
+
 import java.util.List;
 import java.util.Set;
 
@@ -21,8 +41,8 @@ public interface ICache {
 	 * If the given cache instance is some kind of proxy or thread-local implementation this method
 	 * retrieves the internally bound real cache instance. This method is intended to be used for
 	 * performance critical algorithms where multiple calls through the proxy implementation can be
-	 * skipped.<br/>
-	 * <br/>
+	 * skipped.<br>
+	 * <br>
 	 * CAUTION: The resulting instance is not intended to be used solely within the method which did
 	 * this call. To be precise: Do NOT pass the resulting instance to any other method or bean as an
 	 * argument and do NOT store the resulting instance on an object field. Leave it solely as a
