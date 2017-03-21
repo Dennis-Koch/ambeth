@@ -38,6 +38,8 @@ import com.koch.ambeth.service.cache.IServiceResultProcessorRegistry;
 import com.koch.ambeth.service.cache.ServiceResultProcessorRegistry;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.log.LoggingPostProcessor;
+import com.koch.ambeth.service.remote.IClientServiceInterceptorBuilder;
+import com.koch.ambeth.service.remote.SyncClientServiceInterceptorBuilder;
 import com.koch.ambeth.service.typeinfo.TypeInfoProvider;
 import com.koch.ambeth.service.typeinfo.TypeInfoProviderFactory;
 import com.koch.ambeth.service.xml.IXmlTypeHelper;
@@ -50,11 +52,17 @@ public class ServiceModule implements IInitializingModule {
 	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
 	protected boolean networkClientMode;
 
+	@Property(name = ServiceConfigurationConstants.ProcessServiceBeanActive, defaultValue = "true")
+	protected boolean isProcessServiceBeanActive;
+
 	@Property(name = ServiceConfigurationConstants.OfflineModeSupported, defaultValue = "false")
 	protected boolean offlineModeSupported;
 
 	@Property(name = ServiceConfigurationConstants.TypeInfoProviderType, mandatory = false)
 	protected Class<?> typeInfoProviderType;
+
+	@Property(name = ServiceConfigurationConstants.ServiceRemoteInterceptorType, mandatory = false)
+	protected Class<? extends IClientServiceInterceptorBuilder> ServiceRemoteInterceptorType;
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
@@ -64,8 +72,12 @@ public class ServiceModule implements IInitializingModule {
 		if (networkClientMode) {
 			// beanContextFactory.registerBean("serviceFactory", ServiceFactory.class);
 
-			// beanContextFactory.registerBean<AsyncClientServiceInterceptorBuilder>("clientServiceInterceptorBuilder").autowireable<IClientServiceInterceptorBuilder>();
-			// beanContextFactory.registerBean<SyncClientServiceInterceptorBuilder>"clientServiceInterceptorBuilder".autowireable<IClientServiceInterceptorBuilder>();
+			if (ServiceRemoteInterceptorType == null) {
+				ServiceRemoteInterceptorType = SyncClientServiceInterceptorBuilder.class;
+			}
+			beanContextFactory
+					.registerBean("clientServiceInterceptorBuilder", ServiceRemoteInterceptorType)
+					.autowireable(IClientServiceInterceptorBuilder.class);
 
 			if (!offlineModeSupported) {
 				// Register default service url provider

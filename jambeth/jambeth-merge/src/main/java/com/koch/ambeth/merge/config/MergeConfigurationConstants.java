@@ -36,6 +36,9 @@ public final class MergeConfigurationConstants {
 	@ConfigurationConstantDescription("TODO")
 	public static final String FieldBasedMergeActive = "ambeth.merge.fieldbased.active";
 
+	@ConfigurationConstantDescription("TODO")
+	public static final String MergeServiceBeanActive = "merge.service.active";
+
 	/**
 	 * Defines whether the exact version is needed to avoid an OptimisticLockException during update
 	 * of an entity or all versions equals or higher are accepted. Valid values are "true" and

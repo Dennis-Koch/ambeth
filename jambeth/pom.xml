@@ -14,6 +14,7 @@
 		<jambeth.project.test>jambeth-test</jambeth.project.test>
 		<jambeth.path.test>../${jambeth.project.test}</jambeth.path.test>
 		<org.osgi.core.version>6.0.0</org.osgi.core.version>
+		<jax.ws.rs.version>2.0.1</jax.ws.rs.version>
 	</properties>
 
 	<scm>
@@ -102,6 +103,7 @@
 		<module>jambeth-server-helloworld</module>
 		<module>jambeth-server-rest</module>
 		<module>jambeth-service</module>
+		<module>jambeth-service-rest</module>
 		<module>jambeth-shell</module>
 		<module>jambeth-soap</module>
 		<module>jambeth-stream</module>
@@ -121,6 +123,11 @@
 				<groupId>org.ow2.asm</groupId>
 				<artifactId>asm-all</artifactId>
 				<version>5.2</version>
+			</dependency>
+			<dependency>
+				<groupId>javax.ws.rs</groupId>
+				<artifactId>javax.ws.rs-api</artifactId>
+				<version>${jax.ws.rs.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>cglib</groupId>
@@ -944,6 +951,11 @@
 				<artifactId>jambeth-server-with-persistence-test</artifactId>
 				<version>${project.version}</version>
 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.koch.ambeth</groupId>
+				<artifactId>jambeth-service-rest</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

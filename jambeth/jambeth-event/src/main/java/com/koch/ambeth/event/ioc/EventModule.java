@@ -31,6 +31,7 @@ import com.koch.ambeth.event.IEventQueue;
 import com.koch.ambeth.event.IEventTargetExtractorExtendable;
 import com.koch.ambeth.event.IEventTargetListenerExtendable;
 import com.koch.ambeth.event.config.EventConfigurationConstants;
+import com.koch.ambeth.event.service.IEventService;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.Property;
@@ -39,6 +40,7 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.IOfflineListenerExtendable;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
+import com.koch.ambeth.service.remote.ClientServiceBean;
 
 @FrameworkModule
 public class EventModule implements IInitializingModule {
@@ -51,6 +53,10 @@ public class EventModule implements IInitializingModule {
 	@Property(name = EventConfigurationConstants.PollingActive, defaultValue = "false")
 	protected boolean isPollingActive;
 
+	@Property(name = EventConfigurationConstants.EventServiceBeanActive, defaultValue = "true")
+	protected boolean isEventServiceBeanActive;
+
+
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 		beanContextFactory.registerBean(EventListenerRegistry.class).autowireable(
@@ -58,7 +64,11 @@ public class EventModule implements IInitializingModule {
 				IEventBatcherExtendable.class, IEventTargetExtractorExtendable.class, IEventBatcher.class,
 				IEventDispatcher.class, IEventListener.class, IEventQueue.class);
 
-		if (isNetworkClientMode) {
+		if (isNetworkClientMode && isEventServiceBeanActive) {
+			beanContextFactory.registerBean("eventService.external", ClientServiceBean.class)
+					.propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, IEventService.class)
+					.autowireable(IEventService.class);
+
 			if (isPollingActive) {
 				beanContextFactory.registerBean("eventPoller", EventPoller.class);
 				beanContextFactory.link("eventPoller").to(IOfflineListenerExtendable.class);

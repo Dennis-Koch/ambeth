@@ -620,9 +620,9 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 						beanContext.registerBean(SecurityFilterInterceptor.class)
 								.propertyValue("MethodLevelBehaviour", behaviour).propertyValue("Target", statement)
 								.finish();
-				org.junit.runners.model.Statement stmt = (org.junit.runners.model.Statement) beanContext
-						.getService(IProxyFactory.class).createProxy(getClass().getClassLoader(),
-								new Class<?>[] {org.junit.runners.model.Statement.class}, interceptor);
+				org.junit.runners.model.Statement stmt =
+						(org.junit.runners.model.Statement) beanContext.getService(IProxyFactory.class)
+								.createProxy(new Class<?>[] {org.junit.runners.model.Statement.class}, interceptor);
 				final org.junit.runners.model.Statement fStatement = stmt;
 				ISecurityContextHolder securityContextHolder =
 						beanContext.getService(ISecurityContextHolder.class);

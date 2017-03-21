@@ -70,6 +70,7 @@ import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.MaskingRuntimeException;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
+import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.xml.ICyclicXMLHandler;
 import com.koch.ambeth.xml.ioc.XmlModule;
 
@@ -105,6 +106,12 @@ public abstract class AbstractServiceREST {
 	protected final Pattern pattern = Pattern.compile("(.+) *\\: *(.+)");
 
 	private ILogger log;
+
+	private IServiceContext beanContext;
+
+	public void setBeanContext(IServiceContext beanContext) {
+		this.beanContext = beanContext;
+	}
 
 	protected ILogger getLog() {
 		if (log == null) {
@@ -147,6 +154,10 @@ public abstract class AbstractServiceREST {
 	 * @return The singleton IServiceContext which is stored in the context of the servlet
 	 */
 	protected IServiceContext getServiceContext() {
+		IServiceContext serviceContext = beanContext;
+		if (serviceContext != null) {
+			return serviceContext;
+		}
 		return (IServiceContext) servletContext
 				.getAttribute(AmbethServletListener.ATTRIBUTE_I_SERVICE_CONTEXT);
 	}
@@ -301,7 +312,12 @@ public abstract class AbstractServiceREST {
 		cyclicXmlHandler.writeToStream(os, result);
 	}
 
-	protected StreamingOutput createResult(final Object result, final HttpServletResponse response) {
+	protected StreamingOutput createResult(Object result, HttpServletResponse response) {
+		return createResult(result, response, null);
+	}
+
+	protected StreamingOutput createResult(final Object result, final HttpServletResponse response,
+			final IBackgroundWorkerParamDelegate<Throwable> resultWrittenCallback) {
 		final String contentEncoding = evaluateAcceptedContentEncoding(response);
 		return new StreamingOutput() {
 			@Override
@@ -318,8 +334,19 @@ public abstract class AbstractServiceREST {
 					if (output instanceof DeflaterOutputStream) {
 						((DeflaterOutputStream) output).finish();
 					}
+					if (resultWrittenCallback != null) {
+						resultWrittenCallback.invoke(null);
+					}
 				}
-				catch (RuntimeException e) {
+				catch (Throwable e) {
+					if (resultWrittenCallback != null) {
+						try {
+							resultWrittenCallback.invoke(e);
+						}
+						catch (Throwable e1) {
+							// intended blank
+						}
+					}
 					ILogger log = getLog();
 					if (log.isErrorEnabled()) {
 						// Reconstruct written stream for debugging purpose
@@ -342,7 +369,10 @@ public abstract class AbstractServiceREST {
 						}
 						logException(e, sb);
 					}
-					throw e;
+					if (e instanceof IOException) {
+						throw (IOException) e;
+					}
+					throw RuntimeExceptionUtil.mask(e);
 				}
 				finally {
 					getService(IThreadLocalCleanupController.class).cleanupThreadLocal();

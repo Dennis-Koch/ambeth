@@ -23,7 +23,7 @@ limitations under the License.
 import java.util.Map.Entry;
 
 /**
- * Wird von verschiedenen Map-Implementierungen als Entry f�r die Key-Value Mappings ben�tigt
+ * Wird von verschiedenen Map-Implementierungen als Entry fuer die Key-Value Mappings benoetigt
  *
  * @author kochd
  *

@@ -1,5 +1,7 @@
 package com.koch.ambeth.security.privilege.transfer;
 
+import com.koch.ambeth.service.metadata.IDTOType;
+
 /*-
  * #%L
  * jambeth-security
@@ -24,7 +26,7 @@ import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface ITypePrivilegeOfService {
+public interface ITypePrivilegeOfService extends IDTOType {
 	Class<?> getEntityType();
 
 	ISecurityScope getSecurityScope();

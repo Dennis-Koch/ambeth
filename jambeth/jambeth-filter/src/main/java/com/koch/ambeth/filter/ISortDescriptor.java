@@ -22,8 +22,10 @@ limitations under the License.
 
 import javax.xml.bind.annotation.XmlType;
 
+import com.koch.ambeth.service.metadata.IDTOType;
+
 @XmlType
-public interface ISortDescriptor {
+public interface ISortDescriptor extends IDTOType {
 	String getMember();
 
 	SortDirection getSortDirection();

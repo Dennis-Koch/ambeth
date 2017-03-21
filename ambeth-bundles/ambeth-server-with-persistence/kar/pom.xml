@@ -225,6 +225,11 @@
 		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-service-rest</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-stream</artifactId>
 		</dependency>
 

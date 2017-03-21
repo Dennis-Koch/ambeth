@@ -41,7 +41,6 @@ import com.koch.ambeth.util.proxy.CascadedInterceptor;
 import com.koch.ambeth.util.proxy.DelegateInterceptor;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 
-import net.sf.cglib.core.CodeGenerationException;
 import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Factory;
 import net.sf.cglib.proxy.MethodInterceptor;
@@ -209,20 +208,8 @@ public class LinkContainer extends AbstractLinkContainer {
 			IMap<Method, Method> mappedMethods =
 					buildDelegateMethodMap(listenerType, listenerMethodName, parameterType);
 			MethodInterceptor interceptor = new DelegateInterceptor(listener, mappedMethods);
-			try {
-				delegateInstance = proxyFactory.createProxy(listenerType.getClassLoader(), parameterType,
-						listenerType.getInterfaces(), interceptor);
-			}
-			catch (CodeGenerationException e) {
-				try {
-					delegateInstance = proxyFactory.createProxy(parameterType.getClassLoader(), parameterType,
-							listenerType.getInterfaces(), interceptor);
-				}
-				catch (CodeGenerationException e2) {
-					delegateInstance = proxyFactory.createProxy(getClass().getClassLoader(), parameterType,
-							listenerType.getInterfaces(), interceptor);
-				}
-			}
+			delegateInstance =
+					proxyFactory.createProxy(parameterType, listenerType.getInterfaces(), interceptor);
 		}
 		return delegateInstance;
 	}

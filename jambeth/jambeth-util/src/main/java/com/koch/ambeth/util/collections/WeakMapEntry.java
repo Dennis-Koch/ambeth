@@ -29,7 +29,7 @@ import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.StringBuilderUtil;
 
 /**
- * Wird von verschiedenen Map-Implementierungen als Entry f�r die Key-Value Mappings ben�tigt
+ * Wird von verschiedenen Map-Implementierungen als Entry fuer die Key-Value Mappings benoetigt
  *
  * @author kochd
  *

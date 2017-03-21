@@ -167,18 +167,17 @@ public class CUDResultApplier implements ICUDResultApplier {
 
 		IEntityFactory entityFactory = this.entityFactory;
 
-		IdentityHashMap<IObjRef, StateEntry> newObjRefToStateEntryMap =
-				new IdentityHashMap<>();
-		IdentityHashMap<IChangeContainer, IChangeContainer> alreadyClonedMap =
-				new IdentityHashMap<>();
+		IdentityHashMap<IObjRef, StateEntry> newObjRefToStateEntryMap = new IdentityHashMap<>();
+		IdentityHashMap<IChangeContainer, IChangeContainer> alreadyClonedMap = new IdentityHashMap<>();
 
 		ArrayList<IChangeContainer> newAllChanges = new ArrayList<>(allChanges.size());
 
 		for (int a = 0, size = allChanges.size(); a < size; a++) {
 			IChangeContainer changeContainer = allChanges.get(a);
-			Object originalEntity = originalRefs.get(a);
+			Object originalEntity = originalRefs != null ? originalRefs.get(a) : null;
 
-			StateEntry stateEntry = incrementalState.entityToStateMap.get(originalEntity);
+			StateEntry stateEntry =
+					originalEntity != null ? incrementalState.entityToStateMap.get(originalEntity) : null;
 
 			IChangeContainer newChangeContainer;
 			if (changeContainer instanceof CreateContainer) {

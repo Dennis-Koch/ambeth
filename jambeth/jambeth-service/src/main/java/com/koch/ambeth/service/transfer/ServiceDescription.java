@@ -27,6 +27,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.koch.ambeth.service.metadata.IDTOType;
 import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.service.model.IServiceDescription;
 import com.koch.ambeth.util.StringConversionHelper;
@@ -35,7 +36,7 @@ import com.koch.ambeth.util.objectcollector.IObjectCollector;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class ServiceDescription implements IServiceDescription {
+public class ServiceDescription implements IServiceDescription, IDTOType {
 	@XmlElement(required = true)
 	protected String serviceName;
 

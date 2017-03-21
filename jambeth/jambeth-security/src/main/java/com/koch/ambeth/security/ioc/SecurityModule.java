@@ -22,6 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
+import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.merge.security.ILightweightSecurityContext;
 import com.koch.ambeth.security.AuthenticatedUserHolder;
@@ -29,9 +30,19 @@ import com.koch.ambeth.security.IAuthenticatedUserHolder;
 import com.koch.ambeth.security.IAuthorizationChangeListenerExtendable;
 import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.security.SecurityContextHolder;
+import com.koch.ambeth.security.config.SecurityConfigurationConstants;
+import com.koch.ambeth.security.service.ISecurityService;
+import com.koch.ambeth.service.config.ServiceConfigurationConstants;
+import com.koch.ambeth.service.remote.ClientServiceBean;
 
 @FrameworkModule
 public class SecurityModule implements IInitializingModule {
+	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
+	protected boolean isNetworkClientMode;
+
+	@Property(name = SecurityConfigurationConstants.SecurityServiceBeanActive, defaultValue = "true")
+	protected boolean isSecurityBeanActive;
+
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 		beanContextFactory.registerBean(AuthenticatedUserHolder.class)
@@ -40,5 +51,11 @@ public class SecurityModule implements IInitializingModule {
 		beanContextFactory.registerBean(SecurityContextHolder.class).autowireable(
 				ISecurityContextHolder.class, IAuthorizationChangeListenerExtendable.class,
 				ILightweightSecurityContext.class);
+
+		if (isNetworkClientMode && isSecurityBeanActive) {
+			beanContextFactory.registerBean("securityService.external", ClientServiceBean.class)
+					.propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, ISecurityService.class)
+					.autowireable(ISecurityService.class);
+		}
 	}
 }

@@ -26,22 +26,34 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.StreamingOutput;
 
+import com.koch.ambeth.filter.IFilterDescriptor;
+import com.koch.ambeth.filter.IPagingRequest;
+import com.koch.ambeth.filter.IPagingResponse;
+import com.koch.ambeth.filter.ISortDescriptor;
 import com.koch.ambeth.mapping.IMapperService;
 import com.koch.ambeth.mapping.IMapperServiceFactory;
+import com.koch.ambeth.merge.cache.CacheFactoryDirective;
+import com.koch.ambeth.merge.cache.ICacheContext;
+import com.koch.ambeth.merge.cache.ICacheFactory;
+import com.koch.ambeth.merge.cache.IDisposableCache;
 import com.koch.ambeth.query.IQueryBuilderFactory;
+import com.koch.ambeth.query.filter.IFilterToQueryBuilder;
+import com.koch.ambeth.query.filter.IPagingQuery;
 import com.koch.ambeth.query.squery.QueryBuilderBean;
 import com.koch.ambeth.query.squery.QueryUtils;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.IValueObjectConfig;
-import com.koch.ambeth.service.merge.model.IEntityMetaData;
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.IConversionHelper;
+import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
+import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 @Path("/GenericQueryService")
 // @Consumes({ MediaType.TEXT_PLAIN })
@@ -57,6 +69,54 @@ public class GenericQueryREST extends AbstractServiceREST {
 	protected Object[] getArguments(InputStream is, HttpServletRequest request) {
 		// TODO: read JSON
 		return super.getArguments(is, request);
+	}
+
+	@POST
+	@Path("filter")
+	public StreamingOutput filter(InputStream is, @Context HttpServletRequest request,
+			final @Context HttpServletResponse response) {
+		try {
+			preServiceCall();
+			final Object[] args = getArguments(is, request);
+			ICacheFactory cacheFactory = getService(ICacheFactory.class);
+			final IDisposableCache cache =
+					cacheFactory.create(CacheFactoryDirective.NoDCE, "genericFilter");
+			boolean success = false;
+			try {
+				ICacheContext cacheContext = getService(ICacheContext.class);
+				StreamingOutput result = cacheContext.executeWithCache(cache,
+						new IResultingBackgroundWorkerDelegate<StreamingOutput>() {
+							@Override
+							public StreamingOutput invoke() throws Throwable {
+								IFilterToQueryBuilder filterToQueryBuilder =
+										getService(IFilterToQueryBuilder.class);
+								IPagingQuery pagingQuery = filterToQueryBuilder
+										.buildQuery((IFilterDescriptor) args[0], (ISortDescriptor[]) args[1]);
+								IPagingResponse result = pagingQuery.retrieve((IPagingRequest) args[2]);
+								return createResult(result, response,
+										new IBackgroundWorkerParamDelegate<Throwable>() {
+											@Override
+											public void invoke(Throwable e) throws Throwable {
+												cache.dispose();
+											}
+										});
+							}
+						});
+				success = true;
+				return result;
+			}
+			finally {
+				if (!success) {
+					cache.dispose();
+				}
+			}
+		}
+		catch (Throwable e) {
+			return createExceptionResult(e, response);
+		}
+		finally {
+			postServiceCall();
+		}
 	}
 
 	@GET
@@ -76,21 +136,25 @@ public class GenericQueryREST extends AbstractServiceREST {
 			String query = path[3];
 
 			IValueObjectConfig config = entityMetaDataProvider.getValueObjectConfig(valueObjectTypeName);
-			if (config == null) {
-				throw new BadRequestException("Entity type '" + valueObjectTypeName + "' not known");
+			Class<?> entityType;
+			if (config != null) {
+				entityType = config.getEntityType();
 			}
-			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(config.getEntityType());
-
+			else {
+				entityType =
+						getService(IClassLoaderProvider.class).getClassLoader().loadClass(valueObjectTypeName);
+			}
 			IConversionHelper conversionHelper = getService(IConversionHelper.class);
 			IQueryBuilderFactory queryBuilderFactory = getService(IQueryBuilderFactory.class);
-
-			Class<?> entityType = metaData.getEntityType();
 
 			QueryBuilderBean<?> queryBuilderBean = QueryUtils.buildQuery(query, entityType);
 
 			Object result = queryBuilderBean.createQueryBuilder(queryBuilderFactory, conversionHelper,
 					new Object[0], Object.class);
 
+			if (config == null) {
+				return createResult(result, response);
+			}
 			IMapperServiceFactory mapperServiceFactory = getService(IMapperServiceFactory.class);
 
 			IMapperService mapperService = mapperServiceFactory.create();

@@ -32,6 +32,9 @@ public final class EventConfigurationConstants {
 	public static final String PollingActive = "event.polling.active";
 
 	@ConfigurationConstantDescription("TODO")
+	public static final String EventServiceBeanActive = "event.service.active";
+
+	@ConfigurationConstantDescription("TODO")
 	public static final String StartPausedActive = "event.polling.paused.on.start.active";
 
 	@ConfigurationConstantDescription("TODO")

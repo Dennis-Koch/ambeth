@@ -178,8 +178,8 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 				if (pstmInterfaces == null) {
 					pstmInterfaces = cgLibUtil.getAllInterfaces(pstm, IPrintable.class, ISqlValue.class);
 				}
-				return proxyFactory.createProxy(getClass().getClassLoader(), PreparedStatement.class,
-						pstmInterfaces, logPstmInterceptor);
+				return proxyFactory.createProxy(PreparedStatement.class, pstmInterfaces,
+						logPstmInterceptor);
 			}
 			else if (Statement.class.isAssignableFrom(method.getReturnType())) {
 				Statement stm = (Statement) proxy.invoke(connection, args);
@@ -193,8 +193,7 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 				if (stmInterfaces == null) {
 					stmInterfaces = cgLibUtil.getAllInterfaces(stm, IPrintable.class);
 				}
-				return proxyFactory.createProxy(getClass().getClassLoader(), Statement.class, stmInterfaces,
-						logStmInterceptor);
+				return proxyFactory.createProxy(Statement.class, stmInterfaces, logStmInterceptor);
 			}
 			Object result = proxy.invoke(connection, args);
 
@@ -215,8 +214,8 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 					LogInterceptor logInterceptor = beanContext.registerBean(LogInterceptor.class)//
 							.propertyValue("Target", result)//
 							.finish();
-					proxyOfResult = proxyFactory.createProxy(getClass().getClassLoader(),
-							cgLibUtil.getAllInterfaces(result), logInterceptor);
+					proxyOfResult =
+							proxyFactory.createProxy(cgLibUtil.getAllInterfaces(result), logInterceptor);
 					unwrappedObjectToProxyMap.put(result, new WeakReference<>(proxyOfResult));
 				}
 				result = proxyOfResult;

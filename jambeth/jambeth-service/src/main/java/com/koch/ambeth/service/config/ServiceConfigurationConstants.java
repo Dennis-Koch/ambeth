@@ -38,7 +38,13 @@ public final class ServiceConfigurationConstants {
 	public static final String ServiceHostPort = "service.port";
 
 	@ConfigurationConstantDescription("TODO")
+	public static final String ProcessServiceBeanActive = "process.service.active";
+
+	@ConfigurationConstantDescription("TODO")
 	public static final String TypeInfoProviderType = "service.typeinfoprovider.type";
+
+	@ConfigurationConstantDescription("TODO")
+	public static final String ServiceRemoteInterceptorType = "service.remoteinterceptor.type";
 
 	@ConfigurationConstantDescription("TODO")
 	public static final String ToOneDefaultCascadeLoadMode = "cache.cascadeload.toone";
@@ -83,6 +89,10 @@ public final class ServiceConfigurationConstants {
 	@Deprecated
 	@ConfigurationConstantDescription("TODO")
 	public static final String valueObjectResource = "valueobject.resource";
+
+	public static final String UserName = "ambeth.remoting.username";
+
+	public static final String Password = "ambeth.remoting.password";
 
 	private ServiceConfigurationConstants() {
 		// Intended blank

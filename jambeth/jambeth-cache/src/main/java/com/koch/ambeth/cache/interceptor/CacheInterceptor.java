@@ -45,6 +45,7 @@ import com.koch.ambeth.service.cache.IServiceResultProcessorRegistry;
 import com.koch.ambeth.service.cache.model.IServiceResult;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
+import com.koch.ambeth.service.metadata.IDTOType;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.service.transfer.ServiceDescription;
@@ -70,7 +71,7 @@ public class CacheInterceptor extends MergeInterceptor {
 	@Autowired
 	protected ICache cache;
 
-	@Autowired
+	@Autowired(optional = true)
 	protected IServiceResultHolder serviceResultHolder;
 
 	@Autowired
@@ -84,12 +85,13 @@ public class CacheInterceptor extends MergeInterceptor {
 
 		Cached cached = annotation instanceof Cached ? (Cached) annotation : null;
 		if (cached == null && (Boolean.TRUE.equals(pauseCache.get())
-				|| !serviceResultHolder.isExpectServiceResult())) {
+				|| serviceResultHolder != null && !serviceResultHolder.isExpectServiceResult())) {
 			return super.interceptLoad(obj, method, args, proxy, annotation, isAsyncBegin);
 		}
 
 		Class<?> returnType = method.getReturnType();
-		if (ImmutableTypeSet.isImmutableType(returnType)) {
+		if (ImmutableTypeSet.isImmutableType(returnType)
+				|| IDTOType.class.isAssignableFrom(returnType)) {
 			// No possible result which might been read by cache
 			return super.interceptLoad(obj, method, args, proxy, annotation, isAsyncBegin);
 		}

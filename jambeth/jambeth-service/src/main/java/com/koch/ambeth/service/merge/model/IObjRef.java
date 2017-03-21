@@ -1,5 +1,7 @@
 package com.koch.ambeth.service.merge.model;
 
+import com.koch.ambeth.service.metadata.IDTOType;
+
 /*-
  * #%L
  * jambeth-service
@@ -29,7 +31,7 @@ import com.koch.ambeth.util.annotation.XmlType;
  * @see com.koch.ambeth.merge.cache.ICache#getObject(IObjRef, java.util.Set)
  */
 @XmlType
-public interface IObjRef {
+public interface IObjRef extends IDTOType {
 	byte getIdNameIndex();
 
 	void setIdNameIndex(byte idNameIndex);

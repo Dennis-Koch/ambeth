@@ -31,22 +31,22 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 
 import com.koch.ambeth.event.model.IEventItem;
 import com.koch.ambeth.event.service.IEventService;
+import com.koch.ambeth.service.rest.Constants;
 
 @Path("/EventService")
-@Consumes({MediaType.TEXT_PLAIN})
-@Produces({MediaType.TEXT_PLAIN})
+@Consumes({Constants.AMBETH_MEDIA_TYPE})
+@Produces({Constants.AMBETH_MEDIA_TYPE})
 public class EventServiceREST extends AbstractServiceREST {
 	protected IEventService getEventService() {
 		return getService(IEventService.class);
 	}
 
 	@POST
-	@Path("PollEvents")
+	@Path("pollEvents")
 	public StreamingOutput pollEvents(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
 		try {
@@ -65,7 +65,7 @@ public class EventServiceREST extends AbstractServiceREST {
 	}
 
 	@GET
-	@Path("GetCurrentEventSequence")
+	@Path("getCurrentEventSequence")
 	public StreamingOutput getCurrentEventSequence(@Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
 		try {
@@ -82,7 +82,7 @@ public class EventServiceREST extends AbstractServiceREST {
 	}
 
 	@GET
-	@Path("GetCurrentServerSession")
+	@Path("getCurrentServerSession")
 	public StreamingOutput getCurrentServerSession(@Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
 		try {

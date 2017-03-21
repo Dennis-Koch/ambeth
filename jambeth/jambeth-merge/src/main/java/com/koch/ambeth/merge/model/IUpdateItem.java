@@ -1,5 +1,7 @@
 package com.koch.ambeth.merge.model;
 
+import com.koch.ambeth.service.metadata.IDTOType;
+
 /*-
  * #%L
  * jambeth-merge
@@ -23,6 +25,6 @@ limitations under the License.
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface IUpdateItem {
+public interface IUpdateItem extends IDTOType {
 	String getMemberName();
 }

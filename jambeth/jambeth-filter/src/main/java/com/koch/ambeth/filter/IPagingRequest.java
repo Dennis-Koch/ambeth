@@ -1,5 +1,7 @@
 package com.koch.ambeth.filter;
 
+import com.koch.ambeth.service.metadata.IDTOType;
+
 /*-
  * #%L
  * jambeth-filter
@@ -23,7 +25,7 @@ limitations under the License.
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface IPagingRequest {
+public interface IPagingRequest extends IDTOType {
 	int getNumber();
 
 	int getSize();

@@ -34,7 +34,7 @@ import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 /**
- * Abstrakte HashMap als Basisklasse f�r verschiedene spezialisierte Anwendungsf�lle
+ * Abstrakte HashMap als Basisklasse fuer verschiedene spezialisierte Anwendungsfaelle
  *
  * @author kochd
  * @param <E> Typ der Entrys der Map

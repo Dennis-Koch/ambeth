@@ -47,8 +47,6 @@ public class ExtendableBean extends AbstractSimpleInterceptor
 
 	public static final String P_EXTENDABLE_TYPE = "ExtendableType";
 
-	public static final String P_CLASSLOADER = "ClassLoader";
-
 	public static final String P_DEFAULT_BEAN = "DefaultBean";
 
 	protected static final Object[] emptyArgs = new Object[0];
@@ -69,13 +67,11 @@ public class ExtendableBean extends AbstractSimpleInterceptor
 			return beanContextFactory.registerBean(beanName, ExtendableBean.class)
 					.propertyValue(ExtendableBean.P_PROVIDER_TYPE, providerType)
 					.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, extendableType)
-					.propertyValue(ExtendableBean.P_CLASSLOADER, classLoader)
 					.autowireable(providerType, extendableType);
 		}
 		return beanContextFactory.registerBean(ExtendableBean.class)
 				.propertyValue(ExtendableBean.P_PROVIDER_TYPE, providerType)
 				.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, extendableType)
-				.propertyValue(ExtendableBean.P_CLASSLOADER, classLoader)
 				.autowireable(providerType, extendableType);
 	}
 
@@ -204,10 +200,6 @@ public class ExtendableBean extends AbstractSimpleInterceptor
 		this.argumentTypes = argumentTypes;
 	}
 
-	public void setClassLoader(ClassLoader classLoader) {
-		this.classLoader = classLoader;
-	}
-
 	public void setDefaultBean(Object defaultBean) {
 		this.defaultBean = defaultBean;
 	}
@@ -215,9 +207,7 @@ public class ExtendableBean extends AbstractSimpleInterceptor
 	@Override
 	public Object getObject() throws Throwable {
 		if (proxy == null) {
-			proxy =
-					proxyFactory.createProxy(classLoader != null ? classLoader : getClass().getClassLoader(),
-							new Class[] {providerType, extendableType}, this);
+			proxy = proxyFactory.createProxy(new Class[] {providerType, extendableType}, this);
 		}
 		return proxy;
 	}

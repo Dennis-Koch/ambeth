@@ -242,7 +242,7 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 				sb.append('L');
 				sb.append(typeObj.getName());
 				sb.append(';');
-				return classLoaderProvider.getClassLoader().loadClass(sb.toString());
+				return Class.forName(sb.toString(), false, classLoaderProvider.getClassLoader());
 			}
 			catch (ClassNotFoundException e) {
 				throw RuntimeExceptionUtil.mask(e);

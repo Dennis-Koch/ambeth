@@ -33,8 +33,6 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
-import javax.ws.rs.NotSupportedException;
-import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -237,66 +235,66 @@ public class GenericEntityREST extends AbstractServiceREST {
 		}
 	}
 
-	@PATCH
-	@Path("{subResources:.*}")
-	public StreamingOutput patch(InputStream is, @Context HttpServletRequest request,
-			@Context HttpServletResponse response) {
-		try {
-			throw new NotSupportedException("Not yet supported");
-
-			// preServiceCall();
-			//
-			// String contextPath = request.getPathInfo();
-			// String[] path = contextPath.split("/");
-			//
-			// NavigationStep[] navigationSteps = navigateTo(path, NavigationMode.DEFAULT);
-			// NavigationStep lastStep = navigationSteps[navigationSteps.length - 1];
-			//
-			// if (lastStep.metaData == null)
-			// {
-			// throw new WebApplicationException("Resource is not an entity", 422); // unprocessable
-			// request
-			// }
-			// Object[] args = getArguments(is, request);
-			// if (args.length != 1 || args[0] == null)
-			// {
-			// throw new BadRequestException("No values provided to create entity '" +
-			// Arrays.toString(path) + "'");
-			// }
-			// Object valueObject = args[0];
-			//
-			// IConversionHelper conversionHelper = getService(IConversionHelper.class);
-			// IMapperServiceFactory mapperServiceFactory = getService(IMapperServiceFactory.class);
-			// IMergeProcess mergeProcess = getService(IMergeProcess.class);
-			// ITypeInfoProvider typeInfoProvider = getService(ITypeInfoProvider.class);
-			//
-			// IMapperService mapperService = mapperServiceFactory.create();
-			// try
-			// {
-			// Object businessObject = lastStep.value;
-			// typeInfoProvider.getClass<?> valueType = lastStep.config.getValueType();
-			//
-			// mergeProcess.process(businessObject, null, null, null);
-			//
-			// valueObject = mapperService.mapToValueObject(businessObject,
-			// lastStep.config.getValueType());
-			// }
-			// finally
-			// {
-			// mapperService.dispose();
-			// }
-			// return createResult(valueObject, response);
-		}
-		catch (WebApplicationException e) {
-			throw e;
-		}
-		catch (Throwable e) {
-			return createExceptionResult(e, response);
-		}
-		finally {
-			postServiceCall();
-		}
-	}
+	// @PATCH
+	// @Path("{subResources:.*}")
+	// public StreamingOutput patch(InputStream is, @Context HttpServletRequest request,
+	// @Context HttpServletResponse response) {
+	// try {
+	// throw new NotSupportedException("Not yet supported");
+	//
+	// // preServiceCall();
+	// //
+	// // String contextPath = request.getPathInfo();
+	// // String[] path = contextPath.split("/");
+	// //
+	// // NavigationStep[] navigationSteps = navigateTo(path, NavigationMode.DEFAULT);
+	// // NavigationStep lastStep = navigationSteps[navigationSteps.length - 1];
+	// //
+	// // if (lastStep.metaData == null)
+	// // {
+	// // throw new WebApplicationException("Resource is not an entity", 422); // unprocessable
+	// // request
+	// // }
+	// // Object[] args = getArguments(is, request);
+	// // if (args.length != 1 || args[0] == null)
+	// // {
+	// // throw new BadRequestException("No values provided to create entity '" +
+	// // Arrays.toString(path) + "'");
+	// // }
+	// // Object valueObject = args[0];
+	// //
+	// // IConversionHelper conversionHelper = getService(IConversionHelper.class);
+	// // IMapperServiceFactory mapperServiceFactory = getService(IMapperServiceFactory.class);
+	// // IMergeProcess mergeProcess = getService(IMergeProcess.class);
+	// // ITypeInfoProvider typeInfoProvider = getService(ITypeInfoProvider.class);
+	// //
+	// // IMapperService mapperService = mapperServiceFactory.create();
+	// // try
+	// // {
+	// // Object businessObject = lastStep.value;
+	// // typeInfoProvider.getClass<?> valueType = lastStep.config.getValueType();
+	// //
+	// // mergeProcess.process(businessObject, null, null, null);
+	// //
+	// // valueObject = mapperService.mapToValueObject(businessObject,
+	// // lastStep.config.getValueType());
+	// // }
+	// // finally
+	// // {
+	// // mapperService.dispose();
+	// // }
+	// // return createResult(valueObject, response);
+	// }
+	// catch (WebApplicationException e) {
+	// throw e;
+	// }
+	// catch (Throwable e) {
+	// return createExceptionResult(e, response);
+	// }
+	// finally {
+	// postServiceCall();
+	// }
+	// }
 
 	@PUT
 	@Path("{subResources:.*}")

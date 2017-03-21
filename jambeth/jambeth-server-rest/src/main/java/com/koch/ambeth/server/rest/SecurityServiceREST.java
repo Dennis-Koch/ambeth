@@ -29,23 +29,23 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 
 import com.koch.ambeth.security.service.ISecurityService;
 import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.service.model.IServiceDescription;
+import com.koch.ambeth.service.rest.Constants;
 
 @Path("/SecurityService")
-@Consumes({MediaType.TEXT_PLAIN})
-@Produces({MediaType.TEXT_PLAIN})
+@Consumes(Constants.AMBETH_MEDIA_TYPE)
+@Produces(Constants.AMBETH_MEDIA_TYPE)
 public class SecurityServiceREST extends AbstractServiceREST {
 	protected ISecurityService getSecurityService() {
 		return getService(ISecurityService.class);
 	}
 
 	@POST
-	@Path("CallServiceInSecurityScope")
+	@Path("callServiceInSecurityScope")
 	public StreamingOutput callServiceInSecurityScope(InputStream is,
 			@Context HttpServletRequest request, @Context HttpServletResponse response) {
 		try {

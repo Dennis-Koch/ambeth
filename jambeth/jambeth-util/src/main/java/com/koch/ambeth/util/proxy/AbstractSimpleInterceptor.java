@@ -32,10 +32,16 @@ public abstract class AbstractSimpleInterceptor implements MethodInterceptor {
 
 	public static final Method equalsMethod;
 
+	public static final Method hashCodeMethod;
+
+	public static final Method toStringMethod;
+
 	static {
 		try {
 			equalsMethod = Object.class.getDeclaredMethod("equals", Object.class);
+			hashCodeMethod = Object.class.getDeclaredMethod("hashCode");
 			finalizeMethod = Object.class.getDeclaredMethod("finalize");
+			toStringMethod = Object.class.getDeclaredMethod("toString");
 		}
 		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
@@ -52,6 +58,9 @@ public abstract class AbstractSimpleInterceptor implements MethodInterceptor {
 		if (equalsMethod.equals(method) && args[0] == obj) {
 			// Do nothing. This is to prevent unnecessary exceptions in tomcat in REDEPLOY scenarios
 			return Boolean.TRUE;
+		}
+		if (hashCodeMethod.equals(method)) {
+			return proxy.hashCode();
 		}
 		try {
 			return interceptIntern(obj, method, args, proxy);

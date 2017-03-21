@@ -21,11 +21,12 @@ limitations under the License.
  */
 
 import com.koch.ambeth.service.merge.model.IObjRef;
+import com.koch.ambeth.service.metadata.IDTOType;
 import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface IObjRelation extends IPrintable {
+public interface IObjRelation extends IDTOType, IPrintable {
 	String getMemberName();
 
 	IObjRef[] getObjRefs();

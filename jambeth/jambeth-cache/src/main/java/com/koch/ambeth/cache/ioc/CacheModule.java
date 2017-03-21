@@ -58,6 +58,7 @@ import com.koch.ambeth.cache.proxy.CachePostProcessor;
 import com.koch.ambeth.cache.rootcachevalue.IRootCacheValueFactory;
 import com.koch.ambeth.cache.rootcachevalue.RootCacheValueFactory;
 import com.koch.ambeth.cache.service.ICacheRetrieverExtendable;
+import com.koch.ambeth.cache.service.ICacheService;
 import com.koch.ambeth.cache.service.ICacheServiceByNameExtendable;
 import com.koch.ambeth.cache.service.IPrimitiveRetrieverExtendable;
 import com.koch.ambeth.cache.service.IRelationRetrieverExtendable;
@@ -92,6 +93,7 @@ import com.koch.ambeth.service.IOfflineListenerExtendable;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 import com.koch.ambeth.service.cache.IServiceResultProcessorExtendable;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
+import com.koch.ambeth.service.remote.ClientServiceBean;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 
@@ -119,6 +121,9 @@ public class CacheModule implements IInitializingModule {
 
 	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
 	protected boolean isNetworkClientMode;
+
+	@Property(name = CacheConfigurationConstants.CacheServiceBeanActive, defaultValue = "true")
+	protected boolean isCacheServiceBeanActive;
 
 	@Property(name = ServiceConfigurationConstants.GenericTransferMapping, defaultValue = "false")
 	protected boolean genericTransferMapping;
@@ -181,7 +186,7 @@ public class CacheModule implements IInitializingModule {
 				.propertyRefs(COMMITTED_ROOT_CACHE, rootCacheBridge)
 				.autowireable(ITransactionalRootCache.class, ISecondLevelCacheManager.class);
 
-		Object txRcProxy = proxyFactory.createProxy(getClass().getClassLoader(),
+		Object txRcProxy = proxyFactory.createProxy(
 				new Class<?>[] {IRootCache.class, ICacheIntern.class, IOfflineListener.class},
 				txRcInterceptor);
 
@@ -210,8 +215,8 @@ public class CacheModule implements IInitializingModule {
 					.propertyRef("StoredCacheRetriever", CacheModule.ROOT_CACHE_RETRIEVER)
 					.propertyValue("Privileged", Boolean.TRUE);
 
-			IRootCache threadLocalRcProxy = proxyFactory.createProxy(getClass().getClassLoader(),
-					IRootCache.class, threadLocalRcInterceptor);
+			IRootCache threadLocalRcProxy =
+					proxyFactory.createProxy(IRootCache.class, threadLocalRcInterceptor);
 
 			beanContextFactory.registerExternalBean(COMMITTED_ROOT_CACHE, threadLocalRcProxy);
 		}
@@ -226,7 +231,7 @@ public class CacheModule implements IInitializingModule {
 				.autowireable(ICacheProviderExtendable.class, ICacheProvider.class, ICacheContext.class)
 				.getInstance();
 
-		Object cacheProxy = proxyFactory.createProxy(getClass().getClassLoader(), ICache.class,
+		Object cacheProxy = proxyFactory.createProxy(ICache.class,
 				new Class[] {ICacheProvider.class, IWritableCache.class}, cacheProviderInterceptor);
 		beanContextFactory.registerExternalBean("cache", cacheProxy).autowireable(ICache.class);
 
@@ -270,8 +275,21 @@ public class CacheModule implements IInitializingModule {
 		beanContextFactory.registerBean(CacheContextPostProcessor.class)
 				.propertyValue("CachePostProcessor", cachePostProcessor);
 
-		if (isNetworkClientMode) {
+		if (isNetworkClientMode && isCacheServiceBeanActive) {
+			IBeanConfiguration remoteCacheService = beanContextFactory
+					.registerBean(CacheModule.EXTERNAL_CACHE_SERVICE, ClientServiceBean.class)
+					.propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, ICacheService.class)
+					.autowireable(ICacheService.class);
 
+			beanContextFactory.registerAlias(CacheModule.DEFAULT_CACHE_RETRIEVER,
+					CacheModule.EXTERNAL_CACHE_SERVICE);
+
+			// register to all entities in a "most-weak" manner
+			beanContextFactory.link(remoteCacheService).to(ICacheRetrieverExtendable.class)
+					.with(Object.class);
+			// beanContextFactory.RegisterAlias(CacheModule.ROOT_CACHE_RETRIEVER,
+			// CacheModule.EXTERNAL_CACHE_SERVICE);
+			// beanContextFactory.registerBean<CacheServiceDelegate>("cacheService").autowireable<ICacheService>();
 		}
 		else {
 

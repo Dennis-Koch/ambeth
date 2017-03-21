@@ -44,6 +44,7 @@ import com.koch.ambeth.merge.IEntityMetaDataExtendable;
 import com.koch.ambeth.merge.IMergeController;
 import com.koch.ambeth.merge.IMergeListenerExtendable;
 import com.koch.ambeth.merge.IMergeProcess;
+import com.koch.ambeth.merge.IMergeServiceExtension;
 import com.koch.ambeth.merge.IMergeServiceExtensionExtendable;
 import com.koch.ambeth.merge.IMergeTimeProvider;
 import com.koch.ambeth.merge.IObjRefHelper;
@@ -99,6 +100,7 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.IEntityMetaDataRefresher;
 import com.koch.ambeth.service.merge.model.IEntityLifecycleExtendable;
 import com.koch.ambeth.service.merge.model.IObjRef;
+import com.koch.ambeth.service.remote.ClientServiceBean;
 import com.koch.ambeth.util.typeinfo.INoEntityTypeExtendable;
 import com.koch.ambeth.util.typeinfo.IRelationProvider;
 import com.koch.ambeth.util.xml.IXmlConfigUtil;
@@ -109,11 +111,20 @@ public class MergeModule implements IInitializingModule {
 
 	public static final String REMOTE_ENTITY_METADATA_PROVIDER = "entityMetaDataProvider.remote";
 
+	public static final String DEFAULT_MERGE_SERVICE_EXTENSION = "mergeServiceExtension.default";
+
 	@Property(name = ServiceConfigurationConstants.IndependentMetaData, defaultValue = "false")
 	protected boolean independentMetaData;
 
 	@Property(name = MergeConfigurationConstants.EntityFactoryType, mandatory = false)
 	protected Class<?> entityFactoryType;
+
+	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
+	protected boolean isNetworkClientMode;
+
+	@Property(name = MergeConfigurationConstants.MergeServiceBeanActive, defaultValue = "true")
+	protected boolean isMergeServiceBeanActive;
+
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
@@ -225,6 +236,16 @@ public class MergeModule implements IInitializingModule {
 		beanContextFactory.registerBean(ObjRefStoreEntryProvider.class)
 				.autowireable(IObjRefStoreEntryProvider.class);
 
+		if (isNetworkClientMode && isMergeServiceBeanActive) {
+			IBeanConfiguration remoteMergeServiceExtension = beanContextFactory
+					.registerBean(DEFAULT_MERGE_SERVICE_EXTENSION, ClientServiceBean.class)
+					.propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, IMergeServiceExtension.class)//
+					.propertyValue(ClientServiceBean.SYNC_REMOTE_INTERFACE_PROP_NAME, IMergeService.class);
+
+			// register to all entities in a "most-weak" manner
+			beanContextFactory.link(remoteMergeServiceExtension)
+					.to(IMergeServiceExtensionExtendable.class).with(Object.class);
+		}
 		// if (isNetworkClientMode)
 		// {
 		// if (!independentMetaData)

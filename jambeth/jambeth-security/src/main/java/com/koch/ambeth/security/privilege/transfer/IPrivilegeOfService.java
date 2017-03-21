@@ -21,11 +21,12 @@ limitations under the License.
  */
 
 import com.koch.ambeth.service.merge.model.IObjRef;
+import com.koch.ambeth.service.metadata.IDTOType;
 import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface IPrivilegeOfService {
+public interface IPrivilegeOfService extends IDTOType {
 	IObjRef getReference();
 
 	ISecurityScope getSecurityScope();

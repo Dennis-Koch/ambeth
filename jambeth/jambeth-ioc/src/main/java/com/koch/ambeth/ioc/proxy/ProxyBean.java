@@ -72,18 +72,17 @@ public class ProxyBean implements IInitializingBean, IFactoryBean {
 		if (proxy == null) {
 			if (interceptor != null) {
 				if (additionalTypes != null) {
-					proxy = proxyFactory.createProxy(getClass().getClassLoader(), type, additionalTypes,
-							interceptor);
+					proxy = proxyFactory.createProxy(type, additionalTypes, interceptor);
 				}
 				else {
-					proxy = proxyFactory.createProxy(getClass().getClassLoader(), type, interceptor);
+					proxy = proxyFactory.createProxy(type, interceptor);
 				}
 			}
 			else if (additionalTypes != null) {
-				proxy = proxyFactory.createProxy(getClass().getClassLoader(), type, additionalTypes);
+				proxy = proxyFactory.createProxy(type, additionalTypes);
 			}
 			else {
-				proxy = proxyFactory.createProxy(getClass().getClassLoader(), type);
+				proxy = proxyFactory.createProxy(type);
 			}
 		}
 		return proxy;

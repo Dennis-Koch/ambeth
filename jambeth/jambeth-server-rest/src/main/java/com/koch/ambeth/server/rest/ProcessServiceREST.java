@@ -29,22 +29,22 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 
 import com.koch.ambeth.service.IProcessService;
 import com.koch.ambeth.service.model.IServiceDescription;
+import com.koch.ambeth.service.rest.Constants;
 
 @Path("/ProcessService")
-@Consumes({MediaType.TEXT_PLAIN})
-@Produces({MediaType.TEXT_PLAIN})
+@Consumes(Constants.AMBETH_MEDIA_TYPE)
+@Produces(Constants.AMBETH_MEDIA_TYPE)
 public class ProcessServiceREST extends AbstractServiceREST {
 	protected IProcessService getProcessService() {
 		return getServiceContext().getService(IProcessService.class);
 	}
 
 	@POST
-	@Path("InvokeService")
+	@Path("invokeService")
 	public StreamingOutput invokeService(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
 		try {

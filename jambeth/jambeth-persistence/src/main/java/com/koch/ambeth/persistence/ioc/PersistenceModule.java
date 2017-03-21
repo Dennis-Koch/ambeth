@@ -96,8 +96,7 @@ public class PersistenceModule implements IInitializingModule {
 				(TargetingInterceptor) beanContextFactory.registerBean(TargetingInterceptor.class)
 						.propertyRef("TargetProvider", "databaseProvider").getInstance();
 
-		IDatabase databaseTlProxy =
-				proxyFactory.createProxy(getClass().getClassLoader(), IDatabase.class, databaseInterceptor);
+		IDatabase databaseTlProxy = proxyFactory.createProxy(IDatabase.class, databaseInterceptor);
 
 		beanContextFactory.registerExternalBean(databaseTlProxy).autowireable(IDatabase.class);
 

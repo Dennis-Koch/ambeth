@@ -31,7 +31,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 
 import com.koch.ambeth.merge.model.ICUDResult;
@@ -40,19 +39,20 @@ import com.koch.ambeth.merge.service.IMergeService;
 import com.koch.ambeth.merge.transfer.EntityMetaDataTransfer;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
+import com.koch.ambeth.service.rest.Constants;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.model.IMethodDescription;
 
 @Path("/MergeService")
-@Consumes({MediaType.TEXT_PLAIN})
-@Produces({MediaType.TEXT_PLAIN})
+@Consumes({Constants.AMBETH_MEDIA_TYPE})
+@Produces({Constants.AMBETH_MEDIA_TYPE})
 public class MergeServiceREST extends AbstractServiceREST {
 	protected IMergeService getMergeService() {
 		return getService(IMergeService.class);
 	}
 
 	@POST
-	@Path("Merge")
+	@Path("merge")
 	public StreamingOutput merge(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
 		try {
@@ -72,7 +72,7 @@ public class MergeServiceREST extends AbstractServiceREST {
 
 	@SuppressWarnings("unchecked")
 	@POST
-	@Path("GetMetaData")
+	@Path("getMetaData")
 	public StreamingOutput getMetaData(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
 		try {
@@ -81,8 +81,7 @@ public class MergeServiceREST extends AbstractServiceREST {
 			List<IEntityMetaData> result =
 					getService(IEntityMetaDataProvider.class).getMetaData((List<Class<?>>) args[0]);
 
-			ArrayList<EntityMetaDataTransfer> emdTransfer =
-					new ArrayList<>(result.size());
+			ArrayList<EntityMetaDataTransfer> emdTransfer = new ArrayList<>(result.size());
 			for (int a = 0, size = result.size(); a < size; a++) {
 				IEntityMetaData source = result.get(a);
 				EntityMetaDataTransfer target = getService(IConversionHelper.class)

@@ -96,8 +96,7 @@ public class PrefetchConfig implements IPrefetchConfig {
 	@Autowired
 	protected IProxyFactory proxyFactory;
 
-	protected final HashMap<Class<?>, ArrayList<String>> entityTypeToPrefetchPaths =
-			new HashMap<>();
+	protected final HashMap<Class<?>, ArrayList<String>> entityTypeToPrefetchPaths = new HashMap<>();
 
 	@Override
 	public <T> T plan(Class<T> entityType) {
@@ -110,7 +109,7 @@ public class PrefetchConfig implements IPrefetchConfig {
 		if (propertyPath != null) {
 			add(baseEntityType, propertyPath);
 		}
-		return (T) proxyFactory.createProxy(getClass().getClassLoader(), currMetaData.getEntityType(),
+		return (T) proxyFactory.createProxy(currMetaData.getEntityType(),
 				new PrefetchConfigInterceptor(currMetaData, baseEntityType, propertyPath));
 	}
 

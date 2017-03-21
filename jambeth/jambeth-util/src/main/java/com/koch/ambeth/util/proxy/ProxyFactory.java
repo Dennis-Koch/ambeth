@@ -60,8 +60,7 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T createProxy(ClassLoader classLoader, Class<T> type,
-			MethodInterceptor... interceptors) {
+	public <T> T createProxy(Class<T> type, MethodInterceptor... interceptors) {
 		ProxyTypeKey key = new ProxyTypeKey(type, emptyInterfaces);
 		Class<? extends Factory> proxyType = get(key);
 		if (proxyType != null) {
@@ -88,7 +87,7 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T createProxy(ClassLoader classLoader, Class<T> type, Class<?>[] interfaces,
+	public <T> T createProxy(Class<T> type, Class<?>[] interfaces,
 			MethodInterceptor... interceptors) {
 		ProxyTypeKey key = new ProxyTypeKey(type, interfaces);
 		Class<? extends Factory> proxyType = get(key);
@@ -100,7 +99,7 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
 			allInterfaces.add(type);
 			allInterfaces.addAll(interfaces);
 
-			return (T) createProxy(classLoader, allInterfaces.toArray(Class.class), interceptors);
+			return (T) createProxy(allInterfaces.toArray(Class.class), interceptors);
 		}
 		ArrayList<Class<?>> tempList = new ArrayList<>();
 		for (int a = interfaces.length; a-- > 0;) {
@@ -133,8 +132,7 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Object createProxy(ClassLoader classLoader, Class<?>[] interfaces,
-			MethodInterceptor... interceptors) {
+	public Object createProxy(Class<?>[] interfaces, MethodInterceptor... interceptors) {
 		ProxyTypeKey key = new ProxyTypeKey(Object.class, interfaces);
 		Class<? extends Factory> proxyType = get(key);
 		if (proxyType != null) {
@@ -148,7 +146,7 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
 				if (interfaces.length - a > 1) {
 					System.arraycopy(interfaces, a + 1, newInterfaces, a, interfaces.length - a - 1);
 				}
-				return createProxy(classLoader, interfaceType, newInterfaces, interceptors);
+				return createProxy(interfaceType, newInterfaces, interceptors);
 			}
 		}
 		Enhancer enhancer = new Enhancer();

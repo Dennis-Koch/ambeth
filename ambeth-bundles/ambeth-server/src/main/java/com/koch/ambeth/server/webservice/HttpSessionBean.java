@@ -60,8 +60,8 @@ public class HttpSessionBean
 		if (obj != null) {
 			return obj;
 		}
-		obj = proxyFactory.createProxy(getClass().getClassLoader(), HttpSession.class,
-				new Class<?>[] {IHttpSessionProvider.class}, this);
+		obj = proxyFactory.createProxy(HttpSession.class, new Class<?>[] {IHttpSessionProvider.class},
+				this);
 		return obj;
 	}
 

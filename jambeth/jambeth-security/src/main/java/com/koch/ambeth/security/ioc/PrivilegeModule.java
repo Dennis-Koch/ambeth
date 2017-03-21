@@ -26,9 +26,9 @@ import com.koch.ambeth.event.IEventListenerExtendable;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
+import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
+import com.koch.ambeth.security.config.SecurityConfigurationConstants;
 import com.koch.ambeth.security.privilege.IPrivilegeProvider;
 import com.koch.ambeth.security.privilege.IPrivilegeProviderIntern;
 import com.koch.ambeth.security.privilege.PrivilegeProvider;
@@ -36,13 +36,18 @@ import com.koch.ambeth.security.privilege.factory.EntityPrivilegeFactoryProvider
 import com.koch.ambeth.security.privilege.factory.EntityTypePrivilegeFactoryProvider;
 import com.koch.ambeth.security.privilege.factory.IEntityPrivilegeFactoryProvider;
 import com.koch.ambeth.security.privilege.factory.IEntityTypePrivilegeFactoryProvider;
+import com.koch.ambeth.security.service.IPrivilegeService;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
+import com.koch.ambeth.service.config.ServiceConfigurationConstants;
+import com.koch.ambeth.service.remote.ClientServiceBean;
 
 @FrameworkModule
 public class PrivilegeModule implements IInitializingModule {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
+	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
+	protected boolean isNetworkClientMode;
+
+	@Property(name = SecurityConfigurationConstants.PrivilegeServiceBeanActive, defaultValue = "true")
+	protected boolean isPrivilegeServiceBeanActive;
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
@@ -60,13 +65,10 @@ public class PrivilegeModule implements IInitializingModule {
 		beanContextFactory.registerBean(EntityTypePrivilegeFactoryProvider.class)
 				.autowireable(IEntityTypePrivilegeFactoryProvider.class);
 
-		// if (IsNetworkClientMode && IsPrivilegeServiceBeanActive)
-		// {
-		// beanContextFactory.registerBean<ClientServiceBean>("privilegeServiceWCF")
-		// .propertyValue("Interface", typeof(IPrivilegeService))
-		// .propertyValue("SyncRemoteInterface", typeof(IPrivilegeServiceWCF))
-		// .propertyValue("AsyncRemoteInterface",
-		// typeof(IPrivilegeClient)).autowireable<IPrivilegeService>();
-		// }
+		if (isNetworkClientMode && isPrivilegeServiceBeanActive) {
+			beanContextFactory.registerBean("privilegeService.external", ClientServiceBean.class)
+					.propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, IPrivilegeService.class)
+					.autowireable(IPrivilegeService.class);
+		}
 	}
 }

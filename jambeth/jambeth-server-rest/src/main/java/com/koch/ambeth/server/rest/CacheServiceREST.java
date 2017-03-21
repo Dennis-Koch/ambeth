@@ -30,7 +30,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 
 import com.koch.ambeth.cache.ioc.CacheModule;
@@ -41,10 +40,11 @@ import com.koch.ambeth.service.cache.model.IObjRelationResult;
 import com.koch.ambeth.service.cache.model.IServiceResult;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.model.IServiceDescription;
+import com.koch.ambeth.service.rest.Constants;
 
 @Path("/CacheService")
-@Consumes({MediaType.TEXT_PLAIN})
-@Produces({MediaType.TEXT_PLAIN})
+@Consumes({Constants.AMBETH_MEDIA_TYPE})
+@Produces({Constants.AMBETH_MEDIA_TYPE})
 public class CacheServiceREST extends AbstractServiceREST {
 	protected ICacheService getCacheService() {
 		return getServiceContext().getService(CacheModule.EXTERNAL_CACHE_SERVICE, ICacheService.class);
@@ -52,7 +52,7 @@ public class CacheServiceREST extends AbstractServiceREST {
 
 	@SuppressWarnings("unchecked")
 	@POST
-	@Path("GetEntities")
+	@Path("getEntities")
 	public StreamingOutput getEntities(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
 		try {
@@ -69,9 +69,10 @@ public class CacheServiceREST extends AbstractServiceREST {
 		}
 	}
 
+
 	@SuppressWarnings("unchecked")
 	@POST
-	@Path("GetRelations")
+	@Path("getRelations")
 	public StreamingOutput getRelations(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
 		try {
@@ -90,7 +91,7 @@ public class CacheServiceREST extends AbstractServiceREST {
 	}
 
 	@POST
-	@Path("GetORIsForServiceRequest")
+	@Path("getORIsForServiceRequest")
 	public StreamingOutput getORIsForServiceRequest(InputStream is,
 			@Context HttpServletRequest request, @Context HttpServletResponse response) {
 		try {

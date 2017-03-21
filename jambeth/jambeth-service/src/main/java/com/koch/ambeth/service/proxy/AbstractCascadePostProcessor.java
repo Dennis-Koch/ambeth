@@ -94,11 +94,11 @@ public abstract class AbstractCascadePostProcessor
 			lastInterceptor.setTarget(proxiedTargetBean);
 			Object proxy;
 			if (requestedTypes.size() == 0) {
-				proxy = proxyFactory.createProxy(null, beanType, emptyClasses, interceptor);
+				proxy = proxyFactory.createProxy(beanType, emptyClasses, interceptor);
 			}
 			else {
-				proxy = proxyFactory.createProxy(null,
-						requestedTypes.toArray(new Class[requestedTypes.size()]), interceptor);
+				proxy = proxyFactory.createProxy(requestedTypes.toArray(new Class[requestedTypes.size()]),
+						interceptor);
 			}
 			postHandleServiceIntern(beanContextFactory, beanContext, beanConfiguration, beanType,
 					requestedTypes, proxy);

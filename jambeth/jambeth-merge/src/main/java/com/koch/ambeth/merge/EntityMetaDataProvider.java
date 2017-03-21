@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +63,7 @@ import com.koch.ambeth.service.merge.IValueObjectConfig;
 import com.koch.ambeth.service.merge.model.IEntityLifecycleExtendable;
 import com.koch.ambeth.service.merge.model.IEntityLifecycleExtension;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
+import com.koch.ambeth.service.metadata.IDTOType;
 import com.koch.ambeth.service.metadata.IPrimitiveMemberWrite;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
@@ -143,15 +145,13 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	protected Class<?>[] businessObjectSaveOrder;
 
 	protected final ClassExtendableContainer<IEntityInstantiationExtension> entityInstantiationExtensions =
-			new ClassExtendableContainer<>("entityFactoryExtension",
-					"entityType");
+			new ClassExtendableContainer<>("entityFactoryExtension", "entityType");
 
 	protected final HashMap<Class<?>, IMap<String, ITypeInfoItem>> typeToPropertyMap =
 			new HashMap<>();
 
 	protected final ClassExtendableListContainer<IEntityLifecycleExtension> entityLifecycleExtensions =
-			new ClassExtendableListContainer<>("entityLifecycleExtension",
-					"entityType");
+			new ClassExtendableListContainer<>("entityLifecycleExtension", "entityType");
 
 	protected final MapExtendableContainer<Class<?>, Class<?>> technicalEntityTypes =
 			new MapExtendableContainer<>("technicalEntityType", "entityType");
@@ -162,7 +162,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {
-		alreadyHandled = proxyFactory.createProxy(getClass().getClassLoader(), IEntityMetaData.class);
+		alreadyHandled = proxyFactory.createProxy(IEntityMetaData.class);
 	}
 
 	protected void addTypeRelatedByTypes(Map<Class<?>, ISet<Class<?>>> typeRelatedByTypes,
@@ -181,8 +181,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
 	protected void initialize() {
 		HashMap<Class<?>, ISet<Class<?>>> typeRelatedByTypes = new HashMap<>();
-		IdentityHashSet<IEntityMetaData> extensions =
-				new IdentityHashSet<>(getExtensions().values());
+		IdentityHashSet<IEntityMetaData> extensions = new IdentityHashSet<>(getExtensions().values());
 		for (IEntityMetaData metaData : extensions) {
 			if (metaData == alreadyHandled) {
 				continue;
@@ -211,8 +210,8 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
 		final StringBuilder sb = objectCollector.create(StringBuilder.class);
 		try {
-			IEntityMetaData[] extensions = new IdentityHashSet<>(getExtensions().values())
-					.toArray(IEntityMetaData.class);
+			IEntityMetaData[] extensions =
+					new IdentityHashSet<>(getExtensions().values()).toArray(IEntityMetaData.class);
 
 			IDotWriter writer = new DotWriter(new Writer() {
 				@Override
@@ -474,6 +473,10 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
 	@Override
 	public IEntityMetaData getExtensionHardKey(Class<?> key) {
+		if (ImmutableTypeSet.isImmutableType(key) || key.isArray()
+				|| IDTOType.class.isAssignableFrom(key) || Collection.class.isAssignableFrom(key)) {
+			return alreadyHandled;
+		}
 		IEntityMetaData metaData = super.getExtensionHardKey(key);
 		if (metaData != null) {
 			return metaData;
@@ -597,8 +600,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas =
 					pendingToRefreshMetaDatasTL.get();
 			if (pendingToRefreshMetaDatas == null) {
-				pendingToRefreshMetaDatas =
-						new ClassExtendableContainer<>("metaData", "entityType");
+				pendingToRefreshMetaDatas = new ClassExtendableContainer<>("metaData", "entityType");
 				pendingToRefreshMetaDatasTL.set(pendingToRefreshMetaDatas);
 				handlePendingMetaData = true;
 			}
@@ -843,8 +845,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		}
 		IList<IEntityLifecycleExtension> extensionList =
 				entityLifecycleExtensions.getExtensions(entityMetaData.getEnhancedType());
-		ArrayList<IEntityLifecycleExtension> allExtensions =
-				new ArrayList<>(extensionList);
+		ArrayList<IEntityLifecycleExtension> allExtensions = new ArrayList<>(extensionList);
 		ArrayList<Method> prePersistMethods = new ArrayList<>();
 		fillMethodsAnnotatedWith(entityMetaData.getEnhancedType(), prePersistMethods, PrePersist.class);
 
@@ -903,10 +904,8 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		try {
 			businessObjectSaveOrder = null;
 
-			HashMap<Class<?>, ISet<Class<?>>> boTypeToBeforeBoTypes =
-					new HashMap<>();
-			HashMap<Class<?>, ISet<Class<?>>> boTypeToAfterBoTypes =
-					new HashMap<>();
+			HashMap<Class<?>, ISet<Class<?>>> boTypeToBeforeBoTypes = new HashMap<>();
+			HashMap<Class<?>, ISet<Class<?>>> boTypeToAfterBoTypes = new HashMap<>();
 
 			for (Entry<Class<?>, IValueObjectConfig> entry : valueObjectMap.getExtensions()) {
 				IValueObjectConfig voConfig = entry.getValue();

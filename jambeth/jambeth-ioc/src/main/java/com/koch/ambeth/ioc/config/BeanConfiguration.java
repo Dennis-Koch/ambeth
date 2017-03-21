@@ -65,8 +65,7 @@ public class BeanConfiguration extends AbstractBeanConfiguration {
 		if (createdInstance == null) {
 			try {
 				if (instanceType.isInterface() || Modifier.isAbstract(instanceType.getModifiers())) {
-					createdInstance = proxyFactory.createProxy(getClass().getClassLoader(), instanceType,
-							EmptyInterceptor.INSTANCE);
+					createdInstance = proxyFactory.createProxy(instanceType, EmptyInterceptor.INSTANCE);
 				}
 				else {
 					createdInstance = instanceType.newInstance();

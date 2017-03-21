@@ -1,5 +1,7 @@
 package com.koch.ambeth.security.privilege.transfer;
 
+import com.koch.ambeth.service.metadata.IDTOType;
+
 /*-
  * #%L
  * jambeth-security
@@ -20,7 +22,7 @@ limitations under the License.
  * #L%
  */
 
-public interface ITypePropertyPrivilegeOfService {
+public interface ITypePropertyPrivilegeOfService extends IDTOType {
 	Boolean isCreateAllowed();
 
 	Boolean isReadAllowed();

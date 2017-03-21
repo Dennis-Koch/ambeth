@@ -35,6 +35,9 @@ public final class CacheConfigurationConstants {
 	@ConfigurationConstantDescription("TODO")
 	public static final String CacheServiceName = "cache.service.name";
 
+	@ConfigurationConstantDescription("TODO")
+	public static final String CacheServiceBeanActive = "cache.service.active";
+
 	/**
 	 * Enables or disables the result cache. Valid values are "true" and "false", default is "false".
 	 */

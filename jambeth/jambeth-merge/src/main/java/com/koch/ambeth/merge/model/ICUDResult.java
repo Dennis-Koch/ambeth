@@ -22,10 +22,11 @@ limitations under the License.
 
 import java.util.List;
 
+import com.koch.ambeth.service.metadata.IDTOType;
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface ICUDResult {
+public interface ICUDResult extends IDTOType {
 	List<IChangeContainer> getAllChanges();
 
 	List<IChangeContainer> getChanges(Class<?> type);

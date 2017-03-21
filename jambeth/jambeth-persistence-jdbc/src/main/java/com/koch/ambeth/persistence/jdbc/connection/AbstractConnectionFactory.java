@@ -110,7 +110,7 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
 			MethodInterceptor logConnectionInterceptor =
 					beanContext.registerExternalBean(new LogConnectionInterceptor(connectionKeyHandle))
 							.propertyValue("Connection", connection).finish();
-			Connection conn = proxyFactory.createProxy(null, Connection.class,
+			Connection conn = proxyFactory.createProxy(Connection.class,
 					cgLibUtil.getAllInterfaces(connection), logConnectionInterceptor);
 
 			connectionDialect.preProcessConnection(conn, schemaNames, false);

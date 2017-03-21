@@ -21,8 +21,9 @@ limitations under the License.
  */
 
 import com.koch.ambeth.service.merge.model.IObjRef;
+import com.koch.ambeth.service.metadata.IDTOType;
 
-public interface ILoadContainer {
+public interface ILoadContainer extends IDTOType {
 	IObjRef getReference();
 
 	Object[] getPrimitives();

@@ -25,11 +25,12 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.koch.ambeth.service.metadata.IDTOType;
 import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
 
 @XmlRootElement(name = "EntityMetaDataTransfer", namespace = "http://schema.kochdev.com/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class EntityMetaDataTransfer {
+public class EntityMetaDataTransfer implements IDTOType {
 	@XmlElement
 	protected Class<?> entityType;
 

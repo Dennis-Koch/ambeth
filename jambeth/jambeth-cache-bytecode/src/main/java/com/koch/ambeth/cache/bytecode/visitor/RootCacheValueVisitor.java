@@ -33,6 +33,7 @@ import com.koch.ambeth.bytecode.MethodInstance;
 import com.koch.ambeth.bytecode.Script;
 import com.koch.ambeth.bytecode.ScriptWithIndex;
 import com.koch.ambeth.cache.rootcachevalue.RootCacheValue;
+import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
@@ -44,6 +45,15 @@ public class RootCacheValueVisitor extends ClassGenerator {
 	private static final Type objType = Type.getType(Object.class);
 
 	private static final Type objRefArrayType = Type.getType(IObjRef[].class);
+
+	@SuppressWarnings("unused")
+	private static final Object[][] OBJ_EMPTY_ARRAY_ARRAY = new Object[0][0];
+
+	private static final FieldInstance sf_objArrayArray = new FieldInstance(
+			ReflectUtil.getDeclaredField(RootCacheValueVisitor.class, "OBJ_EMPTY_ARRAY_ARRAY"));
+
+	private static final FieldInstance sf_objRefArrayArray =
+			new FieldInstance(ReflectUtil.getDeclaredField(ObjRef.class, "EMPTY_ARRAY_ARRAY"));
 
 	protected final IEntityMetaData metaData;
 
@@ -171,6 +181,10 @@ public class RootCacheValueVisitor extends ClassGenerator {
 
 		MethodGenerator mv = visitMethod(template_m_getPrimitives);
 
+		if (f_primitives.length == 0) {
+			mv.getField(sf_objArrayArray);
+			mv.returnValue();
+		}
 		mv.push(f_primitives.length);
 		mv.newArray(objType);
 
@@ -417,6 +431,10 @@ public class RootCacheValueVisitor extends ClassGenerator {
 
 		MethodGenerator mv = visitMethod(template_m_getRelations);
 
+		if (f_relations.length == 0) {
+			mv.getField(sf_objRefArrayArray);
+			mv.returnValue();
+		}
 		mv.push(f_relations.length);
 		mv.newArray(objRefArrayType);
 

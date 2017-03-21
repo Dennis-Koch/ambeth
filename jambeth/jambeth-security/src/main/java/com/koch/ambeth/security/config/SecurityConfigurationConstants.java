@@ -25,6 +25,13 @@ import com.koch.ambeth.util.annotation.ConfigurationConstants;
 
 @ConfigurationConstants
 public final class SecurityConfigurationConstants {
+
+	@ConfigurationConstantDescription("TODO")
+	public static final String SecurityServiceBeanActive = "security.service.active";
+
+	@ConfigurationConstantDescription("TODO")
+	public static final String PrivilegeServiceBeanActive = "privilege.service.active";
+
 	@ConfigurationConstantDescription("TODO")
 	public static final String DefaultReadPrivilegeActive = "security.privilege.default.read-entity";
 

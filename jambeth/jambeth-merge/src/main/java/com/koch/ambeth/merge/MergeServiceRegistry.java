@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 
 import com.koch.ambeth.ioc.DefaultExtendableContainer;
 import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.extendable.ClassExtendableContainer;
 import com.koch.ambeth.ioc.threadlocal.Forkable;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
@@ -45,6 +46,7 @@ import com.koch.ambeth.merge.service.IMergeService;
 import com.koch.ambeth.merge.transfer.CUDResult;
 import com.koch.ambeth.merge.transfer.DeleteContainer;
 import com.koch.ambeth.merge.transfer.OriCollection;
+import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.IValueObjectConfig;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
@@ -128,6 +130,9 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 	@Autowired(optional = true)
 	protected ILightweightTransaction transaction;
 
+	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
+	protected boolean isNetworkClientMode;
+
 	protected final ClassExtendableContainer<IMergeServiceExtension> mergeServiceExtensions =
 			new ClassExtendableContainer<>("mergeServiceExtension", "entityType");
 
@@ -208,15 +213,15 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 							}
 							IList<MergeOperation> mergeOperationSequence;
 							final ICUDResult extendedCudResult;
-							if (cudResultOfCache != cudResultOriginal) {
+							if (cudResultOfCache != cudResultOriginal && !isNetworkClientMode) {
 								mergeOperationSequence = new ArrayList<>();
 								extendedCudResult = whatIfMerged(cudResultOfCache, methodDescription,
 										mergeOperationSequence, state);
 							}
 							else {
-								extendedCudResult = cudResultOriginal;
+								extendedCudResult = cudResultOfCache;
 								IMap<Class<?>, IList<IChangeContainer>> sortedChanges =
-										bucketSortChanges(cudResultOriginal.getAllChanges());
+										bucketSortChanges(cudResultOfCache.getAllChanges());
 								mergeOperationSequence = createMergeOperationSequence(sortedChanges);
 							}
 							if (log.isDebugEnabled()) {
@@ -307,8 +312,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 					bucketSortChanges(cudResult.getAllChanges());
 			lastMergeOperationSequence = createMergeOperationSequence(sortedChanges);
 
-			final ParamHolder<Boolean> hasAtLeastOneImplicitChange =
-					new ParamHolder<>(Boolean.FALSE);
+			final ParamHolder<Boolean> hasAtLeastOneImplicitChange = new ParamHolder<>(Boolean.FALSE);
 			try {
 				final IList<MergeOperation> fLastMergeOperationSequence = lastMergeOperationSequence;
 				cudResult = cacheContext.executeWithCache(incrementalState.getStateCache(),
@@ -350,8 +354,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 			IList<MergeOperation> mergeOperationSequence, IncrementalMergeState state) {
 		List<IChangeContainer> allChanges = cudResult.getAllChanges();
 		List<Object> originalRefs = cudResult.getOriginalRefs();
-		IdentityHashMap<IChangeContainer, Integer> changeToChangeIndexDict =
-				new IdentityHashMap<>();
+		IdentityHashMap<IChangeContainer, Integer> changeToChangeIndexDict = new IdentityHashMap<>();
 
 		for (int a = allChanges.size(); a-- > 0;) {
 			changeToChangeIndexDict.put(allChanges.get(a), a);
@@ -517,7 +520,9 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 		ArrayList<IEntityMetaData> metaDataResult = new ArrayList<>(entityTypes.size());
 		for (Entry<IMergeServiceExtension, List<Class<?>>> entry : mseToEntityTypes) {
 			List<IEntityMetaData> groupedMetaData = entry.getKey().getMetaData(entry.getValue());
-			metaDataResult.addAll(groupedMetaData);
+			if (groupedMetaData != null) {
+				metaDataResult.addAll(groupedMetaData);
+			}
 		}
 		return metaDataResult;
 	}
@@ -545,8 +550,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 
 	protected IMap<Class<?>, IList<IChangeContainer>> bucketSortChanges(
 			List<IChangeContainer> allChanges) {
-		IMap<Class<?>, IList<IChangeContainer>> sortedChanges =
-				new HashMap<>();
+		IMap<Class<?>, IList<IChangeContainer>> sortedChanges = new HashMap<>();
 
 		for (int i = allChanges.size(); i-- > 0;) {
 			IChangeContainer changeContainer = allChanges.get(i);

@@ -25,9 +25,11 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.koch.ambeth.service.metadata.IDTOType;
+
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class AmbethServiceException {
+public class AmbethServiceException implements IDTOType {
 	@XmlElement(required = false)
 	protected String message;
 
