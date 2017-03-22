@@ -78,26 +78,33 @@ public class GenericQueryREST extends AbstractServiceREST {
 		try {
 			preServiceCall();
 			final Object[] args = getArguments(is, request);
-			ICacheFactory cacheFactory = getService(ICacheFactory.class);
+			// we need to maintain our own explicit 1st level cache: during serialization of
+			// the StreamingOutput we need a (still) valid cache handle
+			// the transparently maintained 1st level cache of the framework bound to the current thread
+			// would be disposed already so we have to
+			// "stretch" the living phase with our own custom lifecycle handling
+			// it is important that in each and every code-path (specifically
+			// on all ever possible errors) the custom cache gets really disposed at the end 100%
+			// consistently
+			ICacheContext cacheContext = getService(ICacheContext.class);
 			final IDisposableCache cache =
-					cacheFactory.create(CacheFactoryDirective.NoDCE, "genericFilter");
+					getService(ICacheFactory.class).create(CacheFactoryDirective.NoDCE, "genericFilter");
 			boolean success = false;
 			try {
-				ICacheContext cacheContext = getService(ICacheContext.class);
 				StreamingOutput result = cacheContext.executeWithCache(cache,
 						new IResultingBackgroundWorkerDelegate<StreamingOutput>() {
 							@Override
 							public StreamingOutput invoke() throws Throwable {
 								IFilterToQueryBuilder filterToQueryBuilder =
 										getService(IFilterToQueryBuilder.class);
-								IPagingQuery pagingQuery = filterToQueryBuilder
-										.buildQuery((IFilterDescriptor) args[0], (ISortDescriptor[]) args[1]);
-								IPagingResponse result = pagingQuery.retrieve((IPagingRequest) args[2]);
+								IPagingQuery<?> pagingQuery = filterToQueryBuilder
+										.buildQuery((IFilterDescriptor<?>) args[0], (ISortDescriptor[]) args[1]);
+								IPagingResponse<?> result = pagingQuery.retrieve((IPagingRequest) args[2]);
 								return createResult(result, response,
 										new IBackgroundWorkerParamDelegate<Throwable>() {
 											@Override
 											public void invoke(Throwable e) throws Throwable {
-												cache.dispose();
+												cache.dispose(); // on success this gets called also with "e = null"
 											}
 										});
 							}

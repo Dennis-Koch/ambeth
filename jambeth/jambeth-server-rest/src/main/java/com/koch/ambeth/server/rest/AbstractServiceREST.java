@@ -317,7 +317,7 @@ public abstract class AbstractServiceREST {
 	}
 
 	protected StreamingOutput createResult(final Object result, final HttpServletResponse response,
-			final IBackgroundWorkerParamDelegate<Throwable> resultWrittenCallback) {
+			final IBackgroundWorkerParamDelegate<Throwable> streamingFinishedCallback) {
 		final String contentEncoding = evaluateAcceptedContentEncoding(response);
 		return new StreamingOutput() {
 			@Override
@@ -334,14 +334,14 @@ public abstract class AbstractServiceREST {
 					if (output instanceof DeflaterOutputStream) {
 						((DeflaterOutputStream) output).finish();
 					}
-					if (resultWrittenCallback != null) {
-						resultWrittenCallback.invoke(null);
+					if (streamingFinishedCallback != null) {
+						streamingFinishedCallback.invoke(null);
 					}
 				}
 				catch (Throwable e) {
-					if (resultWrittenCallback != null) {
+					if (streamingFinishedCallback != null) {
 						try {
-							resultWrittenCallback.invoke(e);
+							streamingFinishedCallback.invoke(e);
 						}
 						catch (Throwable e1) {
 							// intended blank
@@ -370,7 +370,7 @@ public abstract class AbstractServiceREST {
 						logException(e, sb);
 					}
 					if (e instanceof IOException) {
-						throw (IOException) e;
+						throw (IOException) e; // no need to mask IOException because of the write() signature
 					}
 					throw RuntimeExceptionUtil.mask(e);
 				}
