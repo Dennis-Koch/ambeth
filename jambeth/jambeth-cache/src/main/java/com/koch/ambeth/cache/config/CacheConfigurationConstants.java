@@ -65,7 +65,7 @@ public final class CacheConfigurationConstants {
 
 	/**
 	 * Defines the type of the first-level cache. Valid values are "DEFAULT", "PROTOTYPE", "SINGLETON"
-	 * and "THREAD_LOCAL", default value is "DEFAULT".
+	 * and "THREAD_LOCAL", default value is "DEFAULT" (which leads to "THREAD_LOCAL" behavior).
 	 */
 	public static final String FirstLevelCacheType = "cache.firstlevel.type";
 
