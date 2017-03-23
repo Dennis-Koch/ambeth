@@ -23,7 +23,8 @@ limitations under the License.
 import java.io.Closeable;
 
 /**
- * Marker interface
+ * Marker interface helpful for polymorphic object identification. Its use comes e.g. in the
+ * internals of {@link GenericInputSourceConverter#convertValueToType(Class, Class, Object, Object)}
  */
 public interface IInputStream extends Closeable {
 	// Intended blank

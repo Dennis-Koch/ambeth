@@ -21,7 +21,14 @@ limitations under the License.
  */
 
 import com.koch.ambeth.service.metadata.Member;
+import com.koch.ambeth.stream.IInputSource;
 
+/**
+ * This is a marker interface to give the caches the hint to provide the entity information to a
+ * somehow smart/complex value of a primitive (non-relational) property implementing this interface.
+ * It gets automatically called each time an entity gets hydrated or updated in the 1st level cache.
+ * It is used for advanced property behaviors - e.g. streams ({@link IInputSource}).
+ */
 public interface IParentEntityAware {
 	void setParentEntity(Object parentEntity, Member member);
 }

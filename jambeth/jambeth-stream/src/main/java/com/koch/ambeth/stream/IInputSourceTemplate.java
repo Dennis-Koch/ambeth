@@ -1,5 +1,7 @@
 package com.koch.ambeth.stream;
 
+import com.koch.ambeth.stream.float64.IDoubleInputSource;
+
 /*-
  * #%L
  * jambeth-stream
@@ -20,6 +22,21 @@ limitations under the License.
  * #L%
  */
 
+/**
+ * Technically this is just a marker interface: If you implement a custom {@link ICacheRetriever} or
+ * {@link IPrimitiveRetriever} you can assign just an instance of this interface to give the cache
+ * hierarchies the hint to prepare the corresponding property at runtime for the full streaming
+ * capability. For convenience there is already an enum value ({@link InputSourceTemplate#INSTANCE})
+ * ready to use as the primitive property value. As soon as the cache needs to hydrate the entity in
+ * any 1st level cache the corresponding dedicated converter is called to instantiate the type-safe
+ * data source (e.g. an {@link IDoubleInputSource}). The usage of the enum can look like this:<br>
+ * <br>
+ * <code>
+ * Object[] getPrimitives(List&lt;IObjRelation&gt; objPropertyKeys) {<br>
+ * IObjRelation objPropertyKey = objPropertyKeys.get(0);<br>
+ * return new Object[] { InputSourceTemplate.INSTANCE };<br>
+ * }</code>
+ */
 public interface IInputSourceTemplate extends Cloneable {
 	// Intended blank
 }

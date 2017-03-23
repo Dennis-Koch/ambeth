@@ -25,7 +25,7 @@ import java.lang.reflect.Method;
 import com.koch.ambeth.cache.ICacheIntern;
 import com.koch.ambeth.cache.IRootCache;
 import com.koch.ambeth.cache.ISecondLevelCacheManager;
-import com.koch.ambeth.cache.ITransactionalRootCache;
+import com.koch.ambeth.cache.ITransactionalRootCacheManager;
 import com.koch.ambeth.cache.RootCache;
 import com.koch.ambeth.cache.rootcachevalue.RootCacheValue;
 import com.koch.ambeth.cache.service.ICacheRetriever;
@@ -42,7 +42,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import net.sf.cglib.proxy.MethodProxy;
 
 public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInterceptor
-		implements ITransactionalRootCache, ISecondLevelCacheManager {
+		implements ITransactionalRootCacheManager, ISecondLevelCacheManager {
 	protected static final Method clearMethod = AbstractRootCacheAwareInterceptor.clearMethod;
 
 	@SuppressWarnings("unused")

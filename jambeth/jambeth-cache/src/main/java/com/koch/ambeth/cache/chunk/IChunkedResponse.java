@@ -1,5 +1,7 @@
 package com.koch.ambeth.cache.chunk;
 
+import com.koch.ambeth.service.metadata.IDTOType;
+
 /*-
  * #%L
  * jambeth-cache
@@ -23,7 +25,7 @@ limitations under the License.
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface IChunkedResponse {
+public interface IChunkedResponse extends IDTOType {
 	IChunkedRequest getReference();
 
 	byte[] getPayload();

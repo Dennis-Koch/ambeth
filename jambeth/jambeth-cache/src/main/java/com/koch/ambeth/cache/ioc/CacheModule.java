@@ -33,7 +33,7 @@ import com.koch.ambeth.cache.IFirstLevelCacheManager;
 import com.koch.ambeth.cache.IRootCache;
 import com.koch.ambeth.cache.ISecondLevelCacheManager;
 import com.koch.ambeth.cache.IServiceResultCache;
-import com.koch.ambeth.cache.ITransactionalRootCache;
+import com.koch.ambeth.cache.ITransactionalRootCacheManager;
 import com.koch.ambeth.cache.PagingQueryServiceResultProcessor;
 import com.koch.ambeth.cache.RootCache;
 import com.koch.ambeth.cache.RootCacheBridge;
@@ -185,7 +185,7 @@ public class CacheModule implements IInitializingModule {
 
 		beanContextFactory.registerWithLifecycle("txRootCacheInterceptor", txRcInterceptor)
 				.propertyRefs(COMMITTED_ROOT_CACHE, rootCacheBridge)
-				.autowireable(ITransactionalRootCache.class, ISecondLevelCacheManager.class);
+				.autowireable(ITransactionalRootCacheManager.class, ISecondLevelCacheManager.class);
 
 		Object txRcProxy = proxyFactory.createProxy(
 				new Class<?>[] {IRootCache.class, ICacheIntern.class, IOfflineListener.class},

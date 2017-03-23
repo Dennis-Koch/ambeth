@@ -77,6 +77,9 @@ public class StreamingEntityTest extends AbstractInformationBusTest {
 		}
 	}
 
+	@Autowired(CacheModule.DEFAULT_CACHE_RETRIEVER)
+	protected CacheRetrieverFake cacheRetrieverFake;
+
 	@Autowired
 	protected ICache cache;
 
@@ -90,8 +93,6 @@ public class StreamingEntityTest extends AbstractInformationBusTest {
 	public void streamedBoolean() throws Exception {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(StreamingEntity.class);
 
-		CacheRetrieverFake cacheRetrieverFake =
-				beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
 		LoadContainer lc = new LoadContainer();
 		ObjRef objRef = new ObjRef(StreamingEntity.class, new Integer(1), null);
 		lc.setReference(objRef);
@@ -124,8 +125,6 @@ public class StreamingEntityTest extends AbstractInformationBusTest {
 	public void streamedDouble() throws Exception {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(StreamingEntity.class);
 
-		CacheRetrieverFake cacheRetrieverFake =
-				beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
 		LoadContainer lc = new LoadContainer();
 		ObjRef objRef = new ObjRef(StreamingEntity.class, new Integer(1), null);
 		lc.setReference(objRef);
@@ -158,8 +157,6 @@ public class StreamingEntityTest extends AbstractInformationBusTest {
 	public void streamedFloat() throws Exception {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(StreamingEntity.class);
 
-		CacheRetrieverFake cacheRetrieverFake =
-				beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
 		LoadContainer lc = new LoadContainer();
 		ObjRef objRef = new ObjRef(StreamingEntity.class, new Integer(1), null);
 		lc.setReference(objRef);
@@ -192,8 +189,6 @@ public class StreamingEntityTest extends AbstractInformationBusTest {
 	public void streamedInt() throws Exception {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(StreamingEntity.class);
 
-		CacheRetrieverFake cacheRetrieverFake =
-				beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
 		LoadContainer lc = new LoadContainer();
 		ObjRef objRef = new ObjRef(StreamingEntity.class, new Integer(1), null);
 		lc.setReference(objRef);
@@ -226,8 +221,6 @@ public class StreamingEntityTest extends AbstractInformationBusTest {
 	public void streamedLong() throws Exception {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(StreamingEntity.class);
 
-		CacheRetrieverFake cacheRetrieverFake =
-				beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
 		LoadContainer lc = new LoadContainer();
 		ObjRef objRef = new ObjRef(StreamingEntity.class, new Integer(1), null);
 		lc.setReference(objRef);
@@ -260,8 +253,6 @@ public class StreamingEntityTest extends AbstractInformationBusTest {
 	public void streamedString() throws Exception {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(StreamingEntity.class);
 
-		CacheRetrieverFake cacheRetrieverFake =
-				beanContext.getService(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
 		LoadContainer lc = new LoadContainer();
 		ObjRef objRef = new ObjRef(StreamingEntity.class, new Integer(1), null);
 		lc.setReference(objRef);

@@ -24,9 +24,27 @@ import java.util.List;
 
 import com.koch.ambeth.service.cache.model.ILoadContainer;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.util.annotation.XmlType;
 
-@XmlType
+/**
+ * Extension to provide the payload for cache misses when called by a Root Cache
+ * ({@link com.koch.ambeth.cache.RootCache}). In most cases the calling root cache is the 2nd level
+ * cache of the application. This way any kind of data source can be used to fill fragments of the
+ * federated information model:<br>
+ * <ul>
+ * <li>file system</li>
+ * <li>web service</li>
+ * <li>native library</li>
+ * <li>ordinary JDBC connection</li>
+ * <li>...be creative...</li>
+ * </ul>
+ *
+ * An implementation of this extension can link very easily to the provided extension point with the
+ * Link-API of the IoC container: <code><br><br>
+ * IBeanContextFactory bcf = ...<br>
+ * IBeanConfiguration myCacheRetriever = bcf.registerBean(MyCacheRetriever.class);<br>
+ * bcf.link(myCacheRetriever).to(ICacheRetrieverExtendable.class).with(MyEntity.class);
+ * </code><br>
+ */
 public interface ICacheRetriever extends IRelationRetriever {
 	List<ILoadContainer> getEntities(List<IObjRef> orisToLoad);
 }

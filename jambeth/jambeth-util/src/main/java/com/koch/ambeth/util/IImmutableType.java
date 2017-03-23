@@ -24,7 +24,11 @@ limitations under the License.
 /**
  * Marker interface for objects which claim to be immutable - that means they have no
  * properties/fields which can be modified directly or indirectly and therefore change the state of
- * the immutable object
+ * the immutable object. Its used e.g. in the internals of the ObjectCopier component to speedup the
+ * cloning procedure of dehydrated entities in the 2nd level cache and to greatly reduce the overall
+ * memory footprint.<br>
+ *
+ * @see com.koch.ambeth.merge.copy.IObjectCopier
  */
 public interface IImmutableType {
 	// Intended blank

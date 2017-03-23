@@ -28,7 +28,7 @@ import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
 import javax.transaction.UserTransaction;
 
-import com.koch.ambeth.cache.ITransactionalRootCache;
+import com.koch.ambeth.cache.ITransactionalRootCacheManager;
 import com.koch.ambeth.event.IEventDispatcher;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.threadlocal.Forkable;
@@ -121,7 +121,7 @@ public class JdbcTransaction
 	protected ITransactionListenerProvider transactionListenerProvider;
 
 	@Autowired(optional = true)
-	protected ITransactionalRootCache transactionalRootCache;
+	protected ITransactionalRootCacheManager transactionalRootCache;
 
 	@Autowired(optional = true)
 	protected UserTransaction userTransaction;

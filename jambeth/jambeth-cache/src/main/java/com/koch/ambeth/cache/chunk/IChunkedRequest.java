@@ -21,10 +21,11 @@ limitations under the License.
  */
 
 import com.koch.ambeth.service.cache.model.IObjRelation;
+import com.koch.ambeth.service.metadata.IDTOType;
 import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
-public interface IChunkedRequest {
+public interface IChunkedRequest extends IDTOType {
 	IObjRelation getObjRelation();
 
 	long getStartPosition();

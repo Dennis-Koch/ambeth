@@ -25,6 +25,21 @@ import java.util.List;
 import com.koch.ambeth.service.cache.model.IObjRelation;
 import com.koch.ambeth.service.cache.model.IObjRelationResult;
 
+/**
+ * Extension to provide the value of a relational propertyd of an entity. This is used in cases
+ * where a previous call to the corresponding {@link ICacheRetriever} did not provide the object
+ * references (instances of {@link com.koch.ambeth.merge.model.IObjRef}) of this relation in the
+ * {@link com.koch.ambeth.service.cache.model.ILoadContainer} for whatever reason. In most cases the
+ * relational information has been omitted intentionally in order to provide a lazy-loading pattern
+ * to address potential performance concerns.<br>
+ *
+ * An implementation of this extension can link very easily to the provided extension point with the
+ * Link-API of the IoC container: <code><br><br>
+ * IBeanContextFactory bcf = ...<br>
+ * IBeanConfiguration myRelationRetriever = bcf.registerBean(MyRelationRetriever.class);<br>
+ * bcf.link(myRelationRetriever).to(IRelationRetrieverExtendable.class).with(MyEntity.class, "MyLazilyLoadedProp");
+ * </code><br>
+ */
 public interface IRelationRetriever {
 	List<IObjRelationResult> getRelations(List<IObjRelation> objPropertyKeys);
 }
