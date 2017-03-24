@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>com.koch.ambeth.information.bus.tycho.feature</artifactId>
+	<packaging>eclipse-feature</packaging>
+
+	<parent>
+		<groupId>com.koch.ambeth.information.bus.tycho</groupId>
+		<artifactId>com.koch.ambeth.information.bus.tycho.parent</artifactId>
+		<version>3.0.1-SNAPSHOT</version>
+	</parent>
+	
+	<build>
+		<pluginManagement>
+			<plugins>
+				<!-- enable source feature generation -->
+				<plugin>
+					<groupId>org.eclipse.tycho.extras</groupId>
+					<artifactId>tycho-source-feature-plugin</artifactId>
+					<version>${tycho.version}</version>
+					<!-- provide plug-ins not containing any source code -->
+					<configuration>
+						<excludes>
+							<plugin id="cglib" />
+							<plugin id="javax.persistence" />
+							<plugin id="org.objectweb.asm.all" />
+							<plugin id="javassist" />
+							<plugin id="xpp3" />
+						</excludes>
+					</configuration>
+					<executions>
+				        <execution>
+				            <id>source-feature</id>
+				            <phase>package</phase>
+				            <goals>
+				                <goal>source-feature</goal>
+				            </goals>
+				        </execution>
+				    </executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>

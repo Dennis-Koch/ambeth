@@ -72,7 +72,6 @@ public class QueryResultCache implements IQueryResultCache {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
@@ -275,6 +274,9 @@ public class QueryResultCache implements IQueryResultCache {
 				length = (int) Math.min(cachedTotalSize - offset, length);
 			}
 		}
+		if (length < 0) {
+			length = 0;
+		}
 		ArrayList<IObjRef> resultList = new ArrayList<>(length);
 		for (int a = offset, size = offset + length; a < size; a++) {
 			resultList.add(queryResultCacheItem.getObjRef(a, idIndex));
@@ -332,6 +334,10 @@ public class QueryResultCache implements IQueryResultCache {
 		if (dataChange.isEmpty()) {
 			return;
 		}
+		if (log.isDebugEnabled()) {
+			log.debug(
+					"processing data change to invalidate corresponding query cache entries of committed state");
+		}
 		ISet<Class<?>> occuringTypes = collectOccuringTypes(dataChange);
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
@@ -344,7 +350,10 @@ public class QueryResultCache implements IQueryResultCache {
 		finally {
 			writeLock.unlock();
 		}
-
+		if (log.isDebugEnabled()) {
+			log.debug(
+					"processed data change to invalidate corresponding query cache entries of committed state");
+		}
 	}
 
 	public void handleClearAllCaches(ClearAllCachesEvent event) {
@@ -358,9 +367,15 @@ public class QueryResultCache implements IQueryResultCache {
 				if (session != null) {
 					session.clear();
 				}
+				if (log.isDebugEnabled()) {
+					log.debug("cleared query cache of transaction '" + transactionInfo.getSessionId() + "'");
+				}
 			}
 			entityTypeToQueryKeyMap.clear();
 			queryKeyToObjRefMap.clear();
+			if (log.isDebugEnabled()) {
+				log.debug("cleared query cache of committed state");
+			}
 		}
 		finally {
 			writeLock.unlock();
@@ -377,7 +392,17 @@ public class QueryResultCache implements IQueryResultCache {
 				// nothing to do
 				return;
 			}
+			if (log.isDebugEnabled()) {
+				log.debug(
+						"processing data change to invalidate corresponding query cache entries of transaction '"
+								+ dataChangeOfSession.getSessionId() + "'");
+			}
 			handleDataChangeIntern(dataChangeOfSession.getDataChange(), session.queryKeyToObjRefMap);
+			if (log.isDebugEnabled()) {
+				log.debug(
+						"processed data change to invalidate corresponding query cache entries of transaction '"
+								+ dataChangeOfSession.getSessionId() + "'");
+			}
 		}
 		finally {
 			writeLock.unlock();

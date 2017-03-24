@@ -11,14 +11,6 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-<licenses>
-	<license>
-		<name>Apache-2.0</name>
-		<url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
-		<distribution>repo</distribution>
-	</license>
-</licenses>
-
 	<dependencies>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>

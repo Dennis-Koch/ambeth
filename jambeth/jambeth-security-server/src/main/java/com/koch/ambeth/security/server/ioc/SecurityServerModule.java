@@ -26,8 +26,6 @@ import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IMergeSecurityManager;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.security.IActionPermission;
@@ -59,10 +57,6 @@ import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 
 @FrameworkModule
 public class SecurityServerModule implements IInitializingModule {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean isSecurityActive;
 

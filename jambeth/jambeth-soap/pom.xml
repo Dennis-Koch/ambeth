@@ -10,7 +10,5 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
- 	<dependencies>
-	</dependencies>
-
+ 	
 </project>

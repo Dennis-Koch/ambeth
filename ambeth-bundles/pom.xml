@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>jambeth-bundles</artifactId>
@@ -11,21 +12,24 @@
 		<relativePath>../jambeth/pom.xml</relativePath>
 	</parent>
 
+	<properties>
+		<!-- Tycho -->
+		<tycho.version>1.0.0</tycho.version>
+		<tycho.extras.version>1.0.0</tycho.extras.version>
+		<tycho.groupid>org.eclipse.tycho</tycho.groupid>
+		<tycho.extras.groupid>org.eclipse.tycho.extras</tycho.extras.groupid>
+	</properties>
+
 	<modules>
 		<module>ambeth-core</module>
-		<module>ambeth-core/kar</module>
 		<module>ambeth-core-test</module>
 		<module>ambeth-information-bus</module>
-		<module>ambeth-information-bus/kar</module>
 		<module>ambeth-information-bus-test</module>
 		<module>ambeth-information-bus-with-persistence</module>
-		<module>ambeth-information-bus-with-persistence/kar</module>
 		<module>ambeth-information-bus-with-persistence-test</module>
 		<module>ambeth-server</module>
-		<module>ambeth-server/kar</module>
 		<module>ambeth-server-test</module>
 		<module>ambeth-server-with-persistence</module>
-		<module>ambeth-server-with-persistence/kar</module>
 		<module>ambeth-server-with-persistence-test</module>
 	</modules>
 
@@ -35,7 +39,8 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-checkstyle-plugin</artifactId>
-					<configuration><!-- Since the paths are used from the module directories, we need to go up two times -->
+					<configuration><!-- Since the paths are used from the module directories, 
+							we need to go up two times -->
 						<configLocation>../../jambeth/jambeth-test/checkstyle_checks.xml</configLocation>
 						<propertiesLocation>../../jambeth/jambeth-test/checkstyle.properties</propertiesLocation>
 					</configuration>
@@ -43,7 +48,8 @@
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>findbugs-maven-plugin</artifactId>
-					<configuration><!-- Since the path is used from the module directories, we need to go up two times -->
+					<configuration><!-- Since the path is used from the module directories, 
+							we need to go up two times -->
 						<excludeFilterFile>../../jambeth/jambeth-test/findbugs_exclude_checks.xml</excludeFilterFile>
 					</configuration>
 				</plugin>
@@ -56,8 +62,157 @@
 					<!-- <executions> <execution> <id>make-assembly</id> <phase>package</phase> 
 						<goals> <goal>single</goal> </goals> </execution> </executions> -->
 				</plugin>
+
+				<!-- Tycho -->
+				<plugin>
+					<groupId>${tycho.groupid}</groupId>
+					<artifactId>tycho-maven-plugin</artifactId>
+					<version>${tycho.version}</version>
+					<extensions>true</extensions>
+				</plugin>
+				<plugin>
+					<groupId>${tycho.groupid}</groupId>
+					<artifactId>tycho-compiler-plugin</artifactId>
+					<version>${tycho.version}</version>
+					<configuration>
+						<source>${jdk.version}</source>
+						<target>${jdk.version}</target>
+						<encoding>${project.build.sourceEncoding}</encoding>
+						<compilerArguments>
+							<inlineJSR />
+							<enableJavadoc />
+							<encoding>${project.build.sourceEncoding}</encoding>
+						</compilerArguments>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>${tycho.groupid}</groupId>
+					<artifactId>target-platform-configuration</artifactId>
+					<version>${tycho.version}</version>
+					<configuration>
+						<environments>
+							<environment>
+								<os>win32</os>
+								<ws>win32</ws>
+								<arch>x86_64</arch>
+							</environment>
+						</environments>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>${tycho.groupid}</groupId>
+					<artifactId>tycho-surefire-plugin</artifactId>
+					<version>${tycho.version}</version>
+					<configuration>
+						<failIfNoTests>false</failIfNoTests>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>${tycho.groupid}</groupId>
+					<artifactId>tycho-source-plugin</artifactId>
+					<version>${tycho.version}</version>
+					<configuration>
+						<strictSrcIncludes>false</strictSrcIncludes>
+					</configuration>
+					<executions>
+						<execution>
+							<id>plugin-source</id>
+							<goals>
+								<goal>plugin-source</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>${tycho.groupid}</groupId>
+					<artifactId>tycho-p2-director-plugin</artifactId>
+					<version>${tycho.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>${tycho.groupid}</groupId>
+					<artifactId>tycho-p2-repository-plugin</artifactId>
+					<version>${tycho.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>${tycho.extras.groupid}</groupId>
+					<artifactId>tycho-source-feature-plugin</artifactId>
+					<version>${tycho.extras.version}</version>
+					<executions>
+						<execution>
+							<id>source-feature</id>
+							<phase>package</phase>
+							<goals>
+								<goal>source-feature</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>${tycho.extras.groupid}</groupId>
+					<artifactId>tycho-custom-bundle-plugin</artifactId>
+					<version>${tycho.extras.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>${tycho.extras.groupid}</groupId>
+					<artifactId>tycho-p2-extras-plugin</artifactId>
+					<version>${tycho.extras.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>${tycho.groupid}</groupId>
+					<artifactId>tycho-p2-plugin</artifactId>
+					<version>${tycho.version}</version>
+					<executions>
+						<execution>
+							<!-- Don't attach (default) metadata before the -->
+							<!-- source-feature execution. Otherwise the metadata are -->
+							<!-- uploaded two times and this produces an error -->
+							<id>default-p2-metadata-default</id>
+							<configuration>
+								<attachP2Metadata>false</attachP2Metadata>
+							</configuration>
+						</execution>
+						<execution>
+							<!-- Do attach metadata after the source-feature execution. -->
+							<id>attach-p2-metadata</id>
+							<goals>
+								<goal>p2-metadata</goal>
+							</goals>
+							<phase>package</phase>
+						</execution>
+					</executions>
+				</plugin>
 			</plugins>
 		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.reficio</groupId>
+				<artifactId>p2-maven-plugin</artifactId>
+				<version>1.2.0</version>
+				<executions>
+					<execution>
+						<id>default-cli</id>
+						<configuration>
+							<artifacts>
+								<artifact>
+									<id>cglib:cglib:3.2.5</id>
+								</artifact>
+								<artifact>
+									<id>org.ow2.asm:asm-all:5.2</id>
+								</artifact>
+								<artifact>
+									<id>xpp3:xpp3:1.1.4c</id>
+								</artifact>
+								<artifact>
+									<id>it.sauronsoftware.cron4j:cron4j:2.2.5</id>
+								</artifact>
+								<artifact>
+									<id>org.javassist:javassist:3.18.1-GA</id>
+								</artifact>
+							</artifacts>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
 	</build>
-
 </project>

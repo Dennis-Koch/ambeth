@@ -25,13 +25,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.servlet.ServletContext;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
@@ -71,7 +68,7 @@ public class ClasspathScanner implements IClasspathScanner {
 	protected IObjectCollector objectCollector;
 
 	@Autowired(optional = true)
-	protected ServletContext servletContext;
+	protected IClasspathScannerServletContext classpathScannerServletContext;
 
 	@Property(name = XmlConfigurationConstants.PackageScanPatterns, defaultValue = "com/koch/.*")
 	protected String packageFilterPatterns;
@@ -179,53 +176,6 @@ public class ClasspathScanner implements IClasspathScanner {
 		return list;
 	}
 
-	protected IList<URL> buildUrlsFromClasspath(ClassPool pool) {
-		ArrayList<URL> urls = new ArrayList<>();
-
-		if (servletContext != null) {
-			Set<String> libJars = servletContext.getResourcePaths("/WEB-INF/lib");
-			for (String jar : libJars) {
-				try {
-					urls.add(servletContext.getResource(jar));
-				}
-				catch (MalformedURLException e) {
-					throw new RuntimeException(e);
-				}
-			}
-
-			String classes = "/WEB-INF/classes";
-			Set<String> classesSet = servletContext.getResourcePaths(classes);
-			for (String jar : classesSet) {
-				try {
-					URL url = servletContext.getResource(jar);
-					String urlString = url.toString();
-					int index = urlString.lastIndexOf(classes);
-					urlString = urlString.substring(0, index + classes.length());
-					urls.add(new URL(urlString));
-					break;
-				}
-				catch (MalformedURLException e) {
-					throw new RuntimeException(e);
-				}
-			}
-		}
-		else {
-			String cpString = System.getProperty("java.class.path");
-			String separator = System.getProperty("path.separator");
-			String[] cpItems = cpString.split(Pattern.quote(separator));
-			for (int a = 0, size = cpItems.length; a < size; a++) {
-				try {
-					URL url = new URL("file://" + cpItems[a]);
-					urls.add(url);
-				}
-				catch (MalformedURLException e) {
-					throw RuntimeExceptionUtil.mask(e, cpItems[a]);
-				}
-			}
-		}
-		return urls;
-	}
-
 	protected IList<String> scanForClasses(ClassPool pool) {
 		IList<URL> urls = buildUrlsFromClasspath(pool);
 
@@ -238,7 +188,8 @@ public class ClasspathScanner implements IClasspathScanner {
 				String path = url.getPath();
 
 				try {
-					path = lookupExistingPath(path);
+					path = classpathScannerServletContext != null
+							? classpathScannerServletContext.lookupExistingPath(path) : path;
 					File realPathFile = new File(path);
 					pool.appendPathList(path);
 					if (realPathFile.isFile()) {
@@ -265,40 +216,6 @@ public class ClasspathScanner implements IClasspathScanner {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		return targetClassNames;
-	}
-
-	protected String lookupExistingPath(String path) throws Throwable {
-		if (servletContext == null) {
-			return path;
-		}
-		String tempPath = path;
-		while (true) {
-			Matcher matcher = subPathPattern.matcher(tempPath);
-			if (!matcher.matches()) {
-				throw new IllegalStateException(buildPatternFailMessage(subPathPattern, tempPath));
-			}
-			tempPath = matcher.group(2);
-			try {
-				String realPath = servletContext.getRealPath(tempPath);
-				// path has been handled correctly. check if it really exists
-				File pathFile = new File(realPath);
-				if (!pathFile.exists()) {
-					// if (log.isWarnEnabled())
-					// {
-					// log.warn("Path '" + tempPath + "' does not exist!");
-					// }
-					throw new IllegalStateException("Path '" + realPath + "' does not exist!");
-				}
-				return realPath;
-			}
-			catch (Throwable e) {
-				if (matcher.group(1) == null || matcher.group(1).length() == 0) {
-					// no prefix path anymore to potentially recover from this failure
-					throw e;
-				}
-				continue;
-			}
-		}
 	}
 
 	protected void scanJarFile(JarFile jarFile, List<String> namespacePatterns,
@@ -439,6 +356,27 @@ public class ClasspathScanner implements IClasspathScanner {
 		finally {
 			tlObjectCollector.dispose(sb);
 		}
+	}
+
+	protected IList<URL> buildUrlsFromClasspath(ClassPool pool) {
+
+		if (classpathScannerServletContext != null) {
+			return classpathScannerServletContext.buildUrlsFromClasspath(pool);
+		}
+		ArrayList<URL> urls = new ArrayList<>();
+		String cpString = System.getProperty("java.class.path");
+		String separator = System.getProperty("path.separator");
+		String[] cpItems = cpString.split(Pattern.quote(separator));
+		for (int a = 0, size = cpItems.length; a < size; a++) {
+			try {
+				URL url = new URL("file://" + cpItems[a]);
+				urls.add(url);
+			}
+			catch (MalformedURLException e) {
+				throw RuntimeExceptionUtil.mask(e, cpItems[a]);
+			}
+		}
+		return urls;
 	}
 
 	protected String buildPatternFailMessage(Pattern pattern, String value) {

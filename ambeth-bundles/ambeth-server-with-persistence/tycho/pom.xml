@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.koch.ambeth.server.with.persistence.tycho</groupId>
+	<artifactId>com.koch.ambeth.server.with.persistence.tycho.parent</artifactId>
+
+	<parent>
+		<groupId>com.koch.ambeth</groupId>
+		<artifactId>jambeth-server-with-persistence-pom</artifactId>
+		<version>3.0.1-SNAPSHOT</version>
+	</parent>
+
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>feature</module>
+		<module>p2</module>
+	</modules>
+
+	<dependencies>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>${tycho.groupid}</groupId>
+				<artifactId>tycho-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>${tycho.groupid}</groupId>
+				<artifactId>target-platform-configuration</artifactId>
+				<!-- Also add the pom dependencies to the target platform -->
+				<configuration>
+					<pomDependencies>consider</pomDependencies>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>${tycho.groupid}</groupId>
+				<artifactId>tycho-source-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>${tycho.extras.groupid}</groupId>
+				<artifactId>tycho-source-feature-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>local-p2-repository</id>
+			<layout>p2</layout>
+			<url>file:${project.basedir}/../../../target/repository</url>
+		</repository>
+		<repository>
+			<id>p2-eclipse-neon</id>
+			<layout>p2</layout>
+			<url>http://download.eclipse.org/releases/neon</url>
+		</repository>
+		<repository>
+			<id>p2-eclipse-neon-orbit</id>
+			<layout>p2</layout>
+			<url>http://download.eclipse.org/tools/orbit/downloads/drops/R20160520211859/repository</url>
+		</repository>
+	</repositories>
+</project>
