@@ -47,7 +47,7 @@ public class ClobInputSource
 
 	@Override
 	public IInputStream deriveInputStream() {
-		return lobInputSourceController.deriveInputStream(parentEntity, member);
+		return deriveCharacterInputStream();
 	}
 
 	@Override

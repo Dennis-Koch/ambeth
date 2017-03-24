@@ -47,7 +47,7 @@ public class BlobInputSource
 
 	@Override
 	public IInputStream deriveInputStream() {
-		return lobInputSourceController.deriveInputStream(parentEntity, member);
+		return deriveBinaryInputStream();
 	}
 
 	@Override

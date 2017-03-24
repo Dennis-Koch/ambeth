@@ -196,22 +196,13 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 
-		String arraySuffix;
+		int arrayIndex = name.length();
 		int dimensionCount = 0;
-		StringBuilder arraySuffixSB = tlObjectCollector.create(StringBuilder.class);
-		try {
-			while (name.endsWith("[]")) {
-				dimensionCount++;
-				name = name.substring(0, name.length() - 2);
-				arraySuffixSB.append("[");
-			}
-			arraySuffix = arraySuffixSB.toString();
+		while (name.startsWith("[]", arrayIndex - 2)) {
+			dimensionCount++;
+			arrayIndex -= 2;
 		}
-		finally {
-			tlObjectCollector.dispose(arraySuffixSB);
-			arraySuffixSB = null;
-		}
-		typeObj = xmlTypeRegistry.getType(name, namespace);
+		typeObj = xmlTypeRegistry.getType(name.substring(0, arrayIndex), namespace);
 
 		String classMemberValue = reader.getAttributeValue(classMemberAttribute);
 		if (classMemberValue != null) {
@@ -238,11 +229,13 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 		if (dimensionCount > 0) {
 			StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
 			try {
-				sb.append(arraySuffix);
+				for (int a = dimensionCount; a-- > 0;) {
+					sb.append('[');
+				}
 				sb.append('L');
 				sb.append(typeObj.getName());
 				sb.append(';');
-				return Class.forName(sb.toString(), false, classLoaderProvider.getClassLoader());
+				typeObj = Class.forName(sb.toString(), true, classLoaderProvider.getClassLoader());
 			}
 			catch (ClassNotFoundException e) {
 				throw RuntimeExceptionUtil.mask(e);
