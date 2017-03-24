@@ -55,8 +55,6 @@ import com.koch.ambeth.ioc.util.IMultithreadingHelper;
 import com.koch.ambeth.ioc.util.MultithreadingHelper;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
-import com.koch.ambeth.util.IInterningFeature;
-import com.koch.ambeth.util.InterningFeature;
 import com.koch.ambeth.util.JREVersionProvider;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.converter.BooleanArrayConverter;
@@ -171,9 +169,6 @@ public class IocModule implements IInitializingModule {
 		beanContextFactory.link(appendableStringBuilderCollectableController)
 				.to(ICollectableControllerExtendable.class).with(AppendableStringBuilder.class);
 
-		beanContextFactory.registerBean("interningFeature", InterningFeature.class)
-				.autowireable(IInterningFeature.class);
-
 		beanContextFactory.registerBean("cgLibUtil", CgLibUtil.class).autowireable(ICgLibUtil.class);
 
 		beanContextFactory.registerBean("guiThreadHelper", GuiThreadHelper.class)
@@ -203,6 +198,5 @@ public class IocModule implements IInitializingModule {
 		beanContextFactory.registerBean(MultithreadingHelper.class)
 				.autowireable(IMultithreadingHelper.class)//
 				.propertyRef(fastThreadPoolBean);
-
 	}
 }

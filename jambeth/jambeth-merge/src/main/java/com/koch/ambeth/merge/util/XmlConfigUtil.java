@@ -47,7 +47,7 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.log.io.FileUtil;
 import com.koch.ambeth.merge.util.xml.XmlValidator;
 import com.koch.ambeth.util.Arrays;
-import com.koch.ambeth.util.IClassLoaderProvider;
+import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.StringConversionHelper;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyList;
@@ -77,7 +77,7 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
 	protected final java.util.concurrent.locks.Lock writeLock = new ReentrantLock();
 
 	@Autowired
-	protected IClassLoaderProvider classLoaderProvider;
+	protected IClassCache classCache;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
@@ -323,7 +323,7 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
 			}
 			Class<?> entityType;
 			try {
-				entityType = classLoaderProvider.getClassLoader().loadClass(name);
+				entityType = classCache.loadClass(name);
 			}
 			catch (ClassNotFoundException e) {
 				if (log.isErrorEnabled()) {

@@ -1,5 +1,8 @@
 package com.koch.ambeth.xml;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
+
 /*-
  * #%L
  * jambeth-xml
@@ -25,32 +28,26 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.ILoggerHistory;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IProxyHelper;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.util.IClassLoaderProvider;
+import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.AbstractTuple2KeyHashMap;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
+import com.koch.ambeth.util.collections.WeakHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, IXmlTypeRegistry {
 	public static final String DefaultNamespace = "http://schema.kochdev.com/Ambeth";
 
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
-	protected IClassLoaderProvider classLoaderProvider;
+	protected IClassCache classCache;
 
 	@Autowired
 	protected ILoggerHistory loggerHistory;
@@ -58,20 +55,16 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 	@Autowired
 	protected IProxyHelper proxyHelper;
 
-	protected final HashMap<Class<?>, List<XmlTypeKey>> weakClassToXmlTypeMap = new HashMap<>(0.5f);
+	protected final WeakHashMap<Class<?>, List<XmlTypeKey>> weakClassToXmlTypeMap =
+			new WeakHashMap<>(0.5f);
 
-	protected final Tuple2KeyHashMap<String, String, Class<?>> xmlTypeToClassMap =
+	protected final Tuple2KeyHashMap<String, String, Reference<Class<?>>> xmlTypeToClassMap =
 			new Tuple2KeyHashMap<>(0.5f);
 
-	protected final HashMap<Class<?>, List<XmlTypeKey>> classToXmlTypeMap = new HashMap<>(0.5f);
+	protected final WeakHashMap<Class<?>, List<XmlTypeKey>> classToXmlTypeMap =
+			new WeakHashMap<>(0.5f);
 
-	protected final Lock readLock, writeLock;
-
-	public XmlTypeRegistry() {
-		ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
-		readLock = rwLock.readLock();
-		writeLock = rwLock.writeLock();
-	}
+	protected final Lock writeLock = new ReentrantLock();
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {
@@ -108,14 +101,14 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 	}
 
 	@Override
-	public AbstractTuple2KeyHashMap<String, String, Class<?>> createSnapshot() {
-		Lock readLock = this.readLock;
-		readLock.lock();
+	public AbstractTuple2KeyHashMap<String, String, Reference<Class<?>>> createSnapshot() {
+		Lock writeLock = this.writeLock;
+		writeLock.lock();
 		try {
 			return new Tuple2KeyHashMap<>(xmlTypeToClassMap);
 		}
 		finally {
-			readLock.unlock();
+			writeLock.unlock();
 		}
 	}
 
@@ -125,43 +118,47 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 		if (namespace == null) {
 			namespace = "";
 		}
-		Lock readLock = this.readLock;
-		readLock.lock();
+		Lock writeLock = this.writeLock;
+		writeLock.lock();
 		try {
-			Class<?> type = xmlTypeToClassMap.get(name, namespace);
-			if (type == null && namespace.isEmpty()) {
-				type = classLoaderProvider.getClassLoader().loadClass(name);
-				if (type != null) {
-					readLock.unlock();
-					try {
-						writeLock.lock();
-						try {
-							xmlTypeToClassMap.put(name, namespace, type);
-						}
-						finally {
-							writeLock.unlock();
-						}
-					}
-					finally {
-						readLock.lock();
-					}
-				}
+			Reference<Class<?>> typeR = xmlTypeToClassMap.get(name, namespace);
+			Class<?> type = typeR != null ? typeR.get() : null;
+			if (type != null) {
+				return type;
 			}
-			if (type == null) {
-				if (log.isDebugEnabled()) {
-					loggerHistory.debugOnce(log, this,
-							"XmlTypeNotFound: name=" + name + ", namespace=" + namespace);
-				}
-				return null;
-			}
-			return type;
-		}
-		catch (ClassNotFoundException e) {
-			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
-			readLock.unlock();
+			writeLock.unlock();
 		}
+		if (namespace.isEmpty()) {
+			Class<?> type;
+			try {
+				type = classCache.loadClass(name);
+			}
+			catch (ClassNotFoundException e) {
+				throw RuntimeExceptionUtil.mask(e);
+			}
+			if (type != null) {
+				writeLock.lock();
+				try {
+					Reference<Class<?>> typeR = xmlTypeToClassMap.get(name, namespace);
+					Class<?> existingType = typeR != null ? typeR.get() : null;
+					if (existingType != null) {
+						return existingType;
+					}
+					xmlTypeToClassMap.put(name, namespace, new WeakReference<Class<?>>(type));
+					return type;
+				}
+				finally {
+					writeLock.unlock();
+				}
+			}
+		}
+		if (log.isDebugEnabled()) {
+			loggerHistory.debugOnce(log, this,
+					"XmlTypeNotFound: name=" + name + ", namespace=" + namespace);
+		}
+		return null;
 	}
 
 	@Override
@@ -190,38 +187,31 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 	public IXmlTypeKey getXmlType(Class<?> type, boolean expectExisting) {
 		ParamChecker.assertParamNotNull(type, "type");
 
-		readLock.lock();
+		writeLock.lock();
 		try {
 			List<XmlTypeKey> xmlTypeKeys = weakClassToXmlTypeMap.get(type);
+			if (xmlTypeKeys != null) {
+				return xmlTypeKeys.get(0);
+			}
+			xmlTypeKeys = classToXmlTypeMap.get(type);
 			if (xmlTypeKeys == null) {
-				xmlTypeKeys = classToXmlTypeMap.get(type);
-				if (xmlTypeKeys == null) {
-					Class<?> realType = type;
-					if (IObjRef.class.isAssignableFrom(type)) {
-						realType = IObjRef.class;
-					}
-					xmlTypeKeys = classToXmlTypeMap.get(realType);
+				Class<?> realType = type;
+				if (IObjRef.class.isAssignableFrom(type)) {
+					realType = IObjRef.class;
 				}
-				if (xmlTypeKeys == null) {
-					xmlTypeKeys = new ArrayList<>(1);
-					xmlTypeKeys.add(new XmlTypeKey(type.getName(), null));
-				}
-				if (xmlTypeKeys != null) {
-					readLock.unlock();
-					writeLock.lock();
-					try {
-						weakClassToXmlTypeMap.put(type, xmlTypeKeys);
-					}
-					finally {
-						writeLock.unlock();
-						readLock.lock();
-					}
-				}
+				xmlTypeKeys = classToXmlTypeMap.get(realType);
+			}
+			if (xmlTypeKeys == null) {
+				xmlTypeKeys = new ArrayList<>(1);
+				xmlTypeKeys.add(new XmlTypeKey(type.getName(), null));
+			}
+			if (xmlTypeKeys != null) {
+				weakClassToXmlTypeMap.put(type, xmlTypeKeys);
 			}
 			return xmlTypeKeys != null ? xmlTypeKeys.get(0) : null;
 		}
 		finally {
-			readLock.unlock();
+			writeLock.unlock();
 		}
 	}
 
@@ -235,13 +225,15 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
 		try {
-			Class<?> existingType = xmlTypeToClassMap.put(name, namespace, type);
+			Reference<Class<?>> existingTypeR =
+					xmlTypeToClassMap.put(name, namespace, new WeakReference<Class<?>>(type));
+			Class<?> existingType = existingTypeR != null ? existingTypeR.get() : null;
 			if (existingType != null) {
 				if (type.isAssignableFrom(existingType)) {
 					// Nothing else to to
 				}
 				else if (existingType.isAssignableFrom(type)) {
-					xmlTypeToClassMap.put(name, namespace, existingType);
+					xmlTypeToClassMap.put(name, namespace, new WeakReference<Class<?>>(existingType));
 				}
 				else {
 					throw new IllegalStateException("Error while registering '" + type.getName()

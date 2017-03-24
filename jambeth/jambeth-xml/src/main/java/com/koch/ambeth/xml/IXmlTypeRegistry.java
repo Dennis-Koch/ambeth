@@ -1,5 +1,7 @@
 package com.koch.ambeth.xml;
 
+import java.lang.ref.Reference;
+
 /*-
  * #%L
  * jambeth-xml
@@ -47,5 +49,5 @@ public interface IXmlTypeRegistry {
 
 	IXmlTypeKey getXmlType(Class<?> type, boolean expectExisting);
 
-	AbstractTuple2KeyHashMap<String, String, Class<?>> createSnapshot();
+	AbstractTuple2KeyHashMap<String, String, Reference<Class<?>>> createSnapshot();
 }

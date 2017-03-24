@@ -32,6 +32,7 @@ import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.ServiceContext;
 import com.koch.ambeth.ioc.accessor.AccessorTypeProvider;
 import com.koch.ambeth.ioc.accessor.IAccessorTypeProvider;
+import com.koch.ambeth.ioc.bytecode.ClassCache;
 import com.koch.ambeth.ioc.bytecode.SimpleClassLoaderProvider;
 import com.koch.ambeth.ioc.config.BeanConfiguration;
 import com.koch.ambeth.ioc.config.BeanInstanceConfiguration;
@@ -61,11 +62,14 @@ import com.koch.ambeth.ioc.util.DelegatingConversionHelper;
 import com.koch.ambeth.log.ILoggerHistory;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.util.DelegateFactory;
+import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.IDedicatedConverterExtendable;
 import com.koch.ambeth.util.IDelegateFactory;
 import com.koch.ambeth.util.IDisposable;
+import com.koch.ambeth.util.IInterningFeature;
+import com.koch.ambeth.util.InterningFeature;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.StringBuilderCollectableController;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -172,9 +176,12 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			AccessorTypeProvider accessorTypeProvider = new AccessorTypeProvider();
 			ExtendableRegistry extendableRegistry = new ExtendableRegistry();
 			GarbageProxyFactory garbageProxyFactory = new GarbageProxyFactory();
+			InterningFeature interningFeature = new InterningFeature();
 			PropertyInfoProvider propertyInfoProvider = new PropertyInfoProvider();
+
 			BeanContextInitializer beanContextInitializer = new BeanContextInitializer();
 			CallingProxyPostProcessor callingProxyPostProcessor = new CallingProxyPostProcessor();
+			ClassCache classCache = new ClassCache();
 			SimpleClassLoaderProvider classLoaderProvider = new SimpleClassLoaderProvider();
 			classLoaderProvider.setClassLoader(
 					(ClassLoader) properties.get(IocConfigurationConstants.ExplicitClassLoader));
@@ -184,7 +191,9 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			LoggerInstancePreProcessor loggerInstancePreProcessor = new LoggerInstancePreProcessor();
 
 			callingProxyPostProcessor.setPropertyInfoProvider(propertyInfoProvider);
-			conversionHelper.setClassLoaderProvider(classLoaderProvider);
+			classCache.setClassLoaderProvider(classLoaderProvider);
+			classCache.setInterningFeature(interningFeature);
+			conversionHelper.setClassCache(classCache);
 			delegatingConversionHelper.setDefaultConversionHelper(conversionHelper);
 			extendableRegistry.setObjectCollector(tlObjectCollector);
 			linkController.setExtendableRegistry(extendableRegistry);
@@ -209,8 +218,6 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 					accessorTypeProvider);
 			scanForLogInstance(loggerInstancePreProcessor, propertyInfoProvider, newProps,
 					callingProxyPostProcessor);
-			scanForLogInstance(loggerInstancePreProcessor, propertyInfoProvider, newProps,
-					classLoaderProvider);
 			scanForLogInstance(loggerInstancePreProcessor, propertyInfoProvider, newProps,
 					delegatingConversionHelper);
 			scanForLogInstance(loggerInstancePreProcessor, propertyInfoProvider, newProps,
@@ -270,6 +277,8 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 						.autowireable(IThreadLocalObjectCollector.class);
 			}
 
+			parentContextFactory.registerExternalBean(classCache).autowireable(IClassCache.class);
+
 			parentContextFactory.registerExternalBean(classLoaderProvider)
 					.autowireable(IClassLoaderProvider.class);
 
@@ -278,6 +287,9 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 
 			parentContextFactory.registerWithLifecycle(accessorTypeProvider)
 					.autowireable(IAccessorTypeProvider.class);
+
+			parentContextFactory.registerExternalBean(interningFeature)
+					.autowireable(IInterningFeature.class);
 
 			parentContextFactory.registerExternalBean(loggerInstancePreProcessor)
 					.autowireable(ILoggerCache.class);

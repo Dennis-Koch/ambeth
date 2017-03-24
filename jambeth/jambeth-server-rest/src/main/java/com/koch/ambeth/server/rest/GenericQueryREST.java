@@ -50,7 +50,7 @@ import com.koch.ambeth.query.squery.QueryBuilderBean;
 import com.koch.ambeth.query.squery.QueryUtils;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.IValueObjectConfig;
-import com.koch.ambeth.util.IClassLoaderProvider;
+import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
@@ -148,8 +148,7 @@ public class GenericQueryREST extends AbstractServiceREST {
 				entityType = config.getEntityType();
 			}
 			else {
-				entityType =
-						getService(IClassLoaderProvider.class).getClassLoader().loadClass(valueObjectTypeName);
+				entityType = getService(IClassCache.class).loadClass(valueObjectTypeName);
 			}
 			IConversionHelper conversionHelper = getService(IConversionHelper.class);
 			IQueryBuilderFactory queryBuilderFactory = getService(IQueryBuilderFactory.class);

@@ -29,7 +29,7 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IProxyHelper;
-import com.koch.ambeth.util.IClassLoaderProvider;
+import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IdentityLinkedMap;
@@ -61,7 +61,7 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 	protected final Pattern splitPattern = Pattern.compile(" ");
 
 	@Autowired
-	protected IClassLoaderProvider classLoaderProvider;
+	protected IClassCache classCache;
 
 	@Autowired
 	protected IProxyHelper proxyHelper;
@@ -235,7 +235,7 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 				sb.append('L');
 				sb.append(typeObj.getName());
 				sb.append(';');
-				typeObj = Class.forName(sb.toString(), true, classLoaderProvider.getClassLoader());
+				typeObj = classCache.forName(sb.toString());
 			}
 			catch (ClassNotFoundException e) {
 				throw RuntimeExceptionUtil.mask(e);

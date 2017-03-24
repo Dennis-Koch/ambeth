@@ -37,7 +37,7 @@ import com.koch.ambeth.persistence.api.ITableMetaData;
 import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
-import com.koch.ambeth.util.IClassLoaderProvider;
+import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyList;
@@ -55,7 +55,7 @@ public abstract class AbstractCachingPrimaryKeyProvider
 	protected IServiceContext beanContext;
 
 	@Autowired
-	protected IClassLoaderProvider classLoaderProvider;
+	protected IClassCache classCache;
 
 	@Autowired
 	protected IConversionHelper conversionHelper;
@@ -102,7 +102,7 @@ public abstract class AbstractCachingPrimaryKeyProvider
 			}
 			Class<?> customSequenceType = null;
 			try {
-				customSequenceType = classLoaderProvider.getClassLoader().loadClass(sequenceName);
+				customSequenceType = classCache.loadClass(sequenceName);
 			}
 			catch (Throwable e) {
 				// intended blank

@@ -85,7 +85,7 @@ import com.koch.ambeth.persistence.sql.ISqlConnection;
 import com.koch.ambeth.stream.IUnmodifiedInputSource;
 import com.koch.ambeth.stream.binary.IBinaryInputSource;
 import com.koch.ambeth.stream.chars.ICharacterInputSource;
-import com.koch.ambeth.util.IClassLoaderProvider;
+import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 import com.koch.ambeth.util.typeinfo.INoEntityTypeExtendable;
@@ -95,7 +95,7 @@ import net.sf.cglib.proxy.MethodInterceptor;
 @FrameworkModule
 public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoadingBean {
 	@Autowired
-	protected IClassLoaderProvider classLoaderProvider;
+	protected IClassCache classCache;
 
 	@Autowired
 	protected IProxyFactory proxyFactory;
@@ -148,7 +148,7 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 		if (additionalConnectionModules != null) {
 			String[] typeNames = additionalConnectionModules.split(";");
 			for (int a = typeNames.length; a-- > 0;) {
-				Class<?> type = classLoaderProvider.getClassLoader().loadClass(typeNames[a]);
+				Class<?> type = classCache.loadClass(typeNames[a]);
 				connectionModuleTypes.add(type);
 			}
 		}

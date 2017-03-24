@@ -73,7 +73,7 @@ import com.koch.ambeth.query.jdbc.SubQuery;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.metadata.Member;
-import com.koch.ambeth.util.IClassLoaderProvider;
+import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.IParamHolder;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -102,7 +102,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 			Pattern.compile("([^A-Z]*[A-Z][^\\.]*)#");
 
 	@Autowired
-	protected IClassLoaderProvider classLoaderProvider;
+	protected IClassCache classCache;
 
 	@Autowired
 	protected IConnectionDialect connectionDialect;
@@ -383,7 +383,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 							}
 							targetEntityName = matcher.group(1);
 							try {
-								targetEntityType = classLoaderProvider.getClassLoader().loadClass(targetEntityName);
+								targetEntityType = classCache.loadClass(targetEntityName);
 							}
 							catch (ClassNotFoundException e) {
 								// intended blank

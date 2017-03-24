@@ -1,4 +1,7 @@
 -exportcontents: \
-    com.koch.ambeth.*;-noimport=true
+    com.koch.ambeth.*;-noimport:=true
 DynamicImport-Package: \
 	net.sf.cglib.*
+Import-Package: \
+	javax.servlet;resolution:=optional, \
+	*

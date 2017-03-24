@@ -33,7 +33,7 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.WeakHashMap;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -140,15 +140,9 @@ public abstract class AbstractConnectionDialect
 	protected final WeakHashMap<IConnectionKeyHandle, ConnectionKeyValue> connectionToConstraintSqlMap =
 			new WeakHashMap<>();
 
-	protected final Lock readLock, writeLock;
+	protected final Lock writeLock = new ReentrantLock();
 
 	protected boolean doDirectClobConversion = true;
-
-	public AbstractConnectionDialect() {
-		ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
-		readLock = rwLock.readLock();
-		writeLock = rwLock.writeLock();
-	}
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {

@@ -36,7 +36,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
-import com.koch.ambeth.util.IClassLoaderProvider;
+import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
@@ -84,7 +84,7 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 	protected final ThreadLocal<DateFormat> iso8601_DateFormatTL = new SensitiveThreadLocal<>();
 
 	@Autowired
-	protected IClassLoaderProvider classLoaderProvider;
+	protected IClassCache classCache;
 
 	public ConversionHelper() {
 		try {
@@ -95,8 +95,8 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 		}
 	}
 
-	public void setClassLoaderProvider(IClassLoaderProvider classLoaderProvider) {
-		this.classLoaderProvider = classLoaderProvider;
+	public void setClassCache(IClassCache classCache) {
+		this.classCache = classCache;
 	}
 
 	@Override
@@ -421,7 +421,7 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 					if (primitiveNameToTypeMap.containsKey(sValue)) {
 						return primitiveNameToTypeMap.get(sValue);
 					}
-					return Class.forName(sValue, true, classLoaderProvider.getClassLoader());
+					return classCache.forName(sValue);
 				}
 				catch (Throwable e) {
 					throw RuntimeExceptionUtil.mask(e);

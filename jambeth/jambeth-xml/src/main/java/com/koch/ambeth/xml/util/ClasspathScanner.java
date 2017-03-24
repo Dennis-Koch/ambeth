@@ -34,7 +34,7 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
-import com.koch.ambeth.util.IClassLoaderProvider;
+import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.IClasspathScanner;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.StringBuilderUtil;
@@ -62,7 +62,7 @@ public class ClasspathScanner implements IClasspathScanner {
 	public static final Pattern subPathPattern = Pattern.compile("(/[^/]+)?(/.+)");
 
 	@Autowired
-	protected IClassLoaderProvider classLoaderProvider;
+	protected IClassCache classCache;
 
 	@Autowired
 	protected IObjectCollector objectCollector;
@@ -165,7 +165,7 @@ public class ClasspathScanner implements IClasspathScanner {
 		for (int a = 0, size = ctClasses.size(); a < size; a++) {
 			CtClass ctClass = ctClasses.get(a);
 			try {
-				set.add(classLoaderProvider.getClassLoader().loadClass(ctClass.getName()));
+				set.add(classCache.loadClass(ctClass.getName()));
 			}
 			catch (Throwable e) {
 				throw RuntimeExceptionUtil.mask(e);
