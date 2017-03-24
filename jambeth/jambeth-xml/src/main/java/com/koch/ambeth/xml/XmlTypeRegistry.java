@@ -32,7 +32,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.ILoggerHistory;
+import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IProxyHelper;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.IClassCache;
@@ -45,6 +47,9 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, IXmlTypeRegistry {
 	public static final String DefaultNamespace = "http://schema.kochdev.com/Ambeth";
+
+	@LogInstance
+	private ILogger log;
 
 	@Autowired
 	protected IClassCache classCache;
