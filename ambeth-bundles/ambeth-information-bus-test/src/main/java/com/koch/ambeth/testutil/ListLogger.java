@@ -24,12 +24,12 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 import com.koch.ambeth.log.LogLevel;
-import com.koch.ambeth.log.Logger;
+import com.koch.ambeth.log.AmbethLogger;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class ListLogger extends Logger {
+public class ListLogger extends AmbethLogger {
 	protected static final DateFormat format = new SimpleDateFormat("HH:mm:ss.SSS");
 
 	protected final IList<String> debugEntries = new ArrayList<>(),

@@ -34,8 +34,8 @@ import com.koch.ambeth.ioc.DefaultExtendableContainer;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.extendable.IExtendableContainer;
+import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
-import com.koch.ambeth.log.Logger;
 import com.koch.ambeth.merge.IEntityFactory;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
@@ -49,7 +49,7 @@ public class TestDataGenerator
 	protected IEntityFactory entityFactory;
 
 	@LogInstance
-	private Logger log;
+	private ILogger log;
 
 	protected final Map<Class<?>, Class<?>> wrapperPrimitiveMap = new HashMap<>();
 	{
@@ -216,8 +216,7 @@ public class TestDataGenerator
 	public void compareTestInstance(Object expected, Object instance, boolean recursive,
 			String... toIgnore)
 			throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-		compareTestInstance(expected, instance, recursive, new HashSet<>(),
-				getToIgnoreSet(toIgnore));
+		compareTestInstance(expected, instance, recursive, new HashSet<>(), getToIgnoreSet(toIgnore));
 	}
 
 	protected void compareTestInstance(Object expected, Object instance, boolean recursive,

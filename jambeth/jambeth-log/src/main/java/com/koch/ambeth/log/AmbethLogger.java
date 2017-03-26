@@ -41,7 +41,7 @@ import com.koch.ambeth.util.config.UtilConfigurationConstants;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-public class Logger implements IConfigurableLogger {
+public class AmbethLogger implements IConfigurableLogger {
 	protected static final DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
 	private static boolean appendModeActive;
@@ -57,7 +57,7 @@ public class Logger implements IConfigurableLogger {
 	}
 
 	public static void setAppendModeActive(boolean appendModeActive) {
-		Logger.appendModeActive = appendModeActive;
+		AmbethLogger.appendModeActive = appendModeActive;
 	}
 
 	protected boolean debugEnabled = true, infoEnabled = true, warnEnabled = true,
@@ -71,7 +71,7 @@ public class Logger implements IConfigurableLogger {
 
 	protected IThreadLocalObjectCollector objectCollector;
 
-	public Logger(String source) {
+	public AmbethLogger(String source) {
 		this.source = source;
 		int lastIndexOf = source.lastIndexOf('.');
 		if (lastIndexOf >= 0) {

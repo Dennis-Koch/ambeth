@@ -50,7 +50,7 @@ public class EventModule implements IInitializingModule {
 	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
 	protected boolean isNetworkClientMode;
 
-	@Property(name = EventConfigurationConstants.PollingActive, defaultValue = "false")
+	@Property(name = EventConfigurationConstants.PollingActive, defaultValue = "true")
 	protected boolean isPollingActive;
 
 	@Property(name = EventConfigurationConstants.EventServiceBeanActive, defaultValue = "true")

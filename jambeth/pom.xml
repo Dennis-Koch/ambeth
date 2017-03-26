@@ -80,6 +80,7 @@
 		<module>jambeth-job</module>
 		<module>jambeth-job-cron4j</module>
 		<module>jambeth-log</module>
+		<module>jambeth-log-slf4j</module>
 		<module>jambeth-mapping</module>
 		<module>jambeth-merge</module>
 		<module>jambeth-merge-bytecode</module>
@@ -205,6 +206,12 @@
 				<groupId>net.objecthunter</groupId>
 				<artifactId>exp4j</artifactId>
 				<version>0.4.4</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>1.7.21</version>
 			</dependency>
 
 			<!-- Base dependencies -->

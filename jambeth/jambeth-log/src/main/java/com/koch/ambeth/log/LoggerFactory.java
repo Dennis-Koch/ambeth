@@ -50,7 +50,7 @@ public final class LoggerFactory {
 	protected static Class<? extends ILogger> loggerType;
 
 	static {
-		LoggerFactory.loggerType = Logger.class;
+		LoggerFactory.loggerType = AmbethLogger.class;
 	}
 
 	public static String logConsoleProperty(Class<?> type) {

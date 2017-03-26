@@ -7,72 +7,11 @@
 
 	<parent>
 		<groupId>com.koch.ambeth</groupId>
-		<artifactId>jambeth-bundles</artifactId>
+		<artifactId>jambeth-information-bus-pom</artifactId>
 		<version>3.0.1-SNAPSHOT</version>
-		<relativePath>../..</relativePath>
 	</parent>
 
 	<dependencies>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-bytecode</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-cache</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-cache-bytecode</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-cache-datachange</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-cache-stream</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-core</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-datachange</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-dot</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-event</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-event-datachange</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-expr</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-filter</artifactId>
-		</dependency>
-
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-information-bus</artifactId>
@@ -80,67 +19,7 @@
 
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-ioc</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-log</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-mapping</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-merge</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-merge-bytecode</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-security</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-security-bytecode</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-sensor</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-service</artifactId>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-service-rest</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-stream</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-util</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.javassist</groupId>
-			<artifactId>javassist</artifactId>
 		</dependency>
 	</dependencies>
 
