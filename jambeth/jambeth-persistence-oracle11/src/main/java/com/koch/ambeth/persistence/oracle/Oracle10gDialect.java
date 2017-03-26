@@ -464,4 +464,39 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
 	public int getColumnCountForLinkTable() {
 		return 3;
 	}
+
+	@Override
+	public void preProcessConnection(Connection connection, String[] schemaNames, boolean forcePreProcessing)
+	{
+		super.preProcessConnection(connection, schemaNames, forcePreProcessing);
+		try
+		{
+			// since Oracle 11.2.0.4.0 there is an event '60025' that needs to be explicitly activated within each session
+			// this is needed to solve open LOB handle issues leading to continuously growing TEMP tablespace until a session/connection is released
+			// since that does not happen often for pooled connections it leads then to a fatal 'ORA-01652: unable to extend temp segment by 128 in tablespace
+			// TEMP'
+			Statement stm = connection.createStatement();
+			try
+			{
+				stm.execute("ALTER SESSION SET EVENTS '60025 trace name context forever'");
+			}
+			finally
+			{
+				JdbcUtil.close(stm);
+			}
+		}
+		catch (PersistenceException e)
+		{
+			if (e.getCause() instanceof SQLException && ((SQLException) e.getCause()).getErrorCode() == 1031)
+			{
+				// ORA-01031: insufficient privileges
+				return;
+			}
+			throw e;
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
 }

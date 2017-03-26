@@ -1,5 +1,7 @@
 package com.koch.ambeth.persistence.jdbc;
 
+import java.io.Closeable;
+
 /*-
  * #%L
  * jambeth-persistence-jdbc
@@ -23,6 +25,8 @@ limitations under the License.
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Blob;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -59,6 +63,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IdentityHashMap;
+import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
@@ -78,14 +83,16 @@ public class JdbcTable extends SqlTable {
 
 	protected boolean batching = false;
 
-	protected LinkedHashMap<Object, Object> persistedIdToVersionMap =
+	protected final LinkedHashMap<Object, Object> persistedIdToVersionMap =
 			new LinkedHashMap<>();
 
-	protected LinkedHashMap<Integer, ILinkedMap<String, PreparedStatement>> fieldsToInsertStmtMap =
+	protected final LinkedHashMap<Integer, ILinkedMap<String, PreparedStatement>> fieldsToInsertStmtMap =
 			new LinkedHashMap<>();
 
-	protected LinkedHashMap<Integer, ILinkedMap<String, PreparedStatement>> fieldsToUpdateStmtMap =
+	protected final LinkedHashMap<Integer, ILinkedMap<String, PreparedStatement>> fieldsToUpdateStmtMap =
 			new LinkedHashMap<>();
+
+	protected final IdentityHashSet<Object> disposableValues = new IdentityHashSet<>();
 
 	protected PreparedStatement deleteStmt;
 
@@ -159,6 +166,10 @@ public class JdbcTable extends SqlTable {
 
 	@Override
 	public void clearBatch() {
+		for (Object disposableValue : disposableValues) {
+			disposeValue(disposableValue);
+		}
+		disposableValues.clear();
 		try {
 			fieldsToInsertStmtMap.clear();
 			fieldsToUpdateStmtMap.clear();
@@ -343,6 +354,15 @@ public class JdbcTable extends SqlTable {
 			catch (Throwable e) {
 				// Intended blank
 			}
+			for (Object value : values) {
+				if (value == null) {
+					continue;
+				}
+				if (value instanceof Blob || value instanceof Clob || value instanceof AutoCloseable
+						|| value instanceof Closeable) {
+					disposableValues.add(value);
+				}
+			}
 		}
 
 		return newVersion;
@@ -455,8 +475,43 @@ public class JdbcTable extends SqlTable {
 			catch (Throwable e) {
 				// Intended blank
 			}
+			for (Object value : values) {
+				if (value == null) {
+					continue;
+				}
+				if (value instanceof Blob || value instanceof Clob || value instanceof AutoCloseable
+						|| value instanceof Closeable) {
+					disposableValues.add(value);
+				}
+			}
 		}
 		return newVersion;
+	}
+
+	protected void disposeValue(Object value) {
+		if (value == null) {
+			return;
+		}
+		try {
+			if (value instanceof Blob) {
+				connectionDialect.releaseBlob((Blob) value);
+			}
+			else if (value instanceof Clob) {
+				connectionDialect.releaseClob((Clob) value);
+			}
+			else if (value instanceof java.sql.Array) {
+				connectionDialect.releaseArray((java.sql.Array) value);
+			}
+			else if (value instanceof AutoCloseable) {
+				((AutoCloseable) value).close();
+			}
+			else if (value instanceof Closeable) {
+				((Closeable) value).close();
+			}
+		}
+		catch (Throwable e) {
+			// intended blank
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -607,8 +662,7 @@ public class JdbcTable extends SqlTable {
 		IList<IList<Object>> splitValues =
 				persistenceHelper.splitValues(ids, maxInClauseBatchThreshold);
 
-		ArrayList<IResultSetProvider> resultSetProviderStack =
-				new ArrayList<>(splitValues.size());
+		ArrayList<IResultSetProvider> resultSetProviderStack = new ArrayList<>(splitValues.size());
 		// Stack gets evaluated last->first so back iteration is correct to execute the sql in order
 		// later
 		for (int a = splitValues.size(); a-- > 0;) {

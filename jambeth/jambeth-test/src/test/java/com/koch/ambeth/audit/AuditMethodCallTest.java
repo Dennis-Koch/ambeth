@@ -1,5 +1,9 @@
 package com.koch.ambeth.audit;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
 /*-
  * #%L
  * jambeth-test
@@ -56,6 +60,7 @@ import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.security.ISecurityScopeProvider;
 import com.koch.ambeth.merge.util.IPrefetchConfig;
 import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
+import com.koch.ambeth.persistence.jdbc.JdbcUtil;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IQuery;
 import com.koch.ambeth.query.IQueryBuilder;
@@ -279,8 +284,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 			public void invoke() throws Throwable {
 				long start = System.currentTimeMillis() - 10000;
 				long end = System.currentTimeMillis();
-				Tuple2KeyHashMap<String, String, String> map =
-						new Tuple2KeyHashMap<>();
+				Tuple2KeyHashMap<String, String, String> map = new Tuple2KeyHashMap<>();
 				IDataCursor cursor = query.param(IAuditedEntityPrimitiveProperty.Name, "Name")//
 						.param(IAuditedEntity.ChangeType, AuditedEntityChangeType.UPDATE)//
 						.param(IAuditedEntityRef.EntityType, Arrays.asList(User.class.getName()))//
@@ -328,6 +332,47 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		auditController.popAuditReason();
 		((IThreadLocalCleanupBean) auditController).cleanupThreadLocal();
 		Assert.assertTrue(user.getId() > 0);
+	}
+
+	@Test
+	public void lobLeakTestOracle() throws Exception {
+		char[] passwordOfUser = "abc".toCharArray();
+		User user = entityFactory.createEntity(User.class);
+		user.setName("MyName");
+		user.setSID("mySid");
+
+		Statement stm = null;
+		ResultSet rs = null;
+		Connection connection = connectionFactory.create();
+		try {
+			stm = connection.createStatement();
+			rs = stm.executeQuery("SELECT count(*) FROM V$TEMPSEG_USAGE");
+			rs.next();
+			Assert.assertEquals(0, rs.getLong(1));
+
+			auditController.pushAuditReason("junit test");
+
+			passwordUtil.assignNewPassword(passwordOfUser, user, null);
+
+			IRevertDelegate revert = auditController.setAuthorizedUser(user, passwordOfUser, true);
+			try {
+				mergeProcess.process(user, null, null, null);
+			}
+			finally {
+				revert.revert();
+			}
+			auditController.popAuditReason();
+			((IThreadLocalCleanupBean) auditController).cleanupThreadLocal();
+
+			rs.close();
+			rs = stm.executeQuery("SELECT count(*) FROM V$TEMPSEG_USAGE");
+			rs.next();
+			Assert.assertEquals("There seems to be a temporary segment leak", 0, rs.getLong(1));
+		}
+		finally {
+			JdbcUtil.close(stm, rs);
+			JdbcUtil.close(connection);
+		}
 	}
 
 	@Test(expected = AuditReasonMissingException.class)

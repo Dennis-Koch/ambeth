@@ -1,5 +1,7 @@
 package com.koch.ambeth.persistence.jdbc;
 
+import java.sql.Array;
+
 /*-
  * #%L
  * jambeth-persistence-jdbc
@@ -202,8 +204,23 @@ public abstract class AbstractConnectionDialect
 	}
 
 	@Override
+	public void releaseBlob(Blob blob) throws SQLException {
+		blob.free();
+	}
+
+	@Override
 	public Clob createClob(Connection connection) throws SQLException {
 		return connection.createClob();
+	}
+
+	@Override
+	public void releaseClob(Clob clob) throws SQLException {
+		clob.free();
+	}
+
+	@Override
+	public void releaseArray(Array array) throws SQLException {
+		array.free();
 	}
 
 	@Override

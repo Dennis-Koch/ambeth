@@ -53,7 +53,13 @@ public interface IConnectionDialect {
 
 	Blob createBlob(Connection connection) throws SQLException;
 
+	void releaseBlob(Blob blob) throws SQLException;
+
 	Clob createClob(Connection connection) throws SQLException;
+
+	void releaseClob(Clob clob) throws SQLException;
+
+	void releaseArray(java.sql.Array array) throws SQLException;
 
 	String toDefaultCase(String unquotedIdentifier);
 
