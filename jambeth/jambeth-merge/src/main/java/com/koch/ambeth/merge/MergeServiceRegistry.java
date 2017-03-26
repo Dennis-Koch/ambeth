@@ -266,7 +266,6 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 										allChangesOriginal.get(indexOfCache.intValue()).getReference();
 								if (objRefExtended == null) {
 									// entity has been deleted
-									objRefOriginal.setId(null);
 									objRefOriginal.setVersion(null);
 								}
 								else {

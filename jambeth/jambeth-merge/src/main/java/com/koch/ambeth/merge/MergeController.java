@@ -187,8 +187,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
 
 				if (originalRef == null) {
 					// Object has been deleted by cascade delete contraints on server merge or simply a "not
-					// specified"
-					// original ref
+					// specified" original ref
 					continue;
 				}
 				if (originalRef instanceof IObjRef) {
