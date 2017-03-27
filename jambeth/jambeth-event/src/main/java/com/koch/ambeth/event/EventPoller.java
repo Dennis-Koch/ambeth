@@ -63,6 +63,8 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 
 	protected int iterationId = 1;
 
+	private Thread thread;
+
 	@Override
 	public void afterStarted() throws Throwable {
 		if (startPaused) {
@@ -96,12 +98,15 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 			stopRequested = true;
 			pauseRequested = false;
 			iterationId++;
+			if (thread != null) {
+				thread.interrupt();
+			}
 		}
 	}
 
 	public void startPolling() {
 		final int stackIterationId = iterationId;
-		Thread thread = new Thread(new Runnable() {
+		thread = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
@@ -127,9 +132,11 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 						}
 					}
 				}
-				catch (Exception e) {
-					if (log.isErrorEnabled()) {
-						log.error(e);
+				catch (Throwable e) {
+					if (!stopRequested) {
+						if (log.isErrorEnabled()) {
+							log.error(e);
+						}
 					}
 				}
 			}
