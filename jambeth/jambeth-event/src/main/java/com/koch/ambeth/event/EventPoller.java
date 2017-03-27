@@ -25,6 +25,7 @@ import java.util.List;
 import com.koch.ambeth.event.config.EventConfigurationConstants;
 import com.koch.ambeth.event.model.IEventItem;
 import com.koch.ambeth.event.service.IEventService;
+import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
@@ -32,11 +33,10 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.IOfflineListener;
 import com.koch.ambeth.util.IClassLoaderProvider;
-import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.IParamHolder;
 import com.koch.ambeth.util.ParamHolder;
 
-public class EventPoller implements IEventPoller, IOfflineListener, IStartingBean, IDisposable {
+public class EventPoller implements IEventPoller, IOfflineListener, IStartingBean, IDisposableBean {
 	@LogInstance
 	private ILogger log;
 
@@ -74,7 +74,7 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 	}
 
 	@Override
-	public void dispose() {
+	public void destroy() throws Throwable {
 		stopPolling();
 	}
 
