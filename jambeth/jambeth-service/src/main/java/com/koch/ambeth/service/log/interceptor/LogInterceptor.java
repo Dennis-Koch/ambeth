@@ -23,6 +23,7 @@ limitations under the License.
 import java.lang.reflect.Method;
 import java.util.Collection;
 
+import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.log.ILoggerCache;
@@ -52,6 +53,9 @@ public class LogInterceptor extends CascadedInterceptor {
 
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IServiceContext beanContext;
 
 	@Autowired
 	protected ILoggerCache loggerCache;
@@ -128,8 +132,10 @@ public class LogInterceptor extends CascadedInterceptor {
 			return returnValue;
 		}
 		catch (Throwable e) {
-			if (log.isErrorEnabled()) {
-				log.error(e);
+			if (beanContext.isRunning()) {
+				if (log.isErrorEnabled()) {
+					log.error(e);
+				}
 			}
 			throw e;
 		}
