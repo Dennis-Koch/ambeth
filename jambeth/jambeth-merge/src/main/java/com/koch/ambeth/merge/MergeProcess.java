@@ -58,8 +58,7 @@ import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public class MergeProcess implements IMergeProcess {
-	private static final ThreadLocal<Boolean> addNewlyPersistedEntitiesTL =
-			new ThreadLocal<>();
+	private static final ThreadLocal<Boolean> addNewlyPersistedEntitiesTL = new ThreadLocal<>();
 
 	public static final boolean isAddNewlyPersistedEntities() {
 		return !Boolean.FALSE.equals(addNewlyPersistedEntitiesTL.get());
@@ -108,6 +107,16 @@ public class MergeProcess implements IMergeProcess {
 
 	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
 	protected boolean isNetworkClientMode;
+
+	@Override
+	public void process(Object objectsToMerge) {
+		process(objectsToMerge, null, null, null, true);
+	}
+
+	@Override
+	public void process(Object objectsToMerge, Object objectsToDelete) {
+		process(objectsToMerge, objectsToDelete, null, null, true);
+	}
 
 	@Override
 	public void process(Object objectToMerge, Object objectToDelete, ProceedWithMergeHook proceedHook,

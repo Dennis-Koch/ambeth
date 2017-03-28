@@ -21,7 +21,19 @@ limitations under the License.
  */
 
 import com.koch.ambeth.merge.model.ICUDResult;
+import com.koch.ambeth.merge.service.IMergeService;
 
+/**
+ * Allows to intercept the Merge Process after the initial transition of "old state" to "new state"
+ * has been resolved in the entity graph.
+ */
 public interface ProceedWithMergeHook {
+	/**
+	 *
+	 * @param result The object describing the transition from "old state" to "new state" in the
+	 *        entity graph.
+	 * @return true if the Merge Process is allowed to proceed (means: call the {@link IMergeService}
+	 *         layer).
+	 */
 	boolean checkToProceed(ICUDResult result);
 }

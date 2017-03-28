@@ -20,7 +20,15 @@ limitations under the License.
  * #L%
  */
 
-
+/**
+ * Gets called by the Merge Process as soon as the (potentially asynchronous) merge operation is
+ * finished.
+ */
 public interface MergeFinishedCallback {
+	/**
+	 *
+	 * @param success true if the merge operation finished without errors and the transition to any
+	 *        local entities as been processed
+	 */
 	void invoke(boolean success);
 }
