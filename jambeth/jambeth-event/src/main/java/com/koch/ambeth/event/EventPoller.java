@@ -49,10 +49,13 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 	@Autowired
 	protected IEventService eventService;
 
+	@Property(name = EventConfigurationConstants.PollingSleepInterval, defaultValue = "500")
 	protected long pollSleepInterval;
 
+	@Property(name = EventConfigurationConstants.MaxWaitInterval, defaultValue = "30000")
 	protected long maxWaitInterval;
 
+	@Property(name = EventConfigurationConstants.StartPausedActive, defaultValue = "false")
 	protected boolean startPaused;
 
 	protected Object writeLock = new Object();
@@ -76,21 +79,6 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 	@Override
 	public void destroy() throws Throwable {
 		stopPolling();
-	}
-
-	@Property(name = EventConfigurationConstants.PollingSleepInterval, defaultValue = "500")
-	public void setPollSleepInterval(long pollSleepInterval) {
-		this.pollSleepInterval = pollSleepInterval;
-	}
-
-	@Property(name = EventConfigurationConstants.MaxWaitInterval, defaultValue = "30000")
-	public void setMaxWaitInterval(long maxWaitInterval) {
-		this.maxWaitInterval = maxWaitInterval;
-	}
-
-	@Property(name = EventConfigurationConstants.StartPausedActive, defaultValue = "false")
-	public void setStartPaused(boolean startPaused) {
-		this.startPaused = startPaused;
 	}
 
 	public void stopPolling() {
@@ -124,6 +112,9 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 						}
 						currentEventSequence =
 								tryPolling(currentServerSession, currentEventSequence, errorOccured);
+						if (stopRequested) {
+							break;
+						}
 						if (errorOccured.getValue().booleanValue()) {
 							Thread.sleep(Math.max(5000, pollSleepInterval));
 						}
@@ -156,6 +147,9 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 			errorOccured.setValue(Boolean.FALSE);
 		}
 		catch (Exception e) {
+			if (stopRequested) {
+				return -1;
+			}
 			if (log.isErrorEnabled()) {
 				log.error(e);
 			}

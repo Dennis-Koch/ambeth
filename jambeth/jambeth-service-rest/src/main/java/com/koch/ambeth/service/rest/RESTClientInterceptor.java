@@ -57,6 +57,7 @@ import com.koch.ambeth.util.ListUtil;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.codec.Base64;
 import com.koch.ambeth.util.collections.ArrayList;
+import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
@@ -100,9 +101,9 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 	@Property
 	protected String serviceName;
 
-	protected final Lock clientLock = new ReentrantLock();
+	protected final Lock writeLock = new ReentrantLock();
 
-	protected final Condition connectionChangeCond = clientLock.newCondition();
+	protected final Condition connectionChangeCond = writeLock.newCondition();
 
 	protected volatile boolean connectionChangePending;
 
@@ -112,31 +113,25 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 
 	protected String authorizationValue;
 
-	// public virtual ISecurityScopeProvider SecurityScopeProvider { get; set; }
+	protected final IdentityHashSet<Thread> responsePendingThreadSet = new IdentityHashSet<>();
 
 	@Override
 	public void afterPropertiesSet() {
 		ParamChecker.assertNotNull(serviceName, "ServiceName");
-
-		// String authInfo = UserName + ":" + Encryption.Encrypt(.password;//TODO
-		// Encryption.encrypt(password);
-		// authInfo = Convert.ToBase64String(Encoding.UTF8.GetBytes(authInfo));
-		// request.Headers[HttpRequestHeader.Authorization] = "Basic " + authInfo;
-
-		// ParamChecker.AssertNotNull(SecurityScopeProvider, "SecurityScopeProvider");
-		// bool httpResult = WebRequest.RegisterPrefix("http://", WebRequestCreator.ClientHttp);
-		// bool httpsResult = WebRequest.RegisterPrefix("https://", WebRequestCreator.ClientHttp);
 	}
 
 	@Override
 	public void destroy() throws Throwable {
 		disposed = true;
-		clientLock.lock();
+		writeLock.lock();
 		try {
 			connectionChangeCond.signalAll();
+			for (Thread responsePendingThread : responsePendingThreadSet) {
+				responsePendingThread.interrupt();
+			}
 		}
 		finally {
-			clientLock.unlock();
+			writeLock.unlock();
 		}
 
 	}
@@ -164,7 +159,8 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 		if (guiThreadHelper != null && guiThreadHelper.isInGuiThread()) {
 			throw new Exception("It is not allowed to call this interceptor from GUI thread");
 		}
-		clientLock.lock();
+		boolean threadAdded;
+		writeLock.lock();
 		try {
 			while (connectionChangePending) {
 				if (disposed) {
@@ -173,83 +169,99 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 				// Wait till the connection change finished
 				connectionChangeCond.await();
 			}
+			threadAdded = responsePendingThreadSet.add(Thread.currentThread());
 		}
 		finally {
-			clientLock.unlock();
+			writeLock.unlock();
 		}
-		long m1 = System.currentTimeMillis();
+		try {
+			long m1 = System.currentTimeMillis();
 
-		long localRequestId = requestCounter.incrementAndGet();
-		URL url = new URL(serviceBaseUrl + "/" + serviceName + "/" + method.getName());
+			long localRequestId = requestCounter.incrementAndGet();
+			URL url = new URL(serviceBaseUrl + "/" + serviceName + "/" + method.getName());
 
-		HttpURLConnection con = (HttpURLConnection) url.openConnection();
+			HttpURLConnection con = (HttpURLConnection) url.openConnection();
 
-		Object result = null;
+			Object result = null;
 
-		con.setRequestProperty("Accept", Constants.AMBETH_MEDIA_TYPE);
-		if (httpAcceptEncodingZipped) {
-			con.setRequestProperty("Accept-Encoding", "gzip");
-		}
-		setAuthorization(con);
-
-		if (args.length > 0) {
-			con.setRequestMethod("POST");
-			con.setDoOutput(true);
-			con.setRequestProperty("Content-Type", Constants.AMBETH_MEDIA_TYPE);
-			OutputStream os;
-			if (httpContentEncodingZipped) {
-				con.setRequestProperty("Content-Encoding", "gzip");
-				os = new GZIPOutputStream(con.getOutputStream());
+			con.setRequestProperty("Accept", Constants.AMBETH_MEDIA_TYPE);
+			if (httpAcceptEncodingZipped) {
+				con.setRequestProperty("Accept-Encoding", "gzip");
 			}
-			else {
-				os = con.getOutputStream();
-			}
-			if (log.isDebugEnabled()) {
-				ByteArrayOutputStream bos = new ByteArrayOutputStream();
-				cyclicXmlHandler.writeToStream(bos, args);
-				byte[] byteArray = bos.toByteArray();
-				os.write(byteArray);
-				log.debug(url + " " + localRequestId + " => " + new String(byteArray, "UTF-8"));
-			}
-			else {
-				cyclicXmlHandler.writeToStream(os, args);
-			}
-			os.close();
-		}
-		else {
-			con.setRequestMethod("GET");
-		}
-		int responseCode = con.getResponseCode();
+			setAuthorization(con);
 
-		try (InputStream responseStream = getResponseStream(con, con.getInputStream())) {
-			byte[] byteArray;
-			{
-				ByteArrayOutputStream memoryStream = new ByteArrayOutputStream();
-				int b;
-				while ((b = responseStream.read()) != -1) {
-					memoryStream.write(b);
+			if (args.length > 0) {
+				con.setRequestMethod("POST");
+				con.setDoOutput(true);
+				con.setRequestProperty("Content-Type", Constants.AMBETH_MEDIA_TYPE);
+				OutputStream os;
+				if (httpContentEncodingZipped) {
+					con.setRequestProperty("Content-Encoding", "gzip");
+					os = new GZIPOutputStream(con.getOutputStream());
 				}
-				byteArray = memoryStream.toByteArray();
+				else {
+					os = con.getOutputStream();
+				}
+				if (log.isDebugEnabled()) {
+					ByteArrayOutputStream bos = new ByteArrayOutputStream();
+					cyclicXmlHandler.writeToStream(bos, args);
+					byte[] byteArray = bos.toByteArray();
+					os.write(byteArray);
+					log.debug(url + " " + localRequestId + " => " + new String(byteArray, "UTF-8"));
+				}
+				else {
+					cyclicXmlHandler.writeToStream(os, args);
+				}
+				os.close();
 			}
-			if (log.isDebugEnabled()) {
-				log.debug(url + " " + localRequestId + " <= " + new String(byteArray, "UTF-8"));
+			else {
+				con.setRequestMethod("GET");
 			}
-			try {
-				result = cyclicXmlHandler.readFromStream(new ByteArrayInputStream(byteArray));
+			int responseCode = con.getResponseCode();
+			if (disposed) {
+				throw new IllegalStateException("Bean already disposed");
 			}
-			catch (XmlTypeNotFoundException e) {
-				throw e;
+			try (InputStream responseStream = getResponseStream(con, con.getInputStream())) {
+				byte[] byteArray;
+				{
+					ByteArrayOutputStream memoryStream = new ByteArrayOutputStream();
+					int b;
+					while ((b = responseStream.read()) != -1) {
+						memoryStream.write(b);
+					}
+					byteArray = memoryStream.toByteArray();
+				}
+				if (log.isDebugEnabled()) {
+					log.debug(url + " " + localRequestId + " <= " + new String(byteArray, "UTF-8"));
+				}
+				try {
+					result = cyclicXmlHandler.readFromStream(new ByteArrayInputStream(byteArray));
+				}
+				catch (XmlTypeNotFoundException e) {
+					throw e;
+				}
+				catch (Throwable e) {
+					result = cyclicXmlHandler.readFromStream(new ByteArrayInputStream(byteArray));
+				}
 			}
-			catch (Throwable e) {
-				result = cyclicXmlHandler.readFromStream(new ByteArrayInputStream(byteArray));
+			if (result instanceof AmbethServiceException) {
+				Exception exception = parseServiceException((AmbethServiceException) result);
+				RuntimeExceptionUtil.fillInClientStackTraceIfPossible(exception);
+				throw exception;
+			}
+			return convertToExpectedType(method.getReturnType(), method.getGenericReturnType(), result);
+		}
+		finally {
+			if (threadAdded) {
+				writeLock.lock();
+				try {
+					responsePendingThreadSet.remove(Thread.currentThread());
+				}
+				finally {
+					writeLock.unlock();
+				}
 			}
 		}
-		if (result instanceof AmbethServiceException) {
-			Exception exception = parseServiceException((AmbethServiceException) result);
-			RuntimeExceptionUtil.fillInClientStackTraceIfPossible(exception);
-			throw exception;
-		}
-		return convertToExpectedType(method.getReturnType(), method.getGenericReturnType(), result);
 	}
 
 	protected Exception parseServiceException(AmbethServiceException serviceException) {
@@ -401,12 +413,12 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 
 	@Override
 	public void beginOffline() {
-		clientLock.lock();
+		writeLock.lock();
 		try {
 			connectionChangePending = true;
 		}
 		finally {
-			clientLock.unlock();
+			writeLock.unlock();
 		}
 	}
 
@@ -417,13 +429,13 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 
 	@Override
 	public void endOffline() {
-		clientLock.lock();
+		writeLock.lock();
 		try {
 			connectionChangePending = false;
 			connectionChangeCond.signalAll();
 		}
 		finally {
-			clientLock.unlock();
+			writeLock.unlock();
 		}
 	}
 }

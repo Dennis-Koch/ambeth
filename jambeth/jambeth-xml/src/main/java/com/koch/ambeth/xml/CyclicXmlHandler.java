@@ -26,12 +26,13 @@ import java.io.Reader;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
+import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 
 public class CyclicXmlHandler implements ICyclicXMLHandler, ICyclicXmlWriter, ICyclicXmlReader,
-		ITypeBasedHandlerExtendable, INameBasedHandlerExtendable {
+		ITypeBasedHandlerExtendable, INameBasedHandlerExtendable, IDisposableBean {
 	@LogInstance
 	private ILogger log;
 
@@ -47,43 +48,74 @@ public class CyclicXmlHandler implements ICyclicXMLHandler, ICyclicXmlWriter, IC
 	@Autowired
 	protected ICyclicXmlWriter cyclicXmlWriter;
 
+	private volatile boolean disposed;
+
+	@Override
+	public void destroy() throws Throwable {
+		disposed = true;
+	}
+
 	@Override
 	public String write(Object obj) {
+		if (disposed) {
+			throw new IllegalStateException("Bean already disposed");
+		}
 		return cyclicXmlWriter.write(obj);
 	}
 
 	@Override
 	public void writeToStream(OutputStream outputStream, Object object) {
+		if (disposed) {
+			throw new IllegalStateException("Bean already disposed");
+		}
 		cyclicXmlWriter.writeToStream(outputStream, object);
 	}
 
 	@Override
 	public void writeToChannel(WritableByteChannel byteChannel, Object object) {
+		if (disposed) {
+			throw new IllegalStateException("Bean already disposed");
+		}
 		cyclicXmlWriter.writeToChannel(byteChannel, object);
 	}
 
 	@Override
 	public Object readFromReader(Reader reader) {
+		if (disposed) {
+			throw new IllegalStateException("Bean already disposed");
+		}
 		return cyclicXmlReader.readFromReader(reader);
 	}
 
 	@Override
 	public Object read(String cyclicXmlContent) {
+		if (disposed) {
+			throw new IllegalStateException("Bean already disposed");
+		}
 		return cyclicXmlReader.read(cyclicXmlContent);
 	}
 
 	@Override
 	public Object readFromStream(InputStream is) {
+		if (disposed) {
+			throw new IllegalStateException("Bean already disposed");
+		}
 		return cyclicXmlReader.readFromStream(is);
 	}
 
 	@Override
 	public Object readFromStream(InputStream is, String encoding) {
+		if (disposed) {
+			throw new IllegalStateException("Bean already disposed");
+		}
 		return cyclicXmlReader.readFromStream(is, encoding);
 	}
 
 	@Override
 	public Object readFromChannel(ReadableByteChannel byteChannel) {
+		if (disposed) {
+			throw new IllegalStateException("Bean already disposed");
+		}
 		return cyclicXmlReader.readFromChannel(byteChannel);
 	}
 
