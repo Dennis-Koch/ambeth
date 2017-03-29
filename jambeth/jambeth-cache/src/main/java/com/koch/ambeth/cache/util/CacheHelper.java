@@ -120,8 +120,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			defaultValue = "true")
 	protected boolean lazyTransactionActive;
 
-	protected final ThreadLocal<AlreadyHandledSet> alreadyHandledSetTL =
-			new ThreadLocal<>();
+	protected final ThreadLocal<AlreadyHandledSet> alreadyHandledSetTL = new ThreadLocal<>();
 
 	@Override
 	public void buildCachePath(Class<?> entityType, String memberToInitialize,
@@ -240,8 +239,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 					new IdentityLinkedMap<>();
 			IdentityLinkedMap<ICacheIntern, ISet<IObjRelation>> cacheToOrelsLoadedHistory =
 					new IdentityLinkedMap<>();
-			IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad =
-					new IdentityLinkedMap<>();
+			IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad = new IdentityLinkedMap<>();
 			IdentityLinkedMap<ICacheIntern, IMap<IObjRelation, Boolean>> cacheToOrelsToLoad =
 					new IdentityLinkedMap<>();
 
@@ -880,8 +878,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				createPrefetch().add(sourceEntityType, sourceToTargetEntityPropertyPath).build();
 		@SuppressWarnings("unused")
 		// Speichere das State-Result unbenutzt - wichtig fuer concurrent GC Aktivitaeten, um Verluste
-		// an
-		// Entity-Referenzen zu verhindern
+		// an Entity-Referenzen zu verhindern
 		IPrefetchState state = prefetch.prefetch(sourceEntities);
 
 		LinkedHashMap<Object, T> targetDistinctMap = new LinkedHashMap<>();

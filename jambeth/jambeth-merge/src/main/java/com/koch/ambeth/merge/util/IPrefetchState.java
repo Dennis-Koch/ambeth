@@ -20,8 +20,12 @@ limitations under the License.
  * #L%
  */
 
+/**
+ * Marker Interface to hold a hard reference to prefetched entity instances. This is due to the fact
+ * that WeakReferences may be immediately collected after the values have been ensured in the
+ * cache.<br>
+ * @see java.lang.ref.WeakReference
+ */
 public interface IPrefetchState {
-	// Marker Interface to hold a hardref to ensured values. This is due to the fact that
-	// WeakReferences may be immediately collected after the
-	// values have been ensured in the cache.
+	// intended blank
 }

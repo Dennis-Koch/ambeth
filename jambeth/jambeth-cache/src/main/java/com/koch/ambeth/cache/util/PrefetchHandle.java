@@ -54,8 +54,8 @@ public class PrefetchHandle implements IPrefetchHandle {
 	}
 
 	@Override
-	public IPrefetchHandle union(IPrefetchHandle otherPrefetchHandle) {
-		if (otherPrefetchHandle == null) {
+	public IPrefetchHandle union(IPrefetchHandle... otherPrefetchHandles) {
+		if (otherPrefetchHandles == null || otherPrefetchHandles.length == 0) {
 			return this;
 		}
 		LinkedHashMap<Class<?>, LinkedHashSet<AppendableCachePath>> newMap =
@@ -70,19 +70,25 @@ public class PrefetchHandle implements IPrefetchHandle {
 				prefetchPaths.add(cachePathHelper.copyCachePathToAppendable(cachePath));
 			}
 		}
-		for (Entry<Class<?>, PrefetchPath[]> entry : ((PrefetchHandle) otherPrefetchHandle).entityTypeToPrefetchSteps) {
-			LinkedHashSet<AppendableCachePath> prefetchPaths = newMap.get(entry.getKey());
-			if (prefetchPaths == null) {
-				prefetchPaths = new LinkedHashSet<>();
-				newMap.put(entry.getKey(), prefetchPaths);
+		for (IPrefetchHandle otherPrefetchHandle : otherPrefetchHandles) {
+			if (otherPrefetchHandle == null) {
+				continue;
 			}
-			for (PrefetchPath cachePath : entry.getValue()) {
-				AppendableCachePath clonedCachePath = cachePathHelper.copyCachePathToAppendable(cachePath);
-				if (prefetchPaths.add(clonedCachePath)) {
-					continue;
+			for (Entry<Class<?>, PrefetchPath[]> entry : ((PrefetchHandle) otherPrefetchHandle).entityTypeToPrefetchSteps) {
+				LinkedHashSet<AppendableCachePath> prefetchPaths = newMap.get(entry.getKey());
+				if (prefetchPaths == null) {
+					prefetchPaths = new LinkedHashSet<>();
+					newMap.put(entry.getKey(), prefetchPaths);
 				}
-				AppendableCachePath existingCachePath = prefetchPaths.get(clonedCachePath);
-				cachePathHelper.unionCachePath(existingCachePath, clonedCachePath);
+				for (PrefetchPath cachePath : entry.getValue()) {
+					AppendableCachePath clonedCachePath =
+							cachePathHelper.copyCachePathToAppendable(cachePath);
+					if (prefetchPaths.add(clonedCachePath)) {
+						continue;
+					}
+					AppendableCachePath existingCachePath = prefetchPaths.get(clonedCachePath);
+					cachePathHelper.unionCachePath(existingCachePath, clonedCachePath);
+				}
 			}
 		}
 		LinkedHashMap<Class<?>, PrefetchPath[]> targetMap = LinkedHashMap.create(newMap.size());
