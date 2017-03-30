@@ -1,5 +1,7 @@
 package com.koch.ambeth.ioc.typeinfo;
 
+import java.beans.Introspector;
+
 /*-
  * #%L
  * jambeth-ioc
@@ -37,6 +39,7 @@ public class FieldPropertyInfo extends AbstractPropertyInfo {
 		backingField = field;
 		modifiers = field.getModifiers();
 		name = propertyName;
+		nameForJavaBeans = Introspector.decapitalize(propertyName);
 		declaringType = field.getDeclaringClass();
 		propertyType = field.getType();
 		elementType =

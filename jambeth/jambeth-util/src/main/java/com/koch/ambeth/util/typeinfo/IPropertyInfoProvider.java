@@ -30,6 +30,8 @@ public interface IPropertyInfoProvider {
 
 	IPropertyInfo getProperty(Class<?> type, String propertyName);
 
+	IPropertyInfo getPropertyByJavaBeansName(Class<?> type, String propertyName);
+
 	IPropertyInfo[] getProperties(Object obj);
 
 	/**

@@ -34,6 +34,7 @@ import com.koch.ambeth.expr.ioc.ExprModule;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.mapping.ioc.MappingModule;
 import com.koch.ambeth.merge.bytecode.ioc.MergeBytecodeModule;
+import com.koch.ambeth.merge.ioc.ChangeControllerModule;
 import com.koch.ambeth.merge.ioc.MergeModule;
 import com.koch.ambeth.merge.ioc.ObjectCopierModule;
 import com.koch.ambeth.merge.util.setup.SetupModule;
@@ -48,12 +49,13 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 @SuppressWarnings("unchecked")
 public class InformationBus implements IBundleModule {
-	private static final Class<?>[] bundleModules = {BytecodeModule.class, CacheBytecodeModule.class,
-			CacheDataChangeModule.class, CacheModule.class, CacheStreamModule.class, DotModule.class,
-			EventDataChangeModule.class, EventModule.class, ExprModule.class, MappingModule.class,
-			MergeBytecodeModule.class, MergeModule.class, ObjectCopierModule.class, PrivilegeModule.class,
-			SecurityBytecodeModule.class, SecurityModule.class, SensorModule.class, ServiceModule.class,
-			SetupModule.class, StreamModule.class};
+	private static final Class<?>[] bundleModules =
+			{BytecodeModule.class, CacheBytecodeModule.class, CacheDataChangeModule.class,
+					CacheModule.class, CacheStreamModule.class, ChangeControllerModule.class, DotModule.class,
+					EventDataChangeModule.class, EventModule.class, ExprModule.class, MappingModule.class,
+					MergeBytecodeModule.class, MergeModule.class, ObjectCopierModule.class,
+					PrivilegeModule.class, SecurityBytecodeModule.class, SecurityModule.class,
+					SensorModule.class, ServiceModule.class, SetupModule.class, StreamModule.class};
 
 	private static final Class<?>[] parentBundles = {Core.class};
 
@@ -61,8 +63,7 @@ public class InformationBus implements IBundleModule {
 
 	static {
 		try {
-			ArrayList<Class<? extends IInitializingModule>> allModules =
-					new ArrayList<>();
+			ArrayList<Class<? extends IInitializingModule>> allModules = new ArrayList<>();
 			allModules.addAll((Class<? extends IInitializingModule>[]) bundleModules);
 
 			for (Class<?> parentBundleClass : parentBundles) {

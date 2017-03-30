@@ -1,5 +1,7 @@
 package com.koch.ambeth.cache.mixin;
 
+import java.beans.Introspector;
+
 /*-
  * #%L
  * jambeth-cache
@@ -74,6 +76,8 @@ public class PropertyChangeMixin
 	public class PropertyEntry {
 		public final String propertyName;
 
+		public final String javaBeansPropertyName;
+
 		public final ITypeInfoItem getDelegate;
 
 		public final boolean doesModifyToBeUpdated;
@@ -90,9 +94,10 @@ public class PropertyChangeMixin
 
 		public final Boolean includeNewValue, includeOldValue;
 
-		public PropertyEntry(Class<?> type, String propertyName,
+		public PropertyEntry(Class<?> type, String propertyName, String javaBeansPropertyName,
 				IPropertyInfoProvider propertyInfoProvider) {
 			this.propertyName = propertyName;
+			this.javaBeansPropertyName = javaBeansPropertyName;
 			LinkedHashSet<String> propertyNames = new LinkedHashSet<>();
 			propertyNames.add(propertyName);
 			IPropertyInfo prop = propertyInfoProvider.getProperty(type, propertyName);
@@ -139,6 +144,11 @@ public class PropertyChangeMixin
 				if (startCount == propertyNames.size()) {
 					break;
 				}
+			}
+			String[] normalPropertyNames = propertyNames.toArray(String.class);
+			propertyNames.clear();
+			for (String normalPropertyName : normalPropertyNames) {
+				propertyNames.add(Introspector.decapitalize(normalPropertyName));
 			}
 			this.propertyNames = propertyNames.toArray(String.class);
 			boolean firesToBeCreatedPCE = false;
@@ -196,12 +206,10 @@ public class PropertyChangeMixin
 			new SmartCopyMap<>();
 
 	protected final ClassExtendableListContainer<IPropertyChangeExtension> propertyChangeExtensions =
-			new ClassExtendableListContainer<>("propertyChangeExtension",
-					"entityType");
+			new ClassExtendableListContainer<>("propertyChangeExtension", "entityType");
 
 	protected final ClassExtendableListContainer<ICollectionChangeExtension> collectionChangeExtensions =
-			new ClassExtendableListContainer<>("collectionChangeExtension",
-					"entityType");
+			new ClassExtendableListContainer<>("collectionChangeExtension", "entityType");
 
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -225,7 +233,8 @@ public class PropertyChangeMixin
 	protected PropertyEntry getPropertyEntry(Class<?> type, IPropertyInfo property) {
 		PropertyEntry entry = propertyToEntryMap.get(property);
 		if (entry == null) {
-			entry = new PropertyEntry(type, property.getName(), propertyInfoProvider);
+			entry = new PropertyEntry(type, property.getName(), property.getNameForJavaBeans(),
+					propertyInfoProvider);
 			propertyToEntryMap.put(property, entry);
 		}
 		return entry;
@@ -340,6 +349,10 @@ public class PropertyChangeMixin
 
 	public IPropertyInfo getMethodHandle(INotifyPropertyChangedSource obj, String propertyName) {
 		IPropertyInfo property = propertyInfoProvider.getProperty(obj.getClass(), propertyName);
+		if (property != null) {
+			return property;
+		}
+		property = propertyInfoProvider.getPropertyByJavaBeansName(obj.getClass(), propertyName);
 		if (property != null) {
 			return property;
 		}

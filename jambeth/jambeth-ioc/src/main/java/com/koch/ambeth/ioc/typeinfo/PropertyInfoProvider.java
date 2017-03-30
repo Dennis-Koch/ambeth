@@ -55,6 +55,9 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 	protected final SmartCopyMap<Class<?>, PropertyInfoEntry> typeToPropertyMap =
 			new SmartCopyMap<>();
 
+	protected final SmartCopyMap<Class<?>, PropertyInfoEntry> typeToJavaBeansPropertyMap =
+			new SmartCopyMap<>();
+
 	protected final SmartCopyMap<Class<?>, PropertyInfoEntry> typeToIocPropertyMap =
 			new SmartCopyMap<>();
 
@@ -91,6 +94,15 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 	 * {@inheritDoc}
 	 */
 	@Override
+	public IPropertyInfo getPropertyByJavaBeansName(Class<?> type, String propertyName) {
+		Map<String, IPropertyInfo> map = getPropertyMapJavaBeans(type);
+		return map.get(propertyName);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	public IPropertyInfo[] getProperties(Object obj) {
 		return getProperties(obj.getClass());
 	}
@@ -100,17 +112,17 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 	 */
 	@Override
 	public IPropertyInfo[] getProperties(Class<?> type) {
-		return getPropertyEntry(type, typeToPropertyMap, true, false).properties;
+		return getPropertyEntry(type, typeToPropertyMap, true, false, false).properties;
 	}
 
 	@Override
 	public IPropertyInfo[] getIocProperties(Class<?> type) {
-		return getPropertyEntry(type, typeToIocPropertyMap, true, true).properties;
+		return getPropertyEntry(type, typeToIocPropertyMap, true, true, false).properties;
 	}
 
 	@Override
 	public IPropertyInfo[] getPrivateProperties(Class<?> type) {
-		return getPropertyEntry(type, typeToPrivatePropertyMap, false, false).properties;
+		return getPropertyEntry(type, typeToPrivatePropertyMap, false, false, false).properties;
 	}
 
 	/**
@@ -126,21 +138,26 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 	 */
 	@Override
 	public IMap<String, IPropertyInfo> getPropertyMap(Class<?> type) {
-		return getPropertyEntry(type, typeToPropertyMap, true, false).map;
+		return getPropertyEntry(type, typeToPropertyMap, true, false, false).map;
+	}
+
+	public IMap<String, IPropertyInfo> getPropertyMapJavaBeans(Class<?> type) {
+		return getPropertyEntry(type, typeToJavaBeansPropertyMap, true, false, true).map;
 	}
 
 	@Override
 	public IMap<String, IPropertyInfo> getIocPropertyMap(Class<?> type) {
-		return getPropertyEntry(type, typeToIocPropertyMap, true, true).map;
+		return getPropertyEntry(type, typeToIocPropertyMap, true, true, false).map;
 	}
 
 	@Override
 	public IMap<String, IPropertyInfo> getPrivatePropertyMap(Class<?> type) {
-		return getPropertyEntry(type, typeToPrivatePropertyMap, false, false).map;
+		return getPropertyEntry(type, typeToPrivatePropertyMap, false, false, false).map;
 	}
 
 	protected PropertyInfoEntry getPropertyEntry(Class<?> type,
-			SmartCopyMap<Class<?>, PropertyInfoEntry> map, boolean isOldIocMode, boolean isIocMode) {
+			SmartCopyMap<Class<?>, PropertyInfoEntry> map, boolean isOldIocMode, boolean isIocMode,
+			boolean isJavaBeans) {
 		ParamChecker.assertParamNotNull(type, "type");
 		PropertyInfoEntry propertyEntry = map.get(type);
 		if (propertyEntry != null) {
@@ -237,7 +254,8 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 					propertyInfo =
 							new MethodPropertyInfo(type, propertyName, getter, setter, objectCollector);
 				}
-				propertyMap.put(propertyInfo.getName(), propertyInfo);
+				propertyMap.put(isJavaBeans ? propertyInfo.getNameForJavaBeans() : propertyInfo.getName(),
+						propertyInfo);
 			}
 
 			FieldAccess fieldAccess = null;
@@ -272,7 +290,8 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 				else {
 					propertyInfo = new FieldPropertyInfo(type, propertyName, field, objectCollector);
 				}
-				propertyMap.put(propertyInfo.getName(), propertyInfo);
+				propertyMap.put(isJavaBeans ? propertyInfo.getNameForJavaBeans() : propertyInfo.getName(),
+						propertyInfo);
 			}
 			propertyEntry = new PropertyInfoEntry(propertyMap);
 			map.put(type, propertyEntry);

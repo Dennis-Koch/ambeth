@@ -107,7 +107,7 @@ public class PropertyChangeTest extends AbstractInformationBusTest {
 
 	@PropertyChangeAspect(includeOldValue = false)
 	public static abstract class Bean2 {
-		public static final String MY_PROPERTY_PROP_NAME = "MyProperty";
+		public static final String MY_PROPERTY_PROP_NAME = "myProperty";
 
 		@SuppressWarnings("unused")
 		private String ignorePrivateField;
@@ -125,7 +125,7 @@ public class PropertyChangeTest extends AbstractInformationBusTest {
 
 	@PropertyChangeAspect(includeNewValue = false)
 	public static abstract class Bean3 extends Bean2 implements INotifyPropertyChangedSource {
-		public static final String VALUE_PROP_NAME = "Value";
+		public static final String VALUE_PROP_NAME = "value";
 
 		public abstract String getValue();
 
@@ -189,7 +189,7 @@ public class PropertyChangeTest extends AbstractInformationBusTest {
 
 	@Test
 	public void testFireExplicitNoListener() throws Throwable {
-		((INotifyPropertyChangedSource) bean1).onPropertyChanged("Value", 0, 5);
+		((INotifyPropertyChangedSource) bean1).onPropertyChanged("value", 0, 5);
 	}
 
 	@Test
@@ -201,7 +201,7 @@ public class PropertyChangeTest extends AbstractInformationBusTest {
 				Assert.assertEquals(5, evt.getNewValue());
 			}
 		});
-		((INotifyPropertyChangedSource) bean1).onPropertyChanged("Value", 1, 5);
+		((INotifyPropertyChangedSource) bean1).onPropertyChanged("value", 1, 5);
 	}
 
 	@Test
@@ -213,7 +213,7 @@ public class PropertyChangeTest extends AbstractInformationBusTest {
 				Assert.assertEquals("b", evt.getNewValue());
 			}
 		});
-		((INotifyPropertyChangedSource) bean2).onPropertyChanged("MyProperty", "a", "b");
+		((INotifyPropertyChangedSource) bean2).onPropertyChanged("myProperty", "a", "b");
 	}
 
 	@Test
@@ -225,7 +225,7 @@ public class PropertyChangeTest extends AbstractInformationBusTest {
 				Assert.assertNull(evt.getNewValue());
 			}
 		});
-		((INotifyPropertyChangedSource) bean3).onPropertyChanged("MyProperty", "a", "b");
+		((INotifyPropertyChangedSource) bean3).onPropertyChanged("myProperty", "a", "b");
 	}
 
 	@Test
@@ -235,10 +235,10 @@ public class PropertyChangeTest extends AbstractInformationBusTest {
 		((INotifyPropertyChanged) bean4).addPropertyChangeListener(new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent evt) {
-				if (evt.getPropertyName().equals("Value")) {
+				if (evt.getPropertyName().equals("value")) {
 					valueLatch.countDown();
 				}
-				if (evt.getPropertyName().equals("ValueTarget")) {
+				if (evt.getPropertyName().equals("valueTarget")) {
 					valueTargetLatch.countDown();
 				}
 			}

@@ -28,6 +28,8 @@ public interface IPropertyInfo {
 
 	String getName();
 
+	String getNameForJavaBeans();
+
 	Class<?> getPropertyType();
 
 	Class<?> getDeclaringType();

@@ -41,6 +41,7 @@ public abstract class AbstractPropertyInfo implements IPropertyInfoIntern, IPrin
 	protected ILinkedMap<Class<? extends Annotation>, Annotation> annotations;
 	protected Class<?> entityType;
 	protected String name;
+	protected String nameForJavaBeans;
 	protected Class<?> propertyType;
 	protected Class<?> elementType;
 	protected Field backingField;
@@ -58,6 +59,7 @@ public abstract class AbstractPropertyInfo implements IPropertyInfoIntern, IPrin
 	protected void init(IThreadLocalObjectCollector objectCollector) {
 		ParamChecker.assertNotNull(entityType, "entityType");
 		ParamChecker.assertNotNull(name, "name");
+		ParamChecker.assertNotNull(nameForJavaBeans, "nameForJavaBeans");
 		ParamChecker.assertNotNull(declaringType, "declaringType");
 		ParamChecker.assertNotNull(elementType, "elementType");
 		ParamChecker.assertNotNull(propertyType, "propertyType");
@@ -92,6 +94,11 @@ public abstract class AbstractPropertyInfo implements IPropertyInfoIntern, IPrin
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public String getNameForJavaBeans() {
+		return nameForJavaBeans;
 	}
 
 	@Override

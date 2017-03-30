@@ -1,5 +1,7 @@
 package com.koch.ambeth.ioc.typeinfo;
 
+import java.beans.Introspector;
+
 /*-
  * #%L
  * jambeth-ioc
@@ -50,6 +52,7 @@ public class MethodPropertyInfo extends AbstractPropertyInfo {
 			throw new RuntimeException(
 					"Not a property method: " + entityType.getName() + "." + getter.getName());
 		}
+		nameForJavaBeans = Introspector.decapitalize(name);
 		if (getter != null) {
 			ParamChecker.assertTrue(!void.class.equals(getter.getReturnType()), "getter");
 			ParamChecker.assertTrue(getter.getParameterTypes().length == 0, "getter");
