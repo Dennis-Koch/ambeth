@@ -87,15 +87,11 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
 	@Override
 	public IPropertyInfo getProperty(Class<?> type, String propertyName) {
 		Map<String, IPropertyInfo> map = getPropertyMap(type);
-		return map.get(propertyName);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public IPropertyInfo getPropertyByJavaBeansName(Class<?> type, String propertyName) {
-		Map<String, IPropertyInfo> map = getPropertyMapJavaBeans(type);
+		IPropertyInfo property = map.get(propertyName);
+		if (property != null) {
+			return property;
+		}
+		map = getPropertyMapJavaBeans(type);
 		return map.get(propertyName);
 	}
 

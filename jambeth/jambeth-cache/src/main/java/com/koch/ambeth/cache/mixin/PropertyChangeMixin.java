@@ -352,10 +352,6 @@ public class PropertyChangeMixin
 		if (property != null) {
 			return property;
 		}
-		property = propertyInfoProvider.getPropertyByJavaBeansName(obj.getClass(), propertyName);
-		if (property != null) {
-			return property;
-		}
 		throw new IllegalStateException(
 				"Property not found: " + obj.getClass().getName() + "." + propertyName);
 	}
