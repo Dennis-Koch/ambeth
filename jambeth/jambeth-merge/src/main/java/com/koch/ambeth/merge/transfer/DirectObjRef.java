@@ -85,6 +85,12 @@ public class DirectObjRef extends ObjRef implements IDirectObjRef {
 			// Identity - not equals - intentionally here!
 			return direct == ((IDirectObjRef) obj).getDirect();
 		}
+		if (id == null) {
+			if (!(obj instanceof IDirectObjRef)) {
+				return false;
+			}
+			return getCreateContainerIndex() == ((IDirectObjRef) obj).getCreateContainerIndex();
+		}
 		return id.equals(obj.getId()) && realType.equals(obj.getRealType());
 	}
 
@@ -92,6 +98,9 @@ public class DirectObjRef extends ObjRef implements IDirectObjRef {
 	public int hashCode() {
 		if (direct != null) {
 			return direct.hashCode();
+		}
+		if (id == null) {
+			return getCreateContainerIndex();
 		}
 		return super.hashCode();
 	}
@@ -103,5 +112,4 @@ public class DirectObjRef extends ObjRef implements IDirectObjRef {
 		}
 		return super.toString();
 	}
-
 }
