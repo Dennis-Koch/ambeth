@@ -94,6 +94,7 @@ import com.koch.ambeth.util.exception.MaskingRuntimeException;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.state.NoOpStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 import com.koch.ambeth.xml.DefaultXmlWriter;
@@ -632,18 +633,15 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 						new IResultingBackgroundWorkerDelegate<Object>() {
 							@Override
 							public Object invoke() throws Throwable {
+								IStateRollback rollback = NoOpStateRollback.instance;
 								if (changeControllerActive && changeController != null) {
-									changeController.runWithoutEDBL(new IResultingBackgroundWorkerDelegate<Object>() {
-
-										@Override
-										public Object invoke() throws Throwable {
-											fStatement.evaluate();
-											return null;
-										}
-									});
+									rollback = changeController.pushRunWithoutEDBL();
 								}
-								else {
+								try {
 									fStatement.evaluate();
+								}
+								finally {
+									rollback.rollback();
 								}
 								return null;
 

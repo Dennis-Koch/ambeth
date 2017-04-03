@@ -51,6 +51,8 @@ import com.koch.ambeth.util.collections.IdentityLinkedSet;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.model.IDataObject;
+import com.koch.ambeth.util.state.AbstractStateRollback;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 /**
@@ -80,8 +82,7 @@ public class ChangeController
 	protected boolean edblActive;
 
 	protected final ClassExtendableListContainer<IChangeControllerExtension<?>> extensions =
-			new ClassExtendableListContainer<>("change controller extension",
-					"entity");
+			new ClassExtendableListContainer<>("change controller extension", "entity");
 
 	protected final SmartCopyMap<Class<?>, IChangeControllerExtension<?>[]> typeToSortedExtensions =
 			new SmartCopyMap<>();
@@ -267,14 +268,14 @@ public class ChangeController
 	}
 
 	@Override
-	public <T> T runWithoutEDBL(IResultingBackgroundWorkerDelegate<T> runnable) throws Throwable {
-		Boolean oldValue = edblActiveTL.get();
-		try {
-			edblActiveTL.set(false);
-			return runnable.invoke();
-		}
-		finally {
-			edblActiveTL.set(oldValue);
-		}
+	public IStateRollback pushRunWithoutEDBL(IStateRollback... rollbacks) {
+		final Boolean oldValue = edblActiveTL.get();
+		edblActiveTL.set(Boolean.FALSE);
+		return new AbstractStateRollback(rollbacks) {
+			@Override
+			protected void rollbackIntern() throws Throwable {
+				edblActiveTL.set(oldValue);
+			}
+		};
 	}
 }

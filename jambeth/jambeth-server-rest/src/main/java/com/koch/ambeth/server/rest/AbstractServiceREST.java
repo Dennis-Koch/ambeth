@@ -291,12 +291,13 @@ public abstract class AbstractServiceREST {
 	}
 
 	protected StreamingOutput createExceptionResult(Throwable e, final HttpServletResponse response) {
+		if (e.getClass().getName().equals(MaskingRuntimeException.class.getName())
+				&& e.getMessage() == null) {
+			e = e.getCause();
+		}
 		logException(e, null);
 		AmbethServiceException result = new AmbethServiceException();
 
-		if (e instanceof MaskingRuntimeException && e.getMessage() == null) {
-			e = e.getCause();
-		}
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw, false);
 		e.printStackTrace(pw);

@@ -1,29 +1,34 @@
 package com.koch.ambeth.merge.changecontroller;
 
-/*-
- * #%L
- * jambeth-merge
- * %%
- * Copyright (C) 2017 Koch Softwaredevelopment
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+import com.koch.ambeth.util.state.IStateRollback;
 
-     http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
- * #L%
+/**
+ * Allows to temporarily deactivate the EDBL pipeline. This is mostly helpful in unit test setups,
+ * where you do not want the EDBL to trigger when you create the initial test dataset before the
+ * real unit tests start
  */
-
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
-
 public interface IChangeController {
 
-	<T> T runWithoutEDBL(IResultingBackgroundWorkerDelegate<T> runnable) throws Throwable;
-
+	/**
+	 * Allows to temporarily deactivate the EDBL pipeline. This is mostly helpful in unit test setups,
+	 * where you do not want the EDBL to trigger when you create the initial test dataset before the
+	 * real unit tests start.<br>
+	 * <br>
+	 * Usage:<br>
+	 * <code>
+	 * IStateRollback rollback = changeController.pushRunWithoutEDBL();<br>
+	 * try {<br>
+	 *  ... do stuff<br>
+	 * }<br>
+	 * finally {<br>
+	 * rollback.rollback();<br>
+	 * }<br>
+	 * </code>
+	 *
+	 * @param rollbacks Previously created rollbacks for the current stack to be unified with the
+	 *        to-be-created rollback handle.
+	 * @return A rollback handle to revert all changes made by this push operation and calls all given
+	 *         additional rollbacks.
+	 */
+	IStateRollback pushRunWithoutEDBL(IStateRollback... rollbacks);
 }

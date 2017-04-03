@@ -38,12 +38,13 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Cloneable {
 	public static class FastIterator<V> implements ListIterator<V> {
-		protected int index = -1;
+		protected int index;
 
 		protected final ArrayList<V> list;
 
-		public FastIterator(ArrayList<V> list) {
+		public FastIterator(ArrayList<V> list, int index) {
 			this.list = list;
+			this.index = index - 1;
 		}
 
 		@Override
@@ -423,7 +424,7 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 
 	@Override
 	public Iterator<V> iterator() {
-		return new FastIterator<>(this);
+		return new FastIterator<>(this, 0);
 	}
 
 	@Override
@@ -438,12 +439,12 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 
 	@Override
 	public ListIterator<V> listIterator() {
-		return new FastIterator<>(this);
+		return new FastIterator<>(this, 0);
 	}
 
 	@Override
 	public ListIterator<V> listIterator(final int index) {
-		throw new UnsupportedOperationException();
+		return new FastIterator<>(this, index);
 	}
 
 	@Override
