@@ -113,16 +113,13 @@ public class EntityMetaData implements IEntityMetaData {
 
 	protected final HashMap<String, Member> nameToMemberDict = new HashMap<>(0.5f);
 
-	protected final HashMap<Member, Boolean> memberToMergeRelevanceDict =
-			new HashMap<>(0.5f);
+	protected final HashMap<Member, Boolean> memberToMergeRelevanceDict = new HashMap<>(0.5f);
 
 	protected final HashMap<String, Byte> memberNameToIdIndexDict = new HashMap<>(0.5f);
 
-	protected final HashMap<String, Integer> relMemberNameToIndexDict =
-			new HashMap<>(0.5f);
+	protected final HashMap<String, Integer> relMemberNameToIndexDict = new HashMap<>(0.5f);
 
-	protected final HashMap<String, Integer> primMemberNameToIndexDict =
-			new HashMap<>(0.5f);
+	protected final HashMap<String, Integer> primMemberNameToIndexDict = new HashMap<>(0.5f);
 
 	protected final IdentityHashMap<RelationMember, Integer> relMemberToIndexDict =
 			new IdentityHashMap<>(0.5f);
@@ -228,8 +225,8 @@ public class EntityMetaData implements IEntityMetaData {
 	public byte getIdIndexByMemberName(String memberName) {
 		Byte value = memberNameToIdIndexDict.get(memberName);
 		if (value == null) {
-			throw new IllegalArgumentException(
-					"No alternate id index found for member name '" + memberName + "'");
+			throw new IllegalArgumentException("No alternate id index found for member name '"
+					+ getEntityType().getName() + "." + memberName + "'");
 		}
 		return value.byteValue();
 	}

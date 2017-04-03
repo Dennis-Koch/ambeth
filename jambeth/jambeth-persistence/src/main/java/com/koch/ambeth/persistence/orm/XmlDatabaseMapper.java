@@ -23,6 +23,7 @@ limitations under the License.
 import java.lang.reflect.Modifier;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -734,6 +735,14 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 		}
 
 		ILinkMetaData link = findLinkForRelation(propertyName, linkName, table, database);
+		if (link == null) {
+			if (log.isDebugEnabled()) {
+				log.debug("Could not resolve link '" + linkName + " for member '"
+						+ table.getEntityType().getName() + "." + propertyName + " defined by '" + linkSource
+						+ "'");
+			}
+			return;
+		}
 
 		EntityIdentifier entityIdentifier = relationConfig20.getEntityIdentifier();
 		if (entityIdentifier == null) {
@@ -838,6 +847,11 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 			ITableMetaData table, String fromFieldName, String toFieldName, Class<?> linkedEntityType,
 			String toAttributeName, Member toMember, boolean toMany) {
 		IFieldMetaData fromField = table.getFieldByName(fromFieldName);
+		if (fromField == null) {
+			throw new IllegalArgumentException("No field found with name '" + fromFieldName
+					+ "' on table '" + table + "'. Available field names: '"
+					+ Arrays.toString(table.getAllFields().toArray()) + "'");
+		}
 		IFieldMetaData toField = null;
 		if (toMany && toFieldName != null && !toFieldName.isEmpty()) {
 			toField = table.getFieldByName(toFieldName);
@@ -857,9 +871,6 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 				link = database.getLinkByDefiningName(linkName.toUpperCase());
 				if (link == null) {
 					link = database.getLinkByName(linkName);
-					if (link == null) {
-						throw new IllegalArgumentException("Link defined by '" + linkName + "' was not found");
-					}
 				}
 			}
 		}

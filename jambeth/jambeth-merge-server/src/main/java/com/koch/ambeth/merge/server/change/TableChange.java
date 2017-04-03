@@ -104,7 +104,8 @@ public class TableChange extends AbstractTableChange {
 				// Foreign key link has to have exactly one id or has to be null
 				IFieldMetaData foreignField = link.getToField();
 				IObjRef ref = command.getRefsToLink().get(0);
-				if (!foreignField.isAlternateId() || foreignField.getIdIndex() == ref.getIdNameIndex()) {
+				if (foreignField == null || (!foreignField.isAlternateId()
+						|| foreignField.getIdIndex() == ref.getIdNameIndex())) {
 					if (ref instanceof IDirectObjRef) {
 						IDirectObjRef directRef = (IDirectObjRef) ref;
 						Object container = directRef.getDirect();

@@ -466,6 +466,9 @@ public class EntityLoader
 
 		byte idIndex = targetingRequestLink != null ? targetingRequestLink.getFromIdIndex()
 				: ObjRef.PRIMARY_KEY_INDEX;
+		if (idIndex == ObjRef.UNDEFINED_KEY_INDEX) {
+			idIndex = ObjRef.PRIMARY_KEY_INDEX;
+		}
 		IObjRef objRef = idIndex + 1 < objRefItems.length ? objRefItems[idIndex + 1] : null;
 		if (objRef == null || objRef.getIdNameIndex() != idIndex) {
 			objRef = null;

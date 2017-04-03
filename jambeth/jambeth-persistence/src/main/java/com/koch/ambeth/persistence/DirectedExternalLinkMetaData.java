@@ -93,7 +93,7 @@ public class DirectedExternalLinkMetaData extends DirectedLinkMetaData
 			return super.getToIdIndex();
 		}
 		else {
-			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(getFromEntityType());
+			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(getToEntityType());
 			byte toIdIndex = metaData.getIdIndexByMemberName(toMember.getName());
 			return toIdIndex;
 		}
