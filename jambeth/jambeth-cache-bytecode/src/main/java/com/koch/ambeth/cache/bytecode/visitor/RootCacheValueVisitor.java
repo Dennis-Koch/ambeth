@@ -47,7 +47,7 @@ public class RootCacheValueVisitor extends ClassGenerator {
 	private static final Type objRefArrayType = Type.getType(IObjRef[].class);
 
 	@SuppressWarnings("unused")
-	private static final Object[][] OBJ_EMPTY_ARRAY_ARRAY = new Object[0][0];
+	public static final Object[][] OBJ_EMPTY_ARRAY_ARRAY = new Object[0][0];
 
 	private static final FieldInstance sf_objArrayArray = new FieldInstance(
 			ReflectUtil.getDeclaredField(RootCacheValueVisitor.class, "OBJ_EMPTY_ARRAY_ARRAY"));
