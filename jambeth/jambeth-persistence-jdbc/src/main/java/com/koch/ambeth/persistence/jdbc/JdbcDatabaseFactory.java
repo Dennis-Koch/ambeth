@@ -56,6 +56,8 @@ import com.koch.ambeth.util.proxy.IProxyFactory;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 
 public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExtendable {
+	public static final String ADDITIONAL_MODULES_PROP = "AdditionalModules";
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;

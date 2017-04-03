@@ -50,6 +50,7 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.IOfflineListener;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.remote.IRemoteInterceptor;
+import com.koch.ambeth.service.remote.IRemoteTargetProvider;
 import com.koch.ambeth.service.rest.config.RESTConfigurationConstants;
 import com.koch.ambeth.service.transfer.AmbethServiceException;
 import com.koch.ambeth.util.IConversionHelper;
@@ -117,7 +118,7 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 
 	@Override
 	public void afterPropertiesSet() {
-		ParamChecker.assertNotNull(serviceName, "ServiceName");
+		ParamChecker.assertNotNull(serviceName, IRemoteTargetProvider.SERVICE_NAME_PROP);
 	}
 
 	@Override

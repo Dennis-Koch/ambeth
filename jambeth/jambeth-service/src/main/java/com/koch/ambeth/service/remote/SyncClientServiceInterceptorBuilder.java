@@ -60,15 +60,15 @@ public class SyncClientServiceInterceptorBuilder implements IClientServiceInterc
 					public void invoke(IBeanContextFactory bcf) {
 						if (IRemoteTargetProvider.class.isAssignableFrom(clientProviderType)) {
 							bcf.registerBean(remoteTargetProviderName, clientProviderType)
-									.propertyValue("ServiceName", serviceName);
+									.propertyValue(IRemoteTargetProvider.SERVICE_NAME_PROP, serviceName);
 							clientServiceFactory.postProcessTargetProviderBean(remoteTargetProviderName, bcf);
 
 							bcf.registerBean(interceptorName, TargetingInterceptor.class)
-									.propertyRef("TargetProvider", remoteTargetProviderName);
+									.propertyRef(TargetingInterceptor.TARGET_PROVIDER_PROP, remoteTargetProviderName);
 						}
 						else if (IRemoteInterceptor.class.isAssignableFrom(clientProviderType)) {
-							bcf.registerBean(interceptorName, clientProviderType).propertyValue("ServiceName",
-									serviceName);
+							bcf.registerBean(interceptorName, clientProviderType)
+									.propertyValue(IRemoteTargetProvider.SERVICE_NAME_PROP, serviceName);
 							clientServiceFactory.postProcessTargetProviderBean(interceptorName, bcf);
 						}
 						else {

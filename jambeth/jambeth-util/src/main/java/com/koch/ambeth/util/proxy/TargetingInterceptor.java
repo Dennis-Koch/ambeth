@@ -28,6 +28,8 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import net.sf.cglib.proxy.MethodProxy;
 
 public class TargetingInterceptor extends AbstractSimpleInterceptor {
+	public static final String TARGET_PROVIDER_PROP = "TargetProvider";
+
 	protected ITargetProvider targetProvider;
 
 	public void setTargetProvider(ITargetProvider targetProvider) {

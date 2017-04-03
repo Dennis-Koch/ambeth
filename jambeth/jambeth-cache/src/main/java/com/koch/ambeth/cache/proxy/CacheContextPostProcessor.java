@@ -35,6 +35,7 @@ import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
+import com.koch.ambeth.merge.interceptor.MergeInterceptor;
 import com.koch.ambeth.service.proxy.AbstractCascadePostProcessor;
 import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
 import com.koch.ambeth.util.EqualsUtil;
@@ -71,14 +72,16 @@ public class CacheContextPostProcessor extends AbstractCascadePostProcessor {
 		CacheInterceptor interceptor = new CacheInterceptor();
 		if (beanContext.isRunning()) {
 			interceptor = beanContext.registerWithLifecycle(interceptor)//
-					.propertyValue("Behavior", cacheBehavior)//
-					.ignoreProperties("ProcessService", "ServiceName")//
+					.propertyValue(MergeInterceptor.BEHAVIOR_PROP, cacheBehavior)//
+					.ignoreProperties(MergeInterceptor.PROCESS_SERVICE_PROP,
+							MergeInterceptor.SERVICE_NAME_PROP)//
 					.finish();
 		}
 		else {
 			beanContextFactory.registerWithLifecycle(interceptor)//
-					.propertyValue("Behavior", cacheBehavior)//
-					.ignoreProperties("ProcessService", "ServiceName");
+					.propertyValue(MergeInterceptor.BEHAVIOR_PROP, cacheBehavior)//
+					.ignoreProperties(MergeInterceptor.PROCESS_SERVICE_PROP,
+							MergeInterceptor.SERVICE_NAME_PROP);
 		}
 		CacheType cacheType = cacheContext.value();
 		String cacheProviderName;

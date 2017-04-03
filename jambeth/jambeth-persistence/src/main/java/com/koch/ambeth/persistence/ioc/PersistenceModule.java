@@ -33,6 +33,7 @@ import com.koch.ambeth.persistence.ILoadContainerProvider;
 import com.koch.ambeth.persistence.IPersistenceHelper;
 import com.koch.ambeth.persistence.PersistenceHelper;
 import com.koch.ambeth.persistence.api.IDatabase;
+import com.koch.ambeth.persistence.api.database.IDatabaseProvider;
 import com.koch.ambeth.persistence.api.database.ITransactionListenerExtendable;
 import com.koch.ambeth.persistence.api.database.ITransactionListenerProvider;
 import com.koch.ambeth.persistence.api.sql.ISqlBuilder;
@@ -80,8 +81,7 @@ public class PersistenceModule implements IInitializingModule {
 		beanContextFactory.registerBean(DatabaseProviderRegistry.class)
 				.autowireable(IDatabaseProviderRegistry.class, IDatabaseProviderExtendable.class);
 
-		beanContextFactory
-				.registerBean("databaseSessionIdController", DatabaseSessionIdController.class)
+		beanContextFactory.registerBean(DatabaseSessionIdController.class)
 				.autowireable(IDatabaseSessionIdController.class);
 
 		beanContextFactory.registerBean(XmlDatabaseMapper.class).precedence(PrecedenceType.HIGH)
@@ -94,7 +94,9 @@ public class PersistenceModule implements IInitializingModule {
 
 		TargetingInterceptor databaseInterceptor =
 				(TargetingInterceptor) beanContextFactory.registerBean(TargetingInterceptor.class)
-						.propertyRef("TargetProvider", "databaseProvider").getInstance();
+						.propertyRef(TargetingInterceptor.TARGET_PROVIDER_PROP,
+								IDatabaseProvider.DEFAULT_DATABASE_PROVIDER_NAME)
+						.getInstance();
 
 		IDatabase databaseTlProxy = proxyFactory.createProxy(IDatabase.class, databaseInterceptor);
 

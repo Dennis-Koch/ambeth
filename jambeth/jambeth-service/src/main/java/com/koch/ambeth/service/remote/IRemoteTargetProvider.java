@@ -23,6 +23,8 @@ limitations under the License.
 import com.koch.ambeth.util.proxy.ITargetProvider;
 
 public interface IRemoteTargetProvider extends ITargetProvider {
+	public static final String SERVICE_NAME_PROP = "ServiceName";
+
 	String getServiceName();
 
 	void setServiceName(String serviceName);

@@ -48,6 +48,7 @@ import com.koch.ambeth.persistence.IConnectionHolder;
 import com.koch.ambeth.persistence.NoopDatabasePool;
 import com.koch.ambeth.persistence.api.IDatabaseMetaData;
 import com.koch.ambeth.persistence.api.IDatabasePool;
+import com.koch.ambeth.persistence.api.database.IDatabaseProvider;
 import com.koch.ambeth.persistence.api.database.ITransaction;
 import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
 import com.koch.ambeth.persistence.database.DatabaseProvider;
@@ -132,8 +133,9 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 			beanContextFactory.registerAutowireableBean(IDatabasePool.class, NoopDatabasePool.class);
 		}
 
-		beanContextFactory.registerBean("databaseProvider", DatabaseProvider.class);
-		beanContextFactory.link("databaseProvider").to(IDatabaseProviderExtendable.class)
+		IBeanConfiguration databaseProvider = beanContextFactory
+				.registerBean(IDatabaseProvider.DEFAULT_DATABASE_PROVIDER_NAME, DatabaseProvider.class);
+		beanContextFactory.link(databaseProvider).to(IDatabaseProviderExtendable.class)
 				.with(Object.class);
 
 		beanContextFactory.registerBean(JDBCDatabaseMetaData.class)
@@ -155,17 +157,18 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 
 		beanContextFactory.link(IUnmodifiedInputSource.class).to(INoEntityTypeExtendable.class);
 
-		beanContextFactory.registerBean(JdbcDatabaseFactory.class).propertyRefs("databaseProvider")
-				.propertyValue("AdditionalModules",
+		beanContextFactory.registerBean(JdbcDatabaseFactory.class)
+				.propertyRefs(IDatabaseProvider.DEFAULT_DATABASE_PROVIDER_NAME)
+				.propertyValue(JdbcDatabaseFactory.ADDITIONAL_MODULES_PROP,
 						connectionModuleTypes.toArray(new Class<?>[connectionModuleTypes.size()]))
 				.autowireable(IDatabaseFactory.class, IDatabaseMapperExtendable.class);
 
 		beanContextFactory.registerBean(ConnectionHolderRegistry.class)
 				.autowireable(IConnectionHolderRegistry.class, IConnectionHolderExtendable.class);
 
-		MethodInterceptor chInterceptor =
-				(MethodInterceptor) beanContextFactory.registerBean(ConnectionHolderInterceptor.class)
-						.autowireable(IConnectionHolder.class).ignoreProperties("Connection").getInstance();
+		MethodInterceptor chInterceptor = (MethodInterceptor) beanContextFactory
+				.registerBean(ConnectionHolderInterceptor.class).autowireable(IConnectionHolder.class)
+				.ignoreProperties(ConnectionHolderInterceptor.CONNECTION_PROP).getInstance();
 		beanContextFactory.link(chInterceptor).to(IConnectionHolderExtendable.class).with(Object.class);
 
 		Object connectionHolderProxy = proxyFactory.createProxy(Connection.class, chInterceptor);
@@ -173,11 +176,11 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 				.autowireable(Connection.class);
 
 		if (integratedConnectionFactory) {
-			beanContextFactory.registerBean("connectionFactory", ConnectionFactory.class)
+			beanContextFactory.registerBean(ConnectionFactory.class)
 					.autowireable(IConnectionFactory.class);
 		}
 		else {
-			beanContextFactory.registerBean("connectionFactory", DataSourceConnectionFactory.class)
+			beanContextFactory.registerBean(DataSourceConnectionFactory.class)
 					.autowireable(IConnectionFactory.class);
 		}
 		beanContextFactory.registerAutowireableBean(ISqlConnection.class, JDBCSqlConnection.class);

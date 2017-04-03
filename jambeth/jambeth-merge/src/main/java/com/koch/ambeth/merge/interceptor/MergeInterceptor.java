@@ -55,6 +55,12 @@ import net.sf.cglib.proxy.MethodProxy;
 
 public class MergeInterceptor extends AbstractInterceptor {
 	// Intentionally no SensitiveThreadLocal
+	public static String BEHAVIOR_PROP = "Behavior";
+
+	public static String PROCESS_SERVICE_PROP = "ProcessService";
+
+	public static String SERVICE_NAME_PROP = "ServiceName";
+
 	protected static final ThreadLocal<Boolean> processServiceActive = new ThreadLocal<>();
 
 	@SuppressWarnings("unused")

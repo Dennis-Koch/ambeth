@@ -32,6 +32,7 @@ import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
+import com.koch.ambeth.merge.interceptor.MergeInterceptor;
 import com.koch.ambeth.merge.proxy.MergePostProcessor;
 import com.koch.ambeth.service.IServiceExtendable;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
@@ -114,17 +115,17 @@ public class CachePostProcessor extends MergePostProcessor {
 			CacheInterceptor interceptor = new CacheInterceptor();
 			if (beanContext.isRunning()) {
 				interceptor = beanContext.registerWithLifecycle(interceptor)//
-						.propertyValue("ServiceName", serviceName)//
-						.propertyValue("Behavior", behavior)//
-						.ignoreProperties("ProcessService")//
+						.propertyValue(MergeInterceptor.SERVICE_NAME_PROP, serviceName)//
+						.propertyValue(MergeInterceptor.BEHAVIOR_PROP, behavior)//
+						.ignoreProperties(MergeInterceptor.PROCESS_SERVICE_PROP)//
 						.finish();
 				beanContext.link(beanConfiguration).to(IServiceExtendable.class).with(serviceName);
 			}
 			else {
 				beanContextFactory.registerWithLifecycle(interceptor)//
-						.propertyValue("ServiceName", serviceName)//
-						.propertyValue("Behavior", behavior)//
-						.ignoreProperties("ProcessService");
+						.propertyValue(MergeInterceptor.SERVICE_NAME_PROP, serviceName)//
+						.propertyValue(MergeInterceptor.BEHAVIOR_PROP, behavior)//
+						.ignoreProperties(MergeInterceptor.PROCESS_SERVICE_PROP);
 				beanContextFactory.link(beanConfiguration).to(IServiceExtendable.class).with(serviceName);
 			}
 			if (log.isInfoEnabled()) {
@@ -159,15 +160,15 @@ public class CachePostProcessor extends MergePostProcessor {
 		CacheInterceptor interceptor = new CacheInterceptor();
 		if (beanContext != null) {
 			interceptor = beanContext.registerWithLifecycle(interceptor)//
-					.propertyValue("ServiceName", serviceName)//
-					.propertyValue("Behavior", behavior)//
+					.propertyValue(MergeInterceptor.SERVICE_NAME_PROP, serviceName)//
+					.propertyValue(MergeInterceptor.BEHAVIOR_PROP, behavior)//
 					.finish();
 			// beanContext.link(cacheInterceptorName).to(ICacheServiceByNameExtendable.class).with(serviceName);
 		}
 		else {
 			beanContextFactory.registerWithLifecycle(interceptor)//
-					.propertyValue("ServiceName", serviceName)//
-					.propertyValue("Behavior", behavior);
+					.propertyValue(MergeInterceptor.SERVICE_NAME_PROP, serviceName)//
+					.propertyValue(MergeInterceptor.BEHAVIOR_PROP, behavior);
 			// beanContextFactory.link(cacheInterceptorName).to(ICacheServiceByNameExtendable.class).with(serviceName);
 		}
 

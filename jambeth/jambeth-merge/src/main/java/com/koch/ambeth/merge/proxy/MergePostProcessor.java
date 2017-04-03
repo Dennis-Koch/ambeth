@@ -73,13 +73,13 @@ public class MergePostProcessor extends AbstractCascadePostProcessor
 		MergeInterceptor mergeInterceptor = new MergeInterceptor();
 		if (beanContext.isRunning()) {
 			return beanContext.registerWithLifecycle(mergeInterceptor)//
-					.propertyValue("Behavior", behavior)//
-					.ignoreProperties("ServiceName")//
+					.propertyValue(MergeInterceptor.BEHAVIOR_PROP, behavior)//
+					.ignoreProperties(MergeInterceptor.SERVICE_NAME_PROP)//
 					.finish();
 		}
 		beanContextFactory.registerWithLifecycle(mergeInterceptor)//
-				.propertyValue("Behavior", behavior)//
-				.ignoreProperties("ServiceName");
+				.propertyValue(MergeInterceptor.BEHAVIOR_PROP, behavior)//
+				.ignoreProperties(MergeInterceptor.SERVICE_NAME_PROP);
 		return mergeInterceptor;
 	}
 

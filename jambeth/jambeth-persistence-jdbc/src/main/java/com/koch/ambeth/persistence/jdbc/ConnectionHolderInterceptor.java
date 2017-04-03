@@ -38,6 +38,8 @@ import net.sf.cglib.proxy.MethodProxy;
 
 public class ConnectionHolderInterceptor extends AbstractSimpleInterceptor
 		implements IConnectionHolder, IThreadLocalCleanupBean {
+	public static final String CONNECTION_PROP = "Connection";
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;

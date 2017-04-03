@@ -23,6 +23,8 @@ limitations under the License.
 import com.koch.ambeth.persistence.api.IDatabase;
 
 public interface IDatabaseProvider {
+	public static final String DEFAULT_DATABASE_PROVIDER_NAME = "databaseProvider";
+
 	ThreadLocal<IDatabase> getDatabaseLocal();
 
 	IDatabase tryGetInstance();

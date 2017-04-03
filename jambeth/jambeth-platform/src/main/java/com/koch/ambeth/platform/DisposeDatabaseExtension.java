@@ -26,8 +26,8 @@ import com.koch.ambeth.persistence.api.database.IDatabaseProvider;
 
 public class DisposeDatabaseExtension {
 	public void disposeDatabase(IServiceContext beanContext) {
-		IDatabaseProvider databaseProvider =
-				beanContext.getService("databaseProvider", IDatabaseProvider.class, false);
+		IDatabaseProvider databaseProvider = beanContext.getService(
+				IDatabaseProvider.DEFAULT_DATABASE_PROVIDER_NAME, IDatabaseProvider.class, false);
 		IDatabase database = databaseProvider != null ? databaseProvider.tryGetInstance() : null;
 		if (database != null) {
 			database.dispose();
