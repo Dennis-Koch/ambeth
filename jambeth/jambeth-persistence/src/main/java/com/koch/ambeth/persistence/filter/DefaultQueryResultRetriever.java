@@ -24,6 +24,7 @@ import java.lang.reflect.Array;
 import java.util.List;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.api.IDatabase;
@@ -63,6 +64,9 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever {
 	@Autowired
 	protected ITransaction transaction;
 
+	@Property
+	protected int size;
+
 	@Override
 	public boolean containsPageOnly() {
 		return currentNameToValueMap.containsKey(QueryConstants.PAGING_SIZE_OBJECT);
@@ -99,31 +103,34 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever {
 				}
 				ArrayList<Object> versionList = new ArrayList<>();
 				long totalSize = query.count(currentNameToValueMap);
-				IVersionCursor versionCursor = query.retrieveAsVersions(currentNameToValueMap, true);
-				try {
-					while (versionCursor.moveNext()) {
-						IVersionItem versionItem = versionCursor.getCurrent();
-						for (int idIndex = length; idIndex-- > 0;) {
-							Object id = conversionHelper.convertValueToType(idTypes[idIndex],
-									versionItem.getId((byte) (idIndex - 1)));
-							idLists[idIndex].add(id);
+				if (size > 0) {
+					IVersionCursor versionCursor = query.retrieveAsVersions(currentNameToValueMap, true);
+					try {
+						while (versionCursor.moveNext()) {
+							IVersionItem versionItem = versionCursor.getCurrent();
+							for (int idIndex = length; idIndex-- > 0;) {
+								Object id = conversionHelper.convertValueToType(idTypes[idIndex],
+										versionItem.getId((byte) (idIndex - 1)));
+								idLists[idIndex].add(id);
+							}
+							Object version = versionType != null
+									? conversionHelper.convertValueToType(versionType, versionItem.getVersion())
+									: null;
+							versionList.add(version);
 						}
-						Object version = versionType != null
-								? conversionHelper.convertValueToType(versionType, versionItem.getVersion()) : null;
-						versionList.add(version);
 					}
-					Object[] idArrays = new Object[length];
-					for (int a = length; a-- > 0;) {
-						idArrays[a] = convertListToArray(idLists[a], idTypes[a]);
+					finally {
+						versionCursor.dispose();
 					}
-					Object versionArray =
-							versionType != null ? convertListToArray(versionList, versionType) : null;
-					return new QueryResultCacheItem(entityType, totalSize, idLists[0].size(), idArrays,
-							versionArray);
 				}
-				finally {
-					versionCursor.dispose();
+				Object[] idArrays = new Object[length];
+				for (int a = length; a-- > 0;) {
+					idArrays[a] = convertListToArray(idLists[a], idTypes[a]);
 				}
+				Object versionArray =
+						versionType != null ? convertListToArray(versionList, versionType) : null;
+				return new QueryResultCacheItem(entityType, totalSize, idLists[0].size(), idArrays,
+						versionArray);
 			}
 		});
 	}

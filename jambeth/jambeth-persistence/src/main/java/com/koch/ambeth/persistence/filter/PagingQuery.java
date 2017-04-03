@@ -154,11 +154,17 @@ public class PagingQuery<T> implements IPagingQuery<T>, IPagingQueryIntern<T> {
 			int number = pagingRequest.getNumber();
 			length = pagingRequest.getSize();
 
-			offset = number * length;
-
-			if (!prefetchAllPages) {
-				currentNameToValueMap.put(QueryConstants.PAGING_INDEX_OBJECT, new Integer(offset));
-				currentNameToValueMap.put(QueryConstants.PAGING_SIZE_OBJECT, new Integer(length));
+			if (number < 1 || length < 1) {
+				offset = -1;
+				number = 0;
+				length = 0;
+			}
+			else {
+				offset = (number - 1) * length;
+				if (!prefetchAllPages) {
+					currentNameToValueMap.put(QueryConstants.PAGING_INDEX_OBJECT, new Integer(offset));
+					currentNameToValueMap.put(QueryConstants.PAGING_SIZE_OBJECT, new Integer(length));
+				}
 			}
 
 			pagingResponse.setNumber(number);
@@ -170,8 +176,6 @@ public class PagingQuery<T> implements IPagingQuery<T>, IPagingQueryIntern<T> {
 		pagingResponse.setTotalNumber(-1);
 		pagingResponse.setTotalSize(-1);
 
-		IQueryKey queryKey = query.getQueryKey(currentNameToValueMap);
-
 		ParamHolder<Long> totalSize = new ParamHolder<>();
 
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(query.getEntityType());
@@ -182,8 +186,10 @@ public class PagingQuery<T> implements IPagingQuery<T>, IPagingQueryIntern<T> {
 				beanContext.registerBean(DefaultQueryResultRetriever.class);
 		queryResultRetrieverBC.propertyValue("Query", query);
 		queryResultRetrieverBC.propertyValue("CurrentNameToValueMap", currentNameToValueMap);
+		queryResultRetrieverBC.propertyValue("Size", length);
 		IQueryResultRetriever queryResultRetriever = queryResultRetrieverBC.finish();
 
+		IQueryKey queryKey = query.getQueryKey(currentNameToValueMap);
 		IList<IObjRef> queryRefResult = queryResultCache.getQueryResult(queryKey, queryResultRetriever,
 				idIndex, offset, length, totalSize);
 

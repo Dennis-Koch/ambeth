@@ -148,9 +148,6 @@ public class QueryResultCache implements IQueryResultCache {
 			return createResult(queryResultCacheItem, idIndex, offset, length, containsPageOnly,
 					totalSize);
 		}
-		if (containsPageOnly) {
-
-		}
 		IQueryResultCacheItem queryResultCacheItem =
 				getCacheItem(queryKey, offset, length, containsPageOnly);
 		if (queryResultCacheItem != null) {
