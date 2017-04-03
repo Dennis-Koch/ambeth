@@ -124,9 +124,9 @@ public class ValueObjectConfigReader
 	@Property(name = ServiceConfigurationConstants.valueObjectFile, mandatory = false)
 	public void setFileName(String fileName) {
 		if (xmlFileName != null) {
-			throw new IllegalArgumentException(
-					"ValueObjectConfigReader already configured! Tried to set the config file '" + fileName
-							+ "'. File name is already set to '" + xmlFileName + "'");
+			throw new IllegalArgumentException(ValueObjectConfigReader.class.getSimpleName()
+					+ " already configured! Tried to set the config file '" + fileName
+					+ "'. File name is already set to '" + xmlFileName + "'");
 		}
 
 		xmlFileName = fileName;

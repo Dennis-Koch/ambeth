@@ -29,6 +29,8 @@ import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 
 public class IndependentEntityMetaDataReader extends AbstractEntityMetaDataReader
 		implements IStartingBean {
+	public static final String FILE_PROP_NAME = "FileName";
+
 	@LogInstance
 	private ILogger log;
 
@@ -45,9 +47,9 @@ public class IndependentEntityMetaDataReader extends AbstractEntityMetaDataReade
 	@Property(name = ServiceConfigurationConstants.mappingFile, mandatory = false)
 	public void setFileName(String fileName) {
 		if (xmlFileName != null) {
-			throw new IllegalArgumentException(
-					"XmlDatabaseMapper already configured! Tried to set the config file '" + fileName
-							+ "'. File name is already set to '" + xmlFileName + "'");
+			throw new IllegalArgumentException(IndependentEntityMetaDataReader.class.getSimpleName()
+					+ " already configured! Tried to set the config file '" + fileName
+					+ "'. File name is already set to '" + xmlFileName + "'");
 		}
 
 		xmlFileName = fileName;

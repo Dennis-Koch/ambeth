@@ -188,8 +188,6 @@ public class MergeModule implements IInitializingModule {
 
 			beanContextFactory.registerBean(REMOTE_ENTITY_METADATA_PROVIDER, EntityMetaDataClient.class);
 		}
-		else {
-		}
 
 		IBeanConfiguration ormConfigGroupProvider = beanContextFactory
 				.registerBean(OrmConfigGroupProvider.class).autowireable(IOrmConfigGroupProvider.class);

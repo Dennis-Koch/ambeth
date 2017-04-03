@@ -177,9 +177,9 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 	@Property(name = ServiceConfigurationConstants.mappingFile, mandatory = false)
 	public void setFileName(String fileName) {
 		if (xmlFileName != null) {
-			throw new IllegalArgumentException(
-					"XmlDatabaseMapper already configured! Tried to set the config file '" + fileName
-							+ "'. File name is already set to '" + xmlFileName + "'");
+			throw new IllegalArgumentException(XmlDatabaseMapper.class.getSimpleName()
+					+ " already configured! Tried to set the config file '" + fileName
+					+ "'. File name is already set to '" + xmlFileName + "'");
 		}
 
 		xmlFileName = fileName;

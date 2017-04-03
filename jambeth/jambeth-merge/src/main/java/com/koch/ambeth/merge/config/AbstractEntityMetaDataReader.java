@@ -37,18 +37,23 @@ import com.koch.ambeth.util.collections.LinkedHashSet;
 public abstract class AbstractEntityMetaDataReader implements IDisposableBean {
 	@LogInstance
 	private ILogger log;
+
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
+
 	@Autowired
 	protected IEntityMetaDataExtendable entityMetaDataExtendable;
+
 	@Autowired
 	protected IEventDispatcher eventDispatcher;
+
 	@Autowired
 	protected IEntityMetaDataReader entityMetaDataReader;
+
 	@Autowired
 	protected IOrmConfigGroupProvider ormConfigGroupProvider;
-	protected final LinkedHashSet<IEntityMetaData> managedEntityMetaData =
-			new LinkedHashSet<>();
+
+	protected final LinkedHashSet<IEntityMetaData> managedEntityMetaData = new LinkedHashSet<>();
 
 	@Override
 	public void destroy() {
