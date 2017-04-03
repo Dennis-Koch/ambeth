@@ -52,17 +52,4 @@ public class IndependentEntityMetaDataReader extends AbstractEntityMetaDataReade
 
 		xmlFileName = fileName;
 	}
-
-	@SuppressWarnings("deprecation")
-	@Deprecated
-	@Property(name = ServiceConfigurationConstants.mappingResource, mandatory = false)
-	public void setResourceName(String xmlResourceName) {
-		if (xmlFileName != null) {
-			throw new IllegalArgumentException(
-					"EntityMetaDataReader already configured! Tried to set the config resource '"
-							+ xmlResourceName + "'. Resource name is already set to '" + xmlFileName + "'");
-		}
-
-		xmlFileName = xmlResourceName;
-	}
 }

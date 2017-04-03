@@ -31,4 +31,7 @@ public interface IAmbethApplication extends Closeable {
 	 * @return Application context
 	 */
 	IServiceContext getApplicationContext();
+
+	@Override
+	void close();
 }

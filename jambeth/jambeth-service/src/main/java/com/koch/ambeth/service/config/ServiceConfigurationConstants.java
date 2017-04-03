@@ -79,16 +79,8 @@ public final class ServiceConfigurationConstants {
 	@ConfigurationConstantDescription("TODO")
 	public static final String mappingFile = "mapping.file";
 
-	@Deprecated
-	@ConfigurationConstantDescription("TODO")
-	public static final String mappingResource = "mapping.resource";
-
 	@ConfigurationConstantDescription("TODO")
 	public static final String valueObjectFile = "valueobject.file";
-
-	@Deprecated
-	@ConfigurationConstantDescription("TODO")
-	public static final String valueObjectResource = "valueobject.resource";
 
 	public static final String UserName = "ambeth.remoting.username";
 

@@ -185,19 +185,6 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 		xmlFileName = fileName;
 	}
 
-	@SuppressWarnings("deprecation")
-	@Deprecated
-	@Property(name = ServiceConfigurationConstants.mappingResource, mandatory = false)
-	public void setResourceName(String xmlResourceName) {
-		if (xmlFileName != null) {
-			throw new IllegalArgumentException(
-					"XmlDatabaseMapper already configured! Tried to set the config resource '"
-							+ xmlResourceName + "'. Resource name is already set to '" + xmlFileName + "'");
-		}
-
-		xmlFileName = xmlResourceName;
-	}
-
 	@Override
 	public void mapFields(Connection connection, String[] schemaNames, IDatabaseMetaData database) {
 		try {

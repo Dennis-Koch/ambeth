@@ -64,8 +64,7 @@ public class ValueObjectConfigReader
 	@LogInstance
 	private ILogger log;
 
-	protected final Set<IValueObjectConfig> managedValueObjectConfigs =
-			new LinkedHashSet<>();
+	protected final Set<IValueObjectConfig> managedValueObjectConfigs = new LinkedHashSet<>();
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
@@ -131,19 +130,6 @@ public class ValueObjectConfigReader
 		}
 
 		xmlFileName = fileName;
-	}
-
-	@SuppressWarnings("deprecation")
-	@Deprecated
-	@Property(name = ServiceConfigurationConstants.valueObjectResource, mandatory = false)
-	public void setResourceName(String xmlResourceName) {
-		if (xmlFileName != null) {
-			throw new IllegalArgumentException(
-					"ValueObjectConfigReader already configured! Tried to set the config resource '"
-							+ xmlResourceName + "'. Resource name is already set to '" + xmlFileName + "'");
-		}
-
-		xmlFileName = xmlResourceName;
 	}
 
 	@Override
