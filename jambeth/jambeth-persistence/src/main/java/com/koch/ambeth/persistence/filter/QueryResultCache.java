@@ -159,45 +159,47 @@ public class QueryResultCache implements IQueryResultCache {
 			return createResult(queryResultCacheItem, idIndex, offset, length, containsPageOnly,
 					totalSize);
 		}
-		try {
-			List<Class<?>> relatedEntityTypes = queryResultRetriever.getRelatedEntityTypes();
-			queryResultCacheItem = queryResultRetriever.getQueryResult();
-
-			ITransactionInfo transactionInfo = transaction.getTransactionInfo();
-			Lock writeLock = this.writeLock;
-			writeLock.lock();
+		queryResultCacheItem = queryResultRetriever.getQueryResult();
+		if (length > 0) {
 			try {
-				if (transactionInfo != null && !transactionInfo.isReadOnly()) {
-					Long sessionId = Long.valueOf(transactionInfo.getSessionId());
-					QueryResultCacheSession session = sessionIdToHandleMap.get(sessionId);
-					if (session == null) {
-						session = new QueryResultCacheSession(sessionId.longValue());
-						sessionIdToHandleMap.put(sessionId, session);
-					}
-					session.queryKeyToObjRefMap.put(queryKey, new SoftReference<>(queryResultCacheItem));
-				}
-				else {
-					queryKeyToObjRefMap.put(queryKey, new SoftReference<>(queryResultCacheItem));
-				}
+				List<Class<?>> relatedEntityTypes = queryResultRetriever.getRelatedEntityTypes();
 
-				if (relatedEntityTypes != null) {
-					for (int a = relatedEntityTypes.size(); a-- > 0;) {
-						Class<?> relatedEntityType = relatedEntityTypes.get(a);
-						registerQueryKeyWithEntityType(relatedEntityType, queryKey);
+				ITransactionInfo transactionInfo = transaction.getTransactionInfo();
+				Lock writeLock = this.writeLock;
+				writeLock.lock();
+				try {
+					if (transactionInfo != null && !transactionInfo.isReadOnly()) {
+						Long sessionId = Long.valueOf(transactionInfo.getSessionId());
+						QueryResultCacheSession session = sessionIdToHandleMap.get(sessionId);
+						if (session == null) {
+							session = new QueryResultCacheSession(sessionId.longValue());
+							sessionIdToHandleMap.put(sessionId, session);
+						}
+						session.queryKeyToObjRefMap.put(queryKey, new SoftReference<>(queryResultCacheItem));
+					}
+					else {
+						queryKeyToObjRefMap.put(queryKey, new SoftReference<>(queryResultCacheItem));
+					}
+					if (relatedEntityTypes != null) {
+						for (int a = relatedEntityTypes.size(); a-- > 0;) {
+							Class<?> relatedEntityType = relatedEntityTypes.get(a);
+							registerQueryKeyWithEntityType(relatedEntityType, queryKey);
+						}
+					}
+					else {
+						// null relatedEntityTypes means "unknown". In this case invalidate the query key
+						// whenever
+						// ANY datachange occurs on any entity
+						registerQueryKeyWithEntityType(Object.class, queryKey);
 					}
 				}
-				else {
-					// null relatedEntityTypes means "unknown". In this case invalidate the query key whenever
-					// ANY datachange occurs on any entity
-					registerQueryKeyWithEntityType(Object.class, queryKey);
+				finally {
+					writeLock.unlock();
 				}
 			}
 			finally {
-				writeLock.unlock();
+				notifyWaiting(queryKey);
 			}
-		}
-		finally {
-			notifyWaiting(queryKey);
 		}
 		return createResult(queryResultCacheItem, idIndex, offset, length, containsPageOnly, totalSize);
 	}
@@ -217,6 +219,9 @@ public class QueryResultCache implements IQueryResultCache {
 
 	private IQueryResultCacheItem getCacheItemWait(IQueryKey queryKey, int offset, int length,
 			boolean containsPageOnly) {
+		if (length == 0) {
+			return null;
+		}
 		HashSet<IQueryKey> pendingQueryKeysSet = this.pendingQueryKeysSet;
 		Date waitTill = new Date(System.currentTimeMillis() + 10 * 60 * 1000); // 10 mins
 		Lock writeLock = this.writeLock;
