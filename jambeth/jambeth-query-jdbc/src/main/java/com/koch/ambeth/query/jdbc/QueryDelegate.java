@@ -38,7 +38,6 @@ import com.koch.ambeth.query.persistence.IVersionCursor;
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
 	@SuppressWarnings("unused")
@@ -168,7 +167,7 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
 					throws Throwable {
 				return Long.valueOf(query.count());
 			}
-		}).longValue();
+		}, true, true).longValue();
 	}
 
 	@Override
@@ -182,7 +181,7 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
 					throws Throwable {
 				return Long.valueOf(queryIntern.count(paramNameToValueMap));
 			}
-		}).intValue();
+		}, true, true).intValue();
 	}
 
 	@Override
@@ -190,12 +189,13 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
 		if (transaction.isActive()) {
 			return query.isEmpty();
 		}
-		return transaction.runInTransaction(new IResultingBackgroundWorkerDelegate<Boolean>() {
+		return transaction.processAndCommit(new ResultingDatabaseCallback<Boolean>() {
 			@Override
-			public Boolean invoke() throws Throwable {
+			public Boolean callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+					throws Throwable {
 				return Boolean.valueOf(query.isEmpty());
 			}
-		}).booleanValue();
+		}, true, true).booleanValue();
 	}
 
 	@Override
@@ -209,6 +209,6 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
 					throws Throwable {
 				return Boolean.valueOf(queryIntern.isEmpty(paramNameToValueMap));
 			}
-		}).booleanValue();
+		}, true, true).booleanValue();
 	}
 }

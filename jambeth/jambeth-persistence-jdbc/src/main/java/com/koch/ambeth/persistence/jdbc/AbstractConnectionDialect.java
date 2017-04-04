@@ -496,7 +496,7 @@ public abstract class AbstractConnectionDialect
 				}
 			}
 		}
-		else {
+		else if (connection != null) {
 			connection.rollback();
 		}
 	}

@@ -213,7 +213,7 @@ public class SqueryTest extends AbstractInformationBusWithPersistenceTest {
 	@Test
 	public void testPageQuery() throws Exception {
 		int pageSize = 4;
-		int pageNumber = 1;
+		int pageNumber = 2;
 		IPagingRequest request = new PagingRequest().withSize(pageSize).withNumber(pageNumber);
 		ISortDescriptor sort =
 				new SortDescriptor().withMember("Name").withSortDirection(SortDirection.DESCENDING);

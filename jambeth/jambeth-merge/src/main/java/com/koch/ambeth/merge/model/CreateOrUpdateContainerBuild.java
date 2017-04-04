@@ -89,8 +89,8 @@ public class CreateOrUpdateContainerBuild extends AbstractChangeContainer
 		}
 		Integer indexR = primitiveNameToIndexMap.get(pui.getMemberName());
 		if (indexR == null) {
-			throw new IllegalStateException("No primitive member "
-					+ getReference().getRealType().getName() + "." + pui.getMemberName() + " defined");
+			throw new IllegalStateException("No primitive member '"
+					+ getReference().getRealType().getName() + "." + pui.getMemberName() + "' defined");
 		}
 		int index = indexR.intValue();
 		if (fullPUIs[index] == null) {
@@ -107,8 +107,8 @@ public class CreateOrUpdateContainerBuild extends AbstractChangeContainer
 		}
 		Integer indexR = relationNameToIndexMap.get(rui.getMemberName());
 		if (indexR == null) {
-			throw new IllegalStateException("No relation member " + getReference().getRealType().getName()
-					+ "." + rui.getMemberName() + " defined");
+			throw new IllegalStateException("No relation member '"
+					+ getReference().getRealType().getName() + "." + rui.getMemberName() + "' defined");
 		}
 		int index = indexR.intValue();
 		if (fullRUIs[index] == null) {
@@ -123,8 +123,8 @@ public class CreateOrUpdateContainerBuild extends AbstractChangeContainer
 		}
 		Integer indexR = primitiveNameToIndexMap.get(memberName);
 		if (indexR == null) {
-			throw new IllegalStateException("No primitive member "
-					+ getReference().getRealType().getName() + "." + memberName + " defined");
+			throw new IllegalStateException("No primitive member '"
+					+ getReference().getRealType().getName() + "." + memberName + "' defined");
 		}
 		return (PrimitiveUpdateItem) fullPUIs[indexR.intValue()];
 	}
@@ -135,8 +135,8 @@ public class CreateOrUpdateContainerBuild extends AbstractChangeContainer
 		}
 		Integer indexR = relationNameToIndexMap.get(memberName);
 		if (indexR == null) {
-			throw new IllegalStateException("No relational member "
-					+ getReference().getRealType().getName() + "." + memberName + " defined");
+			throw new IllegalStateException("No relational member '"
+					+ getReference().getRealType().getName() + "." + memberName + "' defined");
 		}
 		return (RelationUpdateItemBuild) fullRUIs[indexR.intValue()];
 	}

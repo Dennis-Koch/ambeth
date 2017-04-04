@@ -365,7 +365,23 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 							IEntityMetaData currentMetaData =
 									entityMetaDataProvider.getMetaData(currentEntityType, true);
 							if (currentMetaData != null) {
-								propertyByJoinHierarchyList.add(currentMetaData.getIdMember().getName());
+								if (!currentMetaData.isLocalEntity()) {
+									ITableMetaData baseTable =
+											databaseMetaData.getTableByType(metaData.getEntityType());
+									IDirectedLinkMetaData linkToExternal =
+											baseTable.getLinkByMemberName(currentPropertyName);
+									propertyByJoinHierarchyList.popLastElement();
+									Member fromMember = linkToExternal.getFromMember();
+									if (fromMember != null) {
+										propertyByJoinHierarchyList.add(fromMember.getName());
+									}
+									else {
+										propertyByJoinHierarchyList.add(linkToExternal.getFromField().getName());
+									}
+								}
+								else {
+									propertyByJoinHierarchyList.add(currentMetaData.getIdMember().getName());
+								}
 							}
 						}
 						break;
@@ -466,7 +482,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 				if (reverse) {
 					dLink = dLink.getReverseLink();
 				}
-				entityType = dLink.getToTable().getEntityType();
+				entityType = dLink.getToEntityType();
 
 				String joinKey = joinName.toString();
 				if (reverse) {
@@ -503,16 +519,20 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 					currentFromField = currentToField;
 					currentToField = toField;
 				}
-
+				if (currentFromField == null || currentToField == null) {
+					break;
+				}
 				IOperand columnBase = columnIntern(currentFromField.getName(), currentFromField, prevJoin);
 				IOperand columnTarget = columnIntern(currentToField.getName(), currentToField, null);
 				join = join(entityType, columnBase, columnTarget, joinType);
 
 				joinMap.put(joinKey, join);
 			}
-
 			ITableMetaData table = databaseMetaData.getTableByType(entityType);
 			IFieldMetaData field = table.getFieldByPropertyName(propertyByJoinHierarchyList.get(i));
+			if (field == null) {
+				field = table.getFieldByName(propertyByJoinHierarchyList.get(i));
+			}
 			if (field == null) {
 				throw new IllegalArgumentException("Property not mapped: " + propertyName);
 			}

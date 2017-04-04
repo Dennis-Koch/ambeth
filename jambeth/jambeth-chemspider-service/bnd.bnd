@@ -1,4 +1,3 @@
-Bundle-SymbolicName: com.bruker.horizon.server.axis-jar
 ver: 1.7.4
 -output: ${bsn}-${ver}.jar
 Bundle-Version: ${ver}
