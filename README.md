@@ -55,4 +55,4 @@ License
 
 Copyright (c) 2017 Dennis Koch.
 
-The content of this repository is bound by the [Apache License](./LICENSE.md).
+The content of this repository is bound by the [Apache License](./LICENSE.txt).
