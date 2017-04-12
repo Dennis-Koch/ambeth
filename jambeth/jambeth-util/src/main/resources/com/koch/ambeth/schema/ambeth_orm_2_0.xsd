@@ -8,7 +8,12 @@
 	<xs:element name="or-mappings">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element name="link-mappings" type="ans:linkMappingType" minOccurs="0" maxOccurs="1" />
+				<xs:element name="link-mappings" type="ans:linkMappingType" minOccurs="0" maxOccurs="1">
+					<xs:annotation>
+						<xs:documentation>Describes all custom links (link / external-link / independent-link). Note that for SQL schemas
+							with declared foreign keys the corresponding links on the entities are resolved automatically. If you need to define something here it is mostly because of custom cascade-delete behavior or to link to entities not explicitly existing or related in the SQL schema.</xs:documentation>
+					</xs:annotation>					
+				</xs:element>
 				<xs:element name="entity-mappings" type="ans:entityMappingType" minOccurs="0" maxOccurs="1" />
 			</xs:sequence>
 		</xs:complexType>
@@ -18,19 +23,20 @@
 		<xs:sequence>
 			<xs:element name="link" type="ans:linkType" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation>Configuration of a relation defined by a link table or foreign key constraint</xs:documentation>
+					<xs:documentation>Configuration of a relation defined by a link table or foreign key constraint in a entity table. In
+						most cases needed if you want to customize the cascade-delete behavior.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="external-link" type="ans:externalLinkType" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation>Configuration of a relation to an external entity defined by an local entity table, the 'foreign'
-						key column and the correlating member in the target entity
+					<xs:documentation>Configuration of a relation to an external entity referred to by a local entity table, the 'foreign'
+						key column and the correlating member in the target entity.
 					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="independent-link" type="ans:independentLinkType" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation>Configuration of a relation in an environment without accessible persistence</xs:documentation>
+					<xs:documentation>Configuration of a relation between entities which is not recognizable by scanning any of the available SQL schemas.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 		</xs:sequence>
@@ -38,20 +44,48 @@
 
 	<xs:complexType name="entityMappingType">
 		<xs:sequence>
-			<xs:element name="entity" type="ans:entityType" minOccurs="0" maxOccurs="unbounded" />
-			<xs:element name="external-entity" type="ans:externalEntityType" minOccurs="0" maxOccurs="unbounded" />
+			<xs:element name="entity" type="ans:entityType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Configuration of an entity which is mapped to an entity table in any of the available SQL schemas. Note that most properties can be mapped automatically if they apply to the default convention: Primary Key is named 'id' (mandatory), Version is named 'version' (optional, but highly recommended to have a dedicated, technical version). Then there 4 more optional technical properties 'CreatedOn', 'CreatedBy', 'UpdatedOn', 'UpdatedBy' which are also automatically maintained on INSERT/UPDATE operations and can exist for each entity in any composition individually.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="external-entity" type="ans:externalEntityType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Configuration of an entity which is mapped to an external data repository ('external' from the SQL schema point of view). Such an external data repository could be a file system, network share, a SOAP/REST/HTTP web service, a 3rd party API or simply anything else.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 		</xs:sequence>
 	</xs:complexType>
 
 	<xs:complexType name="linkType">
-		<xs:attribute name="source" type="ast:sqlName" use="required" />
-		<xs:attribute name="cascade-delete" type="ast:cascadeDeleteType" />
-		<xs:attribute name="alias" type="xs:string" />
+		<xs:attribute name="source" type="ast:sqlName" use="required">
+			<xs:annotation>
+				<xs:documentation>The SQL identifier of the foreign key constraint to customize.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="cascade-delete" type="ast:cascadeDeleteType">
+			<xs:annotation>
+				<xs:documentation>The custom cascade delete behavior. 'left' is defined by the point of view of the foreign key's enclosing table (which could be a link table or an entity table) and 'right' is the foreign key's target entity table.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="alias" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>An optional alias to increase readability in ORM configuration files: SQL identifiers are often limited in length, do not support 'CamelCase' and may be simply not self-explanatory. If the alias is specified it can be used in a 'link' attribute of 'relation' elements as an alternative to the SQL identifier to refer to this link.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 	</xs:complexType>
 
 	<xs:complexType name="externalLinkType">
-		<xs:attribute name="source" type="ast:sqlName" use="required" />
-		<xs:attribute name="source-column" type="ast:sqlName" use="required" />
+		<xs:attribute name="source" type="ast:sqlName" use="required">
+			<xs:annotation>
+				<xs:documentation>The SQL table which holds the 'foreign key' column to an entity. Please use the 'link' element instead if you have a SQL foreign key identifier for this relation.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="source-column" type="ast:sqlName" use="required">
+			<xs:annotation>
+				<xs:documentation>The SQL table which holds the 'foreign key' column to an entity. Please use the 'link' element instead if you have a SQL foreign key identifier for this relation.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 		<xs:attribute name="target-member" type="ast:propertyName" use="required" />
 		<xs:attribute name="cascade-delete" type="ast:cascadeDeleteType" />
 		<xs:attribute name="alias" type="xs:string" />
