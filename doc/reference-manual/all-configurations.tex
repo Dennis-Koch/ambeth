@@ -1,6 +1,6 @@
 %---------------------------------------------------------------
 % This file is FULLY generated. Please do not edit anything here
-% Any changes have to be done to the java class de.osthus.ambeth.extscanner.ConfigurationUpdater
+% Any changes have to be done to the java class com.koch.ambeth.extscanner.ConfigurationUpdater
 %---------------------------------------------------------------
 \chapter{Ambeth Configuration}
 \label{ambeth:annotations}
@@ -17,7 +17,22 @@
 		\nameref{configuration:SHELLMODE} & INTERACTIVE & X &
 		X & X &   \\
 	\hline
+		\nameref{configuration:AmbethBytebufferChunkPrefetchCount} & 1 & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:AmbethBytebufferChunkSize} & 134217728 & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:AmbethBytebufferFreephysicalmemoryCleanupcounter} & 10 & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:AmbethBytebufferFreephysicalmemoryRatio} & 0.1 & X &
+		X & X &   \\
+	\hline
 		\nameref{configuration:AmbethBytecodeTracedir} &  &   &
+		X & X &   \\
+	\hline
+		\nameref{configuration:AmbethClassloader} &  &   &
 		X & X &   \\
 	\hline
 		\nameref{configuration:AmbethClasspathInfoClass} &  &   &
@@ -32,7 +47,7 @@
 		\nameref{configuration:AmbethClasspathScannerClass} &  &   &
 		X & X &   \\
 	\hline
-		\nameref{configuration:AmbethClasspathScannerPattern} & de/osthus.*;com/osthus.* & X &
+		\nameref{configuration:AmbethClasspathScannerPattern} & com/koch/.* & X &
 		X & X &   \\
 	\hline
 		\nameref{configuration:AmbethDebugActive} & false & X &
@@ -86,6 +101,12 @@
 		\nameref{configuration:AmbethPrefetchLazytransactionActive} & true & X &
 		X & X &   \\
 	\hline
+		\nameref{configuration:AmbethRemotingPassword} & dummyPass &   &
+		X & X &   \\
+	\hline
+		\nameref{configuration:AmbethRemotingUsername} & dummyUser &   &
+		X & X &   \\
+	\hline
 		\nameref{configuration:AmbethRestApplicationModules} &  &   &
 		X & X &   \\
 	\hline
@@ -110,7 +131,7 @@
 		\nameref{configuration:AmbethTransparentParallelActive} & true & X &
 		X & X &   \\
 	\hline
-		\nameref{configuration:AmbethXmlTransferPattern} & de/osthus.* & X &
+		\nameref{configuration:AmbethXmlTransferPattern} & com/koch/.* & X &
 		X & X &   \\
 	\hline
 		\nameref{configuration:AuditActive} & false & X &
@@ -186,6 +207,9 @@
 		X & X &   \\
 	\hline
 		\nameref{configuration:CacheSecondlevelWeakActive} & true & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:CacheServiceActive} & true & X &
 		X & X &   \\
 	\hline
 		\nameref{configuration:CacheServiceName} &  &   &
@@ -296,6 +320,9 @@
 		\nameref{configuration:DatabaseProtocol} &  & X &
 		X & X &   \\
 	\hline
+		\nameref{configuration:DatabaseRegisterDriverActive} & true & X &
+		X & X &   \\
+	\hline
 		\nameref{configuration:DatabaseRetryconnect} & 1 & X &
 		X & X &   \\
 	\hline
@@ -341,7 +368,7 @@
 		\nameref{configuration:EventManagerName} &  &   &
 		X & X &   \\
 	\hline
-		\nameref{configuration:EventPollingActive} & false & X &
+		\nameref{configuration:EventPollingActive} & true & X &
 		X & X &   \\
 	\hline
 		\nameref{configuration:EventPollingMaxwaitinterval} & 30000 & X &
@@ -351,6 +378,9 @@
 		X & X &   \\
 	\hline
 		\nameref{configuration:EventPollingSleepinterval} & 500 & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:EventServiceActive} & true & X &
 		X & X &   \\
 	\hline
 		\nameref{configuration:IocLogged} & false & X &
@@ -383,10 +413,10 @@
 		\nameref{configuration:MappingFile} &  &   &
 		X & X &   \\
 	\hline
-		\nameref{configuration:MappingResource} &  &   &
+		\nameref{configuration:MeasurementFile} & measurements.xml & X &
 		X & X &   \\
 	\hline
-		\nameref{configuration:MeasurementFile} & measurements.xml & X &
+		\nameref{configuration:MergeServiceActive} & true & X &
 		X & X &   \\
 	\hline
 		\nameref{configuration:MetadataIndependent} & false & X &
@@ -416,6 +446,12 @@
 		\nameref{configuration:PersistenceIdsSequencePrefetchsize} & 200 & X &
 		X & X &   \\
 	\hline
+		\nameref{configuration:PrivilegeServiceActive} & true & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:ProcessServiceActive} & true & X &
+		X & X &   \\
+	\hline
 		\nameref{configuration:PropertyFile} &  &   &
 		X & X &   \\
 	\hline
@@ -423,6 +459,15 @@
 		X & X &   \\
 	\hline
 		\nameref{configuration:QueryPagingPrefetch} & false & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:RestHttpAcceptEncodingZipped} & true & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:RestHttpClient} & false & X &
+		X & X &   \\
+	\hline
+		\nameref{configuration:RestHttpContentEncodingZipped} & true & X &
 		X & X &   \\
 	\hline
 		\nameref{configuration:SecurityAuthmanagerType} &  &   &
@@ -524,6 +569,9 @@
 		\nameref{configuration:SecurityPrivilegeDefaultUpdateProperty} & true & X &
 		X & X &   \\
 	\hline
+		\nameref{configuration:SecurityServiceActive} & true & X &
+		X & X &   \\
+	\hline
 		\nameref{configuration:SecuritySignatureActive} & false & X &
 		X & X &   \\
 	\hline
@@ -563,6 +611,9 @@
 		\nameref{configuration:ServiceProtocol} &  &   &
 		X & X &   \\
 	\hline
+		\nameref{configuration:ServiceRemoteinterceptorType} &  &   &
+		X & X &   \\
+	\hline
 		\nameref{configuration:ServiceSlavemode} &  &   &
 		X & X &   \\
 	\hline
@@ -584,15 +635,17 @@
 		\nameref{configuration:ValueobjectFile} &  &   &
 		X & X &   \\
 	\hline
-		\nameref{configuration:ValueobjectResource} &  &   &
-		X & X &   \\
-	\hline
 \end{longtable}
 \end{landscape}
 \input{configuration/CommandTimeoutInSeconds}
 \input{configuration/ConnectTimeoutInSeconds}
 \input{configuration/SHELLMODE}
+\input{configuration/AmbethBytebufferChunkPrefetchCount}
+\input{configuration/AmbethBytebufferChunkSize}
+\input{configuration/AmbethBytebufferFreephysicalmemoryCleanupcounter}
+\input{configuration/AmbethBytebufferFreephysicalmemoryRatio}
 \input{configuration/AmbethBytecodeTracedir}
+\input{configuration/AmbethClassloader}
 \input{configuration/AmbethClasspathInfoClass}
 \input{configuration/AmbethClasspathPluginPaths}
 \input{configuration/AmbethClasspathPluginPathsRecursiveFlag}
@@ -615,6 +668,8 @@
 \input{configuration/AmbethMergeUpdateVersionAlways}
 \input{configuration/AmbethMthTimeout}
 \input{configuration/AmbethPrefetchLazytransactionActive}
+\input{configuration/AmbethRemotingPassword}
+\input{configuration/AmbethRemotingUsername}
 \input{configuration/AmbethRestApplicationModules}
 \input{configuration/AmbethRestClasspathScanning}
 \input{configuration/AmbethRestFrameworkBundle}
@@ -649,6 +704,7 @@
 \input{configuration/CacheResultcacheActive}
 \input{configuration/CacheSecondlevelActive}
 \input{configuration/CacheSecondlevelWeakActive}
+\input{configuration/CacheServiceActive}
 \input{configuration/CacheServiceName}
 \input{configuration/CacheValueholderOnEmptyToOne}
 \input{configuration/CacheWeakrefCleanupInterval}
@@ -685,6 +741,7 @@
 \input{configuration/DatabasePoolPassivateActive}
 \input{configuration/DatabasePort}
 \input{configuration/DatabaseProtocol}
+\input{configuration/DatabaseRegisterDriverActive}
 \input{configuration/DatabaseRetryconnect}
 \input{configuration/DatabaseRetrysleep}
 \input{configuration/DatabaseSchemaCacheActive}
@@ -704,6 +761,7 @@
 \input{configuration/EventPollingMaxwaitinterval}
 \input{configuration/EventPollingPausedOnStartActive}
 \input{configuration/EventPollingSleepinterval}
+\input{configuration/EventServiceActive}
 \input{configuration/IocLogged}
 \input{configuration/JdbcConnectionModules}
 \input{configuration/JdbcDcnActive}
@@ -714,8 +772,8 @@
 \input{configuration/MainArgs}
 \input{configuration/MappingBusinessobjectResolveRelations}
 \input{configuration/MappingFile}
-\input{configuration/MappingResource}
 \input{configuration/MeasurementFile}
+\input{configuration/MergeServiceActive}
 \input{configuration/MetadataIndependent}
 \input{configuration/MyFunnyProp}
 \input{configuration/NetworkClientmode}
@@ -725,9 +783,14 @@
 \input{configuration/PersistenceIdsBatchsize}
 \input{configuration/PersistenceIdsPreparedbatchsize}
 \input{configuration/PersistenceIdsSequencePrefetchsize}
+\input{configuration/PrivilegeServiceActive}
+\input{configuration/ProcessServiceActive}
 \input{configuration/PropertyFile}
 \input{configuration/QueryBehavior}
 \input{configuration/QueryPagingPrefetch}
+\input{configuration/RestHttpAcceptEncodingZipped}
+\input{configuration/RestHttpClient}
+\input{configuration/RestHttpContentEncodingZipped}
 \input{configuration/SecurityAuthmanagerType}
 \input{configuration/SecurityCryptoAlgorithmName}
 \input{configuration/SecurityCryptoKeyspecName}
@@ -761,6 +824,7 @@
 \input{configuration/SecurityPrivilegeDefaultReadProperty}
 \input{configuration/SecurityPrivilegeDefaultUpdateEntity}
 \input{configuration/SecurityPrivilegeDefaultUpdateProperty}
+\input{configuration/SecurityServiceActive}
 \input{configuration/SecuritySignatureActive}
 \input{configuration/SecuritySignatureAlgorithmName}
 \input{configuration/SecuritySignatureEncryptionAlgorithmIterationcount}
@@ -774,6 +838,7 @@
 \input{configuration/ServiceHost}
 \input{configuration/ServicePort}
 \input{configuration/ServiceProtocol}
+\input{configuration/ServiceRemoteinterceptorType}
 \input{configuration/ServiceSlavemode}
 \input{configuration/ServiceTypeinfoproviderType}
 \input{configuration/TestutilPersistenceDocleanschema}
@@ -781,5 +846,4 @@
 \input{configuration/TestutilPersistenceParamloggerActive}
 \input{configuration/TransfermappingGeneric}
 \input{configuration/ValueobjectFile}
-\input{configuration/ValueobjectResource}
 %--END OF GENERATION----------------------------------------------------------

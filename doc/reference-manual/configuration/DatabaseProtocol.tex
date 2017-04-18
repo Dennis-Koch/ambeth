@@ -7,35 +7,41 @@ The protocol of the database. If \ref{configuration:DatabaseConnection} is not s
 \begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
 	\endhead
 	\hline
-		\type{de.osthus.ambeth.h2.H2Dialect} &
+		\type{com.koch.ambeth.persistence.h2.H2Dialect} &
 		\prettyref{module:Persistence} \\
 	\hline
-		\type{de.osthus.ambeth.h2.H2Dialect} &
+		\type{com.koch.ambeth.persistence.h2.H2Dialect} &
 		\prettyref{module:Persistence} \\
 	\hline
-		\type{de.osthus.ambeth.mssql.MSSqlDialect} &
+		\type{com.koch.ambeth.persistence.jdbc.connector.DialectSelectorModule} &
 		\prettyref{module:Persistence} \\
 	\hline
-		\type{de.osthus.ambeth.mssql.MSSqlDialect} &
+		\type{com.koch.ambeth.persistence.jdbc.connector.DialectSelectorModule} &
 		\prettyref{module:Persistence} \\
 	\hline
-		\type{de.osthus.ambeth.persistence.jdbc.connector.DialectSelectorModule} &
-		\prettyref{module:Persistence} \\
-	\hline
-		\type{de.osthus.ambeth.persistence.jdbc.connector.DialectSelectorModule} &
-		\prettyref{module:Persistence} \\
-	\hline
-		\type{de.osthus.ambeth.persistence.jdbc.testconnector.DialectSelectorSchemaModule} &
+		\type{com.koch.ambeth.persistence.jdbc.testconnector.DialectSelectorSchemaModule} &
 		 \\
 	\hline
-		\type{de.osthus.ambeth.persistence.jdbc.testconnector.DialectSelectorSchemaModule} &
+		\type{com.koch.ambeth.persistence.jdbc.testconnector.DialectSelectorSchemaModule} &
 		 \\
 	\hline
-		\type{de.osthus.ambeth.persistence.jdbc.testconnector.DialectSelectorTestModule} &
+		\type{com.koch.ambeth.persistence.jdbc.testconnector.DialectSelectorTestModule} &
 		 \\
 	\hline
-		\type{de.osthus.ambeth.persistence.jdbc.testconnector.DialectSelectorTestModule} &
+		\type{com.koch.ambeth.persistence.jdbc.testconnector.DialectSelectorTestModule} &
 		 \\
+	\hline
+		\type{com.koch.ambeth.persistence.maria.MariaDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.maria.MariaDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.mssql.MSSqlDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.mssql.MSSqlDialect} &
+		\prettyref{module:Persistence} \\
 	\hline
 \end{longtable}
 %% GENERATED USAGE REFERENCE END

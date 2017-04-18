@@ -12,7 +12,7 @@ The following listings will demonstrate the usage of the observable patten withi
 Linkage of the bean to the bean context and the extension registry.
 
 \inputjava{Usage of the \type{IEventListenerExtendable}, link in your IoC module}
-{jambeth-event/src/main/java/de/osthus/ambeth/event/IEventListenerExtendable.java}
+{jambeth-event/src/main/java/com/koch/ambeth/event/IEventListenerExtendable.java}
 \begin{lstlisting}[style=Java,caption={Example registration of an EventListener}]
 IBeanContextFactory bcf = ...
 IBeanConfiguration myEventListenerExtension = bcf.registerAnonymousBean(MyEventListener.class);
@@ -24,7 +24,7 @@ Implementation for an event listener that listens for IDataChange events.
 Note the instanceof check as an early break to ensure that only the correct events will be handled. This is for robustness because one could easy forget the .with\(\) option.
 
 \inputjava{Definition of the  \type{IEventListener}}
-{jambeth-event/src/main/java/de/osthus/ambeth/event/IEventListenerExtendable.java}
+{jambeth-event/src/main/java/com/koch/ambeth/event/IEventListenerExtendable.java}
 \begin{lstlisting}[style=Java,caption={}]
 public class MyEventListener implements IEventListener
 {
@@ -59,25 +59,25 @@ See the section IDataChange for further information on what can be used to work 
 %% MAVEN GENERATED START
 \begin{lstlisting}[style=POM,caption={Maven modules to use \emph{Ambeth Event}}]
 <dependency>
-	<groupId>de.osthus.ambeth</groupId>
+	<groupId>com.koch.ambeth</groupId>
 	<artifactId>jambeth-event</artifactId>
 	<version>§\version§</version>
 </dependency>
 
 <dependency>
-	<groupId>de.osthus.ambeth</groupId>
+	<groupId>com.koch.ambeth</groupId>
 	<artifactId>jambeth-event-datachange</artifactId>
 	<version>§\version§</version>
 </dependency>
 
 <dependency>
-	<groupId>de.osthus.ambeth</groupId>
+	<groupId>com.koch.ambeth</groupId>
 	<artifactId>jambeth-event-kafka</artifactId>
 	<version>§\version§</version>
 </dependency>
 
 <dependency>
-	<groupId>de.osthus.ambeth</groupId>
+	<groupId>com.koch.ambeth</groupId>
 	<artifactId>jambeth-event-server</artifactId>
 	<version>§\version§</version>
 </dependency>
@@ -100,5 +100,6 @@ See the section IDataChange for further information on what can be used to work 
 	\item \prettyref{configuration:EventPollingMaxwaitinterval}
 	\item \prettyref{configuration:EventPollingPausedOnStartActive}
 	\item \prettyref{configuration:EventPollingSleepinterval}
+	\item \prettyref{configuration:EventServiceActive}
 \end{itemize}
 %% CONFIGURATION END

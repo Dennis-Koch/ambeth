@@ -5,7 +5,7 @@
 Core functionality and intensively used by \AMBETH{} itself to provide a flexible, extensible but also high performance implementation to convert objects to other types. In the common scenario the \type{IConversionHelper}-bean expects two arguments to be able to work - the expected result type and the value (object instance) to be converted:
 
 \inputjava{Usage example of the \type{IConversionHelper}-bean}
-{jambeth-examples/src/main/java/de/osthus/ambeth/example/conversionhelper/ConversionHelperExample.java}
+{jambeth-examples/src/main/java/com/koch/ambeth/example/conversionhelper/ConversionHelperExample.java}
 
 The implementation algorithm evaluates at runtime the appropriate internal conversion process according to the given expected type - which is far more sophisticated than a simple key/value mapping. Note that in the example above the given \type{Calendar} instance is an abstract class. So we know at runtime the passed instance must be of any subclass. To find the correct configured extension a dynamic evaluation of the given object polymorphic information is done. The following example shows a common scenario:
 

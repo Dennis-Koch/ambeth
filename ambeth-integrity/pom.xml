@@ -1,28 +1,54 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>de.osthus.ambeth.integrity</groupId>
+	<groupId>com.koch.ambeth.integrity</groupId>
 	<artifactId>ambeth-integrity-pom</artifactId>
-	<version>2.2.0-SNAPSHOT</version>
+	<version>1.0.1</version>
 	<packaging>pom</packaging>
 
 	<parent>
-		<groupId>de.osthus</groupId>
-		<artifactId>osthus-pom</artifactId>
-		<version>0.0.31</version>
+		<groupId>com.koch.ambeth</groupId>
+		<artifactId>jambeth-pom</artifactId>
+		<version>3.0.1</version>
 	</parent>
 
+	<properties>
+		<ambeth.version>3.0.1</ambeth.version>
+	</properties>
+
 	<modules>
-		<module>de.osthus.classbrowser.compare</module>
-		<module>de.osthus.classbrowser.java</module>
+		<module>com.koch.classbrowser.compare</module>
+		<module>com.koch.classbrowser.java</module>
 	</modules>
 
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>de.osthus.ambeth.integrity</groupId>
+				<groupId>com.koch.ambeth.integrity</groupId>
 				<artifactId>ambeth-integrity-java</artifactId>
 				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>com.koch.ambeth</groupId>
+				<artifactId>jambeth-core</artifactId>
+				<version>${ambeth.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.koch.ambeth</groupId>
+				<artifactId>jambeth-ioc</artifactId>
+				<version>${ambeth.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.koch.ambeth</groupId>
+				<artifactId>jambeth-log</artifactId>
+				<version>${ambeth.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.koch.ambeth</groupId>
+				<artifactId>jambeth-util</artifactId>
+				<version>${ambeth.version}</version>
 			</dependency>
 
 			<dependency>

@@ -6,7 +6,7 @@
 With \AMBETH{} it is possible to define a whole information model solely with interface entities - there is no need for an implementation of any accessor or relation or collection instantiation logic. Even if you need some complex custom logic or business specific generated values in your entities you can do that with \type{EntityTemplates} (described later in more detail) to prevent exposing the implementation of functionality to the user of your information model. This safes many lines of code which are copy\&paste in most cases any way. In addition \AMBETH{} is able to implement many sophisticated functionality of enterprise models with bytecode enhancement, too. Please take your time for the following example:
 
 \inputjava{An \AMBETH{}-managed entity defined as an interface at compile time}
-	{jambeth-examples/src/main/java/de/osthus/ambeth/example/bytecode/ExampleEntity.java}
+	{jambeth-examples/src/main/java/com/koch/ambeth/example/bytecode/ExampleEntity.java}
 
 As you can see for several properties there is not even a setter defined. \AMBETH{} allows to define read-only properties - e.g. for generated values on application as well as on database layer. Six properties of an entity have a special semantic by the way \AMBETH{} manages them so there is no need (from a technical perspective) to ``see'' those setters:
 
