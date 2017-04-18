@@ -2,7 +2,7 @@
 <feature
       id="com.koch.ambeth.information.bus.tycho.feature"
       label="ambeth-information-bus-feature"
-      version="3.0.1.qualifier">
+      version="3.0.1">
 
    <description url="http://www.example.com/description">
       [Enter Feature Description here.]
