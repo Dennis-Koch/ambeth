@@ -36,7 +36,7 @@ Examples (see the cron4j documentation for more)
 {jambeth-job/src/main/java/com/koch/ambeth/job/IJobExtendable.java}
 \begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
 IBeanContextFactory bcf = ...
-IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+IBeanConfiguration myExtension = bcf.registerBean(...);
 bcf.link(myExtension).to(IJobExtendable.class).with(...);
 \end{lstlisting}
 %% GENERATED LISTINGS END

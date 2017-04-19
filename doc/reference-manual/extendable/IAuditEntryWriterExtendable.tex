@@ -10,7 +10,7 @@
 {jambeth-audit-server/src/main/java/com/koch/ambeth/audit/server/IAuditEntryWriterExtendable.java}
 \begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
 IBeanContextFactory bcf = ...
-IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+IBeanConfiguration myExtension = bcf.registerBean(...);
 bcf.link(myExtension).to(IAuditEntryWriterExtendable.class).with(...);
 \end{lstlisting}
 %% GENERATED LISTINGS END

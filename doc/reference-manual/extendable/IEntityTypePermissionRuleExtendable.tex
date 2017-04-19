@@ -11,7 +11,7 @@
 {jambeth-security-server/src/main/java/com/koch/ambeth/security/server/privilege/IEntityTypePermissionRuleExtendable.java}
 \begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
 IBeanContextFactory bcf = ...
-IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+IBeanConfiguration myExtension = bcf.registerBean(...);
 bcf.link(myExtension).to(IEntityTypePermissionRuleExtendable.class).with(...);
 \end{lstlisting}
 %% GENERATED LISTINGS END

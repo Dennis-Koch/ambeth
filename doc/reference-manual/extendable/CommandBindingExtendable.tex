@@ -11,7 +11,7 @@
 {jambeth-shell/src/main/java/com/koch/ambeth/shell/core/CommandBindingExtendable.java}
 \begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
 IBeanContextFactory bcf = ...
-IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+IBeanConfiguration myExtension = bcf.registerBean(...);
 bcf.link(myExtension).to(CommandBindingExtendable.class).with(...);
 \end{lstlisting}
 %% GENERATED LISTINGS END

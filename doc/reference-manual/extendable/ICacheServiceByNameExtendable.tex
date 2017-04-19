@@ -11,14 +11,14 @@
 {jambeth-cache/src/main/java/com/koch/ambeth/cache/service/ICacheServiceByNameExtendable.java}
 \begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
 IBeanContextFactory bcf = ...
-IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+IBeanConfiguration myExtension = bcf.registerBean(...);
 bcf.link(myExtension).to(ICacheServiceByNameExtendable.class).with(...);
 \end{lstlisting}
 \inputcsharp{Extension point for instances of \type{ICacheService}}
 {Ambeth.Cache/ambeth/service/ICacheServiceByNameExtendable.cs}
 \begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
 IBeanContextFactory bcf = ...
-IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+IBeanConfiguration myExtension = bcf.RegisterBean(...);
 bcf.Link(myExtension).To<ICacheServiceByNameExtendable>().With(...);
 \end{lstlisting}
 %% GENERATED LISTINGS END
