@@ -4,8 +4,7 @@ import java.io.File;
 
 import com.koch.classbrowser.java.TypeDescription;
 
-public interface ISourceFileAware
-{
+public interface ISourceFileAware {
 	TypeDescription getJavaSrc();
 
 	TypeDescription getCsharpSrc();

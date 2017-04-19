@@ -2,8 +2,7 @@ package com.koch.ambeth.extscanner;
 
 import com.koch.classbrowser.java.TypeDescription;
 
-public interface IModel
-{
+public interface IModel {
 	ModuleEntry resolveModule(String moduleName);
 
 	ConfigurationEntry resolveConfiguration(String configurationName);

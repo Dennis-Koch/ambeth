@@ -89,7 +89,7 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 			sb.append(
 					"\\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]\n");
 			sb.append("IBeanContextFactory bcf = ...\n");
-			sb.append("IBeanConfiguration myExtension = bcf.registerAnonymousBean...\n");
+			sb.append("IBeanConfiguration myExtension = bcf.registerBean...\n");
 			sb.append("bcf.link(myExtension).to(").append(extendableEntry.simpleName).append(".class)");
 			if (extendableEntry.hasArguments) {
 				sb.append(".with(...)");
@@ -105,7 +105,7 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 			sb.append(
 					"\\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\\#)}]\n");
 			sb.append("IBeanContextFactory bcf = ...\n");
-			sb.append("IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...\n");
+			sb.append("IBeanConfiguration myExtension = bcf.RegisterBean...\n");
 			sb.append("bcf.Link(myExtension).To<").append(extendableEntry.simpleName).append(">()");
 			if (extendableEntry.hasArguments) {
 				sb.append(".With(...)");
@@ -220,8 +220,7 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 		String pathToExtendableTexFile =
 				targetExtendableTexDirCP.substring(targetTexFileCP.length() + 1);
 
-		ArrayList<ExtendableEntry> allExtendables =
-				new ArrayList<>(model.allExtendables());
+		ArrayList<ExtendableEntry> allExtendables = new ArrayList<>(model.allExtendables());
 		Collections.sort(allExtendables);
 
 		OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(allExtendablesTexFile),

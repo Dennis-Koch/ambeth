@@ -15,17 +15,13 @@ public class Model implements IModel {
 
 	protected final HashMap<String, ModuleEntry> nameToModuleMap = new HashMap<>();
 
-	protected final HashMap<String, ExtendableEntry> nameToExtendableMap =
-			new HashMap<>();
+	protected final HashMap<String, ExtendableEntry> nameToExtendableMap = new HashMap<>();
 
-	protected final HashMap<String, FeatureEntry> nameToFeatureMap =
-			new HashMap<>();
+	protected final HashMap<String, FeatureEntry> nameToFeatureMap = new HashMap<>();
 
-	protected final HashMap<String, ConfigurationEntry> nameToConfigurationMap =
-			new HashMap<>();
+	protected final HashMap<String, ConfigurationEntry> nameToConfigurationMap = new HashMap<>();
 
-	protected final HashMap<String, AnnotationEntry> nameToAnnotationMap =
-			new HashMap<>();
+	protected final HashMap<String, AnnotationEntry> nameToAnnotationMap = new HashMap<>();
 
 	protected final HashMap<String, TypeEntry> nameToTypeMap = new HashMap<>();
 

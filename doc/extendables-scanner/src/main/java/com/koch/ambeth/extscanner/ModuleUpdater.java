@@ -26,6 +26,8 @@ public class ModuleUpdater extends AbstractLatexScanner implements IStartingBean
 	public static final Pattern featureLabelPattern =
 			Pattern.compile("\\s*\\\\item\\s*\\\\prettyref\\{([^\\}]+)\\}\\s*");
 
+	public static final Pattern texFilePattern = Pattern.compile("(.+)\\.tex");
+
 	public static final String FEATURES_START = "%% FEATURES START";
 
 	public static final String FEATURES_GENERATED_START = "%% FEATURES GENERATED START";
@@ -311,7 +313,6 @@ public class ModuleUpdater extends AbstractLatexScanner implements IStartingBean
 			}
 			return;
 		}
-		Pattern texFilePattern = Pattern.compile("(.+)\\.tex");
 		Matcher matcher = texFilePattern.matcher(currFile.getName());
 		if (!matcher.matches()) {
 			return;

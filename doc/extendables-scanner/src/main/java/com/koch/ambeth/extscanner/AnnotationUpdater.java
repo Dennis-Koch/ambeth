@@ -197,8 +197,7 @@ public class AnnotationUpdater extends AbstractLatexScanner implements IStarting
 		}
 		String pathToTexFile = targetTexDirCP.substring(targetTexFileCP.length() + 1);
 
-		ArrayList<AnnotationEntry> allAnnotations =
-				new ArrayList<>(model.allAnnotations());
+		ArrayList<AnnotationEntry> allAnnotations = new ArrayList<>(model.allAnnotations());
 		Collections.sort(allAnnotations);
 
 		OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(allAnnotationsTexFile),

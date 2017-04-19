@@ -92,8 +92,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 
 	@Override
 	protected void handleModel() throws Throwable {
-		ArrayList<ConfigurationEntry> configurations =
-				new ArrayList<>(model.allConfigurations());
+		ArrayList<ConfigurationEntry> configurations = new ArrayList<>(model.allConfigurations());
 		Collections.sort(configurations);
 
 		File allPropertiesTexFile = new File(getAllDir(), "all-configurations.tex");
@@ -355,7 +354,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 	}
 
 	protected StringBuilder usageReferenceString(ConfigurationEntry configurationEntry) {
-		ArrayList<TypeEntry> usedInTypes = new ArrayList<TypeEntry>(configurationEntry.usedInTypes);
+		ArrayList<TypeEntry> usedInTypes = new ArrayList<>(configurationEntry.usedInTypes);
 		Collections.sort(usedInTypes);
 
 		StringBuilder sb = new StringBuilder();

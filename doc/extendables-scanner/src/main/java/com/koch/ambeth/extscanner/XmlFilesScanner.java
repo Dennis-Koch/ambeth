@@ -12,8 +12,7 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.classbrowser.java.OutputUtil;
 import com.koch.classbrowser.java.TypeDescription;
 
-public class XmlFilesScanner implements IInitializingBean, IXmlFilesScanner
-{
+public class XmlFilesScanner implements IInitializingBean, IXmlFilesScanner {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -26,51 +25,44 @@ public class XmlFilesScanner implements IInitializingBean, IXmlFilesScanner
 	protected SortedMap<String, TypeDescription> csharpTypes;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
+	public void afterPropertiesSet() throws Throwable {
 		File javaFile = new File(scanPath, "export_java.xml");
 		File csharpFile = new File(scanPath, "export_csharp.xml");
-		if (!javaFile.exists())
-		{
+		if (!javaFile.exists()) {
 			throw new IllegalArgumentException("Java XML file not found: " + javaFile.getPath());
 		}
-		if (!csharpFile.exists())
-		{
+		if (!csharpFile.exists()) {
 			throw new IllegalArgumentException("Csharp XML file not found: " + csharpFile.getPath());
 		}
 		javaTypes = OutputUtil.importFromFile(javaFile.getPath());
 		Iterator<Entry<String, TypeDescription>> iter = javaTypes.entrySet().iterator();
-		while (iter.hasNext())
-		{
+		while (iter.hasNext()) {
 			Entry<String, TypeDescription> entry = iter.next();
 			TypeDescription typeDescr = entry.getValue();
-			if (typeDescr.getModuleName().endsWith("-test") || typeDescr.getModuleName().endsWith(".Test"))
-			{
+			if (typeDescr.getModuleName().endsWith("-test")
+					|| typeDescr.getModuleName().endsWith(".Test")) {
 				iter.remove();
 			}
 		}
 		csharpTypes = OutputUtil.importFromFile(csharpFile.getPath());
 		iter = csharpTypes.entrySet().iterator();
-		while (iter.hasNext())
-		{
+		while (iter.hasNext()) {
 			Entry<String, TypeDescription> entry = iter.next();
 			TypeDescription typeDescr = entry.getValue();
-			if (typeDescr.getModuleName().endsWith("-test") || typeDescr.getModuleName().endsWith(".Test"))
-			{
+			if (typeDescr.getModuleName().endsWith("-test")
+					|| typeDescr.getModuleName().endsWith(".Test")) {
 				iter.remove();
 			}
 		}
 	}
 
 	@Override
-	public SortedMap<String, TypeDescription> getCsharpTypes()
-	{
+	public SortedMap<String, TypeDescription> getCsharpTypes() {
 		return csharpTypes;
 	}
 
 	@Override
-	public SortedMap<String, TypeDescription> getJavaTypes()
-	{
+	public SortedMap<String, TypeDescription> getJavaTypes() {
 		return javaTypes;
 	}
 }

@@ -1,15 +1,23 @@
 package com.koch.ambeth.extscanner;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.FileTime;
 import java.util.SortedMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.io.Charsets;
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IStartingBean;
@@ -54,6 +62,9 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 	@Property(name = "source-path")
 	protected String sourcePath;
 
+	@Property(name = "target-source-path", mandatory = false)
+	protected String targetSourcePath;
+
 	@Property(name = Main.CURRENT_TIME)
 	protected long currentTime;
 
@@ -62,8 +73,7 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 		SortedMap<String, TypeDescription> javaTypes = xmlFilesScanner.getJavaTypes();
 		SortedMap<String, TypeDescription> csharpTypes = xmlFilesScanner.getCsharpTypes();
 
-		buildModel(new LinkedHashMap<>(javaTypes),
-				new LinkedHashMap<>(csharpTypes));
+		buildModel(new LinkedHashMap<>(javaTypes), new LinkedHashMap<>(csharpTypes));
 	}
 
 	@Override
@@ -115,7 +125,8 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 	}
 
 	protected void searchForFiles(String baseDirs,
-			IMap<String, IFileFoundDelegate> nameToFileFoundDelegates) {
+			IMap<String, IFileFoundDelegate> nameToFileFoundDelegates,
+			IFileFoundDelegate... allMatchDelegates) {
 		String[] pathItems = baseDirs.split(";");
 		for (String pathItem : pathItems) {
 			File rootDir;
@@ -125,31 +136,36 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 			catch (IOException e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
-			searchForFiles(rootDir, rootDir, nameToFileFoundDelegates);
+			searchForFiles(rootDir, rootDir, nameToFileFoundDelegates, allMatchDelegates);
 		}
 	}
 
 	protected void searchForFiles(File baseDir, File currFile,
-			IMap<String, IFileFoundDelegate> nameToFileFoundDelegates) {
+			IMap<String, IFileFoundDelegate> nameToFileFoundDelegates,
+			IFileFoundDelegate[] allMatchDelegates) {
 		if (currFile == null) {
 			return;
 		}
 		if (currFile.isDirectory()) {
 			File[] listFiles = currFile.listFiles();
 			for (File child : listFiles) {
-				searchForFiles(baseDir, child, nameToFileFoundDelegates);
-				if (nameToFileFoundDelegates.size() == 0) {
+				searchForFiles(baseDir, child, nameToFileFoundDelegates, allMatchDelegates);
+				if (nameToFileFoundDelegates.size() == 0 && allMatchDelegates.length == 0) {
 					return;
 				}
 			}
 			return;
 		}
+		String relativeFilePath =
+				currFile.getPath().substring(baseDir.getPath().length() + 1).replace('\\', '/');
+
+		for (IFileFoundDelegate allMatchDelegate : allMatchDelegates) {
+			allMatchDelegate.fileFound(currFile, relativeFilePath);
+		}
 		IFileFoundDelegate fileFoundDelegate = nameToFileFoundDelegates.remove(currFile.getName());
 		if (fileFoundDelegate == null) {
 			return;
 		}
-		String relativeFilePath = currFile.getPath().substring(baseDir.getPath().length() + 1)
-				.replaceAll(Pattern.quote("\\"), Matcher.quoteReplacement("/"));
 		fileFoundDelegate.fileFound(currFile, relativeFilePath);
 	}
 
@@ -251,8 +267,7 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 
 	protected void findCorrespondingSourceFiles(
 			Iterable<? extends ISourceFileAware> sourceFileAwares) {
-		HashMap<String, IFileFoundDelegate> nameToFileFoundDelegates =
-				new HashMap<>();
+		HashMap<String, IFileFoundDelegate> nameToFileFoundDelegates = new HashMap<>();
 
 		for (ISourceFileAware sourceFileAware : sourceFileAwares) {
 			final ISourceFileAware fAnnotationEntry = sourceFileAware;
@@ -261,6 +276,7 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 					new IFileFoundDelegate() {
 						@Override
 						public void fileFound(File file, String relativeFilePath) {
+							file = filterFileContent(file, relativeFilePath);
 							fAnnotationEntry.setJavaFile(file, relativeFilePath);
 						}
 					});
@@ -268,10 +284,83 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 					new IFileFoundDelegate() {
 						@Override
 						public void fileFound(File file, String relativeFilePath) {
+							file = filterFileContent(file, relativeFilePath);
 							fAnnotationEntry.setCsharpFile(getAllDir(), relativeFilePath);
 						}
 					});
 		}
-		searchForFiles(sourcePath, nameToFileFoundDelegates);
+		searchForFiles(sourcePath, nameToFileFoundDelegates, new IFileFoundDelegate[0]);
+	}
+
+	protected File filterFileContent(File file, String relativeFilePath) {
+		if (targetSourcePath == null) {
+			return file;
+		}
+		Path targetFile = Paths.get(targetSourcePath, relativeFilePath);
+		try {
+			long lastModified = file.lastModified();
+			if (Files.exists(targetFile)
+					&& Files.getLastModifiedTime(targetFile).toMillis() == lastModified) {
+				return file;
+			}
+			Files.createDirectories(targetFile.getParent());
+
+			try (BufferedWriter os = new BufferedWriter(new OutputStreamWriter(
+					Files.newOutputStream(targetFile, StandardOpenOption.CREATE), Charsets.UTF_8))) {
+				BufferedReader reader = Files.newBufferedReader(file.toPath(), Charsets.UTF_8);
+				int step = 0;
+				int emptyLineCount = 0;
+				String line;
+				while ((line = reader.readLine()) != null) {
+					if (step < 4) {
+						switch (step) {
+							case 0: {
+								if (line.equals("/*-")) {
+									step++;
+								}
+								break;
+							}
+							case 1: {
+								if (line.equals(" * #%L")) {
+									step++;
+								}
+								break;
+							}
+							case 2: {
+								if (line.equals(" * #L%")) {
+									step++;
+								}
+								break;
+							}
+							case 3: {
+								if (line.equals(" */")) {
+									step++;
+									continue;
+								}
+								break;
+							}
+						}
+					}
+					if (step == 0 || step == 4) {
+						if (line.isEmpty()) {
+							emptyLineCount++;
+						}
+						else {
+							emptyLineCount = 0;
+						}
+						if (emptyLineCount > 1) {
+							continue; // skip multiple empty lines
+						}
+						os.write(line);
+						os.write(System.lineSeparator());
+					}
+				}
+			}
+			Files.setLastModifiedTime(targetFile, FileTime.fromMillis(lastModified));
+			return targetFile.toFile();
+		}
+		catch (Throwable e) {
+			throw RuntimeExceptionUtil.mask(e, "Error occurred while processing '" + file + "'");
+		}
 	}
 }

@@ -1,8 +1,7 @@
 package com.koch.ambeth.extscanner;
 
 
-public interface IMultiPlatformFeature
-{
+public interface IMultiPlatformFeature {
 	boolean inJava();
 
 	boolean inCSharp();
