@@ -4,13 +4,13 @@
 \ClearAPI
 \TODO
 \feature
-	{de.osthus.ambeth.util.model.IDataObject}
+	{com.koch.ambeth.util.model.IDataObject}
 	{Java \& C\#}
 	{2.1+}
 	{-}
 	{-}
 	{module:Util}
-	{de.osthus.ambeth.cache.valueholdercontainer.ValueHolderContainerTest}
+	{com.koch.ambeth.cache.valueholdercontainer.ValueHolderContainerTest}
 
 All entities in Ambeth are enhanced with several functionality at runtime. One specific feature allows to check the persistence state of each specific entity instance. The \type{IDataObject} interface will also be used by the initial merge process to decide whether a given entity is considered for change analysis. That way it is possible to pass any amount of entities into the merge process without a negative performance impact - only those entities that have really been changed are analyzed and compared with their original clone. See \prettyref{feature:MergeProcess} for more information in that regard.
 

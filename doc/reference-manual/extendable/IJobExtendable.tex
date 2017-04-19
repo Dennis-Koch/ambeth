@@ -3,14 +3,14 @@
 \label{extendable:IJobExtendable}
 \ClearAPI
 
-The \javadoc{de.osthus.ambeth.job.IJobExtendable}{IJobExtendable} extendable is responsible for register and unregister cron jobs for the \prettyref{module:Job} API.
-\javadoc{de.osthus.ambeth.job.IJob}{IJob} is the extension to the \type{IJobExtendable} extendable. 
+The \javadoc{com.koch.ambeth.job.IJobExtendable}{IJobExtendable} extendable is responsible for register and unregister cron jobs for the \prettyref{module:Job} API.
+\javadoc{com.koch.ambeth.job.IJob}{IJob} is the extension to the \type{IJobExtendable} extendable. 
 The registration of a \type{IJob} requires two parameters.
 \begin{enumerate}
 	\item jobName: used for the backed scheduling framework, unique identification and debugging purposes. (the jobNames must be unique)
 	\item cronPattern: a UNIX crontab-like pattern to schedule the job repetition.
 \end{enumerate}
-The JavaDoc on the \javadoc{de.osthus.ambeth.job.IJob}{IJob} interface describes possible detailed configurations for a job e.g. pause support or status support.
+The JavaDoc on the \javadoc{com.koch.ambeth.job.IJob}{IJob} interface describes possible detailed configurations for a job e.g. pause support or status support.
 For detailed instructions on how to use the pattern please refer to \href{http://www.sauronsoftware.it/projects/cron4j/manual.php#p02}{cron4j documentation.}
 A small introduction on cron patterns. There are five positions (* * * * *). A star * is for ``every'' (e.g. every minute). The positions:
 \begin{enumerate}

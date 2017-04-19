@@ -4,7 +4,7 @@
 \ClearAPI
 \TODO
 \feature
-	{de.osthus.ambeth.audit.Audited}
+	{com.koch.ambeth.audit.Audited}
 	{Java}
 	{2.1.50}
 	{-}
@@ -21,8 +21,8 @@
 The example above annotates a bean to audit some of its service calls. ``Audit'' means here that there will be a corresponding entry in the information model:
 
 \begin{itemize}
-	\item If not already exists: A new instance of \type{de.osthus.ambeth.audit.AuditEntry} for the current thread-bound transaction.\footnote{The \type{\@Audited} annotation does transparently open a transaction around the audited method if there is none already bound to the current thread. If that happens the transaction will transparently be committed, too. This is necessary to persist the audit with the audited information within the same transaction to be compliant to ACID requirements. This additionally implies that it is not possible to audit a service call without any open transaction either explicitly or implicitly.}
-	\item A new instance of \type{de.osthus.ambeth.audit.AuditedService} for each audited service call. Each \type{AuditedService} is associated to the previously mentioned \type{AuditEntry}
+	\item If not already exists: A new instance of \type{com.koch.ambeth.audit.AuditEntry} for the current thread-bound transaction.\footnote{The \type{\@Audited} annotation does transparently open a transaction around the audited method if there is none already bound to the current thread. If that happens the transaction will transparently be committed, too. This is necessary to persist the audit with the audited information within the same transaction to be compliant to ACID requirements. This additionally implies that it is not possible to audit a service call without any open transaction either explicitly or implicitly.}
+	\item A new instance of \type{com.koch.ambeth.audit.AuditedService} for each audited service call. Each \type{AuditedService} is associated to the previously mentioned \type{AuditEntry}
 \end{itemize}
 
 \tip{As with all AOP-based features of Ambeth it is recommended to autowire your beans \emph{always} by interface (or simple, field-less abstract classes). Because of the way polymorphism works in C\# as well as in Java regarding class inheritance you gain much more flexibility \& maintainability if you allow aspects to proxy interfaces rather than your functionality-implementing classes.}
