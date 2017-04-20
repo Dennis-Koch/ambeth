@@ -1,5 +1,10 @@
-\SetAPI{nothing}
+\CustomSetAPI{J-C}
 \section{Interface Bean}
 \label{feature:InterfaceBean}
 \ClearAPI
-\TODO
+\AMBETH{} supports the registration of interfaces as beans to an IoC container. To make this possible a dynamic proxy is generated implementing the interface. This allows postprocessors (\prettyref{feature:BeanPostProcessor}) to further intercept the proxy and give him a reasonable behavior (e.g. via scanning for specific annotations on the proxied interface).
+
+\begin{lstlisting}[style=Java,caption={Example to register an interface as a bean (Java)}]
+IBeanContextFactory bcf = ...
+bcf.registerBean(MyAnnotatedInterface.class).autowireable(MyAnnotatedInterface.class);
+\end{lstlisting}

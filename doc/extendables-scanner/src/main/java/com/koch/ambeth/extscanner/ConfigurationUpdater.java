@@ -123,7 +123,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 					+ ConfigurationUpdater.class.getName() + "\n");
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("\\chapter{Ambeth Configuration}\n");
-			fw.append("\\label{ambeth:annotations}\n");
+			fw.append("\\label{ambeth:configurations}\n");
 			fw.append("\\begin{landscape}\n");
 			fw.append(
 					"\\begin{longtable}{ l l c c c } \\hline \\textbf{Property} & \\textbf{Default Value} & \\textbf{Mandatory} & \\textbf{Java} & \\textbf{C\\#} \\\\\n");

@@ -3,7 +3,7 @@
 % Any changes have to be done to the java class com.koch.ambeth.extscanner.ConfigurationUpdater
 %---------------------------------------------------------------
 \chapter{Ambeth Configuration}
-\label{ambeth:annotations}
+\label{ambeth:configurations}
 \begin{landscape}
 \begin{longtable}{ l l c c c } \hline \textbf{Property} & \textbf{Default Value} & \textbf{Mandatory} & \textbf{Java} & \textbf{C\#} \\
 	\endhead
@@ -117,6 +117,12 @@
 		X & X \\
 	\hline
 		\nameref{configuration:AmbethRestFrameworkModules} &  &   &
+		X & X \\
+	\hline
+		\nameref{configuration:AmbethRootDatabasePass} & developer & X &
+		X & X \\
+	\hline
+		\nameref{configuration:AmbethRootDatabaseUser} & sa & X &
 		X & X \\
 	\hline
 		\nameref{configuration:AmbethSecurityActive} & false & X &
@@ -398,6 +404,9 @@
 		\nameref{configuration:JdbcTraceActive} & true & X &
 		X & X \\
 	\hline
+		\nameref{configuration:LineSeparator} &  & X &
+		X & X \\
+	\hline
 		\nameref{configuration:LinkType} &  &   &
 		X & X \\
 	\hline
@@ -468,6 +477,21 @@
 		X & X \\
 	\hline
 		\nameref{configuration:RestHttpContentEncodingZipped} & true & X &
+		X & X \\
+	\hline
+		\nameref{configuration:ScriptCreate} &  & X &
+		X & X \\
+	\hline
+		\nameref{configuration:ScriptUserName} &  &   &
+		X & X \\
+	\hline
+		\nameref{configuration:ScriptUserPass} &  &   &
+		X & X \\
+	\hline
+		\nameref{configuration:ScriptUserPropertyfile} &  &   &
+		X & X \\
+	\hline
+		\nameref{configuration:ScriptUserQuota} & 100M & X &
 		X & X \\
 	\hline
 		\nameref{configuration:SecurityAuthmanagerType} &  &   &
@@ -674,6 +698,8 @@
 \input{configuration/AmbethRestClasspathScanning}
 \input{configuration/AmbethRestFrameworkBundle}
 \input{configuration/AmbethRestFrameworkModules}
+\input{configuration/AmbethRootDatabasePass}
+\input{configuration/AmbethRootDatabaseUser}
 \input{configuration/AmbethSecurityActive}
 \input{configuration/AmbethSessionAuthorizationTtl}
 \input{configuration/AmbethTestForkname}
@@ -767,6 +793,7 @@
 \input{configuration/JdbcDcnActive}
 \input{configuration/JdbcLogexceptionActive}
 \input{configuration/JdbcTraceActive}
+\input{configuration/LineSeparator}
 \input{configuration/LinkType}
 \input{configuration/LogShortnames}
 \input{configuration/MainArgs}
@@ -791,6 +818,11 @@
 \input{configuration/RestHttpAcceptEncodingZipped}
 \input{configuration/RestHttpClient}
 \input{configuration/RestHttpContentEncodingZipped}
+\input{configuration/ScriptCreate}
+\input{configuration/ScriptUserName}
+\input{configuration/ScriptUserPass}
+\input{configuration/ScriptUserPropertyfile}
+\input{configuration/ScriptUserQuota}
 \input{configuration/SecurityAuthmanagerType}
 \input{configuration/SecurityCryptoAlgorithmName}
 \input{configuration/SecurityCryptoKeyspecName}
