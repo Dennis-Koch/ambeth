@@ -91,6 +91,58 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		implements IEntityMetaDataProvider, IEntityMetaDataRefresher, IEntityMetaDataExtendable,
 		IEntityLifecycleExtendable, ITechnicalEntityTypeExtendable,
 		IEntityInstantiationExtensionExtendable, IValueObjectConfigExtendable, IInitializingBean {
+
+	private final class StringBuilderWriter extends Writer {
+		private final StringBuilder sb;
+
+		private StringBuilderWriter(StringBuilder sb) {
+			this.sb = sb;
+		}
+
+		@Override
+		public void write(int c) throws IOException {
+			sb.append(c);
+		}
+
+		@Override
+		public void write(String str) throws IOException {
+			sb.append(str);
+		}
+
+		@Override
+		public void write(char[] cbuf, int off, int len) throws IOException {
+			sb.append(cbuf, off, len);
+		}
+
+		@Override
+		public Writer append(char c) throws IOException {
+			sb.append(c);
+			return this;
+		}
+
+		@Override
+		public Writer append(CharSequence csq) throws IOException {
+			sb.append(csq);
+			return this;
+		}
+
+		@Override
+		public Writer append(CharSequence csq, int start, int end) throws IOException {
+			sb.append(csq, start, end);
+			return this;
+		}
+
+		@Override
+		public void flush() throws IOException {
+			// intended blank
+		}
+
+		@Override
+		public void close() throws IOException {
+			// intended blank
+		}
+	}
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -206,57 +258,14 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	}
 
 	@Override
-	public String buildDotGraph() {
+	public void toDotGraph(Writer writer) {
 		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
 		final StringBuilder sb = objectCollector.create(StringBuilder.class);
 		try {
 			IEntityMetaData[] extensions =
 					new IdentityHashSet<>(getExtensions().values()).toArray(IEntityMetaData.class);
 
-			IDotWriter writer = new DotWriter(new Writer() {
-				@Override
-				public void write(int c) throws IOException {
-					sb.append(c);
-				}
-
-				@Override
-				public void write(String str) throws IOException {
-					sb.append(str);
-				}
-
-				@Override
-				public void write(char[] cbuf, int off, int len) throws IOException {
-					sb.append(cbuf, off, len);
-				}
-
-				@Override
-				public Writer append(char c) throws IOException {
-					sb.append(c);
-					return this;
-				}
-
-				@Override
-				public Writer append(CharSequence csq) throws IOException {
-					sb.append(csq);
-					return this;
-				}
-
-				@Override
-				public Writer append(CharSequence csq, int start, int end) throws IOException {
-					sb.append(csq, start, end);
-					return this;
-				}
-
-				@Override
-				public void flush() throws IOException {
-					// intended blank
-				}
-
-				@Override
-				public void close() throws IOException {
-					// intended blank
-				}
-			});
+			IDotWriter dotWriter = new DotWriter(new StringBuilderWriter(sb));
 
 			try {
 				// writer.write("\n\tgraph [truecolor=true mindist=2 overlap=prism];");
@@ -266,17 +275,17 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 						continue;
 					}
 					{
-						IDotNode node = writer.openNode(metaData);
+						IDotNode node = dotWriter.openNode(metaData);
 						node.attribute("label", metaData.getEntityType().getSimpleName());
 						node.attribute("shape", "ellipse");
 						node.attribute("style", "filled");
 						node.attribute("fontcolor", "#ffffffff");
-						node.attribute("fillcolor", "#d0771eff");
+						node.attribute("fillcolor", metaData.isLocalEntity() ? "#d0771eff" : "#ffff00ff");
 						node.endNode();
 					}
 
 					for (Member member : metaData.getPrimitiveMembers()) {
-						IDotNode node = writer.openNode(member);
+						IDotNode node = dotWriter.openNode(member);
 						node.attribute("label", member.getName());
 						node.attribute("shape", "ellipse");
 						node.attribute("style", "filled");
@@ -285,7 +294,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 						node.endNode();
 					}
 					for (Member member : metaData.getRelationMembers()) {
-						IDotNode node = writer.openNode(member);
+						IDotNode node = dotWriter.openNode(member);
 						node.attribute("label", member.getName());
 						node.attribute("shape", "ellipse");
 						node.attribute("style", "filled");
@@ -299,27 +308,26 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 						continue;
 					}
 					for (Member member : metaData.getPrimitiveMembers()) {
-						writer.openEdge(metaData, member).attribute("arrowhead", "none").endEdge();
+						dotWriter.openEdge(metaData, member).attribute("arrowhead", "none").endEdge();
 					}
 					for (Member member : metaData.getRelationMembers()) {
-						writer.openEdge(metaData, member).attribute("arrowhead", "none").endEdge();
+						dotWriter.openEdge(metaData, member).attribute("arrowhead", "none").endEdge();
 
 						IEntityMetaData targetMetaData = getMetaData(member.getElementType(), true);
 						if (targetMetaData != null) {
-							writer.openEdge(member, targetMetaData).endEdge();
+							dotWriter.openEdge(member, targetMetaData).endEdge();
 						}
 					}
 				}
 			}
 			finally {
 				try {
-					writer.close();
+					dotWriter.close();
 				}
 				catch (Throwable e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
-			return sb.toString();
 		}
 		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);

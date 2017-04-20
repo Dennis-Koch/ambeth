@@ -19,6 +19,8 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.Charsets;
 
+import com.koch.ambeth.extscanner.model.IMultiPlatformFeature;
+import com.koch.ambeth.extscanner.model.ISourceFileAware;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
@@ -259,10 +261,10 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 
 		// C#
 		escapeValue(feature.inCSharp() ? "X" : " ", fw);
-		fw.append(" & ");
+		// fw.append(" & ");
 
-		// Javascript
-		escapeValue(feature.inJavascript() ? "X" : " ", fw);
+		// // Javascript
+		// escapeValue(feature.inJavascript() ? "X" : " ", fw);
 	}
 
 	protected void findCorrespondingSourceFiles(

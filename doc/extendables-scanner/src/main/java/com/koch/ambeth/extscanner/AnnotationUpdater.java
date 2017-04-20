@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.koch.ambeth.extscanner.model.AnnotationEntry;
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
@@ -211,7 +212,7 @@ public class AnnotationUpdater extends AbstractLatexScanner implements IStarting
 			fw.append("\\chapter{Ambeth Annotations}\n");
 			fw.append("\\label{ambeth:annotations}\n");
 			fw.append(
-					"\\begin{longtable}{ l c c c } \\hline \\textbf{Annotation} & \\textbf{Java} & \\textbf{C\\#} & \\textbf{Javascript} \\\n");
+					"\\begin{longtable}{ l c c } \\hline \\textbf{Annotation} & \\textbf{Java} & \\textbf{C\\#} \\\\\n");
 			fw.append("\t\\endhead\n");
 			fw.append("\t\\hline\n");
 

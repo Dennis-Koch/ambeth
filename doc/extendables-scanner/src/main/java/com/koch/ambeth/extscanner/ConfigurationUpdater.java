@@ -10,6 +10,8 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.koch.ambeth.extscanner.model.ConfigurationEntry;
+import com.koch.ambeth.extscanner.model.TypeEntry;
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
@@ -124,7 +126,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 			fw.append("\\label{ambeth:annotations}\n");
 			fw.append("\\begin{landscape}\n");
 			fw.append(
-					"\\begin{longtable}{ l l c c c c } \\hline \\textbf{Property} & \\textbf{Default Value} & \\textbf{Mandatory} & \\textbf{Java} & \\textbf{C\\#} & \\textbf{Javascript} \\\\\n");
+					"\\begin{longtable}{ l l c c c } \\hline \\textbf{Property} & \\textbf{Default Value} & \\textbf{Mandatory} & \\textbf{Java} & \\textbf{C\\#} \\\\\n");
 			fw.append("\t\\endhead\n");
 			fw.append("\t\\hline\n");
 
@@ -326,7 +328,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 				escapeValue(configurationEntry.propertyName, fw);
 				fw.append("}}]");
 				fw.append("\n").append(configurationEntry.propertyName).append("=");
-				if (configurationEntry.defaultValueSpecified) {
+				if (configurationEntry.isDefaultValueSpecified()) {
 					fw.append(configurationEntry.getDefaultValue());
 				}
 				fw.append("\n\\end{lstlisting}");

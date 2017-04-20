@@ -31,6 +31,11 @@ public class Program {
 
 	// ---- CONSTANTS ----------------------------------------------------------
 
+	private static final Pattern[] excludedJarFiles =
+			{Pattern.compile("[\\\\/]jAmbeth-\\d[^\\\\/]+?$"),
+					Pattern.compile("[\\\\/]jAmbeth-jUnit-\\d[^\\\\/]+?$")};
+
+
 	public static final String DECO = "\n========================================\n";
 
 	public static final String EXTENSION_JAR = "jar";
@@ -116,9 +121,6 @@ public class Program {
 	}
 
 	private static void preprocessJarFilesToBeAnalyzed(List<String> allJarFilesToBeAnalyzed) {
-		Pattern[] excludedJarFiles = {Pattern.compile("[\\\\/]jAmbeth-\\d[^\\\\/]+?$"),
-				Pattern.compile("[\\\\/]jAmbeth-jUnit-\\d[^\\\\/]+?$")};
-
 		for (int i = allJarFilesToBeAnalyzed.size(); i-- > 0;) {
 			String jarFileName = allJarFilesToBeAnalyzed.get(i);
 			for (Pattern excludedName : excludedJarFiles) {

@@ -2,6 +2,12 @@ package com.koch.ambeth.extscanner;
 
 import java.util.Map.Entry;
 
+import com.koch.ambeth.extscanner.model.AnnotationEntry;
+import com.koch.ambeth.extscanner.model.ConfigurationEntry;
+import com.koch.ambeth.extscanner.model.ExtendableEntry;
+import com.koch.ambeth.extscanner.model.FeatureEntry;
+import com.koch.ambeth.extscanner.model.ModuleEntry;
+import com.koch.ambeth.extscanner.model.TypeEntry;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.collections.ArrayList;

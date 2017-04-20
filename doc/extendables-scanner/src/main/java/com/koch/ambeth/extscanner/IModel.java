@@ -1,5 +1,11 @@
 package com.koch.ambeth.extscanner;
 
+import com.koch.ambeth.extscanner.model.AnnotationEntry;
+import com.koch.ambeth.extscanner.model.ConfigurationEntry;
+import com.koch.ambeth.extscanner.model.ExtendableEntry;
+import com.koch.ambeth.extscanner.model.FeatureEntry;
+import com.koch.ambeth.extscanner.model.ModuleEntry;
+import com.koch.ambeth.extscanner.model.TypeEntry;
 import com.koch.classbrowser.java.TypeDescription;
 
 public interface IModel {

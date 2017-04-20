@@ -1,11 +1,11 @@
-package com.koch.ambeth.extscanner;
+package com.koch.ambeth.extscanner.model;
 
 import java.io.File;
 
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
 
-public class ModuleEntry implements IMultiPlatformFeature {
+public class ModuleEntry implements IMultiPlatformFeature, Comparable<ModuleEntry> {
 	public final String moduleName;
 
 	public final HashSet<TypeEntry> javaFiles = new HashSet<>();
@@ -43,5 +43,10 @@ public class ModuleEntry implements IMultiPlatformFeature {
 		this.moduleName = moduleName;
 		this.labelName = labelName;
 		this.moduleTexFile = moduleTexFile;
+	}
+
+	@Override
+	public int compareTo(ModuleEntry o) {
+		return moduleName.compareTo(o.moduleName);
 	}
 }

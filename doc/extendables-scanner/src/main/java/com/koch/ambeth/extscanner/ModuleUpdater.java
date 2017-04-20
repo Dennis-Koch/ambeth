@@ -10,6 +10,10 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.koch.ambeth.extscanner.model.ConfigurationEntry;
+import com.koch.ambeth.extscanner.model.FeatureEntry;
+import com.koch.ambeth.extscanner.model.ModuleEntry;
+import com.koch.ambeth.extscanner.model.TypeEntry;
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;

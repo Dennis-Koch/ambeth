@@ -1,4 +1,4 @@
-package com.koch.ambeth.extscanner;
+package com.koch.ambeth.extscanner.model;
 
 import java.io.File;
 import java.util.regex.Pattern;

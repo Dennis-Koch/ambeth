@@ -1,4 +1,39 @@
 \section{Polymorphic Distance}
 \label{feature:PolymorphicDistance}
-For a given requested conversion the corresponding \emph{Polymorphic Distance} is calculated for all registered extensions. The extension with the smallest value - where ``zero'' means perfect match will be selected for process the conversion.
-\TODO
+For a given requested conversion the corresponding \emph{Polymorphic Distance} is calculated for all registered extensions compared to a registered extension as a scalar value. The extension with the smallest scalar value to the requested type will be selected to process the conversion. The calculation is done like this:
+\newline
+\begin{enumerate}
+	\item Given object O of class C and given extension E registered for class CE
+	\item If C is not inheriting (or equal) to CE => polymorphic distance is -1 (=NO\_VALID\_DISTANCE)
+	\item If C is equal to CE => polymorphic distance is 0 (perfect match)
+	\item If C is the type of Object itself => polymorphic distance is Integer.MAX\_VALUE
+	\item If C is an array, calculate the distance for the component type CO of C instead of C itself => jump to step 2 in this algorithm and proceed
+	\item For each interface I declared by C calculate its polymorphic distance to CE and (if there is a valid distance >= 0) add 10000 to its effective distance for comparison with others (because it is only an interface)
+	\item If C has a super class SC, calculate the distance of SC to CE and add 1 to its effective distance for comparison with others
+	\item Select the lowest (effective) distance between the results of C, SC and I as result of the calculation
+\end{enumerate}
+
+Examples:
+\begin{itemize}
+	\item \textit{java.util.ArrayList} <> \textit{java.util.ArrayList} => 0
+	\begin{itemize}
+		\item because the class ArrayList is equal to itself
+	\end{itemize}
+	\item \textit{java.util.ArrayList} <> \textit{java.util.LinkedList} => -1 NO\_VALID\_DISTANCE
+	\begin{itemize}
+		\item because LinkedList is not extended/inherited by ArrayList on any hierarchy level
+	\end{itemize}
+	\item \textit{java.util.ArrayList} <> \textit{java.util.List} => 10000
+	\begin{itemize}
+		\item because List is an interface and is explicitly implemented by ArrayList
+	\end{itemize}
+	\item \textit{java.util.LinkedList} <> \textit{java.util.List} => 10000
+	\begin{itemize}
+		\item because List is an interface and is explicitly implemented by LinkedList
+	\end{itemize}
+	\item \textit{java.util.LinkedList} <> \textit{java.util.Collection} => 10003
+	\begin{itemize}
+		\item 10000 because Collection is an interface and is explicitly implemented by \textit{AbstractCollection}, 3 because \textit{AbstractCollection} is inherited transitively across 3 levels by \textit{LinkedList} (\textit{LinkedList} > \textit{AbstractSequentialList} > \textit{AbstractList} > \textit{AbstractCollection})
+		\item Note that there is also the potential result of 20000 with the argumentation that \textit{Collection} is implemented by \textit{List} (+10000) and \textit{List} is explicitly implemented by \textit{LinkedList} (+10000 again). So applying step 6 from the algorithm above 2 times is indeed true and is also internally considered - but the effective result will always be the lowest of all valid polymorphic distances. Leading to the fact that transitivity across super classes is preferred to transitivity across super interfaces.
+	\end{itemize}
+\end{itemize}

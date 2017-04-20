@@ -1,4 +1,4 @@
-package com.koch.ambeth.extscanner;
+package com.koch.ambeth.extscanner.model;
 
 import com.koch.ambeth.util.collections.ArrayList;
 

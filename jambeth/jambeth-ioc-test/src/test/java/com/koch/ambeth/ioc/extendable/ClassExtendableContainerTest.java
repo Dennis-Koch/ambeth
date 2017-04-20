@@ -75,8 +75,8 @@ public class ClassExtendableContainerTest {
 				ClassExtendableContainer.getDistanceForType(ArrayList.class, List.class));
 		Assert.assertEquals(10000,
 				ClassExtendableContainer.getDistanceForType(LinkedList.class, List.class));
-		Assert.assertEquals(10000,
-				ClassExtendableContainer.getDistanceForType(LinkedList.class, List.class));
+		Assert.assertEquals(10003,
+				ClassExtendableContainer.getDistanceForType(LinkedList.class, Collection.class));
 	}
 
 	@Test

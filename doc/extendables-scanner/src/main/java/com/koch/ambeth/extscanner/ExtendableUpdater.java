@@ -9,6 +9,8 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.koch.ambeth.extscanner.model.AbstractSourceFileAware;
+import com.koch.ambeth.extscanner.model.ExtendableEntry;
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
@@ -49,7 +51,7 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 				fw.append("\n\\section{").append(extendableEntry.simpleName).append("}");
 				fw.append("\n\\label{").append(labelName).append("}");
 				fw.append("\n\\ClearAPI\n");
-				writeJavadoc(extendableEntry.fqName, extendableEntry.simpleName, fw);
+				writeJavadoc(extendableEntry.type.getFullTypeName(), extendableEntry.simpleName, fw);
 				fw.append("\n");
 				writeJavadoc(extendableEntry.fqExtensionName, extendableEntry.simpleExtensionName, fw);
 				fw.append("\n\\TODO\n\n");
@@ -89,7 +91,7 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 			sb.append(
 					"\\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]\n");
 			sb.append("IBeanContextFactory bcf = ...\n");
-			sb.append("IBeanConfiguration myExtension = bcf.registerBean...\n");
+			sb.append("IBeanConfiguration myExtension = bcf.registerBean(...);\n");
 			sb.append("bcf.link(myExtension).to(").append(extendableEntry.simpleName).append(".class)");
 			if (extendableEntry.hasArguments) {
 				sb.append(".with(...)");
@@ -105,7 +107,7 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 			sb.append(
 					"\\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\\#)}]\n");
 			sb.append("IBeanContextFactory bcf = ...\n");
-			sb.append("IBeanConfiguration myExtension = bcf.RegisterBean...\n");
+			sb.append("IBeanConfiguration myExtension = bcf.RegisterBean(...);\n");
 			sb.append("bcf.Link(myExtension).To<").append(extendableEntry.simpleName).append(">()");
 			if (extendableEntry.hasArguments) {
 				sb.append(".With(...)");
@@ -123,6 +125,8 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 		// writeJavadoc(extendableType, fw);
 		fw.append(" &\n\t\t");
 		writeJavadoc(extendableEntry.fqExtensionName, extendableEntry.simpleExtensionName, fw);
+		fw.append(" &\n\t\t");
+		fw.append(extendableEntry.type.getModuleName());
 		fw.append(" &\n\t\t");
 
 		writeAvailability(extendableEntry, fw);
@@ -164,8 +168,7 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 			String simpleName = matcher.group(1);
 			String texName = simpleName;
 			String labelName = "extendable:" + texName;
-			extendableEntry =
-					new ExtendableEntry(typeDescr.getFullTypeName(), simpleName, labelName, extensionType);
+			extendableEntry = new ExtendableEntry(typeDescr, simpleName, labelName, extensionType);
 			extendableEntry.hasArguments = hasArguments;
 			model.addExtendable(extendableName, extendableEntry);
 		}
@@ -235,14 +238,14 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 			fw.append("\\label{ambeth:extendables}\n");
 			fw.append("\\begin{landscape}\n");
 			fw.append(
-					"\\begin{longtable}{ l l c c c } \\hline \\textbf{Extension Point} & \\textbf{Extension} & \\textbf{Java} & \\textbf{C\\#} & \\textbf{Javascript} \\\n");
+					"\\begin{longtable}{ l l l c c c } \\hline \\textbf{Extension Point} & \\textbf{Extension} & \\textbf{Module} & \\textbf{Java} & \\textbf{C\\#} \\\\\n");
 			fw.append("\t\\endhead\n");
 			fw.append("\t\\hline\n");
 
 			ArrayList<String> includes = new ArrayList<>();
 
 			for (ExtendableEntry extendableEntry : allExtendables) {
-				log.debug("Handling " + extendableEntry.fqName);
+				log.debug("Handling " + extendableEntry.type.getFullTypeName());
 				String texName = extendableEntry.simpleName;
 
 				String labelName = "extendable:" + texName;

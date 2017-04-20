@@ -1,8 +1,9 @@
-package com.koch.ambeth.extscanner;
+package com.koch.ambeth.extscanner.model;
 
 import java.util.regex.Matcher;
 
 import com.koch.ambeth.util.collections.ArrayList;
+import com.koch.classbrowser.java.TypeDescription;
 
 import javassist.CtClass;
 
@@ -18,13 +19,13 @@ public class ExtendableEntry extends AbstractSourceFileAware
 
 	public final String simpleName;
 
-	public final String fqName;
-
 	public final ArrayList<CtClass> usedBy = new ArrayList<>();
 
-	public ExtendableEntry(String fqName, String simpleName, String labelName,
+	public final TypeDescription type;
+
+	public ExtendableEntry(TypeDescription type, String simpleName, String labelName,
 			String fqExtensionName) {
-		this.fqName = fqName;
+		this.type = type;
 		this.labelName = labelName;
 		this.fqExtensionName = fqExtensionName;
 		this.simpleName = simpleName;
@@ -37,6 +38,6 @@ public class ExtendableEntry extends AbstractSourceFileAware
 
 	@Override
 	public int compareTo(ExtendableEntry o) {
-		return simpleExtensionName.compareTo(o.simpleExtensionName);
+		return simpleName.compareTo(o.simpleName);
 	}
 }
