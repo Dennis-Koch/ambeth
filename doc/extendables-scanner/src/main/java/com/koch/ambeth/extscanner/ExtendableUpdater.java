@@ -148,13 +148,14 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 			boolean hasArguments = false;
 
 			for (MethodDescription methodDesc : typeDescr.getMethodDescriptions()) {
-				String methodName = methodDesc.getName();
-				if ((methodName.toLowerCase().startsWith("register")
-						|| methodName.toLowerCase().startsWith("add"))
+				String methodName = methodDesc.getName().toLowerCase();
+				if ((methodName.startsWith("register") || methodName.startsWith("add"))
 						&& methodDesc.getParameterTypes().size() != 0) {
 					extensionType = methodDesc.getParameterTypes().get(0);
 					hasArguments = methodDesc.getParameterTypes().size() > 1;
-					break;
+					if (!hasArguments) {
+						break;
+					}
 				}
 			}
 			if (extensionType == null) {

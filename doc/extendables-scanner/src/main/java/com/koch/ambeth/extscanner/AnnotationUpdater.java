@@ -142,9 +142,6 @@ public class AnnotationUpdater extends AbstractLatexScanner implements IStarting
 			IMap<String, TypeDescription> csharpTypes) throws Throwable {
 		for (Entry<String, TypeDescription> entry : javaTypes) {
 			TypeDescription typeDescr = entry.getValue();
-			if (typeDescr.getFullTypeName().contains("TestFramework")) {
-				System.out.println("dfjksdjfskdjf");
-			}
 			boolean isAnnotation = false;
 			for (String interfaceName : typeDescr.getInterfaces()) {
 				if ("java.lang.annotation.Annotation".equals(interfaceName)) {

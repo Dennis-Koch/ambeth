@@ -23,7 +23,6 @@
 	</dependencies>
 
 	<build>
-		<finalName>ClassComparer</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

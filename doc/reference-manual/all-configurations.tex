@@ -8,12 +8,6 @@
 \begin{longtable}{ l l c c c } \hline \textbf{Property} & \textbf{Default Value} & \textbf{Mandatory} & \textbf{Java} & \textbf{C\#} \\
 	\endhead
 	\hline
-		\nameref{configuration:CommandTimeoutInSeconds} & 10 & X &
-		X & X \\
-	\hline
-		\nameref{configuration:ConnectTimeoutInSeconds} & 5 & X &
-		X & X \\
-	\hline
 		\nameref{configuration:SHELLMODE} & INTERACTIVE & X &
 		X & X \\
 	\hline
@@ -119,10 +113,10 @@
 		\nameref{configuration:AmbethRestFrameworkModules} &  &   &
 		X & X \\
 	\hline
-		\nameref{configuration:AmbethRootDatabasePass} & developer & X &
+		\nameref{configuration:AmbethRootDatabasePass} &  & X &
 		X & X \\
 	\hline
-		\nameref{configuration:AmbethRootDatabaseUser} & sa & X &
+		\nameref{configuration:AmbethRootDatabaseUser} & root & X &
 		X & X \\
 	\hline
 		\nameref{configuration:AmbethSecurityActive} & false & X &
@@ -661,8 +655,6 @@
 	\hline
 \end{longtable}
 \end{landscape}
-\input{configuration/CommandTimeoutInSeconds}
-\input{configuration/ConnectTimeoutInSeconds}
 \input{configuration/SHELLMODE}
 \input{configuration/AmbethBytebufferChunkPrefetchCount}
 \input{configuration/AmbethBytebufferChunkSize}

@@ -249,7 +249,11 @@ public class ParserUtil {
 					"Mandatory values for adding the method descriptions are missing!");
 		}
 
-		for (Method methodInfo : givenType.getDeclaredMethods()) {
+		Method[] methods = givenType.getDeclaredMethods();
+		Arrays.sort(methods, (left, right) -> {
+			return left.toGenericString().compareTo(right.toGenericString());
+		});
+		for (Method methodInfo : methods) {
 			MethodDescription methodDescription = createMethodDescriptionFrom(methodInfo);
 			typeDescription.getMethodDescriptions().add(methodDescription);
 		}
@@ -267,8 +271,12 @@ public class ParserUtil {
 					"Mandatory values for adding the field descriptions are missing!");
 		}
 
+		Field[] fields = givenType.getDeclaredFields();
+		Arrays.sort(fields, (left, right) -> {
+			return left.toGenericString().compareTo(right.toGenericString());
+		});
 		List<FieldDescription> fieldDescriptions = typeDescription.getFieldDescriptions();
-		for (Field fieldInfo : givenType.getDeclaredFields()) {
+		for (Field fieldInfo : fields) {
 			List<AnnotationInfo> annotationInfo = getAnnotationInfo(fieldInfo);
 			FieldDescription fieldDescription = createFieldDescriptionFrom(fieldInfo);
 			fieldDescriptions.add(fieldDescription);

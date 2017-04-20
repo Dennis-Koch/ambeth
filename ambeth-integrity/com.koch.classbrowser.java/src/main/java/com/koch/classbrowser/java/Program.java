@@ -246,6 +246,9 @@ public class Program {
 		String path = Properties.getApplication().getString(propertyKey);
 		if (!StringUtils.isBlank(path)) {
 			File file = new File(path);
+			if (!file.exists()) {
+				file.mkdirs();
+			}
 			if (file.isDirectory()) {
 				return path;
 			}

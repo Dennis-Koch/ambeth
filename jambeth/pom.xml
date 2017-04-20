@@ -67,6 +67,7 @@
 		<module>jambeth-datachange</module>
 		<module>jambeth-datachange-kafka</module>
 		<module>jambeth-datachange-persistence</module>
+		<module>jambeth-doc-scope</module>
 		<module>jambeth-dot</module>
 		<module>jambeth-event</module>
 		<module>jambeth-event-datachange</module>
@@ -1147,6 +1148,12 @@
 				<artifactId>jambeth-service-rest</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+			</dependency>
+
+			<dependency>
+				<groupId>com.koch.ambeth</groupId>
+				<artifactId>jambeth-shell</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 
 			<dependency>

@@ -12,7 +12,7 @@ set javaSrcDir=%srcDir%\java
 set javaLibDir=%javaSrcDir%\libs
 set javaModuleDir=%srcHome%\ambeth\jambeth
 set javaModuleDir2=%srcHome%\ambeth
-set integrityDir=%srcHome%\integrity
+set integrityDir=%srcHome%\ambeth-integrity
 
 set csSrcDir=%srcDir%\cs
 set csLibDir=%csSrcDir%\libs

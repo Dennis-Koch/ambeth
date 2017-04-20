@@ -95,7 +95,6 @@
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-shell</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		
 		<dependency>

@@ -38,13 +38,13 @@ public class ParserUtilTest {
 		List<FieldDescription> fieldDescriptions = typeDescription.getFieldDescriptions();
 		Assert.assertNotNull(fieldDescriptions);
 		Assert.assertEquals(7, fieldDescriptions.size());
-		Assert.assertEquals(0, fieldDescriptions.get(0).getAnnotations().size());
+		Assert.assertEquals(1, fieldDescriptions.get(0).getAnnotations().size());
 		Assert.assertEquals(0, fieldDescriptions.get(1).getAnnotations().size());
-		Assert.assertEquals(1, fieldDescriptions.get(2).getAnnotations().size());
+		Assert.assertEquals(0, fieldDescriptions.get(2).getAnnotations().size());
 		Assert.assertEquals(1, fieldDescriptions.get(3).getAnnotations().size());
 
 		// Check initialValue of constant fields
-		Assert.assertEquals("test constant", fieldDescriptions.get(0).getInitialValue());
+		Assert.assertEquals("test constant", fieldDescriptions.get(6).getInitialValue());
 		Assert.assertEquals("42", fieldDescriptions.get(1).getInitialValue());
 	}
 
@@ -71,7 +71,7 @@ public class ParserUtilTest {
 		Assert.assertEquals(7, fieldDescriptions.size());
 
 		// Check FieldDescriptors
-		FieldDescription logFieldDescription = fieldDescriptions.get(2);
+		FieldDescription logFieldDescription = fieldDescriptions.get(0);
 		List<AnnotationInfo> annotations = logFieldDescription.getAnnotations();
 		Assert.assertEquals(1, annotations.size());
 		AnnotationInfo annotationInfo = annotations.get(0);

@@ -3,11 +3,11 @@ package com.koch.ambeth.extscanner;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -184,7 +184,8 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 	protected StringBuilder readFileFully(File file) {
 		try {
 			StringBuilder sb = new StringBuilder((int) file.length());
-			BufferedReader rd = new BufferedReader(new FileReader(file));
+			BufferedReader rd =
+					new BufferedReader(new InputStreamReader(new FileInputStream(file), Charsets.UTF_8));
 			try {
 				int oneByte;
 				while ((oneByte = rd.read()) != -1) {
@@ -205,8 +206,7 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 		log.info("Updating " + file);
 		try {
 			// update existing file
-			OutputStreamWriter fw =
-					new OutputStreamWriter(new FileOutputStream(file), Charset.forName("UTF-8"));
+			OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(file), Charsets.UTF_8);
 			try {
 				fw.append(sb);
 			}

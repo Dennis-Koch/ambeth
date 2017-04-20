@@ -13,6 +13,7 @@ public class Main {
 		props.fillWithCommandLineArgs(args);
 		props.putString(CURRENT_TIME, Long.toString(System.currentTimeMillis()));
 		props.putString("ambeth.log.level", "INFO");
+		props.putString("ambeth.log.source", "SHORT");
 		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(props, IocModule.class);
 		try {
 			bootstrapContext.createService(ScannerModule.class);
