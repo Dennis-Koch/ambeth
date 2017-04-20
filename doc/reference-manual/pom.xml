@@ -1,24 +1,25 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.osthus.ambeth</groupId>
 	<artifactId>ambeth-documentation</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	
+
 	<properties>
 		<ambeth.version>3.0.1</ambeth.version>
 		<ambeth.integrity.version>1.0.1</ambeth.integrity.version>
 	</properties>
-	
+
 	<pluginRepositories>
-        <pluginRepository>
-            <id>maven-latex-plugin-repo</id>
-            <url>http://akquinet.github.com/maven-latex-plugin/maven2/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </pluginRepository>
-    </pluginRepositories>
+		<pluginRepository>
+			<id>maven-latex-plugin-repo</id>
+			<url>http://akquinet.github.com/maven-latex-plugin/maven2/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+		</pluginRepository>
+	</pluginRepositories>
 
 	<dependencies>
 		<dependency>
@@ -31,44 +32,47 @@
 	<build>
 		<plugins>
 			<plugin>
-			   <groupId>com.google.code.maven-replacer-plugin</groupId>
-			   <artifactId>replacer</artifactId>
-			   <version>1.5.3</version>
-			   <executions>
-				   <execution>
-					   <phase>site</phase>
-					   <goals>
-						   <goal>replace</goal>
-					   </goals>                   
-				   </execution>
-			   </executions>
-			   <configuration>
-				   <file>properties.tex</file>
-				   <replacements>
-					   <replacement>
-						   <token>@version@</token>
-						   <value>${ambeth.version}</value>
-					   </replacement>         
-				   </replacements>
-			   </configuration>
-		   </plugin>
-		   
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.0.2</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<!-- here the phase you need -->
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/target</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/main/resources</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>de.akquinet.maven</groupId>
 				<artifactId>maven-latex-plugin</artifactId>
 				<version>1.1</version>
 				<configuration>
 					<settings>
-						<!-- all tex main documents in this folder (including subfolders) will be processed -->
+						<!-- all tex main documents in this folder (including subfolders) will 
+							be processed -->
 						<texDirectory>.</texDirectory>
-						<!-- the generated artifacts will be copied to this folder relative to ${project.reporting.outputDirectory} -->
-						<outputDirectory>.</outputDirectory> 
-						<!-- the working directory, for temporary files and LaTeX processing relative to ${project.build.directory} -->
-						<tempDirectory>../../latex-tmp</tempDirectory>
+						<!-- the generated artifacts will be copied to this folder relative 
+							to ${project.reporting.outputDirectory} -->
+						<outputDirectory>.</outputDirectory>
+						<!-- the working directory, for temporary files and LaTeX processing 
+							relative to ${project.build.directory} -->
+						<tempDirectory>latex-tmp</tempDirectory>
 						<!-- clean up the working directory in the end? May be used for debugging -->
 						<cleanUp>false</cleanUp>
 						<!-- path to the TeX scripts, if none, it must be on the system path -->
-						<texPath/>
+						<texPath />
 						<!-- the latex command -->
 						<texCommand>pdflatex</texCommand>
 						<!-- the bibtex command -->
@@ -84,10 +88,10 @@
 				<executions>
 					<!-- execute latex goal automatically during the site phase -->
 					<execution>
-						<phase>site</phase>
+						<phase>deploy</phase>
 						<goals>
 							<goal>latex</goal>
-							<!--<goal>tex4ht</goal>-->
+							<!--<goal>tex4ht</goal> -->
 						</goals>
 					</execution>
 				</executions>
