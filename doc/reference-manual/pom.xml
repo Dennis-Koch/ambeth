@@ -68,13 +68,13 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<artifactId>exec-maven-plugin</artifactId>
 				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
 				<version>1.6.0</version>
 				<executions>
 					<execution>
 						<id>Resolve Ambeth libraries</id>
-						<phase>install</phase>
+						<phase>generate-resources</phase>
 						<goals>
 							<goal>exec</goal>
 						</goals>
@@ -91,7 +91,7 @@
 					</execution>
 					<execution>
 						<id>Resolve Ambeth 3rd party libraries</id>
-						<phase>install</phase>
+						<phase>generate-resources</phase>
 						<goals>
 							<goal>exec</goal>
 						</goals>
@@ -106,10 +106,9 @@
 							</arguments>
 						</configuration>
 					</execution>
-
 					<execution>
 						<id>Resolve Source XML project</id>
-						<phase>install</phase>
+						<phase>generate-resources</phase>
 						<goals>
 							<goal>exec</goal>
 						</goals>
@@ -124,8 +123,25 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>Resolve Extendables Scanner project</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>mvn</executable>
+							<arguments>
+								<argument>-f</argument>
+								<argument>${settings.localRepository}/com/koch/ambeth/extendables-scanner/${ambeth.extendables.scanner.version}/extendables-scanner-${ambeth.extendables.scanner.version}.pom</argument>
+								<argument>dependency:copy-dependencies</argument>
+								<argument>-DoutputDirectory=${basedir}/target/extendables-scanner</argument>
+							</arguments>
+						</configuration>
+					</execution>
+
+					<execution>
 						<id>Build Source XML files</id>
-						<phase>install</phase>
+						<phase>process-resources</phase>
 						<goals>
 							<goal>exec</goal>
 						</goals>
@@ -142,10 +158,9 @@
 							</arguments>
 						</configuration>
 					</execution>
-					
 					<execution>
 						<id>Mock C# XML file</id>
-						<phase>install</phase>
+						<phase>process-resources</phase>
 						<goals>
 							<goal>exec</goal>
 						</goals>
@@ -158,26 +173,9 @@
 							</arguments>
 						</configuration>
 					</execution>
-
-					<execution>
-						<id>Prepare Extendables Scanner (dependencies)</id>
-						<phase>install</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>mvn</executable>
-							<arguments>
-								<argument>-f</argument>
-								<argument>${settings.localRepository}/com/koch/ambeth/extendables-scanner/${ambeth.extendables.scanner.version}/extendables-scanner-${ambeth.extendables.scanner.version}.pom</argument>
-								<argument>dependency:copy-dependencies</argument>
-								<argument>-DoutputDirectory=${basedir}/target/extendables-scanner</argument>
-							</arguments>
-						</configuration>
-					</execution>
 					<execution>
 						<id>Extendables Scanner</id>
-						<phase>install</phase>
+						<phase>process-resources</phase>
 						<goals>
 							<goal>exec</goal>
 						</goals>
@@ -198,16 +196,21 @@
 							</arguments>
 						</configuration>
 					</execution>
-					<!-- <execution> <id>Extendables Scanner</id> <phase>install</phase> 
-						<goals> <goal>exec</goal> </goals> <configuration> <executable>mvn</executable> 
-						<arguments> <argument>-f</argument> <argument>${settings.localRepository}/com/koch/ambeth/extendables-scanner/${ambeth.extendables.scanner.version}/extendables-scanner-${ambeth.extendables.scanner.version}.pom</argument> 
-						<argument>exec:exec</argument> <argument>-Dexec.executable="java"</argument> 
-						<argument>"-Dexec.args=-cp ""${basedir}\target\extendables-scanner\*;${settings.localRepository}\com\koch\ambeth\extendables-scanner\${ambeth.extendables.scanner.version}\extendables-scanner-${ambeth.extendables.scanner.version}.jar"" 
-						com.koch.ambeth.extscanner.Main scan-path=""${basedir}/target/data"" source-path=""${basedir}/../../ambeth;${basedir}/../../jambeth"" 
-						target-all-dir=""${basedir}"" target-extendable-tex-dir=""${basedir}/extendable"" 
-						target-properties-tex-dir=""${basedir}/configuration"" target-feature-tex-dir=""${basedir}/feature"" 
-						target-module-tex-dir=""${basedir}/module"" target-annotation-tex-dir=""${basedir}/annotation"" 
-						"</argument> </arguments> </configuration> </execution> -->
+					<execution>
+						<id>Rename C# XML file</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>xcopy</executable>
+							<arguments>
+								<argument>..\latex-tmp\Ambeth-Reference.pdf</argument>
+								<argument>target\Ambeth-Reference-${ambeth.version}.pdf*</argument>
+								<argument>/Y</argument>
+							</arguments>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>
@@ -224,7 +227,7 @@
 						<outputDirectory>.</outputDirectory>
 						<!-- the working directory, for temporary files and LaTeX processing 
 							relative to ${project.build.directory} -->
-						<!-- <tempDirectory>../latex-tmp</tempDirectory> -->
+						<tempDirectory>../../latex-tmp</tempDirectory>
 						<!-- clean up the working directory in the end? May be used for debugging -->
 						<cleanUp>false</cleanUp>
 						<!-- path to the TeX scripts, if none, it must be on the system path -->
@@ -235,16 +238,15 @@
 						<bibtexCommand>bibtex</bibtexCommand>
 						<!-- the arguments to use when calling latex -->
 						<texCommandArgs>
-							<texCommandArg>-shell-escape</texCommandArg>
+							<!-- <texCommandArg>-shell-escape</texCommandArg> -->
 							<texCommandArg>-interaction=nonstopmode</texCommandArg>
 							<texCommandArg>--src-specials</texCommandArg>
 						</texCommandArgs>
 					</settings>
 				</configuration>
 				<executions>
-					<!-- execute latex goal automatically during the site phase -->
 					<execution>
-						<phase>install</phase>
+						<phase>compile</phase>
 						<goals>
 							<goal>latex</goal>
 							<!--<goal>tex4ht</goal> -->

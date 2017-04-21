@@ -29,3 +29,4 @@ LICENSE.txt
 /ambeth-integrity/de.osthus.classbrowser.csharp/CsharpClassbrowser/CsharpClassbrowser.Test/obj
 /ambeth-integrity/de.osthus.classbrowser.csharp/CsharpClassbrowser/TestResults
 *.synctex
+latex-tmp
