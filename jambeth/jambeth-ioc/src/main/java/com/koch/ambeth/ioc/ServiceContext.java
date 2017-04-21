@@ -50,6 +50,7 @@ import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.ReadWriteLock;
 import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.collections.ArrayList;
+import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityHashSet;
@@ -1114,5 +1115,15 @@ public class ServiceContext
 	@Override
 	public void toString(StringBuilder sb) {
 		printContent(sb);
+	}
+
+	@Override
+	public ISet<Class<?>> collectAllTypeWiredServices() {
+		HashSet<Class<?>> typeWiredNonFactoryServices = new HashSet<>();
+		for (Entry<Class<?>, Object> entry : typeToServiceDict) {
+			Class<?> serviceType = entry.getKey();
+			typeWiredNonFactoryServices.add(serviceType);
+		}
+		return typeWiredNonFactoryServices;
 	}
 }

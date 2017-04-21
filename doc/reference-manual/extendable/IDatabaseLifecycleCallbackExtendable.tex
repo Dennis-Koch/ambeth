@@ -2,16 +2,16 @@
 \section{IDatabaseLifecycleCallbackExtendable}
 \label{extendable:IDatabaseLifecycleCallbackExtendable}
 \ClearAPI
-\javadoc{de.osthus.ambeth.persistence.callback.IDatabaseLifecycleCallbackExtendable}{IDatabaseLifecycleCallbackExtendable}
-\javadoc{de.osthus.ambeth.IDatabaseLifecycleCallback}{IDatabaseLifecycleCallback}
+\javadoc{com.koch.ambeth.persistence.callback.IDatabaseLifecycleCallbackExtendable}{IDatabaseLifecycleCallbackExtendable}
+\javadoc{com.koch.ambeth.IDatabaseLifecycleCallback}{IDatabaseLifecycleCallback}
 \TODO
 
 %% GENERATED LISTINGS - DO NOT EDIT
 \inputjava{Extension point for instances of \type{IDatabaseLifecycleCallback}}
-{jambeth-persistence/src/main/java/de/osthus/ambeth/persistence/callback/IDatabaseLifecycleCallbackExtendable.java}
+{jambeth-persistence/src/main/java/com/koch/ambeth/persistence/database/callback/IDatabaseLifecycleCallbackExtendable.java}
 \begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
 IBeanContextFactory bcf = ...
-IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+IBeanConfiguration myExtension = bcf.registerBean(...);
 bcf.link(myExtension).to(IDatabaseLifecycleCallbackExtendable.class);
 \end{lstlisting}
 %% GENERATED LISTINGS END

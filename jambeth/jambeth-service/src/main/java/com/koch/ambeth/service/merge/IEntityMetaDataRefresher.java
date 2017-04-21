@@ -22,10 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 
-/**
- *
- *
- */
 public interface IEntityMetaDataRefresher {
 	void refreshMembers(IEntityMetaData metaData);
 }

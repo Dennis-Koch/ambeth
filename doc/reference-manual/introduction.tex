@@ -2,22 +2,33 @@
 \label{Introduction}
 
 
-Ambeth is a Java and C\# framework with a vast amount of features and technology. The first version of Ambeth was created due to the development
-of a C\# UI / Server project. After a while the source code was translated into java and evolved to one of the core frameworks, used at OSTHUS\textsuperscript{\textregistered} for server and client development.
+Ambeth is a rich modular software framework with a vast amount of features implemented with efficient patterns all around handling of arbitrary large, arbitrary complex, distributed information models.
 
-This document covers the Ambeth framework. The usage of components as well as the fundamental ideas and patterns, used in Ambeth are explained.
+The very first version of Ambeth has been created in Java around 2006 and its core concepts under the name of \textit{NetLayer} have been used since then by the German Air Force (GAF) for fast and reliable data exchange in real-time in distributed Command And Control Information systems (CCIS).
 
-As you can imaging, while taking a first look at the table of contents, the framework is very huge and the process of writing documentation is still an ongoing task. Please do not step back if you encounter \TODO parts in this document. If you need answers to this sections, just ask the technology@osthus.de team! We love to hear your feedback.
+Around 2011 a rewritten version has been evolved in MS Silverlight driven by OSTHUS\textsuperscript{\textregistered} to support the development of a modern web-based C\# Client / Server project. After its success and showings its benefits for the developers the source code of this second version has been completely ported back into Java in 2013. Since then it continuously evolved to the core frameworks at OSTHUS\textsuperscript{\textregistered} for server and client development in Java.
+
+2013 the Ambeth framework has been been chosen by the \href{http://www.allotrope.org}{Allotrope Foundation} as the underlying base of the to-be developed Allotrope Class Libraries and potential other software components. \footnote{The Allotrope Foundation is a consortium of around a dozen global pharmaceutical companies with the mission to standardize lab automation processes and data formats}.
+
+Given the fact that from 2012-2015 the Ambeth framework has solely been maintained and developed in Java and the increasing needs to provide Java projects also with a symmetrical C\#.NET branch a generic transpiler has been invented to allow to continuously focus the development on Java but to distribute the framework - including complete source code and all unit tests - in Java as well as in C\#.NET reliably and in-time.
+
+2017 the Allotrope Foundation agreed to publish the Ambeth framework as Open Source in order to ease its use by an even wider customer and developer base.
+
+This document covers the Ambeth framework. The usage of components as well as the fundamental concepts and patterns used in Ambeth are explained.
+
+As you can imagine, while taking a first look at the table of contents, the framework is very huge and the process of writing documentation is still an ongoing task. Please do not step back if you encounter \TODO parts in this document. If you have questions, just ask dennis.koch@bruker.com! We love to hear your feedback.
 
 \section{The manual}
 This document is separated into 5 sections. The sections are described in the next chapters.
 \subsection{Modules}
 
-The \prettyref{ambeth:modules} are parts of Ambeth that can be bundled together to deliver a certain kind of functionality. There is of course a dependency between those module and 
-just using a single module will not work in most cases. The dependencies between those modules are managed with \prettyref{stack:maven}. To support faster setting up your environment the
-necessary Maven dependency snippets are provided for every module for easy usage. For questions about Maven, please refer to the \prettyref{stack:maven} chapter of this manual.
-To even speed up the usage of Ambeth, so called ``ambeth-bundles'' are provided. For further questions please see the \prettyref{stack:bundles}.
-An example for a module is the \prettyref{module:Audit} module. Use this module if you need full \prettyref{regulations:21CFRPart11} Title 21 CFR Part 11 audit support for your application.
+The \prettyref{ambeth:modules} are fragments of Ambeth that can be bundled together to deliver a certain kind of functionality. There is an implicit dependency between those modules based on functionality and just using a single module without anything else will not work and not make any sense in most cases. The dependencies between those modules are managed with \prettyref{stack:maven}. To support a faster setup of your environment the
+necessary Maven dependency snippets are provided for each module. For questions about Maven, please refer to the \prettyref{stack:maven} chapter of this manual. Because of the increasing amount of Ambeth modules a concept of so called ``ambeth-bundles'' has been introduced as an aggregation layer. For further questions please see the \prettyref{stack:bundles}.
+
+\begin{itemize}
+  \item An example for a module is the \prettyref{module:Audit} module. Use this module if you need full \prettyref{regulations:21CFRPart11} audit support for your application.
+  \item Another example is the \prettyref{bundle:InformationBus} bundle. Use this bundle if you need the basic integrated set of components for the information model handling.
+\end{itemize}
 
 \def\showimgref{img/platform-overview.png}
 \showimg{Ambeth Overview}
@@ -28,7 +39,7 @@ An example for a module is the \prettyref{module:Audit} module. Use this module 
 	\item Inherent support for agile development \newline testability as a core concept
 	\item Seamless \newline identical concept, algorithms, implementation and API in Java and C\#
 	\item Extendable \newline component interaction is completely interface-based
-	\item Performance \newline e.g. Ambeth IOC more than 500\% runtime-performance compared to Spring IOC
+	\item Performance \newline e.g. Ambeth IoC more than 500\% runtime-performance compared to Spring IOC
 \end{itemize}
 
 \subsubsection{Rich Components}
@@ -79,7 +90,7 @@ To allow a huge flexibility the feature \prettyref{feature:Extendable} offers a 
 Annotations (\prettyref{ambeth:annotations}) used in different scenarios. Use them for example to tell Ambeth certain things about your code. For example, use the  \prettyref{annotation:BootstrapModule} to inform the Ambeth \prettyref{module:IoC} module about the modules of your application. Use the \prettyref{annotation:EntityEqualsAspect} annotation to let Ambeth generate functionality at runtime that.
 
 \subsection{Configurations}
-\prettyref{ambeth:configuration} are used for tweaking the performance of Ambeth for different environments e.g. the \prettyref{configuration:CacheLruThreshold} and also allow the configuration of certain modules for example the \prettyref{module:Persistence} module with the ``\prettyref{configuration:DatabaseConnection}'' configuration.
+\prettyref{ambeth:configurations} are used for tweaking the performance of Ambeth for different environments e.g. the \prettyref{configuration:CacheLruThreshold} and also allow the configuration of certain modules for example the \prettyref{module:Persistence} module with the ``\prettyref{configuration:DatabaseConnection}'' configuration.
 
 \section{Ambeth Overview}
 The Ambeth Framework speeds up software development by allowing programmers to focus on business requirements rather than dealing with technical infrastructure code. It greatly simplifies the integration of data from various sources into customers application platforms. Real life experience enabled OSTHUS\textsuperscript{\textregistered} to create the Ambeth Framework to overcome issues inherent with current open-source frameworks.
@@ -127,7 +138,7 @@ The following chapters provide a reference from a specified use case to the corr
 
 \TODO Unbedingt ueberpruefen, was ich(MW) hier geschrieben habe!
 
-To use any feature of \AMBETH you need create a ``context'' in which the different modules (see \prettyref{ambeth:modules}) are available. A context can be created as described in \prettyref{module:IoC}. Alternatively the \type{de.osthus.ambeth.Ambeth} class can be used. 
+To use any feature of \AMBETH you need create a ``context'' in which the different modules (see \prettyref{ambeth:modules}) are available. A context can be created as described in \prettyref{module:IoC}. Alternatively the \type{com.koch.ambeth.Ambeth} class can be used. 
 
 \subsection{Inversion of Control -- Dependency Injection}
 

@@ -6,32 +6,38 @@
 %% MAVEN GENERATED START
 \begin{lstlisting}[style=POM,caption={Maven modules to use \emph{Ambeth Security}}]
 <dependency>
-	<groupId>de.osthus.ambeth</groupId>
+	<groupId>com.koch.ambeth</groupId>
 	<artifactId>jambeth-security</artifactId>
 	<version>§\version§</version>
 </dependency>
 
 <dependency>
-	<groupId>de.osthus.ambeth</groupId>
+	<groupId>com.koch.ambeth</groupId>
 	<artifactId>jambeth-security-bytecode</artifactId>
 	<version>§\version§</version>
 </dependency>
 
 <dependency>
-	<groupId>de.osthus.ambeth</groupId>
+	<groupId>com.koch.ambeth</groupId>
 	<artifactId>jambeth-security-job</artifactId>
 	<version>§\version§</version>
 </dependency>
 
 <dependency>
-	<groupId>de.osthus.ambeth</groupId>
+	<groupId>com.koch.ambeth</groupId>
 	<artifactId>jambeth-security-persistence</artifactId>
 	<version>§\version§</version>
 </dependency>
 
 <dependency>
-	<groupId>de.osthus.ambeth</groupId>
+	<groupId>com.koch.ambeth</groupId>
 	<artifactId>jambeth-security-server</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-security-test</artifactId>
 	<version>§\version§</version>
 </dependency>
 \end{lstlisting}
@@ -55,6 +61,7 @@
 %% CONFIGURATION GENERATED START
 \subsection{Configuration}
 \begin{itemize}
+	\item \prettyref{configuration:PrivilegeServiceActive}
 	\item \prettyref{configuration:SecurityAuthmanagerType}
 	\item \prettyref{configuration:SecurityCryptoAlgorithmName}
 	\item \prettyref{configuration:SecurityCryptoKeyspecName}
@@ -88,6 +95,7 @@
 	\item \prettyref{configuration:SecurityPrivilegeDefaultReadProperty}
 	\item \prettyref{configuration:SecurityPrivilegeDefaultUpdateEntity}
 	\item \prettyref{configuration:SecurityPrivilegeDefaultUpdateProperty}
+	\item \prettyref{configuration:SecurityServiceActive}
 	\item \prettyref{configuration:SecuritySignatureActive}
 	\item \prettyref{configuration:SecuritySignatureAlgorithmName}
 	\item \prettyref{configuration:SecuritySignatureEncryptionAlgorithmIterationcount}
@@ -108,10 +116,10 @@ ambeth.security.active=true
 \end{lstlisting}
 
 Implement the following interface to provide instances of \type{IUser} for the Ambeth Authentication Process:
-\inputjava{IUserResolver}{jambeth-security-server/src/main/java/de/osthus/ambeth/security/IUserResolver.java}
+\inputjava{IUserResolver}{jambeth-security-server/src/main/java/com/koch/ambeth/security/server/IUserResolver.java}
 
 Implement the following interface to encapsulate your custom authorization process:
-\inputjava{IAuthorizationManager}{jambeth-security/src/main/java/de/osthus/ambeth/security/IAuthorizationManager.java}
+\inputjava{IAuthorizationManager}{jambeth-security/src/main/java/com/koch/ambeth/security/IAuthorizationManager.java}
 
 After a successful authentication \& authorization the information gets stored in a thread-local security handle. To be of any use your beans have to be secured declaratively with the \type{@SecurityContext} annotation:
 

@@ -5,13 +5,13 @@
 \ClearAPI
 \TODO
 \feature
-	{de.osthus.ambeth.ioc.link.ILinkExtendable}
+	{com.koch.ambeth.ioc.link.ILinkExtendable}
 	{Java \& C\#}
 	{1.0.0}
 	{-}
 	{-}
 	{module:IoC}
-	{de.osthus.ambeth.ioc.link.LinkContainerTest}
+	{com.koch.ambeth.ioc.link.LinkContainerTest}
 
 The extendable pattern is a design pattern used in software development to encapsulate the processes of registering and unregistering container managed extensions. The container links all extensions to the corresponding extendables after each bean has been initialized in its \type{AfterPropertiesSet} phase and before any bean gets initialized in its \type{AfterStarted} phase (\prettyref{feature:IoCLifecycle}). They are consequently unlinked before any bean starts its \type{Destroy} phase during the shutdown sequence of the container.\newline
 

@@ -3,13 +3,13 @@
 \label{feature:CacheWalker}
 \ClearAPI
 \feature
-	{de.osthus.ambeth.cache.ICacheWalker}
+	{com.koch.ambeth.cache.ICacheWalker}
 	{Java \& C\#}
 	{2.2.27}
 	{-}
 	{-}
 	{module:Cache}
-	{de.osthus.ambeth.example.cache.CacheWalkerExample}
+	{com.koch.ambeth.example.cache.CacheWalkerExample}
 
 Scans the cache hierarchy for the cache-individual occurrence of given entity instances. It resolves all potentially thread-local or transactional proxy instances which greatly reduces debugging complexity for a developer.\newline
 
@@ -20,7 +20,7 @@ The walking algorithm is thread-safe and does not change or load anything into t
 In addition the walking algorithm \emph{undergoes} intentionally a potential Ambeth Security Layer: The response contains information about cache states which would never be available (filtered) for a thread-bound authenticated user. See \prettyref{module:Security} for details regarding Security with \type{Ambeth}.
 
 \inputjava{Usage example for the \type{ICacheWalker}-Bean}
-	{jambeth-examples/src/main/java/de/osthus/ambeth/example/cache/CacheWalkerExample.java}
+	{jambeth-examples/src/main/java/com/koch/ambeth/example/cache/CacheWalkerExample.java}
 
 Generated output:
 

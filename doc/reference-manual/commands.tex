@@ -23,7 +23,7 @@
 \newcommand{\inputjava}[2]
 {
 	\lstinputlisting[caption={#1 (Java)},style=Java]
-		{../../jambeth/#2}
+		{target/src-files/#2}
 }
 
 \newcommand{\inputcsharp}[2]
@@ -155,6 +155,8 @@
 \newcommand{\sectionbreak}{}
 
 \def\API{nothing}
+
+\newcommand{\CustomSetAPI}[1]{\def\API{#1}}
 
 \newcommand{\SetAPI}[1]{\def\API{#1}}
 

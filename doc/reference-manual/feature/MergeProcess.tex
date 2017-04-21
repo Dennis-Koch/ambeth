@@ -23,7 +23,7 @@ On many transitions to complex information models several implicit changes exist
 			\item Let further exist two instances for each entity: a1,a2 and b1,b2 where b1,b2 are each referred by ``a1.RelToB'' as well as ``a2.RelToB''
 			\item The application developer deletes b1 via the \AMBETH{} \type{Merge Process} without removing b1 from both relations ``a1.RelToB'' and ``a2.RelToB'':
 \begin{lstlisting}[style=POM]
-DEBUG de.osthus.ambeth.merge.MergeServiceRegistry: Initial merge [883646603]:
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Initial merge [883646603]:
 <CUDResult size="1" creates="0" updates="0" deletes="1">
 	<Deletes>
 		<Entity type="example.B" Id="1" version="1" idx="1" />
@@ -32,7 +32,7 @@ DEBUG de.osthus.ambeth.merge.MergeServiceRegistry: Initial merge [883646603]:
 \end{lstlisting}
 			\item The \type{Merge Service} extends the explicit transition ``Delete b1'' with the implicit transition ``Update a1'' and ``Update a2'':
 \begin{lstlisting}[style=POM]		
-DEBUG de.osthus.ambeth.merge.MergeServiceRegistry: Incremental merge [883646603] (PersistenceMergeServiceExtension):
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Incremental merge [883646603] (PersistenceMergeServiceExtension):
 <CUDResult size="2" creates="0" updates="2" deletes="0">
 	<Updates>
 		<Entity type="example.A" id="1" version="1" idx="2">
@@ -47,7 +47,7 @@ DEBUG de.osthus.ambeth.merge.MergeServiceRegistry: Incremental merge [883646603]
 		</Entity>
 	</Updates>
 </CUDResult>
-DEBUG de.osthus.ambeth.merge.MergeServiceRegistry: Merge finished [883646603]
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Merge finished [883646603]
 \end{lstlisting}
 		\end{itemize}
 	\item Outgoing relations / cascade delete
@@ -56,7 +56,7 @@ DEBUG de.osthus.ambeth.merge.MergeServiceRegistry: Merge finished [883646603]
 			\item Let further exist one instance p1 referring to instances of C: c1 and c2
 			\item The application developer explicitly deletes p1 via the \AMBETH{} \type{Merge Process}:
 \begin{lstlisting}[style=POM]
-DEBUG de.osthus.ambeth.merge.MergeServiceRegistry: Initial merge [883646604]:
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Initial merge [883646604]:
 <CUDResult size="1" creates="0" updates="0" deletes="1">
 	<Deletes>
 		<Entity type="example.P" Id="1" version="1" idx="1" />
@@ -65,7 +65,7 @@ DEBUG de.osthus.ambeth.merge.MergeServiceRegistry: Initial merge [883646604]:
 \end{lstlisting}
 			\item The \type{Merge Service} extends the explicit transition ``Delete p1'' with the implicit transition ``Delete c1'' and ``Delete c2'':
 \begin{lstlisting}[style=POM]		
-DEBUG de.osthus.ambeth.merge.MergeServiceRegistry: Incremental merge [883646604] (PersistenceMergeServiceExtension):
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Incremental merge [883646604] (PersistenceMergeServiceExtension):
 <CUDResult size="2" creates="0" updates="0" deletes="2">
 	<Deletes>
 		<Entity type="example.C" id="1" version="1" idx="2" />
@@ -75,7 +75,7 @@ DEBUG de.osthus.ambeth.merge.MergeServiceRegistry: Incremental merge [883646604]
 \end{lstlisting}			
 			\item This allows event-driven business logic (EBDL) as well as the \AMBETH{} security to react on the (now explicit) deletion of each individual child without  effort for a developer. For the sake of simplicity in the following example for an incremental merge step an EBDL component of an application wants to update the state of a specific instance p2 (of type P) because of the deletion of c1:
 \begin{lstlisting}[style=POM]		
-DEBUG de.osthus.ambeth.merge.MergeServiceRegistry: Incremental merge [883646604] (SimpleEventDrivenBusinessLogicComponent):
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Incremental merge [883646604] (SimpleEventDrivenBusinessLogicComponent):
 <CUDResult size="1" creates="0" updates="1" deletes="0">
 	<Updates>
 		<Entity type="example.P" id="2" version="1" idx="4">
@@ -83,7 +83,7 @@ DEBUG de.osthus.ambeth.merge.MergeServiceRegistry: Incremental merge [883646604]
 		</Entity>
 	</Updates>
 </CUDResult>
-DEBUG de.osthus.ambeth.merge.MergeServiceRegistry: Merge finished [883646604]
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Merge finished [883646604]
 \end{lstlisting}
 			\item In another scenario security rules defined by the application might deny the whole transition at the end of the \type{Incremental Merge} iterations because of a lack of delete permission on c2 despite the fact that the current user might indeed have the permission to delete p1 or to update p2.
 			\item Note that this feature works in any scenario of possible relation accesses betweens P and C: It works if only P has a property referring to C, or each C has a property referring to P or if the relation is bi-directionally accessible.
@@ -94,7 +94,7 @@ DEBUG de.osthus.ambeth.merge.MergeServiceRegistry: Merge finished [883646604]
 			\item Let further exist two instances for each entity: a1,a2 and b1,b2 where b1, b2 are both referred by ``a1.RelToB'' (and therefore none of them referred by ``a2.RelToB'')
 			\item The application developer adds b2 to ``a2.RelToB'' via the \AMBETH{} \type{Merge Process}:
 \begin{lstlisting}[style=POM]		
-DEBUG de.osthus.ambeth.merge.MergeServiceRegistry: Initial merge [883646605]:
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Initial merge [883646605]:
 <CUDResult size="1" creates="0" updates="1" deletes="0">
 	<Updates>
 		<Entity type="example.A" id="2" version="1" idx="1">
@@ -107,7 +107,7 @@ DEBUG de.osthus.ambeth.merge.MergeServiceRegistry: Initial merge [883646605]:
 \end{lstlisting}
 			\item The \type{Merge Service} transparently removes b2 from ``a1.RelToB'' without the requirement that the developer even needs to think about a1. There can even exist specific scenarios where the application code is technically not able to access a1 even if the developer knows it is (implicitly) relevant for his transition:
 \begin{lstlisting}[style=POM]		
-DEBUG de.osthus.ambeth.merge.MergeServiceRegistry: Incremental merge [883646605] (PersistenceMergeServiceExtension):
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Incremental merge [883646605] (PersistenceMergeServiceExtension):
 <CUDResult size="1" creates="0" updates="1" deletes="0">
 	<Updates>
 		<Entity type="example.A" id="1" version="1" idx="3">
@@ -117,7 +117,7 @@ DEBUG de.osthus.ambeth.merge.MergeServiceRegistry: Incremental merge [883646605]
 		</Entity>
 	</Updates>
 </CUDResult>
-DEBUG de.osthus.ambeth.merge.MergeServiceRegistry: Merge finished [883646605]
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Merge finished [883646605]
 \end{lstlisting}
 			\item This greatly reduces application complexity for a developer, removes risks to the integrity of the information model and allows a truly separation of concerns between business logic and model integrity / persistence logic.
 		\end{itemize}

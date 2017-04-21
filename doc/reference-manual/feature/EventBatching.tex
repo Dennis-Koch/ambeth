@@ -4,10 +4,10 @@
 \label{feature:EventBatching}
 \ClearAPI
 \begin{itemize}
-	\item Events can be dispatched in a batch-process via \javadoc{de.osthus.ambeth.event.IEventQueue}{IEventQueue}.flushEventQueue().
-	\item Events can also be consumed in a batch-process if the listener implements \javadoc{de.osthus.ambeth.event.IBatchedEventListener}{IBatchedEventListener}
+	\item Events can be dispatched in a batch-process via \javadoc{com.koch.ambeth.event.IEventQueue}{IEventQueue}.flushEventQueue().
+	\item Events can also be consumed in a batch-process if the listener implements \javadoc{com.koch.ambeth.event.IBatchedEventListener}{IBatchedEventListener}
 	\begin{itemize}
-		\item This feature is used e.g. in the \prettyref{module:DataChange} Kafka module (\javadoc{de.osthus.ambeth.event.kafka.EventToKafkaPublisher}{EventToKafkaPublisher}) to make use of the batch-dispatch capability of the \href{http://www.osthus.com/ambeth/javadoc/}{Kafka publisher}.
+		\item This feature is used e.g. in the \prettyref{module:DataChange} Kafka module (\javadoc{com.koch.ambeth.event.kafka.EventToKafkaPublisher}{EventToKafkaPublisher}) to make use of the batch-dispatch capability of the Kafka publisher.
 	\end{itemize}
 \end{itemize}
 

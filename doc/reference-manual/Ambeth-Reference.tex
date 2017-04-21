@@ -11,7 +11,7 @@
 \usepackage{transparent}
 \usepackage{float} %allows to force floats being placed exactly where they are defined
 \usepackage{wrapfig} %allows the wraptable environment to wrap text around tabular environments, load wrapfig AFTER float
-\usepackage{eso-pic} % Osthus watermark
+\usepackage{eso-pic} % watermark
 \ifpdf
 \usepackage{subcaption} %allows subfigures within figures
 \fi
@@ -50,8 +50,9 @@
     urlcolor={red!80!black}	% color of external links
 }
 
-% import properties first at all
+% import properties first of all
 \input{properties}
+\input{target/ambeth-version}
 
 \textwidth440pt
 \oddsidemargin0pt

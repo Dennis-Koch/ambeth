@@ -28,12 +28,22 @@ import com.koch.ambeth.ioc.hierarchy.IBeanContextHolder;
 import com.koch.ambeth.ioc.link.ILinkRuntimeExtendable;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.collections.IList;
+import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 
 /**
  * Interface to access a running jAmbeth IoC context from application code.
  */
 public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, AutoCloseable {
+
+	/**
+	 * Builds a set with all types where a bean instance is wired to in this context. This method does
+	 * not evaluate the content of parent contexts.
+	 *
+	 * @return A set containing all types where a bean instance is wired to in this context.
+	 */
+	ISet<Class<?>> collectAllTypeWiredServices();
+
 	/**
 	 * Returns the name of the context
 	 *

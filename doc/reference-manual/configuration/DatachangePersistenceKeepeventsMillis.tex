@@ -2,20 +2,20 @@
 \section{datachange.persistence.keepevents.millis}
 \label{configuration:DatachangePersistenceKeepeventsMillis}
 \ClearAPI
-The time in ms which datachange events should not be removed. After the time has expired the events are removed from the database. Valid values are all numbers > 0 and -1, whereas -1 means the events are stored forever. This property takes only effect if the DataChangePersistentModule (\ref{module:DataChange}) is loaded.
+The time in ms which datachange events should not be removed. After the time has expired the events are removed from the database. Valid values are all numbers > 0 and -1, whereas -1 means the events are stored forever. This property takes only effect if the DataChangePersistenceModule (\ref{module:DataChange}) is loaded.
 %% GENERATED USAGE REFERENCE - DO NOT EDIT
 \begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
 	\endhead
 	\hline
-		\type{de.osthus.ambeth.services.DataChangeEventService} &
+		\type{com.koch.ambeth.datachange.persistence.services.DataChangeEventService} &
 		\prettyref{module:DataChange} \\
 	\hline
-		\type{de.osthus.ambeth.services.DataChangeEventService} &
+		\type{com.koch.ambeth.datachange.persistence.services.DataChangeEventService} &
 		\prettyref{module:DataChange} \\
 	\hline
 \end{longtable}
 %% GENERATED USAGE REFERENCE END
-\type{de.osthus.ambeth.config.DataChangePersistenceConfigurationConstants.KeepEventsForMillis}
+\type{com.koch.ambeth.config.DataChangePersistenceConfigurationConstants.KeepEventsForMillis}
 \begin{lstlisting}[style=Props,caption={Usage example for \textit{datachange.persistence.keepevents.millis}}]
 datachange.persistence.keepevents.millis=-1
 \end{lstlisting}

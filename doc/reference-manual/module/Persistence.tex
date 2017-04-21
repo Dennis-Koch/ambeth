@@ -20,44 +20,104 @@ The persistence module strictly operates in batch mode and is applies different 
 %% MAVEN GENERATED START
 \begin{lstlisting}[style=POM,caption={Maven modules to use \emph{Ambeth Persistence}}]
 <dependency>
-	<groupId>de.osthus.ambeth</groupId>
+	<groupId>com.koch.ambeth</groupId>
 	<artifactId>jambeth-persistence</artifactId>
 	<version>§\version§</version>
 </dependency>
 
 <dependency>
-	<groupId>de.osthus.ambeth</groupId>
+	<groupId>com.koch.ambeth</groupId>
 	<artifactId>jambeth-persistence-api</artifactId>
 	<version>§\version§</version>
 </dependency>
 
 <dependency>
-	<groupId>de.osthus.ambeth</groupId>
+	<groupId>com.koch.ambeth</groupId>
 	<artifactId>jambeth-persistence-h2</artifactId>
 	<version>§\version§</version>
 </dependency>
 
 <dependency>
-	<groupId>de.osthus.ambeth</groupId>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-h2-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
 	<artifactId>jambeth-persistence-jdbc</artifactId>
 	<version>§\version§</version>
 </dependency>
 
 <dependency>
-	<groupId>de.osthus.ambeth</groupId>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-jdbc-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-maria</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-maria-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
 	<artifactId>jambeth-persistence-mssql</artifactId>
 	<version>§\version§</version>
 </dependency>
 
 <dependency>
-	<groupId>de.osthus.ambeth</groupId>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-mssql-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
 	<artifactId>jambeth-persistence-oracle11</artifactId>
 	<version>§\version§</version>
 </dependency>
 
 <dependency>
-	<groupId>de.osthus.ambeth</groupId>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-oracle11-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
 	<artifactId>jambeth-persistence-pg</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-pg-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-sqlite</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-sqlite-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-test</artifactId>
 	<version>§\version§</version>
 </dependency>
 \end{lstlisting}
@@ -78,6 +138,8 @@ The persistence module strictly operates in batch mode and is applies different 
 %% CONFIGURATION GENERATED START
 \subsection{Configuration}
 \begin{itemize}
+	\item \prettyref{configuration:AmbethRootDatabasePass}
+	\item \prettyref{configuration:AmbethRootDatabaseUser}
 	\item \prettyref{configuration:CacheQueryActive}
 	\item \prettyref{configuration:ConnectionsPrepared}
 	\item \prettyref{configuration:DatabaseArchivetablePostfix}
@@ -112,6 +174,7 @@ The persistence module strictly operates in batch mode and is applies different 
 	\item \prettyref{configuration:DatabasePoolPassivateActive}
 	\item \prettyref{configuration:DatabasePort}
 	\item \prettyref{configuration:DatabaseProtocol}
+	\item \prettyref{configuration:DatabaseRegisterDriverActive}
 	\item \prettyref{configuration:DatabaseRetryconnect}
 	\item \prettyref{configuration:DatabaseRetrysleep}
 	\item \prettyref{configuration:DatabaseSchemaCacheActive}
@@ -134,6 +197,11 @@ The persistence module strictly operates in batch mode and is applies different 
 	\item \prettyref{configuration:PersistenceIdsBatchsize}
 	\item \prettyref{configuration:PersistenceIdsPreparedbatchsize}
 	\item \prettyref{configuration:PersistenceIdsSequencePrefetchsize}
+	\item \prettyref{configuration:ScriptCreate}
+	\item \prettyref{configuration:ScriptUserName}
+	\item \prettyref{configuration:ScriptUserPass}
+	\item \prettyref{configuration:ScriptUserPropertyfile}
+	\item \prettyref{configuration:ScriptUserQuota}
 \end{itemize}
 %% CONFIGURATION END
 

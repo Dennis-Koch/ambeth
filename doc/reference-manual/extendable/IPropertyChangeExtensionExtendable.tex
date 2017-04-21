@@ -2,23 +2,23 @@
 \section{IPropertyChangeExtensionExtendable}
 \label{extendable:IPropertyChangeExtensionExtendable}
 \ClearAPI
-\javadoc{de.osthus.ambeth.databinding.IPropertyChangeExtensionExtendable}{IPropertyChangeExtensionExtendable}
-\javadoc{de.osthus.ambeth.databinding.IPropertyChangeExtension}{IPropertyChangeExtension}
+\javadoc{com.koch.ambeth.databinding.IPropertyChangeExtensionExtendable}{IPropertyChangeExtensionExtendable}
+\javadoc{com.koch.ambeth.databinding.IPropertyChangeExtension}{IPropertyChangeExtension}
 \TODO
 
 %% GENERATED LISTINGS - DO NOT EDIT
 \inputjava{Extension point for instances of \type{IPropertyChangeExtension}}
-{jambeth-cache/src/main/java/de/osthus/ambeth/databinding/IPropertyChangeExtensionExtendable.java}
+{jambeth-cache/src/main/java/com/koch/ambeth/cache/databinding/IPropertyChangeExtensionExtendable.java}
 \begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
 IBeanContextFactory bcf = ...
-IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+IBeanConfiguration myExtension = bcf.registerBean(...);
 bcf.link(myExtension).to(IPropertyChangeExtensionExtendable.class).with(...);
 \end{lstlisting}
 \inputcsharp{Extension point for instances of \type{IPropertyChangeExtension}}
 {Ambeth.Cache/ambeth/databinding/IPropertyChangeExtensionExtendable.cs}
 \begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
 IBeanContextFactory bcf = ...
-IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+IBeanConfiguration myExtension = bcf.RegisterBean(...);
 bcf.Link(myExtension).To<IPropertyChangeExtensionExtendable>().With(...);
 \end{lstlisting}
 %% GENERATED LISTINGS END

@@ -2,11 +2,11 @@
 \section{BeanInstantiationProcessor}
 \label{feature:BeanInstantiationProcessor}
 \ClearAPI
-Instantiationprocessor beans are defined by implementing the interface \type{de.osthus.ambeth.ioc.IBeanInstantiationProcessor} and are used in order to customize the instantiation process of a bean. In most cases this is helpful if you want to dynamically subclass by bytecode enhancement the bean type to change or extend its behavior.
+Instantiationprocessor beans are defined by implementing the interface \type{com.koch.ambeth.ioc.IBeanInstantiationProcessor} and are used in order to customize the instantiation process of a bean. In most cases this is helpful if you want to dynamically subclass by bytecode enhancement the bean type to change or extend its behavior.
 \newline
 The benefit of bytecode enhancement over proxying for AOP relies in the fact that it is very fast at invocation time (no reflection necessary, no CgLib interceptor or anything similar. As an outcome of the \textit{InstantiationProcessor} a single instance of a bytecode enhanced subclass of the target bean declaration is created.
 \newline
-A major usecase for such an \textit{InstantiationProcessor} is the \javadoc{de.osthus.ambeth.propertychange.PropertyChangeInstantiationProcessor}{PropertyChangeInstantiationProcessor} - working behind the scenes of the \prettyref{annotation:PropertyChangeAspect} annotation.
+A major usecase for such an \textit{InstantiationProcessor} is the \javadoc{com.koch.ambeth.propertychange.PropertyChangeInstantiationProcessor}{PropertyChangeInstantiationProcessor} - working behind the scenes of the \prettyref{annotation:PropertyChangeAspect} annotation.
 
 
 \subsection{Comparison of proxy based and bytecode based AOP}

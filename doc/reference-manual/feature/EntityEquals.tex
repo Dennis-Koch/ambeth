@@ -10,11 +10,11 @@ To use this feature annotate your entities with \type{@EntityEqualsAspect} (Java
 	\item toString() will print out the ``plain'' (not-enhanced) entity type together with the primary id
 \end{itemize}
 
-\mixinTip{de/osthus/ambeth/mixin/EntityEqualsMixin}{EntityEqualsMixin}
+\mixinTip{com/koch/ambeth/cache/mixin/EntityEqualsMixin}{EntityEqualsMixin}
 
 In addition to the applied behavior above the entity implements the \type{IEntityEquals}-interface at runtime:
 \inputjava{Runtime enhancement for entities - \type{IEntityEquals}}
-{jambeth-cache/src/main/java/de/osthus/ambeth/proxy/IEntityEquals.java}
+{jambeth-cache/src/main/java/com/koch/ambeth/cache/proxy/IEntityEquals.java}
 
 \inputcsharp{Runtime enhancement for entities - \type{IEntityEquals}}
 {Ambeth.Cache/ambeth/proxy/IEntityEquals.cs}

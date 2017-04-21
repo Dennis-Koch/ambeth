@@ -2,23 +2,23 @@
 \section{IDatabaseDisposeHookExtendable}
 \label{extendable:IDatabaseDisposeHookExtendable}
 \ClearAPI
-\javadoc{de.osthus.ambeth.persistence.IDatabaseDisposeHookExtendable}{IDatabaseDisposeHookExtendable}
-\javadoc{de.osthus.ambeth.persistence.IDatabaseDisposeHook}{IDatabaseDisposeHook}
+\javadoc{com.koch.ambeth.persistence.IDatabaseDisposeHookExtendable}{IDatabaseDisposeHookExtendable}
+\javadoc{com.koch.ambeth.persistence.IDatabaseDisposeHook}{IDatabaseDisposeHook}
 \TODO
 
 %% GENERATED LISTINGS - DO NOT EDIT
 \inputjava{Extension point for instances of \type{IDatabaseDisposeHook}}
-{jambeth-persistence-api/src/main/java/de/osthus/ambeth/persistence/IDatabaseDisposeHookExtendable.java}
+{jambeth-persistence-api/src/main/java/com/koch/ambeth/persistence/api/IDatabaseDisposeHookExtendable.java}
 \begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
 IBeanContextFactory bcf = ...
-IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+IBeanConfiguration myExtension = bcf.registerBean(...);
 bcf.link(myExtension).to(IDatabaseDisposeHookExtendable.class);
 \end{lstlisting}
 \inputcsharp{Extension point for instances of \type{IDatabaseDisposeHook}}
 {Ambeth.Persistence.API/ambeth/persistence/IDatabaseDisposeHookExtendable.cs}
 \begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
 IBeanContextFactory bcf = ...
-IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+IBeanConfiguration myExtension = bcf.RegisterBean(...);
 bcf.Link(myExtension).To<IDatabaseDisposeHookExtendable>();
 \end{lstlisting}
 %% GENERATED LISTINGS END
