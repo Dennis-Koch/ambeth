@@ -1,15 +1,11 @@
 @echo off
 @SETLOCAL ENABLEDELAYEDEXPANSION
 @set /p VERSION=<target\version.txt
-@set INITIAL_FILE_NAME=Ambeth-Reference.pdf
 @set FILE_NAME=Ambeth-Reference-%VERSION%.pdf
-rem @set FILE_DIR=%~dp0target\site
-@set FILE_DIR=%~dp0
-@set INITIAL_FILE_PATH=%FILE_DIR%\%INITIAL_FILE_NAME%
+@set FILE_DIR=%~dp0target
 @set FILE_PATH=%FILE_DIR%\%FILE_NAME%
 @set MY_GIT_DIR=%~dp0..\..\..\ambeth.wiki
 @set HORIZON_DRIVE=\\svetfile05\RHE.01.R-D.Software.pub\Horizon
-copy %INITIAL_FILE_PATH% %FILE_PATH%
 cd /D %MY_GIT_DIR%
 echo.
 echo **********************************************
