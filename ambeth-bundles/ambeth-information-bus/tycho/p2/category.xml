@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/com.koch.ambeth.information.bus.tycho.feature_1.0.0.qualifier.jar" id="com.koch.ambeth.information.bus.tycho.feature" version="3.0.1.qualifier">
+   <feature url="features/com.koch.ambeth.information.bus.tycho.feature_3.0.1.jar" id="com.koch.ambeth.information.bus.tycho.feature" version="3.0.1">
       <category name="com.koch.ambeth.information.bus.tycho.feature"/>
    </feature>
-   <feature url="features/com.koch.ambeth.information.bus.tycho.feature.source_1.0.0.qualifier.jar" id="com.koch.ambeth.information.bus.tycho.feature.source" version="3.0.1.qualifier">
+   <feature url="features/com.koch.ambeth.information.bus.tycho.feature.source_3.0.1.jar" id="com.koch.ambeth.information.bus.tycho.feature.source" version="3.0.1">
       <category name="com.koch.ambeth.information.bus.tycho.feature"/>
    </feature>
    <category-def name="com.koch.ambeth.information.bus.tycho.feature" label="Common Bundles">

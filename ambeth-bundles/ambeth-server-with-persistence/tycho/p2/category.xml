@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/com.koch.ambeth.server.with.persistence.tycho.feature_1.0.0.qualifier.jar" id="com.koch.ambeth.server.with.persistence.tycho.feature" version="3.0.1.qualifier">
+   <feature url="features/com.koch.ambeth.server.with.persistence.tycho.feature_3.0.1.qualifier.jar" id="com.koch.ambeth.server.with.persistence.tycho.feature" version="3.0.1">
       <category name="com.koch.ambeth.server.with.persistence.tycho.feature"/>
    </feature>
-   <feature url="features/com.koch.ambeth.server.with.persistence.tycho.feature.source_1.0.0.qualifier.jar" id="com.koch.ambeth.server.with.persistence.tycho.feature.source" version="3.0.1.qualifier">
+   <feature url="features/com.koch.ambeth.server.with.persistence.tycho.feature.source_3.0.1.qualifier.jar" id="com.koch.ambeth.server.with.persistence.tycho.feature.source" version="3.0.1">
       <category name="com.koch.ambeth.server.with.persistence.tycho.feature"/>
    </feature>
    <category-def name="com.koch.ambeth.server.with.persistence.tycho.feature" label="Ambeth Server With Persistence Bundles">
