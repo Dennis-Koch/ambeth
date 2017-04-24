@@ -49,13 +49,13 @@ public class MappingModule implements IInitializingModule {
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 		if (genericTransferMapping) {
-			beanContextFactory.registerBean("valueObjectConfigReader", ValueObjectConfigReader.class);
-			beanContextFactory.link("valueObjectConfigReader").to(IEventListenerExtendable.class)
+			IBeanConfiguration valueObjectConfigReader =
+					beanContextFactory.registerBean(ValueObjectConfigReader.class);
+			beanContextFactory.link(valueObjectConfigReader).to(IEventListenerExtendable.class)
 					.with(EntityMetaDataAddedEvent.class);
 
-			beanContextFactory.registerBean("listTypeHelper", ListTypeHelper.class)
-					.autowireable(IListTypeHelper.class);
-			beanContextFactory.registerBean("mapperServiceFactory", MapperServiceFactory.class)
+			beanContextFactory.registerBean(ListTypeHelper.class).autowireable(IListTypeHelper.class);
+			beanContextFactory.registerBean(MapperServiceFactory.class)
 					.autowireable(IMapperServiceFactory.class);
 
 			IBeanConfiguration expansionEntityMapper =
@@ -68,7 +68,7 @@ public class MappingModule implements IInitializingModule {
 					.registerExtendableBean(beanContextFactory, "mapperExtensionRegistry",
 							IDedicatedMapperRegistry.class, IDedicatedMapperExtendable.class,
 							IDedicatedMapperRegistry.class.getClassLoader())
-					.propertyValue("AllowMultiValue", true);
+					.propertyValue(ExtendableBean.P_ALLOW_MULTI_VALUE, true);
 		}
 
 		beanContextFactory.registerBean(PropertyExpansionProvider.class)

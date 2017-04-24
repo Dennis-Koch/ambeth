@@ -29,29 +29,28 @@ import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 
 public class IndependentEntityMetaDataReader extends AbstractEntityMetaDataReader
 		implements IStartingBean {
-	public static final String FILE_PROP_NAME = "FileName";
+	public static final String P_FILE_NAME = "FileName";
 
 	@LogInstance
 	private ILogger log;
 
-	protected String xmlFileName = null;
+	protected String fileName = null;
 
 	@Override
 	public void afterStarted() throws Throwable {
-		if (xmlFileName != null) {
-			IOrmConfigGroup ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(xmlFileName);
+		if (fileName != null) {
+			IOrmConfigGroup ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(fileName);
 			readConfig(ormConfigGroup);
 		}
 	}
 
 	@Property(name = ServiceConfigurationConstants.mappingFile, mandatory = false)
 	public void setFileName(String fileName) {
-		if (xmlFileName != null) {
+		if (this.fileName != null) {
 			throw new IllegalArgumentException(IndependentEntityMetaDataReader.class.getSimpleName()
 					+ " already configured! Tried to set the config file '" + fileName
-					+ "'. File name is already set to '" + xmlFileName + "'");
+					+ "'. File name is already set to '" + this.fileName + "'");
 		}
-
-		xmlFileName = fileName;
+		this.fileName = fileName;
 	}
 }

@@ -336,12 +336,10 @@ public class EntityLoader
 				}
 				continue;
 			}
-
 			IDirectedLinkMetaData targetingRequestLinkMetaData = targetingRequestLink.getMetaData();
-			RelationMember relationMember = targetingRequestLinkMetaData.getMember();
-			Class<?> requestedType = relationMember.getElementType();
-			IEntityMetaData requestedMetaData = entityMetaDataProvider.getMetaData(requestedType);
-			requestedType = requestedMetaData.getEntityType();
+			IEntityMetaData requestedMetaData =
+					entityMetaDataProvider.getMetaData(targetingRequestLinkMetaData.getToEntityType());
+			Class<?> requestedType = requestedMetaData.getEntityType();
 
 			Member targetingIdMember = targetingRequestMetaData.getIdMemberByIdIndex(idIndex);
 

@@ -59,6 +59,8 @@ import com.koch.ambeth.util.xml.XmlConstants;
 
 public class ValueObjectConfigReader
 		implements IEventListener, IDisposableBean, IInitializingBean, IStartingBean {
+	public static final String P_FILE_NAME = "FileName";
+
 	private static final String[] memberTagNames = {XmlConstants.BASIC, XmlConstants.RELATION};
 
 	@LogInstance
@@ -82,7 +84,7 @@ public class ValueObjectConfigReader
 			defaultValue = "false")
 	protected boolean runtimeValidationActive;
 
-	protected String xmlFileName = null;
+	protected String fileName = null;
 
 	protected HashMap<Class<?>, List<Element>> configsToConsume;
 
@@ -91,8 +93,8 @@ public class ValueObjectConfigReader
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {
-		if (xmlFileName != null) {
-			Document[] docs = xmlConfigUtil.readXmlFiles(xmlFileName);
+		if (fileName != null) {
+			Document[] docs = xmlConfigUtil.readXmlFiles(fileName);
 			ParamChecker.assertNotNull(docs, "docs");
 			configsToConsume = readConfig(docs);
 		}
@@ -123,13 +125,12 @@ public class ValueObjectConfigReader
 
 	@Property(name = ServiceConfigurationConstants.valueObjectFile, mandatory = false)
 	public void setFileName(String fileName) {
-		if (xmlFileName != null) {
+		if (this.fileName != null) {
 			throw new IllegalArgumentException(ValueObjectConfigReader.class.getSimpleName()
 					+ " already configured! Tried to set the config file '" + fileName
-					+ "'. File name is already set to '" + xmlFileName + "'");
+					+ "'. File name is already set to '" + this.fileName + "'");
 		}
-
-		xmlFileName = fileName;
+		this.fileName = fileName;
 	}
 
 	@Override

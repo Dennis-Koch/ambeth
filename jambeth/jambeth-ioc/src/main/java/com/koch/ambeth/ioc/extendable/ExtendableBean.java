@@ -49,6 +49,8 @@ public class ExtendableBean extends AbstractSimpleInterceptor
 
 	public static final String P_DEFAULT_BEAN = "DefaultBean";
 
+	public static final String P_ALLOW_MULTI_VALUE = "AllowMultiValue";
+
 	protected static final Object[] emptyArgs = new Object[0];
 
 	protected static final Object[] oneArgs = new Object[] {new Object()};

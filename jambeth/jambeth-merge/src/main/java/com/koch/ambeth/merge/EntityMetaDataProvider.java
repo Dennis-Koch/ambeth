@@ -810,6 +810,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	protected void fillMethodsAnnotatedWith(Class<?> type, List<Method> methods,
 			Class<? extends Annotation>... annotations) {
 		if (type == null || Object.class.equals(type)) {
