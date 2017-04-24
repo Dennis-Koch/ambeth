@@ -1,5 +1,7 @@
 package com.koch.ambeth.merge;
 
+import java.io.StringWriter;
+
 /*-
  * #%L
  * jambeth-merge
@@ -524,6 +526,17 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 			}
 		}
 		return metaDataResult;
+	}
+
+	@Override
+	public String createMetaDataDOT() {
+		try (StringWriter writer = new StringWriter()) {
+			entityMetaDataProvider.toDotGraph(writer);
+			return writer.toString();
+		}
+		catch (Throwable e) {
+			throw RuntimeExceptionUtil.mask(e);
+		}
 	}
 
 	@Override

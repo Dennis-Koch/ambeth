@@ -439,8 +439,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
 	@Override
 	public ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection,
 			String schemaName) throws SQLException {
-		LinkedHashMap<String, IList<String>> fulltextIndexes =
-				new LinkedHashMap<>();
+		LinkedHashMap<String, IList<String>> fulltextIndexes = new LinkedHashMap<>();
 		// NOT YET IMPLEMENTED
 		return fulltextIndexes;
 	}
@@ -464,25 +463,35 @@ public class PostgresDialect extends AbstractConnectionDialect {
 	public PersistenceException createPersistenceException(SQLException e, String relatedSql) {
 		String sqlState = e.getSQLState();
 
+		SQLException sqlRootCause = e;
+		while (sqlRootCause instanceof SQLException) {
+			SQLException cause = sqlRootCause.getNextException();
+			if (cause == null) {
+				break;
+			}
+			sqlRootCause = cause;
+		}
 		if (SQLState.NULL_CONSTRAINT.getXopen().equals(sqlState)) {
-			NullConstraintException ex = new NullConstraintException(e.getMessage(), relatedSql, e);
+			NullConstraintException ex =
+					new NullConstraintException(sqlRootCause.getMessage(), relatedSql, e);
 			ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
 			return ex;
 		}
 		else if (SQLState.UNIQUE_CONSTRAINT.getXopen().equals(sqlState)) {
-			UniqueConstraintException ex = new UniqueConstraintException(e.getMessage(), relatedSql, e);
+			UniqueConstraintException ex =
+					new UniqueConstraintException(sqlRootCause.getMessage(), relatedSql, e);
 			ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
 			return ex;
 		}
 		int errorCode = e.getErrorCode();
 
 		if (errorCode == getPessimisticLockErrorCode()) {
-			PessimisticLockException ex = new PessimisticLockException(relatedSql, e);
+			PessimisticLockException ex = new PessimisticLockException(relatedSql, sqlRootCause);
 			ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
 			return ex;
 		}
 		if (errorCode == getOptimisticLockErrorCode()) {
-			OptimisticLockException ex = new OptimisticLockException(relatedSql, e);
+			OptimisticLockException ex = new OptimisticLockException(relatedSql, sqlRootCause);
 			ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
 			return ex;
 		}

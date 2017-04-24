@@ -34,6 +34,8 @@ public interface IMergeServiceExtension {
 
 	ICUDResult evaluateImplictChanges(ICUDResult cudResult, IIncrementalMergeState incrementalState);
 
+	String createMetaDataDOT();
+
 	List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes);
 
 	IValueObjectConfig getValueObjectConfig(Class<?> valueType);

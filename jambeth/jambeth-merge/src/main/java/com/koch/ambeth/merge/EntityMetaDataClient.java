@@ -1,5 +1,7 @@
 package com.koch.ambeth.merge;
 
+import java.io.Writer;
+
 /*-
  * #%L
  * jambeth-merge
@@ -34,6 +36,7 @@ import com.koch.ambeth.util.Lock;
 import com.koch.ambeth.util.LockState;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class EntityMetaDataClient implements IEntityMetaDataProvider {
 	protected static final Class<?>[] EMPTY_TYPES = new Class[0];
@@ -122,7 +125,13 @@ public class EntityMetaDataClient implements IEntityMetaDataProvider {
 	}
 
 	@Override
-	public String buildDotGraph() {
-		throw new UnsupportedOperationException();
+	public void toDotGraph(Writer writer) {
+		String dot = mergeService.createMetaDataDOT();
+		try {
+			writer.write(dot);
+		}
+		catch (Throwable e) {
+			throw RuntimeExceptionUtil.mask(e);
+		}
 	}
 }

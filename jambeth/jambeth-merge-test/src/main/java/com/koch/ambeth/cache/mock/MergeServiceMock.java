@@ -47,4 +47,9 @@ public class MergeServiceMock implements IMergeService {
 	public IValueObjectConfig getValueObjectConfig(Class<?> valueType) {
 		return null;
 	}
+
+	@Override
+	public String createMetaDataDOT() {
+		return null;
+	}
 }

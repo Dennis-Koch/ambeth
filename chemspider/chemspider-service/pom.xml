@@ -2,13 +2,12 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>jambeth-chemspider-service</artifactId>
+	<artifactId>chemspider-service</artifactId>
 
 	<parent>
 		<groupId>com.koch.ambeth</groupId>
-		<artifactId>jambeth-pom</artifactId>
-		<version>3.0.2-SNAPSHOT</version>
-		<relativePath>../pom.xml</relativePath>
+		<artifactId>chemspider-pom</artifactId>
+		<version>1.0.0</version>
 	</parent>
 
 	<dependencies>
@@ -98,8 +97,6 @@
 					</excludes>
 				</configuration>
 			</plugin>
-
-
 		</plugins>
 
 		<pluginManagement>

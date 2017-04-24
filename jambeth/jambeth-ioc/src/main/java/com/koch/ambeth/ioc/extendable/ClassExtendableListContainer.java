@@ -35,7 +35,8 @@ public class ClassExtendableListContainer<V> extends ClassExtendableContainer<V>
 
 	@Override
 	public V getExtension(Class<?> key) {
-		return getExtensions(key).get(0);
+		IList<V> extensions = getExtensions(key);
+		return extensions.size() > 0 ? extensions.get(0) : null;
 	}
 
 	@SuppressWarnings("unchecked")

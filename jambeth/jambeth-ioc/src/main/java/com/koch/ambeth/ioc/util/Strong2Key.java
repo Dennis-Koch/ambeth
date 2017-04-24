@@ -54,4 +54,9 @@ public class Strong2Key<V> {
 	public int hashCode() {
 		return extension.hashCode() ^ key.hashCode();
 	}
+
+	@Override
+	public String toString() {
+		return "(Key: " + key.toString() + " Extension: " + extension.toString() + ")";
+	}
 }

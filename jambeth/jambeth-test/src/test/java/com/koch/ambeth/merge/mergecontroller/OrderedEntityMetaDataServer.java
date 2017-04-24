@@ -1,5 +1,7 @@
 package com.koch.ambeth.merge.mergecontroller;
 
+import java.io.Writer;
+
 /*-
  * #%L
  * jambeth-test
@@ -83,7 +85,7 @@ public class OrderedEntityMetaDataServer implements IEntityMetaDataProvider {
 	}
 
 	@Override
-	public String buildDotGraph() {
-		return entityMetaDataProvider.buildDotGraph();
+	public void toDotGraph(Writer writer) {
+		entityMetaDataProvider.toDotGraph(writer);
 	}
 }

@@ -39,6 +39,7 @@ import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -87,7 +88,9 @@ import com.koch.ambeth.util.annotation.IAnnotationInfo;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
+import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
+import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.config.UtilConfigurationConstants;
 import com.koch.ambeth.util.exception.MaskingRuntimeException;
@@ -104,6 +107,16 @@ import com.koch.ambeth.xml.DefaultXmlWriter;
  */
 public class AmbethInformationBusWithPersistenceRunner extends AmbethInformationBusRunner {
 	protected static final String MEASUREMENT_BEAN = "measurementBean";
+
+	private static String[] sqlExecutionOrder;
+
+	public static String[] getSqlExecutionOrder() {
+		if (sqlExecutionOrder == null) {
+			return sqlExecutionOrder;
+		}
+		return sqlExecutionOrder.clone();
+	}
+
 
 	protected boolean isRebuildDataForThisTestRecommended;
 
@@ -351,10 +364,16 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 				getOrCreateSchemaContext().getService(IConnectionTestDialect.class)
 						.preStructureRebuild(connection);
-				ISchemaRunnable[] structureRunnables = getStructureRunnables(callingClass, callingClass);
+
+				ArrayList<String> sqlExecutionOrder = new ArrayList<>();
+
+				ISchemaRunnable[] structureRunnables =
+						getStructureRunnables(callingClass, callingClass, sqlExecutionOrder);
 				for (ISchemaRunnable structRunnable : structureRunnables) {
 					structRunnable.executeSchemaSql(connection);
 				}
+				AmbethInformationBusWithPersistenceRunner.sqlExecutionOrder =
+						sqlExecutionOrder.toArray(String.class);
 
 				ensureExistanceOfNeededDatabaseObjects(connection);
 			}
@@ -903,11 +922,12 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	}
 
 	protected ISchemaRunnable[] getStructureRunnables(final Class<?> callingClass,
-			final Class<?> type) {
+			final Class<?> type, IList<String> sqlExecutionOrder) {
 		List<ISchemaRunnable> schemaRunnables = new ArrayList<>();
 
 		List<IAnnotationInfo<?>> annotations =
 				findAnnotations(type, SQLStructureList.class, SQLStructure.class);
+
 		for (IAnnotationInfo<?> schemaItem : annotations) {
 			Annotation annotation = schemaItem.getAnnotation();
 			if (annotation instanceof SQLStructureList) {
@@ -916,13 +936,13 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				SQLStructure[] value = sqlStructureList.value();
 				for (SQLStructure sqlStructure : value) {
 					getSchemaRunnable(sqlStructure.type(), sqlStructure.value(), schemaRunnables,
-							schemaItem.getAnnotatedElement(), true);
+							schemaItem.getAnnotatedElement(), true, sqlExecutionOrder);
 				}
 			}
 			else {
 				SQLStructure sqlStructure = (SQLStructure) annotation;
 				getSchemaRunnable(sqlStructure.type(), sqlStructure.value(), schemaRunnables,
-						schemaItem.getAnnotatedElement(), true);
+						schemaItem.getAnnotatedElement(), true, sqlExecutionOrder);
 			}
 		}
 		return schemaRunnables.toArray(new ISchemaRunnable[schemaRunnables.size()]);
@@ -943,14 +963,14 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				SQLData[] value = sqlDataList.value();
 				for (SQLData sqlData : value) {
 					getSchemaRunnable(sqlData.type(), sqlData.value(), schemaRunnables,
-							schemaItem.getAnnotatedElement(), true);
+							schemaItem.getAnnotatedElement(), true, null);
 				}
 			}
 			else {
 				SQLData sqlData = (SQLData) annotation;
 
 				getSchemaRunnable(sqlData.type(), sqlData.value(), schemaRunnables,
-						schemaItem.getAnnotatedElement(), true);
+						schemaItem.getAnnotatedElement(), true, null);
 			}
 		}
 		return schemaRunnables.toArray(new ISchemaRunnable[schemaRunnables.size()]);
@@ -958,7 +978,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 	protected void getSchemaRunnable(final Class<? extends ISchemaRunnable> schemaRunnableType,
 			final String[] schemaFiles, final List<ISchemaRunnable> schemaRunnables,
-			final AnnotatedElement callingClass, final boolean doCommitBehavior) {
+			final AnnotatedElement callingClass, final boolean doCommitBehavior,
+			final IList<String> sqlExecutionOrder) {
 		if (schemaRunnableType != null && !ISchemaRunnable.class.equals(schemaRunnableType)) {
 			try {
 				ISchemaRunnable schemaRunnable = schemaRunnableType.newInstance();
@@ -968,23 +989,25 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
-		for (String schemaFile : schemaFiles) {
-			if (schemaFile == null || schemaFile.length() == 0) {
-				continue;
-			}
-			final String fSchemaFile = schemaFile;
-			ISchemaRunnable schemaRunnable = new ISchemaRunnable() {
-
-				@Override
-				public void executeSchemaSql(final Connection connection) throws Exception {
-					List<String> sql = readSqlFile(fSchemaFile, callingClass);
-					if (!sql.isEmpty()) {
-						executeScript(sql, connection, false);
+		ISchemaRunnable schemaRunnable = new ISchemaRunnable() {
+			@Override
+			public void executeSchemaSql(final Connection connection) throws Exception {
+				ArrayList<String> allSQL = new ArrayList<>();
+				HashMap<String, String> sqlToSourceMap = new HashMap<>();
+				for (String schemaFile : schemaFiles) {
+					if (schemaFile == null || schemaFile.length() == 0) {
+						continue;
+					}
+					List<String> sql = readSqlFile(schemaFile, callingClass);
+					allSQL.addAll(sql);
+					for (String oneSql : sql) {
+						sqlToSourceMap.put(oneSql, schemaFile);
 					}
 				}
-			};
-			schemaRunnables.add(schemaRunnable);
-		}
+				executeScript(allSQL, connection, false, sqlToSourceMap, sqlExecutionOrder);
+			}
+		};
+		schemaRunnables.add(schemaRunnable);
 	}
 
 	private void executeWithDeferredConstraints(final ISchemaRunnable... schemaRunnables) {
@@ -1206,7 +1229,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			sql.addAll(connectionDialect.createOptimisticLockTrigger(conn, tableName));
 			sql.addAll(connectionDialect.createAdditionalTriggers(conn, tableName));
 		}
-		executeScript(sql, conn, false);
+		executeScript(sql, conn, false, null, null);
 	}
 
 	protected void createPermissionGroups(final Connection conn) throws SQLException {
@@ -1219,7 +1242,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		for (String tableName : tableNames) {
 			sql.addAll(connectionDialect.createPermissionGroup(conn, tableName));
 		}
-		executeScript(sql, conn, false);
+		executeScript(sql, conn, false, null, null);
 	}
 
 	/**
@@ -1247,7 +1270,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 			@Override
 			public void executeSchemaSql(final Connection connection) throws Exception {
-				executeScript(sql, connection, false);
+				executeScript(sql, connection, false, null, null);
 				sql.clear();
 			}
 		});
@@ -1276,25 +1299,20 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 			@Override
 			public void executeSchemaSql(final Connection connection) throws Exception {
-				executeScript(sql, connection, false);
+				executeScript(sql, connection, false, null, null);
 				sql.clear();
 			}
 		});
 	}
 
-	void executeScript(final List<String> sql, final Connection conn) throws SQLException {
-		executeScript(sql, conn, true);
-	}
-
-	void executeScript(final List<String> sql, final Connection conn, final boolean doCommitBehavior)
-			throws SQLException {
+	void executeScript(final List<String> sql, final Connection conn, final boolean doCommitBehavior,
+			Map<String, String> sqlToSourceMap, List<String> sqlExecutionOrder) throws SQLException {
 		if (sql.size() == 0) {
 			return;
 		}
 		Statement stmt = null;
 		// Must be a linked map to maintain sequential order while iterating
-		IMap<String, List<Throwable>> commandToExceptionMap =
-				new com.koch.ambeth.util.collections.LinkedHashMap<>();
+		IMap<String, List<Throwable>> commandToExceptionMap = new LinkedHashMap<>();
 		Map<String, Object> defaultOptions = new HashMap<>();
 		defaultOptions.put("loop", 1);
 		try {
@@ -1312,6 +1330,9 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 						done.add(command);
 						// If the command was successful, remove the key from the exception log
 						commandToExceptionMap.remove(command);
+						if (sqlExecutionOrder != null) {
+							sqlExecutionOrder.add(command);
+						}
 					}
 					catch (PersistenceException e) {
 						// When executing multiple sql files some statements collide and cannot all be executed
@@ -1367,12 +1388,19 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			else if (!sql.isEmpty()) {
 				if (commandToExceptionMap.size() > 0) {
 					String errorMessage = "Uncorrectable SQL exception(s)";
+					Entry<String, List<Throwable>> firstEntry = commandToExceptionMap.iterator().next();
+					if (sqlToSourceMap != null) {
+						String source = sqlToSourceMap.get(firstEntry.getKey());
+						if (source != null) {
+							errorMessage += " from source '" + source + "'";
+						}
+					}
 					if (commandToExceptionMap.size() > 1) {
 						errorMessage +=
 								". There are " + commandToExceptionMap.size() + " exceptions! The first one is:";
 					}
 					PersistenceException pe =
-							new PersistenceException(errorMessage, commandToExceptionMap.values().get(0).get(0));
+							new PersistenceException(errorMessage, firstEntry.getValue().get(0));
 					pe.setStackTrace(new StackTraceElement[0]);
 					throw pe;
 				}

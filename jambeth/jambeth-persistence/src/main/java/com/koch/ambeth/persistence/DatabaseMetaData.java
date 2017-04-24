@@ -239,9 +239,10 @@ public class DatabaseMetaData
 					throw new IllegalArgumentException(
 							"Ambiguous property-to-entity relationship. Automatic mapping for link '"
 									+ link.getName()
-									+ "' not possible! Multiple properties with the same expected relationtype found: "
+									+ "' not possible! Multiple properties with the same expected relation type found: "
 									+ matchingMember.toString() + " vs. " + member.toString() + " on entity '"
-									+ table.getEntityType().getName() + "'");
+									+ table.getEntityType().getName() + "' both map to entity '"
+									+ member.getElementType().getName() + "'");
 				}
 				matchingMember = member;
 			}

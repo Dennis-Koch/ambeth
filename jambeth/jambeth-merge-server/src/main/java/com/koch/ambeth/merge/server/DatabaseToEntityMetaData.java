@@ -242,6 +242,11 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			}
 			memberToFieldOrLinkMap.put(member, field);
 			if (!alreadyHandledFields.contains(field)) {
+				if (member instanceof RelationMember) {
+					throw new IllegalStateException("The given member '" + member
+							+ "' is neither mapped as a primitive nor as a relation explicitly or implicitly. In most cases this is meant as a relation but the related property type could not be resolved as a valid entity. Please check whether you have mapped the type '"
+							+ member.getElementType().getName() + "' correctly as an entity");
+				}
 				primitiveMembers.add((PrimitiveMember) member);
 			}
 		}

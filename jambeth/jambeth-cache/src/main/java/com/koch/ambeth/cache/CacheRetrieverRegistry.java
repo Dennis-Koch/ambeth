@@ -62,6 +62,18 @@ import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
 
 public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverExtendable,
 		IPrimitiveRetrieverExtendable, IRelationRetrieverExtendable, ICacheServiceByNameExtendable {
+
+	public static class PrimitiveRetrieverArguments {
+		public final ArrayList<IObjRelation> objRelations = new ArrayList<>();
+
+		public final ArrayList<ILoadContainer> loadContainers = new ArrayList<>();
+
+		public void addArg(ILoadContainer loadContainer, IObjRelation objRel) {
+			objRelations.add(objRel);
+			loadContainers.add(loadContainer);
+		}
+	}
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -70,12 +82,10 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 			new ClassExtendableContainer<>("cacheRetriever", "entityType");
 
 	protected final ClassExtendableContainer<HashMap<String, IRelationRetriever>> typeToRelationRetrieverEC =
-			new ClassExtendableContainer<>("relationRetriever",
-					"handledType");
+			new ClassExtendableContainer<>("relationRetriever", "handledType");
 
 	protected final ClassExtendableContainer<HashMap<String, IPrimitiveRetriever>> typeToPrimitiveRetrieverEC =
-			new ClassExtendableContainer<>("primitiveRetriever",
-					"handledType");
+			new ClassExtendableContainer<>("primitiveRetriever", "handledType");
 
 	protected final MapExtendableContainer<String, ICacheService> nameToCacheServiceEC =
 			new MapExtendableContainer<>("cacheService", "serviceName");
@@ -190,25 +200,26 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 		final IdentityLinkedMap<IObjRelation, IBackgroundWorkerParamDelegate<Object>> objRelToDelegateMap =
 				new IdentityLinkedMap<>();
 
-		ILinkedMap<IPrimitiveRetriever, IList<IObjRelation>> fetchablePrimitives =
+		ILinkedMap<IPrimitiveRetriever, PrimitiveRetrieverArguments> fetchablePrimitives =
 				bucketSortObjRelsForFetchablePrimitives(result, objRelToDelegateMap);
 
 		if (fetchablePrimitives.size() == 0) {
 			return result;
 		}
 		multithreadingHelper.invokeAndWait(fetchablePrimitives,
-				new IResultingBackgroundWorkerParamDelegate<Object[], Entry<IPrimitiveRetriever, IList<IObjRelation>>>() {
+				new IResultingBackgroundWorkerParamDelegate<Object[], Entry<IPrimitiveRetriever, PrimitiveRetrieverArguments>>() {
 					@Override
-					public Object[] invoke(Entry<IPrimitiveRetriever, IList<IObjRelation>> item)
+					public Object[] invoke(Entry<IPrimitiveRetriever, PrimitiveRetrieverArguments> item)
 							throws Throwable {
-						return item.getKey().getPrimitives(item.getValue());
+						PrimitiveRetrieverArguments value = item.getValue();
+						return item.getKey().getPrimitives(value.objRelations, value.loadContainers);
 					}
 				},
-				new IAggregrateResultHandler<Object[], Entry<IPrimitiveRetriever, IList<IObjRelation>>>() {
+				new IAggregrateResultHandler<Object[], Entry<IPrimitiveRetriever, PrimitiveRetrieverArguments>>() {
 					@Override
 					public void aggregateResult(Object[] resultOfFork,
-							Entry<IPrimitiveRetriever, IList<IObjRelation>> itemOfFork) throws Throwable {
-						IList<IObjRelation> objRels = itemOfFork.getValue();
+							Entry<IPrimitiveRetriever, PrimitiveRetrieverArguments> itemOfFork) throws Throwable {
+						IList<IObjRelation> objRels = itemOfFork.getValue().objRelations;
 
 						for (int a = objRels.size(); a-- > 0;) {
 							IObjRelation objRel = objRels.get(a);
@@ -256,8 +267,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 		ILinkedMap<IRelationRetriever, IList<IObjRelation>> assignedObjRelations =
 				bucketSortObjRels(objRelations);
 
-		final ArrayList<IObjRelationResult> result =
-				new ArrayList<>(objRelations.size());
+		final ArrayList<IObjRelationResult> result = new ArrayList<>(objRelations.size());
 		multithreadingHelper.invokeAndWait(assignedObjRelations,
 				new IResultingBackgroundWorkerParamDelegate<List<IObjRelationResult>, Entry<IRelationRetriever, IList<IObjRelation>>>() {
 					@Override
@@ -362,10 +372,10 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 		return retrieverToAssignedObjRelsDict;
 	}
 
-	protected ILinkedMap<IPrimitiveRetriever, IList<IObjRelation>> bucketSortObjRelsForFetchablePrimitives(
+	protected ILinkedMap<IPrimitiveRetriever, PrimitiveRetrieverArguments> bucketSortObjRelsForFetchablePrimitives(
 			List<ILoadContainer> loadContainers,
 			ILinkedMap<IObjRelation, IBackgroundWorkerParamDelegate<Object>> objRelToDelegateMap) {
-		IdentityLinkedMap<IPrimitiveRetriever, IList<IObjRelation>> retrieverToAssignedObjRelsDict =
+		IdentityLinkedMap<IPrimitiveRetriever, PrimitiveRetrieverArguments> retrieverToAssignedObjRelsDict =
 				new IdentityLinkedMap<>();
 
 		for (int a = loadContainers.size(); a-- > 0;) {
@@ -387,17 +397,17 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 				if (primitiveRetriever == null) {
 					continue;
 				}
-				IList<IObjRelation> assignedObjRefs =
+				PrimitiveRetrieverArguments primitiveRetrieverArg =
 						retrieverToAssignedObjRelsDict.get(primitiveRetriever);
-				if (assignedObjRefs == null) {
-					assignedObjRefs = new ArrayList<>();
-					retrieverToAssignedObjRelsDict.put(primitiveRetriever, assignedObjRefs);
+				if (primitiveRetrieverArg == null) {
+					primitiveRetrieverArg = new PrimitiveRetrieverArguments();
+					retrieverToAssignedObjRelsDict.put(primitiveRetriever, primitiveRetrieverArg);
 				}
 				IList<IObjRef> objRefs = objRefHelper.entityToAllObjRefs(loadContainer, metaData);
 				ObjRelation objRel = new ObjRelation(objRefs.toArray(IObjRef.class), memberName);
 				objRel.setRealType(entityType);
 				objRel.setVersion(objRef.getVersion());
-				assignedObjRefs.add(objRel);
+				primitiveRetrieverArg.addArg(loadContainer, objRel);
 
 				final int primitiveIndex = b;
 				objRelToDelegateMap.put(objRel, new IBackgroundWorkerParamDelegate<Object>() {

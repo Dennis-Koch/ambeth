@@ -9,12 +9,11 @@
 
 	<parent>
 		<groupId>com.koch.ambeth</groupId>
-		<artifactId>jambeth-pom</artifactId>
-		<version>3.0.1</version>
+		<artifactId>base-pom</artifactId>
+		<version>1.0.0</version>
 	</parent>
 
 	<properties>
-		<ambeth.version>3.0.1</ambeth.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -36,26 +35,10 @@
 				<artifactId>jambeth-core</artifactId>
 				<version>${ambeth.version}</version>
 			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-ioc</artifactId>
-				<version>${ambeth.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-log</artifactId>
-				<version>${ambeth.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-util</artifactId>
-				<version>${ambeth.version}</version>
-			</dependency>
 
 			<dependency>
 				<groupId>org.jdom</groupId>
 				<artifactId>jdom2</artifactId>
-				<version>2.0.5</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

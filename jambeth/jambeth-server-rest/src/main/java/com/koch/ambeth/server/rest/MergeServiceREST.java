@@ -27,6 +27,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -49,6 +50,23 @@ import com.koch.ambeth.util.model.IMethodDescription;
 public class MergeServiceREST extends AbstractServiceREST {
 	protected IMergeService getMergeService() {
 		return getService(IMergeService.class);
+	}
+
+	@GET
+	@Path("createMetaDataDOT")
+	public StreamingOutput createMetaDataDOT(@Context HttpServletRequest request,
+			@Context HttpServletResponse response) {
+		try {
+			preServiceCall();
+			String dot = getMergeService().createMetaDataDOT();
+			return createResult(dot, response);
+		}
+		catch (Throwable e) {
+			return createExceptionResult(e, response);
+		}
+		finally {
+			postServiceCall();
+		}
 	}
 
 	@POST

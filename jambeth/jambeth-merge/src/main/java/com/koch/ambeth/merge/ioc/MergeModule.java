@@ -180,7 +180,7 @@ public class MergeModule implements IInitializingModule {
 				.registerBean(INDEPENDENT_META_DATA_READER, IndependentEntityMetaDataReader.class)
 				.precedence(PrecedenceType.HIGH);
 
-		if (!independentMetaData) {
+		if (!independentMetaData && isNetworkClientMode) {
 			IBeanConfiguration entityMetaDataConverter =
 					beanContextFactory.registerBean(EntityMetaDataConverter.class);
 			DedicatedConverterUtil.biLink(beanContextFactory, entityMetaDataConverter,

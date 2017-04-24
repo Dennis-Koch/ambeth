@@ -51,8 +51,7 @@ import com.koch.ambeth.util.model.IMethodDescription;
 
 public class InMemoryCacheRetriever
 		implements ICacheRetriever, IMergeServiceExtension, ICacheService {
-	protected final HashMap<IObjRef, ILoadContainer> databaseMap =
-			new HashMap<>();
+	protected final HashMap<IObjRef, ILoadContainer> databaseMap = new HashMap<>();
 
 	@Autowired
 	protected IConversionHelper conversionHelper;
@@ -163,6 +162,11 @@ public class InMemoryCacheRetriever
 
 	@Override
 	public IServiceResult getORIsForServiceRequest(IServiceDescription serviceDescription) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public String createMetaDataDOT() {
 		throw new UnsupportedOperationException();
 	}
 }

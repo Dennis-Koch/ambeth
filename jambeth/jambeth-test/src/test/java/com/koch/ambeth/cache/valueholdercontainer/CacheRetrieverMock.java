@@ -48,8 +48,7 @@ import com.koch.ambeth.util.model.IMethodDescription;
 
 public class CacheRetrieverMock
 		implements ICacheRetriever, IMergeService, ICacheService, IStartingBean {
-	protected final HashMap<IObjRef, ILoadContainer> databaseMap =
-			new HashMap<>();
+	protected final HashMap<IObjRef, ILoadContainer> databaseMap = new HashMap<>();
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
@@ -145,6 +144,11 @@ public class CacheRetrieverMock
 
 	@Override
 	public IServiceResult getORIsForServiceRequest(IServiceDescription serviceDescription) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public String createMetaDataDOT() {
 		throw new UnsupportedOperationException();
 	}
 }

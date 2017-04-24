@@ -2,57 +2,16 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.koch.ambeth</groupId>
 	<artifactId>jambeth-pom</artifactId>
 	<version>3.0.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
-	<properties>
-		<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-		<Bundle-Name>${project.artifactId}</Bundle-Name>
-		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<code-analysis-config.version>1.0.3</code-analysis-config.version>
-		<jambeth.project.test>jambeth-test</jambeth.project.test>
-		<jambeth.path.test>../${jambeth.project.test}</jambeth.path.test>
-		<org.osgi.core.version>6.0.0</org.osgi.core.version>
-		<jax.ws.rs.version>2.0.1</jax.ws.rs.version>
-		<tstamp>${maven.build.timestamp}</tstamp>
-	</properties>
-
-	<scm>
-		<connection>scm:git:http://88.99.125.109:8181/esmeralda-group/ambeth.git</connection>
-		<developerConnection>scm:git:http://88.99.125.109:8181/esmeralda-group/ambeth.git</developerConnection>
-		<url>http://88.99.125.109:8181/esmeralda-group/ambeth.git</url>
-	</scm>
-
-	<developers>
-		<developer>
-			<id>denniskoch</id>
-			<name>Dennis Koch</name>
-			<email>dennis.koch@gmx.de</email>
-			<organization>Bruker BioSpin GmbH</organization>
-			<organizationUrl>https://www.bruker.com</organizationUrl>
-			<roles>
-				<role>architect</role>
-				<role>developer</role>
-			</roles>
-			<timezone>Europe/Berlin</timezone>
-		</developer>
-	</developers>
-
-	<distributionManagement>
-		<repository>
-			<id>ambeth-releases</id>
-			<url>http://88.99.125.109:8081/repository/ambeth-releases/</url>
-		</repository>
-		<snapshotRepository>
-			<id>ambeth-snapshots</id>
-			<url>http://88.99.125.109:8081/repository/ambeth-snapshots/</url>
-		</snapshotRepository>
-	</distributionManagement>
-
+	<parent>
+		<groupId>com.koch.ambeth</groupId>
+		<artifactId>base-pom</artifactId>
+		<version>1.0.0</version>
+	</parent>
+	
 	<modules>
 		<module>jambeth-audit</module>
 		<module>jambeth-audit-server</module>
@@ -62,8 +21,6 @@
 		<module>jambeth-cache-datachange</module>
 		<module>jambeth-cache-server</module>
 		<module>jambeth-cache-stream</module>
-		<module>jambeth-chemspider</module>
-		<module>jambeth-chemspider-service</module>
 		<module>jambeth-datachange</module>
 		<module>jambeth-datachange-kafka</module>
 		<module>jambeth-datachange-persistence</module>
@@ -124,112 +81,6 @@
 
 	<dependencyManagement>
 		<dependencies>
-			<!-- External dependencies -->
-			<dependency>
-				<groupId>org.ow2.asm</groupId>
-				<artifactId>asm-all</artifactId>
-				<version>5.2</version>
-			</dependency>
-			<dependency>
-				<groupId>javax.ws.rs</groupId>
-				<artifactId>javax.ws.rs-api</artifactId>
-				<version>${jax.ws.rs.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>cglib</groupId>
-				<artifactId>cglib</artifactId>
-				<version>3.2.5</version>
-				<exclusions>
-					<exclusion>
-						<groupId>org.ow2.asm</groupId>
-						<artifactId>asm</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-
-			<dependency>
-				<groupId>it.sauronsoftware.cron4j</groupId>
-				<artifactId>cron4j</artifactId>
-				<version>2.2.5</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.apache.commons</groupId>
-				<artifactId>commons-lang3</artifactId>
-				<version>3.4</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.osgi</groupId>
-				<artifactId>org.osgi.core</artifactId>
-				<version>${org.osgi.core.version}</version>
-				<scope>provided</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.osgi</groupId>
-				<artifactId>osgi.cmpn</artifactId>
-				<version>${org.osgi.core.version}</version>
-				<scope>provided</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>javax.servlet</groupId>
-				<artifactId>javax.servlet-api</artifactId>
-				<version>3.0.2-SNAPSHOT</version>
-				<scope>provided</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>org.eclipse.persistence</groupId>
-				<artifactId>javax.persistence</artifactId>
-				<version>2.1.1</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.javassist</groupId>
-				<artifactId>javassist</artifactId>
-				<version>3.18.1-GA</version>
-			</dependency>
-
-			<dependency>
-				<groupId>javax.transaction</groupId>
-				<artifactId>jta</artifactId>
-				<version>1.1</version>
-			</dependency>
-
-			<dependency>
-				<groupId>xpp3</groupId>
-				<artifactId>xpp3</artifactId>
-				<version>1.1.4c</version>
-			</dependency>
-
-			<dependency>
-				<groupId>net.objecthunter</groupId>
-				<artifactId>exp4j</artifactId>
-				<version>0.4.4</version>
-			</dependency>
-			
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-api</artifactId>
-				<version>1.7.21</version>
-			</dependency>
-
-			<!-- Base dependencies -->
-			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>4.11</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>junit-categories</artifactId>
-				<version>1.0.0</version>
-				<scope>test</scope>
-			</dependency>
-
 			<!-- jAmbeth dependencies -->
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -241,6 +92,7 @@
 				<artifactId>jambeth-audit</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 
 			<dependency>
@@ -253,6 +105,7 @@
 				<artifactId>jambeth-audit-server</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -271,6 +124,7 @@
 				<artifactId>jambeth-bytecode</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -289,6 +143,7 @@
 				<artifactId>jambeth-cache</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -307,6 +162,7 @@
 				<artifactId>jambeth-cache-bytecode</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -325,6 +181,7 @@
 				<artifactId>jambeth-cache-datachange</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -343,6 +200,7 @@
 				<artifactId>jambeth-cache-server</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -361,6 +219,7 @@
 				<artifactId>jambeth-cache-stream</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -379,6 +238,7 @@
 				<artifactId>jambeth-chemspider</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -397,6 +257,7 @@
 				<artifactId>jambeth-chemspider-service</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 
 			<dependency>
@@ -409,6 +270,7 @@
 				<artifactId>jambeth-datachange</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -427,6 +289,7 @@
 				<artifactId>jambeth-datachange-kafka</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -445,6 +308,7 @@
 				<artifactId>jambeth-datachange-persistence</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -463,6 +327,7 @@
 				<artifactId>jambeth-dot</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 
 			<dependency>
@@ -475,6 +340,7 @@
 				<artifactId>jambeth-event</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -493,6 +359,7 @@
 				<artifactId>jambeth-event-datachange</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -511,6 +378,7 @@
 				<artifactId>jambeth-event-kafka</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -529,6 +397,7 @@
 				<artifactId>jambeth-event-server</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -553,6 +422,7 @@
 				<artifactId>jambeth-expr</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -571,6 +441,7 @@
 				<artifactId>jambeth-expr-exp4j</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -589,6 +460,7 @@
 				<artifactId>jambeth-filter</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -607,6 +479,7 @@
 				<artifactId>jambeth-ioc</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -625,6 +498,7 @@
 				<artifactId>jambeth-job</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -643,6 +517,7 @@
 				<artifactId>jambeth-job-cron4j</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -661,6 +536,7 @@
 				<artifactId>jambeth-log</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -679,6 +555,7 @@
 				<artifactId>jambeth-mapping</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -697,6 +574,7 @@
 				<artifactId>jambeth-merge</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -715,6 +593,7 @@
 				<artifactId>jambeth-merge-bytecode</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -733,6 +612,7 @@
 				<artifactId>jambeth-merge-server</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -751,6 +631,7 @@
 				<artifactId>jambeth-mina</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -769,6 +650,7 @@
 				<artifactId>jambeth-persistence</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -787,6 +669,7 @@
 				<artifactId>jambeth-persistence-api</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -805,6 +688,7 @@
 				<artifactId>jambeth-persistence-h2</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -823,6 +707,7 @@
 				<artifactId>jambeth-persistence-jdbc</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -841,6 +726,7 @@
 				<artifactId>jambeth-persistence-maria</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -859,6 +745,7 @@
 				<artifactId>jambeth-persistence-mssql</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -877,6 +764,7 @@
 				<artifactId>jambeth-persistence-oracle11</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -895,6 +783,7 @@
 				<artifactId>jambeth-persistence-pg</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -913,6 +802,7 @@
 				<artifactId>jambeth-persistence-sqlite</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -931,6 +821,7 @@
 				<artifactId>jambeth-platform</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -949,6 +840,7 @@
 				<artifactId>jambeth-query</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -967,6 +859,7 @@
 				<artifactId>jambeth-query-inmemory</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -985,6 +878,7 @@
 				<artifactId>jambeth-query-jdbc</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -1003,6 +897,7 @@
 				<artifactId>jambeth-security</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -1021,6 +916,7 @@
 				<artifactId>jambeth-security-bytecode</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -1039,6 +935,7 @@
 				<artifactId>jambeth-security-job</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -1057,6 +954,7 @@
 				<artifactId>jambeth-security-persistence</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>				
 			</dependency>
 
 			<dependency>
@@ -1076,6 +974,7 @@
 				<artifactId>jambeth-security-server</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -1094,6 +993,7 @@
 				<artifactId>jambeth-sensor</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -1112,6 +1012,7 @@
 				<artifactId>jambeth-server-rest</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -1130,6 +1031,7 @@
 				<artifactId>jambeth-service</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -1148,6 +1050,7 @@
 				<artifactId>jambeth-service-rest</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 
 			<dependency>
@@ -1166,6 +1069,7 @@
 				<artifactId>jambeth-soap</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -1184,6 +1088,7 @@
 				<artifactId>jambeth-stream</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -1202,6 +1107,7 @@
 				<artifactId>jambeth-tomcat</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 
 			<dependency>
@@ -1214,6 +1120,7 @@
 				<artifactId>jambeth-util</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -1232,6 +1139,7 @@
 				<artifactId>jambeth-xml</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -1259,6 +1167,7 @@
 				<artifactId>jambeth-core</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -1271,6 +1180,7 @@
 				<artifactId>jambeth-core-kar</artifactId>
 				<version>${project.version}</version>
 				<type>kar</type>
+				<scope>runtime</scope>
 			</dependency>
 
 			<dependency>
@@ -1283,6 +1193,7 @@
 				<artifactId>jambeth-information-bus</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -1295,6 +1206,7 @@
 				<artifactId>jambeth-information-bus-kar</artifactId>
 				<version>${project.version}</version>
 				<type>kar</type>
+				<scope>runtime</scope>
 			</dependency>
 
 			<dependency>
@@ -1307,6 +1219,7 @@
 				<artifactId>jambeth-information-bus-with-persistence</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -1325,6 +1238,7 @@
 				<artifactId>jambeth-server</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
@@ -1362,29 +1276,6 @@
 	<build>
 		<pluginManagement>
 			<plugins>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-project-info-reports-plugin</artifactId>
-					<version>2.9</version>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-jar-plugin</artifactId>
-					<configuration>
-						<archive>
-							<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-							<manifest>
-								<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-								<addClasspath>true</addClasspath>
-							</manifest>
-							<manifestEntries>
-								<Implementation-Title>${project.groupId}:${project.artifactId}</Implementation-Title>
-								<Implementation-Version>${project.version}</Implementation-Version>
-								<Implementation-Vendor>Koch Softwaredevelopment</Implementation-Vendor>
-							</manifestEntries>
-						</archive>
-					</configuration>
-				</plugin>
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>findbugs-maven-plugin</artifactId>

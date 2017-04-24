@@ -225,10 +225,8 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 			IIncrementalMergeState incrementalState,
 			IMap<IChangeContainer, IChangeContainer> buildableToOriginalChangeContainerMap) {
 		List<IChangeContainer> allChanges = cudResult.getAllChanges();
-		IdentityHashMap<IDirectObjRef, IDirectObjRef> directObjRefReplaceMap =
-				new IdentityHashMap<>();
-		ArrayList<IChangeContainer> buildableAllChanges =
-				new ArrayList<>(allChanges.size());
+		IdentityHashMap<IDirectObjRef, IDirectObjRef> directObjRefReplaceMap = new IdentityHashMap<>();
+		ArrayList<IChangeContainer> buildableAllChanges = new ArrayList<>(allChanges.size());
 		for (int a = 0, size = allChanges.size(); a < size; a++) {
 			IChangeContainer changeContainer = allChanges.get(a);
 			if (changeContainer instanceof CreateOrUpdateContainerBuild) {
@@ -409,8 +407,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 			executeWithoutSecurity(buildableAllChanges, tableChangeMap, oriList, mockIdToObjRefMap,
 					objRefToChangeContainerMap, incrementalState);
 
-			IdentityHashSet<IChangeContainer> changeContainersSet =
-					new IdentityHashSet<>();
+			IdentityHashSet<IChangeContainer> changeContainersSet = new IdentityHashSet<>();
 
 			for (Entry<IObjRef, IChangeContainer> entry : objRefToChangeContainerMap) {
 				IChangeContainer changeContainer = entry.getValue();
@@ -480,8 +477,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 
 	@SuppressWarnings("unchecked")
 	protected void ensureCorrectIdIndexOfAllRelations(ICUDResult cudResult) {
-		ArrayList<IBackgroundWorkerParamDelegate<IMap<IObjRef, Object>>> runnables =
-				new ArrayList<>();
+		ArrayList<IBackgroundWorkerParamDelegate<IMap<IObjRef, Object>>> runnables = new ArrayList<>();
 		HashSet<IObjRef> objRefsWithWrongIdIndex = new HashSet<>();
 
 		List<IChangeContainer> allChanges = cudResult.getAllChanges();
@@ -593,8 +589,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 			List<IChangeContainer> allChanges = cudResult.getAllChanges();
 			HashMap<String, ITableChange> tableChangeMap = new HashMap<>();
 			ArrayList<IObjRef> oriList = new ArrayList<>(allChanges.size());
-			HashMap<IObjRef, IChangeContainer> objRefToChangeContainerMap =
-					new HashMap<>();
+			HashMap<IObjRef, IChangeContainer> objRefToChangeContainerMap = new HashMap<>();
 
 			for (int a = allChanges.size(); a-- > 0;) {
 				IChangeContainer changeContainer = allChanges.get(a);
@@ -670,8 +665,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 					HashMap<IObjRef, RootCacheValue> toDeleteMap = new HashMap<>();
 					LinkedHashMap<ITableChange, IList<ILinkChangeCommand>> linkChangeCommands =
 							new LinkedHashMap<>();
-					LinkedHashMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap =
-							new LinkedHashMap<>();
+					LinkedHashMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap = new LinkedHashMap<>();
 					ArrayList<IObjRef> toLoadForDeletion = new ArrayList<>();
 					fillOriList(oriList, allChanges, toLoadForDeletion);
 
@@ -775,8 +769,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 			IIncrementalMergeState incrementalState) {
 		IRelationMergeService relationMergeService = this.relationMergeService;
 
-		final InterfaceFastList<IChangeContainer> changeQueue =
-				new InterfaceFastList<>();
+		final InterfaceFastList<IChangeContainer> changeQueue = new InterfaceFastList<>();
 
 		changeQueue.pushAllFrom(allChanges);
 
@@ -1166,5 +1159,10 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 			ITableChange tableChange = tableChangeList.get(i);
 			tableChange.execute(changeAggregator);
 		}
+	}
+
+	@Override
+	public String createMetaDataDOT() {
+		throw new UnsupportedOperationException();
 	}
 }

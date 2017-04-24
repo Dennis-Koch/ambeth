@@ -36,4 +36,6 @@ public interface IMergeService {
 	List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes);
 
 	IValueObjectConfig getValueObjectConfig(Class<?> valueType);
+
+	String createMetaDataDOT();
 }

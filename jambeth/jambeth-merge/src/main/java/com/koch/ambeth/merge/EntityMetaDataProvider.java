@@ -1,26 +1,5 @@
 package com.koch.ambeth.merge;
 
-/*-
- * #%L
- * jambeth-merge
- * %%
- * Copyright (C) 2017 Koch Softwaredevelopment
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
- * #L%
- */
-
-import java.io.IOException;
 import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -45,6 +24,7 @@ import com.koch.ambeth.ioc.bytecode.IBytecodeEnhancer;
 import com.koch.ambeth.ioc.extendable.ClassExtendableContainer;
 import com.koch.ambeth.ioc.extendable.ClassExtendableListContainer;
 import com.koch.ambeth.ioc.extendable.MapExtendableContainer;
+import com.koch.ambeth.ioc.util.ClassTupleExtendableContainer;
 import com.koch.ambeth.ioc.util.ImmutableTypeSet;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
@@ -92,56 +72,6 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		IEntityLifecycleExtendable, ITechnicalEntityTypeExtendable,
 		IEntityInstantiationExtensionExtendable, IValueObjectConfigExtendable, IInitializingBean {
 
-	private final class StringBuilderWriter extends Writer {
-		private final StringBuilder sb;
-
-		private StringBuilderWriter(StringBuilder sb) {
-			this.sb = sb;
-		}
-
-		@Override
-		public void write(int c) throws IOException {
-			sb.append(c);
-		}
-
-		@Override
-		public void write(String str) throws IOException {
-			sb.append(str);
-		}
-
-		@Override
-		public void write(char[] cbuf, int off, int len) throws IOException {
-			sb.append(cbuf, off, len);
-		}
-
-		@Override
-		public Writer append(char c) throws IOException {
-			sb.append(c);
-			return this;
-		}
-
-		@Override
-		public Writer append(CharSequence csq) throws IOException {
-			sb.append(csq);
-			return this;
-		}
-
-		@Override
-		public Writer append(CharSequence csq, int start, int end) throws IOException {
-			sb.append(csq, start, end);
-			return this;
-		}
-
-		@Override
-		public void flush() throws IOException {
-			// intended blank
-		}
-
-		@Override
-		public void close() throws IOException {
-			// intended blank
-		}
-	}
 
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -259,81 +189,78 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
 	@Override
 	public void toDotGraph(Writer writer) {
-		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
-		final StringBuilder sb = objectCollector.create(StringBuilder.class);
-		try {
-			IEntityMetaData[] extensions =
-					new IdentityHashSet<>(getExtensions().values()).toArray(IEntityMetaData.class);
+		if (remoteEntityMetaDataProvider != null) {
+			remoteEntityMetaDataProvider.toDotGraph(writer);
+			return;
+		}
+		IEntityMetaData[] extensions =
+				new IdentityHashSet<>(getExtensions().values()).toArray(IEntityMetaData.class);
 
-			IDotWriter dotWriter = new DotWriter(new StringBuilderWriter(sb));
+		ClassTupleExtendableContainer<IEntityMetaData> metaDataInheritanceMap =
+				new ClassTupleExtendableContainer<>("metaDatda", "entityType", true);
+		for (IEntityMetaData metaData : extensions) {
+			if (metaData == alreadyHandled) {
+				continue;
+			}
+			metaDataInheritanceMap.register(metaData, Object.class, metaData.getEntityType());
+		}
 
-			try {
-				// writer.write("\n\tgraph [truecolor=true mindist=2 overlap=prism];");
-				// writer.write("\n\tedge [len=4];");
-				for (IEntityMetaData metaData : extensions) {
-					if (metaData == alreadyHandled) {
-						continue;
-					}
-					{
-						IDotNode node = dotWriter.openNode(metaData);
-						node.attribute("label", metaData.getEntityType().getSimpleName());
-						node.attribute("shape", "ellipse");
-						node.attribute("style", "filled");
-						node.attribute("fontcolor", "#ffffffff");
-						node.attribute("fillcolor", metaData.isLocalEntity() ? "#d0771eff" : "#ffff00ff");
-						node.endNode();
-					}
-
-					for (Member member : metaData.getPrimitiveMembers()) {
-						IDotNode node = dotWriter.openNode(member);
-						node.attribute("label", member.getName());
-						node.attribute("shape", "ellipse");
-						node.attribute("style", "filled");
-						node.attribute("fontcolor", "#ffffffff");
-						node.attribute("fillcolor", "#0066ffff");
-						node.endNode();
-					}
-					for (Member member : metaData.getRelationMembers()) {
-						IDotNode node = dotWriter.openNode(member);
-						node.attribute("label", member.getName());
-						node.attribute("shape", "ellipse");
-						node.attribute("style", "filled");
-						node.attribute("fontcolor", "#ffffffff");
-						node.attribute("fillcolor", "#0066ffff");
-						node.endNode();
-					}
+		try (IDotWriter dotWriter = new DotWriter(writer)) {
+			// writer.write("\n\tgraph [truecolor=true mindist=2 overlap=prism];");
+			// writer.write("\n\tedge [len=4];");
+			for (IEntityMetaData metaData : extensions) {
+				if (metaData == alreadyHandled) {
+					continue;
 				}
-				for (IEntityMetaData metaData : extensions) {
-					if (metaData == alreadyHandled) {
-						continue;
-					}
-					for (Member member : metaData.getPrimitiveMembers()) {
-						dotWriter.openEdge(metaData, member).attribute("arrowhead", "none").endEdge();
-					}
-					for (Member member : metaData.getRelationMembers()) {
-						dotWriter.openEdge(metaData, member).attribute("arrowhead", "none").endEdge();
+				{
+					IDotNode node = dotWriter.openNode(metaData);
+					node.attribute("label", metaData.getEntityType().getSimpleName());
+					node.attribute("shape", "ellipse");
+					node.attribute("style", "filled");
+					node.attribute("fontcolor", "#ffffffff");
+					node.attribute("fillcolor", metaData.isLocalEntity() ? "#d0771eff" : "#777700ff");
+					node.endNode();
+				}
 
-						IEntityMetaData targetMetaData = getMetaData(member.getElementType(), true);
-						if (targetMetaData != null) {
-							dotWriter.openEdge(member, targetMetaData).endEdge();
-						}
-					}
+				for (Member member : metaData.getPrimitiveMembers()) {
+					IDotNode node = dotWriter.openNode(member);
+					node.attribute("label", member.getName());
+					node.attribute("shape", "ellipse");
+					node.attribute("style", "filled");
+					node.attribute("fontcolor", "#ffffffff");
+					node.attribute("fillcolor", "#0066ffff");
+					node.endNode();
+				}
+				for (Member member : metaData.getRelationMembers()) {
+					IDotNode node = dotWriter.openNode(member);
+					node.attribute("label", member.getName());
+					node.attribute("shape", "ellipse");
+					node.attribute("style", "filled");
+					node.attribute("fontcolor", "#ffffffff");
+					node.attribute("fillcolor", "#0033ffff");
+					node.endNode();
 				}
 			}
-			finally {
-				try {
-					dotWriter.close();
+			for (IEntityMetaData metaData : extensions) {
+				if (metaData == alreadyHandled) {
+					continue;
 				}
-				catch (Throwable e) {
-					throw RuntimeExceptionUtil.mask(e);
+				for (Member member : metaData.getPrimitiveMembers()) {
+					dotWriter.openEdge(metaData, member).attribute("arrowhead", "none").endEdge();
+				}
+				for (Member member : metaData.getRelationMembers()) {
+					dotWriter.openEdge(metaData, member).attribute("arrowhead", "none").endEdge();
+
+					IEntityMetaData targetMetaData =
+							metaDataInheritanceMap.getExtension(Object.class, member.getElementType());
+					if (targetMetaData != null) {
+						dotWriter.openEdge(member, targetMetaData).endEdge();
+					}
 				}
 			}
 		}
 		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally {
-			objectCollector.dispose(sb);
 		}
 	}
 

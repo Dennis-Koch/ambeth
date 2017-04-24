@@ -7,6 +7,12 @@
 	<name>jUnit Categories</name>
 	<description>jUnit Categories for tests</description>
 
+	<parent>
+		<groupId>com.koch.ambeth</groupId>
+		<artifactId>base-pom</artifactId>
+		<version>1.0.0</version>
+	</parent>
+	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

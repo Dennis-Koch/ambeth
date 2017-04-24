@@ -5,8 +5,11 @@ package com.koch.classbrowser.java;
 
 import java.io.Console;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -22,6 +25,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.koch.ambeth.log.config.Properties;
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 /**
  * @author juergen.panser
@@ -43,6 +47,8 @@ public class Program {
 	public static final String ARG_KEY_HELP = "help";
 
 	public static final String ARG_KEY_TARGETPATH = "targetPath";
+
+	public static final String ARG_KEY_TEMP_PATH = "tempPath";
 
 	public static final String ARG_KEY_JARFOLDERS = "jarFolders";
 
@@ -325,47 +331,75 @@ public class Program {
 	 * @return Map with the module name of each class file; key is the full qualified class name in
 	 *         LOWER CASE and value the module name
 	 */
-	private static Map<String, String> createModuleMap(String rootPath) {
+	private static Map<String, String> createModuleMap(String rootPaths) {
 		Map<String, String> moduleMap = new TreeMap<>();
 		// Assumption: the modules are the first child hierarchy
-		File rootDir = new File(rootPath);
-		if (!rootDir.isDirectory()) {
-			throw new IllegalArgumentException("Root path '" + rootPath + "' is not a directory!");
-		}
-		File[] foundInRoot = rootDir.listFiles();
-		if (foundInRoot != null) {
-			for (File rootFile : foundInRoot) {
-				if (rootFile.isDirectory()) {
-					String moduleName = rootFile.getName();
-					String modulePath = rootFile.getAbsolutePath();
+		try {
+			for (String rootPath : rootPaths.split(Pattern.quote(";"))) {
+				File rootDir = new File(rootPath);
+				if (!rootDir.isDirectory()) {
+					Path extractedFolder = Paths.get(getPathEnsured(ARG_KEY_TEMP_PATH, "Temporary path"));
+					extractedFolder.get
+					JarFile jarFile = new JarFile(rootDir);
+					try {
+						Enumeration<JarEntry> entries = jarFile.entries();
+						while (entries.hasMoreElements()) {
+							JarEntry entry = entries.nextElement();
+							if (entry.isDirectory()) {
+								continue;
+							}
+							String entryName = entry.getName();
+							// Path extractedLocation =
+							// Files.newOutputStream(path, options)
+							jarFile.getInputStream(entry);
+						}
+					}
+					finally {
+						jarFile.close();
+					}
+					throw new IllegalArgumentException("Root path '" + rootPath + "' is not a directory!");
+				}
+				File[] foundInRoot = rootDir.listFiles();
+				if (foundInRoot != null) {
+					for (File rootFile : foundInRoot) {
+						if (rootFile.isDirectory()) {
+							String moduleName = rootFile.getName();
+							String modulePath = rootFile.getAbsolutePath();
 
-					Collection<File> files = FileUtils.listFiles(rootFile, new String[] {"java"}, true);
-					for (File file : files) {
-						String fullFileName = file.getAbsolutePath();
-						String relativeName = StringUtils.replace(fullFileName, modulePath, StringUtils.EMPTY);
-						String[] splittedRelativeName = StringUtils.split(relativeName, "\\/");
-						final String className;
-						if ("src".equals(splittedRelativeName[0]) && "java".equals(splittedRelativeName[2])) {
-							String[] adaptedRelativeName =
-									Arrays.copyOfRange(splittedRelativeName, 3, splittedRelativeName.length);
-							className = StringUtils.join(adaptedRelativeName, ".").toLowerCase();
+							Collection<File> files = FileUtils.listFiles(rootFile, new String[] {"java"}, true);
+							for (File file : files) {
+								String fullFileName = file.getAbsolutePath();
+								String relativeName =
+										StringUtils.replace(fullFileName, modulePath, StringUtils.EMPTY);
+								String[] splittedRelativeName = StringUtils.split(relativeName, "\\/");
+								final String className;
+								if (splittedRelativeName.length > 3 && "src".equals(splittedRelativeName[0])
+										&& "java".equals(splittedRelativeName[2])) {
+									String[] adaptedRelativeName =
+											Arrays.copyOfRange(splittedRelativeName, 3, splittedRelativeName.length);
+									className = StringUtils.join(adaptedRelativeName, ".").toLowerCase();
+								}
+								else if (splittedRelativeName.length > 1
+										&& ("asm_src".equals(splittedRelativeName[0])
+												|| "addon".equals(splittedRelativeName[0]))) {
+									String[] adaptedRelativeName =
+											Arrays.copyOfRange(splittedRelativeName, 1, splittedRelativeName.length);
+									className = StringUtils.join(adaptedRelativeName, ".").toLowerCase();
+								}
+								else {
+									className = StringUtils.join(splittedRelativeName, ".").toLowerCase();
+								}
+								moduleMap.put(className, moduleName);
+							}
 						}
-						else if ("asm_src".equals(splittedRelativeName[0])
-								|| "addon".equals(splittedRelativeName[0])) {
-							String[] adaptedRelativeName =
-									Arrays.copyOfRange(splittedRelativeName, 1, splittedRelativeName.length);
-							className = StringUtils.join(adaptedRelativeName, ".").toLowerCase();
-						}
-						else {
-							className = StringUtils.join(splittedRelativeName, ".").toLowerCase();
-						}
-						moduleMap.put(className, moduleName);
 					}
 				}
 			}
+			return moduleMap;
 		}
-
-		return moduleMap;
+		catch (IOException e) {
+			throw RuntimeExceptionUtil.mask(e);
+		}
 	}
 
 	/**

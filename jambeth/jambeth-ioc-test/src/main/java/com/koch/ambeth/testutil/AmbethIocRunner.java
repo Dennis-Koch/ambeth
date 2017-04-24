@@ -37,6 +37,7 @@ import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.factory.BeanContextFactory;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
+import com.koch.ambeth.log.LoggerFactory;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.log.io.FileUtil;
 import com.koch.ambeth.util.NullPrintStream;
@@ -44,6 +45,7 @@ import com.koch.ambeth.util.annotation.AnnotationInfo;
 import com.koch.ambeth.util.annotation.IAnnotationInfo;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.LinkedHashSet;
+import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
@@ -298,6 +300,13 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 				targetProxyTL.set(targetProxy);
 				try {
 					returningStatement.evaluate();
+				}
+				catch (RuntimeException e) {
+					if (beanContext != null && beanContext.isRunning()) {
+						IProperties props = beanContext.getService(IProperties.class);
+						LoggerFactory.getLogger(AmbethIocRunner.this.getClass(), props).error(e);
+					}
+					throw e;
 				}
 				finally {
 					targetProxyTL.set(oldTargetProxy);
