@@ -61,6 +61,9 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 	@Property(name = ROOT_DATABASE_PASS, defaultValue = "developer")
 	protected String rootDatabasePass;
 
+	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseName, mandatory = false)
+	protected String databaseName;
+
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName)
 	protected String schemaName;
 
@@ -94,6 +97,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 		// try to recover by trying to create the necessary user with the default credentials of sys
 		Properties createUserProps = new Properties(testProps);
 		createUserProps.put(RandomUserScript.SCRIPT_IS_CREATE, "true");
+		createUserProps.put(RandomUserScript.SCRIPT_DATABASE_NAME, databaseName);
 		createUserProps.put(RandomUserScript.SCRIPT_USER_NAME, userName);
 		createUserProps.put(RandomUserScript.SCRIPT_USER_PASS, userPassword);
 

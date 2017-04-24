@@ -34,5 +34,7 @@ public @interface TestProperties {
 
 	String value() default "";
 
+	boolean overrideIfExists() default false;
+
 	Class<? extends IPropertiesProvider> type() default IPropertiesProvider.class;
 }

@@ -88,6 +88,8 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
  * script.create=false script.user.name=CI_TMP_123456,CI_TMP_123458,CI_TMP_123467<br>
  */
 public class RandomUserScript implements IInitializingBean, IStartingBean {
+	public static final String SCRIPT_DATABASE_NAME = "script.database.name";
+
 	public static final String SCRIPT_USER_NAME = "script.user.name";
 
 	public static final String SCRIPT_USER_PASS = "script.user.pass";
@@ -157,6 +159,9 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 	@Property(name = SCRIPT_IS_CREATE)
 	protected boolean createUser;
 
+	@Property(name = SCRIPT_DATABASE_NAME, mandatory = false)
+	protected String databaseName;
+
 	@Property(name = SCRIPT_USER_NAME, mandatory = false)
 	protected String userName;
 
@@ -218,7 +223,8 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 				String[] passwords = userPass.split(ARGUMENT_DELIMITER);
 				List<String> createdUserNames = new ArrayList<>();
 				for (String password : passwords) {
-					String createdUserName = createUser(connection, userName, password, userQuota);
+					String createdUserName =
+							createUser(connection, databaseName, userName, password, userQuota);
 					if (createdUserName != null) {
 						System.out.println("[[CREATED_USERNAME]] " + createdUserName);
 						createdUserNames.add(createdUserName);
@@ -239,8 +245,8 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 		}
 	}
 
-	private String createUser(final Connection connection, final String username,
-			final String password, final String quota) throws SQLException {
+	private String createUser(final Connection connection, final String databaseName,
+			final String username, final String password, final String quota) throws SQLException {
 		String createdUserName = null;
 		boolean oldAutoCommit = connection.getAutoCommit();
 		if (!oldAutoCommit) {
@@ -257,13 +263,17 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 				// digits
 				String randomName = username != null ? username
 						: "CI_TMP_" + System.nanoTime() + String.format("%02d", (int) (Math.random() * 99));
+				String randomDatabase = databaseName != null ? databaseName : randomName;
 				try {
 					stm.execute(
 							"CREATE USER \"" + randomName + "\" WITH PASSWORD '" + password + "' SUPERUSER");
-					stm.execute("CREATE DATABASE \"" + randomName + "\" WITH OWNER \"" + randomName + "\"");
+					stm.execute(
+							"CREATE DATABASE \"" + randomDatabase + "\" WITH OWNER \"" + randomName + "\"");
 
-					Connection userConnection =
-							DriverManager.getConnection(connection.getMetaData().getURL(), randomName, password);
+					Connection userConnection = DriverManager.getConnection(
+							connection.getMetaData().getURL()
+									+ (randomDatabase.equals(randomName) ? "" : randomDatabase),
+							randomName, password);
 					try {
 						Statement userStm = userConnection.createStatement();
 						try {
