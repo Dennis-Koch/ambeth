@@ -408,7 +408,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
 	@Override
 	public IEntityMetaData getExtensionHardKey(Class<?> key) {
-		if (ImmutableTypeSet.isImmutableType(key) || key.isArray()
+		if (key == null || ImmutableTypeSet.isImmutableType(key) || key.isArray()
 				|| IDTOType.class.isAssignableFrom(key) || Collection.class.isAssignableFrom(key)) {
 			return alreadyHandled;
 		}

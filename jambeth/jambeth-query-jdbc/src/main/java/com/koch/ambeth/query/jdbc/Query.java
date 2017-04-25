@@ -226,6 +226,10 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
 			return table.selectDataJoin(additionalSelectColumnList, joinSql, whereSql, orderBySql,
 					limitSql, parameters, tableAlias);
 		}
+		else if (RetrievalType.COUNT.equals(retrievalType)) {
+			return Long
+					.valueOf(table.selectCountJoin(joinSql, whereSql, orderBySql, parameters, tableAlias));
+		}
 		Object pagingIndexObject = nameToValueMap.get(QueryConstants.PAGING_INDEX_OBJECT);
 
 		int pagingLimit = conversionHelper.convertValueToType(Integer.TYPE, pagingSizeObject);

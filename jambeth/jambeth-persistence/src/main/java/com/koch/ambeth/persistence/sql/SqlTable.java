@@ -449,6 +449,10 @@ public class SqlTable extends Table {
 				selectSB.append(tableAlias).append(".");
 			}
 			sqlBuilder.appendName(primaryIdFieldName, selectSB);
+			if (retrieveAlternateIds
+					&& additionalSelectColumnList.contains("\"" + primaryIdFieldName + "\"")) {
+				selectSB.append(" AS PK0");
+			}
 
 			IFieldMetaData versionField = metaData.getVersionField();
 			if (versionField != null) {

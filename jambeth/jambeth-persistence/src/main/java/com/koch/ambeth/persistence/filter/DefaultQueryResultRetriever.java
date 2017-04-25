@@ -103,7 +103,7 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever {
 				}
 				ArrayList<Object> versionList = new ArrayList<>();
 				long totalSize = query.count(currentNameToValueMap);
-				if (size > 0) {
+				if (size != 0) {
 					IVersionCursor versionCursor = query.retrieveAsVersions(currentNameToValueMap, true);
 					try {
 						while (versionCursor.moveNext()) {

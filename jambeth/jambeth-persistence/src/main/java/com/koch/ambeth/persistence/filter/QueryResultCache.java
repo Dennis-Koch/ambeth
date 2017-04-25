@@ -159,9 +159,9 @@ public class QueryResultCache implements IQueryResultCache {
 			return createResult(queryResultCacheItem, idIndex, offset, length, containsPageOnly,
 					totalSize);
 		}
-		queryResultCacheItem = queryResultRetriever.getQueryResult();
-		if (length > 0) {
-			try {
+		try {
+			queryResultCacheItem = queryResultRetriever.getQueryResult();
+			if (length > 0) {
 				List<Class<?>> relatedEntityTypes = queryResultRetriever.getRelatedEntityTypes();
 
 				ITransactionInfo transactionInfo = transaction.getTransactionInfo();
@@ -188,8 +188,7 @@ public class QueryResultCache implements IQueryResultCache {
 					}
 					else {
 						// null relatedEntityTypes means "unknown". In this case invalidate the query key
-						// whenever
-						// ANY datachange occurs on any entity
+						// whenever ANY datachange occurs on any entity
 						registerQueryKeyWithEntityType(Object.class, queryKey);
 					}
 				}
@@ -197,9 +196,9 @@ public class QueryResultCache implements IQueryResultCache {
 					writeLock.unlock();
 				}
 			}
-			finally {
-				notifyWaiting(queryKey);
-			}
+		}
+		finally {
+			notifyWaiting(queryKey);
 		}
 		return createResult(queryResultCacheItem, idIndex, offset, length, containsPageOnly, totalSize);
 	}
@@ -229,23 +228,24 @@ public class QueryResultCache implements IQueryResultCache {
 		try {
 			IQueryResultCacheItem queryResultCacheItem =
 					getCacheItem(queryKey, offset, length, containsPageOnly);
-			if (queryResultCacheItem == null) {
-				while (!pendingQueryKeysSet.add(queryKey)) {
-					try {
-						if (!pendingQueryKeysChangedCond.awaitUntil(waitTill)) {
-							return null;
-						}
-					}
-					catch (InterruptedException e) {
-						throw RuntimeExceptionUtil.mask(e);
-					}
-					queryResultCacheItem = getCacheItem(queryKey, offset, length, containsPageOnly);
-					if (queryResultCacheItem != null) {
-						break;
+			if (queryResultCacheItem != null) {
+				return queryResultCacheItem;
+			}
+			while (!pendingQueryKeysSet.add(queryKey)) {
+				try {
+					if (!pendingQueryKeysChangedCond.awaitUntil(waitTill)) {
+						return null;
 					}
 				}
+				catch (InterruptedException e) {
+					throw RuntimeExceptionUtil.mask(e);
+				}
+				queryResultCacheItem = getCacheItem(queryKey, offset, length, containsPageOnly);
+				if (queryResultCacheItem != null) {
+					return queryResultCacheItem;
+				}
 			}
-			return queryResultCacheItem;
+			return null;
 		}
 		finally {
 			writeLock.unlock();

@@ -281,7 +281,6 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 			outerFieldNamesSql = fieldWithAliasMatcher.replaceAll(outerFieldPattern);
 			innerFieldNamesSql = fieldWithAliasMatcher.replaceAll(innerFieldPattern);
 		}
-
 		try {
 			sb.append("SELECT ").append(outerFieldNamesSql).append(" FROM (SELECT");
 			if (join) {
@@ -291,7 +290,10 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 			if (orderBySql != null && orderBySql.length() > 0) {
 				sb.append(" (").append(orderBySql).append(")");
 			}
-			sb.append(" AS rn,").append(innerFieldNamesSql);
+			sb.append(" AS rn");
+			if (innerFieldNamesSql.length() > 0) {
+				sb.append(',').append(innerFieldNamesSql);
+			}
 
 			if (additionalSelectColumnList != null) {
 				for (int a = 0, size = additionalSelectColumnList.size(); a < size; a++) {
@@ -338,8 +340,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 		IList<IList<Object>> splitValues =
 				persistenceHelper.splitValues(ids, maxInClauseBatchThreshold);
 
-		ArrayList<IResultSetProvider> resultSetProviderStack =
-				new ArrayList<>(splitValues.size());
+		ArrayList<IResultSetProvider> resultSetProviderStack = new ArrayList<>(splitValues.size());
 		// Stack gets evaluated last->first so back iteration is correct to execute the sql in order
 		// later
 		for (int a = splitValues.size(); a-- > 0;) {
