@@ -235,6 +235,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 				}
 			}
 			else {
+				connection.setAutoCommit(true);
 				String[] userNames = getUserNames(userName, userPropertyFile);
 				deleteUsers(connection, userNames);
 			}
@@ -403,6 +404,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 
 	private static void deleteUser(final Statement statement, final String userName)
 			throws SQLException {
-		statement.execute("DROP USER \"" + userName + "\" CASCADE");
+		statement.execute("DROP DATABASE \"" + userName + "\"");
+		statement.execute("DROP USER \"" + userName + "\"");
 	}
 }
