@@ -34,6 +34,7 @@ import org.junit.runners.model.Statement;
 
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.IServiceContext;
+import com.koch.ambeth.ioc.IocModule;
 import com.koch.ambeth.ioc.factory.BeanContextFactory;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
@@ -155,12 +156,12 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 		testClassLevelTestModulesList.addAll(buildTestModuleList(frameworkMethod));
 		testClassLevelTestFrameworkModulesList.addAll(buildFrameworkTestModuleList(frameworkMethod));
 
-		Class<? extends IInitializingModule>[] frameworkModules =
+		final Class<? extends IInitializingModule>[] frameworkModules =
 				testClassLevelTestFrameworkModulesList.toArray(Class.class);
 		Class<? extends IInitializingModule>[] applicationModules =
 				testClassLevelTestModulesList.toArray(Class.class);
 
-		testClassLevelContext = BeanContextFactory.createBootstrap(baseProps);
+		testClassLevelContext = BeanContextFactory.createBootstrap(baseProps, IocModule.class);
 		boolean success = false;
 		try {
 			IStateRollback rollback = FileUtil.pushCurrentTypeScope(getTestClass().getJavaClass());
@@ -176,7 +177,15 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 							}, frameworkModules);
 				}
 				if (applicationModules.length > 0) {
-					currentBeanContext = currentBeanContext.createService("application", applicationModules);
+					currentBeanContext = currentBeanContext.createService("application",
+							new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
+								@Override
+								public void invoke(IBeanContextFactory childContextFactory) {
+									if (frameworkModules.length == 0) {
+										rebuildContextDetails(childContextFactory);
+									}
+								}
+							}, applicationModules);
 				}
 				beanContext = currentBeanContext;
 			}
@@ -283,7 +292,6 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 		return CleanupAfterIoc.class;
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	protected Statement withAfters(FrameworkMethod method, final Object target, Statement statement) {
 		final Statement returningStatement = super.withAfters(method, target, statement);

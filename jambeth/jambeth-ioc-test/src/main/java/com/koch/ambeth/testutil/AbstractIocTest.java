@@ -25,7 +25,6 @@ import org.junit.runner.RunWith;
 import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
-import com.koch.ambeth.ioc.IocModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.IocConfigurationConstants;
 
@@ -43,7 +42,6 @@ import com.koch.ambeth.ioc.config.IocConfigurationConstants;
  * scenarios the method annotations will gain precedence.
  */
 @RunWith(AmbethIocRunner.class)
-@TestFrameworkModule({IocModule.class})
 @TestPropertiesList({
 		@TestProperties(name = IocConfigurationConstants.TrackDeclarationTrace, value = "true"),
 		@TestProperties(name = IocConfigurationConstants.DebugModeActive, value = "true"),
