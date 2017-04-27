@@ -21,6 +21,11 @@
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-service-rest</artifactId>
 		</dependency>
+		
+		<dependency>
+			<groupId>org.eclipse.persistence</groupId>
+			<artifactId>javax.persistence</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>

@@ -11,6 +11,7 @@ import com.koch.ambeth.core.start.IAmbethConfigurationExtension;
 import com.koch.ambeth.core.start.IAmbethConfigurationIntern;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.IServiceContext;
+import com.koch.ambeth.ioc.IocModule;
 import com.koch.ambeth.ioc.annotation.BootstrapModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IocConfigurationConstants;
@@ -275,7 +276,12 @@ public class Ambeth
 		ClassLoader oldCL = Thread.currentThread().getContextClassLoader();
 		Thread.currentThread().setContextClassLoader(classLoader);
 		try {
-			rootContext = BeanContextFactory.createBootstrap(properties);
+			if (ambethModules.remove(IocModule.class)) {
+				rootContext = BeanContextFactory.createBootstrap(properties, IocModule.class);
+			}
+			else {
+				rootContext = BeanContextFactory.createBootstrap(properties);
+			}
 
 			if (andClose) {
 				registerShutdownHook();

@@ -1,5 +1,7 @@
 package com.koch.ambeth.server.rest;
 
+import java.io.IOException;
+
 /*-
  * #%L
  * jambeth-server-rest
@@ -21,6 +23,7 @@ limitations under the License.
  */
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,9 +34,12 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.StreamingOutput;
 
+import com.koch.ambeth.dot.IDotUtil;
 import com.koch.ambeth.merge.model.ICUDResult;
 import com.koch.ambeth.merge.model.IOriCollection;
 import com.koch.ambeth.merge.service.IMergeService;
@@ -60,6 +66,33 @@ public class MergeServiceREST extends AbstractServiceREST {
 			preServiceCall();
 			String dot = getMergeService().createMetaDataDOT();
 			return createResult(dot, response);
+		}
+		catch (Throwable e) {
+			return createExceptionResult(e, response);
+		}
+		finally {
+			postServiceCall();
+		}
+	}
+
+	@GET
+	@Path("fim")
+	@Produces("image/png")
+	public StreamingOutput fim(@Context HttpServletRequest request,
+			@Context final HttpServletResponse response) {
+		try {
+			preServiceCall();
+
+			IDotUtil dotUtil = getService(IDotUtil.class);
+			String dot = getMergeService().createMetaDataDOT();
+			final byte[] pngBytes = dotUtil.writeDotAsPngBytes(dot);
+			return new StreamingOutput() {
+				@Override
+				public void write(OutputStream output) throws IOException, WebApplicationException {
+					response.setHeader(HttpHeaders.CONTENT_TYPE, "image/png");
+					output.write(pngBytes);
+				}
+			};
 		}
 		catch (Throwable e) {
 			return createExceptionResult(e, response);

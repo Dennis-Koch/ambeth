@@ -218,7 +218,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 					node.attribute("shape", "ellipse");
 					node.attribute("style", "filled");
 					node.attribute("fontcolor", "#ffffffff");
-					node.attribute("fillcolor", metaData.isLocalEntity() ? "#d0771eff" : "#777700ff");
+					node.attribute("fillcolor", metaData.isLocalEntity() ? "#d0771eaa" : "#777700cc");
 					node.endNode();
 				}
 
@@ -228,7 +228,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 					node.attribute("shape", "ellipse");
 					node.attribute("style", "filled");
 					node.attribute("fontcolor", "#ffffffff");
-					node.attribute("fillcolor", "#0066ffff");
+					node.attribute("fillcolor", "#0066ffcc");
 					node.endNode();
 				}
 				for (Member member : metaData.getRelationMembers()) {
@@ -237,7 +237,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 					node.attribute("shape", "ellipse");
 					node.attribute("style", "filled");
 					node.attribute("fontcolor", "#ffffffff");
-					node.attribute("fillcolor", "#0033ffff");
+					node.attribute("fillcolor", "#0033ffcc");
 					node.endNode();
 				}
 			}

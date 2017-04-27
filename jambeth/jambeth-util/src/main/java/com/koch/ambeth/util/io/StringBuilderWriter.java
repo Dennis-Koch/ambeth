@@ -6,7 +6,7 @@ import java.io.Writer;
 public class StringBuilderWriter extends Writer {
 	private final StringBuilder sb;
 
-	private StringBuilderWriter(StringBuilder sb) {
+	public StringBuilderWriter(StringBuilder sb) {
 		this.sb = sb;
 	}
 
@@ -51,5 +51,10 @@ public class StringBuilderWriter extends Writer {
 	@Override
 	public void close() throws IOException {
 		// intended blank
+	}
+
+	@Override
+	public String toString() {
+		return sb.toString();
 	}
 }
