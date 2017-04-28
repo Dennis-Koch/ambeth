@@ -18,6 +18,7 @@
 		<tycho.extras.version>1.0.0</tycho.extras.version>
 		<tycho.groupid>org.eclipse.tycho</tycho.groupid>
 		<tycho.extras.groupid>org.eclipse.tycho.extras</tycho.extras.groupid>
+		<kar2tycho.version>1.0.0</kar2tycho.version>
 	</properties>
 
 	<modules>
@@ -181,38 +182,21 @@
 						</execution>
 					</executions>
 				</plugin>
+				<plugin>
+					<groupId>com.bruker.horizon</groupId>
+					<artifactId>kar2tycho-maven-plugin</artifactId>
+					<version>${kar2tycho.version}</version>
+					<executions>
+						<execution>
+							<id>convert</id>
+							<phase>verify</phase>
+							<goals>
+								<goal>kar2tycho</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
 			</plugins>
 		</pluginManagement>
-		<plugins>
-			<plugin>
-				<groupId>org.reficio</groupId>
-				<artifactId>p2-maven-plugin</artifactId>
-				<version>1.2.0</version>
-				<executions>
-					<execution>
-						<id>default-cli</id>
-						<configuration>
-							<artifacts>
-								<artifact>
-									<id>cglib:cglib:3.2.5</id>
-								</artifact>
-								<artifact>
-									<id>org.ow2.asm:asm-all:5.2</id>
-								</artifact>
-								<artifact>
-									<id>xpp3:xpp3:1.1.4c</id>
-								</artifact>
-								<artifact>
-									<id>it.sauronsoftware.cron4j:cron4j:2.2.5</id>
-								</artifact>
-								<artifact>
-									<id>org.javassist:javassist:3.18.1-GA</id>
-								</artifact>
-							</artifacts>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
 	</build>
 </project>
