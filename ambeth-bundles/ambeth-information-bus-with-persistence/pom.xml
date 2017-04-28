@@ -37,11 +37,6 @@
 
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-job-cron4j</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-merge-server</artifactId>
 		</dependency>
 		

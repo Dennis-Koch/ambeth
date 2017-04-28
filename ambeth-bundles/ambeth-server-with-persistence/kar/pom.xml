@@ -115,11 +115,6 @@
 
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-job-cron4j</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-log</artifactId>
 		</dependency>
 
@@ -156,11 +151,6 @@
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence-jdbc</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-persistence-pg</artifactId>
 		</dependency>
 
 		<dependency>
@@ -261,11 +251,6 @@
 		<dependency>
 			<groupId>xpp3</groupId>
 			<artifactId>xpp3</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>it.sauronsoftware.cron4j</groupId>
-			<artifactId>cron4j</artifactId>
 		</dependency>
 
 		<dependency>
