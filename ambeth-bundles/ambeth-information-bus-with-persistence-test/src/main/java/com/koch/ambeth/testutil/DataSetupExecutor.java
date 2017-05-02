@@ -46,8 +46,7 @@ public class DataSetupExecutor implements IStartingBean {
 		Boolean oldValue = autoRebuildDataTL.get();
 		if (autoRebuildData == null) {
 			autoRebuildDataTL.remove();
-		}
-		else {
+		} else {
 			autoRebuildDataTL.set(autoRebuildData);
 		}
 		return oldValue;
@@ -90,57 +89,71 @@ public class DataSetupExecutor implements IStartingBean {
 			auditInfoController.pushAuditReason("Data Rebuild!");
 		}
 		try {
-			securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>() {
-				@Override
-				public Object invoke() throws Throwable {
-					IRevertDelegate suppressPasswordValidationRevert =
-							passwordUtil.suppressPasswordValidation();
-					try {
-						final Collection<Object> dataSet = dataSetup.executeDatasetBuilders();
+			securityActivation
+					.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>() {
+						@Override
+						public Object invoke() throws Throwable {
+							IRevertDelegate suppressPasswordValidationRevert =
+									passwordUtil.suppressPasswordValidation();
+							try {
+								log.info("Processing test data setup...");
+								final Collection<Object> dataSet =
+										dataSetup.executeDatasetBuilders();
+								log.info("Test data setup defined");
 
-						final IBackgroundWorkerDelegate transactionDelegate = new IBackgroundWorkerDelegate() {
-							@Override
-							public void invoke() throws Throwable {
-								permissionGroupUpdater.executeWithoutPermissionGroupUpdate(
-										new IResultingBackgroundWorkerDelegate<Object>() {
+								final IBackgroundWorkerDelegate transactionDelegate =
+										new IBackgroundWorkerDelegate() {
 											@Override
-											public Object invoke() throws Throwable {
-												if (dataSet.size() > 0) {
-													mergeProcess.process(dataSet, null, null, null);
-												}
-												return null;
+											public void invoke() throws Throwable {
+												permissionGroupUpdater
+														.executeWithoutPermissionGroupUpdate(
+																new IResultingBackgroundWorkerDelegate<Object>() {
+																	@Override
+																	public Object invoke()
+																			throws Throwable {
+																		if (dataSet.size() > 0) {
+																			log.info(
+																					"Merging created test data");
+																			mergeProcess.process(
+																					dataSet, null,
+																					null, null);
+																			log.info(
+																					"Merging of created test data finished");
+																		}
+																		return null;
+																	}
+																});
+												log.info(
+														"Filling potential permission group tables based in created test data");
+												permissionGroupUpdater.fillEmptyPermissionGroups();
+												log.info(
+														"Filling of potential permission group tables finished");
 											}
-										});
-								permissionGroupUpdater.fillEmptyPermissionGroups();
+										};
+								IDataSetupWithAuthorization dataSetupWithAuthorization =
+										dataSetup.resolveDataSetupWithAuthorization();
+								if (dataSetupWithAuthorization != null) {
+									dataSetupWithAuthorization.executeWithAuthorization(
+											new IResultingBackgroundWorkerDelegate<Object>() {
+												@Override
+												public Object invoke() throws Throwable {
+													transaction
+															.runInTransaction(transactionDelegate);
+													return null;
+												}
+											});
+								} else {
+									transaction.runInTransaction(transactionDelegate);
+								}
+								return null;
+							} finally {
+								suppressPasswordValidationRevert.revert();
 							}
-						};
-						IDataSetupWithAuthorization dataSetupWithAuthorization =
-								dataSetup.resolveDataSetupWithAuthorization();
-						if (dataSetupWithAuthorization != null) {
-							dataSetupWithAuthorization
-									.executeWithAuthorization(new IResultingBackgroundWorkerDelegate<Object>() {
-										@Override
-										public Object invoke() throws Throwable {
-											transaction.runInTransaction(transactionDelegate);
-											return null;
-										}
-									});
 						}
-						else {
-							transaction.runInTransaction(transactionDelegate);
-						}
-						return null;
-					}
-					finally {
-						suppressPasswordValidationRevert.revert();
-					}
-				}
-			});
-		}
-		catch (Throwable e) {
+					});
+		} catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally {
+		} finally {
 			if (auditInfoController != null) {
 				auditInfoController.popAuditReason();
 			}
