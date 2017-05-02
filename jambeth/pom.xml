@@ -1328,6 +1328,7 @@
 											<goal>assembly</goal>
 											<goal>features-generate-descriptor</goal>
 											<goal>kar</goal>
+											<goal>verify</goal>
 										</goals>
 									</pluginExecutionFilter>
 									<action>

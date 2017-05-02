@@ -22,6 +22,7 @@ limitations under the License.
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -32,6 +33,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -42,6 +44,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.persistence.PersistenceException;
 
@@ -1171,12 +1175,35 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			}
 			String relativePath = fileName.startsWith("/") ? "." + fileName
 					: callingNamespace.replace(".", File.separator) + File.separator + fileName;
+			String forwardPath = relativePath.replace('\\', '/');
 			String[] classPaths = pathSeparator.split(System.getProperty("java.class.path"));
 			for (int i = 0; i < classPaths.length; i++) {
-				tempFile = new File(classPaths[i], relativePath);
-				if (tempFile.canRead()) {
-					sqlFile = tempFile;
-					break;
+				File classpathEntry = new File(classPaths[i]);
+				if (classpathEntry.isDirectory()) {
+					tempFile = new File(classPaths[i], relativePath);
+					if (tempFile.canRead()) {
+						sqlFile = tempFile;
+						break;
+					}
+				}
+				else if (classpathEntry.isFile()) {
+					boolean keepOpen = false;
+					ZipInputStream jis = new ZipInputStream(new FileInputStream(classpathEntry));
+					try {
+						ZipEntry jarEntry;
+						while ((jarEntry = jis.getNextEntry()) != null) {
+							String jarEntryName = jarEntry.getName();
+							if (jarEntryName.equals(forwardPath)) {
+								keepOpen = true;
+								return new BufferedReader(new InputStreamReader(jis, Charset.forName("UTF-8")));
+							}
+						}
+					}
+					finally {
+						if (!keepOpen) {
+							jis.close();
+						}
+					}
 				}
 			}
 			if (sqlFile == null) {

@@ -13,7 +13,6 @@
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-server</artifactId>
-			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
