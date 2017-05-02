@@ -20,7 +20,6 @@
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-information-bus</artifactId>
-			<scope>provided</scope>
 		</dependency>
 		
 		<dependency>

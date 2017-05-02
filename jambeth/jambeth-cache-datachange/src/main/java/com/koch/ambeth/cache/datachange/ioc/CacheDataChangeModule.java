@@ -22,9 +22,9 @@ limitations under the License.
 
 import com.koch.ambeth.cache.datachange.CacheDataChangeListener;
 import com.koch.ambeth.cache.datachange.DataChangeEventBatcher;
-import com.koch.ambeth.cache.datachange.RevertChangesHelper;
 import com.koch.ambeth.cache.datachange.RootCacheClearEventListener;
 import com.koch.ambeth.cache.datachange.ServiceResultCacheDCL;
+import com.koch.ambeth.cache.datachange.revert.RevertChangesHelper;
 import com.koch.ambeth.cache.ioc.CacheModule;
 import com.koch.ambeth.datachange.UnfilteredDataChangeListener;
 import com.koch.ambeth.datachange.model.IDataChange;
@@ -42,7 +42,7 @@ import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 public class CacheDataChangeModule implements IInitializingModule {
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean("revertChangesHelper", RevertChangesHelper.class)
+		beanContextFactory.registerBean(RevertChangesHelper.class)
 				.autowireable(IRevertChangesHelper.class);
 
 		IBeanConfiguration rootCacheClearEventListenerBC =
@@ -64,8 +64,9 @@ public class CacheDataChangeModule implements IInitializingModule {
 		beanContextFactory.link(CacheModule.CACHE_DATA_CHANGE_LISTENER)
 				.to(IEventTargetListenerExtendable.class).with(IDataChange.class);
 
-		beanContextFactory.registerBean("dataChangeEventBatcher", DataChangeEventBatcher.class);
-		beanContextFactory.link("dataChangeEventBatcher").to(IEventBatcherExtendable.class)
+		IBeanConfiguration dataChangeEventBatcher =
+				beanContextFactory.registerBean(DataChangeEventBatcher.class);
+		beanContextFactory.link(dataChangeEventBatcher).to(IEventBatcherExtendable.class)
 				.with(IDataChange.class);
 	}
 }

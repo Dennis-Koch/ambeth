@@ -121,8 +121,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 
 	protected final java.util.concurrent.locks.Lock sequenceLock = new ReentrantLock();
 
-	protected final ThreadLocal<SimpleInMemorySession> sessionTL =
-			new ThreadLocal<>();
+	protected final ThreadLocal<SimpleInMemorySession> sessionTL = new ThreadLocal<>();
 
 	protected final HashSet<IObjRef> pendingChangesInSessionsMap = new HashSet<>();
 
@@ -329,8 +328,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 		IConversionHelper conversionHelper = this.conversionHelper;
 		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 		List<IChangeContainer> changes = cudResult.getAllChanges();
-		IdentityHashMap<IObjRef, IObjRef> givenObjRefToCopyMap =
-				new IdentityHashMap<>();
+		IdentityHashMap<IObjRef, IObjRef> givenObjRefToCopyMap = new IdentityHashMap<>();
 		IdentityHashMap<IObjRef, ILoadContainer> alreadyAcquiredLoadContainerMap =
 				new IdentityHashMap<>();
 
@@ -756,6 +754,11 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 
 	@Override
 	public IValueObjectConfig getValueObjectConfig(Class<?> valueType) {
+		throw new UnsupportedOperationException("Must never happen");
+	}
+
+	@Override
+	public String createMetaDataDOT() {
 		throw new UnsupportedOperationException("Must never happen");
 	}
 }
