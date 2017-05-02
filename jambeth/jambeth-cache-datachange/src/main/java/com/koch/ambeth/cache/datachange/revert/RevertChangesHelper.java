@@ -116,8 +116,7 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 	@Override
 	public void afterPropertiesSet() throws Throwable {}
 
-	protected void backupObjects(Object obj,
-			IMap<Object, IBackup> originalToValueBackup) {
+	protected void backupObjects(Object obj, IMap<Object, IBackup> originalToValueBackup) {
 		if (obj == null) {
 			return;
 		}
@@ -144,8 +143,7 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 		if (obj instanceof List) {
 			List<?> list = (List<?>) obj;
 			Object[] array = list.toArray(new Object[list.size()]);
-			ListBackup listBackup =
-					new ListBackup(array);
+			ListBackup listBackup = new ListBackup(array);
 			originalToValueBackup.put(obj, listBackup);
 			for (int a = list.size(); a-- > 0;) {
 				Object item = list.get(a);
@@ -162,8 +160,7 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 
 		ITypeInfoItem[] members = typeInfo.getMembers();
 		Object[] originalValues = new Object[members.length];
-		ObjectBackup objBackup =
-				new ObjectBackup(members, originalValues);
+		ObjectBackup objBackup = new ObjectBackup(members, originalValues);
 		originalToValueBackup.put(obj, objBackup);
 
 		for (int b = members.length; b-- > 0;) {
@@ -199,6 +196,7 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 
 								// need a hard GC ref to the given collection during asynchronous
 								// processing
+								@SuppressWarnings("unused")
 								IList<Object> hardRefsToRootCacheValuesHere =
 										hardRefsToRootCacheValues;
 
