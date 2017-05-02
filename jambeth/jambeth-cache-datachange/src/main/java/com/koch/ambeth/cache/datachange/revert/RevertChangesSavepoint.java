@@ -40,8 +40,24 @@ public class RevertChangesSavepoint implements IRevertChangesSavepoint {
 			for (Entry<Object, IBackup> entry : changes) {
 				entry.getValue().restore(entry.getKey());
 			}
-		} finally {
+		}
+		finally {
 			cacheModification.setActive(oldCacheModificationValue);
 		}
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		int index = 1;
+		for (Entry<Object, IBackup> entry : changes) {
+			Object key = entry.getKey();
+			if (index > 1) {
+				sb.append('\n');
+			}
+			sb.append(index).append(") ").append(key);
+			index++;
+		}
+		return sb.toString();
 	}
 }

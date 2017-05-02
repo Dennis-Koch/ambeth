@@ -1,11 +1,11 @@
 package com.koch.ambeth.cache.datachange.revert;
 
 import java.lang.reflect.Array;
+import java.util.Collection;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.koch.ambeth.cache.AbstractCache;
 import com.koch.ambeth.cache.ICacheIntern;
@@ -17,28 +17,6 @@ import com.koch.ambeth.datachange.transfer.DataChangeEntry;
 import com.koch.ambeth.datachange.transfer.DataChangeEvent;
 import com.koch.ambeth.event.IEventDispatcher;
 import com.koch.ambeth.event.IProcessResumeItem;
-
-/*-
- * #%L
- * jambeth-cache-datachange
- * %%
- * Copyright (C) 2017 Koch Softwaredevelopment
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
- * #L%
- */
-
-import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.util.ImmutableTypeSet;
@@ -50,12 +28,15 @@ import com.koch.ambeth.merge.RevertChangesFinishedCallback;
 import com.koch.ambeth.merge.cache.CacheDirective;
 import com.koch.ambeth.merge.cache.ICacheModification;
 import com.koch.ambeth.merge.cache.IWritableCache;
+import com.koch.ambeth.merge.cache.ValueHolderState;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
+import com.koch.ambeth.merge.proxy.IObjRefContainer;
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.merge.util.ValueHolderRef;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
+import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.IParamHolder;
 import com.koch.ambeth.util.ParamHolder;
@@ -63,9 +44,9 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
-import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.IdentityHashSet;
-import com.koch.ambeth.util.collections.IdentityWeakHashMap;
+import com.koch.ambeth.util.collections.IdentityLinkedMap;
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.model.IDataObject;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
@@ -74,7 +55,7 @@ import com.koch.ambeth.util.typeinfo.ITypeInfo;
 import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
 import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
 
-public class RevertChangesHelper implements IRevertChangesHelper, IInitializingBean {
+public class RevertChangesHelper implements IRevertChangesHelper {
 	@Autowired
 	protected IServiceContext beanContext;
 
@@ -105,17 +86,6 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 	@Autowired
 	protected ITypeInfoProvider typeInfoProvider;
 
-	protected final Lock readLock, writeLock;
-
-	public RevertChangesHelper() {
-		ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
-		readLock = rwLock.readLock();
-		writeLock = rwLock.writeLock();
-	}
-
-	@Override
-	public void afterPropertiesSet() throws Throwable {}
-
 	protected void backupObjects(Object obj, IMap<Object, IBackup> originalToValueBackup) {
 		if (obj == null) {
 			return;
@@ -124,7 +94,6 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 		if (ImmutableTypeSet.isImmutableType(objType) || originalToValueBackup.containsKey(obj)) {
 			return;
 		}
-		originalToValueBackup.put(obj, null);
 		if (obj.getClass().isArray()) {
 			Class<?> elementType = obj.getClass().getComponentType();
 			int length = Array.getLength(obj);
@@ -143,20 +112,25 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 		if (obj instanceof List) {
 			List<?> list = (List<?>) obj;
 			Object[] array = list.toArray(new Object[list.size()]);
-			ListBackup listBackup = new ListBackup(array);
+			IBackup listBackup = ListBackup.create(array);
 			originalToValueBackup.put(obj, listBackup);
-			for (int a = list.size(); a-- > 0;) {
-				Object item = list.get(a);
+			for (Object item : array) {
 				backupObjects(item, originalToValueBackup);
 			}
 			return;
-		} else if (obj instanceof Iterable) {
-			for (Object item : (Iterable<?>) obj) {
+		}
+		else if (obj instanceof Collection) {
+			Collection<?> coll = (Collection<?>) obj;
+			Object[] array = coll.toArray(new Object[coll.size()]);
+			IBackup collBackup = CollectionBackup.create(array);
+			originalToValueBackup.put(obj, collBackup);
+			for (Object item : array) {
 				backupObjects(item, originalToValueBackup);
 			}
 			return;
 		}
 		ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(objType);
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objType, true);
 
 		ITypeInfoItem[] members = typeInfo.getMembers();
 		Object[] originalValues = new Object[members.length];
@@ -164,8 +138,32 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 		originalToValueBackup.put(obj, objBackup);
 
 		for (int b = members.length; b-- > 0;) {
-			ITypeInfoItem member = members[b];
-			Object originalValue = member.getValue(obj);
+			ITypeInfoItem typeInfoMember = members[b];
+			if (metaData != null) {
+				Member member = metaData.getMemberByName(typeInfoMember.getName());
+				if (member instanceof RelationMember) {
+					int relationIndex = metaData.getIndexByRelation(member);
+					ValueHolderState state = ((IObjRefContainer) obj).get__State(relationIndex);
+					switch (state) {
+						case INIT: {
+							// nothing to do
+							break;
+						}
+						case LAZY: {
+							IObjRef[] objRefs = ((IObjRefContainer) obj).get__ObjRefs(relationIndex);
+							originalValues[b] = ObjRefBackup.create(objRefs, relationIndex);
+							continue;
+						}
+						case PENDING: {
+							// TODO: wait till pending relation is fetched now
+							throw RuntimeExceptionUtil.createEnumNotSupportedException(state);
+						}
+						default:
+							throw RuntimeExceptionUtil.createEnumNotSupportedException(state);
+					}
+				}
+			}
+			Object originalValue = typeInfoMember.getValue(obj);
 			originalValues[b] = originalValue;
 
 			backupObjects(originalValue, originalToValueBackup);
@@ -186,8 +184,7 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 					public void invoke(IProcessResumeItem processResumeItem) throws Throwable {
 						try {
 							boolean oldCacheModificationValue = cacheModification.isActive();
-							boolean oldFailEarlyModeActive =
-									AbstractCache.isFailInCacheHierarchyModeActive();
+							boolean oldFailEarlyModeActive = AbstractCache.isFailInCacheHierarchyModeActive();
 							cacheModification.setActive(true);
 							AbstractCache.setFailInCacheHierarchyModeActive(true);
 							try {
@@ -197,18 +194,15 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 								// need a hard GC ref to the given collection during asynchronous
 								// processing
 								@SuppressWarnings("unused")
-								IList<Object> hardRefsToRootCacheValuesHere =
-										hardRefsToRootCacheValues;
+								IList<Object> hardRefsToRootCacheValuesHere = hardRefsToRootCacheValues;
 
 								for (IWritableCache firstLevelCache : firstLevelCaches) {
-									IList<Object> persistedObjectsInThisCache = firstLevelCache
-											.getObjects(orisToRevert, CacheDirective.failEarly());
+									IList<Object> persistedObjectsInThisCache =
+											firstLevelCache.getObjects(orisToRevert, CacheDirective.failEarly());
 
 									for (int a = persistedObjectsInThisCache.size(); a-- > 0;) {
-										Object persistedObjectInThisCache =
-												persistedObjectsInThisCache.get(a);
-										if (!persistedObjectsToRevert
-												.contains(persistedObjectInThisCache)) {
+										Object persistedObjectInThisCache = persistedObjectsInThisCache.get(a);
+										if (!persistedObjectsToRevert.contains(persistedObjectInThisCache)) {
 											continue;
 										}
 										rootCache.applyValues(persistedObjectInThisCache,
@@ -227,12 +221,13 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 									success2.setValue(Boolean.TRUE);
 									return;
 								}
-							} finally {
-								AbstractCache
-										.setFailInCacheHierarchyModeActive(oldFailEarlyModeActive);
+							}
+							finally {
+								AbstractCache.setFailInCacheHierarchyModeActive(oldFailEarlyModeActive);
 								cacheModification.setActive(oldCacheModificationValue);
 							}
-						} finally {
+						}
+						finally {
 							if (processResumeItem != null) {
 								processResumeItem.resumeProcessingFinished();
 							}
@@ -245,10 +240,10 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 									DataChangeEvent dataChange = DataChangeEvent.create(0, 0, 0);
 									dataChange.setDeletes(directObjectDeletes);
 
-									eventDispatcher.dispatchEvent(dataChange,
-											System.currentTimeMillis(), -1);
+									eventDispatcher.dispatchEvent(dataChange, System.currentTimeMillis(), -1);
 									success3.setValue(Boolean.TRUE);
-								} finally {
+								}
+								finally {
 									if (revertChangesFinishedCallback != null) {
 										revertChangesFinishedCallback.invoke(success3.getValue());
 									}
@@ -276,27 +271,38 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 		if (source == null) {
 			return null;
 		}
-		ArrayList<Object> objList = new ArrayList<Object>();
-		ArrayList<IObjRef> objRefs = new ArrayList<IObjRef>();
-		findAllObjectsToBackup(source, objList, objRefs, new IdentityHashSet<Object>());
+		ArrayList<Object> objList = new ArrayList<>();
+		findAllObjectsToBackup(source, objList, null, new IdentityHashSet<>());
+		return createSavepointIntern(objList);
+	}
 
-		IdentityHashMap<Object, IBackup> originalToValueBackup =
-				new IdentityHashMap<Object, IBackup>();
+	@Override
+	public IRevertChangesSavepoint createSavepoint(Object... sources) {
+		if (sources == null || sources.length == 0) {
+			return null;
+		}
+		ArrayList<Object> objList = new ArrayList<>();
+		findAllObjectsToBackup(sources, objList, null, new IdentityHashSet<>());
+		return createSavepointIntern(objList);
+	}
+
+	protected IRevertChangesSavepoint createSavepointIntern(IList<Object> objList) {
+		IdentityLinkedMap<Object, IBackup> originalToValueBackup = new IdentityLinkedMap<>();
 
 		// Iterate manually through the list because the list itself should not be 'backuped'
-		for (int a = objList.size(); a-- > 0;) {
+		for (int a = 0, size = objList.size(); a < size; a++) {
 			backupObjects(objList.get(a), originalToValueBackup);
 		}
-		IdentityWeakHashMap<Object, IBackup> weakObjectsToBackup =
-				new IdentityWeakHashMap<Object, IBackup>();
-		for (Entry<Object, IBackup> entry : originalToValueBackup) {
+		Iterator<Entry<Object, IBackup>> iter = originalToValueBackup.iterator();
+		while (iter.hasNext()) {
+			Entry<Object, IBackup> entry = iter.next();
 			IBackup backup = entry.getValue();
-			if (backup != null) {
-				weakObjectsToBackup.put(entry.getKey(), backup);
+			if (backup == null) {
+				iter.remove();
 			}
 		}
 		return beanContext.registerBean(RevertChangesSavepoint.class)
-				.propertyValue(RevertChangesSavepoint.P_CHANGES, weakObjectsToBackup).finish();
+				.propertyValue(RevertChangesSavepoint.P_CHANGES, originalToValueBackup).finish();
 	}
 
 	protected void fillRevertList(Object obj, ISet<Object> alreadyScannedSet,
@@ -310,7 +316,8 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 				fillRevertList(list.get(a), alreadyScannedSet, revertList, recursive);
 			}
 			return;
-		} else if (obj instanceof Iterable) {
+		}
+		else if (obj instanceof Iterable) {
 			for (Object item : (Iterable<?>) obj) {
 				fillRevertList(item, alreadyScannedSet, revertList, recursive);
 			}
@@ -340,19 +347,25 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 				findAllObjectsToBackup(item, objList, objRefs, alreadyProcessedSet);
 			}
 			return;
-		} else if (obj instanceof Iterable) {
+		}
+		else if (obj instanceof Iterable) {
 			for (Object item : (Iterable<?>) obj) {
 				findAllObjectsToBackup(item, objList, objRefs, alreadyProcessedSet);
 			}
 			return;
 		}
 		IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
-		Object id = metaData.getIdMember().getValue(obj);
 		objList.add(obj);
-		objRefs.add(new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, null));
+		if (objRefs != null) {
+			Object id = metaData.getIdMember().getValue(obj);
+			objRefs.add(new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, null));
+		}
 		RelationMember[] relationMembers = metaData.getRelationMembers();
-		for (int a = relationMembers.length; a-- > 0;) {
-			RelationMember relationMember = relationMembers[a];
+		for (int relationIndex = relationMembers.length; relationIndex-- > 0;) {
+			RelationMember relationMember = relationMembers[relationIndex];
+			if (!((IObjRefContainer) obj).is__Initialized(relationIndex)) {
+				continue;
+			}
 			Object item = relationMember.getValue(obj);
 			findAllObjectsToBackup(item, objList, objRefs, alreadyProcessedSet);
 		}
@@ -380,8 +393,8 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 		if (objectsToRevert == null) {
 			return;
 		}
-		ArrayList<Object> revertList = new ArrayList<Object>();
-		fillRevertList(objectsToRevert, new IdentityHashSet<Object>(), revertList, recursive);
+		ArrayList<Object> revertList = new ArrayList<>();
+		fillRevertList(objectsToRevert, new IdentityHashSet<>(), revertList, recursive);
 		revertChangesIntern(null, revertList, false, revertChangesFinishedCallback);
 	}
 
@@ -407,8 +420,8 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 		if (objectsToRevert == null) {
 			return;
 		}
-		ArrayList<Object> revertList = new ArrayList<Object>();
-		fillRevertList(objectsToRevert, new IdentityHashSet<Object>(), revertList, recursive);
+		ArrayList<Object> revertList = new ArrayList<>();
+		fillRevertList(objectsToRevert, new IdentityHashSet<>(), revertList, recursive);
 		revertChangesIntern(null, revertList, true, revertChangesFinishedCallback);
 	}
 
@@ -438,17 +451,17 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 							Object id = metaData.getIdMember().getValue(objectToRevert, false);
 
 							if (id == null) {
-								dataChange.getDeletes()
-										.add(new DirectDataChangeEntry(objectToRevert));
+								dataChange.getDeletes().add(new DirectDataChangeEntry(objectToRevert));
 								continue;
 							}
-							dataChange.getUpdates().add(new DataChangeEntry(
-									metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, null));
+							dataChange.getUpdates().add(new DataChangeEntry(metaData.getEntityType(),
+									ObjRef.PRIMARY_KEY_INDEX, id, null));
 						}
 
 						eventDispatcher.dispatchEvent(dataChange, System.currentTimeMillis(), -1);
 						success = true;
-					} finally {
+					}
+					finally {
 						if (revertChangesFinishedCallback != null) {
 							revertChangesFinishedCallback.invoke(success);
 						}
@@ -592,19 +605,18 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 		ParamHolder<Boolean> success2 = new ParamHolder<>();
 		ParamHolder<Boolean> success3 = new ParamHolder<>();
 		try {
-			ArrayList<IDataChangeEntry> directObjectDeletes = new ArrayList<IDataChangeEntry>();
-			ArrayList<IObjRef> objRefs = new ArrayList<IObjRef>();
-			ArrayList<IObjRef> privilegedObjRefs = new ArrayList<IObjRef>();
-			ArrayList<ValueHolderRef> valueHolderKeys = new ArrayList<ValueHolderRef>();
-			IList<Object> initializedObjects = mergeController.scanForInitializedObjects(
-					objectsToRevert, true, null, objRefs, privilegedObjRefs, valueHolderKeys);
+			ArrayList<IDataChangeEntry> directObjectDeletes = new ArrayList<>();
+			ArrayList<IObjRef> objRefs = new ArrayList<>();
+			ArrayList<IObjRef> privilegedObjRefs = new ArrayList<>();
+			ArrayList<ValueHolderRef> valueHolderKeys = new ArrayList<>();
+			IList<Object> initializedObjects = mergeController.scanForInitializedObjects(objectsToRevert,
+					true, null, objRefs, privilegedObjRefs, valueHolderKeys);
 
-			IList<IObjRef> orisToRevert = new ArrayList<IObjRef>();
-			ISet<Object> persistedObjectsToRevert = new IdentityHashSet<Object>();
+			IList<IObjRef> orisToRevert = new ArrayList<>();
+			ISet<Object> persistedObjectsToRevert = new IdentityHashSet<>();
 			for (int a = initializedObjects.size(); a-- > 0;) {
 				Object objectToRevert = initializedObjects.get(a);
-				IEntityMetaData metaData =
-						((IEntityMetaDataHolder) objectToRevert).get__EntityMetaData();
+				IEntityMetaData metaData = ((IEntityMetaDataHolder) objectToRevert).get__EntityMetaData();
 				Object id = metaData.getIdMember().getValue(objectToRevert, false);
 
 				if (id == null) {
@@ -612,8 +624,7 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 					continue;
 				}
 				persistedObjectsToRevert.add(objectToRevert);
-				orisToRevert.add(
-						new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, null));
+				orisToRevert.add(new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, null));
 			}
 			IList<Object> hardRefsToRootCacheValues = rootCache.getObjects(orisToRevert,
 					EnumSet.of(CacheDirective.CacheValueResult, CacheDirective.ReturnMisses));
@@ -634,7 +645,8 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 			callWaitEventToResumeInGui(directObjectDeletes, orisToRevert, persistedObjectsToRevert,
 					objectsToRevert, hardRefsToRootCacheValues, success1, success2, success3,
 					revertChangesFinishedCallback);
-		} finally
+		}
+		finally
 
 		{
 			if (revertChangesFinishedCallback != null && success2 == null && success3 == null) {
@@ -650,7 +662,7 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 		IList<IWritableCache> selectedFirstLevelCaches =
 				firstLevelCacheManager.selectFirstLevelCaches();
 
-		ISet<Object> collisionSet = new IdentityHashSet<Object>();
+		ISet<Object> collisionSet = new IdentityHashSet<>();
 		collisionSet.add(rootCache);
 		for (int a = selectedFirstLevelCaches.size(); a-- > 0;) {
 			collisionSet.add(selectedFirstLevelCaches.get(a));
