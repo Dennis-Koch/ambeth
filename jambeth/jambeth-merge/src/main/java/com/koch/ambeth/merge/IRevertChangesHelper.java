@@ -23,6 +23,8 @@ limitations under the License.
 public interface IRevertChangesHelper {
 	IRevertChangesSavepoint createSavepoint(Object source);
 
+	IRevertChangesSavepoint createSavepoint(Object... sources);
+
 	void revertChanges(Object objectsToRevert);
 
 	void revertChanges(Object objectsToRevert, boolean recursive);

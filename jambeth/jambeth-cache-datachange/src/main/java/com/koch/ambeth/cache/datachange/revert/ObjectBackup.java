@@ -16,8 +16,12 @@ public class ObjectBackup implements IBackup {
 	@Override
 	public void restore(Object target) {
 		for (int b = allMembers.length; b-- > 0;) {
-			ITypeInfoItem member = allMembers[b];
 			Object originalValue = values[b];
+			if (originalValue instanceof IBackup) {
+				((IBackup) originalValue).restore(target);
+				continue;
+			}
+			ITypeInfoItem member = allMembers[b];
 			if (!EqualsUtil.equals(member.getValue(target), originalValue)) {
 				member.setValue(target, originalValue);
 			}

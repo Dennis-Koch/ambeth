@@ -3,9 +3,16 @@ package com.koch.ambeth.cache.datachange.revert;
 import java.util.List;
 
 public class ListBackup implements IBackup {
+	public static IBackup create(Object[] arrayClone) {
+		if (arrayClone == null || arrayClone.length == 0) {
+			return CollectionBackup.EMPTY_COLLECTION_BACKUP;
+		}
+		return new ListBackup(arrayClone);
+	}
+
 	protected final Object[] arrayClone;
 
-	public ListBackup(Object[] arrayClone) {
+	private ListBackup(Object[] arrayClone) {
 		this.arrayClone = arrayClone;
 	}
 
