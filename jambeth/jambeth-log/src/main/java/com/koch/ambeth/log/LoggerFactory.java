@@ -53,60 +53,19 @@ public final class LoggerFactory {
 		LoggerFactory.loggerType = AmbethLogger.class;
 	}
 
-	public static String logConsoleProperty(Class<?> type) {
-		return logConsolePropertyPrefix + '.' + type.getName();
-	}
-
-	public static String logLevelProperty(Class<?> type) {
-		return logLevelPropertyPrefix + '.' + type.getName();
-	}
-
-	public static String logSourceProperty(Class<?> type) {
-		return logSourcePropertyPrefix + '.' + type.getName();
-	}
-
-	public static void setLoggerType(Class<? extends ILogger> loggerType) {
-		if (loggerType == null) {
-			throw new IllegalArgumentException(
-					"LoggerType must be derived from '" + ILogger.class.getName() + "'");
+	private static String buildKey(String loggerKey, String loggerName, StringBuilder tempSB,
+			boolean overridingKey) {
+		tempSB.setLength(loggerPrefix.length());
+		tempSB.append(loggerKey);
+		if (loggerName.length() > 0) {
+			tempSB.append('.');
+			tempSB.append(loggerName);
 		}
-		LoggerFactory.loggerType = loggerType;
-	}
-
-	public static ILogger getLogger(String source) {
-		try {
-			ILogger logger = LoggerFactory.loggerType.getConstructor(String.class).newInstance(source);
-
-			if (logger instanceof IConfigurableLogger) {
-				LoggerFactory.configureLogger(source, (IConfigurableLogger) logger);
-			}
-			return logger;
+		if (overridingKey) {
+			tempSB.append('.');
+			tempSB.append('*');
 		}
-		catch (Throwable e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
-	public static ILogger getLogger(Class<?> source) {
-		return getLogger(source, Properties.getApplication());
-	}
-
-	public static ILogger getLogger(Class<?> source, IProperties props) {
-		if (props == null) {
-			props = Properties.getApplication();
-		}
-		try {
-			ILogger logger =
-					LoggerFactory.loggerType.getConstructor(String.class).newInstance(source.getName());
-
-			if (logger instanceof IConfigurableLogger) {
-				LoggerFactory.configureLogger(source.getName(), (IConfigurableLogger) logger, props);
-			}
-			return logger;
-		}
-		catch (Throwable e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
+		return tempSB.toString();
 	}
 
 	public static void configureLogger(String loggerName, IConfigurableLogger logger) {
@@ -173,21 +132,18 @@ public final class LoggerFactory {
 			logger.setInfoEnabled(true);
 			logger.setWarnEnabled(true);
 			logger.setErrorEnabled(true);
-		}
-		else if (logLevelInfo.equalsIgnoreCase(logLevelValue)) {
+		} else if (logLevelInfo.equalsIgnoreCase(logLevelValue)) {
 			logger.setDebugEnabled(false);
 			logger.setInfoEnabled(true);
 			logger.setWarnEnabled(true);
 			logger.setErrorEnabled(true);
-		}
-		else if (logLevelWarn.equalsIgnoreCase(logLevelValue) || logLevelValue == null) {
+		} else if (logLevelWarn.equalsIgnoreCase(logLevelValue) || logLevelValue == null) {
 			// if nothing is configured the logger defaults to "warn" level
 			logger.setDebugEnabled(false);
 			logger.setInfoEnabled(false);
 			logger.setWarnEnabled(true);
 			logger.setErrorEnabled(true);
-		}
-		else if (logLevelError.equalsIgnoreCase(logLevelValue)) {
+		} else if (logLevelError.equalsIgnoreCase(logLevelValue)) {
 			logger.setDebugEnabled(false);
 			logger.setInfoEnabled(false);
 			logger.setWarnEnabled(false);
@@ -202,19 +158,72 @@ public final class LoggerFactory {
 		logger.postProcess(appProps);
 	}
 
-	private static String buildKey(String loggerKey, String loggerName, StringBuilder tempSB,
-			boolean overridingKey) {
-		tempSB.setLength(loggerPrefix.length());
-		tempSB.append(loggerKey);
-		if (loggerName.length() > 0) {
-			tempSB.append('.');
-			tempSB.append(loggerName);
+	public static ILogger getLogger(Class<?> source) {
+		return getLogger(source, Properties.getApplication());
+	}
+
+	public static ILogger getLogger(Class<?> source, IProperties props) {
+		if (props == null) {
+			props = Properties.getApplication();
 		}
-		if (overridingKey) {
-			tempSB.append('.');
-			tempSB.append('*');
+		try {
+			ILogger logger = LoggerFactory.loggerType.getConstructor(String.class)
+					.newInstance(source.getName());
+
+			if (logger instanceof IConfigurableLogger) {
+				LoggerFactory.configureLogger(source.getName(), (IConfigurableLogger) logger,
+						props);
+			}
+			return logger;
+		} catch (Throwable e) {
+			throw RuntimeExceptionUtil.mask(e);
 		}
-		return tempSB.toString();
+	}
+
+	public static ILogger getLogger(String source) {
+		try {
+			ILogger logger =
+					LoggerFactory.loggerType.getConstructor(String.class).newInstance(source);
+
+			if (logger instanceof IConfigurableLogger) {
+				LoggerFactory.configureLogger(source, (IConfigurableLogger) logger);
+			}
+			return logger;
+		} catch (Throwable e) {
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	public static String logConsoleProperty(Class<?> type) {
+		return logConsolePropertyPrefix + '.' + type.getName();
+	}
+
+	public static String logConsoleProperty(Package pkg) {
+		return logConsolePropertyPrefix + '.' + pkg.getName();
+	}
+
+	public static String logLevelProperty(Class<?> type) {
+		return logLevelPropertyPrefix + '.' + type.getName();
+	}
+
+	public static String logLevelProperty(Package pkg) {
+		return logLevelPropertyPrefix + '.' + pkg.getName();
+	}
+
+	public static String logSourceProperty(Class<?> type) {
+		return logSourcePropertyPrefix + '.' + type.getName();
+	}
+
+	public static String logSourceProperty(Package pkg) {
+		return logSourcePropertyPrefix + '.' + pkg.getName();
+	}
+
+	public static void setLoggerType(Class<? extends ILogger> loggerType) {
+		if (loggerType == null) {
+			throw new IllegalArgumentException(
+					"LoggerType must be derived from '" + ILogger.class.getName() + "'");
+		}
+		LoggerFactory.loggerType = loggerType;
 	}
 
 	private LoggerFactory() {
