@@ -117,35 +117,78 @@ public class MergeController implements IMergeController, IMergeExtendable {
 	@Autowired
 	protected ISecurityActivation securityActivation;
 
-	@Property(name = MergeConfigurationConstants.ExactVersionForOptimisticLockingRequired,
-			defaultValue = "false")
+	@Property(name = MergeConfigurationConstants.ExactVersionForOptimisticLockingRequired, defaultValue = "false")
 	protected boolean exactVersionForOptimisticLockingRequired;
 
-	@Property(name = MergeConfigurationConstants.AlwaysUpdateVersionInChangedEntities,
-			defaultValue = "false")
+	@Property(name = MergeConfigurationConstants.AlwaysUpdateVersionInChangedEntities, defaultValue = "false")
 	protected boolean alwaysUpdateVersionInChangedEntities;
 
 	protected final List<IMergeExtension> mergeExtensions = new ArrayList<>();
 
-	@Override
-	public void registerMergeExtension(IMergeExtension mergeExtension) {
-		if (mergeExtension == null) {
-			throw new IllegalStateException("mergeExtension");
+	protected IList<IUpdateItem> addModification(Object obj, MergeHandle handle) {
+		IList<IUpdateItem> modItemList = handle.objToModDict.get(obj);
+		if (modItemList == null) {
+			modItemList = new ArrayList<>();
+			handle.objToModDict.put(obj, modItemList);
 		}
-		if (mergeExtensions.contains(mergeExtension)) {
-			throw new IllegalStateException("MergeExtension already registered: " + mergeExtension);
-		}
-		mergeExtensions.add(mergeExtension);
+		return modItemList;
 	}
 
-	@Override
-	public void unregisterMergeExtension(IMergeExtension mergeExtension) {
-		if (mergeExtension == null) {
-			throw new IllegalStateException("mergeExtension");
+	protected void addModification(Object obj, String memberName, Class<?> targetValueType,
+			Object value, Object cloneValue, MergeHandle handle) {
+		if (value != null && Collection.class.isAssignableFrom(value.getClass())
+				&& ((Collection<?>) value).size() == 0) {
+			return;
 		}
-		if (!mergeExtensions.remove(mergeExtension)) {
-			throw new IllegalStateException(
-					"MergeExtension to remove is not registered: " + mergeExtension);
+		for (int a = 0, size = mergeExtensions.size(); a < size; a++) {
+			IMergeExtension mergeExtension = mergeExtensions.get(a);
+			if (mergeExtension.handlesType(targetValueType)) {
+				value = mergeExtension.extractPrimitiveValueToMerge(value);
+			}
+		}
+		PrimitiveUpdateItem primModItem = new PrimitiveUpdateItem();
+		primModItem.setMemberName(memberName);
+		primModItem.setNewValue(value);
+
+		IList<IUpdateItem> modItemList = addModification(obj, handle);
+		modItemList.add(primModItem);
+	}
+
+	@SuppressWarnings("rawtypes")
+	protected void addOriModification(Object obj, String memberName, Object value,
+			Object cloneValue, MergeHandle handle) {
+		if (value instanceof List) {
+			List list = (List) value;
+			for (int a = 0, size = list.size(); a < size; a++) {
+				Object objItem = list.get(a);
+				mergeOrPersist(objItem, handle);
+			}
+		} else if (value instanceof Collection) {
+			Iterator<?> iter = ((Collection<?>) value).iterator();
+			while (iter.hasNext()) {
+				Object objItem = iter.next();
+				mergeOrPersist(objItem, handle);
+			}
+		} else {
+			mergeOrPersist(value, handle);
+		}
+		try {
+			IList<IObjRef> oldOriList =
+					oriHelper.extractObjRefList(cloneValue, handle, handle.getOldOrList());
+			IList<IObjRef> newOriList =
+					oriHelper.extractObjRefList(value, handle, handle.getNewOrList());
+
+			IRelationUpdateItem oriModItem = createRUI(memberName, oldOriList, newOriList);
+			if (oriModItem == null) {
+				return;
+			}
+
+			IList<IUpdateItem> modItemList = addModification(obj, handle);
+
+			modItemList.add(oriModItem);
+		} finally {
+			handle.getOldOrList().clear();
+			handle.getNewOrList().clear();
 		}
 	}
 
@@ -186,7 +229,8 @@ public class MergeController implements IMergeController, IMergeExtendable {
 				IObjRef ori = allChangeORIs.get(a);
 
 				if (originalRef == null) {
-					// Object has been deleted by cascade delete contraints on server merge or simply a "not
+					// Object has been deleted by cascade delete contraints on server merge or
+					// simply a "not
 					// specified" original ref
 					continue;
 				}
@@ -195,7 +239,8 @@ public class MergeController implements IMergeController, IMergeExtendable {
 				}
 				Long changedOn = allChangedOn != null ? allChangedOn[a] : singleChangedOn;
 				String changedBy = allChangedBy != null ? allChangedBy[a] : singleChangedBy;
-				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(originalRef.getClass());
+				IEntityMetaData metaData =
+						entityMetaDataProvider.getMetaData(originalRef.getClass());
 
 				Member keyMember = metaData.getIdMember();
 				Member versionMember = metaData.getVersionMember();
@@ -204,19 +249,18 @@ public class MergeController implements IMergeController, IMergeExtendable {
 				if (keyMember.getValue(originalRef, false) == null) {
 					onMember = metaData.getCreatedOnMember();
 					byMember = metaData.getCreatedByMember();
-				}
-				else {
+				} else {
 					onMember = metaData.getUpdatedOnMember();
 					byMember = metaData.getUpdatedByMember();
 				}
 				if (onMember != null && changedOn != null) {
-					Object createdOn =
-							conversionHelper.convertValueToType(onMember.getElementType(), changedOn);
+					Object createdOn = conversionHelper
+							.convertValueToType(onMember.getElementType(), changedOn);
 					onMember.setValue(originalRef, createdOn);
 				}
 				if (byMember != null && changedBy != null) {
-					Object createdBy =
-							conversionHelper.convertValueToType(byMember.getElementType(), changedBy);
+					Object createdBy = conversionHelper
+							.convertValueToType(byMember.getElementType(), changedBy);
 					byMember.setValue(originalRef, createdBy);
 				}
 				if (ori == null) {
@@ -234,17 +278,19 @@ public class MergeController implements IMergeController, IMergeExtendable {
 						conversionHelper.convertValueToType(keyMember.getRealType(), ori.getId()));
 				if (versionMember != null) {
 					if (alwaysUpdateVersionInChangedEntities) {
-						versionMember.setValue(originalRef,
-								conversionHelper.convertValueToType(versionMember.getRealType(), ori.getVersion()));
-					}
-					else {
-						// We INTENTIONALLY do NOT set the version and let it on its old value, to force the
+						versionMember.setValue(originalRef, conversionHelper
+								.convertValueToType(versionMember.getRealType(), ori.getVersion()));
+					} else {
+						// We INTENTIONALLY do NOT set the version and let it on its old value, to
+						// force the
 						// following
 						// DCE to refresh the cached object with 'real' data
-						// If we set the version here to the ori.getVersion(), the DCE will 'see' a already
+						// If we set the version here to the ori.getVersion(), the DCE will 'see' a
+						// already
 						// valid object
 						// - but it is NOT valid
-						// because it may not contain bi-directional information which can only be resolved by
+						// because it may not contain bi-directional information which can only be
+						// resolved by
 						// reloading
 						// the object from persistence layer
 					}
@@ -256,446 +302,8 @@ public class MergeController implements IMergeController, IMergeExtendable {
 				validObjects.add(originalRef);
 			}
 			putInstancesToCurrentCache(validObjects, cache);
-		}
-		finally {
+		} finally {
 			cacheModification.setActive(oldCacheModificationValue);
-		}
-	}
-
-	protected void putInstancesToCurrentCache(List<Object> validObjects, ICache cache) {
-		if (!MergeProcess.isAddNewlyPersistedEntities()) {
-			return;
-		}
-		IWritableCache currentCache =
-				cache != null ? (IWritableCache) cache : (IWritableCache) cacheProvider.getCurrentCache();
-		currentCache.put(validObjects);
-	}
-
-	@Override
-	public ICUDResult mergeDeep(Object obj, MergeHandle handle) {
-		LinkedHashMap<Class<?>, IList<Object>> typeToObjectsToMerge = null;
-		Class<?>[] entityPersistOrder = entityMetaDataProvider.getEntityPersistOrder();
-		if (entityPersistOrder != null && entityPersistOrder.length > 0) {
-			typeToObjectsToMerge = new LinkedHashMap<>();
-		}
-		ArrayList<IObjRef> objRefs = new ArrayList<>();
-		ArrayList<IObjRef> privilegedObjRefs = new ArrayList<>();
-		ArrayList<ValueHolderRef> valueHolderKeys = new ArrayList<>();
-		IList<Object> objectsToMerge = scanForInitializedObjects(obj, handle.isDeepMerge(),
-				typeToObjectsToMerge, objRefs, privilegedObjRefs, valueHolderKeys);
-		ArrayList<Object> hardRef = new ArrayList<>();
-		// Load all requested object originals in one roundtrip
-		try {
-			if (privilegedObjRefs.size() > 0) {
-				hardRef.add(batchLoadOriginalState(handle, true, privilegedObjRefs, valueHolderKeys));
-			}
-			if (objRefs.size() > 0) {
-				hardRef.add(batchLoadOriginalState(handle, false, objRefs, valueHolderKeys));
-			}
-			if (typeToObjectsToMerge != null) {
-				for (Class<?> orderedEntityType : entityPersistOrder) {
-					IList<Object> objectsToMergeOfOrderedType =
-							typeToObjectsToMerge.remove(orderedEntityType);
-					if (objectsToMergeOfOrderedType == null) {
-						continue;
-					}
-					mergeDeepStart(objectsToMergeOfOrderedType, handle);
-				}
-				for (Entry<Class<?>, IList<Object>> entry : typeToObjectsToMerge) {
-					IList<Object> objectsToMergeOfUnorderedType = entry.getValue();
-					mergeDeepStart(objectsToMergeOfUnorderedType, handle);
-				}
-			}
-			else if (objectsToMerge.size() > 0) {
-				mergeDeepStart(objectsToMerge, handle);
-			}
-			return cudResultHelper.createCUDResult(handle);
-		}
-		finally {
-			if (handle.isPrivilegedCacheToDispose()) {
-				((IDisposableCache) handle.getPrivilegedCache()).dispose();
-				handle.setPrivilegedCache(null);
-			}
-			if (handle.isCacheToDispose()) {
-				((IDisposableCache) handle.getCache()).dispose();
-				handle.setCache(null);
-			}
-		}
-	}
-
-	protected List<Object> batchLoadOriginalState(MergeHandle handle, boolean privilegedMode,
-			ArrayList<IObjRef> objRefs, ArrayList<ValueHolderRef> valueHolderKeys) {
-		ICache cache;
-		if (privilegedMode) {
-			cache = handle.getPrivilegedCache();
-			if (cache == null) {
-				cache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.FALSE,
-						"MergeController.ORIGINAL.PRIVILEGED");
-				handle.setPrivilegedCache(cache);
-				handle.setPrivilegedCacheToDispose(true);
-			}
-		}
-		else {
-			cache = handle.getCache();
-			if (cache == null) {
-				cache = cacheFactory.create(CacheFactoryDirective.NoDCE, false, Boolean.FALSE,
-						"MergeController.ORIGINAL");
-				handle.setCache(cache);
-				handle.setCacheToDispose(true);
-			}
-		}
-		IList<Object> eagerlyLoadedOriginals = cache.getObjects(objRefs, CacheDirective.returnMisses());
-		for (int a = eagerlyLoadedOriginals.size(); a-- > 0;) {
-			IObjRef existingOri = objRefs.get(a);
-			if (eagerlyLoadedOriginals.get(a) == null && existingOri != null
-					&& existingOri.getId() != null) {
-				// Cache miss for an entity we want to merge. This is an OptimisticLock-State
-				throw OptimisticLockUtil.throwDeleted(existingOri);
-			}
-		}
-		ArrayList<IObjRef> objRefsOfVhks = new ArrayList<>(valueHolderKeys.size());
-		for (int a = 0, size = valueHolderKeys.size(); a < size; a++) {
-			objRefsOfVhks.add(valueHolderKeys.get(a).getObjRef());
-		}
-		IList<Object> objectsOfVhks = cache.getObjects(objRefsOfVhks, failEarlyAndReturnMissesSet);
-		for (int a = valueHolderKeys.size(); a-- > 0;) {
-			IObjRefContainer objectOfVhk = (IObjRefContainer) objectsOfVhks.get(a);
-			if (objectOfVhk == null) {
-				continue;
-			}
-			ValueHolderRef valueHolderRef = valueHolderKeys.get(a);
-			if (ValueHolderState.INIT == objectOfVhk.get__State(valueHolderRef.getRelationIndex())) {
-				continue;
-			}
-			DirectValueHolderRef vhcKey =
-					new DirectValueHolderRef(objectOfVhk, valueHolderRef.getMember());
-			handle.getPendingValueHolders().add(vhcKey);
-		}
-		return eagerlyLoadedOriginals;
-	}
-
-	@Override
-	public IList<Object> scanForInitializedObjects(Object obj, boolean isDeepMerge,
-			Map<Class<?>, IList<Object>> typeToObjectsToMerge, List<IObjRef> objRefs,
-			List<IObjRef> privilegedObjRefs, List<ValueHolderRef> valueHolderKeys) {
-		ArrayList<Object> objects = new ArrayList<>();
-		IdentityHashSet<Object> alreadyHandledObjectsSet = new IdentityHashSet<>();
-		scanForInitializedObjectsIntern(obj, isDeepMerge, objects, typeToObjectsToMerge,
-				alreadyHandledObjectsSet, objRefs, privilegedObjRefs, valueHolderKeys);
-		return objects;
-	}
-
-	protected void scanForInitializedObjectsIntern(Object obj, boolean isDeepMerge,
-			List<Object> objects, Map<Class<?>, IList<Object>> typeToObjectsToMerge,
-			ISet<Object> alreadyHandledObjectsSet, List<IObjRef> objRefs, List<IObjRef> privilegedObjRefs,
-			List<ValueHolderRef> valueHolderKeys) {
-		if (obj == null || !alreadyHandledObjectsSet.add(obj)) {
-			return;
-		}
-		if (obj instanceof List) {
-			List<?> list = (List<?>) obj;
-			for (int a = 0, size = list.size(); a < size; a++) {
-				scanForInitializedObjectsIntern(list.get(a), isDeepMerge, objects, typeToObjectsToMerge,
-						alreadyHandledObjectsSet, objRefs, privilegedObjRefs, valueHolderKeys);
-			}
-			return;
-		}
-		else if (obj instanceof Iterable) {
-			for (Object item : (Iterable<?>) obj) {
-				scanForInitializedObjectsIntern(item, isDeepMerge, objects, typeToObjectsToMerge,
-						alreadyHandledObjectsSet, objRefs, privilegedObjRefs, valueHolderKeys);
-			}
-			return;
-		}
-		else if (obj.getClass().isArray()) {
-			// This is valid for non-native arrays in java
-			Object[] array = (Object[]) obj;
-			for (int a = array.length; a-- > 0;) {
-				Object item = array[a];
-				scanForInitializedObjectsIntern(item, isDeepMerge, objects, typeToObjectsToMerge,
-						alreadyHandledObjectsSet, objRefs, privilegedObjRefs, valueHolderKeys);
-			}
-			return;
-		}
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass(), true);
-		if (metaData == null) {
-			return;
-		}
-		IObjRef objRef = null;
-		Object id = metaData.getIdMember().getValue(obj, false);
-		boolean isEntityFromPrivilegedCache = false;
-		if (id != null) {
-			objRef =
-					objRefFactory.createObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, null);
-			isEntityFromPrivilegedCache = ((IObjRefContainer) obj).get__Cache().isPrivileged();
-		}
-		if (!(obj instanceof IDataObject) || ((IDataObject) obj).hasPendingChanges()) {
-			if (typeToObjectsToMerge != null) {
-				IList<Object> objectsToMerge = typeToObjectsToMerge.get(metaData.getEntityType());
-				if (objectsToMerge == null) {
-					objectsToMerge = new ArrayList<>();
-					typeToObjectsToMerge.put(metaData.getEntityType(), objectsToMerge);
-				}
-				objectsToMerge.add(obj);
-			}
-			objects.add(obj);
-			if (isEntityFromPrivilegedCache) {
-				privilegedObjRefs.add(objRef);
-			}
-			else {
-				objRefs.add(objRef);
-			}
-		}
-		if (!isDeepMerge) {
-			return;
-		}
-		RelationMember[] relationMembers = metaData.getRelationMembers();
-		if (relationMembers.length == 0) {
-			return;
-		}
-		IObjRefContainer vhc = (IObjRefContainer) obj;
-		for (int relationIndex = relationMembers.length; relationIndex-- > 0;) {
-			if (ValueHolderState.INIT != vhc.get__State(relationIndex)) {
-				continue;
-			}
-			RelationMember relationMember = relationMembers[relationIndex];
-			Object item = relationMember.getValue(obj);
-			if (objRef != null && item != null) {
-				ValueHolderRef vhk = new ValueHolderRef(objRef, relationMember, relationIndex);
-				valueHolderKeys.add(vhk);
-			}
-			scanForInitializedObjectsIntern(item, isDeepMerge, objects, typeToObjectsToMerge,
-					alreadyHandledObjectsSet, objRefs, privilegedObjRefs, valueHolderKeys);
-		}
-	}
-
-	protected void mergeDeepStart(Object obj, MergeHandle handle) {
-		if (handle.getPendingValueHolders().size() > 0) {
-			IList<Object> pendingValueHolders = handle.getPendingValueHolders();
-			prefetchHelper.prefetch(pendingValueHolders);
-			pendingValueHolders.clear();
-		}
-		mergeDeepIntern(obj, handle);
-
-		while (true) {
-			IList<Runnable> pendingRunnables = handle.getPendingRunnables();
-			IList<Object> pendingValueHolders = handle.getPendingValueHolders();
-			if (pendingValueHolders.size() == 0 && pendingRunnables.size() == 0) {
-				return;
-			}
-			if (pendingValueHolders.size() > 0) {
-				prefetchHelper.prefetch(pendingValueHolders);
-				pendingValueHolders.clear();
-			}
-			if (pendingRunnables.size() > 0) {
-				ArrayList<Runnable> pendingRunnablesClone = new ArrayList<>(pendingRunnables);
-				pendingRunnables.clear();
-				for (int a = 0, size = pendingRunnablesClone.size(); a < size; a++) {
-					pendingRunnablesClone.get(a).run();
-				}
-			}
-		}
-	}
-
-	@SuppressWarnings("rawtypes")
-	protected void mergeDeepIntern(Object obj, MergeHandle handle) {
-		if (obj == null) {
-			return;
-		}
-		if (obj instanceof List) {
-			if (!handle.alreadyProcessedSet.add(obj)) {
-				return;
-			}
-			List objList = (List) obj;
-			for (int a = 0, size = objList.size(); a < size; a++) {
-				mergeOrPersist(objList.get(a), handle);
-			}
-		}
-		else if (obj instanceof Iterable) {
-			if (!handle.alreadyProcessedSet.add(obj)) {
-				return;
-			}
-			Iterator<?> iter = ((Iterable<?>) obj).iterator();
-			while (iter.hasNext()) {
-				mergeOrPersist(iter.next(), handle);
-			}
-		}
-		else if (obj.getClass().isArray()) {
-			Object[] array = (Object[]) obj;
-			for (int a = array.length; a-- > 0;) {
-				mergeOrPersist(array[a], handle);
-			}
-		}
-		else {
-			mergeOrPersist(obj, handle);
-		}
-	}
-
-	protected void mergeOrPersist(Object obj, MergeHandle handle) {
-		if (obj == null || !handle.alreadyProcessedSet.add(obj)) {
-			return;
-		}
-		if (obj instanceof IDataObject) {
-			IDataObject dataObject = (IDataObject) obj;
-			if (!dataObject.hasPendingChanges()) {
-				return;
-			}
-			if (dataObject.isToBeDeleted()) {
-				handle.objToDeleteSet.add(obj);
-				return;
-			}
-		}
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass());
-		metaData.prePersist(obj);
-		Object key = metaData.getIdMember().getValue(obj, false);
-		if (key == null) {
-			persist(obj, handle);
-			return;
-		}
-		boolean isEntityFromPrivilegedCache = ((IObjRefContainer) obj).get__Cache().isPrivileged();
-		ICache cache = isEntityFromPrivilegedCache ? handle.getPrivilegedCache() : handle.getCache();
-		if (cache == null) {
-			throw new IllegalStateException("Object has been cloned somewhere");
-		}
-		Object clone = cache.getObject(metaData.getEntityType(), key, CacheDirective.none());
-		if (clone == null) {
-			throw OptimisticLockUtil.throwDeleted(oriHelper.entityToObjRef(obj), obj);
-		}
-		merge(obj, clone, handle);
-	}
-
-	protected void persist(Object obj, MergeHandle handle) {
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass());
-
-		// Ensure entity will be persisted even if no single property is specified
-		addModification(obj, handle);
-
-		RelationMember[] relationMembers = metaData.getRelationMembers();
-		if (relationMembers.length > 0) {
-			IObjRefContainer vhc = (IObjRefContainer) obj;
-
-			for (int relationIndex = relationMembers.length; relationIndex-- > 0;) {
-				RelationMember relationMember = relationMembers[relationIndex];
-				if (ValueHolderState.INIT != vhc.get__State(relationIndex)) {
-					continue;
-				}
-				Object objMember = relationMember.getValue(obj, false);
-
-				if (objMember == null) {
-					continue;
-				}
-				addOriModification(obj, relationMember.getName(), objMember, null, handle);
-			}
-		}
-		for (Member primitiveMember : metaData.getPrimitiveMembers()) {
-			if (!metaData.isMergeRelevant(primitiveMember)) {
-				continue;
-			}
-			Object objMember = primitiveMember.getValue(obj, true);
-
-			if (objMember != null) {
-				addModification(obj, primitiveMember.getName(), primitiveMember.getElementType(), objMember,
-						null, handle);
-			}
-		}
-	}
-
-	@SuppressWarnings({"unchecked", "rawtypes"})
-	protected void merge(final Object obj, final Object clone, final MergeHandle handle) {
-		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass());
-
-		boolean fieldBasedMergeActive = handle.isFieldBasedMergeActive();
-		boolean oneChangeOccured = false;
-		try {
-			RelationMember[] relationMembers = metaData.getRelationMembers();
-			if (relationMembers.length > 0) {
-				IObjRefContainer vhc = (IObjRefContainer) obj;
-
-				for (int relationIndex = relationMembers.length; relationIndex-- > 0;) {
-					RelationMember relationMember = relationMembers[relationIndex];
-					if (!metaData.isMergeRelevant(relationMember)) {
-						continue;
-					}
-					if (ValueHolderState.INIT != vhc.get__State(relationIndex)) {
-						// v2 valueholder is not initialized. so a change is impossible
-						continue;
-					}
-					Object objMember = relationMember.getValue(obj, false);
-					Object cloneMember = relationMember.getValue(clone, false);
-					if (objMember instanceof IDataObject && !((IDataObject) objMember).hasPendingChanges()) {
-						IEntityMetaData relationMetaData =
-								entityMetaDataProvider.getMetaData(relationMember.getRealType());
-						if (equalsReferenceOrId(objMember, cloneMember, handle, relationMetaData)) {
-							continue;
-						}
-					}
-
-					IEntityMetaData childMetaData =
-							entityMetaDataProvider.getMetaData(relationMember.getElementType());
-
-					if (isMemberModified(objMember, cloneMember, handle, childMetaData)) {
-						oneChangeOccured = true;
-						addOriModification(obj, relationMember.getName(), objMember, cloneMember, handle);
-					}
-				}
-			}
-			if (fieldBasedMergeActive) {
-				mergePrimitivesFieldBased(metaData, obj, clone, handle);
-				return;
-			}
-			boolean additionalRound;
-			do {
-				additionalRound = !oneChangeOccured;
-				for (Member primitiveMember : metaData.getPrimitiveMembers()) {
-					if (!metaData.isMergeRelevant(primitiveMember)) {
-						continue;
-					}
-					Object objValue = primitiveMember.getValue(obj, true);
-					if (oneChangeOccured) {
-						addModification(obj, primitiveMember.getName(), primitiveMember.getElementType(),
-								objValue, null, handle);
-						continue;
-					}
-					Object cloneValue = primitiveMember.getValue(clone, true);
-					if (!arePrimitivesEqual(metaData, primitiveMember, objValue, cloneValue, handle)) {
-						oneChangeOccured = true;
-						break;
-					}
-				}
-			}
-			while (additionalRound && oneChangeOccured);
-		}
-		finally {
-			Member versionMember = metaData.getVersionMember();
-			if (oneChangeOccured && versionMember != null) {
-				// Check for early optimistic locking (Another, later level is directly on persistence
-				// layer)
-				Object versionToMerge = versionMember.getValue(obj, true);
-				Object currentVersion = versionMember.getValue(clone, true);
-
-				int compareResult = ((Comparable) versionToMerge).compareTo(currentVersion);
-				if (exactVersionForOptimisticLockingRequired ? compareResult != 0 : compareResult < 0) {
-					throw OptimisticLockUtil.throwModified(oriHelper.entityToObjRef(clone), versionToMerge,
-							obj);
-				}
-			}
-		}
-	}
-
-	protected void mergePrimitivesFieldBased(IEntityMetaData metaData, Object obj, Object clone,
-			MergeHandle handle) {
-		for (Member primitiveMember : metaData.getPrimitiveMembers()) {
-			if (!metaData.isMergeRelevant(primitiveMember)) {
-				continue;
-			}
-			Object objValue = primitiveMember.getValue(obj, true);
-			Object cloneValue = primitiveMember.getValue(clone, true);
-			if (!arePrimitivesEqual(metaData, primitiveMember, objValue, cloneValue, handle)) {
-				addModification(obj, primitiveMember.getName(), primitiveMember.getElementType(), objValue,
-						cloneValue, handle);
-				continue;
-			}
 		}
 	}
 
@@ -716,8 +324,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
 					}
 				}
 				return true;
-			}
-			else if (objValue instanceof List && cloneValue instanceof List) {
+			} else if (objValue instanceof List && cloneValue instanceof List) {
 				List<?> objList = (List<?>) objValue;
 				List<?> cloneList = (List<?>) cloneValue;
 				if (objList.size() != cloneList.size()) {
@@ -731,16 +338,14 @@ public class MergeController implements IMergeController, IMergeExtendable {
 					}
 				}
 				return true;
-			}
-			else if (objValue instanceof Set && cloneValue instanceof Set) {
+			} else if (objValue instanceof Set && cloneValue instanceof Set) {
 				Set<?> objColl = (Set<?>) objValue;
 				Set<?> cloneColl = (Set<?>) cloneValue;
 				if (objColl.size() != cloneColl.size()) {
 					return false;
 				}
 				return cloneColl.containsAll(objColl);
-			}
-			else if (objValue instanceof Iterable && cloneValue instanceof Iterable) {
+			} else if (objValue instanceof Iterable && cloneValue instanceof Iterable) {
 				Iterator<?> objIter = ((Iterable<?>) objValue).iterator();
 				Iterator<?> cloneIter = ((Iterable<?>) cloneValue).iterator();
 				while (objIter.hasNext()) {
@@ -762,92 +367,56 @@ public class MergeController implements IMergeController, IMergeExtendable {
 		return equalsObjects(objValue, cloneValue);
 	}
 
-	protected boolean equalsObjects(Object left, Object right) {
-		if (left == null) {
-			return right == null;
-		}
-		if (right == null) {
-			return false;
-		}
-		if (left.equals(right)) {
-			return true;
-		}
-		for (int a = 0, size = mergeExtensions.size(); a < size; a++) {
-			IMergeExtension mergeExtension = mergeExtensions.get(a);
-			if (mergeExtension.handlesType(left.getClass())) {
-				return mergeExtension.equalsObjects(left, right);
+	protected List<Object> batchLoadOriginalState(MergeHandle handle, boolean privilegedMode,
+			ArrayList<IObjRef> objRefs, ArrayList<ValueHolderRef> valueHolderKeys) {
+		ICache cache;
+		if (privilegedMode) {
+			cache = handle.getPrivilegedCache();
+			if (cache == null) {
+				cache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false,
+						Boolean.FALSE, "MergeController.ORIGINAL.PRIVILEGED");
+				handle.setPrivilegedCache(cache);
+				handle.setPrivilegedCacheToDispose(true);
+			}
+		} else {
+			cache = handle.getCache();
+			if (cache == null) {
+				cache = cacheFactory.create(CacheFactoryDirective.NoDCE, false, Boolean.FALSE,
+						"MergeController.ORIGINAL");
+				handle.setCache(cache);
+				handle.setCacheToDispose(true);
 			}
 		}
-		return false;
-	}
-
-	protected IList<IUpdateItem> addModification(Object obj, MergeHandle handle) {
-		IList<IUpdateItem> modItemList = handle.objToModDict.get(obj);
-		if (modItemList == null) {
-			modItemList = new ArrayList<>();
-			handle.objToModDict.put(obj, modItemList);
-		}
-		return modItemList;
-	}
-
-	protected void addModification(Object obj, String memberName, Class<?> targetValueType,
-			Object value, Object cloneValue, MergeHandle handle) {
-		if (value != null && Collection.class.isAssignableFrom(value.getClass())
-				&& ((Collection<?>) value).size() == 0) {
-			return;
-		}
-		for (int a = 0, size = mergeExtensions.size(); a < size; a++) {
-			IMergeExtension mergeExtension = mergeExtensions.get(a);
-			if (mergeExtension.handlesType(targetValueType)) {
-				value = mergeExtension.extractPrimitiveValueToMerge(value);
+		IList<Object> eagerlyLoadedOriginals =
+				cache.getObjects(objRefs, CacheDirective.returnMisses());
+		for (int a = eagerlyLoadedOriginals.size(); a-- > 0;) {
+			IObjRef existingOri = objRefs.get(a);
+			if (eagerlyLoadedOriginals.get(a) == null && existingOri != null
+					&& existingOri.getId() != null) {
+				// Cache miss for an entity we want to merge. This is an OptimisticLock-State
+				throw OptimisticLockUtil.throwDeleted(existingOri);
 			}
 		}
-		PrimitiveUpdateItem primModItem = new PrimitiveUpdateItem();
-		primModItem.setMemberName(memberName);
-		primModItem.setNewValue(value);
-
-		IList<IUpdateItem> modItemList = addModification(obj, handle);
-		modItemList.add(primModItem);
-	}
-
-	@SuppressWarnings("rawtypes")
-	protected void addOriModification(Object obj, String memberName, Object value, Object cloneValue,
-			MergeHandle handle) {
-		if (value instanceof List) {
-			List list = (List) value;
-			for (int a = 0, size = list.size(); a < size; a++) {
-				Object objItem = list.get(a);
-				mergeOrPersist(objItem, handle);
+		ArrayList<IObjRef> objRefsOfVhks = new ArrayList<>(valueHolderKeys.size());
+		for (int a = 0, size = valueHolderKeys.size(); a < size; a++) {
+			objRefsOfVhks.add(valueHolderKeys.get(a).getObjRef());
+		}
+		IList<Object> objectsOfVhks = cache.getObjects(objRefsOfVhks, failEarlyAndReturnMissesSet);
+		for (int a = valueHolderKeys.size(); a-- > 0;) {
+			IObjRefContainer objectOfVhk = (IObjRefContainer) objectsOfVhks.get(a);
+			if (objectOfVhk == null) {
+				continue;
 			}
-		}
-		else if (value instanceof Collection) {
-			Iterator<?> iter = ((Collection<?>) value).iterator();
-			while (iter.hasNext()) {
-				Object objItem = iter.next();
-				mergeOrPersist(objItem, handle);
+			ValueHolderRef valueHolderRef = valueHolderKeys.get(a);
+			if (ValueHolderState.INIT == objectOfVhk
+					.get__State(valueHolderRef.getRelationIndex())) {
+				continue;
 			}
+			DirectValueHolderRef vhcKey =
+					new DirectValueHolderRef(objectOfVhk, valueHolderRef.getMember());
+			handle.getPendingValueHolders().add(vhcKey);
 		}
-		else {
-			mergeOrPersist(value, handle);
-		}
-		try {
-			IList<IObjRef> oldOriList =
-					oriHelper.extractObjRefList(cloneValue, handle, handle.getOldOrList());
-			IList<IObjRef> newOriList = oriHelper.extractObjRefList(value, handle, handle.getNewOrList());
-
-			IRelationUpdateItem oriModItem = createRUI(memberName, oldOriList, newOriList);
-			if (oriModItem == null) {
-				return;
-			}
-
-			IList<IUpdateItem> modItemList = addModification(obj, handle);
-
-			modItemList.add(oriModItem);
-		}
-		finally {
-			handle.getOldOrList().clear();
-			handle.getNewOrList().clear();
-		}
+		return eagerlyLoadedOriginals;
 	}
 
 	@Override
@@ -925,6 +494,38 @@ public class MergeController implements IMergeController, IMergeExtendable {
 		return rui;
 	}
 
+	protected boolean equalsObjects(Object left, Object right) {
+		if (left == null) {
+			return right == null;
+		}
+		if (right == null) {
+			return false;
+		}
+		if (left.equals(right)) {
+			return true;
+		}
+		for (int a = 0, size = mergeExtensions.size(); a < size; a++) {
+			IMergeExtension mergeExtension = mergeExtensions.get(a);
+			if (mergeExtension.handlesType(left.getClass())) {
+				return mergeExtension.equalsObjects(left, right);
+			}
+		}
+		return false;
+	}
+
+	protected boolean equalsReferenceOrId(Object original, Object clone, MergeHandle handle,
+			IEntityMetaData metaData) {
+		if (original == null) {
+			return clone == null;
+		}
+		if (clone == null) {
+			return false;
+		}
+		Member keyMember = metaData.getIdMember();
+		return EqualsUtil.equals(keyMember.getValue(clone, false),
+				keyMember.getValue(original, false));
+	}
+
 	@SuppressWarnings("rawtypes")
 	protected boolean isMemberModified(Object objValue, Object cloneValue, MergeHandle handle,
 			IEntityMetaData metaData) {
@@ -966,8 +567,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
 				Object objItem = objEnumerator.next();
 				if (!cloneEnumerator.hasNext()) {
 					memberModified = true;
-				}
-				else {
+				} else {
 					Object cloneItem = cloneEnumerator.next();
 					if (!equalsReferenceOrId(objItem, cloneItem, handle, metaData)) {
 						memberModified = true;
@@ -984,15 +584,422 @@ public class MergeController implements IMergeController, IMergeExtendable {
 		return !equalsReferenceOrId(objValue, cloneValue, handle, metaData);
 	}
 
-	protected boolean equalsReferenceOrId(Object original, Object clone, MergeHandle handle,
-			IEntityMetaData metaData) {
-		if (original == null) {
-			return clone == null;
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	protected void merge(final Object obj, final Object clone, final MergeHandle handle) {
+		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass());
+
+		boolean fieldBasedMergeActive = handle.isFieldBasedMergeActive();
+		boolean oneChangeOccured = false;
+		try {
+			RelationMember[] relationMembers = metaData.getRelationMembers();
+			if (relationMembers.length > 0) {
+				IObjRefContainer vhc = (IObjRefContainer) obj;
+
+				for (int relationIndex = relationMembers.length; relationIndex-- > 0;) {
+					RelationMember relationMember = relationMembers[relationIndex];
+					if (!metaData.isMergeRelevant(relationMember)) {
+						continue;
+					}
+					if (ValueHolderState.INIT != vhc.get__State(relationIndex)) {
+						// v2 valueholder is not initialized. so a change is impossible
+						continue;
+					}
+					Object objMember = relationMember.getValue(obj, false);
+					Object cloneMember = relationMember.getValue(clone, false);
+					if (objMember instanceof IDataObject
+							&& !((IDataObject) objMember).hasPendingChanges()) {
+						IEntityMetaData relationMetaData =
+								entityMetaDataProvider.getMetaData(relationMember.getRealType());
+						if (equalsReferenceOrId(objMember, cloneMember, handle, relationMetaData)) {
+							continue;
+						}
+					}
+
+					IEntityMetaData childMetaData =
+							entityMetaDataProvider.getMetaData(relationMember.getElementType());
+
+					if (isMemberModified(objMember, cloneMember, handle, childMetaData)) {
+						oneChangeOccured = true;
+						addOriModification(obj, relationMember.getName(), objMember, cloneMember,
+								handle);
+					}
+				}
+			}
+			if (fieldBasedMergeActive) {
+				mergePrimitivesFieldBased(metaData, obj, clone, handle);
+				return;
+			}
+			boolean additionalRound;
+			do {
+				additionalRound = !oneChangeOccured;
+				for (Member primitiveMember : metaData.getPrimitiveMembers()) {
+					if (!metaData.isMergeRelevant(primitiveMember)) {
+						continue;
+					}
+					Object objValue = primitiveMember.getValue(obj, true);
+					if (oneChangeOccured) {
+						addModification(obj, primitiveMember.getName(),
+								primitiveMember.getElementType(), objValue, null, handle);
+						continue;
+					}
+					Object cloneValue = primitiveMember.getValue(clone, true);
+					if (!arePrimitivesEqual(metaData, primitiveMember, objValue, cloneValue,
+							handle)) {
+						oneChangeOccured = true;
+						break;
+					}
+				}
+			} while (additionalRound && oneChangeOccured);
+		} finally {
+			Member versionMember = metaData.getVersionMember();
+			if (oneChangeOccured && versionMember != null) {
+				// Check for early optimistic locking (Another, later level is directly on
+				// persistence
+				// layer)
+				Object versionToMerge = versionMember.getValue(obj, true);
+				Object currentVersion = versionMember.getValue(clone, true);
+
+				int compareResult = ((Comparable) versionToMerge).compareTo(currentVersion);
+				if (exactVersionForOptimisticLockingRequired
+						? compareResult != 0
+						: compareResult < 0) {
+					throw OptimisticLockUtil.throwModified(oriHelper.entityToObjRef(clone),
+							versionToMerge, obj);
+				}
+			}
 		}
+	}
+
+	@Override
+	public ICUDResult mergeDeep(Object obj, MergeHandle handle) {
+		LinkedHashMap<Class<?>, IList<Object>> typeToObjectsToMerge = null;
+		Class<?>[] entityPersistOrder = entityMetaDataProvider.getEntityPersistOrder();
+		if (entityPersistOrder != null && entityPersistOrder.length > 0) {
+			typeToObjectsToMerge = new LinkedHashMap<>();
+		}
+		ArrayList<IObjRef> objRefs = new ArrayList<>();
+		ArrayList<IObjRef> privilegedObjRefs = new ArrayList<>();
+		ArrayList<ValueHolderRef> valueHolderKeys = new ArrayList<>();
+		IList<Object> objectsToMerge = scanForInitializedObjects(obj, handle.isDeepMerge(),
+				typeToObjectsToMerge, objRefs, privilegedObjRefs, valueHolderKeys);
+		ArrayList<Object> hardRef = new ArrayList<>();
+		// Load all requested object originals in one roundtrip
+		try {
+			if (privilegedObjRefs.size() > 0) {
+				hardRef.add(
+						batchLoadOriginalState(handle, true, privilegedObjRefs, valueHolderKeys));
+			}
+			if (objRefs.size() > 0) {
+				hardRef.add(batchLoadOriginalState(handle, false, objRefs, valueHolderKeys));
+			}
+			if (typeToObjectsToMerge != null) {
+				for (Class<?> orderedEntityType : entityPersistOrder) {
+					IList<Object> objectsToMergeOfOrderedType =
+							typeToObjectsToMerge.remove(orderedEntityType);
+					if (objectsToMergeOfOrderedType == null) {
+						continue;
+					}
+					mergeDeepStart(objectsToMergeOfOrderedType, handle);
+				}
+				for (Entry<Class<?>, IList<Object>> entry : typeToObjectsToMerge) {
+					IList<Object> objectsToMergeOfUnorderedType = entry.getValue();
+					mergeDeepStart(objectsToMergeOfUnorderedType, handle);
+				}
+			} else if (objectsToMerge.size() > 0) {
+				mergeDeepStart(objectsToMerge, handle);
+			}
+			return cudResultHelper.createCUDResult(handle);
+		} finally {
+			if (handle.isPrivilegedCacheToDispose()) {
+				((IDisposableCache) handle.getPrivilegedCache()).dispose();
+				handle.setPrivilegedCache(null);
+			}
+			if (handle.isCacheToDispose()) {
+				((IDisposableCache) handle.getCache()).dispose();
+				handle.setCache(null);
+			}
+		}
+	}
+
+	@SuppressWarnings("rawtypes")
+	protected void mergeDeepIntern(Object obj, MergeHandle handle) {
+		if (obj == null) {
+			return;
+		}
+		if (obj instanceof List) {
+			if (!handle.alreadyProcessedSet.add(obj)) {
+				return;
+			}
+			List objList = (List) obj;
+			for (int a = 0, size = objList.size(); a < size; a++) {
+				mergeOrPersist(objList.get(a), handle);
+			}
+		} else if (obj instanceof Iterable) {
+			if (!handle.alreadyProcessedSet.add(obj)) {
+				return;
+			}
+			Iterator<?> iter = ((Iterable<?>) obj).iterator();
+			while (iter.hasNext()) {
+				mergeOrPersist(iter.next(), handle);
+			}
+		} else if (obj.getClass().isArray()) {
+			Object[] array = (Object[]) obj;
+			for (int a = array.length; a-- > 0;) {
+				mergeOrPersist(array[a], handle);
+			}
+		} else {
+			mergeOrPersist(obj, handle);
+		}
+	}
+
+	protected void mergeDeepStart(Object obj, MergeHandle handle) {
+		if (handle.getPendingValueHolders().size() > 0) {
+			IList<Object> pendingValueHolders = handle.getPendingValueHolders();
+			prefetchHelper.prefetch(pendingValueHolders);
+			pendingValueHolders.clear();
+		}
+		mergeDeepIntern(obj, handle);
+
+		while (true) {
+			IList<Runnable> pendingRunnables = handle.getPendingRunnables();
+			IList<Object> pendingValueHolders = handle.getPendingValueHolders();
+			if (pendingValueHolders.size() == 0 && pendingRunnables.size() == 0) {
+				return;
+			}
+			if (pendingValueHolders.size() > 0) {
+				prefetchHelper.prefetch(pendingValueHolders);
+				pendingValueHolders.clear();
+			}
+			if (pendingRunnables.size() > 0) {
+				ArrayList<Runnable> pendingRunnablesClone = new ArrayList<>(pendingRunnables);
+				pendingRunnables.clear();
+				for (int a = 0, size = pendingRunnablesClone.size(); a < size; a++) {
+					pendingRunnablesClone.get(a).run();
+				}
+			}
+		}
+	}
+
+	protected void mergeOrPersist(Object obj, MergeHandle handle) {
+		if (obj == null || !handle.alreadyProcessedSet.add(obj)) {
+			return;
+		}
+		if (obj instanceof IDataObject) {
+			IDataObject dataObject = (IDataObject) obj;
+			if (!dataObject.hasPendingChanges()) {
+				return;
+			}
+			if (dataObject.isToBeDeleted()) {
+				handle.objToDeleteSet.add(obj);
+				return;
+			}
+		}
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass());
+		metaData.prePersist(obj);
+		Object key = metaData.getIdMember().getValue(obj, false);
+		if (key == null) {
+			persist(obj, handle);
+			return;
+		}
+		boolean isEntityFromPrivilegedCache = ((IObjRefContainer) obj).get__Cache().isPrivileged();
+		ICache cache =
+				isEntityFromPrivilegedCache ? handle.getPrivilegedCache() : handle.getCache();
+		if (cache == null) {
+			throw new IllegalStateException("Object has been cloned somewhere");
+		}
+		Object clone = cache.getObject(metaData.getEntityType(), key, CacheDirective.none());
 		if (clone == null) {
-			return false;
+			throw OptimisticLockUtil.throwDeleted(oriHelper.entityToObjRef(obj), obj);
 		}
-		Member keyMember = metaData.getIdMember();
-		return EqualsUtil.equals(keyMember.getValue(clone, false), keyMember.getValue(original, false));
+		merge(obj, clone, handle);
+	}
+
+	protected void mergePrimitivesFieldBased(IEntityMetaData metaData, Object obj, Object clone,
+			MergeHandle handle) {
+		for (Member primitiveMember : metaData.getPrimitiveMembers()) {
+			if (!metaData.isMergeRelevant(primitiveMember)) {
+				continue;
+			}
+			Object objValue = primitiveMember.getValue(obj, true);
+			Object cloneValue = primitiveMember.getValue(clone, true);
+			if (!arePrimitivesEqual(metaData, primitiveMember, objValue, cloneValue, handle)) {
+				addModification(obj, primitiveMember.getName(), primitiveMember.getElementType(),
+						objValue, cloneValue, handle);
+				continue;
+			}
+		}
+	}
+
+	protected void persist(Object obj, MergeHandle handle) {
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass());
+
+		// Ensure entity will be persisted even if no single property is specified
+		addModification(obj, handle);
+
+		RelationMember[] relationMembers = metaData.getRelationMembers();
+		if (relationMembers.length > 0) {
+			IObjRefContainer vhc = (IObjRefContainer) obj;
+
+			for (int relationIndex = relationMembers.length; relationIndex-- > 0;) {
+				RelationMember relationMember = relationMembers[relationIndex];
+				if (ValueHolderState.INIT != vhc.get__State(relationIndex)) {
+					continue;
+				}
+				Object objMember = relationMember.getValue(obj, false);
+
+				if (objMember == null) {
+					continue;
+				}
+				addOriModification(obj, relationMember.getName(), objMember, null, handle);
+			}
+		}
+		for (Member primitiveMember : metaData.getPrimitiveMembers()) {
+			if (!metaData.isMergeRelevant(primitiveMember)) {
+				continue;
+			}
+			Object objMember = primitiveMember.getValue(obj, true);
+
+			if (objMember != null) {
+				addModification(obj, primitiveMember.getName(), primitiveMember.getElementType(),
+						objMember, null, handle);
+			}
+		}
+	}
+
+	protected void putInstancesToCurrentCache(List<Object> validObjects, ICache cache) {
+		if (!MergeProcess.isAddNewlyPersistedEntities()) {
+			return;
+		}
+		IWritableCache currentCache = cache != null
+				? (IWritableCache) cache
+				: (IWritableCache) cacheProvider.getCurrentCache();
+		currentCache.put(validObjects);
+	}
+
+	@Override
+	public void registerMergeExtension(IMergeExtension mergeExtension) {
+		if (mergeExtension == null) {
+			throw new IllegalStateException("mergeExtension");
+		}
+		if (mergeExtensions.contains(mergeExtension)) {
+			throw new IllegalStateException("MergeExtension already registered: " + mergeExtension);
+		}
+		mergeExtensions.add(mergeExtension);
+	}
+
+	@Override
+	public IList<Object> scanForInitializedObjects(Object obj, boolean isDeepMerge,
+			Map<Class<?>, IList<Object>> typeToObjectsToMerge, List<IObjRef> objRefs,
+			List<IObjRef> privilegedObjRefs, List<ValueHolderRef> valueHolderKeys) {
+		ArrayList<Object> objects = new ArrayList<>();
+		IdentityHashSet<Object> alreadyHandledObjectsSet = new IdentityHashSet<>();
+		scanForInitializedObjectsIntern(obj, isDeepMerge, objects, typeToObjectsToMerge,
+				alreadyHandledObjectsSet, objRefs, privilegedObjRefs, valueHolderKeys);
+		return objects;
+	}
+
+	protected void scanForInitializedObjectsIntern(Object obj, boolean isDeepMerge,
+			List<Object> objects, Map<Class<?>, IList<Object>> typeToObjectsToMerge,
+			ISet<Object> alreadyHandledObjectsSet, List<IObjRef> objRefs,
+			List<IObjRef> privilegedObjRefs, List<ValueHolderRef> valueHolderKeys) {
+		if (obj == null || !alreadyHandledObjectsSet.add(obj)) {
+			return;
+		}
+		if (obj instanceof List) {
+			List<?> list = (List<?>) obj;
+			for (int a = 0, size = list.size(); a < size; a++) {
+				scanForInitializedObjectsIntern(list.get(a), isDeepMerge, objects,
+						typeToObjectsToMerge, alreadyHandledObjectsSet, objRefs, privilegedObjRefs,
+						valueHolderKeys);
+			}
+			return;
+		} else if (obj instanceof Iterable) {
+			for (Object item : (Iterable<?>) obj) {
+				scanForInitializedObjectsIntern(item, isDeepMerge, objects, typeToObjectsToMerge,
+						alreadyHandledObjectsSet, objRefs, privilegedObjRefs, valueHolderKeys);
+			}
+			return;
+		} else if (obj.getClass().isArray()) {
+			if (obj.getClass().getComponentType().isPrimitive()) {
+				// primitive arrays can not be casted to Object[]
+				return;
+			}
+			// This is valid for non-native arrays in java
+			Object[] array = (Object[]) obj;
+			for (int a = array.length; a-- > 0;) {
+				Object item = array[a];
+				scanForInitializedObjectsIntern(item, isDeepMerge, objects, typeToObjectsToMerge,
+						alreadyHandledObjectsSet, objRefs, privilegedObjRefs, valueHolderKeys);
+			}
+			return;
+		}
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass(), true);
+		if (metaData == null) {
+			return;
+		}
+		IObjRef objRef = null;
+		if (objRefs != null || privilegedObjRefs != null || valueHolderKeys != null) {
+			Object id = metaData.getIdMember().getValue(obj, false);
+			boolean isEntityFromPrivilegedCache = false;
+			if (id != null) {
+				objRef = objRefFactory.createObjRef(metaData.getEntityType(),
+						ObjRef.PRIMARY_KEY_INDEX, id, null);
+				isEntityFromPrivilegedCache = ((IObjRefContainer) obj).get__Cache().isPrivileged();
+			}
+			if (!(obj instanceof IDataObject) || ((IDataObject) obj).hasPendingChanges()) {
+				if (typeToObjectsToMerge != null) {
+					IList<Object> objectsToMerge =
+							typeToObjectsToMerge.get(metaData.getEntityType());
+					if (objectsToMerge == null) {
+						objectsToMerge = new ArrayList<>();
+						typeToObjectsToMerge.put(metaData.getEntityType(), objectsToMerge);
+					}
+					objectsToMerge.add(obj);
+				}
+				objects.add(obj);
+				if (isEntityFromPrivilegedCache) {
+					if (privilegedObjRefs != null) {
+						privilegedObjRefs.add(objRef);
+					}
+				} else {
+					if (objRefs != null) {
+						objRefs.add(objRef);
+					}
+				}
+			}
+		}
+		if (!isDeepMerge) {
+			return;
+		}
+		RelationMember[] relationMembers = metaData.getRelationMembers();
+		if (relationMembers.length == 0) {
+			return;
+		}
+		IObjRefContainer vhc = (IObjRefContainer) obj;
+		for (int relationIndex = relationMembers.length; relationIndex-- > 0;) {
+			if (ValueHolderState.INIT != vhc.get__State(relationIndex)) {
+				continue;
+			}
+			RelationMember relationMember = relationMembers[relationIndex];
+			Object item = relationMember.getValue(obj);
+			if (valueHolderKeys != null && objRef != null && item != null) {
+				ValueHolderRef vhk = new ValueHolderRef(objRef, relationMember, relationIndex);
+				valueHolderKeys.add(vhk);
+			}
+			scanForInitializedObjectsIntern(item, isDeepMerge, objects, typeToObjectsToMerge,
+					alreadyHandledObjectsSet, objRefs, privilegedObjRefs, valueHolderKeys);
+		}
+	}
+
+	@Override
+	public void unregisterMergeExtension(IMergeExtension mergeExtension) {
+		if (mergeExtension == null) {
+			throw new IllegalStateException("mergeExtension");
+		}
+		if (!mergeExtensions.remove(mergeExtension)) {
+			throw new IllegalStateException(
+					"MergeExtension to remove is not registered: " + mergeExtension);
+		}
 	}
 }

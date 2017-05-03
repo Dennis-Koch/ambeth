@@ -118,8 +118,7 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 				backupObjects(item, originalToValueBackup);
 			}
 			return;
-		}
-		else if (obj instanceof Collection) {
+		} else if (obj instanceof Collection) {
 			Collection<?> coll = (Collection<?>) obj;
 			Object[] array = coll.toArray(new Object[coll.size()]);
 			IBackup collBackup = CollectionBackup.create(array);
@@ -150,7 +149,8 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 							break;
 						}
 						case LAZY: {
-							IObjRef[] objRefs = ((IObjRefContainer) obj).get__ObjRefs(relationIndex);
+							IObjRef[] objRefs =
+									((IObjRefContainer) obj).get__ObjRefs(relationIndex);
 							originalValues[b] = ObjRefBackup.create(objRefs, relationIndex);
 							continue;
 						}
@@ -184,7 +184,8 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 					public void invoke(IProcessResumeItem processResumeItem) throws Throwable {
 						try {
 							boolean oldCacheModificationValue = cacheModification.isActive();
-							boolean oldFailEarlyModeActive = AbstractCache.isFailInCacheHierarchyModeActive();
+							boolean oldFailEarlyModeActive =
+									AbstractCache.isFailInCacheHierarchyModeActive();
 							cacheModification.setActive(true);
 							AbstractCache.setFailInCacheHierarchyModeActive(true);
 							try {
@@ -194,15 +195,18 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 								// need a hard GC ref to the given collection during asynchronous
 								// processing
 								@SuppressWarnings("unused")
-								IList<Object> hardRefsToRootCacheValuesHere = hardRefsToRootCacheValues;
+								IList<Object> hardRefsToRootCacheValuesHere =
+										hardRefsToRootCacheValues;
 
 								for (IWritableCache firstLevelCache : firstLevelCaches) {
-									IList<Object> persistedObjectsInThisCache =
-											firstLevelCache.getObjects(orisToRevert, CacheDirective.failEarly());
+									IList<Object> persistedObjectsInThisCache = firstLevelCache
+											.getObjects(orisToRevert, CacheDirective.failEarly());
 
 									for (int a = persistedObjectsInThisCache.size(); a-- > 0;) {
-										Object persistedObjectInThisCache = persistedObjectsInThisCache.get(a);
-										if (!persistedObjectsToRevert.contains(persistedObjectInThisCache)) {
+										Object persistedObjectInThisCache =
+												persistedObjectsInThisCache.get(a);
+										if (!persistedObjectsToRevert
+												.contains(persistedObjectInThisCache)) {
 											continue;
 										}
 										rootCache.applyValues(persistedObjectInThisCache,
@@ -221,13 +225,12 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 									success2.setValue(Boolean.TRUE);
 									return;
 								}
-							}
-							finally {
-								AbstractCache.setFailInCacheHierarchyModeActive(oldFailEarlyModeActive);
+							} finally {
+								AbstractCache
+										.setFailInCacheHierarchyModeActive(oldFailEarlyModeActive);
 								cacheModification.setActive(oldCacheModificationValue);
 							}
-						}
-						finally {
+						} finally {
 							if (processResumeItem != null) {
 								processResumeItem.resumeProcessingFinished();
 							}
@@ -240,10 +243,10 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 									DataChangeEvent dataChange = DataChangeEvent.create(0, 0, 0);
 									dataChange.setDeletes(directObjectDeletes);
 
-									eventDispatcher.dispatchEvent(dataChange, System.currentTimeMillis(), -1);
+									eventDispatcher.dispatchEvent(dataChange,
+											System.currentTimeMillis(), -1);
 									success3.setValue(Boolean.TRUE);
-								}
-								finally {
+								} finally {
 									if (revertChangesFinishedCallback != null) {
 										revertChangesFinishedCallback.invoke(success3.getValue());
 									}
@@ -271,8 +274,8 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 		if (source == null) {
 			return null;
 		}
-		ArrayList<Object> objList = new ArrayList<>();
-		findAllObjectsToBackup(source, objList, null, new IdentityHashSet<>());
+		IList<Object> objList =
+				mergeController.scanForInitializedObjects(source, false, null, null, null, null);
 		return createSavepointIntern(objList);
 	}
 
@@ -281,8 +284,8 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 		if (sources == null || sources.length == 0) {
 			return null;
 		}
-		ArrayList<Object> objList = new ArrayList<>();
-		findAllObjectsToBackup(sources, objList, null, new IdentityHashSet<>());
+		IList<Object> objList =
+				mergeController.scanForInitializedObjects(sources, false, null, null, null, null);
 		return createSavepointIntern(objList);
 	}
 
@@ -301,74 +304,11 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 				iter.remove();
 			}
 		}
+		if (originalToValueBackup.size() == 0) {
+			return null;
+		}
 		return beanContext.registerBean(RevertChangesSavepoint.class)
 				.propertyValue(RevertChangesSavepoint.P_CHANGES, originalToValueBackup).finish();
-	}
-
-	protected void fillRevertList(Object obj, ISet<Object> alreadyScannedSet,
-			IList<Object> revertList, boolean recursive) {
-		if (!alreadyScannedSet.add(obj)) {
-			return;
-		}
-		if (obj instanceof List) {
-			List<?> list = (List<?>) obj;
-			for (int a = list.size(); a-- > 0;) {
-				fillRevertList(list.get(a), alreadyScannedSet, revertList, recursive);
-			}
-			return;
-		}
-		else if (obj instanceof Iterable) {
-			for (Object item : (Iterable<?>) obj) {
-				fillRevertList(item, alreadyScannedSet, revertList, recursive);
-			}
-			return;
-		}
-		revertList.add(obj);
-		if (recursive) {
-			IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
-			RelationMember[] relations = metaData.getRelationMembers();
-			for (RelationMember relation : relations) {
-				Object value = relation.getValue(obj);
-				fillRevertList(value, alreadyScannedSet, revertList, recursive);
-			}
-		}
-	}
-
-	protected void findAllObjectsToBackup(Object obj, IList<Object> objList, IList<IObjRef> objRefs,
-			ISet<Object> alreadyProcessedSet) {
-		if (obj == null || !alreadyProcessedSet.add(obj)) {
-			return;
-		}
-		// In java there has to be checked (in addition) for array-instance, too
-		if (obj instanceof List) {
-			List<?> list = (List<?>) obj;
-			for (int a = list.size(); a-- > 0;) {
-				Object item = list.get(a);
-				findAllObjectsToBackup(item, objList, objRefs, alreadyProcessedSet);
-			}
-			return;
-		}
-		else if (obj instanceof Iterable) {
-			for (Object item : (Iterable<?>) obj) {
-				findAllObjectsToBackup(item, objList, objRefs, alreadyProcessedSet);
-			}
-			return;
-		}
-		IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
-		objList.add(obj);
-		if (objRefs != null) {
-			Object id = metaData.getIdMember().getValue(obj);
-			objRefs.add(new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, null));
-		}
-		RelationMember[] relationMembers = metaData.getRelationMembers();
-		for (int relationIndex = relationMembers.length; relationIndex-- > 0;) {
-			RelationMember relationMember = relationMembers[relationIndex];
-			if (!((IObjRefContainer) obj).is__Initialized(relationIndex)) {
-				continue;
-			}
-			Object item = relationMember.getValue(obj);
-			findAllObjectsToBackup(item, objList, objRefs, alreadyProcessedSet);
-		}
 	}
 
 	@Override
@@ -393,9 +333,9 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 		if (objectsToRevert == null) {
 			return;
 		}
-		ArrayList<Object> revertList = new ArrayList<>();
-		fillRevertList(objectsToRevert, new IdentityHashSet<>(), revertList, recursive);
-		revertChangesIntern(null, revertList, false, revertChangesFinishedCallback);
+		IList<Object> objList = mergeController.scanForInitializedObjects(objectsToRevert,
+				recursive, null, null, null, null);
+		revertChangesIntern(objList, false, revertChangesFinishedCallback);
 	}
 
 	@Override
@@ -420,13 +360,12 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 		if (objectsToRevert == null) {
 			return;
 		}
-		ArrayList<Object> revertList = new ArrayList<>();
-		fillRevertList(objectsToRevert, new IdentityHashSet<>(), revertList, recursive);
-		revertChangesIntern(null, revertList, true, revertChangesFinishedCallback);
+		IList<Object> objList = mergeController.scanForInitializedObjects(objectsToRevert,
+				recursive, null, null, null, null);
+		revertChangesIntern(objList, true, revertChangesFinishedCallback);
 	}
 
-	protected void revertChangesIntern(IRevertChangesSavepoint savepoint,
-			final IList<Object> objectsToRevert, boolean globally,
+	protected void revertChangesIntern(final IList<Object> objectsToRevert, final boolean globally,
 			final RevertChangesFinishedCallback revertChangesFinishedCallback) {
 		// Store the RevertChangesFinishedCallback from this thread on the stack and set the
 		// property null (for following calls):
@@ -436,164 +375,14 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 			}
 			return;
 		}
-		if (globally) {
-			guiThreadHelper.invokeOutOfGui(new IBackgroundWorkerDelegate() {
-				@Override
-				public void invoke() throws Throwable {
-					boolean success = false;
-					try {
-						DataChangeEvent dataChange = DataChangeEvent.create(0, -1, -1);
-
-						for (int a = objectsToRevert.size(); a-- > 0;) {
-							Object objectToRevert = objectsToRevert.get(a);
-							IEntityMetaData metaData =
-									((IEntityMetaDataHolder) objectToRevert).get__EntityMetaData();
-							Object id = metaData.getIdMember().getValue(objectToRevert, false);
-
-							if (id == null) {
-								dataChange.getDeletes().add(new DirectDataChangeEntry(objectToRevert));
-								continue;
-							}
-							dataChange.getUpdates().add(new DataChangeEntry(metaData.getEntityType(),
-									ObjRef.PRIMARY_KEY_INDEX, id, null));
-						}
-
-						eventDispatcher.dispatchEvent(dataChange, System.currentTimeMillis(), -1);
-						success = true;
-					}
-					finally {
-						if (revertChangesFinishedCallback != null) {
-							revertChangesFinishedCallback.invoke(success);
-						}
-					}
-				}
-			});
-			return;
-		}
-		// Commented the following part from Ambeth 0.130 and use the part from Ambeth 0.129 due to
-		// a
-		// deadlock in the merge process:
-		// GuiThreadHelper.InvokeOutOfGui(delegate()
-		// {
-		// bool success1 = false;
-		// try
-		// {
-		// IList<IDataChangeEntry> directObjectDeletes = new List<IDataChangeEntry>();
-		// IList<Object> initializedObjects =
-		// MergeController.ScanForInitializedObjects(objectsToRevert,
-		// true, null);
-
-		// IList<IObjRef> orisToRevert = new List<IObjRef>();
-		// ISet<Object> persistedObjectsToRevert = new IdentityHashSet<Object>();
-		// for (int a = initializedObjects.Count; a-- > 0; )
-		// {
-		// Object objectToRevert = initializedObjects[a];
-		// IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(objectToRevert.GetType());
-		// Object id = metaData.IdMember.GetValue(objectToRevert, false);
-
-		// if (id == null)
-		// {
-		// directObjectDeletes.Add(new DirectDataChangeEntry(objectToRevert));
-		// continue;
-		// }
-		// persistedObjectsToRevert.Add(objectToRevert);
-		// orisToRevert.Add(new ObjRef(metaData.EntityType, ObjRef.PRIMARY_KEY_INDEX, id, null));
-		// }
-		// IList<Object> hardRefsToRootCacheValues = RootCache.GetObjects(orisToRevert,
-		// CacheDirective.CacheValueResult | CacheDirective.ReturnMisses);
-
-		// for (int a = orisToRevert.Count; a-- > 0; )
-		// {
-		// if (hardRefsToRootCacheValues[a] == null)
-		// {
-		// // Object could not be loaded/retrieved any more. So the ori refers to an invalid object
-		// // We can not revert invalid objects and currently ignore them. They will raise
-		// exceptions if
-		// they will
-		// // be tried to persist in a merge process any time in the future
-		// orisToRevert.RemoveAt(a);
-		// }
-		// }
-		// // We do nothing with the hardRef-list from the RootCache. It is only necessary to keep
-		// track
-		// of the instance reference on the stack
-		// // To prohibit GC any potential WeakReferences in the meantime....
-		// GuiThreadHelper.InvokeInGuiAndWait(delegate()
-		// {
-		// IProcessResumeItem processResumeItem = WaitEventToResume();
-		// try
-		// {
-		// bool oldCacheModificationValue = CacheModification.IsActive;
-		// CacheModification.IsActive = true;
-		// bool oldFailEarlyModeActive = AbstractCache<Object>.FailEarlyModeActive;
-		// AbstractCache<Object>.FailEarlyModeActive = true;
-		// try
-		// {
-		// IList<IWritableCache> firstLevelCaches = FirstLevelCacheManager.SelectFirstLevelCaches();
-		// IList<Object> hardRefsToRootCacheValuesHere = hardRefsToRootCacheValues;
-
-		// foreach (IWritableCache firstLevelCache in firstLevelCaches)
-		// {
-		// IList<Object> persistedObjectsInThisCache = firstLevelCache.GetObjects(orisToRevert,
-		// CacheDirective.FailEarly);
-
-		// for (int a = persistedObjectsInThisCache.Count; a-- > 0; )
-		// {
-		// Object persistedObjectInThisCache = persistedObjectsInThisCache[a];
-		// if (!persistedObjectsToRevert.Contains(persistedObjectInThisCache))
-		// {
-		// continue;
-		// }
-		// RootCache.ApplyValues(persistedObjectInThisCache, (ICacheIntern)firstLevelCache);
-		// }
-		// }
-		// for (int a = objectsToRevert.Count; a-- > 0; )
-		// {
-		// Object objectToRevert = objectsToRevert[a];
-		// if (objectToRevert is IDataObject)
-		// {
-		// // Objects which are specified to be reverted loose their delete flag
-		// ((IDataObject)objectToRevert).ToBeDeleted = false;
-		// }
-		// }
-		// }
-		// finally
-		// {
-		// AbstractCache<Object>.FailEarlyModeActive = oldFailEarlyModeActive;
-		// CacheModification.IsActive = oldCacheModificationValue;
-		// }
-		// }
-		// finally
-		// {
-		// if (processResumeItem != null)
-		// {
-		// processResumeItem.ResumeProcessingFinished();
-		// processResumeItem = null;
-		// }
-		// }
-		// });
-		// if (directObjectDeletes.Count > 0)
-		// {
-		// DataChangeEvent dataChange = DataChangeEvent.Create(0, 0, 0);
-		// dataChange.Deletes = directObjectDeletes;
-
-		// EventDispatcher.DispatchEvent(dataChange, DateTime.Now, -1);
-		// }
-		// success1 = true;
-		// }
-		// finally
-		// {
-		// if (revertChangesFinishedCallback != null)
-		// {
-		// revertChangesFinishedCallback.Invoke(success1);
-		// }
-		// }
-		// });
-
-		// Here comes the part from Ambeth 0.129:
 		guiThreadHelper.invokeOutOfGui(new IBackgroundWorkerDelegate() {
 			@Override
 			public void invoke() throws Throwable {
+				if (globally) {
+					revertChangesInternOutOfGuiGlobally(objectsToRevert,
+							revertChangesFinishedCallback);
+					return;
+				}
 				revertChangesInternOutOfGui(objectsToRevert, revertChangesFinishedCallback);
 			}
 		});
@@ -609,14 +398,15 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 			ArrayList<IObjRef> objRefs = new ArrayList<>();
 			ArrayList<IObjRef> privilegedObjRefs = new ArrayList<>();
 			ArrayList<ValueHolderRef> valueHolderKeys = new ArrayList<>();
-			IList<Object> initializedObjects = mergeController.scanForInitializedObjects(objectsToRevert,
-					true, null, objRefs, privilegedObjRefs, valueHolderKeys);
+			IList<Object> initializedObjects = mergeController.scanForInitializedObjects(
+					objectsToRevert, false, null, objRefs, privilegedObjRefs, valueHolderKeys);
 
 			IList<IObjRef> orisToRevert = new ArrayList<>();
 			ISet<Object> persistedObjectsToRevert = new IdentityHashSet<>();
 			for (int a = initializedObjects.size(); a-- > 0;) {
 				Object objectToRevert = initializedObjects.get(a);
-				IEntityMetaData metaData = ((IEntityMetaDataHolder) objectToRevert).get__EntityMetaData();
+				IEntityMetaData metaData =
+						((IEntityMetaDataHolder) objectToRevert).get__EntityMetaData();
 				Object id = metaData.getIdMember().getValue(objectToRevert, false);
 
 				if (id == null) {
@@ -624,7 +414,8 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 					continue;
 				}
 				persistedObjectsToRevert.add(objectToRevert);
-				orisToRevert.add(new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, null));
+				orisToRevert.add(
+						new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, null));
 			}
 			IList<Object> hardRefsToRootCacheValues = rootCache.getObjects(orisToRevert,
 					EnumSet.of(CacheDirective.CacheValueResult, CacheDirective.ReturnMisses));
@@ -645,12 +436,40 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 			callWaitEventToResumeInGui(directObjectDeletes, orisToRevert, persistedObjectsToRevert,
 					objectsToRevert, hardRefsToRootCacheValues, success1, success2, success3,
 					revertChangesFinishedCallback);
-		}
-		finally
+		} finally
 
 		{
 			if (revertChangesFinishedCallback != null && success2 == null && success3 == null) {
 				revertChangesFinishedCallback.invoke(success1);
+			}
+		}
+	}
+
+	protected void revertChangesInternOutOfGuiGlobally(IList<Object> objectsToRevert,
+			RevertChangesFinishedCallback revertChangesFinishedCallback) {
+		boolean success = false;
+		try {
+			DataChangeEvent dataChange = DataChangeEvent.create(0, -1, -1);
+
+			for (int a = objectsToRevert.size(); a-- > 0;) {
+				Object objectToRevert = objectsToRevert.get(a);
+				IEntityMetaData metaData =
+						((IEntityMetaDataHolder) objectToRevert).get__EntityMetaData();
+				Object id = metaData.getIdMember().getValue(objectToRevert, false);
+
+				if (id == null) {
+					dataChange.getDeletes().add(new DirectDataChangeEntry(objectToRevert));
+					continue;
+				}
+				dataChange.getUpdates().add(new DataChangeEntry(metaData.getEntityType(),
+						ObjRef.PRIMARY_KEY_INDEX, id, null));
+			}
+
+			eventDispatcher.dispatchEvent(dataChange, System.currentTimeMillis(), -1);
+			success = true;
+		} finally {
+			if (revertChangesFinishedCallback != null) {
+				revertChangesFinishedCallback.invoke(success);
 			}
 		}
 	}
