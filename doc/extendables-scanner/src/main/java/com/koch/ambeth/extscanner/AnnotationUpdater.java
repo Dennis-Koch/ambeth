@@ -3,11 +3,12 @@ package com.koch.ambeth.extscanner;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.io.Charsets;
 
 import com.koch.ambeth.extscanner.model.AnnotationEntry;
 import com.koch.ambeth.ioc.IStartingBean;
@@ -45,7 +46,7 @@ public class AnnotationUpdater extends AbstractLatexScanner implements IStarting
 		String targetOpening = getAPI(annotationEntry);
 		if (!targetFile.exists()) {
 			OutputStreamWriter fw =
-					new OutputStreamWriter(new FileOutputStream(targetFile), Charset.forName("UTF-8"));
+					new OutputStreamWriter(new FileOutputStream(targetFile), Charsets.UTF_8);
 			try {
 				fw.append(targetOpening);
 				fw.append("\n\\section{").append(annotationEntry.simpleName).append("}");
@@ -201,8 +202,8 @@ public class AnnotationUpdater extends AbstractLatexScanner implements IStarting
 		ArrayList<AnnotationEntry> allAnnotations = new ArrayList<>(model.allAnnotations());
 		Collections.sort(allAnnotations);
 
-		OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(allAnnotationsTexFile),
-				Charset.forName("UTF-8"));
+		OutputStreamWriter fw =
+				new OutputStreamWriter(new FileOutputStream(allAnnotationsTexFile), Charsets.UTF_8);
 		try {
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("% This file is FULLY generated. Please do not edit anything here\n");

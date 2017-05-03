@@ -3,11 +3,12 @@ package com.koch.ambeth.extscanner;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.io.Charsets;
 
 import com.koch.ambeth.extscanner.model.AbstractSourceFileAware;
 import com.koch.ambeth.extscanner.model.ExtendableEntry;
@@ -45,7 +46,7 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 		String targetOpening = getAPI(extendableEntry);
 		if (!targetFile.exists()) {
 			OutputStreamWriter fw =
-					new OutputStreamWriter(new FileOutputStream(targetFile), Charset.forName("UTF-8"));
+					new OutputStreamWriter(new FileOutputStream(targetFile), Charsets.UTF_8);
 			try {
 				fw.append(targetOpening);
 				fw.append("\n\\section{").append(extendableEntry.simpleName).append("}");
@@ -227,8 +228,8 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 		ArrayList<ExtendableEntry> allExtendables = new ArrayList<>(model.allExtendables());
 		Collections.sort(allExtendables);
 
-		OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(allExtendablesTexFile),
-				Charset.forName("UTF-8"));
+		OutputStreamWriter fw =
+				new OutputStreamWriter(new FileOutputStream(allExtendablesTexFile), Charsets.UTF_8);
 		try {
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("% This file is FULLY generated. Please do not edit anything here\n");

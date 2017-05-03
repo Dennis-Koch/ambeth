@@ -3,12 +3,13 @@ package com.koch.ambeth.extscanner;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.io.Charsets;
 
 import com.koch.ambeth.extscanner.model.ConfigurationEntry;
 import com.koch.ambeth.extscanner.model.TypeEntry;
@@ -114,8 +115,8 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		String pathToExtendableTexFile =
 				targetExtendableTexDirCP.substring(targetTexFileCP.length() + 1);
 
-		OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(allPropertiesTexFile),
-				Charset.forName("UTF-8"));
+		OutputStreamWriter fw =
+				new OutputStreamWriter(new FileOutputStream(allPropertiesTexFile), Charsets.UTF_8);
 		try {
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("% This file is FULLY generated. Please do not edit anything here\n");
@@ -312,7 +313,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		String targetOpening = getAPI(configurationEntry);
 		if (!targetFile.exists()) {
 			OutputStreamWriter fw =
-					new OutputStreamWriter(new FileOutputStream(targetFile), Charset.forName("UTF-8"));
+					new OutputStreamWriter(new FileOutputStream(targetFile), Charsets.UTF_8);
 			try {
 				fw.append(targetOpening);
 				fw.append("\n\\section{");

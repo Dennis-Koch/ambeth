@@ -4,13 +4,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Attribute;
@@ -322,7 +322,7 @@ public class OutputUtil {
 		XMLOutputter xmlOutPutter = new XMLOutputter(Format.getPrettyFormat());
 		try {
 			xmlOutPutter.output(doc,
-					new OutputStreamWriter(new FileOutputStream(fileName), Charset.forName("UTF-8")));
+					new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
