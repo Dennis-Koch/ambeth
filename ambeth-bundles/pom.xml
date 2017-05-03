@@ -18,7 +18,7 @@
 		<tycho.extras.version>1.0.0</tycho.extras.version>
 		<tycho.groupid>org.eclipse.tycho</tycho.groupid>
 		<tycho.extras.groupid>org.eclipse.tycho.extras</tycho.extras.groupid>
-		<kar2tycho.version>1.0.0</kar2tycho.version>
+		<kar2tycho.version>1.0.1-SNAPSHOT</kar2tycho.version>
 	</properties>
 
 	<modules>
