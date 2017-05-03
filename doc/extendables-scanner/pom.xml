@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.koch.ambeth</groupId>
 	<artifactId>extendables-scanner</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 	<packaging>jar</packaging>
 	
 	<parent>
@@ -12,8 +12,7 @@
 	</parent>
 	
 	<properties>
-		<ambeth.integrity.version>1.0.1</ambeth.integrity.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<ambeth.integrity.version>1.0.2</ambeth.integrity.version>
 	</properties>
 
 	<dependencies>

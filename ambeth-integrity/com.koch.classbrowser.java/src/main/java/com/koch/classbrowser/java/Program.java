@@ -5,11 +5,8 @@ package com.koch.classbrowser.java;
 
 import java.io.Console;
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -338,25 +335,24 @@ public class Program {
 			for (String rootPath : rootPaths.split(Pattern.quote(";"))) {
 				File rootDir = new File(rootPath);
 				if (!rootDir.isDirectory()) {
-					Path extractedFolder = Paths.get(getPathEnsured(ARG_KEY_TEMP_PATH, "Temporary path"));
-					extractedFolder.get
-					JarFile jarFile = new JarFile(rootDir);
-					try {
-						Enumeration<JarEntry> entries = jarFile.entries();
-						while (entries.hasMoreElements()) {
-							JarEntry entry = entries.nextElement();
-							if (entry.isDirectory()) {
-								continue;
-							}
-							String entryName = entry.getName();
-							// Path extractedLocation =
-							// Files.newOutputStream(path, options)
-							jarFile.getInputStream(entry);
-						}
-					}
-					finally {
-						jarFile.close();
-					}
+					// Path extractedFolder = Paths.get(getPathEnsured(ARG_KEY_TEMP_PATH, "Temporary path"));
+					// JarFile jarFile = new JarFile(rootDir);
+					// try {
+					// Enumeration<JarEntry> entries = jarFile.entries();
+					// while (entries.hasMoreElements()) {
+					// JarEntry entry = entries.nextElement();
+					// if (entry.isDirectory()) {
+					// continue;
+					// }
+					// String entryName = entry.getName();
+					// // Path extractedLocation =
+					// // Files.newOutputStream(path, options)
+					// jarFile.getInputStream(entry);
+					// }
+					// }
+					// finally {
+					// jarFile.close();
+					// }
 					throw new IllegalArgumentException("Root path '" + rootPath + "' is not a directory!");
 				}
 				File[] foundInRoot = rootDir.listFiles();
@@ -397,7 +393,7 @@ public class Program {
 			}
 			return moduleMap;
 		}
-		catch (IOException e) {
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

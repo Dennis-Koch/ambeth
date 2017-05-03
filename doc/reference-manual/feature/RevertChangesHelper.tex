@@ -1,0 +1,14 @@
+%% feature-condition=RESTClientInterceptor
+\SetAPI{J-C}
+\section{RevertChangesHelper}
+\label{feature:RevertChangesHelper}
+\ClearAPI
+Allows to create so-called \textit{Savepoints} for a defined states of entities, their properties and their relations. This is mainly useful in user interfaces where it is feasible to provide the user some interactive undo/redo functionality. By creating a chain of \textit{Savepoints} tracking each relevant user interaction to the entity model in the rich-client the foundation is provided to recover the complete model to any previous unpersisted state.\\ Usage example:\\
+
+\inputjava{Usage example for the \type{IRevertChangesHelper}}
+{jambeth-test/src/test/java/com/koch/ambeth/revert/RevertChangesTest.java}
+
+\inputjava{Specification of the \type{IRevertChangesHelper}}
+{jambeth-merge/src/main/java/com/koch/ambeth/merge/IRevertChangesHelper.java}
+
+

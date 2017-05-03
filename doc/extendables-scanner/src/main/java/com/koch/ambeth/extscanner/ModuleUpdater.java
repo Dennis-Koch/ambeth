@@ -142,7 +142,7 @@ public class ModuleUpdater extends AbstractLatexScanner implements IStartingBean
 			sb.append("<dependency>\n");
 			sb.append("\t<groupId>com.koch.ambeth</groupId>\n");
 			sb.append("\t<artifactId>").append(mavenModules.get(a)).append("</artifactId>\n");
-			sb.append("\t<version>§\\version§</version>\n");
+			sb.append("\t<version>Â§\\versionÂ§</version>\n");
 			sb.append("</dependency>\n");
 		}
 		sb.append("\\end{lstlisting}\n");

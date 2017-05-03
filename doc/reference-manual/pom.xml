@@ -8,9 +8,10 @@
 
 	<properties>
 		<ambeth.version>3.0.1</ambeth.version>
-		<ambeth.integrity.version>1.0.1</ambeth.integrity.version>
-		<ambeth.extendables.scanner.version>1.0.1</ambeth.extendables.scanner.version>
+		<ambeth.integrity.version>1.0.2</ambeth.integrity.version>
+		<ambeth.extendables.scanner.version>1.0.2</ambeth.extendables.scanner.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
 
 	<pluginRepositories>
@@ -50,7 +51,6 @@
 				<executions>
 					<execution>
 						<id>copy-resources</id>
-						<!-- here the phase you need -->
 						<phase>validate</phase>
 						<goals>
 							<goal>copy-resources</goal>
@@ -197,8 +197,8 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>Rename C# XML file</id>
-						<phase>prepare-package</phase>
+						<id>Copy PDF file</id>
+						<phase>package</phase>
 						<goals>
 							<goal>exec</goal>
 						</goals>
@@ -238,7 +238,7 @@
 						<bibtexCommand>bibtex</bibtexCommand>
 						<!-- the arguments to use when calling latex -->
 						<texCommandArgs>
-							<!-- <texCommandArg>-shell-escape</texCommandArg> -->
+							<texCommandArg>-shell-escape</texCommandArg>
 							<texCommandArg>-interaction=nonstopmode</texCommandArg>
 							<texCommandArg>--src-specials</texCommandArg>
 						</texCommandArgs>
