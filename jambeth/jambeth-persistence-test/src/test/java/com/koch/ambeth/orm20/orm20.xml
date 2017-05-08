@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  jambeth-persistence-test
+  %%
+  Copyright (C) 2017 Koch Softwaredevelopment
+  %%
+  Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+  #L%
+  -->
+
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+
+	<link-mappings>
+		<!-- cascade-delete="none | left | right | both", default "none" -->
+		<link source="LINK_EMPLOYEE_PRIM_ADDR_FK1" cascade-delete="right" alias="Employee-Address" />
+		<link source="LINK_ADDRESS_EMPLOYEE_FK1" cascade-delete="left" />
+		<link source="LINK_EMPLOYEE_BOAT_FK1" cascade-delete="right" />
+		<link source="LINK_EMPLOYEE_PROJECT" alias="Employee-Project" />
+		<external-link source="EMPLOYEE" source-column="GOOD_ID" target-member="Id" alias="Employee-Good" />
+	</link-mappings>
+
+	<entity-mappings>
+
+		<entity class="com.koch.ambeth.orm20.Employee">
+			<sequence-generator name="EMPLOYEE_SEQU" />
+			<attributes>
+				<basic name="Car.Make" column="CAR_MAKE" />
+				<basic name="Car.Model" column="CAR_MODEL" />
+				<relation name="Supervisor" link="LINK_EMPLOYEE_EMPLOYEE_FK1" this="left" />
+				<relation name="PrimaryAddress" link="Employee-Address" />
+				<relation name="PrimaryProject" link="LINK_EMPLOYEE_PROJECT_FK1" />
+				<relation name="OtherAddresses" link="LINK_ADDRESS_EMPLOYEE_FK1" />
+				<relation name="Boat" link="LINK_EMPLOYEE_BOAT_FK1" />
+				<relation name="AllProjects" link="Employee-Project" />
+			</attributes>
+		</entity>
+
+		<entity class="com.koch.ambeth.orm20.Address">
+			<attributes>
+				<relation name="Resident" link="LINK_ADDRESS_EMPLOYEE_FK1" />
+			</attributes>
+		</entity>
+
+		<entity class="com.koch.ambeth.orm20.Project">
+			<attributes>
+				<relation name="Employees" link="LINK_EMPLOYEE_PROJECT_FK1" />
+			</attributes>
+		</entity>
+
+		<entity class="com.koch.ambeth.orm20.Boat" />
+
+	</entity-mappings>
+
+</or-mappings>

@@ -1,0 +1,111 @@
+\SetAPI{J-C}
+\section{Event}
+\label{module:Event}
+\ClearAPI
+\TODO
+The Ambeth Event module enables one to use the observer pattern\cite{obs15}. 
+The subject, as mentioned in the wiki page, is an extension you would register to the \prettyref{extendable:IEventListenerExtendable}. The registration can be more specific with the extension configuration, e.g. .with\(IDataChange.class\) to enable listening to only object of the desired type.
+To enable loosely coupling, the concrete observer will not be notified directly, nor the subject will fire the event. To ``notify'' the extension, the IEventDispatcher service will be used to dispatch the event to Ambeth. Ambeth in turn will deliver the event object to every extension registered for this event or to every extension without any specific type parameter.
+
+The following listings will demonstrate the usage of the observable patten within Ambeth.
+
+Linkage of the bean to the bean context and the extension registry.
+
+\inputjava{Usage of the \type{IEventListenerExtendable}, link in your IoC module}
+{jambeth-event/src/main/java/com/koch/ambeth/event/IEventListenerExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example registration of an EventListener}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myEventListenerExtension = bcf.registerAnonymousBean(MyEventListener.class);
+bcf.link(myEventListenerExtension).to(IEventListenerExtendable.class).with(IDataChange.class);
+\end{lstlisting}
+
+Implementation for an event listener that listens for IDataChange events.
+
+Note the instanceof check as an early break to ensure that only the correct events will be handled. This is for robustness because one could easy forget the .with\(\) option.
+
+\inputjava{Definition of the  \type{IEventListener}}
+{jambeth-event/src/main/java/com/koch/ambeth/event/IEventListenerExtendable.java}
+\begin{lstlisting}[style=Java,caption={}]
+public class MyEventListener implements IEventListener
+{
+   /**
+    * handle events for ITypeOfInterested
+    */
+   @Override
+   public void handleEvent(Object eventObject, long dispatchTime, long sequenceId)
+   {
+				//make sure you only handle the events, you are interested in
+       if(!(eventObject instanceof ITypeOfInterested)){
+         return;
+       }
+//cast to the desired type
+       IDataChange obj = (IDataChange) eventObject;
+//only get events from a specific type
+       IDataChange obj1 = obj.derive(MyEntityClass.class);
+//test if there are any datachanges for the class
+       if (obj1.isEmpty())
+       {
+           return;
+       }
+//retrive some updates (and the id of the first updated element)
+       obj1.getUpdates().get(0).getId();
+   }
+}
+\end{lstlisting}
+
+See the section IDataChange for further information on what can be used to work with data change events.
+
+
+%% MAVEN GENERATED START
+\begin{lstlisting}[style=POM,caption={Maven modules to use \emph{Ambeth Event}}]
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-event</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-event-datachange</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-event-kafka</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-event-kafka-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-event-server</artifactId>
+	<version>§\version§</version>
+</dependency>
+\end{lstlisting}
+%% MAVEN END
+\subsection{Features}
+\begin{itemize}
+	%% FEATURES START
+	\item \prettyref{feature:EventBatching}
+	%% FEATURES GENERATED START
+	%% FEATURES END
+\end{itemize}
+
+%% CONFIGURATION GENERATED START
+\subsection{Configuration}
+\begin{itemize}
+	\item \prettyref{configuration:AmbethEventKafkaTopic}
+	\item \prettyref{configuration:EventManagerName}
+	\item \prettyref{configuration:EventPollingActive}
+	\item \prettyref{configuration:EventPollingMaxwaitinterval}
+	\item \prettyref{configuration:EventPollingPausedOnStartActive}
+	\item \prettyref{configuration:EventPollingSleepinterval}
+	\item \prettyref{configuration:EventServiceActive}
+\end{itemize}
+%% CONFIGURATION END

@@ -1,0 +1,68 @@
+\SetAPI{J-C}
+\section{Merge}
+\label{module:Merge}
+\ClearAPI
+The merge module is the back bone of the Ambeth object model. Changes to the object model will be calculated and expressed in CUDResults. The results can be persisted and also be send to clients in order to update the client cache. The merge process is also responsible to use the Ambeth Security module to check the authorization for changes to the object model.
+
+During the merge process, which happens in three phases, the ChangeController can be used to implement project specific business rules and validation rules. If a business rule updates the object model an incremental merge will be done for the changes.
+
+\TODO
+
+%% MAVEN GENERATED START
+\begin{lstlisting}[style=POM,caption={Maven modules to use \emph{Ambeth Merge}}]
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-merge</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-merge-bytecode</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-merge-server</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-merge-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+\end{lstlisting}
+%% MAVEN END
+\subsection{Features}
+\begin{itemize}
+	%% FEATURES START
+	\item \prettyref{feature:EDBL}
+	\item \prettyref{feature:EntityFactory}
+	\item \prettyref{feature:ImplementAbstractObjectFactory}
+	\item \prettyref{feature:MergeProcess}
+	%% FEATURES GENERATED START
+	%%\item \prettyref{feature:CacheFactory}
+	%%\item \prettyref{feature:CompositeIdBehavior}
+	%%\item \prettyref{feature:EntityMetaDataMemberBehavior}
+	%%\item \prettyref{feature:ObjRefBehavior}
+	%%\item \prettyref{feature:ObjRefStoreBehavior}
+	%% FEATURES END
+\end{itemize}
+
+%% CONFIGURATION GENERATED START
+\subsection{Configuration}
+\begin{itemize}
+	\item \prettyref{configuration:AmbethMappingConfigValidateActive}
+	\item \prettyref{configuration:AmbethMergeDatachangesDeleteAlternateids}
+	\item \prettyref{configuration:AmbethMergeEdblActive}
+	\item \prettyref{configuration:AmbethMergeEntityfactoryType}
+	\item \prettyref{configuration:AmbethMergeExactVersionRequired}
+	\item \prettyref{configuration:AmbethMergeFieldbasedActive}
+	\item \prettyref{configuration:AmbethMergeUpdateVersionAlways}
+	\item \prettyref{configuration:AmbethPrefetchLazytransactionActive}
+	\item \prettyref{configuration:AmbethSecurityActive}
+	\item \prettyref{configuration:MergeServiceActive}
+\end{itemize}
+%% CONFIGURATION END

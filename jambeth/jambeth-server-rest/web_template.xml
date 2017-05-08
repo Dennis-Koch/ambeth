@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	version="2.5">
+	<display-name>EMC-Tracking Tool REST</display-name>
+	<!-- 
+	<welcome-file-list>
+		<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
+	-->
+	<!-- 
+	<listener>
+		<listener-class>com.sun.xml.ws.transport.http.servlet.WSServletContextListener</listener-class>
+	</listener>
+	-->
+	<context-param>
+    	<param-name>property.file</param-name>
+    	<param-value>@PROPERTY_FILE@</param-value>
+	</context-param>
+	
+	<!-- <security-constraint>
+	    <web-resource-collection>
+    	  <web-resource-name>protected-resources</web-resource-name>
+	      <url-pattern>/*</url-pattern>
+    	</web-resource-collection>
+    	<auth-constraint>
+	      <role-name>USER</role-name>
+    	</auth-constraint>
+  	</security-constraint>
+	<login-config>
+    	<auth-method>BASIC</auth-method>
+    	<realm-name>ComTrack</realm-name>
+	</login-config> -->
+	
+	<listener>
+		<listener-class>com.koch.ambeth.webservice.AmbethServletListener</listener-class>
+	</listener>
+	<servlet>
+		<servlet-name>jersey-servlet</servlet-name>
+		<servlet-class>org.glassfish.jersey.servlet.ServletContainer.class</servlet-class>
+		<init-param>
+		     <param-name>com.sun.jersey.config.property.packages</param-name>
+		     <param-value>com.koch.ambeth.webservice@ADDITIONAL_PACKAGES@</param-value>
+		</init-param>
+		<init-param>
+			<param-name>com.sun.jersey.spi.container.ContainerRequestFilters</param-name>
+			<param-value>com.sun.jersey.api.container.filter.GZIPContentEncodingFilter</param-value>
+		</init-param>
+		<!-- 
+				<init-param>
+			<param-name>com.sun.jersey.spi.container.ContainerResponseFilters</param-name>
+			<param-value>com.sun.jersey.api.container.filter.GZIPContentEncodingFilter</param-value>
+		</init-param>
+		-->
+		<init-param>
+			<param-name>com.sun.jersey.spi.container.ContainerResponseFilters</param-name>
+			<param-value>com.koch.ambeth.filter.SilverlightWorkaroundGZipEncodingFilter</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<!-- 
+	<servlet>
+		<description>JAX-WS endpoint EMCTrackingWebService</description>
+		<display-name>CacheService</display-name>
+		<servlet-name>CacheService</servlet-name>
+		<servlet-class>com.sun.xml.ws.transport.http.servlet.WSServlet</servlet-class>
+		<load-on-startup>2</load-on-startup>
+	</servlet>
+	-->
+	<servlet-mapping>
+		<servlet-name>jersey-servlet</servlet-name>
+		<url-pattern>/*</url-pattern>
+	</servlet-mapping>
+	<!-- 
+	<servlet-mapping>
+		<servlet-name>CacheService</servlet-name>
+		<url-pattern>/CacheService</url-pattern>
+	</servlet-mapping>
+	-->
+	<session-config>
+		<session-timeout>60</session-timeout>
+	</session-config>
+</web-app>

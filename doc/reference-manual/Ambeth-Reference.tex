@@ -1,0 +1,96 @@
+\documentclass[a4paper]{book}
+
+\usepackage[USenglish]{babel} %francais, polish, spanish, ...
+\usepackage[T1]{fontenc}
+\usepackage[ansinew]{inputenc}
+\usepackage{import}
+\usepackage{lmodern} %Type1-font for non-english texts and characters
+%\usepackage{expl3}
+%\usepackage{l3regex}
+\usepackage{longtable}
+\usepackage{transparent}
+\usepackage{float} %allows to force floats being placed exactly where they are defined
+\usepackage{wrapfig} %allows the wraptable environment to wrap text around tabular environments, load wrapfig AFTER float
+\usepackage{eso-pic} % watermark
+\ifpdf
+\usepackage{subcaption} %allows subfigures within figures
+\fi
+
+\usepackage{wrapfig} %Wrap text around figures
+\usepackage{mdframed} %info boxes
+\usepackage{graphicx} %%For loading graphic files
+
+%\usepackage{subfig} %%Subfigures inside a figure
+%\usepackage{pst-all} %%PSTricks - not useable with pdfLaTeX
+\usepackage[section]{placeins}
+\usepackage{pdflscape} %landscape for specific pages
+\usepackage{titlesec}% to customize the sectional headings (like adding an image to each section title)
+\usepackage{ifthen} % allows if-then-else constructs
+
+\usepackage{array} %allows to define custom column types e.g. \newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+%% Please note:
+%% Images can be included using \includegraphics{Dateiname}
+%% resp. using the dialog in the Insert menu.
+%% 
+%% The mode "LaTeX => PDF" allows the following formats:
+%%   .jpg  .png  .pdf  .mps
+%% 
+%% The modes "LaTeX => DVI", "LaTeX => PS" und "LaTeX => PS => PDF"
+%% allow the following formats:
+%%   .eps  .ps  .bmp  .pict  .pntg
+
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,	% false: boxed links; true: colored links
+    linkcolor={blue!50!black},	% color of internal links (change box color with linkbordercolor)
+    citecolor={blue!50!black},	% color of links to bibliography
+    filecolor={green!80!black},	% color of file links
+    urlcolor={red!80!black}	% color of external links
+}
+
+% import properties first of all
+\input{properties}
+\input{target/ambeth-version}
+
+\textwidth440pt
+\oddsidemargin0pt
+\evensidemargin40pt
+%\floatplacement{figure}{!hbt}
+
+% The following options are for better float positioning:
+% CAVE: topfraction must always be a higher number than floatpagefraction!
+\renewcommand{\topfraction}{0.85}       % a page with text may contain at maximum 85% float environment (Latex default is 70%)
+\renewcommand{\textfraction}{0.1}          % at leat 10% of a page with a float environment must be text, else the float goes on the next page (Latex default is 20%)
+\renewcommand{\floatpagefraction}{0.75}      % allow pages with only a single float environment, if the float takes at least 75% (Latex default is 50%)
+
+\input{listings}
+\input{commands}
+\input{watermark}
+%
+%\makeatletter   % Should ensure that an implicit \FloatBarrier occurs after each subsection
+%\AtBeginDocument{%
+  %\expandafter\renewcommand\expandafter\subsection\expandafter{%
+    %\expandafter\@fb@secFB\subsection
+  %}%
+%}
+%\makeatother
+
+\begin{document}
+\input{cover}
+\ifpdf
+\tableofcontents
+\fi
+\renewcommand{\sectionbreak}{\clearpage}
+\input{introduction}
+\input{all-modules}
+\input{all-features}
+\input{all-extendables}
+\renewcommand{\sectionbreak}{}
+\input{all-annotations}
+\input{all-configurations}
+\input{all-stack}
+\input{all-regulations}
+\input{cites}
+\end{document}

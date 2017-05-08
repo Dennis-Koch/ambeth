@@ -1,0 +1,5 @@
+-exportcontents: \
+    com.koch.ambeth.*;-noimport=true
+Import-Package: \
+    com.koch.ambeth.ioc.garbageproxy, \
+    *

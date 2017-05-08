@@ -1,0 +1,98 @@
+\SetAPI{J}
+\section{PropertyExpression}
+\label{annotation:PropertyExpression}
+\ClearAPI
+
+The annotation \javadoc{com.koch.ambeth.expr.PropertyExpression}{PropertyExpression} allows the usage of expressions, for example ( a + b ) to be used on properties of entities. 
+\begin{lstlisting}[style=Java,caption={Example usage for ``just calculation''}]
+
+interface SomeEntity {
+
+	@PropertyExpression("3+5")
+	String getCalculatedValue();
+
+}
+
+\end{lstlisting}
+This would just return always ``8''. 
+Ambeth now allows the usage of variables inside an expression.
+
+\begin{lstlisting}[style=Java,caption={Example usage for ``calculations with variables''}]
+
+interface SomeEntity {
+
+	@PropertyExpression(" 3 * ${MyVariable}")
+	String getCalculatedValue();
+	
+	String getMyVariable();
+
+}
+
+\end{lstlisting}
+\ifx{\verb+$+}!\fi % stop the green of the $ sign
+Here an variable of that entity is used. It also possible to use multiple variable resolution.
+
+\begin{lstlisting}[style=Java,caption={Example usage for ``calculations with variables''}]
+
+interface SomeEntity {
+
+	@PropertyExpression(" 3 * ${MyVariable${MyLetter}}")
+	String getCalculatedValue();
+	
+	String getMyVariableA();
+	
+	String getMyVariableB();
+	
+	String getMyLetter();
+
+}
+
+\end{lstlisting}
+Here the variable ``MyLetter'' is used to decide between the two variables.
+
+\subsection{Built-in operators}
+
+\begin{itemize}
+	\item Addition: $2 + 2$
+	\item Subtraction: $2 - 2$
+	\item Multiplication: $2 * 2$
+	\item Division: $2 / 2$
+	\item Exponentation: $2 \string^ 2$
+	\item Unary Minus,Plus (Sign Operators): $+2 - (-2)$
+	\item Modulo: $2 \% 2$
+\end{itemize}
+
+\subsection{Built-in functions}
+
+\begin{itemize}
+	\item abs: absolute value
+	\item acos: arc cosine
+	\item asin: arc sine
+	\item atan: arc tangent
+	\item cbrt: cubic root
+	\item ceil: nearest upper integer
+	\item cos: cosine
+	\item cosh: hyperbolic cosine
+	\item exp: euler's number raised to the power ($e \string^ x$)
+	\item floor: nearest lower integer
+	\item log: logarithmus naturalis (base e)
+	\item log10: logarithm (base 10)
+	\item log2: logarithm (base 2)
+	\item sin: sine
+	\item sinh: hyperbolic sine
+	\item sqrt: square root
+	\item tan: tangent
+	\item tanh: hyperbolic tangent
+\end{itemize}
+
+\subsection{Scientific notation}
+The number is split into a significant/mantissa y and exponent x of the form yEx which is evaluated as $y * 10 \string^ x$. Be aware that $'e/E'$ is no operator but part of a number and therefore an expression like $1.1e - (x*2)$ can not be evaluated. An example using the Fine-structure constant $\alpha = 7.2973525698 * 10 \string^ -3$: ``$7.2973525698e-3$''
+
+\subsection{Implicit multiplication}
+The expression API does support implicit multiplication. Therefore an expression like $2cos(yx)$ will be interpreted as $2*cos(y*x)$
+
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Annotation definition \type{PropertyExpression}}
+{jambeth-expr/src/main/java/com/koch/ambeth/expr/PropertyExpression.java}
+%% GENERATED LISTINGS END

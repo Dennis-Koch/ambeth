@@ -1,0 +1,21 @@
+\SetAPI{J-C}
+\section{database.field.postfix}
+\label{configuration:DatabaseFieldPostfix}
+\ClearAPI
+The postfix for a database field to be recognized as the corresponding database part for a property in an entity. E.g. the postfix is "\_POSTFIX" and the java property is "field1" the database field "FIELD1\_POSTFIX" would automatically be recognized as the counterpart to the java property. Valid values are all strings which contain only chars that can be used for database column names.
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{com.koch.ambeth.persistence.orm.OrmPatternMatcher} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.orm.OrmPatternMatcher} &
+		\prettyref{module:Persistence} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\type{com.koch.ambeth.persistence.config.PersistenceConfigurationConstants.DatabaseFieldPostfix}
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{database.field.postfix}}]
+database.field.postfix=\_POSTFIX
+\end{lstlisting}

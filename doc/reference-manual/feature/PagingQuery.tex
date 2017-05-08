@@ -1,0 +1,18 @@
+\SetAPI{J-C}
+\section{Paging Query}
+\label{feature:PagingQuery}
+\ClearAPI
+\TODO
+
+\begin{lstlisting}[style=Java,caption={Usage example for the \type{Paging Query} (Java)}]
+IPagingQuery<IMyEntity> pagingQuery = qb.buildPaging(whereClause);
+PagingRequest pagingRequest = pagingQuery.createRequest(page, size);
+IPagingResponse<IMyEntity> pagingResponse = pagingQuery.retrieve(pagingRequest);
+List<IMyEntity> result = pagingResponse.getResult();
+\end{lstlisting}
+
+The example above retrieves page number \type{page} with the maximum number of elements specified by \type{size}. 
+\begin{itemize}
+\item To retrieve the first 150 elements, set page to 0 and size to 150.
+\item If you have a paging grid displaying 30 elements, size would be 30, and page would be the number of the current page (starting with 0)
+\end{itemize}

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  jambeth-test
+  %%
+  Copyright (C) 2017 Koch Softwaredevelopment
+  %%
+  Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+  #L%
+  -->
+
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+	<link-mappings>
+		<independent-link alias="Material_MaterialType_ChildMatType" left="com.koch.ambeth.cache.valueholdercontainer.Material"
+			right="com.koch.ambeth.cache.valueholdercontainer.MaterialType"/>
+		<independent-link alias="Material_MaterialType_ChildMatTypes" left="com.koch.ambeth.cache.valueholdercontainer.Material"
+			right="com.koch.ambeth.cache.valueholdercontainer.MaterialType"/>
+		<independent-link alias="Material_MaterialType_Types" left="com.koch.ambeth.cache.valueholdercontainer.Material"
+			right="com.koch.ambeth.cache.valueholdercontainer.MaterialType"/>
+		<independent-link alias="Material_MaterialType_EmbMat.EmbMatType" left="com.koch.ambeth.cache.valueholdercontainer.Material"
+			right="com.koch.ambeth.cache.valueholdercontainer.MaterialType"/>
+		<independent-link alias="Material_MaterialType_EmbMat.EmbMat2.EmbMatType2" left="com.koch.ambeth.cache.valueholdercontainer.Material"
+			right="com.koch.ambeth.cache.valueholdercontainer.MaterialType"/>
+		<independent-link alias="Material_MaterialType_EmbMat3.EmbMatType" left="com.koch.ambeth.cache.valueholdercontainer.Material"
+			right="com.koch.ambeth.cache.valueholdercontainer.MaterialType"/>
+	</link-mappings>
+
+	<entity-mappings>
+		<entity class="com.koch.ambeth.cache.valueholdercontainer.Material">
+			<attributes>
+				<id name="Id" />
+				<version name="Version" />
+				<basic name="Name" />
+				<basic name="Names" />
+				<basic name="EmbMat.Name" />
+				<basic name="EmbMat.Names" />
+				<basic name="EmbMat.EmbMat2.Name2" />
+				<basic name="EmbMat.EmbMat2.Names2" />
+				<relation name="ChildMatType" link="Material_MaterialType_ChildMatType" />
+				<relation name="ChildMatTypes" link="Material_MaterialType_ChildMatTypes" />
+				<relation name="Types" link="Material_MaterialType_Types" />
+				<relation name="EmbMat.EmbMatType" link="Material_MaterialType_EmbMat.EmbMatType" />
+				<relation name="EmbMat.EmbMat2.EmbMatType2" link="Material_MaterialType_EmbMat.EmbMat2.EmbMatType2" />
+				<relation name="EmbMat3.EmbMatType" link="Material_MaterialType_EmbMat3.EmbMatType" />
+			</attributes>
+		</entity>
+
+		<entity class="com.koch.ambeth.cache.valueholdercontainer.MaterialType">
+			<attributes>
+				<id name="Id" />
+				<version name="Version" />
+				<ignore name="Temp1" />
+				<ignore name="Temp2" />
+			</attributes>
+		</entity>
+	</entity-mappings>
+</or-mappings>

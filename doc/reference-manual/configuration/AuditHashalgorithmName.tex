@@ -1,0 +1,21 @@
+\SetAPI{J-C}
+\section{audit.hashalgorithm.name}
+\label{configuration:AuditHashalgorithmName}
+\ClearAPI
+The hash algorithm used to sign the audit entry. Valid values are all provided hash-algorithms.
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{com.koch.ambeth.audit.server.AuditEntryToSignature} &
+		\prettyref{module:Audit} \\
+	\hline
+		\type{com.koch.ambeth.audit.server.AuditEntryToSignature} &
+		\prettyref{module:Audit} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\type{com.koch.ambeth.config.AuditConfigurationConstants.AuditedInformationHashAlgorithm}
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{audit.hashalgorithm.name}}]
+audit.hashalgorithm.name=SHA-256
+\end{lstlisting}

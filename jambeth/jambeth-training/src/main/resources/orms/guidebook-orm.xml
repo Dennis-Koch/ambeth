@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+
+	<link-mappings/>
+
+	<entity-mappings>
+		<entity class="com.koch.ambeth.training.travelguides.model.City">
+		</entity>
+		<entity class="com.koch.ambeth.training.travelguides.model.GuideBook">
+		</entity>
+		<entity class="com.koch.ambeth.training.travelguides.model.Image">
+		</entity>
+	</entity-mappings>
+</or-mappings>

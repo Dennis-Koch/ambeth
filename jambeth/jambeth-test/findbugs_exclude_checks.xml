@@ -1,0 +1,205 @@
+<FindBugsFilter>
+
+	<!-- EXCLUDE Redundant null store Bug -->
+	<Match>
+		<Bug pattern="DLS_DEAD_LOCAL_STORE" />
+	</Match>	
+
+	<Match>
+		<Bug pattern="DLS_DEAD_LOCAL_STORE_OF_NULL" />
+	</Match>
+	
+	<!-- EXCLUDE Field Exposure Bug -->
+	<Match>
+		<Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
+	</Match>
+
+	<Match>
+		<Bug pattern="DM_CONVERT_CASE" />
+	</Match>
+
+	<Match>
+		<Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
+	</Match>
+
+	<Match>
+		<Bug pattern="IT_NO_SUCH_ELEMENT" />
+	</Match>
+
+	<Match>
+		<Bug pattern="LI_LAZY_INIT_STATIC" />
+	</Match>
+
+	<Match>
+		<Bug pattern="MS_FINAL_PKGPROTECT" />
+	</Match>
+
+	<!-- EXCLUDE Not NotifyAll Bug -->
+	<Match>
+		<Bug pattern="NO_NOTIFY_NOT_NOTIFYALL" />
+	</Match>
+
+	<Match>
+		<Bug pattern="NP_BOOLEAN_RETURN_NULL" />
+	</Match>	
+	
+	<Match>
+		<Bug pattern="OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE" />
+	</Match>
+
+	<Match>
+		<Bug pattern="SIC_INNER_SHOULD_BE_STATIC_ANON" />
+	</Match>
+
+	<Match>
+		<Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR" />
+	</Match>
+
+	<Match>
+		<Bug pattern="VO_VOLATILE_INCREMENT" />
+	</Match>
+
+	<!-- Class specific -->
+	
+	<!-- Exclude all repackaged frameworks -->
+	<Match>
+		<Class name="~.+\.repackaged\..+" />
+	</Match>
+	
+	<Match>
+		<Bug pattern="UUF_UNUSED_FIELD" />
+		<Field name="~ajc\$.*" />
+	</Match>
+	
+	<Match>
+		<Package name="com\.koch\.ambeth\..*" />
+		<Bug pattern="SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE" />
+	</Match>
+
+	<Match>
+		<Package name="com\.koch\.ambeth\..*" />
+		<Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
+	</Match>
+
+	<Match>
+		<Package name="com\.koch\.ambeth\..*" />
+		<Bug pattern="UW_UNCOND_WAIT" />
+	</Match>
+	
+	<Match>
+		<Class name="com.koch.ambeth.bytecode.core.DefaultEntityEnhancer" />
+		<Method name="executePendingBehaviors" />
+		<Bug pattern="DM_DEFAULT_ENCODING" />
+	</Match>
+
+	<Match>
+		<Class name="com.koch.ambeth.threading.FastThreadPool" />
+		<Method name="waitForMessage" />
+		<Bug pattern="WA_NOT_IN_LOOP" />
+	</Match>
+
+	<Match>
+		<Class name="com.koch.ambeth.threading.FastThreadPool" />
+		<Bug pattern="RV_ABSOLUTE_VALUE_OF_RANDOM_INT" />
+	</Match>
+	
+	<Match>
+		<Class name="com.koch.ambeth.threading.ProcessIdHelper" />
+		<Method name="getCumulatedCpuUsage" />
+		<Bug pattern="RR_NOT_CHECKED" />
+	</Match>
+
+	<Match>
+		<Class name="com.koch.ambeth.persistence.JDBCSqlConnection" />
+		<Method name="sqlSelect" />
+		<Bug pattern="OBL_UNSATISFIED_OBLIGATION" />
+	</Match>
+
+
+	<Match>
+		<Class name="com.koch.ambeth.persistence.jdbc.JdbcTable" />
+		<Bug pattern="SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING" />
+	</Match>
+
+	<Match>
+		<Class name="com.koch.ambeth.platform.AmbethPlatformContext" />
+		<Method name="dispose" />
+		<Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
+	</Match>
+	
+	<Match>
+		<Class name="com.koch.ambeth.platform.ConfigurationPropertiesScanner" />
+		<Method name="main" />
+		<Bug pattern=" DM_DEFAULT_ENCODING" />
+	</Match>
+  
+	<Match>
+		<Class name="com.koch.ambeth.util.ListUtil" />
+		<Method name="toArray" />
+		<Bug pattern="PZLA_PREFER_ZERO_LENGTH_ARRAYS" />
+	</Match>
+	<Match>
+		<Class name="com.koch.ambeth.config.Properties" />
+		<Bug pattern="DM_DEFAULT_ENCODING" />
+		<Bug pattern="MS_SHOULD_BE_FINAL" />
+	</Match>
+
+	<Match>
+		<Class name="com.koch.ambeth.cache.RootCache" />
+		<Method name="waitForConcurrentReadFinish" />
+		<Bug pattern="UW_UNCOND_WAIT" />
+	</Match>
+
+	<Match>
+		<Class name="com.koch.ambeth.filter.model.CompositeFilterDescriptor" />
+		<Method name="isCaseSensitive" />
+		<Bug pattern="NP_BOOLEAN_RETURN_NULL" />
+	</Match>
+
+	<Match>
+		<Class name="com.koch.ambeth.persistence.jdbc.DefaultDatabasePool" />
+		<Method name="createNewDatabase" />
+		<Bug pattern="UL_UNRELEASED_LOCK" />
+		<Bug pattern="UL_UNRELEASED_LOCK_EXCEPTION_PATH" />
+	</Match>
+	
+	<Match>
+		<Class name="com.koch.ambeth.persistence.jdbc.JdbcLink" />
+		<Method name="linkIdsIntern" />
+		<Method name="unlinkIdsIntern" />
+		<Bug pattern="OBL_UNSATISFIED_OBLIGATION" />
+	</Match>
+	
+	<Match>
+		<Class name="com.koch.ambeth.query.sql.SqlQueryBuilder" />
+		<Method name="join" />
+		<Bug pattern="BC_UNCONFIRMED_CAST" />
+	</Match>
+
+	<Match>
+		<Class name="com.koch.ambeth.oracle.Oracle10gDialect" />
+		<Bug pattern="SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE" />
+	</Match>	
+
+
+	<!-- <Match> <Class name="com.foobar.ClassNotToBeAnalyzed" /> </Match> <Match> 
+		<Class name="com.foobar.ClassWithSomeBugsMatched" /> <Bug code="DE,UrF,SIC" 
+		/> </Match> -->
+
+	<!-- Match all XYZ violations. -->
+	<!-- <Match> <Bug code="XYZ" /> </Match> -->
+
+	<!-- Match all doublecheck violations in these methods of "AnotherClass". -->
+	<!-- <Match> <Class name="com.foobar.AnotherClass" /> <Or> <Method name="nonOverloadedMethod" 
+		/> <Method name="frob" params="int,java.lang.String" returns="void" /> <Method 
+		name="blat" params="" returns="boolean" /> </Or> <Bug code="DC" /> </Match> -->
+
+	<!-- A method with a dead local store false positive (medium priority). -->
+	<!-- <Match> <Class name="com.foobar.MyClass" /> <Method name="someMethod" 
+		/> <Bug pattern="DLS_DEAD_LOCAL_STORE" /> <Priority value="2" /> </Match> -->
+
+	<!-- All bugs in test classes, except for JUnit-specific bugs -->
+	<!-- <Match> <Class name="~.*\.*Test" /> <Not> <Bug code="IJU" /> </Not> 
+		</Match> -->
+
+</FindBugsFilter>

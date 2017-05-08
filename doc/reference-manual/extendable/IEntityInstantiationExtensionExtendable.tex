@@ -1,0 +1,24 @@
+\SetAPI{J-C}
+\section{IEntityInstantiationExtensionExtendable}
+\label{extendable:IEntityInstantiationExtensionExtendable}
+\ClearAPI
+\javadoc{com.koch.ambeth.merge.IEntityInstantiationExtensionExtendable}{IEntityInstantiationExtensionExtendable}
+\javadoc{com.koch.ambeth.merge.IEntityInstantiationExtension}{IEntityInstantiationExtension}
+\TODO
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{IEntityInstantiationExtension}}
+{jambeth-merge/src/main/java/com/koch/ambeth/merge/IEntityInstantiationExtensionExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerBean(...);
+bcf.link(myExtension).to(IEntityInstantiationExtensionExtendable.class).with(...);
+\end{lstlisting}
+\inputcsharp{Extension point for instances of \type{IEntityInstantiationExtension}}
+{Ambeth.Merge/ambeth/merge/IEntityInstantiationExtensionExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterBean(...);
+bcf.Link(myExtension).To<IEntityInstantiationExtensionExtendable>().With(...);
+\end{lstlisting}
+%% GENERATED LISTINGS END

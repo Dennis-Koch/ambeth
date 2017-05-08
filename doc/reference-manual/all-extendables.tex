@@ -1,0 +1,403 @@
+%---------------------------------------------------------------
+% This file is FULLY generated. Please do not edit anything here
+% Any changes have to be done to the java class com.koch.ambeth.extscanner.ExtendableUpdater
+%---------------------------------------------------------------
+\chapter{Ambeth Extension Points}
+\label{ambeth:extendables}
+\begin{landscape}
+\begin{longtable}{ l l l c c c } \hline \textbf{Extension Point} & \textbf{Extension} & \textbf{Module} & \textbf{Java} & \textbf{C\#} \\
+	\endhead
+	\hline
+		\nameref{extendable:CommandBindingExtendable} &
+		\javadoc{com.koch.ambeth.shell.core.CommandBinding}{CommandBinding} &
+		jambeth-shell &
+		X & X \\
+	\hline
+		\nameref{extendable:CommandExtensionExtendable} &
+		\javadoc{com.koch.ambeth.shell.core.CommandExtension}{CommandExtension} &
+		jambeth-shell &
+		X & X \\
+	\hline
+		\nameref{extendable:IAuditConfigurationExtendable} &
+		\javadoc{com.koch.ambeth.audit.server.IAuditConfiguration}{IAuditConfiguration} &
+		jambeth-audit-server &
+		X & X \\
+	\hline
+		\nameref{extendable:IAuditEntryWriterExtendable} &
+		\javadoc{com.koch.ambeth.audit.server.IAuditEntryWriter}{IAuditEntryWriter} &
+		jambeth-audit-server &
+		X & X \\
+	\hline
+		\nameref{extendable:IAuthorizationChangeListenerExtendable} &
+		\javadoc{com.koch.ambeth.security.IAuthorizationChangeListener}{IAuthorizationChangeListener} &
+		jambeth-security &
+		X & X \\
+	\hline
+		\nameref{extendable:IBytecodeBehaviorExtendable} &
+		\javadoc{com.koch.ambeth.bytecode.behavior.IBytecodeBehavior}{IBytecodeBehavior} &
+		jambeth-bytecode &
+		X & X \\
+	\hline
+		\nameref{extendable:ICUDResultExtendable} &
+		\javadoc{com.koch.ambeth.merge.ICUDResultExtension}{ICUDResultExtension} &
+		jambeth-merge &
+		X & X \\
+	\hline
+		\nameref{extendable:ICacheProviderExtendable} &
+		\javadoc{com.koch.ambeth.merge.cache.ICacheProvider}{ICacheProvider} &
+		jambeth-cache &
+		X & X \\
+	\hline
+		\nameref{extendable:ICacheRetrieverExtendable} &
+		\javadoc{com.koch.ambeth.cache.service.ICacheRetriever}{ICacheRetriever} &
+		jambeth-cache &
+		X & X \\
+	\hline
+		\nameref{extendable:ICacheServiceByNameExtendable} &
+		\javadoc{com.koch.ambeth.cache.service.ICacheService}{ICacheService} &
+		jambeth-cache &
+		X & X \\
+	\hline
+		\nameref{extendable:IChangeControllerExtendable} &
+		\javadoc{com.koch.ambeth.merge.changecontroller.IChangeControllerExtension<?>}{IChangeControllerExtension<?>} &
+		jambeth-merge &
+		X & X \\
+	\hline
+		\nameref{extendable:ICollectableControllerExtendable} &
+		\javadoc{com.koch.ambeth.util.objectcollector.ICollectableController}{ICollectableController} &
+		jambeth-util &
+		X & X \\
+	\hline
+		\nameref{extendable:ICollectionChangeExtensionExtendable} &
+		\javadoc{com.koch.ambeth.cache.databinding.ICollectionChangeExtension}{ICollectionChangeExtension} &
+		jambeth-cache &
+		X & X \\
+	\hline
+		\nameref{extendable:ICommandTypeExtendable} &
+		\javadoc{java.lang.Class<? extends com.koch.ambeth.xml.pending.IObjectCommand>}{IObjectCommand>} &
+		jambeth-xml &
+		X & X \\
+	\hline
+		\nameref{extendable:IConnectionHolderExtendable} &
+		\javadoc{com.koch.ambeth.persistence.IConnectionHolder}{IConnectionHolder} &
+		jambeth-persistence-jdbc &
+		X & X \\
+	\hline
+		\nameref{extendable:IDatabaseDisposeHookExtendable} &
+		\javadoc{com.koch.ambeth.persistence.api.IDatabaseDisposeHook}{IDatabaseDisposeHook} &
+		jambeth-persistence-api &
+		X & X \\
+	\hline
+		\nameref{extendable:IDatabaseLifecycleCallbackExtendable} &
+		\javadoc{com.koch.ambeth.persistence.database.IDatabaseLifecycleCallback}{IDatabaseLifecycleCallback} &
+		jambeth-persistence &
+		X & X \\
+	\hline
+		\nameref{extendable:IDatabaseMappedListenerExtendable} &
+		\javadoc{com.koch.ambeth.persistence.database.IDatabaseMappedListener}{IDatabaseMappedListener} &
+		jambeth-persistence &
+		X & X \\
+	\hline
+		\nameref{extendable:IDatabaseMapperExtendable} &
+		\javadoc{com.koch.ambeth.persistence.database.IDatabaseMapper}{IDatabaseMapper} &
+		jambeth-persistence &
+		X & X \\
+	\hline
+		\nameref{extendable:IDatabaseProviderExtendable} &
+		\javadoc{com.koch.ambeth.persistence.api.database.IDatabaseProvider}{IDatabaseProvider} &
+		jambeth-persistence &
+		X & X \\
+	\hline
+		\nameref{extendable:IDatasetBuilderExtendable} &
+		\javadoc{com.koch.ambeth.merge.util.setup.IDatasetBuilder}{IDatasetBuilder} &
+		jambeth-merge &
+		X & X \\
+	\hline
+		\nameref{extendable:IDedicatedConverterExtendable} &
+		\javadoc{com.koch.ambeth.util.IDedicatedConverter}{IDedicatedConverter} &
+		jambeth-util &
+		X & X \\
+	\hline
+		\nameref{extendable:IDedicatedMapperExtendable} &
+		\javadoc{com.koch.ambeth.mapping.IDedicatedMapper}{IDedicatedMapper} &
+		jambeth-mapping &
+		X & X \\
+	\hline
+		\nameref{extendable:IEntityInstantiationExtensionExtendable} &
+		\javadoc{com.koch.ambeth.merge.IEntityInstantiationExtension}{IEntityInstantiationExtension} &
+		jambeth-merge &
+		X & X \\
+	\hline
+		\nameref{extendable:IEntityLifecycleExtendable} &
+		\javadoc{com.koch.ambeth.service.merge.model.IEntityLifecycleExtension}{IEntityLifecycleExtension} &
+		jambeth-service &
+		X & X \\
+	\hline
+		\nameref{extendable:IEntityMetaDataExtendable} &
+		\javadoc{com.koch.ambeth.service.merge.model.IEntityMetaData}{IEntityMetaData} &
+		jambeth-merge &
+		X & X \\
+	\hline
+		\nameref{extendable:IEntityPermissionRuleExtendable} &
+		\javadoc{com.koch.ambeth.security.server.privilege.IEntityPermissionRule<? super T>}{IEntityPermissionRule<? super T>} &
+		jambeth-security-server &
+		X & X \\
+	\hline
+		\nameref{extendable:IEntityTypePermissionRuleExtendable} &
+		\javadoc{com.koch.ambeth.security.server.privilege.IEntityTypePermissionRule}{IEntityTypePermissionRule} &
+		jambeth-security-server &
+		X & X \\
+	\hline
+		\nameref{extendable:IEventBatcherExtendable} &
+		\javadoc{com.koch.ambeth.event.IEventBatcher}{IEventBatcher} &
+		jambeth-event &
+		X & X \\
+	\hline
+		\nameref{extendable:IEventListenerExtendable} &
+		\javadoc{com.koch.ambeth.event.IEventListener}{IEventListener} &
+		jambeth-event &
+		X & X \\
+	\hline
+		\nameref{extendable:IEventStoreHandlerExtendable} &
+		\javadoc{com.koch.ambeth.event.store.IEventStoreHandler}{IEventStoreHandler} &
+		jambeth-event &
+		X & X \\
+	\hline
+		\nameref{extendable:IEventTargetExtractorExtendable} &
+		\javadoc{com.koch.ambeth.event.IEventTargetExtractor}{IEventTargetExtractor} &
+		jambeth-event &
+		X & X \\
+	\hline
+		\nameref{extendable:IEventTargetListenerExtendable} &
+		\javadoc{com.koch.ambeth.event.IEventTargetEventListener}{IEventTargetEventListener} &
+		jambeth-event &
+		X & X \\
+	\hline
+		\nameref{extendable:IFilterExtendable} &
+		\javadoc{com.koch.ambeth.datachange.filter.IFilter}{IFilter} &
+		jambeth-datachange &
+		X & X \\
+	\hline
+		\nameref{extendable:IFirstLevelCacheExtendable} &
+		\javadoc{com.koch.ambeth.merge.cache.IWritableCache}{IWritableCache} &
+		jambeth-cache &
+		X & X \\
+	\hline
+		\nameref{extendable:IImplementAbstractObjectFactoryExtendable} &
+		\javadoc{java.lang.Class<?>}{Class<?>} &
+		jambeth-bytecode &
+		X & X \\
+	\hline
+		\nameref{extendable:IJobExtendable} &
+		\javadoc{com.koch.ambeth.job.IJob}{IJob} &
+		jambeth-job &
+		X & X \\
+	\hline
+		\nameref{extendable:IMergeExtendable} &
+		\javadoc{com.koch.ambeth.merge.IMergeExtension}{IMergeExtension} &
+		jambeth-merge &
+		X & X \\
+	\hline
+		\nameref{extendable:IMergeListenerExtendable} &
+		\javadoc{com.koch.ambeth.merge.IMergeListener}{IMergeListener} &
+		jambeth-merge &
+		X & X \\
+	\hline
+		\nameref{extendable:IMergeServiceExtensionExtendable} &
+		\javadoc{com.koch.ambeth.merge.IMergeServiceExtension}{IMergeServiceExtension} &
+		jambeth-merge &
+		X & X \\
+	\hline
+		\nameref{extendable:INameBasedHandlerExtendable} &
+		\javadoc{com.koch.ambeth.xml.INameBasedHandler}{INameBasedHandler} &
+		jambeth-xml &
+		X & X \\
+	\hline
+		\nameref{extendable:INoEntityTypeExtendable} &
+		\javadoc{java.lang.Class<?>}{Class<?>} &
+		jambeth-util &
+		X & X \\
+	\hline
+		\nameref{extendable:IObjectCopierExtendable} &
+		\javadoc{com.koch.ambeth.merge.copy.IObjectCopierExtension}{IObjectCopierExtension} &
+		jambeth-merge &
+		X & X \\
+	\hline
+		\nameref{extendable:IObjectFutureHandlerExtendable} &
+		\javadoc{com.koch.ambeth.xml.pending.IObjectFutureHandler}{IObjectFutureHandler} &
+		jambeth-xml &
+		X & X \\
+	\hline
+		\nameref{extendable:IOfflineListenerExtendable} &
+		\javadoc{com.koch.ambeth.service.IOfflineListener}{IOfflineListener} &
+		jambeth-service &
+		X & X \\
+	\hline
+		\nameref{extendable:IOrmXmlReaderExtendable} &
+		\javadoc{com.koch.ambeth.merge.orm.IOrmXmlReader}{IOrmXmlReader} &
+		jambeth-merge &
+		X & X \\
+	\hline
+		\nameref{extendable:IPasswordValidationExtendable} &
+		\javadoc{com.koch.ambeth.security.server.IPasswordValidationExtension}{IPasswordValidationExtension} &
+		jambeth-security-server &
+		X & X \\
+	\hline
+		\nameref{extendable:IPrimitiveRetrieverExtendable} &
+		\javadoc{com.koch.ambeth.cache.service.IPrimitiveRetriever}{IPrimitiveRetriever} &
+		jambeth-cache &
+		X & X \\
+	\hline
+		\nameref{extendable:IPropertyChangeExtensionExtendable} &
+		\javadoc{com.koch.ambeth.cache.databinding.IPropertyChangeExtension}{IPropertyChangeExtension} &
+		jambeth-cache &
+		X & X \\
+	\hline
+		\nameref{extendable:IPropertyExpansionExtendable} &
+		\javadoc{com.koch.ambeth.mapping.PropertyPath}{PropertyPath} &
+		jambeth-mapping &
+		X & X \\
+	\hline
+		\nameref{extendable:IQueryBuilderExtensionExtendable} &
+		\javadoc{com.koch.ambeth.query.IQueryBuilderExtension}{IQueryBuilderExtension} &
+		jambeth-query &
+		X & X \\
+	\hline
+		\nameref{extendable:IRelationRetrieverExtendable} &
+		\javadoc{com.koch.ambeth.cache.service.IRelationRetriever}{IRelationRetriever} &
+		jambeth-cache &
+		X & X \\
+	\hline
+		\nameref{extendable:ISecurityScopeChangeListenerExtendable} &
+		\javadoc{com.koch.ambeth.merge.security.ISecurityScopeChangeListener}{ISecurityScopeChangeListener} &
+		jambeth-merge &
+		X & X \\
+	\hline
+		\nameref{extendable:ISensorReceiverExtendable} &
+		\javadoc{com.koch.ambeth.util.sensor.ISensorReceiver}{ISensorReceiver} &
+		jambeth-util &
+		X & X \\
+	\hline
+		\nameref{extendable:IServiceExtendable} &
+		\javadoc{java.lang.Object}{Object} &
+		jambeth-service &
+		X & X \\
+	\hline
+		\nameref{extendable:IServiceFilterExtendable} &
+		\javadoc{com.koch.ambeth.security.IServiceFilter}{IServiceFilter} &
+		jambeth-security &
+		X & X \\
+	\hline
+		\nameref{extendable:IServiceResultProcessorExtendable} &
+		\javadoc{com.koch.ambeth.service.cache.IServiceResultProcessor}{IServiceResultProcessor} &
+		jambeth-service &
+		X & X \\
+	\hline
+		\nameref{extendable:ITechnicalEntityTypeExtendable} &
+		\javadoc{java.lang.Class<?>}{Class<?>} &
+		jambeth-merge &
+		X & X \\
+	\hline
+		\nameref{extendable:ITestSetterExtendable} &
+		\javadoc{com.koch.ambeth.testutil.datagenerator.ITestSetter}{ITestSetter} &
+		 &
+		X & X \\
+	\hline
+		\nameref{extendable:IThreadLocalCleanupBeanExtendable} &
+		\javadoc{com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean}{IThreadLocalCleanupBean} &
+		jambeth-ioc &
+		X & X \\
+	\hline
+		\nameref{extendable:ITransactionListenerExtendable} &
+		\javadoc{com.koch.ambeth.persistence.api.database.ITransactionListener}{ITransactionListener} &
+		jambeth-persistence-api &
+		X & X \\
+	\hline
+		\nameref{extendable:ITypeBasedHandlerExtendable} &
+		\javadoc{com.koch.ambeth.xml.ITypeBasedHandler}{ITypeBasedHandler} &
+		jambeth-xml &
+		X & X \\
+	\hline
+		\nameref{extendable:IValueObjectConfigExtendable} &
+		\javadoc{com.koch.ambeth.service.merge.IValueObjectConfig}{IValueObjectConfig} &
+		jambeth-merge &
+		X & X \\
+	\hline
+		\nameref{extendable:IXmlPostProcessorExtendable} &
+		\javadoc{com.koch.ambeth.xml.postprocess.IXmlPostProcessor}{IXmlPostProcessor} &
+		jambeth-xml &
+		X & X \\
+	\hline
+		\nameref{extendable:IXmlTypeExtendable} &
+		\javadoc{java.lang.Class<?>}{Class<?>} &
+		jambeth-xml &
+		X & X \\
+	\hline
+\end{longtable}
+\end{landscape}
+\input{extendable/CommandBindingExtendable}
+\input{extendable/CommandExtensionExtendable}
+\input{extendable/IAuditConfigurationExtendable}
+\input{extendable/IAuditEntryWriterExtendable}
+\input{extendable/IAuthorizationChangeListenerExtendable}
+\input{extendable/IBytecodeBehaviorExtendable}
+\input{extendable/ICUDResultExtendable}
+\input{extendable/ICacheProviderExtendable}
+\input{extendable/ICacheRetrieverExtendable}
+\input{extendable/ICacheServiceByNameExtendable}
+\input{extendable/IChangeControllerExtendable}
+\input{extendable/ICollectableControllerExtendable}
+\input{extendable/ICollectionChangeExtensionExtendable}
+\input{extendable/ICommandTypeExtendable}
+\input{extendable/IConnectionHolderExtendable}
+\input{extendable/IDatabaseDisposeHookExtendable}
+\input{extendable/IDatabaseLifecycleCallbackExtendable}
+\input{extendable/IDatabaseMappedListenerExtendable}
+\input{extendable/IDatabaseMapperExtendable}
+\input{extendable/IDatabaseProviderExtendable}
+\input{extendable/IDatasetBuilderExtendable}
+\input{extendable/IDedicatedConverterExtendable}
+\input{extendable/IDedicatedMapperExtendable}
+\input{extendable/IEntityInstantiationExtensionExtendable}
+\input{extendable/IEntityLifecycleExtendable}
+\input{extendable/IEntityMetaDataExtendable}
+\input{extendable/IEntityPermissionRuleExtendable}
+\input{extendable/IEntityTypePermissionRuleExtendable}
+\input{extendable/IEventBatcherExtendable}
+\input{extendable/IEventListenerExtendable}
+\input{extendable/IEventStoreHandlerExtendable}
+\input{extendable/IEventTargetExtractorExtendable}
+\input{extendable/IEventTargetListenerExtendable}
+\input{extendable/IFilterExtendable}
+\input{extendable/IFirstLevelCacheExtendable}
+\input{extendable/IImplementAbstractObjectFactoryExtendable}
+\input{extendable/IJobExtendable}
+\input{extendable/IMergeExtendable}
+\input{extendable/IMergeListenerExtendable}
+\input{extendable/IMergeServiceExtensionExtendable}
+\input{extendable/INameBasedHandlerExtendable}
+\input{extendable/INoEntityTypeExtendable}
+\input{extendable/IObjectCopierExtendable}
+\input{extendable/IObjectFutureHandlerExtendable}
+\input{extendable/IOfflineListenerExtendable}
+\input{extendable/IOrmXmlReaderExtendable}
+\input{extendable/IPasswordValidationExtendable}
+\input{extendable/IPrimitiveRetrieverExtendable}
+\input{extendable/IPropertyChangeExtensionExtendable}
+\input{extendable/IPropertyExpansionExtendable}
+\input{extendable/IQueryBuilderExtensionExtendable}
+\input{extendable/IRelationRetrieverExtendable}
+\input{extendable/ISecurityScopeChangeListenerExtendable}
+\input{extendable/ISensorReceiverExtendable}
+\input{extendable/IServiceExtendable}
+\input{extendable/IServiceFilterExtendable}
+\input{extendable/IServiceResultProcessorExtendable}
+\input{extendable/ITechnicalEntityTypeExtendable}
+\input{extendable/ITestSetterExtendable}
+\input{extendable/IThreadLocalCleanupBeanExtendable}
+\input{extendable/ITransactionListenerExtendable}
+\input{extendable/ITypeBasedHandlerExtendable}
+\input{extendable/IValueObjectConfigExtendable}
+\input{extendable/IXmlPostProcessorExtendable}
+\input{extendable/IXmlTypeExtendable}
+%--END OF GENERATION----------------------------------------------------------

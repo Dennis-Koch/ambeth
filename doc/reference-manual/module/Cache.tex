@@ -1,0 +1,126 @@
+\SetAPI{J-C}
+\section{Cache}
+\label{module:Cache}
+\ClearAPI
+\TODO
+%% MAVEN GENERATED START
+\begin{lstlisting}[style=POM,caption={Maven modules to use \emph{Ambeth Cache}}]
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-cache</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-cache-bytecode</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-cache-datachange</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-cache-server</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-cache-stream</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-cache-stream-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-cache-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+\end{lstlisting}
+%% MAVEN END
+\subsection{Features}
+\begin{itemize}
+	%% FEATURES START
+	\item \prettyref{feature:CacheFactory}
+	\item \prettyref{feature:CacheHierarchy}
+	\item \prettyref{feature:CacheWalker}
+	\item \prettyref{feature:EntityEquals}
+	\item \prettyref{feature:InterfaceImpl}
+	\item \prettyref{feature:RevertChangesHelper}
+	\item \prettyref{feature:ValueHolderContainer}
+	\item Bytecode Enhancements
+	\begin{itemize}
+		\item \prettyref{feature:CacheMapEntryBehavior}
+		\item \prettyref{feature:DataObjectBehavior}
+		\item \prettyref{feature:DefaultPropertiesBehavior}
+		\item \prettyref{feature:EmbeddedTypeBehavior}
+		\item \prettyref{feature:EnhancedTypeBehavior}
+		\item \prettyref{feature:EntityEqualsBehavior}
+		\item \prettyref{feature:InitializeEmbeddedMemberBehavior}
+		\item \prettyref{feature:LazyRelationsBehavior}
+		\item \prettyref{feature:NotifyPropertyChangedBehavior}
+		\item \prettyref{feature:ParentCacheHardRefBehavior}
+		\item \prettyref{feature:RootCacheValueBehavior}
+	\end{itemize}
+	%% FEATURES GENERATED START
+	%% FEATURES END
+\end{itemize}
+
+%% CONFIGURATION GENERATED START
+\subsection{Configuration}
+\begin{itemize}
+	\item \prettyref{configuration:AmbethBytebufferChunkPrefetchCount}
+	\item \prettyref{configuration:AmbethBytebufferChunkSize}
+	\item \prettyref{configuration:AmbethBytebufferFreephysicalmemoryCleanupcounter}
+	\item \prettyref{configuration:AmbethBytebufferFreephysicalmemoryRatio}
+	\item \prettyref{configuration:CacheAsyncpropertychangeActive}
+	\item \prettyref{configuration:CacheChildOnupdateOverwritetomany}
+	\item \prettyref{configuration:CacheFirstlevelType}
+	\item \prettyref{configuration:CacheFirstlevelWeakActive}
+	\item \prettyref{configuration:CacheLruThreshold}
+	\item \prettyref{configuration:CachePropertychangeFireoldvalueActive}
+	\item \prettyref{configuration:CacheResultcacheActive}
+	\item \prettyref{configuration:CacheSecondlevelActive}
+	\item \prettyref{configuration:CacheSecondlevelWeakActive}
+	\item \prettyref{configuration:CacheServiceActive}
+	\item \prettyref{configuration:CacheServiceName}
+	\item \prettyref{configuration:CacheValueholderOnEmptyToOne}
+	\item \prettyref{configuration:CacheWeakrefCleanupInterval}
+	\item \prettyref{configuration:QueryBehavior}
+\end{itemize}
+%% CONFIGURATION END
+
+\subsection{2nd level cache hierarchy}
+
+\def\showimgref{img/gen/2013-01-02-DeK-RootCache-Request-Processing-1}
+\showimg{A single autowired bean \type{IRootCache} represents the entry point to the whole 2nd level cache hierarchy (\textit{SLC})}
+
+\begin{itemize}
+	\item Without a current (thread-bound) transaction
+		\begin{enumerate}
+			\item Any call to the ``public'' \type{IRootCache} will be intercepted by the \type{ThreadLocalRootCacheInterceptor}.
+			\item If no transaction is open the call is forwarded ``as-is'' to the committed RootCache instance (depending on the environmental configuration there will be a single shared instance (Mode A) or a thread-bound instance to represent the committed state of the database (Mode B).
+			\item Any cache miss of the committed RootCache instance will be forwarded to the \type{CacheRetrieverRegistry} which respresents some kind of gateway where any type of information source can be connected to. \prettyref{extendable:ICacheRetrieverExtendable} shows how to use the corresponding extension points.
+			\item For locally persisted entities (e.g. directly connected JDBC database) the \type{CacheRetrieverRegistry} forwards the request to the \type{DefaultPersistenceCacheRetriever} which is responsible to execute the necessary \emph{JDBC}-calls in a short-running, read-only, ad-hoc transaction.
+			\item The result of the \emph{JDBC}-calls is stored in the committed RootCache for later use by any future thread (Mode A) or in the current thread only (Mode B).
+		\end{enumerate}
+	\item With an uncommitted (thread-bound) transaction
+		\begin{enumerate}
+			\item Any call to the ``public'' \type{IRootCache} will be intercepted by the \type{ThreadLocalRootCacheInterceptor}.
+			\item If a transaction is open the call is forwarded ``as-is'' to the thread-bound transactional RootCache instance respresenting uncommitted data in the pending transaction
+			\item Any cache miss of the transactional RootCache instance will be forwarded to the committed RootCache instance where the call itself is marked with \type{FailEarly} which prohibits the committed RootCache to populate any own cache misses by itself. This is important to prevent to ``pollute'' unintentionally the shared committed RootCache with uncommitted data of the thread-bound transaction.
+			\item Any remaining cache miss will be forwarded to the \type{CacheRetrieverRegistry} which respresents some kind of gateway where any type of information source can be connected to. \prettyref{extendable:ICacheRetrieverExtendable} shows how to use the corresponding extension points.
+			\item For locally persisted entities (e.g. directly connected JDBC database) the \type{CacheRetrieverRegistry} forwards the request to the \type{DefaultPersistenceCacheRetriever} which is responsible to execute the necessary \emph{JDBC}-calls in a short-running, read-only, ad-hoc transaction.
+			\item The result of the \emph{JDBC}-calls is stored in the thread-bound transactional RootCache for later use in the current thread.
+		\end{enumerate}
+\end{itemize}

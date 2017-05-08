@@ -1,0 +1,21 @@
+\SetAPI{J-C}
+\section{database.pool.maxunused}
+\label{configuration:DatabasePoolMaxunused}
+\ClearAPI
+Maximal number of unused connections in the connection pool. If the limit is exceeded all further connections which are not used anymore are closed and removed from the pool. Valid values are all numbers > 0.
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{com.koch.ambeth.persistence.jdbc.DefaultDatabasePool} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.jdbc.DefaultDatabasePool} &
+		\prettyref{module:Persistence} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\type{com.koch.ambeth.persistence.config.PersistenceConfigurationConstants.DatabasePoolMaxUnused}
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{database.pool.maxunused}}]
+database.pool.maxunused=2
+\end{lstlisting}

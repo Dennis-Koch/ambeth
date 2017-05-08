@@ -1,0 +1,33 @@
+\SetAPI{J-C}
+\section{database.table.ignore}
+\label{configuration:DatabaseTableIgnore}
+\ClearAPI
+A list of tables to ignore during database scanning. By default Ambeth tries to recognize and analyze all tables. If some tables should not be scanned or analyzed they have to be in this list. Table names have to be separated by semicolon ";" or colon ":".
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{com.koch.ambeth.persistence.jdbc.AbstractConnectionTestDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.jdbc.AbstractConnectionTestDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.jdbc.JDBCDatabaseMetaData} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.jdbc.JDBCDatabaseMetaData} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.mssql.MSSqlTestDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.mssql.MSSqlTestDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\type{com.koch.ambeth.persistence.config.PersistenceConfigurationConstants.DatabaseTableIgnore}
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{database.table.ignore}}]
+database.table.ignore=TABLE_1;TABLE2
+\end{lstlisting}

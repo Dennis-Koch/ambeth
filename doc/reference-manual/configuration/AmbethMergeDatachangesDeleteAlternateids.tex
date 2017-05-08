@@ -1,0 +1,27 @@
+\SetAPI{J-C}
+\section{ambeth.merge.datachanges.delete.alternateids}
+\label{configuration:AmbethMergeDatachangesDeleteAlternateids}
+\ClearAPI
+If true datachanges for deletes are generated for every ID (PrimaryKeys and AlternateKeys). Valid values are "true" and "false".
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{com.koch.ambeth.merge.server.change.TableChange} &
+		\prettyref{module:Merge} \\
+	\hline
+		\type{com.koch.ambeth.merge.server.change.TableChange} &
+		\prettyref{module:Merge} \\
+	\hline
+		\type{com.koch.ambeth.merge.server.service.ChangeAggregator} &
+		\prettyref{module:Merge} \\
+	\hline
+		\type{com.koch.ambeth.merge.server.service.ChangeAggregator} &
+		\prettyref{module:Merge} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\type{com.koch.ambeth.merge.config.MergeConfigurationConstants.DeleteDataChangesByAlternateIds}
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{ambeth.merge.datachanges.delete.alternateids}}]
+ambeth.merge.datachanges.delete.alternateids=false
+\end{lstlisting}

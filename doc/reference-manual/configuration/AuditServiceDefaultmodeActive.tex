@@ -1,0 +1,27 @@
+\SetAPI{J-C}
+\section{audit.service.defaultmode.active}
+\label{configuration:AuditServiceDefaultmodeActive}
+\ClearAPI
+Defines the default behavior for auditing service calls if the service is not annotated with {@link AuditInfo}. If set to "true" for all service invocations audit entries are generated. Valid values are "true" and "false".
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{com.koch.ambeth.audit.server.AuditController} &
+		\prettyref{module:Audit} \\
+	\hline
+		\type{com.koch.ambeth.audit.server.AuditController} &
+		\prettyref{module:Audit} \\
+	\hline
+		\type{com.koch.ambeth.audit.server.AuditMethodCallInterceptor} &
+		\prettyref{module:Audit} \\
+	\hline
+		\type{com.koch.ambeth.audit.server.AuditMethodCallInterceptor} &
+		\prettyref{module:Audit} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\type{com.koch.ambeth.config.AuditConfigurationConstants.AuditedServiceDefaultModeActive}
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{audit.service.defaultmode.active}}]
+audit.service.defaultmode.active=true
+\end{lstlisting}

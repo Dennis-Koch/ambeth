@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ast="http://schema.kochdev.com/ambeth/ambeth_simple_types_1_2"
+	targetNamespace="http://schema.kochdev.com/ambeth/ambeth_vom_1_2" xmlns:ans="http://schema.kochdev.com/ambeth/ambeth_vom_1_2"
+	elementFormDefault="qualified">
+
+	<xs:import namespace="http://schema.kochdev.com/ambeth/ambeth_simple_types_1_2" schemaLocation="./ambeth_simple_types_1_2.xsd" />
+
+	<xs:element name="entity-mappings">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="entity" type="ans:entityType" minOccurs="0" maxOccurs="unbounded" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:complexType name="entityType">
+		<xs:sequence>
+			<xs:element name="value-object" type="ans:valueType" minOccurs="0" maxOccurs="unbounded" />
+		</xs:sequence>
+		<xs:attribute name="class" type="ast:className" />
+	</xs:complexType>
+
+	<xs:complexType name="valueType">
+		<xs:sequence maxOccurs="unbounded">
+			<xs:element name="ignore" type="ans:ignoreType" minOccurs="0" />
+			<xs:element name="basic" type="ans:basicType" minOccurs="0" />
+			<xs:element name="relation" type="ans:relationType" minOccurs="0" />
+		</xs:sequence>
+		<xs:attribute name="class" type="ast:className" />
+	</xs:complexType>
+
+	<xs:complexType name="ignoreType">
+		<xs:attribute name="name" type="ast:propertyName" />
+	</xs:complexType>
+
+	<xs:complexType name="basicType">
+		<xs:sequence>
+		</xs:sequence>
+		<xs:attribute name="name" type="ast:propertyName" />
+		<xs:attribute name="name-in-entity" type="ast:propertyName" use="optional" />
+		<xs:attribute name="target-element-type" type="ast:className" use="optional" />
+	</xs:complexType>
+
+	<xs:complexType name="relationType">
+		<xs:sequence>
+		</xs:sequence>
+		<xs:attribute name="name" type="ast:propertyName" />
+		<xs:attribute name="name-in-entity" type="ast:propertyName" use="optional" />
+		<xs:attribute name="list-type" type="xs:string" use="optional" />
+		<xs:attribute name="target-value-object" type="xs:string" use="optional" />
+		<xs:attribute name="do-delete" type="xs:string" use="optional" />
+		<xs:attribute name="may-delete" type="xs:string" use="optional" />
+	</xs:complexType>
+
+</xs:schema>

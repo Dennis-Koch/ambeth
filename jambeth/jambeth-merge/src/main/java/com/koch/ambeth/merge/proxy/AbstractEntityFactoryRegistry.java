@@ -1,0 +1,49 @@
+package com.koch.ambeth.merge.proxy;
+
+/*-
+ * #%L
+ * jambeth-merge
+ * %%
+ * Copyright (C) 2017 Koch Softwaredevelopment
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+ * #L%
+ */
+
+import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.log.ILogger;
+import com.koch.ambeth.log.LogInstance;
+import com.koch.ambeth.merge.IEntityFactory;
+import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
+import com.koch.ambeth.service.merge.model.IEntityMetaData;
+
+public abstract class AbstractEntityFactoryRegistry implements IEntityFactory {
+	@SuppressWarnings("unused")
+	@LogInstance
+	private ILogger log;
+
+	@Autowired
+	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T createEntity(Class<T> entityType) {
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+		return (T) createEntity(metaData);
+	}
+
+	@Override
+	public boolean supportsEnhancement(Class<?> enhancementType) {
+		return false;
+	}
+}

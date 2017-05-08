@@ -1,0 +1,21 @@
+\SetAPI{J-C}
+\section{audit.entity.defaultmode.active}
+\label{configuration:AuditEntityDefaultmodeActive}
+\ClearAPI
+Defines the default behavior for entities for auditing. If set to "true" for all entities which are not annotated with \type{Audited} audit is automatically enabled, if set to false they are ignored during auditing. Valid values are "true" and "false".
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{com.koch.ambeth.audit.server.AuditConfigurationProvider} &
+		\prettyref{module:Audit} \\
+	\hline
+		\type{com.koch.ambeth.audit.server.AuditConfigurationProvider} &
+		\prettyref{module:Audit} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\type{com.koch.ambeth.config.AuditConfigurationConstants.AuditedEntityDefaultModeActive}
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{audit.entity.defaultmode.active}}]
+audit.entity.defaultmode.active=true
+\end{lstlisting}

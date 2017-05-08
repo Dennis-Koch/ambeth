@@ -1,0 +1,82 @@
+\SetAPI{J-C}
+\section{DataChange}
+\label{module:DataChange}
+\ClearAPI
+\TODO
+The DataChange module enables a detailed view to the changes which happen in the Ambeth object model. 
+
+DataChange events contain information about inserts, updates and deletes in the model. Events can be also propagated to connected clients to inform the clients about changes on the server side in order to pull updates.
+
+For clients which only periodically check the state, the data changes can also be temporarily persisted. This also helps to preserve data change information between server restarts
+
+To register for data changes the common extension point for event listeners is used (\prettyref{extendable:IEventListenerExtendable}).
+
+\begin{lstlisting}[style=Java,caption={Example to declare and register an event handler for data changes (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerBean(...);
+
+// to register myExtension as the extension:
+bcf.link(myExtension).to(IEventListenerExtendable.class).with(IDataChange.class);
+
+// of course MyExtension has to implement the interface IEventListener:
+public class MyExtension implements IEventListener {
+	@Override
+	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) {
+		IDataChange dataChange = (IDataChange)eventObject;
+		// do something with the dataChange
+	}
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=Java,caption={Example to declare and register a delegate of a bean as an event handler for data changes (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerBean(...);
+
+// to register a delegate of the method "handleDataChange" of myExtension as the extension to the extension point:
+bcf.link(myExtension, MyExtension.HANDLE_DATACHANGE).to(IEventListenerExtendable.class).with(IDataChange.class);
+
+// then MyExtension does not have to explicitly implement the interface IEventListener, but just implement the expected method for the delegate
+public class MyExtension {
+	public static final String HANDLE_DATACHANGE = "handleDataChange";
+
+	public void handleDataChange(IDataChange dataChange) {
+		// do something with the dataChange
+	}
+}
+\end{lstlisting}
+
+%% MAVEN GENERATED START
+\begin{lstlisting}[style=POM,caption={Maven modules to use \emph{Ambeth DataChange}}]
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-datachange</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-datachange-kafka</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-datachange-persistence</artifactId>
+	<version>§\version§</version>
+</dependency>
+\end{lstlisting}
+%% MAVEN END
+\subsection{Features}
+\begin{itemize}
+	%% FEATURES START
+	\item \prettyref{feature:DataChange}
+	%% FEATURES GENERATED START
+	%% FEATURES END
+\end{itemize}
+
+%% CONFIGURATION GENERATED START
+\subsection{Configuration}
+\begin{itemize}
+	\item \prettyref{configuration:DatachangePersistenceKeepeventsMillis}
+\end{itemize}
+%% CONFIGURATION END

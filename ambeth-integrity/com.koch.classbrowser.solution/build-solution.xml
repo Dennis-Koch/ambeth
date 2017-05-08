@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== 
+     Class browser and comparer
+     ====================================================================== -->
+<project name="ClassComparer" default="default">
+
+	<description>
+    	This project starts the class comparison between Java and C# classes.      
+    </description>
+
+	<fail unless="base.dir" message="{base.dir} property has to be set!" />
+
+	<property name="bin.dir" value="${base.dir}/bin" />
+	<property name="src.dir" value="${base.dir}/src" />
+
+	<property name="java.src.dir" value="${src.dir}/java" />
+	<property name="java.lib.dir" value="${java.src.dir}/libs" />
+	<property name="java.module.dir" value="${src.dir}/module/java" />
+
+	<property name="cs.src.dir" value="${src.dir}/cs" />
+	<property name="cs.lib.dir" value="${cs.src.dir}/libs" />
+	<property name="cs.module.dir" value="${src.dir}/module/cs" />
+	<property name="cs.ambeth.properties" value="${cs.src.dir}/ambeth.properties" />
+	<property name="cs.skipModuleScan" value="true" />
+
+	<property name="result.type" value="tc" />
+	<property name="data.dir" value="${base.dir}/data" />
+	<property name="result.dir" value="${base.dir}/results" />
+
+	<!--condition property="java.modules.set">
+		<isset property="java.modules" />
+	</condition>
+	<condition property="cs.modules.set">
+		<isset property="cs.modules" />
+	</condition-->
+
+	<!-- ================================= 
+          target: default              
+         ================================= -->
+	<target name="default" depends="all" description="the default target">
+
+	</target>
+
+	<!-- ================================= 
+          target: all              
+         ================================= -->
+	<target name="all" depends="CompareClasses" description="runs all needed steps at once" />
+
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: clean folders
+         - - - - - - - - - - - - - - - - - -->
+	<target name="clean">
+		<!--delete dir="${data.dir}" /-->
+		<delete>
+			<fileset dir="${data.dir}" erroronmissingdir="false">
+				<include name="**/*" />
+			</fileset>
+		</delete>
+		<!--delete dir="${result.dir}" /-->
+		<delete>
+			<fileset dir="${result.dir}" erroronmissingdir="false">
+				<include name="**/*" />
+			</fileset>
+		</delete>
+		<mkdir dir="${result.dir}" />
+		<mkdir dir="${data.dir}" />
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: browse JAVA classes                 
+         - - - - - - - - - - - - - - - - - -->
+	<target name="BrowseJavaClasses" depends="clean" description="read the JAVA classes from the given jars and export the XML description">
+		<!-- java -DjarFolders=%CD%\src\java -DlibraryJarFolders=%CD%\src\java\libs -DtargetPath=%CD%\data -jar "bin\JavaClassbrowser.jar" -->
+		<java classname="de.osthus.classbrowser.java.Program" fork="true" failonerror="true">
+			<classpath>
+				<pathelement location="${bin.dir}/JavaClassbrowser.jar" />
+			</classpath>
+			<jvmarg value="-DjarFolders=${java.src.dir}" />
+			<jvmarg value="-DlibraryJarFolders=${java.lib.dir}" />
+			<jvmarg value="-DtargetPath=${data.dir}" />
+			<jvmarg value="-DmoduleRootPath=${java.module.dir}" />
+			<jvmarg value="-DmodulesToBeAnalyzed=${java.modules}" />
+		</java>
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: browse C# classes                 
+         - - - - - - - - - - - - - - - - - -->
+	<target name="BrowseCsharpClasses" depends="clean" description="read the C# classes from the given assemblies and export the XML description">
+		<!-- bin\CsharpClassbrowser.exe -targetPath=%CD%\data -assemblyPaths=%CD%\src\cs -libraryAssemblyPaths=%CD%\src\cs\libs -->
+		<exec executable="${bin.dir}/CsharpClassbrowser.exe">
+			<arg value="-assemblyPaths=${cs.src.dir}" />
+			<arg value="-libraryAssemblyPaths=${cs.lib.dir}" />
+			<arg value="-targetPath=${data.dir}" />
+			<arg value="-moduleRootPath=${cs.module.dir}" />
+			<arg value="-modulesToBeAnalyzed=${cs.modules}" />
+			<arg value="-skipModuleScan=${cs.skipModuleScan}" />
+		</exec>
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: compare classes                 
+         - - - - - - - - - - - - - - - - - -->
+	<target name="CompareClasses" depends="BrowseJavaClasses,BrowseCsharpClasses" description="read the C# and JAVA XML descriptions and compare them">
+		<!-- java -DcsFile=%CD%\data\export_csharp.xml -DjavaFile=%CD%\data\export_java.xml -DtargetPath=%CD%\results -jar "bin\Classcomparer.jar" -->
+		<java classname="de.osthus.classbrowser.compare.CompareApplication" fork="true" failonerror="true">
+			<classpath>
+				<pathelement location="${bin.dir}/Classcomparer.jar" />
+				<pathelement location="${bin.dir}/" />
+			</classpath>
+			<jvmarg value="-DcsFile=${data.dir}/export_csharp.xml" />
+			<jvmarg value="-DjavaFile=${data.dir}/export_java.xml" />
+			<jvmarg value="-DtargetPath=${result.dir}" />
+			<jvmarg value="-DresultType=${result.type}" />
+		</java>
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - 
+          unpack targets: only for JENKINS                 
+         - - - - - - - - - - - - - - - - - -->
+	<target name="unpack_all" depends="unpack_java_module, unpack_cs_module, unpack_java, unpack_cs, create-dummy-pom-for-bundles" />
+
+	<target name="unpack_java_module">
+		<mkdir dir="${java.module.dir}" />
+		<unzip dest="${java.module.dir}" src="${java.src.dir}/jAmbeth-integrity.zip" />
+		<!--<unzip dest="${java.module.dir}">
+			<fileset dir="${java.src.dir}" includes="*-sources.jar" />
+		</unzip> -->
+	</target>
+
+	<target name="unpack_cs_module">
+		<mkdir dir="${cs.module.dir}" />
+		<unzip dest="${cs.module.dir}" src="${cs.src.dir}/Ambeth-integrity.zip" />
+	</target>
+
+	<target name="unpack_java">
+		<!-- move test jars to lib folder -->
+		<move todir="${java.lib.dir}">
+			<fileset dir="${java.src.dir}">
+				<include name="*-tests.jar" />
+			</fileset>
+		</move>
+		<!-- remove non-class jars -->
+		<delete>
+			<fileset dir="${java.src.dir}">
+				<include name="*-javadoc.jar" />
+				<include name="*-sources.jar" />
+			</fileset>
+		</delete>
+	</target>
+
+	<target name="unpack_cs">
+		<!-- ambeth.properties contains e.g.
+		ambeth.net.zip=ambeth-NET4-2.0.531.zip
+		ambeth.net.libs.zip=ambeth-NET4-libs-2.0.531.zip
+		-->
+		<property file="${cs.ambeth.properties}" />
+		<echo message="Reading ${cs.ambeth.properties}: zip is ${ambeth.net.zip}, lib-zip is ${ambeth.net.libs.zip}" />
+
+		<unzip dest="${cs.src.dir}" src="${cs.src.dir}/${ambeth.net.zip}" />
+		<unzip dest="${cs.lib.dir}" src="${cs.src.dir}/${ambeth.net.libs.zip}" />
+	</target>
+
+	<target name="create-dummy-pom-for-bundles">
+		<mkdir dir="${src.dir}/module/ambeth-bundles" />
+		<echo file="${src.dir}/module/ambeth-bundles/pom.xml" append="false">&lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+&lt;modelVersion>4.0.0&lt;/modelVersion>
+&lt;!-- DUMMY POM FOR AMBETH-INTEGRITY ONLY -->
+&lt;groupId>de.osthus.ambeth&lt;/groupId>
+&lt;artifactId>jambeth-bundles&lt;/artifactId>
+&lt;packaging>pom&lt;/packaging>
+&lt;version>2.1.X-SNAPSHOT&lt;/version>
+&lt;/project>
+		</echo>
+	</target>
+
+</project>

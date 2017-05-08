@@ -1,0 +1,21 @@
+\SetAPI{J-C}
+\section{database.connection}
+\label{configuration:DatabaseConnection}
+\ClearAPI
+The URL to the database connection. In most cases it is more suitable to set the properties \ref{configuration:DatabaseProtocol}, \ref{configuration:DatabaseHost}, \ref{configuration:DatabasePort} and \ref{configuration:DatabaseName}, \AMBETH will build the connection string by itself.
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{com.koch.ambeth.persistence.jdbc.connection.AbstractConnectionUrlProvider} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.jdbc.connection.AbstractConnectionUrlProvider} &
+		\prettyref{module:Persistence} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\type{com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants.DatabaseConnection}
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{database.connection}}]
+database.connection=jdbc:oracle:thin:@127.0.0.1:1521:SID
+\end{lstlisting}

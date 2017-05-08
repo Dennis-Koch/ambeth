@@ -1,0 +1,28 @@
+\SetAPI{J-C}
+\section{Audited Entity}
+\label{feature:AuditedEntity}
+\ClearAPI
+\TODO
+\feature
+	{com.koch.ambeth.audit.Audited}
+	{Java}
+	{2.1.50}
+	{-}
+	{-}
+	{module:Audit}
+	{-}
+
+\inputjava{Usage example for the \type{Audited}-Annotation on an entity}
+	{jambeth-examples/src/main/java/com/koch/ambeth/example/audit/AuditEntityUsageExample.java}
+
+The example above annotates an entity to audit some of its properties. ``Audit'' means here that there will be a corresponding entry in the information model:
+
+\begin{itemize}
+	\item If not already exists: A new instance of \type{com.koch.ambeth.audit.AuditEntry} for the current thread-bound transaction. At the point where \type{Ambeth} does evaluate the audited information there is always a transaction bound.
+	\item A new instance of \type{com.koch.ambeth.audit.AuditedEntity} for each changed audited entity found during the merge process. Each \type{AuditedEntity} is associated to the previously mentioned \type{AuditEntry}
+\end{itemize}
+
+For further information how to customize which information to audit at runtime please take a look at \prettyref{module:Audit}.
+
+
+ 

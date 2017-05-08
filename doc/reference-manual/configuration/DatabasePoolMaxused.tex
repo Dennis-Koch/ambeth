@@ -1,0 +1,21 @@
+\SetAPI{J-C}
+\section{database.pool.maxused}
+\label{configuration:DatabasePoolMaxused}
+\ClearAPI
+Maximum number of used connections in the database pool. If the limit is exceeded all further requests for connections are paused until either a connection is available or the timeout from \ref{configuration:DatabasePoolMaxwait} is reached. Valid values are all numbers > 0.
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{com.koch.ambeth.persistence.jdbc.DefaultDatabasePool} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.jdbc.DefaultDatabasePool} &
+		\prettyref{module:Persistence} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\type{com.koch.ambeth.persistence.config.PersistenceConfigurationConstants.DatabasePoolMaxUsed}
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{database.pool.maxused}}]
+database.pool.maxused=2
+\end{lstlisting}

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  jambeth-test
+  %%
+  Copyright (C) 2017 Koch Softwaredevelopment
+  %%
+  Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+  #L%
+  -->
+
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+
+	<link-mappings>
+		<independent-link alias="ExternalEntity-Parent" left="com.koch.ambeth.cache.cacheretriever.ExternalEntity" right="com.koch.ambeth.cache.cacheretriever.ExternalEntity"/>
+		<independent-link alias="ExternalEntity2-Parent" left="com.koch.ambeth.cache.cacheretriever.ExternalEntity2" right="com.koch.ambeth.cache.cacheretriever.ExternalEntity"/>
+		<independent-link alias="ExternalEntity2-Local" left="com.koch.ambeth.cache.cacheretriever.ExternalEntity2" right="com.koch.ambeth.cache.cacheretriever.LocalEntity"/>
+	</link-mappings>
+
+	<entity-mappings>
+
+		<external-entity class="com.koch.ambeth.cache.cacheretriever.ExternalEntity">
+			<attributes>
+				<id name="Id"/>
+				<alternate-id name="Name"/>
+				<version name="Version"/>
+				<basic name="Value"/>
+				<relation name="Parent" link="ExternalEntity-Parent" />
+			</attributes>
+		</external-entity>
+
+		<external-entity class="com.koch.ambeth.cache.cacheretriever.ExternalEntity2">
+			<attributes>
+				<id name="Id"/>
+				<alternate-id name="Name"/>
+				<version name="Version"/>
+				<basic name="Value"/>
+				<relation name="Parent" link="ExternalEntity2-Parent" />
+				<relation name="Local" link="ExternalEntity2-Local" />
+			</attributes>
+		</external-entity>
+
+	</entity-mappings>
+
+</or-mappings>

@@ -1,0 +1,21 @@
+\SetAPI{J-C}
+\section{audit.active}
+\label{configuration:AuditActive}
+\ClearAPI
+Defines if audit should be enabled or not. If true all beans required to record audit entries are registered, otherwise only mandatory configuration provider. Valid values are "true" and "false".
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{com.koch.ambeth.audit.server.ioc.AuditModule} &
+		\prettyref{module:Audit} \\
+	\hline
+		\type{com.koch.ambeth.audit.server.ioc.AuditModule} &
+		\prettyref{module:Audit} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\type{com.koch.ambeth.config.AuditConfigurationConstants.AuditActive}
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{audit.active}}]
+audit.active=false
+\end{lstlisting}

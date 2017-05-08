@@ -1,0 +1,51 @@
+\SetAPI{J-C}
+\section{database.behaviour.strict}
+\label{configuration:DatabaseBehaviourStrict}
+\ClearAPI
+Whether to use strict behavior for database connections. During strict mode invalid rows added to the database will not be adjusted. Valid values are "true" and "false".
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{com.koch.ambeth.persistence.h2.H2Module} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.h2.H2Module} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.maria.MariaModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.maria.MariaModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.mssql.MSSqlModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.mssql.MSSqlModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.oracle.Oracle10gSimpleModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.oracle.Oracle10gSimpleModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.pg.PostgresModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.pg.PostgresModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.sqlite.SQLiteModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.sqlite.SQLiteModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\type{com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants.DatabaseBehaviourStrict}
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{database.behaviour.strict}}]
+database.behaviour.strict=false
+\end{lstlisting}

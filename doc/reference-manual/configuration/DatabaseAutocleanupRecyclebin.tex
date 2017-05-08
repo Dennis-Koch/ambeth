@@ -1,0 +1,21 @@
+\SetAPI{J-C}
+\section{database.autocleanup.recyclebin}
+\label{configuration:DatabaseAutocleanupRecyclebin}
+\ClearAPI
+Whether the recyclebin contents should be removed during startup in databases which support them (e.g. Oracle 10g/11g). The recycle bin is conrains dropped objects or tables, from where they can be restored (undropped) or finally deleted. Valid values are "true" and "false".
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{com.koch.ambeth.persistence.oracle.Oracle10gThinDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.oracle.Oracle10gThinDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\type{com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants.DatabaseAutoCleanupRecycleBin}
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{database.autocleanup.recyclebin}}]
+database.autocleanup.recyclebin=false
+\end{lstlisting}

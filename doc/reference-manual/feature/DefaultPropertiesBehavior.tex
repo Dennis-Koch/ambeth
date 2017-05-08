@@ -1,0 +1,7 @@
+\SetAPI{J-C}
+\section{DefaultPropertiesBehavior}
+\label{feature:DefaultPropertiesBehavior}
+\ClearAPI
+If the base entity type is an interface it inherits from \type{java.lang.Object} (Java) or \type{System.Object} (C\#) and applies the interface to it. In any case it looks for properties which are declared (e.g. abstract accessors on an abstract class or interface) but not implemented and implements them by sub-classing the entity type.
+
+For details see \prettyref{feature:InterfaceImpl}.

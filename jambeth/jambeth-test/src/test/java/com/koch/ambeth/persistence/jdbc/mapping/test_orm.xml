@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  jambeth-test
+  %%
+  Copyright (C) 2017 Koch Softwaredevelopment
+  %%
+  Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+  #L%
+  -->
+
+<entity-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_1_2">
+
+	<entity class="com.koch.ambeth.model.Material">
+		<table name="MATERIAL" />
+	</entity>
+	<entity class="com.koch.ambeth.model.MaterialGroup">
+		<table name="MATERIAL_GROUP" />
+	</entity>
+	<entity class="com.koch.ambeth.model.Unit">
+		<table name="UNIT" />
+	</entity>
+	
+	<entity class="com.koch.ambeth.persistence.jdbc.mapping.SelfReferencingEntity">
+		<table name="SELF_REFERENCING_ENTITY" />
+		<attributes>
+			<to-one name="Relation1" target-entity="com.koch.ambeth.persistence.jdbc.mapping.SelfReferencingEntity" do-delete="false" may-delete="false">
+				<join-table name="SELF_REFERENCING_ENTITY">
+					<join-column name="RELATION1" />
+					<inverse-join-column name="NAME" />
+				</join-table>
+			</to-one>
+			<to-one name="Relation2" target-entity="com.koch.ambeth.persistence.jdbc.mapping.SelfReferencingEntity" do-delete="false" may-delete="false">
+				<join-table name="SELF_REFERENCING_ENTITY">
+					<join-column name="RELATION2" />
+					<inverse-join-column name="NAME" />
+				</join-table>
+			</to-one>
+		</attributes>
+	</entity>
+	<entity class="com.koch.ambeth.persistence.jdbc.mapping.OneToManyEntity">
+		<table name="ONE_TO_MANY_ENTITY" />
+		<attributes>
+			<to-many name="OneToManyEntities" target-entity="com.koch.ambeth.persistence.jdbc.mapping.OneToManyEntity"
+				do-delete="true" may-delete="false">
+				<join-table name="LINK_ONE_TO_MANY_ENTITY_1">
+					<join-column name="NAME1" />
+					<inverse-join-column name="NAME" />
+				</join-table>
+			</to-many>
+			<to-many name="SelfReferencingEntities" target-entity="com.koch.ambeth.persistence.jdbc.mapping.SelfReferencingEntity"
+				do-delete="true" may-delete="false">
+				<join-table name="LINK_ONE_TO_MANY_ENTITY_2">
+					<join-column name="NAME_ONE_TO_MANY" />
+					<inverse-join-column name="NAME" />
+				</join-table>
+			</to-many>
+		</attributes>
+	</entity>
+</entity-mappings>

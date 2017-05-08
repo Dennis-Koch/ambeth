@@ -1,0 +1,33 @@
+\SetAPI{J-C}
+\section{database.auto.indexonfk}
+\label{configuration:DatabaseAutoIndexonfk}
+\ClearAPI
+Defines whether ambeth should create indexes for foreign key columns automatically if they do not exist yet. Valid values are "true" and "false".
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{com.koch.ambeth.persistence.oracle.Oracle10gTestDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.oracle.Oracle10gTestDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.pg.PostgresDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.pg.PostgresDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.sqlite.SQLiteDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.sqlite.SQLiteDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\type{com.koch.ambeth.persistence.config.PersistenceConfigurationConstants.AutoIndexForeignKeys}
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{database.auto.indexonfk}}]
+database.auto.indexonfk=false
+\end{lstlisting}

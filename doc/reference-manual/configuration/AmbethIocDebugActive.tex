@@ -1,0 +1,27 @@
+\SetAPI{J-C}
+\section{ambeth.ioc.debug.active}
+\label{configuration:AmbethIocDebugActive}
+\ClearAPI
+Allows to run the IoC container in debug mode. This e.g. disables several security behaviors to ease debugging. Valid values are "true" and "false".
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{com.koch.ambeth.security.server.PasswordUtil} &
+		\prettyref{module:Security} \\
+	\hline
+		\type{com.koch.ambeth.security.server.PasswordUtil} &
+		\prettyref{module:Security} \\
+	\hline
+		\type{com.koch.ambeth.security.server.auth.AbstractAuthenticationManager} &
+		\prettyref{module:Security} \\
+	\hline
+		\type{com.koch.ambeth.security.server.auth.AbstractAuthenticationManager} &
+		\prettyref{module:Security} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\type{com.koch.ambeth.config.IocConfigurationConstants.DebugModeActive}
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{ambeth.ioc.debug.active}}]
+ambeth.ioc.debug.active=false
+\end{lstlisting}

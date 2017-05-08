@@ -1,0 +1,168 @@
+\SetAPI{J-C}
+\section{Inversion of Control (IoC)}
+\label{module:IoC}
+\ClearAPI
+\TODO
+
+%% MAVEN GENERATED START
+\begin{lstlisting}[style=POM,caption={Maven modules to use \emph{Ambeth IoC}}]
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-ioc</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-ioc-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+\end{lstlisting}
+%% MAVEN END
+\subsection{Features}
+\begin{itemize}
+	%% FEATURES START
+	\item \prettyref{feature:AccessorTypeProvider}
+	\item \prettyref{feature:AutoLinkPreProcessor}
+	\item \prettyref{annotation:Autowired}
+	\item \prettyref{feature:BeanInstantiationProcessor}
+	\item \prettyref{feature:BeanPreProcessor}
+	\item \prettyref{feature:BeanPostProcessor}
+	\item \prettyref{annotation:BootstrapModule}
+	\item \prettyref{feature:ContainerHierarchy}
+	\item \prettyref{feature:ConversionHelper}
+	\item \prettyref{feature:DeclarationStackTraceAware}
+	\item \prettyref{feature:DisposableBean}
+	\item \prettyref{feature:Extendable}
+	\item \prettyref{feature:ExtendableBean}
+	\item \prettyref{feature:ExtendableContainer}
+	\item \prettyref{feature:FactoryBean}
+	\item \prettyref{annotation:FrameworkModule}
+	\item \prettyref{feature:InitializingBean}
+	\item \prettyref{feature:InitializingModule}
+	\item \prettyref{feature:InterfaceBean}
+	\item \prettyref{feature:IoCLifecycle}
+	\item \prettyref{feature:JMXBean}
+	\item \prettyref{feature:Link}
+	\item \prettyref{feature:LoggerCache}
+	\item \prettyref{feature:LoggerHistory}
+	\item \prettyref{annotation:LogInstance}
+	\item \prettyref{annotation:NoProxy}
+	\item \prettyref{feature:OrderedBeanPostProcessor}
+	\item \prettyref{feature:PostProcessorOrder}
+	\item \prettyref{feature:PrecedenceType}
+	\item \prettyref{feature:PropertyLoadingBean}
+	\item \prettyref{annotation:Property}
+	\item \prettyref{feature:Self}
+	\item \prettyref{feature:StartingBean}
+	\item \prettyref{feature:StartingModule}
+	\item \prettyref{feature:ThreadLocalCleanupBean}
+	%% FEATURES GENERATED START
+	%% FEATURES END
+\end{itemize}
+
+%% CONFIGURATION GENERATED START
+\subsection{Configuration}
+\begin{itemize}
+	\item \prettyref{configuration:AmbethClassloader}
+	\item \prettyref{configuration:AmbethIocDebugActive}
+	\item \prettyref{configuration:AmbethIocDeclarationTraceActive}
+	\item \prettyref{configuration:AmbethIocMonitoringActive}
+	\item \prettyref{configuration:AmbethIocObjectcollectorActive}
+	\item \prettyref{configuration:AmbethJavaUiActive}
+	\item \prettyref{configuration:AmbethMthTimeout}
+	\item \prettyref{configuration:AmbethTransparentParallelActive}
+	\item \prettyref{configuration:LineSeparator}
+\end{itemize}
+%% CONFIGURATION END
+
+\subsection{Dependency Injection (DI)}
+\label{module:IoC:DependencyInjection}
+The IoC container handles the declared dependencies for all defined service beans. They get at runtime the references to the services they depend on. There are several possibilities to inject dependencies. \AMBETH{} uses two different methods described in the following list. Both of them support cyclic dependencies.
+
+\begin{itemize}
+	\item \textbf{Field Injection}: Dependencies can be set via reflection directly into the field. So it is not necessary to implement a setter, interface or parametrized constructor. Fields for injection are typed to the class or interface the required service is autowired to and are annotated with \type{@Autowired} (see \prettyref{annotation:Autowired}). Since field injection needs no setters or null checks the implementations are less bulky and better readable.
+	\item \textbf{Setter Injection}: The dependencies of a bean are injected by calling a setter method of the dependent bean. This means the bean needs one setter for each of its dependencies. Also there should be a null check for every dependency in the \type{afterPropertiesSet()} life-cycle method. It is the ``old'' way of DI in \AMBETH{}.
+\end{itemize}	
+
+\AMBETH{} does not support constructor injection nor does it support interface injection. Constructor injection does not solve the cyclic dependency problem and produces unreadable code with a lot of injections necessary in one function signature. Interface injection is not flexible enough because it needs one specific interface per required service to be implemented by the depending bean. Also this leads to unreadable class signatures and unnecessary setters. Interface injection is needed in environments where it is not possible or desired to work with reflection.
+
+\subsection{IoC (Inversion of Control Container)}
+The most central part of the \AMBETH{} Framework is the IoC container. While there are other frameworks implementing a similar functionality there are some reasons not to use these frameworks but implement a new solution within the \AMBETH{} Framework:
+
+\begin{itemize}
+	\item exactly the same API and code in C\# and Java
+	\item outstanding extensibility
+	\item excellent performance
+	\item flexible integration of other \AMBETH{} modules
+\end{itemize}
+
+\subsubsection{IoC Container}
+To create and start an \AMBETH{} container static methods of the class \type{BeanContextFactory} are used. Calling the static method \type{createBootstrap()} without parameters creates a container containing the \type{ConversionHelper} from \AMBETH{} as its only bean. By using the parametrized methods modules can be specified and the resulting context contains all beans defined by the given modules. An instance \type{IServiceContext} represents the created container.
+Creating a new context may be done in the \type{main()} method, during the initialization of a web \type{ServletContext} or even anytime at runtime.
+
+To work with the container from outside the container the instance of \type{IServiceContext} can be used that is returned when the container is created.
+
+To stop the \AMBETH{} container the method \type{dispose()} of the service context instance is called. This shuts down all child contexts and all contained service beans.
+
+\begin{lstlisting}[style=Java,caption={How to start, use and stop an \AMBETH{} Bean Container}]
+IServiceContext beanContext = BeanContextFactory.createBootstrap(HelloWorldModule.class);
+try {
+	HelloWorldService service = (HelloWorldService) beanContext.getService("helloWorldService");
+	service.speak();
+} finally {
+	beanContext.dispose();
+}
+\end{lstlisting}
+At first a container is created. The definition of the container content is made in the given module. When the container is created it is asked for a bean named ``helloWorldService''. The bean is used to call the method \type{speak()}. The last step is stopping the container by calling the method \type{dispose()}.
+
+\subsubsection{IoC Modules}
+\TODO
+\subsubsection{IoC Bean}
+A bean is an object who's life cycle is managed by the container. It is a service or util class, never an entity. Regularly beans are singletons but this is not mandatory.
+
+\subsubsection{Bean Life Cycle}
+
+The life cycle of an IoC bean consists of the three main phases - Init, Lifespan and Destroy. Each divided into smaller sub phases and fully controlled by the \AMBETH{} IoC container. Acquiring such a bean has to be done via the container.
+
+Starting with the \textit{Constructor} phase all objects are instantiated. In the Init phase all properties and service dependencies are injected, followed by (if available) calling the \type{afterPropertiesSet()} method of each bean as soon as all injections have been made for this bean.
+When all injections are done and the \type{afterPropertiesSet()} methods have been called the Lifespan phase begins. As the first step of this phase the container calls the \type{afterStarted()} Method of all beans implementing the \type{IStartingBean} interface.
+At the end of the Lifespan phase the Destroy phase begins by calling the \type{destroy()} method of all beans implementing the \type{IDisposableBean} interface. Having done this the container stops itself and all objects, including the container itself, and its resources can be freed by the garbage collector.
+
+\def\showimgref{img/bean-lifecycle.png}
+\showimgfull{Bean Lifecycle}
+
+The \AMBETH{} IoC project defines interfaces that may be implemented by beans that need to be notified about state change of their life cycle. These interfaces are:
+
+\begin{itemize}
+	\item \prettyref{feature:InitializingBean} after properties are set
+	\item \prettyref{feature:StartingBean} after context started
+	\item \prettyref{feature:DisposableBean} on stop and shutdown of context
+\end{itemize}
+
+\subsubsection{Customize IoC Beans}
+
+There some more ways to customize bean creation beyond their normal life cycle hooks:
+
+\begin{itemize}
+	\item \prettyref{feature:FactoryBean} instantiate beans manually
+	\item \prettyref{feature:BeanPreProcessor} process beans before they get their injections
+	\item \prettyref{feature:BeanPostProcessor} process beans after dependency injection (mostly for embedding in a proxy)
+\end{itemize}
+
+\subsection{Unit Testing}
+\TODO
+
+\subsection{Features}
+\begin{itemize}
+	\item \prettyref{annotation:SQLData}
+	\item \prettyref{annotation:SQLDataList}
+	\item \prettyref{annotation:SQLDataRebuild}
+	\item \prettyref{annotation:SQLStructure}
+	\item \prettyref{annotation:SQLStructureList}
+	\item \prettyref{annotation:SQLTableSynonyms}
+	\item \prettyref{annotation:TestFrameworkModule}
+	\item \prettyref{annotation:TestModule}
+	\item \prettyref{annotation:TestProperties}
+	\item \prettyref{annotation:TestRebuildContext}
+\end{itemize}

@@ -1,0 +1,27 @@
+\SetAPI{J-C}
+\section{ambeth.merge.exact.version.required}
+\label{configuration:AmbethMergeExactVersionRequired}
+\ClearAPI
+Defines whether the exact version is needed to avoid an OptimisticLockException during update of an entity or all versions equals or higher are accepted. Valid values are "true" and "false".
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{com.koch.ambeth.merge.MergeController} &
+		\prettyref{module:Merge} \\
+	\hline
+		\type{com.koch.ambeth.merge.MergeController} &
+		\prettyref{module:Merge} \\
+	\hline
+		\type{com.koch.ambeth.persistence.jdbc.JdbcTable} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.jdbc.JdbcTable} &
+		\prettyref{module:Persistence} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\type{com.koch.ambeth.merge.config.MergeConfigurationConstants.ExactVersionForOptimisticLockingRequired}
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{ambeth.merge.exact.version.required}}]
+ambeth.merge.exact.version.required=false
+\end{lstlisting}

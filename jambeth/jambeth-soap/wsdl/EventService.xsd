@@ -1,0 +1,726 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema elementFormDefault="qualified"
+	targetNamespace="http://schema.kochdev.com/Ambeth" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns:ser="http://schemas.microsoft.com/2003/10/Serialization/"
+	xmlns:tns="http://schema.kochdev.com/Ambeth">
+	<xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/" schemaLocation="Serialization.xsd"/>
+	<xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" schemaLocation="SerializationArrays.xsd"/>
+	<xs:complexType name="ServiceToken">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="Token" nillable="true"
+				type="xs:anyType" />
+			<xs:element minOccurs="0" name="Value" nillable="true"
+				type="xs:anyType" />
+		</xs:sequence>
+		<xs:attribute ref="ser:Id" />
+		<xs:attribute ref="ser:Ref" />
+	</xs:complexType>
+	<xs:element name="ServiceToken" nillable="true" type="tns:ServiceToken" />
+	<xs:complexType name="ArrayOfServiceToken">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="ServiceToken"
+				nillable="true" type="tns:ServiceToken" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfServiceToken" nillable="true"
+		type="tns:ArrayOfServiceToken" />
+	<xs:complexType name="ObjRelation">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="MemberName" nillable="true"
+				type="xs:string" />
+			<xs:element minOccurs="0" name="id" nillable="true" type="xs:anyType" />
+			<xs:element minOccurs="0" name="realTypeString" nillable="true"
+				type="xs:string" />
+			<xs:element minOccurs="0" name="version" nillable="true"
+				type="xs:anyType" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ObjRelation" nillable="true" type="tns:ObjRelation" />
+	<xs:complexType name="ArrayOfObjRelation">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="ObjRelation"
+				nillable="true" type="tns:ObjRelation" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfObjRelation" nillable="true"
+		type="tns:ArrayOfObjRelation" />
+	<xs:complexType name="ORIServiceToken">
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:ServiceToken">
+				<xs:sequence>
+					<xs:element minOccurs="0" name="Value" nillable="true"
+						type="q1:ArrayOfanyType" xmlns:q1="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:element name="ORIServiceToken" nillable="true"
+		type="tns:ORIServiceToken" />
+	<xs:complexType name="ArrayOfORIServiceToken">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="ORIServiceToken"
+				nillable="true" type="tns:ORIServiceToken" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfORIServiceToken" nillable="true"
+		type="tns:ArrayOfORIServiceToken" />
+	<xs:complexType name="RefId">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="Id" type="xs:int" />
+			<xs:element minOccurs="0" name="Obj" nillable="true" type="xs:anyType" />
+		</xs:sequence>
+		<xs:attribute ref="ser:Id" />
+		<xs:attribute ref="ser:Ref" />
+	</xs:complexType>
+	<xs:element name="RefId" nillable="true" type="tns:RefId" />
+	<xs:complexType name="ArrayOfRefId">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="RefId"
+				nillable="true" type="tns:RefId" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfRefId" nillable="true" type="tns:ArrayOfRefId" />
+	<xs:complexType name="LoadContainer">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="Primitives" nillable="true"
+				type="q2:ArrayOfanyType" xmlns:q2="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+			<xs:element minOccurs="0" name="Reference" nillable="true"
+				type="xs:anyType" />
+			<xs:element minOccurs="0" name="Relations" nillable="true"
+				type="q3:ArrayOfArrayOfanyType" xmlns:q3="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="LoadContainer" nillable="true"
+		type="tns:LoadContainer" />
+	<xs:complexType name="ArrayOfLoadContainer">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="LoadContainer"
+				nillable="true" type="tns:LoadContainer" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfLoadContainer" nillable="true"
+		type="tns:ArrayOfLoadContainer" />
+	<xs:complexType name="DataChangeEntry">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="EntityTypeName" nillable="true"
+				type="xs:string" />
+			<xs:element minOccurs="0" name="Id" nillable="true" type="xs:anyType" />
+			<xs:element minOccurs="0" name="Topics" nillable="true"
+				type="q4:ArrayOfstring" xmlns:q4="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+			<xs:element minOccurs="0" name="Version" nillable="true"
+				type="xs:anyType" />
+		</xs:sequence>
+		<xs:attribute ref="ser:Id" />
+		<xs:attribute ref="ser:Ref" />
+	</xs:complexType>
+	<xs:element name="DataChangeEntry" nillable="true"
+		type="tns:DataChangeEntry" />
+	<xs:complexType name="ArrayOfDataChangeEntry">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="DataChangeEntry"
+				nillable="true" type="tns:DataChangeEntry" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfDataChangeEntry" nillable="true"
+		type="tns:ArrayOfDataChangeEntry" />
+	<xs:complexType name="DataChangeEvent">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="ChangeTime" type="xs:dateTime" />
+			<xs:element minOccurs="0" name="Deletes" nillable="true"
+				type="q5:ArrayOfanyType" xmlns:q5="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+			<xs:element minOccurs="0" name="Inserts" nillable="true"
+				type="q6:ArrayOfanyType" xmlns:q6="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+			<xs:element minOccurs="0" name="Updates" nillable="true"
+				type="q7:ArrayOfanyType" xmlns:q7="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+		</xs:sequence>
+		<xs:attribute ref="ser:Id" />
+		<xs:attribute ref="ser:Ref" />
+	</xs:complexType>
+	<xs:element name="DataChangeEvent" nillable="true"
+		type="tns:DataChangeEvent" />
+	<xs:complexType name="ArrayOfDataChangeEvent">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="DataChangeEvent"
+				nillable="true" type="tns:DataChangeEvent" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfDataChangeEvent" nillable="true"
+		type="tns:ArrayOfDataChangeEvent" />
+	<xs:complexType name="EventItem">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="DispatchTime" type="xs:dateTime" />
+			<xs:element minOccurs="0" name="EventObject" nillable="true"
+				type="xs:anyType" />
+			<xs:element minOccurs="0" name="SequenceNumber" type="xs:long" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="EventItem" nillable="true" type="tns:EventItem" />
+	<xs:complexType name="ArrayOfEventItem">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="EventItem"
+				nillable="true" type="tns:EventItem" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfEventItem" nillable="true"
+		type="tns:ArrayOfEventItem" />
+	<xs:complexType name="AbstractChangeContainer">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="reference" nillable="true"
+				type="xs:anyType" />
+		</xs:sequence>
+		<xs:attribute ref="ser:Id" />
+		<xs:attribute ref="ser:Ref" />
+	</xs:complexType>
+	<xs:element name="AbstractChangeContainer" nillable="true"
+		type="tns:AbstractChangeContainer" />
+	<xs:complexType name="ArrayOfAbstractChangeContainer">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded"
+				name="AbstractChangeContainer" nillable="true"
+				type="tns:AbstractChangeContainer" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfAbstractChangeContainer" nillable="true"
+		type="tns:ArrayOfAbstractChangeContainer" />
+	<xs:complexType name="DeleteContainer">
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:AbstractChangeContainer">
+				<xs:sequence />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:element name="DeleteContainer" nillable="true"
+		type="tns:DeleteContainer" />
+	<xs:complexType name="ArrayOfDeleteContainer">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="DeleteContainer"
+				nillable="true" type="tns:DeleteContainer" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfDeleteContainer" nillable="true"
+		type="tns:ArrayOfDeleteContainer" />
+	<xs:complexType name="CreateContainer">
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:AbstractChangeContainer">
+				<xs:sequence>
+					<xs:element minOccurs="0" name="childItems" nillable="true"
+						type="tns:ArrayOfRelationUpdateItem" />
+					<xs:element minOccurs="0" name="items" nillable="true"
+						type="tns:ArrayOfPrimitiveUpdateItem" />
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:element name="CreateContainer" nillable="true"
+		type="tns:CreateContainer" />
+	<xs:complexType name="ArrayOfRelationUpdateItem">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="RelationUpdateItem"
+				nillable="true" type="tns:RelationUpdateItem" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfRelationUpdateItem" nillable="true"
+		type="tns:ArrayOfRelationUpdateItem" />
+	<xs:complexType name="RelationUpdateItem">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="AddedORIs" nillable="true"
+				type="q8:ArrayOfanyType" xmlns:q8="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+			<xs:element minOccurs="0" name="MemberName" nillable="true"
+				type="xs:string" />
+			<xs:element minOccurs="0" name="RemovedORIs" nillable="true"
+				type="q9:ArrayOfanyType" xmlns:q9="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+		</xs:sequence>
+		<xs:attribute ref="ser:Id" />
+		<xs:attribute ref="ser:Ref" />
+	</xs:complexType>
+	<xs:element name="RelationUpdateItem" nillable="true"
+		type="tns:RelationUpdateItem" />
+	<xs:complexType name="ArrayOfPrimitiveUpdateItem">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="PrimitiveUpdateItem"
+				nillable="true" type="tns:PrimitiveUpdateItem" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfPrimitiveUpdateItem" nillable="true"
+		type="tns:ArrayOfPrimitiveUpdateItem" />
+	<xs:complexType name="PrimitiveUpdateItem">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="MemberName" nillable="true"
+				type="xs:string" />
+			<xs:element minOccurs="0" name="NewValue" nillable="true"
+				type="xs:anyType" />
+		</xs:sequence>
+		<xs:attribute ref="ser:Id" />
+		<xs:attribute ref="ser:Ref" />
+	</xs:complexType>
+	<xs:element name="PrimitiveUpdateItem" nillable="true"
+		type="tns:PrimitiveUpdateItem" />
+	<xs:complexType name="ArrayOfCreateContainer">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="CreateContainer"
+				nillable="true" type="tns:CreateContainer" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfCreateContainer" nillable="true"
+		type="tns:ArrayOfCreateContainer" />
+	<xs:complexType name="ObjRef">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="id" nillable="true" type="xs:anyType" />
+			<xs:element minOccurs="0" name="realTypeString" nillable="true"
+				type="xs:string" />
+			<xs:element minOccurs="0" name="version" nillable="true"
+				type="xs:anyType" />
+		</xs:sequence>
+		<xs:attribute ref="ser:Id" />
+		<xs:attribute ref="ser:Ref" />
+	</xs:complexType>
+	<xs:element name="ObjRef" nillable="true" type="tns:ObjRef" />
+	<xs:complexType name="ArrayOfObjRef">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="ObjRef"
+				nillable="true" type="tns:ObjRef" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfObjRef" nillable="true"
+		type="tns:ArrayOfObjRef" />
+	<xs:complexType name="DirectObjRef">
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:ObjRef">
+				<xs:sequence>
+					<xs:element minOccurs="0" name="direct" nillable="true"
+						type="xs:anyType" />
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:element name="DirectObjRef" nillable="true" type="tns:DirectObjRef" />
+	<xs:complexType name="ArrayOfDirectObjRef">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="DirectObjRef"
+				nillable="true" type="tns:DirectObjRef" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfDirectObjRef" nillable="true"
+		type="tns:ArrayOfDirectObjRef" />
+	<xs:complexType name="OriCollection">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="AllChangeORIs" nillable="true"
+				type="q10:ArrayOfanyType" xmlns:q10="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+		</xs:sequence>
+		<xs:attribute ref="ser:Id" />
+		<xs:attribute ref="ser:Ref" />
+	</xs:complexType>
+	<xs:element name="OriCollection" nillable="true"
+		type="tns:OriCollection" />
+	<xs:complexType name="ArrayOfOriCollection">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="OriCollection"
+				nillable="true" type="tns:OriCollection" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfOriCollection" nillable="true"
+		type="tns:ArrayOfOriCollection" />
+	<xs:complexType name="UpdateContainer">
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:AbstractChangeContainer">
+				<xs:sequence>
+					<xs:element minOccurs="0" name="childItems" nillable="true"
+						type="tns:ArrayOfRelationUpdateItem" />
+					<xs:element minOccurs="0" name="items" nillable="true"
+						type="tns:ArrayOfPrimitiveUpdateItem" />
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:element name="UpdateContainer" nillable="true"
+		type="tns:UpdateContainer" />
+	<xs:complexType name="ArrayOfUpdateContainer">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="UpdateContainer"
+				nillable="true" type="tns:UpdateContainer" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfUpdateContainer" nillable="true"
+		type="tns:ArrayOfUpdateContainer" />
+	<xs:complexType name="CUDResult">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="AllChanges" nillable="true"
+				type="q11:ArrayOfanyType" xmlns:q11="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+		</xs:sequence>
+		<xs:attribute ref="ser:Id" />
+		<xs:attribute ref="ser:Ref" />
+	</xs:complexType>
+	<xs:element name="CUDResult" nillable="true" type="tns:CUDResult" />
+	<xs:complexType name="ArrayOfCUDResult">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="CUDResult"
+				nillable="true" type="tns:CUDResult" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfCUDResult" nillable="true"
+		type="tns:ArrayOfCUDResult" />
+	<xs:complexType name="EntityMetaData">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="EntityTypeString"
+				nillable="true" type="xs:string" />
+			<xs:element minOccurs="0" name="IdMemberName" nillable="true"
+				type="xs:string" />
+			<xs:element minOccurs="0" name="PrimitiveMemberNames"
+				nillable="true" type="q12:ArrayOfstring"
+				xmlns:q12="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+			<xs:element minOccurs="0" name="RelationMemberNames"
+				nillable="true" type="q13:ArrayOfstring"
+				xmlns:q13="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+			<xs:element minOccurs="0" name="TypesRelatingToThisString"
+				nillable="true" type="q14:ArrayOfstring"
+				xmlns:q14="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+			<xs:element minOccurs="0" name="VersionMemberName"
+				nillable="true" type="xs:string" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="EntityMetaData" nillable="true"
+		type="tns:EntityMetaData" />
+	<xs:complexType name="ArrayOfEntityMetaData">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="EntityMetaData"
+				nillable="true" type="tns:EntityMetaData" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfEntityMetaData" nillable="true"
+		type="tns:ArrayOfEntityMetaData" />
+	<xs:complexType name="ServiceDescription">
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:MethodDescription">
+				<xs:sequence>
+					<xs:element minOccurs="0" name="Arguments" nillable="true"
+						type="q15:ArrayOfanyType" xmlns:q15="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+					<xs:element minOccurs="0" name="SecurityScopes"
+						nillable="true" type="q16:ArrayOfanyType"
+						xmlns:q16="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+					<xs:element minOccurs="0" name="ServiceName" nillable="true"
+						type="xs:string" />
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:element name="ServiceDescription" nillable="true"
+		type="tns:ServiceDescription" />
+	<xs:complexType name="MethodDescription">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="MethodName" nillable="true"
+				type="xs:string" />
+			<xs:element minOccurs="0" name="ParamTypeNames" nillable="true"
+				type="q17:ArrayOfstring" xmlns:q17="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+			<xs:element minOccurs="0" name="ServiceTypeName" nillable="true"
+				type="xs:string" />
+		</xs:sequence>
+		<xs:attribute ref="ser:Id" />
+		<xs:attribute ref="ser:Ref" />
+	</xs:complexType>
+	<xs:element name="MethodDescription" nillable="true"
+		type="tns:MethodDescription" />
+	<xs:complexType name="ArrayOfServiceDescription">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="ServiceDescription"
+				nillable="true" type="tns:ServiceDescription" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfServiceDescription" nillable="true"
+		type="tns:ArrayOfServiceDescription" />
+	<xs:complexType name="ListOfIObjRef">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="anyType"
+				nillable="true" type="xs:anyType" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ListOfIObjRef" nillable="true"
+		type="tns:ListOfIObjRef" />
+	<xs:complexType name="ArrayOfListOfIObjRef">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="ListOfIObjRef"
+				nillable="true" type="tns:ListOfIObjRef" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfListOfIObjRef" nillable="true"
+		type="tns:ArrayOfListOfIObjRef" />
+	<xs:complexType name="TableSyncResponse">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="RowSyncs" nillable="true"
+				type="q18:ArrayOfanyType" xmlns:q18="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+			<xs:element minOccurs="0" name="TableName" nillable="true"
+				type="xs:string" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="TableSyncResponse" nillable="true"
+		type="tns:TableSyncResponse" />
+	<xs:complexType name="ArrayOfTableSyncResponse">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="TableSyncResponse"
+				nillable="true" type="tns:TableSyncResponse" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfTableSyncResponse" nillable="true"
+		type="tns:ArrayOfTableSyncResponse" />
+	<xs:complexType name="DataSyncResponse">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="ColumnNames" nillable="true"
+				type="q19:ArrayOfstring" xmlns:q19="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+			<xs:element minOccurs="0" name="DataRows" nillable="true"
+				type="q20:ArrayOfanyType" xmlns:q20="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+			<xs:element minOccurs="0" name="LinkSyncs" nillable="true"
+				type="q21:ArrayOfanyType" xmlns:q21="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+			<xs:element minOccurs="0" name="TableName" nillable="true"
+				type="xs:string" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="DataSyncResponse" nillable="true"
+		type="tns:DataSyncResponse" />
+	<xs:complexType name="ArrayOfDataSyncResponse">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="DataSyncResponse"
+				nillable="true" type="tns:DataSyncResponse" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfDataSyncResponse" nillable="true"
+		type="tns:ArrayOfDataSyncResponse" />
+	<xs:complexType name="TableSync">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="LastChangeTime" type="xs:dateTime" />
+			<xs:element minOccurs="0" name="TableName" nillable="true"
+				type="xs:string" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="TableSync" nillable="true" type="tns:TableSync" />
+	<xs:complexType name="ArrayOfTableSync">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="TableSync"
+				nillable="true" type="tns:TableSync" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfTableSync" nillable="true"
+		type="tns:ArrayOfTableSync" />
+	<xs:complexType name="ChecksumRow">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="ChecksumString" nillable="true"
+				type="xs:string" />
+			<xs:element minOccurs="0" name="RecId" type="xs:unsignedInt" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ChecksumRow" nillable="true" type="tns:ChecksumRow" />
+	<xs:complexType name="ArrayOfChecksumRow">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="ChecksumRow"
+				nillable="true" type="tns:ChecksumRow" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfChecksumRow" nillable="true"
+		type="tns:ArrayOfChecksumRow" />
+	<xs:complexType name="RowSync">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="columns" nillable="true"
+				type="q22:ArrayOfanyType" xmlns:q22="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="RowSync" nillable="true" type="tns:RowSync" />
+	<xs:complexType name="ArrayOfRowSync">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="RowSync"
+				nillable="true" type="tns:RowSync" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfRowSync" nillable="true"
+		type="tns:ArrayOfRowSync" />
+	<xs:complexType name="ListOfIChecksumSyncResponse">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="anyType"
+				nillable="true" type="xs:anyType" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ListOfIChecksumSyncResponse" nillable="true"
+		type="tns:ListOfIChecksumSyncResponse" />
+	<xs:complexType name="ArrayOfListOfIChecksumSyncResponse">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded"
+				name="ListOfIChecksumSyncResponse" nillable="true"
+				type="tns:ListOfIChecksumSyncResponse" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfListOfIChecksumSyncResponse"
+		nillable="true" type="tns:ArrayOfListOfIChecksumSyncResponse" />
+	<xs:complexType name="DataRow">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="RecId" type="xs:unsignedInt" />
+			<xs:element minOccurs="0" name="Values" nillable="true"
+				type="q23:ArrayOfanyType" xmlns:q23="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="DataRow" nillable="true" type="tns:DataRow" />
+	<xs:complexType name="ArrayOfDataRow">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="DataRow"
+				nillable="true" type="tns:DataRow" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfDataRow" nillable="true"
+		type="tns:ArrayOfDataRow" />
+	<xs:complexType name="LinkRow">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="LeftRecId" type="xs:unsignedInt" />
+			<xs:element minOccurs="0" name="RightRecIds" nillable="true"
+				type="q24:ArrayOfunsignedInt" xmlns:q24="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="LinkRow" nillable="true" type="tns:LinkRow" />
+	<xs:complexType name="ArrayOfLinkRow">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="LinkRow"
+				nillable="true" type="tns:LinkRow" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfLinkRow" nillable="true"
+		type="tns:ArrayOfLinkRow" />
+	<xs:complexType name="LinkSync">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="LinkName" nillable="true"
+				type="xs:string" />
+			<xs:element minOccurs="0" name="LinkRows" nillable="true"
+				type="q25:ArrayOfanyType" xmlns:q25="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="LinkSync" nillable="true" type="tns:LinkSync" />
+	<xs:complexType name="ArrayOfLinkSync">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="LinkSync"
+				nillable="true" type="tns:LinkSync" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfLinkSync" nillable="true"
+		type="tns:ArrayOfLinkSync" />
+	<xs:complexType name="ListOfIChecksumSync">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="anyType"
+				nillable="true" type="xs:anyType" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ListOfIChecksumSync" nillable="true"
+		type="tns:ListOfIChecksumSync" />
+	<xs:complexType name="ArrayOfListOfIChecksumSync">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="ListOfIChecksumSync"
+				nillable="true" type="tns:ListOfIChecksumSync" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfListOfIChecksumSync" nillable="true"
+		type="tns:ArrayOfListOfIChecksumSync" />
+	<xs:complexType name="ChecksumSyncResponse">
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:DataSyncResponse">
+				<xs:sequence>
+					<xs:element minOccurs="0" name="ChecksumAlgorithm"
+						nillable="true" type="xs:string" />
+					<xs:element minOccurs="0" name="ChecksumRows" nillable="true"
+						type="q26:ArrayOfanyType" xmlns:q26="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:element name="ChecksumSyncResponse" nillable="true"
+		type="tns:ChecksumSyncResponse" />
+	<xs:complexType name="ArrayOfChecksumSyncResponse">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="ChecksumSyncResponse"
+				nillable="true" type="tns:ChecksumSyncResponse" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfChecksumSyncResponse" nillable="true"
+		type="tns:ArrayOfChecksumSyncResponse" />
+	<xs:complexType name="ChecksumSync">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="LastChangeTime" type="xs:dateTime" />
+			<xs:element minOccurs="0" name="RecIds" nillable="true"
+				type="q27:ArrayOfunsignedInt" xmlns:q27="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+			<xs:element minOccurs="0" name="RequestNewData" type="xs:boolean" />
+			<xs:element minOccurs="0" name="TableName" nillable="true"
+				type="xs:string" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ChecksumSync" nillable="true" type="tns:ChecksumSync" />
+	<xs:complexType name="ArrayOfChecksumSync">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="ChecksumSync"
+				nillable="true" type="tns:ChecksumSync" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfChecksumSync" nillable="true"
+		type="tns:ArrayOfChecksumSync" />
+	<xs:complexType name="ArrayOfMethodDescription">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="MethodDescription"
+				nillable="true" type="tns:MethodDescription" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfMethodDescription" nillable="true"
+		type="tns:ArrayOfMethodDescription" />
+	<xs:complexType name="TokenImpl">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="Value" nillable="true"
+				type="xs:string" />
+		</xs:sequence>
+		<xs:attribute ref="ser:Id" />
+		<xs:attribute ref="ser:Ref" />
+	</xs:complexType>
+	<xs:element name="TokenImpl" nillable="true" type="tns:TokenImpl" />
+	<xs:complexType name="ArrayOfTokenImpl">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="TokenImpl"
+				nillable="true" type="tns:TokenImpl" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ArrayOfTokenImpl" nillable="true"
+		type="tns:ArrayOfTokenImpl" />
+	<xs:element name="PollEvents">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element minOccurs="0" name="serverSession" type="xs:long" />
+				<xs:element minOccurs="0" name="eventSequenceSince" type="xs:long" />
+				<xs:element minOccurs="0" name="requestedMaximumWaitTime"
+					type="ser:duration" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="PollEventsResponse">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element minOccurs="0" name="PollEventsResult"
+					nillable="true" type="q28:ArrayOfanyType"
+					xmlns:q28="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="GetCurrentEventSequence">
+		<xs:complexType>
+			<xs:sequence />
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="GetCurrentEventSequenceResponse">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element minOccurs="0" name="GetCurrentEventSequenceResult"
+					type="xs:long" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="GetCurrentServerSession">
+		<xs:complexType>
+			<xs:sequence />
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="GetCurrentServerSessionResponse">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element minOccurs="0" name="GetCurrentServerSessionResult"
+					type="xs:long" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

@@ -1,0 +1,208 @@
+\SetAPI{J-C}
+\section{Persistence}
+\label{module:Persistence}
+\ClearAPI
+The object module is backed by the persistence module. This module combines the merge, cache, filter and query module. If the security is enabled also the security module is taken into account.
+
+The combination of the modules is used to write data into various data back ends.
+
+Ambeth currently supports the following dialects:
+\begin{itemize}
+	\item Oracle (full)
+	\item PostgreSQL (full)
+	\item MSSQL (partial)
+	\item H2 (partial)
+\end{itemize}
+
+The persistence module strictly operates in batch mode and is applies different optimizations in order to gain a great performance.
+
+\TODO
+%% MAVEN GENERATED START
+\begin{lstlisting}[style=POM,caption={Maven modules to use \emph{Ambeth Persistence}}]
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-api</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-h2</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-h2-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-jdbc</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-jdbc-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-maria</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-maria-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-mssql</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-mssql-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-oracle11</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-oracle11-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-pg</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-pg-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-sqlite</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-sqlite-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-persistence-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+\end{lstlisting}
+%% MAVEN END
+\subsection{Features}
+\begin{itemize}
+	%% FEATURES START
+	\item \prettyref{feature:ConnectionDialect}
+	\item \prettyref{feature:CurrentUser}	
+	\item \prettyref{feature:RandomUserScript}	
+	\item \prettyref{annotation:PersistenceContext}
+	%% FEATURES GENERATED START
+	%%\item \prettyref{feature:Link}
+	%%\item \prettyref{feature:PagingQuery}
+	%% FEATURES END
+\end{itemize}
+
+%% CONFIGURATION GENERATED START
+\subsection{Configuration}
+\begin{itemize}
+	\item \prettyref{configuration:AmbethRootDatabasePass}
+	\item \prettyref{configuration:AmbethRootDatabaseUser}
+	\item \prettyref{configuration:CacheQueryActive}
+	\item \prettyref{configuration:ConnectionsPrepared}
+	\item \prettyref{configuration:DatabaseArchivetablePostfix}
+	\item \prettyref{configuration:DatabaseArchivetablePrefix}
+	\item \prettyref{configuration:DatabaseAutoArraytypes}
+	\item \prettyref{configuration:DatabaseAutoIndexonfk}
+	\item \prettyref{configuration:DatabaseAutocleanupRecyclebin}
+	\item \prettyref{configuration:DatabaseBehaviourStrict}
+	\item \prettyref{configuration:DatabaseConnection}
+	\item \prettyref{configuration:DatabaseConnectionFactory}
+	\item \prettyref{configuration:DatabaseConnectionPool}
+	\item \prettyref{configuration:DatabaseDumpRecords}
+	\item \prettyref{configuration:DatabaseDumpRecordsDir}
+	\item \prettyref{configuration:DatabaseDumpSchema}
+	\item \prettyref{configuration:DatabaseDumpSchemaDir}
+	\item \prettyref{configuration:DatabaseFieldPostfix}
+	\item \prettyref{configuration:DatabaseFieldPrefix}
+	\item \prettyref{configuration:DatabaseHost}
+	\item \prettyref{configuration:DatabaseInit}
+	\item \prettyref{configuration:DatabaseLocalFile}
+	\item \prettyref{configuration:DatabaseLocalSchema}
+	\item \prettyref{configuration:DatabaseName}
+	\item \prettyref{configuration:DatabasePass}
+	\item \prettyref{configuration:DatabasePermissiongrouptablePostfix}
+	\item \prettyref{configuration:DatabasePermissiongrouptablePrefix}
+	\item \prettyref{configuration:DatabasePoolMaxpending}
+	\item \prettyref{configuration:DatabasePoolMaxtry}
+	\item \prettyref{configuration:DatabasePoolMaxtrytime}
+	\item \prettyref{configuration:DatabasePoolMaxunused}
+	\item \prettyref{configuration:DatabasePoolMaxused}
+	\item \prettyref{configuration:DatabasePoolMaxwait}
+	\item \prettyref{configuration:DatabasePoolPassivateActive}
+	\item \prettyref{configuration:DatabasePort}
+	\item \prettyref{configuration:DatabaseProtocol}
+	\item \prettyref{configuration:DatabaseRegisterDriverActive}
+	\item \prettyref{configuration:DatabaseRetryconnect}
+	\item \prettyref{configuration:DatabaseRetrysleep}
+	\item \prettyref{configuration:DatabaseSchemaCacheActive}
+	\item \prettyref{configuration:DatabaseSchemaFile}
+	\item \prettyref{configuration:DatabaseSchemaName}
+	\item \prettyref{configuration:DatabaseSequencePostfix}
+	\item \prettyref{configuration:DatabaseSequencePrefix}
+	\item \prettyref{configuration:DatabaseTableIgnore}
+	\item \prettyref{configuration:DatabaseTablePostfix}
+	\item \prettyref{configuration:DatabaseTablePrefix}
+	\item \prettyref{configuration:DatabaseTransactionExternal}
+	\item \prettyref{configuration:DatabaseUser}
+	\item \prettyref{configuration:DatasourceName}
+	\item \prettyref{configuration:JdbcConnectionModules}
+	\item \prettyref{configuration:JdbcDcnActive}
+	\item \prettyref{configuration:JdbcLogexceptionActive}
+	\item \prettyref{configuration:JdbcTraceActive}
+	\item \prettyref{configuration:LinkType}
+	\item \prettyref{configuration:PersistenceFetchsize}
+	\item \prettyref{configuration:PersistenceIdsBatchsize}
+	\item \prettyref{configuration:PersistenceIdsPreparedbatchsize}
+	\item \prettyref{configuration:PersistenceIdsSequencePrefetchsize}
+	\item \prettyref{configuration:ScriptCreate}
+	\item \prettyref{configuration:ScriptUserName}
+	\item \prettyref{configuration:ScriptUserPass}
+	\item \prettyref{configuration:ScriptUserPropertyfile}
+	\item \prettyref{configuration:ScriptUserQuota}
+\end{itemize}
+%% CONFIGURATION END
+
+\TODO

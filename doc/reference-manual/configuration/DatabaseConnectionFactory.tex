@@ -1,0 +1,21 @@
+\SetAPI{J-C}
+\section{database.connection.factory}
+\label{configuration:DatabaseConnectionFactory}
+\ClearAPI
+Whether ambeth should use an integrated connection factory or connections are provided by data sources. If true, Ambeth will create its own database connection, otherwise they are managed by the data source. Valid values are "true" and "false".
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{com.koch.ambeth.persistence.jdbc.ioc.PersistenceJdbcModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.jdbc.ioc.PersistenceJdbcModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\type{com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants.IntegratedConnectionFactory}
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{database.connection.factory}}]
+database.connection.factory=true
+\end{lstlisting}

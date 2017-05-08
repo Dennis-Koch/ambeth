@@ -1,0 +1,175 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>jambeth-information-bus-test</artifactId>
+
+	<parent>
+		<groupId>com.koch.ambeth</groupId>
+		<artifactId>jambeth-bundles</artifactId>
+		<version>3.0.2-SNAPSHOT</version>
+	</parent>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-test-pom</artifactId>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-information-bus</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-core-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-bytecode-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-cache-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-cache-bytecode-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-cache-datachange-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-cache-stream-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-datachange-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-event-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-expr-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-event-datachange-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-ioc-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-log-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-mapping-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-merge-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-merge-bytecode-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-security-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-security-bytecode-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-sensor-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-service-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-stream-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-xml</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-util-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>compile</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptors>
+						<descriptor>${project.basedir}/../assembly/test-jar-with-dependencies.xml</descriptor>
+					</descriptors>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

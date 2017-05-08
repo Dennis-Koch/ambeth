@@ -1,0 +1,21 @@
+\SetAPI{J-C}
+\section{cache.lru.threshold}
+\label{configuration:CacheLruThreshold}
+\ClearAPI
+Sets the threshold of the Least Recently Used entries. If activated the RootCache contains references to the last n entities in the a list so they are not garbage collected. Valid values are numbers $\geq$ 0, whereas 0 stands for deactivated.
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{com.koch.ambeth.cache.RootCache} &
+		\prettyref{module:Cache} \\
+	\hline
+		\type{com.koch.ambeth.cache.RootCache} &
+		\prettyref{module:Cache} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\type{com.koch.ambeth.cache.config.CacheConfigurationConstants.CacheLruThreshold}
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{cache.lru.threshold}}]
+cache.lru.threshold=0
+\end{lstlisting}

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  jambeth-test
+  %%
+  Copyright (C) 2017 Koch Softwaredevelopment
+  %%
+  Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+  #L%
+  -->
+
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+	<link-mappings>
+		<independent-link alias="ChildrenNoField" left="com.koch.ambeth.cache.bytecode.TestEntity" right="com.koch.ambeth.cache.bytecode.TestEntity" />	
+		<independent-link alias="ChildrenWithProtectedField" left="com.koch.ambeth.cache.bytecode.TestEntity" right="com.koch.ambeth.cache.bytecode.TestEntity" />	
+		<independent-link alias="ChildrenWithPrivateField" left="com.koch.ambeth.cache.bytecode.TestEntity" right="com.koch.ambeth.cache.bytecode.TestEntity" />	
+		<independent-link alias="ChildrenWithProtectedField2" left="com.koch.ambeth.cache.bytecode.ITestEntity2" right="com.koch.ambeth.cache.bytecode.ITestEntity2" />	
+	</link-mappings>
+
+	<entity-mappings>
+		<external-entity class="com.koch.ambeth.cache.bytecode.TestEntity">
+			<attributes>
+				<id name="Id" />
+				<version name="Version" />
+				<relation name="ChildrenNoField" link="ChildrenNoField" />
+				<relation name="ChildrenWithProtectedField" link="ChildrenWithProtectedField" />
+				<relation name="ChildrenWithPrivateField" link="ChildrenWithPrivateField" />
+			</attributes>
+		</external-entity>
+
+		<external-entity class="com.koch.ambeth.cache.bytecode.ITestEntity2">
+			<attributes>
+				<id name="Id" />
+				<version name="Version" />
+				<relation name="ChildrenWithProtectedField" link="ChildrenWithProtectedField2" />
+			</attributes>
+		</external-entity>
+	</entity-mappings>
+</or-mappings>

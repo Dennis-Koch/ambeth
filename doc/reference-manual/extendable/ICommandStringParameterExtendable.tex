@@ -1,0 +1,17 @@
+\SetAPI{C}
+\section{ICommandStringParameterExtendable}
+\label{extendable:ICommandStringParameterExtendable}
+\ClearAPI
+\javadoc{De.Osthus.Minerva.Command.ICommandStringParameterExtendable}{ICommandStringParameterExtendable}
+\javadoc{System.Windows.Input.ICommand}{ICommand}
+\TODO
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputcsharp{Extension point for instances of \type{ICommand}}
+{Minerva.Core/minerva/command/ICommandStringParameterExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<ICommandStringParameterExtendable>().With(...);
+\end{lstlisting}
+%% GENERATED LISTINGS END

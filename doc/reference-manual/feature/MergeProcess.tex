@@ -1,0 +1,127 @@
+\SetAPI{J-C}
+\section{Merge Process}
+\label{feature:MergeProcess}
+\ClearAPI
+The \type{Merge Process} of \AMBETH{} is the single holistic and generic approach to evaluate changes to an information model based on entities, properties and relations (so-called ``transition''). The algorithms are highly optimized for performance and require no development or maintenance effort. The process is separated in multiple sequential parts which can even be splitted between systems or partly executed concurrently. For Java as well as C\# clients based on \AMBETH{} it is already possible to evaluate all necessary changes on property-level on client-side, transferring only the minimum necessary information in a single service call to the remote \AMBETH{} service ensuring atomicity on each and every possible usecase for a transition of an information model.\\
+
+\def\showimgref{img/gen/2012-02-01-DeK-Ambeth-Cache-and-Merge-Process-3}
+\showimgfull{Merge Process on a service-internal scenario}
+
+As visualized above even for server implied changes exactly the same algorithm applies regarding ``minimum-diff-evaluation''. On the backend layer the \AMBETH{} \type{Merge Service} is able to transform the generically built transition to persistence-specific operations (e.g. SQL insert/update/delete statements on entity / link tables or corresponding updates on a triple store) in a very efficient manner. In the end this approach - though its generic self-configuring algorithm - is in many cases even faster at runtime than any hard-coded solution an individual developer might produce for each specific client/server scenario: The highly optimized SQL I/O making intensive use of batched prepared statements together with the fact that only the really changed properties imply a change in the persistence layer on a specific SQL column value or a specific triple predicate far outweigh the assumed overhead of the generic \AMBETH{} approach.
+
+Note that as one of the last steps of the \type{Merge Process} a \type{DataChangeEvent} is fired which is transparently handled by all relevant cache instances. For details regarding the cache instances please refer to (\prettyref{feature:CacheHierarchy}. For details about this DCE processing please refer to \prettyref{feature:DataChange}. Additional debugging information at runtime can be found with \prettyref{feature:CacheWalker} regarding the question which cache instances hold information for one or more given entities \& in which entity-version they refer to. For specific purposes it is possible to work with isolated additional 1st level caches anywhere with the \prettyref{feature:CacheFactory}-bean - with the option to listen to DCE-events, too.
+
+\subsection{Incremental Merge}
+With the \type{Incremental Merge} it is possible to evaluate security constraints on each transition to an information model without any leaks. As a second usecase it is a requirement for the \prettyref{feature:EDBL}-pattern.\\
+
+On many transitions to complex information models several implicit changes exist in addition to the application-driven initial explicit changes. For any information model itself there are three categories for implicit changes: Incoming relations, outgoing relations \& so-called ``previous parents''. Additional there is often a need for cascade-delete semantics which in \AMBETH{} is seen as a special case for both incoming and outgoing relations.
+\subsubsection{Specific examples for implicit changes automatically handled by \AMBETH{}}
+\begin{enumerate}
+	\item Incoming relations
+		\begin{itemize}
+			\item Let entity A have a many-to-many relationship to entity B on property ``A.RelToB''
+			\item Let further exist two instances for each entity: a1,a2 and b1,b2 where b1,b2 are each referred by ``a1.RelToB'' as well as ``a2.RelToB''
+			\item The application developer deletes b1 via the \AMBETH{} \type{Merge Process} without removing b1 from both relations ``a1.RelToB'' and ``a2.RelToB'':
+\begin{lstlisting}[style=POM]
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Initial merge [883646603]:
+<CUDResult size="1" creates="0" updates="0" deletes="1">
+	<Deletes>
+		<Entity type="example.B" Id="1" version="1" idx="1" />
+	</Deletes>
+</CUDResult>
+\end{lstlisting}
+			\item The \type{Merge Service} extends the explicit transition ``Delete b1'' with the implicit transition ``Update a1'' and ``Update a2'':
+\begin{lstlisting}[style=POM]		
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Incremental merge [883646603] (PersistenceMergeServiceExtension):
+<CUDResult size="2" creates="0" updates="2" deletes="0">
+	<Updates>
+		<Entity type="example.A" id="1" version="1" idx="2">
+			<RelToB remove="1">
+				<Entity idx="1">
+			</RelToB>
+		</Entity>
+		<Entity type="example.A" id="2" version="1" idx="3">
+			<RelToB remove="1">
+				<Entity idx="1">
+			</RelToB>
+		</Entity>
+	</Updates>
+</CUDResult>
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Merge finished [883646603]
+\end{lstlisting}
+		\end{itemize}
+	\item Outgoing relations / cascade delete
+		\begin{itemize}
+			\item	Let entity P have a one-to-many relationship to entity C with cascade-delete semantics
+			\item Let further exist one instance p1 referring to instances of C: c1 and c2
+			\item The application developer explicitly deletes p1 via the \AMBETH{} \type{Merge Process}:
+\begin{lstlisting}[style=POM]
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Initial merge [883646604]:
+<CUDResult size="1" creates="0" updates="0" deletes="1">
+	<Deletes>
+		<Entity type="example.P" Id="1" version="1" idx="1" />
+	</Deletes>
+</CUDResult>
+\end{lstlisting}
+			\item The \type{Merge Service} extends the explicit transition ``Delete p1'' with the implicit transition ``Delete c1'' and ``Delete c2'':
+\begin{lstlisting}[style=POM]		
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Incremental merge [883646604] (PersistenceMergeServiceExtension):
+<CUDResult size="2" creates="0" updates="0" deletes="2">
+	<Deletes>
+		<Entity type="example.C" id="1" version="1" idx="2" />
+		<Entity type="example.C" id="2" version="1" idx="3" />
+	</Deletes>
+</CUDResult>
+\end{lstlisting}			
+			\item This allows event-driven business logic (EBDL) as well as the \AMBETH{} security to react on the (now explicit) deletion of each individual child without  effort for a developer. For the sake of simplicity in the following example for an incremental merge step an EBDL component of an application wants to update the state of a specific instance p2 (of type P) because of the deletion of c1:
+\begin{lstlisting}[style=POM]		
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Incremental merge [883646604] (SimpleEventDrivenBusinessLogicComponent):
+<CUDResult size="1" creates="0" updates="1" deletes="0">
+	<Updates>
+		<Entity type="example.P" id="2" version="1" idx="4">
+			<State value="INVALID" />
+		</Entity>
+	</Updates>
+</CUDResult>
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Merge finished [883646604]
+\end{lstlisting}
+			\item In another scenario security rules defined by the application might deny the whole transition at the end of the \type{Incremental Merge} iterations because of a lack of delete permission on c2 despite the fact that the current user might indeed have the permission to delete p1 or to update p2.
+			\item Note that this feature works in any scenario of possible relation accesses betweens P and C: It works if only P has a property referring to C, or each C has a property referring to P or if the relation is bi-directionally accessible.
+		\end{itemize}
+	\item Previous parent
+		\begin{itemize}
+			\item Let entity A have a one-to-many relationship to entity B on property ``A.RelToB''
+			\item Let further exist two instances for each entity: a1,a2 and b1,b2 where b1, b2 are both referred by ``a1.RelToB'' (and therefore none of them referred by ``a2.RelToB'')
+			\item The application developer adds b2 to ``a2.RelToB'' via the \AMBETH{} \type{Merge Process}:
+\begin{lstlisting}[style=POM]		
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Initial merge [883646605]:
+<CUDResult size="1" creates="0" updates="1" deletes="0">
+	<Updates>
+		<Entity type="example.A" id="2" version="1" idx="1">
+			<RelToB add="1">
+				<Entity type="example.B" id="2" version="1" idx="2">
+			</RelToB>
+		</Entity>
+	</Updates>
+</CUDResult>
+\end{lstlisting}
+			\item The \type{Merge Service} transparently removes b2 from ``a1.RelToB'' without the requirement that the developer even needs to think about a1. There can even exist specific scenarios where the application code is technically not able to access a1 even if the developer knows it is (implicitly) relevant for his transition:
+\begin{lstlisting}[style=POM]		
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Incremental merge [883646605] (PersistenceMergeServiceExtension):
+<CUDResult size="1" creates="0" updates="1" deletes="0">
+	<Updates>
+		<Entity type="example.A" id="1" version="1" idx="3">
+			<RelToB remove="1">
+				<Entity idx="2">
+			</RelToB>
+		</Entity>
+	</Updates>
+</CUDResult>
+DEBUG com.koch.ambeth.merge.MergeServiceRegistry: Merge finished [883646605]
+\end{lstlisting}
+			\item This greatly reduces application complexity for a developer, removes risks to the integrity of the information model and allows a truly separation of concerns between business logic and model integrity / persistence logic.
+		\end{itemize}
+\end{enumerate}
+Due to the highly integrated approach the \AMBETH{} Cache, Merge \& Security components work together the mentioned generic algorithms even work when user-scoped code makes an explicit transition to the user-specific filtered view of the information model: In that common scenario the diff (produced via \type{Merge}) on the filtered view (provided via \type{Cache} \& filtered via \type{Security}) is applied to the global information model (provided via \type{Cache} without any security-based filtering).\\
+
+Implicit changes from the \type{Incremental Merge} extend the global (so-called ``privileged'') transition. As a last step the result of this privileged transition will be narrowed down to the user-scoped filtered view. The whole process is fully transparent to the user \& even to the developer working with \AMBETH{}: Both are directly working only with the entities they are already allowed to work with at any time according to the enterprise security rules defined by the application which extend provided extension points of \AMBETH{} Security.

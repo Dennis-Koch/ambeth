@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  jambeth-test
+  %%
+  Copyright (C) 2017 Koch Softwaredevelopment
+  %%
+  Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+  #L%
+  -->
+
+<entity-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_1_2">
+
+	<entity class="com.koch.ambeth.cache.cacheretriever.LocalEntity">
+		<attributes>
+			<to-one name="Parent" target-entity="com.koch.ambeth.cache.cacheretriever.ExternalEntity2">
+				<join-table name="LOCAL_ENTITY">
+					<join-column name="PARENT" />
+					<inverse-join-attribute name="Name" />
+				</join-table>
+			</to-one>
+			<to-many name="Externals" target-entity="com.koch.ambeth.cache.cacheretriever.ExternalEntity">
+				<join-table name="LINK_LOC_ENTITY_EXT_ENTITY">
+					<join-column name="LEFT_ID" />
+					<inverse-join-column name="RIGHT_ID" />
+					<inverse-join-attribute name="Name" />
+				</join-table>
+			</to-many>
+			<to-one name="Sibling" target-entity="com.koch.ambeth.cache.cacheretriever.ExternalEntity">
+				<join-table name="LINK_LOCAL_TO_SIBLING">
+					<join-column name="LEFT_ID" />
+					<inverse-join-column name="RIGHT_ID" />
+					<inverse-join-attribute name="Name" />
+				</join-table>
+			</to-one>
+			<!-- <to-many name="externals2" target-entity="com.koch.ambeth.cache.cacheretriever.ExternalEntity2">
+				<join-table name="LOCAL_ENTITY">
+					<join-column name="NAME" />
+					<inverse-join-attribute name="local" />
+				</join-table>
+			</to-many> -->
+		</attributes>
+	</entity>
+
+</entity-mappings>

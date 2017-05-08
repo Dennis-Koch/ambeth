@@ -1,0 +1,4 @@
+-exportcontents: \
+    com.koch.ambeth.*;-noimport=true
+DynamicImport-Package: \
+	net.sf.cglib.*

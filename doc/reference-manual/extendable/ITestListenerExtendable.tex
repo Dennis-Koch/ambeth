@@ -1,0 +1,17 @@
+\SetAPI{C}
+\section{ITestListenerExtendable}
+\label{extendable:ITestListenerExtendable}
+\ClearAPI
+\javadoc{com.koch.ambeth.Ioc.Link.ITestListenerExtendable}{ITestListenerExtendable}
+\javadoc{com.koch.ambeth.Ioc.Link.ITestListener}{ITestListener}
+\TODO
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputcsharp{Extension point for instances of \type{ITestListener}}
+{Ambeth.IoC.Test/ambeth/ioc/link/ITestListenerExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<ITestListenerExtendable>();
+\end{lstlisting}
+%% GENERATED LISTINGS END

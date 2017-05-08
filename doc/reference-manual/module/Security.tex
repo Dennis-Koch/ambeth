@@ -1,0 +1,162 @@
+\SetAPI{J-C}
+\section{Security}
+\label{module:Security}
+\ClearAPI
+\TODO
+%% MAVEN GENERATED START
+\begin{lstlisting}[style=POM,caption={Maven modules to use \emph{Ambeth Security}}]
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-security</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-security-bytecode</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-security-job</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-security-persistence</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-security-server</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>jambeth-security-test</artifactId>
+	<version>§\version§</version>
+</dependency>
+\end{lstlisting}
+%% MAVEN END
+\subsection{Features}
+\begin{itemize}
+	%% FEATURES START
+	\item \prettyref{feature:ActionPermission}
+	\item \prettyref{feature:AuthorizationExceptionFactory}
+	\item \prettyref{feature:Cryptography}
+	\item \prettyref{feature:EntityPrivilegeBehavior}
+	\item \prettyref{feature:EntityTypePrivilegeBehavior}
+	\item \prettyref{feature:PasswordManagement}
+	\item \prettyref{feature:PermissionRule}
+	\item \prettyref{feature:PrivilegeProvider}
+	\item \prettyref{annotation:SecurityContext}
+	%% FEATURES GENERATED START
+	%% FEATURES END
+\end{itemize}
+
+%% CONFIGURATION GENERATED START
+\subsection{Configuration}
+\begin{itemize}
+	\item \prettyref{configuration:PrivilegeServiceActive}
+	\item \prettyref{configuration:SecurityAuthmanagerType}
+	\item \prettyref{configuration:SecurityCryptoAlgorithmName}
+	\item \prettyref{configuration:SecurityCryptoKeyspecName}
+	\item \prettyref{configuration:SecurityCryptoPaddedkeyAlgorithmName}
+	\item \prettyref{configuration:SecurityCryptoPaddedkeyIterationcount}
+	\item \prettyref{configuration:SecurityCryptoPaddedkeySaltsize}
+	\item \prettyref{configuration:SecurityCryptoPaddedkeySize}
+	\item \prettyref{configuration:SecurityLdapBase}
+	\item \prettyref{configuration:SecurityLdapCtxfactory}
+	\item \prettyref{configuration:SecurityLdapDomain}
+	\item \prettyref{configuration:SecurityLdapFilter}
+	\item \prettyref{configuration:SecurityLdapHost}
+	\item \prettyref{configuration:SecurityLdapUserattribute}
+	\item \prettyref{configuration:SecurityLoginPasswordAlgorithmIterationcount}
+	\item \prettyref{configuration:SecurityLoginPasswordAlgorithmKeysize}
+	\item \prettyref{configuration:SecurityLoginPasswordAlgorithmName}
+	\item \prettyref{configuration:SecurityLoginPasswordAutorehashActive}
+	\item \prettyref{configuration:SecurityLoginPasswordGeneratedLength}
+	\item \prettyref{configuration:SecurityLoginPasswordHistoryCount}
+	\item \prettyref{configuration:SecurityLoginPasswordLifetime}
+	\item \prettyref{configuration:SecurityLoginSaltAlgorithmName}
+	\item \prettyref{configuration:SecurityLoginSaltKeyspecName}
+	\item \prettyref{configuration:SecurityLoginSaltLength}
+	\item \prettyref{configuration:SecurityLoginSaltPassword}
+	\item \prettyref{configuration:SecurityPrivilegeDefaultCreateEntity}
+	\item \prettyref{configuration:SecurityPrivilegeDefaultCreateProperty}
+	\item \prettyref{configuration:SecurityPrivilegeDefaultDeleteEntity}
+	\item \prettyref{configuration:SecurityPrivilegeDefaultDeleteProperty}
+	\item \prettyref{configuration:SecurityPrivilegeDefaultExecute}
+	\item \prettyref{configuration:SecurityPrivilegeDefaultReadEntity}
+	\item \prettyref{configuration:SecurityPrivilegeDefaultReadProperty}
+	\item \prettyref{configuration:SecurityPrivilegeDefaultUpdateEntity}
+	\item \prettyref{configuration:SecurityPrivilegeDefaultUpdateProperty}
+	\item \prettyref{configuration:SecurityServiceActive}
+	\item \prettyref{configuration:SecuritySignatureActive}
+	\item \prettyref{configuration:SecuritySignatureAlgorithmName}
+	\item \prettyref{configuration:SecuritySignatureEncryptionAlgorithmIterationcount}
+	\item \prettyref{configuration:SecuritySignatureEncryptionAlgorithmName}
+	\item \prettyref{configuration:SecuritySignatureEncryptionKeypaddingLength}
+	\item \prettyref{configuration:SecuritySignatureEncryptionKeyspecName}
+	\item \prettyref{configuration:SecuritySignatureKeyAlgorithmName}
+	\item \prettyref{configuration:SecuritySignatureLength}
+	\item \prettyref{configuration:SecuritySignaturePaddingAlgorithmName}
+\end{itemize}
+%% CONFIGURATION END
+
+Provides extension points for applications to customize the security behavior of Ambeth. There are hooks for authentication \& authorization.
+
+\textit{Ambeth Security} is deactivated by default. To activate it configure the following:
+\begin{lstlisting}[style=Props]
+ambeth.security.active=true
+\end{lstlisting}
+
+Implement the following interface to provide instances of \type{IUser} for the Ambeth Authentication Process:
+\inputjava{IUserResolver}{jambeth-security-server/src/main/java/com/koch/ambeth/security/server/IUserResolver.java}
+
+Implement the following interface to encapsulate your custom authorization process:
+\inputjava{IAuthorizationManager}{jambeth-security/src/main/java/com/koch/ambeth/security/IAuthorizationManager.java}
+
+After a successful authentication \& authorization the information gets stored in a thread-local security handle. To be of any use your beans have to be secured declaratively with the \type{@SecurityContext} annotation:
+
+\begin{lstlisting}[style=Java]
+@SecurityContext(SecurityContextType.NOT_REQUIRED)
+ public class HelloWorldService implements IHelloWorldService, IInitializingBean
+ {
+ 	@Override
+ 	public void afterPropertiesSet() throws Throwable
+ 	{
+ 	}
+ 
+ 	@Override
+ 	@SecurityContext(SecurityContextType.AUTHENTICATED)
+ 	public List<TestEntity> thisIsAUserAwareMethod()
+ 	{
+ 		...
+ 	}
+ 
+ 	@Override
+ 	@SecurityContext(SecurityContextType.AUTHORIZED)
+ 	public List<TestEntity> thisIsASecuredMethod()
+ 	{
+ 		...
+ 	}
+ }
+\end{lstlisting}
+As with most of the Ambeth aspects you have to declare the annotation at class level explicitly to be able to customize the relevant behavior on method level. If all methods should be treated with the same behavior the class level configuration suffices.
+
+\begin{itemize}
+	\item NOT\_REQUIRED The method or class is not specifically secured. The user may already be authenticated because of another method call in the thread stack or thread-local process.
+	\item AUTHENTICATED The user will be authenticated before calling this method. The existence of a call permission to the method will NOT be checked. The method can not be invoked at runtime if the user authentication failed by any reason.
+	\item AUTHORIZED The user will be authenticated before calling this method. The method can not be invoked at runtime without user-specific call permission.
+\end{itemize}
+
+\tip{
+Performance-wise the ``outermost'' beans of a client/server-request should already be annotated at least with \type{@SecurityContext(SecurityContextType.NOT\_REQUIRED)}:\newline This way necessary remote IO (e.g. LDAP requests) will only be necessary once. As an effect any complex server logic can make intensive use of security functionality without generating additional overhead in intermediate authentication and/or authorization logic.
+}
+
+\textit{Ambeth Security} can also be used to filter access to data through the combination of entity and entity-type permissions. While entity type privileges act as a general filter independent of concrete instances, entity permission rules handle access for specific instances (e.g. based on their properties).

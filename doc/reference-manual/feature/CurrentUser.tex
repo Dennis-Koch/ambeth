@@ -1,0 +1,26 @@
+%% feature-condition=IContextProvider
+\SetAPI{J-C}
+\section{Current User}
+\label{feature:CurrentUser}
+\ClearAPI
+To allow Ambeth to maintain technical fields like ``CreatedBy'' \& ``UpdatedBy'' a user identifier is needed. The bean handling this information in the persistence module is \type{IContextProvider}. When a transaction is started the implementation of \type{IContextProvider} retrieves its information from \type{ISecurityContextHolder} of the security module.
+
+The \type{ISecurityContextHolder]}-bean by itself does only provide this information if
+\begin{itemize}
+	\item User credentials have been provided for the current thread
+	\item An authentication has been executed with these credentials in the current thread and an authorization handle is available before changing data via the \prettyref{feature:MergeProcess}
+\end{itemize}
+
+There are several recommended approaches to provide user credentials for the \type{ISecurityContextHolder}:
+\begin{itemize}
+	\item By HTTP Basic Auth
+		\begin{itemize}
+			\item Transparently extracted from a REST request if using \AMBETH{} managed services
+		\end{itemize}
+	\item By proving background jobs the corresponding credentials during configuration
+		\begin{itemize}
+			\item Transparently processed impersonization if using \AMBETH{} managed jobs. Please see \prettyref{feature:BackgroundTask} for details.
+		\end{itemize}
+\end{itemize}
+
+\tip{It is possible to change an existing authorization handle at runtime by re-authenticating within the same current thread. This even works within the same transaction if intended for specific multi-impersonization usecases. As a result changes implied by different merge process executions - optionally within the same transaction - will be annotated with different ``CreatedBy'' / ``UpdatedBy'' information.}

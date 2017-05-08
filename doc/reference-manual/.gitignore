@@ -1,0 +1,16 @@
+*.aux
+*.bbl
+*.blg
+*.dvi
+*.log
+*.lol
+*.out
+*.pdf
+*.pdf_tex
+*.ps
+*.toc
+*.tps
+*.4ct
+*.4tc
+*.tmp
+*.xref

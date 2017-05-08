@@ -1,0 +1,69 @@
+\SetAPI{J-C}
+\section{database.transaction.external}
+\label{configuration:DatabaseTransactionExternal}
+\ClearAPI
+Defines whether the transaction is managed external ("true") or Ambeth should handle it ("false"). If the transaction is managed externally Ambeth does not commit or rollback any transaction and expects the manager to do the corresponding action. When a connection pool is used (e.g. TomCat, Weblogic) this value should always be "true". Valid values are "true" and "false".
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{com.koch.ambeth.persistence.h2.H2Module} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.h2.H2Module} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.jdbc.AbstractConnectionDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.jdbc.AbstractConnectionDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.maria.MariaModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.maria.MariaModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.mssql.MSSqlModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.mssql.MSSqlModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.oracle.Oracle10gSimpleModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.oracle.Oracle10gSimpleModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.pg.PostgresDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.pg.PostgresDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.pg.PostgresModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.pg.PostgresModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.sqlite.SQLiteDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.sqlite.SQLiteDialect} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.sqlite.SQLiteModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+		\type{com.koch.ambeth.persistence.sqlite.SQLiteModule} &
+		\prettyref{module:Persistence} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\type{com.koch.ambeth.persistence.config.PersistenceConfigurationConstants.ExternalTransactionManager}
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{database.transaction.external}}]
+database.transaction.external=false
+\end{lstlisting}

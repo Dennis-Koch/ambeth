@@ -1,0 +1,22 @@
+\SetAPI{J-C}
+\section{AccessorTypeProvider}
+\label{feature:AccessorTypeProvider}
+\ClearAPI
+Allows to create instances of \type{AbstractAccessor} which by themselves provide a very fast implementation to dynamically call getters or setters of a given object. Note that each use-case for a specific property (getter/setter-pair) generates a new class derived from \type{AbstractAccessor} at runtime. If extensively used on thousands of different properties the implementation might consume noteable amounts of PermGen-space. Use this functionality for scenarios of very high invocation amount on accessors of a limited set of object types.
+
+Despite the described fact this feature is indeed \emph{the} fastest possible way for dynamic calls (this is true because it is not a real ``dynamic invocation'' at all) - and even \emph{much} faster than any reflection based approach or even solutions like CgLib, Castle, DynamicProxy or similar libraries provide.\\
+
+\inputjava{The \type{IAccessorTypeProvider}-bean}
+{jambeth-ioc/src/main/java/com/koch/ambeth/ioc/accessor/IAccessorTypeProvider.java}
+
+\inputcsharp{The \type{IAccessorTypeProvider}-bean}
+{Ambeth.IoC/ambeth/accessor/IAccessorTypeProvider.cs}
+
+In addition to the accessor-usecase \type{AccessorTypeProvider} allows to generate constructor delegates at runtime. This approach allows to invoke constructors similar to reflection but \emph{without} any runtime overhead implied with reflection. If the constructor delegate defines exactly the same parameters compared to the invoked constructor there is even no boxing/unboxing overhead for native-type arguments. In the end you gain code with the runtime flexibility of reflection but with the fast performance of a hard-coded approach at the same time. Once again the implementation uses the minimum necessary bytecode/IL instructions resulting in maximum runtime performance possible. Constraints regarding additional PermGen-space applies here, too: In a worst case there will be an additional runtime class created for each unique target constructor.\\\\
+
+This does apply for C\# as well as Java and it works for protected constructors, too. The constructor delegate type may be an abstract class or an interface. However if possible an abstract class is recommended to gain maximum runtime performance.
+
+\tip{In most scenarios calling a method on an interface is roughly 7 times slower than invoking a method of an abstract class - this is caused by additional dynamic evaluation overhead at runtime and applies to C\# as well as Java. Of course this micro-benchmarking issue should not be of relevance: instead maintainable component-oriented design and separation of concerns should drive most architectural decisions. But in the specific usecase here there is no practical penalty to decide for an abstract class definition - as long as the abstract class consists \emph{solely} of abstract method definitions and nothing else.}
+
+\inputjava{Usage example for the \type{IAccessorTypeProvider}-bean}
+{jambeth-examples/src/main/java/com/koch/ambeth/example/accessor/AccessorTypeProviderExample.java}

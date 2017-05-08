@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project basedir="." default="compile" name="CsharpClassbrowser">
+	<property name="env.MSBUILD_EXE" value="c:/Windows/Microsoft.NET/Framework/v4.0.30319/MSBuild.exe" />
+	<property name="target.dir" value="CsharpClassbrowser/CsharpClassbrowser/bin/Release" />
+	<property name="dist.dir" value="dist" />
+	<property name="sln.file" value="CsharpClassbrowser/CsharpClassbrowser.sln" />
+
+	<target name="clean">
+		<delete dir="${dist.dir}" />
+		<delete dir="${target.dir}" />
+	</target>
+
+	<target name="compile" depends="clean">
+		<echo message="Compiling ${ant.project.name} from ${ant.file}" />
+		<exec executable="${env.MSBUILD_EXE}" failonerror="true" failifexecutionfails="true" logerror="true">
+			<arg value="${sln.file}" />
+			<arg value="/p:Configuration=Release" />
+			<arg value="/p:ContinueOnError=false" />
+			<arg value="/p:StopOnFirstFailure=false" />
+		</exec>
+		<copy todir="${dist.dir}" overwrite="true" preservelastmodified="true" flatten="true">
+			<fileset dir="${target.dir}" includes="${ant.project.name}.exe" />
+		</copy>
+	</target>
+
+</project>

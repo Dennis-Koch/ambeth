@@ -1,0 +1,21 @@
+\SetAPI{J-C}
+\section{cache.firstlevel.weak.active}
+\label{configuration:CacheFirstlevelWeakActive}
+\ClearAPI
+Whether the first-level cache should be realized as a weak reference cache. If set to "true" the first-level cache will contain only weak reference, so the garbage collector can clear them if necessary. Valid values are "true" and "false".
+%% GENERATED USAGE REFERENCE - DO NOT EDIT
+\begin{longtable}{ l l } \hline \textbf{Used in bean} & \textbf{Module} \
+	\endhead
+	\hline
+		\type{com.koch.ambeth.cache.ChildCache} &
+		\prettyref{module:Cache} \\
+	\hline
+		\type{com.koch.ambeth.cache.ChildCache} &
+		\prettyref{module:Cache} \\
+	\hline
+\end{longtable}
+%% GENERATED USAGE REFERENCE END
+\type{com.koch.ambeth.cache.config.CacheConfigurationConstants.FirstLevelCacheWeakActive}
+\begin{lstlisting}[style=Props,caption={Usage example for \textit{cache.firstlevel.weak.active}}]
+cache.firstlevel.weak.active=true
+\end{lstlisting}

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  jambeth-test
+  %%
+  Copyright (C) 2017 Koch Softwaredevelopment
+  %%
+  Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+  #L%
+  -->
+
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+	<entity-mappings>
+
+		<!-- entity based on a class -->
+		<entity class="com.koch.ambeth.bytecode.EntityA">
+			<attributes>
+				<alternate-id name="Name" />
+				<alternate-id name="Value" />
+			</attributes>
+		</entity>
+
+		<!-- entity with default and non default constructor -->
+		<entity class="com.koch.ambeth.bytecode.EntityB">
+			<attributes>
+				<alternate-id name="Name" />
+				<alternate-id name="Value" />
+			</attributes>
+		</entity>
+
+		<!-- entity with a non default constructor -->
+		<entity class="com.koch.ambeth.bytecode.EntityC">
+			<attributes>
+				<alternate-id name="Name" />
+				<alternate-id name="Value" />
+			</attributes>
+		</entity>
+
+		<!-- entity based on an interface -->
+		<entity class="com.koch.ambeth.bytecode.IEntityA">
+			<attributes>
+				<alternate-id name="Name" />
+				<alternate-id name="Value" />
+			</attributes>
+		</entity>
+
+		<!-- entity based on an interface, enhanced by IImplementAbstractObjectFactoryExtendable -->
+		<entity class="com.koch.ambeth.bytecode.IEntityB">
+			<attributes>
+				<alternate-id name="Name" />
+				<alternate-id name="Value" />
+			</attributes>
+		</entity>
+
+		<!-- entity based on an interface, extending AbstractEntity -->
+		<entity class="com.koch.ambeth.bytecode.IEntityC">
+			<attributes>
+				<alternate-id name="Name" />
+				<alternate-id name="Value" />
+			</attributes>
+		</entity>
+	</entity-mappings>
+</or-mappings>
