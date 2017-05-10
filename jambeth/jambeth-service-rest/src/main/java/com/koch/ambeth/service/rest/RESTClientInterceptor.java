@@ -69,7 +69,11 @@ import com.koch.ambeth.xml.ioc.XmlModule;
 import net.sf.cglib.proxy.MethodProxy;
 
 public class RESTClientInterceptor extends AbstractSimpleInterceptor
-		implements IRemoteInterceptor, IInitializingBean, IOfflineListener, IDisposableBean {
+		implements
+			IRemoteInterceptor,
+			IInitializingBean,
+			IOfflineListener,
+			IDisposableBean {
 	public static final String DEFLATE_MIME_TYPE = "application/octet-stream";
 
 	@LogInstance
@@ -86,6 +90,9 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 
 	@Autowired
 	protected IGuiThreadHelper guiThreadHelper;
+
+	@Autowired(optional = true)
+	protected IRESTClientServiceUrlBuilder restClientServiceUrlBuilder;
 
 	@Property(name = ServiceConfigurationConstants.ServiceBaseUrl)
 	protected String serviceBaseUrl;
@@ -179,8 +186,12 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 			long m1 = System.currentTimeMillis();
 
 			long localRequestId = requestCounter.incrementAndGet();
-			URL url = new URL(serviceBaseUrl + "/" + serviceName + "/" + method.getName());
-
+			URL url = restClientServiceUrlBuilder != null
+					? restClientServiceUrlBuilder.buildURL(serviceBaseUrl, serviceName, method, args)
+					: null;
+			if (url == null) {
+				url = new URL(serviceBaseUrl + "/" + serviceName + "/" + method.getName());
+			}
 			HttpURLConnection con = (HttpURLConnection) url.openConnection();
 
 			Object result = null;

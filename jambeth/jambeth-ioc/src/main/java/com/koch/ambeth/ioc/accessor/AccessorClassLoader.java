@@ -35,12 +35,26 @@ public class AccessorClassLoader extends ClassLoader {
 	private static final ArrayList<Reference<AccessorClassLoader>> accessClassLoaders =
 			new ArrayList<>();
 
+	private static Method defineClassMethod;
+
+	static {
+		try {
+			defineClassMethod = ClassLoader.class.getDeclaredMethod("defineClass",
+					new Class[] {String.class, byte[].class, int.class, int.class});
+			defineClassMethod.setAccessible(true);
+		}
+		catch (Throwable e) {
+			defineClassMethod = null;
+		}
+	}
+
 	private static final Lock writeLock = new ReentrantLock();
 
-	private ClassLoader parent2 = AccessorClassLoader.class.getClassLoader();
-
 	public static AccessorClassLoader get(Class<?> type) {
-		ClassLoader parent = type.getClassLoader();
+		return get(type.getClassLoader());
+	}
+
+	public static AccessorClassLoader get(ClassLoader parent) {
 		writeLock.lock();
 		try {
 			for (int i = accessClassLoaders.size(); i-- > 0;) {
@@ -119,10 +133,7 @@ public class AccessorClassLoader extends ClassLoader {
 		try {
 			// Attempt to load the access class in the same loader, which makes protected and default
 			// access members accessible.
-			Method method = ClassLoader.class.getDeclaredMethod("defineClass",
-					new Class[] {String.class, byte[].class, int.class, int.class});
-			method.setAccessible(true);
-			return (Class<?>) method.invoke(getParent(),
+			return (Class<?>) defineClassMethod.invoke(getParent(),
 					new Object[] {name, bytes, Integer.valueOf(0), Integer.valueOf(bytes.length)});
 		}
 		catch (Exception ignored) {
