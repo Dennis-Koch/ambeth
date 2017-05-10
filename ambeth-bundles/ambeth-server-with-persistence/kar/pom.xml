@@ -277,7 +277,7 @@
 				<version>4.1.0</version>
 				<extensions>true</extensions>
 				<configuration>
-					<startLevel>65</startLevel>
+					<startLevel>81</startLevel>
 					<aggregateFeatures>true</aggregateFeatures>
 					<includeTransitiveDependency>false</includeTransitiveDependency>
 				</configuration>

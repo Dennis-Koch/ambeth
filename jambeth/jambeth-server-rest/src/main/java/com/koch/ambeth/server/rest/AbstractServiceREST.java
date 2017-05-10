@@ -91,6 +91,13 @@ public abstract class AbstractServiceREST {
 
 	public static final String DEFLATE_MIME_TYPE = MediaType.APPLICATION_OCTET_STREAM;
 
+	protected static final Charset utfCharset = Charset.forName("UTF-8");
+
+	protected static final Pattern basicPattern =
+			Pattern.compile("Basic *(.+) *", Pattern.CASE_INSENSITIVE);
+
+	protected static final Pattern pattern = Pattern.compile("(.+) *\\: *(.+)");
+
 	private static final Set<String> ignoreExceptions = new HashSet<>();
 
 	static {
@@ -102,12 +109,6 @@ public abstract class AbstractServiceREST {
 
 	@Context
 	protected HttpHeaders headers;
-
-	protected final Charset utfCharset = Charset.forName("UTF-8");
-
-	protected final Pattern basicPattern = Pattern.compile("Basic *(.+) *", Pattern.CASE_INSENSITIVE);
-
-	protected final Pattern pattern = Pattern.compile("(.+) *\\: *(.+)");
 
 	private ILogger log;
 
@@ -126,7 +127,7 @@ public abstract class AbstractServiceREST {
 		try {
 			this.beanContext = beanContext;
 			if (this.beanContext != null) {
-				// notify all paused threads that we now have a valid context
+				// notify all paused threads that we now have a valid context (again)
 				rebuildContextCond.signalAll();
 			}
 		}
