@@ -91,7 +91,11 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
 
 public class EntityLoader
-		implements IEntityLoader, ILoadContainerProvider, IStartingBean, IThreadLocalCleanupBean {
+		implements
+			IEntityLoader,
+			ILoadContainerProvider,
+			IStartingBean,
+			IThreadLocalCleanupBean {
 	public static class EntityLoaderForkProcessor implements IForkProcessor {
 		@Autowired
 		protected ICacheMapEntryTypeProvider cacheMapEntryTypeProvider;
@@ -369,7 +373,8 @@ public class EntityLoader
 					toIdIndex = cursor.getToIdIndex();
 					ITableMetaData requestedTable = database.getTableByType(requestedType).getMetaData();
 					IFieldMetaData idField = toIdIndex == ObjRef.PRIMARY_KEY_INDEX
-							? requestedTable.getIdField() : requestedTable.getAlternateIdFields()[toIdIndex];
+							? requestedTable.getIdField()
+							: requestedTable.getAlternateIdFields()[toIdIndex];
 					idTypeOfRequestedObject = idField.getFieldType();
 				}
 				else {
@@ -462,7 +467,8 @@ public class EntityLoader
 		IDirectedLinkMetaData targetingRequestLink =
 				targetingRequestTable.getLinkByMemberName(orelToLoad.getMemberName());
 
-		byte idIndex = targetingRequestLink != null ? targetingRequestLink.getFromIdIndex()
+		byte idIndex = targetingRequestLink != null
+				? targetingRequestLink.getFromIdIndex()
 				: ObjRef.PRIMARY_KEY_INDEX;
 		if (idIndex == ObjRef.UNDEFINED_KEY_INDEX) {
 			idIndex = ObjRef.PRIMARY_KEY_INDEX;
@@ -861,7 +867,8 @@ public class EntityLoader
 
 				Object id = conversionHelper.convertValueToType(primIdType, item.getId());
 				Object version = versionField != null
-						? conversionHelper.convertValueToType(versionTypeOfObject, item.getVersion()) : null;
+						? conversionHelper.convertValueToType(versionTypeOfObject, item.getVersion())
+						: null;
 
 				if (id == null || versionField != null && version == null) {
 					throw new IllegalStateException(
@@ -1115,6 +1122,9 @@ public class EntityLoader
 				primitiveMembers.length; primitiveIndex < size; primitiveIndex++) {
 			PrimitiveMember primitiveMember = primitiveMembers[primitiveIndex];
 
+			if (primitiveMember.isTransient()) {
+				continue;
+			}
 			IFieldMetaData field = tableMD.getFieldByMemberName(primitiveMember.getName());
 
 			if (field == null) {
