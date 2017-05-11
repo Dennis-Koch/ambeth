@@ -35,6 +35,7 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.mapping.ioc.MappingModule;
 import com.koch.ambeth.merge.bytecode.ioc.MergeBytecodeModule;
+import com.koch.ambeth.merge.ioc.ChangeControllerModule;
 import com.koch.ambeth.merge.ioc.MergeModule;
 import com.koch.ambeth.merge.ioc.ObjectCopierModule;
 import com.koch.ambeth.security.bytecode.ioc.SecurityBytecodeModule;
@@ -45,10 +46,11 @@ import com.koch.ambeth.stream.ioc.StreamModule;
 
 @RunWith(AmbethInformationBusRunner.class)
 @TestFrameworkModule({BytecodeModule.class, CacheModule.class, CacheBytecodeModule.class,
-		CacheDataChangeModule.class, CacheStreamModule.class, DataChangeModule.class, EventModule.class,
-		EventDataChangeModule.class, ExprModule.class, MappingModule.class, MergeModule.class,
-		MergeBytecodeModule.class, ObjectCopierModule.class, SecurityModule.class,
-		SecurityBytecodeModule.class, SensorModule.class, ServiceModule.class, StreamModule.class})
+		CacheDataChangeModule.class, CacheStreamModule.class, ChangeControllerModule.class,
+		DataChangeModule.class, EventModule.class, EventDataChangeModule.class, ExprModule.class,
+		MappingModule.class, MergeModule.class, MergeBytecodeModule.class, ObjectCopierModule.class,
+		SecurityModule.class, SecurityBytecodeModule.class, SensorModule.class, ServiceModule.class,
+		StreamModule.class})
 public abstract class AbstractInformationBusTest extends AbstractIocTest {
 	@SuppressWarnings("unused")
 	@LogInstance
