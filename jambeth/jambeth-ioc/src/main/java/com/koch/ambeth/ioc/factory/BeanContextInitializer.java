@@ -38,6 +38,7 @@ import com.koch.ambeth.ioc.IBeanInstantiationProcessor;
 import com.koch.ambeth.ioc.IBeanPostProcessor;
 import com.koch.ambeth.ioc.IBeanPreProcessor;
 import com.koch.ambeth.ioc.IDisposableBean;
+import com.koch.ambeth.ioc.IExternalServiceContext;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.IPropertyLoadingBean;
@@ -189,11 +190,9 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 				new IdentityLinkedMap<>();
 		IdentityHashMap<Object, IBeanConfiguration> objectToHandledBeanConfigurationMap =
 				new IdentityHashMap<>();
-		LinkedHashMap<String, IBeanConfiguration> nameToBeanConfigurationMap =
-				new LinkedHashMap<>();
+		LinkedHashMap<String, IBeanConfiguration> nameToBeanConfigurationMap = new LinkedHashMap<>();
 		IdentityLinkedSet<Object> allLifeCycledBeansSet = new IdentityLinkedSet<>();
-		IdentityHashSet<IBeanConfiguration> alreadyHandledConfigsSet =
-				new IdentityHashSet<>();
+		IdentityHashSet<IBeanConfiguration> alreadyHandledConfigsSet = new IdentityHashSet<>();
 		ArrayList<Object> initializedOrdering = new ArrayList<>();
 		BeanContextInit beanContextInit = new BeanContextInit();
 		BeanContextInit oldBeanContextInit = currentBeanContextInitTL.get();
@@ -459,6 +458,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			IBeanConfiguration beanConfiguration, Object bean, Class<?> beanType,
 			IPropertyInfo[] propertyInfos, Set<String> alreadySpecifiedPropertyNamesSet,
 			Set<String> ignoredPropertyNamesSet) {
+		ServiceContext beanContext = beanContextInit.beanContext;
+		IExternalServiceContext externalServiceContext = beanContext.getExternalServiceContext();
 		boolean highPriorityBean = isHighPriorityBean(bean);
 		for (IPropertyInfo prop : propertyInfos) {
 			String propertyName = prop.getName();
@@ -481,6 +482,15 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 				continue;
 			}
 			Autowired autowired = prop.getAnnotation(Autowired.class);
+			if (autowired == null && externalServiceContext != null) {
+				boolean hasBeenHandled =
+						externalServiceContext.initializeAutowiring(beanContextInit, beanConfiguration,
+								beanContext, beanType, propertyInfos, alreadySpecifiedPropertyNamesSet,
+								ignoredPropertyNamesSet, this, highPriorityBean, prop);
+				if (hasBeenHandled) {
+					continue;
+				}
+			}
 			if (autowired == null && prop instanceof FieldPropertyInfo) {
 				// Handle fields only if they are explicitly annotated
 				continue;
@@ -521,7 +531,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		}
 	}
 
-	protected Object resolveBean(String fromContext, String beanName, Class<?> propertyType,
+	public Object resolveBean(String fromContext, String beanName, Class<?> propertyType,
 			boolean isHighPriorityBean, BeanContextInit beanContextInit) {
 		IServiceContextIntern beanContext = beanContextInit.beanContext;
 		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap =
@@ -537,7 +547,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			}
 			beanContext = refFromContext;
 		}
-		Object refBean = beanName != null ? beanContext.getDirectBean(beanName)
+		Object refBean = beanName != null
+				? beanContext.getDirectBean(beanName)
 				: beanContext.getDirectBean(propertyType);
 		if (refBean != null && objectToBeanConfigurationMap != null
 				&& objectToBeanConfigurationMap.containsKey(refBean)) {
@@ -610,10 +621,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			currentBeanContextInit.beanContext = beanContext;
 			currentBeanContextInit.beanContextFactory = beanContextFactory;
 			currentBeanContextInit.properties = beanContext.getService(Properties.class);
-			currentBeanContextInit.objectToBeanConfigurationMap =
-					new IdentityLinkedMap<>();
-			currentBeanContextInit.objectToHandledBeanConfigurationMap =
-					new IdentityHashMap<>();
+			currentBeanContextInit.objectToBeanConfigurationMap = new IdentityLinkedMap<>();
+			currentBeanContextInit.objectToHandledBeanConfigurationMap = new IdentityHashMap<>();
 		}
 		initializeBean(currentBeanContextInit, beanConfiguration, bean, beanConfHierarchy,
 				joinLifecycle);
@@ -656,8 +665,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		BeanContextFactory beanContextFactory = beanContextInit.beanContextFactory;
 		List<IBeanPreProcessor> preProcessors = beanContext.getPreProcessors();
 
-		ArrayList<IPropertyConfiguration> propertyConfigurations =
-				new ArrayList<>();
+		ArrayList<IPropertyConfiguration> propertyConfigurations = new ArrayList<>();
 		HashSet<String> alreadySpecifiedPropertyNamesSet = new HashSet<>();
 
 		try {
@@ -749,7 +757,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		}
 	}
 
-	protected RuntimeException maskBeanBasedException(CharSequence message,
+	public RuntimeException maskBeanBasedException(CharSequence message,
 			IBeanConfiguration beanConfiguration, IPropertyConfiguration propertyConfiguration) {
 		return maskBeanBasedException(message, null, beanConfiguration, propertyConfiguration);
 	}

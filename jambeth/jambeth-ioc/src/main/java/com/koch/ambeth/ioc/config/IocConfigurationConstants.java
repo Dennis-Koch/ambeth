@@ -1,5 +1,7 @@
 package com.koch.ambeth.ioc.config;
 
+import com.koch.ambeth.ioc.IExternalServiceContext;
+
 /*-
  * #%L
  * jambeth-ioc
@@ -26,8 +28,7 @@ import com.koch.ambeth.util.objectcollector.ICollectableControllerExtendable;
 
 @ConfigurationConstants
 public final class IocConfigurationConstants {
-	private IocConfigurationConstants() {
-	}
+	private IocConfigurationConstants() {}
 
 	/**
 	 * Switches the object collector/object pool feature on ("true") or off ("false"). Default is
@@ -71,8 +72,14 @@ public final class IocConfigurationConstants {
 	 */
 	public static final String ExplicitClassLoader = "ambeth.classloader";
 
-	@ConfigurationConstantDescription(
-			value = "Determines how the GUIThreadHelper works, if set to false, UI thread will never be used",
-			defaultValue = "true")
+	@ConfigurationConstantDescription(value = "Determines how the GUIThreadHelper works, if set to false, UI thread will never be used", defaultValue = "true")
 	public static final String JavaUiActive = "ambeth.javaUi.active";
+
+	/**
+	 * Specifies an instance of {@link IExternalServiceContext} which should be used for service
+	 * lookups when initializing Ambeth Beans. This way Ambeth can consume foreign services
+	 * transparently when using its built-in IoC functionality (e.g. services from an enclosing OSGi
+	 * container)
+	 */
+	public static final String ExternalServiceContext = "ambeth.ioc.external";
 }

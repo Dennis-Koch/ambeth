@@ -12,6 +12,10 @@
 		<version>1.0.0</version>
 	</parent>
 	
+	<properties>
+		<ambeth.version>${project.version}</ambeth.version>
+	</properties>
+	
 	<modules>
 		<module>jambeth-audit</module>
 		<module>jambeth-audit-server</module>
@@ -35,6 +39,7 @@
 		<module>jambeth-expr-exp4j</module>
 		<module>jambeth-filter</module>
 		<module>jambeth-ioc</module>
+		<module>jambeth-ioc-osgi</module>
 		<module>jambeth-job</module>
 		<module>jambeth-job-cron4j</module>
 		<module>jambeth-log</module>
@@ -486,6 +491,12 @@
 				<artifactId>jambeth-ioc-test</artifactId>
 				<version>${project.version}</version>
 				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>com.koch.ambeth</groupId>
+				<artifactId>jambeth-ioc-osgi</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 
 			<dependency>
@@ -1208,7 +1219,7 @@
 				<type>kar</type>
 				<scope>runtime</scope>
 			</dependency>
-
+			
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
 				<artifactId>jambeth-information-bus-with-persistence</artifactId>

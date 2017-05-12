@@ -107,6 +107,11 @@
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-ioc</artifactId>
 		</dependency>
+		
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-ioc-osgi</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
@@ -289,32 +294,50 @@
 					<sources>
 						<!-- specify your source dependencies here -->
 						<!-- groupId:artifactId:type:version -->
-						<source>com.koch.ambeth:jambeth-information-bus:jar:${project.version}</source>
-						<source>com.koch.ambeth:jambeth-service-rest:jar:${project.version}</source>
-						<source>com.koch.ambeth:jambeth-xml:jar:${project.version}</source>
-						<source>com.koch.ambeth:jambeth-core:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-audit:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-audit-server:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-bytecode:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-cache:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-cache-bytecode:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-cache-datachange:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-cache-server:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-cache-stream:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-core:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-datachange:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-dot:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-event:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-event-server:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-event-datachange:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-expr:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-filter:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-information-bus:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-information-bus-with-persistence:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-ioc:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-ioc-osgi:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-job:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-log:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-mapping:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-merge:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-merge-bytecode:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-merge-server:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-persistence:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-persistence-api:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-persistence-jdbc:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-platform:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-query:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-query-jdbc:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-security:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-security-bytecode:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-security-server:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-sensor:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-server:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-server-rest:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-server-with-persistence:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-service:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-service-rest:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-stream:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-util:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-xml:jar:${project.version}</source>
 					</sources>
 				</configuration>
 			</plugin>
