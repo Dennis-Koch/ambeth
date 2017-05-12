@@ -63,7 +63,11 @@ import com.koch.ambeth.util.typeinfo.ITypeInfo;
 import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
 
 public class ServiceContext
-		implements IServiceContext, IServiceContextIntern, IDisposable, IPrintable {
+		implements
+			IServiceContext,
+			IServiceContextIntern,
+			IDisposable,
+			IPrintable {
 	public static class SimpleClassNameComparator implements Comparator<Class<?>> {
 		private final ITypeInfoProvider typeInfoProvider;
 
@@ -113,6 +117,8 @@ public class ServiceContext
 
 	protected String toStringBackup;
 
+	protected IExternalServiceContext externalServiceContext;
+
 	protected IServiceContextIntern parent;
 
 	protected Set<IServiceContext> children;
@@ -125,8 +131,10 @@ public class ServiceContext
 
 	protected String name;
 
-	public ServiceContext(String name, IObjectCollector objectCollector) {
+	public ServiceContext(String name, IObjectCollector objectCollector,
+			IExternalServiceContext externalServiceContext) {
 		this.name = name;
+		this.externalServiceContext = externalServiceContext;
 		ParamChecker.assertNotNull(objectCollector, "objectCollector");
 
 		this.objectCollector = objectCollector;
@@ -176,6 +184,11 @@ public class ServiceContext
 			return this;
 		}
 		return parent.getRoot();
+	}
+
+	public IExternalServiceContext getExternalServiceContext() {
+		checkNotDisposed();
+		return externalServiceContext;
 	}
 
 	public BeanContextFactory getBeanContextFactory() {
@@ -764,6 +777,9 @@ public class ServiceContext
 		}
 		else if (service == null && parent != null && !SearchType.CURRENT.equals(searchType)) {
 			service = parent.getService(serviceType, false);
+		}
+		if (service == null && externalServiceContext != null) {
+			service = externalServiceContext.getServiceByType(serviceType);
 		}
 		return (T) service;
 	}

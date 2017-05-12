@@ -28,6 +28,7 @@ import com.koch.ambeth.ioc.IBeanInstantiationProcessor;
 import com.koch.ambeth.ioc.IBeanPostProcessor;
 import com.koch.ambeth.ioc.IBeanPreProcessor;
 import com.koch.ambeth.ioc.IDisposableBean;
+import com.koch.ambeth.ioc.IExternalServiceContext;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.ServiceContext;
 import com.koch.ambeth.ioc.accessor.AccessorTypeProvider;
@@ -323,7 +324,10 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			preProcessors.add(propertiesPreProcessor);
 			preProcessors.add(loggerInstancePreProcessor);
 			preProcessors.add(threadLocalCleanupPreProcessor);
-			return parentContextFactory.create("bootstrap", null, null, preProcessors, null);
+			IExternalServiceContext externalServiceContext =
+					(IExternalServiceContext) properties.get(IocConfigurationConstants.ExternalServiceContext);
+			return parentContextFactory.create("bootstrap", null, null, preProcessors, null,
+					externalServiceContext);
 		}
 		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
@@ -484,18 +488,19 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 	public IServiceContext create(String contextName,
 			IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
 			List<IBeanInstantiationProcessor> instantiationProcessors,
-			List<IBeanPreProcessor> preProcessors, List<IBeanPostProcessor> postProcessors) {
+			List<IBeanPreProcessor> preProcessors, List<IBeanPostProcessor> postProcessors,
+			IExternalServiceContext externalServiceContext) {
 		return create(contextName, registerPhaseDelegate, instantiationProcessors, preProcessors,
-				postProcessors, emptyServiceModules);
+				postProcessors, externalServiceContext, emptyServiceModules);
 	}
 
 	public IServiceContext create(String contextName,
 			IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
 			List<IBeanInstantiationProcessor> instantiationProcessors,
 			List<IBeanPreProcessor> preProcessors, List<IBeanPostProcessor> postProcessors,
-			Class<?>... serviceModuleTypes) {
-		ServiceContext context =
-				new ServiceContext(generateUniqueContextName(contextName, null), objectCollector);
+			IExternalServiceContext externalServiceContext, Class<?>... serviceModuleTypes) {
+		ServiceContext context = new ServiceContext(generateUniqueContextName(contextName, null),
+				objectCollector, externalServiceContext);
 
 		if (registerPhaseDelegate != null) {
 			try {
