@@ -1,0 +1,5 @@
+-exportcontents: \
+    com.koch.ambeth.*;-noimport:=true
+Import-Package: \
+    org.osgi.service.component.annotations;resolution:=optional, \
+    *
