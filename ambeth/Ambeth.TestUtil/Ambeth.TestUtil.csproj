@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{BD4AEFFC-FB36-4BCF-8DE6-3A96AAD9BD2C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Ambeth.TestUtil</RootNamespace>
+    <AssemblyName>net-jambeth-testutil-$(ProjectVersion)</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_NET4\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release_NET4\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core">
+      <HintPath>..\Ambeth.Util\libs\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="testutil\AbstractCacheRetrieverMock.cs" />
+    <Compile Include="testutil\AbstractIndependentClientTest.cs" />
+    <Compile Include="ioc\TestUtilModule.cs" />
+    <Compile Include="testutil\DummyService.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.Bytecode\Ambeth.Bytecode.csproj">
+      <Project>{CBA7AD4B-AB18-4AE9-BEEA-15A036CD6BC5}</Project>
+      <Name>Ambeth.Bytecode</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Cache.Bytecode\Ambeth.Cache.Bytecode.csproj">
+      <Project>{7782C99C-31AB-40E7-B113-2615018D3916}</Project>
+      <Name>Ambeth.Cache.Bytecode</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.CacheDataChange\Ambeth.CacheDataChange.csproj">
+      <Project>{575A599C-165F-47F1-9193-A23E884C96DD}</Project>
+      <Name>Ambeth.CacheDataChange</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Cache\Ambeth.Cache.csproj">
+      <Project>{5C497020-6155-40CD-9C97-3C273718FE2E}</Project>
+      <Name>Ambeth.Cache</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Event\Ambeth.Event.csproj">
+      <Project>{CF078F90-70FB-49BB-842F-D5B78D415108}</Project>
+      <Name>Ambeth.Event</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.IOC.Test\Ambeth.IOC.Test.csproj">
+      <Project>{702447E8-19E6-4441-8E55-3F43E5E48FE9}</Project>
+      <Name>Ambeth.IOC.Test</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.csproj">
+      <Project>{FB7182DA-BBB9-4434-A936-10A29635E6D3}</Project>
+      <Name>Ambeth.IOC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Mapping\Ambeth.Mapping.csproj">
+      <Project>{02859B45-2305-4FD2-B504-245DE8E8595D}</Project>
+      <Name>Ambeth.Mapping</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge.Bytecode\Ambeth.Merge.Bytecode.csproj">
+      <Project>{F9F3DAF6-681C-4039-8F2B-EBB6E6A1B4D7}</Project>
+      <Name>Ambeth.Merge.Bytecode</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge\Ambeth.Merge.csproj">
+      <Project>{D8C0CA71-B7FC-4699-97C2-4DEB72EEC485}</Project>
+      <Name>Ambeth.Merge</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.csproj">
+      <Project>{EC138571-28DF-4944-8EF2-D31FB186A645}</Project>
+      <Name>Ambeth.Service</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.csproj">
+      <Project>{271E6992-6B52-41EE-9D4C-5A56FD173C2E}</Project>
+      <Name>Ambeth.Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

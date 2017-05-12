@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings>
+
+  <entity class="de.osthus.ambeth.cache.valueholdercontainer.Material">
+    <attributes>
+      <id name="Id" />
+      <version name="Version" />
+      <basic name="Name" />
+      <basic name="Names" />
+      <basic name="EmbMat.Name" />
+      <basic name="EmbMat.Names" />
+      <basic name="EmbMat.EmbMat2.Name2" />
+      <basic name="EmbMat.EmbMat2.Names2" />
+      <to-many name="Types" target-entity="de.osthus.ambeth.cache.valueholdercontainer.MaterialType" />
+      <to-many name="ChildMatTypes" target-entity="de.osthus.ambeth.cache.valueholdercontainer.MaterialType" />
+      <to-one name="ChildMatType" target-entity="de.osthus.ambeth.cache.valueholdercontainer.MaterialType" />
+      <to-one name="EmbMat.EmbMatType" target-entity="de.osthus.ambeth.cache.valueholdercontainer.MaterialType" />
+      <to-one name="EmbMat.EmbMat2.EmbMatType2" target-entity="de.osthus.ambeth.cache.valueholdercontainer.MaterialType" />
+      <to-one name="EmbMat3.EmbMatType" target-entity="de.osthus.ambeth.cache.valueholdercontainer.MaterialType" />
+    </attributes>
+  </entity>
+
+  <entity class="de.osthus.ambeth.cache.valueholdercontainer.MaterialType">
+    <attributes>
+      <id name="Id" />
+      <version name="Version" />
+      <ignore name="Temp1" />
+      <ignore name="Temp2" />
+    </attributes>
+  </entity>
+
+</entity-mappings>

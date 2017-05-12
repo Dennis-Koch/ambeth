@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://www.osthus.de/ambeth/ambeth_orm_1_2">
+
+  <entity class="de.osthus.ambeth.test.model.Material">
+    <attributes>
+      <id name="Id" />
+      <version name="Version" />
+      <to-one name="MaterialGroup" target-entity="de.osthus.ambeth.test.model.MaterialGroup" />
+      <basic name="CreatedOn" created-on="true" />
+      <basic name="CreatedBy" created-by="true" />
+      <basic name="UpdatedOn" updated-on="true" />
+      <basic name="UpdatedBy" updated-by="true" />
+    </attributes>
+  </entity>
+
+  <entity class="de.osthus.ambeth.test.model.MaterialGroup">
+    <attributes>
+      <id name="Id" />
+      <version name="Version" />
+    </attributes>
+  </entity>
+
+  <entity class="de.osthus.ambeth.test.model.EntityA">
+    <attributes>
+      <id name="Id" />
+      <version name="Version" />
+      <to-many name="EntityBs" target-entity="de.osthus.ambeth.test.model.EntityB" />
+    </attributes>
+  </entity>
+
+  <entity class="de.osthus.ambeth.test.model.EntityB">
+    <attributes>
+      <id name="Id" />
+      <version name="Version" />
+      <to-one name="EntityA" target-entity="de.osthus.ambeth.test.model.EntityA" />
+    </attributes>
+  </entity>
+
+</entity-mappings>

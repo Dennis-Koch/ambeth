@@ -1,0 +1,175 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{EC138571-28DF-4944-8EF2-D31FB186A645}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth</RootNamespace>
+    <AssemblyName>net-jambeth-service-$(ProjectVersion)</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_NET4\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release_NET4\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core, Version=1.2.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Ambeth.Util\libs\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\ClearAllCachesEvent.cs" />
+    <Compile Include="ambeth\cache\IServiceResultProcessor.cs" />
+    <Compile Include="ambeth\cache\IServiceResultProcessorExtendable.cs" />
+    <Compile Include="ambeth\cache\IServiceResultProcessorRegistry.cs" />
+    <Compile Include="ambeth\cache\ServiceResultProcessorRegistry.cs" />
+    <Compile Include="ambeth\config\ServiceConfigurationConstants.cs" />
+    <Compile Include="ambeth\exceptions\OptimisticLockException.cs" />
+    <Compile Include="ambeth\exceptions\ReconnectException.cs" />
+    <Compile Include="ambeth\log\interceptor\LogInterceptor.cs" />
+    <Compile Include="ambeth\log\LoggingPostProcessor.cs" />
+    <Compile Include="ambeth\merge\IEntityMetaDataRefresher.cs" />
+    <Compile Include="ambeth\merge\IValueObjectConfig.cs" />
+    <Compile Include="ambeth\merge\ValueObjectMemberType.cs" />
+    <Compile Include="ambeth\metadata\IntermediateEmbeddedRelationMember.cs" />
+    <Compile Include="ambeth\metadata\IntermediateEmbeddedPrimitiveMember.cs" />
+    <Compile Include="ambeth\metadata\IntermediateRelationMember.cs" />
+    <Compile Include="ambeth\metadata\IntermediatePrimitiveMember.cs" />
+    <Compile Include="ambeth\metadata\Embeddable.cs" />
+    <Compile Include="ambeth\model\ILoadContainer.cs" />
+    <Compile Include="ambeth\merge\model\IObjRef.cs" />
+    <Compile Include="ambeth\model\IObjRelation.cs" />
+    <Compile Include="ambeth\model\IObjRelationResult.cs" />
+    <Compile Include="ambeth\model\ISecurityScope.cs" />
+    <Compile Include="ambeth\model\IServiceResult.cs" />
+    <Compile Include="ambeth\proxy\AbstractCascadePostProcessor.cs" />
+    <Compile Include="ambeth\proxy\AmbethInvocation.cs" />
+    <Compile Include="ambeth\proxy\IBehaviorTypeExtractor.cs" />
+    <Compile Include="ambeth\proxy\CustomInvocation.cs" />
+    <Compile Include="ambeth\proxy\ServiceAttribute.cs" />
+    <Compile Include="ambeth\proxy\ServiceClientAttribute.cs" />
+    <Compile Include="ambeth\proxy\SyncToAsyncUtil.cs" />
+    <Compile Include="ambeth\remote\AsyncClientServiceInterceptorBuilder.cs" />
+    <Compile Include="ambeth\remote\ClientServiceBean.cs" />
+    <Compile Include="ambeth\remote\IClientServiceInterceptorBuilder.cs" />
+    <Compile Include="ambeth\remote\IRemoteInterceptor.cs" />
+    <Compile Include="ambeth\remote\IRemoteTargetProvider.cs" />
+    <Compile Include="ambeth\remote\SyncClientServiceInterceptorBuilder.cs" />
+    <Compile Include="ambeth\service\RethrownException.cs" />
+    <Compile Include="ambeth\service\IProcessServiceWCF.cs" />
+    <Compile Include="ambeth\service\IProcessService.cs" />
+    <Compile Include="ambeth\service\DefaultServiceUrlProvider.cs" />
+    <Compile Include="ambeth\service\IClientServiceFactory.cs" />
+    <Compile Include="ambeth\merge\model\IEntityMetaData.cs" />
+    <Compile Include="ambeth\merge\IEntityMetaDataProvider.cs" />
+    <Compile Include="ambeth\service\IExceptionHandler.cs" />
+    <Compile Include="ambeth\service\interceptor\SyncCallInterceptor.cs" />
+    <Compile Include="ambeth\service\IOfflineListener.cs" />
+    <Compile Include="ambeth\service\IOfflineListenerExtendable.cs" />
+    <Compile Include="ambeth\service\IServiceByNameProvider.cs" />
+    <Compile Include="ambeth\model\IServiceDescription.cs" />
+    <Compile Include="ambeth\service\IServiceExtendable.cs" />
+    <Compile Include="ambeth\service\IServiceFactory.cs" />
+    <Compile Include="ambeth\service\IServiceUrlProvider.cs" />
+    <Compile Include="ambeth\service\NoOpOfflineExtendable.cs" />
+    <Compile Include="ambeth\service\ServiceByNameProvider.cs" />
+    <Compile Include="ambeth\service\ServiceFactory.cs" />
+    <Compile Include="ambeth\transfer\AmbethServiceException.cs" />
+    <Compile Include="ambeth\transfer\ListOfIObjRef.cs" />
+    <Compile Include="ambeth\transfer\SecurityScope.cs" />
+    <Compile Include="ambeth\transfer\ServiceDescription.cs" />
+    <Compile Include="ambeth\transfer\ServiceResult.cs" />
+    <Compile Include="ambeth\typeinfo\PropertyInfoItemASM.cs" />
+    <Compile Include="ambeth\typeinfo\FieldInfoItemASM.cs" />
+    <Compile Include="ambeth\typeinfo\PropertyInfoItem.cs" />
+    <Compile Include="ambeth\typeinfo\TypeInfoItem.cs" />
+    <Compile Include="ambeth\typeinfo\TypeInfoProvider.cs" />
+    <Compile Include="ambeth\typeinfo\TypeInfoProviderFactory.cs" />
+    <Compile Include="ambeth\ioc\ServiceModule.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ambeth\security\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.csproj">
+      <Project>{FB7182DA-BBB9-4434-A936-10A29635E6D3}</Project>
+      <Name>Ambeth.IOC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.csproj">
+      <Project>{E5A70D5C-EE4F-40FA-BE23-5352D40C7B33}</Project>
+      <Name>Ambeth.Log</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.csproj">
+      <Project>{271e6992-6b52-41ee-9d4c-5a56fd173c2e}</Project>
+      <Name>Ambeth.Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\typeinfo\FieldInfoItem.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\xml\IXmlTypeHelper.cs" />
+    <Compile Include="ambeth\xml\XmlTypeHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\merge\model\AbstractMethodLifecycleExtension.cs" />
+    <Compile Include="ambeth\merge\model\IEntityLifecycleExtendable.cs" />
+    <Compile Include="ambeth\merge\model\IEntityLifecycleExtension.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\proxy\IMethodLevelBehavior.cs" />
+    <Compile Include="ambeth\proxy\MethodLevelBehavior.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\proxy\NoBehavior.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\proxy\MethodLevelHashMap.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\metadata\EmbeddedMember.cs" />
+    <Compile Include="ambeth\metadata\IEmbeddedMember.cs" />
+    <Compile Include="ambeth\metadata\IPrimitiveMemberWrite.cs" />
+    <Compile Include="ambeth\metadata\IRelationMemberWrite.cs" />
+    <Compile Include="ambeth\metadata\Member.cs" />
+    <Compile Include="ambeth\metadata\PrimitiveMember.cs" />
+    <Compile Include="ambeth\metadata\RelationMember.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

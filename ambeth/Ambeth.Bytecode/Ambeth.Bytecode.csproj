@@ -1,0 +1,145 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{CBA7AD4B-AB18-4AE9-BEEA-15A036CD6BC5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth</RootNamespace>
+    <AssemblyName>net-jambeth-bytecode-$(ProjectVersion)</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_NET4\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release_NET4\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core, Version=2.5.1.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Ambeth.Util\libs\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\abstractobject\IImplementAbstractObjectFactory.cs" />
+    <Compile Include="ambeth\bytecode\abstractobject\IImplementAbstractObjectFactoryExtendable.cs" />
+    <Compile Include="ambeth\bytecode\abstractobject\ImplementAbstractObjectEnhancementHint.cs" />
+    <Compile Include="ambeth\bytecode\behavior\AbstractBehavior.cs" />
+    <Compile Include="ambeth\bytecode\behavior\AbstractBehaviorGroup.cs" />
+    <Compile Include="ambeth\bytecode\behavior\BytecodeBehaviorState.cs" />
+    <Compile Include="ambeth\bytecode\behavior\WaitForApplyBehaviorDelegate.cs" />
+    <Compile Include="ambeth\bytecode\behavior\WaitForApplyBehavior.cs" />
+    <Compile Include="ambeth\bytecode\behavior\IBytecodeBehavior.cs" />
+    <Compile Include="ambeth\bytecode\behavior\IBytecodeBehaviorExtendable.cs" />
+    <Compile Include="ambeth\bytecode\behavior\IBytecodeBehaviorState.cs" />
+    <Compile Include="ambeth\bytecode\behavior\ImplementAbstractObjectBehavior.cs" />
+    <Compile Include="ambeth\bytecode\behavior\PublicConstructorBehavior.cs" />
+    <Compile Include="ambeth\bytecode\ConstructorInstance.cs" />
+    <Compile Include="ambeth\bytecode\core\ByVisitor.cs" />
+    <Compile Include="ambeth\bytecode\PropertyInstance.cs" />
+    <Compile Include="ambeth\bytecode\FScript.cs" />
+    <Compile Include="ambeth\bytecode\Script.cs" />
+    <Compile Include="ambeth\bytecode\FieldInstance.cs" />
+    <Compile Include="ambeth\bytecode\core\AmbethClassLoader.cs" />
+    <Compile Include="ambeth\bytecode\core\BytecodeClassLoader.cs" />
+    <Compile Include="ambeth\bytecode\core\BytecodeEnhancer.cs" />
+    <Compile Include="ambeth\bytecode\MethodInstance.cs" />
+    <Compile Include="ambeth\bytecode\visitor\ClassWriter.cs" />
+    <Compile Include="ambeth\bytecode\IBuildVisitorDelegate.cs" />
+    <Compile Include="ambeth\bytecode\IBytecodeClassLoader.cs" />
+    <Compile Include="ambeth\bytecode\MethodGenerator.cs" />
+    <Compile Include="ambeth\bytecode\visitor\ClassVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\CompareOperator.cs" />
+    <Compile Include="ambeth\bytecode\IOverrideConstructorDelegate.cs" />
+    <Compile Include="ambeth\bytecode\visitor\IILGenerator.cs" />
+    <Compile Include="ambeth\bytecode\visitor\TraceFieldVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\TraceILGenerator.cs" />
+    <Compile Include="ambeth\bytecode\visitor\TraceMethodVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\TraceClassVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\IFieldVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\IClassVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\IMethodVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\MethodWriter.cs" />
+    <Compile Include="ambeth\bytecode\visitor\MethodVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\FieldVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\InterfaceAdder.cs" />
+    <Compile Include="ambeth\bytecode\visitor\InterfaceToClassVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\LogImplementationsClassVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\PublicConstructorVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\SuppressLinesClassVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\SuppressLinesMethodVisitor.cs" />
+    <Compile Include="ambeth\ioc\BytecodeModule.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.Event\Ambeth.Event.csproj">
+      <Project>{CF078F90-70FB-49BB-842F-D5B78D415108}</Project>
+      <Name>Ambeth.Event</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.csproj">
+      <Project>{FB7182DA-BBB9-4434-A936-10A29635E6D3}</Project>
+      <Name>Ambeth.IOC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.csproj">
+      <Project>{E5A70D5C-EE4F-40FA-BE23-5352D40C7B33}</Project>
+      <Name>Ambeth.Log</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge\Ambeth.Merge.csproj">
+      <Project>{D8C0CA71-B7FC-4699-97C2-4DEB72EEC485}</Project>
+      <Name>Ambeth.Merge</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.csproj">
+      <Project>{EC138571-28DF-4944-8EF2-D31FB186A645}</Project>
+      <Name>Ambeth.Service</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.csproj">
+      <Project>{271E6992-6B52-41EE-9D4C-5A56FD173C2E}</Project>
+      <Name>Ambeth.Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\IValueResolveDelegate.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\NoOpValueResolveDelegate.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\ScriptWithIndex.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\config\BytecodeConfigurationConstants.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

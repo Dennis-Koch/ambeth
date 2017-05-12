@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings>
+
+  <entity class="de.osthus.ambeth.test.model.Material">
+    <attributes>
+      <id name="Id" />
+      <version name="Version" />
+      <to-one name="MaterialGroup" target-entity="de.osthus.ambeth.test.model.MaterialGroup" />
+      <basic name="CreatedOn" created-on="true" />
+      <basic name="CreatedBy" created-by="true" />
+      <basic name="UpdatedOn" updated-on="true" />
+      <basic name="UpdatedBy" updated-by="true" />
+    </attributes>
+  </entity>
+
+  <entity class="de.osthus.ambeth.test.model.MaterialGroup">
+    <attributes>
+      <id name="Id" />
+      <version name="Version" />
+    </attributes>
+  </entity>
+
+</entity-mappings>

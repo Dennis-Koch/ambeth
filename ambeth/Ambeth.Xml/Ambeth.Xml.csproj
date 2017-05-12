@@ -1,0 +1,188 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{5693E87D-AE36-41AD-A6CC-232062ECD865}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth</RootNamespace>
+    <AssemblyName>net-jambeth-xml-$(ProjectVersion)</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_NET4\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release_NET4\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core">
+      <HintPath>..\Ambeth.Util\libs\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\config\XmlConfigurationConstants.cs" />
+    <Compile Include="ambeth\util\ClasspathScanner.cs" />
+    <Compile Include="ambeth\util\IClasspathScanner.cs" />
+    <Compile Include="ambeth\util\ModuleScanner.cs" />
+    <Compile Include="ambeth\xml\ICyclicXmlController.cs" />
+    <Compile Include="ambeth\xml\namehandler\ObjRefElementHandler.cs" />
+    <Compile Include="ambeth\xml\namehandler\ObjRefWrapperElementHandler.cs" />
+    <Compile Include="ambeth\xml\pending\AbstractObjectCommand.cs" />
+    <Compile Include="ambeth\xml\pending\ArraySetterCommand.cs" />
+    <Compile Include="ambeth\xml\pending\CollectionSetterCommand.cs" />
+    <Compile Include="ambeth\xml\pending\CommandBuilder.cs" />
+    <Compile Include="ambeth\xml\pending\PrefetchFutureHandler.cs" />
+    <Compile Include="ambeth\xml\pending\ICommandBuilder.cs" />
+    <Compile Include="ambeth\xml\pending\ICommandTypeExtendable.cs" />
+    <Compile Include="ambeth\xml\pending\ICommandTypeRegistry.cs" />
+    <Compile Include="ambeth\xml\pending\IObjectCommand.cs" />
+    <Compile Include="ambeth\xml\pending\IObjectFuture.cs" />
+    <Compile Include="ambeth\xml\pending\IObjectFutureHandler.cs" />
+    <Compile Include="ambeth\xml\pending\IObjectFutureHandlerExtendable.cs" />
+    <Compile Include="ambeth\xml\pending\IObjectFutureHandlerRegistry.cs" />
+    <Compile Include="ambeth\xml\pending\MergeCommand.cs" />
+    <Compile Include="ambeth\xml\pending\ObjectSetterCommand.cs" />
+    <Compile Include="ambeth\xml\pending\ObjRefFuture.cs" />
+    <Compile Include="ambeth\xml\pending\ObjRefFutureHandler.cs" />
+    <Compile Include="ambeth\xml\pending\PrefetchFuture.cs" />
+    <Compile Include="ambeth\xml\pending\ResolveObjectCommand.cs" />
+    <Compile Include="ambeth\xml\simple\ExtendedStreamReader.cs" />
+    <Compile Include="ambeth\xml\XmlTypeNotFoundException.cs" />
+    <Compile Include="ambeth\xml\CyclicXmlDictionary.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ambeth\xml\CyclicXmlHandler.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ambeth\xml\CyclicXmlReader.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ambeth\xml\ICyclicXmlDictionary.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ambeth\xml\ICyclicXmlHandler.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ambeth\xml\ICyclicXmlWriter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ambeth\xml\IXmlTypeExtendable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ambeth\xml\IXmlTypeKey.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ambeth\xml\IXmlTypeRegistry.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ambeth\xml\namehandler\TimeSpanElementHandler.cs" />
+    <Compile Include="ambeth\xml\XmlTransferScanner.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ambeth\xml\XmlTypeKey.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ambeth\xml\XmlTypeRegistry.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ambeth\ioc\XmlModule.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.csproj">
+      <Project>{FB7182DA-BBB9-4434-A936-10A29635E6D3}</Project>
+      <Name>Ambeth.IOC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.csproj">
+      <Project>{E5A70D5C-EE4F-40FA-BE23-5352D40C7B33}</Project>
+      <Name>Ambeth.Log</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge\Ambeth.Merge.csproj">
+      <Project>{D8C0CA71-B7FC-4699-97C2-4DEB72EEC485}</Project>
+      <Name>Ambeth.Merge</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.csproj">
+      <Project>{EC138571-28DF-4944-8EF2-D31FB186A645}</Project>
+      <Name>Ambeth.Service</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.csproj">
+      <Project>{271E6992-6B52-41EE-9D4C-5A56FD173C2E}</Project>
+      <Name>Ambeth.Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\xml\CyclicXmlController.cs" />
+    <Compile Include="ambeth\xml\CyclicXmlWriter.cs" />
+    <Compile Include="ambeth\xml\DefaultXmlReader.cs" />
+    <Compile Include="ambeth\xml\DefaultXmlWriter.cs" />
+    <Compile Include="ambeth\xml\ICyclicObjectHandler.cs" />
+    <Compile Include="ambeth\xml\ICyclicXmlReader.cs" />
+    <Compile Include="ambeth\xml\INameBasedHandler.cs" />
+    <Compile Include="ambeth\xml\INameBasedHandlerExtendable.cs" />
+    <Compile Include="ambeth\xml\IReader.cs" />
+    <Compile Include="ambeth\xml\ITypeBasedHandler.cs" />
+    <Compile Include="ambeth\xml\ITypeBasedHandlerExtendable.cs" />
+    <Compile Include="ambeth\xml\IWriter.cs" />
+    <Compile Include="ambeth\xml\namehandler\ArrayNameHandler.cs" />
+    <Compile Include="ambeth\xml\namehandler\CollectionElementHandler.cs" />
+    <Compile Include="ambeth\xml\namehandler\DateElementHandler.cs" />
+    <Compile Include="ambeth\xml\namehandler\EnumNameHandler.cs" />
+    <Compile Include="ambeth\xml\namehandler\StringNameHandler.cs" />
+    <Compile Include="ambeth\xml\typehandler\AbstractHandler.cs" />
+    <Compile Include="ambeth\xml\namehandler\ClassNameHandler.cs" />
+    <Compile Include="ambeth\xml\typehandler\NumberTypeHandler.cs" />
+    <Compile Include="ambeth\xml\typehandler\ObjectTypeHandler.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\ioc\BootstrapScannerModule.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\xml\postprocess\IPostProcessReader.cs" />
+    <Compile Include="ambeth\xml\postprocess\IPostProcessWriter.cs" />
+    <Compile Include="ambeth\xml\postprocess\IXmlPostProcessor.cs" />
+    <Compile Include="ambeth\xml\postprocess\IXmlPostProcessorExtendable.cs" />
+    <Compile Include="ambeth\xml\postprocess\IXmlPostProcessorRegistry.cs" />
+    <Compile Include="ambeth\xml\postprocess\merge\MergeArraySetterCommand.cs" />
+    <Compile Include="ambeth\xml\postprocess\merge\MergeXmlPostProcessor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\xml\simple\SimpleXmlController.cs" />
+    <Compile Include="ambeth\xml\simple\SimpleXmlReader.cs" />
+    <Compile Include="ambeth\xml\simple\SimpleXmlWriter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\merge\CUDResultPrinter.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,190 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{336798D1-D839-4256-B93B-B738B5BF4B3B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth</RootNamespace>
+    <AssemblyName>net-jambeth-security-$(ProjectVersion)</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_NET4\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release_NET4\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core, Version=1.2.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Ambeth.Util\libs\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\config\PrivilegeConfigurationConstants.cs" />
+    <Compile Include="ambeth\crypto\AESEncryption.cs" />
+    <Compile Include="ambeth\crypto\IEncryption.cs" />
+    <Compile Include="ambeth\privilege\factory\IEntityPrivilegeFactory.cs" />
+    <Compile Include="ambeth\privilege\factory\IEntityPrivilegeFactoryProvider.cs" />
+    <Compile Include="ambeth\privilege\factory\IEntityTypePrivilegeFactory.cs" />
+    <Compile Include="ambeth\privilege\factory\IEntityTypePrivilegeFactoryProvider.cs" />
+    <Compile Include="ambeth\privilege\model\ITypePrivilegeResult.cs" />
+    <Compile Include="ambeth\privilege\model\IPrivilegeResult.cs" />
+    <Compile Include="ambeth\privilege\model\impl\AbstractPrivilege.cs" />
+    <Compile Include="ambeth\privilege\model\impl\AbstractTypePrivilege.cs" />
+    <Compile Include="ambeth\privilege\model\impl\AllowAllPrivilege.cs" />
+    <Compile Include="ambeth\privilege\model\impl\DefaultPrivilegeImpl.cs" />
+    <Compile Include="ambeth\privilege\model\impl\DefaultTypePrivilegeImpl.cs" />
+    <Compile Include="ambeth\privilege\model\impl\DefaultTypePrivilegeSimpleImpl.cs" />
+    <Compile Include="ambeth\privilege\model\impl\SimplePrivilegeImpl.cs" />
+    <Compile Include="ambeth\privilege\model\impl\SimpleTypePrivilegeImpl.cs" />
+    <Compile Include="ambeth\privilege\model\impl\SkipAllTypePrivilege.cs" />
+    <Compile Include="ambeth\privilege\model\impl\TypePropertyPrivilegeImpl.cs" />
+    <Compile Include="ambeth\privilege\model\IPrivilege.cs" />
+    <Compile Include="ambeth\privilege\IPrivilegeProvider.cs" />
+    <Compile Include="ambeth\privilege\model\ITypePrivilege.cs" />
+    <Compile Include="ambeth\privilege\model\ITypePropertyPrivilege.cs" />
+    <Compile Include="ambeth\privilege\PrivilegeProvider.cs" />
+    <Compile Include="ambeth\security\CallPermission.cs" />
+    <Compile Include="ambeth\security\config\SecurityConfigurationConstants.cs" />
+    <Compile Include="ambeth\security\StringSecurityScope.cs" />
+    <Compile Include="ambeth\security\SecurityContextPassword.cs" />
+    <Compile Include="ambeth\security\SecurityContextUserName.cs" />
+    <Compile Include="ambeth\security\IActionPermission.cs" />
+    <Compile Include="ambeth\security\PermissionApplyType.cs" />
+    <Compile Include="ambeth\security\ISecurityManager.cs" />
+    <Compile Include="ambeth\security\IServiceFilterExtendable.cs" />
+    <Compile Include="ambeth\security\ReadPermission.cs" />
+    <Compile Include="ambeth\security\IServiceFilter.cs" />
+    <Compile Include="ambeth\security\IServicePermission.cs" />
+    <Compile Include="ambeth\security\IAuthorization.cs" />
+    <Compile Include="ambeth\security\IAuthorizationManager.cs" />
+    <Compile Include="ambeth\service\IPrivilegeService.cs" />
+    <Compile Include="ambeth\service\IPrivilegeServiceWCF.cs" />
+    <Compile Include="ambeth\service\ISecurityService.cs" />
+    <Compile Include="ambeth\service\ISecurityServiceWCF.cs" />
+    <Compile Include="ambeth\service\PrivilegeServiceModelProvider.cs" />
+    <Compile Include="ambeth\service\SecurityServiceDelegate.cs" />
+    <Compile Include="ambeth\service\SecurityServiceModelProvider.cs" />
+    <Compile Include="ambeth\ioc\PrivilegeModule.cs" />
+    <Compile Include="ambeth\ioc\SecurityModule.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.DataChange\Ambeth.DataChange.csproj">
+      <Project>{fd72ac81-65e4-46ce-ad09-efdabc84f384}</Project>
+      <Name>Ambeth.DataChange</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Event\Ambeth.Event.csproj">
+      <Project>{cf078f90-70fb-49bb-842f-d5b78d415108}</Project>
+      <Name>Ambeth.Event</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.csproj">
+      <Project>{FB7182DA-BBB9-4434-A936-10A29635E6D3}</Project>
+      <Name>Ambeth.IOC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.csproj">
+      <Project>{E5A70D5C-EE4F-40FA-BE23-5352D40C7B33}</Project>
+      <Name>Ambeth.Log</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge\Ambeth.Merge.csproj">
+      <Project>{d8c0ca71-b7fc-4699-97c2-4deb72eec485}</Project>
+      <Name>Ambeth.Merge</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.csproj">
+      <Project>{EC138571-28DF-4944-8EF2-D31FB186A645}</Project>
+      <Name>Ambeth.Service</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.csproj">
+      <Project>{271E6992-6B52-41EE-9D4C-5A56FD173C2E}</Project>
+      <Name>Ambeth.Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\privilege\model\ReadPermission.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\privilege\model\IPropertyPrivilege.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\privilege\model\impl\DenyAllPrivilege.cs" />
+    <Compile Include="ambeth\privilege\model\impl\PropertyPrivilegeImpl.cs" />
+    <Compile Include="ambeth\privilege\transfer\IPrivilegeOfService.cs" />
+    <Compile Include="ambeth\privilege\transfer\IPropertyPrivilegeOfService.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\privilege\transfer\ITypePrivilegeOfService.cs" />
+    <Compile Include="ambeth\privilege\transfer\ITypePropertyPrivilegeOfService.cs" />
+    <Compile Include="ambeth\privilege\transfer\PrivilegeOfService.cs" />
+    <Compile Include="ambeth\privilege\transfer\PropertyPrivilegeOfService.cs" />
+    <Compile Include="ambeth\privilege\transfer\TypePrivilegeOfService.cs" />
+    <Compile Include="ambeth\privilege\transfer\TypePropertyPrivilegeOfService.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\privilege\factory\DefaultEntityPrivilegeFactory.cs" />
+    <Compile Include="ambeth\privilege\factory\DefaultEntityTypePrivilegeFactory.cs" />
+    <Compile Include="ambeth\privilege\factory\EntityPrivilegeEnhancementHint.cs" />
+    <Compile Include="ambeth\privilege\factory\EntityPrivilegeFactoryProvider.cs" />
+    <Compile Include="ambeth\privilege\factory\EntityTypePrivilegeEnhancementHint.cs" />
+    <Compile Include="ambeth\privilege\factory\EntityTypePrivilegeFactoryProvider.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\ISecurityContext.cs" />
+    <Compile Include="ambeth\security\ISecurityContextHolder.cs" />
+    <Compile Include="ambeth\security\SecurityContext.cs" />
+    <Compile Include="ambeth\security\SecurityContextHolder.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\IAuthorizationChangeListener.cs" />
+    <Compile Include="ambeth\security\IAuthorizationChangeListenerExtendable.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\SecurityContextType.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\SecurityContextImpl.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\IAuthentication.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\PasswordType.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\privilege\model\impl\PrivilegeResult.cs" />
+    <Compile Include="ambeth\privilege\model\impl\TypePrivilegeResult.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

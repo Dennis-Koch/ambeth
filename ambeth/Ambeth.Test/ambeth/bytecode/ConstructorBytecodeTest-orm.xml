@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://osthus.de/ambeth/ambeth_orm_2_0">
+
+	<entity-mappings>
+		<external-entity class="De.Osthus.Ambeth.Bytecode.TestEntityWithNonDefaultConstructor" />
+	</entity-mappings>
+	
+</or-mappings>
