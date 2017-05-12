@@ -176,7 +176,7 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 								}
 							}, frameworkModules);
 				}
-				if (applicationModules.length > 0) {
+				if (applicationModules.length > 0 || frameworkModules.length == 0) {
 					currentBeanContext = currentBeanContext.createService("application",
 							new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
 								@Override
