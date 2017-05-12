@@ -22,7 +22,7 @@ As you can imagine, while taking a first look at the table of contents, the fram
 This document is separated into 5 sections. The sections are described in the next chapters.
 \subsection{Modules}
 
-The \prettyref{ambeth:modules} are fragments of Ambeth that can be bundled together to deliver a certain kind of functionality. There is an implicit dependency between those modules based on functionality and just using a single module without anything else will not work and not make any sense in most cases. The dependencies between those modules are managed with \prettyref{stack:maven}. To support a faster setup of your environment the
+The \prettyref{ambeth:modules} are fragments of Ambeth that can be bundled together to deliver a certain kind of functionality. There is an implicit dependency between those modules based on functionality and just using a single module without anything else will not work and not make any sense in most cases. The dependencies between those modules are managed with Maven. To support a faster setup of your environment the
 necessary Maven dependency snippets are provided for each module. For questions about Maven, please refer to the \prettyref{stack:maven} chapter of this manual. Because of the increasing amount of Ambeth modules a concept of so called ``ambeth-bundles'' has been introduced as an aggregation layer. For further questions please see the \prettyref{stack:bundles}.
 
 \begin{itemize}
@@ -56,6 +56,12 @@ necessary Maven dependency snippets are provided for each module. For questions 
 		\item highly reusable code
 		\item can be applied to client as well as server environments
 	\end{itemize}
+	\item Performance
+	\begin{itemize}
+		\item All entity operations are working in batch-mode to keep roundtrips constantly low
+		\item Efficient algorithm to prefetch arbitrary branches of entity graphs fast
+		\item Ambeth Cache stores entity data in a dehydrated state to reduce its memory footprint and overall GC pressure on the heap
+	\end{itemize}	
 \end{itemize}
 
 
@@ -64,14 +70,14 @@ necessary Maven dependency snippets are provided for each module. For questions 
 	\item Extension to rich components with common enterprise functionality
 	\item In-Process security
 	\begin{itemize}
-		\item At service-level (even internal services), at field-level, at row-level
-		\item multi-client capability
+		\item At service-level (even internal services), at field-, row- or even cell-level
+		\item multi-client capability (multiple connections for the same user by different devices, but sharing the same entity session)
 	\end{itemize}
 	\item Efficient \& Light-weight
 	\begin{itemize}
-		\item e.g. complete Ambeth enterprise stack fits in 9 mb of overall JVM heap (including JVM itself)
+		\item e.g. complete Ambeth enterprise stack fits in 9 mb of overall JVM heap
 	\end{itemize}
-	\item High Performance
+	\item Performance (again)
 	\begin{itemize}
 		\item e.g. Ambeth Query more than 300\% improvement in runtime-performance compared to Hibernate
 	\end{itemize}
