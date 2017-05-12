@@ -1,0 +1,141 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{6A7FA105-F422-4CBC-84A4-A71BF98204A6}</ProjectGuid>
+    <ProjectTypeGuids>{A1591282-1198-4647-A2B1-27E5FF5F6F3B};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth</RootNamespace>
+    <AssemblyName>Ambeth.Merge.Bytecode.SL4</AssemblyName>
+    <TargetFrameworkIdentifier>Silverlight</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <SilverlightVersion>$(TargetFrameworkVersion)</SilverlightVersion>
+    <SilverlightApplication>false</SilverlightApplication>
+    <ValidateXaml>true</ValidateXaml>
+    <ThrowErrorsInValidation>true</ThrowErrorsInValidation>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <!-- This property group is only here to support building this project using the 
+       MSBuild 3.5 toolset. In order to work correctly with this older toolset, it needs 
+       to set the TargetFrameworkVersion to v3.5 -->
+  <PropertyGroup Condition="'$(MSBuildToolsVersion)' == '3.5'">
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_SL4\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;SILVERLIGHT</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release_SL4\</OutputPath>
+    <DefineConstants>TRACE;SILVERLIGHT</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>AmbethStrongNameKey.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core">
+      <HintPath>..\Ambeth.Util\libs\sl-3.0\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.DynamicProxy2">
+      <HintPath>..\Ambeth.Util\libs\sl-3.0\Castle.DynamicProxy2.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Windows" />
+    <Reference Include="system" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.Windows.Browser" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\abstractobject\ImplementAbstractObjectFactory.cs" />
+    <Compile Include="ambeth\bytecode\behavior\EntityMetaDataMemberBehavior.cs" />
+    <Compile Include="ambeth\bytecode\behavior\ObjRefBehavior.cs" />
+    <Compile Include="ambeth\bytecode\behavior\ObjRefStoreBehavior.cs" />
+    <Compile Include="ambeth\bytecode\visitor\CompositeIdCreator.cs" />
+    <Compile Include="ambeth\bytecode\visitor\EntityMetaDataEmbeddedMemberVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\EntityMetaDataMemberVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\EntityMetaDataPrimitiveMemberVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\EntityMetaDataRelationMemberVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\ObjRefStoreVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\ObjRefVisitor.cs" />
+    <Compile Include="ambeth\compositeid\CompositeIdBehavior.cs" />
+    <Compile Include="ambeth\compositeid\CompositeIdEnhancementHint.cs" />
+    <Compile Include="ambeth\compositeid\CompositeIdFactory.cs" />
+    <Compile Include="ambeth\ioc\MergeBytecodeModule.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="AmbethStrongNameKey.snk" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.Bytecode\Ambeth.Bytecode.SL4.csproj">
+      <Project>{19992817-1672-4FB4-A103-09309CB26C67}</Project>
+      <Name>Ambeth.Bytecode.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Event\Ambeth.Event.SL4.csproj">
+      <Project>{3E1851C7-3BAA-4757-8858-8BD7EA55F842}</Project>
+      <Name>Ambeth.Event.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.SL4.csproj">
+      <Project>{BDA824AF-09F2-4338-86AE-B05552CD542E}</Project>
+      <Name>Ambeth.IOC.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.SL4.csproj">
+      <Project>{470B5E14-25AD-448A-9C8B-50A594E84EF6}</Project>
+      <Name>Ambeth.Log.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge\Ambeth.Merge.SL4.csproj">
+      <Project>{BA00BDE1-75CB-438F-85B6-3BA2A6F0F6D3}</Project>
+      <Name>Ambeth.Merge.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.SL4.csproj">
+      <Project>{AAA73AA7-506D-43B3-B74E-CFD2382ADFDE}</Project>
+      <Name>Ambeth.Service.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.SL4.csproj">
+      <Project>{9E849E17-44AA-419E-8831-B048AE0589A7}</Project>
+      <Name>Ambeth.Util.SL4</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{A1591282-1198-4647-A2B1-27E5FF5F6F3B}">
+        <SilverlightProjectProperties />
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

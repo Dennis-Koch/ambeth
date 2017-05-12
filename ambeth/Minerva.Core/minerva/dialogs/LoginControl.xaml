@@ -1,0 +1,34 @@
+﻿<UserControl x:Class="De.Osthus.Minerva.Dialogs.LoginControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:telerik="http://schemas.telerik.com/2008/xaml/presentation"
+    mc:Ignorable="d"
+    d:DesignHeight="150" d:DesignWidth="400" Loaded="UserControl_Loaded">
+
+    <Grid x:Name="LayoutRoot" Background="White">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Name="textBlockUsername" Grid.Row="1" Grid.Column="1" Margin="6">Username:</TextBlock>
+        <TextBox Name="textBoxUsername" Grid.Row="1" Grid.Column="2" Margin="6" Grid.ColumnSpan="2" KeyUp="textBox_KeyUp"/>
+
+        <TextBlock Name="textBlockPassword" Grid.Row="2" Grid.Column="1" Margin="6">Password:</TextBlock>
+        <PasswordBox Name="textBoxPassword" Grid.Row="2" Grid.Column="2" Margin="6" Grid.ColumnSpan="2" KeyUp="textBox_KeyUp"/>
+        
+        <telerik:RadButton Name="btnLogin" Grid.Row="3" Grid.Column="3" Margin="6" Content="Login" Click="btnLogin_Click" />
+    </Grid>
+</UserControl>

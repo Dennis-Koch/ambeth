@@ -1,0 +1,7 @@
+namespace De.Osthus.Ambeth.Ioc.Link
+{
+    public enum RegistryVariant
+    {
+        BY_EXTENDABLE, BY_NAME_AND_EXTENDABLE, BY_NAME_AND_PROPERTY, BY_NAME_AND_EVENT, BY_INSTANCE_AND_EXTENDABLE, BY_INSTANCE_AND_PROPERTY, BY_INSTANCE_AND_EVENT
+    }
+}

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings>
+
+	<entity class="de.osthus.ambeth.merge.independent.EntityB">
+		<value-object class="de.osthus.ambeth.merge.independent.EntityBType1" />
+		<value-object class="de.osthus.ambeth.merge.independent.EntityBType2" />
+	</entity>
+
+</entity-mappings>

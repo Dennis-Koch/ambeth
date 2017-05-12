@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{135FAF48-AA90-40B8-BBD1-E65CD8536E45}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth.Progress</RootNamespace>
+    <AssemblyName>net-jambeth-progress-$(ProjectVersion)</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_NET4\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release_NET4\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core, Version=2.5.1.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Ambeth.Util\libs\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\model\IProgressHandle.cs" />
+    <Compile Include="ambeth\model\IFailureProgress.cs" />
+    <Compile Include="ambeth\model\IChunkProgress.cs" />
+    <Compile Include="ambeth\model\IResultProgress.cs" />
+    <Compile Include="ambeth\model\IIncrementalProgress.cs" />
+    <Compile Include="ambeth\model\IMessageProgress.cs" />
+    <Compile Include="ambeth\model\IProgress.cs" />
+    <Compile Include="ambeth\progress\IProgressDispatcherIntern.cs" />
+    <Compile Include="ambeth\progress\ProgressItem.cs" />
+    <Compile Include="ambeth\progress\IProgressController.cs" />
+    <Compile Include="ambeth\progress\ProgressDispatcherTL.cs" />
+    <Compile Include="ambeth\progress\NoOpProgressDispatcher.cs" />
+    <Compile Include="ambeth\progress\ProgressDispatcher.cs" />
+    <Compile Include="ambeth\progress\IProgressDispatcher.cs" />
+    <Compile Include="ambeth\progress\IProgressListener.cs" />
+    <Compile Include="ambeth\proxy\ProgressInterceptor.cs" />
+    <Compile Include="ambeth\service\IProgressService.cs" />
+    <Compile Include="ambeth\service\IProgressServiceWCF.cs" />
+    <Compile Include="ambeth\service\ProgressServiceModelProvider.cs" />
+    <Compile Include="ambeth\transfer\ProgressEvent.cs" />
+    <Compile Include="ioc\ProgressBootstrapModule.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.csproj">
+      <Project>{fb7182da-bbb9-4434-a936-10a29635e6d3}</Project>
+      <Name>Ambeth.IOC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.csproj">
+      <Project>{e5a70d5c-ee4f-40fa-be23-5352d40c7b33}</Project>
+      <Name>Ambeth.Log</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.csproj">
+      <Project>{ec138571-28df-4944-8ef2-d31fb186a645}</Project>
+      <Name>Ambeth.Service</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.csproj">
+      <Project>{271e6992-6b52-41ee-9d4c-5a56fd173c2e}</Project>
+      <Name>Ambeth.Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

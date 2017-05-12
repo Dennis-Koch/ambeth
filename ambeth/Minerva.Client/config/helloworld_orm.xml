@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings>
+
+  <entity class="de.osthus.ambeth.helloworld.transfer.TestEntity">
+    <attributes>
+      <id name="Id" />
+      <to-one name="Relation" target-entity="de.osthus.ambeth.helloworld.transfer.TestEntity2">
+        <join-table name="TEST_ENTITY">
+          <join-column name="RELATION" />
+          <inverse-join-column name="ID" />
+        </join-table>
+      </to-one>
+      <version name="Version" />
+    </attributes>
+  </entity>
+
+  <entity class="de.osthus.ambeth.helloworld.transfer.TestEntity2">
+    <attributes>
+      <id name="Id" />
+      <version name="Version" />
+    </attributes>
+  </entity>
+
+</entity-mappings>

@@ -1,0 +1,13 @@
+<OutOfBrowserSettings ShortName="Minerva.Client Demo Platform" EnableGPUAcceleration="True" ShowInstallMenuItem="True">
+  <OutOfBrowserSettings.Blurb>Minerva.Client</OutOfBrowserSettings.Blurb>
+  <OutOfBrowserSettings.WindowSettings>
+    <WindowSettings Title="Minerva.Client Demo Platform" WindowStyle="BorderlessRoundCornersWindow" />
+  </OutOfBrowserSettings.WindowSettings>
+  <OutOfBrowserSettings.SecuritySettings>
+    <SecuritySettings ElevatedPermissions="Required" />
+  </OutOfBrowserSettings.SecuritySettings>
+  <OutOfBrowserSettings.Icons>
+    <Icon Size="16,16">Images/32/logo.png</Icon>
+    <Icon Size="32,32">Images/32/logo.png</Icon>
+  </OutOfBrowserSettings.Icons>
+</OutOfBrowserSettings>

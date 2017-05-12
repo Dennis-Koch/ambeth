@@ -1,0 +1,319 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{44312772-42FB-4EDE-BF4D-A654C5B03469}</ProjectGuid>
+    <ProjectTypeGuids>{A1591282-1198-4647-A2B1-27E5FF5F6F3B};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth</RootNamespace>
+    <AssemblyName>Minerva.Core.SL5</AssemblyName>
+    <TargetFrameworkIdentifier>Silverlight</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <SilverlightVersion>$(TargetFrameworkVersion)</SilverlightVersion>
+    <SilverlightApplication>false</SilverlightApplication>
+    <ValidateXaml>true</ValidateXaml>
+    <ThrowErrorsInValidation>true</ThrowErrorsInValidation>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <!-- This property group is only here to support building this project using the 
+       MSBuild 3.5 toolset. In order to work correctly with this older toolset, it needs 
+       to set the TargetFrameworkVersion to v3.5 -->
+  <PropertyGroup Condition="'$(MSBuildToolsVersion)' == '3.5'">
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_SL5\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;SILVERLIGHT</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release_SL5\</OutputPath>
+    <DefineConstants>TRACE;SILVERLIGHT</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>AmbethStrongNameKey.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Ambeth.Util\libs\sl-3.0\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.DynamicProxy2">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Ambeth.Util\libs\sl-3.0\Castle.DynamicProxy2.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Libraries\Client\Microsoft.CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Windows" />
+    <Reference Include="system" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Controls, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Libraries\Client\System.Windows.Controls.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Data, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Libraries\Client\System.Windows.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.Windows.Browser" />
+    <Reference Include="Telerik.Windows.Controls">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib.Telerik\Telerik.Windows.Controls.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.Windows.Controls.Data">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib.Telerik\Telerik.Windows.Controls.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.Windows.Controls.Docking">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib.Telerik\Telerik.Windows.Controls.Docking.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.Windows.Controls.GridView">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib.Telerik\Telerik.Windows.Controls.GridView.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.Windows.Controls.Input">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib.Telerik\Telerik.Windows.Controls.Input.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.Windows.Controls.Navigation">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib.Telerik\Telerik.Windows.Controls.Navigation.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.Windows.Controls.RibbonBar">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib.Telerik\Telerik.Windows.Controls.RibbonBar.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.Windows.Controls.RichTextBoxUI">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib.Telerik\Telerik.Windows.Controls.RichTextBoxUI.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.Windows.Data">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib.Telerik\Telerik.Windows.Data.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="minerva\dialogs\ErrorDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="minerva\dialogs\LoginControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.Cache\Ambeth.Cache.SL5.csproj">
+      <Project>{AABFCB0F-80E5-494A-90F9-5009CBB19121}</Project>
+      <Name>Ambeth.Cache.SL5</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.DataChange\Ambeth.DataChange.SL5.csproj">
+      <Project>{A57F807F-8214-4BD4-A3E3-8EBA065D4D37}</Project>
+      <Name>Ambeth.DataChange.SL5</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Event\Ambeth.Event.SL5.csproj">
+      <Project>{5F63DBA2-BDA5-4CEC-937E-71438F68060D}</Project>
+      <Name>Ambeth.Event.SL5</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Filter\Ambeth.Filter.SL5.csproj">
+      <Project>{26C671A2-5AFB-4B90-8DEA-1F90B1917CEA}</Project>
+      <Name>Ambeth.Filter.SL5</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.SL5.csproj">
+      <Project>{19A96089-734E-47F9-983C-298DD17A4517}</Project>
+      <Name>Ambeth.IOC.SL5</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.SL5.csproj">
+      <Project>{2C44A82D-C27F-4B46-8700-DF4C130E9176}</Project>
+      <Name>Ambeth.Log.SL5</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge\Ambeth.Merge.SL5.csproj">
+      <Project>{C5578625-B948-4A25-9712-ACE10E075C82}</Project>
+      <Name>Ambeth.Merge.SL5</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.SL5.csproj">
+      <Project>{0E9CB1B1-CB78-4B7E-A404-8F223665B4E3}</Project>
+      <Name>Ambeth.Service.SL5</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.SL5.csproj">
+      <Project>{9E849E17-44AA-419E-8831-B048AE0589A7}</Project>
+      <Name>Ambeth.Util.SL5</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ioc\MinervaCoreModule.cs" />
+    <Compile Include="minerva\busy\BusyController.cs" />
+    <Compile Include="minerva\busy\BusyToken.cs" />
+    <Compile Include="minerva\busy\IBusyController.cs" />
+    <Compile Include="minerva\busy\IBusyToken.cs" />
+    <Compile Include="minerva\command\AssignToBeDeletedCommand.cs" />
+    <Compile Include="minerva\command\CommandBean.cs" />
+    <Compile Include="minerva\command\CommandBindingHelper.cs" />
+    <Compile Include="minerva\command\CommandContainer.cs" />
+    <Compile Include="minerva\command\CommandRegistry.cs" />
+    <Compile Include="minerva\command\AbstractControllerServiceRelatedCommand.cs" />
+    <Compile Include="minerva\command\AbstractModelContainerRelatedCommand.cs" />
+    <Compile Include="minerva\command\CommandRegistryFinishedCallback.cs" />
+    <Compile Include="minerva\command\EnsureModelIsNotBusyCommand.cs" />
+    <Compile Include="minerva\command\RestorePreviousNotPersistedCommand.cs" />
+    <Compile Include="minerva\command\IFinallyCommand.cs" />
+    <Compile Include="minerva\command\ICommandStringParameterExtendable.cs" />
+    <Compile Include="minerva\command\INextCommandDelegate.cs" />
+    <Compile Include="minerva\command\IAsyncCommand.cs" />
+    <Compile Include="minerva\command\CreatePopupCommand.cs" />
+    <Compile Include="minerva\command\EditPopupCommand.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="minerva\command\ICanExecuteStateProvider.cs" />
+    <Compile Include="minerva\command\ICommandContainer.cs" />
+    <Compile Include="minerva\command\ICommandExtendable.cs" />
+    <Compile Include="minerva\command\MultiCommand.cs" />
+    <Compile Include="minerva\command\SaveNotPersistedCommand.cs" />
+    <Compile Include="minerva\command\SaveNotPersistedDataCommand.cs" />
+    <Compile Include="minerva\command\ICommandBindingHelper.cs" />
+    <Compile Include="minerva\command\UndoNotPersistedCommand.cs" />
+    <Compile Include="minerva\config\MinervaCoreConfigurationConstants.cs" />
+    <Compile Include="minerva\converter\FilterDescriptorConverter.cs" />
+    <Compile Include="minerva\converter\IFilterDescriptorConverter.cs" />
+    <Compile Include="minerva\converter\ISortDescriptorConverter.cs" />
+    <Compile Include="minerva\converter\SortDescriptorConverter.cs" />
+    <Compile Include="minerva\core\AbstractPagingRefresher.cs" />
+    <Compile Include="minerva\core\ChangedItemsStyleSelector.cs" />
+    <Compile Include="minerva\core\ClientEntityFactory.cs" />
+    <Compile Include="minerva\core\ISelfRegisteringControlBean.cs" />
+    <Compile Include="minerva\core\INotifyClientFilterChanged.cs" />
+    <Compile Include="minerva\core\INotifyDataAvailable.cs" />
+    <Compile Include="minerva\core\INotifyModelRegistered.cs" />
+    <Compile Include="minerva\core\LazyBeanBinding.cs" />
+    <Compile Include="minerva\core\ModelContainerRegistry.cs" />
+    <Compile Include="minerva\core\IModelContainerRegistry.cs" />
+    <Compile Include="minerva\core\DataConsumerModule.cs" />
+    <Compile Include="minerva\core\EmbeddedTypeInterceptor.cs" />
+    <Compile Include="minerva\core\GridViewSortDescriptorProvider.cs" />
+    <Compile Include="minerva\core\IBaseRefresher.cs" />
+    <Compile Include="minerva\core\IClientFilter.cs" />
+    <Compile Include="minerva\core\ICommitter.cs" />
+    <Compile Include="minerva\core\INotPersistedDataContainerExtendable.cs" />
+    <Compile Include="minerva\core\INotPersistedDataContainer.cs" />
+    <Compile Include="minerva\core\IPagingRefresher.cs" />
+    <Compile Include="minerva\core\ISortDescriptorProvider.cs" />
+    <Compile Include="minerva\core\ObjectRelationClientFilter.cs" />
+    <Compile Include="minerva\core\FilteringMultiContainer.cs" />
+    <Compile Include="minerva\core\XamlBeanPropertyBinder.cs" />
+    <Compile Include="minerva\core\ISharedDataHandOnExtendable.cs" />
+    <Compile Include="minerva\core\ISharedDataHandOn.cs" />
+    <Compile Include="minerva\core\IModelContainer.cs" />
+    <Compile Include="minerva\core\IModelMultiContainer.cs" />
+    <Compile Include="minerva\core\IModelSingleContainer.cs" />
+    <Compile Include="minerva\core\ISharedData.cs" />
+    <Compile Include="minerva\core\IDataProvider.cs" />
+    <Compile Include="minerva\core\DataProvider.cs" />
+    <Compile Include="minerva\core\ModelMultiContainer.cs" />
+    <Compile Include="minerva\core\SharedData.cs" />
+    <Compile Include="minerva\core\ViewModelDataChangeController.cs" />
+    <Compile Include="minerva\core\AbstractRefresher.cs" />
+    <Compile Include="minerva\core\DataChangeControllerPostProcessor.cs" />
+    <Compile Include="minerva\core\XamlBeanProvider.cs" />
+    <Compile Include="minerva\core\UserControlPostProcessor.cs" />
+    <Compile Include="minerva\core\UserControlBean.cs" />
+    <Compile Include="minerva\core\IViewModelDataChangeController.cs" />
+    <Compile Include="minerva\core\IGenericViewModel.cs" />
+    <Compile Include="minerva\core\GenericViewModel.cs" />
+    <Compile Include="minerva\core\IRefresher.cs" />
+    <Compile Include="minerva\dialogs\DialogProvider.cs" />
+    <Compile Include="minerva\dialogs\IDialogProvider.cs" />
+    <Compile Include="minerva\dialogs\ErrorDialog.xaml.cs">
+      <DependentUpon>ErrorDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="minerva\dialogs\LoginControl.xaml.cs">
+      <DependentUpon>LoginControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="minerva\filterprovider\GridViewFilterDescriptorProvider.cs" />
+    <Compile Include="minerva\filterprovider\IFilterDescriptorProvider.cs" />
+    <Compile Include="minerva\filterprovider\IMasterFilterDescriptorProvider.cs" />
+    <Compile Include="minerva\filterprovider\MasterFilterDescriptorProvider.cs" />
+    <Compile Include="minerva\filterprovider\RadDataFilterDescriptorProvider.cs" />
+    <Compile Include="minerva\filterprovider\SelectedEntityFilterProvider.cs" />
+    <Compile Include="minerva\mock\AbstractMergeServiceMock.cs" />
+    <Compile Include="minerva\mock\CacheServiceMock.cs" />
+    <Compile Include="minerva\mock\IPersistenceMock.cs" />
+    <Compile Include="minerva\security\SecurityScopeProvider.cs" />
+    <Compile Include="minerva\security\ISecurityScopeChangeListener.cs" />
+    <Compile Include="minerva\security\ISecurityScopeChangeExtendable.cs" />
+    <Compile Include="minerva\security\ISecurityScopeProvider.cs" />
+    <Compile Include="minerva\util\BooleanResultDelegate.cs" />
+    <Compile Include="minerva\util\DesignTimeCheck.cs" />
+    <Compile Include="minerva\dialogs\IWindowFactory.cs" />
+    <Compile Include="minerva\dialogs\WindowFactory.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="system\componentmodel\INotifyPropertyChangedEvents.cs" />
+    <Compile Include="system\windows\controls\ChildWindowEvents.cs" />
+    <Compile Include="system\windows\controls\ControlEvents.cs" />
+    <Compile Include="minerva\core\EventsUtil.cs" />
+    <Compile Include="system\windows\controls\GridViewDataControlEvents.cs" />
+    <Compile Include="system\windows\controls\TextBoxEvents.cs" />
+    <Compile Include="minerva\command\CommandEvents.cs" />
+    <Compile Include="system\windows\GenericViewModelEvents.cs" />
+    <Compile Include="system\windows\UIElementEvents.cs" />
+    <Compile Include="system\windows\FrameworkElementEvents.cs" />
+    <Compile Include="minerva\extendable\IRoutedEventHandlerExtendable.cs" />
+    <Compile Include="minerva\util\IGuiUtil.cs" />
+    <Compile Include="minerva\util\GuiUtil.cs" />
+    <Compile Include="minerva\util\IWorkerUtil.cs" />
+    <Compile Include="minerva\util\WorkerUtil.cs" />
+    <Compile Include="system\windows\controls\ContentControlEvents.cs" />
+    <Compile Include="telerik\windows\controls\HeaderedContentControlEvents.cs" />
+    <Compile Include="telerik\windows\controls\WindowBaseEvents.cs" />
+    <Compile Include="telerik\windows\controls\RadWindowEvents.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="resources\icons\error.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="AmbethStrongNameKey.snk" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{A1591282-1198-4647-A2B1-27E5FF5F6F3B}">
+        <SilverlightProjectProperties />
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

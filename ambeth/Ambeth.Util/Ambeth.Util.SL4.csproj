@@ -1,0 +1,326 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{9E849E17-44AA-419E-8831-B048AE0589A7}</ProjectGuid>
+    <ProjectTypeGuids>{A1591282-1198-4647-A2B1-27E5FF5F6F3B};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth</RootNamespace>
+    <AssemblyName>Ambeth.Util.SL4</AssemblyName>
+    <TargetFrameworkIdentifier>Silverlight</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <SilverlightVersion>$(TargetFrameworkVersion)</SilverlightVersion>
+    <SilverlightApplication>false</SilverlightApplication>
+    <ValidateXaml>true</ValidateXaml>
+    <ThrowErrorsInValidation>true</ThrowErrorsInValidation>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <!-- This property group is only here to support building this project using the 
+       MSBuild 3.5 toolset. In order to work correctly with this older toolset, it needs 
+       to set the TargetFrameworkVersion to v3.5 -->
+  <PropertyGroup Condition="'$(MSBuildToolsVersion)' == '3.5'">
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_SL4\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;SILVERLIGHT</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release_SL4\</OutputPath>
+    <DefineConstants>TRACE;SILVERLIGHT</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>AmbethStrongNameKey.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core, Version=1.2.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>libs\sl-3.0\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.DynamicProxy2">
+      <HintPath>libs\sl-3.0\Castle.DynamicProxy2.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Windows" />
+    <Reference Include="system" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.Windows.Browser" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\annotation\AnnotationCache.cs" />
+    <Compile Include="ambeth\annotation\AnnotationInfo.cs" />
+    <Compile Include="ambeth\annotation\CascadeAttribute.cs" />
+    <Compile Include="ambeth\annotation\AnnotationUtil.cs" />
+    <Compile Include="ambeth\annotation\CascadeLoadMode.cs" />
+    <Compile Include="ambeth\annotation\AnnotationEntry.cs" />
+    <Compile Include="ambeth\annotation\ConfigurationConstants.cs" />
+    <Compile Include="ambeth\annotation\EntityEqualsAspect.cs" />
+    <Compile Include="ambeth\annotation\FireTargetOnPropertyChange.cs" />
+    <Compile Include="ambeth\annotation\FireThisOnPropertyChange.cs" />
+    <Compile Include="ambeth\annotation\IAnnotationInfo.cs" />
+    <Compile Include="ambeth\annotation\IgnoreToBeUpdated.cs" />
+    <Compile Include="ambeth\annotation\NoProxyAttribute.cs" />
+    <Compile Include="ambeth\annotation\ParentChild.cs" />
+    <Compile Include="ambeth\annotation\ProcessAttribute.cs" />
+    <Compile Include="ambeth\annotation\IgnoreAttribute.cs" />
+    <Compile Include="ambeth\annotation\MergeAttribute.cs" />
+    <Compile Include="ambeth\annotation\PostLoadAttribute.cs" />
+    <Compile Include="ambeth\annotation\PrePersistAttribute.cs" />
+    <Compile Include="ambeth\annotation\PropertyAccessor.cs" />
+    <Compile Include="ambeth\annotation\QueryResultType.cs" />
+    <Compile Include="ambeth\annotation\RemoveAttribute.cs" />
+    <Compile Include="ambeth\annotation\FindAttribute.cs" />
+    <Compile Include="ambeth\annotation\XmlTypeAttribute.cs" />
+    <Compile Include="ambeth\appendable\AppendableStreamEncoder.cs" />
+    <Compile Include="ambeth\appendable\AppendableStringBuilder.cs" />
+    <Compile Include="ambeth\appendable\IAppendable.cs" />
+    <Compile Include="ambeth\appendable\StreamWriterAppendable.cs" />
+    <Compile Include="ambeth\collections\AbstractHashMap.cs" />
+    <Compile Include="ambeth\collections\AbstractIterator.cs" />
+    <Compile Include="ambeth\collections\AbstractLinkedMap.cs" />
+    <Compile Include="ambeth\collections\AbstractListElem.cs" />
+    <Compile Include="ambeth\collections\AbstractTuple2KeyHashMap.cs" />
+    <Compile Include="ambeth\collections\AbstractTuple3KeyHashMap.cs" />
+    <Compile Include="ambeth\collections\CHashSet.cs" />
+    <Compile Include="ambeth\collections\CleanupInvalidKeysSet.cs" />
+    <Compile Include="ambeth\collections\EmptyIterator.cs" />
+    <Compile Include="ambeth\collections\EmptyMap.cs" />
+    <Compile Include="ambeth\collections\EmptySet.cs" />
+    <Compile Include="ambeth\collections\IdentityWeakHashMap.cs" />
+    <Compile Include="ambeth\collections\IdentityWeakSmartCopyMap.cs" />
+    <Compile Include="ambeth\collections\IInvalidKeyChecker.cs" />
+    <Compile Include="ambeth\collections\InterfaceListElem.cs" />
+    <Compile Include="ambeth\collections\specialized\INotifyCollectionChangedListener.cs" />
+    <Compile Include="ambeth\collections\specialized\IPropertyChangedEventHandler.cs" />
+    <Compile Include="ambeth\collections\specialized\PropertyChangeSupport.cs" />
+    <Compile Include="ambeth\collections\specialized\UsableObservableCollection.cs" />
+    <Compile Include="ambeth\collections\TempHashSet.cs" />
+    <Compile Include="ambeth\collections\SmartCopySet.cs" />
+    <Compile Include="ambeth\collections\IdentityLinkedMap.cs" />
+    <Compile Include="ambeth\collections\IdentityLinkedSet.cs" />
+    <Compile Include="ambeth\collections\IISet.cs" />
+    <Compile Include="ambeth\collections\IMapEntry.cs" />
+    <Compile Include="ambeth\collections\ISetEntry.cs" />
+    <Compile Include="ambeth\collections\SetEntry.cs" />
+    <Compile Include="ambeth\collections\SetIterator.cs" />
+    <Compile Include="ambeth\collections\SetLinkedIterator.cs" />
+    <Compile Include="ambeth\collections\IICollection.cs" />
+    <Compile Include="ambeth\collections\Iterable.cs" />
+    <Compile Include="ambeth\collections\IdentityHashMap.cs" />
+    <Compile Include="ambeth\collections\LinkedHashMap.cs" />
+    <Compile Include="ambeth\collections\MapIterator.cs" />
+    <Compile Include="ambeth\collections\ILinkedMap.cs" />
+    <Compile Include="ambeth\collections\Iterator.cs" />
+    <Compile Include="ambeth\collections\MapLinkedIterator.cs" />
+    <Compile Include="ambeth\collections\TempHashMap.cs" />
+    <Compile Include="ambeth\collections\EmptyList.cs" />
+    <Compile Include="ambeth\collections\Entry.cs" />
+    <Compile Include="ambeth\collections\GenericFastList.cs" />
+    <Compile Include="ambeth\collections\HashMap.cs" />
+    <Compile Include="ambeth\collections\IdentityDictionary.cs" />
+    <Compile Include="ambeth\collections\IdentityHashSet.cs" />
+    <Compile Include="ambeth\collections\IMap.cs" />
+    <Compile Include="ambeth\collections\ListElem.cs" />
+    <Compile Include="ambeth\collections\MapEntry.cs" />
+    <Compile Include="ambeth\collections\MapLinkedEntry.cs" />
+    <Compile Include="ambeth\collections\SmartCopyMap.cs" />
+    <Compile Include="ambeth\collections\Tuple2KeyEntry.cs" />
+    <Compile Include="ambeth\collections\Tuple2KeyHashMap.cs" />
+    <Compile Include="ambeth\collections\Tuple2KeyIterator.cs" />
+    <Compile Include="ambeth\collections\Tuple3KeyEntry.cs" />
+    <Compile Include="ambeth\collections\Tuple3KeyHashMap.cs" />
+    <Compile Include="ambeth\collections\Tuple3KeyIterator.cs" />
+    <Compile Include="ambeth\collections\WeakHashMap.cs" />
+    <Compile Include="ambeth\collections\WeakHashSet.cs" />
+    <Compile Include="ambeth\collections\WeakMapEntry.cs" />
+    <Compile Include="ambeth\collections\WeakSmartCopyMap.cs" />
+    <Compile Include="ambeth\config\IProperties.cs" />
+    <Compile Include="ambeth\config\UtilConfigurationConstants.cs" />
+    <Compile Include="ambeth\event\PropertyChangeEvent.cs" />
+    <Compile Include="ambeth\exception\EnumNotSupportedException.cs" />
+    <Compile Include="ambeth\exception\MaskingRuntimeException.cs" />
+    <Compile Include="ambeth\exception\RuntimeExceptionUtil.cs" />
+    <Compile Include="ambeth\factory\IFactory.cs" />
+    <Compile Include="ambeth\model\IEmbeddedType.cs" />
+    <Compile Include="ambeth\model\INotifyPropertyChangedSource.cs" />
+    <Compile Include="ambeth\model\IDataObject.cs" />
+    <Compile Include="ambeth\model\IMethodDescription.cs" />
+    <Compile Include="ambeth\proxy\AbstractInterceptor.cs" />
+    <Compile Include="ambeth\proxy\CascadedInterceptor.cs" />
+    <Compile Include="ambeth\proxy\DefaultProxyOptionsFactory.cs" />
+    <Compile Include="ambeth\proxy\DelegateInterceptor.cs" />
+    <Compile Include="ambeth\proxy\ICascadedInterceptor.cs" />
+    <Compile Include="ambeth\proxy\IProxyFactory.cs" />
+    <Compile Include="ambeth\proxy\IProxyOptionsFactory.cs" />
+    <Compile Include="ambeth\proxy\ITargetProvider.cs" />
+    <Compile Include="ambeth\proxy\ProxyFactory.cs" />
+    <Compile Include="ambeth\proxy\TargetingInterceptor.cs" />
+    <Compile Include="ambeth\service\UtilServiceModelProvider.cs" />
+    <Compile Include="ambeth\threading\AbstractQueueGroupKey.cs" />
+    <Compile Include="ambeth\threading\CyclicBarrier.cs" />
+    <Compile Include="ambeth\threading\CountDownLatch.cs" />
+    <Compile Include="ambeth\threading\ExecuteYieldingDelegate.cs" />
+    <Compile Include="ambeth\threading\IBackgroundWorkerDelegate.cs" />
+    <Compile Include="ambeth\threading\IBackgroundWorkerParamDelegate.cs" />
+    <Compile Include="ambeth\threading\IResultingBackgroundWorkerDelegate.cs" />
+    <Compile Include="ambeth\threading\IResultingBackgroundWorkerParamDelegate.cs" />
+    <Compile Include="ambeth\threading\IYieldingController.cs" />
+    <Compile Include="ambeth\threading\IYieldingExecution.cs" />
+    <Compile Include="ambeth\threading\IDelayedExecution.cs" />
+    <Compile Include="ambeth\threading\QueueGroupKey.cs" />
+    <Compile Include="ambeth\threading\IGuiThreadHelper.cs" />
+    <Compile Include="ambeth\threading\IThreadPool.cs" />
+    <Compile Include="ambeth\threading\YieldingController.cs" />
+    <Compile Include="ambeth\transfer\MethodDescription.cs" />
+    <Compile Include="ambeth\typeinfo\AbstractPropertyInfo.cs" />
+    <Compile Include="ambeth\typeinfo\FieldPropertyInfoASM.cs" />
+    <Compile Include="ambeth\typeinfo\IEmbeddedTypeInfoItem.cs" />
+    <Compile Include="ambeth\typeinfo\INoEntityTypeExtendable.cs" />
+    <Compile Include="ambeth\typeinfo\MethodPropertyInfoASM.cs" />
+    <Compile Include="ambeth\typeinfo\Modifier.cs" />
+    <Compile Include="ambeth\typeinfo\NullEquivalentValueUtil.cs" />
+    <Compile Include="ambeth\typeinfo\WrappedPropertyInfo.cs" />
+    <Compile Include="ambeth\typeinfo\FieldPropertyInfo.cs" />
+    <Compile Include="ambeth\typeinfo\IPropertyInfo.cs" />
+    <Compile Include="ambeth\typeinfo\IPropertyInfoIntern.cs" />
+    <Compile Include="ambeth\typeinfo\IPropertyInfoProvider.cs" />
+    <Compile Include="ambeth\typeinfo\IRelationProvider.cs" />
+    <Compile Include="ambeth\typeinfo\ITypeInfo.cs" />
+    <Compile Include="ambeth\typeinfo\ITypeInfoItem.cs" />
+    <Compile Include="ambeth\typeinfo\ITypeInfoProvider.cs" />
+    <Compile Include="ambeth\typeinfo\ITypeInfoProviderFactory.cs" />
+    <Compile Include="ambeth\typeinfo\MethodPropertyInfo.cs" />
+    <Compile Include="ambeth\typeinfo\PropertyInfoHelper.cs" />
+    <Compile Include="ambeth\typeinfo\TypeInfo.cs" />
+    <Compile Include="ambeth\typeinfo\TypeInfoItemUtil.cs" />
+    <Compile Include="ambeth\typeinfo\TypeUtility.cs" />
+    <Compile Include="ambeth\util\Arrays.cs" />
+    <Compile Include="ambeth\util\AsyncResult.cs" />
+    <Compile Include="ambeth\util\ConversionHelper.cs" />
+    <Compile Include="ambeth\util\AssemblyHelper.cs" />
+    <Compile Include="ambeth\util\converter\AbstractEncodingArrayConverter.cs" />
+    <Compile Include="ambeth\util\converter\BooleanArrayConverter.cs" />
+    <Compile Include="ambeth\util\converter\EncodingInformation.cs" />
+    <Compile Include="ambeth\util\converter\SByteArrayConverter.cs" />
+    <Compile Include="ambeth\util\DelegateFactory.cs" />
+    <Compile Include="ambeth\util\IDelegateFactory.cs" />
+    <Compile Include="ambeth\util\IImmutableType.cs" />
+    <Compile Include="ambeth\util\IInterningFeature.cs" />
+    <Compile Include="ambeth\util\IParamHolder.cs" />
+    <Compile Include="ambeth\util\DateTimeUtil.cs" />
+    <Compile Include="ambeth\util\GenericCollectionUtil.cs" />
+    <Compile Include="ambeth\util\IConversionHelper.cs" />
+    <Compile Include="ambeth\util\INamed.cs" />
+    <Compile Include="ambeth\util\IPrintable.cs" />
+    <Compile Include="ambeth\util\ListUtil.cs" />
+    <Compile Include="ambeth\util\DictionaryExtension.cs" />
+    <Compile Include="ambeth\util\FullServiceModelProvider.cs" />
+    <Compile Include="ambeth\util\Lock.cs" />
+    <Compile Include="ambeth\util\LockState.cs" />
+    <Compile Include="ambeth\util\MethodKey.cs" />
+    <Compile Include="ambeth\util\MethodKeyOfType.cs" />
+    <Compile Include="ambeth\util\NamedItemComparer.cs" />
+    <Compile Include="ambeth\util\NewType.cs" />
+    <Compile Include="ambeth\util\ParamChecker.cs" />
+    <Compile Include="ambeth\util\IdentityEqualityComparer.cs" />
+    <Compile Include="ambeth\util\ParamHolder.cs" />
+    <Compile Include="ambeth\util\PrintableDelegate.cs" />
+    <Compile Include="ambeth\util\PrintableDelegateWrapper.cs" />
+    <Compile Include="ambeth\util\ReadWriteLock.cs" />
+    <Compile Include="ambeth\util\ReflectUtil.cs" />
+    <Compile Include="ambeth\util\Runnable.cs" />
+    <Compile Include="ambeth\util\StreamUtil.cs" />
+    <Compile Include="ambeth\util\StringBuilderUtil.cs" />
+    <Compile Include="ambeth\util\StringConversionHelper.cs" />
+    <Compile Include="ambeth\util\InterningFeature.cs" />
+    <Compile Include="ambeth\util\ThreadLocal.cs" />
+    <Compile Include="ambeth\util\TypeUtil.cs" />
+    <Compile Include="ambeth\util\WeakDictionary.cs" />
+    <Compile Include="ambeth\util\xml\IXmlConfigUtil.cs" />
+    <Compile Include="ambeth\util\xml\IXmlValidator.cs" />
+    <Compile Include="ambeth\util\xml\XmlConstants.cs" />
+    <Compile Include="ilreader\FormatProvider.cs" />
+    <Compile Include="ilreader\ILInstruction.cs" />
+    <Compile Include="ilreader\ILProvider.cs" />
+    <Compile Include="ilreader\ILReader.cs" />
+    <Compile Include="ilreader\ReadableILStringVisitor.cs" />
+    <Compile Include="ilreader\TokenResolver.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ambeth\util\converter\ByteArrayConverter.cs" />
+    <Compile Include="ambeth\util\converter\CharArrayConverter.cs" />
+    <Compile Include="ambeth\util\IDedicatedConverter.cs" />
+    <Compile Include="ambeth\util\IDedicatedConverterExtendable.cs" />
+    <Compile Include="ambeth\collections\IListElem.cs" />
+    <Compile Include="ambeth\collections\InterfaceFastList.cs" />
+    <Compile Include="ambeth\typeinfo\EmbeddedTypeInfoItem.cs" />
+    <Compile Include="ambeth\util\converter\EncodingType.cs" />
+    <Compile Include="ambeth\util\Base64.cs" />
+    <Compile Include="ambeth\collections\LinkedHashSet.cs" />
+    <Compile Include="ambeth\collections\AbstractLinkedSet.cs" />
+    <Compile Include="ambeth\collections\AbstractHashSet.cs" />
+    <Compile Include="ambeth\collections\SetLinkedEntry.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ambeth\hash\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="AmbethStrongNameKey.snk" />
+  </ItemGroup>
+  <!-- The following ItemGroup was manually added and should lool like this:
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\jambeth\jambeth-util\src\main\resources\de\osthus\ambeth\schema\*.*">
+      <Link>ambeth\schema\%(FileName)%(Extension)</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\jambeth\jambeth-util\src\main\resources\de\osthus\ambeth\schema\*.*">
+      <Link>ambeth\schema\%(FileName)%(Extension)</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\proxy\AbstractSimpleInterceptor.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{A1591282-1198-4647-A2B1-27E5FF5F6F3B}">
+        <SilverlightProjectProperties />
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
