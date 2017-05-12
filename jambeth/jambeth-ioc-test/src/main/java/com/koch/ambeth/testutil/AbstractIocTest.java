@@ -45,19 +45,12 @@ import com.koch.ambeth.ioc.config.IocConfigurationConstants;
 @TestPropertiesList({
 		@TestProperties(name = IocConfigurationConstants.TrackDeclarationTrace, value = "true"),
 		@TestProperties(name = IocConfigurationConstants.DebugModeActive, value = "true"),
-		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.accessor.AccessorTypeProvider",
-				value = "INFO"),
-		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.bytecode.core.BytecodeEnhancer",
-				value = "WARN"),
-		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.bytecode.visitor.ClassWriter",
-				value = "DEBUG"),
-		@TestProperties(
-				name = "ambeth.log.level.com.koch.ambeth.bytecode.visitor.LogImplementationsClassVisitor",
-				value = "INFO"),
-		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.mixin.PropertyChangeMixin",
-				value = "INFO"),
-		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.template.PropertyChangeTemplate",
-				value = "INFO")})
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.accessor.AccessorTypeProvider", value = "INFO"),
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.bytecode.core.BytecodeEnhancer", value = "WARN"),
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.bytecode.visitor.ClassWriter", value = "DEBUG"),
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.bytecode.visitor.LogImplementationsClassVisitor", value = "INFO"),
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.mixin.PropertyChangeMixin", value = "INFO"),
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.template.PropertyChangeTemplate", value = "INFO")})
 public abstract class AbstractIocTest implements IInitializingBean, IDisposableBean {
 	@Autowired
 	protected IServiceContext beanContext;
