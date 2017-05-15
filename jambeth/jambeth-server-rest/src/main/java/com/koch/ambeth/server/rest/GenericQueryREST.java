@@ -106,7 +106,7 @@ public class GenericQueryREST extends AbstractServiceREST {
 											public void invoke(Throwable e) throws Throwable {
 												cache.dispose(); // on success this gets called also with "e = null"
 											}
-										});
+										}, true);
 							}
 						});
 				success = true;

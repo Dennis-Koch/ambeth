@@ -73,6 +73,7 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.MaskingRuntimeException;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.io.FastByteArrayOutputStream;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.xml.ICyclicXMLHandler;
@@ -370,11 +371,29 @@ public abstract class AbstractServiceREST {
 	}
 
 	protected StreamingOutput createResult(Object result, HttpServletResponse response) {
-		return createResult(result, response, null);
+		return createResult(result, response, null, true);
+	}
+
+	protected StreamingOutput createSynchronousResult(Object result, HttpServletResponse response) {
+		StreamingOutput asyncOutput = createResult(result, response, null, false);
+		final FastByteArrayOutputStream bos = new FastByteArrayOutputStream();
+		try {
+			asyncOutput.write(bos);
+			return new StreamingOutput() {
+				@Override
+				public void write(OutputStream output) throws IOException, WebApplicationException {
+					bos.writeTo(output);
+				}
+			};
+		}
+		catch (Throwable e) {
+			throw RuntimeExceptionUtil.mask(e);
+		}
 	}
 
 	protected StreamingOutput createResult(final Object result, final HttpServletResponse response,
-			final IBackgroundWorkerParamDelegate<Throwable> streamingFinishedCallback) {
+			final IBackgroundWorkerParamDelegate<Throwable> streamingFinishedCallback,
+			final boolean cleanupOnFinally) {
 		final String contentEncoding = evaluateAcceptedContentEncoding(response);
 		return new StreamingOutput() {
 			@Override
@@ -432,7 +451,9 @@ public abstract class AbstractServiceREST {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 				finally {
-					getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
+					if (cleanupOnFinally) {
+						getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
+					}
 				}
 			}
 		};
