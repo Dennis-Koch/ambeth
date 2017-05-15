@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -103,13 +102,17 @@ import com.koch.ambeth.util.collections.IntArrayList;
 import com.koch.ambeth.util.collections.InterfaceFastList;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.io.FastByteArrayOutputStream;
 import com.koch.ambeth.util.model.IDataObject;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public class RootCache extends AbstractCache<RootCacheValue>
-		implements IRootCache, IOfflineListener, ICacheRetriever {
+		implements
+			IRootCache,
+			IOfflineListener,
+			ICacheRetriever {
 	static class DoRelationObjRefsRefreshOnResize implements IResizeMapCallback {
 		private final RootCache rootCache;
 
@@ -135,8 +138,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 		}
 	}
 
-	protected static final Map<Class<?>, Object> typeToEmptyArray =
-			new HashMap<>(128, 0.5f);
+	protected static final Map<Class<?>, Object> typeToEmptyArray = new HashMap<>(128, 0.5f);
 
 	public static final Set<CacheDirective> failEarlyCacheValueResultSet =
 			EnumSet.of(CacheDirective.FailEarly, CacheDirective.CacheValueResult);
@@ -164,8 +166,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 
 	protected final HashSet<IObjRef> currentPendingKeys = new HashSet<>();
 
-	protected final InterfaceFastList<RootCacheValue> lruList =
-			new InterfaceFastList<>();
+	protected final InterfaceFastList<RootCacheValue> lruList = new InterfaceFastList<>();
 
 	protected final ReentrantLock lruLock = new ReentrantLock();
 
@@ -440,8 +441,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 					while (true) {
 						doAnotherRetry.setValue(Boolean.FALSE);
 						LinkedHashSet<IObjRef> neededObjRefs = new LinkedHashSet<>();
-						ArrayList<DirectValueHolderRef> pendingValueHolders =
-								new ArrayList<>();
+						ArrayList<DirectValueHolderRef> pendingValueHolders = new ArrayList<>();
 						IList<Object> result = getObjectsRetry(orisToGet, targetCache, cacheDirective,
 								doAnotherRetry, neededObjRefs, pendingValueHolders);
 						while (neededObjRefs.size() > 0) {
@@ -634,10 +634,8 @@ public class RootCache extends AbstractCache<RootCacheValue>
 		try {
 			Lock readLock = getReadLock();
 			final ArrayList<IObjRelation> objRelMisses = new ArrayList<>();
-			HashMap<IObjRelation, IObjRelationResult> objRelToResultMap =
-					new HashMap<>();
-			IdentityHashMap<IObjRef, IObjRef> alreadyClonedObjRefs =
-					new IdentityHashMap<>();
+			HashMap<IObjRelation, IObjRelationResult> objRelToResultMap = new HashMap<>();
+			IdentityHashMap<IObjRef, IObjRef> alreadyClonedObjRefs = new IdentityHashMap<>();
 
 			ICacheModification cacheModification = this.cacheModification;
 			boolean oldCacheModificationValue = cacheModification.isActive();
@@ -1179,7 +1177,8 @@ public class RootCache extends AbstractCache<RootCacheValue>
 				}
 				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRefToGet.getRealType());
 
-				RootCacheValue cacheValue = rootCacheValuesToGet != null ? rootCacheValuesToGet[a]
+				RootCacheValue cacheValue = rootCacheValuesToGet != null
+						? rootCacheValuesToGet[a]
 						: getCacheValue(metaData, objRefToGet, checkVersion);
 				if (cacheValue == null) // Cache miss
 				{
@@ -1212,8 +1211,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 						continue;
 					}
 					if (runnables == null) {
-						runnables =
-								new ArrayList<>(size);
+						runnables = new ArrayList<>(size);
 						greyListObjRefs = new IdentityHashSet<>();
 						alreadyClonedObjRefs = new IdentityHashMap<>();
 						tempObjRefList = new ArrayList<>();
@@ -1639,12 +1637,13 @@ public class RootCache extends AbstractCache<RootCacheValue>
 			return obj;
 		}
 		// VERY SLOW fallback if no IObjectCopier implementation provided
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		FastByteArrayOutputStream bos = new FastByteArrayOutputStream();
 		try {
+			@SuppressWarnings("resource")
 			ObjectOutputStream oos = new ObjectOutputStream(bos);
 			oos.writeObject(obj);
 			oos.flush();
-			ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+			ByteArrayInputStream bis = new ByteArrayInputStream(bos.getRawByteArray(), 0, bos.size());
 			ObjectInputStream ois = new ObjectInputStream(bis);
 			return ois.readObject();
 		}

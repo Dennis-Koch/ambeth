@@ -23,7 +23,6 @@ limitations under the License.
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -50,6 +49,7 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.IValueObjectConfig;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.metadata.Member;
+import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.ListUtil;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -100,19 +100,37 @@ public class GenericEntityREST extends AbstractServiceREST {
 		IConversionHelper conversionHelper = getService(IConversionHelper.class);
 		IEntityMetaDataProvider entityMetaDataProvider = getService(IEntityMetaDataProvider.class);
 
-		String valueObjectTypeName = path[2];
-
-		IValueObjectConfig config = entityMetaDataProvider.getValueObjectConfig(valueObjectTypeName);
-		if (config == null) {
-			throw new BadRequestException("Entity type '" + valueObjectTypeName + "' not known");
+		String valueObjectTypeName = path[0];
+		IEntityMetaData metaData = null;
+		IClassCache classCache = getService(IClassCache.class);
+		try {
+			Class<?> entityType = classCache.loadClass(valueObjectTypeName);
+			metaData = entityMetaDataProvider.getMetaData(entityType, true);
 		}
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(config.getEntityType());
+		catch (ClassNotFoundException e) {
+			// intended blank
+		}
+
+		IValueObjectConfig config = null;
+		if (metaData == null) {
+			config = entityMetaDataProvider.getValueObjectConfig(valueObjectTypeName);
+		}
+		if (config == null) {
+			if (metaData == null) {
+				throw new BadRequestException(
+						"Type '" + valueObjectTypeName + "' neither known as an entity nor as a DTO type");
+			}
+		}
+		if (metaData == null) {
+			metaData = entityMetaDataProvider.getMetaData(config.getEntityType());
+		}
 
 		Object value = null;
 
-		String entityId = path[3];
+		String entityId = null;
 
-		if (path.length > 3) {
+		if (path.length > 1) {
+			entityId = path[1];
 			Object convertedEntityId =
 					conversionHelper.convertValueToType(metaData.getIdMember().getRealType(), entityId);
 			value = cache.getObject(metaData.getEntityType(), convertedEntityId);
@@ -132,7 +150,8 @@ public class GenericEntityREST extends AbstractServiceREST {
 			String voMemberName = path[index];
 			pathSB.append('.').append(voMemberName);
 
-			String boMemberName = config.getBusinessObjectMemberName(voMemberName);
+			String boMemberName =
+					config != null ? config.getBusinessObjectMemberName(voMemberName) : voMemberName;
 			Member member = metaData.getMemberByName(boMemberName);
 			if (member == null) {
 				throw new BadRequestException("Entity member '" + pathSB + "' not known");
@@ -146,12 +165,14 @@ public class GenericEntityREST extends AbstractServiceREST {
 			}
 			if (metaData.isRelationMember(boMemberName)) {
 				metaData = entityMetaDataProvider.getMetaData(member.getElementType());
-				List<Class<?>> availableConfigs =
-						entityMetaDataProvider.getValueObjectTypesByEntityType(metaData.getEntityType());
-				if (availableConfigs.size() == 0) {
-					throw new BadRequestException("Entity member '" + pathSB + "' not serializable");
+				if (config != null) {
+					List<Class<?>> availableConfigs =
+							entityMetaDataProvider.getValueObjectTypesByEntityType(metaData.getEntityType());
+					if (availableConfigs.size() == 0) {
+						throw new BadRequestException("Entity member '" + pathSB + "' not serializable");
+					}
+					config = entityMetaDataProvider.getValueObjectConfig(availableConfigs.get(0));
 				}
-				config = entityMetaDataProvider.getValueObjectConfig(availableConfigs.get(0));
 			}
 			else {
 				metaData = null;
@@ -176,7 +197,7 @@ public class GenericEntityREST extends AbstractServiceREST {
 				value = ((List<?>) value).get(indexSpec);
 			}
 			else {
-				Iterator<?> iter = ((Collection<?>) value).iterator();
+				Iterator<?> iter = ((Iterable<?>) value).iterator();
 				while (true) {
 					if (!iter.hasNext()) {
 						throw new NotFoundException("Entity '" + pathSB + "' not found");
@@ -201,28 +222,36 @@ public class GenericEntityREST extends AbstractServiceREST {
 			@Context HttpServletResponse response) {
 		try {
 			preServiceCall();
-
+			String basePath = getClass().getAnnotation(Path.class).value();
 			String contextPath = request.getPathInfo();
+			if (!basePath.startsWith("/")) {
+				basePath = "/" + basePath;
+			}
+			if (!basePath.endsWith("/")) {
+				basePath += "/";
+			}
+			if (contextPath.startsWith(basePath)) {
+				contextPath = contextPath.substring(basePath.length());
+			}
 			String[] path = contextPath.split("/");
 
 			NavigationStep[] navigationSteps = navigateTo(path, NavigationMode.DEFAULT);
 			NavigationStep lastStep = navigationSteps[navigationSteps.length - 1];
 
-			if (lastStep.value instanceof IEntityMetaDataHolder) {
+			if (lastStep.value instanceof IEntityMetaDataHolder && lastStep.config != null) {
 				IMapperServiceFactory mapperServiceFactory = getService(IMapperServiceFactory.class);
 
 				IMapperService mapperService = mapperServiceFactory.create();
 				try {
 					Object valueObject =
 							mapperService.mapToValueObject(lastStep.value, lastStep.config.getValueType());
-					return createResult(valueObject, response);
+					return createSynchronousResult(valueObject, response);
 				}
 				finally {
 					mapperService.dispose();
 				}
 			}
-			// simple value and not an entity
-			return createResult(lastStep.value, response);
+			return createSynchronousResult(lastStep.value, response);
 		}
 		catch (WebApplicationException e) {
 			throw e;
