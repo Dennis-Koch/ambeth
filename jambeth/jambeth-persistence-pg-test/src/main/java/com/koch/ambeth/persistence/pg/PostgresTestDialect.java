@@ -1,5 +1,8 @@
 package com.koch.ambeth.persistence.pg;
 
+import java.sql.Blob;
+import java.sql.Clob;
+
 /*-
  * #%L
  * jambeth-persistence-pg-test
@@ -223,31 +226,46 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 		}
 		String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
 		ArrayList<String> tableColumns = new ArrayList<>();
-		ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
-		try {
-			while (tableColumnsRS.next()) {
-				String columnName = tableColumnsRS.getString("COLUMN_NAME");
-				if (columnName.equalsIgnoreCase(PermissionGroup.permGroupIdNameOfData)) {
-					continue;
-				}
-				int columnType = tableColumnsRS.getInt("DATA_TYPE");
-				if (java.sql.Types.CLOB == columnType || java.sql.Types.BLOB == columnType) {
-					// ORA-25006: cannot specify this column in UPDATE OF clause
-					// lobs have a lob locator as a pointer to the internal technical lob storage. the lob
-					// locator is never changed when a lob is initialized or
-					// updated
-					continue;
-				}
-				tableColumns.add(columnName);
+
+		IList<IColumnEntry> allFieldsOfTable =
+				connectionDialect.getAllFieldsOfTable(connection, fqTableName);
+		String columnNameOfVersion = null;
+
+		for (IColumnEntry columnEntry : allFieldsOfTable) {
+			String columnName = columnEntry.getFieldName();
+			if (columnName.equalsIgnoreCase(PermissionGroup.permGroupIdNameOfData)) {
+				continue;
 			}
-		}
-		finally {
-			JdbcUtil.close(tableColumnsRS);
+			if (!columnEntry.expectsMapping()) {
+				continue;
+			}
+			if (columnEntry.getJavaType().equals(Clob.class)
+					|| columnEntry.getJavaType().equals(Blob.class)) {
+				// ORA-25006: cannot specify this column in UPDATE OF clause
+				// lobs have a lob locator as a pointer to the internal technical lob storage. the lob
+				// locator is never changed when a lob is initialized or
+				// updated
+				continue;
+			}
+			tableColumns.add(columnName);
+			if (columnNameOfVersion == null) {
+				String fieldNameLower = columnName.toLowerCase();
+				if (fieldNameLower.equals("version") || fieldNameLower.equals("\"version\"")
+						|| fieldNameLower.equals("'version'")) {
+					columnNameOfVersion = columnName;
+				}
+			}
 		}
 		int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
 		String triggerName = ormPatternMatcher.buildOptimisticLockTriggerFromTableName(fqTableName,
 				maxProcedureNameLength);
 
+		if (columnNameOfVersion == null) {
+			return new String[0];
+		}
+		if (!columnNameOfVersion.equals(connectionDialect.toDefaultCase(columnNameOfVersion))) {
+			columnNameOfVersion = connectionDialect.escapeName(columnNameOfVersion);
+		}
 		String functionName = "f_" + triggerName;
 		String[] sql = new String[2];
 		{
@@ -255,8 +273,8 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 			sb.append("CREATE OR REPLACE FUNCTION ").append(functionName)
 					.append("() RETURNS TRIGGER AS $").append(functionName).append("$\n");
 			sb.append(" BEGIN\n");
-			sb.append("  IF NEW.\"").append("VERSION").append("\" <= OLD.\"").append("VERSION")
-					.append("\" THEN\n");
+			sb.append("  IF NEW.").append(columnNameOfVersion).append(" <= OLD.")
+					.append(columnNameOfVersion).append(" THEN\n");
 			sb.append("  RAISE EXCEPTION '")
 					.append(Integer.toString(PostgresDialect.getOptimisticLockErrorCode()))
 					.append(" Optimistic Lock Exception';\n");

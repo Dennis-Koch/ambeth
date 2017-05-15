@@ -278,7 +278,7 @@ public class AmbethLogger implements IConfigurableLogger {
 		}
 	}
 
-	protected void printThrowable(Throwable e, StringBuilder sb, String newLine, int level,
+	public static void printThrowable(Throwable e, StringBuilder sb, String newLine, int level,
 			boolean printHeader) {
 		StackTraceElement[] stackTrace = e.getStackTrace();
 
@@ -307,22 +307,26 @@ public class AmbethLogger implements IConfigurableLogger {
 		}
 	}
 
-	protected String extractFullStackTrace(Throwable throwable) {
+	public static void extractFullStackTrace(Throwable throwable, StringBuilder sb) {
 		String newLine = System.getProperty("line.separator");
 
+		boolean printHeader = false;
+		Throwable currentThrowable = throwable;
+		while (currentThrowable != null) {
+			printThrowable(currentThrowable, sb, newLine, 1, printHeader);
+			printHeader = true;
+			currentThrowable = currentThrowable.getCause();
+			if (currentThrowable != null) {
+				sb.append(newLine);
+				sb.append("Cause: ");
+			}
+		}
+	}
+
+	protected String extractFullStackTrace(Throwable throwable) {
 		StringBuilder sb = acquireStringBuilder();
 		try {
-			boolean printHeader = false;
-			Throwable currentThrowable = throwable;
-			while (currentThrowable != null) {
-				printThrowable(currentThrowable, sb, newLine, 1, printHeader);
-				printHeader = true;
-				currentThrowable = currentThrowable.getCause();
-				if (currentThrowable != null) {
-					sb.append(newLine);
-					sb.append("Cause: ");
-				}
-			}
+			extractFullStackTrace(throwable, sb);
 			return sb.toString();
 		}
 		finally {

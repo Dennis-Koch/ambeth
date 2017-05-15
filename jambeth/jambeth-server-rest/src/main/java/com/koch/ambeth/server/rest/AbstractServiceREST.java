@@ -23,8 +23,6 @@ limitations under the License.
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Set;
@@ -54,6 +52,7 @@ import javax.ws.rs.core.StreamingOutput;
 
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
+import com.koch.ambeth.log.AmbethLogger;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.ILoggerHistory;
 import com.koch.ambeth.log.LoggerFactory;
@@ -354,13 +353,10 @@ public abstract class AbstractServiceREST {
 		}
 		logException(e, null);
 		AmbethServiceException result = new AmbethServiceException();
-
-		StringWriter sw = new StringWriter();
-		PrintWriter pw = new PrintWriter(sw, false);
-		e.printStackTrace(pw);
-		pw.flush();
+		StringBuilder sb = new StringBuilder();
+		AmbethLogger.extractFullStackTrace(e, sb);
 		result.setMessage(e.getMessage());
-		result.setStackTrace(sw.toString());
+		result.setStackTrace(sb.toString());
 		return createResult(result, response);
 	}
 

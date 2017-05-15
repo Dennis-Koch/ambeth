@@ -186,9 +186,16 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 			long m1 = System.currentTimeMillis();
 
 			long localRequestId = requestCounter.incrementAndGet();
-			URL url = restClientServiceUrlBuilder != null
-					? restClientServiceUrlBuilder.buildURL(serviceBaseUrl, serviceName, method, args)
-					: null;
+			URL url;
+			try {
+				url = restClientServiceUrlBuilder != null
+						? restClientServiceUrlBuilder.buildURL(serviceBaseUrl, serviceName, method, args)
+						: null;
+			}
+			catch (Throwable e) {
+				throw RuntimeExceptionUtil.mask(e, "Error occured while building URL call for service '"
+						+ serviceName + "/" + method.getName() + "' with base at '" + serviceBaseUrl);
+			}
 			if (url == null) {
 				url = new URL(serviceBaseUrl + "/" + serviceName + "/" + method.getName());
 			}
