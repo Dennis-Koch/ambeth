@@ -1,17 +1,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>de.osthus.ambeth</groupId>
+	<groupId>com.koch.ambeth</groupId>
 	<artifactId>ambeth-documentation</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<properties>
-		<ambeth.version>3.0.1</ambeth.version>
+		<ambeth.version>3.0.2-SNAPSHOT</ambeth.version>
 		<ambeth.integrity.version>1.0.2</ambeth.integrity.version>
 		<ambeth.extendables.scanner.version>1.0.2</ambeth.extendables.scanner.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<extendables.scanner.dir>${project.build.directory}/extendables-scanner</extendables.scanner.dir>
 	</properties>
 
 	<pluginRepositories>
@@ -134,7 +135,7 @@
 								<argument>-f</argument>
 								<argument>${settings.localRepository}/com/koch/ambeth/extendables-scanner/${ambeth.extendables.scanner.version}/extendables-scanner-${ambeth.extendables.scanner.version}.pom</argument>
 								<argument>dependency:copy-dependencies</argument>
-								<argument>-DoutputDirectory=${basedir}/target/extendables-scanner</argument>
+								<argument>-DoutputDirectory=${extendables.scanner.dir}</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -183,10 +184,11 @@
 							<executable>java</executable>
 							<arguments>
 								<argument>-cp</argument>
-								<argument>${basedir}\target\extendables-scanner\*;${settings.localRepository}\com\koch\ambeth\extendables-scanner\${ambeth.extendables.scanner.version}\extendables-scanner-${ambeth.extendables.scanner.version}.jar</argument>
+								<argument>${extendables.scanner.dir}\*;${settings.localRepository}\com\koch\ambeth\extendables-scanner\${ambeth.extendables.scanner.version}\extendables-scanner-${ambeth.extendables.scanner.version}.jar</argument>
 								<argument>com.koch.ambeth.extscanner.Main</argument>
 								<argument>scan-path="${basedir}/target/data"</argument>
 								<argument>source-path="${basedir}/../../ambeth;${basedir}/../../jambeth"</argument>
+								<argument>target-source-path="${project.build.directory}/src-files"</argument>
 								<argument>target-all-dir="${basedir}"</argument>
 								<argument>target-extendable-tex-dir="${basedir}/extendable"</argument>
 								<argument>target-properties-tex-dir="${basedir}/configuration"</argument>
@@ -238,7 +240,9 @@
 						<bibtexCommand>bibtex</bibtexCommand>
 						<!-- the arguments to use when calling latex -->
 						<texCommandArgs>
+						<!-- TODO: we need the shell escape to launch inkscape, but for some reason the inkscape process hangs and stalls the build
 							<texCommandArg>-shell-escape</texCommandArg>
+							 -->
 							<texCommandArg>-interaction=nonstopmode</texCommandArg>
 							<texCommandArg>--src-specials</texCommandArg>
 						</texCommandArgs>

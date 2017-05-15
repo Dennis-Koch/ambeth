@@ -74,7 +74,7 @@ public class Program {
 			run();
 			System.exit(ExitCode.SUCCESS.getCode());
 		}
-		catch (Exception e) {
+		catch (Throwable e) {
 			e.printStackTrace();
 			// showMessage(e.getMessage() + "\n\n");
 		}
@@ -433,17 +433,27 @@ public class Program {
 						// -6 because of .class
 						String className = je.getName().substring(0, je.getName().length() - 6);
 						className = className.replace('/', '.');
-						Class<?> c = cl.loadClass(className);
-						classes.add(new ClassHolder(pathToJar, c));
+						try {
+							Class<?> c = cl.loadClass(className);
+							classes.add(new ClassHolder(pathToJar, c));
+						}
+						catch (Throwable e) {
+							throw RuntimeExceptionUtil.mask(e,
+									"Error occurred while trying to load '" + className + "'");
+						}
 					}
+				}
+				catch (Throwable e) {
+					throw RuntimeExceptionUtil.mask(e,
+							"Error occurred while handling jar '" + pathToJar + "'");
 				}
 				finally {
 					jarFile.close();
 				}
 			}
 		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
+		catch (Throwable e) {
+			throw RuntimeExceptionUtil.mask(e);
 		}
 		return classes;
 	}
