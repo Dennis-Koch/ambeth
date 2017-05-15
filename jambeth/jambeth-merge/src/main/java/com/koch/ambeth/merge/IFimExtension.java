@@ -7,6 +7,12 @@ import com.koch.ambeth.dot.IDotWriter;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.metadata.Member;
 
+/**
+ * Allows to customize the internal logic of
+ * {@link IEntityMetaDataProvider#toDotGraph(java.io.Writer). Register own implementations of this
+ * to {@link IFimExtensionExtendable}.
+ *
+ */
 public interface IFimExtension {
 
 	interface IDotNodeCallback {

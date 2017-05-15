@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>jambeth-doc-scope</artifactId>
@@ -39,6 +40,10 @@
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-expr-exp4j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-ioc-osgi</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
@@ -86,6 +91,10 @@
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-server-rest</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-service-test</artifactId>
 		</dependency>
 		<dependency>
@@ -96,5 +105,42 @@
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-util-test</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>osgi.cmpn</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.core</artifactId>
+		</dependency>
 	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>javax.servlet</groupId>
+				<artifactId>javax.servlet-api</artifactId>
+				<version>3.0.1</version>
+				<scope>compile</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.osgi</groupId>
+				<artifactId>org.osgi.core</artifactId>
+				<version>${org.osgi.core.version}</version>
+				<scope>compile</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.osgi</groupId>
+				<artifactId>osgi.cmpn</artifactId>
+				<version>${org.osgi.core.version}</version>
+				<scope>compile</scope>
+			</dependency>
+			
+		</dependencies>
+	</dependencyManagement>
 </project>
