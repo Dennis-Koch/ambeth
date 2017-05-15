@@ -1,5 +1,7 @@
 package com.koch.ambeth.filter;
 
+import java.util.Arrays;
+
 /*-
  * #%L
  * jambeth-filter
@@ -86,6 +88,14 @@ public class CompositeFilterDescriptor<T> implements IFilterDescriptor<T> {
 	public CompositeFilterDescriptor<T> withChildFilterDescriptors(
 			List<IFilterDescriptor<T>> childFilterDescriptors) {
 		setChildFilterDescriptors(childFilterDescriptors);
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	public CompositeFilterDescriptor<T> withChildFilterDescriptors(
+			IFilterDescriptor<?>... childFilterDescriptors) {
+		setChildFilterDescriptors(
+				(List<IFilterDescriptor<T>>) (Object) Arrays.asList(childFilterDescriptors));
 		return this;
 	}
 

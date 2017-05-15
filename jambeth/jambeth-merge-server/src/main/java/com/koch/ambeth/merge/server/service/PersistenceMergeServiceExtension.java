@@ -108,6 +108,8 @@ import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.IdentityHashSet;
+import com.koch.ambeth.util.collections.IdentityLinkedMap;
+import com.koch.ambeth.util.collections.IdentityLinkedSet;
 import com.koch.ambeth.util.collections.InterfaceFastList;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
@@ -321,8 +323,8 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 
 			HashMap<Long, IObjRef> mockIdToObjRefMap = new HashMap<>();
 			HashMap<IObjRef, Object> objRefToEntityMap = new HashMap<>();
-			HashMap<IObjRef, IChangeContainer> objRefToChangeContainerMap =
-					new HashMap<IObjRef, IChangeContainer>() {
+			LinkedHashMap<IObjRef, IChangeContainer> objRefToChangeContainerMap =
+					new LinkedHashMap<IObjRef, IChangeContainer>() {
 						@Override
 						public IChangeContainer put(IObjRef key, IChangeContainer value) {
 							if (value instanceof LinkContainer) {
@@ -407,31 +409,37 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 			executeWithoutSecurity(buildableAllChanges, tableChangeMap, oriList, mockIdToObjRefMap,
 					objRefToChangeContainerMap, incrementalState);
 
-			IdentityHashSet<IChangeContainer> changeContainersSet = new IdentityHashSet<>();
+			IdentityLinkedSet<IChangeContainer> changeContainersSet = new IdentityLinkedSet<>();
 
 			for (Entry<IObjRef, IChangeContainer> entry : objRefToChangeContainerMap) {
 				IChangeContainer changeContainer = entry.getValue();
 				changeContainersSet.add(changeContainer);
 			}
-
-			IChangeContainer[] changeContainers = changeContainersSet.toArray(IChangeContainer.class);
-			Object[] newAllObjects = new Object[changeContainers.length];
+			ArrayList<IChangeContainer> changeContainers =
+					new ArrayList<IChangeContainer>(changeContainersSet.size());
+			for (int a = 0, size = buildableAllChanges.size(); a < size; a++) {
+				IChangeContainer changeContainer = buildableAllChanges.get(a);
+				changeContainersSet.remove(changeContainer);
+				changeContainers.add(changeContainer);
+			}
+			changeContainers.addAll(changeContainersSet);
+			Object[] newAllObjects = new Object[changeContainers.size()];
 
 			IObjRef[] objRefsToLoad = null;
 
-			for (int a = changeContainers.length; a-- > 0;) {
-				IChangeContainer changeContainer = changeContainers[a];
+			for (int a = changeContainers.size(); a-- > 0;) {
+				IChangeContainer changeContainer = changeContainers.get(a);
 				IObjRef objRef = changeContainer.getReference();
 				if (objRef instanceof IDirectObjRef) {
 					((IDirectObjRef) objRef).setCreateContainerIndex(a);
 				}
 				if (changeContainer instanceof CreateOrUpdateContainerBuild) {
-					changeContainers[a] = ((CreateOrUpdateContainerBuild) changeContainer).build();
+					changeContainers.set(a, ((CreateOrUpdateContainerBuild) changeContainer).build());
 				}
 				Object entity = objRefToEntityMap.get(objRef);
 				if (entity == null) {
 					if (objRefsToLoad == null) {
-						objRefsToLoad = new IObjRef[changeContainers.length];
+						objRefsToLoad = new IObjRef[changeContainers.size()];
 					}
 					objRefsToLoad[a] = objRef;
 					continue;
@@ -451,8 +459,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 					}
 				}
 			}
-			return new CUDResult(new ArrayList<IChangeContainer>(changeContainers),
-					new ArrayList<>(newAllObjects));
+			return new CUDResult(changeContainers, new ArrayList<>(newAllObjects));
 		}
 		finally {
 			database.getContextProvider().clearAfterMerge();
