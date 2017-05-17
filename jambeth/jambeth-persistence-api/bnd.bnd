@@ -1,5 +1,5 @@
 Bundle-ActivationPolicy: lazy
 -exportcontents: \
-    com.koch.ambeth.*;-noimport=true
+    com.koch.ambeth.*;-noimport:=true
 DynamicImport-Package: \
 	net.sf.cglib.*
