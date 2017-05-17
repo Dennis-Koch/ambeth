@@ -99,7 +99,7 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
 		return propertyPath;
 	}
 
-	protected static final Class<?>[] EMPTY_TYPES = new Class<?>[0];
+	public static final Class<?>[] EMPTY_TYPES = new Class<?>[0];
 
 	protected static final Object[] EMPTY_OBJECTS = new Object[0];
 

@@ -28,6 +28,7 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.cache.ICache;
+import com.koch.ambeth.merge.metadata.MemberTypeProvider;
 import com.koch.ambeth.merge.service.IMergeService;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.IValueObjectConfig;
@@ -39,8 +40,6 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class EntityMetaDataClient implements IEntityMetaDataProvider {
-	protected static final Class<?>[] EMPTY_TYPES = new Class[0];
-
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -121,7 +120,7 @@ public class EntityMetaDataClient implements IEntityMetaDataProvider {
 
 	@Override
 	public Class<?>[] getEntityPersistOrder() {
-		return EMPTY_TYPES;
+		return MemberTypeProvider.EMPTY_TYPES;
 	}
 
 	@Override

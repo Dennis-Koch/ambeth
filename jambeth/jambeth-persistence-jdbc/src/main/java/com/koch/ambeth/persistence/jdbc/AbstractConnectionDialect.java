@@ -51,6 +51,7 @@ import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.ITransactionState;
+import com.koch.ambeth.merge.metadata.MemberTypeProvider;
 import com.koch.ambeth.persistence.ArrayQueryItem;
 import com.koch.ambeth.persistence.IConnectionDialect;
 import com.koch.ambeth.persistence.api.IDatabase;
@@ -121,15 +122,13 @@ public abstract class AbstractConnectionDialect
 	@Autowired(optional = true)
 	protected ITransactionState transactionState;
 
-	@Property(name = PersistenceConfigurationConstants.ExternalTransactionManager,
-			defaultValue = "false")
+	@Property(name = PersistenceConfigurationConstants.ExternalTransactionManager, defaultValue = "false")
 	protected boolean externalTransactionManager;
 
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName)
 	protected String schemaName;
 
-	@Property(name = PersistenceJdbcConfigurationConstants.RegisterDriverEagerly,
-			defaultValue = "true")
+	@Property(name = PersistenceJdbcConfigurationConstants.RegisterDriverEagerly, defaultValue = "true")
 	protected boolean registerDriverEagerly;
 
 	@Autowired(optional = true)
@@ -729,5 +728,10 @@ public abstract class AbstractConnectionDialect
 	@Override
 	public String getSelectForUpdateFragment() {
 		return " FOR UPDATE NOWAIT";
+	}
+
+	@Override
+	public Class<?>[] getConnectionInterfaces(Connection connection) {
+		return MemberTypeProvider.EMPTY_TYPES;
 	}
 }

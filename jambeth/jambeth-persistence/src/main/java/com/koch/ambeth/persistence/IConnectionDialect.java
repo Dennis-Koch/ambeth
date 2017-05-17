@@ -158,4 +158,6 @@ public interface IConnectionDialect {
 	int getColumnCountForLinkTable();
 
 	String buildClearTableSQL(String tableName);
+
+	Class<?>[] getConnectionInterfaces(Connection connection);
 }

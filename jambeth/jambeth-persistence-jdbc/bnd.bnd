@@ -2,8 +2,10 @@ Bundle-ActivationPolicy: lazy
 -exportcontents: \
     com.koch.ambeth.*;-noimport:=true
 DynamicImport-Package: \
-	org.apache.commons.pool2
+	org.apache.commons.pool2, \
+	com.koch.ambeth.persistence.jdbc.connector.jdbc.*
 Import-Package: \
+	com.koch.ambeth.persistence.database.callback, \
 	net.sf.cglib.core, \
 	net.sf.cglib.reflect, \
 	*

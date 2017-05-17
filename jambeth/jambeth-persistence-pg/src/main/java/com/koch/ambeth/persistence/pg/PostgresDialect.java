@@ -47,6 +47,7 @@ import javax.persistence.PessimisticLockException;
 
 import org.postgresql.Driver;
 import org.postgresql.PGConnection;
+import org.postgresql.core.BaseConnection;
 
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
@@ -167,8 +168,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
 	@Autowired(optional = true)
 	protected ITransactionState transactionState;
 
-	@Property(name = PersistenceConfigurationConstants.ExternalTransactionManager,
-			defaultValue = "false")
+	@Property(name = PersistenceConfigurationConstants.ExternalTransactionManager, defaultValue = "false")
 	protected boolean externalTransactionManager;
 
 	@Property(name = PersistenceConfigurationConstants.AutoIndexForeignKeys, defaultValue = "false")
@@ -451,8 +451,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
 	}
 
 	@Override
-	public void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException {
-	}
+	public void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException {}
 
 	@Override
 	public int getResourceBusyErrorCode() {
@@ -748,5 +747,13 @@ public class PostgresDialect extends AbstractConnectionDialect {
 	@Override
 	public SelectPosition getLimitPosition() {
 		return SelectPosition.AFTER_WHERE;
+	}
+
+	@Override
+	public Class<?>[] getConnectionInterfaces(Connection connection) {
+		if (connection instanceof BaseConnection) {
+			return new Class<?>[] {BaseConnection.class, PGConnection.class};
+		}
+		return super.getConnectionInterfaces(connection);
 	}
 }
