@@ -22,7 +22,9 @@ limitations under the License.
 
 import java.util.Iterator;
 
-public abstract class AbstractIterator<V> implements Iterator<V> {
+import com.koch.ambeth.util.transfer.IDTOType;
+
+public abstract class AbstractIterator<V> implements Iterator<V>, IDTOType {
 	protected final boolean removeAllowed;
 
 	public AbstractIterator() {

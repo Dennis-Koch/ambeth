@@ -61,4 +61,6 @@ public interface IReader {
 	ICommandTypeRegistry getCommandTypeRegistry();
 
 	ICommandTypeExtendable getCommandTypeExtendable();
+
+	boolean isSkipClassNotFoundOnRead();
 }

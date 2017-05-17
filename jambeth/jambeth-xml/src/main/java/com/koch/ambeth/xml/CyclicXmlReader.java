@@ -23,6 +23,7 @@ limitations under the License.
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
+import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.xml.postprocess.IPostProcessReader;
 import com.koch.ambeth.xml.postprocess.IXmlPostProcessor;
 import com.koch.ambeth.xml.postprocess.IXmlPostProcessorRegistry;
@@ -38,6 +39,22 @@ public class CyclicXmlReader extends SimpleXmlReader {
 
 	@Autowired
 	protected IXmlPostProcessorRegistry xmlPostProcessorRegistry;
+
+	public CyclicXmlReader() {
+		super();
+	}
+
+	protected CyclicXmlReader(IProperties props) {
+		super(props);
+	}
+
+	@Override
+	protected SimpleXmlReader createReaderInstance(IProperties props) {
+		CyclicXmlReader reader = new CyclicXmlReader(props);
+		reader.xmlDictionary = xmlDictionary;
+		reader.xmlPostProcessorRegistry = xmlPostProcessorRegistry;
+		return reader;
+	}
 
 	@Override
 	protected Object postProcess(Object object, IPostProcessReader pullParserReader) {

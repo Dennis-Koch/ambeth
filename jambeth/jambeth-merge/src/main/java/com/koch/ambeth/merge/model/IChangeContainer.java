@@ -21,8 +21,8 @@ limitations under the License.
  */
 
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.service.metadata.IDTOType;
 import com.koch.ambeth.util.annotation.XmlType;
+import com.koch.ambeth.util.transfer.IDTOType;
 
 @XmlType
 public interface IChangeContainer extends IDTOType {

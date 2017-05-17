@@ -35,8 +35,9 @@ import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.transfer.IDTOType;
 
-public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Cloneable {
+public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Cloneable, IDTOType {
 	public static class FastIterator<V> implements ListIterator<V> {
 		protected int index;
 

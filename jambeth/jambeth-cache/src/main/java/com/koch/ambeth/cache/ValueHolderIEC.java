@@ -335,7 +335,12 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>>
 			realType = bytecodeEnhancer.getBaseType(type);
 		}
 		if (realType == null) {
-			realType = cgLibUtil.getOriginalClass(type);
+			try {
+				realType = cgLibUtil.getOriginalClass(type);
+			}
+			catch (Throwable e) {
+				throw e;
+			}
 		}
 		if (realType == null) {
 			realType = type;

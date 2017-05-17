@@ -22,7 +22,7 @@ limitations under the License.
 
 import javax.xml.bind.annotation.XmlType;
 
-import com.koch.ambeth.service.metadata.IDTOType;
+import com.koch.ambeth.util.transfer.IDTOType;
 
 @XmlType
 public interface ISortDescriptor extends IDTOType {

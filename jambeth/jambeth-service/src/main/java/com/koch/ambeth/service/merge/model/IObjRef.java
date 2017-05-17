@@ -1,7 +1,5 @@
 package com.koch.ambeth.service.merge.model;
 
-import com.koch.ambeth.service.metadata.IDTOType;
-
 /*-
  * #%L
  * jambeth-service
@@ -23,6 +21,7 @@ limitations under the License.
  */
 
 import com.koch.ambeth.util.annotation.XmlType;
+import com.koch.ambeth.util.transfer.IDTOType;
 
 /**
  * Contains reference information about an Object in the cache or not loaded yet. By use of these

@@ -40,10 +40,9 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IdentityHashMap;
-import com.koch.ambeth.util.collections.IdentityHashSet;
-import com.koch.ambeth.util.collections.IdentitySmartCopySet;
 import com.koch.ambeth.util.collections.IntKeyMap;
 import com.koch.ambeth.util.collections.IntKeyMap.IntKeyMapEntry;
+import com.koch.ambeth.util.collections.SmartCopySet;
 
 public class EntityMetaData implements IEntityMetaData {
 	public static final String DEFAULT_NAME_ID = "Id";

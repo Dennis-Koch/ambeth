@@ -47,6 +47,7 @@ import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.typeinfo.TypeInfoItemUtil;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
+import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.service.IOfflineListener;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.remote.IRemoteInterceptor;
@@ -63,17 +64,14 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.xml.ICyclicXMLHandler;
+import com.koch.ambeth.xml.ICyclicXmlReader;
 import com.koch.ambeth.xml.XmlTypeNotFoundException;
 import com.koch.ambeth.xml.ioc.XmlModule;
 
 import net.sf.cglib.proxy.MethodProxy;
 
 public class RESTClientInterceptor extends AbstractSimpleInterceptor
-		implements
-			IRemoteInterceptor,
-			IInitializingBean,
-			IOfflineListener,
-			IDisposableBean {
+		implements IRemoteInterceptor, IInitializingBean, IOfflineListener, IDisposableBean {
 	public static final String DEFLATE_MIME_TYPE = "application/octet-stream";
 
 	@LogInstance
@@ -123,9 +121,12 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 
 	protected final IdentityHashSet<Thread> responsePendingThreadSet = new IdentityHashSet<>();
 
+	private final Properties readerProps = new Properties();
+
 	@Override
 	public void afterPropertiesSet() {
 		ParamChecker.assertNotNull(serviceName, IRemoteTargetProvider.SERVICE_NAME_PROP);
+		readerProps.put(ICyclicXmlReader.SKIP_CLASS_NOT_FOUND, "true");
 	}
 
 	@Override
@@ -254,13 +255,15 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 					log.debug(url + " " + localRequestId + " <= " + new String(byteArray, "UTF-8"));
 				}
 				try {
-					result = cyclicXmlHandler.readFromStream(new ByteArrayInputStream(byteArray));
+					result = cyclicXmlHandler.createReaderWith(readerProps)
+							.readFromStream(new ByteArrayInputStream(byteArray));
 				}
 				catch (XmlTypeNotFoundException e) {
 					throw e;
 				}
 				catch (Throwable e) {
-					result = cyclicXmlHandler.readFromStream(new ByteArrayInputStream(byteArray));
+					result = cyclicXmlHandler.createReaderWith(readerProps)
+							.readFromStream(new ByteArrayInputStream(byteArray));
 				}
 			}
 			if (result instanceof AmbethServiceException) {

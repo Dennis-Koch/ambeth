@@ -45,7 +45,6 @@ import com.koch.ambeth.service.cache.IServiceResultProcessorRegistry;
 import com.koch.ambeth.service.cache.model.IServiceResult;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.service.metadata.IDTOType;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.service.transfer.ServiceDescription;
@@ -55,6 +54,7 @@ import com.koch.ambeth.util.annotation.QueryResultType;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
+import com.koch.ambeth.util.transfer.IDTOType;
 
 import net.sf.cglib.proxy.MethodProxy;
 

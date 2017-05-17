@@ -22,8 +22,8 @@ limitations under the License.
 
 import java.util.List;
 
-import com.koch.ambeth.service.metadata.IDTOType;
 import com.koch.ambeth.util.annotation.XmlType;
+import com.koch.ambeth.util.transfer.IDTOType;
 
 @XmlType
 public interface IFilterDescriptor<T> extends IDTOType {

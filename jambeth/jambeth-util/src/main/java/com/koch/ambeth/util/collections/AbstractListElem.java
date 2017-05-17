@@ -1,5 +1,7 @@
 package com.koch.ambeth.util.collections;
 
+import com.koch.ambeth.util.transfer.IDTOType;
+
 /*-
  * #%L
  * jambeth-util
@@ -20,7 +22,7 @@ limitations under the License.
  * #L%
  */
 
-public class AbstractListElem<V> {
+public class AbstractListElem<V> implements IDTOType {
 	protected V next, prev;
 
 	public V getNext() {

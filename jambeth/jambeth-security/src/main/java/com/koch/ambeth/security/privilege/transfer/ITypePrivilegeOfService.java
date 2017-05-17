@@ -1,7 +1,5 @@
 package com.koch.ambeth.security.privilege.transfer;
 
-import com.koch.ambeth.service.metadata.IDTOType;
-
 /*-
  * #%L
  * jambeth-security
@@ -24,6 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.util.annotation.XmlType;
+import com.koch.ambeth.util.transfer.IDTOType;
 
 @XmlType
 public interface ITypePrivilegeOfService extends IDTOType {

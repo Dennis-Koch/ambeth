@@ -22,7 +22,9 @@ limitations under the License.
 
 import java.util.List;
 
-public class FastList<V> {
+import com.koch.ambeth.util.transfer.IDTOType;
+
+public class FastList<V> implements IDTOType {
 	private final ListElem<V> anchor = new ListElem<>();
 
 	private ListElem<V> last;

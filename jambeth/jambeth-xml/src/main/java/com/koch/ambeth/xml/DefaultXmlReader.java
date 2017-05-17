@@ -50,20 +50,20 @@ public class DefaultXmlReader
 		implements IReader, IPostProcessReader, ICommandTypeRegistry, ICommandTypeExtendable {
 	protected final IntKeyMap<Object> idToObjectMap = new IntKeyMap<>();
 
-	protected final HashMap<Class<?>, SpecifiedMember[]> typeToMemberMap =
-			new HashMap<>();
+	protected final HashMap<Class<?>, SpecifiedMember[]> typeToMemberMap = new HashMap<>();
 
 	protected final IList<IObjectCommand> objectCommands = new ArrayList<>();
 
 	protected final IMapExtendableContainer<Class<? extends IObjectCommand>, Class<? extends IObjectCommand>> commandTypeExtendable =
-			new MapExtendableContainer<>(
-					"Overriding command type", "Original command type");
+			new MapExtendableContainer<>("Overriding command type", "Original command type");
 
 	protected final XmlPullParser pullParser;
 
 	protected final ICyclicXmlController xmlController;
 
 	protected final IObjectFutureHandlerRegistry objectFutureHandlerRegistry;
+
+	private boolean skipClassNotFoundOnRead;
 
 	public DefaultXmlReader(XmlPullParser pullParser, ICyclicXmlController xmlController,
 			IObjectFutureHandlerRegistry objectFutureHandlerRegistry) {
@@ -259,8 +259,7 @@ public class DefaultXmlReader
 	protected ILinkedMap<Class<? extends IObjectFuture>, ISet<IObjectFuture>> bucketSortObjectFutures(
 			IList<IObjectCommand> objectCommands) {
 		ILinkedMap<Class<? extends IObjectFuture>, ISet<IObjectFuture>> sortedObjectFutures =
-				new LinkedHashMap<>(
-						(int) (objectCommands.size() / 0.75));
+				new LinkedHashMap<>((int) (objectCommands.size() / 0.75));
 		for (int i = 0, size = objectCommands.size(); i < size; i++) {
 			IObjectCommand objectCommand = objectCommands.get(i);
 			IObjectFuture objectFuture = objectCommand.getObjectFuture();
@@ -315,5 +314,14 @@ public class DefaultXmlReader
 			return getElementName() + "|START";
 		}
 		return getElementName() + "|END";
+	}
+
+	@Override
+	public boolean isSkipClassNotFoundOnRead() {
+		return skipClassNotFoundOnRead;
+	}
+
+	public void setSkipClassNotFoundOnRead(boolean skipClassNotFoundOnRead) {
+		this.skipClassNotFoundOnRead = skipClassNotFoundOnRead;
 	}
 }

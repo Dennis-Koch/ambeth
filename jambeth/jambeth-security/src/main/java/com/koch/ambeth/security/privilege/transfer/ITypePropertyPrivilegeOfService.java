@@ -1,6 +1,6 @@
 package com.koch.ambeth.security.privilege.transfer;
 
-import com.koch.ambeth.service.metadata.IDTOType;
+import com.koch.ambeth.util.transfer.IDTOType;
 
 /*-
  * #%L

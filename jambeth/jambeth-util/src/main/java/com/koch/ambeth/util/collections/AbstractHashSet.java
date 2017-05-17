@@ -31,6 +31,7 @@ import java.util.List;
 import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.transfer.IDTOType;
 
 /**
  * Abstrakte HashSet als Basisklasse fuer verschiedene spezialisierte Anwendungsfaelle
@@ -41,7 +42,7 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
  * @param <K> Typ der Keys
  * @param <V> Typ der Values
  */
-public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable, Cloneable {
+public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable, Cloneable, IDTOType {
 	public static final int DEFAULT_INITIAL_CAPACITY = 16;
 
 	public static final int MAXIMUM_CAPACITY = 1 << 30;

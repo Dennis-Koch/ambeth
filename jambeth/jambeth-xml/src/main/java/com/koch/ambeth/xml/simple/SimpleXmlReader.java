@@ -36,7 +36,9 @@ import org.xmlpull.v1.XmlPullParser;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
+import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.util.IConversionHelper;
+import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
@@ -74,6 +76,43 @@ public class SimpleXmlReader implements ICyclicXmlReader {
 
 	@Autowired
 	protected ICyclicXmlController xmlController;
+
+	// do NOT inject the properties from the IoC context. this is meant as a POJO field variable
+	private IProperties props;
+
+	public SimpleXmlReader() {
+		// intended blank
+	}
+
+	protected SimpleXmlReader(IProperties props) {
+		this.props = props;
+	}
+
+	@Override
+	public ICyclicXmlReader createReaderWith(IProperties props) {
+		if (props == null) {
+			return this;
+		}
+		if (this.props != null) {
+			// merge props
+			Properties mergedProps = new Properties(this.props);
+			mergedProps.load(props);
+			props = mergedProps;
+		}
+		SimpleXmlReader reader = createReaderInstance(props);
+		reader.log = log;
+		reader.commandBuilder = commandBuilder;
+		reader.conversionHelper = conversionHelper;
+		reader.objectCollector = objectCollector;
+		reader.objectFutureHandlerRegistry = objectFutureHandlerRegistry;
+		reader.typeInfoProvider = typeInfoProvider;
+		reader.xmlController = xmlController;
+		return reader;
+	}
+
+	protected SimpleXmlReader createReaderInstance(IProperties props) {
+		return new SimpleXmlReader(props);
+	}
 
 	@Override
 	public Object read(String cyclicXmlContent) {
@@ -265,6 +304,10 @@ public class SimpleXmlReader implements ICyclicXmlReader {
 					new DefaultXmlReader(xmlReader, xmlController, objectFutureHandlerRegistry);
 			if (!pullParserReader.nextTag()) {
 				return null;
+			}
+			if (props != null) {
+				pullParserReader.setSkipClassNotFoundOnRead(conversionHelper.convertValueToType(
+						Boolean.class, props.getString(ICyclicXmlReader.SKIP_CLASS_NOT_FOUND, "false")));
 			}
 			readPrefix(pullParserReader);
 			Object obj = pullParserReader.readObject();

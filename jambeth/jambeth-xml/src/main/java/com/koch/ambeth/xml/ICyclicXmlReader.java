@@ -24,7 +24,11 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.nio.channels.ReadableByteChannel;
 
+import com.koch.ambeth.util.config.IProperties;
+
 public interface ICyclicXmlReader {
+	public static final String SKIP_CLASS_NOT_FOUND = "ambeth.xml.read.skip_class_not_found";
+
 	Object read(String cyclicXmlContent);
 
 	Object readFromStream(InputStream is);
@@ -34,4 +38,6 @@ public interface ICyclicXmlReader {
 	Object readFromChannel(ReadableByteChannel byteChannel);
 
 	Object readFromReader(Reader reader);
+
+	ICyclicXmlReader createReaderWith(IProperties props);
 }

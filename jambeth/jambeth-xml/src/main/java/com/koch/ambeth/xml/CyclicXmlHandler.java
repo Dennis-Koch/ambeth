@@ -30,6 +30,7 @@ import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
+import com.koch.ambeth.util.config.IProperties;
 
 public class CyclicXmlHandler implements ICyclicXMLHandler, ICyclicXmlWriter, ICyclicXmlReader,
 		ITypeBasedHandlerExtendable, INameBasedHandlerExtendable, IDisposableBean {
@@ -53,6 +54,14 @@ public class CyclicXmlHandler implements ICyclicXMLHandler, ICyclicXmlWriter, IC
 	@Override
 	public void destroy() throws Throwable {
 		disposed = true;
+	}
+
+	@Override
+	public ICyclicXmlReader createReaderWith(IProperties props) {
+		if (disposed) {
+			throw new IllegalStateException("Bean already disposed");
+		}
+		return cyclicXmlReader.createReaderWith(props);
 	}
 
 	@Override

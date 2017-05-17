@@ -34,6 +34,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IdentityLinkedMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
+import com.koch.ambeth.util.exception.MaskingRuntimeException;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.typeinfo.ITypeInfo;
@@ -293,37 +294,20 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 		String name = reader.getAttributeValue(xmlDictionary.getClassNameAttribute());
 		String namespace = reader.getAttributeValue(xmlDictionary.getClassNamespaceAttribute());
 
-		// IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		// String arraySuffix;
-		int dimensionCount = 0;
-		// StringBuilder arraySuffixSB = tlObjectCollector.create(StringBuilder.class);
-		// try
-		// {
-		while (name.endsWith("[]")) {
-			dimensionCount++;
-			name = name.substring(0, name.length() - 2);
-			// arraySuffixSB.append("[");
+		int firstArrayIndex = name.indexOf("[]");
+		int dimensionCount = firstArrayIndex == -1 ? 0 : (name.length() - firstArrayIndex) / 2;
+		try {
+			Class<?> typeObj = xmlTypeRegistry.getType(name, namespace);
+			if (dimensionCount > 0 && typeObj != null) {
+				return Array.newInstance(typeObj, 0).getClass();
+			}
+			return typeObj;
 		}
-		// arraySuffix = arraySuffixSB.toString();
-		// }
-		// finally
-		// {
-		// tlObjectCollector.dispose(arraySuffixSB);
-		// arraySuffixSB = null;
-		// }
-		Class<?> typeObj = xmlTypeRegistry.getType(name, namespace);
-		if (dimensionCount > 0) {
-			// try
-			// {
-			// return classLoaderProvider.getClassLoader().loadClass(arraySuffix + "L" +
-			// typeObj.getName() + ";");
-			// }
-			// catch (ClassNotFoundException e)
-			// {
-			// throw RuntimeExceptionUtil.mask(e);
-			// }
-			return Array.newInstance(typeObj, 0).getClass();
+		catch (MaskingRuntimeException e) {
+			if (e.getCause() instanceof ClassNotFoundException && reader.isSkipClassNotFoundOnRead()) {
+				return null;
+			}
+			throw e;
 		}
-		return typeObj;
 	}
 }

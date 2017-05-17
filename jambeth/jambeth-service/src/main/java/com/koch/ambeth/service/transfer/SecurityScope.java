@@ -25,8 +25,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.koch.ambeth.service.metadata.IDTOType;
 import com.koch.ambeth.service.model.ISecurityScope;
+import com.koch.ambeth.util.transfer.IDTOType;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)

@@ -1,4 +1,4 @@
-package com.koch.ambeth.service.metadata;
+package com.koch.ambeth.util.transfer;
 
 /*-
  * #%L

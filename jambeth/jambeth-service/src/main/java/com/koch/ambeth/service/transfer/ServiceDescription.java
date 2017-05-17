@@ -27,12 +27,12 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.koch.ambeth.service.metadata.IDTOType;
 import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.service.model.IServiceDescription;
 import com.koch.ambeth.util.StringConversionHelper;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IObjectCollector;
+import com.koch.ambeth.util.transfer.IDTOType;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)

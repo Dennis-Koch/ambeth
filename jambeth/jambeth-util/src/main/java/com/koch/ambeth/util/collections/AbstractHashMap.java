@@ -32,6 +32,7 @@ import java.util.Set;
 import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.transfer.IDTOType;
 
 /**
  * Abstrakte HashMap als Basisklasse fuer verschiedene spezialisierte Anwendungsfaelle
@@ -41,7 +42,8 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
  * @param <K> Typ der Keys
  * @param <V> Typ der Values
  */
-public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPrintable, Cloneable {
+public abstract class AbstractHashMap<WrappedK, K, V>
+		implements IMap<K, V>, IPrintable, Cloneable, IDTOType {
 	public static final int DEFAULT_INITIAL_CAPACITY = 16;
 
 	public static final int MAXIMUM_CAPACITY = 1 << 30;
