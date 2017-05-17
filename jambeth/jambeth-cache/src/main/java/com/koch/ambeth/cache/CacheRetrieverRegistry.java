@@ -60,8 +60,13 @@ import com.koch.ambeth.util.collections.IdentityLinkedMap;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
 
-public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverExtendable,
-		IPrimitiveRetrieverExtendable, IRelationRetrieverExtendable, ICacheServiceByNameExtendable {
+public class CacheRetrieverRegistry
+		implements
+			ICacheRetriever,
+			ICacheRetrieverExtendable,
+			IPrimitiveRetrieverExtendable,
+			IRelationRetrieverExtendable,
+			ICacheServiceByNameExtendable {
 
 	public static class PrimitiveRetrieverArguments {
 		public final ArrayList<IObjRelation> objRelations = new ArrayList<>();
@@ -385,12 +390,13 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 			PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();
 			final Object[] primitives = loadContainer.getPrimitives();
-			for (int b = primitives.length; b-- > 0;) {
-				Object primitive = primitives[b];
+			for (int remotePrimitiveIndex = primitives.length; remotePrimitiveIndex-- > 0;) {
+				Object primitive = primitives[remotePrimitiveIndex];
 				if (primitive != null) {
 					continue;
 				}
-				String memberName = primitiveMembers[b].getName();
+				int primitiveIndex = metaData.getLocalPrimitiveIndex(remotePrimitiveIndex);
+				String memberName = primitiveMembers[primitiveIndex].getName();
 				IPrimitiveRetriever primitiveRetriever =
 						getPropertyRetrieverForType(typeToPrimitiveRetrieverEC, entityType, memberName);
 
@@ -409,11 +415,11 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 				objRel.setVersion(objRef.getVersion());
 				primitiveRetrieverArg.addArg(loadContainer, objRel);
 
-				final int primitiveIndex = b;
+				final int fRemotePrimitiveIndex = remotePrimitiveIndex;
 				objRelToDelegateMap.put(objRel, new IBackgroundWorkerParamDelegate<Object>() {
 					@Override
 					public void invoke(Object fetchedPrimitive) throws Throwable {
-						primitives[primitiveIndex] = fetchedPrimitive;
+						primitives[fRemotePrimitiveIndex] = fetchedPrimitive;
 					}
 				});
 			}

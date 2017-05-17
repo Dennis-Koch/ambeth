@@ -27,6 +27,10 @@ limitations under the License.
  * {@link IPrefetchHelper#createPrefetch()}.
  */
 public interface IPrefetchConfig {
+	public interface ICastPlan<E> {
+		<T extends E> T as(Class<T> entityType);
+	}
+
 	/**
 	 * Returns a stub looking like the requested entity type. All relations on this stub can be
 	 * accessed (to-one/to-many) in a cascaded manner. The traversal is internally tracked as a
@@ -85,6 +89,16 @@ public interface IPrefetchConfig {
 	 * @return
 	 */
 	IPrefetchConfig add(Class<?> entityType, String... propertyPaths);
+
+	/**
+	 * Allows to cast a plan proxy to a more specific sub type. This is useful when the entity model
+	 * is separated into distinct modules to resolve cyclic compile dependencies due to transitive
+	 * cyclic relationships.
+	 *
+	 * @param planProxy The plan proxy to prepare for casting to one of its sub types.
+	 * @return A fluent API handle to provide a plan proxy for the casted sub type
+	 */
+	<E> ICastPlan<E> cast(E planProxy);
 
 	/**
 	 * Finalizes the configuration and creates the runtime handle for doing prefetches on given entity

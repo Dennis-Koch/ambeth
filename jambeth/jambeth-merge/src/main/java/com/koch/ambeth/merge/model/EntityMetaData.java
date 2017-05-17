@@ -29,6 +29,7 @@ import com.koch.ambeth.merge.compositeid.CompositeIdMember;
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.service.merge.model.IEntityLifecycleExtension;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
+import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.EmbeddedMember;
 import com.koch.ambeth.service.metadata.IPrimitiveMemberWrite;
 import com.koch.ambeth.service.metadata.Member;
@@ -39,7 +40,10 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IdentityHashMap;
-import com.koch.ambeth.util.collections.SmartCopySet;
+import com.koch.ambeth.util.collections.IdentityHashSet;
+import com.koch.ambeth.util.collections.IdentitySmartCopySet;
+import com.koch.ambeth.util.collections.IntKeyMap;
+import com.koch.ambeth.util.collections.IntKeyMap.IntKeyMapEntry;
 
 public class EntityMetaData implements IEntityMetaData {
 	public static final String DEFAULT_NAME_ID = "Id";
@@ -130,6 +134,14 @@ public class EntityMetaData implements IEntityMetaData {
 	protected ICacheModification cacheModification;
 
 	protected IEntityFactory entityFactory;
+
+	private IntKeyMap<Integer> remoteToLocalPrimitiveIndexMap;
+
+	private IntKeyMap<Integer> localToRemotePrimitiveIndexMap;
+
+	private IntKeyMap<Integer> remoteToLocalRelationIndexMap;
+
+	private IntKeyMap<Integer> localToRemoteRelationIndexMap;
 
 	public void setEntityType(Class<?> entityType) {
 		this.entityType = entityType;
@@ -393,6 +405,7 @@ public class EntityMetaData implements IEntityMetaData {
 
 	public void setTypesRelatingToThis(Class<?>[] typesRelatingToThis) {
 		this.typesRelatingToThis = typesRelatingToThis;
+		typesRelatingToThisSet.clear();
 	}
 
 	@Override
@@ -644,5 +657,113 @@ public class EntityMetaData implements IEntityMetaData {
 			sb.append(memberNameToken);
 		}
 		return sb.toString();
+	}
+
+	@Override
+	public int getLocalPrimitiveIndex(int remotePrimitiveIndex) {
+		if (remoteToLocalPrimitiveIndexMap == null) {
+			return remotePrimitiveIndex;
+		}
+		Integer value = remoteToLocalPrimitiveIndexMap.get(remotePrimitiveIndex);
+		if (value == null) {
+			return -1;
+		}
+		return value.intValue();
+	}
+
+	@Override
+	public int getLocalRelationIndex(int remoteRelationIndex) {
+		if (remoteToLocalRelationIndexMap == null) {
+			return remoteRelationIndex;
+		}
+		Integer value = remoteToLocalRelationIndexMap.get(remoteRelationIndex);
+		if (value == null) {
+			return -1;
+		}
+		return value.intValue();
+	}
+
+	@Override
+	public int getRemotePrimitiveIndex(int localPrimitiveIndex) {
+		if (localToRemotePrimitiveIndexMap == null) {
+			return localPrimitiveIndex;
+		}
+		Integer value = localToRemotePrimitiveIndexMap.get(localPrimitiveIndex);
+		if (value == null) {
+			return -1;
+		}
+		return value.intValue();
+	}
+
+	@Override
+	public int getRemoteRelationIndex(int localRelationIndex) {
+		if (localToRemoteRelationIndexMap == null) {
+			return localRelationIndex;
+		}
+		Integer value = localToRemoteRelationIndexMap.get(localRelationIndex);
+		if (value == null) {
+			return -1;
+		}
+		return value.intValue();
+	}
+
+	@Override
+	public Object[] mapToLocalPrimitives(Object[] remotePrimitives) {
+		if (!hasRemotePrimitiveIndexMapping()) {
+			return remotePrimitives;
+		}
+		PrimitiveMember[] primitiveMembers = getPrimitiveMembers();
+		Object[] primitives = new Object[primitiveMembers.length];
+		for (int remotePrimitiveIndex = remotePrimitives.length; remotePrimitiveIndex-- > 0;) {
+			int localPrimitiveIndex = getLocalPrimitiveIndex(remotePrimitiveIndex);
+			if (localPrimitiveIndex != -1) {
+				primitives[localPrimitiveIndex] = remotePrimitives[remotePrimitiveIndex];
+			}
+		}
+		return primitives;
+	}
+
+	@Override
+	public IObjRef[][] mapToLocalRelations(IObjRef[][] remoteRelations) {
+		if (!hasRemoteRelationIndexMapping()) {
+			return remoteRelations;
+		}
+		RelationMember[] relationMembers = getRelationMembers();
+		IObjRef[][] relations = new IObjRef[relationMembers.length][];
+		for (int remoteRelationIndex = remoteRelations.length; remoteRelationIndex-- > 0;) {
+			int localRelationIndex = getLocalRelationIndex(remoteRelationIndex);
+			if (localRelationIndex != -1) {
+				relations[localRelationIndex] = remoteRelations[remoteRelationIndex];
+			}
+		}
+		return relations;
+	}
+
+	@Override
+	public boolean hasRemotePrimitiveIndexMapping() {
+		return remoteToLocalPrimitiveIndexMap != null;
+	}
+
+	@Override
+	public boolean hasRemoteRelationIndexMapping() {
+		return remoteToLocalRelationIndexMap != null;
+	}
+
+	public void setRemoteToLocalPrimitiveIndexMap(IntKeyMap<Integer> remoteToLocalPrimitiveIndexMap) {
+		this.remoteToLocalPrimitiveIndexMap = remoteToLocalPrimitiveIndexMap;
+		localToRemotePrimitiveIndexMap = new IntKeyMap<Integer>(10, 0.5f);
+		for (IntKeyMapEntry<Integer> entry : remoteToLocalPrimitiveIndexMap.entrySet()) {
+			localToRemotePrimitiveIndexMap.put(entry.getValue().intValue(),
+					Integer.valueOf(entry.getKey()));
+		}
+	}
+
+	public void setRemoteToLocalRelationIndexMap(IntKeyMap<Integer> remoteToLocalRelationIndexMap) {
+		this.remoteToLocalRelationIndexMap = remoteToLocalRelationIndexMap;
+		localToRemoteRelationIndexMap = new IntKeyMap<Integer>(10, 0.5f);
+		for (IntKeyMapEntry<Integer> entry : remoteToLocalRelationIndexMap.entrySet()) {
+			localToRemoteRelationIndexMap.put(entry.getValue().intValue(),
+					Integer.valueOf(entry.getKey()));
+		}
 	}
 }

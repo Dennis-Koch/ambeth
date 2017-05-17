@@ -40,6 +40,8 @@ import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
+import net.sf.cglib.proxy.Callback;
+import net.sf.cglib.proxy.Factory;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 
@@ -72,7 +74,8 @@ public class PrefetchConfig implements IPrefetchConfig {
 			IEntityMetaData targetMetaData = entityMetaDataProvider.getMetaData(member.getElementType());
 
 			Object childPlan = planIntern(baseEntityType,
-					propertyPath != null ? propertyPath + "." + propertyName : propertyName, targetMetaData);
+					propertyPath != null ? propertyPath + "." + propertyName : propertyName,
+					member.getElementType(), targetMetaData);
 
 			if (member.getElementType().equals(member.getRealType())) {
 				// to-one relation
@@ -100,16 +103,17 @@ public class PrefetchConfig implements IPrefetchConfig {
 
 	@Override
 	public <T> T plan(Class<T> entityType) {
-		return planIntern(entityType, null, entityMetaDataProvider.getMetaData(entityType));
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+		return planIntern(entityType, null, metaData.getEntityType(), metaData);
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <T> T planIntern(final Class<?> baseEntityType, final String propertyPath,
-			final IEntityMetaData currMetaData) {
+	protected <T> T planIntern(Class<?> baseEntityType, String propertyPath, Class<?> elementType,
+			IEntityMetaData currMetaData) {
 		if (propertyPath != null) {
 			add(baseEntityType, propertyPath);
 		}
-		return (T) proxyFactory.createProxy(currMetaData.getEntityType(),
+		return (T) proxyFactory.createProxy(elementType,
 				new PrefetchConfigInterceptor(currMetaData, baseEntityType, propertyPath));
 	}
 
@@ -135,6 +139,30 @@ public class PrefetchConfig implements IPrefetchConfig {
 		}
 		membersToInitialize.addAll(propertyPaths);
 		return this;
+	}
+
+	@Override
+	public <E> ICastPlan<E> cast(E planProxy) {
+		if (!(planProxy instanceof Factory)) {
+			throw new IllegalArgumentException(
+					"Given argument is not a valid plan proxy created with #plan(Class)");
+		}
+		Callback[] callbacks = ((Factory) planProxy).getCallbacks();
+		if (callbacks.length != 1 || !(callbacks[0] instanceof PrefetchConfigInterceptor)) {
+			throw new IllegalArgumentException(
+					"Given argument is not a valid plan proxy created with #plan(Class)");
+		}
+		PrefetchConfigInterceptor pci = (PrefetchConfigInterceptor) callbacks[0];
+		final Class<?> baseEntityType = pci.baseEntityType;
+		final String propertyPath = pci.propertyPath;
+		return new ICastPlan<E>() {
+			@Override
+			public <T extends E> T as(Class<T> entityType) {
+				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+				return proxyFactory.createProxy(entityType,
+						new PrefetchConfigInterceptor(metaData, baseEntityType, propertyPath));
+			}
+		};
 	}
 
 	@Override

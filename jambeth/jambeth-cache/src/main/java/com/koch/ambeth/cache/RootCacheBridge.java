@@ -146,7 +146,7 @@ public class RootCacheBridge implements ICacheRetriever {
 			ILoadContainer loadContainer = loadContainers.get(a);
 			IEntityMetaData metaData =
 					entityMetaDataProvider.getMetaData(loadContainer.getReference().getRealType());
-			Object[] primitives = loadContainer.getPrimitives();
+			Object[] primitives = metaData.mapToLocalPrimitives(loadContainer.getPrimitives());
 			for (Member member : metaData.getPrimitiveMembers()) {
 				if (!metaData.hasInterningBehavior(member)) {
 					continue;

@@ -25,6 +25,7 @@ import org.objectweb.asm.ClassVisitor;
 import com.koch.ambeth.bytecode.ClassGenerator;
 import com.koch.ambeth.bytecode.FieldInstance;
 import com.koch.ambeth.bytecode.MethodInstance;
+import com.koch.ambeth.merge.EntityMetaDataProvider;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 
@@ -40,7 +41,7 @@ public class EntityMetaDataHolderVisitor extends ClassGenerator {
 			return method;
 		}
 		FieldInstance f_entityMetaData =
-				cv.implementStaticAssignedField("sf__entityMetaData", metaData);
+				cv.implementStaticAssignedField(EntityMetaDataProvider.staticMetaDataFieldName, metaData);
 
 		return cv.implementGetter(m_template_getEntityMetaData, f_entityMetaData);
 	}

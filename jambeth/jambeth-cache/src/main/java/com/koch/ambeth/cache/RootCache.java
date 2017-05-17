@@ -1072,11 +1072,12 @@ public class RootCache extends AbstractCache<RootCacheValue>
 		IObjRef reference = loadContainer.getReference();
 
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(reference.getRealType());
-		Object[] primitives = loadContainer.getPrimitives();
+		Object[] primitives = metaData.mapToLocalPrimitives(loadContainer.getPrimitives());
 		CacheKey[] alternateCacheKeys = extractAlternateCacheKeys(metaData, primitives);
 
+		IObjRef[][] relations = metaData.mapToLocalRelations(loadContainer.getRelations());
 		RootCacheValue cacheValue = putIntern(metaData, null, reference.getId(), reference.getVersion(),
-				alternateCacheKeys, primitives, loadContainer.getRelations());
+				alternateCacheKeys, primitives, relations);
 		if (weakEntries) {
 			addHardRefTL(cacheValue);
 		}

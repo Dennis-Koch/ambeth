@@ -82,8 +82,7 @@ public class CacheRetrieverFake implements ICacheService, IChunkProvider {
 
 	@Override
 	public List<IChunkedResponse> getChunkedContents(List<IChunkedRequest> chunkedRequests) {
-		ArrayList<IChunkedResponse> chunkedResponses =
-				new ArrayList<>(chunkedRequests.size());
+		ArrayList<IChunkedResponse> chunkedResponses = new ArrayList<>(chunkedRequests.size());
 
 		Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -101,7 +100,7 @@ public class CacheRetrieverFake implements ICacheService, IChunkProvider {
 			}
 			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRelation.getRealType());
 			int index = metaData.getIndexByPrimitiveName(objRelation.getMemberName());
-			Object requestedValue = lc.getPrimitives()[index];
+			Object requestedValue = lc.getPrimitives()[metaData.getRemotePrimitiveIndex(index)];
 
 			IBinaryInputStream payloadIS =
 					conversionHelper.convertValueToType(IBinaryInputStream.class, requestedValue);

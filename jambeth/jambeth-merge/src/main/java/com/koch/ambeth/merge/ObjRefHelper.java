@@ -292,7 +292,8 @@ public class ObjRefHelper implements IObjRefHelper {
 				id = lc.getReference().getId();
 			}
 			else {
-				id = compositeIdFactory.createIdFromPrimitives(metaData, idIndex, lc.getPrimitives());
+				id = compositeIdFactory.createIdFromPrimitives(metaData, idIndex,
+						metaData.mapToLocalPrimitives(lc.getPrimitives()));
 			}
 			version = lc.getReference().getVersion();
 		}

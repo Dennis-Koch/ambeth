@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILogger;
+import com.koch.ambeth.log.ILoggerHistory;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IEntityFactory;
 import com.koch.ambeth.merge.IProxyHelper;
@@ -33,7 +34,6 @@ import com.koch.ambeth.merge.cache.ICacheModification;
 import com.koch.ambeth.merge.metadata.IIntermediateMemberTypeProvider;
 import com.koch.ambeth.merge.model.EntityMetaData;
 import com.koch.ambeth.merge.transfer.EntityMetaDataTransfer;
-import com.koch.ambeth.service.metadata.IntermediatePrimitiveMember;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.service.metadata.RelationMember;
@@ -41,6 +41,7 @@ import com.koch.ambeth.util.IDedicatedConverter;
 import com.koch.ambeth.util.ListUtil;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
+import com.koch.ambeth.util.collections.IntKeyMap;
 
 public class EntityMetaDataConverter implements IDedicatedConverter {
 	private static final String[] EMPTY_STRINGS = new String[0];
@@ -59,6 +60,9 @@ public class EntityMetaDataConverter implements IDedicatedConverter {
 
 	@Autowired
 	protected IIntermediateMemberTypeProvider intermediateMemberTypeProvider;
+
+	@Autowired
+	protected ILoggerHistory loggerHistory;
 
 	@Autowired
 	protected IProxyHelper proxyHelper;
@@ -106,6 +110,8 @@ public class EntityMetaDataConverter implements IDedicatedConverter {
 			EntityMetaDataTransfer source = (EntityMetaDataTransfer) value;
 
 			HashMap<String, Member> nameToMemberDict = new HashMap<>();
+			IntKeyMap<Integer> remoteToLocalPrimitiveIndexMap = new IntKeyMap<Integer>(10, 0.5f);
+			IntKeyMap<Integer> remoteToLocalRelationIndexMap = new IntKeyMap<Integer>(10, 0.5f);
 
 			EntityMetaData target = new EntityMetaData();
 			Class<?> entityType = source.getEntityType();
@@ -124,13 +130,19 @@ public class EntityMetaDataConverter implements IDedicatedConverter {
 					getPrimitiveMember(entityType, source.getUpdatedByMemberName(), nameToMemberDict));
 			target.setUpdatedOnMember(
 					getPrimitiveMember(entityType, source.getUpdatedOnMemberName(), nameToMemberDict));
-			target.setPrimitiveMembers(
-					getPrimitiveMembers(entityType, source.getPrimitiveMemberNames(), nameToMemberDict));
-			target.setAlternateIdMembers(
-					getPrimitiveMembers(entityType, source.getAlternateIdMemberNames(), nameToMemberDict));
-			target.setRelationMembers(
-					getRelationMembers(entityType, source.getRelationMemberNames(), nameToMemberDict));
+			target.setPrimitiveMembers(getPrimitiveMembers(entityType, source.getPrimitiveMemberNames(),
+					nameToMemberDict, remoteToLocalPrimitiveIndexMap));
+			target.setAlternateIdMembers(getPrimitiveMembers(entityType,
+					source.getAlternateIdMemberNames(), nameToMemberDict, null));
+			target.setRelationMembers(getRelationMembers(entityType, source.getRelationMemberNames(),
+					nameToMemberDict, remoteToLocalRelationIndexMap));
 			target.setTypesRelatingToThis(source.getTypesRelatingToThis());
+			if (target.getPrimitiveMembers().length != source.getPrimitiveMemberNames().length) {
+				target.setRemoteToLocalPrimitiveIndexMap(remoteToLocalPrimitiveIndexMap);
+			}
+			if (target.getRelationMembers().length != source.getRelationMemberNames().length) {
+				target.setRemoteToLocalRelationIndexMap(remoteToLocalRelationIndexMap);
+			}
 			Class<?>[] typesToCascadeDelete = source.getTypesToCascadeDelete();
 			for (int a = 0, size = typesToCascadeDelete.length; a < size; a++) {
 				target.getCascadeDeleteTypes().add(typesToCascadeDelete[a]);
@@ -139,7 +151,9 @@ public class EntityMetaDataConverter implements IDedicatedConverter {
 			if (mergeRelevantNames != null) {
 				for (int a = mergeRelevantNames.length; a-- > 0;) {
 					Member resolvedMember = nameToMemberDict.get(mergeRelevantNames[a]);
-					target.setMergeRelevant(resolvedMember, true);
+					if (resolvedMember != null) {
+						target.setMergeRelevant(resolvedMember, true);
+					}
 				}
 			}
 			setMergeRelevant(target, target.getCreatedByMember(), false);
@@ -159,20 +173,20 @@ public class EntityMetaDataConverter implements IDedicatedConverter {
 		}
 	}
 
-	protected IntermediatePrimitiveMember getPrimitiveMember(Class<?> entityType, String memberName,
+	protected PrimitiveMember getPrimitiveMember(Class<?> entityType, String memberName,
 			Map<String, Member> nameToMemberDict) {
 		if (memberName == null) {
 			return null;
 		}
-		IntermediatePrimitiveMember member =
-				(IntermediatePrimitiveMember) nameToMemberDict.get(memberName);
+		PrimitiveMember member = (PrimitiveMember) nameToMemberDict.get(memberName);
 		if (member != null) {
 			return member;
 		}
 		member = intermediateMemberTypeProvider.getIntermediatePrimitiveMember(entityType, memberName);
 		if (member == null) {
-			throw new RuntimeException("No member with name '" + memberName + "' found on entity type '"
-					+ entityType.getName() + "'");
+			loggerHistory.warnOnce(log, this, "No member with name '" + memberName
+					+ "' found on entity type '" + entityType.getName() + "'");
+			return null;
 		}
 		nameToMemberDict.put(memberName, member);
 		return member;
@@ -186,35 +200,50 @@ public class EntityMetaDataConverter implements IDedicatedConverter {
 		}
 		member = intermediateMemberTypeProvider.getIntermediateRelationMember(entityType, memberName);
 		if (member == null) {
-			throw new RuntimeException("No member with name '" + memberName + "' found on entity type '"
-					+ entityType.getName() + "'");
+			loggerHistory.warnOnce(log, this, "No member with name '" + memberName
+					+ "' found on entity type '" + entityType.getName() + "'");
+			return null;
 		}
 		nameToMemberDict.put(memberName, member);
 		return member;
 	}
 
 	protected PrimitiveMember[] getPrimitiveMembers(Class<?> entityType, String[] memberNames,
-			Map<String, Member> nameToMemberDict) {
+			Map<String, Member> nameToMemberDict, IntKeyMap<Integer> remoteToLocalIndexMap) {
 		if (memberNames == null) {
 			return EntityMetaData.emptyPrimitiveMembers;
 		}
-		PrimitiveMember[] members = new PrimitiveMember[memberNames.length];
-		for (int a = memberNames.length; a-- > 0;) {
-			members[a] = getPrimitiveMember(entityType, memberNames[a], nameToMemberDict);
+		ArrayList<PrimitiveMember> members = new ArrayList<>(memberNames.length);
+		for (int a = 0, size = memberNames.length; a < size; a++) {
+			PrimitiveMember member = getPrimitiveMember(entityType, memberNames[a], nameToMemberDict);
+			if (member == null) {
+				continue;
+			}
+			if (remoteToLocalIndexMap != null) {
+				remoteToLocalIndexMap.put(a, Integer.valueOf(members.size()));
+			}
+			members.add(member);
 		}
-		return members;
+		return members.toArray(PrimitiveMember.class);
 	}
 
 	protected RelationMember[] getRelationMembers(Class<?> entityType, String[] memberNames,
-			Map<String, Member> nameToMemberDict) {
+			Map<String, Member> nameToMemberDict, IntKeyMap<Integer> remoteToLocalIndexMap) {
 		if (memberNames == null) {
 			return EntityMetaData.emptyRelationMembers;
 		}
-		RelationMember[] members = new RelationMember[memberNames.length];
-		for (int a = memberNames.length; a-- > 0;) {
-			members[a] = getRelationMember(entityType, memberNames[a], nameToMemberDict);
+		ArrayList<RelationMember> members = new ArrayList<>(memberNames.length);
+		for (int a = 0, size = memberNames.length; a < size; a++) {
+			RelationMember member = getRelationMember(entityType, memberNames[a], nameToMemberDict);
+			if (member == null) {
+				continue;
+			}
+			if (remoteToLocalIndexMap != null) {
+				remoteToLocalIndexMap.put(a, Integer.valueOf(members.size()));
+			}
+			members.add(member);
 		}
-		return members;
+		return members.toArray(RelationMember.class);
 	}
 
 	protected String getNameOfMember(Member member) {

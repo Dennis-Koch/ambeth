@@ -39,6 +39,22 @@ public interface IEntityMetaData {
 
 	byte getIdIndexByMemberName(String memberName);
 
+	Object[] mapToLocalPrimitives(Object[] remotePrimitives);
+
+	IObjRef[][] mapToLocalRelations(IObjRef[][] relations);
+
+	boolean hasRemotePrimitiveIndexMapping();
+
+	boolean hasRemoteRelationIndexMapping();
+
+	int getLocalPrimitiveIndex(int remotePrimitiveIndex);
+
+	int getLocalRelationIndex(int remoteRelationIndex);
+
+	int getRemotePrimitiveIndex(int localPrimitiveIndex);
+
+	int getRemoteRelationIndex(int localRelationIndex);
+
 	PrimitiveMember getVersionMember();
 
 	PrimitiveMember[] getAlternateIdMembers();
