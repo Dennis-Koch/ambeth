@@ -328,6 +328,7 @@
 						<source>com.koch.ambeth:jambeth-query-jdbc:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-security:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-security-bytecode:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-security-persistence:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-security-server:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-sensor:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-server:jar:${project.version}</source>

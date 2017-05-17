@@ -29,6 +29,7 @@ import javax.sql.DataSource;
 
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.IPropertyLoadingBean;
+import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
@@ -76,6 +77,9 @@ public class DialectSelectorModule implements IInitializingModule, IPropertyLoad
 	@Property(name = PersistenceJdbcConfigurationConstants.DataSourceName, mandatory = false)
 	protected String dataSourceName;
 
+	@Autowired(optional = true)
+	protected DataSource dataSource;
+
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 		if (databaseProtocol == null) {
@@ -94,9 +98,12 @@ public class DialectSelectorModule implements IInitializingModule, IPropertyLoad
 
 		// If we don't use the integrated connection factory,
 		try {
-			InitialContext ic = new InitialContext();
-			DataSource datasource = (DataSource) ic.lookup(dataSourceName);
-			Connection connection = datasource.getConnection();
+			DataSource dataSource = this.dataSource;
+			if (dataSource == null) {
+				InitialContext ic = new InitialContext();
+				dataSource = (DataSource) ic.lookup(dataSourceName);
+			}
+			Connection connection = dataSource.getConnection();
 			try {
 				String connectionUrl = connection.getMetaData().getURL();
 				if (contextProperties

@@ -26,7 +26,6 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
-import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
@@ -39,37 +38,32 @@ public class DataSourceConnectionFactory extends AbstractConnectionFactory {
 	@LogInstance
 	private ILogger log;
 
+	@Property(name = PersistenceJdbcConfigurationConstants.DataSourceInstance, mandatory = false)
+	protected DataSource dataSource;
+
 	@Property(name = PersistenceJdbcConfigurationConstants.DataSourceName, mandatory = false)
 	protected String dataSourceName;
-
-	@Autowired(optional = true)
-	protected DataSource datasource;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
-		if (datasource == null) {
+		if (dataSource == null) {
 			ParamChecker.assertNotNull(dataSourceName, "dataSourceName");
-			lookupDataSource();
+			try {
+				InitialContext ic = new InitialContext();
+				dataSource = (DataSource) ic.lookup(dataSourceName);
+			}
+			catch (NamingException e) {
+				throw RuntimeExceptionUtil.mask(e);
+			}
 		}
 
-		ParamChecker.assertNotNull(datasource, "datasource");
-	}
-
-	protected void lookupDataSource() {
-		InitialContext ic;
-		try {
-			ic = new InitialContext();
-			datasource = (DataSource) ic.lookup(dataSourceName);
-		}
-		catch (NamingException e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
+		ParamChecker.assertNotNull(dataSource, "datasource");
 	}
 
 	@Override
 	protected Connection createIntern() throws Exception {
-		return datasource.getConnection();
+		return dataSource.getConnection();
 	}
 }
