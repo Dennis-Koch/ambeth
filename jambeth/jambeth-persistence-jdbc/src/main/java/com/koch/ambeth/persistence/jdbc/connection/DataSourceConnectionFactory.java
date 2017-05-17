@@ -26,6 +26,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
+import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
@@ -38,8 +39,10 @@ public class DataSourceConnectionFactory extends AbstractConnectionFactory {
 	@LogInstance
 	private ILogger log;
 
+	@Property(name = PersistenceJdbcConfigurationConstants.DataSourceName, mandatory = false)
 	protected String dataSourceName;
 
+	@Autowired(optional = true)
 	protected DataSource datasource;
 
 	@Override
@@ -52,11 +55,6 @@ public class DataSourceConnectionFactory extends AbstractConnectionFactory {
 		}
 
 		ParamChecker.assertNotNull(datasource, "datasource");
-	}
-
-	@Property(name = PersistenceJdbcConfigurationConstants.DataSourceName, mandatory = false)
-	public void setDatasource(String dataSourceName) {
-		this.dataSourceName = dataSourceName;
 	}
 
 	protected void lookupDataSource() {

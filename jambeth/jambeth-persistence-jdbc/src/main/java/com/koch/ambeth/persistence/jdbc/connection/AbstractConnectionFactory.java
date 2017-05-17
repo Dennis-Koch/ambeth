@@ -28,7 +28,6 @@ import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.ioc.proxy.ICgLibUtil;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.IConnectionDialect;
@@ -54,9 +53,6 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
 	protected IServiceContext beanContext;
 
 	@Autowired
-	protected ICgLibUtil cgLibUtil;
-
-	@Autowired
 	protected IConnectionDialect connectionDialect;
 
 	@Autowired(optional = true)
@@ -65,8 +61,7 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
 	@Autowired
 	protected IProxyFactory proxyFactory;
 
-	@Property(name = PersistenceJdbcConfigurationConstants.PreparedConnectionInstances,
-			mandatory = false)
+	@Property(name = PersistenceJdbcConfigurationConstants.PreparedConnectionInstances, mandatory = false)
 	protected ArrayList<Connection> preparedConnectionInstances;
 
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName)
@@ -111,7 +106,7 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
 					beanContext.registerExternalBean(new LogConnectionInterceptor(connectionKeyHandle))
 							.propertyValue("Connection", connection).finish();
 			Connection conn = proxyFactory.createProxy(Connection.class,
-					cgLibUtil.getAllInterfaces(connection), logConnectionInterceptor);
+					connectionDialect.getConnectionInterfaces(connection), logConnectionInterceptor);
 
 			connectionDialect.preProcessConnection(conn, schemaNames, false);
 

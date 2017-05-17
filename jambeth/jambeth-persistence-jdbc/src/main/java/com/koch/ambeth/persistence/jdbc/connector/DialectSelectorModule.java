@@ -97,33 +97,39 @@ public class DialectSelectorModule implements IInitializingModule, IPropertyLoad
 			InitialContext ic = new InitialContext();
 			DataSource datasource = (DataSource) ic.lookup(dataSourceName);
 			Connection connection = datasource.getConnection();
-			String connectionUrl = connection.getMetaData().getURL();
-			if (contextProperties.get(PersistenceJdbcConfigurationConstants.DatabaseConnection) == null) {
-				contextProperties.putString(PersistenceJdbcConfigurationConstants.DatabaseConnection,
-						connectionUrl);
+			try {
+				String connectionUrl = connection.getMetaData().getURL();
+				if (contextProperties
+						.get(PersistenceJdbcConfigurationConstants.DatabaseConnection) == null) {
+					contextProperties.putString(PersistenceJdbcConfigurationConstants.DatabaseConnection,
+							connectionUrl);
+				}
+				Matcher urlMatcher;
+				if (connectionUrl.contains(":@")) {
+					// Oracle
+					// jdbc:oracle:driver:username/password@host:port:database
+					urlMatcher =
+							Pattern.compile("^(jdbc:[^:]+:[^:]+)(?::[^:/]+/[^:]+)?:@.*").matcher(connectionUrl);
+					// Ignore ([^:]+)(?::(\\d++))?(?::([^:]+))?$ => host:post/database?params
+				}
+				else {
+					// Use everything from jdbc to the second :
+					// Postgresql, MySql, SqlServer
+					// jdbc:driver://host:port/database?user=...
+					// jdbc:h2:tcp://localhost/~/test;AUTO_RECONNECT=TRUE
+					// Derby, DB2, Sybase, H2 non-urls
+					// jdbc:driver:...
+					urlMatcher = Pattern.compile("^(jdbc:[^:]+)(:.*)?").matcher(connectionUrl);
+				}
+				if (urlMatcher.matches()) {
+					String protocol = urlMatcher.group(1);
+					contextProperties.putString(PersistenceJdbcConfigurationConstants.DatabaseProtocol,
+							protocol);
+					databaseProtocol = protocol;
+				}
 			}
-			Matcher urlMatcher;
-			if (connectionUrl.contains(":@")) {
-				// Oracle
-				// jdbc:oracle:driver:username/password@host:port:database
-				urlMatcher =
-						Pattern.compile("^(jdbc:[^:]+:[^:]+)(?::[^:/]+/[^:]+)?:@.*").matcher(connectionUrl);
-				// Ignore ([^:]+)(?::(\\d++))?(?::([^:]+))?$ => host:post/database?params
-			}
-			else {
-				// Use everything from jdbc to the second :
-				// Postgresql, MySql, SqlServer
-				// jdbc:driver://host:port/database?user=...
-				// jdbc:h2:tcp://localhost/~/test;AUTO_RECONNECT=TRUE
-				// Derby, DB2, Sybase, H2 non-urls
-				// jdbc:driver:...
-				urlMatcher = Pattern.compile("^(jdbc:[^:]+)(:.*)?").matcher(connectionUrl);
-			}
-			if (urlMatcher.matches()) {
-				String protocol = urlMatcher.group(1);
-				contextProperties.putString(PersistenceJdbcConfigurationConstants.DatabaseProtocol,
-						protocol);
-				databaseProtocol = protocol;
+			finally {
+				connection.close();
 			}
 		}
 		catch (Throwable e) {

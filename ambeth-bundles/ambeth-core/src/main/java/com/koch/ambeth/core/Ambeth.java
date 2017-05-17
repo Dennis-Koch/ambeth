@@ -298,6 +298,9 @@ public class Ambeth
 									.autowireable(IAmbethApplication.class);
 
 							for (IBackgroundWorkerParamDelegate<IBeanContextFactory> moduleDelegate : ambethModuleDelegates) {
+								if (moduleDelegate == null) {
+									continue;
+								}
 								moduleDelegate.invoke(beanContextFactory);
 							}
 							for (Entry<Class<?>, Object> autowiring : autowiredInstances) {
