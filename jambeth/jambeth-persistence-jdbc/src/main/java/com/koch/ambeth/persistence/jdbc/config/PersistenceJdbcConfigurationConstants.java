@@ -135,6 +135,11 @@ public final class PersistenceJdbcConfigurationConstants {
 	public static final String DataSourceName = "datasource.name";
 
 	/**
+	 * The direct instance of a datasource to use. Can of course only be specified programmatically
+	 */
+	public static final String DataSourceInstance = "datasource.instance";
+
+	/**
 	 * Reference to prepared connections to the persistence store, which can be used instead of
 	 * creating new ones. TODO: how can they be referenced in a text property?
 	 */
