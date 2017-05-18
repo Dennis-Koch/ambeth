@@ -1784,5 +1784,56 @@
 				</plugins>
 			</build>
 		</profile>
+		<profile>
+			<id>copy-manifest</id>
+			<activation>
+				<file>
+					<missing>${basedir}/build.properties</missing>
+					<exists>${basedir}/bnd.bnd</exists>
+				</file>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-resources-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>copy manifest</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${project.basedir}/META-INF</outputDirectory>
+									<resources>
+										<resource>
+											<directory>${project.build.outputDirectory}/META-INF</directory>
+										</resource>
+									</resources>
+									<overwrite>true</overwrite>
+								</configuration>
+							</execution>
+							<execution>
+								<id>copy osgi inf</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${project.basedir}/OSGI-INF</outputDirectory>
+									<resources>
+										<resource>
+											<directory>${project.build.outputDirectory}/OSGI-INF</directory>
+										</resource>
+									</resources>
+									<overwrite>true</overwrite>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 </project>
