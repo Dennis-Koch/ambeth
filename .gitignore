@@ -12,6 +12,8 @@
 *.vsmdi
 ambeth-log.txt
 LICENSE.txt
+META-INF
+OSGI-INF
 
 /*/target
 
