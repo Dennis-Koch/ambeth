@@ -25,8 +25,8 @@ import java.util.Map;
 import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
-import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.extendable.MapExtendableContainer;
 import com.koch.ambeth.job.IJob;
 import com.koch.ambeth.job.IJobDescheduleCommand;
@@ -47,7 +47,7 @@ import it.sauronsoftware.cron4j.Scheduler;
 import it.sauronsoftware.cron4j.Task;
 
 public class AmbethCron4jScheduler
-		implements IJobScheduler, IInitializingBean, IDisposableBean, IStartingBean, IJobExtendable {
+		implements IJobScheduler, IInitializingBean, IDisposableBean, IJobExtendable {
 	@LogInstance
 	private ILogger log;
 
@@ -59,6 +59,9 @@ public class AmbethCron4jScheduler
 
 	@Autowired
 	protected ISecurityContextHolder securityContextHolder;
+
+	@Property(name = "user.name")
+	protected String systemUserName;
 
 	protected Scheduler scheduler;
 
@@ -75,19 +78,21 @@ public class AmbethCron4jScheduler
 				}
 			};
 
+	private boolean destroyed;
+
 	@Override
 	public void afterPropertiesSet() throws Throwable {
 		scheduler = new Scheduler();
 	}
 
 	@Override
-	public void afterStarted() throws Throwable {
-		scheduler.start();
-	}
-
-	@Override
 	public void destroy() throws Throwable {
+		destroyed = true;
 		final Scheduler scheduler = this.scheduler;
+		if (scheduler == null || !scheduler.isStarted()) {
+			this.scheduler = null;
+			return;
+		}
 		final Thread stopThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -130,15 +135,23 @@ public class AmbethCron4jScheduler
 
 	@Override
 	public void registerJob(IJob job, String jobName, String cronPattern) {
+		if (destroyed) {
+			throw new IllegalStateException("This bean is already destroyed");
+		}
 		ParamChecker.assertParamNotNull(job, "job");
 		ParamChecker.assertParamNotNull(jobName, "jobName");
 		ParamChecker.assertParamNotNull(cronPattern, "cronPattern");
-		String username = System.getProperty("user.name");
+		synchronized (this) {
+			if (!scheduler.isStarted()) {
+				scheduler.start();
+			}
+		}
 		if (log.isInfoEnabled()) {
 			log.info("Scheduling job '" + jobName + "' on '" + cronPattern + "' with type '"
 					+ job.getClass().getName() + "'");
 		}
-		IAuthentication authentication = new DefaultAuthentication(username, null, PasswordType.PLAIN);
+		IAuthentication authentication =
+				new DefaultAuthentication(systemUserName, null, PasswordType.PLAIN);
 		String jobId = scheduler.schedule(cronPattern, createTask(job, jobName, authentication));
 		try {
 			jobs.register(jobId, job);
@@ -154,6 +167,9 @@ public class AmbethCron4jScheduler
 		ParamChecker.assertParamNotNull(job, "job");
 		ParamChecker.assertParamNotNull(jobName, "jobName");
 		ParamChecker.assertParamNotNull(cronPattern, "cronPattern");
+		if (destroyed) {
+			return;
+		}
 		if (log.isInfoEnabled()) {
 			log.info("Unscheduling job '" + jobName + "' on '" + cronPattern + "' with type '"
 					+ job.getClass().getName() + "'");
@@ -172,12 +188,18 @@ public class AmbethCron4jScheduler
 	@Override
 	public IJobDescheduleCommand scheduleJob(String jobName, Class<?> jobType, String cronPattern,
 			Map<Object, Object> properties) {
+		if (destroyed) {
+			throw new IllegalStateException("This bean is already destroyed");
+		}
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public IJobDescheduleCommand scheduleJob(String jobName, Object jobTask, String cronPattern,
 			Map<Object, Object> properties) {
+		if (destroyed) {
+			throw new IllegalStateException("This bean is already destroyed");
+		}
 		ISecurityContext context = securityContextHolder.getContext();
 		IAuthentication authentication = context != null ? context.getAuthentication() : null;
 		return scheduleJobIntern(jobName, jobTask, cronPattern, authentication, properties);
@@ -194,10 +216,18 @@ public class AmbethCron4jScheduler
 
 	protected IJobDescheduleCommand scheduleJobIntern(String jobName, final Object jobTask,
 			String cronPattern, IAuthentication authentication, Map<Object, Object> properties) {
+		if (destroyed) {
+			throw new IllegalStateException("This bean is already destroyed");
+		}
 		ParamChecker.assertParamNotNull(jobName, "jobName");
 		ParamChecker.assertParamNotNull(jobTask, "jobTask");
 		ParamChecker.assertParamNotNull(cronPattern, "cronPattern");
 
+		synchronized (this) {
+			if (!scheduler.isStarted()) {
+				scheduler.start();
+			}
+		}
 		if (log.isInfoEnabled()) {
 			String impersonating = "";
 			if (authentication != null) {

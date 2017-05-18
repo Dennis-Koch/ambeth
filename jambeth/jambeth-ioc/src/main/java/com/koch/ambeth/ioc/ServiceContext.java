@@ -46,6 +46,7 @@ import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.ListUtil;
 import com.koch.ambeth.util.Lock;
+import com.koch.ambeth.util.LockState;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.ReadWriteLock;
 import com.koch.ambeth.util.StringBuilderUtil;
@@ -63,11 +64,7 @@ import com.koch.ambeth.util.typeinfo.ITypeInfo;
 import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
 
 public class ServiceContext
-		implements
-			IServiceContext,
-			IServiceContextIntern,
-			IDisposable,
-			IPrintable {
+		implements IServiceContext, IServiceContextIntern, IDisposable, IPrintable {
 	public static class SimpleClassNameComparator implements Comparator<Class<?>> {
 		private final ITypeInfoProvider typeInfoProvider;
 
@@ -702,6 +699,10 @@ public class ServiceContext
 			return;
 		}
 		Lock writeLock = this.writeLock;
+		LockState lockState = null;
+		if (readLock.isReadLockHeld() && !this.writeLock.isWriteLockHeld()) {
+			lockState = writeLock.releaseAllLocks();
+		}
 		writeLock.lock();
 		try {
 			ArrayList<Object> disposableObjects = this.disposableObjects;
@@ -727,6 +728,7 @@ public class ServiceContext
 		}
 		finally {
 			writeLock.unlock();
+			writeLock.reacquireLocks(lockState);
 		}
 	}
 
