@@ -77,7 +77,7 @@ public class DialectSelectorModule implements IInitializingModule, IPropertyLoad
 	@Property(name = PersistenceJdbcConfigurationConstants.DataSourceName, mandatory = false)
 	protected String dataSourceName;
 
-	@Autowired(optional = true)
+	@Property(name = PersistenceJdbcConfigurationConstants.DataSourceInstance, mandatory = false)
 	protected DataSource dataSource;
 
 	@Override
