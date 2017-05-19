@@ -6,6 +6,7 @@ DynamicImport-Package: \
 	com.koch.ambeth.persistence.jdbc.connector.jdbc.*
 Import-Package: \
 	com.koch.ambeth.persistence.database.callback, \
+	javax.transaction;version="[1.1,2)", \
 	net.sf.cglib.core, \
 	net.sf.cglib.reflect, \
 	*
