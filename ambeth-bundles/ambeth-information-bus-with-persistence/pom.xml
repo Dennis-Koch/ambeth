@@ -1,20 +1,26 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>jambeth-information-bus-with-persistence</artifactId>
-
+	<artifactId>jambeth-information-bus-with-persistence-pom</artifactId>
+	<packaging>pom</packaging>
+	
 	<parent>
 		<groupId>com.koch.ambeth</groupId>
 		<artifactId>jambeth-bundles</artifactId>
 		<version>3.0.2-SNAPSHOT</version>
 	</parent>
 
+	<modules>
+		<module>jar</module>
+		<module>kar</module>
+	</modules>
+	
 	<dependencies>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-information-bus</artifactId>
+			<artifactId>jambeth-audit</artifactId>
 		</dependency>
-
+		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-audit-server</artifactId>
@@ -22,9 +28,59 @@
 
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-bytecode</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-cache</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-cache-bytecode</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-cache-datachange</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-cache-server</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-cache-stream</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-datachange</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-dot</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-event</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-event-datachange</artifactId>
+		</dependency>
+		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-event-server</artifactId>
@@ -32,14 +88,49 @@
 
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-job</artifactId>
+			<artifactId>jambeth-expr</artifactId>
 		</dependency>
 
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-job-cron4j</artifactId>
+			<artifactId>jambeth-filter</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-information-bus</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-ioc</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-job</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-log</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-mapping</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-merge</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-merge-bytecode</artifactId>
+		</dependency>
+		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-merge-server</artifactId>
@@ -49,15 +140,20 @@
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence</artifactId>
 		</dependency>
-
+		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence-api</artifactId>
 		</dependency>
-
+		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence-jdbc</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-platform</artifactId>
 		</dependency>
 
 		<dependency>
@@ -69,7 +165,17 @@
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-query-jdbc</artifactId>
 		</dependency>
+		
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-security</artifactId>
+		</dependency>
 
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-security-bytecode</artifactId>
+		</dependency>
+		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-security-persistence</artifactId>
@@ -79,19 +185,45 @@
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-security-server</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-sensor</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-service</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-stream</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-util</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-xml</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.javassist</groupId>
+			<artifactId>javassist</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>xpp3</groupId>
+			<artifactId>xpp3</artifactId>
+		</dependency>
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<descriptors>
-						<descriptor>${project.basedir}/../assembly/jar-with-explicit-dependencies.xml</descriptor>
-					</descriptors>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-
 </project>

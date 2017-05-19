@@ -26,7 +26,6 @@ import com.koch.ambeth.core.bundle.IBundleModule;
 import com.koch.ambeth.event.server.ioc.EventServerModule;
 import com.koch.ambeth.informationbus.InformationBus;
 import com.koch.ambeth.ioc.IInitializingModule;
-import com.koch.ambeth.job.cron4j.ioc.JobCron4jModule;
 import com.koch.ambeth.merge.server.ioc.MergeServerModule;
 import com.koch.ambeth.persistence.filter.ioc.FilterPersistenceModule;
 import com.koch.ambeth.persistence.ioc.PersistenceModule;
@@ -41,11 +40,11 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 @SuppressWarnings("unchecked")
 public class InformationBusWithPersistence implements IBundleModule {
-	private static final Class<?>[] bundleModules = {AuditModule.class, CacheServerModule.class,
-			DialectSelectorModule.class, EventServerModule.class, FilterPersistenceModule.class,
-			JobCron4jModule.class, MergeServerModule.class, PersistenceJdbcModule.class,
-			PersistenceModule.class, PrivilegeServerModule.class, SQLQueryModule.class,
-			SecurityQueryModule.class, SecurityServerModule.class};
+	private static final Class<?>[] bundleModules =
+			{AuditModule.class, CacheServerModule.class, DialectSelectorModule.class,
+					EventServerModule.class, FilterPersistenceModule.class, MergeServerModule.class,
+					PersistenceJdbcModule.class, PersistenceModule.class, PrivilegeServerModule.class,
+					SQLQueryModule.class, SecurityQueryModule.class, SecurityServerModule.class};
 
 	private static final Class<?>[] parentBundles = {InformationBus.class};
 
@@ -53,8 +52,7 @@ public class InformationBusWithPersistence implements IBundleModule {
 
 	static {
 		try {
-			ArrayList<Class<? extends IInitializingModule>> allModules =
-					new ArrayList<>();
+			ArrayList<Class<? extends IInitializingModule>> allModules = new ArrayList<>();
 			allModules.addAll((Class<? extends IInitializingModule>[]) bundleModules);
 
 			for (Class<?> parentBundleClass : parentBundles) {
