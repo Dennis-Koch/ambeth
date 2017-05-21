@@ -37,6 +37,7 @@ import com.koch.ambeth.filter.IFilterDescriptor;
 import com.koch.ambeth.filter.IPagingRequest;
 import com.koch.ambeth.filter.IPagingResponse;
 import com.koch.ambeth.filter.ISortDescriptor;
+import com.koch.ambeth.filter.query.service.IGenericQueryService;
 import com.koch.ambeth.mapping.IMapperService;
 import com.koch.ambeth.mapping.IMapperServiceFactory;
 import com.koch.ambeth.merge.cache.CacheFactoryDirective;
@@ -44,8 +45,6 @@ import com.koch.ambeth.merge.cache.ICacheContext;
 import com.koch.ambeth.merge.cache.ICacheFactory;
 import com.koch.ambeth.merge.cache.IDisposableCache;
 import com.koch.ambeth.query.IQueryBuilderFactory;
-import com.koch.ambeth.query.filter.IFilterToQueryBuilder;
-import com.koch.ambeth.query.filter.IPagingQuery;
 import com.koch.ambeth.query.squery.QueryBuilderBean;
 import com.koch.ambeth.query.squery.QueryUtils;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
@@ -95,11 +94,10 @@ public class GenericQueryREST extends AbstractServiceREST {
 						new IResultingBackgroundWorkerDelegate<StreamingOutput>() {
 							@Override
 							public StreamingOutput invoke() throws Throwable {
-								IFilterToQueryBuilder filterToQueryBuilder =
-										getService(IFilterToQueryBuilder.class);
-								IPagingQuery<?> pagingQuery = filterToQueryBuilder
-										.buildQuery((IFilterDescriptor<?>) args[0], (ISortDescriptor[]) args[1]);
-								IPagingResponse<?> result = pagingQuery.retrieve((IPagingRequest) args[2]);
+								IGenericQueryService genericQueryService = getService(IGenericQueryService.class);
+								IPagingResponse<?> result =
+										genericQueryService.filter((IFilterDescriptor<?>) args[0],
+												(ISortDescriptor[]) args[1], (IPagingRequest) args[2]);
 								return createResult(result, response,
 										new IBackgroundWorkerParamDelegate<Throwable>() {
 											@Override

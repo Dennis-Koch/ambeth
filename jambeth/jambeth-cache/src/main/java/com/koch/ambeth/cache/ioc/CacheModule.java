@@ -71,7 +71,6 @@ import com.koch.ambeth.cache.walker.ICacheWalker;
 import com.koch.ambeth.event.IEventListenerExtendable;
 import com.koch.ambeth.event.IEventTargetExtractorExtendable;
 import com.koch.ambeth.filter.IPagingResponse;
-import com.koch.ambeth.filter.query.service.IGenericQueryService;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
@@ -276,27 +275,21 @@ public class CacheModule implements IInitializingModule {
 		beanContextFactory.registerBean(CacheContextPostProcessor.class)
 				.propertyValue("CachePostProcessor", cachePostProcessor);
 
-		if (isNetworkClientMode) {
-			beanContextFactory.registerBean(ClientServiceBean.class)
-					.propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, IGenericQueryService.class)
-					.autowireable(IGenericQueryService.class);
+		if (isNetworkClientMode && isCacheServiceBeanActive) {
+			IBeanConfiguration remoteCacheService = beanContextFactory
+					.registerBean(CacheModule.EXTERNAL_CACHE_SERVICE, ClientServiceBean.class)
+					.propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, ICacheService.class)
+					.autowireable(ICacheService.class);
 
-			if (isCacheServiceBeanActive) {
-				IBeanConfiguration remoteCacheService = beanContextFactory
-						.registerBean(CacheModule.EXTERNAL_CACHE_SERVICE, ClientServiceBean.class)
-						.propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, ICacheService.class)
-						.autowireable(ICacheService.class);
+			beanContextFactory.registerAlias(CacheModule.DEFAULT_CACHE_RETRIEVER,
+					CacheModule.EXTERNAL_CACHE_SERVICE);
 
-				beanContextFactory.registerAlias(CacheModule.DEFAULT_CACHE_RETRIEVER,
-						CacheModule.EXTERNAL_CACHE_SERVICE);
-
-				// register to all entities in a "most-weak" manner
-				beanContextFactory.link(remoteCacheService).to(ICacheRetrieverExtendable.class)
-						.with(Object.class);
-				// beanContextFactory.RegisterAlias(CacheModule.ROOT_CACHE_RETRIEVER,
-				// CacheModule.EXTERNAL_CACHE_SERVICE);
-				// beanContextFactory.registerBean<CacheServiceDelegate>("cacheService").autowireable<ICacheService>();
-			}
+			// register to all entities in a "most-weak" manner
+			beanContextFactory.link(remoteCacheService).to(ICacheRetrieverExtendable.class)
+					.with(Object.class);
+			// beanContextFactory.RegisterAlias(CacheModule.ROOT_CACHE_RETRIEVER,
+			// CacheModule.EXTERNAL_CACHE_SERVICE);
+			// beanContextFactory.registerBean<CacheServiceDelegate>("cacheService").autowireable<ICacheService>();
 		}
 
 		beanContextFactory.registerBean(DataObjectMixin.class).autowireable(DataObjectMixin.class);

@@ -33,7 +33,7 @@ import com.koch.ambeth.query.jdbc.sql.SqlQueryBuilderFactory;
 import com.koch.ambeth.query.jdbc.sql.TableAliasProviderFactory;
 
 @FrameworkModule
-public class SQLQueryModule implements IInitializingModule {
+public class QueryJdbcModule implements IInitializingModule {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
