@@ -221,9 +221,5 @@
 			<artifactId>javax.servlet-api</artifactId>
 		</dependency>
 		
-		<dependency>
-			<groupId>xpp3</groupId>
-			<artifactId>xpp3</artifactId>
-		</dependency>
 	</dependencies>
 </project>
