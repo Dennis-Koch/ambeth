@@ -265,7 +265,7 @@
 
 		<dependency>
 			<groupId>javax.transaction</groupId>
-			<artifactId>jta</artifactId>
+			<artifactId>javax.transaction-api</artifactId>
 		</dependency>
 
 		<dependency>
