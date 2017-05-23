@@ -31,6 +31,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.koch.ambeth.ioc.accessor.AccessorTypeProvider;
 import com.koch.ambeth.persistence.PersistenceHelper;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.objectcollector.NoOpObjectCollector;
@@ -41,16 +42,14 @@ public class SqlBuilderTest {
 	private SqlBuilder fixture;
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-	}
+	public static void setUpBeforeClass() throws Exception {}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-	}
+	public static void tearDownAfterClass() throws Exception {}
 
 	@Before
 	public void setUp() throws Exception {
-		NoOpObjectCollector oc = new NoOpObjectCollector();
+		NoOpObjectCollector oc = new NoOpObjectCollector(new AccessorTypeProvider());
 		fixture = new SqlBuilder();
 
 		PersistenceHelper persistenceHelper = new PersistenceHelper();
@@ -65,8 +64,7 @@ public class SqlBuilderTest {
 	}
 
 	@After
-	public void tearDown() throws Exception {
-	}
+	public void tearDown() throws Exception {}
 
 	@Test
 	public void testAfterPropertiesSet() {

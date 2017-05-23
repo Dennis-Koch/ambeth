@@ -44,6 +44,7 @@ import com.koch.ambeth.util.collections.EmptyMap;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IMap;
+import com.koch.ambeth.util.io.IntegerUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 public class SqlTable extends Table {
@@ -67,6 +68,8 @@ public class SqlTable extends Table {
 
 	@Autowired
 	protected ISqlBuilder sqlBuilder;
+
+	protected final IntegerUtil integerUtil = new IntegerUtil();
 
 	@Override
 	public void delete(List<IObjRef> oris) {
@@ -374,7 +377,8 @@ public class SqlTable extends Table {
 
 					// When ordering by an AK it is selected twice. So one needs an alias.
 					if (additionalSelectColumnList.contains("\"" + fieldName + "\"")) {
-						selectSB.append(" AS AK").append(Integer.toString(akCount++));
+						selectSB.append(" AS AK");
+						integerUtil.appendInt(akCount++, selectSB);
 					}
 				}
 			}
@@ -482,7 +486,8 @@ public class SqlTable extends Table {
 
 					// When ordering by an AK it is selected twice. So one needs an alias.
 					if (additionalSelectColumnList.contains("\"" + fieldName + "\"")) {
-						selectSB.append(" AS AK").append(Integer.toString(akCount++));
+						selectSB.append(" AS AK");
+						integerUtil.appendInt(akCount++, selectSB);
 					}
 				}
 			}

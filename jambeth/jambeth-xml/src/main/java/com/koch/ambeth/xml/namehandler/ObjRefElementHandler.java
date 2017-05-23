@@ -102,7 +102,7 @@ public class ObjRefElementHandler extends AbstractHandler implements INameBasedH
 	protected void writeOpenElement(IObjRef ori, IWriter writer) {
 		writer.writeStartElement(xmlDictionary.getEntityRefElement());
 		int id = writer.acquireIdForObject(ori);
-		writer.writeAttribute(xmlDictionary.getIdAttribute(), Integer.toString(id));
+		writer.writeIntAttribute(xmlDictionary.getIdAttribute(), id);
 		byte idIndex = ori.getIdNameIndex();
 		if (idIndex != ObjRef.PRIMARY_KEY_INDEX) {
 			writer.writeAttribute(idNameIndex, Byte.toString(ori.getIdNameIndex()));

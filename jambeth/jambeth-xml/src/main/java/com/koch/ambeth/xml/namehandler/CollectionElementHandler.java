@@ -89,9 +89,9 @@ public class CollectionElementHandler extends AbstractHandler
 		}
 		writer.writeStartElement(collElement);
 		int id = writer.acquireIdForObject(obj);
-		writer.writeAttribute(xmlDictionary.getIdAttribute(), Integer.toString(id));
+		writer.writeIntAttribute(xmlDictionary.getIdAttribute(), id);
 		int length = coll.size();
-		writer.writeAttribute(xmlDictionary.getSizeAttribute(), Integer.toString(length));
+		writer.writeIntAttribute(xmlDictionary.getSizeAttribute(), length);
 
 		Class<?> componentType = getComponentTypeOfCollection(obj);
 		classElementHandler.writeAsAttribute(componentType, writer);
@@ -121,8 +121,7 @@ public class CollectionElementHandler extends AbstractHandler
 
 		Collection<Object> coll;
 		if (xmlDictionary.getSetElement().equals(elementName)) {
-			coll = length > 0 ? new HashSet<>((int) (length / 0.75f + 1), 0.75f)
-					: new HashSet<>();
+			coll = length > 0 ? new HashSet<>((int) (length / 0.75f + 1), 0.75f) : new HashSet<>();
 		}
 		else {
 			coll = length > 0 ? new ArrayList<>(length) : new ArrayList<>();

@@ -48,6 +48,24 @@ public class AppendableStringBuilder implements IAppendable, CharSequence {
 	}
 
 	@Override
+	public IAppendable appendInt(int intValue) {
+		sb.append(intValue);
+		return this;
+	}
+
+	@Override
+	public IAppendable append(char[] value) {
+		sb.append(value);
+		return this;
+	}
+
+	@Override
+	public IAppendable append(char[] value, int offset, int length) {
+		sb.append(value, offset, length);
+		return this;
+	}
+
+	@Override
 	public char charAt(int index) {
 		return sb.charAt(index);
 	}

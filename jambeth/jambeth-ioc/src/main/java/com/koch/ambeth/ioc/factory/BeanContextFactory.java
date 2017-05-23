@@ -151,6 +151,8 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 
 			IObjectCollector objectCollector;
 			IThreadLocalObjectCollector tlObjectCollector;
+			AccessorTypeProvider accessorTypeProvider = new AccessorTypeProvider();
+
 			if (objectCollectorActive) {
 				ThreadLocalObjectCollector tempTlLocalObjectCollector = new ThreadLocalObjectCollector();
 				ObjectCollector tempObjectCollector = new ObjectCollector();
@@ -165,7 +167,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 				threadLocalCleanupController.setObjectCollector(tempTlLocalObjectCollector);
 			}
 			else {
-				NoOpObjectCollector tempObjectCollector = new NoOpObjectCollector();
+				NoOpObjectCollector tempObjectCollector = new NoOpObjectCollector(accessorTypeProvider);
 				tlObjectCollector = tempObjectCollector;
 				objectCollector = tempObjectCollector;
 			}
@@ -174,7 +176,6 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			DelegatingConversionHelper delegatingConversionHelper = new DelegatingConversionHelper();
 			LinkController linkController = new LinkController();
 			LoggerHistory loggerHistory = new LoggerHistory();
-			AccessorTypeProvider accessorTypeProvider = new AccessorTypeProvider();
 			ExtendableRegistry extendableRegistry = new ExtendableRegistry();
 			GarbageProxyFactory garbageProxyFactory = new GarbageProxyFactory();
 			InterningFeature interningFeature = new InterningFeature();
@@ -324,8 +325,8 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			preProcessors.add(propertiesPreProcessor);
 			preProcessors.add(loggerInstancePreProcessor);
 			preProcessors.add(threadLocalCleanupPreProcessor);
-			IExternalServiceContext externalServiceContext =
-					(IExternalServiceContext) properties.get(IocConfigurationConstants.ExternalServiceContext);
+			IExternalServiceContext externalServiceContext = (IExternalServiceContext) properties
+					.get(IocConfigurationConstants.ExternalServiceContext);
 			return parentContextFactory.create("bootstrap", null, null, preProcessors, null,
 					externalServiceContext);
 		}

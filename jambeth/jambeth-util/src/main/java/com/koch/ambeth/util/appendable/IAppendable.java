@@ -23,5 +23,11 @@ limitations under the License.
 public interface IAppendable {
 	IAppendable append(CharSequence value);
 
+	IAppendable append(char[] value);
+
+	IAppendable append(char[] value, int offset, int length);
+
 	IAppendable append(char value);
+
+	IAppendable appendInt(int intValue);
 }

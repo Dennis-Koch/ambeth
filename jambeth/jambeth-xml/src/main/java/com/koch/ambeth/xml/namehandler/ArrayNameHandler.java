@@ -72,9 +72,9 @@ public class ArrayNameHandler extends AbstractHandler
 		String arrayElement = xmlDictionary.getArrayElement();
 		writer.writeStartElement(arrayElement);
 		int id = writer.acquireIdForObject(obj);
-		writer.writeAttribute(xmlDictionary.getIdAttribute(), Integer.toString(id));
+		writer.writeIntAttribute(xmlDictionary.getIdAttribute(), id);
 		int length = Array.getLength(obj);
-		writer.writeAttribute(xmlDictionary.getSizeAttribute(), Integer.toString(length));
+		writer.writeIntAttribute(xmlDictionary.getSizeAttribute(), length);
 		Class<?> componentType = type.getComponentType();
 		classElementHandler.writeAsAttribute(componentType, writer);
 		if (length == 0) {

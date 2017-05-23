@@ -120,10 +120,10 @@ public class ObjRefWrapperElementHandler extends AbstractHandler implements INam
 	protected void writeOpenElement(IObjRef ori, Object obj, IWriter writer) {
 		writer.writeStartElement(xmlDictionary.getOriWrapperElement());
 		int id = writer.acquireIdForObject(obj);
-		writer.writeAttribute(xmlDictionary.getIdAttribute(), Integer.toString(id));
+		writer.writeIntAttribute(xmlDictionary.getIdAttribute(), id);
 		byte idIndex = ori.getIdNameIndex();
 		if (idIndex != ObjRef.PRIMARY_KEY_INDEX) {
-			writer.writeAttribute(idNameIndex, Byte.toString(ori.getIdNameIndex()));
+			writer.writeIntAttribute(idNameIndex, ori.getIdNameIndex());
 		}
 		writer.writeStartElementEnd();
 	}

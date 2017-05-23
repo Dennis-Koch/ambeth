@@ -46,11 +46,9 @@ public class CyclicXmlController extends AbstractHandler
 			new ClassExtendableContainer<>("elementHandler", "type");
 
 	protected final MapExtendableContainer<String, INameBasedHandler> nameBasedElementReaders =
-			new MapExtendableContainer<>("nameBasedElementReader",
-					"elementName");
+			new MapExtendableContainer<>("nameBasedElementReader", "elementName");
 
-	protected final List<INameBasedHandler> nameBasedElementWriters =
-			new ArrayList<>();
+	protected final List<INameBasedHandler> nameBasedElementWriters = new ArrayList<>();
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {
@@ -154,7 +152,7 @@ public class CyclicXmlController extends AbstractHandler
 		String objectElement = xmlDictionary.getObjectElement();
 		writer.writeStartElement(objectElement);
 		if (id > 0) {
-			writer.writeAttribute(xmlDictionary.getIdAttribute(), Integer.toString(id));
+			writer.writeIntAttribute(xmlDictionary.getIdAttribute(), id);
 		}
 		classElementHandler.writeAsAttribute(type, writer);
 		writeObjectContent(obj, type, writer);
