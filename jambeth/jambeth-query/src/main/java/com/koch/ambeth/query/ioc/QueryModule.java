@@ -6,7 +6,6 @@ import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.query.filter.GenericQueryService;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
-import com.koch.ambeth.service.remote.ClientServiceBean;
 
 public class QueryModule implements IInitializingModule {
 
@@ -15,12 +14,7 @@ public class QueryModule implements IInitializingModule {
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		if (isNetworkClientMode) {
-			beanContextFactory.registerBean(ClientServiceBean.class)
-					.propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, IGenericQueryService.class)
-					.autowireable(IGenericQueryService.class);
-		}
-		else {
+		if (!isNetworkClientMode) {
 			beanContextFactory.registerBean(GenericQueryService.class)
 					.autowireable(IGenericQueryService.class);
 		}
