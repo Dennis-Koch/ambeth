@@ -31,7 +31,8 @@ import com.koch.ambeth.persistence.filter.ioc.FilterPersistenceModule;
 import com.koch.ambeth.persistence.ioc.PersistenceModule;
 import com.koch.ambeth.persistence.jdbc.connector.DialectSelectorModule;
 import com.koch.ambeth.persistence.jdbc.ioc.PersistenceJdbcModule;
-import com.koch.ambeth.query.jdbc.ioc.SQLQueryModule;
+import com.koch.ambeth.query.ioc.QueryModule;
+import com.koch.ambeth.query.jdbc.ioc.QueryJdbcModule;
 import com.koch.ambeth.security.persistence.ioc.SecurityQueryModule;
 import com.koch.ambeth.security.server.ioc.PrivilegeServerModule;
 import com.koch.ambeth.security.server.ioc.SecurityServerModule;
@@ -40,11 +41,11 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 @SuppressWarnings("unchecked")
 public class InformationBusWithPersistence implements IBundleModule {
-	private static final Class<?>[] bundleModules =
-			{AuditModule.class, CacheServerModule.class, DialectSelectorModule.class,
-					EventServerModule.class, FilterPersistenceModule.class, MergeServerModule.class,
-					PersistenceJdbcModule.class, PersistenceModule.class, PrivilegeServerModule.class,
-					SQLQueryModule.class, SecurityQueryModule.class, SecurityServerModule.class};
+	private static final Class<?>[] bundleModules = {AuditModule.class, CacheServerModule.class,
+			DialectSelectorModule.class, EventServerModule.class, FilterPersistenceModule.class,
+			MergeServerModule.class, PersistenceJdbcModule.class, PersistenceModule.class,
+			PrivilegeServerModule.class, QueryModule.class, QueryJdbcModule.class,
+			SecurityQueryModule.class, SecurityServerModule.class};
 
 	private static final Class<?>[] parentBundles = {InformationBus.class};
 

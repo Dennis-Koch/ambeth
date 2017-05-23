@@ -107,7 +107,7 @@
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-ioc</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-ioc-osgi</artifactId>
@@ -265,7 +265,22 @@
 
 		<dependency>
 			<groupId>javax.transaction</groupId>
-			<artifactId>jta</artifactId>
+			<artifactId>javax.transaction-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.interceptor</groupId>
+			<artifactId>javax.interceptor-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.enterprise</groupId>
+			<artifactId>cdi-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.el</groupId>
+			<artifactId>javax.el-api</artifactId>
 		</dependency>
 
 		<dependency>
@@ -277,11 +292,11 @@
 			<groupId>org.ow2.asm</groupId>
 			<artifactId>asm-all</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>it.sauronsoftware.cron4j</groupId>
 			<artifactId>cron4j</artifactId>
-		</dependency>		
+		</dependency>
 	</dependencies>
 
 	<build>

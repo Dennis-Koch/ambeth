@@ -40,7 +40,8 @@ import com.koch.ambeth.persistence.ioc.PersistenceModule;
 import com.koch.ambeth.persistence.jdbc.IConnectionFactory;
 import com.koch.ambeth.persistence.jdbc.ioc.PersistenceJdbcModule;
 import com.koch.ambeth.query.IQueryBuilderFactory;
-import com.koch.ambeth.query.jdbc.ioc.SQLQueryModule;
+import com.koch.ambeth.query.ioc.QueryModule;
+import com.koch.ambeth.query.jdbc.ioc.QueryJdbcModule;
 import com.koch.ambeth.security.ioc.PrivilegeModule;
 import com.koch.ambeth.security.persistence.ioc.SecurityQueryModule;
 import com.koch.ambeth.security.server.ioc.PrivilegeServerModule;
@@ -54,7 +55,7 @@ import com.koch.ambeth.util.IConversionHelper;
 @TestFrameworkModule({MergeServerModule.class, CacheServerModule.class, EventServerModule.class,
 		EventDataChangeModule.class, ExprModule.class, PersistenceModule.class,
 		PersistenceJdbcModule.class, PrivilegeModule.class, PrivilegeServerModule.class,
-		SecurityServerModule.class, SecurityQueryModule.class, SQLQueryModule.class,
+		SecurityServerModule.class, SecurityQueryModule.class, QueryModule.class, QueryJdbcModule.class,
 		FilterPersistenceModule.class, PreparedStatementParamLoggerModule.class})
 @TestProperties(type = PersistencePropertiesProvider.class)
 @RunWith(AmbethInformationBusWithPersistenceRunner.class)
