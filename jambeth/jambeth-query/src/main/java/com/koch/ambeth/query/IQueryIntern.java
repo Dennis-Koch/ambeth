@@ -25,6 +25,7 @@ import java.util.List;
 import com.koch.ambeth.query.persistence.IDataCursor;
 import com.koch.ambeth.query.persistence.IEntityCursor;
 import com.koch.ambeth.query.persistence.IVersionCursor;
+import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
@@ -36,6 +37,8 @@ public interface IQueryIntern<T> extends IDisposable {
 
 	IVersionCursor retrieveAsVersions(IMap<Object, Object> paramNameToValueMap,
 			boolean retrieveAlternateIds);
+
+	IList<IObjRef> retrieveAsObjRefs(IMap<Object, Object> paramNameToValueMap, int idIndex);
 
 	IEntityCursor<T> retrieveAsCursor();
 
