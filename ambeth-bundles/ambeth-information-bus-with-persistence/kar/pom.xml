@@ -55,15 +55,6 @@
 				<groupId>com.bruker.horizon</groupId>
 				<artifactId>kar2tycho-maven-plugin</artifactId>
 				<configuration>
-					<artifacts>
-						<artifact>
-					        <id>xpp3:xpp3:1.1.4c</id>
-					        <transitive>false</transitive>
-					        <instructions>
-					            <_noee>true</_noee>
-					        </instructions>
-					    </artifact>
-					</artifacts>
 					<sources>
 						<!-- specify your source dependencies here -->
 						<!-- groupId:artifactId:type:version -->

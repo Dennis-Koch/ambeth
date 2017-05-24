@@ -12,8 +12,8 @@
 	
 	<dependencies>
 		<dependency>
-			<groupId>xpp3</groupId>
-			<artifactId>xpp3</artifactId>
+		    <groupId>org.apache.servicemix.bundles</groupId>
+		    <artifactId>org.apache.servicemix.bundles.xpp3</artifactId>
 		</dependency>
 
 		<dependency>
