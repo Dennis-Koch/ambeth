@@ -9,7 +9,7 @@
 	<properties>
 		<ambeth.version>3.0.2-SNAPSHOT</ambeth.version>
 		<ambeth.integrity.version>1.0.2</ambeth.integrity.version>
-		<ambeth.extendables.scanner.version>1.0.2</ambeth.extendables.scanner.version>
+		<ambeth.extendables.scanner.version>1.0.3</ambeth.extendables.scanner.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<extendables.scanner.dir>${project.build.directory}/extendables-scanner</extendables.scanner.dir>

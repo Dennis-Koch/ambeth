@@ -2,13 +2,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.koch.ambeth</groupId>
 	<artifactId>extendables-scanner</artifactId>
-	<version>1.0.2</version>
+	<version>1.0.3</version>
 	<packaging>jar</packaging>
 	
 	<parent>
 		<groupId>com.koch.ambeth</groupId>
 		<artifactId>base-pom</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.1</version>
 	</parent>
 	
 	<properties>
