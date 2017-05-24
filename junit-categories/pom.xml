@@ -3,14 +3,14 @@
 
 	<groupId>com.koch.ambeth</groupId>
 	<artifactId>junit-categories</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<name>jUnit Categories</name>
 	<description>jUnit Categories for tests</description>
 
 	<parent>
 		<groupId>com.koch.ambeth</groupId>
 		<artifactId>base-pom</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.1</version>
 	</parent>
 	
 	<properties>
