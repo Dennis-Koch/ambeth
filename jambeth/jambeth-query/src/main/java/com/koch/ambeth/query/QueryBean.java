@@ -30,6 +30,7 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.query.persistence.IDataCursor;
 import com.koch.ambeth.query.persistence.IEntityCursor;
 import com.koch.ambeth.query.persistence.IVersionCursor;
+import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
@@ -127,6 +128,11 @@ public class QueryBean<T> implements IQuery<T> {
 	@Override
 	public IDataCursor retrieveAsData() {
 		return getQuery().retrieveAsData();
+	}
+
+	@Override
+	public IList<IObjRef> retrieveAsObjRefs(int idIndex) {
+		return getQuery().retrieveAsObjRefs(idIndex);
 	}
 
 	@Override

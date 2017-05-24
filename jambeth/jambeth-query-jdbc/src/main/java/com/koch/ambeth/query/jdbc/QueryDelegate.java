@@ -35,6 +35,7 @@ import com.koch.ambeth.query.IQueryKey;
 import com.koch.ambeth.query.persistence.IDataCursor;
 import com.koch.ambeth.query.persistence.IEntityCursor;
 import com.koch.ambeth.query.persistence.IVersionCursor;
+import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
@@ -102,6 +103,16 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
 	@Override
 	public IVersionCursor retrieveAsVersions(boolean retrieveAlternateIds) {
 		return query.retrieveAsVersions(retrieveAlternateIds);
+	}
+
+	@Override
+	public IList<IObjRef> retrieveAsObjRefs(IMap<Object, Object> paramNameToValueMap, int idIndex) {
+		return queryIntern.retrieveAsObjRefs(paramNameToValueMap, idIndex);
+	}
+
+	@Override
+	public IList<IObjRef> retrieveAsObjRefs(int idIndex) {
+		return query.retrieveAsObjRefs(idIndex);
 	}
 
 	@Override
