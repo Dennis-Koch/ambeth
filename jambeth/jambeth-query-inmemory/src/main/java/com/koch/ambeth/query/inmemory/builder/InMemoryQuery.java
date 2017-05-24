@@ -29,6 +29,7 @@ import com.koch.ambeth.query.StatefulQuery;
 import com.koch.ambeth.query.persistence.IDataCursor;
 import com.koch.ambeth.query.persistence.IEntityCursor;
 import com.koch.ambeth.query.persistence.IVersionCursor;
+import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
@@ -51,8 +52,7 @@ public class InMemoryQuery<T> implements IQuery<T>, IQueryIntern<T> {
 	}
 
 	@Override
-	public void fillRelatedEntityTypes(List<Class<?>> relatedEntityTypes) {
-	}
+	public void fillRelatedEntityTypes(List<Class<?>> relatedEntityTypes) {}
 
 	@Override
 	public IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap) {
@@ -118,6 +118,16 @@ public class InMemoryQuery<T> implements IQuery<T>, IQueryIntern<T> {
 
 	@Override
 	public IDataCursor retrieveAsData(IMap<Object, Object> nameToValueMap) {
+		return null;
+	}
+
+	@Override
+	public IList<IObjRef> retrieveAsObjRefs(int idIndex) {
+		return null;
+	}
+
+	@Override
+	public IList<IObjRef> retrieveAsObjRefs(IMap<Object, Object> paramNameToValueMap, int idIndex) {
 		return null;
 	}
 

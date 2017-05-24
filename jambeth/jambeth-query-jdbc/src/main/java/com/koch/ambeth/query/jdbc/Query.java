@@ -29,6 +29,7 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.merge.proxy.PersistenceContext;
+import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.persistence.EntityCursor;
 import com.koch.ambeth.persistence.IServiceUtil;
 import com.koch.ambeth.persistence.Table;
@@ -46,6 +47,7 @@ import com.koch.ambeth.query.jdbc.sql.ITableAliasHolder;
 import com.koch.ambeth.query.persistence.IDataCursor;
 import com.koch.ambeth.query.persistence.IEntityCursor;
 import com.koch.ambeth.query.persistence.IVersionCursor;
+import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.appendable.IAppendable;
@@ -357,6 +359,18 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
 			boolean retrieveAlternateIds) {
 		return (IVersionCursor) buildCursor(nameToValueMap, RetrievalType.VERSION, 0,
 				retrieveAlternateIds);
+	}
+
+	@Override
+	public IList<IObjRef> retrieveAsObjRefs(IMap<Object, Object> nameToValueMap, int idIndex) {
+		return serviceUtil.loadObjRefs(entityType, idIndex,
+				retrieveAsVersions(nameToValueMap, ObjRef.PRIMARY_KEY_INDEX != idIndex));
+	}
+
+	@Override
+	public IList<IObjRef> retrieveAsObjRefs(int idIndex) {
+		return serviceUtil.loadObjRefs(entityType, idIndex,
+				retrieveAsVersions(null, ObjRef.PRIMARY_KEY_INDEX != idIndex));
 	}
 
 	@Override

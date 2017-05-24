@@ -25,6 +25,7 @@ import java.util.List;
 import com.koch.ambeth.query.persistence.IDataCursor;
 import com.koch.ambeth.query.persistence.IEntityCursor;
 import com.koch.ambeth.query.persistence.IVersionCursor;
+import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
@@ -77,6 +78,11 @@ public class StatefulQuery<T> implements IQuery<T> {
 	@Override
 	public IVersionCursor retrieveAsVersions(IMap<Object, Object> nameToValueMap) {
 		throw new UnsupportedOperationException("Only retrieveAsVersions() allowed");
+	}
+
+	@Override
+	public IList<IObjRef> retrieveAsObjRefs(int idIndex) {
+		return query.retrieveAsObjRefs(paramMap, idIndex);
 	}
 
 	@Override
