@@ -166,9 +166,9 @@
 			</dependency>
 
 			<dependency>
-				<groupId>xpp3</groupId>
-				<artifactId>xpp3</artifactId>
-				<version>1.1.4c</version>
+			    <groupId>org.apache.servicemix.bundles</groupId>
+			    <artifactId>org.apache.servicemix.bundles.xpp3</artifactId>
+			    <version>1.1.4c_7</version>
 			</dependency>
 
 			<dependency>
