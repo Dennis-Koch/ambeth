@@ -14,6 +14,7 @@
 	
 	<properties>
 		<ambeth.version>${project.version}</ambeth.version>
+		<http.version>4.5.3</http.version>
 	</properties>
 	
 	<modules>
@@ -1269,6 +1270,12 @@
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
+			
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient</artifactId>
+				<version>${http.version}</version>
+			</dependency>			
 		</dependencies>
 	</dependencyManagement>
 
