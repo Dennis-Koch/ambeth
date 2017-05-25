@@ -24,7 +24,9 @@ import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.service.remote.IClientServiceFactory;
 import com.koch.ambeth.service.rest.AuthenticationHolder;
+import com.koch.ambeth.service.rest.HttpClientProvider;
 import com.koch.ambeth.service.rest.IAuthenticationHolder;
+import com.koch.ambeth.service.rest.IHttpClientProvider;
 import com.koch.ambeth.service.rest.RESTClientServiceFactory;
 
 public class ServiceRESTModule implements IInitializingModule {
@@ -35,5 +37,9 @@ public class ServiceRESTModule implements IInitializingModule {
 
 		beanContextFactory.registerBean(AuthenticationHolder.class)
 				.autowireable(IAuthenticationHolder.class);
+
+		beanContextFactory.registerBean(HttpClientProvider.class)
+				.autowireable(IHttpClientProvider.class);
+
 	}
 }

@@ -21,15 +21,12 @@ limitations under the License.
  */
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Collection;
@@ -38,7 +35,14 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
+
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.EntityBuilder;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
 
 import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.ioc.IInitializingBean;
@@ -60,6 +64,7 @@ import com.koch.ambeth.util.codec.Base64;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.io.FastByteArrayOutputStream;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.xml.ICyclicXMLHandler;
@@ -69,11 +74,7 @@ import com.koch.ambeth.xml.ioc.XmlModule;
 import net.sf.cglib.proxy.MethodProxy;
 
 public class RESTClientInterceptor extends AbstractSimpleInterceptor
-		implements
-			IRemoteInterceptor,
-			IInitializingBean,
-			IOfflineListener,
-			IDisposableBean {
+		implements IRemoteInterceptor, IInitializingBean, IOfflineListener, IDisposableBean {
 	public static final String DEFLATE_MIME_TYPE = "application/octet-stream";
 
 	@LogInstance
@@ -90,6 +91,9 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 
 	@Autowired
 	protected IGuiThreadHelper guiThreadHelper;
+
+	@Autowired
+	protected IHttpClientProvider httpClientProvider;
 
 	@Autowired(optional = true)
 	protected IRESTClientServiceUrlBuilder restClientServiceUrlBuilder;
@@ -199,69 +203,62 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 			if (url == null) {
 				url = new URL(serviceBaseUrl + "/" + serviceName + "/" + method.getName());
 			}
-			HttpURLConnection con = (HttpURLConnection) url.openConnection();
+			HttpClient httpClient = httpClientProvider.getHttpClient();
+			HttpHost httpHost =
+					httpClientProvider.getHttpHost(url.getHost(), url.getPort(), url.getProtocol());
 
 			Object result = null;
 
-			con.setRequestProperty("Accept", Constants.AMBETH_MEDIA_TYPE);
-			if (httpAcceptEncodingZipped) {
-				con.setRequestProperty("Accept-Encoding", "gzip");
-			}
-			setAuthorization(con);
-
+			RequestBuilder rb;
 			if (args.length > 0) {
-				con.setRequestMethod("POST");
-				con.setDoOutput(true);
-				con.setRequestProperty("Content-Type", Constants.AMBETH_MEDIA_TYPE);
-				OutputStream os;
+				rb = RequestBuilder.post();
+				rb.setHeader("Content-Type", Constants.AMBETH_MEDIA_TYPE);
+				EntityBuilder eb = EntityBuilder.create();
 				if (httpContentEncodingZipped) {
-					con.setRequestProperty("Content-Encoding", "gzip");
-					os = new GZIPOutputStream(con.getOutputStream());
+					eb.gzipCompress();
 				}
-				else {
-					os = con.getOutputStream();
-				}
+				FastByteArrayOutputStream bos = new FastByteArrayOutputStream();
+				cyclicXmlHandler.writeToStream(bos, args);
+				eb.setStream(new ByteArrayInputStream(bos.getRawByteArray(), 0, bos.size()));
+				rb.setEntity(eb.build());
 				if (log.isDebugEnabled()) {
-					ByteArrayOutputStream bos = new ByteArrayOutputStream();
-					cyclicXmlHandler.writeToStream(bos, args);
-					byte[] byteArray = bos.toByteArray();
-					os.write(byteArray);
-					log.debug(url + " " + localRequestId + " => " + new String(byteArray, "UTF-8"));
+					log.debug(url + " " + localRequestId + " => "
+							+ new String(bos.getRawByteArray(), 0, bos.size(), "UTF-8"));
 				}
-				else {
-					cyclicXmlHandler.writeToStream(os, args);
-				}
-				os.close();
 			}
 			else {
-				con.setRequestMethod("GET");
+				rb = RequestBuilder.get();
 			}
-			int responseCode = con.getResponseCode();
+			rb.setHeader("Accept", Constants.AMBETH_MEDIA_TYPE);
+			if (httpAcceptEncodingZipped) {
+				rb.setHeader("Accept-Encoding", "gzip");
+			}
+			setAuthorization(rb);
+
+			rb.setUri(url.getPath());
+			HttpUriRequest request = rb.build();
+
+			HttpResponse response = httpClient.execute(httpHost, request);
 			if (disposed) {
 				throw new IllegalStateException("Bean already disposed");
 			}
-			try (InputStream responseStream = getResponseStream(con, con.getInputStream())) {
-				byte[] byteArray;
-				{
-					ByteArrayOutputStream memoryStream = new ByteArrayOutputStream();
-					int b;
-					while ((b = responseStream.read()) != -1) {
-						memoryStream.write(b);
-					}
-					byteArray = memoryStream.toByteArray();
-				}
-				if (log.isDebugEnabled()) {
-					log.debug(url + " " + localRequestId + " <= " + new String(byteArray, "UTF-8"));
-				}
-				try {
-					result = cyclicXmlHandler.readFromStream(new ByteArrayInputStream(byteArray));
-				}
-				catch (XmlTypeNotFoundException e) {
-					throw e;
-				}
-				catch (Throwable e) {
-					result = cyclicXmlHandler.readFromStream(new ByteArrayInputStream(byteArray));
-				}
+			int responseCode = response.getStatusLine().getStatusCode();
+			if (responseCode != HttpStatus.SC_OK) {
+				throw new IllegalStateException(
+						"Response (" + responseCode + ") when calling '" + url + "'");
+			}
+			FastByteArrayOutputStream memoryStream = new FastByteArrayOutputStream();
+			response.getEntity().writeTo(memoryStream);
+			if (log.isDebugEnabled()) {
+				log.debug(url + " " + localRequestId + " <= "
+						+ new String(memoryStream.getRawByteArray(), 0, memoryStream.size(), "UTF-8"));
+			}
+			try {
+				result = cyclicXmlHandler.readFromStream(
+						new ByteArrayInputStream(memoryStream.getRawByteArray(), 0, memoryStream.size()));
+			}
+			catch (XmlTypeNotFoundException e) {
+				throw e;
 			}
 			if (result instanceof AmbethServiceException) {
 				Exception exception = parseServiceException((AmbethServiceException) result);
@@ -270,7 +267,9 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 			}
 			return convertToExpectedType(method.getReturnType(), method.getGenericReturnType(), result);
 		}
-		finally {
+		finally
+
+		{
 			if (threadAdded) {
 				writeLock.lock();
 				try {
@@ -401,7 +400,7 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 		return conversionHelper.convertValueToType(expectedType, result);
 	}
 
-	protected void setAuthorization(HttpURLConnection request) throws UnsupportedEncodingException {
+	protected void setAuthorization(RequestBuilder request) throws UnsupportedEncodingException {
 		String[] authentication = authenticationHolder.getAuthentication();
 		String userName = authentication[0];
 		String password = authentication[1];
@@ -412,7 +411,7 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 																									// Encryption.Encrypt(.password;//TODO
 																									// Encryption.encrypt(password);
 		authInfo = Base64.encodeBytes(authInfo.getBytes("UTF-8"));
-		request.setRequestProperty("Authorization", "Basic " + authInfo);
+		request.setHeader("Authorization", "Basic " + authInfo);
 	}
 
 	@Override
