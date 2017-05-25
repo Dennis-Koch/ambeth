@@ -12,7 +12,7 @@
 	</parent>
 	
 	<properties>
-		<ambeth.integrity.version>1.0.2</ambeth.integrity.version>
+		<ambeth.integrity.version>1.0.3</ambeth.integrity.version>
 	</properties>
 
 	<dependencies>

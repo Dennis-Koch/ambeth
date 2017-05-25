@@ -17,7 +17,7 @@
 		<org.osgi.core.version>6.0.0</org.osgi.core.version>
 		<jax.ws.rs.version>2.0.1</jax.ws.rs.version>
 		<tstamp>${maven.build.timestamp}</tstamp>
-		<ambeth.version>3.0.1</ambeth.version>
+		<ambeth.version>3.0.2-SNAPSHOT</ambeth.version>
 		<junit-categories.version>1.0.1</junit-categories.version>
 	</properties>
 
@@ -55,9 +55,10 @@
 
 	<modules>
 		<module>ambeth-integrity</module>
-		<module>jambeth</module>
+		<module>chemspider</module>
 		<module>doc/extendables-scanner</module>
 		<module>doc/reference-manual</module>
+		<module>jambeth</module>
 		<module>junit-categories</module>
 	</modules>
 
