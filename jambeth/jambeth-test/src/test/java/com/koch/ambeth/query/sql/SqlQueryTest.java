@@ -30,6 +30,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.koch.ambeth.informationbus.persistence.setup.SQLData;
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.query.IOperand;
@@ -41,8 +43,6 @@ import com.koch.ambeth.query.QueryEntity;
 import com.koch.ambeth.query.jdbc.StringQuery;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
-import com.koch.ambeth.testutil.SQLData;
-import com.koch.ambeth.testutil.SQLStructure;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;

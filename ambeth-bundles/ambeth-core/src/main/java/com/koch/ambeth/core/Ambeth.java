@@ -107,7 +107,7 @@ public class Ambeth
 
 	protected final boolean scanForApplicationModules;
 
-	protected ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+	protected ClassLoader classLoader;
 
 	private IServiceContext rootContext;
 
@@ -271,8 +271,16 @@ public class Ambeth
 			String filename = propertiesFiles.get(i);
 			properties.load(filename);
 		}
-		properties.put(IocConfigurationConstants.ExplicitClassLoader, classLoader);
-
+		if (classLoader != null) {
+			properties.put(IocConfigurationConstants.ExplicitClassLoader, classLoader);
+		}
+		else {
+			classLoader = (ClassLoader) properties.get(IocConfigurationConstants.ExplicitClassLoader);
+			if (classLoader == null) {
+				classLoader = Thread.currentThread().getContextClassLoader();
+				properties.put(IocConfigurationConstants.ExplicitClassLoader, classLoader);
+			}
+		}
 		ClassLoader oldCL = Thread.currentThread().getContextClassLoader();
 		Thread.currentThread().setContextClassLoader(classLoader);
 		try {

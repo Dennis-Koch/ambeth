@@ -26,13 +26,13 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.IMergeProcess;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.persistence.xml.model.Group;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
-import com.koch.ambeth.testutil.SQLStructure;
 import com.koch.ambeth.testutil.TestFrameworkModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;

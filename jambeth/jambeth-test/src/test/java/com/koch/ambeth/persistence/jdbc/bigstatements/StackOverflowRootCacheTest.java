@@ -23,6 +23,8 @@ limitations under the License.
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import com.koch.ambeth.informationbus.persistence.setup.SQLData;
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.IEntityFactory;
 import com.koch.ambeth.merge.IMergeProcess;
@@ -33,9 +35,7 @@ import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
-import com.koch.ambeth.testutil.SQLData;
 import com.koch.ambeth.testutil.SQLDataRebuild;
-import com.koch.ambeth.testutil.SQLStructure;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.testutil.category.SpecialTests;

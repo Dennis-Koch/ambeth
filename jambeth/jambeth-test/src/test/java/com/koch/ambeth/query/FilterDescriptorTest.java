@@ -40,13 +40,13 @@ import com.koch.ambeth.filter.ISortDescriptor;
 import com.koch.ambeth.filter.PagingRequest;
 import com.koch.ambeth.filter.SortDescriptor;
 import com.koch.ambeth.filter.SortDirection;
+import com.koch.ambeth.informationbus.persistence.setup.SQLData;
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.query.filter.IFilterToQueryBuilder;
 import com.koch.ambeth.query.filter.IPagingQuery;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
-import com.koch.ambeth.testutil.SQLData;
-import com.koch.ambeth.testutil.SQLStructure;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.util.collections.ArrayList;
 

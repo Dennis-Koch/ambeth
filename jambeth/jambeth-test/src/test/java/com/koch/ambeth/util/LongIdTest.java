@@ -24,9 +24,9 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
-import com.koch.ambeth.testutil.SQLStructure;
 import com.koch.ambeth.testutil.TestProperties;
 
 @SQLStructure("LongId_structure.sql")
