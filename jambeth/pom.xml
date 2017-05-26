@@ -11,12 +11,11 @@
 		<artifactId>base-pom</artifactId>
 		<version>1.0.1</version>
 	</parent>
-	
+
 	<properties>
 		<ambeth.version>${project.version}</ambeth.version>
-		<http.version>4.5.3</http.version>
 	</properties>
-	
+
 	<modules>
 		<module>jambeth-audit</module>
 		<module>jambeth-audit-server</module>
@@ -966,7 +965,7 @@
 				<artifactId>jambeth-security-persistence</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
-				<scope>provided</scope>				
+				<scope>provided</scope>
 			</dependency>
 
 			<dependency>
@@ -1220,7 +1219,7 @@
 				<type>kar</type>
 				<scope>runtime</scope>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
 				<artifactId>jambeth-information-bus-with-persistence</artifactId>
@@ -1270,12 +1269,42 @@
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
-			
+
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient-osgi</artifactId>
+				<version>4.5.3</version>
+			</dependency>
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
 				<artifactId>httpclient</artifactId>
-				<version>${http.version}</version>
-			</dependency>			
+				<version>4.5.3</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient-cache</artifactId>
+				<version>4.5.3</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpcore</artifactId>
+				<version>4.4.6</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpcore-osgi</artifactId>
+				<version>4.4.6</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>fluent-hc</artifactId>
+				<version>4.5.3</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpmime</artifactId>
+				<version>4.5.3</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
