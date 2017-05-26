@@ -26,13 +26,13 @@ import java.lang.reflect.Method;
 
 import org.junit.Test;
 
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.service.IProcessService;
 import com.koch.ambeth.service.SyncToAsyncUtil;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.transfer.ServiceDescription;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
-import com.koch.ambeth.testutil.SQLStructure;
 import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;

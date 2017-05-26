@@ -28,6 +28,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.koch.ambeth.event.IEventDispatcher;
+import com.koch.ambeth.informationbus.persistence.setup.SQLData;
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
@@ -38,8 +40,6 @@ import com.koch.ambeth.service.IBlobObjectService;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
-import com.koch.ambeth.testutil.SQLData;
-import com.koch.ambeth.testutil.SQLStructure;
 import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.testutil.TestProperties;
 

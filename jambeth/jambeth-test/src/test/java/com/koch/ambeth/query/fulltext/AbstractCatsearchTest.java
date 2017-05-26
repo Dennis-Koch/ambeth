@@ -27,6 +27,7 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 
+import com.koch.ambeth.informationbus.persistence.setup.SQLData;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.query.IOperand;
@@ -37,7 +38,6 @@ import com.koch.ambeth.query.OrderByType;
 import com.koch.ambeth.query.QueryEntity;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
-import com.koch.ambeth.testutil.SQLData;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.util.collections.HashMap;

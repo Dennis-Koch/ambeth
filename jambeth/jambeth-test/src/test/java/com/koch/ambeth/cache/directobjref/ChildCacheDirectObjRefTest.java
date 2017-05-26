@@ -30,6 +30,8 @@ import org.junit.Test;
 
 import com.koch.ambeth.cache.rootcachevalue.RootCacheValue;
 import com.koch.ambeth.cache.transfer.LoadContainer;
+import com.koch.ambeth.informationbus.persistence.setup.SQLData;
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.merge.cache.CacheDirective;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.model.IDirectObjRef;
@@ -40,8 +42,6 @@ import com.koch.ambeth.service.ProcessServiceTestModule;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
-import com.koch.ambeth.testutil.SQLData;
-import com.koch.ambeth.testutil.SQLStructure;
 import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.util.ParamChecker;

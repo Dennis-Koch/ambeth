@@ -30,6 +30,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.mapping.IMapperService;
 import com.koch.ambeth.mapping.IMapperServiceFactory;
@@ -41,7 +42,6 @@ import com.koch.ambeth.persistence.jdbc.mapping.models.Master;
 import com.koch.ambeth.persistence.jdbc.mapping.models.MasterVO;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
-import com.koch.ambeth.testutil.SQLStructure;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 

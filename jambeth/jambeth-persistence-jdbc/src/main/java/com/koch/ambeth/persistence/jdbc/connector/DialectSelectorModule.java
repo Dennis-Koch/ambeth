@@ -29,7 +29,6 @@ import javax.sql.DataSource;
 
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.IPropertyLoadingBean;
-import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
@@ -63,7 +62,14 @@ public class DialectSelectorModule implements IInitializingModule, IPropertyLoad
 			return (IConnector) connectorType.newInstance();
 		}
 		catch (Throwable e) {
-			throw new IllegalStateException("Protocol not supported: '" + databaseProtocol + "'", e);
+			try {
+				Class<?> connectorType =
+						DialectSelectorModule.class.getClassLoader().loadClass(fqConnectorName);
+				return (IConnector) connectorType.newInstance();
+			}
+			catch (Throwable e2) {
+				throw new IllegalStateException("Protocol not supported: '" + databaseProtocol + "'", e);
+			}
 		}
 	}
 

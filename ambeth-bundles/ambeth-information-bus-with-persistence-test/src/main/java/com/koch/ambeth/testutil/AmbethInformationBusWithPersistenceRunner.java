@@ -53,6 +53,17 @@ import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 
+import com.koch.ambeth.informationbus.persistence.datagenerator.TestDataModule;
+import com.koch.ambeth.informationbus.persistence.setup.AmbethPersistenceSchemaModule;
+import com.koch.ambeth.informationbus.persistence.setup.DataSetupExecutor;
+import com.koch.ambeth.informationbus.persistence.setup.DataSetupExecutorModule;
+import com.koch.ambeth.informationbus.persistence.setup.DialectSelectorTestModule;
+import com.koch.ambeth.informationbus.persistence.setup.ISchemaRunnable;
+import com.koch.ambeth.informationbus.persistence.setup.SQLData;
+import com.koch.ambeth.informationbus.persistence.setup.SQLDataList;
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructureList;
+import com.koch.ambeth.informationbus.persistence.setup.SQLTableSynonyms;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.factory.BeanContextFactory;
@@ -74,7 +85,6 @@ import com.koch.ambeth.persistence.jdbc.IConnectionTestDialect;
 import com.koch.ambeth.persistence.jdbc.JdbcUtil;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import com.koch.ambeth.persistence.jdbc.connector.DialectSelectorModule;
-import com.koch.ambeth.persistence.jdbc.testconnector.DialectSelectorTestModule;
 import com.koch.ambeth.security.DefaultAuthentication;
 import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.security.PasswordType;
@@ -85,7 +95,6 @@ import com.koch.ambeth.security.server.SecurityFilterInterceptor;
 import com.koch.ambeth.security.server.SecurityFilterInterceptor.SecurityMethodMode;
 import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
-import com.koch.ambeth.testutil.datagenerator.TestDataModule;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.NullPrintStream;
 import com.koch.ambeth.util.annotation.IAnnotationInfo;
@@ -139,49 +148,49 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	/** Flag which is set if the last test method has triggered a context rebuild. */
 	private boolean lastMethodTriggersContextRebuild;
 
-	private final String nl = System.getProperty("line.separator");
+	private static final String nl = System.getProperty("line.separator");
 
-	private final Pattern lineSeparator = Pattern.compile(nl);
+	private static final Pattern lineSeparator = Pattern.compile(nl);
 
-	private final Pattern pathSeparator = Pattern.compile(File.pathSeparator);
+	private static final Pattern pathSeparator = Pattern.compile(File.pathSeparator);
 
-	private final Pattern optionSeparator = Pattern.compile("--");
+	private static final Pattern optionSeparator = Pattern.compile("--");
 
-	private final Pattern optionPattern = Pattern.compile("(.+?)=(.*)");
+	private static final Pattern optionPattern = Pattern.compile("(.+?)=(.*)");
 
-	private final Pattern whitespaces = Pattern.compile("[ \\t]+");
+	private static final Pattern whitespaces = Pattern.compile("[ \\t]+");
 
-	private final Pattern[] sqlComments = {Pattern.compile("^--[^:].*"),
-			Pattern.compile("^/\\*.*\\*/"), Pattern.compile(" *@@@ *")};
+	private static final Pattern[] sqlComments =
+			{Pattern.compile("^--[^:].*"), Pattern.compile("^/\\*.*\\*/"), Pattern.compile(" *@@@ *")};
 
-	private final Pattern[] ignoreOutside = {Pattern.compile("^/$")};
+	private static final Pattern[] ignoreOutside = {Pattern.compile("^/$")};
 
-	private final Pattern[] ignoreIfContains = {Pattern.compile(".*?DROP CONSTRAINT.*?")};
+	private static final Pattern[] ignoreIfContains = {Pattern.compile(".*?DROP CONSTRAINT.*?")};
 
-	private final Pattern[][] sqlCommands = {
+	private static final Pattern[][] sqlCommands = {
 			{Pattern.compile(
 					"CREATE( +OR +REPLACE)? +(?:TABLE|VIEW|INDEX|TYPE|SEQUENCE|SYNONYM|TABLESPACE) +.+",
-					Pattern.CASE_INSENSITIVE), Pattern.compile(".*?([;\\/]|@@@)")},
+					Pattern.CASE_INSENSITIVE),
+					Pattern.compile(".*?([;\\/]|@@@)")},
 			{Pattern.compile("CREATE( +OR +REPLACE)? +(?:FUNCTION|PROCEDURE|TRIGGER) +.+",
 					Pattern.CASE_INSENSITIVE),
 					Pattern.compile(".*?END(?:[;\\/]|@@@)", Pattern.CASE_INSENSITIVE)},
 			{Pattern.compile("ALTER +(?:TABLE|VIEW) .+", Pattern.CASE_INSENSITIVE),
 					Pattern.compile(".*?([;\\/]|@@@)")},
-			{Pattern.compile("CALL +.+", Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?([;\\/]|@@@)")},
+			{Pattern.compile("CALL +.+", Pattern.CASE_INSENSITIVE), Pattern.compile(".*?([;\\/]|@@@)")},
 			{Pattern.compile("(?:INSERT +INTO|UPDATE) .+", Pattern.CASE_INSENSITIVE),
 					Pattern.compile(".*?([;\\/]|@@@)")},
 			{Pattern.compile("(?:COMMENT) .+", Pattern.CASE_INSENSITIVE),
 					Pattern.compile(".*?([;\\/]|@@@)")}};
 
-	private final Pattern[][] sqlIgnoredCommands =
-			{{Pattern.compile("DROP +.+", Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?([;\\/]|@@@)")}};
+	private static final Pattern[][] sqlIgnoredCommands =
+			{{Pattern.compile("DROP +.+", Pattern.CASE_INSENSITIVE), Pattern.compile(".*?([;\\/]|@@@)")}};
 
 	// TODO Check only implemented for first array element
-	private final Pattern[][] sqlTryOnlyCommands = {{Pattern.compile("CREATE OR REPLACE *.*")}};
+	private static final Pattern[][] sqlTryOnlyCommands =
+			{{Pattern.compile("CREATE OR REPLACE *.*")}};
 
-	private final Pattern optionLine = Pattern.compile("^--:(.*)");
+	private static final Pattern optionLine = Pattern.compile("^--:(.*)");
 
 	protected final StringBuilder measurementXML = new StringBuilder();
 
@@ -207,7 +216,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		return frameworkTestModuleList;
 	}
 
-	private boolean canFailBeTolerated(final String command) {
+	private static boolean canFailBeTolerated(final String command) {
 		return sqlTryOnlyCommands[0][0].matcher(command).matches();
 	}
 
@@ -215,8 +224,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			throws SQLException {
 		IConnectionDialect connectionDialect =
 				getOrCreateSchemaContext().getService(IConnectionDialect.class);
-		List<String> allTableNames =
-				connectionDialect.getAllFullqualifiedTableNames(conn, schemaName);
+		List<String> allTableNames = connectionDialect.getAllFullqualifiedTableNames(conn, schemaName);
 
 		for (int i = allTableNames.size(); i-- > 0;) {
 			String tableName = allTableNames.get(i);
@@ -224,13 +232,14 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			ResultSet rs = null;
 			try {
 				stmt = conn.createStatement();
-				stmt.execute("SELECT * FROM " + connectionDialect.escapeName(tableName)
-						+ " WHERE ROWNUM = 1");
+				stmt.execute(
+						"SELECT * FROM " + connectionDialect.escapeName(tableName) + " WHERE ROWNUM = 1");
 				rs = stmt.getResultSet();
 				if (rs.next()) {
 					return false;
 				}
-			} finally {
+			}
+			finally {
 				JdbcUtil.close(stmt, rs);
 			}
 		}
@@ -245,54 +254,53 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		String os = System.getProperty("os.name").toLowerCase();
 		if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0) {
 			System.setProperty("java.security.egd", "file:///dev/urandom"); // the 3 '/' are
-																			// important to
-																			// make it an URL
+			// important to
+			// make it an URL
 		}
 	}
 
-	protected void createOptimisticLockingTriggers(final Connection conn,
-			List<String> sqlExecutionOrder) throws SQLException {
-		IConnectionTestDialect connectionDialect =
-				getOrCreateSchemaContext().getService(IConnectionTestDialect.class);
-
-		List<String> tableNames = connectionDialect.getTablesWithoutOptimisticLockTrigger(conn);
-
-		ArrayList<String> sql = new ArrayList<>();
-		for (String tableName : tableNames) {
-			sql.addAll(connectionDialect.createOptimisticLockTrigger(conn, tableName));
-			sql.addAll(connectionDialect.createAdditionalTriggers(conn, tableName));
-		}
-		executeScript(sql, conn, false, null, sqlExecutionOrder);
-	}
-
-	protected void createPermissionGroups(final Connection conn, List<String> sqlExecutionOrder)
+	protected static void createOptimisticLockingTriggers(final Connection conn,
+			List<String> sqlExecutionOrder, IConnectionDialect connectionDialect,
+			IConnectionTestDialect connectionTestDialect, ILogger log, boolean doExecuteStrict)
 			throws SQLException {
-		IConnectionTestDialect connectionDialect =
-				getOrCreateSchemaContext().getService(IConnectionTestDialect.class);
-
-		List<String> tableNames = connectionDialect.getTablesWithoutPermissionGroup(conn);
+		List<String> tableNames = connectionTestDialect.getTablesWithoutOptimisticLockTrigger(conn);
 
 		ArrayList<String> sql = new ArrayList<>();
 		for (String tableName : tableNames) {
-			sql.addAll(connectionDialect.createPermissionGroup(conn, tableName));
+			sql.addAll(connectionTestDialect.createOptimisticLockTrigger(conn, tableName));
+			sql.addAll(connectionTestDialect.createAdditionalTriggers(conn, tableName));
 		}
-		executeScript(sql, conn, false, null, sqlExecutionOrder);
+		executeScript(sql, conn, false, null, sqlExecutionOrder, connectionDialect, log,
+				doExecuteStrict);
 	}
 
-	private void ensureExistanceOfNeededDatabaseObjects(final Connection conn,
-			List<String> sqlExecutionOrder) throws SQLException {
-		createOptimisticLockingTriggers(conn, sqlExecutionOrder);
-		createPermissionGroups(conn, sqlExecutionOrder);
-		getOrCreateSchemaContext().getService(IConnectionDialect.class).preProcessConnection(conn,
-				getSchemaNames(), true);
-		getOrCreateSchemaContext().getService(IConnectionTestDialect.class)
-				.preProcessConnectionForTest(conn, getSchemaNames(), true);
+	protected static void createPermissionGroups(final Connection conn,
+			List<String> sqlExecutionOrder, IConnectionDialect connectionDialect,
+			IConnectionTestDialect connectionTestDialect, ILogger log, boolean doExecuteStrict)
+			throws SQLException {
+		List<String> tableNames = connectionTestDialect.getTablesWithoutPermissionGroup(conn);
+
+		ArrayList<String> sql = new ArrayList<>();
+		for (String tableName : tableNames) {
+			sql.addAll(connectionTestDialect.createPermissionGroup(conn, tableName));
+		}
+		executeScript(sql, conn, false, null, sqlExecutionOrder, connectionDialect, log,
+				doExecuteStrict);
+	}
+
+	private static void ensureExistanceOfNeededDatabaseObjects(final Connection conn,
+			List<String> sqlExecutionOrder, IConnectionDialect connectionDialect,
+			IConnectionTestDialect connectionTestDialect, ILogger log, boolean doExecuteStrict)
+			throws SQLException {
+		createOptimisticLockingTriggers(conn, sqlExecutionOrder, connectionDialect,
+				connectionTestDialect, log, doExecuteStrict);
+		createPermissionGroups(conn, sqlExecutionOrder, connectionDialect, connectionTestDialect, log,
+				doExecuteStrict);
 	}
 
 	private void ensureSchemaEmpty(final Connection conn) throws SQLException {
 		String[] schemaNames = getSchemaNames();
-		if (!getOrCreateSchemaContext().getService(IConnectionTestDialect.class)
-				.isEmptySchema(conn)) {
+		if (!getOrCreateSchemaContext().getService(IConnectionTestDialect.class).isEmptySchema(conn)) {
 			truncateMainSchema(conn, schemaNames[0]);
 		}
 		truncateAdditionalSchemas(conn, schemaNames, false);
@@ -303,14 +311,16 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			ISchemaRunnable[] dataRunnables =
 					getDataRunnables(getTestClass().getJavaClass(), null, frameworkMethod);
 			executeWithDeferredConstraints(dataRunnables);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
-	void executeScript(final List<String> sql, final Connection conn,
+	static void executeScript(final List<String> sql, final Connection conn,
 			final boolean doCommitBehavior, Map<String, String> sqlToSourceMap,
-			List<String> sqlExecutionOrder) throws SQLException {
+			List<String> sqlExecutionOrder, IConnectionDialect connectionDialect, ILogger log,
+			boolean doExecuteStrict) throws SQLException {
 		if (sql.size() == 0) {
 			return;
 		}
@@ -330,19 +340,18 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 						continue;
 					}
 					try {
-						handleSqlCommand(command, stmt, defaultOptions);
+						handleSqlCommand(command, stmt, defaultOptions, connectionDialect);
 						done.add(command);
 						// If the command was successful, remove the key from the exception log
 						commandToExceptionMap.remove(command);
 						if (sqlExecutionOrder != null) {
 							sqlExecutionOrder.add(command);
 						}
-					} catch (PersistenceException e) {
+					}
+					catch (PersistenceException e) {
 						// When executing multiple sql files some statements collide and cannot all
 						// be executed
 						if (!doExecuteStrict && canFailBeTolerated(command)) {
-							ILogger log = getLog();
-
 							if (log.isWarnEnabled()) {
 								log.warn("SQL statement failed: '" + command + "'");
 							}
@@ -363,12 +372,14 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 					}
 				}
 				sql.removeAll(done);
-			} while (sql.size() > 0 && done.size() > 0);
+			}
+			while (sql.size() > 0 && done.size() > 0);
 
 			if (doCommitBehavior) {
 				if (sql.isEmpty()) {
 					conn.commit();
-				} else {
+				}
+				else {
 					conn.rollback();
 					if (commandToExceptionMap.size() > 1) {
 						for (List<Throwable> exceptionsOfCommand : commandToExceptionMap.values()) {
@@ -376,21 +387,22 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 								e.printStackTrace();
 							}
 						}
-					} else if (commandToExceptionMap.size() == 1) {
-						PersistenceException pe =
-								new PersistenceException("Uncorrectable SQL exception(s)",
-										commandToExceptionMap.values().get(0).get(0));
+					}
+					else if (commandToExceptionMap.size() == 1) {
+						PersistenceException pe = new PersistenceException("Uncorrectable SQL exception(s)",
+								commandToExceptionMap.values().get(0).get(0));
 						pe.setStackTrace(new StackTraceElement[0]);
 						throw pe;
-					} else {
+					}
+					else {
 						throw new PersistenceException("Uncorrectable SQL exception(s)");
 					}
 				}
-			} else if (!sql.isEmpty()) {
+			}
+			else if (!sql.isEmpty()) {
 				if (commandToExceptionMap.size() > 0) {
 					String errorMessage = "Uncorrectable SQL exception(s)";
-					Entry<String, List<Throwable>> firstEntry =
-							commandToExceptionMap.iterator().next();
+					Entry<String, List<Throwable>> firstEntry = commandToExceptionMap.iterator().next();
 					if (sqlToSourceMap != null) {
 						String source = sqlToSourceMap.get(firstEntry.getKey());
 						if (source != null) {
@@ -398,8 +410,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 						}
 					}
 					if (commandToExceptionMap.size() > 1) {
-						errorMessage += ". There are " + commandToExceptionMap.size()
-								+ " exceptions! The first one is:";
+						errorMessage +=
+								". There are " + commandToExceptionMap.size() + " exceptions! The first one is:";
 					}
 					PersistenceException pe =
 							new PersistenceException(errorMessage, firstEntry.getValue().get(0));
@@ -407,7 +419,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 					throw pe;
 				}
 			}
-		} finally {
+		}
+		finally {
 			JdbcUtil.close(stmt);
 		}
 	}
@@ -420,21 +433,22 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			Connection conn = getConnection();
 			boolean success = false;
 			try {
-				IStateRollback rollback =
-						getOrCreateSchemaContext().getService(IConnectionDialect.class)
-								.disableConstraints(conn, getSchemaNames());
+				IStateRollback rollback = getOrCreateSchemaContext().getService(IConnectionDialect.class)
+						.disableConstraints(conn, getSchemaNames());
 				for (ISchemaRunnable schemaRunnable : schemaRunnables) {
 					schemaRunnable.executeSchemaSql(conn);
 				}
 				rollback.rollback();
 				conn.commit();
 				success = true;
-			} finally {
-				if (!success) {
+			}
+			finally {
+				if (!success && !conn.getAutoCommit()) {
 					conn.rollback();
 				}
 			}
-		} catch (Throwable e) {
+		}
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -446,8 +460,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 		String testForkSuffix = props.getString(UtilConfigurationConstants.ForkName);
 		if (testForkSuffix != null) {
-			String databaseUser =
-					props.getString(PersistenceJdbcConfigurationConstants.DatabaseUser);
+			String databaseUser = props.getString(PersistenceJdbcConfigurationConstants.DatabaseUser);
 			props.putString(PersistenceJdbcConfigurationConstants.DatabaseUser,
 					databaseUser + "_" + testForkSuffix);
 		}
@@ -465,7 +478,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			preparedConnections.add(schemaConnection);
 			props.put(PersistenceJdbcConfigurationConstants.PreparedConnectionInstances,
 					preparedConnections);
-		} catch (SQLException e) {
+		}
+		catch (SQLException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 
@@ -490,7 +504,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			IAnnotationInfo<?> annoInfo = annotations.get(0);
 			SQLTableSynonyms anno = (SQLTableSynonyms) annoInfo.getAnnotation();
 			configuredSynonymNames = anno.value();
-		} else {
+		}
+		else {
 			configuredSynonymNames = new String[0];
 		}
 
@@ -504,23 +519,24 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		Connection conn;
 		try {
 			conn = getOrCreateSchemaContext().getService(IConnectionFactory.class).create();
-		} catch (MaskingRuntimeException e) {
+		}
+		catch (MaskingRuntimeException e) {
 			Throwable cause = e.getCause();
 			while (cause instanceof MaskingRuntimeException) {
 				cause = cause.getCause();
 			}
 			IProperties testProps = getOrCreateSchemaContext().getService(IProperties.class);
-			testUserHasBeenCreated = getOrCreateSchemaContext()
-					.getService(IConnectionTestDialect.class).createTestUserIfSupported(cause,
+			testUserHasBeenCreated = getOrCreateSchemaContext().getService(IConnectionTestDialect.class)
+					.createTestUserIfSupported(cause,
 							testProps.getString(PersistenceJdbcConfigurationConstants.DatabaseUser),
-							testProps.getString(PersistenceJdbcConfigurationConstants.DatabasePass),
-							testProps);
+							testProps.getString(PersistenceJdbcConfigurationConstants.DatabasePass), testProps);
 			if (!testUserHasBeenCreated) {
 				throw e;
 			}
 			try {
 				conn = getOrCreateSchemaContext().getService(IConnectionFactory.class).create();
-			} catch (Throwable t) {
+			}
+			catch (Throwable t) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -535,6 +551,10 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		List<IAnnotationInfo<?>> annotations =
 				findAnnotations(type, frameworkMethod != null ? frameworkMethod.getMethod() : null,
 						SQLDataList.class, SQLData.class);
+
+		IServiceContext schemaContext = getOrCreateSchemaContext();
+		IConnectionDialect connectionDialect = schemaContext.getService(IConnectionDialect.class);
+		IProperties properties = schemaContext.getService(IProperties.class);
 		for (IAnnotationInfo<?> schemaItem : annotations) {
 			Annotation annotation = schemaItem.getAnnotation();
 			if (annotation instanceof SQLDataList) {
@@ -543,13 +563,16 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				SQLData[] value = sqlDataList.value();
 				for (SQLData sqlData : value) {
 					getSchemaRunnable(sqlData.type(), sqlData.value(), schemaRunnables,
-							schemaItem.getAnnotatedElement(), true, null);
+							schemaItem.getAnnotatedElement(), true, null, connectionDialect, properties, getLog(),
+							doExecuteStrict);
 				}
-			} else {
+			}
+			else {
 				SQLData sqlData = (SQLData) annotation;
 
 				getSchemaRunnable(sqlData.type(), sqlData.value(), schemaRunnables,
-						schemaItem.getAnnotatedElement(), true, null);
+						schemaItem.getAnnotatedElement(), true, null, connectionDialect, properties, getLog(),
+						doExecuteStrict);
 			}
 		}
 		return schemaRunnables.toArray(new ISchemaRunnable[schemaRunnables.size()]);
@@ -583,15 +606,17 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		return schemaNames;
 	}
 
-	protected void getSchemaRunnable(final Class<? extends ISchemaRunnable> schemaRunnableType,
+	protected static void getSchemaRunnable(final Class<? extends ISchemaRunnable> schemaRunnableType,
 			final String[] schemaFiles, final List<ISchemaRunnable> schemaRunnables,
 			final AnnotatedElement callingClass, final boolean doCommitBehavior,
-			final IList<String> sqlExecutionOrder) {
+			final IList<String> sqlExecutionOrder, final IConnectionDialect connectionDialect,
+			final IProperties properties, final ILogger log, final boolean doExecuteStrict) {
 		if (schemaRunnableType != null && !ISchemaRunnable.class.equals(schemaRunnableType)) {
 			try {
 				ISchemaRunnable schemaRunnable = schemaRunnableType.newInstance();
 				schemaRunnables.add(schemaRunnable);
-			} catch (Throwable e) {
+			}
+			catch (Throwable e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -604,13 +629,14 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 					if (schemaFile == null || schemaFile.length() == 0) {
 						continue;
 					}
-					List<String> sql = readSqlFile(schemaFile, callingClass);
+					List<String> sql = readSqlFile(schemaFile, callingClass, properties, log);
 					allSQL.addAll(sql);
 					for (String oneSql : sql) {
 						sqlToSourceMap.put(oneSql, schemaFile);
 					}
 				}
-				executeScript(allSQL, connection, false, sqlToSourceMap, sqlExecutionOrder);
+				executeScript(allSQL, connection, false, sqlToSourceMap, sqlExecutionOrder,
+						connectionDialect, log, doExecuteStrict);
 			}
 		};
 		schemaRunnables.add(schemaRunnable);
@@ -623,6 +649,9 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		List<IAnnotationInfo<?>> annotations =
 				findAnnotations(type, SQLStructureList.class, SQLStructure.class);
 
+		IServiceContext schemaContext = getOrCreateSchemaContext();
+		IConnectionDialect connectionDialect = schemaContext.getService(IConnectionDialect.class);
+		IProperties properties = schemaContext.getService(IProperties.class);
 		for (IAnnotationInfo<?> schemaItem : annotations) {
 			Annotation annotation = schemaItem.getAnnotation();
 			if (annotation instanceof SQLStructureList) {
@@ -631,21 +660,26 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				SQLStructure[] value = sqlStructureList.value();
 				for (SQLStructure sqlStructure : value) {
 					getSchemaRunnable(sqlStructure.type(), sqlStructure.value(), schemaRunnables,
-							schemaItem.getAnnotatedElement(), true, sqlExecutionOrder);
+							schemaItem.getAnnotatedElement(), true, sqlExecutionOrder, connectionDialect,
+							properties, getLog(), doExecuteStrict);
 				}
-			} else {
+			}
+			else {
 				SQLStructure sqlStructure = (SQLStructure) annotation;
 				getSchemaRunnable(sqlStructure.type(), sqlStructure.value(), schemaRunnables,
-						schemaItem.getAnnotatedElement(), true, sqlExecutionOrder);
+						schemaItem.getAnnotatedElement(), true, sqlExecutionOrder, connectionDialect,
+						properties, getLog(), doExecuteStrict);
 			}
 		}
 		return schemaRunnables.toArray(new ISchemaRunnable[schemaRunnables.size()]);
 	}
 
-	private void handleSqlCommand(String command, final Statement stmt,
-			final Map<String, Object> defaultOptions) throws SQLException {
+	private static void handleSqlCommand(String command, final Statement stmt,
+			final Map<String, Object> defaultOptions, IConnectionDialect connectionDialect)
+			throws SQLException {
 		Map<String, Object> options = defaultOptions;
-		Matcher optionLine = this.optionLine.matcher(command.trim());
+		Matcher optionLine =
+				AmbethInformationBusWithPersistenceRunner.optionLine.matcher(command.trim());
 		if (optionLine.find()) {
 			options = new HashMap<>(defaultOptions);
 			String optionString = optionLine.group(1).replace(" ", "");
@@ -663,15 +697,15 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				}
 			}
 		}
-		command = getOrCreateSchemaContext().getService(IConnectionDialect.class)
-				.prepareCommand(command);
+		command = connectionDialect.prepareCommand(command);
 		if (command == null || command.length() == 0) {
 			return;
 		}
 		int loopCount = ((Integer) options.get("loop")).intValue();
 		if (loopCount == 1) {
 			stmt.execute(command);
-		} else {
+		}
+		else {
 			for (int i = loopCount; i-- > 0;) {
 				stmt.addBatch(command);
 			}
@@ -733,30 +767,29 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			public void evaluate() throws Throwable {
 				boolean doContextRebuild = false;
 				Method method = frameworkMethod.getMethod();
-				boolean doStructureRebuild =
-						!isStructureRebuildAlreadyHandled && hasStructureAnnotation();
+				boolean doStructureRebuild = !isStructureRebuildAlreadyHandled && hasStructureAnnotation();
 				boolean methodTriggersContextRebuild = method.isAnnotationPresent(TestModule.class)
 						|| method.isAnnotationPresent(TestProperties.class)
 						|| method.isAnnotationPresent(TestPropertiesList.class);
-				doContextRebuild =
-						beanContext == null || beanContext.isDisposed() || doStructureRebuild
-								|| methodTriggersContextRebuild || lastMethodTriggersContextRebuild;
+				doContextRebuild = beanContext == null || beanContext.isDisposed() || doStructureRebuild
+						|| methodTriggersContextRebuild || lastMethodTriggersContextRebuild;
 				lastMethodTriggersContextRebuild = methodTriggersContextRebuild;
 				boolean doDataRebuild = isDataRebuildDemanded();
 				if (!doDataRebuild) // handle the special cases for SQLDataRebuild=false
 				{
 					// If SQL data on class level -> run data SQL before the first test method
 					if (!isFirstTestMethodAlreadyExecuted) {
-						doDataRebuild = !findAnnotations(getTestClass().getJavaClass(),
-								SQLDataList.class, SQLData.class).isEmpty();
+						doDataRebuild =
+								!findAnnotations(getTestClass().getJavaClass(), SQLDataList.class, SQLData.class)
+										.isEmpty();
 					}
 				}
 				boolean doAddAdditionalMethodData = false; // Flag if SQL method data should be
-															// inserted
-															// (without deleting
+				// inserted
+				// (without deleting
 				// existing database entries)
 				if (!doDataRebuild) // included in data rebuild -> only check if data rebuild isn't
-									// done
+				// done
 				{
 					doAddAdditionalMethodData = method.isAnnotationPresent(SQLData.class)
 							|| method.isAnnotationPresent(SQLDataList.class);
@@ -781,10 +814,11 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 				try {
 					statement.evaluate();
-				} catch (MaskingRuntimeException e) {
+				}
+				catch (MaskingRuntimeException e) {
 					throw RuntimeExceptionUtil.mask(e, Throwable.class); // potentially unwraps
-																			// redundant
-																			// MaskingRuntimeException
+					// redundant
+					// MaskingRuntimeException
 				}
 			}
 		};
@@ -795,18 +829,16 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			Object test) {
 		final org.junit.runners.model.Statement parentStatement =
 				AmbethInformationBusWithPersistenceRunner.super.methodInvoker(method, test);
-		final org.junit.runners.model.Statement statement =
-				new org.junit.runners.model.Statement() {
-					@Override
-					public void evaluate() throws Throwable {
-						IDataSetup dataSetup =
-								beanContext.getParent().getService(IDataSetup.class, false);
-						if (dataSetup != null) {
-							dataSetup.refreshEntityReferences();
-						}
-						parentStatement.evaluate();
-					}
-				};
+		final org.junit.runners.model.Statement statement = new org.junit.runners.model.Statement() {
+			@Override
+			public void evaluate() throws Throwable {
+				IDataSetup dataSetup = beanContext.getParent().getService(IDataSetup.class, false);
+				if (dataSetup != null) {
+					dataSetup.refreshEntityReferences();
+				}
+				parentStatement.evaluate();
+			}
+		};
 		return new org.junit.runners.model.Statement() {
 			@Override
 			public void evaluate() throws Throwable {
@@ -814,9 +846,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 					beanContext.getService(DataSetupExecutor.class).rebuildData();
 					isRebuildDataForThisTestRecommended = false;
 				}
-				boolean securityActive =
-						Boolean.parseBoolean(beanContext.getService(IProperties.class)
-								.getString(MergeConfigurationConstants.SecurityActive, "false"));
+				boolean securityActive = Boolean.parseBoolean(beanContext.getService(IProperties.class)
+						.getString(MergeConfigurationConstants.SecurityActive, "false"));
 				if (!securityActive) {
 					statement.evaluate();
 					return;
@@ -830,10 +861,9 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 						beanContext.getService(IChangeController.class, false);
 				if (changeControllerState != null) {
 					if (changeController != null) {
-						IConversionHelper conversionHelper =
-								beanContext.getService(IConversionHelper.class);
-						Boolean active = conversionHelper.convertValueToType(Boolean.class,
-								changeControllerState.active());
+						IConversionHelper conversionHelper = beanContext.getService(IConversionHelper.class);
+						Boolean active =
+								conversionHelper.convertValueToType(Boolean.class, changeControllerState.active());
 						if (Boolean.TRUE.equals(active)) {
 							changeControllerActiveTest = true;
 						}
@@ -871,13 +901,11 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 				SecurityFilterInterceptor interceptor =
 						beanContext.registerBean(SecurityFilterInterceptor.class)
-								.propertyValue("MethodLevelBehaviour", behaviour)
-								.propertyValue("Target", statement).finish();
+								.propertyValue("MethodLevelBehaviour", behaviour).propertyValue("Target", statement)
+								.finish();
 				org.junit.runners.model.Statement stmt =
-						(org.junit.runners.model.Statement) beanContext
-								.getService(IProxyFactory.class).createProxy(
-										new Class<?>[] {org.junit.runners.model.Statement.class},
-										interceptor);
+						(org.junit.runners.model.Statement) beanContext.getService(IProxyFactory.class)
+								.createProxy(new Class<?>[] {org.junit.runners.model.Statement.class}, interceptor);
 				final org.junit.runners.model.Statement fStatement = stmt;
 				ISecurityContextHolder securityContextHolder =
 						beanContext.getService(ISecurityContextHolder.class);
@@ -893,7 +921,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 								}
 								try {
 									fStatement.evaluate();
-								} finally {
+								}
+								finally {
 									rollback.rollback();
 								}
 								return null;
@@ -904,7 +933,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		};
 	}
 
-	protected BufferedReader openSqlAsFile(String fileName, AnnotatedElement callingClass,
+	protected static BufferedReader openSqlAsFile(String fileName, AnnotatedElement callingClass,
 			ILogger log) throws IOException, FileNotFoundException {
 		File sqlFile = null;
 		File tempFile = new File(fileName);
@@ -915,13 +944,14 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			String callingNamespace;
 			if (callingClass instanceof Class) {
 				callingNamespace = ((Class<?>) callingClass).getPackage().getName();
-			} else if (callingClass instanceof Method) {
-				callingNamespace =
-						((Method) callingClass).getDeclaringClass().getPackage().getName();
-			} else if (callingClass instanceof Field) {
-				callingNamespace =
-						((Field) callingClass).getDeclaringClass().getPackage().getName();
-			} else {
+			}
+			else if (callingClass instanceof Method) {
+				callingNamespace = ((Method) callingClass).getDeclaringClass().getPackage().getName();
+			}
+			else if (callingClass instanceof Field) {
+				callingNamespace = ((Field) callingClass).getDeclaringClass().getPackage().getName();
+			}
+			else {
 				throw new IllegalStateException("Value not supported: " + callingClass);
 			}
 			String relativePath = fileName.startsWith("/")
@@ -937,7 +967,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 						sqlFile = tempFile;
 						break;
 					}
-				} else if (classpathEntry.isFile()) {
+				}
+				else if (classpathEntry.isFile()) {
 					boolean keepOpen = false;
 					ZipInputStream jis = new ZipInputStream(new FileInputStream(classpathEntry));
 					try {
@@ -946,11 +977,11 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 							String jarEntryName = jarEntry.getName();
 							if (jarEntryName.equals(forwardPath)) {
 								keepOpen = true;
-								return new BufferedReader(
-										new InputStreamReader(jis, Charset.forName("UTF-8")));
+								return new BufferedReader(new InputStreamReader(jis, Charset.forName("UTF-8")));
 							}
 						}
-					} finally {
+					}
+					finally {
 						if (!keepOpen) {
 							jis.close();
 						}
@@ -996,10 +1027,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		return br;
 	}
 
-	private List<String> readSqlFile(final String fileName, final AnnotatedElement callingClass)
-			throws IOException {
-		ILogger log = getLog();
-
+	private static List<String> readSqlFile(final String fileName,
+			final AnnotatedElement callingClass, IProperties properties, ILogger log) throws IOException {
 		BufferedReader br = null;
 		try {
 			String lookupName = fileName.startsWith("/") ? fileName.substring(1) : fileName;
@@ -1008,7 +1037,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				br = new BufferedReader(new InputStreamReader(sqlStream));
 				log = null;
 			}
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			// Opening as Stream failed. Try old file code next.
 			br = openSqlAsFile(fileName, callingClass, log);
 		}
@@ -1027,7 +1057,6 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			String line = null;
 			Pattern endToLookFor = null;
 			boolean ignoreThisCommand = false;
-			IProperties properties = getOrCreateSchemaContext().getService(IProperties.class);
 			allLines: while (null != (line = br.readLine())) {
 				line = line.trim();
 				if (line.isEmpty()) {
@@ -1048,7 +1077,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 				if (!optionLine.matcher(line).matches()) {
 					sb.append(line + " ");
-				} else {
+				}
+				else {
 					sb.append(line + nl);
 				}
 
@@ -1096,7 +1126,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 					ignoreThisCommand = false;
 				}
 			}
-		} finally {
+		}
+		finally {
 			br.close();
 		}
 
@@ -1109,21 +1140,24 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			return;
 		}
 		if (isRebuildDataForThisTestRecommended) {
-			DataSetupExecutor.setAutoRebuildData(Boolean.TRUE);
+			Boolean oldValue = DataSetupExecutor.setAutoRebuildData(Boolean.TRUE);
 			try {
 				super.rebuildContext(frameworkMethod);
-			} finally {
-				DataSetupExecutor.setAutoRebuildData(null);
+			}
+			finally {
+				DataSetupExecutor.setAutoRebuildData(oldValue);
 				isRebuildDataForThisTestRecommended = false;
 			}
-		} else {
+		}
+		else {
 			super.rebuildContext(frameworkMethod);
 		}
 		try {
 			if (connection != null && !connection.isClosed()) {
 				connection.rollback();
 			}
-		} catch (Throwable e) {
+		}
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		beanContext.getService(ILightweightTransaction.class)
@@ -1159,7 +1193,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			ISchemaRunnable[] dataRunnables =
 					getDataRunnables(callingClass, callingClass, frameworkMethod);
 			executeWithDeferredConstraints(dataRunnables);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -1175,7 +1210,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		System.setOut(NullPrintStream.INSTANCE);
 		try {
 			Properties.loadBootstrapPropertyFile();
-		} finally {
+		}
+		finally {
 			System.setOut(oldPrintStream);
 		}
 
@@ -1188,10 +1224,10 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		boolean success = false;
 		try {
 			schemaBootstrapContext = BeanContextFactory.createBootstrap(baseProps);
-			schemaContext =
-					schemaBootstrapContext.createService(AmbethPersistenceSchemaModule.class);
+			schemaContext = schemaBootstrapContext.createService(AmbethPersistenceSchemaModule.class);
 			success = true;
-		} finally {
+		}
+		finally {
 			if (!success && schemaBootstrapContext != null) {
 				schemaBootstrapContext.dispose();
 			}
@@ -1210,8 +1246,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			try {
 				ensureSchemaEmpty(connection);
 
-				getOrCreateSchemaContext().getService(IConnectionTestDialect.class)
-						.preStructureRebuild(connection);
+				IServiceContext schemaContext = getOrCreateSchemaContext();
+				schemaContext.getService(IConnectionTestDialect.class).preStructureRebuild(connection);
 
 				ArrayList<String> sqlExecutionOrder = new ArrayList<>();
 
@@ -1220,20 +1256,28 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				for (ISchemaRunnable structRunnable : structureRunnables) {
 					structRunnable.executeSchemaSql(connection);
 				}
-				ensureExistanceOfNeededDatabaseObjects(connection, sqlExecutionOrder);
+				IConnectionDialect connectionDialect = schemaContext.getService(IConnectionDialect.class);
+				IConnectionTestDialect connectionTestDialect =
+						schemaContext.getService(IConnectionTestDialect.class);
+
+				ensureExistanceOfNeededDatabaseObjects(connection, sqlExecutionOrder, connectionDialect,
+						connectionTestDialect, getLog(), doExecuteStrict);
 				AmbethInformationBusWithPersistenceRunner.sqlExecutionOrder =
 						sqlExecutionOrder.toArray(String.class);
-			} finally {
+			}
+			finally {
 				if (!oldAutoCommit) {
 					try {
 						connection.setAutoCommit(false);
-					} catch (SQLException e) {
+					}
+					catch (SQLException e) {
 						// Intended blank
 					}
 				}
 			}
 			isStructureRebuildAlreadyHandled = true;
-		} catch (Throwable e) {
+		}
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -1275,10 +1319,9 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	 */
 	protected void truncateAllTablesBySchema(final Connection conn, final String... schemaNames)
 			throws SQLException {
-		IConnectionDialect connectionDialect =
+		final IConnectionDialect connectionDialect =
 				getOrCreateSchemaContext().getService(IConnectionDialect.class);
-		List<String> allTableNames =
-				connectionDialect.getAllFullqualifiedTableNames(conn, schemaNames);
+		List<String> allTableNames = connectionDialect.getAllFullqualifiedTableNames(conn, schemaNames);
 		if (allTableNames.isEmpty()) {
 			return;
 		}
@@ -1292,7 +1335,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 			@Override
 			public void executeSchemaSql(final Connection connection) throws Exception {
-				executeScript(sql, connection, false, null, null);
+				executeScript(sql, connection, false, null, null, connectionDialect, getLog(),
+						doExecuteStrict);
 				sql.clear();
 			}
 		});
@@ -1310,7 +1354,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		if (explicitTableNames == null || explicitTableNames.length == 0) {
 			return;
 		}
-		IConnectionDialect connectionDialect =
+		final IConnectionDialect connectionDialect =
 				getOrCreateSchemaContext().getService(IConnectionDialect.class);
 		final List<String> sql = new ArrayList<>();
 		for (int i = explicitTableNames.length; i-- > 0;) {
@@ -1321,7 +1365,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 			@Override
 			public void executeSchemaSql(final Connection connection) throws Exception {
-				executeScript(sql, connection, false, null, null);
+				executeScript(sql, connection, false, null, null, connectionDialect, getLog(),
+						doExecuteStrict);
 				sql.clear();
 			}
 		});
@@ -1330,9 +1375,10 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	private void truncateMainSchema(final Connection conn, String mainSchemaName)
 			throws SQLException {
 		if (hasStructureAnnotation()) {
-			getOrCreateSchemaContext().getService(IConnectionTestDialect.class)
-					.dropAllSchemaContent(conn, mainSchemaName);
-		} else {
+			getOrCreateSchemaContext().getService(IConnectionTestDialect.class).dropAllSchemaContent(conn,
+					mainSchemaName);
+		}
+		else {
 			if (isTruncateOnClassDemanded()) {
 				truncateAllTablesBySchema(conn, null, mainSchemaName);
 			}
@@ -1358,22 +1404,21 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 						if (testUserHasBeenCreated) {
 							JdbcUtil.close(connection);
 							connection = null;
-							IProperties testProps =
-									getOrCreateSchemaContext().getService(IProperties.class);
+							IProperties testProps = getOrCreateSchemaContext().getService(IProperties.class);
 							getOrCreateSchemaContext().getService(IConnectionTestDialect.class)
 									.dropCreatedTestUser(
-											testProps.getString(
-													PersistenceJdbcConfigurationConstants.DatabaseUser),
-											testProps.getString(
-													PersistenceJdbcConfigurationConstants.DatabasePass),
+											testProps.getString(PersistenceJdbcConfigurationConstants.DatabaseUser),
+											testProps.getString(PersistenceJdbcConfigurationConstants.DatabasePass),
 											testProps);
 							testUserHasBeenCreated = false;
-						} else {
+						}
+						else {
 							String[] schemaNames = getSchemaNames();
 							truncateMainSchema(conn, schemaNames[0]);
 							truncateAdditionalSchemas(conn, schemaNames, true);
 						}
-					} finally {
+					}
+					finally {
 						JdbcUtil.close(connection);
 						connection = null;
 						if (schemaContext != null) {
@@ -1381,7 +1426,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 							schemaContext = null;
 						}
 					}
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}

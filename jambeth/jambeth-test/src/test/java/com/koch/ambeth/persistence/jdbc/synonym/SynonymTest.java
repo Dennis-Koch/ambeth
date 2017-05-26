@@ -23,12 +23,12 @@ limitations under the License.
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import com.koch.ambeth.informationbus.persistence.setup.SQLData;
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
+import com.koch.ambeth.informationbus.persistence.setup.SQLTableSynonyms;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
-import com.koch.ambeth.testutil.SQLData;
-import com.koch.ambeth.testutil.SQLStructure;
-import com.koch.ambeth.testutil.SQLTableSynonyms;
 import com.koch.ambeth.testutil.category.ReminderTests;
 
 @Category(ReminderTests.class)

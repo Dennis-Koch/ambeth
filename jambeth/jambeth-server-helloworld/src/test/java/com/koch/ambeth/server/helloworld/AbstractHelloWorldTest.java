@@ -1,5 +1,7 @@
 package com.koch.ambeth.server.helloworld;
 
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
+
 /*-
  * #%L
  * jambeth-server-helloworld
@@ -24,7 +26,6 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
-import com.koch.ambeth.testutil.SQLStructure;
 import com.koch.ambeth.testutil.TestProperties;
 
 @SQLStructure("/create_hello_world_tables.sql")

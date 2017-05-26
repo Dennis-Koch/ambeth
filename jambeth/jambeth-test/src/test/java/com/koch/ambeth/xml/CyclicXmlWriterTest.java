@@ -30,6 +30,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.koch.ambeth.informationbus.persistence.setup.SQLData;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.transfer.CUDResult;
 import com.koch.ambeth.merge.transfer.EntityMetaDataTransfer;
@@ -37,7 +38,6 @@ import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.testutil.AbstractInformationBusTest;
-import com.koch.ambeth.testutil.SQLData;
 import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.xml.ioc.BootstrapScannerModule;
