@@ -31,6 +31,27 @@
 			<groupId>org.eclipse.persistence</groupId>
 			<artifactId>javax.persistence</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient-osgi</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient-cache</artifactId>
+		</dependency>		
+		<dependency>
+		    <groupId>org.apache.httpcomponents</groupId>
+		    <artifactId>httpcore-osgi</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>fluent-hc</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpmime</artifactId>
+		</dependency>		
 	</dependencies>
 
 	<build>
@@ -49,15 +70,8 @@
 			<plugin>
 				<groupId>com.bruker.horizon</groupId>
 				<artifactId>kar2tycho-maven-plugin</artifactId>
-				<!-- <executions>
-					<execution>
-						<id>convert</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>kar2tycho</goal>
-						</goals>
-					</execution>
-				</executions> -->
+				<!-- <executions> <execution> <id>convert</id> <phase>verify</phase> 
+					<goals> <goal>kar2tycho</goal> </goals> </execution> </executions> -->
 				<configuration>
 					<sources>
 						<!-- specify your source dependencies here -->
