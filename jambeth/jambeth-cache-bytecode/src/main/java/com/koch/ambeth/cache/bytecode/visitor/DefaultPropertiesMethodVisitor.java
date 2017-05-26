@@ -85,14 +85,20 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator {
 				setter = ReflectUtil.getDeclaredMethod(true, getState().getCurrentType(), void.class,
 						"set" + propertyInfo.getName(), propertyInfo.getPropertyType());
 			}
+			Method fluentSetter = ReflectUtil.getDeclaredMethod(true, getState().getCurrentType(),
+					getState().getOriginalType(), "with" + propertyInfo.getName(),
+					propertyInfo.getPropertyType());
 			if (getter != null && getter.isAnnotationPresent(PropertyExpression.class)) {
 				// this member will be handled by another visitor
 				continue;
 			}
 			MethodInstance m_getterTemplate = getter != null ? new MethodInstance(getter) : null;
 			MethodInstance m_setterTemplate = setter != null ? new MethodInstance(setter) : null;
+			MethodInstance m_fluentSetterTemplate =
+					fluentSetter != null ? new MethodInstance(fluentSetter) : null;
 			MethodInstance m_getter = MethodInstance.findByTemplate(m_getterTemplate, true);
 			MethodInstance m_setter = MethodInstance.findByTemplate(m_setterTemplate, true);
+			MethodInstance m_fluentSetter = MethodInstance.findByTemplate(m_fluentSetterTemplate, true);
 
 			if (m_getter != null && m_setter != null) {
 				// ensure both accessors are public
@@ -112,9 +118,17 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator {
 					mv.returnValue();
 					mv.endMethod();
 				}
+				if (m_fluentSetter != null && (m_fluentSetter.getAccess() & Opcodes.ACC_PUBLIC) == 0) {
+					MethodGenerator mv = visitMethod(m_fluentSetter.deriveAccess(Opcodes.ACC_PUBLIC));
+					mv.loadThis();
+					mv.loadArgs();
+					mv.invokeSuper(m_fluentSetter);
+					mv.returnValue();
+					mv.endMethod();
+				}
 				continue;
 			}
-			if (m_getter != null || m_setter != null) {
+			if (m_getter != null || m_setter != null || m_fluentSetter != null) {
 				// at least one of the accessors is explicitly implemented
 				continue;
 			}
@@ -127,11 +141,18 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator {
 						m_setterTemplate != null ? m_setterTemplate.getReturnType() : Type.VOID_TYPE,
 						"set" + propertyInfo.getName(), null, f_backingField.getType());
 			}
+			if (m_fluentSetterTemplate == null) {
+				m_fluentSetterTemplate = new MethodInstance(null, Opcodes.ACC_PUBLIC,
+						m_fluentSetterTemplate != null
+								? m_fluentSetterTemplate.getReturnType()
+								: Type.getType(getState().getOriginalType()),
+						"with" + propertyInfo.getName(), null, f_backingField.getType());
+			}
 			// implement setter
 			m_setterTemplate = implementSetter(m_setterTemplate, f_backingField);
 			List<Method> allSettersWithSameName = nameToMethodsMap.get(m_setterTemplate.getName());
+			final MethodInstance f_m_setterTemplate = m_setterTemplate;
 			if (allSettersWithSameName != null) {
-				final MethodInstance f_m_setterTemplate = m_setterTemplate;
 				for (Method setterWithSameName : allSettersWithSameName) {
 					MethodInstance m_setterWithSameName =
 							MethodInstance.findByTemplate(setterWithSameName, true);
@@ -154,6 +175,22 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator {
 					mv.returnVoidOrThis();
 					mv.endMethod();
 				}
+			}
+			if (m_fluentSetterTemplate != null) {
+				MethodGenerator mv = visitMethod(m_fluentSetterTemplate);
+				if (mv.getMethod().getParameters().length != 1) {
+					// this visitor handles only "true" setters with exactly one argument
+					continue;
+				}
+				mv.callThisSetter(m_setterTemplate, new Script() {
+					@Override
+					public void execute(MethodGenerator mg) {
+						mg.loadArg(0);
+					}
+				});
+				mv.popIfReturnValue(m_setterTemplate);
+				mv.returnVoidOrThis();
+				mv.endMethod();
 			}
 			if (m_getterTemplate == null) {
 				m_getterTemplate = new MethodInstance(null, Opcodes.ACC_PUBLIC, f_backingField.getType(),
