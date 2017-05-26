@@ -24,9 +24,9 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import com.koch.ambeth.informationbus.persistence.setup.SQLData;
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
-import com.koch.ambeth.testutil.SQLData;
-import com.koch.ambeth.testutil.SQLStructure;
 
 /**
  * Empty test to quickly test structure and data files etc.

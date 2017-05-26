@@ -30,6 +30,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import com.koch.ambeth.informationbus.persistence.setup.SQLData;
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.merge.IMergeProcess;
 import com.koch.ambeth.model.Material;
 import com.koch.ambeth.persistence.api.ICursor;
@@ -42,9 +44,7 @@ import com.koch.ambeth.query.IQueryBuilder;
 import com.koch.ambeth.query.persistence.IVersionCursor;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
-import com.koch.ambeth.testutil.SQLData;
 import com.koch.ambeth.testutil.SQLDataRebuild;
-import com.koch.ambeth.testutil.SQLStructure;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.testutil.category.SlowTests;

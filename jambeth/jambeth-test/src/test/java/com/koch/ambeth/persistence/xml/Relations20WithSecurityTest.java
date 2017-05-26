@@ -30,6 +30,8 @@ import org.junit.Test;
 
 import com.koch.ambeth.audit.Signature;
 import com.koch.ambeth.cache.interceptor.CacheInterceptor;
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructureList;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
@@ -50,8 +52,6 @@ import com.koch.ambeth.security.TestAuthentication;
 import com.koch.ambeth.security.model.ISignature;
 import com.koch.ambeth.security.server.config.SecurityServerConfigurationConstants;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
-import com.koch.ambeth.testutil.SQLStructure;
-import com.koch.ambeth.testutil.SQLStructureList;
 import com.koch.ambeth.testutil.TestFrameworkModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;

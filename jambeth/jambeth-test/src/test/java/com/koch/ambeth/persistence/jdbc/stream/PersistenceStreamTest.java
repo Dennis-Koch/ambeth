@@ -36,6 +36,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.IMergeProcess;
 import com.koch.ambeth.merge.cache.ICache;
@@ -48,7 +49,6 @@ import com.koch.ambeth.stream.binary.InputStreamToBinaryInputStream;
 import com.koch.ambeth.stream.chars.ICharacterInputStream;
 import com.koch.ambeth.stream.chars.ReaderToCharacterInputSource;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
-import com.koch.ambeth.testutil.SQLStructure;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;

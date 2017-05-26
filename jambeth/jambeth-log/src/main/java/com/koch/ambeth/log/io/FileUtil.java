@@ -223,7 +223,7 @@ public final class FileUtil {
 			if (inputStream == null && currentTypeScope != null) {
 				inputStream = currentTypeScope.getClassLoader().getResourceAsStream(lookupName);
 			}
-			if (inputStream == null && currentTypeScope != null && fileUtilOsgi != null) {
+			if (inputStream == null && fileUtilOsgi != null) {
 				inputStream = fileUtilOsgi.openFromOSGiTree(currentTypeScope, lookupName);
 			}
 			if (inputStream == null) {

@@ -22,8 +22,8 @@ limitations under the License.
 
 import org.junit.Test;
 
-import com.koch.ambeth.testutil.SQLStructure;
-import com.koch.ambeth.testutil.SQLStructureList;
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructureList;
 
 @SQLStructureList({@SQLStructure("/com/koch/ambeth/query/Query_structure"),
 		@SQLStructure("Catsearch_structure_ctxcat")})

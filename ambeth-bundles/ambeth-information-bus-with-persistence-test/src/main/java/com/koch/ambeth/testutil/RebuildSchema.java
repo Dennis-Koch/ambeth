@@ -23,6 +23,7 @@ limitations under the License.
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 
+import com.koch.ambeth.informationbus.persistence.setup.DataSetupExecutor;
 import com.koch.ambeth.ioc.exception.BeanContextInitException;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;

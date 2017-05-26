@@ -30,13 +30,33 @@ import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
 
 import com.koch.ambeth.util.collections.IdentityHashSet;
+import com.koch.ambeth.util.state.AbstractStateRollback;
+import com.koch.ambeth.util.state.IStateRollback;
 
 public final class FileUtilOsgi {
+
+	private static final ThreadLocal<Bundle> currentBundleTL = new ThreadLocal<>();
+
+	public static final IStateRollback pushCurrentBundle(Bundle currentBundle,
+			IStateRollback... rollbacks) {
+		final Bundle oldCurrentBundle = currentBundleTL.get();
+		currentBundleTL.set(currentBundle);
+		return new AbstractStateRollback(rollbacks) {
+			@Override
+			protected void rollbackIntern() throws Throwable {
+				currentBundleTL.set(oldCurrentBundle);
+			}
+		};
+	}
 
 	public InputStream openFromOSGiTree(Class<?> type, String resourceName) {
 		try {
 			ClassLoader classLoader = type.getClassLoader();
-			Bundle bundle = (Bundle) classLoader.getClass().getMethod("getBundle").invoke(classLoader);
+
+			Bundle bundle = currentBundleTL.get();
+			if (bundle == null) {
+				bundle = (Bundle) classLoader.getClass().getMethod("getBundle").invoke(classLoader);
+			}
 			IdentityHashSet<Bundle> alreadyTriedSet = new IdentityHashSet<>();
 			if (!alreadyTriedSet.add(bundle)) {
 				return null;

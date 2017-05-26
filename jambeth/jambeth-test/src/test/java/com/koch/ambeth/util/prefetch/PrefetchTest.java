@@ -26,6 +26,7 @@ import java.util.Comparator;
 import org.junit.Test;
 
 import com.koch.ambeth.event.IEventDispatcher;
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.merge.util.IPrefetchConfig;
@@ -38,7 +39,6 @@ import com.koch.ambeth.query.IQueryBuilder;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
-import com.koch.ambeth.testutil.SQLStructure;
 import com.koch.ambeth.testutil.TestFrameworkModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;

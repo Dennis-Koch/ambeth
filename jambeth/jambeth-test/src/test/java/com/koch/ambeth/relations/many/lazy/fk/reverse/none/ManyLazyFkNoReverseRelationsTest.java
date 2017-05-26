@@ -35,6 +35,8 @@ import org.junit.Test;
 import com.koch.ambeth.cache.ioc.CacheModule;
 import com.koch.ambeth.cache.service.ICacheRetriever;
 import com.koch.ambeth.cache.transfer.ObjRelation;
+import com.koch.ambeth.informationbus.persistence.setup.SQLData;
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.merge.util.IPrefetchHandle;
 import com.koch.ambeth.merge.util.IPrefetchHelper;
@@ -44,8 +46,6 @@ import com.koch.ambeth.service.cache.model.IObjRelationResult;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.testutil.SQLData;
-import com.koch.ambeth.testutil.SQLStructure;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 

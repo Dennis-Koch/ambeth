@@ -26,6 +26,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.koch.ambeth.cache.config.CacheConfigurationConstants;
+import com.koch.ambeth.informationbus.persistence.setup.SQLData;
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.model.Material;
 import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
 import com.koch.ambeth.query.IQuery;
@@ -34,8 +36,6 @@ import com.koch.ambeth.service.IMaterialService;
 import com.koch.ambeth.service.TestServicesModule;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
-import com.koch.ambeth.testutil.SQLData;
-import com.koch.ambeth.testutil.SQLStructure;
 import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
