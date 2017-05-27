@@ -161,7 +161,24 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
 			if (member != null) {
 				return member;
 			}
-			member = (T) getMemberIntern(type, propertyName, baseType);
+		}
+		finally {
+			writeLock.unlock();
+		}
+		// necessary to release the lock because getMemberIntern() needs the IBytecodeEnhancer to work
+		// but in some code paths the IBytecodeEnhancer also needs the MemberTypeProvider. if multiple
+		// threads each build up their own bytecode classes at the same time sometimes a deadlock could
+		// occur
+		// without releasing the lock
+		member = (T) getMemberIntern(type, propertyName, baseType);
+		writeLock.lock();
+		try {
+			accessorR = map.get(type, propertyName);
+			T existingMember = accessorR != null ? accessorR.get() : null;
+			if (existingMember != null) {
+				// concurrent thread might have been faster
+				return existingMember;
+			}
 			if (member instanceof RelationMember) {
 				CascadeLoadMode cascadeLoadMode = null;
 				Cascade cascadeAnnotation = member.getAnnotation(Cascade.class);
@@ -183,7 +200,9 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
 			map.put(type, propertyName, new WeakReference<>(member));
 			return member;
 		}
-		catch (Throwable e) {
+		catch (
+
+		Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
