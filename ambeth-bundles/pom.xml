@@ -19,6 +19,8 @@
 		<tycho.groupid>org.eclipse.tycho</tycho.groupid>
 		<tycho.extras.groupid>org.eclipse.tycho.extras</tycho.extras.groupid>
 		<kar2tycho.version>1.0.2</kar2tycho.version>
+		<maven.git-commit-id.version>2.2.2</maven.git-commit-id.version>
+		<dotGitDirectory>${project.basedir}/../../.git</dotGitDirectory>
 	</properties>
 
 	<modules>
@@ -196,7 +198,42 @@
 						</execution>
 					</executions>
 				</plugin>
+								<plugin>
+					<groupId>pl.project13.maven</groupId>
+					<artifactId>git-commit-id-plugin</artifactId>
+					<version>${maven.git-commit-id.version}</version>
+					<executions>
+						<execution>
+							<id>get-the-git-infos</id>
+							<goals>
+								<goal>revision</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<dotGitDirectory>${dotGitDirectory}</dotGitDirectory>
+						<skipPoms>false</skipPoms>
+						<failOnNoGitDirectory>false</failOnNoGitDirectory>
+						<generateGitPropertiesFile>true</generateGitPropertiesFile>
+						<includeOnlyProperties>
+							<includeOnlyProperty>^git.commit.id$</includeOnlyProperty>
+							<includeOnlyProperty>^git.commit.time$</includeOnlyProperty>
+							<includeOnlyProperty>^git.commit.id.describe$</includeOnlyProperty>
+							<includeOnlyProperty>^git.branch$</includeOnlyProperty>
+							<includeOnlyProperty>^git.tags$</includeOnlyProperty>
+							<includeOnlyProperty>^git.dirty$</includeOnlyProperty>
+							<includeOnlyProperty>^git.build.version$</includeOnlyProperty>
+							<includeOnlyProperty>^git.build.time$</includeOnlyProperty>
+						</includeOnlyProperties>
+					</configuration>
+				</plugin>
 			</plugins>
 		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
+			</plugin>
+		</plugins>
 	</build>
 </project>

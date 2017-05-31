@@ -11,11 +11,13 @@
 		<artifactId>base-pom</artifactId>
 		<version>1.0.1</version>
 	</parent>
-	
+
 	<properties>
 		<ambeth.version>${project.version}</ambeth.version>
+		<maven.git-commit-id.version>2.2.2</maven.git-commit-id.version>
+		<dotGitDirectory>${project.basedir}/../../.git</dotGitDirectory>
 	</properties>
-	
+
 	<modules>
 		<module>jambeth-audit</module>
 		<module>jambeth-audit-server</module>
@@ -965,7 +967,7 @@
 				<artifactId>jambeth-security-persistence</artifactId>
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
-				<scope>provided</scope>				
+				<scope>provided</scope>
 			</dependency>
 
 			<dependency>
@@ -1219,7 +1221,7 @@
 				<type>kar</type>
 				<scope>runtime</scope>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
 				<artifactId>jambeth-information-bus-with-persistence</artifactId>
@@ -1268,6 +1270,42 @@
 				<artifactId>jambeth-server-with-persistence-test</artifactId>
 				<version>${project.version}</version>
 				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient-osgi</artifactId>
+				<version>4.5.3</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient</artifactId>
+				<version>4.5.3</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient-cache</artifactId>
+				<version>4.5.3</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpcore</artifactId>
+				<version>4.4.6</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpcore-osgi</artifactId>
+				<version>4.4.6</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>fluent-hc</artifactId>
+				<version>4.5.3</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpmime</artifactId>
+				<version>4.5.3</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -1367,6 +1405,35 @@
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>build-helper-maven-plugin</artifactId>
 					<version>1.12</version>
+				</plugin>
+				<plugin>
+					<groupId>pl.project13.maven</groupId>
+					<artifactId>git-commit-id-plugin</artifactId>
+					<version>${maven.git-commit-id.version}</version>
+					<executions>
+						<execution>
+							<id>get-the-git-infos</id>
+							<goals>
+								<goal>revision</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<dotGitDirectory>${dotGitDirectory}</dotGitDirectory>
+						<skipPoms>false</skipPoms>
+						<failOnNoGitDirectory>false</failOnNoGitDirectory>
+						<generateGitPropertiesFile>true</generateGitPropertiesFile>
+						<includeOnlyProperties>
+							<includeOnlyProperty>^git.commit.id$</includeOnlyProperty>
+							<includeOnlyProperty>^git.commit.time$</includeOnlyProperty>
+							<includeOnlyProperty>^git.commit.id.describe$</includeOnlyProperty>
+							<includeOnlyProperty>^git.branch$</includeOnlyProperty>
+							<includeOnlyProperty>^git.tags$</includeOnlyProperty>
+							<includeOnlyProperty>^git.dirty$</includeOnlyProperty>
+							<includeOnlyProperty>^git.build.version$</includeOnlyProperty>
+							<includeOnlyProperty>^git.build.time$</includeOnlyProperty>
+						</includeOnlyProperties>
+					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>
@@ -1488,6 +1555,10 @@
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>
