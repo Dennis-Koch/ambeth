@@ -27,6 +27,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.koch.ambeth.ioc.DefaultExtendableContainer;
@@ -105,8 +107,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 	private List<IDatasetBuilder> determineExecutionOrder(
 			IExtendableContainer<IDatasetBuilder> datasetBuilderContainer) {
 		List<IDatasetBuilder> sortedBuilders = new ArrayList<>();
-		Collection<Class<? extends IDatasetBuilder>> processedBuilders =
-				new HashSet<>();
+		Collection<Class<? extends IDatasetBuilder>> processedBuilders = new HashSet<>();
 
 		IDatasetBuilder[] datasetBuilders = datasetBuilderContainer.getExtensions();
 		outer: while (processedBuilders.size() < datasetBuilders.length) {
@@ -165,6 +166,30 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 			for (int a = 0, size = length; a < size; a++) {
 				if (eraseFieldValueIfNecessary(Array.get(value, a))) {
 					Array.set(value, a, null);
+				}
+			}
+		}
+		else if (value instanceof IMap) {
+			Iterator<? extends Entry<?, ?>> iter = ((IMap<?, ?>) value).iterator();
+			while (iter.hasNext()) {
+				Entry<?, ?> entry = iter.next();
+				Object key = entry.getKey();
+				Object entryValue = entry.getValue();
+				if (eraseFieldValueIfNecessary(key) || eraseFieldValueIfNecessary(entryValue)) {
+					iter.remove();
+					continue;
+				}
+			}
+		}
+		else if (value instanceof Map) {
+			Iterator<? extends Entry<?, ?>> iter = ((Map<?, ?>) value).entrySet().iterator();
+			while (iter.hasNext()) {
+				Entry<?, ?> entry = iter.next();
+				Object key = entry.getKey();
+				Object entryValue = entry.getValue();
+				if (eraseFieldValueIfNecessary(key) || eraseFieldValueIfNecessary(entryValue)) {
+					iter.remove();
+					continue;
 				}
 			}
 		}
@@ -307,6 +332,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 				}
 				objRefs.add(objRef);
 				runnables.add(new IBackgroundWorkerDelegate() {
+
 					@Override
 					public void invoke() throws Throwable {
 						Object entity = objRefToEntityMap.get(objRef);
