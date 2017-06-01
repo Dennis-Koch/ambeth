@@ -109,10 +109,7 @@ import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public class RootCache extends AbstractCache<RootCacheValue>
-		implements
-			IRootCache,
-			IOfflineListener,
-			ICacheRetriever {
+		implements IRootCache, IOfflineListener, ICacheRetriever {
 	static class DoRelationObjRefsRefreshOnResize implements IResizeMapCallback {
 		private final RootCache rootCache;
 
@@ -137,6 +134,8 @@ public class RootCache extends AbstractCache<RootCacheValue>
 			}
 		}
 	}
+
+	public static final String P_EVENT_QUEUE = "EventQueue";
 
 	protected static final Map<Class<?>, Object> typeToEmptyArray = new HashMap<>(128, 0.5f);
 

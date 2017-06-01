@@ -62,6 +62,8 @@ import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
 public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDisposable {
+	public static final String P_WEAK_ENTRIES = "WeakEntries";
+
 	protected static final CacheKey[] emptyCacheKeyArray = new CacheKey[0];
 
 	protected static final ThreadLocal<Boolean> failInCacheHierarchyModeActiveTL =
