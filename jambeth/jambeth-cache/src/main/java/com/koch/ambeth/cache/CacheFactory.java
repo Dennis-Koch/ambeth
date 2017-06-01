@@ -101,19 +101,19 @@ public class CacheFactory implements ICacheFactory {
 		if (!foreignThreadAware) {
 			// Do not inject EventQueue because caches without foreign interest will never receive async
 			// DCEs
-			firstLevelCacheBC.ignoreProperties("EventQueue");
+			firstLevelCacheBC.ignoreProperties(ChildCache.P_EVENT_QUEUE);
 		}
 		if (useWeakEntries != null) {
-			firstLevelCacheBC.propertyValue("WeakEntries", useWeakEntries);
+			firstLevelCacheBC.propertyValue(AbstractCache.P_WEAK_ENTRIES, useWeakEntries);
 		}
 		if (name != null) {
-			firstLevelCacheBC.propertyValue("Name", name);
+			firstLevelCacheBC.propertyValue(ChildCache.P_NAME, name);
 		}
 		ICache parent = parentTL.get();
 		if (parent != null) {
-			firstLevelCacheBC.propertyValue("Parent", parent);
+			firstLevelCacheBC.propertyValue(ChildCache.P_PARENT, parent);
 		}
-		firstLevelCacheBC.propertyValue("Privileged", Boolean.valueOf(privileged));
+		firstLevelCacheBC.propertyValue(ChildCache.P_PRIVILEGED, Boolean.valueOf(privileged));
 		ChildCache firstLevelCache = firstLevelCacheBC.finish();
 		firstLevelCacheExtendable.registerFirstLevelCache(firstLevelCache, cacheFactoryDirective,
 				foreignThreadAware, name);

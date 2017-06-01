@@ -73,6 +73,14 @@ import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public class ChildCache extends AbstractCache<Object>
 		implements ICacheIntern, IWritableCache, IDisposableCache {
+	public static final String P_EVENT_QUEUE = "EventQueue";
+
+	public static final String P_NAME = "Name";
+
+	public static final String P_PARENT = "Parent";
+
+	public static final String P_PRIVILEGED = "Privileged";
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -116,8 +124,7 @@ public class ChildCache extends AbstractCache<Object>
 	@Property(name = CacheConfigurationConstants.ValueholderOnEmptyToOne, defaultValue = "false")
 	protected boolean valueholderOnEmptyToOne;
 
-	@Property(name = CacheConfigurationConstants.OverwriteToManyRelationsInChildCache,
-			defaultValue = "true")
+	@Property(name = CacheConfigurationConstants.OverwriteToManyRelationsInChildCache, defaultValue = "true")
 	protected boolean overwriteToManyRelations;
 
 	@Property

@@ -22,6 +22,7 @@ limitations under the License.
 
 import java.lang.reflect.Method;
 
+import com.koch.ambeth.cache.AbstractCache;
 import com.koch.ambeth.cache.IRootCache;
 import com.koch.ambeth.cache.RootCache;
 import com.koch.ambeth.cache.service.ICacheRetriever;
@@ -97,7 +98,8 @@ public abstract class AbstractRootCacheAwareInterceptor extends AbstractSimpleIn
 			IBeanRuntime<RootCache> rootCacheBR) {
 		// Do not inject EventQueue because caches without foreign interest will never receive async
 		// DCEs
-		return rootCacheBR.ignoreProperties("EventQueue").propertyValue("WeakEntries", Boolean.FALSE);
+		return rootCacheBR.ignoreProperties(RootCache.P_EVENT_QUEUE)
+				.propertyValue(AbstractCache.P_WEAK_ENTRIES, Boolean.FALSE);
 	}
 
 	protected void disposeCurrentRootCache(ThreadLocal<RootCache> currentTL) {
