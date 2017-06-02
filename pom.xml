@@ -4,7 +4,7 @@
 
 	<groupId>com.koch.ambeth</groupId>
 	<artifactId>base-pom</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 	<packaging>pom</packaging>
 
 	<properties>
@@ -17,7 +17,7 @@
 		<org.osgi.core.version>6.0.0</org.osgi.core.version>
 		<jax.ws.rs.version>2.0.1</jax.ws.rs.version>
 		<tstamp>${maven.build.timestamp}</tstamp>
-		<ambeth.version>3.0.2-SNAPSHOT</ambeth.version>
+		<ambeth.version>3.1.0-SNAPSHOT</ambeth.version>
 		<junit-categories.version>1.0.1</junit-categories.version>
 	</properties>
 
@@ -532,7 +532,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-pmd-plugin</artifactId>
-						<version>3.0.2-SNAPSHOT</version>
+						<version>3.1.0-SNAPSHOT</version>
 						<configuration>
 							<excludes>
 								<exclude>**/repackaged/**</exclude>
