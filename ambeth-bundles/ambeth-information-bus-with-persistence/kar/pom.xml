@@ -56,8 +56,6 @@
 				<artifactId>kar2tycho-maven-plugin</artifactId>
 				<configuration>
 					<sources>
-						<!-- specify your source dependencies here -->
-						<!-- groupId:artifactId:type:version -->
 						<source>com.koch.ambeth:jambeth-audit:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-audit-server:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-bytecode:jar:${project.version}</source>

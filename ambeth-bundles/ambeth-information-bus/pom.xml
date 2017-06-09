@@ -19,231 +19,94 @@
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-core</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-		
+		</dependency>		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-bytecode</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-bytecode</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-cache</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-cache</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-cache-bytecode</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-cache-bytecode</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-cache-datachange</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-cache-datachange</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-cache-stream</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-cache-stream</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-datachange</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-datachange</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-		
+		</dependency>		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-dot</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-dot</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-event</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-event</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-event-datachange</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-event-datachange</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-		
+		</dependency>		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-expr</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-expr</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-		
+		</dependency>		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-filter</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-filter</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-		
+		</dependency>		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-ioc</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-ioc</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-		
+		</dependency>		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-log</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-log</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-mapping</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-mapping</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-		
+		</dependency>		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-merge</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-merge</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-merge-bytecode</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-merge-bytecode</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-security</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-security</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-		
+		</dependency>		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-security-bytecode</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-security-bytecode</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-sensor</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-sensor</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-service</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-service</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-stream</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-stream</artifactId>
-			<classifier>sources</classifier>
-		</dependency>
-		
+		</dependency>		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-util</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-util</artifactId>
-			<classifier>sources</classifier>
 		</dependency>
 		
 		<dependency>
