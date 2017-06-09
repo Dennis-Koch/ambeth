@@ -70,12 +70,8 @@
 			<plugin>
 				<groupId>com.bruker.horizon</groupId>
 				<artifactId>kar2tycho-maven-plugin</artifactId>
-				<!-- <executions> <execution> <id>convert</id> <phase>verify</phase> 
-					<goals> <goal>kar2tycho</goal> </goals> </execution> </executions> -->
 				<configuration>
 					<sources>
-						<!-- specify your source dependencies here -->
-						<!-- groupId:artifactId:type:version -->
 						<source>com.koch.ambeth:jambeth-bytecode:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-cache:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-cache-bytecode:jar:${project.version}</source>

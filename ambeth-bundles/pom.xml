@@ -30,11 +30,47 @@
 		<module>ambeth-information-bus-test</module>
 		<module>ambeth-information-bus-with-persistence</module>
 		<module>ambeth-information-bus-with-persistence-test</module>
+		<module>ambeth-p2</module>
 		<module>ambeth-server</module>
 		<module>ambeth-server-test</module>
 		<module>ambeth-server-with-persistence</module>
 		<module>ambeth-server-with-persistence-test</module>
 	</modules>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.koch.ambeth</groupId>
+				<artifactId>jambeth-core-kar</artifactId>
+				<version>${project.version}</version>
+				<type>kar</type>
+			</dependency>
+			<dependency>
+				<groupId>com.koch.ambeth</groupId>
+				<artifactId>jambeth-information-bus-kar</artifactId>
+				<version>${project.version}</version>
+				<type>kar</type>
+			</dependency>
+			<dependency>
+				<groupId>com.koch.ambeth</groupId>
+				<artifactId>jambeth-information-bus-with-persistence-kar</artifactId>
+				<version>${project.version}</version>
+				<type>kar</type>
+			</dependency>
+			<dependency>
+				<groupId>com.koch.ambeth</groupId>
+				<artifactId>jambeth-server-kar</artifactId>
+				<version>${project.version}</version>
+				<type>kar</type>
+			</dependency>
+			<dependency>
+				<groupId>com.koch.ambeth</groupId>
+				<artifactId>jambeth-server-with-persistence-kar</artifactId>
+				<version>${project.version}</version>
+				<type>kar</type>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<pluginManagement>
@@ -198,7 +234,7 @@
 						</execution>
 					</executions>
 				</plugin>
-								<plugin>
+				<plugin>
 					<groupId>pl.project13.maven</groupId>
 					<artifactId>git-commit-id-plugin</artifactId>
 					<version>${maven.git-commit-id.version}</version>

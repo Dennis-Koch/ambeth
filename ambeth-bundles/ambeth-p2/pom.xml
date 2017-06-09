@@ -1,0 +1,94 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>jambeth-p2</artifactId>
+	<packaging>pom</packaging>
+
+	<parent>
+		<groupId>com.koch.ambeth</groupId>
+		<artifactId>jambeth-bundles</artifactId>
+		<version>3.1.0-SNAPSHOT</version>
+	</parent>
+	
+	<properties>
+		<bundles.baseUri>${project.basedir}/..</bundles.baseUri>
+		<target.repo.dir>${project.build.directory}/repository</target.repo.dir>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-core-kar</artifactId>
+			<type>kar</type>
+		</dependency>
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-information-bus-kar</artifactId>
+			<type>kar</type>
+		</dependency>
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-information-bus-with-persistence-kar</artifactId>
+			<type>kar</type>
+		</dependency>
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-server-kar</artifactId>
+			<type>kar</type>
+		</dependency>
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-server-with-persistence-kar</artifactId>
+			<type>kar</type>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho.extras</groupId>
+				<artifactId>tycho-p2-extras-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>mirror</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>mirror</goal>
+						</goals>
+						<configuration>
+							<source>
+								<!-- source repositories to mirror from -->
+								<repository>
+									<url>${bundles.baseUri}/ambeth-core/kar/target/repository</url>
+									<layout>p2</layout>
+								</repository>
+								<repository>
+									<url>${bundles.baseUri}/ambeth-information-bus/kar/target/repository</url>
+									<layout>p2</layout>
+								</repository>
+								<repository>
+									<url>${bundles.baseUri}/ambeth-information-bus-with-persistence/kar/target/repository</url>
+									<layout>p2</layout>
+								</repository>
+								<repository>
+									<url>${bundles.baseUri}/ambeth-server/kar/target/repository</url>
+									<layout>p2</layout>
+								</repository>
+								<repository>
+									<url>${bundles.baseUri}/ambeth-server-with-persistence/kar/target/repository</url>
+									<layout>p2</layout>
+								</repository>
+							</source>
+
+							<destination>${target.repo.dir}</destination>
+
+							<!-- whether to append to the target repository content -->
+							<append>true</append>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>
