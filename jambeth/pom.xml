@@ -16,6 +16,8 @@
 		<ambeth.version>${project.version}</ambeth.version>
 		<maven.git-commit-id.version>2.2.2</maven.git-commit-id.version>
 		<dotGitDirectory>${project.basedir}/../../.git</dotGitDirectory>
+		<cglib.version>3.2.5</cglib.version>
+		<javassist.version>3.19.0-GA</javassist.version>
 	</properties>
 
 	<modules>
