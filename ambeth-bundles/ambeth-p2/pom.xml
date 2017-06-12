@@ -10,9 +10,8 @@
 		<artifactId>jambeth-bundles</artifactId>
 		<version>3.1.0-SNAPSHOT</version>
 	</parent>
-	
+
 	<properties>
-		<bundles.baseUri>${project.basedir}/..</bundles.baseUri>
 		<target.repo.dir>${project.build.directory}/repository</target.repo.dir>
 	</properties>
 
@@ -46,13 +45,32 @@
 
 	<build>
 		<plugins>
+			<!-- FIRST create a local File-URL out of the local m2 repository to consume it with tycho -->
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<configuration>
+							<exportAntProperties>true</exportAntProperties>
+							<target>
+								<makeurl file="${settings.localRepository}" property="settings.localRepository.uri"/>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.eclipse.tycho.extras</groupId>
 				<artifactId>tycho-p2-extras-plugin</artifactId>
 				<executions>
 					<execution>
 						<id>mirror</id>
-						<phase>generate-resources</phase>
+						<phase>install</phase>
 						<goals>
 							<goal>mirror</goal>
 						</goals>
@@ -60,30 +78,28 @@
 							<source>
 								<!-- source repositories to mirror from -->
 								<repository>
-									<url>${bundles.baseUri}/ambeth-core/kar/target/repository</url>
+									<url>${settings.localRepository.uri}/com/koch/ambeth/jambeth-core-kar/${project.version}/jambeth-core-kar-${project.version}-p2.zip</url>
 									<layout>p2</layout>
 								</repository>
 								<repository>
-									<url>${bundles.baseUri}/ambeth-information-bus/kar/target/repository</url>
+									<url>${settings.localRepository.uri}/com/koch/ambeth/jambeth-information-bus-kar/${project.version}/jambeth-information-bus-kar-${project.version}-p2.zip</url>
 									<layout>p2</layout>
 								</repository>
 								<repository>
-									<url>${bundles.baseUri}/ambeth-information-bus-with-persistence/kar/target/repository</url>
+									<url>${settings.localRepository.uri}/com/koch/ambeth/jambeth-information-bus-with-persistence-kar/${project.version}/jambeth-information-bus-with-persistence-kar-${project.version}-p2.zip</url>
 									<layout>p2</layout>
 								</repository>
 								<repository>
-									<url>${bundles.baseUri}/ambeth-server/kar/target/repository</url>
+									<url>${settings.localRepository.uri}/com/koch/ambeth/jambeth-server-kar/${project.version}/jambeth-server-kar-${project.version}-p2.zip</url>
 									<layout>p2</layout>
 								</repository>
 								<repository>
-									<url>${bundles.baseUri}/ambeth-server-with-persistence/kar/target/repository</url>
+									<url>${settings.localRepository.uri}/com/koch/ambeth/jambeth-server-with-persistence-kar/${project.version}/jambeth-server-with-persistence-kar-${project.version}-p2.zip</url>
 									<layout>p2</layout>
 								</repository>
 							</source>
 
 							<destination>${target.repo.dir}</destination>
-
-							<!-- whether to append to the target repository content -->
 							<append>true</append>
 						</configuration>
 					</execution>
