@@ -13,6 +13,7 @@
 
 	<properties>
 		<target.repo.dir>${project.build.directory}/repository</target.repo.dir>
+		<assembly.dir>${target.repo.dir}</assembly.dir>
 	</properties>
 
 	<dependencies>
@@ -70,7 +71,7 @@
 				<executions>
 					<execution>
 						<id>mirror</id>
-						<phase>install</phase>
+						<phase>package</phase>
 						<goals>
 							<goal>mirror</goal>
 						</goals>
@@ -101,6 +102,25 @@
 
 							<destination>${target.repo.dir}</destination>
 							<append>true</append>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>create-p2</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>assembly/assembly.xml</descriptor>
+							</descriptors>
+							<appendAssemblyId>true</appendAssemblyId>
 						</configuration>
 					</execution>
 				</executions>
