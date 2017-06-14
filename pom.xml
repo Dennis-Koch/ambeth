@@ -56,14 +56,6 @@
 		</snapshotRepository>
 	</distributionManagement>
 
-	<modules>
-		<module>ambeth-integrity</module>
-		<module>chemspider</module>
-		<module>doc</module>
-		<module>jambeth</module>
-		<module>junit-categories</module>
-	</modules>
-
 	<dependencyManagement>
 		<dependencies>
 			<!-- External dependencies -->
@@ -526,6 +518,33 @@
 	</reporting>
 
 	<profiles>
+		<profile>
+			<id>default</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<modules>
+				<module>jambeth</module>
+				<module>junit-categories</module>
+			</modules>
+		</profile>
+		<profile>
+			<id>generate-manual</id>
+			<modules>
+				<module>ambeth-integrity</module>
+				<module>doc</module>
+			</modules>
+		</profile>
+		<profile>
+			<id>all</id>
+			<modules>
+				<module>ambeth-integrity</module>
+				<module>chemspider</module>
+				<module>doc</module>
+				<module>jambeth</module>
+				<module>junit-categories</module>
+			</modules>
+		</profile>
 		<profile>
 			<id>dev-local</id>
 			<activation>
