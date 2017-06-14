@@ -277,7 +277,7 @@
 					<version>2.17</version>
 					<configuration>
 						<configLocation>${checkstyle.file}</configLocation>
-						<propertesLocation>${checkstyle.properties}</propertiesLocation>
+						<propertiesLocation>${checkstyle.properties}</propertiesLocation>
 						<exclude>**/*Test.class</exclude>
 						<exclude>**/*-tests/src/**</exclude>
 						<excludes>**/repackaged/**</excludes>
