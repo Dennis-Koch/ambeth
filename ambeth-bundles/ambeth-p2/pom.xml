@@ -66,7 +66,7 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>org.eclipse.tycho.extras</groupId>
+				<groupId>${tycho.extras.groupid}</groupId>
 				<artifactId>tycho-p2-extras-plugin</artifactId>
 				<executions>
 					<execution>

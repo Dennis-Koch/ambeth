@@ -64,14 +64,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.apache.kafka</groupId>
-			<artifactId>kafka_2.11</artifactId>
-			<version>${kafka.version}</version>
-			<classifier>test</classifier>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
 			<groupId>com.github.charithe</groupId>
 			<artifactId>kafka-junit</artifactId>
 			<version>1.8</version>
