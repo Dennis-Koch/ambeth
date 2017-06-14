@@ -1,0 +1,49 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.koch.ambeth</groupId>
+	<artifactId>doc-pom</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	
+	<parent>
+		<groupId>com.koch.ambeth</groupId>
+		<artifactId>base-pom</artifactId>
+		<version>1.0.3-SNAPSHOT</version>
+	</parent>
+	
+	<properties>
+		<ambeth.extendables.scanner.version>1.0.4-SNAPSHOT</ambeth.extendables.scanner.version>
+		<ambeth.integrity.version>1.0.4-SNAPSHOT</ambeth.integrity.version>
+	</properties>
+	
+	<modules>
+		<module>extendables-scanner</module>
+		<module>reference-manual</module>
+	</modules>
+	
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.koch.ambeth.integrity</groupId>
+				<artifactId>ambeth-integrity-java</artifactId>
+				<version>${ambeth.integrity.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.koch.ambeth</groupId>
+				<artifactId>jambeth-core</artifactId>
+				<version>${ambeth.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.koch.ambeth</groupId>
+				<artifactId>jambeth-doc-scope</artifactId>
+				<version>${ambeth.version}</version>
+				<type>pom</type>
+			</dependency>
+			<dependency>
+				<groupId>com.koch.ambeth</groupId>
+				<artifactId>extendables-scanner</artifactId>
+				<version>${ambeth.extendables.scanner.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+</project>

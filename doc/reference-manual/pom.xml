@@ -6,10 +6,13 @@
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
+	<parent>
+		<groupId>com.koch.ambeth</groupId>
+		<artifactId>doc-pom</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</parent>
+	
 	<properties>
-		<ambeth.version>3.1.0-SNAPSHOT</ambeth.version>
-		<ambeth.integrity.version>1.0.3</ambeth.integrity.version>
-		<ambeth.extendables.scanner.version>1.0.3</ambeth.extendables.scanner.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<extendables.scanner.dir>${project.build.directory}/extendables-scanner</extendables.scanner.dir>
@@ -28,19 +31,16 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-pom</artifactId>
-			<version>${ambeth.version}</version>
+			<artifactId>jambeth-doc-scope</artifactId>
 			<type>pom</type>
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth.integrity</groupId>
 			<artifactId>ambeth-integrity-java</artifactId>
-			<version>${ambeth.integrity.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>extendables-scanner</artifactId>
-			<version>${ambeth.extendables.scanner.version}</version>
 		</dependency>
 	</dependencies>
 
@@ -48,7 +48,6 @@
 		<plugins>
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
-				<version>3.0.2</version>
 				<executions>
 					<execution>
 						<id>copy-resources</id>
@@ -71,7 +70,6 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.6.0</version>
 				<executions>
 					<execution>
 						<id>Resolve Ambeth libraries</id>
@@ -218,7 +216,6 @@
 			<plugin>
 				<groupId>de.akquinet.maven</groupId>
 				<artifactId>maven-latex-plugin</artifactId>
-				<version>1.1</version>
 				<configuration>
 					<settings>
 						<!-- all tex main documents in this folder (including subfolders) will 
