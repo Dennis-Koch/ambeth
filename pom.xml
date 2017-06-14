@@ -20,6 +20,7 @@
 		<ambeth.version>3.1.0-SNAPSHOT</ambeth.version>
 		<junit-categories.version>1.0.2-SNAPSHOT</junit-categories.version>
 		<checkstyle.file>${jambeth.path.test}/checkstyle_checks.xml</checkstyle.file>
+		<checkstyle.properties>${jambeth.path.test}/checkstyle.properties</checkstyle.properties>
 		<findbugs.file>${jambeth.path.test}/findbugs_exclude_checks.xml</findbugs.file>
 	</properties>
 
@@ -276,6 +277,7 @@
 					<version>2.17</version>
 					<configuration>
 						<configLocation>${checkstyle.file}</configLocation>
+						<propertesLocation>${checkstyle.properties}</propertiesLocation>
 						<exclude>**/*Test.class</exclude>
 						<exclude>**/*-tests/src/**</exclude>
 						<excludes>**/repackaged/**</excludes>
