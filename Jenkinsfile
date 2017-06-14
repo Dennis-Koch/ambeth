@@ -10,7 +10,7 @@ timestamps {
 		        checkout scm
 			}
 	        
-			def deployOrVerify = 'verify';
+			def deployOrVerify = 'install';
 			def deployOrVerifyLabelPrefix = 'Verify';
 			def profile = '';
 			if (env.BRANCH_NAME == 'master' || env.BRANCH_NAME == 'develop') {
@@ -24,8 +24,8 @@ timestamps {
 	        	
 		        // Run the maven build
 		        withEnv(["PATH+MAVEN=${tool 'M3'}/bin","JAVA_HOME=${tool 'JDK8'}"]) {
-		            	
-	            	sh "mvn -B clean ${deployOrVerify}${profile} -DskipTests -Dtycho.localArtifacts=ignore -Djambeth.path.test=${env.WORKSPACE}/jambeth/jambeth-test"
+		            
+	            	sh "mvn -B clean ${deployOrVerify}${profile} -DskipTests -Dtycho.localArtifacts=ignore -Dmaven.repo.local=${env.WORKSPACE}/.m2 -Djambeth.path.test=${env.WORKSPACE}/jambeth/jambeth-test"
 		        }
 	        }
 	        
