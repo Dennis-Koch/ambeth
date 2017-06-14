@@ -38,10 +38,10 @@ timestamps {
 		  				// set all version numbers
 				        //sh "mvn org.eclipse.tycho:tycho-versions-plugin:set-version -DnewVersion=${version} -Dtycho.mode=maven"
 		            	
-		            	sh "mvn -B clean deploy -DskipTests -Dtycho.localArtifacts=ignore -Djambeth.path.test=""${env.WORKSPACE}/jambeth/jambeth-test"""
+		            	sh "mvn -B clean deploy -DskipTests -Dtycho.localArtifacts=ignore -Djambeth.path.test=${env.WORKSPACE}/jambeth/jambeth-test"
 		            } else {
 		            	sh 'echo Building NOT master or develop branch...NO deploy is being done'
-		            	sh "mvn -B clean verify -DskipTests -Dtycho.localArtifacts=ignore -Djambeth.path.test=""${env.WORKSPACE}/jambeth/jambeth-test"""
+		            	sh "mvn -B clean verify -DskipTests -Dtycho.localArtifacts=ignore -Djambeth.path.test=${env.WORKSPACE}/jambeth/jambeth-test"
 		            }
 		        }
 		        
