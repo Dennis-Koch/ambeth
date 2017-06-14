@@ -1437,6 +1437,11 @@
 						</includeOnlyProperties>
 					</configuration>
 				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-pmd-plugin</artifactId>
+					<version>3.8</version>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
@@ -1601,7 +1606,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
-				<version>3.7</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -1741,7 +1745,6 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-pmd-plugin</artifactId>
-						<version>3.1.0-SNAPSHOT</version>
 						<configuration>
 							<excludes>
 								<exclude>**/repackaged/**</exclude>
