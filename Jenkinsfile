@@ -20,7 +20,7 @@ timestamps {
 			}
 			
 	        // Mark the code build 'stage'....
-	        stage (${deployOrVerifyLabelPrefix}) {
+	        stage ("${deployOrVerifyLabelPrefix}") {
 	        	
 		        // Run the maven build
 		        withEnv(["PATH+MAVEN=${tool 'M3'}/bin","JAVA_HOME=${tool 'JDK8'}"]) {
