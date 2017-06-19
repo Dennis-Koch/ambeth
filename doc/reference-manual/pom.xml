@@ -16,6 +16,17 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<extendables.scanner.dir>${project.build.directory}/extendables-scanner</extendables.scanner.dir>
+		<inkscape.dir>${project.build.directory}/inkscape</inkscape.dir>
+		<miktex.dir>${project.build.directory}/miktex</miktex.dir>
+		<inkscape.version>0.92.1</inkscape.version>
+		<miktex.version>2.9</miktex.version>
+		<classifier>win32.win32.x86_64</classifier>
+		<repo.basedir>${project.basedir}/../..</repo.basedir>
+		<moduleRootPath>${repo.basedir}/jambeth</moduleRootPath>
+		<integrity.dir>${project.build.directory}/integrity</integrity.dir>
+		<doc.src.dir>${project.build.directory}/src/java</doc.src.dir>
+		<doc.src.lib.dir>${project.build.directory}/src/java/libs</doc.src.lib.dir>
+		<data.dir>${project.build.directory}/data</data.dir>
 	</properties>
 
 	<pluginRepositories>
@@ -56,7 +67,7 @@
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${basedir}/target</outputDirectory>
+							<outputDirectory>${project.build.directory}</outputDirectory>
 							<resources>
 								<resource>
 									<directory>src/main/resources</directory>
@@ -68,9 +79,28 @@
 				</executions>
 			</plugin>
 			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<configuration>
+							<exportAntProperties>true</exportAntProperties>
+							<target>
+								<property name="moduleRootPath.absolute" location="${moduleRootPath}" />
+								<property name="data.dir.absolute" location="${data.dir}" />
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
 				<executions>
+				<!-- 
 					<execution>
 						<id>Resolve Ambeth libraries</id>
 						<phase>generate-resources</phase>
@@ -83,7 +113,7 @@
 								<argument>-f</argument>
 								<argument>${settings.localRepository}/com/koch/ambeth/jambeth-doc-scope/${ambeth.version}/jambeth-doc-scope-${ambeth.version}.pom</argument>
 								<argument>dependency:copy-dependencies</argument>
-								<argument>-DoutputDirectory=${basedir}/target/src/java</argument>
+								<argument>-DoutputDirectory=${doc.src.dir}</argument>
 								<argument>-DincludeGroupIds=com.koch.ambeth</argument>
 							</arguments>
 						</configuration>
@@ -100,7 +130,7 @@
 								<argument>-f</argument>
 								<argument>${settings.localRepository}/com/koch/ambeth/jambeth-doc-scope/${ambeth.version}/jambeth-doc-scope-${ambeth.version}.pom</argument>
 								<argument>dependency:copy-dependencies</argument>
-								<argument>-DoutputDirectory=${basedir}/target/src/java/libs</argument>
+								<argument>-DoutputDirectory=${doc.src.lib.dir}</argument>
 								<argument>-DexcludeGroupIds=com.koch.ambeth</argument>
 							</arguments>
 						</configuration>
@@ -117,7 +147,7 @@
 								<argument>-f</argument>
 								<argument>${settings.localRepository}/com/koch/ambeth/integrity/ambeth-integrity-java/${ambeth.integrity.version}/ambeth-integrity-java-${ambeth.integrity.version}.pom</argument>
 								<argument>dependency:copy-dependencies</argument>
-								<argument>-DoutputDirectory=${basedir}/target/integrity</argument>
+								<argument>-DoutputDirectory=${integrity.dir}</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -137,7 +167,6 @@
 							</arguments>
 						</configuration>
 					</execution>
-
 					<execution>
 						<id>Build Source XML files</id>
 						<phase>process-resources</phase>
@@ -148,15 +177,15 @@
 							<executable>java</executable>
 							<arguments>
 								<argument>-cp</argument>
-								<argument>${basedir}\target\integrity\*;${settings.localRepository}/com/koch/ambeth/integrity/ambeth-integrity-java/${ambeth.integrity.version}/ambeth-integrity-java-${ambeth.integrity.version}.jar</argument>
+								<argument>${integrity.dir}\*;${settings.localRepository}/com/koch/ambeth/integrity/ambeth-integrity-java/${ambeth.integrity.version}/ambeth-integrity-java-${ambeth.integrity.version}.jar</argument>
 								<argument>com.koch.classbrowser.java.Program</argument>
-								<argument>jarFolders="${basedir}\target\src\java"</argument>
-								<argument>libraryJarFolders="${basedir}\target\src\java\libs"</argument>
-								<argument>targetPath="${basedir}\target\data"</argument>
-								<argument>moduleRootPath="C:\dev\horizon\\source\ambeth\jambeth"</argument>
+								<argument>jarFolders=${doc.src.dir}</argument>
+								<argument>libraryJarFolders=${doc.src.lib.dir}</argument>
+								<argument>targetPath=${data.dir}</argument>
+								<argument>moduleRootPath=${moduleRootPath.absolute}</argument>
 							</arguments>
 						</configuration>
-					</execution>
+					</execution>-->
 					<execution>
 						<id>Mock C# XML file</id>
 						<phase>process-resources</phase>
@@ -166,8 +195,8 @@
 						<configuration>
 							<executable>xcopy</executable>
 							<arguments>
-								<argument>target\data\export_java.xml</argument>
-								<argument>target\data\export_csharp.xml*</argument>
+								<argument>${data.dir.absolute}\export_java.xml</argument>
+								<argument>${data.dir.absolute}\export_csharp.xml*</argument>
 								<argument>/Y</argument>
 							</arguments>
 						</configuration>
@@ -184,8 +213,8 @@
 								<argument>-cp</argument>
 								<argument>${extendables.scanner.dir}\*;${settings.localRepository}\com\koch\ambeth\extendables-scanner\${ambeth.extendables.scanner.version}\extendables-scanner-${ambeth.extendables.scanner.version}.jar</argument>
 								<argument>com.koch.ambeth.extscanner.Main</argument>
-								<argument>scan-path="${basedir}/target/data"</argument>
-								<argument>source-path="${basedir}/../../ambeth;${basedir}/../../jambeth"</argument>
+								<argument>scan-path=${data.dir}</argument>
+								<argument>source-path="${repo.basedir}/ambeth;${repo.basedir}/jambeth"</argument>
 								<argument>target-source-path="${project.build.directory}/src-files"</argument>
 								<argument>target-all-dir="${basedir}"</argument>
 								<argument>target-extendable-tex-dir="${basedir}/extendable"</argument>
@@ -206,9 +235,53 @@
 							<executable>xcopy</executable>
 							<arguments>
 								<argument>..\latex-tmp\Ambeth-Reference.pdf</argument>
-								<argument>target\Ambeth-Reference-${ambeth.version}.pdf*</argument>
+								<argument>${project.build.directory}\Ambeth-Reference-${ambeth.version}.pdf*</argument>
 								<argument>/Y</argument>
 							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>prepare MikTeX</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${miktex.dir}</outputDirectory>
+							<artifactItems>
+								<artifactItem>
+									<groupId>miktex</groupId>
+									<artifactId>miktex</artifactId>
+									<version>${miktex.version}</version>
+									<classifier>${classifier}</classifier>
+									<type>zip</type>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+					<execution>
+						<id>prepare inkscape</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${inkscape.dir}</outputDirectory>
+							<artifactItems>
+								<artifactItem>
+									<groupId>inkscape</groupId>
+									<artifactId>inkscape</artifactId>
+									<version>${inkscape.version}</version>
+									<classifier>${classifier}</classifier>
+									<type>zip</type>
+								</artifactItem>
+							</artifactItems>
 						</configuration>
 					</execution>
 				</executions>
