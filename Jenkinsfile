@@ -12,7 +12,7 @@ timestamps {
 	        
 			def deployOrVerify = 'install';
 			def deployOrVerifyLabelPrefix = 'Verify';
-			def profile = '';
+			def profile = '  -P all';
 			if (env.BRANCH_NAME == 'master' || env.BRANCH_NAME == 'develop') {
 				deployOrVerify = 'deploy';
 				deployOrVerifyLabelPrefix = 'Deploy';
