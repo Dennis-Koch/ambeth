@@ -45,6 +45,7 @@ import com.koch.ambeth.util.NullPrintStream;
 import com.koch.ambeth.util.annotation.AnnotationInfo;
 import com.koch.ambeth.util.annotation.IAnnotationInfo;
 import com.koch.ambeth.util.collections.ArrayList;
+import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
@@ -93,8 +94,8 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 
 	public void disposeContext() {
 		if (testClassLevelContext != null) {
-			IThreadLocalCleanupController tlCleanupController =
-					testClassLevelContext.getService(IThreadLocalCleanupController.class);
+			IThreadLocalCleanupController tlCleanupController = testClassLevelContext
+					.getService(IThreadLocalCleanupController.class);
 			testClassLevelContext.getRoot().dispose();
 			testClassLevelContext = null;
 			beanContext = null;
@@ -123,8 +124,8 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 
 		ArrayList<Class<? extends IInitializingModule>> frameworkModuleList = new ArrayList<>();
 		for (IAnnotationInfo<?> testModuleItem : testFrameworkModulesList) {
-			TestFrameworkModule testFrameworkModule =
-					(TestFrameworkModule) testModuleItem.getAnnotation();
+			TestFrameworkModule testFrameworkModule = (TestFrameworkModule) testModuleItem
+					.getAnnotation();
 			frameworkModuleList.addAll(testFrameworkModule.value());
 		}
 		return frameworkModuleList;
@@ -148,18 +149,16 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 
 		extendPropertiesInstance(frameworkMethod, baseProps);
 
-		LinkedHashSet<Class<? extends IInitializingModule>> testClassLevelTestFrameworkModulesList =
-				new LinkedHashSet<>();
-		LinkedHashSet<Class<? extends IInitializingModule>> testClassLevelTestModulesList =
-				new LinkedHashSet<>();
+		LinkedHashSet<Class<? extends IInitializingModule>> testClassLevelTestFrameworkModulesList = new LinkedHashSet<>();
+		LinkedHashSet<Class<? extends IInitializingModule>> testClassLevelTestModulesList = new LinkedHashSet<>();
 
 		testClassLevelTestModulesList.addAll(buildTestModuleList(frameworkMethod));
 		testClassLevelTestFrameworkModulesList.addAll(buildFrameworkTestModuleList(frameworkMethod));
 
-		final Class<? extends IInitializingModule>[] frameworkModules =
-				testClassLevelTestFrameworkModulesList.toArray(Class.class);
-		Class<? extends IInitializingModule>[] applicationModules =
-				testClassLevelTestModulesList.toArray(Class.class);
+		final Class<? extends IInitializingModule>[] frameworkModules = testClassLevelTestFrameworkModulesList
+				.toArray(Class.class);
+		Class<? extends IInitializingModule>[] applicationModules = testClassLevelTestModulesList
+				.toArray(Class.class);
 
 		testClassLevelContext = BeanContextFactory.createBootstrap(baseProps, IocModule.class);
 		boolean success = false;
@@ -207,27 +206,31 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 
 	protected static List<TestProperties> getAllTestProperties(Class<?> testClass,
 			FrameworkMethod frameworkMethod) {
-		List<IAnnotationInfo<?>> testPropertiesList =
-				findAnnotations(testClass, frameworkMethod != null ? frameworkMethod.getMethod() : null,
-						TestPropertiesList.class, TestProperties.class);
+		List<IAnnotationInfo<?>> testPropertiesList = findAnnotations(testClass,
+				frameworkMethod != null ? frameworkMethod.getMethod() : null, TestPropertiesList.class,
+				TestProperties.class);
 
-		ArrayList<TestProperties> allTestProperties = new ArrayList<>();
+		LinkedHashMap<String, TestProperties> allTestProperties = new LinkedHashMap<>();
 
 		for (int a = 0, size = testPropertiesList.size(); a < size; a++) {
-			Annotation testPropertiesItem = testPropertiesList.get(a).getAnnotation();
+			IAnnotationInfo<?> annotationInfo = testPropertiesList.get(a);
+			Annotation testPropertiesItem = annotationInfo.getAnnotation();
 
 			if (testPropertiesItem instanceof TestPropertiesList
 					|| testPropertiesItem instanceof TestProperties) {
 				if (testPropertiesItem instanceof TestPropertiesList) {
 					TestPropertiesList mtp = (TestPropertiesList) testPropertiesItem;
-					allTestProperties.addAll(mtp.value());
+					for (TestProperties testProperties : mtp.value()) {
+						allTestProperties.put(testProperties.name(), testProperties);
+					}
 				}
 				else {
-					allTestProperties.add((TestProperties) testPropertiesItem);
+					TestProperties testProperties = (TestProperties) testPropertiesItem;
+					allTestProperties.put(testProperties.name(), testProperties);
 				}
 			}
 		}
-		return allTestProperties;
+		return allTestProperties.values();
 	}
 
 	public static void extendProperties(Class<?> testClass, FrameworkMethod frameworkMethod,
@@ -328,8 +331,8 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 						}
 					}
 					else if (testClassLevelContext != null) {
-						IThreadLocalCleanupController tlCleanupController =
-								testClassLevelContext.getService(IThreadLocalCleanupController.class);
+						IThreadLocalCleanupController tlCleanupController = testClassLevelContext
+								.getService(IThreadLocalCleanupController.class);
 						tlCleanupController.cleanupThreadLocal();
 					}
 				}
@@ -368,8 +371,8 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 			public void evaluate() throws Throwable {
 				if (!hasContextBeenRebuildForThisTest) {
 					if (method == null || method.getAnnotation(Ignore.class) == null) {
-						List<IAnnotationInfo<?>> rebuildContextList =
-								findAnnotations(getTestClass().getJavaClass(), TestRebuildContext.class);
+						List<IAnnotationInfo<?>> rebuildContextList = findAnnotations(
+								getTestClass().getJavaClass(), TestRebuildContext.class);
 						if (rebuildContextList.size() > 0) {
 							boolean rebuildContext = ((TestRebuildContext) rebuildContextList
 									.get(rebuildContextList.size() - 1).getAnnotation()).value();
@@ -454,8 +457,8 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 			Class<?>[] interfaces = type.getInterfaces();
 			for (Class<?> currInterface : interfaces) {
 				for (Class<?> annotationType : annotationTypes) {
-					Annotation annotationOfInterface =
-							currInterface.getAnnotation((Class<? extends Annotation>) annotationType);
+					Annotation annotationOfInterface = currInterface
+							.getAnnotation((Class<? extends Annotation>) annotationType);
 					if (annotationOfInterface != null) {
 						targetList.add(new AnnotationInfo<>(annotationOfInterface, currInterface));
 					}

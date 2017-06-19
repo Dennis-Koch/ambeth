@@ -20,6 +20,17 @@ limitations under the License.
  * #L%
  */
 
+/**
+ * Optional extension to define a conversion or mapping routine of a potentially OS-specific SID to
+ * the SID used by the security framework
+ */
 public interface ISidHelper {
-	String convertWindowsSidToDatabaseSid(String windowsSid);
+	/**
+	 * Converts a potentially OS-specific SID to the SID used by the security framework
+	 * 
+	 * @param operatingSystemSid
+	 *          The OS-specific SID
+	 * @return The SID used by the security framework
+	 */
+	String convertOperatingSystemSidToFrameworkSid(String operatingSystemSid);
 }

@@ -25,6 +25,10 @@ import java.lang.reflect.Method;
 import com.koch.ambeth.security.privilege.model.ITypePrivilege;
 import com.koch.ambeth.service.model.ISecurityScope;
 
+/**
+ * Encapsulates the result of an authorization step implemented by
+ * {@link IAuthorizationManager#authorize(String, ISecurityScope[], IAuthenticationResult)}.
+ */
 public interface IAuthorization {
 	long getAuthorizationTime();
 

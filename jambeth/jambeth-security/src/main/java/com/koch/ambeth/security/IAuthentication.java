@@ -20,10 +20,31 @@ limitations under the License.
  * #L%
  */
 
+/**
+ * The basic credentials to be used to process the authentication step
+ */
 public interface IAuthentication {
+	/**
+	 * The unique name of the user to check
+	 *
+	 * @return The unique name of the user to check
+	 */
 	String getUserName();
 
+	/**
+	 * The secret of the given user name. Depending on the {@link #getType()} the secret may be hashed
+	 * or plain depending on the implementation of the {@link IAuthenticationManager} to process this
+	 * credentials
+	 *
+	 * @return The secret of the given user name
+	 */
 	char[] getPassword();
 
+	/**
+	 * Describes how the secret is to be treated
+	 * 
+	 * @return One of the following enumerated values: {@link PasswordType#PLAIN},
+	 *         {@link PasswordType#MD5}, {@link PasswordType#SHA1}
+	 */
 	PasswordType getType();
 }
