@@ -2,7 +2,7 @@
 
 timestamps {
     // Main Build
-    node ('JAMA && LINUX'){
+    node ('JAMA && WINDOWS'){
 
 	    try {
 	        // Mark the code checkout 'stage'....
