@@ -25,7 +25,7 @@ timestamps {
 		        // Run the maven build
 		        withEnv(["PATH+MAVEN=${tool 'M3'}/bin","JAVA_HOME=${tool 'JDK8'}"]) {
 		            
-	            	mvn -B clean ${deployOrVerify}${profile} -DskipTests -Dtycho.localArtifacts=ignore -Dmaven.repo.local=${env.WORKSPACE}/.m2 -Djambeth.path.test=${env.WORKSPACE}/jambeth/jambeth-test
+	            	cmd /c "mvn -B clean ${deployOrVerify}${profile} -DskipTests -Dtycho.localArtifacts=ignore -Dmaven.repo.local=${env.WORKSPACE}/.m2 -Djambeth.path.test=${env.WORKSPACE}/jambeth/jambeth-test"
 		        }
 	        }
 	        
@@ -37,7 +37,7 @@ timestamps {
 	                    def groupId = getGroupIdFromPom();
 	                    def artifactId = getArtifactIdFromPom();
 	                    echo "Sonarqube analysis for ${groupId}.${artifactId}"
-	                    mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dsonar.projectName=${groupId}.${artifactId}
+	                    cmd /c "mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dsonar.projectName=${groupId}.${artifactId}"
 	                }
 	            }
 	        }
