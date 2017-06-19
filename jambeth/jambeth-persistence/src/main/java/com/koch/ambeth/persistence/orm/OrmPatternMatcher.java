@@ -46,12 +46,10 @@ public class OrmPatternMatcher implements IInitializingBean, IOrmPatternMatcher 
 	@Property(name = PersistenceConfigurationConstants.DatabaseArchiveTablePostfix, defaultValue = "")
 	protected String archiveTablePostfix;
 
-	@Property(name = PersistenceConfigurationConstants.DatabasePermissionGroupPrefix,
-			defaultValue = PermissionGroup.permGroupPrefix)
+	@Property(name = PersistenceConfigurationConstants.DatabasePermissionGroupPrefix, defaultValue = PermissionGroup.permGroupPrefix)
 	protected String permissionGroupPrefix;
 
-	@Property(name = PersistenceConfigurationConstants.DatabasePermissionGroupPostfix,
-			defaultValue = PermissionGroup.permGroupSuffix)
+	@Property(name = PersistenceConfigurationConstants.DatabasePermissionGroupPostfix, defaultValue = PermissionGroup.permGroupSuffix)
 	protected String permissionGroupPostfix;
 
 	@Property(name = PersistenceConfigurationConstants.DatabaseFieldPrefix, defaultValue = "")
@@ -88,6 +86,9 @@ public class OrmPatternMatcher implements IInitializingBean, IOrmPatternMatcher 
 		if (tableName.length() >= maxNameLength - prefix.length() - postFix.length()) {
 			return prefix + tableName.substring(0, maxNameLength - prefix.length() - postFix.length())
 					+ postFix;
+		}
+		if (prefix.isEmpty() && postFix.isEmpty()) {
+			return tableName;
 		}
 		return prefix + tableName + postFix;
 	}

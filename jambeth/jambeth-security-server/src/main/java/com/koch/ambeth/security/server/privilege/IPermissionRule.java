@@ -21,7 +21,10 @@ limitations under the License.
  */
 
 /**
- * Marker interface for all concrete permission rules
+ * Marker interface for all concrete permission rules.
+ *
+ * @see IEntityPermissionRule
+ * @see IEntityTypePermissionRule
  */
 public interface IPermissionRule {
 	// intended blank

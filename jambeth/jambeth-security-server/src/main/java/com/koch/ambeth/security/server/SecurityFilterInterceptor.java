@@ -284,7 +284,7 @@ public class SecurityFilterInterceptor extends CascadedInterceptor {
 			IAuthenticationResult authenticationResult =
 					authenticationManager.authenticate(authentication);
 			sid = authenticationResult.getSID();
-			databaseSid = sidHelper != null ? sidHelper.convertWindowsSidToDatabaseSid(sid) : sid;
+			databaseSid = sidHelper != null ? sidHelper.convertOperatingSystemSidToFrameworkSid(sid) : sid;
 
 			authorization = authorizationManager.authorize(databaseSid,
 					securityScopeProvider.getSecurityScopes(), authenticationResult);
