@@ -20,6 +20,11 @@ limitations under the License.
  * #L%
  */
 
+/**
+ * Encapsulates the result of an authentication step executed by a {@link IAuthenticationManager}.
+ * This result is used as a further information to execute the authorization step with the
+ * {@link IAuthorizationManager}.
+ */
 public interface IAuthenticationResult {
 	String getSID();
 

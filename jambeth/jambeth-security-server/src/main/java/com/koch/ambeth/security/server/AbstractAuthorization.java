@@ -83,8 +83,7 @@ public abstract class AbstractAuthorization implements IAuthorization {
 		this.authenticationResult = authenticationResult;
 
 		patternToValueMap = new IdentityHashMap<>(0.5f);
-		HashMap<ISecurityScope, ArrayList<Pattern>> scopeToActionPatternsMap =
-				new HashMap<>();
+		HashMap<ISecurityScope, ArrayList<Pattern>> scopeToActionPatternsMap = new HashMap<>();
 		for (Tuple2KeyEntry<ISecurityScope, String, Boolean> entry : actionPrivileges) {
 			String actionName = entry.getKey2();
 			if (!actionName.contains("(") && !actionName.contains("*") && !actionName.contains("?")) {
@@ -125,8 +124,8 @@ public abstract class AbstractAuthorization implements IAuthorization {
 	@Override
 	public CallPermission getCallPermission(Method serviceOperation,
 			ISecurityScope[] securityScopes) {
-		String methodSignature =
-				serviceOperation.getDeclaringClass().getName() + "." + serviceOperation.getName();
+		String methodSignature = serviceOperation.getDeclaringClass().getName() + "."
+				+ serviceOperation.getName();
 
 		CallPermission callPermission = CallPermission.FORBIDDEN;
 		for (IServicePermission servicePermissions : getServicePermissions(securityScopes)) {
@@ -152,8 +151,7 @@ public abstract class AbstractAuthorization implements IAuthorization {
 		if (securityScopes.length == 1) {
 			return servicePermissions.get(securityScopes[0]);
 		}
-		LinkedHashSet<IServicePermission> servicePermissionSet =
-				new LinkedHashSet<>();
+		LinkedHashSet<IServicePermission> servicePermissionSet = new LinkedHashSet<>();
 		for (int a = 0, size = securityScopes.length; a < size; a++) {
 			IServicePermission[] oneServicePermissions = servicePermissions.get(securityScopes[a]);
 			servicePermissionSet.addAll(oneServicePermissions);
@@ -234,12 +232,12 @@ public abstract class AbstractAuthorization implements IAuthorization {
 			delete = unionFlags(delete, typePrivilege.isDeleteAllowed());
 			execute = unionFlags(execute, typePrivilege.isExecuteAllowed());
 
-			ITypePropertyPrivilege defaultPropertyPrivilegeIfValid =
-					typePrivilege.getDefaultPropertyPrivilegeIfValid();
+			ITypePropertyPrivilege defaultPropertyPrivilegeIfValid = typePrivilege
+					.getDefaultPropertyPrivilegeIfValid();
 			if (defaultPropertyPrivilegeIfValid != null) {
 				if (fastPropertyHandling) {
-					defaultPropertyPrivilege =
-							unionPropertyPrivileges(defaultPropertyPrivilege, defaultPropertyPrivilegeIfValid);
+					defaultPropertyPrivilege = unionPropertyPrivileges(defaultPropertyPrivilege,
+							defaultPropertyPrivilegeIfValid);
 					continue;
 				}
 				// fastPropertyHandling not possible any more because of preceeding custom privileges
