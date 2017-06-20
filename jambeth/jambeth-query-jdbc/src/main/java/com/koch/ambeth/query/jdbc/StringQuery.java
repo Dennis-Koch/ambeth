@@ -34,6 +34,12 @@ import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 public class StringQuery implements IStringQuery, IInitializingBean {
+	public static final String P_ENTITY_TYPE = "EntityType";
+
+	public static final String P_ALL_JOIN_CLAUSES = "AllJoinClauses";
+
+	public static final String P_JOIN_CLAUSES = "JoinClauses";
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -103,8 +109,8 @@ public class StringQuery implements IStringQuery, IInitializingBean {
 			if (rootOperand != null) {
 				rootOperand.expandQuery(whereSB, nameToValueMap, true, parameters);
 			}
-			return new String[] {joinSB.length() > 0 ? joinSB.toString() : null,
-					whereSB.length() > 0 ? whereSB.toString() : null};
+			return new String[] { joinSB.length() > 0 ? joinSB.toString() : null,
+					whereSB.length() > 0 ? whereSB.toString() : null };
 		}
 		finally {
 			nameToValueMap.remove("#JoinSB");

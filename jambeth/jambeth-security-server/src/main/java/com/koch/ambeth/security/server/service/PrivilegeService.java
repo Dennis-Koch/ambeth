@@ -343,6 +343,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	List<IPrivilegeOfService> getPrivilegesIntern(IObjRef[] objRefs,
 			ISecurityScope[] securityScopes) {
+		long start = System.currentTimeMillis();
 		IPrefetchHelper prefetchHelper = this.prefetchHelper;
 		HashSet<Class<?>> requestedTypes = new HashSet<>();
 		for (int a = 0, size = objRefs.length; a < size; a++) {
@@ -459,6 +460,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		if (log.isDebugEnabled()) {
 			PrivilegeOfService[] debugResult = privilegeResults.toArray(PrivilegeOfService.class);
 
+			long spent = System.currentTimeMillis() - start;
 			Arrays.sort(debugResult, new Comparator<PrivilegeOfService>() {
 				@Override
 				public int compare(PrivilegeOfService o1, PrivilegeOfService o2) {
@@ -484,7 +486,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 				}
 			});
 			StringBuilder sb = new StringBuilder("Resolved permissions for user with sid '");
-			sb.append(authorization.getSID()).append("':");
+			sb.append(authorization.getSID()).append("' (").append(spent).append("ms):");
 			for (PrivilegeOfService privilegeResult : debugResult) {
 				if (sb != null) {
 					if (sb.length() > 0) {
