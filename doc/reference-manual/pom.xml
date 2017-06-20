@@ -100,7 +100,6 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
 				<executions>
-				<!-- 
 					<execution>
 						<id>Resolve Ambeth libraries</id>
 						<phase>generate-resources</phase>
@@ -185,7 +184,7 @@
 								<argument>moduleRootPath=${moduleRootPath.absolute}</argument>
 							</arguments>
 						</configuration>
-					</execution>-->
+					</execution>
 					<execution>
 						<id>Mock C# XML file</id>
 						<phase>process-resources</phase>
