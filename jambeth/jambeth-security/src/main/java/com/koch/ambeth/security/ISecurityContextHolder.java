@@ -1,5 +1,7 @@
 package com.koch.ambeth.security;
 
+import com.koch.ambeth.util.state.IStateRollback;
+
 /*-
  * #%L
  * jambeth-security
@@ -31,4 +33,6 @@ public interface ISecurityContextHolder {
 
 	<R> R setScopedAuthentication(IAuthentication authentication,
 			IResultingBackgroundWorkerDelegate<R> runnableScope) throws Throwable;
+
+	IStateRollback pushAuthentication(IAuthentication authentication, IStateRollback... rollbacks);
 }

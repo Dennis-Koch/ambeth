@@ -29,6 +29,7 @@ import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.security.config.SecurityConfigurationConstants;
+import com.koch.ambeth.security.events.ClearAllCachedPrivilegesEvent;
 import com.koch.ambeth.security.privilege.IPrivilegeProvider;
 import com.koch.ambeth.security.privilege.IPrivilegeProviderIntern;
 import com.koch.ambeth.security.privilege.PrivilegeProvider;
@@ -43,6 +44,8 @@ import com.koch.ambeth.service.remote.ClientServiceBean;
 
 @FrameworkModule
 public class PrivilegeModule implements IInitializingModule {
+	public static final String PRIVILEGE_PROVIDER_BEAN_NAME = "privilegeProvider";
+
 	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
 	protected boolean isNetworkClientMode;
 
@@ -51,14 +54,17 @@ public class PrivilegeModule implements IInitializingModule {
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		IBeanConfiguration privilegeProvider = beanContextFactory.registerBean(PrivilegeProvider.class)
+		IBeanConfiguration privilegeProvider = beanContextFactory
+				.registerBean(PRIVILEGE_PROVIDER_BEAN_NAME, PrivilegeProvider.class)
 				.autowireable(IPrivilegeProvider.class, IPrivilegeProviderIntern.class);
 		IBeanConfiguration ppEventListener = beanContextFactory
 				.registerBean(UnfilteredDataChangeListener.class).propertyRefs(privilegeProvider);
 		beanContextFactory.link(ppEventListener).to(IEventListenerExtendable.class)
 				.with(IDataChange.class);
-		beanContextFactory.link(privilegeProvider, "handleClearAllCaches")
+		beanContextFactory.link(privilegeProvider, PrivilegeProvider.HANDLE_CLEAR_ALL_CACHES)
 				.to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
+		beanContextFactory.link(privilegeProvider, PrivilegeProvider.HANDLE_CLEAR_ALL_PRIVILEGES)
+				.to(IEventListenerExtendable.class).with(ClearAllCachedPrivilegesEvent.class);
 
 		beanContextFactory.registerBean(EntityPrivilegeFactoryProvider.class)
 				.autowireable(IEntityPrivilegeFactoryProvider.class);
