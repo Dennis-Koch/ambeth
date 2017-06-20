@@ -28,6 +28,8 @@ import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
+import com.koch.ambeth.util.state.AbstractStateRollback;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
@@ -159,9 +161,9 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 	@Override
 	public void executeWithSecurityDirective(Set<SecurityDirective> securityDirective,
 			IBackgroundWorkerDelegate runnable) throws Throwable {
-		Boolean securityActive =
-				securityDirective.contains(SecurityDirective.DISABLE_SECURITY) ? Boolean.FALSE
-						: securityDirective.contains(SecurityDirective.ENABLE_SECURITY) ? Boolean.TRUE : null;
+		Boolean securityActive = securityDirective.contains(SecurityDirective.DISABLE_SECURITY)
+				? Boolean.FALSE
+				: securityDirective.contains(SecurityDirective.ENABLE_SECURITY) ? Boolean.TRUE : null;
 		Boolean entityActive = securityDirective.contains(SecurityDirective.DISABLE_ENTITY_CHECK)
 				? Boolean.FALSE
 				: securityDirective.contains(SecurityDirective.ENABLE_ENTITY_CHECK) ? Boolean.TRUE : null;
@@ -209,9 +211,9 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 	@Override
 	public <R> R executeWithSecurityDirective(Set<SecurityDirective> securityDirective,
 			IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable {
-		Boolean securityActive =
-				securityDirective.contains(SecurityDirective.DISABLE_SECURITY) ? Boolean.FALSE
-						: securityDirective.contains(SecurityDirective.ENABLE_SECURITY) ? Boolean.TRUE : null;
+		Boolean securityActive = securityDirective.contains(SecurityDirective.DISABLE_SECURITY)
+				? Boolean.FALSE
+				: securityDirective.contains(SecurityDirective.ENABLE_SECURITY) ? Boolean.TRUE : null;
 		Boolean entityActive = securityDirective.contains(SecurityDirective.DISABLE_ENTITY_CHECK)
 				? Boolean.FALSE
 				: securityDirective.contains(SecurityDirective.ENABLE_ENTITY_CHECK) ? Boolean.TRUE : null;
@@ -250,6 +252,106 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 		}
 		finally {
 			if (securityActive != null) {
+				securityActiveTL.set(oldSecurityActive);
+			}
+		}
+	}
+
+	@Override
+	public IStateRollback pushWithoutFiltering(IStateRollback... rollbacks) {
+		final Boolean oldFilterActive = entityActiveTL.get();
+		entityActiveTL.set(Boolean.FALSE);
+		try {
+			return new AbstractStateRollback(rollbacks) {
+				@Override
+				protected void rollbackIntern() throws Throwable {
+					securityActiveTL.set(oldFilterActive);
+				}
+			};
+		}
+		finally {
+			entityActiveTL.set(oldFilterActive);
+		}
+	}
+
+	@Override
+	public IStateRollback pushWithoutSecurity(IStateRollback... rollbacks) {
+		final Boolean oldSecurityActive = securityActiveTL.get();
+		securityActiveTL.set(Boolean.FALSE);
+		return new AbstractStateRollback(rollbacks) {
+			@Override
+			protected void rollbackIntern() throws Throwable {
+				securityActiveTL.set(oldSecurityActive);
+			}
+		};
+	}
+
+	@Override
+	public IStateRollback pushWithSecurityDirective(Set<SecurityDirective> securityDirective,
+			IStateRollback... rollbacks) {
+		final Boolean securityActive = securityDirective.contains(SecurityDirective.DISABLE_SECURITY)
+				? Boolean.FALSE
+				: securityDirective.contains(SecurityDirective.ENABLE_SECURITY) ? Boolean.TRUE : null;
+		final Boolean entityActive = securityDirective.contains(SecurityDirective.DISABLE_ENTITY_CHECK)
+				? Boolean.FALSE
+				: securityDirective.contains(SecurityDirective.ENABLE_ENTITY_CHECK) ? Boolean.TRUE : null;
+		final Boolean serviceActive = securityDirective
+				.contains(SecurityDirective.DISABLE_SERVICE_CHECK) ? Boolean.FALSE
+						: securityDirective.contains(SecurityDirective.ENABLE_SERVICE_CHECK) ? Boolean.TRUE
+								: null;
+
+		boolean success = false;
+
+		Boolean oldSecurityActive = null, oldEntityActive = null, oldServiceActive = null;
+		if (securityActive != null) {
+			oldSecurityActive = securityActiveTL.get();
+			securityActiveTL.set(securityActive);
+		}
+		try {
+			if (entityActive != null) {
+				oldEntityActive = entityActiveTL.get();
+				entityActiveTL.set(entityActive);
+			}
+			try {
+				if (serviceActive != null) {
+					oldServiceActive = serviceActiveTL.get();
+					serviceActiveTL.set(serviceActive);
+				}
+				try {
+					final Boolean fOldSecurityActive = oldSecurityActive;
+					final Boolean fOldEntityActive = oldEntityActive;
+					final Boolean fOldServiceActive = oldServiceActive;
+					IStateRollback rollback = new AbstractStateRollback(rollbacks) {
+						@Override
+						protected void rollbackIntern() throws Throwable {
+							if (serviceActive != null) {
+								serviceActiveTL.set(fOldServiceActive);
+							}
+							if (entityActive != null) {
+								entityActiveTL.set(fOldEntityActive);
+							}
+							if (securityActive != null) {
+								securityActiveTL.set(fOldSecurityActive);
+							}
+						}
+					};
+					success = true;
+					return rollback;
+				}
+				finally {
+					if (!success && serviceActive != null) {
+						serviceActiveTL.set(oldServiceActive);
+					}
+				}
+			}
+			finally {
+				if (!success && entityActive != null) {
+					entityActiveTL.set(oldEntityActive);
+				}
+			}
+		}
+		finally {
+			if (!success && securityActive != null) {
 				securityActiveTL.set(oldSecurityActive);
 			}
 		}

@@ -110,9 +110,7 @@ import com.koch.ambeth.util.exception.MaskingRuntimeException;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 import com.koch.ambeth.util.state.IStateRollback;
-import com.koch.ambeth.util.state.NoOpStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 import com.koch.ambeth.xml.DefaultXmlWriter;
 
 /**
@@ -129,7 +127,6 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		}
 		return sqlExecutionOrder.clone();
 	}
-
 
 	protected boolean isRebuildDataForThisTestRecommended;
 
@@ -160,42 +157,42 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 	private static final Pattern whitespaces = Pattern.compile("[ \\t]+");
 
-	private static final Pattern[] sqlComments =
-			{Pattern.compile("^--[^:].*"), Pattern.compile("^/\\*.*\\*/"), Pattern.compile(" *@@@ *")};
+	private static final Pattern[] sqlComments = { Pattern.compile("^--[^:].*"),
+			Pattern.compile("^/\\*.*\\*/"), Pattern.compile(" *@@@ *") };
 
-	private static final Pattern[] ignoreOutside = {Pattern.compile("^/$")};
+	private static final Pattern[] ignoreOutside = { Pattern.compile("^/$") };
 
-	private static final Pattern[] ignoreIfContains = {Pattern.compile(".*?DROP CONSTRAINT.*?")};
+	private static final Pattern[] ignoreIfContains = { Pattern.compile(".*?DROP CONSTRAINT.*?") };
 
 	private static final Pattern[][] sqlCommands = {
-			{Pattern.compile(
+			{ Pattern.compile(
 					"CREATE( +OR +REPLACE)? +(?:TABLE|VIEW|INDEX|TYPE|SEQUENCE|SYNONYM|TABLESPACE) +.+",
 					Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?([;\\/]|@@@)")},
-			{Pattern.compile("CREATE( +OR +REPLACE)? +(?:FUNCTION|PROCEDURE|TRIGGER) +.+",
+					Pattern.compile(".*?([;\\/]|@@@)") },
+			{ Pattern.compile("CREATE( +OR +REPLACE)? +(?:FUNCTION|PROCEDURE|TRIGGER) +.+",
 					Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?END(?:[;\\/]|@@@)", Pattern.CASE_INSENSITIVE)},
-			{Pattern.compile("ALTER +(?:TABLE|VIEW) .+", Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?([;\\/]|@@@)")},
-			{Pattern.compile("CALL +.+", Pattern.CASE_INSENSITIVE), Pattern.compile(".*?([;\\/]|@@@)")},
-			{Pattern.compile("(?:INSERT +INTO|UPDATE) .+", Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?([;\\/]|@@@)")},
-			{Pattern.compile("(?:COMMENT) .+", Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?([;\\/]|@@@)")}};
+					Pattern.compile(".*?END(?:[;\\/]|@@@)", Pattern.CASE_INSENSITIVE) },
+			{ Pattern.compile("ALTER +(?:TABLE|VIEW) .+", Pattern.CASE_INSENSITIVE),
+					Pattern.compile(".*?([;\\/]|@@@)") },
+			{ Pattern.compile("CALL +.+", Pattern.CASE_INSENSITIVE), Pattern.compile(".*?([;\\/]|@@@)") },
+			{ Pattern.compile("(?:INSERT +INTO|UPDATE) .+", Pattern.CASE_INSENSITIVE),
+					Pattern.compile(".*?([;\\/]|@@@)") },
+			{ Pattern.compile("(?:COMMENT) .+", Pattern.CASE_INSENSITIVE),
+					Pattern.compile(".*?([;\\/]|@@@)") } };
 
-	private static final Pattern[][] sqlIgnoredCommands =
-			{{Pattern.compile("DROP +.+", Pattern.CASE_INSENSITIVE), Pattern.compile(".*?([;\\/]|@@@)")}};
+	private static final Pattern[][] sqlIgnoredCommands = { {
+			Pattern.compile("DROP +.+", Pattern.CASE_INSENSITIVE), Pattern.compile(".*?([;\\/]|@@@)") } };
 
 	// TODO Check only implemented for first array element
-	private static final Pattern[][] sqlTryOnlyCommands =
-			{{Pattern.compile("CREATE OR REPLACE *.*")}};
+	private static final Pattern[][] sqlTryOnlyCommands = {
+			{ Pattern.compile("CREATE OR REPLACE *.*") } };
 
 	private static final Pattern optionLine = Pattern.compile("^--:(.*)");
 
 	protected final StringBuilder measurementXML = new StringBuilder();
 
-	protected final DefaultXmlWriter xmlWriter =
-			new DefaultXmlWriter(new AppendableStringBuilder(measurementXML), null);
+	protected final DefaultXmlWriter xmlWriter = new DefaultXmlWriter(
+			new AppendableStringBuilder(measurementXML), null);
 
 	protected boolean testUserHasBeenCreated;
 
@@ -207,8 +204,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	@Override
 	protected List<Class<? extends IInitializingModule>> buildFrameworkTestModuleList(
 			FrameworkMethod frameworkMethod) {
-		List<Class<? extends IInitializingModule>> frameworkTestModuleList =
-				super.buildFrameworkTestModuleList(frameworkMethod);
+		List<Class<? extends IInitializingModule>> frameworkTestModuleList = super.buildFrameworkTestModuleList(
+				frameworkMethod);
 		frameworkTestModuleList.add(DialectSelectorTestModule.class);
 		frameworkTestModuleList.add(DataSetupExecutorModule.class);
 		frameworkTestModuleList.add(SetupModule.class);
@@ -222,8 +219,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 	private boolean checkAdditionalSchemaEmpty(final Connection conn, final String schemaName)
 			throws SQLException {
-		IConnectionDialect connectionDialect =
-				getOrCreateSchemaContext().getService(IConnectionDialect.class);
+		IConnectionDialect connectionDialect = getOrCreateSchemaContext()
+				.getService(IConnectionDialect.class);
 		List<String> allTableNames = connectionDialect.getAllFullqualifiedTableNames(conn, schemaName);
 
 		for (int i = allTableNames.size(); i-- > 0;) {
@@ -308,8 +305,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 	protected void executeAdditionalDataRunnables(final FrameworkMethod frameworkMethod) {
 		try {
-			ISchemaRunnable[] dataRunnables =
-					getDataRunnables(getTestClass().getJavaClass(), null, frameworkMethod);
+			ISchemaRunnable[] dataRunnables = getDataRunnables(getTestClass().getJavaClass(), null,
+					frameworkMethod);
 			executeWithDeferredConstraints(dataRunnables);
 		}
 		catch (Exception e) {
@@ -410,11 +407,11 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 						}
 					}
 					if (commandToExceptionMap.size() > 1) {
-						errorMessage +=
-								". There are " + commandToExceptionMap.size() + " exceptions! The first one is:";
+						errorMessage += ". There are " + commandToExceptionMap.size()
+								+ " exceptions! The first one is:";
 					}
-					PersistenceException pe =
-							new PersistenceException(errorMessage, firstEntry.getValue().get(0));
+					PersistenceException pe = new PersistenceException(errorMessage,
+							firstEntry.getValue().get(0));
 					pe.setStackTrace(new StackTraceElement[0]);
 					throw pe;
 				}
@@ -467,8 +464,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		DialectSelectorModule.fillProperties(props);
 
 		try {
-			Connection schemaConnection =
-					connection != null && !connection.isClosed() ? connection : null;
+			Connection schemaConnection = connection != null && !connection.isClosed() ? connection
+					: null;
 			if (schemaConnection == null
 					|| !schemaConnection.isWrapperFor(IPreparedConnectionHolder.class)) {
 				return;
@@ -548,9 +545,9 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			final FrameworkMethod frameworkMethod) {
 		List<ISchemaRunnable> schemaRunnables = new ArrayList<>();
 
-		List<IAnnotationInfo<?>> annotations =
-				findAnnotations(type, frameworkMethod != null ? frameworkMethod.getMethod() : null,
-						SQLDataList.class, SQLData.class);
+		List<IAnnotationInfo<?>> annotations = findAnnotations(type,
+				frameworkMethod != null ? frameworkMethod.getMethod() : null, SQLDataList.class,
+				SQLData.class);
 
 		IServiceContext schemaContext = getOrCreateSchemaContext();
 		IConnectionDialect connectionDialect = schemaContext.getService(IConnectionDialect.class);
@@ -599,8 +596,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	private String[] getSchemaNames() {
 		IServiceContext schemaContext = getOrCreateSchemaContext();
 		IProperties properties = schemaContext.getService(IProperties.class);
-		String schemaProperty =
-				(String) properties.get(PersistenceJdbcConfigurationConstants.DatabaseSchemaName);
+		String schemaProperty = (String) properties
+				.get(PersistenceJdbcConfigurationConstants.DatabaseSchemaName);
 		String[] schemaNames = schemaContext.getService(IConnectionDialect.class)
 				.toDefaultCase(schemaProperty).split("[:;]");
 		return schemaNames;
@@ -646,8 +643,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			final Class<?> type, IList<String> sqlExecutionOrder) {
 		List<ISchemaRunnable> schemaRunnables = new ArrayList<>();
 
-		List<IAnnotationInfo<?>> annotations =
-				findAnnotations(type, SQLStructureList.class, SQLStructure.class);
+		List<IAnnotationInfo<?>> annotations = findAnnotations(type, SQLStructureList.class,
+				SQLStructure.class);
 
 		IServiceContext schemaContext = getOrCreateSchemaContext();
 		IConnectionDialect connectionDialect = schemaContext.getService(IConnectionDialect.class);
@@ -678,8 +675,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			final Map<String, Object> defaultOptions, IConnectionDialect connectionDialect)
 			throws SQLException {
 		Map<String, Object> options = defaultOptions;
-		Matcher optionLine =
-				AmbethInformationBusWithPersistenceRunner.optionLine.matcher(command.trim());
+		Matcher optionLine = AmbethInformationBusWithPersistenceRunner.optionLine
+				.matcher(command.trim());
 		if (optionLine.find()) {
 			options = new HashMap<>(defaultOptions);
 			String optionString = optionLine.group(1).replace(" ", "");
@@ -725,8 +722,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	 */
 	private boolean isDataRebuildDemanded() {
 		boolean result = true; // default value if no annotation is found
-		List<IAnnotationInfo<?>> sqlDataRebuilds =
-				findAnnotations(getTestClass().getJavaClass(), SQLDataRebuild.class);
+		List<IAnnotationInfo<?>> sqlDataRebuilds = findAnnotations(getTestClass().getJavaClass(),
+				SQLDataRebuild.class);
 		if (sqlDataRebuilds.size() > 0) {
 			IAnnotationInfo<?> topDataRebuild = sqlDataRebuilds.get(sqlDataRebuilds.size() - 1);
 			result = ((SQLDataRebuild) topDataRebuild.getAnnotation()).value();
@@ -740,8 +737,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	 */
 	private boolean isTruncateOnClassDemanded() {
 		boolean result = true; // default value
-		List<IAnnotationInfo<?>> sqlDataRebuilds =
-				findAnnotations(getTestClass().getJavaClass(), SQLDataRebuild.class);
+		List<IAnnotationInfo<?>> sqlDataRebuilds = findAnnotations(getTestClass().getJavaClass(),
+				SQLDataRebuild.class);
 		if (sqlDataRebuilds.size() > 0) {
 			IAnnotationInfo<?> topDataRebuild = sqlDataRebuilds.get(sqlDataRebuilds.size() - 1);
 			if (topDataRebuild.getAnnotation() instanceof SQLDataRebuild) {
@@ -779,9 +776,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				{
 					// If SQL data on class level -> run data SQL before the first test method
 					if (!isFirstTestMethodAlreadyExecuted) {
-						doDataRebuild =
-								!findAnnotations(getTestClass().getJavaClass(), SQLDataList.class, SQLData.class)
-										.isEmpty();
+						doDataRebuild = !findAnnotations(getTestClass().getJavaClass(), SQLDataList.class,
+								SQLData.class).isEmpty();
 					}
 				}
 				boolean doAddAdditionalMethodData = false; // Flag if SQL method data should be
@@ -827,8 +823,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	@Override
 	protected org.junit.runners.model.Statement methodInvoker(final FrameworkMethod method,
 			Object test) {
-		final org.junit.runners.model.Statement parentStatement =
-				AmbethInformationBusWithPersistenceRunner.super.methodInvoker(method, test);
+		final org.junit.runners.model.Statement parentStatement = AmbethInformationBusWithPersistenceRunner.super.methodInvoker(
+				method, test);
 		final org.junit.runners.model.Statement statement = new org.junit.runners.model.Statement() {
 			@Override
 			public void evaluate() throws Throwable {
@@ -853,17 +849,17 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 					return;
 				}
 
-				ChangeControllerState changeControllerState =
-						method.getAnnotation(ChangeControllerState.class);
+				ChangeControllerState changeControllerState = method
+						.getAnnotation(ChangeControllerState.class);
 
 				boolean changeControllerActiveTest = false;
-				final IChangeController changeController =
-						beanContext.getService(IChangeController.class, false);
+				final IChangeController changeController = beanContext.getService(IChangeController.class,
+						false);
 				if (changeControllerState != null) {
 					if (changeController != null) {
 						IConversionHelper conversionHelper = beanContext.getService(IConversionHelper.class);
-						Boolean active =
-								conversionHelper.convertValueToType(Boolean.class, changeControllerState.active());
+						Boolean active = conversionHelper.convertValueToType(Boolean.class,
+								changeControllerState.active());
 						if (Boolean.TRUE.equals(active)) {
 							changeControllerActiveTest = true;
 						}
@@ -883,52 +879,43 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				}
 				final ISecurityScope scope = new StringSecurityScope(authentication.scope());
 
-				IMethodLevelBehavior<SecurityMethodMode> behaviour =
-						new IMethodLevelBehavior<SecurityMethodMode>() {
-							private final SecurityMethodMode mode = new SecurityMethodMode(
-									SecurityContextType.AUTHENTICATED, -1, -1, null, -1, scope);
+				IMethodLevelBehavior<SecurityMethodMode> behaviour = new IMethodLevelBehavior<SecurityMethodMode>() {
+					private final SecurityMethodMode mode = new SecurityMethodMode(
+							SecurityContextType.AUTHENTICATED, -1, -1, null, -1, scope);
 
-							@Override
-							public SecurityMethodMode getBehaviourOfMethod(Method method) {
-								return mode;
-							}
+					@Override
+					public SecurityMethodMode getBehaviourOfMethod(Method method) {
+						return mode;
+					}
 
-							@Override
-							public SecurityMethodMode getDefaultBehaviour() {
-								return mode;
-							}
-						};
+					@Override
+					public SecurityMethodMode getDefaultBehaviour() {
+						return mode;
+					}
+				};
 
-				SecurityFilterInterceptor interceptor =
-						beanContext.registerBean(SecurityFilterInterceptor.class)
-								.propertyValue("MethodLevelBehaviour", behaviour).propertyValue("Target", statement)
-								.finish();
-				org.junit.runners.model.Statement stmt =
-						(org.junit.runners.model.Statement) beanContext.getService(IProxyFactory.class)
-								.createProxy(new Class<?>[] {org.junit.runners.model.Statement.class}, interceptor);
+				SecurityFilterInterceptor interceptor = beanContext
+						.registerBean(SecurityFilterInterceptor.class)
+						.propertyValue("MethodLevelBehaviour", behaviour).propertyValue("Target", statement)
+						.finish();
+				org.junit.runners.model.Statement stmt = (org.junit.runners.model.Statement) beanContext
+						.getService(IProxyFactory.class)
+						.createProxy(new Class<?>[] { org.junit.runners.model.Statement.class }, interceptor);
 				final org.junit.runners.model.Statement fStatement = stmt;
-				ISecurityContextHolder securityContextHolder =
-						beanContext.getService(ISecurityContextHolder.class);
-				securityContextHolder.setScopedAuthentication(
-						new DefaultAuthentication(authentication.name(),
-								authentication.password().toCharArray(), PasswordType.PLAIN),
-						new IResultingBackgroundWorkerDelegate<Object>() {
-							@Override
-							public Object invoke() throws Throwable {
-								IStateRollback rollback = NoOpStateRollback.instance;
-								if (changeControllerActive && changeController != null) {
-									rollback = changeController.pushRunWithoutEDBL();
-								}
-								try {
-									fStatement.evaluate();
-								}
-								finally {
-									rollback.rollback();
-								}
-								return null;
-
-							}
-						});
+				ISecurityContextHolder securityContextHolder = beanContext
+						.getService(ISecurityContextHolder.class);
+				IStateRollback rollback = securityContextHolder
+						.pushAuthentication(new DefaultAuthentication(authentication.name(),
+								authentication.password().toCharArray(), PasswordType.PLAIN));
+				try {
+					if (changeControllerActive && changeController != null) {
+						rollback = changeController.pushRunWithoutEDBL(rollback);
+					}
+					fStatement.evaluate();
+				}
+				finally {
+					rollback.rollback();
+				}
 			}
 		};
 	}
@@ -954,8 +941,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			else {
 				throw new IllegalStateException("Value not supported: " + callingClass);
 			}
-			String relativePath = fileName.startsWith("/")
-					? "." + fileName
+			String relativePath = fileName.startsWith("/") ? "." + fileName
 					: callingNamespace.replace(".", File.separator) + File.separator + fileName;
 			String forwardPath = relativePath.replace('\\', '/');
 			String[] classPaths = pathSeparator.split(System.getProperty("java.class.path"));
@@ -1190,8 +1176,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			truncateAllTablesBySchema(conn, getSchemaNames());
 			truncateAllTablesExplicitlyGiven(conn, getConfiguredExternalTableNames(callingClass));
 
-			ISchemaRunnable[] dataRunnables =
-					getDataRunnables(callingClass, callingClass, frameworkMethod);
+			ISchemaRunnable[] dataRunnables = getDataRunnables(callingClass, callingClass,
+					frameworkMethod);
 			executeWithDeferredConstraints(dataRunnables);
 		}
 		catch (Exception e) {
@@ -1251,19 +1237,19 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 				ArrayList<String> sqlExecutionOrder = new ArrayList<>();
 
-				ISchemaRunnable[] structureRunnables =
-						getStructureRunnables(callingClass, callingClass, sqlExecutionOrder);
+				ISchemaRunnable[] structureRunnables = getStructureRunnables(callingClass, callingClass,
+						sqlExecutionOrder);
 				for (ISchemaRunnable structRunnable : structureRunnables) {
 					structRunnable.executeSchemaSql(connection);
 				}
 				IConnectionDialect connectionDialect = schemaContext.getService(IConnectionDialect.class);
-				IConnectionTestDialect connectionTestDialect =
-						schemaContext.getService(IConnectionTestDialect.class);
+				IConnectionTestDialect connectionTestDialect = schemaContext
+						.getService(IConnectionTestDialect.class);
 
 				ensureExistanceOfNeededDatabaseObjects(connection, sqlExecutionOrder, connectionDialect,
 						connectionTestDialect, getLog(), doExecuteStrict);
-				AmbethInformationBusWithPersistenceRunner.sqlExecutionOrder =
-						sqlExecutionOrder.toArray(String.class);
+				AmbethInformationBusWithPersistenceRunner.sqlExecutionOrder = sqlExecutionOrder
+						.toArray(String.class);
 			}
 			finally {
 				if (!oldAutoCommit) {
@@ -1313,14 +1299,16 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	/**
 	 * Delete the content from all tables within the given schema.
 	 *
-	 * @param conn SQL connection
-	 * @param schemaNames Schema names to use
+	 * @param conn
+	 *          SQL connection
+	 * @param schemaNames
+	 *          Schema names to use
 	 * @throws SQLException
 	 */
 	protected void truncateAllTablesBySchema(final Connection conn, final String... schemaNames)
 			throws SQLException {
-		final IConnectionDialect connectionDialect =
-				getOrCreateSchemaContext().getService(IConnectionDialect.class);
+		final IConnectionDialect connectionDialect = getOrCreateSchemaContext()
+				.getService(IConnectionDialect.class);
 		List<String> allTableNames = connectionDialect.getAllFullqualifiedTableNames(conn, schemaNames);
 		if (allTableNames.isEmpty()) {
 			return;
@@ -1345,8 +1333,10 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	/**
 	 * Delete the content from the given tables.
 	 *
-	 * @param conn SQL connection
-	 * @param explicitTableNames Table name with schema (or synonym)
+	 * @param conn
+	 *          SQL connection
+	 * @param explicitTableNames
+	 *          Table name with schema (or synonym)
 	 * @throws SQLException
 	 */
 	protected void truncateAllTablesExplicitlyGiven(final Connection conn,
@@ -1354,8 +1344,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		if (explicitTableNames == null || explicitTableNames.length == 0) {
 			return;
 		}
-		final IConnectionDialect connectionDialect =
-				getOrCreateSchemaContext().getService(IConnectionDialect.class);
+		final IConnectionDialect connectionDialect = getOrCreateSchemaContext()
+				.getService(IConnectionDialect.class);
 		final List<String> sql = new ArrayList<>();
 		for (int i = explicitTableNames.length; i-- > 0;) {
 			String tableName = explicitTableNames[i];

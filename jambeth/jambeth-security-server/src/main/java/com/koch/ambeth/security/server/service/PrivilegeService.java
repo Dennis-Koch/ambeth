@@ -1,5 +1,7 @@
 package com.koch.ambeth.security.server.service;
 
+import java.util.Arrays;
+
 /*-
  * #%L
  * jambeth-security-server
@@ -21,6 +23,7 @@ limitations under the License.
  */
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -53,6 +56,7 @@ import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.security.SecurityContext;
 import com.koch.ambeth.security.SecurityContextType;
 import com.koch.ambeth.security.config.SecurityConfigurationConstants;
+import com.koch.ambeth.security.events.ClearAllCachedPrivilegesEvent;
 import com.koch.ambeth.security.privilege.model.ITypePrivilege;
 import com.koch.ambeth.security.privilege.model.ITypePropertyPrivilege;
 import com.koch.ambeth.security.privilege.transfer.IPrivilegeOfService;
@@ -65,6 +69,8 @@ import com.koch.ambeth.security.privilege.transfer.TypePrivilegeOfService;
 import com.koch.ambeth.security.privilege.transfer.TypePropertyPrivilegeOfService;
 import com.koch.ambeth.security.server.privilege.EntityPermissionRuleAddedEvent;
 import com.koch.ambeth.security.server.privilege.EntityPermissionRuleRemovedEvent;
+import com.koch.ambeth.security.server.privilege.EntityTypePermissionRuleAddedEvent;
+import com.koch.ambeth.security.server.privilege.EntityTypePermissionRuleRemovedEvent;
 import com.koch.ambeth.security.server.privilege.IEntityPermissionRule;
 import com.koch.ambeth.security.server.privilege.IEntityPermissionRuleExtendable;
 import com.koch.ambeth.security.server.privilege.IEntityPermissionRuleProvider;
@@ -88,7 +94,7 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.state.IStateRollback;
 
 public class PrivilegeService implements IPrivilegeService, IEntityPermissionRuleExtendable,
 		IEntityTypePermissionRuleExtendable, IEntityPermissionRuleProvider,
@@ -116,7 +122,6 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		@Override
 		public void returnForkedValue(Object value, Object forkedValue) {
 		}
-
 	}
 
 	@SuppressWarnings("unused")
@@ -263,12 +268,18 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	}
 
 	@Override
-	public List<IPrivilegeOfService> getPrivileges(final IObjRef[] objRefs,
+	public List<IPrivilegeOfService> getPrivileges(IObjRef[] objRefs,
 			final ISecurityScope[] securityScopes) {
 		SingleCacheOnDemandProvider cacheProviderForSecurityChecks = createCacheProvider();
 		try {
-			return cacheContext.executeWithCache(cacheProviderForSecurityChecks,
-					new PrivilegeServiceCall(objRefs, securityScopes, this));
+			IStateRollback rollback = cacheContext.pushCache(cacheProviderForSecurityChecks);
+			try {
+				rollback = securityActivation.pushWithoutSecurity(rollback);
+				return getPrivilegesIntern(objRefs, securityScopes);
+			}
+			finally {
+				rollback.rollback();
+			}
 		}
 		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
@@ -279,17 +290,18 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	}
 
 	@Override
-	public List<ITypePrivilegeOfService> getPrivilegesOfTypes(final Class<?>[] entityTypes,
+	public List<ITypePrivilegeOfService> getPrivilegesOfTypes(Class<?>[] entityTypes,
 			final ISecurityScope[] securityScopes) {
 		SingleCacheOnDemandProvider cacheProviderForSecurityChecks = createCacheProvider();
 		try {
-			return cacheContext.executeWithCache(cacheProviderForSecurityChecks,
-					new IResultingBackgroundWorkerDelegate<List<ITypePrivilegeOfService>>() {
-						@Override
-						public List<ITypePrivilegeOfService> invoke() throws Throwable {
-							return getPrivilegesOfTypesIntern(entityTypes, securityScopes);
-						}
-					});
+			IStateRollback rollback = cacheContext.pushCache(cacheProviderForSecurityChecks);
+			try {
+				rollback = securityActivation.pushWithoutSecurity(rollback);
+				return getPrivilegesOfTypesIntern(entityTypes, securityScopes);
+			}
+			finally {
+				rollback.rollback();
+			}
 		}
 		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
@@ -299,44 +311,9 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		}
 	}
 
-	List<IPrivilegeOfService> getPrivilegesIntern(final IObjRef[] objRefs,
-			final ISecurityScope[] securityScopes) {
-		try {
-			if (!securityActivation.isSecured()) {
-				return getPrivilegesIntern2(objRefs, securityScopes);
-			}
-			return securityActivation.executeWithoutSecurity(
-					new IResultingBackgroundWorkerDelegate<List<IPrivilegeOfService>>() {
-						@Override
-						public List<IPrivilegeOfService> invoke() throws Throwable {
-							return getPrivilegesIntern2(objRefs, securityScopes);
-						}
-					});
-		}
-		catch (Throwable e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
-	List<ITypePrivilegeOfService> getPrivilegesOfTypesIntern(final Class<?>[] entityTypes,
-			final ISecurityScope[] securityScopes) {
-		try {
-			return securityActivation.executeWithoutSecurity(
-					new IResultingBackgroundWorkerDelegate<List<ITypePrivilegeOfService>>() {
-						@Override
-						public List<ITypePrivilegeOfService> invoke() throws Throwable {
-							return getPrivilegesOfTypesIntern2(entityTypes, securityScopes);
-						}
-					});
-		}
-		catch (Throwable e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
 	protected IObjRef[] filterAllowedEntityTypes(IObjRef[] objRefs, ISet<Class<?>> requestedTypes,
 			Class<?>[] requestedTypesArray, ISecurityScope[] securityScopes) {
-		List<ITypePrivilegeOfService> typePrivileges = getPrivilegesOfTypesIntern2(requestedTypesArray,
+		List<ITypePrivilegeOfService> typePrivileges = getPrivilegesOfTypesIntern(requestedTypesArray,
 				securityScopes);
 		for (int a = typePrivileges.size(); a-- > 0;) {
 			ITypePrivilegeOfService typePrivilege = typePrivileges.get(a);
@@ -346,7 +323,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 			}
 		}
 		if (requestedTypes.size() == requestedTypesArray.length) {
-			// all requested entity types are allowed to read (in principal)
+			// all requested entity types are allowed to read (in principle)
 			return objRefs;
 		}
 		// at least one type is not allowed for reading so we remove those ObjRefs from the request
@@ -364,7 +341,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	List<IPrivilegeOfService> getPrivilegesIntern2(IObjRef[] objRefs,
+	List<IPrivilegeOfService> getPrivilegesIntern(IObjRef[] objRefs,
 			ISecurityScope[] securityScopes) {
 		IPrefetchHelper prefetchHelper = this.prefetchHelper;
 		HashSet<Class<?>> requestedTypes = new HashSet<>();
@@ -479,10 +456,49 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 				privilegeResults.add(privilegeResult);
 			}
 		}
+		if (log.isDebugEnabled()) {
+			PrivilegeOfService[] debugResult = privilegeResults.toArray(PrivilegeOfService.class);
+
+			Arrays.sort(debugResult, new Comparator<PrivilegeOfService>() {
+				@Override
+				public int compare(PrivilegeOfService o1, PrivilegeOfService o2) {
+					IObjRef o1ref = o1.getReference();
+					IObjRef o2ref = o2.getReference();
+					int compare = o1ref.getRealType().getName().compareTo(o2ref.getRealType().getName());
+					if (compare != 0) {
+						return compare;
+					}
+					compare = Byte.compare(o1ref.getIdNameIndex(), o2ref.getIdNameIndex());
+					if (compare != 0) {
+						return compare;
+					}
+					Object o1id = o1ref.getId();
+					Object o2id = o2ref.getId();
+					if (o1id == null) {
+						return -1;
+					}
+					if (o2id == null) {
+						return 1;
+					}
+					return o1id.toString().compareTo(o2id.toString());
+				}
+			});
+			StringBuilder sb = new StringBuilder("Resolved permissions for user with sid '");
+			sb.append(authorization.getSID()).append("':");
+			for (PrivilegeOfService privilegeResult : debugResult) {
+				if (sb != null) {
+					if (sb.length() > 0) {
+						sb.append("\n\t");
+					}
+					sb.append(privilegeResult.getReference()).append("=").append(privilegeResult);
+				}
+			}
+			log.debug(sb);
+		}
 		return privilegeResults;
 	}
 
-	List<ITypePrivilegeOfService> getPrivilegesOfTypesIntern2(Class<?>[] entityTypes,
+	List<ITypePrivilegeOfService> getPrivilegesOfTypesIntern(Class<?>[] entityTypes,
 			ISecurityScope[] securityScopes) {
 		ArrayList<ITypePrivilegeOfService> privilegeResults = new ArrayList<>();
 
@@ -677,6 +693,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	public <T> void registerEntityPermissionRule(
 			IEntityPermissionRule<? super T> entityPermissionRule, Class<T> entityType) {
 		entityPermissionRules.register(entityPermissionRule, entityType);
+		eventDispatcher.dispatchEvent(ClearAllCachedPrivilegesEvent.getInstance());
 		eventDispatcher
 				.dispatchEvent(new EntityPermissionRuleAddedEvent(entityPermissionRule, entityType));
 	}
@@ -686,6 +703,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	public <T> void unregisterEntityPermissionRule(
 			IEntityPermissionRule<? super T> entityPermissionRule, Class<T> entityType) {
 		entityPermissionRules.unregister(entityPermissionRule, entityType);
+		eventDispatcher.dispatchEvent(ClearAllCachedPrivilegesEvent.getInstance());
 		eventDispatcher
 				.dispatchEvent(new EntityPermissionRuleRemovedEvent(entityPermissionRule, entityType));
 	}
@@ -719,6 +737,9 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	public void registerEntityTypePermissionRule(IEntityTypePermissionRule entityTypePermissionRule,
 			Class<?> entityType) {
 		entityTypePermissionRules.register(entityTypePermissionRule, entityType);
+		eventDispatcher.dispatchEvent(ClearAllCachedPrivilegesEvent.getInstance());
+		eventDispatcher.dispatchEvent(
+				new EntityTypePermissionRuleAddedEvent(entityTypePermissionRule, entityType));
 	}
 
 	@Override
@@ -726,6 +747,9 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	public void unregisterEntityTypePermissionRule(IEntityTypePermissionRule entityTypePermissionRule,
 			Class<?> entityType) {
 		entityTypePermissionRules.unregister(entityTypePermissionRule, entityType);
+		eventDispatcher.dispatchEvent(ClearAllCachedPrivilegesEvent.getInstance());
+		eventDispatcher.dispatchEvent(
+				new EntityTypePermissionRuleRemovedEvent(entityTypePermissionRule, entityType));
 	}
 
 	@Override

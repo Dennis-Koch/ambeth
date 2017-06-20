@@ -1,5 +1,7 @@
 package com.koch.ambeth.merge.cache;
 
+import com.koch.ambeth.util.state.IStateRollback;
+
 /*-
  * #%L
  * jambeth-merge
@@ -41,4 +43,7 @@ public interface ICacheContext {
 	<R, T> R executeWithCache(ICache cache, IResultingBackgroundWorkerParamDelegate<R, T> runnable,
 			T state) throws Throwable;
 
+	IStateRollback pushCache(ICache cache, IStateRollback... rollbacks);
+
+	IStateRollback pushCache(ICacheProvider cacheProvider, IStateRollback... rollbacks);
 }
