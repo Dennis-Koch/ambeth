@@ -181,8 +181,8 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 	@Override
 	public String[] createAdditionalTriggers(Connection connection, String fqTableName)
 			throws SQLException {
-		IList<IColumnEntry> allFieldsOfTable =
-				connectionDialect.getAllFieldsOfTable(connection, fqTableName);
+		IList<IColumnEntry> allFieldsOfTable = connectionDialect.getAllFieldsOfTable(connection,
+				fqTableName);
 		ArrayList<String> sql = new ArrayList<>();
 		String[] schemaAndTableName = sqlBuilder.getSchemaAndTableName(fqTableName);
 		for (IColumnEntry columnEntry : allFieldsOfTable) {
@@ -227,8 +227,8 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 		String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
 		ArrayList<String> tableColumns = new ArrayList<>();
 
-		IList<IColumnEntry> allFieldsOfTable =
-				connectionDialect.getAllFieldsOfTable(connection, fqTableName);
+		IList<IColumnEntry> allFieldsOfTable = connectionDialect.getAllFieldsOfTable(connection,
+				fqTableName);
 		String columnNameOfVersion = null;
 
 		for (IColumnEntry columnEntry : allFieldsOfTable) {
@@ -330,9 +330,9 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 	protected IList<String> queryForAllPermissionGroupNeedingTables(Connection connection)
 			throws SQLException {
 		return connectionDialect.queryDefault(connection, "TNAME",
-				"SELECT c.table_name AS TNAME FROM information_schema.columns c WHERE c.column_name='"
-						+ PermissionGroup.permGroupIdNameOfData + "' AND table_schema='" + schemaNames[0]
-						+ "'");
+				"SELECT c.table_name AS TNAME FROM information_schema.columns c WHERE LOWER(c.column_name)=LOWER('"
+						+ PermissionGroup.permGroupIdNameOfData + "') AND LOWER(table_schema)=LOWER('"
+						+ schemaNames[0] + "')");
 	}
 
 	@Override
@@ -346,8 +346,8 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 	public String[] createPermissionGroup(Connection connection, String tableName)
 			throws SQLException {
 		int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
-		String permissionGroupName =
-				ormPatternMatcher.buildPermissionGroupFromTableName(tableName, maxProcedureNameLength);
+		String permissionGroupName = ormPatternMatcher.buildPermissionGroupFromTableName(tableName,
+				maxProcedureNameLength);
 		String pkName;
 		Matcher matcher = Pattern.compile("(?:.*\\.)?([^\\.]+)").matcher(permissionGroupName);
 		if (matcher.matches()) {
@@ -370,6 +370,8 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 
 		sql.add("CREATE INDEX \"" + permissionGroupName + "_IDX\"" + " ON \"" + permissionGroupName
 				+ "\" (\"" + PermissionGroup.permGroupIdName + "\")");
+
+		sql.add("CREATE SEQUENCE \"" + permissionGroupName + "_SEQ\" START 10000");
 
 		// PreparedStatement pstm = null;
 		// ResultSet rs = null;
