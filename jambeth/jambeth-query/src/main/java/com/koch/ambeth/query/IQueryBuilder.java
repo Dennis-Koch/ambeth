@@ -47,7 +47,8 @@ public interface IQueryBuilder<T> extends IDisposable {
 	 * The property name may be a simple name (e.g. "Name") or imply a join by using a dot (e.g.
 	 * "User.Name").
 	 *
-	 * @param propertyName Name of the (cascaded) property.
+	 * @param propertyName
+	 *          Name of the (cascaded) property.
 	 * @return Operand to use in Statement
 	 */
 	IOperand property(String propertyName);
@@ -55,6 +56,32 @@ public interface IQueryBuilder<T> extends IDisposable {
 	IOperand property(String propertyName, JoinType joinType);
 
 	IOperand property(String propertyName, JoinType joinType, IParamHolder<Class<?>> fieldType);
+
+	IOperand property(Object propertyProxy);
+
+	/**
+	 * Returns a stub looking like the queried entity type. All relations on this stub can be accessed
+	 * (to-one/to-many) in a cascaded manner in order to use this in a declarative manner when
+	 * building a queried property. The traversal is internally tracked. For to-many relations there
+	 * is always exactly one entity stub in the collection available for valid traversal.<br>
+	 * <br>
+	 * Example:<br>
+	 * <code>
+	 * IQueryBuilder&lt;MyType&gt; qb = queryBuilderFactory.create(MyType.class);<br>
+	 * IQuery&lt;MyType&gt; query = qb.build(qb.isEqualTo(qb.plan().getMyRelations().get(0).getId(), 2));<br>
+	 * </code><br>
+	 * Does exactly the same as:<br>
+	 * <code>
+	 * IQueryBuilder&lt;MyType&gt; qb = queryBuilderFactory.create(MyType.class);<br>
+	 * IQuery&lt;MyType&gt; query = qb.build(qb.isEqualTo(qb.property("MyRelations"), qb.value(2)));<br>
+	 * </code><br>
+	 * The major difference is that the stub traversal is supported via code completion of our chosen
+	 * IDE and eagerly compiled to detect typos immediately. The latter one instead could be loaded
+	 * e.g. from a configuration file or generic string concatenation with ease.
+	 *
+	 * @return A stub of the queried entity type
+	 */
+	T plan();
 
 	/**
 	 * Please use property() instead
@@ -68,67 +95,67 @@ public interface IQueryBuilder<T> extends IDisposable {
 	@Deprecated
 	IOperand column(String columnName, ISqlJoin joinClause);
 
-	IOperator contains(IOperand leftOperand, IOperand rightOperand);
+	IOperator contains(Object leftOperand, Object rightOperand);
 
-	IOperator contains(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);
+	IOperator contains(Object leftOperand, Object rightOperand, Boolean caseSensitive);
 
 	IOperand difference(IOperand... diffOperands);
 
-	IOperator endsWith(IOperand leftOperand, IOperand rightOperand);
+	IOperator endsWith(Object leftOperand, Object rightOperand);
 
-	IOperator endsWith(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);
+	IOperator endsWith(Object leftOperand, Object rightOperand, Boolean caseSensitive);
 
 	IOperator fulltext(IOperand queryOperand);
 
 	IOperator fulltext(Class<?> entityType, IOperand queryOperand);
 
-	IOperator isContainedIn(IOperand leftOperand, IOperand rightOperand);
+	IOperator isContainedIn(Object leftOperand, Object rightOperand);
 
-	IOperator isContainedIn(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);
+	IOperator isContainedIn(Object leftOperand, Object rightOperand, Boolean caseSensitive);
 
-	IOperator isIn(IOperand leftOperand, IOperand rightOperand);
+	IOperator isIn(Object leftOperand, Object rightOperand);
 
-	IOperator isIn(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);
+	IOperator isIn(Object leftOperand, Object rightOperand, Boolean caseSensitive);
 
-	IOperator isEqualTo(IOperand leftOperand, IOperand rightOperand);
+	IOperator isEqualTo(Object leftOperand, Object rightOperand);
 
-	IOperator isEqualTo(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);
+	IOperator isEqualTo(Object leftOperand, Object rightOperand, Boolean caseSensitive);
 
-	IOperator isGreaterThan(IOperand leftOperand, IOperand rightOperand);
+	IOperator isGreaterThan(Object leftOperand, Object rightOperand);
 
-	IOperator isGreaterThanOrEqualTo(IOperand leftOperand, IOperand rightOperand);
+	IOperator isGreaterThanOrEqualTo(Object leftOperand, Object rightOperand);
 
-	IOperator isLessThan(IOperand leftOperand, IOperand rightOperand);
+	IOperator isLessThan(Object leftOperand, Object rightOperand);
 
-	IOperator isLessThanOrEqualTo(IOperand leftOperand, IOperand rightOperand);
+	IOperator isLessThanOrEqualTo(Object leftOperand, Object rightOperand);
 
-	IOperator isNotContainedIn(IOperand leftOperand, IOperand rightOperand);
+	IOperator isNotContainedIn(Object leftOperand, Object rightOperand);
 
-	IOperator isNotContainedIn(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);
+	IOperator isNotContainedIn(Object leftOperand, Object rightOperand, Boolean caseSensitive);
 
-	IOperator isNotIn(IOperand leftOperand, IOperand rightOperand);
+	IOperator isNotIn(Object leftOperand, Object rightOperand);
 
-	IOperator isNotIn(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);
+	IOperator isNotIn(Object leftOperand, Object rightOperand, Boolean caseSensitive);
 
-	IOperator isNotEqualTo(IOperand leftOperand, IOperand rightOperand);
+	IOperator isNotEqualTo(Object leftOperand, Object rightOperand);
 
-	IOperator isNotEqualTo(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);
+	IOperator isNotEqualTo(Object leftOperand, Object rightOperand, Boolean caseSensitive);
 
-	IOperator notContains(IOperand leftOperand, IOperand rightOperand);
+	IOperator notContains(Object leftOperand, Object rightOperand);
 
-	IOperator notContains(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);
+	IOperator notContains(Object leftOperand, Object rightOperand, Boolean caseSensitive);
 
-	IOperator notLike(IOperand leftOperand, IOperand rightOperand);
+	IOperator notLike(Object leftOperand, Object rightOperand);
 
-	IOperator notLike(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);
+	IOperator notLike(Object leftOperand, Object rightOperand, Boolean caseSensitive);
 
 	IOperator isNull(IOperand operand);
 
 	IOperator isNotNull(IOperand operand);
 
-	IOperator like(IOperand leftOperand, IOperand rightOperand);
+	IOperator like(Object leftOperand, Object rightOperand);
 
-	IOperator like(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);
+	IOperator like(Object leftOperand, Object rightOperand, Boolean caseSensitive);
 
 	IOperand regexpLike(IOperand sourceString, IOperand pattern);
 
@@ -136,9 +163,9 @@ public interface IQueryBuilder<T> extends IDisposable {
 
 	IQueryBuilder<T> limit(IOperand operand);
 
-	IOperator startsWith(IOperand leftOperand, IOperand rightOperand);
+	IOperator startsWith(Object leftOperand, Object rightOperand);
 
-	IOperator startsWith(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);
+	IOperator startsWith(Object leftOperand, Object rightOperand, Boolean caseSensitive);
 
 	IOperand value(Object value);
 
@@ -154,7 +181,7 @@ public interface IQueryBuilder<T> extends IDisposable {
 
 	IQueryBuilder<T> orderBy(IOperand operand, OrderByType orderByType);
 
-	IOperand overlaps(IOperand leftOperand, IOperand rightOperand);
+	IOperand overlaps(Object leftOperand, Object rightOperand);
 
 	/**
 	 * Please use selectProperty() instead

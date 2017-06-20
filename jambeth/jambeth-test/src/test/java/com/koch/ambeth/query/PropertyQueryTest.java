@@ -41,11 +41,8 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 @SQLData("PropertyQuery_data.sql")
 @SQLStructure("PropertyQuery_structure.sql")
 @TestPropertiesList({
-		@TestProperties(
-				name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc.connection.LogPreparedStatementInterceptor",
-				value = "DEBUG"),
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-				value = "com/koch/ambeth/query/Query_orm.xml")})
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc.connection.LogPreparedStatementInterceptor", value = "DEBUG"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/query/Query_orm.xml") })
 public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest {
 	protected static final String paramName1 = "param.1";
 	protected static final String paramName2 = "param.2";
@@ -79,8 +76,8 @@ public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest
 		// SELECT "ID","VERSION" FROM "QUERY_ENTITY"
 		// WHERE ("ID"=2)
 
-		IQuery<QueryEntity> query =
-				qb.build(qb.isEqualTo(qb.property(propertyName1), qb.value(expectedIds.get(0))));
+		IQuery<QueryEntity> query = qb
+				.build(qb.isEqualTo(qb.property(propertyName1), qb.value(expectedIds.get(0))));
 
 		List<QueryEntity> actual = query.retrieve();
 		assertSimilar(expectedIds, actual);
@@ -94,8 +91,8 @@ public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest
 		// SELECT "ID","VERSION" FROM "QUERY_ENTITY"
 		// WHERE ("ID"=2)
 
-		IQuery<QueryEntity> query =
-				qb.build(qb.isEqualTo(qb.property(propertyName1), qb.value(expectedIds.get(0))));
+		IQuery<QueryEntity> query = qb
+				.build(qb.isEqualTo(qb.property(propertyName1), qb.value(expectedIds.get(0))));
 
 		List<QueryEntity> actual = query.retrieve();
 		assertSimilar(expectedIds, actual);
@@ -126,8 +123,8 @@ public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest
 		// WHERE ((("VERSION"=2) AND (("ID"<>1) AND ("ID"<>5))) OR ("ID"=4))
 
 		IOperand idProp = qb.property(propertyName1);
-		IQuery<QueryEntity> query =
-				qb.build(
+		IQuery<QueryEntity> query = qb
+				.build(
 						qb.or(
 								qb.and(qb.isEqualTo(qb.property(propertyName2), qb.value(2)),
 										qb.and(qb.isNotEqualTo(idProp, qb.value(1)),
@@ -162,8 +159,8 @@ public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest
 		// LEFT OUTER JOIN "JAMBETH"."JOIN_QUERY_ENTITY" J_A ON (S_A."FK"=J_A."ID")
 		// WHERE (J_A."CONTENT"=?)
 
-		IQuery<QueryEntity> query =
-				qb.build(qb.isEqualTo(qb.property(propertyName3), qb.valueName(paramName1)));
+		IQuery<QueryEntity> query = qb
+				.build(qb.isEqualTo(qb.property(propertyName3), qb.valueName(paramName1)));
 
 		List<QueryEntity> actual = query.param(paramName1, 3).retrieve();
 		assertSimilar(expectedIds, actual);
@@ -187,6 +184,25 @@ public class PropertyQueryTest extends AbstractInformationBusWithPersistenceTest
 				qb.and(qb.isEqualTo(qb.property(propertyName3), qb.value(3)),
 						qb.isNotEqualTo(qb.property(propertyName4), qb.value(2))),
 				qb.isEqualTo(qb.property(propertyName1), qb.value(2))));
+
+		List<QueryEntity> actual = query.retrieve();
+		assertSimilar(expectedIds, actual);
+	}
+
+	@Test
+	public void testJoinQuery2_proxyAPI() throws Exception {
+		List<Integer> expectedIds = Arrays.asList(2);
+
+		// Query used:
+		// SELECT DISTINCT A."ID",A."VERSION" FROM "QUERY_ENTITY" A
+		// LEFT OUTER JOIN "JOIN_QUERY_ENTITY" B ON (A."FK"=B."ID")
+		// WHERE (((B."VERSION"=3) AND (B."ID"<>2)) OR (A."ID"=2))
+
+		QueryEntity root = qb.plan();
+		JoinQueryEntity fk = root.getFk();
+		IQuery<QueryEntity> query = qb.build(qb.or(//
+				qb.and(qb.isEqualTo(fk.getJoinValue1(), 3), qb.isNotEqualTo(fk.getJoinValue2(), 2)), //
+				qb.isEqualTo(root.getId(), 2)));
 
 		List<QueryEntity> actual = query.retrieve();
 		assertSimilar(expectedIds, actual);
