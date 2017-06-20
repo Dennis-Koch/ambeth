@@ -37,6 +37,7 @@ import com.koch.ambeth.query.IQueryBuilderExtension;
 import com.koch.ambeth.query.IQueryBuilderExtensionExtendable;
 import com.koch.ambeth.query.IQueryBuilderFactory;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
+import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 
 public class SqlQueryBuilderFactory
@@ -57,9 +58,8 @@ public class SqlQueryBuilderFactory
 	@Autowired
 	protected ILightweightTransaction transaction;
 
-	protected final DefaultExtendableContainer<IQueryBuilderExtension> queryBuilderExtensions =
-			new DefaultExtendableContainer<>(IQueryBuilderExtension.class,
-					"queryBuilderExtension");
+	protected final DefaultExtendableContainer<IQueryBuilderExtension> queryBuilderExtensions = new DefaultExtendableContainer<>(
+			IQueryBuilderExtension.class, "queryBuilderExtension");
 
 	@SuppressWarnings("rawtypes")
 	protected IGarbageProxyConstructor<IQueryBuilder> queryBuilderGPC;
@@ -93,12 +93,14 @@ public class SqlQueryBuilderFactory
 				writeLock.unlock();
 			}
 		}
-		Class<?> realEntityType = entityMetaDataProvider.getMetaData(entityType).getEntityType();
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+		Class<?> realEntityType = metaData.getEntityType();
 		IQueryBuilderExtension[] queryBuilderExtensions = this.queryBuilderExtensions.getExtensions();
 		IQueryBuilder<T> sqlQueryBuilder = beanContext.registerBean(SqlQueryBuilder.class)//
-				.propertyValue("EntityType", realEntityType)//
-				.propertyValue("DisposeContextOnDispose", Boolean.FALSE)//
-				.propertyValue("QueryBuilderExtensions", queryBuilderExtensions)//
+				.propertyValue(SqlQueryBuilder.P_ENTITY_TYPE, realEntityType)//
+				.propertyValue(SqlQueryBuilder.P_META_DATA, metaData)//
+				.propertyValue(SqlQueryBuilder.P_DISPOSE_CONTEXT_ON_DISPOSE, Boolean.FALSE)//
+				.propertyValue(SqlQueryBuilder.P_QUERY_BUILDER_EXTENSIONS, queryBuilderExtensions)//
 				.finish();
 
 		return queryBuilderGPC.createInstance(sqlQueryBuilder);
