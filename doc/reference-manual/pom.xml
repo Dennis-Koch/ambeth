@@ -114,6 +114,7 @@
 								<argument>dependency:copy-dependencies</argument>
 								<argument>-DoutputDirectory=${doc.src.dir}</argument>
 								<argument>-DincludeGroupIds=com.koch.ambeth</argument>
+								<argument>-Dmaven.repo.local=${settings.localRepository}</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -131,6 +132,7 @@
 								<argument>dependency:copy-dependencies</argument>
 								<argument>-DoutputDirectory=${doc.src.lib.dir}</argument>
 								<argument>-DexcludeGroupIds=com.koch.ambeth</argument>
+								<argument>-Dmaven.repo.local=${settings.localRepository}</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -147,6 +149,7 @@
 								<argument>${settings.localRepository}/com/koch/ambeth/integrity/ambeth-integrity-java/${ambeth.integrity.version}/ambeth-integrity-java-${ambeth.integrity.version}.pom</argument>
 								<argument>dependency:copy-dependencies</argument>
 								<argument>-DoutputDirectory=${integrity.dir}</argument>
+								<argument>-Dmaven.repo.local=${settings.localRepository}</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -163,6 +166,7 @@
 								<argument>${settings.localRepository}/com/koch/ambeth/extendables-scanner/${ambeth.extendables.scanner.version}/extendables-scanner-${ambeth.extendables.scanner.version}.pom</argument>
 								<argument>dependency:copy-dependencies</argument>
 								<argument>-DoutputDirectory=${extendables.scanner.dir}</argument>
+								<argument>-Dmaven.repo.local=${settings.localRepository}</argument>
 							</arguments>
 						</configuration>
 					</execution>
