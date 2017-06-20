@@ -22,6 +22,7 @@ limitations under the License.
 
 import java.util.Set;
 
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
@@ -47,4 +48,11 @@ public interface ISecurityActivation {
 
 	<R> R executeWithoutFiltering(IResultingBackgroundWorkerDelegate<R> noFilterRunnable)
 			throws Throwable;
+
+	IStateRollback pushWithSecurityDirective(Set<SecurityDirective> securityDirective,
+			IStateRollback... rollbacks);
+
+	IStateRollback pushWithoutSecurity(IStateRollback... rollbacks);
+
+	IStateRollback pushWithoutFiltering(IStateRollback... rollbacks);
 }

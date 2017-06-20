@@ -26,6 +26,8 @@ import com.koch.ambeth.ioc.threadlocal.Forkable;
 import com.koch.ambeth.ioc.threadlocal.IForkProcessor;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import com.koch.ambeth.merge.security.ILightweightSecurityContext;
+import com.koch.ambeth.util.state.AbstractStateRollback;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
@@ -58,13 +60,11 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 	@Autowired
 	protected IAuthenticatedUserHolder authenticatedUserHolder;
 
-	protected final DefaultExtendableContainer<IAuthorizationChangeListener> authorizationChangeListeners =
-			new DefaultExtendableContainer<>(
-					IAuthorizationChangeListener.class, "authorizationChangeListener");
+	protected final DefaultExtendableContainer<IAuthorizationChangeListener> authorizationChangeListeners = new DefaultExtendableContainer<>(
+			IAuthorizationChangeListener.class, "authorizationChangeListener");
 
 	@Forkable(processor = SecurityContextForkProcessor.class)
-	protected final ThreadLocal<ISecurityContext> contextTL =
-			new SensitiveThreadLocal<>();
+	protected final ThreadLocal<ISecurityContext> contextTL = new SensitiveThreadLocal<>();
 
 	protected void notifyAuthorizationChangeListeners(IAuthorization authorization) {
 		authenticatedUserHolder
@@ -114,6 +114,63 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 			securityContext.setAuthentication(null);
 			securityContext.setAuthorization(null);
 			contextTL.remove();
+		}
+	}
+
+	@Override
+	public IStateRollback pushAuthentication(IAuthentication authentication,
+			IStateRollback... rollbacks) {
+		ISecurityContext securityContext = getContext();
+		boolean created = false;
+		if (securityContext == null) {
+			securityContext = getCreateContext();
+			created = true;
+		}
+		boolean success = false;
+		final IAuthorization oldAuthorization = securityContext.getAuthorization();
+		final IAuthentication oldAuthentication = securityContext.getAuthentication();
+		try {
+			final boolean fCreated = created;
+			if (oldAuthentication == authentication) {
+				IStateRollback rollback = new AbstractStateRollback(rollbacks) {
+					@Override
+					protected void rollbackIntern() throws Throwable {
+						if (fCreated) {
+							clearContext();
+						}
+					}
+				};
+				success = true;
+				return rollback;
+			}
+			try {
+				securityContext.setAuthentication(authentication);
+				securityContext.setAuthorization(null);
+				final ISecurityContext fSecurityContext = securityContext;
+				IStateRollback rollback = new AbstractStateRollback(rollbacks) {
+					@Override
+					protected void rollbackIntern() throws Throwable {
+						fSecurityContext.setAuthentication(oldAuthentication);
+						fSecurityContext.setAuthorization(oldAuthorization);
+						if (fCreated) {
+							clearContext();
+						}
+					}
+				};
+				success = true;
+				return rollback;
+			}
+			finally {
+				if (!success) {
+					securityContext.setAuthentication(oldAuthentication);
+					securityContext.setAuthorization(oldAuthorization);
+				}
+			}
+		}
+		finally {
+			if (!success && created) {
+				clearContext();
+			}
 		}
 	}
 

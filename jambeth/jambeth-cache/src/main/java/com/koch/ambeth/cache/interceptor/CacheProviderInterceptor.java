@@ -39,6 +39,8 @@ import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
+import com.koch.ambeth.util.state.AbstractStateRollback;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
@@ -69,8 +71,7 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor
 	protected final Stack<ICacheProvider> cacheProviderStack = new Stack<>();
 
 	@Forkable(ForkableType.SHALLOW_COPY)
-	protected final ThreadLocal<Stack<ICacheProvider>> cacheProviderStackTL =
-			new SensitiveThreadLocal<>();
+	protected final ThreadLocal<Stack<ICacheProvider>> cacheProviderStackTL = new SensitiveThreadLocal<>();
 
 	@Autowired
 	protected ICacheProvider threadLocalCacheProvider;
@@ -118,6 +119,31 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor
 	@Override
 	public boolean isNewInstanceOnCall() {
 		return getCurrentCacheProvider().isNewInstanceOnCall();
+	}
+
+	public IStateRollback pushCache(ICache cache, IStateRollback... rollbacks) {
+		return pushCache(new SingleCacheProvider(cache));
+	}
+
+	public IStateRollback pushCache(final ICacheProvider cacheProvider, IStateRollback... rollbacks) {
+		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
+
+		Stack<ICacheProvider> stack = cacheProviderStackTL.get();
+		if (stack == null) {
+			stack = new Stack<>();
+			cacheProviderStackTL.set(stack);
+		}
+		stack.push(cacheProvider);
+
+		return new AbstractStateRollback(rollbacks) {
+			@Override
+			protected void rollbackIntern() throws Throwable {
+				Stack<ICacheProvider> stack = cacheProviderStackTL.get();
+				if (stack.pop() != cacheProvider) {
+					throw new IllegalStateException("Must never happen");
+				}
+			}
+		};
 	}
 
 	@Override
