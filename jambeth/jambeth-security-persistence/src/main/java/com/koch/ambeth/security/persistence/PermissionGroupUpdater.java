@@ -21,8 +21,10 @@ limitations under the License.
  */
 
 import java.sql.Connection;
+import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -189,11 +191,9 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
 
-	protected final SmartCopyMap<Class<?>, IQuery<?>> entityTypeToAllEntitiesQuery =
-			new SmartCopyMap<>();
+	protected final SmartCopyMap<Class<?>, IQuery<?>> entityTypeToAllEntitiesQuery = new SmartCopyMap<>();
 
-	protected final SmartCopyMap<Class<?>, Class<?>[]> entityTypeToRuleReferredEntitiesMap =
-			new SmartCopyMap<>();
+	protected final SmartCopyMap<Class<?>, Class<?>[]> entityTypeToRuleReferredEntitiesMap = new SmartCopyMap<>();
 
 	protected final SmartCopySet<Class<?>> metaDataAvailableSet = new SmartCopySet<>();
 
@@ -261,8 +261,8 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 				continue;
 			}
 			ITableMetaData table = databaseMetaData.getTableByType(entityType);
-			IPermissionGroup permissionGroup =
-					databaseMetaData.getPermissionGroupOfTable(table.getName());
+			IPermissionGroup permissionGroup = databaseMetaData
+					.getPermissionGroupOfTable(table.getName());
 			if (permissionGroup == null) {
 				continue;
 			}
@@ -301,8 +301,8 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		if (emptyFlag != null) {
 			return emptyFlag.booleanValue();
 		}
-		emptyFlag =
-				dataChange != null ? Boolean.valueOf(dataChange.isEmptyByType(entityType)) : Boolean.TRUE;
+		emptyFlag = dataChange != null ? Boolean.valueOf(dataChange.isEmptyByType(entityType))
+				: Boolean.TRUE;
 		entityTypeToEmptyFlagMap.put(entityType, emptyFlag);
 		return emptyFlag.booleanValue();
 	}
@@ -312,10 +312,10 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		if (entityToPgUpdateMap.size() == 0) {
 			return;
 		}
-		HashMap<Class<?>, IDataChange> entityTypeToDataChangeMap =
-				HashMap.<Class<?>, IDataChange>create(entityToPgUpdateMap.size());
-		HashMap<Class<?>, Boolean> entityTypeToEmptyFlagMap =
-				HashMap.<Class<?>, Boolean>create(entityToPgUpdateMap.size());
+		HashMap<Class<?>, IDataChange> entityTypeToDataChangeMap = HashMap
+				.<Class<?>, IDataChange>create(entityToPgUpdateMap.size());
+		HashMap<Class<?>, Boolean> entityTypeToEmptyFlagMap = HashMap
+				.<Class<?>, Boolean>create(entityToPgUpdateMap.size());
 
 		for (Entry<Class<?>, PgUpdateEntry> entry : entityToPgUpdateMap) {
 			Class<?> entityType = entry.getKey();
@@ -340,32 +340,32 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 			}
 
 			if (PermissionGroupUpdateType.SELECTED_ROW.equals(pgUpdateEntry.getUpdateType())) {
-				IDataChange dataChangeOfEntityType =
-						getOrCreateDataChangeOfEntityType(dataChange, entityType, entityTypeToDataChangeMap);
+				IDataChange dataChangeOfEntityType = getOrCreateDataChangeOfEntityType(dataChange,
+						entityType, entityTypeToDataChangeMap);
 				pgUpdateEntry.setDataChange(dataChangeOfEntityType);
 			}
 		}
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected boolean hasChangesOnRuleReferredEntities(Class<?> entityType, IDataChange dataChange,
 			IMap<Class<?>, IDataChange> entityTypeToDataChangeMap,
 			IMap<Class<?>, Boolean> entityTypeToEmptyFlagMap) {
 		Class<?>[] touchedByRuleTypes = entityTypeToRuleReferredEntitiesMap.get(entityType);
 
 		if (touchedByRuleTypes == null) {
-			IList<IEntityPermissionRule<?>> entityPermissionRules =
-					entityPermissionRuleProvider.getEntityPermissionRules(entityType);
+			IList<IEntityPermissionRule<?>> entityPermissionRules = entityPermissionRuleProvider
+					.getEntityPermissionRules(entityType);
 			IPrefetchConfig prefetchConfig = prefetchHelper.createPrefetch();
 			for (IEntityPermissionRule entityPermissionRule : entityPermissionRules) {
 				entityPermissionRule.buildPrefetchConfig(entityType, prefetchConfig);
 			}
 			IPrefetchHandle prefetchHandle = prefetchConfig.build();
-			ILinkedMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchSteps =
-					((PrefetchHandle) prefetchHandle).getEntityTypeToPrefetchSteps();
+			ILinkedMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchSteps = ((PrefetchHandle) prefetchHandle)
+					.getEntityTypeToPrefetchSteps();
 
-			HashSet<Class<?>> touchedByRuleTypesSet =
-					HashSet.<Class<?>>create(entityTypeToPrefetchSteps.size());
+			HashSet<Class<?>> touchedByRuleTypesSet = HashSet
+					.<Class<?>>create(entityTypeToPrefetchSteps.size());
 			for (Entry<Class<?>, PrefetchPath[]> prefetchEntry : entityTypeToPrefetchSteps) {
 				Class<?> entityTypeOfPrefetch = prefetchEntry.getKey();
 				touchedByRuleTypesSet.add(entityTypeOfPrefetch);
@@ -430,12 +430,12 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 			return;
 		}
 		long start = System.currentTimeMillis();
-		ISecurityScope[] securityScopes = new ISecurityScope[] {new ISecurityScope() {
+		ISecurityScope[] securityScopes = new ISecurityScope[] { new ISecurityScope() {
 			@Override
 			public String getName() {
 				return "dummy";
 			}
-		}};
+		} };
 
 		try {
 			Boolean pgUpdated = securityScopeProvider
@@ -446,8 +446,8 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 									.executeWithoutFiltering(new IResultingBackgroundWorkerDelegate<Boolean>() {
 										@Override
 										public Boolean invoke() throws Throwable {
-											IMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap =
-													createPgUpdateMap(dataChange);
+											IMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap = createPgUpdateMap(
+													dataChange);
 											if (entityToPgUpdateMap.size() == 0) {
 												return Boolean.FALSE;
 											}
@@ -477,16 +477,16 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 																	throw RuntimeExceptionUtil.createEnumNotSupportedException(
 																			pgUpdateEntry.getUpdateType());
 															}
-															ArrayList<IObjRef> permissionObjRefs =
-																	new ArrayList<>(objRefs.size());
+															ArrayList<IObjRef> permissionObjRefs = new ArrayList<>(
+																	objRefs.size());
 															for (int a = objRefs.size(); a-- > 0;) {
 																permissionObjRefs.add(new ObjRef(IPermissionGroup.class,
 																		ObjRef.PRIMARY_KEY_INDEX, null, null));
 															}
 															primaryKeyProvider.acquireIds(permissionGroup.getTable(),
 																	permissionObjRefs);
-															ArrayList<Object> permissionGroupIds =
-																	new ArrayList<>(permissionObjRefs.size());
+															ArrayList<Object> permissionGroupIds = new ArrayList<>(
+																	permissionObjRefs.size());
 															for (int a = 0, size = permissionObjRefs.size(); a < size; a++) {
 																permissionGroupIds.add(permissionObjRefs.get(a).getId());
 															}
@@ -515,8 +515,8 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 												pgUpdateEntry.setStartIndexInAllObjRefs(allObjRefs.size());
 												allObjRefs.addAll(pgUpdateEntry.getObjRefs());
 											}
-											final IPrivilege[][] allPrivilegesOfAllUsers =
-													evaluateAllPrivileges(allObjRefs, authentications, authorizations);
+											final IPrivilege[][] allPrivilegesOfAllUsers = evaluateAllPrivileges(
+													allObjRefs, authentications, authorizations);
 
 											multithreadingHelper.invokeAndWait(entityToPgUpdateMap,
 													new IBackgroundWorkerParamDelegate<Entry<Class<?>, PgUpdateEntry>>() {
@@ -581,8 +581,8 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		IConversionHelper conversionHelper = this.conversionHelper;
 		IVersionCursor versionCursor = allEntitiesQuery.retrieveAsVersions(false);
 		try {
-			IPreparedObjRefFactory prepareObjRefFactory =
-					objRefFactory.prepareObjRefFactory(entityType, ObjRef.PRIMARY_KEY_INDEX);
+			IPreparedObjRefFactory prepareObjRefFactory = objRefFactory.prepareObjRefFactory(entityType,
+					ObjRef.PRIMARY_KEY_INDEX);
 			ArrayList<IObjRef> objRefs = new ArrayList<>();
 			while (versionCursor.moveNext()) {
 				IVersionItem item = versionCursor.getCurrent();
@@ -718,8 +718,8 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 					securityContext.setAuthentication(authentication);
 					securityContext.setAuthorization(authorization);
 
-					allPrivilegesOfAllUsers[a] =
-							privilegeProvider.getPrivilegesByObjRef(allObjRefs).getPrivileges();
+					allPrivilegesOfAllUsers[a] = privilegeProvider.getPrivilegesByObjRef(allObjRefs)
+							.getPrivileges();
 				}
 				return allPrivilegesOfAllUsers;
 			}
@@ -738,9 +738,15 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		IList<Object> permissionGroupIds = pgUpdateEntry.getPermissionGroupIds();
 		int startIndexInAllObjRefs = pgUpdateEntry.getStartIndexInAllObjRefs();
 
-		PreparedStatement insertPermissionGroupPstm =
-				buildInsertPermissionGroupStm(pgUpdateEntry.getPermissionGroup());
+		PreparedStatement insertPermissionGroupPstm = buildInsertPermissionGroupStm(
+				pgUpdateEntry.getPermissionGroup());
 		try {
+			ParameterMetaData pmd = insertPermissionGroupPstm.getParameterMetaData();
+			int readIndex = 3, updateIndex = 4, deleteIndex = 5;
+			int readType = pmd.getParameterType(readIndex);
+			int updateType = pmd.getParameterType(updateIndex);
+			int deleteType = pmd.getParameterType(deleteIndex);
+
 			for (int b = permissionGroupIds.size(); b-- > 0;) {
 				Object permissionGroupId = permissionGroupIds.get(b);
 
@@ -758,9 +764,9 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 					int updateAllowed = privilege == null || privilege.isUpdateAllowed() ? 1 : 0;
 					int deleteAllowed = privilege == null || privilege.isDeleteAllowed() ? 1 : 0;
 
-					insertPermissionGroupPstm.setInt(3, readAllowed);
-					insertPermissionGroupPstm.setInt(4, updateAllowed);
-					insertPermissionGroupPstm.setInt(5, deleteAllowed);
+					setBit(insertPermissionGroupPstm, readIndex, readType, readAllowed);
+					setBit(insertPermissionGroupPstm, updateIndex, updateType, updateAllowed);
+					setBit(insertPermissionGroupPstm, deleteIndex, deleteType, deleteAllowed);
 					insertPermissionGroupPstm.addBatch();
 				}
 			}
@@ -771,6 +777,17 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		}
 		finally {
 			insertPermissionGroupPstm.close();
+		}
+	}
+
+	private void setBit(PreparedStatement pstm, int index, int type, int bit) throws SQLException {
+		switch (type) {
+			case Types.BIT: {
+				pstm.setBoolean(index, bit != 0);
+				break;
+			}
+			default:
+				pstm.setInt(index, bit);
 		}
 	}
 
