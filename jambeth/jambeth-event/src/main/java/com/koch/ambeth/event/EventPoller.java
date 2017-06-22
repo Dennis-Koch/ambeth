@@ -23,6 +23,8 @@ limitations under the License.
 import java.util.List;
 
 import com.koch.ambeth.event.config.EventConfigurationConstants;
+import com.koch.ambeth.event.events.EventSessionChanged;
+import com.koch.ambeth.event.exceptions.EventPollException;
 import com.koch.ambeth.event.model.IEventItem;
 import com.koch.ambeth.event.service.IEventService;
 import com.koch.ambeth.ioc.IDisposableBean;
@@ -110,8 +112,8 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 								}
 							}
 						}
-						currentEventSequence =
-								tryPolling(currentServerSession, currentEventSequence, errorOccured);
+						currentEventSequence = tryPolling(currentServerSession, currentEventSequence,
+								errorOccured);
 						if (stopRequested) {
 							break;
 						}
@@ -152,6 +154,16 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 			}
 			if (log.isErrorEnabled()) {
 				log.error(e);
+			}
+			Throwable currEx = e;
+			while (currEx != null) {
+				if (currEx instanceof EventPollException) {
+					long newServerSession = eventService.getCurrentServerSession();
+					eventDispatcher.dispatchEvent(
+							new EventSessionChanged(eventService, currentServerSession, newServerSession));
+					break;
+				}
+				currEx = currEx.getCause();
 			}
 		}
 		if (events == null || events.size() == 0) {

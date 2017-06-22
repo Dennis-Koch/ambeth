@@ -145,7 +145,11 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 		finally {
 			writeLock.unlock();
 		}
+	}
 
+	@Override
+	public Object getRemoteSourceIdentifier() {
+		return serviceBaseUrl;
 	}
 
 	@Override
@@ -204,8 +208,8 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 				url = new URL(serviceBaseUrl + "/" + serviceName + "/" + method.getName());
 			}
 			HttpClient httpClient = httpClientProvider.getHttpClient();
-			HttpHost httpHost =
-					httpClientProvider.getHttpHost(url.getHost(), url.getPort(), url.getProtocol());
+			HttpHost httpHost = httpClientProvider.getHttpHost(url.getHost(), url.getPort(),
+					url.getProtocol());
 
 			Object result = null;
 
@@ -365,7 +369,7 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 		}
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected Object convertToExpectedType(Class<?> expectedType, Type genericType, Object result) {
 		if (void.class.equals(expectedType) || result == null) {
 			return null;

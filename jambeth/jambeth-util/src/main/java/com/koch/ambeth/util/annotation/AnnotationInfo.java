@@ -42,4 +42,9 @@ public class AnnotationInfo<A extends Annotation> implements IAnnotationInfo<A> 
 	public AnnotatedElement getAnnotatedElement() {
 		return annotatedElement;
 	}
+
+	@Override
+	public String toString() {
+		return getAnnotatedElement() + ": " + getAnnotation();
+	}
 }
