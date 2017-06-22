@@ -26,4 +26,6 @@ public interface ISecondLevelCacheManager {
 	IRootCache selectPrivilegedSecondLevelCache(boolean forceInstantiation);
 
 	IRootCache selectNonPrivilegedSecondLevelCache(boolean forceInstantiation);
+
+	IRootCache[] selectAllCurrentSecondLevelCaches();
 }

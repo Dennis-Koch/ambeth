@@ -29,6 +29,7 @@ import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
+import com.koch.ambeth.ioc.util.IPropertiesProvider;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.testutil.AmbethIocRunnerTest.MyTestModule;
 import com.koch.ambeth.util.IPrintable;

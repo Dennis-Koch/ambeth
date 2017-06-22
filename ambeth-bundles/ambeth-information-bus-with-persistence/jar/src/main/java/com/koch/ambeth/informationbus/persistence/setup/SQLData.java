@@ -26,9 +26,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.TYPE})
+@Target({ ElementType.METHOD, ElementType.TYPE })
 public @interface SQLData {
 	String[] value() default {};
+
+	Class<? extends ISchemaFileProvider> valueProvider() default ISchemaFileProvider.class;
 
 	Class<? extends ISchemaRunnable> type() default ISchemaRunnable.class;
 }

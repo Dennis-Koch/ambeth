@@ -149,10 +149,10 @@ public class PrivilegeOfService implements IPrivilegeOfService, IPrintable {
 
 	@Override
 	public void toString(StringBuilder sb) {
-		sb.append(isReadAllowed() ? "+R" : "-R");
-		sb.append(isCreateAllowed() ? "+C" : "-C");
-		sb.append(isUpdateAllowed() ? "+U" : "-U");
-		sb.append(isDeleteAllowed() ? "+D" : "-D");
-		sb.append(isExecuteAllowed() ? "+E" : "-E");
+		sb.append(isReadAllowed() ? 'r' : '-');
+		sb.append(isCreateAllowed() ? 'c' : '-');
+		sb.append(isUpdateAllowed() ? 'u' : '-');
+		sb.append(isDeleteAllowed() ? 'd' : '-');
+		sb.append(isExecuteAllowed() ? 'e' : '-');
 	}
 }

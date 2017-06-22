@@ -112,9 +112,9 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
 				return null;
 			}
 			// share the locks from the privileged rootCache
-			nonPrivilegedRootCache =
-					acquireRootCache(privileged, rootCacheTL, (ICacheRetriever) privilegedRootCache,
-							privilegedRootCache.getReadLock(), privilegedRootCache.getWriteLock());
+			nonPrivilegedRootCache = acquireRootCache(privileged, rootCacheTL,
+					(ICacheRetriever) privilegedRootCache, privilegedRootCache.getReadLock(),
+					privilegedRootCache.getWriteLock());
 		}
 		return nonPrivilegedRootCache;
 	}
@@ -210,5 +210,12 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
 		}
 		IRootCache rootCache = getCurrentRootCache(privileged);
 		return proxy.invoke(rootCache, args);
+	}
+
+	@Override
+	public IRootCache[] selectAllCurrentSecondLevelCaches() {
+		synchronized (allRootCaches) {
+			return allRootCaches.toArray(IRootCache.class);
+		}
 	}
 }

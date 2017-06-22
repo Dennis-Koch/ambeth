@@ -70,6 +70,7 @@ import com.koch.ambeth.cache.walker.CacheWalker;
 import com.koch.ambeth.cache.walker.ICacheWalker;
 import com.koch.ambeth.event.IEventListenerExtendable;
 import com.koch.ambeth.event.IEventTargetExtractorExtendable;
+import com.koch.ambeth.event.events.EventSessionChanged;
 import com.koch.ambeth.filter.IPagingResponse;
 import com.koch.ambeth.filter.query.service.IGenericQueryService;
 import com.koch.ambeth.ioc.IInitializingModule;
@@ -169,9 +170,13 @@ public class CacheModule implements IInitializingModule {
 		beanContextFactory.registerAutowireableBean(IRootCacheValueFactory.class,
 				RootCacheValueFactory.class);
 
-		beanContextFactory.registerBean(ROOT_CACHE_RETRIEVER, CacheRetrieverRegistry.class)
+		IBeanConfiguration cacheRetrieverRegistry = beanContextFactory
+				.registerBean(ROOT_CACHE_RETRIEVER, CacheRetrieverRegistry.class)
 				.autowireable(ICacheServiceByNameExtendable.class, ICacheRetrieverExtendable.class,
 						IRelationRetrieverExtendable.class, IPrimitiveRetrieverExtendable.class);
+		beanContextFactory
+				.link(cacheRetrieverRegistry, CacheRetrieverRegistry.HANDLE_EVENT_SESSION_CHANGED)
+				.to(IEventListenerExtendable.class).with(EventSessionChanged.class);
 
 		beanContextFactory.registerBean("firstLevelCacheManager", FirstLevelCacheManager.class)
 				.autowireable(IFirstLevelCacheExtendable.class, IFirstLevelCacheManager.class);
@@ -188,7 +193,7 @@ public class CacheModule implements IInitializingModule {
 				.autowireable(ITransactionalRootCacheManager.class, ISecondLevelCacheManager.class);
 
 		Object txRcProxy = proxyFactory.createProxy(
-				new Class<?>[] {IRootCache.class, ICacheIntern.class, IOfflineListener.class},
+				new Class<?>[] { IRootCache.class, ICacheIntern.class, IOfflineListener.class },
 				txRcInterceptor);
 
 		beanContextFactory.registerExternalBean(ROOT_CACHE, txRcProxy).autowireable(IRootCache.class,
@@ -208,16 +213,15 @@ public class CacheModule implements IInitializingModule {
 			// cleared with each service
 			// request. Effectively this means that the root cache itself only lives per-request and does
 			// not hold a longer state
-			ThreadLocalRootCacheInterceptor threadLocalRcInterceptor =
-					new ThreadLocalRootCacheInterceptor();
+			ThreadLocalRootCacheInterceptor threadLocalRcInterceptor = new ThreadLocalRootCacheInterceptor();
 
 			beanContextFactory
 					.registerWithLifecycle("threadLocalRootCacheInterceptor", threadLocalRcInterceptor)
 					.propertyRef("StoredCacheRetriever", CacheModule.ROOT_CACHE_RETRIEVER)
 					.propertyValue("Privileged", Boolean.TRUE);
 
-			IRootCache threadLocalRcProxy =
-					proxyFactory.createProxy(IRootCache.class, threadLocalRcInterceptor);
+			IRootCache threadLocalRcProxy = proxyFactory.createProxy(IRootCache.class,
+					threadLocalRcInterceptor);
 
 			beanContextFactory.registerExternalBean(COMMITTED_ROOT_CACHE, threadLocalRcProxy);
 		}
@@ -233,7 +237,7 @@ public class CacheModule implements IInitializingModule {
 				.getInstance();
 
 		Object cacheProxy = proxyFactory.createProxy(ICache.class,
-				new Class[] {ICacheProvider.class, IWritableCache.class}, cacheProviderInterceptor);
+				new Class[] { ICacheProvider.class, IWritableCache.class }, cacheProviderInterceptor);
 		beanContextFactory.registerExternalBean("cache", cacheProxy).autowireable(ICache.class);
 
 		beanContextFactory.registerBean("pagingQuerySRP", PagingQueryServiceResultProcessor.class);
@@ -271,8 +275,8 @@ public class CacheModule implements IInitializingModule {
 		beanContextFactory.link(defaultCacheProviderBeanName).to(ICacheProviderExtendable.class);
 
 		// CacheContextPostProcessor must be registered AFTER CachePostProcessor...
-		Object cachePostProcessor =
-				beanContextFactory.registerBean(CachePostProcessor.class).getInstance();
+		Object cachePostProcessor = beanContextFactory.registerBean(CachePostProcessor.class)
+				.getInstance();
 		beanContextFactory.registerBean(CacheContextPostProcessor.class)
 				.propertyValue("CachePostProcessor", cachePostProcessor);
 

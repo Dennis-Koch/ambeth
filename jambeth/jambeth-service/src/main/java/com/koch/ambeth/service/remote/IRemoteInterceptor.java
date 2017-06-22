@@ -23,6 +23,8 @@ limitations under the License.
 import net.sf.cglib.proxy.MethodInterceptor;
 
 public interface IRemoteInterceptor extends MethodInterceptor {
+	Object getRemoteSourceIdentifier();
+
 	String getServiceName();
 
 	void setServiceName(String serviceName);

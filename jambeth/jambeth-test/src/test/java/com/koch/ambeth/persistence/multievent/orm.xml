@@ -21,8 +21,8 @@ limitations under the License.
 
 <entity-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_1_2">
 
-	<entity class="com.koch.ambeth.persistence.event.MultiEventEntity" />
+	<entity class="com.koch.ambeth.persistence.multievent.MultiEventEntity" />
 
-	<entity class="com.koch.ambeth.persistence.event.MultiEventEntity2" />
+	<entity class="com.koch.ambeth.persistence.multievent.MultiEventEntity2" />
 
 </entity-mappings>

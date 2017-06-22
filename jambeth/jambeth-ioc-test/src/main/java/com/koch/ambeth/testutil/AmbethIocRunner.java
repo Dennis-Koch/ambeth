@@ -38,6 +38,7 @@ import com.koch.ambeth.ioc.IocModule;
 import com.koch.ambeth.ioc.factory.BeanContextFactory;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
+import com.koch.ambeth.ioc.util.IPropertiesProvider;
 import com.koch.ambeth.log.LoggerFactory;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.log.io.FileUtil;
@@ -45,6 +46,7 @@ import com.koch.ambeth.util.NullPrintStream;
 import com.koch.ambeth.util.annotation.AnnotationInfo;
 import com.koch.ambeth.util.annotation.IAnnotationInfo;
 import com.koch.ambeth.util.collections.ArrayList;
+import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.config.IProperties;
@@ -212,43 +214,46 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 
 		LinkedHashMap<String, TestProperties> allTestProperties = new LinkedHashMap<>();
 
+		ArrayList<TestProperties> additionalProperties = new ArrayList<>();
+
 		for (int a = 0, size = testPropertiesList.size(); a < size; a++) {
 			IAnnotationInfo<?> annotationInfo = testPropertiesList.get(a);
 			Annotation testPropertiesItem = annotationInfo.getAnnotation();
 
-			if (testPropertiesItem instanceof TestPropertiesList
-					|| testPropertiesItem instanceof TestProperties) {
-				if (testPropertiesItem instanceof TestPropertiesList) {
-					TestPropertiesList mtp = (TestPropertiesList) testPropertiesItem;
-					for (TestProperties testProperties : mtp.value()) {
-						allTestProperties.put(testProperties.name(), testProperties);
+			if (testPropertiesItem instanceof TestPropertiesList) {
+				TestPropertiesList mtp = (TestPropertiesList) testPropertiesItem;
+				for (TestProperties testProperties : mtp.value()) {
+					if (testProperties.name() == null) {
+						additionalProperties.add(testProperties);
+						continue;
 					}
-				}
-				else {
-					TestProperties testProperties = (TestProperties) testPropertiesItem;
 					allTestProperties.put(testProperties.name(), testProperties);
 				}
 			}
+			else {
+				TestProperties testProperties = (TestProperties) testPropertiesItem;
+				if (testProperties.name() == null) {
+					additionalProperties.add(testProperties);
+					continue;
+				}
+				allTestProperties.put(testProperties.name(), testProperties);
+			}
 		}
-		return allTestProperties.values();
+		IList<TestProperties> list = allTestProperties.values();
+		list.addAll(additionalProperties);
+		return list;
 	}
 
 	public static void extendProperties(Class<?> testClass, FrameworkMethod frameworkMethod,
 			Properties props) {
 		List<TestProperties> allTestProperties = getAllTestProperties(testClass, frameworkMethod);
 
+		ArrayList<TestProperties> additionalTestProperties = new ArrayList<>();
 		for (int a = 0, size = allTestProperties.size(); a < size; a++) {
 			TestProperties testProperties = allTestProperties.get(a);
 			Class<? extends IPropertiesProvider> testPropertiesType = testProperties.type();
 			if (testPropertiesType != null && !IPropertiesProvider.class.equals(testPropertiesType)) {
-				IPropertiesProvider propertiesProvider;
-				try {
-					propertiesProvider = testPropertiesType.newInstance();
-				}
-				catch (Throwable e) {
-					throw RuntimeExceptionUtil.mask(e);
-				}
-				propertiesProvider.fillProperties(props);
+				additionalTestProperties.add(testProperties);
 			}
 			String testPropertiesFile = testProperties.file();
 			if (testPropertiesFile != null && testPropertiesFile.length() > 0) {
@@ -264,6 +269,16 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 					}
 				}
 			}
+		}
+		for (TestProperties testProperties : additionalTestProperties) {
+			IPropertiesProvider propertiesProvider;
+			try {
+				propertiesProvider = testProperties.type().newInstance();
+			}
+			catch (Throwable e) {
+				throw RuntimeExceptionUtil.mask(e);
+			}
+			propertiesProvider.fillProperties(props);
 		}
 	}
 

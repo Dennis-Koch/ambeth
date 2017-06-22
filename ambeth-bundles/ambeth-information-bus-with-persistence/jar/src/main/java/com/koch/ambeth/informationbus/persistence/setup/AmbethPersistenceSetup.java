@@ -73,6 +73,7 @@ import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
+import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.config.UtilConfigurationConstants;
 import com.koch.ambeth.util.exception.MaskingRuntimeException;
@@ -89,7 +90,6 @@ public class AmbethPersistenceSetup implements Closeable {
 		}
 		return sqlExecutionOrder.clone();
 	}
-
 
 	private Connection connection;
 
@@ -109,42 +109,42 @@ public class AmbethPersistenceSetup implements Closeable {
 
 	private static final Pattern whitespaces = Pattern.compile("[ \\t]+");
 
-	private static final Pattern[] sqlComments =
-			{Pattern.compile("^--[^:].*"), Pattern.compile("^/\\*.*\\*/"), Pattern.compile(" *@@@ *")};
+	private static final Pattern[] sqlComments = { Pattern.compile("^--[^:].*"),
+			Pattern.compile("^/\\*.*\\*/"), Pattern.compile(" *@@@ *") };
 
-	private static final Pattern[] ignoreOutside = {Pattern.compile("^/$")};
+	private static final Pattern[] ignoreOutside = { Pattern.compile("^/$") };
 
-	private static final Pattern[] ignoreIfContains = {Pattern.compile(".*?DROP CONSTRAINT.*?")};
+	private static final Pattern[] ignoreIfContains = { Pattern.compile(".*?DROP CONSTRAINT.*?") };
 
 	private static final Pattern[][] sqlCommands = {
-			{Pattern.compile(
+			{ Pattern.compile(
 					"CREATE( +OR +REPLACE)? +(?:TABLE|VIEW|INDEX|TYPE|SEQUENCE|SYNONYM|TABLESPACE) +.+",
 					Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?([;\\/]|@@@)")},
-			{Pattern.compile("CREATE( +OR +REPLACE)? +(?:FUNCTION|PROCEDURE|TRIGGER) +.+",
+					Pattern.compile(".*?([;\\/]|@@@)") },
+			{ Pattern.compile("CREATE( +OR +REPLACE)? +(?:FUNCTION|PROCEDURE|TRIGGER) +.+",
 					Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?END(?:[;\\/]|@@@)", Pattern.CASE_INSENSITIVE)},
-			{Pattern.compile("ALTER +(?:TABLE|VIEW) .+", Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?([;\\/]|@@@)")},
-			{Pattern.compile("CALL +.+", Pattern.CASE_INSENSITIVE), Pattern.compile(".*?([;\\/]|@@@)")},
-			{Pattern.compile("(?:INSERT +INTO|UPDATE) .+", Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?([;\\/]|@@@)")},
-			{Pattern.compile("(?:COMMENT) .+", Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?([;\\/]|@@@)")}};
+					Pattern.compile(".*?END(?:[;\\/]|@@@)", Pattern.CASE_INSENSITIVE) },
+			{ Pattern.compile("ALTER +(?:TABLE|VIEW) .+", Pattern.CASE_INSENSITIVE),
+					Pattern.compile(".*?([;\\/]|@@@)") },
+			{ Pattern.compile("CALL +.+", Pattern.CASE_INSENSITIVE), Pattern.compile(".*?([;\\/]|@@@)") },
+			{ Pattern.compile("(?:INSERT +INTO|UPDATE) .+", Pattern.CASE_INSENSITIVE),
+					Pattern.compile(".*?([;\\/]|@@@)") },
+			{ Pattern.compile("(?:COMMENT) .+", Pattern.CASE_INSENSITIVE),
+					Pattern.compile(".*?([;\\/]|@@@)") } };
 
-	private static final Pattern[][] sqlIgnoredCommands =
-			{{Pattern.compile("DROP +.+", Pattern.CASE_INSENSITIVE), Pattern.compile(".*?([;\\/]|@@@)")}};
+	private static final Pattern[][] sqlIgnoredCommands = { {
+			Pattern.compile("DROP +.+", Pattern.CASE_INSENSITIVE), Pattern.compile(".*?([;\\/]|@@@)") } };
 
 	// TODO Check only implemented for first array element
-	private static final Pattern[][] sqlTryOnlyCommands =
-			{{Pattern.compile("CREATE OR REPLACE *.*")}};
+	private static final Pattern[][] sqlTryOnlyCommands = {
+			{ Pattern.compile("CREATE OR REPLACE *.*") } };
 
 	private static final Pattern optionLine = Pattern.compile("^--:(.*)");
 
 	protected final StringBuilder measurementXML = new StringBuilder();
 
-	protected final DefaultXmlWriter xmlWriter =
-			new DefaultXmlWriter(new AppendableStringBuilder(measurementXML), null);
+	protected final DefaultXmlWriter xmlWriter = new DefaultXmlWriter(
+			new AppendableStringBuilder(measurementXML), null);
 
 	protected boolean testUserHasBeenCreated;
 
@@ -175,8 +175,8 @@ public class AmbethPersistenceSetup implements Closeable {
 
 	private boolean checkAdditionalSchemaEmpty(final Connection conn, final String schemaName)
 			throws SQLException {
-		IConnectionDialect connectionDialect =
-				getOrCreateSchemaContext().getService(IConnectionDialect.class);
+		IConnectionDialect connectionDialect = getOrCreateSchemaContext()
+				.getService(IConnectionDialect.class);
 		List<String> allTableNames = connectionDialect.getAllFullqualifiedTableNames(conn, schemaName);
 
 		for (int i = allTableNames.size(); i-- > 0;) {
@@ -349,11 +349,11 @@ public class AmbethPersistenceSetup implements Closeable {
 						}
 					}
 					if (commandToExceptionMap.size() > 1) {
-						errorMessage +=
-								". There are " + commandToExceptionMap.size() + " exceptions! The first one is:";
+						errorMessage += ". There are " + commandToExceptionMap.size()
+								+ " exceptions! The first one is:";
 					}
-					PersistenceException pe =
-							new PersistenceException(errorMessage, firstEntry.getValue().get(0));
+					PersistenceException pe = new PersistenceException(errorMessage,
+							firstEntry.getValue().get(0));
 					pe.setStackTrace(new StackTraceElement[0]);
 					throw pe;
 				}
@@ -405,8 +405,8 @@ public class AmbethPersistenceSetup implements Closeable {
 		DialectSelectorModule.fillProperties(props);
 
 		try {
-			Connection schemaConnection =
-					connection != null && !connection.isClosed() ? connection : null;
+			Connection schemaConnection = connection != null && !connection.isClosed() ? connection
+					: null;
 			if (schemaConnection == null
 					|| !schemaConnection.isWrapperFor(IPreparedConnectionHolder.class)) {
 				return;
@@ -490,8 +490,8 @@ public class AmbethPersistenceSetup implements Closeable {
 			final Method frameworkMethod) {
 		List<ISchemaRunnable> schemaRunnables = new ArrayList<>();
 
-		List<IAnnotationInfo<?>> annotations =
-				findAnnotations(type, frameworkMethod, SQLDataList.class, SQLData.class);
+		List<IAnnotationInfo<?>> annotations = findAnnotations(type, frameworkMethod, SQLDataList.class,
+				SQLData.class);
 
 		IServiceContext schemaContext = getOrCreateSchemaContext();
 		IConnectionDialect connectionDialect = schemaContext.getService(IConnectionDialect.class);
@@ -503,17 +503,17 @@ public class AmbethPersistenceSetup implements Closeable {
 
 				SQLData[] value = sqlDataList.value();
 				for (SQLData sqlData : value) {
-					getSchemaRunnable(sqlData.type(), sqlData.value(), schemaRunnables,
-							schemaItem.getAnnotatedElement(), true, null, connectionDialect, properties, getLog(),
-							doExecuteStrict);
+					getSchemaRunnable(schemaContext, sqlData.type(), sqlData.valueProvider(), sqlData.value(),
+							schemaRunnables, schemaItem.getAnnotatedElement(), true, null, connectionDialect,
+							properties, getLog(), doExecuteStrict);
 				}
 			}
 			else {
 				SQLData sqlData = (SQLData) annotation;
 
-				getSchemaRunnable(sqlData.type(), sqlData.value(), schemaRunnables,
-						schemaItem.getAnnotatedElement(), true, null, connectionDialect, properties, getLog(),
-						doExecuteStrict);
+				getSchemaRunnable(schemaContext, sqlData.type(), sqlData.valueProvider(), sqlData.value(),
+						schemaRunnables, schemaItem.getAnnotatedElement(), true, null, connectionDialect,
+						properties, getLog(), doExecuteStrict);
 			}
 		}
 		return schemaRunnables.toArray(new ISchemaRunnable[schemaRunnables.size()]);
@@ -562,33 +562,48 @@ public class AmbethPersistenceSetup implements Closeable {
 	private String[] getSchemaNames() {
 		IServiceContext schemaContext = getOrCreateSchemaContext();
 		IProperties properties = schemaContext.getService(IProperties.class);
-		String schemaProperty =
-				(String) properties.get(PersistenceJdbcConfigurationConstants.DatabaseSchemaName);
+		String schemaProperty = (String) properties
+				.get(PersistenceJdbcConfigurationConstants.DatabaseSchemaName);
 		String[] schemaNames = schemaContext.getService(IConnectionDialect.class)
 				.toDefaultCase(schemaProperty).split("[:;]");
 		return schemaNames;
 	}
 
-	protected static void getSchemaRunnable(final Class<? extends ISchemaRunnable> schemaRunnableType,
-			final String[] schemaFiles, final List<ISchemaRunnable> schemaRunnables,
-			final AnnotatedElement callingClass, final boolean doCommitBehavior,
-			final IList<String> sqlExecutionOrder, final IConnectionDialect connectionDialect,
-			final IProperties properties, final ILogger log, final boolean doExecuteStrict) {
+	protected static void getSchemaRunnable(IServiceContext schemaContext,
+			Class<? extends ISchemaRunnable> schemaRunnableType,
+			Class<? extends ISchemaFileProvider> valueProviderType, String[] schemaFiles,
+			List<ISchemaRunnable> schemaRunnables, final AnnotatedElement callingClass,
+			final boolean doCommitBehavior, final IList<String> sqlExecutionOrder,
+			final IConnectionDialect connectionDialect, final IProperties properties, final ILogger log,
+			final boolean doExecuteStrict) {
 		if (schemaRunnableType != null && !ISchemaRunnable.class.equals(schemaRunnableType)) {
 			try {
-				ISchemaRunnable schemaRunnable = schemaRunnableType.newInstance();
+				ISchemaRunnable schemaRunnable = schemaContext.registerBean(schemaRunnableType).finish();
 				schemaRunnables.add(schemaRunnable);
 			}
 			catch (Throwable e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
+		if (valueProviderType != null && !ISchemaFileProvider.class.equals(valueProviderType)) {
+			try {
+				ISchemaFileProvider valueProvider = schemaContext.registerBean(valueProviderType).finish();
+				String[] additionalSchemaFiles = valueProvider.getSchemaFiles();
+				LinkedHashSet<String> set = new LinkedHashSet<>(schemaFiles);
+				set.addAll(additionalSchemaFiles);
+				schemaFiles = set.toArray(String.class);
+			}
+			catch (Throwable e) {
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
+		final String[] fSchemaFiles = schemaFiles;
 		ISchemaRunnable schemaRunnable = new ISchemaRunnable() {
 			@Override
 			public void executeSchemaSql(final Connection connection) throws Exception {
 				ArrayList<String> allSQL = new ArrayList<>();
 				HashMap<String, String> sqlToSourceMap = new HashMap<>();
-				for (String schemaFile : schemaFiles) {
+				for (String schemaFile : fSchemaFiles) {
 					if (schemaFile == null || schemaFile.length() == 0) {
 						continue;
 					}
@@ -609,8 +624,8 @@ public class AmbethPersistenceSetup implements Closeable {
 			final Class<?> type, IList<String> sqlExecutionOrder) {
 		List<ISchemaRunnable> schemaRunnables = new ArrayList<>();
 
-		List<IAnnotationInfo<?>> annotations =
-				findAnnotations(type, SQLStructureList.class, SQLStructure.class);
+		List<IAnnotationInfo<?>> annotations = findAnnotations(type, SQLStructureList.class,
+				SQLStructure.class);
 
 		IServiceContext schemaContext = getOrCreateSchemaContext();
 		IConnectionDialect connectionDialect = schemaContext.getService(IConnectionDialect.class);
@@ -622,16 +637,16 @@ public class AmbethPersistenceSetup implements Closeable {
 
 				SQLStructure[] value = sqlStructureList.value();
 				for (SQLStructure sqlStructure : value) {
-					getSchemaRunnable(sqlStructure.type(), sqlStructure.value(), schemaRunnables,
-							schemaItem.getAnnotatedElement(), true, sqlExecutionOrder, connectionDialect,
-							properties, getLog(), doExecuteStrict);
+					getSchemaRunnable(schemaContext, sqlStructure.type(), sqlStructure.schemaFileProvider(),
+							sqlStructure.value(), schemaRunnables, schemaItem.getAnnotatedElement(), true,
+							sqlExecutionOrder, connectionDialect, properties, getLog(), doExecuteStrict);
 				}
 			}
 			else {
 				SQLStructure sqlStructure = (SQLStructure) annotation;
-				getSchemaRunnable(sqlStructure.type(), sqlStructure.value(), schemaRunnables,
-						schemaItem.getAnnotatedElement(), true, sqlExecutionOrder, connectionDialect,
-						properties, getLog(), doExecuteStrict);
+				getSchemaRunnable(schemaContext, sqlStructure.type(), sqlStructure.schemaFileProvider(),
+						sqlStructure.value(), schemaRunnables, schemaItem.getAnnotatedElement(), true,
+						sqlExecutionOrder, connectionDialect, properties, getLog(), doExecuteStrict);
 			}
 		}
 		return schemaRunnables.toArray(new ISchemaRunnable[schemaRunnables.size()]);
@@ -828,8 +843,7 @@ public class AmbethPersistenceSetup implements Closeable {
 			else {
 				throw new IllegalStateException("Value not supported: " + callingClass);
 			}
-			String relativePath = fileName.startsWith("/")
-					? "." + fileName
+			String relativePath = fileName.startsWith("/") ? "." + fileName
 					: callingNamespace.replace(".", File.separator) + File.separator + fileName;
 			String forwardPath = relativePath.replace('\\', '/');
 			String[] classPaths = pathSeparator.split(System.getProperty("java.class.path"));
@@ -1034,8 +1048,8 @@ public class AmbethPersistenceSetup implements Closeable {
 			truncateAllTablesBySchema(conn, getSchemaNames());
 			truncateAllTablesExplicitlyGiven(conn, getConfiguredExternalTableNames(callingClass));
 
-			ISchemaRunnable[] dataRunnables =
-					getDataRunnables(callingClass, callingClass, frameworkMethod);
+			ISchemaRunnable[] dataRunnables = getDataRunnables(callingClass, callingClass,
+					frameworkMethod);
 			executeWithDeferredConstraints(dataRunnables);
 		}
 		catch (Exception e) {
@@ -1096,14 +1110,14 @@ public class AmbethPersistenceSetup implements Closeable {
 
 				ArrayList<String> sqlExecutionOrder = new ArrayList<>();
 
-				ISchemaRunnable[] structureRunnables =
-						getStructureRunnables(callingClass, callingClass, sqlExecutionOrder);
+				ISchemaRunnable[] structureRunnables = getStructureRunnables(callingClass, callingClass,
+						sqlExecutionOrder);
 				for (ISchemaRunnable structRunnable : structureRunnables) {
 					structRunnable.executeSchemaSql(connection);
 				}
 				IConnectionDialect connectionDialect = schemaContext.getService(IConnectionDialect.class);
-				IConnectionTestDialect connectionTestDialect =
-						schemaContext.getService(IConnectionTestDialect.class);
+				IConnectionTestDialect connectionTestDialect = schemaContext
+						.getService(IConnectionTestDialect.class);
 
 				ensureExistanceOfNeededDatabaseObjects(connection, sqlExecutionOrder, connectionDialect,
 						connectionTestDialect, getLog(), doExecuteStrict);
@@ -1152,14 +1166,16 @@ public class AmbethPersistenceSetup implements Closeable {
 	/**
 	 * Delete the content from all tables within the given schema.
 	 *
-	 * @param conn SQL connection
-	 * @param schemaNames Schema names to use
+	 * @param conn
+	 *          SQL connection
+	 * @param schemaNames
+	 *          Schema names to use
 	 * @throws SQLException
 	 */
 	protected void truncateAllTablesBySchema(final Connection conn, final String... schemaNames)
 			throws SQLException {
-		final IConnectionDialect connectionDialect =
-				getOrCreateSchemaContext().getService(IConnectionDialect.class);
+		final IConnectionDialect connectionDialect = getOrCreateSchemaContext()
+				.getService(IConnectionDialect.class);
 		List<String> allTableNames = connectionDialect.getAllFullqualifiedTableNames(conn, schemaNames);
 		if (allTableNames.isEmpty()) {
 			return;
@@ -1184,8 +1200,10 @@ public class AmbethPersistenceSetup implements Closeable {
 	/**
 	 * Delete the content from the given tables.
 	 *
-	 * @param conn SQL connection
-	 * @param explicitTableNames Table name with schema (or synonym)
+	 * @param conn
+	 *          SQL connection
+	 * @param explicitTableNames
+	 *          Table name with schema (or synonym)
 	 * @throws SQLException
 	 */
 	protected void truncateAllTablesExplicitlyGiven(final Connection conn,
@@ -1193,8 +1211,8 @@ public class AmbethPersistenceSetup implements Closeable {
 		if (explicitTableNames == null || explicitTableNames.length == 0) {
 			return;
 		}
-		final IConnectionDialect connectionDialect =
-				getOrCreateSchemaContext().getService(IConnectionDialect.class);
+		final IConnectionDialect connectionDialect = getOrCreateSchemaContext()
+				.getService(IConnectionDialect.class);
 		final List<String> sql = new ArrayList<>();
 		for (int i = explicitTableNames.length; i-- > 0;) {
 			String tableName = explicitTableNames[i];
@@ -1264,8 +1282,8 @@ public class AmbethPersistenceSetup implements Closeable {
 			Class<?>[] interfaces = type.getInterfaces();
 			for (Class<?> currInterface : interfaces) {
 				for (Class<?> annotationType : annotationTypes) {
-					Annotation annotationOfInterface =
-							currInterface.getAnnotation((Class<? extends Annotation>) annotationType);
+					Annotation annotationOfInterface = currInterface
+							.getAnnotation((Class<? extends Annotation>) annotationType);
 					if (annotationOfInterface != null) {
 						targetList.add(new AnnotationInfo<>(annotationOfInterface, currInterface));
 					}
