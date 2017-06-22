@@ -23,7 +23,7 @@ timestamps {
 	        stage ("${deployOrVerifyLabelPrefix}") {
 	        	
 		        // Run the maven build
-		        withEnv(["PATH+MAVEN=${tool 'M3'}/bin","JAVA_HOME=${tool 'JDK8'}","PATH+INKSCAPE=${env.WORKSPACE}/doc/reference-manual/target/inkscape/inkscape","PATH+MIKTEX=${env.WORKSPACE}/doc/reference-manual/target/miktex/miktex/miktex/bin/x64"]) {
+		        withEnv(["JAVA_HOME=${tool 'JDK8'}","PATH+MAVEN=${tool 'M3'}/bin","PATH+JAVA=${tool 'JDK8'}/bin","PATH+INKSCAPE=${env.WORKSPACE}/doc/reference-manual/target/inkscape/inkscape","PATH+MIKTEX=${env.WORKSPACE}/doc/reference-manual/target/miktex/miktex/miktex/bin/x64"]) {
 		            
 	            	bat "mvn -B clean ${deployOrVerify}${profile} -DskipTests -Dtycho.localArtifacts=ignore -Dpmd.skip=true -Dfindbugs.skip=true -Dcheckstyle.skip=true -Dmaven.repo.local=${env.WORKSPACE}/.m2 -Djambeth.path.test=${env.WORKSPACE}/jambeth/jambeth-test"
 		        }
