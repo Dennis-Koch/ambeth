@@ -33,6 +33,8 @@ import com.koch.ambeth.cache.service.IPrimitiveRetrieverExtendable;
 import com.koch.ambeth.cache.service.IRelationRetriever;
 import com.koch.ambeth.cache.service.IRelationRetrieverExtendable;
 import com.koch.ambeth.cache.transfer.ObjRelation;
+import com.koch.ambeth.event.IEventDispatcher;
+import com.koch.ambeth.event.events.EventSessionChanged;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.exception.ExtendableException;
 import com.koch.ambeth.ioc.extendable.ClassExtendableContainer;
@@ -42,6 +44,7 @@ import com.koch.ambeth.ioc.util.IMultithreadingHelper;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IObjRefHelper;
+import com.koch.ambeth.merge.event.RefreshEntitiesOfType;
 import com.koch.ambeth.service.cache.model.ILoadContainer;
 import com.koch.ambeth.service.cache.model.IObjRelation;
 import com.koch.ambeth.service.cache.model.IObjRelationResult;
@@ -50,15 +53,21 @@ import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
+import com.koch.ambeth.service.remote.IRemoteInterceptor;
+import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
+import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IdentityLinkedMap;
+import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
+
+import net.sf.cglib.proxy.Factory;
 
 public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverExtendable,
 		IPrimitiveRetrieverExtendable, IRelationRetrieverExtendable, ICacheServiceByNameExtendable {
@@ -74,27 +83,32 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 		}
 	}
 
+	public static final String HANDLE_EVENT_SESSION_CHANGED = "handleEventSessionChanged";
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	protected final ClassExtendableContainer<ICacheRetriever> typeToCacheRetrieverMap =
-			new ClassExtendableContainer<>("cacheRetriever", "entityType");
+	protected final ClassExtendableContainer<ICacheRetriever> typeToCacheRetrieverMap = new ClassExtendableContainer<>(
+			"cacheRetriever", "entityType");
 
-	protected final ClassExtendableContainer<HashMap<String, IRelationRetriever>> typeToRelationRetrieverEC =
-			new ClassExtendableContainer<>("relationRetriever", "handledType");
+	protected final ClassExtendableContainer<HashMap<String, IRelationRetriever>> typeToRelationRetrieverEC = new ClassExtendableContainer<>(
+			"relationRetriever", "handledType");
 
-	protected final ClassExtendableContainer<HashMap<String, IPrimitiveRetriever>> typeToPrimitiveRetrieverEC =
-			new ClassExtendableContainer<>("primitiveRetriever", "handledType");
+	protected final ClassExtendableContainer<HashMap<String, IPrimitiveRetriever>> typeToPrimitiveRetrieverEC = new ClassExtendableContainer<>(
+			"primitiveRetriever", "handledType");
 
-	protected final MapExtendableContainer<String, ICacheService> nameToCacheServiceEC =
-			new MapExtendableContainer<>("cacheService", "serviceName");
+	protected final MapExtendableContainer<String, ICacheService> nameToCacheServiceEC = new MapExtendableContainer<>(
+			"cacheService", "serviceName");
 
 	@Autowired(optional = true)
 	protected ICacheRetriever defaultCacheRetriever;
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	@Autowired
+	protected IEventDispatcher eventDispatcher;
 
 	@Autowired
 	protected IMultithreadingHelper multithreadingHelper;
@@ -197,11 +211,10 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 
 		IList<ILoadContainer> result = getEntitiesIntern(orisToLoad);
 
-		final IdentityLinkedMap<IObjRelation, IBackgroundWorkerParamDelegate<Object>> objRelToDelegateMap =
-				new IdentityLinkedMap<>();
+		final IdentityLinkedMap<IObjRelation, IBackgroundWorkerParamDelegate<Object>> objRelToDelegateMap = new IdentityLinkedMap<>();
 
-		ILinkedMap<IPrimitiveRetriever, PrimitiveRetrieverArguments> fetchablePrimitives =
-				bucketSortObjRelsForFetchablePrimitives(result, objRelToDelegateMap);
+		ILinkedMap<IPrimitiveRetriever, PrimitiveRetrieverArguments> fetchablePrimitives = bucketSortObjRelsForFetchablePrimitives(
+				result, objRelToDelegateMap);
 
 		if (fetchablePrimitives.size() == 0) {
 			return result;
@@ -264,8 +277,8 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 	public List<IObjRelationResult> getRelations(List<IObjRelation> objRelations) {
 		ParamChecker.assertParamNotNull(objRelations, "objRelations");
 
-		ILinkedMap<IRelationRetriever, IList<IObjRelation>> assignedObjRelations =
-				bucketSortObjRels(objRelations);
+		ILinkedMap<IRelationRetriever, IList<IObjRelation>> assignedObjRelations = bucketSortObjRels(
+				objRelations);
 
 		final ArrayList<IObjRelationResult> result = new ArrayList<>(objRelations.size());
 		multithreadingHelper.invokeAndWait(assignedObjRelations,
@@ -327,8 +340,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 
 	protected ILinkedMap<ICacheRetriever, IList<IObjRef>> bucketSortObjRefs(
 			List<? extends IObjRef> orisToLoad) {
-		IdentityLinkedMap<ICacheRetriever, IList<IObjRef>> serviceToAssignedObjRefsDict =
-				new IdentityLinkedMap<>();
+		IdentityLinkedMap<ICacheRetriever, IList<IObjRef>> serviceToAssignedObjRefsDict = new IdentityLinkedMap<>();
 
 		for (int i = orisToLoad.size(); i-- > 0;) {
 			IObjRef objRef = orisToLoad.get(i);
@@ -347,8 +359,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 
 	protected ILinkedMap<IRelationRetriever, IList<IObjRelation>> bucketSortObjRels(
 			List<? extends IObjRelation> orisToLoad) {
-		IdentityLinkedMap<IRelationRetriever, IList<IObjRelation>> retrieverToAssignedObjRelsDict =
-				new IdentityLinkedMap<>();
+		IdentityLinkedMap<IRelationRetriever, IList<IObjRelation>> retrieverToAssignedObjRelsDict = new IdentityLinkedMap<>();
 
 		for (int i = orisToLoad.size(); i-- > 0;) {
 			IObjRelation orelToLoad = orisToLoad.get(i);
@@ -375,8 +386,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 	protected ILinkedMap<IPrimitiveRetriever, PrimitiveRetrieverArguments> bucketSortObjRelsForFetchablePrimitives(
 			List<ILoadContainer> loadContainers,
 			ILinkedMap<IObjRelation, IBackgroundWorkerParamDelegate<Object>> objRelToDelegateMap) {
-		IdentityLinkedMap<IPrimitiveRetriever, PrimitiveRetrieverArguments> retrieverToAssignedObjRelsDict =
-				new IdentityLinkedMap<>();
+		IdentityLinkedMap<IPrimitiveRetriever, PrimitiveRetrieverArguments> retrieverToAssignedObjRelsDict = new IdentityLinkedMap<>();
 
 		for (int a = loadContainers.size(); a-- > 0;) {
 			ILoadContainer loadContainer = loadContainers.get(a);
@@ -391,14 +401,14 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 					continue;
 				}
 				String memberName = primitiveMembers[b].getName();
-				IPrimitiveRetriever primitiveRetriever =
-						getPropertyRetrieverForType(typeToPrimitiveRetrieverEC, entityType, memberName);
+				IPrimitiveRetriever primitiveRetriever = getPropertyRetrieverForType(
+						typeToPrimitiveRetrieverEC, entityType, memberName);
 
 				if (primitiveRetriever == null) {
 					continue;
 				}
-				PrimitiveRetrieverArguments primitiveRetrieverArg =
-						retrieverToAssignedObjRelsDict.get(primitiveRetriever);
+				PrimitiveRetrieverArguments primitiveRetrieverArg = retrieverToAssignedObjRelsDict
+						.get(primitiveRetriever);
 				if (primitiveRetrieverArg == null) {
 					primitiveRetrieverArg = new PrimitiveRetrieverArguments();
 					retrieverToAssignedObjRelsDict.put(primitiveRetriever, primitiveRetrieverArg);
@@ -419,5 +429,60 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 			}
 		}
 		return retrieverToAssignedObjRelsDict;
+	}
+
+	public void handleEventSessionChanged(EventSessionChanged evnt) {
+		Object remoteSourceIdentifier = resolveRemoteSourceIdentifier(evnt.getEventService());
+		if (remoteSourceIdentifier == null) {
+			if (log.isInfoEnabled()) {
+				log.info("Event Session changed for '" + evnt.getEventService()
+						+ "' but no remote source identifier resolved to evaluate a need for cache resynchronization");
+			}
+			return;
+		}
+		HashSet<Class<?>> entityTypesToUpdateSet = new HashSet<>();
+		for (Entry<Class<?>, ICacheRetriever> entry : typeToCacheRetrieverMap.getExtensions()) {
+			ICacheRetriever cacheRetriever = entry.getValue();
+			Object cacheRemoteSourceIdentifier = resolveRemoteSourceIdentifier(cacheRetriever);
+			if (EqualsUtil.equals(remoteSourceIdentifier, cacheRemoteSourceIdentifier)) {
+				entityTypesToUpdateSet.add(entry.getKey());
+			}
+		}
+		for (Entry<Class<?>, HashMap<String, IRelationRetriever>> entry : typeToRelationRetrieverEC
+				.getExtensions()) {
+			for (Entry<String, IRelationRetriever> propertyEntry : entry.getValue()) {
+				IRelationRetriever cacheRetriever = propertyEntry.getValue();
+				Object cacheRemoteSourceIdentifier = resolveRemoteSourceIdentifier(cacheRetriever);
+				if (EqualsUtil.equals(remoteSourceIdentifier, cacheRemoteSourceIdentifier)) {
+					entityTypesToUpdateSet.add(entry.getKey());
+				}
+			}
+		}
+		for (Entry<Class<?>, HashMap<String, IPrimitiveRetriever>> entry : typeToPrimitiveRetrieverEC
+				.getExtensions()) {
+			for (Entry<String, IPrimitiveRetriever> propertyEntry : entry.getValue()) {
+				IPrimitiveRetriever cacheRetriever = propertyEntry.getValue();
+				Object cacheRemoteSourceIdentifier = resolveRemoteSourceIdentifier(cacheRetriever);
+				if (EqualsUtil.equals(remoteSourceIdentifier, cacheRemoteSourceIdentifier)) {
+					entityTypesToUpdateSet.add(entry.getKey());
+				}
+			}
+		}
+		eventDispatcher.dispatchEvent(
+				new RefreshEntitiesOfType(entityTypesToUpdateSet.toArray(Class.class)));
+	}
+
+	private Object resolveRemoteSourceIdentifier(Object service) {
+		if (service instanceof IRemoteInterceptor) {
+			return ((IRemoteInterceptor) service).getRemoteSourceIdentifier();
+		}
+		ICascadedInterceptor callback = (ICascadedInterceptor) ((Factory) service).getCallback(0);
+
+		while (callback != null) {
+			if (callback instanceof IRemoteInterceptor) {
+				return ((IRemoteInterceptor) callback).getRemoteSourceIdentifier();
+			}
+		}
+		return null;
 	}
 }

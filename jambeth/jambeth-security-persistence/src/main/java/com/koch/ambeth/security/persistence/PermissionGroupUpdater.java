@@ -494,6 +494,10 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 
 															pgUpdateEntry.setObjRefs(objRefs);
 															pgUpdateEntry.setPermissionGroupIds(permissionGroupIds);
+															if (log.isDebugEnabled()) {
+																log.debug("updated " + objRefs.size() + " entities of type '"
+																		+ table.getEntityType().getName() + "'");
+															}
 														}
 													});
 

@@ -35,6 +35,7 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.cache.IWritableCache;
 import com.koch.ambeth.service.IOfflineListenerExtendable;
 import com.koch.ambeth.util.Lock;
+import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 
@@ -67,6 +68,8 @@ public abstract class AbstractRootCacheAwareInterceptor extends AbstractSimpleIn
 	@Autowired
 	protected ICacheRetriever storedCacheRetriever;
 
+	protected final IdentityHashSet<RootCache> allRootCaches = new IdentityHashSet<>();
+
 	protected IRootCache acquireRootCache(boolean privileged,
 			ThreadLocal<RootCache> currentRootCacheTL) {
 		return acquireRootCache(privileged, currentRootCacheTL, storedCacheRetriever, null, null);
@@ -90,6 +93,9 @@ public abstract class AbstractRootCacheAwareInterceptor extends AbstractSimpleIn
 		if (offlineListenerExtendable != null) {
 			offlineListenerExtendable.addOfflineListener(rootCache);
 		}
+		synchronized (allRootCaches) {
+			allRootCaches.add(rootCache);
+		}
 		currentRootCacheTL.set(rootCache);
 		return rootCache;
 	}
@@ -110,6 +116,9 @@ public abstract class AbstractRootCacheAwareInterceptor extends AbstractSimpleIn
 		}
 		if (offlineListenerExtendable != null) {
 			offlineListenerExtendable.removeOfflineListener(rootCache);
+		}
+		synchronized (allRootCaches) {
+			allRootCaches.remove(rootCache);
 		}
 		// Cut reference to persistence layer
 		rootCache.dispose();

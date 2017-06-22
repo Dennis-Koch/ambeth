@@ -1,4 +1,4 @@
-package com.koch.ambeth.persistence.event;
+package com.koch.ambeth.persistence.multievent;
 
 /*-
  * #%L
@@ -20,12 +20,23 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.ioc.IInitializingModule;
-import com.koch.ambeth.ioc.factory.IBeanContextFactory;
+import com.koch.ambeth.model.AbstractEntity;
 
-public class MultiEventTestModule implements IInitializingModule {
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean(MultiEventService.class).autowireable(IMultiEventService.class);
+/**
+ * Test for multiple save actions in one persistence context
+ */
+public class MultiEventEntity extends AbstractEntity {
+	private String name;
+
+	protected MultiEventEntity() {
+		// Intended blank
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 }

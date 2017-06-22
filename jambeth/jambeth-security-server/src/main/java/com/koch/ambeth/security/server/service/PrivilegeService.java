@@ -124,7 +124,6 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
@@ -485,14 +484,16 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 					return o1id.toString().compareTo(o2id.toString());
 				}
 			});
-			StringBuilder sb = new StringBuilder("Resolved permissions for user with sid '");
+			StringBuilder sb = new StringBuilder(
+					"Resolved " + debugResult.length + " permissions for user with sid '");
 			sb.append(authorization.getSID()).append("' (").append(spent).append("ms):");
 			for (PrivilegeOfService privilegeResult : debugResult) {
 				if (sb != null) {
 					if (sb.length() > 0) {
 						sb.append("\n\t");
 					}
-					sb.append(privilegeResult.getReference()).append("=").append(privilegeResult);
+					sb.append(privilegeResult.getReference()).append(' ');
+					privilegeResult.toString(sb);
 				}
 			}
 			log.debug(sb);

@@ -59,6 +59,7 @@ import com.koch.ambeth.informationbus.persistence.setup.DataSetupExecutor;
 import com.koch.ambeth.informationbus.persistence.setup.DataSetupExecutorModule;
 import com.koch.ambeth.informationbus.persistence.setup.DialectSelectorTestModule;
 import com.koch.ambeth.informationbus.persistence.setup.ISchemaRunnable;
+import com.koch.ambeth.informationbus.persistence.setup.ISchemaFileProvider;
 import com.koch.ambeth.informationbus.persistence.setup.SQLData;
 import com.koch.ambeth.informationbus.persistence.setup.SQLDataList;
 import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
@@ -104,6 +105,7 @@ import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
+import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.config.UtilConfigurationConstants;
 import com.koch.ambeth.util.exception.MaskingRuntimeException;
@@ -559,17 +561,17 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 				SQLData[] value = sqlDataList.value();
 				for (SQLData sqlData : value) {
-					getSchemaRunnable(sqlData.type(), sqlData.value(), schemaRunnables,
-							schemaItem.getAnnotatedElement(), true, null, connectionDialect, properties, getLog(),
-							doExecuteStrict);
+					getSchemaRunnable(schemaContext, sqlData.type(), sqlData.valueProvider(), sqlData.value(),
+							schemaRunnables, schemaItem.getAnnotatedElement(), true, null, connectionDialect,
+							properties, getLog(), doExecuteStrict);
 				}
 			}
 			else {
 				SQLData sqlData = (SQLData) annotation;
 
-				getSchemaRunnable(sqlData.type(), sqlData.value(), schemaRunnables,
-						schemaItem.getAnnotatedElement(), true, null, connectionDialect, properties, getLog(),
-						doExecuteStrict);
+				getSchemaRunnable(schemaContext, sqlData.type(), sqlData.valueProvider(), sqlData.value(),
+						schemaRunnables, schemaItem.getAnnotatedElement(), true, null, connectionDialect,
+						properties, getLog(), doExecuteStrict);
 			}
 		}
 		return schemaRunnables.toArray(new ISchemaRunnable[schemaRunnables.size()]);
@@ -603,11 +605,13 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		return schemaNames;
 	}
 
-	protected static void getSchemaRunnable(final Class<? extends ISchemaRunnable> schemaRunnableType,
-			final String[] schemaFiles, final List<ISchemaRunnable> schemaRunnables,
-			final AnnotatedElement callingClass, final boolean doCommitBehavior,
-			final IList<String> sqlExecutionOrder, final IConnectionDialect connectionDialect,
-			final IProperties properties, final ILogger log, final boolean doExecuteStrict) {
+	protected static void getSchemaRunnable(IServiceContext schemaContext,
+			Class<? extends ISchemaRunnable> schemaRunnableType,
+			Class<? extends ISchemaFileProvider> valueProviderType, String[] schemaFiles,
+			List<ISchemaRunnable> schemaRunnables, final AnnotatedElement callingClass,
+			final boolean doCommitBehavior, final IList<String> sqlExecutionOrder,
+			final IConnectionDialect connectionDialect, final IProperties properties, final ILogger log,
+			final boolean doExecuteStrict) {
 		if (schemaRunnableType != null && !ISchemaRunnable.class.equals(schemaRunnableType)) {
 			try {
 				ISchemaRunnable schemaRunnable = schemaRunnableType.newInstance();
@@ -617,12 +621,25 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
+		if (valueProviderType != null && !ISchemaFileProvider.class.equals(valueProviderType)) {
+			try {
+				ISchemaFileProvider valueProvider = schemaContext.registerBean(valueProviderType).finish();
+				String[] additionalSchemaFiles = valueProvider.getSchemaFiles();
+				LinkedHashSet<String> set = new LinkedHashSet<>(schemaFiles);
+				set.addAll(additionalSchemaFiles);
+				schemaFiles = set.toArray(String.class);
+			}
+			catch (Throwable e) {
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
+		final String[] fSchemaFiles = schemaFiles;
 		ISchemaRunnable schemaRunnable = new ISchemaRunnable() {
 			@Override
 			public void executeSchemaSql(final Connection connection) throws Exception {
 				ArrayList<String> allSQL = new ArrayList<>();
 				HashMap<String, String> sqlToSourceMap = new HashMap<>();
-				for (String schemaFile : schemaFiles) {
+				for (String schemaFile : fSchemaFiles) {
 					if (schemaFile == null || schemaFile.length() == 0) {
 						continue;
 					}
@@ -656,16 +673,16 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 				SQLStructure[] value = sqlStructureList.value();
 				for (SQLStructure sqlStructure : value) {
-					getSchemaRunnable(sqlStructure.type(), sqlStructure.value(), schemaRunnables,
-							schemaItem.getAnnotatedElement(), true, sqlExecutionOrder, connectionDialect,
-							properties, getLog(), doExecuteStrict);
+					getSchemaRunnable(schemaContext, sqlStructure.type(), sqlStructure.schemaFileProvider(),
+							sqlStructure.value(), schemaRunnables, schemaItem.getAnnotatedElement(), true,
+							sqlExecutionOrder, connectionDialect, properties, getLog(), doExecuteStrict);
 				}
 			}
 			else {
 				SQLStructure sqlStructure = (SQLStructure) annotation;
-				getSchemaRunnable(sqlStructure.type(), sqlStructure.value(), schemaRunnables,
-						schemaItem.getAnnotatedElement(), true, sqlExecutionOrder, connectionDialect,
-						properties, getLog(), doExecuteStrict);
+				getSchemaRunnable(schemaContext, sqlStructure.type(), sqlStructure.schemaFileProvider(),
+						sqlStructure.value(), schemaRunnables, schemaItem.getAnnotatedElement(), true,
+						sqlExecutionOrder, connectionDialect, properties, getLog(), doExecuteStrict);
 			}
 		}
 		return schemaRunnables.toArray(new ISchemaRunnable[schemaRunnables.size()]);

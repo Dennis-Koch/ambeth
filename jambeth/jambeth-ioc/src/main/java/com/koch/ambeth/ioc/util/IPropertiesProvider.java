@@ -1,8 +1,8 @@
-package com.koch.ambeth.persistence.event;
+package com.koch.ambeth.ioc.util;
 
 /*-
  * #%L
- * jambeth-test
+ * jambeth-ioc-test
  * %%
  * Copyright (C) 2017 Koch Softwaredevelopment
  * %%
@@ -20,14 +20,8 @@ limitations under the License.
  * #L%
  */
 
-import java.util.List;
+import com.koch.ambeth.log.config.Properties;
 
-public interface IMultiEventService {
-	void save(List<MultiEventEntity> multiEventEntities);
-
-	void save(MultiEventEntity2 multiEventEntity2);
-
-	void doMultipleThings(List<MultiEventEntity> multiEventEntities);
-
-	void doMultipleThings2(List<MultiEventEntity> multiEventEntities);
+public interface IPropertiesProvider {
+	void fillProperties(Properties props);
 }

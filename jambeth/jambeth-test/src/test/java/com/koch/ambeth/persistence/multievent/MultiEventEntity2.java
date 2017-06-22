@@ -1,4 +1,4 @@
-package com.koch.ambeth.persistence.event;
+package com.koch.ambeth.persistence.multievent;
 
 /*-
  * #%L

@@ -30,6 +30,7 @@ import com.koch.ambeth.event.server.ioc.EventServerModule;
 import com.koch.ambeth.expr.ioc.ExprModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.IocConfigurationConstants;
+import com.koch.ambeth.ioc.util.IPropertiesProvider;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.merge.IEntityFactory;
 import com.koch.ambeth.merge.server.ioc.MergeServerModule;
