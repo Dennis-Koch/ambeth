@@ -53,7 +53,7 @@ public class EnumNameHandler extends AbstractHandler implements INameBasedHandle
 		}
 		writer.writeStartElement(xmlDictionary.getEnumElement());
 		int id = writer.acquireIdForObject(obj);
-		writer.writeAttribute(xmlDictionary.getIdAttribute(), Integer.toString(id));
+		writer.writeIntAttribute(xmlDictionary.getIdAttribute(), id);
 		classElementHandler.writeAsAttribute(type, writer);
 		writer.writeAttribute(xmlDictionary.getValueAttribute(), obj.toString());
 		writer.writeEndElement();

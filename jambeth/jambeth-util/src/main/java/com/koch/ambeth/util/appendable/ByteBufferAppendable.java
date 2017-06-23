@@ -59,11 +59,32 @@ public class ByteBufferAppendable implements IAppendable {
 		return this;
 	}
 
+	@Override
+	public IAppendable append(char[] value) {
+		for (char oneChar : value) {
+			append(oneChar);
+		}
+		return this;
+	}
+
+	@Override
+	public IAppendable append(char[] value, int offset, int length) {
+		for (int a = offset, size = offset + length; a < size; a++) {
+			append(value[a]);
+		}
+		return this;
+	}
+
+	@Override
+	public IAppendable appendInt(int intValue) {
+		return append(Integer.toString(intValue));
+	}
+
 	protected void append(byte[] value) {
 		ByteBuffer byteBuffer = buffer;
 
 		if (byteBuffer.remaining() < value.length) {
-			// buffer is to full. Now we write it to the channel
+			// buffer is too full. Now we write it to the channel
 			byteBuffer.flip();
 			try {
 				while (byteBuffer.hasRemaining()) {

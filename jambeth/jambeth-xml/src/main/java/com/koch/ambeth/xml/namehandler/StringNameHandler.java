@@ -52,7 +52,7 @@ public class StringNameHandler extends AbstractHandler implements INameBasedHand
 		String stringElement = xmlDictionary.getStringElement();
 		writer.writeStartElement(stringElement);
 		int id = writer.acquireIdForObject(obj);
-		writer.writeAttribute(xmlDictionary.getIdAttribute(), Integer.toString(id));
+		writer.writeIntAttribute(xmlDictionary.getIdAttribute(), id);
 
 		if (value.isEmpty()) {
 			writer.writeEndElement();

@@ -30,6 +30,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.koch.ambeth.ioc.accessor.AccessorTypeProvider;
 import com.koch.ambeth.persistence.sql.SqlBuilder;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
@@ -48,7 +49,7 @@ public class PersistenceHelperTest {
 		fixture.batchSize = batchSize;
 		fixture.preparedBatchSize = preparedBatchSize;
 
-		NoOpObjectCollector oc = new NoOpObjectCollector();
+		NoOpObjectCollector oc = new NoOpObjectCollector(new AccessorTypeProvider());
 		fixture.objectCollector = oc;
 
 		SqlBuilder sqlBuilder = new SqlBuilder();
@@ -59,8 +60,7 @@ public class PersistenceHelperTest {
 	}
 
 	@After
-	public void tearDown() throws Exception {
-	}
+	public void tearDown() throws Exception {}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testAfterPropertiesSet_wrongBatchSize() {

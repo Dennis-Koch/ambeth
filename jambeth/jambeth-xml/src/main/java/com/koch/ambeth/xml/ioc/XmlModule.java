@@ -22,12 +22,14 @@ limitations under the License.
 
 import java.nio.ByteBuffer;
 
+import com.koch.ambeth.event.IEventListenerExtendable;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.extendable.ExtendableBean;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.merge.ICUDResultPrinter;
+import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 import com.koch.ambeth.util.objectcollector.ByteBuffer65536CollectableController;
 import com.koch.ambeth.util.objectcollector.ICollectableControllerExtendable;
 import com.koch.ambeth.xml.CyclicXmlController;
@@ -42,6 +44,7 @@ import com.koch.ambeth.xml.IXmlTypeExtendable;
 import com.koch.ambeth.xml.IXmlTypeRegistry;
 import com.koch.ambeth.xml.XmlTransferScanner;
 import com.koch.ambeth.xml.XmlTypeRegistry;
+import com.koch.ambeth.xml.XmlTypeRegistryUpdatedEvent;
 import com.koch.ambeth.xml.merge.CUDResultPrinter;
 import com.koch.ambeth.xml.namehandler.ArrayNameHandler;
 import com.koch.ambeth.xml.namehandler.ClassNameHandler;
@@ -114,6 +117,11 @@ public class XmlModule implements IInitializingModule {
 				beanContextFactory.registerBean(ClassNameHandler.class).parent("abstractElementHandler");
 		beanContextFactory.link(classElementHandlerBC)
 				.to(CYCLIC_XML_HANDLER, INameBasedHandlerExtendable.class).with("c");
+		beanContextFactory.link(classElementHandlerBC, ClassNameHandler.HANDLE_CLEAR_ALL_CACHES_EVENT)
+				.to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
+		beanContextFactory
+				.link(classElementHandlerBC, ClassNameHandler.HANDLE_XML_TYPE_REGISTRY_UPDATED_EVENT)
+				.to(IEventListenerExtendable.class).with(XmlTypeRegistryUpdatedEvent.class);
 
 		IBeanConfiguration objectElementHandlerBC =
 				beanContextFactory.registerBean(ObjectTypeHandler.class).parent("abstractElementHandler");

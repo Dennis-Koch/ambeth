@@ -42,7 +42,7 @@ public class DateElementHandler extends AbstractHandler implements INameBasedHan
 		int id = writer.acquireIdForObject(obj);
 		long time = ((Date) obj).getTime();
 		writer.writeStartElement("d");
-		writer.writeAttribute(xmlDictionary.getIdAttribute(), Integer.toString(id));
+		writer.writeIntAttribute(xmlDictionary.getIdAttribute(), id);
 		writer.writeAttribute(xmlDictionary.getValueAttribute(), Long.toString(time));
 		writer.writeEndElement();
 		return true;

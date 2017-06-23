@@ -1,5 +1,7 @@
 package com.koch.ambeth.util.objectcollector;
 
+import java.util.function.Supplier;
+
 /*-
  * #%L
  * jambeth-util
@@ -24,6 +26,12 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class NoOpObjectCollector
 		implements IObjectCollector, IThreadLocalObjectCollector, ICollectableControllerExtendable {
+	private final IConstructorTypeProvider constructorTypeProvider;
+
+	public NoOpObjectCollector(IConstructorTypeProvider constructorTypeProvider) {
+		this.constructorTypeProvider = constructorTypeProvider;
+	}
+
 	@Override
 	public void registerCollectableController(ICollectableController collectableController,
 			Class<?> handledType) {
@@ -41,10 +49,11 @@ public class NoOpObjectCollector
 		return this;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T create(final Class<T> myClass) {
 		try {
-			T instance = myClass.newInstance();
+			T instance = (T) constructorTypeProvider.getConstructorType(Supplier.class, myClass).get();
 			if (instance instanceof IObjectCollectorAware) {
 				((IObjectCollectorAware) instance).setObjectCollector(this);
 			}

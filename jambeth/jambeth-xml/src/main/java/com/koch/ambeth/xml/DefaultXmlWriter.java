@@ -37,15 +37,13 @@ public class DefaultXmlWriter implements IWriter, IPostProcessWriter {
 
 	protected final ICyclicXmlController xmlController;
 
-	protected final IdentityHashMap<Object, Integer> mutableToIdMap =
-			new IdentityHashMap<>();
+	protected final IdentityHashMap<Object, Integer> mutableToIdMap = new IdentityHashMap<>();
 	protected final HashMap<Object, Integer> immutableToIdMap = new HashMap<>();
 	protected int nextIdMapIndex = 1;
 
-	protected final ISet<Object> substitutedEntities = new IdentityHashSet<>();
+	protected IdentityHashSet<Object> substitutedEntities;
 
-	protected HashMap<Class<?>, SpecifiedMember[]> typeToMemberMap =
-			new HashMap<>();
+	protected final HashMap<Class<?>, SpecifiedMember[]> typeToMemberMap = new HashMap<>();
 
 	protected boolean isInAttributeState = false;
 
@@ -139,6 +137,14 @@ public class DefaultXmlWriter implements IWriter, IPostProcessWriter {
 		checkIfInAttributeState();
 		appendable.append(' ').append(attributeName).append("=\"");
 		writeEscapedXml(attributeValue);
+		appendable.append('\"');
+	}
+
+	@Override
+	public void writeIntAttribute(CharSequence attributeName, int attributeValue) {
+		checkIfInAttributeState();
+		appendable.append(' ').append(attributeName).append("=\"");
+		appendable.appendInt(attributeValue);
 		appendable.append('\"');
 	}
 
@@ -276,6 +282,9 @@ public class DefaultXmlWriter implements IWriter, IPostProcessWriter {
 
 	@Override
 	public void addSubstitutedEntity(Object entity) {
+		if (substitutedEntities == null) {
+			substitutedEntities = new IdentityHashSet<>();
+		}
 		substitutedEntities.add(entity);
 	}
 

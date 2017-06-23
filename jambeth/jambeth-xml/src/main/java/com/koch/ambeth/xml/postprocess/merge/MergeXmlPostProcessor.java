@@ -96,7 +96,7 @@ public class MergeXmlPostProcessor implements IXmlPostProcessor, IStartingBean {
 	@Override
 	public Object processWrite(IPostProcessWriter writer) {
 		ISet<Object> substitutedEntities = writer.getSubstitutedEntities();
-		if (substitutedEntities.isEmpty()) {
+		if (substitutedEntities == null || substitutedEntities.isEmpty()) {
 			return null;
 		}
 

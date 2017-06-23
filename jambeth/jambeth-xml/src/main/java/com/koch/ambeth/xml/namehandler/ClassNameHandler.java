@@ -29,11 +29,13 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IProxyHelper;
+import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IdentityLinkedMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
+import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.typeinfo.ITypeInfo;
@@ -45,9 +47,15 @@ import com.koch.ambeth.xml.IWriter;
 import com.koch.ambeth.xml.IXmlTypeKey;
 import com.koch.ambeth.xml.IXmlTypeRegistry;
 import com.koch.ambeth.xml.SpecifiedMember;
+import com.koch.ambeth.xml.XmlTypeRegistryUpdatedEvent;
 import com.koch.ambeth.xml.typehandler.AbstractHandler;
 
 public class ClassNameHandler extends AbstractHandler implements INameBasedHandler {
+	public static final String HANDLE_CLEAR_ALL_CACHES_EVENT = "handleClearAllCachesEvent";
+
+	public static final String HANDLE_XML_TYPE_REGISTRY_UPDATED_EVENT =
+			"handleXmlTypeRegistryUpdatedEvent";
+
 	private static final String SPECIFIED_SUFFIX = "Specified";
 
 	private static final SpecifiedMember[] EMPTY_TII = new SpecifiedMember[0];
@@ -55,6 +63,9 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	protected final SmartCopyMap<Class<?>, ClassNameCacheEntry> typeToCacheEntryMap =
+			new SmartCopyMap<>();
 
 	protected final HashSet<Class<?>> noMemberAttribute = new HashSet<>();
 
@@ -80,6 +91,14 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 		noMemberAttribute.add(Object.class);
 	}
 
+	public void handleClearAllCachesEvent(ClearAllCachesEvent evnt) {
+		typeToCacheEntryMap.clear();
+	}
+
+	public void handleXmlTypeRegistryUpdatedEvent(XmlTypeRegistryUpdatedEvent evnt) {
+		typeToCacheEntryMap.clear();
+	}
+
 	public void writeAsAttribute(Class<?> type, IWriter writer) {
 		writeAsAttribute(type, xmlDictionary.getClassIdAttribute(),
 				xmlDictionary.getClassNameAttribute(), xmlDictionary.getClassNamespaceAttribute(),
@@ -91,12 +110,30 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 		Class<?> realType = proxyHelper.getRealType(type);
 		int typeId = writer.getIdOfObject(type);
 		if (typeId > 0) {
-			writer.writeAttribute(classIdAttribute, Integer.toString(typeId));
+			writer.writeIntAttribute(classIdAttribute, typeId);
 			return;
 		}
 		typeId = writer.acquireIdForObject(realType);
-		writer.writeAttribute(classIdAttribute, Integer.toString(typeId));
+		writer.writeIntAttribute(classIdAttribute, typeId);
 
+		ClassNameCacheEntry cacheEntry = typeToCacheEntryMap.get(type);
+		if (cacheEntry == null) {
+			cacheEntry = buildCacheEntry(type);
+			if (!typeToCacheEntryMap.putIfNotExists(type, cacheEntry)) {
+				cacheEntry = typeToCacheEntryMap.get(type);
+			}
+		}
+		writer.writeAttribute(classNameAttribute, cacheEntry.writtenClassName);
+		writer.writeAttribute(classNamespaceAttribute, cacheEntry.xmlNamespace);
+
+		if (!realType.isArray() && !realType.isEnum() && !realType.isInterface()
+				&& !noMemberAttribute.contains(realType)) {
+			writer.writeAttribute(classMemberAttribute, cacheEntry.classMembers);
+			writer.putMembersOfType(type, cacheEntry.membersToWrite);
+		}
+	}
+
+	private ClassNameCacheEntry buildCacheEntry(Class<?> type) {
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
 		try {
@@ -104,70 +141,66 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 				sb.append("[]");
 				type = type.getComponentType();
 			}
+			ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(type);
+			ITypeInfoItem[] members = typeInfo.getMembers();
+
+			LinkedHashMap<String, ITypeInfoItem> potentialSpecifiedMemberMap = new LinkedHashMap<>();
+
+			for (int a = 0, size = members.length; a < size; a++) {
+				ITypeInfoItem member = members[a];
+				String name = member.getName();
+				if (name.endsWith(SPECIFIED_SUFFIX)) {
+					String realName = name.substring(0, name.length() - SPECIFIED_SUFFIX.length());
+					potentialSpecifiedMemberMap.put(realName, member);
+				}
+			}
+
+			IdentityLinkedMap<ITypeInfoItem, ITypeInfoItem> usedMembers =
+					IdentityLinkedMap.create(members.length);
+
+			for (int a = 0, size = members.length; a < size; a++) {
+				ITypeInfoItem member = members[a];
+				if (member.isXMLIgnore()) {
+					continue;
+				}
+				if (!member.canRead() || !member.canWrite()) {
+					continue;
+				}
+				ITypeInfoItem specifiedMember = potentialSpecifiedMemberMap.get(member.getName());
+				usedMembers.put(member, specifiedMember);
+			}
+
+			for (ITypeInfoItem specifiedMember : usedMembers.values()) {
+				if (specifiedMember != null) {
+					usedMembers.remove(specifiedMember);
+				}
+			}
 			String xmlName, xmlNamespace;
 			IXmlTypeKey xmlType = xmlTypeRegistry.getXmlType(type);
 			xmlName = xmlType.getName();
 			xmlNamespace = xmlType.getNamespace();
+			String writtenXmlName;
 			if (sb.length() > 0) {
 				sb.insert(0, xmlName);
-				writer.writeAttribute(classNameAttribute, sb.toString());
+				writtenXmlName = sb.toString();
 			}
 			else {
-				writer.writeAttribute(classNameAttribute, xmlName);
+				writtenXmlName = xmlName;
 			}
-			writer.writeAttribute(classNamespaceAttribute, xmlNamespace);
-
-			if (!realType.isArray() && !realType.isEnum() && !realType.isInterface()
-					&& !noMemberAttribute.contains(realType)) {
-				sb.setLength(0);
-				ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(type);
-				ITypeInfoItem[] members = typeInfo.getMembers();
-
-				LinkedHashMap<String, ITypeInfoItem> potentialSpecifiedMemberMap = new LinkedHashMap<>();
-
-				for (int a = 0, size = members.length; a < size; a++) {
-					ITypeInfoItem member = members[a];
-					String name = member.getName();
-					if (name.endsWith(SPECIFIED_SUFFIX)) {
-						String realName = name.substring(0, name.length() - SPECIFIED_SUFFIX.length());
-						potentialSpecifiedMemberMap.put(realName, member);
-					}
+			sb.setLength(0);
+			ArrayList<SpecifiedMember> membersToWrite = new ArrayList<>(usedMembers.size());
+			for (Entry<ITypeInfoItem, ITypeInfoItem> entry : usedMembers) {
+				ITypeInfoItem member = entry.getKey();
+				if (sb.length() > 0) {
+					sb.append(' ');
 				}
+				sb.append(member.getXMLName());
 
-				IdentityLinkedMap<ITypeInfoItem, ITypeInfoItem> usedMembers = new IdentityLinkedMap<>();
-
-				for (int a = 0, size = members.length; a < size; a++) {
-					ITypeInfoItem member = members[a];
-					if (member.isXMLIgnore()) {
-						continue;
-					}
-					if (!member.canRead() || !member.canWrite()) {
-						continue;
-					}
-					ITypeInfoItem specifiedMember = potentialSpecifiedMemberMap.get(member.getName());
-
-					usedMembers.put(member, specifiedMember);
-
-				}
-
-				for (ITypeInfoItem specifiedMember : usedMembers.values()) {
-					if (specifiedMember != null) {
-						usedMembers.remove(specifiedMember);
-					}
-				}
-				ArrayList<SpecifiedMember> membersToWrite = new ArrayList<>();
-				for (Entry<ITypeInfoItem, ITypeInfoItem> entry : usedMembers) {
-					ITypeInfoItem member = entry.getKey();
-					if (sb.length() > 0) {
-						sb.append(' ');
-					}
-					sb.append(member.getXMLName());
-
-					membersToWrite.add(new SpecifiedMember(member, entry.getValue()));
-				}
-				writer.writeAttribute(classMemberAttribute, sb.toString());
-				writer.putMembersOfType(type, membersToWrite.toArray(SpecifiedMember.class));
+				membersToWrite.add(new SpecifiedMember(member, entry.getValue()));
 			}
+			SpecifiedMember[] membersToWriteArray = membersToWrite.toArray(SpecifiedMember.class);
+			return new ClassNameCacheEntry(writtenXmlName, xmlNamespace, sb.toString(),
+					membersToWriteArray);
 		}
 		finally {
 			tlObjectCollector.dispose(sb);
@@ -254,34 +287,20 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 			return false;
 		}
 		Class<?> typeObj = (Class<?>) obj;
-		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
-		try {
-			while (typeObj.isArray()) {
-				sb.append("[]");
-				typeObj = typeObj.getComponentType();
-			}
-			String xmlName, xmlNamespace;
-			IXmlTypeKey xmlType = xmlTypeRegistry.getXmlType(typeObj);
-			xmlName = xmlType.getName();
-			xmlNamespace = xmlType.getNamespace();
 
-			int id = writer.acquireIdForObject(obj);
-			writer.writeStartElement(xmlDictionary.getClassElement());
-			writer.writeAttribute(xmlDictionary.getIdAttribute(), Integer.toString(id));
-			if (sb.length() > 0) {
-				sb.insert(0, xmlName);
-				writer.writeAttribute(xmlDictionary.getClassNameAttribute(), sb.toString());
+		ClassNameCacheEntry cacheEntry = typeToCacheEntryMap.get(typeObj);
+		if (cacheEntry == null) {
+			cacheEntry = buildCacheEntry(typeObj);
+			if (!typeToCacheEntryMap.putIfNotExists(typeObj, cacheEntry)) {
+				cacheEntry = typeToCacheEntryMap.get(typeObj);
 			}
-			else {
-				writer.writeAttribute(xmlDictionary.getClassNameAttribute(), xmlName);
-			}
-			writer.writeAttribute(xmlDictionary.getClassNamespaceAttribute(), xmlNamespace);
-			writer.writeEndElement();
 		}
-		finally {
-			tlObjectCollector.dispose(sb);
-		}
+		int id = writer.acquireIdForObject(obj);
+		writer.writeStartElement(xmlDictionary.getClassElement());
+		writer.writeIntAttribute(xmlDictionary.getIdAttribute(), id);
+		writer.writeAttribute(xmlDictionary.getClassNameAttribute(), cacheEntry.writtenClassName);
+		writer.writeAttribute(xmlDictionary.getClassNamespaceAttribute(), cacheEntry.xmlNamespace);
+		writer.writeEndElement();
 		return true;
 	}
 

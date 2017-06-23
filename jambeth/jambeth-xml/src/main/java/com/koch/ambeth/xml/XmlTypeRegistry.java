@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.koch.ambeth.event.IEventDispatcher;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILogger;
@@ -44,6 +45,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 import com.koch.ambeth.util.collections.WeakHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.xml.XmlTypeRegistryUpdatedEvent.EventType;
 
 public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, IXmlTypeRegistry {
 	public static final String DefaultNamespace = "http://schema.kochdev.com/Ambeth";
@@ -53,6 +55,9 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 
 	@Autowired
 	protected IClassCache classCache;
+
+	@Autowired
+	protected IEventDispatcher eventDispatcher;
 
 	@Autowired
 	protected ILoggerHistory loggerHistory;
@@ -257,6 +262,8 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 		finally {
 			writeLock.unlock();
 		}
+		eventDispatcher
+				.dispatchEvent(new XmlTypeRegistryUpdatedEvent(EventType.ADDED, type, name, namespace));
 	}
 
 	@Override
@@ -283,5 +290,7 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 		finally {
 			writeLock.unlock();
 		}
+		eventDispatcher
+				.dispatchEvent(new XmlTypeRegistryUpdatedEvent(EventType.REMOVED, type, name, namespace));
 	}
 }

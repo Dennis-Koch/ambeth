@@ -30,6 +30,8 @@ public interface IWriter {
 
 	void writeAttribute(CharSequence attributeName, CharSequence attributeValue);
 
+	void writeIntAttribute(CharSequence attributeName, int attributeValue);
+
 	void writeEndElement();
 
 	void writeCloseElement(CharSequence elementName);

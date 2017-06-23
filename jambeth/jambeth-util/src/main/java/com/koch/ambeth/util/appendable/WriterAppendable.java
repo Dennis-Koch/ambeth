@@ -24,8 +24,9 @@ import java.io.IOException;
 import java.io.Writer;
 
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.io.IntegerUtil;
 
-public class WriterAppendable implements IAppendable {
+public class WriterAppendable extends IntegerUtil implements IAppendable {
 	protected final Writer target;
 
 	public WriterAppendable(Writer target) {
@@ -54,4 +55,35 @@ public class WriterAppendable implements IAppendable {
 		return this;
 	}
 
+	@Override
+	public IAppendable append(char[] value) {
+		try {
+			for (char oneChar : value) {
+				target.append(oneChar);
+			}
+		}
+		catch (IOException e) {
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		return this;
+	}
+
+	@Override
+	public IAppendable append(char[] value, int offset, int length) {
+		try {
+			for (int a = offset, size = offset + length; a < size; a++) {
+				target.append(value[a]);
+			}
+		}
+		catch (IOException e) {
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		return this;
+	}
+
+	@Override
+	public IAppendable appendInt(int intValue) {
+		appendInt(intValue, this);
+		return this;
+	}
 }
