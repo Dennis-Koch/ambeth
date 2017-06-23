@@ -115,7 +115,6 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
 				<executions>
-		<!-- 
 					<execution>
 						<id>Resolve Ambeth libraries</id>
 						<phase>generate-resources</phase>
@@ -244,26 +243,8 @@
 							</arguments>
 						</configuration>
 					</execution>
-					--><!-- 
-					<execution>
-						<id>Copy PDF file</id>
-						<phase>package</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>xcopy</executable>
-							<arguments>
-								<argument>${project.build.directory}\${latex.temp.dir}\Ambeth-Reference.pdf</argument>
-								<argument>${project.build.directory}\Ambeth-Reference-${ambeth.version}.pdf*</argument>
-								<argument>/Y</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					-->					
 				</executions>
 			</plugin>
-			<!-- 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
@@ -308,8 +289,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			
-			-->
 			<plugin>
 				<groupId>de.akquinet.maven</groupId>
 				<artifactId>maven-latex-plugin</artifactId>
