@@ -46,6 +46,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.Tuple2KeyEntry;
 import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.proxy.ClassLoaderAwareClassWriter;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 
 public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializingBean {
@@ -53,27 +54,25 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 	@LogInstance
 	private ILogger log;
 
-	protected final Tuple2KeyHashMap<Class<?>, String, Reference<AbstractAccessor>> typeToAccessorMap =
-			new Tuple2KeyHashMap<Class<?>, String, Reference<AbstractAccessor>>() {
-				@Override
-				protected void resize(int newCapacity) {
-					ArrayList<Object[]> removeKeys = new ArrayList<>();
-					for (Tuple2KeyEntry<Class<?>, String, Reference<AbstractAccessor>> entry : this) {
-						if (entry.getValue().get() == null) {
-							removeKeys.add(new Object[] {entry.getKey1(), entry.getKey2()});
-						}
-					}
-					for (Object[] removeKey : removeKeys) {
-						remove((Class<?>) removeKey[0], (String) removeKey[1]);
-					}
-					if (size() >= threshold) {
-						super.resize(2 * table.length);
-					}
+	protected final Tuple2KeyHashMap<Class<?>, String, Reference<AbstractAccessor>> typeToAccessorMap = new Tuple2KeyHashMap<Class<?>, String, Reference<AbstractAccessor>>() {
+		@Override
+		protected void resize(int newCapacity) {
+			ArrayList<Object[]> removeKeys = new ArrayList<>();
+			for (Tuple2KeyEntry<Class<?>, String, Reference<AbstractAccessor>> entry : this) {
+				if (entry.getValue().get() == null) {
+					removeKeys.add(new Object[] { entry.getKey1(), entry.getKey2() });
 				}
-			};
+			}
+			for (Object[] removeKey : removeKeys) {
+				remove((Class<?>) removeKey[0], (String) removeKey[1]);
+			}
+			if (size() >= threshold) {
+				super.resize(2 * table.length);
+			}
+		}
+	};
 
-	protected final Tuple2KeyHashMap<Class<?>, Class<?>, Object> typeWithDelegateToConstructorMap =
-			new Tuple2KeyHashMap<>();
+	protected final Tuple2KeyHashMap<Class<?>, Class<?>, Object> typeWithDelegateToConstructorMap = new Tuple2KeyHashMap<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
@@ -110,8 +109,7 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 			catch (Throwable e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
-			typeToAccessorMap.put(type, property.getName(),
-					new WeakReference<>(accessor));
+			typeToAccessorMap.put(type, property.getName(), new WeakReference<>(accessor));
 			return accessor;
 		}
 		catch (Throwable e) {
@@ -151,8 +149,8 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 	}
 
 	protected Class<?> getConstructorTypeIntern(Class<?> delegateType, Class<?> targetType) {
-		String constructorClassName =
-				targetType.getName() + "$FastConstructor$" + delegateType.getName();
+		String constructorClassName = targetType.getName() + "$FastConstructor$"
+				+ delegateType.getName();
 		if (constructorClassName.startsWith("java.")) {
 			constructorClassName = "ambeth." + constructorClassName;
 		}
@@ -206,7 +204,7 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 		Type abstractAccessorType = Type.getType(AbstractAccessor.class);
 		Type objType = Type.getType(Object.class);
 
-		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+		ClassWriter cw = new ClassLoaderAwareClassWriter(ClassWriter.COMPUTE_MAXS, loader);
 		cw.visit(Opcodes.V1_1, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, accessClassNameInternal, null,
 				abstractAccessorType.getInternalName(), null);
 		{
@@ -305,11 +303,11 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 		Type objType = Type.getType(Object.class);
 		Type superType;
 
-		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+		ClassWriter cw = new ClassLoaderAwareClassWriter(ClassWriter.COMPUTE_MAXS, loader);
 		if (delegateType.isInterface()) {
 			superType = objType;
 			cw.visit(Opcodes.V1_1, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, constructorClassNameInternal,
-					null, superType.getInternalName(), new String[] {delegateTypeHandle.getInternalName()});
+					null, superType.getInternalName(), new String[] { delegateTypeHandle.getInternalName() });
 		}
 		else {
 			superType = delegateTypeHandle;
@@ -376,8 +374,8 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 			Constructor<?> constructor, ClassWriter cw) {
 		Type[] paramTypes = TypeUtil.getClassesToTypes(r_method.getParameterTypes());
 		Method method = Method.getMethod(r_method);
-		GeneratorAdapter mv =
-				createGA(cw, Opcodes.ACC_PUBLIC, method.getName(), method.getDescriptor());
+		GeneratorAdapter mv = createGA(cw, Opcodes.ACC_PUBLIC, method.getName(),
+				method.getDescriptor());
 		Type instanceType = Type.getType(constructor.getDeclaringClass());
 		mv.newInstance(instanceType);
 		mv.dup();

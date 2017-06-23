@@ -59,6 +59,7 @@ import com.koch.ambeth.ioc.extendable.IExtendableContainer;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.proxy.IEnhancedType;
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -97,21 +98,22 @@ public class BytecodeEnhancer
 	@Autowired(optional = true)
 	protected IBytecodeStore bytecodeStore;
 
+	@Autowired
+	protected IClassLoaderProvider classLoaderProvider;
+
 	@Property(name = BytecodeConfigurationConstants.EnhancementTraceDirectory, mandatory = false)
 	protected String traceDir;
 
-	protected final WeakSmartCopyMap<Class<?>, ValueType> typeToExtendedType =
-			new WeakSmartCopyMap<>();
+	protected final WeakSmartCopyMap<Class<?>, ValueType> typeToExtendedType = new WeakSmartCopyMap<>();
 
-	protected final WeakSmartCopyMap<Class<?>, Reference<Class<?>>> extendedTypeToType =
-			new WeakSmartCopyMap<>();
+	protected final WeakSmartCopyMap<Class<?>, Reference<Class<?>>> extendedTypeToType = new WeakSmartCopyMap<>();
 
 	protected final HashSet<Class<?>> supportedEnhancements = new HashSet<>(0.5f);
 
 	protected final Lock writeLock = new ReentrantLock();
 
-	protected final IExtendableContainer<IBytecodeBehavior> bytecodeBehaviorExtensions =
-			new ExtendableContainer<>(IBytecodeBehavior.class, "bytecodeBehavior");
+	protected final IExtendableContainer<IBytecodeBehavior> bytecodeBehaviorExtensions = new ExtendableContainer<>(
+			IBytecodeBehavior.class, "bytecodeBehavior");
 
 	protected Map<BytecodeStoreKey, BytecodeStoreItem> enhancedTypes;
 
@@ -122,8 +124,8 @@ public class BytecodeEnhancer
 	@Override
 	public void afterStarted() throws Throwable {
 		if (bytecodeStore != null) {
-			enhancedTypes =
-					bytecodeStore.loadEnhancedTypes(this, bytecodeBehaviorExtensions.getExtensions());
+			enhancedTypes = bytecodeStore.loadEnhancedTypes(this,
+					bytecodeBehaviorExtensions.getExtensions());
 		}
 	}
 
@@ -222,8 +224,8 @@ public class BytecodeEnhancer
 		outputFileDir.mkdirs();
 		File outputFile = new File(outputFileDir, typeName + ".txt");
 		try {
-			OutputStreamWriter fw =
-					new OutputStreamWriter(new FileOutputStream(outputFile), Charset.forName("UTF-8"));
+			OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(outputFile),
+					Charset.forName("UTF-8"));
 			try {
 				fw.write(bytecodeOutput);
 			}
@@ -240,8 +242,13 @@ public class BytecodeEnhancer
 	@Override
 	public Class<?> getEnhancedType(Class<?> typeToEnhance, String newTypeNamePrefix,
 			IEnhancementHint hint) {
-		ClassLoader classLoader = typeToEnhance.getClassLoader();
-		Class<?> extendedType = getEnhancedTypeIntern(typeToEnhance, hint, classLoader);
+		ClassLoader clpClassLoader = classLoaderProvider.getClassLoader();
+		Class<?> extendedType = getEnhancedTypeIntern(typeToEnhance, hint, clpClassLoader);
+		if (extendedType != null) {
+			return extendedType;
+		}
+		ClassLoader typeClassLoader = typeToEnhance.getClassLoader();
+		extendedType = getEnhancedTypeIntern(typeToEnhance, hint, typeClassLoader);
 		if (extendedType != null) {
 			return extendedType;
 		}
@@ -249,7 +256,11 @@ public class BytecodeEnhancer
 		writeLock.lock();
 		try {
 			// Concurrent thread may have been faster
-			extendedType = getEnhancedTypeIntern(typeToEnhance, hint, classLoader);
+			extendedType = getEnhancedTypeIntern(typeToEnhance, hint, clpClassLoader);
+			if (extendedType != null) {
+				return extendedType;
+			}
+			extendedType = getEnhancedTypeIntern(typeToEnhance, hint, typeClassLoader);
 			if (extendedType != null) {
 				return extendedType;
 			}
@@ -270,11 +281,20 @@ public class BytecodeEnhancer
 			IBytecodeBehavior[] allBehaviors = bytecodeBehaviorExtensions.getExtensions();
 			pendingBehaviors.addAll(allBehaviors);
 
+			ClassLoader classLoader = null;
 			ArrayList<Class<?>> enhancedTypesPipeline = new ArrayList<>();
 			Class<?> enhancedType;
 			if (pendingBehaviors.size() > 0) {
-				enhancedType = enhanceTypeIntern(typeToEnhance, newTypeNamePrefix, pendingBehaviors, hint,
-						enhancedTypesPipeline, classLoader);
+				try {
+					enhancedType = enhanceTypeIntern(typeToEnhance, newTypeNamePrefix, pendingBehaviors, hint,
+							enhancedTypesPipeline, clpClassLoader);
+					classLoader = clpClassLoader;
+				}
+				catch (Throwable e) {
+					enhancedType = enhanceTypeIntern(typeToEnhance, newTypeNamePrefix, pendingBehaviors, hint,
+							enhancedTypesPipeline, typeClassLoader);
+					classLoader = typeClassLoader;
+				}
 			}
 			else {
 				enhancedType = typeToEnhance;
@@ -382,8 +402,8 @@ public class BytecodeEnhancer
 				currentType = Object.class;
 			}
 			for (int a = 0, size = pendingBehaviors.size(); a < size; a++) {
-				Class<?> newCurrentType =
-						pendingBehaviors.get(a).getTypeToExtendFrom(originalType, currentType, hint);
+				Class<?> newCurrentType = pendingBehaviors.get(a).getTypeToExtendFrom(originalType,
+						currentType, hint);
 				if (newCurrentType != null) {
 					currentType = newCurrentType;
 				}
@@ -397,8 +417,8 @@ public class BytecodeEnhancer
 				Type newTypeHandle = Type.getObjectType(newTypeNamePrefix + "$A" + iterationCount);
 				lastTypeHandleName = newTypeHandle.getClassName();
 
-				final IBytecodeBehavior[] currentPendingBehaviors =
-						pendingBehaviors.toArray(IBytecodeBehavior.class);
+				final IBytecodeBehavior[] currentPendingBehaviors = pendingBehaviors
+						.toArray(IBytecodeBehavior.class);
 				pendingBehaviors.clear();
 
 				if (currentPendingBehaviors.length > 0 && log.isDebugEnabled()) {
@@ -426,8 +446,8 @@ public class BytecodeEnhancer
 					}
 					return currentType;
 				}
-				Class<?> newType =
-						bytecodeClassLoader.loadClass(newTypeHandle.getInternalName(), newContent, classLoader);
+				Class<?> newType = bytecodeClassLoader.loadClass(newTypeHandle.getInternalName(),
+						newContent, classLoader);
 				extendedTypeToType.put(newType, entityTypeR);
 				pendingStatesToPostProcess.add(acquiredState.getValue());
 				currentContent = newContent;
