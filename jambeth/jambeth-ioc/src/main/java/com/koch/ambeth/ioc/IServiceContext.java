@@ -60,6 +60,16 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	boolean isDisposed();
 
 	/**
+	 * Checks if the context is in the process of being disposed. In this case {@link #isRunning()} is
+	 * still true but gives additionally the hint that some functionalities might not work completely
+	 * as expected any more. This flag will return to false (again) when the disposal is finished.
+	 *
+	 * @return True if - and only if - the context is in the process of being disposed, otherwise
+	 *         false.
+	 */
+	boolean isDisposing();
+
+	/**
 	 * Checks if the context is running. It is not the opposite of isDisposed(). The context also
 	 * could be starting or in the process of being disposed.
 	 *
@@ -85,7 +95,8 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	 * Creates a child context of this context with the additional beans from the given initializing
 	 * modules.
 	 *
-	 * @param serviceModules Initializing modules defining the content of the new context.
+	 * @param serviceModules
+	 *          Initializing modules defining the content of the new context.
 	 * @return New IoC context.
 	 */
 	IServiceContext createService(Class<?>... serviceModules);
@@ -94,9 +105,11 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	 * Creates a child context of this context with the additional beans from the given initializing
 	 * modules.
 	 *
-	 * @param childContextName The name of the childContext. This makes sense if the context hierarchy
-	 *        will be monitored e.g. via JMX clients
-	 * @param serviceModules Initializing modules defining the content of the new context.
+	 * @param childContextName
+	 *          The name of the childContext. This makes sense if the context hierarchy will be
+	 *          monitored e.g. via JMX clients
+	 * @param serviceModules
+	 *          Initializing modules defining the content of the new context.
 	 * @return New IoC context.
 	 */
 	IServiceContext createService(String childContextName, Class<?>... serviceModules);
@@ -105,8 +118,10 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	 * Creates a child context of this context with the additional beans from the given initializing
 	 * modules plus everything you do in the RegisterPhaseDelegate.
 	 *
-	 * @param registerPhaseDelegate Similar to an already instantiated module.
-	 * @param serviceModules Initializing modules defining the content of the new context.
+	 * @param registerPhaseDelegate
+	 *          Similar to an already instantiated module.
+	 * @param serviceModules
+	 *          Initializing modules defining the content of the new context.
 	 * @return New IoC context.
 	 */
 	IServiceContext createService(
@@ -117,10 +132,13 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	 * Creates a child context of this context with the additional beans from the given initializing
 	 * modules plus everything you do in the RegisterPhaseDelegate.
 	 *
-	 * @param childContextName The name of the childContext. This makes sense if the context hierarchy
-	 *        will be monitored e.g. via JMX clients
-	 * @param registerPhaseDelegate Similar to an already instantiated module.
-	 * @param serviceModules Initializing modules defining the content of the new context.
+	 * @param childContextName
+	 *          The name of the childContext. This makes sense if the context hierarchy will be
+	 *          monitored e.g. via JMX clients
+	 * @param registerPhaseDelegate
+	 *          Similar to an already instantiated module.
+	 * @param serviceModules
+	 *          Initializing modules defining the content of the new context.
 	 * @return New IoC context.
 	 */
 	IServiceContext createService(String childContextName,
@@ -130,7 +148,8 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	/**
 	 * For future feature of complex context hierarchies.
 	 *
-	 * @param autowiredBeanClass Type the service bean is autowired to.
+	 * @param autowiredBeanClass
+	 *          Type the service bean is autowired to.
 	 * @return Lazy holder for the requested bean.
 	 */
 	<V> IBeanContextHolder<V> createHolder(Class<V> autowiredBeanClass);
@@ -138,8 +157,10 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	/**
 	 * For future feature of complex context hierarchies.
 	 *
-	 * @param beanName Name of the service bean to lookup.
-	 * @param expectedClass Type the service bean is casted to.
+	 * @param beanName
+	 *          Name of the service bean to lookup.
+	 * @param expectedClass
+	 *          Type the service bean is casted to.
 	 * @return Lazy holder for the requested bean.
 	 */
 	<V> IBeanContextHolder<V> createHolder(String beanName, Class<V> expectedClass);
@@ -147,7 +168,8 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	/**
 	 * Service bean lookup by name. Identical to getService(serviceName, true).
 	 *
-	 * @param serviceName Name of the service bean to lookup.
+	 * @param serviceName
+	 *          Name of the service bean to lookup.
 	 * @return Requested service bean.
 	 */
 	Object getService(String serviceName);
@@ -155,8 +177,10 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	/**
 	 * Service bean lookup by name that may return null.
 	 *
-	 * @param serviceName Name of the service bean to lookup.
-	 * @param checkExistence Flag if bean is required to exist.
+	 * @param serviceName
+	 *          Name of the service bean to lookup.
+	 * @param checkExistence
+	 *          Flag if bean is required to exist.
 	 * @return Requested service bean or null if bean does not exist and existence is not checked.
 	 */
 	Object getService(String serviceName, boolean checkExistence);
@@ -164,8 +188,10 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	/**
 	 * Service bean lookup by name with defined return type.
 	 *
-	 * @param serviceName Name of the service bean to lookup.
-	 * @param targetType Type the service bean is casted to.
+	 * @param serviceName
+	 *          Name of the service bean to lookup.
+	 * @param targetType
+	 *          Type the service bean is casted to.
 	 * @return Requested service bean.
 	 */
 	<V> V getService(String serviceName, Class<V> targetType);
@@ -173,9 +199,12 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	/**
 	 * Service bean lookup by name with defined return type.
 	 *
-	 * @param serviceName Name of the service bean to lookup.
-	 * @param targetType Type the service bean is casted to.
-	 * @param checkExistence Flag if bean is required to exist.
+	 * @param serviceName
+	 *          Name of the service bean to lookup.
+	 * @param targetType
+	 *          Type the service bean is casted to.
+	 * @param checkExistence
+	 *          Flag if bean is required to exist.
 	 * @return Requested service bean or null if bean does not exist and existence is not checked.
 	 */
 	<V> V getService(String serviceName, Class<V> targetType, boolean checkExistence);
@@ -183,7 +212,8 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	/**
 	 * Service bean lookup by type. Identical to getService(autowiredType, true)
 	 *
-	 * @param type Type the service bean is autowired to.
+	 * @param type
+	 *          Type the service bean is autowired to.
 	 * @return Requested service bean.
 	 */
 	<T> T getService(Class<T> type);
@@ -191,8 +221,10 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	/**
 	 * Service bean lookup by type that may return null.
 	 *
-	 * @param type Type the service bean is autowired to.
-	 * @param checkExistence Flag if bean is required to exist.
+	 * @param type
+	 *          Type the service bean is autowired to.
+	 * @param checkExistence
+	 *          Flag if bean is required to exist.
 	 * @return Requested service bean or null if bean does not exist and existence is not checked.
 	 */
 	<T> T getService(Class<T> type, boolean checkExistence);
@@ -200,7 +232,8 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	/**
 	 * Lookup for all beans assignable to a given type.
 	 *
-	 * @param type Lookup type.
+	 * @param type
+	 *          Lookup type.
 	 * @return All beans assignable to a given type.
 	 */
 	<T> IList<T> getObjects(Class<T> type);
@@ -208,7 +241,8 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	/**
 	 * Lookup for all beans annotated with a given annotation.
 	 *
-	 * @param type Annotation type to look for.
+	 * @param type
+	 *          Annotation type to look for.
 	 * @return Annotated beans.
 	 */
 	<T extends Annotation> IList<Object> getAnnotatedObjects(Class<T> type);
@@ -216,7 +250,8 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	/**
 	 * Lookup for all beans implementing a given interface.
 	 *
-	 * @param interfaceType Interface type to look for.
+	 * @param interfaceType
+	 *          Interface type to look for.
 	 * @return Implementing beans.
 	 */
 	<T> IList<T> getImplementingObjects(Class<T> interfaceType);
@@ -224,14 +259,16 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	/**
 	 * Links an external bean instance to the contexts dispose life cycle hook.
 	 *
-	 * @param disposableBean Bean instance to be disposed with this context.
+	 * @param disposableBean
+	 *          Bean instance to be disposed with this context.
 	 */
 	void registerDisposable(IDisposableBean disposableBean);
 
 	/**
 	 * Adds a callback to be executed during context shutdown.
 	 *
-	 * @param disposeCallback Callback to be executed.
+	 * @param disposeCallback
+	 *          Callback to be executed.
 	 */
 	void registerDisposeHook(IBackgroundWorkerParamDelegate<IServiceContext> disposeCallback);
 
@@ -239,7 +276,8 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	 * Adds an external bean to the context and links it to the contexts dispose life cycle hook.
 	 * Injections are done by the context.
 	 *
-	 * @param object External bean instance.
+	 * @param object
+	 *          External bean instance.
 	 * @return IBeanRuntime to add things to the bean or finish the registration.
 	 */
 	<V> IBeanRuntime<V> registerWithLifecycle(V object);
@@ -248,7 +286,8 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	 * Adds an external bean to the context while the context is already running. No injections are
 	 * done by the context.
 	 *
-	 * @param externalBean External bean instance.
+	 * @param externalBean
+	 *          External bean instance.
 	 * @return IBeanRuntime to add things to the bean or finish the registration.
 	 */
 	<V> IBeanRuntime<V> registerExternalBean(V externalBean);
@@ -256,7 +295,8 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	/**
 	 * Registers an anonymous bean while the context is already running.
 	 *
-	 * @param beanType Class of the bean to be instantiated.
+	 * @param beanType
+	 *          Class of the bean to be instantiated.
 	 * @return IBeanRuntime to add things to the bean or finish the registration.
 	 */
 	<V> IBeanRuntime<V> registerAnonymousBean(Class<V> beanType);
@@ -264,7 +304,8 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	/**
 	 * Registers an anonymous bean while the context is already running.
 	 *
-	 * @param beanType Class of the bean to be instantiated.
+	 * @param beanType
+	 *          Class of the bean to be instantiated.
 	 * @return IBeanRuntime to add things to the bean or finish the registration.
 	 */
 	<V> IBeanRuntime<V> registerBean(Class<V> beanType);
@@ -273,7 +314,8 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	 * Finder for configuration of a named bean. Makes it possible to read and change the IoC
 	 * configuration of a bean during runtime.
 	 *
-	 * @param beanName Name of the bean.
+	 * @param beanName
+	 *          Name of the bean.
 	 * @return Configuration of a named bean.
 	 */
 	IBeanConfiguration getBeanConfiguration(String beanName);
@@ -281,7 +323,8 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 	/**
 	 * Disabled.
 	 *
-	 * @param sb Target StringBuilder.
+	 * @param sb
+	 *          Target StringBuilder.
 	 */
 	void printContent(StringBuilder sb);
 }

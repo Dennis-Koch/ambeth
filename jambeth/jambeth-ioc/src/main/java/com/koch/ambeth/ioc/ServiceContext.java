@@ -219,6 +219,11 @@ public class ServiceContext
 	}
 
 	@Override
+	public boolean isDisposing() {
+		return disposing;
+	}
+
+	@Override
 	public boolean isRunning() {
 		return running;
 	}
@@ -561,14 +566,14 @@ public class ServiceContext
 			IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
 			Class<?>... serviceModuleTypes) {
 		checkNotDisposed();
-		IBeanContextInitializer beanContextInitializer =
-				registerBean(BeanContextInitializer.class).finish();
+		IBeanContextInitializer beanContextInitializer = registerBean(BeanContextInitializer.class)
+				.finish();
 
 		if (contextName == null && registerPhaseDelegate == null && serviceModuleTypes.length == 1) {
 			contextName = serviceModuleTypes[0].getSimpleName();
 		}
-		BeanContextFactory childBeanContextFactory =
-				beanContextFactory.createChildContextFactory(beanContextInitializer, this);
+		BeanContextFactory childBeanContextFactory = beanContextFactory
+				.createChildContextFactory(beanContextInitializer, this);
 		IServiceContext childContext = childBeanContextFactory.create(contextName, this,
 				registerPhaseDelegate, serviceModuleTypes);
 
@@ -637,8 +642,8 @@ public class ServiceContext
 	}
 
 	protected void handleObjects(final HandleObjectsDelegate handleObjectsDelegate) {
-		final Set<Object> alreadyHandledSet =
-				IdentityHashSet.create(typeToServiceDict.size() + nameToServiceDict.size());
+		final Set<Object> alreadyHandledSet = IdentityHashSet
+				.create(typeToServiceDict.size() + nameToServiceDict.size());
 		for (Entry<Class<?>, Object> entry : typeToServiceDict) {
 			Object obj = entry.getValue();
 			if (alreadyHandledSet.add(obj)) {
