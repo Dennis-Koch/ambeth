@@ -235,8 +235,8 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 				String[] passwords = userPass.split(ARGUMENT_DELIMITER);
 				List<String> createdUserNames = new ArrayList<>();
 				for (String password : passwords) {
-					String createdUserName =
-							createUser(connection, databaseName, userName, password, userQuota);
+					String createdUserName = createUser(connection, databaseName, userName, password,
+							userQuota);
 					if (createdUserName != null) {
 						System.out.println("[[CREATED_USERNAME]] " + createdUserName);
 						createdUserNames.add(createdUserName);
@@ -274,8 +274,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 			while (tryCount++ < tries) {
 				// Ensure that we have maximum 28 characters: prefix has 7, long has maximum 19 + 2 random
 				// digits
-				String randomName = username != null
-						? username
+				String randomName = username != null ? username
 						: "CI_TMP_" + System.nanoTime() + String.format("%02d", (int) (Math.random() * 99));
 				String randomDatabase = databaseName != null ? databaseName : randomName;
 				try {
@@ -285,7 +284,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 					}
 					catch (PersistenceException e) {
 						// check for 'org.postgresql.util.PSQLException: ERROR: role "xxx" already exists'
-						if (!((SQLException) e.getCause()).getSQLState().equals("42710")) {
+						if (!"42710".equals(((SQLException) e.getCause()).getSQLState())) {
 							throw e;
 						}
 						log.warn(e);
@@ -348,8 +347,10 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 	 * Write the given user name to the given property file. Creates the property file if it doesn't
 	 * exist.
 	 *
-	 * @param propertyFileName Property file name
-	 * @param createdUserNames User names
+	 * @param propertyFileName
+	 *          Property file name
+	 * @param createdUserNames
+	 *          User names
 	 */
 	private static void writeToPropertyFile(final String propertyFileName,
 			final List<String> createdUserNames, String[] passwords) {
@@ -359,8 +360,8 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 		File propertyFile = new File(propertyFileName);
 		OutputStreamWriter fileWriter = null;
 		try {
-			fileWriter =
-					new OutputStreamWriter(new FileOutputStream(propertyFile), Charset.forName("UTF-8"));
+			fileWriter = new OutputStreamWriter(new FileOutputStream(propertyFile),
+					Charset.forName("UTF-8"));
 			String content = createPropertyFileContent(createdUserNames, passwords);
 			fileWriter.append(content);
 		}
@@ -404,9 +405,9 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 		}
 		summaryBuilder.append('\n');
 
-		String connectionUser =
-				PersistenceJdbcConfigurationConstants.DatabaseUser + "=" + createdUserNames.get(0) + "\n"
-						+ PersistenceJdbcConfigurationConstants.DatabasePass + "=" + passwords[0] + "\n";
+		String connectionUser = PersistenceJdbcConfigurationConstants.DatabaseUser + "="
+				+ createdUserNames.get(0) + "\n" + PersistenceJdbcConfigurationConstants.DatabasePass + "="
+				+ passwords[0] + "\n";
 		String content = connectionUser + summaryBuilder.toString() + singleSchemaBuilder.toString();
 		return content;
 	}

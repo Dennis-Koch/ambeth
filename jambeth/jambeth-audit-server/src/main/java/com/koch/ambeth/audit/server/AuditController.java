@@ -160,20 +160,17 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Autowired
 	protected ILightweightTransaction transaction;
 
-	@Property(name = AuditConfigurationConstants.AuditedServiceDefaultModeActive,
-			defaultValue = "true")
+	@Property(name = AuditConfigurationConstants.AuditedServiceDefaultModeActive, defaultValue = "true")
 	protected boolean auditedServiceDefaultModeActive;
 
 	@Property(name = SecurityServerConfigurationConstants.SignatureActive, defaultValue = "false")
 	protected boolean signatureActive;
 
 	@Forkable
-	private final ThreadLocal<AdditionalAuditInfo> additionalAuditInfoTL =
-			new ThreadLocal<>();
+	private final ThreadLocal<AdditionalAuditInfo> additionalAuditInfoTL = new ThreadLocal<>();
 
 	@Forkable
-	protected final ThreadLocal<AuditControllerState> auditEntryTL =
-			new ThreadLocal<>();
+	protected final ThreadLocal<AuditControllerState> auditEntryTL = new ThreadLocal<>();
 
 	@Override
 	public void cleanupThreadLocal() {
@@ -192,11 +189,11 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		try {
 			Long currentTime = database.getContextProvider().getCurrentTime();
 
-			auditEntryState =
-					new AuditControllerState(cudResultApplier.acquireNewState(null), entityMetaDataProvider);
+			auditEntryState = new AuditControllerState(cudResultApplier.acquireNewState(null),
+					entityMetaDataProvider);
 			CreateOrUpdateContainerBuild auditEntry = auditEntryState.getAuditEntry();
 
-			auditEntry.ensurePrimitive(IAuditEntry.Timestamp).setNewValue(currentTime.longValue());
+			auditEntry.ensurePrimitive(IAuditEntry.Timestamp).setNewValue(currentTime);
 
 			auditEntryTL.set(auditEntryState);
 			return auditEntryState;
@@ -213,8 +210,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		CreateOrUpdateContainerBuild auditEntry = auditControllerState.auditedChanges.get(0);
 		RelationUpdateItemBuild servicesRUI = auditEntry.ensureRelation(IAuditEntry.Services);
 
-		CreateOrUpdateContainerBuild auditedService =
-				auditControllerState.createEntity(IAuditedService.class);
+		CreateOrUpdateContainerBuild auditedService = auditControllerState
+				.createEntity(IAuditedService.class);
 		servicesRUI.addObjRef(auditedService.getReference());
 		auditedService.ensureRelation(IAuditedService.Entry).addObjRef(auditEntry.getReference());
 
@@ -271,8 +268,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			IMap<IObjRef, IDirectObjRef> objRefToRefMap) {
 		IObjRef objRef = changeContainer.getReference();
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
-		IAuditConfiguration auditConfiguration =
-				auditConfigurationProvider.getAuditConfiguration(metaData.getEntityType());
+		IAuditConfiguration auditConfiguration = auditConfigurationProvider
+				.getAuditConfiguration(metaData.getEntityType());
 		if (auditConfiguration == null || !auditConfiguration.isAuditActive()) {
 			return;
 		}
@@ -282,8 +279,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			throw new AuditReasonMissingException(
 					"Audit reason is missing for " + originalRef.getClass() + "!");
 		}
-		CreateOrUpdateContainerBuild auditedEntity =
-				auditControllerState.createEntity(IAuditedEntity.class);
+		CreateOrUpdateContainerBuild auditedEntity = auditControllerState
+				.createEntity(IAuditedEntity.class);
 		CreateOrUpdateContainerBuild auditEntry = auditControllerState.auditedChanges.get(0);
 		RelationUpdateItemBuild entities = auditEntry.ensureRelation(IAuditEntry.Entities);
 		entities.addObjRef(auditedEntity.getReference());
@@ -334,8 +331,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 					.setNewValue(conversionHelper.convertValueToType(String.class, objRef.getVersion()));
 			return ref;
 		}
-		CreateOrUpdateContainerBuild auditedEntityRef =
-				auditControllerState.createEntity(IAuditedEntityRef.class);
+		CreateOrUpdateContainerBuild auditedEntityRef = auditControllerState
+				.createEntity(IAuditedEntityRef.class);
 		ref = (IDirectObjRef) auditedEntityRef.getReference();
 
 		auditedEntityRef.ensurePrimitive(IAuditedEntityRef.EntityId)
@@ -360,8 +357,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			if (!auditConfiguration.getMemberConfiguration(pui.getMemberName()).isAuditActive()) {
 				continue;
 			}
-			CreateOrUpdateContainerBuild primitiveProperty =
-					auditControllerState.createEntity(IAuditedEntityPrimitiveProperty.class);
+			CreateOrUpdateContainerBuild primitiveProperty = auditControllerState
+					.createEntity(IAuditedEntityPrimitiveProperty.class);
 			RelationUpdateItemBuild primitives = auditedEntity.ensureRelation(IAuditedEntity.Primitives);
 			primitives.addObjRef(primitiveProperty.getReference());
 			primitiveProperty.ensureRelation(IAuditedEntityPrimitiveProperty.Entity)
@@ -397,8 +394,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		StringBuilder sb = objectCollector.create(StringBuilder.class);
 		try {
 			if (primitiveValueOfEntity instanceof IBinaryInputSource) {
-				IBinaryInputStream is =
-						((IBinaryInputSource) primitiveValueOfEntity).deriveBinaryInputStream();
+				IBinaryInputStream is = ((IBinaryInputSource) primitiveValueOfEntity)
+						.deriveBinaryInputStream();
 				try {
 					int oneByte;
 					while ((oneByte = is.readByte()) != -1) {
@@ -416,8 +413,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 				}
 			}
 			else if (primitiveValueOfEntity instanceof ICharacterInputSource) {
-				ICharacterInputStream is =
-						((ICharacterInputSource) primitiveValueOfEntity).deriveCharacterInputStream();
+				ICharacterInputStream is = ((ICharacterInputSource) primitiveValueOfEntity)
+						.deriveCharacterInputStream();
 				try {
 					int oneByte;
 					while ((oneByte = is.readChar()) != -1) {
@@ -451,8 +448,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			if (!auditConfiguration.getMemberConfiguration(rui.getMemberName()).isAuditActive()) {
 				continue;
 			}
-			CreateOrUpdateContainerBuild relationProperty =
-					auditControllerState.createEntity(IAuditedEntityRelationProperty.class);
+			CreateOrUpdateContainerBuild relationProperty = auditControllerState
+					.createEntity(IAuditedEntityRelationProperty.class);
 			RelationUpdateItemBuild relations = auditedEntity.ensureRelation(IAuditedEntity.Relations);
 			relations.addObjRef(relationProperty.getReference());
 			relationProperty.ensureRelation(IAuditedEntityRelationProperty.Entity)
@@ -483,10 +480,10 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	protected void auditPropertyItem(IObjRef objRef, CreateOrUpdateContainerBuild relationProperty,
 			AuditedEntityPropertyItemChangeType changeType, AuditControllerState auditControllerState,
 			IMap<IObjRef, IDirectObjRef> objRefToRefMap) {
-		CreateOrUpdateContainerBuild propertyItem =
-				auditControllerState.createEntity(IAuditedEntityRelationPropertyItem.class);
-		RelationUpdateItemBuild items =
-				relationProperty.ensureRelation(IAuditedEntityRelationProperty.Items);
+		CreateOrUpdateContainerBuild propertyItem = auditControllerState
+				.createEntity(IAuditedEntityRelationPropertyItem.class);
+		RelationUpdateItemBuild items = relationProperty
+				.ensureRelation(IAuditedEntityRelationProperty.Items);
 		items.addObjRef(propertyItem.getReference());
 
 		propertyItem.ensureRelation(IAuditedEntityRelationPropertyItem.Ref)
@@ -704,8 +701,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		char[] clearTextPassword = additionalAuditInfo.clearTextPassword;
 		if (clearTextPassword == null && signatureActive) {
 			ISecurityContext securityContext = securityContextHolder.getContext();
-			IAuthentication authentication =
-					securityContext != null ? securityContext.getAuthentication() : null;
+			IAuthentication authentication = securityContext != null ? securityContext.getAuthentication()
+					: null;
 			if (authentication != null) {
 				clearTextPassword = authentication.getPassword();
 			}
@@ -718,8 +715,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	}
 
 	protected ICUDResult buildAuditCUDResult(IList<CreateOrUpdateContainerBuild> auditedChanges) {
-		ArrayList<IChangeContainer> finalizedAuditChanges =
-				new ArrayList<>(auditedChanges.size());
+		ArrayList<IChangeContainer> finalizedAuditChanges = new ArrayList<>(auditedChanges.size());
 		for (int a = 0, size = auditedChanges.size(); a < size; a++) {
 			CreateOrUpdateContainerBuild createOrUpdate = auditedChanges.get(a);
 			if (!createOrUpdate.isCreate()) {
@@ -738,7 +734,6 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			}
 			finalizedAuditChanges.add(cc);
 		}
-		return new CUDResult(finalizedAuditChanges,
-				new ArrayList<>(new Object[auditedChanges.size()]));
+		return new CUDResult(finalizedAuditChanges, new ArrayList<>(new Object[auditedChanges.size()]));
 	}
 }

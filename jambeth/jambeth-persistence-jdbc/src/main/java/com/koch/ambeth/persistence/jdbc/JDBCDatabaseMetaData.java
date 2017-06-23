@@ -82,12 +82,11 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 public class JDBCDatabaseMetaData extends DatabaseMetaData
-		implements
-			IDatabaseMappedListenerExtendable {
+		implements IDatabaseMappedListenerExtendable {
 	private static final NamedItemComparator namedItemComparator = new NamedItemComparator();
 
-	protected static final Pattern recycleBin =
-			Pattern.compile("BIN\\$.{22}==\\$0", Pattern.CASE_INSENSITIVE);
+	protected static final Pattern recycleBin = Pattern.compile("BIN\\$.{22}==\\$0",
+			Pattern.CASE_INSENSITIVE);
 
 	@LogInstance
 	private ILogger log;
@@ -116,9 +115,8 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 	@Autowired
 	protected IPrimaryKeyProvider primaryKeyProvider;
 
-	protected final IExtendableContainer<IDatabaseMappedListener> listeners =
-			new DefaultExtendableContainer<>(IDatabaseMappedListener.class,
-					"databaseMappedListener");
+	protected final IExtendableContainer<IDatabaseMappedListener> listeners = new DefaultExtendableContainer<>(
+			IDatabaseMappedListener.class, "databaseMappedListener");
 
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName)
 	protected String schemaName;
@@ -154,8 +152,7 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 	}
 
 	protected SqlLinkMetaData buildAndMapLink(String linkName, ITableMetaData fromTable,
-			IFieldMetaData fromField, ITableMetaData toTable, IFieldMetaData toField,
-			boolean nullable) {
+			IFieldMetaData fromField, ITableMetaData toTable, IFieldMetaData toField, boolean nullable) {
 		SqlLinkMetaData link = new SqlLinkMetaData();
 
 		link.setName(linkName);
@@ -196,22 +193,21 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 	protected SqlTableMetaData createOneTable(Connection connection, Set<String> fkFields,
 			List<FieldMetaData> fields, List<String> pkFieldNames, String fqTableName)
 			throws SQLException {
-		boolean isPermissionGroupTable =
-				ormPatternMatcher.matchesPermissionGroupPattern(fqTableName);
+		boolean isPermissionGroupTable = ormPatternMatcher.matchesPermissionGroupPattern(fqTableName);
 		if (log.isDebugEnabled()) {
 			if (isPermissionGroupTable) {
 				log.debug("Recognizing table " + fqTableName + " as permission group table");
-			} else {
+			}
+			else {
 				log.debug("Recognizing table " + fqTableName + " as entity table waiting");
 			}
 		}
 		SqlTableMetaData table = serviceContext.registerAnonymousBean(SqlTableMetaData.class)//
-				.propertyValue(SqlTableMetaData.P_INITIAL_VERSION, Integer.valueOf(1))//
-				.propertyValue(SqlTableMetaData.P_NAME, fqTableName)//
-				.propertyValue(SqlTableMetaData.P_FULL_QUALIFIED_ESCAPED_NAME,
+				.propertyValue(TableMetaData.P_INITIAL_VERSION, Integer.valueOf(1))//
+				.propertyValue(TableMetaData.P_NAME, fqTableName)//
+				.propertyValue(TableMetaData.P_FULL_QUALIFIED_ESCAPED_NAME,
 						connectionDialect.escapeName(fqTableName))//
-				.propertyValue(SqlTableMetaData.P_VIEW_BASED, viewNames.contains(fqTableName))
-				.finish();
+				.propertyValue(TableMetaData.P_VIEW_BASED, viewNames.contains(fqTableName)).finish();
 
 		if (pkFieldNames == null) {
 			pkFieldNames = new ArrayList<>(0); // Dummy empty list
@@ -228,8 +224,7 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 			pkFields[0].setIdIndex(ObjRef.PRIMARY_KEY_INDEX);
 		}
 
-		ILinkedMap<String, String[]> uniqueNameToFieldsMap =
-				getUniqueConstraints(connection, table);
+		ILinkedMap<String, String[]> uniqueNameToFieldsMap = getUniqueConstraints(connection, table);
 		Collections.sort(fields, namedItemComparator);
 
 		for (int a = 0, size = fields.size(); a < size; a++) {
@@ -279,8 +274,8 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 
 	protected void findAndAssignFulltextFields(Connection connection) throws SQLException {
 		for (String schemaName : schemaNames) {
-			ILinkedMap<String, IList<String>> fulltextIndizes =
-					connectionDialect.getFulltextIndexes(connection, schemaName);
+			ILinkedMap<String, IList<String>> fulltextIndizes = connectionDialect
+					.getFulltextIndexes(connection, schemaName);
 
 			for (Entry<String, IList<String>> entry : fulltextIndizes) {
 				String tableName;
@@ -301,8 +296,8 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 			String tableName) throws SQLException {
 		ILinkedMap<String, IColumnEntry> cachedFieldValues = new LinkedHashMap<>();
 
-		IList<IColumnEntry> allFieldsOfTable =
-				connectionDialect.getAllFieldsOfTable(connection, tableName);
+		IList<IColumnEntry> allFieldsOfTable = connectionDialect.getAllFieldsOfTable(connection,
+				tableName);
 
 		for (IColumnEntry entry : allFieldsOfTable) {
 			cachedFieldValues.put(entry.getFieldName(), entry);
@@ -312,13 +307,13 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 
 	protected List<FieldMetaData> getFields(Connection connection, String tableName)
 			throws SQLException {
-		ILinkedMap<String, IColumnEntry> cachedFieldValues =
-				getCachedFieldValues(connection, tableName);
+		ILinkedMap<String, IColumnEntry> cachedFieldValues = getCachedFieldValues(connection,
+				tableName);
 		ArrayList<FieldMetaData> fields = new ArrayList<>(cachedFieldValues.size());
 		for (Entry<String, IColumnEntry> entry : cachedFieldValues) {
 			IColumnEntry columnEntry = entry.getValue();
-			Class<?> fieldSubType =
-					connectionDialect.getComponentTypeByFieldTypeName(columnEntry.getTypeName());
+			Class<?> fieldSubType = connectionDialect
+					.getComponentTypeByFieldTypeName(columnEntry.getTypeName());
 
 			FieldMetaData field = new FieldMetaData();
 			field.setExpectsMapping(columnEntry.expectsMapping());
@@ -334,14 +329,14 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 
 	protected int getPrimaryKeyCount(Connection connection, String tableName) throws SQLException {
 		String[] names = sqlBuilder.getSchemaAndTableName(tableName);
-		ResultSet allPrimaryKeysRS =
-				connection.getMetaData().getPrimaryKeys(null, names[0], names[1]);
+		ResultSet allPrimaryKeysRS = connection.getMetaData().getPrimaryKeys(null, names[0], names[1]);
 		int count = 0;
 		try {
 			while (allPrimaryKeysRS.next()) {
 				count++;
 			}
-		} finally {
+		}
+		finally {
 			JdbcUtil.close(allPrimaryKeysRS);
 		}
 		return count;
@@ -355,8 +350,8 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 	protected ILinkedMap<String, String[]> getUniqueConstraints(Connection connection,
 			ITableMetaData table) throws SQLException {
 		String[] names = sqlBuilder.getSchemaAndTableName(table.getName());
-		ResultSet allUniqueKeysRS =
-				connectionDialect.getIndexInfo(connection, names[0], names[1], true);
+		ResultSet allUniqueKeysRS = connectionDialect.getIndexInfo(connection, names[0], names[1],
+				true);
 		try {
 			LinkedHashMap<String, String[]> uniqueNameToFieldsMap = new LinkedHashMap<>();
 			IFieldMetaData idField = table.getIdField();
@@ -391,7 +386,8 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 				columnNames[ordinalPosition - 1] = columnName;
 			}
 			return uniqueNameToFieldsMap;
-		} finally {
+		}
+		finally {
 			JdbcUtil.close(allUniqueKeysRS);
 		}
 	}
@@ -432,8 +428,7 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 		IFieldMetaData entityIdField1 = entityTable1.getFieldByName(pkFieldName);
 		IFieldMetaData entityIdField2 = entityTable2.getFieldByName(pkFieldName2);
 
-		ILinkedMap<String, IColumnEntry> cachedFieldValues =
-				getCachedFieldValues(connection, linkName);
+		ILinkedMap<String, IColumnEntry> cachedFieldValues = getCachedFieldValues(connection, linkName);
 		for (Entry<String, IColumnEntry> entry2 : cachedFieldValues) {
 			IColumnEntry entry = entry2.getValue();
 			String fieldName = entry.getFieldName();
@@ -452,7 +447,8 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 					field.propertyValue(FieldMetaData.P_ID_INDEX, entityIdField1.getIdIndex());
 					fromField = field.finish();
 					fromConstraint = constraintName;
-				} else if (columnIndex == 2)// "to" column
+				}
+				else if (columnIndex == 2)// "to" column
 				{
 					toTable = entityTable1;
 					field.propertyValue(FieldMetaData.P_TABLE, toTable);
@@ -460,7 +456,8 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 					toField = field.finish();
 					toConstraint = constraintName;
 				}
-			} else if (fieldName.equals(linkColumnName2)) {
+			}
+			else if (fieldName.equals(linkColumnName2)) {
 				if (columnIndex == 1) // "from" column
 				{
 					fromTable = entityTable2;
@@ -468,7 +465,8 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 					field.propertyValue(FieldMetaData.P_ID_INDEX, entityIdField2.getIdIndex());
 					fromField = field.finish();
 					fromConstraint = constraintName2;
-				} else if (columnIndex == 2)// "to" column
+				}
+				else if (columnIndex == 2)// "to" column
 				{
 					toTable = entityTable2;
 					field.propertyValue(FieldMetaData.P_TABLE, toTable);
@@ -479,8 +477,7 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 			}
 		}
 
-		SqlLinkMetaData link =
-				buildAndMapLink(linkName, fromTable, fromField, toTable, toField, true);
+		SqlLinkMetaData link = buildAndMapLink(linkName, fromTable, fromField, toTable, toField, true);
 		link.setFullqualifiedEscapedTableName(connectionDialect.escapeName(linkName));
 		((DirectedLinkMetaData) link.getDirectedLink()).setConstraintName(fromConstraint);
 		((DirectedLinkMetaData) link.getDirectedLink()).setStandaloneLink(true);
@@ -494,8 +491,8 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 
 		if (log.isDebugEnabled()) {
 			PersistenceWarnUtil.logDebugOnce(log, loggerHistory, connection,
-					"Recognizing table '" + link.getName() + "' as link between table '"
-							+ fromTable.getName() + "' and '" + toTable.getName() + "'");
+					"Recognizing table '" + link.getName() + "' as link between table '" + fromTable.getName()
+							+ "' and '" + toTable.getName() + "'");
 		}
 	}
 
@@ -513,8 +510,7 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 		ITableMetaData entityTable = nameToTableDict.get(entityTableName);
 		IFieldMetaData entityIdField = entityTable.getFieldByName(entityIdFieldName);
 
-		ILinkedMap<String, IColumnEntry> cachedFieldValues =
-				getCachedFieldValues(connection, linkName);
+		ILinkedMap<String, IColumnEntry> cachedFieldValues = getCachedFieldValues(connection, linkName);
 		for (Entry<String, IColumnEntry> entry2 : cachedFieldValues) {
 			IColumnEntry entry = entry2.getValue();
 			String fieldName = entry.getFieldName();
@@ -529,7 +525,8 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 				field.propertyValue(FieldMetaData.P_TABLE, fromTable);
 				field.propertyValue(FieldMetaData.P_ID_INDEX, entityIdField.getIdIndex());
 				fromField = field.finish();
-			} else {
+			}
+			else {
 				field.propertyValue(FieldMetaData.P_TABLE, new TableMetaData());
 				toField = field.finish();
 			}
@@ -571,8 +568,8 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 		addLinkByTables(link);
 
 		if (log.isDebugEnabled()) {
-			log.debug("Recognizing table '" + linkName + "' as link between table '"
-					+ values.get(0)[0] + "' and an external entity");
+			log.debug("Recognizing table '" + linkName + "' as link between table '" + values.get(0)[0]
+					+ "' and an external entity");
 		}
 	}
 
@@ -612,23 +609,20 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 			}
 			boolean nullable = isFieldNullable(connection, fromField);
 
-			SqlLinkMetaData link = buildAndMapLink(
-					createForeignKeyLinkName(fromTable.getName(), fromField.getName(),
-							toTable.getName(), toField.getName()),
-					fromTable, fromField, toTable, toField, nullable);
+			SqlLinkMetaData link = buildAndMapLink(createForeignKeyLinkName(fromTable.getName(),
+					fromField.getName(), toTable.getName(), toField.getName()), fromTable, fromField, toTable,
+					toField, nullable);
 			link.setConstraintName(constraintName);
 			link.setTableName(linkName);
 			String[] schemaAndName = XmlDatabaseMapper.splitSchemaAndName(linkName);
-			link.setFullqualifiedEscapedTableName(connectionDialect
-					.escapeSchemaAndSymbolName(schemaAndName[0], schemaAndName[1]));
+			link.setFullqualifiedEscapedTableName(
+					connectionDialect.escapeSchemaAndSymbolName(schemaAndName[0], schemaAndName[1]));
 
 			boolean fromIsStandalone = fromField.isAlternateId()
 					|| (fromTable.getIdField() != null && fromTable.getIdField().equals(fromField));
-			boolean toIsStandalone =
-					toField.isAlternateId() || toTable.getIdField().equals(toField);
+			boolean toIsStandalone = toField.isAlternateId() || toTable.getIdField().equals(toField);
 			((DirectedLinkMetaData) link.getDirectedLink()).setStandaloneLink(fromIsStandalone);
-			((DirectedLinkMetaData) link.getReverseDirectedLink())
-					.setStandaloneLink(toIsStandalone);
+			((DirectedLinkMetaData) link.getReverseDirectedLink()).setStandaloneLink(toIsStandalone);
 
 			link = serviceContext.registerWithLifecycle(link).finish();
 
@@ -636,9 +630,8 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 			addLinkByTables(link);
 
 			if (log.isDebugEnabled()) {
-				log.debug(
-						"Recognizing table '" + fromTable.getName() + "' as data table with link ("
-								+ link.getName() + ") to table '" + toTable.getName() + "'");
+				log.debug("Recognizing table '" + fromTable.getName() + "' as data table with link ("
+						+ link.getName() + ") to table '" + toTable.getName() + "'");
 			}
 		}
 	}
@@ -654,23 +647,28 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 				table.setVersionField(field);
 				fields.remove(a);
 				continue;
-			} else if (fieldName.equalsIgnoreCase(defaultCreatedByFieldName)) {
+			}
+			else if (fieldName.equalsIgnoreCase(defaultCreatedByFieldName)) {
 				table.setCreatedByField(field);
 				// fields.remove(a);
 				continue;
-			} else if (fieldName.equalsIgnoreCase(defaultCreatedOnFieldName)) {
+			}
+			else if (fieldName.equalsIgnoreCase(defaultCreatedOnFieldName)) {
 				table.setCreatedOnField(field);
 				// fields.remove(a);
 				continue;
-			} else if (fieldName.equalsIgnoreCase(defaultUpdatedByFieldName)) {
+			}
+			else if (fieldName.equalsIgnoreCase(defaultUpdatedByFieldName)) {
 				table.setUpdatedByField(field);
 				// fields.remove(a);
 				continue;
-			} else if (fieldName.equalsIgnoreCase(defaultUpdatedOnFieldName)) {
+			}
+			else if (fieldName.equalsIgnoreCase(defaultUpdatedOnFieldName)) {
 				table.setUpdatedOnField(field);
 				// fields.remove(a);
 				continue;
-			} else if (fieldName.equalsIgnoreCase("rowid")) {
+			}
+			else if ("rowid".equalsIgnoreCase(fieldName)) {
 				continue;
 			}
 			for (int b = pkFieldNames.size(); b-- > 0;) {
@@ -730,15 +728,17 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 
 				if (table != null) {
 					handleLinkWithinDataTable(connection, linkName, values, fields);
-				} else if (((fields.size() - hasPermissionGroupField) == connectionDialect
+				}
+				else if (((fields.size() - hasPermissionGroupField) == connectionDialect
 						.getColumnCountForLinkTable()) && values.size() == 2) {
 					handleLinkTable(connection, linkName, values);
-				} else if (((fields.size() - hasPermissionGroupField) == connectionDialect
+				}
+				else if (((fields.size() - hasPermissionGroupField) == connectionDialect
 						.getColumnCountForLinkTable()) && values.size() == 1) {
 					handleLinkTableToExtern(connection, linkName, values);
-				} else {
-					throw new IllegalStateException(
-							"Type of link can not be determined: '" + linkName + "'");
+				}
+				else {
+					throw new IllegalStateException("Type of link can not be determined: '" + linkName + "'");
 				}
 			}
 
@@ -753,7 +753,8 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 				link = serviceContext.registerWithLifecycle(link).finish();
 				links.set(a, link);
 			}
-		} catch (Throwable e) {
+		}
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		IList<IDatabaseMapper> objects = serviceContext.getObjects(IDatabaseMapper.class);
@@ -768,29 +769,28 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 			if (table.isPermissionGroup()) {
 				continue;
 			}
-			ITableMetaData permissionGroupTable = getTableByName(ormPatternMatcher
-					.buildPermissionGroupFromTableName(table.getName(), maxNameLength));
+			ITableMetaData permissionGroupTable = getTableByName(
+					ormPatternMatcher.buildPermissionGroupFromTableName(table.getName(), maxNameLength));
 			if (permissionGroupTable != null) {
 				mapPermissionGroupTable(permissionGroupTable, table);
 			}
 		}
 		super.afterStarted();
 
-		IList<IDatabaseMappedListener> databaseMappedListeners =
-				serviceContext.getObjects(IDatabaseMappedListener.class);
+		IList<IDatabaseMappedListener> databaseMappedListeners = serviceContext
+				.getObjects(IDatabaseMappedListener.class);
 		for (int a = databaseMappedListeners.size(); a-- > 0;) {
 			databaseMappedListeners.get(a).databaseMapped(this);
 		}
 	}
 
 	@Override
-	public boolean isFieldNullable(Connection connection, IFieldMetaData field)
-			throws SQLException {
+	public boolean isFieldNullable(Connection connection, IFieldMetaData field) throws SQLException {
 		boolean nullable = false;
 
 		String tableName = field.getTable().getName();
-		ILinkedMap<String, IColumnEntry> cachedFieldValues =
-				getCachedFieldValues(connection, tableName);
+		ILinkedMap<String, IColumnEntry> cachedFieldValues = getCachedFieldValues(connection,
+				tableName);
 		IColumnEntry entry = cachedFieldValues.get(field.getName());
 		nullable = entry.isNullable();
 
@@ -802,7 +802,7 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 		if (fields.size() != 4) {
 			return false;
 		}
-		String[] archiveFieldNames = {"ARCHIVED_ON", "ARCHIVED_BY"};
+		String[] archiveFieldNames = { "ARCHIVED_ON", "ARCHIVED_BY" };
 		boolean archiveFieldNamesFound = false;
 		int toFind = archiveFieldNames.length;
 		for (int i = fields.size(); i-- > 0;) {
@@ -849,10 +849,9 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 	}
 
 	protected void loadLinkInfos(Connection connection,
-			Map<String, List<String[]>> linkNameToEntryMap, Set<String> fkFields)
-			throws SQLException {
-		IList<IMap<String, String>> allForeignKeys =
-				connectionDialect.getExportedKeys(connection, schemaNames);
+			Map<String, List<String[]>> linkNameToEntryMap, Set<String> fkFields) throws SQLException {
+		IList<IMap<String, String>> allForeignKeys = connectionDialect.getExportedKeys(connection,
+				schemaNames);
 
 		StringBuilder sb = objectCollector.create(StringBuilder.class);
 		try {
@@ -869,22 +868,23 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 					sb.setLength(0);
 					pkTableName = sb.append(schemaName).append(".").append(pkTableName).toString();
 					sb.setLength(0);
-					linkTableName =
-							sb.append(schemaName).append(".").append(linkTableName).toString();
+					linkTableName = sb.append(schemaName).append(".").append(linkTableName).toString();
 
 					List<String[]> tableLinks = linkNameToEntryMap.get(linkTableName);
 					if (tableLinks == null) {
 						tableLinks = new ArrayList<>();
 						linkNameToEntryMap.put(linkTableName, tableLinks);
 					}
-					tableLinks.add(new String[] {pkTableName, pkColumnName, linkTableName,
-							linkColumnName, constraintName});
+					tableLinks.add(new String[] { pkTableName, pkColumnName, linkTableName, linkColumnName,
+							constraintName });
 					fkFields.add(tableAndFieldToFKKey(linkTableName, linkColumnName));
-				} finally {
+				}
+				finally {
 					// foreignKey.dispose();
 				}
 			}
-		} finally {
+		}
+		finally {
 			// allForeignKeys.dispose();
 			objectCollector.dispose(sb);
 		}
@@ -903,10 +903,10 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
 		StringBuilder sb = objectCollector.create(StringBuilder.class);
 		try {
-			List<String> fqTableNamesList =
-					connectionDialect.getAllFullqualifiedTableNames(connection, schemaNames);
-			List<String> fqViewNamesList =
-					connectionDialect.getAllFullqualifiedViews(connection, schemaNames);
+			List<String> fqTableNamesList = connectionDialect.getAllFullqualifiedTableNames(connection,
+					schemaNames);
+			List<String> fqViewNamesList = connectionDialect.getAllFullqualifiedViews(connection,
+					schemaNames);
 			for (String fqTableName : fqTableNamesList) {
 				if (ignoredTables.contains(fqTableName)) {
 					continue; // this is not a table we are interested in
@@ -930,7 +930,8 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 				fqTableNames.add(fqViewName);
 				viewNames.add(fqViewName);
 			}
-		} finally {
+		}
+		finally {
 			objectCollector.dispose(sb);
 		}
 	}
@@ -959,8 +960,8 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 		while (iter.hasNext()) {
 			String tableName = iter.next();
 			String[] names = sqlBuilder.getSchemaAndTableName(tableName);
-			ResultSet allPrimaryKeysRS =
-					connection.getMetaData().getPrimaryKeys(null, names[0], names[1]);
+			ResultSet allPrimaryKeysRS = connection.getMetaData().getPrimaryKeys(null, names[0],
+					names[1]);
 			try {
 				while (allPrimaryKeysRS.next()) {
 					String columnName = allPrimaryKeysRS.getString("COLUMN_NAME");
@@ -976,7 +977,8 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 					}
 					tableList.set(keySeq - 1, columnName);
 				}
-			} finally {
+			}
+			finally {
 				JdbcUtil.close(allPrimaryKeysRS);
 			}
 		}
@@ -1008,15 +1010,11 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 		nameToObjectMap.putIfNotExists((schemaName + "." + softName).toUpperCase(), link);
 		nameToObjectMap.putIfNotExists((schemaName + "." + softName).toLowerCase(), link);
 		nameToObjectMap.putIfNotExists(schemaName.toUpperCase() + "." + softName, link);
-		nameToObjectMap.putIfNotExists(schemaName.toUpperCase() + "." + softName.toUpperCase(),
-				link);
-		nameToObjectMap.putIfNotExists(schemaName.toUpperCase() + "." + softName.toLowerCase(),
-				link);
+		nameToObjectMap.putIfNotExists(schemaName.toUpperCase() + "." + softName.toUpperCase(), link);
+		nameToObjectMap.putIfNotExists(schemaName.toUpperCase() + "." + softName.toLowerCase(), link);
 		nameToObjectMap.putIfNotExists(schemaName.toLowerCase() + "." + softName, link);
-		nameToObjectMap.putIfNotExists(schemaName.toLowerCase() + "." + softName.toUpperCase(),
-				link);
-		nameToObjectMap.putIfNotExists(schemaName.toLowerCase() + "." + softName.toLowerCase(),
-				link);
+		nameToObjectMap.putIfNotExists(schemaName.toLowerCase() + "." + softName.toUpperCase(), link);
+		nameToObjectMap.putIfNotExists(schemaName.toLowerCase() + "." + softName.toLowerCase(), link);
 	}
 
 	protected void putTableByName(String name, ITableMetaData table) {
@@ -1047,9 +1045,8 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 			loadTableFields(connection, fqDataTableNames, tableNameToFields);
 			mapPrimaryKeys(connection, fqDataTableNames, tableNameToPkFieldsMap);
 
-			ITableMetaData newTable =
-					createOneTable(connection, fkFields, tableNameToFields.get(fqTableName),
-							tableNameToPkFieldsMap.get(fqTableName), fqTableName);
+			ITableMetaData newTable = createOneTable(connection, fkFields,
+					tableNameToFields.get(fqTableName), tableNameToPkFieldsMap.get(fqTableName), fqTableName);
 
 			for (Entry<String, List<String[]>> entry : linkNameToEntryMap) {
 				String linkName = entry.getKey();
@@ -1062,23 +1059,25 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 				ITableMetaData table = nameToTableDict.get(linkName);
 
 				int hasPermissionGroupField = fieldsContainPermissionGroup(fields);
-				boolean isLinkTable =
-						((fields.size() - hasPermissionGroupField) == connectionDialect
-								.getColumnCountForLinkTable());
+				boolean isLinkTable = ((fields.size() - hasPermissionGroupField) == connectionDialect
+						.getColumnCountForLinkTable());
 
 				if (table != null) {
 					handleLinkWithinDataTable(connection, linkName, values, fields);
-				} else if (isLinkTable && values.size() == 2) {
+				}
+				else if (isLinkTable && values.size() == 2) {
 					handleLinkTable(connection, linkName, values);
-				} else if (isLinkTable && values.size() == 1) {
+				}
+				else if (isLinkTable && values.size() == 1) {
 					handleLinkTableToExtern(connection, linkName, values);
-				} else {
-					throw new IllegalStateException(
-							"Type of link can not be determined: '" + linkName + "'");
+				}
+				else {
+					throw new IllegalStateException("Type of link can not be determined: '" + linkName + "'");
 				}
 			}
 			return newTable;
-		} catch (Throwable e) {
+		}
+		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

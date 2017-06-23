@@ -77,7 +77,7 @@ public class CommittedRootCachePostProcessor extends AbstractCascadePostProcesso
 				// ignore this method
 				continue;
 			}
-			if (method.getName().equals("createCacheValueInstance")) {
+			if ("createCacheValueInstance".equals(method.getName())) {
 				// ignore this method
 				continue;
 			}
@@ -90,14 +90,13 @@ public class CommittedRootCachePostProcessor extends AbstractCascadePostProcesso
 		if (methodLevelBehaviour == null) {
 			methodLevelBehaviour = new MethodLevelHashMap<>(0);
 		}
-		IMethodLevelBehavior<SecurityContextType> behaviour =
-				new MethodLevelBehavior<>(SecurityContextType.NOT_REQUIRED,
-						methodLevelBehaviour);
+		IMethodLevelBehavior<SecurityContextType> behaviour = new MethodLevelBehavior<>(
+				SecurityContextType.NOT_REQUIRED, methodLevelBehaviour);
 
 		SecurityFilterInterceptor interceptor = new SecurityFilterInterceptor();
 		if (beanContext.isRunning()) {
-			IBeanRuntime<SecurityFilterInterceptor> interceptorBC =
-					beanContext.registerWithLifecycle(interceptor);
+			IBeanRuntime<SecurityFilterInterceptor> interceptorBC = beanContext
+					.registerWithLifecycle(interceptor);
 			interceptorBC.propertyValue("MethodLevelBehaviour", behaviour)
 					.propertyValue(SecurityFilterInterceptor.PROP_CHECK_METHOD_ACCESS, Boolean.FALSE);
 			return interceptorBC.finish();

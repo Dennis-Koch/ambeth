@@ -52,8 +52,7 @@ import net.sf.cglib.proxy.MethodProxy;
 
 public class LogStatementInterceptor extends AbstractSimpleInterceptor
 		implements IInitializingBean, IPrintable {
-	public static final String SENSOR_NAME =
-			"com.koch.ambeth.persistence.jdbc.connection.LogStatementInterceptor";
+	public static final String SENSOR_NAME = "com.koch.ambeth.persistence.jdbc.connection.LogStatementInterceptor";
 
 	public static final Set<Method> notLoggedMethods = new HashSet<>(0.5f);
 
@@ -110,8 +109,7 @@ public class LogStatementInterceptor extends AbstractSimpleInterceptor
 
 	protected int identityHashCode;
 
-	@Property(name = PersistenceJdbcConfigurationConstants.JdbcLogExceptionActive,
-			defaultValue = "false")
+	@Property(name = PersistenceJdbcConfigurationConstants.JdbcLogExceptionActive, defaultValue = "false")
 	protected boolean isLogExceptionActive;
 
 	@Property(name = PersistenceJdbcConfigurationConstants.JdbcTraceActive, defaultValue = "true")
@@ -205,7 +203,7 @@ public class LogStatementInterceptor extends AbstractSimpleInterceptor
 				}
 				String methodName = method.getName();
 				if (modifyingDatabase != null
-						&& (methodName.equals("execute") || methodName.equals("executeUpdate"))) {
+						&& ("execute".equals(methodName) || "executeUpdate".equals(methodName))) {
 					modifyingDatabase.setModifyingDatabase(true);
 				}
 				return result;
