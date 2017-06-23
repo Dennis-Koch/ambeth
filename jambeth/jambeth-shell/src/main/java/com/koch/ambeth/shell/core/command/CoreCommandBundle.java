@@ -92,16 +92,15 @@ public class CoreCommandBundle extends AbstractCommandBundle {
 	}
 
 	@Command(name = "exit", description = "exit the shell")
-	public CommandResult exit(@CommandArg(optional = true, defaultValue = "0", alt = "exit-code",
-			description = "the exit code") String exitStatus) {
+	public CommandResult exit(
+			@CommandArg(optional = true, defaultValue = "0", alt = "exit-code", description = "the exit code") String exitStatus) {
 		shell.getContext().set(ShellContext.SHUTDOWN, true);
 		return null;
 	}
 
-	@Command(name = "help",
-			description = "list all commands, or print details for a specific command")
-	public CommandResult printHelp(@CommandArg(alt = "command-name", optional = true,
-			description = "The name of a command") String commandName) {
+	@Command(name = "help", description = "list all commands, or print details for a specific command")
+	public CommandResult printHelp(
+			@CommandArg(alt = "command-name", optional = true, description = "The name of a command") String commandName) {
 		SingleResult cmdRst = new SingleResult();
 		if (commandName != null) {
 			CommandBinding commandBinding = shell.getCommandBinding(commandName);
@@ -119,7 +118,7 @@ public class CoreCommandBundle extends AbstractCommandBundle {
 			}
 
 			String description;
-			StringBuffer strBuf = new StringBuffer();
+			StringBuilder strBuf = new StringBuilder();
 			int i = 0;
 			for (String name : help.keySet()) {
 				description = help.get(name);
@@ -141,7 +140,7 @@ public class CoreCommandBundle extends AbstractCommandBundle {
 		if (size <= 0) {
 			return "0B";
 		}
-		final String[] units = new String[] {"B", "kB", "MB", "GB", "TB"};
+		final String[] units = new String[] { "B", "kB", "MB", "GB", "TB" };
 		int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
 		return new DecimalFormat("#,##0.#").format(size / Math.pow(1024, digitGroups)) + " "
 				+ units[digitGroups];
