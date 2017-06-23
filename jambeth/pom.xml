@@ -1434,14 +1434,6 @@
 			<plugin>
 				<groupId>biz.aQute.bnd</groupId>
 				<artifactId>bnd-maven-plugin</artifactId>
-				<version>3.3.0</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>bnd-process</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.felix</groupId>
@@ -1532,22 +1524,6 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>regex-property</id>
-						<goals>
-							<goal>regex-property</goal>
-						</goals>
-						<configuration>
-							<name>mf.version</name>
-							<value>${project.version}</value>
-							<regex>-SNAPSHOT</regex>
-							<!-- <replacement>.SNAPSHOT</replacement> -->
-							<replacement>.${maven.build.timestamp}</replacement>
-							<failIfNoMatch>false</failIfNoMatch>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>pl.project13.maven</groupId>

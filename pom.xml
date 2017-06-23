@@ -225,6 +225,22 @@
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>build-helper-maven-plugin</artifactId>
 					<version>1.12</version>
+					<executions>
+						<execution>
+							<id>regex-property</id>
+							<goals>
+								<goal>regex-property</goal>
+							</goals>
+							<configuration>
+								<name>mf.version</name>
+								<value>${project.version}</value>
+								<regex>-SNAPSHOT</regex>
+								<!-- <replacement>.SNAPSHOT</replacement> -->
+								<replacement>.${maven.build.timestamp}</replacement>
+								<failIfNoMatch>false</failIfNoMatch>
+							</configuration>
+						</execution>
+					</executions>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -253,6 +269,38 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-resources-plugin</artifactId>
 					<version>3.0.2</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>3.6</version>
+					<executions>
+						<execution>
+							<id>attach-descriptor</id>
+							<goals>
+								<goal>attach-descriptor</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<reportPlugins>
+							<plugin>
+								<groupId>org.apache.maven.plugins</groupId>
+								<artifactId>maven-project-info-reports-plugin</artifactId>
+								<version>2.4</version>
+								<reportSets>
+									<reportSet>
+										<reports>
+											<report>dependencies</report>
+											<report>project-team</report>
+											<report>license</report>
+											<report>issue-tracking</report>
+										</reports>
+									</reportSet>
+								</reportSets>
+							</plugin>
+						</reportPlugins>
+					</configuration>
 				</plugin>
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
@@ -385,21 +433,21 @@
 					<artifactId>maven-antrun-plugin</artifactId>
 					<version>1.8</version>
 				</plugin>
+				<plugin>
+					<groupId>biz.aQute.bnd</groupId>
+					<artifactId>bnd-maven-plugin</artifactId>
+					<version>3.3.0</version>
+					<executions>
+						<execution>
+							<goals>
+								<goal>bnd-process</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
-			<plugin>
-				<groupId>biz.aQute.bnd</groupId>
-				<artifactId>bnd-maven-plugin</artifactId>
-				<version>3.3.0</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>bnd-process</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
@@ -453,58 +501,6 @@
 				<version>2.19.1</version>
 				<!-- <configuration> <argLine>-XX:MaxPermSize=128m @{argLine}</argLine> 
 					</configuration> -->
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-site-plugin</artifactId>
-				<version>3.6</version>
-				<executions>
-					<execution>
-						<id>attach-descriptor</id>
-						<goals>
-							<goal>attach-descriptor</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<reportPlugins>
-						<plugin>
-							<groupId>org.apache.maven.plugins</groupId>
-							<artifactId>maven-project-info-reports-plugin</artifactId>
-							<version>2.4</version>
-							<reportSets>
-								<reportSet>
-									<reports>
-										<report>dependencies</report>
-										<report>project-team</report>
-										<report>license</report>
-										<report>issue-tracking</report>
-									</reports>
-								</reportSet>
-							</reportSets>
-						</plugin>
-					</reportPlugins>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>regex-property</id>
-						<goals>
-							<goal>regex-property</goal>
-						</goals>
-						<configuration>
-							<name>mf.version</name>
-							<value>${project.version}</value>
-							<regex>-SNAPSHOT</regex>
-							<!-- <replacement>.SNAPSHOT</replacement> -->
-							<replacement>.${maven.build.timestamp}</replacement>
-							<failIfNoMatch>false</failIfNoMatch>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
