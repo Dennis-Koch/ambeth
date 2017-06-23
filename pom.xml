@@ -388,6 +388,7 @@
 					<version>2.10.4</version>
 					<configuration>
 						<excludePackageNames>*.repackaged.*</excludePackageNames>
+						<quiet>true</quiet>
 					</configuration>
 					<executions>
 						<execution>
