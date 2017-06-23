@@ -57,13 +57,13 @@ import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.collections.WeakSmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.proxy.ClassLoaderAwareClassWriter;
 
 public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener {
 	public static class ClassLoaderEntry {
 		protected final AmbethClassLoader ambethClassLoader;
 
-		protected final WeakSmartCopyMap<Class<?>, Reference<byte[]>> typeToContentMap =
-				new WeakSmartCopyMap<>();
+		protected final WeakSmartCopyMap<Class<?>, Reference<byte[]>> typeToContentMap = new WeakSmartCopyMap<>();
 
 		public ClassLoaderEntry(AmbethClassLoader ambethClassLoader) {
 			super();
@@ -81,8 +81,7 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 	@Autowired
 	protected IClassLoaderProvider classLoaderProvider;
 
-	protected final WeakSmartCopyMap<ClassLoader, ClassLoaderEntry> typeToContentMap =
-			new WeakSmartCopyMap<>();
+	protected final WeakSmartCopyMap<ClassLoader, ClassLoaderEntry> typeToContentMap = new WeakSmartCopyMap<>();
 
 	@Override
 	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception {
@@ -182,12 +181,13 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 			ClassNode cn = new ClassNode();
 			cr.accept(cn, ClassReader.SKIP_DEBUG | ClassReader.EXPAND_FRAMES);
 
-			ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+			ClassWriter cw = new ClassLoaderAwareClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES,
+					classLoader);
 			PrintWriter pw = new PrintWriter(writer);
 
 			ClassVisitor visitor = new SuppressLinesClassVisitor(cw);
-			visitor =
-					beanContext.registerWithLifecycle(new LogImplementationsClassVisitor(visitor)).finish();
+			visitor = beanContext.registerWithLifecycle(new LogImplementationsClassVisitor(visitor))
+					.finish();
 			visitor = new TraceClassVisitor(visitor, pw);
 
 			ClassVisitor wrappedVisitor = visitor;

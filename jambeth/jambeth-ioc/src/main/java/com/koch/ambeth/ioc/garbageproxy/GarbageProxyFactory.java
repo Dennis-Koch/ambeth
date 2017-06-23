@@ -48,6 +48,7 @@ import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.collections.Tuple2KeyEntry;
 import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
+import com.koch.ambeth.util.proxy.ClassLoaderAwareClassWriter;
 
 public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingBean {
 	@SuppressWarnings("unused")
@@ -57,19 +58,18 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 	@Autowired
 	protected IAccessorTypeProvider accessorTypeProvider;
 
-	protected final Tuple2KeyHashMap<Class<?>, Class<?>[], IGarbageProxyConstructor<?>> interfaceTypesToConstructorMap =
-			new Tuple2KeyHashMap<Class<?>, Class<?>[], IGarbageProxyConstructor<?>>() {
-				@Override
-				protected boolean equalKeys(Class<?> key1, Class<?>[] key2,
-						Tuple2KeyEntry<Class<?>, Class<?>[], IGarbageProxyConstructor<?>> entry) {
-					return key1.equals(entry.getKey1()) && Arrays.equals(key2, entry.getKey2());
-				}
+	protected final Tuple2KeyHashMap<Class<?>, Class<?>[], IGarbageProxyConstructor<?>> interfaceTypesToConstructorMap = new Tuple2KeyHashMap<Class<?>, Class<?>[], IGarbageProxyConstructor<?>>() {
+		@Override
+		protected boolean equalKeys(Class<?> key1, Class<?>[] key2,
+				Tuple2KeyEntry<Class<?>, Class<?>[], IGarbageProxyConstructor<?>> entry) {
+			return key1.equals(entry.getKey1()) && Arrays.equals(key2, entry.getKey2());
+		}
 
-				@Override
-				protected int extractHash(Class<?> key1, Class<?>[] key2) {
-					return (key1 != null ? key1.hashCode() : 3) ^ (key2 != null ? Arrays.hashCode(key2) : 5);
-				}
-			};
+		@Override
+		protected int extractHash(Class<?> key1, Class<?>[] key2) {
+			return (key1 != null ? key1.hashCode() : 3) ^ (key2 != null ? Arrays.hashCode(key2) : 5);
+		}
+	};
 
 	protected final Lock writeLock = new ReentrantLock();
 
@@ -82,21 +82,21 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 		this.accessorTypeProvider = accessorTypeProvider;
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public <T> IGarbageProxyConstructor<T> createGarbageProxyConstructor(Class<T> interfaceType,
 			Class<?>... additionalInterfaceTypes) {
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
 		try {
-			IGarbageProxyConstructor gpContructor =
-					interfaceTypesToConstructorMap.get(interfaceType, additionalInterfaceTypes);
+			IGarbageProxyConstructor gpContructor = interfaceTypesToConstructorMap.get(interfaceType,
+					additionalInterfaceTypes);
 			if (gpContructor != null) {
 				return gpContructor;
 			}
 			Class<?> gpType = loadClass(GCProxy.class, interfaceType, additionalInterfaceTypes);
-			gpContructor =
-					accessorTypeProvider.getConstructorType(IGarbageProxyConstructor.class, gpType);
+			gpContructor = accessorTypeProvider.getConstructorType(IGarbageProxyConstructor.class,
+					gpType);
 			interfaceTypesToConstructorMap.put(interfaceType, additionalInterfaceTypes, gpContructor);
 			return gpContructor;
 		}
@@ -164,7 +164,7 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 			interfaceNames.add(interfaceType.getInternalName());
 		}
 
-		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+		ClassWriter cw = new ClassLoaderAwareClassWriter(ClassWriter.COMPUTE_MAXS, loader);
 
 		ClassVisitor visitor = cw;
 
@@ -178,8 +178,8 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 		{
 			Method method = Method.getMethod(
 					"void <init> (" + Object.class.getName() + "," + IDisposable.class.getName() + ")");
-			GeneratorAdapter mv =
-					createGA(visitor, Opcodes.ACC_PUBLIC, method.getName(), method.getDescriptor());
+			GeneratorAdapter mv = createGA(visitor, Opcodes.ACC_PUBLIC, method.getName(),
+					method.getDescriptor());
 			mv.loadThis();
 			mv.loadArgs();
 			mv.invokeConstructor(abstractType, method);
@@ -188,8 +188,8 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 		}
 		{
 			Method method = Method.getMethod("void <init> (" + IDisposable.class.getName() + ")");
-			GeneratorAdapter mv =
-					createGA(visitor, Opcodes.ACC_PUBLIC, method.getName(), method.getDescriptor());
+			GeneratorAdapter mv = createGA(visitor, Opcodes.ACC_PUBLIC, method.getName(),
+					method.getDescriptor());
 			mv.loadThis();
 			mv.loadArgs();
 			mv.invokeConstructor(abstractType, method);
@@ -215,8 +215,8 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 				if (!alreadyImplementedMethods.add(asmMethod)) {
 					continue;
 				}
-				GeneratorAdapter mv =
-						createGA(visitor, Opcodes.ACC_PUBLIC, asmMethod.getName(), asmMethod.getDescriptor());
+				GeneratorAdapter mv = createGA(visitor, Opcodes.ACC_PUBLIC, asmMethod.getName(),
+						asmMethod.getDescriptor());
 				int l_result = -1, l_target = -1;
 				boolean resultCheckNeeded = isAssignableFrom(method.getReturnType(), interfaceClasses);
 				if (resultCheckNeeded) {
