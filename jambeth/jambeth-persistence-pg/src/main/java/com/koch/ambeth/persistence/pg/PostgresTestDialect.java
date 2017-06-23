@@ -250,8 +250,8 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 			tableColumns.add(columnName);
 			if (columnNameOfVersion == null) {
 				String fieldNameLower = columnName.toLowerCase();
-				if (fieldNameLower.equals("version") || fieldNameLower.equals("\"version\"")
-						|| fieldNameLower.equals("'version'")) {
+				if ("version".equals(fieldNameLower) || "\"version\"".equals(fieldNameLower)
+						|| "'version'".equals(fieldNameLower)) {
 					columnNameOfVersion = columnName;
 				}
 			}

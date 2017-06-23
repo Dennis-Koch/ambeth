@@ -43,7 +43,7 @@ public class TargetingInterceptor extends AbstractSimpleInterceptor {
 	@Override
 	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy)
 			throws Throwable {
-		if (obj instanceof IDisposable && method.getName().equals("dispose")
+		if (obj instanceof IDisposable && "dispose".equals(method.getName())
 				&& method.getParameterTypes().length == 0) {
 			return null;
 		}
