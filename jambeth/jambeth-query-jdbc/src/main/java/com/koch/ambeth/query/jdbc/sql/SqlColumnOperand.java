@@ -119,13 +119,13 @@ public class SqlColumnOperand implements IOperand, IOperatorAwareOperand {
 		IList<Class<?>> entityTypeStack =
 				(IList<Class<?>>) nameToValueMap.get(OperandConstants.EntityType);
 		entityTypeStack.remove(entityTypeStack.size() - 1);
-		if (entityTypeStack.size() == 0) {
+		if (entityTypeStack.isEmpty()) {
 			nameToValueMap.remove(OperandConstants.EntityType);
 		}
 		IList<String> propertyNameStack =
 				(IList<String>) nameToValueMap.get(OperandConstants.PropertyName);
 		propertyNameStack.remove(propertyNameStack.size() - 1);
-		if (propertyNameStack.size() == 0) {
+		if (propertyNameStack.isEmpty()) {
 			nameToValueMap.remove(OperandConstants.PropertyName);
 		}
 	}

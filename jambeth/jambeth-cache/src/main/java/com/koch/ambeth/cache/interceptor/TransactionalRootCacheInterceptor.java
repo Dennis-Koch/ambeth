@@ -169,7 +169,7 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
 						content.add((RootCacheValue) value);
 					}
 				});
-				if (content.size() > 0) {
+				if (!content.isEmpty()) {
 					rootCache.clear();
 					committedRootCache.put(content);
 				}

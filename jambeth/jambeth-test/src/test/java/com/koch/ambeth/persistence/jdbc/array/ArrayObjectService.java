@@ -75,7 +75,7 @@ public class ArrayObjectService implements IArrayObjectService, IInitializingBea
 		List<Object> ids = new ArrayList<>();
 		ids.add(id);
 		serviceUtil.loadObjectsIntoCollection(list, ArrayObject.class, table.selectVersion(ids));
-		if (list.size() > 0) {
+		if (!list.isEmpty()) {
 			return list.get(0);
 		}
 		return null;

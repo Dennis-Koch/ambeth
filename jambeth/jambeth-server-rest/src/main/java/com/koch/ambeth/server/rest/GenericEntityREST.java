@@ -168,7 +168,7 @@ public class GenericEntityREST extends AbstractServiceREST {
 				if (config != null) {
 					List<Class<?>> availableConfigs =
 							entityMetaDataProvider.getValueObjectTypesByEntityType(metaData.getEntityType());
-					if (availableConfigs.size() == 0) {
+					if (availableConfigs.isEmpty()) {
 						throw new BadRequestException("Entity member '" + pathSB + "' not serializable");
 					}
 					config = entityMetaDataProvider.getValueObjectConfig(availableConfigs.get(0));

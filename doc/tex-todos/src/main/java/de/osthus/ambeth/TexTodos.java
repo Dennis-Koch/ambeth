@@ -95,7 +95,7 @@ public class TexTodos implements IStartingBean
 							throw new IllegalStateException("Duplicate issue with subject: " + issue.getSubject());
 						}
 					}
-					if (currIssues.size() == 0)
+					if (currIssues.isEmpty())
 					{
 						break;
 					}

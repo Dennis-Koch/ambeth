@@ -147,7 +147,7 @@ public class CacheWalker implements ICacheWalker {
 			HashMap<IObjRef, Integer> allObjRefs = new HashMap<>();
 			collectAllObjRefs(rootEntry, allObjRefs);
 			objRefs =
-					allObjRefs.size() > 0 ? allObjRefs.keyList().toArray(IObjRef.class) : ObjRef.EMPTY_ARRAY;
+					!allObjRefs.isEmpty() ? allObjRefs.keyList().toArray(IObjRef.class) : ObjRef.EMPTY_ARRAY;
 			Arrays.sort(objRefs, ObjRef.comparator);
 			for (int a = objRefs.length; a-- > 0;) {
 				allObjRefs.put(objRefs[a], Integer.valueOf(a));
@@ -266,7 +266,7 @@ public class CacheWalker implements ICacheWalker {
 			cacheValues = fCacheValues.toList();
 
 			// generate ad-hoc objRefs
-			objRefs = cacheValues.size() > 0
+			objRefs = !cacheValues.isEmpty()
 					? objRefHelper.extractObjRefList(cacheValues, null).toArray(IObjRef.class)
 					: ObjRef.EMPTY_ARRAY;
 		}

@@ -141,7 +141,7 @@ public class CacheView implements ICacheView {
 			return;
 		}
 		// while loop because a runnable could queue cascading runnables
-		while (customRunnables.size() > 0) {
+		while (!customRunnables.isEmpty()) {
 			IBackgroundWorkerParamDelegate<ICacheView>[] runnables =
 					customRunnables.toArray(IBackgroundWorkerParamDelegate.class);
 			customRunnables.clear();

@@ -66,7 +66,7 @@ public class DataObjectBehavior extends AbstractBehavior {
 			if (!INotifyCollectionChangedListener.class.isAssignableFrom(currentType)) {
 				missingTypes.add(INotifyCollectionChangedListener.class);
 			}
-			if (missingTypes.size() > 0) {
+			if (!missingTypes.isEmpty()) {
 				visitor = new InterfaceAdder(visitor, missingTypes.toArray(Class.class));
 			}
 			visitor = new DataObjectVisitor(visitor, metaData, propertyInfoProvider);

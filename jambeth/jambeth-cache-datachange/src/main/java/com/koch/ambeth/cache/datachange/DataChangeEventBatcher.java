@@ -90,7 +90,7 @@ public class DataChangeEventBatcher implements IEventBatcher, IInitializingBean 
 			targetBatchedEvents.add(batchableEvents.get(0));
 			return;
 		}
-		if (batchableEvents.size() == 0) {
+		if (batchableEvents.isEmpty()) {
 			return;
 		}
 		// Check if all datachanges are in the same localsource state so that we can group them
@@ -172,13 +172,13 @@ public class DataChangeEventBatcher implements IEventBatcher, IInitializingBean 
 			splitDataChangeBatch(batchableEvents, splitIndex, targetBatchedEvents);
 		}
 		else {
-			List<IDataChangeEntry> inserts = touchedAsInsertObjRefDict.size() > 0
+			List<IDataChangeEntry> inserts = !touchedAsInsertObjRefDict.isEmpty()
 					? new ArrayList<IDataChangeEntry>(touchedAsInsertObjRefDict.size())
 					: Collections.<IDataChangeEntry>emptyList();
-			List<IDataChangeEntry> updates = touchedAsUpdateObjRefDict.size() > 0
+			List<IDataChangeEntry> updates = !touchedAsUpdateObjRefDict.isEmpty()
 					? new ArrayList<IDataChangeEntry>(touchedAsUpdateObjRefDict.size())
 					: Collections.<IDataChangeEntry>emptyList();
-			List<IDataChangeEntry> deletes = touchedAsDeleteObjRefDict.size() > 0
+			List<IDataChangeEntry> deletes = !touchedAsDeleteObjRefDict.isEmpty()
 					? new ArrayList<IDataChangeEntry>(touchedAsDeleteObjRefDict.size())
 					: Collections.<IDataChangeEntry>emptyList();
 			for (IObjRef objRef : touchedAsInsertObjRefDict) {

@@ -131,7 +131,7 @@ public class CUDResultPrinter implements ICUDResultPrinter {
 
 	protected void writeChangeContainers(IList<? extends IChangeContainer> changes, IWriter writer,
 			String elementName, IncrementalMergeState state) {
-		if (changes.size() == 0) {
+		if (changes.isEmpty()) {
 			return;
 		}
 		writer.writeStartElement(elementName);

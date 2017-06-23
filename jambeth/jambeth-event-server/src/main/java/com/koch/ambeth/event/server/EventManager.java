@@ -182,7 +182,7 @@ public class EventManager
 		finally {
 			eventQueueLock.unlock();
 		}
-		if (selectedEvents.size() == 0) {
+		if (selectedEvents.isEmpty()) {
 			return Collections.emptyList();
 		}
 		postLoadFromStore(selectedEvents);

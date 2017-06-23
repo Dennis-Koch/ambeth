@@ -1860,7 +1860,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * @throws DbException if the map is not empty
 	 */
 	static void checkMap(Map<String, Class<?>> map) {
-		if (map != null && map.size() > 0) {
+		if (map != null && !map.isEmpty()) {
 			throw DbException.getUnsupportedException("map.size > 0");
 		}
 	}

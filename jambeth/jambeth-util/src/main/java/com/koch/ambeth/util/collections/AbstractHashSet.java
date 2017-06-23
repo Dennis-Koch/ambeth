@@ -412,7 +412,7 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable, Cloneab
 			for (int a = 0, size = list.size(); a < size; a++) {
 				changed |= addIntern(list.get(a));
 			}
-			return list.size() > 0;
+			return !list.isEmpty();
 		}
 		Iterator<? extends K> iter = c.iterator();
 		while (iter.hasNext()) {
@@ -430,7 +430,7 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable, Cloneab
 			for (int a = 0, size = list.size(); a < size; a++) {
 				changed |= addIntern(list.get(a));
 			}
-			return list.size() > 0;
+			return !list.isEmpty();
 		}
 		Iterator<? extends K> iter = c.iterator();
 		while (iter.hasNext()) {

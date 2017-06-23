@@ -45,8 +45,8 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 			File targetFile) throws Exception {
 		String targetOpening = getAPI(extendableEntry);
 		if (!targetFile.exists()) {
-			OutputStreamWriter fw =
-					new OutputStreamWriter(new FileOutputStream(targetFile), Charsets.UTF_8);
+			OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(targetFile),
+					Charsets.UTF_8);
 			try {
 				fw.append(targetOpening);
 				fw.append("\n\\section{").append(extendableEntry.simpleName).append("}");
@@ -151,7 +151,7 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 			for (MethodDescription methodDesc : typeDescr.getMethodDescriptions()) {
 				String methodName = methodDesc.getName().toLowerCase();
 				if ((methodName.startsWith("register") || methodName.startsWith("add"))
-						&& methodDesc.getParameterTypes().size() != 0) {
+						&& !methodDesc.getParameterTypes().isEmpty()) {
 					extensionType = methodDesc.getParameterTypes().get(0);
 					hasArguments = methodDesc.getParameterTypes().size() > 1;
 					if (!hasArguments) {
@@ -222,14 +222,14 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 			throw new IllegalStateException(
 					"Path '" + targetExtendableTexDirCP + "' must reside within '" + targetTexFileCP + "'");
 		}
-		String pathToExtendableTexFile =
-				targetExtendableTexDirCP.substring(targetTexFileCP.length() + 1);
+		String pathToExtendableTexFile = targetExtendableTexDirCP
+				.substring(targetTexFileCP.length() + 1);
 
 		ArrayList<ExtendableEntry> allExtendables = new ArrayList<>(model.allExtendables());
 		Collections.sort(allExtendables);
 
-		OutputStreamWriter fw =
-				new OutputStreamWriter(new FileOutputStream(allExtendablesTexFile), Charsets.UTF_8);
+		OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(allExtendablesTexFile),
+				Charsets.UTF_8);
 		try {
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("% This file is FULLY generated. Please do not edit anything here\n");
@@ -261,8 +261,8 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 
 				includes.add(pathToExtendableTexFile + "/" + texName);
 
-				File expectedExtendableTexFile =
-						new File(targetExtendableTexDir, expectedExtendableTexFileName);
+				File expectedExtendableTexFile = new File(targetExtendableTexDir,
+						expectedExtendableTexFileName);
 
 				writeToExtendableTexFile(extendableEntry, labelName, expectedExtendableTexFile);
 			}

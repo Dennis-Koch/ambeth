@@ -239,8 +239,8 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 		}
 		sessionTL.remove();
 		try {
-			if (session.createdObjRefs.size() == 0 && session.updatedObjRefs.size() == 0
-					&& session.deletedObjRefs.size() == 0) {
+			if (session.createdObjRefs.isEmpty() && session.updatedObjRefs.isEmpty()
+					&& session.deletedObjRefs.isEmpty()) {
 				return;
 			}
 			// Save information into second level cache for committed data
@@ -262,7 +262,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 				changedContent.addAll(createdContent);
 				changedContent.addAll(updatedContent);
 
-				if (existingObjRefs.size() > 0) {
+				if (!existingObjRefs.isEmpty()) {
 					IList<Object> existingCommittedValues = committedData.getObjects(existingObjRefs,
 							EnumSet.of(CacheDirective.ReturnMisses, CacheDirective.CacheValueResult));
 					for (int a = existingCommittedValues.size(); a-- > 0;) {
@@ -276,10 +276,10 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 						checkVersionForOptimisticLock(metaData, objRef, existingCommittedValue);
 					}
 				}
-				if (deletedObjRefs.size() > 0) {
+				if (!deletedObjRefs.isEmpty()) {
 					committedData.remove(deletedObjRefs);
 				}
-				if (changedContent.size() > 0) {
+				if (!changedContent.isEmpty()) {
 					committedData.put(changedContent);
 				}
 			}
@@ -742,7 +742,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 					}
 				}
 			}
-			relations[relationIndex] = existingObjRefsSet.size() == 0 ? ObjRef.EMPTY_ARRAY
+			relations[relationIndex] = existingObjRefsSet.isEmpty() ? ObjRef.EMPTY_ARRAY
 					: existingObjRefsSet.toArray(IObjRef.class);
 		}
 	}

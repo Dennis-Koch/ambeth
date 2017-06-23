@@ -362,7 +362,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 
 		StringBuilder sb = new StringBuilder();
 
-		if (usedInTypes.size() > 0) {
+		if (!usedInTypes.isEmpty()) {
 			sb.append("\\begin{longtable}{ l l } \\hline \\textbf{Used in bean} & \\textbf{Module} \\\n");
 			sb.append("\t\\endhead\n");
 			sb.append("\t\\hline\n");

@@ -101,7 +101,7 @@ public class ValueHolderContainerMixin {
 								public IList<Object> invoke() throws Throwable {
 									IList<IObjRelationResult> objRelResults =
 											targetCache.getObjRelations(Arrays.asList(self), targetCache, cacheDirective);
-									if (objRelResults.size() == 0) {
+									if (objRelResults.isEmpty()) {
 										return EmptyList.getInstance();
 									}
 									else {
@@ -116,7 +116,7 @@ public class ValueHolderContainerMixin {
 				else {
 					IList<IObjRelationResult> objRelResults =
 							targetCache.getObjRelations(Arrays.asList(self), targetCache, cacheDirective);
-					if (objRelResults.size() == 0) {
+					if (objRelResults.isEmpty()) {
 						results = EmptyList.getInstance();
 					}
 					else {

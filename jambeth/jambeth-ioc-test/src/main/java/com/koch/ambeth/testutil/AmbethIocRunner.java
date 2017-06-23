@@ -388,7 +388,7 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 					if (method == null || method.getAnnotation(Ignore.class) == null) {
 						List<IAnnotationInfo<?>> rebuildContextList = findAnnotations(
 								getTestClass().getJavaClass(), TestRebuildContext.class);
-						if (rebuildContextList.size() > 0) {
+						if (!rebuildContextList.isEmpty()) {
 							boolean rebuildContext = ((TestRebuildContext) rebuildContextList
 									.get(rebuildContextList.size() - 1).getAnnotation()).value();
 							if (rebuildContext) {

@@ -214,7 +214,7 @@ public class FastThreadPool implements ExecutorService, IFastThreadPool, IDispos
 			QueueItem queueItem = new QueueItem(context, object, handlerRunnable, latch);
 			actionQueue.pushLast(queueItem.getThreadingLE());
 			if (blockingThread == null) {
-				if (!isThreadMaximum() && freeThreadList.size() == 0) {
+				if (!isThreadMaximum() && freeThreadList.isEmpty()) {
 					createThread();
 				}
 				else {
@@ -246,7 +246,7 @@ public class FastThreadPool implements ExecutorService, IFastThreadPool, IDispos
 		Lock lock = this.lock;
 		lock.lock();
 		try {
-			if (actionQueue.size() == 0 || blockingThread != null) {
+			if (actionQueue.isEmpty() || blockingThread != null) {
 				waitForMessage(qThread);
 				return null;
 			}
@@ -420,7 +420,7 @@ public class FastThreadPool implements ExecutorService, IFastThreadPool, IDispos
 
 	@Override
 	public boolean isTerminated() {
-		return isShutdown() && freeThreadList.size() == 0 && busyThreadList.size() == 0;
+		return isShutdown() && freeThreadList.isEmpty() && busyThreadList.isEmpty();
 	}
 
 	@Override

@@ -137,7 +137,7 @@ public class InitializeEmbeddedMemberVisitor extends ClassGenerator {
 				scripts.add(script);
 			}
 		}
-		if (scripts.size() == 0) {
+		if (scripts.isEmpty()) {
 			return;
 		}
 		overrideConstructors(new IOverrideConstructorDelegate() {

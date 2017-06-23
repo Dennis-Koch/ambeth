@@ -59,7 +59,7 @@ public class EntityFactoryVisitor extends ClassGenerator {
 		// }
 		// listMembers.add(primitiveMember);
 		// }
-		// if (listMembers.size() > 0)
+		// if (!listMembers.isEmpty())
 		// {
 		// IBytecodeBehaviorState state = BytecodeBehaviorState.getState();
 		// Constructor<?>[] constructors = state.getCurrentType().getDeclaredConstructors();

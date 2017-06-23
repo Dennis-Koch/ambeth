@@ -22,17 +22,17 @@ public class FeatureEntry implements IMultiPlatformFeature, ITexFileAware {
 
 	@Override
 	public boolean inJava() {
-		return javaSrc.size() > 0;
+		return !javaSrc.isEmpty();
 	}
 
 	@Override
 	public boolean inJavascript() {
-		return javascriptSrc.size() > 0;
+		return !javascriptSrc.isEmpty();
 	}
 
 	@Override
 	public boolean inCSharp() {
-		return csharpSrc.size() > 0;
+		return !csharpSrc.isEmpty();
 	}
 
 	public final ArrayList<String> fromModules = new ArrayList<>();

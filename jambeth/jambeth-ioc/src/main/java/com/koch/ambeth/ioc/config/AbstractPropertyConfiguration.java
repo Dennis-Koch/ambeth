@@ -60,7 +60,7 @@ public abstract class AbstractPropertyConfiguration implements IPropertyConfigur
 	public static StackTraceElement[] getCurrentStackTraceCompact(Set<String> ignoreClassNames) {
 		StackTraceElement[] stes = Thread.currentThread().getStackTrace();
 		int start = 0, end = stes.length;
-		if (ignoreClassNames != null && ignoreClassNames.size() > 0) {
+		if (ignoreClassNames != null && !ignoreClassNames.isEmpty()) {
 			for (int a = 0, size = stes.length; a < size; a++) {
 				StackTraceElement ste = stes[a];
 				if (!ignoreClassNames.contains(ste.getClassName())) {

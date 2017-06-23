@@ -257,7 +257,7 @@ public class ClassTupleExtendableContainer<V> extends MapExtendableContainer<Con
 				Object value = typeToDefEntryMap.get(sourceType, targetType);
 				InterfaceFastList<Def2Entry<V>> list = (InterfaceFastList<Def2Entry<V>>) value;
 				list.remove(defEntry);
-				if (list.size() == 0) {
+				if (list.isEmpty()) {
 					typeToDefEntryMap.remove(sourceType, targetType);
 				}
 				typeToDefEntryMapChanged(classEntry, sourceType, targetType);

@@ -42,7 +42,7 @@ public class AuditControllerState {
 	}
 
 	public CreateOrUpdateContainerBuild getAuditEntry() {
-		if (auditedChanges.size() == 0) {
+		if (auditedChanges.isEmpty()) {
 			return createEntity(IAuditEntry.class);
 		}
 		return auditedChanges.get(0);

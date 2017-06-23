@@ -171,7 +171,7 @@ public class OracleDatabaseChangeListener implements DatabaseChangeListener {
 				for (RowChangeDescription rcDesc : rcDescs) {
 					RowId rowId = rcDesc.getRowid();
 
-					if (rowIds.size() > 0) {
+					if (!rowIds.isEmpty()) {
 						sb.append(',');
 					}
 					sb.append('?');

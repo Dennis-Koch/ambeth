@@ -295,7 +295,7 @@ public abstract class AbstractConnectionDialect
 			IMap<Object, Object> nameToValueMap, IList<Object> parameters,
 			IList<IList<Object>> splitValues, boolean caseSensitive, Class<?> leftOperandFieldType) {
 		querySB.append("SELECT COLUMN_VALUE FROM (");
-		if (splitValues.size() == 0) {
+		if (splitValues.isEmpty()) {
 			// Special scenario with EMPTY argument
 			ArrayQueryItem aqi = new ArrayQueryItem(new Object[0], leftOperandFieldType);
 			ParamsUtil.addParam(parameters, aqi);

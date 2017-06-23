@@ -77,7 +77,7 @@ public class BlobObjectService implements IBlobObjectService, IInitializingBean 
 		ids.add(id);
 		serviceUtil.loadObjectsIntoCollection(list, BlobObject.class,
 				blobObjectTable.selectVersion(ids));
-		if (list.size() > 0) {
+		if (!list.isEmpty()) {
 			return list.get(0);
 		}
 		return null;

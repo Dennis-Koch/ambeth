@@ -400,7 +400,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		ArrayList<Class<?>> missingEntityTypes = new ArrayList<>(1);
 		missingEntityTypes.add(entityType);
 		IList<IEntityMetaData> missingMetaDatas = getMetaData(missingEntityTypes);
-		if (missingMetaDatas.size() > 0) {
+		if (!missingMetaDatas.isEmpty()) {
 			IEntityMetaData metaData = missingMetaDatas.get(0);
 			if (metaData != null) {
 				return metaData;
@@ -458,14 +458,14 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 				pendingToRefreshMetaDatasTL.set(pendingToRefreshMetaDatas);
 				handlePendingMetaData = true;
 			}
-			while (missingEntityTypes != null && missingEntityTypes.size() > 0) {
+			while (missingEntityTypes != null && !missingEntityTypes.isEmpty()) {
 				IList<IEntityMetaData> loadedMetaData = remoteEntityMetaDataProvider
 						.getMetaData(missingEntityTypes);
 
 				IList<Class<?>> cascadeMissingEntityTypes = addLoadedMetaData(missingEntityTypes,
 						loadedMetaData);
 
-				if (cascadeMissingEntityTypes != null && cascadeMissingEntityTypes.size() > 0) {
+				if (cascadeMissingEntityTypes != null && !cascadeMissingEntityTypes.isEmpty()) {
 					missingEntityTypes = cascadeMissingEntityTypes;
 				}
 				else {

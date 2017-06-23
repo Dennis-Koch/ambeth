@@ -467,7 +467,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 	}
 
 	protected void executeRunnables(IList<IBackgroundWorkerDelegate> runnables) {
-		while (runnables.size() > 0) {
+		while (!runnables.isEmpty()) {
 			IBackgroundWorkerDelegate[] runnableArray =
 					runnables.toArray(IBackgroundWorkerDelegate.class);
 			runnables.clear();
@@ -510,7 +510,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 						objRefsWithWrongIdIndex, runnables);
 			}
 		}
-		while (runnables.size() > 0) {
+		while (!runnables.isEmpty()) {
 			IList<IObjRef> objRefsWithWrongIdIndexList = objRefsWithWrongIdIndex.toList();
 			objRefsWithWrongIdIndex.clear();
 
@@ -622,7 +622,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 					objRefWithoutVersion.add(objRef);
 				}
 			}
-			if (objRefWithoutVersion.size() > 0) {
+			if (!objRefWithoutVersion.isEmpty()) {
 				IList<Object> objects =
 						cache.getObjects(objRefWithoutVersion, CacheDirective.returnMisses());
 				for (int a = objects.size(); a-- > 0;) {
@@ -946,7 +946,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 				}
 			}
 		}
-		if (toPrefetch.size() == 0) {
+		if (toPrefetch.isEmpty()) {
 			return null;
 		}
 		return prefetchHelper.prefetch(toPrefetch);

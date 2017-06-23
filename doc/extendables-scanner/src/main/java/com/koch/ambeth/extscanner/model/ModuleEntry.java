@@ -22,17 +22,17 @@ public class ModuleEntry implements IMultiPlatformFeature, Comparable<ModuleEntr
 
 	@Override
 	public boolean inJava() {
-		return javaFiles.size() > 0;
+		return !javaFiles.isEmpty();
 	}
 
 	@Override
 	public boolean inJavascript() {
-		return javascriptFiles.size() > 0;
+		return !javascriptFiles.isEmpty();
 	}
 
 	@Override
 	public boolean inCSharp() {
-		return csharpFiles.size() > 0;
+		return !csharpFiles.isEmpty();
 	}
 
 	public final File moduleTexFile;

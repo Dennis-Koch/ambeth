@@ -137,7 +137,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
 	protected void addModification(Object obj, String memberName, Class<?> targetValueType,
 			Object value, Object cloneValue, MergeHandle handle) {
 		if (value != null && Collection.class.isAssignableFrom(value.getClass())
-				&& ((Collection<?>) value).size() == 0) {
+				&& ((Collection<?>) value).isEmpty()) {
 			return;
 		}
 		for (int a = 0, size = mergeExtensions.size(); a < size; a++) {
@@ -422,13 +422,13 @@ public class MergeController implements IMergeController, IMergeExtendable {
 	@Override
 	public IRelationUpdateItem createRUI(String memberName, List<IObjRef> oldOriList,
 			List<IObjRef> newOriList) {
-		if (oldOriList.size() == 0 && newOriList.size() == 0) {
+		if (oldOriList.isEmpty() && newOriList.isEmpty()) {
 			return null;
 		}
 		ISet<IObjRef> oldSet =
-				oldOriList.size() > 0 ? new HashSet<>(oldOriList) : EmptySet.<IObjRef>emptySet();
+				!oldOriList.isEmpty() ? new HashSet<>(oldOriList) : EmptySet.<IObjRef>emptySet();
 		ISet<IObjRef> newSet =
-				newOriList.size() > 0 ? new HashSet<>(newOriList) : EmptySet.<IObjRef>emptySet();
+				!newOriList.isEmpty() ? new HashSet<>(newOriList) : EmptySet.<IObjRef>emptySet();
 
 		ISet<IObjRef> smallerSet = oldSet.size() > newSet.size() ? newSet : oldSet;
 		ISet<IObjRef> greaterSet = oldSet.size() > newSet.size() ? oldSet : newSet;
@@ -442,16 +442,16 @@ public class MergeController implements IMergeController, IMergeExtendable {
 				smallerIter.remove();
 			}
 		}
-		if (oldSet.size() == 0 && newSet.size() == 0) {
+		if (oldSet.isEmpty() && newSet.isEmpty()) {
 			return null;
 		}
 		// Old ORIs are now handled as REMOVE, New ORIs as ADD
 		RelationUpdateItem rui = new RelationUpdateItem();
 		rui.setMemberName(memberName);
-		if (oldSet.size() > 0) {
+		if (!oldSet.isEmpty()) {
 			rui.setRemovedORIs(oldSet.toArray(IObjRef.class));
 		}
-		if (newSet.size() > 0) {
+		if (!newSet.isEmpty()) {
 			rui.setAddedORIs(newSet.toArray(IObjRef.class));
 		}
 		return rui;
@@ -460,13 +460,13 @@ public class MergeController implements IMergeController, IMergeExtendable {
 	@Override
 	public RelationUpdateItemBuild createRUIBuild(String memberName, List<IObjRef> oldOriList,
 			List<IObjRef> newOriList) {
-		if (oldOriList.size() == 0 && newOriList.size() == 0) {
+		if (oldOriList.isEmpty() && newOriList.isEmpty()) {
 			return null;
 		}
 		ISet<IObjRef> oldSet =
-				oldOriList.size() > 0 ? new HashSet<>(oldOriList) : EmptySet.<IObjRef>emptySet();
+				!oldOriList.isEmpty() ? new HashSet<>(oldOriList) : EmptySet.<IObjRef>emptySet();
 		ISet<IObjRef> newSet =
-				newOriList.size() > 0 ? new HashSet<>(newOriList) : EmptySet.<IObjRef>emptySet();
+				!newOriList.isEmpty() ? new HashSet<>(newOriList) : EmptySet.<IObjRef>emptySet();
 
 		ISet<IObjRef> smallerSet = oldSet.size() > newSet.size() ? newSet : oldSet;
 		ISet<IObjRef> greaterSet = oldSet.size() > newSet.size() ? oldSet : newSet;
@@ -480,15 +480,15 @@ public class MergeController implements IMergeController, IMergeExtendable {
 				smallerIter.remove();
 			}
 		}
-		if (oldSet.size() == 0 && newSet.size() == 0) {
+		if (oldSet.isEmpty() && newSet.isEmpty()) {
 			return null;
 		}
 		// Old ORIs are now handled as REMOVE, New ORIs as ADD
 		RelationUpdateItemBuild rui = new RelationUpdateItemBuild(memberName);
-		if (oldSet.size() > 0) {
+		if (!oldSet.isEmpty()) {
 			rui.removeObjRefs(oldSet);
 		}
-		if (newSet.size() > 0) {
+		if (!newSet.isEmpty()) {
 			rui.addObjRefs(newSet);
 		}
 		return rui;
@@ -686,11 +686,11 @@ public class MergeController implements IMergeController, IMergeExtendable {
 		ArrayList<Object> hardRef = new ArrayList<>();
 		// Load all requested object originals in one roundtrip
 		try {
-			if (privilegedObjRefs.size() > 0) {
+			if (!privilegedObjRefs.isEmpty()) {
 				hardRef.add(
 						batchLoadOriginalState(handle, true, privilegedObjRefs, valueHolderKeys));
 			}
-			if (objRefs.size() > 0) {
+			if (!objRefs.isEmpty()) {
 				hardRef.add(batchLoadOriginalState(handle, false, objRefs, valueHolderKeys));
 			}
 			if (typeToObjectsToMerge != null) {
@@ -706,7 +706,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
 					IList<Object> objectsToMergeOfUnorderedType = entry.getValue();
 					mergeDeepStart(objectsToMergeOfUnorderedType, handle);
 				}
-			} else if (objectsToMerge.size() > 0) {
+			} else if (!objectsToMerge.isEmpty()) {
 				mergeDeepStart(objectsToMerge, handle);
 			}
 			return cudResultHelper.createCUDResult(handle);
@@ -764,14 +764,14 @@ public class MergeController implements IMergeController, IMergeExtendable {
 		while (true) {
 			IList<Runnable> pendingRunnables = handle.getPendingRunnables();
 			IList<Object> pendingValueHolders = handle.getPendingValueHolders();
-			if (pendingValueHolders.size() == 0 && pendingRunnables.size() == 0) {
+			if (pendingValueHolders.isEmpty() && pendingRunnables.isEmpty()) {
 				return;
 			}
-			if (pendingValueHolders.size() > 0) {
+			if (!pendingValueHolders.isEmpty()) {
 				prefetchHelper.prefetch(pendingValueHolders);
 				pendingValueHolders.clear();
 			}
-			if (pendingRunnables.size() > 0) {
+			if (!pendingRunnables.isEmpty()) {
 				ArrayList<Runnable> pendingRunnablesClone = new ArrayList<>(pendingRunnables);
 				pendingRunnables.clear();
 				for (int a = 0, size = pendingRunnablesClone.size(); a < size; a++) {

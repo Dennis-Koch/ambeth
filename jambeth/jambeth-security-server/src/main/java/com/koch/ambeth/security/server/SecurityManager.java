@@ -123,7 +123,7 @@ public class SecurityManager
 	@SuppressWarnings("unchecked")
 	protected Object filterList(List<?> list, Map<Object, ReadPermission> alreadyProcessedMap,
 			IAuthorization authorization, ISecurityScope[] securityScopes) {
-		if (list.size() == 0) {
+		if (list.isEmpty()) {
 			// nothing to filter
 			return list;
 		}
@@ -237,7 +237,7 @@ public class SecurityManager
 	protected Object filterCollection(Collection<?> coll,
 			Map<Object, ReadPermission> alreadyProcessedMap, IAuthorization authorization,
 			ISecurityScope[] securityScopes) {
-		if (coll.size() == 0) {
+		if (coll.isEmpty()) {
 			// nothing to filter
 			return coll;
 		}

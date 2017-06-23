@@ -215,7 +215,7 @@ public class AmbethShellStarterTest {
 	 * @throws IOException
 	 */
 	private void prepareAndExecute(List<String> listAllCmd, String... cmdArgs) throws IOException {
-		Assert.assertTrue(listAllCmd.size() > 0);
+		Assert.assertTrue(!listAllCmd.isEmpty());
 
 		// create batch file(.as file) to include all the commands
 		File asFile = new File(batchFileName);

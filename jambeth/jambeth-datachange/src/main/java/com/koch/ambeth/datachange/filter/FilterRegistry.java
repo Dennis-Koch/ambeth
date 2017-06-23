@@ -127,7 +127,7 @@ public class FilterRegistry implements IFilterExtendable, IEventDispatcher {
 				}
 			}
 		}
-		if (topics.size() == 0) {
+		if (topics.isEmpty()) {
 			return EMPTY_STRINGS;
 		}
 		return topics.toArray(new String[topics.size()]);

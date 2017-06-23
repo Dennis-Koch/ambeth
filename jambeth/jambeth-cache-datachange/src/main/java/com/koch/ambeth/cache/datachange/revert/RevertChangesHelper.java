@@ -221,7 +221,7 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 										((IDataObject) objectToRevert).setToBeDeleted(false);
 									}
 								}
-								if (directObjectDeletes.size() == 0) {
+								if (directObjectDeletes.isEmpty()) {
 									success2.setValue(Boolean.TRUE);
 									return;
 								}
@@ -304,7 +304,7 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 				iter.remove();
 			}
 		}
-		if (originalToValueBackup.size() == 0) {
+		if (originalToValueBackup.isEmpty()) {
 			return null;
 		}
 		return beanContext.registerBean(RevertChangesSavepoint.class)
@@ -369,7 +369,7 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 			final RevertChangesFinishedCallback revertChangesFinishedCallback) {
 		// Store the RevertChangesFinishedCallback from this thread on the stack and set the
 		// property null (for following calls):
-		if (objectsToRevert == null || objectsToRevert.size() == 0) {
+		if (objectsToRevert == null || objectsToRevert.isEmpty()) {
 			if (revertChangesFinishedCallback != null) {
 				revertChangesFinishedCallback.invoke(true);
 			}

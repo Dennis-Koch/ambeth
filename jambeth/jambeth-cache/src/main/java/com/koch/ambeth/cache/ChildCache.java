@@ -295,7 +295,7 @@ public class ChildCache extends AbstractCache<Object>
 	public IList<Object> getObjects(List<IObjRef> orisToGet, ICacheIntern targetCache,
 			Set<CacheDirective> cacheDirective) {
 		checkNotDisposed();
-		if (orisToGet == null || orisToGet.size() == 0) {
+		if (orisToGet == null || orisToGet.isEmpty()) {
 			return EmptyList.getInstance();
 		}
 		if (cacheDirective == null) {
@@ -350,7 +350,7 @@ public class ChildCache extends AbstractCache<Object>
 		}
 		ArrayList<IObjRef> orisToLoad = new ArrayList<>();
 		int cacheVersionBeforeLongTimeAction = waitForConcurrentReadFinish(orisToGet, orisToLoad);
-		if (orisToLoad.size() == 0) {
+		if (orisToLoad.isEmpty()) {
 			// Everything found in the cache. We STILL hold the readlock so we can immediately create the
 			// result
 			// We already even checked the version. So we do not bother version anymore here
@@ -412,7 +412,7 @@ public class ChildCache extends AbstractCache<Object>
 				}
 				orisToLoad.add(oriToGet);
 			}
-			if (orisToLoad.size() == 0) {
+			if (orisToLoad.isEmpty()) {
 				releaseReadLock = false;
 			}
 			return changeVersion;

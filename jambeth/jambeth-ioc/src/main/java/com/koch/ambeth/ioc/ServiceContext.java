@@ -409,7 +409,7 @@ public class ServiceContext
 				toStringBackup = "n/a";
 			}
 			disposing = true;
-			if (children != null && children.size() > 0) {
+			if (children != null && !children.isEmpty()) {
 				childrenCopy = children.toArray(new IServiceContext[children.size()]);
 				children.clear();
 				children = null;
@@ -717,7 +717,7 @@ public class ServiceContext
 			}
 			// "monte carlo" approach to check for disposable objects without noticeable impact on the
 			// runtime performance
-			while (disposableObjects.size() > 0) {
+			while (!disposableObjects.isEmpty()) {
 				int randomIndex = (int) (Math.random() * disposableObjects.size());
 				Object disposableObject = disposableObjects.get(randomIndex);
 				if (disposableObject instanceof Reference) {

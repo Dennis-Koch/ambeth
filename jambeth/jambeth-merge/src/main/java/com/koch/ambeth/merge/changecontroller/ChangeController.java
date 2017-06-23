@@ -180,7 +180,7 @@ public class ChangeController
 					((IBatchAwareChangeControllerExtension) ext).flush(views);
 				}
 			}
-			return calledExtensionsSet.size() > 0;
+			return !calledExtensionsSet.isEmpty();
 		}
 		catch (Throwable e) {
 			for (IChangeControllerExtension ext : calledExtensionsSet) {

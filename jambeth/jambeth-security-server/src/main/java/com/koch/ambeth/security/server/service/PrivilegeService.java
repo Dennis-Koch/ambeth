@@ -365,7 +365,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		IPrefetchConfig prefetchConfig = null;
 		for (Class<?> requestedType : requestedTypesArray) {
 			IList<IEntityPermissionRule<?>> extensions = getEntityPermissionRules(requestedType);
-			if (extensions.size() == 0) {
+			if (extensions.isEmpty()) {
 				hasAnEntityTypeWithoutPermissionRule = true;
 				continue;
 			}

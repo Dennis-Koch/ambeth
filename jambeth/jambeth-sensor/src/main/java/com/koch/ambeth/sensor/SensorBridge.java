@@ -42,7 +42,7 @@ public class SensorBridge implements ISensor {
 	@Override
 	public void touch() {
 		List<ISensorReceiver> sensors = this.sensors;
-		if (sensors.size() == 0) {
+		if (sensors.isEmpty()) {
 			return;
 		}
 		String sensorName = this.sensorName;
@@ -61,7 +61,7 @@ public class SensorBridge implements ISensor {
 	@Override
 	public void touch(Object... additionalData) {
 		List<ISensorReceiver> sensors = this.sensors;
-		if (sensors.size() == 0) {
+		if (sensors.isEmpty()) {
 			return;
 		}
 		String sensorName = this.sensorName;
@@ -80,7 +80,7 @@ public class SensorBridge implements ISensor {
 	@Override
 	public void on() {
 		List<ISensorReceiver> sensors = this.sensors;
-		if (sensors.size() == 0) {
+		if (sensors.isEmpty()) {
 			return;
 		}
 		String sensorName = this.sensorName;
@@ -99,7 +99,7 @@ public class SensorBridge implements ISensor {
 	@Override
 	public void on(Object... additionalData) {
 		List<ISensorReceiver> sensors = this.sensors;
-		if (sensors.size() == 0) {
+		if (sensors.isEmpty()) {
 			return;
 		}
 		String sensorName = this.sensorName;
@@ -118,7 +118,7 @@ public class SensorBridge implements ISensor {
 	@Override
 	public void off() {
 		List<ISensorReceiver> sensors = this.sensors;
-		if (sensors.size() == 0) {
+		if (sensors.isEmpty()) {
 			return;
 		}
 		String sensorName = this.sensorName;

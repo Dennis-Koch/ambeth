@@ -341,7 +341,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 	@Override
 	public IList<Object> getObjects(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective) {
 		checkNotDisposed();
-		if (orisToGet == null || orisToGet.size() == 0) {
+		if (orisToGet == null || orisToGet.isEmpty()) {
 			return EmptyList.getInstance();
 		}
 		if (cacheDirective.contains(CacheDirective.NoResult)
@@ -401,7 +401,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 	protected IList<Object> getObjectsIntern(List<IObjRef> orisToGet, ICacheIntern targetCache,
 			Set<CacheDirective> cacheDirective) {
 		checkNotDisposed();
-		if (orisToGet == null || orisToGet.size() == 0) {
+		if (orisToGet == null || orisToGet.isEmpty()) {
 			return EmptyList.getInstance();
 		}
 		if (cacheDirective == null) {
@@ -443,7 +443,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 						ArrayList<DirectValueHolderRef> pendingValueHolders = new ArrayList<>();
 						IList<Object> result = getObjectsRetry(orisToGet, targetCache, cacheDirective,
 								doAnotherRetry, neededObjRefs, pendingValueHolders);
-						while (neededObjRefs.size() > 0) {
+						while (!neededObjRefs.isEmpty()) {
 							IList<IObjRef> objRefsToGetCascade = neededObjRefs.toList();
 							neededObjRefs.clear();
 							getObjectsRetry(objRefsToGetCascade, targetCache, cacheDirective, doAnotherRetry,
@@ -452,7 +452,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 						if (Boolean.TRUE.equals(doAnotherRetry.getValue())) {
 							continue;
 						}
-						if (pendingValueHolders.size() > 0) {
+						if (!pendingValueHolders.isEmpty()) {
 							prefetchHelper.prefetch(pendingValueHolders);
 							continue;
 						}
@@ -489,7 +489,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 			RootCacheValue[] rootCacheValuesToGet = new RootCacheValue[orisToGet.size()];
 			cacheVersionBeforeLongTimeAction =
 					waitForConcurrentReadFinish(orisToGet, rootCacheValuesToGet, orisToLoad, cacheDirective);
-			if (orisToLoad.size() == 0) {
+			if (orisToLoad.isEmpty()) {
 				// Everything found in the cache. We STILL hold the readlock so we can immediately create
 				// the result
 				// We already even checked the version. So we do not bother with versions anymore here
@@ -507,7 +507,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 			try {
 				IList<Object> result =
 						createResult(orisToGet, null, cacheDirective, targetCache, false, orisToLoad);
-				if (orisToLoad.size() == 0) {
+				if (orisToLoad.isEmpty()) {
 					return result;
 				}
 				cacheVersionBeforeLongTimeAction = changeVersion;
@@ -555,7 +555,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 					clearPendingKeysOfCurrentThread(orisToLoad);
 					orisToLoad.clear();
 
-					if (neededObjRefs.size() > 0 || pendingValueHolders.size() > 0) {
+					if (!neededObjRefs.isEmpty() || !pendingValueHolders.isEmpty()) {
 						writeLock.unlock();
 						releaseWriteLock = false;
 						return null;
@@ -649,7 +649,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 						if (targetCache != null && targetCache != this) {
 							IList<Object> cacheResult =
 									targetCache.getObjects(objRel.getObjRefs(), CacheDirective.failEarly());
-							if (cacheResult.size() > 0) {
+							if (!cacheResult.isEmpty()) {
 								IObjRefContainer item = (IObjRefContainer) cacheResult.get(0); // Only one hit is
 																																								// necessary of
 																																								// given group of
@@ -668,7 +668,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 							objRelMisses.add(objRel);
 						}
 					}
-					if (objRelMisses.size() == 0) {
+					if (objRelMisses.isEmpty()) {
 						// Create result WITHOUT releasing the readlock in the meantime
 						result = createResult(objRels, targetCache, null, alreadyClonedObjRefs, returnMisses);
 					}
@@ -676,7 +676,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 				finally {
 					readLock.unlock();
 				}
-				if (objRelMisses.size() > 0) {
+				if (!objRelMisses.isEmpty()) {
 					List<IObjRelationResult> loadedObjectRelations;
 					if (privileged && securityActivation != null && securityActivation.isFilterActivated()) {
 						try {
@@ -733,7 +733,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 			IdentityHashMap<IObjRef, IObjRef> alreadyClonedObjRefs) {
 		IList<Object> cacheValues = getObjects(new ArrayList<IObjRef>(objRel.getObjRefs()), targetCache,
 				failEarlyCacheValueResultSet);
-		if (cacheValues.size() == 0) {
+		if (cacheValues.isEmpty()) {
 			if (objRelToResultMap != null) {
 				return objRelToResultMap.get(objRel);
 			}
@@ -765,7 +765,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 			if (targetCache != null && targetCache != this) {
 				cacheResult = targetCache.getObjects(objRel.getObjRefs(), CacheDirective.failEarly());
 			}
-			if (cacheResult == null || cacheResult.size() == 0) {
+			if (cacheResult == null || cacheResult.isEmpty()) {
 				IObjRelationResult selfResult =
 						getObjRelationIfValid(objRel, targetCache, objRelToResultMap, alreadyClonedObjRefs);
 				if (selfResult != null || returnMisses) {
@@ -819,7 +819,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 
 	protected IList<IObjRelationResult> filterObjRelResult(IList<IObjRelationResult> objRelResults,
 			ICacheIntern targetCache) {
-		if (objRelResults.size() == 0 || !isFilteringNecessary(targetCache)) {
+		if (objRelResults.isEmpty() || !isFilteringNecessary(targetCache)) {
 			return objRelResults;
 		}
 		ArrayList<IObjRef> permittedObjRefs = new ArrayList<>(objRelResults.size());
@@ -952,7 +952,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 
 				IList<Object> cacheValues =
 						getObjects(objRel.getObjRefs(), CacheDirective.cacheValueResult());
-				if (cacheValues.size() == 0) {
+				if (cacheValues.isEmpty()) {
 					continue;
 				}
 				RootCacheValue cacheValue = (RootCacheValue) cacheValues.get(0); // Only first hit needed
@@ -1010,7 +1010,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 					}
 					orisToLoad.add(oriToGet);
 				}
-				if (!concurrentPendingItems && orisToLoad.size() == 0) {
+				if (!concurrentPendingItems && orisToLoad.isEmpty()) {
 					// Do not release the readlock, to prohibit concurrent DCEs
 					releaseReadLock = false;
 					return changeVersion;
@@ -1498,7 +1498,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 		}
 		IdentityHashSet<IObjRef> allKnownRelations = new IdentityHashSet<>();
 		scanForAllKnownRelations(relations, allKnownRelations);
-		if (allKnownRelations.size() == 0) {
+		if (allKnownRelations.isEmpty()) {
 			// nothing to filter
 			return relations;
 		}
@@ -1529,7 +1529,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 				}
 			}
 			filteredRelations[a] =
-					tempList.size() > 0 ? tempList.toArray(IObjRef.class) : ObjRef.EMPTY_ARRAY;
+					!tempList.isEmpty() ? tempList.toArray(IObjRef.class) : ObjRef.EMPTY_ARRAY;
 		}
 		return filteredRelations;
 	}

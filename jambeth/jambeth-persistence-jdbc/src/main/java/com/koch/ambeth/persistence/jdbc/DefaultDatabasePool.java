@@ -106,7 +106,7 @@ public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDi
 			IDatabase database;
 			writeLock.lock();
 			try {
-				if (unusedDatabases.size() == 0) {
+				if (unusedDatabases.isEmpty()) {
 					notFullCond.signalAll();
 					return;
 				}
@@ -141,7 +141,7 @@ public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDi
 			}
 			writeLock.lock();
 			try {
-				if (unusedDatabases.size() > 0) {
+				if (!unusedDatabases.isEmpty()) {
 					database = unusedDatabases.remove(unusedDatabases.size() - 1);
 					usedDatabases.put(database, Boolean.TRUE);
 					break;

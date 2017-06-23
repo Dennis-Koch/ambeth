@@ -220,7 +220,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 			((IWritableCache) cache).clear();
 		}
 		IList<Object> objects = null;
-		if (objRefs.size() > 0) {
+		if (!objRefs.isEmpty()) {
 			objects = cache.getObjects(objRefs, CacheDirective.returnMisses());
 			for (int a = objRefs.size(); a-- > 0;) {
 				Object entity = objects.get(a);
@@ -230,7 +230,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 				objRefToEntityMap.put(objRefs.get(a), entity);
 			}
 		}
-		while (runnables.size() > 0) {
+		while (!runnables.isEmpty()) {
 			IBackgroundWorkerDelegate[] runnablesArray =
 					runnables.toArray(IBackgroundWorkerDelegate.class);
 			runnables.clear();

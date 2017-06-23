@@ -186,7 +186,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 				throw new ExtendableException("Provided extension is not registered at key '" + handledType
 						+ "." + propertyName + "'. Extension: " + extension);
 			}
-			if (map.size() == 0) {
+			if (map.isEmpty()) {
 				extendableContainer.unregister(map, handledType);
 			}
 		}
@@ -216,7 +216,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 		ILinkedMap<IPrimitiveRetriever, PrimitiveRetrieverArguments> fetchablePrimitives = bucketSortObjRelsForFetchablePrimitives(
 				result, objRelToDelegateMap);
 
-		if (fetchablePrimitives.size() == 0) {
+		if (fetchablePrimitives.isEmpty()) {
 			return result;
 		}
 		multithreadingHelper.invokeAndWait(fetchablePrimitives,

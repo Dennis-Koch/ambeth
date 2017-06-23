@@ -155,7 +155,7 @@ public class PrioMembersProvider implements IPrioMembersProvider {
 				touchedTypesInPriority.add(targetEntityType);
 			}
 		}
-		if (prioMembersMap.size() > 0) {
+		if (!prioMembersMap.isEmpty()) {
 			// check for out-of-order members which have nothing to do (and will never ever have in a
 			// transitive manner) with the priorized members
 			for (PrefetchCommand prefetchCommand : pendingPrefetchCommands) {

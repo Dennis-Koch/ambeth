@@ -153,7 +153,7 @@ public class MergeCommand extends AbstractObjectCommand
 						}
 					}
 				}
-				if (existingORIsSet.size() == 0) {
+				if (existingORIsSet.isEmpty()) {
 					newORIs = ObjRef.EMPTY_ARRAY;
 				}
 				else {

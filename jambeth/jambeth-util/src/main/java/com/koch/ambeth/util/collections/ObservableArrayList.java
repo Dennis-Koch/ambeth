@@ -420,11 +420,11 @@ public class ObservableArrayList<V>
 				internalAdd((V) itemToAdd);
 			}
 		}
-		if (notifyCollectionChangedSupport != null && c.size() > 0) {
+		if (notifyCollectionChangedSupport != null && !c.isEmpty()) {
 			fireNotifyCollectionChanged(
 					new NotifyCollectionChangedEvent(this, NotifyCollectionChangedAction.Add, arrayToAdd));
 		}
-		return c.size() > 0;
+		return !c.isEmpty();
 	}
 
 	@Override
@@ -466,11 +466,11 @@ public class ObservableArrayList<V>
 			internalAdd(currIndex, item);
 			currIndex++;
 		}
-		if (c.size() > 0) {
+		if (!c.isEmpty()) {
 			fireNotifyCollectionChanged(
 					new NotifyCollectionChangedEvent(this, NotifyCollectionChangedAction.Add, c));
 		}
-		return c.size() > 0;
+		return !c.isEmpty();
 	}
 
 	@Override

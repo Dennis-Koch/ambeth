@@ -143,7 +143,7 @@ public class DataChangeEvent implements IDataChange {
 
 	@Override
 	public boolean isEmpty() {
-		return deletes.size() == 0 && updates.size() == 0 && inserts.size() == 0;
+		return deletes.isEmpty() && updates.isEmpty() && inserts.isEmpty();
 	}
 
 	@Override

@@ -80,7 +80,7 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
 
 	@Override
 	public final Connection create() {
-		while (preparedConnectionInstances != null && preparedConnectionInstances.size() > 0) {
+		while (preparedConnectionInstances != null && !preparedConnectionInstances.isEmpty()) {
 			Connection preparedConnection =
 					preparedConnectionInstances.remove(preparedConnectionInstances.size() - 1);
 			try {

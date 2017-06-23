@@ -292,7 +292,7 @@ public class MariaTestDialect extends AbstractConnectionTestDialect {
 
 			sb.append("CREATE TRIGGER \"").append(triggerName);
 			sb.append("\" BEFORE UPDATE");
-			if (tableColumns.size() > 0) {
+			if (!tableColumns.isEmpty()) {
 				sb.append(" OF ");
 				for (int a = 0, size = tableColumns.size(); a < size; a++) {
 					if (a > 0) {

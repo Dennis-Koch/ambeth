@@ -320,7 +320,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			final boolean doCommitBehavior, Map<String, String> sqlToSourceMap,
 			List<String> sqlExecutionOrder, IConnectionDialect connectionDialect, ILogger log,
 			boolean doExecuteStrict) throws SQLException {
-		if (sql.size() == 0) {
+		if (sql.isEmpty()) {
 			return;
 		}
 		Statement stmt = null;
@@ -372,7 +372,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				}
 				sql.removeAll(done);
 			}
-			while (sql.size() > 0 && done.size() > 0);
+			while (!sql.isEmpty() && !done.isEmpty());
 
 			if (doCommitBehavior) {
 				if (sql.isEmpty()) {
@@ -399,7 +399,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				}
 			}
 			else if (!sql.isEmpty()) {
-				if (commandToExceptionMap.size() > 0) {
+				if (!commandToExceptionMap.isEmpty()) {
 					String errorMessage = "Uncorrectable SQL exception(s)";
 					Entry<String, List<Throwable>> firstEntry = commandToExceptionMap.iterator().next();
 					if (sqlToSourceMap != null) {
@@ -741,7 +741,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		boolean result = true; // default value if no annotation is found
 		List<IAnnotationInfo<?>> sqlDataRebuilds = findAnnotations(getTestClass().getJavaClass(),
 				SQLDataRebuild.class);
-		if (sqlDataRebuilds.size() > 0) {
+		if (!sqlDataRebuilds.isEmpty()) {
 			IAnnotationInfo<?> topDataRebuild = sqlDataRebuilds.get(sqlDataRebuilds.size() - 1);
 			result = ((SQLDataRebuild) topDataRebuild.getAnnotation()).value();
 		}
@@ -756,7 +756,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		boolean result = true; // default value
 		List<IAnnotationInfo<?>> sqlDataRebuilds = findAnnotations(getTestClass().getJavaClass(),
 				SQLDataRebuild.class);
-		if (sqlDataRebuilds.size() > 0) {
+		if (!sqlDataRebuilds.isEmpty()) {
 			IAnnotationInfo<?> topDataRebuild = sqlDataRebuilds.get(sqlDataRebuilds.size() - 1);
 			if (topDataRebuild.getAnnotation() instanceof SQLDataRebuild) {
 				result = ((SQLDataRebuild) topDataRebuild.getAnnotation()).truncateOnClass();

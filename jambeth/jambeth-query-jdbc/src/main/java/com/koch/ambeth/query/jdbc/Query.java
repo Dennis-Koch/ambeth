@@ -414,7 +414,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
 	@Override
 	public T retrieveSingle() {
 		IList<T> result = retrieve();
-		if (result == null || result.size() == 0) {
+		if (result == null || result.isEmpty()) {
 			return null;
 		}
 		if (result.size() != 1) {

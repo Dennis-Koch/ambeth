@@ -188,7 +188,7 @@ public class JdbcTable extends SqlTable {
 	protected void executeBatchedStatements(
 			ILinkedMap<Integer, ILinkedMap<String, PreparedStatement>> fieldsToStmtMap)
 			throws SQLException {
-		if (fieldsToStmtMap.size() == 0) {
+		if (fieldsToStmtMap.isEmpty()) {
 			return;
 		}
 		try {
@@ -223,7 +223,7 @@ public class JdbcTable extends SqlTable {
 
 	@Override
 	public void delete(List<IObjRef> oris) {
-		if (oris == null || oris.size() == 0) {
+		if (oris == null || oris.isEmpty()) {
 			return;
 		}
 		IConversionHelper conversionHelper = this.conversionHelper;
@@ -517,7 +517,7 @@ public class JdbcTable extends SqlTable {
 	@SuppressWarnings("unchecked")
 	protected void checkRowLocks(ILinkedMap<Object, Object> persistedIdToVersionMap)
 			throws SQLException {
-		if (persistedIdToVersionMap.size() == 0) {
+		if (persistedIdToVersionMap.isEmpty()) {
 			return;
 		}
 		IConversionHelper conversionHelper = this.conversionHelper;
@@ -569,7 +569,7 @@ public class JdbcTable extends SqlTable {
 					}
 				}
 			}
-			if (persistedIdToVersionMap.size() > 0) {
+			if (!persistedIdToVersionMap.isEmpty()) {
 				Object objId =
 						conversionHelper.convertValueToType(metaData.getIdField().getMember().getRealType(),
 								persistedIdToVersionMap.iterator().next().getKey());

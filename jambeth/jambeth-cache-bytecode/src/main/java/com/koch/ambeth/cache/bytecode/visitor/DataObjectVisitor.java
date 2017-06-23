@@ -146,7 +146,7 @@ public class DataObjectVisitor extends ClassGenerator {
 		PropertyInstance p_toBeUpdated = implementProperty(template_p_toBeUpdated, new Script() {
 			@Override
 			public void execute(MethodGenerator mg) {
-				if (parentChildMembers.size() == 0) {
+				if (parentChildMembers.isEmpty()) {
 					mg.getThisField(f_toBeUpdated);
 					mg.returnValue();
 				}

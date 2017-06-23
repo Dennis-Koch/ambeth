@@ -129,7 +129,7 @@ public class SensorProvider
 					bridgeLock.unlock();
 				}
 			}
-			if (sensorList.size() == 0 && !nameToSensorBridgeMap.containsKey(sensorName)) {
+			if (sensorList.isEmpty() && !nameToSensorBridgeMap.containsKey(sensorName)) {
 				nameToSensorsMap.remove(sensorName);
 			}
 		}

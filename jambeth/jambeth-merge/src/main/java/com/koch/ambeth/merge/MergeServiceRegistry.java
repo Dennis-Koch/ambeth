@@ -604,11 +604,11 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 						insertsAndUpdates.add(change);
 					}
 				}
-				if (removes.size() == 0) {
+				if (removes.isEmpty()) {
 					// Nothing to do. Ordering is not necessary here
 					continue;
 				}
-				if (insertsAndUpdates.size() == 0) {
+				if (insertsAndUpdates.isEmpty()) {
 					sortedChanges.remove(orderedEntityType);
 				}
 				else {

@@ -298,12 +298,12 @@ public abstract class AbstractServiceREST {
 
 	protected String readSingleValueFromHeader(String name) {
 		List<String> values = headers.getRequestHeader(name);
-		return values != null && values.size() > 0 ? values.get(0) : null;
+		return values != null && !values.isEmpty() ? values.get(0) : null;
 	}
 
 	protected List<String> readMultiValueFromHeader(String name) {
 		List<String> values = headers.getRequestHeader(name);
-		return values != null && values.size() > 0 ? values : EmptyList.<String>getInstance();
+		return values != null && !values.isEmpty() ? values : EmptyList.<String>getInstance();
 	}
 
 	protected Object[] getArguments(InputStream is, HttpServletRequest request) {
@@ -457,7 +457,7 @@ public abstract class AbstractServiceREST {
 
 	protected String evaluateAcceptedContentEncoding(HttpServletResponse response) {
 		List<String> acceptEncoding = readMultiValueFromHeader(ACCEPT_ENCODING_WORKAROUND);
-		if (acceptEncoding.size() == 0) {
+		if (acceptEncoding.isEmpty()) {
 			acceptEncoding = readMultiValueFromHeader(HttpHeaders.ACCEPT_ENCODING);
 		}
 		for (int a = acceptEncoding.size(); a-- > 0;) {

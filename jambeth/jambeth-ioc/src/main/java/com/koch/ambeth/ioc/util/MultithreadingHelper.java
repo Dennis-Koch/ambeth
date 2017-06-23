@@ -167,7 +167,7 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 	public <R, V> void invokeAndWait(IList<V> items,
 			IResultingBackgroundWorkerParamDelegate<R, V> itemHandler,
 			IAggregrateResultHandler<R, V> aggregateResultHandler) {
-		if (items.size() == 0) {
+		if (items.isEmpty()) {
 			return;
 		}
 		if (!isMultiThreadingAllowed() || items.size() == 1) {
@@ -199,7 +199,7 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 	public <R, K, V> void invokeAndWait(IMap<K, V> items,
 			IResultingBackgroundWorkerParamDelegate<R, Entry<K, V>> itemHandler,
 			IAggregrateResultHandler<R, Entry<K, V>> aggregateResultHandler) {
-		if (items.size() == 0) {
+		if (items.isEmpty()) {
 			return;
 		}
 		if (!isMultiThreadingAllowed() || items.size() == 1) {
@@ -232,7 +232,7 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 
 	@Override
 	public <V> void invokeAndWait(IList<V> items, IBackgroundWorkerParamDelegate<V> itemHandler) {
-		if (items.size() == 0) {
+		if (items.isEmpty()) {
 			return;
 		}
 		if (!isMultiThreadingAllowed() || items.size() == 1) {
@@ -260,7 +260,7 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 	@Override
 	public <K, V> void invokeAndWait(IMap<K, V> items,
 			IBackgroundWorkerParamDelegate<Entry<K, V>> itemHandler) {
-		if (items.size() == 0) {
+		if (items.isEmpty()) {
 			return;
 		}
 		if (!isMultiThreadingAllowed() || items.size() == 1) {

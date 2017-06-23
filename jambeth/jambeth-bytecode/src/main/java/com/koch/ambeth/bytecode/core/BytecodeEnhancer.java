@@ -284,7 +284,7 @@ public class BytecodeEnhancer
 			ClassLoader classLoader = null;
 			ArrayList<Class<?>> enhancedTypesPipeline = new ArrayList<>();
 			Class<?> enhancedType;
-			if (pendingBehaviors.size() > 0) {
+			if (!pendingBehaviors.isEmpty()) {
 				try {
 					enhancedType = enhanceTypeIntern(typeToEnhance, newTypeNamePrefix, pendingBehaviors, hint,
 							enhancedTypesPipeline, clpClassLoader);
@@ -350,7 +350,7 @@ public class BytecodeEnhancer
 			allMethods.addAll(currType.getDeclaredMethods());
 			currType = currType.getSuperclass();
 		}
-		if (allMethods.size() == 0) {
+		if (allMethods.isEmpty()) {
 			throw new IllegalStateException("Type invalid (not a single method): " + type);
 		}
 		if (type.getDeclaredConstructors().length == 0) {
@@ -386,7 +386,7 @@ public class BytecodeEnhancer
 	protected Class<?> enhanceTypeIntern(Class<?> originalType, String newTypeNamePrefix,
 			final IList<IBytecodeBehavior> pendingBehaviors, final IEnhancementHint hint,
 			List<Class<?>> enhancedTypesPipeline, final ClassLoader classLoader) {
-		if (pendingBehaviors.size() == 0) {
+		if (pendingBehaviors.isEmpty()) {
 			return originalType;
 		}
 		Reference<Class<?>> entityTypeR = typeToExtendedType.getWeakReferenceEntry(originalType);
@@ -411,7 +411,7 @@ public class BytecodeEnhancer
 			int iterationCount = 0;
 			ArrayList<BytecodeBehaviorState> pendingStatesToPostProcess = new ArrayList<>();
 			byte[] currentContent = bytecodeClassLoader.readTypeAsBinary(currentType, classLoader);
-			while (pendingBehaviors.size() > 0) {
+			while (!pendingBehaviors.isEmpty()) {
 				iterationCount++;
 
 				Type newTypeHandle = Type.getObjectType(newTypeNamePrefix + "$A" + iterationCount);
@@ -439,7 +439,7 @@ public class BytecodeEnhancer
 							}
 						});
 				if (newContent == null) {
-					if (pendingBehaviors.size() > 0) {
+					if (!pendingBehaviors.isEmpty()) {
 						// "fix" the iterationCount to have a consistent class name hierarchy
 						iterationCount--;
 						continue;

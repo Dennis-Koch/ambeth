@@ -261,12 +261,12 @@ public class CUDResultApplier implements ICUDResultApplier {
 					}
 				}
 			}
-			while (toPrefetch.size() > 0 || toFetchFromCache.size() > 0 || runnables.size() > 0) {
-				if (toPrefetch.size() > 0) {
+			while (!toPrefetch.isEmpty() || !toFetchFromCache.isEmpty() || !runnables.isEmpty()) {
+				if (!toPrefetch.isEmpty()) {
 					prefetchHelper.prefetch(toPrefetch);
 					toPrefetch.clear();
 				}
-				if (toFetchFromCache.size() > 0) {
+				if (!toFetchFromCache.isEmpty()) {
 					IList<Object> fetchedObjects =
 							stateCache.getObjects(toFetchFromCache, CacheDirective.none());
 					hardRefs.add(fetchedObjects); // add list as item intended. adding each item of the source
@@ -308,10 +308,10 @@ public class CUDResultApplier implements ICUDResultApplier {
 							.add(new DirectValueHolderRef((IObjRefContainer) entity, (RelationMember) member));
 				}
 			}
-			if (newObjects.size() > 0) {
+			if (!newObjects.isEmpty()) {
 				((IWritableCache) stateCache).put(newObjects);
 			}
-			if (changedRelationRefs.size() > 0) {
+			if (!changedRelationRefs.isEmpty()) {
 				prefetchHelper.prefetch(changedRelationRefs);
 			}
 			return new CUDResult(newAllChanges, allObjects);
@@ -456,7 +456,7 @@ public class CUDResultApplier implements ICUDResultApplier {
 					throw OptimisticLockUtil.throwModified(objRefHelper.entityToObjRef(entity), null, entity);
 				}
 			}
-			if (existingORIsSet.size() == 0) {
+			if (existingORIsSet.isEmpty()) {
 				newORIs = ObjRef.EMPTY_ARRAY;
 			}
 			else {
@@ -483,7 +483,7 @@ public class CUDResultApplier implements ICUDResultApplier {
 				}
 				else {
 					// To-one relation
-					value = objects.size() > 0 ? objects.get(0) : null;
+					value = !objects.isEmpty() ? objects.get(0) : null;
 				}
 				relationMember.setValue(entity, value);
 			}

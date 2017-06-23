@@ -176,7 +176,7 @@ public class RandomDataGenerator implements IInitializingBean, IJob {
 			changeOperation = ChangeOperation.UPDATE;
 		}
 
-		boolean changeTestEntity = allTest2Entities.size() > 0 && Math.random() > 0.1;
+		boolean changeTestEntity = !allTest2Entities.isEmpty() && Math.random() > 0.1;
 
 		doChange(allTestEntities, allTest2Entities, selectEntityIndex, selectEntity2Index,
 				changeOperation, changeTestEntity);
