@@ -13,10 +13,12 @@ timestamps {
 			def deployOrVerify = 'install';
 			def deployOrVerifyLabelPrefix = 'Verify';
 			def profile = ' -P default';
+			def localRepo = ' -Dmaven.repo.local=${env.WORKSPACE}/.m2';
 			if (env.BRANCH_NAME == 'master' || env.BRANCH_NAME == 'develop') {
 				deployOrVerify = 'deploy';
 				deployOrVerifyLabelPrefix = 'Deploy';
 				profile = ' -P default';
+				localRepo = '';
 			}
 			
 	        // Mark the code build 'stage'....
@@ -25,7 +27,7 @@ timestamps {
 		        // Run the maven build
 		        withEnv(["JAVA_HOME=${tool 'JDK8'}","PATH+MAVEN=${tool 'M3'}/bin","PATH+JAVA=${tool 'JDK8'}/bin","PATH+INKSCAPE=${env.WORKSPACE}/doc/reference-manual/target/inkscape/inkscape","PATH+MIKTEX=${env.WORKSPACE}/doc/reference-manual/target/miktex/miktex/miktex/bin/x64"]) {
 		            
-	            	bat "mvn -B clean ${deployOrVerify}${profile} -DskipTests -Dtycho.localArtifacts=ignore -Dpmd.skip=true -Dfindbugs.skip=true -Dcheckstyle.skip=true -Dmaven.repo.local=${env.WORKSPACE}/.m2 -Djambeth.path.test=${env.WORKSPACE}/jambeth/jambeth-test"
+	            	bat "mvn -B clean ${deployOrVerify}${profile} -DskipTests -Dtycho.localArtifacts=ignore -Dpmd.skip=true -Dfindbugs.skip=true -Dcheckstyle.skip=true${localRepo} -Djambeth.path.test=${env.WORKSPACE}/jambeth/jambeth-test"
 		        }
 	        }
 	        
