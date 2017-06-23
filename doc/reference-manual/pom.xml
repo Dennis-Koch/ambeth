@@ -27,6 +27,8 @@
 		<doc.src.dir>${project.build.directory}/src/java</doc.src.dir>
 		<doc.src.lib.dir>${project.build.directory}/src/java/libs</doc.src.lib.dir>
 		<data.dir>${project.build.directory}/data</data.dir>
+		<latex.temp.dir>target-latex</latex.temp.dir>
+		<latex.temp.out.dir>target-latex-output</latex.temp.out.dir>
 	</properties>
 
 	<pluginRepositories>
@@ -82,6 +84,7 @@
 				<artifactId>maven-antrun-plugin</artifactId>
 				<executions>
 					<execution>
+						<id>Generate absolute path properties</id>
 						<phase>generate-sources</phase>
 						<configuration>
 							<exportAntProperties>true</exportAntProperties>
@@ -94,12 +97,25 @@
 							<goal>run</goal>
 						</goals>
 					</execution>
+					<execution>
+						<id>Copy PDF file</id>
+						<phase>package</phase>
+						<configuration>
+							<target>
+								<copy file="${project.build.directory}/${latex.temp.dir}/Ambeth-Reference.pdf" tofile="${project.build.directory}/Ambeth-Reference-${ambeth.version}.pdf" />
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
 				<executions>
+		<!-- 
 					<execution>
 						<id>Resolve Ambeth libraries</id>
 						<phase>generate-resources</phase>
@@ -228,6 +244,7 @@
 							</arguments>
 						</configuration>
 					</execution>
+					--><!-- 
 					<execution>
 						<id>Copy PDF file</id>
 						<phase>package</phase>
@@ -237,14 +254,16 @@
 						<configuration>
 							<executable>xcopy</executable>
 							<arguments>
-								<argument>..\latex-tmp\Ambeth-Reference.pdf</argument>
+								<argument>${project.build.directory}\${latex.temp.dir}\Ambeth-Reference.pdf</argument>
 								<argument>${project.build.directory}\Ambeth-Reference-${ambeth.version}.pdf*</argument>
 								<argument>/Y</argument>
 							</arguments>
 						</configuration>
 					</execution>
+					-->					
 				</executions>
 			</plugin>
+			<!-- 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
@@ -289,6 +308,8 @@
 					</execution>
 				</executions>
 			</plugin>
+			
+			-->
 			<plugin>
 				<groupId>de.akquinet.maven</groupId>
 				<artifactId>maven-latex-plugin</artifactId>
@@ -296,13 +317,13 @@
 					<settings>
 						<!-- all tex main documents in this folder (including subfolders) will 
 							be processed -->
-						<texDirectory>.</texDirectory>
+						<texDirectory>tex</texDirectory>
 						<!-- the generated artifacts will be copied to this folder relative 
 							to ${project.reporting.outputDirectory} -->
-						<outputDirectory>.</outputDirectory>
+						<outputDirectory>${latex.temp.out.dir}</outputDirectory>
 						<!-- the working directory, for temporary files and LaTeX processing 
 							relative to ${project.build.directory} -->
-						<tempDirectory>../../latex-tmp</tempDirectory>
+						<tempDirectory>${latex.temp.dir}</tempDirectory>
 						<!-- clean up the working directory in the end? May be used for debugging -->
 						<cleanUp>false</cleanUp>
 						<!-- path to the TeX scripts, if none, it must be on the system path -->
@@ -314,8 +335,8 @@
 						<!-- the arguments to use when calling latex -->
 						<texCommandArgs>
 						<!-- TODO: we need the shell escape to launch inkscape, but for some reason the inkscape process hangs and stalls the build
-							<texCommandArg>-shell-escape</texCommandArg>
 							 -->
+							<texCommandArg>-shell-escape</texCommandArg>
 							<texCommandArg>-interaction=nonstopmode</texCommandArg>
 							<texCommandArg>--src-specials</texCommandArg>
 						</texCommandArgs>
