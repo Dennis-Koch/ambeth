@@ -166,7 +166,7 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 				currEx = currEx.getCause();
 			}
 		}
-		if (events == null || events.size() == 0) {
+		if (events == null || events.isEmpty()) {
 			return currentEventSequence;
 		}
 		long timeBeforeDispatch = System.currentTimeMillis();

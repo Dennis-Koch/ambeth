@@ -96,7 +96,7 @@ public class ReadOnlyList<V> implements IList<V>, Serializable {
 	}
 
 	public ReadOnlyList(Collection<V> objects) {
-		if (objects == null || objects.size() == 0) {
+		if (objects == null || objects.isEmpty()) {
 			array = emptyArray;
 			size = 0;
 		}
@@ -124,7 +124,7 @@ public class ReadOnlyList<V> implements IList<V>, Serializable {
 	}
 
 	public ReadOnlyList(List<V> objects, int startIndex, int endIndex) {
-		if (objects == null || objects.size() == 0) {
+		if (objects == null || objects.isEmpty()) {
 			array = emptyArray;
 			size = 0;
 		}

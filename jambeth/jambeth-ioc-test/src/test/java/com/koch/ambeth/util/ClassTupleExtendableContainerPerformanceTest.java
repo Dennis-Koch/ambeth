@@ -274,7 +274,7 @@ public class ClassTupleExtendableContainerPerformanceTest extends AbstractIocTes
 					Object value = typeToDefEntryMap.get(registeredKey);
 					InterfaceFastList<Def2Entry<V>> list = (InterfaceFastList<Def2Entry<V>>) value;
 					list.remove(defEntry);
-					if (list.size() == 0) {
+					if (list.isEmpty()) {
 						typeToDefEntryMap.remove(registeredKey);
 					}
 					typeToDefEntryMapChanged(classEntry, registeredKey);

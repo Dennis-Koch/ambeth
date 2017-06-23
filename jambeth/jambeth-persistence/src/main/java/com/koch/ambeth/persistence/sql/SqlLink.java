@@ -173,7 +173,7 @@ public class SqlLink extends Link {
 			}
 			convertedToIds.add(toId);
 		}
-		if (convertedToIds.size() == 0) {
+		if (convertedToIds.isEmpty()) {
 			return;
 		}
 		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
@@ -276,7 +276,7 @@ public class SqlLink extends Link {
 			}
 			convertedToIds.add(toId);
 		}
-		if (convertedToIds.size() == 0) {
+		if (convertedToIds.isEmpty()) {
 			return;
 		}
 		Class<?> fromFieldType = fromField.getFieldType();

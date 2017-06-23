@@ -252,7 +252,7 @@ public class PrivilegeProvider
 		try {
 			IPrivilegeResult result = createResult(objRefs, securityScopes, missingObjRefs, authorization,
 					null);
-			if (missingObjRefs.size() == 0) {
+			if (missingObjRefs.isEmpty()) {
 				return result;
 			}
 		}
@@ -436,7 +436,7 @@ public class PrivilegeProvider
 		try {
 			ITypePrivilegeResult result = createResultByType(entityTypes, securityScopes,
 					missingEntityTypes, authorization);
-			if (missingEntityTypes.size() == 0) {
+			if (missingEntityTypes.isEmpty()) {
 				return result;
 			}
 		}

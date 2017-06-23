@@ -111,7 +111,7 @@ public class DataSetupExecutor implements IStartingBean {
 																	@Override
 																	public Object invoke()
 																			throws Throwable {
-																		if (dataSet.size() > 0) {
+																		if (!dataSet.isEmpty()) {
 																			log.info(
 																					"Merging created test data");
 																			mergeProcess.process(

@@ -410,7 +410,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 	protected IQuery<?> buildParentChildQuery(IEntityMetaData metaData, String selectingMemberName,
 			ILinkedMap<String, IList<Object>> childMemberNameToIdsMap,
 			IMap<String, ChildMember> childMemberNameToDataIndexMap) {
-		if (childMemberNameToIdsMap.size() == 0) {
+		if (childMemberNameToIdsMap.isEmpty()) {
 			throw new IllegalArgumentException("Illegal map");
 		}
 		IList<String> childMemberNames = childMemberNameToIdsMap.keyList();
@@ -966,7 +966,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 
 	protected void checkForCorrectIdIndex(List<IObjRef> objRefs, byte idIndex,
 			IMap<Byte, IList<IObjRef>> toChange) {
-		if (objRefs.size() == 0) {
+		if (objRefs.isEmpty()) {
 			return;
 		}
 		IList<IObjRef> toChangeList = toChange.get(idIndex);

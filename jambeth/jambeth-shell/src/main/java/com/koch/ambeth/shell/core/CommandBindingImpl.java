@@ -239,7 +239,7 @@ public class CommandBindingImpl implements CommandBinding, IInitializingBean {
 	 * @param extensions
 	 */
 	private String printExtensionUsages(List<CommandExtension> extensions) {
-		if (extensions == null || extensions.size() == 0) {
+		if (extensions == null || extensions.isEmpty()) {
 			return "";
 		}
 		StringWriter strWriter = new StringWriter();

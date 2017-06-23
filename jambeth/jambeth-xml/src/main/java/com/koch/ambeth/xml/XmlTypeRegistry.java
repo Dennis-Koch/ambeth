@@ -276,7 +276,7 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 
 			List<XmlTypeKey> xmlTypeKeys = classToXmlTypeMap.get(type);
 			xmlTypeKeys.remove(xmlTypeKey);
-			if (xmlTypeKeys.size() == 0) {
+			if (xmlTypeKeys.isEmpty()) {
 				classToXmlTypeMap.remove(type);
 			}
 		}

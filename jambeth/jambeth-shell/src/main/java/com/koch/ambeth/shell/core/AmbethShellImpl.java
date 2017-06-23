@@ -148,7 +148,7 @@ public class AmbethShellImpl
 					getContext().set(ECHO, true);
 
 					// save the variables for the batch file to shellContext
-					if (varsForBatchFile != null && varsForBatchFile.size() > 0) {
+					if (varsForBatchFile != null && !varsForBatchFile.isEmpty()) {
 						Set<String> keySet = varsForBatchFile.keySet();
 						for (String variable : keySet) {
 							getContext().set(variable, varsForBatchFile.get(variable));

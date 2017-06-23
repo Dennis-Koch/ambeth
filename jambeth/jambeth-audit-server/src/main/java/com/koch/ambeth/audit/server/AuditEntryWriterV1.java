@@ -58,37 +58,38 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.model.IDataObject;
 
 public class AuditEntryWriterV1 implements IAuditEntryWriter {
-	private static final String[] auditedPropertiesOfEntry = {IAuditEntry.Context, //
+	private static final String[] auditedPropertiesOfEntry = { IAuditEntry.Context, //
 			IAuditEntry.HashAlgorithm, //
 			IAuditEntry.Protocol, //
 			IAuditEntry.Reason, //
 			IAuditEntry.Timestamp, //
-			IAuditEntry.UserIdentifier};
+			IAuditEntry.UserIdentifier };
 
-	private static final String[] auditedPropertiesOfService = {IAuditedService.Order, //
+	private static final String[] auditedPropertiesOfService = { IAuditedService.Order, //
 			IAuditedService.MethodName, //
 			IAuditedService.ServiceType, //
 			IAuditedService.SpentTime, //
-			IAuditedService.Arguments};
+			IAuditedService.Arguments };
 
-	private static final String[] auditedPropertiesOfEntity = {IAuditedEntity.Order, //
-			IAuditedEntity.ChangeType};
+	private static final String[] auditedPropertiesOfEntity = { IAuditedEntity.Order, //
+			IAuditedEntity.ChangeType };
 
-	private static final String[] auditedPropertiesOfRef = {IAuditedEntityRef.EntityType, //
+	private static final String[] auditedPropertiesOfRef = { IAuditedEntityRef.EntityType, //
 			IAuditedEntityRef.EntityId, //
-			IAuditedEntityRef.EntityVersion};
+			IAuditedEntityRef.EntityVersion };
 
-	private static final String[] auditedPropertiesOfPrimitive =
-			{IAuditedEntityPrimitiveProperty.Order, //
-					IAuditedEntityPrimitiveProperty.Name, //
-					IAuditedEntityPrimitiveProperty.NewValue};
+	private static final String[] auditedPropertiesOfPrimitive = {
+			IAuditedEntityPrimitiveProperty.Order, //
+			IAuditedEntityPrimitiveProperty.Name, //
+			IAuditedEntityPrimitiveProperty.NewValue };
 
-	private static final String[] auditedPropertiesOfRelation = {IAuditedEntityRelationProperty.Order, //
-			IAuditedEntityRelationProperty.Name};
+	private static final String[] auditedPropertiesOfRelation = {
+			IAuditedEntityRelationProperty.Order, //
+			IAuditedEntityRelationProperty.Name };
 
-	private static final String[] auditedPropertiesOfRelationItem =
-			{IAuditedEntityRelationPropertyItem.Order, //
-					IAuditedEntityRelationPropertyItem.ChangeType};
+	private static final String[] auditedPropertiesOfRelationItem = {
+			IAuditedEntityRelationPropertyItem.Order, //
+			IAuditedEntityRelationPropertyItem.ChangeType };
 
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -206,8 +207,8 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 		IRelationUpdateItem rui = auditEntry.findRelation(IAuditEntry.Entities);
 		if (rui != null) {
 			for (IObjRef addedORI : rui.getAddedORIs()) {
-				CreateOrUpdateContainerBuild auditedEntity =
-						(CreateOrUpdateContainerBuild) ((IDirectObjRef) addedORI).getDirect();
+				CreateOrUpdateContainerBuild auditedEntity = (CreateOrUpdateContainerBuild) ((IDirectObjRef) addedORI)
+						.getDirect();
 				writeAuditedEntityIntern(auditedEntity, dos);
 				signature.update(md.digest());
 				byte[] sign = signature.sign();
@@ -231,12 +232,12 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 				IAuditedService.Order, auditEntry)) {
 			writeProperties(getAuditedPropertiesOfService(), auditedService, os);
 		}
-		List<? extends IEntityMetaDataHolder> auditedEntities =
-				sortOrderedMember(IAuditEntry.Entities, IAuditedEntity.Order, auditEntry);
+		List<? extends IEntityMetaDataHolder> auditedEntities = sortOrderedMember(IAuditEntry.Entities,
+				IAuditedEntity.Order, auditEntry);
 		os.writeInt(auditedEntities.size());
 		for (IEntityMetaDataHolder auditedEntity : auditedEntities) {
-			char[] signatureOfAuditedEntity =
-					(char[]) getPrimitiveValue(IAuditedEntity.Signature, auditedEntity);
+			char[] signatureOfAuditedEntity = (char[]) getPrimitiveValue(IAuditedEntity.Signature,
+					auditedEntity);
 			if (signatureOfAuditedEntity == null) {
 				throw new IllegalStateException(
 						"Signature of " + IAuditedEntity.class.getName() + " is null");
@@ -263,8 +264,8 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 
 			for (IEntityMetaDataHolder item : sortOrderedMember(IAuditedEntityRelationProperty.Items,
 					IAuditedEntityRelationPropertyItem.Order, property)) {
-				IEntityMetaDataHolder itemRef =
-						getRelationValue(IAuditedEntityRelationPropertyItem.Ref, auditedEntity);
+				IEntityMetaDataHolder itemRef = getRelationValue(IAuditedEntityRelationPropertyItem.Ref,
+						auditedEntity);
 
 				writeProperties(getAuditedPropertiesOfRef(), itemRef, os);
 				writeProperties(getAuditedPropertiesOfRelationItem(), item, os);
@@ -299,9 +300,9 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 		Member member = metaData.getMemberByName(memberName);
 
 		if (obj instanceof IDataObject) {
-			Collection<? extends IEntityMetaDataHolder> coll =
-					(Collection<? extends IEntityMetaDataHolder>) member.getValue(obj);
-			if (coll.size() == 0) {
+			Collection<? extends IEntityMetaDataHolder> coll = (Collection<? extends IEntityMetaDataHolder>) member
+					.getValue(obj);
+			if (coll.isEmpty()) {
 				return EmptyList.<IEntityMetaDataHolder>getInstance();
 			}
 			IEntityMetaData itemMetaData = entityMetaDataProvider.getMetaData(member.getElementType());
@@ -327,8 +328,7 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 			return EmptyList.<IEntityMetaDataHolder>getInstance();
 		}
 		IObjRef[] addedORIs = rui.getAddedORIs();
-		ArrayList<CreateOrUpdateContainerBuild> items =
-				new ArrayList<>(addedORIs.length);
+		ArrayList<CreateOrUpdateContainerBuild> items = new ArrayList<>(addedORIs.length);
 		for (IObjRef addedORI : addedORIs) {
 			items.add((CreateOrUpdateContainerBuild) ((IDirectObjRef) addedORI).getDirect());
 		}

@@ -246,7 +246,7 @@ public class RelationsGetterVisitor extends ClassGenerator {
 
 			fieldsList.add(new FieldInstance[] {field, field2});
 		}
-		if (fieldsList.size() == 0) {
+		if (fieldsList.isEmpty()) {
 			return;
 		}
 		final PropertyInstance p_emptyRelations =

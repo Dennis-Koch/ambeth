@@ -105,7 +105,7 @@ public class EventListenerRegistry
 			return;
 		}
 		IList<IQueuedEvent> eventQueue = eventQueueList.remove(eventQueueList.size() - 1);
-		if (eventQueueList.size() == 0) {
+		if (eventQueueList.isEmpty()) {
 			eventQueueTL.remove();
 			eventQueueList = null;
 		}
@@ -151,7 +151,7 @@ public class EventListenerRegistry
 
 	@Override
 	public IList<IQueuedEvent> batchEvents(List<IQueuedEvent> eventItems) {
-		if (eventItems.size() == 0) {
+		if (eventItems.isEmpty()) {
 			return EmptyList.<IQueuedEvent>getInstance();
 		}
 		if (eventItems.size() == 1) {
@@ -188,7 +188,7 @@ public class EventListenerRegistry
 
 	protected IList<IQueuedEvent> batchEventsIntern(IList<IQueuedEvent> currentBatchableEvents,
 			IEventBatcher currentEventBatcher) {
-		if (currentBatchableEvents.size() == 0) {
+		if (currentBatchableEvents.isEmpty()) {
 			return EmptyList.<IQueuedEvent>getInstance();
 		}
 		if (currentBatchableEvents.size() == 1 || currentEventBatcher == null) {
@@ -269,7 +269,7 @@ public class EventListenerRegistry
 
 	protected IList<Object> evaluatePausedEventTargets() {
 		IdentityLinkedMap<Object, PausedEventTargetItem> pausedTargets = this.pausedTargets;
-		if (pausedTargets.size() == 0) {
+		if (pausedTargets.isEmpty()) {
 			return EmptyList.<Object>getInstance();
 		}
 		ArrayList<Object> pausedEventTargets = new ArrayList<>(pausedTargets.size());
@@ -438,7 +438,7 @@ public class EventListenerRegistry
 					return;
 				}
 				pausedTargets.remove(eventTarget);
-				if (waitForResumeSet.size() > 0) {
+				if (!waitForResumeSet.isEmpty()) {
 					IList<Object> remainingPausedEventTargets = evaluatePausedEventTargets();
 					IdentityLinkedSet<Object> remainingPausedEventTargetsSet =
 							IdentityLinkedSet.<Object>create(remainingPausedEventTargets.size());
@@ -448,7 +448,7 @@ public class EventListenerRegistry
 						remainingPausedEventTargetsSet.addAll(remainingPausedEventTargets);
 						remainingPausedEventTargetsSet.retainAll(pauseItem.pendingPauses);
 
-						if (remainingPausedEventTargetsSet.size() == 0) {
+						if (remainingPausedEventTargetsSet.isEmpty()) {
 							iter.remove();
 							if (freeLatchMap == null) {
 								freeLatchMap = new IdentityLinkedSet<>();
@@ -503,7 +503,7 @@ public class EventListenerRegistry
 						new IdentityLinkedSet<>(remainingPausedEventTargets);
 				remainingPausedEventTargetsSet.retainAll(pendingSet);
 
-				if (remainingPausedEventTargetsSet.size() > 0) {
+				if (!remainingPausedEventTargetsSet.isEmpty()) {
 					// We should wait now but we have to check if we are in the UI thread, which must never
 					// wait
 					if (guiThreadHelper.isInGuiThread()) {

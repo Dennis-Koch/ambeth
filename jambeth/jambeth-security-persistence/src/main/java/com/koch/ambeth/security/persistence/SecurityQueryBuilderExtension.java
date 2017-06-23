@@ -98,7 +98,7 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension {
 				joinClauses.add(join);
 			}
 		}
-		if (permissionGroupJoins.size() == 0) {
+		if (permissionGroupJoins.isEmpty()) {
 			return null;
 		}
 		return queryBeanContextFactory.registerBean(SqlPermissionOperand.class)//

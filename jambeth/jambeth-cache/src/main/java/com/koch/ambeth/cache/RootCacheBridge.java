@@ -86,7 +86,7 @@ public class RootCacheBridge implements ICacheRetriever {
 				missedOris.add(ori);
 			}
 		}
-		if (orisToLoadWithVersion.size() > 0) {
+		if (!orisToLoadWithVersion.isEmpty()) {
 			IList<Object> loadContainers =
 					committedRootCache.getObjects(orisToLoadWithVersion, committedRootCacheCD);
 			for (int a = loadContainers.size(); a-- > 0;) {
@@ -99,7 +99,7 @@ public class RootCacheBridge implements ICacheRetriever {
 				}
 			}
 		}
-		if (missedOris.size() > 0) {
+		if (!missedOris.isEmpty()) {
 			List<ILoadContainer> uncommittedLoadContainer =
 					uncommittedCacheRetriever.getEntities(missedOris);
 			result.addAll(uncommittedLoadContainer);
@@ -133,7 +133,7 @@ public class RootCacheBridge implements ICacheRetriever {
 				result.add(relationResult);
 			}
 		}
-		if (missedOrels.size() > 0) {
+		if (!missedOrels.isEmpty()) {
 			List<IObjRelationResult> uncommittedRelationResult =
 					uncommittedCacheRetriever.getRelations(missedOrels);
 			result.addAll(uncommittedRelationResult);

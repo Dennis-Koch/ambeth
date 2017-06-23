@@ -921,7 +921,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 			}
 			orderBy(function("SCORE", value(label)), OrderByType.DESC);
 		}
-		if (fulltextFields.size() == 0) {
+		if (fulltextFields.isEmpty()) {
 			List<IFieldMetaData> primitiveFields = table.getPrimitiveFields();
 
 			IFieldMetaData updatedByField = table.getUpdatedByField();
@@ -1181,7 +1181,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	}
 
 	protected ISqlJoin[] getJoins() {
-		if (joinMap.size() == 0) {
+		if (joinMap.isEmpty()) {
 			return emptyJoins;
 		}
 		return joinMap.toArray(ISqlJoin.class);
@@ -1234,7 +1234,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		IServiceContext localContext = null;
 		try {
 			if (QueryType.PAGING == queryType
-					&& (orderByOperands == null || orderByOperands.size() == 0)) {
+					&& (orderByOperands == null || orderByOperands.isEmpty())) {
 				// Default order by id ASC if nothing else is explicitly specified
 				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 				self.orderBy(self.property(metaData.getIdMember().getName()), OrderByType.ASC);
@@ -1280,7 +1280,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 								currWhereClause = (IOperand) currWhereClauseConf.getInstance();
 								whereClauseConf = currWhereClauseConf;
 							}
-							if (allJoinClauses.size() == 0) {
+							if (allJoinClauses.isEmpty()) {
 								allJoinClauses = EmptyList.getInstance();
 							}
 							for (int i = 0; i < allJoinClauses.size(); i++) {

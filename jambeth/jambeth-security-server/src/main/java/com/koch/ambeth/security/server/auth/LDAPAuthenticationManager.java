@@ -185,7 +185,7 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager {
 				finally {
 					answer.close();
 				}
-				if (result.size() == 0) {
+				if (result.isEmpty()) {
 					throw createAuthenticationException(authentication);
 				}
 				return buildAuthenticationResult(result);

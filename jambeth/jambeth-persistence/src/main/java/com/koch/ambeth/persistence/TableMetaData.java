@@ -457,7 +457,7 @@ public class TableMetaData implements ITableMetaData, IInitializingBean {
 
 	protected void refreshAlternateIdFieldIndices() {
 		if (alternateIdFields == null || alternateIdFields.length == 0 || allFields == null
-				|| allFields.size() == 0) {
+				|| allFields.isEmpty()) {
 			alternateIdFieldIndices = EMPTY_SHORT_ARRAY;
 			return;
 		}

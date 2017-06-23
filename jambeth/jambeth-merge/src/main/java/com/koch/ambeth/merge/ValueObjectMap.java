@@ -124,7 +124,7 @@ public class ValueObjectMap extends SmartCopyMap<Class<?>, List<Class<?>>>
 			typeToValueObjectConfig.unregister(config, valueType);
 			List<Class<?>> valueObjectTypes = get(entityType);
 			valueObjectTypes.remove(valueType);
-			if (valueObjectTypes.size() == 0) {
+			if (valueObjectTypes.isEmpty()) {
 				remove(entityType);
 			}
 		}

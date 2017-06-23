@@ -164,7 +164,7 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 	private ArrayList<IObjRef> pullObjRefsToVerify() {
 		writeLock.lock();
 		try {
-			if (queuedObjRefs.size() == 0 || isDestroyed) {
+			if (queuedObjRefs.isEmpty() || isDestroyed) {
 				isActive = false;
 				return null;
 			}

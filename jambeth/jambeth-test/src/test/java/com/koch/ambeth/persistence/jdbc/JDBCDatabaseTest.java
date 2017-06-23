@@ -245,7 +245,7 @@ public class JDBCDatabaseTest extends AbstractInformationBusWithPersistenceTest 
 		ICache childCache = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
 
 		List<Material> allMaterials = materialService.getAllMaterials();
-		Assert.assertTrue("Materials count is 0", allMaterials.size() > 0);
+		Assert.assertTrue("Materials count is 0", !allMaterials.isEmpty());
 
 		Material material = allMaterials.get(0);
 
@@ -326,7 +326,7 @@ public class JDBCDatabaseTest extends AbstractInformationBusWithPersistenceTest 
 
 		List<Material> allMaterials = materialService.getAllMaterials();
 
-		Assert.assertTrue("Materials count is 0", allMaterials.size() > 0);
+		Assert.assertTrue("Materials count is 0", !allMaterials.isEmpty());
 
 		Material material = allMaterials.get(0);
 

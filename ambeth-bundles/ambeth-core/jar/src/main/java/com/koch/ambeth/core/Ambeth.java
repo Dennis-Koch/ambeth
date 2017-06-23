@@ -319,7 +319,7 @@ public class Ambeth
 						}
 					}, ambethModules.toArray(Class.class));
 
-			if (applicationModules.size() > 0 || applicationModuleDelegates.size() > 0) {
+			if (!applicationModules.isEmpty() || !applicationModuleDelegates.isEmpty()) {
 				serviceContext = frameworkContext
 						.createService(new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
 							@Override

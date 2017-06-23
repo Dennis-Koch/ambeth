@@ -261,7 +261,7 @@ public class FirstLevelCacheManager
 
 	protected void addLiveFirstLevelCaches(IList<IWritableCache> liveChildCaches,
 			boolean isTransactionActive) {
-		if (allFLCs.size() == 0) {
+		if (allFLCs.isEmpty()) {
 			return;
 		}
 		Thread currentThread = Thread.currentThread();

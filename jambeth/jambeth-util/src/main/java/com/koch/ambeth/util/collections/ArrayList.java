@@ -341,7 +341,7 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 				add(iter.next());
 			}
 		}
-		return c.size() > 0;
+		return !c.isEmpty();
 	}
 
 	@Override
@@ -379,7 +379,7 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 			add(currIndex, item);
 			currIndex++;
 		}
-		return c.size() > 0;
+		return !c.isEmpty();
 	}
 
 	@Override

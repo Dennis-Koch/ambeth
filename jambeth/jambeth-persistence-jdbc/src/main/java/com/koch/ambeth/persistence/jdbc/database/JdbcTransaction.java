@@ -240,7 +240,7 @@ public class JdbcTransaction
 	}
 
 	protected void notifyRunnables(ArrayList<IBackgroundWorkerDelegate> runnables) {
-		while (runnables != null && runnables.size() > 0) {
+		while (runnables != null && !runnables.isEmpty()) {
 			IBackgroundWorkerDelegate[] preCommitRunnablesArray =
 					runnables.toArray(IBackgroundWorkerDelegate.class);
 			runnables.clear();

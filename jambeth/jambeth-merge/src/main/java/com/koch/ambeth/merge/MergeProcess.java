@@ -279,7 +279,7 @@ public class MergeProcess implements IMergeProcess {
 	protected void processCUDResult(Object objectToMerge, final ICUDResult cudResult,
 			IList<Object> unpersistedObjectsToDelete, ProceedWithMergeHook proceedHook,
 			boolean addNewEntitiesToCache) {
-		if (cudResult.getAllChanges().size() == 0) {
+		if (cudResult.getAllChanges().isEmpty()) {
 			if (log.isInfoEnabled()) {
 				log.info("Service call skipped early because there is nothing to merge");
 			}
@@ -370,7 +370,7 @@ public class MergeProcess implements IMergeProcess {
 				eventDispatcher.dispatchEvent(dataChange);
 			}
 		}
-		if (unpersistedObjectsToDelete != null && unpersistedObjectsToDelete.size() > 0) {
+		if (unpersistedObjectsToDelete != null && !unpersistedObjectsToDelete.isEmpty()) {
 			// Create a DCE for all objects without an id but which should be deleted...
 			// This is the case for newly created objects on client side, which should be
 			// "cancelled". The DCE notifies all models which contain identity references to the

@@ -63,7 +63,7 @@ public class EntityMetaDataClient implements IEntityMetaDataProvider {
 		ArrayList<Class<?>> entityTypes = new ArrayList<>(1);
 		entityTypes.add(entityType);
 		IList<IEntityMetaData> metaData = getMetaData(entityTypes);
-		if (metaData.size() > 0) {
+		if (!metaData.isEmpty()) {
 			return metaData.get(0);
 		}
 		if (tryOnly) {

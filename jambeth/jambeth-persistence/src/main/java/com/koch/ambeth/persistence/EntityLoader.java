@@ -706,7 +706,7 @@ public class EntityLoader
 				parallelPendingItems.add(pli);
 			}
 		}
-		if (parallelPendingItems.size() == 0) {
+		if (parallelPendingItems.isEmpty()) {
 			return;
 		}
 		multithreadingHelper.invokeAndWait(parallelPendingItems,
@@ -981,7 +981,7 @@ public class EntityLoader
 				// Set version number to ORI explicitly here. It is not known earlier...
 				loadContainer.getReference().setVersion(version);
 
-				if (fieldToDirectedLinkIndex.size() > 0) {
+				if (!fieldToDirectedLinkIndex.isEmpty()) {
 					for (int a = cursorFields.length; a-- > 0;) {
 						Object dbValue = cursorValues[a];
 						IFieldMetaData field = cursorFields[a];

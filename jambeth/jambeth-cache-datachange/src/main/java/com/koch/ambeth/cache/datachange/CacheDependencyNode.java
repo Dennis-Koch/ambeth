@@ -132,7 +132,7 @@ public class CacheDependencyNode {
 			intermediateDeletes.add(hardRefObjRefToLoad);
 		}
 		privilegedHardRefResult = hardRefResult;
-		if (intermediateDeletes.size() > 0) {
+		if (!intermediateDeletes.isEmpty()) {
 			IObjRef[] intermediateDeletesArray = intermediateDeletes.toArray(IObjRef.class);
 			removeNotFoundObjRefs(intermediateDeletesArray);
 		}

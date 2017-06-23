@@ -160,7 +160,7 @@ public class MinaClient implements IInitializingBean, IMinaClient {
 		lockForReadAnswer.lock();
 		try {
 			// wait until the answer is read or the timeout is reached
-			if (lastAnswers.size() == 0) {
+			if (lastAnswers.isEmpty()) {
 				try {
 					readAnswerMonitor.await(commandTimeoutInSeconds, TimeUnit.SECONDS);
 				}

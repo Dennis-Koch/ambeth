@@ -385,8 +385,8 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
 
 			valueObjectList.add(valueObject);
 		}
-		while (pendingValueHolders.size() > 0 || runnables.size() > 0) {
-			if (pendingValueHolders.size() > 0) {
+		while (!pendingValueHolders.isEmpty() || !runnables.isEmpty()) {
+			if (!pendingValueHolders.isEmpty()) {
 				prefetchHelper.prefetch(pendingValueHolders);
 				pendingValueHolders.clear();
 			}
@@ -683,7 +683,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
 				voValue = listTypeHelper.unpackListType(voValue);
 			}
 			List<Object> voList = ListUtil.anyToList(voValue);
-			if (voList.size() == 0) {
+			if (voList.isEmpty()) {
 				// Nothing to collect
 				Object convertedEmptyRelation = convertPrimitiveValue(Collections.emptyList(),
 						boMember.getElementType(), boMember.getRealType(), boMember.getElementType());
@@ -741,13 +741,13 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
 						boMember.getRealType(), boMember.getElementType());
 				boMember.setValue(businessObject, relationValue);
 			}
-			else if (pendingRelations.size() == 0) {
+			else if (pendingRelations.isEmpty()) {
 				Object relationValue = cacheHelper
 						.createInstanceOfTargetExpectedType(boMember.getRealType(), boMember.getElementType());
 				boMember.setValue(businessObject, relationValue);
 			}
 			else {
-				IObjRef[] objRefs = pendingRelations.size() > 0 ? pendingRelations.toArray(IObjRef.class)
+				IObjRef[] objRefs = !pendingRelations.isEmpty() ? pendingRelations.toArray(IObjRef.class)
 						: ObjRef.EMPTY_ARRAY;
 				businessObject.set__Uninitialized(relationIndex, objRefs);
 				cache.assignEntityToCache(businessObject);
@@ -1358,7 +1358,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
 			}
 			return list;
 		}
-		else if (coll.size() == 0) {
+		else if (coll.isEmpty()) {
 			return null;
 		}
 		else if (coll.size() == 1) {

@@ -124,7 +124,7 @@ public class LinkChangeCommand extends AbstractChangeCommand implements ILinkCha
 			return;
 		}
 		IList<IObjRef> refsToLink = this.refsToLink;
-		if (refsToLink.size() == 0) {
+		if (refsToLink.isEmpty()) {
 			refsToLink = new ArrayList<>();
 			this.refsToLink = refsToLink;
 		}
@@ -136,11 +136,11 @@ public class LinkChangeCommand extends AbstractChangeCommand implements ILinkCha
 	}
 
 	public void addRefsToLink(List<IObjRef> addedORIs) {
-		if (addedORIs.size() == 0) {
+		if (addedORIs.isEmpty()) {
 			return;
 		}
 		IList<IObjRef> refsToLink = this.refsToLink;
-		if (refsToLink.size() == 0) {
+		if (refsToLink.isEmpty()) {
 			refsToLink = new ArrayList<>();
 			this.refsToLink = refsToLink;
 		}
@@ -154,7 +154,7 @@ public class LinkChangeCommand extends AbstractChangeCommand implements ILinkCha
 
 	public void addRefToLink(IObjRef addedObjRef) {
 		IList<IObjRef> refsToLink = this.refsToLink;
-		if (refsToLink.size() == 0) {
+		if (refsToLink.isEmpty()) {
 			refsToLink = new ArrayList<>();
 			this.refsToLink = refsToLink;
 		}
@@ -167,7 +167,7 @@ public class LinkChangeCommand extends AbstractChangeCommand implements ILinkCha
 			return;
 		}
 		IList<IObjRef> refsToUnlink = this.refsToUnlink;
-		if (refsToUnlink.size() == 0) {
+		if (refsToUnlink.isEmpty()) {
 			refsToUnlink = new ArrayList<>();
 			this.refsToUnlink = refsToUnlink;
 		}
@@ -179,11 +179,11 @@ public class LinkChangeCommand extends AbstractChangeCommand implements ILinkCha
 	}
 
 	public void addRefsToUnlink(List<IObjRef> removedORIs) {
-		if (removedORIs.size() == 0) {
+		if (removedORIs.isEmpty()) {
 			return;
 		}
 		IList<IObjRef> refsToUnlink = this.refsToUnlink;
-		if (refsToUnlink.size() == 0) {
+		if (refsToUnlink.isEmpty()) {
 			refsToUnlink = new ArrayList<>();
 			this.refsToUnlink = refsToUnlink;
 		}
@@ -197,7 +197,7 @@ public class LinkChangeCommand extends AbstractChangeCommand implements ILinkCha
 
 	public void addRefToUnlink(IObjRef removedObjRef) {
 		IList<IObjRef> refsToUnlink = this.refsToUnlink;
-		if (refsToUnlink.size() == 0) {
+		if (refsToUnlink.isEmpty()) {
 			refsToUnlink = new ArrayList<>();
 			this.refsToUnlink = refsToUnlink;
 		}

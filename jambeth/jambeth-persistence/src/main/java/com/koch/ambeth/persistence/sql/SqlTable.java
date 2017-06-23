@@ -378,7 +378,7 @@ public class SqlTable extends Table {
 					}
 				}
 			}
-			if (additionalSelectColumnSet != null && additionalSelectColumnSet.size() > 0) {
+			if (additionalSelectColumnSet != null && !additionalSelectColumnSet.isEmpty()) {
 				for (String additionalFieldName : additionalSelectColumnSet) {
 					selectSB.append(',');
 					String[] schemaAndTableName = sqlBuilder.getSchemaAndTableName(additionalFieldName);

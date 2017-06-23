@@ -184,7 +184,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 	public IPrefetchState ensureInitializedRelations(Object objects,
 			ILinkedMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchSteps) {
 		if (objects == null || entityTypeToPrefetchSteps == null
-				|| entityTypeToPrefetchSteps.size() == 0) {
+				|| entityTypeToPrefetchSteps.isEmpty()) {
 			return null;
 		}
 		return ensureInitializedRelationsIntern(objects, entityTypeToPrefetchSteps);
@@ -344,7 +344,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 					pendingPrefetchCommands.toArray(PrefetchCommand.class);
 			// Clear the items to be ready for cascaded items in new batch recursion step
 			pendingPrefetchCommands.clear();
-			if (prioMembers.size() > 0) {
+			if (!prioMembers.isEmpty()) {
 				for (int a = 0, size = currentPrefetchCommands.length; a < size; a++) {
 					PrefetchCommand prefetchCommand = currentPrefetchCommands[a];
 					DirectValueHolderRef valueHolder = prefetchCommand.valueHolder;
@@ -408,8 +408,8 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				}
 			});
 			// Remove all oris which have already been tried to load before
-			if (cacheToOrisToLoad.size() == 0 && cacheToOrelsToLoad.size() == 0
-					&& pendingPrefetchCommands.size() == 0) {
+			if (cacheToOrisToLoad.isEmpty() && cacheToOrelsToLoad.isEmpty()
+					&& pendingPrefetchCommands.isEmpty()) {
 				return;
 			}
 			prioMembers = prioMembersProvider.getPrioMembers(entityTypeToPrefetchPath,
@@ -458,7 +458,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 
 			loadAndAddOrels(cache, orelsToLoad, hardRefList, cacheToOrelsLoadedHistory, cacheToOrisToLoad,
 					prioMembers);
-			if (orelsToLoad.size() == 0) {
+			if (orelsToLoad.isEmpty()) {
 				iter.remove();
 			}
 		}
@@ -469,7 +469,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			ILinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad,
 			IdentityLinkedSet<Member> prioMembers) {
 		IList<IObjRelation> objRelList;
-		if (prioMembers.size() > 0) {
+		if (!prioMembers.isEmpty()) {
 			objRelList = new ArrayList<>(orelsToLoad.size());
 			IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 			for (Entry<IObjRelation, Boolean> entry : orelsToLoad) {

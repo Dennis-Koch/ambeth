@@ -330,7 +330,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 	public IResultSet createResultSet(final String tableName, final String idFieldName,
 			final Class<?> idFieldType, final String fieldsSQL, final String additionalWhereSQL,
 			List<?> ids) {
-		if (ids == null || ids.size() == 0) {
+		if (ids == null || ids.isEmpty()) {
 			return EmptyResultSet.instance;
 		}
 		if (ids.size() <= maxInClauseBatchThreshold) {

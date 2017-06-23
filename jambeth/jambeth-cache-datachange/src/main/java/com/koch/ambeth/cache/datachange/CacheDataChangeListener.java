@@ -133,7 +133,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			final List<Object> pausedEventTargets, long dispatchTime, long sequenceId) {
 		final CacheDependencyNode rootNode = buildCacheDependency();
 
-		if (pausedEventTargets != null && pausedEventTargets.size() > 0) {
+		if (pausedEventTargets != null && !pausedEventTargets.isEmpty()) {
 			IdentityHashSet<Object> collisionSet = buildCollisionSet(rootNode);
 			if (collisionSet.containsAny(pausedEventTargets)) {
 				// Without the current rootcache we can not handle the event now. We have to block till the
@@ -226,11 +226,11 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 				// Remove items from the cache only if they are really deleted/updates by a remote event
 				// And not 'simulated' by a local source
 				boolean cleanupSecondLevelCaches = false;
-				if (pausedEventTargets != null && (deletes.size() > 0 || updates.size() > 0)
+				if (pausedEventTargets != null && (!deletes.isEmpty() || !updates.isEmpty())
 						&& !isLocalSource) {
 					cleanupSecondLevelCaches = true;
 				}
-				else if (updates.size() > 0) {
+				else if (!updates.isEmpty()) {
 					for (int a = updates.size(); a-- > 0;) {
 						IDataChangeEntry updateEntry = updates.get(a);
 						Class<?> entityType = updateEntry.getEntityType();
@@ -321,7 +321,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 
 		HashSet<IObjRef> cascadeRefreshObjRefsSet = node.cascadeRefreshObjRefsSet;
 		HashSet<IObjRelation> cascadeRefreshObjRelationsSet = node.cascadeRefreshObjRelationsSet;
-		if (cascadeRefreshObjRelationsSet.size() > 0) {
+		if (!cascadeRefreshObjRelationsSet.isEmpty()) {
 			IList<IObjRelationResult> relationsResult =
 					rootCache.getObjRelations(cascadeRefreshObjRelationsSet.toList(), cacheDirective);
 			for (int a = relationsResult.size(); a-- > 0;) {
@@ -331,7 +331,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			// apply gathered information of unknown relations to the rootCache
 			rootCache.put(relationsResult);
 		}
-		if (cascadeRefreshObjRefsSet.size() > 0) {
+		if (!cascadeRefreshObjRefsSet.isEmpty()) {
 			IList<IObjRef> cascadeRefreshObjRefsSetList = cascadeRefreshObjRefsSet.toList();
 			refreshResult = rootCache.getObjects(cascadeRefreshObjRefsSetList, cacheDirective);
 		}
@@ -472,7 +472,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			finally {
 				readLock.unlock();
 			}
-			if (objectRefsToDelete.size() == 0 && objectsToUpdate.size() == 0) {
+			if (objectRefsToDelete.isEmpty() && objectsToUpdate.isEmpty()) {
 				continue;
 			}
 			CacheChangeItem cci = new CacheChangeItem();
@@ -553,7 +553,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 				}
 			}
 		}
-		while (additionalTypes.size() > 0) {
+		while (!additionalTypes.isEmpty()) {
 			IList<IEntityMetaData> additionalMetaData =
 					entityMetaDataProvider.getMetaData(additionalTypes);
 			additionalTypes.clear();
@@ -647,7 +647,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 				cacheModification.setActive(oldCacheModificationValue);
 			}
 		}
-		if (deletes.size() > 0) {
+		if (!deletes.isEmpty()) {
 			final IDataChange dce = DataChangeEvent.create(0, 0, deletes.size());
 			dce.getDeletes().addAll(deletes);
 			guiThreadHelper.invokeOutOfGui(new IBackgroundWorkerDelegate() {
@@ -693,7 +693,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 
 				writeLock.lock();
 				try {
-					if (deletedObjRefs != null && deletedObjRefs.size() > 0) {
+					if (deletedObjRefs != null && !deletedObjRefs.isEmpty()) {
 						IList<Object> deletedObjects =
 								childCache.getObjects(cci.deletedObjRefs, CacheDirective.failEarly());
 						childCache.remove(cci.deletedObjRefs);
@@ -710,7 +710,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 					for (IObjRef intermediateDeleteObjRef : intermediateDeletes) {
 						childCache.remove(intermediateDeleteObjRef);
 					}
-					if (objectsToUpdate != null && objectsToUpdate.size() > 0) {
+					if (objectsToUpdate != null && !objectsToUpdate.isEmpty()) {
 						ArrayList<IObjRef> objRefsToForget = null;
 						for (int b = objectsToUpdate.size(); b-- > 0;) {
 							Object objectInCache = objectsToUpdate.get(b);

@@ -188,7 +188,7 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 				.buildOptimisticLockTriggerFromTableName(fullyQualifiedTableName, maxProcedureNameLength);
 		sb.append("create or replace TRIGGER \"").append(triggerName);
 		sb.append("\" BEFORE UPDATE");
-		if (tableColumns.size() > 0) {
+		if (!tableColumns.isEmpty()) {
 			sb.append(" OF ");
 			for (int a = 0, size = tableColumns.size(); a < size; a++) {
 				if (a > 0) {

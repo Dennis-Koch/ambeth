@@ -103,10 +103,10 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor
 
 	public ICacheProvider getCurrentCacheProvider() {
 		ArrayList<ICacheProvider> stack = cacheProviderStackTL.get();
-		if (stack != null && stack.size() > 0) {
+		if (stack != null && !stack.isEmpty()) {
 			return stack.peek();
 		}
-		if (cacheProviderStack.size() > 0) {
+		if (!cacheProviderStack.isEmpty()) {
 			return cacheProviderStack.peek();
 		}
 		return null;

@@ -281,7 +281,7 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 				Object value = typeToDefEntryMap.get(registeredType);
 				InterfaceFastList<DefEntry<V>> list = (InterfaceFastList<DefEntry<V>>) value;
 				list.remove(defEntry);
-				if (list.size() == 0) {
+				if (list.isEmpty()) {
 					typeToDefEntryMap.remove(registeredType);
 				}
 				typeToDefEntryMapChanged(classEntry, registeredType);

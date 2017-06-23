@@ -423,7 +423,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap =
 				beanContextInit.objectToBeanConfigurationMap;
 
-		while (objectToBeanConfigurationMap.size() > 0) {
+		while (!objectToBeanConfigurationMap.isEmpty()) {
 			for (Entry<Object, IBeanConfiguration> entry : objectToBeanConfigurationMap) {
 				Object bean = entry.getKey();
 
@@ -1062,7 +1062,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			Set<IBeanConfiguration> alreadyHandledConfigsSet, boolean highPriorityOnly) {
 		BeanContextFactory beanContextFactory = beanContextInit.beanContextFactory;
 		List<IBeanConfiguration> beanConfigurations = beanContextFactory.getBeanConfigurations();
-		if (beanConfigurations == null || beanConfigurations.size() == 0) {
+		if (beanConfigurations == null || beanConfigurations.isEmpty()) {
 			return;
 		}
 		ServiceContext beanContext = beanContextInit.beanContext;

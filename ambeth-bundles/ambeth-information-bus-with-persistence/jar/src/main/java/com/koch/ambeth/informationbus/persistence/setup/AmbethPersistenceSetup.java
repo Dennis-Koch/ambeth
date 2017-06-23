@@ -261,7 +261,7 @@ public class AmbethPersistenceSetup implements Closeable {
 			final boolean doCommitBehavior, Map<String, String> sqlToSourceMap,
 			List<String> sqlExecutionOrder, IConnectionDialect connectionDialect, ILogger log,
 			boolean doExecuteStrict) throws SQLException {
-		if (sql.size() == 0) {
+		if (sql.isEmpty()) {
 			return;
 		}
 		Statement stmt = null;
@@ -312,7 +312,7 @@ public class AmbethPersistenceSetup implements Closeable {
 				}
 				sql.removeAll(done);
 			}
-			while (sql.size() > 0 && done.size() > 0);
+			while (!sql.isEmpty() && !done.isEmpty());
 
 			if (doCommitBehavior) {
 				if (sql.isEmpty()) {
@@ -339,7 +339,7 @@ public class AmbethPersistenceSetup implements Closeable {
 				}
 			}
 			else if (!sql.isEmpty()) {
-				if (commandToExceptionMap.size() > 0) {
+				if (!commandToExceptionMap.isEmpty()) {
 					String errorMessage = "Uncorrectable SQL exception(s)";
 					Entry<String, List<Throwable>> firstEntry = commandToExceptionMap.iterator().next();
 					if (sqlToSourceMap != null) {

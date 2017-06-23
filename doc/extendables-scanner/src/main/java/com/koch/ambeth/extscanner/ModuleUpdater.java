@@ -130,7 +130,7 @@ public class ModuleUpdater extends AbstractLatexScanner implements IStartingBean
 		Collections.sort(mavenModules);
 
 		StringBuilder sb = new StringBuilder();
-		if (mavenModules.size() == 0) {
+		if (mavenModules.isEmpty()) {
 			return sb;
 		}
 		sb.append("\\begin{lstlisting}[style=POM,caption={Maven modules to use \\emph{Ambeth ")
@@ -160,7 +160,7 @@ public class ModuleUpdater extends AbstractLatexScanner implements IStartingBean
 		});
 		StringBuilder sb = new StringBuilder();
 
-		if (configurations.size() == 0) {
+		if (configurations.isEmpty()) {
 			return sb;
 		}
 		sb.append("\\subsection{Configuration}\n");

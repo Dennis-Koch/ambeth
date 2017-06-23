@@ -57,7 +57,7 @@ public class RelationUpdateItemBuild implements IRelationUpdateItem, IPrintable 
 
 	@Override
 	public IObjRef[] getAddedORIs() {
-		if (addedORIs.size() == 0) {
+		if (addedORIs.isEmpty()) {
 			return null;
 		}
 		return addedORIs.toArray(IObjRef.class);
@@ -65,14 +65,14 @@ public class RelationUpdateItemBuild implements IRelationUpdateItem, IPrintable 
 
 	@Override
 	public IObjRef[] getRemovedORIs() {
-		if (removedORIs.size() == 0) {
+		if (removedORIs.isEmpty()) {
 			return null;
 		}
 		return removedORIs.toArray(IObjRef.class);
 	}
 
 	public void addObjRef(IObjRef objRef) {
-		if (addedORIs.size() == 0) {
+		if (addedORIs.isEmpty()) {
 			addedORIs = new HashSet<>();
 		}
 		addedORIs.add(objRef);
@@ -97,7 +97,7 @@ public class RelationUpdateItemBuild implements IRelationUpdateItem, IPrintable 
 	}
 
 	public void removeObjRef(IObjRef objRef) {
-		if (removedORIs.size() == 0) {
+		if (removedORIs.isEmpty()) {
 			removedORIs = new HashSet<>();
 		}
 		removedORIs.add(objRef);

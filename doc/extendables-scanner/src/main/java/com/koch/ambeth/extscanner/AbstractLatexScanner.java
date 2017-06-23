@@ -152,7 +152,7 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 			File[] listFiles = currFile.listFiles();
 			for (File child : listFiles) {
 				searchForFiles(baseDir, child, nameToFileFoundDelegates, allMatchDelegates);
-				if (nameToFileFoundDelegates.size() == 0 && allMatchDelegates.length == 0) {
+				if (nameToFileFoundDelegates.isEmpty() && allMatchDelegates.length == 0) {
 					return;
 				}
 			}

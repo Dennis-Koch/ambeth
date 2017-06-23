@@ -309,7 +309,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 
 	protected void evaluateEntityPermissionRules(IDataChange dataChange,
 			IMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap) {
-		if (entityToPgUpdateMap.size() == 0) {
+		if (entityToPgUpdateMap.isEmpty()) {
 			return;
 		}
 		HashMap<Class<?>, IDataChange> entityTypeToDataChangeMap = HashMap
@@ -426,7 +426,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		if (Boolean.FALSE.equals(dataChangeHandlingActiveTL.get())) {
 			return;
 		}
-		if (metaDataAvailableSet.size() == 0) {
+		if (metaDataAvailableSet.isEmpty()) {
 			return;
 		}
 		long start = System.currentTimeMillis();
@@ -448,11 +448,11 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 										public Boolean invoke() throws Throwable {
 											IMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap = createPgUpdateMap(
 													dataChange);
-											if (entityToPgUpdateMap.size() == 0) {
+											if (entityToPgUpdateMap.isEmpty()) {
 												return Boolean.FALSE;
 											}
 											buildPermissionGroupMap(entityToPgUpdateMap, dataChange != null);
-											if (entityToPgUpdateMap.size() == 0) {
+											if (entityToPgUpdateMap.isEmpty()) {
 												return Boolean.FALSE;
 											}
 											multithreadingHelper.invokeAndWait(entityToPgUpdateMap,
@@ -694,7 +694,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 					sb.append(pgUpdateEntry.getUpdateType().name());
 				}
 			}
-			if (entityToPgUpdateMap.size() > 0 && debugEnabled) {
+			if (!entityToPgUpdateMap.isEmpty() && debugEnabled) {
 				log.debug(sb);
 			}
 		}

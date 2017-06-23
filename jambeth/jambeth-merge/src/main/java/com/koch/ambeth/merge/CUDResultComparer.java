@@ -99,7 +99,7 @@ public class CUDResultComparer implements ICUDResultComparer {
 		}
 
 		public boolean hasChanges() {
-			return hasChanges || diffChanges.size() > 0;
+			return hasChanges || !diffChanges.isEmpty();
 		}
 
 		public CreateOrUpdateContainerBuild updateContainerBuild() {
@@ -308,7 +308,7 @@ public class CUDResultComparer implements ICUDResultComparer {
 				throw new IllegalStateException();
 			}
 		}
-		if (rightMap.size() == 0) {
+		if (rightMap.isEmpty()) {
 			return true;
 		}
 		for (Entry<Object, Integer> entry : rightMap) {

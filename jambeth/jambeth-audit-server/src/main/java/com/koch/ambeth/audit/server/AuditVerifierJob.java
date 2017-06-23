@@ -195,9 +195,9 @@ public class AuditVerifierJob implements IJob, IStartingBean {
 		}
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected boolean verify(IList<IObjRef> objRefs) {
-		if (objRefs.size() == 0) {
+		if (objRefs.isEmpty()) {
 			return true;
 		}
 		beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
@@ -209,7 +209,7 @@ public class AuditVerifierJob implements IJob, IStartingBean {
 				invalidAuditEntries.add(auditEntries.get(a));
 			}
 		}
-		if (invalidAuditEntries.size() > 0) {
+		if (!invalidAuditEntries.isEmpty()) {
 			Collections.sort(auditEntries, new Comparator<IAuditEntry>() {
 				@Override
 				public int compare(IAuditEntry o1, IAuditEntry o2) {
@@ -231,6 +231,6 @@ public class AuditVerifierJob implements IJob, IStartingBean {
 			}
 			log.error(sb);
 		}
-		return invalidAuditEntries.size() == 0;
+		return invalidAuditEntries.isEmpty();
 	}
 }

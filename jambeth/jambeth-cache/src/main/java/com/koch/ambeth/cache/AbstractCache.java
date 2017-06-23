@@ -329,7 +329,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 
 	public void remove(List<IObjRef> oris) {
 		checkNotDisposed();
-		if (oris.size() == 0) {
+		if (oris.isEmpty()) {
 			return;
 		}
 		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
@@ -367,7 +367,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 
 	public void removePriorVersions(List<IObjRef> oris) {
 		checkNotDisposed();
-		if (oris.size() == 0) {
+		if (oris.isEmpty()) {
 			return;
 		}
 		Lock writeLock = getWriteLock();

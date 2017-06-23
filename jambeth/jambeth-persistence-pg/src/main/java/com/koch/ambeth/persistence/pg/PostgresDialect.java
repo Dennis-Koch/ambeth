@@ -211,7 +211,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
 	public void handleWithMultiValueLeftField(IAppendable querySB,
 			IMap<Object, Object> nameToValueMap, IList<Object> parameters,
 			IList<IList<Object>> splitValues, boolean caseSensitive, Class<?> leftOperandFieldType) {
-		if (splitValues.size() == 0) {
+		if (splitValues.isEmpty()) {
 			// Special scenario with EMPTY argument
 			ArrayQueryItem aqi = new ArrayQueryItem(new Object[0], leftOperandFieldType);
 			ParamsUtil.addParam(parameters, aqi);

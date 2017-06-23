@@ -217,7 +217,7 @@ public class FileContentCache
 				ChunkKey request = null;
 				writeLock.lock();
 				try {
-					if (requestedQueue.size() == 0) {
+					if (requestedQueue.isEmpty()) {
 						newRequestedCondition.awaitUninterruptibly();
 						continue;
 					}
