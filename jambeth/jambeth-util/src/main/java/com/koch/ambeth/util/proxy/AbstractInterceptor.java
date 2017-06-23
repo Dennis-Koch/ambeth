@@ -73,7 +73,7 @@ public abstract class AbstractInterceptor extends CascadedInterceptor {
 				|| methodName.startsWith("get")) {
 			return interceptLoad(obj, method, args, proxy, annotation, isAsyncBegin);
 		}
-		if (methodName.equals("close") || methodName.equals("abort")) {
+		if ("close".equals(methodName) || "abort".equals(methodName)) {
 			// Intended blank
 		}
 		return interceptApplication(obj, method, args, proxy, annotation, isAsyncBegin);

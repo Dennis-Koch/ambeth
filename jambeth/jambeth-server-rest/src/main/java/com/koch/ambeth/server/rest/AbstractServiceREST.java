@@ -93,8 +93,8 @@ public abstract class AbstractServiceREST {
 
 	protected static final Charset utfCharset = Charset.forName("UTF-8");
 
-	protected static final Pattern basicPattern =
-			Pattern.compile("Basic *(.+) *", Pattern.CASE_INSENSITIVE);
+	protected static final Pattern basicPattern = Pattern.compile("Basic *(.+) *",
+			Pattern.CASE_INSENSITIVE);
 
 	protected static final Pattern pattern = Pattern.compile("(.+) *\\: *(.+)");
 
@@ -157,14 +157,14 @@ public abstract class AbstractServiceREST {
 
 	@GET
 	@Path("ping")
-	@Produces({MediaType.TEXT_PLAIN})
+	@Produces({ MediaType.TEXT_PLAIN })
 	public String ping() {
 		return "Ping";
 	}
 
 	@GET
 	@Path("ping2")
-	@Produces({MediaType.TEXT_XML})
+	@Produces({ MediaType.TEXT_XML })
 	public ObjRef ping2() {
 		ObjRef objRef = new ObjRef();
 		objRef.setId(5);
@@ -254,8 +254,8 @@ public abstract class AbstractServiceREST {
 	protected void setAuthentication(IAuthentication authentication) {
 		IServiceContext beanContext = getServiceContext();
 
-		ISecurityContextHolder securityContextHolder =
-				beanContext.getService(ISecurityContextHolder.class, false);
+		ISecurityContextHolder securityContextHolder = beanContext
+				.getService(ISecurityContextHolder.class, false);
 		if (securityContextHolder != null) {
 			ISecurityContext securityContext = securityContextHolder.getCreateContext();
 			securityContext.setAuthentication(authentication);
@@ -277,8 +277,8 @@ public abstract class AbstractServiceREST {
 	protected void postServiceCall(ServletContext servletContext) {
 		IServiceContext beanContext = getServiceContext();
 
-		ISecurityContextHolder securityContextHolder =
-				beanContext.getService(ISecurityContextHolder.class, false);
+		ISecurityContextHolder securityContextHolder = beanContext
+				.getService(ISecurityContextHolder.class, false);
 		if (securityContextHolder != null) {
 			securityContextHolder.clearContext();
 		}
@@ -312,13 +312,13 @@ public abstract class AbstractServiceREST {
 		String contentType = request.getContentType();
 
 		Object args = null;
-		if (contentType == null || contentType.equals("application/xml")
-				|| contentType.equals("application/xml+ambeth")) {
-			ICyclicXMLHandler cyclicXmlHandler =
-					getService(XmlModule.CYCLIC_XML_HANDLER, ICyclicXMLHandler.class);
+		if (contentType == null || "application/xml".equals(contentType)
+				|| "application/xml+ambeth".equals(contentType)) {
+			ICyclicXMLHandler cyclicXmlHandler = getService(XmlModule.CYCLIC_XML_HANDLER,
+					ICyclicXMLHandler.class);
 			args = cyclicXmlHandler.readFromStream(is);
 		}
-		else if (contentType.equals("application/json")) {
+		else if ("application/json".equals(contentType)) {
 			throw new NotSupportedException("'" + contentType + "' not yet supported");
 
 			// ObjectMapper mapper = new ObjectMapper();
@@ -343,7 +343,7 @@ public abstract class AbstractServiceREST {
 		if (args instanceof Object[]) {
 			return (Object[]) args;
 		}
-		return new Object[] {args};
+		return new Object[] { args };
 	}
 
 	protected StreamingOutput createExceptionResult(Throwable e, final HttpServletResponse response) {
@@ -361,8 +361,8 @@ public abstract class AbstractServiceREST {
 	}
 
 	protected void writeContent(OutputStream os, Object result) {
-		ICyclicXMLHandler cyclicXmlHandler =
-				getService(XmlModule.CYCLIC_XML_HANDLER, ICyclicXMLHandler.class);
+		ICyclicXMLHandler cyclicXmlHandler = getService(XmlModule.CYCLIC_XML_HANDLER,
+				ICyclicXMLHandler.class);
 		cyclicXmlHandler.writeToStream(os, result);
 	}
 

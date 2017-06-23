@@ -40,7 +40,7 @@ public class SilverlightWorkaroundGZipEncodingFilter
 	@Override
 	public void filter(ContainerRequestContext request) {
 		if (request.getHeaders().containsKey(HttpHeaders.CONTENT_ENCODING)) {
-			if (request.getHeaders().getFirst(HttpHeaders.CONTENT_ENCODING).trim().equals("gzip")) {
+			if ("gzip".equals(request.getHeaders().getFirst(HttpHeaders.CONTENT_ENCODING).trim())) {
 				request.getHeaders().remove(HttpHeaders.CONTENT_ENCODING);
 				try {
 					request.setEntityStream(new GZIPInputStream(request.getEntityStream()));

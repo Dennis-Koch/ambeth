@@ -85,46 +85,46 @@ import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class PostgresDialect extends AbstractConnectionDialect {
-	public static final Pattern BIN_TABLE_NAME =
-			Pattern.compile("BIN\\$.{22}==\\$0", Pattern.CASE_INSENSITIVE);
+	public static final Pattern BIN_TABLE_NAME = Pattern.compile("BIN\\$.{22}==\\$0",
+			Pattern.CASE_INSENSITIVE);
 
-	public static final Pattern IDX_TABLE_NAME =
-			Pattern.compile("DR\\$.*?\\$.", Pattern.CASE_INSENSITIVE);
+	public static final Pattern IDX_TABLE_NAME = Pattern.compile("DR\\$.*?\\$.",
+			Pattern.CASE_INSENSITIVE);
 
 	private static final Pattern pattern = Pattern.compile(
 			" *create or replace TYPE ([^ ]+) AS VARRAY\\(\\d+\\) OF +(.+)", Pattern.CASE_INSENSITIVE);
 
-	protected static final LinkedHashMap<Class<?>, String[]> typeToArrayTypeNameMap =
-			new LinkedHashMap<>(128, 0.5f);
+	protected static final LinkedHashMap<Class<?>, String[]> typeToArrayTypeNameMap = new LinkedHashMap<>(
+			128, 0.5f);
 
-	protected static final LinkedHashMap<String, Class<?>> arrayTypeNameToTypeMap =
-			new LinkedHashMap<>(128, 0.5f);
+	protected static final LinkedHashMap<String, Class<?>> arrayTypeNameToTypeMap = new LinkedHashMap<>(
+			128, 0.5f);
 
 	static {
-		typeToArrayTypeNameMap.put(Long.TYPE, new String[] {"bigint[]", "bigint"});
-		typeToArrayTypeNameMap.put(Long.class, new String[] {"bigint[]", "bigint"});
-		typeToArrayTypeNameMap.put(Integer.TYPE, new String[] {"integer[]", "integer"});
-		typeToArrayTypeNameMap.put(Integer.class, new String[] {"integer[]", "integer"});
-		typeToArrayTypeNameMap.put(Short.TYPE, new String[] {"smallint[]", "smallint"});
-		typeToArrayTypeNameMap.put(Short.class, new String[] {"smallint[]", "smallint"});
-		typeToArrayTypeNameMap.put(Byte.TYPE, new String[] {"smallint[]", "smallint"});
-		typeToArrayTypeNameMap.put(Byte.class, new String[] {"smallint[]", "smallint"});
-		typeToArrayTypeNameMap.put(Character.TYPE, new String[] {"char", "char"});
-		typeToArrayTypeNameMap.put(Character.class, new String[] {"char", "char"});
-		typeToArrayTypeNameMap.put(Boolean.TYPE, new String[] {"boolean[]", "boolean"});
-		typeToArrayTypeNameMap.put(Boolean.class, new String[] {"boolean[]", "boolean"});
+		typeToArrayTypeNameMap.put(Long.TYPE, new String[] { "bigint[]", "bigint" });
+		typeToArrayTypeNameMap.put(Long.class, new String[] { "bigint[]", "bigint" });
+		typeToArrayTypeNameMap.put(Integer.TYPE, new String[] { "integer[]", "integer" });
+		typeToArrayTypeNameMap.put(Integer.class, new String[] { "integer[]", "integer" });
+		typeToArrayTypeNameMap.put(Short.TYPE, new String[] { "smallint[]", "smallint" });
+		typeToArrayTypeNameMap.put(Short.class, new String[] { "smallint[]", "smallint" });
+		typeToArrayTypeNameMap.put(Byte.TYPE, new String[] { "smallint[]", "smallint" });
+		typeToArrayTypeNameMap.put(Byte.class, new String[] { "smallint[]", "smallint" });
+		typeToArrayTypeNameMap.put(Character.TYPE, new String[] { "char", "char" });
+		typeToArrayTypeNameMap.put(Character.class, new String[] { "char", "char" });
+		typeToArrayTypeNameMap.put(Boolean.TYPE, new String[] { "boolean[]", "boolean" });
+		typeToArrayTypeNameMap.put(Boolean.class, new String[] { "boolean[]", "boolean" });
 		typeToArrayTypeNameMap.put(Double.TYPE,
-				new String[] {"double precision[]", "double precision"});
+				new String[] { "double precision[]", "double precision" });
 		typeToArrayTypeNameMap.put(Double.class,
-				new String[] {"double precision[]", "double precision"});
-		typeToArrayTypeNameMap.put(Float.TYPE, new String[] {"real[]", "real"});
-		typeToArrayTypeNameMap.put(Float.class, new String[] {"real[]", "real"});
-		typeToArrayTypeNameMap.put(String.class, new String[] {"text[]", "text"});
-		typeToArrayTypeNameMap.put(BigDecimal.class, new String[] {"numeric[]", "numeric"});
-		typeToArrayTypeNameMap.put(BigInteger.class, new String[] {"numeric[]", "numeric"});
+				new String[] { "double precision[]", "double precision" });
+		typeToArrayTypeNameMap.put(Float.TYPE, new String[] { "real[]", "real" });
+		typeToArrayTypeNameMap.put(Float.class, new String[] { "real[]", "real" });
+		typeToArrayTypeNameMap.put(String.class, new String[] { "text[]", "text" });
+		typeToArrayTypeNameMap.put(BigDecimal.class, new String[] { "numeric[]", "numeric" });
+		typeToArrayTypeNameMap.put(BigInteger.class, new String[] { "numeric[]", "numeric" });
 
 		// Default behavior. This is an intended "hack" for backwards compatibility.
-		typeToArrayTypeNameMap.put(Object.class, new String[] {"numeric[]", "numeric"});
+		typeToArrayTypeNameMap.put(Object.class, new String[] { "numeric[]", "numeric" });
 
 		for (Entry<Class<?>, String[]> entry : typeToArrayTypeNameMap) {
 			arrayTypeNameToTypeMap.putIfNotExists(entry.getValue()[0], entry.getKey());
@@ -153,8 +153,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
 
 	protected final DateFormat defaultDateFormat = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
 
-	protected final WeakHashMap<IConnectionKeyHandle, ConnectionKeyValue> connectionToConstraintSqlMap =
-			new WeakHashMap<>();
+	protected final WeakHashMap<IConnectionKeyHandle, ConnectionKeyValue> connectionToConstraintSqlMap = new WeakHashMap<>();
 
 	@Autowired
 	protected IServiceContext serviceContext;
@@ -297,8 +296,8 @@ public class PostgresDialect extends AbstractConnectionDialect {
 		if (isBLobColumnName(field.getOriginalTypeName())) {
 			long oid = conversionHelper.convertValueToType(Number.class, value).longValue();
 			try {
-				PGConnection connection =
-						database.getAutowiredBeanInContext(Connection.class).unwrap(PGConnection.class);
+				PGConnection connection = database.getAutowiredBeanInContext(Connection.class)
+						.unwrap(PGConnection.class);
 				PostgresBlob blob = new PostgresBlob(connection, oid);
 				Object targetValue = null;
 				try {
@@ -318,8 +317,8 @@ public class PostgresDialect extends AbstractConnectionDialect {
 		else if (isCLobColumnName(field.getOriginalTypeName())) {
 			long oid = conversionHelper.convertValueToType(Number.class, value).longValue();
 			try {
-				PGConnection connection =
-						database.getAutowiredBeanInContext(Connection.class).unwrap(PGConnection.class);
+				PGConnection connection = database.getAutowiredBeanInContext(Connection.class)
+						.unwrap(PGConnection.class);
 				PostgresClob clob = new PostgresClob(connection, oid);
 
 				Object targetValue = null;
@@ -366,8 +365,8 @@ public class PostgresDialect extends AbstractConnectionDialect {
 	public void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType,
 			IList<Object> splittedIds) {
 		sb.append(" = ANY (?)");
-		IConnectionExtension connectionExtension =
-				serviceContext.getService(IConnectionExtension.class);
+		IConnectionExtension connectionExtension = serviceContext
+				.getService(IConnectionExtension.class);
 
 		Object javaArray = java.lang.reflect.Array.newInstance(fieldType, splittedIds.size());
 		int index = 0;
@@ -401,20 +400,18 @@ public class PostgresDialect extends AbstractConnectionDialect {
 			for (int a = newSchemaNames.length; a-- > 0;) {
 				newSchemaNames[a] = newSchemaNames[a].toLowerCase();
 			}
-			String subselect =
-					"SELECT ns.nspname AS \"owner\", con1.conname AS \"constraint_name\", unnest(con1.conkey) AS \"parent\", unnest(con1.confkey) AS \"child\", con1.confrelid, con1.conrelid"//
-							+ " FROM pg_class cl"//
-							+ " JOIN pg_namespace ns ON cl.relnamespace=ns.oid"//
-							+ " JOIN pg_constraint con1 ON con1.conrelid=cl.oid"//
-							+ " WHERE con1.contype='f' AND ns.nspname" + buildSchemaInClause(newSchemaNames);
+			String subselect = "SELECT ns.nspname AS \"owner\", con1.conname AS \"constraint_name\", unnest(con1.conkey) AS \"parent\", unnest(con1.confkey) AS \"child\", con1.confrelid, con1.conrelid"//
+					+ " FROM pg_class cl"//
+					+ " JOIN pg_namespace ns ON cl.relnamespace=ns.oid"//
+					+ " JOIN pg_constraint con1 ON con1.conrelid=cl.oid"//
+					+ " WHERE con1.contype='f' AND ns.nspname" + buildSchemaInClause(newSchemaNames);
 
-			String sql =
-					"select owner, constraint_name, cl2.relname as \"fk_table\", att2.attname as \"fk_column\", cl.relname as \"pk_table\", att.attname as \"pk_column\""//
-							+ " from (" + subselect + ") con"//
-							+ " JOIN pg_attribute att ON att.attrelid=con.confrelid AND att.attnum=con.child"//
-							+ " JOIN pg_class cl ON cl.oid=con.confrelid"//
-							+ " JOIN pg_class cl2 ON cl2.oid=con.conrelid"//
-							+ " JOIN pg_attribute att2 ON att2.attrelid = con.conrelid AND att2.attnum=con.parent";
+			String sql = "select owner, constraint_name, cl2.relname as \"fk_table\", att2.attname as \"fk_column\", cl.relname as \"pk_table\", att.attname as \"pk_column\""//
+					+ " from (" + subselect + ") con"//
+					+ " JOIN pg_attribute att ON att.attrelid=con.confrelid AND att.attnum=con.child"//
+					+ " JOIN pg_class cl ON cl.oid=con.confrelid"//
+					+ " JOIN pg_class cl2 ON cl2.oid=con.conrelid"//
+					+ " JOIN pg_attribute att2 ON att2.attrelid = con.conrelid AND att2.attnum=con.parent";
 			pstm = connection.prepareStatement(sql);
 			allForeignKeysRS = pstm.executeQuery();
 			while (allForeignKeysRS.next()) {
@@ -451,7 +448,8 @@ public class PostgresDialect extends AbstractConnectionDialect {
 	}
 
 	@Override
-	public void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException {}
+	public void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException {
+	}
 
 	@Override
 	public int getResourceBusyErrorCode() {
@@ -471,14 +469,14 @@ public class PostgresDialect extends AbstractConnectionDialect {
 			sqlRootCause = cause;
 		}
 		if (SQLState.NULL_CONSTRAINT.getXopen().equals(sqlState)) {
-			NullConstraintException ex =
-					new NullConstraintException(sqlRootCause.getMessage(), relatedSql, e);
+			NullConstraintException ex = new NullConstraintException(sqlRootCause.getMessage(),
+					relatedSql, e);
 			ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
 			return ex;
 		}
 		else if (SQLState.UNIQUE_CONSTRAINT.getXopen().equals(sqlState)) {
-			UniqueConstraintException ex =
-					new UniqueConstraintException(sqlRootCause.getMessage(), relatedSql, e);
+			UniqueConstraintException ex = new UniqueConstraintException(sqlRootCause.getMessage(),
+					relatedSql, e);
 			ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
 			return ex;
 		}
@@ -589,7 +587,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
 		ResultSet rs = null;
 		try {
 			for (String schemaName : schemaNames) {
-				rs = connection.getMetaData().getTables(null, schemaName, null, new String[] {"VIEW"});
+				rs = connection.getMetaData().getTables(null, schemaName, null, new String[] { "VIEW" });
 
 				while (rs.next()) {
 					// String schemaName = rs.getString("TABLE_SCHEM");
@@ -654,8 +652,8 @@ public class PostgresDialect extends AbstractConnectionDialect {
 				else if ("text".equalsIgnoreCase(typeName)) {
 					javaType = String.class;
 				}
-				ColumnEntry entry =
-						new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable, radix, true);
+				ColumnEntry entry = new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable,
+						radix, true);
 				columns.add(entry);
 			}
 			return columns;
@@ -675,7 +673,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
 		Matcher matcher = pattern.matcher(sqlCommand);
 		if (matcher.matches()) {
 			String arrayTypeName = matcher.group(1);
-			if (arrayTypeName.equalsIgnoreCase("STRING_ARRAY")) {
+			if ("STRING_ARRAY".equals(arrayTypeName)) {
 				return "";
 			}
 		}
@@ -713,8 +711,8 @@ public class PostgresDialect extends AbstractConnectionDialect {
 		sqlCommand = prepareCommandIntern(sqlCommand, " NOCYCLE", "");
 		sqlCommand = prepareCommandIntern(sqlCommand, " USING +INDEX", "");
 
-		sqlCommand =
-				prepareCommandIntern(sqlCommand, " 999999999999999999999999999 ", " 9223372036854775807 ");
+		sqlCommand = prepareCommandIntern(sqlCommand, " 999999999999999999999999999 ",
+				" 9223372036854775807 ");
 
 		sqlCommand = prepareCommandIntern(sqlCommand, "\\s+TABLESPACE\\s+[a-zA-Z0-9_]+", " ");
 
@@ -752,7 +750,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
 	@Override
 	public Class<?>[] getConnectionInterfaces(Connection connection) {
 		if (connection instanceof BaseConnection) {
-			return new Class<?>[] {BaseConnection.class, PGConnection.class};
+			return new Class<?>[] { BaseConnection.class, PGConnection.class };
 		}
 		return super.getConnectionInterfaces(connection);
 	}
