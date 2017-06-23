@@ -32,10 +32,9 @@ public class Program {
 
 	// ---- CONSTANTS ----------------------------------------------------------
 
-	private static final Pattern[] excludedJarFiles =
-			{Pattern.compile("[\\\\/]jAmbeth-\\d[^\\\\/]+?$"),
-					Pattern.compile("[\\\\/]jAmbeth-jUnit-\\d[^\\\\/]+?$")};
-
+	private static final Pattern[] excludedJarFiles = {
+			Pattern.compile("[\\\\/]jAmbeth-\\d[^\\\\/]+?$"),
+			Pattern.compile("[\\\\/]jAmbeth-jUnit-\\d[^\\\\/]+?$") };
 
 	public static final String DECO = "\n========================================\n";
 
@@ -66,7 +65,8 @@ public class Program {
 	/**
 	 * Entry point of the application.
 	 *
-	 * @param args Program arguments
+	 * @param args
+	 *          Program arguments
 	 */
 	public static void main(String[] args) {
 		try {
@@ -116,8 +116,8 @@ public class Program {
 		Map<String, String> moduleMap = createModuleMap(moduleRootPath);
 
 		List<String> modulesToBeAnalyzed = readModulesToBeAnalyzed(ARG_KEY_MODULES);
-		List<TypeDescription> foundTypes =
-				ParserUtil.analyzeClasses(classes, moduleMap, modulesToBeAnalyzed);
+		List<TypeDescription> foundTypes = ParserUtil.analyzeClasses(classes, moduleMap,
+				modulesToBeAnalyzed);
 
 		OutputUtil.export(foundTypes, targetPath);
 		log("FINISHED!");
@@ -190,7 +190,8 @@ public class Program {
 	/**
 	 * Show the given message (on console - if available).
 	 *
-	 * @param message Message to display
+	 * @param message
+	 *          Message to display
 	 */
 	public static void showMessage(String message) {
 		Console console = System.console();
@@ -210,7 +211,8 @@ public class Program {
 	 * Log out the given message. Convenience method to have a single point where to change the
 	 * behavior.
 	 *
-	 * @param message Message to log
+	 * @param message
+	 *          Message to log
 	 */
 	public static void log(String message) {
 		if (doLog && !StringUtils.isBlank(message)) {
@@ -241,8 +243,10 @@ public class Program {
 	 * Get path from the given property and ensure that it is a directory. Throws an exception if the
 	 * path wasn't found or doesn't exist.
 	 *
-	 * @param propertyKey Property key to get the path from
-	 * @param identifier Identifier used in all message texts
+	 * @param propertyKey
+	 *          Property key to get the path from
+	 * @param identifier
+	 *          Identifier used in all message texts
 	 * @return Path; never null
 	 */
 	private static String getPathEnsured(String propertyKey, String identifier) {
@@ -263,7 +267,8 @@ public class Program {
 	}
 
 	/**
-	 * @param propertyKey Property to read the jar folders from
+	 * @param propertyKey
+	 *          Property to read the jar folders from
 	 * @return List of jars or null
 	 */
 	private static List<String> readJarFiles(String propertyKey) {
@@ -279,17 +284,20 @@ public class Program {
 	/**
 	 * Read all files with the given file extension found in the given folders.
 	 *
-	 * @param fileExtension File extension of the classes to read
-	 * @param folders Folders to search in
-	 * @param recursive Flag if sub folders are searched as well
+	 * @param fileExtension
+	 *          File extension of the classes to read
+	 * @param folders
+	 *          Folders to search in
+	 * @param recursive
+	 *          Flag if sub folders are searched as well
 	 * @return List of classes; never null
 	 */
 	private static List<String> readFiles(String fileExtension, String[] folders, boolean recursive) {
 		List<String> allFiles = new ArrayList<>();
 		for (String folder : folders) {
 			File directory = new File(folder);
-			Collection<File> files =
-					FileUtils.listFiles(directory, new String[] {fileExtension}, recursive);
+			Collection<File> files = FileUtils.listFiles(directory, new String[] { fileExtension },
+					recursive);
 			for (File file : files) {
 				String fullFileName = file.getAbsolutePath();
 				allFiles.add(fullFileName);
@@ -301,7 +309,8 @@ public class Program {
 	/**
 	 * Read the modules to be analyzed from the given property.
 	 *
-	 * @param propertyKey Optional property to read the list from
+	 * @param propertyKey
+	 *          Optional property to read the list from
 	 * @return List of module names (lower case) to be analyzed or null (all modules are analyzed)
 	 */
 	private static List<String> readModulesToBeAnalyzed(String propertyKey) {
@@ -324,7 +333,8 @@ public class Program {
 	/**
 	 * Create the map with the module name of each class file.
 	 *
-	 * @param rootPath The root path - all modules have to be direct children of this path
+	 * @param rootPath
+	 *          The root path - all modules have to be direct children of this path
 	 * @return Map with the module name of each class file; key is the full qualified class name in
 	 *         LOWER CASE and value the module name
 	 */
@@ -362,24 +372,24 @@ public class Program {
 							String moduleName = rootFile.getName();
 							String modulePath = rootFile.getAbsolutePath();
 
-							Collection<File> files = FileUtils.listFiles(rootFile, new String[] {"java"}, true);
+							Collection<File> files = FileUtils.listFiles(rootFile, new String[] { "java" }, true);
 							for (File file : files) {
 								String fullFileName = file.getAbsolutePath();
-								String relativeName =
-										StringUtils.replace(fullFileName, modulePath, StringUtils.EMPTY);
+								String relativeName = StringUtils.replace(fullFileName, modulePath,
+										StringUtils.EMPTY);
 								String[] splittedRelativeName = StringUtils.split(relativeName, "\\/");
 								final String className;
 								if (splittedRelativeName.length > 3 && "src".equals(splittedRelativeName[0])
 										&& "java".equals(splittedRelativeName[2])) {
-									String[] adaptedRelativeName =
-											Arrays.copyOfRange(splittedRelativeName, 3, splittedRelativeName.length);
+									String[] adaptedRelativeName = Arrays.copyOfRange(splittedRelativeName, 3,
+											splittedRelativeName.length);
 									className = StringUtils.join(adaptedRelativeName, ".").toLowerCase();
 								}
 								else if (splittedRelativeName.length > 1
 										&& ("asm_src".equals(splittedRelativeName[0])
 												|| "addon".equals(splittedRelativeName[0]))) {
-									String[] adaptedRelativeName =
-											Arrays.copyOfRange(splittedRelativeName, 1, splittedRelativeName.length);
+									String[] adaptedRelativeName = Arrays.copyOfRange(splittedRelativeName, 1,
+											splittedRelativeName.length);
 									className = StringUtils.join(adaptedRelativeName, ".").toLowerCase();
 								}
 								else {
@@ -399,9 +409,11 @@ public class Program {
 	}
 
 	/**
-	 * @param analyzeJarPaths Path to jars which should be analyzed; mandatory
-	 * @param libraryJarPaths Path to jars which are needed to create the complete class path
-	 *        (libraries, dependencies); optional
+	 * @param analyzeJarPaths
+	 *          Path to jars which should be analyzed; mandatory
+	 * @param libraryJarPaths
+	 *          Path to jars which are needed to create the complete class path (libraries,
+	 *          dependencies); optional
 	 * @return List of classes of the jars to be analyzed
 	 */
 	private static List<ClassHolder> getClassesFromJars(List<String> analyzeJarPaths,
@@ -420,7 +432,7 @@ public class Program {
 			for (String pathToJar : analyzeJarPaths) {
 				urls.add(new URL("jar:file:" + pathToJar + "!/"));
 			}
-			URLClassLoader cl = URLClassLoader.newInstance(urls.toArray(new URL[0]));
+			URLClassLoader cl = URLClassLoader.newInstance(urls.toArray(new URL[0]), null);
 			for (String pathToJar : analyzeJarPaths) {
 				JarFile jarFile = new JarFile(pathToJar);
 				try {

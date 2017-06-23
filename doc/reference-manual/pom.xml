@@ -6,13 +6,29 @@
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
+	<parent>
+		<groupId>com.koch.ambeth</groupId>
+		<artifactId>doc-pom</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</parent>
+	
 	<properties>
-		<ambeth.version>3.1.0-SNAPSHOT</ambeth.version>
-		<ambeth.integrity.version>1.0.3</ambeth.integrity.version>
-		<ambeth.extendables.scanner.version>1.0.3</ambeth.extendables.scanner.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<extendables.scanner.dir>${project.build.directory}/extendables-scanner</extendables.scanner.dir>
+		<inkscape.dir>${project.build.directory}/inkscape</inkscape.dir>
+		<miktex.dir>${project.build.directory}/miktex</miktex.dir>
+		<inkscape.version>0.92.1</inkscape.version>
+		<miktex.version>2.9</miktex.version>
+		<classifier>win32.win32.x86_64</classifier>
+		<repo.basedir>${project.basedir}/../..</repo.basedir>
+		<moduleRootPath>${repo.basedir}/jambeth</moduleRootPath>
+		<integrity.dir>${project.build.directory}/integrity</integrity.dir>
+		<doc.src.dir>${project.build.directory}/src/java</doc.src.dir>
+		<doc.src.lib.dir>${project.build.directory}/src/java/libs</doc.src.lib.dir>
+		<data.dir>${project.build.directory}/data</data.dir>
+		<latex.temp.dir>target-latex</latex.temp.dir>
+		<latex.temp.out.dir>target-latex-output</latex.temp.out.dir>
 	</properties>
 
 	<pluginRepositories>
@@ -28,19 +44,16 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-pom</artifactId>
-			<version>${ambeth.version}</version>
+			<artifactId>jambeth-doc-scope</artifactId>
 			<type>pom</type>
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth.integrity</groupId>
 			<artifactId>ambeth-integrity-java</artifactId>
-			<version>${ambeth.integrity.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>extendables-scanner</artifactId>
-			<version>${ambeth.extendables.scanner.version}</version>
 		</dependency>
 	</dependencies>
 
@@ -48,7 +61,6 @@
 		<plugins>
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
-				<version>3.0.2</version>
 				<executions>
 					<execution>
 						<id>copy-resources</id>
@@ -57,7 +69,7 @@
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${basedir}/target</outputDirectory>
+							<outputDirectory>${project.build.directory}</outputDirectory>
 							<resources>
 								<resource>
 									<directory>src/main/resources</directory>
@@ -69,9 +81,39 @@
 				</executions>
 			</plugin>
 			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>Generate absolute path properties</id>
+						<phase>generate-sources</phase>
+						<configuration>
+							<exportAntProperties>true</exportAntProperties>
+							<target>
+								<property name="moduleRootPath.absolute" location="${moduleRootPath}" />
+								<property name="data.dir.absolute" location="${data.dir}" />
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>Copy PDF file</id>
+						<phase>package</phase>
+						<configuration>
+							<target>
+								<copy file="${project.build.directory}/${latex.temp.dir}/Ambeth-Reference.pdf" tofile="${project.build.directory}/Ambeth-Reference-${ambeth.version}.pdf" />
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.6.0</version>
 				<executions>
 					<execution>
 						<id>Resolve Ambeth libraries</id>
@@ -85,8 +127,9 @@
 								<argument>-f</argument>
 								<argument>${settings.localRepository}/com/koch/ambeth/jambeth-doc-scope/${ambeth.version}/jambeth-doc-scope-${ambeth.version}.pom</argument>
 								<argument>dependency:copy-dependencies</argument>
-								<argument>-DoutputDirectory=${basedir}/target/src/java</argument>
+								<argument>-DoutputDirectory=${doc.src.dir}</argument>
 								<argument>-DincludeGroupIds=com.koch.ambeth</argument>
+								<argument>-Dmaven.repo.local=${settings.localRepository}</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -102,8 +145,9 @@
 								<argument>-f</argument>
 								<argument>${settings.localRepository}/com/koch/ambeth/jambeth-doc-scope/${ambeth.version}/jambeth-doc-scope-${ambeth.version}.pom</argument>
 								<argument>dependency:copy-dependencies</argument>
-								<argument>-DoutputDirectory=${basedir}/target/src/java/libs</argument>
+								<argument>-DoutputDirectory=${doc.src.lib.dir}</argument>
 								<argument>-DexcludeGroupIds=com.koch.ambeth</argument>
+								<argument>-Dmaven.repo.local=${settings.localRepository}</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -119,7 +163,8 @@
 								<argument>-f</argument>
 								<argument>${settings.localRepository}/com/koch/ambeth/integrity/ambeth-integrity-java/${ambeth.integrity.version}/ambeth-integrity-java-${ambeth.integrity.version}.pom</argument>
 								<argument>dependency:copy-dependencies</argument>
-								<argument>-DoutputDirectory=${basedir}/target/integrity</argument>
+								<argument>-DoutputDirectory=${integrity.dir}</argument>
+								<argument>-Dmaven.repo.local=${settings.localRepository}</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -136,10 +181,10 @@
 								<argument>${settings.localRepository}/com/koch/ambeth/extendables-scanner/${ambeth.extendables.scanner.version}/extendables-scanner-${ambeth.extendables.scanner.version}.pom</argument>
 								<argument>dependency:copy-dependencies</argument>
 								<argument>-DoutputDirectory=${extendables.scanner.dir}</argument>
+								<argument>-Dmaven.repo.local=${settings.localRepository}</argument>
 							</arguments>
 						</configuration>
 					</execution>
-
 					<execution>
 						<id>Build Source XML files</id>
 						<phase>process-resources</phase>
@@ -150,12 +195,12 @@
 							<executable>java</executable>
 							<arguments>
 								<argument>-cp</argument>
-								<argument>${basedir}\target\integrity\*;${settings.localRepository}/com/koch/ambeth/integrity/ambeth-integrity-java/${ambeth.integrity.version}/ambeth-integrity-java-${ambeth.integrity.version}.jar</argument>
+								<argument>${integrity.dir}\*;${settings.localRepository}/com/koch/ambeth/integrity/ambeth-integrity-java/${ambeth.integrity.version}/ambeth-integrity-java-${ambeth.integrity.version}.jar</argument>
 								<argument>com.koch.classbrowser.java.Program</argument>
-								<argument>jarFolders="${basedir}\target\src\java"</argument>
-								<argument>libraryJarFolders="${basedir}\target\src\java\libs"</argument>
-								<argument>targetPath="${basedir}\target\data"</argument>
-								<argument>moduleRootPath="C:\dev\horizon\\source\ambeth\jambeth"</argument>
+								<argument>jarFolders=${doc.src.dir}</argument>
+								<argument>libraryJarFolders=${doc.src.lib.dir}</argument>
+								<argument>targetPath=${data.dir}</argument>
+								<argument>moduleRootPath=${moduleRootPath.absolute}</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -168,8 +213,8 @@
 						<configuration>
 							<executable>xcopy</executable>
 							<arguments>
-								<argument>target\data\export_java.xml</argument>
-								<argument>target\data\export_csharp.xml*</argument>
+								<argument>${data.dir.absolute}\export_java.xml</argument>
+								<argument>${data.dir.absolute}\export_csharp.xml*</argument>
 								<argument>/Y</argument>
 							</arguments>
 						</configuration>
@@ -186,8 +231,8 @@
 								<argument>-cp</argument>
 								<argument>${extendables.scanner.dir}\*;${settings.localRepository}\com\koch\ambeth\extendables-scanner\${ambeth.extendables.scanner.version}\extendables-scanner-${ambeth.extendables.scanner.version}.jar</argument>
 								<argument>com.koch.ambeth.extscanner.Main</argument>
-								<argument>scan-path="${basedir}/target/data"</argument>
-								<argument>source-path="${basedir}/../../ambeth;${basedir}/../../jambeth"</argument>
+								<argument>scan-path=${data.dir}</argument>
+								<argument>source-path="${repo.basedir}/ambeth;${repo.basedir}/jambeth"</argument>
 								<argument>target-source-path="${project.build.directory}/src-files"</argument>
 								<argument>target-all-dir="${basedir}"</argument>
 								<argument>target-extendable-tex-dir="${basedir}/extendable"</argument>
@@ -198,19 +243,48 @@
 							</arguments>
 						</configuration>
 					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
 					<execution>
-						<id>Copy PDF file</id>
-						<phase>package</phase>
+						<id>prepare MikTeX</id>
+						<phase>generate-resources</phase>
 						<goals>
-							<goal>exec</goal>
+							<goal>unpack</goal>
 						</goals>
 						<configuration>
-							<executable>xcopy</executable>
-							<arguments>
-								<argument>..\latex-tmp\Ambeth-Reference.pdf</argument>
-								<argument>target\Ambeth-Reference-${ambeth.version}.pdf*</argument>
-								<argument>/Y</argument>
-							</arguments>
+							<outputDirectory>${miktex.dir}</outputDirectory>
+							<artifactItems>
+								<artifactItem>
+									<groupId>miktex</groupId>
+									<artifactId>miktex</artifactId>
+									<version>${miktex.version}</version>
+									<classifier>${classifier}</classifier>
+									<type>zip</type>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+					<execution>
+						<id>prepare inkscape</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${inkscape.dir}</outputDirectory>
+							<artifactItems>
+								<artifactItem>
+									<groupId>inkscape</groupId>
+									<artifactId>inkscape</artifactId>
+									<version>${inkscape.version}</version>
+									<classifier>${classifier}</classifier>
+									<type>zip</type>
+								</artifactItem>
+							</artifactItems>
 						</configuration>
 					</execution>
 				</executions>
@@ -218,18 +292,17 @@
 			<plugin>
 				<groupId>de.akquinet.maven</groupId>
 				<artifactId>maven-latex-plugin</artifactId>
-				<version>1.1</version>
 				<configuration>
 					<settings>
 						<!-- all tex main documents in this folder (including subfolders) will 
 							be processed -->
-						<texDirectory>.</texDirectory>
+						<texDirectory>tex</texDirectory>
 						<!-- the generated artifacts will be copied to this folder relative 
 							to ${project.reporting.outputDirectory} -->
-						<outputDirectory>.</outputDirectory>
+						<outputDirectory>${latex.temp.out.dir}</outputDirectory>
 						<!-- the working directory, for temporary files and LaTeX processing 
 							relative to ${project.build.directory} -->
-						<tempDirectory>../../latex-tmp</tempDirectory>
+						<tempDirectory>${latex.temp.dir}</tempDirectory>
 						<!-- clean up the working directory in the end? May be used for debugging -->
 						<cleanUp>false</cleanUp>
 						<!-- path to the TeX scripts, if none, it must be on the system path -->
@@ -241,8 +314,8 @@
 						<!-- the arguments to use when calling latex -->
 						<texCommandArgs>
 						<!-- TODO: we need the shell escape to launch inkscape, but for some reason the inkscape process hangs and stalls the build
-							<texCommandArg>-shell-escape</texCommandArg>
 							 -->
+							<texCommandArg>-shell-escape</texCommandArg>
 							<texCommandArg>-interaction=nonstopmode</texCommandArg>
 							<texCommandArg>--src-specials</texCommandArg>
 						</texCommandArgs>

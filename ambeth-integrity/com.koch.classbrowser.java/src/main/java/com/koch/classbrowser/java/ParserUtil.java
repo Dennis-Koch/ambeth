@@ -15,6 +15,8 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+
 /**
  * Helper class which supports the parsing of the assemblies and offers some convenience methods.
  *
@@ -39,8 +41,8 @@ public class ParserUtil {
 	public static final String MODIFIER_FINAL = "final";
 	public static final String MODIFIER_ABSTRACT = "abstract";
 
-	public static final List<String> MODIFIERS_CONSTANT =
-			Arrays.asList(MODIFIER_STATIC, MODIFIER_FINAL);
+	public static final List<String> MODIFIERS_CONSTANT = Arrays.asList(MODIFIER_STATIC,
+			MODIFIER_FINAL);
 
 	public static final String JAVA_ANNOTATION_LOG_INSTANCE = "com.koch.ambeth.log.LogInstance";
 	public static final String JAVA_ANNOTATION_AUTOWIRED = "com.koch.ambeth.ioc.annotation.Autowired";
@@ -62,7 +64,8 @@ public class ParserUtil {
 	 * Check the given type literal. If it isn't one of the constants defined in this class an
 	 * IllegalArgumentException is thrown.
 	 *
-	 * @param typeToCheck Type to check
+	 * @param typeToCheck
+	 *          Type to check
 	 */
 	public static void checkType(String typeToCheck) {
 		if (TYPE_CLASS.equals(typeToCheck) || TYPE_DELEGATE.equals(typeToCheck)
@@ -74,11 +77,14 @@ public class ParserUtil {
 	}
 
 	/**
-	 * @param classes List of classes
-	 * @param moduleMap Map with the module name of each class file; key is the full qualified class
-	 *        name in LOWER CASE and value the module name
-	 * @param modulesToBeAnalyzed List of modules to be analyzed; if null or empty all classes in the
-	 *        jar path are analyzed
+	 * @param classes
+	 *          List of classes
+	 * @param moduleMap
+	 *          Map with the module name of each class file; key is the full qualified class name in
+	 *          LOWER CASE and value the module name
+	 * @param modulesToBeAnalyzed
+	 *          List of modules to be analyzed; if null or empty all classes in the jar path are
+	 *          analyzed
 	 * @return A list of found types as TypeDescription entities; never null (but may be empty)
 	 */
 	public static List<TypeDescription> analyzeClasses(List<ClassHolder> classes,
@@ -110,8 +116,8 @@ public class ParserUtil {
 				int genericTypeParams = classToBeAnalyzed.getTypeParameters() != null
 						? classToBeAnalyzed.getTypeParameters().length : 0;
 				Class<?> superclass = classToBeAnalyzed.getSuperclass();
-				String superclassName =
-						superclass == null || Object.class.equals(superclass) ? null : superclass.getName();
+				String superclassName = superclass == null || Object.class.equals(superclass) ? null
+						: superclass.getName();
 
 				TypeDescription typeDescription = new TypeDescription(source, moduleName, namespace,
 						simpleName, fullTypeName, typeType, genericTypeParams);
@@ -131,10 +137,12 @@ public class ParserUtil {
 	/**
 	 * Check if all classes of this module have to be skipped.
 	 *
-	 * @param moduleName Module to check; if null or empty the class is analyzed to let the comparer
-	 *        give a hint on the missing module name
-	 * @param modulesToBeAnalyzed List of modules to be analyzed; if null or empty all classes in the
-	 *        jar path are analyzed
+	 * @param moduleName
+	 *          Module to check; if null or empty the class is analyzed to let the comparer give a
+	 *          hint on the missing module name
+	 * @param modulesToBeAnalyzed
+	 *          List of modules to be analyzed; if null or empty all classes in the jar path are
+	 *          analyzed
 	 * @return True if the all classes of this module have to be skipped
 	 */
 	private static boolean isModuleSkipped(String moduleName, List<String> modulesToBeAnalyzed) {
@@ -149,7 +157,8 @@ public class ParserUtil {
 	/**
 	 * Check if the given class has to be skipped.
 	 *
-	 * @param classToBeAnalyzed Class to check
+	 * @param classToBeAnalyzed
+	 *          Class to check
 	 * @return True if class should be skipped
 	 */
 	private static boolean isTypeSkipped(Class<?> classToBeAnalyzed) {
@@ -165,9 +174,11 @@ public class ParserUtil {
 	/**
 	 * Get the module where the type is coming from.
 	 *
-	 * @param classToBeAnalyzed Class
-	 * @param moduleMap Map with the module name of each class file; key is the full qualified class
-	 *        name in LOWER CASE and value the module name
+	 * @param classToBeAnalyzed
+	 *          Class
+	 * @param moduleMap
+	 *          Map with the module name of each class file; key is the full qualified class name in
+	 *          LOWER CASE and value the module name
 	 * @return Module name or empty string (if no module can be found); never null
 	 */
 	public static String getModule(Class<?> classToBeAnalyzed, Map<String, String> moduleMap) {
@@ -185,7 +196,8 @@ public class ParserUtil {
 	/**
 	 * Get the source where the types are coming from.
 	 *
-	 * @param classHolder ClassHolder
+	 * @param classHolder
+	 *          ClassHolder
 	 * @return Source
 	 */
 	public static String getSource(ClassHolder classHolder) {
@@ -195,7 +207,8 @@ public class ParserUtil {
 	/**
 	 * Get the type (text constant) for the given type. Returns null if the type hasn't to be handled.
 	 *
-	 * @param givenType Type to identify; mandatory
+	 * @param givenType
+	 *          Type to identify; mandatory
 	 * @return One of the TYPE constants (e.g. TYPE_CLASS) or null
 	 */
 	public static String getTypeType(Class<?> givenType) {
@@ -228,8 +241,10 @@ public class ParserUtil {
 	/**
 	 * Add all runtime visible annotations from the given type to the given description.
 	 *
-	 * @param classToBeAnalyzed Type to get the method infos from; mandatory
-	 * @param typeDescription Description to write the method infos to; mandatory
+	 * @param classToBeAnalyzed
+	 *          Type to get the method infos from; mandatory
+	 * @param typeDescription
+	 *          Description to write the method infos to; mandatory
 	 */
 	protected static void addAnnotations(Class<?> classToBeAnalyzed,
 			TypeDescription typeDescription) {
@@ -240,8 +255,10 @@ public class ParserUtil {
 	/**
 	 * Add all methods from the given type to the given description.
 	 *
-	 * @param givenType Type to get the method infos from; mandatory
-	 * @param typeDescription Description to write the method infos to; mandatory
+	 * @param givenType
+	 *          Type to get the method infos from; mandatory
+	 * @param typeDescription
+	 *          Description to write the method infos to; mandatory
 	 */
 	protected static void addMethodDescriptions(Class<?> givenType, TypeDescription typeDescription) {
 		if (givenType == null || typeDescription == null) {
@@ -249,21 +266,28 @@ public class ParserUtil {
 					"Mandatory values for adding the method descriptions are missing!");
 		}
 
-		Method[] methods = givenType.getDeclaredMethods();
-		Arrays.sort(methods, (left, right) -> {
-			return left.toGenericString().compareTo(right.toGenericString());
-		});
-		for (Method methodInfo : methods) {
-			MethodDescription methodDescription = createMethodDescriptionFrom(methodInfo);
-			typeDescription.getMethodDescriptions().add(methodDescription);
+		try {
+			Method[] methods = givenType.getDeclaredMethods();
+			Arrays.sort(methods, (left, right) -> {
+				return left.toGenericString().compareTo(right.toGenericString());
+			});
+			for (Method methodInfo : methods) {
+				MethodDescription methodDescription = createMethodDescriptionFrom(methodInfo);
+				typeDescription.getMethodDescriptions().add(methodDescription);
+			}
+		}
+		catch (Throwable e) {
+			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	/**
 	 * Add all fields from the given type to the given description.
 	 *
-	 * @param givenType Type to get the field infos from; mandatory
-	 * @param typeDescription Description to write the method infos to; mandatory
+	 * @param givenType
+	 *          Type to get the field infos from; mandatory
+	 * @param typeDescription
+	 *          Description to write the method infos to; mandatory
 	 */
 	protected static void addFieldDescriptions(Class<?> givenType, TypeDescription typeDescription) {
 		if (givenType == null || typeDescription == null) {
@@ -304,7 +328,8 @@ public class ParserUtil {
 	/**
 	 * Create a method description from the given information.
 	 *
-	 * @param methodInfo Method to get the infos from; mandatory
+	 * @param methodInfo
+	 *          Method to get the infos from; mandatory
 	 * @return MethodDescription
 	 */
 	public static MethodDescription createMethodDescriptionFrom(Method methodInfo) {
@@ -317,8 +342,8 @@ public class ParserUtil {
 		List<String> modifiers = getModifiersFrom(methodInfo);
 		List<String> parameterTypes = getParameterTypesFrom(methodInfo);
 
-		MethodDescription methodDescription =
-				new MethodDescription(methodInfo.getName(), returnType, modifiers, parameterTypes);
+		MethodDescription methodDescription = new MethodDescription(methodInfo.getName(), returnType,
+				modifiers, parameterTypes);
 		List<AnnotationInfo> annotationInfos = getAnnotationInfo(methodInfo);
 		methodDescription.getAnnotations().addAll(annotationInfos);
 
@@ -328,7 +353,8 @@ public class ParserUtil {
 	/**
 	 * Create a field description from the given information.
 	 *
-	 * @param fieldInfo FieldInfo to get the infos from; mandatory
+	 * @param fieldInfo
+	 *          FieldInfo to get the infos from; mandatory
 	 * @return FieldDescription
 	 */
 	public static FieldDescription createFieldDescriptionFrom(Field fieldInfo) {
@@ -353,7 +379,8 @@ public class ParserUtil {
 	/**
 	 * Get the text representation of the methods return type.
 	 *
-	 * @param methodInfo Method to get the infos from; mandatory
+	 * @param methodInfo
+	 *          Method to get the infos from; mandatory
 	 * @return Return type as text
 	 */
 	public static String getReturnTypeFrom(Method methodInfo) {
@@ -372,7 +399,8 @@ public class ParserUtil {
 	/**
 	 * Get the text representation of the given type.
 	 *
-	 * @param givenType Type to get the infos from; mandatory
+	 * @param givenType
+	 *          Type to get the infos from; mandatory
 	 * @return Type as text
 	 */
 	public static String getTypeFrom(Type givenType) {
@@ -385,7 +413,8 @@ public class ParserUtil {
 	/**
 	 * Get the text representation of the given type.
 	 *
-	 * @param givenType Type to get the infos from; mandatory
+	 * @param givenType
+	 *          Type to get the infos from; mandatory
 	 * @return Type as text
 	 */
 	public static String getTypeFrom(Class<?> givenType) {
@@ -400,7 +429,8 @@ public class ParserUtil {
 	/**
 	 * Get the text representation of all method modifiers.
 	 *
-	 * @param methodInfo Method to get the infos from; mandatory
+	 * @param methodInfo
+	 *          Method to get the infos from; mandatory
 	 * @return List of modifiers; never null (but may be empty)
 	 */
 	public static List<String> getModifiersFrom(Method methodInfo) {
@@ -416,7 +446,8 @@ public class ParserUtil {
 	/**
 	 * Get the text representation of all field modifiers.
 	 *
-	 * @param fieldInfo Field to get the infos from; mandatory
+	 * @param fieldInfo
+	 *          Field to get the infos from; mandatory
 	 * @return List of modifiers; never null (but may be empty)
 	 */
 	public static List<String> getModifiersFrom(Field fieldInfo) {
@@ -430,7 +461,8 @@ public class ParserUtil {
 	}
 
 	/**
-	 * @param modifierFlags Modifier flags (integer constants)
+	 * @param modifierFlags
+	 *          Modifier flags (integer constants)
 	 * @return List of modifiers; never null (but may be empty)
 	 */
 	protected static List<String> getModifersFrom(int modifierFlags) {
@@ -459,7 +491,8 @@ public class ParserUtil {
 	/**
 	 * Get the text representation of all method parameter types.
 	 *
-	 * @param methodInfo Method to get the infos from; mandatory
+	 * @param methodInfo
+	 *          Method to get the infos from; mandatory
 	 * @return List of parameter types; never null (but may be empty)
 	 */
 	public static List<String> getParameterTypesFrom(Method methodInfo) {
@@ -489,7 +522,8 @@ public class ParserUtil {
 	/**
 	 * Extracts the full info of all annotations present on the annotated element.
 	 *
-	 * @param annotatedElement Object to be analyzed
+	 * @param annotatedElement
+	 *          Object to be analyzed
 	 * @return List of the full annotation info
 	 */
 	protected static ArrayList<AnnotationInfo> getAnnotationInfo(AnnotatedElement annotatedElement) {
@@ -518,8 +552,8 @@ public class ParserUtil {
 				catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 					throw new RuntimeException(e);
 				}
-				AnnotationParamInfo param =
-						new AnnotationParamInfo(paramName, paramType, defaultValue, currentValue);
+				AnnotationParamInfo param = new AnnotationParamInfo(paramName, paramType, defaultValue,
+						currentValue);
 				params.add(param);
 			}
 

@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>com.koch.ambeth</groupId>
 		<artifactId>base-pom</artifactId>
-		<version>1.0.2</version>
+		<version>1.0.3-SNAPSHOT</version>
 	</parent>
 
 	<properties>
@@ -1328,15 +1328,6 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
-					<groupId>org.codehaus.mojo</groupId>
-					<artifactId>findbugs-maven-plugin</artifactId>
-					<version>3.0.4</version>
-					<configuration>
-						<excludeFilterFile>${jambeth.path.test}/findbugs_exclude_checks.xml</excludeFilterFile>
-					</configuration>
-				</plugin>
-
-				<plugin>
 					<!-- <groupId>org.codehaus.mojo</groupId> <artifactId>tomcat-maven-plugin</artifactId> -->
 					<groupId>org.apache.tomcat.maven</groupId>
 					<artifactId>tomcat6-maven-plugin</artifactId>
@@ -1404,11 +1395,6 @@
 					</configuration>
 				</plugin>
 				<plugin>
-					<groupId>org.codehaus.mojo</groupId>
-					<artifactId>build-helper-maven-plugin</artifactId>
-					<version>1.12</version>
-				</plugin>
-				<plugin>
 					<groupId>pl.project13.maven</groupId>
 					<artifactId>git-commit-id-plugin</artifactId>
 					<version>${maven.git-commit-id.version}</version>
@@ -1437,20 +1423,17 @@
 						</includeOnlyProperties>
 					</configuration>
 				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-pmd-plugin</artifactId>
+					<version>3.8</version>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>biz.aQute.bnd</groupId>
 				<artifactId>bnd-maven-plugin</artifactId>
-				<version>3.3.0</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>bnd-process</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.felix</groupId>
@@ -1541,22 +1524,6 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>regex-property</id>
-						<goals>
-							<goal>regex-property</goal>
-						</goals>
-						<configuration>
-							<name>mf.version</name>
-							<value>${project.version}</value>
-							<regex>-SNAPSHOT</regex>
-							<!-- <replacement>.SNAPSHOT</replacement> -->
-							<replacement>.${maven.build.timestamp}</replacement>
-							<failIfNoMatch>false</failIfNoMatch>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>pl.project13.maven</groupId>
@@ -1564,52 +1531,6 @@
 			</plugin>
 		</plugins>
 	</build>
-
-	<reporting>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-project-info-reports-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.10.4</version>
-				<configuration>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>2.17</version>
-				<reportSets>
-					<reportSet>
-						<reports>
-							<report>checkstyle</report>
-						</reports>
-					</reportSet>
-				</reportSets>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>3.0.4</version>
-				<configuration>
-					<findbugsXmlOutput>true</findbugsXmlOutput>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-pmd-plugin</artifactId>
-				<version>3.7</version>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jxr-plugin</artifactId>
-				<version>2.5</version>
-			</plugin>
-		</plugins>
-	</reporting>
 
 	<profiles>
 		<profile>
@@ -1628,235 +1549,6 @@
 			</properties>
 		</profile>
 
-		<profile>
-			<id>javadoc-jdk8</id>
-			<activation>
-				<jdk>[1.8,1.9)</jdk>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-javadoc-plugin</artifactId>
-						<version>2.10.4</version>
-						<configuration>
-							<additionalparam>-Xdoclint:none</additionalparam>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-
-		<profile>
-			<id>jenkins</id>
-			<activation>
-				<property>
-					<name>env.JENKINS_HOME</name>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-checkstyle-plugin</artifactId>
-						<version>2.17</version>
-						<configuration>
-							<configLocation>${checkstyle.path}</configLocation>
-							<exclude>**/*Test.class</exclude>
-							<exclude>**/*-tests/src/**</exclude>
-
-							<excludes>**/repackaged/**</excludes>
-						</configuration>
-						<executions>
-							<execution>
-								<phase>package</phase>
-								<goals>
-									<goal>checkstyle</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>findbugs-maven-plugin</artifactId>
-						<version>3.0.4</version>
-						<executions>
-							<execution>
-								<phase>package</phase>
-								<goals>
-									<goal>findbugs</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.jacoco</groupId>
-						<artifactId>jacoco-maven-plugin</artifactId>
-						<version>0.7.9</version>
-						<configuration>
-							<excludes>
-								<exclude>**/*$A*</exclude>
-								<exclude>**/*FieldAccess*</exclude>
-								<exclude>**/*MethodAccess*</exclude>
-
-								<exclude>**/*Test.*</exclude>
-								<exclude>**/*IT.*</exclude>
-								<exclude>**/*-tests/src/**</exclude>
-
-								<exclude>**/repackaged/**</exclude>
-							</excludes>
-						</configuration>
-						<executions>
-							<execution>
-								<id>jacoco-initialize</id>
-								<goals>
-									<goal>prepare-agent</goal>
-								</goals>
-							</execution>
-							<execution>
-								<id>jacoco-site</id>
-								<phase>package</phase>
-								<goals>
-									<goal>report</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-javadoc-plugin</artifactId>
-						<version>2.9.1</version>
-						<configuration>
-							<excludePackageNames>*.repackaged.*</excludePackageNames>
-						</configuration>
-						<executions>
-							<execution>
-								<id>attach-javadocs</id>
-								<goals>
-									<goal>jar</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-pmd-plugin</artifactId>
-						<version>3.1.0-SNAPSHOT</version>
-						<configuration>
-							<excludes>
-								<exclude>**/repackaged/**</exclude>
-								<exclude>**/*-tests/src/**</exclude>
-							</excludes>
-							<excludeRoots>
-								<excludeRoot>../*-tests</excludeRoot>
-							</excludeRoots>
-						</configuration>
-						<executions>
-							<execution>
-								<phase>package</phase>
-								<goals>
-									<goal>pmd</goal>
-									<goal>cpd</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-source-plugin</artifactId>
-						<version>2.2.1</version>
-						<executions>
-							<execution>
-								<id>attach-sources</id>
-								<phase>verify</phase>
-								<goals>
-									<goal>jar-no-fork</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-surefire-plugin</artifactId>
-						<configuration>
-							<testFailureIgnore>true</testFailureIgnore>
-							<forkCount>1C</forkCount>
-							<reuseForks>true</reuseForks>
-							<systemPropertyVariables>
-								<ambeth.test.forkname>f${surefire.forkNumber}</ambeth.test.forkname>
-							</systemPropertyVariables>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<!-- This profil enables TestNG to run unit tests for Testlink Jenkins 
-				integration -->
-			<id>Testlink</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-surefire-plugin</artifactId>
-						<configuration>
-							<properties>
-								<property>
-									<name>junit</name>
-									<value>false</value>
-								</property>
-							</properties>
-							<threadCount>1</threadCount>
-							<testFailureIgnore>true</testFailureIgnore>
-						</configuration>
-						<dependencies>
-							<dependency>
-								<groupId>org.apache.maven.surefire</groupId>
-								<artifactId>surefire-testng</artifactId>
-								<version>2.19.1</version>
-							</dependency>
-						</dependencies>
-					</plugin>
-				</plugins>
-			</build>
-
-			<dependencies>
-				<dependency>
-					<groupId>org.testng</groupId>
-					<artifactId>testng</artifactId>
-					<version>6.7</version>
-					<scope>test</scope>
-				</dependency>
-			</dependencies>
-		</profile>
-		<profile>
-			<id>license</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>license-maven-plugin</artifactId>
-						<version>1.12</version>
-						<configuration>
-							<organizationName>Koch Softwaredevelopment</organizationName>
-							<inceptionYear>2017</inceptionYear>
-							<licenseName>apache_v2</licenseName>
-							<ignoreNoFileToScan>true</ignoreNoFileToScan>
-						</configuration>
-						<executions>
-							<execution>
-								<id>first</id>
-								<goals>
-									<goal>update-file-header</goal>
-									<goal>update-project-license</goal>
-								</goals>
-								<phase>process-sources</phase>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
 		<profile>
 			<id>copy-manifest</id>
 			<activation>

@@ -3,31 +3,18 @@
 
 	<groupId>com.koch.ambeth</groupId>
 	<artifactId>junit-categories</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2-SNAPSHOT</version>
 	<name>jUnit Categories</name>
 	<description>jUnit Categories for tests</description>
 
 	<parent>
 		<groupId>com.koch.ambeth</groupId>
 		<artifactId>base-pom</artifactId>
-		<version>1.0.1</version>
+		<version>1.0.3-SNAPSHOT</version>
 	</parent>
 	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
-	
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>biz.aQute.bnd</groupId>
-				<artifactId>bnd-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
 </project>
