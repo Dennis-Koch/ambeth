@@ -36,6 +36,7 @@ import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.cache.ICacheContext;
 import com.koch.ambeth.merge.cache.ICacheProvider;
 import com.koch.ambeth.util.ParamChecker;
+import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
@@ -71,7 +72,7 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor
 	protected final Stack<ICacheProvider> cacheProviderStack = new Stack<>();
 
 	@Forkable(ForkableType.SHALLOW_COPY)
-	protected final ThreadLocal<Stack<ICacheProvider>> cacheProviderStackTL = new SensitiveThreadLocal<>();
+	protected final ThreadLocal<ArrayList<ICacheProvider>> cacheProviderStackTL = new SensitiveThreadLocal<>();
 
 	@Autowired
 	protected ICacheProvider threadLocalCacheProvider;
@@ -101,7 +102,7 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor
 	}
 
 	public ICacheProvider getCurrentCacheProvider() {
-		Stack<ICacheProvider> stack = cacheProviderStackTL.get();
+		ArrayList<ICacheProvider> stack = cacheProviderStackTL.get();
 		if (stack != null && stack.size() > 0) {
 			return stack.peek();
 		}
@@ -121,25 +122,27 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor
 		return getCurrentCacheProvider().isNewInstanceOnCall();
 	}
 
+	@Override
 	public IStateRollback pushCache(ICache cache, IStateRollback... rollbacks) {
 		return pushCache(new SingleCacheProvider(cache));
 	}
 
+	@Override
 	public IStateRollback pushCache(final ICacheProvider cacheProvider, IStateRollback... rollbacks) {
 		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
 
-		Stack<ICacheProvider> stack = cacheProviderStackTL.get();
+		ArrayList<ICacheProvider> stack = cacheProviderStackTL.get();
 		if (stack == null) {
-			stack = new Stack<>();
+			stack = new ArrayList<>();
 			cacheProviderStackTL.set(stack);
 		}
-		stack.push(cacheProvider);
+		stack.add(cacheProvider);
 
 		return new AbstractStateRollback(rollbacks) {
 			@Override
 			protected void rollbackIntern() throws Throwable {
-				Stack<ICacheProvider> stack = cacheProviderStackTL.get();
-				if (stack.pop() != cacheProvider) {
+				ArrayList<ICacheProvider> stack = cacheProviderStackTL.get();
+				if (stack.popLastElement() != cacheProvider) {
 					throw new IllegalStateException("Must never happen");
 				}
 			}
@@ -163,17 +166,17 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor
 		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
 		ParamChecker.assertParamNotNull(runnable, "runnable");
 
-		Stack<ICacheProvider> stack = cacheProviderStackTL.get();
+		ArrayList<ICacheProvider> stack = cacheProviderStackTL.get();
 		if (stack == null) {
-			stack = new Stack<>();
+			stack = new ArrayList<>();
 			cacheProviderStackTL.set(stack);
 		}
-		stack.push(cacheProvider);
+		stack.add(cacheProvider);
 		try {
 			return runnable.invoke();
 		}
 		finally {
-			if (stack.pop() != cacheProvider) {
+			if (stack.popLastElement() != cacheProvider) {
 				throw new IllegalStateException("Must never happen");
 			}
 		}
@@ -185,17 +188,17 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor
 		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
 		ParamChecker.assertParamNotNull(runnable, "runnable");
 
-		Stack<ICacheProvider> stack = cacheProviderStackTL.get();
+		ArrayList<ICacheProvider> stack = cacheProviderStackTL.get();
 		if (stack == null) {
-			stack = new Stack<>();
+			stack = new ArrayList<>();
 			cacheProviderStackTL.set(stack);
 		}
-		stack.push(cacheProvider);
+		stack.add(cacheProvider);
 		try {
 			return runnable.invoke(state);
 		}
 		finally {
-			if (stack.pop() != cacheProvider) {
+			if (stack.popLastElement() != cacheProvider) {
 				throw new IllegalStateException("Must never happen");
 			}
 		}

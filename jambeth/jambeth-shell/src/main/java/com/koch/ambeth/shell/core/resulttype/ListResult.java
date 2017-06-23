@@ -29,7 +29,8 @@ public class ListResult<T> extends CommandResult {
 	/**
 	 * add a record to the instance
 	 *
-	 * @param record instance of class that extends {@link CommandResult}
+	 * @param record
+	 *          instance of class that extends {@link CommandResult}
 	 */
 	public void addRecord(T record) {
 		if (list == null) {
@@ -41,7 +42,8 @@ public class ListResult<T> extends CommandResult {
 	/**
 	 * remove a record from the instance
 	 *
-	 * @param record instance of class that extends {@link CommandResult}
+	 * @param record
+	 *          instance of class that extends {@link CommandResult}
 	 */
 	public void removeRecord(T record) {
 		if (list != null) {
@@ -70,7 +72,7 @@ public class ListResult<T> extends CommandResult {
 		if (list == null) {
 			return "";
 		}
-		StringBuffer strBuf = new StringBuffer();
+		StringBuilder strBuf = new StringBuilder();
 		for (T commandResult : list) {
 			strBuf.append(commandResult.toString()).append(System.lineSeparator());
 		}

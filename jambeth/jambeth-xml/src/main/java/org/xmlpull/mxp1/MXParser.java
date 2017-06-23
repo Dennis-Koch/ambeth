@@ -57,16 +57,11 @@ public class MXParser implements XmlPullParser {
 	protected final static String FEATURE_XML_ROUNDTRIP =
 			// "http://xmlpull.org/v1/doc/features.html#xml-roundtrip";
 			"http://xmlpull.org/v1/doc/features.html#xml-roundtrip";
-	protected final static String FEATURE_NAMES_INTERNED =
-			"http://xmlpull.org/v1/doc/features.html#names-interned";
-	protected final static String PROPERTY_XMLDECL_VERSION =
-			"http://xmlpull.org/v1/doc/properties.html#xmldecl-version";
-	protected final static String PROPERTY_XMLDECL_STANDALONE =
-			"http://xmlpull.org/v1/doc/properties.html#xmldecl-standalone";
-	protected final static String PROPERTY_XMLDECL_CONTENT =
-			"http://xmlpull.org/v1/doc/properties.html#xmldecl-content";
-	protected final static String PROPERTY_LOCATION =
-			"http://xmlpull.org/v1/doc/properties.html#location";
+	protected final static String FEATURE_NAMES_INTERNED = "http://xmlpull.org/v1/doc/features.html#names-interned";
+	protected final static String PROPERTY_XMLDECL_VERSION = "http://xmlpull.org/v1/doc/properties.html#xmldecl-version";
+	protected final static String PROPERTY_XMLDECL_STANDALONE = "http://xmlpull.org/v1/doc/properties.html#xmldecl-standalone";
+	protected final static String PROPERTY_XMLDECL_CONTENT = "http://xmlpull.org/v1/doc/properties.html#xmldecl-content";
+	protected final static String PROPERTY_LOCATION = "http://xmlpull.org/v1/doc/properties.html#location";
 
 	/**
 	 * Implementation notice: the is instance variable that controls if newString() is interning.
@@ -369,8 +364,8 @@ public class MXParser implements XmlPullParser {
 	protected int bufLoadFactor = 95; // 99%
 	// protected int bufHardLimit; // only matters when expanding
 
-	protected char buf[] =
-			new char[Runtime.getRuntime().freeMemory() > 1000000L ? READ_CHUNK_SIZE : 256];
+	protected char buf[] = new char[Runtime.getRuntime().freeMemory() > 1000000L ? READ_CHUNK_SIZE
+			: 256];
 	protected int bufSoftLimit = (bufLoadFactor * buf.length) / 100; // desirable size of buffer
 	protected boolean preventBufferCompaction;
 
@@ -381,8 +376,8 @@ public class MXParser implements XmlPullParser {
 	protected int posStart;
 	protected int posEnd;
 
-	protected char pc[] =
-			new char[Runtime.getRuntime().freeMemory() > 1000000L ? READ_CHUNK_SIZE : 64];
+	protected char pc[] = new char[Runtime.getRuntime().freeMemory() > 1000000L ? READ_CHUNK_SIZE
+			: 64];
 	protected int pcStart;
 	protected int pcEnd;
 
@@ -457,8 +452,10 @@ public class MXParser implements XmlPullParser {
 	/**
 	 * Method setFeature
 	 *
-	 * @param name a String
-	 * @param state a boolean
+	 * @param name
+	 *          a String
+	 * @param state
+	 *          a boolean
 	 *
 	 * @throws XmlPullParserException
 	 *
@@ -615,8 +612,8 @@ public class MXParser implements XmlPullParser {
 		entityReplacement[entityEnd] = replacementText;
 		entityReplacementBuf[entityEnd] = replacementText.toCharArray();
 		if (!allStringsInterned) {
-			entityNameHash[entityEnd] =
-					fastHash(entityNameBuf[entityEnd], 0, entityNameBuf[entityEnd].length);
+			entityNameHash[entityEnd] = fastHash(entityNameBuf[entityEnd], 0,
+					entityNameBuf[entityEnd].length);
 		}
 		++entityEnd;
 		// TODO disallow < or & in entity replacement text (or ]]>???)
@@ -1913,8 +1910,8 @@ public class MXParser implements XmlPullParser {
 		String prefix = null;
 		if (processNamespaces) {
 			if (colonPos != -1) {
-				prefix =
-						elPrefix[depth] = newString(buf, nameStart - bufAbsoluteStart, colonPos - nameStart);
+				prefix = elPrefix[depth] = newString(buf, nameStart - bufAbsoluteStart,
+						colonPos - nameStart);
 				name = elName[depth] = newString(buf, colonPos + 1 - bufAbsoluteStart,
 						// (pos -1) - (colonPos + 1));
 						pos - 2 - (colonPos - bufAbsoluteStart));
@@ -2145,12 +2142,12 @@ public class MXParser implements XmlPullParser {
 			else {
 				if (colonPos != -1) {
 					int prefixLen = colonPos - nameStart;
-					prefix = attributePrefix[attributeCount] =
-							newString(buf, nameStart - bufAbsoluteStart, prefixLen);
+					prefix = attributePrefix[attributeCount] = newString(buf, nameStart - bufAbsoluteStart,
+							prefixLen);
 					// colonPos - (nameStart - bufAbsoluteStart));
 					int nameLen = pos - 2 - (colonPos - bufAbsoluteStart);
-					name = attributeName[attributeCount] =
-							newString(buf, colonPos - bufAbsoluteStart + 1, nameLen);
+					name = attributeName[attributeCount] = newString(buf, colonPos - bufAbsoluteStart + 1,
+							nameLen);
 					// pos - 1 - (colonPos + 1 - bufAbsoluteStart));
 
 					// name.substring(0, colonPos-nameStart);
@@ -2168,8 +2165,8 @@ public class MXParser implements XmlPullParser {
 		}
 		else {
 			// retrieve name
-			name = attributeName[attributeCount] =
-					newString(buf, nameStart - bufAbsoluteStart, pos - 1 - (nameStart - bufAbsoluteStart));
+			name = attributeName[attributeCount] = newString(buf, nameStart - bufAbsoluteStart,
+					pos - 1 - (nameStart - bufAbsoluteStart));
 			// //assert name != null;
 			if (!allStringsInterned) {
 				attributeNameHash[attributeCount] = name.hashCode();
@@ -3274,7 +3271,7 @@ public class MXParser implements XmlPullParser {
 					return;
 				}
 				else {
-					StringBuffer expectedTagStack = new StringBuffer();
+					StringBuilder expectedTagStack = new StringBuilder();
 					if (depth > 0) {
 						// final char[] cbuf = elRawName[depth];
 						// final String startname = new String(cbuf, 0, elRawNameEnd[depth]);
@@ -3531,7 +3528,7 @@ public class MXParser implements XmlPullParser {
 			return null;
 		}
 		final int sLen = s.length();
-		StringBuffer buf = new StringBuffer(sLen + 10);
+		StringBuilder buf = new StringBuilder(sLen + 10);
 		for (int i = 0; i < sLen; ++i) {
 			buf.append(printable(s.charAt(i)));
 		}
@@ -3569,4 +3566,3 @@ public class MXParser implements XmlPullParser {
  * AS TO THE PERFORMANCE OF SOFTWARE AND/OR ASSOCIATED MATERIALS, AND TO THE PERFORMANCE AND
  * VALIDITY OF INFORMATION GENERATED USING SOFTWARE.
  */
-

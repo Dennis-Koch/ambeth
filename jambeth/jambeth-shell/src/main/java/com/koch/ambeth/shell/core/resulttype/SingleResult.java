@@ -24,7 +24,7 @@ limitations under the License.
  * A class for a kind of command return type which contains only simple information
  */
 public class SingleResult extends CommandResult {
-	private StringBuffer value = new StringBuffer();
+	private StringBuilder value = new StringBuilder();
 
 	public SingleResult(String value) {
 		this.value.append(value);
