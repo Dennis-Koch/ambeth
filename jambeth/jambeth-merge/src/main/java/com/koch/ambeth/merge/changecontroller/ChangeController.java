@@ -106,7 +106,7 @@ public class ChangeController
 				boolean extensionCalled =
 						cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Boolean>() {
 							@Override
-							public Boolean invoke() throws Throwable {
+							public Boolean invoke() throws Exception {
 								return Boolean.valueOf(processChanges(newObjects, oldObjects));
 							}
 						}).booleanValue();
@@ -123,7 +123,7 @@ public class ChangeController
 					cudResult = mergeController.mergeDeep(objectsToMerge, mergeHandle);
 				}
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 			finally {
@@ -273,7 +273,7 @@ public class ChangeController
 		edblActiveTL.set(Boolean.FALSE);
 		return new AbstractStateRollback(rollbacks) {
 			@Override
-			protected void rollbackIntern() throws Throwable {
+			protected void rollbackIntern() throws Exception {
 				edblActiveTL.set(oldValue);
 			}
 		};

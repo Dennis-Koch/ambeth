@@ -34,5 +34,5 @@ public interface IFactoryBean {
 	 * @return Real bean instance.
 	 * @throws Throwable
 	 */
-	Object getObject() throws Throwable;
+	Object getObject() throws Exception;
 }

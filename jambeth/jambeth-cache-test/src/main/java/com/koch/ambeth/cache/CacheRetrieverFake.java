@@ -117,7 +117,7 @@ public class CacheRetrieverFake implements ICacheService, IChunkProvider {
 				dos.finish();
 				payload = bos.toByteArray();
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 			finally {

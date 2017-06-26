@@ -47,7 +47,7 @@ public class PostgresCharacterInputSource
 			return null;
 			// return new PostgresCharacterInputStream(new PostgresClob(connection, oid));
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -59,7 +59,7 @@ public class PostgresCharacterInputSource
 			return null;
 			// return new PostgresCharacterInputStream(new PostgresClob(connection, oid));
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

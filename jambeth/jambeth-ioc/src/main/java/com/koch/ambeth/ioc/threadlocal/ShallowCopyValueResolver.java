@@ -37,7 +37,7 @@ public class ShallowCopyValueResolver implements IForkedValueResolver {
 					.getDeclaredMethod(false, originalValue.getClass(), null, "clone", new Class<?>[0])
 					.invoke(originalValue);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

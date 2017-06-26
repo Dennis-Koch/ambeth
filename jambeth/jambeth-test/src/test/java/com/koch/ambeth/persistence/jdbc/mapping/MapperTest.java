@@ -241,7 +241,7 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest {
 		final ICache cache = cacheProvider.getCurrentCache();
 		cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>() {
 			@Override
-			public Object invoke() throws Throwable {
+			public Object invoke() throws Exception {
 				OneToManyEntity expected = entityFactory.createEntity(OneToManyEntity.class);
 				expected.setName("testNewEntity");
 				expected.setBuid("buid");

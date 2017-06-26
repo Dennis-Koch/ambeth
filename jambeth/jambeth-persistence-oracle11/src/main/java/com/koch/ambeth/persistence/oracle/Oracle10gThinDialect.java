@@ -61,7 +61,7 @@ public class Oracle10gThinDialect extends Oracle10gDialect {
 					JdbcUtil.close(stm);
 				}
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}

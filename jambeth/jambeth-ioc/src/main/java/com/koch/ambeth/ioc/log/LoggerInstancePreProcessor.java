@@ -96,7 +96,7 @@ public class LoggerInstancePreProcessor extends WeakSmartCopyMap<Class<?>, ILogg
 			try {
 				field.set(service, logger);
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}

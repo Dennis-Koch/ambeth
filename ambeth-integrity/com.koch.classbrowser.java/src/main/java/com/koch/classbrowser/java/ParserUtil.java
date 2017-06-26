@@ -276,7 +276,7 @@ public class ParserUtil {
 				typeDescription.getMethodDescriptions().add(methodDescription);
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

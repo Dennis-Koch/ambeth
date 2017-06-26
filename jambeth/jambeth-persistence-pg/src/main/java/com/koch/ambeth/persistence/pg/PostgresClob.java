@@ -123,14 +123,14 @@ public class PostgresClob implements Clob {
 			}
 			return sb.toString();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
 			try {
 				reader.close();
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -166,7 +166,7 @@ public class PostgresClob implements Clob {
 				writer.close();
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

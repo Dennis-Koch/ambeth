@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-
 public final class NoOpStateRollback implements IStateRollback {
 	public static final IStateRollback instance = new NoOpStateRollback();
 
@@ -33,7 +32,7 @@ public final class NoOpStateRollback implements IStateRollback {
 		}
 		return new AbstractStateRollback(rollbacks) {
 			@Override
-			protected void rollbackIntern() throws Throwable {
+			protected void rollbackIntern() throws Exception {
 				// intended blank
 			}
 		};

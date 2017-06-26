@@ -1042,7 +1042,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 				}
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

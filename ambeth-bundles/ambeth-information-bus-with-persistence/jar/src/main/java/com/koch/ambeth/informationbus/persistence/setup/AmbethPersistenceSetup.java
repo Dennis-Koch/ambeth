@@ -389,7 +389,7 @@ public class AmbethPersistenceSetup implements Closeable {
 				}
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -434,7 +434,7 @@ public class AmbethPersistenceSetup implements Closeable {
 				schemaContext = null;
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -581,7 +581,7 @@ public class AmbethPersistenceSetup implements Closeable {
 				ISchemaRunnable schemaRunnable = schemaContext.registerBean(schemaRunnableType).finish();
 				schemaRunnables.add(schemaRunnable);
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -593,7 +593,7 @@ public class AmbethPersistenceSetup implements Closeable {
 				set.addAll(additionalSchemaFiles);
 				schemaFiles = set.toArray(String.class);
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -803,7 +803,7 @@ public class AmbethPersistenceSetup implements Closeable {
 	// authentication.password().toCharArray(), PasswordType.PLAIN),
 	// new IResultingBackgroundWorkerDelegate<Object>() {
 	// @Override
-	// public Object invoke() throws Throwable {
+	// public Object invoke() throws Exception {
 	// IStateRollback rollback = NoOpStateRollback.instance;
 	// if (changeControllerActive && changeController != null) {
 	// rollback = changeController.pushRunWithoutEDBL();
@@ -1134,7 +1134,7 @@ public class AmbethPersistenceSetup implements Closeable {
 				}
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

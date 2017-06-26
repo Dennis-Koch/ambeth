@@ -403,7 +403,7 @@ public class Program {
 			}
 			return moduleMap;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -464,7 +464,7 @@ public class Program {
 				}
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		return classes;

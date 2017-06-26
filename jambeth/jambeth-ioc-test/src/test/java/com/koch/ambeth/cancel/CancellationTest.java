@@ -60,7 +60,7 @@ public class CancellationTest extends AbstractIocTest {
 		try {
 			multithreadingHelper.invokeAndWait(items, new IBackgroundWorkerParamDelegate<Object>() {
 				@Override
-				public void invoke(Object item) throws Throwable {
+				public void invoke(Object item) throws Exception {
 					try {
 						if (Thread.currentThread() == mainThread) {
 							// waits till a FOREIGN child thread calls countDown()

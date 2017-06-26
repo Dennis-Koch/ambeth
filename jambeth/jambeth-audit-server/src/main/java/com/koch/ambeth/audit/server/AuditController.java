@@ -198,7 +198,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			auditEntryTL.set(auditEntryState);
 			return auditEntryState;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -495,12 +495,12 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	}
 
 	@Override
-	public void handlePostBegin(long sessionId) throws Throwable {
+	public void handlePostBegin(long sessionId) throws Exception {
 		// intended blank
 	}
 
 	@Override
-	public void handlePostRollback(long sessionId) throws Throwable {
+	public void handlePostRollback(long sessionId) throws Exception {
 		auditEntryTL.set(null);
 		AdditionalAuditInfo additionalAuditInfo = additionalAuditInfoTL.get();
 		if (additionalAuditInfo != null && additionalAuditInfo.doClearPassword) {
@@ -509,7 +509,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	}
 
 	@Override
-	public void handlePreCommit(long sessionId) throws Throwable {
+	public void handlePreCommit(long sessionId) throws Exception {
 		final AuditControllerState auditEntryState = auditEntryTL.get();
 		if (auditEntryState == null) {
 			handlePostRollback(sessionId);
@@ -522,7 +522,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		try {
 			securityActivation.executeWithoutSecurity(new IBackgroundWorkerDelegate() {
 				@Override
-				public void invoke() throws Throwable {
+				public void invoke() throws Exception {
 					ArrayList<CreateOrUpdateContainerBuild> auditedChanges = auditEntryState.auditedChanges;
 					CreateOrUpdateContainerBuild auditEntry = auditedChanges.get(0);
 
@@ -562,7 +562,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 				}
 			});
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

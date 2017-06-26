@@ -136,7 +136,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect {
 				handleArrayTypes(connection);
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -265,7 +265,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect {
 			}
 			throw e;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

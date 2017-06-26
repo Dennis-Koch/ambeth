@@ -51,36 +51,35 @@ public class RebuildSchema {
 	public static void main(final String[] args, Class<?> testClass,
 			String recommendedPropertyFileName) throws Exception {
 		Properties.getApplication().fillWithCommandLineArgs(args);
-		AmbethInformationBusWithPersistenceRunner runner =
-				new AmbethInformationBusWithPersistenceRunner(testClass) {
-					@Override
-					protected void extendPropertiesInstance(FrameworkMethod frameworkMethod,
-							Properties props) {
-						super.extendPropertiesInstance(frameworkMethod, props);
+		AmbethInformationBusWithPersistenceRunner runner = new AmbethInformationBusWithPersistenceRunner(
+				testClass) {
+			@Override
+			protected void extendPropertiesInstance(FrameworkMethod frameworkMethod, Properties props) {
+				super.extendPropertiesInstance(frameworkMethod, props);
 
-						// intentionally refill with args a second time
-						props.fillWithCommandLineArgs(args);
+				// intentionally refill with args a second time
+				props.fillWithCommandLineArgs(args);
 
-						String bootstrapPropertyFile =
-								props.getString(UtilConfigurationConstants.BootstrapPropertyFile);
-						if (bootstrapPropertyFile == null) {
-							bootstrapPropertyFile =
-									props.getString(UtilConfigurationConstants.BootstrapPropertyFile.toUpperCase());
-						}
-						if (bootstrapPropertyFile != null) {
-							System.out.println(
-									"Environment property '" + UtilConfigurationConstants.BootstrapPropertyFile
-											+ "' found with value '" + bootstrapPropertyFile + "'");
-							props.load(bootstrapPropertyFile, false);
-						}
-						props.put(PersistenceJdbcConfigurationConstants.IntegratedConnectionFactory, true);
-						if (props.get("ambeth.log.level") == null) {
-							props.put("ambeth.log.level", "INFO");
-						}
-						// intentionally refill with args a third time
-						props.fillWithCommandLineArgs(args);
-					}
-				};
+				String bootstrapPropertyFile = props
+						.getString(UtilConfigurationConstants.BootstrapPropertyFile);
+				if (bootstrapPropertyFile == null) {
+					bootstrapPropertyFile = props
+							.getString(UtilConfigurationConstants.BootstrapPropertyFile.toUpperCase());
+				}
+				if (bootstrapPropertyFile != null) {
+					System.out
+							.println("Environment property '" + UtilConfigurationConstants.BootstrapPropertyFile
+									+ "' found with value '" + bootstrapPropertyFile + "'");
+					props.load(bootstrapPropertyFile, false);
+				}
+				props.put(PersistenceJdbcConfigurationConstants.IntegratedConnectionFactory, true);
+				if (props.get("ambeth.log.level") == null) {
+					props.put("ambeth.log.level", "INFO");
+				}
+				// intentionally refill with args a third time
+				props.fillWithCommandLineArgs(args);
+			}
+		};
 		try {
 			runner.rebuildSchemaContext();
 		}

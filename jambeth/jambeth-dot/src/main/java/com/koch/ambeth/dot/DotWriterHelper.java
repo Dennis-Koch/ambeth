@@ -30,7 +30,7 @@ public class DotWriterHelper {
 			dotLambda.accept(writer);
 			String text = sb.toString();
 			Files.write(dotFile, text.getBytes(utf8));
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -62,7 +62,7 @@ public class DotWriterHelper {
 
 		try {
 			Files.createDirectories(targetFile.getParent());
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 
@@ -85,7 +85,7 @@ public class DotWriterHelper {
 			} finally {
 				mvn.destroyForcibly();
 			}
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

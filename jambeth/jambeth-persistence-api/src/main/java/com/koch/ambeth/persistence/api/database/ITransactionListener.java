@@ -21,9 +21,9 @@ limitations under the License.
  */
 
 public interface ITransactionListener {
-	void handlePostBegin(long sessionId) throws Throwable;
+	void handlePostBegin(long sessionId) throws Exception;
 
-	void handlePreCommit(long sessionId) throws Throwable;
+	void handlePreCommit(long sessionId) throws Exception;
 
-	void handlePostRollback(long sessionId) throws Throwable;
+	void handlePostRollback(long sessionId) throws Exception;
 }

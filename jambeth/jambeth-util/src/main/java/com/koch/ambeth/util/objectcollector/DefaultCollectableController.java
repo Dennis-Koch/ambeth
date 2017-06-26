@@ -59,7 +59,7 @@ public class DefaultCollectableController implements ICollectableController {
 	}
 
 	@Override
-	public Object createInstance() throws Throwable {
+	public Object createInstance() throws Exception {
 		try {
 			if (isCollectorAware) {
 				return constructor.newInstance(objectCollector);
@@ -73,14 +73,14 @@ public class DefaultCollectableController implements ICollectableController {
 	}
 
 	@Override
-	public void initObject(Object object) throws Throwable {
+	public void initObject(Object object) throws Exception {
 		if (isCollectable) {
 			((ICollectable) object).initInternDoNotCall();
 		}
 	}
 
 	@Override
-	public void disposeObject(Object object) throws Throwable {
+	public void disposeObject(Object object) throws Exception {
 		if (isCollectable) {
 			((ICollectable) object).disposeInternDoNotCall();
 		}

@@ -94,7 +94,7 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager {
 
 			return new InitialLdapContext(env, null);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -117,7 +117,7 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager {
 
 			return ctxGC.search(searchBase, searchFilter, searchCtls);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -194,7 +194,7 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager {
 				ctxGC.close();
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

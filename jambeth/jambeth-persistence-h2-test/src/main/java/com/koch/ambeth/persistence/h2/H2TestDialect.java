@@ -62,7 +62,7 @@ public class H2TestDialect extends AbstractConnectionTestDialect {
 			createAliasIfNecessary("TO_TIMESTAMP", Functions.class.getName() + ".toTimestamp",
 					functionAliases, stm);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

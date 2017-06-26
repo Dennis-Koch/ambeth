@@ -201,8 +201,8 @@ public class ChildCache extends AbstractCache<Object>
 		super.cacheValueHasBeenAdded(idIndex, id, metaData, primitives, relations, cacheValueR);
 
 		Class<?> entityType = metaData.getEntityType();
-		CacheKey[] oldAlternateCacheKeys =
-				(CacheKey[]) keyToAlternateIdsMap.get(entityType, idIndex, id);
+		CacheKey[] oldAlternateCacheKeys = (CacheKey[]) keyToAlternateIdsMap.get(entityType, idIndex,
+				id);
 		if (oldAlternateCacheKeys != null) {
 			for (int a = oldAlternateCacheKeys.length; a-- > 0;) {
 				CacheKey alternateCacheKey = oldAlternateCacheKeys[a];
@@ -481,7 +481,7 @@ public class ChildCache extends AbstractCache<Object>
 					return securityActivation.executeWithoutFiltering(
 							new IResultingBackgroundWorkerDelegate<IList<IObjRelationResult>>() {
 								@Override
-								public IList<IObjRelationResult> invoke() throws Throwable {
+								public IList<IObjRelationResult> invoke() throws Exception {
 									return parent.getObjRelations(objRels, targetCache, cacheDirective);
 								}
 							});
@@ -490,7 +490,7 @@ public class ChildCache extends AbstractCache<Object>
 					return parent.getObjRelations(objRels, targetCache, cacheDirective);
 				}
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 			finally {
@@ -623,8 +623,8 @@ public class ChildCache extends AbstractCache<Object>
 			// Now we have to refresh the current content eagerly
 
 			// load entities as if we were an "eager valueholder" here
-			IList<Object> potentialNewItems =
-					parent.getObjects(new ArrayList<IObjRef>(relationsOfMember), this, CacheDirective.none());
+			IList<Object> potentialNewItems = parent.getObjects(new ArrayList<IObjRef>(relationsOfMember),
+					this, CacheDirective.none());
 			if (overwriteToManyRelations) {
 				Object newRelationValue = cacheHelper.convertResultListToExpectedType(potentialNewItems,
 						relationMember.getRealType(), relationMember.getElementType());
@@ -681,8 +681,8 @@ public class ChildCache extends AbstractCache<Object>
 			return null;
 		}
 		Object cacheValueR = super.removeKeyFromCache(entityType, idIndex, id);
-		CacheKey[] alternateCacheKeys =
-				(CacheKey[]) keyToAlternateIdsMap.remove(entityType, idIndex, id);
+		CacheKey[] alternateCacheKeys = (CacheKey[]) keyToAlternateIdsMap.remove(entityType, idIndex,
+				id);
 		if (alternateCacheKeys != null) {
 			for (int a = alternateCacheKeys.length; a-- > 0;) {
 				removeKeyFromCache(alternateCacheKeys[a]);

@@ -52,7 +52,7 @@ public class ClassGenerator extends ClassVisitor {
 		try {
 			c_obj = new ConstructorInstance(Object.class.getConstructor());
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -68,7 +68,7 @@ public class ClassGenerator extends ClassVisitor {
 		try {
 			return runnable.invoke();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

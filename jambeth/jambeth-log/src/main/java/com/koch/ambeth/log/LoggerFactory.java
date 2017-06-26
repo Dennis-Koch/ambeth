@@ -175,7 +175,7 @@ public final class LoggerFactory {
 						props);
 			}
 			return logger;
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -189,7 +189,7 @@ public final class LoggerFactory {
 				LoggerFactory.configureLogger(source, (IConfigurableLogger) logger);
 			}
 			return logger;
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

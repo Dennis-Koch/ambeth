@@ -57,7 +57,7 @@ public class BytecodeStoreItem {
 			}
 			return lastEnhancedType;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

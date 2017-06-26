@@ -67,7 +67,7 @@ public class LogPreparedStatementInterceptor extends LogStatementInterceptor imp
 				setIndexMethods.add(method);
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

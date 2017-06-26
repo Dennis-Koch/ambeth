@@ -91,11 +91,7 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
 
 public class EntityLoader
-		implements
-			IEntityLoader,
-			ILoadContainerProvider,
-			IStartingBean,
-			IThreadLocalCleanupBean {
+		implements IEntityLoader, ILoadContainerProvider, IStartingBean, IThreadLocalCleanupBean {
 	public static class EntityLoaderForkProcessor implements IForkProcessor {
 		@Autowired
 		protected ICacheMapEntryTypeProvider cacheMapEntryTypeProvider;
@@ -132,11 +128,10 @@ public class EntityLoader
 					? new Tuple3KeyHashMap<Class<?>, Integer, Object, ILoadContainer>(
 							(int) (sizeHint / 0.75f) + 1, 0.75f)
 					: new Tuple3KeyHashMap<Class<?>, Integer, Object, ILoadContainer>();
-			objRefMap =
-					sizeHint > 0
-							? new Tuple3KeyHashMap<Class<?>, Integer, Object, IObjRef>(
-									(int) (sizeHint / 0.75f) + 1, 0.75f)
-							: new Tuple3KeyHashMap<Class<?>, Integer, Object, IObjRef>();
+			objRefMap = sizeHint > 0
+					? new Tuple3KeyHashMap<Class<?>, Integer, Object, IObjRef>((int) (sizeHint / 0.75f) + 1,
+							0.75f)
+					: new Tuple3KeyHashMap<Class<?>, Integer, Object, IObjRef>();
 		}
 	}
 
@@ -245,14 +240,13 @@ public class EntityLoader
 		IDatabaseMetaData databaseMetaData = this.databaseMetaData;
 		LinkedHashMap<Class<?>, Collection<Object>[]> typeToPendingInit = new LinkedHashMap<>();
 		LinkedHashMap<Class<?>, Collection<Object>[]> cascadeTypeToPendingInit = new LinkedHashMap<>();
-		IdentityLinkedSet<ILoadContainer> loadContainerSet =
-				IdentityLinkedSet.<ILoadContainer>create(orisToLoad.size());
+		IdentityLinkedSet<ILoadContainer> loadContainerSet = IdentityLinkedSet
+				.<ILoadContainer>create(orisToLoad.size());
 		Maps oldMaps = loadContainerMapTL.get();
 		loadContainerMapTL.set(null);
 		try {
 			acquireMaps(orisToLoad.size());
-			Tuple3KeyHashMap<Class<?>, Integer, Object, ILoadContainer> loadContainerMap =
-					getLoadContainerMap();
+			Tuple3KeyHashMap<Class<?>, Integer, Object, ILoadContainer> loadContainerMap = getLoadContainerMap();
 			for (int a = orisToLoad.size(); a-- > 0;) {
 				IObjRef oriToLoad = orisToLoad.get(a);
 				Class<?> type = oriToLoad.getRealType();
@@ -260,8 +254,8 @@ public class EntityLoader
 
 				ITableMetaData table = databaseMetaData.getTableByType(type);
 				Class<?> persistentIdType = table.getIdFieldByAlternateIdIndex(idIndex).getFieldType();
-				Object persistentId =
-						conversionHelper.convertValueToType(persistentIdType, oriToLoad.getId());
+				Object persistentId = conversionHelper.convertValueToType(persistentIdType,
+						oriToLoad.getId());
 				Collection<Object> pendingInit = getEnsurePendingInit(table, typeToPendingInit, idIndex);
 				pendingInit.add(persistentId);
 			}
@@ -279,11 +273,11 @@ public class EntityLoader
 				ITableMetaData table = databaseMetaData.getTableByType(oriToLoad.getRealType());
 				byte idIndex = oriToLoad.getIdNameIndex();
 				Class<?> persistentIdType = table.getIdFieldByAlternateIdIndex(idIndex).getFieldType();
-				Object persistentId =
-						conversionHelper.convertValueToType(persistentIdType, oriToLoad.getId());
+				Object persistentId = conversionHelper.convertValueToType(persistentIdType,
+						oriToLoad.getId());
 
-				ILoadContainer loadContainer =
-						loadContainerMap.get(table.getEntityType(), Integer.valueOf(idIndex), persistentId);
+				ILoadContainer loadContainer = loadContainerMap.get(table.getEntityType(),
+						Integer.valueOf(idIndex), persistentId);
 				if (loadContainer == null) {
 					// beanContext.getService(java.sql.Connection.class).commit();
 					continue;
@@ -313,8 +307,8 @@ public class EntityLoader
 		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 		IDatabase database = this.database.getCurrent();
 
-		ILinkedMap<ObjRelationType, IList<OrelLoadItem>> groupedObjRelations =
-				bucketSortObjRelations(database.getMetaData(), orelsToLoad);
+		ILinkedMap<ObjRelationType, IList<OrelLoadItem>> groupedObjRelations = bucketSortObjRelations(
+				database.getMetaData(), orelsToLoad);
 		for (Entry<ObjRelationType, IList<OrelLoadItem>> entry : groupedObjRelations) {
 			ObjRelationType objRelType = entry.getKey();
 			IList<OrelLoadItem> orelLoadItems = entry.getValue();
@@ -324,11 +318,11 @@ public class EntityLoader
 			// Here all objRels in this list have ObjRefs of the same targeting requestType AND same
 			// targeting idIndex
 
-			IEntityMetaData targetingRequestMetaData =
-					entityMetaDataProvider.getMetaData(targetingRequestType);
+			IEntityMetaData targetingRequestMetaData = entityMetaDataProvider
+					.getMetaData(targetingRequestType);
 			ITable targetingRequestTable = database.getTableByType(targetingRequestType);
-			IDirectedLink targetingRequestLink =
-					targetingRequestTable.getLinkByMemberName(objRelType.getMemberName());
+			IDirectedLink targetingRequestLink = targetingRequestTable
+					.getLinkByMemberName(objRelType.getMemberName());
 
 			if (targetingRequestLink == null) {
 				for (int a = orelLoadItems.size(); a-- > 0;) {
@@ -341,8 +335,8 @@ public class EntityLoader
 				continue;
 			}
 			IDirectedLinkMetaData targetingRequestLinkMetaData = targetingRequestLink.getMetaData();
-			IEntityMetaData requestedMetaData =
-					entityMetaDataProvider.getMetaData(targetingRequestLinkMetaData.getToEntityType());
+			IEntityMetaData requestedMetaData = entityMetaDataProvider
+					.getMetaData(targetingRequestLinkMetaData.getToEntityType());
 			Class<?> requestedType = requestedMetaData.getEntityType();
 
 			Member targetingIdMember = targetingRequestMetaData.getIdMemberByIdIndex(idIndex);
@@ -360,7 +354,7 @@ public class EntityLoader
 				ObjRelationResult objRelResult = new ObjRelationResult();
 				objRelResult.setReference(orelLoadItem.getObjRel());
 
-				targetingIdsMap.put(id, new Object[] {objRelResult, null});
+				targetingIdsMap.put(id, new Object[] { objRelResult, null });
 			}
 
 			Class<?> idTypeOfTargetingObject = targetingIdMember.getRealType();
@@ -373,8 +367,7 @@ public class EntityLoader
 					toIdIndex = cursor.getToIdIndex();
 					ITableMetaData requestedTable = database.getTableByType(requestedType).getMetaData();
 					IFieldMetaData idField = toIdIndex == ObjRef.PRIMARY_KEY_INDEX
-							? requestedTable.getIdField()
-							: requestedTable.getAlternateIdFields()[toIdIndex];
+							? requestedTable.getIdField() : requestedTable.getAlternateIdFields()[toIdIndex];
 					idTypeOfRequestedObject = idField.getFieldType();
 				}
 				else {
@@ -383,15 +376,15 @@ public class EntityLoader
 					toIdIndex = requestedMetaData.getIdIndexByMemberName(requestedIdMember.getName());
 				}
 
-				IPreparedObjRefFactory preparedObjRefFactory =
-						objRefFactory.prepareObjRefFactory(requestedType, toIdIndex);
+				IPreparedObjRefFactory preparedObjRefFactory = objRefFactory
+						.prepareObjRefFactory(requestedType, toIdIndex);
 				while (cursor.moveNext()) {
 					ILinkCursorItem item = cursor.getCurrent();
 
-					Object fromId =
-							conversionHelper.convertValueToType(idTypeOfTargetingObject, item.getFromId());
-					Object toId =
-							conversionHelper.convertValueToType(idTypeOfRequestedObject, item.getToId());
+					Object fromId = conversionHelper.convertValueToType(idTypeOfTargetingObject,
+							item.getFromId());
+					Object toId = conversionHelper.convertValueToType(idTypeOfRequestedObject,
+							item.getToId());
 
 					IObjRef targetObjRef = preparedObjRefFactory.createObjRef(toId, null);
 
@@ -430,15 +423,14 @@ public class EntityLoader
 	protected ILinkedMap<ObjRelationType, IList<OrelLoadItem>> bucketSortObjRelations(
 			IDatabaseMetaData database, List<IObjRelation> orisToLoad) {
 		ILinkedMap<ObjRelationType, IList<OrelLoadItem>> sortedIObjRefs = new LinkedHashMap<>();
-		ILinkedMap<Class<?>, ILinkedMap<Member, IList<Object>>> typeToMissingOris =
-				new LinkedHashMap<>();
+		ILinkedMap<Class<?>, ILinkedMap<Member, IList<Object>>> typeToMissingOris = new LinkedHashMap<>();
 		IMap<CacheKey, IList<IObjRef>> keyToEmptyOris = new HashMap<>();
 
 		for (int i = orisToLoad.size(); i-- > 0;) {
 			IObjRelation orelToLoad = orisToLoad.get(i);
 
-			IObjRef objRef =
-					prepareObjRefForObjRelType(orelToLoad, typeToMissingOris, keyToEmptyOris, database);
+			IObjRef objRef = prepareObjRefForObjRelType(orelToLoad, typeToMissingOris, keyToEmptyOris,
+					database);
 			ObjRelationType objRelType = new ObjRelationType(objRef.getRealType(),
 					objRef.getIdNameIndex(), orelToLoad.getMemberName());
 
@@ -464,11 +456,10 @@ public class EntityLoader
 
 		Class<?> targetingRequestType = orelToLoad.getRealType();
 		ITableMetaData targetingRequestTable = database.getTableByType(targetingRequestType);
-		IDirectedLinkMetaData targetingRequestLink =
-				targetingRequestTable.getLinkByMemberName(orelToLoad.getMemberName());
+		IDirectedLinkMetaData targetingRequestLink = targetingRequestTable
+				.getLinkByMemberName(orelToLoad.getMemberName());
 
-		byte idIndex = targetingRequestLink != null
-				? targetingRequestLink.getFromIdIndex()
+		byte idIndex = targetingRequestLink != null ? targetingRequestLink.getFromIdIndex()
 				: ObjRef.PRIMARY_KEY_INDEX;
 		if (idIndex == ObjRef.UNDEFINED_KEY_INDEX) {
 			idIndex = ObjRef.PRIMARY_KEY_INDEX;
@@ -499,8 +490,8 @@ public class EntityLoader
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(targetingRequestType);
 		Member idMember = metaData.getIdMemberByIdIndex(givenOri.getIdNameIndex());
 
-		ILinkedMap<Member, IList<Object>> givenMemberToValues =
-				typeToMissingOris.get(targetingRequestType);
+		ILinkedMap<Member, IList<Object>> givenMemberToValues = typeToMissingOris
+				.get(targetingRequestType);
 		if (givenMemberToValues == null) {
 			givenMemberToValues = new LinkedHashMap<>();
 			typeToMissingOris.put(targetingRequestType, givenMemberToValues);
@@ -629,8 +620,8 @@ public class EntityLoader
 				// Flush version. It will be set later to the current valid
 				// value. If version remains null at the end, the entity is not persisted (any more)
 				ori.setVersion(null);
-				Collection<Object> pendingInit =
-						getEnsurePendingInit(table, typeToPendingInit, idNameIndex);
+				Collection<Object> pendingInit = getEnsurePendingInit(table, typeToPendingInit,
+						idNameIndex);
 				pendingInit.add(id);
 
 				objRefMap.put(type, Integer.valueOf(idNameIndex), id, ori);
@@ -712,7 +703,7 @@ public class EntityLoader
 		multithreadingHelper.invokeAndWait(parallelPendingItems,
 				new IResultingBackgroundWorkerParamDelegate<Object, ParallelLoadItem>() {
 					@Override
-					public Object invoke(ParallelLoadItem state) throws Throwable {
+					public Object invoke(ParallelLoadItem state) throws Exception {
 						initInstances(state.entityType, state.idIndex, state.ids,
 								state.cascadeTypeToPendingInit, state.loadMode);
 						return null;
@@ -739,8 +730,8 @@ public class EntityLoader
 					continue;
 				}
 				ITableMetaData table = database.getTableByType(type).getMetaData();
-				Collection<Object> sharedPendingInit =
-						getEnsurePendingInit(table, sharedCascadeTypeToPendingInit, (byte) (a - 1));
+				Collection<Object> sharedPendingInit = getEnsurePendingInit(table,
+						sharedCascadeTypeToPendingInit, (byte) (a - 1));
 				sharedPendingInit.addAll(pendingInit);
 			}
 		}
@@ -791,8 +782,8 @@ public class EntityLoader
 			while (cursor.moveNext()) {
 				IVersionItem item = cursor.getCurrent();
 				Object id = conversionHelper.convertValueToType(givenIdType, item.getId(idIndex));
-				Object version =
-						conversionHelper.convertValueToType(versionTypeOfObject, item.getVersion());
+				Object version = conversionHelper.convertValueToType(versionTypeOfObject,
+						item.getVersion());
 
 				IObjRef ori = objRefMap.get(entityType, idIndex, id);
 
@@ -818,8 +809,8 @@ public class EntityLoader
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 		ITable table = database.getTableByType(entityType);
 		ITableMetaData tableMD = table.getMetaData();
-		IDirectedLink[] standaloneDirectedLinks =
-				new IDirectedLink[metaData.getRelationMembers().length];
+		IDirectedLink[] standaloneDirectedLinks = new IDirectedLink[metaData
+				.getRelationMembers().length];
 		IDirectedLink[] directedLinks = new IDirectedLink[standaloneDirectedLinks.length];
 		ArrayList<Object>[] directedLinkQueues = new ArrayList[standaloneDirectedLinks.length];
 		IdentityHashMap<IFieldMetaData, Integer> fieldToDirectedLinkIndex = new IdentityHashMap<>();
@@ -827,14 +818,13 @@ public class EntityLoader
 		String idFieldMemberName = tableMD.getIdFieldByAlternateIdIndex(idIndex).getMember().getName();
 		Class<?> primIdType = tableMD.getIdField().getFieldType();
 		IFieldMetaData versionField = tableMD.getVersionField();
-		Class<?> versionTypeOfObject =
-				versionField != null ? versionField.getMember().getElementType() : null;
+		Class<?> versionTypeOfObject = versionField != null ? versionField.getMember().getElementType()
+				: null;
 		int primitiveMemberCount = metaData.getPrimitiveMembers().length;
 		int relationMemberCount = metaData.getRelationMembers().length;
 
 		Tuple3KeyHashMap<Class<?>, Integer, Object, IObjRef> objRefMap = getObjRefMap();
-		Tuple3KeyHashMap<Class<?>, Integer, Object, ILoadContainer> loadContainerMap =
-				getLoadContainerMap();
+		Tuple3KeyHashMap<Class<?>, Integer, Object, ILoadContainer> loadContainerMap = getLoadContainerMap();
 
 		int typesRelatingToThisCount = metaData.getTypesRelatingToThis().length;
 
@@ -856,8 +846,8 @@ public class EntityLoader
 				}
 			}
 			int alternateIdCount = metaData.getAlternateIdCount();
-			Object[] alternateIds =
-					alternateIdCount > 0 ? new Object[alternateIdCount] : EMPTY_OBJECT_ARRAY;
+			Object[] alternateIds = alternateIdCount > 0 ? new Object[alternateIdCount]
+					: EMPTY_OBJECT_ARRAY;
 
 			boolean doInternId = this.doInternId;
 			boolean doInternVersion = this.doInternVersion;
@@ -867,8 +857,7 @@ public class EntityLoader
 
 				Object id = conversionHelper.convertValueToType(primIdType, item.getId());
 				Object version = versionField != null
-						? conversionHelper.convertValueToType(versionTypeOfObject, item.getVersion())
-						: null;
+						? conversionHelper.convertValueToType(versionTypeOfObject, item.getVersion()) : null;
 
 				if (id == null || versionField != null && version == null) {
 					throw new IllegalStateException(
@@ -918,14 +907,14 @@ public class EntityLoader
 						if (field.getFieldSubType() != null
 								&& (Collection.class.isAssignableFrom(expectedType) || expectedType.isArray())) {
 							Class<?> elementType = fieldMember.getElementType();
-							primitiveValue =
-									conversionHelper.convertValueToType(expectedType, dbValue, elementType);
+							primitiveValue = conversionHelper.convertValueToType(expectedType, dbValue,
+									elementType);
 						}
 						else {
 							// The column is only a primitive field
 							try {
-								primitiveValue =
-										connectionDialect.convertFromFieldType(database, field, expectedType, dbValue);
+								primitiveValue = connectionDialect.convertFromFieldType(database, field,
+										expectedType, dbValue);
 							}
 							catch (Throwable e) {
 								throw RuntimeExceptionUtil.mask(e, "Error occured while handling member: "
@@ -940,8 +929,8 @@ public class EntityLoader
 					}
 				}
 				for (int alternateIdIndex = alternateIds.length; alternateIdIndex-- > 0;) {
-					alternateIds[alternateIdIndex] =
-							compositeIdFactory.createIdFromPrimitives(metaData, alternateIdIndex, primitives);
+					alternateIds[alternateIdIndex] = compositeIdFactory.createIdFromPrimitives(metaData,
+							alternateIdIndex, primitives);
 				}
 				for (int a = standaloneDirectedLinks.length; a-- > 0;) {
 					IDirectedLink link = standaloneDirectedLinks[a];
@@ -994,8 +983,8 @@ public class EntityLoader
 							relations[dirLinkIndex.intValue()] = ObjRef.EMPTY_ARRAY;
 							continue;
 						}
-						IDirectedLinkMetaData columnBasedDirectedLink =
-								directedLinks[dirLinkIndex.intValue()].getMetaData();
+						IDirectedLinkMetaData columnBasedDirectedLink = directedLinks[dirLinkIndex.intValue()]
+								.getMetaData();
 						IFieldMetaData toField = columnBasedDirectedLink.getToField();
 						Class<?> targetType;
 						if (toField != null) {
@@ -1018,7 +1007,7 @@ public class EntityLoader
 							toOri = objRefFactory.createObjRef(toEntityType, toIdIndex, dbValue, null);
 							objRefMap.put(toEntityType, Integer.valueOf(toIdIndex), dbValue, toOri);
 						}
-						relations[dirLinkIndex.intValue()] = new IObjRef[] {toOri};
+						relations[dirLinkIndex.intValue()] = new IObjRef[] { toOri };
 						switch (columnBasedDirectedLink.getCascadeLoadMode()) {
 							case LAZY: {
 								if (supportsValueHolderContainer) {
@@ -1028,8 +1017,8 @@ public class EntityLoader
 							}
 							case EAGER_VERSION:
 							case EAGER: {
-								Collection<Object> cascadePendingInit =
-										getEnsurePendingInit(toEntityMetaData, cascadeTypeToPendingInit, toIdIndex);
+								Collection<Object> cascadePendingInit = getEnsurePendingInit(toEntityMetaData,
+										cascadeTypeToPendingInit, toIdIndex);
 								cascadePendingInit.add(dbValue);
 								break;
 							}
@@ -1052,8 +1041,8 @@ public class EntityLoader
 		}
 		for (int index = idList.size(); index-- > 0;) {
 			Object splittedId = idList.get(index);
-			LoadContainer loadContainer =
-					(LoadContainer) loadContainerMap.get(entityType, Integer.valueOf(idIndex), splittedId);
+			LoadContainer loadContainer = (LoadContainer) loadContainerMap.get(entityType,
+					Integer.valueOf(idIndex), splittedId);
 			if (loadContainer == null) {
 				// Object with requested PK has not been found in
 				// database, so it also has no version at this point
@@ -1118,8 +1107,7 @@ public class EntityLoader
 		PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();
 		RelationMember[] relationMembers = metaData.getRelationMembers();
 
-		for (int primitiveIndex = 0, size =
-				primitiveMembers.length; primitiveIndex < size; primitiveIndex++) {
+		for (int primitiveIndex = 0, size = primitiveMembers.length; primitiveIndex < size; primitiveIndex++) {
 			PrimitiveMember primitiveMember = primitiveMembers[primitiveIndex];
 
 			if (primitiveMember.isTransient()) {
@@ -1187,8 +1175,7 @@ public class EntityLoader
 
 	protected LoadContainer unionLoadContainers(ITable table, Object id, Object version,
 			Object[] alternateIds) {
-		Tuple3KeyHashMap<Class<?>, Integer, Object, ILoadContainer> loadContainerMap =
-				getLoadContainerMap();
+		Tuple3KeyHashMap<Class<?>, Integer, Object, ILoadContainer> loadContainerMap = getLoadContainerMap();
 		ITableMetaData tableMD = table.getMetaData();
 		Class<?> type = tableMD.getEntityType();
 		Integer pkIdIndex = Integer.valueOf(ObjRef.PRIMARY_KEY_INDEX);

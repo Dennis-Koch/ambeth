@@ -223,7 +223,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 				new IResultingBackgroundWorkerParamDelegate<Object[], Entry<IPrimitiveRetriever, PrimitiveRetrieverArguments>>() {
 					@Override
 					public Object[] invoke(Entry<IPrimitiveRetriever, PrimitiveRetrieverArguments> item)
-							throws Throwable {
+							throws Exception {
 						PrimitiveRetrieverArguments value = item.getValue();
 						return item.getKey().getPrimitives(value.objRelations, value.loadContainers);
 					}
@@ -231,7 +231,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 				new IAggregrateResultHandler<Object[], Entry<IPrimitiveRetriever, PrimitiveRetrieverArguments>>() {
 					@Override
 					public void aggregateResult(Object[] resultOfFork,
-							Entry<IPrimitiveRetriever, PrimitiveRetrieverArguments> itemOfFork) throws Throwable {
+							Entry<IPrimitiveRetriever, PrimitiveRetrieverArguments> itemOfFork) throws Exception {
 						IList<IObjRelation> objRels = itemOfFork.getValue().objRelations;
 
 						for (int a = objRels.size(); a-- > 0;) {
@@ -253,7 +253,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 				new IResultingBackgroundWorkerParamDelegate<List<ILoadContainer>, Entry<ICacheRetriever, IList<IObjRef>>>() {
 					@Override
 					public List<ILoadContainer> invoke(Entry<ICacheRetriever, IList<IObjRef>> item)
-							throws Throwable {
+							throws Exception {
 						return item.getKey().getEntities(item.getValue());
 					}
 				},
@@ -285,7 +285,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 				new IResultingBackgroundWorkerParamDelegate<List<IObjRelationResult>, Entry<IRelationRetriever, IList<IObjRelation>>>() {
 					@Override
 					public List<IObjRelationResult> invoke(
-							Entry<IRelationRetriever, IList<IObjRelation>> item) throws Throwable {
+							Entry<IRelationRetriever, IList<IObjRelation>> item) throws Exception {
 						IRelationRetriever retriever = item.getKey();
 						return retriever.getRelations(item.getValue());
 					}
@@ -422,7 +422,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 				final int primitiveIndex = b;
 				objRelToDelegateMap.put(objRel, new IBackgroundWorkerParamDelegate<Object>() {
 					@Override
-					public void invoke(Object fetchedPrimitive) throws Throwable {
+					public void invoke(Object fetchedPrimitive) throws Exception {
 						primitives[primitiveIndex] = fetchedPrimitive;
 					}
 				});
@@ -468,8 +468,8 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 				}
 			}
 		}
-		eventDispatcher.dispatchEvent(
-				new RefreshEntitiesOfType(entityTypesToUpdateSet.toArray(Class.class)));
+		eventDispatcher
+				.dispatchEvent(new RefreshEntitiesOfType(entityTypesToUpdateSet.toArray(Class.class)));
 	}
 
 	private Object resolveRemoteSourceIdentifier(Object service) {

@@ -71,7 +71,7 @@ public class CompositeIdMember extends PrimitiveMember implements IPrimitiveMemb
 		try {
 			realTypeConstructorAccess = realType.getConstructor(paramTypes);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -181,7 +181,7 @@ public class CompositeIdMember extends PrimitiveMember implements IPrimitiveMemb
 		try {
 			return realTypeConstructorAccess.newInstance(args);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

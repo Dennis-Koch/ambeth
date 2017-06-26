@@ -72,7 +72,7 @@ public class EmbeddedAuthenticationManager extends AbstractAuthenticationManager
 			user = securityActivation
 					.executeWithoutFiltering(new IResultingBackgroundWorkerDelegate<IUser>() {
 						@Override
-						public IUser invoke() throws Throwable {
+						public IUser invoke() throws Exception {
 							IUser user = userResolver.resolveUserBySID(authentication.getUserName());
 							if (user != null) {
 								// enforce loading
@@ -82,7 +82,7 @@ public class EmbeddedAuthenticationManager extends AbstractAuthenticationManager
 						}
 					});
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		if (user == null || user.getPassword() == null) {
@@ -99,7 +99,7 @@ public class EmbeddedAuthenticationManager extends AbstractAuthenticationManager
 			if (rehashRecommended && autoRehashPasswords) {
 				securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>() {
 					@Override
-					public Object invoke() throws Throwable {
+					public Object invoke() throws Exception {
 						passwordUtil.rehashPassword(authentication.getPassword(), password);
 						return null;
 					}
@@ -110,7 +110,7 @@ public class EmbeddedAuthenticationManager extends AbstractAuthenticationManager
 			return new AuthenticationResult(sid, checkPasswordResult.isChangePasswordRecommended(),
 					rehashRecommended);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

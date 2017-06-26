@@ -281,7 +281,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		}
 		transaction.runInTransaction(new IBackgroundWorkerDelegate() {
 			@Override
-			public void invoke() throws Throwable {
+			public void invoke() throws Exception {
 				long start = System.currentTimeMillis() - 10000;
 				long end = System.currentTimeMillis();
 				Tuple2KeyHashMap<String, String, String> map = new Tuple2KeyHashMap<>();
@@ -405,7 +405,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 			try {
 				transaction.runInTransaction(new IBackgroundWorkerDelegate() {
 					@Override
-					public void invoke() throws Throwable {
+					public void invoke() throws Exception {
 						mergeProcess.process(user, null, null, null);
 					}
 				});
@@ -478,13 +478,13 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 			try {
 				transaction.runInTransaction(new IBackgroundWorkerDelegate() {
 					@Override
-					public void invoke() throws Throwable {
+					public void invoke() throws Exception {
 						mergeProcess.process(user, null, null, null);
 					}
 				});
 				transaction.runInTransaction(new IBackgroundWorkerDelegate() {
 					@Override
-					public void invoke() throws Throwable {
+					public void invoke() throws Exception {
 						user.setName(user.getName() + 1);
 						mergeProcess.process(user, null, null, null);
 					}

@@ -128,7 +128,7 @@ public class ClasspathScanner implements IClasspathScanner {
 			}
 			return convertToClasses(classNamesFound);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -155,7 +155,7 @@ public class ClasspathScanner implements IClasspathScanner {
 			}
 			return convertToClasses(classNamesFound);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -167,7 +167,7 @@ public class ClasspathScanner implements IClasspathScanner {
 			try {
 				set.add(classCache.loadClass(ctClass.getName()));
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -212,7 +212,7 @@ public class ClasspathScanner implements IClasspathScanner {
 				}
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		return targetClassNames;

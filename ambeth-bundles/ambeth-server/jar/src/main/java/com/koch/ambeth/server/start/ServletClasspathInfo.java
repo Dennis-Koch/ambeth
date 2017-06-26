@@ -82,7 +82,7 @@ public class ServletClasspathInfo implements IClasspathInfo {
 							}
 						}
 						else if (url.toString().startsWith("jndi:/")) {
-							Object content = url.getContent(new Class[] {DirContext.class});
+							Object content = url.getContent(new Class[] { DirContext.class });
 							if (content != null && content instanceof DirContext) {
 								DirContext dirContent = (DirContext) content;
 								File file = new File(dirContent.getNameInNamespace());
@@ -102,7 +102,7 @@ public class ServletClasspathInfo implements IClasspathInfo {
 	}
 
 	@Override
-	public Path openAsFile(URL url) throws Throwable {
+	public Path openAsFile(URL url) throws Exception {
 		String tempPath = url.getPath();
 		while (true) {
 			Matcher matcher = subPathPattern.matcher(tempPath);

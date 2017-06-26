@@ -68,7 +68,7 @@ public class SQLiteSequencePrimaryKeyProvider extends AbstractCachingPrimaryKeyP
 				targetIdList.add(id);
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

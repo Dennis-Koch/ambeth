@@ -247,7 +247,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 			List<IPrivilegeOfService> result = getPrivileges(objRefs, securityScopes);
 			return result.get(0);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -280,7 +280,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 				rollback.rollback();
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -302,7 +302,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 				rollback.rollback();
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

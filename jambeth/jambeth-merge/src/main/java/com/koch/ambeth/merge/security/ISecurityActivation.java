@@ -34,20 +34,20 @@ public interface ISecurityActivation {
 	boolean isFilterActivated();
 
 	void executeWithSecurityDirective(Set<SecurityDirective> securityDirective,
-			IBackgroundWorkerDelegate runnable) throws Throwable;
+			IBackgroundWorkerDelegate runnable) throws Exception;
 
 	<R> R executeWithSecurityDirective(Set<SecurityDirective> securityDirective,
-			IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable;
+			IResultingBackgroundWorkerDelegate<R> runnable) throws Exception;
 
-	void executeWithoutSecurity(IBackgroundWorkerDelegate pausedSecurityRunnable) throws Throwable;
+	void executeWithoutSecurity(IBackgroundWorkerDelegate pausedSecurityRunnable) throws Exception;
 
 	<R> R executeWithoutSecurity(IResultingBackgroundWorkerDelegate<R> pausedSecurityRunnable)
-			throws Throwable;
+			throws Exception;
 
-	void executeWithoutFiltering(IBackgroundWorkerDelegate noFilterRunnable) throws Throwable;
+	void executeWithoutFiltering(IBackgroundWorkerDelegate noFilterRunnable) throws Exception;
 
 	<R> R executeWithoutFiltering(IResultingBackgroundWorkerDelegate<R> noFilterRunnable)
-			throws Throwable;
+			throws Exception;
 
 	IStateRollback pushWithSecurityDirective(Set<SecurityDirective> securityDirective,
 			IStateRollback... rollbacks);

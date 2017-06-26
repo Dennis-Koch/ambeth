@@ -148,7 +148,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 					field.set(datasetBuilder, null);
 				}
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -238,7 +238,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 				try {
 					runnable.invoke();
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
@@ -260,7 +260,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 					objRefs.add(objRef);
 					runnables.add(new IBackgroundWorkerDelegate() {
 						@Override
-						public void invoke() throws Throwable {
+						public void invoke() throws Exception {
 							field.set(null, objRefToEntityMap.get(objRef));
 						}
 					});
@@ -274,12 +274,12 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 				objRefs.add(objRef);
 				runnables.add(new IBackgroundWorkerDelegate() {
 					@Override
-					public void invoke() throws Throwable {
+					public void invoke() throws Exception {
 						field.set(datasetBuilder, objRefToEntityMap.get(objRef));
 					}
 				});
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -315,7 +315,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 				final int index = a;
 				runnables.add(new IBackgroundWorkerDelegate() {
 					@Override
-					public void invoke() throws Throwable {
+					public void invoke() throws Exception {
 						Object entity = objRefToEntityMap.get(objRef);
 						Array.set(value, index, entity);
 					}
@@ -334,7 +334,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 				runnables.add(new IBackgroundWorkerDelegate() {
 
 					@Override
-					public void invoke() throws Throwable {
+					public void invoke() throws Exception {
 						Object entity = objRefToEntityMap.get(objRef);
 						if (value instanceof Set<?>) {
 							((Set<Object>) value).remove(item);

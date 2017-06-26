@@ -275,7 +275,7 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 			try {
 				propertiesProvider = testProperties.type().newInstance();
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 			propertiesProvider.fillProperties(props);

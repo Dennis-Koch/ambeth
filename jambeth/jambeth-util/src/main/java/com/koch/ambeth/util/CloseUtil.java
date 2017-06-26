@@ -32,7 +32,7 @@ public final class CloseUtil {
 		try {
 			closeable.close();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

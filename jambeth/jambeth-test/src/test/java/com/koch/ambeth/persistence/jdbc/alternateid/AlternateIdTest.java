@@ -220,7 +220,7 @@ public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest {
 		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE, "test"),
 				new IResultingBackgroundWorkerDelegate<Object>() {
 					@Override
-					public Object invoke() throws Throwable {
+					public Object invoke() throws Exception {
 						IMergeProcess mergeProcess = beanContext.getService(IMergeProcess.class);
 
 						mergeProcess.process(aeEntity, null, null, null);
@@ -230,7 +230,7 @@ public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest {
 		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE, "test"),
 				new IResultingBackgroundWorkerDelegate<Object>() {
 					@Override
-					public Object invoke() throws Throwable {
+					public Object invoke() throws Exception {
 						IQueryBuilder<AlternateIdEntity> qb =
 								queryBuilderFactory.create(AlternateIdEntity.class);
 						IQuery<AlternateIdEntity> query =

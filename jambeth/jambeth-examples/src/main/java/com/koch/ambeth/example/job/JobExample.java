@@ -45,7 +45,7 @@ public class JobExample implements IJob {
 	}
 
 	@Override
-	public void execute(IJobContext context) throws Throwable {
+	public void execute(IJobContext context) throws Exception {
 		int count = 100;
 		for (int a = 0; a < count; a++) {
 			if (context.isStopped()) {

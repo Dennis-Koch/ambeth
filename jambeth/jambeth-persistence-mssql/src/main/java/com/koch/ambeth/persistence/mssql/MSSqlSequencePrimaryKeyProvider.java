@@ -63,7 +63,7 @@ public class MSSqlSequencePrimaryKeyProvider extends AbstractCachingPrimaryKeyPr
 				}
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

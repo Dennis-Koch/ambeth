@@ -66,7 +66,7 @@ public class PersistedPrivateKeyProvider implements IPrivateKeyProvider {
 					clearTextPassword, Base64.decode(signature.getPrivateKey()));
 			return signatureUtil.createSignatureHandle(signature.getSignAndVerify(), decryptedPrivateKey);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -78,7 +78,7 @@ public class PersistedPrivateKeyProvider implements IPrivateKeyProvider {
 			return signatureUtil.createVerifyHandle(signature.getSignAndVerify(),
 					Base64.decode(signature.getPublicKey()));
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

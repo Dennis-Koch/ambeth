@@ -105,7 +105,7 @@ public class ForkState extends ReentrantLock implements IForkState {
 		try {
 			runnable.invoke();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -119,7 +119,7 @@ public class ForkState extends ReentrantLock implements IForkState {
 		try {
 			runnable.invoke(arg);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -133,7 +133,7 @@ public class ForkState extends ReentrantLock implements IForkState {
 		try {
 			return runnable.invoke();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -147,7 +147,7 @@ public class ForkState extends ReentrantLock implements IForkState {
 		try {
 			return runnable.invoke(arg);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

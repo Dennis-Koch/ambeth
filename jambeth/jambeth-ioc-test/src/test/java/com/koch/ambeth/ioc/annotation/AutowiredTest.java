@@ -190,7 +190,7 @@ public class AutowiredTest extends AbstractIocTest {
 			IServiceContext otherContext = BeanContextFactory.createBootstrap(IocModule.class)
 					.createService(new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
 						@Override
-						public void invoke(IBeanContextFactory state) throws Throwable {
+						public void invoke(IBeanContextFactory state) throws Exception {
 							state.registerExternalBean(fromContextName1, beanContext);
 							state.registerExternalBean(fromContextName2, otherContext2);
 

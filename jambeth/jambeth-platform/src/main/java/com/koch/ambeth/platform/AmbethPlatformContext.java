@@ -119,7 +119,7 @@ public class AmbethPlatformContext implements IAmbethPlatformContext {
 				}
 				transaction.runInTransaction(new IBackgroundWorkerDelegate() {
 					@Override
-					public void invoke() throws Throwable {
+					public void invoke() throws Exception {
 						// Intended blank
 					}
 				});

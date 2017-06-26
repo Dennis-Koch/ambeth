@@ -61,7 +61,7 @@ public abstract class AbstractBehavior implements IBytecodeBehavior {
 			cr.accept(cn, 0);
 			return cn;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

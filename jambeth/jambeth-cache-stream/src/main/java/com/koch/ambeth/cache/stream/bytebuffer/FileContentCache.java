@@ -80,8 +80,7 @@ public class FileContentCache
 
 	protected final HashMap<ChunkKey, Reference<ByteBuffer>> fileToContentMap = new HashMap<>();
 
-	protected final IdentityWeakHashMap<ByteBuffer, Counter> contentToUsageCounterMap =
-			new IdentityWeakHashMap<>();
+	protected final IdentityWeakHashMap<ByteBuffer, Counter> contentToUsageCounterMap = new IdentityWeakHashMap<>();
 
 	protected final SmartCopyMap<FileKey, IByteBuffer> fileToVtdNavMap = new SmartCopyMap<>();
 
@@ -113,8 +112,8 @@ public class FileContentCache
 	@Autowired
 	protected ILoggerCache loggerCache;
 
-	@Property(name = ByteBufferConfigurationConstants.ChunkSize,
-			defaultValue = "" + (128 * 1024 * 1024))
+	@Property(name = ByteBufferConfigurationConstants.ChunkSize, defaultValue = ""
+			+ (128 * 1024 * 1024))
 	protected int virtualChunkSize;
 
 	@Property(name = ByteBufferConfigurationConstants.CleanupCounterThreshold, defaultValue = "10")
@@ -210,8 +209,7 @@ public class FileContentCache
 		try {
 			Condition newRequestedCondition = this.newRequestedCondition;
 			HashMap<ChunkKey, Reference<ByteBuffer>> fileToContentMap = this.fileToContentMap;
-			IdentityWeakHashMap<ByteBuffer, Counter> contentToUsageCounterMap =
-					this.contentToUsageCounterMap;
+			IdentityWeakHashMap<ByteBuffer, Counter> contentToUsageCounterMap = this.contentToUsageCounterMap;
 			LinkedHashSet<ChunkKey> requestedQueue = this.requestedQueue;
 			while (!terminate) {
 				ChunkKey request = null;
@@ -262,7 +260,7 @@ public class FileContentCache
 		if (length == null) {
 			length = Long.valueOf(fileHandleCache.readOnFile(fileKey, new IFileReadDelegate<Long>() {
 				@Override
-				public Long read(RandomAccessFile raFile) throws Throwable {
+				public Long read(RandomAccessFile raFile) throws Exception {
 					return raFile.length();
 				}
 			}));
@@ -303,7 +301,7 @@ public class FileContentCache
 			success = true;
 			return nav;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -354,8 +352,8 @@ public class FileContentCache
 	@Override
 	public ByteBuffer getContent(FileKey fileKey, long position) {
 		long length = getFileLength(fileKey);
-		ByteBuffer[] content =
-				getContent(fileKey, position, Math.min(length - position, virtualChunkSize));
+		ByteBuffer[] content = getContent(fileKey, position,
+				Math.min(length - position, virtualChunkSize));
 		if (content.length == 0) {
 			return null;
 		}
@@ -425,7 +423,7 @@ public class FileContentCache
 			}
 			return bufferList.toArray(ByteBuffer.class);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -511,7 +509,7 @@ public class FileContentCache
 		final long length = getFileLength(chunkKey.getFileKey());
 		return fileHandleCache.readOnFile(chunkKey.getFileKey(), new IFileReadDelegate<ByteBuffer>() {
 			@Override
-			public ByteBuffer read(RandomAccessFile raFile) throws Throwable {
+			public ByteBuffer read(RandomAccessFile raFile) throws Exception {
 				long paddedPosition = chunkKey.getPaddedPosition();
 				// Do not resize the file unintentionally because of a too large maxMappedSize
 				int maxMappedSize = (int) Math.min(length - paddedPosition, virtualChunkSize);

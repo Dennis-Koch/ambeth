@@ -106,13 +106,13 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 				Constructor<?> constructor = enhancedType.getConstructor(Class.class, IPropertyInfo.class);
 				accessor = (AbstractAccessor) constructor.newInstance(type, property);
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 			typeToAccessorMap.put(type, property.getName(), new WeakReference<>(accessor));
 			return accessor;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -140,7 +140,7 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 			typeWithDelegateToConstructorMap.put(targetType, delegateType, constructorDelegate);
 			return (V) constructorDelegate;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

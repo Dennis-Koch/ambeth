@@ -32,7 +32,7 @@ public interface ISecurityContextHolder {
 	void clearContext();
 
 	<R> R setScopedAuthentication(IAuthentication authentication,
-			IResultingBackgroundWorkerDelegate<R> runnableScope) throws Throwable;
+			IResultingBackgroundWorkerDelegate<R> runnableScope) throws Exception;
 
 	IStateRollback pushAuthentication(IAuthentication authentication, IStateRollback... rollbacks);
 }

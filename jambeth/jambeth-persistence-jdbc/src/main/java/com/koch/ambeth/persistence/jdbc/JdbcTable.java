@@ -156,7 +156,7 @@ public class JdbcTable extends SqlTable {
 		catch (SQLException e) {
 			throw connectionDialect.createPersistenceException(e, null);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

@@ -44,7 +44,7 @@ public final class ByteBufferUtil {
 		catch (NoSuchFieldException e) {
 			return;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

@@ -96,7 +96,7 @@ public class OracleConnectionExtension implements IConnectionExtension {
 		try {
 			return connection.unwrap(OracleConnection.class).createARRAY(arrayTypeName, javaArray);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

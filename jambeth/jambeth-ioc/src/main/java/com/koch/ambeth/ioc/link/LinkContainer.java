@@ -229,7 +229,7 @@ public class LinkContainer extends AbstractLinkContainer {
 		try {
 			addMethod.invoke(registry, arguments);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -243,7 +243,7 @@ public class LinkContainer extends AbstractLinkContainer {
 		try {
 			removeMethod.invoke(registry, arguments);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

@@ -83,9 +83,8 @@ import com.koch.ambeth.xml.ioc.XmlModule;
 @SQLData("/com/koch/ambeth/persistence/xml/Relations_data.sql")
 @SQLStructure("/com/koch/ambeth/persistence/xml/Relations_structure.sql")
 @TestPropertiesList({
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-				value = "com/koch/ambeth/persistence/xml/orm.xml"),
-		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false")})
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/xml/orm.xml"),
+		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false") })
 @TestFrameworkModule(XmlModule.class)
 @TestModule(TestServicesModule.class)
 public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
@@ -220,7 +219,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 		try {
 			transaction.runInTransaction(new IBackgroundWorkerDelegate() {
 				@Override
-				public void invoke() throws Throwable {
+				public void invoke() throws Exception {
 					employeeService.delete(employee);
 					throw new RuntimeException();
 				}
@@ -292,7 +291,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 
 	@Test
 	public void testCascadedRetrieve() throws Throwable {
-		List<String> names = Arrays.asList(new String[] {"Steve Smith", "Oscar Meyer"});
+		List<String> names = Arrays.asList(new String[] { "Steve Smith", "Oscar Meyer" });
 
 		CacheInterceptor.pauseCache.set(Boolean.TRUE);
 		try {
@@ -325,8 +324,8 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 		Employee employee4 = cache.getObject(Employee.class, 3);
 		employee4.setName(employee4.getName() + " jun.");
 
-		List<Employee> employees =
-				Arrays.asList(new Employee[] {employee1, employee2, employee3, employee4});
+		List<Employee> employees = Arrays
+				.asList(new Employee[] { employee1, employee2, employee3, employee4 });
 
 		employeeService.save(employees);
 	}
@@ -484,29 +483,29 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 	// TODO Test ist durch die Threads "unstabil". Manchmal schlaegt er ohne Aenderung fehl.
 	@Test(expected = OptimisticLockException.class)
 	public void testOptimisticLockWithDelete_ThreadLocalFLC() {
-		ICacheProvider cacheProvider =
-				beanContext.getService(CacheNamedBeans.CacheProviderThreadLocal, ICacheProvider.class);
+		ICacheProvider cacheProvider = beanContext.getService(CacheNamedBeans.CacheProviderThreadLocal,
+				ICacheProvider.class);
 		testOptimisticLockWithDelete_lock_Intern(cacheProvider);
 	}
 
 	@Test
 	public void testOptimisticLockWithDelete_SingletonFLC_Save_First() {
-		ICacheProvider cacheProvider =
-				beanContext.getService(CacheNamedBeans.CacheProviderSingleton, ICacheProvider.class);
+		ICacheProvider cacheProvider = beanContext.getService(CacheNamedBeans.CacheProviderSingleton,
+				ICacheProvider.class);
 		testOptimisticLockWithDelete_lock_Intern(Boolean.TRUE, cacheProvider);
 	}
 
 	@Test(expected = NullConstraintException.class)
 	public void testOptimisticLockWithDelete_SingletonFLC_Save_Last() {
-		ICacheProvider cacheProvider =
-				beanContext.getService(CacheNamedBeans.CacheProviderSingleton, ICacheProvider.class);
+		ICacheProvider cacheProvider = beanContext.getService(CacheNamedBeans.CacheProviderSingleton,
+				ICacheProvider.class);
 		testOptimisticLockWithDelete_lock_Intern(Boolean.FALSE, cacheProvider);
 	}
 
 	@Test(expected = OptimisticLockException.class)
 	public void testOptimisticLockWithDelete_PrototypeFLC() {
-		ICacheProvider cacheProvider =
-				beanContext.getService(CacheNamedBeans.CacheProviderPrototype, ICacheProvider.class);
+		ICacheProvider cacheProvider = beanContext.getService(CacheNamedBeans.CacheProviderPrototype,
+				ICacheProvider.class);
 		testOptimisticLockWithDelete_lock_Intern(cacheProvider);
 	}
 
@@ -546,7 +545,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 					cacheContext.executeWithCache(cacheProvider,
 							new IResultingBackgroundWorkerDelegate<Object>() {
 								@Override
-								public Object invoke() throws Throwable {
+								public Object invoke() throws Exception {
 									if (configureSecurityContext) {
 										ISecurityContext context = securityContextHolder.getCreateContext();
 										context.setAuthentication(authentication);
@@ -588,7 +587,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 					try {
 						preCleanupBarrier.await();
 					}
-					catch (Throwable e) {
+					catch (Exception e) {
 						throw RuntimeExceptionUtil.mask(e);
 					}
 					if (configureSecurityContext) {
@@ -610,7 +609,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 					cacheContext.executeWithCache(cacheProvider,
 							new IResultingBackgroundWorkerDelegate<Object>() {
 								@Override
-								public Object invoke() throws Throwable {
+								public Object invoke() throws Exception {
 									if (configureSecurityContext) {
 										ISecurityContext context = securityContextHolder.getCreateContext();
 										context.setAuthentication(authentication);
@@ -654,7 +653,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 					try {
 						preCleanupBarrier.await();
 					}
-					catch (Throwable e) {
+					catch (Exception e) {
 						throw RuntimeExceptionUtil.mask(e);
 					}
 					if (configureSecurityContext) {

@@ -78,7 +78,7 @@ public class PBEncryptor implements IPBEncryptor {
 
 			return s.getEncoded();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -129,7 +129,7 @@ public class PBEncryptor implements IPBEncryptor {
 					new IvParameterSpec(Base64.decode(pbeConfiguration.getEncryptionKeyIV())));
 			return cipher.doFinal(dataToDecrypt);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -181,7 +181,7 @@ public class PBEncryptor implements IPBEncryptor {
 					new IvParameterSpec(Base64.decode(pbeConfiguration.getEncryptionKeyIV())));
 			return cipher;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -193,7 +193,7 @@ public class PBEncryptor implements IPBEncryptor {
 			Cipher cipher = prepareCipherForEncryption(pbeConfiguration, forceUseSalt, clearTextPassword);
 			return cipher.doFinal(dataToEncrypt);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

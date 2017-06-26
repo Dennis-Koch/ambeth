@@ -60,7 +60,7 @@ public class SimpleXmlWriter implements ICyclicXmlWriter {
 			writePostfix(writer);
 			return sb.toString();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -80,7 +80,7 @@ public class SimpleXmlWriter implements ICyclicXmlWriter {
 			writePostfix(writer);
 			osw.flush();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -110,7 +110,7 @@ public class SimpleXmlWriter implements ICyclicXmlWriter {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

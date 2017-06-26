@@ -56,7 +56,7 @@ public class OracleTimestampConverter implements IDedicatedConverter, IThreadLoc
 				}
 				longValue = ((TIMESTAMP) value).timestampValue(calendar).getTime();
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 			if (Long.class.equals(expectedType) || Long.TYPE.equals(expectedType)) {

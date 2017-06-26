@@ -56,7 +56,7 @@ public class PostgresConnectionExtension implements IConnectionExtension {
 		try {
 			return connection.createArrayOf(strings[1], (Object[]) javaArray);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

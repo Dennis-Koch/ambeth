@@ -51,10 +51,10 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 		}
 
 		@Override
-		public void invoke(final V state) throws Throwable {
+		public void invoke(final V state) throws Exception {
 			cancellation.withCancellationAwareness(new IBackgroundWorkerDelegate() {
 				@Override
-				public void invoke() throws Throwable {
+				public void invoke() throws Exception {
 					itemHandler.invoke(state);
 				}
 			});
@@ -71,7 +71,7 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 		}
 
 		@Override
-		public R invoke(V state) throws Throwable {
+		public R invoke(V state) throws Exception {
 			return cancellation.withCancellationAwareness(itemHandler, state);
 		}
 	}
@@ -96,8 +96,7 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 	@Property(name = TIMEOUT, defaultValue = "30000")
 	protected long timeout;
 
-	@Property(name = IocConfigurationConstants.TransparentParallelizationActive,
-			defaultValue = "true")
+	@Property(name = IocConfigurationConstants.TransparentParallelizationActive, defaultValue = "true")
 	protected boolean transparentParallelizationActive;
 
 	@Override
@@ -131,8 +130,8 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 			long timeout, Runnable... runnables) {
 		CountDownLatch latch = new CountDownLatch(runnables.length);
 		ParamHolder<Throwable> throwableHolder = new ParamHolder<>();
-		IForkState forkState =
-				inheritThreadLocals ? threadLocalCleanupController.createForkState() : null;
+		IForkState forkState = inheritThreadLocals ? threadLocalCleanupController.createForkState()
+				: null;
 
 		Thread[] threads = new Thread[runnables.length];
 		for (int a = runnables.length; a-- > 0;) {
@@ -181,13 +180,13 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 				}
 				return;
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
-		ResultingRunnableHandle<R, V> runnableHandle =
-				new ResultingRunnableHandle<>(new CancellationCheckResultingBackgroundWorker<>(itemHandler),
-						aggregateResultHandler, new ArrayList<>(items), threadLocalCleanupController);
+		ResultingRunnableHandle<R, V> runnableHandle = new ResultingRunnableHandle<>(
+				new CancellationCheckResultingBackgroundWorker<>(itemHandler), aggregateResultHandler,
+				new ArrayList<>(items), threadLocalCleanupController);
 
 		Runnable parallelRunnable = new ResultingParallelRunnable<>(runnableHandle, true);
 		Runnable mainRunnable = new ResultingParallelRunnable<>(runnableHandle, false);
@@ -212,7 +211,7 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 				}
 				return;
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -220,9 +219,9 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 		for (Entry<K, V> item : items) {
 			itemsList.add(item);
 		}
-		ResultingRunnableHandle<R, Entry<K, V>> runnableHandle =
-				new ResultingRunnableHandle<>(new CancellationCheckResultingBackgroundWorker<>(itemHandler),
-						aggregateResultHandler, itemsList, threadLocalCleanupController);
+		ResultingRunnableHandle<R, Entry<K, V>> runnableHandle = new ResultingRunnableHandle<>(
+				new CancellationCheckResultingBackgroundWorker<>(itemHandler), aggregateResultHandler,
+				itemsList, threadLocalCleanupController);
 
 		Runnable parallelRunnable = new ResultingParallelRunnable<>(runnableHandle, true);
 		Runnable mainRunnable = new ResultingParallelRunnable<>(runnableHandle, false);
@@ -243,13 +242,13 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 				}
 				return;
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
-		RunnableHandle<V> runnableHandle =
-				new RunnableHandle<>(new CancellationCheckBackgroundWorker<>(itemHandler),
-						new ArrayList<>(items), threadLocalCleanupController);
+		RunnableHandle<V> runnableHandle = new RunnableHandle<>(
+				new CancellationCheckBackgroundWorker<>(itemHandler), new ArrayList<>(items),
+				threadLocalCleanupController);
 
 		Runnable parallelRunnable = new ParallelRunnable<>(runnableHandle, true);
 		Runnable mainRunnable = new ParallelRunnable<>(runnableHandle, false);
@@ -270,7 +269,7 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 				}
 				return;
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -278,9 +277,9 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 		for (Entry<K, V> item : items) {
 			itemsList.add(item);
 		}
-		RunnableHandle<Entry<K, V>> runnableHandle =
-				new RunnableHandle<>(new CancellationCheckBackgroundWorker<>(itemHandler), itemsList,
-						threadLocalCleanupController);
+		RunnableHandle<Entry<K, V>> runnableHandle = new RunnableHandle<>(
+				new CancellationCheckBackgroundWorker<>(itemHandler), itemsList,
+				threadLocalCleanupController);
 
 		Runnable parallelRunnable = new ParallelRunnable<>(runnableHandle, true);
 		Runnable mainRunnable = new ParallelRunnable<>(runnableHandle, false);

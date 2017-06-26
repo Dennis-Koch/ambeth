@@ -81,7 +81,7 @@ public class CompositeIdFactory implements ICompositeIdFactory, IInitializingBea
 			return new CompositeIdMember(entityType, compositeIdType, nameSB.toString(), idMembers,
 					memberTypeProvider);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -102,7 +102,7 @@ public class CompositeIdFactory implements ICompositeIdFactory, IInitializingBea
 		try {
 			return cIdTypeInfoItem.getRealTypeConstructorAccess().newInstance(ids);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

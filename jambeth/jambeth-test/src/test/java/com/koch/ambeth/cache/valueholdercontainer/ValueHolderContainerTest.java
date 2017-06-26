@@ -270,7 +270,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 	protected void waitForUI() {
 		guiThreadHelper.invokeInGuiAndWait(new IBackgroundWorkerDelegate() {
 			@Override
-			public void invoke() throws Throwable {
+			public void invoke() throws Exception {
 				// intended blank
 			}
 		});
@@ -874,7 +874,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 		guiThreadHelper.invokeOutOfGui(new IBackgroundWorkerDelegate() {
 
 			@Override
-			public void invoke() throws Throwable {
+			public void invoke() throws Exception {
 				try {
 					Material obj = entityFactory.createEntity(Material.class);
 					((INotifyPropertyChanged) obj).addPropertyChangeListener(handler);

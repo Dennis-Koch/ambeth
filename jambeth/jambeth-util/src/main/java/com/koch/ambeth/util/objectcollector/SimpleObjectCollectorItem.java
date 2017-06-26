@@ -67,7 +67,7 @@ public class SimpleObjectCollectorItem implements IObjectCollectorItem {
 			collectableController.initObject(elem);
 			return elem;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -81,7 +81,7 @@ public class SimpleObjectCollectorItem implements IObjectCollectorItem {
 		try {
 			collectableController.disposeObject(object);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		if (collectorAware) {

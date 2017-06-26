@@ -131,7 +131,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 	/**
 	 * @param args
 	 */
-	public static void main(final String[] args) throws Throwable {
+	public static void main(final String[] args) throws Exception {
 		Properties.getApplication().fillWithCommandLineArgs(args);
 		Properties.loadBootstrapPropertyFile();
 

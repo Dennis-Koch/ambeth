@@ -115,7 +115,7 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
 			}
 			return conn;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -140,7 +140,7 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
 				eventDispatcher.dispatchEvent(new ConnectionCreatedEvent(reusableConnection));
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

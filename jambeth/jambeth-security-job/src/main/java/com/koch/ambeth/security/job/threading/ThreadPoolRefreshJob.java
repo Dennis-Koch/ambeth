@@ -56,7 +56,7 @@ public class ThreadPoolRefreshJob implements IJob {
 	}
 
 	@Override
-	public void execute(IJobContext context) throws Throwable {
+	public void execute(IJobContext context) throws Exception {
 		threadPool.refreshThreadCount();
 	}
 }

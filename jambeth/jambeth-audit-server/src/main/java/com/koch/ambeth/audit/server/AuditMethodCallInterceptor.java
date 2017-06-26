@@ -31,6 +31,7 @@ import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.merge.ITransactionState;
 import com.koch.ambeth.security.audit.model.AuditedArg;
 import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
@@ -53,12 +54,10 @@ public class AuditMethodCallInterceptor extends CascadedInterceptor {
 	@Autowired
 	protected ITransactionState transactionState;
 
-	@Property(name = AuditConfigurationConstants.AuditedServiceDefaultModeActive,
-			defaultValue = "true")
+	@Property(name = AuditConfigurationConstants.AuditedServiceDefaultModeActive, defaultValue = "true")
 	protected boolean auditedServiceDefaultModeActive;
 
-	@Property(name = AuditConfigurationConstants.AuditedServiceArgDefaultModeActive,
-			defaultValue = "false")
+	@Property(name = AuditConfigurationConstants.AuditedServiceArgDefaultModeActive, defaultValue = "false")
 	protected boolean auditedServiceArgDefaultModeActive;
 
 	@Override
@@ -84,8 +83,8 @@ public class AuditMethodCallInterceptor extends CascadedInterceptor {
 			}
 		}
 		if (transactionState.isTransactionActive()) {
-			IMethodCallHandle methodCallHandle =
-					methodCallLogger.logMethodCallStart(method, filteredArgs);
+			IMethodCallHandle methodCallHandle = methodCallLogger.logMethodCallStart(method,
+					filteredArgs);
 			try {
 				return invokeTarget(obj, method, args, proxy);
 			}
@@ -95,11 +94,17 @@ public class AuditMethodCallInterceptor extends CascadedInterceptor {
 		}
 		return transaction.runInTransaction(new IResultingBackgroundWorkerDelegate<Object>() {
 			@Override
-			public Object invoke() throws Throwable {
-				IMethodCallHandle methodCallHandle =
-						methodCallLogger.logMethodCallStart(method, filteredArgs);
+			public Object invoke() throws Exception {
+				IMethodCallHandle methodCallHandle = methodCallLogger.logMethodCallStart(method,
+						filteredArgs);
 				try {
 					return invokeTarget(obj, method, args, proxy);
+				}
+				catch (Error e) {
+					throw e;
+				}
+				catch (Throwable e) {
+					throw RuntimeExceptionUtil.mask(e);
 				}
 				finally {
 					methodCallLogger.logMethodCallFinish(methodCallHandle);

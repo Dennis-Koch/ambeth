@@ -138,7 +138,7 @@ public class EntityTypePrivilegeVisitor extends ClassGenerator {
 					Boolean.class, Boolean.class, Boolean.class, ITypePropertyPrivilege[].class,
 					ITypePropertyPrivilege[].class);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		ConstructorInstance c_method =

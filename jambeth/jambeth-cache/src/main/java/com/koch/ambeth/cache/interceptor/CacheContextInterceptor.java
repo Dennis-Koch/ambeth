@@ -58,8 +58,16 @@ public class CacheContextInterceptor extends CascadedInterceptor {
 			return cacheContext.executeWithCache(cacheProvider,
 					new IResultingBackgroundWorkerDelegate<Object>() {
 						@Override
-						public Object invoke() throws Throwable {
-							return invokeTarget(obj, method, args, proxy);
+						public Object invoke() throws Exception {
+							try {
+								return invokeTarget(obj, method, args, proxy);
+							}
+							catch (Error e) {
+								throw e;
+							}
+							catch (Throwable e) {
+								throw RuntimeExceptionUtil.mask(e);
+							}
 						}
 					});
 		}

@@ -145,7 +145,7 @@ public class SecurityManager
 		try {
 			cloneCollection = list.getClass().newInstance();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		for (int a = 0, size = list.size(); a < size; a++) {
@@ -278,7 +278,7 @@ public class SecurityManager
 		try {
 			cloneCollection = coll.getClass().newInstance();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		for (int index = 0, size = listToCheck.size(); index < size; index++) {

@@ -168,13 +168,12 @@ public class JdbcTransaction
 					tli.alreadyOnStack = null;
 				}
 			}
-			ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap =
-					databaseProviderRegistry.getPersistenceUnitToDatabaseProviderMap();
-			ILinkedMap<Object, IConnectionHolder> persistenceUnitToConnectionHolderMap =
-					connectionHolderRegistry.getPersistenceUnitToConnectionHolderMap();
+			ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap = databaseProviderRegistry
+					.getPersistenceUnitToDatabaseProviderMap();
+			ILinkedMap<Object, IConnectionHolder> persistenceUnitToConnectionHolderMap = connectionHolderRegistry
+					.getPersistenceUnitToConnectionHolderMap();
 
-			LinkedHashMap<Object, IDatabase> persistenceUnitToDatabaseMap =
-					new LinkedHashMap<>();
+			LinkedHashMap<Object, IDatabase> persistenceUnitToDatabaseMap = new LinkedHashMap<>();
 
 			long sessionId = databaseSessionIdController.acquireSessionId();
 			tli.sessionId = new Long(sessionId);
@@ -207,8 +206,8 @@ public class JdbcTransaction
 							throw new IllegalStateException(
 									Connection.class.getName() + " expected in context of database handle");
 						}
-						IConnectionHolder connectionHolder =
-								persistenceUnitToConnectionHolderMap.get(persistenceUnit);
+						IConnectionHolder connectionHolder = persistenceUnitToConnectionHolderMap
+								.get(persistenceUnit);
 						connectionHolder.setConnection(connection);
 						if (transactionalRootCache != null && !readonly) {
 							transactionalRootCache.acquireTransactionalRootCache();
@@ -220,13 +219,13 @@ public class JdbcTransaction
 			finally {
 				tli.beginInProgress = null;
 			}
-			ITransactionListener[] transactionListeners =
-					transactionListenerProvider.getTransactionListeners();
+			ITransactionListener[] transactionListeners = transactionListenerProvider
+					.getTransactionListeners();
 			for (ITransactionListener transactionListener : transactionListeners) {
 				try {
 					transactionListener.handlePostBegin(sessionId);
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
@@ -234,21 +233,21 @@ public class JdbcTransaction
 				eventDispatcher.dispatchEvent(new TransactionBeginEvent(persistenceUnitToDatabaseMap));
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	protected void notifyRunnables(ArrayList<IBackgroundWorkerDelegate> runnables) {
 		while (runnables != null && !runnables.isEmpty()) {
-			IBackgroundWorkerDelegate[] preCommitRunnablesArray =
-					runnables.toArray(IBackgroundWorkerDelegate.class);
+			IBackgroundWorkerDelegate[] preCommitRunnablesArray = runnables
+					.toArray(IBackgroundWorkerDelegate.class);
 			runnables.clear();
 			for (int a = preCommitRunnablesArray.length; a-- > 0;) {
 				try {
 					preCommitRunnablesArray[a].invoke();
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
@@ -270,28 +269,28 @@ public class JdbcTransaction
 		long sessionId = sessionIdValue.longValue();
 
 		eventDispatcher.dispatchEvent(new DatabasePreCommitEvent(sessionId));
-		ITransactionListener[] transactionListeners =
-				transactionListenerProvider.getTransactionListeners();
+		ITransactionListener[] transactionListeners = transactionListenerProvider
+				.getTransactionListeners();
 		for (ITransactionListener transactionListener : transactionListeners) {
 			try {
 				transactionListener.handlePreCommit(sessionId);
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
 		notifyRunnables(tli.preCommitRunnables);
-		ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap =
-				databaseProviderRegistry.getPersistenceUnitToDatabaseProviderMap();
-		ILinkedMap<Object, IConnectionHolder> persistenceUnitToConnectionHolderMap =
-				connectionHolderRegistry.getPersistenceUnitToConnectionHolderMap();
+		ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap = databaseProviderRegistry
+				.getPersistenceUnitToDatabaseProviderMap();
+		ILinkedMap<Object, IConnectionHolder> persistenceUnitToConnectionHolderMap = connectionHolderRegistry
+				.getPersistenceUnitToConnectionHolderMap();
 		try {
 			long tillFlushTime = System.currentTimeMillis();
 			for (Entry<Object, IDatabaseProvider> entry : persistenceUnitToDatabaseProviderMap) {
 				IDatabaseProvider databaseProvider = entry.getValue();
 				IDatabase database = databaseProvider.tryGetInstance();
-				IModifyingDatabase modifyingDatabase =
-						database.getAutowiredBeanInContext(IModifyingDatabase.class);
+				IModifyingDatabase modifyingDatabase = database
+						.getAutowiredBeanInContext(IModifyingDatabase.class);
 				if (modifyingDatabase.isModifyingAllowed()) {
 					database.flush();
 				}
@@ -347,8 +346,8 @@ public class JdbcTransaction
 					IDatabaseProvider databaseProvider = entry.getValue();
 					IDatabase database = databaseProvider.tryGetInstance();
 
-					IConnectionHolder connectionHolder =
-							persistenceUnitToConnectionHolderMap.get(persistenceUnit);
+					IConnectionHolder connectionHolder = persistenceUnitToConnectionHolderMap
+							.get(persistenceUnit);
 					if (connectionHolder != null) {
 						connectionHolder.setConnection(null);
 					}
@@ -370,7 +369,7 @@ public class JdbcTransaction
 						+ app + " / " + preCommit + " / " + flush + " ms");
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -401,15 +400,15 @@ public class JdbcTransaction
 			Boolean readOnly = tli.isReadOnly;
 			tli.isReadOnly = null;
 			if (!Boolean.TRUE.equals(tli.ignoreReleaseDatabase)) {
-				ILinkedMap<Object, IConnectionHolder> persistenceUnitToConnectionHolderMap =
-						connectionHolderRegistry.getPersistenceUnitToConnectionHolderMap();
+				ILinkedMap<Object, IConnectionHolder> persistenceUnitToConnectionHolderMap = connectionHolderRegistry
+						.getPersistenceUnitToConnectionHolderMap();
 
 				for (Entry<Object, IDatabase> entry : databaseMap) {
 					Object persistenceUnit = entry.getKey();
 					IDatabase database = entry.getValue();
 
-					IConnectionHolder connectionHolder =
-							persistenceUnitToConnectionHolderMap.get(persistenceUnit);
+					IConnectionHolder connectionHolder = persistenceUnitToConnectionHolderMap
+							.get(persistenceUnit);
 
 					if (connectionHolder != null) {
 						connectionHolder.setConnection(null);
@@ -438,13 +437,13 @@ public class JdbcTransaction
 					tli.alreadyOnStack = null;
 				}
 			}
-			ITransactionListener[] transactionListeners =
-					transactionListenerProvider.getTransactionListeners();
+			ITransactionListener[] transactionListeners = transactionListenerProvider
+					.getTransactionListeners();
 			for (ITransactionListener transactionListener : transactionListeners) {
 				try {
 					transactionListener.handlePostRollback(sessionId);
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
@@ -462,7 +461,7 @@ public class JdbcTransaction
 						+ " // " + app + " / " + preRollback + " / " + revert + " ms");
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -484,12 +483,12 @@ public class JdbcTransaction
 			if (expectOwnDatabaseSession) {
 				throw new IllegalStateException("Transaction already active");
 			}
-			ILinkedMap<Object, IDatabase> databaseMap =
-					Boolean.TRUE.equals(tli.beginInProgress) ? null : tli.databaseMap;
+			ILinkedMap<Object, IDatabase> databaseMap = Boolean.TRUE.equals(tli.beginInProgress) ? null
+					: tli.databaseMap;
 			try {
 				databaseCallback.callback(databaseMap);
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 			return;
@@ -512,7 +511,7 @@ public class JdbcTransaction
 			recoverableException = e;
 			throw e;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -541,12 +540,12 @@ public class JdbcTransaction
 			if (expectOwnDatabaseSession) {
 				throw new IllegalStateException("Transaction already active");
 			}
-			ILinkedMap<Object, IDatabase> databaseMap =
-					Boolean.TRUE.equals(tli.beginInProgress) ? null : tli.databaseMap;
+			ILinkedMap<Object, IDatabase> databaseMap = Boolean.TRUE.equals(tli.beginInProgress) ? null
+					: tli.databaseMap;
 			try {
 				return databaseCallback.callback(databaseMap);
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -557,7 +556,7 @@ public class JdbcTransaction
 				try {
 					return databaseCallback.callback(null);
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
@@ -615,7 +614,7 @@ public class JdbcTransaction
 				ILinkedMap<Object, IDatabase> databaseMap = tli.databaseMap;
 				return databaseCallback.callback(databaseMap);
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -638,7 +637,7 @@ public class JdbcTransaction
 			recoverableException = e;
 			throw e;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -693,7 +692,7 @@ public class JdbcTransaction
 		processAndCommit(new DatabaseCallback() {
 			@Override
 			public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-					throws Throwable {
+					throws Exception {
 				runnable.invoke();
 			}
 		});
@@ -704,7 +703,7 @@ public class JdbcTransaction
 		return processAndCommit(new ResultingDatabaseCallback<R>() {
 			@Override
 			public R callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-					throws Throwable {
+					throws Exception {
 				return runnable.invoke();
 			}
 		});
@@ -715,7 +714,7 @@ public class JdbcTransaction
 		return processAndCommit(new ResultingDatabaseCallback<R>() {
 			@Override
 			public R callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-					throws Throwable {
+					throws Exception {
 				return runnable.invoke();
 			}
 		}, false, false, true);

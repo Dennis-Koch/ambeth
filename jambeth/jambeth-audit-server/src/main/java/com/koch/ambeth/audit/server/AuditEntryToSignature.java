@@ -90,7 +90,7 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 			}
 			auditEntryWriter.writeAuditEntry(auditEntry, hashAlgorithm, signatureHandle);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -124,7 +124,7 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 
 			return auditEntryWriter.writeAuditEntry(auditEntry, hashAlgorithm);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -151,7 +151,7 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 
 			return auditEntryWriter.writeAuditedEntity(auditedEntity, hashAlgorithm);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

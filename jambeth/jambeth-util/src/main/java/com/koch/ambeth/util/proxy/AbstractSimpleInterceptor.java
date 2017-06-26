@@ -43,7 +43,7 @@ public abstract class AbstractSimpleInterceptor implements MethodInterceptor {
 			finalizeMethod = Object.class.getDeclaredMethod("finalize");
 			toStringMethod = Object.class.getDeclaredMethod("toString");
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

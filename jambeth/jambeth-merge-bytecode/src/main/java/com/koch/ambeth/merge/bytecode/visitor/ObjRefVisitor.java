@@ -89,7 +89,7 @@ public class ObjRefVisitor extends ClassGenerator {
 		try {
 			c_stringBuilder = new ConstructorInstance(StringBuilder.class.getDeclaredConstructor());
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -152,7 +152,7 @@ public class ObjRefVisitor extends ClassGenerator {
 			Constructor<?> superConstructor = getState().getCurrentType().getDeclaredConstructor();
 			ci_super = new ConstructorInstance(superConstructor);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		MethodGenerator mv =

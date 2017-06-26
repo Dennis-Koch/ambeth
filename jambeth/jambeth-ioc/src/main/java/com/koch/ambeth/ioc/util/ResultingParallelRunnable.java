@@ -35,7 +35,7 @@ public class ResultingParallelRunnable<R, V> extends AbstractParallelRunnable<V>
 		}
 
 		@Override
-		public void invoke(V item) throws Throwable {
+		public void invoke(V item) throws Exception {
 			run.invoke(item);
 		}
 	}
@@ -51,7 +51,7 @@ public class ResultingParallelRunnable<R, V> extends AbstractParallelRunnable<V>
 		}
 
 		@Override
-		public void invoke(V item) throws Throwable {
+		public void invoke(V item) throws Exception {
 			R result = run.invoke(item);
 			Lock parallelLock = this.parallelLock;
 			parallelLock.lock();

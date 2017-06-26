@@ -229,7 +229,7 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
 			Constructor<?> constructor = enhancedType.getConstructor(EMPTY_TYPES);
 			return (Member) constructor.newInstance(EMPTY_OBJECTS);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

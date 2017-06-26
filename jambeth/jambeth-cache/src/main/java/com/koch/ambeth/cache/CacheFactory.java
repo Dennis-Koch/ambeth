@@ -58,7 +58,7 @@ public class CacheFactory implements ICacheFactory {
 		try {
 			return runnable.invoke();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

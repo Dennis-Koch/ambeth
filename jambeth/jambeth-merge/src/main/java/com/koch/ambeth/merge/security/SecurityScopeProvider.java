@@ -35,12 +35,10 @@ public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurity
 	public static final ISecurityScope[] defaultSecurityScopes = new ISecurityScope[0];
 
 	@Forkable
-	protected final ThreadLocal<SecurityScopeHandle> securityScopeTL =
-			new SensitiveThreadLocal<>();
+	protected final ThreadLocal<SecurityScopeHandle> securityScopeTL = new SensitiveThreadLocal<>();
 
-	protected final DefaultExtendableContainer<ISecurityScopeChangeListener> securityScopeChangeListeners =
-			new DefaultExtendableContainer<>(
-					ISecurityScopeChangeListener.class, "securityScopeChangeListener");
+	protected final DefaultExtendableContainer<ISecurityScopeChangeListener> securityScopeChangeListeners = new DefaultExtendableContainer<>(
+			ISecurityScopeChangeListener.class, "securityScopeChangeListener");
 
 	@Override
 	public void cleanupThreadLocal() {
@@ -72,7 +70,7 @@ public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurity
 
 	@Override
 	public <R, V> R executeWithSecurityScopes(IResultingBackgroundWorkerParamDelegate<R, V> runnable,
-			V state, ISecurityScope... securityScopes) throws Throwable {
+			V state, ISecurityScope... securityScopes) throws Exception {
 		ISecurityScope[] oldSecurityScopes = getSecurityScopes();
 		try {
 			setSecurityScopes(securityScopes);
@@ -85,7 +83,7 @@ public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurity
 
 	@Override
 	public <R> R executeWithSecurityScopes(IResultingBackgroundWorkerDelegate<R> runnable,
-			ISecurityScope... securityScopes) throws Throwable {
+			ISecurityScope... securityScopes) throws Exception {
 		ISecurityScope[] oldSecurityScopes = getSecurityScopes();
 		try {
 			setSecurityScopes(securityScopes);
@@ -98,7 +96,7 @@ public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurity
 
 	@Override
 	public <V> void executeWithSecurityScopes(IBackgroundWorkerParamDelegate<V> runnable, V state,
-			ISecurityScope... securityScopes) throws Throwable {
+			ISecurityScope... securityScopes) throws Exception {
 		ISecurityScope[] oldSecurityScopes = getSecurityScopes();
 		try {
 			setSecurityScopes(securityScopes);
@@ -111,7 +109,7 @@ public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurity
 
 	@Override
 	public void executeWithSecurityScopes(IBackgroundWorkerDelegate runnable,
-			ISecurityScope... securityScopes) throws Throwable {
+			ISecurityScope... securityScopes) throws Exception {
 		ISecurityScope[] oldSecurityScopes = getSecurityScopes();
 		try {
 			setSecurityScopes(securityScopes);

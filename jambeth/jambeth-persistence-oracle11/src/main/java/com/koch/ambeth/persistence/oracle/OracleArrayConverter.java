@@ -86,7 +86,7 @@ public class OracleArrayConverter implements IDedicatedConverter, IInitializingB
 			}
 			return targetCollection;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

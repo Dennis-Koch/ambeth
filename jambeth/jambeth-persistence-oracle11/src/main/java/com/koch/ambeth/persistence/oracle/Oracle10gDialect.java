@@ -340,7 +340,7 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
 				}
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -491,7 +491,7 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
 			}
 			throw e;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

@@ -85,7 +85,7 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever {
 		return transaction.processAndCommit(new ResultingDatabaseCallback<IQueryResultCacheItem>() {
 			@Override
 			public IQueryResultCacheItem callback(
-					ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable {
+					ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Exception {
 				IConversionHelper conversionHelper = DefaultQueryResultRetriever.this.conversionHelper;
 				IQueryIntern<?> query = DefaultQueryResultRetriever.this.query;
 				Class<?> entityType = query.getEntityType();
@@ -94,8 +94,8 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever {
 				int length = alternateIdMembers.length + 1;
 
 				ArrayList<Object>[] idLists = new ArrayList[length];
-				Class<?> versionType =
-						metaData.getVersionMember() != null ? metaData.getVersionMember().getRealType() : null;
+				Class<?> versionType = metaData.getVersionMember() != null
+						? metaData.getVersionMember().getRealType() : null;
 				Class<?>[] idTypes = new Class[length];
 				for (int a = length; a-- > 0;) {
 					idLists[a] = new ArrayList<>();
@@ -127,8 +127,8 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever {
 				for (int a = length; a-- > 0;) {
 					idArrays[a] = convertListToArray(idLists[a], idTypes[a]);
 				}
-				Object versionArray =
-						versionType != null ? convertListToArray(versionList, versionType) : null;
+				Object versionArray = versionType != null ? convertListToArray(versionList, versionType)
+						: null;
 				return new QueryResultCacheItem(entityType, totalSize, idLists[0].size(), idArrays,
 						versionArray);
 			}

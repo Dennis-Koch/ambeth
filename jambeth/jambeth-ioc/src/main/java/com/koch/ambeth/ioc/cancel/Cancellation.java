@@ -63,7 +63,7 @@ public class Cancellation implements ICancellation, ICancellationWritable, IThre
 				runnable.invoke();
 				return;
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -78,7 +78,7 @@ public class Cancellation implements ICancellation, ICancellationWritable, IThre
 			try {
 				return runnable.invoke();
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -94,7 +94,7 @@ public class Cancellation implements ICancellation, ICancellationWritable, IThre
 			try {
 				return runnable.invoke(state);
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}

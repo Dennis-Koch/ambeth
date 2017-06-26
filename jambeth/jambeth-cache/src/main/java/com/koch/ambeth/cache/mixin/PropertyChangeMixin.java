@@ -467,7 +467,7 @@ public class PropertyChangeMixin
 			if (cacheModification.isActive()) {
 				cacheModification.queuePropertyChangeEvent(new IBackgroundWorkerDelegate() {
 					@Override
-					public void invoke() throws Throwable {
+					public void invoke() throws Exception {
 						executeFirePropertyChange(propertyChangeSupport, extensions, obj, propertyNames,
 								oldValues, currentValues);
 					}
@@ -485,7 +485,7 @@ public class PropertyChangeMixin
 		if (asyncPropertyChangeActive) {
 			guiThreadHelper.invokeInGui(new IBackgroundWorkerDelegate() {
 				@Override
-				public void invoke() throws Throwable {
+				public void invoke() throws Exception {
 					executeFirePropertyChangeIntern(propertyChangeSupport, extensions, obj, propertyNames,
 							oldValues, currentValues);
 				}

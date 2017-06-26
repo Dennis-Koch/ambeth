@@ -161,7 +161,7 @@ public class NoopDatabasePool implements IDatabasePool, IInitializingBean {
 			notifyCallbacksCreated(database);
 			return database;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

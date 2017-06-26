@@ -65,7 +65,7 @@ public class JdbcLink extends SqlLink {
 			try {
 				pstm.executeBatch();
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}

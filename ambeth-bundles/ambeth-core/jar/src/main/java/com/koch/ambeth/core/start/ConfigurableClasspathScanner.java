@@ -68,11 +68,11 @@ public class ConfigurableClasspathScanner
 		final Class<?> classpathInfoClass = getConfiguredType(
 				CoreConfigurationConstants.ClasspathInfoClass, SystemClasspathInfo.class.getName());
 
-		scannerContext =
-				serviceContext.createService(new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
+		scannerContext = serviceContext
+				.createService(new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
 
 					@Override
-					public void invoke(IBeanContextFactory beanContextFactory) throws Throwable {
+					public void invoke(IBeanContextFactory beanContextFactory) throws Exception {
 						beanContextFactory.registerBean(classpathScannerClass)
 								.autowireable(IClasspathScanner.class);
 						beanContextFactory.registerBean(classpathInfoClass).autowireable(IClasspathInfo.class);

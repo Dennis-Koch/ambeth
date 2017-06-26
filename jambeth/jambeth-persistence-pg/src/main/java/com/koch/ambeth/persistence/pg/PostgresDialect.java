@@ -347,7 +347,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
 			stm = connection.createStatement();
 			stm.execute("SET SCHEMA '" + toDefaultCase(schemaNames[0]) + "'");
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -544,7 +544,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
 				allSequenceNames.add(fqSequenceName);
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

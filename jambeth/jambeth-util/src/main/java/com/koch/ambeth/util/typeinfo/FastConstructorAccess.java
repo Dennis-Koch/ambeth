@@ -79,7 +79,7 @@ public abstract class FastConstructorAccess<T> {
 		try {
 			return accessClass.getConstructor(Class[].class).newInstance((Object) paramTypes);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -188,7 +188,7 @@ public abstract class FastConstructorAccess<T> {
 			return classLoader.defineClass(accessClassName, data);
 			// return (Class<?>) m_defineClass.invoke(classLoader, accessClassName, data);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

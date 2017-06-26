@@ -43,7 +43,7 @@ public class PostgresBinaryInputStream implements IBinaryInputStream, IInputStre
 		try {
 			blob.free();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -53,7 +53,7 @@ public class PostgresBinaryInputStream implements IBinaryInputStream, IInputStre
 		try {
 			return is.read();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

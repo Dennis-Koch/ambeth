@@ -246,7 +246,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 			}
 			return operatorBC.finish();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -645,7 +645,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 			}
 			return br.finish();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -836,7 +836,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		try {
 			return connectionDialect.getRegexpLikeFunction(sourceString, pattern, matchParameter);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -861,7 +861,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 			return getBeanContext().registerBean(DirectValueOperand.class).propertyValue("Value", value)
 					.finish();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -873,7 +873,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 			return getBeanContext().registerBean(SimpleValueOperand.class)
 					.propertyValue("ParamName", paramName).finish();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -883,7 +883,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		try {
 			return getBeanContext().registerBean(SqlAllOperand.class).finish();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -970,7 +970,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 			return getBeanContext().registerBean(SqlFunctionOperand.class).propertyValue("Name", name)
 					.propertyValue("Operands", operands).finish();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -1073,7 +1073,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 					.propertyValue("FullqualifiedEscapedTableName", table.getFullqualifiedEscapedName())
 					.propertyValue("Clause", clause).propertyValue("JoinType", joinType).finish();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -1136,7 +1136,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 			((SqlColumnOperand) columnJoined).setJoinClause(joinClause);
 			return joinClause;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

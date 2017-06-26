@@ -316,7 +316,7 @@ public class DataObjectVisitor extends ClassGenerator {
 		setPropertyContext(p_hasPendingChanges.getName(),
 				new IResultingBackgroundWorkerDelegate<Object>() {
 					@Override
-					public Object invoke() throws Throwable {
+					public Object invoke() throws Exception {
 						MethodGenerator mg = visitMethod(p_hasPendingChanges.getGetter());
 						PropertyInstance p_hasPendingChanges =
 								PropertyInstance.findByTemplate(DataObjectVisitor.p_hasPendingChanges, false);

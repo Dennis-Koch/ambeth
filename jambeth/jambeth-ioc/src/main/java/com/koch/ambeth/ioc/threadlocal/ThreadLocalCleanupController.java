@@ -47,36 +47,32 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 	@LogInstance
 	private ILogger log;
 
-	protected final DefaultExtendableContainer<IThreadLocalCleanupBean> listeners =
-			new DefaultExtendableContainer<>(IThreadLocalCleanupBean.class,
-					"threadLocalCleanupBean");
+	protected final DefaultExtendableContainer<IThreadLocalCleanupBean> listeners = new DefaultExtendableContainer<>(
+			IThreadLocalCleanupBean.class, "threadLocalCleanupBean");
 
 	protected ForkStateEntry[] cachedForkStateEntries;
 
-	protected final IdentityHashMap<IThreadLocalCleanupBean, Reference<IServiceContext>> extensionToContextMap =
-			new IdentityHashMap<>();
+	protected final IdentityHashMap<IThreadLocalCleanupBean, Reference<IServiceContext>> extensionToContextMap = new IdentityHashMap<>();
 
-	protected final IdentityWeakHashMap<IServiceContext, ParamHolder<Boolean>> alreadyHookedContextSet =
-			new IdentityWeakHashMap<>();
+	protected final IdentityWeakHashMap<IServiceContext, ParamHolder<Boolean>> alreadyHookedContextSet = new IdentityWeakHashMap<>();
 
 	protected IServiceContext beanContext;
 
 	protected ThreadLocalObjectCollector objectCollector;
 
-	protected final IBackgroundWorkerParamDelegate<IServiceContext> foreignContextHook =
-			new IBackgroundWorkerParamDelegate<IServiceContext>() {
-				@Override
-				public void invoke(IServiceContext state) throws Throwable {
-					Lock writeLock = listeners.getWriteLock();
-					writeLock.lock();
-					try {
-						cachedForkStateEntries = null;
-					}
-					finally {
-						writeLock.unlock();
-					}
-				}
-			};
+	protected final IBackgroundWorkerParamDelegate<IServiceContext> foreignContextHook = new IBackgroundWorkerParamDelegate<IServiceContext>() {
+		@Override
+		public void invoke(IServiceContext state) throws Exception {
+			Lock writeLock = listeners.getWriteLock();
+			writeLock.lock();
+			try {
+				cachedForkStateEntries = null;
+			}
+			finally {
+				writeLock.unlock();
+			}
+		}
+	};
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {
@@ -138,10 +134,10 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 					Class<? extends IForkProcessor> forkProcessorType = forkable.processor();
 					IForkProcessor forkProcessor = null;
 					if (forkProcessorType != null && !IForkProcessor.class.equals(forkProcessorType)) {
-						Reference<IServiceContext> beanContextOfExtensionR =
-								extensionToContextMap.get(extension);
-						IServiceContext beanContextOfExtension =
-								beanContextOfExtensionR != null ? beanContextOfExtensionR.get() : null;
+						Reference<IServiceContext> beanContextOfExtensionR = extensionToContextMap
+								.get(extension);
+						IServiceContext beanContextOfExtension = beanContextOfExtensionR != null
+								? beanContextOfExtensionR.get() : null;
 						if (beanContextOfExtension == null) {
 							beanContextOfExtension = beanContext;
 						}
@@ -155,7 +151,7 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 			this.cachedForkStateEntries = cachedForkStateEntries;
 			return cachedForkStateEntries;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -163,7 +159,7 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 		}
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public IForkState createForkState() {
 		ForkStateEntry[] forkStateEntries = getForkStateEntries();
@@ -203,15 +199,14 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 			cachedForkStateEntries = null;
 			IServiceContext currentBeanContext = BeanContextInitializer.getCurrentBeanContext();
 			if (currentBeanContext != null) {
-				extensionToContextMap.put(threadLocalCleanupBean,
-						new WeakReference<>(currentBeanContext));
+				extensionToContextMap.put(threadLocalCleanupBean, new WeakReference<>(currentBeanContext));
 				if (alreadyHookedContextSet.putIfNotExists(currentBeanContext, null)) {
 					final ParamHolder<Boolean> inactive = new ParamHolder<>();
 
 					currentBeanContext
 							.registerDisposeHook(new IBackgroundWorkerParamDelegate<IServiceContext>() {
 								@Override
-								public void invoke(IServiceContext state) throws Throwable {
+								public void invoke(IServiceContext state) throws Exception {
 									if (Boolean.TRUE.equals(inactive.getValue())) {
 										return;
 									}

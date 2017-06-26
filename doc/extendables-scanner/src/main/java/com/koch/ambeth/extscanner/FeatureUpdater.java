@@ -72,7 +72,7 @@ public class FeatureUpdater extends AbstractLatexScanner implements IStartingBea
 				}
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

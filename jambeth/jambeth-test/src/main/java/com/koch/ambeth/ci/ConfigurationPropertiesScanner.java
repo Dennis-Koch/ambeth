@@ -89,7 +89,7 @@ public final class ConfigurationPropertiesScanner {
 				try {
 					return ((String) o1.get(null)).compareTo((String) o2.get(null));
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}

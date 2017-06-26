@@ -71,11 +71,8 @@ import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.IList;
 
 @TestPropertiesList({
-		@TestProperties(
-				name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc.connection.LogPreparedStatementInterceptor",
-				value = "DEBUG"),
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-				value = "com/koch/ambeth/query/Query_orm.xml")})
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc.connection.LogPreparedStatementInterceptor", value = "DEBUG"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/query/Query_orm.xml") })
 @SQLStructure("Query_structure.sql")
 @SQLData("Query_data.sql")
 @PersistenceContext(PersistenceContextType.NOT_REQUIRED)
@@ -197,7 +194,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 	@SuppressWarnings("deprecation")
 	@Test
 	public void testRetrieveAsList() throws Exception {
-		List<Integer> values = Arrays.asList(new Integer[] {2, 4});
+		List<Integer> values = Arrays.asList(new Integer[] { 2, 4 });
 
 		IOperand operand1 = qb.isEqualTo(qb.column(columnName1), qb.valueName(paramName1));
 		IOperand operand2 = qb.isEqualTo(qb.column(columnName1), qb.valueName(paramName2));
@@ -214,10 +211,10 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 	@SuppressWarnings("deprecation")
 	@Test
 	public void retrieveWhereNullByEqual() throws Exception {
-		List<Integer> expected = Arrays.asList(new Integer[] {2, 5});
+		List<Integer> expected = Arrays.asList(new Integer[] { 2, 5 });
 
-		IQuery<QueryEntity> query =
-				qb.build(qb.isEqualTo(qb.property(propertyName3), qb.valueName(paramName1)));
+		IQuery<QueryEntity> query = qb
+				.build(qb.isEqualTo(qb.property(propertyName3), qb.valueName(paramName1)));
 
 		nameToValueMap.put(paramName1, null);
 		List<QueryEntity> actual = query.retrieve(nameToValueMap);
@@ -227,10 +224,10 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 	@SuppressWarnings("deprecation")
 	@Test
 	public void retrieveWhereNotNullByEqual() throws Exception {
-		List<Integer> expected = Arrays.asList(new Integer[] {1, 3, 4, 6});
+		List<Integer> expected = Arrays.asList(new Integer[] { 1, 3, 4, 6 });
 
-		IQuery<QueryEntity> query =
-				qb.build(qb.isNotEqualTo(qb.property(propertyName3), qb.valueName(paramName1)));
+		IQuery<QueryEntity> query = qb
+				.build(qb.isNotEqualTo(qb.property(propertyName3), qb.valueName(paramName1)));
 
 		nameToValueMap.put(paramName1, null);
 		List<QueryEntity> actual = query.retrieve(nameToValueMap);
@@ -245,8 +242,8 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 	@SuppressWarnings("deprecation")
 	@Test
 	public void retrieveWhereGTNullByEqual() throws Exception {
-		IQuery<QueryEntity> query =
-				qb.build(qb.isGreaterThan(qb.property(propertyName3), qb.valueName(paramName1)));
+		IQuery<QueryEntity> query = qb
+				.build(qb.isGreaterThan(qb.property(propertyName3), qb.valueName(paramName1)));
 
 		nameToValueMap.put(paramName1, null);
 		List<QueryEntity> actual = query.retrieve(nameToValueMap);
@@ -277,8 +274,8 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 	public void retrieveByDate_long() {
 		long updatedOn = updateQueryEntity1();
 
-		IQuery<QueryEntity> query =
-				qb.build(qb.isEqualTo(qb.property("UpdatedOn"), qb.value(updatedOn)));
+		IQuery<QueryEntity> query = qb
+				.build(qb.isEqualTo(qb.property("UpdatedOn"), qb.value(updatedOn)));
 		IList<QueryEntity> res = query.retrieve();
 		Assert.assertNotNull(res);
 		Assert.assertEquals(1, res.size());
@@ -290,8 +287,8 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 		long updatedOn = updateQueryEntity1();
 		java.util.Date updatedOnDate = new java.util.Date(updatedOn);
 
-		IQuery<QueryEntity> query =
-				qb.build(qb.isEqualTo(qb.property("UpdatedOn"), qb.value(updatedOnDate)));
+		IQuery<QueryEntity> query = qb
+				.build(qb.isEqualTo(qb.property("UpdatedOn"), qb.value(updatedOnDate)));
 		IList<QueryEntity> res = query.retrieve();
 		Assert.assertNotNull(res);
 		Assert.assertEquals(1, res.size());
@@ -303,8 +300,8 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 		long updatedOn = updateQueryEntity1();
 		Date updatedOnDate = new Date(updatedOn);
 
-		IQuery<QueryEntity> query =
-				qb.build(qb.isEqualTo(qb.property("UpdatedOn"), qb.value(updatedOnDate)));
+		IQuery<QueryEntity> query = qb
+				.build(qb.isEqualTo(qb.property("UpdatedOn"), qb.value(updatedOnDate)));
 		IList<QueryEntity> res = query.retrieve();
 		Assert.assertNotNull(res);
 		Assert.assertEquals(1, res.size());
@@ -316,8 +313,8 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 		long updatedOn = updateQueryEntity1();
 		Timestamp timestamp = new Timestamp(updatedOn);
 
-		IQuery<QueryEntity> query =
-				qb.build(qb.isEqualTo(qb.property("UpdatedOn"), qb.value(timestamp)));
+		IQuery<QueryEntity> query = qb
+				.build(qb.isEqualTo(qb.property("UpdatedOn"), qb.value(timestamp)));
 		IList<QueryEntity> res = query.retrieve();
 		Assert.assertNotNull(res);
 		Assert.assertEquals(1, res.size());
@@ -344,8 +341,8 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 
 	@Test
 	public void retrieveWithLimitAndOrder1() throws Exception {
-		IQuery<QueryEntity> query =
-				qb.limit(qb.value(1)).orderBy(qb.property("UpdatedOn"), OrderByType.DESC).build();
+		IQuery<QueryEntity> query = qb.limit(qb.value(1))
+				.orderBy(qb.property("UpdatedOn"), OrderByType.DESC).build();
 		List<QueryEntity> actual = query.retrieve();
 		assertEquals(1, actual.size());
 	}
@@ -385,18 +382,18 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 		transaction.processAndCommit(new DatabaseCallback() {
 			@Override
 			public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-					throws Throwable {
+					throws Exception {
 				String name1Value = "name1xx";
 				List<Integer> expectedBeforeUpdate = Arrays.asList(1, 2, 3, 4, 5, 6);
 				List<Integer> expectedAfterUpdate = Arrays.asList(1, 3, 4, 5, 6);
 
-				IQuery<QueryEntity> query =
-						qb.build(qb.isNotEqualTo(qb.property(QueryEntity.Name1), qb.value(name1Value)));
+				IQuery<QueryEntity> query = qb
+						.build(qb.isNotEqualTo(qb.property(QueryEntity.Name1), qb.value(name1Value)));
 				List<QueryEntity> allBeforeUpdate = query.retrieve();
 				assertSimilar(expectedBeforeUpdate, allBeforeUpdate);
 
-				QueryEntity changedQueryEntity =
-						beanContext.getService(ICache.class).getObject(QueryEntity.class, 2);
+				QueryEntity changedQueryEntity = beanContext.getService(ICache.class)
+						.getObject(QueryEntity.class, 2);
 				changedQueryEntity.setName1(name1Value);
 				beanContext.getService(IMergeProcess.class).process(changedQueryEntity, null, null, null);
 
@@ -438,8 +435,8 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 		int versionIndex = qb.select(versionProperty);
 		int countIndex = qb.select(qb.function("Count", versionProperty));
 		qb.groupBy(versionProperty);
-		IQuery<QueryEntity> query =
-				qb.groupBy(versionProperty).build(qb.isEqualTo(versionProperty, qb.value(2)));
+		IQuery<QueryEntity> query = qb.groupBy(versionProperty)
+				.build(qb.isEqualTo(versionProperty, qb.value(2)));
 		IDataCursor dataCursor = query.retrieveAsData();
 		try {
 			while (dataCursor.moveNext()) {
@@ -465,7 +462,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 		IQuery<QueryEntity> query = qb.groupBy(versionOp).orderBy(versionOp, OrderByType.DESC).build(); // .build(qb.isNotEqualTo(maxName1,
 																																																		// qb.value(0)));
 
-		Object[][] expected = {{2, "name2"}, {1, "name3"}};
+		Object[][] expected = { { 2, "name2" }, { 1, "name3" } };
 		IDataCursor dataCursor = query.retrieveAsData();
 		try {
 			int index = 0;
@@ -494,19 +491,19 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 		transaction.processAndCommit(new DatabaseCallback() {
 			@Override
 			public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-					throws Throwable {
+					throws Exception {
 				String name1Value = "name1xx";
-				List<Integer> expectedBeforeUpdate = Arrays.asList(new Integer[] {1, 2, 3, 4, 5, 6});
-				List<Integer> expectedAfterUpdate = Arrays.asList(new Integer[] {1, 3, 4, 5, 6});
+				List<Integer> expectedBeforeUpdate = Arrays.asList(new Integer[] { 1, 2, 3, 4, 5, 6 });
+				List<Integer> expectedAfterUpdate = Arrays.asList(new Integer[] { 1, 3, 4, 5, 6 });
 
 				PagingRequest pr = new PagingRequest().withSize(expectedBeforeUpdate.size());
-				IPagingQuery<QueryEntity> query =
-						qb.buildPaging(qb.isNotEqualTo(qb.property(QueryEntity.Name1), qb.value(name1Value)));
+				IPagingQuery<QueryEntity> query = qb
+						.buildPaging(qb.isNotEqualTo(qb.property(QueryEntity.Name1), qb.value(name1Value)));
 				IPagingResponse<QueryEntity> allBeforeUpdate = query.retrieve(pr);
 				assertSimilar(expectedBeforeUpdate, allBeforeUpdate.getResult());
 
-				QueryEntity changedQueryEntity =
-						beanContext.getService(ICache.class).getObject(QueryEntity.class, 2);
+				QueryEntity changedQueryEntity = beanContext.getService(ICache.class)
+						.getObject(QueryEntity.class, 2);
 				changedQueryEntity.setName1(name1Value);
 				beanContext.getService(IMergeProcess.class).process(changedQueryEntity, null, null, null);
 
@@ -535,7 +532,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 
 	@Test
 	public void retrieveAllOrdered() throws Exception {
-		List<Integer> expectedIds = Arrays.asList(new Integer[] {1, 2, 3, 4, 5, 6});
+		List<Integer> expectedIds = Arrays.asList(new Integer[] { 1, 2, 3, 4, 5, 6 });
 
 		qb.orderBy(qb.property("Id"), OrderByType.ASC);
 		IQuery<QueryEntity> queryAsc = qb.build(qb.all());
@@ -560,7 +557,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 	@SuppressWarnings("deprecation")
 	@Test
 	public void retrievePagingSimple() throws Exception {
-		List<Integer> expected = Arrays.asList(new Integer[] {4, 3, 2});
+		List<Integer> expected = Arrays.asList(new Integer[] { 4, 3, 2 });
 
 		qb.orderBy(qb.property("Id"), OrderByType.DESC);
 		qb.orderBy(qb.property("Version"), OrderByType.ASC);
@@ -638,8 +635,8 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 		// S_A LEFT OUTER JOIN "JAMBETH"."JOIN_QUERY_ENTITY" J_A ON (S_A."FK"=J_A."ID")
 		// WHERE (J_A."VERSION"=?)
 
-		IQuery<QueryEntity> query =
-				qb.build(qb.isEqualTo(qb.property("Fk.Version"), qb.valueName(paramName1)));
+		IQuery<QueryEntity> query = qb
+				.build(qb.isEqualTo(qb.property("Fk.Version"), qb.valueName(paramName1)));
 
 		List<QueryEntity> actual = query.param(paramName1, 3).retrieve();
 		assertSimilar(expectedIds, actual);
@@ -653,7 +650,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 	@SuppressWarnings("deprecation")
 	@Test
 	public void testJoinQueryWithOrderBy() throws Exception {
-		List<Integer> expectedIds = Arrays.asList(new Integer[] {1, 4});
+		List<Integer> expectedIds = Arrays.asList(new Integer[] { 1, 4 });
 
 		// Query used:
 		// SELECT "QUERY_ENTITY"."ID","QUERY_ENTITY"."VERSION" FROM "QUERY_ENTITY"
@@ -686,7 +683,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 	@SuppressWarnings("deprecation")
 	@Test
 	public void testJoinToSelfQuery() throws Exception {
-		List<Integer> expectedIds = Arrays.asList(new Integer[] {1, 3, 5, 6});
+		List<Integer> expectedIds = Arrays.asList(new Integer[] { 1, 3, 5, 6 });
 
 		// Query used:
 		// SELECT A."ID",A."VERSION" FROM "QUERY_ENTITY" A
@@ -722,7 +719,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 		// LEFT OUTER JOIN "JOIN_QUERY_ENTITY" J_A ON (S_A."FK"=J_A."ID")
 		// LEFT OUTER JOIN "JOIN_QUERY_ENTITY" J_B ON (J_A."PARENT"=J_B."ID")
 		// WHERE (J_B."ID"=?)
-		List<Integer> expectedIds = Arrays.asList(new Integer[] {3, 6});
+		List<Integer> expectedIds = Arrays.asList(new Integer[] { 3, 6 });
 
 		IOperand whereClause = qb.isEqualTo(qb.property("Fk.Parent.Id"), qb.valueName(paramName1));
 

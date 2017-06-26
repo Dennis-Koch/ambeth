@@ -227,7 +227,7 @@ public class LinkContainerTest extends AbstractIocTest {
 		childContext =
 				beanContext.createService(new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
 					@Override
-					public void invoke(IBeanContextFactory beanContextFactory) throws Throwable {
+					public void invoke(IBeanContextFactory beanContextFactory) throws Exception {
 						beanContextFactory.registerExternalBean(FOREIGN_CONTEXT_NAME, foreignContext);
 					}
 				}, LinkContainerTestModule.class);

@@ -91,7 +91,7 @@ public class SignatureUtil implements IInitializingBean, ISignatureUtil {
 					.setPublicKey(Base64.encodeBytes(pair.getPublic().getEncoded()).toCharArray());
 			newEmptySignature.setPrivateKey(Base64.encodeBytes(encryptedPrivateKey).toCharArray());
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -116,7 +116,7 @@ public class SignatureUtil implements IInitializingBean, ISignatureUtil {
 					pbEncryptor.encrypt(pbec, true, newClearTextPassword, decryptedPrivateKey);
 			signature.setPrivateKey(Base64.encodeBytes(encryptedPrivateKey).toCharArray());
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -133,7 +133,7 @@ public class SignatureUtil implements IInitializingBean, ISignatureUtil {
 			jSignature.initSign(privateKeyHandle, random);
 			return jSignature;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -150,7 +150,7 @@ public class SignatureUtil implements IInitializingBean, ISignatureUtil {
 			jSignature.initVerify(publicKeyHandle);
 			return jSignature;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

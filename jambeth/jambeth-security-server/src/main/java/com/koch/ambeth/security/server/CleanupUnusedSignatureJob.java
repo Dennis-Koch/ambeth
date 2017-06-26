@@ -43,8 +43,8 @@ import com.koch.ambeth.util.collections.IList;
 public class CleanupUnusedSignatureJob implements IJob, IStartingBean {
 	public static void registerCleanupSignatureJob(IBeanContextFactory beanContextFactory,
 			String userName, char[] userPass, String cronPattern) {
-		IBeanConfiguration cleanupUnusedSignatureJob =
-				beanContextFactory.registerBean(CleanupUnusedSignatureJob.class);
+		IBeanConfiguration cleanupUnusedSignatureJob = beanContextFactory
+				.registerBean(CleanupUnusedSignatureJob.class);
 		beanContextFactory.registerBean(JobScheduleConfiguration.class) //
 				.propertyRef(JobScheduleConfiguration.JOB, cleanupUnusedSignatureJob) //
 				.propertyValue(JobScheduleConfiguration.JOB_NAME,
@@ -69,8 +69,8 @@ public class CleanupUnusedSignatureJob implements IJob, IStartingBean {
 	@Override
 	public void afterStarted() throws Throwable {
 		IQueryBuilder<ISignature> qb = queryBuilderFactory.create(ISignature.class);
-		q_signaturesWithoutUser =
-				qb.build(qb.and(qb.isNull(qb.property(ISignature.User)), qb.isNotIn(qb.property("Id"),
+		q_signaturesWithoutUser = qb
+				.build(qb.and(qb.isNull(qb.property(ISignature.User)), qb.isNotIn(qb.property("Id"),
 						qb.property("<" + IAuditEntry.class.getName() + "#" + IAuditEntry.SignatureOfUser))));
 	}
 
@@ -95,7 +95,7 @@ public class CleanupUnusedSignatureJob implements IJob, IStartingBean {
 	}
 
 	@Override
-	public void execute(IJobContext context) throws Throwable {
+	public void execute(IJobContext context) throws Exception {
 		IList<ISignature> retrieve = q_signaturesWithoutUser.retrieve();
 		mergeProcess.process(retrieve, null, null, null);
 	}

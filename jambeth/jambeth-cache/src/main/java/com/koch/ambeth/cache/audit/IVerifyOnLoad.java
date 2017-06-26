@@ -25,7 +25,7 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public interface IVerifyOnLoad {
-	<R> R verifyEntitiesOnLoad(IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable;
+	<R> R verifyEntitiesOnLoad(IResultingBackgroundWorkerDelegate<R> runnable) throws Exception;
 
 	void queueVerifyEntitiesOnLoad(IList<ILoadContainer> loadedEntities);
 }

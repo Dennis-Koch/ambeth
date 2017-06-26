@@ -21,5 +21,5 @@ limitations under the License.
  */
 
 public interface IBackgroundWorkerDelegate {
-	void invoke() throws Throwable;
+	void invoke() throws Exception;
 }

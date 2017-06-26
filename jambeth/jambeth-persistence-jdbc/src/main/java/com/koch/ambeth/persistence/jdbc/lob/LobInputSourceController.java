@@ -71,7 +71,7 @@ public class LobInputSourceController implements ILobInputSourceController {
 			return transaction
 					.runInTransaction(new IResultingBackgroundWorkerDelegate<IBinaryInputStream>() {
 						@Override
-						public IBinaryInputStream invoke() throws Throwable {
+						public IBinaryInputStream invoke() throws Exception {
 							return (IBinaryInputStream) deriveBinaryInputStreamIntern(parentEntity, member);
 						}
 					});
@@ -112,7 +112,7 @@ public class LobInputSourceController implements ILobInputSourceController {
 		return transaction
 				.runInTransaction(new IResultingBackgroundWorkerDelegate<ICharacterInputStream>() {
 					@Override
-					public ICharacterInputStream invoke() throws Throwable {
+					public ICharacterInputStream invoke() throws Exception {
 						return (ICharacterInputStream) deriveBinaryInputStreamIntern(parentEntity, member);
 					}
 				});

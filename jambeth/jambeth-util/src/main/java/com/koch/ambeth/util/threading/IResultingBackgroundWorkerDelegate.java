@@ -21,5 +21,5 @@ limitations under the License.
  */
 
 public interface IResultingBackgroundWorkerDelegate<R> {
-	R invoke() throws Throwable;
+	R invoke() throws Exception;
 }

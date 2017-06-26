@@ -63,7 +63,7 @@ public class SystemClasspathInfo implements IClasspathInfo {
 	}
 
 	@Override
-	public Path openAsFile(URL url) throws Throwable {
+	public Path openAsFile(URL url) throws Exception {
 		return new File(url.getFile()).getAbsoluteFile().toPath();
 	}
 }
