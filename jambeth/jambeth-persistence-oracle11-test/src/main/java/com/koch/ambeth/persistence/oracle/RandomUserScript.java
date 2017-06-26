@@ -137,12 +137,8 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 
 		Properties props = Properties.getApplication();
 
-		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(props);
-		try {
+		try (IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(props)) {
 			bootstrapContext.createService("randomUser", RandomUserModule.class, IocModule.class);
-		}
-		finally {
-			bootstrapContext.dispose();
 		}
 	}
 
@@ -236,7 +232,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 
 	private String createUser(final Connection connection, final String username,
 			final String password, final String quota) throws SQLException {
-		String[] privileges = {"RESOURCE", "CONNECT", "CTXAPP", "SELECT_CATALOG_ROLE",
+		String[] privileges = { "RESOURCE", "CONNECT", "CTXAPP", "SELECT_CATALOG_ROLE",
 				"create procedure", "create sequence", "create session", "create table", "create trigger",
 				"create type", "create view", "create user", "drop user", "CHANGE NOTIFICATION",
 				"EXECUTE ON CTXSYS.CTX_CLS", "EXECUTE ON CTXSYS.CTX_DDL", "EXECUTE ON CTXSYS.CTX_DOC",
@@ -244,7 +240,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 				"EXECUTE ON CTXSYS.CTX_REPORT", "EXECUTE ON CTXSYS.CTX_THES",
 				"EXECUTE ON CTXSYS.CTX_ULEXER", "SELECT ON V_$SQLAREA", "SELECT ON SYS.CON$",
 				"SELECT ON SYS.CDEF$", "SELECT ON SYS.CCOL$", "SELECT ON SYS.COL$", "SELECT ON SYS.USER$",
-				"SELECT ON SYS.\"_CURRENT_EDITION_OBJ\"", "SELECT ON SYS.ATTRCOL$"};
+				"SELECT ON SYS.\"_CURRENT_EDITION_OBJ\"", "SELECT ON SYS.ATTRCOL$" };
 
 		String createdUserName = null;
 		Statement stm = connection.createStatement();
@@ -308,8 +304,10 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 	 * Write the given user name to the given property file. Creates the property file if it doesn't
 	 * exist.
 	 *
-	 * @param propertyFileName Property file name
-	 * @param createdUserNames User names
+	 * @param propertyFileName
+	 *          Property file name
+	 * @param createdUserNames
+	 *          User names
 	 */
 	private static void writeToPropertyFile(final String propertyFileName,
 			final List<String> createdUserNames, String[] passwords) {
@@ -319,8 +317,8 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 		File propertyFile = new File(propertyFileName);
 		OutputStreamWriter fileWriter = null;
 		try {
-			fileWriter =
-					new OutputStreamWriter(new FileOutputStream(propertyFile), Charset.forName("UTF-8"));
+			fileWriter = new OutputStreamWriter(new FileOutputStream(propertyFile),
+					Charset.forName("UTF-8"));
 			String content = createPropertyFileContent(createdUserNames, passwords);
 			fileWriter.append(content);
 		}
@@ -364,9 +362,9 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 		}
 		summaryBuilder.append('\n');
 
-		String connectionUser =
-				PersistenceJdbcConfigurationConstants.DatabaseUser + "=" + createdUserNames.get(0) + "\n"
-						+ PersistenceJdbcConfigurationConstants.DatabasePass + "=" + passwords[0] + "\n";
+		String connectionUser = PersistenceJdbcConfigurationConstants.DatabaseUser + "="
+				+ createdUserNames.get(0) + "\n" + PersistenceJdbcConfigurationConstants.DatabasePass + "="
+				+ passwords[0] + "\n";
 		String content = connectionUser + summaryBuilder.toString() + singleSchemaBuilder.toString();
 		return content;
 	}

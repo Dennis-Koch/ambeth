@@ -22,6 +22,7 @@ limitations under the License.
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
 import com.koch.ambeth.ioc.IDisposableBean;
@@ -42,8 +43,8 @@ public class Measurement implements IMeasurement, IInitializingBean, IDisposable
 
 	protected final StringBuilder measurementXML = new StringBuilder();
 
-	protected final DefaultXmlWriter xmlWriter =
-			new DefaultXmlWriter(new AppendableStringBuilder(measurementXML), null);
+	protected final DefaultXmlWriter xmlWriter = new DefaultXmlWriter(
+			new AppendableStringBuilder(measurementXML), null);
 
 	protected String measurementFile;
 
@@ -80,9 +81,8 @@ public class Measurement implements IMeasurement, IInitializingBean, IDisposable
 			xmlWriter.write(measurements);
 			xmlWriter.writeCloseElement(name);
 
-			try {
-				OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(measurementFile, true),
-						Properties.CHARSET_UTF_8);
+			try (OutputStream os = new FileOutputStream(measurementFile, true);
+					OutputStreamWriter osw = new OutputStreamWriter(os, Properties.CHARSET_UTF_8)) {
 				try {
 					osw.append(measurementXML);
 				}

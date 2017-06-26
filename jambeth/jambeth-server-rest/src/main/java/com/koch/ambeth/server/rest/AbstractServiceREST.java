@@ -356,8 +356,23 @@ public abstract class AbstractServiceREST {
 		StringBuilder sb = new StringBuilder();
 		AmbethLogger.extractFullStackTrace(e, sb);
 		result.setMessage(e.getMessage());
+		result.setExceptionType(e.getClass().getName());
 		result.setStackTrace(sb.toString());
-		return createResult(result, response);
+
+		int errorStatus = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+		if (e instanceof SecurityException) {
+			errorStatus = HttpServletResponse.SC_FORBIDDEN;
+		}
+		final int fErrorStatus = errorStatus;
+		final StreamingOutput streamingOutput = createResult(result, response);
+		response.setStatus(fErrorStatus);
+		return new StreamingOutput() {
+			@Override
+			public void write(OutputStream output) throws IOException, WebApplicationException {
+				response.setStatus(fErrorStatus);
+				streamingOutput.write(output);
+			}
+		};
 	}
 
 	protected void writeContent(OutputStream os, Object result) {

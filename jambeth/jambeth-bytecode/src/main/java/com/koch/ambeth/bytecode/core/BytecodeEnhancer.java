@@ -22,6 +22,7 @@ limitations under the License.
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -223,15 +224,9 @@ public class BytecodeEnhancer
 		File outputFileDir = new File(traceDir, getClass().getName());
 		outputFileDir.mkdirs();
 		File outputFile = new File(outputFileDir, typeName + ".txt");
-		try {
-			OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(outputFile),
-					Charset.forName("UTF-8"));
-			try {
-				fw.write(bytecodeOutput);
-			}
-			finally {
-				fw.close();
-			}
+		try (OutputStream os = new FileOutputStream(outputFile);
+				OutputStreamWriter fw = new OutputStreamWriter(os, Charset.forName("UTF-8"))) {
+			fw.write(bytecodeOutput);
 		}
 		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e,

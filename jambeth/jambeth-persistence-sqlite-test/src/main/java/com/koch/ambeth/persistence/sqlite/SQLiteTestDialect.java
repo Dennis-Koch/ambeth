@@ -89,12 +89,11 @@ public class SQLiteTestDialect extends AbstractConnectionTestDialect {
 
 		createUserProps.put(PersistenceJdbcConfigurationConstants.DatabaseUser, rootDatabaseUser);
 		createUserProps.put(PersistenceJdbcConfigurationConstants.DatabasePass, rootDatabasePass);
-		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(createUserProps);
-		try {
+		try (IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(createUserProps)) {
 			bootstrapContext.createService("randomUser", RandomUserModule.class, IocModule.class);
 		}
-		finally {
-			bootstrapContext.dispose();
+		catch (Exception e) {
+			throw RuntimeExceptionUtil.mask(e);
 		}
 		return true;
 	}
@@ -181,7 +180,7 @@ public class SQLiteTestDialect extends AbstractConnectionTestDialect {
 		sb.append(" WHEN (new.\"VERSION\" <= old.\"VERSION\") BEGIN");
 		sb.append(" SELECT RAISE(ABORT, 'Optimistic Lock Exception');");
 		sb.append(" END;");
-		return new String[] {sb.toString()};
+		return new String[] { sb.toString() };
 	}
 
 	@Override

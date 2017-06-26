@@ -65,7 +65,7 @@ public class LinkContainer extends AbstractLinkContainer {
 			Class<?>[] types = methodOnExpectedListenerType.getParameterTypes();
 
 			Method method = null;
-			while (method == null) {
+			while (true) {
 				method = ReflectUtil.getDeclaredMethod(true, listenerType,
 						methodOnExpectedListenerType.getReturnType(), listenerMethodName, types);
 				if (method == null && types.length > 0) {
@@ -192,8 +192,8 @@ public class LinkContainer extends AbstractLinkContainer {
 			try {
 				Class<?> delegateType = bytecodeEnhancer.getEnhancedType(Object.class,
 						new DelegateEnhancementHint(listenerType, listenerMethodName, parameterType));
-				IDelegateConstructor constructor =
-						accessorTypeProvider.getConstructorType(IDelegateConstructor.class, delegateType);
+				IDelegateConstructor constructor = accessorTypeProvider
+						.getConstructorType(IDelegateConstructor.class, delegateType);
 				delegateInstance = constructor.createInstance(listener);
 			}
 			catch (MaskingRuntimeException e) {
@@ -205,11 +205,11 @@ public class LinkContainer extends AbstractLinkContainer {
 			}
 		}
 		if (delegateInstance == null) {
-			IMap<Method, Method> mappedMethods =
-					buildDelegateMethodMap(listenerType, listenerMethodName, parameterType);
+			IMap<Method, Method> mappedMethods = buildDelegateMethodMap(listenerType, listenerMethodName,
+					parameterType);
 			MethodInterceptor interceptor = new DelegateInterceptor(listener, mappedMethods);
-			delegateInstance =
-					proxyFactory.createProxy(parameterType, listenerType.getInterfaces(), interceptor);
+			delegateInstance = proxyFactory.createProxy(parameterType, listenerType.getInterfaces(),
+					interceptor);
 		}
 		return delegateInstance;
 	}

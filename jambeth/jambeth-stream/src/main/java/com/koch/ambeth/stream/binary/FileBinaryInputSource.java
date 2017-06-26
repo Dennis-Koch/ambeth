@@ -21,17 +21,19 @@ limitations under the License.
  */
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import com.koch.ambeth.stream.IInputStream;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class FileBinaryInputSource implements IBinaryInputSource {
-	protected final File file;
+	protected final Path path;
 
-	public FileBinaryInputSource(File file) {
-		this.file = file;
+	public FileBinaryInputSource(Path path) {
+		this.path = path;
 	}
 
 	@Override
@@ -45,10 +47,20 @@ public class FileBinaryInputSource implements IBinaryInputSource {
 	}
 
 	private InputStreamToBinaryInputStream createIInputStream() {
+		InputStream is = null;
 		try {
-			return new InputStreamToBinaryInputStream(new BufferedInputStream(new FileInputStream(file)));
+			is = Files.newInputStream(path);
+			return new InputStreamToBinaryInputStream(new BufferedInputStream(is));
 		}
 		catch (Throwable e) {
+			if (is != null) {
+				try {
+					is.close();
+				}
+				catch (IOException e1) {
+					// intended blank
+				}
+			}
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

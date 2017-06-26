@@ -22,6 +22,7 @@ limitations under the License.
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -49,10 +50,12 @@ public final class ConfigurationPropertiesScanner {
 		props.put(XmlConfigurationConstants.PackageScanPatterns, ".+");
 		props.put("ambeth.log.level", "INFO");
 
-		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(props);
-		IClasspathScanner classpathScanner =
-				bootstrapContext.registerBean(ClasspathScanner.class).finish();
-		List<Class<?>> types = classpathScanner.scanClassesAnnotatedWith(ConfigurationConstants.class);
+		List<Class<?>> types;
+		try (IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(props)) {
+			IClasspathScanner classpathScanner = bootstrapContext.registerBean(ClasspathScanner.class)
+					.finish();
+			types = classpathScanner.scanClassesAnnotatedWith(ConfigurationConstants.class);
+		}
 		Collections.sort(types, new Comparator<Class<?>>() {
 			@Override
 			public int compare(Class<?> o1, Class<?> o2) {
@@ -93,10 +96,9 @@ public final class ConfigurationPropertiesScanner {
 		});
 
 		File configOverviewFile = new File(args[0]);
-		OutputStreamWriter fileWriter =
-				new OutputStreamWriter(new FileOutputStream(configOverviewFile), Charset.forName("UTF-8"));
-		try {
-			DefaultXmlWriter xmlWriter = new DefaultXmlWriter(fileWriter, null);
+		try (OutputStream os = new FileOutputStream(configOverviewFile);
+				OutputStreamWriter fw = new OutputStreamWriter(os, Charset.forName("UTF-8"))) {
+			DefaultXmlWriter xmlWriter = new DefaultXmlWriter(fw, null);
 
 			String allPropsElementName = "properties";
 			String propElementName = "property";
@@ -112,8 +114,8 @@ public final class ConfigurationPropertiesScanner {
 				xmlWriter.writeStartElementEnd();
 				xmlWriter.writeOpenElement(propDescriptionName);
 
-				ConfigurationConstantDescription description =
-						field.getAnnotation(ConfigurationConstantDescription.class);
+				ConfigurationConstantDescription description = field
+						.getAnnotation(ConfigurationConstantDescription.class);
 
 				if (description != null) {
 					xmlWriter.writeEscapedXml(description.value());
@@ -123,9 +125,6 @@ public final class ConfigurationPropertiesScanner {
 				xmlWriter.writeCloseElement(propElementName);
 			}
 			xmlWriter.writeCloseElement(allPropsElementName);
-		}
-		finally {
-			fileWriter.close();
 		}
 		System.out.println("Finished successfully. Found " + fields.size() + " properties");
 		System.out.println("Wrote properties to file '" + configOverviewFile.getAbsolutePath() + "'");

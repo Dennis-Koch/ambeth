@@ -23,6 +23,7 @@ limitations under the License.
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.sql.Connection;
@@ -142,12 +143,8 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 							+ PersistenceJdbcConfigurationConstants.DatabasePort + "}" + "/" + "${"
 							+ PersistenceJdbcConfigurationConstants.DatabaseName + "}");
 		}
-		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(props);
-		try {
+		try (IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(props)) {
 			bootstrapContext.createService("randomUser", RandomUserModule.class, IocModule.class);
-		}
-		finally {
-			bootstrapContext.dispose();
 		}
 	}
 
@@ -262,8 +259,8 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 							"CREATE USER \"" + randomName + "\" WITH PASSWORD '" + password + "' SUPERUSER");
 					stm.execute("CREATE DATABASE \"" + randomName + "\" WITH OWNER \"" + randomName + "\"");
 
-					Connection userConnection =
-							DriverManager.getConnection(connection.getMetaData().getURL(), randomName, password);
+					Connection userConnection = DriverManager.getConnection(connection.getMetaData().getURL(),
+							randomName, password);
 					try {
 						// Statement userStm = userConnection.createStatement();
 						// try
@@ -317,8 +314,10 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 	 * Write the given user name to the given property file. Creates the property file if it doesn't
 	 * exist.
 	 *
-	 * @param propertyFileName Property file name
-	 * @param createdUserNames User names
+	 * @param propertyFileName
+	 *          Property file name
+	 * @param createdUserNames
+	 *          User names
 	 */
 	private static void writeToPropertyFile(final String propertyFileName,
 			final List<String> createdUserNames, String[] passwords) {
@@ -326,26 +325,13 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 			throw new IllegalArgumentException("Mandatory values not set!");
 		}
 		File propertyFile = new File(propertyFileName);
-		OutputStreamWriter fileWriter = null;
-		try {
-			fileWriter =
-					new OutputStreamWriter(new FileOutputStream(propertyFile), Charset.forName("UTF-8"));
+		try (OutputStream os = new FileOutputStream(propertyFile);
+				OutputStreamWriter fw = new OutputStreamWriter(os, Charset.forName("UTF-8"))) {
 			String content = createPropertyFileContent(createdUserNames, passwords);
-			fileWriter.append(content);
+			fw.append(content);
 		}
 		catch (IOException e) {
 			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally {
-			if (fileWriter != null) {
-				try {
-					fileWriter.close();
-				}
-				catch (IOException e) {
-					// ignore
-				}
-				fileWriter = null;
-			}
 		}
 	}
 
@@ -373,9 +359,9 @@ public class RandomUserScript implements IInitializingBean, IStartingBean {
 		}
 		summaryBuilder.append('\n');
 
-		String connectionUser =
-				PersistenceJdbcConfigurationConstants.DatabaseUser + "=" + createdUserNames.get(0) + "\n"
-						+ PersistenceJdbcConfigurationConstants.DatabasePass + "=" + passwords[0] + "\n";
+		String connectionUser = PersistenceJdbcConfigurationConstants.DatabaseUser + "="
+				+ createdUserNames.get(0) + "\n" + PersistenceJdbcConfigurationConstants.DatabasePass + "="
+				+ passwords[0] + "\n";
 		String content = connectionUser + summaryBuilder.toString() + singleSchemaBuilder.toString();
 		return content;
 	}
