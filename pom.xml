@@ -429,6 +429,14 @@
 					<configuration>
 						<deployAtEnd>true</deployAtEnd>
 					</configuration>
+					<executions>
+						<execution>
+							<phase>deploy</phase>
+							<goals>
+								<goal>deploy</goal>
+							</goals>
+						</execution>
+					</executions>
 				</plugin>
 				<plugin>
 					<artifactId>maven-antrun-plugin</artifactId>
