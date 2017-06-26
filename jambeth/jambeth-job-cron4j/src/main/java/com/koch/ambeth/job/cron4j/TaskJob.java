@@ -53,7 +53,7 @@ public class TaskJob implements IJob {
 	}
 
 	@Override
-	public void execute(IJobContext context) throws Throwable {
+	public void execute(IJobContext context) throws Exception {
 		task.execute(((AmbethCron4jJobContext) context).getTaskExecutionContext());
 	}
 }

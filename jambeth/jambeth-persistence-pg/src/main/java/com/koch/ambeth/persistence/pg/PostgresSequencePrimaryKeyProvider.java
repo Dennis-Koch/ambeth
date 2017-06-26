@@ -68,7 +68,7 @@ public class PostgresSequencePrimaryKeyProvider extends AbstractCachingPrimaryKe
 				targetIdList.add(id);
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

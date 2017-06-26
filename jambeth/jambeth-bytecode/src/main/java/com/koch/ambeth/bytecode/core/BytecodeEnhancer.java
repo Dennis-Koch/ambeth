@@ -427,7 +427,7 @@ public class BytecodeEnhancer
 				byte[] newContent = BytecodeBehaviorState.setState(originalType, currentType, newTypeHandle,
 						beanContext, hint, new IResultingBackgroundWorkerDelegate<byte[]>() {
 							@Override
-							public byte[] invoke() throws Throwable {
+							public byte[] invoke() throws Exception {
 								acquiredState.setValue((BytecodeBehaviorState) BytecodeBehaviorState.getState());
 								return This.executePendingBehaviors(fCurrentContent, sw, currentPendingBehaviors,
 										pendingBehaviors, classLoader);
@@ -471,7 +471,7 @@ public class BytecodeEnhancer
 	public byte[] executePendingBehaviors(byte[] currentContent, Writer sw,
 			final IBytecodeBehavior[] pendingBehaviors,
 			final List<IBytecodeBehavior> cascadePendingBehaviors, ClassLoader classLoader)
-			throws Throwable {
+			throws Exception {
 		final IBytecodeBehaviorState state = BytecodeBehaviorState.getState();
 		byte[] content = bytecodeClassLoader.buildTypeFromParent(state.getNewType().getInternalName(),
 				currentContent, sw, new IBuildVisitorDelegate() {

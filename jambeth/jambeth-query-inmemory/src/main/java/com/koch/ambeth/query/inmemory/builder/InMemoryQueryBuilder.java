@@ -87,7 +87,7 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T> {
 			}
 			return operatorBC.finish();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -105,7 +105,7 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T> {
 			}
 			return operatorBC.finish();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -119,7 +119,7 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T> {
 					.propertyValue("Operands", operands);
 			return operatorBC.finish();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

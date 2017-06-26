@@ -108,7 +108,7 @@ public class H2Dialect extends AbstractConnectionDialect {
 			return new ConnectionKeyValue(disableSql.toArray(String.class),
 					enableSql.toArray(String.class));
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

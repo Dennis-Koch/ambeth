@@ -264,7 +264,7 @@ public class CacheService implements ICacheService, IInitializingBean, ExecuteSe
 			}
 			return postCallServiceResult;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -308,7 +308,7 @@ public class CacheService implements ICacheService, IInitializingBean, ExecuteSe
 		try {
 			methodOnTarget = service.getClass().getMethod(method.getName(), method.getParameterTypes());
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		QueryBehavior queryBehavior = AnnotationUtil.getFirstAnnotation(queryBehaviorCache,

@@ -175,7 +175,7 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
 		return transaction.processAndCommit(new ResultingDatabaseCallback<Long>() {
 			@Override
 			public Long callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-					throws Throwable {
+					throws Exception {
 				return Long.valueOf(query.count());
 			}
 		}, true, true).longValue();
@@ -189,7 +189,7 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
 		return transaction.processAndCommit(new ResultingDatabaseCallback<Long>() {
 			@Override
 			public Long callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-					throws Throwable {
+					throws Exception {
 				return Long.valueOf(queryIntern.count(paramNameToValueMap));
 			}
 		}, true, true).intValue();
@@ -203,7 +203,7 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
 		return transaction.processAndCommit(new ResultingDatabaseCallback<Boolean>() {
 			@Override
 			public Boolean callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-					throws Throwable {
+					throws Exception {
 				return Boolean.valueOf(query.isEmpty());
 			}
 		}, true, true).booleanValue();
@@ -217,7 +217,7 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
 		return transaction.processAndCommit(new ResultingDatabaseCallback<Boolean>() {
 			@Override
 			public Boolean callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-					throws Throwable {
+					throws Exception {
 				return Boolean.valueOf(queryIntern.isEmpty(paramNameToValueMap));
 			}
 		}, true, true).booleanValue();

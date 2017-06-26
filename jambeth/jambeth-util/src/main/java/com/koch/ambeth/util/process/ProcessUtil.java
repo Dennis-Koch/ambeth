@@ -93,7 +93,7 @@ public class ProcessUtil {
 		try {
 			return ProcessUtil.waitForTermination(pb.start());
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

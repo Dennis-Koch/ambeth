@@ -271,7 +271,7 @@ public abstract class AbstractConnectionDialect
 				DriverManager.registerDriver(driverRegisteredExplicitly);
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -378,7 +378,7 @@ public abstract class AbstractConnectionDialect
 				}
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -437,7 +437,7 @@ public abstract class AbstractConnectionDialect
 						}
 						stmt.executeBatch();
 					}
-					catch (Throwable e) {
+					catch (Exception e) {
 						throw RuntimeExceptionUtil.mask(e);
 					}
 					finally {
@@ -446,7 +446,7 @@ public abstract class AbstractConnectionDialect
 				}
 			};
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

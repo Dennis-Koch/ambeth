@@ -73,7 +73,7 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 			unwrapMethod = Wrapper.class.getMethod("unwrap", Class.class);
 			isWrapperForMethod = Wrapper.class.getMethod("isWrapperFor", Class.class);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

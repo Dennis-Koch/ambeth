@@ -135,11 +135,11 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
 	protected boolean isNetworkClientMode;
 
-	protected final ClassExtendableContainer<IMergeServiceExtension> mergeServiceExtensions =
-			new ClassExtendableContainer<>("mergeServiceExtension", "entityType");
+	protected final ClassExtendableContainer<IMergeServiceExtension> mergeServiceExtensions = new ClassExtendableContainer<>(
+			"mergeServiceExtension", "entityType");
 
-	protected final DefaultExtendableContainer<IMergeListener> mergeListeners =
-			new DefaultExtendableContainer<>(IMergeListener.class, "mergeListener");
+	protected final DefaultExtendableContainer<IMergeListener> mergeListeners = new DefaultExtendableContainer<>(
+			IMergeListener.class, "mergeListener");
 
 	@Forkable
 	protected final ThreadLocal<Long> startTimeTL = new ThreadLocal<>();
@@ -167,7 +167,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 			return transaction
 					.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<IOriCollection>() {
 						@Override
-						public IOriCollection invoke() throws Throwable {
+						public IOriCollection invoke() throws Exception {
 							return mergeIntern(cudResult, methodDescription);
 						}
 					});
@@ -181,116 +181,112 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 
 	protected IOriCollection mergeIntern(final ICUDResult cudResultOriginal,
 			final IMethodDescription methodDescription) {
-		IResultingBackgroundWorkerDelegate<IOriCollection> runnable =
-				new IResultingBackgroundWorkerDelegate<IOriCollection>() {
-					@Override
-					public IOriCollection invoke() throws Throwable {
-						IDisposableCache childCache = null;
-						try {
-							IncrementalMergeState state = null;
-							ICUDResult cudResultOfCache;
-							if (MergeProcess.isAddNewlyPersistedEntities()
-									|| (log.isDebugEnabled() && cudResultPrinter != null)) {
-								childCache =
-										cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE,
-												false, Boolean.FALSE, "MergeServiceRegistry.STATE");
-								state = (IncrementalMergeState) cudResultApplier.acquireNewState(childCache);
-								cudResultOfCache = cudResultApplier
-										.applyCUDResultOnEntitiesOfCache(cudResultOriginal, true, state);
-							}
-							else {
-								cudResultOfCache = cudResultOriginal;
-							}
-							if (log.isDebugEnabled()) {
-								if (cudResultPrinter != null) {
-									log.debug("Initial merge ["
-											+ System.identityHashCode(state != null ? state : cudResultOfCache) + "]:\n"
-											+ cudResultPrinter.printCUDResult(cudResultOfCache, state));
-								}
-								else {
-									log.debug("Initial merge ["
-											+ System.identityHashCode(state != null ? state : cudResultOfCache)
-											+ "]. No Details available");
-								}
-							}
-							IList<MergeOperation> mergeOperationSequence;
-							final ICUDResult extendedCudResult;
-							if (cudResultOfCache != cudResultOriginal && !isNetworkClientMode) {
-								mergeOperationSequence = new ArrayList<>();
-								extendedCudResult = whatIfMerged(cudResultOfCache, methodDescription,
-										mergeOperationSequence, state);
-							}
-							else {
-								extendedCudResult = cudResultOfCache;
-								IMap<Class<?>, IList<IChangeContainer>> sortedChanges =
-										bucketSortChanges(cudResultOfCache.getAllChanges());
-								mergeOperationSequence = createMergeOperationSequence(sortedChanges);
-							}
-							if (log.isDebugEnabled()) {
-								log.debug("Merge finished ["
-										+ System.identityHashCode(state != null ? state : cudResultOfCache) + "]");
-							}
-							if (mergeSecurityManager != null) {
-								securityActive.executeWithSecurityDirective(SecurityDirective.enableEntity(),
-										new IBackgroundWorkerDelegate() {
-											@Override
-											public void invoke() throws Throwable {
-												mergeSecurityManager.checkMergeAccess(extendedCudResult, methodDescription);
-											}
-										});
-							}
-							ArrayList<Object> originalRefsOfCache =
-									new ArrayList<>(cudResultOfCache.getOriginalRefs());
-							ArrayList<Object> originalRefsExtended =
-									new ArrayList<>(extendedCudResult.getOriginalRefs());
-							IOriCollection oriCollExtended =
-									intern(extendedCudResult, methodDescription, mergeOperationSequence, state);
-
-							List<IChangeContainer> allChangesOriginal = cudResultOriginal.getAllChanges();
-							List<IObjRef> allChangedObjRefsExtended = oriCollExtended.getAllChangeORIs();
-							IObjRef[] allChangedObjRefsResult = new IObjRef[allChangesOriginal.size()];
-
-							IdentityHashMap<Object, Integer> originalRefOfCacheToIndexMap =
-									new IdentityHashMap<>();
-							for (int a = originalRefsOfCache.size(); a-- > 0;) {
-								originalRefOfCacheToIndexMap.put(originalRefsOfCache.get(a), Integer.valueOf(a));
-							}
-							for (int a = originalRefsExtended.size(); a-- > 0;) {
-								Integer indexOfCache =
-										originalRefOfCacheToIndexMap.get(originalRefsExtended.get(a));
-								if (indexOfCache == null) {
-									// this is a change implied by a rule or an persistence-implicit change
-									// we do not know about it in the outer original CUDResult
-									continue;
-								}
-								IObjRef objRefExtended = allChangedObjRefsExtended.get(a);
-								IObjRef objRefOriginal =
-										allChangesOriginal.get(indexOfCache.intValue()).getReference();
-								if (objRefExtended == null) {
-									// entity has been deleted
-									objRefOriginal.setVersion(null);
-								}
-								else {
-									objRefOriginal.setId(objRefExtended.getId());
-									objRefOriginal.setVersion(objRefExtended.getVersion());
-								}
-								if (objRefOriginal instanceof IDirectObjRef) {
-									((IDirectObjRef) objRefOriginal).setDirect(null);
-								}
-								allChangedObjRefsResult[indexOfCache.intValue()] = objRefOriginal;
-							}
-							OriCollection oriCollection =
-									new OriCollection(new ArrayList<IObjRef>(allChangedObjRefsResult));
-
-							return oriCollection;
+		IResultingBackgroundWorkerDelegate<IOriCollection> runnable = new IResultingBackgroundWorkerDelegate<IOriCollection>() {
+			@Override
+			public IOriCollection invoke() throws Exception {
+				IDisposableCache childCache = null;
+				try {
+					IncrementalMergeState state = null;
+					ICUDResult cudResultOfCache;
+					if (MergeProcess.isAddNewlyPersistedEntities()
+							|| (log.isDebugEnabled() && cudResultPrinter != null)) {
+						childCache = cacheFactory.createPrivileged(
+								CacheFactoryDirective.SubscribeTransactionalDCE, false, Boolean.FALSE,
+								"MergeServiceRegistry.STATE");
+						state = (IncrementalMergeState) cudResultApplier.acquireNewState(childCache);
+						cudResultOfCache = cudResultApplier.applyCUDResultOnEntitiesOfCache(cudResultOriginal,
+								true, state);
+					}
+					else {
+						cudResultOfCache = cudResultOriginal;
+					}
+					if (log.isDebugEnabled()) {
+						if (cudResultPrinter != null) {
+							log.debug("Initial merge ["
+									+ System.identityHashCode(state != null ? state : cudResultOfCache) + "]:\n"
+									+ cudResultPrinter.printCUDResult(cudResultOfCache, state));
 						}
-						finally {
-							if (childCache != null) {
-								childCache.dispose();
-							}
+						else {
+							log.debug("Initial merge ["
+									+ System.identityHashCode(state != null ? state : cudResultOfCache)
+									+ "]. No Details available");
 						}
 					}
-				};
+					IList<MergeOperation> mergeOperationSequence;
+					final ICUDResult extendedCudResult;
+					if (cudResultOfCache != cudResultOriginal && !isNetworkClientMode) {
+						mergeOperationSequence = new ArrayList<>();
+						extendedCudResult = whatIfMerged(cudResultOfCache, methodDescription,
+								mergeOperationSequence, state);
+					}
+					else {
+						extendedCudResult = cudResultOfCache;
+						IMap<Class<?>, IList<IChangeContainer>> sortedChanges = bucketSortChanges(
+								cudResultOfCache.getAllChanges());
+						mergeOperationSequence = createMergeOperationSequence(sortedChanges);
+					}
+					if (log.isDebugEnabled()) {
+						log.debug("Merge finished ["
+								+ System.identityHashCode(state != null ? state : cudResultOfCache) + "]");
+					}
+					if (mergeSecurityManager != null) {
+						securityActive.executeWithSecurityDirective(SecurityDirective.enableEntity(),
+								new IBackgroundWorkerDelegate() {
+									@Override
+									public void invoke() throws Exception {
+										mergeSecurityManager.checkMergeAccess(extendedCudResult, methodDescription);
+									}
+								});
+					}
+					ArrayList<Object> originalRefsOfCache = new ArrayList<>(
+							cudResultOfCache.getOriginalRefs());
+					ArrayList<Object> originalRefsExtended = new ArrayList<>(
+							extendedCudResult.getOriginalRefs());
+					IOriCollection oriCollExtended = intern(extendedCudResult, methodDescription,
+							mergeOperationSequence, state);
+
+					List<IChangeContainer> allChangesOriginal = cudResultOriginal.getAllChanges();
+					List<IObjRef> allChangedObjRefsExtended = oriCollExtended.getAllChangeORIs();
+					IObjRef[] allChangedObjRefsResult = new IObjRef[allChangesOriginal.size()];
+
+					IdentityHashMap<Object, Integer> originalRefOfCacheToIndexMap = new IdentityHashMap<>();
+					for (int a = originalRefsOfCache.size(); a-- > 0;) {
+						originalRefOfCacheToIndexMap.put(originalRefsOfCache.get(a), Integer.valueOf(a));
+					}
+					for (int a = originalRefsExtended.size(); a-- > 0;) {
+						Integer indexOfCache = originalRefOfCacheToIndexMap.get(originalRefsExtended.get(a));
+						if (indexOfCache == null) {
+							// this is a change implied by a rule or an persistence-implicit change
+							// we do not know about it in the outer original CUDResult
+							continue;
+						}
+						IObjRef objRefExtended = allChangedObjRefsExtended.get(a);
+						IObjRef objRefOriginal = allChangesOriginal.get(indexOfCache.intValue()).getReference();
+						if (objRefExtended == null) {
+							// entity has been deleted
+							objRefOriginal.setVersion(null);
+						}
+						else {
+							objRefOriginal.setId(objRefExtended.getId());
+							objRefOriginal.setVersion(objRefExtended.getVersion());
+						}
+						if (objRefOriginal instanceof IDirectObjRef) {
+							((IDirectObjRef) objRefOriginal).setDirect(null);
+						}
+						allChangedObjRefsResult[indexOfCache.intValue()] = objRefOriginal;
+					}
+					OriCollection oriCollection = new OriCollection(
+							new ArrayList<IObjRef>(allChangedObjRefsResult));
+
+					return oriCollection;
+				}
+				finally {
+					if (childCache != null) {
+						childCache.dispose();
+					}
+				}
+			}
+		};
 		try {
 			if (securityActive == null || !securityActive.isFilterActivated()) {
 				return runnable.invoke();
@@ -299,7 +295,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 				return securityActive.executeWithoutFiltering(runnable);
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -309,8 +305,8 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 			final IncrementalMergeState incrementalState) {
 		IList<MergeOperation> lastMergeOperationSequence;
 		while (true) {
-			IMap<Class<?>, IList<IChangeContainer>> sortedChanges =
-					bucketSortChanges(cudResult.getAllChanges());
+			IMap<Class<?>, IList<IChangeContainer>> sortedChanges = bucketSortChanges(
+					cudResult.getAllChanges());
 			lastMergeOperationSequence = createMergeOperationSequence(sortedChanges);
 
 			final ParamHolder<Boolean> hasAtLeastOneImplicitChange = new ParamHolder<>(Boolean.FALSE);
@@ -319,14 +315,14 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 				cudResult = cacheContext.executeWithCache(incrementalState.getStateCache(),
 						new IResultingBackgroundWorkerParamDelegate<ICUDResult, ICUDResult>() {
 							@Override
-							public ICUDResult invoke(ICUDResult cudResult) throws Throwable {
+							public ICUDResult invoke(ICUDResult cudResult) throws Exception {
 								for (int a = 0, size = fLastMergeOperationSequence.size(); a < size; a++) {
 									MergeOperation mergeOperation = fLastMergeOperationSequence.get(a);
-									IMergeServiceExtension mergeServiceExtension =
-											mergeOperation.getMergeServiceExtension();
+									IMergeServiceExtension mergeServiceExtension = mergeOperation
+											.getMergeServiceExtension();
 
-									ICUDResult explAndImplCudResult =
-											mergeServiceExtension.evaluateImplictChanges(cudResult, incrementalState);
+									ICUDResult explAndImplCudResult = mergeServiceExtension
+											.evaluateImplictChanges(cudResult, incrementalState);
 									cudResult = mergeCudResult(cudResult, explAndImplCudResult, mergeServiceExtension,
 											hasAtLeastOneImplicitChange, incrementalState);
 								}
@@ -334,12 +330,12 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 							}
 						}, cudResult);
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 			for (IMergeListener mergeListener : mergeListeners.getExtensions()) {
-				ICUDResult explAndImplCudResult =
-						mergeListener.preMerge(cudResult, incrementalState.getStateCache());
+				ICUDResult explAndImplCudResult = mergeListener.preMerge(cudResult,
+						incrementalState.getStateCache());
 				cudResult = mergeCudResult(cudResult, explAndImplCudResult, mergeListener,
 						hasAtLeastOneImplicitChange, incrementalState);
 			}
@@ -372,8 +368,8 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 			IMergeServiceExtension mergeServiceExtension = mergeOperation.getMergeServiceExtension();
 
 			IList<IChangeContainer> changesForMergeService = mergeOperation.getChangeContainer();
-			ICUDResult msCudResult =
-					buildCUDResult(changesForMergeService, changeToChangeIndexDict, originalRefs);
+			ICUDResult msCudResult = buildCUDResult(changesForMergeService, changeToChangeIndexDict,
+					originalRefs);
 
 			IOriCollection msOriCollection = mergeServiceExtension.merge(msCudResult, methodDescription);
 
@@ -459,8 +455,8 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 		if (log.isDebugEnabled()) {
 			Object currHandle = implyingHandle;
 			if (currHandle instanceof Factory) {
-				MethodInterceptor interceptor =
-						(MethodInterceptor) ((Factory) currHandle).getCallbacks()[0];
+				MethodInterceptor interceptor = (MethodInterceptor) ((Factory) currHandle)
+						.getCallbacks()[0];
 				while (interceptor instanceof CascadedInterceptor) {
 					Object target = ((CascadedInterceptor) interceptor).getTarget();
 					if (target instanceof MethodInterceptor) {
@@ -501,13 +497,12 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 
 	@Override
 	public List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes) {
-		IdentityHashMap<IMergeServiceExtension, List<Class<?>>> mseToEntityTypes =
-				new IdentityHashMap<>();
+		IdentityHashMap<IMergeServiceExtension, List<Class<?>>> mseToEntityTypes = new IdentityHashMap<>();
 
 		for (int a = entityTypes.size(); a-- > 0;) {
 			Class<?> entityType = entityTypes.get(a);
-			IMergeServiceExtension mergeServiceExtension =
-					mergeServiceExtensions.getExtension(entityType);
+			IMergeServiceExtension mergeServiceExtension = mergeServiceExtensions
+					.getExtension(entityType);
 			if (mergeServiceExtension == null) {
 				continue;
 			}
@@ -534,7 +529,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 			entityMetaDataProvider.toDotGraph(writer);
 			return writer.toString();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

@@ -77,8 +77,7 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 	@Autowired(value = IocModule.THREAD_POOL_NAME)
 	protected Executor executor;
 
-	@Property(name = AuditConfigurationConstants.VerifyEntitiesMaxTransactionTime,
-			defaultValue = "30000")
+	@Property(name = AuditConfigurationConstants.VerifyEntitiesMaxTransactionTime, defaultValue = "30000")
 	protected long verifyEntitiesMaxTransactionTime;
 
 	protected final ArrayList<IObjRef> queuedObjRefs = new ArrayList<>();
@@ -122,7 +121,7 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 		try {
 			reQueue = transaction.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<Boolean>() {
 				@Override
-				public Boolean invoke() throws Throwable {
+				public Boolean invoke() throws Exception {
 					ArrayList<IObjRef> currObjRefsToVerify = objRefsToVerify;
 					while (true) {
 						try {
@@ -182,7 +181,7 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 		try {
 			transaction.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<Object>() {
 				@Override
-				public Object invoke() throws Throwable {
+				public Object invoke() throws Exception {
 					runInLazyTransaction(objRefsToVerify);
 					return null;
 				}
@@ -196,13 +195,13 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 
 	}
 
-	protected void runInLazyTransaction(final IList<IObjRef> objRefsToVerify) throws Throwable {
+	protected void runInLazyTransaction(final IList<IObjRef> objRefsToVerify) throws Exception {
 		IDisposableCache cache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false,
 				Boolean.FALSE, "AuditEntryVerifier");
 		try {
 			cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>() {
 				@Override
-				public Object invoke() throws Throwable {
+				public Object invoke() throws Exception {
 					executeWithCache(objRefsToVerify);
 					return null;
 				}
@@ -213,10 +212,10 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 		}
 	}
 
-	protected void executeWithCache(final IList<IObjRef> objRefsToVerify) throws Throwable {
+	protected void executeWithCache(final IList<IObjRef> objRefsToVerify) throws Exception {
 		securityActivation.executeWithoutSecurity(new IBackgroundWorkerDelegate() {
 			@Override
-			public void invoke() throws Throwable {
+			public void invoke() throws Exception {
 				if (!auditEntryVerifier.verifyEntities(objRefsToVerify)) {
 					log.error(
 							"Audit entry verification failed: " + Arrays.toString(objRefsToVerify.toArray()));

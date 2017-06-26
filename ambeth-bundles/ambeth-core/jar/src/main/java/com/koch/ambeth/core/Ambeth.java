@@ -76,8 +76,8 @@ public class Ambeth
 			Ambeth ambeth) {
 		try {
 			IBundleModule bundleModuleInstance = bundleModule.newInstance();
-			Class<? extends IInitializingModule>[] bundleModules =
-					bundleModuleInstance.getBundleModules();
+			Class<? extends IInitializingModule>[] bundleModules = bundleModuleInstance
+					.getBundleModules();
 			ambeth.withAmbethModules(bundleModules);
 		}
 		catch (Exception e) {
@@ -91,13 +91,11 @@ public class Ambeth
 
 	protected boolean scanForPropertiesFile = true;
 
-	protected IdentityLinkedSet<IBackgroundWorkerParamDelegate<IBeanContextFactory>> ambethModuleDelegates =
-			new IdentityLinkedSet<>();
+	protected IdentityLinkedSet<IBackgroundWorkerParamDelegate<IBeanContextFactory>> ambethModuleDelegates = new IdentityLinkedSet<>();
 
 	protected LinkedHashSet<Class<?>> ambethModules = new LinkedHashSet<>();
 
-	protected IdentityLinkedSet<IBackgroundWorkerParamDelegate<IBeanContextFactory>> applicationModuleDelegates =
-			new IdentityLinkedSet<>();
+	protected IdentityLinkedSet<IBackgroundWorkerParamDelegate<IBeanContextFactory>> applicationModuleDelegates = new IdentityLinkedSet<>();
 
 	protected LinkedHashSet<Class<?>> applicationModules = new LinkedHashSet<>();
 
@@ -298,10 +296,10 @@ public class Ambeth
 			scanForModules();
 
 			final IAmbethApplication ambethApplication = this;
-			IServiceContext frameworkContext =
-					rootContext.createService(new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
+			IServiceContext frameworkContext = rootContext
+					.createService(new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
 						@Override
-						public void invoke(IBeanContextFactory beanContextFactory) throws Throwable {
+						public void invoke(IBeanContextFactory beanContextFactory) throws Exception {
 							beanContextFactory.registerExternalBean(ambethApplication)
 									.autowireable(IAmbethApplication.class);
 
@@ -323,7 +321,7 @@ public class Ambeth
 				serviceContext = frameworkContext
 						.createService(new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
 							@Override
-							public void invoke(IBeanContextFactory beanContextFactory) throws Throwable {
+							public void invoke(IBeanContextFactory beanContextFactory) throws Exception {
 								for (IBackgroundWorkerParamDelegate<IBeanContextFactory> moduleDelegate : applicationModuleDelegates) {
 									moduleDelegate.invoke(beanContextFactory);
 								}
@@ -359,8 +357,10 @@ public class Ambeth
 	 * Internal method for {@link IAmbethConfigurationExtension}s. This way they can hook bean
 	 * instances deep in the start process.
 	 *
-	 * @param instance Bean instance to add to the framework and classpath scanner contexts
-	 * @param autowiring Type to autowire the bean to
+	 * @param instance
+	 *          Bean instance to add to the framework and classpath scanner contexts
+	 * @param autowiring
+	 *          Type to autowire the bean to
 	 */
 	public <T> void registerBean(T instance, Class<T> autowiring) {
 		autowiredInstances.put(autowiring, instance);
@@ -381,19 +381,19 @@ public class Ambeth
 			return;
 		}
 
-		ConfigurableClasspathScanner classpathScanner =
-				rootContext.registerBean(ConfigurableClasspathScanner.class)
-						.propertyValue("AutowiredInstances", autowiredInstances).finish();
+		ConfigurableClasspathScanner classpathScanner = rootContext
+				.registerBean(ConfigurableClasspathScanner.class)
+				.propertyValue("AutowiredInstances", autowiredInstances).finish();
 		try {
 			if (scanForAmbethModules) {
-				List<Class<?>> ambethModules =
-						classpathScanner.scanClassesAnnotatedWith(FrameworkModule.class);
+				List<Class<?>> ambethModules = classpathScanner
+						.scanClassesAnnotatedWith(FrameworkModule.class);
 				this.ambethModules.addAll(ambethModules);
 			}
 			if (scanForApplicationModules) {
 				// TODO replace with @ApplicationModule and mark @BootstrapModule as deprecated
-				List<Class<?>> applicationModules =
-						classpathScanner.scanClassesAnnotatedWith(BootstrapModule.class);
+				List<Class<?>> applicationModules = classpathScanner
+						.scanClassesAnnotatedWith(BootstrapModule.class);
 				this.applicationModules.addAll(applicationModules);
 			}
 		}

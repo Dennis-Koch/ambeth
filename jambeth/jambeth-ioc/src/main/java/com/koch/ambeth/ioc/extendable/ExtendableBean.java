@@ -53,9 +53,9 @@ public class ExtendableBean extends AbstractSimpleInterceptor
 
 	protected static final Object[] emptyArgs = new Object[0];
 
-	protected static final Object[] oneArgs = new Object[] {new Object()};
+	protected static final Object[] oneArgs = new Object[] { new Object() };
 
-	protected static final Class<?>[] classObjectArgs = new Class[] {Object.class};
+	protected static final Class<?>[] classObjectArgs = new Class[] { Object.class };
 
 	public static IBeanConfiguration registerExtendableBean(IBeanContextFactory beanContextFactory,
 			Class<?> providerType, Class<?> extendableType, ClassLoader classLoader) {
@@ -107,7 +107,7 @@ public class ExtendableBean extends AbstractSimpleInterceptor
 
 	protected Method providerTypeGetOne = null;
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertNotNull(providerType, "ProviderType");
@@ -130,8 +130,8 @@ public class ExtendableBean extends AbstractSimpleInterceptor
 			extendableContainer = new DefaultExtendableContainer<>(extensionType, "message");
 
 			Method registerMethod = extendableContainer.getClass().getMethod("register", classObjectArgs);
-			Method unregisterMethod =
-					extendableContainer.getClass().getMethod("unregister", classObjectArgs);
+			Method unregisterMethod = extendableContainer.getClass().getMethod("unregister",
+					classObjectArgs);
 			Method getAllMethod = extendableContainer.getClass().getMethod("getExtensions");
 			Method[] methodsOfProviderType = ReflectUtil.getMethods(providerType);
 
@@ -148,20 +148,20 @@ public class ExtendableBean extends AbstractSimpleInterceptor
 		else if (parameterTypes.length == 2) {
 			Class<?> keyType = parameterTypes[1];
 			if (Class.class.equals(keyType)) {
-				extendableContainer =
-						new ClassExtendableContainer<>("message", "keyMessage", allowMultiValue);
+				extendableContainer = new ClassExtendableContainer<>("message", "keyMessage",
+						allowMultiValue);
 			}
 			else {
 				keyType = Object.class;
-				extendableContainer =
-						new MapExtendableContainer<>("message", "keyMessage", allowMultiValue);
+				extendableContainer = new MapExtendableContainer<>("message", "keyMessage",
+						allowMultiValue);
 			}
 			AccessorClassLoader classLoader = AccessorClassLoader.get(extendableContainer.getClass());
 			FastClass fastClass = FastClass.create(classLoader, extendableContainer.getClass());
-			Method registerMethod =
-					extendableContainer.getClass().getMethod("register", Object.class, keyType);
-			Method unregisterMethod =
-					extendableContainer.getClass().getMethod("unregister", Object.class, keyType);
+			Method registerMethod = extendableContainer.getClass().getMethod("register", Object.class,
+					keyType);
+			Method unregisterMethod = extendableContainer.getClass().getMethod("unregister", Object.class,
+					keyType);
 			Method getOneMethod = extendableContainer.getClass().getMethod("getExtension", keyType);
 			Method getAllMethod = extendableContainer.getClass().getMethod("getExtensions");
 			Method[] methodsOfProviderType = providerType.getMethods();
@@ -207,9 +207,9 @@ public class ExtendableBean extends AbstractSimpleInterceptor
 	}
 
 	@Override
-	public Object getObject() throws Throwable {
+	public Object getObject() throws Exception {
 		if (proxy == null) {
-			proxy = proxyFactory.createProxy(new Class[] {providerType, extendableType}, this);
+			proxy = proxyFactory.createProxy(new Class[] { providerType, extendableType }, this);
 		}
 		return proxy;
 	}

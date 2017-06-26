@@ -28,5 +28,5 @@ import com.koch.ambeth.util.collections.IList;
 public interface IClasspathInfo {
 	IList<URL> getJarURLs();
 
-	Path openAsFile(URL url) throws Throwable;
+	Path openAsFile(URL url) throws Exception;
 }

@@ -58,8 +58,8 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 
 	public static final Pattern jarPathPrefixPattern = Pattern.compile("(.+)/([^/]+)");
 
-	public static final Pattern cutDollarPattern =
-			Pattern.compile("([^\\$\\.]+)(?:\\$[\\.]+)?\\.(?:java|class)");
+	public static final Pattern cutDollarPattern = Pattern
+			.compile("([^\\$\\.]+)(?:\\$[\\.]+)?\\.(?:java|class)");
 
 	@Autowired
 	protected IClasspathInfo classpathInfo;
@@ -97,7 +97,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 				}
 				classPool.appendPathList(pathList);
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -112,8 +112,8 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 			ArrayList<Pattern> patterns = new ArrayList<>();
 			for (int a = split.length; a-- > 0;) {
 				String packagePattern = split[a];
-				String packagePattern1 =
-						packagePattern.replaceAll(Pattern.quote("\\."), Matcher.quoteReplacement("/"));
+				String packagePattern1 = packagePattern.replaceAll(Pattern.quote("\\."),
+						Matcher.quoteReplacement("/"));
 				patterns.add(Pattern.compile(packagePattern));
 				if (!packagePattern1.equals(packagePattern)) {
 					patterns.add(Pattern.compile(packagePattern1));
@@ -154,7 +154,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 			}
 			return convertToClasses(classNamesFound);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -184,7 +184,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 			}
 			return convertToClasses(classNamesFound);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -204,7 +204,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 			try {
 				set.add(getClassLoader().loadClass(ctClass.getName()));
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -242,7 +242,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 				}
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		return targetClassNames;
@@ -252,7 +252,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 		return classpathInfo.getJarURLs();
 	}
 
-	protected Path convertURLToFile(URL url) throws Throwable {
+	protected Path convertURLToFile(URL url) throws Exception {
 		return classpathInfo.openAsFile(url);
 	}
 
@@ -306,7 +306,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
 				jarFile.close();
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

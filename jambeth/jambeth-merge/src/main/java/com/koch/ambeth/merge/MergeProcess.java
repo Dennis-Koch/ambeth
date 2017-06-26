@@ -186,7 +186,7 @@ public class MergeProcess implements IMergeProcess {
 		} else {
 			guiThreadHelper.invokeInGui(new IBackgroundWorkerDelegate() {
 				@Override
-				public void invoke() throws Throwable {
+				public void invoke() throws Exception {
 					mergePhase2(objectToMerge, objectToDelete, mergeHandle, cudResult, proceedHook,
 							mergeFinishedCallback, addNewEntitiesToCache);
 				}
@@ -214,7 +214,7 @@ public class MergeProcess implements IMergeProcess {
 		if (guiThreadHelper.isInGuiThread()) {
 			guiThreadHelper.invokeOutOfGui(new IBackgroundWorkerDelegate() {
 				@Override
-				public void invoke() throws Throwable {
+				public void invoke() throws Exception {
 					mergePhase3(objectToMerge, unpersistedObjectsToDelete, cudResult, proceedHook,
 							mergeFinishedCallback, addNewEntitiesToCache);
 				}
@@ -265,7 +265,7 @@ public class MergeProcess implements IMergeProcess {
 		if (guiThreadHelper.isInGuiThread()) {
 			guiThreadHelper.invokeOutOfGui(new IBackgroundWorkerDelegate() {
 				@Override
-				public void invoke() throws Throwable {
+				public void invoke() throws Exception {
 					mergePhase1(objectToMerge, objectToDelete, proceedHook, mergeFinishedCallback,
 							addNewEntitiesToCache);
 				}
@@ -301,7 +301,7 @@ public class MergeProcess implements IMergeProcess {
 						IResultingBackgroundWorkerDelegate<IOriCollection> runnable =
 								new IResultingBackgroundWorkerDelegate<IOriCollection>() {
 									@Override
-									public IOriCollection invoke() throws Throwable {
+									public IOriCollection invoke() throws Exception {
 										IOriCollection oriColl =
 												mergeService.merge(cudResult, null);
 										mergeController.applyChangesToOriginals(cudResult, oriColl,
@@ -314,7 +314,7 @@ public class MergeProcess implements IMergeProcess {
 						} else {
 							oriColl = transaction.runInLazyTransaction(runnable);
 						}
-					} catch (Throwable e) {
+					} catch (Exception e) {
 						throw RuntimeExceptionUtil.mask(e);
 					} finally {
 						addNewlyPersistedEntitiesTL.set(oldNewlyPersistedEntities);

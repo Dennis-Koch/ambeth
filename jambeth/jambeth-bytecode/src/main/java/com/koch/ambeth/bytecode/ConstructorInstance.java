@@ -34,7 +34,7 @@ public class ConstructorInstance extends MethodInstance {
 		try {
 			defaultConstructor = new ConstructorInstance(Object.class.getDeclaredConstructor());
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -45,7 +45,7 @@ public class ConstructorInstance extends MethodInstance {
 			getSignature.setAccessible(true);
 			return (String) getSignature.invoke(method);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

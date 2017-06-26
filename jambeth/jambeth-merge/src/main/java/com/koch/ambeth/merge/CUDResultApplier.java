@@ -124,12 +124,12 @@ public class CUDResultApplier implements ICUDResultApplier {
 			return cacheContext.executeWithCache(cache,
 					new IResultingBackgroundWorkerParamDelegate<ICUDResult, ICUDResult>() {
 						@Override
-						public ICUDResult invoke(ICUDResult state) throws Throwable {
+						public ICUDResult invoke(ICUDResult state) throws Exception {
 							return applyIntern(state, checkBaseState, (IncrementalMergeState) incrementalState);
 						}
 					}, cudResult);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -176,8 +176,8 @@ public class CUDResultApplier implements ICUDResultApplier {
 			IChangeContainer changeContainer = allChanges.get(a);
 			Object originalEntity = originalRefs != null ? originalRefs.get(a) : null;
 
-			StateEntry stateEntry =
-					originalEntity != null ? incrementalState.entityToStateMap.get(originalEntity) : null;
+			StateEntry stateEntry = originalEntity != null
+					? incrementalState.entityToStateMap.get(originalEntity) : null;
 
 			IChangeContainer newChangeContainer;
 			if (changeContainer instanceof CreateContainer) {
@@ -267,21 +267,21 @@ public class CUDResultApplier implements ICUDResultApplier {
 					toPrefetch.clear();
 				}
 				if (!toFetchFromCache.isEmpty()) {
-					IList<Object> fetchedObjects =
-							stateCache.getObjects(toFetchFromCache, CacheDirective.none());
+					IList<Object> fetchedObjects = stateCache.getObjects(toFetchFromCache,
+							CacheDirective.none());
 					hardRefs.add(fetchedObjects); // add list as item intended. adding each item of the source
 																				// is NOT needed
 					toFetchFromCache.clear();
 				}
-				IBackgroundWorkerDelegate[] runnableArray =
-						runnables.toArray(IBackgroundWorkerDelegate.class);
+				IBackgroundWorkerDelegate[] runnableArray = runnables
+						.toArray(IBackgroundWorkerDelegate.class);
 				runnables.clear();
 				try {
 					for (IBackgroundWorkerDelegate runnable : runnableArray) {
 						runnable.invoke();
 					}
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
@@ -414,7 +414,7 @@ public class CUDResultApplier implements ICUDResultApplier {
 				toPrefetch.add(new DirectValueHolderRef(entity, relationMember, true));
 				runnables.add(new IBackgroundWorkerDelegate() {
 					@Override
-					public void invoke() throws Throwable {
+					public void invoke() throws Exception {
 						applyRelationUpdateItem(entity, rui, isUpdate, metaData, toPrefetch, toFetchFromCache,
 								checkBaseState, runnables);
 					}
@@ -470,7 +470,7 @@ public class CUDResultApplier implements ICUDResultApplier {
 		toFetchFromCache.addAll(newORIs);
 		runnables.add(new IBackgroundWorkerDelegate() {
 			@Override
-			public void invoke() throws Throwable {
+			public void invoke() throws Exception {
 				ICache stateCache = cloneStateTL.get().incrementalState.getStateCache();
 				IList<Object> objects = stateCache.getObjects(newORIs, CacheDirective.failEarly());
 				Object value;

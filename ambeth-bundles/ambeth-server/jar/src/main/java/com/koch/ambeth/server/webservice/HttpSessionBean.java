@@ -56,11 +56,11 @@ public class HttpSessionBean
 	}
 
 	@Override
-	public Object getObject() throws Throwable {
+	public Object getObject() throws Exception {
 		if (obj != null) {
 			return obj;
 		}
-		obj = proxyFactory.createProxy(HttpSession.class, new Class<?>[] {IHttpSessionProvider.class},
+		obj = proxyFactory.createProxy(HttpSession.class, new Class<?>[] { IHttpSessionProvider.class },
 				this);
 		return obj;
 	}

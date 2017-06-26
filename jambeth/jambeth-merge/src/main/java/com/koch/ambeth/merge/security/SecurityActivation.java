@@ -109,7 +109,7 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 
 	@Override
 	public void executeWithoutSecurity(IBackgroundWorkerDelegate pausedSecurityRunnable)
-			throws Throwable {
+			throws Exception {
 		Boolean oldSecurityActive = securityActiveTL.get();
 		securityActiveTL.set(Boolean.FALSE);
 		try {
@@ -122,7 +122,7 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 
 	@Override
 	public <R> R executeWithoutSecurity(IResultingBackgroundWorkerDelegate<R> pausedSecurityRunnable)
-			throws Throwable {
+			throws Exception {
 		Boolean oldSecurityActive = securityActiveTL.get();
 		securityActiveTL.set(Boolean.FALSE);
 		try {
@@ -134,7 +134,7 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 	}
 
 	@Override
-	public void executeWithoutFiltering(IBackgroundWorkerDelegate noFilterRunnable) throws Throwable {
+	public void executeWithoutFiltering(IBackgroundWorkerDelegate noFilterRunnable) throws Exception {
 		Boolean oldFilterActive = entityActiveTL.get();
 		entityActiveTL.set(Boolean.FALSE);
 		try {
@@ -147,7 +147,7 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 
 	@Override
 	public <R> R executeWithoutFiltering(IResultingBackgroundWorkerDelegate<R> noFilterRunnable)
-			throws Throwable {
+			throws Exception {
 		Boolean oldFilterActive = entityActiveTL.get();
 		entityActiveTL.set(Boolean.FALSE);
 		try {
@@ -160,7 +160,7 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 
 	@Override
 	public void executeWithSecurityDirective(Set<SecurityDirective> securityDirective,
-			IBackgroundWorkerDelegate runnable) throws Throwable {
+			IBackgroundWorkerDelegate runnable) throws Exception {
 		Boolean securityActive = securityDirective.contains(SecurityDirective.DISABLE_SECURITY)
 				? Boolean.FALSE
 				: securityDirective.contains(SecurityDirective.ENABLE_SECURITY) ? Boolean.TRUE : null;
@@ -210,7 +210,7 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 
 	@Override
 	public <R> R executeWithSecurityDirective(Set<SecurityDirective> securityDirective,
-			IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable {
+			IResultingBackgroundWorkerDelegate<R> runnable) throws Exception {
 		Boolean securityActive = securityDirective.contains(SecurityDirective.DISABLE_SECURITY)
 				? Boolean.FALSE
 				: securityDirective.contains(SecurityDirective.ENABLE_SECURITY) ? Boolean.TRUE : null;
@@ -264,7 +264,7 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 		try {
 			return new AbstractStateRollback(rollbacks) {
 				@Override
-				protected void rollbackIntern() throws Throwable {
+				protected void rollbackIntern() throws Exception {
 					securityActiveTL.set(oldFilterActive);
 				}
 			};
@@ -280,7 +280,7 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 		securityActiveTL.set(Boolean.FALSE);
 		return new AbstractStateRollback(rollbacks) {
 			@Override
-			protected void rollbackIntern() throws Throwable {
+			protected void rollbackIntern() throws Exception {
 				securityActiveTL.set(oldSecurityActive);
 			}
 		};
@@ -323,7 +323,7 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 					final Boolean fOldServiceActive = oldServiceActive;
 					IStateRollback rollback = new AbstractStateRollback(rollbacks) {
 						@Override
-						protected void rollbackIntern() throws Throwable {
+						protected void rollbackIntern() throws Exception {
 							if (serviceActive != null) {
 								serviceActiveTL.set(fOldServiceActive);
 							}

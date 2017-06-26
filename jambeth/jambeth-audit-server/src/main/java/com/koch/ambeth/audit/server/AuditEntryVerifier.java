@@ -633,7 +633,7 @@ public class AuditEntryVerifier
 
 	@Override
 	public <R> R verifyEntitiesOnLoad(final IResultingBackgroundWorkerDelegate<R> runnable)
-			throws Throwable {
+			throws Exception {
 		if (VerifyOnLoadMode.NONE.equals(verifyOnLoadMode)) {
 			return runnable.invoke();
 		}
@@ -653,7 +653,7 @@ public class AuditEntryVerifier
 			}
 			IBackgroundWorkerDelegate verifyRunnable = new IBackgroundWorkerDelegate() {
 				@Override
-				public void invoke() throws Throwable {
+				public void invoke() throws Exception {
 					Boolean verifyOnStack = verifyOnStackTL.get();
 					if (verifyOnStack != null) {
 						// if we are already in a verification chain we verify always synchronous to keep the
@@ -856,7 +856,7 @@ public class AuditEntryVerifier
 			}
 			return signatureHandle;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -899,7 +899,7 @@ public class AuditEntryVerifier
 				signatureHandle.update(digest);
 				result[a] = signatureHandle.verify(Base64.decode(signature));
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -946,7 +946,7 @@ public class AuditEntryVerifier
 				signatureHandle.update(digest);
 				result[a] = signatureHandle.verify(Base64.decode(signature));
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}

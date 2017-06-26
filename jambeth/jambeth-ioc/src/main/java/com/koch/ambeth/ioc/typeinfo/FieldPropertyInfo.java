@@ -68,7 +68,7 @@ public class FieldPropertyInfo extends AbstractPropertyInfo {
 		try {
 			return backingField.get(obj);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -78,7 +78,7 @@ public class FieldPropertyInfo extends AbstractPropertyInfo {
 		try {
 			backingField.set(obj, value);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

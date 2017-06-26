@@ -177,7 +177,7 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 	}
 
 	@Override
-	public byte[] writeAuditEntry(IAuditEntry auditEntry, String hashAlgorithm) throws Throwable {
+	public byte[] writeAuditEntry(IAuditEntry auditEntry, String hashAlgorithm) throws Exception {
 		MessageDigest md = MessageDigest.getInstance(hashAlgorithm);
 		DigestOutputStream digestOS = new DigestOutputStream(NullOutputStream.INSTANCE, md);
 		DataOutputStream dos = new DataOutputStream(digestOS);
@@ -188,7 +188,7 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 
 	@Override
 	public byte[] writeAuditedEntity(IAuditedEntity auditedEntity, String hashAlgorithm)
-			throws Throwable {
+			throws Exception {
 		MessageDigest md = MessageDigest.getInstance(hashAlgorithm);
 		DigestOutputStream digestOS = new DigestOutputStream(NullOutputStream.INSTANCE, md);
 		DataOutputStream dos = new DataOutputStream(digestOS);
@@ -199,7 +199,7 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 
 	@Override
 	public void writeAuditEntry(CreateOrUpdateContainerBuild auditEntry, String hashAlgorithm,
-			Signature signature) throws Throwable {
+			Signature signature) throws Exception {
 		MessageDigest md = MessageDigest.getInstance(hashAlgorithm);
 		DigestOutputStream digestOS = new DigestOutputStream(NullOutputStream.INSTANCE, md);
 		DataOutputStream dos = new DataOutputStream(digestOS);
@@ -226,7 +226,7 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 	}
 
 	protected void writeAuditEntryIntern(IEntityMetaDataHolder auditEntry, DataOutputStream os)
-			throws Throwable {
+			throws Exception {
 		writeProperties(getAuditedPropertiesOfEntry(), auditEntry, os);
 		for (IEntityMetaDataHolder auditedService : sortOrderedMember(IAuditEntry.Services,
 				IAuditedService.Order, auditEntry)) {
@@ -288,7 +288,7 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 				}
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

@@ -68,7 +68,7 @@ public class Oracle10gSequencePrimaryKeyProvider extends AbstractCachingPrimaryK
 				targetIdList.add(id);
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

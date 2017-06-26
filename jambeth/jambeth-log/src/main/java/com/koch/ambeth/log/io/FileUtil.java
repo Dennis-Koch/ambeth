@@ -51,7 +51,7 @@ public final class FileUtil {
 		}
 
 		@Override
-		public void invoke() throws Throwable {
+		public void invoke() throws Exception {
 			Files.delete(file);
 		}
 	}
@@ -79,7 +79,7 @@ public final class FileUtil {
 		currentTypeScopeTL.set(currentTypeScope);
 		return new AbstractStateRollback(rollbacks) {
 			@Override
-			protected void rollbackIntern() throws Throwable {
+			protected void rollbackIntern() throws Exception {
 				currentTypeScopeTL.set(oldCurrentTypeScope);
 			}
 		};
@@ -178,7 +178,7 @@ public final class FileUtil {
 			catch (InvalidPathException e) {
 				// Ignore and continue
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 			if (inputStream == null) {
@@ -203,7 +203,7 @@ public final class FileUtil {
 					inputStream = Files.newInputStream(file.toPath());
 				}
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 			try {
@@ -368,7 +368,7 @@ public final class FileUtil {
 				}
 			});
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

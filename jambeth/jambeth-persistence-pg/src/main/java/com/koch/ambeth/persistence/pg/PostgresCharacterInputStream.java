@@ -44,7 +44,7 @@ public class PostgresCharacterInputStream implements ICharacterInputStream, IInp
 		try {
 			clob.free();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

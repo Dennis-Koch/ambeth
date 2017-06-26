@@ -55,7 +55,7 @@ public class BytecodeStoreKey implements Serializable {
 			oos.close();
 			sha1 = digest.digest();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

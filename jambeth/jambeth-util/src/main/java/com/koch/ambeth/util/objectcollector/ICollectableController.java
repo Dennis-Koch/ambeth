@@ -21,9 +21,9 @@ limitations under the License.
  */
 
 public interface ICollectableController {
-	Object createInstance() throws Throwable;
+	Object createInstance() throws Exception;
 
-	void initObject(Object object) throws Throwable;
+	void initObject(Object object) throws Exception;
 
-	void disposeObject(Object object) throws Throwable;
+	void disposeObject(Object object) throws Exception;
 }

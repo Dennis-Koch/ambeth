@@ -43,7 +43,7 @@ public class MethodInstance {
 			getGenericSignature.setAccessible(true);
 			return (String) getGenericSignature.invoke(method);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

@@ -38,7 +38,7 @@ public class FieldInstance {
 			getGenericSignature.setAccessible(true);
 			return (String) getGenericSignature.invoke(field);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

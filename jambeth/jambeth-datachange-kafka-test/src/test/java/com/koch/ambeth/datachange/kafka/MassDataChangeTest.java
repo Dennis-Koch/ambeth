@@ -249,7 +249,7 @@ public class MassDataChangeTest extends AbstractIocTest {
 			final IBackgroundWorkerDelegate worker = new IBackgroundWorkerDelegate() {
 
 				@Override
-				public void invoke() throws Throwable {
+				public void invoke() throws Exception {
 					// fire the DCE in "right"
 					for (Iterator iterator = testEntityList.iterator(); iterator.hasNext();) {
 						TestEntity testEntity = (TestEntity) iterator.next();
@@ -266,7 +266,7 @@ public class MassDataChangeTest extends AbstractIocTest {
 					try {
 						worker.invoke();
 					}
-					catch (Throwable e) {
+					catch (Exception e) {
 						throw RuntimeExceptionUtil.mask(e);
 					}
 				}

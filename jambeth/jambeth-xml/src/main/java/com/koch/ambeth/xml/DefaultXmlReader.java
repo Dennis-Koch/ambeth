@@ -123,7 +123,7 @@ public class DefaultXmlReader
 		try {
 			return pullParser.isEmptyElementTag();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -144,7 +144,7 @@ public class DefaultXmlReader
 				return;
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -158,7 +158,7 @@ public class DefaultXmlReader
 		catch (EOFException e) {
 			return false;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -168,7 +168,7 @@ public class DefaultXmlReader
 		try {
 			return pullParser.getEventType() == XmlPullParser.START_TAG;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

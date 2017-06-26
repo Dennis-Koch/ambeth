@@ -115,7 +115,7 @@ public class FileHandleCache implements IFileHandleCache, IDisposableBean {
 		try {
 			return fileReadDelegate.read(raFile);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

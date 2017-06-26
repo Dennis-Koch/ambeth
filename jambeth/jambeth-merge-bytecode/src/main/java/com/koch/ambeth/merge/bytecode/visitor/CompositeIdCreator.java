@@ -138,7 +138,7 @@ public class CompositeIdCreator extends ClassGenerator {
 			try {
 				mg.invokeOnExactOwner(new ConstructorInstance(Object.class.getConstructor()));
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 			// order does matter here

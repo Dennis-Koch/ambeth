@@ -76,7 +76,7 @@ public class ServiceDescription implements IServiceDescription, IDTOType {
 							StringConversionHelper.lowerCaseFirst(objectCollector, methodName), paramTypes);
 				}
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}

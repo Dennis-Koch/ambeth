@@ -129,7 +129,7 @@ public class EntityMetaDataClient implements IEntityMetaDataProvider {
 		try {
 			writer.write(dot);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

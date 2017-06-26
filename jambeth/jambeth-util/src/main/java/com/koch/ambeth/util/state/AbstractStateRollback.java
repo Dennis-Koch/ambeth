@@ -40,7 +40,7 @@ public abstract class AbstractStateRollback implements IStateRollback {
 		try {
 			rollbackIntern();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -54,5 +54,5 @@ public abstract class AbstractStateRollback implements IStateRollback {
 		}
 	}
 
-	protected abstract void rollbackIntern() throws Throwable;
+	protected abstract void rollbackIntern() throws Exception;
 }

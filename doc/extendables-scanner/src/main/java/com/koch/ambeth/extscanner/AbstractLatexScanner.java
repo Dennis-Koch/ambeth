@@ -94,7 +94,7 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 			allDir.mkdirs();
 			return allDir.getCanonicalFile();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -197,7 +197,7 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 				rd.close();
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -215,7 +215,7 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 			}
 			file.setLastModified(currentTime);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

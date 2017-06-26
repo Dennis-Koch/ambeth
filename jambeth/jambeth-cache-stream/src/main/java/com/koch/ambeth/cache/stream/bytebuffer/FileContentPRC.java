@@ -103,7 +103,7 @@ public class FileContentPRC extends PhantomReferenceCleaner<ByteBuffer, ChunkPha
 			});
 			return method.invoke(obj);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

@@ -113,7 +113,7 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
 			queryBuilder.dispose();
 			return (IPagingQuery<T>) query;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

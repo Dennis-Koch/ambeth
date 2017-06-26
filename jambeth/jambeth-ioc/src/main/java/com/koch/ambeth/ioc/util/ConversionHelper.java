@@ -90,7 +90,7 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 		try {
 			enumValueOf = Enum.class.getMethod("valueOf", Class.class, String.class);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -387,7 +387,7 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 				try {
 					return enumValueOf.invoke(null, expectedType, value);
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
@@ -396,7 +396,7 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 					return convertValueToTypeIntern(expectedType, ((Enum<?>) value).name(),
 							additionalInformation);
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
@@ -423,7 +423,7 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 					}
 					return classCache.forName(sValue);
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}

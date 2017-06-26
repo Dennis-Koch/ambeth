@@ -38,7 +38,7 @@ public class DefaultRootCacheValueFactoryDelegate extends RootCacheValueFactoryD
 			constructor = fastClass
 					.getConstructor(DefaultRootCacheValue.class.getConstructor(IEntityMetaData.class));
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -48,7 +48,7 @@ public class DefaultRootCacheValueFactoryDelegate extends RootCacheValueFactoryD
 		try {
 			return (RootCacheValue) constructor.newInstance(new Object[] {metaData});
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

@@ -447,7 +447,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				}
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -617,7 +617,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				ISchemaRunnable schemaRunnable = schemaRunnableType.newInstance();
 				schemaRunnables.add(schemaRunnable);
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -629,7 +629,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				set.addAll(additionalSchemaFiles);
 				schemaFiles = set.toArray(String.class);
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -1160,13 +1160,13 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				connection.rollback();
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		beanContext.getService(ILightweightTransaction.class)
 				.runInTransaction(new IBackgroundWorkerDelegate() {
 					@Override
-					public void invoke() throws Throwable {
+					public void invoke() throws Exception {
 						// Intended blank
 					}
 				});
@@ -1280,7 +1280,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			}
 			isStructureRebuildAlreadyHandled = true;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

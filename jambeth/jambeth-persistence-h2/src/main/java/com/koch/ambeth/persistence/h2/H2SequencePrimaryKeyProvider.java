@@ -63,7 +63,7 @@ public class H2SequencePrimaryKeyProvider extends AbstractCachingPrimaryKeyProvi
 				}
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

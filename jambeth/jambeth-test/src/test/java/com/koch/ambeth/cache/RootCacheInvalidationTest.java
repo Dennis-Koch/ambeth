@@ -101,7 +101,7 @@ public class RootCacheInvalidationTest extends AbstractInformationBusWithPersist
 				cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
 		cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>() {
 			@Override
-			public Object invoke() throws Throwable {
+			public Object invoke() throws Exception {
 				MaterialGroup mg = cache.getObject(MaterialGroup.class, "pl");
 				Unit unit = cache.getObject(Unit.class, (long) 1);
 				IList<Material> materials = new ArrayList<>();
@@ -136,7 +136,7 @@ public class RootCacheInvalidationTest extends AbstractInformationBusWithPersist
 				cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, "test");
 		cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>() {
 			@Override
-			public Object invoke() throws Throwable {
+			public Object invoke() throws Exception {
 				MaterialGroup mg = cache.getObject(MaterialGroup.class, "pl");
 				Unit unit = cache.getObject(Unit.class, (long) 1);
 				rootCacheInvalidation(mg, unit, false);

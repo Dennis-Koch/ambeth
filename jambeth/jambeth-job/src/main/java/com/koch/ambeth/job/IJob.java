@@ -103,8 +103,10 @@ public interface IJob {
 	 * notified about the occurred exception.
 	 * </p>
 	 *
-	 * @param context The execution context.
-	 * @throws RuntimeException Task execution has somehow failed.
+	 * @param context
+	 *          The execution context.
+	 * @throws RuntimeException
+	 *           Task execution has somehow failed.
 	 */
-	void execute(IJobContext context) throws Throwable;
+	void execute(IJobContext context) throws Exception;
 }

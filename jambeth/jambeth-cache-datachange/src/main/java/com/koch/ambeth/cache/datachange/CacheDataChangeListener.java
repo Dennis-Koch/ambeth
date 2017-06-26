@@ -80,11 +80,11 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 	@LogInstance
 	private ILogger log;
 
-	protected static final Set<CacheDirective> cacheValueResultAndReturnMissesSet =
-			EnumSet.of(CacheDirective.CacheValueResult, CacheDirective.ReturnMisses);
+	protected static final Set<CacheDirective> cacheValueResultAndReturnMissesSet = EnumSet
+			.of(CacheDirective.CacheValueResult, CacheDirective.ReturnMisses);
 
-	protected static final Set<CacheDirective> failInCacheHierarchyAndCacheValueResultAndReturnMissesSet =
-			EnumSet.of(CacheDirective.FailInCacheHierarchy, CacheDirective.CacheValueResult,
+	protected static final Set<CacheDirective> failInCacheHierarchyAndCacheValueResultAndReturnMissesSet = EnumSet
+			.of(CacheDirective.FailInCacheHierarchy, CacheDirective.CacheValueResult,
 					CacheDirective.ReturnMisses);
 
 	@Autowired
@@ -141,7 +141,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 				eventDispatcher.waitEventToResume(collisionSet, -1,
 						new IBackgroundWorkerParamDelegate<IProcessResumeItem>() {
 							@Override
-							public void invoke(IProcessResumeItem processResumeItem) throws Throwable {
+							public void invoke(IProcessResumeItem processResumeItem) throws Exception {
 								dataChangedIntern(dataChange, pausedEventTargets, processResumeItem, rootNode);
 							}
 						}, null);
@@ -259,7 +259,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 				if (rootNode.isPendingChangeOnAnyChildCache()) {
 					guiThreadHelper.invokeInGuiAndWait(new IBackgroundWorkerDelegate() {
 						@Override
-						public void invoke() throws Throwable {
+						public void invoke() throws Exception {
 							boolean oldFailEarlyModeActive = AbstractCache.isFailInCacheHierarchyModeActive();
 							AbstractCache.setFailInCacheHierarchyModeActive(true);
 							try {
@@ -322,8 +322,8 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		HashSet<IObjRef> cascadeRefreshObjRefsSet = node.cascadeRefreshObjRefsSet;
 		HashSet<IObjRelation> cascadeRefreshObjRelationsSet = node.cascadeRefreshObjRelationsSet;
 		if (!cascadeRefreshObjRelationsSet.isEmpty()) {
-			IList<IObjRelationResult> relationsResult =
-					rootCache.getObjRelations(cascadeRefreshObjRelationsSet.toList(), cacheDirective);
+			IList<IObjRelationResult> relationsResult = rootCache
+					.getObjRelations(cascadeRefreshObjRelationsSet.toList(), cacheDirective);
 			for (int a = relationsResult.size(); a-- > 0;) {
 				IObjRelationResult relationResult = relationsResult.get(a);
 				cascadeRefreshObjRefsSet.addAll(relationResult.getRelations());
@@ -343,15 +343,14 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 	}
 
 	protected CacheDependencyNode buildCacheDependency() {
-		IRootCache privilegedSecondLevelCache =
-				secondLevelCacheManager.selectPrivilegedSecondLevelCache(true);
-		IRootCache nonPrivilegedSecondLevelCache =
-				secondLevelCacheManager.selectNonPrivilegedSecondLevelCache(false);
-		IList<IWritableCache> selectedFirstLevelCaches =
-				firstLevelCacheManager.selectFirstLevelCaches();
+		IRootCache privilegedSecondLevelCache = secondLevelCacheManager
+				.selectPrivilegedSecondLevelCache(true);
+		IRootCache nonPrivilegedSecondLevelCache = secondLevelCacheManager
+				.selectNonPrivilegedSecondLevelCache(false);
+		IList<IWritableCache> selectedFirstLevelCaches = firstLevelCacheManager
+				.selectFirstLevelCaches();
 
-		IdentityHashMap<IRootCache, CacheDependencyNode> secondLevelCacheToNodeMap =
-				new IdentityHashMap<>();
+		IdentityHashMap<IRootCache, CacheDependencyNode> secondLevelCacheToNodeMap = new IdentityHashMap<>();
 		if (privilegedSecondLevelCache != null) {
 			CacheDependencyNodeFactory.addRootCache(privilegedSecondLevelCache.getCurrentRootCache(),
 					secondLevelCacheToNodeMap);
@@ -365,8 +364,8 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 
 			IRootCache parent = ((IRootCache) childCache.getParent()).getCurrentRootCache();
 
-			CacheDependencyNode node =
-					CacheDependencyNodeFactory.addRootCache(parent, secondLevelCacheToNodeMap);
+			CacheDependencyNode node = CacheDependencyNodeFactory.addRootCache(parent,
+					secondLevelCacheToNodeMap);
 			node.directChildCaches.add(childCache);
 		}
 		return CacheDependencyNodeFactory.buildRootNode(secondLevelCacheToNodeMap);
@@ -539,8 +538,8 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		{
 			// Own code scope
 			IList<Class<?>> occuringTypesList = occuringTypes.toList();
-			IList<IEntityMetaData> occuringMetaData =
-					entityMetaDataProvider.getMetaData(occuringTypesList);
+			IList<IEntityMetaData> occuringMetaData = entityMetaDataProvider
+					.getMetaData(occuringTypesList);
 
 			for (int a = 0, size = occuringMetaData.size(); a < size; a++) {
 				IEntityMetaData metaData = occuringMetaData.get(a);
@@ -554,8 +553,8 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			}
 		}
 		while (!additionalTypes.isEmpty()) {
-			IList<IEntityMetaData> additionalMetaData =
-					entityMetaDataProvider.getMetaData(additionalTypes);
+			IList<IEntityMetaData> additionalMetaData = entityMetaDataProvider
+					.getMetaData(additionalTypes);
 			additionalTypes.clear();
 			for (IEntityMetaData metaData : additionalMetaData) {
 				for (Class<?> type : metaData.getTypesRelatingToThis()) {
@@ -652,7 +651,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			dce.getDeletes().addAll(deletes);
 			guiThreadHelper.invokeOutOfGui(new IBackgroundWorkerDelegate() {
 				@Override
-				public void invoke() throws Throwable {
+				public void invoke() throws Exception {
 					eventDispatcher.dispatchEvent(dce);
 				}
 			});
@@ -694,13 +693,13 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 				writeLock.lock();
 				try {
 					if (deletedObjRefs != null && !deletedObjRefs.isEmpty()) {
-						IList<Object> deletedObjects =
-								childCache.getObjects(cci.deletedObjRefs, CacheDirective.failEarly());
+						IList<Object> deletedObjects = childCache.getObjects(cci.deletedObjRefs,
+								CacheDirective.failEarly());
 						childCache.remove(cci.deletedObjRefs);
 						for (int b = deletedObjects.size(); b-- > 0;) {
 							Object deletedObject = deletedObjects.get(b);
-							IEntityMetaData metaData =
-									((IEntityMetaDataHolder) deletedObject).get__EntityMetaData();
+							IEntityMetaData metaData = ((IEntityMetaDataHolder) deletedObject)
+									.get__EntityMetaData();
 							metaData.getIdMember().setValue(deletedObject, null);
 							if (metaData.getVersionMember() != null) {
 								metaData.getVersionMember().setValue(deletedObject, null);
@@ -718,8 +717,8 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 							// Check if the objects still have their id. They may have lost them concurrently
 							// because this
 							// method here may be called from another thread (e.g. UI thread)
-							IEntityMetaData metaData =
-									((IEntityMetaDataHolder) objectInCache).get__EntityMetaData();
+							IEntityMetaData metaData = ((IEntityMetaDataHolder) objectInCache)
+									.get__EntityMetaData();
 							Object id = metaData.getIdMember().getValue(objectInCache, false);
 							if (id == null) {
 								continue;

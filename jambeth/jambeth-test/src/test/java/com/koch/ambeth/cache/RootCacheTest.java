@@ -260,7 +260,7 @@ public class RootCacheTest extends AbstractInformationBusTest {
 			ReflectUtil.getDeclaredField(fixture.getClass(), "cacheRetriever").set(fixture,
 					cacheRetriever);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 

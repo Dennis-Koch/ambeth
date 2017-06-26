@@ -140,7 +140,7 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor
 
 		return new AbstractStateRollback(rollbacks) {
 			@Override
-			protected void rollbackIntern() throws Throwable {
+			protected void rollbackIntern() throws Exception {
 				ArrayList<ICacheProvider> stack = cacheProviderStackTL.get();
 				if (stack.popLastElement() != cacheProvider) {
 					throw new IllegalStateException("Must never happen");
@@ -150,19 +150,19 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor
 	}
 
 	@Override
-	public <R> R executeWithCache(IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable {
+	public <R> R executeWithCache(IResultingBackgroundWorkerDelegate<R> runnable) throws Exception {
 		return executeWithCache(threadLocalCacheProvider, runnable);
 	}
 
 	@Override
 	public <R, T> R executeWithCache(IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state)
-			throws Throwable {
+			throws Exception {
 		return executeWithCache(threadLocalCacheProvider, runnable, state);
 	}
 
 	@Override
 	public <R> R executeWithCache(ICacheProvider cacheProvider,
-			IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable {
+			IResultingBackgroundWorkerDelegate<R> runnable) throws Exception {
 		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
 		ParamChecker.assertParamNotNull(runnable, "runnable");
 
@@ -184,7 +184,7 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor
 
 	@Override
 	public <R, T> R executeWithCache(ICacheProvider cacheProvider,
-			IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state) throws Throwable {
+			IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state) throws Exception {
 		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
 		ParamChecker.assertParamNotNull(runnable, "runnable");
 
@@ -206,7 +206,7 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor
 
 	@Override
 	public <R> R executeWithCache(ICache cache, IResultingBackgroundWorkerDelegate<R> runnable)
-			throws Throwable {
+			throws Exception {
 		ParamChecker.assertParamNotNull(cache, "cache");
 		ParamChecker.assertParamNotNull(runnable, "runnable");
 		return executeWithCache(new SingleCacheProvider(cache), runnable);
@@ -214,7 +214,7 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor
 
 	@Override
 	public <R, T> R executeWithCache(ICache cache,
-			IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state) throws Throwable {
+			IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state) throws Exception {
 		ParamChecker.assertParamNotNull(cache, "cache");
 		ParamChecker.assertParamNotNull(runnable, "runnable");
 		return executeWithCache(new SingleCacheProvider(cache), runnable, state);

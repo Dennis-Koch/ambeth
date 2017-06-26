@@ -95,7 +95,7 @@ public class RandomDataGenerator implements IInitializingBean, IJob {
 	}
 
 	@Override
-	public void execute(IJobContext context) throws Throwable {
+	public void execute(IJobContext context) throws Exception {
 		long start = System.currentTimeMillis();
 
 		// boolean forbiddenSuccess = false;

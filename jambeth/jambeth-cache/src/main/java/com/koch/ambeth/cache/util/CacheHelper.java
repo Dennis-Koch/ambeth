@@ -212,7 +212,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			return transaction
 					.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<IPrefetchState>() {
 						@Override
-						public IPrefetchState invoke() throws Throwable {
+						public IPrefetchState invoke() throws Exception {
 							return ensureInitializedRelationsIntern2(objects, entityTypeToPrefetchPaths);
 						}
 					});
@@ -356,7 +356,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			}
 			guiThreadHelper.invokeInGuiAndWait(new IBackgroundWorkerDelegate() {
 				@Override
-				public void invoke() throws Throwable {
+				public void invoke() throws Exception {
 					ICacheModification cacheModification = CacheHelper.this.cacheModification;
 					ValueHolderContainerMixin valueHolderContainerMixin =
 							CacheHelper.this.valueHolderContainerMixin;
@@ -761,7 +761,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			try {
 				return (Collection) expectedType.newInstance();
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}

@@ -49,7 +49,7 @@ public class ParallelRunnable<V> implements Runnable {
 
 			IBackgroundWorkerParamDelegate<V> run = new IBackgroundWorkerParamDelegate<V>() {
 				@Override
-				public void invoke(V state) throws Throwable {
+				public void invoke(V state) throws Exception {
 					runnableHandle.run.invoke(state);
 					writeParallelResult(parallelLock, state);
 				}

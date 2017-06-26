@@ -778,7 +778,7 @@ public class ServiceContext
 				}
 				service = factoryResult;
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -854,7 +854,7 @@ public class ServiceContext
 				}
 				service = factoryResult;
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}

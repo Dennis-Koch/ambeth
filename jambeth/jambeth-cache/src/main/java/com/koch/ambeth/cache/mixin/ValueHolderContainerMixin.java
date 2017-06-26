@@ -98,7 +98,7 @@ public class ValueHolderContainerMixin {
 					results = transaction
 							.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<IList<Object>>() {
 								@Override
-								public IList<Object> invoke() throws Throwable {
+								public IList<Object> invoke() throws Exception {
 									IList<IObjRelationResult> objRelResults =
 											targetCache.getObjRelations(Arrays.asList(self), targetCache, cacheDirective);
 									if (objRelResults.isEmpty()) {

@@ -70,7 +70,7 @@ public class DelegateVisitor extends ClassGenerator {
 			try {
 				mg.invokeOnExactOwner(new ConstructorInstance(Object.class.getConstructor()));
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 			mg.putThisField(f_target, new Script() {

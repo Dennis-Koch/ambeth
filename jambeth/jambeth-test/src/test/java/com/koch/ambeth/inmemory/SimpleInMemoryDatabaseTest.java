@@ -66,15 +66,14 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-@TestModule({AlternateIdModule.class, SimpleInMemoryDatabaseTestModule.class})
-@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-		value = "com/koch/ambeth/inmemory/simpleinmemory_orm.xml")
+@TestModule({ AlternateIdModule.class, SimpleInMemoryDatabaseTestModule.class })
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/inmemory/simpleinmemory_orm.xml")
 public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersistenceTest {
 	public static class SimpleInMemoryDatabaseTestModule implements IInitializingModule {
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-			IBeanConfiguration inMemoryDatabase =
-					beanContextFactory.registerBean(SimpleInMemoryDatabase.class);
+			IBeanConfiguration inMemoryDatabase = beanContextFactory
+					.registerBean(SimpleInMemoryDatabase.class);
 
 			// beanContextFactory.link(inMemoryDatabase).to(ITransactionListenerExtendable.class);
 			beanContextFactory.link(inMemoryDatabase, "handleDatabaseAcquire")
@@ -153,10 +152,10 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 		ICache cache = cacheProvider.getCurrentCache();
 
 		AlternateIdEntity entityFromCacheById = cache.getObject(entity.getClass(), entity.getId());
-		AlternateIdEntity entityFromCacheById2 =
-				cache.getObject(entity.getClass(), "Id", entity.getId());
-		AlternateIdEntity entityFromCacheByName =
-				cache.getObject(entity.getClass(), "Name", entity.getName());
+		AlternateIdEntity entityFromCacheById2 = cache.getObject(entity.getClass(), "Id",
+				entity.getId());
+		AlternateIdEntity entityFromCacheByName = cache.getObject(entity.getClass(), "Name",
+				entity.getName());
 
 		Assert.assertSame(entityFromCacheById, entityFromCacheById2);
 		Assert.assertSame(entityFromCacheById, entityFromCacheByName);
@@ -174,8 +173,8 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 
 		service.updateAlternateIdEntity(entity);
 
-		AlternateIdEntity entityFromCacheByIdAfterChange =
-				cache.getObject(entity.getClass(), entity.getId());
+		AlternateIdEntity entityFromCacheByIdAfterChange = cache.getObject(entity.getClass(),
+				entity.getId());
 
 		Assert.assertSame(entityFromCacheById, entityFromCacheByIdAfterChange);
 	}
@@ -183,7 +182,7 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 	@Test
 	@TestPropertiesList({
 			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "5"),
-			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "5")})
+			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "5") })
 	public void isolationLevel() {
 		final ICache cache = beanContext.getService(ICache.class);
 		final String name1;
@@ -207,7 +206,7 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 					transaction.processAndCommit(new DatabaseCallback() {
 						@Override
 						public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-								throws Throwable {
+								throws Exception {
 							entity.setName(name1 + "1");
 							service.updateAlternateIdEntity(entity);
 							entity.setName(name1 + "11");
@@ -220,7 +219,7 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 					barrier[4].await();
 					barrier[5].await();
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
@@ -236,7 +235,7 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 						transaction.processAndCommit(new DatabaseCallback() {
 							@Override
 							public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-									throws Throwable {
+									throws Exception {
 								entity.setName(name1 + "2");
 								service.updateAlternateIdEntity(entity);
 							}
@@ -260,7 +259,7 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 					}
 					barrier[5].await();
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
@@ -279,7 +278,7 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 					entity.setName(name1 + "3");
 					service.updateAlternateIdEntity(entity);
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
@@ -345,8 +344,8 @@ public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersis
 	 */
 	@Test
 	public void testBaseEntity2() {
-		IEntityMetaData metaData =
-				beanContext.getService(IEntityMetaDataProvider.class).getMetaData(BaseEntity2.class);
+		IEntityMetaData metaData = beanContext.getService(IEntityMetaDataProvider.class)
+				.getMetaData(BaseEntity2.class);
 
 		Assert.assertEquals(1, metaData.getAlternateIdMembers().length);
 	}

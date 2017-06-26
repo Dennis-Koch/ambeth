@@ -32,14 +32,14 @@ public interface ISecurityScopeProvider {
 	void setSecurityScopes(ISecurityScope[] securityScopes);
 
 	<R> R executeWithSecurityScopes(IResultingBackgroundWorkerDelegate<R> runnable,
-			ISecurityScope... securityScopes) throws Throwable;
+			ISecurityScope... securityScopes) throws Exception;
 
 	<R, V> R executeWithSecurityScopes(IResultingBackgroundWorkerParamDelegate<R, V> runnable,
-			V state, ISecurityScope... securityScopes) throws Throwable;
+			V state, ISecurityScope... securityScopes) throws Exception;
 
 	void executeWithSecurityScopes(IBackgroundWorkerDelegate runnable,
-			ISecurityScope... securityScopes) throws Throwable;
+			ISecurityScope... securityScopes) throws Exception;
 
 	<V> void executeWithSecurityScopes(IBackgroundWorkerParamDelegate<V> runnable, V state,
-			ISecurityScope... securityScopes) throws Throwable;
+			ISecurityScope... securityScopes) throws Exception;
 }

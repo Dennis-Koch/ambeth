@@ -146,7 +146,7 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 				is.close();
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -167,7 +167,7 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 			return buildTypeFromParent(newTypeName, objContent, writer, buildVisitorDelegate,
 					classLoader);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -217,7 +217,7 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 			verify(content, classLoader);
 			return content;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -233,7 +233,7 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 			toPrintableByteCodeIntern(type, sb, type.getClassLoader());
 			return sb.toString();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -260,7 +260,7 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 				cr.accept(visitor, ClassReader.EXPAND_FRAMES);
 				sb.append(writer.toString());
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}

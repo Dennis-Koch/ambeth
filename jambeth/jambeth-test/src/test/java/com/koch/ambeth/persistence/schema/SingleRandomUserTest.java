@@ -97,7 +97,7 @@ public class SingleRandomUserTest extends AbstractInformationBusWithPersistenceT
 		try {
 			RandomUserScript.main(args);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

@@ -128,7 +128,7 @@ public class MergeControllerClientTest extends AbstractInformationBusWithPersist
 					childLoadedCondition.await();
 					childUpdatedCondition.await();
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 
@@ -147,7 +147,7 @@ public class MergeControllerClientTest extends AbstractInformationBusWithPersist
 					beanContext.getService(IMergeProcess.class).process(child, null, null, null);
 					childUpdatedCondition.await();
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
@@ -174,7 +174,7 @@ public class MergeControllerClientTest extends AbstractInformationBusWithPersist
 					childLoadedCondition.await();
 					childUpdatedCondition.await();
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 
@@ -193,7 +193,7 @@ public class MergeControllerClientTest extends AbstractInformationBusWithPersist
 					beanContext.getService(IMergeProcess.class).process(child, null, null, null);
 					childUpdatedCondition.await();
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}

@@ -99,12 +99,11 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 
 	protected static final HashSet<Class<?>> primitiveSet = new HashSet<>(0.5f);
 
-	protected static final IdentityHashMap<PrecedenceType, Integer> precedenceOrder =
-			new IdentityHashMap<>(0.5f);
+	protected static final IdentityHashMap<PrecedenceType, Integer> precedenceOrder = new IdentityHashMap<>(
+			0.5f);
 
 	// Intentionally no SensitiveThreadLocal. Usage will alLways be cleaned up immediately
-	protected static final ThreadLocal<BeanContextInit> currentBeanContextInitTL =
-			new ThreadLocal<>();
+	protected static final ThreadLocal<BeanContextInit> currentBeanContextInitTL = new ThreadLocal<>();
 
 	static {
 		ImmutableTypeSet.addImmutableTypesTo(primitiveSet);
@@ -169,8 +168,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 	}
 
 	protected int getBeanConfigurationAmount(BeanContextInit beanContextInit) {
-		List<IBeanConfiguration> beanConfigurations =
-				beanContextInit.beanContextFactory.getBeanConfigurations();
+		List<IBeanConfiguration> beanConfigurations = beanContextInit.beanContextFactory
+				.getBeanConfigurations();
 		if (beanConfigurations == null) {
 			return 0;
 		}
@@ -186,10 +185,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			beanContext.setBeanContextFactory(beanContextFactory);
 			return;
 		}
-		IdentityLinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap =
-				new IdentityLinkedMap<>();
-		IdentityHashMap<Object, IBeanConfiguration> objectToHandledBeanConfigurationMap =
-				new IdentityHashMap<>();
+		IdentityLinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = new IdentityLinkedMap<>();
+		IdentityHashMap<Object, IBeanConfiguration> objectToHandledBeanConfigurationMap = new IdentityHashMap<>();
 		LinkedHashMap<String, IBeanConfiguration> nameToBeanConfigurationMap = new LinkedHashMap<>();
 		IdentityLinkedSet<Object> allLifeCycledBeansSet = new IdentityLinkedSet<>();
 		IdentityHashSet<IBeanConfiguration> alreadyHandledConfigsSet = new IdentityHashSet<>();
@@ -334,7 +331,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		try {
 			return new ObjectName(beanContextName.toString());
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -349,14 +346,13 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		if (!monitorBeansActive) {
 			return;
 		}
-		IPropertyInfoProvider propertyInfoProvider =
-				beanContextInit.beanContext.getService(IPropertyInfoProvider.class, false);
+		IPropertyInfoProvider propertyInfoProvider = beanContextInit.beanContext
+				.getService(IPropertyInfoProvider.class, false);
 		if (propertyInfoProvider == null) {
 			return;
 		}
 		IServiceContext beanContext = beanContextInit.beanContext;
-		IdentityHashMap<Object, IBeanConfiguration> objectToHandledBeanConfigurationMap =
-				beanContextInit.objectToHandledBeanConfigurationMap;
+		IdentityHashMap<Object, IBeanConfiguration> objectToHandledBeanConfigurationMap = beanContextInit.objectToHandledBeanConfigurationMap;
 		final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 		if (mbs == null) {
 			// JMX not activated
@@ -389,7 +385,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 					mbs.registerMBean(mBean, name);
 					mBeans.add(name);
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
@@ -402,7 +398,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 					try {
 						mbs.unregisterMBean(name);
 					}
-					catch (Throwable e) {
+					catch (Exception e) {
 						throw RuntimeExceptionUtil.mask(e);
 					}
 				}
@@ -410,7 +406,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		}
 		beanContext.registerDisposeHook(new IBackgroundWorkerParamDelegate<IServiceContext>() {
 			@Override
-			public void invoke(IServiceContext beanContext) throws Throwable {
+			public void invoke(IServiceContext beanContext) throws Exception {
 				for (int a = mBeans.size(); a-- > 0;) {
 					ObjectName name = mBeans.get(a);
 					mbs.unregisterMBean(name);
@@ -420,8 +416,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 	}
 
 	protected void resolveBeansInSequence(BeanContextInit beanContextInit) {
-		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap =
-				beanContextInit.objectToBeanConfigurationMap;
+		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = beanContextInit.objectToBeanConfigurationMap;
 
 		while (!objectToBeanConfigurationMap.isEmpty()) {
 			for (Entry<Object, IBeanConfiguration> entry : objectToBeanConfigurationMap) {
@@ -445,8 +440,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 					continue;
 				}
 				List<IBeanConfiguration> hierarchy = new ArrayList<>();
-				String missingBeanName =
-						fillParentHierarchyIfValid(beanContextInit, beanConfiguration, hierarchy);
+				String missingBeanName = fillParentHierarchyIfValid(beanContextInit, beanConfiguration,
+						hierarchy);
 
 				throw maskBeanBasedException("Parent bean definition '" + missingBeanName + "' not found",
 						beanConfiguration, null);
@@ -483,10 +478,10 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			}
 			Autowired autowired = prop.getAnnotation(Autowired.class);
 			if (autowired == null && externalServiceContext != null) {
-				boolean hasBeenHandled =
-						externalServiceContext.initializeAutowiring(beanContextInit, beanConfiguration,
-								beanContext, beanType, propertyInfos, alreadySpecifiedPropertyNamesSet,
-								ignoredPropertyNamesSet, this, highPriorityBean, prop);
+				boolean hasBeenHandled = externalServiceContext.initializeAutowiring(beanContextInit,
+						beanConfiguration, beanContext, beanType, propertyInfos,
+						alreadySpecifiedPropertyNamesSet, ignoredPropertyNamesSet, this, highPriorityBean,
+						prop);
 				if (hasBeenHandled) {
 					continue;
 				}
@@ -503,8 +498,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			if (fromContext != null && fromContext.length() == 0) {
 				fromContext = null;
 			}
-			Object refBean =
-					resolveBean(fromContext, beanName, propertyType, highPriorityBean, beanContextInit);
+			Object refBean = resolveBean(fromContext, beanName, propertyType, highPriorityBean,
+					beanContextInit);
 			if (refBean == null) {
 				if (autowired != null && !autowired.optional()) {
 					StringBuilder sb = new StringBuilder();
@@ -534,21 +529,19 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 	public Object resolveBean(String fromContext, String beanName, Class<?> propertyType,
 			boolean isHighPriorityBean, BeanContextInit beanContextInit) {
 		IServiceContextIntern beanContext = beanContextInit.beanContext;
-		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap =
-				beanContextInit.objectToBeanConfigurationMap;
+		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = beanContextInit.objectToBeanConfigurationMap;
 		// Module beans are only allowed to demand beans from the parent
 		// context
 
 		if (fromContext != null) {
-			IServiceContextIntern refFromContext =
-					(IServiceContextIntern) beanContext.getDirectBean(fromContext);
+			IServiceContextIntern refFromContext = (IServiceContextIntern) beanContext
+					.getDirectBean(fromContext);
 			if (refFromContext == null) {
 				return null;
 			}
 			beanContext = refFromContext;
 		}
-		Object refBean = beanName != null
-				? beanContext.getDirectBean(beanName)
+		Object refBean = beanName != null ? beanContext.getDirectBean(beanName)
 				: beanContext.getDirectBean(propertyType);
 		if (refBean != null && objectToBeanConfigurationMap != null
 				&& objectToBeanConfigurationMap.containsKey(refBean)) {
@@ -639,8 +632,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 	}
 
 	public void initializeBean(BeanContextInit beanContextInit, Object bean) {
-		IBeanConfiguration beanConfiguration =
-				beanContextInit.objectToBeanConfigurationMap.remove(bean);
+		IBeanConfiguration beanConfiguration = beanContextInit.objectToBeanConfigurationMap
+				.remove(bean);
 		beanContextInit.objectToHandledBeanConfigurationMap.put(bean, beanConfiguration);
 		ILinkedSet<Object> allLifeCycledBeansSet = beanContextInit.allLifeCycledBeansSet;
 
@@ -671,8 +664,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		try {
 			Class<?> beanType = resolveTypeInHierarchy(beanConfHierarchy);
 			resolveAllBeanConfInHierarchy(beanConfHierarchy, propertyConfigurations);
-			ISet<String> ignoredPropertyNames =
-					resolveAllIgnoredPropertiesInHierarchy(beanConfHierarchy, beanType);
+			ISet<String> ignoredPropertyNames = resolveAllIgnoredPropertiesInHierarchy(beanConfHierarchy,
+					beanType);
 
 			IPropertyInfo[] propertyInfos = propertyInfoProvider.getIocProperties(beanType);
 
@@ -705,8 +698,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		if (propertyConfiguration != null) {
 			declarationStackTrace = propertyConfiguration.getDeclarationStackTrace();
 			if (declarationStackTrace == null) {
-				declarationStackTrace =
-						propertyConfiguration.getBeanConfiguration().getDeclarationStackTrace();
+				declarationStackTrace = propertyConfiguration.getBeanConfiguration()
+						.getDeclarationStackTrace();
 			}
 		}
 		if (declarationStackTrace == null && beanConfiguration != null) {
@@ -772,15 +765,15 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		try {
 			sb.append(message);
 			if (!(e instanceof BeanContextInitException)) {
-				BeanContextInitException beanContextInitException =
-						new BeanContextInitException(sb.toString(), e);
+				BeanContextInitException beanContextInitException = new BeanContextInitException(
+						sb.toString(), e);
 				beanContextInitException.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
 				return beanContextInitException;
 			}
 			sb.insert(0, SystemUtil.lineSeparator());
 			sb.insert(0, e.getMessage());
-			BeanContextInitException beanContextInitException =
-					new BeanContextInitException(sb.toString(), e.getCause());
+			BeanContextInitException beanContextInitException = new BeanContextInitException(
+					sb.toString(), e.getCause());
 			beanContextInitException.setStackTrace(e.getStackTrace());
 			return beanContextInitException;
 		}
@@ -930,11 +923,11 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 						+ propertyConf.getPropertyName() + "'", null, propertyConf);
 			}
 		}
-		IPropertyInfo primitiveProperty =
-				autoResolveProperty(beanType, propertyConf, alreadySpecifiedPropertyNamesSet);
+		IPropertyInfo primitiveProperty = autoResolveProperty(beanType, propertyConf,
+				alreadySpecifiedPropertyNamesSet);
 
-		Object convertedValue =
-				conversionHelper.convertValueToType(primitiveProperty.getPropertyType(), value);
+		Object convertedValue = conversionHelper.convertValueToType(primitiveProperty.getPropertyType(),
+				value);
 
 		if (!alreadySpecifiedPropertyNamesSet.add(propertyConf.getPropertyName())) {
 			log.debug("Property '" + propertyConf.getPropertyName()
@@ -973,8 +966,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			IPropertyConfiguration propertyConf, IPropertyInfo[] propertyInfos,
 			Set<String> alreadySpecifiedPropertyNamesSet) {
 		ServiceContext beanContext = beanContextInit.beanContext;
-		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap =
-				beanContextInit.objectToBeanConfigurationMap;
+		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = beanContextInit.objectToBeanConfigurationMap;
 
 		String refBeanName = propertyConf.getBeanName();
 
@@ -999,8 +991,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			refBean = beanContext.getServiceIntern(refBeanName, Object.class,
 					isHighPriorityBean(bean) ? SearchType.PARENT : SearchType.CASCADE);
 			if (refBean != null) {
-				IBeanConfiguration refBeanConfiguration =
-						beanContextInit.objectToBeanConfigurationMap.get(refBean);
+				IBeanConfiguration refBeanConfiguration = beanContextInit.objectToBeanConfigurationMap
+						.get(refBean);
 				if (refBeanConfiguration != null) {
 					// Object is not yet initialized. We try to do this before we use it
 					initializeBean(beanContextInit, refBean);
@@ -1026,8 +1018,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 					alreadySpecifiedPropertyNamesSet);
 			return;
 		}
-		IPropertyInfo refProperty =
-				autoResolveProperty(beanType, propertyConf, alreadySpecifiedPropertyNamesSet);
+		IPropertyInfo refProperty = autoResolveProperty(beanType, propertyConf,
+				alreadySpecifiedPropertyNamesSet);
 
 		if (!alreadySpecifiedPropertyNamesSet.add(refProperty.getName())) {
 			log.debug("Property '" + refProperty.getName()
@@ -1049,8 +1041,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			List<IPropertyConfiguration> propertyConfs) {
 		for (int a = 0, size = beanConfigurations.size(); a < size; a++) {
 			IBeanConfiguration beanConfiguration = beanConfigurations.get(a);
-			List<IPropertyConfiguration> propertyConfigurations =
-					beanConfiguration.getPropertyConfigurations();
+			List<IPropertyConfiguration> propertyConfigurations = beanConfiguration
+					.getPropertyConfigurations();
 			if (propertyConfigurations != null) {
 				propertyConfs.addAll(propertyConfigurations);
 			}
@@ -1066,8 +1058,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			return;
 		}
 		ServiceContext beanContext = beanContextInit.beanContext;
-		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap =
-				beanContextInit.objectToBeanConfigurationMap;
+		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = beanContextInit.objectToBeanConfigurationMap;
 
 		HashMap<Integer, OrderState> orderToHighBeanConfigurations = new HashMap<>();
 		HashMap<Integer, OrderState> orderToLowBeanConfigurations = new HashMap<>();
@@ -1114,8 +1105,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 
 					IBeanConfiguration currBeanConf = beanConfiguration;
 					while (currBeanConf.getParentName() != null) {
-						IBeanConfiguration parentBeanConf =
-								beanContext.getBeanConfiguration(beanContextFactory, currBeanConf.getParentName());
+						IBeanConfiguration parentBeanConf = beanContext.getBeanConfiguration(beanContextFactory,
+								currBeanConf.getParentName());
 
 						if (parentBeanConf == null) {
 							throw maskBeanBasedException(
@@ -1145,8 +1136,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			List<IBeanConfiguration> beanConfHierarchy) {
 		Object bean = null;
 
-		List<IBeanInstantiationProcessor> beanInstantiationProcessors =
-				beanContext.getInstantiationProcessors();
+		List<IBeanInstantiationProcessor> beanInstantiationProcessors = beanContext
+				.getInstantiationProcessors();
 		if (beanInstantiationProcessors != null) {
 			for (int a = 0, size = beanInstantiationProcessors.size(); a < size; a++) {
 				IBeanInstantiationProcessor beanInstantiationProcessor = beanInstantiationProcessors.get(a);
@@ -1243,8 +1234,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			if (highPriorityOnly && !highPriority) {
 				continue;
 			}
-			Map<Integer, OrderState> orderToBeanConfigurations =
-					highPriority ? orderToHighBeanConfigurations : orderToLowBeanConfigurations;
+			Map<Integer, OrderState> orderToBeanConfigurations = highPriority
+					? orderToHighBeanConfigurations : orderToLowBeanConfigurations;
 
 			PrecedenceType currentPrecedenceType = beanConfiguration.getPrecedence();
 			Integer order = precedenceOrder.get(currentPrecedenceType);
@@ -1291,8 +1282,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		beanContextInit.properties = beanContext.getService(Properties.class);
 
 		ArrayList<IBeanConfiguration> beanConfHierarchy = new ArrayList<>();
-		String missingBeanName =
-				fillParentHierarchyIfValid(beanContextInit, beanConfiguration, beanConfHierarchy);
+		String missingBeanName = fillParentHierarchyIfValid(beanContextInit, beanConfiguration,
+				beanConfHierarchy);
 		if (missingBeanName == null) {
 			return beanConfHierarchy;
 		}
@@ -1329,8 +1320,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			if (!beanConfiguration.isAbstract()) {
 				beanContext.addNamedBean(beanName, bean);
 			}
-			ILinkedMap<String, List<String>> beanNameToAliasesMap =
-					beanContextFactory.getBeanNameToAliasesMap();
+			ILinkedMap<String, List<String>> beanNameToAliasesMap = beanContextFactory
+					.getBeanNameToAliasesMap();
 			if (beanNameToAliasesMap != null) {
 				List<String> aliasList = beanNameToAliasesMap.get(beanName);
 				if (aliasList != null) {
@@ -1376,8 +1367,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 				String ignoredPropertyName = ignoredPropertyNames.get(b);
 
 				if (!propertyMap.containsKey(ignoredPropertyName)) {
-					String uppercaseFirst =
-							StringConversionHelper.upperCaseFirst(objectCollector, ignoredPropertyName);
+					String uppercaseFirst = StringConversionHelper.upperCaseFirst(objectCollector,
+							ignoredPropertyName);
 					if (!propertyMap.containsKey(uppercaseFirst)) {
 						throw maskBeanBasedException("Property '" + ignoredPropertyName
 								+ "' not found to ignore. This is only a check for consistency. However the following list of properties has been found: "

@@ -325,7 +325,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 							cacheContext.executeWithCache(cacheProvider,
 									new IResultingBackgroundWorkerDelegate<Object>() {
 										@Override
-										public Object invoke() throws Throwable {
+										public Object invoke() throws Exception {
 											IPagingResponse<QueryEntity> response =
 													randomPagingQuery.retrieve(randomPReq);
 											List<QueryEntity> result = response.getResult();
@@ -728,7 +728,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 								IPagingResponse<QueryEntity> response = cacheContext.executeWithCache(cacheProvider,
 										new IResultingBackgroundWorkerDelegate<IPagingResponse<QueryEntity>>() {
 											@Override
-											public IPagingResponse<QueryEntity> invoke() throws Throwable {
+											public IPagingResponse<QueryEntity> invoke() throws Exception {
 												return randomPagingQuery.retrieve(randomPReq);
 											}
 										});

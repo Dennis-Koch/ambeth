@@ -167,7 +167,7 @@ public class ObjectCopier
 		try {
 			cloneColl = (Collection) objType.newInstance();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		ocState.objectToCloneDict.put(source, cloneColl);
@@ -186,7 +186,7 @@ public class ObjectCopier
 		try {
 			clone = objType.newInstance();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		ocState.objectToCloneDict.put(source, clone);

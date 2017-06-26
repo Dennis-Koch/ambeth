@@ -79,13 +79,11 @@ import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 @SQLStructure("/com/koch/ambeth/security/Relations_structure.sql")
 @TestProperties(name = MergeConfigurationConstants.SecurityActive, value = "true")
 @TestPropertiesList({
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-				value = "com/koch/ambeth/persistence/xml/orm.xml;com/koch/ambeth/security/orm.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/xml/orm.xml;com/koch/ambeth/security/orm.xml"),
 		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false"),
-		@TestProperties(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive,
-				value = "false")})
+		@TestProperties(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive, value = "false") })
 @TestModule(TestServicesModule.class)
-@TestFrameworkModule({SecurityTestFrameworkModule.class, SecurityTestModule.class})
+@TestFrameworkModule({ SecurityTestFrameworkModule.class, SecurityTestModule.class })
 public class SecurityTest extends AbstractInformationBusWithPersistenceTest {
 	public static final String IN_MEMORY_CACHE_RETRIEVER = "inMemoryCacheRetriever";
 
@@ -108,8 +106,8 @@ public class SecurityTest extends AbstractInformationBusWithPersistenceTest {
 	public static class SecurityTestModule implements IInitializingModule {
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-			IBeanConfiguration inMemoryCacheRetriever =
-					beanContextFactory.registerBean(IN_MEMORY_CACHE_RETRIEVER, InMemoryCacheRetriever.class);
+			IBeanConfiguration inMemoryCacheRetriever = beanContextFactory
+					.registerBean(IN_MEMORY_CACHE_RETRIEVER, InMemoryCacheRetriever.class);
 			beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class)
 					.with(User.class);
 			beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class)
@@ -145,9 +143,9 @@ public class SecurityTest extends AbstractInformationBusWithPersistenceTest {
 		super.afterPropertiesSet();
 
 		char[] salt = "abcdef=".toCharArray();
-		char[] value =
-				Base64.encodeBytes(Passwords.hashPassword(userPass1.toCharArray(), Base64.decode(salt),
-						Passwords.ALGORITHM, Passwords.ITERATION_COUNT, Passwords.KEY_SIZE)).toCharArray();
+		char[] value = Base64.encodeBytes(Passwords.hashPassword(userPass1.toCharArray(),
+				Base64.decode(salt), Passwords.ALGORITHM, Passwords.ITERATION_COUNT, Passwords.KEY_SIZE))
+				.toCharArray();
 
 		IInMemoryConfig password10 = inMemoryCacheRetriever.add(Password.class, 10)
 				.primitive(IPassword.Salt, salt).primitive(IPassword.Algorithm, Passwords.ALGORITHM)
@@ -163,7 +161,7 @@ public class SecurityTest extends AbstractInformationBusWithPersistenceTest {
 		final IBackgroundWorkerDelegate checkRootCache = new IBackgroundWorkerDelegate() {
 
 			@Override
-			public void invoke() throws Throwable {
+			public void invoke() throws Exception {
 				assertTrue(cache.getObjects(Employee.class, 1, 2, 3).isEmpty());
 
 				// test privileged transactional root cache
@@ -181,11 +179,11 @@ public class SecurityTest extends AbstractInformationBusWithPersistenceTest {
 		transaction.processAndCommit(new ResultingDatabaseCallback<Object>() {
 			@Override
 			public Object callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-					throws Throwable {
+					throws Exception {
 				Object result = securityActivation
 						.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>() {
 							@Override
-							public Object invoke() throws Throwable {
+							public Object invoke() throws Exception {
 								List<Employee> employees = cache.getObjects(Employee.class, 1, 2, 3);
 								assertFalse(employees.isEmpty());
 

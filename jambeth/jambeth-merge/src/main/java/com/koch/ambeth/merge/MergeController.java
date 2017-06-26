@@ -201,7 +201,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
 		}
 		guiThreadHelper.invokeInGuiAndWait(new IBackgroundWorkerDelegate() {
 			@Override
-			public void invoke() throws Throwable {
+			public void invoke() throws Exception {
 				applyChangesToOriginalsIntern(cudResult, oriCollection, cache);
 			}
 		});

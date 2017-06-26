@@ -397,7 +397,7 @@ public abstract class AbstractServiceREST {
 				}
 			};
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -539,7 +539,7 @@ public abstract class AbstractServiceREST {
 		try {
 			runnable.invoke();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

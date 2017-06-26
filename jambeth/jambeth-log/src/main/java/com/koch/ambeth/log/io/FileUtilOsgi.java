@@ -43,7 +43,7 @@ public final class FileUtilOsgi {
 		currentBundleTL.set(currentBundle);
 		return new AbstractStateRollback(rollbacks) {
 			@Override
-			protected void rollbackIntern() throws Throwable {
+			protected void rollbackIntern() throws Exception {
 				currentBundleTL.set(oldCurrentBundle);
 			}
 		};

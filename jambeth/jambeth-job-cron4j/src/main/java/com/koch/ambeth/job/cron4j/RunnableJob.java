@@ -51,7 +51,7 @@ public class RunnableJob implements IJob {
 	}
 
 	@Override
-	public void execute(IJobContext context) throws Throwable {
+	public void execute(IJobContext context) throws Exception {
 		runnable.run();
 	}
 }

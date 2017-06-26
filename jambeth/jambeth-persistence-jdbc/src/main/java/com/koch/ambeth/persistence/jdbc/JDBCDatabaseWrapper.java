@@ -184,7 +184,7 @@ public class JDBCDatabaseWrapper extends Database {
 		try {
 			rollback(savepoint);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

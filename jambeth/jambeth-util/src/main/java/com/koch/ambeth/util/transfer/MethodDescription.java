@@ -67,7 +67,7 @@ public class MethodDescription implements IMethodDescription {
 							StringConversionHelper.lowerCaseFirst(objectCollector, methodName), paramTypes);
 				}
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}

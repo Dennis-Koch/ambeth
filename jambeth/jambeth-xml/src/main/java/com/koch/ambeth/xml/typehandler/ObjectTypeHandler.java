@@ -82,7 +82,7 @@ public class ObjectTypeHandler extends AbstractHandler implements ITypeBasedHand
 		try {
 			obj = objType.newInstance();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		if (id > 0) {

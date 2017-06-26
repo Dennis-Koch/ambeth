@@ -395,7 +395,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		try {
 			return runnable.invoke();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -441,11 +441,11 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 			Boolean pgUpdated = securityScopeProvider
 					.executeWithSecurityScopes(new IResultingBackgroundWorkerDelegate<Boolean>() {
 						@Override
-						public Boolean invoke() throws Throwable {
+						public Boolean invoke() throws Exception {
 							return securityActivation
 									.executeWithoutFiltering(new IResultingBackgroundWorkerDelegate<Boolean>() {
 										@Override
-										public Boolean invoke() throws Throwable {
+										public Boolean invoke() throws Exception {
 											IMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap = createPgUpdateMap(
 													dataChange);
 											if (entityToPgUpdateMap.isEmpty()) {
@@ -459,7 +459,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 													new IBackgroundWorkerParamDelegate<Entry<Class<?>, PgUpdateEntry>>() {
 														@Override
 														public void invoke(Entry<Class<?>, PgUpdateEntry> entry)
-																throws Throwable {
+																throws Exception {
 															PgUpdateEntry pgUpdateEntry = entry.getValue();
 															IPermissionGroup permissionGroup = pgUpdateEntry.getPermissionGroup();
 															ITableMetaData table = permissionGroup.getTargetTable();
@@ -526,7 +526,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 													new IBackgroundWorkerParamDelegate<Entry<Class<?>, PgUpdateEntry>>() {
 														@Override
 														public void invoke(Entry<Class<?>, PgUpdateEntry> entry)
-																throws Throwable {
+																throws Exception {
 															insertPermissionGroupsForUsers(entry.getValue(), authorizations,
 																	allPrivilegesOfAllUsers);
 														}
@@ -541,7 +541,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 				log.debug(spent + "ms");
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -738,7 +738,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 	}
 
 	protected void insertPermissionGroupsForUsers(PgUpdateEntry pgUpdateEntry,
-			IAuthorization[] authorizations, IPrivilege[][] allPrivilegesOfAllUsers) throws Throwable {
+			IAuthorization[] authorizations, IPrivilege[][] allPrivilegesOfAllUsers) throws Exception {
 		IList<Object> permissionGroupIds = pgUpdateEntry.getPermissionGroupIds();
 		int startIndexInAllObjRefs = pgUpdateEntry.getStartIndexInAllObjRefs();
 
@@ -776,7 +776,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 			}
 			insertPermissionGroupPstm.executeBatch();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -796,7 +796,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 	}
 
 	protected void updateEntityRows(IList<IObjRef> objRefs, IList<Object> permissionGroupIds,
-			IPermissionGroup permissionGroup, ITableMetaData table) throws Throwable {
+			IPermissionGroup permissionGroup, ITableMetaData table) throws Exception {
 		IConversionHelper conversionHelper = this.conversionHelper;
 		Class<?> idType = table.getIdField().getFieldType();
 		PreparedStatement updateEntityRowPstm = buildUpdateEntityRowStm(permissionGroup, table);

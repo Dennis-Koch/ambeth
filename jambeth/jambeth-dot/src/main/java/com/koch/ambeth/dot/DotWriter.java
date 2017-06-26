@@ -146,7 +146,7 @@ public class DotWriter implements Closeable, IDotWriter {
 	protected void write(char oneChar) {
 		try {
 			writer.append(oneChar);
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -154,7 +154,7 @@ public class DotWriter implements Closeable, IDotWriter {
 	protected void write(String str) {
 		try {
 			writer.append(str);
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

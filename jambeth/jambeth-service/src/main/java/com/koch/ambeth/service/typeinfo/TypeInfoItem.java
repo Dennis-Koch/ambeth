@@ -100,7 +100,7 @@ public abstract class TypeInfoItem implements ITypeInfoItem {
 			try {
 				return (Collection<?>) getConstructorOfRealType().newInstance();
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}

@@ -61,7 +61,7 @@ public final class ListUtil {
 			sizeObsListTypeC = obsListType.getConstructor(Integer.TYPE);
 			sizeObsSetTypeC = obsSetType.getConstructor(Integer.TYPE, Float.TYPE);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -210,7 +210,7 @@ public final class ListUtil {
 			}
 			return (Collection<Object>) listTypeC.newInstance();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

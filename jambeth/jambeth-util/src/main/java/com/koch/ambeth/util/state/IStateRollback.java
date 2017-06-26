@@ -41,7 +41,7 @@ limitations under the License.
  *      return new AbstractStateRollback(rollbacks)
  *      {
  *        &#064;Override
- *        protected void rollbackIntern() throws Throwable
+ *        protected void rollbackIntern() throws Exception
  *        {
  *          MyClass.this.value = oldValue;
  *        }

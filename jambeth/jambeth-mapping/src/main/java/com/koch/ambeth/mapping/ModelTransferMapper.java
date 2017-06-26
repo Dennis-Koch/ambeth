@@ -182,7 +182,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
 			List<Object> valueObjectList = (List<Object>) listTypeHelper.unpackListType(listTypeObject);
 			return mapToBusinessObjectList(valueObjectList);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -315,7 +315,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
 			}
 			return (T) businessObjectList;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -984,7 +984,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
 			try {
 				subValueObject = valueObjectType.newInstance();
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 			boVOsMap.put(valueObjectType, subValueObject);

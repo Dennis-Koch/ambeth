@@ -134,7 +134,7 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 			if (oldAuthentication == authentication) {
 				IStateRollback rollback = new AbstractStateRollback(rollbacks) {
 					@Override
-					protected void rollbackIntern() throws Throwable {
+					protected void rollbackIntern() throws Exception {
 						if (fCreated) {
 							clearContext();
 						}
@@ -149,7 +149,7 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 				final ISecurityContext fSecurityContext = securityContext;
 				IStateRollback rollback = new AbstractStateRollback(rollbacks) {
 					@Override
-					protected void rollbackIntern() throws Throwable {
+					protected void rollbackIntern() throws Exception {
 						fSecurityContext.setAuthentication(oldAuthentication);
 						fSecurityContext.setAuthorization(oldAuthorization);
 						if (fCreated) {
@@ -176,7 +176,7 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 
 	@Override
 	public <R> R setScopedAuthentication(IAuthentication authentication,
-			IResultingBackgroundWorkerDelegate<R> runnableScope) throws Throwable {
+			IResultingBackgroundWorkerDelegate<R> runnableScope) throws Exception {
 		ISecurityContext securityContext = getContext();
 		boolean created = false;
 		if (securityContext == null) {

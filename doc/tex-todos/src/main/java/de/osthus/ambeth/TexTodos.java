@@ -186,7 +186,7 @@ public class TexTodos implements IStartingBean
 				}
 			}
 		}
-		catch (Throwable e)
+		catch (Exception e)
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}

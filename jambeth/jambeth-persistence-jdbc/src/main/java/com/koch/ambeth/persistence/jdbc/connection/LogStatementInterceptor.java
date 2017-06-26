@@ -81,7 +81,7 @@ public class LogStatementInterceptor extends AbstractSimpleInterceptor
 				}
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

@@ -132,20 +132,20 @@ public class AuditVerifierJob implements IJob, IStartingBean {
 	}
 
 	@Override
-	public void execute(final IJobContext context) throws Throwable {
+	public void execute(final IJobContext context) throws Exception {
 		IDisposableCache cache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false,
 				Boolean.TRUE, AuditVerifierJob.class.getName());
 		try {
 			cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>() {
 				@Override
-				public Object invoke() throws Throwable {
+				public Object invoke() throws Exception {
 					securityActivation.executeWithoutSecurity(new IBackgroundWorkerDelegate() {
 						@Override
-						public void invoke() throws Throwable {
+						public void invoke() throws Exception {
 							transaction.processAndCommit(new DatabaseCallback() {
 								@Override
 								public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-										throws Throwable {
+										throws Exception {
 									verifyAllAuditEntries(context);
 								}
 							}, false, true);
@@ -160,7 +160,7 @@ public class AuditVerifierJob implements IJob, IStartingBean {
 		}
 	}
 
-	protected void verifyAllAuditEntries(IJobContext context) throws Throwable {
+	protected void verifyAllAuditEntries(IJobContext context) throws Exception {
 		ArrayList<IObjRef> batchEntries = new ArrayList<>(batchCount);
 
 		IPreparedObjRefFactory preparedObjRefFactory = objRefFactory

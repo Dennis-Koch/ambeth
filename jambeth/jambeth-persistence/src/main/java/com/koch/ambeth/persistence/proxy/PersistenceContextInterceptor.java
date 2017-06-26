@@ -36,6 +36,7 @@ import com.koch.ambeth.persistence.database.IDatabaseProviderRegistry;
 import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.collections.ILinkedMap;
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
 
 import net.sf.cglib.proxy.MethodProxy;
@@ -67,8 +68,8 @@ public class PersistenceContextInterceptor extends CascadedInterceptor {
 		PersistenceContextType behaviourOfMethod = methodLevelBehaviour.getBehaviourOfMethod(method);
 
 		if (PersistenceContextType.FORBIDDEN.equals(behaviourOfMethod)) {
-			ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap =
-					databaseProviderRegistry.getPersistenceUnitToDatabaseProviderMap();
+			ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap = databaseProviderRegistry
+					.getPersistenceUnitToDatabaseProviderMap();
 			for (Entry<Object, IDatabaseProvider> entry : persistenceUnitToDatabaseProviderMap) {
 				IDatabaseProvider databaseProvider = entry.getValue();
 				if (databaseProvider.tryGetInstance() != null) {
@@ -79,8 +80,8 @@ public class PersistenceContextInterceptor extends CascadedInterceptor {
 			return invokeTarget(obj, method, args, proxy);
 		}
 		if (PersistenceContextType.EXPECTED.equals(behaviourOfMethod)) {
-			ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap =
-					databaseProviderRegistry.getPersistenceUnitToDatabaseProviderMap();
+			ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap = databaseProviderRegistry
+					.getPersistenceUnitToDatabaseProviderMap();
 			for (Entry<Object, IDatabaseProvider> entry : persistenceUnitToDatabaseProviderMap) {
 				IDatabaseProvider databaseProvider = entry.getValue();
 				if (databaseProvider.tryGetInstance() == null) {
@@ -102,8 +103,16 @@ public class PersistenceContextInterceptor extends CascadedInterceptor {
 		return transaction.processAndCommit(new ResultingDatabaseCallback<Object>() {
 			@Override
 			public Object callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-					throws Throwable {
-				return invokeTarget(obj, method, args, proxy);
+					throws Exception {
+				try {
+					return invokeTarget(obj, method, args, proxy);
+				}
+				catch (Error e) {
+					throw e;
+				}
+				catch (Throwable e) {
+					throw RuntimeExceptionUtil.mask(e);
+				}
 			}
 		}, false, readOnly);
 	}

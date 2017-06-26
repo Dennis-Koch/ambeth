@@ -128,7 +128,7 @@ public class JDBCResultSet implements IResultSet, IInitializingBean, IDisposable
 			}
 			return true;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

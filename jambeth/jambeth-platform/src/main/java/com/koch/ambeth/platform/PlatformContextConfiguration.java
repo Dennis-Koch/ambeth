@@ -40,7 +40,7 @@ public class PlatformContextConfiguration implements IPlatformContextConfigurati
 					Thread.currentThread().getContextClassLoader().loadClass(platformConfigurationTypeName);
 			return (IPlatformContextConfiguration) platformConfigurationType.newInstance();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

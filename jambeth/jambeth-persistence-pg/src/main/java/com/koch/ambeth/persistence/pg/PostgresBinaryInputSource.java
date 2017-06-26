@@ -45,7 +45,7 @@ public class PostgresBinaryInputSource
 		try {
 			return new PostgresBinaryInputStream(new PostgresBlob(connection, oid));
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -55,7 +55,7 @@ public class PostgresBinaryInputSource
 		try {
 			return new PostgresBinaryInputStream(new PostgresBlob(connection, oid));
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

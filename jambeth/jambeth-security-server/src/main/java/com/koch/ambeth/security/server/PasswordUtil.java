@@ -192,7 +192,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 			try {
 				secretKeyFactory = SecretKeyFactory.getInstance(algorithm);
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 			algorithmToSecretKeyFactoryMap.put(algorithm, new WeakReference<>(secretKeyFactory));
@@ -346,7 +346,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 			SecretKeyFactory factory = getSecretKeyFactory(password.getAlgorithm());
 			return factory.generateSecret(spec).getEncoded();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -474,7 +474,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 					return true;
 				}
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -486,7 +486,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 			byte[] hashedClearTextPassword = hashClearTextPassword(clearTextPassword, password);
 			return Arrays.equals(hashedClearTextPassword, Base64.decode(password.getValue()));
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -507,7 +507,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 			byte[] hashedPassword = hashClearTextPassword(newClearTextPassword, password);
 			password.setValue(Base64.encodeBytes(hashedPassword).toCharArray());
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		if (user == null) {
@@ -585,7 +585,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 			return pbEncryptor.decrypt(password.getSaltPBEConfiguration(), loginSaltPassword,
 					encryptedSalt);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -609,7 +609,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 					salt);
 			password.setSalt(Base64.encodeBytes(encryptedSalt).toCharArray());
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

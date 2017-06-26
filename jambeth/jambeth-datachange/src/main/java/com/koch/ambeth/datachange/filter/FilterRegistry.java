@@ -104,7 +104,7 @@ public class FilterRegistry implements IFilterExtendable, IEventDispatcher {
 		try {
 			resumeDelegate.invoke(null);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

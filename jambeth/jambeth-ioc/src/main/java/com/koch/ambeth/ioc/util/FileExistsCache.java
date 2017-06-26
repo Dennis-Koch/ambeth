@@ -166,7 +166,7 @@ public class FileExistsCache
 				thread.start();
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -199,7 +199,7 @@ public class FileExistsCache
 				}
 			});
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

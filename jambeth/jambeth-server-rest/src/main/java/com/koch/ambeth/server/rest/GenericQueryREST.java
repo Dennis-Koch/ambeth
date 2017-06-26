@@ -86,22 +86,22 @@ public class GenericQueryREST extends AbstractServiceREST {
 			// on all ever possible errors) the custom cache gets really disposed at the end 100%
 			// consistently
 			ICacheContext cacheContext = getService(ICacheContext.class);
-			final IDisposableCache cache =
-					getService(ICacheFactory.class).create(CacheFactoryDirective.NoDCE, "genericFilter");
+			final IDisposableCache cache = getService(ICacheFactory.class)
+					.create(CacheFactoryDirective.NoDCE, "genericFilter");
 			boolean success = false;
 			try {
 				StreamingOutput result = cacheContext.executeWithCache(cache,
 						new IResultingBackgroundWorkerDelegate<StreamingOutput>() {
 							@Override
-							public StreamingOutput invoke() throws Throwable {
+							public StreamingOutput invoke() throws Exception {
 								IGenericQueryService genericQueryService = getService(IGenericQueryService.class);
-								IPagingResponse<?> result =
-										genericQueryService.filter((IFilterDescriptor<?>) args[0],
-												(ISortDescriptor[]) args[1], (IPagingRequest) args[2]);
+								IPagingResponse<?> result = genericQueryService.filter(
+										(IFilterDescriptor<?>) args[0], (ISortDescriptor[]) args[1],
+										(IPagingRequest) args[2]);
 								return createResult(result, response,
 										new IBackgroundWorkerParamDelegate<Throwable>() {
 											@Override
-											public void invoke(Throwable e) throws Throwable {
+											public void invoke(Throwable e) throws Exception {
 												cache.dispose(); // on success this gets called also with "e = null"
 											}
 										}, true);

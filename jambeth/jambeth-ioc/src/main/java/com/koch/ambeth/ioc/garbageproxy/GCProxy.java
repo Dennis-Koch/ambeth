@@ -33,7 +33,7 @@ public abstract class GCProxy implements IDisposable {
 		try {
 			disposeMethod = IDisposable.class.getDeclaredMethod("dispose");
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

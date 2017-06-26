@@ -98,7 +98,7 @@ public class AmbethCron4jJob extends Task {
 						securityContextHolder.setScopedAuthentication(authentication,
 								new IResultingBackgroundWorkerDelegate<Object>() {
 									@Override
-									public Object invoke() throws Throwable {
+									public Object invoke() throws Exception {
 										job.execute(jobContext);
 										return null;
 									}

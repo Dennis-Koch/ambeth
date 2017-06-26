@@ -59,7 +59,7 @@ public class ProcessService implements IProcessService {
 		try {
 			return method.invoke(service, serviceDescription.getArguments());
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

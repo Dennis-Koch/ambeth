@@ -41,7 +41,7 @@ public class EnumNameHandler extends AbstractHandler implements INameBasedHandle
 		try {
 			enumValueOf = Enum.class.getMethod("valueOf", Class.class, String.class);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -74,7 +74,7 @@ public class EnumNameHandler extends AbstractHandler implements INameBasedHandle
 		try {
 			return enumValueOf.invoke(null, enumType, enumValue);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

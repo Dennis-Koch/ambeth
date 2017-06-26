@@ -511,7 +511,7 @@ public class EventListenerRegistry
 						// blocking
 						guiThreadHelper.invokeInGuiLate(new IBackgroundWorkerDelegate() {
 							@Override
-							public void invoke() throws Throwable {
+							public void invoke() throws Exception {
 								waitEventToResume(eventTargetToResume, maxWaitTime, resumeDelegate, errorDelegate);
 							}
 						});

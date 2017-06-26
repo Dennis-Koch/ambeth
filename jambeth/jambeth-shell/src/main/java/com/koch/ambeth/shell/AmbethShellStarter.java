@@ -29,8 +29,7 @@ public class AmbethShellStarter implements IDisposableBean {
 
 	protected Thread shellHandler;
 
-	@Property(name = AmbethShell.PROPERTY_SHELL_MODE, defaultValue = AmbethShell.MODE_INTERACTIVE,
-			mandatory = true)
+	@Property(name = AmbethShell.PROPERTY_SHELL_MODE, defaultValue = AmbethShell.MODE_INTERACTIVE, mandatory = true)
 	protected String mode;
 
 	/**
@@ -96,7 +95,7 @@ public class AmbethShellStarter implements IDisposableBean {
 			AmbethShellStarter starter = serviceContext.getService(AmbethShellStarter.class);
 			starter.run();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -104,7 +103,7 @@ public class AmbethShellStarter implements IDisposableBean {
 				try {
 					app.close();
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
@@ -151,9 +150,12 @@ public class AmbethShellStarter implements IDisposableBean {
 	 * validate the variable setting inputs for the batch file(.as file) and save them to Properties
 	 * if all are valid.
 	 *
-	 * @param properties {@link Properties} that be used for starting Ambeth
-	 * @param batchFile batch file name (.as file)
-	 * @param args all the arguments inputed from the program starting
+	 * @param properties
+	 *          {@link Properties} that be used for starting Ambeth
+	 * @param batchFile
+	 *          batch file name (.as file)
+	 * @param args
+	 *          all the arguments inputed from the program starting
 	 * @return <code> true</code> if all the variables are correct. <code>false</code> if any variable
 	 *         is not correct
 	 */
@@ -190,7 +192,7 @@ public class AmbethShellStarter implements IDisposableBean {
 		}
 	}
 
-	public void run() throws Throwable {
+	public void run() throws Exception {
 		if (AmbethShell.MODE_SERVICE.equals(mode)) {
 			return;
 		}

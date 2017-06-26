@@ -99,7 +99,7 @@ public class PublicConstructorVisitor extends ClassGenerator {
 				try {
 					c_method = new ConstructorInstance(Object.class.getConstructor());
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 				MethodGenerator ga = visitMethod(c_method);

@@ -42,7 +42,7 @@ public class DelegateFactory implements IDelegateFactory {
 			try {
 				return targetMethod.invoke(target, args);
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}

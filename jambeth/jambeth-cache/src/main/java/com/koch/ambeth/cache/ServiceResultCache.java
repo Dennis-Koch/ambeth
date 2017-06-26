@@ -116,7 +116,7 @@ public class ServiceResultCache implements IServiceResultCache {
 				serviceResult = securityActivation
 						.executeWithoutFiltering(new IResultingBackgroundWorkerDelegate<IServiceResult>() {
 							@Override
-							public IServiceResult invoke() throws Throwable {
+							public IServiceResult invoke() throws Exception {
 								return executeServiceDelegate.invoke(serviceDescription);
 							}
 						});
@@ -126,7 +126,7 @@ public class ServiceResultCache implements IServiceResultCache {
 			}
 			success = true;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

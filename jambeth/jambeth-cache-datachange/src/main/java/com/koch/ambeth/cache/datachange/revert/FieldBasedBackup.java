@@ -21,7 +21,7 @@ public class FieldBasedBackup implements IBackup {
 			Object originalValue = values[b];
 			try {
 				field.set(target, originalValue);
-			} catch (Throwable e) {
+			} catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}

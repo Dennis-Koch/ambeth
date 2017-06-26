@@ -54,7 +54,7 @@ public class ObjectCollectorItem implements IObjectCollectorItem {
 			try {
 				elem = constructorClass.newInstance();
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}

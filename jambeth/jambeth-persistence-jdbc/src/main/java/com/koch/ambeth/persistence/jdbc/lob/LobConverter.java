@@ -176,7 +176,7 @@ public class LobConverter implements IDedicatedConverter {
 					+ expectedType
 					+ "'. This is a bug if I get called for types which I do not support and I did not register with!");
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

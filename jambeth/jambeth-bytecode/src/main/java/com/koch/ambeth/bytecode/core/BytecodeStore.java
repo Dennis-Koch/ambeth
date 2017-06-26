@@ -86,7 +86,7 @@ public class BytecodeStore implements IBytecodeStore {
 			oos.close();
 			return HexUtil.toHexLowerLetters(digest.digest());
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -172,7 +172,7 @@ public class BytecodeStore implements IBytecodeStore {
 				}
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

@@ -51,12 +51,12 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 			final Field f_toolkit = ReflectUtil.getDeclaredField(Toolkit.class, "toolkit");
 			final Method m_systemEventQueueImpl = ReflectUtil.getDeclaredMethod(false, Toolkit.class,
 					EventQueue.class, "getSystemEventQueueImpl");
-			final Field f_dispatchThread =
-					ReflectUtil.getDeclaredField(EventQueue.class, "dispatchThread");
+			final Field f_dispatchThread = ReflectUtil.getDeclaredField(EventQueue.class,
+					"dispatchThread");
 
 			return new IResultingBackgroundWorkerDelegate<Boolean>() {
 				@Override
-				public Boolean invoke() throws Throwable {
+				public Boolean invoke() throws Exception {
 					Object toolkit = f_toolkit != null ? f_toolkit.get(null) : null;
 					if (toolkit == null) {
 						return Boolean.FALSE;
@@ -65,8 +65,8 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 					if (eventQueue == null) {
 						return Boolean.FALSE;
 					}
-					Object dispatchThread =
-							f_dispatchThread != null ? f_dispatchThread.get(eventQueue) : null;
+					Object dispatchThread = f_dispatchThread != null ? f_dispatchThread.get(eventQueue)
+							: null;
 					return dispatchThread != null && ((Thread) dispatchThread).isAlive();
 				}
 			};
@@ -85,7 +85,7 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 		try {
 			return dispatchThreadResolver != null && dispatchThreadResolver.invoke().booleanValue();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -124,7 +124,7 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 			try {
 				runnable.invoke();
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -136,7 +136,7 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 						try {
 							runnable.invoke();
 						}
-						catch (Throwable e) {
+						catch (Exception e) {
 							throw RuntimeExceptionUtil.mask(e);
 						}
 					}
@@ -157,7 +157,7 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 			try {
 				return runnable.invoke();
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -170,7 +170,7 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 						try {
 							ph.setValue(runnable.invoke());
 						}
-						catch (Throwable e) {
+						catch (Exception e) {
 							throw RuntimeExceptionUtil.mask(e);
 						}
 					}
@@ -193,7 +193,7 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 			try {
 				return runnable.invoke(state);
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -206,7 +206,7 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 						try {
 							ph.setValue(runnable.invoke(state));
 						}
-						catch (Throwable e) {
+						catch (Exception e) {
 							throw RuntimeExceptionUtil.mask(e);
 						}
 					}
@@ -228,7 +228,7 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 			try {
 				runnable.invoke(state);
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -240,7 +240,7 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 						try {
 							runnable.invoke(state);
 						}
-						catch (Throwable e) {
+						catch (Exception e) {
 							throw RuntimeExceptionUtil.mask(e);
 						}
 					}
@@ -261,7 +261,7 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 			try {
 				runnable.invoke();
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -272,7 +272,7 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 					try {
 						runnable.invoke();
 					}
-					catch (Throwable e) {
+					catch (Exception e) {
 						throw RuntimeExceptionUtil.mask(e);
 					}
 				}
@@ -286,7 +286,7 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 			try {
 				runnable.invoke(state);
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -297,7 +297,7 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 					try {
 						runnable.invoke(state);
 					}
-					catch (Throwable e) {
+					catch (Exception e) {
 						throw RuntimeExceptionUtil.mask(e);
 					}
 				}
@@ -321,7 +321,7 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 			try {
 				runnable.invoke();
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
@@ -332,7 +332,7 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 					try {
 						runnable.invoke();
 					}
-					catch (Throwable e) {
+					catch (Exception e) {
 						throw RuntimeExceptionUtil.mask(e);
 					}
 				}

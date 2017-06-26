@@ -105,7 +105,7 @@ public class CancellationHandle implements ICancellationHandle {
 		try {
 			runnable.invoke();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -121,7 +121,7 @@ public class CancellationHandle implements ICancellationHandle {
 		try {
 			return runnable.invoke();
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
@@ -138,7 +138,7 @@ public class CancellationHandle implements ICancellationHandle {
 		try {
 			return runnable.invoke(state);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {

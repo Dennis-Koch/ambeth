@@ -755,7 +755,7 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 				links.set(a, link);
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		IList<IDatabaseMapper> objects = serviceContext.getObjects(IDatabaseMapper.class);
@@ -1078,7 +1078,7 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 			}
 			return newTable;
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

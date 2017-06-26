@@ -150,7 +150,7 @@ public class CacheView implements ICacheView {
 					runnable.invoke(this);
 				}
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}

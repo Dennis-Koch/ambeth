@@ -167,7 +167,7 @@ public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExt
 				childService = serviceContext.createService("jdbc-session",
 						new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
 							@Override
-							public void invoke(IBeanContextFactory confSP) throws Throwable {
+							public void invoke(IBeanContextFactory confSP) throws Exception {
 								confSP.registerExternalBean(pool).autowireable(IDatabasePool.class);
 								confSP.registerExternalBean(fConn).autowireable(Connection.class);
 								confSP.registerAutowireableBean(IModifyingDatabase.class, ModifyingDatabase.class);

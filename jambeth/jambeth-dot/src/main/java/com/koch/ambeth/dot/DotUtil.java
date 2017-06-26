@@ -32,7 +32,7 @@ public class DotUtil implements IDotUtil {
 						try {
 							writer.write(dot);
 						}
-						catch (Throwable e) {
+						catch (Exception e) {
 							throw RuntimeExceptionUtil.mask(e);
 						}
 					}
@@ -45,7 +45,7 @@ public class DotUtil implements IDotUtil {
 				Files.delete(tempDot);
 			}
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

@@ -98,7 +98,7 @@ public class LobStreamConverter implements IDedicatedConverter {
 			}
 			throw new IllegalStateException("Must never happen");
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

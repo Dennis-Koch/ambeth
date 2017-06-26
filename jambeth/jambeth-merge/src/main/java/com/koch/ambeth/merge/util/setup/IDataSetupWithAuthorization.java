@@ -23,5 +23,5 @@ limitations under the License.
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public interface IDataSetupWithAuthorization {
-	<T> T executeWithAuthorization(IResultingBackgroundWorkerDelegate<T> runnable) throws Throwable;
+	<T> T executeWithAuthorization(IResultingBackgroundWorkerDelegate<T> runnable) throws Exception;
 }

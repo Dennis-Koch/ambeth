@@ -58,7 +58,7 @@ public class BackgroundAuthenticatingExecutorService
 				result = securityContextHolder.setScopedAuthentication(authentication,
 						new SelfExecuteRunnable<>(runnable));
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 			finally {
@@ -81,7 +81,7 @@ public class BackgroundAuthenticatingExecutorService
 		}
 
 		@Override
-		public T invoke() throws Throwable {
+		public T invoke() throws Exception {
 			return self.execute(runnable);
 		}
 	}
@@ -127,13 +127,13 @@ public class BackgroundAuthenticatingExecutorService
 
 	@Override
 	@SecurityContext(SecurityContextType.AUTHENTICATED)
-	public void execute(IBackgroundWorkerDelegate runnable) throws Throwable {
+	public void execute(IBackgroundWorkerDelegate runnable) throws Exception {
 		runnable.invoke();
 	}
 
 	@Override
 	@SecurityContext(SecurityContextType.AUTHENTICATED)
-	public <T> T execute(IResultingBackgroundWorkerDelegate<T> runnable) throws Throwable {
+	public <T> T execute(IResultingBackgroundWorkerDelegate<T> runnable) throws Exception {
 		return runnable.invoke();
 	}
 
@@ -147,13 +147,13 @@ public class BackgroundAuthenticatingExecutorService
 					securityContextHolder.setScopedAuthentication(authentication,
 							new IResultingBackgroundWorkerDelegate<Object>() {
 								@Override
-								public Object invoke() throws Throwable {
+								public Object invoke() throws Exception {
 									self.execute(runnable);
 									return null;
 								}
 							});
 				}
-				catch (Throwable e) {
+				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 				finally {

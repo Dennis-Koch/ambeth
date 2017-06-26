@@ -211,7 +211,7 @@ public class AmbethKafkaJunitRule extends ExternalResource {
 			Files.createDirectories(tempDir);
 			tempTestDir = Files.createTempDirectory(tempDir, testName);
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		return tempTestDir;
@@ -277,7 +277,7 @@ public class AmbethKafkaJunitRule extends ExternalResource {
 				}
 			});
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

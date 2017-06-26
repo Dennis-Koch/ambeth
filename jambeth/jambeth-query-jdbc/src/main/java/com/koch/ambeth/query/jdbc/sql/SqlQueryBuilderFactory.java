@@ -82,7 +82,7 @@ public class SqlQueryBuilderFactory
 				if (firstQueryBuilder) {
 					transaction.runInTransaction(new IBackgroundWorkerDelegate() {
 						@Override
-						public void invoke() throws Throwable {
+						public void invoke() throws Exception {
 							// intended blank
 						}
 					});
