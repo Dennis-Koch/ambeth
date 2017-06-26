@@ -388,6 +388,7 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData
 			return uniqueNameToFieldsMap;
 		}
 		finally {
+			allUniqueKeysRS.getStatement().close();
 			JdbcUtil.close(allUniqueKeysRS);
 		}
 	}

@@ -26,6 +26,7 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.security.DigestOutputStream;
@@ -74,8 +75,8 @@ public class BytecodeStore implements IBytecodeStore {
 		try {
 			MessageDigest digest = MessageDigest.getInstance("SHA-1");
 
-			ObjectOutputStream oos =
-					new ObjectOutputStream(new DigestOutputStream(new NullOutputStream(), digest));
+			ObjectOutputStream oos = new ObjectOutputStream(
+					new DigestOutputStream(NullOutputStream.INSTANCE, digest));
 
 			oos.writeInt(behaviors.length);
 			oos.writeObject(bytecodeEnhancer.getClass());
@@ -145,17 +146,16 @@ public class BytecodeStore implements IBytecodeStore {
 
 				FileOutputStream fis = new FileOutputStream(enhancedTypeFile);
 				try {
-					byte[] content =
-							bytecodeClassLoader.readTypeAsBinary(enhancedTypeInPipeline, classLoader);
+					byte[] content = bytecodeClassLoader.readTypeAsBinary(enhancedTypeInPipeline,
+							classLoader);
 					fis.write(content);
 				}
 				finally {
 					fis.close();
 				}
 			}
-			OutputStreamWriter fw =
-					new OutputStreamWriter(new FileOutputStream(nameFile, false), Charset.forName("UTF-8"));
-			try {
+			try (OutputStream os = new FileOutputStream(nameFile, false);
+					OutputStreamWriter fw = new OutputStreamWriter(os, Charset.forName("UTF-8"))) {
 				boolean first = true;
 				for (Entry<String, Object> entry : props) {
 					Object value = entry.getValue();
@@ -170,9 +170,6 @@ public class BytecodeStore implements IBytecodeStore {
 						fw.append(value.toString());
 					}
 				}
-			}
-			finally {
-				fw.close();
 			}
 		}
 		catch (Throwable e) {

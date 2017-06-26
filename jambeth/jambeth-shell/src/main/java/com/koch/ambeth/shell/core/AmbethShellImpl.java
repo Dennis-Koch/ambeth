@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -80,8 +81,7 @@ public class AmbethShellImpl
 
 	protected final ThreadLocal<DateFormat> isoDateFormatTL = new SensitiveThreadLocal<>();
 
-	protected final Map<String, CommandBinding> commandBindings =
-			new HashMap<>();
+	protected final Map<String, CommandBinding> commandBindings = new HashMap<>();
 
 	protected Map<String, String> promptMap = new HashMap<>();
 
@@ -142,9 +142,9 @@ public class AmbethShellImpl
 
 		try {
 			if (batchFile != null && !batchFile.isEmpty()) {
-				BufferedReader scriptReader = null;
-				try {
-					scriptReader = new BufferedReader(new FileReader(new File(batchFile)));
+
+				try (Reader reader = new FileReader(new File(batchFile));
+						BufferedReader scriptReader = new BufferedReader(reader)) {
 					getContext().set(ECHO, true);
 
 					// save the variables for the batch file to shellContext
@@ -159,16 +159,6 @@ public class AmbethShellImpl
 				}
 				catch (IOException e) {
 					throw RuntimeExceptionUtil.mask(e);
-				}
-				finally {
-					if (scriptReader != null) {
-						try {
-							scriptReader.close();
-						}
-						catch (IOException e) {
-							throw RuntimeExceptionUtil.mask(e);
-						}
-					}
 				}
 			}
 			else if (mainArgs != null && mainArgs.length > 0) {
@@ -395,10 +385,13 @@ public class AmbethShellImpl
 	/**
 	 * parse all the arguments
 	 *
-	 * @param dParamMap map of all -D parameter
-	 * @param argSet target list of arguments for the command which exclude -D parameter and chevron
-	 *        operator
-	 * @param args all the input arguments
+	 * @param dParamMap
+	 *          map of all -D parameter
+	 * @param argSet
+	 *          target list of arguments for the command which exclude -D parameter and chevron
+	 *          operator
+	 * @param args
+	 *          all the input arguments
 	 * @return variable name for the command return result
 	 */
 	private String parseArguments(Map<String, Object> dParamMap, List<String> argSet,

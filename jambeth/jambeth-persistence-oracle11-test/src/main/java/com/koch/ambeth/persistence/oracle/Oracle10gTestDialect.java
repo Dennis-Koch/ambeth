@@ -99,12 +99,11 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect {
 
 		createUserProps.put(PersistenceJdbcConfigurationConstants.DatabaseUser, rootDatabaseUser);
 		createUserProps.put(PersistenceJdbcConfigurationConstants.DatabasePass, rootDatabasePass);
-		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(createUserProps);
-		try {
+		try (IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(createUserProps)) {
 			bootstrapContext.createService("randomUser", RandomUserModule.class, IocModule.class);
 		}
-		finally {
-			bootstrapContext.dispose();
+		catch (Exception e) {
+			throw RuntimeExceptionUtil.mask(e);
 		}
 		return true;
 	}
@@ -119,12 +118,11 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect {
 
 		createUserProps.put(PersistenceJdbcConfigurationConstants.DatabaseUser, rootDatabaseUser);
 		createUserProps.put(PersistenceJdbcConfigurationConstants.DatabasePass, rootDatabasePass);
-		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(createUserProps);
-		try {
+		try (IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(createUserProps)) {
 			bootstrapContext.createService("randomUser", RandomUserModule.class, IocModule.class);
 		}
-		finally {
-			bootstrapContext.dispose();
+		catch (Exception e) {
+			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
@@ -181,8 +179,8 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect {
 						// Index has to be truncated and randomized to 'ensure' uniqueness
 						indexName = indexName.substring(0, maxIndexLength - 2) + (int) (Math.random() * 98 + 1);
 					}
-					String sql =
-							"CREATE INDEX \"" + indexName + "\" ON \"" + tableName + "\" (\"" + columns + "\")";
+					String sql = "CREATE INDEX \"" + indexName + "\" ON \"" + tableName + "\" (\"" + columns
+							+ "\")";
 					createIndexStm.addBatch(sql);
 				}
 				else {
@@ -240,7 +238,8 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect {
 			for (Entry<String, Class<?>> entry : nameToArrayTypeMap) {
 				String necessaryTypeName = entry.getKey();
 
-				sb.setLength(0);;
+				sb.setLength(0);
+				;
 				sb.append("CREATE TYPE ").append(necessaryTypeName).append(" AS VARRAY(4000) OF ");
 				String arrayTypeName = Oracle10gDialect.typeToArrayTypeNameMap.get(entry.getValue())[1];
 				sb.append(arrayTypeName);
@@ -351,7 +350,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect {
 				.append(", 'Optimistic Lock Exception');");
 		sb.append(" end if;");
 		sb.append(" END;");
-		return new String[] {sb.toString()};
+		return new String[] { sb.toString() };
 	}
 
 	@Override
@@ -393,8 +392,8 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect {
 	public String[] createPermissionGroup(Connection connection, String tableName)
 			throws SQLException {
 		int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
-		String permissionGroupName =
-				ormPatternMatcher.buildPermissionGroupFromTableName(tableName, maxProcedureNameLength);
+		String permissionGroupName = ormPatternMatcher.buildPermissionGroupFromTableName(tableName,
+				maxProcedureNameLength);
 		String pkName;
 		Matcher matcher = Pattern.compile("(?:.*\\.)?([^\\.]+)").matcher(permissionGroupName);
 		if (matcher.matches()) {

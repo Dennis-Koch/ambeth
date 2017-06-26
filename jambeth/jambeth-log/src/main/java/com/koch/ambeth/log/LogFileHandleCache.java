@@ -46,6 +46,14 @@ public class LogFileHandleCache {
 			this.logfile = logfile;
 		}
 
+		@Override
+		protected void finalize() throws Throwable {
+			if (writer != null) {
+				writer.close();
+				writer = null;
+			}
+		}
+
 		public Writer getWriter() {
 			if (writer == null) {
 				reopen();
@@ -78,8 +86,7 @@ public class LogFileHandleCache {
 		}
 	}
 
-	private static final WeakValueHashMap<String, LoggerStream> handleToWriterMap =
-			new WeakValueHashMap<>();
+	private static final WeakValueHashMap<String, LoggerStream> handleToWriterMap = new WeakValueHashMap<>();
 
 	private static final Lock writeLock = new ReentrantLock();
 

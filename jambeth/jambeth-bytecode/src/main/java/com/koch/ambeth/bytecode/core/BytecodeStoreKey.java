@@ -47,8 +47,8 @@ public class BytecodeStoreKey implements Serializable {
 		try {
 			MessageDigest digest = MessageDigest.getInstance("SHA-1");
 
-			ObjectOutputStream oos =
-					new ObjectOutputStream(new DigestOutputStream(new NullOutputStream(), digest));
+			ObjectOutputStream oos = new ObjectOutputStream(
+					new DigestOutputStream(NullOutputStream.INSTANCE, digest));
 
 			oos.writeObject(baseType);
 			oos.writeObject(hint);

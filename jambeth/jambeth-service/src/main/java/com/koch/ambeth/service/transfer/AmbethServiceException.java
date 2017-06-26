@@ -37,26 +37,37 @@ public class AmbethServiceException implements IDTOType {
 	protected String stackTrace;
 
 	@XmlElement(required = false)
+	protected String exceptionType;
+
+	@XmlElement(required = false)
 	protected AmbethServiceException cause;
+
+	public String getExceptionType() {
+		return exceptionType;
+	}
+
+	public void setExceptionType(String exceptionType) {
+		this.exceptionType = exceptionType;
+	}
 
 	public String getMessage() {
 		return message;
-	}
-
-	public String getStackTrace() {
-		return stackTrace;
-	}
-
-	public AmbethServiceException getCause() {
-		return cause;
 	}
 
 	public void setMessage(String message) {
 		this.message = message;
 	}
 
+	public String getStackTrace() {
+		return stackTrace;
+	}
+
 	public void setStackTrace(String stackTrace) {
 		this.stackTrace = stackTrace;
+	}
+
+	public AmbethServiceException getCause() {
+		return cause;
 	}
 
 	public void setCause(AmbethServiceException cause) {

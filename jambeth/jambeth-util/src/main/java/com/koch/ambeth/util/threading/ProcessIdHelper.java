@@ -31,8 +31,8 @@ import java.util.regex.Pattern;
 public final class ProcessIdHelper {
 	private static final Pattern cpuUsagePattern = Pattern.compile(" ");
 
-	private static final Pattern hzPattern =
-			Pattern.compile(".*#define *HZ *(\\d+).*", Pattern.DOTALL);
+	private static final Pattern hzPattern = Pattern.compile(".*#define *HZ *(\\d+).*",
+			Pattern.DOTALL);
 
 	private ProcessIdHelper() {
 		// Intended blank
@@ -75,11 +75,12 @@ public final class ProcessIdHelper {
 	public static long getCumulatedCpuUsage() {
 		byte[] statBytes;
 		byte[] hzBytes;
+		int statLength, hzLength;
 		try {
 			InputStream is = new FileInputStream("/proc/self/stat");
 			try {
 				statBytes = new byte[256];
-				is.read(statBytes);
+				statLength = is.read(statBytes);
 			}
 			finally {
 				is.close();
@@ -87,7 +88,7 @@ public final class ProcessIdHelper {
 			is = new FileInputStream("/usr/include/asm-generic/param.h");
 			try {
 				hzBytes = new byte[256];
-				is.read(hzBytes);
+				hzLength = is.read(hzBytes);
 			}
 			finally {
 				is.close();
@@ -96,8 +97,8 @@ public final class ProcessIdHelper {
 		catch (IOException e) {
 			return -1;
 		}
-		String stat = new String(statBytes, Charset.forName("UTF-8"));
-		String hzFileContent = new String(hzBytes, Charset.forName("UTF-8"));
+		String stat = new String(statBytes, 0, statLength, Charset.forName("UTF-8"));
+		String hzFileContent = new String(hzBytes, 0, hzLength, Charset.forName("UTF-8"));
 
 		Matcher hzMatcher = hzPattern.matcher(hzFileContent);
 		if (!hzMatcher.matches()) {

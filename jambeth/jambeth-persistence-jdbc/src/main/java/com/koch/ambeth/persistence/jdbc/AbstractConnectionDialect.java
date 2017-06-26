@@ -138,8 +138,7 @@ public abstract class AbstractConnectionDialect
 
 	protected Driver driverRegisteredExplicitly;
 
-	protected final WeakHashMap<IConnectionKeyHandle, ConnectionKeyValue> connectionToConstraintSqlMap =
-			new WeakHashMap<>();
+	protected final WeakHashMap<IConnectionKeyHandle, ConnectionKeyValue> connectionToConstraintSqlMap = new WeakHashMap<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
@@ -368,8 +367,8 @@ public abstract class AbstractConnectionDialect
 				if (connectionKeyHandle == null) {
 					throw new IllegalStateException("Should never happen");
 				}
-				connectionKeyValue =
-						preProcessConnectionIntern(connection, schemaNames, forcePreProcessing);
+				connectionKeyValue = preProcessConnectionIntern(connection, schemaNames,
+						forcePreProcessing);
 				writeLock.lock();
 				try {
 					connectionToConstraintSqlMap.put(connectionKeyHandle, connectionKeyValue);
@@ -459,8 +458,8 @@ public abstract class AbstractConnectionDialect
 
 	@Override
 	public void commit(Connection connection) throws SQLException {
-		Boolean active =
-				transactionState != null ? transactionState.isExternalTransactionManagerActive() : null;
+		Boolean active = transactionState != null
+				? transactionState.isExternalTransactionManagerActive() : null;
 		if (active == null) {
 			active = Boolean.valueOf(externalTransactionManager);
 		}
@@ -475,8 +474,8 @@ public abstract class AbstractConnectionDialect
 
 	@Override
 	public void rollback(Connection connection) throws SQLException {
-		Boolean active =
-				transactionState != null ? transactionState.isExternalTransactionManagerActive() : null;
+		Boolean active = transactionState != null
+				? transactionState.isExternalTransactionManagerActive() : null;
 		if (active == null) {
 			active = Boolean.valueOf(externalTransactionManager);
 		}
@@ -519,33 +518,30 @@ public abstract class AbstractConnectionDialect
 
 	protected ConnectionKeyValue scanForUndeferredDeferrableConstraints(Connection connection,
 			String[] schemaNames) throws SQLException {
-		Statement stm = connection.createStatement();
-		try {
+		try (Statement stm = connection.createStatement()) {
 			ArrayList<String> disableConstraintsSQL = new ArrayList<>();
 			ArrayList<String> enableConstraintsSQL = new ArrayList<>();
 			String sql = buildDeferrableForeignKeyConstraintsSelectSQL(schemaNames);
 			if (sql != null) {
-				ResultSet rs = stm.executeQuery(sql);
-				while (rs.next()) {
-					String schemaName = rs.getString("OWNER");
-					String tableName = rs.getString("TABLE_NAME");
-					String constraintName = rs.getString("CONSTRAINT_NAME");
+				try (ResultSet rs = stm.executeQuery(sql)) {
+					while (rs.next()) {
+						String schemaName = rs.getString("OWNER");
+						String tableName = rs.getString("TABLE_NAME");
+						String constraintName = rs.getString("CONSTRAINT_NAME");
 
-					handleRow(schemaName, tableName, constraintName, disableConstraintsSQL,
-							enableConstraintsSQL);
+						handleRow(schemaName, tableName, constraintName, disableConstraintsSQL,
+								enableConstraintsSQL);
+					}
 				}
 			}
-			String[] disableConstraintsArray =
-					disableConstraintsSQL.toArray(new String[disableConstraintsSQL.size()]);
-			String[] enabledConstraintsArray =
-					enableConstraintsSQL.toArray(new String[enableConstraintsSQL.size()]);
-			ConnectionKeyValue connectionKeyValue =
-					new ConnectionKeyValue(disableConstraintsArray, enabledConstraintsArray);
+			String[] disableConstraintsArray = disableConstraintsSQL
+					.toArray(new String[disableConstraintsSQL.size()]);
+			String[] enabledConstraintsArray = enableConstraintsSQL
+					.toArray(new String[enableConstraintsSQL.size()]);
+			ConnectionKeyValue connectionKeyValue = new ConnectionKeyValue(disableConstraintsArray,
+					enabledConstraintsArray);
 
 			return connectionKeyValue;
-		}
-		finally {
-			JdbcUtil.close(stm);
 		}
 	}
 
@@ -590,8 +586,8 @@ public abstract class AbstractConnectionDialect
 
 	protected String prepareCommandInternWithGroup(String sqlCommand, String regex,
 			String replacement) {
-		Pattern pattern =
-				Pattern.compile("(.*?)" + regex + "(.*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+		Pattern pattern = Pattern.compile("(.*?)" + regex + "(.*)",
+				Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 		return concat(sqlCommand, replacement, pattern);
 	}
 
@@ -616,11 +612,11 @@ public abstract class AbstractConnectionDialect
 		try {
 			if (args.length > 0) {
 				PreparedStatement pstm = connection.prepareStatement(sql);
+				stmt = pstm;
 				for (int a = args.length; a-- > 0;) {
 					pstm.setObject(a + 1, args[0]);
 				}
 				rs = pstm.executeQuery();
-				stmt = pstm;
 			}
 			else {
 				stmt = connection.createStatement();
@@ -663,8 +659,8 @@ public abstract class AbstractConnectionDialect
 		}
 		for (int a = symbolName.length(); a-- > 0;) {
 			if (symbolName.charAt(a) == '.') {
-				String dotReplacedName =
-						dotPattern.matcher(symbolName).replaceAll(escapeLiteral + '.' + escapeLiteral);
+				String dotReplacedName = dotPattern.matcher(symbolName)
+						.replaceAll(escapeLiteral + '.' + escapeLiteral);
 				return StringBuilderUtil.concat(objectCollector.getCurrent(), escapeLiteral,
 						dotReplacedName, escapeLiteral);
 			}
@@ -695,8 +691,8 @@ public abstract class AbstractConnectionDialect
 		}
 		for (int a = symbolName.length(); a-- > 0;) {
 			if (symbolName.charAt(a) == '.') {
-				String dotReplacedName =
-						dotPattern.matcher(symbolName).replaceAll(escapeLiteral + '.' + escapeLiteral);
+				String dotReplacedName = dotPattern.matcher(symbolName)
+						.replaceAll(escapeLiteral + '.' + escapeLiteral);
 				return sb.append(escapeLiteral).append(dotReplacedName).append(escapeLiteral);
 			}
 		}
