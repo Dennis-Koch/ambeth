@@ -22,6 +22,8 @@
 		<checkstyle.file>${jambeth.path.test}/checkstyle_checks.xml</checkstyle.file>
 		<checkstyle.properties>${jambeth.path.test}/checkstyle.properties</checkstyle.properties>
 		<findbugs.file>${jambeth.path.test}/findbugs_exclude_checks.xml</findbugs.file>
+		<deployment.release.url>ambeth-releases</deployment.release.url>
+		<deployment.snapshot.url>ambeth-snapshots</deployment.snapshot.url>		
 	</properties>
 
 	<scm>
@@ -47,12 +49,14 @@
 
 	<distributionManagement>
 		<repository>
-			<id>ambeth-releases-bruker</id>
-			<url>http://svetcos06.intra.brkr.corp:8081/ambeth-releases/</url>
+			<id>${repository.id}</id>
+			<name>Ambeth-Releases</name>
+			<url>${artifactory.base.url}/${deployment.release.url}</url>
 		</repository>
 		<snapshotRepository>
-			<id>ambeth-snapshots-bruker</id>
-			<url>http://svetcos06.intra.brkr.corp:8081/ambeth-snapshots/</url>
+			<id>${repository.id}</id>
+			<name>Ambeth-Snapshots</name>
+			<url>${artifactory.base.url}/${deployment.snapshot.url}</url>
 		</snapshotRepository>
 	</distributionManagement>
 
