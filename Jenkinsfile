@@ -27,7 +27,7 @@ timestamps {
 		        // Run the maven build
 		        withEnv(["JAVA_HOME=${tool 'JDK8'}","PATH+MAVEN=${tool 'M3'}/bin","PATH+JAVA=${tool 'JDK8'}/bin","PATH+INKSCAPE=${env.WORKSPACE}/doc/reference-manual/target/inkscape/inkscape","PATH+MIKTEX=${env.WORKSPACE}/doc/reference-manual/target/miktex/miktex/miktex/bin/x64"]) {
 		            
-	            	sh "mvn -B clean ${deployOrVerify}${profile} -DskipTests -Dtycho.localArtifacts=ignore -Dpmd.skip=true -Dfindbugs.skip=true -Dcheckstyle.skip=true${localRepo} -DaltSnapshotDeploymentRepository=${repository.id}:default:${artifactory.base.url}/ambeth-snapshots/ -DaltReleaseDeploymentRepository=${repository.id}:default:${artifactory.base.url}/ambeth-releases/ -Djambeth.path.test=${env.WORKSPACE}/jambeth/jambeth-test"
+	            	sh "mvn -B clean ${deployOrVerify}${profile} -DskipTests -Dtycho.localArtifacts=ignore -Dpmd.skip=true -Dfindbugs.skip=true -Dcheckstyle.skip=true${localRepo} -Djambeth.path.test=${env.WORKSPACE}/jambeth/jambeth-test"
 		        }
 	        }
 	        
