@@ -27,7 +27,7 @@ timestamps {
 		        // Run the maven build
 		        withEnv(["JAVA_HOME=${tool 'JDK8'}","PATH+MAVEN=${tool 'M3'}/bin","PATH+JAVA=${tool 'JDK8'}/bin","PATH+INKSCAPE=${env.WORKSPACE}/doc/reference-manual/target/inkscape/inkscape","PATH+MIKTEX=${env.WORKSPACE}/doc/reference-manual/target/miktex/miktex/miktex/bin/x64"]) {
 		            
-	            	bat "mvn -B clean ${deployOrVerify}${profile} -DskipTests -Dtycho.localArtifacts=ignore -Dpmd.skip=true -Dfindbugs.skip=true -Dcheckstyle.skip=true${localRepo} -DaltSnapshotDeploymentRepository=${repository.id}:default:${artifactory.base.url}/ambeth-snapshots/ -DaltReleaseDeploymentRepository=${repository.id}:default:${artifactory.base.url}/ambeth-releases/ -Djambeth.path.test=${env.WORKSPACE}/jambeth/jambeth-test"
+	            	sh "mvn -B clean ${deployOrVerify}${profile} -DskipTests -Dtycho.localArtifacts=ignore -Dpmd.skip=true -Dfindbugs.skip=true -Dcheckstyle.skip=true${localRepo} -DaltSnapshotDeploymentRepository=${repository.id}:default:${artifactory.base.url}/ambeth-snapshots/ -DaltReleaseDeploymentRepository=${repository.id}:default:${artifactory.base.url}/ambeth-releases/ -Djambeth.path.test=${env.WORKSPACE}/jambeth/jambeth-test"
 		        }
 	        }
 	        
@@ -39,7 +39,7 @@ timestamps {
 	                    def groupId = getGroupIdFromPom();
 	                    def artifactId = getArtifactIdFromPom();
 	                    echo "Sonarqube analysis for ${groupId}.${artifactId}"
-	                    bat "mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dsonar.projectName=${groupId}.${artifactId}"
+	                    sh "mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dsonar.projectName=${groupId}.${artifactId}"
 	                }
 	            }
 	        }
@@ -50,7 +50,7 @@ timestamps {
 			         replyTo: '$DEFAULT_REPLYTO', subject: '${DEFAULT_SUBJECT}',
 			         to: emailextrecipients([[$class: 'CulpritsRecipientProvider'],
 			                                 [$class: 'RequesterRecipientProvider']]))
-			bat 'Sent email notification';
+			sh 'Sent email notification';
 			currentBuild.result = 'FAILURE'
 		}
     }
