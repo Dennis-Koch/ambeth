@@ -64,6 +64,9 @@ public class PrefetchConfig implements IPrefetchConfig {
 			if (AbstractSimpleInterceptor.finalizeMethod.equals(method)) {
 				return null;
 			}
+			if (method.getDeclaringClass() == Object.class) {
+				return proxy.invokeSuper(obj, args);
+			}
 			String propertyName = propertyInfoProvider.getPropertyNameFor(method);
 			if (propertyName == null) {
 				return null;
@@ -139,8 +142,8 @@ public class PrefetchConfig implements IPrefetchConfig {
 
 	@Override
 	public IPrefetchHandle build() {
-		LinkedHashMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchSteps =
-				LinkedHashMap.create(entityTypeToPrefetchPaths.size());
+		LinkedHashMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchSteps = LinkedHashMap
+				.create(entityTypeToPrefetchPaths.size());
 		for (Entry<Class<?>, ArrayList<String>> entry : entityTypeToPrefetchPaths) {
 			Class<?> entityType = entry.getKey();
 			ArrayList<String> membersToInitialize = entry.getValue();
