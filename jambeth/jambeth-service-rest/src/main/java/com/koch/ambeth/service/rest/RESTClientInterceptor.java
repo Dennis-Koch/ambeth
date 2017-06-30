@@ -190,11 +190,11 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 		finally {
 			writeLock.unlock();
 		}
+		URL url = null;
 		try {
 			long m1 = System.currentTimeMillis();
 
 			long localRequestId = requestCounter.incrementAndGet();
-			URL url;
 			try {
 				url = restClientServiceUrlBuilder != null
 						? restClientServiceUrlBuilder.buildURL(serviceBaseUrl, serviceName, method, args)
@@ -271,9 +271,10 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 			}
 			return convertToExpectedType(method.getReturnType(), method.getGenericReturnType(), result);
 		}
-		finally
-
-		{
+		catch (Throwable e) {
+			throw RuntimeExceptionUtil.mask(e, "Error occurred while calling url '" + url);
+		}
+		finally {
 			if (threadAdded) {
 				writeLock.lock();
 				try {
