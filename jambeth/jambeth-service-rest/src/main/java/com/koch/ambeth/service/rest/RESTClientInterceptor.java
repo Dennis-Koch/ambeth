@@ -190,6 +190,7 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 		finally {
 			writeLock.unlock();
 		}
+		boolean enrichException = true;
 		URL url = null;
 		try {
 			long m1 = System.currentTimeMillis();
@@ -267,12 +268,16 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 			if (result instanceof AmbethServiceException) {
 				Exception exception = parseServiceException((AmbethServiceException) result);
 				RuntimeExceptionUtil.fillInClientStackTraceIfPossible(exception);
+				enrichException = false;
 				throw exception;
 			}
 			return convertToExpectedType(method.getReturnType(), method.getGenericReturnType(), result);
 		}
 		catch (Throwable e) {
-			throw RuntimeExceptionUtil.mask(e, "Error occurred while calling url '" + url);
+			if (enrichException) {
+				throw RuntimeExceptionUtil.mask(e, "Error occurred while calling url '" + url);
+			}
+			throw e;
 		}
 		finally {
 			if (threadAdded) {
