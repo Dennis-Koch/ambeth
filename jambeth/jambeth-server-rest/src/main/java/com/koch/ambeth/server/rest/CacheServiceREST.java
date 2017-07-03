@@ -41,10 +41,11 @@ import com.koch.ambeth.service.cache.model.IServiceResult;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.model.IServiceDescription;
 import com.koch.ambeth.service.rest.Constants;
+import com.koch.ambeth.util.state.IStateRollback;
 
 @Path("/CacheService")
-@Consumes({Constants.AMBETH_MEDIA_TYPE})
-@Produces({Constants.AMBETH_MEDIA_TYPE})
+@Consumes({ Constants.AMBETH_MEDIA_TYPE })
+@Produces({ Constants.AMBETH_MEDIA_TYPE })
 public class CacheServiceREST extends AbstractServiceREST {
 	protected ICacheService getCacheService() {
 		return getServiceContext().getService(CacheModule.EXTERNAL_CACHE_SERVICE, ICacheService.class);
@@ -55,8 +56,8 @@ public class CacheServiceREST extends AbstractServiceREST {
 	@Path("getEntities")
 	public StreamingOutput getEntities(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
-			preServiceCall();
 			Object[] args = getArguments(is, request);
 			List<ILoadContainer> result = getCacheService().getEntities((List<IObjRef>) args[0]);
 			return createResult(result, response);
@@ -65,28 +66,27 @@ public class CacheServiceREST extends AbstractServiceREST {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
-
 
 	@SuppressWarnings("unchecked")
 	@POST
 	@Path("getRelations")
 	public StreamingOutput getRelations(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
-			preServiceCall();
 			Object[] args = getArguments(is, request);
-			List<IObjRelationResult> result =
-					getCacheService().getRelations((List<IObjRelation>) args[0]);
+			List<IObjRelationResult> result = getCacheService()
+					.getRelations((List<IObjRelation>) args[0]);
 			return createResult(result, response);
 		}
 		catch (Throwable e) {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
 
@@ -94,18 +94,18 @@ public class CacheServiceREST extends AbstractServiceREST {
 	@Path("getORIsForServiceRequest")
 	public StreamingOutput getORIsForServiceRequest(InputStream is,
 			@Context HttpServletRequest request, @Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
-			preServiceCall();
 			Object[] args = getArguments(is, request);
-			IServiceResult result =
-					getCacheService().getORIsForServiceRequest((IServiceDescription) args[0]);
+			IServiceResult result = getCacheService()
+					.getORIsForServiceRequest((IServiceDescription) args[0]);
 			return createResult(result, response);
 		}
 		catch (Throwable e) {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
 }

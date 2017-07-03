@@ -33,9 +33,6 @@ import javax.ws.rs.ext.Provider;
 
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
-import com.koch.ambeth.security.IAuthentication;
-import com.koch.ambeth.security.ISecurityContext;
-import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.config.IProperties;
 
@@ -89,12 +86,6 @@ public class AmbethSimpleServletRequestFilter implements Filter {
 		Object value = getService(servletContext, IProperties.class).get(propertyName);
 		return getService(servletContext, IConversionHelper.class).convertValueToType(propertyType,
 				value);
-	}
-
-	protected void setAuthentication(ServletContext servletContext, IAuthentication authentication) {
-		ISecurityContext securityContext =
-				getService(servletContext, ISecurityContextHolder.class).getCreateContext();
-		securityContext.setAuthentication(authentication);
 	}
 
 	protected <T> T getService(ServletContext servletContext, Class<T> serviceType) {

@@ -53,6 +53,7 @@ import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.ListUtil;
 import com.koch.ambeth.util.collections.ArrayList;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
 import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
 
@@ -131,15 +132,15 @@ public class GenericEntityREST extends AbstractServiceREST {
 
 		if (path.length > 1) {
 			entityId = path[1];
-			Object convertedEntityId =
-					conversionHelper.convertValueToType(metaData.getIdMember().getRealType(), entityId);
+			Object convertedEntityId = conversionHelper
+					.convertValueToType(metaData.getIdMember().getRealType(), entityId);
 			value = cache.getObject(metaData.getEntityType(), convertedEntityId);
 		}
 		StringBuilder pathSB = new StringBuilder(valueObjectTypeName);
 
 		if (value == null) {
 			if (navigationMode == NavigationMode.TRY_ONLY) {
-				return new NavigationStep[] {new NavigationStep(null, metaData, config, null)};
+				return new NavigationStep[] { new NavigationStep(null, metaData, config, null) };
 			}
 			throw new NotFoundException("Entity '" + pathSB + "'  with id '" + entityId + "' not found");
 		}
@@ -150,8 +151,8 @@ public class GenericEntityREST extends AbstractServiceREST {
 			String voMemberName = path[index];
 			pathSB.append('.').append(voMemberName);
 
-			String boMemberName =
-					config != null ? config.getBusinessObjectMemberName(voMemberName) : voMemberName;
+			String boMemberName = config != null ? config.getBusinessObjectMemberName(voMemberName)
+					: voMemberName;
 			Member member = metaData.getMemberByName(boMemberName);
 			if (member == null) {
 				throw new BadRequestException("Entity member '" + pathSB + "' not known");
@@ -166,8 +167,8 @@ public class GenericEntityREST extends AbstractServiceREST {
 			if (metaData.isRelationMember(boMemberName)) {
 				metaData = entityMetaDataProvider.getMetaData(member.getElementType());
 				if (config != null) {
-					List<Class<?>> availableConfigs =
-							entityMetaDataProvider.getValueObjectTypesByEntityType(metaData.getEntityType());
+					List<Class<?>> availableConfigs = entityMetaDataProvider
+							.getValueObjectTypesByEntityType(metaData.getEntityType());
 					if (availableConfigs.isEmpty()) {
 						throw new BadRequestException("Entity member '" + pathSB + "' not serializable");
 					}
@@ -220,8 +221,8 @@ public class GenericEntityREST extends AbstractServiceREST {
 	@Path("{subResources:.*}")
 	public StreamingOutput get(@Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
-			preServiceCall();
 			String basePath = getClass().getAnnotation(Path.class).value();
 			String contextPath = request.getPathInfo();
 			if (!basePath.startsWith("/")) {
@@ -243,8 +244,8 @@ public class GenericEntityREST extends AbstractServiceREST {
 
 				IMapperService mapperService = mapperServiceFactory.create();
 				try {
-					Object valueObject =
-							mapperService.mapToValueObject(lastStep.value, lastStep.config.getValueType());
+					Object valueObject = mapperService.mapToValueObject(lastStep.value,
+							lastStep.config.getValueType());
 					return createSynchronousResult(valueObject, response);
 				}
 				finally {
@@ -260,7 +261,7 @@ public class GenericEntityREST extends AbstractServiceREST {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
 
@@ -271,7 +272,7 @@ public class GenericEntityREST extends AbstractServiceREST {
 	// try {
 	// throw new NotSupportedException("Not yet supported");
 	//
-	// // preServiceCall();
+	// // preServiceCall(request);
 	// //
 	// // String contextPath = request.getPathInfo();
 	// // String[] path = contextPath.split("/");
@@ -329,15 +330,14 @@ public class GenericEntityREST extends AbstractServiceREST {
 	@Path("{subResources:.*}")
 	public StreamingOutput put(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
-			preServiceCall();
-
 			String contextPath = request.getPathInfo();
 			String[] path = contextPath.split("/");
 
 			NavigationStep[] navigationSteps = navigateTo(path, NavigationMode.DEFAULT);
-			NavigationStep parentStep =
-					navigationSteps.length >= 2 ? navigationSteps[navigationSteps.length - 2] : null;
+			NavigationStep parentStep = navigationSteps.length >= 2
+					? navigationSteps[navigationSteps.length - 2] : null;
 			NavigationStep lastStep = navigationSteps[navigationSteps.length - 1];
 
 			Object[] args = getArguments(is, request);
@@ -347,8 +347,8 @@ public class GenericEntityREST extends AbstractServiceREST {
 			}
 			Object valueObject = args[0];
 
-			IEntityMetaData metaData =
-					lastStep.metaData != null ? lastStep.metaData : parentStep.metaData;
+			IEntityMetaData metaData = lastStep.metaData != null ? lastStep.metaData
+					: parentStep.metaData;
 			IValueObjectConfig config = lastStep.metaData != null ? lastStep.config : parentStep.config;
 			Object entity = lastStep.metaData != null ? lastStep.value : parentStep.value;
 
@@ -360,8 +360,8 @@ public class GenericEntityREST extends AbstractServiceREST {
 			if (lastStep.metaData != null) {
 				Object entityId = metaData.getIdMember().getValue(entity);
 				String voIdMemberName = config.getValueObjectMemberName(metaData.getIdMember().getName());
-				ITypeInfoItem voIdMember =
-						typeInfoProvider.getHierarchicMember(config.getValueType(), voIdMemberName);
+				ITypeInfoItem voIdMember = typeInfoProvider.getHierarchicMember(config.getValueType(),
+						voIdMemberName);
 				voIdMember.setValue(valueObject,
 						conversionHelper.convertValueToType(voIdMember.getRealType(), entityId));
 
@@ -399,7 +399,7 @@ public class GenericEntityREST extends AbstractServiceREST {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
 
@@ -407,15 +407,14 @@ public class GenericEntityREST extends AbstractServiceREST {
 	@Path("{subResources:.*}")
 	public StreamingOutput post(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
-			preServiceCall();
-
 			String contextPath = request.getPathInfo();
 			String[] path = contextPath.split("/");
 
 			NavigationStep[] navigationSteps = navigateTo(path, NavigationMode.DEFAULT);
-			NavigationStep parentStep =
-					navigationSteps.length >= 2 ? navigationSteps[navigationSteps.length - 2] : null;
+			NavigationStep parentStep = navigationSteps.length >= 2
+					? navigationSteps[navigationSteps.length - 2] : null;
 			NavigationStep lastStep = navigationSteps[navigationSteps.length - 1];
 
 			Object[] args = getArguments(is, request);
@@ -435,14 +434,14 @@ public class GenericEntityREST extends AbstractServiceREST {
 			IMergeProcess mergeProcess = getService(IMergeProcess.class);
 			ITypeInfoProvider typeInfoProvider = getService(ITypeInfoProvider.class);
 
-			String voIdMemberName =
-					lastStep.config.getValueObjectMemberName(lastStep.metaData.getIdMember().getName());
-			String voVersionMemberName =
-					lastStep.config.getValueObjectMemberName(lastStep.metaData.getVersionMember().getName());
-			ITypeInfoItem voIdMember =
-					typeInfoProvider.getHierarchicMember(lastStep.config.getValueType(), voIdMemberName);
-			ITypeInfoItem voVersionMember =
-					typeInfoProvider.getHierarchicMember(lastStep.config.getValueType(), voVersionMemberName);
+			String voIdMemberName = lastStep.config
+					.getValueObjectMemberName(lastStep.metaData.getIdMember().getName());
+			String voVersionMemberName = lastStep.config
+					.getValueObjectMemberName(lastStep.metaData.getVersionMember().getName());
+			ITypeInfoItem voIdMember = typeInfoProvider
+					.getHierarchicMember(lastStep.config.getValueType(), voIdMemberName);
+			ITypeInfoItem voVersionMember = typeInfoProvider
+					.getHierarchicMember(lastStep.config.getValueType(), voVersionMemberName);
 			voIdMember.setValue(valueObject, null);
 			if (voVersionMember != null) {
 				voVersionMember.setValue(valueObject, null);
@@ -452,8 +451,8 @@ public class GenericEntityREST extends AbstractServiceREST {
 			try {
 				Object businessObject = mapperService.mapToBusinessObject(valueObject);
 				if (lastStep.value != null && parentStep != null) {
-					String boMemberName =
-							parentStep.config.getBusinessObjectMemberName(path[path.length - 1]);
+					String boMemberName = parentStep.config
+							.getBusinessObjectMemberName(path[path.length - 1]);
 					Member boMember = parentStep.metaData.getMemberByName(boMemberName);
 					if (boMember == null) {
 						throw new BadRequestException(
@@ -477,8 +476,8 @@ public class GenericEntityREST extends AbstractServiceREST {
 					mergeProcess.process(businessObject, null, null, null);
 				}
 
-				valueObject =
-						mapperService.mapToValueObject(businessObject, lastStep.config.getValueType());
+				valueObject = mapperService.mapToValueObject(businessObject,
+						lastStep.config.getValueType());
 				return createResult(valueObject, response);
 			}
 			finally {
@@ -492,7 +491,7 @@ public class GenericEntityREST extends AbstractServiceREST {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
 
@@ -500,9 +499,8 @@ public class GenericEntityREST extends AbstractServiceREST {
 	@Path("{subResources:.*}")
 	public StreamingOutput delete(@Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
-			preServiceCall();
-
 			String contextPath = request.getPathInfo();
 			String[] path = contextPath.split("/");
 
@@ -528,7 +526,7 @@ public class GenericEntityREST extends AbstractServiceREST {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
 }

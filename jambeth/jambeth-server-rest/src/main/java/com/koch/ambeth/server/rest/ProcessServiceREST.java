@@ -34,6 +34,7 @@ import javax.ws.rs.core.StreamingOutput;
 import com.koch.ambeth.service.IProcessService;
 import com.koch.ambeth.service.model.IServiceDescription;
 import com.koch.ambeth.service.rest.Constants;
+import com.koch.ambeth.util.state.IStateRollback;
 
 @Path("/ProcessService")
 @Consumes(Constants.AMBETH_MEDIA_TYPE)
@@ -47,8 +48,8 @@ public class ProcessServiceREST extends AbstractServiceREST {
 	@Path("invokeService")
 	public StreamingOutput invokeService(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
-			preServiceCall();
 			Object[] args = getArguments(is, request);
 			Object result = getProcessService().invokeService((IServiceDescription) args[0]);
 			return createResult(result, response);
@@ -57,7 +58,7 @@ public class ProcessServiceREST extends AbstractServiceREST {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
 }
