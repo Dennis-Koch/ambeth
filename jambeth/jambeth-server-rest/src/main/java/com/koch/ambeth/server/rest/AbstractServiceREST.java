@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPInputStream;
@@ -54,17 +53,10 @@ import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import com.koch.ambeth.log.AmbethLogger;
 import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.ILoggerHistory;
 import com.koch.ambeth.log.LoggerFactory;
 import com.koch.ambeth.merge.transfer.CreateContainer;
 import com.koch.ambeth.merge.transfer.ObjRef;
-import com.koch.ambeth.security.DefaultAuthentication;
-import com.koch.ambeth.security.IAuthentication;
-import com.koch.ambeth.security.ISecurityContext;
-import com.koch.ambeth.security.ISecurityContextHolder;
-import com.koch.ambeth.security.PasswordType;
 import com.koch.ambeth.service.transfer.AmbethServiceException;
-import com.koch.ambeth.util.Base64;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.HashSet;
@@ -73,7 +65,7 @@ import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.MaskingRuntimeException;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.io.FastByteArrayOutputStream;
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.xml.ICyclicXMLHandler;
 import com.koch.ambeth.xml.ioc.XmlModule;
@@ -109,6 +101,8 @@ public abstract class AbstractServiceREST {
 
 	@Context
 	protected HttpHeaders headers;
+
+	protected final AmbethServletAspect aspect = new AmbethServletAspect();
 
 	private ILogger log;
 
@@ -218,74 +212,9 @@ public abstract class AbstractServiceREST {
 				.getAttribute(AmbethServletListener.ATTRIBUTE_I_SERVICE_CONTEXT);
 	}
 
-	protected void preServiceCall() {
-		IAuthentication authentication = readAuthentication();
-
-		if (authentication != null) {
-			setAuthentication(authentication);
-		}
-	}
-
-	protected IAuthentication readAuthentication() {
-		String value = readSingleValueFromHeader("Authorization");
-
-		String userName = null;
-		char[] userPass = null;
-		if (value != null) {
-			Matcher basicMatcher = basicPattern.matcher(value);
-			if (!basicMatcher.matches()) {
-				throw new IllegalStateException(value);
-			}
-			String group = basicMatcher.group(1);
-			byte[] decodedAuthorization = Base64.decodeBase64(group.getBytes(utfCharset));
-
-			String decodedValue = new String(decodedAuthorization, utfCharset);
-
-			Matcher matcher = pattern.matcher(decodedValue);
-			if (!matcher.matches()) {
-				throw new IllegalStateException(decodedValue);
-			}
-			userName = matcher.group(1);
-			userPass = matcher.group(2).toCharArray();
-		}
-		return new DefaultAuthentication(userName, userPass, PasswordType.PLAIN);
-	}
-
-	protected void setAuthentication(IAuthentication authentication) {
-		IServiceContext beanContext = getServiceContext();
-
-		ISecurityContextHolder securityContextHolder = beanContext
-				.getService(ISecurityContextHolder.class, false);
-		if (securityContextHolder != null) {
-			ISecurityContext securityContext = securityContextHolder.getCreateContext();
-			securityContext.setAuthentication(authentication);
-		}
-		else {
-			ILogger log = getLog();
-			if (log.isInfoEnabled()) {
-				ILoggerHistory loggerHistory = getService(ILoggerHistory.class);
-				loggerHistory.infoOnce(log, this,
-						"No security context holder available. Skip creating security Context!");
-			}
-		}
-	}
-
-	protected void postServiceCall() {
-		postServiceCall(servletContext);
-	}
-
-	protected void postServiceCall(ServletContext servletContext) {
-		IServiceContext beanContext = getServiceContext();
-
-		ISecurityContextHolder securityContextHolder = beanContext
-				.getService(ISecurityContextHolder.class, false);
-		if (securityContextHolder != null) {
-			securityContextHolder.clearContext();
-		}
-		else {
-			getLog().info("No security context holder available. Skip clearing security context!");
-		}
-		beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
+	protected IStateRollback preServiceCall(final HttpServletRequest request,
+			HttpServletResponse response) {
+		return aspect.pushServletAspectWithThreadLocals(request, response);
 	}
 
 	protected <T> T getService(Class<T> serviceType) {
@@ -531,19 +460,6 @@ public abstract class AbstractServiceREST {
 			else {
 				log.error(e);
 			}
-		}
-	}
-
-	protected void executeRequest(IBackgroundWorkerDelegate runnable) {
-		preServiceCall();
-		try {
-			runnable.invoke();
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally {
-			postServiceCall();
 		}
 	}
 }

@@ -49,10 +49,11 @@ import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.rest.Constants;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.model.IMethodDescription;
+import com.koch.ambeth.util.state.IStateRollback;
 
 @Path("/MergeService")
-@Consumes({Constants.AMBETH_MEDIA_TYPE})
-@Produces({Constants.AMBETH_MEDIA_TYPE})
+@Consumes({ Constants.AMBETH_MEDIA_TYPE })
+@Produces({ Constants.AMBETH_MEDIA_TYPE })
 public class MergeServiceREST extends AbstractServiceREST {
 	protected IMergeService getMergeService() {
 		return getService(IMergeService.class);
@@ -62,8 +63,8 @@ public class MergeServiceREST extends AbstractServiceREST {
 	@Path("createMetaDataDOT")
 	public StreamingOutput createMetaDataDOT(@Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
-			preServiceCall();
 			String dot = getMergeService().createMetaDataDOT();
 			return createResult(dot, response);
 		}
@@ -71,7 +72,7 @@ public class MergeServiceREST extends AbstractServiceREST {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
 
@@ -80,9 +81,8 @@ public class MergeServiceREST extends AbstractServiceREST {
 	@Produces("image/png")
 	public StreamingOutput fim(@Context HttpServletRequest request,
 			@Context final HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
-			preServiceCall();
-
 			IDotUtil dotUtil = getService(IDotUtil.class);
 			String dot = getMergeService().createMetaDataDOT();
 			final byte[] pngBytes = dotUtil.writeDotAsPngBytes(dot);
@@ -98,7 +98,7 @@ public class MergeServiceREST extends AbstractServiceREST {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
 
@@ -106,18 +106,18 @@ public class MergeServiceREST extends AbstractServiceREST {
 	@Path("merge")
 	public StreamingOutput merge(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
-			preServiceCall();
 			Object[] args = getArguments(is, request);
-			IOriCollection result =
-					getMergeService().merge((ICUDResult) args[0], (IMethodDescription) args[1]);
+			IOriCollection result = getMergeService().merge((ICUDResult) args[0],
+					(IMethodDescription) args[1]);
 			return createResult(result, response);
 		}
 		catch (Throwable e) {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
 
@@ -126,11 +126,11 @@ public class MergeServiceREST extends AbstractServiceREST {
 	@Path("getMetaData")
 	public StreamingOutput getMetaData(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
-			preServiceCall();
 			Object[] args = getArguments(is, request);
-			List<IEntityMetaData> result =
-					getService(IEntityMetaDataProvider.class).getMetaData((List<Class<?>>) args[0]);
+			List<IEntityMetaData> result = getService(IEntityMetaDataProvider.class)
+					.getMetaData((List<Class<?>>) args[0]);
 
 			ArrayList<EntityMetaDataTransfer> emdTransfer = new ArrayList<>(result.size());
 			for (int a = 0, size = result.size(); a < size; a++) {
@@ -145,7 +145,7 @@ public class MergeServiceREST extends AbstractServiceREST {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
 }

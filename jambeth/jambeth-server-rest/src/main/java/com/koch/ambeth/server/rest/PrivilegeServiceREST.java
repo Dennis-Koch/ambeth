@@ -37,10 +37,11 @@ import com.koch.ambeth.security.service.IPrivilegeService;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.service.rest.Constants;
+import com.koch.ambeth.util.state.IStateRollback;
 
 @Path("/PrivilegeService")
-@Consumes({Constants.AMBETH_MEDIA_TYPE})
-@Produces({Constants.AMBETH_MEDIA_TYPE})
+@Consumes({ Constants.AMBETH_MEDIA_TYPE })
+@Produces({ Constants.AMBETH_MEDIA_TYPE })
 public class PrivilegeServiceREST extends AbstractServiceREST {
 	protected IPrivilegeService getPrivilegeService() {
 		return getService(IPrivilegeService.class);
@@ -50,18 +51,18 @@ public class PrivilegeServiceREST extends AbstractServiceREST {
 	@Path("getPrivileges")
 	public StreamingOutput getPrivileges(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
-			preServiceCall();
 			Object[] args = getArguments(is, request);
-			List<IPrivilegeOfService> result =
-					getPrivilegeService().getPrivileges((IObjRef[]) args[0], (ISecurityScope[]) args[1]);
+			List<IPrivilegeOfService> result = getPrivilegeService().getPrivileges((IObjRef[]) args[0],
+					(ISecurityScope[]) args[1]);
 			return createResult(result, response);
 		}
 		catch (Throwable e) {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
 }

@@ -36,10 +36,11 @@ import javax.ws.rs.core.StreamingOutput;
 import com.koch.ambeth.event.model.IEventItem;
 import com.koch.ambeth.event.service.IEventService;
 import com.koch.ambeth.service.rest.Constants;
+import com.koch.ambeth.util.state.IStateRollback;
 
 @Path("/EventService")
-@Consumes({Constants.AMBETH_MEDIA_TYPE})
-@Produces({Constants.AMBETH_MEDIA_TYPE})
+@Consumes({ Constants.AMBETH_MEDIA_TYPE })
+@Produces({ Constants.AMBETH_MEDIA_TYPE })
 public class EventServiceREST extends AbstractServiceREST {
 	protected IEventService getEventService() {
 		return getService(IEventService.class);
@@ -49,8 +50,8 @@ public class EventServiceREST extends AbstractServiceREST {
 	@Path("pollEvents")
 	public StreamingOutput pollEvents(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
-			preServiceCall();
 			Object[] args = getArguments(is, request);
 			List<IEventItem> result = getEventService().pollEvents(((Long) args[0]).longValue(),
 					((Long) args[1]).longValue(), ((Long) args[2]).longValue());
@@ -60,7 +61,7 @@ public class EventServiceREST extends AbstractServiceREST {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
 
@@ -68,8 +69,8 @@ public class EventServiceREST extends AbstractServiceREST {
 	@Path("getCurrentEventSequence")
 	public StreamingOutput getCurrentEventSequence(@Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
-			preServiceCall();
 			long result = getEventService().getCurrentEventSequence();
 			return createResult(result, response);
 		}
@@ -77,7 +78,7 @@ public class EventServiceREST extends AbstractServiceREST {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
 
@@ -85,8 +86,8 @@ public class EventServiceREST extends AbstractServiceREST {
 	@Path("getCurrentServerSession")
 	public StreamingOutput getCurrentServerSession(@Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
-			preServiceCall();
 			long result = getEventService().getCurrentServerSession();
 			return createResult(result, response);
 		}
@@ -94,7 +95,7 @@ public class EventServiceREST extends AbstractServiceREST {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
 }

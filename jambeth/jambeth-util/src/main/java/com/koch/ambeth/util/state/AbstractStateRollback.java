@@ -1,5 +1,7 @@
 package com.koch.ambeth.util.state;
 
+import java.util.List;
+
 /*-
  * #%L
  * jambeth-util
@@ -23,6 +25,38 @@ limitations under the License.
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public abstract class AbstractStateRollback implements IStateRollback {
+	public static void executeRollbacksReverse(IStateRollback rollbacks) {
+		if (rollbacks != null) {
+			rollbacks.rollback();
+		}
+	}
+
+	public static void executeRollbacksReverse(IStateRollback[] rollbacks) {
+		if (rollbacks == null) {
+			return;
+		}
+		for (int a = rollbacks.length; a-- > 0;) {
+			IStateRollback rollback = rollbacks[a];
+			if (rollback == null) {
+				continue;
+			}
+			rollback.rollback();
+		}
+	}
+
+	public static void executeRollbacksReverse(List<? extends IStateRollback> rollbacks) {
+		if (rollbacks == null) {
+			return;
+		}
+		for (int a = rollbacks.size(); a-- > 0;) {
+			IStateRollback rollback = rollbacks.get(a);
+			if (rollback == null) {
+				continue;
+			}
+			rollback.rollback();
+		}
+	}
+
 	private final IStateRollback[] rollbacks;
 
 	private boolean rollbackCalled;
@@ -44,13 +78,7 @@ public abstract class AbstractStateRollback implements IStateRollback {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
-			for (int a = rollbacks.length; a-- > 0;) {
-				IStateRollback rollback = rollbacks[a];
-				if (rollback == null) {
-					continue;
-				}
-				rollback.rollback();
-			}
+			executeRollbacksReverse(rollbacks);
 		}
 	}
 

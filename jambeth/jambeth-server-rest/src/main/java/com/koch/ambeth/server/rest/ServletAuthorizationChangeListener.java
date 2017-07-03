@@ -46,7 +46,7 @@ public class ServletAuthorizationChangeListener implements IAuthorizationChangeL
 		IHttpSessionProvider httpSessionProvider = beanContext.getService(IHttpSessionProvider.class);
 		if (httpSessionProvider.getCurrentHttpSession() != null) {
 			beanContext.getService(HttpSession.class)
-					.setAttribute(AmbethServletRequestFilter.ATTRIBUTE_AUTHORIZATION_HANDLE, authorization);
+					.setAttribute(AmbethServletAspect.ATTRIBUTE_AUTHORIZATION_HANDLE, authorization);
 		}
 	}
 }

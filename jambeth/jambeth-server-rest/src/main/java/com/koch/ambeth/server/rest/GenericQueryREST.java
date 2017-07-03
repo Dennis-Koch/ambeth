@@ -51,6 +51,7 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.IValueObjectConfig;
 import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.IConversionHelper;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
@@ -74,8 +75,8 @@ public class GenericQueryREST extends AbstractServiceREST {
 	@Path("filter")
 	public StreamingOutput filter(InputStream is, @Context HttpServletRequest request,
 			final @Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
-			preServiceCall();
 			final Object[] args = getArguments(is, request);
 			// we need to maintain our own explicit 1st level cache: during serialization of
 			// the StreamingOutput we need a (still) valid cache handle
@@ -120,7 +121,7 @@ public class GenericQueryREST extends AbstractServiceREST {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
 
@@ -128,9 +129,8 @@ public class GenericQueryREST extends AbstractServiceREST {
 	@Path("{subResources:.*}")
 	public StreamingOutput get(@Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
-			preServiceCall();
-
 			String contextPath = request.getPathInfo();
 			String[] path = contextPath.split("/");
 
@@ -180,7 +180,7 @@ public class GenericQueryREST extends AbstractServiceREST {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
 }

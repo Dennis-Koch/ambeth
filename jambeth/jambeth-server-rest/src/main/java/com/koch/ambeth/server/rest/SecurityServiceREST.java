@@ -37,6 +37,7 @@ import com.koch.ambeth.security.service.ISecurityService;
 import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.service.model.IServiceDescription;
 import com.koch.ambeth.service.rest.Constants;
+import com.koch.ambeth.util.state.IStateRollback;
 
 @Path("/SecurityService")
 @Consumes(Constants.AMBETH_MEDIA_TYPE)
@@ -50,8 +51,8 @@ public class SecurityServiceREST extends AbstractServiceREST {
 	@Path("callServiceInSecurityScope")
 	public StreamingOutput callServiceInSecurityScope(InputStream is,
 			@Context HttpServletRequest request, @Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
-			preServiceCall();
 			Object[] args = getArguments(is, request);
 			Object result = getSecurityService().callServiceInSecurityScope((ISecurityScope[]) args[0],
 					(IServiceDescription) args[1]);
@@ -61,7 +62,7 @@ public class SecurityServiceREST extends AbstractServiceREST {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
 
@@ -69,6 +70,7 @@ public class SecurityServiceREST extends AbstractServiceREST {
 	@Path("isSecured")
 	public StreamingOutput isSecured(@Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
 		try {
 			boolean result = getService(ISecurityActivation.class).isSecured();
 			return createResult(result, response);
@@ -77,7 +79,7 @@ public class SecurityServiceREST extends AbstractServiceREST {
 			return createExceptionResult(e, response);
 		}
 		finally {
-			postServiceCall();
+			rollback.rollback();
 		}
 	}
 }
