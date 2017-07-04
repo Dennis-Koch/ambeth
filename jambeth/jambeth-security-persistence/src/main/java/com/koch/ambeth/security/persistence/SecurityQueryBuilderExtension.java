@@ -24,12 +24,11 @@ import java.util.List;
 
 import javax.persistence.criteria.JoinType;
 
+import com.koch.ambeth.event.IEventDispatcher;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.merge.security.ISecurityActivation;
 import com.koch.ambeth.persistence.api.IDatabaseMetaData;
@@ -40,20 +39,21 @@ import com.koch.ambeth.query.IQueryBuilderExtension;
 import com.koch.ambeth.query.IQueryBuilderIntern;
 import com.koch.ambeth.query.ISqlJoin;
 import com.koch.ambeth.query.QueryType;
+import com.koch.ambeth.security.IAuthentication;
 import com.koch.ambeth.security.IAuthorization;
 import com.koch.ambeth.security.ISecurityContext;
 import com.koch.ambeth.security.ISecurityContextHolder;
+import com.koch.ambeth.security.events.AuthorizationMissingEvent;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
 public class SecurityQueryBuilderExtension implements IQueryBuilderExtension {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IDatabaseMetaData databaseMetaData;
+
+	@Autowired
+	protected IEventDispatcher eventDispatcher;
 
 	@Autowired
 	protected ISecurityActivation securityActivation;
@@ -72,8 +72,8 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension {
 			return null;
 		}
 		IDatabaseMetaData databaseMetaData = this.databaseMetaData;
-		IOperand userIdCriteriaOperand =
-				queryBuilder.valueName(SqlPermissionOperand.USER_ID_CRITERIA_NAME);
+		IOperand userIdCriteriaOperand = queryBuilder
+				.valueName(SqlPermissionOperand.USER_ID_CRITERIA_NAME);
 		IOperand valueCriteriaOperand = queryBuilder.value(Boolean.TRUE);
 		ArrayList<ISqlJoin> permissionGroupJoins = new ArrayList<>();
 		ArrayList<IOperand> readPermissionValueColumns = new ArrayList<>();
@@ -123,8 +123,8 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension {
 		String tableName = permissionGroup.getTable().getName();
 		IOperand columnOperand = queryBuilder
 				.column(permissionGroup.getPermissionGroupFieldOnTarget().getName(), baseJoin, false);
-		IOperand readPermissionIdColumn =
-				queryBuilder.column(permissionGroup.getPermissionGroupField().getName(), baseJoin, false);
+		IOperand readPermissionIdColumn = queryBuilder
+				.column(permissionGroup.getPermissionGroupField().getName(), baseJoin, false);
 		ISqlJoin join = queryBuilder.joinIntern(tableName, columnOperand, readPermissionIdColumn,
 				JoinType.LEFT, queryBeanContextFactory);
 		readPermissionValueColumns
@@ -150,12 +150,21 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension {
 		ISecurityContext context = securityContextHolder.getContext();
 		if (context == null) {
 			throw new IllegalStateException(
-					"Should never happen. Security activated but no authentication active");
+					"Should never happen. Security activated but no verified authentication active");
 		}
 		IAuthorization authorization = context.getAuthorization();
 		if (authorization == null) {
-			throw new IllegalStateException(
-					"Should never happen. Security activated but no authentication active");
+			IAuthentication authentication = context.getAuthentication();
+			if (authentication == null) {
+				throw new IllegalStateException(
+						"Security activated but no authentication available at all");
+			}
+			eventDispatcher.dispatchEvent(AuthorizationMissingEvent.getInstance());
+			authorization = context.getAuthorization();
+			if (authorization == null) {
+				throw new IllegalStateException(
+						"Should never happen. Security activated but no verified authentication active");
+			}
 		}
 		nameToValueMap.put(SqlPermissionOperand.USER_ID_CRITERIA_NAME, authorization.getSID());
 	}

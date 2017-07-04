@@ -42,6 +42,8 @@ import com.koch.ambeth.util.proxy.CascadedInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 
 public class PersistenceContextInterceptor extends CascadedInterceptor {
+	public static final String P_METHOD_LEVEL_BEHAVIOUR = "MethodLevelBehaviour";
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;

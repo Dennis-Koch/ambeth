@@ -790,7 +790,8 @@ public class AmbethPersistenceSetup implements Closeable {
 	//
 	// SecurityFilterInterceptor interceptor =
 	// beanContext.registerBean(SecurityFilterInterceptor.class)
-	// .propertyValue("MethodLevelBehaviour", behaviour).propertyValue("Target", statement)
+	// .propertyValue(SecurityFilterInterceptor.P_METHOD_LEVEL_BEHAVIOUR,
+	// behaviour).propertyValue("Target", statement)
 	// .finish();
 	// org.junit.runners.model.Statement stmt =
 	// (org.junit.runners.model.Statement) beanContext.getService(IProxyFactory.class)

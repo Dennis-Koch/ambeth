@@ -24,17 +24,11 @@ import javax.servlet.http.HttpSession;
 
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.security.IAuthorization;
 import com.koch.ambeth.security.IAuthorizationChangeListener;
 import com.koch.ambeth.server.webservice.IHttpSessionProvider;
 
 public class ServletAuthorizationChangeListener implements IAuthorizationChangeListener {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IServiceContext beanContext;
 
@@ -43,8 +37,9 @@ public class ServletAuthorizationChangeListener implements IAuthorizationChangeL
 		if (authorization == null) {
 			return;
 		}
-		IHttpSessionProvider httpSessionProvider = beanContext.getService(IHttpSessionProvider.class);
-		if (httpSessionProvider.getCurrentHttpSession() != null) {
+		IHttpSessionProvider httpSessionProvider = beanContext.getService(IHttpSessionProvider.class,
+				false);
+		if (httpSessionProvider != null && httpSessionProvider.getCurrentHttpSession() != null) {
 			beanContext.getService(HttpSession.class)
 					.setAttribute(AmbethServletAspect.ATTRIBUTE_AUTHORIZATION_HANDLE, authorization);
 		}

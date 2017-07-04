@@ -58,8 +58,8 @@ import com.koch.ambeth.informationbus.persistence.setup.AmbethPersistenceSchemaM
 import com.koch.ambeth.informationbus.persistence.setup.DataSetupExecutor;
 import com.koch.ambeth.informationbus.persistence.setup.DataSetupExecutorModule;
 import com.koch.ambeth.informationbus.persistence.setup.DialectSelectorTestModule;
-import com.koch.ambeth.informationbus.persistence.setup.ISchemaRunnable;
 import com.koch.ambeth.informationbus.persistence.setup.ISchemaFileProvider;
+import com.koch.ambeth.informationbus.persistence.setup.ISchemaRunnable;
 import com.koch.ambeth.informationbus.persistence.setup.SQLData;
 import com.koch.ambeth.informationbus.persistence.setup.SQLDataList;
 import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
@@ -913,8 +913,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 				SecurityFilterInterceptor interceptor = beanContext
 						.registerBean(SecurityFilterInterceptor.class)
-						.propertyValue("MethodLevelBehaviour", behaviour).propertyValue("Target", statement)
-						.finish();
+						.propertyValue(SecurityFilterInterceptor.P_METHOD_LEVEL_BEHAVIOUR, behaviour)
+						.propertyValue("Target", statement).finish();
 				org.junit.runners.model.Statement stmt = (org.junit.runners.model.Statement) beanContext
 						.getService(IProxyFactory.class)
 						.createProxy(new Class<?>[] { org.junit.runners.model.Statement.class }, interceptor);

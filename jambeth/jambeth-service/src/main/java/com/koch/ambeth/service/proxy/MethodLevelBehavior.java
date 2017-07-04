@@ -28,7 +28,6 @@ import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.annotation.AnnotationCache;
 import com.koch.ambeth.util.collections.SmartCopyMap;
-import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 
 public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T> {
 	private static final IMethodLevelBehavior<Object> noBehavior = new NoBehavior();
@@ -62,8 +61,8 @@ public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T> {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private static final SmartCopyMap<BehaviorKey, IMethodLevelBehavior> beanTypeToBehavior =
-			new SmartCopyMap<>(0.5f);
+	private static final SmartCopyMap<BehaviorKey, IMethodLevelBehavior> beanTypeToBehavior = new SmartCopyMap<>(
+			0.5f);
 
 	public static <A extends Annotation, T> IMethodLevelBehavior<T> create(Class<?> beanType,
 			AnnotationCache<A> annotationCache, Class<T> behaviourType,
@@ -94,18 +93,20 @@ public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T> {
 				if (methodLevelBehaviour == null) {
 					methodLevelBehaviour = new MethodLevelHashMap<>();
 				}
-				T behaviourTypeOnMethod =
-						behaviourTypeExtractor.extractBehaviorType(annotationOnMethod, method);
+				T behaviourTypeOnMethod = behaviourTypeExtractor.extractBehaviorType(annotationOnMethod,
+						method);
 				if (behaviourTypeOnMethod != null) {
 					methodLevelBehaviour.put(method.getName(), method.getParameterTypes(),
 							behaviourTypeOnMethod);
 				}
 			}
 		}
-		if (methodLevelBehaviour == null) {
-			methodLevelBehaviour = new MethodLevelHashMap<>(0);
+		if (methodLevelBehaviour == null || methodLevelBehaviour.size() == 0) {
+			behavior = new SimpleMethodLevelBehavior<>(defaultBehaviour);
 		}
-		behavior = new MethodLevelBehavior<>(defaultBehaviour, methodLevelBehaviour);
+		else {
+			behavior = new MethodLevelBehavior<>(defaultBehaviour, methodLevelBehaviour);
+		}
 		beanTypeToBehavior.put(key, behavior);
 		return behavior;
 	}
@@ -123,10 +124,6 @@ public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T> {
 	@Override
 	public T getDefaultBehaviour() {
 		return defaultBehaviour;
-	}
-
-	public Tuple2KeyHashMap<String, Class<?>[], T> getMethodLevelBehaviour() {
-		return methodLevelBehaviour;
 	}
 
 	@Override

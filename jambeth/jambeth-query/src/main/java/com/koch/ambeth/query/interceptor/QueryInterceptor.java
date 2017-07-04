@@ -40,6 +40,7 @@ import com.koch.ambeth.filter.ISortDescriptor;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
+import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.merge.IObjRefHelper;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.transfer.ObjRef;
@@ -61,6 +62,7 @@ import com.koch.ambeth.util.annotation.NoProxy;
 import com.koch.ambeth.util.annotation.QueryResultType;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
+import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 import net.sf.cglib.proxy.MethodProxy;
 
@@ -72,13 +74,13 @@ public class QueryInterceptor extends CascadedInterceptor {
 		}
 	};
 
-	protected static final AnnotationCache<NoProxy> noProxyCache =
-			new AnnotationCache<NoProxy>(NoProxy.class) {
-				@Override
-				protected boolean annotationEquals(NoProxy left, NoProxy right) {
-					return left.equals(right);
-				}
-			};
+	protected static final AnnotationCache<NoProxy> noProxyCache = new AnnotationCache<NoProxy>(
+			NoProxy.class) {
+		@Override
+		protected boolean annotationEquals(NoProxy left, NoProxy right) {
+			return left.equals(right);
+		}
+	};
 
 	private static final Pattern PATTERN_QUERY_METHOD = Pattern.compile("(retrieve|read|find|get).*");
 
@@ -107,6 +109,9 @@ public class QueryInterceptor extends CascadedInterceptor {
 
 	@Autowired
 	protected IQueryBuilderFactory queryBuilderFactory;
+
+	@Autowired
+	protected ILightweightTransaction transaction;
 
 	/**
 	 * this map not need ConcurrentHashMap, because {@link QueryInterceptor#retriveQueryBuilderBean}
@@ -165,8 +170,8 @@ public class QueryInterceptor extends CascadedInterceptor {
 	protected Object interceptQuery(Object obj, Method method, Object[] args, MethodProxy proxy,
 			Boolean isAsyncBegin) throws Throwable {
 		Find findAnnotation = method.getAnnotation(Find.class);
-		QueryResultType resultType;
-		String referenceName;
+		final QueryResultType resultType;
+		final String referenceName;
 		if (findAnnotation == null) {
 			referenceName = null;
 			resultType = QueryResultType.REFERENCES;
@@ -176,31 +181,37 @@ public class QueryInterceptor extends CascadedInterceptor {
 			resultType = findAnnotation.resultType();
 		}
 
-		IPagingRequest pagingRequest = (IPagingRequest) args[0];
-		IFilterDescriptor<?> filterDescriptor = (IFilterDescriptor<?>) args[1];
-		ISortDescriptor[] sortDescriptors = (ISortDescriptor[]) args[2];
+		final IPagingRequest pagingRequest = (IPagingRequest) args[0];
+		final IFilterDescriptor<?> filterDescriptor = (IFilterDescriptor<?>) args[1];
+		final ISortDescriptor[] sortDescriptors = (ISortDescriptor[]) args[2];
 
-		IPagingQuery<?> pagingQuery =
-				filterToQueryBuilder.buildQuery(filterDescriptor, sortDescriptors);
+		IPagingResponse<?> pagingResponse = transaction
+				.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<IPagingResponse<?>>() {
+					@Override
+					public IPagingResponse<?> invoke() throws Exception {
+						IPagingQuery<?> pagingQuery = filterToQueryBuilder.buildQuery(filterDescriptor,
+								sortDescriptors);
 
-		IPagingResponse<?> pagingResponse = null;
-		if (QueryResultType.ENTITIES == resultType || QueryResultType.BOTH == resultType) {
-			pagingResponse = pagingQuery.retrieve(pagingRequest);
-		}
-		if (QueryResultType.REFERENCES == resultType) {
-			if (referenceName == null || referenceName.length() == 0) {
-				pagingResponse = pagingQuery.retrieveRefs(pagingRequest);
-			}
-			else {
-				pagingResponse = pagingQuery.retrieveRefs(pagingRequest, referenceName);
-			}
-		}
+						switch (resultType) {
+							case ENTITIES:
+							case BOTH:
+								return pagingQuery.retrieve(pagingRequest);
+							case REFERENCES:
+								if (referenceName == null || referenceName.length() == 0) {
+									return pagingQuery.retrieveRefs(pagingRequest);
+								}
+								return pagingQuery.retrieveRefs(pagingRequest, referenceName);
+							default:
+								throw RuntimeExceptionUtil.createEnumNotSupportedException(resultType);
+						}
+					}
+				});
 		if (QueryResultType.BOTH == resultType) {
 			List<?> result = pagingResponse.getResult();
 			int size = result.size();
 			List<IObjRef> oris = new ArrayList<>(size);
-			IEntityMetaData metaData =
-					entityMetaDataProvider.getMetaData(filterDescriptor.getEntityType());
+			IEntityMetaData metaData = entityMetaDataProvider
+					.getMetaData(filterDescriptor.getEntityType());
 			for (int i = 0; i < size; i++) {
 				Object entity = result.get(i);
 				IObjRef ori = oriHelper.entityToObjRef(entity, ObjRef.PRIMARY_KEY_INDEX, metaData, true);
@@ -256,8 +267,10 @@ public class QueryInterceptor extends CascadedInterceptor {
 	/**
 	 * get QueryBuilderBean, this object may be from cache or will just be created ad-hoc
 	 *
-	 * @param obj intercepted object
-	 * @param method intercepted method
+	 * @param obj
+	 *          intercepted object
+	 * @param method
+	 *          intercepted method
 	 * @return QueryBuilderBean instance for Squery
 	 */
 	private QueryBuilderBean<?> getOrCreateQueryBuilderBean(Method method) {

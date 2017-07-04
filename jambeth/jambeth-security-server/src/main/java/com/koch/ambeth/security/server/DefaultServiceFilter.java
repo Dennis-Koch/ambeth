@@ -23,8 +23,6 @@ limitations under the License.
 import java.lang.reflect.Method;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.security.CallPermission;
 import com.koch.ambeth.security.IAuthorization;
 import com.koch.ambeth.security.IServiceFilter;
@@ -33,10 +31,6 @@ import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 public class DefaultServiceFilter implements IServiceFilter {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 

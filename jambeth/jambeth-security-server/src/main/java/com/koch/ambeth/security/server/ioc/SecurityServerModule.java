@@ -32,7 +32,10 @@ import com.koch.ambeth.security.IActionPermission;
 import com.koch.ambeth.security.IAuthenticationManager;
 import com.koch.ambeth.security.ISecurityManager;
 import com.koch.ambeth.security.IServiceFilterExtendable;
+import com.koch.ambeth.security.events.AuthorizationMissingEvent;
+import com.koch.ambeth.security.server.AuthorizationProcess;
 import com.koch.ambeth.security.server.DefaultServiceFilter;
+import com.koch.ambeth.security.server.IAuthorizationProcess;
 import com.koch.ambeth.security.server.IPBEncryptor;
 import com.koch.ambeth.security.server.IPasswordUtil;
 import com.koch.ambeth.security.server.IPasswordValidationExtendable;
@@ -60,8 +63,7 @@ public class SecurityServerModule implements IInitializingModule {
 	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean isSecurityActive;
 
-	@Property(name = SecurityServerConfigurationConstants.AuthenticationManagerType,
-			mandatory = false)
+	@Property(name = SecurityServerConfigurationConstants.AuthenticationManagerType, mandatory = false)
 	protected Class<?> authenticationManagerType;
 
 	@Override
@@ -74,6 +76,12 @@ public class SecurityServerModule implements IInitializingModule {
 				.autowireable(IPrivateKeyProvider.class);
 
 		if (isSecurityActive) {
+			IBeanConfiguration authorizationProcess = beanContextFactory
+					.registerBean(AuthorizationProcess.class).autowireable(IAuthorizationProcess.class);
+			beanContextFactory
+					.link(authorizationProcess, AuthorizationProcess.HANDLE_AUTHORIZATION_MSSING)
+					.to(IEventListenerExtendable.class).with(AuthorizationMissingEvent.class);
+
 			beanContextFactory.registerBean(SecurityPostProcessor.class);
 
 			if (authenticationManagerType == null) {
@@ -86,9 +94,9 @@ public class SecurityServerModule implements IInitializingModule {
 				beanContextFactory.registerBean(authenticationManagerType)
 						.autowireable(IAuthenticationManager.class);
 			}
-			IBeanConfiguration authenticationResultCache =
-					beanContextFactory.registerBean(AuthenticationResultCache.class)
-							.autowireable(IAuthenticationResultCache.class);
+			IBeanConfiguration authenticationResultCache = beanContextFactory
+					.registerBean(AuthenticationResultCache.class)
+					.autowireable(IAuthenticationResultCache.class);
 			beanContextFactory
 					.link(authenticationResultCache,
 							AuthenticationResultCache.DELEGATE_HANDLE_CLEAR_ALL_CACHES_EVENT)
@@ -101,8 +109,8 @@ public class SecurityServerModule implements IInitializingModule {
 			registerAndLinkPermissionRule(beanContextFactory, ActionPermissionRule.class,
 					IActionPermission.class);
 
-			IBeanConfiguration defaultServiceFilterBC =
-					beanContextFactory.registerBean(DefaultServiceFilter.class);
+			IBeanConfiguration defaultServiceFilterBC = beanContextFactory
+					.registerBean(DefaultServiceFilter.class);
 			beanContextFactory.link(defaultServiceFilterBC).to(IServiceFilterExtendable.class);
 		}
 	}

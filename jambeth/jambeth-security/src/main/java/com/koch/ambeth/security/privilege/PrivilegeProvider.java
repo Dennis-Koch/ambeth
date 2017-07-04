@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.koch.ambeth.datachange.IDataChangeListener;
 import com.koch.ambeth.datachange.model.IDataChange;
+import com.koch.ambeth.event.IEventDispatcher;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
@@ -38,6 +39,7 @@ import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.security.IAuthorization;
 import com.koch.ambeth.security.ISecurityContext;
 import com.koch.ambeth.security.ISecurityContextHolder;
+import com.koch.ambeth.security.events.AuthorizationMissingEvent;
 import com.koch.ambeth.security.events.ClearAllCachedPrivilegesEvent;
 import com.koch.ambeth.security.privilege.factory.IEntityPrivilegeFactoryProvider;
 import com.koch.ambeth.security.privilege.factory.IEntityTypePrivilegeFactoryProvider;
@@ -151,6 +153,9 @@ public class PrivilegeProvider
 	protected IEntityTypePrivilegeFactoryProvider entityTypePrivilegeFactoryProvider;
 
 	@Autowired
+	protected IEventDispatcher eventDispatcher;
+
+	@Autowired
 	protected IInterningFeature interningFeature;
 
 	@Autowired
@@ -240,7 +245,13 @@ public class PrivilegeProvider
 		ISecurityContext context = securityContextHolder.getContext();
 		IAuthorization authorization = context != null ? context.getAuthorization() : null;
 		if (authorization == null) {
-			throw new SecurityException("User must be authenticated to be able to check for privileges");
+			eventDispatcher.dispatchEvent(AuthorizationMissingEvent.getInstance());
+			context = securityContextHolder.getContext();
+			authorization = context != null ? context.getAuthorization() : null;
+			if (authorization == null) {
+				throw new SecurityException(
+						"User must be authenticated to be able to check for privileges");
+			}
 		}
 		if (securityScopes.length == 0) {
 			throw new IllegalArgumentException(
