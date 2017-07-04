@@ -31,8 +31,6 @@ import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.ProcessorOrder;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.security.PasswordType;
 import com.koch.ambeth.security.SecurityContext;
 import com.koch.ambeth.security.SecurityContextPassword;
@@ -52,67 +50,61 @@ import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 
 public class SecurityPostProcessor extends AbstractCascadePostProcessor
 		implements IOrderedBeanProcessor {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
+	protected AnnotationCache<SecurityContext> annotationCache = new AnnotationCache<SecurityContext>(
+			SecurityContext.class) {
+		@Override
+		protected boolean annotationEquals(SecurityContext left, SecurityContext right) {
+			return EqualsUtil.equals(left.value(), right.value());
+		}
+	};
 
-	protected AnnotationCache<SecurityContext> annotationCache =
-			new AnnotationCache<SecurityContext>(SecurityContext.class) {
-				@Override
-				protected boolean annotationEquals(SecurityContext left, SecurityContext right) {
-					return EqualsUtil.equals(left.value(), right.value());
-				}
-			};
-
-	protected final IBehaviorTypeExtractor<SecurityContext, SecurityMethodMode> btExtractor =
-			new IBehaviorTypeExtractor<SecurityContext, SecurityMethodMode>() {
-				@Override
-				public SecurityMethodMode extractBehaviorType(SecurityContext annotation,
-						AnnotatedElement annotatedElement) {
-					if (!(annotatedElement instanceof Method)) {
-						return new SecurityMethodMode(annotation.value());
-					}
-					Method method = (Method) annotatedElement;
-					Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-					int userNameIndex = -1;
-					int passwordIndex = -1;
-					PasswordType passwordType = null;
-					int securityScopeIndex = -1;
-					for (int a = parameterAnnotations.length; a-- > 0;) {
-						for (Annotation annotationOfParam : parameterAnnotations[a]) {
-							if (annotationOfParam instanceof SecurityContextUserName) {
-								if (userNameIndex != -1) {
-									throw new IllegalStateException(
-											"Annotation '" + SecurityContextUserName.class.getName()
-													+ "' ambiguous on method signature '" + method.toGenericString() + "'");
-								}
-								userNameIndex = a;
-							}
-							else if (annotationOfParam instanceof SecurityContextPassword) {
-								if (passwordIndex != -1) {
-									throw new IllegalStateException(
-											"Annotation '" + SecurityContextPassword.class.getName()
-													+ "' ambiguous on method signature '" + method.toGenericString() + "'");
-								}
-								passwordIndex = a;
-								passwordType = ((SecurityContextPassword) annotationOfParam).value();
-							}
-							else if (annotationOfParam instanceof SecurityContextScope) {
-								if (securityScopeIndex != -1) {
-									throw new IllegalStateException(
-											"Annotation '" + SecurityContextScope.class.getName()
-													+ "' ambiguous on method signature '" + method.toGenericString() + "'");
-								}
-								securityScopeIndex = a;
-							}
+	protected final IBehaviorTypeExtractor<SecurityContext, SecurityMethodMode> btExtractor = new IBehaviorTypeExtractor<SecurityContext, SecurityMethodMode>() {
+		@Override
+		public SecurityMethodMode extractBehaviorType(SecurityContext annotation,
+				AnnotatedElement annotatedElement) {
+			if (!(annotatedElement instanceof Method)) {
+				return new SecurityMethodMode(annotation.value());
+			}
+			Method method = (Method) annotatedElement;
+			Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+			int userNameIndex = -1;
+			int passwordIndex = -1;
+			PasswordType passwordType = null;
+			int securityScopeIndex = -1;
+			for (int a = parameterAnnotations.length; a-- > 0;) {
+				for (Annotation annotationOfParam : parameterAnnotations[a]) {
+					if (annotationOfParam instanceof SecurityContextUserName) {
+						if (userNameIndex != -1) {
+							throw new IllegalStateException(
+									"Annotation '" + SecurityContextUserName.class.getName()
+											+ "' ambiguous on method signature '" + method.toGenericString() + "'");
 						}
+						userNameIndex = a;
 					}
-					ISecurityScope securityScope =
-							securityScopeIndex == -1 ? StringSecurityScope.DEFAULT_SCOPE : null;
-					return new SecurityMethodMode(annotation.value(), userNameIndex, passwordIndex,
-							passwordType, securityScopeIndex, securityScope);
+					else if (annotationOfParam instanceof SecurityContextPassword) {
+						if (passwordIndex != -1) {
+							throw new IllegalStateException(
+									"Annotation '" + SecurityContextPassword.class.getName()
+											+ "' ambiguous on method signature '" + method.toGenericString() + "'");
+						}
+						passwordIndex = a;
+						passwordType = ((SecurityContextPassword) annotationOfParam).value();
+					}
+					else if (annotationOfParam instanceof SecurityContextScope) {
+						if (securityScopeIndex != -1) {
+							throw new IllegalStateException("Annotation '" + SecurityContextScope.class.getName()
+									+ "' ambiguous on method signature '" + method.toGenericString() + "'");
+						}
+						securityScopeIndex = a;
+					}
 				}
-			};
+			}
+			ISecurityScope securityScope = securityScopeIndex == -1 ? StringSecurityScope.DEFAULT_SCOPE
+					: null;
+			return new SecurityMethodMode(annotation.value(), userNameIndex, passwordIndex, passwordType,
+					securityScopeIndex, securityScope);
+		}
+	};
 
 	@Override
 	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory,
@@ -125,13 +117,13 @@ public class SecurityPostProcessor extends AbstractCascadePostProcessor
 		}
 		SecurityFilterInterceptor interceptor = new SecurityFilterInterceptor();
 		if (beanContext.isRunning()) {
-			IBeanRuntime<SecurityFilterInterceptor> interceptorBC =
-					beanContext.registerWithLifecycle(interceptor);
-			interceptorBC.propertyValue("MethodLevelBehaviour", behaviour);
+			IBeanRuntime<SecurityFilterInterceptor> interceptorBC = beanContext
+					.registerWithLifecycle(interceptor);
+			interceptorBC.propertyValue(SecurityFilterInterceptor.P_METHOD_LEVEL_BEHAVIOUR, behaviour);
 			return interceptorBC.finish();
 		}
 		IBeanConfiguration interceptorBC = beanContextFactory.registerWithLifecycle(interceptor);
-		interceptorBC.propertyValue("MethodLevelBehaviour", behaviour);
+		interceptorBC.propertyValue(SecurityFilterInterceptor.P_METHOD_LEVEL_BEHAVIOUR, behaviour);
 		return interceptor;
 
 	}

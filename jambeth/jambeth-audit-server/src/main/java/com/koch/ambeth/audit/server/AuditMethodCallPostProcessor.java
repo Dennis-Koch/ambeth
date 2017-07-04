@@ -48,40 +48,38 @@ public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor
 	@LogInstance
 	private ILogger log;
 
-	protected final AnnotationCache<Audited> annotationCache =
-			new AnnotationCache<Audited>(Audited.class) {
-				@Override
-				protected boolean annotationEquals(Audited left, Audited right) {
-					return true;
-				}
-			};
+	protected final AnnotationCache<Audited> annotationCache = new AnnotationCache<Audited>(
+			Audited.class) {
+		@Override
+		protected boolean annotationEquals(Audited left, Audited right) {
+			return true;
+		}
+	};
 
-	protected final IBehaviorTypeExtractor<Audited, AuditInfo> auditMethodExtractor =
-			new IBehaviorTypeExtractor<Audited, AuditInfo>() {
-				@Override
-				public AuditInfo extractBehaviorType(Audited annotation,
-						AnnotatedElement annotatedElement) {
-					AuditInfo auditInfo = new AuditInfo(annotation);
+	protected final IBehaviorTypeExtractor<Audited, AuditInfo> auditMethodExtractor = new IBehaviorTypeExtractor<Audited, AuditInfo>() {
+		@Override
+		public AuditInfo extractBehaviorType(Audited annotation, AnnotatedElement annotatedElement) {
+			AuditInfo auditInfo = new AuditInfo(annotation);
 
-					if (annotatedElement instanceof Method) {
-						Method method = (Method) annotatedElement;
-						Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-						AuditedArg[] auditedArgs = new AuditedArg[parameterAnnotations.length];
-						for (int i = 0; i < parameterAnnotations.length; i++) {
-							AuditedArg aaa = null;
-							for (Annotation parameterAnnotation : parameterAnnotations[i]) {
-								if (parameterAnnotation instanceof AuditedArg) {
-									aaa = (AuditedArg) parameterAnnotation;
-									break;
-								}
-							}
-							auditedArgs[i] = aaa;
+			if (annotatedElement instanceof Method) {
+				Method method = (Method) annotatedElement;
+				Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+				AuditedArg[] auditedArgs = new AuditedArg[parameterAnnotations.length];
+				for (int i = 0; i < parameterAnnotations.length; i++) {
+					AuditedArg aaa = null;
+					for (Annotation parameterAnnotation : parameterAnnotations[i]) {
+						if (parameterAnnotation instanceof AuditedArg) {
+							aaa = (AuditedArg) parameterAnnotation;
+							break;
 						}
-						auditInfo.setAuditedArgs(auditedArgs);
 					}
-					return auditInfo;
+					auditedArgs[i] = aaa;
 				}
-			};
+				auditInfo.setAuditedArgs(auditedArgs);
+			}
+			return auditInfo;
+		}
+	};
 
 	@Override
 	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory,
@@ -94,13 +92,13 @@ public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor
 		}
 		AuditMethodCallInterceptor interceptor = new AuditMethodCallInterceptor();
 		if (beanContext.isRunning()) {
-			IBeanRuntime<AuditMethodCallInterceptor> interceptorBC =
-					beanContext.registerWithLifecycle(interceptor);
-			interceptorBC.propertyValue("MethodLevelBehaviour", behaviour);
+			IBeanRuntime<AuditMethodCallInterceptor> interceptorBC = beanContext
+					.registerWithLifecycle(interceptor);
+			interceptorBC.propertyValue(AuditMethodCallInterceptor.P_METHOD_LEVEL_BEHAVIOUR, behaviour);
 			return interceptorBC.finish();
 		}
 		IBeanConfiguration interceptorBC = beanContextFactory.registerWithLifecycle(interceptor);
-		interceptorBC.propertyValue("MethodLevelBehaviour", behaviour);
+		interceptorBC.propertyValue(AuditMethodCallInterceptor.P_METHOD_LEVEL_BEHAVIOUR, behaviour);
 		return interceptor;
 	}
 

@@ -26,12 +26,10 @@ import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 
 public class HttpSessionModule implements IInitializingModule {
-
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean(HttpSessionBean.class).ignoreProperties("CurrentHttpSession")
+		beanContextFactory.registerBean(HttpSessionBean.class)
+				.ignoreProperties(HttpSessionBean.P_CURRENT_HTTP_SESSION)
 				.autowireable(HttpSession.class, IHttpSessionProvider.class);
-
 	}
-
 }

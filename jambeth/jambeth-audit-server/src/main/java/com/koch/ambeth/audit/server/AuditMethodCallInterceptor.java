@@ -25,8 +25,6 @@ import java.lang.reflect.Method;
 import com.koch.ambeth.audit.server.config.AuditConfigurationConstants;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.merge.ITransactionState;
 import com.koch.ambeth.security.audit.model.AuditedArg;
@@ -38,9 +36,7 @@ import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 import net.sf.cglib.proxy.MethodProxy;
 
 public class AuditMethodCallInterceptor extends CascadedInterceptor {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
+	public static final String P_METHOD_LEVEL_BEHAVIOUR = "MethodLevelBehaviour";
 
 	@Autowired
 	protected IMethodCallLogger methodCallLogger;

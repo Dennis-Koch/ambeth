@@ -30,19 +30,13 @@ import com.koch.ambeth.merge.security.ISecurityActivation;
 import com.koch.ambeth.merge.security.ISecurityScopeProvider;
 import com.koch.ambeth.security.DefaultAuthentication;
 import com.koch.ambeth.security.IAuthentication;
-import com.koch.ambeth.security.IAuthenticationManager;
-import com.koch.ambeth.security.IAuthenticationResult;
 import com.koch.ambeth.security.IAuthorization;
-import com.koch.ambeth.security.IAuthorizationManager;
 import com.koch.ambeth.security.ISecurityContext;
 import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.security.ISecurityManager;
-import com.koch.ambeth.security.ISidHelper;
 import com.koch.ambeth.security.PasswordType;
 import com.koch.ambeth.security.SecurityContextType;
 import com.koch.ambeth.security.StringSecurityScope;
-import com.koch.ambeth.security.server.exceptions.AuthenticationMissingException;
-import com.koch.ambeth.security.server.exceptions.InvalidUserException;
 import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
 import com.koch.ambeth.util.IConversionHelper;
@@ -85,7 +79,9 @@ public class SecurityFilterInterceptor extends CascadedInterceptor {
 		}
 	}
 
-	public static final String PROP_CHECK_METHOD_ACCESS = "CheckMethodAccess";
+	public static final String P_CHECK_METHOD_ACCESS = "CheckMethodAccess";
+
+	public static final String P_METHOD_LEVEL_BEHAVIOUR = "MethodLevelBehaviour";
 
 	private static final ThreadLocal<Boolean> ignoreInvalidUserTL = new ThreadLocal<>();
 
@@ -104,10 +100,7 @@ public class SecurityFilterInterceptor extends CascadedInterceptor {
 	private ILogger log;
 
 	@Autowired
-	protected IAuthenticationManager authenticationManager;
-
-	@Autowired(optional = true)
-	protected IAuthorizationExceptionFactory authorizationExceptionFactory;
+	protected IAuthorizationProcess authorizationProcess;
 
 	@Autowired
 	protected IConversionHelper conversionHelper;
@@ -126,12 +119,6 @@ public class SecurityFilterInterceptor extends CascadedInterceptor {
 
 	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;
-
-	@Autowired(optional = true)
-	protected ISidHelper sidHelper;
-
-	@Autowired
-	protected IAuthorizationManager authorizationManager;
 
 	@Property(defaultValue = "true")
 	protected boolean checkMethodAccess;
@@ -153,8 +140,8 @@ public class SecurityFilterInterceptor extends CascadedInterceptor {
 		IAuthorization previousAuthorization = null;
 		if (securityMethodMode.userNameIndex != -1) {
 			securityContext = securityContextHolder.getCreateContext();
-			String userName =
-					conversionHelper.convertValueToType(String.class, args[securityMethodMode.userNameIndex]);
+			String userName = conversionHelper.convertValueToType(String.class,
+					args[securityMethodMode.userNameIndex]);
 			char[] userPass = securityMethodMode.userPasswordIndex != -1 ? conversionHelper
 					.convertValueToType(char[].class, args[securityMethodMode.userPasswordIndex]) : null;
 			previousAuthentication = securityContext.getAuthentication();
@@ -178,10 +165,10 @@ public class SecurityFilterInterceptor extends CascadedInterceptor {
 				previousSecurityScopes = null;
 			}
 			else {
-				ISecurityScope securityScope =
-						securityScopeName.equals(StringSecurityScope.DEFAULT_SCOPE_NAME)
-								? StringSecurityScope.DEFAULT_SCOPE : new StringSecurityScope(securityScopeName);
-				securityScopeProvider.setSecurityScopes(new ISecurityScope[] {securityScope});
+				ISecurityScope securityScope = securityScopeName
+						.equals(StringSecurityScope.DEFAULT_SCOPE_NAME) ? StringSecurityScope.DEFAULT_SCOPE
+								: new StringSecurityScope(securityScopeName);
+				securityScopeProvider.setSecurityScopes(new ISecurityScope[] { securityScope });
 			}
 		}
 		else if (securityMethodMode.securityScope != null) {
@@ -192,71 +179,25 @@ public class SecurityFilterInterceptor extends CascadedInterceptor {
 			}
 			else {
 				securityScopeProvider
-						.setSecurityScopes(new ISecurityScope[] {securityMethodMode.securityScope});
+						.setSecurityScopes(new ISecurityScope[] { securityMethodMode.securityScope });
 			}
 		}
 		try {
-			if (securityContext == null) {
-				securityContext = securityContextHolder.getContext();
+			securityContext = securityContextHolder.getContext();
+			authorizationProcess.ensureAuthorization(behaviourOfMethod);
+			IAuthorization authorization = securityContext != null ? securityContext.getAuthorization()
+					: null;
+			// Check for authorized access if requested
+			if (checkMethodAccess && SecurityContextType.AUTHORIZED.equals(behaviourOfMethod)
+					&& securityActivation.isServiceSecurityEnabled()) {
+				securityManager.checkMethodAccess(method, args, behaviourOfMethod, authorization);
 			}
-			IAuthorization oldAuthorization =
-					securityContext != null ? securityContext.getAuthorization() : null;
-			IAuthorization authorization = null;
-			if (oldAuthorization == null && !SecurityContextType.NOT_REQUIRED.equals(behaviourOfMethod)) {
-				if (securityContext == null) {
-					securityContext = securityContextHolder.getCreateContext();
-				}
-				authorization = createAuthorization();
+			Object unfilteredResult = invokeTarget(obj, method, args, proxy);
+			if (!SecurityContextType.AUTHORIZED.equals(behaviourOfMethod)
+					|| !securityActivation.isFilterActivated()) {
+				return unfilteredResult;
 			}
-			else {
-				authorization = oldAuthorization;
-			}
-			if (authorization == null
-					|| (!Boolean.TRUE.equals(ignoreInvalidUserTL.get()) && !authorization.isValid())) {
-				if (!SecurityContextType.NOT_REQUIRED.equals(behaviourOfMethod)) {
-					IAuthentication authentication = getAuthentication();
-
-					if (authorizationExceptionFactory != null) {
-						Throwable authorizationException = authorizationExceptionFactory
-								.createAuthorizationException(authentication, authorization);
-						if (authorizationException != null) {
-							throw authorizationException;
-						}
-					}
-					String userName = authentication != null ? authentication.getUserName() : null;
-					String sid = authorization != null ? authorization.getSID() : null;
-
-					if (userName == null && sid == null) {
-						throw new AuthenticationMissingException(method);
-					}
-					throw new InvalidUserException(sid != null ? sid : userName);
-				}
-			}
-			ISecurityScope[] oldSecurityScopes = securityScopeProvider.getSecurityScopes();
-			if (oldAuthorization != authorization) {
-				securityContext.setAuthorization(authorization);
-			}
-			try {
-				// Check for authorized access if requested
-				if (checkMethodAccess && securityActivation.isServiceSecurityEnabled()
-						&& SecurityContextType.AUTHORIZED.equals(behaviourOfMethod)) {
-					securityManager.checkMethodAccess(method, args, behaviourOfMethod, authorization);
-				}
-				Object unfilteredResult = invokeTarget(obj, method, args, proxy);
-				if (!SecurityContextType.AUTHORIZED.equals(behaviourOfMethod)
-						|| !securityActivation.isFilterActivated()) {
-					return unfilteredResult;
-				}
-				return securityManager.filterValue(unfilteredResult);
-			}
-			finally {
-				// Important to restore the old security scopes again because within InvokeTarget it may
-				// have been modified
-				securityScopeProvider.setSecurityScopes(oldSecurityScopes);
-				if (oldAuthorization != authorization) {
-					securityContext.setAuthorization(oldAuthorization);
-				}
-			}
+			return securityManager.filterValue(unfilteredResult);
 		}
 		finally {
 			if (securityContext != null) {
@@ -264,34 +205,10 @@ public class SecurityFilterInterceptor extends CascadedInterceptor {
 				securityContext.setAuthorization(previousAuthorization);
 			}
 			if (previousSecurityScopes != null) {
+				// Important to restore the old security scopes again because within InvokeTarget it may
+				// have been modified
 				securityScopeProvider.setSecurityScopes(previousSecurityScopes);
 			}
 		}
-	}
-
-	protected IAuthentication getAuthentication() {
-		ISecurityContext currentSecurityContext = securityContextHolder.getContext();
-		return currentSecurityContext != null ? currentSecurityContext.getAuthentication() : null;
-	}
-
-	protected IAuthorization createAuthorization() throws Throwable {
-		IAuthentication authentication = getAuthentication();
-		IAuthorization authorization = null;
-
-		String sid = null;
-		final String databaseSid;
-		if (authentication != null) {
-			IAuthenticationResult authenticationResult =
-					authenticationManager.authenticate(authentication);
-			sid = authenticationResult.getSID();
-			databaseSid = sidHelper != null ? sidHelper.convertOperatingSystemSidToFrameworkSid(sid) : sid;
-
-			authorization = authorizationManager.authorize(databaseSid,
-					securityScopeProvider.getSecurityScopes(), authenticationResult);
-		}
-		else {
-			databaseSid = null;
-		}
-		return authorization;
 	}
 }

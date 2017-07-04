@@ -40,10 +40,6 @@ import com.koch.ambeth.filter.ISortDescriptor;
 import com.koch.ambeth.filter.query.service.IGenericQueryService;
 import com.koch.ambeth.mapping.IMapperService;
 import com.koch.ambeth.mapping.IMapperServiceFactory;
-import com.koch.ambeth.merge.cache.CacheFactoryDirective;
-import com.koch.ambeth.merge.cache.ICacheContext;
-import com.koch.ambeth.merge.cache.ICacheFactory;
-import com.koch.ambeth.merge.cache.IDisposableCache;
 import com.koch.ambeth.query.IQueryBuilderFactory;
 import com.koch.ambeth.query.squery.QueryBuilderBean;
 import com.koch.ambeth.query.squery.QueryUtils;
@@ -53,7 +49,6 @@ import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 @Path("/GenericQueryService")
 // @Consumes({ MediaType.TEXT_PLAIN })
@@ -75,7 +70,7 @@ public class GenericQueryREST extends AbstractServiceREST {
 	@Path("filter")
 	public StreamingOutput filter(InputStream is, @Context HttpServletRequest request,
 			final @Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		final IStateRollback rollback = preServiceCall(request, response);
 		try {
 			final Object[] args = getArguments(is, request);
 			// we need to maintain our own explicit 1st level cache: during serialization of
@@ -86,42 +81,44 @@ public class GenericQueryREST extends AbstractServiceREST {
 			// it is important that in each and every code-path (specifically
 			// on all ever possible errors) the custom cache gets really disposed at the end 100%
 			// consistently
-			ICacheContext cacheContext = getService(ICacheContext.class);
-			final IDisposableCache cache = getService(ICacheFactory.class)
-					.create(CacheFactoryDirective.NoDCE, "genericFilter");
+			// ICacheContext cacheContext = getService(ICacheContext.class);
+			// final IDisposableCache cache = getService(ICacheFactory.class)
+			// .create(CacheFactoryDirective.NoDCE, "genericFilter");
 			boolean success = false;
 			try {
-				StreamingOutput result = cacheContext.executeWithCache(cache,
-						new IResultingBackgroundWorkerDelegate<StreamingOutput>() {
+				// IStateRollback syncRollback = cacheContext.pushCache(cache);
+				// try {
+				IGenericQueryService genericQueryService = getService(IGenericQueryService.class);
+				IPagingResponse<?> result = genericQueryService.filter((IFilterDescriptor<?>) args[0],
+						(ISortDescriptor[]) args[1], (IPagingRequest) args[2]);
+				StreamingOutput streamingOutput = createResult(result, response,
+						new IBackgroundWorkerParamDelegate<Throwable>() {
 							@Override
-							public StreamingOutput invoke() throws Exception {
-								IGenericQueryService genericQueryService = getService(IGenericQueryService.class);
-								IPagingResponse<?> result = genericQueryService.filter(
-										(IFilterDescriptor<?>) args[0], (ISortDescriptor[]) args[1],
-										(IPagingRequest) args[2]);
-								return createResult(result, response,
-										new IBackgroundWorkerParamDelegate<Throwable>() {
-											@Override
-											public void invoke(Throwable e) throws Exception {
-												cache.dispose(); // on success this gets called also with "e = null"
-											}
-										}, true);
+							public void invoke(Throwable e) throws Exception {
+								// try {
+								// cache.dispose(); // on success this gets called also with "e = null"
+								// }
+								// finally {
+								rollback.rollback();
+								// }
 							}
-						});
+						}, true);
 				success = true;
-				return result;
+				return streamingOutput;
+				// }
+				// finally {
+				// syncRollback.rollback();
+				// }
 			}
 			finally {
 				if (!success) {
-					cache.dispose();
+					// cache.dispose();
+					rollback.rollback();
 				}
 			}
 		}
 		catch (Throwable e) {
 			return createExceptionResult(e, response);
-		}
-		finally {
-			rollback.rollback();
 		}
 	}
 

@@ -32,8 +32,6 @@ import com.koch.ambeth.ioc.ProcessorOrder;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.ioc.typeinfo.TypeInfoItemUtil;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.security.SecurityContextType;
 import com.koch.ambeth.security.server.SecurityFilterInterceptor;
 import com.koch.ambeth.service.cache.model.IObjRelationResult;
@@ -47,10 +45,6 @@ import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 
 public class CommittedRootCachePostProcessor extends AbstractCascadePostProcessor
 		implements IOrderedBeanProcessor {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Override
 	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory,
 			IServiceContext beanContext, IBeanConfiguration beanConfiguration, Class<?> type,
@@ -97,15 +91,14 @@ public class CommittedRootCachePostProcessor extends AbstractCascadePostProcesso
 		if (beanContext.isRunning()) {
 			IBeanRuntime<SecurityFilterInterceptor> interceptorBC = beanContext
 					.registerWithLifecycle(interceptor);
-			interceptorBC.propertyValue("MethodLevelBehaviour", behaviour)
-					.propertyValue(SecurityFilterInterceptor.PROP_CHECK_METHOD_ACCESS, Boolean.FALSE);
+			interceptorBC.propertyValue(SecurityFilterInterceptor.P_METHOD_LEVEL_BEHAVIOUR, behaviour)
+					.propertyValue(SecurityFilterInterceptor.P_CHECK_METHOD_ACCESS, Boolean.FALSE);
 			return interceptorBC.finish();
 		}
 		IBeanConfiguration interceptorBC = beanContextFactory.registerWithLifecycle(interceptor);
-		interceptorBC.propertyValue("MethodLevelBehaviour", behaviour)
-				.propertyValue(SecurityFilterInterceptor.PROP_CHECK_METHOD_ACCESS, Boolean.FALSE);
+		interceptorBC.propertyValue(SecurityFilterInterceptor.P_METHOD_LEVEL_BEHAVIOUR, behaviour)
+				.propertyValue(SecurityFilterInterceptor.P_CHECK_METHOD_ACCESS, Boolean.FALSE);
 		return interceptor;
-
 	}
 
 	@Override

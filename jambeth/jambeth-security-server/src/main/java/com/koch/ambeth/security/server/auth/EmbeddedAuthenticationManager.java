@@ -38,6 +38,7 @@ import com.koch.ambeth.security.server.IUserIdentifierProvider;
 import com.koch.ambeth.security.server.IUserResolver;
 import com.koch.ambeth.security.server.config.SecurityServerConfigurationConstants;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public class EmbeddedAuthenticationManager extends AbstractAuthenticationManager {
@@ -60,8 +61,7 @@ public class EmbeddedAuthenticationManager extends AbstractAuthenticationManager
 	@Autowired
 	protected ISecurityActivation securityActivation;
 
-	@Property(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive,
-			defaultValue = "true")
+	@Property(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive, defaultValue = "true")
 	protected boolean autoRehashPasswords;
 
 	@Override
@@ -69,18 +69,17 @@ public class EmbeddedAuthenticationManager extends AbstractAuthenticationManager
 			throws AuthenticationException {
 		IUser user;
 		try {
-			user = securityActivation
-					.executeWithoutFiltering(new IResultingBackgroundWorkerDelegate<IUser>() {
-						@Override
-						public IUser invoke() throws Exception {
-							IUser user = userResolver.resolveUserBySID(authentication.getUserName());
-							if (user != null) {
-								// enforce loading
-								user.getPassword();
-							}
-							return user;
-						}
-					});
+			IStateRollback rollback = securityActivation.pushWithoutSecurity();
+			try {
+				user = userResolver.resolveUserBySID(authentication.getUserName());
+				if (user != null) {
+					// enforce loading
+					user.getPassword();
+				}
+			}
+			finally {
+				rollback.rollback();
+			}
 		}
 		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
@@ -90,8 +89,8 @@ public class EmbeddedAuthenticationManager extends AbstractAuthenticationManager
 		}
 		try {
 			final IPassword password = user.getPassword();
-			final ICheckPasswordResult checkPasswordResult =
-					passwordUtil.checkClearTextPassword(authentication.getPassword(), password);
+			final ICheckPasswordResult checkPasswordResult = passwordUtil
+					.checkClearTextPassword(authentication.getPassword(), password);
 			if (!checkPasswordResult.isPasswordCorrect()) {
 				throw createAuthenticationException(authentication);
 			}
