@@ -51,11 +51,20 @@ public class AmbethServletAspect {
 
 	protected static final Pattern pattern = Pattern.compile("(.+) *\\: *(.+)");
 
+	protected IServiceContext beanContext;
+
 	public IServiceContext getServiceContext(ServletRequest request) {
+		if (beanContext != null) {
+			return beanContext;
+		}
 		HttpServletRequest httpRequest = (HttpServletRequest) request;
 		HttpSession session = httpRequest.getSession();
 		ServletContext servletContext = session.getServletContext();
 		return getServiceContext(servletContext);
+	}
+
+	public void setBeanContext(IServiceContext beanContext) {
+		this.beanContext = beanContext;
 	}
 
 	public IStateRollback pushServletAspectWithThreadLocals(final ServletRequest request,
