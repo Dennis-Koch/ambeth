@@ -123,16 +123,17 @@ public class AmbethServletAspect {
 		try {
 			// set the current http session
 			final IHttpSessionProvider httpSessionProvider = beanContext
-					.getService(IHttpSessionProvider.class);
-			final HttpSession oldSession = httpSessionProvider.getCurrentHttpSession();
-			httpSessionProvider.setCurrentHttpSession(session);
-			newRollbacks.add(new IStateRollback() {
-				@Override
-				public void rollback() {
-					httpSessionProvider.setCurrentHttpSession(oldSession);
-				}
-			});
-
+					.getService(IHttpSessionProvider.class, false);
+			if (httpSessionProvider != null) {
+				final HttpSession oldSession = httpSessionProvider.getCurrentHttpSession();
+				httpSessionProvider.setCurrentHttpSession(session);
+				newRollbacks.add(new IStateRollback() {
+					@Override
+					public void rollback() {
+						httpSessionProvider.setCurrentHttpSession(oldSession);
+					}
+				});
+			}
 			// set the current security scope
 			final ISecurityScopeProvider securityScopeProvider = beanContext
 					.getService(ISecurityScopeProvider.class);
