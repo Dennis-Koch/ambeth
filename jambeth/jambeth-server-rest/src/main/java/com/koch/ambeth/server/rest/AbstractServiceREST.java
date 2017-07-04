@@ -120,6 +120,7 @@ public abstract class AbstractServiceREST {
 		writeLock.lock();
 		try {
 			this.beanContext = beanContext;
+			aspect.setBeanContext(beanContext);
 			if (this.beanContext != null) {
 				// notify all paused threads that we now have a valid context (again)
 				rebuildContextCond.signalAll();
