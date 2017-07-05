@@ -23,8 +23,6 @@ limitations under the License.
 import java.util.regex.Pattern;
 
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.api.IFieldMetaData;
 import com.koch.ambeth.persistence.api.IPermissionGroup;
 import com.koch.ambeth.persistence.api.ITableMetaData;
@@ -48,10 +46,6 @@ public class PermissionGroup implements IPermissionGroup, IPrintable {
 	public static final String deletePermColumName = "DELETE";
 
 	public static final String userIdName = "USER_ID";
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Property
 	protected IFieldMetaData readPermissionField;

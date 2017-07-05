@@ -24,10 +24,8 @@ import com.koch.ambeth.ioc.DefaultExtendableContainer;
 import com.koch.ambeth.ioc.threadlocal.Forkable;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import com.koch.ambeth.service.model.ISecurityScope;
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
+import com.koch.ambeth.util.state.AbstractStateRollback;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
 public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurityScopeProvider,
@@ -69,55 +67,22 @@ public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurity
 	}
 
 	@Override
-	public <R, V> R executeWithSecurityScopes(IResultingBackgroundWorkerParamDelegate<R, V> runnable,
-			V state, ISecurityScope... securityScopes) throws Exception {
-		ISecurityScope[] oldSecurityScopes = getSecurityScopes();
-		try {
-			setSecurityScopes(securityScopes);
-			return runnable.invoke(state);
-		}
-		finally {
-			setSecurityScopes(oldSecurityScopes);
-		}
+	public IStateRollback pushSecurityScopes(ISecurityScope securityScope,
+			IStateRollback... rollbacks) {
+		return pushSecurityScopes(new ISecurityScope[] { securityScope }, rollbacks);
 	}
 
 	@Override
-	public <R> R executeWithSecurityScopes(IResultingBackgroundWorkerDelegate<R> runnable,
-			ISecurityScope... securityScopes) throws Exception {
-		ISecurityScope[] oldSecurityScopes = getSecurityScopes();
-		try {
-			setSecurityScopes(securityScopes);
-			return runnable.invoke();
-		}
-		finally {
-			setSecurityScopes(oldSecurityScopes);
-		}
-	}
-
-	@Override
-	public <V> void executeWithSecurityScopes(IBackgroundWorkerParamDelegate<V> runnable, V state,
-			ISecurityScope... securityScopes) throws Exception {
-		ISecurityScope[] oldSecurityScopes = getSecurityScopes();
-		try {
-			setSecurityScopes(securityScopes);
-			runnable.invoke(state);
-		}
-		finally {
-			setSecurityScopes(oldSecurityScopes);
-		}
-	}
-
-	@Override
-	public void executeWithSecurityScopes(IBackgroundWorkerDelegate runnable,
-			ISecurityScope... securityScopes) throws Exception {
-		ISecurityScope[] oldSecurityScopes = getSecurityScopes();
-		try {
-			setSecurityScopes(securityScopes);
-			runnable.invoke();
-		}
-		finally {
-			setSecurityScopes(oldSecurityScopes);
-		}
+	public IStateRollback pushSecurityScopes(ISecurityScope[] securityScopes,
+			IStateRollback... rollbacks) {
+		final ISecurityScope[] oldSecurityScopes = getSecurityScopes();
+		setSecurityScopes(securityScopes);
+		return new AbstractStateRollback(rollbacks) {
+			@Override
+			protected void rollbackIntern() throws Exception {
+				setSecurityScopes(oldSecurityScopes);
+			}
+		};
 	}
 
 	protected void notifySecurityScopeChangeListeners(SecurityScopeHandle securityScopeHandle) {

@@ -21,25 +21,14 @@ limitations under the License.
  */
 
 import com.koch.ambeth.service.model.ISecurityScope;
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
+import com.koch.ambeth.util.state.IStateRollback;
 
 public interface ISecurityScopeProvider {
 	ISecurityScope[] getSecurityScopes();
 
 	void setSecurityScopes(ISecurityScope[] securityScopes);
 
-	<R> R executeWithSecurityScopes(IResultingBackgroundWorkerDelegate<R> runnable,
-			ISecurityScope... securityScopes) throws Exception;
+	IStateRollback pushSecurityScopes(ISecurityScope securityScope, IStateRollback... rollbacks);
 
-	<R, V> R executeWithSecurityScopes(IResultingBackgroundWorkerParamDelegate<R, V> runnable,
-			V state, ISecurityScope... securityScopes) throws Exception;
-
-	void executeWithSecurityScopes(IBackgroundWorkerDelegate runnable,
-			ISecurityScope... securityScopes) throws Exception;
-
-	<V> void executeWithSecurityScopes(IBackgroundWorkerParamDelegate<V> runnable, V state,
-			ISecurityScope... securityScopes) throws Exception;
+	IStateRollback pushSecurityScopes(ISecurityScope[] securityScopes, IStateRollback... rollbacks);
 }

@@ -107,6 +107,7 @@ import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.collections.SmartCopySet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
@@ -416,7 +417,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 
 	@Override
 	@PersistenceContext(PersistenceContextType.REQUIRED)
-	public void updatePermissionGroups(final IDataChange dataChange) {
+	public void updatePermissionGroups(IDataChange dataChange) {
 		if (!securityActive) {
 			return;
 		}
@@ -437,113 +438,101 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 			}
 		} };
 
+		IStateRollback rollback = securityScopeProvider.pushSecurityScopes(securityScopes);
 		try {
-			Boolean pgUpdated = securityScopeProvider
-					.executeWithSecurityScopes(new IResultingBackgroundWorkerDelegate<Boolean>() {
-						@Override
-						public Boolean invoke() throws Exception {
-							return securityActivation
-									.executeWithoutFiltering(new IResultingBackgroundWorkerDelegate<Boolean>() {
-										@Override
-										public Boolean invoke() throws Exception {
-											IMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap = createPgUpdateMap(
-													dataChange);
-											if (entityToPgUpdateMap.isEmpty()) {
-												return Boolean.FALSE;
-											}
-											buildPermissionGroupMap(entityToPgUpdateMap, dataChange != null);
-											if (entityToPgUpdateMap.isEmpty()) {
-												return Boolean.FALSE;
-											}
-											multithreadingHelper.invokeAndWait(entityToPgUpdateMap,
-													new IBackgroundWorkerParamDelegate<Entry<Class<?>, PgUpdateEntry>>() {
-														@Override
-														public void invoke(Entry<Class<?>, PgUpdateEntry> entry)
-																throws Exception {
-															PgUpdateEntry pgUpdateEntry = entry.getValue();
-															IPermissionGroup permissionGroup = pgUpdateEntry.getPermissionGroup();
-															ITableMetaData table = permissionGroup.getTargetTable();
-															IList<IObjRef> objRefs;
-															switch (pgUpdateEntry.getUpdateType()) {
-																case SELECTED_ROW: {
-																	objRefs = loadSelectedObjRefs(pgUpdateEntry);
-																	break;
-																}
-																case EACH_ROW: {
-																	objRefs = loadAllObjRefsOfEntityTable(table, pgUpdateEntry);
-																	break;
-																}
-																default:
-																	throw RuntimeExceptionUtil.createEnumNotSupportedException(
-																			pgUpdateEntry.getUpdateType());
-															}
-															ArrayList<IObjRef> permissionObjRefs = new ArrayList<>(
-																	objRefs.size());
-															for (int a = objRefs.size(); a-- > 0;) {
-																permissionObjRefs.add(new ObjRef(IPermissionGroup.class,
-																		ObjRef.PRIMARY_KEY_INDEX, null, null));
-															}
-															primaryKeyProvider.acquireIds(permissionGroup.getTable(),
-																	permissionObjRefs);
-															ArrayList<Object> permissionGroupIds = new ArrayList<>(
-																	permissionObjRefs.size());
-															for (int a = 0, size = permissionObjRefs.size(); a < size; a++) {
-																permissionGroupIds.add(permissionObjRefs.get(a).getId());
-															}
-															updateEntityRows(objRefs, permissionGroupIds, permissionGroup, table);
-
-															pgUpdateEntry.setObjRefs(objRefs);
-															pgUpdateEntry.setPermissionGroupIds(permissionGroupIds);
-															if (log.isDebugEnabled()) {
-																log.debug("updated " + objRefs.size() + " entities of type '"
-																		+ table.getEntityType().getName() + "'");
-															}
-														}
-													});
-
-											String[] allSids = getAllSids();
-											ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
-
-											IAuthentication[] authentications = new IAuthentication[allSids.length];
-											final IAuthorization[] authorizations = new IAuthorization[allSids.length];
-
-											for (int a = allSids.length; a-- > 0;) {
-												String sid = allSids[a];
-												authentications[a] = new DefaultAuthentication(sid,
-														"dummyPass".toCharArray(), PasswordType.PLAIN);
-												authorizations[a] = mockAuthorization(sid, securityScopes);
-											}
-											ArrayList<IObjRef> allObjRefs = new ArrayList<>();
-											for (Entry<Class<?>, PgUpdateEntry> entry : entityToPgUpdateMap) {
-												PgUpdateEntry pgUpdateEntry = entry.getValue();
-												pgUpdateEntry.setStartIndexInAllObjRefs(allObjRefs.size());
-												allObjRefs.addAll(pgUpdateEntry.getObjRefs());
-											}
-											final IPrivilege[][] allPrivilegesOfAllUsers = evaluateAllPrivileges(
-													allObjRefs, authentications, authorizations);
-
-											multithreadingHelper.invokeAndWait(entityToPgUpdateMap,
-													new IBackgroundWorkerParamDelegate<Entry<Class<?>, PgUpdateEntry>>() {
-														@Override
-														public void invoke(Entry<Class<?>, PgUpdateEntry> entry)
-																throws Exception {
-															insertPermissionGroupsForUsers(entry.getValue(), authorizations,
-																	allPrivilegesOfAllUsers);
-														}
-													});
-											return Boolean.TRUE;
-										}
-									});
-						}
-					}, securityScopes);
+			rollback = securityActivation.pushWithoutFiltering(rollback);
+			Boolean pgUpdated = updatePermissionGroupsIntern(dataChange);
 			if (pgUpdated.booleanValue() && log.isDebugEnabled()) {
 				long spent = System.currentTimeMillis() - start;
 				log.debug(spent + "ms");
 			}
 		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
+		finally {
+			rollback.rollback();
 		}
+	}
+
+	protected Boolean updatePermissionGroupsIntern(IDataChange dataChange) {
+		IMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap = createPgUpdateMap(dataChange);
+		if (entityToPgUpdateMap.isEmpty()) {
+			return Boolean.FALSE;
+		}
+		buildPermissionGroupMap(entityToPgUpdateMap, dataChange != null);
+		if (entityToPgUpdateMap.isEmpty()) {
+			return Boolean.FALSE;
+		}
+		multithreadingHelper.invokeAndWait(entityToPgUpdateMap,
+				new IBackgroundWorkerParamDelegate<Entry<Class<?>, PgUpdateEntry>>() {
+					@Override
+					public void invoke(Entry<Class<?>, PgUpdateEntry> entry) throws Exception {
+						PgUpdateEntry pgUpdateEntry = entry.getValue();
+						IPermissionGroup permissionGroup = pgUpdateEntry.getPermissionGroup();
+						ITableMetaData table = permissionGroup.getTargetTable();
+						IList<IObjRef> objRefs;
+						switch (pgUpdateEntry.getUpdateType()) {
+							case SELECTED_ROW: {
+								objRefs = loadSelectedObjRefs(pgUpdateEntry);
+								break;
+							}
+							case EACH_ROW: {
+								objRefs = loadAllObjRefsOfEntityTable(table, pgUpdateEntry);
+								break;
+							}
+							default:
+								throw RuntimeExceptionUtil
+										.createEnumNotSupportedException(pgUpdateEntry.getUpdateType());
+						}
+						ArrayList<IObjRef> permissionObjRefs = new ArrayList<>(objRefs.size());
+						for (int a = objRefs.size(); a-- > 0;) {
+							permissionObjRefs
+									.add(new ObjRef(IPermissionGroup.class, ObjRef.PRIMARY_KEY_INDEX, null, null));
+						}
+						primaryKeyProvider.acquireIds(permissionGroup.getTable(), permissionObjRefs);
+						ArrayList<Object> permissionGroupIds = new ArrayList<>(permissionObjRefs.size());
+						for (int a = 0, size = permissionObjRefs.size(); a < size; a++) {
+							permissionGroupIds.add(permissionObjRefs.get(a).getId());
+						}
+						updateEntityRows(objRefs, permissionGroupIds, permissionGroup, table);
+
+						pgUpdateEntry.setObjRefs(objRefs);
+						pgUpdateEntry.setPermissionGroupIds(permissionGroupIds);
+						if (log.isDebugEnabled()) {
+							log.debug("updated " + objRefs.size() + " entities of type '"
+									+ table.getEntityType().getName() + "'");
+						}
+					}
+				});
+
+		String[] allSids = getAllSids();
+		ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
+
+		IAuthentication[] authentications = new IAuthentication[allSids.length];
+		final IAuthorization[] authorizations = new IAuthorization[allSids.length];
+
+		for (int a = allSids.length; a-- > 0;) {
+			String sid = allSids[a];
+			authentications[a] = new DefaultAuthentication(sid, "dummyPass".toCharArray(),
+					PasswordType.PLAIN);
+			authorizations[a] = mockAuthorization(sid, securityScopes);
+		}
+		ArrayList<IObjRef> allObjRefs = new ArrayList<>();
+		for (Entry<Class<?>, PgUpdateEntry> entry : entityToPgUpdateMap) {
+			PgUpdateEntry pgUpdateEntry = entry.getValue();
+			pgUpdateEntry.setStartIndexInAllObjRefs(allObjRefs.size());
+			allObjRefs.addAll(pgUpdateEntry.getObjRefs());
+		}
+		final IPrivilege[][] allPrivilegesOfAllUsers = evaluateAllPrivileges(allObjRefs,
+				authentications, authorizations);
+
+		multithreadingHelper.invokeAndWait(entityToPgUpdateMap,
+				new IBackgroundWorkerParamDelegate<Entry<Class<?>, PgUpdateEntry>>() {
+					@Override
+					public void invoke(Entry<Class<?>, PgUpdateEntry> entry) throws Exception {
+						insertPermissionGroupsForUsers(entry.getValue(), authorizations,
+								allPrivilegesOfAllUsers);
+					}
+				});
+		return Boolean.TRUE;
 	}
 
 	protected IQuery<?> getAllEntitiesQuery(Class<?> entityType) {

@@ -28,8 +28,7 @@ import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 public class HttpSessionModule implements IInitializingModule {
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean(HttpSessionBean.class)
-				.ignoreProperties(HttpSessionBean.P_CURRENT_HTTP_SESSION)
-				.autowireable(HttpSession.class, IHttpSessionProvider.class);
+		beanContextFactory.registerBean(HttpSessionBean.class).autowireable(HttpSession.class,
+				IHttpSessionProvider.class);
 	}
 }

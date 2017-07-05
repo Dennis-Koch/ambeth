@@ -51,7 +51,6 @@ import com.koch.ambeth.service.cache.model.IObjRelationResult;
 import com.koch.ambeth.service.cache.model.IServiceResult;
 import com.koch.ambeth.service.cache.transfer.ServiceResult;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.service.model.IServiceDescription;
 import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.ParamChecker;
@@ -62,6 +61,8 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
+import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.state.NoOpStateRollback;
 
 import net.sf.cglib.proxy.Factory;
 
@@ -69,13 +70,13 @@ public class CacheService implements ICacheService, IInitializingBean, ExecuteSe
 	@LogInstance
 	private ILogger log;
 
-	protected final AnnotationCache<QueryBehavior> queryBehaviorCache =
-			new AnnotationCache<QueryBehavior>(QueryBehavior.class) {
-				@Override
-				protected boolean annotationEquals(QueryBehavior left, QueryBehavior right) {
-					return EqualsUtil.equals(left.value(), right.value());
-				}
-			};
+	protected final AnnotationCache<QueryBehavior> queryBehaviorCache = new AnnotationCache<QueryBehavior>(
+			QueryBehavior.class) {
+		@Override
+		protected boolean annotationEquals(QueryBehavior left, QueryBehavior right) {
+			return EqualsUtil.equals(left.value(), right.value());
+		}
+	};
 
 	@Autowired
 	protected ICache cache;
@@ -177,18 +178,15 @@ public class CacheService implements ICacheService, IInitializingBean, ExecuteSe
 	public IServiceResult getORIsForServiceRequest(IServiceDescription serviceDescription) {
 		ParamChecker.assertParamNotNull(serviceDescription, "serviceDescription");
 
-		ISecurityScope[] oldSecurityScopes = null;
+		IStateRollback rollback = NoOpStateRollback.instance;
 		if (securityScopeProvider != null) {
-			oldSecurityScopes = securityScopeProvider.getSecurityScopes();
-			securityScopeProvider.setSecurityScopes(serviceDescription.getSecurityScopes());
+			rollback = securityScopeProvider.pushSecurityScopes(serviceDescription.getSecurityScopes());
 		}
 		try {
 			return serviceResultCache.getORIsOfService(serviceDescription, this);
 		}
 		finally {
-			if (securityScopeProvider != null) {
-				securityScopeProvider.setSecurityScopes(oldSecurityScopes);
-			}
+			rollback.rollback();
 		}
 	}
 
@@ -255,8 +253,8 @@ public class CacheService implements ICacheService, IInitializingBean, ExecuteSe
 				postCallServiceResult = new ServiceResult(oris);
 			}
 			if (result != null) {
-				IServiceResultProcessor serviceResultProcessor =
-						serviceResultProcessorRegistry.getServiceResultProcessor(result.getClass());
+				IServiceResultProcessor serviceResultProcessor = serviceResultProcessorRegistry
+						.getServiceResultProcessor(result.getClass());
 				if (serviceResultProcessor != null) {
 					// If the given result can be processed, set the result as additional information
 					((ServiceResult) postCallServiceResult).setAdditionalInformation(result);

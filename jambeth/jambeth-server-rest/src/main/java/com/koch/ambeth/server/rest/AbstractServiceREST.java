@@ -65,6 +65,7 @@ import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.MaskingRuntimeException;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.io.FastByteArrayOutputStream;
+import com.koch.ambeth.util.state.AbstractStateRollback;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.xml.ICyclicXMLHandler;
@@ -121,6 +122,7 @@ public abstract class AbstractServiceREST {
 		try {
 			this.beanContext = beanContext;
 			aspect.setBeanContext(beanContext);
+			log = null;
 			if (this.beanContext != null) {
 				// notify all paused threads that we now have a valid context (again)
 				rebuildContextCond.signalAll();
@@ -215,7 +217,31 @@ public abstract class AbstractServiceREST {
 
 	protected IStateRollback preServiceCall(final HttpServletRequest request,
 			HttpServletResponse response) {
-		return aspect.pushServletAspectWithThreadLocals(request, response);
+		final ILogger log = getLog();
+		final String path = log.isDebugEnabled() ? request.getMethod() + " " + request.getRequestURI()
+				: null;
+		if (path != null) {
+			log.debug("Enter: " + path);
+		}
+		boolean success = false;
+		IStateRollback rollback = aspect.pushServletAspectWithThreadLocals(request, response);
+		try {
+			if (path != null) {
+				rollback = new AbstractStateRollback(rollback) {
+					@Override
+					protected void rollbackIntern() throws Exception {
+						log.debug("Exit:  " + path);
+					}
+				};
+			}
+			success = true;
+			return rollback;
+		}
+		finally {
+			if (!success) {
+				rollback.rollback();
+			}
+		}
 	}
 
 	protected <T> T getService(Class<T> serviceType) {
@@ -281,7 +307,10 @@ public abstract class AbstractServiceREST {
 				&& e.getMessage() == null) {
 			e = e.getCause();
 		}
-		logException(e, null);
+		IServiceContext beanContext = this.beanContext;
+		if (beanContext != null && beanContext.isRunning() && !beanContext.isDisposing()) {
+			logException(e, null);
+		}
 		AmbethServiceException result = new AmbethServiceException();
 		StringBuilder sb = new StringBuilder();
 		AmbethLogger.extractFullStackTrace(e, sb);
