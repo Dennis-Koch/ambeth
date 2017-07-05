@@ -184,7 +184,9 @@ public class SecurityFilterInterceptor extends CascadedInterceptor {
 		}
 		try {
 			securityContext = securityContextHolder.getContext();
-			authorizationProcess.ensureAuthorization(behaviourOfMethod);
+			if (!SecurityContextType.NOT_REQUIRED.equals(behaviourOfMethod)) {
+				authorizationProcess.ensureAuthorization();
+			}
 			IAuthorization authorization = securityContext != null ? securityContext.getAuthorization()
 					: null;
 			// Check for authorized access if requested

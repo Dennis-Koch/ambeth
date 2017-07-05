@@ -13,7 +13,6 @@ import com.koch.ambeth.security.IAuthorizationManager;
 import com.koch.ambeth.security.ISecurityContext;
 import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.security.ISidHelper;
-import com.koch.ambeth.security.SecurityContextType;
 import com.koch.ambeth.security.events.AuthorizationMissingEvent;
 import com.koch.ambeth.security.server.exceptions.AuthenticationMissingException;
 import com.koch.ambeth.security.server.exceptions.InvalidUserException;
@@ -60,9 +59,8 @@ public class AuthorizationProcess implements IAuthorizationProcess {
 	protected IAuthorizationManager authorizationManager;
 
 	@Override
-	public void ensureAuthorization(SecurityContextType securityContextType) {
-		if (SecurityContextType.NOT_REQUIRED.equals(securityContextType)
-				|| !securityActivation.isSecured()) {
+	public void ensureAuthorization() {
+		if (!securityActivation.isSecured()) {
 			return;
 		}
 		ISecurityContext securityContext = securityContextHolder.getContext();
@@ -130,6 +128,6 @@ public class AuthorizationProcess implements IAuthorizationProcess {
 	}
 
 	public void handleAuthorizationMissing(AuthorizationMissingEvent evnt) {
-		ensureAuthorization(SecurityContextType.AUTHENTICATED);
+		ensureAuthorization();
 	}
 }

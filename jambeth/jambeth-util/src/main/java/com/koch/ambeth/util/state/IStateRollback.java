@@ -51,5 +51,7 @@ limitations under the License.
  * </pre>
  */
 public interface IStateRollback {
+	public static final IStateRollback[] EMPTY_ROLLBACKS = new IStateRollback[0];
+
 	void rollback();
 }

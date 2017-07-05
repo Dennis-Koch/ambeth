@@ -25,13 +25,12 @@ import com.koch.ambeth.security.PasswordType;
 import com.koch.ambeth.security.StringSecurityScope;
 import com.koch.ambeth.server.rest.config.WebServiceConfigurationConstants;
 import com.koch.ambeth.server.webservice.IHttpSessionProvider;
-import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.util.Base64;
 import com.koch.ambeth.util.IConversionHelper;
-import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.state.AbstractStateRollback;
 import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.state.NoOpStateRollback;
 
 public class AmbethServletAspect {
 	public static final String ATTRIBUTE_AUTHENTICATION_HANDLE = "ambeth.authentication.handle";
@@ -92,8 +91,7 @@ public class AmbethServletAspect {
 		ILogger log = beanContext.getService(ILoggerCache.class).getCachedLogger(beanContext,
 				AmbethServletAspect.class);
 
-		ArrayList<IStateRollback> newRollbacks = new ArrayList<>(3);
-
+		IStateRollback rollback = NoOpStateRollback.instance;
 		final ISecurityContextHolder securityContextHolder = beanContext
 				.getService(ISecurityContextHolder.class, false);
 		if (securityContextHolder == null) {
@@ -112,12 +110,12 @@ public class AmbethServletAspect {
 			else {
 				reuseValidSessionAuthentication(securityContextHolder, httpRequest, log);
 			}
-			newRollbacks.add(new IStateRollback() {
+			rollback = new AbstractStateRollback(rollback) {
 				@Override
-				public void rollback() {
+				protected void rollbackIntern() throws Exception {
 					securityContextHolder.clearContext();
 				}
-			});
+			};
 		}
 		boolean success = false;
 		try {
@@ -125,45 +123,19 @@ public class AmbethServletAspect {
 			final IHttpSessionProvider httpSessionProvider = beanContext
 					.getService(IHttpSessionProvider.class, false);
 			if (httpSessionProvider != null) {
-				final HttpSession oldSession = httpSessionProvider.getCurrentHttpSession();
-				httpSessionProvider.setCurrentHttpSession(session);
-				newRollbacks.add(new IStateRollback() {
-					@Override
-					public void rollback() {
-						httpSessionProvider.setCurrentHttpSession(oldSession);
-					}
-				});
+				rollback = httpSessionProvider.pushCurrentHttpSession(session, rollback);
 			}
 			// set the current security scope
 			final ISecurityScopeProvider securityScopeProvider = beanContext
 					.getService(ISecurityScopeProvider.class);
-			final ISecurityScope[] oldSecurityScopes = securityScopeProvider.getSecurityScopes();
-			securityScopeProvider
-					.setSecurityScopes(new ISecurityScope[] { StringSecurityScope.DEFAULT_SCOPE });
-			newRollbacks.add(new IStateRollback() {
-				@Override
-				public void rollback() {
-					securityScopeProvider.setSecurityScopes(oldSecurityScopes);
-				}
-			});
-			ArrayList<IStateRollback> allRollbacks = new ArrayList<>(
-					rollbacks.length + newRollbacks.size());
-			allRollbacks.addAll(rollbacks);
-			allRollbacks.addAll(newRollbacks);
-
-			IStateRollback returnedRollback = new AbstractStateRollback(
-					allRollbacks.toArray(IStateRollback.class)) {
-				@Override
-				protected void rollbackIntern() throws Exception {
-					// intended blank
-				}
-			};
+			rollback = securityScopeProvider.pushSecurityScopes(StringSecurityScope.DEFAULT_SCOPE,
+					rollback);
 			success = true;
-			return returnedRollback;
+			return rollback;
 		}
 		finally {
 			if (!success) {
-				AbstractStateRollback.executeRollbacksReverse(newRollbacks);
+				rollback.rollback();
 			}
 		}
 	}

@@ -22,8 +22,10 @@ limitations under the License.
 
 import javax.servlet.http.HttpSession;
 
+import com.koch.ambeth.util.state.IStateRollback;
+
 public interface IHttpSessionProvider {
 	HttpSession getCurrentHttpSession();
 
-	void setCurrentHttpSession(HttpSession httpSession);
+	IStateRollback pushCurrentHttpSession(HttpSession httpSession, IStateRollback... rollbacks);
 }

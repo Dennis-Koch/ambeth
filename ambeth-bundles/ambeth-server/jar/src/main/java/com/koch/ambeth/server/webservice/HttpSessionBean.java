@@ -30,15 +30,14 @@ import com.koch.ambeth.ioc.threadlocal.Forkable;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 import com.koch.ambeth.util.proxy.IProxyFactory;
+import com.koch.ambeth.util.state.AbstractStateRollback;
+import com.koch.ambeth.util.state.IStateRollback;
 
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 
 public class HttpSessionBean
 		implements IFactoryBean, MethodInterceptor, IHttpSessionProvider, IThreadLocalCleanupBean {
-
-	public static final String P_CURRENT_HTTP_SESSION = "CurrentHttpSession";
-
 	@Autowired
 	protected IProxyFactory proxyFactory;
 
@@ -68,8 +67,16 @@ public class HttpSessionBean
 	}
 
 	@Override
-	public void setCurrentHttpSession(HttpSession httpSession) {
+	public IStateRollback pushCurrentHttpSession(HttpSession httpSession,
+			IStateRollback... rollbacks) {
+		final HttpSession oldHttpSession = getCurrentHttpSession();
 		httpSessionStackTL.set(httpSession);
+		return new AbstractStateRollback(rollbacks) {
+			@Override
+			protected void rollbackIntern() throws Exception {
+				httpSessionStackTL.set(oldHttpSession);
+			}
+		};
 	}
 
 	@Override

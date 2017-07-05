@@ -25,8 +25,6 @@ limitations under the License.
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public abstract class AbstractStateRollback implements IStateRollback {
-	public static final IStateRollback[] EMPTY_ROLLBACKS = new IStateRollback[0];
-
 	public static void executeRollbacksReverse(IStateRollback rollbacks) {
 		if (rollbacks != null) {
 			rollbacks.rollback();
@@ -63,7 +61,10 @@ public abstract class AbstractStateRollback implements IStateRollback {
 
 	private boolean rollbackCalled;
 
-	public AbstractStateRollback(IStateRollback[] rollbacks) {
+	public AbstractStateRollback(IStateRollback... rollbacks) {
+		if (rollbacks == null || rollbacks.length == 0) {
+			rollbacks = EMPTY_ROLLBACKS;
+		}
 		this.rollbacks = rollbacks;
 	}
 
