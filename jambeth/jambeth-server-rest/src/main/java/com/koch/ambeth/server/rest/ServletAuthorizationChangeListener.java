@@ -22,26 +22,23 @@ limitations under the License.
 
 import javax.servlet.http.HttpSession;
 
-import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.security.IAuthorization;
 import com.koch.ambeth.security.IAuthorizationChangeListener;
 import com.koch.ambeth.server.webservice.IHttpSessionProvider;
 
 public class ServletAuthorizationChangeListener implements IAuthorizationChangeListener {
-	@Autowired
-	protected IServiceContext beanContext;
+	@Autowired(optional = true)
+	protected IHttpSessionProvider httpSessionProvider;
 
 	@Override
 	public void authorizationChanged(IAuthorization authorization) {
-		if (authorization == null) {
+		if (authorization == null || httpSessionProvider == null) {
 			return;
 		}
-		IHttpSessionProvider httpSessionProvider = beanContext.getService(IHttpSessionProvider.class,
-				false);
-		if (httpSessionProvider != null && httpSessionProvider.getCurrentHttpSession() != null) {
-			beanContext.getService(HttpSession.class)
-					.setAttribute(AmbethServletAspect.ATTRIBUTE_AUTHORIZATION_HANDLE, authorization);
+		HttpSession httpSession = httpSessionProvider.getCurrentHttpSession();
+		if (httpSession != null) {
+			httpSession.setAttribute(AmbethServletAspect.ATTRIBUTE_AUTHORIZATION_HANDLE, authorization);
 		}
 	}
 }
