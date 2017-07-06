@@ -41,6 +41,7 @@ import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
 import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IConversionHelper;
+import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
 
 import net.sf.cglib.proxy.MethodProxy;
@@ -133,6 +134,9 @@ public class SecurityFilterInterceptor extends CascadedInterceptor {
 	protected IMethodLevelBehavior<SecurityMethodMode> methodLevelBehaviour;
 
 	@Autowired
+	protected IProperties props;
+
+	@Autowired
 	protected ISecurityActivation securityActivation;
 
 	@Autowired
@@ -166,8 +170,15 @@ public class SecurityFilterInterceptor extends CascadedInterceptor {
 			securityContext = securityContextHolder.getCreateContext();
 			String userName = conversionHelper.convertValueToType(String.class,
 					args[securityMethodMode.userNameIndex]);
-			char[] userPass = securityMethodMode.userPasswordIndex != -1 ? conversionHelper
-					.convertValueToType(char[].class, args[securityMethodMode.userPasswordIndex]) : null;
+			String userPasswordString = securityMethodMode.userPasswordIndex != -1 ? conversionHelper
+					.convertValueToType(String.class, args[securityMethodMode.userPasswordIndex]) : null;
+
+			// handle potential variables in the string
+			userName = props.resolvePropertyParts(userName);
+			userPasswordString = props.resolvePropertyParts(userPasswordString);
+
+			char[] userPass = userPasswordString != null
+					? conversionHelper.convertValueToType(char[].class, userPasswordString) : null;
 			previousAuthentication = securityContext.getAuthentication();
 			previousAuthorization = securityContext.getAuthorization();
 			securityContext.setAuthentication(
