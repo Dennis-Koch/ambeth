@@ -21,6 +21,7 @@ limitations under the License.
  */
 
 import com.koch.ambeth.service.model.ISecurityScope;
+import com.koch.ambeth.util.EqualsUtil;
 
 public class StringSecurityScope implements ISecurityScope {
 	public static final String DEFAULT_SCOPE_NAME = "defaultScope";
@@ -41,5 +42,22 @@ public class StringSecurityScope implements ISecurityScope {
 	@Override
 	public String toString() {
 		return getName();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == this) {
+			return true;
+		}
+		if (!(obj instanceof StringSecurityScope)) {
+			return false;
+		}
+		StringSecurityScope other = (StringSecurityScope) obj;
+		return EqualsUtil.equals(getName(), other.getName());
+	}
+
+	@Override
+	public int hashCode() {
+		return getClass().hashCode() ^ getName().hashCode();
 	}
 }

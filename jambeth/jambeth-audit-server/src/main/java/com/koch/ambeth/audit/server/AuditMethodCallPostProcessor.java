@@ -59,6 +59,9 @@ public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor
 	protected final IBehaviorTypeExtractor<Audited, AuditInfo> auditMethodExtractor = new IBehaviorTypeExtractor<Audited, AuditInfo>() {
 		@Override
 		public AuditInfo extractBehaviorType(Audited annotation, AnnotatedElement annotatedElement) {
+			if (annotation == null) {
+				return null;
+			}
 			AuditInfo auditInfo = new AuditInfo(annotation);
 
 			if (annotatedElement instanceof Method) {
