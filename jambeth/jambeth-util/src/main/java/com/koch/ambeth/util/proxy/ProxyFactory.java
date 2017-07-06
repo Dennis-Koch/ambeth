@@ -1,5 +1,9 @@
 package com.koch.ambeth.util.proxy;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
 /*-
  * #%L
  * jambeth-util
@@ -36,7 +40,7 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
 		implements IProxyFactory {
 	protected static final Class<?>[] emptyInterfaces = new Class[0];
 
-	protected static final Callback[] emptyCallbacks = new Callback[] {NoOp.INSTANCE};
+	protected static final Callback[] emptyCallbacks = new Callback[] { NoOp.INSTANCE };
 
 	protected IClassLoaderProvider classLoaderProvider;
 
@@ -69,7 +73,7 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
 		Enhancer enhancer = new Enhancer();
 		enhancer.setClassLoader(classLoaderProvider.getClassLoader());
 		if (type.isInterface()) {
-			enhancer.setInterfaces(new Class<?>[] {type});
+			enhancer.setInterfaces(new Class<?>[] { type });
 		}
 		else {
 			enhancer.setSuperclass(type);
@@ -153,7 +157,28 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
 		enhancer.setClassLoader(classLoaderProvider.getClassLoader());
 		enhancer.setInterfaces(interfaces);
 		enhancer.setCallbacks(interceptors);
-		Object proxy = enhancer.create();
+
+		Object proxy;
+		try {
+			proxy = enhancer.create();
+		}
+		catch (RuntimeException | Error e) {
+			if (interceptors.length != 1) {
+				throw e;
+			}
+			final MethodInterceptor interceptor = interceptors[0];
+			if (interceptor instanceof InvocationHandler) {
+				return Proxy.newProxyInstance(interfaces[0].getClassLoader(), interfaces,
+						(InvocationHandler) interceptor);
+			}
+			return Proxy.newProxyInstance(interfaces[0].getClassLoader(), interfaces,
+					new InvocationHandler() {
+						@Override
+						public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+							return interceptor.intercept(proxy, method, args, null);
+						}
+					});
+		}
 		put(key, (Class<? extends Factory>) proxy.getClass());
 		return proxy;
 	}

@@ -141,7 +141,7 @@ public class QueryInterceptor extends CascadedInterceptor {
 
 	protected Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy,
 			String lowerCaseMethodName, Boolean isAsyncBegin) throws Throwable {
-		if (target instanceof ISquery && Modifier.isAbstract(method.getModifiers())
+		if (getTarget() instanceof ISquery && Modifier.isAbstract(method.getModifiers())
 				&& QueryUtils.canBuildQuery(method.getName())) {
 			QueryBuilderBean<?> queryBuilderBean = getOrCreateQueryBuilderBean(method);
 			try {
@@ -287,7 +287,8 @@ public class QueryInterceptor extends CascadedInterceptor {
 		finally {
 			writeLock.unlock();
 		}
-		Class<?> entityType = (Class<?>) GenericTypeUtils.getGenericParam(target, ISquery.class)[0];
+		Class<?> entityType = (Class<?>) GenericTypeUtils.getGenericParam(getTarget(),
+				ISquery.class)[0];
 		queryBuilderBean = QueryUtils.buildQuery(method.getName(), entityType);
 		// double check to make thread safe and not influence the speed
 		writeLock.lock();

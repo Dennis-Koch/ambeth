@@ -23,7 +23,7 @@
 		<checkstyle.properties>${jambeth.path.test}/checkstyle.properties</checkstyle.properties>
 		<findbugs.file>${jambeth.path.test}/findbugs_exclude_checks.xml</findbugs.file>
 		<deployment.release.url>ambeth-releases</deployment.release.url>
-		<deployment.snapshot.url>ambeth-snapshots</deployment.snapshot.url>		
+		<deployment.snapshot.url>ambeth-snapshots</deployment.snapshot.url>
 	</properties>
 
 	<scm>

@@ -60,7 +60,7 @@ public abstract class AbstractSimpleInterceptor implements MethodInterceptor {
 			return Boolean.TRUE;
 		}
 		if (hashCodeMethod.equals(method)) {
-			return proxy.hashCode();
+			return proxy.invokeSuper(obj, args);
 		}
 		try {
 			return interceptIntern(obj, method, args, proxy);
