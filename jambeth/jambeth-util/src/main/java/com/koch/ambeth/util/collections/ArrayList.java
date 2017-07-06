@@ -513,9 +513,12 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T[] toArray(final T[] targetArray) {
+	public <T> T[] toArray(T[] targetArray) {
 		int size = this.size;
 		Object[] array = this.array;
+		if (targetArray.length < size) {
+			targetArray = (T[]) Array.newInstance(targetArray.getClass().getComponentType(), size);
+		}
 		for (int a = size; a-- > 0;) {
 			targetArray[a] = (T) array[a];
 		}

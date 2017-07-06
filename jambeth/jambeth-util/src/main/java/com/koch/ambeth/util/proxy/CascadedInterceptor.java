@@ -1,5 +1,7 @@
 package com.koch.ambeth.util.proxy;
 
+import java.lang.reflect.InvocationHandler;
+
 /*-
  * #%L
  * jambeth-util
@@ -27,7 +29,7 @@ import net.sf.cglib.proxy.MethodProxy;
 
 public abstract class CascadedInterceptor extends AbstractSimpleInterceptor
 		implements ICascadedInterceptor {
-	protected Object target;
+	private Object target;
 
 	@Override
 	public Object getTarget() {
@@ -41,8 +43,12 @@ public abstract class CascadedInterceptor extends AbstractSimpleInterceptor
 
 	protected Object invokeTarget(Object obj, Method method, Object[] args, MethodProxy proxy)
 			throws Throwable {
+		Object target = getTarget();
 		if (target instanceof MethodInterceptor) {
 			return ((MethodInterceptor) target).intercept(obj, method, args, proxy);
+		}
+		if (target instanceof InvocationHandler) {
+			return ((InvocationHandler) target).invoke(proxy, method, args);
 		}
 		return proxy.invoke(target, args);
 	}
