@@ -47,6 +47,8 @@ import com.koch.ambeth.util.collections.Tuple2KeyEntry;
 import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 
 public abstract class AbstractAuthorization implements IAuthorization {
+	private static final IServicePermission[] EMPTY_SERVICE_PERMISSIONS = new IServicePermission[0];
+
 	private final IEntityMetaDataProvider entityMetaDataProvider;
 
 	private final ISecurityScope[] securityScopes;
@@ -149,14 +151,21 @@ public abstract class AbstractAuthorization implements IAuthorization {
 
 	protected IServicePermission[] getServicePermissions(ISecurityScope[] securityScopes) {
 		if (securityScopes.length == 1) {
-			return servicePermissions.get(securityScopes[0]);
+			IServicePermission[] servicePermissions = this.servicePermissions.get(securityScopes[0]);
+			if (servicePermissions == null) {
+				return EMPTY_SERVICE_PERMISSIONS;
+			}
 		}
 		LinkedHashSet<IServicePermission> servicePermissionSet = new LinkedHashSet<>();
 		for (int a = 0, size = securityScopes.length; a < size; a++) {
 			IServicePermission[] oneServicePermissions = servicePermissions.get(securityScopes[a]);
+			if (oneServicePermissions == null) {
+				continue;
+			}
 			servicePermissionSet.addAll(oneServicePermissions);
 		}
-		return servicePermissionSet.toArray(IServicePermission.class);
+		return servicePermissionSet.size() == 0 ? EMPTY_SERVICE_PERMISSIONS
+				: servicePermissionSet.toArray(IServicePermission.class);
 	}
 
 	@Override

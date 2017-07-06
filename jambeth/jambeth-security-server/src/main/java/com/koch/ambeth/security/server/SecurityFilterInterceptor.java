@@ -39,6 +39,7 @@ import com.koch.ambeth.security.SecurityContextType;
 import com.koch.ambeth.security.StringSecurityScope;
 import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
+import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
 
@@ -76,6 +77,29 @@ public class SecurityFilterInterceptor extends CascadedInterceptor {
 			this.passwordType = passwordType;
 			this.securityScopeIndex = securityScopeIndex;
 			this.securityScope = securityScope;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj == this) {
+				return true;
+			}
+			if (!(obj instanceof SecurityMethodMode)) {
+				return false;
+			}
+			SecurityMethodMode other = (SecurityMethodMode) obj;
+			return EqualsUtil.equals(securityContextType, other.securityContextType)
+					&& userNameIndex == other.userNameIndex && userPasswordIndex == other.userPasswordIndex
+					&& EqualsUtil.equals(passwordType, other.passwordType)
+					&& securityScopeIndex == other.securityScopeIndex
+					&& EqualsUtil.equals(securityScope, other.securityScope);
+		}
+
+		@Override
+		public int hashCode() {
+			return securityContextType.hashCode() ^ userNameIndex ^ userPasswordIndex
+					^ passwordType.hashCode() ^ securityScopeIndex
+					^ (securityScope != null ? securityScope.hashCode() : 1);
 		}
 	}
 

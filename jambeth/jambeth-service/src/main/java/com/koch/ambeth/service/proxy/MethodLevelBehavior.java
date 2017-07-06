@@ -89,16 +89,17 @@ public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T> {
 		for (int a = methods.length; a-- > 0;) {
 			Method method = methods[a];
 			A annotationOnMethod = annotationCache.getAnnotation(method);
-			if (annotationOnMethod != null) {
-				if (methodLevelBehaviour == null) {
-					methodLevelBehaviour = new MethodLevelHashMap<>();
-				}
-				T behaviourTypeOnMethod = behaviourTypeExtractor.extractBehaviorType(annotationOnMethod,
-						method);
-				if (behaviourTypeOnMethod != null) {
-					methodLevelBehaviour.put(method.getName(), method.getParameterTypes(),
-							behaviourTypeOnMethod);
-				}
+			if (annotationOnMethod == null) {
+				annotationOnMethod = annotation;
+			}
+			if (methodLevelBehaviour == null) {
+				methodLevelBehaviour = new MethodLevelHashMap<>();
+			}
+			T behaviourTypeOnMethod = behaviourTypeExtractor.extractBehaviorType(annotationOnMethod,
+					method);
+			if (behaviourTypeOnMethod != null && !behaviourTypeOnMethod.equals(defaultBehaviour)) {
+				methodLevelBehaviour.put(method.getName(), method.getParameterTypes(),
+						behaviourTypeOnMethod);
 			}
 		}
 		if (methodLevelBehaviour == null || methodLevelBehaviour.size() == 0) {
