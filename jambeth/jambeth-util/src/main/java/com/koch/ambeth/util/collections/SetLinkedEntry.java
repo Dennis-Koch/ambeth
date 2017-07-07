@@ -44,6 +44,11 @@ public class SetLinkedEntry<K> extends AbstractListElem<SetLinkedEntry<K>>
 	}
 
 	@Override
+	public boolean isValid() {
+		return true;
+	}
+
+	@Override
 	public K getKey() {
 		return key;
 	}

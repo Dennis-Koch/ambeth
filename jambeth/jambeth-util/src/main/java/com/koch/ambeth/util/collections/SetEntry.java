@@ -37,6 +37,11 @@ public class SetEntry<K> implements ISetEntry<K>, IPrintable {
 	}
 
 	@Override
+	public boolean isValid() {
+		return true;
+	}
+
+	@Override
 	public K getKey() {
 		return key;
 	}

@@ -26,4 +26,6 @@ public interface ISetEntry<K> {
 	K getKey();
 
 	ISetEntry<K> getNextEntry();
+
+	boolean isValid();
 }

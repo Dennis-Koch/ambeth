@@ -126,6 +126,21 @@ public class WeakHashSet<K> extends AbstractHashSet<K> {
 	}
 
 	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T[] toArray(T[] array) {
+		Iterator<K> iter = iterator();
+		int index = 0;
+		while (iter.hasNext()) {
+			K key = iter.next();
+			if (key == null) {
+				continue;
+			}
+			array[index++] = (T) key;
+		}
+		return array;
+	}
+
+	@SuppressWarnings("unchecked")
 	public void checkForCleanup() {
 		ISetEntry<K>[] table = this.table;
 		int tableLengthMinusOne = table.length - 1;

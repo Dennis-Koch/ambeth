@@ -31,6 +31,9 @@ public class MapLinkedIterator<K, V> extends AbstractIterator<Entry<K, V>> {
 		super(removeAllowed);
 		this.hashMap = hashMap;
 		currPointer = hashMap.fastIterationList.getFirstElem();
+		while (currPointer != null && !currPointer.isValid()) {
+			currPointer = currPointer.next;
+		}
 	}
 
 	@Override
@@ -42,6 +45,9 @@ public class MapLinkedIterator<K, V> extends AbstractIterator<Entry<K, V>> {
 	public final MapLinkedEntry<K, V> next() {
 		lastPointer = currPointer;
 		currPointer = currPointer.next;
+		while (currPointer != null && !currPointer.isValid()) {
+			currPointer = currPointer.next;
+		}
 		return lastPointer;
 	}
 

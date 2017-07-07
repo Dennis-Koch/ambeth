@@ -37,9 +37,12 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
  *
  * @author kochd
  *
- * @param <E> Typ der Entrys der Set
- * @param <K> Typ der Keys
- * @param <V> Typ der Values
+ * @param <E>
+ *          Typ der Entrys der Set
+ * @param <K>
+ *          Typ der Keys
+ * @param <V>
+ *          Typ der Values
  */
 public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable, Cloneable {
 	public static final int DEFAULT_INITIAL_CAPACITY = 16;
@@ -177,9 +180,9 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable, Cloneab
 	 * If current capacity is MAXIMUM_CAPACITY, this method does not resize the map, but sets
 	 * threshold to Integer.MAX_VALUE. This has the effect of preventing future calls.
 	 *
-	 * @param newCapacity the new capacity, MUST be a power of two; must be greater than current
-	 *        capacity unless current capacity is MAXIMUM_CAPACITY (in which case value is
-	 *        irrelevant).
+	 * @param newCapacity
+	 *          the new capacity, MUST be a power of two; must be greater than current capacity unless
+	 *          current capacity is MAXIMUM_CAPACITY (in which case value is irrelevant).
 	 */
 	protected void resize(final int newCapacity) {
 		final ISetEntry<K>[] oldTable = table;
@@ -560,7 +563,9 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable, Cloneab
 		for (int a = table.length; a-- > 0;) {
 			ISetEntry<K> entry = table[a];
 			while (entry != null) {
-				array[index++] = (T) entry.getKey();
+				if (entry.isValid()) {
+					array[index++] = (T) entry.getKey();
+				}
 				entry = entry.getNextEntry();
 			}
 		}
@@ -580,7 +585,9 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable, Cloneab
 		for (int a = table.length; a-- > 0;) {
 			ISetEntry<K> entry = table[a];
 			while (entry != null) {
-				list.add(entry.getKey());
+				if (entry.isValid()) {
+					list.add(entry.getKey());
+				}
 				entry = entry.getNextEntry();
 			}
 		}

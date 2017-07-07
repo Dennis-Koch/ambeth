@@ -43,6 +43,9 @@ public class MapIterator<WrappedK, K, V> extends AbstractIterator<Entry<K, V>> {
 		IMapEntry<K, V>[] table = this.table;
 		while (index-- > 0) {
 			IMapEntry<K, V> entry = table[index];
+			while (entry != null && !entry.isValid()) {
+				entry = entry.getNextEntry();
+			}
 			if (entry != null) {
 				this.index = index;
 				return entry;
@@ -60,6 +63,9 @@ public class MapIterator<WrappedK, K, V> extends AbstractIterator<Entry<K, V>> {
 	public Entry<K, V> next() {
 		currEntry = nextEntry;
 		IMapEntry<K, V> nextEntry = currEntry != null ? currEntry.getNextEntry() : null;
+		while (nextEntry != null && !nextEntry.isValid()) {
+			nextEntry = nextEntry.getNextEntry();
+		}
 		if (nextEntry != null) {
 			this.nextEntry = nextEntry;
 		}

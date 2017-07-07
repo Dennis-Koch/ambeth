@@ -43,6 +43,11 @@ public class WeakValueMapEntry<K, V> extends WeakReference<V>
 	}
 
 	@Override
+	public boolean isValid() {
+		return true;
+	}
+
+	@Override
 	public K getKey() {
 		return key;
 	}

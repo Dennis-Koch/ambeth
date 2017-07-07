@@ -31,8 +31,10 @@ import com.koch.ambeth.util.StringBuilderUtil;
  *
  * @author kochd
  *
- * @param <K> Der Typ des Keys
- * @param <V> Der Typ des Values
+ * @param <K>
+ *          Der Typ des Keys
+ * @param <V>
+ *          Der Typ des Values
  */
 public class MapEntry<K, V> implements IMapEntry<K, V>, IPrintable {
 	protected final int hash;
@@ -49,6 +51,11 @@ public class MapEntry<K, V> implements IMapEntry<K, V>, IPrintable {
 		this.nextEntry = nextEntry;
 		this.key = key;
 		this.value = value;
+	}
+
+	@Override
+	public boolean isValid() {
+		return true;
 	}
 
 	@Override

@@ -39,6 +39,11 @@ public class WeakSetEntry<K> extends WeakReference<K> implements ISetEntry<K>, I
 	}
 
 	@Override
+	public boolean isValid() {
+		return get() != null;
+	}
+
+	@Override
 	public int getHash() {
 		return hash;
 	}
