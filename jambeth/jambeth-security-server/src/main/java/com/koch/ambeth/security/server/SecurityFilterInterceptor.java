@@ -177,8 +177,7 @@ public class SecurityFilterInterceptor extends CascadedInterceptor {
 			userName = props.resolvePropertyParts(userName);
 			userPasswordString = props.resolvePropertyParts(userPasswordString);
 
-			char[] userPass = userPasswordString != null
-					? conversionHelper.convertValueToType(char[].class, userPasswordString) : null;
+			char[] userPass = conversionHelper.convertValueToType(char[].class, userPasswordString);
 			previousAuthentication = securityContext.getAuthentication();
 			previousAuthorization = securityContext.getAuthorization();
 			securityContext.setAuthentication(

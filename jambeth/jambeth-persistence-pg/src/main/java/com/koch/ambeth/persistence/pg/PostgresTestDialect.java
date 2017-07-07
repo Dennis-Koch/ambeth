@@ -35,6 +35,8 @@ import com.koch.ambeth.ioc.IocModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.BeanContextFactory;
+import com.koch.ambeth.log.ILogger;
+import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.persistence.IColumnEntry;
 import com.koch.ambeth.persistence.PermissionGroup;
@@ -54,6 +56,9 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 	public static final String ROOT_DATABASE_USER = "ambeth.root.database.user";
 
 	public static final String ROOT_DATABASE_PASS = "ambeth.root.database.pass";
+
+	@LogInstance
+	private ILogger log;
 
 	@Autowired
 	protected ISqlBuilder sqlBuilder;
@@ -145,7 +150,16 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 			for (String schemaName : schemaNames) {
 				stm.execute("CREATE SCHEMA IF NOT EXISTS \"" + schemaName + "\"");
 				// stm.execute("CREATE DOMAIN \"" + schemaName + "\".lo AS oid");
-				stm.execute("CREATE EXTENSION IF NOT EXISTS lo SCHEMA \"" + schemaName + "\"");
+				try {
+					stm.execute("CREATE EXTENSION IF NOT EXISTS lo SCHEMA \"" + schemaName + "\"");
+				}
+				catch (Exception e) {
+					if (log.isWarnEnabled()) {
+						log.warn(
+								"LOB extension could not be initialized. Later DDLs containing BLOB or CLOB columns will fail",
+								e);
+					}
+				}
 			}
 			stm.execute("SET SCHEMA '" + schemaNames[0] + "'");
 		}
