@@ -66,6 +66,7 @@ public class SignatureUtil implements ISignatureUtil {
 				synchronized (this) {
 					if (keyGen == null) {
 						keyGen = KeyPairGenerator.getInstance(keyFactoryAlgorithm);
+						keyGen.initialize(keySize, secureRandom.getSecureRandomHandle());
 					}
 				}
 			}
@@ -73,8 +74,11 @@ public class SignatureUtil implements ISignatureUtil {
 			// important that the keyFactoryAlgorithm matches the keyGenerator algorithm here
 			newEmptySignature.getSignAndVerify().setKeyFactoryAlgorithm(keyFactoryAlgorithm);
 
-			keyGen.initialize(keySize, secureRandom.getSecureRandomHandle());
-			KeyPair pair = keyGen.generateKeyPair();
+			KeyPair pair;
+			synchronized (keyGen) {
+				// cannot be 100 percent sure if the keyGen is thread-safe, so we synchronize it here
+				pair = keyGen.generateKeyPair();
+			}
 
 			byte[] unencryptedPrivateKey = pair.getPrivate().getEncoded();
 			byte[] encryptedPrivateKey = pbEncryptor.encrypt(newEmptySignature.getPBEConfiguration(),
