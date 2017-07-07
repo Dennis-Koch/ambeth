@@ -25,7 +25,6 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -33,8 +32,6 @@ import java.security.spec.X509EncodedKeySpec;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.security.model.IPBEConfiguration;
 import com.koch.ambeth.security.model.ISignAndVerify;
 import com.koch.ambeth.security.model.ISignature;
@@ -44,19 +41,16 @@ import com.koch.ambeth.util.codec.Base64;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class SignatureUtil implements IInitializingBean, ISignatureUtil {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IPBEncryptor pbEncryptor;
 
-	@Property(name = SecurityServerConfigurationConstants.SignatureAlgorithmName,
-			defaultValue = "SHA1withECDSA")
+	@Autowired
+	protected ISecureRandom secureRandom;
+
+	@Property(name = SecurityServerConfigurationConstants.SignatureAlgorithmName, defaultValue = "SHA1withECDSA")
 	protected String algorithm;
 
-	@Property(name = SecurityServerConfigurationConstants.SignatureKeyAlgorithmName,
-			defaultValue = "EC")
+	@Property(name = SecurityServerConfigurationConstants.SignatureKeyAlgorithmName, defaultValue = "EC")
 	protected String keyFactoryAlgorithm;
 
 	@Property(name = SecurityServerConfigurationConstants.SignatureKeySize, defaultValue = "384")
@@ -64,12 +58,9 @@ public class SignatureUtil implements IInitializingBean, ISignatureUtil {
 
 	protected KeyPairGenerator keyGen;
 
-	protected SecureRandom random;
-
 	@Override
 	public void afterPropertiesSet() throws Throwable {
 		keyGen = KeyPairGenerator.getInstance(keyFactoryAlgorithm);
-		random = SecureRandom.getInstance("SHA1PRNG");
 	}
 
 	@Override
@@ -80,7 +71,7 @@ public class SignatureUtil implements IInitializingBean, ISignatureUtil {
 			// important that the keyFactoryAlgorithm matches the keyGenerator algorithm here
 			newEmptySignature.getSignAndVerify().setKeyFactoryAlgorithm(keyFactoryAlgorithm);
 
-			keyGen.initialize(keySize, random);
+			keyGen.initialize(keySize, secureRandom.getSecureRandomHandle());
 			KeyPair pair = keyGen.generateKeyPair();
 
 			byte[] unencryptedPrivateKey = pair.getPrivate().getEncoded();
@@ -102,8 +93,8 @@ public class SignatureUtil implements IInitializingBean, ISignatureUtil {
 		try {
 			byte[] encryptedPrivateKey = Base64.decode(signature.getPrivateKey());
 			IPBEConfiguration pbec = signature.getPBEConfiguration();
-			byte[] decryptedPrivateKey =
-					pbEncryptor.decrypt(pbec, oldClearTextPassword, encryptedPrivateKey);
+			byte[] decryptedPrivateKey = pbEncryptor.decrypt(pbec, oldClearTextPassword,
+					encryptedPrivateKey);
 			pbec.setPaddedKeyAlgorithm(null);
 			pbec.setPaddedKeyIterations(0);
 			pbec.setPaddedKeySize(0);
@@ -112,8 +103,8 @@ public class SignatureUtil implements IInitializingBean, ISignatureUtil {
 			pbec.setEncryptionAlgorithm(null);
 			pbec.setEncryptionKeySpec(null);
 			pbec.setEncryptionKeyIV(null);
-			encryptedPrivateKey =
-					pbEncryptor.encrypt(pbec, true, newClearTextPassword, decryptedPrivateKey);
+			encryptedPrivateKey = pbEncryptor.encrypt(pbec, true, newClearTextPassword,
+					decryptedPrivateKey);
 			signature.setPrivateKey(Base64.encodeBytes(encryptedPrivateKey).toCharArray());
 		}
 		catch (Exception e) {
@@ -128,9 +119,9 @@ public class SignatureUtil implements IInitializingBean, ISignatureUtil {
 			PKCS8EncodedKeySpec decryptedPrivateKeySpec = new PKCS8EncodedKeySpec(privateKey);
 			KeyFactory keyFactory = KeyFactory.getInstance(signAndVerify.getKeyFactoryAlgorithm());
 			PrivateKey privateKeyHandle = keyFactory.generatePrivate(decryptedPrivateKeySpec);
-			Signature jSignature =
-					java.security.Signature.getInstance(signAndVerify.getSignatureAlgorithm());
-			jSignature.initSign(privateKeyHandle, random);
+			Signature jSignature = java.security.Signature
+					.getInstance(signAndVerify.getSignatureAlgorithm());
+			jSignature.initSign(privateKeyHandle, secureRandom.getSecureRandomHandle());
 			return jSignature;
 		}
 		catch (Exception e) {
@@ -145,8 +136,8 @@ public class SignatureUtil implements IInitializingBean, ISignatureUtil {
 			X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKey);
 			KeyFactory keyFactory = KeyFactory.getInstance(signAndVerify.getKeyFactoryAlgorithm());
 			PublicKey publicKeyHandle = keyFactory.generatePublic(keySpec);
-			Signature jSignature =
-					java.security.Signature.getInstance(signAndVerify.getSignatureAlgorithm());
+			Signature jSignature = java.security.Signature
+					.getInstance(signAndVerify.getSignatureAlgorithm());
 			jSignature.initVerify(publicKeyHandle);
 			return jSignature;
 		}

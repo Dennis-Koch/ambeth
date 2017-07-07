@@ -100,6 +100,9 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 	protected IPrivilegeProvider privilegeProvider;
 
 	@Autowired
+	protected ISecureRandom secureRandom;
+
+	@Autowired
 	protected ISecurityContextHolder securityContextHolder;
 
 	@Autowired
@@ -396,8 +399,8 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		char[] newClearTextPassword = null;
 		while (true) {
 			// we use the secure salt implementation as our random "clearTextPassword"
-			newClearTextPassword = Base64.encodeBytes(PasswordSalts.nextSalt(generatedPasswordLength))
-					.toCharArray();
+			newClearTextPassword = Base64
+					.encodeBytes(secureRandom.acquireRandomBytes(generatedPasswordLength)).toCharArray();
 
 			if (!isPasswordUsedInHistory(newClearTextPassword, passwordHistory)) {
 				break;
@@ -502,7 +505,8 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		password.setIterationCount(iterationCount);
 		password.setKeySize(keySize);
 		password.setSaltLength(saltLength);
-		encryptSalt(password, PasswordSalts.nextSalt(password.getSaltLength()), loginSaltPassword);
+		encryptSalt(password, secureRandom.acquireRandomBytes(password.getSaltLength()),
+				loginSaltPassword);
 		try {
 			byte[] hashedPassword = hashClearTextPassword(newClearTextPassword, password);
 			password.setValue(Base64.encodeBytes(hashedPassword).toCharArray());

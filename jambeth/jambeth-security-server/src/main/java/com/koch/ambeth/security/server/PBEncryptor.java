@@ -29,40 +29,33 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.security.model.IPBEConfiguration;
 import com.koch.ambeth.security.server.config.SecurityServerConfigurationConstants;
 import com.koch.ambeth.util.codec.Base64;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class PBEncryptor implements IPBEncryptor {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
+	@Autowired
+	protected ISecureRandom secureRandom;
 
 	@Property(name = SecurityServerConfigurationConstants.EncryptionKeySpecName, defaultValue = "AES")
 	protected String encryptionKeySpec;
 
-	@Property(name = SecurityServerConfigurationConstants.EncryptionAlgorithmName,
-			defaultValue = "AES/CBC/PKCS5Padding")
+	@Property(name = SecurityServerConfigurationConstants.EncryptionAlgorithmName, defaultValue = "AES/CBC/PKCS5Padding")
 	protected String encryptionAlgorithm;
 
-	@Property(name = SecurityServerConfigurationConstants.EncryptionPaddedKeyAlgorithmName,
-			defaultValue = "PBKDF2WithHmacSHA1")
+	@Property(name = SecurityServerConfigurationConstants.EncryptionPaddedKeyAlgorithmName, defaultValue = "PBKDF2WithHmacSHA1")
 	protected String paddedKeyAlgorithm;
 
-	@Property(name = SecurityServerConfigurationConstants.EncryptionPaddedKeyIterationCount,
-			defaultValue = "8192")
+	@Property(name = SecurityServerConfigurationConstants.EncryptionPaddedKeyIterationCount, defaultValue = "8192")
 	protected int paddedKeyIterations;
 
-	@Property(name = SecurityServerConfigurationConstants.EncryptionPaddedKeySize,
-			defaultValue = "128")
+	@Property(name = SecurityServerConfigurationConstants.EncryptionPaddedKeySize, defaultValue = "128")
 	protected int paddedKeySize;
 
-	@Property(name = SecurityServerConfigurationConstants.EncryptionPaddedKeySaltSize,
-			defaultValue = "128")
+	@Property(name = SecurityServerConfigurationConstants.EncryptionPaddedKeySaltSize, defaultValue = "128")
 	protected int paddedKeySaltSize;
 
 	@Override
@@ -122,8 +115,8 @@ public class PBEncryptor implements IPBEncryptor {
 			byte[] paddedPassword = doPaddingForPassword(pbeConfiguration, clearTextPassword);
 
 			// decrypt the private key
-			SecretKeySpec keySpec =
-					new SecretKeySpec(paddedPassword, pbeConfiguration.getEncryptionKeySpec());
+			SecretKeySpec keySpec = new SecretKeySpec(paddedPassword,
+					pbeConfiguration.getEncryptionKeySpec());
 			Cipher cipher = Cipher.getInstance(pbeConfiguration.getEncryptionAlgorithm());
 			cipher.init(Cipher.DECRYPT_MODE, keySpec,
 					new IvParameterSpec(Base64.decode(pbeConfiguration.getEncryptionKeyIV())));
@@ -148,7 +141,7 @@ public class PBEncryptor implements IPBEncryptor {
 			}
 			if (forceUseSalt) {
 				if (pbeConfiguration.getPaddedKeySalt() == null) {
-					byte[] salt = PasswordSalts.nextSalt(paddedKeySaltSize / 8);
+					byte[] salt = secureRandom.acquireRandomBytes(paddedKeySaltSize / 8);
 					pbeConfiguration.setPaddedKeySaltSize(paddedKeySaltSize);
 					pbeConfiguration.setPaddedKeySalt(Base64.encodeBytes(salt).toCharArray());
 				}
@@ -169,12 +162,12 @@ public class PBEncryptor implements IPBEncryptor {
 			// now we encrypt the private key with the password of the user - this is the reason why we
 			// can only generate signatures either
 			// during a login of a user or during new user account creation.
-			SecretKeySpec keySpec =
-					new SecretKeySpec(paddedPassword, pbeConfiguration.getEncryptionKeySpec());
+			SecretKeySpec keySpec = new SecretKeySpec(paddedPassword,
+					pbeConfiguration.getEncryptionKeySpec());
 			Cipher cipher = Cipher.getInstance(pbeConfiguration.getEncryptionAlgorithm());
 
 			if (pbeConfiguration.getEncryptionKeyIV() == null) {
-				byte[] initVector = PasswordSalts.nextSalt(cipher.getBlockSize());
+				byte[] initVector = secureRandom.acquireRandomBytes(cipher.getBlockSize());
 				pbeConfiguration.setEncryptionKeyIV(Base64.encodeBytes(initVector).toCharArray());
 			}
 			cipher.init(Cipher.ENCRYPT_MODE, keySpec,
