@@ -29,7 +29,6 @@ import java.security.Signature;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.security.model.IPBEConfiguration;
@@ -40,7 +39,7 @@ import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.codec.Base64;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class SignatureUtil implements IInitializingBean, ISignatureUtil {
+public class SignatureUtil implements ISignatureUtil {
 	@Autowired
 	protected IPBEncryptor pbEncryptor;
 
@@ -59,14 +58,17 @@ public class SignatureUtil implements IInitializingBean, ISignatureUtil {
 	protected KeyPairGenerator keyGen;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable {
-		keyGen = KeyPairGenerator.getInstance(keyFactoryAlgorithm);
-	}
-
-	@Override
 	public void generateNewSignature(ISignature newEmptySignature, char[] clearTextPassword) {
 		ParamChecker.assertParamNotNull(clearTextPassword, "clearTextPassword");
+
 		try {
+			if (keyGen == null) {
+				synchronized (this) {
+					if (keyGen == null) {
+						keyGen = KeyPairGenerator.getInstance(keyFactoryAlgorithm);
+					}
+				}
+			}
 			newEmptySignature.getSignAndVerify().setSignatureAlgorithm(algorithm);
 			// important that the keyFactoryAlgorithm matches the keyGenerator algorithm here
 			newEmptySignature.getSignAndVerify().setKeyFactoryAlgorithm(keyFactoryAlgorithm);
