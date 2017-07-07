@@ -34,8 +34,10 @@ import com.koch.ambeth.util.StringBuilderUtil;
  *
  * @author kochd
  *
- * @param <K> Der Typ der in der Map enthaltenen Keys
- * @param <V> Der Typ der in der Map enthaltenen Values
+ * @param <K>
+ *          Der Typ der in der Map enthaltenen Keys
+ * @param <V>
+ *          Der Typ der in der Map enthaltenen Values
  */
 public abstract class AbstractLinkedSet<K> extends AbstractHashSet<K> implements ILinkedSet<K> {
 	protected final GenericFastList<SetLinkedEntry<K>> fastIterationList;
@@ -55,7 +57,7 @@ public abstract class AbstractLinkedSet<K> extends AbstractHashSet<K> implements
 		this(initialCapacity, DEFAULT_LOAD_FACTOR, entryClass);
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public AbstractLinkedSet(int initialCapacity, float loadFactor,
 			final Class<? extends ISetEntry> entryClass) {
 		super(initialCapacity, loadFactor, entryClass);
@@ -100,7 +102,9 @@ public abstract class AbstractLinkedSet<K> extends AbstractHashSet<K> implements
 	public void toList(Collection<K> list) {
 		SetLinkedEntry<K> pointer = fastIterationList.getFirstElem();
 		while (pointer != null) {
-			list.add(pointer.getKey());
+			if (pointer.isValid()) {
+				list.add(pointer.getKey());
+			}
 			pointer = pointer.getNext();
 		}
 	}
@@ -141,7 +145,9 @@ public abstract class AbstractLinkedSet<K> extends AbstractHashSet<K> implements
 		int index = 0;
 		SetLinkedEntry<K> entry = fastIterationList.getFirstElem();
 		while (entry != null) {
-			array[index++] = (T) entry.getKey();
+			if (entry.isValid()) {
+				array[index++] = (T) entry.getKey();
+			}
 			entry = entry.getNext();
 		}
 		return array;
@@ -153,13 +159,15 @@ public abstract class AbstractLinkedSet<K> extends AbstractHashSet<K> implements
 		boolean first = true;
 		SetLinkedEntry<K> pointer = fastIterationList.getFirstElem();
 		while (pointer != null) {
-			if (first) {
-				first = false;
+			if (pointer.isValid()) {
+				if (first) {
+					first = false;
+				}
+				else {
+					sb.append(',');
+				}
+				StringBuilderUtil.appendPrintable(sb, pointer);
 			}
-			else {
-				sb.append(',');
-			}
-			StringBuilderUtil.appendPrintable(sb, pointer);
 			pointer = pointer.getNext();
 		}
 		sb.append(']');

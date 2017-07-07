@@ -33,8 +33,10 @@ import com.koch.ambeth.util.StringBuilderUtil;
  *
  * @author kochd
  *
- * @param <K> Der Typ des Keys
- * @param <V> Der Typ des Values
+ * @param <K>
+ *          Der Typ des Keys
+ * @param <V>
+ *          Der Typ des Values
  */
 public class WeakMapEntry<K, V> extends WeakReference<K> implements IMapEntry<K, V>, IPrintable {
 	protected final int hash;
@@ -49,6 +51,11 @@ public class WeakMapEntry<K, V> extends WeakReference<K> implements IMapEntry<K,
 		this.hash = hash;
 		this.nextEntry = nextEntry;
 		this.value = value;
+	}
+
+	@Override
+	public boolean isValid() {
+		return get() != null;
 	}
 
 	@Override

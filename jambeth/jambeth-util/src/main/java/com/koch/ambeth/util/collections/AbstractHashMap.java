@@ -37,9 +37,12 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
  * Abstrakte HashMap als Basisklasse fuer verschiedene spezialisierte Anwendungsfaelle
  *
  * @author kochd
- * @param <E> Typ der Entrys der Map
- * @param <K> Typ der Keys
- * @param <V> Typ der Values
+ * @param <E>
+ *          Typ der Entrys der Map
+ * @param <K>
+ *          Typ der Keys
+ * @param <V>
+ *          Typ der Values
  */
 public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPrintable, Cloneable {
 	public static final int DEFAULT_INITIAL_CAPACITY = 16;
@@ -179,9 +182,9 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	 * capacity is MAXIMUM_CAPACITY, this method does not resize the map, but sets threshold to
 	 * Integer.MAX_VALUE. This has the effect of preventing future calls.
 	 *
-	 * @param newCapacity the new capacity, MUST be a power of two; must be greater than current
-	 *        capacity unless current capacity is MAXIMUM_CAPACITY (in which case value is
-	 *        irrelevant).
+	 * @param newCapacity
+	 *          the new capacity, MUST be a power of two; must be greater than current capacity unless
+	 *          current capacity is MAXIMUM_CAPACITY (in which case value is irrelevant).
 	 */
 	protected void resize(final int newCapacity) {
 		final IMapEntry<K, V>[] oldTable = table;
@@ -563,8 +566,8 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 		}
 		else {
 			Set<?> set = map.entrySet();
-			Iterator<Entry<? extends K, ? extends V>> iter =
-					(Iterator<java.util.Map.Entry<? extends K, ? extends V>>) set.iterator();
+			Iterator<Entry<? extends K, ? extends V>> iter = (Iterator<java.util.Map.Entry<? extends K, ? extends V>>) set
+					.iterator();
 			while (iter.hasNext()) {
 				Entry<? extends K, ? extends V> entry = iter.next();
 				put(entry.getKey(), entry.getValue());

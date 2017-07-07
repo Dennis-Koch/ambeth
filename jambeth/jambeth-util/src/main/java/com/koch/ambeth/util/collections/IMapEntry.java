@@ -27,8 +27,10 @@ import java.util.Map.Entry;
  *
  * @author kochd
  *
- * @param <K> Der Typ des Keys
- * @param <V> Der Typ des Values
+ * @param <K>
+ *          Der Typ des Keys
+ * @param <V>
+ *          Der Typ des Values
  */
 public interface IMapEntry<K, V> extends Entry<K, V> {
 	int getHash();
@@ -38,5 +40,5 @@ public interface IMapEntry<K, V> extends Entry<K, V> {
 	@Override
 	V setValue(V value);
 
-	// void setNextEntry(IMapEntry<K, V> nextEntry);
+	boolean isValid();
 }

@@ -49,6 +49,11 @@ public class MapLinkedEntry<K, V> extends AbstractListElem<MapLinkedEntry<K, V>>
 	}
 
 	@Override
+	public boolean isValid() {
+		return true;
+	}
+
+	@Override
 	public K getKey() {
 		return key;
 	}
