@@ -40,7 +40,9 @@ import com.koch.ambeth.security.server.IPBEncryptor;
 import com.koch.ambeth.security.server.IPasswordUtil;
 import com.koch.ambeth.security.server.IPasswordValidationExtendable;
 import com.koch.ambeth.security.server.IPrivateKeyProvider;
+import com.koch.ambeth.security.server.ISecureRandom;
 import com.koch.ambeth.security.server.ISignatureUtil;
+import com.koch.ambeth.security.server.OnDemandSecureRandom;
 import com.koch.ambeth.security.server.PBEncryptor;
 import com.koch.ambeth.security.server.PasswordUtil;
 import com.koch.ambeth.security.server.PersistedPrivateKeyProvider;
@@ -74,6 +76,8 @@ public class SecurityServerModule implements IInitializingModule {
 		beanContextFactory.registerBean(SignatureUtil.class).autowireable(ISignatureUtil.class);
 		beanContextFactory.registerBean(PersistedPrivateKeyProvider.class)
 				.autowireable(IPrivateKeyProvider.class);
+
+		beanContextFactory.registerBean(OnDemandSecureRandom.class).autowireable(ISecureRandom.class);
 
 		if (isSecurityActive) {
 			IBeanConfiguration authorizationProcess = beanContextFactory
