@@ -559,15 +559,25 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable, Cloneab
 	@SuppressWarnings("unchecked")
 	public <T> T[] toArray(T[] array) {
 		int index = 0;
+		int length = array.length;
 		ISetEntry<K>[] table = this.table;
 		for (int a = table.length; a-- > 0;) {
 			ISetEntry<K> entry = table[a];
 			while (entry != null) {
 				if (entry.isValid()) {
+					if (length <= index) {
+						length = size();
+						T[] newArray = (T[]) Array.newInstance(array.getClass().getComponentType(), length);
+						System.arraycopy(array, 0, newArray, 0, index);
+						array = newArray;
+					}
 					array[index++] = (T) entry.getKey();
 				}
 				entry = entry.getNextEntry();
 			}
+		}
+		for (int a = array.length; a-- > index;) {
+			array[a] = null;
 		}
 		return array;
 	}

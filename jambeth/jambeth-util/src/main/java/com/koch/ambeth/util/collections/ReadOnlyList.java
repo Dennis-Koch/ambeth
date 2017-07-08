@@ -289,6 +289,11 @@ public class ReadOnlyList<V> implements IList<V>, Serializable {
 	}
 
 	@Override
+	public <T extends V> boolean addAll(T[] array, int startIndex, int length) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public void clear() {
 		throw new UnsupportedOperationException();
 	}
@@ -328,6 +333,11 @@ public class ReadOnlyList<V> implements IList<V>, Serializable {
 
 	@Override
 	public <T extends V> boolean removeAll(T[] array) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public <T extends V> boolean removeAll(T[] array, int startIndex, int length) {
 		throw new UnsupportedOperationException();
 	}
 
