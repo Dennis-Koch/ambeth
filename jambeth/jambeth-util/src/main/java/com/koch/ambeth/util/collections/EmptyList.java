@@ -47,7 +47,8 @@ import com.koch.ambeth.util.IPrintable;
  *
  * @author kochd
  *
- * @param <V> Typ der Liste
+ * @param <V>
+ *          Typ der Liste
  */
 public class EmptyList<V> implements IList<V>, IPrintable, IImmutableType {
 	@SuppressWarnings("rawtypes")
@@ -132,6 +133,11 @@ public class EmptyList<V> implements IList<V>, IPrintable, IImmutableType {
 
 	@Override
 	public <T extends V> boolean addAll(T[] array) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public <T extends V> boolean addAll(T[] array, int startIndex, int length) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -221,6 +227,11 @@ public class EmptyList<V> implements IList<V>, IPrintable, IImmutableType {
 
 	@Override
 	public <T extends V> boolean removeAll(T[] array) {
+		return false;
+	}
+
+	@Override
+	public <T extends V> boolean removeAll(T[] array, int startIndex, int length) {
 		return false;
 	}
 

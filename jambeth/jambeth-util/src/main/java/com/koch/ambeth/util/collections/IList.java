@@ -25,7 +25,11 @@ import java.util.List;
 public interface IList<V> extends List<V> {
 	<T extends V> boolean addAll(T[] array);
 
+	<T extends V> boolean addAll(T[] array, int startIndex, int length);
+
 	<T extends V> boolean removeAll(T[] array);
+
+	<T extends V> boolean removeAll(T[] array, int startIndex, int length);
 
 	@Override
 	IList<V> subList(int fromIndex, int toIndex);

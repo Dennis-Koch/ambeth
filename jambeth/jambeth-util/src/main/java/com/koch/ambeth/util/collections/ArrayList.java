@@ -349,12 +349,19 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 		if (externArray == null) {
 			return false;
 		}
+		return addAll(externArray, 0, externArray.length);
+	}
+
+	@Override
+	public <T extends V> boolean addAll(T[] externArray, int startIndex, int length) {
+		if (externArray == null) {
+			return false;
+		}
 		int size = this.size;
 		Object[] array = this.array;
 
-		final int listSize = externArray.length;
-		if (size + listSize > array.length) {
-			final int sizeNeeded = size + listSize;
+		if (size + length > array.length) {
+			final int sizeNeeded = size + length;
 			int newSize = array.length << 1;
 			while (newSize < sizeNeeded) {
 				newSize = newSize << 1;
@@ -365,11 +372,12 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 			this.array = array;
 		}
 
-		for (T item : externArray) {
+		for (int a = startIndex, endIndex = startIndex + length; a < endIndex; a++) {
+			T item = externArray[a];
 			array[size++] = item;
 		}
 		this.size = size;
-		return externArray.length > 0;
+		return length > 0;
 	}
 
 	@Override
@@ -474,8 +482,17 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 		if (externArray == null) {
 			return false;
 		}
+		return removeAll(externArray, 0, externArray.length);
+	}
+
+	@Override
+	public <T extends V> boolean removeAll(T[] externArray, int startIndex, int length) {
+		if (externArray == null) {
+			return false;
+		}
 		boolean oneRemoved = false;
-		for (T item : externArray) {
+		for (int a = startIndex, endIndex = startIndex + length; a < endIndex; a++) {
+			T item = externArray[a];
 			oneRemoved |= remove(item);
 		}
 		return oneRemoved;
@@ -521,6 +538,9 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 		}
 		for (int a = size; a-- > 0;) {
 			targetArray[a] = (T) array[a];
+		}
+		for (int a = targetArray.length; a-- > size;) {
+			targetArray[a] = null;
 		}
 		return targetArray;
 	}

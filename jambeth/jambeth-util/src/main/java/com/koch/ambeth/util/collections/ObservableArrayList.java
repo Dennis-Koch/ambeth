@@ -134,8 +134,7 @@ public class ObservableArrayList<V>
 			return;
 		}
 		if (!(notifyCollectionChangedSupport instanceof NotifyCollectionChangedSupport)) {
-			INotifyCollectionChangedListener owner =
-					(INotifyCollectionChangedListener) notifyCollectionChangedSupport;
+			INotifyCollectionChangedListener owner = (INotifyCollectionChangedListener) notifyCollectionChangedSupport;
 			notifyCollectionChangedSupport = new NotifyCollectionChangedSupport();
 			addNotifyCollectionChangedListener(owner);
 		}
@@ -164,8 +163,7 @@ public class ObservableArrayList<V>
 			return;
 		}
 		if (!(notifyCollectionChangedSupport instanceof NotifyCollectionChangedSupport)) {
-			INotifyCollectionChangedListener owner =
-					(INotifyCollectionChangedListener) notifyCollectionChangedSupport;
+			INotifyCollectionChangedListener owner = (INotifyCollectionChangedListener) notifyCollectionChangedSupport;
 			owner.collectionChanged(event);
 			return;
 		}
@@ -432,12 +430,20 @@ public class ObservableArrayList<V>
 		if (externArray == null) {
 			return false;
 		}
+		return addAll(externArray, 0, externArray.length);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends V> boolean addAll(T[] externArray, int startIndex, int length) {
+		if (externArray == null) {
+			return false;
+		}
 		int size = this.size;
 		Object[] array = this.array;
 
-		final int listSize = externArray.length;
-		if (size + listSize > array.length) {
-			final int sizeNeeded = size + listSize;
+		if (size + length > array.length) {
+			final int sizeNeeded = size + length;
 			int newSize = array.length << 1;
 			while (newSize < sizeNeeded) {
 				newSize = newSize << 1;
@@ -448,15 +454,22 @@ public class ObservableArrayList<V>
 			this.array = array;
 		}
 
-		for (T item : externArray) {
+		for (int a = startIndex, endIndex = startIndex + length; a < endIndex; a++) {
+			T item = externArray[a];
 			array[size++] = item;
 		}
 		this.size = size;
-		if (notifyCollectionChangedSupport != null && externArray.length > 0) {
+		if (notifyCollectionChangedSupport != null && length > 0) {
+			if (startIndex != 0 || length != externArray.length) {
+				T[] scopedArray = (T[]) Array.newInstance(externArray.getClass().getComponentType(),
+						length);
+				System.arraycopy(externArray, startIndex, scopedArray, 0, length);
+				externArray = scopedArray;
+			}
 			fireNotifyCollectionChanged(
 					new NotifyCollectionChangedEvent(this, NotifyCollectionChangedAction.Add, externArray));
 		}
-		return externArray.length > 0;
+		return length > 0;
 	}
 
 	@Override
@@ -534,7 +547,7 @@ public class ObservableArrayList<V>
 	}
 
 	@Override
-	@SuppressWarnings({"rawtypes", "unchecked"})
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public boolean removeAll(final Collection<?> c) {
 		final ArrayList<Object> result = new ArrayList<>(c.size());
 		if (c instanceof List) {
@@ -564,18 +577,26 @@ public class ObservableArrayList<V>
 
 	@Override
 	public <T extends V> boolean removeAll(T[] array) {
-		final ArrayList<T> result = new ArrayList<>(array.length);
-		for (int a = array.length; a-- > 0;) {
+		return removeAll(array, 0, array.length);
+	}
+
+	@Override
+	public <T extends V> boolean removeAll(T[] array, int startIndex, int length) {
+		ArrayList<T> result = null;
+		for (int a = startIndex + length; a-- > startIndex;) {
 			T element = array[a];
 			if (internalRemove(element)) {
+				if (result == null) {
+					result = new ArrayList<>(a - startIndex + 1);
+				}
 				result.add(element);
 			}
 		}
-		if (notifyCollectionChangedSupport != null && result.size > 0) {
+		if (notifyCollectionChangedSupport != null && result != null) {
 			fireNotifyCollectionChanged(
 					new NotifyCollectionChangedEvent(this, NotifyCollectionChangedAction.Remove, result));
 		}
-		return result.size > 0;
+		return result != null;
 	}
 
 	@Override
